@@ -1,72 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:58864 "EHLO
+Received: from moutng.kundenserver.de ([212.227.126.187]:59751 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964915Ab3DHPF7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 11:05:59 -0400
+	with ESMTP id S1754657Ab3DLPk6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 11:40:58 -0400
 From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v8 2/7] media: V4L2: support asynchronous subdevice registration
-Date: Mon,  8 Apr 2013 17:05:33 +0200
-Message-Id: <1365433538-15975-3-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de>
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [PATCH v9 01/20] V4L2: add temporary clock helpers
+Date: Fri, 12 Apr 2013 17:40:21 +0200
+Message-Id: <1365781240-16149-2-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Currently bridge device drivers register devices for all subdevices
-synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
-is attached to a video bridge device, the bridge driver will create an I2C
-device and wait for the respective I2C driver to probe. This makes linking
-of devices straight forward, but this approach cannot be used with
-intrinsically asynchronous and unordered device registration systems like
-the Flattened Device Tree. To support such systems this patch adds an
-asynchronous subdevice registration framework to V4L2. To use it respective
-(e.g. I2C) subdevice drivers must register themselves with the framework.
-A bridge driver on the other hand must register notification callbacks,
-that will be called upon various related events.
+Typical video devices like camera sensors require an external clock source.
+Many such devices cannot even access their hardware registers without a
+running clock. These clock sources should be controlled by their consumers.
+This should be performed, using the generic clock framework. Unfortunately
+so far only very few systems have been ported to that framework. This patch
+adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
+Platforms, adopting the clock API, should switch to using it. Eventually
+this temporary API should be removed.
 
 Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
 
-v8: Really renamed V4L2_ASYNC_BUS_SPECIAL to V4L2_ASYNC_BUS_CUSTOM
+v9: no change
 
- drivers/media/v4l2-core/Makefile     |    3 +-
- drivers/media/v4l2-core/v4l2-async.c |  262 ++++++++++++++++++++++++++++++++++
- include/media/v4l2-async.h           |  104 ++++++++++++++
- 3 files changed, 368 insertions(+), 1 deletions(-)
- create mode 100644 drivers/media/v4l2-core/v4l2-async.c
- create mode 100644 include/media/v4l2-async.h
+ drivers/media/v4l2-core/Makefile   |    2 +-
+ drivers/media/v4l2-core/v4l2-clk.c |  177 ++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-clk.h           |   54 +++++++++++
+ 3 files changed, 232 insertions(+), 1 deletions(-)
+ create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+ create mode 100644 include/media/v4l2-clk.h
 
 diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index 628c630..4c33b8d6 100644
+index aa50c46..628c630 100644
 --- a/drivers/media/v4l2-core/Makefile
 +++ b/drivers/media/v4l2-core/Makefile
-@@ -5,7 +5,8 @@
+@@ -5,7 +5,7 @@
  tuner-objs	:=	tuner-core.o
  
  videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
--			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
-+			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o \
-+			v4l2-async.o
+-			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
++			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
  ifeq ($(CONFIG_COMPAT),y)
    videodev-objs += v4l2-compat-ioctl32.o
  endif
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
 new file mode 100644
-index 0000000..4cc56ad
+index 0000000..d7cc13e
 --- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -0,0 +1,262 @@
++++ b/drivers/media/v4l2-core/v4l2-clk.c
+@@ -0,0 +1,177 @@
 +/*
-+ * V4L2 asynchronous subdevice registration API
++ * V4L2 clock service
 + *
 + * Copyright (C) 2012-2013, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 + *
@@ -75,369 +70,233 @@ index 0000000..4cc56ad
 + * published by the Free Software Foundation.
 + */
 +
++#include <linux/atomic.h>
 +#include <linux/device.h>
-+#include <linux/err.h>
-+#include <linux/i2c.h>
++#include <linux/errno.h>
 +#include <linux/list.h>
 +#include <linux/module.h>
 +#include <linux/mutex.h>
-+#include <linux/platform_device.h>
 +#include <linux/slab.h>
-+#include <linux/types.h>
++#include <linux/string.h>
 +
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-device.h>
++#include <media/v4l2-clk.h>
 +#include <media/v4l2-subdev.h>
 +
-+static bool match_i2c(struct device *dev, struct v4l2_async_hw_device *hw_dev)
++static DEFINE_MUTEX(clk_lock);
++static LIST_HEAD(clk_list);
++
++static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
 +{
-+	struct i2c_client *client = i2c_verify_client(dev);
-+	return client &&
-+		hw_dev->bus_type == V4L2_ASYNC_BUS_I2C &&
-+		hw_dev->match.i2c.adapter_id == client->adapter->nr &&
-+		hw_dev->match.i2c.address == client->addr;
-+}
++	struct v4l2_clk *clk;
 +
-+static bool match_platform(struct device *dev, struct v4l2_async_hw_device *hw_dev)
-+{
-+	return hw_dev->bus_type == V4L2_ASYNC_BUS_PLATFORM &&
-+		!strcmp(hw_dev->match.platform.name, dev_name(dev));
-+}
-+
-+static LIST_HEAD(subdev_list);
-+static LIST_HEAD(notifier_list);
-+static DEFINE_MUTEX(list_lock);
-+
-+static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
-+						    struct v4l2_async_subdev_list *asdl)
-+{
-+	struct v4l2_async_subdev *asd = NULL;
-+	bool (*match)(struct device *,
-+		      struct v4l2_async_hw_device *);
-+
-+	list_for_each_entry (asd, &notifier->waiting, list) {
-+		struct v4l2_async_hw_device *hw = &asd->hw;
-+		switch (hw->bus_type) {
-+		case V4L2_ASYNC_BUS_CUSTOM:
-+			match = hw->match.special.match;
-+			if (!match)
-+				/* Match always */
-+				return asd;
-+			break;
-+		case V4L2_ASYNC_BUS_PLATFORM:
-+			match = match_platform;
-+			break;
-+		case V4L2_ASYNC_BUS_I2C:
-+			match = match_i2c;
-+			break;
-+		default:
-+			/* Oops */
-+			match = NULL;
-+			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-+				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
-+		}
-+
-+		if (match && match(asdl->dev, hw))
-+			break;
-+	}
-+
-+	return asd;
-+}
-+
-+static int v4l2_async_test_notify(struct v4l2_async_notifier *notifier,
-+				  struct v4l2_async_subdev_list *asdl,
-+				  struct v4l2_async_subdev *asd)
-+{
-+	int ret;
-+
-+	/* Remove from the waiting list */
-+	list_del(&asd->list);
-+	asdl->asd = asd;
-+	asdl->notifier = notifier;
-+
-+	if (notifier->bound) {
-+		ret = notifier->bound(notifier, asdl);
-+		if (ret < 0)
-+			return ret;
-+	}
-+	/* Move from the global subdevice list to notifier's done */
-+	list_move(&asdl->list, &notifier->done);
-+
-+	ret = v4l2_device_register_subdev(notifier->v4l2_dev,
-+					  asdl->subdev);
-+	if (ret < 0) {
-+		if (notifier->unbind)
-+			notifier->unbind(notifier, asdl);
-+		return ret;
-+	}
-+
-+	if (list_empty(&notifier->waiting) && notifier->complete)
-+		return notifier->complete(notifier);
-+
-+	return 0;
-+}
-+
-+static void v4l2_async_cleanup(struct v4l2_async_subdev_list *asdl)
-+{
-+	v4l2_device_unregister_subdev(asdl->subdev);
-+	/* Subdevice driver will reprobe and put asdl back onto the list */
-+	list_del_init(&asdl->list);
-+	asdl->asd = NULL;
-+	asdl->dev = NULL;
-+}
-+
-+static struct device *v4l2_async_unregister(struct v4l2_async_subdev_list *asdl)
-+{
-+	struct device *dev = asdl->dev;
-+
-+	v4l2_async_cleanup(asdl);
-+
-+	/* If we handled USB devices, we'd have to lock the parent too */
-+	device_release_driver(dev);
-+	return dev;
-+}
-+
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier)
-+{
-+	struct v4l2_async_subdev_list *asdl, *tmp;
-+	int i;
-+
-+	notifier->v4l2_dev = v4l2_dev;
-+	INIT_LIST_HEAD(&notifier->waiting);
-+	INIT_LIST_HEAD(&notifier->done);
-+
-+	for (i = 0; i < notifier->subdev_num; i++)
-+		list_add_tail(&notifier->subdev[i]->list, &notifier->waiting);
-+
-+	mutex_lock(&list_lock);
-+
-+	/* Keep also completed notifiers on the list */
-+	list_add(&notifier->list, &notifier_list);
-+
-+	list_for_each_entry_safe(asdl, tmp, &subdev_list, list) {
-+		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
-+		int ret;
-+
-+		if (!asd)
++	list_for_each_entry(clk, &clk_list, list) {
++		if (strcmp(dev_id, clk->dev_id))
 +			continue;
 +
-+		ret = v4l2_async_test_notify(notifier, asdl, asd);
-+		if (ret < 0) {
-+			mutex_unlock(&list_lock);
-+			return ret;
-+		}
++		if (!id || !clk->id || !strcmp(clk->id, id))
++			return clk;
 +	}
 +
-+	mutex_unlock(&list_lock);
-+
-+	return 0;
++	return ERR_PTR(-ENODEV);
 +}
-+EXPORT_SYMBOL(v4l2_async_notifier_register);
 +
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
++struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
 +{
-+	struct v4l2_async_subdev_list *asdl, *tmp;
-+	int i = 0;
-+	struct device **dev = kcalloc(notifier->subdev_num,
-+				      sizeof(*dev), GFP_KERNEL);
-+	if (!dev)
-+		dev_err(notifier->v4l2_dev->dev,
-+			"Failed to allocate device cache!\n");
++	struct v4l2_clk *clk;
 +
-+	mutex_lock(&list_lock);
++	mutex_lock(&clk_lock);
++	clk = v4l2_clk_find(dev_name(dev), id);
 +
-+	list_del(&notifier->list);
++	if (!IS_ERR(clk) && !try_module_get(clk->ops->owner))
++		clk = ERR_PTR(-ENODEV);
++	mutex_unlock(&clk_lock);
 +
-+	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
-+		if (dev)
-+			dev[i++] = get_device(asdl->dev);
-+		v4l2_async_unregister(asdl);
++	if (!IS_ERR(clk))
++		atomic_inc(&clk->use_count);
 +
-+		if (notifier->unbind)
-+			notifier->unbind(notifier, asdl);
-+	}
-+
-+	mutex_unlock(&list_lock);
-+
-+	if (dev) {
-+		while (i--) {
-+			if (dev[i] && device_attach(dev[i]) < 0)
-+				dev_err(dev[i], "Failed to re-probe to %s\n",
-+					dev[i]->driver ? dev[i]->driver->name : "(none)");
-+			put_device(dev[i]);
-+		}
-+		kfree(dev);
-+	}
-+	/*
-+	 * Don't care about the waiting list, it is initialised and populated
-+	 * upon notifier registration.
-+	 */
++	return clk;
 +}
-+EXPORT_SYMBOL(v4l2_async_notifier_unregister);
++EXPORT_SYMBOL(v4l2_clk_get);
 +
-+int v4l2_async_register_subdev(struct v4l2_async_subdev_list *asdl)
++void v4l2_clk_put(struct v4l2_clk *clk)
 +{
-+	struct v4l2_async_notifier *notifier;
-+
-+	mutex_lock(&list_lock);
-+
-+	INIT_LIST_HEAD(&asdl->list);
-+
-+	list_for_each_entry(notifier, &notifier_list, list) {
-+		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, asdl);
-+		if (asd) {
-+			int ret = v4l2_async_test_notify(notifier, asdl, asd);
-+			mutex_unlock(&list_lock);
-+			return ret;
-+		}
++	if (!IS_ERR(clk)) {
++		atomic_dec(&clk->use_count);
++		module_put(clk->ops->owner);
 +	}
-+
-+	/* None matched, wait for hot-plugging */
-+	list_add(&asdl->list, &subdev_list);
-+
-+	mutex_unlock(&list_lock);
-+
-+	return 0;
 +}
-+EXPORT_SYMBOL(v4l2_async_register_subdev);
++EXPORT_SYMBOL(v4l2_clk_put);
 +
-+void v4l2_async_unregister_subdev(struct v4l2_async_subdev_list *asdl)
++int v4l2_clk_enable(struct v4l2_clk *clk)
 +{
-+	struct v4l2_async_notifier *notifier = asdl->notifier;
-+	struct device *dev;
++	int ret;
++	mutex_lock(&clk->lock);
++	if (++clk->enable == 1 && clk->ops->enable) {
++		ret = clk->ops->enable(clk);
++		if (ret < 0)
++			clk->enable--;
++	} else {
++		ret = 0;
++	}
++	mutex_unlock(&clk->lock);
++	return ret;
++}
++EXPORT_SYMBOL(v4l2_clk_enable);
 +
-+	if (!asdl->asd) {
-+		if (!list_empty(&asdl->list))
-+			v4l2_async_cleanup(asdl);
++void v4l2_clk_disable(struct v4l2_clk *clk)
++{
++	int enable;
++
++	mutex_lock(&clk->lock);
++	enable = --clk->enable;
++	if (WARN(enable < 0, "Unbalanced %s() on %s:%s!\n", __func__,
++		 clk->dev_id, clk->id))
++		clk->enable++;
++	else if (!enable && clk->ops->disable)
++		clk->ops->disable(clk);
++	mutex_unlock(&clk->lock);
++}
++EXPORT_SYMBOL(v4l2_clk_disable);
++
++unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
++{
++	if (!clk->ops->get_rate)
++		return -ENOSYS;
++
++	return clk->ops->get_rate(clk);
++}
++EXPORT_SYMBOL(v4l2_clk_get_rate);
++
++int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
++{
++	if (!clk->ops->set_rate)
++		return -ENOSYS;
++
++	return clk->ops->set_rate(clk, rate);
++}
++EXPORT_SYMBOL(v4l2_clk_set_rate);
++
++struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
++				   const char *dev_id,
++				   const char *id, void *priv)
++{
++	struct v4l2_clk *clk;
++	int ret;
++
++	if (!ops || !dev_id)
++		return ERR_PTR(-EINVAL);
++
++	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
++	if (!clk)
++		return ERR_PTR(-ENOMEM);
++
++	clk->id = kstrdup(id, GFP_KERNEL);
++	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
++	if ((id && !clk->id) || !clk->dev_id) {
++		ret = -ENOMEM;
++		goto ealloc;
++	}
++	clk->ops = ops;
++	clk->priv = priv;
++	atomic_set(&clk->use_count, 0);
++	mutex_init(&clk->lock);
++
++	mutex_lock(&clk_lock);
++	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
++		mutex_unlock(&clk_lock);
++		ret = -EEXIST;
++		goto eexist;
++	}
++	list_add_tail(&clk->list, &clk_list);
++	mutex_unlock(&clk_lock);
++
++	return clk;
++
++eexist:
++ealloc:
++	kfree(clk->id);
++	kfree(clk->dev_id);
++	kfree(clk);
++	return ERR_PTR(ret);
++}
++EXPORT_SYMBOL(v4l2_clk_register);
++
++void v4l2_clk_unregister(struct v4l2_clk *clk)
++{
++	if (WARN(atomic_read(&clk->use_count),
++		 "%s(): Refusing to unregister ref-counted %s:%s clock!\n",
++		 __func__, clk->dev_id, clk->id))
 +		return;
-+	}
 +
-+	mutex_lock(&list_lock);
++	mutex_lock(&clk_lock);
++	list_del(&clk->list);
++	mutex_unlock(&clk_lock);
 +
-+	dev = asdl->dev;
-+
-+	list_add(&asdl->asd->list, &notifier->waiting);
-+
-+	v4l2_async_cleanup(asdl);
-+
-+	if (notifier->unbind)
-+		notifier->unbind(notifier, asdl);
-+
-+	mutex_unlock(&list_lock);
++	kfree(clk->id);
++	kfree(clk->dev_id);
++	kfree(clk);
 +}
-+EXPORT_SYMBOL(v4l2_async_unregister_subdev);
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
++EXPORT_SYMBOL(v4l2_clk_unregister);
+diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
 new file mode 100644
-index 0000000..c0470c6
+index 0000000..0503a90
 --- /dev/null
-+++ b/include/media/v4l2-async.h
-@@ -0,0 +1,104 @@
++++ b/include/media/v4l2-clk.h
+@@ -0,0 +1,54 @@
 +/*
-+ * V4L2 asynchronous subdevice registration API
++ * V4L2 clock service
 + *
 + * Copyright (C) 2012-2013, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
++ *
++ * ATTENTION: This is a temporary API and it shall be replaced by the generic
++ * clock API, when the latter becomes widely available.
 + */
 +
-+#ifndef V4L2_ASYNC_H
-+#define V4L2_ASYNC_H
++#ifndef MEDIA_V4L2_CLK_H
++#define MEDIA_V4L2_CLK_H
 +
++#include <linux/atomic.h>
 +#include <linux/list.h>
 +#include <linux/mutex.h>
 +
-+#include <media/v4l2-subdev.h>
-+
++struct module;
 +struct device;
-+struct v4l2_device;
-+struct v4l2_async_notifier;
 +
-+enum v4l2_async_bus_type {
-+	V4L2_ASYNC_BUS_CUSTOM,
-+	V4L2_ASYNC_BUS_PLATFORM,
-+	V4L2_ASYNC_BUS_I2C,
-+};
-+
-+struct v4l2_async_hw_device {
-+	enum v4l2_async_bus_type bus_type;
-+	union {
-+		struct {
-+			const char *name;
-+		} platform;
-+		struct {
-+			int adapter_id;
-+			unsigned short address;
-+		} i2c;
-+		struct {
-+			bool (*match)(struct device *,
-+				      struct v4l2_async_hw_device *);
-+			void *priv;
-+		} special;
-+	} match;
-+};
-+
-+/**
-+ * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
-+ * @hw:		this device descriptor
-+ * @list:	member in a list of subdevices
-+ */
-+struct v4l2_async_subdev {
-+	struct v4l2_async_hw_device hw;
++struct v4l2_clk {
 +	struct list_head list;
++	const struct v4l2_clk_ops *ops;
++	const char *dev_id;
++	const char *id;
++	int enable;
++	struct mutex lock; /* Protect the enable count */
++	atomic_t use_count;
++	void *priv;
 +};
 +
-+/**
-+ * v4l2_async_subdev_list - provided by subdevices
-+ * @list:	member in a list of subdevices
-+ * @dev:	hardware device
-+ * @subdev:	V4L2 subdevice
-+ * @asd:	pointer to respective struct v4l2_async_subdev
-+ * @notifier:	pointer to managing notifier
-+ */
-+struct v4l2_async_subdev_list {
-+	struct list_head list;
-+	struct device *dev;
-+	struct v4l2_subdev *subdev;
-+	struct v4l2_async_subdev *asd;
-+	struct v4l2_async_notifier *notifier;
++struct v4l2_clk_ops {
++	struct module	*owner;
++	int		(*enable)(struct v4l2_clk *clk);
++	void		(*disable)(struct v4l2_clk *clk);
++	unsigned long	(*get_rate)(struct v4l2_clk *clk);
++	int		(*set_rate)(struct v4l2_clk *clk, unsigned long);
 +};
 +
-+/**
-+ * v4l2_async_notifier - provided by bridges
-+ * @subdev_num:	number of subdevices
-+ * @subdev:	array of pointers to subdevices
-+ * @v4l2_dev:	pointer to sruct v4l2_device
-+ * @waiting:	list of subdevices, waiting for their drivers
-+ * @done:	list of subdevices, already probed
-+ * @list:	member in a global list of notifiers
-+ * @bound:	a subdevice driver has successfully probed one of subdevices
-+ * @complete:	all subdevices have been probed successfully
-+ * @unbind:	a subdevice is leaving
-+ */
-+struct v4l2_async_notifier {
-+	int subdev_num;
-+	struct v4l2_async_subdev **subdev;
-+	struct v4l2_device *v4l2_dev;
-+	struct list_head waiting;
-+	struct list_head done;
-+	struct list_head list;
-+	int (*bound)(struct v4l2_async_notifier *notifier,
-+		     struct v4l2_async_subdev_list *asdl);
-+	int (*complete)(struct v4l2_async_notifier *notifier);
-+	void (*unbind)(struct v4l2_async_notifier *notifier,
-+		       struct v4l2_async_subdev_list *asdl);
-+};
++struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
++				   const char *dev_name,
++				   const char *name, void *priv);
++void v4l2_clk_unregister(struct v4l2_clk *clk);
++struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id);
++void v4l2_clk_put(struct v4l2_clk *clk);
++int v4l2_clk_enable(struct v4l2_clk *clk);
++void v4l2_clk_disable(struct v4l2_clk *clk);
++unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
++int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
 +
-+int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-+				 struct v4l2_async_notifier *notifier);
-+void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
-+int v4l2_async_register_subdev(struct v4l2_async_subdev_list *asdl);
-+void v4l2_async_unregister_subdev(struct v4l2_async_subdev_list *asdl);
 +#endif
-
 -- 
 1.7.2.5
 
