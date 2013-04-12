@@ -1,55 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56885 "EHLO mail.kapsi.fi"
+Received: from plane.gmane.org ([80.91.229.3]:40406 "EHLO plane.gmane.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751809Ab3DISrS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 14:47:18 -0400
-Message-ID: <516461FE.4020007@iki.fi>
-Date: Tue, 09 Apr 2013 21:46:22 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@infradead.org>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH -next] media:
-References: <20130408174343.cc13eb1972470d20d38ecff1@canb.auug.org.au> <51630297.2040803@infradead.org>
-In-Reply-To: <51630297.2040803@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1751406Ab3DLOUE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 10:20:04 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1UQepf-0003XR-Av
+	for linux-media@vger.kernel.org; Fri, 12 Apr 2013 16:20:03 +0200
+Received: from hsi-kbw-5-56-247-189.hsi17.kabel-badenwuerttemberg.de ([5.56.247.189])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 12 Apr 2013 16:20:03 +0200
+Received: from sur5r by hsi-kbw-5-56-247-189.hsi17.kabel-badenwuerttemberg.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 12 Apr 2013 16:20:03 +0200
+To: linux-media@vger.kernel.org
+From: Jakob Haufe <sur5r@sur5r.net>
+Subject: [PATCH] Add support for Delock 61959
+Date: Fri, 12 Apr 2013 16:18:40 +0200
+Message-ID: <20130412161840.4bf01fc2@samsa.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/08/2013 08:47 PM, Randy Dunlap wrote:
-> From: Randy Dunlap <rdunlap@infradead.org>
->
-> Fix randconfig error when USB is not enabled:
->
-> ERROR: "usb_control_msg" [drivers/media/common/cypress_firmware.ko] undefined!
->
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> Cc: Antti Palosaari <crope@iki.fi>
-
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-
-
-> ---
->   drivers/media/common/Kconfig |    1 +
->   1 file changed, 1 insertion(+)
->
-> --- linux-next-20130408.orig/drivers/media/common/Kconfig
-> +++ linux-next-20130408/drivers/media/common/Kconfig
-> @@ -18,6 +18,7 @@ config VIDEO_TVEEPROM
->
->   config CYPRESS_FIRMWARE
->   	tristate "Cypress firmware helper routines"
-> +	depends on USB
->
->   source "drivers/media/common/b2c2/Kconfig"
->   source "drivers/media/common/saa7146/Kconfig"
->
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpEZWxvY2sg
+NjE5NTkgc2VlbXMgdG8gYmUgYSByZWxhYmVsZWQgdmVyc2lvbiBvZiBNYXhtZWRpYSBVQjQyNS1U
+QyB3aXRoIGENCmRpZmZlcmVudCBVU0IgSUQuIFBDQiBpcyBtYXJrZWQgYXMgIlVCNDI1LVRDIFZl
+cjogQSIgYW5kIHRoaXMgY2hhbmdlDQptYWtlcyBpdCB3b3JrIHdpdGhvdXQgYW55IG9idmlvdXMg
+cHJvYmxlbXMuDQoNClNpZ25lZC1vZmYtYnk6IEpha29iIEhhdWZlIDxzdXI1ckBzdXI1ci5uZXQ+
+DQotIC0tLQ0KIGRyaXZlcnMvbWVkaWEvdXNiL2VtMjh4eC9lbTI4eHgtY2FyZHMuYyB8ICAgIDIg
+KysNCiAxIGZpbGUgY2hhbmdlZCwgMiBpbnNlcnRpb25zKCspDQoNCmRpZmYgLS1naXQgYS9kcml2
+ZXJzL21lZGlhL3VzYi9lbTI4eHgvZW0yOHh4LWNhcmRzLmMgYi9kcml2ZXJzL21lZGlhL3VzYi9l
+bTI4eHgvZW0yOHh4LWNhcmRzLmMNCmluZGV4IDFkMzg2NmYuLjgyOTUwYWEgMTAwNjQ0DQotIC0t
+LSBhL2RyaXZlcnMvbWVkaWEvdXNiL2VtMjh4eC9lbTI4eHgtY2FyZHMuYw0KKysrIGIvZHJpdmVy
+cy9tZWRpYS91c2IvZW0yOHh4L2VtMjh4eC1jYXJkcy5jDQpAQCAtMjE3Myw2ICsyMTczLDggQEAg
+c3RydWN0IHVzYl9kZXZpY2VfaWQgZW0yOHh4X2lkX3RhYmxlW10gPSB7DQogICAgICAgICAgICAg
+ICAgICAgICAgICAuZHJpdmVyX2luZm8gPSBFTTI4NjBfQk9BUkRfRUFTWUNBUCB9LA0KICAgICAg
+ICB7IFVTQl9ERVZJQ0UoMHgxYjgwLCAweGU0MjUpLA0KICAgICAgICAgICAgICAgICAgICAgICAg
+LmRyaXZlcl9pbmZvID0gRU0yODc0X0JPQVJEX01BWE1FRElBX1VCNDI1X1RDIH0sDQorICAgICAg
+IHsgVVNCX0RFVklDRSgweDFiODAsIDB4ZTFjYyksIC8qIERlbG9jayA2MTk1OSAqLw0KKyAgICAg
+ICAgICAgICAgICAgICAgICAgLmRyaXZlcl9pbmZvID0gRU0yODc0X0JPQVJEX01BWE1FRElBX1VC
+NDI1X1RDIH0sDQogICAgICAgIHsgVVNCX0RFVklDRSgweDIzMDQsIDB4MDI0MiksDQogICAgICAg
+ICAgICAgICAgICAgICAgICAuZHJpdmVyX2luZm8gPSBFTTI4ODRfQk9BUkRfUENUVl81MTBFIH0s
+DQogICAgICAgIHsgVVNCX0RFVklDRSgweDIwMTMsIDB4MDI1MSksDQotIC0tIA0KMS43LjEwLjQN
+Cg0KDQotIC0tIA0KY2V0ZXJ1bSBjZW5zZW8gbWljcm9zb2Z0ZW0gZXNzZSBkZWxlbmRhbS4NCi0t
+LS0tQkVHSU4gUEdQIFNJR05BVFVSRS0tLS0tDQpWZXJzaW9uOiBHbnVQRyB2MS40LjEyIChHTlUv
+TGludXgpDQoNCmlFWUVBUkVDQUFZRkFsRm9GOEFBQ2drUTFZQWhEaWMrYWRhSVBRQ2ZaUSs2Z1VI
+L0pBNk4yUVZzYTducnBaeUwNCnZTc0FuM2Urek1pRmlNODBWbjFvVEdyZ25raER4ZmN4DQo9bU9j
+Rw0KLS0tLS1FTkQgUEdQIFNJR05BVFVSRS0tLS0tDQo=
 
 
--- 
-http://palosaari.fi/
