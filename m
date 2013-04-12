@@ -1,68 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2325 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755032Ab3DTLrd (ORCPT
+Received: from mail-da0-f51.google.com ([209.85.210.51]:49646 "EHLO
+	mail-da0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751372Ab3DLF4j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 07:47:33 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3KBlMGn035731
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:47:32 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 6BDAA11E00F1
-	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:47:21 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.10] Various fixes
-Date: Sat, 20 Apr 2013 13:47:20 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304201347.20412.hverkuil@xs4all.nl>
+	Fri, 12 Apr 2013 01:56:39 -0400
+Received: by mail-da0-f51.google.com with SMTP id g27so988062dan.24
+        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 22:56:38 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: devicetree-discuss@lists.ozlabs.org,
+	dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org
+Cc: rob.herring@calxeda.com, grant.likely@secretlab.ca,
+	robherring2@gmail.com, sachin.kamat@linaro.org, patches@linaro.org,
+	Inki Dae <inki.dae@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Ajay Kumar <ajaykumar.rs@samsung.com>
+Subject: [PATCH Resend 1/1] Revert "of/exynos_g2d: Add Bindings for exynos G2D driver"
+Date: Fri, 12 Apr 2013 11:14:31 +0530
+Message-Id: <1365745471-4853-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This reverts commit 09495dda6a62c74b13412a63528093910ef80edd.
+The description is incomplete and the location of this file
+is incorrect. Based on discussion with the Samsung media and DRM subsystem
+maintainers, the documentaion of Samsung G2D bindings has been placed at:
+Documentation/devicetree/bindings/gpu/samsung-g2d.txt
 
-Here is my set of patches for 3.10, various fixes for cx88, go7007, em28xx and solo6x10.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Inki Dae <inki.dae@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Ajay Kumar <ajaykumar.rs@samsung.com>
+---
+The right documentation for G2D bindings has already been merged for 3.10-rc
+and hence we need this patch for 3.10-rc too, to avoid confusions due to
+multiple documents.
+---
+ .../devicetree/bindings/drm/exynos/g2d.txt         |   22 --------------------
+ 1 file changed, 22 deletions(-)
+ delete mode 100644 Documentation/devicetree/bindings/drm/exynos/g2d.txt
 
-Regards,
+diff --git a/Documentation/devicetree/bindings/drm/exynos/g2d.txt b/Documentation/devicetree/bindings/drm/exynos/g2d.txt
+deleted file mode 100644
+index 1eb124d..0000000
+--- a/Documentation/devicetree/bindings/drm/exynos/g2d.txt
++++ /dev/null
+@@ -1,22 +0,0 @@
+-Samsung 2D Graphic Accelerator using DRM frame work
+-
+-Samsung FIMG2D is a graphics 2D accelerator which supports Bit Block Transfer.
+-We set the drawing-context registers for configuring rendering parameters and
+-then start rendering.
+-This driver is for SOCs which contain G2D IPs with version 4.1.
+-
+-Required properties:
+-	-compatible:
+-		should be "samsung,exynos-g2d-41".
+-	-reg:
+-		physical base address of the controller and length
+-		of memory mapped region.
+-	-interrupts:
+-		interrupt combiner values.
+-
+-Example:
+-	g2d {
+-		compatible = "samsung,exynos-g2d-41";
+-		reg = <0x10850000 0x1000>;
+-		interrupts = <0 91 0>;
+-	};
+-- 
+1.7.9.5
 
-	Hans
-
-The following changes since commit 6695be6863b75620ffa6d422965680ce785cb7c8:
-
-  [media] DT: export of_get_next_parent() for use by modules: fix modular V4L2 (2013-04-17 12:28:57 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.10
-
-for you to fetch changes up to acf69c28717a80f2240b49a81c10b37bd8998148:
-
-  em28xx: add a missing le16_to_cpu conversion (2013-04-20 13:42:41 +0200)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      cx88: Fix unsafe locking in suspend-resume
-
-Dan Carpenter (1):
-      go7007: dubious one-bit signed bitfields
-
-Frank Schaefer (1):
-      em28xx: add a missing le16_to_cpu conversion
-
-Ismael Luceno (2):
-      solo6x10: Update the encoder mode on VIDIOC_S_FMT
-      solo6x10: Fix pixelformat accepted/reported by the encoder
-
- drivers/media/pci/cx88/cx88-mpeg.c                 |   10 ++++++----
- drivers/media/pci/cx88/cx88-video.c                |   10 ++++++----
- drivers/media/usb/em28xx/em28xx-cards.c            |    3 ++-
- drivers/staging/media/go7007/go7007-priv.h         |    4 ++--
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   44 +++++++++++++++++++++++++++++++++-----------
- 5 files changed, 49 insertions(+), 22 deletions(-)
