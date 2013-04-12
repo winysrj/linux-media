@@ -1,165 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:52328 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754567Ab3DLPkw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 11:40:52 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v9 11/20] sh-mobile-ceu-camera: move interface activation and deactivation to clock callbacks
-Date: Fri, 12 Apr 2013 17:40:31 +0200
-Message-Id: <1365781240-16149-12-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:59091 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752415Ab3DLOk6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 10:40:58 -0400
+Message-ID: <51681CD2.20905@iki.fi>
+Date: Fri, 12 Apr 2013 17:40:18 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Jakob Haufe <sur5r@sur5r.net>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH] Add support for Delock 61959
+References: <20130412161840.4bf01fc2@samsa.lan>
+In-Reply-To: <20130412161840.4bf01fc2@samsa.lan>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the sh-mobile-ceu-camera driver activates
-and, respectively, deactivates its camera interface and, if necessary, the
-CSI2 controller. Only handling of the CSI2 interface is client-specific and
-is only needed, when a data-exchange with the client is taking place. Move
-the rest to .clock_start() and .clock_stop() callbacks.
+On 04/12/2013 05:18 PM, Jakob Haufe wrote:
+> -----BEGIN PGP SIGNED MESSAGE-----
+> Hash: SHA1
+>
+> Delock 61959 seems to be a relabeled version of Maxmedia UB425-TC with a
+> different USB ID. PCB is marked as "UB425-TC Ver: A" and this change
+> makes it work without any obvious problems.
+>
+> Signed-off-by: Jakob Haufe <sur5r@sur5r.net>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   58 ++++++++++++--------
- 1 files changed, 35 insertions(+), 23 deletions(-)
+Acked-by: Antti Palosaari <crope@iki.fi>
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 5b7d8e1..9037472 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -162,7 +162,6 @@ static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
- static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
- {
- 	int i, success = 0;
--	struct soc_camera_device *icd = pcdev->ici.icd;
- 
- 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
- 
-@@ -186,7 +185,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
- 
- 
- 	if (2 != success) {
--		dev_warn(icd->pdev, "soft reset time out\n");
-+		dev_warn(pcdev->ici.v4l2_dev.dev, "soft reset time out\n");
- 		return -EIO;
- 	}
- 
-@@ -543,35 +542,21 @@ static struct v4l2_subdev *find_csi2(struct sh_mobile_ceu_dev *pcdev)
- 	return NULL;
- }
- 
--/* Called with .host_lock held */
- static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
--	struct v4l2_subdev *csi2_sd;
-+	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
- 	int ret;
- 
--	dev_info(icd->parent,
--		 "SuperH Mobile CEU driver attached to camera %d\n",
--		 icd->devnum);
--
--	pm_runtime_get_sync(ici->v4l2_dev.dev);
--
--	pcdev->buf_total = 0;
--
--	ret = sh_mobile_ceu_soft_reset(pcdev);
--
--	csi2_sd = find_csi2(pcdev);
- 	if (csi2_sd) {
- 		csi2_sd->grp_id = soc_camera_grp_id(icd);
- 		v4l2_set_subdev_hostdata(csi2_sd, icd);
- 	}
- 
- 	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
--	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
--		pm_runtime_put(ici->v4l2_dev.dev);
-+	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
- 		return ret;
--	}
- 
- 	/*
- 	 * -ENODEV is special: either csi2_sd == NULL or the CSI-2 driver
-@@ -580,19 +565,48 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- 	if (ret == -ENODEV && csi2_sd)
- 		csi2_sd->grp_id = 0;
- 
-+	dev_info(icd->parent,
-+		 "SuperH Mobile CEU driver attached to camera %d\n",
-+		 icd->devnum);
-+
- 	return 0;
- }
- 
--/* Called with .host_lock held */
- static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
- 
-+	dev_info(icd->parent,
-+		 "SuperH Mobile CEU driver detached from camera %d\n",
-+		 icd->devnum);
-+
- 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
- 	if (csi2_sd)
- 		csi2_sd->grp_id = 0;
-+}
-+
-+/* Called with .host_lock held */
-+static int sh_mobile_ceu_clock_start(struct soc_camera_host *ici)
-+{
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+	int ret;
-+
-+	pm_runtime_get_sync(ici->v4l2_dev.dev);
-+
-+	pcdev->buf_total = 0;
-+
-+	ret = sh_mobile_ceu_soft_reset(pcdev);
-+
-+	return 0;
-+}
-+
-+/* Called with .host_lock held */
-+static void sh_mobile_ceu_clock_stop(struct soc_camera_host *ici)
-+{
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+
- 	/* disable capture, disable interrupts */
- 	ceu_write(pcdev, CEIER, 0);
- 	sh_mobile_ceu_soft_reset(pcdev);
-@@ -607,10 +621,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- 	spin_unlock_irq(&pcdev->lock);
- 
- 	pm_runtime_put(ici->v4l2_dev.dev);
--
--	dev_info(icd->parent,
--		 "SuperH Mobile CEU driver detached from camera %d\n",
--		 icd->devnum);
- }
- 
- /*
-@@ -2027,6 +2037,8 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= sh_mobile_ceu_add_device,
- 	.remove		= sh_mobile_ceu_remove_device,
-+	.clock_start	= sh_mobile_ceu_clock_start,
-+	.clock_stop	= sh_mobile_ceu_clock_stop,
- 	.get_formats	= sh_mobile_ceu_get_formats,
- 	.put_formats	= sh_mobile_ceu_put_formats,
- 	.get_crop	= sh_mobile_ceu_get_crop,
+> - ---
+>   drivers/media/usb/em28xx/em28xx-cards.c |    2 ++
+>   1 file changed, 2 insertions(+)
+>
+> diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+> index 1d3866f..82950aa 100644
+> - --- a/drivers/media/usb/em28xx/em28xx-cards.c
+> +++ b/drivers/media/usb/em28xx/em28xx-cards.c
+> @@ -2173,6 +2173,8 @@ struct usb_device_id em28xx_id_table[] = {
+>                          .driver_info = EM2860_BOARD_EASYCAP },
+>          { USB_DEVICE(0x1b80, 0xe425),
+>                          .driver_info = EM2874_BOARD_MAXMEDIA_UB425_TC },
+> +       { USB_DEVICE(0x1b80, 0xe1cc), /* Delock 61959 */
+> +                       .driver_info = EM2874_BOARD_MAXMEDIA_UB425_TC },
+>          { USB_DEVICE(0x2304, 0x0242),
+>                          .driver_info = EM2884_BOARD_PCTV_510E },
+>          { USB_DEVICE(0x2013, 0x0251),
+> - --
+> 1.7.10.4
+>
+>
+> - --
+> ceterum censeo microsoftem esse delendam.
+> -----BEGIN PGP SIGNATURE-----
+> Version: GnuPG v1.4.12 (GNU/Linux)
+>
+> iEYEARECAAYFAlFoF8AACgkQ1YAhDic+adaIPQCfZQ+6gUH/JA6N2QVsa7nrpZyL
+> vSsAn3e+zMiFiM80Vn1oTGrgnkhDxfcx
+> =mOcG
+> -----END PGP SIGNATURE-----
+> N‹§²æìr¸›yúèšØb²X¬¶Ç§vØ^–)Þº{.nÇ+‰·¥Š{±™çbj)í…æèw*jg¬±¨¶‰šŽŠÝ¢j/êäz¹Þ–Šà2ŠÞ™¨è­Ú&¢)ß¡«a¶Úþø®G«éh®æj:+v‰¨Šwè†Ù¥
+>
+
+
 -- 
-1.7.2.5
-
+http://palosaari.fi/
