@@ -1,56 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:11507 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755292Ab3DYJuM (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41560 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab3DLJW2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 05:50:12 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT00BSH1Z5TYM0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 18:50:10 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
+	Fri, 12 Apr 2013 05:22:28 -0400
+Received: from avalon.localnet (unknown [91.178.242.31])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 639F63598B
+	for <linux-media@vger.kernel.org>; Fri, 12 Apr 2013 11:22:09 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 0/7] Add copy time stamp handling to mem2mem drivers
-Date: Thu, 25 Apr 2013 11:49:43 +0200
-Message-id: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
+Subject: [GIT PULL FOR v3.10] OMAP3 ISP patches
+Date: Fri, 12 Apr 2013 11:22:29 +0200
+Message-ID: <1731183.tBO8QF8hR3@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Mauro,
 
-This set of patches adds support for copy time stamp handling in the following
-mem2mem drivers:
-* CODA video codec
-* Exynos GScaler
-* m2m-deinterlace
-* mx2_emmaprp
-* Exynos G2D
-* Exynos Jpeg
-In addition there is a slight optimisation for the Exynos MFC driver.
+The following changes since commit 81e096c8ac6a064854c2157e0bf802dc4906678c:
 
-Best wishes,
-Kamil Debski
+  [media] budget: Add support for Philips Semi Sylt PCI ref. design 
+(2013-04-08 07:28:01 -0300)
 
-Kamil Debski (7):
-  s5p-g2d: Add copy time stamp handling
-  s5p-jpeg: Add copy time stamp handling
-  s5p-mfc: Optimize copy time stamp handling
-  coda: Add copy time stamp handling
-  exynos-gsc: Add copy time stamp handling
-  m2m-deinterlace: Add copy time stamp handling
-  mx2-emmaprp: Add copy time stamp handling
+are available in the git repository at:
 
- drivers/media/platform/coda.c               |    5 +++++
- drivers/media/platform/exynos-gsc/gsc-m2m.c |    5 +++++
- drivers/media/platform/m2m-deinterlace.c    |    5 +++++
- drivers/media/platform/mx2_emmaprp.c        |    5 +++++
- drivers/media/platform/s5p-g2d/g2d.c        |    5 +++++
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    5 +++++
- drivers/media/platform/s5p-mfc/s5p_mfc.c    |   10 ++++------
- 7 files changed, 34 insertions(+), 6 deletions(-)
+  git://linuxtv.org/pinchartl/media.git omap3isp/next
+
+for you to fetch changes up to 36960bd76f1088e0cebbe47328e41045443bdc56:
+
+  omap3isp: Use the common clock framework (2013-04-12 10:59:37 +0200)
+
+Please note that the patch depends on
+
+commit 533ddeb1e86f506129ee388a6cc13796dcf31311
+Author: Mike Turquette <mturquette@linaro.org>
+Date:   Thu Mar 28 13:59:02 2013 -0700
+
+    clk: allow reentrant calls into the clk framework
+
+scheduled for v3.10.
+
+----------------------------------------------------------------
+Laurent Pinchart (1):
+      omap3isp: Use the common clock framework
+
+ drivers/media/platform/omap3isp/isp.c | 277 +++++++++++++++++++++++----------
+ drivers/media/platform/omap3isp/isp.h |  22 +++-
+ include/media/omap3isp.h              |  10 +-
+ 3 files changed, 225 insertions(+), 84 deletions(-)
 
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
