@@ -1,39 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f50.google.com ([209.85.210.50]:46204 "EHLO
-	mail-da0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S968063Ab3DSJxo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 05:53:44 -0400
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 0/2] media: davinci: vpif trivial cleanup
-Date: Fri, 19 Apr 2013 15:23:28 +0530
-Message-Id: <1366365210-3778-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from plane.gmane.org ([80.91.229.3]:54727 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751254Ab3DLORk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 10:17:40 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1UQenL-0008Rf-GG
+	for linux-media@vger.kernel.org; Fri, 12 Apr 2013 16:17:39 +0200
+Received: from hsi-kbw-5-56-247-189.hsi17.kabel-badenwuerttemberg.de ([5.56.247.189])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 12 Apr 2013 16:17:39 +0200
+Received: from sur5r by hsi-kbw-5-56-247-189.hsi17.kabel-badenwuerttemberg.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 12 Apr 2013 16:17:39 +0200
+To: linux-media@vger.kernel.org
+From: Jakob Haufe <sur5r@sur5r.net>
+Subject: Re: Delock 61959
+Date: Fri, 12 Apr 2013 16:17:28 +0200
+Message-ID: <20130412161728.6795c609@samsa.lan>
+References: <CALS5Gh60mV5UiOeNPf98QrhmY_j5MDi2T1xsjRn7DzdAYj7fQg@mail.gmail.com>
+	<CALS5Gh7=UTEz8GDq0XK97_=Uaf4gVfifweY+v50XX0AUjoHBNg@mail.gmail.com>
+	<514EFB5E.3010808@iki.fi>
+	<20130409144805.6dbbe71d@samsa.lan>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: base64
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+LS0tLS1CRUdJTiBQR1AgU0lHTkVEIE1FU1NBR0UtLS0tLQ0KSGFzaDogU0hBMQ0KDQpPbiBUdWUs
+IDkgQXByIDIwMTMgMTQ6NDg6MDUgKzAyMDANCkpha29iIEhhdWZlIDxzdXI1ckBzdXI1ci5uZXQ+
+IHdyb3RlOg0KDQo+IFdpbGwgZG8gc28gdG9uaWdodCBhbmQgcmVwb3J0IGJhY2suDQoNClRvb2sg
+YSBsaXR0bGUgbG9uZ2VyIGJ1dCBpdCB3b3JrZWQgYXMgZXhwZWN0ZWQuIFBhdGNoIGZvbGxvd3Mg
+aW4gYSBzZXBhcmF0ZQ0KbWFpbC4NCg0KZG1lc2cgb3V0cHV0Og0KDQpbMTkuNDc0ODE4XSBlbTI4
+eHg6IE5ldyBkZXZpY2UgIFVTQiAyODc1IERldmljZSBAIDQ4MCBNYnBzICgxYjgwOmUxY2MsIGlu
+dGVyZmFjZSAwLCBjbGFzcyAwKQ0KWzE5LjQ4NDI0NV0gZW0yOHh4OiBEVkIgaW50ZXJmYWNlIDAg
+Zm91bmQ6IGlzb2MNClsxOS40OTM2MjZdIGVtMjh4eDogY2hpcCBJRCBpcyBlbTI4NzQNClsxOS43
+NzE4NDNdIGVtMjg3NCAjMDogaTJjIGVlcHJvbSAwMDAwOiAyNiAwMCAwMSAwMCAwMiAwOCBjOCBl
+NSBmNSA2NCAwMSA2MCAwOSBlNSBmNSA2NA0KWzE5Ljc4MTgyMF0gZW0yODc0ICMwOiBpMmMgZWVw
+cm9tIDAwMTA6IDA5IDYwIDAzIGMyIGM2IDIyIGU1IGY3IGI0IDAzIDEzIGU1IGY2IGI0IDg3IDAz
+DQpbMTkuNzkxNjgyXSBlbTI4NzQgIzA6IGkyYyBlZXByb20gMDAyMDogMDIgMDggNjMgZTUgZjYg
+YjQgOTMgMDMgMDIgMDYgZjcgYzIgYzYgMjIgYzIgYzYNClsxOS44MDE0MjldIGVtMjg3NCAjMDog
+aTJjIGVlcHJvbSAwMDMwOiAyMiAwMCA2MCAwMCA5MCAwMCA2MCAxMiAwNiAyOSA3YiA5NSA3YSA2
+NyA3OSBlYg0KWzE5LjgxMDk1NV0gZW0yODc0ICMwOiBpMmMgZWVwcm9tIDAwNDA6IDc4IDFhIGMz
+IDEyIDA2IDE4IDcwIDAzIGQzIDgwIDAxIGMzIDkyIDAyIDkwIDc4DQpbMTkuODIwMzQ1XSBlbTI4
+NzQgIzA6IGkyYyBlZXByb20gMDA1MDogMGIgNzQgOTYgZjAgNzQgODIgZjAgOTAgNzggNWQgNzQg
+MDUgZjAgYTMgZjAgMjINClsxOS44Mjk1MzJdIGVtMjg3NCAjMDogaTJjIGVlcHJvbSAwMDYwOiAw
+MCAwMCAwMCAwMCAxYSBlYiA2NyA5NSA4MCAxYiBjYyBlMSBmMCA5MyA2YiAwMA0KWzE5LjgzODc2
+OF0gZW0yODc0ICMwOiBpMmMgZWVwcm9tIDAwNzA6IDZhIDIwIDAwIDAwIDAwIDAwIDA0IDU3IDRl
+IDA3IDA5IDAwIDAwIDAwIDAwIDAwDQpbMTkuODQ4MDM3XSBlbTI4NzQgIzA6IGkyYyBlZXByb20g
+MDA4MDogMDAgMDAgMDAgMDAgNGUgMDAgMTIgMDAgZjAgMTAgNDQgODkgODggMDAgMDAgMDANClsx
+OS44NTcyNDBdIGVtMjg3NCAjMDogaTJjIGVlcHJvbSAwMDkwOiA1YiA4MSBjMCAwMCAwMCAwMCAy
+MCA0MCAyMCA4MCAwMiAyMCAwMSAwMSAwMCAwMA0KWzE5Ljg2NjQ1Ml0gZW0yODc0ICMwOiBpMmMg
+ZWVwcm9tIDAwYTA6IDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAwIDAw
+IDAwDQpbMTkuODc1NjYzXSBlbTI4NzQgIzA6IGkyYyBlZXByb20gMDBiMDogYzYgNDAgMDAgMDAg
+MDAgMDAgODcgMDAgMDAgMDAgMDAgMDAgMDAgNDAgMDAgMDANClsxOS44ODQ4NjNdIGVtMjg3NCAj
+MDogaTJjIGVlcHJvbSAwMGMwOiAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAwMCAw
+MCAwMCAyMCAwMw0KWzE5Ljg5NDAwMF0gZW0yODc0ICMwOiBpMmMgZWVwcm9tIDAwZDA6IDU1IDAw
+IDUzIDAwIDQyIDAwIDIwIDAwIDMyIDAwIDM4IDAwIDM3IDAwIDM1IDAwDQpbMTkuOTAzMTc0XSBl
+bTI4NzQgIzA6IGkyYyBlZXByb20gMDBlMDogMjAgMDAgNDQgMDAgNjUgMDAgNzYgMDAgNjkgMDAg
+NjMgMDAgNjUgMDAgMDQgMDMNClsxOS45MTIyODJdIGVtMjg3NCAjMDogaTJjIGVlcHJvbSAwMGYw
+OiAzMSAwMCAwMCAwMCAzMyAwMCAzNCAwMCAzNSAwMCAzNiAwMCAzNyAwMCAzOCAwMA0KWzE5Ljky
+MTMyOV0gZW0yODc0ICMwOiBpMmMgZWVwcm9tIDAxMDA6IC4uLiAoc2tpcHBlZCkNClsxOS45MzAx
+MzRdIGVtMjg3NCAjMDogRUVQUk9NIElEID0gMjYgMDAgMDEgMDAsIEVFUFJPTSBoYXNoID0gMHhk
+ZTFmODc5Yg0KWzE5LjkzODk2N10gZW0yODc0ICMwOiBFRVBST00gaW5mbzoNClsxOS45NDc1OTBd
+IGVtMjg3NCAjMDogICAgICAgbWljcm9jb2RlIHN0YXJ0IGFkZHJlc3MgPSAweDAwMDQsIGJvb3Qg
+Y29uZmlndXJhdGlvbiA9IDB4MDENClsxOS45NjQxNzFdIGVtMjg3NCAjMDogICAgICAgTm8gYXVk
+aW8gb24gYm9hcmQuDQpbMTkuOTcyNTQ4XSBlbTI4NzQgIzA6ICAgICAgIDUwMG1BIG1heCBwb3dl
+cg0KWzE5Ljk4MDkxMl0gZW0yODc0ICMwOiAgICAgICBUYWJsZSBhdCBvZmZzZXQgMHgwMCwgc3Ry
+aW5ncz0weDAwMDAsIDB4MDAwMCwgMHgwMDAwDQpbMTkuOTg5ODU5XSBlbTI4NzQgIzA6IElkZW50
+aWZpZWQgYXMgTWF4TWVkaWEgVUI0MjUtVEMgKGNhcmQ9ODQpDQpbMTkuOTk4NTE4XSBlbTI4NzQg
+IzA6IHY0bDIgZHJpdmVyIHZlcnNpb24gMC4yLjANClsyMC4wMTI1NDhdIGVtMjg3NCAjMDogVjRM
+MiB2aWRlbyBkZXZpY2UgcmVnaXN0ZXJlZCBhcyB2aWRlbzANClsyMC4wMjEyNjhdIGVtMjg3NCAj
+MDogZHZiIHNldCB0byBpc29jIG1vZGUuDQpbMjAuMDY2NjYyXSBkcnhrOiBzdGF0dXMgPSAweDQz
+OTEzMGQ5DQpbMjAuMDc1ODk2XSBkcnhrOiBkZXRlY3RlZCBhIGRyeC0zOTEzaywgc3BpbiBBMiwg
+eHRhbCAyMC4yNTAgTUh6DQpbMjAuMTU4MjgyXSBEUlhLIGRyaXZlciB2ZXJzaW9uIDAuOS40MzAw
+DQpbMjAuMTg0ODc4XSBkcnhrOiBmcm9udGVuZCBpbml0aWFsaXplZC4NClsyMi4wMjU3MDddIGVt
+Mjg3NCAjMDogTWF4TWVkaWEgVUI0MjUtVEM6IG9ubHkgRFZCLUMgc3VwcG9ydGVkIGJ5IHRoYXQg
+ZHJpdmVyIHZlcnNpb24NClsyMi4wMzUxNDldIERWQjogcmVnaXN0ZXJpbmcgbmV3IGFkYXB0ZXIg
+KGVtMjg3NCAjMCkNClsyMi4wNDQ5NjddIHVzYiAxLTE6IERWQjogcmVnaXN0ZXJpbmcgYWRhcHRl
+ciAwIGZyb250ZW5kIDAgKERSWEsgRFZCLUMgRFZCLVQpLi4uDQpbMjIuMDYxMDEyXSBlbTI4NzQg
+IzA6IFN1Y2Nlc3NmdWxseSBsb2FkZWQgZW0yOHh4LWR2Yg0KDQpJIHRoZW4gcmFuIHR2aGVhZGVu
+ZCBmb3IgYSBjb3VwbGUgb2YgaG91cnMgYW5kIGl0IHdvcmtlZCB3aXRob3V0IHByb2JsZW1zLg0K
+DQpJJ20ganVzdCB3b25kZXJpbmcgaG93IHRvIGdldCB0aGUgSVIgcmVtb3RlIHRvIHdvcmsuIEFz
+IHRoZSBVQjQyNS1UQyBjb21lcw0Kd2l0aCBhIHJlbW90ZSBhcyB3ZWxsIEkga2luZCBvZiBleHBl
+Y3RlZCB0aGF0IHRoZSBjb2RlcyB3aWxsIGJlIHRoZSBzYW1lLg0KDQpXb3VsZCB0cnlpbmcgZGlm
+ZmVyZW50IHZhbHVlcyBmb3IgLmlyX2NvZGVzIG1ha2Ugc2Vuc2Ugb3IgaXMgdGhlcmUgc29tZSBv
+dGhlcg0Kd2F5IHRvIGZpbmQgdGhpcyBvdXQ/DQoNCkNoZWVycywNCkpha29iDQoNCi0gLS0gDQpj
+ZXRlcnVtIGNlbnNlbyBtaWNyb3NvZnRlbSBlc3NlIGRlbGVuZGFtLg0KLS0tLS1CRUdJTiBQR1Ag
+U0lHTkFUVVJFLS0tLS0NClZlcnNpb246IEdudVBHIHYxLjQuMTIgKEdOVS9MaW51eCkNCg0KaUVZ
+RUFSRUNBQVlGQWxGb0YzZ0FDZ2tRMVlBaERpYythZFoxQlFDZUpicjg2QW5jSEdNK1J3MnJ3dURp
+REREaQ0KMHFBQW9JSGRoWllvWXhDUDZmUFdsZk84YUgwcklDM1UNCj1kSXhQDQotLS0tLUVORCBQ
+R1AgU0lHTkFUVVJFLS0tLS0NCg==
 
-The first patch of the series cleanups the header file inclusion,
-and second patch fixes displaying of error when there is actual
-failure of request_irq().
-
-Lad, Prabhakar (2):
-  media: davinci: vpif: remove unwanted header file inclusion
-  media: davinci: vpif_display: move displaying of error to
-    approppraite place
-
- drivers/media/platform/davinci/vpif_capture.c |   19 ++++---------------
- drivers/media/platform/davinci/vpif_capture.h |    5 +----
- drivers/media/platform/davinci/vpif_display.c |   25 ++++---------------------
- drivers/media/platform/davinci/vpif_display.h |    5 +----
- 4 files changed, 10 insertions(+), 44 deletions(-)
-
--- 
-1.7.4.1
 
