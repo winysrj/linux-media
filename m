@@ -1,48 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f175.google.com ([209.85.212.175]:32931 "EHLO
-	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965364Ab3DRDSU (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:37436 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751316Ab3DLGDT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 23:18:20 -0400
-Received: by mail-wi0-f175.google.com with SMTP id h11so1156374wiv.2
-        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 20:18:19 -0700 (PDT)
-MIME-Version: 1.0
-Date: Thu, 18 Apr 2013 11:18:19 +0800
-Message-ID: <CAPgLHd_TwmtoaE7T7e3fRKh4NTGhOYjQZv0G7nt-iSVMLz3XEQ@mail.gmail.com>
-Subject: [PATCH -next] [media] s5p-mfc: fix error return code in s5p_mfc_probe()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: kyungmin.park@samsung.com, k.debski@samsung.com,
-	jtp.park@samsung.com, mchehab@redhat.com, grant.likely@linaro.org,
-	rob.herring@calxeda.com
-Cc: yongjun_wei@trendmicro.com.cn,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 12 Apr 2013 02:03:19 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0ML400KJUOSX0E40@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 12 Apr 2013 07:03:17 +0100 (BST)
+Message-id: <5167A3A3.5090200@samsung.com>
+Date: Fri, 12 Apr 2013 08:03:15 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com, pawel@osciak.com,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH] media: vb2: add length check for mmap
+References: <1365739077-8740-1-git-send-email-sw0312.kim@samsung.com>
+In-reply-to: <1365739077-8740-1-git-send-email-sw0312.kim@samsung.com>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Fix to return a negative error code from the error handling
-case instead of 0, as returned elsewhere in this function.
+On 4/12/2013 5:57 AM, Seung-Woo Kim wrote:
+> The length of mmap() can be bigger than length of vb2 buffer, so
+> it should be checked.
+>
+> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index e810b1a..a5853fa 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1110,7 +1110,8 @@ static int s5p_mfc_probe(struct platform_device *pdev)
- 	}
- 
- 	if (pdev->dev.of_node) {
--		if (s5p_mfc_alloc_memdevs(dev) < 0)
-+		ret = s5p_mfc_alloc_memdevs(dev);
-+		if (ret < 0)
- 			goto err_res;
- 	} else {
- 		dev->mem_dev_l = device_find_child(&dev->plat_dev->dev,
+> ---
+>   drivers/media/v4l2-core/videobuf2-core.c |    5 +++++
+>   1 files changed, 5 insertions(+), 0 deletions(-)
+>
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index db1235d..2c6ff2d 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1886,6 +1886,11 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+>   
+>   	vb = q->bufs[buffer];
+>   
+> +	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
+> +		dprintk(1, "Invalid length\n");
+> +		return -EINVAL;
+> +	}
+> +
+>   	ret = call_memop(q, mmap, vb->planes[plane].mem_priv, vma);
+>   	if (ret)
+>   		return ret;
+
+Best regards
+-- 
+Marek Szyprowski
+Samsung Poland R&D Center
+
 
