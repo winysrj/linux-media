@@ -1,99 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1907 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753686Ab3DUSUk (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:41869 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752577Ab3DLKRO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 14:20:40 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3LIKTIk095912
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 20:20:39 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 7278611E02C4
-	for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 20:20:23 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130421182023.7278611E02C4@alastor.dyndns.org>
-Date: Sun, 21 Apr 2013 20:20:23 +0200 (CEST)
+	Fri, 12 Apr 2013 06:17:14 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Christian Rhodin <Crhodin@aptina.com>, linux-media@vger.kernel.org
+Subject: Re: Pixel Formats
+Date: Fri, 12 Apr 2013 12:17:15 +0200
+Message-ID: <1521576.ES8kTFfaXd@avalon>
+In-Reply-To: <Pine.LNX.4.64.1303072227570.20470@axis700.grange>
+References: <B4589F7BF62FDC409F64E48C95EC0572113A6BFC@sjcaex01.aptad.aptina.com> <Pine.LNX.4.64.1303072227570.20470@axis700.grange>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+(A bit late, sorry)
 
-Results of the daily build of media_tree:
+On Thursday 07 March 2013 22:37:26 Guennadi Liakhovetski wrote:
+> On Wed, 6 Mar 2013, Christian Rhodin wrote:
+> > Hi,
+> > 
+> > I'm looking for some guidance on the correct way to handle a new pixel
+> > format.  What I'm dealing with is a CMOS image sensor that supports
+> > dynamic switching between linear and iHDR modes.  iHDR stands for
+> > "interlaced High Dynamic Range" and is a mode where odd and even lines
+> > have different exposure times, typically with an 8:1 ratio.  When I
+> > started implementing a driver for this sensor I used
+> > "V4L2_MBUS_FMT_SGRBG10_1X10" as the format for the linear mode and
+> > defined a new format "V4L2_MBUS_FMT_SGRBG10_IHDR_1X10" for the iHDR
+> > mode.  I used the format to control which mode I put the sensor in.  But
+> > now I'm having trouble switching modes without reinitializing the
+> > sensor.  Does anyone (everyone?) have an opinion about the correct way
+> > to implement this?  I'm thinking that the format is overloaded because
+> > it represents both the size and type of the data.  Should I use a single
+> > format and add a control to switch the mode?
+> 
+> I would vote for a single format with a control, maybe even somehow
+> cluster it with the normal exposure, but I'm not an expert in that, not
+> sure if it would make sense.
 
-date:		Sun Apr 21 19:00:22 CEST 2013
-git branch:	test
-git hash:	6695be6863b75620ffa6d422965680ce785cb7c8
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+>From the above explanation about iHDR I assume that enabling iHDR mode 
+produces an image with the same resolution as linear mode, not an image with 8 
+times the number of lines compared to the linear mode. Please correct me if 
+I'm wrong.
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+If my understanding of iHDR mode is correct, I agree with Guennadi. I don't 
+think enabling iHDR changes the format, it "just" modifies the exposure time 
+algorithm. A V4L2 control would thus be better than adding an iHDR variant to 
+all existing formats.
 
-Detailed results are available here:
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+Laurent Pinchart
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
