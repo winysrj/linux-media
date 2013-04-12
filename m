@@ -1,57 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:56647 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757955Ab3DYXuP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 19:50:15 -0400
-Date: Thu, 25 Apr 2013 20:50:04 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for v3.9-final] media fixes
-Message-ID: <20130425205004.3e5abd5d@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:49703 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753139Ab3DLLui (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Apr 2013 07:50:38 -0400
+MIME-Version: 1.0
+In-Reply-To: <CA+V-a8u+jNizu8EFfmwwh6kSr913n1JAFkx7r3_MfXrCyWnG0g@mail.gmail.com>
+References: <CA+V-a8sko61y73odE5efJWwqYyMkBqM7_FPrs7Uvh7sdtBsGvA@mail.gmail.com>
+ <CA+V-a8u+jNizu8EFfmwwh6kSr913n1JAFkx7r3_MfXrCyWnG0g@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 12 Apr 2013 17:20:17 +0530
+Message-ID: <CA+V-a8vW50McasFWQJRquvBj=vf5oQeOnHC8eSFjBFUYm_M2eA@mail.gmail.com>
+Subject: Re: [GIT PULL FOR v3.10] DaVinci media cleanups + Updates
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sekhar Nori <nsekhar@ti.com>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hi Hans/Mauro,
 
-Please pull from:
+Ahh here is the final pull request hopefully I wont add anymore :)
+sorry for inconvenience,
+had to add on more patch at the final moment. Following is the fresh
+pull request.
+Let me know if replying on top if it is OK or if if you want a fresh mail.
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-
-For two driver fixes. One avoids reading any file at a system with a
-cx25821 board (fortunately, this is not a common device). The other one
-prevents reading after a buffer with ISDB-T devices based on mb86a20s.
+Note: All the ARM platform changes have been acked by its maintainer.
 
 Regards,
-Mauro
+--Prabhakar
 
--
+The following changes since commit 81e096c8ac6a064854c2157e0bf802dc4906678c:
 
-The following changes since commit 35ccecef6ed48a5602755ddf580c45a026a1dc05:
-
-  [media] [REGRESSION] bt8xx: Fix too large height in cropcap (2013-03-26 08:37:00 -0300)
+  [media] budget: Add support for Philips Semi Sylt PCI ref. design
+(2013-04-08 07:28:01 -0300)
 
 are available in the git repository at:
+  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_v3.10
 
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+Lad, Prabhakar (9):
+      davinci: vpif: add pm_runtime support
+      media: davinci: vpss: enable vpss clocks
+      media: davinci: vpbe: venc: move the enabling of vpss clocks to driver
+      davinic: vpss: trivial cleanup
+      ARM: davinci: dm365: add support for v4l2 video display
+      ARM: davinci: dm365 EVM: add support for VPBE display
+      ARM: davinci: dm355: add support for v4l2 video display
+      ARM: davinci: dm355 EVM: add support for VPBE display
+      ARM: daVinci: dm644x/dm355/dm365: replace V4L2_STD_525_60/625_50
+with V4L2_STD_NTSC/PAL
 
-for you to fetch changes up to c95789ecd5a979fd718ae09763df3fa50dd97a91:
+Sekhar Nori (1):
+      media: davinci: kconfig: fix incorrect selects
 
-  [media] cx25821: do not expose broken video output streams (2013-04-15 08:28:41 -0300)
-
-----------------------------------------------------------------
-Hans Verkuil (1):
-      [media] cx25821: do not expose broken video output streams
-
-Mauro Carvalho Chehab (1):
-      [media] mb86a20s: Fix estimate_rate setting
-
- drivers/media/dvb-frontends/mb86a20s.c    | 2 +-
- drivers/media/pci/cx25821/cx25821-video.c | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
-
+ arch/arm/mach-davinci/board-dm355-evm.c      |   71 +++++++++-
+ arch/arm/mach-davinci/board-dm365-evm.c      |  166 ++++++++++++++++++++++-
+ arch/arm/mach-davinci/board-dm644x-evm.c     |    4 +-
+ arch/arm/mach-davinci/davinci.h              |   11 ++-
+ arch/arm/mach-davinci/dm355.c                |  174 ++++++++++++++++++++++--
+ arch/arm/mach-davinci/dm365.c                |  195 +++++++++++++++++++++++---
+ arch/arm/mach-davinci/dm644x.c               |    9 +-
+ arch/arm/mach-davinci/pm_domain.c            |    2 +-
+ drivers/media/platform/davinci/Kconfig       |  103 +++++---------
+ drivers/media/platform/davinci/Makefile      |   17 +--
+ drivers/media/platform/davinci/dm355_ccdc.c  |   39 +-----
+ drivers/media/platform/davinci/dm644x_ccdc.c |   44 ------
+ drivers/media/platform/davinci/isif.c        |   28 +---
+ drivers/media/platform/davinci/vpbe_venc.c   |   25 ++++
+ drivers/media/platform/davinci/vpif.c        |   24 +---
+ drivers/media/platform/davinci/vpss.c        |   36 ++++-
+ 16 files changed, 694 insertions(+), 254 deletions(-)
