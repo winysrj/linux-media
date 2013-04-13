@@ -1,201 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2345 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935937Ab3DHOHl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 10:07:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "Tzu-Jung Lee" <roylee17@gmail.com>
-Subject: Re: Question regarding developing V4L2 device driver and Streaming IO in v4l2-ctl
-Date: Mon, 8 Apr 2013 16:07:23 +0200
-Cc: linux-media@vger.kernel.org, hans.verkuil@cisco.com,
-	Kamil Debski <k.debski@samsung.com>
-References: <CAEvN+1iN_fZ-Gu904LTLYf8CZs9ZfZm03bfuE4Ev3frEgOLShg@mail.gmail.com> <201304061518.50347.hverkuil@xs4all.nl> <CAEvN+1gLBvJNBb8RjkG_TDk6XXY7-ydwg4f3SAaZmr6ESPAsXA@mail.gmail.com>
-In-Reply-To: <CAEvN+1gLBvJNBb8RjkG_TDk6XXY7-ydwg4f3SAaZmr6ESPAsXA@mail.gmail.com>
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:48592 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978Ab3DMSSF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Apr 2013 14:18:05 -0400
+Received: by mail-ee0-f45.google.com with SMTP id c50so1647106eek.4
+        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 11:18:03 -0700 (PDT)
+Message-ID: <5169A19F.6080407@googlemail.com>
+Date: Sat, 13 Apr 2013 20:19:11 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304081607.23357.hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com> <20130413114144.097a21a1@redhat.com> <51697AC8.1050807@googlemail.com> <20130413140444.2fba3e88@redhat.com> <516999EC.6080605@googlemail.com>
+In-Reply-To: <516999EC.6080605@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat April 6 2013 18:23:46 Tzu-Jung Lee wrote:
-> Hi Hans,
-> 
-> Thanks for the pointer to the EVENT and the ENC/DEC CMD :)
-> I just noticed that v4l2-ctl has a command category for them as well.
-> 
-> If I configure the codec as a transcoder, and would like to transcode
-> a input bitstream with v4l2-ctl,
-> I should use the following command instance to test our driver and
-> device, right?
-> 
->   1) Feed input bitstream and start decoder, and stop the decoder as
-> soon as the input reaches EOF.
-> 
->            v4l2-ctl --decoder-cmd=start --stream-from=orig.h264 &&
-> v4l2-ctl --decoder-cmd=stop &
-> 
-> 
->   2) Start encoder and save the transcoded bitstream
-> 
->          v4l2-ctl --encoder-cmd=start --stream-to=xcoded.h264 &
-> 
-> 
->   3) Currently, the STREAM I/O of v4l2-ctl is counter based, so the 2)
-> does not end until 2-second timeout.
->       In this case, for a non-timeout solution,  we'll need a event
-> waiting and terminate the process.
-> 
->          v4l2-ctl --wait-for-event=eos && kill "encoding instance of v4l2-ctl"
+Am 13.04.2013 19:46, schrieb Frank Schäfer:
+> Am 13.04.2013 19:04, schrieb Mauro Carvalho Chehab:
+>> Em Sat, 13 Apr 2013 17:33:28 +0200
+>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>
+>>> Am 13.04.2013 16:41, schrieb Mauro Carvalho Chehab:
+>>>> Em Sat, 13 Apr 2013 11:48:39 +0200
+>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>>
+>>>>> The GPIO register tracking/caching code is partially broken, because newer
+>>>>> devices provide more than one GPIO register and some of them are even using
+>>>>> separate registers for read and write access.
+>>>>> Making it work would be too complicated.
+>>>>> It is also used nowhere and doesn't make sense in cases where input lines are
+>>>>> connected to buttons etc.
+>>>>>
+>>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>>>> ---
+>>>>>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
+>>>>>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
+>>>>>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
+>>>>>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
+>>>> ...
+>>>>
+>>>>
+>>>>> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
+>>>>>  	int oldval;
+>>>>>  	u8 newval;
+>>>>>  
+>>>>> -	/* Uses cache for gpo/gpio registers */
+>>>>> -	if (reg == dev->reg_gpo_num)
+>>>>> -		oldval = dev->reg_gpo;
+>>>>> -	else if (reg == dev->reg_gpio_num)
+>>>>> -		oldval = dev->reg_gpio;
+>>>>> -	else
+>>>>> -		oldval = em28xx_read_reg(dev, reg);
+>>>>> -
+>>>>> +	oldval = em28xx_read_reg(dev, reg);
+>>>>>  	if (oldval < 0)
+>>>>>  		return oldval;
+>>>> That's plain wrong, as it will break GPIO input.
+>>>>
+>>>> With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
+>>>> code works for output ports.
+>>>>
+>>>> However, an input port requires an specific value (either 1 or 0 depending
+>>>> on the GPIO circuitry). If the wrong value is written there, the input port
+>>>> will stop working.
+>>>>
+>>>> So, you can't simply read a value from a GPIO input and write it. You need
+>>>> to shadow the GPIO write values instead.
+>>> I don't understand what you mean.
+>>> Why can I not read the value of a GPIO input and write it ?
+>> Because, depending on the value you write, it can transform the input into an
+>> output port.
+> I don't get it.
+> We always write to the GPIO register. That's why these functions are
+> called em28xx_write_* ;)
+> Whether the write operation is sane or not (e.g. because it modifies the
+> bit corresponding to an input line) is not subject of these functions.
 
-None of this will really work with the current v4l2-ctl.
+Hmm... that's actually not true for em28xx_write_regs().
+The current/old code never writes the value to GPIO registers, it just
+saves it to the device struct.
+IMHO, this is plain wrong and yet antoher reason for applying this patch. ;)
+It just didn't cause any trouble (hopefully) because for the GPIO
+registers em28xx_write_reg_bits() is usually used instead (which works
+correctly).
 
-But try the patch below for v4l2-ctl: if you combine streaming with --decoder-cmd
-then instead of doing a STREAMOFF it will call the decoder command. And the
-encoder now listens to the EOS event.
-
-Note that --en/decoder-cmd=start isn't necessary: STREAMON should call that
-implicitly as per the spec.
-
-Let me know if this works!
+After checking the whole GPIO stuff again, I noticed a different
+potential problem:
+Register 0x04 seems to be a pure GPO register, so it is possible that
+reading the current value from this register doesn't work.
+The note in em28xx_write_regs() implies that noone has ever tested if it
+works correctly.
+Anyway, the current code reads register 0x04, too, to get the initial
+value for caching. ;)
 
 Regards,
+Frank
 
-	Hans
+>
+>
+> Frank
+>
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-misc.cpp b/utils/v4l2-ctl/v4l2-ctl-misc.cpp
-index da39dda..6857fff 100644
---- a/utils/v4l2-ctl/v4l2-ctl-misc.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-misc.cpp
-@@ -21,10 +21,10 @@
- 
- #include "v4l2-ctl.h"
- 
-+struct v4l2_decoder_cmd dec_cmd; /* (try_)decoder_cmd */
-+static struct v4l2_encoder_cmd enc_cmd; /* (try_)encoder_cmd */
- static struct v4l2_jpegcompression jpegcomp; /* jpeg compression */
- static struct v4l2_streamparm parm;	/* get/set parm */
--static struct v4l2_encoder_cmd enc_cmd; /* (try_)encoder_cmd */
--static struct v4l2_decoder_cmd dec_cmd; /* (try_)decoder_cmd */
- static double fps = 0;			/* set framerate speed, in fps */
- static double output_fps = 0;		/* set framerate speed, in fps */
- 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index a6ea8b3..408b2a7 100644
---- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-@@ -530,6 +530,7 @@ void streaming_set(int fd)
- {
- 	if (options[OptStreamMmap] || options[OptStreamUser]) {
- 		struct v4l2_requestbuffers reqbufs;
-+		struct v4l2_event_subscription sub;
- 		int fd_flags = fcntl(fd, F_GETFL);
- 		bool is_mplane = capabilities &
- 			(V4L2_CAP_VIDEO_CAPTURE_MPLANE |
-@@ -545,6 +546,9 @@ void streaming_set(int fd)
- 		reqbufs.count = reqbufs_count;
- 		reqbufs.type = type;
- 		reqbufs.memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
-+		memset(&sub, 0, sizeof(sub));
-+		sub.type = V4L2_EVENT_EOS;
-+		ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &sub);
- 
- 		if (file) {
- 			if (!strcmp(file, "-"))
-@@ -623,26 +627,30 @@ void streaming_set(int fd)
- 
- 		unsigned count = 0, last = 0;
- 		struct timeval tv_last;
-+		bool eos = false;
- 
--		for (;;) {
-+		while (!eos) {
- 			struct v4l2_plane planes[VIDEO_MAX_PLANES];
- 			struct v4l2_buffer buf;
-+			fd_set read_fds;
-+			fd_set exception_fds;
- 			char ch = '.';
- 			int ret;
- 
- 			if (use_poll) {
--				fd_set fds;
- 				struct timeval tv;
- 				int r;
- 
--				FD_ZERO(&fds);
--				FD_SET(fd, &fds);
-+				FD_ZERO(&read_fds);
-+				FD_SET(fd, &read_fds);
-+				FD_ZERO(&exception_fds);
-+				FD_SET(fd, &exception_fds);
- 
- 				/* Timeout. */
- 				tv.tv_sec = 2;
- 				tv.tv_usec = 0;
- 
--				r = select(fd + 1, &fds, NULL, NULL, &tv);
-+				r = select(fd + 1, &read_fds, NULL, &exception_fds, &tv);
- 
- 				if (r == -1) {
- 					if (EINTR == errno)
-@@ -658,6 +666,19 @@ void streaming_set(int fd)
- 				}
- 			}
- 
-+			if (FD_ISSET(fd, &exception_fds)) {
-+				struct v4l2_event ev;
-+
-+				while (!ioctl(fd, VIDIOC_DQEVENT, &ev)) {
-+					if (ev.type != V4L2_EVENT_EOS)
-+						continue;
-+					eos = true;
-+					break;
-+				}
-+			}
-+			if (!FD_ISSET(fd, &read_fds))
-+				continue;
-+
- 			memset(&buf, 0, sizeof(buf));
- 			memset(planes, 0, sizeof(planes));
- 			buf.type = reqbufs.type;
-@@ -953,7 +974,11 @@ void streaming_set(int fd)
- 			if (--stream_count == 0)
- 				break;
- 		}
--		doioctl(fd, VIDIOC_STREAMOFF, &type);
-+		if (options[OptDecoderCmd])
-+			doioctl(fd, VIDIOC_DECODER_CMD, &dec_cmd);
-+		else
-+			doioctl(fd, VIDIOC_STREAMOFF, &type);
-+		options[OptDecoderCmd] = false;
- 		fcntl(fd, F_SETFL, fd_flags);
- 		fprintf(stderr, "\n");
- 
-diff --git a/utils/v4l2-ctl/v4l2-ctl.cpp b/utils/v4l2-ctl/v4l2-ctl.cpp
-index 6057cce..1601b10 100644
---- a/utils/v4l2-ctl/v4l2-ctl.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl.cpp
-@@ -967,8 +967,8 @@ int main(int argc, char **argv)
- 	overlay_set(fd);
- 	vbi_set(fd);
- 	selection_set(fd);
--	misc_set(fd);
- 	streaming_set(fd);
-+	misc_set(fd);
- 
- 	/* Get options */
- 
-diff --git a/utils/v4l2-ctl/v4l2-ctl.h b/utils/v4l2-ctl/v4l2-ctl.h
-index 8d6d50d..146dbe7 100644
---- a/utils/v4l2-ctl/v4l2-ctl.h
-+++ b/utils/v4l2-ctl/v4l2-ctl.h
-@@ -264,6 +264,8 @@ void selection_set(int fd);
- void selection_get(int fd);
- 
- // v4l2-ctl-misc.cpp
-+// This one is also used by the streaming code.
-+extern struct v4l2_decoder_cmd dec_cmd;
- void misc_usage(void);
- void misc_cmd(int ch, char *optarg);
- void misc_set(int fd);
