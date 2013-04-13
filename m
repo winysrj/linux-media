@@ -1,70 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail2-relais-roc.national.inria.fr ([192.134.164.83]:2552 "EHLO
-	mail2-relais-roc.national.inria.fr" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1750740Ab3DIFaF (ORCPT
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:53184 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753329Ab3DMSk3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 01:30:05 -0400
-Date: Tue, 9 Apr 2013 07:20:19 +0200 (CEST)
-From: Julia Lawall <julia.lawall@lip6.fr>
-To: Dan Carpenter <dan.carpenter@oracle.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Bill Pemberton <wfp5p@virginia.edu>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] dt3155v4l: unlock on error path
-In-Reply-To: <20130409051540.GA1516@longonot.mountain>
-Message-ID: <alpine.DEB.2.02.1304090719480.2019@hadrien>
-References: <20130409051540.GA1516@longonot.mountain>
+	Sat, 13 Apr 2013 14:40:29 -0400
+Received: by mail-ea0-f177.google.com with SMTP id q14so1616380eaj.36
+        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 11:40:27 -0700 (PDT)
+Message-ID: <5169A6E0.8060902@googlemail.com>
+Date: Sat, 13 Apr 2013 20:41:36 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com> <20130413114144.097a21a1@redhat.com> <51697AC8.1050807@googlemail.com> <20130413140444.2fba3e88@redhat.com> <516999EC.6080605@googlemail.com> <5169A19F.6080407@googlemail.com>
+In-Reply-To: <5169A19F.6080407@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 9 Apr 2013, Dan Carpenter wrote:
+Am 13.04.2013 20:19, schrieb Frank Schäfer:
+> Am 13.04.2013 19:46, schrieb Frank Schäfer:
+>> ...
+>> We always write to the GPIO register. That's why these functions are
+>> called em28xx_write_* ;)
+>> Whether the write operation is sane or not (e.g. because it modifies the
+>> bit corresponding to an input line) is not subject of these functions.
+> Hmm... that's actually not true for em28xx_write_regs().
+> The current/old code never writes the value to GPIO registers, it just
+> saves it to the device struct.
 
-> We should unlock here and do some cleanup before returning.
->
-> We can't actually hit this return path with the current code, so this
-> patch is a basically a cleanup and doesn't change how the code works.
+Arghh... no ... please disregard this paragraph, I simply overlooked the
+register write.
+I have to stop for today, will try to get back to this tomorrow.
 
-Why keep the return path then?  If the code is there, someone reading it
-could naturally assume that it is necessary.
+Regards,
+Frank
 
-julia
-
->
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->
-> diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> index 073b3b3..3da17bc 100644
-> --- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> +++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-> @@ -398,7 +398,7 @@ dt3155_open(struct file *filp)
->  		pd->field_count = 0;
->  		ret = vb2_queue_init(pd->q);
->  		if (ret < 0)
-> -			return ret;
-> +			goto err_free_q;
->  		INIT_LIST_HEAD(&pd->dmaq);
->  		spin_lock_init(&pd->lock);
->  		/* disable all irqs, clear all irq flags */
-> @@ -407,11 +407,11 @@ dt3155_open(struct file *filp)
->  		ret = request_irq(pd->pdev->irq, dt3155_irq_handler_even,
->  						IRQF_SHARED, DT3155_NAME, pd);
->  		if (ret)
-> -			goto err_request_irq;
-> +			goto err_free_q;
->  	}
->  	pd->users++;
->  	return 0; /* success */
-> -err_request_irq:
-> +err_free_q:
->  	kfree(pd->q);
->  	pd->q = NULL;
->  err_alloc_queue:
-> --
-> To unsubscribe from this list: send the line "unsubscribe kernel-janitors" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
