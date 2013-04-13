@@ -1,47 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57068 "EHLO mx1.redhat.com"
+Received: from mail.kapsi.fi ([217.30.184.167]:33372 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758482Ab3DAOnG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Apr 2013 10:43:06 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r31Eh6P6001964
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 1 Apr 2013 10:43:06 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 0/5] mb86a20s: some smatch fixes
-Date: Mon,  1 Apr 2013 11:41:54 -0300
-Message-Id: <1364827319-18332-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <20130401072529.GL18466@mwanda>
-References: <20130401072529.GL18466@mwanda>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1754030Ab3DMOiI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Apr 2013 10:38:08 -0400
+Message-ID: <51696DA6.9020508@iki.fi>
+Date: Sat, 13 Apr 2013 17:37:26 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] em28xx: clean up end extend the GPIO port handling
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <51695A7B.4010206@iki.fi> <20130413112517.40833d48@redhat.com>
+In-Reply-To: <20130413112517.40833d48@redhat.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As pointed by Dan Carpenter, there are two smatch warnings on
-this driver:
+On 04/13/2013 05:25 PM, Mauro Carvalho Chehab wrote:
+> Em Sat, 13 Apr 2013 16:15:39 +0300
+> Antti Palosaari <crope@iki.fi> escreveu:
+>
+>> On 04/13/2013 12:48 PM, Frank Schäfer wrote:
+>>> Patch 1 removes the unneeded and broken gpio register caching code.
+>>> Patch 2 adds the gpio register defintions for the em25xx/em276x/7x/8x
+>>> and patch 3 finally adds a new helper function for gpio ports with separate
+>>> registers for read and write access.
+>>
+>>
+>> I have nothing to say directly about those patches - they looked good at
+>> the quick check. But I wonder if you have any idea if it is possible to
+>> use some existing Kernel GPIO functionality in order to provide standard
+>> interface (interface like I2C). I did some work last summer in order to
+>> use GPIOLIB and it is used between em28xx-dvb and cxd2820r for LNA
+>> control. Anyhow, I was a little bit disappointed as GPIOLIB is disabled
+>> by default and due to that there is macros to disable LNA when GPIOLIB
+>> is not compiled.
+>> I noticed recently there is some ongoing development for Kernel GPIO. I
+>> haven't looked yet if it makes use of GPIO interface more common...
+>
+> I have conflicting opinions myself weather we should use gpiolib or not.
+>
+> I don't mind with the fact that GPIOLIB is disabled by default. If all
+> media drivers start depending on it, distros will enable it to keep
+> media support on it.
+>
+> I never took the time to take a look on what methods gpiolib provides.
+> Maybe it will bring some benefits. I dunno.
 
-	drivers/media/dvb-frontends/mb86a20s.c:1897 mb86a20s_set_frontend() error: buffer overflow 'mb86a20s_subchannel' 8 <= 8
-	drivers/media/dvb-frontends/mb86a20s.c:644 mb86a20s_layer_bitrate() error: buffer overflow 'state->estimated_rate' 3 <= 3
+Compare to benefits of I2C bus. It offers standard interface. Also it 
+offers userspace debug interface - like I2C also does.
 
-While both of them are trivial, one of the errors were due to a bad
-cut-and-paste silly error, plus the abuse of "i" on loops and
-array indexes.
+> Just looking at the existing drivers (almost all has some sort of GPIO
+> config), GPIO is just a single register bitmask read/write. Most drivers
+> need already bitmask read/write operations. So, in principle, I can't
+> foresee any code simplification by using a library.
 
-So, let's fix both errors and remove the "i" temp var abuse on the
-driver.
+Use of lib interface is not very practical inside of module, however it 
+could be used. Again, as compared to I2C there is some bridge drivers 
+which do some I2C access using I2C interface, even bridge could do it 
+directly (as it offers I2C adapter). I think it is most common to do it 
+directly to simplify things.
 
-Mauro Carvalho Chehab (5):
-  [media] mb86a20s: Use a macro for the number of layers
-  [media] mb86a20s: Fix estimate_rate setting
-  [media] mb86a20s: fix audio sub-channel check
-  [media] mb86a20s: Use 'layer' instead of 'i' on all places
-  [media] mb86a20s: better name temp vars at mb86a20s_layer_bitrate()
+> Also, from a very pragmatic view, changing (almost) all existing drivers
+> to use gpiolib is a big effort.
 
- drivers/media/dvb-frontends/mb86a20s.c | 213 +++++++++++++++++----------------
- 1 file changed, 108 insertions(+), 105 deletions(-)
+It is not needed to implement for all driver as one go.
+
+> However, for that to happen, one question should be answered: what
+> benefits would be obtained by using gpiolib?
+
+Obtain GPIO access between modules using standard interface and offer 
+handy debug interface to switch GPIOs from userspace.
+
+You could ask why we use Kernel I2C library as we could do it directly 
+:) Or clock framework. Or SPI, is there SPI bus modeled yet?
+
+regards
+Antti
 
 -- 
-1.8.1.4
-
+http://palosaari.fi/
