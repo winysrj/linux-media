@@ -1,80 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56845 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752198Ab3DVMHD (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:10518 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753901Ab3DMOlt convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 08:07:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 05/24] V4L2: allow dummy file-handle initialisation by v4l2_fh_init()
-Date: Mon, 22 Apr 2013 14:07:11 +0200
-Message-ID: <11296863.GS8qmyLFH3@avalon>
-In-Reply-To: <201304190922.50517.hverkuil@xs4all.nl>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <1366320945-21591-6-git-send-email-g.liakhovetski@gmx.de> <201304190922.50517.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 13 Apr 2013 10:41:49 -0400
+Date: Sat, 13 Apr 2013 11:41:44 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
+Message-ID: <20130413114144.097a21a1@redhat.com>
+In-Reply-To: <1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com>
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Sat, 13 Apr 2013 11:48:39 +0200
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-On Friday 19 April 2013 09:22:50 Hans Verkuil wrote:
-> On Thu April 18 2013 23:35:26 Guennadi Liakhovetski wrote:
-> > v4l2_fh_init() can be used to initialise dummy file-handles with vdev ==
-> > NULL.
+> The GPIO register tracking/caching code is partially broken, because newer
+> devices provide more than one GPIO register and some of them are even using
+> separate registers for read and write access.
+> Making it work would be too complicated.
+> It is also used nowhere and doesn't make sense in cases where input lines are
+> connected to buttons etc.
 > 
-> Why would you want that?
+> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
+>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
+>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
+>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
 
-The reason is that subdev pad operations require a file handle and use it as a 
-context to store the try rectangles. The wrappers thus need to create a dummy 
-file handle.
+...
 
-> Anyway, this would definitely have to be documented as well in v4l2-fh.h.
-> 
-> I'm still going through your patch series so there may be a good reason
-> for allowing this, but it definitely doesn't make me happy.
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > ---
-> > 
-> >  drivers/media/v4l2-core/v4l2-fh.c |    8 +++++---
-> >  1 files changed, 5 insertions(+), 3 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-fh.c
-> > b/drivers/media/v4l2-core/v4l2-fh.c index e57c002..7ae608b 100644
-> > --- a/drivers/media/v4l2-core/v4l2-fh.c
-> > +++ b/drivers/media/v4l2-core/v4l2-fh.c
-> > @@ -33,10 +33,12 @@
-> > 
-> >  void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
-> >  {
-> >  
-> >  	fh->vdev = vdev;
-> > 
-> > -	/* Inherit from video_device. May be overridden by the driver. */
-> > -	fh->ctrl_handler = vdev->ctrl_handler;
-> > +	if (vdev) {
-> > +		/* Inherit from video_device. May be overridden by the driver. */
-> > +		fh->ctrl_handler = vdev->ctrl_handler;
-> > +		set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
-> > +	}
-> > 
-> >  	INIT_LIST_HEAD(&fh->list);
-> > 
-> > -	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
-> > 
-> >  	fh->prio = V4L2_PRIORITY_UNSET;
-> >  	init_waitqueue_head(&fh->wait);
-> >  	INIT_LIST_HEAD(&fh->available);
--- 
+
+> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
+>  	int oldval;
+>  	u8 newval;
+>  
+> -	/* Uses cache for gpo/gpio registers */
+> -	if (reg == dev->reg_gpo_num)
+> -		oldval = dev->reg_gpo;
+> -	else if (reg == dev->reg_gpio_num)
+> -		oldval = dev->reg_gpio;
+> -	else
+> -		oldval = em28xx_read_reg(dev, reg);
+> -
+> +	oldval = em28xx_read_reg(dev, reg);
+>  	if (oldval < 0)
+>  		return oldval;
+
+
+That's plain wrong, as it will break GPIO input.
+
+With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
+code works for output ports.
+
+However, an input port requires an specific value (either 1 or 0 depending
+on the GPIO circuitry). If the wrong value is written there, the input port
+will stop working.
+
+So, you can't simply read a value from a GPIO input and write it. You need
+to shadow the GPIO write values instead.
+
 Regards,
-
-Laurent Pinchart
-
+Mauro
