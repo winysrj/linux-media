@@ -1,53 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:35347 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751304Ab3DVL5n (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 07:57:43 -0400
-Message-ID: <517525B3.2010806@redhat.com>
-Date: Mon, 22 Apr 2013 08:57:39 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Received: from mail-ee0-f52.google.com ([74.125.83.52]:62024 "EHLO
+	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754497Ab3DMPcU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Apr 2013 11:32:20 -0400
+Received: by mail-ee0-f52.google.com with SMTP id d17so1545547eek.25
+        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 08:32:19 -0700 (PDT)
+Message-ID: <51697AC8.1050807@googlemail.com>
+Date: Sat, 13 Apr 2013 17:33:28 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv3 07/10] [media] tuner-core: add SDR support for g_tuner
-References: <1366570839-662-1-git-send-email-mchehab@redhat.com> <1366570839-662-8-git-send-email-mchehab@redhat.com> <201304220918.27748.hverkuil@xs4all.nl>
-In-Reply-To: <201304220918.27748.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com> <20130413114144.097a21a1@redhat.com>
+In-Reply-To: <20130413114144.097a21a1@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 22-04-2013 04:18, Hans Verkuil escreveu:
-> On Sun April 21 2013 21:00:36 Mauro Carvalho Chehab wrote:
->> Properly initialize the fields for VIDIOC_G_TUNER, if the
->> device is in SDR mode.
->>
->> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
->> ---
->>   drivers/media/v4l2-core/tuner-core.c | 29 +++++++++++++++++++++++++----
->>   1 file changed, 25 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
->> index b97ec63..e54b5ae 100644
->> --- a/drivers/media/v4l2-core/tuner-core.c
->> +++ b/drivers/media/v4l2-core/tuner-core.c
->> @@ -1190,7 +1190,31 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
->>   	}
->>
->>   	/* radio mode */
->> -	if (vt->type == t->mode) {
->> +	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
->> +
->> +	if (V4L2_TUNER_IS_SDR(vt->type)) {
->> +		vt->rangelow  = tv_range[0] * 16000;
->> +		vt->rangehigh = tv_range[1] * 16000;
+Am 13.04.2013 16:41, schrieb Mauro Carvalho Chehab:
+> Em Sat, 13 Apr 2013 11:48:39 +0200
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 >
-> Why use tv_range for SDR? It's a bit odd for something called SD 'Radio'.
+>> The GPIO register tracking/caching code is partially broken, because newer
+>> devices provide more than one GPIO register and some of them are even using
+>> separate registers for read and write access.
+>> Making it work would be too complicated.
+>> It is also used nowhere and doesn't make sense in cases where input lines are
+>> connected to buttons etc.
+>>
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>> ---
+>>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
+>>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
+>>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
+>>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
+> ...
+>
+>
+>> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
+>>  	int oldval;
+>>  	u8 newval;
+>>  
+>> -	/* Uses cache for gpo/gpio registers */
+>> -	if (reg == dev->reg_gpo_num)
+>> -		oldval = dev->reg_gpo;
+>> -	else if (reg == dev->reg_gpio_num)
+>> -		oldval = dev->reg_gpio;
+>> -	else
+>> -		oldval = em28xx_read_reg(dev, reg);
+>> -
+>> +	oldval = em28xx_read_reg(dev, reg);
+>>  	if (oldval < 0)
+>>  		return oldval;
+> That's plain wrong, as it will break GPIO input.
+>
+> With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
+> code works for output ports.
+>
+> However, an input port requires an specific value (either 1 or 0 depending
+> on the GPIO circuitry). If the wrong value is written there, the input port
+> will stop working.
+>
+> So, you can't simply read a value from a GPIO input and write it. You need
+> to shadow the GPIO write values instead.
 
-Because it is the widest known range, and it covers already the FM
-range. A latter patch will improve the range, by adding a tuner
-callback to query about what's the real supported range, with will
-be typically broader than the TV one.
+I don't understand what you mean.
+Why can I not read the value of a GPIO input and write it ?
 
 Regards,
-Mauro
+Frank
+
+> Regards,
+> Mauro
+
