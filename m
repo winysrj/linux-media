@@ -1,43 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:34621 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935034Ab3DIJne (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 05:43:34 -0400
-Received: by mail-bk0-f47.google.com with SMTP id ik5so3445756bkc.20
-        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 02:43:33 -0700 (PDT)
-MIME-Version: 1.0
-Date: Tue, 9 Apr 2013 17:43:33 +0800
-Message-ID: <CAPgLHd_F+reJCuGeBne9espy9Rokm1iWMH7C=w3VpuobHa5J_w@mail.gmail.com>
-Subject: [PATCH] [media] rc: winbond-cir: fix potential double free in wbcir_probe()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: david@hardeman.nu, mchehab@redhat.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from libri.sur5r.net ([217.8.49.41]:50068 "EHLO libri.sur5r.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753881Ab3DMPI5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Apr 2013 11:08:57 -0400
+From: Jakob Haufe <sur5r@sur5r.net>
+To: linux-media@vger.kernel.org
+Subject: [PATCH] Add support for Delock 61959 and its remote control
+Date: Sat, 13 Apr 2013 17:03:35 +0200
+Message-Id: <1365865417-22853-1-git-send-email-sur5r@sur5r.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+This time for real with all bells and whistles:
 
-Since rc_unregister_device() frees its argument, the subsequently
-call to rc_free_device() on the same variable will cause a double
-free bug. Fix by set argument to NULL, thus when fall through to
-rc_free_device(), nothing will be done there.
+Delock 61959 is a relabeled MexMedia UB-425TC with a different USB ID and a
+different remote.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/rc/winbond-cir.c | 1 +
- 1 file changed, 1 insertion(+)
+Patch 1 adds the keytable for the remote control and patch 2 adds support for
+the device itself. I'm reusing maxmedia_ub425_tc as I didn't want to duplicate
+it without need.
 
-diff --git a/drivers/media/rc/winbond-cir.c b/drivers/media/rc/winbond-cir.c
-index 535a18d..87af2d3 100644
---- a/drivers/media/rc/winbond-cir.c
-+++ b/drivers/media/rc/winbond-cir.c
-@@ -1151,6 +1151,7 @@ exit_release_wbase:
- 	release_region(data->wbase, WAKEUP_IOMEM_LEN);
- exit_unregister_device:
- 	rc_unregister_device(data->dev);
-+	data->dev = NULL;
- exit_free_rc:
- 	rc_free_device(data->dev);
- exit_unregister_led:
+DVB-T is not working (yet) because of the DRX-K firmware issue.
 
