@@ -1,205 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:52448 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758748Ab3DZKPq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 06:15:46 -0400
-Date: Fri, 26 Apr 2013 12:15:44 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: vishwanath chandapur <vishwavtu@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: Kernel Patch:do not wait for interrupt when releasing buffers
-In-Reply-To: <CALQBcOcOw=xwZRM=RdJvZunJPcY7e4ZTS+K-3vu=zYrPNZG2qg@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1304261214080.32752@axis700.grange>
-References: <CALQBcOeQGpwfweM9yOdZ+G-68wbKPiyArULwEAN3Qu+WHrFXVQ@mail.gmail.com>
- <Pine.LNX.4.64.1304261139150.32752@axis700.grange>
- <CALQBcOcj1Ry5hbs=cGxVisVYvk_=TKvYcnKF4OYmcAVJY3qgnQ@mail.gmail.com>
- <Pine.LNX.4.64.1304261153280.32752@axis700.grange>
- <CALQBcOdvTqyg3JzoaQ2FxgAW87Sy_rTWEZg3HtNg7O9iQuZ4hg@mail.gmail.com>
- <Pine.LNX.4.64.1304261204180.32752@axis700.grange>
- <CALQBcOcOw=xwZRM=RdJvZunJPcY7e4ZTS+K-3vu=zYrPNZG2qg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail.ispras.ru ([83.149.199.45]:50006 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753788Ab3DMVwZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Apr 2013 17:52:25 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org
+Subject: [PATCH] [media] cx88: Fix unsafe locking in suspend-resume
+Date: Sun, 14 Apr 2013 01:52:04 +0400
+Message-Id: <1365889924-5570-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 26 Apr 2013, vishwanath chandapur wrote:
+Legacy PCI suspend-resume handlers are called with interrupts enabled.
+But cx8800_suspend/cx8800_resume and cx8802_suspend_common/cx8802_resume_common
+use spin_lock/spin_unlock functions to acquire dev->slock, while the same lock is acquired in
+the corresponding irq-handlers: cx8800_irq and cx8802_irq.
+That means a deadlock is possible if an interrupt happens while suspend or resume owns the lock.
 
-> Hi
-> 
-> Thanks for support.One more last question Is this bug was known issue with
-> old kernel(3.0).
+The patch replaces spin_lock/spin_unlock with spin_lock_irqsave/spin_unlock_irqrestore.
 
-Don't remember hearing about or seeing such a problem, no.
+Found by Linux Driver Verification project (linuxtesting.org).
 
-Thanks
-Guennadi
-
-> Best Regards
-> Vishwa
-> 
-> 
-> On Fri, Apr 26, 2013 at 3:34 PM, Guennadi Liakhovetski <
-> g.liakhovetski@gmx.de> wrote:
-> 
-> > On Fri, 26 Apr 2013, vishwanath chandapur wrote:
-> >
-> > > Yes it is 3.0
-> > >
-> > > >>please update and re-test.
-> > > Please let me know which version i need to update,
-> >
-> > Please, see my first reply to you.
-> >
-> > Thanks
-> > Guennadi
-> >
-> > >
-> > > Thanks
-> > > Vishwa
-> > >
-> > >
-> > > On Fri, Apr 26, 2013 at 3:23 PM, Guennadi Liakhovetski <
-> > > g.liakhovetski@gmx.de> wrote:
-> > >
-> > > > On Fri, 26 Apr 2013, vishwanath chandapur wrote:
-> > > >
-> > > > >  Hi Guennadi,
-> > > > >
-> > > > > Thank you for reply
-> > > > >
-> > > > > Sorry that was typo mistake .
-> > > > > Kernel Version :3.0.8
-> > > >
-> > > > So, it is 3.0? Sorry, please update and re-test.
-> > > >
-> > > > Thanks
-> > > > Guennadi
-> > > >
-> > > > >
-> > > > >
-> > > > > Br
-> > > > > Vishwa
-> > > > >
-> > > > >
-> > > > > On Fri, Apr 26, 2013 at 3:13 PM, Guennadi Liakhovetski <
-> > > > > g.liakhovetski@gmx.de> wrote:
-> > > > >
-> > > > > > Hi
-> > > > > >
-> > > > > > On Fri, 26 Apr 2013, vishwanath chandapur wrote:
-> > > > > >
-> > > > > > > Hi,
-> > > > > > > Sorry my english is poor.
-> > > > > > >
-> > > > > > > This is vishawanath , I have a bug in camera module    ,When
-> > ever vb
-> > > > is
-> > > > > > > NULL in sh_mobile_ceu_irq. device will reboot. It seems there is
-> > a
-> > > > > > > race condition ,Since we are not clearing the interrupt,the  same
-> > > > > > interrupt
-> > > > > > > occurs continuously and rate of interrupt is also high (30 per
-> > > > > > > Micros seconds ),this not allowing to schedule other tasks
-> > ,Finally
-> > > > > >  device
-> > > > > > > reboots with WATCH DOG NMI interrupt.
-> > > > > > >
-> > > > > > >
-> > > > > > > Help on this will be greatly appreciated,As we are struggling to
-> > > > solve
-> > > > > > this
-> > > > > > > bug from last 2 months.
-> > > > > > > Kernel Version :3.0.8
-> > > > > >
-> > > > > > Sorry, do you _really_ mean kernel 3.0(.8)? Not 3.8(.0)? If so, I'm
-> > > > > > afraid, I have to ask you to re-test with a recent kernel - best
-> > with
-> > > > > > current Linus' mainline 3.9-rcX, at least with 3.8. If it was a
-> > typo
-> > > > and
-> > > > > > you did mean 3.8, please, try to re-send in such a way, that your
-> > patch
-> > > > > > doesn't get corrupt as in this your mail. Also, please, add
-> > > > > >
-> > > > > > Linux Media Mailing List <linux-media@vger.kernel.org>
-> > > > > >
-> > > > > > to CC.
-> > > > > >
-> > > > > > Thanks
-> > > > > > Guennadi
-> > > > > >
-> > > > > > >
-> > > > > > > Please let me for more info on this issue.
-> > > > > > >
-> > > > > > >
-> > > > > > > if (!vb)              /* Stale interrupt from a released buffer
-> > */
-> > > > <----
-> > > > > > Reboot               goto out;
-> > > > > > >
-> > > > > > > diff --git a/drivers/media/video/sh_mobile_ceu_camera.c
-> > > > > > > b/drivers/media/video/sh_mobile_ceu_camera.cindex
-> > d890f8d..67c7dcd
-> > > > > > > 100644--- a/drivers/media/video/sh_mobile_ceu_camera.c+++
-> > > > > > > b/drivers/media/video/sh_mobile_ceu_camera.c@@ -296,8 +306,8 @@
-> > > > > > > static void sh_mobile_ceu_videobuf_queue(struct videobuf_queue
-> > *vq,
-> > > > > > >       dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %zd\n", __func__,
-> > > > > > >               vb, vb->baddr, vb->bsize);
-> > > > > > >  -    vb->state = VIDEOBUF_QUEUED;
-> > > > > > >       spin_lock_irqsave(&pcdev->lock, flags);+        vb->state =
-> > > > > > VIDEOBUF_QUEUED;
-> > > > > > >       list_add_tail(&vb->queue, &pcdev->capture);
-> > > > > > >
-> > > > > > >       if (!pcdev->active) {@@ -311,6 +321,27 @@  static void
-> > > > > > > sh_mobile_ceu_videobuf_queue(struct videobuf_queue *vq,
-> > > > > > >  static void sh_mobile_ceu_videobuf_release(struct videobuf_queue
-> > > > *vq,
-> > > > > > >                                          struct videobuf_buffer
-> > *vb)
-> > > > > > >  {+   struct soc_camera_device *icd = vq->priv_data;+ struct
-> > > > > > > soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);+
-> >  struct
-> > > > > > > sh_mobile_ceu_dev *pcdev = ici->priv;+        unsigned long
-> > > > > > > flags;++      spin_lock_irqsave(&pcdev->lock, flags);++       if
-> > > > > > (pcdev->active
-> > > > > > > == vb) {+             /* disable capture (release DMA buffer),
-> > reset
-> > > > > > > */+           ceu_write(pcdev, CAPSR, 1 << 16);+
-> > > > > >  pcdev->active = NULL;+  }++     if
-> > > > > > > ((vb->state == VIDEOBUF_ACTIVE || vb->state == VIDEOBUF_QUEUED)
-> > &&+
-> > > > > > >  !list_empty(&vb->queue)) {+          vb->state =
-> > > > > > > VIDEOBUF_ERROR;+              list_del_init(&vb->queue);+     }++
-> > > > > > spin_unlock_irqrestore(&pcdev->lock,
-> > > > > > > flags);+
-> > > > > > >       free_buffer(vq, container_of(vb, struct
-> > sh_mobile_ceu_buffer,
-> > > > vb));
-> > > > > > >  }
-> > > > > > >  @@ -330,6 +361,10 @@  static irqreturn_t sh_mobile_ceu_irq(int
-> > irq,
-> > > > > > void *data)
-> > > > > > >       spin_lock_irqsave(&pcdev->lock, flags);
-> > > > > > >
-> > > > > > >       vb = pcdev->active;+    if (!vb)+               /* Stale
-> > > > interrupt
-> > > > > > from a released
-> > > > > > > buffer */+            goto out;+
-> > > > > > >       list_del_init(&vb->queue);
-> > > > > > >
-> > > > > > >       if (!list_empty(&pcdev->capture))@@ -344,6 +379,8 @@
-> >  static
-> > > > > > > irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
-> > > > > > >       do_gettimeofday(&vb->ts);
-> > > > > > >       vb->field_count++;
-> > > > > > >       wake_up(&vb->done);++out:
-> > > > > > >       spin_unlock_irqrestore(&pcdev->lock, flags);
-> > > > > > >
-> > > > > > >       return IRQ_HANDLED;
-
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/pci/cx88/cx88-mpeg.c  |   10 ++++++----
+ drivers/media/pci/cx88/cx88-video.c |   10 ++++++----
+ 2 files changed, 12 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/media/pci/cx88/cx88-mpeg.c b/drivers/media/pci/cx88/cx88-mpeg.c
+index c9d3182..c6cdbdb 100644
+--- a/drivers/media/pci/cx88/cx88-mpeg.c
++++ b/drivers/media/pci/cx88/cx88-mpeg.c
+@@ -532,16 +532,17 @@ static int cx8802_suspend_common(struct pci_dev *pci_dev, pm_message_t state)
+ {
+ 	struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
+ 	struct cx88_core *core = dev->core;
++	unsigned long flags;
+ 
+ 	/* stop mpeg dma */
+-	spin_lock(&dev->slock);
++	spin_lock_irqsave(&dev->slock,flags);
+ 	if (!list_empty(&dev->mpegq.active)) {
+ 		dprintk( 2, "suspend\n" );
+ 		printk("%s: suspend mpeg\n", core->name);
+ 		cx8802_stop_dma(dev);
+ 		del_timer(&dev->mpegq.timeout);
+ 	}
+-	spin_unlock(&dev->slock);
++	spin_unlock_irqrestore(&dev->slock,flags);
+ 
+ 	/* FIXME -- shutdown device */
+ 	cx88_shutdown(dev->core);
+@@ -558,6 +559,7 @@ static int cx8802_resume_common(struct pci_dev *pci_dev)
+ {
+ 	struct cx8802_dev *dev = pci_get_drvdata(pci_dev);
+ 	struct cx88_core *core = dev->core;
++	unsigned long flags;
+ 	int err;
+ 
+ 	if (dev->state.disabled) {
+@@ -584,12 +586,12 @@ static int cx8802_resume_common(struct pci_dev *pci_dev)
+ 	cx88_reset(dev->core);
+ 
+ 	/* restart video+vbi capture */
+-	spin_lock(&dev->slock);
++	spin_lock_irqsave(&dev->slock,flags);
+ 	if (!list_empty(&dev->mpegq.active)) {
+ 		printk("%s: resume mpeg\n", core->name);
+ 		cx8802_restart_queue(dev,&dev->mpegq);
+ 	}
+-	spin_unlock(&dev->slock);
++	spin_unlock_irqrestore(&dev->slock,flags);
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index bc78354..d72b403 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -1957,9 +1957,10 @@ static int cx8800_suspend(struct pci_dev *pci_dev, pm_message_t state)
+ {
+ 	struct cx8800_dev *dev = pci_get_drvdata(pci_dev);
+ 	struct cx88_core *core = dev->core;
++	unsigned long flags;
+ 
+ 	/* stop video+vbi capture */
+-	spin_lock(&dev->slock);
++	spin_lock_irqsave(&dev->slock,flags);
+ 	if (!list_empty(&dev->vidq.active)) {
+ 		printk("%s/0: suspend video\n", core->name);
+ 		stop_video_dma(dev);
+@@ -1970,7 +1971,7 @@ static int cx8800_suspend(struct pci_dev *pci_dev, pm_message_t state)
+ 		cx8800_stop_vbi_dma(dev);
+ 		del_timer(&dev->vbiq.timeout);
+ 	}
+-	spin_unlock(&dev->slock);
++	spin_unlock_irqrestore(&dev->slock,flags);
+ 
+ 	if (core->ir)
+ 		cx88_ir_stop(core);
+@@ -1989,6 +1990,7 @@ static int cx8800_resume(struct pci_dev *pci_dev)
+ {
+ 	struct cx8800_dev *dev = pci_get_drvdata(pci_dev);
+ 	struct cx88_core *core = dev->core;
++	unsigned long flags;
+ 	int err;
+ 
+ 	if (dev->state.disabled) {
+@@ -2019,7 +2021,7 @@ static int cx8800_resume(struct pci_dev *pci_dev)
+ 	cx_set(MO_PCI_INTMSK, core->pci_irqmask);
+ 
+ 	/* restart video+vbi capture */
+-	spin_lock(&dev->slock);
++	spin_lock_irqsave(&dev->slock,flags);
+ 	if (!list_empty(&dev->vidq.active)) {
+ 		printk("%s/0: resume video\n", core->name);
+ 		restart_video_queue(dev,&dev->vidq);
+@@ -2028,7 +2030,7 @@ static int cx8800_resume(struct pci_dev *pci_dev)
+ 		printk("%s/0: resume vbi\n", core->name);
+ 		cx8800_restart_vbi_queue(dev,&dev->vbiq);
+ 	}
+-	spin_unlock(&dev->slock);
++	spin_unlock_irqrestore(&dev->slock,flags);
+ 
+ 	return 0;
+ }
+-- 
+1.7.9.5
+
