@@ -1,151 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f47.google.com ([209.85.210.47]:37648 "EHLO
-	mail-da0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967604Ab3DRQ7P (ORCPT
+Received: from mail-qc0-f178.google.com ([209.85.216.178]:35102 "EHLO
+	mail-qc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753700Ab3DMQyL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 12:59:15 -0400
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: sameo@linux.intel.com
-Cc: mchehab@redhat.com, andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 07/12] v4l2: Add documentation for the FM RX controls
-Date: Thu, 18 Apr 2013 09:58:33 -0700
-Message-Id: <1366304318-29620-8-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+	Sat, 13 Apr 2013 12:54:11 -0400
+Received: by mail-qc0-f178.google.com with SMTP id d10so1612196qca.23
+        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 09:54:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5169860B.80609@iki.fi>
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
+	<51695A7B.4010206@iki.fi>
+	<20130413112517.40833d48@redhat.com>
+	<51697A29.5030307@googlemail.com>
+	<CAGoCfiwO+98ZkSt-mY6U3nnfge43xy+1WLEv=3wUf6SaDEgACQ@mail.gmail.com>
+	<5169860B.80609@iki.fi>
+Date: Sat, 13 Apr 2013 12:54:10 -0400
+Message-ID: <CAGoCfixjnGapy3hdo-7AxQJ4osOHa5pp5XGZT7a_qb4vEu8v2g@mail.gmail.com>
+Subject: Re: [PATCH 0/3] em28xx: clean up end extend the GPIO port handling
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add appropriate documentation for all the newly added standard
-controls.
+On Sat, Apr 13, 2013 at 12:21 PM, Antti Palosaari <crope@iki.fi> wrote:
+> Existing userspace sysfs interface is clearly debug interface. You will need
+> root privileges to mount it and IIRC it was not even compiled by default
+> (needs Kconfig debug option?).
 
-Based on the patch by Manjunatha Halli [1]
+You would like to think that.  Tell Mauro then, since he wanted to
+rely on sysfs to associate V4L2 video devices with ALSA devices
+(rather than just adding a simple call to the V4L2 API).
 
-[1] http://lists-archives.com/linux-kernel/27641303-media-update-docs-for-v4l2-fm-new-features.html
+Devin
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
----
- Documentation/DocBook/media/v4l/compat.xml         |    3 +
- Documentation/DocBook/media/v4l/controls.xml       |   72 ++++++++++++++++++++
- .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    9 +++
- 3 files changed, 84 insertions(+)
-
-diff --git a/Documentation/DocBook/media/v4l/compat.xml b/Documentation/DocBook/media/v4l/compat.xml
-index 104a1a2..f418bc3 100644
---- a/Documentation/DocBook/media/v4l/compat.xml
-+++ b/Documentation/DocBook/media/v4l/compat.xml
-@@ -2310,6 +2310,9 @@ more information.</para>
- 	<listitem>
- 	  <para>Added FM Modulator (FM TX) Extended Control Class: <constant>V4L2_CTRL_CLASS_FM_TX</constant> and their Control IDs.</para>
- 	</listitem>
-+<listitem>
-+	  <para>Added FM Receiver (FM RX) Extended Control Class: <constant>V4L2_CTRL_CLASS_FM_RX</constant> and their Control IDs.</para>
-+	</listitem>
- 	<listitem>
- 	  <para>Added Remote Controller chapter, describing the default Remote Controller mapping for media devices.</para>
- 	</listitem>
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 1ad20cc..6aa647a 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -4687,4 +4687,76 @@ interface and may change in the future.</para>
-       </table>
- 
-     </section>
-+
-+    <section id="fm-rx-controls">
-+      <title>FM Receiver Control Reference</title>
-+
-+      <para>The FM Receiver (FM_RX) class includes controls for common features of
-+      FM Reception capable devices.</para>
-+
-+      <table pgwide="1" frame="none" id="fm-rx-control-id">
-+      <title>FM_RX Control IDs</title>
-+
-+      <tgroup cols="4">
-+        <colspec colname="c1" colwidth="1*" />
-+        <colspec colname="c2" colwidth="6*" />
-+        <colspec colname="c3" colwidth="2*" />
-+        <colspec colname="c4" colwidth="6*" />
-+        <spanspec namest="c1" nameend="c2" spanname="id" />
-+        <spanspec namest="c2" nameend="c4" spanname="descr" />
-+        <thead>
-+          <row>
-+            <entry spanname="id" align="left">ID</entry>
-+            <entry align="left">Type</entry>
-+          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+          </row>
-+        </thead>
-+        <tbody valign="top">
-+          <row><entry></entry></row>
-+          <row>
-+            <entry spanname="id"><constant>V4L2_CID_FM_RX_CLASS</constant>&nbsp;</entry>
-+            <entry>class</entry>
-+          </row><row><entry spanname="descr">The FM_RX class
-+descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
-+description of this control class.</entry>
-+          </row>
-+          <row>
-+            <entry spanname="id"><constant>V4L2_CID_RDS_RECEPTION</constant>&nbsp;</entry>
-+            <entry>boolean</entry>
-+          </row><row><entry spanname="descr">Enables/disables RDS
-+	  reception by the radio tuner</entry>
-+          </row>
-+          <row>
-+	    <entry spanname="id"><constant>V4L2_CID_TUNE_DEEMPHASIS</constant>&nbsp;</entry>
-+	    <entry>enum v4l2_deemphasis</entry>
-+	  </row>
-+	  <row id="v4l2-deemphasis"><entry spanname="descr">Configures the de-emphasis value for reception.
-+A de-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
-+Depending on the region, a time constant of either 50 or 75 useconds is used. The enum&nbsp;v4l2_deemphasis
-+defines possible values for de-emphasis. Here they are:</entry>
-+	</row><row>
-+	<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_DEEMPHASIS_DISABLED</constant>&nbsp;</entry>
-+		      <entry>No de-emphasis is applied.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_DEEMPHASIS_50_uS</constant>&nbsp;</entry>
-+		      <entry>A de-emphasis of 50 uS is used.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_DEEMPHASIS_75_uS</constant>&nbsp;</entry>
-+		      <entry>A de-emphasis of 75 uS is used.</entry>
-+		    </row>
-+		  </tbody>
-+		</entrytbl>
-+
-+	  </row>
-+          <row><entry></entry></row>
-+        </tbody>
-+      </tgroup>
-+      </table>
-+
-+      </section>
- </section>
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-index 4e16112..b3bb957 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-ext-ctrls.xml
-@@ -319,6 +319,15 @@ These controls are described in <xref
- 	    processing controls. These controls are described in <xref
- 	    linkend="image-process-controls" />.</entry>
- 	  </row>
-+
-+	  <row>
-+	    <entry><constant>V4L2_CTRL_CLASS_FM_RX</constant></entry>
-+	    <entry>0xa10000</entry>
-+	    <entry>The class containing FM Receiver (FM RX) controls.
-+These controls are described in <xref
-+		linkend="fm-rx-controls" />.</entry>
-+	  </row>
-+
- 	</tbody>
-       </tgroup>
-     </table>
 -- 
-1.7.10.4
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
