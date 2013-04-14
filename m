@@ -1,85 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3696 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754528Ab3DVHSr (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2177 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138Ab3DNP2B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 03:18:47 -0400
+	Sun, 14 Apr 2013 11:28:01 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv3 07/10] [media] tuner-core: add SDR support for g_tuner
-Date: Mon, 22 Apr 2013 09:18:27 +0200
-References: <1366570839-662-1-git-send-email-mchehab@redhat.com> <1366570839-662-8-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366570839-662-8-git-send-email-mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304220918.27748.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 23/30] cx25821: remove custom ioctls that duplicate v4l2 ioctls.
+Date: Sun, 14 Apr 2013 17:27:19 +0200
+Message-Id: <1365953246-8972-24-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun April 21 2013 21:00:36 Mauro Carvalho Chehab wrote:
-> Properly initialize the fields for VIDIOC_G_TUNER, if the
-> device is in SDR mode.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/v4l2-core/tuner-core.c | 29 +++++++++++++++++++++++++----
->  1 file changed, 25 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-> index b97ec63..e54b5ae 100644
-> --- a/drivers/media/v4l2-core/tuner-core.c
-> +++ b/drivers/media/v4l2-core/tuner-core.c
-> @@ -1190,7 +1190,31 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
->  	}
->  
->  	/* radio mode */
-> -	if (vt->type == t->mode) {
-> +	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-> +
-> +	if (V4L2_TUNER_IS_SDR(vt->type)) {
-> +		vt->rangelow  = tv_range[0] * 16000;
-> +		vt->rangehigh = tv_range[1] * 16000;
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Why use tv_range for SDR? It's a bit odd for something called SD 'Radio'.
+No idea why these custom ioctls exist: they have perfectly normal v4l2
+counterparts which are already implemented.
 
-Regards,
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx25821/cx25821-video.c |  128 ++---------------------------
+ drivers/media/pci/cx25821/cx25821-video.h |    8 --
+ drivers/media/pci/cx25821/cx25821.h       |   13 ---
+ 3 files changed, 6 insertions(+), 143 deletions(-)
 
-	Hans
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index aec6fdf..d3aa166 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -1038,134 +1038,18 @@ static long video_ioctl_upstream11(struct file *file, unsigned int cmd,
+ 	return 0;
+ }
+ 
+-static long video_ioctl_set(struct file *file, unsigned int cmd,
+-			   unsigned long arg)
+-{
+-	struct cx25821_channel *chan = video_drvdata(file);
+-	struct cx25821_dev *dev = chan->dev;
+-	struct downstream_user_struct *data_from_user;
+-	int command;
+-	int width = 720;
+-	int selected_channel = 0;
+-	int pix_format = 0;
+-	int i = 0;
+-	int cif_enable = 0;
+-	int cif_width = 0;
+-
+-	data_from_user = (struct downstream_user_struct *)arg;
+-
+-	if (!data_from_user) {
+-		pr_err("%s(): User data is INVALID. Returning\n", __func__);
+-		return 0;
+-	}
+-
+-	command = data_from_user->command;
+-
+-	if (command != SET_VIDEO_STD && command != SET_PIXEL_FORMAT
+-	   && command != ENABLE_CIF_RESOLUTION && command != REG_READ
+-	   && command != REG_WRITE && command != MEDUSA_READ
+-	   && command != MEDUSA_WRITE) {
+-		return 0;
+-	}
+-
+-	switch (command) {
+-	case SET_VIDEO_STD:
+-		if (!strcmp(data_from_user->vid_stdname, "PAL"))
+-			dev->tvnorm = V4L2_STD_PAL_BG;
+-		else
+-			dev->tvnorm = V4L2_STD_NTSC_M;
+-		medusa_set_videostandard(dev);
+-		break;
+-
+-	case SET_PIXEL_FORMAT:
+-		selected_channel = data_from_user->decoder_select;
+-		pix_format = data_from_user->pixel_format;
+-
+-		if (!(selected_channel <= 7 && selected_channel >= 0)) {
+-			selected_channel -= 4;
+-			selected_channel = selected_channel % 8;
+-		}
+-
+-		if (selected_channel >= 0)
+-			cx25821_set_pixel_format(dev, selected_channel,
+-						pix_format);
+-
+-		break;
+-
+-	case ENABLE_CIF_RESOLUTION:
+-		selected_channel = data_from_user->decoder_select;
+-		cif_enable = data_from_user->cif_resolution_enable;
+-		cif_width = data_from_user->cif_width;
+-
+-		if (cif_enable) {
+-			if (dev->tvnorm & V4L2_STD_PAL_BG
+-			    || dev->tvnorm & V4L2_STD_PAL_DK) {
+-				width = 352;
+-			} else {
+-				width = cif_width;
+-				if (cif_width != 320 && cif_width != 352)
+-					width = 320;
+-			}
+-		}
+-
+-		if (!(selected_channel <= 7 && selected_channel >= 0)) {
+-			selected_channel -= 4;
+-			selected_channel = selected_channel % 8;
+-		}
+-
+-		if (selected_channel <= 7 && selected_channel >= 0) {
+-			dev->channels[selected_channel].use_cif_resolution =
+-				cif_enable;
+-			dev->channels[selected_channel].cif_width = width;
+-		} else {
+-			for (i = 0; i < VID_CHANNEL_NUM; i++) {
+-				dev->channels[i].use_cif_resolution =
+-					cif_enable;
+-				dev->channels[i].cif_width = width;
+-			}
+-		}
+-
+-		medusa_set_resolution(dev, width, selected_channel);
+-		break;
+-	case REG_READ:
+-		data_from_user->reg_data = cx_read(data_from_user->reg_address);
+-		break;
+-	case REG_WRITE:
+-		cx_write(data_from_user->reg_address, data_from_user->reg_data);
+-		break;
+-	case MEDUSA_READ:
+-		cx25821_i2c_read(&dev->i2c_bus[0],
+-					 (u16) data_from_user->reg_address,
+-					 &data_from_user->reg_data);
+-		break;
+-	case MEDUSA_WRITE:
+-		cx25821_i2c_write(&dev->i2c_bus[0],
+-				  (u16) data_from_user->reg_address,
+-				  data_from_user->reg_data);
+-		break;
+-	}
+-
+-	return 0;
+-}
+-
+ static long cx25821_video_ioctl(struct file *file,
+ 				unsigned int cmd, unsigned long arg)
+ {
+ 	struct cx25821_channel *chan = video_drvdata(file);
+-	int ret = 0;
+ 
+ 	/* check to see if it's the video upstream */
+-	if (chan->id == SRAM_CH09) {
+-		ret = video_ioctl_upstream9(file, cmd, arg);
+-		return ret;
+-	} else if (chan->id == SRAM_CH10) {
+-		ret = video_ioctl_upstream10(file, cmd, arg);
+-		return ret;
+-	} else if (chan->id == SRAM_CH11) {
+-		ret = video_ioctl_upstream11(file, cmd, arg);
+-		ret = video_ioctl_set(file, cmd, arg);
+-		return ret;
+-	}
++	if (chan->id == SRAM_CH09)
++		return video_ioctl_upstream9(file, cmd, arg);
++	if (chan->id == SRAM_CH10)
++		return video_ioctl_upstream10(file, cmd, arg);
++	if (chan->id == SRAM_CH11)
++		return video_ioctl_upstream11(file, cmd, arg);
+ 
+ 	return video_ioctl2(file, cmd, arg);
+ }
+diff --git a/drivers/media/pci/cx25821/cx25821-video.h b/drivers/media/pci/cx25821/cx25821-video.h
+index eb54e53..8871c4e 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.h
++++ b/drivers/media/pci/cx25821/cx25821-video.h
+@@ -55,14 +55,6 @@ do {									\
+ #define UPSTREAM_START_AUDIO        702
+ #define UPSTREAM_STOP_AUDIO         703
+ #define UPSTREAM_DUMP_REGISTERS     702
+-#define SET_VIDEO_STD               800
+-#define SET_PIXEL_FORMAT            1000
+-#define ENABLE_CIF_RESOLUTION       1001
+-
+-#define REG_READ		    900
+-#define REG_WRITE		    901
+-#define MEDUSA_READ		    910
+-#define MEDUSA_WRITE		    911
+ 
+ #define FORMAT_FLAGS_PACKED       0x01
+ extern void cx25821_video_wakeup(struct cx25821_dev *dev,
+diff --git a/drivers/media/pci/cx25821/cx25821.h b/drivers/media/pci/cx25821/cx25821.h
+index 40b16b0..cfda5ac 100644
+--- a/drivers/media/pci/cx25821/cx25821.h
++++ b/drivers/media/pci/cx25821/cx25821.h
+@@ -360,19 +360,6 @@ struct upstream_user_struct {
+ 	int command;
+ };
+ 
+-struct downstream_user_struct {
+-	char *vid_stdname;
+-	int pixel_format;
+-	int cif_resolution_enable;
+-	int cif_width;
+-	int decoder_select;
+-	int command;
+-	int reg_address;
+-	int reg_data;
+-};
+-
+-extern struct upstream_user_struct *up_data;
+-
+ static inline struct cx25821_dev *get_cx25821(struct v4l2_device *v4l2_dev)
+ {
+ 	return container_of(v4l2_dev, struct cx25821_dev, v4l2_dev);
+-- 
+1.7.10.4
 
-> +	else {
-> +		vt->rangelow = radio_range[0] * 16000;
-> +		vt->rangehigh = radio_range[1] * 16000;
-> +	}
-> +	/* Check if the radio device is active */
-> +	if (vt->type != t->mode)
-> +		return 0;
-> +
-> +	if (V4L2_TUNER_IS_SDR(vt->type)) {
-> +		if (fe_tuner_ops->get_bandwidth)
-> +			fe_tuner_ops->get_bandwidth(&t->fe,
-> +							&vt->bandwidth);
-> +		if (fe_tuner_ops->get_if_frequency)
-> +			fe_tuner_ops->get_if_frequency(&t->fe,
-> +							&vt->int_freq);
-> +		/*
-> +			* Sampe rate is not a tuner props - it is up to the
-> +			* bridge driver to fill it.
-> +			*/
-> +	} else {
->  		vt->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
->  		if (fe_tuner_ops->get_status) {
->  			u32 tuner_status;
-> @@ -1203,9 +1227,6 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
->  		}
->  		vt->audmode = t->audmode;
->  	}
-> -	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
-> -	vt->rangelow = radio_range[0] * 16000;
-> -	vt->rangehigh = radio_range[1] * 16000;
->  
->  	return 0;
->  }
-> 
