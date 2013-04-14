@@ -1,82 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62957 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934549Ab3DGXxt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Apr 2013 19:53:49 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r37NrnpB012338
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 7 Apr 2013 19:53:49 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [RFC PATCH 1/5] r820t: Give a better estimation of the signal strength
-Date: Sun,  7 Apr 2013 20:53:26 -0300
-Message-Id: <1365378810-1637-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1365351031-22079-1-git-send-email-mchehab@redhat.com>
-References: <1365351031-22079-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3814 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752261Ab3DNP17 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Apr 2013 11:27:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 16/30] cx25821: remove unnecessary debug messages.
+Date: Sun, 14 Apr 2013 17:27:12 +0200
+Message-Id: <1365953246-8972-17-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of a binary signal strength measure, use the tuner gain
-to obtain a better estimation of the signal strength.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+The v4l2 core already has support for debugging ioctls/file operations.
+
+No need to do that again.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/tuners/r820t.c | 30 +++++++++++++++++++++++++++---
- 1 file changed, 27 insertions(+), 3 deletions(-)
+ drivers/media/pci/cx25821/cx25821-video.c |   12 ------------
+ 1 file changed, 12 deletions(-)
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index 7e02920..ed9cd65 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1082,6 +1082,18 @@ static int r820t_set_tv_standard(struct r820t_priv *priv,
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index 0c11f31..6088ee9 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -633,9 +633,6 @@ static int video_open(struct file *file)
+ 	u32 pix_format;
+ 	int ch_id;
+ 
+-	dprintk(1, "open dev=%s type=%s\n", video_device_node_name(vdev),
+-			v4l2_type_names[type]);
+-
+ 	for (ch_id = 0; ch_id < MAX_VID_CHANNEL_NUM - 1; ch_id++)
+ 		if (&dev->channels[ch_id].vdev == vdev)
+ 			break;
+@@ -922,7 +919,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 			return err;
+ 	}
+ 
+-	dprintk(2, "%s()\n", __func__);
+ 	err = cx25821_vidioc_try_fmt_vid_cap(file, priv, f);
+ 
+ 	if (0 != err)
+@@ -956,8 +952,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
+ 	dev->channels[fh->channel_id].cif_width = fh->width;
+ 	medusa_set_resolution(dev, fh->width, SRAM_CH00);
+ 
+-	dprintk(2, "%s(): width=%d height=%d field=%d\n", __func__, fh->width,
+-		fh->height, fh->vidq.field);
+ 	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
+ 	cx25821_call_all(dev, video, s_mbus_fmt, &mbus_fmt);
+ 
+@@ -1079,8 +1073,6 @@ int cx25821_vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
+ 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
+ 	int err;
+ 
+-	dprintk(1, "%s()\n", __func__);
+-
+ 	if (fh) {
+ 		err = v4l2_prio_check(&dev->channels[fh->channel_id].prio,
+ 				      fh->prio);
+@@ -1110,7 +1102,6 @@ static int cx25821_vidioc_enum_input(struct file *file, void *priv,
+ 	};
+ 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
+ 	unsigned int n;
+-	dprintk(1, "%s()\n", __func__);
+ 
+ 	n = i->index;
+ 	if (n >= CX25821_NR_INPUT)
+@@ -1131,7 +1122,6 @@ static int cx25821_vidioc_g_input(struct file *file, void *priv, unsigned int *i
+ 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
+ 
+ 	*i = dev->input;
+-	dprintk(1, "%s(): returns %d\n", __func__, *i);
  	return 0;
  }
  
-+static int r820t_read_gain(struct r820t_priv *priv)
-+{
-+	u8 data[4];
-+	int rc;
-+
-+	rc = r820_read(priv, 0x00, data, sizeof(data));
-+	if (rc < 0)
-+		return rc;
-+
-+	return ((data[3] & 0x0f) << 1) + ((data[3] & 0xf0) >> 4);
-+}
-+
- static int generic_set_freq(struct dvb_frontend *fe,
- 			    u32 freq /* in HZ */,
- 			    unsigned bw,
-@@ -1353,11 +1365,23 @@ static int r820t_set_params(struct dvb_frontend *fe)
- static int r820t_signal(struct dvb_frontend *fe, u16 *strength)
- {
- 	struct r820t_priv *priv = fe->tuner_priv;
-+	int rc = 0;
+@@ -1141,8 +1131,6 @@ static int cx25821_vidioc_s_input(struct file *file, void *priv, unsigned int i)
+ 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
+ 	int err;
  
--	if (priv->has_lock)
--		*strength = 0xffff;
--	else
-+	if (priv->has_lock) {
-+		rc = r820t_read_gain(priv);
-+		if (rc < 0)
-+			return rc;
-+
-+		/* A higher gain at LNA means a lower signal strength */
-+		*strength = (45 - rc) << 4 | 0xff;
-+	} else {
- 		*strength = 0;
-+	}
-+
-+	tuner_dbg("%s: %s, gain=%d strength=%d\n",
-+		  __func__,
-+		  priv->has_lock ? "PLL locked" : "no signal",
-+		  rc, *strength);
- 
- 	return 0;
- }
+-	dprintk(1, "%s(%d)\n", __func__, i);
+-
+ 	if (fh) {
+ 		err = v4l2_prio_check(&dev->channels[fh->channel_id].prio,
+ 				      fh->prio);
 -- 
-1.8.1.4
+1.7.10.4
 
