@@ -1,47 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:60907 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751670Ab3DKTzC (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3179 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752202Ab3DNP1z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 15:55:02 -0400
-Received: by mail-ea0-f179.google.com with SMTP id f15so904396eak.24
-        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 12:55:01 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] em28xx: fix snapshot button support
-Date: Thu, 11 Apr 2013 21:56:01 +0200
-Message-Id: <1365710161-4939-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sun, 14 Apr 2013 11:27:55 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 28/30] cx25821: add output format ioctls.
+Date: Sun, 14 Apr 2013 17:27:24 +0200
+Message-Id: <1365953246-8972-29-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The snapshot button support is currently broken, because module em28xx-rc is
-loaded only if the device has remote control support.
-Fix it by also loading this module if the device has a snapshot button.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/usb/em28xx/em28xx-cards.c |    3 ++-
- 1 Datei geändert, 2 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+ drivers/media/pci/cx25821/cx25821-video.c |   46 +++++++++++++++++++++++++++++
+ 1 file changed, 46 insertions(+)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 085b8fc..2da17af 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2810,7 +2810,8 @@ static void request_module_async(struct work_struct *work)
- 
- 	if (dev->board.has_dvb)
- 		request_module("em28xx-dvb");
--	if ((dev->board.ir_codes || dev->board.has_ir_i2c) && !disable_ir)
-+	if (dev->board.has_snapshot_button ||
-+	    ((dev->board.ir_codes || dev->board.has_ir_i2c) && !disable_ir))
- 		request_module("em28xx-rc");
- #endif /* CONFIG_MODULES */
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index dca3391..70e33b1 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -851,6 +851,48 @@ static int cx25821_vidioc_s_output(struct file *file, void *priv, unsigned int o
+ 	return o ? -EINVAL : 0;
  }
+ 
++static int cx25821_vidioc_try_fmt_vid_out(struct file *file, void *priv,
++				   struct v4l2_format *f)
++{
++	struct cx25821_channel *chan = video_drvdata(file);
++	struct cx25821_dev *dev = chan->dev;
++	const struct cx25821_fmt *fmt;
++
++	fmt = cx25821_format_by_fourcc(f->fmt.pix.pixelformat);
++	if (NULL == fmt)
++		return -EINVAL;
++	f->fmt.pix.width = 720;
++	f->fmt.pix.height = (dev->tvnorm & V4L2_STD_625_50) ? 576 : 480;
++	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
++	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
++	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.priv = 0;
++	return 0;
++}
++
++static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
++				struct v4l2_format *f)
++{
++	struct cx25821_channel *chan = video_drvdata(file);
++	int err;
++
++	err = cx25821_vidioc_try_fmt_vid_out(file, priv, f);
++
++	if (0 != err)
++		return err;
++
++	chan->fmt = cx25821_format_by_fourcc(f->fmt.pix.pixelformat);
++	chan->vidq.field = f->fmt.pix.field;
++	chan->width = f->fmt.pix.width;
++	chan->height = f->fmt.pix.height;
++	if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_Y41P)
++		chan->pixel_formats = PIXEL_FRMT_411;
++	else
++		chan->pixel_formats = PIXEL_FRMT_422;
++	return 0;
++}
++
+ static const struct v4l2_ctrl_ops cx25821_ctrl_ops = {
+ 	.s_ctrl = cx25821_s_ctrl,
+ };
+@@ -905,6 +947,10 @@ static const struct v4l2_file_operations video_out_fops = {
+ 
+ static const struct v4l2_ioctl_ops video_out_ioctl_ops = {
+ 	.vidioc_querycap = cx25821_vidioc_querycap,
++	.vidioc_enum_fmt_vid_out = cx25821_vidioc_enum_fmt_vid_cap,
++	.vidioc_g_fmt_vid_out = cx25821_vidioc_g_fmt_vid_cap,
++	.vidioc_try_fmt_vid_out = cx25821_vidioc_try_fmt_vid_out,
++	.vidioc_s_fmt_vid_out = vidioc_s_fmt_vid_out,
+ 	.vidioc_g_std = cx25821_vidioc_g_std,
+ 	.vidioc_s_std = cx25821_vidioc_s_std,
+ 	.vidioc_enum_output = cx25821_vidioc_enum_output,
 -- 
 1.7.10.4
 
