@@ -1,44 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f49.google.com ([209.85.214.49]:41247 "EHLO
-	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751222Ab3DTTFY (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4069 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752015Ab3DNP1v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 15:05:24 -0400
-Received: by mail-bk0-f49.google.com with SMTP id w12so2132305bku.8
-        for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 12:05:22 -0700 (PDT)
-Message-ID: <5172E6EF.9000506@googlemail.com>
-Date: Sat, 20 Apr 2013 21:05:19 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?SmVhbi1GcmFuw6dvaXMgTW9pbmU=?= <moinejf@free.fr>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: sicco@ddo.nl
-Subject: [gspca] Green/garbled/black webcam [0x0ac8 0xc002] output for Sony
- VGN-FE21M laptop
-References: <20130420175128.27763.4907.malone@wampee.canonical.com>
-In-Reply-To: <20130420175128.27763.4907.malone@wampee.canonical.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Sun, 14 Apr 2013 11:27:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 02/30] cx25821: the audio channel was registered as a video node.
+Date: Sun, 14 Apr 2013 17:26:58 +0200
+Message-Id: <1365953246-8972-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I could need some help with this Ubuntu bug report:
-https://bugs.launchpad.net/ubuntu/+source/v4l-utils/+bug/1134565
+Skip the audio channel when registering the video nodes. This fixes a bug
+where that incorrectly registered 'video' node was never unregistered.
 
-Is there known error in the gspca driver that is causing this kernel log:
-[ 2830.890605] gspca_main: ISOC data error: [27] len=0, status=-71
+Note: this bug only surfaces if the video output nodes are enabled again
+after the previous patch disabled them.
 
-v4l-info reports the following:
-     VIDIOC_QUERYCAP
- 	driver                  : "vc032x"
- 	card                    : "USB2.0 Web Camera"
- 	bus_info                : "usb-0000:00:1d.7-8"
- 	version                 : 3.2.40
- 	capabilities            : 0x5000001 [VIDEO_CAPTURE,READWRITE,STREAMING]
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx25821/cx25821-core.c  |    8 +++-----
+ drivers/media/pci/cx25821/cx25821-video.c |    5 ++++-
+ 2 files changed, 7 insertions(+), 6 deletions(-)
 
-Or is this the result of broken hardware?
+diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+index 1884e2c..1f47422 100644
+--- a/drivers/media/pci/cx25821/cx25821-core.c
++++ b/drivers/media/pci/cx25821/cx25821-core.c
+@@ -1051,11 +1051,9 @@ void cx25821_dev_unregister(struct cx25821_dev *dev)
+ 	if (!atomic_dec_and_test(&dev->refcount))
+ 		return;
+ 
+-	for (i = 0; i < VID_CHANNEL_NUM; i++)
+-		cx25821_video_unregister(dev, i);
+-
+-	for (i = VID_UPSTREAM_SRAM_CHANNEL_I;
+-	     i <= AUDIO_UPSTREAM_SRAM_CHANNEL_B; i++) {
++	for (i = 0; i < MAX_VID_CHANNEL_NUM - 1; i++) {
++		if (i == SRAM_CH08) /* audio channel */
++			continue;
+ 		cx25821_video_unregister(dev, i);
+ 	}
+ 
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index 6b18320..8bf9c89 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -462,6 +462,9 @@ int cx25821_video_register(struct cx25821_dev *dev)
+ 	spin_lock_init(&dev->slock);
+ 
+ 	for (i = 0; i < VID_CHANNEL_NUM; ++i) {
++		if (i == SRAM_CH08) /* audio channel */
++			continue;
++
+ 		cx25821_init_controls(dev, i);
+ 
+ 		cx25821_risc_stopper(dev->pci, &dev->channels[i].vidq.stopper,
+@@ -788,7 +791,7 @@ static int video_open(struct file *file)
+ 	{
+ 		h = list_entry(list, struct cx25821_dev, devlist);
+ 
+-		for (i = 0; i < MAX_VID_CHANNEL_NUM; i++) {
++		for (i = 0; i < MAX_VID_CHANNEL_NUM - 1; i++) {
+ 			if (h->channels[i].video_dev &&
+ 			    h->channels[i].video_dev->minor == minor) {
+ 				dev = h;
+-- 
+1.7.10.4
 
-Thanks,
-Gregor
