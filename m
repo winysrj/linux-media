@@ -1,149 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:59254 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S968063Ab3DSJxu (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2041 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752040Ab3DNP1v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 05:53:50 -0400
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 1/2] media: davinci: vpif: remove unwanted header file inclusion
-Date: Fri, 19 Apr 2013 15:23:29 +0530
-Message-Id: <1366365210-3778-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1366365210-3778-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1366365210-3778-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sun, 14 Apr 2013 11:27:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 11/30] cx25821: remove cropping ioctls.
+Date: Sun, 14 Apr 2013 17:27:07 +0200
+Message-Id: <1365953246-8972-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-this patch removes unwanted header file inclusion and sorts
-header alphabetically.
+This driver does not implement cropping, so remove the cropping ioctls.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c |   19 ++++---------------
- drivers/media/platform/davinci/vpif_capture.h |    5 +----
- drivers/media/platform/davinci/vpif_display.c |   23 +++--------------------
- drivers/media/platform/davinci/vpif_display.h |    5 +----
- 4 files changed, 9 insertions(+), 43 deletions(-)
+ drivers/media/pci/cx25821/cx25821-video.c |   44 -----------------------------
+ 1 file changed, 44 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 5f98df1..a1b42b0 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -18,28 +18,17 @@
-  * TODO : add support for VBI & HBI data service
-  *	  add static buffer allocation
-  */
--#include <linux/kernel.h>
--#include <linux/init.h>
-+
- #include <linux/module.h>
--#include <linux/errno.h>
--#include <linux/fs.h>
--#include <linux/mm.h>
- #include <linux/interrupt.h>
--#include <linux/workqueue.h>
--#include <linux/string.h>
--#include <linux/videodev2.h>
--#include <linux/wait.h>
--#include <linux/time.h>
--#include <linux/i2c.h>
- #include <linux/platform_device.h>
--#include <linux/io.h>
- #include <linux/slab.h>
--#include <media/v4l2-device.h>
--#include <media/v4l2-ioctl.h>
-+
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ioctl.h>
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index 9e948ef..9919a0e 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -1396,47 +1396,6 @@ static void cx25821_init_controls(struct cx25821_dev *dev, int chan_num)
+ 	}
+ }
  
--#include "vpif_capture.h"
- #include "vpif.h"
-+#include "vpif_capture.h"
- 
- MODULE_DESCRIPTION("TI DaVinci VPIF Capture driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 3d3c1e5..0ebb312 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -22,11 +22,8 @@
- #ifdef __KERNEL__
- 
- /* Header files */
--#include <linux/videodev2.h>
--#include <media/v4l2-common.h>
--#include <media/v4l2-device.h>
- #include <media/videobuf2-dma-contig.h>
--#include <media/davinci/vpif_types.h>
-+#include <media/v4l2-device.h>
- 
- #include "vpif.h"
- 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 1b3fb5c..d833056 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -14,33 +14,16 @@
-  * GNU General Public License for more details.
-  */
- 
--#include <linux/kernel.h>
--#include <linux/init.h>
--#include <linux/module.h>
--#include <linux/errno.h>
--#include <linux/fs.h>
--#include <linux/mm.h>
- #include <linux/interrupt.h>
--#include <linux/workqueue.h>
--#include <linux/string.h>
--#include <linux/videodev2.h>
--#include <linux/wait.h>
--#include <linux/time.h>
--#include <linux/i2c.h>
-+#include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/io.h>
- #include <linux/slab.h>
- 
--#include <asm/irq.h>
--#include <asm/page.h>
+-static int cx25821_vidioc_cropcap(struct file *file, void *priv,
+-			   struct v4l2_cropcap *cropcap)
+-{
+-	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
 -
--#include <media/adv7343.h>
--#include <media/v4l2-device.h>
--#include <media/v4l2-ioctl.h>
- #include <media/v4l2-chip-ident.h>
-+#include <media/v4l2-ioctl.h>
- 
--#include "vpif_display.h"
- #include "vpif.h"
-+#include "vpif_display.h"
- 
- MODULE_DESCRIPTION("TI DaVinci VPIF Display driver");
- MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/davinci/vpif_display.h b/drivers/media/platform/davinci/vpif_display.h
-index a5a18f7..5d87fc8 100644
---- a/drivers/media/platform/davinci/vpif_display.h
-+++ b/drivers/media/platform/davinci/vpif_display.h
-@@ -17,11 +17,8 @@
- #define DAVINCIHD_DISPLAY_H
- 
- /* Header files */
--#include <linux/videodev2.h>
--#include <media/v4l2-common.h>
--#include <media/v4l2-device.h>
- #include <media/videobuf2-dma-contig.h>
--#include <media/davinci/vpif_types.h>
-+#include <media/v4l2-device.h>
- 
- #include "vpif.h"
- 
+-	if (cropcap->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
+-		return -EINVAL;
+-	cropcap->bounds.top = 0;
+-	cropcap->bounds.left = 0;
+-	cropcap->bounds.width = 720;
+-	cropcap->bounds.height = dev->tvnorm == V4L2_STD_PAL_BG ? 576 : 480;
+-	cropcap->pixelaspect.numerator =
+-		dev->tvnorm == V4L2_STD_PAL_BG ? 59 : 10;
+-	cropcap->pixelaspect.denominator =
+-		dev->tvnorm == V4L2_STD_PAL_BG ? 54 : 11;
+-	cropcap->defrect = cropcap->bounds;
+-	return 0;
+-}
+-
+-static int cx25821_vidioc_s_crop(struct file *file, void *priv, const struct v4l2_crop *crop)
+-{
+-	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
+-	struct cx25821_fh *fh = priv;
+-	int err;
+-
+-	if (fh) {
+-		err = v4l2_prio_check(&dev->channels[fh->channel_id].prio,
+-				      fh->prio);
+-		if (0 != err)
+-			return err;
+-	}
+-	/* cx25821_vidioc_s_crop not supported */
+-	return -EINVAL;
+-}
+-
+-static int cx25821_vidioc_g_crop(struct file *file, void *priv, struct v4l2_crop *crop)
+-{
+-	/* cx25821_vidioc_g_crop not supported */
+-	return -EINVAL;
+-}
+-
+ static long video_ioctl_upstream9(struct file *file, unsigned int cmd,
+ 				 unsigned long arg)
+ {
+@@ -1713,9 +1672,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_dqbuf = vidioc_dqbuf,
+ 	.vidioc_g_std = cx25821_vidioc_g_std,
+ 	.vidioc_s_std = cx25821_vidioc_s_std,
+-	.vidioc_cropcap = cx25821_vidioc_cropcap,
+-	.vidioc_s_crop = cx25821_vidioc_s_crop,
+-	.vidioc_g_crop = cx25821_vidioc_g_crop,
+ 	.vidioc_enum_input = cx25821_vidioc_enum_input,
+ 	.vidioc_g_input = cx25821_vidioc_g_input,
+ 	.vidioc_s_input = cx25821_vidioc_s_input,
 -- 
-1.7.4.1
+1.7.10.4
 
