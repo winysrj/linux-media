@@ -1,242 +1,622 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f176.google.com ([209.85.215.176]:51399 "EHLO
-	mail-ea0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760633Ab3DBTBc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 15:01:32 -0400
-Received: by mail-ea0-f176.google.com with SMTP id h10so386509eaj.21
-        for <linux-media@vger.kernel.org>; Tue, 02 Apr 2013 12:01:31 -0700 (PDT)
-Message-ID: <515B2B49.8050805@googlemail.com>
-Date: Tue, 02 Apr 2013 21:02:33 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/3] em28xx: add support for two buses on em2874 and upper
-References: <1362480928-20382-1-git-send-email-mchehab@redhat.com> <CAGoCfiwB9BT2mDQqu2cwsRM-0eraqyxdY0V3fnH+S2RSNiGSdQ@mail.gmail.com> <51378067.3000506@googlemail.com> <20130318182205.44f44e20@redhat.com> <5159C05B.10902@googlemail.com> <20130401162205.379bda4f@redhat.com> <5159F080.1030503@googlemail.com> <20130401191224.4da92bd8@redhat.com>
-In-Reply-To: <20130401191224.4da92bd8@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2468 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752138Ab3DNP1y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Apr 2013 11:27:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 07/30] cx25821: make cx25821_sram_channels const.
+Date: Sun, 14 Apr 2013 17:27:03 +0200
+Message-Id: <1365953246-8972-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.04.2013 00:12, schrieb Mauro Carvalho Chehab:
-> Em Mon, 01 Apr 2013 22:39:28 +0200
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> Am 01.04.2013 21:22, schrieb Mauro Carvalho Chehab:
->>> Em Mon, 01 Apr 2013 19:14:03 +0200
->>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>>
->>>> Am 18.03.2013 22:22, schrieb Mauro Carvalho Chehab:
->>>>> Em Wed, 06 Mar 2013 18:44:07 +0100
->>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->>>>>
->>>>>> Am 05.03.2013 16:43, schrieb Devin Heitmueller:
->>>>>>> 2013/3/5 Mauro Carvalho Chehab <mchehab@redhat.com>:
->>>>>>>> The em2874 chips and upper have 2 buses. On all known devices, bus 0 is
->>>>>>>> currently used only by eeprom, and bus 1 for the rest. Add support to
->>>>>>>> register both buses.
->>>>>>> Did you add a mutex to ensure that both buses cannot be used at the
->>>>>>> same time?  Because using the bus requires you to toggle a register
->>>>>>> (thus you cannot be using both busses at the same time), you cannot
->>>>>>> rely on the existing i2c adapter lock anymore.
->>>>>>>
->>>>>>> You don't want a situation where something is actively talking on bus
->>>>>>> 0, and then something else tries to talk on bus 1, flips the register
->>>>>>> bit and then the thread talking on bus 0 starts failing.
->>>>>>>
->>>>>>> Devin
->>>>>> Hmm... there are several writes to EM28XX_R06_I2C_CLK in em28xx-dvb...
->>>>>> See hauppauge_hvr930c_init(), terratec_h5_init() and
->>>>>> terratec_htc_stick_init().
->>>>>> These functions are called from em28xx_dvb_init() at module init.
->>>>>> Module init is async, so yes, this is (or could at least become) a
->>>>>> problem...
->>>>>>
->>>>>> I wonder if we can't simply remove all those writes to
->>>>>> EM28XX_R06_I2C_CLK from em28xx-dvb.
->>>>>> This is what the functions are doing:
->>>>>>
->>>>>> hauppauge_hvr930c_init()
->>>>>>     ...
->>>>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
->>>>>>     msleep(10);
->>>>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
->>>>>>     msleep(10);
->>>>>>     ... [init sequence for slave at address 0x82]
->>>>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
->>>>>>     msleep(30);
->>>>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x45);
->>>>>>     msleep(10);
->>>>>>
->>>>>> terratec_h5_init():
->>>>>>     ...
->>>>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
->>>>>>     msleep(10);
->>>>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x45);
->>>>>>     msleep(10);
->>>>>>     ...
->>>>>>
->>>>>> terratec_htc_stick_init()
->>>>>>     ...
->>>>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x40);
->>>>>>     msleep(10);
->>>>>>     em28xx_write_reg(dev, EM28XX_R06_I2C_CLK, 0x44);
->>>>>>     msleep(10);
->>>>>>     ...
->>>>>>
->>>>>> All three boards are using the following settings:
->>>>>>         .i2c_speed    = EM2874_I2C_SECONDARY_BUS_SELECT |
->>>>>> EM28XX_I2C_CLK_WAIT_ENABLE | EM28XX_I2C_FREQ_400_KHZ = 0x45
->>>>>>
->>>>>> So what these functions are doing is
->>>>>> - switch to bus A and do nothing fo 10ms
->>>>>> - overwrite board settings for reg 0x06 with a local value (clears
->>>>>> EM28XX_I2C_FREQ_400_KHZ permanently for the HTC-Stick !).
->>>>>>
->>>>>> I can test the HVR-930C next week.
->>>> Ok, I finally had the chance to test with a HVR-930C, but it seems my
->>>> device () is different.
->> I forgot to insert the device/model of the device I tested: it's 16009, B1F0
-> It has the same model as the one I have here.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ok.
+And get rid of the channel0-11 external pointers and two more unused fields
+in cx25821.h.
 
->
->>>> It has no slave device at i2c address 0x82, so I can't test this part.
->>>> Btw, which slave device is this ?
-> AFAIKT, at address 0x41, there is the analog demod (avf4910b). It is not
-> used by Digital TV (although I'm not sure if, for this device, it needs
-> to be initialized or not).
->
-> We don't have enough documentation to write a driver for avf4910b. Some
-> developers at the ML are trying to implement support for it for HVR-930C:
->
-> 	http://www.mail-archive.com/linux-media@vger.kernel.org/msg59296.html
->
-> There is a code pointed there for avf4910a:
-> 	https://github.com/wurststulle/ngene_2400i/blob/2377b1fd99d91ff355a5e46881ef27ccc87cb376/avf4910a.c
->
-> Also, maybe to access the avf4910b some different GPIO setting may be needed,
-> as it might be powered off by the GPIO settings initialized at device i
->
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx25821/cx25821-alsa.c           |    2 +-
+ drivers/media/pci/cx25821/cx25821-audio-upstream.c |   22 +++++++--------
+ drivers/media/pci/cx25821/cx25821-core.c           |   28 +++++---------------
+ .../media/pci/cx25821/cx25821-video-upstream-ch2.c |   20 +++++++-------
+ drivers/media/pci/cx25821/cx25821-video-upstream.c |   22 +++++++--------
+ drivers/media/pci/cx25821/cx25821-video.c          |   14 +++++-----
+ drivers/media/pci/cx25821/cx25821-video.h          |   15 +----------
+ drivers/media/pci/cx25821/cx25821.h                |   26 +++++++-----------
+ 8 files changed, 57 insertions(+), 92 deletions(-)
 
-Yeah, I remember that.
-Anyway, I don't have time for this at the moment.
-I also think this is really Hauppauges job. These devices are still
-expensive (65-100€) but half working only.
-That's why I'm going to do it with all my Hauppauge devices: wait 5
-years and then buy them used for max. 10€.
-Maybe I'll get back to this if it is still not working then and I find
-some free time, but no guarantee... ;)
-
->
->>>> Removing the temporary switches to bus A makes no difference (as expected).
->>>>
->>>>> There are some things there on the init sequence that can be
->>>>> cleaned/removed. Those sequences generally comes from observing
->>>>> what the original driver does. While it produces a working driver,
->>>>> in general, it is not optimized and part of the init sequence can
->>>>> be removed.
->>>> Do you want me to send patches to remove these writes ?
->>>> Which i2c speed settings do you suggest for the HVR-930C and the
->>>> HTC-Stick (board settings:
->>>> EM28XX_I2C_FREQ_400_KHZ, code overwrites it with EM28XX_I2C_FREQ_100_KHZ) ?
->>> Sure. The better would be to even remove the hauppauge_hvr930c_init()
->>> function, as this is just a hack, and use the setup via the em28xx-cards
->>> commented entries:
->>>
->>> 		.tuner_type   = TUNER_XC5000,
->>> 		.tuner_addr   = 0x41,
->>> 		.dvb_gpio     = hauppauge_930c_digital,
->>> 		.tuner_gpio   = hauppauge_930c_gpio,
->> Hmm... tuner address is 0x61 for the device I tested !
->> The register sequences in em28xx-cards.c also seem to be different to
->> the ones used in hauppauge_hvr930c_init() in em28xx-dvb.c...
-> I'm not telling that the entries there are right. They aren't. If they
-> where working, that data there weren't commented. This device entry
-> started with a clone from Terratec H5, which was the first em28xx
-> device with DRX-K.
->
-> On Terratec H5, the tuner is different (based on tda8290/tda8275).
-> The current device initialization started as a clone of the code
-> under terratec_h5_init().
->
-> As it worked like that, the patch author that added support for HVR-930
-> likely didn't touch on it.
-
-:-/
-So the whole code for these devices is basically a quick and dirty hack.
-I also checked the init sequences in em28xx-dvb.c and the GPIO sequences
-and board parameters which are currently commented out...
-
-No, thank you, I'm not going to touch this under the current circumstances !
-
-What I'm still going to do is to remove at least these writes to reg
-0x06 in em28xx-dvb.c.
-
->
-> The tuner for HVR930C is clearly at 0x61 address, as it can be seen at
-> em28xx-dvb:
->
->                 /* Attach xc5000 */
->                	memset(&cfg, 0, sizeof(cfg));
->                 cfg.i2c_address  = 0x61;
->                 cfg.if_khz = 4000;
->
->                 if (dvb->fe[0]->ops.i2c_gate_ctrl)
->                         dvb->fe[0]->ops.i2c_gate_ctrl(dvb->fe[0], 1);
->                	if (!dvb_attach(xc5000_attach, dvb->fe[0], &dev->i2c_adap[dev->def_i2c_bus],
->                                 &cfg)) {
->                         result = -EINVAL;
->                         goto out_free;
->                 }
->
->> Are you sure this will work for _all_ variants of the HVR-930C ?
-> Well, the current code will only work with a HVR-930C with a xc5000 tuner,
-> a drx-k demod and an em28xx (and an avf4910b analog TV demod).
->
-> Any other model with a different layout, if are there any, won't work 
-> anyway.
->
-> While we can't discard that a different model might have a different GPIO
-> setting, Hauppauge tends to keep the GPIO settings equal for the same
-> device brand name. 
->
-> So, it seems very unlikely that any change here will keep it working for
-> model 16009 while breaking it for other devices.
-
-Ok, so if the changes work with my device, I can assume it works for the
-others (if existing and working with the current code), too.
-
->
->> I think it would be better if you would create those patches.
->> I really don't like writing patches without completely understanding the
->> code, not beeing able to test them and commit messages saying "Mauro
->> told me to do this"... ;)
->> You also didn't answer my question concerning the i2c speed settings. ;)
-> What question?
->
-> Each bus may have a different max I2C speed, but the speed should not
-> change on the same I2C bus over the time. If the driver is doing that,
-> this is a bug that needs to be fixed.
-
-For the HVR-930C and the HTC stick the board setting is 400KHz which we
-overwrite in em28xx-dvb with 100KHz.
-Which means that the current code (if it is really working) uses 100KHz.
-So should I change the board setting to 100KHz when removing these
-writes to be sure we don't break anything ?
-
-I checked several datasheets of different i2c client devices, but none
-of them says anything concerning the supported i2c speeds...
-Can we assume that all devices are working with 100KHz ? And does 400KHz
-really make things faster ? ;)
-
-Regards,
-Frank
-
->
-> Regards,
-> Mauro
+diff --git a/drivers/media/pci/cx25821/cx25821-alsa.c b/drivers/media/pci/cx25821/cx25821-alsa.c
+index 1858a45..b3cac75 100644
+--- a/drivers/media/pci/cx25821/cx25821-alsa.c
++++ b/drivers/media/pci/cx25821/cx25821-alsa.c
+@@ -151,7 +151,7 @@ static int _cx25821_start_audio_dma(struct cx25821_audio_dev *chip)
+ {
+ 	struct cx25821_audio_buffer *buf = chip->buf;
+ 	struct cx25821_dev *dev = chip->dev;
+-	struct sram_channel *audio_ch =
++	const struct sram_channel *audio_ch =
+ 	    &cx25821_sram_channels[AUDIO_SRAM_CHANNEL];
+ 	u32 tmp = 0;
+ 
+diff --git a/drivers/media/pci/cx25821/cx25821-audio-upstream.c b/drivers/media/pci/cx25821/cx25821-audio-upstream.c
+index ea97320..b9be535 100644
+--- a/drivers/media/pci/cx25821/cx25821-audio-upstream.c
++++ b/drivers/media/pci/cx25821/cx25821-audio-upstream.c
+@@ -45,7 +45,7 @@ static int _intr_msk = FLD_AUD_SRC_RISCI1 | FLD_AUD_SRC_OF |
+ 			FLD_AUD_SRC_SYNC | FLD_AUD_SRC_OPC_ERR;
+ 
+ static int cx25821_sram_channel_setup_upstream_audio(struct cx25821_dev *dev,
+-					      struct sram_channel *ch,
++					      const struct sram_channel *ch,
+ 					      unsigned int bpl, u32 risc)
+ {
+ 	unsigned int i, lines;
+@@ -106,7 +106,7 @@ static __le32 *cx25821_risc_field_upstream_audio(struct cx25821_dev *dev,
+ 						 int fifo_enable)
+ {
+ 	unsigned int line;
+-	struct sram_channel *sram_ch =
++	const struct sram_channel *sram_ch =
+ 		dev->channels[dev->_audio_upstream_channel].sram_channels;
+ 	int offset = 0;
+ 
+@@ -215,7 +215,7 @@ static void cx25821_free_memory_audio(struct cx25821_dev *dev)
+ 
+ void cx25821_stop_upstream_audio(struct cx25821_dev *dev)
+ {
+-	struct sram_channel *sram_ch =
++	const struct sram_channel *sram_ch =
+ 		dev->channels[AUDIO_UPSTREAM_SRAM_CHANNEL_B].sram_channels;
+ 	u32 tmp = 0;
+ 
+@@ -257,7 +257,7 @@ void cx25821_free_mem_upstream_audio(struct cx25821_dev *dev)
+ }
+ 
+ static int cx25821_get_audio_data(struct cx25821_dev *dev,
+-			   struct sram_channel *sram_ch)
++			   const struct sram_channel *sram_ch)
+ {
+ 	struct file *myfile;
+ 	int frame_index_temp = dev->_audioframe_index;
+@@ -352,7 +352,7 @@ static void cx25821_audioups_handler(struct work_struct *work)
+ }
+ 
+ static int cx25821_openfile_audio(struct cx25821_dev *dev,
+-			   struct sram_channel *sram_ch)
++			   const struct sram_channel *sram_ch)
+ {
+ 	struct file *myfile;
+ 	int i = 0, j = 0;
+@@ -433,7 +433,7 @@ static int cx25821_openfile_audio(struct cx25821_dev *dev,
+ }
+ 
+ static int cx25821_audio_upstream_buffer_prepare(struct cx25821_dev *dev,
+-						 struct sram_channel *sram_ch,
++						 const struct sram_channel *sram_ch,
+ 						 int bpl)
+ {
+ 	int ret = 0;
+@@ -495,7 +495,7 @@ static int cx25821_audio_upstream_irq(struct cx25821_dev *dev, int chan_num,
+ {
+ 	int i = 0;
+ 	u32 int_msk_tmp;
+-	struct sram_channel *channel = dev->channels[chan_num].sram_channels;
++	const struct sram_channel *channel = dev->channels[chan_num].sram_channels;
+ 	dma_addr_t risc_phys_jump_addr;
+ 	__le32 *rp;
+ 
+@@ -587,7 +587,7 @@ static irqreturn_t cx25821_upstream_irq_audio(int irq, void *dev_id)
+ 	struct cx25821_dev *dev = dev_id;
+ 	u32 audio_status;
+ 	int handled = 0;
+-	struct sram_channel *sram_ch;
++	const struct sram_channel *sram_ch;
+ 
+ 	if (!dev)
+ 		return -1;
+@@ -611,7 +611,7 @@ static irqreturn_t cx25821_upstream_irq_audio(int irq, void *dev_id)
+ }
+ 
+ static void cx25821_wait_fifo_enable(struct cx25821_dev *dev,
+-				     struct sram_channel *sram_ch)
++				     const struct sram_channel *sram_ch)
+ {
+ 	int count = 0;
+ 	u32 tmp;
+@@ -635,7 +635,7 @@ static void cx25821_wait_fifo_enable(struct cx25821_dev *dev,
+ }
+ 
+ static int cx25821_start_audio_dma_upstream(struct cx25821_dev *dev,
+-					    struct sram_channel *sram_ch)
++					    const struct sram_channel *sram_ch)
+ {
+ 	u32 tmp = 0;
+ 	int err = 0;
+@@ -699,7 +699,7 @@ fail_irq:
+ 
+ int cx25821_audio_upstream_init(struct cx25821_dev *dev, int channel_select)
+ {
+-	struct sram_channel *sram_ch;
++	const struct sram_channel *sram_ch;
+ 	int err = 0;
+ 
+ 	if (dev->_audio_is_running) {
+diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+index 2b38a50..48faf6f 100644
+--- a/drivers/media/pci/cx25821/cx25821-core.c
++++ b/drivers/media/pci/cx25821/cx25821-core.c
+@@ -48,7 +48,7 @@ EXPORT_SYMBOL(cx25821_devlist_mutex);
+ LIST_HEAD(cx25821_devlist);
+ EXPORT_SYMBOL(cx25821_devlist);
+ 
+-struct sram_channel cx25821_sram_channels[] = {
++const struct sram_channel cx25821_sram_channels[] = {
+ 	[SRAM_CH00] = {
+ 		.i = SRAM_CH00,
+ 		.name = "VID A",
+@@ -317,20 +317,6 @@ struct sram_channel cx25821_sram_channels[] = {
+ };
+ EXPORT_SYMBOL(cx25821_sram_channels);
+ 
+-struct sram_channel *channel0 = &cx25821_sram_channels[SRAM_CH00];
+-struct sram_channel *channel1 = &cx25821_sram_channels[SRAM_CH01];
+-struct sram_channel *channel2 = &cx25821_sram_channels[SRAM_CH02];
+-struct sram_channel *channel3 = &cx25821_sram_channels[SRAM_CH03];
+-struct sram_channel *channel4 = &cx25821_sram_channels[SRAM_CH04];
+-struct sram_channel *channel5 = &cx25821_sram_channels[SRAM_CH05];
+-struct sram_channel *channel6 = &cx25821_sram_channels[SRAM_CH06];
+-struct sram_channel *channel7 = &cx25821_sram_channels[SRAM_CH07];
+-struct sram_channel *channel9 = &cx25821_sram_channels[SRAM_CH09];
+-struct sram_channel *channel10 = &cx25821_sram_channels[SRAM_CH10];
+-struct sram_channel *channel11 = &cx25821_sram_channels[SRAM_CH11];
+-
+-struct cx25821_dmaqueue mpegq;
+-
+ static int cx25821_risc_decode(u32 risc)
+ {
+ 	static const char * const instr[16] = {
+@@ -457,7 +443,7 @@ static void cx25821_registers_init(struct cx25821_dev *dev)
+ }
+ 
+ int cx25821_sram_channel_setup(struct cx25821_dev *dev,
+-			       struct sram_channel *ch,
++			       const struct sram_channel *ch,
+ 			       unsigned int bpl, u32 risc)
+ {
+ 	unsigned int i, lines;
+@@ -523,10 +509,9 @@ int cx25821_sram_channel_setup(struct cx25821_dev *dev,
+ 
+ 	return 0;
+ }
+-EXPORT_SYMBOL(cx25821_sram_channel_setup);
+ 
+ int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
+-				     struct sram_channel *ch,
++				     const struct sram_channel *ch,
+ 				     unsigned int bpl, u32 risc)
+ {
+ 	unsigned int i, lines;
+@@ -592,7 +577,7 @@ int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
+ }
+ EXPORT_SYMBOL(cx25821_sram_channel_setup_audio);
+ 
+-void cx25821_sram_channel_dump(struct cx25821_dev *dev, struct sram_channel *ch)
++void cx25821_sram_channel_dump(struct cx25821_dev *dev, const struct sram_channel *ch)
+ {
+ 	static char *name[] = {
+ 		"init risc lo",
+@@ -652,10 +637,9 @@ void cx25821_sram_channel_dump(struct cx25821_dev *dev, struct sram_channel *ch)
+ 	pr_warn("        :   cnt2_reg: 0x%08x\n",
+ 		cx_read(ch->cnt2_reg));
+ }
+-EXPORT_SYMBOL(cx25821_sram_channel_dump);
+ 
+ void cx25821_sram_channel_dump_audio(struct cx25821_dev *dev,
+-				     struct sram_channel *ch)
++				     const struct sram_channel *ch)
+ {
+ 	static const char * const name[] = {
+ 		"init risc lo",
+@@ -803,7 +787,7 @@ void cx25821_set_pixel_format(struct cx25821_dev *dev, int channel_select,
+ }
+ 
+ static void cx25821_set_vip_mode(struct cx25821_dev *dev,
+-				 struct sram_channel *ch)
++				 const struct sram_channel *ch)
+ {
+ 	cx_write(ch->pix_frmt, PIXEL_FRMT_422);
+ 	cx_write(ch->vip_ctl, PIXEL_ENGINE_VIP1);
+diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+index cf2723c..2381bdc 100644
+--- a/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
++++ b/drivers/media/pci/cx25821/cx25821-video-upstream-ch2.c
+@@ -83,7 +83,7 @@ static __le32 *cx25821_risc_field_upstream_ch2(struct cx25821_dev *dev,
+ 					       int fifo_enable, int field_type)
+ {
+ 	unsigned int line, i;
+-	struct sram_channel *sram_ch =
++	const struct sram_channel *sram_ch =
+ 		dev->channels[dev->_channel2_upstream_select].sram_channels;
+ 	int dist_betwn_starts = bpl * 2;
+ 
+@@ -201,7 +201,7 @@ static int cx25821_risc_buffer_upstream_ch2(struct cx25821_dev *dev,
+ 
+ void cx25821_stop_upstream_video_ch2(struct cx25821_dev *dev)
+ {
+-	struct sram_channel *sram_ch =
++	const struct sram_channel *sram_ch =
+ 		dev->channels[VID_UPSTREAM_SRAM_CHANNEL_J].sram_channels;
+ 	u32 tmp = 0;
+ 
+@@ -257,7 +257,7 @@ void cx25821_free_mem_upstream_ch2(struct cx25821_dev *dev)
+ }
+ 
+ static int cx25821_get_frame_ch2(struct cx25821_dev *dev,
+-				 struct sram_channel *sram_ch)
++				 const struct sram_channel *sram_ch)
+ {
+ 	struct file *myfile;
+ 	int frame_index_temp = dev->_frame_index_ch2;
+@@ -363,7 +363,7 @@ static void cx25821_vidups_handler_ch2(struct work_struct *work)
+ }
+ 
+ static int cx25821_openfile_ch2(struct cx25821_dev *dev,
+-				struct sram_channel *sram_ch)
++				const struct sram_channel *sram_ch)
+ {
+ 	struct file *myfile;
+ 	int i = 0, j = 0;
+@@ -445,7 +445,7 @@ static int cx25821_openfile_ch2(struct cx25821_dev *dev,
+ }
+ 
+ static int cx25821_upstream_buffer_prepare_ch2(struct cx25821_dev *dev,
+-					       struct sram_channel *sram_ch,
++					       const struct sram_channel *sram_ch,
+ 					       int bpl)
+ {
+ 	int ret = 0;
+@@ -515,7 +515,7 @@ static int cx25821_video_upstream_irq_ch2(struct cx25821_dev *dev,
+ 					  u32 status)
+ {
+ 	u32 int_msk_tmp;
+-	struct sram_channel *channel = dev->channels[chan_num].sram_channels;
++	const struct sram_channel *channel = dev->channels[chan_num].sram_channels;
+ 	int singlefield_lines = NTSC_FIELD_HEIGHT;
+ 	int line_size_in_bytes = Y422_LINE_SZ;
+ 	int odd_risc_prog_size = 0;
+@@ -594,7 +594,7 @@ static irqreturn_t cx25821_upstream_irq_ch2(int irq, void *dev_id)
+ 	u32 vid_status;
+ 	int handled = 0;
+ 	int channel_num = 0;
+-	struct sram_channel *sram_ch;
++	const struct sram_channel *sram_ch;
+ 
+ 	if (!dev)
+ 		return -1;
+@@ -618,7 +618,7 @@ static irqreturn_t cx25821_upstream_irq_ch2(int irq, void *dev_id)
+ }
+ 
+ static void cx25821_set_pixelengine_ch2(struct cx25821_dev *dev,
+-					struct sram_channel *ch, int pix_format)
++					const struct sram_channel *ch, int pix_format)
+ {
+ 	int width = WIDTH_D1;
+ 	int height = dev->_lines_count_ch2;
+@@ -652,7 +652,7 @@ static void cx25821_set_pixelengine_ch2(struct cx25821_dev *dev,
+ }
+ 
+ static int cx25821_start_video_dma_upstream_ch2(struct cx25821_dev *dev,
+-						struct sram_channel *sram_ch)
++						const struct sram_channel *sram_ch)
+ {
+ 	u32 tmp = 0;
+ 	int err = 0;
+@@ -706,7 +706,7 @@ fail_irq:
+ int cx25821_vidupstream_init_ch2(struct cx25821_dev *dev, int channel_select,
+ 				 int pixel_format)
+ {
+-	struct sram_channel *sram_ch;
++	const struct sram_channel *sram_ch;
+ 	u32 tmp;
+ 	int err = 0;
+ 	int data_frame_size = 0;
+diff --git a/drivers/media/pci/cx25821/cx25821-video-upstream.c b/drivers/media/pci/cx25821/cx25821-video-upstream.c
+index 7fc9711..223aae7 100644
+--- a/drivers/media/pci/cx25821/cx25821-video-upstream.c
++++ b/drivers/media/pci/cx25821/cx25821-video-upstream.c
+@@ -44,7 +44,7 @@ static int _intr_msk = FLD_VID_SRC_RISC1 | FLD_VID_SRC_UF | FLD_VID_SRC_SYNC |
+ 			FLD_VID_SRC_OPC_ERR;
+ 
+ int cx25821_sram_channel_setup_upstream(struct cx25821_dev *dev,
+-					struct sram_channel *ch,
++					const struct sram_channel *ch,
+ 					unsigned int bpl, u32 risc)
+ {
+ 	unsigned int i, lines;
+@@ -135,7 +135,7 @@ static __le32 *cx25821_risc_field_upstream(struct cx25821_dev *dev, __le32 * rp,
+ 					   int fifo_enable, int field_type)
+ {
+ 	unsigned int line, i;
+-	struct sram_channel *sram_ch =
++	const struct sram_channel *sram_ch =
+ 		dev->channels[dev->_channel_upstream_select].sram_channels;
+ 	int dist_betwn_starts = bpl * 2;
+ 
+@@ -247,7 +247,7 @@ static int cx25821_risc_buffer_upstream(struct cx25821_dev *dev,
+ 
+ void cx25821_stop_upstream_video_ch1(struct cx25821_dev *dev)
+ {
+-	struct sram_channel *sram_ch =
++	const struct sram_channel *sram_ch =
+ 		dev->channels[VID_UPSTREAM_SRAM_CHANNEL_I].sram_channels;
+ 	u32 tmp = 0;
+ 
+@@ -301,7 +301,7 @@ void cx25821_free_mem_upstream_ch1(struct cx25821_dev *dev)
+ }
+ 
+ static int cx25821_get_frame(struct cx25821_dev *dev,
+-			     struct sram_channel *sram_ch)
++			     const struct sram_channel *sram_ch)
+ {
+ 	struct file *myfile;
+ 	int frame_index_temp = dev->_frame_index;
+@@ -407,7 +407,7 @@ static void cx25821_vidups_handler(struct work_struct *work)
+ }
+ 
+ static int cx25821_openfile(struct cx25821_dev *dev,
+-			    struct sram_channel *sram_ch)
++			    const struct sram_channel *sram_ch)
+ {
+ 	struct file *myfile;
+ 	int i = 0, j = 0;
+@@ -489,7 +489,7 @@ static int cx25821_openfile(struct cx25821_dev *dev,
+ }
+ 
+ static int cx25821_upstream_buffer_prepare(struct cx25821_dev *dev,
+-					   struct sram_channel *sram_ch,
++					   const struct sram_channel *sram_ch,
+ 					   int bpl)
+ {
+ 	int ret = 0;
+@@ -555,7 +555,7 @@ static int cx25821_video_upstream_irq(struct cx25821_dev *dev, int chan_num,
+ 				      u32 status)
+ {
+ 	u32 int_msk_tmp;
+-	struct sram_channel *channel = dev->channels[chan_num].sram_channels;
++	const struct sram_channel *channel = dev->channels[chan_num].sram_channels;
+ 	int singlefield_lines = NTSC_FIELD_HEIGHT;
+ 	int line_size_in_bytes = Y422_LINE_SZ;
+ 	int odd_risc_prog_size = 0;
+@@ -643,7 +643,7 @@ static irqreturn_t cx25821_upstream_irq(int irq, void *dev_id)
+ 	u32 vid_status;
+ 	int handled = 0;
+ 	int channel_num = 0;
+-	struct sram_channel *sram_ch;
++	const struct sram_channel *sram_ch;
+ 
+ 	if (!dev)
+ 		return -1;
+@@ -668,7 +668,7 @@ static irqreturn_t cx25821_upstream_irq(int irq, void *dev_id)
+ }
+ 
+ static void cx25821_set_pixelengine(struct cx25821_dev *dev,
+-				    struct sram_channel *ch,
++				    const struct sram_channel *ch,
+ 				    int pix_format)
+ {
+ 	int width = WIDTH_D1;
+@@ -701,7 +701,7 @@ static void cx25821_set_pixelengine(struct cx25821_dev *dev,
+ }
+ 
+ static int cx25821_start_video_dma_upstream(struct cx25821_dev *dev,
+-					    struct sram_channel *sram_ch)
++					    const struct sram_channel *sram_ch)
+ {
+ 	u32 tmp = 0;
+ 	int err = 0;
+@@ -755,7 +755,7 @@ fail_irq:
+ int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev, int channel_select,
+ 				 int pixel_format)
+ {
+-	struct sram_channel *sram_ch;
++	const struct sram_channel *sram_ch;
+ 	u32 tmp;
+ 	int err = 0;
+ 	int data_frame_size = 0;
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index 7cd8885..c418e0d 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -258,7 +258,7 @@ int cx25821_video_mux(struct cx25821_dev *dev, unsigned int input)
+ int cx25821_start_video_dma(struct cx25821_dev *dev,
+ 			    struct cx25821_dmaqueue *q,
+ 			    struct cx25821_buffer *buf,
+-			    struct sram_channel *channel)
++			    const struct sram_channel *channel)
+ {
+ 	int tmp = 0;
+ 
+@@ -285,7 +285,7 @@ int cx25821_start_video_dma(struct cx25821_dev *dev,
+ 
+ static int cx25821_restart_video_queue(struct cx25821_dev *dev,
+ 				       struct cx25821_dmaqueue *q,
+-				       struct sram_channel *channel)
++				       const struct sram_channel *channel)
+ {
+ 	struct cx25821_buffer *buf, *prev;
+ 	struct list_head *item;
+@@ -338,7 +338,7 @@ static void cx25821_vid_timeout(unsigned long data)
+ {
+ 	struct cx25821_data *timeout_data = (struct cx25821_data *)data;
+ 	struct cx25821_dev *dev = timeout_data->dev;
+-	struct sram_channel *channel = timeout_data->channel;
++	const struct sram_channel *channel = timeout_data->channel;
+ 	struct cx25821_dmaqueue *q = &dev->channels[channel->i].vidq;
+ 	struct cx25821_buffer *buf;
+ 	unsigned long flags;
+@@ -365,7 +365,7 @@ int cx25821_video_irq(struct cx25821_dev *dev, int chan_num, u32 status)
+ 	u32 count = 0;
+ 	int handled = 0;
+ 	u32 mask;
+-	struct sram_channel *channel = dev->channels[chan_num].sram_channels;
++	const struct sram_channel *channel = dev->channels[chan_num].sram_channels;
+ 
+ 	mask = cx_read(channel->int_msk);
+ 	if (0 == (status & mask))
+@@ -787,9 +787,11 @@ static int video_release(struct file *file)
+ {
+ 	struct cx25821_fh *fh = file->private_data;
+ 	struct cx25821_dev *dev = fh->dev;
++	const struct sram_channel *sram_ch =
++		dev->channels[0].sram_channels;
+ 
+ 	/* stop the risc engine and fifo */
+-	cx_write(channel0->dma_ctl, 0); /* FIFO and RISC disable */
++	cx_write(sram_ch->dma_ctl, 0); /* FIFO and RISC disable */
+ 
+ 	/* stop video capture */
+ 	if (cx25821_res_check(fh, RESOURCE_VIDEO0)) {
+@@ -923,7 +925,7 @@ static int vidioc_log_status(struct file *file, void *priv)
+ {
+ 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
+ 	struct cx25821_fh *fh = priv;
+-	struct sram_channel *sram_ch =
++	const struct sram_channel *sram_ch =
+ 		dev->channels[fh->channel_id].sram_channels;
+ 	u32 tmp = 0;
+ 
+diff --git a/drivers/media/pci/cx25821/cx25821-video.h b/drivers/media/pci/cx25821/cx25821-video.h
+index eb12e35..505b7f0 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.h
++++ b/drivers/media/pci/cx25821/cx25821-video.h
+@@ -63,19 +63,6 @@ do {									\
+ #define MEDUSA_READ		    910
+ #define MEDUSA_WRITE		    911
+ 
+-extern struct sram_channel *channel0;
+-extern struct sram_channel *channel1;
+-extern struct sram_channel *channel2;
+-extern struct sram_channel *channel3;
+-extern struct sram_channel *channel4;
+-extern struct sram_channel *channel5;
+-extern struct sram_channel *channel6;
+-extern struct sram_channel *channel7;
+-extern struct sram_channel *channel9;
+-extern struct sram_channel *channel10;
+-extern struct sram_channel *channel11;
+-/* extern const u32 *ctrl_classes[]; */
+-
+ extern unsigned int vid_limit;
+ 
+ #define FORMAT_FLAGS_PACKED       0x01
+@@ -98,7 +85,7 @@ extern int cx25821_video_mux(struct cx25821_dev *dev, unsigned int input);
+ extern int cx25821_start_video_dma(struct cx25821_dev *dev,
+ 				   struct cx25821_dmaqueue *q,
+ 				   struct cx25821_buffer *buf,
+-				   struct sram_channel *channel);
++				   const struct sram_channel *channel);
+ 
+ extern int cx25821_set_scale(struct cx25821_dev *dev, unsigned int width,
+ 			     unsigned int height, enum v4l2_field field);
+diff --git a/drivers/media/pci/cx25821/cx25821.h b/drivers/media/pci/cx25821/cx25821.h
+index fdeecdf..d7e71f4 100644
+--- a/drivers/media/pci/cx25821/cx25821.h
++++ b/drivers/media/pci/cx25821/cx25821.h
+@@ -126,20 +126,11 @@ struct cx25821_fh {
+ 
+ 	enum v4l2_priority prio;
+ 
+-	/* video overlay */
+-	struct v4l2_window win;
+-	struct v4l2_clip *clips;
+-	unsigned int nclips;
+-
+ 	/* video capture */
+ 	struct cx25821_fmt *fmt;
+ 	unsigned int width, height;
+ 	int channel_id;
+ 	struct videobuf_queue vidq;
+-
+-	/* H264 Encoder specifics ONLY */
+-	struct videobuf_queue mpegq;
+-	atomic_t v4l_reading;
+ };
+ 
+ enum cx25821_itype {
+@@ -222,7 +213,7 @@ struct cx25821_dmaqueue {
+ 
+ struct cx25821_data {
+ 	struct cx25821_dev *dev;
+-	struct sram_channel *channel;
++	const struct sram_channel *channel;
+ };
+ 
+ struct cx25821_channel {
+@@ -237,7 +228,7 @@ struct cx25821_channel {
+ 	struct video_device *video_dev;
+ 	struct cx25821_dmaqueue vidq;
+ 
+-	struct sram_channel *sram_channels;
++	const struct sram_channel *sram_channels;
+ 
+ 	struct mutex lock;
+ 	int resources;
+@@ -470,7 +461,8 @@ struct sram_channel {
+ 	u32 jumponly;
+ 	u32 irq_bit;
+ };
+-extern struct sram_channel cx25821_sram_channels[];
++
++extern const struct sram_channel cx25821_sram_channels[];
+ 
+ #define STATUS_SUCCESS         0
+ #define STATUS_UNSUCCESSFUL    -1
+@@ -518,7 +510,7 @@ extern int medusa_set_saturation(struct cx25821_dev *dev, int saturation,
+ 				 int decoder);
+ 
+ extern int cx25821_sram_channel_setup(struct cx25821_dev *dev,
+-				      struct sram_channel *ch, unsigned int bpl,
++				      const struct sram_channel *ch, unsigned int bpl,
+ 				      u32 risc);
+ 
+ extern int cx25821_risc_buffer(struct pci_dev *pci, struct btcx_riscmem *risc,
+@@ -537,16 +529,16 @@ extern void cx25821_free_buffer(struct videobuf_queue *q,
+ extern int cx25821_risc_stopper(struct pci_dev *pci, struct btcx_riscmem *risc,
+ 				u32 reg, u32 mask, u32 value);
+ extern void cx25821_sram_channel_dump(struct cx25821_dev *dev,
+-				      struct sram_channel *ch);
++				      const struct sram_channel *ch);
+ extern void cx25821_sram_channel_dump_audio(struct cx25821_dev *dev,
+-					    struct sram_channel *ch);
++					    const struct sram_channel *ch);
+ 
+ extern struct cx25821_dev *cx25821_dev_get(struct pci_dev *pci);
+ extern void cx25821_print_irqbits(char *name, char *tag, char **strings,
+ 				  int len, u32 bits, u32 mask);
+ extern void cx25821_dev_unregister(struct cx25821_dev *dev);
+ extern int cx25821_sram_channel_setup_audio(struct cx25821_dev *dev,
+-					    struct sram_channel *ch,
++					    const struct sram_channel *ch,
+ 					    unsigned int bpl, u32 risc);
+ 
+ extern int cx25821_vidupstream_init_ch1(struct cx25821_dev *dev,
+@@ -570,7 +562,7 @@ extern void cx25821_stop_upstream_video_ch1(struct cx25821_dev *dev);
+ extern void cx25821_stop_upstream_video_ch2(struct cx25821_dev *dev);
+ extern void cx25821_stop_upstream_audio(struct cx25821_dev *dev);
+ extern int cx25821_sram_channel_setup_upstream(struct cx25821_dev *dev,
+-					       struct sram_channel *ch,
++					       const struct sram_channel *ch,
+ 					       unsigned int bpl, u32 risc);
+ extern void cx25821_set_pixel_format(struct cx25821_dev *dev, int channel,
+ 				     u32 format);
+-- 
+1.7.10.4
 
