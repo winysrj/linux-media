@@ -1,147 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:56663 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932298Ab3DZJxu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 05:53:50 -0400
-Date: Fri, 26 Apr 2013 11:53:48 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: vishwanath chandapur <vishwavtu@gmail.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: Kernel Patch:do not wait for interrupt when releasing buffers
-In-Reply-To: <CALQBcOcj1Ry5hbs=cGxVisVYvk_=TKvYcnKF4OYmcAVJY3qgnQ@mail.gmail.com>
-Message-ID: <Pine.LNX.4.64.1304261153280.32752@axis700.grange>
-References: <CALQBcOeQGpwfweM9yOdZ+G-68wbKPiyArULwEAN3Qu+WHrFXVQ@mail.gmail.com>
- <Pine.LNX.4.64.1304261139150.32752@axis700.grange>
- <CALQBcOcj1Ry5hbs=cGxVisVYvk_=TKvYcnKF4OYmcAVJY3qgnQ@mail.gmail.com>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:47627 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751580Ab3DNQjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Apr 2013 12:39:42 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] bttv: Add noname Bt848 capture card with 14MHz xtal
+Date: Sun, 14 Apr 2013 18:39:09 +0200
+Cc: linux-media@vger.kernel.org
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201304141839.10168.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 26 Apr 2013, vishwanath chandapur wrote:
+Add support for noname Bt848 capture-only card (3x composite, 1x S-VHS)
+with 14MHz crystal: 
+http://www.rainbow-software.org/images/hardware/bt848_.jpg
 
->  Hi Guennadi,
-> 
-> Thank you for reply
-> 
-> Sorry that was typo mistake .
-> Kernel Version :3.0.8
+14MHz PLL was not supported by bttv driver until now.
 
-So, it is 3.0? Sorry, please update and re-test.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 
-Thanks
-Guennadi
+diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
+index b7dc921..8bcf638 100644
+--- a/drivers/media/pci/bt8xx/bttv-cards.c
++++ b/drivers/media/pci/bt8xx/bttv-cards.c
+@@ -131,7 +131,7 @@ MODULE_PARM_DESC(vsfx,"set VSFX pci config bit "
+ 		 "[yet another chipset flaw workaround]");
+ MODULE_PARM_DESC(latency,"pci latency timer");
+ MODULE_PARM_DESC(card,"specify TV/grabber card model, see CARDLIST file for a list");
+-MODULE_PARM_DESC(pll,"specify installed crystal (0=none, 28=28 MHz, 35=35 MHz)");
++MODULE_PARM_DESC(pll,"specify installed crystal (0=none, 28=28 MHz, 35=35 MHz, 14=14 MHz)");
+ MODULE_PARM_DESC(tuner,"specify installed tuner type");
+ MODULE_PARM_DESC(autoload, "obsolete option, please do not use anymore");
+ MODULE_PARM_DESC(audiodev, "specify audio device:\n"
+@@ -2825,6 +2825,14 @@ struct tvcard bttv_tvcards[] = {
+ 		.muxsel         = MUXSEL(2, 3, 1, 0),
+ 		.tuner_type     = TUNER_ABSENT,
+ 	},
++	[BTTV_BOARD_BT848_CAP_14] = {
++		.name		= "Bt848 Capture 14MHz",
++		.video_inputs	= 4,
++		.svhs		= 2,
++		.muxsel		= MUXSEL(2, 3, 1, 0),
++		.pll		= PLL_14,
++		.tuner_type	= TUNER_ABSENT,
++	},
+ 
+ };
+ 
+@@ -3390,6 +3398,10 @@ void bttv_init_card2(struct bttv *btv)
+ 			btv->pll.pll_ifreq=35468950;
+ 			btv->pll.pll_crystal=BT848_IFORM_XT1;
+ 		}
++		if (PLL_14 == bttv_tvcards[btv->c.type].pll) {
++			btv->pll.pll_ifreq=14318181;
++			btv->pll.pll_crystal=BT848_IFORM_XT0;
++		}
+ 		/* insmod options can override */
+ 		switch (pll[btv->c.nr]) {
+ 		case 0: /* none */
+@@ -3409,6 +3421,12 @@ void bttv_init_card2(struct bttv *btv)
+ 			btv->pll.pll_ofreq   = 0;
+ 			btv->pll.pll_crystal = BT848_IFORM_XT1;
+ 			break;
++		case 3: /* 14 MHz */
++		case 14:
++			btv->pll.pll_ifreq   = 14318181;
++			btv->pll.pll_ofreq   = 0;
++			btv->pll.pll_crystal = BT848_IFORM_XT0;
++			break;
+ 		}
+ 	}
+ 	btv->pll.pll_current = -1;
+diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
+index 6139ce2..2d4b466 100644
+--- a/drivers/media/pci/bt8xx/bttv.h
++++ b/drivers/media/pci/bt8xx/bttv.h
+@@ -185,6 +185,7 @@
+ #define BTTV_BOARD_PV183                   0x9f
+ #define BTTV_BOARD_TVT_TD3116		   0xa0
+ #define BTTV_BOARD_APOSONIC_WDVR           0xa1
++#define BTTV_BOARD_BT848_CAP_14            0xa2
+ 
+ /* more card-specific defines */
+ #define PT2254_L_CHANNEL 0x10
+@@ -232,6 +233,7 @@ struct tvcard {
+ #define PLL_NONE 0
+ #define PLL_28   1
+ #define PLL_35   2
++#define PLL_14   3
+ 
+ 	/* i2c audio flags */
+ 	unsigned int no_msp34xx:1;
 
-> 
-> 
-> Br
-> Vishwa
-> 
-> 
-> On Fri, Apr 26, 2013 at 3:13 PM, Guennadi Liakhovetski <
-> g.liakhovetski@gmx.de> wrote:
-> 
-> > Hi
-> >
-> > On Fri, 26 Apr 2013, vishwanath chandapur wrote:
-> >
-> > > Hi,
-> > > Sorry my english is poor.
-> > >
-> > > This is vishawanath , I have a bug in camera module    ,When ever vb is
-> > > NULL in sh_mobile_ceu_irq. device will reboot. It seems there is a
-> > > race condition ,Since we are not clearing the interrupt,the  same
-> > interrupt
-> > > occurs continuously and rate of interrupt is also high (30 per
-> > > Micros seconds ),this not allowing to schedule other tasks ,Finally
-> >  device
-> > > reboots with WATCH DOG NMI interrupt.
-> > >
-> > >
-> > > Help on this will be greatly appreciated,As we are struggling to solve
-> > this
-> > > bug from last 2 months.
-> > > Kernel Version :3.0.8
-> >
-> > Sorry, do you _really_ mean kernel 3.0(.8)? Not 3.8(.0)? If so, I'm
-> > afraid, I have to ask you to re-test with a recent kernel - best with
-> > current Linus' mainline 3.9-rcX, at least with 3.8. If it was a typo and
-> > you did mean 3.8, please, try to re-send in such a way, that your patch
-> > doesn't get corrupt as in this your mail. Also, please, add
-> >
-> > Linux Media Mailing List <linux-media@vger.kernel.org>
-> >
-> > to CC.
-> >
-> > Thanks
-> > Guennadi
-> >
-> > >
-> > > Please let me for more info on this issue.
-> > >
-> > >
-> > > if (!vb)              /* Stale interrupt from a released buffer */ <----
-> > Reboot               goto out;
-> > >
-> > > diff --git a/drivers/media/video/sh_mobile_ceu_camera.c
-> > > b/drivers/media/video/sh_mobile_ceu_camera.cindex d890f8d..67c7dcd
-> > > 100644--- a/drivers/media/video/sh_mobile_ceu_camera.c+++
-> > > b/drivers/media/video/sh_mobile_ceu_camera.c@@ -296,8 +306,8 @@
-> > > static void sh_mobile_ceu_videobuf_queue(struct videobuf_queue *vq,
-> > >       dev_dbg(&icd->dev, "%s (vb=0x%p) 0x%08lx %zd\n", __func__,
-> > >               vb, vb->baddr, vb->bsize);
-> > >  -    vb->state = VIDEOBUF_QUEUED;
-> > >       spin_lock_irqsave(&pcdev->lock, flags);+        vb->state =
-> > VIDEOBUF_QUEUED;
-> > >       list_add_tail(&vb->queue, &pcdev->capture);
-> > >
-> > >       if (!pcdev->active) {@@ -311,6 +321,27 @@  static void
-> > > sh_mobile_ceu_videobuf_queue(struct videobuf_queue *vq,
-> > >  static void sh_mobile_ceu_videobuf_release(struct videobuf_queue *vq,
-> > >                                          struct videobuf_buffer *vb)
-> > >  {+   struct soc_camera_device *icd = vq->priv_data;+ struct
-> > > soc_camera_host *ici = to_soc_camera_host(icd->dev.parent);+  struct
-> > > sh_mobile_ceu_dev *pcdev = ici->priv;+        unsigned long
-> > > flags;++      spin_lock_irqsave(&pcdev->lock, flags);++       if
-> > (pcdev->active
-> > > == vb) {+             /* disable capture (release DMA buffer), reset
-> > > */+           ceu_write(pcdev, CAPSR, 1 << 16);+
-> >  pcdev->active = NULL;+  }++     if
-> > > ((vb->state == VIDEOBUF_ACTIVE || vb->state == VIDEOBUF_QUEUED) &&+
-> > >  !list_empty(&vb->queue)) {+          vb->state =
-> > > VIDEOBUF_ERROR;+              list_del_init(&vb->queue);+     }++
-> > spin_unlock_irqrestore(&pcdev->lock,
-> > > flags);+
-> > >       free_buffer(vq, container_of(vb, struct sh_mobile_ceu_buffer, vb));
-> > >  }
-> > >  @@ -330,6 +361,10 @@  static irqreturn_t sh_mobile_ceu_irq(int irq,
-> > void *data)
-> > >       spin_lock_irqsave(&pcdev->lock, flags);
-> > >
-> > >       vb = pcdev->active;+    if (!vb)+               /* Stale interrupt
-> > from a released
-> > > buffer */+            goto out;+
-> > >       list_del_init(&vb->queue);
-> > >
-> > >       if (!list_empty(&pcdev->capture))@@ -344,6 +379,8 @@  static
-> > > irqreturn_t sh_mobile_ceu_irq(int irq, void *data)
-> > >       do_gettimeofday(&vb->ts);
-> > >       vb->field_count++;
-> > >       wake_up(&vb->done);++out:
-> > >       spin_unlock_irqrestore(&pcdev->lock, flags);
-> > >
-> > >       return IRQ_HANDLED;
-> > >
-> >
-> > ---
-> > Guennadi Liakhovetski, Ph.D.
-> > Freelance Open-Source Software Developer
-> > http://www.open-technology.de/
-> >
-> 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Ondrej Zary
