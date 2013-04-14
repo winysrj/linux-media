@@ -1,74 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:26917 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756264Ab3DYLhs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 07:37:48 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT005ZO6YYFXP0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 20:37:46 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Javier Martin <javier.martin@vista-silicon.com>
-Subject: [PATCH 7/7 v2] mx2-emmaprp: Add copy time stamp handling
-Date: Thu, 25 Apr 2013 13:36:08 +0200
-Message-id: <1366889768-16677-8-git-send-email-k.debski@samsung.com>
-In-reply-to: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
-References: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:37018 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753689Ab3DNUX6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 14 Apr 2013 16:23:58 -0400
+Date: Sun, 14 Apr 2013 16:59:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
+Message-ID: <20130414165958.6a8bc9eb@redhat.com>
+In-Reply-To: <3775187.HOcoQVPfEE@avalon>
+References: <3775187.HOcoQVPfEE@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the introduction of the timestamp_type field, it is necessary that
-the driver chooses which type it will use. This patch adds support for
-the timestamp_type.
+Em Fri, 12 Apr 2013 11:13:06 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Javier Martin <javier.martin@vista-silicon.com>
----
- drivers/media/platform/mx2_emmaprp.c |    5 +++++
- 1 file changed, 5 insertions(+)
+> Hi Mauro,
+> 
+> The following changes since commit 81e096c8ac6a064854c2157e0bf802dc4906678c:
+> 
+>   [media] budget: Add support for Philips Semi Sylt PCI ref. design 
+> (2013-04-08 07:28:01 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/pinchartl/media.git sensors/next
+> 
+> for you to fetch changes up to c890926a06339944790c5c265e21e8547aa55e49:
+> 
+>   mt9p031: Use the common clock framework (2013-04-12 11:07:07 +0200)
+> 
+> ----------------------------------------------------------------
+> Laurent Pinchart (5):
+>       mt9m032: Fix PLL setup
+>       mt9m032: Define MT9M032_READ_MODE1 bits
+>       mt9p031: Use devm_* managed helpers
 
-diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
-index 4b9e0a2..f7440e5 100644
---- a/drivers/media/platform/mx2_emmaprp.c
-+++ b/drivers/media/platform/mx2_emmaprp.c
-@@ -377,6 +377,9 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
- 			src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
- 			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
- 
-+			src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
-+			src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
-+
- 			spin_lock_irqsave(&pcdev->irqlock, flags);
- 			v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
- 			v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
-@@ -763,6 +766,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->ops = &emmaprp_qops;
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
-+	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -774,6 +778,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->ops = &emmaprp_qops;
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
-+	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 
- 	return vb2_queue_init(dst_vq);
- }
--- 
-1.7.9.5
+>       mt9p031: Add support for regulators
+>       mt9p031: Use the common clock framework
 
+Hmm... It seems ugly to have regulators and clock framework and other
+SoC calls inside an i2c driver that can be used by a device that doesn't
+have regulators.
+
+I'm not sure what's the best solution for it, so, I'll be adding those
+two patches, but it seems that we'll need to restrict the usage of those
+calls only if the caller driver is a platform driver.
+
+Regards,
+Mauro
