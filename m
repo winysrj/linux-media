@@ -1,153 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:48460 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755735Ab3DYTP0 (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:14469 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754055Ab3DNBdD convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 15:15:26 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: linux-media@vger.kernel.org
-Cc: jonjon.arnearne@gmail.com, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com, mkrufky@linuxtv.org,
-	mchehab@redhat.com, bjorn@mork.no
-Subject: [RFC V2 0/3] Add a driver for Somagic smi2021 
-Date: Thu, 25 Apr 2013 21:10:17 +0200
-Message-Id: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
-MIME-Version: 1.0
+	Sat, 13 Apr 2013 21:33:03 -0400
+Date: Sat, 13 Apr 2013 22:32:47 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] em28xx: clean up end extend the GPIO port handling
+Message-ID: <20130413223247.3dc4da85@redhat.com>
+In-Reply-To: <51696DA6.9020508@iki.fi>
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
+	<51695A7B.4010206@iki.fi>
+	<20130413112517.40833d48@redhat.com>
+	<51696DA6.9020508@iki.fi>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the 2nd version of a RFC for a driver for the Somagic SMI2021.
-The first version was sendt on 14th of Mars 2013, and can be found here:
-http://www.spinics.net/lists/kernel/msg1499018.html
+Em Sat, 13 Apr 2013 17:37:26 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-The smi2021 is the usb controller for a range of video capture devices
-branded as EasyCap.
+> On 04/13/2013 05:25 PM, Mauro Carvalho Chehab wrote:
+> > Em Sat, 13 Apr 2013 16:15:39 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> On 04/13/2013 12:48 PM, Frank Schäfer wrote:
+> >>> Patch 1 removes the unneeded and broken gpio register caching code.
+> >>> Patch 2 adds the gpio register defintions for the em25xx/em276x/7x/8x
+> >>> and patch 3 finally adds a new helper function for gpio ports with separate
+> >>> registers for read and write access.
+> >>
+> >>
+> >> I have nothing to say directly about those patches - they looked good at
+> >> the quick check. But I wonder if you have any idea if it is possible to
+> >> use some existing Kernel GPIO functionality in order to provide standard
+> >> interface (interface like I2C). I did some work last summer in order to
+> >> use GPIOLIB and it is used between em28xx-dvb and cxd2820r for LNA
+> >> control. Anyhow, I was a little bit disappointed as GPIOLIB is disabled
+> >> by default and due to that there is macros to disable LNA when GPIOLIB
+> >> is not compiled.
+> >> I noticed recently there is some ongoing development for Kernel GPIO. I
+> >> haven't looked yet if it makes use of GPIO interface more common...
+> >
+> > I have conflicting opinions myself weather we should use gpiolib or not.
+> >
+> > I don't mind with the fact that GPIOLIB is disabled by default. If all
+> > media drivers start depending on it, distros will enable it to keep
+> > media support on it.
+> >
+> > I never took the time to take a look on what methods gpiolib provides.
+> > Maybe it will bring some benefits. I dunno.
+> 
+> Compare to benefits of I2C bus. It offers standard interface. Also it 
+> offers userspace debug interface - like I2C also does.
 
-The device consists of three major components.
-* smi2021 is the usb controller.
-* gm7113c is a saa7113 clone for video A/D conversion.
-* cs5340 is an audio A/D converter.
+I2C benefit is that the same I2C driver can be used by several different
+drivers. GPIO code, on the other hand, is on most cases[1] specific to a
+given device.
 
-The smi2021 chip is in most configurations dependent of some firmware to work.
-The biggest change from the last version of this RFC is that I've included
-the bootloader module that was responsible for the firmware upload into
-the main driver module.
+[1] Ok, if you're using a GPIO pin to carry some protocol inside it, like
+UART, RC, etc, then I can see a benefit on using a bus type of solution.
 
-I've also made some changes to the saa7115 module to handle the gm7113c chip.
+> > Just looking at the existing drivers (almost all has some sort of GPIO
+> > config), GPIO is just a single register bitmask read/write. Most drivers
+> > need already bitmask read/write operations. So, in principle, I can't
+> > foresee any code simplification by using a library.
+> 
+> Use of lib interface is not very practical inside of module, however it 
+> could be used. Again, as compared to I2C there is some bridge drivers 
+> which do some I2C access using I2C interface, even bridge could do it 
+> directly (as it offers I2C adapter). I think it is most common to do it 
+> directly to simplify things.
+> 
+> > Also, from a very pragmatic view, changing (almost) all existing drivers
+> > to use gpiolib is a big effort.
+> 
+> It is not needed to implement for all driver as one go.
+> 
+> > However, for that to happen, one question should be answered: what
+> > benefits would be obtained by using gpiolib?
+> 
+> Obtain GPIO access between modules using standard interface and offer 
+> handy debug interface to switch GPIOs from userspace.
 
-V4L2-Compliance:
+It is known that enabling both analog and digital demods at the same time
+can melt some devices. So, it is risky to allow userspace to touch
+the GPIOs that enable such chips.
 
-Driver Info:
-	Driver name   : smi2021
-	Card type     : smi2021
-	Bus info      : usb-0000:00:1d.0-1.1
-	Driver version: 3.9.0
-	Capabilities  : 0x85000001
-		Video Capture
-		Read/Write
-		Streaming
-		Device Capabilities
-	Device Caps   : 0x05000001
-		Video Capture
-		Read/Write
-		Streaming
+(ok, there are also other forms to melt such devices in userspace
+ if the user has CAP_SYS_ADMIN)
 
-Compliance test for device /dev/video1 (not using libv4l2):
+> You could ask why we use Kernel I2C library as we could do it directly 
+> :) Or clock framework. Or SPI, is there SPI bus modeled yet?
 
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
+As I said, i2c allowed code re-usage. Probably, the clock framework and
+SPI also can be used for that.
 
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
+With regards to GPIO, at least currently, I can only see its usage
+justified, in terms of code reuse, for remote controllers.
 
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 2 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Control ioctls:
-	test VIDIOC_QUERYCTRL/MENU: OK
-	test VIDIOC_G/S_CTRL: OK
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 7 Private Controls: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-
-Format ioctls:
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: OK
-	test VIDIOC_G_FBUF: OK (Not Supported)
-	test VIDIOC_G_FMT: OK
-	test VIDIOC_TRY_FMT: OK
-	test VIDIOC_S_FMT: OK
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-Codec ioctls:
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls:
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-
-Total: 36, Succeeded: 36, Failed: 0, Warnings: 0
-
- [smi2021] Add gm7113c chip to the saa7115 driver
- [smi2021] This is the smi2021 driver
- [smi2021] Add smi2021 driver to buildsystem
-
- drivers/media/i2c/saa7115.c                    |  61 ++-
- drivers/media/usb/Kconfig                      |   1 +
- drivers/media/usb/Makefile                     |   1 +
- drivers/media/usb/smi2021/Kconfig              |  11 +
- drivers/media/usb/smi2021/Makefile             |  10 +
- drivers/media/usb/smi2021/smi2021.h            | 278 +++++++++++++
- drivers/media/usb/smi2021/smi2021_audio.c      | 380 +++++++++++++++++
- drivers/media/usb/smi2021/smi2021_bootloader.c | 261 ++++++++++++
- drivers/media/usb/smi2021/smi2021_i2c.c        | 137 +++++++
- drivers/media/usb/smi2021/smi2021_main.c       | 431 ++++++++++++++++++++
- drivers/media/usb/smi2021/smi2021_v4l2.c       | 542 ++++++++++++++++++++++++
- drivers/media/usb/smi2021/smi2021_video.c      | 544 +++++++++++++++++++++++++
- include/media/v4l2-chip-ident.h                |   3 +
- 13 files changed, 2650 insertions(+), 10 deletions(-)
- create mode 100644 drivers/media/usb/smi2021/Kconfig
- create mode 100644 drivers/media/usb/smi2021/Makefile
- create mode 100644 drivers/media/usb/smi2021/smi2021.h
- create mode 100644 drivers/media/usb/smi2021/smi2021_audio.c
- create mode 100644 drivers/media/usb/smi2021/smi2021_bootloader.c
- create mode 100644 drivers/media/usb/smi2021/smi2021_i2c.c
- create mode 100644 drivers/media/usb/smi2021/smi2021_main.c
- create mode 100644 drivers/media/usb/smi2021/smi2021_v4l2.c
- create mode 100644 drivers/media/usb/smi2021/smi2021_video.c
-
-Comments are welcome.
-
-Best regards,
-Jon Arne Jørgensen
-
-
+Cheers,
+Mauro
