@@ -1,464 +1,1343 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:37122 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760957Ab3DBLoZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 07:44:25 -0400
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 1/3] media: davinci: vpss: enable vpss clocks
-Date: Tue,  2 Apr 2013 17:14:02 +0530
-Message-Id: <1364903044-13752-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4214 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753136Ab3DOPEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Apr 2013 11:04:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: Re: [PATCH RFC] [media] blackfin: add video display driver
+Date: Mon, 15 Apr 2013 17:03:30 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	uclinux-dist-devel@blackfin.uclinux.org
+References: <1365810779-24335-1-git-send-email-scott.jiang.linux@gmail.com> <1365810779-24335-2-git-send-email-scott.jiang.linux@gmail.com>
+In-Reply-To: <1365810779-24335-2-git-send-email-scott.jiang.linux@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304151703.30416.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi Scott!
 
-By default the VPSS clocks were enabled in capture driver
-for davinci family which creates duplicates for dm355/dm365/dm644x.
-This patch adds support to enable the VPSS clocks in VPSS driver,
-which avoids duplication of code and also adding clock aliases.
+On Sat April 13 2013 01:52:58 Scott Jiang wrote:
+> This is a bridge driver for blackfin diplay device.
+> It can work with ppi or eppi interface. DV timings
+> are supported.
 
-This patch uses PM runtime API to enable/disable instead common clock
-framework. con_ids for master and slave clocks of vpss is added in pm_domain
-for pm runtime to clock handling.
+Thanks for the patch. There are a number of comments below. For the most
+part you can save a lot of code by making a few fairly small changes.
 
-This patch cleanups the VPSS clock enabling in the capture driver,
-and also removes the clock alias in machine file. Along side adds
-a vpss slave clock for DM365 as mentioned by Sekhar
-(https://patchwork.kernel.org/patch/1221261/).
+> 
+> Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+> ---
+>  drivers/media/platform/blackfin/Kconfig        |   15 +-
+>  drivers/media/platform/blackfin/Makefile       |    1 +
+>  drivers/media/platform/blackfin/bfin_display.c | 1151 ++++++++++++++++++++++++
+>  include/media/blackfin/bfin_display.h          |   38 +
+>  4 files changed, 1203 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/media/platform/blackfin/bfin_display.c
+>  create mode 100644 include/media/blackfin/bfin_display.h
+> 
+> diff --git a/drivers/media/platform/blackfin/Kconfig b/drivers/media/platform/blackfin/Kconfig
+> index cc23997..8a8fd75 100644
+> --- a/drivers/media/platform/blackfin/Kconfig
+> +++ b/drivers/media/platform/blackfin/Kconfig
+> @@ -9,7 +9,18 @@ config VIDEO_BLACKFIN_CAPTURE
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called bfin_capture.
+>  
+> +config VIDEO_BLACKFIN_DISPLAY
+> +	tristate "Blackfin Video Display Driver"
+> +	depends on VIDEO_V4L2 && BLACKFIN && I2C
+> +	select VIDEOBUF2_DMA_CONTIG
+> +	help
+> +	  V4L2 bridge driver for Blackfin video display device.
+> +	  Choose PPI or EPPI as its interface.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called bfin_display.
+> +
+>  config VIDEO_BLACKFIN_PPI
+>  	tristate
+> -	depends on VIDEO_BLACKFIN_CAPTURE
+> -	default VIDEO_BLACKFIN_CAPTURE
+> +	depends on VIDEO_BLACKFIN_CAPTURE || VIDEO_BLACKFIN_DISPLAY
+> +	default VIDEO_BLACKFIN_CAPTURE || VIDEO_BLACKFIN_DISPLAY
+> diff --git a/drivers/media/platform/blackfin/Makefile b/drivers/media/platform/blackfin/Makefile
+> index 30421bc..015c8f0 100644
+> --- a/drivers/media/platform/blackfin/Makefile
+> +++ b/drivers/media/platform/blackfin/Makefile
+> @@ -1,2 +1,3 @@
+>  obj-$(CONFIG_VIDEO_BLACKFIN_CAPTURE) += bfin_capture.o
+> +obj-$(CONFIG_VIDEO_BLACKFIN_DISPLAY) += bfin_display.o
+>  obj-$(CONFIG_VIDEO_BLACKFIN_PPI)     += ppi.o
+> diff --git a/drivers/media/platform/blackfin/bfin_display.c b/drivers/media/platform/blackfin/bfin_display.c
+> new file mode 100644
+> index 0000000..d971d7b
+> --- /dev/null
+> +++ b/drivers/media/platform/blackfin/bfin_display.c
+> @@ -0,0 +1,1151 @@
+> +/*
+> + * Analog Devices video display driver
+> + *
+> + * Copyright (c) 2011 Analog Devices Inc.
 
-The Suspend/Resume in dm644x_ccdc.c which enabled/disabled the VPSS clock
-is now implemented as part of the VPSS driver.
+Analog Devices? What has this to do with Analog Devices?
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- arch/arm/mach-davinci/dm355.c                |    7 +---
- arch/arm/mach-davinci/dm365.c                |   11 +++++--
- arch/arm/mach-davinci/dm644x.c               |    9 +----
- arch/arm/mach-davinci/pm_domain.c            |    2 +-
- drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------------
- drivers/media/platform/davinci/dm644x_ccdc.c |   44 --------------------------
- drivers/media/platform/davinci/isif.c        |   28 ++--------------
- drivers/media/platform/davinci/vpss.c        |   25 ++++++++++++++
- 8 files changed, 43 insertions(+), 122 deletions(-)
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + *
+> + * This program is distributed in the hope that it will be useful,
+> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + * GNU General Public License for more details.
+> + */
+> +
+> +#include <linux/completion.h>
+> +#include <linux/delay.h>
+> +#include <linux/errno.h>
+> +#include <linux/fs.h>
+> +#include <linux/i2c.h>
+> +#include <linux/init.h>
+> +#include <linux/interrupt.h>
+> +#include <linux/io.h>
+> +#include <linux/mm.h>
+> +#include <linux/module.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/slab.h>
+> +#include <linux/time.h>
+> +#include <linux/types.h>
+> +
+> +#include <media/v4l2-chip-ident.h>
+> +#include <media/v4l2-common.h>
+> +#include <media/v4l2-ctrls.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/videobuf2-dma-contig.h>
+> +
+> +#include <asm/dma.h>
+> +
+> +#include <media/blackfin/bfin_display.h>
+> +#include <media/blackfin/ppi.h>
+> +
+> +#define DISPLAY_DRV_NAME        "bfin_display"
+> +#define DISP_MIN_NUM_BUF        2
+> +
+> +struct disp_format {
+> +	char *desc;
+> +	u32 pixelformat;
+> +	enum v4l2_mbus_pixelcode mbus_code;
+> +	int bpp; /* bits per pixel */
+> +	int dlen; /* data length for ppi in bits */
+> +};
+> +
+> +struct disp_buffer {
+> +	struct vb2_buffer vb;
+> +	struct list_head list;
+> +};
+> +
+> +struct disp_device {
+> +	/* capture device instance */
+> +	struct v4l2_device v4l2_dev;
+> +	/* v4l2 control handler */
+> +	struct v4l2_ctrl_handler ctrl_handler;
+> +	/* device node data */
+> +	struct video_device *video_dev;
+> +	/* sub device instance */
+> +	struct v4l2_subdev *sd;
+> +	/* capture config */
+> +	struct bfin_display_config *cfg;
+> +	/* ppi interface */
+> +	struct ppi_if *ppi;
+> +	/* current output */
+> +	unsigned int cur_output;
+> +	/* current selected standard */
+> +	v4l2_std_id std;
+> +	/* current selected dv_timings */
+> +	struct v4l2_dv_timings dv_timings;
+> +	/* used to store pixel format */
+> +	struct v4l2_pix_format fmt;
+> +	/* bits per pixel*/
+> +	int bpp;
+> +	/* data length for ppi in bits */
+> +	int dlen;
+> +	/* used to store encoder supported format */
+> +	struct disp_format *enc_formats;
+> +	/* number of encoder formats array */
+> +	int num_enc_formats;
+> +	/* pointing to current video buffer */
+> +	struct disp_buffer *cur_frm;
+> +	/* buffer queue used in videobuf2 */
+> +	struct vb2_queue buffer_queue;
+> +	/* allocator-specific contexts for each plane */
+> +	struct vb2_alloc_ctx *alloc_ctx;
+> +	/* queue of filled frames */
+> +	struct list_head dma_queue;
+> +	/* used in videobuf2 callback */
+> +	spinlock_t lock;
+> +	/* used to access display device */
+> +	struct mutex mutex;
+> +};
+> +
+> +struct disp_fh {
+> +	struct v4l2_fh fh;
+> +	/* indicates whether this file handle is doing IO */
+> +	bool io_allowed;
+> +};
+> +
+> +static const struct disp_format disp_formats[] = {
+> +	{
+> +		.desc        = "YCbCr 4:2:2 Interleaved UYVY 8bits",
+> +		.pixelformat = V4L2_PIX_FMT_UYVY,
+> +		.mbus_code   = V4L2_MBUS_FMT_UYVY8_2X8,
+> +		.bpp         = 16,
+> +		.dlen        = 8,
+> +	},
+> +	{
+> +		.desc        = "YCbCr 4:2:2 Interleaved YUYV 8bits",
+> +		.pixelformat = V4L2_PIX_FMT_YUYV,
+> +		.mbus_code   = V4L2_MBUS_FMT_YUYV8_2X8,
+> +		.bpp         = 16,
+> +		.dlen        = 8,
+> +	},
+> +	{
+> +		.desc        = "YCbCr 4:2:2 Interleaved UYVY 16bits",
+> +		.pixelformat = V4L2_PIX_FMT_UYVY,
+> +		.mbus_code   = V4L2_MBUS_FMT_UYVY8_1X16,
+> +		.bpp         = 16,
+> +		.dlen        = 16,
+> +	},
+> +	{
+> +		.desc        = "RGB 565",
+> +		.pixelformat = V4L2_PIX_FMT_RGB565,
+> +		.mbus_code   = V4L2_MBUS_FMT_RGB565_2X8_LE,
+> +		.bpp         = 16,
+> +		.dlen        = 8,
+> +	},
+> +	{
+> +		.desc        = "RGB 444",
+> +		.pixelformat = V4L2_PIX_FMT_RGB444,
+> +		.mbus_code   = V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
+> +		.bpp         = 16,
+> +		.dlen        = 8,
+> +	},
+> +
+> +};
+> +#define DISP_MAX_FMTS ARRAY_SIZE(disp_formats)
+> +
+> +static irqreturn_t disp_isr(int irq, void *dev_id);
+> +
+> +static struct disp_buffer *to_disp_vb(struct vb2_buffer *vb)
+> +{
+> +	return container_of(vb, struct disp_buffer, vb);
+> +}
+> +
+> +static int disp_init_encoder_formats(struct disp_device *disp)
+> +{
+> +	enum v4l2_mbus_pixelcode code;
+> +	struct disp_format *df;
+> +	unsigned int num_formats = 0;
+> +	int i, j;
+> +
+> +	while (!v4l2_subdev_call(disp->sd, video,
+> +				enum_mbus_fmt, num_formats, &code))
+> +		num_formats++;
+> +	if (!num_formats)
+> +		return -ENXIO;
+> +
+> +	df = kzalloc(num_formats * sizeof(*df), GFP_KERNEL);
+> +	if (!df)
+> +		return -ENOMEM;
+> +
+> +	for (i = 0; i < num_formats; i++) {
+> +		v4l2_subdev_call(disp->sd, video,
+> +				enum_mbus_fmt, i, &code);
+> +		for (j = 0; j < DISP_MAX_FMTS; j++)
+> +			if (code == disp_formats[j].mbus_code)
+> +				break;
+> +		if (j == DISP_MAX_FMTS) {
+> +			/* we don't allow this encoder working with our bridge */
+> +			kfree(df);
+> +			return -EINVAL;
+> +		}
+> +		df[i] = disp_formats[j];
+> +	}
+> +	disp->enc_formats = df;
+> +	disp->num_enc_formats = num_formats;
+> +	return 0;
+> +}
+> +
+> +static void disp_free_encoder_formats(struct disp_device *disp)
+> +{
+> +	disp->num_enc_formats = 0;
+> +	kfree(disp->enc_formats);
+> +	disp->enc_formats = NULL;
+> +}
+> +
+> +static int disp_open(struct file *file)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct video_device *vfd = disp->video_dev;
+> +	struct disp_fh *disp_fh;
+> +
+> +	if (!disp->sd) {
+> +		v4l2_err(&disp->v4l2_dev, "No sub device registered\n");
+> +		return -ENODEV;
 
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index b49c3b7..8e98bb0 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -345,8 +345,8 @@ static struct clk_lookup dm355_clks[] = {
- 	CLK(NULL, "pll1_aux", &pll1_aux_clk),
- 	CLK(NULL, "pll1_sysclkbp", &pll1_sysclkbp),
- 	CLK(NULL, "vpss_dac", &vpss_dac_clk),
--	CLK(NULL, "vpss_master", &vpss_master_clk),
--	CLK(NULL, "vpss_slave", &vpss_slave_clk),
-+	CLK("vpss", "master", &vpss_master_clk),
-+	CLK("vpss", "slave", &vpss_slave_clk),
- 	CLK(NULL, "clkout1", &clkout1_clk),
- 	CLK(NULL, "clkout2", &clkout2_clk),
- 	CLK(NULL, "pll2", &pll2_clk),
-@@ -873,9 +873,6 @@ static int __init dm355_init_devices(void)
- 	if (!cpu_is_davinci_dm355())
- 		return 0;
- 
--	/* Add ccdc clock aliases */
--	clk_add_alias("master", dm355_ccdc_dev.name, "vpss_master", NULL);
--	clk_add_alias("slave", dm355_ccdc_dev.name, "vpss_master", NULL);
- 	davinci_cfg_reg(DM355_INT_EDMA_CC);
- 	platform_device_register(&dm355_edma_device);
- 	platform_device_register(&dm355_vpss_device);
-diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index 6c39805..c61dd94 100644
---- a/arch/arm/mach-davinci/dm365.c
-+++ b/arch/arm/mach-davinci/dm365.c
-@@ -257,6 +257,12 @@ static struct clk vpss_master_clk = {
- 	.flags		= CLK_PSC,
- };
- 
-+static struct clk vpss_slave_clk = {
-+	.name		= "vpss_slave",
-+	.parent		= &pll1_sysclk5,
-+	.lpsc		= DAVINCI_LPSC_VPSSSLV,
-+};
-+
- static struct clk arm_clk = {
- 	.name		= "arm_clk",
- 	.parent		= &pll2_sysclk2,
-@@ -449,7 +455,8 @@ static struct clk_lookup dm365_clks[] = {
- 	CLK(NULL, "pll2_sysclk8", &pll2_sysclk8),
- 	CLK(NULL, "pll2_sysclk9", &pll2_sysclk9),
- 	CLK(NULL, "vpss_dac", &vpss_dac_clk),
--	CLK(NULL, "vpss_master", &vpss_master_clk),
-+	CLK("vpss", "master", &vpss_master_clk),
-+	CLK("vpss", "slave", &vpss_slave_clk),
- 	CLK(NULL, "arm", &arm_clk),
- 	CLK(NULL, "uart0", &uart0_clk),
- 	CLK(NULL, "uart1", &uart1_clk),
-@@ -1239,8 +1246,6 @@ static int __init dm365_init_devices(void)
- 	clk_add_alias(NULL, dev_name(&dm365_mdio_device.dev),
- 		      NULL, &dm365_emac_device.dev);
- 
--	/* Add isif clock alias */
--	clk_add_alias("master", dm365_isif_dev.name, "vpss_master", NULL);
- 	platform_device_register(&dm365_vpss_device);
- 	platform_device_register(&dm365_isif_dev);
- 	platform_device_register(&vpfe_capture_dev);
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index ee0e994..c2a9273 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -300,8 +300,8 @@ static struct clk_lookup dm644x_clks[] = {
- 	CLK(NULL, "dsp", &dsp_clk),
- 	CLK(NULL, "arm", &arm_clk),
- 	CLK(NULL, "vicp", &vicp_clk),
--	CLK(NULL, "vpss_master", &vpss_master_clk),
--	CLK(NULL, "vpss_slave", &vpss_slave_clk),
-+	CLK("vpss", "master", &vpss_master_clk),
-+	CLK("vpss", "slave", &vpss_slave_clk),
- 	CLK(NULL, "arm", &arm_clk),
- 	CLK(NULL, "uart0", &uart0_clk),
- 	CLK(NULL, "uart1", &uart1_clk),
-@@ -901,11 +901,6 @@ int __init dm644x_init_video(struct vpfe_config *vpfe_cfg,
- 		dm644x_vpfe_dev.dev.platform_data = vpfe_cfg;
- 		platform_device_register(&dm644x_ccdc_dev);
- 		platform_device_register(&dm644x_vpfe_dev);
--		/* Add ccdc clock aliases */
--		clk_add_alias("master", dm644x_ccdc_dev.name,
--			      "vpss_master", NULL);
--		clk_add_alias("slave", dm644x_ccdc_dev.name,
--			      "vpss_slave", NULL);
- 	}
- 
- 	if (vpbe_cfg) {
-diff --git a/arch/arm/mach-davinci/pm_domain.c b/arch/arm/mach-davinci/pm_domain.c
-index c90250e..445b10b 100644
---- a/arch/arm/mach-davinci/pm_domain.c
-+++ b/arch/arm/mach-davinci/pm_domain.c
-@@ -53,7 +53,7 @@ static struct dev_pm_domain davinci_pm_domain = {
- 
- static struct pm_clk_notifier_block platform_bus_notifier = {
- 	.pm_domain = &davinci_pm_domain,
--	.con_ids = { "fck", NULL, },
-+	.con_ids = { "fck", "master", "slave", NULL, },
- };
- 
- static int __init davinci_pm_runtime_init(void)
-diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
-index 2364dba..05f8fb7 100644
---- a/drivers/media/platform/davinci/dm355_ccdc.c
-+++ b/drivers/media/platform/davinci/dm355_ccdc.c
-@@ -37,7 +37,6 @@
- #include <linux/platform_device.h>
- #include <linux/uaccess.h>
- #include <linux/videodev2.h>
--#include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/module.h>
- 
-@@ -59,10 +58,6 @@ static struct ccdc_oper_config {
- 	struct ccdc_params_raw bayer;
- 	/* YCbCr configuration */
- 	struct ccdc_params_ycbcr ycbcr;
--	/* Master clock */
--	struct clk *mclk;
--	/* slave clock */
--	struct clk *sclk;
- 	/* ccdc base address */
- 	void __iomem *base_addr;
- } ccdc_cfg = {
-@@ -997,32 +992,10 @@ static int dm355_ccdc_probe(struct platform_device *pdev)
- 		goto fail_nomem;
- 	}
- 
--	/* Get and enable Master clock */
--	ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
--	if (IS_ERR(ccdc_cfg.mclk)) {
--		status = PTR_ERR(ccdc_cfg.mclk);
--		goto fail_nomap;
--	}
--	if (clk_prepare_enable(ccdc_cfg.mclk)) {
--		status = -ENODEV;
--		goto fail_mclk;
--	}
--
--	/* Get and enable Slave clock */
--	ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
--	if (IS_ERR(ccdc_cfg.sclk)) {
--		status = PTR_ERR(ccdc_cfg.sclk);
--		goto fail_mclk;
--	}
--	if (clk_prepare_enable(ccdc_cfg.sclk)) {
--		status = -ENODEV;
--		goto fail_sclk;
--	}
--
- 	/* Platform data holds setup_pinmux function ptr */
- 	if (NULL == pdev->dev.platform_data) {
- 		status = -ENODEV;
--		goto fail_sclk;
-+		goto fail_nomap;
- 	}
- 	setup_pinmux = pdev->dev.platform_data;
- 	/*
-@@ -1033,12 +1006,6 @@ static int dm355_ccdc_probe(struct platform_device *pdev)
- 	ccdc_cfg.dev = &pdev->dev;
- 	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
- 	return 0;
--fail_sclk:
--	clk_disable_unprepare(ccdc_cfg.sclk);
--	clk_put(ccdc_cfg.sclk);
--fail_mclk:
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.mclk);
- fail_nomap:
- 	iounmap(ccdc_cfg.base_addr);
- fail_nomem:
-@@ -1052,10 +1019,6 @@ static int dm355_ccdc_remove(struct platform_device *pdev)
- {
- 	struct resource	*res;
- 
--	clk_disable_unprepare(ccdc_cfg.sclk);
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.sclk);
- 	iounmap(ccdc_cfg.base_addr);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res)
-diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
-index 971d639..30fa084 100644
---- a/drivers/media/platform/davinci/dm644x_ccdc.c
-+++ b/drivers/media/platform/davinci/dm644x_ccdc.c
-@@ -38,7 +38,6 @@
- #include <linux/uaccess.h>
- #include <linux/videodev2.h>
- #include <linux/gfp.h>
--#include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/module.h>
- 
-@@ -60,10 +59,6 @@ static struct ccdc_oper_config {
- 	struct ccdc_params_raw bayer;
- 	/* YCbCr configuration */
- 	struct ccdc_params_ycbcr ycbcr;
--	/* Master clock */
--	struct clk *mclk;
--	/* slave clock */
--	struct clk *sclk;
- 	/* ccdc base address */
- 	void __iomem *base_addr;
- } ccdc_cfg = {
-@@ -991,38 +986,9 @@ static int dm644x_ccdc_probe(struct platform_device *pdev)
- 		goto fail_nomem;
- 	}
- 
--	/* Get and enable Master clock */
--	ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
--	if (IS_ERR(ccdc_cfg.mclk)) {
--		status = PTR_ERR(ccdc_cfg.mclk);
--		goto fail_nomap;
--	}
--	if (clk_prepare_enable(ccdc_cfg.mclk)) {
--		status = -ENODEV;
--		goto fail_mclk;
--	}
--
--	/* Get and enable Slave clock */
--	ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
--	if (IS_ERR(ccdc_cfg.sclk)) {
--		status = PTR_ERR(ccdc_cfg.sclk);
--		goto fail_mclk;
--	}
--	if (clk_prepare_enable(ccdc_cfg.sclk)) {
--		status = -ENODEV;
--		goto fail_sclk;
--	}
- 	ccdc_cfg.dev = &pdev->dev;
- 	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
- 	return 0;
--fail_sclk:
--	clk_disable_unprepare(ccdc_cfg.sclk);
--	clk_put(ccdc_cfg.sclk);
--fail_mclk:
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.mclk);
--fail_nomap:
--	iounmap(ccdc_cfg.base_addr);
- fail_nomem:
- 	release_mem_region(res->start, resource_size(res));
- fail_nores:
-@@ -1034,10 +1000,6 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
- {
- 	struct resource	*res;
- 
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_disable_unprepare(ccdc_cfg.sclk);
--	clk_put(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.sclk);
- 	iounmap(ccdc_cfg.base_addr);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res)
-@@ -1052,18 +1014,12 @@ static int dm644x_ccdc_suspend(struct device *dev)
- 	ccdc_save_context();
- 	/* Disable CCDC */
- 	ccdc_enable(0);
--	/* Disable both master and slave clock */
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_disable_unprepare(ccdc_cfg.sclk);
- 
- 	return 0;
- }
- 
- static int dm644x_ccdc_resume(struct device *dev)
- {
--	/* Enable both master and slave clock */
--	clk_prepare_enable(ccdc_cfg.mclk);
--	clk_prepare_enable(ccdc_cfg.sclk);
- 	/* Restore CCDC context */
- 	ccdc_restore_context();
- 
-diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
-index abc3ae3..3332cca 100644
---- a/drivers/media/platform/davinci/isif.c
-+++ b/drivers/media/platform/davinci/isif.c
-@@ -32,7 +32,6 @@
- #include <linux/uaccess.h>
- #include <linux/io.h>
- #include <linux/videodev2.h>
--#include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/module.h>
- 
-@@ -88,8 +87,6 @@ static struct isif_oper_config {
- 	struct isif_ycbcr_config ycbcr;
- 	struct isif_params_raw bayer;
- 	enum isif_data_pack data_pack;
--	/* Master clock */
--	struct clk *mclk;
- 	/* ISIF base address */
- 	void __iomem *base_addr;
- 	/* ISIF Linear Table 0 */
-@@ -1039,6 +1036,10 @@ static int isif_probe(struct platform_device *pdev)
- 	void *__iomem addr;
- 	int status = 0, i;
- 
-+	/* Platform data holds setup_pinmux function ptr */
-+	if (!pdev->dev.platform_data)
-+		return -ENODEV;
-+
- 	/*
- 	 * first try to register with vpfe. If not correct platform, then we
- 	 * don't have to iomap
-@@ -1047,22 +1048,6 @@ static int isif_probe(struct platform_device *pdev)
- 	if (status < 0)
- 		return status;
- 
--	/* Get and enable Master clock */
--	isif_cfg.mclk = clk_get(&pdev->dev, "master");
--	if (IS_ERR(isif_cfg.mclk)) {
--		status = PTR_ERR(isif_cfg.mclk);
--		goto fail_mclk;
--	}
--	if (clk_prepare_enable(isif_cfg.mclk)) {
--		status = -ENODEV;
--		goto fail_mclk;
--	}
--
--	/* Platform data holds setup_pinmux function ptr */
--	if (NULL == pdev->dev.platform_data) {
--		status = -ENODEV;
--		goto fail_mclk;
--	}
- 	setup_pinmux = pdev->dev.platform_data;
- 	/*
- 	 * setup Mux configuration for ccdc which may be different for
-@@ -1124,9 +1109,6 @@ fail_nobase_res:
- 		release_mem_region(res->start, resource_size(res));
- 		i--;
- 	}
--fail_mclk:
--	clk_disable_unprepare(isif_cfg.mclk);
--	clk_put(isif_cfg.mclk);
- 	vpfe_unregister_ccdc_device(&isif_hw_dev);
- 	return status;
- }
-@@ -1146,8 +1128,6 @@ static int isif_remove(struct platform_device *pdev)
- 		i++;
- 	}
- 	vpfe_unregister_ccdc_device(&isif_hw_dev);
--	clk_disable_unprepare(isif_cfg.mclk);
--	clk_put(isif_cfg.mclk);
- 	return 0;
- }
- 
-diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-index a19c552..d36429d 100644
---- a/drivers/media/platform/davinci/vpss.c
-+++ b/drivers/media/platform/davinci/vpss.c
-@@ -25,6 +25,8 @@
- #include <linux/spinlock.h>
- #include <linux/compiler.h>
- #include <linux/io.h>
-+#include <linux/pm_runtime.h>
-+
- #include <media/davinci/vpss.h>
- 
- MODULE_LICENSE("GPL");
-@@ -490,6 +492,10 @@ static int vpss_probe(struct platform_device *pdev)
- 	} else
- 		oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
- 
-+	pm_runtime_enable(&pdev->dev);
-+
-+	pm_runtime_get(&pdev->dev);
-+
- 	spin_lock_init(&oper_cfg.vpss_lock);
- 	dev_info(&pdev->dev, "%s vpss probe success\n", platform_name);
- 	return 0;
-@@ -507,6 +513,7 @@ static int vpss_remove(struct platform_device *pdev)
- {
- 	struct resource		*res;
- 
-+	pm_runtime_disable(&pdev->dev);
- 	iounmap(oper_cfg.vpss_regs_base0);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	release_mem_region(res->start, resource_size(res));
-@@ -518,10 +525,28 @@ static int vpss_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int vpss_suspend(struct device *dev)
-+{
-+	pm_runtime_put(dev);
-+	return 0;
-+}
-+
-+static int vpss_resume(struct device *dev)
-+{
-+	pm_runtime_get(dev);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops vpss_pm_ops = {
-+	.suspend = vpss_suspend,
-+	.resume = vpss_resume,
-+};
-+
- static struct platform_driver vpss_driver = {
- 	.driver = {
- 		.name	= "vpss",
- 		.owner = THIS_MODULE,
-+		.pm = &vpss_pm_ops,
- 	},
- 	.remove = vpss_remove,
- 	.probe = vpss_probe,
--- 
-1.7.4.1
+You know at probe time whether there are subdevices or not. If not, 
+then just don't register the video node at all.
 
+> +	}
+> +
+> +	disp_fh = kzalloc(sizeof(*disp_fh), GFP_KERNEL);
+> +	if (!disp_fh) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +			 "unable to allocate memory for file handle object\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	v4l2_fh_init(&disp_fh->fh, vfd);
+> +
+> +	/* store pointer to v4l2_fh in private_data member of file */
+> +	file->private_data = &disp_fh->fh;
+> +	v4l2_fh_add(&disp_fh->fh);
+> +	disp_fh->io_allowed = false;
+> +	return 0;
+> +}
+> +
+> +static int disp_release(struct file *file)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct v4l2_fh *fh = file->private_data;
+> +	struct disp_fh *disp_fh = container_of(fh, struct disp_fh, fh);
+> +
+> +	/* if this instance is doing IO */
+> +	if (disp_fh->io_allowed)
+> +		vb2_queue_release(&disp->buffer_queue);
+> +
+> +	file->private_data = NULL;
+> +	v4l2_fh_del(&disp_fh->fh);
+> +	v4l2_fh_exit(&disp_fh->fh);
+> +	kfree(disp_fh);
+> +	return 0;
+> +}
+> +
+> +static int disp_mmap(struct file *file, struct vm_area_struct *vma)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	int ret;
+> +
+> +	if (mutex_lock_interruptible(&disp->mutex))
+> +		return -ERESTARTSYS;
+> +	ret = vb2_mmap(&disp->buffer_queue, vma);
+> +	mutex_unlock(&disp->mutex);
+> +	return ret;
+> +}
+> +
+> +#ifndef CONFIG_MMU
+> +static unsigned long disp_get_unmapped_area(struct file *file,
+> +					    unsigned long addr,
+> +					    unsigned long len,
+> +					    unsigned long pgoff,
+> +					    unsigned long flags)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	int ret;
+> +
+> +	if (mutex_lock_interruptible(&disp->mutex))
+> +		return -ERESTARTSYS;
+> +	ret = vb2_get_unmapped_area(&disp->buffer_queue,
+> +				    addr,
+> +				    len,
+> +				    pgoff,
+> +				    flags);
+> +	mutex_unlock(&disp->mutex);
+> +	return ret;
+> +}
+> +#endif
+> +
+> +static unsigned int disp_poll(struct file *file, poll_table *wait)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	int ret;
+> +
+> +	mutex_lock(&disp->mutex);
+> +	ret = vb2_poll(&disp->buffer_queue, file, wait);
+> +	mutex_unlock(&disp->mutex);
+> +	return ret;
+> +}
+
+Use the helper functions in media/videobuf2-core.h for these file ops.
+
+> +
+> +static int disp_queue_setup(struct vb2_queue *vq,
+> +				const struct v4l2_format *fmt,
+> +				unsigned int *nbuffers, unsigned int *nplanes,
+> +				unsigned int sizes[], void *alloc_ctxs[])
+> +{
+> +	struct disp_device *disp = vb2_get_drv_priv(vq);
+> +
+> +	if (*nbuffers < DISP_MIN_NUM_BUF)
+> +		*nbuffers = DISP_MIN_NUM_BUF;
+> +
+> +	*nplanes = 1;
+> +	sizes[0] = disp->fmt.sizeimage;
+> +	alloc_ctxs[0] = disp->alloc_ctx;
+> +
+> +	return 0;
+> +}
+> +
+> +static int disp_buffer_init(struct vb2_buffer *vb)
+> +{
+> +	struct disp_buffer *buf = to_disp_vb(vb);
+> +
+> +	INIT_LIST_HEAD(&buf->list);
+> +	return 0;
+> +}
+> +
+> +static int disp_buffer_prepare(struct vb2_buffer *vb)
+> +{
+> +	struct disp_device *disp = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct disp_buffer *buf = to_disp_vb(vb);
+> +	unsigned long size;
+> +
+> +	size = disp->fmt.sizeimage;
+> +	if (vb2_plane_size(vb, 0) < size) {
+> +		v4l2_err(&disp->v4l2_dev, "buffer too small (%lu < %lu)\n",
+> +				vb2_plane_size(vb, 0), size);
+> +		return -EINVAL;
+> +	}
+> +	vb2_set_plane_payload(&buf->vb, 0, size);
+> +
+> +	return 0;
+> +}
+> +
+> +static void disp_buffer_queue(struct vb2_buffer *vb)
+> +{
+> +	struct disp_device *disp = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct disp_buffer *buf = to_disp_vb(vb);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&disp->lock, flags);
+> +	list_add_tail(&buf->list, &disp->dma_queue);
+> +	spin_unlock_irqrestore(&disp->lock, flags);
+> +}
+> +
+> +static void disp_buffer_cleanup(struct vb2_buffer *vb)
+> +{
+> +	struct disp_device *disp = vb2_get_drv_priv(vb->vb2_queue);
+> +	struct disp_buffer *buf = to_disp_vb(vb);
+> +	unsigned long flags;
+> +
+> +	spin_lock_irqsave(&disp->lock, flags);
+> +	list_del_init(&buf->list);
+> +	spin_unlock_irqrestore(&disp->lock, flags);
+> +}
+> +
+> +static void disp_lock(struct vb2_queue *vq)
+> +{
+> +	struct disp_device *disp = vb2_get_drv_priv(vq);
+> +	mutex_lock(&disp->mutex);
+> +}
+> +
+> +static void disp_unlock(struct vb2_queue *vq)
+> +{
+> +	struct disp_device *disp = vb2_get_drv_priv(vq);
+> +	mutex_unlock(&disp->mutex);
+> +}
+
+Use helper functions for this.
+
+> +
+> +static int disp_start_streaming(struct vb2_queue *vq, unsigned int count)
+> +{
+> +	struct disp_device *disp = vb2_get_drv_priv(vq);
+> +	struct ppi_if *ppi = disp->ppi;
+> +	struct ppi_params params;
+> +	int ret;
+> +
+> +	/* enable streamon on the sub device */
+> +	ret = v4l2_subdev_call(disp->sd, video, s_stream, 1);
+> +	if (ret && (ret != -ENOIOCTLCMD)) {
+> +		v4l2_err(&disp->v4l2_dev, "stream on failed in subdev\n");
+> +		return ret;
+> +	}
+> +
+> +	/* set ppi params */
+> +	params.width = disp->fmt.width;
+> +	params.height = disp->fmt.height;
+> +	params.bpp = disp->bpp;
+> +	params.dlen = disp->dlen;
+> +	params.ppi_control = disp->cfg->ppi_control;
+> +	params.int_mask = disp->cfg->int_mask;
+> +	if (disp->cfg->outputs[disp->cur_output].capabilities
+> +			& V4L2_IN_CAP_CUSTOM_TIMINGS) {
+
+_CUSTOM_TIMINGS has been renamed to _DV_TIMINGS.
+
+> +		struct v4l2_bt_timings *bt = &disp->dv_timings.bt;
+> +
+> +		params.hdelay = bt->hsync + bt->hbackporch;
+> +		params.vdelay = bt->vsync + bt->vbackporch;
+> +		params.line = bt->hfrontporch + bt->hsync
+> +				+ bt->hbackporch + bt->width;
+> +		params.frame = bt->vfrontporch + bt->vsync
+> +				+ bt->vbackporch + bt->height;
+> +		if (bt->interlaced)
+> +			params.frame += bt->il_vfrontporch + bt->il_vsync
+> +					+ bt->il_vbackporch;
+> +		params.hsync = bt->hsync;
+> +		params.vsync = bt->vsync;
+> +	} else if (disp->cfg->outputs[disp->cur_output].capabilities
+> +			& V4L2_IN_CAP_STD) {
+> +		params.hdelay = 0;
+> +		params.vdelay = 0;
+> +		if (disp->std & V4L2_STD_525_60) {
+> +			params.line = 858;
+> +			params.frame = 525;
+> +		} else {
+> +			params.line = 864;
+> +			params.frame = 625;
+> +		}
+> +	} else {
+> +		params.hdelay = 0;
+> +		params.vdelay = 0;
+> +		params.line = params.width + disp->cfg->blank_pixels;
+> +		params.frame = params.height;
+> +	}
+> +	ret = ppi->ops->set_params(ppi, &params);
+> +	if (ret < 0) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Error in setting ppi params\n");
+> +		return ret;
+> +	}
+> +
+> +	/* attach ppi DMA irq handler */
+> +	ret = ppi->ops->attach_irq(ppi, disp_isr);
+> +	if (ret < 0) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Error in attaching interrupt handler\n");
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int disp_stop_streaming(struct vb2_queue *vq)
+> +{
+> +	struct disp_device *disp = vb2_get_drv_priv(vq);
+> +	struct ppi_if *ppi = disp->ppi;
+> +	unsigned long flags;
+> +	int ret;
+> +
+> +	if (!vb2_is_streaming(vq))
+> +		return 0;
+> +
+> +	ppi->ops->stop(ppi);
+> +	ppi->ops->detach_irq(ppi);
+> +	ret = v4l2_subdev_call(disp->sd, video, s_stream, 0);
+> +	if (ret && (ret != -ENOIOCTLCMD))
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"stream off failed in subdev\n");
+> +
+> +	spin_lock_irqsave(&disp->lock, flags);
+> +	/* release all active buffers */
+> +	while (!list_empty(&disp->dma_queue)) {
+> +		disp->cur_frm = list_entry(disp->dma_queue.next,
+> +						struct disp_buffer, list);
+> +		list_del(&disp->cur_frm->list);
+> +		vb2_buffer_done(&disp->cur_frm->vb, VB2_BUF_STATE_ERROR);
+> +	}
+> +	spin_unlock_irqrestore(&disp->lock, flags);
+> +	return 0;
+> +}
+> +
+> +static struct vb2_ops disp_video_qops = {
+> +	.queue_setup            = disp_queue_setup,
+> +	.buf_init               = disp_buffer_init,
+> +	.buf_prepare            = disp_buffer_prepare,
+> +	.buf_cleanup            = disp_buffer_cleanup,
+> +	.buf_queue              = disp_buffer_queue,
+> +	.wait_prepare           = disp_unlock,
+> +	.wait_finish            = disp_lock,
+> +	.start_streaming        = disp_start_streaming,
+> +	.stop_streaming         = disp_stop_streaming,
+> +};
+> +
+> +static int disp_reqbufs(struct file *file, void *priv,
+> +			struct v4l2_requestbuffers *req_buf)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct vb2_queue *vq = &disp->buffer_queue;
+> +	struct v4l2_fh *fh = file->private_data;
+> +	struct disp_fh *disp_fh = container_of(fh, struct disp_fh, fh);
+> +
+> +	if (vb2_is_busy(vq))
+> +		return -EBUSY;
+> +
+> +	disp_fh->io_allowed = true;
+
+There is no need for io_allowed. The vb2_is_busy() function does the same
+thing. It saves a lot of code since you now can just use v4l2_fh instead of
+disp_fh, which allows you to use even more helper functions (v4l2_fh_open and
+v4l2_fh_release for starters).
+
+In fact, you can use all the vb2 ioctl helpers saving you a lot of code.
+
+> +
+> +	return vb2_reqbufs(vq, req_buf);
+> +}
+> +
+> +static int disp_querybuf(struct file *file, void *priv,
+> +				struct v4l2_buffer *buf)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	return vb2_querybuf(&disp->buffer_queue, buf);
+> +}
+> +
+> +static int disp_qbuf(struct file *file, void *priv,
+> +			struct v4l2_buffer *buf)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct v4l2_fh *fh = file->private_data;
+> +	struct disp_fh *disp_fh = container_of(fh, struct disp_fh, fh);
+> +
+> +	if (!disp_fh->io_allowed)
+> +		return -EBUSY;
+> +
+> +	return vb2_qbuf(&disp->buffer_queue, buf);
+> +}
+> +
+> +static int disp_dqbuf(struct file *file, void *priv,
+> +			struct v4l2_buffer *buf)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct v4l2_fh *fh = file->private_data;
+> +	struct disp_fh *disp_fh = container_of(fh, struct disp_fh, fh);
+> +
+> +	if (!disp_fh->io_allowed)
+> +		return -EBUSY;
+> +
+> +	return vb2_dqbuf(&disp->buffer_queue,
+> +				buf, file->f_flags & O_NONBLOCK);
+> +}
+> +
+> +static irqreturn_t disp_isr(int irq, void *dev_id)
+> +{
+> +	struct ppi_if *ppi = dev_id;
+> +	struct disp_device *disp = ppi->priv;
+> +	struct timeval timevalue;
+> +	struct vb2_buffer *vb = &disp->cur_frm->vb;
+> +	dma_addr_t addr;
+> +
+> +	spin_lock(&disp->lock);
+> +
+> +	if (!list_empty(&disp->dma_queue)) {
+> +		do_gettimeofday(&timevalue);
+> +		vb->v4l2_buf.timestamp = timevalue;
+
+NACK. Use v4l2_get_timestamp and set vb2_queue's 'timestamp_type' field to
+V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC.
+
+> +		vb2_buffer_done(vb, VB2_BUF_STATE_DONE);
+> +		disp->cur_frm = list_entry(disp->dma_queue.next,
+> +				struct disp_buffer, list);
+> +		list_del(&disp->cur_frm->list);
+> +	}
+> +
+> +	clear_dma_irqstat(ppi->info->dma_ch);
+> +
+> +	addr = vb2_dma_contig_plane_dma_addr(&disp->cur_frm->vb, 0);
+> +	ppi->ops->update_addr(ppi, (unsigned long)addr);
+> +	ppi->ops->start(ppi);
+> +
+> +	spin_unlock(&disp->lock);
+> +
+> +	return IRQ_HANDLED;
+> +}
+> +
+> +static int disp_streamon(struct file *file, void *priv,
+> +				enum v4l2_buf_type buf_type)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct disp_fh *fh = file->private_data;
+> +	struct ppi_if *ppi = disp->ppi;
+> +	dma_addr_t addr;
+> +	int ret;
+> +
+> +	if (!fh->io_allowed)
+> +		return -EBUSY;
+> +
+> +	/* call streamon to start streaming in videobuf */
+> +	ret = vb2_streamon(&disp->buffer_queue, buf_type);
+> +	if (ret)
+> +		return ret;
+> +
+> +	/* if dma queue is empty, return error */
+> +	if (list_empty(&disp->dma_queue)) {
+> +		v4l2_err(&disp->v4l2_dev, "dma queue is empty\n");
+> +		ret = -EINVAL;
+> +		goto err;
+> +	}
+> +
+> +	/* get the next frame from the dma queue */
+> +	disp->cur_frm = list_entry(disp->dma_queue.next,
+> +					struct disp_buffer, list);
+> +	/* remove buffer from the dma queue */
+> +	list_del(&disp->cur_frm->list);
+> +	addr = vb2_dma_contig_plane_dma_addr(&disp->cur_frm->vb, 0);
+> +	/* update DMA address */
+> +	ppi->ops->update_addr(ppi, (unsigned long)addr);
+> +	/* enable ppi */
+> +	ppi->ops->start(ppi);
+
+All this belongs in the start_streaming vb2_op.
+
+> +
+> +	return 0;
+> +err:
+> +	vb2_streamoff(&disp->buffer_queue, buf_type);
+> +	return ret;
+> +}
+> +
+> +static int disp_streamoff(struct file *file, void *priv,
+> +				enum v4l2_buf_type buf_type)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct disp_fh *fh = file->private_data;
+> +
+> +	if (!fh->io_allowed)
+> +		return -EBUSY;
+> +
+> +	return vb2_streamoff(&disp->buffer_queue, buf_type);
+> +}
+> +
+> +static int disp_g_std(struct file *file, void *priv, v4l2_std_id *std)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+
+Check if the current output supports STD and if not, return -ENODATA. Ditto for S_STD.
+
+> +	*std = disp->std;
+> +	return 0;
+> +}
+> +
+> +static int disp_s_std(struct file *file, void *priv, v4l2_std_id *std)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	int ret;
+> +
+> +	if (vb2_is_busy(&disp->buffer_queue))
+> +		return -EBUSY;
+> +
+> +	ret = v4l2_subdev_call(disp->sd, video, s_std_output, *std);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	disp->std = *std;
+> +	return 0;
+> +}
+> +
+> +static int disp_g_dv_timings(struct file *file, void *priv,
+> +				struct v4l2_dv_timings *timings)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	int ret;
+> +
+
+Check if this output supports DV_TIMINGS, and if not return -ENODATA. Ditto for s_dv_timings.
+
+> +	ret = v4l2_subdev_call(disp->sd, video,
+> +				g_dv_timings, timings);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	disp->dv_timings = *timings;
+> +	return 0;
+> +}
+> +
+> +static int disp_s_dv_timings(struct file *file, void *priv,
+> +				struct v4l2_dv_timings *timings)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	int ret;
+> +	if (vb2_is_busy(&disp->buffer_queue))
+> +		return -EBUSY;
+> +
+> +	ret = v4l2_subdev_call(disp->sd, video, s_dv_timings, timings);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	disp->dv_timings = *timings;
+> +	return 0;
+> +}
+> +
+> +static int disp_enum_output(struct file *file, void *priv,
+> +				struct v4l2_output *output)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct bfin_display_config *config = disp->cfg;
+> +
+> +	if (output->index >= config->num_outputs)
+> +		return -EINVAL;
+> +
+> +	*output = config->outputs[output->index];
+> +	return 0;
+> +}
+> +
+> +static int disp_g_output(struct file *file, void *priv, unsigned int *index)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	*index = disp->cur_output;
+> +	return 0;
+> +}
+> +
+> +static int disp_s_output(struct file *file, void *priv, unsigned int index)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct bfin_display_config *config = disp->cfg;
+> +	struct disp_route *route;
+> +	int ret;
+> +
+> +	if (vb2_is_busy(&disp->buffer_queue))
+> +		return -EBUSY;
+> +
+> +	if (index >= config->num_outputs)
+> +		return -EINVAL;
+> +
+> +	route = &config->routes[index];
+> +	ret = v4l2_subdev_call(disp->sd, video, s_routing,
+> +				0, route->output, route->config);
+> +	if ((ret < 0) && (ret != -ENOIOCTLCMD)) {
+> +		v4l2_err(&disp->v4l2_dev, "Failed to set output\n");
+> +		return ret;
+> +	}
+> +	disp->cur_output = index;
+> +	/* if this route has specific config, update ppi control */
+> +	if (route->ppi_control)
+> +		config->ppi_control = route->ppi_control;
+> +	return 0;
+> +}
+> +
+> +static int disp_try_format(struct disp_device *disp,
+> +				struct v4l2_pix_format *pixfmt,
+> +				struct disp_format *disp_fmt)
+> +{
+> +	struct disp_format *df = disp->enc_formats;
+> +	struct disp_format *fmt = NULL;
+> +	struct v4l2_mbus_framefmt mbus_fmt;
+> +	int ret, i;
+> +
+> +	for (i = 0; i < disp->num_enc_formats; i++) {
+> +		fmt = &df[i];
+> +		if (pixfmt->pixelformat == fmt->pixelformat)
+> +			break;
+> +	}
+> +	if (i == disp->num_enc_formats)
+> +		fmt = &df[0];
+> +
+> +	v4l2_fill_mbus_format(&mbus_fmt, pixfmt, fmt->mbus_code);
+> +	ret = v4l2_subdev_call(disp->sd, video,
+> +				try_mbus_fmt, &mbus_fmt);
+> +	if (ret < 0)
+> +		return ret;
+> +	v4l2_fill_pix_format(pixfmt, &mbus_fmt);
+> +	if (disp_fmt) {
+> +		for (i = 0; i < disp->num_enc_formats; i++) {
+> +			fmt = &df[i];
+> +			if (mbus_fmt.code == fmt->mbus_code)
+> +				break;
+> +		}
+> +		*disp_fmt = *fmt;
+> +	}
+> +	pixfmt->bytesperline = pixfmt->width * fmt->bpp / 8;
+> +	pixfmt->sizeimage = pixfmt->bytesperline * pixfmt->height;
+> +	return 0;
+> +}
+> +
+> +static int disp_enum_fmt_vid_out(struct file *file, void  *priv,
+> +					struct v4l2_fmtdesc *fmt)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct disp_format *df = disp->enc_formats;
+> +
+> +	if (fmt->index >= disp->num_enc_formats)
+> +		return -EINVAL;
+> +
+> +	fmt->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+
+Not necessary, type will always be V4L2_BUF_TYPE_VIDEO_OUTPUT.
+
+> +	strlcpy(fmt->description,
+> +		df[fmt->index].desc,
+> +		sizeof(fmt->description));
+> +	fmt->pixelformat = df[fmt->index].pixelformat;
+> +	return 0;
+> +}
+> +
+> +static int disp_try_fmt_vid_out(struct file *file, void *priv,
+> +					struct v4l2_format *fmt)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
+> +
+> +	return disp_try_format(disp, pixfmt, NULL);
+> +}
+> +
+> +static int disp_g_fmt_vid_out(struct file *file, void *priv,
+> +				struct v4l2_format *fmt)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	fmt->fmt.pix = disp->fmt;
+> +	return 0;
+> +}
+> +
+> +static int disp_s_fmt_vid_out(struct file *file, void *priv,
+> +				struct v4l2_format *fmt)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	struct v4l2_mbus_framefmt mbus_fmt;
+> +	struct disp_format disp_fmt;
+> +	struct v4l2_pix_format *pixfmt = &fmt->fmt.pix;
+> +	int ret;
+> +
+> +	if (vb2_is_busy(&disp->buffer_queue))
+> +		return -EBUSY;
+> +
+> +	/* see if format works */
+> +	ret = disp_try_format(disp, pixfmt, &disp_fmt);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	v4l2_fill_mbus_format(&mbus_fmt, pixfmt, disp_fmt.mbus_code);
+> +	ret = v4l2_subdev_call(disp->sd, video, s_mbus_fmt, &mbus_fmt);
+> +	if (ret < 0)
+> +		return ret;
+> +	disp->fmt = *pixfmt;
+> +	disp->bpp = disp_fmt.bpp;
+> +	disp->dlen = disp_fmt.dlen;
+> +	return 0;
+> +}
+> +
+> +static int disp_querycap(struct file *file, void  *priv,
+> +				struct v4l2_capability *cap)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	cap->capabilities = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+> +	strlcpy(cap->driver, DISPLAY_DRV_NAME, sizeof(cap->driver));
+> +	strlcpy(cap->bus_info, "Blackfin Platform", sizeof(cap->bus_info));
+> +	strlcpy(cap->card, disp->cfg->card_name, sizeof(cap->card));
+
+Please set cap->device_caps:
+
+	cap->device_caps = V4L2_CAP_VIDEO_OUTPUT | V4L2_CAP_STREAMING;
+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+
+> +	return 0;
+> +}
+> +
+> +static int disp_g_parm(struct file *file, void *fh,
+> +				struct v4l2_streamparm *a)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	return v4l2_subdev_call(disp->sd, video, g_parm, a);
+> +}
+> +
+> +static int disp_s_parm(struct file *file, void *fh,
+> +				struct v4l2_streamparm *a)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	return v4l2_subdev_call(disp->sd, video, s_parm, a);
+> +}
+> +
+> +static int disp_g_chip_ident(struct file *file, void *priv,
+> +		struct v4l2_dbg_chip_ident *chip)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	chip->ident = V4L2_IDENT_NONE;
+> +	chip->revision = 0;
+> +	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
+> +			chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
+> +		return -EINVAL;
+> +
+> +	return v4l2_subdev_call(disp->sd, core,
+> +			g_chip_ident, chip);
+> +}
+
+You can drop chip_ident: it's no longer needed since VIDIOC_DBG_G_CHIP_INFO
+was added.
+
+> +
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> +static int disp_dbg_g_register(struct file *file, void *priv,
+> +		struct v4l2_dbg_register *reg)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	return v4l2_subdev_call(disp->sd, core,
+> +			g_register, reg);
+> +}
+> +
+> +static int disp_dbg_s_register(struct file *file, void *priv,
+> +		struct v4l2_dbg_register *reg)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +
+> +	return v4l2_subdev_call(disp->sd, core,
+> +			s_register, reg);
+> +}
+> +#endif
+
+Ditto for these g/s_register calls. The core now takes care of that.
+
+> +
+> +static int disp_log_status(struct file *file, void *priv)
+> +{
+> +	struct disp_device *disp = video_drvdata(file);
+> +	/* status for sub devices */
+> +	v4l2_device_call_all(&disp->v4l2_dev, 0, core, log_status);
+> +	return 0;
+> +}
+> +
+> +static const struct v4l2_ioctl_ops disp_ioctl_ops = {
+> +	.vidioc_querycap         = disp_querycap,
+> +	.vidioc_g_fmt_vid_out    = disp_g_fmt_vid_out,
+> +	.vidioc_enum_fmt_vid_out = disp_enum_fmt_vid_out,
+> +	.vidioc_s_fmt_vid_out    = disp_s_fmt_vid_out,
+> +	.vidioc_try_fmt_vid_out  = disp_try_fmt_vid_out,
+> +	.vidioc_enum_output      = disp_enum_output,
+> +	.vidioc_g_output         = disp_g_output,
+> +	.vidioc_s_output         = disp_s_output,
+> +	.vidioc_s_std            = disp_s_std,
+> +	.vidioc_g_std            = disp_g_std,
+> +	.vidioc_s_dv_timings     = disp_s_dv_timings,
+> +	.vidioc_g_dv_timings     = disp_g_dv_timings,
+> +	.vidioc_reqbufs          = disp_reqbufs,
+> +	.vidioc_querybuf         = disp_querybuf,
+> +	.vidioc_qbuf             = disp_qbuf,
+> +	.vidioc_dqbuf            = disp_dqbuf,
+> +	.vidioc_streamon         = disp_streamon,
+> +	.vidioc_streamoff        = disp_streamoff,
+> +	.vidioc_g_parm           = disp_g_parm,
+> +	.vidioc_s_parm           = disp_s_parm,
+> +	.vidioc_g_chip_ident     = disp_g_chip_ident,
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> +	.vidioc_g_register       = disp_dbg_g_register,
+> +	.vidioc_s_register       = disp_dbg_s_register,
+> +#endif
+> +	.vidioc_log_status       = disp_log_status,
+> +};
+> +
+> +static struct v4l2_file_operations disp_fops = {
+> +	.owner = THIS_MODULE,
+> +	.open = disp_open,
+> +	.release = disp_release,
+> +	.unlocked_ioctl = video_ioctl2,
+> +	.mmap = disp_mmap,
+> +#ifndef CONFIG_MMU
+> +	.get_unmapped_area = disp_get_unmapped_area,
+> +#endif
+> +	.poll = disp_poll
+> +};
+> +
+> +static int disp_probe(struct platform_device *pdev)
+> +{
+> +	struct disp_device *disp;
+> +	struct video_device *vfd;
+> +	struct i2c_adapter *i2c_adap;
+> +	struct bfin_display_config *config;
+> +	struct vb2_queue *q;
+> +	struct disp_route *route;
+> +	int ret;
+> +
+> +	config = pdev->dev.platform_data;
+> +	if (!config) {
+> +		v4l2_err(pdev->dev.driver, "Unable to get board config\n");
+> +		return -ENODEV;
+> +	}
+> +
+> +	disp = kzalloc(sizeof(*disp), GFP_KERNEL);
+> +	if (!disp) {
+> +		v4l2_err(pdev->dev.driver, "Unable to alloc disp\n");
+> +		return -ENOMEM;
+> +	}
+> +
+> +	disp->cfg = config;
+> +
+> +	disp->ppi = ppi_create_instance(config->ppi_info);
+> +	if (!disp->ppi) {
+> +		v4l2_err(pdev->dev.driver, "Unable to create ppi\n");
+> +		ret = -ENODEV;
+> +		goto err_free_dev;
+> +	}
+> +	disp->ppi->priv = disp;
+> +
+> +	disp->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+> +	if (IS_ERR(disp->alloc_ctx)) {
+> +		ret = PTR_ERR(disp->alloc_ctx);
+> +		goto err_free_ppi;
+> +	}
+> +
+> +	vfd = video_device_alloc();
+> +	if (!vfd) {
+> +		ret = -ENOMEM;
+> +		v4l2_err(pdev->dev.driver, "Unable to alloc video device\n");
+> +		goto err_cleanup_ctx;
+> +	}
+> +
+> +	/* initialize field of video device */
+> +	vfd->release    = video_device_release;
+> +	vfd->fops       = &disp_fops;
+> +	vfd->ioctl_ops  = &disp_ioctl_ops;
+> +	vfd->tvnorms    = 0;
+> +	vfd->v4l2_dev   = &disp->v4l2_dev;
+> +	vfd->vfl_dir    = VFL_DIR_TX;
+> +	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
+> +	strncpy(vfd->name, DISPLAY_DRV_NAME, sizeof(vfd->name));
+> +	disp->video_dev = vfd;
+> +
+> +	ret = v4l2_device_register(&pdev->dev, &disp->v4l2_dev);
+> +	if (ret) {
+> +		v4l2_err(pdev->dev.driver,
+> +				"Unable to register v4l2 device\n");
+> +		goto err_release_vdev;
+> +	}
+> +	v4l2_info(&disp->v4l2_dev, "v4l2 device registered\n");
+> +
+> +	disp->v4l2_dev.ctrl_handler = &disp->ctrl_handler;
+> +	ret = v4l2_ctrl_handler_init(&disp->ctrl_handler, 0);
+> +	if (ret) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to init control handler\n");
+> +		goto err_unreg_v4l2;
+> +	}
+> +
+> +	spin_lock_init(&disp->lock);
+> +	/* initialize queue */
+> +	q = &disp->buffer_queue;
+> +	q->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
+> +	q->io_modes = VB2_MMAP;
+> +	q->drv_priv = disp;
+> +	q->buf_struct_size = sizeof(struct disp_buffer);
+> +	q->ops = &disp_video_qops;
+> +	q->mem_ops = &vb2_dma_contig_memops;
+> +
+> +	ret = vb2_queue_init(q);
+> +	if (ret) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to init videobuf2 queue\n");
+> +		goto err_free_handler;
+> +	}
+> +
+> +	mutex_init(&disp->mutex);
+> +
+> +	/* init video dma queues */
+> +	INIT_LIST_HEAD(&disp->dma_queue);
+> +
+> +	vfd->lock = &disp->mutex;
+> +
+> +	/* register video device */
+> +	ret = video_register_device(disp->video_dev, VFL_TYPE_GRABBER, -1);
+
+This should be done last after everything else is set up.
+
+> +	if (ret) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to register video device\n");
+> +		goto err_free_handler;
+> +	}
+> +	video_set_drvdata(disp->video_dev, disp);
+> +	v4l2_info(&disp->v4l2_dev, "video device registered as: %s\n",
+> +			video_device_node_name(vfd));
+> +
+> +	/* load up the subdevice */
+> +	i2c_adap = i2c_get_adapter(config->i2c_adapter_id);
+> +	if (!i2c_adap) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to find i2c adapter\n");
+> +		goto err_unreg_vdev;
+> +
+> +	}
+> +	disp->sd = v4l2_i2c_new_subdev_board(&disp->v4l2_dev,
+> +						 i2c_adap,
+> +						 &config->board_info,
+> +						 NULL);
+> +	if (disp->sd) {
+> +		int i;
+> +		if (!config->num_outputs) {
+> +			v4l2_err(&disp->v4l2_dev,
+> +					"Unable to work without output\n");
+> +			goto err_unreg_vdev;
+> +		}
+> +
+> +		/* update tvnorms from the sub devices */
+> +		for (i = 0; i < config->num_outputs; i++)
+> +			vfd->tvnorms |= config->outputs[i].std;
+
+No. vfd->tvnorms should be the std value for the current output, not that of
+all outputs combined.
+
+> +	} else {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to register sub device\n");
+> +		goto err_unreg_vdev;
+> +	}
+> +
+> +	v4l2_info(&disp->v4l2_dev, "v4l2 sub device registered\n");
+> +
+> +	/*
+> +	 * explicitly set output, otherwise some boards
+> +	 * may not work at the state as we expected
+> +	 */
+> +	route = &config->routes[0];
+> +	ret = v4l2_subdev_call(disp->sd, video, s_routing,
+> +				route->output, route->output, 0);
+> +	if ((ret < 0) && (ret != -ENOIOCTLCMD)) {
+> +		v4l2_err(&disp->v4l2_dev, "Failed to set output\n");
+> +		goto err_unreg_vdev;
+> +	}
+> +	disp->cur_output = 0;
+> +	/* if this route has specific config, update ppi control */
+> +	if (route->ppi_control)
+> +		config->ppi_control = route->ppi_control;
+> +
+> +	/* now we can probe the default state */
+> +	if (config->outputs[0].capabilities & V4L2_IN_CAP_STD) {
+> +		v4l2_std_id std;
+> +		ret = v4l2_subdev_call(disp->sd, core, g_std, &std);
+> +		if (ret) {
+> +			v4l2_err(&disp->v4l2_dev,
+> +					"Unable to get std\n");
+> +			goto err_unreg_vdev;
+> +		}
+> +		disp->std = std;
+> +	}
+> +	if (config->outputs[0].capabilities & V4L2_IN_CAP_CUSTOM_TIMINGS) {
+> +		struct v4l2_dv_timings dv_timings;
+> +		ret = v4l2_subdev_call(disp->sd, video,
+> +				g_dv_timings, &dv_timings);
+> +		if (ret) {
+> +			v4l2_err(&disp->v4l2_dev,
+> +					"Unable to get dv timings\n");
+> +			goto err_unreg_vdev;
+> +		}
+> +		disp->dv_timings = dv_timings;
+> +	}
+> +	ret = disp_init_encoder_formats(disp);
+> +	if (ret) {
+> +		v4l2_err(&disp->v4l2_dev,
+> +				"Unable to create encoder formats table\n");
+> +		goto err_unreg_vdev;
+> +	}
+> +	return 0;
+> +err_unreg_vdev:
+> +	video_unregister_device(disp->video_dev);
+> +	disp->video_dev = NULL;
+> +err_free_handler:
+> +	v4l2_ctrl_handler_free(&disp->ctrl_handler);
+> +err_unreg_v4l2:
+> +	v4l2_device_unregister(&disp->v4l2_dev);
+> +err_release_vdev:
+> +	if (disp->video_dev)
+> +		video_device_release(disp->video_dev);
+> +err_cleanup_ctx:
+> +	vb2_dma_contig_cleanup_ctx(disp->alloc_ctx);
+> +err_free_ppi:
+> +	ppi_delete_instance(disp->ppi);
+> +err_free_dev:
+> +	kfree(disp);
+> +	return ret;
+> +}
+> +
+> +static int disp_remove(struct platform_device *pdev)
+> +{
+> +	struct v4l2_device *v4l2_dev = platform_get_drvdata(pdev);
+> +	struct disp_device *disp = container_of(v4l2_dev,
+> +						struct disp_device, v4l2_dev);
+> +
+> +	disp_free_encoder_formats(disp);
+> +	video_unregister_device(disp->video_dev);
+> +	v4l2_ctrl_handler_free(&disp->ctrl_handler);
+> +	v4l2_device_unregister(v4l2_dev);
+> +	vb2_dma_contig_cleanup_ctx(disp->alloc_ctx);
+> +	ppi_delete_instance(disp->ppi);
+> +	kfree(disp);
+> +	return 0;
+> +}
+> +
+> +static struct platform_driver disp_driver = {
+> +	.driver = {
+> +		.name  = DISPLAY_DRV_NAME,
+> +		.owner = THIS_MODULE,
+> +	},
+> +	.probe = disp_probe,
+> +	.remove = disp_remove,
+> +};
+> +module_platform_driver(disp_driver);
+> +
+> +MODULE_DESCRIPTION("Analog Devices blackfin video display driver");
+> +MODULE_AUTHOR("Scott Jiang <Scott.Jiang.Linux@gmail.com>");
+> +MODULE_LICENSE("GPL v2");
+> diff --git a/include/media/blackfin/bfin_display.h b/include/media/blackfin/bfin_display.h
+> new file mode 100644
+> index 0000000..6eb1d5a
+> --- /dev/null
+> +++ b/include/media/blackfin/bfin_display.h
+> @@ -0,0 +1,38 @@
+> +#ifndef _BFIN_DISPLAY_H_
+> +#define _BFIN_DISPLAY_H_
+> +
+> +#include <linux/i2c.h>
+> +
+> +struct v4l2_output;
+> +struct ppi_info;
+> +
+> +struct disp_route {
+> +	u32 output;
+> +	u32 config;
+> +	u32 ppi_control;
+> +};
+> +
+> +struct bfin_display_config {
+> +	/* card name */
+> +	char *card_name;
+> +	/* outputs available at the sub device */
+> +	struct v4l2_output *outputs;
+> +	/* number of outputs supported */
+> +	int num_outputs;
+> +	/* routing information for each output */
+> +	struct disp_route *routes;
+> +	/* i2c bus adapter no */
+> +	int i2c_adapter_id;
+> +	/* i2c subdevice board info */
+> +	struct i2c_board_info board_info;
+> +	/* ppi board info */
+> +	const struct ppi_info *ppi_info;
+> +	/* ppi control */
+> +	u32 ppi_control;
+> +	/* ppi interrupt mask */
+> +	u32 int_mask;
+> +	/* horizontal blanking pixels */
+> +	int blank_pixels;
+> +};
+> +
+> +#endif
+> 
+
+Regards,
+
+	Hans
