@@ -1,56 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:55982 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754777Ab3DWKwf (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3457 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755079Ab3DOKlN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 06:52:35 -0400
-Received: by mail-pd0-f174.google.com with SMTP id y14so358293pdi.33
-        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 03:52:34 -0700 (PDT)
-From: Katsuya Matsubara <matsu@igel.co.jp>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org, Katsuya Matsubara <matsu@igel.co.jp>
-Subject: [PATCH 2/3] [media] sh_veu: keep power supply until the m2m context is released
-Date: Tue, 23 Apr 2013 19:51:36 +0900
-Message-Id: <1366714297-2784-3-git-send-email-matsu@igel.co.jp>
-In-Reply-To: <1366714297-2784-1-git-send-email-matsu@igel.co.jp>
-References: <1366714297-2784-1-git-send-email-matsu@igel.co.jp>
+	Mon, 15 Apr 2013 06:41:13 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3FAT35a082643
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 12:29:05 +0200 (CEST)
+	(envelope-from hansverk@cisco.com)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 2A22611E00F4
+	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 12:29:02 +0200 (CEST)
+From: Hans Verkuil <hansverk@cisco.com>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.9] cx25821: do not expose broken video output streams
+Date: Mon, 15 Apr 2013 12:29:02 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304151229.02226.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In the sh_veu driver, only the interrupt handler 'sh_veu_bh'
-can invoke the v4l2_m2m_job_finish() function.
-So the hardware must be alive for handling interrupts
-until returning from v4l2_m2m_ctx_release().
+Hi Mauro,
 
-Signed-off-by: Katsuya Matsubara <matsu@igel.co.jp>
----
- drivers/media/platform/sh_veu.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+As requested: the cx25821 fix to prevent it exposing the broken video output
+streams posing a security risk.
 
-diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-index f88c0e8..fa86c6f 100644
---- a/drivers/media/platform/sh_veu.c
-+++ b/drivers/media/platform/sh_veu.c
-@@ -1032,8 +1032,6 @@ static int sh_veu_release(struct file *file)
- 
- 	dev_dbg(veu->dev, "Releasing instance %p\n", veu_file);
- 
--	pm_runtime_put(veu->dev);
--
- 	if (veu_file == veu->capture) {
- 		veu->capture = NULL;
- 		vb2_queue_release(v4l2_m2m_get_vq(veu->m2m_ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE));
-@@ -1049,6 +1047,8 @@ static int sh_veu_release(struct file *file)
- 		veu->m2m_ctx = NULL;
- 	}
- 
-+	pm_runtime_put(veu->dev);
-+
- 	kfree(veu_file);
- 
- 	return 0;
--- 
-1.7.0.4
+Regards,
 
+	Hans
+
+The following changes since commit 4c41dab4d69fb887884dc571fd70e4ddc41774fb:
+
+  [media] rc: fix single line indentation of keymaps/Makefile (2013-04-14 22:51:41 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git cx25821-fix
+
+for you to fetch changes up to 7f7ae0c294ed718d4d0fe129518c6b144b68235d:
+
+  cx25821: do not expose broken video output streams. (2013-04-15 12:23:45 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      cx25821: do not expose broken video output streams.
+
+ drivers/media/pci/cx25821/cx25821-video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
