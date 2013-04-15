@@ -1,191 +1,163 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f42.google.com ([74.125.83.42]:33873 "EHLO
-	mail-ee0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765499Ab3DEPcH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Apr 2013 11:32:07 -0400
-Received: by mail-ee0-f42.google.com with SMTP id d4so709628eek.29
-        for <linux-media@vger.kernel.org>; Fri, 05 Apr 2013 08:32:05 -0700 (PDT)
-Message-ID: <515EEEB3.2080100@googlemail.com>
-Date: Fri, 05 Apr 2013 17:33:07 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Timo Teras <timo.teras@iki.fi>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Terratec Grabby hwrev 2
-References: <20130325190846.3250fe98@vostro> <20130325143647.3da1360f@redhat.com> <20130325194820.7c122834@vostro> <20130325153220.3e6dbfe5@redhat.com> <20130325211238.7c325d5e@vostro> <20130326102056.63b55916@vostro> <20130327161049.683483f8@vostro> <20130328105201.7bcc7388@vostro> <20130328094052.26b7f3f5@redhat.com> <20130328153556.0b58d1aa@vostro> <20130328122252.19769614@redhat.com> <20130330115455.56c34b5f@vostro> <5159C35D.7080901@googlemail.com> <20130402084305.0f623e6e@vostro> <515B09BD.2040104@googlemail.com> <20130403112750.0bc79874@vostro>
-In-Reply-To: <20130403112750.0bc79874@vostro>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Received: from mx1.redhat.com ([209.132.183.28]:43114 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933036Ab3DOMvf convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Apr 2013 08:51:35 -0400
+Date: Mon, 15 Apr 2013 09:51:30 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
+Message-ID: <20130415095130.78a5ecd9@redhat.com>
+In-Reply-To: <516B12F9.4040609@googlemail.com>
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
+	<1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com>
+	<20130413114144.097a21a1@redhat.com>
+	<51697AC8.1050807@googlemail.com>
+	<20130413140444.2fba3e88@redhat.com>
+	<516999EC.6080605@googlemail.com>
+	<20130413150823.6e962285@redhat.com>
+	<516B12F9.4040609@googlemail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 03.04.2013 10:27, schrieb Timo Teras:
-> On Tue, 02 Apr 2013 18:39:25 +0200
-> Frank Sch�fer <fschaefer.oss@googlemail.com> wrote:
->
->> Am 02.04.2013 07:43, schrieb Timo Teras:
->>> On Mon, 01 Apr 2013 19:26:53 +0200
->>> Frank Sch�fer <fschaefer.oss@googlemail.com> wrote:
->>>
->>>> Am 30.03.2013 10:54, schrieb Timo Teras:
->>>>> On Thu, 28 Mar 2013 12:22:52 -0300
->>>>> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
->>>>>
->>>>>>> On the W7 driver, I don't get any of the above mentioned
->>>>>>> problems.
->>>>>>>
->>>>>>> I looked at the saa7113 register init sequence, and copied that
->>>>>>> over to linux saa7113 init, but that did not remove the
->>>>>>> problems. There were only few changes.
->>>>>> So, maybe it does a different crop setup at em28xx.
->>>>> I did an analysis of the register setups of em28xx and found the
->>>>> following differences:
->>>>>
->>>>> 1. Different crop settings
->>>>>
->>>>> EM28XX_R1D_VSTART, EM28XX_R1F_CHEIGHT and EM28XX_R2B_YMAX set by
->>>>> W7 driver were divided by two compared to the linux driver. Seems
->>>>> that linux driver did just this before commit c2a6b54.  I also
->>>>> found the patch https://patchwork.kernel.org/patch/1272051/ to
->>>>> restore the original behaviour, but somehow it was disregarded
->>>>> and commit 0bc9c89 was done instead. The mentioned patch though
->>>>> does not fix R1D setting though.
->>>> Can you post the settings the Windows driver uses for these
->>>> registers ? Don't worry about registers 0x28-0x2B, different values
->>>> shouldn' matter. See
->>>> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/57039.
->>> Yes, it would seem registers 0x28-0x2B do not have great
->>> significance in the video we get out of it.
->>>
->>> The full sequence the W7 driver does for PAL video is:
->>>
->>> EM28XX_R20_YGAIN        0x00
->>> EM28XX_R22_UVGAIN       0x00
->>> EM28XX_R06_I2C_CLK      0x40
->>> EM28XX_R15_RGAIN        0x20
->>> EM28XX_R16_GGAIN        0x20
->>> EM28XX_R17_BGAIN        0x20
->>> EM28XX_R18_ROFFSET      0x00
->>> EM28XX_R19_GOFFSET      0x00
->>> EM28XX_R1A_BOFFSET      0x00
->>> EM28XX_R23_UOFFSET      0x00
->>> EM28XX_R24_VOFFSET      0x00
->>> EM28XX_R26_COMPR        0x00
->>> EM28XX_R13_???          0x08 (Note: we do not set this at all)
->> I've seen this write to reg 0x13 with my webcams, too.
->> Unfortunately, we don't know what it means. But according to my tests,
->> it is not needed.
-> Right, it is not strictly needed.
->
->>> EM28XX_R27_OUTFMT       0x34
->>> EM28XX_R10_VINMODE      0x00
->> We set vinmode to 0x10 (see em28xx_init_dev() in em28xx-cards.c).
->> No idea what the values mean. Might be worth testing with 0x00.
-> Did not try, but seems it did not make any great difference either.
->
->>> EM28XX_R28_XMIN         0x01
->>> EM28XX_R29_XMAX         0xB3
->>> EM28XX_R2A_YMIN         0x01
->>> EM28XX_R2B_YMAX         0x47 (We set 0x8e, i think)
->> Yes, we set to EM28XX_R2B_YMAX to 0x8f, the other values are the same
->> as used by the driver.
->> 0x47 is 0x8f / 2, so what the Windows driver seems to do here is to
->> use the field height instead of the image height (interlaced mode)
->> which is the same what we did in the past in our driver.
->>
->> Anyway, some other device like the MSI DigiVox ATSC (PAL or NTSC ?,
->> interlaced), Silvercrest webcam 1.3MPix (640x480, progressive) use the
->> following values: 0x01, 0xFF, 0x01, 0xFF.
->> And the Speedlink VAD Laplace webcam for example uses the following
->> values: 0x1B, 0x83, 0x13, 0x63    (320x240, 640x480, progressive)
->>     0x6B, 0xD3, 0x57, 0xA7    (1280x1024, progressive)
->>     0x93, 0xFB, 0x6D, 0xBD    (1600x1200, progressive)
->>
->> So which formula should we use ? Suggestions ? ;)
-> Not really. And yes, seems it does not matter much. I took the below
-> referred image grabs with unmodified em28xx, and they look pretty much
-> the same compared to the results of em28xx patched as described before.
->
->> As said before, we didn't notice any difference in the device behavior
->> when changing the values so far. So let's stay with the current
->> formula.
-> Yeah.
->
->>> EM28XX_R1C_HSTART       0x00
->>> EM28XX_R1D_VSTART       0x01 (We set 0x02)
->> In VBI mode, yes, without VBI we use 0x00.
->> I don't know if a 1 Pixel offset makes a big difference.
->> But looking at the comment in em28xx_resolution_set(), an offset of 2
->> pixels seems to make a bigger difference for VBI devices, which makes
->> my alert bells ringing...
-> I did not test VBI, so I'm unsure if it works or not.
+Em Sun, 14 Apr 2013 22:35:05 +0200
+Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
 
-The em2860 supports VBI, so VBI mode is used.
-You can force the normal mode with module parameter disable_vbi=1
+> Am 13.04.2013 20:08, schrieb Mauro Carvalho Chehab:
+> > Em Sat, 13 Apr 2013 19:46:20 +0200
+> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >
+> >> Am 13.04.2013 19:04, schrieb Mauro Carvalho Chehab:
+> >>> Em Sat, 13 Apr 2013 17:33:28 +0200
+> >>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >>>
+> >>>> Am 13.04.2013 16:41, schrieb Mauro Carvalho Chehab:
+> >>>>> Em Sat, 13 Apr 2013 11:48:39 +0200
+> >>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> >>>>>
+> >>>>>> The GPIO register tracking/caching code is partially broken, because newer
+> >>>>>> devices provide more than one GPIO register and some of them are even using
+> >>>>>> separate registers for read and write access.
+> >>>>>> Making it work would be too complicated.
+> >>>>>> It is also used nowhere and doesn't make sense in cases where input lines are
+> >>>>>> connected to buttons etc.
+> >>>>>>
+> >>>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+> >>>>>> ---
+> >>>>>>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
+> >>>>>>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
+> >>>>>>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
+> >>>>>>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
+> >>>>> ...
+> >>>>>
+> >>>>>
+> >>>>>> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
+> >>>>>>  	int oldval;
+> >>>>>>  	u8 newval;
+> >>>>>>  
+> >>>>>> -	/* Uses cache for gpo/gpio registers */
+> >>>>>> -	if (reg == dev->reg_gpo_num)
+> >>>>>> -		oldval = dev->reg_gpo;
+> >>>>>> -	else if (reg == dev->reg_gpio_num)
+> >>>>>> -		oldval = dev->reg_gpio;
+> >>>>>> -	else
+> >>>>>> -		oldval = em28xx_read_reg(dev, reg);
+> >>>>>> -
+> >>>>>> +	oldval = em28xx_read_reg(dev, reg);
+> >>>>>>  	if (oldval < 0)
+> >>>>>>  		return oldval;
+> >>>>> That's plain wrong, as it will break GPIO input.
+> >>>>>
+> >>>>> With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
+> >>>>> code works for output ports.
+> >>>>>
+> >>>>> However, an input port requires an specific value (either 1 or 0 depending
+> >>>>> on the GPIO circuitry). If the wrong value is written there, the input port
+> >>>>> will stop working.
+> >>>>>
+> >>>>> So, you can't simply read a value from a GPIO input and write it. You need
+> >>>>> to shadow the GPIO write values instead.
+> >>>> I don't understand what you mean.
+> >>>> Why can I not read the value of a GPIO input and write it ?
+> >>> Because, depending on the value you write, it can transform the input into an
+> >>> output port.
+> >> I don't get it.
+> >> We always write to the GPIO register. That's why these functions are
+> >> called em28xx_write_* ;)
+> >> Whether the write operation is sane or not (e.g. because it modifies the
+> >> bit corresponding to an input line) is not subject of these functions.
+> > Writing is sane: GPIO input lines requires writing as well, in order to 
+> > set it to either pull-up or pull-down mode (not sure if em28xx supports
+> > both ways).
+> >
+> > So, the driver needs to know if it will write there a 0 or 1, and this is part
+> > of its GPIO configuration.
+> >
+> > Let's assume that, on a certain device, you need to write "1" to enable that
+> > input.
+> >
+> > A read I/O to that port can return either 0 or 1. 
+> >
+> > Giving an hypothetical example, please assume this code:
+> >
+> > static int write_gpio_bits(u32 out, u32 mask)
+> > {
+> > 	u32 gpio = (read_gpio_ports() & ~mask) | (out & mask);
+> > 	write_gpio_ports(gpio);
+> > }
+> >
+> >
+> > ...
+> > 	/* Use bit 1 as input GPIO */
+> > 	write_gpio_bits(1, 1);
+> >
+> > 	/* send a reset via bit 2 GPIO */
+> > 	write_gpio_bits(2, 2);
+> > 	write_gpio_bits(0, 2);
+> > 	write_gpio_bits(2, 2);
+> >
+> > If, at the time the above code runs, the input bit 1 is at "0" state,
+> > the subsequent calls will disable the input.
+> >
+> > If, instead, only the write operations are cached like:
+> >
+> > static int write_gpio_bits(u32 out, u32 mask)
+> > {
+> > 	static u32 shadow_cache;
+> >
+> > 	shadow_cache = (shadow_cache & ~mask) | (out & mask);
+> > 	write_gpio_ports(gpio);
+> > }
+> >
+> > there's no such risk, as it will keep using "1" for the input bit.
+> 
+> Hmm... ok, now I understand what you mean.
+> Are you sure the Empia chips are really working this way ?
 
->> [snip]
->>> Oh, would it then make sense to disable all the non-16bpp formats
->>> for the time being?
->> Maybe.
->> But in practice, nearly all TV/DVB application (or libv4l2) are
->> selecting a 16 bit format, so this doesn't cause too much trouble.
->> ffmpeg however seems to be the exception ;) The other exception might
->> be webcam applications.
-> Seems the exception is applications using libv4l2 and requesting
-> primarly a format that is not native to the device.
+Yes. It uses a pretty standard GPIO mechanism at register 0x08. I'm not
+so sure about the "GPO" register 0x04, but using a shadow for it as
+well won't hurt, and will reduce a little bit the USB bus traffic.
 
-Sure, int this case it's up to libv4l2 to select an approriate driver
-source format for the conversion.
-But I doubt lib4vl2 will select one of the 8 bit formats when the the
-destination format is a 16 bit format. ;)
+> I checked the em25xx datasheet (excerpt) and it talks about separate
+> registers for GPIO configuration (unfortunately without explaining their
+> function in detail).
 
->> I'm also getting a "usable" image with the 8 bit formats, so it's not
->> completely broken.
->>
->> Anyway, sooner or later we will have to fix the 8 bit formats, because
->> for webcams with higher resolutions (e.g. >= 1280x1024) 16 bit formats
->> cannot be used anymore... ;)
->>
->>> Basically, I got mostly OK picture, but areas with all-black and
->>> all-white next to each other got distorted (e.g. subtitles).
->> Could you send us a screenshot ?
->> Looks different with my devices...
-> Seems ffmpeg by default wants yuv420p, and libv4l2 does some
-> conversions automatically to get there. The relevant grab is:
-> http://dev.alpinelinux.org/~tteras/image-yuv420p.jpg
-> You can see the red/blue pixels with subtitles. There's also some
-> quality loss on other sharp edges, like the edge of the white shirt.
+Interesting. There are several old designs (bttv, saa7134,...) that uses
+a separate register for defining the input and the output pins.
 
-Yeah, looks the same with my devices.
+> I going to do some tests with the Laplace webcam, so far it seems to be
+> working fine without this caching stuff.
+> But the reverse-engineering possibilities are quite limited, so someone
+> with a detailed datasheet should really look this up.
 
-> Using --pix_fmt rgb24 seems to result in similar issues.
->
-> This is the same (paused image from DVD player) grabbed again with
-> --pix_fmt yuyv422: http://dev.alpinelinux.org/~tteras/image-yuyv422.jpg
-> which nice.
+Well, that will affect only devices with input pins connected.
+If you test on a hardware without it, you won't notice any difference
+at all.
 
-Except the green line at the bottom which I'm seeing, too.
-Try the module parameter disable_vbi=1 and the
-distortion/artifacts/offset should change a bit.
-I wouldn't wonder if we encounter multiple issues here which are
-interfering with each other... :(
-
-> When comparing these two picture, you see that the frame is offset with
-> one or two pixels in x-direction. Perhaps this is a byte offset, and in
-> RGB format causes color values to be connected to wrong pixel.
->
-> As final note, now I hooked the device on faster machine, and the AC97
-> detection seems random. It seemed to work with the slower machine
-> reliably after I had it do the saa7113 initialization. So sounds like
-> some sort of timing issue.
-
-More details please. ;)
-Do you mean that "Config register raw data" (see dmesg output) value
-varies ?
-
-Regards,
-Frank
-
-> - Timo
-
+Cheers,
+Mauro
