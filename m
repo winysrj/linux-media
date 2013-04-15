@@ -1,587 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:64418 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752409Ab3DLQMo (ORCPT
+Received: from mail-ee0-f45.google.com ([74.125.83.45]:60020 "EHLO
+	mail-ee0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754692Ab3DOQZr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 12:12:44 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v9 03/20] soc-camera: move common code to soc_camera.c
-Date: Fri, 12 Apr 2013 17:40:23 +0200
-Message-Id: <1365781240-16149-4-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 15 Apr 2013 12:25:47 -0400
+Received: by mail-ee0-f45.google.com with SMTP id c50so2286999eek.4
+        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 09:25:46 -0700 (PDT)
+Message-ID: <516C2A50.3080409@googlemail.com>
+Date: Mon, 15 Apr 2013 18:26:56 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com> <20130413114144.097a21a1@redhat.com> <51697AC8.1050807@googlemail.com> <20130413140444.2fba3e88@redhat.com> <516999EC.6080605@googlemail.com> <20130413150823.6e962285@redhat.com> <516B12F9.4040609@googlemail.com> <20130415095130.78a5ecd9@redhat.com>
+In-Reply-To: <20130415095130.78a5ecd9@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All soc-camera host drivers include a pointer to an soc-camera device in
-their host private struct to check, that only one client is connected.
-Move this common code to soc_camera.c.
+Am 15.04.2013 14:51, schrieb Mauro Carvalho Chehab:
+> Em Sun, 14 Apr 2013 22:35:05 +0200
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> Am 13.04.2013 20:08, schrieb Mauro Carvalho Chehab:
+>>> Em Sat, 13 Apr 2013 19:46:20 +0200
+>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>
+>>>> Am 13.04.2013 19:04, schrieb Mauro Carvalho Chehab:
+>>>>> Em Sat, 13 Apr 2013 17:33:28 +0200
+>>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>>>
+>>>>>> Am 13.04.2013 16:41, schrieb Mauro Carvalho Chehab:
+>>>>>>> Em Sat, 13 Apr 2013 11:48:39 +0200
+>>>>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>>>>>>>
+>>>>>>>> The GPIO register tracking/caching code is partially broken, because newer
+>>>>>>>> devices provide more than one GPIO register and some of them are even using
+>>>>>>>> separate registers for read and write access.
+>>>>>>>> Making it work would be too complicated.
+>>>>>>>> It is also used nowhere and doesn't make sense in cases where input lines are
+>>>>>>>> connected to buttons etc.
+>>>>>>>>
+>>>>>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+>>>>>>>> ---
+>>>>>>>>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
+>>>>>>>>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
+>>>>>>>>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
+>>>>>>>>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
+>>>>>>> ...
+>>>>>>>
+>>>>>>>
+>>>>>>>> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
+>>>>>>>>  	int oldval;
+>>>>>>>>  	u8 newval;
+>>>>>>>>  
+>>>>>>>> -	/* Uses cache for gpo/gpio registers */
+>>>>>>>> -	if (reg == dev->reg_gpo_num)
+>>>>>>>> -		oldval = dev->reg_gpo;
+>>>>>>>> -	else if (reg == dev->reg_gpio_num)
+>>>>>>>> -		oldval = dev->reg_gpio;
+>>>>>>>> -	else
+>>>>>>>> -		oldval = em28xx_read_reg(dev, reg);
+>>>>>>>> -
+>>>>>>>> +	oldval = em28xx_read_reg(dev, reg);
+>>>>>>>>  	if (oldval < 0)
+>>>>>>>>  		return oldval;
+>>>>>>> That's plain wrong, as it will break GPIO input.
+>>>>>>>
+>>>>>>> With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
+>>>>>>> code works for output ports.
+>>>>>>>
+>>>>>>> However, an input port requires an specific value (either 1 or 0 depending
+>>>>>>> on the GPIO circuitry). If the wrong value is written there, the input port
+>>>>>>> will stop working.
+>>>>>>>
+>>>>>>> So, you can't simply read a value from a GPIO input and write it. You need
+>>>>>>> to shadow the GPIO write values instead.
+>>>>>> I don't understand what you mean.
+>>>>>> Why can I not read the value of a GPIO input and write it ?
+>>>>> Because, depending on the value you write, it can transform the input into an
+>>>>> output port.
+>>>> I don't get it.
+>>>> We always write to the GPIO register. That's why these functions are
+>>>> called em28xx_write_* ;)
+>>>> Whether the write operation is sane or not (e.g. because it modifies the
+>>>> bit corresponding to an input line) is not subject of these functions.
+>>> Writing is sane: GPIO input lines requires writing as well, in order to 
+>>> set it to either pull-up or pull-down mode (not sure if em28xx supports
+>>> both ways).
+>>>
+>>> So, the driver needs to know if it will write there a 0 or 1, and this is part
+>>> of its GPIO configuration.
+>>>
+>>> Let's assume that, on a certain device, you need to write "1" to enable that
+>>> input.
+>>>
+>>> A read I/O to that port can return either 0 or 1. 
+>>>
+>>> Giving an hypothetical example, please assume this code:
+>>>
+>>> static int write_gpio_bits(u32 out, u32 mask)
+>>> {
+>>> 	u32 gpio = (read_gpio_ports() & ~mask) | (out & mask);
+>>> 	write_gpio_ports(gpio);
+>>> }
+>>>
+>>>
+>>> ...
+>>> 	/* Use bit 1 as input GPIO */
+>>> 	write_gpio_bits(1, 1);
+>>>
+>>> 	/* send a reset via bit 2 GPIO */
+>>> 	write_gpio_bits(2, 2);
+>>> 	write_gpio_bits(0, 2);
+>>> 	write_gpio_bits(2, 2);
+>>>
+>>> If, at the time the above code runs, the input bit 1 is at "0" state,
+>>> the subsequent calls will disable the input.
+>>>
+>>> If, instead, only the write operations are cached like:
+>>>
+>>> static int write_gpio_bits(u32 out, u32 mask)
+>>> {
+>>> 	static u32 shadow_cache;
+>>>
+>>> 	shadow_cache = (shadow_cache & ~mask) | (out & mask);
+>>> 	write_gpio_ports(gpio);
+>>> }
+>>>
+>>> there's no such risk, as it will keep using "1" for the input bit.
+>> Hmm... ok, now I understand what you mean.
+>> Are you sure the Empia chips are really working this way ?
+> Yes. It uses a pretty standard GPIO mechanism at register 0x08.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/atmel-isi.c      |   10 +-----
- drivers/media/platform/soc_camera/mx1_camera.c     |   20 +++--------
- drivers/media/platform/soc_camera/mx2_camera.c     |   13 +------
- drivers/media/platform/soc_camera/mx3_camera.c     |    9 -----
- drivers/media/platform/soc_camera/omap1_camera.c   |   14 +------
- drivers/media/platform/soc_camera/pxa_camera.c     |   18 ++-------
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   13 +------
- drivers/media/platform/soc_camera/soc_camera.c     |   38 ++++++++++++++++---
- include/media/soc_camera.h                         |    1 +
- 9 files changed, 49 insertions(+), 87 deletions(-)
+Ok, will try to find out how those 0x80...0x87 GPIO registers are working.
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index 1abbb36..c9e080a 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -102,7 +102,6 @@ struct atmel_isi {
- 	struct list_head		video_buffer_list;
- 	struct frame_buffer		*active;
- 
--	struct soc_camera_device	*icd;
- 	struct soc_camera_host		soc_host;
- };
- 
-@@ -367,7 +366,7 @@ static void start_dma(struct atmel_isi *isi, struct frame_buffer *buffer)
- 
- 	/* Check if already in a frame */
- 	if (isi_readl(isi, ISI_STATUS) & ISI_CTRL_CDC) {
--		dev_err(isi->icd->parent, "Already in frame handling.\n");
-+		dev_err(isi->soc_host.icd->parent, "Already in frame handling.\n");
- 		return;
- 	}
- 
-@@ -753,9 +752,6 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
- 	struct atmel_isi *isi = ici->priv;
- 	int ret;
- 
--	if (isi->icd)
--		return -EBUSY;
--
- 	ret = clk_enable(isi->pclk);
- 	if (ret)
- 		return ret;
-@@ -766,7 +762,6 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
- 		return ret;
- 	}
- 
--	isi->icd = icd;
- 	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
- 		 icd->devnum);
- 	return 0;
-@@ -777,11 +772,8 @@ static void isi_camera_remove_device(struct soc_camera_device *icd)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
- 
--	BUG_ON(icd != isi->icd);
--
- 	clk_disable(isi->mck);
- 	clk_disable(isi->pclk);
--	isi->icd = NULL;
- 
- 	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
- 		 icd->devnum);
-diff --git a/drivers/media/platform/soc_camera/mx1_camera.c b/drivers/media/platform/soc_camera/mx1_camera.c
-index a3fd8d6..5f9ec8e 100644
---- a/drivers/media/platform/soc_camera/mx1_camera.c
-+++ b/drivers/media/platform/soc_camera/mx1_camera.c
-@@ -104,7 +104,6 @@ struct mx1_buffer {
-  */
- struct mx1_camera_dev {
- 	struct soc_camera_host		soc_host;
--	struct soc_camera_device	*icd;
- 	struct mx1_camera_pdata		*pdata;
- 	struct mx1_buffer		*active;
- 	struct resource			*res;
-@@ -220,7 +219,7 @@ out:
- static int mx1_camera_setup_dma(struct mx1_camera_dev *pcdev)
- {
- 	struct videobuf_buffer *vbuf = &pcdev->active->vb;
--	struct device *dev = pcdev->icd->parent;
-+	struct device *dev = pcdev->soc_host.icd->parent;
- 	int ret;
- 
- 	if (unlikely(!pcdev->active)) {
-@@ -331,7 +330,7 @@ static void mx1_camera_wakeup(struct mx1_camera_dev *pcdev,
- static void mx1_camera_dma_irq(int channel, void *data)
- {
- 	struct mx1_camera_dev *pcdev = data;
--	struct device *dev = pcdev->icd->parent;
-+	struct device *dev = pcdev->soc_host.icd->parent;
- 	struct mx1_buffer *buf;
- 	struct videobuf_buffer *vb;
- 	unsigned long flags;
-@@ -389,7 +388,7 @@ static int mclk_get_divisor(struct mx1_camera_dev *pcdev)
- 	 */
- 	div = (lcdclk + 2 * mclk - 1) / (2 * mclk) - 1;
- 
--	dev_dbg(pcdev->icd->parent,
-+	dev_dbg(pcdev->soc_host.icd->parent,
- 		"System clock %lukHz, target freq %dkHz, divisor %lu\n",
- 		lcdclk / 1000, mclk / 1000, div);
- 
-@@ -400,7 +399,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
- {
- 	unsigned int csicr1 = CSICR1_EN;
- 
--	dev_dbg(pcdev->icd->parent, "Activate device\n");
-+	dev_dbg(pcdev->soc_host.icd->parent, "Activate device\n");
- 
- 	clk_prepare_enable(pcdev->clk);
- 
-@@ -416,7 +415,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
- 
- static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
- {
--	dev_dbg(pcdev->icd->parent, "Deactivate device\n");
-+	dev_dbg(pcdev->soc_host.icd->parent, "Deactivate device\n");
- 
- 	/* Disable all CSI interface */
- 	__raw_writel(0x00, pcdev->base + CSICR1);
-@@ -433,16 +432,11 @@ static int mx1_camera_add_device(struct soc_camera_device *icd)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx1_camera_dev *pcdev = ici->priv;
- 
--	if (pcdev->icd)
--		return -EBUSY;
--
- 	dev_info(icd->parent, "MX1 Camera driver attached to camera %d\n",
- 		 icd->devnum);
- 
- 	mx1_camera_activate(pcdev);
- 
--	pcdev->icd = icd;
--
- 	return 0;
- }
- 
-@@ -452,8 +446,6 @@ static void mx1_camera_remove_device(struct soc_camera_device *icd)
- 	struct mx1_camera_dev *pcdev = ici->priv;
- 	unsigned int csicr1;
- 
--	BUG_ON(icd != pcdev->icd);
--
- 	/* disable interrupts */
- 	csicr1 = __raw_readl(pcdev->base + CSICR1) & ~CSI_IRQ_MASK;
- 	__raw_writel(csicr1, pcdev->base + CSICR1);
-@@ -465,8 +457,6 @@ static void mx1_camera_remove_device(struct soc_camera_device *icd)
- 		 icd->devnum);
- 
- 	mx1_camera_deactivate(pcdev);
--
--	pcdev->icd = NULL;
- }
- 
- static int mx1_camera_set_bus_param(struct soc_camera_device *icd)
-diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
-index 5bbeb43..772e071 100644
---- a/drivers/media/platform/soc_camera/mx2_camera.c
-+++ b/drivers/media/platform/soc_camera/mx2_camera.c
-@@ -236,7 +236,6 @@ enum mx2_camera_type {
- struct mx2_camera_dev {
- 	struct device		*dev;
- 	struct soc_camera_host	soc_host;
--	struct soc_camera_device *icd;
- 	struct clk		*clk_emma_ahb, *clk_emma_ipg;
- 	struct clk		*clk_csi_ahb, *clk_csi_per;
- 
-@@ -394,8 +393,8 @@ static void mx27_update_emma_buf(struct mx2_camera_dev *pcdev,
- 		writel(phys, pcdev->base_emma +
- 			PRP_DEST_Y_PTR - 0x14 * bufnum);
- 		if (prp->out_fmt == V4L2_PIX_FMT_YUV420) {
--			u32 imgsize = pcdev->icd->user_height *
--					pcdev->icd->user_width;
-+			u32 imgsize = pcdev->soc_host.icd->user_height *
-+					pcdev->soc_host.icd->user_width;
- 
- 			writel(phys + imgsize, pcdev->base_emma +
- 				PRP_DEST_CB_PTR - 0x14 * bufnum);
-@@ -424,9 +423,6 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	int ret;
- 	u32 csicr1;
- 
--	if (pcdev->icd)
--		return -EBUSY;
--
- 	ret = clk_prepare_enable(pcdev->clk_csi_ahb);
- 	if (ret < 0)
- 		return ret;
-@@ -441,7 +437,6 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
- 	pcdev->csicr1 = csicr1;
- 	writel(pcdev->csicr1, pcdev->base_csi + CSICR1);
- 
--	pcdev->icd = icd;
- 	pcdev->frame_count = 0;
- 
- 	dev_info(icd->parent, "Camera driver attached to camera %d\n",
-@@ -460,14 +455,10 @@ static void mx2_camera_remove_device(struct soc_camera_device *icd)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx2_camera_dev *pcdev = ici->priv;
- 
--	BUG_ON(icd != pcdev->icd);
--
- 	dev_info(icd->parent, "Camera driver detached from camera %d\n",
- 		 icd->devnum);
- 
- 	mx2_camera_deactivate(pcdev);
--
--	pcdev->icd = NULL;
- }
- 
- /*
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 5da3377..71b9b19 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -94,7 +94,6 @@ struct mx3_camera_dev {
- 	 * Interface. If anyone ever builds hardware to enable more than one
- 	 * camera _simultaneously_, they will have to modify this driver too
- 	 */
--	struct soc_camera_device *icd;
- 	struct clk		*clk;
- 
- 	void __iomem		*base;
-@@ -517,13 +516,9 @@ static int mx3_camera_add_device(struct soc_camera_device *icd)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
- 
--	if (mx3_cam->icd)
--		return -EBUSY;
--
- 	mx3_camera_activate(mx3_cam, icd);
- 
- 	mx3_cam->buf_total = 0;
--	mx3_cam->icd = icd;
- 
- 	dev_info(icd->parent, "MX3 Camera driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -538,8 +533,6 @@ static void mx3_camera_remove_device(struct soc_camera_device *icd)
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
- 	struct idmac_channel **ichan = &mx3_cam->idmac_channel[0];
- 
--	BUG_ON(icd != mx3_cam->icd);
--
- 	if (*ichan) {
- 		dma_release_channel(&(*ichan)->dma_chan);
- 		*ichan = NULL;
-@@ -547,8 +540,6 @@ static void mx3_camera_remove_device(struct soc_camera_device *icd)
- 
- 	clk_disable_unprepare(mx3_cam->clk);
- 
--	mx3_cam->icd = NULL;
--
- 	dev_info(icd->parent, "MX3 Camera driver detached from camera %d\n",
- 		 icd->devnum);
- }
-diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
-index 9689a6e..c42c23e 100644
---- a/drivers/media/platform/soc_camera/omap1_camera.c
-+++ b/drivers/media/platform/soc_camera/omap1_camera.c
-@@ -150,7 +150,6 @@ struct omap1_cam_buf {
- 
- struct omap1_cam_dev {
- 	struct soc_camera_host		soc_host;
--	struct soc_camera_device	*icd;
- 	struct clk			*clk;
- 
- 	unsigned int			irq;
-@@ -564,7 +563,7 @@ static void videobuf_done(struct omap1_cam_dev *pcdev,
- {
- 	struct omap1_cam_buf *buf = pcdev->active;
- 	struct videobuf_buffer *vb;
--	struct device *dev = pcdev->icd->parent;
-+	struct device *dev = pcdev->soc_host.icd->parent;
- 
- 	if (WARN_ON(!buf)) {
- 		suspend_capture(pcdev);
-@@ -790,7 +789,7 @@ out:
- static irqreturn_t cam_isr(int irq, void *data)
- {
- 	struct omap1_cam_dev *pcdev = data;
--	struct device *dev = pcdev->icd->parent;
-+	struct device *dev = pcdev->soc_host.icd->parent;
- 	struct omap1_cam_buf *buf = pcdev->active;
- 	u32 it_status;
- 	unsigned long flags;
-@@ -904,9 +903,6 @@ static int omap1_cam_add_device(struct soc_camera_device *icd)
- 	struct omap1_cam_dev *pcdev = ici->priv;
- 	u32 ctrlclock;
- 
--	if (pcdev->icd)
--		return -EBUSY;
--
- 	clk_enable(pcdev->clk);
- 
- 	/* setup sensor clock */
-@@ -941,8 +937,6 @@ static int omap1_cam_add_device(struct soc_camera_device *icd)
- 
- 	sensor_reset(pcdev, false);
- 
--	pcdev->icd = icd;
--
- 	dev_dbg(icd->parent, "OMAP1 Camera driver attached to camera %d\n",
- 			icd->devnum);
- 	return 0;
-@@ -954,8 +948,6 @@ static void omap1_cam_remove_device(struct soc_camera_device *icd)
- 	struct omap1_cam_dev *pcdev = ici->priv;
- 	u32 ctrlclock;
- 
--	BUG_ON(icd != pcdev->icd);
--
- 	suspend_capture(pcdev);
- 	disable_capture(pcdev);
- 
-@@ -974,8 +966,6 @@ static void omap1_cam_remove_device(struct soc_camera_device *icd)
- 
- 	clk_disable(pcdev->clk);
- 
--	pcdev->icd = NULL;
--
- 	dev_dbg(icd->parent,
- 		"OMAP1 Camera driver detached from camera %d\n", icd->devnum);
- }
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index d665242..686edf7 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -200,7 +200,6 @@ struct pxa_camera_dev {
- 	 * interface. If anyone ever builds hardware to enable more than
- 	 * one camera, they will have to modify this driver too
- 	 */
--	struct soc_camera_device *icd;
- 	struct clk		*clk;
- 
- 	unsigned int		irq;
-@@ -966,13 +965,8 @@ static int pxa_camera_add_device(struct soc_camera_device *icd)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct pxa_camera_dev *pcdev = ici->priv;
- 
--	if (pcdev->icd)
--		return -EBUSY;
--
- 	pxa_camera_activate(pcdev);
- 
--	pcdev->icd = icd;
--
- 	dev_info(icd->parent, "PXA Camera driver attached to camera %d\n",
- 		 icd->devnum);
- 
-@@ -985,8 +979,6 @@ static void pxa_camera_remove_device(struct soc_camera_device *icd)
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct pxa_camera_dev *pcdev = ici->priv;
- 
--	BUG_ON(icd != pcdev->icd);
--
- 	dev_info(icd->parent, "PXA Camera driver detached from camera %d\n",
- 		 icd->devnum);
- 
-@@ -999,8 +991,6 @@ static void pxa_camera_remove_device(struct soc_camera_device *icd)
- 	DCSR(pcdev->dma_chans[2]) = 0;
- 
- 	pxa_camera_deactivate(pcdev);
--
--	pcdev->icd = NULL;
- }
- 
- static int test_platform_param(struct pxa_camera_dev *pcdev,
-@@ -1596,8 +1586,8 @@ static int pxa_camera_suspend(struct device *dev)
- 	pcdev->save_cicr[i++] = __raw_readl(pcdev->base + CICR3);
- 	pcdev->save_cicr[i++] = __raw_readl(pcdev->base + CICR4);
- 
--	if (pcdev->icd) {
--		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->icd);
-+	if (pcdev->soc_host.icd) {
-+		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
- 		ret = v4l2_subdev_call(sd, core, s_power, 0);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
-@@ -1622,8 +1612,8 @@ static int pxa_camera_resume(struct device *dev)
- 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR3);
- 	__raw_writel(pcdev->save_cicr[i++], pcdev->base + CICR4);
- 
--	if (pcdev->icd) {
--		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->icd);
-+	if (pcdev->soc_host.icd) {
-+		struct v4l2_subdev *sd = soc_camera_to_subdev(pcdev->soc_host.icd);
- 		ret = v4l2_subdev_call(sd, core, s_power, 1);
- 		if (ret == -ENOIOCTLCMD)
- 			ret = 0;
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 143d29fe..5b7d8e1 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -95,7 +95,6 @@ struct sh_mobile_ceu_buffer {
- 
- struct sh_mobile_ceu_dev {
- 	struct soc_camera_host ici;
--	struct soc_camera_device *icd;
- 	struct platform_device *csi2_pdev;
- 
- 	unsigned int irq;
-@@ -163,7 +162,7 @@ static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
- static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
- {
- 	int i, success = 0;
--	struct soc_camera_device *icd = pcdev->icd;
-+	struct soc_camera_device *icd = pcdev->ici.icd;
- 
- 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
- 
-@@ -277,7 +276,7 @@ static int sh_mobile_ceu_videobuf_setup(struct vb2_queue *vq,
-  */
- static int sh_mobile_ceu_capture(struct sh_mobile_ceu_dev *pcdev)
- {
--	struct soc_camera_device *icd = pcdev->icd;
-+	struct soc_camera_device *icd = pcdev->ici.icd;
- 	dma_addr_t phys_addr_top, phys_addr_bottom;
- 	unsigned long top1, top2;
- 	unsigned long bottom1, bottom2;
-@@ -552,9 +551,6 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- 	struct v4l2_subdev *csi2_sd;
- 	int ret;
- 
--	if (pcdev->icd)
--		return -EBUSY;
--
- 	dev_info(icd->parent,
- 		 "SuperH Mobile CEU driver attached to camera %d\n",
- 		 icd->devnum);
-@@ -583,7 +579,6 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- 	 */
- 	if (ret == -ENODEV && csi2_sd)
- 		csi2_sd->grp_id = 0;
--	pcdev->icd = icd;
- 
- 	return 0;
- }
-@@ -595,8 +590,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
- 
--	BUG_ON(icd != pcdev->icd);
--
- 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
- 	if (csi2_sd)
- 		csi2_sd->grp_id = 0;
-@@ -618,8 +611,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- 	dev_info(icd->parent,
- 		 "SuperH Mobile CEU driver detached from camera %d\n",
- 		 icd->devnum);
--
--	pcdev->icd = NULL;
- }
- 
- /*
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index eea832c..e32e4e2 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -505,6 +505,32 @@ static int soc_camera_set_fmt(struct soc_camera_device *icd,
- 	return ici->ops->set_bus_param(icd);
- }
- 
-+static int soc_camera_add_device(struct soc_camera_device *icd)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	int ret;
-+
-+	if (ici->icd)
-+		return -EBUSY;
-+
-+	ret = ici->ops->add(icd);
-+	if (!ret)
-+		ici->icd = icd;
-+
-+	return ret;
-+}
-+
-+static void soc_camera_remove_device(struct soc_camera_device *icd)
-+{
-+	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+
-+	if (WARN_ON(icd != ici->icd))
-+		return;
-+
-+	ici->ops->remove(icd);
-+	ici->icd = NULL;
-+}
-+
- static int soc_camera_open(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
-@@ -568,7 +594,7 @@ static int soc_camera_open(struct file *file)
- 		if (sdesc->subdev_desc.reset)
- 			sdesc->subdev_desc.reset(icd->pdev);
- 
--		ret = ici->ops->add(icd);
-+		ret = soc_camera_add_device(icd);
- 		if (ret < 0) {
- 			dev_err(icd->pdev, "Couldn't activate the camera: %d\n", ret);
- 			goto eiciadd;
-@@ -619,7 +645,7 @@ esfmt:
- eresume:
- 	__soc_camera_power_off(icd);
- epower:
--	ici->ops->remove(icd);
-+	soc_camera_remove_device(icd);
- eiciadd:
- 	icd->use_count--;
- 	mutex_unlock(&ici->host_lock);
-@@ -643,7 +669,7 @@ static int soc_camera_close(struct file *file)
- 
- 		if (ici->ops->init_videobuf2)
- 			vb2_queue_release(&icd->vb2_vidq);
--		ici->ops->remove(icd);
-+		soc_camera_remove_device(icd);
- 
- 		__soc_camera_power_off(icd);
- 	}
-@@ -1167,7 +1193,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 		ssdd->reset(icd->pdev);
- 
- 	mutex_lock(&ici->host_lock);
--	ret = ici->ops->add(icd);
-+	ret = soc_camera_add_device(icd);
- 	mutex_unlock(&ici->host_lock);
- 	if (ret < 0)
- 		goto eadd;
-@@ -1240,7 +1266,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 		icd->field		= mf.field;
- 	}
- 
--	ici->ops->remove(icd);
-+	soc_camera_remove_device(icd);
- 
- 	mutex_unlock(&ici->host_lock);
- 
-@@ -1263,7 +1289,7 @@ eadddev:
- 	icd->vdev = NULL;
- evdc:
- 	mutex_lock(&ici->host_lock);
--	ici->ops->remove(icd);
-+	soc_camera_remove_device(icd);
- 	mutex_unlock(&ici->host_lock);
- eadd:
- 	v4l2_ctrl_handler_free(&icd->ctrl_handler);
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index ff77d08..5a46ce2 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -64,6 +64,7 @@ struct soc_camera_host {
- 	struct mutex host_lock;		/* Protect pipeline modifications */
- 	unsigned char nr;		/* Host number */
- 	u32 capabilities;
-+	struct soc_camera_device *icd;	/* Currently attached client */
- 	void *priv;
- 	const char *drv_name;
- 	struct soc_camera_host_ops *ops;
--- 
-1.7.2.5
+> I'm not so sure about the "GPO" register 0x04,
+
+Well, we don't need caching for output lines, just for input lines.
+
+> but using a shadow for it as
+> well won't hurt, and will reduce a little bit the USB bus traffic.
+
+Sure, but the problem is that caching is getting complicated with the
+newer devices.
+The em2765 in the VAD Laplace webcam for example uses registers
+0x80/0x84, 0x81/0x85, 0x83/0x87 and also at least register 0x08 for
+GPIO. I don't not about about reg 0x04.
+And its seems some bits of reg 0x0C are used for GPIO, too (current
+snapshot button support uses bit 6).
+Have fun. :(
+
+>> I checked the em25xx datasheet (excerpt) and it talks about separate
+>> registers for GPIO configuration (unfortunately without explaining their
+>> function in detail).
+> Interesting. There are several old designs (bttv, saa7134,...) that uses
+> a separate register for defining the input and the output pins.
+
+IMHO separate registers are the better design.
+
+>
+>> I going to do some tests with the Laplace webcam, so far it seems to be
+>> working fine without this caching stuff.
+>> But the reverse-engineering possibilities are quite limited, so someone
+>> with a detailed datasheet should really look this up.
+> Well, that will affect only devices with input pins connected.
+> If you test on a hardware without it, you won't notice any difference
+> at all.
+
+The Laplace webcam has three buttons assigned to regs 0x80/0x84 and
+0x81/0x85.
+They are inverted (0=pressed, 1=unpressed), which could be the reason
+why I didn't notice any problems without caching.
+I don't have any other devices with buttons for testing.
+
+Regards,
+Frank
+
+> Cheers,
+> Mauro
 
