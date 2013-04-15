@@ -1,225 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49975 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752831Ab3DLPkq (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4857 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932679Ab3DORj7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 11:40:46 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	Mon, 15 Apr 2013 13:39:59 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3FHds4x020449
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 19:39:57 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C846911E00F4
+	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 19:39:53 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v9 20/20] ARM: shmobile: convert ap4evb to asynchronously register camera subdevices
-Date: Fri, 12 Apr 2013 17:40:40 +0200
-Message-Id: <1365781240-16149-21-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130415173953.C846911E00F4@alastor.dyndns.org>
+Date: Mon, 15 Apr 2013 19:39:53 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register the imx074 camera I2C and the CSI-2 platform devices directly
-in board platform data instead of letting the sh_mobile_ceu_camera driver
-and the soc-camera framework register them at their run-time. This uses
-the V4L2 asynchronous subdevice probing capability.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- arch/arm/mach-shmobile/board-ap4evb.c |  103 +++++++++++++++++++-------------
- arch/arm/mach-shmobile/clock-sh7372.c |    1 +
- 2 files changed, 62 insertions(+), 42 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
-index 38f1259..450e06b 100644
---- a/arch/arm/mach-shmobile/board-ap4evb.c
-+++ b/arch/arm/mach-shmobile/board-ap4evb.c
-@@ -50,6 +50,7 @@
- #include <media/sh_mobile_ceu.h>
- #include <media/sh_mobile_csi2.h>
- #include <media/soc_camera.h>
-+#include <media/v4l2-async.h>
- 
- #include <sound/sh_fsi.h>
- #include <sound/simple_card.h>
-@@ -871,22 +872,32 @@ static struct platform_device leds_device = {
- 	},
- };
- 
--static struct i2c_board_info imx074_info = {
--	I2C_BOARD_INFO("imx074", 0x1a),
-+/* I2C */
-+static struct soc_camera_subdev_desc imx074_desc;
-+static struct i2c_board_info i2c0_devices[] = {
-+	{
-+		I2C_BOARD_INFO("ak4643", 0x13),
-+	}, {
-+		I2C_BOARD_INFO("imx074", 0x1a),
-+		.platform_data = &imx074_desc,
-+	},
- };
- 
--static struct soc_camera_link imx074_link = {
--	.bus_id		= 0,
--	.board_info	= &imx074_info,
--	.i2c_adapter_id	= 0,
--	.module_name	= "imx074",
-+static struct i2c_board_info i2c1_devices[] = {
-+	{
-+		I2C_BOARD_INFO("r2025sd", 0x32),
-+	},
- };
- 
--static struct platform_device ap4evb_camera = {
--	.name   = "soc-camera-pdrv",
--	.id     = 0,
--	.dev    = {
--		.platform_data = &imx074_link,
-+static struct resource csi2_resources[] = {
-+	{
-+		.name	= "CSI2",
-+		.start	= 0xffc90000,
-+		.end	= 0xffc90fff,
-+		.flags	= IORESOURCE_MEM,
-+	}, {
-+		.start	= intcs_evt2irq(0x17a0),
-+		.flags  = IORESOURCE_IRQ,
- 	},
- };
- 
-@@ -895,7 +906,7 @@ static struct sh_csi2_client_config csi2_clients[] = {
- 		.phy		= SH_CSI2_PHY_MAIN,
- 		.lanes		= 0,		/* default: 2 lanes */
- 		.channel	= 0,
--		.pdev		= &ap4evb_camera,
-+		.name		= "imx074",
- 	},
- };
- 
-@@ -906,31 +917,50 @@ static struct sh_csi2_pdata csi2_info = {
- 	.flags		= SH_CSI2_ECC | SH_CSI2_CRC,
- };
- 
--static struct resource csi2_resources[] = {
--	[0] = {
--		.name	= "CSI2",
--		.start	= 0xffc90000,
--		.end	= 0xffc90fff,
--		.flags	= IORESOURCE_MEM,
-+static struct platform_device csi2_device = {
-+	.name		= "sh-mobile-csi2",
-+	.id		= 0,
-+	.num_resources	= ARRAY_SIZE(csi2_resources),
-+	.resource	= csi2_resources,
-+	.dev		= {
-+		.platform_data = &csi2_info,
- 	},
--	[1] = {
--		.start	= intcs_evt2irq(0x17a0),
--		.flags  = IORESOURCE_IRQ,
-+};
-+
-+static struct soc_camera_async_subdev csi2_sd = {
-+	.asd.hw = {
-+		.bus_type = V4L2_ASYNC_BUS_PLATFORM,
-+		.match.platform.name = "sh-mobile-csi2.0",
- 	},
-+	.role = SOCAM_SUBDEV_DATA_PROCESSOR,
- };
- 
--static struct sh_mobile_ceu_companion csi2 = {
--	.id		= 0,
--	.num_resources	= ARRAY_SIZE(csi2_resources),
--	.resource	= csi2_resources,
--	.platform_data	= &csi2_info,
-+static struct soc_camera_async_subdev imx074_sd = {
-+	.asd.hw = {
-+		.bus_type = V4L2_ASYNC_BUS_I2C,
-+		.match.i2c = {
-+			.adapter_id = 0,
-+			.address = 0x1a,
-+		},
-+	},
-+	.role = SOCAM_SUBDEV_DATA_SOURCE,
- };
- 
-+static struct v4l2_async_subdev *ceu_subdevs[] = {
-+	/* Single 2-element group */
-+	&csi2_sd.asd,
-+	&imx074_sd.asd,
-+};
-+
-+/* 0-terminated array of group-sizes */
-+static int ceu_subdev_sizes[] = {ARRAY_SIZE(ceu_subdevs), 0};
-+
- static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
- 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
- 	.max_width = 8188,
- 	.max_height = 8188,
--	.csi2 = &csi2,
-+	.asd = ceu_subdevs,
-+	.asd_sizes = ceu_subdev_sizes,
- };
- 
- static struct resource ceu_resources[] = {
-@@ -975,7 +1005,7 @@ static struct platform_device *ap4evb_devices[] __initdata = {
- 	&lcdc_device,
- 	&lcdc1_device,
- 	&ceu_device,
--	&ap4evb_camera,
-+	&csi2_device,
- 	&meram_device,
- };
- 
-@@ -1070,19 +1100,6 @@ static struct i2c_board_info tsc_device = {
- 	/*.irq is selected on ap4evb_init */
- };
- 
--/* I2C */
--static struct i2c_board_info i2c0_devices[] = {
--	{
--		I2C_BOARD_INFO("ak4643", 0x13),
--	},
--};
--
--static struct i2c_board_info i2c1_devices[] = {
--	{
--		I2C_BOARD_INFO("r2025sd", 0x32),
--	},
--};
--
- 
- #define GPIO_PORT9CR	IOMEM(0xE6051009)
- #define GPIO_PORT10CR	IOMEM(0xE605100A)
-@@ -1097,6 +1114,7 @@ static void __init ap4evb_init(void)
- 		{ "A3SP", &sdhi0_device, },
- 		{ "A3SP", &sdhi1_device, },
- 		{ "A4R", &ceu_device, },
-+		{ "A4R", &csi2_device, },
- 	};
- 	u32 srcr4;
- 	struct clk *clk;
-@@ -1324,6 +1342,7 @@ static void __init ap4evb_init(void)
- 	sh7372_pm_init();
- 	pm_clk_add(&fsi_device.dev, "spu2");
- 	pm_clk_add(&lcdc1_device.dev, "hdmi");
-+	pm_clk_add(&csi2_device.dev, "csir");
- }
- 
- MACHINE_START(AP4EVB, "ap4evb")
-diff --git a/arch/arm/mach-shmobile/clock-sh7372.c b/arch/arm/mach-shmobile/clock-sh7372.c
-index 45d21fe..2e8cb42 100644
---- a/arch/arm/mach-shmobile/clock-sh7372.c
-+++ b/arch/arm/mach-shmobile/clock-sh7372.c
-@@ -617,6 +617,7 @@ static struct clk_lookup lookups[] = {
- 	CLKDEV_ICK_ID("divb", "sh_fsi2", &fsidivs[FSIDIV_B]),
- 	CLKDEV_ICK_ID("xcka", "sh_fsi2", &fsiack_clk),
- 	CLKDEV_ICK_ID("xckb", "sh_fsi2", &fsibck_clk),
-+	CLKDEV_ICK_ID("csir", "sh-mobile-csi2.0", &div4_clks[DIV4_CSIR]),
- };
- 
- void __init sh7372_clock_init(void)
--- 
-1.7.2.5
+date:		Mon Apr 15 19:00:18 CEST 2013
+git branch:	test
+git hash:	4c41dab4d69fb887884dc571fd70e4ddc41774fb
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
