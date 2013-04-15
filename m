@@ -1,44 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f169.google.com ([209.85.192.169]:33061 "EHLO
-	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043Ab3D3G3O (ORCPT
+Received: from mail-vc0-f177.google.com ([209.85.220.177]:47151 "EHLO
+	mail-vc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932390Ab3DOC7g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Apr 2013 02:29:14 -0400
-Received: by mail-pd0-f169.google.com with SMTP id 10so129458pdc.14
-        for <linux-media@vger.kernel.org>; Mon, 29 Apr 2013 23:29:14 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 2/4] [media] s3c-camif: Fix incorrect variable type
-Date: Tue, 30 Apr 2013 11:46:19 +0530
-Message-Id: <1367302581-15478-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1367302581-15478-1-git-send-email-sachin.kamat@linaro.org>
-References: <1367302581-15478-1-git-send-email-sachin.kamat@linaro.org>
+	Sun, 14 Apr 2013 22:59:36 -0400
+Received: by mail-vc0-f177.google.com with SMTP id hr11so3490538vcb.8
+        for <linux-media@vger.kernel.org>; Sun, 14 Apr 2013 19:59:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201304121332.13025.hverkuil@xs4all.nl>
+References: <1365810779-24335-1-git-send-email-scott.jiang.linux@gmail.com>
+	<201304121332.13025.hverkuil@xs4all.nl>
+Date: Mon, 15 Apr 2013 10:59:35 +0800
+Message-ID: <CAHG8p1DE5VNX1zQxS_SR+VPd6zbohiFM_LmjCatJf8LfQQFScw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] blackfin: add display support in ppi driver
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'rotation' was an 8 bit variable and hence could not have values
-greater than 255. Since we need higher values, chnage it to 16
-bit type.
+2013/4/12 Hans Verkuil <hverkuil@xs4all.nl>:
+> On Sat April 13 2013 01:52:57 Scott Jiang wrote:
+>> Signed-off-by: Scott Jiang <scott.jiang.linux@gmail.com>
+>
+> Is it OK if I postpone these two patches for 3.11? They don't make sense
+> AFAICT without the new display driver, and that will definitely not make it
+> for 3.10.
+>
+OK.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/s3c-camif/camif-core.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/platform/s3c-camif/camif-core.h b/drivers/media/platform/s3c-camif/camif-core.h
-index 261134b..35d2fcd 100644
---- a/drivers/media/platform/s3c-camif/camif-core.h
-+++ b/drivers/media/platform/s3c-camif/camif-core.h
-@@ -229,7 +229,7 @@ struct camif_vp {
- 	unsigned int		state;
- 	u16			fmt_flags;
- 	u8			id;
--	u8			rotation;
-+	u16			rotation;
- 	u8			hflip;
- 	u8			vflip;
- 	unsigned int		offset;
--- 
-1.7.9.5
-
+Scott
