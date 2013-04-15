@@ -1,116 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:4300 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752428Ab3D1Pr6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 11:47:58 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3SFlw1g013731
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 11:47:58 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 8/9] [media] drxk_hard: remove needless parenthesis
-Date: Sun, 28 Apr 2013 12:47:50 -0300
-Message-Id: <1367164071-11468-9-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
-References: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:35045 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751717Ab3DOKcs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Apr 2013 06:32:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v8 0/7] V4L2 clock and async patches and soc-camera example
+Date: Mon, 15 Apr 2013 12:32:52 +0200
+Message-ID: <1962227.hTcMcUbvyo@avalon>
+In-Reply-To: <51680291.3080303@samsung.com>
+References: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1304120733030.1727@axis700.grange> <51680291.3080303@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are several places where: state->var = (some_var)
+Hi,
 
-The parenthesis there are doing nothing but making it
-harder to read and breaking the 80 columns soft limits.
+On Friday 12 April 2013 14:48:17 Sylwester Nawrocki wrote:
+> On 04/12/2013 08:13 AM, Guennadi Liakhovetski wrote:
+> > On Thu, 11 Apr 2013, Sylwester Nawrocki wrote:
+> >> On 04/11/2013 11:59 AM, Guennadi Liakhovetski wrote:
+> >>> On Mon, 8 Apr 2013, Guennadi Liakhovetski wrote:
 
-Just get rid of it.
+[snip]
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/drxk_hard.c | 50 ++++++++++++++++-----------------
- 1 file changed, 25 insertions(+), 25 deletions(-)
+> >> A significant blocking point IMHO is that this API is bound to the
+> >> circular dependency issue between a sub-device and the host driver. I
+> >> think we should have at least some specific ideas on how to resolve it
+> >> before pushing the API upstream. Or are there any already ?
+> > 
+> > Of course there is at least one. I wouldn't propose (soc-camera) patches,
+> > that lock modules hard into memory, once probing is complete.
+> 
+> Alright then, maybe I should have more carefully analysed you last patch
+> series.
+> 
+> >> One of the ideas I had was to make a sub-device driver drop the reference
+> >> it has to the clock provider module (the host) as soon as it gets
+> >> registered to it. But it doesn't seem straightforward with the common
+> >> clock API.
+> > 
+> > It isn't.
+> > 
+> >> Other option is a sysfs attribute at a host driver that would allow to
+> >> release its sub-device(s). But it sounds a bit strange to me to require
+> >> userspace to touch some sysfs attributes before being able to remove some
+> >> modules.
+> >> 
+> >> Something probably needs to be changed at the high level design to avoid
+> >> this circular dependency.
+> > 
+> > Here's what I do in my soc-camera patches atm: holding a reference to a
+> > (V4L2) clock doesn't increment bridge driver's use-count (for this
+> > discussion I describe the combined soc-camera host and soc-camera core
+> > functionality as a bridge driver, because that's what most non soc-camera
+> > drivers will look like). So, it can be unloaded. Once unloaded, it
+> > unregisters its V4L2 async notifier. Inside that the v4l2-async framework
+> > first detaches the subdevice driver, then calls the notifier's .unbind()
+> > method, which should now unregister the clock. Then, back in
+> > v4l2_async_notifier_unregister() the subdevice driver is re-probed, this
+> > time with no clock available, so, it re-enters the deferred probing state.
+> 
+> Ok, it looks better than I thought initially.. :)
+> 
+> Still, aren't there races possible, when the host driver gets unregistered
+> while subdev holds a reference to the clock, and before it gets registered
+> to the host ? The likelihood of that seems very low, but I fail to find
+> any prove it can't happen either.
 
-diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
-index 1fd74f2..7f4b514 100644
---- a/drivers/media/dvb-frontends/drxk_hard.c
-+++ b/drivers/media/dvb-frontends/drxk_hard.c
-@@ -628,21 +628,21 @@ static int init_state(struct drxk_state *state)
- 
- 	/* Init AGC and PGA parameters */
- 	/* VSB IF */
--	state->m_vsb_if_agc_cfg.ctrl_mode = (ul_vsb_if_agc_mode);
--	state->m_vsb_if_agc_cfg.output_level = (ul_vsb_if_agc_output_level);
--	state->m_vsb_if_agc_cfg.min_output_level = (ul_vsb_if_agc_min_level);
--	state->m_vsb_if_agc_cfg.max_output_level = (ul_vsb_if_agc_max_level);
--	state->m_vsb_if_agc_cfg.speed = (ul_vsb_if_agc_speed);
-+	state->m_vsb_if_agc_cfg.ctrl_mode = ul_vsb_if_agc_mode;
-+	state->m_vsb_if_agc_cfg.output_level = ul_vsb_if_agc_output_level;
-+	state->m_vsb_if_agc_cfg.min_output_level = ul_vsb_if_agc_min_level;
-+	state->m_vsb_if_agc_cfg.max_output_level = ul_vsb_if_agc_max_level;
-+	state->m_vsb_if_agc_cfg.speed = ul_vsb_if_agc_speed;
- 	state->m_vsb_pga_cfg = 140;
- 
- 	/* VSB RF */
--	state->m_vsb_rf_agc_cfg.ctrl_mode = (ul_vsb_rf_agc_mode);
--	state->m_vsb_rf_agc_cfg.output_level = (ul_vsb_rf_agc_output_level);
--	state->m_vsb_rf_agc_cfg.min_output_level = (ul_vsb_rf_agc_min_level);
--	state->m_vsb_rf_agc_cfg.max_output_level = (ul_vsb_rf_agc_max_level);
--	state->m_vsb_rf_agc_cfg.speed = (ul_vsb_rf_agc_speed);
--	state->m_vsb_rf_agc_cfg.top = (ul_vsb_rf_agc_top);
--	state->m_vsb_rf_agc_cfg.cut_off_current = (ul_vsb_rf_agc_cut_off_current);
-+	state->m_vsb_rf_agc_cfg.ctrl_mode = ul_vsb_rf_agc_mode;
-+	state->m_vsb_rf_agc_cfg.output_level = ul_vsb_rf_agc_output_level;
-+	state->m_vsb_rf_agc_cfg.min_output_level = ul_vsb_rf_agc_min_level;
-+	state->m_vsb_rf_agc_cfg.max_output_level = ul_vsb_rf_agc_max_level;
-+	state->m_vsb_rf_agc_cfg.speed = ul_vsb_rf_agc_speed;
-+	state->m_vsb_rf_agc_cfg.top = ul_vsb_rf_agc_top;
-+	state->m_vsb_rf_agc_cfg.cut_off_current = ul_vsb_rf_agc_cut_off_current;
- 	state->m_vsb_pre_saw_cfg.reference = 0x07;
- 	state->m_vsb_pre_saw_cfg.use_pre_saw = true;
- 
-@@ -654,20 +654,20 @@ static int init_state(struct drxk_state *state)
- 	}
- 
- 	/* ATV IF */
--	state->m_atv_if_agc_cfg.ctrl_mode = (ul_atv_if_agc_mode);
--	state->m_atv_if_agc_cfg.output_level = (ul_atv_if_agc_output_level);
--	state->m_atv_if_agc_cfg.min_output_level = (ul_atv_if_agc_min_level);
--	state->m_atv_if_agc_cfg.max_output_level = (ul_atv_if_agc_max_level);
--	state->m_atv_if_agc_cfg.speed = (ul_atv_if_agc_speed);
-+	state->m_atv_if_agc_cfg.ctrl_mode = ul_atv_if_agc_mode;
-+	state->m_atv_if_agc_cfg.output_level = ul_atv_if_agc_output_level;
-+	state->m_atv_if_agc_cfg.min_output_level = ul_atv_if_agc_min_level;
-+	state->m_atv_if_agc_cfg.max_output_level = ul_atv_if_agc_max_level;
-+	state->m_atv_if_agc_cfg.speed = ul_atv_if_agc_speed;
- 
- 	/* ATV RF */
--	state->m_atv_rf_agc_cfg.ctrl_mode = (ul_atv_rf_agc_mode);
--	state->m_atv_rf_agc_cfg.output_level = (ul_atv_rf_agc_output_level);
--	state->m_atv_rf_agc_cfg.min_output_level = (ul_atv_rf_agc_min_level);
--	state->m_atv_rf_agc_cfg.max_output_level = (ul_atv_rf_agc_max_level);
--	state->m_atv_rf_agc_cfg.speed = (ul_atv_rf_agc_speed);
--	state->m_atv_rf_agc_cfg.top = (ul_atv_rf_agc_top);
--	state->m_atv_rf_agc_cfg.cut_off_current = (ul_atv_rf_agc_cut_off_current);
-+	state->m_atv_rf_agc_cfg.ctrl_mode = ul_atv_rf_agc_mode;
-+	state->m_atv_rf_agc_cfg.output_level = ul_atv_rf_agc_output_level;
-+	state->m_atv_rf_agc_cfg.min_output_level = ul_atv_rf_agc_min_level;
-+	state->m_atv_rf_agc_cfg.max_output_level = ul_atv_rf_agc_max_level;
-+	state->m_atv_rf_agc_cfg.speed = ul_atv_rf_agc_speed;
-+	state->m_atv_rf_agc_cfg.top = ul_atv_rf_agc_top;
-+	state->m_atv_rf_agc_cfg.cut_off_current = ul_atv_rf_agc_cut_off_current;
- 	state->m_atv_pre_saw_cfg.reference = 0x04;
- 	state->m_atv_pre_saw_cfg.use_pre_saw = true;
- 
-@@ -764,7 +764,7 @@ static int init_state(struct drxk_state *state)
- 	state->m_sqi_speed = DRXK_DVBT_SQI_SPEED_MEDIUM;
- 	state->m_agcfast_clip_ctrl_delay = 0;
- 
--	state->m_gpio_cfg = (ul_gpio_cfg);
-+	state->m_gpio_cfg = ul_gpio_cfg;
- 
- 	state->m_b_power_down = false;
- 	state->m_current_power_mode = DRX_POWER_DOWN;
+That was the concern I was about to raise as well, before reading your e-mail. 
+Holding a reference to an object that can disappear at any time is asking for 
+trouble. The method currently implemented should work, but is racy in my 
+opinion. The bridge module could be unloaded after the subdev gets a reference 
+to the clock but before it registers itself with v4l2_async_register_subdev(). 
+The clock would then be freed by the bridge, resulting in a crash.
+
+I'm not sure if the circular dependency problem can be solved without an 
+explicit way to break the dependency, possibly from userspace (although I'm 
+not sure if that's the best solution).
+
 -- 
-1.8.1.4
+Regards,
+
+Laurent Pinchart
 
