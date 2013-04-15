@@ -1,320 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:40245 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756644Ab3D1Rwd (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:64655 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752177Ab3DOOk7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 13:52:33 -0400
-Subject: [PATCH v3 1/3] arch: make __mutex_fastpath_lock_retval return whether
- fastpath succeeded or not.
-To: linux-kernel@vger.kernel.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
-	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
-Date: Sun, 28 Apr 2013 19:03:59 +0200
-Message-ID: <20130428170359.17075.14895.stgit@patser>
-In-Reply-To: <20130428165914.17075.57751.stgit@patser>
-References: <20130428165914.17075.57751.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Mon, 15 Apr 2013 10:40:59 -0400
+Date: Mon, 15 Apr 2013 11:40:44 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Antti Palosaari <crope@iki.fi>
+Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 0/3] em28xx: clean up end extend the GPIO port handling
+Message-ID: <20130415114044.07b7048a@redhat.com>
+In-Reply-To: <516B0452.7020801@iki.fi>
+References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
+	<51695A7B.4010206@iki.fi>
+	<20130413112517.40833d48@redhat.com>
+	<51696DA6.9020508@iki.fi>
+	<20130413223247.3dc4da85@redhat.com>
+	<516B0452.7020801@iki.fi>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will allow me to call functions that have multiple arguments if fastpath fails.
-This is required to support ticket mutexes, because they need to be able to pass an
-extra argument to the fail function.
+Em Sun, 14 Apr 2013 22:32:34 +0300
+Antti Palosaari <crope@iki.fi> escreveu:
 
-Originally I duplicated the functions, by adding __mutex_fastpath_lock_retval_arg.
-This ended up being just a duplication of the existing function, so a way to test
-if fastpath was called ended up being better.
+> On 04/14/2013 04:32 AM, Mauro Carvalho Chehab wrote:
+> > Em Sat, 13 Apr 2013 17:37:26 +0300
+> > Antti Palosaari <crope@iki.fi> escreveu:
+> >
+> >> On 04/13/2013 05:25 PM, Mauro Carvalho Chehab wrote:
+> >>> Em Sat, 13 Apr 2013 16:15:39 +0300
+> >>> Antti Palosaari <crope@iki.fi> escreveu:
+> >>>
+> >>>> On 04/13/2013 12:48 PM, Frank Schäfer wrote:
+> >>>>> Patch 1 removes the unneeded and broken gpio register caching code.
+> >>>>> Patch 2 adds the gpio register defintions for the em25xx/em276x/7x/8x
+> >>>>> and patch 3 finally adds a new helper function for gpio ports with separate
+> >>>>> registers for read and write access.
+> >>>>
+> >>>>
+> >>>> I have nothing to say directly about those patches - they looked good at
+> >>>> the quick check. But I wonder if you have any idea if it is possible to
+> >>>> use some existing Kernel GPIO functionality in order to provide standard
+> >>>> interface (interface like I2C). I did some work last summer in order to
+> >>>> use GPIOLIB and it is used between em28xx-dvb and cxd2820r for LNA
+> >>>> control. Anyhow, I was a little bit disappointed as GPIOLIB is disabled
+> >>>> by default and due to that there is macros to disable LNA when GPIOLIB
+> >>>> is not compiled.
+> >>>> I noticed recently there is some ongoing development for Kernel GPIO. I
+> >>>> haven't looked yet if it makes use of GPIO interface more common...
+> >>>
+> >>> I have conflicting opinions myself weather we should use gpiolib or not.
+> >>>
+> >>> I don't mind with the fact that GPIOLIB is disabled by default. If all
+> >>> media drivers start depending on it, distros will enable it to keep
+> >>> media support on it.
+> >>>
+> >>> I never took the time to take a look on what methods gpiolib provides.
+> >>> Maybe it will bring some benefits. I dunno.
+> >>
+> >> Compare to benefits of I2C bus. It offers standard interface. Also it
+> >> offers userspace debug interface - like I2C also does.
+> >
+> > I2C benefit is that the same I2C driver can be used by several different
+> > drivers. GPIO code, on the other hand, is on most cases[1] specific to a
+> > given device.
+> 
+> That is same for GPIO - it offers standard interface between modules for 
+> GPIO "bus".
+> 
+> I used it to control LNA, which is connected to demodulator (cxd2820r) 
+> GPIO. It is bridge which gets LNA API commands and GPIO is property of 
+> demod. Some interface is needed in order to deliver data between bridge 
+> and demod in that case.
 
-This also cleaned up the reservation mutex patch some by being able to call an
-atomic_set instead of atomic_xchg, and making it easier to detect if the wrong
-unlock function was previously used.
+LNA control is device specific. I fail to see code optimization with any
+GPIO that it is used only as a simple switch.
 
-Changes since v1, pointed out by Francesco Lavra:
-- fix a small comment issue in mutex_32.h
-- fix the __mutex_fastpath_lock_retval macro for mutex-null.h
+Ok, if you're doing something more complex at a GPIO, like implementing an
+UART protocol or I2C (cx231xx does I2C via GPIO), then I can see an advantage
+on using a library, as the UART/I2C code can be written on a very generic
+way, using the GPIOLIB to connect the generic code to the device specific
+GPIO.
 
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
----
- arch/ia64/include/asm/mutex.h    |   10 ++++------
- arch/powerpc/include/asm/mutex.h |   10 ++++------
- arch/sh/include/asm/mutex-llsc.h |    4 ++--
- arch/x86/include/asm/mutex_32.h  |   11 ++++-------
- arch/x86/include/asm/mutex_64.h  |   11 ++++-------
- include/asm-generic/mutex-dec.h  |   10 ++++------
- include/asm-generic/mutex-null.h |    2 +-
- include/asm-generic/mutex-xchg.h |   10 ++++------
- kernel/mutex.c                   |   32 ++++++++++++++------------------
- 9 files changed, 41 insertions(+), 59 deletions(-)
+> > [1] Ok, if you're using a GPIO pin to carry some protocol inside it, like
+> > UART, RC, etc, then I can see a benefit on using a bus type of solution.
+> >
+> >>> Just looking at the existing drivers (almost all has some sort of GPIO
+> >>> config), GPIO is just a single register bitmask read/write. Most drivers
+> >>> need already bitmask read/write operations. So, in principle, I can't
+> >>> foresee any code simplification by using a library.
+> >>
+> >> Use of lib interface is not very practical inside of module, however it
+> >> could be used. Again, as compared to I2C there is some bridge drivers
+> >> which do some I2C access using I2C interface, even bridge could do it
+> >> directly (as it offers I2C adapter). I think it is most common to do it
+> >> directly to simplify things.
+> >>
+> >>> Also, from a very pragmatic view, changing (almost) all existing drivers
+> >>> to use gpiolib is a big effort.
+> >>
+> >> It is not needed to implement for all driver as one go.
+> >>
+> >>> However, for that to happen, one question should be answered: what
+> >>> benefits would be obtained by using gpiolib?
+> >>
+> >> Obtain GPIO access between modules using standard interface and offer
+> >> handy debug interface to switch GPIOs from userspace.
+> >
+> > It is known that enabling both analog and digital demods at the same time
+> > can melt some devices. So, it is risky to allow userspace to touch
+> > the GPIOs that enable such chips.
+> >
+> > (ok, there are also other forms to melt such devices in userspace
+> >   if the user has CAP_SYS_ADMIN)
+> 
+> Do you need eyeglasses? I said it is debug interface. It needs root 
+> privileges in order to setup and use.
+> 
+> I can say I could surely break more devices via I2C debug interface than 
+> GPIO debug interface in case both are implemented by every driver. Just 
+> sent garbage writes to well known eeprom addresses and kaboom. Your 
+> device is bricked. It is totally stupid to say you could brick your 
+> device using debug functionality - yes you can, but it is very unlikely 
+> someone does it as a mistake.
 
-diff --git a/arch/ia64/include/asm/mutex.h b/arch/ia64/include/asm/mutex.h
-index bed73a6..f41e66d 100644
---- a/arch/ia64/include/asm/mutex.h
-+++ b/arch/ia64/include/asm/mutex.h
-@@ -29,17 +29,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns.
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(ia64_fetchadd4_acq(count, -1) != 1))
--		return fail_fn(count);
-+		return -1;
- 	return 0;
- }
- 
-diff --git a/arch/powerpc/include/asm/mutex.h b/arch/powerpc/include/asm/mutex.h
-index 5399f7e..127ab23 100644
---- a/arch/powerpc/include/asm/mutex.h
-+++ b/arch/powerpc/include/asm/mutex.h
-@@ -82,17 +82,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns.
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(__mutex_dec_return_lock(count) < 0))
--		return fail_fn(count);
-+		return -1;
- 	return 0;
- }
- 
-diff --git a/arch/sh/include/asm/mutex-llsc.h b/arch/sh/include/asm/mutex-llsc.h
-index 090358a..dad29b6 100644
---- a/arch/sh/include/asm/mutex-llsc.h
-+++ b/arch/sh/include/asm/mutex-llsc.h
-@@ -37,7 +37,7 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
- }
- 
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	int __done, __res;
- 
-@@ -51,7 +51,7 @@ __mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
- 		: "t");
- 
- 	if (unlikely(!__done || __res != 0))
--		__res = fail_fn(count);
-+		__res = -1;
- 
- 	return __res;
- }
-diff --git a/arch/x86/include/asm/mutex_32.h b/arch/x86/include/asm/mutex_32.h
-index 03f90c8..0208c3c 100644
---- a/arch/x86/include/asm/mutex_32.h
-+++ b/arch/x86/include/asm/mutex_32.h
-@@ -42,17 +42,14 @@ do {								\
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
-- * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
--static inline int __mutex_fastpath_lock_retval(atomic_t *count,
--					       int (*fail_fn)(atomic_t *))
-+static inline int __mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(atomic_dec_return(count) < 0))
--		return fail_fn(count);
-+		return -1;
- 	else
- 		return 0;
- }
-diff --git a/arch/x86/include/asm/mutex_64.h b/arch/x86/include/asm/mutex_64.h
-index 68a87b0..2c543ff 100644
---- a/arch/x86/include/asm/mutex_64.h
-+++ b/arch/x86/include/asm/mutex_64.h
-@@ -37,17 +37,14 @@ do {								\
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
--static inline int __mutex_fastpath_lock_retval(atomic_t *count,
--					       int (*fail_fn)(atomic_t *))
-+static inline int __mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(atomic_dec_return(count) < 0))
--		return fail_fn(count);
-+		return -1;
- 	else
- 		return 0;
- }
-diff --git a/include/asm-generic/mutex-dec.h b/include/asm-generic/mutex-dec.h
-index f104af7..d4f9fb4 100644
---- a/include/asm-generic/mutex-dec.h
-+++ b/include/asm-generic/mutex-dec.h
-@@ -28,17 +28,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns.
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(atomic_dec_return(count) < 0))
--		return fail_fn(count);
-+		return -1;
- 	return 0;
- }
- 
-diff --git a/include/asm-generic/mutex-null.h b/include/asm-generic/mutex-null.h
-index e1bbbc7..61069ed 100644
---- a/include/asm-generic/mutex-null.h
-+++ b/include/asm-generic/mutex-null.h
-@@ -11,7 +11,7 @@
- #define _ASM_GENERIC_MUTEX_NULL_H
- 
- #define __mutex_fastpath_lock(count, fail_fn)		fail_fn(count)
--#define __mutex_fastpath_lock_retval(count, fail_fn)	fail_fn(count)
-+#define __mutex_fastpath_lock_retval(count)		(-1)
- #define __mutex_fastpath_unlock(count, fail_fn)		fail_fn(count)
- #define __mutex_fastpath_trylock(count, fail_fn)	fail_fn(count)
- #define __mutex_slowpath_needs_to_unlock()		1
-diff --git a/include/asm-generic/mutex-xchg.h b/include/asm-generic/mutex-xchg.h
-index c04e0db..f169ec0 100644
---- a/include/asm-generic/mutex-xchg.h
-+++ b/include/asm-generic/mutex-xchg.h
-@@ -39,18 +39,16 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
-- * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(atomic_xchg(count, 0) != 1))
- 		if (likely(atomic_xchg(count, -1) != 1))
--			return fail_fn(count);
-+			return -1;
- 	return 0;
- }
- 
-diff --git a/kernel/mutex.c b/kernel/mutex.c
-index 52f2301..84a5f07 100644
---- a/kernel/mutex.c
-+++ b/kernel/mutex.c
-@@ -351,10 +351,10 @@ __mutex_unlock_slowpath(atomic_t *lock_count)
-  * mutex_lock_interruptible() and mutex_trylock().
-  */
- static noinline int __sched
--__mutex_lock_killable_slowpath(atomic_t *lock_count);
-+__mutex_lock_killable_slowpath(struct mutex *lock);
- 
- static noinline int __sched
--__mutex_lock_interruptible_slowpath(atomic_t *lock_count);
-+__mutex_lock_interruptible_slowpath(struct mutex *lock);
- 
- /**
-  * mutex_lock_interruptible - acquire the mutex, interruptible
-@@ -372,12 +372,12 @@ int __sched mutex_lock_interruptible(struct mutex *lock)
- 	int ret;
- 
- 	might_sleep();
--	ret =  __mutex_fastpath_lock_retval
--			(&lock->count, __mutex_lock_interruptible_slowpath);
--	if (!ret)
-+	ret =  __mutex_fastpath_lock_retval(&lock->count);
-+	if (likely(!ret)) {
- 		mutex_set_owner(lock);
--
--	return ret;
-+		return 0;
-+	} else
-+		return __mutex_lock_interruptible_slowpath(lock);
- }
- 
- EXPORT_SYMBOL(mutex_lock_interruptible);
-@@ -387,12 +387,12 @@ int __sched mutex_lock_killable(struct mutex *lock)
- 	int ret;
- 
- 	might_sleep();
--	ret = __mutex_fastpath_lock_retval
--			(&lock->count, __mutex_lock_killable_slowpath);
--	if (!ret)
-+	ret = __mutex_fastpath_lock_retval(&lock->count);
-+	if (likely(!ret)) {
- 		mutex_set_owner(lock);
--
--	return ret;
-+		return 0;
-+	} else
-+		return __mutex_lock_killable_slowpath(lock);
- }
- EXPORT_SYMBOL(mutex_lock_killable);
- 
-@@ -405,18 +405,14 @@ __mutex_lock_slowpath(atomic_t *lock_count)
- }
- 
- static noinline int __sched
--__mutex_lock_killable_slowpath(atomic_t *lock_count)
-+__mutex_lock_killable_slowpath(struct mutex *lock)
- {
--	struct mutex *lock = container_of(lock_count, struct mutex, count);
--
- 	return __mutex_lock_common(lock, TASK_KILLABLE, 0, NULL, _RET_IP_);
- }
- 
- static noinline int __sched
--__mutex_lock_interruptible_slowpath(atomic_t *lock_count)
-+__mutex_lock_interruptible_slowpath(struct mutex *lock)
- {
--	struct mutex *lock = container_of(lock_count, struct mutex, count);
--
- 	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, 0, NULL, _RET_IP_);
- }
- #endif
+There are lots of reported cases of devices that got their
+eeprom corrupted. We even wrote a tool to allow recovering such damaged
+eeproms.
 
+Yet, an eeprom data is something that can be recovered (if the dump of the
+old eeprom can be obtained from someone else or from a previous dump).
+A melted device can't be recovered at all.
+
+> >> You could ask why we use Kernel I2C library as we could do it directly
+> >> :) Or clock framework. Or SPI, is there SPI bus modeled yet?
+> >
+> > As I said, i2c allowed code re-usage. Probably, the clock framework and
+> > SPI also can be used for that.
+> >
+> > With regards to GPIO, at least currently, I can only see its usage
+> > justified, in terms of code reuse, for remote controllers.
+> 
+> Maybe better to read Kernel GPIO documentation. There is few points 
+> mentioned why to use it and what are advantages.
+
+Well, I'm a little pragmatic with it. Basically, if you think it is worth
+using it, well, write a patch converting from the way we currently do
+to gpiolib, and let's see. If the end result is better than before, I'm
+OK with that.
+
+Regards,
+Mauro
