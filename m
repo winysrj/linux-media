@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:33378 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750973Ab3DKUOs (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:18841 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567Ab3DOPVv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 16:14:48 -0400
-Message-ID: <516719B3.8060502@gmail.com>
-Date: Thu, 11 Apr 2013 22:14:43 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Mike Turquette <mturquette@linaro.org>
-CC: Barry Song <21cnbao@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-arm-kernel@lists.infradead.org,
-	"renwei.wu" <renwei.wu@csr.com>, linux-sh@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>, zilong.wu@csr.com,
-	xiaomeng.hou@csr.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v8 1/7] media: V4L2: add temporary clock helpers
-References: <CAGsJ_4zCRBvEX9xEDCr27JLK6wYp_2T_wk2hzVjqpKinbL=9pg@mail.gmail.com> <Pine.LNX.4.64.1304110921480.23859@axis700.grange> <CAGsJ_4xXRHDbpuqT3e5=0vz9_NxxCXfvrci+h567HP9=AhwRiQ@mail.gmail.com> <Pine.LNX.4.64.1304111028090.23859@axis700.grange> <CAGsJ_4yXE7SYLgPucW9kAEYgKg+z93j8yN3d+gvhqeLAn-sSOw@mail.gmail.com> <20130411185258.7915.67263@quantum>
-In-Reply-To: <20130411185258.7915.67263@quantum>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 15 Apr 2013 11:21:51 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLA00AP5YKWXQC0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 15 Apr 2013 16:21:49 +0100 (BST)
+Message-id: <516C1B0B.4010806@samsung.com>
+Date: Mon, 15 Apr 2013 17:21:47 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, patches@linaro.org
+Subject: Re: [PATCH 1/1] [media] exynos4-is: Fix potential null pointer
+ dereferencing
+References: <1366027438-4560-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1366027438-4560-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sachin,
 
-On 04/11/2013 08:52 PM, Mike Turquette wrote:
-[...]
->>> So, you enable CFF, it provides its own clk_* implementation like
->>> clk_get_rate() etc. Now, PXA already has it defined in
->>> arch/arm/mach-pxa/clock.c. Don't think this is going to fly.
->>
->> agree.
->
-> Hi,
->
-> I came into this thread late and don't have the actual patches in my
-> inbox for review.  That said, I don't understand why V4L2 cares about
-> the clk framework *implementation*?  The clk.h api is the same for
-> platforms using the common struct clk and those still using the legacy
-> method of defining their own struct clk.  If drivers are only consumers
-> of the clk.h api then the implementation underneath should not matter.
+On 04/15/2013 02:03 PM, Sachin Kamat wrote:
+> If fimc->drv_data is NULL, then fimc->drv_data->num_entities would
+> cause NULL pointer dereferencing.
+> While at it also remove the check for fimc->id being negative as 'id' is
+> unsigned variable and can't be less than 0.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+>  drivers/media/platform/exynos4-is/fimc-core.c |    7 +++----
+>  1 file changed, 3 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+> index f25807d..d388832 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-core.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-core.c
+> @@ -953,10 +953,9 @@ static int fimc_probe(struct platform_device *pdev)
+>  		fimc->drv_data = fimc_get_drvdata(pdev);
+>  		fimc->id = pdev->id;
+>  	}
+> -	if (!fimc->drv_data || fimc->id >= fimc->drv_data->num_entities ||
+> -	    fimc->id < 0) {
+> -		dev_err(dev, "Invalid driver data or device id (%d/%d)\n",
+> -			fimc->id, fimc->drv_data->num_entities);
+> +	if (!fimc->drv_data || fimc->id >= fimc->drv_data->num_entities) {
+> +		dev_err(dev, "Invalid driver data or device id (%d)\n",
+> +			fimc->id);
+>  		return -EINVAL;
 
-I came to similar conclusions previously, but in case when one of the two
-drivers is the clock provider I think there is still an issue there.
-
-The drivers are supposed to be platform agnostic, but the clock provider
-would have to include mach specific declarations of struct clk, wouldn't
-it ?
+Thanks for the patch. To make it more explicit I would prefer to change
+id type to 'int', and to leave the check for negative value. There is
+a similar issue in fimc-lite.c that could be addressed in same patch.
+Could you also fix this and resend ?
 
 Regards,
 Sylwester
