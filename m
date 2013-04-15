@@ -1,280 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:47839 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967176Ab3DRQ7H (ORCPT
+Received: from mail-da0-f50.google.com ([209.85.210.50]:65066 "EHLO
+	mail-da0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933432Ab3DOFdD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 12:59:07 -0400
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: sameo@linux.intel.com
-Cc: mchehab@redhat.com, andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 03/12] mfd: Add chip properties handling code for SI476X MFD
-Date: Thu, 18 Apr 2013 09:58:29 -0700
-Message-Id: <1366304318-29620-4-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+	Mon, 15 Apr 2013 01:33:03 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Cesar Eduardo Barros <cesarb@cesarb.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	David Miller <davem@davemloft.net>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>
+Subject: [PATCH] MAINTAINERS: change entry for davinci media driver
+Date: Mon, 15 Apr 2013 11:02:44 +0530
+Message-Id: <1366003964-4675-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Andrey Smirnov <andreysm@charmander.(none)>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-This patch adds code related to manipulation of the properties of
-SI476X chips.
+As of now TI has no maintainer/supporter for davinci media
+drivers, Until it has any I'll be maintaining it.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>
 ---
- drivers/mfd/si476x-prop.c |  241 +++++++++++++++++++++++++++++++++++++++++++++
- 1 file changed, 241 insertions(+)
- create mode 100644 drivers/mfd/si476x-prop.c
+ MAINTAINERS |    5 ++---
+ 1 files changed, 2 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/mfd/si476x-prop.c b/drivers/mfd/si476x-prop.c
-new file mode 100644
-index 0000000..cfeffa6
---- /dev/null
-+++ b/drivers/mfd/si476x-prop.c
-@@ -0,0 +1,241 @@
-+/*
-+ * drivers/mfd/si476x-prop.c -- Subroutines to access
-+ * properties of si476x chips
-+ *
-+ * Copyright (C) 2012 Innovative Converged Devices(ICD)
-+ * Copyright (C) 2013 Andrey Smirnov
-+ *
-+ * Author: Andrey Smirnov <andrew.smirnov@gmail.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; version 2 of the License.
-+ *
-+ * This program is distributed in the hope that it will be useful, but
-+ * WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-+ * General Public License for more details.
-+ */
-+#include <linux/module.h>
-+
-+#include <linux/mfd/si476x-core.h>
-+
-+struct si476x_property_range {
-+	u16 low, high;
-+};
-+
-+static bool si476x_core_element_is_in_array(u16 element,
-+					    const u16 array[],
-+					    size_t size)
-+{
-+	int i;
-+
-+	for (i = 0; i < size; i++)
-+		if (element == array[i])
-+			return true;
-+
-+	return false;
-+}
-+
-+static bool si476x_core_element_is_in_range(u16 element,
-+					    const struct si476x_property_range range[],
-+					    size_t size)
-+{
-+	int i;
-+
-+	for (i = 0; i < size; i++)
-+		if (element <= range[i].high && element >= range[i].low)
-+			return true;
-+
-+	return false;
-+}
-+
-+static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x0000,
-+		0x0500, 0x0501,
-+		0x0600,
-+		0x0709, 0x070C, 0x070D, 0x70E, 0x710,
-+		0x0718,
-+		0x1207, 0x1208,
-+		0x2007,
-+		0x2300,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x0200, 0x0203 },
-+		{ 0x0300, 0x0303 },
-+		{ 0x0400, 0x0404 },
-+		{ 0x0700, 0x0707 },
-+		{ 0x1100, 0x1102 },
-+		{ 0x1200, 0x1204 },
-+		{ 0x1300, 0x1306 },
-+		{ 0x2000, 0x2005 },
-+		{ 0x2100, 0x2104 },
-+		{ 0x2106, 0x2106 },
-+		{ 0x2200, 0x220E },
-+		{ 0x3100, 0x3104 },
-+		{ 0x3207, 0x320F },
-+		{ 0x3300, 0x3304 },
-+		{ 0x3500, 0x3517 },
-+		{ 0x3600, 0x3617 },
-+		{ 0x3700, 0x3717 },
-+		{ 0x4000, 0x4003 },
-+	};
-+
-+	return	si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges)) ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+static bool si476x_core_is_valid_property_a20(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x071B,
-+		0x1006,
-+		0x2210,
-+		0x3401,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x2215, 0x2219 },
-+	};
-+
-+	return	si476x_core_is_valid_property_a10(core, property) ||
-+		si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges))  ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
-+					      u16 property)
-+{
-+	static const u16 valid_properties[] = {
-+		0x071C, 0x071D,
-+		0x1007, 0x1008,
-+		0x220F, 0x2214,
-+		0x2301,
-+		0x3105, 0x3106,
-+		0x3402,
-+	};
-+
-+	static const struct si476x_property_range valid_ranges[] = {
-+		{ 0x0405, 0x0411 },
-+		{ 0x2008, 0x200B },
-+		{ 0x2220, 0x2223 },
-+		{ 0x3100, 0x3106 },
-+	};
-+
-+	return	si476x_core_is_valid_property_a20(core, property) ||
-+		si476x_core_element_is_in_range(property, valid_ranges,
-+						ARRAY_SIZE(valid_ranges)) ||
-+		si476x_core_element_is_in_array(property, valid_properties,
-+						ARRAY_SIZE(valid_properties));
-+}
-+
-+typedef bool (*valid_property_pred_t) (struct si476x_core *, u16);
-+
-+static bool si476x_core_is_valid_property(struct si476x_core *core,
-+					  u16 property)
-+{
-+	static const valid_property_pred_t is_valid_property[] = {
-+		[SI476X_REVISION_A10] = si476x_core_is_valid_property_a10,
-+		[SI476X_REVISION_A20] = si476x_core_is_valid_property_a20,
-+		[SI476X_REVISION_A30] = si476x_core_is_valid_property_a30,
-+	};
-+
-+	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-+	       core->revision == -1);
-+	return is_valid_property[core->revision](core, property);
-+}
-+
-+
-+static bool si476x_core_is_readonly_property(struct si476x_core *core,
-+					     u16 property)
-+{
-+	BUG_ON(core->revision > SI476X_REVISION_A30 ||
-+	       core->revision == -1);
-+
-+	switch (core->revision) {
-+	case SI476X_REVISION_A10:
-+		return (property == 0x3200);
-+	case SI476X_REVISION_A20:
-+		return (property == 0x1006 ||
-+			property == 0x2210 ||
-+			property == 0x3200);
-+	case SI476X_REVISION_A30:
-+		return false;
-+	}
-+
-+	return false;
-+}
-+
-+static bool si476x_core_regmap_readable_register(struct device *dev,
-+						 unsigned int reg)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct si476x_core *core = i2c_get_clientdata(client);
-+
-+	return si476x_core_is_valid_property(core, (u16) reg);
-+
-+}
-+
-+static bool si476x_core_regmap_writable_register(struct device *dev,
-+						 unsigned int reg)
-+{
-+	struct i2c_client *client = to_i2c_client(dev);
-+	struct si476x_core *core = i2c_get_clientdata(client);
-+
-+	return si476x_core_is_valid_property(core, (u16) reg) &&
-+		!si476x_core_is_readonly_property(core, (u16) reg);
-+}
-+
-+
-+static int si476x_core_regmap_write(void *context, unsigned int reg,
-+				    unsigned int val)
-+{
-+	return si476x_core_cmd_set_property(context, reg, val);
-+}
-+
-+static int si476x_core_regmap_read(void *context, unsigned int reg,
-+				   unsigned *val)
-+{
-+	struct si476x_core *core = context;
-+	int err;
-+
-+	err = si476x_core_cmd_get_property(core, reg);
-+	if (err < 0)
-+		return err;
-+
-+	*val = err;
-+
-+	return 0;
-+}
-+
-+
-+static const struct regmap_config si476x_regmap_config = {
-+	.reg_bits = 16,
-+	.val_bits = 16,
-+
-+	.max_register = 0x4003,
-+
-+	.writeable_reg = si476x_core_regmap_writable_register,
-+	.readable_reg = si476x_core_regmap_readable_register,
-+
-+	.reg_read = si476x_core_regmap_read,
-+	.reg_write = si476x_core_regmap_write,
-+
-+	.cache_type = REGCACHE_RBTREE,
-+};
-+
-+struct regmap *devm_regmap_init_si476x(struct si476x_core *core)
-+{
-+	return devm_regmap_init(&core->client->dev, NULL,
-+				core, &si476x_regmap_config);
-+}
-+EXPORT_SYMBOL_GPL(devm_regmap_init_si476x);
+diff --git a/MAINTAINERS b/MAINTAINERS
+index bbe872e..4cf48e3 100644
+--- a/MAINTAINERS
++++ b/MAINTAINERS
+@@ -7244,14 +7244,13 @@ F:	arch/arm/mach-davinci
+ F:	drivers/i2c/busses/i2c-davinci.c
+ 
+ TI DAVINCI SERIES MEDIA DRIVER
+-M:	Manjunath Hadli <manjunath.hadli@ti.com>
+-M:	Prabhakar Lad <prabhakar.lad@ti.com>
++M:	Lad, Prabhakar <prabhakar.csengg@gmail.com>
+ L:	linux-media@vger.kernel.org
+ L:	davinci-linux-open-source@linux.davincidsp.com (moderated for non-subscribers)
+ W:	http://linuxtv.org/
+ Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+ T:	git git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git
+-S:	Supported
++S:	Maintained
+ F:	drivers/media/platform/davinci/
+ F:	include/media/davinci/
+ 
 -- 
-1.7.10.4
+1.7.4.1
 
