@@ -1,50 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:48188 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759896Ab3DBLoO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 07:44:14 -0400
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 0/3] davinci: vpss: clock cleanup
-Date: Tue,  2 Apr 2013 17:14:01 +0530
-Message-Id: <1364903044-13752-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:46395 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933000Ab3DOTB4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Apr 2013 15:01:56 -0400
+From: Kamal Mostafa <kamal@canonical.com>
+To: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Kamal Mostafa <kamal@canonical.com>
+Subject: [PATCH] [media] uvcvideo: quirk PROBE_DEF for Dell Studio / OmniVision webcam
+Date: Mon, 15 Apr 2013 12:01:51 -0700
+Message-Id: <1366052511-27284-1-git-send-email-kamal@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+BugLink: https://bugs.launchpad.net/bugs/1168430
 
-This patch series cleanup's the VPSS clock enabling.
-The first patch removes vpss clock enabling from the capture
-drivers and moves it to the VPSS driver itself.
-The second patch moves the venc_enable_vpss_clock() to the driver
-which was being done in platform code.
+OminiVision webcam 0x05a9:0x264a (in Dell Studio Hybrid 140g) needs the
+same UVC_QUIRK_PROBE_DEF as other OmniVision model to be recognized
+consistently.
 
-Changes for v2:
-1: Used PM runtime API for clock handling and nit's pointed by Sekhar.
+Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Lad, Prabhakar (3):
-  media: davinci: vpss: enable vpss clocks
-  media: davinci: vpbe: venc: move the enabling of vpss clocks to
-    driver
-  davinic: vpss: trivial cleanup
-
- arch/arm/mach-davinci/dm355.c                |    7 +---
- arch/arm/mach-davinci/dm365.c                |   11 +++++--
- arch/arm/mach-davinci/dm644x.c               |    9 +----
- arch/arm/mach-davinci/pm_domain.c            |    2 +-
- drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------------
- drivers/media/platform/davinci/dm644x_ccdc.c |   44 --------------------------
- drivers/media/platform/davinci/isif.c        |   28 ++--------------
- drivers/media/platform/davinci/vpbe_venc.c   |   25 ++++++++++++++
- drivers/media/platform/davinci/vpss.c        |   36 ++++++++++++++++-----
- 9 files changed, 71 insertions(+), 130 deletions(-)
-
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 5dbefa6..17bd48d 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2163,6 +2163,15 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
++	/* Dell Studio Hybrid 140g (OmniVision webcam) */
++	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
++				| USB_DEVICE_ID_MATCH_INT_INFO,
++	  .idVendor		= 0x05a9,
++	  .idProduct		= 0x264a,
++	  .bInterfaceClass	= USB_CLASS_VIDEO,
++	  .bInterfaceSubClass	= 1,
++	  .bInterfaceProtocol	= 0,
++	  .driver_info		= UVC_QUIRK_PROBE_DEF },
+ 	/* Apple Built-In iSight */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
 -- 
-1.7.4.1
+1.7.10.4
 
