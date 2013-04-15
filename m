@@ -1,151 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f50.google.com ([74.125.83.50]:48439 "EHLO
-	mail-ee0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752523Ab3DMJrm (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34961 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933210Ab3DOKTT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 05:47:42 -0400
-Received: by mail-ee0-f50.google.com with SMTP id e53so1623649eek.9
-        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 02:47:40 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
-Date: Sat, 13 Apr 2013 11:48:39 +0200
-Message-Id: <1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com>
-In-Reply-To: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
+	Mon, 15 Apr 2013 06:19:19 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
+Date: Mon, 15 Apr 2013 12:19:23 +0200
+Message-ID: <8085333.TIMqcSUBaO@avalon>
+In-Reply-To: <20130414165958.6a8bc9eb@redhat.com>
+References: <3775187.HOcoQVPfEE@avalon> <20130414165958.6a8bc9eb@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The GPIO register tracking/caching code is partially broken, because newer
-devices provide more than one GPIO register and some of them are even using
-separate registers for read and write access.
-Making it work would be too complicated.
-It is also used nowhere and doesn't make sense in cases where input lines are
-connected to buttons etc.
+Hi Mauro,
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
- drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
- drivers/media/usb/em28xx/em28xx.h       |    6 ------
- 3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
+On Sunday 14 April 2013 16:59:58 Mauro Carvalho Chehab wrote:
+> Em Fri, 12 Apr 2013 11:13:06 +0200 Laurent Pinchart escreveu:
+> > Hi Mauro,
+> > 
+> > The following changes since commit 
+81e096c8ac6a064854c2157e0bf802dc4906678c:
+> >   [media] budget: Add support for Philips Semi Sylt PCI ref. design
+> > 
+> > (2013-04-08 07:28:01 -0300)
+> > 
+> > are available in the git repository at:
+> >   git://linuxtv.org/pinchartl/media.git sensors/next
+> > 
+> > for you to fetch changes up to c890926a06339944790c5c265e21e8547aa55e49:
+> >   mt9p031: Use the common clock framework (2013-04-12 11:07:07 +0200)
+> > 
+> > ----------------------------------------------------------------
+> > 
+> > Laurent Pinchart (5):
+> >       mt9m032: Fix PLL setup
+> >       mt9m032: Define MT9M032_READ_MODE1 bits
+> >       mt9p031: Use devm_* managed helpers
+> >       mt9p031: Add support for regulators
+> >       mt9p031: Use the common clock framework
+> 
+> Hmm... It seems ugly to have regulators and clock framework and other SoC
+> calls inside an i2c driver that can be used by a device that doesn't have
+> regulators.
+> 
+> I'm not sure what's the best solution for it, so, I'll be adding those two
+> patches, but it seems that we'll need to restrict the usage of those calls
+> only if the caller driver is a platform driver.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index bec604f..e328159 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -2880,10 +2880,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 
- 	em28xx_set_model(dev);
- 
--	/* Set the default GPO/GPIO for legacy devices */
--	dev->reg_gpo_num = EM2880_R04_GPO;
--	dev->reg_gpio_num = EM28XX_R08_GPIO;
--
- 	dev->wait_after_write = 5;
- 
- 	/* Based on the Chip ID, set the device configuration */
-@@ -2930,13 +2926,11 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			break;
- 		case CHIP_ID_EM2874:
- 			chip_name = "em2874";
--			dev->reg_gpio_num = EM2874_R80_GPIO;
- 			dev->wait_after_write = 0;
- 			dev->eeprom_addrwidth_16bit = 1;
- 			break;
- 		case CHIP_ID_EM28174:
- 			chip_name = "em28174";
--			dev->reg_gpio_num = EM2874_R80_GPIO;
- 			dev->wait_after_write = 0;
- 			dev->eeprom_addrwidth_16bit = 1;
- 			break;
-@@ -2946,7 +2940,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 			break;
- 		case CHIP_ID_EM2884:
- 			chip_name = "em2884";
--			dev->reg_gpio_num = EM2874_R80_GPIO;
- 			dev->wait_after_write = 0;
- 			dev->eeprom_addrwidth_16bit = 1;
- 			break;
-@@ -2975,11 +2968,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
- 		return 0;
- 	}
- 
--	/* Prepopulate cached GPO register content */
--	retval = em28xx_read_reg(dev, dev->reg_gpo_num);
--	if (retval >= 0)
--		dev->reg_gpo = retval;
--
- 	em28xx_pre_card_setup(dev);
- 
- 	if (!dev->board.is_em2800) {
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index a802128..fc157af 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -193,23 +193,7 @@ int em28xx_write_regs_req(struct em28xx *dev, u8 req, u16 reg, char *buf,
- 
- int em28xx_write_regs(struct em28xx *dev, u16 reg, char *buf, int len)
- {
--	int rc;
--
--	rc = em28xx_write_regs_req(dev, USB_REQ_GET_STATUS, reg, buf, len);
--
--	/* Stores GPO/GPIO values at the cache, if changed
--	   Only write values should be stored, since input on a GPIO
--	   register will return the input bits.
--	   Not sure what happens on reading GPO register.
--	 */
--	if (rc >= 0) {
--		if (reg == dev->reg_gpo_num)
--			dev->reg_gpo = buf[0];
--		else if (reg == dev->reg_gpio_num)
--			dev->reg_gpio = buf[0];
--	}
--
--	return rc;
-+	return em28xx_write_regs_req(dev, USB_REQ_GET_STATUS, reg, buf, len);
- }
- EXPORT_SYMBOL_GPL(em28xx_write_regs);
- 
-@@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
- 	int oldval;
- 	u8 newval;
- 
--	/* Uses cache for gpo/gpio registers */
--	if (reg == dev->reg_gpo_num)
--		oldval = dev->reg_gpo;
--	else if (reg == dev->reg_gpio_num)
--		oldval = dev->reg_gpio;
--	else
--		oldval = em28xx_read_reg(dev, reg);
--
-+	oldval = em28xx_read_reg(dev, reg);
- 	if (oldval < 0)
- 		return oldval;
- 
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index a9323b6..e070de0 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -636,12 +636,6 @@ struct em28xx {
- 
- 	enum em28xx_mode mode;
- 
--	/* register numbers for GPO/GPIO registers */
--	u16 reg_gpo_num, reg_gpio_num;
--
--	/* Caches GPO and GPIO registers */
--	unsigned char	reg_gpo, reg_gpio;
--
- 	/* Snapshot button */
- 	char snapshot_button_path[30];	/* path of the input dev */
- 	struct input_dev *sbutton_input_dev;
+The MT9P031 needs power supplies and a clock on all platforms, regardless of 
+the bridge bus type. I suppose the use case that mostly concerns you here is 
+USB webcams where the power supplies and the clock are controlled 
+automatically by the device. If we ever need to support such a device in the 
+future we can of course revisit the driver then, and one possible solution 
+would be to register fixed voltage regulators and a fixed clock.
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
