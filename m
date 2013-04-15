@@ -1,56 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:37018 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753689Ab3DNUX6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 16:23:58 -0400
-Date: Sun, 14 Apr 2013 16:59:58 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
-Message-ID: <20130414165958.6a8bc9eb@redhat.com>
-In-Reply-To: <3775187.HOcoQVPfEE@avalon>
-References: <3775187.HOcoQVPfEE@avalon>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:65470 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752930Ab3DOVBl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Apr 2013 17:01:41 -0400
+Received: by mail-ee0-f48.google.com with SMTP id b15so2492086eek.35
+        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 14:01:40 -0700 (PDT)
+Message-ID: <516C6AFB.1060601@googlemail.com>
+Date: Mon, 15 Apr 2013 23:02:51 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Patchwork and em28xx delegates
+References: <516C2DC8.8080203@googlemail.com> <20130415135018.3a867598@redhat.com>
+In-Reply-To: <20130415135018.3a867598@redhat.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 12 Apr 2013 11:13:06 +0200
-Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
+Am 15.04.2013 18:50, schrieb Mauro Carvalho Chehab:
+> Em Mon, 15 Apr 2013 18:41:44 +0200
+> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+>
+>> I've just noticed that my 2 pending em28xx patches have got delegate
+>> assigned:
+>>
+>> https://patchwork.linuxtv.org/patch/17834/
+>> => delegated to mkrufky
+>>
+>> https://patchwork.linuxtv.org/patch/17928/     (Obsoleted)
+>> => delegated to hverkuil
+>>
+>> Ist this a patchwork failure or is the new submaintainers workflow the
+>> reason ?
+> Sub-maintainers workflow. We expect that most patches will be applied via 
+> one of the sub-maintainers. That will likely improve Kernel's quality and
+> help to reduce the maintainers overload.
 
-> Hi Mauro,
-> 
-> The following changes since commit 81e096c8ac6a064854c2157e0bf802dc4906678c:
-> 
->   [media] budget: Add support for Philips Semi Sylt PCI ref. design 
-> (2013-04-08 07:28:01 -0300)
-> 
-> are available in the git repository at:
-> 
->   git://linuxtv.org/pinchartl/media.git sensors/next
-> 
-> for you to fetch changes up to c890926a06339944790c5c265e21e8547aa55e49:
-> 
->   mt9p031: Use the common clock framework (2013-04-12 11:07:07 +0200)
-> 
-> ----------------------------------------------------------------
-> Laurent Pinchart (5):
->       mt9m032: Fix PLL setup
->       mt9m032: Define MT9M032_READ_MODE1 bits
->       mt9p031: Use devm_* managed helpers
-
->       mt9p031: Add support for regulators
->       mt9p031: Use the common clock framework
-
-Hmm... It seems ugly to have regulators and clock framework and other
-SoC calls inside an i2c driver that can be used by a device that doesn't
-have regulators.
-
-I'm not sure what's the best solution for it, so, I'll be adding those
-two patches, but it seems that we'll need to restrict the usage of those
-calls only if the caller driver is a platform driver.
+How is the em28xx driver split betweend the submaintainers ?
+Where should I send em28xx patches in the future ? You are still the
+em28xx maintainer, right ?
 
 Regards,
-Mauro
+Frank
