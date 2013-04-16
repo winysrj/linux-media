@@ -1,144 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 173-166-109-252-newengland.hfc.comcastbusiness.net ([173.166.109.252]:42479
-	"EHLO bombadil.infradead.org" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934557Ab3DHKjr (ORCPT
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:46852 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753725Ab3DPGOp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Apr 2013 06:39:47 -0400
-Received: from dhcp-089-099-019-018.chello.nl ([89.99.19.18] helo=dyad.programming.kicks-ass.net)
-	by bombadil.infradead.org with esmtpsa (Exim 4.80.1 #2 (Red Hat Linux))
-	id 1UP9UI-0008UR-KN
-	for linux-media@vger.kernel.org; Mon, 08 Apr 2013 10:39:46 +0000
-Message-ID: <1365417564.2609.153.camel@laptop>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks,
- v2
-From: Peter Zijlstra <peterz@infradead.org>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, x86@kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	rob clark <robclark@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@elte.hu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Mon, 08 Apr 2013 12:39:24 +0200
-In-Reply-To: <CAKMK7uG_qLQrZUdE_LRANm7qXPvGUisBx-k=+y=F2gA3=odkrQ@mail.gmail.com>
-References: <20130228102452.15191.22673.stgit@patser>
-	 <20130228102502.15191.14146.stgit@patser>
-	 <1364900432.18374.24.camel@laptop> <515AF1C1.7080508@canonical.com>
-	 <1364921954.20640.22.camel@laptop> <1365076908.2609.94.camel@laptop>
-	 <20130404133123.GW2228@phenom.ffwll.local>
-	 <CAKMK7uG_qLQrZUdE_LRANm7qXPvGUisBx-k=+y=F2gA3=odkrQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 16 Apr 2013 02:14:45 -0400
+Received: by mail-pd0-f171.google.com with SMTP id z10so111097pdj.2
+        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 23:14:45 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 3/5] [media] exynos4-is: Staticize local symbols
+Date: Tue, 16 Apr 2013 11:32:21 +0530
+Message-Id: <1366092143-5482-3-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
+References: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2013-04-04 at 18:56 +0200, Daniel Vetter wrote:
-> On Thu, Apr 4, 2013 at 3:31 PM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> >> In this case when O blocks Y isn't actually blocked, so our
-> >> TASK_DEADLOCK wakeup doesn't actually achieve anything.
-> >>
-> >> This means we also have to track (task) state so that once Y tries to
-> >> acquire A (creating the actual deadlock) we'll not wait so our
-> >> TASK_DEADLOCK wakeup doesn't actually achieve anything.
-> >>
-> >> Note that Y doesn't need to acquire A in order to return -EDEADLK, any
-> >> acquisition from the same set (see below) would return -EDEADLK even if
-> >> there isn't an actual deadlock. This is the cost of heuristic; we could
-> >> walk the actual block graph but that would be prohibitively expensive
-> >> since we'd have to do this on every acquire.
-> >
-> > Hm, I guess your aim with the TASK_DEADLOCK wakeup is to bound the wait
-> > times of older task. This could be interesting for RT, but I'm unsure of
-> > the implications. The trick with the current code is that the oldest task
-> > will never see an -EAGAIN ever and hence is guaranteed to make forward
-> > progress. If the task is really unlucky though it might be forced to wait
-> > for a younger task for every ww_mutex it tries to acquire.
-> 
-> [Aside: I'm writing this while your replies trickle in, but I think
-> it's not yet answered already.]
-> 
-> Ok, I've discussed this a lot with Maarten on irc and I think I see a
-> bit clearer now what's the aim with the new sleep state. Or at least I
-> have an illusion about it ;-) So let me try to recap my understanding
-> to check whether we're talking roughly about the same idea.
-> 
-> I think for starters we need to have a slightly more interesting example:
-> 
-> 3 threads O, M, Y: O has the oldest ww_age/ticket, Y the youngest, M
-> is in between.
-> 2 ww_mutexes: A, B
-> 
-> Y has already acquired ww_mutex A, M has already acquired ww_mutex B.
-> 
-> Now O wants to acquire B and M wants to acquire A (let's ignore
-> detailed ordering for now), resulting in O blocking on M (M holds B
-> already, but O is older) and M blocking on Y (same for lock B).
+These symbols are used only in their respective files and hence
+should be made static.
 
-drawing the picture for myself:
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/exynos4-is/fimc-is-i2c.c   |    2 +-
+ drivers/media/platform/exynos4-is/fimc-is-param.c |    6 +++---
+ drivers/media/platform/exynos4-is/fimc-is.c       |    4 ++--
+ 3 files changed, 6 insertions(+), 6 deletions(-)
 
-	task-O	task-M	task-Y
-			A
-		B
-	B
-		A
-
-> Now first question to check my understanding: Your aim with that
-> special wakeup is to kick M so that it backs off and drops B? That way
-> O does not need to wait for Y to complete whatever it's currently
-> doing, unlock A and then in turn M to complete whatever it's doing so
-> that it can unlock A&B and finally allows O to grab the lock.
-
-No, we always need to wait for locks to be unlocked. The sole purpose
-of the special wakeups state is to not wake other (!ww_mutex) locks
-that might be held by the task holding the contended ww_mutex. While
-all schedule() sites should deal with spurious wakeups its a sad fact
-of life that they do not :/
-
-> Presuming I'm still following we should be able to fix this with the
-> new sleep state TASK_DEADLOCK and a flag somewhere in the thread info
-> (let's call it PF_GTFO for simplicity).
-
-I'm reading "Get The F*ck Out" ? I like the name, except PF_flags are
-unsuitable since they are not atomic and we'd need to set it from
-another thread.
-
->  Then every time a task does a
-> blocking wait on a ww_mutex it would set this special sleep state and
-> also check the PF_GTFO bit.
-
-So its the contending task (O for B) setting PF_GTFO on the owning task
-(M for B), right?
-
-But yeah, all ww_mutex sleep states should have the new TASK_DEADLOCK
-sleep state added.
-
->  If the later is set, it bails out with
-> -EAGAIN (so that all locks are dropped).
-
-I would really rather see -EDEADLK for that..
-
-> Now if a task wants to take a lock and notices that it's held by a
-> younger locker it can set that flag and wake the thread up (need to
-> think about all the races a bit, but we should be able to make this
-> work). Then it can do the normal blocking mutex slowpath and wait for
-> the unlock.
-
-Right.
-
-> Now if O and M race a bit against each another M should either get
-> woken (if it's already blocked on Y) and back off, or notice that the
-> thread flag is set before it even tries to grab another mutex 
-
-ww_mutex, it should block just fine on regular mutexes and other
-primitives.
-
-> (and so
-> before the block tree can extend further to Y). And the special sleep
-> state is to make sure we don't cause any other spurious interrupts.
-
-Right, I think we're understanding one another here.
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-i2c.c b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+index 1ec6b3c..ac0b46c 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-i2c.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-i2c.c
+@@ -96,7 +96,7 @@ static int fimc_is_i2c_resume(struct device *dev)
+ 	return clk_prepare_enable(isp_i2c->clock);
+ }
+ 
+-UNIVERSAL_DEV_PM_OPS(fimc_is_i2c_pm_ops, fimc_is_i2c_suspend,
++static UNIVERSAL_DEV_PM_OPS(fimc_is_i2c_pm_ops, fimc_is_i2c_suspend,
+ 		     fimc_is_i2c_resume, NULL);
+ 
+ static const struct of_device_id fimc_is_i2c_of_match[] = {
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-param.c b/drivers/media/platform/exynos4-is/fimc-is-param.c
+index 53fe2a2..64e41b8 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-param.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-param.c
+@@ -38,7 +38,7 @@ static void __hw_param_copy(void *dst, void *src)
+ 	memcpy(dst, src, FIMC_IS_PARAM_MAX_SIZE);
+ }
+ 
+-void __fimc_is_hw_update_param_global_shotmode(struct fimc_is *is)
++static void __fimc_is_hw_update_param_global_shotmode(struct fimc_is *is)
+ {
+ 	struct param_global_shotmode *dst, *src;
+ 
+@@ -47,7 +47,7 @@ void __fimc_is_hw_update_param_global_shotmode(struct fimc_is *is)
+ 	__hw_param_copy(dst, src);
+ }
+ 
+-void __fimc_is_hw_update_param_sensor_framerate(struct fimc_is *is)
++static void __fimc_is_hw_update_param_sensor_framerate(struct fimc_is *is)
+ {
+ 	struct param_sensor_framerate *dst, *src;
+ 
+@@ -56,7 +56,7 @@ void __fimc_is_hw_update_param_sensor_framerate(struct fimc_is *is)
+ 	__hw_param_copy(dst, src);
+ }
+ 
+-int __fimc_is_hw_update_param(struct fimc_is *is, u32 offset)
++static int __fimc_is_hw_update_param(struct fimc_is *is, u32 offset)
+ {
+ 	struct is_param_region *par = &is->is_p_region->parameter;
+ 	struct chain_config *cfg = &is->config[is->config_index];
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 3c81c88..59529df 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -137,7 +137,7 @@ static int fimc_is_setup_clocks(struct fimc_is *is)
+ 					ATCLK_MCUISP_FREQUENCY);
+ }
+ 
+-int fimc_is_enable_clocks(struct fimc_is *is)
++static int fimc_is_enable_clocks(struct fimc_is *is)
+ {
+ 	int i, ret;
+ 
+@@ -157,7 +157,7 @@ int fimc_is_enable_clocks(struct fimc_is *is)
+ 	return 0;
+ }
+ 
+-void fimc_is_disable_clocks(struct fimc_is *is)
++static void fimc_is_disable_clocks(struct fimc_is *is)
+ {
+ 	int i;
+ 
+-- 
+1.7.9.5
 
