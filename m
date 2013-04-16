@@ -1,103 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:47627 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751580Ab3DNQjm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 12:39:42 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH] bttv: Add noname Bt848 capture card with 14MHz xtal
-Date: Sun, 14 Apr 2013 18:39:09 +0200
-Cc: linux-media@vger.kernel.org
+Received: from mail-oa0-f47.google.com ([209.85.219.47]:43810 "EHLO
+	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753586Ab3DPGQS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 02:16:18 -0400
+Received: by mail-oa0-f47.google.com with SMTP id n9so145660oag.34
+        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 23:16:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201304141839.10168.linux@rainbow-software.org>
+In-Reply-To: <516C1B0B.4010806@samsung.com>
+References: <1366027438-4560-1-git-send-email-sachin.kamat@linaro.org>
+	<516C1B0B.4010806@samsung.com>
+Date: Tue, 16 Apr 2013 11:46:18 +0530
+Message-ID: <CAK9yfHyU8jebjSqc=cG7TqsobZ=avzxFXt6qky2H52W6UGRTww@mail.gmail.com>
+Subject: Re: [PATCH 1/1] [media] exynos4-is: Fix potential null pointer dereferencing
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add support for noname Bt848 capture-only card (3x composite, 1x S-VHS)
-with 14MHz crystal: 
-http://www.rainbow-software.org/images/hardware/bt848_.jpg
+Hi Sylwester,
 
-14MHz PLL was not supported by bttv driver until now.
+On 15 April 2013 20:51, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+>> -     if (!fimc->drv_data || fimc->id >= fimc->drv_data->num_entities ||
+>> -         fimc->id < 0) {
+>> -             dev_err(dev, "Invalid driver data or device id (%d/%d)\n",
+>> -                     fimc->id, fimc->drv_data->num_entities);
+>> +     if (!fimc->drv_data || fimc->id >= fimc->drv_data->num_entities) {
+>> +             dev_err(dev, "Invalid driver data or device id (%d)\n",
+>> +                     fimc->id);
+>>               return -EINVAL;
+>
+> Thanks for the patch. To make it more explicit I would prefer to change
+> id type to 'int', and to leave the check for negative value. There is
+> a similar issue in fimc-lite.c that could be addressed in same patch.
+> Could you also fix this and resend ?
 
-diff --git a/drivers/media/pci/bt8xx/bttv-cards.c b/drivers/media/pci/bt8xx/bttv-cards.c
-index b7dc921..8bcf638 100644
---- a/drivers/media/pci/bt8xx/bttv-cards.c
-+++ b/drivers/media/pci/bt8xx/bttv-cards.c
-@@ -131,7 +131,7 @@ MODULE_PARM_DESC(vsfx,"set VSFX pci config bit "
- 		 "[yet another chipset flaw workaround]");
- MODULE_PARM_DESC(latency,"pci latency timer");
- MODULE_PARM_DESC(card,"specify TV/grabber card model, see CARDLIST file for a list");
--MODULE_PARM_DESC(pll,"specify installed crystal (0=none, 28=28 MHz, 35=35 MHz)");
-+MODULE_PARM_DESC(pll,"specify installed crystal (0=none, 28=28 MHz, 35=35 MHz, 14=14 MHz)");
- MODULE_PARM_DESC(tuner,"specify installed tuner type");
- MODULE_PARM_DESC(autoload, "obsolete option, please do not use anymore");
- MODULE_PARM_DESC(audiodev, "specify audio device:\n"
-@@ -2825,6 +2825,14 @@ struct tvcard bttv_tvcards[] = {
- 		.muxsel         = MUXSEL(2, 3, 1, 0),
- 		.tuner_type     = TUNER_ABSENT,
- 	},
-+	[BTTV_BOARD_BT848_CAP_14] = {
-+		.name		= "Bt848 Capture 14MHz",
-+		.video_inputs	= 4,
-+		.svhs		= 2,
-+		.muxsel		= MUXSEL(2, 3, 1, 0),
-+		.pll		= PLL_14,
-+		.tuner_type	= TUNER_ABSENT,
-+	},
- 
- };
- 
-@@ -3390,6 +3398,10 @@ void bttv_init_card2(struct bttv *btv)
- 			btv->pll.pll_ifreq=35468950;
- 			btv->pll.pll_crystal=BT848_IFORM_XT1;
- 		}
-+		if (PLL_14 == bttv_tvcards[btv->c.type].pll) {
-+			btv->pll.pll_ifreq=14318181;
-+			btv->pll.pll_crystal=BT848_IFORM_XT0;
-+		}
- 		/* insmod options can override */
- 		switch (pll[btv->c.nr]) {
- 		case 0: /* none */
-@@ -3409,6 +3421,12 @@ void bttv_init_card2(struct bttv *btv)
- 			btv->pll.pll_ofreq   = 0;
- 			btv->pll.pll_crystal = BT848_IFORM_XT1;
- 			break;
-+		case 3: /* 14 MHz */
-+		case 14:
-+			btv->pll.pll_ifreq   = 14318181;
-+			btv->pll.pll_ofreq   = 0;
-+			btv->pll.pll_crystal = BT848_IFORM_XT0;
-+			break;
- 		}
- 	}
- 	btv->pll.pll_current = -1;
-diff --git a/drivers/media/pci/bt8xx/bttv.h b/drivers/media/pci/bt8xx/bttv.h
-index 6139ce2..2d4b466 100644
---- a/drivers/media/pci/bt8xx/bttv.h
-+++ b/drivers/media/pci/bt8xx/bttv.h
-@@ -185,6 +185,7 @@
- #define BTTV_BOARD_PV183                   0x9f
- #define BTTV_BOARD_TVT_TD3116		   0xa0
- #define BTTV_BOARD_APOSONIC_WDVR           0xa1
-+#define BTTV_BOARD_BT848_CAP_14            0xa2
- 
- /* more card-specific defines */
- #define PT2254_L_CHANNEL 0x10
-@@ -232,6 +233,7 @@ struct tvcard {
- #define PLL_NONE 0
- #define PLL_28   1
- #define PLL_35   2
-+#define PLL_14   3
- 
- 	/* i2c audio flags */
- 	unsigned int no_msp34xx:1;
-
+Sure.
+I also found a few more things to fix and sent a 5 patch fix series
+including the above changes.
 
 -- 
-Ondrej Zary
+With warm regards,
+Sachin
