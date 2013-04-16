@@ -1,78 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53106 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751881Ab3DUXL2 (ORCPT
+Received: from mail-da0-f42.google.com ([209.85.210.42]:55392 "EHLO
+	mail-da0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753725Ab3DPGOs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 19:11:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kamal Mostafa <kamal@canonical.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] uvcvideo: quirk PROBE_DEF for Dell Studio / OmniVision webcam
-Date: Mon, 22 Apr 2013 01:11:20 +0200
-Message-ID: <2645710.Gpj91p3W0i@avalon>
-In-Reply-To: <1366216723.20385.7.camel@fourier>
-References: <1366052511-27284-1-git-send-email-kamal@canonical.com> <3233904.U6nm1cedXx@avalon> <1366216723.20385.7.camel@fourier>
-MIME-Version: 1.0
-Content-Type: multipart/signed; boundary="nextPart7389361.xNRVaurBPr"; micalg="pgp-sha1"; protocol="application/pgp-signature"
+	Tue, 16 Apr 2013 02:14:48 -0400
+Received: by mail-da0-f42.google.com with SMTP id n15so94399dad.1
+        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 23:14:48 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 4/5] [media] exynos4-is: Initialize 'sensor' before using
+Date: Tue, 16 Apr 2013 11:32:22 +0530
+Message-Id: <1366092143-5482-4-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
+References: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add missing initialization code to the 'sensor' data
+structure variable before using it.
 
---nextPart7389361.xNRVaurBPr
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+Only compile tested.
+---
+ drivers/media/platform/exynos4-is/fimc-is-sensor.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Hi Kamal,
-
-On Wednesday 17 April 2013 09:38:43 Kamal Mostafa wrote:
-> On Wed, 2013-04-17 at 01:05 +0200, Laurent Pinchart wrote:
-> > Hi Kamal,
-> > 
-> > On Monday 15 April 2013 12:01:51 Kamal Mostafa wrote:
-> > > BugLink: https://bugs.launchpad.net/bugs/1168430
-> > > 
-> > > OminiVision webcam 0x05a9:0x264a (in Dell Studio Hybrid 140g) needs the
-> > > same UVC_QUIRK_PROBE_DEF as other OmniVision model to be recognized
-> > > consistently.
-> > > 
-> > > Signed-off-by: Kamal Mostafa <kamal@canonical.com>
-> > 
-> > Thank you for the patch.
-> > 
-> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > 
-> > I've taken the patch in my tree and will submit it upstream for v3.11.
-> > 
-> > Could you please try to get the full 'lsusb -v -d 05a9:264a' output from
-> > the bug reporter ?
-> 
-> Thanks Laurent.  The requested lsusb dump is now available at
-> https://launchpadlibrarian.net/137633994/lsusb-omnivision-264a.txt
-
-Thank you for the information.
-
+diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.c b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
+index 02b2719..bda9093 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is-sensor.c
++++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
+@@ -268,7 +268,8 @@ err_gpio:
+ 
+ static int fimc_is_sensor_remove(struct i2c_client *client)
+ {
+-	struct fimc_is_sensor *sensor;
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
+ 
+ 	regulator_bulk_free(SENSOR_NUM_SUPPLIES, sensor->supplies);
+ 	media_entity_cleanup(&sensor->subdev.entity);
 -- 
-Regards,
-
-Laurent Pinchart
-
---nextPart7389361.xNRVaurBPr
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part.
-Content-Transfer-Encoding: 7Bit
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.19 (GNU/Linux)
-
-iQEcBAABAgAGBQJRdHInAAoJEIkPb2GL7hl1PJ8IALT00s4t2Ac0awsAbZQB1ID2
-fW2EEzGt38ixPMdPX/Qa5iwYjQlrQXBQorwA1g9oGfmaMFLuZBCTnTpNwnRGL2CT
-5P/P/cRb8bHeYHjEBQ8RfjGkzVj53Vamj17VrK3IBWDo58XVujXTq8H+XoH7/DBT
-znZa8jlD1cY/aML8rAm6rW6oUA1LtDjrczhUb9vPSxz3GPrd49chuD3mFNlQcgqC
-b4pu2sWD8yeHI4ZYm4m6HcF8S8L/qFrvIajmK8q0YN55yLQeBf3fjEc1X4V0bdPP
-PUKWPeDlDzzYfZbQGBcLQLbe0IZxh7Zz+NcjWrOhHyv0ll/VRpD1FMhc4fgcjBY=
-=6NYv
------END PGP SIGNATURE-----
-
---nextPart7389361.xNRVaurBPr--
+1.7.9.5
 
