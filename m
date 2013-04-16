@@ -1,57 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:47061 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759947Ab3DBHxQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 03:53:16 -0400
-Date: Tue, 2 Apr 2013 10:51:02 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [RFC] [media] dvb-core: check ->msg_len for diseqc_send_master_cmd()
-Message-ID: <20130402075102.GA11233@longonot.mountain>
+Received: from pequod.mess.org ([46.65.169.142]:38751 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S964853Ab3DPKFo (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 06:05:44 -0400
+Date: Tue, 16 Apr 2013 11:05:42 +0100
+From: Sean Young <sean@mess.org>
+To: William Steidtmann <billstei@hbci.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Patch mceusb.c -- Kernel 3.9-rc6
+Message-ID: <20130416100542.GA4326@pequod.mess.org>
+References: <516C6E57.4090600@hbci.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <516C6E57.4090600@hbci.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I'd like to send this patch except that it "breaks"
-cx24116_send_diseqc_msg().  The cx24116 driver accepts ->msg_len values
-up to 24 but it looks like it's just copying 16 bytes past the end of
-the ->msg[] array so it's already broken.
+Hi William,
 
-cmd->msg_len is an unsigned char.  The comment next to the struct
-declaration says that valid values are are 3-6.  Some of the drivers
-check that this is true, but most don't and it could cause memory
-corruption.
+On Mon, Apr 15, 2013 at 04:17:11PM -0500, William Steidtmann wrote:
+> Fix mceusb_cmdsize() which returns incorrect datasize=0 for sub-commands MCE_RSP_GETPORTSTATUS, MCE_RSP_GETWAKESOURCE, MCE_RSP_EQDEVDETAILS, MCE_RSP_EQEMVER, and MCE_RSP_EQIRNUMPORTS.  Change mceusb_cmdsize() name to reflect that it returns data size not cmd size.
+> 
+> Signed-off-by: William Steidtmann <billstei@hbci.com>
+> Acked-by:
 
-Some examples of functions which don't check are:
-ttusbdecfe_dvbs_diseqc_send_master_cmd()
-cx24123_send_diseqc_msg()
-ds3000_send_diseqc_msg()
-etc.
+I'll add the Acked-by: line by replying to your email, no need to include
+an empty one. Also this patch does not apply against the current media
+master tree, please diff against: http://git.linuxtv.org/media_tree.git
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+Lastly a better subject line would be helpful, this is the headline
+for the commit.
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
-index 57601c0..3d1eee6 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -2265,7 +2265,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
- 
- 	case FE_DISEQC_SEND_MASTER_CMD:
- 		if (fe->ops.diseqc_send_master_cmd) {
--			err = fe->ops.diseqc_send_master_cmd(fe, (struct dvb_diseqc_master_cmd*) parg);
-+			struct dvb_diseqc_master_cmd *cmd = parg;
-+
-+			if (cmd->msg_len >= 3 && cmd->msg_len <= 6)
-+				err = fe->ops.diseqc_send_master_cmd(fe, cmd);
-+			else
-+				err = -EINVAL;
-+
- 			fepriv->state = FESTATE_DISEQC;
- 			fepriv->status = 0;
- 		}
+Looks good otherwise.
+
+Sean
+
+> 
+> --- a/drivers/media/rc/mceusb.c	2013-04-07 22:49:54.000000000 -0500
+> +++ b/drivers/media/rc/mceusb.c	2013-04-14 12:18:30.000000000 -0500
+> @@ -482,7 +482,7 @@ static char SET_RX_SENSOR[]	= {MCE_CMD_P
+>  				   MCE_RSP_EQIRRXPORTEN, 0x00};
+>  */
+> -static int mceusb_cmdsize(u8 cmd, u8 subcmd)
+> +static int mceusb_cmd_datasize(u8 cmd, u8 subcmd)
+>  {
+>  	int datasize = 0;
+> @@ -493,6 +493,9 @@ static int mceusb_cmdsize(u8 cmd, u8 sub
+>  		break;
+>  	case MCE_CMD_PORT_SYS:
+>  		switch (subcmd) {
+> +		case MCE_RSP_GETPORTSTATUS:
+> +			datasize = 5;
+> +			break;
+>  		case MCE_RSP_EQWAKEVERSION:
+>  			datasize = 4;
+>  			break;
+> @@ -500,6 +503,9 @@ static int mceusb_cmdsize(u8 cmd, u8 sub
+>  			datasize = 2;
+>  			break;
+>  		case MCE_RSP_EQWAKESUPPORT:
+> +		case MCE_RSP_GETWAKESOURCE:
+> +		case MCE_RSP_EQDEVDETAILS:
+> +		case MCE_RSP_EQEMVER:
+>  			datasize = 1;
+>  			break;
+>  		}
+> @@ -509,6 +515,7 @@ static int mceusb_cmdsize(u8 cmd, u8 sub
+>  		case MCE_RSP_EQIRCFS:
+>  		case MCE_RSP_EQIRTIMEOUT:
+>  		case MCE_RSP_EQIRRXCFCNT:
+> +		case MCE_RSP_EQIRNUMPORTS:
+>  			datasize = 2;
+>  			break;
+>  		case MCE_CMD_SIG_END:
+> @@ -968,7 +975,7 @@ static void mceusb_process_ir_data(struc
+>  	for (; i < buf_len; i++) {
+>  		switch (ir->parser_state) {
+>  		case SUBCMD:
+> -			ir->rem = mceusb_cmdsize(ir->cmd, ir->buf_in[i]);
+> +			ir->rem = mceusb_cmd_datasize(ir->cmd, ir->buf_in[i]);
+>  			mceusb_dev_printdata(ir, ir->buf_in, i - 1,
+>  					     ir->rem + 2, false);
+>  			mceusb_handle_command(ir, i);
+> 
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
