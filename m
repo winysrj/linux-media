@@ -1,54 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:34011 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756508Ab3DWRQI (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43675 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757331Ab3DPPaq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 13:16:08 -0400
-Received: by mail-lb0-f180.google.com with SMTP id t11so878624lbi.39
-        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 10:16:07 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: [PATCH v3 4/4] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
-Date: Tue, 23 Apr 2013 21:15:23 +0400
-Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	matsu@igel.co.jp, vladimir.barinov@cogentembedded.com
-References: <201304232106.45889.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304232106.45889.sergei.shtylyov@cogentembedded.com>
+	Tue, 16 Apr 2013 11:30:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
+Date: Tue, 16 Apr 2013 17:30:51 +0200
+Message-ID: <1471330.zeTIWizKy8@avalon>
+In-Reply-To: <20130415094248.2272db90@redhat.com>
+References: <3775187.HOcoQVPfEE@avalon> <8085333.TIMqcSUBaO@avalon> <20130415094248.2272db90@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304232115.24523.sergei.shtylyov@cogentembedded.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Hi Mauro,
 
-Add the VIN and ADV7180 drivers to 'marzen_defconfig'.
+On Monday 15 April 2013 09:42:48 Mauro Carvalho Chehab wrote:
+> Em Mon, 15 Apr 2013 12:19:23 +0200 Laurent Pinchart escreveu:
+> > On Sunday 14 April 2013 16:59:58 Mauro Carvalho Chehab wrote:
+> > > Em Fri, 12 Apr 2013 11:13:06 +0200 Laurent Pinchart escreveu:
+> > > > Hi Mauro,
+> > > > 
+> > > > The following changes since commit
+> > 
+> > 81e096c8ac6a064854c2157e0bf802dc4906678c:
+> > > >   [media] budget: Add support for Philips Semi Sylt PCI ref. design
+> > > > 
+> > > > (2013-04-08 07:28:01 -0300)
+> > > > 
+> > > > are available in the git repository at:
+> > > >   git://linuxtv.org/pinchartl/media.git sensors/next
+> > > > 
+> > > > for you to fetch changes up to 
+c890926a06339944790c5c265e21e8547aa55e49:
+> > > >   mt9p031: Use the common clock framework (2013-04-12 11:07:07 +0200)
+> > > > 
+> > > > ----------------------------------------------------------------
+> > > > 
+> > > > Laurent Pinchart (5):
+> > > >       mt9m032: Fix PLL setup
+> > > >       mt9m032: Define MT9M032_READ_MODE1 bits
+> > > >       mt9p031: Use devm_* managed helpers
+> > > >       mt9p031: Add support for regulators
+> > > >       mt9p031: Use the common clock framework
+> > > 
+> > > Hmm... It seems ugly to have regulators and clock framework and other
+> > > SoC calls inside an i2c driver that can be used by a device that doesn't
+> > > have regulators.
+> > > 
+> > > I'm not sure what's the best solution for it, so, I'll be adding those
+> > > two patches, but it seems that we'll need to restrict the usage of those
+> > > calls only if the caller driver is a platform driver.
+> > 
+> > The MT9P031 needs power supplies and a clock on all platforms, regardless
+> > of the bridge bus type.
+> 
+> Well, all digital devices require clock and power. If power is either a
+> simple electric circuit, a battery or a regulator, that depends on the
+> board.
+>
+> > I suppose the use case that mostly concerns you here is
+> > USB webcams
+> 
+> Yes.
+> 
+> > where the power supplies and the clock are controlled automatically by the
+> > device.
+> 
+> Or could be not controlled at all. It could be a simple XTAL attached to the
+> sensor or a clock signal provided by the bridge obtained from a fixed XTAL,
+> and a resistor bridge or a Zenner diode providing the needed power voltage.
+>
+> > If we ever need to support such a device in the future we can of course
+> > revisit the driver then, and one possible solution would be to register
+> > fixed voltage regulators and a fixed clock.
+> 
+> That is an overkill: devices were the power supply/xtal clock can't be
+> controlled should not require extra software that pretend to control it.
 
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+If I'm not mistaken that's however the recommended way on embedded devices at 
+the moment. I don't have a strong opinion on the subject for now, but this 
+will need to be at least discussed with core clock and regulator developers.
 
----
- arch/arm/configs/marzen_defconfig |    7 +++++++
- 1 file changed, 7 insertions(+)
+-- 
+Regards,
 
-Index: renesas/arch/arm/configs/marzen_defconfig
-===================================================================
---- renesas.orig/arch/arm/configs/marzen_defconfig
-+++ renesas/arch/arm/configs/marzen_defconfig
-@@ -84,6 +84,13 @@ CONFIG_GPIO_RCAR=y
- CONFIG_THERMAL=y
- CONFIG_RCAR_THERMAL=y
- CONFIG_SSB=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_SOC_CAMERA=y
-+CONFIG_VIDEO_RCAR_VIN=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ADV7180=y
- CONFIG_USB=y
- CONFIG_USB_RCAR_PHY=y
- CONFIG_MMC=y
+Laurent Pinchart
+
