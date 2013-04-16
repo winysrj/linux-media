@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f181.google.com ([74.125.82.181]:61922 "EHLO
-	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754010Ab3DZFqt (ORCPT
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:35777 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934702Ab3DPKvq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 01:46:49 -0400
-MIME-Version: 1.0
-In-Reply-To: <1780031.B4OAypccep@avalon>
-References: <1366804808-22720-1-git-send-email-prabhakar.csengg@gmail.com> <1780031.B4OAypccep@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 26 Apr 2013 11:16:28 +0530
-Message-ID: <CA+V-a8sLD2dP1RLb8ibZDOsLCP8hhMNUTr-zzU1zx_2ALDaDrg@mail.gmail.com>
-Subject: Re: [PATCH 0/6] Davinci fbdev driver and enable it for DMx platform
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LFBDEV <linux-fbdev@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
+	Tue, 16 Apr 2013 06:51:46 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	LKML <linux-kernel@vger.kernel.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] media: davinci: vpif: allign the buffers size to page page size boundary
+Date: Tue, 16 Apr 2013 16:21:33 +0530
+Message-Id: <1366109493-27874-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-On Thu, Apr 25, 2013 at 2:32 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> Thank you for the patch.
->
-> On Wednesday 24 April 2013 17:30:02 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> This patch series adds an fbdev driver for Texas
->> Instruments Davinci SoC.The display subsystem consists
->> of OSD and VENC, with OSD supporting 2 RGb planes and
->> 2 video planes.
->> http://focus.ti.com/general/docs/lit/
->> getliterature.tsp?literatureNumber=sprue37d&fileType=pdf
->>
->> A good amount of the OSD and VENC enabling code is
->> present in the kernel, and this patch series adds the
->> fbdev interface.
->>
->> The fbdev driver exports 4 nodes representing each
->> plane to the user - from fb0 to fb3.
->
-> The obvious question is: why not a KMS driver instead ? :-)
->
-I did go through the KMS model (thanks for pointing to your work and the video)
-and it looks like this would require a fair amount of development, at this point
-of time I would go with the current implementation and revisit on KMS model
-at later point of time.
+with recent commit with id 068a0df76023926af958a336a78bef60468d2033
+which adds add length check for mmap, the application were failing to
+mmap the buffers.
 
-Regards,
---Prabhakar
+This patch aligns the the buffer size to page size boundary for both
+capture and display driver so the it pass the check.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |    1 +
+ drivers/media/platform/davinci/vpif_display.c |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 5f98df1..25981d6 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -183,6 +183,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+ 		*nbuffers = config_params.min_numbuffers;
+ 
+ 	*nplanes = 1;
++	size = PAGE_ALIGN(size);
+ 	sizes[0] = size;
+ 	alloc_ctxs[0] = common->alloc_ctx;
+ 
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 1b3fb5c..3414715 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -162,6 +162,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+ 			*nbuffers = config_params.min_numbuffers;
+ 
+ 	*nplanes = 1;
++	size = PAGE_ALIGN(size);
+ 	sizes[0] = size;
+ 	alloc_ctxs[0] = common->alloc_ctx;
+ 	return 0;
+-- 
+1.7.4.1
+
