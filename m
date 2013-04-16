@@ -1,110 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:43189 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758317Ab3DDKO6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 06:14:58 -0400
-Received: by mail-oa0-f50.google.com with SMTP id n1so2541940oag.37
-        for <linux-media@vger.kernel.org>; Thu, 04 Apr 2013 03:14:58 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1304031229150.10531@axis700.grange>
-References: <1363599836-15824-1-git-send-email-fabio.porcedda@gmail.com>
- <Pine.LNX.4.64.1303181108540.30957@axis700.grange> <CAHkwnC8yWYvcQbiTM+xfJMNeBzeY8Gv8A8SN3sROCKT2EtM0iw@mail.gmail.com>
- <Pine.LNX.4.64.1304031229150.10531@axis700.grange>
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Thu, 4 Apr 2013 12:14:37 +0200
-Message-ID: <CAHkwnC99CqxTDOLznpbFKX9R3iT0LurKkBAa8iya54+hoVGyTQ@mail.gmail.com>
-Subject: Re: [PATCH] [media] mx2_camera: use module_platform_driver_probe()
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:38143 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751327Ab3DPJOv (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 05:14:51 -0400
+Date: Tue, 16 Apr 2013 06:12:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: David Rientjes <rientjes@google.com>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH -next] media:
+Message-ID: <20130416061243.22d06140@redhat.com>
+In-Reply-To: <alpine.DEB.2.02.1304152010180.3952@chino.kir.corp.google.com>
+References: <20130408174343.cc13eb1972470d20d38ecff1@canb.auug.org.au>
+	<51630297.2040803@infradead.org>
+	<516461FE.4020007@iki.fi>
+	<alpine.DEB.2.02.1304152010180.3952@chino.kir.corp.google.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 3, 2013 at 12:30 PM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> On Wed, 3 Apr 2013, Fabio Porcedda wrote:
->
->> On Mon, Mar 18, 2013 at 11:09 AM, Guennadi Liakhovetski
->> <g.liakhovetski@gmx.de> wrote:
->> > Hi Fabio
->> >
->> > On Mon, 18 Mar 2013, Fabio Porcedda wrote:
->> >
->> >> The commit 39793c6 "[media] mx2_camera: Convert it to platform driver"
->> >> used module_platform_driver() to make code smaller,
->> >> but since the driver used platform_driver_probe is more appropriate
->> >> to use module_platform_driver_probe().
->> >>
->> >> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
->> >> Cc: Fabio Estevam <fabio.estevam@freescale.com>
->> >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> >> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> >
->> > Thanks, will queue for 3.10.
->>
->> Thanks for taking it.
->> In which repository/branch is it?
->> This commit is not in linux-next or in
->> git://linuxtv.org/mchehab/media-next.git yet.
->
-> Not yet. I'm preparing a branch locally to push to my repository on
-> git.linuxtv.org. I'll do that within a day or two, if no objections
-> emerge. Then I'll send a pull request to Mauro, then a couple of days
-> later he'll pull from my tree, then patches will appear in -next.
+Em Mon, 15 Apr 2013 20:10:49 -0700 (PDT)
+David Rientjes <rientjes@google.com> escreveu:
 
-Thanks.
+> On Tue, 9 Apr 2013, Antti Palosaari wrote:
+> 
+> > On 04/08/2013 08:47 PM, Randy Dunlap wrote:
+> > > From: Randy Dunlap <rdunlap@infradead.org>
+> > > 
+> > > Fix randconfig error when USB is not enabled:
+> > > 
+> > > ERROR: "usb_control_msg" [drivers/media/common/cypress_firmware.ko]
+> > > undefined!
+> > > 
+> > > Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> > > Cc: Antti Palosaari <crope@iki.fi>
+> > 
+> > Reviewed-by: Antti Palosaari <crope@iki.fi>
+> > 
+> > 
+> > > ---
+> > >   drivers/media/common/Kconfig |    1 +
+> > >   1 file changed, 1 insertion(+)
+> > > 
+> > > --- linux-next-20130408.orig/drivers/media/common/Kconfig
+> > > +++ linux-next-20130408/drivers/media/common/Kconfig
+> > > @@ -18,6 +18,7 @@ config VIDEO_TVEEPROM
+> > > 
+> > >   config CYPRESS_FIRMWARE
+> > >   	tristate "Cypress firmware helper routines"
+> > > +	depends on USB
+> > > 
+> > >   source "drivers/media/common/b2c2/Kconfig"
+> > >   source "drivers/media/common/saa7146/Kconfig"
+> > > 
+> 
+> Mauro, this problem persists in linux-next seven days later, any chance we 
+> can get this fix from Randy merged?
 
-Regards
-Fabio Porcedda
+AFAIKT, this got merged at -next already:
 
-> Thanks
-> Guennadi
->
->>
->> Best regards
->> --
->> Fabio Porcedda
->>
->> > Guennadi
->> >
->> >> ---
->> >>  drivers/media/platform/soc_camera/mx2_camera.c | 3 +--
->> >>  1 file changed, 1 insertion(+), 2 deletions(-)
->> >>
->> >> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
->> >> index ffba7d9..848dff9 100644
->> >> --- a/drivers/media/platform/soc_camera/mx2_camera.c
->> >> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
->> >> @@ -1619,10 +1619,9 @@ static struct platform_driver mx2_camera_driver = {
->> >>       },
->> >>       .id_table       = mx2_camera_devtype,
->> >>       .remove         = mx2_camera_remove,
->> >> -     .probe          = mx2_camera_probe,
->> >>  };
->> >>
->> >> -module_platform_driver(mx2_camera_driver);
->> >> +module_platform_driver_probe(mx2_camera_driver, mx2_camera_probe);
->> >>
->> >>  MODULE_DESCRIPTION("i.MX27 SoC Camera Host driver");
->> >>  MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
->> >> --
->> >> 1.8.2
->> >>
->> >
->> > ---
->> > Guennadi Liakhovetski, Ph.D.
->> > Freelance Open-Source Software Developer
->> > http://www.open-technology.de/
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+commit 7c15b715ef301a7f8bb2dc8de335497ffde568a6
+Author:     Randy Dunlap <rdunlap@infradead.org>
+AuthorDate: Mon Apr 8 13:47:03 2013 -0300
+Commit:     Mauro Carvalho Chehab <mchehab@redhat.com>
+CommitDate: Sun Apr 14 20:04:08 2013 -0300
 
+    [media] media: Fix randconfig error
+    
+    Fix randconfig error when USB is not enabled:
+    ERROR: "usb_control_msg" [drivers/media/common/cypress_firmware.ko] undefined!
+    
+    Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+    Reviewed-by: Antti Palosaari <crope@iki.fi>
+    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-
---
-Fabio Porcedda
+Regards,
+Mauro
