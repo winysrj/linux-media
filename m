@@ -1,56 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51191 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936477Ab3DRVf7 (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:57440 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965082Ab3DPSE4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 17:35:59 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
+	Tue, 16 Apr 2013 14:04:56 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLD006SG0W5HQ00@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 16 Apr 2013 19:04:53 +0100 (BST)
+Message-id: <516D92C4.2040403@samsung.com>
+Date: Tue, 16 Apr 2013 20:04:52 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 19/24] V4L2: add struct v4l2_subdev_try_buf
-Date: Thu, 18 Apr 2013 23:35:40 +0200
-Message-Id: <1366320945-21591-20-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+	linux-media@vger.kernel.org,
+	Mark Brown <broonie@opensource.wolfsonmicro.com>,
+	Mike Turquette <mturquette@linaro.org>
+Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
+References: <3775187.HOcoQVPfEE@avalon> <8085333.TIMqcSUBaO@avalon>
+ <20130415094248.2272db90@redhat.com> <1471330.zeTIWizKy8@avalon>
+ <516D8C1E.2080704@redhat.com>
+In-reply-to: <516D8C1E.2080704@redhat.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds struct v4l2_subdev_try_buf, used as a temporary buffer for
-"try" pad configuration data. Defining such a struct will simplify memory
-allocation for such buffers.
+Cc: Mark, Mike
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- include/media/v4l2-subdev.h |   12 +++++++-----
- 1 files changed, 7 insertions(+), 5 deletions(-)
+On 04/16/2013 07:36 PM, Mauro Carvalho Chehab wrote:
+> Em 16-04-2013 12:30, Laurent Pinchart escreveu:
+>> Hi Mauro,
+>>
+>> On Monday 15 April 2013 09:42:48 Mauro Carvalho Chehab wrote:
+>>> Em Mon, 15 Apr 2013 12:19:23 +0200 Laurent Pinchart escreveu:
+>>>> On Sunday 14 April 2013 16:59:58 Mauro Carvalho Chehab wrote:
+>>>>> Em Fri, 12 Apr 2013 11:13:06 +0200 Laurent Pinchart escreveu:
+>>>>>> Hi Mauro,
+>>>>>>
+>>>>>> The following changes since commit
+>>>>
+>>>> 81e096c8ac6a064854c2157e0bf802dc4906678c:
+>>>>>>    [media] budget: Add support for Philips Semi Sylt PCI ref. design
+>>>>>>
+>>>>>> (2013-04-08 07:28:01 -0300)
+>>>>>>
+>>>>>> are available in the git repository at:
+>>>>>>    git://linuxtv.org/pinchartl/media.git sensors/next
+>>>>>>
+>>>>>> for you to fetch changes up to
+>> c890926a06339944790c5c265e21e8547aa55e49:
+>>>>>>    mt9p031: Use the common clock framework (2013-04-12 11:07:07 +0200)
+>>>>>>
+>>>>>> ----------------------------------------------------------------
+>>>>>>
+>>>>>> Laurent Pinchart (5):
+>>>>>>        mt9m032: Fix PLL setup
+>>>>>>        mt9m032: Define MT9M032_READ_MODE1 bits
+>>>>>>        mt9p031: Use devm_* managed helpers
+>>>>>>        mt9p031: Add support for regulators
+>>>>>>        mt9p031: Use the common clock framework
+>>>>>
+>>>>> Hmm... It seems ugly to have regulators and clock framework and other
+>>>>> SoC calls inside an i2c driver that can be used by a device that doesn't
+>>>>> have regulators.
+>>>>>
+>>>>> I'm not sure what's the best solution for it, so, I'll be adding those
+>>>>> two patches, but it seems that we'll need to restrict the usage of those
+>>>>> calls only if the caller driver is a platform driver.
+>>>>
+>>>> The MT9P031 needs power supplies and a clock on all platforms, regardless
+>>>> of the bridge bus type.
+>>>
+>>> Well, all digital devices require clock and power. If power is either a
+>>> simple electric circuit, a battery or a regulator, that depends on the
+>>> board.
+>>>
+>>>> I suppose the use case that mostly concerns you here is
+>>>> USB webcams
+>>>
+>>> Yes.
+>>>
+>>>> where the power supplies and the clock are controlled automatically by the
+>>>> device.
+>>>
+>>> Or could be not controlled at all. It could be a simple XTAL attached to the
+>>> sensor or a clock signal provided by the bridge obtained from a fixed XTAL,
+>>> and a resistor bridge or a Zenner diode providing the needed power voltage.
 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index b15c6e0..4424a7c 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -618,14 +618,16 @@ static inline struct v4l2_subdev *v4l2_async_to_subdev(
- /*
-  * Used for storing subdev information per file handle
-  */
-+struct v4l2_subdev_try_buf {
-+	struct v4l2_mbus_framefmt try_fmt;
-+	struct v4l2_rect try_crop;
-+	struct v4l2_rect try_compose;
-+};
-+
- struct v4l2_subdev_fh {
- 	struct v4l2_fh vfh;
- #if defined(CONFIG_VIDEO_V4L2_SUBDEV_API)
--	struct {
--		struct v4l2_mbus_framefmt try_fmt;
--		struct v4l2_rect try_crop;
--		struct v4l2_rect try_compose;
--	} *pad;
-+	struct v4l2_subdev_try_buf *pad;
- #endif
- };
- 
--- 
-1.7.2.5
+Yes, and this are details of the whole system, which IMHO are supposed to be
+abstracted outside of a clock/power supply consumer driver. What resources
+are needed is well defined by a chip architecture, driver of a chip knows what
+voltage supply/clocks, etc. it needs and it should request that. Now on some
+systems there is no need to explicitly enable/disable, change parameters of
+some clocks/voltage regulators. And the question is, IIUC, at what layer we
+choose to abstract such differences. I don't think it is a good idea to push
+it into a sub-device driver. A sub-device driver would need to know details
+of its host driver, wouldn't it ? AFAICT it's not something subdev drivers are
+really supposed to deal with.
 
+I'm not sure if the regulators and the clock framework are "SoC calls". These
+are generic APIs that have well defined semantic of abstracting platform
+differences. At least it can be said about the regulators API IMHO.
+
+It's probably more clean to provide a dummy clock/regulator in a host driver
+(platform) than to add something in a sub-device drivers that would resolve
+which resources should be requested and which not.
+
+>>>> If we ever need to support such a device in the future we can of course
+>>>> revisit the driver then, and one possible solution would be to register
+>>>> fixed voltage regulators and a fixed clock.
+>>>
+>>> That is an overkill: devices were the power supply/xtal clock can't be
+>>> controlled should not require extra software that pretend to control it.
+>>
+>> If I'm not mistaken that's however the recommended way on embedded devices at
+>> the moment. I don't have a strong opinion on the subject for now, but this
+>> will need to be at least discussed with core clock and regulator developers.
+> 
+> 
+> Well, a customer's webcam is not an embedded device at all. That's why
+> I think that putting it at the I2C driver is wrong: those drivers are
+> not to be used only by embedded hardware.
+
+Regards,
+Sylwester
