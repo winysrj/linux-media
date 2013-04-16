@@ -1,36 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f180.google.com ([209.85.128.180]:44478 "EHLO
-	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965112Ab3DQLJN (ORCPT
+Received: from mail-da0-f46.google.com ([209.85.210.46]:45871 "EHLO
+	mail-da0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751493Ab3DPKy5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 07:09:13 -0400
-Received: by mail-ve0-f180.google.com with SMTP id pb11so1288421veb.39
-        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 04:09:12 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAOcJUbzin_70-mO44S_2b90gjOH4H64g29rO78eMxsmpshu5KQ@mail.gmail.com>
-References: <516C2DC8.8080203@googlemail.com>
-	<20130415135018.3a867598@redhat.com>
-	<516C6AFB.1060601@googlemail.com>
-	<20130415183405.44aa28eb@redhat.com>
-	<CAOcJUbzin_70-mO44S_2b90gjOH4H64g29rO78eMxsmpshu5KQ@mail.gmail.com>
-Date: Wed, 17 Apr 2013 07:09:12 -0400
-Message-ID: <CAOcJUbyM6GVzjr2TdEcFw63Nqdny+B+8vzome1dKFusS_XgKpQ@mail.gmail.com>
-Subject: Re: Patchwork and em28xx delegates
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 16 Apr 2013 06:54:57 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH v2] media: davinci: vpif: align the buffers size to page page size boundary
+Date: Tue, 16 Apr 2013 16:24:30 +0530
+Message-Id: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I see this https://patchwork.linuxtv.org/patch/17834/ is delegated to
-me.  If I took ownership myself then it may have been a mistake.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Either way, the patch looks good to me and makes sense, but I am not
-maintaining em28xx.  Mauro, if you want to go ahead and merge his
-patch then it's fine with me.  Since this was a mistake, I don't plan
-to push it from my own repository.
+with recent commit with id 068a0df76023926af958a336a78bef60468d2033
+which adds add length check for mmap, the application were failing to
+mmap the buffers.
 
-Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
+This patch aligns the the buffer size to page size boundary for both
+capture and display driver so the it pass the check.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Changes for v2: 
+ 1: Fixed a typo in commit message.
+
+ drivers/media/platform/davinci/vpif_capture.c |    1 +
+ drivers/media/platform/davinci/vpif_display.c |    1 +
+ 2 files changed, 2 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 5f98df1..25981d6 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -183,6 +183,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+ 		*nbuffers = config_params.min_numbuffers;
+ 
+ 	*nplanes = 1;
++	size = PAGE_ALIGN(size);
+ 	sizes[0] = size;
+ 	alloc_ctxs[0] = common->alloc_ctx;
+ 
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 1b3fb5c..3414715 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -162,6 +162,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
+ 			*nbuffers = config_params.min_numbuffers;
+ 
+ 	*nplanes = 1;
++	size = PAGE_ALIGN(size);
+ 	sizes[0] = size;
+ 	alloc_ctxs[0] = common->alloc_ctx;
+ 	return 0;
+-- 
+1.7.4.1
+
