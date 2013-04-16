@@ -1,72 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:38715 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754424Ab3DQPSU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 11:18:20 -0400
-From: Pawel Moll <pawel.moll@arm.com>
-To: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Pawel Moll <pawel.moll@arm.com>
-Subject: [RFC 04/10] video: display: Add generic TFT display type
-Date: Wed, 17 Apr 2013 16:17:16 +0100
-Message-Id: <1366211842-21497-5-git-send-email-pawel.moll@arm.com>
-In-Reply-To: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
-References: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+Received: from mx1.redhat.com ([209.132.183.28]:2765 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965337Ab3DPVcd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 17:32:33 -0400
+Message-ID: <516DC363.7050600@redhat.com>
+Date: Tue, 16 Apr 2013 18:32:19 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: David Howells <dhowells@redhat.com>
+CC: linux-kernel@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	mjpeg-users@lists.sourceforge.net, viro@zeniv.linux.org.uk,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH 16/28] zoran: Don't print proc_dir_entry data in debug
+ [RFC]
+References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk> <20130416182654.27773.74830.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20130416182654.27773.74830.stgit@warthog.procyon.org.uk>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-TFT panels may be interfaced via a simple parallel interface
-carrying RGB data, pixel clock and synchronisation signals.
->From the video generator point of view the width of the data
-channels (number of bits per R/G/B components) may be an
-important factor in setting up the display model.
+Em 16-04-2013 15:26, David Howells escreveu:
+> Don't print proc_dir_entry data in debug as we're soon to have no direct
+> access to the contents of the PDE.  Print what was put in there instead.
 
-Above information is based on the presentations by Dave Anders
-available here: http://elinux.org/Elc-lcd
+Let me just apply this simple one, as it doesn't depend on the rest of the
+patches in this series.
 
-This patch adds the parallel TFT display type and basic parameters
-structure. Maybe it should be split into a separate header, eg.
-include/video/tft.h? Or maybe it's just the INTERFACE_DPI I'm
-talking about?
+>
+> Signed-off-by: David Howells <dhowells@redhat.com>
+> cc: mjpeg-users@lists.sourceforge.net
+> cc: linux-media@vger.kernel.org
+> ---
+>
+>   drivers/media/pci/zoran/zoran_procfs.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/pci/zoran/zoran_procfs.c b/drivers/media/pci/zoran/zoran_procfs.c
+> index 07a104d..f7ceee0 100644
+> --- a/drivers/media/pci/zoran/zoran_procfs.c
+> +++ b/drivers/media/pci/zoran/zoran_procfs.c
+> @@ -201,7 +201,7 @@ zoran_proc_init (struct zoran *zr)
+>   		dprintk(2,
+>   			KERN_INFO
+>   			"%s: procfs entry /proc/%s allocated. data=%p\n",
+> -			ZR_DEVNAME(zr), name, zr->zoran_proc->data);
+> +			ZR_DEVNAME(zr), name, zr);
 
-Signed-off-by: Pawel Moll <pawel.moll@arm.com>
----
- include/video/display.h |    9 +++++++++
- 1 file changed, 9 insertions(+)
+It is just a debug message, so changing it looks fine.
 
-diff --git a/include/video/display.h b/include/video/display.h
-index 7fe8b2f..875e230 100644
---- a/include/video/display.h
-+++ b/include/video/display.h
-@@ -69,10 +69,19 @@ enum display_entity_stream_state {
-=20
- enum display_entity_interface_type {
- =09DISPLAY_ENTITY_INTERFACE_DPI,
-+=09DISPLAY_ENTITY_INTERFACE_TFT_PARALLEL,
-+};
-+
-+struct tft_parallel_interface_params {
-+=09int r_bits, g_bits, b_bits;
-+=09int r_b_swapped;
- };
-=20
- struct display_entity_interface_params {
- =09enum display_entity_interface_type type;
-+=09union {
-+=09=09struct tft_parallel_interface_params tft_parallel;
-+=09} p;
- };
-=20
- struct display_entity_control_ops {
---=20
-1.7.10.4
-
+>   	} else {
+>   		dprintk(1, KERN_ERR "%s: Unable to initialise /proc/%s\n",
+>   			ZR_DEVNAME(zr), name);
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
