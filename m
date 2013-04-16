@@ -1,195 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10614 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753871Ab3DTRvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 13:51:24 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3KHpOn6031518
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:51:24 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFC v2 0/3] Add SDR at V4L2 API
-Date: Sat, 20 Apr 2013 14:51:11 -0300
-Message-Id: <1366480274-31255-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <366469499-31640-1-git-send-email-mchehab@redhat.com>
-References: <366469499-31640-1-git-send-email-mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=true
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-da0-f50.google.com ([209.85.210.50]:49437 "EHLO
+	mail-da0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753725Ab3DPGOm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 02:14:42 -0400
+Received: by mail-da0-f50.google.com with SMTP id t1so93341dae.9
+        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 23:14:41 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 2/5] [media] exynos4-is: Convert index variable to signed
+Date: Tue, 16 Apr 2013 11:32:20 +0530
+Message-Id: <1366092143-5482-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
+References: <1366092143-5482-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a version 2 of the V4L2 API bits to support Software Digital
-Radio (SDR).
+index variable is used to check the validity of the data by
+testing for negative values. Hence make it signed.
 
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/exynos4-is/fimc-core.h |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.h |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-The changes from version 1 are:
-	- fix compilation;
-	- add a new capture type for SDR (V4L2_BUF_TYPE_SDR_CAPTURE),
-	  with the corresponding documentation;
-	- remove legacy V4L1 buffer types from videobuf2.h.
-
-With regards to VIDIOC_S_TUNER, what's currently defined there is
-that, in contrary to what a radio device does, this ioctl would
-set the input.
-
-This patch adds the very basic stuff for SDR:
-
-	- a separate devnode;
-	- an VIDIOC_QUERYCAP caps for SDR;
-	- a fourcc group for SDR;
-	- a few DocBook bits.
-
-What's missing:
-	- SDR specific controls;
-	- Sample rate config;
-	...
-
-As discussing DocBook changes inside the patch is hard, I'm adding here
-the DocBook formatted changes.
-
-The DocBook changes add the following bits:
-
-At Chapter 1. Common API Elements, it adds:
-
-<text>
-Software Digital Radio (SDR) Tuners and Modulators
-==================================================
-
-Those devices are special types of Radio devices that don't have any 
-analog demodulator. Instead, it samples the radio IF or baseband and 
-sends the samples for userspace to demodulate. 
-
-Tuners
-======
-
-SDR receivers can have one or more tuners sampling RF signals. Each 
-tuner is associated with one or more inputs, depending on the number of 
-RF connectors on the tuner. The type field of the respective struct 
-v4l2_input returned by the VIDIOC_ENUMINPUT ioctl is set to 
-V4L2_INPUT_TYPE_TUNER and its tuner field contains the index number of 
-the tuner input.
-
-To query and change tuner properties applications use the VIDIOC_G_TUNER 
-and VIDIOC_S_TUNER ioctl, respectively. The struct v4l2_tuner returned 
-by VIDIOC_G_TUNER also contains signal status information applicable 
-when the tuner of the current SDR input is queried. In order to change 
-the SDR input, VIDIOC_S_TUNER with a new SDR index should be called. 
-Drivers must support both ioctls and set the V4L2_CAP_SDR and 
-V4L2_CAP_TUNER flags in the struct v4l2_capability returned by the 
-VIDIOC_QUERYCAP ioctl.
-
-Modulators
-==========
-
-To be defined.
-</text>
-
-At the end of Chapter 2. Image Formats, it adds:
-
-<text>
-SDR format struture
-===================
-
-Table 2.4. struct v4l2_sdr_format
-=================================
-
-__u32	sampleformat	The format of the samples used by the SDR device.
-			This is a little endian four character code.
-
-Table 2.5. SDR formats
-======================
-
-V4L2_SDR_FMT_I8Q8	Samples are given by a sequence of 8 bits in-phase(I)
-			and 8 bits quadrature (Q) samples taken from a
-			signal(t) represented by the following expression:
-			signal(t) = I * cos(2π fc t) - Q * sin(2π fc t)
-</text>
-
-Of course, other formats will be needed at Table 2.5, as SDR could also 
-be taken baseband samples, being, for example, a simple sequence of 
-equally time-spaced digitalized samples of the signal in time.
-SDR samples could also use other resolutions, use a non-linear
-(A-law, u-law) ADC, or even compress the samples (with ADPCM, for 
-example). So, this table will grow as newer devices get added, and an
-userspace library may be required to convert them into some common
-format.
-
-At "Chapter 4. Interfaces", it adds the following text:
-
-<text>
-Software Digital Radio(SDR) Interface
-=====================================
-
-This interface is intended for Software Digital Radio (SDR) receivers 
-and transmitters.
-
-Conventionally V4L2 SDR devices are accessed through character device 
-special files named /dev/sdr0 to/dev/radio255 and uses a dynamically 
-allocated major/minor number.
-
-Querying Capabilities
-=====================
-
-Devices supporting the radio interface set the V4L2_CAP_SDR and 
-V4L2_CAP_TUNER or V4L2_CAP_MODULATOR flag in the capabilities field of 
-struct v4l2_capability returned by the VIDIOC_QUERYCAP ioctl. Other 
-combinations of capability flags are reserved for future extensions. 
-
-Supplemental Functions
-======================
-
-SDR receivers should support tuner ioctls.
-
-SDR transmitter ioctl's will be defined in the future.
-
-SDR devices should also support one or more of the following I/O ioctls: 
-read or write, memory mapped IO, user memory IO and/or DMA buffers.
-
-SDR devices can also support controls ioctls.
-
-The SDR Input/Output are A/D or D/A samples taken from a modulated 
-signal, and can eventually be packed by the hardware. They are generally 
-encoded using cartesian in-phase/quadrature (I/Q) samples, to make 
-demodulation easier. The format of the samples should be according with 
-SDR format.
-</text>
-
-Note: "SDR format" on the last paragraph is an hyperlink to
-Chapter 2. Image Formats.
-
-At "Appendix A. Function Reference - ioctl VIDIOC_QUERYCAP", it adds:
-
-<text>
-Table A.93. Device Capabilities Flags
-...
-V4L2_CAP_SDR	0x00100000	The device is a Software Digital Radio. 
-				For more information about SDR programming
-				see the section called “Software Digital 
-				Radio (SDR) Tuners and Modulators”.
-</text>
-
-Mauro Carvalho Chehab (3):
-  [media] Add SDR at V4L2 API
-  videodev2.h: Remove the unused old V4L1 buffer types
-  [media] V4L2 api: Add a buffer capture type for SDR
-
- Documentation/DocBook/media/v4l/common.xml         | 35 ++++++++++++++++++
- Documentation/DocBook/media/v4l/dev-capture.xml    | 26 ++++++++------
- Documentation/DocBook/media/v4l/io.xml             |  6 ++++
- Documentation/DocBook/media/v4l/pixfmt.xml         | 41 ++++++++++++++++++++++
- Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
- .../DocBook/media/v4l/vidioc-querycap.xml          |  7 ++++
- drivers/media/v4l2-core/v4l2-dev.c                 |  3 ++
- drivers/media/v4l2-core/v4l2-ioctl.c               | 32 +++++++++++++++++
- include/media/v4l2-dev.h                           |  3 +-
- include/media/v4l2-ioctl.h                         |  8 +++++
- include/uapi/linux/videodev2.h                     | 33 +++++++----------
- 11 files changed, 163 insertions(+), 32 deletions(-)
-
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
+index d2fe162..953b074 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.h
++++ b/drivers/media/platform/exynos4-is/fimc-core.h
+@@ -425,7 +425,7 @@ struct fimc_dev {
+ 	struct regmap			*sysreg;
+ 	const struct fimc_variant	*variant;
+ 	const struct fimc_drvdata	*drv_data;
+-	u16				id;
++	int				id;
+ 	struct clk			*clock[MAX_FIMC_CLOCKS];
+ 	void __iomem			*regs;
+ 	wait_queue_head_t		irq_queue;
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
+index 71fed51..47da5e0 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.h
++++ b/drivers/media/platform/exynos4-is/fimc-lite.h
+@@ -140,7 +140,7 @@ struct fimc_lite {
+ 	struct v4l2_subdev	*sensor;
+ 	struct v4l2_ctrl_handler ctrl_handler;
+ 	struct v4l2_ctrl	*test_pattern;
+-	u32			index;
++	int			index;
+ 	struct fimc_pipeline	pipeline;
+ 	const struct fimc_pipeline_ops *pipeline_ops;
+ 
 -- 
-1.8.1.4
+1.7.9.5
 
