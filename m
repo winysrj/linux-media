@@ -1,51 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:36502 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753043Ab3D3G3R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Apr 2013 02:29:17 -0400
-Received: by mail-pb0-f53.google.com with SMTP id un1so106050pbc.40
-        for <linux-media@vger.kernel.org>; Mon, 29 Apr 2013 23:29:17 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 3/4] [media] s3c-camif: Staticize local symbols
-Date: Tue, 30 Apr 2013 11:46:20 +0530
-Message-Id: <1367302581-15478-3-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1367302581-15478-1-git-send-email-sachin.kamat@linaro.org>
-References: <1367302581-15478-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:38718 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754659Ab3DQAmu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 20:42:50 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gnVw024253
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:49 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 12/31] [media] r820t: Invert bits for read ops
+Date: Tue, 16 Apr 2013 21:42:23 -0300
+Message-Id: <1366159362-3773-13-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-These symbols are local to the file and should be static.
+On read, the bit order is inverted.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/s3c-camif/camif-regs.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/tuners/r820t.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/s3c-camif/camif-regs.c b/drivers/media/platform/s3c-camif/camif-regs.c
-index 1a3b4fc..7b22d6c 100644
---- a/drivers/media/platform/s3c-camif/camif-regs.c
-+++ b/drivers/media/platform/s3c-camif/camif-regs.c
-@@ -379,7 +379,7 @@ static void camif_hw_set_prescaler(struct camif_vp *vp)
- 	camif_write(camif, S3C_CAMIF_REG_CISCPREDST(vp->id, vp->offset), cfg);
- }
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index 48ff6bb..79ab2b7 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -35,8 +35,10 @@
+ #include <linux/videodev2.h>
+ #include <linux/mutex.h>
+ #include <linux/slab.h>
+-#include "tuner-i2c.h"
++#include <linux/bitrev.h>
+ #include <asm/div64.h>
++
++#include "tuner-i2c.h"
+ #include "r820t.h"
  
--void camif_s3c244x_hw_set_scaler(struct camif_vp *vp)
-+static void camif_s3c244x_hw_set_scaler(struct camif_vp *vp)
- {
- 	struct camif_dev *camif = vp->camif;
- 	struct camif_scaler *scaler = &vp->scaler;
-@@ -426,7 +426,7 @@ void camif_s3c244x_hw_set_scaler(struct camif_vp *vp)
- 		 scaler->main_h_ratio, scaler->main_v_ratio);
- }
+ /*
+@@ -414,7 +416,7 @@ static int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
  
--void camif_s3c64xx_hw_set_scaler(struct camif_vp *vp)
-+static void camif_s3c64xx_hw_set_scaler(struct camif_vp *vp)
+ static int r820_read(struct r820t_priv *priv, u8 reg, u8 *val, int len)
  {
- 	struct camif_dev *camif = vp->camif;
- 	struct camif_scaler *scaler = &vp->scaler;
+-	int rc;
++	int rc, i;
+ 	u8 *p = &priv->buf[1];
+ 
+ 	priv->buf[0] = reg;
+@@ -431,7 +433,8 @@ static int r820_read(struct r820t_priv *priv, u8 reg, u8 *val, int len)
+ 		  __func__, reg, len, len, p);
+ 
+ 	/* Copy data to the output buffer */
+-	memcpy(val, p, len);
++	for (i = 0; i < len; i++)
++		val[i] = bitrev8(p[i]);
+ 
+ 	return 0;
+ }
 -- 
-1.7.9.5
+1.8.1.4
 
