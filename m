@@ -1,71 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:35159 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755943Ab3DQTIS (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:46857 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966071Ab3DQMD0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 15:08:18 -0400
-Received: by mail-ie0-f174.google.com with SMTP id 10so2332911ied.5
-        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 12:08:17 -0700 (PDT)
+	Wed, 17 Apr 2013 08:03:26 -0400
+Date: Wed, 17 Apr 2013 15:03:15 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Steven Toth <stoth@linuxtv.org>
+Cc: Antti Palosaari <crope@iki.fi>,
+	Michael Krufky <mkrufky@linuxtv.org>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Darron Broad <darron@kewl.org>, linux-media@vger.kernel.org,
+	kernel-janitors@vger.kernel.org
+Subject: Re: [RFC] [media] dvb-core: check ->msg_len for
+ diseqc_send_master_cmd()
+Message-ID: <20130417120314.GX6692@mwanda>
+References: <20130402075102.GA11233@longonot.mountain>
 MIME-Version: 1.0
-In-Reply-To: <20130409222808.GC20739@home.goodmis.org>
-References: <20130228102452.15191.22673.stgit@patser>
-	<20130228102502.15191.14146.stgit@patser>
-	<1364900432.18374.24.camel@laptop>
-	<515AF1C1.7080508@canonical.com>
-	<1364921954.20640.22.camel@laptop>
-	<1365076908.2609.94.camel@laptop>
-	<20130404133123.GW2228@phenom.ffwll.local>
-	<1365093662.2609.111.camel@laptop>
-	<20130409222808.GC20739@home.goodmis.org>
-Date: Wed, 17 Apr 2013 21:08:17 +0200
-Message-ID: <CAKMK7uHst+s9x0u4J04Qck26EeeUDOORM_SgYovmjV4c+mKP0w@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, x86@kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	rob clark <robclark@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@elte.hu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130402075102.GA11233@longonot.mountain>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 10, 2013 at 12:28 AM, Steven Rostedt <rostedt@goodmis.org> wrote:
-> On Thu, Apr 04, 2013 at 06:41:02PM +0200, Peter Zijlstra wrote:
->> On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
->> > The thing is now that you're not expected to hold these locks for a
->> > long
->> > time - if you need to synchronously stall while holding a lock
->> > performance
->> > will go down the gutters anyway. And since most current
->> > gpus/co-processors
->> > still can't really preempt fairness isn't that high a priority,
->> > either.
->> > So we didn't think too much about that.
->>
->> Yeah but you're proposing a new synchronization primitive for the core
->> kernel.. all such 'fun' details need to be considered, not only those
->> few that bear on the one usecase.
->
-> Which bares the question, what other use cases are there?
+Any feedback on this?
 
-Just stumbled over one I think: If we have a big graph of connected
-things (happens really often for video pipelines). And we want
-multiple users to use them in parallel. But sometimes a configuration
-change could take way too long and so would unduly stall a 2nd thread
-with just a global mutex, then per-object ww_mutexes would be a fit:
-You'd start with grabbing all the locks for the objects you want to
-change anything with, then grab anything in the graph that you also
-need to check. Thanks to loop detection and self-recursion this would
-all nicely work out, even for cyclic graphs of objects.
--Daniel
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+I forgot to CC Steven Toth last time because he would know about the
+cx24116 driver.  I've looked at it again and it still looks like
+cx24116_send_diseqc_msg() is copying garbage into the
+state->dsec_cmd.args[] array.
+
+regards,
+dan carpenter
+
+On Tue, Apr 02, 2013 at 10:51:02AM +0300, Dan Carpenter wrote:
+> I'd like to send this patch except that it "breaks"
+> cx24116_send_diseqc_msg().  The cx24116 driver accepts ->msg_len values
+> up to 24 but it looks like it's just copying 16 bytes past the end of
+> the ->msg[] array so it's already broken.
+> 
+> cmd->msg_len is an unsigned char.  The comment next to the struct
+> declaration says that valid values are are 3-6.  Some of the drivers
+> check that this is true, but most don't and it could cause memory
+> corruption.
+> 
+> Some examples of functions which don't check are:
+> ttusbdecfe_dvbs_diseqc_send_master_cmd()
+> cx24123_send_diseqc_msg()
+> ds3000_send_diseqc_msg()
+> etc.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
+> index 57601c0..3d1eee6 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -2265,7 +2265,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
+>  
+>  	case FE_DISEQC_SEND_MASTER_CMD:
+>  		if (fe->ops.diseqc_send_master_cmd) {
+> -			err = fe->ops.diseqc_send_master_cmd(fe, (struct dvb_diseqc_master_cmd*) parg);
+> +			struct dvb_diseqc_master_cmd *cmd = parg;
+> +
+> +			if (cmd->msg_len >= 3 && cmd->msg_len <= 6)
+> +				err = fe->ops.diseqc_send_master_cmd(fe, cmd);
+> +			else
+> +				err = -EINVAL;
+> +
+>  			fepriv->state = FESTATE_DISEQC;
+>  			fepriv->status = 0;
+>  		}
