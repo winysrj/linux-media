@@ -1,53 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f170.google.com ([209.85.160.170]:50585 "EHLO
-	mail-gh0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751881Ab3DUMEl (ORCPT
+Received: from mail-vb0-f54.google.com ([209.85.212.54]:57444 "EHLO
+	mail-vb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965957Ab3DQLqh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 08:04:41 -0400
-Received: by mail-gh0-f170.google.com with SMTP id z2so235394ghb.1
-        for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 05:04:41 -0700 (PDT)
-Date: Sun, 21 Apr 2013 09:04:26 -0300
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-Subject: Re: [RFC] Motion Detection API
-Message-ID: <20130421090426.60af25f3@pirotess>
-In-Reply-To: <201304121736.16542.hverkuil@xs4all.nl>
-References: <201304121736.16542.hverkuil@xs4all.nl>
+	Wed, 17 Apr 2013 07:46:37 -0400
+Received: by mail-vb0-f54.google.com with SMTP id w16so1179251vbf.41
+        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 04:46:37 -0700 (PDT)
+Date: Wed, 17 Apr 2013 07:46:52 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: mchehab@redhat.com, linux-media <linux-media@vger.kernel.org>
+Subject: [GIT-PULL] lg2160: dubious one-bit signed bitfield
+Message-ID: <20130417074652.7b25509e@vujade>
 Mime-Version: 1.0
-Content-Type: multipart/signed; micalg=PGP-SHA1;
- boundary="Sig_//._YG6R6SY=gb.E4Iolli53"; protocol="application/pgp-signature"
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---Sig_//._YG6R6SY=gb.E4Iolli53
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: quoted-printable
+The following changes since commit
+33a31edd4a4b7d26b962b32decfd8ea2377eaa0d:
 
-On Fri, 12 Apr 2013 17:36:16 +0200
-Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> This RFC looks at adding support for motion detection to V4L2. This
-> is the main missing piece that prevents the go7007 and solo6x10
-> drivers from being moved into mainline from the staging directory.
-<...>
-> Comment? Questions?
+  Revert "[media] mfd: Add header files and Kbuild plumbing for SI476x
+  MFD core" (2013-04-17 06:08:00 -0300)
 
-+1. I like it :).
+are available in the git repository at:
 
---Sig_//._YG6R6SY=gb.E4Iolli53
-Content-Type: application/pgp-signature; name=signature.asc
-Content-Disposition: attachment; filename=signature.asc
+  git://linuxtv.org/mkrufky/dvb demods
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.13 (GNU/Linux)
+for you to fetch changes up to 79c9a899d199fba3505b1d76325c97a7a00b3686:
 
-iQEcBAEBAgAGBQJRc9XLAAoJEBH/VE8bKTLb35gIAMko96l3DrI2oz3dOhKOdBzA
-0d6eVsv6tYynwDWVxgJc+3OlZPPtztB2rAXbtGN+PZ1eQqDiwt99t/vS9jjpSyHv
-UauH4NOGU8T1hICJQScyKakK//aP3jIe7riizIBXhMcNuipInX4u2p55i5qWFck2
-NR0+z3OSisseQ5AXHFczkF5edk0m5uMuyKw96VCUmiIdevRp/C9ITKHGhwqhzMgG
-topH7M8ByQ9HK2TSxLdUNb++MQbfDPOQaN9ZGIGVhtd+1huIXRDHBdNA550+arW8
-Q5n7Oe7c/zrkycIaVQ2Hkyd/SkDMxfsxWaDxVT52I3OSQq8jxEeFK6VcLMFb+G8=
-=bTS2
------END PGP SIGNATURE-----
+  lg2160: dubious one-bit signed bitfield (2013-04-17 07:18:40 -0400)
 
---Sig_//._YG6R6SY=gb.E4Iolli53--
+----------------------------------------------------------------
+Dan Carpenter (1):
+      lg2160: dubious one-bit signed bitfield
+
+ drivers/media/dvb-frontends/lg2160.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
