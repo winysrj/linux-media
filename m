@@ -1,54 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:54577 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762923Ab3DDQqI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 12:46:08 -0400
-Received: from dhcp-089-099-019-018.chello.nl ([89.99.19.18] helo=dyad.programming.kicks-ass.net)
-	by merlin.infradead.org with esmtpsa (Exim 4.80.1 #2 (Red Hat Linux))
-	id 1UNnId-0007KL-OD
-	for linux-media@vger.kernel.org; Thu, 04 Apr 2013 16:46:07 +0000
-Message-ID: <1365093965.2609.116.camel@laptop>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks,
- v2
-From: Peter Zijlstra <peterz@infradead.org>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, daniel.vetter@ffwll.ch, x86@kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
-Date: Thu, 04 Apr 2013 18:46:05 +0200
-In-Reply-To: <20130404133123.GW2228@phenom.ffwll.local>
-References: <20130228102452.15191.22673.stgit@patser>
-	 <20130228102502.15191.14146.stgit@patser>
-	 <1364900432.18374.24.camel@laptop> <515AF1C1.7080508@canonical.com>
-	 <1364921954.20640.22.camel@laptop> <1365076908.2609.94.camel@laptop>
-	 <20130404133123.GW2228@phenom.ffwll.local>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.17.10]:54508 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966435Ab3DQOQE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Apr 2013 10:16:04 -0400
+Date: Wed, 17 Apr 2013 16:15:59 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Igor Kugasyan <kugasyan@hotmail.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: mt9v034 driver
+In-Reply-To: <DUB112-W5AD3C17EE426206DFAEF9D2CE0@phx.gbl>
+Message-ID: <Pine.LNX.4.64.1304171609080.16330@axis700.grange>
+References: <DUB112-W5AD3C17EE426206DFAEF9D2CE0@phx.gbl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
-> I'm a bit confused about the different classes you're talking about.
-> Since
-> the ticket queue is currently a global counter there's only one class
-> of
-> ww_mutexes. 
+Hi Igor
 
-Right, so that's not something that's going to fly.. we need to support
-multiple users, including nesting of those. Again, you're adding
-something to the generic kernel infrastructure, it had better be usable
-:-)
+(forwarding to the real media Mailing List)
 
-> I guess we could change that once a second user shows up
+On Wed, 17 Apr 2013, Igor Kugasyan wrote:
 
-No, we fix that before it all goes in. I would _so_ hate to find out it
-cannot be 'fixed' and be stuck with a half-arsed sync primitive in the
-core kernel that's only every usable by the one existent user.
+> Dear Mr. Guennadi,
+> 
+> Please tell me can I use the soc_camera_ (soc_camera.h, soc_camera.c) 
+> interface for a mt9v034 driver as a mt9v022 driver or not?
 
-So for now, forget all about TTM, DMA-BUF and other such coolness
-except to verify that whatever we end up with does indeed work for the
-case you need it for ;-)
+I don't know anything about mt9v034. It might or might not be compatible 
+with one of supported cameras. If it isn't, a new driver has to be 
+developed.
 
+> I've read your Video4Linux soc-camera subsystem document and not found a mt9v034 among client drivers.
+> I have the Leopard Board 368 (LI-TB02) with the WVGA camera
+
+No, you cannot use soc-camera with Leopard Board. Its camera interface 
+might be supported by some other driver, but I'm not sure about that.
+
+>           LI-VM34LP but I haven't a mt9v034 driver for my camera
+> for the linux-2.6.32 kernel with RidgeRun
+
+Don't think there's anything that can be done with any kernel apart from 
+the current -next, i.e. the forthcoming 3.10.
+
+>           2011Q2 SDK for LeopardBoardDM365 and 
+> dvsdk_dm365-evm_4_02_00_06. I haven't sufficient experience for 
+> comprehension but I learn...
+
+The only possibility I see is to use a current kernel, adapt an existing 
+or write a new camera sensor driver for mt9v034 and use it with the 
+appropriate SoC camera interface driver.
+
+Thanks
+Guennadi
+
+> Please,
+>           please, help me to solve this problem.
+> 
+>         Thanks
+>           in advance.
+> 
+>         
+> 
+>         Best regards,
+> 
+>           
+> 
+>           Sincerely
+>               yours
+> 
+>             Igor Kugasyan
+> 
+>             CONECS SSRE
+> 
+>             Lviv 79060
+> 
+>             Naukova 7
+> 
+>             Ukraine
+> 
+>           
+> 
+>         T +38 032 2952597
+> 
+>         F +38 032 2954879
+> 
+>         E dndp@conecs.lviv.ua 		 	   		  
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
