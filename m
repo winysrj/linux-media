@@ -1,97 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:44146 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753442Ab3DVKS6 (ORCPT
+Received: from mail-la0-f42.google.com ([209.85.215.42]:58354 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966919Ab3DQWaI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 06:18:58 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH RFC v2 1/4] media: i2c: adv7343: add support for asynchronous probing
-Date: Mon, 22 Apr 2013 15:47:25 +0530
-Message-Id: <1366625848-743-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 17 Apr 2013 18:30:08 -0400
+Received: by mail-la0-f42.google.com with SMTP id fn20so1990487lab.1
+        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 15:30:05 -0700 (PDT)
+Message-ID: <516F223C.2010704@cogentembedded.com>
+Date: Thu, 18 Apr 2013 02:29:16 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+CC: linux-media@vger.kernel.org, matsu@igel.co.jp
+Subject: Re: [PATCH 3/4] ARM: shmobile: Marzen: add VIN and ADV7180 support
+References: <201304180206.39465.sergei.shtylyov@cogentembedded.com> <201304180215.01218.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201304180215.01218.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hello.
 
-Both synchronous and asynchronous adv7343 subdevice probing is supported by
-this patch.
+On 04/18/2013 02:15 AM, Sergei Shtylyov wrote:
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/i2c/adv7343.c |   17 +++++++++++++----
- 1 files changed, 13 insertions(+), 4 deletions(-)
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>
+> Add ADV7180 platform devices on the Marzen board, configure VIN1/3 pins, and
+> register VIN1/3 devices with the ADV7180 specific platform data.
+>
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>
+> ---
+>   arch/arm/mach-shmobile/board-marzen.c |   55 ++++++++++++++++++++++++++++++++++
+>   1 file changed, 55 insertions(+)
 
-diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-index 9fc2b98..5b1417b 100644
---- a/drivers/media/i2c/adv7343.c
-+++ b/drivers/media/i2c/adv7343.c
-@@ -27,6 +27,7 @@
- #include <linux/uaccess.h>
- 
- #include <media/adv7343.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
-@@ -44,6 +45,7 @@ struct adv7343_state {
- 	struct v4l2_subdev sd;
- 	struct v4l2_ctrl_handler hdl;
- 	const struct adv7343_platform_data *pdata;
-+	struct v4l2_async_subdev_list	asdl;
- 	u8 reg00;
- 	u8 reg01;
- 	u8 reg02;
-@@ -455,16 +457,22 @@ static int adv7343_probe(struct i2c_client *client,
- 				       ADV7343_GAIN_DEF);
- 	state->sd.ctrl_handler = &state->hdl;
- 	if (state->hdl.error) {
--		int err = state->hdl.error;
--
--		v4l2_ctrl_handler_free(&state->hdl);
--		return err;
-+		err = state->hdl.error;
-+		goto done;
- 	}
- 	v4l2_ctrl_handler_setup(&state->hdl);
- 
- 	err = adv7343_initialize(&state->sd);
- 	if (err)
-+		goto done;
-+
-+	state->sd.dev = &client->dev;
-+	err = v4l2_async_register_subdev(&state->sd);
-+
-+done:
-+	if (err < 0)
- 		v4l2_ctrl_handler_free(&state->hdl);
-+
- 	return err;
- }
- 
-@@ -473,6 +481,7 @@ static int adv7343_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct adv7343_state *state = to_state(sd);
- 
-+	v4l2_async_unregister_subdev(&state->sd);
- 	v4l2_device_unregister_subdev(sd);
- 	v4l2_ctrl_handler_free(&state->hdl);
- 
--- 
-1.7.4.1
+    Oops, should have updated copyrights on this file. :-/
+    Well, this is probably not the last version of the patchset 
+anyway... :-)
+
+WBR, Sergei
 
