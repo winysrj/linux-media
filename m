@@ -1,59 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:34327 "EHLO 7of9.schinagl.nl"
+Received: from mx1.redhat.com ([209.132.183.28]:60526 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1759152Ab3DAKHk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Apr 2013 06:07:40 -0400
-Message-ID: <51595CBA.8050602@schinagl.nl>
-Date: Mon, 01 Apr 2013 12:08:58 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Ralph Metzler <rjkm@metzlerbros.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: ddbridge v0.8
-References: <CAAKANDV1QWHeuA3XG7+HK2Fc8rLBpkVWGWcJ0Bdc_3A_yAEVLA@mail.gmail.com> <511C0385.2060308@schinagl.nl> <20766.15478.535523.4665@morden.metzler>
-In-Reply-To: <20766.15478.535523.4665@morden.metzler>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1755871Ab3DQAnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 20:43:01 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0h0DY031275
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:43:00 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 24/31] [media] r820t: avoid rewrite all regs when not needed
+Date: Tue, 16 Apr 2013 21:42:35 -0300
+Message-Id: <1366159362-3773-25-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey Ralph,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/tuners/r820t.c | 11 +++++------
+ 1 file changed, 5 insertions(+), 6 deletions(-)
 
-On 02/15/13 14:47, Ralph Metzler wrote:
-> Oliver Schinagl writes:
->   > On 02/11/13 23:20, Martin Vidovic wrote:
->   > > Hi,
->   > >
->   > > Is there any plan to include ddbridge driver version 0.8 in mainline kernel
->   > > (currently it's 0.5). I really see no reason it's in the vacuum like now
->   > > for almost a year. No sign of pushing it into mainline. Why is that so?
->   > > It's a good driver.
->   > You should ask Ralph Metzler (added to CC) as he wrote the driver I
->   > think or atleast maintains it.
->
-> I wrote the driver but I never submitted it to the kernel myself. I got frustrated
-> with that process years ago. Oliver Endriss took care of it and necessary coding style
-> adjustments etc. in the last few years. (Many thanks again!)
-> But now he also stopped to pass it into the kernel due to some complications
-> with other changes upstream.
->
-> I usually distribute a package with own versions of dvb-core, frontend and
-> ddbridge drivers now. When the next major restructuring due to the DVB-C modulator
-> card and the stand-alone hardware network streamer (octopus net) support is done,
-> I will make it publically available. The current driver is version 0.9.7.
-> It should be up to kernel coding style and can be easily copied over into
-> a current kernel. But I am not about to take it apart into little patches.
-What is the current status of this? I saw that the DVB-C modulator is on 
-sale now.
-
-I guess octopus-net isn't announced yet and will be something like the 
-current octopus, but as a streamer instead of receiver?
->
-> Regards,
-> Ralph
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index 2e6a690..fc660f2 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -2006,18 +2006,17 @@ static int r820t_imr_callibrate(struct r820t_priv *priv)
+ 	if (priv->init_done)
+ 		return 0;
+ 
+-	/* Initialize registers */
+-	rc = r820t_write(priv, 0x05,
+-			 r820t_init_array, sizeof(r820t_init_array));
+-	if (rc < 0)
+-		return rc;
+-
+ 	/* Detect Xtal capacitance */
+ 	if ((priv->cfg->rafael_chip == CHIP_R820T) ||
+ 	    (priv->cfg->rafael_chip == CHIP_R828S) ||
+ 	    (priv->cfg->rafael_chip == CHIP_R820C)) {
+ 		priv->xtal_cap_sel = XTAL_HIGH_CAP_0P;
+ 	} else {
++		/* Initialize registers */
++		rc = r820t_write(priv, 0x05,
++				r820t_init_array, sizeof(r820t_init_array));
++		if (rc < 0)
++			return rc;
+ 		for (i = 0; i < 3; i++) {
+ 			rc = r820t_xtal_check(priv);
+ 			if (rc < 0)
+-- 
+1.8.1.4
 
