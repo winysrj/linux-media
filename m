@@ -1,54 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:11566 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751856Ab3DAGkm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 02:40:42 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MKK00DKSD7TVEM0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Apr 2013 15:40:41 +0900 (KST)
-From: Seung-Woo Kim <sw0312.kim@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
-	hans.verkuil@cisco.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com
-Subject: [RFC][PATCH 2/2] media: v4l2-mem2mem: return for polling if a buffer
- is available
-Date: Mon, 01 Apr 2013 15:40:47 +0900
-Message-id: <1364798447-32224-3-git-send-email-sw0312.kim@samsung.com>
-In-reply-to: <1364798447-32224-1-git-send-email-sw0312.kim@samsung.com>
-References: <1364798447-32224-1-git-send-email-sw0312.kim@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:15272 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755059Ab3DQAmw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 20:42:52 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gqQY003914
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:52 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 17/31] [media] r820t: split the function that read cached regs
+Date: Tue, 16 Apr 2013 21:42:28 -0300
+Message-Id: <1366159362-3773-18-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_m2m_poll() does not need to wait if there is already a buffer in
-done_list of source and destination queues, but current v4l2_m2m_poll() always
-waits. So done_list of each queue is checked before calling poll_wait().
+As we'll need to retrieve cached registers, make this
+function explicit.
 
-Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+ drivers/media/tuners/r820t.c | 20 +++++++++++++++-----
+ 1 file changed, 15 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index da99cf7..b6f0316 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -458,8 +458,10 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
- 		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index d5686e8..ef100ab 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -402,15 +402,25 @@ static int r820t_write_reg(struct r820t_priv *priv, u8 reg, u8 val)
+ 	return r820t_write(priv, reg, &val, 1);
+ }
  
--	poll_wait(file, &src_q->done_wq, wait);
--	poll_wait(file, &dst_q->done_wq, wait);
-+	if (list_empty(&src_q->done_list))
-+		poll_wait(file, &src_q->done_wq, wait);
-+	if (list_empty(&dst_q->done_list))
-+		poll_wait(file, &dst_q->done_wq, wait);
+-static int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
+-				u8 bit_mask)
++static int r820t_read_cache_reg(struct r820t_priv *priv, int reg)
+ {
+-	int r = reg - REG_SHADOW_START;
++	reg -= REG_SHADOW_START;
  
- 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
- 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
+-	if (r >= 0 && r < NUM_REGS)
+-		val = (priv->regs[r] & ~bit_mask) | (val & bit_mask);
++	if (reg >= 0 && reg < NUM_REGS)
++		return priv->regs[reg];
+ 	else
+ 		return -EINVAL;
++}
++
++static int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
++				u8 bit_mask)
++{
++	int rc = r820t_read_cache_reg(priv, reg);
++
++	if (rc < 0)
++		return rc;
++
++	val = (rc & ~bit_mask) | (val & bit_mask);
+ 
+ 	return r820t_write(priv, reg, &val, 1);
+ }
 -- 
-1.7.4.1
+1.8.1.4
 
