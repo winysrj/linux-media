@@ -1,232 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:52835 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750734Ab3DJFeO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 01:34:14 -0400
-Received: by mail-pb0-f45.google.com with SMTP id ro12so66574pbb.4
-        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 22:34:14 -0700 (PDT)
-From: Tzu-Jung Lee <roylee17@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, k.debski@samsung.com,
-	Tzu-Jung Lee <tjlee@ambarella.com>
-Subject: [PATCH 2/2] v4l2-ctl: initial attempt to support M2M device streaming
-Date: Wed, 10 Apr 2013 13:35:35 +0800
-Message-Id: <1365572135-2311-2-git-send-email-tjlee@ambarella.com>
-In-Reply-To: <1365572135-2311-1-git-send-email-tjlee@ambarella.com>
-References: <1365572135-2311-1-git-send-email-tjlee@ambarella.com>
+Received: from mx1.redhat.com ([209.132.183.28]:21850 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755849Ab3DQAnH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 20:43:07 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0h7XU003953
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:43:07 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 23/31] [media] r820t: Allow disabling IMR callibration
+Date: Tue, 16 Apr 2013 21:42:34 -0300
+Message-Id: <1366159362-3773-24-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
----
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 189 +++++++++++++++++++++++++++++++++-
- 1 file changed, 188 insertions(+), 1 deletion(-)
+The rtl-sdr library disabled IMR callibration. While I'm not sure
+yet why, it could be a good idea to add a modprobe parameter here,
+to allow to also disable it. There are two rationale behind it:
+- It helps to compare USB dumps between rtl-sdr and the Kernel module;
+- If rtl-sdr disabled it, perhaps there's a good reason (e. g. it
+  might not be actually working, or it might be causing some trouble).
+For both cases, it seems useful to add a modprobe parameter to allow
+testing the device with both configurations.
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index f8e782d..b86c467 100644
---- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-@@ -1058,12 +1058,199 @@ void streaming_set_out(int fd)
- 		fclose(fin);
- }
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/tuners/r820t.c | 23 +++++++++++++++++++----
+ 1 file changed, 19 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index 0125de8..2e6a690 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -56,6 +56,11 @@ static int debug;
+ module_param(debug, int, 0644);
+ MODULE_PARM_DESC(debug, "enable verbose debug messages");
  
-+enum stream_type {
-+	CAP,
-+	OUT,
-+};
++static int no_imr_cal;
++module_param(no_imr_cal, int, 0444);
++MODULE_PARM_DESC(no_imr_cal, "Disable IMR calibration at module init");
 +
-+void streaming_set_m2m(int fd)
-+{
-+	int fd_flags = fcntl(fd, F_GETFL);
-+	bool use_poll = options[OptStreamPoll];
 +
-+	bool is_mplane = capabilities &
-+			(V4L2_CAP_VIDEO_CAPTURE_MPLANE |
-+				 V4L2_CAP_VIDEO_OUTPUT_MPLANE |
-+				 V4L2_CAP_VIDEO_M2M_MPLANE);
-+	unsigned num_planes = 1;
-+	bool is_mmap = options[OptStreamMmap];
-+
-+	__u32 type[2];
-+	FILE *file[2] = {NULL, NULL};
-+	struct v4l2_requestbuffers reqbufs[2];
-+
-+	type[CAP] = is_mplane ?
-+		V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE : V4L2_BUF_TYPE_VIDEO_CAPTURE;
-+
-+	type[OUT] = is_mplane ?
-+		V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE : V4L2_BUF_TYPE_VIDEO_OUTPUT;
-+
-+	memset(&reqbufs, 0, sizeof(reqbufs));
-+
-+	reqbufs[CAP].count = reqbufs_count;
-+	reqbufs[CAP].type = type[CAP];
-+	reqbufs[CAP].memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
-+
-+	reqbufs[OUT].count = reqbufs_count;
-+	reqbufs[OUT].type = type[OUT];
-+	reqbufs[OUT].memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
-+
-+	struct v4l2_event_subscription sub;
-+
-+	memset(&sub, 0, sizeof(sub));
-+	sub.type = V4L2_EVENT_EOS;
-+	ioctl(fd, VIDIOC_SUBSCRIBE_EVENT, &sub);
-+
-+	if (file_cap) {
-+		if (!strcmp(file_cap, "-"))
-+			file[CAP] = stdout;
-+		else
-+			file[CAP] = fopen(file_cap, "w+");
-+	}
-+
-+	if (file_out) {
-+		if (!strcmp(file_out, "-"))
-+			file[OUT] = stdin;
-+		else
-+			file[OUT] = fopen(file_out, "r");
-+	}
-+
-+	if (doioctl(fd, VIDIOC_REQBUFS, &reqbufs[CAP]) ||
-+	    doioctl(fd, VIDIOC_REQBUFS, &reqbufs[OUT]))
-+		return;
-+
-+	void *buffers[2][reqbufs_count * VIDEO_MAX_PLANES];
-+	unsigned buffer_lengths[2][reqbufs_count * VIDEO_MAX_PLANES];
-+
-+	do_setup_cap_buffers(fd, &reqbufs[CAP], is_mplane, num_planes,
-+			     is_mmap, buffers[CAP], buffer_lengths[CAP]);
-+
-+	do_setup_out_buffers(fd, &reqbufs[OUT], is_mplane, num_planes,
-+			     is_mmap, buffers[OUT], buffer_lengths[OUT],
-+			     file[OUT]);
-+
-+	if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
-+	    doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
-+		return;
-+
-+	if (use_poll)
-+		fcntl(fd, F_SETFL, fd_flags | O_NONBLOCK);
-+
-+	unsigned count[2] = { 0, 0 };
-+	unsigned last[2] = { 0, 0 };
-+	struct timeval tv_last[2];
-+	bool eos[2] = { false, false};
-+	fd_set read_fds;
-+	fd_set write_fds;
-+	fd_set exception_fds;
-+
-+	while (!eos[CAP] || !eos[OUT]) {
-+
-+		int r;
-+
-+		if (use_poll) {
-+			struct timeval tv;
-+
-+			FD_ZERO(&read_fds);
-+			FD_SET(fd, &read_fds);
-+
-+			FD_ZERO(&write_fds);
-+			FD_SET(fd, &write_fds);
-+
-+			FD_ZERO(&exception_fds);
-+			FD_SET(fd, &exception_fds);
-+
-+			/* Timeout. */
-+			tv.tv_sec = 2;
-+			tv.tv_usec = 0;
-+
-+			r = select(fd + 1, &read_fds, &write_fds, &exception_fds, &tv);
-+
-+			if (r == -1) {
-+				if (EINTR == errno)
-+					continue;
-+				fprintf(stderr, "select error: %s\n",
-+					strerror(errno));
-+				return;
-+			}
-+
-+			if (r == 0) {
-+				fprintf(stderr, "select timeout\n");
-+				return;
-+			}
-+		}
-+
-+		if (FD_ISSET(fd, &exception_fds)) {
-+			struct v4l2_event ev;
-+
-+			while (!ioctl(fd, VIDIOC_DQEVENT, &ev)) {
-+
-+				if (ev.type != V4L2_EVENT_EOS)
-+					continue;
-+
-+				eos[CAP] = true;
-+				doioctl(fd, VIDIOC_STREAMOFF, &type[CAP]);
-+				break;
-+			}
-+		}
-+
-+		if (!eos[CAP]) {
-+			if (FD_ISSET(fd, &read_fds)) {
-+				r  = do_handle_cap(fd, &reqbufs[CAP], is_mplane, num_planes,
-+						   buffers[CAP], buffer_lengths[CAP], file[CAP],
-+						   &count[CAP], &last[CAP], &tv_last[CAP]);
-+				if (r < 0) {
-+					eos[CAP] = true;
-+					doioctl(fd, VIDIOC_STREAMOFF, &type[CAP]);
-+				}
-+			}
-+		}
-+
-+		if (!eos[OUT]) {
-+			if (FD_ISSET(fd, &write_fds)) {
-+				r  = do_handle_out(fd, &reqbufs[OUT], is_mplane, num_planes,
-+						   buffers[OUT], buffer_lengths[OUT], file[OUT],
-+						   &count[OUT], &last[OUT], &tv_last[OUT]);
-+				if (r < 0)  {
-+					eos[OUT] = true;
-+
-+					if (options[OptDecoderCmd]) {
-+						doioctl(fd, VIDIOC_DECODER_CMD, &dec_cmd);
-+						options[OptDecoderCmd] = false;
-+					}
-+
-+					doioctl(fd, VIDIOC_STREAMOFF, &type[OUT]);
-+
-+				}
-+			}
-+
-+		}
-+	}
-+
-+	fcntl(fd, F_SETFL, fd_flags);
-+	fprintf(stderr, "\n");
-+
-+	do_release_buffers(&reqbufs[CAP], num_planes, is_mmap,
-+			   buffers[CAP], buffer_lengths[CAP]);
-+
-+	do_release_buffers(&reqbufs[OUT], num_planes, is_mmap,
-+			   buffers[OUT], buffer_lengths[OUT]);
-+
-+	if (file[CAP] && file[CAP] != stdout)
-+		fclose(file[CAP]);
-+
-+	if (file[OUT] && file[OUT] != stdin)
-+		fclose(file[OUT]);
-+}
-+
- void streaming_set(int fd)
- {
- 	bool do_cap = options[OptStreamMmap] || options[OptStreamUser];
- 	bool do_out = options[OptStreamOutMmap] || options[OptStreamOutUser];
+ /*
+  * enums and structures
+  */
+@@ -87,7 +92,8 @@ struct r820t_priv {
+ 	u32				int_freq;
+ 	u8				fil_cal_code;
+ 	bool				imr_done;
+-
++	bool				has_lock;
++	bool				init_done;
+ 	struct r820t_sect_type		imr_data[NUM_IMR];
  
--	if (do_cap)
-+	if (do_cap && do_out)
-+		streaming_set_m2m(fd);
-+	else if (do_cap)
- 		streaming_set_cap(fd);
- 	else if (do_out)
- 		streaming_set_out(fd);
+ 	/* Store current mode */
+@@ -95,8 +101,6 @@ struct r820t_priv {
+ 	enum v4l2_tuner_type		type;
+ 	v4l2_std_id			std;
+ 	u32				bw;	/* in MHz */
+-
+-	bool				has_lock;
+ };
+ 
+ struct r820t_freq_range {
+@@ -1999,7 +2003,7 @@ static int r820t_imr_callibrate(struct r820t_priv *priv)
+ 	int rc, i;
+ 	int xtal_cap = 0;
+ 
+-	if (priv->imr_done)
++	if (priv->init_done)
+ 		return 0;
+ 
+ 	/* Initialize registers */
+@@ -2024,6 +2028,16 @@ static int r820t_imr_callibrate(struct r820t_priv *priv)
+ 		priv->xtal_cap_sel = xtal_cap;
+ 	}
+ 
++	/*
++	 * Disables IMR callibration. That emulates the same behaviour
++	 * as what is done by rtl-sdr userspace library. Useful for testing
++	 */
++	if (no_imr_cal) {
++		priv->init_done = true;
++
++		return 0;
++	}
++
+ 	/* Initialize registers */
+ 	rc = r820t_write(priv, 0x05,
+ 			 r820t_init_array, sizeof(r820t_init_array));
+@@ -2050,6 +2064,7 @@ static int r820t_imr_callibrate(struct r820t_priv *priv)
+ 	if (rc < 0)
+ 		return rc;
+ 
++	priv->init_done = true;
+ 	priv->imr_done = true;
+ 
+ 	return 0;
 -- 
-1.8.1.5
+1.8.1.4
 
