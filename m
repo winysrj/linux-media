@@ -1,61 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1554 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751410Ab3DOPU2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 11:20:28 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3FFKPHC088813
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 17:20:27 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 64F1A11E01E8
-	for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 17:20:24 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.10] Two bug fixes and a MAINTAINERS update
-Date: Mon, 15 Apr 2013 17:20:24 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304151720.24177.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:50451 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755885Ab3DQAnB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 20:43:01 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0h1MQ002426
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:43:01 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 15/31] [media] r820t: add support for diplexer
+Date: Tue, 16 Apr 2013 21:42:26 -0300
+Message-Id: <1366159362-3773-16-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It makes sense to get this in 3.10.
+This is part of the original driver, and adding it doesn't hurt,
+so add it, to better sync the code.
 
-Regards,
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/tuners/r820t.c | 12 ++++++++++++
+ drivers/media/tuners/r820t.h |  2 +-
+ 2 files changed, 13 insertions(+), 1 deletion(-)
 
-	Hans
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index bb154449..5be4635 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -101,6 +101,7 @@ struct r820t_freq_range {
+ };
+ 
+ #define VCO_POWER_REF   0x02
++#define DIP_FREQ	32000000
+ 
+ /*
+  * Static constants
+@@ -751,6 +752,17 @@ static int r820t_sysfreq_sel(struct r820t_priv *priv, u32 freq,
+ 		break;
+ 	}
+ 
++	if (priv->cfg->use_diplexer &&
++	   ((priv->cfg->rafael_chip == CHIP_R820T) ||
++	   (priv->cfg->rafael_chip == CHIP_R828S) ||
++	   (priv->cfg->rafael_chip == CHIP_R820C))) {
++		if (freq > DIP_FREQ)
++			air_cable1_in = 0x00;
++		else
++			air_cable1_in = 0x60;
++		cable2_in = 0x00;
++	}
++
+ 	rc = r820t_write_reg_mask(priv, 0x1d, lna_top, 0xc7);
+ 	if (rc < 0)
+ 		return rc;
+diff --git a/drivers/media/tuners/r820t.h b/drivers/media/tuners/r820t.h
+index a64a7b6..949575a 100644
+--- a/drivers/media/tuners/r820t.h
++++ b/drivers/media/tuners/r820t.h
+@@ -32,10 +32,10 @@ enum r820t_chip {
+ 
+ struct r820t_config {
+ 	u8 i2c_addr;		/* 0x34 */
+-
+ 	u32 xtal;
+ 	enum r820t_chip rafael_chip;
+ 	unsigned max_i2c_msg_len;
++	bool use_diplexer;
+ };
+ 
+ #if IS_ENABLED(CONFIG_MEDIA_TUNER_R820T)
+-- 
+1.8.1.4
 
-The following changes since commit 4c41dab4d69fb887884dc571fd70e4ddc41774fb:
-
-  [media] rc: fix single line indentation of keymaps/Makefile (2013-04-14 22:51:41 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.10
-
-for you to fetch changes up to c25adc4458686bbdbd643f50ea51fe21e98433c0:
-
-  cx88: Fix unsafe locking in suspend-resume (2013-04-15 17:10:58 +0200)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      cx88: Fix unsafe locking in suspend-resume
-
-Ismael Luceno (1):
-      solo6x10: Update the encoder mode on VIDIOC_S_FMT
-
-Lad, Prabhakar (1):
-      MAINTAINERS: change entry for davinci media driver
-
- MAINTAINERS                                        |    5 ++---
- drivers/media/pci/cx88/cx88-mpeg.c                 |   10 ++++++----
- drivers/media/pci/cx88/cx88-video.c                |   10 ++++++----
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |    1 +
- 4 files changed, 15 insertions(+), 11 deletions(-)
