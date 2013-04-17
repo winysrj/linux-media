@@ -1,46 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:59399 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751729Ab3DAGkm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 02:40:42 -0400
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MKK001DVD7FYME0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 01 Apr 2013 15:40:41 +0900 (KST)
-From: Seung-Woo Kim <sw0312.kim@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, m.szyprowski@samsung.com,
-	hans.verkuil@cisco.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com
-Subject: [RFC][PATCH 0/2] media: fix polling not to wait if a buffer is
- available
-Date: Mon, 01 Apr 2013 15:40:45 +0900
-Message-id: <1364798447-32224-1-git-send-email-sw0312.kim@samsung.com>
+Received: from mail-lb0-f175.google.com ([209.85.217.175]:60516 "EHLO
+	mail-lb0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966716Ab3DQWHg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Apr 2013 18:07:36 -0400
+Received: by mail-lb0-f175.google.com with SMTP id o10so2068999lbi.6
+        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 15:07:34 -0700 (PDT)
+To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	g.liakhovetski@gmx.de, mchehab@redhat.com,
+	linux-media@vger.kernel.org
+Subject: [PATCH 0/4] R-Car VIN driver with R8A7779/Marzen support
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: phil.edworthy@renesas.com, matsu@igel.co.jp
+Date: Thu, 18 Apr 2013 02:06:38 +0400
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304180206.39465.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As poll behavior described in following link, polling needs to just return if
-already some buffer is in done list.
-Link: http://www.spinics.net/lists/linux-media/msg34759.html
+Hello.
 
-But in current vb2 and v4l2_m2m, poll function always calls poll_wait(), so it
-needs to wait until next vb2_buffer_done() or queue is cancelled.
+   Here's the set of 4 patches against the Simon Horman's 'renesas.git' repo,
+'renesas-next-20130417' tag and my recent yet unapplied patches. Here we
+add the VIN (Video In) driver and its platform code working on the R8A7779/
+Marzen with ADV7180 I2C camera sensor. The driver patch also applies without
+issues to Mauro's 'media_tree.git'...
 
-So I add check routine for done_list before calling poll_wait().
-But I'm not sure that locking for done_lock of queue is also needed in this
-case or not because done_list of queue is checked without locking in some
-other parts of vb2.
+[1/4] V4L2: soc_camera: Renesas R-Car VIN driver
+[2/4] ARM: shmobile: r8a7779: add VIN support
+[3/4] ARM: shmobile: Marzen: add VIN and ADV7180 support
+[4/4] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
 
-Seung-Woo Kim (2):
-  media: vb2: return for polling if a buffer is available
-  media: v4l2-mem2mem: return for polling if a buffer is available
-
- drivers/media/v4l2-core/v4l2-mem2mem.c   |    6 ++++--
- drivers/media/v4l2-core/videobuf2-core.c |    3 ++-
- 2 files changed, 6 insertions(+), 3 deletions(-)
-
--- 
-1.7.4.1
-
+WBR, Sergei
