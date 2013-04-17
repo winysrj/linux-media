@@ -1,56 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:36082 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935228Ab3DIKqI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 06:46:08 -0400
-Date: Tue, 9 Apr 2013 11:46:05 +0100
-From: Sean Young <sean@mess.org>
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: mchehab@redhat.com, yongjun_wei@trendmicro.com.cn,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] rc: ttusbir: fix potential double free in
- ttusbir_probe()
-Message-ID: <20130409104605.GA15918@pequod.mess.org>
-References: <CAPgLHd-EpQB2HjpH6pGnDLzvLUyKYSmyPfqQyCWa7CPz0V9d=g@mail.gmail.com>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:58511 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965738Ab3DQHtX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Apr 2013 03:49:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Subject: Re: [patch] [media] go7007: dubious one-bit signed bitfields
+Date: Wed, 17 Apr 2013 09:49:18 +0200
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+References: <20130417072029.GF7923@elgon.mountain>
+In-Reply-To: <20130417072029.GF7923@elgon.mountain>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPgLHd-EpQB2HjpH6pGnDLzvLUyKYSmyPfqQyCWa7CPz0V9d=g@mail.gmail.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304170949.18362.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 09, 2013 at 05:43:09PM +0800, Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Wed 17 April 2013 09:20:30 Dan Carpenter wrote:
+> Because they're signed, "is_video" and "is_audio" can be 0 and -1
+> instead of 0 and 1 as intended.  It doesn't cause a bug, but it makes
+> Sparse complain:
+> drivers/staging/media/go7007/go7007-priv.h:94:31: error: dubious one-bit signed bitfield
+> drivers/staging/media/go7007/go7007-priv.h:95:31: error: dubious one-bit signed bitfield
 > 
-> Since rc_unregister_device() frees its argument, the subsequently
-> call to rc_free_device() on the same variable will cause a double
-> free bug. Fix by set argument to NULL, thus when fall through to
-> rc_free_device(), nothing will be done there.
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+Thanks!
+
+	Hans
+
 > 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> ---
->  drivers/media/rc/ttusbir.c | 1 +
->  1 file changed, 1 insertion(+)
+> diff --git a/drivers/staging/media/go7007/go7007-priv.h b/drivers/staging/media/go7007/go7007-priv.h
+> index 8bde187..6e16af7 100644
+> --- a/drivers/staging/media/go7007/go7007-priv.h
+> +++ b/drivers/staging/media/go7007/go7007-priv.h
+> @@ -91,8 +91,8 @@ struct go7007_board_info {
+>  	int num_i2c_devs;
+>  	struct go_i2c {
+>  		const char *type;
+> -		int is_video:1;
+> -		int is_audio:1;
+> +		unsigned int is_video:1;
+> +		unsigned int is_audio:1;
+>  		int addr;
+>  		u32 flags;
+>  	} i2c_devs[5];
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> diff --git a/drivers/media/rc/ttusbir.c b/drivers/media/rc/ttusbir.c
-> index cf0d47f..891762d 100644
-> --- a/drivers/media/rc/ttusbir.c
-> +++ b/drivers/media/rc/ttusbir.c
-> @@ -347,6 +347,7 @@ static int ttusbir_probe(struct usb_interface *intf,
->  	return 0;
->  out3:
->  	rc_unregister_device(rc);
-> +	rc = NULL;
->  out2:
->  	led_classdev_unregister(&tt->led);
->  out:
-
-The patch is right, so thanks for that. However, some else has beaten you
-to it, I'm afraid:
-
-http://www.spinics.net/lists/linux-media/msg62058.html
-
-I guess it's up Mauro to decide which one to accept.
-
-
-Sean
