@@ -1,97 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3814 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752261Ab3DNP17 (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:36616 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966606Ab3DQPIs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 11:27:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 16/30] cx25821: remove unnecessary debug messages.
-Date: Sun, 14 Apr 2013 17:27:12 +0200
-Message-Id: <1365953246-8972-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 17 Apr 2013 11:08:48 -0400
+Received: by mail-wi0-f177.google.com with SMTP id hj19so25697wib.16
+        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 08:08:46 -0700 (PDT)
+From: Grant Likely <grant.likely@secretlab.ca>
+Subject: Re: Compilation breakage on drivers/media due to OF patches - was: Re: [PATCH] DT: export of_get_next_parent() for use by modules: fix modular V4L2
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Rob Herring <rob.herring@calxeda.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Arnd Bergmann <arnd@arndb.de>,
+	devicetree-discuss@lists.ozlabs.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+In-Reply-To: <20130417115357.0b0f31ae@redhat.com>
+References: <Pine.LNX.4.64.1304021825130.31999@axis700.grange> <201304021630.13371.arnd@arndb.de> <Pine.LNX.4.64.1304021840590.31999@axis700.grange> <Pine.LNX.4.64.1304171555140.16330@axis700.grange> <20130417115357.0b0f31ae@redhat.com>
+Date: Wed, 17 Apr 2013 16:08:43 +0100
+Message-Id: <20130417150843.5A5A63E2B73@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, 17 Apr 2013 11:53:57 -0300, Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> Hi Grant/Rob,
+> 
+> Our tree is currently _broken_ with OT, because of the lack of 
+> exporting of_get_next_parent. The developer that submitted the patches 
+> that added V4L2 OF support forgot to test to compilation with MODULES
+> support enabled.
+> 
+> So, we're now having:
+> 	ERROR: "of_get_next_parent" [drivers/media/v4l2-core/videodev.ko] undefined!
+> 
+> if compiled with OF enabled and media as module.
+> 
+> As those patches were applied at my master branch and there are lots of
+> other patches on the top of the patches that added V4L2 OF support, 
+> I prefer to avoid reverting those patches. 
+> 
+> On the other hand, I can't send the patches upstream next week (assuming 
+> that -rc7 is the final one), without having this patch applying before 
+> the media tree.
 
-The v4l2 core already has support for debugging ioctls/file operations.
+The fix needs to be applied to your tree then. Go ahead and apply it with my ack:
 
-No need to do that again.
+Acked-by: Grant Likely <grant.likely@linaro.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx25821/cx25821-video.c |   12 ------------
- 1 file changed, 12 deletions(-)
+It is no good to apply it to the devicetree -next branch because that
+will still leave your branch broken, even if device tree gets merged
+first.
 
-diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
-index 0c11f31..6088ee9 100644
---- a/drivers/media/pci/cx25821/cx25821-video.c
-+++ b/drivers/media/pci/cx25821/cx25821-video.c
-@@ -633,9 +633,6 @@ static int video_open(struct file *file)
- 	u32 pix_format;
- 	int ch_id;
- 
--	dprintk(1, "open dev=%s type=%s\n", video_device_node_name(vdev),
--			v4l2_type_names[type]);
--
- 	for (ch_id = 0; ch_id < MAX_VID_CHANNEL_NUM - 1; ch_id++)
- 		if (&dev->channels[ch_id].vdev == vdev)
- 			break;
-@@ -922,7 +919,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 			return err;
- 	}
- 
--	dprintk(2, "%s()\n", __func__);
- 	err = cx25821_vidioc_try_fmt_vid_cap(file, priv, f);
- 
- 	if (0 != err)
-@@ -956,8 +952,6 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	dev->channels[fh->channel_id].cif_width = fh->width;
- 	medusa_set_resolution(dev, fh->width, SRAM_CH00);
- 
--	dprintk(2, "%s(): width=%d height=%d field=%d\n", __func__, fh->width,
--		fh->height, fh->vidq.field);
- 	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
- 	cx25821_call_all(dev, video, s_mbus_fmt, &mbus_fmt);
- 
-@@ -1079,8 +1073,6 @@ int cx25821_vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
- 	int err;
- 
--	dprintk(1, "%s()\n", __func__);
--
- 	if (fh) {
- 		err = v4l2_prio_check(&dev->channels[fh->channel_id].prio,
- 				      fh->prio);
-@@ -1110,7 +1102,6 @@ static int cx25821_vidioc_enum_input(struct file *file, void *priv,
- 	};
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
- 	unsigned int n;
--	dprintk(1, "%s()\n", __func__);
- 
- 	n = i->index;
- 	if (n >= CX25821_NR_INPUT)
-@@ -1131,7 +1122,6 @@ static int cx25821_vidioc_g_input(struct file *file, void *priv, unsigned int *i
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
- 
- 	*i = dev->input;
--	dprintk(1, "%s(): returns %d\n", __func__, *i);
- 	return 0;
- }
- 
-@@ -1141,8 +1131,6 @@ static int cx25821_vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 	struct cx25821_dev *dev = ((struct cx25821_fh *)priv)->dev;
- 	int err;
- 
--	dprintk(1, "%s(%d)\n", __func__, i);
--
- 	if (fh) {
- 		err = v4l2_prio_check(&dev->channels[fh->channel_id].prio,
- 				      fh->prio);
--- 
-1.7.10.4
-
+g.
