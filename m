@@ -1,66 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38718 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754659Ab3DQAmu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:50 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gnVw024253
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:49 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 12/31] [media] r820t: Invert bits for read ops
-Date: Tue, 16 Apr 2013 21:42:23 -0300
-Message-Id: <1366159362-3773-13-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from service87.mimecast.com ([91.220.42.44]:33859 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966618Ab3DQPRj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Apr 2013 11:17:39 -0400
+From: Pawel Moll <pawel.moll@arm.com>
+To: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-arm-kernel@lists.infradead.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Pawel Moll <pawel.moll@arm.com>
+Subject: [RFC 00/10] Versatile Express CLCD DVI output support
+Date: Wed, 17 Apr 2013 16:17:12 +0100
+Message-Id: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On read, the bit order is inverted.
+Hello All,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/tuners/r820t.c | 9 ++++++---
- 1 file changed, 6 insertions(+), 3 deletions(-)
+This series implements support for the Versatile Express
+video output pipeline, which is not the simplest one available...
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index 48ff6bb..79ab2b7 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -35,8 +35,10 @@
- #include <linux/videodev2.h>
- #include <linux/mutex.h>
- #include <linux/slab.h>
--#include "tuner-i2c.h"
-+#include <linux/bitrev.h>
- #include <asm/div64.h>
-+
-+#include "tuner-i2c.h"
- #include "r820t.h"
- 
- /*
-@@ -414,7 +416,7 @@ static int r820t_write_reg_mask(struct r820t_priv *priv, u8 reg, u8 val,
- 
- static int r820_read(struct r820t_priv *priv, u8 reg, u8 *val, int len)
- {
--	int rc;
-+	int rc, i;
- 	u8 *p = &priv->buf[1];
- 
- 	priv->buf[0] = reg;
-@@ -431,7 +433,8 @@ static int r820_read(struct r820t_priv *priv, u8 reg, u8 *val, int len)
- 		  __func__, reg, len, len, p);
- 
- 	/* Copy data to the output buffer */
--	memcpy(val, p, len);
-+	for (i = 0; i < len; i++)
-+		val[i] = bitrev8(p[i]);
- 
- 	return 0;
- }
--- 
-1.8.1.4
+It is meant as a RFC only and I'm hoping to attract all possible
+feedback (*including* naming ;-).
+
+The VE's "MultiMedia Bus" [1] comprises three video signal sources
+(motherboard's CLCD cell and a implementation-specific driver
+on each of the daugtherboards) and a FPGA multiplexer routing
+data from one of the sources to DVI/HDMI formatter chip (Sii9022).
+
++-----+
+| DB1 |>--+                         DVI connector
++-----+   |   +------+                   +--+
+          +-->|      |                   |oo|
++-----+       | mux  |    +---------+    |oo|
+| DB2 |>----->|      |>-->| sii9022 |>-->|oo|
++-----+       | FPGA |    +---------+    |oo|
+          +-->|      |                   |oo|
++-----+   |   +------+                   +--+
+| MB  |>--+
++-----+
+
+The series is based on Laurent Pinchart's Common Display Framework
+patch (not in mainline yet, v2 discussed here: [2]) and extends it
+by adding DT bindings and basic support for TFT panels.
+
+The CLCD driver has been adapted to work with the framework and
+the Device Tree information.
+
+Also a set of drivers for the VE-specific components is included
+(note that the sii9022 is now driven via the moterboard firmware;
+this is intended to be replaced by a proper I2C driver for the
+chip).
+
+It is worth mentioning that the CDF caters for both fbdev and DRM
+so the solution should be suitable for all potential DRM-driven
+display controllers.
+
+[1] http://infocenter.arm.com/help/topic/com.arm.doc.dui0447h/CHDEHEAA.html=
+#CACGIGGC
+[2] http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/=
+57298
+
+
+Laurent Pinchart (1):
+  video: Add generic display entity core
+
+Pawel Moll (9):
+  video: display: Update the display with the video mode data
+  video: display: Add Device Tree bindings
+  video: display: Add generic TFT display type
+  fbmon: Add extra video helper
+  video: ARM CLCD: Add DT & CDF support
+  mfd: vexpress: Allow external drivers to parse site ids
+  video: Versatile Express MUXFPGA driver
+  video: Versatile Express DVI mode driver
+  ARM: vexpress: Add CLCD Device Tree properties
+
+ .../testing/sysfs-driver-video-vexpress-muxfpga    |    5 +
+ .../devicetree/bindings/video/arm,pl11x.txt        |   35 ++
+ .../devicetree/bindings/video/display-bindings.txt |   75 ++++
+ arch/arm/boot/dts/vexpress-v2m-rs1.dtsi            |   17 +-
+ arch/arm/boot/dts/vexpress-v2m.dtsi                |   17 +-
+ arch/arm/boot/dts/vexpress-v2p-ca9.dts             |    5 +
+ drivers/mfd/vexpress-sysreg.c                      |    5 +
+ drivers/video/Kconfig                              |    2 +
+ drivers/video/Makefile                             |    5 +
+ drivers/video/amba-clcd.c                          |  244 +++++++++++
+ drivers/video/display/Kconfig                      |    4 +
+ drivers/video/display/Makefile                     |    1 +
+ drivers/video/display/display-core.c               |  447 ++++++++++++++++=
+++++
+ drivers/video/fbmon.c                              |   29 ++
+ drivers/video/vexpress-dvimode.c                   |  158 +++++++
+ drivers/video/vexpress-muxfpga.c                   |  228 ++++++++++
+ include/linux/amba/clcd.h                          |    2 +
+ include/linux/fb.h                                 |    3 +
+ include/linux/vexpress.h                           |    2 +
+ include/video/display.h                            |  172 ++++++++
+ 20 files changed, 1448 insertions(+), 8 deletions(-)
+ create mode 100644 Documentation/ABI/testing/sysfs-driver-video-vexpress-m=
+uxfpga
+ create mode 100644 Documentation/devicetree/bindings/video/arm,pl11x.txt
+ create mode 100644 Documentation/devicetree/bindings/video/display-binding=
+s.txt
+ create mode 100644 drivers/video/display/Kconfig
+ create mode 100644 drivers/video/display/Makefile
+ create mode 100644 drivers/video/display/display-core.c
+ create mode 100644 drivers/video/vexpress-dvimode.c
+ create mode 100644 drivers/video/vexpress-muxfpga.c
+ create mode 100644 include/video/display.h
+
+--=20
+1.7.10.4
+
 
