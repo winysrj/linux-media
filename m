@@ -1,97 +1,272 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3plsmtp18-02-2.prod.phx3.secureserver.net ([173.201.193.184]:42708
-	"EHLO p3plwbeout18-02.prod.phx3.secureserver.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753298Ab3DKHVr convert rfc822-to-8bit (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:47733 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966162Ab3DQMty (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 03:21:47 -0400
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
-Message-Id: <20130411002145.e7c3a0fec861aa4693105436139f36a5.dcced109aa.wbe@email18.secureserver.net>
-From: <leo@lumanate.com>
-To: "Hans Verkuil" <hansverk@cisco.com>, linux-media@vger.kernel.org
-Cc: "Janne Grunau" <j@jannau.net>,
-	"Hans Verkuil" <hans.verkuil@cisco.com>
-Subject: RE: [REVIEWv2 PATCH 12/12] hdpvr: allow =?UTF-8?Q?g/s=5Fstd=20when=20in?=
- =?UTF-8?Q?=20legacy=20mode=2E?=
-Date: Thu, 11 Apr 2013 00:21:45 -0700
-Mime-Version: 1.0
+	Wed, 17 Apr 2013 08:49:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 1/2] [media] videobuf-dma-contig: remove support for cached mem
+Date: Wed, 17 Apr 2013 14:49:47 +0200
+Cc: Clemens Ladisch <clemens@ladisch.de>,
+	Arnd Bergmann <arnd@arndb.de>, Takashi Iwai <tiwai@suse.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <20130417074300.33d05475@redhat.com> <1366201336-9481-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366201336-9481-1-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304171449.47850.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
-
-The current HEAD is working for both MythTV and gstreamer!
-
-Will you be doing more work on hdpvr? Should I start
-looking into error handling and kmallocs?
-
-Thank you,
--Leo.
-
-
--------- Original Message --------
-Subject: Re: [REVIEWv2 PATCH 12/12] hdpvr: allow g/s_std when in legacy
-mode.
-From: Hans Verkuil <hansverk@cisco.com>
-Date: Wed, April 10, 2013 10:25 am
-To: linux-media@vger.kernel.org
-Cc: leo@lumanate.com, Janne Grunau <j@jannau.net>, Hans Verkuil
-<hans.verkuil@cisco.com>
-
-On Wed April 10 2013 18:27:43 Hans Verkuil wrote:
-> Leo, can you verify that this works for you as well? I tested it without
-> problems with MythTV and gstreamer.
+On Wed 17 April 2013 14:22:15 Mauro Carvalho Chehab wrote:
+> videobuf_queue_dma_contig_init_cached() is not used anywhere.
+> Drop support for it, cleaning up the code a little bit.
 > 
-> Thanks!
-> 
-> Hans
-> 
-> Both MythTV and gstreamer expect that they can set/get/query/enumerate the
-> standards, even if the input is the component input for which standards
-> really do not apply.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+Nice!
+
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+
 > ---
-> drivers/media/usb/hdpvr/hdpvr-video.c | 40 ++++++++++++++++++++++++---------
-> 1 file changed, 29 insertions(+), 11 deletions(-)
+>  drivers/media/v4l2-core/videobuf-dma-contig.c | 130 +++-----------------------
+>  include/media/videobuf-dma-contig.h           |  10 --
+>  2 files changed, 14 insertions(+), 126 deletions(-)
 > 
-> diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-> index 4376309..38724d7 100644
-> --- a/drivers/media/usb/hdpvr/hdpvr-video.c
-> +++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-
-
-> -static int vidioc_enum_input(struct file *file, void *priv,
-> - struct v4l2_input *i)
-> +static int vidioc_enum_input(struct file *file, void *_fh, struct v4l2_input *i)
-> {
-> + struct hdpvr_fh *fh = _fh;
-> unsigned int n;
+> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+> index 3a43ba0..67f572c 100644
+> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+> @@ -27,7 +27,6 @@ struct videobuf_dma_contig_memory {
+>  	u32 magic;
+>  	void *vaddr;
+>  	dma_addr_t dma_handle;
+> -	bool cached;
+>  	unsigned long size;
+>  };
+>  
+> @@ -43,26 +42,8 @@ static int __videobuf_dc_alloc(struct device *dev,
+>  			       unsigned long size, gfp_t flags)
+>  {
+>  	mem->size = size;
+> -	if (mem->cached) {
+> -		mem->vaddr = alloc_pages_exact(mem->size, flags | GFP_DMA);
+> -		if (mem->vaddr) {
+> -			int err;
+> -
+> -			mem->dma_handle = dma_map_single(dev, mem->vaddr,
+> -							 mem->size,
+> -							 DMA_FROM_DEVICE);
+> -			err = dma_mapping_error(dev, mem->dma_handle);
+> -			if (err) {
+> -				dev_err(dev, "dma_map_single failed\n");
+> -
+> -				free_pages_exact(mem->vaddr, mem->size);
+> -				mem->vaddr = NULL;
+> -				return err;
+> -			}
+> -		}
+> -	} else
+> -		mem->vaddr = dma_alloc_coherent(dev, mem->size,
+> -						&mem->dma_handle, flags);
+> +	mem->vaddr = dma_alloc_coherent(dev, mem->size,
+> +					&mem->dma_handle, flags);
+>  
+>  	if (!mem->vaddr) {
+>  		dev_err(dev, "memory alloc size %ld failed\n", mem->size);
+> @@ -77,14 +58,7 @@ static int __videobuf_dc_alloc(struct device *dev,
+>  static void __videobuf_dc_free(struct device *dev,
+>  			       struct videobuf_dma_contig_memory *mem)
+>  {
+> -	if (mem->cached) {
+> -		if (!mem->vaddr)
+> -			return;
+> -		dma_unmap_single(dev, mem->dma_handle, mem->size,
+> -				 DMA_FROM_DEVICE);
+> -		free_pages_exact(mem->vaddr, mem->size);
+> -	} else
+> -		dma_free_coherent(dev, mem->size, mem->vaddr, mem->dma_handle);
+> +	dma_free_coherent(dev, mem->size, mem->vaddr, mem->dma_handle);
+>  
+>  	mem->vaddr = NULL;
+>  }
+> @@ -234,7 +208,7 @@ out_up:
+>  	return ret;
+>  }
+>  
+> -static struct videobuf_buffer *__videobuf_alloc_vb(size_t size, bool cached)
+> +static struct videobuf_buffer *__videobuf_alloc(size_t size)
+>  {
+>  	struct videobuf_dma_contig_memory *mem;
+>  	struct videobuf_buffer *vb;
+> @@ -244,22 +218,11 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size, bool cached)
+>  		vb->priv = ((char *)vb) + size;
+>  		mem = vb->priv;
+>  		mem->magic = MAGIC_DC_MEM;
+> -		mem->cached = cached;
+>  	}
+>  
+>  	return vb;
+>  }
+>  
+> -static struct videobuf_buffer *__videobuf_alloc_uncached(size_t size)
+> -{
+> -	return __videobuf_alloc_vb(size, false);
+> -}
+> -
+> -static struct videobuf_buffer *__videobuf_alloc_cached(size_t size)
+> -{
+> -	return __videobuf_alloc_vb(size, true);
+> -}
+> -
+>  static void *__videobuf_to_vaddr(struct videobuf_buffer *buf)
+>  {
+>  	struct videobuf_dma_contig_memory *mem = buf->priv;
+> @@ -310,19 +273,6 @@ static int __videobuf_iolock(struct videobuf_queue *q,
+>  	return 0;
+>  }
+>  
+> -static int __videobuf_sync(struct videobuf_queue *q,
+> -			   struct videobuf_buffer *buf)
+> -{
+> -	struct videobuf_dma_contig_memory *mem = buf->priv;
+> -	BUG_ON(!mem);
+> -	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
+> -
+> -	dma_sync_single_for_cpu(q->dev, mem->dma_handle, mem->size,
+> -				DMA_FROM_DEVICE);
+> -
+> -	return 0;
+> -}
+> -
+>  static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>  				  struct videobuf_buffer *buf,
+>  				  struct vm_area_struct *vma)
+> @@ -331,8 +281,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>  	struct videobuf_mapping *map;
+>  	int retval;
+>  	unsigned long size;
+> -	unsigned long pos, start = vma->vm_start;
+> -	struct page *page;
+>  
+>  	dev_dbg(q->dev, "%s\n", __func__);
+>  
+> @@ -359,43 +307,16 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+>  	size = vma->vm_end - vma->vm_start;
+>  	size = (size < mem->size) ? size : mem->size;
+>  
+> -	if (!mem->cached) {
+> -		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+> -		retval = remap_pfn_range(vma, vma->vm_start,
+> -			 mem->dma_handle >> PAGE_SHIFT,
+> +	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+> +	retval = remap_pfn_range(vma, vma->vm_start,
+> +				 mem->dma_handle >> PAGE_SHIFT,
+>  				 size, vma->vm_page_prot);
+> -		if (retval) {
+> -			dev_err(q->dev, "mmap: remap failed with error %d. ",
+> -								retval);
+> -			dma_free_coherent(q->dev, mem->size,
+> -					mem->vaddr, mem->dma_handle);
+> -			goto error;
+> -		}
+> -	} else {
+> -		pos = (unsigned long)mem->vaddr;
+> -
+> -		while (size > 0) {
+> -			page = virt_to_page((void *)pos);
+> -			if (NULL == page) {
+> -				dev_err(q->dev, "mmap: virt_to_page failed\n");
+> -				__videobuf_dc_free(q->dev, mem);
+> -				goto error;
+> -			}
+> -			retval = vm_insert_page(vma, start, page);
+> -			if (retval) {
+> -				dev_err(q->dev, "mmap: insert failed with error %d\n",
+> -					retval);
+> -				__videobuf_dc_free(q->dev, mem);
+> -				goto error;
+> -			}
+> -			start += PAGE_SIZE;
+> -			pos += PAGE_SIZE;
+> -
+> -			if (size > PAGE_SIZE)
+> -				size -= PAGE_SIZE;
+> -			else
+> -				size = 0;
+> -		}
+> +	if (retval) {
+> +		dev_err(q->dev, "mmap: remap failed with error %d. ",
+> +			retval);
+> +		dma_free_coherent(q->dev, mem->size,
+> +				  mem->vaddr, mem->dma_handle);
+> +		goto error;
+>  	}
+>  
+>  	vma->vm_ops = &videobuf_vm_ops;
+> @@ -417,17 +338,8 @@ error:
+>  
+>  static struct videobuf_qtype_ops qops = {
+>  	.magic		= MAGIC_QTYPE_OPS,
+> -	.alloc_vb	= __videobuf_alloc_uncached,
+> -	.iolock		= __videobuf_iolock,
+> -	.mmap_mapper	= __videobuf_mmap_mapper,
+> -	.vaddr		= __videobuf_to_vaddr,
+> -};
+> -
+> -static struct videobuf_qtype_ops qops_cached = {
+> -	.magic		= MAGIC_QTYPE_OPS,
+> -	.alloc_vb	= __videobuf_alloc_cached,
+> +	.alloc_vb	= __videobuf_alloc,
+>  	.iolock		= __videobuf_iolock,
+> -	.sync		= __videobuf_sync,
+>  	.mmap_mapper	= __videobuf_mmap_mapper,
+>  	.vaddr		= __videobuf_to_vaddr,
+>  };
+> @@ -447,20 +359,6 @@ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
+>  }
+>  EXPORT_SYMBOL_GPL(videobuf_queue_dma_contig_init);
+>  
+> -void videobuf_queue_dma_contig_init_cached(struct videobuf_queue *q,
+> -					   const struct videobuf_queue_ops *ops,
+> -					   struct device *dev,
+> -					   spinlock_t *irqlock,
+> -					   enum v4l2_buf_type type,
+> -					   enum v4l2_field field,
+> -					   unsigned int msize,
+> -					   void *priv, struct mutex *ext_lock)
+> -{
+> -	videobuf_queue_core_init(q, ops, dev, irqlock, type, field, msize,
+> -				 priv, &qops_cached, ext_lock);
+> -}
+> -EXPORT_SYMBOL_GPL(videobuf_queue_dma_contig_init_cached);
+> -
+>  dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf)
+>  {
+>  	struct videobuf_dma_contig_memory *mem = buf->priv;
+> diff --git a/include/media/videobuf-dma-contig.h b/include/media/videobuf-dma-contig.h
+> index f473aeb..f0ed825 100644
+> --- a/include/media/videobuf-dma-contig.h
+> +++ b/include/media/videobuf-dma-contig.h
+> @@ -26,16 +26,6 @@ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
+>  				    void *priv,
+>  				    struct mutex *ext_lock);
+>  
+> -void videobuf_queue_dma_contig_init_cached(struct videobuf_queue *q,
+> -					   const struct videobuf_queue_ops *ops,
+> -					   struct device *dev,
+> -					   spinlock_t *irqlock,
+> -					   enum v4l2_buf_type type,
+> -					   enum v4l2_field field,
+> -					   unsigned int msize,
+> -					   void *priv,
+> -					   struct mutex *ext_lock);
+> -
+>  dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf);
+>  void videobuf_dma_contig_free(struct videobuf_queue *q,
+>  			      struct videobuf_buffer *buf);
 > 
-> n = i->index;
-> @@ -758,13 +761,15 @@ static int vidioc_enum_input(struct file *file, void *priv,
-> 
-> i->audioset = 1<<HDPVR_RCA_FRONT | 1><<HDPVR_RCA_BACK | 1><<HDPVR_SPDIF;
-> 
-> + if (fh->legacy_mode)
-> + n = 1;
-
-Oops, these two lines should be removed. Otherwise non-legacy apps like
-qv4l2 will
-break as they rely on accurate capability reporting.
-
-> i->capabilities = n ? V4L2_IN_CAP_STD : V4L2_IN_CAP_DV_TIMINGS;
-> i->std = n ? V4L2_STD_ALL : 0;
-> 
-> return 0;
-> }
-
-Regards,
-
- Hans
---
-To unsubscribe from this list: send the line "unsubscribe linux-media"
-in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at http://vger.kernel.org/majordomo-info.html
