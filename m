@@ -1,53 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:52913 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934445Ab3DSWfi (ORCPT
+Received: from service87.mimecast.com ([91.220.42.44]:38715 "EHLO
+	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754424Ab3DQPSU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 18:35:38 -0400
-Received: by mail-la0-f53.google.com with SMTP id eg20so135899lab.26
-        for <linux-media@vger.kernel.org>; Fri, 19 Apr 2013 15:35:37 -0700 (PDT)
-To: linux@arm.linux.org.uk, linux-sh@vger.kernel.org,
+	Wed, 17 Apr 2013 11:18:20 -0400
+From: Pawel Moll <pawel.moll@arm.com>
+To: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org,
 	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v2 4/4] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
-Cc: horms@verge.net.au, magnus.damm@gmail.com,
-	linux-media@vger.kernel.org, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Sat, 20 Apr 2013 02:34:46 +0400
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304200234.47400.sergei.shtylyov@cogentembedded.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linus Walleij <linus.walleij@linaro.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	Pawel Moll <pawel.moll@arm.com>
+Subject: [RFC 04/10] video: display: Add generic TFT display type
+Date: Wed, 17 Apr 2013 16:17:16 +0100
+Message-Id: <1366211842-21497-5-git-send-email-pawel.moll@arm.com>
+In-Reply-To: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
+References: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
+Content-Type: text/plain; charset=WINDOWS-1252
+Content-Transfer-Encoding: quoted-printable
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+TFT panels may be interfaced via a simple parallel interface
+carrying RGB data, pixel clock and synchronisation signals.
+>From the video generator point of view the width of the data
+channels (number of bits per R/G/B components) may be an
+important factor in setting up the display model.
 
-Add the VIN and ADV7180 drivers to 'marzen_defconfig'.
+Above information is based on the presentations by Dave Anders
+available here: http://elinux.org/Elc-lcd
 
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+This patch adds the parallel TFT display type and basic parameters
+structure. Maybe it should be split into a separate header, eg.
+include/video/tft.h? Or maybe it's just the INTERFACE_DPI I'm
+talking about?
 
+Signed-off-by: Pawel Moll <pawel.moll@arm.com>
 ---
- arch/arm/configs/marzen_defconfig |    7 +++++++
- 1 file changed, 7 insertions(+)
+ include/video/display.h |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-Index: renesas/arch/arm/configs/marzen_defconfig
-===================================================================
---- renesas.orig/arch/arm/configs/marzen_defconfig
-+++ renesas/arch/arm/configs/marzen_defconfig
-@@ -84,6 +84,13 @@ CONFIG_GPIO_RCAR=y
- CONFIG_THERMAL=y
- CONFIG_RCAR_THERMAL=y
- CONFIG_SSB=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_SOC_CAMERA=y
-+CONFIG_VIDEO_RCAR_VIN=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ADV7180=y
- CONFIG_USB=y
- CONFIG_USB_RCAR_PHY=y
- CONFIG_MMC=y
+diff --git a/include/video/display.h b/include/video/display.h
+index 7fe8b2f..875e230 100644
+--- a/include/video/display.h
++++ b/include/video/display.h
+@@ -69,10 +69,19 @@ enum display_entity_stream_state {
+=20
+ enum display_entity_interface_type {
+ =09DISPLAY_ENTITY_INTERFACE_DPI,
++=09DISPLAY_ENTITY_INTERFACE_TFT_PARALLEL,
++};
++
++struct tft_parallel_interface_params {
++=09int r_bits, g_bits, b_bits;
++=09int r_b_swapped;
+ };
+=20
+ struct display_entity_interface_params {
+ =09enum display_entity_interface_type type;
++=09union {
++=09=09struct tft_parallel_interface_params tft_parallel;
++=09} p;
+ };
+=20
+ struct display_entity_control_ops {
+--=20
+1.7.10.4
+
+
