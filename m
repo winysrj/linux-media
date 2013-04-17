@@ -1,98 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1646 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760293Ab3DBSSS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 14:18:18 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r32IIEqH065761
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 2 Apr 2013 20:18:17 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id DA5B511E0104
-	for <linux-media@vger.kernel.org>; Tue,  2 Apr 2013 20:18:12 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130402181812.DA5B511E0104@alastor.dyndns.org>
-Date: Tue,  2 Apr 2013 20:18:12 +0200 (CEST)
+Received: from mx1.redhat.com ([209.132.183.28]:8119 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755573Ab3DQAm5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 20:42:57 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gu4q031262
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:56 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 02/31] [media] rtl28xxu: add support for Rafael Micro r820t
+Date: Tue, 16 Apr 2013 21:42:13 -0300
+Message-Id: <1366159362-3773-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This tuner is used on some rtl2882 dongles. Add it to the driver.
 
-Results of the daily build of media_tree:
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/dvb-usb-v2/Kconfig    |  1 +
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 30 ++++++++++++++++++++++++++++++
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h |  1 +
+ 3 files changed, 32 insertions(+)
 
-date:		Tue Apr  2 19:00:23 CEST 2013
-git branch:	test
-git hash:	f9f11dfe4831adb1531e1face9dcd9fc57665d2e
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+diff --git a/drivers/media/usb/dvb-usb-v2/Kconfig b/drivers/media/usb/dvb-usb-v2/Kconfig
+index 9aff035..a3c8ecf 100644
+--- a/drivers/media/usb/dvb-usb-v2/Kconfig
++++ b/drivers/media/usb/dvb-usb-v2/Kconfig
+@@ -143,6 +143,7 @@ config DVB_USB_RTL28XXU
+ 	select MEDIA_TUNER_FC0013 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_E4000 if MEDIA_SUBDRV_AUTOSELECT
+ 	select MEDIA_TUNER_FC2580 if MEDIA_SUBDRV_AUTOSELECT
++	select MEDIA_TUNER_R820T if MEDIA_SUBDRV_AUTOSELECT
+ 	help
+ 	  Say Y here to support the Realtek RTL28xxU DVB USB receiver.
+ 
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 3d128a5..18756a6 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -33,6 +33,7 @@
+ #include "e4000.h"
+ #include "fc2580.h"
+ #include "tua9001.h"
++#include "r820t.h"
+ 
+ DVB_DEFINE_MOD_OPT_ADAPTER_NR(adapter_nr);
+ 
+@@ -375,6 +376,7 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
+ 	struct rtl28xxu_req req_mxl5007t = {0xd9c0, CMD_I2C_RD, 1, buf};
+ 	struct rtl28xxu_req req_e4000 = {0x02c8, CMD_I2C_RD, 1, buf};
+ 	struct rtl28xxu_req req_tda18272 = {0x00c0, CMD_I2C_RD, 2, buf};
++	struct rtl28xxu_req req_r820t = {0x0034, CMD_I2C_RD, 5, buf};
+ 
+ 	dev_dbg(&d->udev->dev, "%s:\n", __func__);
+ 
+@@ -479,6 +481,14 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
+ 		goto found;
+ 	}
+ 
++	/* check R820T by reading tuner stats at I2C addr 0x1a */
++	ret = rtl28xxu_ctrl_msg(d, &req_r820t);
++	if (ret == 0) {
++		priv->tuner = TUNER_RTL2832_R820T;
++		priv->tuner_name = "R820T";
++		goto found;
++	}
++
+ found:
+ 	dev_dbg(&d->udev->dev, "%s: tuner=%s\n", __func__, priv->tuner_name);
+ 
+@@ -589,6 +599,12 @@ static struct rtl2832_config rtl28xxu_rtl2832_e4000_config = {
+ 	.tuner = TUNER_RTL2832_E4000,
+ };
+ 
++static struct rtl2832_config rtl28xxu_rtl2832_r820t_config = {
++	.i2c_addr = 0x10,
++	.xtal = 28800000,
++	.tuner = TUNER_RTL2832_R820T,
++};
++
+ static int rtl2832u_fc0012_tuner_callback(struct dvb_usb_device *d,
+ 		int cmd, int arg)
+ {
+@@ -728,6 +744,9 @@ static int rtl2832u_frontend_attach(struct dvb_usb_adapter *adap)
+ 	case TUNER_RTL2832_E4000:
+ 		rtl2832_config = &rtl28xxu_rtl2832_e4000_config;
+ 		break;
++	case TUNER_RTL2832_R820T:
++		rtl2832_config = &rtl28xxu_rtl2832_r820t_config;
++		break;
+ 	default:
+ 		dev_err(&d->udev->dev, "%s: unknown tuner=%s\n",
+ 				KBUILD_MODNAME, priv->tuner_name);
+@@ -840,6 +859,13 @@ static const struct fc0012_config rtl2832u_fc0012_config = {
+ 	.xtal_freq = FC_XTAL_28_8_MHZ,
+ };
+ 
++static const struct r820t_config rtl2832u_r820t_config = {
++	.i2c_addr = 0x1a,
++	.xtal = 28800000,
++	.max_i2c_msg_len = 2,
++	.rafael_chip = CHIP_R820T,
++};
++
+ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ {
+ 	int ret;
+@@ -889,6 +915,10 @@ static int rtl2832u_tuner_attach(struct dvb_usb_adapter *adap)
+ 		fe = dvb_attach(tua9001_attach, adap->fe[0], &d->i2c_adap,
+ 				&rtl2832u_tua9001_config);
+ 		break;
++	case TUNER_RTL2832_R820T:
++		fe = dvb_attach(r820t_attach, adap->fe[0], &d->i2c_adap,
++				&rtl2832u_r820t_config);
++		break;
+ 	default:
+ 		fe = NULL;
+ 		dev_err(&d->udev->dev, "%s: unknown tuner=%d\n", KBUILD_MODNAME,
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 2f3af2d..533a331 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -82,6 +82,7 @@ enum rtl28xxu_tuner {
+ 	TUNER_RTL2832_E4000,
+ 	TUNER_RTL2832_TDA18272,
+ 	TUNER_RTL2832_FC0013,
++	TUNER_RTL2832_R820T,
+ };
+ 
+ struct rtl28xxu_req {
+-- 
+1.8.1.4
 
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
