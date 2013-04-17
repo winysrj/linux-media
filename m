@@ -1,85 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:38143 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:63722 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751327Ab3DPJOv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 05:14:51 -0400
-Date: Tue, 16 Apr 2013 06:12:43 -0300
+	id S966238Ab3DQMXd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Apr 2013 08:23:33 -0400
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: David Rientjes <rientjes@google.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH -next] media:
-Message-ID: <20130416061243.22d06140@redhat.com>
-In-Reply-To: <alpine.DEB.2.02.1304152010180.3952@chino.kir.corp.google.com>
-References: <20130408174343.cc13eb1972470d20d38ecff1@canb.auug.org.au>
-	<51630297.2040803@infradead.org>
-	<516461FE.4020007@iki.fi>
-	<alpine.DEB.2.02.1304152010180.3952@chino.kir.corp.google.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Arnd Bergmann <arnd@arndb.de>, Takashi Iwai <tiwai@suse.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/2] [media] videobuf-dma-contig: use vm_iomap_memory()
+Date: Wed, 17 Apr 2013 09:22:16 -0300
+Message-Id: <1366201336-9481-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366201336-9481-1-git-send-email-mchehab@redhat.com>
+References: <20130417074300.33d05475@redhat.com>
+ <1366201336-9481-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 15 Apr 2013 20:10:49 -0700 (PDT)
-David Rientjes <rientjes@google.com> escreveu:
+vm_iomap_memory() provides a better end user interface than
+remap_pfn_range(), as it does the needed tests before doing
+mmap.
 
-> On Tue, 9 Apr 2013, Antti Palosaari wrote:
-> 
-> > On 04/08/2013 08:47 PM, Randy Dunlap wrote:
-> > > From: Randy Dunlap <rdunlap@infradead.org>
-> > > 
-> > > Fix randconfig error when USB is not enabled:
-> > > 
-> > > ERROR: "usb_control_msg" [drivers/media/common/cypress_firmware.ko]
-> > > undefined!
-> > > 
-> > > Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> > > Cc: Antti Palosaari <crope@iki.fi>
-> > 
-> > Reviewed-by: Antti Palosaari <crope@iki.fi>
-> > 
-> > 
-> > > ---
-> > >   drivers/media/common/Kconfig |    1 +
-> > >   1 file changed, 1 insertion(+)
-> > > 
-> > > --- linux-next-20130408.orig/drivers/media/common/Kconfig
-> > > +++ linux-next-20130408/drivers/media/common/Kconfig
-> > > @@ -18,6 +18,7 @@ config VIDEO_TVEEPROM
-> > > 
-> > >   config CYPRESS_FIRMWARE
-> > >   	tristate "Cypress firmware helper routines"
-> > > +	depends on USB
-> > > 
-> > >   source "drivers/media/common/b2c2/Kconfig"
-> > >   source "drivers/media/common/saa7146/Kconfig"
-> > > 
-> 
-> Mauro, this problem persists in linux-next seven days later, any chance we 
-> can get this fix from Randy merged?
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/v4l2-core/videobuf-dma-contig.c | 7 +------
+ 1 file changed, 1 insertion(+), 6 deletions(-)
 
-AFAIKT, this got merged at -next already:
+diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+index 67f572c..7e6b209 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+@@ -303,14 +303,9 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
+ 		goto error;
+ 
+ 	/* Try to remap memory */
+-
+ 	size = vma->vm_end - vma->vm_start;
+-	size = (size < mem->size) ? size : mem->size;
+-
+ 	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+-	retval = remap_pfn_range(vma, vma->vm_start,
+-				 mem->dma_handle >> PAGE_SHIFT,
+-				 size, vma->vm_page_prot);
++	retval = vm_iomap_memory(vma, vma->vm_start, size);
+ 	if (retval) {
+ 		dev_err(q->dev, "mmap: remap failed with error %d. ",
+ 			retval);
+-- 
+1.8.1.4
 
-commit 7c15b715ef301a7f8bb2dc8de335497ffde568a6
-Author:     Randy Dunlap <rdunlap@infradead.org>
-AuthorDate: Mon Apr 8 13:47:03 2013 -0300
-Commit:     Mauro Carvalho Chehab <mchehab@redhat.com>
-CommitDate: Sun Apr 14 20:04:08 2013 -0300
-
-    [media] media: Fix randconfig error
-    
-    Fix randconfig error when USB is not enabled:
-    ERROR: "usb_control_msg" [drivers/media/common/cypress_firmware.ko] undefined!
-    
-    Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-    Reviewed-by: Antti Palosaari <crope@iki.fi>
-    Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-    Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-Regards,
-Mauro
