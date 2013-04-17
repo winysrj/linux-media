@@ -1,43 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4893 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934783Ab3DHK7X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 01/12] videodev2.h: fix incorrect V4L2_DV_FL_HALF_LINE bitmask.
-Date: Mon,  8 Apr 2013 12:58:30 +0200
-Message-Id: <1365418721-23859-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:28778 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754659Ab3DQAms (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 20:42:48 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gmuE031237
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:48 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 10/31] [media] r820t: use the right IF for the selected TV standard
+Date: Tue, 16 Apr 2013 21:42:21 -0300
+Message-Id: <1366159362-3773-11-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+IF is set at r820t_set_tv_standard(). So, we can't calculate
+LO frequency before calling it.
 
-This was set to 1 << 0 which is the same as V4L2_DV_FL_REDUCED_BLANKING.
-It should be 1 << 3 instead. Luckily interlaced formats are rarely used,
-which is why this bug wasn't seen until now.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- include/uapi/linux/videodev2.h |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/tuners/r820t.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index e9c49c5..8453c50 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1074,7 +1074,7 @@ struct v4l2_bt_timings {
-    longer and field 2 is really one half-line shorter, so each field has
-    exactly the same number of half-lines. Whether half-lines can be detected
-    or used depends on the hardware. */
--#define V4L2_DV_FL_HALF_LINE			(1 << 0)
-+#define V4L2_DV_FL_HALF_LINE			(1 << 3)
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index 2ecf1d2..48ff6bb 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -1193,15 +1193,15 @@ static int generic_set_freq(struct dvb_frontend *fe,
+ 	tuner_dbg("should set frequency to %d kHz, bw %d MHz\n",
+ 		  freq / 1000, bw);
  
++	rc = r820t_set_tv_standard(priv, bw, type, std, delsys);
++	if (rc < 0)
++		goto err;
++
+ 	if ((type == V4L2_TUNER_ANALOG_TV) && (std == V4L2_STD_SECAM_LC))
+ 		lo_freq = freq - priv->int_freq;
+ 	 else
+ 		lo_freq = freq + priv->int_freq;
  
- /** struct v4l2_dv_timings - DV timings
+-	rc = r820t_set_tv_standard(priv, bw, type, std, delsys);
+-	if (rc < 0)
+-		goto err;
+-
+ 	rc = r820t_set_mux(priv, lo_freq);
+ 	if (rc < 0)
+ 		goto err;
 -- 
-1.7.10.4
+1.8.1.4
 
