@@ -1,84 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48592 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:11575 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S936043Ab3DQTSx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 15:18:53 -0400
-Message-ID: <516EF569.8070709@iki.fi>
-Date: Wed, 17 Apr 2013 22:18:01 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Steven Toth <stoth@linuxtv.org>,
-	Michael Krufky <mkrufky@linuxtv.org>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Darron Broad <darron@kewl.org>, linux-media@vger.kernel.org,
-	kernel-janitors@vger.kernel.org
-Subject: Re: [RFC] [media] dvb-core: check ->msg_len for diseqc_send_master_cmd()
-References: <20130402075102.GA11233@longonot.mountain> <20130417120314.GX6692@mwanda>
-In-Reply-To: <20130417120314.GX6692@mwanda>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1754890Ab3DQAmu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Apr 2013 20:42:50 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gn2P003901
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:49 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH v2 11/31] [media] rtl2832: properly set en_bbin for r820t
+Date: Tue, 16 Apr 2013 21:42:22 -0300
+Message-Id: <1366159362-3773-12-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/2013 03:03 PM, Dan Carpenter wrote:
-> Any feedback on this?
->
-> I forgot to CC Steven Toth last time because he would know about the
-> cx24116 driver.  I've looked at it again and it still looks like
-> cx24116_send_diseqc_msg() is copying garbage into the
-> state->dsec_cmd.args[] array.
+DVBT_EN_BBIN should be set on both places where IF is set. So,
+move it to a function and call it where needed.
 
-It looks fine. I have thought that same few times earlier too. Thank you.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb-frontends/rtl2832.c | 63 +++++++++++++++++------------------
+ 1 file changed, 31 insertions(+), 32 deletions(-)
 
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-
-
-
->
-> regards,
-> dan carpenter
->
-> On Tue, Apr 02, 2013 at 10:51:02AM +0300, Dan Carpenter wrote:
->> I'd like to send this patch except that it "breaks"
->> cx24116_send_diseqc_msg().  The cx24116 driver accepts ->msg_len values
->> up to 24 but it looks like it's just copying 16 bytes past the end of
->> the ->msg[] array so it's already broken.
->>
->> cmd->msg_len is an unsigned char.  The comment next to the struct
->> declaration says that valid values are are 3-6.  Some of the drivers
->> check that this is true, but most don't and it could cause memory
->> corruption.
->>
->> Some examples of functions which don't check are:
->> ttusbdecfe_dvbs_diseqc_send_master_cmd()
->> cx24123_send_diseqc_msg()
->> ds3000_send_diseqc_msg()
->> etc.
->>
->> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
->>
->> diff --git a/drivers/media/dvb-core/dvb_frontend.c b/drivers/media/dvb-core/dvb_frontend.c
->> index 57601c0..3d1eee6 100644
->> --- a/drivers/media/dvb-core/dvb_frontend.c
->> +++ b/drivers/media/dvb-core/dvb_frontend.c
->> @@ -2265,7 +2265,13 @@ static int dvb_frontend_ioctl_legacy(struct file *file,
->>
->>   	case FE_DISEQC_SEND_MASTER_CMD:
->>   		if (fe->ops.diseqc_send_master_cmd) {
->> -			err = fe->ops.diseqc_send_master_cmd(fe, (struct dvb_diseqc_master_cmd*) parg);
->> +			struct dvb_diseqc_master_cmd *cmd = parg;
->> +
->> +			if (cmd->msg_len >= 3 && cmd->msg_len <= 6)
->> +				err = fe->ops.diseqc_send_master_cmd(fe, cmd);
->> +			else
->> +				err = -EINVAL;
->> +
->>   			fepriv->state = FESTATE_DISEQC;
->>   			fepriv->status = 0;
->>   		}
-
-
+diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
+index b6f50c7..2f5a2b5 100644
+--- a/drivers/media/dvb-frontends/rtl2832.c
++++ b/drivers/media/dvb-frontends/rtl2832.c
+@@ -380,13 +380,37 @@ err:
+ 	return ret;
+ }
+ 
+-static int rtl2832_init(struct dvb_frontend *fe)
++
++static int rtl2832_set_if(struct dvb_frontend *fe, u32 if_freq)
+ {
+ 	struct rtl2832_priv *priv = fe->demodulator_priv;
+-	int i, ret, len;
+-	u8 en_bbin;
++	int ret;
+ 	u64 pset_iffreq;
++	u8 en_bbin = (if_freq == 0 ? 0x1 : 0x0);
++
++	/*
++	* PSET_IFFREQ = - floor((IfFreqHz % CrystalFreqHz) * pow(2, 22)
++	*		/ CrystalFreqHz)
++	*/
++
++	pset_iffreq = if_freq % priv->cfg.xtal;
++	pset_iffreq *= 0x400000;
++	pset_iffreq = div_u64(pset_iffreq, priv->cfg.xtal);
++	pset_iffreq = pset_iffreq & 0x3fffff;
++	ret = rtl2832_wr_demod_reg(priv, DVBT_EN_BBIN, en_bbin);
++	if (ret)
++		return ret;
++
++	ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
++
++	return (ret);
++}
++
++static int rtl2832_init(struct dvb_frontend *fe)
++{
++	struct rtl2832_priv *priv = fe->demodulator_priv;
+ 	const struct rtl2832_reg_value *init;
++	int i, ret, len;
+ 
+ 	/* initialization values for the demodulator registers */
+ 	struct rtl2832_reg_value rtl2832_initial_regs[] = {
+@@ -436,8 +460,6 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 
+ 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
+ 
+-	en_bbin = (priv->cfg.if_dvbt == 0 ? 0x1 : 0x0);
+-
+ 	for (i = 0; i < ARRAY_SIZE(rtl2832_initial_regs); i++) {
+ 		ret = rtl2832_wr_demod_reg(priv, rtl2832_initial_regs[i].reg,
+ 			rtl2832_initial_regs[i].value);
+@@ -477,27 +499,10 @@ static int rtl2832_init(struct dvb_frontend *fe)
+ 			goto err;
+ 	}
+ 
+-	/*
+-	 * if frequency settings
+-	 * Some tuners (r820t) don't initialize IF here; instead; they do it
+-	 * at set_params()
+-	 */
+ 	if (!fe->ops.tuner_ops.get_if_frequency) {
+-		/*
+-		* PSET_IFFREQ = - floor((IfFreqHz % CrystalFreqHz) * pow(2, 22)
+-		*		/ CrystalFreqHz)
+-		*/
+-		pset_iffreq = priv->cfg.if_dvbt % priv->cfg.xtal;
+-		pset_iffreq *= 0x400000;
+-		pset_iffreq = div_u64(pset_iffreq, priv->cfg.xtal);
+-		pset_iffreq = pset_iffreq & 0x3fffff;
+-		ret = rtl2832_wr_demod_reg(priv, DVBT_EN_BBIN, en_bbin);
+-			if (ret)
+-				goto err;
+-
+-		ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
+-			if (ret)
+-				goto err;
++		ret = rtl2832_set_if(fe, priv->cfg.if_dvbt);
++		if (ret)
++			goto err;
+ 	}
+ 
+ 	/*
+@@ -590,18 +595,12 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
+ 	/* If the frontend has get_if_frequency(), use it */
+ 	if (fe->ops.tuner_ops.get_if_frequency) {
+ 		u32 if_freq;
+-		u64 pset_iffreq;
+ 
+ 		ret = fe->ops.tuner_ops.get_if_frequency(fe, &if_freq);
+ 		if (ret)
+ 			goto err;
+ 
+-		pset_iffreq = if_freq % priv->cfg.xtal;
+-		pset_iffreq *= 0x400000;
+-		pset_iffreq = div_u64(pset_iffreq, priv->cfg.xtal);
+-		pset_iffreq = pset_iffreq & 0x3fffff;
+-
+-		ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
++		ret = rtl2832_set_if(fe, if_freq);
+ 		if (ret)
+ 			goto err;
+ 	}
 -- 
-http://palosaari.fi/
+1.8.1.4
+
