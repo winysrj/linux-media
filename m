@@ -1,112 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57381 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755078Ab3DRNWM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 09:22:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [PATCH v2] media: davinci: vpif: align the buffers size to page page size boundary
-Date: Thu, 18 Apr 2013 15:22:16 +0200
-Message-ID: <4068729.pdlKXoIiR6@avalon>
-In-Reply-To: <20130418083547.41f975f8@redhat.com>
-References: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com> <20130418082121.0221e59e@redhat.com> <20130418083547.41f975f8@redhat.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mx1.redhat.com ([209.132.183.28]:37957 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966592Ab3DQOyW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Apr 2013 10:54:22 -0400
+Date: Wed, 17 Apr 2013 11:53:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Rob Herring <rob.herring@calxeda.com>,
+	Grant Likely <grant.likely@secretlab.ca>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Arnd Bergmann <arnd@arndb.de>,
+	devicetree-discuss@lists.ozlabs.org,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Compilation breakage on drivers/media due to OF patches - was: Re:
+ [PATCH] DT: export of_get_next_parent() for use by modules: fix modular
+ V4L2
+Message-ID: <20130417115357.0b0f31ae@redhat.com>
+In-Reply-To: <Pine.LNX.4.64.1304171555140.16330@axis700.grange>
+References: <Pine.LNX.4.64.1304021825130.31999@axis700.grange>
+	<201304021630.13371.arnd@arndb.de>
+	<Pine.LNX.4.64.1304021840590.31999@axis700.grange>
+	<Pine.LNX.4.64.1304171555140.16330@axis700.grange>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Grant/Rob,
 
-On Thursday 18 April 2013 08:35:47 Mauro Carvalho Chehab wrote:
-> Em Thu, 18 Apr 2013 08:21:21 -0300 Mauro Carvalho Chehab escreveu:
-> > Em Thu, 18 Apr 2013 10:17:14 +0530 Prabhakar Lad escreveu:
-> > > On Tue, Apr 16, 2013 at 4:48 PM, Laurent Pinchart wrote:
-> > > > Hi Prabhakar,
+Our tree is currently _broken_ with OT, because of the lack of 
+exporting of_get_next_parent. The developer that submitted the patches 
+that added V4L2 OF support forgot to test to compilation with MODULES
+support enabled.
+
+So, we're now having:
+	ERROR: "of_get_next_parent" [drivers/media/v4l2-core/videodev.ko] undefined!
+
+if compiled with OF enabled and media as module.
+
+As those patches were applied at my master branch and there are lots of
+other patches on the top of the patches that added V4L2 OF support, 
+I prefer to avoid reverting those patches. 
+
+On the other hand, I can't send the patches upstream next week (assuming 
+that -rc7 is the final one), without having this patch applying before 
+the media tree.
+
+So, please help me solving this issue as soon as possible.
+
+Thank you!
+Mauro
+
+Em Wed, 17 Apr 2013 16:07:49 +0200 (CEST)
+Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
+
+> Hi all
+> 
+> On Tue, 2 Apr 2013, Guennadi Liakhovetski wrote:
+> 
+> > On Tue, 2 Apr 2013, Arnd Bergmann wrote:
 > > 
-> > ...
-> > 
-> > > >> *nbuffers = config_params.min_numbuffers;
-> > > >> 
-> > > >>       *nplanes = 1;
-> > > >> 
-> > > >> +     size = PAGE_ALIGN(size);
+> > > On Tuesday 02 April 2013, Guennadi Liakhovetski wrote:
+> > > > Currently modular V4L2 build with enabled OF is broken dur to the
+> > > > of_get_next_parent() function being unavailable to modules. Export it to
+> > > > fix the build.
 > > > > 
-> > > > I wonder if that's the best fix.
-> > > > The queue_setup operation is supposed to return the size required by
-> > > > the driver for each plane. Depending on the hardware requirements,
-> > > > that size might not be a multiple of the page size.
-> > > > 
-> > > > As we can't mmap() a fraction of a page, the allocated plane size
-> > > > needs to be rounded up to the next page boundary to allow mmap()
-> > > > support. The dma-contig and dma-sg allocators already do so in their
-> > > > alloc operation, but the vmalloc allocator doesn't.
-> > > > 
-> > > > The recent "media: vb2: add length check for mmap" patch verifies that
-> > > > the mmap() size requested by userspace doesn't exceed the buffer size.
-> > > > As the mmap() size is rounded up to the next page boundary the check
-> > > > will fail for buffer sizes that are not multiple of the page size.
-> > > > 
-> > > > Your fix will not result in overallocation (as the allocator already
-> > > > rounds the size up), but will prevent the driver from importing a
-> > > > buffer large enough for the hardware but not rounded up to the page
-> > > > size.
-> > > > 
-> > > > A better fix might be to round up the buffer size in the buffer size
-> > > > check at mmap() time, and fix the vmalloc allocator to round up the
-> > > > size. That the allocator, not drivers, is responsible for buffer size
-> > > > alignment should be documented in videobuf2-core.h.
+> > > > Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > > > 
-> > > Do you plan to post a patch fixing it as per Laurent's suggestion ?
+> > > Looks good to me, but shouldn't this be EXPORT_SYMBOL_GPL?
 > > 
-> > I agree with Laurent: page size roundup should be done at VB2 core code,
-> > for memory allocated there, and not at driver's level. Yet, looking at
-> > VB2 code, it already does page size align at __setup_offsets(), but it
-> > doesn't do if for the size field; just for the offset.
-> > 
-> > The adjusted size should be stored at the VB2 size field, and the check
-> > for buffer overflow, added on changeset
-> > 068a0df76023926af958a336a78bef60468d2033 should be kept.
-> > 
-> > IMO, it also makes sense to enforce that the USERPTR memory is multiple of
-> > the page size, as otherwise the DMA transfer may overwrite some area that
-> > is outside the allocated range. So, the size from USERPTR should be round
-> > down.
-
-I don't think that's needed. You can transfer a number of bytes not multiple 
-of the page size using DMA. This is true for DMABUF as well, an imported 
-buffer might have a size not aligned on a page boundary.
-
-> > That change, however, will break userspace, as it uses the picture
-> > sizeimage to allocate the buffers. So, sizeimage needs to be PAGE_SIZE
-> > roundup before passing it to userspace.
-> > 
-> > Instead of modifying all drivers, the better seems to patch v4l_g_fmt()
-> > and v4l_try_fmt() to return a roundup value for sizeimage. As usual,
-> > uvcvideo requires a separate patch, because it doesn't use vidio_ioctl2.
+> > "grep EXPORT_SYMBOL drivers/of/base.c" doesn't give a certain answer, but 
+> > it seems to fit other of_get_* functions pretty well:
 > 
-> Hmm... PAGE_SIZE alignment is not needed on all places. It is needed only
-> when DMA is done directly into the buffer, e. g. videobuf2-dma-contig and
-> videobuf2-dma-sg.
+> Ping, could this patch be pushed to -next asap, please? Without it the 
+> current V4L2 -next doesn't compile. Also, I think, ro avoid breaking the 
+> mainline, we should try to have this patch pulled in before the media 
+> tree, could that be done?
 > 
-> It means that we'll need an extra function for the VB2 memory allocation
-> drivers to do do the memory-dependent roundups, and a new ancillary
-> function at VB2 core for the VB2 clients to call to round sizeimage if
-> needed.
+> Thanks
+> Guennadi
+> 
+> >  EXPORT_SYMBOL(of_get_parent);
+> > +EXPORT_SYMBOL(of_get_next_parent);
+> >  EXPORT_SYMBOL(of_get_next_child);
+> >  EXPORT_SYMBOL(of_get_next_available_child);
+> >  EXPORT_SYMBOL(of_get_child_by_name);
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Can't we just round the size up at allocation time and when checking the size 
-in mmap() ? That's a simple fix, local to vb2, and won't require new vb2 
-memops.
 
 -- 
-Regards,
 
-Laurent Pinchart
-
+Cheers,
+Mauro
