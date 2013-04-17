@@ -1,92 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3179 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752202Ab3DNP1z (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:35159 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755943Ab3DQTIS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 11:27:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 28/30] cx25821: add output format ioctls.
-Date: Sun, 14 Apr 2013 17:27:24 +0200
-Message-Id: <1365953246-8972-29-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 17 Apr 2013 15:08:18 -0400
+Received: by mail-ie0-f174.google.com with SMTP id 10so2332911ied.5
+        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 12:08:17 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20130409222808.GC20739@home.goodmis.org>
+References: <20130228102452.15191.22673.stgit@patser>
+	<20130228102502.15191.14146.stgit@patser>
+	<1364900432.18374.24.camel@laptop>
+	<515AF1C1.7080508@canonical.com>
+	<1364921954.20640.22.camel@laptop>
+	<1365076908.2609.94.camel@laptop>
+	<20130404133123.GW2228@phenom.ffwll.local>
+	<1365093662.2609.111.camel@laptop>
+	<20130409222808.GC20739@home.goodmis.org>
+Date: Wed, 17 Apr 2013 21:08:17 +0200
+Message-ID: <CAKMK7uHst+s9x0u4J04Qck26EeeUDOORM_SgYovmjV4c+mKP0w@mail.gmail.com>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Steven Rostedt <rostedt@goodmis.org>
+Cc: Peter Zijlstra <peterz@infradead.org>,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org, x86@kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	rob clark <robclark@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@elte.hu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, Apr 10, 2013 at 12:28 AM, Steven Rostedt <rostedt@goodmis.org> wrote:
+> On Thu, Apr 04, 2013 at 06:41:02PM +0200, Peter Zijlstra wrote:
+>> On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
+>> > The thing is now that you're not expected to hold these locks for a
+>> > long
+>> > time - if you need to synchronously stall while holding a lock
+>> > performance
+>> > will go down the gutters anyway. And since most current
+>> > gpus/co-processors
+>> > still can't really preempt fairness isn't that high a priority,
+>> > either.
+>> > So we didn't think too much about that.
+>>
+>> Yeah but you're proposing a new synchronization primitive for the core
+>> kernel.. all such 'fun' details need to be considered, not only those
+>> few that bear on the one usecase.
+>
+> Which bares the question, what other use cases are there?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx25821/cx25821-video.c |   46 +++++++++++++++++++++++++++++
- 1 file changed, 46 insertions(+)
-
-diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
-index dca3391..70e33b1 100644
---- a/drivers/media/pci/cx25821/cx25821-video.c
-+++ b/drivers/media/pci/cx25821/cx25821-video.c
-@@ -851,6 +851,48 @@ static int cx25821_vidioc_s_output(struct file *file, void *priv, unsigned int o
- 	return o ? -EINVAL : 0;
- }
- 
-+static int cx25821_vidioc_try_fmt_vid_out(struct file *file, void *priv,
-+				   struct v4l2_format *f)
-+{
-+	struct cx25821_channel *chan = video_drvdata(file);
-+	struct cx25821_dev *dev = chan->dev;
-+	const struct cx25821_fmt *fmt;
-+
-+	fmt = cx25821_format_by_fourcc(f->fmt.pix.pixelformat);
-+	if (NULL == fmt)
-+		return -EINVAL;
-+	f->fmt.pix.width = 720;
-+	f->fmt.pix.height = (dev->tvnorm & V4L2_STD_625_50) ? 576 : 480;
-+	f->fmt.pix.field = V4L2_FIELD_INTERLACED;
-+	f->fmt.pix.bytesperline = (f->fmt.pix.width * fmt->depth) >> 3;
-+	f->fmt.pix.sizeimage = f->fmt.pix.height * f->fmt.pix.bytesperline;
-+	f->fmt.pix.colorspace = V4L2_COLORSPACE_SMPTE170M;
-+	f->fmt.pix.priv = 0;
-+	return 0;
-+}
-+
-+static int vidioc_s_fmt_vid_out(struct file *file, void *priv,
-+				struct v4l2_format *f)
-+{
-+	struct cx25821_channel *chan = video_drvdata(file);
-+	int err;
-+
-+	err = cx25821_vidioc_try_fmt_vid_out(file, priv, f);
-+
-+	if (0 != err)
-+		return err;
-+
-+	chan->fmt = cx25821_format_by_fourcc(f->fmt.pix.pixelformat);
-+	chan->vidq.field = f->fmt.pix.field;
-+	chan->width = f->fmt.pix.width;
-+	chan->height = f->fmt.pix.height;
-+	if (f->fmt.pix.pixelformat == V4L2_PIX_FMT_Y41P)
-+		chan->pixel_formats = PIXEL_FRMT_411;
-+	else
-+		chan->pixel_formats = PIXEL_FRMT_422;
-+	return 0;
-+}
-+
- static const struct v4l2_ctrl_ops cx25821_ctrl_ops = {
- 	.s_ctrl = cx25821_s_ctrl,
- };
-@@ -905,6 +947,10 @@ static const struct v4l2_file_operations video_out_fops = {
- 
- static const struct v4l2_ioctl_ops video_out_ioctl_ops = {
- 	.vidioc_querycap = cx25821_vidioc_querycap,
-+	.vidioc_enum_fmt_vid_out = cx25821_vidioc_enum_fmt_vid_cap,
-+	.vidioc_g_fmt_vid_out = cx25821_vidioc_g_fmt_vid_cap,
-+	.vidioc_try_fmt_vid_out = cx25821_vidioc_try_fmt_vid_out,
-+	.vidioc_s_fmt_vid_out = vidioc_s_fmt_vid_out,
- 	.vidioc_g_std = cx25821_vidioc_g_std,
- 	.vidioc_s_std = cx25821_vidioc_s_std,
- 	.vidioc_enum_output = cx25821_vidioc_enum_output,
--- 
-1.7.10.4
-
+Just stumbled over one I think: If we have a big graph of connected
+things (happens really often for video pipelines). And we want
+multiple users to use them in parallel. But sometimes a configuration
+change could take way too long and so would unduly stall a 2nd thread
+with just a global mutex, then per-object ww_mutexes would be a fit:
+You'd start with grabbing all the locks for the objects you want to
+change anything with, then grab anything in the graph that you also
+need to check. Thanks to loop detection and self-recursion this would
+all nicely work out, even for cyclic graphs of objects.
+-Daniel
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
