@@ -1,211 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:54574 "EHLO 7of9.schinagl.nl"
+Received: from mx1.redhat.com ([209.132.183.28]:9613 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934055Ab3DHHN3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Apr 2013 03:13:29 -0400
-Message-ID: <516193FF.50709@schinagl.nl>
-Date: Sun, 07 Apr 2013 17:42:55 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Jan Saris <jan.saris@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: No Signal with TerraTec Cinergy T PCIe dual
-References: <CAK2FuSnQxgc2hvtgb=COH0BGaJVqY5Cg=4fYWpB_BwOn8TYE_w@mail.gmail.com>
-In-Reply-To: <CAK2FuSnQxgc2hvtgb=COH0BGaJVqY5Cg=4fYWpB_BwOn8TYE_w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	id S1753837Ab3DQKn5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Apr 2013 06:43:57 -0400
+Date: Wed, 17 Apr 2013 07:43:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Arnd Bergmann <arnd@arndb.de>, Takashi Iwai <tiwai@suse.de>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: Device driver memory 'mmap()' function helper cleanup
+Message-ID: <20130417074300.33d05475@redhat.com>
+In-Reply-To: <CA+55aFyK2EEPuBPrqu3AGRbW+8TdP=kLLz4opvynNRcrSWC2ww@mail.gmail.com>
+References: <CA+55aFyK2EEPuBPrqu3AGRbW+8TdP=kLLz4opvynNRcrSWC2ww@mail.gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07-04-13 12:56, Jan Saris wrote:
-> Hi,
->
-> Sinse a couple of months I'm trying to get my second DVB-C card to
-> work, but with no luck.
-> I have searched a lot around and even tried the last media_build.
-I have the same card and while I don't see anything wrong (you have 2 
-dvb-t devices installed right? adapter0 is something else, and the 
-Cinergy is adapter1 and adapter2? Ah, yes you do say 'other dvb-c' sorry.
-> I am running linux 3.5.0-26-generic with the latests media_build from
-> here (http://git.linuxtv.org/media_build.git)
->
-> For some reason the card won't get a lock. Here are my test results:
-Remember to set the frontend properly; dvb-fe-tool from memory (tab 
-completion ftw). And remember the cinergy is dual dvb-t; but only single 
-dvb-c (and single analog, but i think that is still not implemented?)
->
-> Terratec Cinergy PCIe Dual
-> dvbv5-scan -a2 -v channel2.conf
-> using demux '/dev/dvb/adapter2/demux0'
-> Device DRXK DVB-C DVB-T (/dev/dvb/adapter2/frontend0) capabilities:
->          CAN_FEC_1_2 CAN_FEC_2_3 CAN_FEC_3_4 CAN_FEC_5_6 CAN_FEC_7_8
-> CAN_FEC_AUTO CAN_GUARD_INTERVAL_AUTO CAN_HIERARCHY_AUTO
-> CAN_INVERSION_AUTO CAN_MUTE_TS CAN_QAM_16 CAN_QAM_32 CAN_QAM_64
-> CAN_QAM_128 CAN_QAM_256 CAN_RECOVER CAN_TRANSMISSION_MODE_AUTO
-> DVB API Version 5.6, Current v5 delivery system: DVBC/ANNEX_A
-> Supported delivery systems: [DVBC/ANNEX_A] DVBC/ANNEX_C DVBT
-> Scanning frequency #1 304000000
-> FREQUENCY = 304000000
-> MODULATION = QAM/64
-> INVERSION = AUTO
-> SYMBOL_RATE = 6875000
-> INNER_FEC = AUTO
-> DELIVERY_SYSTEM = DVBC/ANNEX_A
-> status 00 | signal   0% | snr   0% | ber 0 | unc 119 | tune failed
-> dmesg
-> [    5.332360] cx23885_dvb_register() allocating 1 frontend(s)
-> [    5.332365] cx23885[0]: cx23885 based dvb card
-> [    5.365162] drxk: status = 0x639160d9
-> [    5.365167] drxk: detected a drx-3916k, spin A3, xtal 20.250 MHz
-> [    5.465869] DRXK driver version 0.9.4300
-> [    5.504139] drxk: frontend initialized.
-> [    5.517782] mt2063_attach: Attaching MT2063
-> [    5.517788] DVB: registering new adapter (cx23885[0])
-> [    5.517791] DVB: registering adapter 1 frontend 0 (DRXK DVB-T)...
-> [    5.518664] cx23885_dvb_register() allocating 1 frontend(s)
-> [    5.518668] cx23885[0]: cx23885 based dvb card
-> [    5.533886] drxk: status = 0x639130d9
-> [    5.533896] drxk: detected a drx-3913k, spin A3, xtal 20.250 MHz
-> [    5.617338] DRXK driver version 0.9.4300
-> [    5.650861] drxk: frontend initialized.
-> [    5.650872] mt2063_attach: Attaching MT2063
-> [    5.650876] DVB: registering new adapter (cx23885[0])
-> [    5.650878] DVB: registering adapter 2 frontend 0 (DRXK DVB-C DVB-T)...
-> [    5.651338] cx23885_dev_checkrevision() Hardware revision = 0xa5
-> [    5.651343] cx23885[0]/0: found at 0000:02:00.0, rev: 4, irq: 16,
-> latency: 0, mmio: 0xff400000
-> ........
-> [  153.727978] mt2063: detected a mt2063 B3
-> [  153.877050] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [  153.877058] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-> [  156.989702] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [  156.989710] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-> [  170.558420] mt2063: detected a mt2063 B3
-> [  170.629422] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [  170.629430] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-> [  173.742057] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [  173.742065] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-> [  251.314900] mt2063: detected a mt2063 B3
-> [  251.385932] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [  251.385940] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
-> [  254.498522] drxk: SCU_RESULT_INVPAR while sending cmd 0x0203 with params:
-> [  254.498530] drxk: 02 00 00 00 10 00 05 00 03 02                    ..........
->
-> lspci -vvv
-> 02:00.0 Multimedia video controller: Conexant Systems, Inc. CX23885
-> PCI Video and Audio Decoder (rev 04)
->          Subsystem: TERRATEC Electronic GmbH Cinergy T PCIe Dual
->          Control: I/O- Mem+ BusMaster+ SpecCycle- MemWINV- VGASnoop-
-> ParErr- Stepping- SERR- FastB2B- DisINTx-
->          Status: Cap+ 66MHz- UDF- FastB2B- ParErr- DEVSEL=fast >TAbort-
-> <TAbort- <MAbort- >SERR- <PERR- INTx-
->          Latency: 0, Cache Line Size: 64 bytes
->          Interrupt: pin A routed to IRQ 16
->          Region 0: Memory at ff400000 (64-bit, non-prefetchable) [size=2M]
->          Capabilities: [40] Express (v1) Endpoint, MSI 00
->                  DevCap: MaxPayload 128 bytes, PhantFunc 0, Latency L0s
-> <64ns, L1 <1us
->                          ExtTag- AttnBtn- AttnInd- PwrInd- RBE- FLReset-
->                  DevCtl: Report errors: Correctable- Non-Fatal- Fatal-
-> Unsupported-
->                          RlxdOrd- ExtTag- PhantFunc- AuxPwr- NoSnoop+
->                          MaxPayload 128 bytes, MaxReadReq 512 bytes
->                  DevSta: CorrErr- UncorrErr- FatalErr- UnsuppReq-
-> AuxPwr- TransPend-
->                  LnkCap: Port #0, Speed 2.5GT/s, Width x1, ASPM L0s L1,
-> Latency L0 <2us, L1 <4us
->                          ClockPM- Surprise- LLActRep- BwNot-
->                  LnkCtl: ASPM Disabled; RCB 64 bytes Disabled- Retrain- CommClk+
->                          ExtSynch- ClockPM- AutWidDis- BWInt- AutBWInt-
->                  LnkSta: Speed 2.5GT/s, Width x1, TrErr- Train-
-> SlotClk+ DLActive- BWMgmt- ABWMgmt-
->          Capabilities: [80] Power Management version 2
->                  Flags: PMEClk- DSI+ D1+ D2+ AuxCurrent=0mA
-> PME(D0+,D1+,D2+,D3hot+,D3cold-)
->                  Status: D0 NoSoftRst- PME-Enable- DSel=0 DScale=0 PME-
->          Capabilities: [90] Vital Product Data
->                  Product Name: "
->                  End
->          Capabilities: [a0] MSI: Enable- Count=1/1 Maskable- 64bit+
->                  Address: 0000000000000000  Data: 0000
->          Capabilities: [100 v1] Advanced Error Reporting
->                  UESta:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
-> UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
->                  UEMsk:  DLP- SDES- TLP- FCP- CmpltTO- CmpltAbrt-
-> UnxCmplt- RxOF- MalfTLP- ECRC- UnsupReq- ACSViol-
->                  UESvrt: DLP+ SDES- TLP- FCP+ CmpltTO- CmpltAbrt-
-> UnxCmplt- RxOF+ MalfTLP+ ECRC- UnsupReq- ACSViol-
->                  CESta:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
->                  CEMsk:  RxErr- BadTLP- BadDLLP- Rollover- Timeout- NonFatalErr-
->                  AERCap: First Error Pointer: 00, GenCap- CGenEn- ChkCap- ChkEn-
->          Capabilities: [200 v1] Virtual Channel
->                  Caps:   LPEVC=0 RefClk=100ns PATEntryBits=1
->                  Arb:    Fixed+ WRR32+ WRR64+ WRR128-
->                  Ctrl:   ArbSelect=WRR64
->                  Status: InProgress-
->                  Port Arbitration Table [240] <?>
->                  VC0:    Caps:   PATOffset=00 MaxTimeSlots=1 RejSnoopTrans-
->                          Arb:    Fixed- WRR32- WRR64- WRR128- TWRR128- WRR256-
->                          Ctrl:   Enable+ ID=0 ArbSelect=Fixed TC/VC=01
->                          Status: NegoPending- InProgress-
->          Kernel driver in use: cx23885
->          Kernel modules: cx23885
->
-> It says no signal, but if I put the antenna-cable in my other DVB-C
-> card and do a scan I get:
-> Philips TV-Card
-> dvbv5-scan -a0 -v channel2.conf
-> using demux '/dev/dvb/adapter0/demux0'
-> Device Philips TDA10023 DVB-C (/dev/dvb/adapter0/frontend0) capabilities:
->          CAN_FEC_AUTO CAN_INVERSION_AUTO CAN_QAM_16 CAN_QAM_32
-> CAN_QAM_64 CAN_QAM_128 CAN_QAM_256 CAN_QPSK
-> DVB API Version 5.6, Current v5 delivery system: DVBC/ANNEX_A
-> Supported delivery systems: [DVBC/ANNEX_A] DVBC/ANNEX_C
-> Scanning frequency #1 304000000
-> FREQUENCY = 304000000
-> MODULATION = QAM/64
-> INVERSION = AUTO
-> SYMBOL_RATE = 6875000
-> INNER_FEC = AUTO
-> DELIVERY_SYSTEM = DVBC/ANNEX_A
-> status 1f | signal  97% | snr  94% | ber 1728 | unc 62194 | FE_HAS_LOCK
->
-> Service #0 (101) Nederland 1 channel 0.1.0
-> Service #1 (102) Nederland 2 channel 0.2.1
-> Service #2 (103) Nederland 3 channel 0.3.2
-> Service #3 (8101) 100%NL channel 0.801.3
-> Service #4 (8102) Arrow Classic Rock channel 0.802.4
-> Service #5 (8103) Arrow Jazz channel 0.803.5
-> Service #6 (8104) BBC radio 1 channel 0.804.6
-> Service #7 (8105) BBC radio 2 channel 0.805.7
-> Service #8 (8106) BBC radio 3 channel 0.806.8
-> Service #9 (8107) BBC radio 4 channel 0.807.9
-> Service #10 (8108) BNR channel 0.808.10
-> Service #11 (8109) Classic FM channel 0.809.11
-> New transponder/channel found: #2: 505937920
-> New transponder/channel found: #3: 515112960
-> New transponder/channel found: #4: 524288000
-> New transponder/channel found: #5: 529530880
-> New transponder/channel found: #6: 538705920
-> New transponder/channel found: #7: 547880960
-> New transponder/channel found: #8: 557056000
-> New transponder/channel found: #9: 566231040
-> New transponder/channel found: #10: 312000000
-> New transponder/channel found: #11: 320000000
-> New transponder/channel found: #12: 328000000
-> New transponder/channel found: #13: 336000000
-> New transponder/channel found: #14: 580648960
-> New transponder/channel found: #15: 344000000
-> New transponder/channel found: #16: 352000000
-> New transponder/channel found: #17: 360000000
-> New transponder/channel found: #18: 368000000
->
-> Does anyone know what I'm doing wrong?
-> Thanks,
->
-> Jan Saris
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Em Tue, 16 Apr 2013 20:12:32 -0700
+Linus Torvalds <torvalds@linux-foundation.org> escreveu:
 
+> Guys, I just pushed out a new helper function intended for cleaning up
+> various device driver mmap functions, because they are rather messy,
+> and at least part of the problem was the bad impedance between what a
+> driver author would want to have, and the VM interfaces to map a
+> memory range into user space with mmap.
+> 
+> Some drivers would end up doing extensive checks on the length of the
+> mappings and the page offset within the mapping, while other drivers
+> would end up doing no checks at all.
+> 
+> The new helper is in commit b4cbb197c7e7 ("vm: add vm_iomap_memory()
+> helper function"), but I didn't actually commit any *users* of it,
+> because I just have this untested patch-collection for a few random
+> drivers (picked across a few different driver subsystems, just to make
+> it interesting).  I did that largely just to check the different use
+> cases, but I don't actually tend to *use* all that many fancy drivers,
+> so I don't have much of a way of testing it.
+> 
+> The media layer has a few users of [io_]remap_pfn_range() that look
+> like they could do with some tender loving too, but they don't match
+> this particular pattern of "allow users to map a part of a fixed range
+> of memory". In fact, the media pattern seems to be single-page
+> mappings, which probably should use "vm_insert_page()" instead, but
+> that's a whole separate thing. But I didn't check all the media cases
+> (and there's a lot of remap_pfn_range use outside of media drivers I
+> didn't check either), so there might be code that could use the new
+> helper.
+
+I think that [io_]remap_pfn_range() calls are used by the oldest drivers
+and a few newer ones that based on some old cut-and-paste code.
+
+Let me see what drivers use it on media...
+
+	$ git grep -l remap_pfn_range drivers/media/
+	drivers/media/pci/meye/meye.c
+	drivers/media/pci/zoran/zoran_driver.c
+	drivers/media/platform/omap/omap_vout.c
+	drivers/media/platform/omap24xxcam.c
+	drivers/media/platform/vino.c
+	drivers/media/usb/cpia2/cpia2_core.c
+	drivers/media/v4l2-core/videobuf-dma-contig.c
+
+Yes, meye, vino, cpia2 and zoran are very old drivers. I only have
+here somewhere zoran cards. I'll see if they still work, and write
+a patch for it.
+
+The platform drivers that use remap_pfn_range() are omap2 and vino.
+Vino is for SGI Indy machines. I dunno anyone with those hardware
+and a camera anymore. The OMAP2 were used on some Nokia phones.
+They used to maintain that code, but now that they moved to the dark
+side of the moon, they lost their interests on it. So, it may not 
+be easily find testers for patches there.
+
+The videobuf-dma-contig code actually uses two implementations there: 
+one using vm_insert_page() for cached memory, and another one using 
+remap_pfn_range() for uncached memory.
+
+All places where cached memory is used got already moved to 
+videobuf2-dma-contig. We can simply drop that unused code from it, 
+and remap_pfn_range() by vm_iomap_memory(). 
+
+I can write the patches doing it, but I don't any hardware here
+using videobuf-dma-contig for testing. So, I'll post it
+asking people to test.
+
+> 
+> Anyway, I'm attaching the *untested* patch to several drivers. Guys,
+> mind taking a look? The point here is to simplify the interface,
+> avoiding bugs, but also:
+> 
+>  5 files changed, 21 insertions(+), 87 deletions(-)
+> 
+> it needs current -git for the new helper function.
+> 
+> NOTE! The driver subsystem .mmap functions seem to almost universally do
+> 
+>     if (io_remap_pfn_range(..))
+>         return -EAGAIN;
+>     return 0;
+> 
+> and I didn't make the new helper function do that "turn all
+> remap_pfn_range errors into EAGAIN". My *suspicion* is that this is
+> just really old copy-pasta and makes no sense, but maybe there is some
+> actual reasoning behind EAGAIN vs ENOMEM, for example. EAGAIN is
+> documented to be about file/memory locking, which means that it really
+> doesn't make any sense, but obviously there might be some binary that
+> actally depends on this, so I'm perfectly willing to make the helper
+> do that odd error case, I'd just like to know (and a add a comment)
+> WHY.
+> 
+> My personal guess is that nobody actually cares (we return other error
+> codes for other cases, notably EINVAL for various out-of-mapping-range
+> issues), and the whole EAGAIN return value is just a completely
+> historical oddity.
+> 
+> (And yes, I know the mtdchar code is actually disabled right now. But
+> that was a good example of a driver that had a bug in this area and
+> that I touched myself not too long ago, and recent stable noise
+> reminded me of it, so I did that one despite it not being active).
+> 
+>                 Linus
+
+Regards,
+Mauro
