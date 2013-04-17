@@ -1,65 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f49.google.com ([209.85.210.49]:39419 "EHLO
-	mail-da0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751492Ab3DXMAW (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4091 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965266Ab3DQRkY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 08:00:22 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LFBDEV <linux-fbdev@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 0/6] Davinci fbdev driver and enable it for DMx platform
-Date: Wed, 24 Apr 2013 17:30:02 +0530
-Message-Id: <1366804808-22720-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 17 Apr 2013 13:40:24 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3HHeKJZ007861
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 19:40:22 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 74EAC11E0481
+	for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 19:40:19 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130417174019.74EAC11E0481@alastor.dyndns.org>
+Date: Wed, 17 Apr 2013 19:40:19 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-This patch series adds an fbdev driver for Texas
-Instruments Davinci SoC.The display subsystem consists
-of OSD and VENC, with OSD supporting 2 RGb planes and 
-2 video planes.
-http://focus.ti.com/general/docs/lit/
-getliterature.tsp?literatureNumber=sprue37d&fileType=pdf
+Results of the daily build of media_tree:
 
-A good amount of the OSD and VENC enabling code is
-present in the kernel, and this patch series adds the 
-fbdev interface.
+date:		Wed Apr 17 19:00:22 CEST 2013
+git branch:	test
+git hash:	6695be6863b75620ffa6d422965680ce785cb7c8
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-The fbdev driver exports 4 nodes representing each
-plane to the user - from fb0 to fb3.
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
 
-Lad, Prabhakar (6):
-  media: davinci: vpbe: fix checkpatch warning for CamelCase
-  media: davinci: vpbe: enable vpbe for fbdev addition
-  davinci: vpbe: add fbdev driver
-  ARM: davinci: dm355: enable fbdev driver
-  ARM: davinci: dm365: enable fbdev driver
-  ARM: davinci: dm644x: enable fbdev driver
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
- arch/arm/mach-davinci/dm355.c                 |   24 +-
- arch/arm/mach-davinci/dm365.c                 |   10 +
- arch/arm/mach-davinci/dm644x.c                |   10 +
- drivers/media/platform/davinci/vpbe_display.c |    8 +-
- drivers/media/platform/davinci/vpbe_osd.c     |  820 ++++++++-
- drivers/media/platform/davinci/vpbe_venc.c    |   43 +
- drivers/video/Kconfig                         |   12 +
- drivers/video/Makefile                        |    1 +
- drivers/video/davincifb.c                     | 2523 +++++++++++++++++++++++++
- drivers/video/davincifb.h                     |  194 ++
- include/media/davinci/vpbe_osd.h              |   66 +-
- include/media/davinci/vpbe_venc.h             |   21 +
- 12 files changed, 3702 insertions(+), 30 deletions(-)
- create mode 100644 drivers/video/davincifb.c
- create mode 100644 drivers/video/davincifb.h
+Full logs are available here:
 
--- 
-1.7.4.1
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
