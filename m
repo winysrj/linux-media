@@ -1,95 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f54.google.com ([74.125.82.54]:41318 "EHLO
-	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758308Ab3DAIXW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 04:23:22 -0400
-MIME-Version: 1.0
-In-Reply-To: <CA+Z25wXJt=vZnZ-ba+zkOWMgx0AjfnZT1JyHbaF4nuQ8MLvaKg@mail.gmail.com>
-References: <1364798210-31517-1-git-send-email-prabhakar.csengg@gmail.com> <CA+Z25wXJt=vZnZ-ba+zkOWMgx0AjfnZT1JyHbaF4nuQ8MLvaKg@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 1 Apr 2013 13:53:01 +0530
-Message-ID: <CA+V-a8vFrom92g4CE-Kc2gjK8HSo4xkFwMgfmycSJQib0AF+aQ@mail.gmail.com>
-Subject: Re: [PATCH v2] davinci: vpif: add pm_runtime support
-To: Rajagopal Venkat <rajagopal.venkat@linaro.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57381 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755078Ab3DRNWM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 09:22:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
 	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sekhar Nori <nsekhar@ti.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2] media: davinci: vpif: align the buffers size to page page size boundary
+Date: Thu, 18 Apr 2013 15:22:16 +0200
+Message-ID: <4068729.pdlKXoIiR6@avalon>
+In-Reply-To: <20130418083547.41f975f8@redhat.com>
+References: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com> <20130418082121.0221e59e@redhat.com> <20130418083547.41f975f8@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 1, 2013 at 12:47 PM, Rajagopal Venkat
-<rajagopal.venkat@linaro.org> wrote:
-> On 1 April 2013 12:06, Prabhakar lad <prabhakar.csengg@gmail.com> wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> Add pm_runtime support to the TI Davinci VPIF driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Sekhar Nori <nsekhar@ti.com>
->> ---
->>  Changes for v2:
->>  1: Removed use of clk API as pointed by Laurent and Sekhar.
->>
->>  drivers/media/platform/davinci/vpif.c |   24 +++++++-----------------
->>  1 files changed, 7 insertions(+), 17 deletions(-)
->>
->> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
->> index 28638a8..599cabb 100644
->> --- a/drivers/media/platform/davinci/vpif.c
->> +++ b/drivers/media/platform/davinci/vpif.c
->> @@ -23,8 +23,8 @@
->>  #include <linux/spinlock.h>
->>  #include <linux/kernel.h>
->>  #include <linux/io.h>
->> -#include <linux/clk.h>
->>  #include <linux/err.h>
->> +#include <linux/pm_runtime.h>
->>  #include <linux/v4l2-dv-timings.h>
->>
->>  #include <mach/hardware.h>
->> @@ -44,7 +44,6 @@ static struct resource        *res;
->>  spinlock_t vpif_lock;
->>
->>  void __iomem *vpif_base;
->> -struct clk *vpif_clk;
->>
->>  /**
->>   * ch_params: video standard configuration parameters for vpif
->> @@ -439,19 +438,15 @@ static int vpif_probe(struct platform_device *pdev)
->>                 goto fail;
->>         }
->>
->> -       vpif_clk = clk_get(&pdev->dev, "vpif");
->> -       if (IS_ERR(vpif_clk)) {
->> -               status = PTR_ERR(vpif_clk);
->> -               goto clk_fail;
->> -       }
->> -       clk_prepare_enable(vpif_clk);
->> +       pm_runtime_enable(&pdev->dev);
->> +       pm_runtime_resume(&pdev->dev);
->> +
->> +       pm_runtime_get(&pdev->dev);
->
-> I don't see runtime-pm ops being registered. Can you explain how clock
-> prepare/unprepare is taken care by runtime-pm?
->
-The pm_runtime API handles the clock management for you.
-For Davinci platform runtime PM support for clock management has
-been added (You can find it in  arch/arm/mach-davinci/pm_domain.c)
-When runtime PM is enabled, the davinci runtime PM implementation will
-use the pm_clk layer to enable/disable clocks on demand.
+Hi Mauro,
 
-For more/detailed understanding you can go through the pm_runtime framework.
+On Thursday 18 April 2013 08:35:47 Mauro Carvalho Chehab wrote:
+> Em Thu, 18 Apr 2013 08:21:21 -0300 Mauro Carvalho Chehab escreveu:
+> > Em Thu, 18 Apr 2013 10:17:14 +0530 Prabhakar Lad escreveu:
+> > > On Tue, Apr 16, 2013 at 4:48 PM, Laurent Pinchart wrote:
+> > > > Hi Prabhakar,
+> > 
+> > ...
+> > 
+> > > >> *nbuffers = config_params.min_numbuffers;
+> > > >> 
+> > > >>       *nplanes = 1;
+> > > >> 
+> > > >> +     size = PAGE_ALIGN(size);
+> > > > 
+> > > > I wonder if that's the best fix.
+> > > > The queue_setup operation is supposed to return the size required by
+> > > > the driver for each plane. Depending on the hardware requirements,
+> > > > that size might not be a multiple of the page size.
+> > > > 
+> > > > As we can't mmap() a fraction of a page, the allocated plane size
+> > > > needs to be rounded up to the next page boundary to allow mmap()
+> > > > support. The dma-contig and dma-sg allocators already do so in their
+> > > > alloc operation, but the vmalloc allocator doesn't.
+> > > > 
+> > > > The recent "media: vb2: add length check for mmap" patch verifies that
+> > > > the mmap() size requested by userspace doesn't exceed the buffer size.
+> > > > As the mmap() size is rounded up to the next page boundary the check
+> > > > will fail for buffer sizes that are not multiple of the page size.
+> > > > 
+> > > > Your fix will not result in overallocation (as the allocator already
+> > > > rounds the size up), but will prevent the driver from importing a
+> > > > buffer large enough for the hardware but not rounded up to the page
+> > > > size.
+> > > > 
+> > > > A better fix might be to round up the buffer size in the buffer size
+> > > > check at mmap() time, and fix the vmalloc allocator to round up the
+> > > > size. That the allocator, not drivers, is responsible for buffer size
+> > > > alignment should be documented in videobuf2-core.h.
+> > > 
+> > > Do you plan to post a patch fixing it as per Laurent's suggestion ?
+> > 
+> > I agree with Laurent: page size roundup should be done at VB2 core code,
+> > for memory allocated there, and not at driver's level. Yet, looking at
+> > VB2 code, it already does page size align at __setup_offsets(), but it
+> > doesn't do if for the size field; just for the offset.
+> > 
+> > The adjusted size should be stored at the VB2 size field, and the check
+> > for buffer overflow, added on changeset
+> > 068a0df76023926af958a336a78bef60468d2033 should be kept.
+> > 
+> > IMO, it also makes sense to enforce that the USERPTR memory is multiple of
+> > the page size, as otherwise the DMA transfer may overwrite some area that
+> > is outside the allocated range. So, the size from USERPTR should be round
+> > down.
 
+I don't think that's needed. You can transfer a number of bytes not multiple 
+of the page size using DMA. This is true for DMABUF as well, an imported 
+buffer might have a size not aligned on a page boundary.
+
+> > That change, however, will break userspace, as it uses the picture
+> > sizeimage to allocate the buffers. So, sizeimage needs to be PAGE_SIZE
+> > roundup before passing it to userspace.
+> > 
+> > Instead of modifying all drivers, the better seems to patch v4l_g_fmt()
+> > and v4l_try_fmt() to return a roundup value for sizeimage. As usual,
+> > uvcvideo requires a separate patch, because it doesn't use vidio_ioctl2.
+> 
+> Hmm... PAGE_SIZE alignment is not needed on all places. It is needed only
+> when DMA is done directly into the buffer, e. g. videobuf2-dma-contig and
+> videobuf2-dma-sg.
+> 
+> It means that we'll need an extra function for the VB2 memory allocation
+> drivers to do do the memory-dependent roundups, and a new ancillary
+> function at VB2 core for the VB2 clients to call to round sizeimage if
+> needed.
+
+Can't we just round the size up at allocation time and when checking the size 
+in mmap() ? That's a simple fix, local to vb2, and won't require new vb2 
+memops.
+
+-- 
 Regards,
---Prabhakar
+
+Laurent Pinchart
+
