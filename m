@@ -1,131 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:52239 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936039Ab3DRVpi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 17:45:38 -0400
-Date: Thu, 18 Apr 2013 23:45:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 24/24] ARM: pcm037: support mt9p031 / mt9p006 camera
- sensors
-In-Reply-To: <1366320945-21591-25-git-send-email-g.liakhovetski@gmx.de>
-Message-ID: <Pine.LNX.4.64.1304182344310.28933@axis700.grange>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
- <1366320945-21591-25-git-send-email-g.liakhovetski@gmx.de>
+Received: from mga01.intel.com ([192.55.52.88]:10208 "EHLO mga01.intel.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932077Ab3DRSXY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 14:23:24 -0400
+Date: Thu, 18 Apr 2013 20:23:05 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 00/12]  Driver for Si476x series of chips
+Message-ID: <20130418182305.GA27841@zurbaran>
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+ <20130418142800.5c00b004@redhat.com>
+ <20130418174547.GV8798@zurbaran>
+ <20130418145753.7bacee9b@redhat.com>
+ <20130418181718.GX8798@zurbaran>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130418181718.GX8798@zurbaran>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Forgot to mention explicitly: this patch is only an example, not even 
-nearly to be considered for applying.
+On Thu, Apr 18, 2013 at 08:17:18PM +0200, Samuel Ortiz wrote:
+> On Thu, Apr 18, 2013 at 02:57:53PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Thu, 18 Apr 2013 19:45:47 +0200
+> > Samuel Ortiz <sameo@linux.intel.com> escreveu:
+> > 
+> > > On Thu, Apr 18, 2013 at 02:28:00PM -0300, Mauro Carvalho Chehab wrote:
+> > > > Em Thu, 18 Apr 2013 09:58:26 -0700
+> > > > Andrey Smirnov <andrew.smirnov@gmail.com> escreveu:
+> > > > 
+> > > > > Driver for Si476x series of chips
+> > > > > 
+> > > > > This is a eight version of the patchset originaly posted here:
+> > > > > https://lkml.org/lkml/2012/9/13/590
+> > > > > 
+> > > > > Second version of the patch was posted here:
+> > > > > https://lkml.org/lkml/2012/10/5/598
+> > > > > 
+> > > > > Third version of the patch was posted here:
+> > > > > https://lkml.org/lkml/2012/10/23/510
+> > > > > 
+> > > > > Fourth version of the patch was posted here:
+> > > > > https://lkml.org/lkml/2013/2/18/572
+> > > > > 
+> > > > > Fifth version of the patch was posted here:
+> > > > > https://lkml.org/lkml/2013/2/26/45
+> > > > > 
+> > > > > Sixth version of the patch was posted here:
+> > > > > https://lkml.org/lkml/2013/2/26/257
+> > > > > 
+> > > > > Seventh version of the patch was posted here:
+> > > > > https://lkml.org/lkml/2013/2/27/22
+> > > > > 
+> > > > > Eighth version of the patch was posted here:
+> > > > > https://lkml.org/lkml/2013/3/26/891
+> > > > > 
+> > > > > To save everyone's time I'll repost the original description of it:
+> > > > > 
+> > > > > This patchset contains a driver for a Silicon Laboratories 476x series
+> > > > > of radio tuners. The driver itself is implemented as an MFD devices
+> > > > > comprised of three parts: 
+> > > > >  1. Core device that provides all the other devices with basic
+> > > > > functionality and locking scheme.
+> > > > >  2. Radio device that translates between V4L2 subsystem requests into
+> > > > > Core device commands.
+> > > > >  3. Codec device that does similar to the earlier described task, but
+> > > > > for ALSA SoC subsystem.
+> > > > > 
+> > > > > v9 of this driver has following changes:
+> > > > >    - MFD part of the driver no longer depends on the header file added
+> > > > >      by the radio driver(media/si476x.h) which should potential
+> > > > >      restore the bisectability of the patches
+> > > > > 
+> > > > > Mauro, I am not sure if you reverted changes in patches 5 - 7, so I am
+> > > > > including them just in case.
+> > > > 
+> > > > No, I didn't revert all patches. I just reverted two patches: the
+> > > > last one, and the one that Samuel asked me.
+> > > Sorry I didn't have time to check your email from yesterday, but I was
+> > > actually hoping you would revert the whole patchset, then pull from my
+> > > mfd-next/topic/si476x branch to fetch the MFD bits and then apply the
+> > > v4l2/media ones (From patchset v9) on top of that.
+> > > Does that make sense to you ?
+> > 
+> > I don't rebase my tree, as this would cause troubles for everybody that
+> > relies on it.
+> > 
+> > Reverting the entire patchset is hard, as there are lots of patches after
+> > them, and some patches touch at V4L2 core. Even reverting those
+> > two patches hit conflicts, that I needed to manage, in order to avoid
+> > compilation breakages.
+> > 
+> > So, I really prefer to confine the patch reversion to the absolute 
+> > minimum.
+> In that case we're left with only one solution: Leave your tree as it is (with
+> both patches reverted) and push the mfd/Kconfig and mfd/Makefile changes as a
+> 3.10 fix. radio/radio-si476x.c should not build without the MFD Kconfig symbol
+> so we should be safe. 
+You reverted that one, I think this was not needed as it would not build
+without the MFD symbol. Any other reason why you reverted it ?
 
-Thanks
-Guennadi
+Cheers,
+Samuel.
 
-On Thu, 18 Apr 2013, Guennadi Liakhovetski wrote:
-
-> We don't know how to support pluggable camera sensors yet. This is just
-> an example, how support for an mt9p031 or mt9p006 camera sensor could be
-> added to pcm037.
-> 
-> not-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  arch/arm/mach-imx/mach-pcm037.c |   44 +++++++++++++++++++++++++++++++++++++-
->  1 files changed, 42 insertions(+), 2 deletions(-)
-> 
-> diff --git a/arch/arm/mach-imx/mach-pcm037.c b/arch/arm/mach-imx/mach-pcm037.c
-> index f138481..18ba328 100644
-> --- a/arch/arm/mach-imx/mach-pcm037.c
-> +++ b/arch/arm/mach-imx/mach-pcm037.c
-> @@ -36,6 +36,7 @@
->  #include <linux/regulator/fixed.h>
->  
->  #include <media/soc_camera.h>
-> +#include <media/mt9p031.h>
->  
->  #include <asm/mach-types.h>
->  #include <asm/mach/arch.h>
-> @@ -363,6 +364,22 @@ static struct i2c_board_info pcm037_i2c_devices[] = {
->  	}
->  };
->  
-> +static struct mt9p031_platform_data mt9p031_pdata = {
-> +	.target_freq = 20000000,
-> +	.ext_freq = 20000000,
-> +	.sd_pdata	= {
-> +		.num_regulators = ARRAY_SIZE(cam_supply),
-> +		.regulators = cam_supply,
-> +	},
-> +};
-> +
-> +static struct i2c_board_info pcm037_i2c2_devices[] = {
-> +	{
-> +		I2C_BOARD_INFO("mt9p031", 0x48),
-> +		.platform_data = &mt9p031_pdata,
-> +	},
-> +};
-> +
->  static struct platform_device pcm037_mt9t031 = {
->  	.name	= "soc-camera-pdrv",
->  	.id	= 0,
-> @@ -441,9 +458,30 @@ static const struct imxmmc_platform_data sdhc_pdata __initconst = {
->  	.exit = pcm970_sdhc1_exit,
->  };
->  
-> +static struct soc_camera_async_subdev mt9p006_sd = {
-> +	.asd.hw = {
-> +		.bus_type = V4L2_ASYNC_BUS_I2C,
-> +		.match.i2c = {
-> +			.adapter_id = 2,
-> +			.address = 0x48,
-> +		},
-> +	},
-> +	.role = SOCAM_SUBDEV_DATA_SOURCE,
-> +};
-> +
-> +static struct v4l2_async_subdev *cam_subdevs[] = {
-> +	/* Single 1-element group */
-> +	&mt9p006_sd.asd,
-> +};
-> +
-> +/* 0-terminated array of group-sizes */
-> +static int cam_subdev_sizes[] = {ARRAY_SIZE(cam_subdevs), 0};
-> +
->  struct mx3_camera_pdata camera_pdata __initdata = {
->  	.flags		= MX3_CAMERA_DATAWIDTH_8 | MX3_CAMERA_DATAWIDTH_10,
->  	.mclk_10khz	= 2000,
-> +	.asd		= cam_subdevs,
-> +	.asd_sizes	= cam_subdev_sizes,
->  };
->  
->  static phys_addr_t mx3_camera_base __initdata;
-> @@ -476,8 +514,8 @@ static struct platform_device *devices[] __initdata = {
->  	&pcm037_flash,
->  	&pcm037_sram_device,
->  	&vcc_cam,
-> -	&pcm037_mt9t031,
-> -	&pcm037_mt9v022,
-> +//	&pcm037_mt9t031,
-> +//	&pcm037_mt9v022,
->  };
->  
->  static const struct fb_videomode fb_modedb[] = {
-> @@ -677,6 +715,8 @@ static void __init pcm037_init(void)
->  	/* I2C adapters and devices */
->  	i2c_register_board_info(1, pcm037_i2c_devices,
->  			ARRAY_SIZE(pcm037_i2c_devices));
-> +	i2c_register_board_info(2, pcm037_i2c2_devices,
-> +			ARRAY_SIZE(pcm037_i2c2_devices));
->  
->  	imx31_add_imx_i2c1(&pcm037_i2c1_data);
->  	imx31_add_imx_i2c2(&pcm037_i2c2_data);
-> -- 
-> 1.7.2.5
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Intel Open Source Technology Centre
+http://oss.intel.com/
