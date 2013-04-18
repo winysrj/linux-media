@@ -1,131 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61897 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab3DVMdF (ORCPT
+Received: from mail-wi0-f175.google.com ([209.85.212.175]:32931 "EHLO
+	mail-wi0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965364Ab3DRDSU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 08:33:05 -0400
-Date: Mon, 22 Apr 2013 14:33:03 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 18/24] V4L2: mt9p031: power down the sensor if no supported
- device has been detected
-In-Reply-To: <1756723.mDdT6UkUyR@avalon>
-Message-ID: <Pine.LNX.4.64.1304221432080.23906@axis700.grange>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
- <1366320945-21591-19-git-send-email-g.liakhovetski@gmx.de> <1756723.mDdT6UkUyR@avalon>
+	Wed, 17 Apr 2013 23:18:20 -0400
+Received: by mail-wi0-f175.google.com with SMTP id h11so1156374wiv.2
+        for <linux-media@vger.kernel.org>; Wed, 17 Apr 2013 20:18:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Thu, 18 Apr 2013 11:18:19 +0800
+Message-ID: <CAPgLHd_TwmtoaE7T7e3fRKh4NTGhOYjQZv0G7nt-iSVMLz3XEQ@mail.gmail.com>
+Subject: [PATCH -next] [media] s5p-mfc: fix error return code in s5p_mfc_probe()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: kyungmin.park@samsung.com, k.debski@samsung.com,
+	jtp.park@samsung.com, mchehab@redhat.com, grant.likely@linaro.org,
+	rob.herring@calxeda.com
+Cc: yongjun_wei@trendmicro.com.cn,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-On Mon, 22 Apr 2013, Laurent Pinchart wrote:
+Fix to return a negative error code from the error handling
+case instead of 0, as returned elsewhere in this function.
 
-> Hi Guennadi,
-> 
-> Thanks for the patch.
-> 
-> On Thursday 18 April 2013 23:35:39 Guennadi Liakhovetski wrote:
-> > The mt9p031 driver first accesses the I2C device in its .registered()
-> > method. While doing that it furst powers the device up, but if probing
-> 
-> s/furst/first/
-> 
-> > fails, it doesn't power the chip back down. This patch fixes that bug.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> >
-> > ---
-> >  drivers/media/i2c/mt9p031.c |   10 ++++++----
-> >  1 files changed, 6 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> > index eb2de22..70f4525 100644
-> > --- a/drivers/media/i2c/mt9p031.c
-> > +++ b/drivers/media/i2c/mt9p031.c
-> > @@ -844,7 +844,7 @@ static int mt9p031_registered(struct v4l2_subdev
-> > *subdev) ret = mt9p031_power_on(mt9p031);
-> >  	if (ret < 0) {
-> >  		dev_err(&client->dev, "MT9P031 power up failed\n");
-> > -		return ret;
-> > +		goto done;
-> 
-> Not here. If power on fails, there's no need to power off.
-
-Oops, right.
-
-> >  	}
-> > 
-> >  	/* Read out the chip version register */
-> > @@ -852,13 +852,15 @@ static int mt9p031_registered(struct v4l2_subdev
-> > *subdev) if (data != MT9P031_CHIP_VERSION_VALUE) {
-> >  		dev_err(&client->dev, "MT9P031 not detected, wrong version "
-> >  			"0x%04x\n", data);
-> > -		return -ENODEV;
-> > +		ret = -ENODEV;
-> >  	}
-> > 
-> > +done:
-> >  	mt9p031_power_off(mt9p031);
-> > 
-> > -	dev_info(&client->dev, "MT9P031 detected at address 0x%02x\n",
-> > -		 client->addr);
-> > +	if (!ret)
-> > +		dev_info(&client->dev, "MT9P031 detected at address 0x%02x\n",
-> > +			 client->addr);
-> > 
-> >  	return ret;
-> >  }
-> 
-> It would be easier to just move the power off line right after the 
-> mt9p031_read() call and leave the rest unchanged.
-
-Sure, please, do.
-
-Thanks
-Guennadi
-
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 28cf95b..8de84c0 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -849,18 +849,18 @@ static int mt9p031_registered(struct v4l2_subdev 
-> *subdev)
->  
->         /* Read out the chip version register */
->         data = mt9p031_read(client, MT9P031_CHIP_VERSION);
-> +       mt9p031_power_off(mt9p031);
-> +
->         if (data != MT9P031_CHIP_VERSION_VALUE) {
->                 dev_err(&client->dev, "MT9P031 not detected, wrong version "
->                         "0x%04x\n", data);
->                 return -ENODEV;
->         }
->  
-> -       mt9p031_power_off(mt9p031);
-> -
->         dev_info(&client->dev, "MT9P031 detected at address 0x%02x\n",
->                  client->addr);
->  
-> -       return ret;
-> +       return 0;
->  }
->  
->  static int mt9p031_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh 
-> *fh)
-> 
-> If you're happy with that there's no need to resubmit, I'll apply the patch to 
-> my tree for v3.11.
-> 
-> -- 
-> Regards,
-> 
-> Laurent Pinchart
-> 
-
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/platform/s5p-mfc/s5p_mfc.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index e810b1a..a5853fa 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1110,7 +1110,8 @@ static int s5p_mfc_probe(struct platform_device *pdev)
+ 	}
+ 
+ 	if (pdev->dev.of_node) {
+-		if (s5p_mfc_alloc_memdevs(dev) < 0)
++		ret = s5p_mfc_alloc_memdevs(dev);
++		if (ret < 0)
+ 			goto err_res;
+ 	} else {
+ 		dev->mem_dev_l = device_find_child(&dev->plat_dev->dev,
+
