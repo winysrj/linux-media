@@ -1,121 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f170.google.com ([209.85.192.170]:50813 "EHLO
-	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751792Ab3DKTpY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 15:45:24 -0400
-Received: by mail-pd0-f170.google.com with SMTP id 10so1021574pdi.15
-        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 12:45:23 -0700 (PDT)
-From: Tzu-Jung Lee <roylee17@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: hans.verkuil@cisco.com, k.debski@samsung.com,
-	Tzu-Jung Lee <tjlee@ambarella.com>
-Subject: [PATCH v4 1/2] v4l2-ctl: add is_compressed_format() helper
-Date: Fri, 12 Apr 2013 03:46:54 +0800
-Message-Id: <1365709615-17399-1-git-send-email-tjlee@ambarella.com>
+Received: from mx1.redhat.com ([209.132.183.28]:57937 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S935970Ab3DRR2I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 13:28:08 -0400
+Date: Thu, 18 Apr 2013 14:28:00 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: sameo@linux.intel.com, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 00/12]  Driver for Si476x series of chips
+Message-ID: <20130418142800.5c00b004@redhat.com>
+In-Reply-To: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-To bypass precalculate_bars() for OUTPUT device
-that takes encoded bitstreams.
+Em Thu, 18 Apr 2013 09:58:26 -0700
+Andrey Smirnov <andrew.smirnov@gmail.com> escreveu:
 
-Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
----
- utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 40 ++++++++++++++++++++++++++++++++++-
- 1 file changed, 39 insertions(+), 1 deletion(-)
+> Driver for Si476x series of chips
+> 
+> This is a eight version of the patchset originaly posted here:
+> https://lkml.org/lkml/2012/9/13/590
+> 
+> Second version of the patch was posted here:
+> https://lkml.org/lkml/2012/10/5/598
+> 
+> Third version of the patch was posted here:
+> https://lkml.org/lkml/2012/10/23/510
+> 
+> Fourth version of the patch was posted here:
+> https://lkml.org/lkml/2013/2/18/572
+> 
+> Fifth version of the patch was posted here:
+> https://lkml.org/lkml/2013/2/26/45
+> 
+> Sixth version of the patch was posted here:
+> https://lkml.org/lkml/2013/2/26/257
+> 
+> Seventh version of the patch was posted here:
+> https://lkml.org/lkml/2013/2/27/22
+> 
+> Eighth version of the patch was posted here:
+> https://lkml.org/lkml/2013/3/26/891
+> 
+> To save everyone's time I'll repost the original description of it:
+> 
+> This patchset contains a driver for a Silicon Laboratories 476x series
+> of radio tuners. The driver itself is implemented as an MFD devices
+> comprised of three parts: 
+>  1. Core device that provides all the other devices with basic
+> functionality and locking scheme.
+>  2. Radio device that translates between V4L2 subsystem requests into
+> Core device commands.
+>  3. Codec device that does similar to the earlier described task, but
+> for ALSA SoC subsystem.
+> 
+> v9 of this driver has following changes:
+>    - MFD part of the driver no longer depends on the header file added
+>      by the radio driver(media/si476x.h) which should potential
+>      restore the bisectability of the patches
+> 
+> Mauro, I am not sure if you reverted changes in patches 5 - 7, so I am
+> including them just in case.
 
-diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-index 9e361af..035c3c7 100644
---- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-+++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-@@ -115,6 +115,23 @@ static const flag_def tc_flags_def[] = {
- 	{ 0, NULL }
- };
- 
-+static bool is_compressed_format(int fd, struct v4l2_format *f)
-+{
-+	struct v4l2_fmtdesc fmt;
-+
-+	memset(&fmt, 0, sizeof(fmt));
-+	fmt.type = f->type;
-+
-+	while (test_ioctl(fd, VIDIOC_ENUM_FMT, &fmt) >= 0) {
-+		if (fmt.pixelformat == f->fmt.pix.pixelformat)
-+			return fmt.flags & V4L2_FMT_FLAG_COMPRESSED;
-+
-+		fmt.index++;
-+	}
-+
-+	return false;
-+}
-+
- static void print_buffer(FILE *f, struct v4l2_buffer &buf)
- {
- 	fprintf(f, "\tIndex    : %d\n", buf.index);
-@@ -312,12 +329,16 @@ static void do_setup_out_buffers(int fd, struct v4l2_requestbuffers *reqbufs,
- 				 bool is_mplane, unsigned &num_planes, bool is_mmap,
- 				 void *buffers[], unsigned buffer_lengths[], FILE *fin)
- {
-+	bool is_compressed;
-+
- 	struct v4l2_format fmt;
- 	memset(&fmt, 0, sizeof(fmt));
- 	fmt.type = reqbufs->type;
- 	doioctl(fd, VIDIOC_G_FMT, &fmt);
- 
--	if (!precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
-+	is_compressed = is_compressed_format(fd, &fmt);
-+	if (!is_compressed &&
-+	    !precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat)) {
- 		fprintf(stderr, "unsupported pixelformat\n");
- 		return;
- 	}
-@@ -688,7 +709,9 @@ static void streaming_set_cap(int fd)
- static void streaming_set_out(int fd)
- {
- 	struct v4l2_requestbuffers reqbufs;
-+	struct v4l2_format fmt;
- 	int fd_flags = fcntl(fd, F_GETFL);
-+	bool is_compressed;
- 	bool is_mplane = capabilities &
- 			(V4L2_CAP_VIDEO_OUTPUT_MPLANE |
- 				 V4L2_CAP_VIDEO_M2M_MPLANE);
-@@ -710,6 +733,12 @@ static void streaming_set_out(int fd)
- 	reqbufs.type = type;
- 	reqbufs.memory = is_mmap ? V4L2_MEMORY_MMAP : V4L2_MEMORY_USERPTR;
- 
-+	memset(&fmt, 0, sizeof(fmt));
-+	fmt.type = reqbufs.type;
-+	doioctl(fd, VIDIOC_G_FMT, &fmt);
-+
-+	is_compressed = is_compressed_format(fd, &fmt);
-+
- 	if (file_out) {
- 		if (!strcmp(file_out, "-"))
- 			fin = stdin;
-@@ -795,6 +824,9 @@ enum stream_type {
- 
- static void streaming_set_m2m(int fd)
- {
-+	struct v4l2_format fmt;
-+	bool is_compressed;
-+
- 	int fd_flags = fcntl(fd, F_GETFL);
- 	bool use_poll = options[OptStreamPoll];
- 
-@@ -864,6 +896,12 @@ static void streaming_set_m2m(int fd)
- 			     is_mmap, buffers_out, buffer_lengths_out,
- 			     file[OUT]);
- 
-+	memset(&fmt, 0, sizeof(fmt));
-+	fmt.type = reqbufs[OUT].type;
-+	doioctl(fd, VIDIOC_G_FMT, &fmt);
-+
-+	is_compressed = is_compressed_format(fd, &fmt);
-+
- 	if (doioctl(fd, VIDIOC_STREAMON, &type[CAP]) ||
- 	    doioctl(fd, VIDIOC_STREAMON, &type[OUT]))
- 		return;
+No, I didn't revert all patches. I just reverted two patches: the
+last one, and the one that Samuel asked me.
+
+Please rebase the remaining drivers/media patch(es) on the top of my tree,
+or on the top of linux-next.
+
+Regards,
+Mauro
+
+> 
+> Hans, some of the patches you gave your ACK to were changed, but since
+> the only thing changed is the location of the original code(it was
+> rearranged into different files) I did not remove your ACKs from the
+> new commits. I hope you don't mind, but if you do, let me know and
+> I'll post an updated version of the patchset so it would be clear that
+> it is not ready to be merged.
+> 
+> Please note, taht patch #12 is the modified version of
+> https://patchwork-mail.kernel.org/patch/2420751/ 
+> It _was not_ ACKEd by anyone.
+> 
+> Samuel, I couldn't just move media/si476x.h to mfd patches because it
+> would also break bisectability since media/si476x.h depends on patch
+> #8 in this patchset(whcih is the change that should go through 'media' tree)
+> But I rearranged definitions and there shouldn't be any dependencies on
+> media patches in MFD part.
+> 
+> Andrey Smirnov (10):
+>   mfd: Add commands abstraction layer for SI476X MFD
+>   mfd: Add the main bulk of core driver for SI476x code
+>   mfd: Add chip properties handling code for SI476X MFD
+>   mfd: Add header files and Kbuild plumbing for SI476x MFD core
+>   v4l2: Fix the type of V4L2_CID_TUNE_PREEMPHASIS in the documentation
+>   v4l2: Add standard controls for FM receivers
+>   v4l2: Add documentation for the FM RX controls
+>   v4l2: Add private controls base for SI476X
+>   v4l2: Add a V4L2 driver for SI476X MFD
+>   radio-si476x: Fix incorrect pointer checking
+> 
+> Hans Verkuil (1):
+>   si476x: Fix some config dependencies and a compile warnings
+> 
+> Mauro Carvalho Chehab (1):
+>   radio-si476x: vidioc_s* now uses a const parameter
+> 
+>  Documentation/DocBook/media/v4l/compat.xml         |    3 +
+>  Documentation/DocBook/media/v4l/controls.xml       |   74 +-
+>  .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    9 +
+>  Documentation/video4linux/si476x.txt               |  187 +++
+>  drivers/media/radio/Kconfig                        |   17 +
+>  drivers/media/radio/Makefile                       |    1 +
+>  drivers/media/radio/radio-si476x.c                 | 1575 ++++++++++++++++++++
+>  drivers/media/v4l2-core/v4l2-ctrls.c               |   14 +-
+>  drivers/mfd/Kconfig                                |   13 +
+>  drivers/mfd/Makefile                               |    4 +
+>  drivers/mfd/si476x-cmd.c                           | 1553 +++++++++++++++++++
+>  drivers/mfd/si476x-i2c.c                           |  886 +++++++++++
+>  drivers/mfd/si476x-prop.c                          |  242 +++
+>  include/linux/mfd/si476x-core.h                    |  533 +++++++
+>  include/linux/mfd/si476x-platform.h                |  267 ++++
+>  include/linux/mfd/si476x-reports.h                 |  163 ++
+>  include/media/si476x.h                             |   37 +
+>  include/uapi/linux/v4l2-controls.h                 |   17 +
+>  18 files changed, 5591 insertions(+), 4 deletions(-)
+>  create mode 100644 Documentation/video4linux/si476x.txt
+>  create mode 100644 drivers/media/radio/radio-si476x.c
+>  create mode 100644 drivers/mfd/si476x-cmd.c
+>  create mode 100644 drivers/mfd/si476x-i2c.c
+>  create mode 100644 drivers/mfd/si476x-prop.c
+>  create mode 100644 include/linux/mfd/si476x-core.h
+>  create mode 100644 include/linux/mfd/si476x-platform.h
+>  create mode 100644 include/linux/mfd/si476x-reports.h
+>  create mode 100644 include/media/si476x.h
+> 
+
+
 -- 
-1.8.1.5
 
+Cheers,
+Mauro
