@@ -1,38 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:40019 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966149Ab3DRO0V (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:41595 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751823Ab3DRTV0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 10:26:21 -0400
-Received: by mail-lb0-f178.google.com with SMTP id q13so2772066lbi.9
-        for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 07:26:19 -0700 (PDT)
-Message-ID: <51700247.2000905@cogentembedded.com>
-Date: Thu, 18 Apr 2013 18:25:11 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Thu, 18 Apr 2013 15:21:26 -0400
+Date: Thu, 18 Apr 2013 22:21:17 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: [patch 2/2] [media] r820t: memory leak in release()
+Message-ID: <20130418192117.GB17798@elgon.mountain>
 MIME-Version: 1.0
-To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-CC: linux-media@vger.kernel.org, matsu@igel.co.jp,
-	Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Subject: Re: [PATCH 3/4] ARM: shmobile: Marzen: add VIN and ADV7180 support
-References: <201304180206.39465.sergei.shtylyov@cogentembedded.com> <201304180215.01218.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304180215.01218.sergei.shtylyov@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18-04-2013 2:15, I wrote:
+I've moved the kfree(fe->tuner_priv) one line earlier, otherwise it is
+a no-op.
 
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+---
+This is a static checker fix and I have not tested it.
 
-> Add ADV7180 platform devices on the Marzen board, configure VIN1/3 pins, and
-> register VIN1/3 devices with the ADV7180 specific platform data.
-
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
-    I'm going to repost this patch recasted using a macro for camera sensor data.
-
-WBR, Sergei
-
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index ba033fd..36ddbf1 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -2252,9 +2252,8 @@ static int r820t_release(struct dvb_frontend *fe)
+ 
+ 	mutex_unlock(&r820t_list_mutex);
+ 
+-	fe->tuner_priv = NULL;
+-
+ 	kfree(fe->tuner_priv);
++	fe->tuner_priv = NULL;
+ 
+ 	return 0;
+ }
