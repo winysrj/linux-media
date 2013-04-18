@@ -1,278 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:56198 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201Ab3DLO3l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 10:29:41 -0400
-Date: Fri, 12 Apr 2013 16:29:36 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Received: from mx1.redhat.com ([209.132.183.28]:50880 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755910Ab3DROIl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 10:08:41 -0400
+Date: Thu, 18 Apr 2013 11:08:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v8 2/7] media: V4L2: support asynchronous subdevice
- registration
-In-Reply-To: <1618829.uxRCXGb1BB@avalon>
-Message-ID: <Pine.LNX.4.64.1304121605260.1727@axis700.grange>
-References: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de>
- <1365433538-15975-3-git-send-email-g.liakhovetski@gmx.de> <1618829.uxRCXGb1BB@avalon>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH v2] media: davinci: vpif: align the buffers size to page
+ page size boundary
+Message-ID: <20130418110828.563ff251@redhat.com>
+In-Reply-To: <4068729.pdlKXoIiR6@avalon>
+References: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com>
+	<20130418082121.0221e59e@redhat.com>
+	<20130418083547.41f975f8@redhat.com>
+	<4068729.pdlKXoIiR6@avalon>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent
+Em Thu, 18 Apr 2013 15:22:16 +0200
+Laurent Pinchart <laurent.pinchart@ideasonboard.com> escreveu:
 
-Thanks for the review.
-
-On Fri, 12 Apr 2013, Laurent Pinchart wrote:
-
-[snip]
-
-> > +		switch (hw->bus_type) {
-> > +		case V4L2_ASYNC_BUS_CUSTOM:
-> > +			match = hw->match.special.match;
-> > +			if (!match)
-> > +				/* Match always */
-> > +				return asd;
-> > +			break;
-> > +		case V4L2_ASYNC_BUS_PLATFORM:
-> > +			match = match_platform;
-> > +			break;
-> > +		case V4L2_ASYNC_BUS_I2C:
-> > +			match = match_i2c;
-> > +			break;
-> > +		default:
-> > +			/* Oops */
-> > +			match = NULL;
-> > +			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-> > +				"Invalid bus-type %u on %p\n", hw->bus_type, asd);
+> Hi Mauro,
 > 
-> An invalid hw->bus_type value is a driver (or board code) bug. Could you move 
-> this check to v4l2_async_notifier_register() when building the subdev list and 
-> return an error ?
-
-agree.
-
-> > +static struct device *v4l2_async_unregister(struct v4l2_async_subdev_list
-> > *asdl)
-> > +{
-> > +	struct device *dev = asdl->dev;
-> > +
-> > +	v4l2_async_cleanup(asdl);
-> > +
-> > +	/* If we handled USB devices, we'd have to lock the parent too */
-> > +	device_release_driver(dev);
-> > +	return dev;
+> On Thursday 18 April 2013 08:35:47 Mauro Carvalho Chehab wrote:
+> > Em Thu, 18 Apr 2013 08:21:21 -0300 Mauro Carvalho Chehab escreveu:
+> > > Em Thu, 18 Apr 2013 10:17:14 +0530 Prabhakar Lad escreveu:
+> > > > On Tue, Apr 16, 2013 at 4:48 PM, Laurent Pinchart wrote:
+> > > > > Hi Prabhakar,
+> > > 
+> > > ...
+> > > 
+> > > > >> *nbuffers = config_params.min_numbuffers;
+> > > > >> 
+> > > > >>       *nplanes = 1;
+> > > > >> 
+> > > > >> +     size = PAGE_ALIGN(size);
+> > > > > 
+> > > > > I wonder if that's the best fix.
+> > > > > The queue_setup operation is supposed to return the size required by
+> > > > > the driver for each plane. Depending on the hardware requirements,
+> > > > > that size might not be a multiple of the page size.
+> > > > > 
+> > > > > As we can't mmap() a fraction of a page, the allocated plane size
+> > > > > needs to be rounded up to the next page boundary to allow mmap()
+> > > > > support. The dma-contig and dma-sg allocators already do so in their
+> > > > > alloc operation, but the vmalloc allocator doesn't.
+> > > > > 
+> > > > > The recent "media: vb2: add length check for mmap" patch verifies that
+> > > > > the mmap() size requested by userspace doesn't exceed the buffer size.
+> > > > > As the mmap() size is rounded up to the next page boundary the check
+> > > > > will fail for buffer sizes that are not multiple of the page size.
+> > > > > 
+> > > > > Your fix will not result in overallocation (as the allocator already
+> > > > > rounds the size up), but will prevent the driver from importing a
+> > > > > buffer large enough for the hardware but not rounded up to the page
+> > > > > size.
+> > > > > 
+> > > > > A better fix might be to round up the buffer size in the buffer size
+> > > > > check at mmap() time, and fix the vmalloc allocator to round up the
+> > > > > size. That the allocator, not drivers, is responsible for buffer size
+> > > > > alignment should be documented in videobuf2-core.h.
+> > > > 
+> > > > Do you plan to post a patch fixing it as per Laurent's suggestion ?
+> > > 
+> > > I agree with Laurent: page size roundup should be done at VB2 core code,
+> > > for memory allocated there, and not at driver's level. Yet, looking at
+> > > VB2 code, it already does page size align at __setup_offsets(), but it
+> > > doesn't do if for the size field; just for the offset.
+> > > 
+> > > The adjusted size should be stored at the VB2 size field, and the check
+> > > for buffer overflow, added on changeset
+> > > 068a0df76023926af958a336a78bef60468d2033 should be kept.
+> > > 
+> > > IMO, it also makes sense to enforce that the USERPTR memory is multiple of
+> > > the page size, as otherwise the DMA transfer may overwrite some area that
+> > > is outside the allocated range. So, the size from USERPTR should be round
+> > > down.
 > 
-> This function is called from a single location and the return value is unused, 
-> it could just return void.
+> I don't think that's needed. You can transfer a number of bytes not multiple 
+> of the page size using DMA. This is true for DMABUF as well, an imported 
+> buffer might have a size not aligned on a page boundary.
 
-will be changed
+Are you sure that, on all supported archs/buses, the DMA transfers are
+byte-aligned?
 
-> > +}
-> > +
-> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > +				 struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct v4l2_async_subdev_list *asdl, *tmp;
-> > +	int i;
+> > > That change, however, will break userspace, as it uses the picture
+> > > sizeimage to allocate the buffers. So, sizeimage needs to be PAGE_SIZE
+> > > roundup before passing it to userspace.
+> > > 
+> > > Instead of modifying all drivers, the better seems to patch v4l_g_fmt()
+> > > and v4l_try_fmt() to return a roundup value for sizeimage. As usual,
+> > > uvcvideo requires a separate patch, because it doesn't use vidio_ioctl2.
+> > 
+> > Hmm... PAGE_SIZE alignment is not needed on all places. It is needed only
+> > when DMA is done directly into the buffer, e. g. videobuf2-dma-contig and
+> > videobuf2-dma-sg.
+> > 
+> > It means that we'll need an extra function for the VB2 memory allocation
+> > drivers to do do the memory-dependent roundups, and a new ancillary
+> > function at VB2 core for the VB2 clients to call to round sizeimage if
+> > needed.
 > 
-> Could this be unsigned (please see below for a similar comment about notifier-
-> >subdev_num as well) ?
+> Can't we just round the size up at allocation time and when checking the size 
+> in mmap() ? That's a simple fix, local to vb2, and won't require new vb2 
+> memops.
 
-I like it how clearly we can separate in our reviews suggestions for 
-technical quality improvements from personal opinions and preferences ;-)
+That's not needed for videobuf2-vmalloc. We shouldn't bloat the core VB2
+with memops specific stuff. Ok, in this specific case, this is a simple
+trivial patch, so perhaps we could do it there.
 
-> > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
-> > +{
-> > +	struct v4l2_async_subdev_list *asdl, *tmp;
-> > +	int i = 0;
-> 
-> i can't be negative, could it then be unsiged ?
+-- 
 
-Ditto :)
-
-> > +	struct device **dev = kcalloc(notifier->subdev_num,
-> > +				      sizeof(*dev), GFP_KERNEL);
-> > +	if (!dev)
-> > +		dev_err(notifier->v4l2_dev->dev,
-> > +			"Failed to allocate device cache!\n");
-> > +
-> > +	mutex_lock(&list_lock);
-> > +
-> > +	list_del(&notifier->list);
-> > +
-> > +	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
-> > +		if (dev)
-> > +			dev[i++] = get_device(asdl->dev);
-> > +		v4l2_async_unregister(asdl);
-> > +
-> > +		if (notifier->unbind)
-> > +			notifier->unbind(notifier, asdl);
-> > +	}
-> > +
-> > +	mutex_unlock(&list_lock);
-> > +
-> > +	if (dev) {
-> > +		while (i--) {
-> > +			if (dev[i] && device_attach(dev[i]) < 0)
-> 
-> I'm still pretty uneasy about the device_attach() and device_release_driver() 
-> calls, I'll read your reply to Sylwester's comments and I'll answer there.
-
-Maybe the following will help: we also discussed this with Greg K-H, he 
-also initially was of the opinion, that these calls shouldn't be needed in 
-_device_ drivers. They are to be used by bus drivers. Then I explained, 
-that we are indeed dealing with a media bus here. He didn't reply any 
-more :-)
-
-> > +struct v4l2_async_hw_device {
-> > +	enum v4l2_async_bus_type bus_type;
-> > +	union {
-> > +		struct {
-> > +			const char *name;
-> > +		} platform;
-> > +		struct {
-> > +			int adapter_id;
-> > +			unsigned short address;
-> > +		} i2c;
-> 
-> Do you think it would make sense to match I2C devices by name as well (using 
-> dev_name(dev)) ?
-
-not necessarily... it would make it uniform, yes, but code authors would 
-have to hard-code device names, that are otherwise created by the I2C core. 
-Are we sure those never change? Don't think we're supposed to rely on them.
-
-> > +		struct {
-> > +			bool (*match)(struct device *,
-> > +				      struct v4l2_async_hw_device *);
-> > +			void *priv;
-> > +		} special;
-> > +	} match;
-> > +};
-> 
-> This isn't really a device, what about renaming it to v4l2_async_device_info, 
-> v4l2_async_hw_info, v4l2_async_dev_info, ... (or s/info/desc/) ?
-
-ok
-
-> > +/**
-> > + * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
-> > + * @hw:		this device descriptor
-> > + * @list:	member in a list of subdevices
-> > + */
-> > +struct v4l2_async_subdev {
-> > +	struct v4l2_async_hw_device hw;
-> > +	struct list_head list;
-> > +};
-> 
-> I was wondering whether this structure couldn't be made private (and thus 
-> dynamically allocated), but that might be overkill.
-
-seems an overkill to me too.
-
-> The structure isn't not part of the public API, except to access the hw field. 
-> Maybe the bound and unbind notifiers could get a pointer to the hw field 
-> directly to avoid going through v4l2_async_subdev ? We could then add a 
-> comment to the structure definition to warn that the structure must not be 
-> touched by subdev drivers at any time, and by bridge drivers in the notifier 
-> callbacks (bridge drivers will still need to create and initialize the 
-> v4l2_async_subdev instances passed to v4l2_async_notifier_register()). 
-> v4l2_async_subdev could even be merged with struct v4l2_async_hw_device.
-> 
-> > +/**
-> > + * v4l2_async_subdev_list - provided by subdevices
-> > + * @list:	member in a list of subdevices
-> > + * @dev:	hardware device
-> > + * @subdev:	V4L2 subdevice
-> > + * @asd:	pointer to respective struct v4l2_async_subdev
-> > + * @notifier:	pointer to managing notifier
-> > + */
-> > +struct v4l2_async_subdev_list {
-> > +	struct list_head list;
-> > +	struct device *dev;
-> > +	struct v4l2_subdev *subdev;
-> > +	struct v4l2_async_subdev *asd;
-> > +	struct v4l2_async_notifier *notifier;
-> > +};
-> 
-> I don't think this structure is needed, at least not in a public header file. 
-> Its fields could be moved to struct v4l2_subdev (which would also get rid of 
-> the subdev field) or, alternatively, a pointer to v4l2_async_subdev_list could 
-> be added to struct v4l2_subdev and allocated dynamically.
-
-I'll merge it into v4l2_dubdev
-
-> This would simplify the registration process for subdev drivers. They would 
-> only need to call v4l2_async_register_subdev() with a pointer to the subdev, 
-> without being required to instantiate a struct v4l2_async_subdev_list.
-> 
-> Obviously the dev pointer will still be needed. It could be passed to 
-> v4l2_async_register_subdev(), but my personal preference for now would be to 
-> add the struct device pointer to struct v4l2_subdev and let subdev drivers set 
-> it before registering the subdev.
-> 
-> > +/**
-> > + * v4l2_async_notifier - provided by bridges
-> > + * @subdev_num:	number of subdevices
-> > + * @subdev:	array of pointers to subdevices
-> > + * @v4l2_dev:	pointer to sruct v4l2_device
-> 
-> Typo, s/sruct/struct/
-
-thanks
-
-> > + * @waiting:	list of subdevices, waiting for their drivers
-> > + * @done:	list of subdevices, already probed
-> > + * @list:	member in a global list of notifiers
-> > + * @bound:	a subdevice driver has successfully probed one of subdevices
-> > + * @complete:	all subdevices have been probed successfully
-> > + * @unbind:	a subdevice is leaving
-> > + */
-> > +struct v4l2_async_notifier {
-> > +	int subdev_num;
-> 
-> The number of subdevs can't be negative, could this be unsigned ?
-
-yes, here it makes sense. a simple
-
-	int i;
-	for (i = 0; i < N; i++)
-		...
-
-is just not worth it imho :)
-
-> > +	struct v4l2_async_subdev **subdev;
-> > +	struct v4l2_device *v4l2_dev;
-> > +	struct list_head waiting;
-> > +	struct list_head done;
-> > +	struct list_head list;
-> > +	int (*bound)(struct v4l2_async_notifier *notifier,
-> > +		     struct v4l2_async_subdev_list *asdl);
-> > +	int (*complete)(struct v4l2_async_notifier *notifier);
-> > +	void (*unbind)(struct v4l2_async_notifier *notifier,
-> > +		       struct v4l2_async_subdev_list *asdl);
-> > +};
-> > +
-> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> > +				 struct v4l2_async_notifier *notifier);
-> > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
-> > +int v4l2_async_register_subdev(struct v4l2_async_subdev_list *asdl);
-> > +void v4l2_async_unregister_subdev(struct v4l2_async_subdev_list *asdl);
-> 
-> Renaming v4l2_async_(un)register_subdev to v4l2_(un)register_subdev might be a 
-> good idea at some point, we can fix that later.
-
-maybe
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Cheers,
+Mauro
