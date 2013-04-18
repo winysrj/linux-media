@@ -1,99 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3433 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755373Ab3DYRUV (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:29513 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965034Ab3DRCxa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 13:20:21 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3PHKAI4083278
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 19:20:20 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id CDC1811E04BF
-	for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 19:20:10 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130425172010.CDC1811E04BF@alastor.dyndns.org>
-Date: Thu, 25 Apr 2013 19:20:10 +0200 (CEST)
+	Wed, 17 Apr 2013 22:53:30 -0400
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MLF00H8JK0JTT90@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 18 Apr 2013 11:53:28 +0900 (KST)
+Content-transfer-encoding: 8BIT
+Message-id: <516F6024.3020806@samsung.com>
+Date: Thu, 18 Apr 2013 11:53:24 +0900
+From: =?UTF-8?B?6rmA7Iq57Jqw?= <sw0312.kim@samsung.com>
+Reply-to: sw0312.kim@samsung.com
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH] media: vb2: add length check for mmap
+References: <1365739077-8740-1-git-send-email-sw0312.kim@samsung.com>
+ <5167A3A3.5090200@samsung.com>
+In-reply-to: <5167A3A3.5090200@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Oops, there is a issue.
 
-Results of the daily build of media_tree:
+vb2-core does not PAGE_ALIGN to length of buffer, but mmap() always do
+PAGE_ALIGN to its length.
 
-date:		Thu Apr 25 19:00:34 CEST 2013
-git branch:	test
-git hash:	619ab8f611e269e12c956361a38a4206cef9155d
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+So non PAGE_ALIGN length of buffer from driver side can not mmaped with
+this patch.
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9-rc1-x86_64: ERRORS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+On 2013년 04월 12일 15:03, Marek Szyprowski wrote:
+> 
+> On 4/12/2013 5:57 AM, Seung-Woo Kim wrote:
+>> The length of mmap() can be bigger than length of vb2 buffer, so
+>> it should be checked.
+>>
+>> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> 
+> Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+> 
+>> ---
+>>   drivers/media/v4l2-core/videobuf2-core.c |    5 +++++
+>>   1 files changed, 5 insertions(+), 0 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+>> b/drivers/media/v4l2-core/videobuf2-core.c
+>> index db1235d..2c6ff2d 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -1886,6 +1886,11 @@ int vb2_mmap(struct vb2_queue *q, struct
+>> vm_area_struct *vma)
+>>         vb = q->bufs[buffer];
+>>   +    if (vb->v4l2_planes[plane].length < (vma->vm_end -
+>> vma->vm_start)) {
+>> +        dprintk(1, "Invalid length\n");
+>> +        return -EINVAL;
+>> +    }
+>> +
+>>       ret = call_memop(q, mmap, vb->planes[plane].mem_priv, vma);
+>>       if (ret)
+>>           return ret;
+> 
+> Best regards
 
-Detailed results are available here:
+-- 
+Seung-Woo Kim
+Samsung Software R&D Center
+--
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
