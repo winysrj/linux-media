@@ -1,71 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews03.kpnxchange.com ([213.75.39.6]:65323 "EHLO
-	cpsmtpb-ews03.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S935178Ab3DIJQA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 05:16:00 -0400
-Message-ID: <1365498958.1830.157.camel@x61.thuisdomein>
-Subject: [PATCH v2] [media] soc-camera: remove two unused configs
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Date: Tue, 09 Apr 2013 11:15:58 +0200
-In-Reply-To: <1365453268.1830.137.camel@x61.thuisdomein>
-References: <1365453268.1830.137.camel@x61.thuisdomein>
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx1.redhat.com ([209.132.183.28]:16534 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752792Ab3DRLVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 07:21:34 -0400
+Date: Thu, 18 Apr 2013 08:21:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] media: davinci: vpif: align the buffers size to page
+ page size boundary
+Message-ID: <20130418082121.0221e59e@redhat.com>
+In-Reply-To: <CA+V-a8uV1e0FSe0kO6VBe=fRj9hf8Oo5VzrrbMtnR-onJo9pog@mail.gmail.com>
+References: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com>
+	<2933946.BRNjyJUSVm@avalon>
+	<CA+V-a8uV1e0FSe0kO6VBe=fRj9hf8Oo5VzrrbMtnR-onJo9pog@mail.gmail.com>
 Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The last users of Kconfig symbols MX3_VIDEO and VIDEO_MX2_HOSTSUPPORT
-were removed in v3.2. Their Kconfig entries can be removed now.
+Em Thu, 18 Apr 2013 10:17:14 +0530
+Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
 
-Signed-off-by: Paul Bolle <pebolle@tiscali.nl>
----
-v1 was called "[...] remove "config MX3_VIDEO"". But it turned out that
-v3.2, through commit 389d12cc7f ("ARM: mxc: Remove setting of consistent
-dma size"), also removed the last user of VIDEO_MX2_HOSTSUPPORT. Still
-tested with "git grep" only.
+> Hi Marek,
+> 
+> On Tue, Apr 16, 2013 at 4:48 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+> > Hi Prabhakar,
 
- drivers/media/platform/soc_camera/Kconfig | 8 --------
- 1 file changed, 8 deletions(-)
+...
 
-diff --git a/drivers/media/platform/soc_camera/Kconfig b/drivers/media/platform/soc_camera/Kconfig
-index b139b52..ffd0010 100644
---- a/drivers/media/platform/soc_camera/Kconfig
-+++ b/drivers/media/platform/soc_camera/Kconfig
-@@ -27,14 +27,10 @@ config VIDEO_MX1
- 	---help---
- 	  This is a v4l2 driver for the i.MX1/i.MXL CMOS Sensor Interface
- 
--config MX3_VIDEO
--	bool
--
- config VIDEO_MX3
- 	tristate "i.MX3x Camera Sensor Interface driver"
- 	depends on VIDEO_DEV && MX3_IPU && SOC_CAMERA
- 	select VIDEOBUF2_DMA_CONTIG
--	select MX3_VIDEO
- 	---help---
- 	  This is a v4l2 driver for the i.MX3x Camera Sensor Interface
- 
-@@ -66,14 +62,10 @@ config VIDEO_OMAP1
- 	---help---
- 	  This is a v4l2 driver for the TI OMAP1 camera interface
- 
--config VIDEO_MX2_HOSTSUPPORT
--	bool
--
- config VIDEO_MX2
- 	tristate "i.MX27 Camera Sensor Interface driver"
- 	depends on VIDEO_DEV && SOC_CAMERA && MACH_MX27
- 	select VIDEOBUF2_DMA_CONTIG
--	select VIDEO_MX2_HOSTSUPPORT
- 	---help---
- 	  This is a v4l2 driver for the i.MX27 Camera Sensor Interface
- 
--- 
-1.7.11.7
+> >> *nbuffers = config_params.min_numbuffers;
+> >>
+> >>       *nplanes = 1;
+> >> +     size = PAGE_ALIGN(size);
+> >
+> > I wonder if that's the best fix.
+> > The queue_setup operation is supposed to return the size required by the
+> > driver for each plane. Depending on the hardware requirements, that size might
+> > not be a multiple of the page size.
+> >
+> > As we can't mmap() a fraction of a page, the allocated plane size needs to be
+> > rounded up to the next page boundary to allow mmap() support. The dma-contig
+> > and dma-sg allocators already do so in their alloc operation, but the vmalloc
+> > allocator doesn't.
+> >
+> > The recent "media: vb2: add length check for mmap" patch verifies that the
+> > mmap() size requested by userspace doesn't exceed the buffer size. As the
+> > mmap() size is rounded up to the next page boundary the check will fail for
+> > buffer sizes that are not multiple of the page size.
+> >
+> > Your fix will not result in overallocation (as the allocator already rounds
+> > the size up), but will prevent the driver from importing a buffer large enough
+> > for the hardware but not rounded up to the page size.
+> >
+> > A better fix might be to round up the buffer size in the buffer size check at
+> > mmap() time, and fix the vmalloc allocator to round up the size. That the
+> > allocator, not drivers, is responsible for buffer size alignment should be
+> > documented in videobuf2-core.h.
 
+> >
+> Do you plan to post a patch fixing it as per Laurent's suggestion ?
+
+I agree with Laurent: page size roundup should be done at VB2 core code,
+for memory allocated there, and not at driver's level. Yet, looking at
+VB2 code, it already does page size align at __setup_offsets(), but it
+doesn't do if for the size field; just for the offset.
+
+The adjusted size should be stored at the VB2 size field, and the check for
+buffer overflow, added on changeset 068a0df76023926af958a336a78bef60468d2033
+should be kept.
+
+IMO, it also makes sense to enforce that the USERPTR memory is multiple of the
+page size, as otherwise the DMA transfer may overwrite some area that is
+outside the allocated range. So, the size from USERPTR should be round down.
+
+That change, however, will break userspace, as it uses the picture sizeimage
+to allocate the buffers. So, sizeimage needs to be PAGE_SIZE roundup before
+passing it to userspace.
+
+Instead of modifying all drivers, the better seems to patch v4l_g_fmt() and
+v4l_try_fmt() to return a roundup value for sizeimage. As usual, uvcvideo
+requires a separate patch, because it doesn't use vidio_ioctl2.
+
+Regards,
+Mauro
