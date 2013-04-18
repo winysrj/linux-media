@@ -1,61 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from s250.sam-solutions.net ([217.21.49.219]:56623 "EHLO
-	s250.sam-solutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756655Ab3DXHtq (ORCPT
+Received: from mail-pd0-f171.google.com ([209.85.192.171]:63914 "EHLO
+	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936083Ab3DRQ7D (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 03:49:46 -0400
-Message-ID: <517787DC.5070309@sam-solutions.com>
-Date: Wed, 24 Apr 2013 10:21:00 +0300
-From: Andrei Andreyanau <a.andreyanau@sam-solutions.com>
-Reply-To: a.andreyanau@sam-solutions.com
+	Thu, 18 Apr 2013 12:59:03 -0400
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: sameo@linux.intel.com
+Cc: mchehab@redhat.com, andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH v9 00/12]  Driver for Si476x series of chips
+Date: Thu, 18 Apr 2013 09:58:26 -0700
+Message-Id: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: mt9p031 camera driver issue
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi!
-I have found interesting issue with mt9p031 camera driver.
-As far as I got the value of hblank in the kernel driver is not
-calculated correctly. According to the datasheet, the minimum horizontal
-blanking value should be calculated using the following formula:
-346 x (Row_Bin + 1) + 64 + (Wdc / 2)
-If I'm right, it should look like in the code attached.
-Also I wonder why it is decided to use the default value for vblank,
-when it's said that is also should be calculated like this:
-vblank = max(8, SW - H) + 1,
-where SW - shutter width, H - output image height.
-Also, there might be an issue with the calculation of xskip/yskip within
-the same function (mt9p031_set_params).
+Driver for Si476x series of chips
 
-xskip = DIV_ROUND_CLOSEST(crop->width, format->width);
-yskip = DIV_ROUND_CLOSEST(crop->height, format->height);
+This is a eight version of the patchset originaly posted here:
+https://lkml.org/lkml/2012/9/13/590
 
-As far as I got, these values are calculated using the predefined macros,
-that rounds the calculated value to the nearest integer number. I faced
-with the problem, that these values rounded correctly when the result
-is > 1 (e.g. 1,5 will be rounded to 1).
-But what concerns the value 0,8 it will be rounded to 0 by this function
-(DIV_ROUND_CLOSEST). Could you please confirm this issue?
+Second version of the patch was posted here:
+https://lkml.org/lkml/2012/10/5/598
 
-With best regards,
-Andrei Andreyanau
+Third version of the patch was posted here:
+https://lkml.org/lkml/2012/10/23/510
 
-Signed-off-by: Andrei Andreyanau <a.andreyanau@sam-solutions.com>
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index e328332..838b300 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -368,7 +368,7 @@ static int mt9p031_set_params(struct mt9p031 *mt9p031)
- 	/* Blanking - use minimum value for horizontal blanking and default
- 	 * value for vertical blanking.
- 	 */
--	hblank = 346 * ybin + 64 + (80 >> min_t(unsigned int, xbin, 3));
-+	hblank = 346 * (xbin + 1) + 64 + ((80 >> clamp_t(unsigned int, xbin,
-0, 3)) / 2);
- 	vblank = MT9P031_VERTICAL_BLANK_DEF;
+Fourth version of the patch was posted here:
+https://lkml.org/lkml/2013/2/18/572
 
- 	ret = mt9p031_write(client, MT9P031_HORIZONTAL_BLANK, hblank - 1);
+Fifth version of the patch was posted here:
+https://lkml.org/lkml/2013/2/26/45
+
+Sixth version of the patch was posted here:
+https://lkml.org/lkml/2013/2/26/257
+
+Seventh version of the patch was posted here:
+https://lkml.org/lkml/2013/2/27/22
+
+Eighth version of the patch was posted here:
+https://lkml.org/lkml/2013/3/26/891
+
+To save everyone's time I'll repost the original description of it:
+
+This patchset contains a driver for a Silicon Laboratories 476x series
+of radio tuners. The driver itself is implemented as an MFD devices
+comprised of three parts: 
+ 1. Core device that provides all the other devices with basic
+functionality and locking scheme.
+ 2. Radio device that translates between V4L2 subsystem requests into
+Core device commands.
+ 3. Codec device that does similar to the earlier described task, but
+for ALSA SoC subsystem.
+
+v9 of this driver has following changes:
+   - MFD part of the driver no longer depends on the header file added
+     by the radio driver(media/si476x.h) which should potential
+     restore the bisectability of the patches
+
+Mauro, I am not sure if you reverted changes in patches 5 - 7, so I am
+including them just in case.
+
+Hans, some of the patches you gave your ACK to were changed, but since
+the only thing changed is the location of the original code(it was
+rearranged into different files) I did not remove your ACKs from the
+new commits. I hope you don't mind, but if you do, let me know and
+I'll post an updated version of the patchset so it would be clear that
+it is not ready to be merged.
+
+Please note, taht patch #12 is the modified version of
+https://patchwork-mail.kernel.org/patch/2420751/ 
+It _was not_ ACKEd by anyone.
+
+Samuel, I couldn't just move media/si476x.h to mfd patches because it
+would also break bisectability since media/si476x.h depends on patch
+#8 in this patchset(whcih is the change that should go through 'media' tree)
+But I rearranged definitions and there shouldn't be any dependencies on
+media patches in MFD part.
+
+Andrey Smirnov (10):
+  mfd: Add commands abstraction layer for SI476X MFD
+  mfd: Add the main bulk of core driver for SI476x code
+  mfd: Add chip properties handling code for SI476X MFD
+  mfd: Add header files and Kbuild plumbing for SI476x MFD core
+  v4l2: Fix the type of V4L2_CID_TUNE_PREEMPHASIS in the documentation
+  v4l2: Add standard controls for FM receivers
+  v4l2: Add documentation for the FM RX controls
+  v4l2: Add private controls base for SI476X
+  v4l2: Add a V4L2 driver for SI476X MFD
+  radio-si476x: Fix incorrect pointer checking
+
+Hans Verkuil (1):
+  si476x: Fix some config dependencies and a compile warnings
+
+Mauro Carvalho Chehab (1):
+  radio-si476x: vidioc_s* now uses a const parameter
+
+ Documentation/DocBook/media/v4l/compat.xml         |    3 +
+ Documentation/DocBook/media/v4l/controls.xml       |   74 +-
+ .../DocBook/media/v4l/vidioc-g-ext-ctrls.xml       |    9 +
+ Documentation/video4linux/si476x.txt               |  187 +++
+ drivers/media/radio/Kconfig                        |   17 +
+ drivers/media/radio/Makefile                       |    1 +
+ drivers/media/radio/radio-si476x.c                 | 1575 ++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   14 +-
+ drivers/mfd/Kconfig                                |   13 +
+ drivers/mfd/Makefile                               |    4 +
+ drivers/mfd/si476x-cmd.c                           | 1553 +++++++++++++++++++
+ drivers/mfd/si476x-i2c.c                           |  886 +++++++++++
+ drivers/mfd/si476x-prop.c                          |  242 +++
+ include/linux/mfd/si476x-core.h                    |  533 +++++++
+ include/linux/mfd/si476x-platform.h                |  267 ++++
+ include/linux/mfd/si476x-reports.h                 |  163 ++
+ include/media/si476x.h                             |   37 +
+ include/uapi/linux/v4l2-controls.h                 |   17 +
+ 18 files changed, 5591 insertions(+), 4 deletions(-)
+ create mode 100644 Documentation/video4linux/si476x.txt
+ create mode 100644 drivers/media/radio/radio-si476x.c
+ create mode 100644 drivers/mfd/si476x-cmd.c
+ create mode 100644 drivers/mfd/si476x-i2c.c
+ create mode 100644 drivers/mfd/si476x-prop.c
+ create mode 100644 include/linux/mfd/si476x-core.h
+ create mode 100644 include/linux/mfd/si476x-platform.h
+ create mode 100644 include/linux/mfd/si476x-reports.h
+ create mode 100644 include/media/si476x.h
+
+-- 
+1.7.10.4
+
