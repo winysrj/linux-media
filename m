@@ -1,40 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f177.google.com ([209.85.216.177]:53583 "EHLO
-	mail-qc0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932114Ab3DNV03 (ORCPT
+Received: from mail-pa0-f43.google.com ([209.85.220.43]:47013 "EHLO
+	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967434Ab3DRQ7L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 17:26:29 -0400
-Received: by mail-qc0-f177.google.com with SMTP id u28so1897209qcs.8
-        for <linux-media@vger.kernel.org>; Sun, 14 Apr 2013 14:26:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201304142319.47887.linux@rainbow-software.org>
-References: <201304141839.10168.linux@rainbow-software.org>
-	<201304142319.47887.linux@rainbow-software.org>
-Date: Sun, 14 Apr 2013 17:26:28 -0400
-Message-ID: <CAGoCfiyVxQxPNstfhojzfPefZB=smPfb7Ur2=EW7uZOOhqqy1Q@mail.gmail.com>
-Subject: Re: [PATCH] bttv: Add noname Bt848 capture card with 14MHz xtal
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ondrej Zary <linux@rainbow-software.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 18 Apr 2013 12:59:11 -0400
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: sameo@linux.intel.com
+Cc: mchehab@redhat.com, andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 05/12] v4l2: Fix the type of V4L2_CID_TUNE_PREEMPHASIS in the documentation
+Date: Thu, 18 Apr 2013 09:58:31 -0700
+Message-Id: <1366304318-29620-6-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Apr 14, 2013 at 5:19 PM, Ondrej Zary <linux@rainbow-software.org> wrote:
-> I wonder why the bttv driver probes for IR chips even when the "has_remote"
-> flag is not set?
+Change the type of V4L2_CID_TUNE_PREEMPHASIS from 'integer' to 'enum
+v4l2_preemphasis'
 
-Probably so you can add a remote via userland even if there isn't an
-default remote specified in the in-kernel board profile.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+---
+ Documentation/DocBook/media/v4l/controls.xml |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-That said, it probably makes more sense to require a default remote in
-the board profile for those devices which have an onboard IR
-controller, and use that to determine whether IR support is present on
-the board at all.
-
-Devin
-
+diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
+index 9e8f854..1ad20cc 100644
+--- a/Documentation/DocBook/media/v4l/controls.xml
++++ b/Documentation/DocBook/media/v4l/controls.xml
+@@ -3848,7 +3848,7 @@ in Hz. The range and step are driver-specific.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry spanname="id"><constant>V4L2_CID_TUNE_PREEMPHASIS</constant>&nbsp;</entry>
+-	    <entry>integer</entry>
++	    <entry>enum v4l2_preemphasis</entry>
+ 	  </row>
+ 	  <row id="v4l2-preemphasis"><entry spanname="descr">Configures the pre-emphasis value for broadcasting.
+ A pre-emphasis filter is applied to the broadcast to accentuate the high audio frequencies.
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+1.7.10.4
+
