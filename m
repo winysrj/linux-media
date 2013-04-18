@@ -1,86 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from opensource.wolfsonmicro.com ([80.75.67.52]:58269 "EHLO
-	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753868Ab3DVM4h (ORCPT
+Received: from mail-gh0-f176.google.com ([209.85.160.176]:47713 "EHLO
+	mail-gh0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965727Ab3DRO5N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 08:56:37 -0400
-Date: Mon, 22 Apr 2013 13:56:31 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
-Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
-Message-ID: <20130422125631.GK30351@opensource.wolfsonmicro.com>
-References: <3775187.HOcoQVPfEE@avalon>
- <20130417135503.GL13687@opensource.wolfsonmicro.com>
- <20130417113639.1c98f574@redhat.com>
- <1905734.rpqfOCmvCu@avalon>
- <20130422100320.GC30351@opensource.wolfsonmicro.com>
- <5175310F.6080002@redhat.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="6K2R/cS9K4qvcBNq"
-Content-Disposition: inline
-In-Reply-To: <5175310F.6080002@redhat.com>
+	Thu, 18 Apr 2013 10:57:13 -0400
+Received: by mail-gh0-f176.google.com with SMTP id f16so355818ghb.7
+        for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 07:57:13 -0700 (PDT)
+From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Subject: [PATCH] solo6x10: Fix pixelformat accepted/reported by the encoder
+Date: Thu, 18 Apr 2013 11:56:35 -0300
+Message-Id: <1366296995-16198-1-git-send-email-ismael.luceno@corp.bluecherry.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+The 6010 produces MPEG-4 part 2, while 6110 produces H.264.
 
---6K2R/cS9K4qvcBNq
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+---
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 43 ++++++++++++++++------
+ 1 file changed, 32 insertions(+), 11 deletions(-)
 
-On Mon, Apr 22, 2013 at 09:46:07AM -0300, Mauro Carvalho Chehab wrote:
-> Em 22-04-2013 07:03, Mark Brown escreveu:
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index d132d3b..a4c5896 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -519,10 +519,15 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
+ 			vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_DETECTED;
+ 	}
+ 
+-	if (solo_enc->fmt == V4L2_PIX_FMT_MPEG4)
++	switch (solo_enc->fmt) {
++	case V4L2_PIX_FMT_MPEG4:
++	case V4L2_PIX_FMT_H264:
+ 		ret = solo_fill_mpeg(solo_enc, vb, vh);
+-	else
++		break;
++	default: /* V4L2_PIX_FMT_MJPEG */
+ 		ret = solo_fill_jpeg(solo_enc, vb, vh);
++		break;
++	}
+ 
+ 	if (!ret) {
+ 		vb->v4l2_buf.sequence = solo_enc->sequence++;
+@@ -780,10 +785,21 @@ static int solo_enc_get_input(struct file *file, void *priv,
+ static int solo_enc_enum_fmt_cap(struct file *file, void *priv,
+ 				 struct v4l2_fmtdesc *f)
+ {
++	struct solo_enc_dev *solo_enc = video_drvdata(file);
++	int dev_type = solo_enc->solo_dev->type;
++
+ 	switch (f->index) {
+ 	case 0:
+-		f->pixelformat = V4L2_PIX_FMT_MPEG4;
+-		strcpy(f->description, "MPEG-4 AVC");
++		switch (dev_type) {
++		case SOLO_DEV_6010:
++			f->pixelformat = V4L2_PIX_FMT_MPEG4;
++			strcpy(f->description, "MPEG-4 part 2");
++			break;
++		case SOLO_DEV_6110:
++			f->pixelformat = V4L2_PIX_FMT_H264;
++			strcpy(f->description, "H.264");
++			break;
++		}
+ 		break;
+ 	case 1:
+ 		f->pixelformat = V4L2_PIX_FMT_MJPEG;
+@@ -798,6 +814,13 @@ static int solo_enc_enum_fmt_cap(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static inline int solo_valid_pixfmt(u32 pixfmt, int dev_type)
++{
++	return (pixfmt == V4L2_PIX_FMT_H264 && dev_type == SOLO_DEV_6110)
++		|| (pixfmt == V4L2_PIX_FMT_MPEG4 && dev_type == SOLO_DEV_6010)
++		|| pixfmt == V4L2_PIX_FMT_MJPEG ? 0 : -EINVAL;
++}
++
+ static int solo_enc_try_fmt_cap(struct file *file, void *priv,
+ 			    struct v4l2_format *f)
+ {
+@@ -805,8 +828,7 @@ static int solo_enc_try_fmt_cap(struct file *file, void *priv,
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+ 	struct v4l2_pix_format *pix = &f->fmt.pix;
+ 
+-	if (pix->pixelformat != V4L2_PIX_FMT_MPEG4 &&
+-	    pix->pixelformat != V4L2_PIX_FMT_MJPEG)
++	if (solo_valid_pixfmt(pix->pixelformat, solo_dev->type))
+ 		return -EINVAL;
+ 
+ 	if (pix->width < solo_dev->video_hsize ||
+@@ -919,8 +941,7 @@ static int solo_enum_framesizes(struct file *file, void *priv,
+ 	struct solo_enc_dev *solo_enc = video_drvdata(file);
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+ 
+-	if (fsize->pixel_format != V4L2_PIX_FMT_MPEG4 &&
+-	    fsize->pixel_format != V4L2_PIX_FMT_MJPEG)
++	if (solo_valid_pixfmt(fsize->pixel_format, solo_dev->type))
+ 		return -EINVAL;
+ 
+ 	switch (fsize->index) {
+@@ -947,8 +968,7 @@ static int solo_enum_frameintervals(struct file *file, void *priv,
+ 	struct solo_enc_dev *solo_enc = video_drvdata(file);
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+ 
+-	if (fintv->pixel_format != V4L2_PIX_FMT_MPEG4 &&
+-	    fintv->pixel_format != V4L2_PIX_FMT_MJPEG)
++	if (solo_valid_pixfmt(fintv->pixel_format, solo_dev->type))
+ 		return -EINVAL;
+ 	if (fintv->index)
+ 		return -EINVAL;
+@@ -1217,7 +1237,8 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
+ 	mutex_init(&solo_enc->lock);
+ 	spin_lock_init(&solo_enc->av_lock);
+ 	INIT_LIST_HEAD(&solo_enc->vidq_active);
+-	solo_enc->fmt = V4L2_PIX_FMT_MPEG4;
++	solo_enc->fmt = (solo_dev->type == SOLO_DEV_6010) ?
++		V4L2_PIX_FMT_MPEG4 : V4L2_PIX_FMT_H264;
+ 	solo_enc->type = SOLO_ENC_TYPE_STD;
+ 
+ 	solo_enc->qp = SOLO_DEFAULT_QP;
+-- 
+1.8.2.1
 
-> >Yes, you understood me perfectly - to a good approximation the matching
-> >up should be done by whatever the chip is soldered down to.
-
-> That doesn't make any sense to me. I2C devices can be used anywere,
-> as they can be soldered either internally on an USB webcam without
-> any regulators or any other platform code on it or could be soldered
-> to some platform-specific bus.
-
-If it's running on Linux on a visible I2C bus it ought to be shown as an
-I2C bus on Linux and the thing doing that plumbing ought to be worrying
-about hooking up anything the driver needs.
-
-> Also, what best describes "soldered" here is the binding between
-> an I2C driver and the I2C adapter. The I2C adapter is a platform
-> driver on embedded devices, where, on an usual USB camera, it
-> is just a USB->I2C bridge.
-
-Sure, but there's no meaningful difference between these things as far
-as plumbing things together goes.
-
-> Also, requiring that simple USB cameras to have regulators will
-> prevent its usual usage, as non-platform distros don't set config
-> REGULATOR, and it shouldn't.
-
-No problem there, the regulator API stubs itself out if it's not
-enabled.
-
---6K2R/cS9K4qvcBNq
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRdTNyAAoJELSic+t+oim9IF8P/ir01tbik8ELEb1HNl+De6BD
-Y5YGTB4lMMfI83+UeJanSgMj/kUq0Ler3B62egf5JWcaYKoK4DyCjT1f12mdXWfR
-1ATMA7a9rMGTj2WkgjjkIh++iLh04YLHM3LVK9+53Ff1i3pyTFhU8FoiqrM9Tfni
-13EHIVhPBDteLKUdQDsf5f5zPrDzlq5sjhFrcQIcXZO3PoFFMfudfBBPtpVtdnhD
-Gtwlc2KtcxRG2fZPqf6VKZ2x24wbxoh68Vv+OjW9RHui9w+gEEiA52oBaYOWO5tb
-p1mpcz99cUTgH9pcM9bZwDtNjC2Whzf4OQ841BuPBO23LIYndO4ptAE2r+r2tIbK
-dhvKOjLTgo1lcm9tLpiZG70jk1u1GeOvPihEAOb69w7Toqbl4v5CcqrAN8/QG+tm
-QI9ymoVvCheBZSQ7GCK5VrS1vZlXvpqW2qup4f9U5HM8mo/aX75xejzLNq6yjngm
-P/Ra+vmVUl7TlqI+Qlbxa+n3HJpiTjRxnC60QU4udCjyc972FGOibzJxC6qMj1Yr
-t+JMVucpuWDwyokU4QXuAYoqjQEw0/rYmz3dtzZqi5CSaokKYdwuTrxbI9/G77DN
-nHhpyUa8dn5C/6Fl85tuF+jOPmAcxKe91t0QtTA552QwpNGP9sS9Dx25kUo8jNp5
-S6YPUOpYKrr7+4HqimLI
-=LbwW
------END PGP SIGNATURE-----
-
---6K2R/cS9K4qvcBNq--
