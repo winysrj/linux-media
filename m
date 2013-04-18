@@ -1,93 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1140 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757566Ab3DSJlG (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:33687 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030364Ab3DRKZE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 05:41:06 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 21/24] V4L2: add a subdevice-driver pad-operation wrapper
-Date: Fri, 19 Apr 2013 11:40:54 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <201304191020.44583.hverkuil@xs4all.nl> <Pine.LNX.4.64.1304191043470.591@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1304191043470.591@axis700.grange>
+	Thu, 18 Apr 2013 06:25:04 -0400
+Date: Thu, 18 Apr 2013 11:24:44 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Pawel Moll <pawel.moll@arm.com>
+Cc: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
+	dri-devel@lists.freedesktop.org,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-arm-kernel@lists.infradead.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Linus Walleij <linus.walleij@linaro.org>
+Subject: Re: [RFC 06/10] video: ARM CLCD: Add DT & CDF support
+Message-ID: <20130418102444.GL14496@n2100.arm.linux.org.uk>
+References: <1366211842-21497-1-git-send-email-pawel.moll@arm.com> <1366211842-21497-7-git-send-email-pawel.moll@arm.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304191140.54968.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1366211842-21497-7-git-send-email-pawel.moll@arm.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri April 19 2013 10:52:23 Guennadi Liakhovetski wrote:
-> On Fri, 19 Apr 2013, Hans Verkuil wrote:
-> 
-> > On Thu April 18 2013 23:35:42 Guennadi Liakhovetski wrote:
-> > > Some subdevice drivers implement only the pad-level API, making them
-> > > unusable with V4L2 camera host drivers, using the plain subdevice
-> > > video API. This patch implements a wrapper to allow those two types
-> > > of drivers to be used together. So far only a subset of operations is
-> > > supported, the rest shall be added as needed.
-> > > 
-> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > 
-> > Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > I wish you'd discussed this with me before spending time on this. This is
-> > really not the right approach to this problem.
-> 
-> I don't see this as such a strict requirement. I think, many systems work 
-> sufficiently well with subdevice video ops and don't need pad operations. 
-> Those systems simply don't have all the complexity, that really led to the 
-> pad-level API / MC. Think about simple camera interfaces, that can only 
-> capture data from a camera and DMA it to RAM with no or very little 
-> processing. No fancy scalers, converters, compressors etc. Do you really 
-> want to spend time converting such host drivers to the pad-level API and 
-> either use fake file-handles or really export everything to the user-space 
-> and make users configure both the camera source and the host sink pads 
-> manually independently... Isn't it an overkill?
+On Wed, Apr 17, 2013 at 04:17:18PM +0100, Pawel Moll wrote:
+> +#if defined(CONFIG_OF)
+> +static int clcdfb_of_get_tft_parallel_panel(struct clcd_panel *panel,
+> +		struct display_entity_interface_params *params)
+> +{
+> +	int r = params->p.tft_parallel.r_bits;
+> +	int g = params->p.tft_parallel.g_bits;
+> +	int b = params->p.tft_parallel.b_bits;
+> +
+> +	/* Bypass pixel clock divider, data output on the falling edge */
+> +	panel->tim2 = TIM2_BCD | TIM2_IPC;
+> +
+> +	/* TFT display, vert. comp. interrupt at the start of the back porch */
+> +	panel->cntl |= CNTL_LCDTFT | CNTL_LCDVCOMP(1);
+> +
+> +	if (params->p.tft_parallel.r_b_swapped)
+> +		panel->cntl |= CNTL_BGR;
 
-No it isn't overkill. Having two APIs doing the same thing is always a bad
-idea. Just look at what you are doing now. If we had one API you wouldn't
-need to do this work, would you? The current situation leads to some subdevs
-that implement one API, some that implement another and some that implement
-both. And the poor bridge drivers just have to figure out which subdev it is.
+NAK.  Do not set this explicitly.  Note the driver talks about this being
+"the old way" - this should not be used with the panel capabilities - and
+in fact it will be overwritten.
 
-It's just inconsistent and it is really not that hard to fix. If I make myself
-angry for a day or two I'd have the subdevs converted to support both APIs
-through the helper functions and then we (well, probably me) can convert
-bridge drivers one by one.
-
-Frankly, I've tried to explain this situation to others, and it is just very
-confusing for them: 'so tell me again which API should I use in my new subdev
-driver?'. The only correct solution is to work towards dropping the old API,
-then there is no confusion anymore and everything is consistent again.
-
-> With my approach you just 
-> add "I want to stay with subdev ops and use a wrapper with pad-enabled 
-> sensor drivers" to the _host_ driver, because it's really the host driver, 
-> that has to be punished for being lazy. And you're done. No need to modify 
-> subdevice drivers first to add wrappers and then to remove them again...
-
-And then you're stuck with that wrapper layer for all eternity. It's the
-quick hack approach that I don't want to see in the v4l2 core. I'm working
-hard to convert all drivers to use the new frameworks so that I can get
-rid of legacy code in the core, and I don't want to introduce new hacks that
-I need to clean up in the future.
-
-There really aren't all that many drivers that use these ops, so it's not
-(as far as I can see) a particularly huge or difficult job.
-
-> > Is there any point to the try variants if you don't have file handles? If
-> > there is (and I don't see it), then v4l2_subdev could get a pointer to a
-> > struct v4l2_subdev_try_buf and the macro could use that if fh == NULL.
-
-I just noticed that try_mbus_fmt is used in bridge drivers, so we do have to
-support the try variants. But I think that it is sufficient if the try macro
-just returns NULL if no fh is given. Because in that case there is no reason
-to store the updated try value in the filehandle struct.
-
-Regards,
-
-	Hans
+Instead, you need to encode this into the capabilities by masking the
+below with CLCD_CAP_RGB or CLCD_CAP_BGR depending on the ordering.
