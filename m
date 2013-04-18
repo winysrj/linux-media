@@ -1,281 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:52139 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757302Ab3D2RXf (ORCPT
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:34007 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153Ab3DRVW5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 13:23:35 -0400
+	Thu, 18 Apr 2013 17:22:57 -0400
+Received: by mail-ee0-f48.google.com with SMTP id b15so1534334eek.21
+        for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 14:22:55 -0700 (PDT)
+Message-ID: <5170642C.9070701@gmail.com>
+Date: Thu, 18 Apr 2013 23:22:52 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <7684541.nmKBKd3EoN@avalon>
-References: <1366975430-31806-1-git-send-email-prabhakar.csengg@gmail.com> <7684541.nmKBKd3EoN@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 29 Apr 2013 22:53:13 +0530
-Message-ID: <CA+V-a8sBeURv56f5mbUg5nyexRM=D1er-=1m5NvmXwHxC62f1Q@mail.gmail.com>
-Subject: Re: [PATCH] media: i2c: tvp514x: add OF support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>
+Subject: Re: [PATCH RFC] [media] blackfin: add video display driver
+References: <1365810779-24335-1-git-send-email-scott.jiang.linux@gmail.com> <1365810779-24335-2-git-send-email-scott.jiang.linux@gmail.com> <51688A85.8080206@gmail.com> <CAHG8p1Dc4erTTQRD5mzZQDsS=Zp_1L7yGkxspAT_T4gPUnBptg@mail.gmail.com>
+In-Reply-To: <CAHG8p1Dc4erTTQRD5mzZQDsS=Zp_1L7yGkxspAT_T4gPUnBptg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Scott,
 
-Thanks for the review.
+On 04/17/2013 08:57 AM, Scott Jiang wrote:
+> Hi Sylwester ,
+>
+>>> @@ -9,7 +9,18 @@ config VIDEO_BLACKFIN_CAPTURE
+>>>            To compile this driver as a module, choose M here: the
+>>>            module will be called bfin_capture.
+>>>
+>>> +config VIDEO_BLACKFIN_DISPLAY
+>>> +       tristate "Blackfin Video Display Driver"
+>>> +       depends on VIDEO_V4L2&&   BLACKFIN&&   I2C
+>>> +       select VIDEOBUF2_DMA_CONTIG
+>>> +       help
+>>> +         V4L2 bridge driver for Blackfin video display device.
+>>
+>>
+>> Shouldn't it just be "V4L2 output driver", why are you calling it "bridge" ?
+>>
+> Hmm, capture<->display, input<->output, right?
 
-On Mon, Apr 29, 2013 at 7:27 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> Thank you for the patch. Please see below for a couple of comments. Most of
-> them apply to your adv7343 patch as well.
->
-alright I'll fix for that patch as well.
+Yes, input/output from user space POV.
 
-> On Friday 26 April 2013 16:53:50 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> add OF support for the tvp514x driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Grant Likely <grant.likely@secretlab.ca>
->> Cc: Rob Herring <rob.herring@calxeda.com>
->> Cc: Rob Landley <rob@landley.net>
->> Cc: devicetree-discuss@lists.ozlabs.org
->> Cc: linux-doc@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: davinci-linux-open-source@linux.davincidsp.com
->> ---
->>  RFC v1: https://patchwork.kernel.org/patch/2030061/
->>  RFC v2: https://patchwork.kernel.org/patch/2061811/
->>
->>  Changes for current version from RFC v2:
->>  1: Fixed review comments pointed by Sylwester.
->>
->>  .../devicetree/bindings/media/i2c/tvp514x.txt      |   38 +++++++++++
->>  drivers/media/i2c/tvp514x.c                        |   67 +++++++++++++++--
->>  2 files changed, 98 insertions(+), 7 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->> b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt new file mode
->> 100644
->> index 0000000..618640a
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
->> @@ -0,0 +1,38 @@
->> +* Texas Instruments TVP514x video decoder
->> +
->> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
->> +digital video decoder that digitizes and decodes all popular baseband
->> +analog video formats into digital video component. The tvp514x decoder
->> +supports analog-to-digital (A/D) conversion of component RGB and YPbPr
->> +signals as well as A/D conversion and decoding of NTSC, PAL and SECAM
->> +composite and S-video into component YCbCr.
->> +
->> +Required Properties :
->> +- compatible: Must be "ti,tvp514x-decoder"
->
-> According to the code below, it must be one of
->
->         "ti,tvp5146-decoder"
->         "ti,tvp5146m2-decoder"
->         "ti,tvp5147-decoder"
->         "ti,tvp5147m1-decoder"
->
-> Couldn't you remove "-decoder" ?
->
-yeah I missed to mention other compatible options, 'll remove
-"-decoder" as well.
+> The kernel docs called it bridge, may "host" sounds better.
 
-> You should add a reference to the V4L2 DT bindings documentation to explain
-> what the port and endpoint nodes are for.
->
-OK
+I suggested "output" as referring to the "V4L2 output interface" [1].
+I guess bridge/host could just be skipped and we could simply put it as:
 
->> +- hsync-active: HSYNC Polarity configuration for current interface.
->> +- vsync-active: VSYNC Polarity configuration for current interface.
->> +- pclk-sample: Clock polarity of the current interface.
->
-> s/current interface/endpoint/ ?
->
-yeah endpoint.
+"V4L2 driver for Blackfin video display (E)PPI interface."
 
->> +Example:
->> +
->> +i2c0@1c22000 {
->> +     ...
->> +     ...
->> +
->> +     tvp514x@5c {
->> +             compatible = "ti,tvp514x-decoder";
->> +             reg = <0x5c>;
->> +
->> +             port {
->> +                     tvp514x_1: endpoint {
->> +                             /* Active high (Defaults to 0) */
->> +                             hsync-active = <1>;
->> +                             /* Active high (Defaults to 0) */
->> +                             vsync-active = <1>;
->> +                             /* Active low (Defaults to 0) */
->> +                             pclk-sample = <0>;
->> +                     };
->> +             };
->> +     };
->> +     ...
->> +};
->> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
->> index 887bd93..d37b85e 100644
->> --- a/drivers/media/i2c/tvp514x.c
->> +++ b/drivers/media/i2c/tvp514x.c
->> @@ -35,7 +35,9 @@
->>  #include <linux/videodev2.h>
->>  #include <linux/module.h>
->>  #include <linux/v4l2-mediabus.h>
->> +#include <linux/of_device.h>
+>>> +/*
+>>> + * Analog Devices video display driver
 >>
->> +#include <media/v4l2-of.h>
->>  #include <media/v4l2-async.h>
->>  #include <media/v4l2-device.h>
->>  #include <media/v4l2-common.h>
->> @@ -1056,6 +1058,58 @@ static struct tvp514x_decoder tvp514x_dev = {
 >>
->>  };
+>> Sounds a bit too generic.
 >>
->> +#if defined(CONFIG_OF)
->> +static const struct of_device_id tvp514x_of_match[] = {
->> +     {.compatible = "ti,tvp5146-decoder", },
->> +     {.compatible = "ti,tvp5146m2-decoder", },
->> +     {.compatible = "ti,tvp5147-decoder", },
->> +     {.compatible = "ti,tvp5147m1-decoder", },
->> +     {},
->> +};
->> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
->> +
->> +static void tvp514x_get_pdata(struct i2c_client *client,
->> +                           struct tvp514x_decoder *decoder)
->> +{
->> +     if (!client->dev.platform_data && client->dev.of_node) {
->> +             struct device_node *endpoint;
->> +
->> +             endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
->> +             if (endpoint) {
->> +                     struct tvp514x_platform_data *pdata;
->> +                     struct v4l2_of_endpoint bus_cfg;
->> +                     unsigned int flags;
->> +
->> +                     pdata =
->> +                        devm_kzalloc(&client->dev,
->> +                                     sizeof(struct tvp514x_platform_data),
->
-> sizeof(*pdata) ? That's the preferred style, as it makes sure that you will
-> still allocate the right amount of memory if the type of the pdata variable
-> changes (that's pretty unlikely here of course, but the general principle
-> holds true).
->
-OK will fix it.
+>>> + *
+>>> + * Copyright (c) 2011 Analog Devices Inc.
+>>
+>>
+>> 2011 - 2013 ?
+>>
+> Written in 2011.
 
->> +                                     GFP_KERNEL);
->> +                     if (!pdata)
->> +                             return;
->> +
->> +                     v4l2_of_parse_endpoint(endpoint, &bus_cfg);
->> +                     flags = bus_cfg.bus.parallel.flags;
->> +
->> +                     if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
->> +                             pdata->hs_polarity = 1;
->> +                     if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->> +                             pdata->vs_polarity = 1;
->> +                     if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
->> +                             pdata->clk_polarity = 1;
->> +                     decoder->pdata = pdata;
->> +             }
->> +     }
->
-> As pointed out by Sascha in his review of your mt9p031 patch, you need to use
-> client->dev.platform_data if client->dev.of_node is NULL.
->
-OK
+Since you're still actively working on it I would say it makes sense
+to put it as 2011 - 2013. At least this is what most people do AFAICS.
+But I don't really mind, it's up to you!
 
->> +}
->> +#else
->> +#define tvp514x_of_match NULL
->> +
->> +static void tvp514x_get_pdata(struct i2c_client *client,
->> +                           struct tvp514x_decoder *decoder)
->> +{
->> +     decoder->pdata = client->dev.platform_data;
->> +}
->> +#endif
->> +
->>  /**
->>   * tvp514x_probe() - decoder driver i2c probe handler
->>   * @client: i2c driver client device structure
->> @@ -1075,11 +1129,6 @@ tvp514x_probe(struct i2c_client *client, const struct
->> i2c_device_id *id) if (!i2c_check_functionality(client->adapter,
->> I2C_FUNC_SMBUS_BYTE_DATA)) return -EIO;
+>>> +struct disp_fh {
+>>> +       struct v4l2_fh fh;
+>>> +       /* indicates whether this file handle is doing IO */
+>>> +       bool io_allowed;
+>>> +};
 >>
->> -     if (!client->dev.platform_data) {
->> -             v4l2_err(client, "No platform data!!\n");
->> -             return -ENODEV;
->> -     }
->> -
->>       decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
->>       if (!decoder)
->>               return -ENOMEM;
->> @@ -1090,8 +1139,11 @@ tvp514x_probe(struct i2c_client *client, const struct
->> i2c_device_id *id) memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
->>                       sizeof(tvp514x_reg_list_default));
 >>
->> -     /* Copy board specific information here */
->> -     decoder->pdata = client->dev.platform_data;
->> +     tvp514x_get_pdata(client, decoder);
->
-> Getter functions usually return a value. The code would (at least in my
-> opinion) be clearer if you modifieid tvp514x_get_pdata() to return a pointer
-> to the pdata instead of assigning it directly to decoder->pdata inside the
-> function.
->
-hmmm thats what my earlier RFC  version did, Sylwester suggested this way.
-I'll make it as per your suggestion.
+>> This structure should not be needed when you use the vb2 helpers. Please see
+>> below for more details.
+>>
+> The only question is how the core deal with the permission that which
+> file handle can
+> stream off the output. I want to impose a rule that only IO handle can stop IO.
+> I refer to priority, but current kernel driver export this to user
+> space and let user decide it.
 
->> +     if (!decoder->pdata) {
->> +             v4l2_err(client, "No platform data!!\n");
->> +             return -EPROBE_DEFER;
->
-> Why EPROBE_DEFER ? If there's no pdata now you won't magically get it later
-> :-)
->
-:-)
+As far as I can see there would be no change in behaviour if you used the
+helpers. For instance, vidioc_streamon/streamoff ioctls
 
->> +     }
->>
->>       /**
->>        * Fetch platform specific data, and configure the
->> @@ -1242,6 +1294,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
->>
->>  static struct i2c_driver tvp514x_driver = {
->>       .driver = {
->> +             .of_match_table = tvp514x_of_match,
->
-> Please use of_match_ptr() instead of defining tvp514x_of_match as NULL above.
->
-OK.
+/* From videobuf2-core.c */
 
-Regards,
---Prabhakar Lad
+/* The queue is busy if there is a owner and you are not that owner. */
+static inline bool vb2_queue_is_busy(struct video_device *vdev, struct 
+file *file)
+{
+	return vdev->queue->owner && vdev->queue->owner != file->private_data;
+}
+
+/* vb2 ioctl helpers */
+
+int vb2_ioctl_reqbufs(struct file *file, void *priv,
+			  struct v4l2_requestbuffers *p)
+{
+	struct video_device *vdev = video_devdata(file);
+	int res = __verify_memory_type(vdev->queue, p->memory, p->type);
+
+	if (res)
+		return res;
+	if (vb2_queue_is_busy(vdev, file))
+		return -EBUSY;
+	res = __reqbufs(vdev->queue, p);
+	/* If count == 0, then the owner has released all buffers and he
+	   is no longer owner of the queue. Otherwise we have a new owner. */
+	if (res == 0)
+		vdev->queue->owner = p->count ? file->private_data : NULL;
+	return res;
+}
+
+int vb2_ioctl_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
+{
+	struct video_device *vdev = video_devdata(file);
+
+	if (vb2_queue_is_busy(vdev, file))
+		return -EBUSY;
+	return vb2_streamon(vdev->queue, i);
+}
+
+int vb2_ioctl_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
+{
+	struct video_device *vdev = video_devdata(file);
+
+	if (vb2_queue_is_busy(vdev, file))
+		return -EBUSY;
+	return vb2_streamoff(vdev->queue, i);
+}
+
+And in your code:
+
+
++static int disp_reqbufs(struct file *file, void *priv,
++			struct v4l2_requestbuffers *req_buf)
++{
++	struct disp_device *disp = video_drvdata(file);
++	struct vb2_queue *vq = &disp->buffer_queue;
++	struct v4l2_fh *fh = file->private_data;
++	struct disp_fh *disp_fh = container_of(fh, struct disp_fh, fh);
++
++	if (vb2_is_busy(vq))
++		return -EBUSY;
++
++	disp_fh->io_allowed = true;
++
++	return vb2_reqbufs(vq, req_buf);
++}
+
++static int disp_streamon(struct file *file, void *priv,
++				enum v4l2_buf_type buf_type)
++{
++	struct disp_device *disp = video_drvdata(file);
++	struct disp_fh *fh = file->private_data;
++	struct ppi_if *ppi = disp->ppi;
++	dma_addr_t addr;
++	int ret;
++
++	if (!fh->io_allowed)
++		return -EBUSY;
++
++	/* call streamon to start streaming in videobuf */
++	ret = vb2_streamon(&disp->buffer_queue, buf_type);
++	if (ret)
++		return ret;
++
+	...
++}
+
++static int disp_streamoff(struct file *file, void *priv,
++				enum v4l2_buf_type buf_type)
++{
++	struct disp_device *disp = video_drvdata(file);
++	struct disp_fh *fh = file->private_data;
++
++	if (!fh->io_allowed)
++		return -EBUSY;
++
++	return vb2_streamoff(&disp->buffer_queue, buf_type);
++}
+
+Please note that you really should be setting io_allowed to true only if
+vb2_reqbufs() succeeds.
+
+Hence I wouldn't hesitate to use the core implementation. This way we get
+more consistent behaviour across all drivers, which is in line with
+what you have currently implemented AFAICT.
+
+[1] http://linuxtv.org/downloads/v4l-dvb-apis/devices.html#output
+
+
+Thanks,
+Sylwester
