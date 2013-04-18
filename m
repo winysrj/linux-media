@@ -1,105 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23837 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932085Ab3DYUkP convert rfc822-to-8bit (ORCPT
+Received: from mail-la0-f47.google.com ([209.85.215.47]:37061 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965239Ab3DRO2e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 16:40:15 -0400
-Date: Thu, 25 Apr 2013 17:39:48 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Jon Arne =?UTF-8?B?SsO4cmdlbnNlbg==?= <jonarne@jonarne.no>
-Cc: linux-media@vger.kernel.org, jonjon.arnearne@gmail.com,
-	linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
-	elezegarcia@gmail.com, mkrufky@linuxtv.org, bjorn@mork.no
-Subject: Re: [RFC V2 1/3] [smi2021] Add gm7113c chip to the saa7115 driver
-Message-ID: <20130425173948.10ff0a2a@redhat.com>
-In-Reply-To: <20130425203319.GA18656@dell.arpanet.local>
-References: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
-	<1366917020-18217-2-git-send-email-jonarne@jonarne.no>
-	<20130425171328.08c79893@redhat.com>
-	<20130425203319.GA18656@dell.arpanet.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Thu, 18 Apr 2013 10:28:34 -0400
+Received: by mail-la0-f47.google.com with SMTP id fk20so2323147lab.6
+        for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 07:28:33 -0700 (PDT)
+Message-ID: <517002CC.2000807@cogentembedded.com>
+Date: Thu, 18 Apr 2013 18:27:24 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: g.liakhovetski@gmx.de, mchehab@redhat.com,
+	linux-media@vger.kernel.org
+CC: magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Subject: Re: [PATCH 1/4] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <201304180206.39465.sergei.shtylyov@cogentembedded.com> <201304180211.13992.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201304180211.13992.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 25 Apr 2013 22:33:20 +0200
-Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+On 18-04-2013 2:11, Sergei Shtylyov wrote:
 
-> On Thu, Apr 25, 2013 at 05:13:28PM -0300, Mauro Carvalho Chehab wrote:
-> > Em Thu, 25 Apr 2013 21:10:18 +0200
-> > Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
-> > 
-> > >  	/* Check whether this chip is part of the saa711x series */
-> > > -	if (memcmp(name + 1, "f711", 4)) {
-> > > +	if (memcmp(id->name + 1, "gm7113c", 7)) {
-> > > +		chip_id = 'c';
-> > 
-> > There are several issues on the above:
-> > 1) "id" may be NULL on autodetect mode;
-> > 
-> > 2) Why are you adding 1 here?
-> >    It should be, instead id->name
-> > 
-> > 3) memcmp returns 0 if matches. So, the test is wrong.
-> >    So, It should be instead:
-> > 	if (!memcmp(id->name, "gm7113c", 7)) {
-> > 
-> > 4) Also, while that works, it seems a little hackish...
-> > 
-> 
-> Oh, this is embarrassing.
-> I just tried to change as little as possible in this module to make the
-> device work.
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-No problems. On my experience, quick hacks like that are the
-ones that generally have more troubles ;)
+> Add Renesas R-Car VIN (Video In) V4L2 driver.
 
-> > Something like:
-> > 
-> > static int saa711x_detect_chip(struct i2c_client *client,
-> > 			       struct saa711x_state *state,
-> > 			       const struct i2c_device_id *id)
-> > {
-> > 	int i;
-> > 	char chip_id, name[16];
-> > 
-> > 	/*
-> > 	 * Check for gm7113c (a saa7113 clone). Currently, there's no
-> > 	 * known way to autodetect it, so boards that use will need to
-> > 	 * explicitly fill the id->name field.
-> > 	 */
-> > 	if (id && !memcmp(id->name, "gm7113c", 7)) {
-> > 		state->ident = V4L2_IDENT_GM7113C;
-> > 		snprintf(client->name, sizeof(client->name), "%s", id->name);
-> > 		return 0;
-> > 	}
-> > 
-> > 	/* Check for Philips/NXP original chips */
-> > 	for (i = 0; i < sizeof(name); i++) {
-> > 		i2c_smbus_write_byte_data(client, 0, i);
-> > 		name[i] = (i2c_smbus_read_byte_data(client, 0) & 0x0f) + '0';
-> > 		if (name[i] > '9')
-> > 			name[i] += 'a' - '9' - 1;
-> > 	}
-> > 	name[i] = '\0';
-> > 
-> > 	if (memcmp(name + 1, "f711", 4))
-> > 		return -ENODEV;
-> > 
-> > 	chip_id = name[5];
-> > 
-> > 	snprintf(client->name, sizeof(client->name), "saa711%c", chip_id);
-> > 
-> > 	/*
-> > 	 * Put here the code that fills state->ident for Philips/NXP chips
-> > 	 */
-> > ...
-> > 
-> > 	return 0;
-> 
-> Yes this seems to be a much better way to do it.
-> I will fix my code.
+> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
 
-Thanks!
-Mauro
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> [Sergei: some formatting cleanup]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
+[...]
+
+> +static int rcar_vin_probe(struct platform_device *pdev)
+> +{
+[...]
+> +	ret = devm_request_irq(&pdev->dev, irq, rcar_vin_irq, IRQF_DISABLED,
+
+    I forgot that this flag is deprecated now. Also we need to pass IRQF_SHARED
+for the VIN driver to work on R8A7778 where VIN0/1 share the IRQ.
+
+WBR, Sergei
+
