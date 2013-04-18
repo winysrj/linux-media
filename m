@@ -1,120 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:52199 "EHLO mail.kapsi.fi"
+Received: from mga09.intel.com ([134.134.136.24]:37010 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965533Ab3DPWzQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 18:55:16 -0400
-Message-ID: <516DD6AB.5090105@iki.fi>
-Date: Wed, 17 Apr 2013 01:54:35 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S966799Ab3DRRhJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 13:37:09 -0400
+Date: Thu, 18 Apr 2013 20:37:02 +0300
+From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
+To: Daniel Vetter <daniel.vetter@ffwll.ch>
+Cc: Steven Rostedt <rostedt@goodmis.org>, linux-arch@vger.kernel.org,
+	Peter Zijlstra <peterz@infradead.org>, x86@kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	rob clark <robclark@gmail.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@elte.hu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
+Message-ID: <20130418173702.GV4469@intel.com>
+References: <20130228102452.15191.22673.stgit@patser>
+ <20130228102502.15191.14146.stgit@patser>
+ <1364900432.18374.24.camel@laptop>
+ <515AF1C1.7080508@canonical.com>
+ <1364921954.20640.22.camel@laptop>
+ <1365076908.2609.94.camel@laptop>
+ <20130404133123.GW2228@phenom.ffwll.local>
+ <1365093662.2609.111.camel@laptop>
+ <20130409222808.GC20739@home.goodmis.org>
+ <CAKMK7uHst+s9x0u4J04Qck26EeeUDOORM_SgYovmjV4c+mKP0w@mail.gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v2] [media] it913x: rename its tuner driver to tuner_it913x
-References: <1366152567-10191-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366152567-10191-1-git-send-email-mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAKMK7uHst+s9x0u4J04Qck26EeeUDOORM_SgYovmjV4c+mKP0w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/17/2013 01:49 AM, Mauro Carvalho Chehab wrote:
-> There are three drivers with *it913x name on it, and they all
-> belong to the same device:
-> 	a tuner, at it913x.c;
-> 	a frontend: it913x-fe.c;
-> 	a bridge: it913x.c, renamed to dvb_usb_it913x by the
-> building system.
->
-> This is confusing. Even more confusing are the two .c files with
-> the same name under different directories, with different contents
-> and different functions. So, prepend the tuner one.
->
-> This also breaks the out-of-tree compilation system.
->
-> Reported-by: Frederic Fays <frederic.fays@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On Wed, Apr 17, 2013 at 09:08:17PM +0200, Daniel Vetter wrote:
+> On Wed, Apr 10, 2013 at 12:28 AM, Steven Rostedt <rostedt@goodmis.org> wrote:
+> > On Thu, Apr 04, 2013 at 06:41:02PM +0200, Peter Zijlstra wrote:
+> >> On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
+> >> > The thing is now that you're not expected to hold these locks for a
+> >> > long
+> >> > time - if you need to synchronously stall while holding a lock
+> >> > performance
+> >> > will go down the gutters anyway. And since most current
+> >> > gpus/co-processors
+> >> > still can't really preempt fairness isn't that high a priority,
+> >> > either.
+> >> > So we didn't think too much about that.
+> >>
+> >> Yeah but you're proposing a new synchronization primitive for the core
+> >> kernel.. all such 'fun' details need to be considered, not only those
+> >> few that bear on the one usecase.
+> >
+> > Which bares the question, what other use cases are there?
+> 
+> Just stumbled over one I think: If we have a big graph of connected
+> things (happens really often for video pipelines). And we want
+> multiple users to use them in parallel. But sometimes a configuration
+> change could take way too long and so would unduly stall a 2nd thread
+> with just a global mutex, then per-object ww_mutexes would be a fit:
+> You'd start with grabbing all the locks for the objects you want to
+> change anything with, then grab anything in the graph that you also
+> need to check. Thanks to loop detection and self-recursion this would
+> all nicely work out, even for cyclic graphs of objects.
 
-Acked-by: Antti Palosaari <crope@iki.fi>
-Reviewed-by: Antti Palosaari <crope@iki.fi>
-
-
-> ---
->
-> v2: use -M to make it easier to review
->
->   drivers/media/tuners/Makefile                               | 2 +-
->   drivers/media/tuners/{it913x.c => tuner_it913x.c}           | 2 +-
->   drivers/media/tuners/{it913x.h => tuner_it913x.h}           | 0
->   drivers/media/tuners/{it913x_priv.h => tuner_it913x_priv.h} | 2 +-
->   drivers/media/usb/dvb-usb-v2/af9035.h                       | 2 +-
->   5 files changed, 4 insertions(+), 4 deletions(-)
->   rename drivers/media/tuners/{it913x.c => tuner_it913x.c} (99%)
->   rename drivers/media/tuners/{it913x.h => tuner_it913x.h} (100%)
->   rename drivers/media/tuners/{it913x_priv.h => tuner_it913x_priv.h} (98%)
->
-> diff --git a/drivers/media/tuners/Makefile b/drivers/media/tuners/Makefile
-> index f136a6d..2ebe4b7 100644
-> --- a/drivers/media/tuners/Makefile
-> +++ b/drivers/media/tuners/Makefile
-> @@ -34,7 +34,7 @@ obj-$(CONFIG_MEDIA_TUNER_TUA9001) += tua9001.o
->   obj-$(CONFIG_MEDIA_TUNER_FC0011) += fc0011.o
->   obj-$(CONFIG_MEDIA_TUNER_FC0012) += fc0012.o
->   obj-$(CONFIG_MEDIA_TUNER_FC0013) += fc0013.o
-> -obj-$(CONFIG_MEDIA_TUNER_IT913X) += it913x.o
-> +obj-$(CONFIG_MEDIA_TUNER_IT913X) += tuner_it913x.o
->
->   ccflags-y += -I$(srctree)/drivers/media/dvb-core
->   ccflags-y += -I$(srctree)/drivers/media/dvb-frontends
-> diff --git a/drivers/media/tuners/it913x.c b/drivers/media/tuners/tuner_it913x.c
-> similarity index 99%
-> rename from drivers/media/tuners/it913x.c
-> rename to drivers/media/tuners/tuner_it913x.c
-> index 4d7a247..6f30d7e 100644
-> --- a/drivers/media/tuners/it913x.c
-> +++ b/drivers/media/tuners/tuner_it913x.c
-> @@ -20,7 +20,7 @@
->    *  Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.=
->    */
->
-> -#include "it913x_priv.h"
-> +#include "tuner_it913x_priv.h"
->
->   struct it913x_state {
->   	struct i2c_adapter *i2c_adap;
-> diff --git a/drivers/media/tuners/it913x.h b/drivers/media/tuners/tuner_it913x.h
-> similarity index 100%
-> rename from drivers/media/tuners/it913x.h
-> rename to drivers/media/tuners/tuner_it913x.h
-> diff --git a/drivers/media/tuners/it913x_priv.h b/drivers/media/tuners/tuner_it913x_priv.h
-> similarity index 98%
-> rename from drivers/media/tuners/it913x_priv.h
-> rename to drivers/media/tuners/tuner_it913x_priv.h
-> index 00dcf3c..ce65210 100644
-> --- a/drivers/media/tuners/it913x_priv.h
-> +++ b/drivers/media/tuners/tuner_it913x_priv.h
-> @@ -23,7 +23,7 @@
->   #ifndef IT913X_PRIV_H
->   #define IT913X_PRIV_H
->
-> -#include "it913x.h"
-> +#include "tuner_it913x.h"
->   #include "af9033.h"
->
->   #define PRO_LINK		0x0
-> diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-> index 0f42b6c..b5827ca 100644
-> --- a/drivers/media/usb/dvb-usb-v2/af9035.h
-> +++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-> @@ -30,7 +30,7 @@
->   #include "mxl5007t.h"
->   #include "tda18218.h"
->   #include "fc2580.h"
-> -#include "it913x.h"
-> +#include "tuner_it913x.h"
->
->   struct reg_val {
->   	u32 reg;
->
-
+Indeed, that would make the locking for atomic modeset/page flip very
+easy to handle, while still allowing the use of suitable fine grained
+locks. I like the idea.
 
 -- 
-http://palosaari.fi/
+Ville Syrjälä
+Intel OTC
