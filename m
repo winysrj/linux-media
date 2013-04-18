@@ -1,72 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60377 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754830Ab3DQAmv (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:51 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gp3c021033
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:51 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 19/31] [media] r820t: use usleep_range()
-Date: Tue, 16 Apr 2013 21:42:30 -0300
-Message-Id: <1366159362-3773-20-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from moutng.kundenserver.de ([212.227.126.171]:65223 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936446Ab3DRVf6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 17:35:58 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 15/24] mx3-camera: support asynchronous subdevice registration
+Date: Thu, 18 Apr 2013 23:35:36 +0200
+Message-Id: <1366320945-21591-16-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of using msleep(), use sleep_range(), as it provides
-a closer sleep time.
+To support asynchronous subdevice registration we only have to pass a
+subdevice descriptor array from driver platform data to soc-camera for
+camera host driver registration.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/tuners/r820t.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/platform/soc_camera/mx3_camera.c |    6 ++++++
+ include/linux/platform_data/camera-mx3.h       |    3 +++
+ 2 files changed, 9 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index e9367d8..279be4f 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -657,7 +657,7 @@ static int r820t_set_pll(struct r820t_priv *priv, u32 freq)
- 		 * FIXME: Rafael chips R620D, R828D and R828 seems to
- 		 * need 20 ms for analog TV
- 		 */
--		msleep(10);
-+		usleep_range(10000, 11000);
+diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+index 94203f6..75215bc 100644
+--- a/drivers/media/platform/soc_camera/mx3_camera.c
++++ b/drivers/media/platform/soc_camera/mx3_camera.c
+@@ -19,6 +19,7 @@
+ #include <linux/sched.h>
+ #include <linux/dma/ipu-dma.h>
  
- 		/* Check if PLL has locked */
- 		rc = r820t_read(priv, 0x00, data, 3);
-@@ -1007,7 +1007,7 @@ static int r820t_set_tv_standard(struct r820t_priv *priv,
- 		rc = r820t_write_reg_mask(priv, 0x1d, 0x00, 0x38);
- 		if (rc < 0)
- 			return rc;
--		msleep(1);
-+		usleep_range(1000, 2000);
++#include <media/v4l2-async.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-dev.h>
+ #include <media/videobuf2-dma-contig.h>
+@@ -1224,6 +1225,11 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 		goto eallocctx;
  	}
- 	priv->int_freq = if_khz * 1000;
  
-@@ -1049,7 +1049,7 @@ static int r820t_set_tv_standard(struct r820t_priv *priv,
- 			if (rc < 0)
- 				return rc;
++	if (pdata->asd_sizes) {
++		soc_host->asd = pdata->asd;
++		soc_host->asd_sizes = pdata->asd_sizes;
++	}
++
+ 	err = soc_camera_host_register(soc_host);
+ 	if (err)
+ 		goto ecamhostreg;
+diff --git a/include/linux/platform_data/camera-mx3.h b/include/linux/platform_data/camera-mx3.h
+index f226ee3..96f0f78 100644
+--- a/include/linux/platform_data/camera-mx3.h
++++ b/include/linux/platform_data/camera-mx3.h
+@@ -33,6 +33,7 @@
+ #define MX3_CAMERA_DATAWIDTH_MASK (MX3_CAMERA_DATAWIDTH_4 | MX3_CAMERA_DATAWIDTH_8 | \
+ 				   MX3_CAMERA_DATAWIDTH_10 | MX3_CAMERA_DATAWIDTH_15)
  
--			msleep(1);
-+			usleep_range(1000, 2000);
++struct v4l2_async_subdev;
+ /**
+  * struct mx3_camera_pdata - i.MX3x camera platform data
+  * @flags:	MX3_CAMERA_* flags
+@@ -43,6 +44,8 @@ struct mx3_camera_pdata {
+ 	unsigned long flags;
+ 	unsigned long mclk_10khz;
+ 	struct device *dma_dev;
++	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
++	int *asd_sizes;			/* 0-terminated array pf asd group sizes */
+ };
  
- 			/* Stop Trigger */
- 			rc = r820t_write_reg_mask(priv, 0x0b, 0x00, 0x10);
-@@ -1347,7 +1347,7 @@ static int r820t_xtal_check(struct r820t_priv *priv)
- 		if (rc < 0)
- 			return rc;
- 
--		msleep(5);
-+		usleep_range(5000, 6000);
- 
- 		rc = r820t_read(priv, 0x00, data, sizeof(data));
- 		if (rc < 0)
+ #endif
 -- 
-1.8.1.4
+1.7.2.5
 
