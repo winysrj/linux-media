@@ -1,81 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2192 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935422Ab3DHMql (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 08:46:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Michal Lazo <michal.lazo@mdragon.org>
-Subject: Re: vivi kernel driver
-Date: Mon, 8 Apr 2013 14:46:33 +0200
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <CAFW1BFxJ-fe8N-=LSKUfRP=-R+XUY_it3miEUKKJ6twkZa1wZA@mail.gmail.com> <CA+MoWDpAFOgEN-ruyzVp=C-Dz_16CnOSXU30UowARB3m-eTVMQ@mail.gmail.com> <CAFW1BFwnsgUqCg5DkN5w=z8-Ph+oMQ-PrYyxg_ENTjNmEBpGHg@mail.gmail.com>
-In-Reply-To: <CAFW1BFwnsgUqCg5DkN5w=z8-Ph+oMQ-PrYyxg_ENTjNmEBpGHg@mail.gmail.com>
+Received: from mail-da0-f54.google.com ([209.85.210.54]:63743 "EHLO
+	mail-da0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967752Ab3DRQ7X (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 12:59:23 -0400
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: sameo@linux.intel.com
+Cc: mchehab@redhat.com, andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 11/12] si476x: Fix some config dependencies and a compile warnings
+Date: Thu, 18 Apr 2013 09:58:37 -0700
+Message-Id: <1366304318-29620-12-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304081446.33811.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon April 8 2013 14:42:32 Michal Lazo wrote:
-> Hi
-> 720x576 RGB 25, 30 fps and it take
-> 
-> 25% cpu load on raspberry pi(ARM 700Mhz linux 3.6.11) or 8% on x86(AMD
-> 2GHz linux 3.2.0-39)
-> 
-> it is simply too much
+From: Hans Verkuil <hverkuil@xs4all.nl>
 
-No, that's what I would expect. Note that vivi was substantially improved recently
-when it comes to the image generation. That will be in the upcoming 3.9 kernel.
+radio-si476x depends on SND and SND_SOC, the mfd driver should select
+REGMAP_I2C.
 
-This should reduce CPU load by quite a bit if memory serves.
+Also fix a small compile warning in a debug message:
 
-Regards,
+drivers/mfd/si476x-i2c.c: In function ‘si476x_core_drain_rds_fifo’:
+drivers/mfd/si476x-i2c.c:391:4: warning: field width specifier ‘*’ expects argument of type ‘int’, but argument 4 has type ‘long unsigned int’ [-Wformat]
 
-	Hans
+Acked-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/Kconfig |    2 +-
+ drivers/mfd/Kconfig         |    1 +
+ drivers/mfd/si476x-i2c.c    |    2 +-
+ 3 files changed, 3 insertions(+), 2 deletions(-)
 
-> 
-> 
-> 
-> 
-> On Mon, Apr 8, 2013 at 9:42 AM, Peter Senna Tschudin
-> <peter.senna@gmail.com> wrote:
-> > Dear Michal,
-> >
-> > The CPU intensive part of the vivi driver is the image generation.
-> > This is not an issue for real drivers.
-> >
-> > Regards,
-> >
-> > Peter
-> >
-> > On Sun, Apr 7, 2013 at 9:32 PM, Michal Lazo <michal.lazo@mdragon.org> wrote:
-> >> Hi
-> >> V4L2 driver vivi
-> >> generate 25% cpu load on raspberry pi(linux 3.6.11) or 8% on x86(linux 3.2.0-39)
-> >>
-> >> player
-> >> GST_DEBUG="*:3,v4l2src:3,v4l2:3" gst-launch-0.10 v4l2src
-> >> device="/dev/video0" norm=255 ! video/x-raw-rgb, width=720,
-> >> height=576, framerate=30000/1001 ! fakesink sync=false
-> >>
-> >> Anybody can answer me why?
-> >> And how can I do it better ?
-> >>
-> >> I use vivi as base example for my driver
-> >> --
-> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> the body of a message to majordomo@vger.kernel.org
-> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >
-> >
-> >
-> > --
-> > Peter
-> 
-> 
-> 
-> 
+diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+index 170460d..181a25f 100644
+--- a/drivers/media/radio/Kconfig
++++ b/drivers/media/radio/Kconfig
+@@ -20,7 +20,7 @@ source "drivers/media/radio/si470x/Kconfig"
+ 
+ config RADIO_SI476X
+ 	tristate "Silicon Laboratories Si476x I2C FM Radio"
+-	depends on I2C && VIDEO_V4L2
++	depends on I2C && VIDEO_V4L2 && SND && SND_SOC
+ 	select MFD_CORE
+ 	select MFD_SI476X_CORE
+ 	select SND_SOC_SI476X
+diff --git a/drivers/mfd/Kconfig b/drivers/mfd/Kconfig
+index 3cd8f21..606e549 100644
+--- a/drivers/mfd/Kconfig
++++ b/drivers/mfd/Kconfig
+@@ -974,6 +974,7 @@ config MFD_SI476X_CORE
+ 	tristate "Support for Silicon Laboratories 4761/64/68 AM/FM radio."
+ 	depends on I2C
+ 	select MFD_CORE
++	select REGMAP_I2C
+ 	help
+ 	  This is the core driver for the SI476x series of AM/FM
+ 	  radio. This MFD driver connects the radio-si476x V4L2 module
+diff --git a/drivers/mfd/si476x-i2c.c b/drivers/mfd/si476x-i2c.c
+index 118c6b1..f5bc8e4 100644
+--- a/drivers/mfd/si476x-i2c.c
++++ b/drivers/mfd/si476x-i2c.c
+@@ -389,7 +389,7 @@ static void si476x_core_drain_rds_fifo(struct work_struct *work)
+ 			kfifo_in(&core->rds_fifo, report.rds,
+ 				 sizeof(report.rds));
+ 			dev_dbg(&core->client->dev, "RDS data:\n %*ph\n",
+-				sizeof(report.rds), report.rds);
++				(int)sizeof(report.rds), report.rds);
+ 		}
+ 		dev_dbg(&core->client->dev, "Drrrrained!\n");
+ 		wake_up_interruptible(&core->rds_read_queue);
+-- 
+1.7.10.4
+
