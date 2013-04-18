@@ -1,53 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp6-g21.free.fr ([212.27.42.6]:60705 "EHLO smtp6-g21.free.fr"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757199Ab3DZAD6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 20:03:58 -0400
-Message-ID: <1366934628.5179c4650033f@imp.free.fr>
-Date: Fri, 26 Apr 2013 02:03:49 +0200
-From: Pierre ANTOINE <nunux@free.fr>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Pierre ANTOINE <nunux@free.fr>, linux-media@vger.kernel.org
-Subject: Re: uvcvideo: Trying to lower the URB buffers on eMPIA minicam
-References: <1366843673.51786119b3ced@imp.free.fr> <2682572.gZg9L6lqOg@avalon> <1366917228.5179806c5f343@imp.free.fr> <2280626.yDrB0LeJ3D@avalon>
-In-Reply-To: <2280626.yDrB0LeJ3D@avalon>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from mail-pd0-f170.google.com ([209.85.192.170]:50732 "EHLO
+	mail-pd0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967530Ab3DRQ7O (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 12:59:14 -0400
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: sameo@linux.intel.com
+Cc: mchehab@redhat.com, andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: [PATCH 06/12] v4l2: Add standard controls for FM receivers
+Date: Thu, 18 Apr 2013 09:58:32 -0700
+Message-Id: <1366304318-29620-7-git-send-email-andrew.smirnov@gmail.com>
+In-Reply-To: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Selon Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+This commit introduces new class of standard controls
+V4L2_CTRL_CLASS_FM_RX. This class is intended to all controls
+pertaining to FM receiver chips. Also, two controls belonging to said
+class are added as a part of this commit: V4L2_CID_TUNE_DEEMPHASIS and
+V4L2_CID_RDS_RECEPTION.
 
-> Thank you. I'll update the supported devices list on the uvcvideo website.
-> Could you please give me the exact model name of the camera ?
+This patch is based on the code found in the patch by Manjunatha Halli [1]
 
-The product description is here:
+[1] http://lists-archives.com/linux-kernel/27641307-new-control-class-and-features-for-fm-rx.html
 
-http://www.amazon.fr/dp/B00A487TPC/ref=pe_205631_30430471_3p_M3_dp_1
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrey Smirnov <andrew.smirnov@gmail.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |   14 +++++++++++---
+ include/uapi/linux/v4l2-controls.h   |   13 +++++++++++++
+ 2 files changed, 24 insertions(+), 3 deletions(-)
 
-That is: Supereyes from XCSource know on Amazon as Microscope USB Cam.
-
->
-> Yes, that looks good. Just make sure you only hack the endpoint bandwidth for
-> the webcam and not for the other USB devices.
->
-
-I'm trying this one:
-
----------------------------------------
-        if (to_usb_device(ddev)->speed == USB_SPEED_HIGH)
-        {
-                unsigned maxp;
-
-                maxp = usb_endpoint_maxp(&endpoint->desc) & 0x07ff;
-                if (maxp == 912) endpoint->desc.wMaxPacketSize =
-cpu_to_le16(256);
-                dev_warn(ddev, "Hack 912 to 256 downsize endpoint by Nunux");
-        }
----------------------------------------
-
-That seem to trigger ... but not working ... and not showing is lsusb ...
-
-
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 6b28b58..8b89fb8 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -297,8 +297,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 		"Text",
+ 		NULL
+ 	};
+-	static const char * const tune_preemphasis[] = {
+-		"No Preemphasis",
++	static const char * const tune_emphasis[] = {
++		"None",
+ 		"50 Microseconds",
+ 		"75 Microseconds",
+ 		NULL,
+@@ -508,7 +508,9 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 	case V4L2_CID_SCENE_MODE:
+ 		return scene_mode;
+ 	case V4L2_CID_TUNE_PREEMPHASIS:
+-		return tune_preemphasis;
++		return tune_emphasis;
++	case V4L2_CID_TUNE_DEEMPHASIS:
++		return tune_emphasis;
+ 	case V4L2_CID_FLASH_LED_MODE:
+ 		return flash_led_mode;
+ 	case V4L2_CID_FLASH_STROBE_SOURCE:
+@@ -799,6 +801,9 @@ const char *v4l2_ctrl_get_name(u32 id)
+ 	case V4L2_CID_DV_RX_POWER_PRESENT:	return "Power Present";
+ 	case V4L2_CID_DV_RX_RGB_RANGE:		return "Rx RGB Quantization Range";
+ 
++	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
++	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
++	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
+ 	default:
+ 		return NULL;
+ 	}
+@@ -846,6 +851,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+ 	case V4L2_CID_WIDE_DYNAMIC_RANGE:
+ 	case V4L2_CID_IMAGE_STABILIZATION:
++	case V4L2_CID_RDS_RECEPTION:
+ 		*type = V4L2_CTRL_TYPE_BOOLEAN;
+ 		*min = 0;
+ 		*max = *step = 1;
+@@ -904,6 +910,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_DV_TX_RGB_RANGE:
+ 	case V4L2_CID_DV_RX_RGB_RANGE:
+ 	case V4L2_CID_TEST_PATTERN:
++	case V4L2_CID_TUNE_DEEMPHASIS:
+ 		*type = V4L2_CTRL_TYPE_MENU;
+ 		break;
+ 	case V4L2_CID_LINK_FREQ:
+@@ -926,6 +933,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
+ 	case V4L2_CID_IMAGE_SOURCE_CLASS:
+ 	case V4L2_CID_IMAGE_PROC_CLASS:
+ 	case V4L2_CID_DV_CLASS:
++	case V4L2_CID_FM_RX_CLASS:
+ 		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
+ 		/* You can neither read not write these */
+ 		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
+diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
+index dcd6374..3e985be 100644
+--- a/include/uapi/linux/v4l2-controls.h
++++ b/include/uapi/linux/v4l2-controls.h
+@@ -59,6 +59,7 @@
+ #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
+ #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
+ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
++#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
+ 
+ /* User-class control IDs */
+ 
+@@ -825,4 +826,16 @@ enum v4l2_dv_rgb_range {
+ #define	V4L2_CID_DV_RX_POWER_PRESENT		(V4L2_CID_DV_CLASS_BASE + 100)
+ #define V4L2_CID_DV_RX_RGB_RANGE		(V4L2_CID_DV_CLASS_BASE + 101)
+ 
++#define V4L2_CID_FM_RX_CLASS_BASE		(V4L2_CTRL_CLASS_FM_RX | 0x900)
++#define V4L2_CID_FM_RX_CLASS			(V4L2_CTRL_CLASS_FM_RX | 1)
++
++#define V4L2_CID_TUNE_DEEMPHASIS		(V4L2_CID_FM_RX_CLASS_BASE + 1)
++enum v4l2_deemphasis {
++	V4L2_DEEMPHASIS_DISABLED	= V4L2_PREEMPHASIS_DISABLED,
++	V4L2_DEEMPHASIS_50_uS		= V4L2_PREEMPHASIS_50_uS,
++	V4L2_DEEMPHASIS_75_uS		= V4L2_PREEMPHASIS_75_uS,
++};
++
++#define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
++
+ #endif
+-- 
+1.7.10.4
 
