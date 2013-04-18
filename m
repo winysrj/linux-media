@@ -1,93 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16534 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752792Ab3DRLVe (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 07:21:34 -0400
-Date: Thu, 18 Apr 2013 08:21:21 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2] media: davinci: vpif: align the buffers size to page
- page size boundary
-Message-ID: <20130418082121.0221e59e@redhat.com>
-In-Reply-To: <CA+V-a8uV1e0FSe0kO6VBe=fRj9hf8Oo5VzrrbMtnR-onJo9pog@mail.gmail.com>
-References: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com>
-	<2933946.BRNjyJUSVm@avalon>
-	<CA+V-a8uV1e0FSe0kO6VBe=fRj9hf8Oo5VzrrbMtnR-onJo9pog@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3009 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935906Ab3DRRkb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 13:40:31 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3IHeNTg094107
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 19:40:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 16E0111E014C
+	for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 19:40:17 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130418174018.16E0111E014C@alastor.dyndns.org>
+Date: Thu, 18 Apr 2013 19:40:17 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 Apr 2013 10:17:14 +0530
-Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Hi Marek,
-> 
-> On Tue, Apr 16, 2013 at 4:48 PM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > Hi Prabhakar,
+Results of the daily build of media_tree:
 
-...
+date:		Thu Apr 18 19:00:21 CEST 2013
+git branch:	test
+git hash:	6695be6863b75620ffa6d422965680ce785cb7c8
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-> >> *nbuffers = config_params.min_numbuffers;
-> >>
-> >>       *nplanes = 1;
-> >> +     size = PAGE_ALIGN(size);
-> >
-> > I wonder if that's the best fix.
-> > The queue_setup operation is supposed to return the size required by the
-> > driver for each plane. Depending on the hardware requirements, that size might
-> > not be a multiple of the page size.
-> >
-> > As we can't mmap() a fraction of a page, the allocated plane size needs to be
-> > rounded up to the next page boundary to allow mmap() support. The dma-contig
-> > and dma-sg allocators already do so in their alloc operation, but the vmalloc
-> > allocator doesn't.
-> >
-> > The recent "media: vb2: add length check for mmap" patch verifies that the
-> > mmap() size requested by userspace doesn't exceed the buffer size. As the
-> > mmap() size is rounded up to the next page boundary the check will fail for
-> > buffer sizes that are not multiple of the page size.
-> >
-> > Your fix will not result in overallocation (as the allocator already rounds
-> > the size up), but will prevent the driver from importing a buffer large enough
-> > for the hardware but not rounded up to the page size.
-> >
-> > A better fix might be to round up the buffer size in the buffer size check at
-> > mmap() time, and fix the vmalloc allocator to round up the size. That the
-> > allocator, not drivers, is responsible for buffer size alignment should be
-> > documented in videobuf2-core.h.
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-> >
-> Do you plan to post a patch fixing it as per Laurent's suggestion ?
+Detailed results are available here:
 
-I agree with Laurent: page size roundup should be done at VB2 core code,
-for memory allocated there, and not at driver's level. Yet, looking at
-VB2 code, it already does page size align at __setup_offsets(), but it
-doesn't do if for the size field; just for the offset.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-The adjusted size should be stored at the VB2 size field, and the check for
-buffer overflow, added on changeset 068a0df76023926af958a336a78bef60468d2033
-should be kept.
+Full logs are available here:
 
-IMO, it also makes sense to enforce that the USERPTR memory is multiple of the
-page size, as otherwise the DMA transfer may overwrite some area that is
-outside the allocated range. So, the size from USERPTR should be round down.
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-That change, however, will break userspace, as it uses the picture sizeimage
-to allocate the buffers. So, sizeimage needs to be PAGE_SIZE roundup before
-passing it to userspace.
+The Media Infrastructure API from this daily build is here:
 
-Instead of modifying all drivers, the better seems to patch v4l_g_fmt() and
-v4l_try_fmt() to return a roundup value for sizeimage. As usual, uvcvideo
-requires a separate patch, because it doesn't use vidio_ioctl2.
-
-Regards,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
