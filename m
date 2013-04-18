@@ -1,77 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:58365 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752449Ab3DKJ63 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 05:58:29 -0400
-Received: by mail-ie0-f181.google.com with SMTP id 17so1732300iea.40
-        for <linux-media@vger.kernel.org>; Thu, 11 Apr 2013 02:58:28 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201304111140.48548.hverkuil@xs4all.nl>
-References: <201304111140.48548.hverkuil@xs4all.nl>
-Date: Thu, 11 Apr 2013 17:58:28 +0800
-Message-ID: <CAEvN+1hpE3DE6MWqTqoqrWfygMDhtLjk3ZC_0iApVWsEE-FQHw@mail.gmail.com>
-Subject: Re: Exact behavior of the EOS event?
-From: Tzu-Jung Lee <roylee17@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:6747 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S965997Ab3DRLf7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 07:35:59 -0400
+Date: Thu, 18 Apr 2013 08:35:47 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH v2] media: davinci: vpif: align the buffers size to page
+ page size boundary
+Message-ID: <20130418083547.41f975f8@redhat.com>
+In-Reply-To: <20130418082121.0221e59e@redhat.com>
+References: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com>
+	<2933946.BRNjyJUSVm@avalon>
+	<CA+V-a8uV1e0FSe0kO6VBe=fRj9hf8Oo5VzrrbMtnR-onJo9pog@mail.gmail.com>
+	<20130418082121.0221e59e@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Thu, 18 Apr 2013 08:21:21 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-On Thu, Apr 11, 2013 at 5:40 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Kamil, Roy,
->
-> When implementing eos support in v4l2-ctl I started wondering about the
-> exact timings of that.
->
-> There are two cases, polling and non-polling, and I'll explain how I do it
-> now in v4l2-ctl.
->
-> Polling case:
->
-> I select for both read and exceptions. When the select returns I check
-> for exceptions and call DQEVENT, which may return EOS.
->
-> If there is something to read then I call DQBUF to get the frame, process
-> it and afterwards exit the capture loop if the EOS event was seen.
->
-> This procedure assumes that setting the event and making the last frame
-> available to userspace happen atomically, otherwise you can get a race
-> condition.
->
-> Non-polling case:
->
-> I select for an exception with a timeout of 0 (i.e. returns immediately),
-> then I call DQBUF (which may block), process the frame and exit if EOS was
-> seen.
->
-> I suspect this is wrong, since when I call select the EOS may not be set
-> yet, but it is after the DQBUF. So in the next run through the capture loop
-> I capture one frame too many.
->
->
-> What I think is the correct sequence is to first select for a read(), but not
-> exceptions, then do the DQBUF, and finally do a select for exceptions with
-> a timeout of 0. If EOS was seen, then that was the last frame.
->
-> A potential problem with that might be when you want to select on other
-> events as well. Then you would select on both read and exceptions, and we
-> end up with a potential race condition again. The only solution I see is to
-> open a second filehandle to the video node and subscribe to the EOS event
-> only for that filehandle and use that to do the EOS polling.
->
-> It all feels rather awkward.
->
-> Kamil, Roy, any ideas/suggestions to improve this?
+> Em Thu, 18 Apr 2013 10:17:14 +0530
+> Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
+> 
+> > Hi Marek,
+> > 
+> > On Tue, Apr 16, 2013 at 4:48 PM, Laurent Pinchart
+> > <laurent.pinchart@ideasonboard.com> wrote:
+> > > Hi Prabhakar,
+> 
+> ...
+> 
+> > >> *nbuffers = config_params.min_numbuffers;
+> > >>
+> > >>       *nplanes = 1;
+> > >> +     size = PAGE_ALIGN(size);
+> > >
+> > > I wonder if that's the best fix.
+> > > The queue_setup operation is supposed to return the size required by the
+> > > driver for each plane. Depending on the hardware requirements, that size might
+> > > not be a multiple of the page size.
+> > >
+> > > As we can't mmap() a fraction of a page, the allocated plane size needs to be
+> > > rounded up to the next page boundary to allow mmap() support. The dma-contig
+> > > and dma-sg allocators already do so in their alloc operation, but the vmalloc
+> > > allocator doesn't.
+> > >
+> > > The recent "media: vb2: add length check for mmap" patch verifies that the
+> > > mmap() size requested by userspace doesn't exceed the buffer size. As the
+> > > mmap() size is rounded up to the next page boundary the check will fail for
+> > > buffer sizes that are not multiple of the page size.
+> > >
+> > > Your fix will not result in overallocation (as the allocator already rounds
+> > > the size up), but will prevent the driver from importing a buffer large enough
+> > > for the hardware but not rounded up to the page size.
+> > >
+> > > A better fix might be to round up the buffer size in the buffer size check at
+> > > mmap() time, and fix the vmalloc allocator to round up the size. That the
+> > > allocator, not drivers, is responsible for buffer size alignment should be
+> > > documented in videobuf2-core.h.
+> 
+> > >
+> > Do you plan to post a patch fixing it as per Laurent's suggestion ?
+> 
+> I agree with Laurent: page size roundup should be done at VB2 core code,
+> for memory allocated there, and not at driver's level. Yet, looking at
+> VB2 code, it already does page size align at __setup_offsets(), but it
+> doesn't do if for the size field; just for the offset.
+> 
+> The adjusted size should be stored at the VB2 size field, and the check for
+> buffer overflow, added on changeset 068a0df76023926af958a336a78bef60468d2033
+> should be kept.
+> 
+> IMO, it also makes sense to enforce that the USERPTR memory is multiple of the
+> page size, as otherwise the DMA transfer may overwrite some area that is
+> outside the allocated range. So, the size from USERPTR should be round down.
+> 
+> That change, however, will break userspace, as it uses the picture sizeimage
+> to allocate the buffers. So, sizeimage needs to be PAGE_SIZE roundup before
+> passing it to userspace.
+> 
+> Instead of modifying all drivers, the better seems to patch v4l_g_fmt() and
+> v4l_try_fmt() to return a roundup value for sizeimage. As usual, uvcvideo
+> requires a separate patch, because it doesn't use vidio_ioctl2.
 
-I was thinking to serialize this within the driver, which means no buffers
-on capture side will be DQBUF once the EOS is generated.
+Hmm... PAGE_SIZE alignment is not needed on all places. It is needed only when
+DMA is done directly into the buffer, e. g. videobuf2-dma-contig and
+videobuf2-dma-sg.
 
-I'm not sure is this generic enough, but it should make life easier
-for applications
+It means that we'll need an extra function for the VB2 memory allocation drivers
+to do do the memory-dependent roundups, and a new ancillary function at VB2 core
+for the VB2 clients to call to round sizeimage if needed.
 
 Regards,
-Roy
+Mauro
