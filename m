@@ -1,47 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f175.google.com ([209.85.220.175]:65509 "EHLO
-	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757501Ab3DAUkK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 16:40:10 -0400
-Received: by mail-vc0-f175.google.com with SMTP id hf12so2767174vcb.20
-        for <linux-media@vger.kernel.org>; Mon, 01 Apr 2013 13:40:09 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201303261217.42913.hverkuil@xs4all.nl>
-References: <201303261217.42913.hverkuil@xs4all.nl>
-Date: Mon, 1 Apr 2013 16:40:09 -0400
-Message-ID: <CAOcJUbz1WDetKXUm0nUwHt7ifqDhcy=uQ8NrKno6VnRk1k95cw@mail.gmail.com>
-Subject: Re: [PATCH] Fix undefined reference to `au8522_attach'
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com,
-	Fengguang Wu <fengguang.wu@intel.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from gelbbaer.kn-bremen.de ([78.46.108.116]:35645 "EHLO
+	smtp.kn-bremen.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935794Ab3DRRjZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 13:39:25 -0400
+Date: Thu, 18 Apr 2013 19:27:16 +0200 (CEST)
+From: Juergen Lock <nox@jelal.kn-bremen.de>
+Message-Id: <201304181727.r3IHRGbc018638@triton8.kn-bremen.de>
+To: crope@iki.fi
+Subject: Re: [PATCH v2 00/31] Add r820t support at rtl28xxu
+In-Reply-To: <516DF31A.3030101@iki.fi>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Good catch!  I don't know if this fix got merged yet or not, but it's correct.
+In article <516DF31A.3030101@iki.fi> you write:
+>Tested-by: Antti Palosaari <crope@iki.fi>
+>
+Tested-by: Juergen Lock <nox@jelal.kn-bremen.de>
+>
+>On 04/17/2013 03:42 AM, Mauro Carvalho Chehab wrote:
+>> Add a tuner driver for Rafael Micro R820T silicon tuner.
+>>
+>> This tuner seems to be popular those days. Add support for it
+>> at rtl28xxu.
+>>
+>> This tuner was written from scratch, based on rtl-sdr driver.
+>>
+>> Mauro Carvalho Chehab (31):
+>>    [media] r820t: Add a tuner driver for Rafael Micro R820T silicon tuner
+>>    [media] rtl28xxu: add support for Rafael Micro r820t
+>>    [media] r820t: Give a better estimation of the signal strength
+>>    [media] r820t: Set gain mode to auto
+>>    [media] rtl28xxu: use r820t to obtain the signal strength
+>>    [media] r820t: proper lock and set the I2C gate
+>>    [media] rtl820t: Add a debug msg when PLL gets locked
+>>    [media] r820t: Fix IF scale
+>>    [media] rtl2832: add code to bind r820t on it
+>>    [media] r820t: use the right IF for the selected TV standard
+>>    [media] rtl2832: properly set en_bbin for r820t
+>>    [media] r820t: Invert bits for read ops
+>>    [media] r820t: use the second table for 7MHz
+>>    [media] r820t: Show the read data in the bit-reversed order
+>>    [media] r820t: add support for diplexer
+>>    [media] r820t: better report signal strength
+>>    [media] r820t: split the function that read cached regs
+>>    [media] r820t: fix prefix of the r820t_read() function
+>>    [media] r820t: use usleep_range()
+>>    [media] r820t: proper initialize the PLL register
+>>    [media] r820t: add IMR calibrate code
+>>    [media] r820t: add a commented code for GPIO
+>>    [media] r820t: Allow disabling IMR callibration
+>>    [media] r820t: avoid rewrite all regs when not needed
+>>    [media] r820t: Don't put it in standby if not initialized yet
+>>    [media] r820t: fix PLL calculus
+>>    [media] r820t: Fix hp_cor filter mask
+>>    [media] r820t: put it into automatic gain mode
+>>    [media] rtl2832: Fix IF calculus
+>>    [media] r820t: disable auto gain/VGA setting
+>>    [media] r820t: Don't divide the IF by two
+>>
+>>   drivers/media/dvb-frontends/rtl2832.c      |   85 +-
+>>   drivers/media/dvb-frontends/rtl2832.h      |    1 +
+>>   drivers/media/dvb-frontends/rtl2832_priv.h |   28 +
+>>   drivers/media/tuners/Kconfig               |    7 +
+>>   drivers/media/tuners/Makefile              |    1 +
+>>   drivers/media/tuners/r820t.c               | 2352 ++++++++++++++++++++++++++++
+>>   drivers/media/tuners/r820t.h               |   58 +
+>>   drivers/media/usb/dvb-usb-v2/Kconfig       |    1 +
+>>   drivers/media/usb/dvb-usb-v2/rtl28xxu.c    |   34 +
+>>   drivers/media/usb/dvb-usb-v2/rtl28xxu.h    |    1 +
+>>   10 files changed, 2548 insertions(+), 20 deletions(-)
+>>   create mode 100644 drivers/media/tuners/r820t.c
+>>   create mode 100644 drivers/media/tuners/r820t.h
+>>
+>
+>
+>-- 
+>http://palosaari.fi/
 
-Reviewed-by: Michael Krufky <mkrufky@linuxtv.org>
 
-On Tue, Mar 26, 2013 at 7:17 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> au8522_attach is dependent on CONFIG_DVB_AU8522_DTV, not CONFIG_DVB_AU8522.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
->
-> diff --git a/drivers/media/dvb-frontends/au8522.h b/drivers/media/dvb-frontends/au8522.h
-> index f2111e0..83fe9a6 100644
-> --- a/drivers/media/dvb-frontends/au8522.h
-> +++ b/drivers/media/dvb-frontends/au8522.h
-> @@ -61,7 +61,7 @@ struct au8522_config {
->         enum au8522_if_freq qam_if;
->  };
->
-> -#if IS_ENABLED(CONFIG_DVB_AU8522)
-> +#if IS_ENABLED(CONFIG_DVB_AU8522_DTV)
->  extern struct dvb_frontend *au8522_attach(const struct au8522_config *config,
->                                           struct i2c_adapter *i2c);
->  #else
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
