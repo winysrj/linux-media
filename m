@@ -1,48 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44026 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935955Ab3DJAbb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 20:31:31 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from moutng.kundenserver.de ([212.227.126.186]:52135 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936496Ab3DRVf7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 17:35:59 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 3/3] MAINTAINERS: add RTL2832 media driver
-Date: Wed, 10 Apr 2013 03:30:43 +0300
-Message-Id: <1365553843-4117-3-git-send-email-crope@iki.fi>
-In-Reply-To: <1365553843-4117-1-git-send-email-crope@iki.fi>
-References: <1365553843-4117-1-git-send-email-crope@iki.fi>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 17/24] V4L2: mt9p031: add support for .g_mbus_config() video operation
+Date: Thu, 18 Apr 2013 23:35:38 +0200
+Message-Id: <1366320945-21591-18-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Driver author has disappeared, even mails are bouncing back.
-I will keep care with that as I have done for a while.
+.g_mbus_config() subdevice video operation is required for subdevice
+drivers to be used with the soc-camera framework.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- MAINTAINERS | 10 ++++++++++
- 1 file changed, 10 insertions(+)
+ drivers/media/i2c/mt9p031.c |   13 +++++++++++++
+ 1 files changed, 13 insertions(+), 0 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 413aebc..5a9ee27 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -6705,6 +6705,16 @@ T:	git git://linuxtv.org/anttip/media_tree.git
- S:	Maintained
- F:	drivers/media/dvb-frontends/rtl2830*
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index 9ba38f5..eb2de22 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -390,6 +390,18 @@ static int mt9p031_set_params(struct mt9p031 *mt9p031)
+ 	return ret;
+ }
  
-+RTL2832 MEDIA DRIVER
-+M:	Antti Palosaari <crope@iki.fi>
-+L:	linux-media@vger.kernel.org
-+W:	http://linuxtv.org/
-+W:	http://palosaari.fi/linux/
-+Q:	http://patchwork.linuxtv.org/project/linux-media/list/
-+T:	git git://linuxtv.org/anttip/media_tree.git
-+S:	Maintained
-+F:	drivers/media/dvb-frontends/rtl2832*
++static int mt9p031_g_mbus_config(struct v4l2_subdev *sd,
++				 struct v4l2_mbus_config *cfg)
++{
++	cfg->type = V4L2_MBUS_PARALLEL;
++	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_HSYNC_ACTIVE_HIGH |
++		V4L2_MBUS_VSYNC_ACTIVE_HIGH |
++		V4L2_MBUS_PCLK_SAMPLE_FALLING |
++		V4L2_MBUS_DATA_ACTIVE_HIGH;
 +
- RTL8180 WIRELESS DRIVER
- M:	"John W. Linville" <linville@tuxdriver.com>
- L:	linux-wireless@vger.kernel.org
++	return 0;
++}
++
+ static int mt9p031_s_stream(struct v4l2_subdev *subdev, int enable)
+ {
+ 	struct mt9p031 *mt9p031 = to_mt9p031(subdev);
+@@ -888,6 +900,7 @@ static struct v4l2_subdev_core_ops mt9p031_subdev_core_ops = {
+ };
+ 
+ static struct v4l2_subdev_video_ops mt9p031_subdev_video_ops = {
++	.g_mbus_config	= mt9p031_g_mbus_config,
+ 	.s_stream       = mt9p031_s_stream,
+ };
+ 
 -- 
-1.7.11.7
+1.7.2.5
 
