@@ -1,78 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:64024 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756417Ab3DXPx4 (ORCPT
+Received: from kirsty.vergenet.net ([202.4.237.240]:54417 "EHLO
+	kirsty.vergenet.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755078Ab3DRNaW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 11:53:56 -0400
-MIME-Version: 1.0
-In-Reply-To: <201304200231.31802.sergei.shtylyov@cogentembedded.com>
-References: <201304200231.31802.sergei.shtylyov@cogentembedded.com>
-Date: Wed, 24 Apr 2013 16:53:54 +0100
-Message-ID: <CANqRtoQCtvUwxS6dO6y9_qCB8Ftur4LwwjnbSZJpZ2QYk14uzQ@mail.gmail.com>
-Subject: Re: [PATCH v2 1/4] V4L2: soc_camera: Renesas R-Car VIN driver
-From: Magnus Damm <magnus.damm@gmail.com>
+	Thu, 18 Apr 2013 09:30:22 -0400
+Date: Thu, 18 Apr 2013 22:30:22 +0900
+From: Simon Horman <horms@verge.net.au>
 To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	SH-Linux <linux-sh@vger.kernel.org>,
-	Phil Edworthy <phil.edworthy@renesas.com>,
-	"matsu@igel.co.jp" <matsu@igel.co.jp>,
-	vladimir.barinov@cogentembedded.com
-Content-Type: text/plain; charset=ISO-8859-1
+Cc: linux@arm.linux.org.uk, linux-sh@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, magnus.damm@gmail.com,
+	linux-media@vger.kernel.org, matsu@igel.co.jp
+Subject: Re: [PATCH 4/4] ARM: shmobile: Marzen: enable VIN and ADV7180 in
+ defconfig
+Message-ID: <20130418133022.GD20929@verge.net.au>
+References: <201304180206.39465.sergei.shtylyov@cogentembedded.com>
+ <201304180217.28176.sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201304180217.28176.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
-
-On Fri, Apr 19, 2013 at 11:31 PM, Sergei Shtylyov
-<sergei.shtylyov@cogentembedded.com> wrote:
+On Thu, Apr 18, 2013 at 02:17:27AM +0400, Sergei Shtylyov wrote:
 > From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->
-> Add Renesas R-Car VIN (Video In) V4L2 driver.
->
-> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
->
+> 
+> Add the VIN and ADV7180 drivers to 'marzen_defconfig'.
+> 
 > Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> [Sergei: removed deprecated IRQF_DISABLED flag.]
 > Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->
+> 
 > ---
-> Changes since the original posting:
-> - added IRQF_SHARED flag in devm_request_irq() call (since on R8A7778 VIN0/1
->   share the same IRQ) and removed deprecated IRQF_DISABLED flag.
->
->  drivers/media/platform/soc_camera/Kconfig    |    7
->  drivers/media/platform/soc_camera/Makefile   |    1
->  drivers/media/platform/soc_camera/rcar_vin.c | 1784 +++++++++++++++++++++++++++
->  include/linux/platform_data/camera-rcar.h    |   25
->  4 files changed, 1817 insertions(+)
->
-> Index: renesas/drivers/media/platform/soc_camera/Kconfig
-> ===================================================================
-> --- renesas.orig/drivers/media/platform/soc_camera/Kconfig
-> +++ renesas/drivers/media/platform/soc_camera/Kconfig
-> @@ -45,6 +45,13 @@ config VIDEO_PXA27x
->         ---help---
->           This is a v4l2 driver for the PXA27x Quick Capture Interface
->
-> +config VIDEO_RCAR_VIN
-> +       tristate "R-Car Video Input (VIN) support"
-> +       depends on VIDEO_DEV && SOC_CAMERA && (ARCH_R8A7778 || ARCH_R8A7779)
-> +       select VIDEOBUF2_DMA_CONTIG
-> +       ---help---
-> +         This is a v4l2 driver for the R-Car VIN Interface
+>  arch/arm/configs/marzen_defconfig |    7 +++++++
+>  1 file changed, 7 insertions(+)
 
-Thanks for your work on this. I believe there are multiple SoCs
-containing VIN hardware, so limiting to r8a7778 and r8a7779 doesn't
-make sense to me. Actually, our other drivers do not have this kind of
-detailed dependency control.
-
-So based on that, would it be possible for you to change the above
-dependency to:
-
-depends on VIDEO_DEV && SOC_CAMERA
-
-Thanks,
-
-/ magnus
+Thanks, queued-up for v3.11 in the defconfig-marzen branch.
