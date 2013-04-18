@@ -1,652 +1,2853 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:33885 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966490Ab3DQPRj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 11:17:39 -0400
-From: Pawel Moll <pawel.moll@arm.com>
-To: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Subject: [RFC 01/10] video: Add generic display entity core
-Date: Wed, 17 Apr 2013 16:17:13 +0100
-Message-Id: <1366211842-21497-2-git-send-email-pawel.moll@arm.com>
-In-Reply-To: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
-References: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+Received: from mx1.redhat.com ([209.132.183.28]:24332 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S936568Ab3DRU1x (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 16:27:53 -0400
+Date: Thu, 18 Apr 2013 17:27:38 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Andrey Smirnov <andrew.smirnov@gmail.com>, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 00/12]  Driver for Si476x series of chips
+Message-ID: <20130418172738.22f32645@redhat.com>
+In-Reply-To: <20130418182305.GA27841@zurbaran>
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+	<20130418142800.5c00b004@redhat.com>
+	<20130418174547.GV8798@zurbaran>
+	<20130418145753.7bacee9b@redhat.com>
+	<20130418181718.GX8798@zurbaran>
+	<20130418182305.GA27841@zurbaran>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Em Thu, 18 Apr 2013 20:23:05 +0200
+Samuel Ortiz <sameo@linux.intel.com> escreveu:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/video/Kconfig                |    1 +
- drivers/video/Makefile               |    1 +
- drivers/video/display/Kconfig        |    4 +
- drivers/video/display/Makefile       |    1 +
- drivers/video/display/display-core.c |  362 ++++++++++++++++++++++++++++++=
-++++
- include/video/display.h              |  150 ++++++++++++++
- 6 files changed, 519 insertions(+)
- create mode 100644 drivers/video/display/Kconfig
- create mode 100644 drivers/video/display/Makefile
- create mode 100644 drivers/video/display/display-core.c
- create mode 100644 include/video/display.h
+> On Thu, Apr 18, 2013 at 08:17:18PM +0200, Samuel Ortiz wrote:
+> > On Thu, Apr 18, 2013 at 02:57:53PM -0300, Mauro Carvalho Chehab wrote:
+> > > Em Thu, 18 Apr 2013 19:45:47 +0200
+> > > Samuel Ortiz <sameo@linux.intel.com> escreveu:
+> > > 
+> > > > On Thu, Apr 18, 2013 at 02:28:00PM -0300, Mauro Carvalho Chehab wrote:
+> > > > > Em Thu, 18 Apr 2013 09:58:26 -0700
+> > > > > Andrey Smirnov <andrew.smirnov@gmail.com> escreveu:
+> > > > > 
+> > > > > > Driver for Si476x series of chips
+> > > > > > 
+> > > > > > This is a eight version of the patchset originaly posted here:
+> > > > > > https://lkml.org/lkml/2012/9/13/590
+> > > > > > 
+> > > > > > Second version of the patch was posted here:
+> > > > > > https://lkml.org/lkml/2012/10/5/598
+> > > > > > 
+> > > > > > Third version of the patch was posted here:
+> > > > > > https://lkml.org/lkml/2012/10/23/510
+> > > > > > 
+> > > > > > Fourth version of the patch was posted here:
+> > > > > > https://lkml.org/lkml/2013/2/18/572
+> > > > > > 
+> > > > > > Fifth version of the patch was posted here:
+> > > > > > https://lkml.org/lkml/2013/2/26/45
+> > > > > > 
+> > > > > > Sixth version of the patch was posted here:
+> > > > > > https://lkml.org/lkml/2013/2/26/257
+> > > > > > 
+> > > > > > Seventh version of the patch was posted here:
+> > > > > > https://lkml.org/lkml/2013/2/27/22
+> > > > > > 
+> > > > > > Eighth version of the patch was posted here:
+> > > > > > https://lkml.org/lkml/2013/3/26/891
+> > > > > > 
+> > > > > > To save everyone's time I'll repost the original description of it:
+> > > > > > 
+> > > > > > This patchset contains a driver for a Silicon Laboratories 476x series
+> > > > > > of radio tuners. The driver itself is implemented as an MFD devices
+> > > > > > comprised of three parts: 
+> > > > > >  1. Core device that provides all the other devices with basic
+> > > > > > functionality and locking scheme.
+> > > > > >  2. Radio device that translates between V4L2 subsystem requests into
+> > > > > > Core device commands.
+> > > > > >  3. Codec device that does similar to the earlier described task, but
+> > > > > > for ALSA SoC subsystem.
+> > > > > > 
+> > > > > > v9 of this driver has following changes:
+> > > > > >    - MFD part of the driver no longer depends on the header file added
+> > > > > >      by the radio driver(media/si476x.h) which should potential
+> > > > > >      restore the bisectability of the patches
+> > > > > > 
+> > > > > > Mauro, I am not sure if you reverted changes in patches 5 - 7, so I am
+> > > > > > including them just in case.
+> > > > > 
+> > > > > No, I didn't revert all patches. I just reverted two patches: the
+> > > > > last one, and the one that Samuel asked me.
+> > > > Sorry I didn't have time to check your email from yesterday, but I was
+> > > > actually hoping you would revert the whole patchset, then pull from my
+> > > > mfd-next/topic/si476x branch to fetch the MFD bits and then apply the
+> > > > v4l2/media ones (From patchset v9) on top of that.
+> > > > Does that make sense to you ?
+> > > 
+> > > I don't rebase my tree, as this would cause troubles for everybody that
+> > > relies on it.
+> > > 
+> > > Reverting the entire patchset is hard, as there are lots of patches after
+> > > them, and some patches touch at V4L2 core. Even reverting those
+> > > two patches hit conflicts, that I needed to manage, in order to avoid
+> > > compilation breakages.
+> > > 
+> > > So, I really prefer to confine the patch reversion to the absolute 
+> > > minimum.
+> > In that case we're left with only one solution: Leave your tree as it is (with
+> > both patches reverted) and push the mfd/Kconfig and mfd/Makefile changes as a
+> > 3.10 fix. radio/radio-si476x.c should not build without the MFD Kconfig symbol
+> > so we should be safe. 
+> You reverted that one, I think this was not needed as it would not build
+> without the MFD symbol. Any other reason why you reverted it ?
 
-diff --git a/drivers/video/Kconfig b/drivers/video/Kconfig
-index 4c1546f..281e548 100644
---- a/drivers/video/Kconfig
-+++ b/drivers/video/Kconfig
-@@ -2456,6 +2456,7 @@ source "drivers/video/omap2/Kconfig"
- source "drivers/video/exynos/Kconfig"
- source "drivers/video/mmp/Kconfig"
- source "drivers/video/backlight/Kconfig"
-+source "drivers/video/display/Kconfig"
-=20
- if VT
- =09source "drivers/video/console/Kconfig"
-diff --git a/drivers/video/Makefile b/drivers/video/Makefile
-index 9df3873..b989e8e 100644
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -15,6 +15,7 @@ fb-objs                           :=3D $(fb-y)
- obj-$(CONFIG_VT)=09=09  +=3D console/
- obj-$(CONFIG_LOGO)=09=09  +=3D logo/
- obj-y=09=09=09=09  +=3D backlight/
-+obj-y=09=09=09=09  +=3D display/
-=20
- obj-$(CONFIG_EXYNOS_VIDEO)     +=3D exynos/
-=20
-diff --git a/drivers/video/display/Kconfig b/drivers/video/display/Kconfig
-new file mode 100644
-index 0000000..1d533e7
---- /dev/null
-+++ b/drivers/video/display/Kconfig
-@@ -0,0 +1,4 @@
-+menuconfig DISPLAY_CORE
-+=09tristate "Display Core"
-+=09---help---
-+=09  Support common display framework for graphics devices.
-diff --git a/drivers/video/display/Makefile b/drivers/video/display/Makefil=
-e
-new file mode 100644
-index 0000000..bd93496
---- /dev/null
-+++ b/drivers/video/display/Makefile
-@@ -0,0 +1 @@
-+obj-$(CONFIG_DISPLAY_CORE) +=3D display-core.o
-diff --git a/drivers/video/display/display-core.c b/drivers/video/display/d=
-isplay-core.c
-new file mode 100644
-index 0000000..d2daa15
---- /dev/null
-+++ b/drivers/video/display/display-core.c
-@@ -0,0 +1,362 @@
-+/*
-+ * Display Core
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/export.h>
-+#include <linux/kernel.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+
-+#include <video/display.h>
-+#include <video/videomode.h>
-+
-+static LIST_HEAD(display_entity_list);
-+static LIST_HEAD(display_entity_notifiers);
-+static DEFINE_MUTEX(display_entity_mutex);
-+
-+/* -----------------------------------------------------------------------=
-------
-+ * Control operations
-+ */
-+
-+/**
-+ * display_entity_set_state - Set the display entity operation state
-+ * @entity: The display entity
-+ * @state: Display entity operation state
-+ *
-+ * See &enum display_entity_state for information regarding the entity sta=
-tes.
-+ *
-+ * Return 0 on success or a negative error code otherwise.
-+ */
-+int display_entity_set_state(struct display_entity *entity,
-+=09=09=09     enum display_entity_state state)
-+{
-+=09int ret;
-+
-+=09if (entity->state =3D=3D state)
-+=09=09return 0;
-+
-+=09if (!entity->ops.ctrl || !entity->ops.ctrl->set_state)
-+=09=09return 0;
-+
-+=09ret =3D entity->ops.ctrl->set_state(entity, state);
-+=09if (ret < 0)
-+=09=09return ret;
-+
-+=09entity->state =3D state;
-+=09return 0;
-+}
-+EXPORT_SYMBOL_GPL(display_entity_set_state);
-+
-+/**
-+ * display_entity_update - Update the display
-+ * @entity: The display entity
-+ *
-+ * Make the display entity ready to receive pixel data and start frame tra=
-nsfer.
-+ * This operation can only be called if the display entity is in STANDBY o=
-r ON
-+ * state.
-+ *
-+ * The display entity will call the upstream entity in the video chain to =
-start
-+ * the video stream.
-+ *
-+ * Return 0 on success or a negative error code otherwise.
-+ */
-+int display_entity_update(struct display_entity *entity)
-+{
-+=09if (!entity->ops.ctrl || !entity->ops.ctrl->update)
-+=09=09return 0;
-+
-+=09return entity->ops.ctrl->update(entity);
-+}
-+EXPORT_SYMBOL_GPL(display_entity_update);
-+
-+/**
-+ * display_entity_get_modes - Get video modes supported by the display ent=
-ity
-+ * @entity The display entity
-+ * @modes: Pointer to an array of modes
-+ *
-+ * Fill the modes argument with a pointer to an array of video modes. The =
-array
-+ * is owned by the display entity.
-+ *
-+ * Return the number of supported modes on success (including 0 if no mode=
- is
-+ * supported) or a negative error code otherwise.
-+ */
-+int display_entity_get_modes(struct display_entity *entity,
-+=09=09=09     const struct videomode **modes)
-+{
-+=09if (!entity->ops.ctrl || !entity->ops.ctrl->get_modes)
-+=09=09return 0;
-+
-+=09return entity->ops.ctrl->get_modes(entity, modes);
-+}
-+EXPORT_SYMBOL_GPL(display_entity_get_modes);
-+
-+/**
-+ * display_entity_get_size - Get display entity physical size
-+ * @entity: The display entity
-+ * @width: Physical width in millimeters
-+ * @height: Physical height in millimeters
-+ *
-+ * When applicable, for instance for display panels, retrieve the display
-+ * physical size in millimeters.
-+ *
-+ * Return 0 on success or a negative error code otherwise.
-+ */
-+int display_entity_get_size(struct display_entity *entity,
-+=09=09=09    unsigned int *width, unsigned int *height)
-+{
-+=09if (!entity->ops.ctrl || !entity->ops.ctrl->get_size)
-+=09=09return -EOPNOTSUPP;
-+
-+=09return entity->ops.ctrl->get_size(entity, width, height);
-+}
-+EXPORT_SYMBOL_GPL(display_entity_get_size);
-+
-+/**
-+ * display_entity_get_params - Get display entity interface parameters
-+ * @entity: The display entity
-+ * @params: Pointer to interface parameters
-+ *
-+ * Fill the parameters structure pointed to by the params argument with di=
-splay
-+ * entity interface parameters.
-+ *
-+ * Return 0 on success or a negative error code otherwise.
-+ */
-+int display_entity_get_params(struct display_entity *entity,
-+=09=09=09      struct display_entity_interface_params *params)
-+{
-+=09if (!entity->ops.ctrl || !entity->ops.ctrl->get_modes)
-+=09=09return -EOPNOTSUPP;
-+
-+=09return entity->ops.ctrl->get_params(entity, params);
-+}
-+EXPORT_SYMBOL_GPL(display_entity_get_params);
-+
-+/* -----------------------------------------------------------------------=
-------
-+ * Video operations
-+ */
-+
-+/**
-+ * display_entity_set_stream - Control the video stream state
-+ * @entity: The display entity
-+ * @state: Display video stream state
-+ *
-+ * Control the video stream state at the entity video output.
-+ *
-+ * See &enum display_entity_stream_state for information regarding the str=
-eam
-+ * states.
-+ *
-+ * Return 0 on success or a negative error code otherwise.
-+ */
-+int display_entity_set_stream(struct display_entity *entity,
-+=09=09=09      enum display_entity_stream_state state)
-+{
-+=09if (!entity->ops.video || !entity->ops.video->set_stream)
-+=09=09return 0;
-+
-+=09return entity->ops.video->set_stream(entity, state);
-+}
-+EXPORT_SYMBOL_GPL(display_entity_set_stream);
-+
-+/* -----------------------------------------------------------------------=
-------
-+ * Connections
-+ */
-+
-+/**
-+ * display_entity_connect - Connect two entities through a video stream
-+ * @source: The video stream source
-+ * @sink: The video stream sink
-+ *
-+ * Set the sink entity source field to the source entity.
-+ */
-+
-+/**
-+ * display_entity_disconnect - Disconnect two previously connected entitie=
-s
-+ * @source: The video stream source
-+ * @sink: The video stream sink
-+ *
-+ * Break a connection between two previously connected entities. The sourc=
-e
-+ * entity source field is reset to NULL.
-+ */
-+
-+/* -----------------------------------------------------------------------=
-------
-+ * Registration and notification
-+ */
-+
-+static void display_entity_release(struct kref *ref)
-+{
-+=09struct display_entity *entity =3D
-+=09=09container_of(ref, struct display_entity, ref);
-+
-+=09if (entity->release)
-+=09=09entity->release(entity);
-+}
-+
-+/**
-+ * display_entity_get - get a reference to a display entity
-+ * @display_entity: the display entity
-+ *
-+ * Return the display entity pointer.
-+ */
-+struct display_entity *display_entity_get(struct display_entity *entity)
-+{
-+=09if (entity =3D=3D NULL)
-+=09=09return NULL;
-+
-+=09kref_get(&entity->ref);
-+=09return entity;
-+}
-+EXPORT_SYMBOL_GPL(display_entity_get);
-+
-+/**
-+ * display_entity_put - release a reference to a display entity
-+ * @display_entity: the display entity
-+ *
-+ * Releasing the last reference to a display entity releases the display e=
-ntity
-+ * itself.
-+ */
-+void display_entity_put(struct display_entity *entity)
-+{
-+=09kref_put(&entity->ref, display_entity_release);
-+}
-+EXPORT_SYMBOL_GPL(display_entity_put);
-+
-+static int display_entity_notifier_match(struct display_entity *entity,
-+=09=09=09=09struct display_entity_notifier *notifier)
-+{
-+=09return notifier->dev =3D=3D NULL || notifier->dev =3D=3D entity->dev;
-+}
-+
-+/**
-+ * display_entity_register_notifier - register a display entity notifier
-+ * @notifier: display entity notifier structure we want to register
-+ *
-+ * Display entity notifiers are called to notify drivers of display
-+ * entity-related events for matching display_entitys.
-+ *
-+ * Notifiers and display_entitys are matched through the device they corre=
-spond
-+ * to. If the notifier dev field is equal to the display entity dev field =
-the
-+ * notifier will be called when an event is reported. Notifiers with a NUL=
-L dev
-+ * field act as catch-all and will be called for all display_entitys.
-+ *
-+ * Supported events are
-+ *
-+ * - DISPLAY_ENTITY_NOTIFIER_CONNECT reports display entity connection and=
- is
-+ *   sent at display entity or notifier registration time
-+ * - DISPLAY_ENTITY_NOTIFIER_DISCONNECT reports display entity disconnecti=
-on and
-+ *   is sent at display entity unregistration time
-+ *
-+ * Registering a notifier sends DISPLAY_ENTITY_NOTIFIER_CONNECT events for=
- all
-+ * previously registered display_entitys that match the notifiers.
-+ *
-+ * Return 0 on success.
-+ */
-+int display_entity_register_notifier(struct display_entity_notifier *notif=
-ier)
-+{
-+=09struct display_entity *entity;
-+
-+=09mutex_lock(&display_entity_mutex);
-+=09list_add_tail(&notifier->list, &display_entity_notifiers);
-+
-+=09list_for_each_entry(entity, &display_entity_list, list) {
-+=09=09if (!display_entity_notifier_match(entity, notifier))
-+=09=09=09continue;
-+
-+=09=09if (notifier->notify(notifier, entity,
-+=09=09=09=09     DISPLAY_ENTITY_NOTIFIER_CONNECT))
-+=09=09=09break;
-+=09}
-+=09mutex_unlock(&display_entity_mutex);
-+
-+=09return 0;
-+}
-+EXPORT_SYMBOL_GPL(display_entity_register_notifier);
-+
-+/**
-+ * display_entity_unregister_notifier - unregister a display entity notifi=
-er
-+ * @notifier: display entity notifier to be unregistered
-+ *
-+ * Unregistration guarantees that the notifier will never be called upon r=
-eturn
-+ * of this function.
-+ */
-+void display_entity_unregister_notifier(struct display_entity_notifier *no=
-tifier)
-+{
-+=09mutex_lock(&display_entity_mutex);
-+=09list_del(&notifier->list);
-+=09mutex_unlock(&display_entity_mutex);
-+}
-+EXPORT_SYMBOL_GPL(display_entity_unregister_notifier);
-+
-+/**
-+ * display_entity_register - register a display entity
-+ * @display_entity: display entity to be registered
-+ *
-+ * Register the display entity and send the DISPLAY_ENTITY_NOTIFIER_CONNEC=
-T
-+ * event to all matching registered notifiers.
-+ *
-+ * Return 0 on success.
-+ */
-+int __must_check __display_entity_register(struct display_entity *entity,
-+=09=09=09=09=09   struct module *owner)
-+{
-+=09struct display_entity_notifier *notifier;
-+
-+=09kref_init(&entity->ref);
-+=09entity->owner =3D owner;
-+=09entity->state =3D DISPLAY_ENTITY_STATE_OFF;
-+
-+=09mutex_lock(&display_entity_mutex);
-+=09list_add(&entity->list, &display_entity_list);
-+
-+=09list_for_each_entry(notifier, &display_entity_notifiers, list) {
-+=09=09if (!display_entity_notifier_match(entity, notifier))
-+=09=09=09continue;
-+
-+=09=09if (notifier->notify(notifier, entity,
-+=09=09=09=09     DISPLAY_ENTITY_NOTIFIER_CONNECT))
-+=09=09=09break;
-+=09}
-+=09mutex_unlock(&display_entity_mutex);
-+
-+=09return 0;
-+}
-+EXPORT_SYMBOL_GPL(__display_entity_register);
-+
-+/**
-+ * display_entity_unregister - unregister a display entity
-+ * @display_entity: display entity to be unregistered
-+ *
-+ * Unregister the display entity and send the DISPLAY_ENTITY_NOTIFIER_DISC=
-ONNECT
-+ * event to all matching registered notifiers.
-+ */
-+void display_entity_unregister(struct display_entity *entity)
-+{
-+=09struct display_entity_notifier *notifier;
-+
-+=09mutex_lock(&display_entity_mutex);
-+=09list_for_each_entry(notifier, &display_entity_notifiers, list) {
-+=09=09if (!display_entity_notifier_match(entity, notifier))
-+=09=09=09continue;
-+
-+=09=09notifier->notify(notifier, entity,
-+=09=09=09=09 DISPLAY_ENTITY_NOTIFIER_DISCONNECT);
-+=09}
-+
-+=09list_del(&entity->list);
-+=09mutex_unlock(&display_entity_mutex);
-+
-+=09display_entity_put(entity);
-+}
-+EXPORT_SYMBOL_GPL(display_entity_unregister);
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("Display Core");
-+MODULE_LICENSE("GPL");
-diff --git a/include/video/display.h b/include/video/display.h
-new file mode 100644
-index 0000000..90d18ca
---- /dev/null
-+++ b/include/video/display.h
-@@ -0,0 +1,150 @@
-+/*
-+ * Display Core
-+ *
-+ * Copyright (C) 2012 Renesas Solutions Corp.
-+ *
-+ * Contacts: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef __DISPLAY_H__
-+#define __DISPLAY_H__
-+
-+#include <linux/kref.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+
-+/* -----------------------------------------------------------------------=
-------
-+ * Display Entity
-+ */
-+
-+struct display_entity;
-+struct videomode;
-+
-+#define DISPLAY_ENTITY_NOTIFIER_CONNECT=09=091
-+#define DISPLAY_ENTITY_NOTIFIER_DISCONNECT=092
-+
-+struct display_entity_notifier {
-+=09int (*notify)(struct display_entity_notifier *, struct display_entity *=
-,
-+=09=09      int);
-+=09struct device *dev;
-+=09struct list_head list;
-+};
-+
-+/**
-+ * enum display_entity_state - State of a display entity
-+ * @DISPLAY_ENTITY_STATE_OFF: The entity is turned off completely, possibl=
-y
-+ *=09including its power supplies. Communication with a display entity in
-+ *=09that state is not possible.
-+ * @DISPLAY_ENTITY_STATE_STANDBY: The entity is in a low-power state. Full
-+ *=09communication with the display entity is supported, including pixel d=
-ata
-+ *=09transfer, but the output is kept blanked.
-+ * @DISPLAY_ENTITY_STATE_ON: The entity is fully operational.
-+ */
-+enum display_entity_state {
-+=09DISPLAY_ENTITY_STATE_OFF,
-+=09DISPLAY_ENTITY_STATE_STANDBY,
-+=09DISPLAY_ENTITY_STATE_ON,
-+};
-+
-+/**
-+ * enum display_entity_stream_state - State of a video stream
-+ * @DISPLAY_ENTITY_STREAM_STOPPED: The video stream is stopped, no frames =
-are
-+ *=09transferred.
-+ * @DISPLAY_ENTITY_STREAM_SINGLE_SHOT: The video stream has been started f=
-or
-+ *      single shot operation. The source entity will transfer a single fr=
-ame
-+ *      and then stop.
-+ * @DISPLAY_ENTITY_STREAM_CONTINUOUS: The video stream is running, frames =
-are
-+ *=09transferred continuously by the source entity.
-+ */
-+enum display_entity_stream_state {
-+=09DISPLAY_ENTITY_STREAM_STOPPED,
-+=09DISPLAY_ENTITY_STREAM_SINGLE_SHOT,
-+=09DISPLAY_ENTITY_STREAM_CONTINUOUS,
-+};
-+
-+enum display_entity_interface_type {
-+=09DISPLAY_ENTITY_INTERFACE_DPI,
-+};
-+
-+struct display_entity_interface_params {
-+=09enum display_entity_interface_type type;
-+};
-+
-+struct display_entity_control_ops {
-+=09int (*set_state)(struct display_entity *ent,
-+=09=09=09 enum display_entity_state state);
-+=09int (*update)(struct display_entity *ent);
-+=09int (*get_modes)(struct display_entity *ent,
-+=09=09=09 const struct videomode **modes);
-+=09int (*get_params)(struct display_entity *ent,
-+=09=09=09  struct display_entity_interface_params *params);
-+=09int (*get_size)(struct display_entity *ent,
-+=09=09=09unsigned int *width, unsigned int *height);
-+};
-+
-+struct display_entity_video_ops {
-+=09int (*set_stream)(struct display_entity *ent,
-+=09=09=09  enum display_entity_stream_state state);
-+};
-+
-+struct display_entity {
-+=09struct list_head list;
-+=09struct device *dev;
-+=09struct module *owner;
-+=09struct kref ref;
-+
-+=09struct display_entity *source;
-+
-+=09struct {
-+=09=09const struct display_entity_control_ops *ctrl;
-+=09=09const struct display_entity_video_ops *video;
-+=09} ops;
-+
-+=09void(*release)(struct display_entity *ent);
-+
-+=09enum display_entity_state state;
-+};
-+
-+int display_entity_set_state(struct display_entity *entity,
-+=09=09=09     enum display_entity_state state);
-+int display_entity_update(struct display_entity *entity);
-+int display_entity_get_modes(struct display_entity *entity,
-+=09=09=09     const struct videomode **modes);
-+int display_entity_get_params(struct display_entity *entity,
-+=09=09=09      struct display_entity_interface_params *params);
-+int display_entity_get_size(struct display_entity *entity,
-+=09=09=09    unsigned int *width, unsigned int *height);
-+
-+int display_entity_set_stream(struct display_entity *entity,
-+=09=09=09      enum display_entity_stream_state state);
-+
-+static inline void display_entity_connect(struct display_entity *source,
-+=09=09=09=09=09  struct display_entity *sink)
-+{
-+=09sink->source =3D source;
-+}
-+
-+static inline void display_entity_disconnect(struct display_entity *source=
-,
-+=09=09=09=09=09     struct display_entity *sink)
-+{
-+=09sink->source =3D NULL;
-+}
-+
-+struct display_entity *display_entity_get(struct display_entity *entity);
-+void display_entity_put(struct display_entity *entity);
-+
-+int __must_check __display_entity_register(struct display_entity *entity,
-+=09=09=09=09=09   struct module *owner);
-+void display_entity_unregister(struct display_entity *entity);
-+
-+int display_entity_register_notifier(struct display_entity_notifier *notif=
-ier);
-+void display_entity_unregister_notifier(struct display_entity_notifier *no=
-tifier);
-+
-+#define display_entity_register(display_entity) \
-+=09__display_entity_register(display_entity, THIS_MODULE)
-+
-+#endif /* __DISPLAY_H__ */
---=20
-1.7.10.4
+I reverted this one because you requested to revert changeset
+3f8ec5df11aa2ad7402cfb3368532a96b63426a4:
+	http://git.linuxtv.org/media_tree.git/commit/33a31edd4a4b7d26b962b32decfd8ea2377eaa0d
 
+And I reverted this one because Andrey requested to revert changeset
+30bac9110455402fa8888740c6819dd3daa2666f:
+	http://git.linuxtv.org/media_tree.git/commit/82cd0b278fddc1c0bc7e187ff82fd0e273520233
 
+Just reverting 3f8ec5df11aa2ad7402cfb3368532a96b63426a4 would break compilation.
+
+After thinking a little bit, I think that the best is to apply this driver
+via your tree.
+
+So, if you're ok, i'll be applying the enclosed patch on my tree. It 
+basically reverts all changes caused by all si476x at drivers/mfd. 
+The preparation patches at V4L2 core will remain there on my tree.
+
+So, the only thing left, from V4L2 side, is this single patch:
+	http://git.linuxtv.org/media_tree.git/commitdiff/30bac9110455402fa8888740c6819dd3daa2666f
+
+As it seems that most of the left-overs are mfd, feel free 
+to apply the V4L2 driver via your tree with my ack:
+
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+It should be noticed that there was one kABI change on my tree affects 
+this patch: the arguments of one of the media callbacks used there was
+constifyed. So, this patch will be needed, after both trees gets merged
+upstream, in order to fix a few warnings:
+
+	http://git.linuxtv.org/media_tree.git/commitdiff/38a46c2128ade2a0c6ee4438297180b09a01c309
+
+Regards,
+Mauro
+
+-
+
+[media] mfd/si476x: Remove the left-overs from this driver
+
+This driver was nacked by mfd maintainer, as it causes
+merge conflicts there. Remove the remaining stuff from
+it, in order to allow it to be merged via his tree.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/mfd/si476x-cmd.c b/drivers/mfd/si476x-cmd.c
+deleted file mode 100644
+index 71ac2e8..0000000
+--- a/drivers/mfd/si476x-cmd.c
++++ /dev/null
+@@ -1,1554 +0,0 @@
+-/*
+- * drivers/mfd/si476x-cmd.c -- Subroutines implementing command
+- * protocol of si476x series of chips
+- *
+- * Copyright (C) 2012 Innovative Converged Devices(ICD)
+- * Copyright (C) 2013 Andrey Smirnov
+- *
+- * Author: Andrey Smirnov <andrew.smirnov@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; version 2 of the License.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- */
+-
+-#include <linux/module.h>
+-#include <linux/completion.h>
+-#include <linux/delay.h>
+-#include <linux/atomic.h>
+-#include <linux/i2c.h>
+-#include <linux/device.h>
+-#include <linux/gpio.h>
+-#include <linux/videodev2.h>
+-
+-#include <media/si476x.h>
+-#include <linux/mfd/si476x-core.h>
+-
+-#define msb(x)                  ((u8)((u16) x >> 8))
+-#define lsb(x)                  ((u8)((u16) x &  0x00FF))
+-
+-
+-
+-#define CMD_POWER_UP				0x01
+-#define CMD_POWER_UP_A10_NRESP			1
+-#define CMD_POWER_UP_A10_NARGS			5
+-
+-#define CMD_POWER_UP_A20_NRESP			1
+-#define CMD_POWER_UP_A20_NARGS			5
+-
+-#define POWER_UP_DELAY_MS			110
+-
+-#define CMD_POWER_DOWN				0x11
+-#define CMD_POWER_DOWN_A10_NRESP		1
+-
+-#define CMD_POWER_DOWN_A20_NRESP		1
+-#define CMD_POWER_DOWN_A20_NARGS		1
+-
+-#define CMD_FUNC_INFO				0x12
+-#define CMD_FUNC_INFO_NRESP			7
+-
+-#define CMD_SET_PROPERTY			0x13
+-#define CMD_SET_PROPERTY_NARGS			5
+-#define CMD_SET_PROPERTY_NRESP			1
+-
+-#define CMD_GET_PROPERTY			0x14
+-#define CMD_GET_PROPERTY_NARGS			3
+-#define CMD_GET_PROPERTY_NRESP			4
+-
+-#define CMD_AGC_STATUS				0x17
+-#define CMD_AGC_STATUS_NRESP_A10		2
+-#define CMD_AGC_STATUS_NRESP_A20                6
+-
+-#define PIN_CFG_BYTE(x) (0x7F & (x))
+-#define CMD_DIG_AUDIO_PIN_CFG			0x18
+-#define CMD_DIG_AUDIO_PIN_CFG_NARGS		4
+-#define CMD_DIG_AUDIO_PIN_CFG_NRESP		5
+-
+-#define CMD_ZIF_PIN_CFG				0x19
+-#define CMD_ZIF_PIN_CFG_NARGS			4
+-#define CMD_ZIF_PIN_CFG_NRESP			5
+-
+-#define CMD_IC_LINK_GPO_CTL_PIN_CFG		0x1A
+-#define CMD_IC_LINK_GPO_CTL_PIN_CFG_NARGS	4
+-#define CMD_IC_LINK_GPO_CTL_PIN_CFG_NRESP	5
+-
+-#define CMD_ANA_AUDIO_PIN_CFG			0x1B
+-#define CMD_ANA_AUDIO_PIN_CFG_NARGS		1
+-#define CMD_ANA_AUDIO_PIN_CFG_NRESP		2
+-
+-#define CMD_INTB_PIN_CFG			0x1C
+-#define CMD_INTB_PIN_CFG_NARGS			2
+-#define CMD_INTB_PIN_CFG_A10_NRESP		6
+-#define CMD_INTB_PIN_CFG_A20_NRESP		3
+-
+-#define CMD_FM_TUNE_FREQ			0x30
+-#define CMD_FM_TUNE_FREQ_A10_NARGS		5
+-#define CMD_FM_TUNE_FREQ_A20_NARGS		3
+-#define CMD_FM_TUNE_FREQ_NRESP			1
+-
+-#define CMD_FM_RSQ_STATUS			0x32
+-
+-#define CMD_FM_RSQ_STATUS_A10_NARGS		1
+-#define CMD_FM_RSQ_STATUS_A10_NRESP		17
+-#define CMD_FM_RSQ_STATUS_A30_NARGS		1
+-#define CMD_FM_RSQ_STATUS_A30_NRESP		23
+-
+-
+-#define CMD_FM_SEEK_START			0x31
+-#define CMD_FM_SEEK_START_NARGS			1
+-#define CMD_FM_SEEK_START_NRESP			1
+-
+-#define CMD_FM_RDS_STATUS			0x36
+-#define CMD_FM_RDS_STATUS_NARGS			1
+-#define CMD_FM_RDS_STATUS_NRESP			16
+-
+-#define CMD_FM_RDS_BLOCKCOUNT			0x37
+-#define CMD_FM_RDS_BLOCKCOUNT_NARGS		1
+-#define CMD_FM_RDS_BLOCKCOUNT_NRESP		8
+-
+-#define CMD_FM_PHASE_DIVERSITY			0x38
+-#define CMD_FM_PHASE_DIVERSITY_NARGS		1
+-#define CMD_FM_PHASE_DIVERSITY_NRESP		1
+-
+-#define CMD_FM_PHASE_DIV_STATUS			0x39
+-#define CMD_FM_PHASE_DIV_STATUS_NRESP		2
+-
+-#define CMD_AM_TUNE_FREQ			0x40
+-#define CMD_AM_TUNE_FREQ_NARGS			3
+-#define CMD_AM_TUNE_FREQ_NRESP			1
+-
+-#define CMD_AM_RSQ_STATUS			0x42
+-#define CMD_AM_RSQ_STATUS_NARGS			1
+-#define CMD_AM_RSQ_STATUS_NRESP			13
+-
+-#define CMD_AM_SEEK_START			0x41
+-#define CMD_AM_SEEK_START_NARGS			1
+-#define CMD_AM_SEEK_START_NRESP			1
+-
+-
+-#define CMD_AM_ACF_STATUS			0x45
+-#define CMD_AM_ACF_STATUS_NRESP			6
+-#define CMD_AM_ACF_STATUS_NARGS			1
+-
+-#define CMD_FM_ACF_STATUS			0x35
+-#define CMD_FM_ACF_STATUS_NRESP			8
+-#define CMD_FM_ACF_STATUS_NARGS			1
+-
+-#define CMD_MAX_ARGS_COUNT			(10)
+-
+-
+-enum si476x_acf_status_report_bits {
+-	SI476X_ACF_BLEND_INT	= (1 << 4),
+-	SI476X_ACF_HIBLEND_INT	= (1 << 3),
+-	SI476X_ACF_HICUT_INT	= (1 << 2),
+-	SI476X_ACF_CHBW_INT	= (1 << 1),
+-	SI476X_ACF_SOFTMUTE_INT	= (1 << 0),
+-
+-	SI476X_ACF_SMUTE	= (1 << 0),
+-	SI476X_ACF_SMATTN	= 0b11111,
+-	SI476X_ACF_PILOT	= (1 << 7),
+-	SI476X_ACF_STBLEND	= ~SI476X_ACF_PILOT,
+-};
+-
+-enum si476x_agc_status_report_bits {
+-	SI476X_AGC_MXHI		= (1 << 5),
+-	SI476X_AGC_MXLO		= (1 << 4),
+-	SI476X_AGC_LNAHI	= (1 << 3),
+-	SI476X_AGC_LNALO	= (1 << 2),
+-};
+-
+-enum si476x_errors {
+-	SI476X_ERR_BAD_COMMAND		= 0x10,
+-	SI476X_ERR_BAD_ARG1		= 0x11,
+-	SI476X_ERR_BAD_ARG2		= 0x12,
+-	SI476X_ERR_BAD_ARG3		= 0x13,
+-	SI476X_ERR_BAD_ARG4		= 0x14,
+-	SI476X_ERR_BUSY			= 0x18,
+-	SI476X_ERR_BAD_INTERNAL_MEMORY  = 0x20,
+-	SI476X_ERR_BAD_PATCH		= 0x30,
+-	SI476X_ERR_BAD_BOOT_MODE	= 0x31,
+-	SI476X_ERR_BAD_PROPERTY		= 0x40,
+-};
+-
+-static int si476x_core_parse_and_nag_about_error(struct si476x_core *core)
+-{
+-	int err;
+-	char *cause;
+-	u8 buffer[2];
+-
+-	if (core->revision != SI476X_REVISION_A10) {
+-		err = si476x_core_i2c_xfer(core, SI476X_I2C_RECV,
+-					   buffer, sizeof(buffer));
+-		if (err == sizeof(buffer)) {
+-			switch (buffer[1]) {
+-			case SI476X_ERR_BAD_COMMAND:
+-				cause = "Bad command";
+-				err = -EINVAL;
+-				break;
+-			case SI476X_ERR_BAD_ARG1:
+-				cause = "Bad argument #1";
+-				err = -EINVAL;
+-				break;
+-			case SI476X_ERR_BAD_ARG2:
+-				cause = "Bad argument #2";
+-				err = -EINVAL;
+-				break;
+-			case SI476X_ERR_BAD_ARG3:
+-				cause = "Bad argument #3";
+-				err = -EINVAL;
+-				break;
+-			case SI476X_ERR_BAD_ARG4:
+-				cause = "Bad argument #4";
+-				err = -EINVAL;
+-				break;
+-			case SI476X_ERR_BUSY:
+-				cause = "Chip is busy";
+-				err = -EBUSY;
+-				break;
+-			case SI476X_ERR_BAD_INTERNAL_MEMORY:
+-				cause = "Bad internal memory";
+-				err = -EIO;
+-				break;
+-			case SI476X_ERR_BAD_PATCH:
+-				cause = "Bad patch";
+-				err = -EINVAL;
+-				break;
+-			case SI476X_ERR_BAD_BOOT_MODE:
+-				cause = "Bad boot mode";
+-				err = -EINVAL;
+-				break;
+-			case SI476X_ERR_BAD_PROPERTY:
+-				cause = "Bad property";
+-				err = -EINVAL;
+-				break;
+-			default:
+-				cause = "Unknown";
+-				err = -EIO;
+-			}
+-
+-			dev_err(&core->client->dev,
+-				"[Chip error status]: %s\n", cause);
+-		} else {
+-			dev_err(&core->client->dev,
+-				"Failed to fetch error code\n");
+-			err = (err >= 0) ? -EIO : err;
+-		}
+-	} else {
+-		err = -EIO;
+-	}
+-
+-	return err;
+-}
+-
+-/**
+- * si476x_core_send_command() - sends a command to si476x and waits its
+- * response
+- * @core:    si476x_device structure for the device we are
+- *            communicating with
+- * @command:  command id
+- * @args:     command arguments we are sending
+- * @argn:     actual size of @args
+- * @response: buffer to place the expected response from the device
+- * @respn:    actual size of @response
+- * @usecs:    amount of time to wait before reading the response (in
+- *            usecs)
+- *
+- * Function returns 0 on succsess and negative error code on
+- * failure
+- */
+-static int si476x_core_send_command(struct si476x_core *core,
+-				    const u8 command,
+-				    const u8 args[],
+-				    const int argn,
+-				    u8 resp[],
+-				    const int respn,
+-				    const int usecs)
+-{
+-	struct i2c_client *client = core->client;
+-	int err;
+-	u8  data[CMD_MAX_ARGS_COUNT + 1];
+-
+-	if (argn > CMD_MAX_ARGS_COUNT) {
+-		err = -ENOMEM;
+-		goto exit;
+-	}
+-
+-	if (!client->adapter) {
+-		err = -ENODEV;
+-		goto exit;
+-	}
+-
+-	/* First send the command and its arguments */
+-	data[0] = command;
+-	memcpy(&data[1], args, argn);
+-	dev_dbg(&client->dev, "Command:\n %*ph\n", argn + 1, data);
+-
+-	err = si476x_core_i2c_xfer(core, SI476X_I2C_SEND,
+-				   (char *) data, argn + 1);
+-	if (err != argn + 1) {
+-		dev_err(&core->client->dev,
+-			"Error while sending command 0x%02x\n",
+-			command);
+-		err = (err >= 0) ? -EIO : err;
+-		goto exit;
+-	}
+-	/* Set CTS to zero only after the command is send to avoid
+-	 * possible racing conditions when working in polling mode */
+-	atomic_set(&core->cts, 0);
+-
+-	/* if (unlikely(command == CMD_POWER_DOWN) */
+-	if (!wait_event_timeout(core->command,
+-				atomic_read(&core->cts),
+-				usecs_to_jiffies(usecs) + 1))
+-		dev_warn(&core->client->dev,
+-			 "(%s) [CMD 0x%02x] Answer timeout.\n",
+-			 __func__, command);
+-
+-	/*
+-	  When working in polling mode, for some reason the tuner will
+-	  report CTS bit as being set in the first status byte read,
+-	  but all the consequtive ones will return zeros until the
+-	  tuner is actually completed the POWER_UP command. To
+-	  workaround that we wait for second CTS to be reported
+-	 */
+-	if (unlikely(!core->client->irq && command == CMD_POWER_UP)) {
+-		if (!wait_event_timeout(core->command,
+-					atomic_read(&core->cts),
+-					usecs_to_jiffies(usecs) + 1))
+-			dev_warn(&core->client->dev,
+-				 "(%s) Power up took too much time.\n",
+-				 __func__);
+-	}
+-
+-	/* Then get the response */
+-	err = si476x_core_i2c_xfer(core, SI476X_I2C_RECV, resp, respn);
+-	if (err != respn) {
+-		dev_err(&core->client->dev,
+-			"Error while reading response for command 0x%02x\n",
+-			command);
+-		err = (err >= 0) ? -EIO : err;
+-		goto exit;
+-	}
+-	dev_dbg(&client->dev, "Response:\n %*ph\n", respn, resp);
+-
+-	err = 0;
+-
+-	if (resp[0] & SI476X_ERR) {
+-		dev_err(&core->client->dev,
+-			"[CMD 0x%02x] Chip set error flag\n", command);
+-		err = si476x_core_parse_and_nag_about_error(core);
+-		goto exit;
+-	}
+-
+-	if (!(resp[0] & SI476X_CTS))
+-		err = -EBUSY;
+-exit:
+-	return err;
+-}
+-
+-static int si476x_cmd_clear_stc(struct si476x_core *core)
+-{
+-	int err;
+-	struct si476x_rsq_status_args args = {
+-		.primary	= false,
+-		.rsqack		= false,
+-		.attune		= false,
+-		.cancel		= false,
+-		.stcack		= true,
+-	};
+-
+-	switch (core->power_up_parameters.func) {
+-	case SI476X_FUNC_FM_RECEIVER:
+-		err = si476x_core_cmd_fm_rsq_status(core, &args, NULL);
+-		break;
+-	case SI476X_FUNC_AM_RECEIVER:
+-		err = si476x_core_cmd_am_rsq_status(core, &args, NULL);
+-		break;
+-	default:
+-		err = -EINVAL;
+-	}
+-
+-	return err;
+-}
+-
+-static int si476x_cmd_tune_seek_freq(struct si476x_core *core,
+-				     uint8_t cmd,
+-				     const uint8_t args[], size_t argn,
+-				     uint8_t *resp, size_t respn)
+-{
+-	int err;
+-
+-
+-	atomic_set(&core->stc, 0);
+-	err = si476x_core_send_command(core, cmd, args, argn, resp, respn,
+-				       SI476X_TIMEOUT_TUNE);
+-	if (!err) {
+-		wait_event_killable(core->tuning,
+-				    atomic_read(&core->stc));
+-		si476x_cmd_clear_stc(core);
+-	}
+-
+-	return err;
+-}
+-
+-/**
+- * si476x_cmd_func_info() - send 'FUNC_INFO' command to the device
+- * @core: device to send the command to
+- * @info:  struct si476x_func_info to fill all the information
+- *         returned by the command
+- *
+- * The command requests the firmware and patch version for currently
+- * loaded firmware (dependent on the function of the device FM/AM/WB)
+- *
+- * Function returns 0 on succsess and negative error code on
+- * failure
+- */
+-int si476x_core_cmd_func_info(struct si476x_core *core,
+-			      struct si476x_func_info *info)
+-{
+-	int err;
+-	u8  resp[CMD_FUNC_INFO_NRESP];
+-
+-	err = si476x_core_send_command(core, CMD_FUNC_INFO,
+-				       NULL, 0,
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-
+-	info->firmware.major    = resp[1];
+-	info->firmware.minor[0] = resp[2];
+-	info->firmware.minor[1] = resp[3];
+-
+-	info->patch_id = ((u16) resp[4] << 8) | resp[5];
+-	info->func     = resp[6];
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_func_info);
+-
+-/**
+- * si476x_cmd_set_property() - send 'SET_PROPERTY' command to the device
+- * @core:    device to send the command to
+- * @property: property address
+- * @value:    property value
+- *
+- * Function returns 0 on succsess and negative error code on
+- * failure
+- */
+-int si476x_core_cmd_set_property(struct si476x_core *core,
+-				 u16 property, u16 value)
+-{
+-	u8       resp[CMD_SET_PROPERTY_NRESP];
+-	const u8 args[CMD_SET_PROPERTY_NARGS] = {
+-		0x00,
+-		msb(property),
+-		lsb(property),
+-		msb(value),
+-		lsb(value),
+-	};
+-
+-	return si476x_core_send_command(core, CMD_SET_PROPERTY,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_set_property);
+-
+-/**
+- * si476x_cmd_get_property() - send 'GET_PROPERTY' command to the device
+- * @core:    device to send the command to
+- * @property: property address
+- *
+- * Function return the value of property as u16 on success or a
+- * negative error on failure
+- */
+-int si476x_core_cmd_get_property(struct si476x_core *core, u16 property)
+-{
+-	int err;
+-	u8       resp[CMD_GET_PROPERTY_NRESP];
+-	const u8 args[CMD_GET_PROPERTY_NARGS] = {
+-		0x00,
+-		msb(property),
+-		lsb(property),
+-	};
+-
+-	err = si476x_core_send_command(core, CMD_GET_PROPERTY,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	if (err < 0)
+-		return err;
+-	else
+-		return be16_to_cpup((__be16 *)(resp + 2));
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_get_property);
+-
+-/**
+- * si476x_cmd_dig_audio_pin_cfg() - send 'DIG_AUDIO_PIN_CFG' command to
+- * the device
+- * @core: device to send the command to
+- * @dclk:  DCLK pin function configuration:
+- *	   #SI476X_DCLK_NOOP     - do not modify the behaviour
+- *         #SI476X_DCLK_TRISTATE - put the pin in tristate condition,
+- *                                 enable 1MOhm pulldown
+- *         #SI476X_DCLK_DAUDIO   - set the pin to be a part of digital
+- *                                 audio interface
+- * @dfs:   DFS pin function configuration:
+- *         #SI476X_DFS_NOOP      - do not modify the behaviour
+- *         #SI476X_DFS_TRISTATE  - put the pin in tristate condition,
+- *                             enable 1MOhm pulldown
+- *      SI476X_DFS_DAUDIO    - set the pin to be a part of digital
+- *                             audio interface
+- * @dout - DOUT pin function configuration:
+- *      SI476X_DOUT_NOOP       - do not modify the behaviour
+- *      SI476X_DOUT_TRISTATE   - put the pin in tristate condition,
+- *                               enable 1MOhm pulldown
+- *      SI476X_DOUT_I2S_OUTPUT - set this pin to be digital out on I2S
+- *                               port 1
+- *      SI476X_DOUT_I2S_INPUT  - set this pin to be digital in on I2S
+- *                               port 1
+- * @xout - XOUT pin function configuration:
+- *	SI476X_XOUT_NOOP        - do not modify the behaviour
+- *      SI476X_XOUT_TRISTATE    - put the pin in tristate condition,
+- *                                enable 1MOhm pulldown
+- *      SI476X_XOUT_I2S_INPUT   - set this pin to be digital in on I2S
+- *                                port 1
+- *      SI476X_XOUT_MODE_SELECT - set this pin to be the input that
+- *                                selects the mode of the I2S audio
+- *                                combiner (analog or HD)
+- *                                [SI4761/63/65/67 Only]
+- *
+- * Function returns 0 on success and negative error code on failure
+- */
+-int si476x_core_cmd_dig_audio_pin_cfg(struct  si476x_core *core,
+-				      enum si476x_dclk_config dclk,
+-				      enum si476x_dfs_config  dfs,
+-				      enum si476x_dout_config dout,
+-				      enum si476x_xout_config xout)
+-{
+-	u8       resp[CMD_DIG_AUDIO_PIN_CFG_NRESP];
+-	const u8 args[CMD_DIG_AUDIO_PIN_CFG_NARGS] = {
+-		PIN_CFG_BYTE(dclk),
+-		PIN_CFG_BYTE(dfs),
+-		PIN_CFG_BYTE(dout),
+-		PIN_CFG_BYTE(xout),
+-	};
+-
+-	return si476x_core_send_command(core, CMD_DIG_AUDIO_PIN_CFG,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_dig_audio_pin_cfg);
+-
+-/**
+- * si476x_cmd_zif_pin_cfg - send 'ZIF_PIN_CFG_COMMAND'
+- * @core - device to send the command to
+- * @iqclk - IQCL pin function configuration:
+- *       SI476X_IQCLK_NOOP     - do not modify the behaviour
+- *       SI476X_IQCLK_TRISTATE - put the pin in tristate condition,
+- *                               enable 1MOhm pulldown
+- *       SI476X_IQCLK_IQ       - set pin to be a part of I/Q interace
+- *                               in master mode
+- * @iqfs - IQFS pin function configuration:
+- *       SI476X_IQFS_NOOP     - do not modify the behaviour
+- *       SI476X_IQFS_TRISTATE - put the pin in tristate condition,
+- *                              enable 1MOhm pulldown
+- *       SI476X_IQFS_IQ       - set pin to be a part of I/Q interace
+- *                              in master mode
+- * @iout - IOUT pin function configuration:
+- *       SI476X_IOUT_NOOP     - do not modify the behaviour
+- *       SI476X_IOUT_TRISTATE - put the pin in tristate condition,
+- *                              enable 1MOhm pulldown
+- *       SI476X_IOUT_OUTPUT   - set pin to be I out
+- * @qout - QOUT pin function configuration:
+- *       SI476X_QOUT_NOOP     - do not modify the behaviour
+- *       SI476X_QOUT_TRISTATE - put the pin in tristate condition,
+- *                              enable 1MOhm pulldown
+- *       SI476X_QOUT_OUTPUT   - set pin to be Q out
+- *
+- * Function returns 0 on success and negative error code on failure
+- */
+-int si476x_core_cmd_zif_pin_cfg(struct si476x_core *core,
+-				enum si476x_iqclk_config iqclk,
+-				enum si476x_iqfs_config iqfs,
+-				enum si476x_iout_config iout,
+-				enum si476x_qout_config qout)
+-{
+-	u8       resp[CMD_ZIF_PIN_CFG_NRESP];
+-	const u8 args[CMD_ZIF_PIN_CFG_NARGS] = {
+-		PIN_CFG_BYTE(iqclk),
+-		PIN_CFG_BYTE(iqfs),
+-		PIN_CFG_BYTE(iout),
+-		PIN_CFG_BYTE(qout),
+-	};
+-
+-	return si476x_core_send_command(core, CMD_ZIF_PIN_CFG,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_zif_pin_cfg);
+-
+-/**
+- * si476x_cmd_ic_link_gpo_ctl_pin_cfg - send
+- * 'IC_LINK_GPIO_CTL_PIN_CFG' comand to the device
+- * @core - device to send the command to
+- * @icin - ICIN pin function configuration:
+- *      SI476X_ICIN_NOOP      - do not modify the behaviour
+- *      SI476X_ICIN_TRISTATE  - put the pin in tristate condition,
+- *                              enable 1MOhm pulldown
+- *      SI476X_ICIN_GPO1_HIGH - set pin to be an output, drive it high
+- *      SI476X_ICIN_GPO1_LOW  - set pin to be an output, drive it low
+- *      SI476X_ICIN_IC_LINK   - set the pin to be a part of Inter-Chip link
+- * @icip - ICIP pin function configuration:
+- *      SI476X_ICIP_NOOP      - do not modify the behaviour
+- *      SI476X_ICIP_TRISTATE  - put the pin in tristate condition,
+- *                              enable 1MOhm pulldown
+- *      SI476X_ICIP_GPO1_HIGH - set pin to be an output, drive it high
+- *      SI476X_ICIP_GPO1_LOW  - set pin to be an output, drive it low
+- *      SI476X_ICIP_IC_LINK   - set the pin to be a part of Inter-Chip link
+- * @icon - ICON pin function configuration:
+- *      SI476X_ICON_NOOP     - do not modify the behaviour
+- *      SI476X_ICON_TRISTATE - put the pin in tristate condition,
+- *                             enable 1MOhm pulldown
+- *      SI476X_ICON_I2S      - set the pin to be a part of audio
+- *                             interface in slave mode (DCLK)
+- *      SI476X_ICON_IC_LINK  - set the pin to be a part of Inter-Chip link
+- * @icop - ICOP pin function configuration:
+- *      SI476X_ICOP_NOOP     - do not modify the behaviour
+- *      SI476X_ICOP_TRISTATE - put the pin in tristate condition,
+- *                             enable 1MOhm pulldown
+- *      SI476X_ICOP_I2S      - set the pin to be a part of audio
+- *                             interface in slave mode (DOUT)
+- *                             [Si4761/63/65/67 Only]
+- *      SI476X_ICOP_IC_LINK  - set the pin to be a part of Inter-Chip link
+- *
+- * Function returns 0 on success and negative error code on failure
+- */
+-int si476x_core_cmd_ic_link_gpo_ctl_pin_cfg(struct si476x_core *core,
+-					    enum si476x_icin_config icin,
+-					    enum si476x_icip_config icip,
+-					    enum si476x_icon_config icon,
+-					    enum si476x_icop_config icop)
+-{
+-	u8       resp[CMD_IC_LINK_GPO_CTL_PIN_CFG_NRESP];
+-	const u8 args[CMD_IC_LINK_GPO_CTL_PIN_CFG_NARGS] = {
+-		PIN_CFG_BYTE(icin),
+-		PIN_CFG_BYTE(icip),
+-		PIN_CFG_BYTE(icon),
+-		PIN_CFG_BYTE(icop),
+-	};
+-
+-	return si476x_core_send_command(core, CMD_IC_LINK_GPO_CTL_PIN_CFG,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_ic_link_gpo_ctl_pin_cfg);
+-
+-/**
+- * si476x_cmd_ana_audio_pin_cfg - send 'ANA_AUDIO_PIN_CFG' to the
+- * device
+- * @core - device to send the command to
+- * @lrout - LROUT pin function configuration:
+- *       SI476X_LROUT_NOOP     - do not modify the behaviour
+- *       SI476X_LROUT_TRISTATE - put the pin in tristate condition,
+- *                               enable 1MOhm pulldown
+- *       SI476X_LROUT_AUDIO    - set pin to be audio output
+- *       SI476X_LROUT_MPX      - set pin to be MPX output
+- *
+- * Function returns 0 on success and negative error code on failure
+- */
+-int si476x_core_cmd_ana_audio_pin_cfg(struct si476x_core *core,
+-				      enum si476x_lrout_config lrout)
+-{
+-	u8       resp[CMD_ANA_AUDIO_PIN_CFG_NRESP];
+-	const u8 args[CMD_ANA_AUDIO_PIN_CFG_NARGS] = {
+-		PIN_CFG_BYTE(lrout),
+-	};
+-
+-	return si476x_core_send_command(core, CMD_ANA_AUDIO_PIN_CFG,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_ana_audio_pin_cfg);
+-
+-
+-/**
+- * si476x_cmd_intb_pin_cfg - send 'INTB_PIN_CFG' command to the device
+- * @core - device to send the command to
+- * @intb - INTB pin function configuration:
+- *      SI476X_INTB_NOOP     - do not modify the behaviour
+- *      SI476X_INTB_TRISTATE - put the pin in tristate condition,
+- *                             enable 1MOhm pulldown
+- *      SI476X_INTB_DAUDIO   - set pin to be a part of digital
+- *                             audio interface in slave mode
+- *      SI476X_INTB_IRQ      - set pin to be an interrupt request line
+- * @a1 - A1 pin function configuration:
+- *      SI476X_A1_NOOP     - do not modify the behaviour
+- *      SI476X_A1_TRISTATE - put the pin in tristate condition,
+- *                           enable 1MOhm pulldown
+- *      SI476X_A1_IRQ      - set pin to be an interrupt request line
+- *
+- * Function returns 0 on success and negative error code on failure
+- */
+-static int si476x_core_cmd_intb_pin_cfg_a10(struct si476x_core *core,
+-					    enum si476x_intb_config intb,
+-					    enum si476x_a1_config a1)
+-{
+-	u8       resp[CMD_INTB_PIN_CFG_A10_NRESP];
+-	const u8 args[CMD_INTB_PIN_CFG_NARGS] = {
+-		PIN_CFG_BYTE(intb),
+-		PIN_CFG_BYTE(a1),
+-	};
+-
+-	return si476x_core_send_command(core, CMD_INTB_PIN_CFG,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-
+-static int si476x_core_cmd_intb_pin_cfg_a20(struct si476x_core *core,
+-					    enum si476x_intb_config intb,
+-					    enum si476x_a1_config a1)
+-{
+-	u8       resp[CMD_INTB_PIN_CFG_A20_NRESP];
+-	const u8 args[CMD_INTB_PIN_CFG_NARGS] = {
+-		PIN_CFG_BYTE(intb),
+-		PIN_CFG_BYTE(a1),
+-	};
+-
+-	return si476x_core_send_command(core, CMD_INTB_PIN_CFG,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-
+-
+-
+-/**
+- * si476x_cmd_am_rsq_status - send 'AM_RSQ_STATUS' command to the
+- * device
+- * @core  - device to send the command to
+- * @rsqack - if set command clears RSQINT, SNRINT, SNRLINT, RSSIHINT,
+- *           RSSSILINT, BLENDINT, MULTHINT and MULTLINT
+- * @attune - when set the values in the status report are the values
+- *           that were calculated at tune
+- * @cancel - abort ongoing seek/tune opertation
+- * @stcack - clear the STCINT bin in status register
+- * @report - all signal quality information retured by the command
+- *           (if NULL then the output of the command is ignored)
+- *
+- * Function returns 0 on success and negative error code on failure
+- */
+-int si476x_core_cmd_am_rsq_status(struct si476x_core *core,
+-				  struct si476x_rsq_status_args *rsqargs,
+-				  struct si476x_rsq_status_report *report)
+-{
+-	int err;
+-	u8       resp[CMD_AM_RSQ_STATUS_NRESP];
+-	const u8 args[CMD_AM_RSQ_STATUS_NARGS] = {
+-		rsqargs->rsqack << 3 | rsqargs->attune << 2 |
+-		rsqargs->cancel << 1 | rsqargs->stcack,
+-	};
+-
+-	err = si476x_core_send_command(core, CMD_AM_RSQ_STATUS,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	/*
+-	 * Besides getting received signal quality information this
+-	 * command can be used to just acknowledge different interrupt
+-	 * flags in those cases it is useless to copy and parse
+-	 * received data so user can pass NULL, and thus avoid
+-	 * unnecessary copying.
+-	 */
+-	if (!report)
+-		return err;
+-
+-	report->snrhint		= 0b00001000 & resp[1];
+-	report->snrlint		= 0b00000100 & resp[1];
+-	report->rssihint	= 0b00000010 & resp[1];
+-	report->rssilint	= 0b00000001 & resp[1];
+-
+-	report->bltf		= 0b10000000 & resp[2];
+-	report->snr_ready	= 0b00100000 & resp[2];
+-	report->rssiready	= 0b00001000 & resp[2];
+-	report->afcrl		= 0b00000010 & resp[2];
+-	report->valid		= 0b00000001 & resp[2];
+-
+-	report->readfreq	= be16_to_cpup((__be16 *)(resp + 3));
+-	report->freqoff		= resp[5];
+-	report->rssi		= resp[6];
+-	report->snr		= resp[7];
+-	report->lassi		= resp[9];
+-	report->hassi		= resp[10];
+-	report->mult		= resp[11];
+-	report->dev		= resp[12];
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_am_rsq_status);
+-
+-int si476x_core_cmd_fm_acf_status(struct si476x_core *core,
+-			     struct si476x_acf_status_report *report)
+-{
+-	int err;
+-	u8       resp[CMD_FM_ACF_STATUS_NRESP];
+-	const u8 args[CMD_FM_ACF_STATUS_NARGS] = {
+-		0x0,
+-	};
+-
+-	if (!report)
+-		return -EINVAL;
+-
+-	err = si476x_core_send_command(core, CMD_FM_ACF_STATUS,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	if (err < 0)
+-		return err;
+-
+-	report->blend_int	= resp[1] & SI476X_ACF_BLEND_INT;
+-	report->hblend_int	= resp[1] & SI476X_ACF_HIBLEND_INT;
+-	report->hicut_int	= resp[1] & SI476X_ACF_HICUT_INT;
+-	report->chbw_int	= resp[1] & SI476X_ACF_CHBW_INT;
+-	report->softmute_int	= resp[1] & SI476X_ACF_SOFTMUTE_INT;
+-	report->smute		= resp[2] & SI476X_ACF_SMUTE;
+-	report->smattn		= resp[3] & SI476X_ACF_SMATTN;
+-	report->chbw		= resp[4];
+-	report->hicut		= resp[5];
+-	report->hiblend		= resp[6];
+-	report->pilot		= resp[7] & SI476X_ACF_PILOT;
+-	report->stblend		= resp[7] & SI476X_ACF_STBLEND;
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_acf_status);
+-
+-int si476x_core_cmd_am_acf_status(struct si476x_core *core,
+-				  struct si476x_acf_status_report *report)
+-{
+-	int err;
+-	u8       resp[CMD_AM_ACF_STATUS_NRESP];
+-	const u8 args[CMD_AM_ACF_STATUS_NARGS] = {
+-		0x0,
+-	};
+-
+-	if (!report)
+-		return -EINVAL;
+-
+-	err = si476x_core_send_command(core, CMD_AM_ACF_STATUS,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	if (err < 0)
+-		return err;
+-
+-	report->blend_int	= resp[1] & SI476X_ACF_BLEND_INT;
+-	report->hblend_int	= resp[1] & SI476X_ACF_HIBLEND_INT;
+-	report->hicut_int	= resp[1] & SI476X_ACF_HICUT_INT;
+-	report->chbw_int	= resp[1] & SI476X_ACF_CHBW_INT;
+-	report->softmute_int	= resp[1] & SI476X_ACF_SOFTMUTE_INT;
+-	report->smute		= resp[2] & SI476X_ACF_SMUTE;
+-	report->smattn		= resp[3] & SI476X_ACF_SMATTN;
+-	report->chbw		= resp[4];
+-	report->hicut		= resp[5];
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_am_acf_status);
+-
+-
+-/**
+- * si476x_cmd_fm_seek_start - send 'FM_SEEK_START' command to the
+- * device
+- * @core  - device to send the command to
+- * @seekup - if set the direction of the search is 'up'
+- * @wrap   - if set seek wraps when hitting band limit
+- *
+- * This function begins search for a valid station. The station is
+- * considered valid when 'FM_VALID_SNR_THRESHOLD' and
+- * 'FM_VALID_RSSI_THRESHOLD' and 'FM_VALID_MAX_TUNE_ERROR' criteria
+- * are met.
+-} *
+- * Function returns 0 on success and negative error code on failure
+- */
+-int si476x_core_cmd_fm_seek_start(struct si476x_core *core,
+-				  bool seekup, bool wrap)
+-{
+-	u8       resp[CMD_FM_SEEK_START_NRESP];
+-	const u8 args[CMD_FM_SEEK_START_NARGS] = {
+-		seekup << 3 | wrap << 2,
+-	};
+-
+-	return si476x_cmd_tune_seek_freq(core, CMD_FM_SEEK_START,
+-					 args, sizeof(args),
+-					 resp, sizeof(resp));
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_seek_start);
+-
+-/**
+- * si476x_cmd_fm_rds_status - send 'FM_RDS_STATUS' command to the
+- * device
+- * @core - device to send the command to
+- * @status_only - if set the data is not removed from RDSFIFO,
+- *                RDSFIFOUSED is not decremented and data in all the
+- *                rest RDS data contains the last valid info received
+- * @mtfifo if set the command clears RDS receive FIFO
+- * @intack if set the command clards the RDSINT bit.
+- *
+- * Function returns 0 on success and negative error code on failure
+- */
+-int si476x_core_cmd_fm_rds_status(struct si476x_core *core,
+-				  bool status_only,
+-				  bool mtfifo,
+-				  bool intack,
+-				  struct si476x_rds_status_report *report)
+-{
+-	int err;
+-	u8       resp[CMD_FM_RDS_STATUS_NRESP];
+-	const u8 args[CMD_FM_RDS_STATUS_NARGS] = {
+-		status_only << 2 | mtfifo << 1 | intack,
+-	};
+-
+-	err = si476x_core_send_command(core, CMD_FM_RDS_STATUS,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	/*
+-	 * Besides getting RDS status information this command can be
+-	 * used to just acknowledge different interrupt flags in those
+-	 * cases it is useless to copy and parse received data so user
+-	 * can pass NULL, and thus avoid unnecessary copying.
+-	 */
+-	if (err < 0 || report == NULL)
+-		return err;
+-
+-	report->rdstpptyint	= 0b00010000 & resp[1];
+-	report->rdspiint	= 0b00001000 & resp[1];
+-	report->rdssyncint	= 0b00000010 & resp[1];
+-	report->rdsfifoint	= 0b00000001 & resp[1];
+-
+-	report->tpptyvalid	= 0b00010000 & resp[2];
+-	report->pivalid		= 0b00001000 & resp[2];
+-	report->rdssync		= 0b00000010 & resp[2];
+-	report->rdsfifolost	= 0b00000001 & resp[2];
+-
+-	report->tp		= 0b00100000 & resp[3];
+-	report->pty		= 0b00011111 & resp[3];
+-
+-	report->pi		= be16_to_cpup((__be16 *)(resp + 4));
+-	report->rdsfifoused	= resp[6];
+-
+-	report->ble[V4L2_RDS_BLOCK_A]	= 0b11000000 & resp[7];
+-	report->ble[V4L2_RDS_BLOCK_B]	= 0b00110000 & resp[7];
+-	report->ble[V4L2_RDS_BLOCK_C]	= 0b00001100 & resp[7];
+-	report->ble[V4L2_RDS_BLOCK_D]	= 0b00000011 & resp[7];
+-
+-	report->rds[V4L2_RDS_BLOCK_A].block = V4L2_RDS_BLOCK_A;
+-	report->rds[V4L2_RDS_BLOCK_A].msb = resp[8];
+-	report->rds[V4L2_RDS_BLOCK_A].lsb = resp[9];
+-
+-	report->rds[V4L2_RDS_BLOCK_B].block = V4L2_RDS_BLOCK_B;
+-	report->rds[V4L2_RDS_BLOCK_B].msb = resp[10];
+-	report->rds[V4L2_RDS_BLOCK_B].lsb = resp[11];
+-
+-	report->rds[V4L2_RDS_BLOCK_C].block = V4L2_RDS_BLOCK_C;
+-	report->rds[V4L2_RDS_BLOCK_C].msb = resp[12];
+-	report->rds[V4L2_RDS_BLOCK_C].lsb = resp[13];
+-
+-	report->rds[V4L2_RDS_BLOCK_D].block = V4L2_RDS_BLOCK_D;
+-	report->rds[V4L2_RDS_BLOCK_D].msb = resp[14];
+-	report->rds[V4L2_RDS_BLOCK_D].lsb = resp[15];
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_rds_status);
+-
+-int si476x_core_cmd_fm_rds_blockcount(struct si476x_core *core,
+-				bool clear,
+-				struct si476x_rds_blockcount_report *report)
+-{
+-	int err;
+-	u8       resp[CMD_FM_RDS_BLOCKCOUNT_NRESP];
+-	const u8 args[CMD_FM_RDS_BLOCKCOUNT_NARGS] = {
+-		clear,
+-	};
+-
+-	if (!report)
+-		return -EINVAL;
+-
+-	err = si476x_core_send_command(core, CMD_FM_RDS_BLOCKCOUNT,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-
+-	if (!err) {
+-		report->expected	= be16_to_cpup((__be16 *)(resp + 2));
+-		report->received	= be16_to_cpup((__be16 *)(resp + 4));
+-		report->uncorrectable	= be16_to_cpup((__be16 *)(resp + 6));
+-	}
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_rds_blockcount);
+-
+-int si476x_core_cmd_fm_phase_diversity(struct si476x_core *core,
+-				       enum si476x_phase_diversity_mode mode)
+-{
+-	u8       resp[CMD_FM_PHASE_DIVERSITY_NRESP];
+-	const u8 args[CMD_FM_PHASE_DIVERSITY_NARGS] = {
+-		mode & 0b111,
+-	};
+-
+-	return si476x_core_send_command(core, CMD_FM_PHASE_DIVERSITY,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_phase_diversity);
+-/**
+- * si476x_core_cmd_fm_phase_div_status() - get the phase diversity
+- * status
+- *
+- * @core: si476x device
+- *
+- * NOTE caller must hold core lock
+- *
+- * Function returns the value of the status bit in case of success and
+- * negative error code in case of failre.
+- */
+-int si476x_core_cmd_fm_phase_div_status(struct si476x_core *core)
+-{
+-	int err;
+-	u8 resp[CMD_FM_PHASE_DIV_STATUS_NRESP];
+-
+-	err = si476x_core_send_command(core, CMD_FM_PHASE_DIV_STATUS,
+-				       NULL, 0,
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-
+-	return (err < 0) ? err : resp[1];
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_phase_div_status);
+-
+-
+-/**
+- * si476x_cmd_am_seek_start - send 'FM_SEEK_START' command to the
+- * device
+- * @core  - device to send the command to
+- * @seekup - if set the direction of the search is 'up'
+- * @wrap   - if set seek wraps when hitting band limit
+- *
+- * This function begins search for a valid station. The station is
+- * considered valid when 'FM_VALID_SNR_THRESHOLD' and
+- * 'FM_VALID_RSSI_THRESHOLD' and 'FM_VALID_MAX_TUNE_ERROR' criteria
+- * are met.
+- *
+- * Function returns 0 on success and negative error code on failure
+- */
+-int si476x_core_cmd_am_seek_start(struct si476x_core *core,
+-				  bool seekup, bool wrap)
+-{
+-	u8       resp[CMD_AM_SEEK_START_NRESP];
+-	const u8 args[CMD_AM_SEEK_START_NARGS] = {
+-		seekup << 3 | wrap << 2,
+-	};
+-
+-	return si476x_cmd_tune_seek_freq(core,  CMD_AM_SEEK_START,
+-					 args, sizeof(args),
+-					 resp, sizeof(resp));
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_am_seek_start);
+-
+-
+-
+-static int si476x_core_cmd_power_up_a10(struct si476x_core *core,
+-					struct si476x_power_up_args *puargs)
+-{
+-	u8       resp[CMD_POWER_UP_A10_NRESP];
+-	const bool intsel = (core->pinmux.a1 == SI476X_A1_IRQ);
+-	const bool ctsen  = (core->client->irq != 0);
+-	const u8 args[CMD_POWER_UP_A10_NARGS] = {
+-		0xF7,		/* Reserved, always 0xF7 */
+-		0x3F & puargs->xcload,	/* First two bits are reserved to be
+-				 * zeros */
+-		ctsen << 7 | intsel << 6 | 0x07, /* Last five bits
+-						   * are reserved to
+-						   * be written as 0x7 */
+-		puargs->func << 4 | puargs->freq,
+-		0x11,		/* Reserved, always 0x11 */
+-	};
+-
+-	return si476x_core_send_command(core, CMD_POWER_UP,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_TIMEOUT_POWER_UP);
+-}
+-
+-static int si476x_core_cmd_power_up_a20(struct si476x_core *core,
+-				 struct si476x_power_up_args *puargs)
+-{
+-	u8       resp[CMD_POWER_UP_A20_NRESP];
+-	const bool intsel = (core->pinmux.a1 == SI476X_A1_IRQ);
+-	const bool ctsen  = (core->client->irq != 0);
+-	const u8 args[CMD_POWER_UP_A20_NARGS] = {
+-		puargs->ibias6x << 7 | puargs->xstart,
+-		0x3F & puargs->xcload,	/* First two bits are reserved to be
+-					 * zeros */
+-		ctsen << 7 | intsel << 6 | puargs->fastboot << 5 |
+-		puargs->xbiashc << 3 | puargs->xbias,
+-		puargs->func << 4 | puargs->freq,
+-		0x10 | puargs->xmode,
+-	};
+-
+-	return si476x_core_send_command(core, CMD_POWER_UP,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_TIMEOUT_POWER_UP);
+-}
+-
+-static int si476x_core_cmd_power_down_a10(struct si476x_core *core,
+-					  struct si476x_power_down_args *pdargs)
+-{
+-	u8 resp[CMD_POWER_DOWN_A10_NRESP];
+-
+-	return si476x_core_send_command(core, CMD_POWER_DOWN,
+-					NULL, 0,
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-
+-static int si476x_core_cmd_power_down_a20(struct si476x_core *core,
+-					  struct si476x_power_down_args *pdargs)
+-{
+-	u8 resp[CMD_POWER_DOWN_A20_NRESP];
+-	const u8 args[CMD_POWER_DOWN_A20_NARGS] = {
+-		pdargs->xosc,
+-	};
+-	return si476x_core_send_command(core, CMD_POWER_DOWN,
+-					args, ARRAY_SIZE(args),
+-					resp, ARRAY_SIZE(resp),
+-					SI476X_DEFAULT_TIMEOUT);
+-}
+-
+-static int si476x_core_cmd_am_tune_freq_a10(struct si476x_core *core,
+-					struct si476x_tune_freq_args *tuneargs)
+-{
+-
+-	const int am_freq = tuneargs->freq;
+-	u8       resp[CMD_AM_TUNE_FREQ_NRESP];
+-	const u8 args[CMD_AM_TUNE_FREQ_NARGS] = {
+-		(tuneargs->hd << 6),
+-		msb(am_freq),
+-		lsb(am_freq),
+-	};
+-
+-	return si476x_cmd_tune_seek_freq(core, CMD_AM_TUNE_FREQ, args,
+-					 sizeof(args),
+-					 resp, sizeof(resp));
+-}
+-
+-static int si476x_core_cmd_am_tune_freq_a20(struct si476x_core *core,
+-					struct si476x_tune_freq_args *tuneargs)
+-{
+-	const int am_freq = tuneargs->freq;
+-	u8       resp[CMD_AM_TUNE_FREQ_NRESP];
+-	const u8 args[CMD_AM_TUNE_FREQ_NARGS] = {
+-		(tuneargs->zifsr << 6) | (tuneargs->injside & 0b11),
+-		msb(am_freq),
+-		lsb(am_freq),
+-	};
+-
+-	return si476x_cmd_tune_seek_freq(core, CMD_AM_TUNE_FREQ,
+-					 args, sizeof(args),
+-					 resp, sizeof(resp));
+-}
+-
+-static int si476x_core_cmd_fm_rsq_status_a10(struct si476x_core *core,
+-					struct si476x_rsq_status_args *rsqargs,
+-					struct si476x_rsq_status_report *report)
+-{
+-	int err;
+-	u8       resp[CMD_FM_RSQ_STATUS_A10_NRESP];
+-	const u8 args[CMD_FM_RSQ_STATUS_A10_NARGS] = {
+-		rsqargs->rsqack << 3 | rsqargs->attune << 2 |
+-		rsqargs->cancel << 1 | rsqargs->stcack,
+-	};
+-
+-	err = si476x_core_send_command(core, CMD_FM_RSQ_STATUS,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	/*
+-	 * Besides getting received signal quality information this
+-	 * command can be used to just acknowledge different interrupt
+-	 * flags in those cases it is useless to copy and parse
+-	 * received data so user can pass NULL, and thus avoid
+-	 * unnecessary copying.
+-	 */
+-	if (err < 0 || report == NULL)
+-		return err;
+-
+-	report->multhint	= 0b10000000 & resp[1];
+-	report->multlint	= 0b01000000 & resp[1];
+-	report->snrhint		= 0b00001000 & resp[1];
+-	report->snrlint		= 0b00000100 & resp[1];
+-	report->rssihint	= 0b00000010 & resp[1];
+-	report->rssilint	= 0b00000001 & resp[1];
+-
+-	report->bltf		= 0b10000000 & resp[2];
+-	report->snr_ready	= 0b00100000 & resp[2];
+-	report->rssiready	= 0b00001000 & resp[2];
+-	report->afcrl		= 0b00000010 & resp[2];
+-	report->valid		= 0b00000001 & resp[2];
+-
+-	report->readfreq	= be16_to_cpup((__be16 *)(resp + 3));
+-	report->freqoff		= resp[5];
+-	report->rssi		= resp[6];
+-	report->snr		= resp[7];
+-	report->lassi		= resp[9];
+-	report->hassi		= resp[10];
+-	report->mult		= resp[11];
+-	report->dev		= resp[12];
+-	report->readantcap	= be16_to_cpup((__be16 *)(resp + 13));
+-	report->assi		= resp[15];
+-	report->usn		= resp[16];
+-
+-	return err;
+-}
+-
+-static int si476x_core_cmd_fm_rsq_status_a20(struct si476x_core *core,
+-					     struct si476x_rsq_status_args *rsqargs,
+-					     struct si476x_rsq_status_report *report)
+-{
+-	int err;
+-	u8       resp[CMD_FM_RSQ_STATUS_A10_NRESP];
+-	const u8 args[CMD_FM_RSQ_STATUS_A30_NARGS] = {
+-		rsqargs->primary << 4 | rsqargs->rsqack << 3 |
+-		rsqargs->attune  << 2 | rsqargs->cancel << 1 |
+-		rsqargs->stcack,
+-	};
+-
+-	err = si476x_core_send_command(core, CMD_FM_RSQ_STATUS,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	/*
+-	 * Besides getting received signal quality information this
+-	 * command can be used to just acknowledge different interrupt
+-	 * flags in those cases it is useless to copy and parse
+-	 * received data so user can pass NULL, and thus avoid
+-	 * unnecessary copying.
+-	 */
+-	if (err < 0 || report == NULL)
+-		return err;
+-
+-	report->multhint	= 0b10000000 & resp[1];
+-	report->multlint	= 0b01000000 & resp[1];
+-	report->snrhint		= 0b00001000 & resp[1];
+-	report->snrlint		= 0b00000100 & resp[1];
+-	report->rssihint	= 0b00000010 & resp[1];
+-	report->rssilint	= 0b00000001 & resp[1];
+-
+-	report->bltf		= 0b10000000 & resp[2];
+-	report->snr_ready	= 0b00100000 & resp[2];
+-	report->rssiready	= 0b00001000 & resp[2];
+-	report->afcrl		= 0b00000010 & resp[2];
+-	report->valid		= 0b00000001 & resp[2];
+-
+-	report->readfreq	= be16_to_cpup((__be16 *)(resp + 3));
+-	report->freqoff		= resp[5];
+-	report->rssi		= resp[6];
+-	report->snr		= resp[7];
+-	report->lassi		= resp[9];
+-	report->hassi		= resp[10];
+-	report->mult		= resp[11];
+-	report->dev		= resp[12];
+-	report->readantcap	= be16_to_cpup((__be16 *)(resp + 13));
+-	report->assi		= resp[15];
+-	report->usn		= resp[16];
+-
+-	return err;
+-}
+-
+-
+-static int si476x_core_cmd_fm_rsq_status_a30(struct si476x_core *core,
+-					struct si476x_rsq_status_args *rsqargs,
+-					struct si476x_rsq_status_report *report)
+-{
+-	int err;
+-	u8       resp[CMD_FM_RSQ_STATUS_A30_NRESP];
+-	const u8 args[CMD_FM_RSQ_STATUS_A30_NARGS] = {
+-		rsqargs->primary << 4 | rsqargs->rsqack << 3 |
+-		rsqargs->attune << 2 | rsqargs->cancel << 1 |
+-		rsqargs->stcack,
+-	};
+-
+-	err = si476x_core_send_command(core, CMD_FM_RSQ_STATUS,
+-				       args, ARRAY_SIZE(args),
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	/*
+-	 * Besides getting received signal quality information this
+-	 * command can be used to just acknowledge different interrupt
+-	 * flags in those cases it is useless to copy and parse
+-	 * received data so user can pass NULL, and thus avoid
+-	 * unnecessary copying.
+-	 */
+-	if (err < 0 || report == NULL)
+-		return err;
+-
+-	report->multhint	= 0b10000000 & resp[1];
+-	report->multlint	= 0b01000000 & resp[1];
+-	report->snrhint		= 0b00001000 & resp[1];
+-	report->snrlint		= 0b00000100 & resp[1];
+-	report->rssihint	= 0b00000010 & resp[1];
+-	report->rssilint	= 0b00000001 & resp[1];
+-
+-	report->bltf		= 0b10000000 & resp[2];
+-	report->snr_ready	= 0b00100000 & resp[2];
+-	report->rssiready	= 0b00001000 & resp[2];
+-	report->injside         = 0b00000100 & resp[2];
+-	report->afcrl		= 0b00000010 & resp[2];
+-	report->valid		= 0b00000001 & resp[2];
+-
+-	report->readfreq	= be16_to_cpup((__be16 *)(resp + 3));
+-	report->freqoff		= resp[5];
+-	report->rssi		= resp[6];
+-	report->snr		= resp[7];
+-	report->issi		= resp[8];
+-	report->lassi		= resp[9];
+-	report->hassi		= resp[10];
+-	report->mult		= resp[11];
+-	report->dev		= resp[12];
+-	report->readantcap	= be16_to_cpup((__be16 *)(resp + 13));
+-	report->assi		= resp[15];
+-	report->usn		= resp[16];
+-
+-	report->pilotdev	= resp[17];
+-	report->rdsdev		= resp[18];
+-	report->assidev		= resp[19];
+-	report->strongdev	= resp[20];
+-	report->rdspi		= be16_to_cpup((__be16 *)(resp + 21));
+-
+-	return err;
+-}
+-
+-static int si476x_core_cmd_fm_tune_freq_a10(struct si476x_core *core,
+-					struct si476x_tune_freq_args *tuneargs)
+-{
+-	u8       resp[CMD_FM_TUNE_FREQ_NRESP];
+-	const u8 args[CMD_FM_TUNE_FREQ_A10_NARGS] = {
+-		(tuneargs->hd << 6) | (tuneargs->tunemode << 4)
+-		| (tuneargs->smoothmetrics << 2),
+-		msb(tuneargs->freq),
+-		lsb(tuneargs->freq),
+-		msb(tuneargs->antcap),
+-		lsb(tuneargs->antcap)
+-	};
+-
+-	return si476x_cmd_tune_seek_freq(core, CMD_FM_TUNE_FREQ,
+-					 args, sizeof(args),
+-					 resp, sizeof(resp));
+-}
+-
+-static int si476x_core_cmd_fm_tune_freq_a20(struct si476x_core *core,
+-					struct si476x_tune_freq_args *tuneargs)
+-{
+-	u8       resp[CMD_FM_TUNE_FREQ_NRESP];
+-	const u8 args[CMD_FM_TUNE_FREQ_A20_NARGS] = {
+-		(tuneargs->hd << 6) | (tuneargs->tunemode << 4)
+-		|  (tuneargs->smoothmetrics << 2) | (tuneargs->injside),
+-		msb(tuneargs->freq),
+-		lsb(tuneargs->freq),
+-	};
+-
+-	return si476x_cmd_tune_seek_freq(core, CMD_FM_TUNE_FREQ,
+-					 args, sizeof(args),
+-					 resp, sizeof(resp));
+-}
+-
+-static int si476x_core_cmd_agc_status_a20(struct si476x_core *core,
+-					struct si476x_agc_status_report *report)
+-{
+-	int err;
+-	u8 resp[CMD_AGC_STATUS_NRESP_A20];
+-
+-	if (!report)
+-		return -EINVAL;
+-
+-	err = si476x_core_send_command(core, CMD_AGC_STATUS,
+-				       NULL, 0,
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	if (err < 0)
+-		return err;
+-
+-	report->mxhi		= resp[1] & SI476X_AGC_MXHI;
+-	report->mxlo		= resp[1] & SI476X_AGC_MXLO;
+-	report->lnahi		= resp[1] & SI476X_AGC_LNAHI;
+-	report->lnalo		= resp[1] & SI476X_AGC_LNALO;
+-	report->fmagc1		= resp[2];
+-	report->fmagc2		= resp[3];
+-	report->pgagain		= resp[4];
+-	report->fmwblang	= resp[5];
+-
+-	return err;
+-}
+-
+-static int si476x_core_cmd_agc_status_a10(struct si476x_core *core,
+-					struct si476x_agc_status_report *report)
+-{
+-	int err;
+-	u8 resp[CMD_AGC_STATUS_NRESP_A10];
+-
+-	if (!report)
+-		return -EINVAL;
+-
+-	err = si476x_core_send_command(core, CMD_AGC_STATUS,
+-				       NULL, 0,
+-				       resp, ARRAY_SIZE(resp),
+-				       SI476X_DEFAULT_TIMEOUT);
+-	if (err < 0)
+-		return err;
+-
+-	report->mxhi	= resp[1] & SI476X_AGC_MXHI;
+-	report->mxlo	= resp[1] & SI476X_AGC_MXLO;
+-	report->lnahi	= resp[1] & SI476X_AGC_LNAHI;
+-	report->lnalo	= resp[1] & SI476X_AGC_LNALO;
+-
+-	return err;
+-}
+-
+-typedef int (*tune_freq_func_t) (struct si476x_core *core,
+-				 struct si476x_tune_freq_args *tuneargs);
+-
+-static struct {
+-	int (*power_up) (struct si476x_core *,
+-			 struct si476x_power_up_args *);
+-	int (*power_down) (struct si476x_core *,
+-			   struct si476x_power_down_args *);
+-
+-	tune_freq_func_t fm_tune_freq;
+-	tune_freq_func_t am_tune_freq;
+-
+-	int (*fm_rsq_status)(struct si476x_core *,
+-			     struct si476x_rsq_status_args *,
+-			     struct si476x_rsq_status_report *);
+-
+-	int (*agc_status)(struct si476x_core *,
+-			  struct si476x_agc_status_report *);
+-	int (*intb_pin_cfg)(struct si476x_core *core,
+-			    enum si476x_intb_config intb,
+-			    enum si476x_a1_config a1);
+-} si476x_cmds_vtable[] = {
+-	[SI476X_REVISION_A10] = {
+-		.power_up	= si476x_core_cmd_power_up_a10,
+-		.power_down	= si476x_core_cmd_power_down_a10,
+-		.fm_tune_freq	= si476x_core_cmd_fm_tune_freq_a10,
+-		.am_tune_freq	= si476x_core_cmd_am_tune_freq_a10,
+-		.fm_rsq_status	= si476x_core_cmd_fm_rsq_status_a10,
+-		.agc_status	= si476x_core_cmd_agc_status_a10,
+-		.intb_pin_cfg   = si476x_core_cmd_intb_pin_cfg_a10,
+-	},
+-	[SI476X_REVISION_A20] = {
+-		.power_up	= si476x_core_cmd_power_up_a20,
+-		.power_down	= si476x_core_cmd_power_down_a20,
+-		.fm_tune_freq	= si476x_core_cmd_fm_tune_freq_a20,
+-		.am_tune_freq	= si476x_core_cmd_am_tune_freq_a20,
+-		.fm_rsq_status	= si476x_core_cmd_fm_rsq_status_a20,
+-		.agc_status	= si476x_core_cmd_agc_status_a20,
+-		.intb_pin_cfg   = si476x_core_cmd_intb_pin_cfg_a20,
+-	},
+-	[SI476X_REVISION_A30] = {
+-		.power_up	= si476x_core_cmd_power_up_a20,
+-		.power_down	= si476x_core_cmd_power_down_a20,
+-		.fm_tune_freq	= si476x_core_cmd_fm_tune_freq_a20,
+-		.am_tune_freq	= si476x_core_cmd_am_tune_freq_a20,
+-		.fm_rsq_status	= si476x_core_cmd_fm_rsq_status_a30,
+-		.agc_status	= si476x_core_cmd_agc_status_a20,
+-		.intb_pin_cfg   = si476x_core_cmd_intb_pin_cfg_a20,
+-	},
+-};
+-
+-int si476x_core_cmd_power_up(struct si476x_core *core,
+-			     struct si476x_power_up_args *args)
+-{
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-	return si476x_cmds_vtable[core->revision].power_up(core, args);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_power_up);
+-
+-int si476x_core_cmd_power_down(struct si476x_core *core,
+-			       struct si476x_power_down_args *args)
+-{
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-	return si476x_cmds_vtable[core->revision].power_down(core, args);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_power_down);
+-
+-int si476x_core_cmd_fm_tune_freq(struct si476x_core *core,
+-				 struct si476x_tune_freq_args *args)
+-{
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-	return si476x_cmds_vtable[core->revision].fm_tune_freq(core, args);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_tune_freq);
+-
+-int si476x_core_cmd_am_tune_freq(struct si476x_core *core,
+-				 struct si476x_tune_freq_args *args)
+-{
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-	return si476x_cmds_vtable[core->revision].am_tune_freq(core, args);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_am_tune_freq);
+-
+-int si476x_core_cmd_fm_rsq_status(struct si476x_core *core,
+-				  struct si476x_rsq_status_args *args,
+-				  struct si476x_rsq_status_report *report)
+-
+-{
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-	return si476x_cmds_vtable[core->revision].fm_rsq_status(core, args,
+-								report);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_fm_rsq_status);
+-
+-int si476x_core_cmd_agc_status(struct si476x_core *core,
+-				  struct si476x_agc_status_report *report)
+-
+-{
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-	return si476x_cmds_vtable[core->revision].agc_status(core, report);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_agc_status);
+-
+-int si476x_core_cmd_intb_pin_cfg(struct si476x_core *core,
+-			    enum si476x_intb_config intb,
+-			    enum si476x_a1_config a1)
+-{
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-
+-	return si476x_cmds_vtable[core->revision].intb_pin_cfg(core, intb, a1);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_cmd_intb_pin_cfg);
+-
+-MODULE_LICENSE("GPL");
+-MODULE_AUTHOR("Andrey Smirnov <andrew.smirnov@gmail.com>");
+-MODULE_DESCRIPTION("API for command exchange for si476x");
+diff --git a/drivers/mfd/si476x-i2c.c b/drivers/mfd/si476x-i2c.c
+deleted file mode 100644
+index f5bc8e4..0000000
+--- a/drivers/mfd/si476x-i2c.c
++++ /dev/null
+@@ -1,886 +0,0 @@
+-/*
+- * drivers/mfd/si476x-i2c.c -- Core device driver for si476x MFD
+- * device
+- *
+- * Copyright (C) 2012 Innovative Converged Devices(ICD)
+- * Copyright (C) 2013 Andrey Smirnov
+- *
+- * Author: Andrey Smirnov <andrew.smirnov@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; version 2 of the License.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- *
+- */
+-#include <linux/module.h>
+-
+-#include <linux/slab.h>
+-#include <linux/interrupt.h>
+-#include <linux/delay.h>
+-#include <linux/gpio.h>
+-#include <linux/regulator/consumer.h>
+-#include <linux/i2c.h>
+-#include <linux/err.h>
+-
+-#include <linux/mfd/si476x-core.h>
+-
+-#define SI476X_MAX_IO_ERRORS		10
+-#define SI476X_DRIVER_RDS_FIFO_DEPTH	128
+-
+-/**
+- * si476x_core_config_pinmux() - pin function configuration function
+- *
+- * @core: Core device structure
+- *
+- * Configure the functions of the pins of the radio chip.
+- *
+- * The function returns zero in case of succes or negative error code
+- * otherwise.
+- */
+-static int si476x_core_config_pinmux(struct si476x_core *core)
+-{
+-	int err;
+-	dev_dbg(&core->client->dev, "Configuring pinmux\n");
+-	err = si476x_core_cmd_dig_audio_pin_cfg(core,
+-						core->pinmux.dclk,
+-						core->pinmux.dfs,
+-						core->pinmux.dout,
+-						core->pinmux.xout);
+-	if (err < 0) {
+-		dev_err(&core->client->dev,
+-			"Failed to configure digital audio pins(err = %d)\n",
+-			err);
+-		return err;
+-	}
+-
+-	err = si476x_core_cmd_zif_pin_cfg(core,
+-					  core->pinmux.iqclk,
+-					  core->pinmux.iqfs,
+-					  core->pinmux.iout,
+-					  core->pinmux.qout);
+-	if (err < 0) {
+-		dev_err(&core->client->dev,
+-			"Failed to configure ZIF pins(err = %d)\n",
+-			err);
+-		return err;
+-	}
+-
+-	err = si476x_core_cmd_ic_link_gpo_ctl_pin_cfg(core,
+-						      core->pinmux.icin,
+-						      core->pinmux.icip,
+-						      core->pinmux.icon,
+-						      core->pinmux.icop);
+-	if (err < 0) {
+-		dev_err(&core->client->dev,
+-			"Failed to configure IC-Link/GPO pins(err = %d)\n",
+-			err);
+-		return err;
+-	}
+-
+-	err = si476x_core_cmd_ana_audio_pin_cfg(core,
+-						core->pinmux.lrout);
+-	if (err < 0) {
+-		dev_err(&core->client->dev,
+-			"Failed to configure analog audio pins(err = %d)\n",
+-			err);
+-		return err;
+-	}
+-
+-	err = si476x_core_cmd_intb_pin_cfg(core,
+-					   core->pinmux.intb,
+-					   core->pinmux.a1);
+-	if (err < 0) {
+-		dev_err(&core->client->dev,
+-			"Failed to configure interrupt pins(err = %d)\n",
+-			err);
+-		return err;
+-	}
+-
+-	return 0;
+-}
+-
+-static inline void si476x_core_schedule_polling_work(struct si476x_core *core)
+-{
+-	schedule_delayed_work(&core->status_monitor,
+-			      usecs_to_jiffies(SI476X_STATUS_POLL_US));
+-}
+-
+-/**
+- * si476x_core_start() - early chip startup function
+- * @core: Core device structure
+- * @soft: When set, this flag forces "soft" startup, where "soft"
+- * power down is the one done by sending appropriate command instead
+- * of using reset pin of the tuner
+- *
+- * Perform required startup sequence to correctly power
+- * up the chip and perform initial configuration. It does the
+- * following sequence of actions:
+- *       1. Claims and enables the power supplies VD and VIO1 required
+- *          for I2C interface of the chip operation.
+- *       2. Waits for 100us, pulls the reset line up, enables irq,
+- *          waits for another 100us as it is specified by the
+- *          datasheet.
+- *       3. Sends 'POWER_UP' command to the device with all provided
+- *          information about power-up parameters.
+- *       4. Configures, pin multiplexor, disables digital audio and
+- *          configures interrupt sources.
+- *
+- * The function returns zero in case of succes or negative error code
+- * otherwise.
+- */
+-int si476x_core_start(struct si476x_core *core, bool soft)
+-{
+-	struct i2c_client *client = core->client;
+-	int err;
+-
+-	if (!soft) {
+-		if (gpio_is_valid(core->gpio_reset))
+-			gpio_set_value_cansleep(core->gpio_reset, 1);
+-
+-		if (client->irq)
+-			enable_irq(client->irq);
+-
+-		udelay(100);
+-
+-		if (!client->irq) {
+-			atomic_set(&core->is_alive, 1);
+-			si476x_core_schedule_polling_work(core);
+-		}
+-	} else {
+-		if (client->irq)
+-			enable_irq(client->irq);
+-		else {
+-			atomic_set(&core->is_alive, 1);
+-			si476x_core_schedule_polling_work(core);
+-		}
+-	}
+-
+-	err = si476x_core_cmd_power_up(core,
+-				       &core->power_up_parameters);
+-
+-	if (err < 0) {
+-		dev_err(&core->client->dev,
+-			"Power up failure(err = %d)\n",
+-			err);
+-		goto disable_irq;
+-	}
+-
+-	if (client->irq)
+-		atomic_set(&core->is_alive, 1);
+-
+-	err = si476x_core_config_pinmux(core);
+-	if (err < 0) {
+-		dev_err(&core->client->dev,
+-			"Failed to configure pinmux(err = %d)\n",
+-			err);
+-		goto disable_irq;
+-	}
+-
+-	if (client->irq) {
+-		err = regmap_write(core->regmap,
+-				   SI476X_PROP_INT_CTL_ENABLE,
+-				   SI476X_RDSIEN |
+-				   SI476X_STCIEN |
+-				   SI476X_CTSIEN);
+-		if (err < 0) {
+-			dev_err(&core->client->dev,
+-				"Failed to configure interrupt sources"
+-				"(err = %d)\n", err);
+-			goto disable_irq;
+-		}
+-	}
+-
+-	return 0;
+-
+-disable_irq:
+-	if (err == -ENODEV)
+-		atomic_set(&core->is_alive, 0);
+-
+-	if (client->irq)
+-		disable_irq(client->irq);
+-	else
+-		cancel_delayed_work_sync(&core->status_monitor);
+-
+-	if (gpio_is_valid(core->gpio_reset))
+-		gpio_set_value_cansleep(core->gpio_reset, 0);
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_start);
+-
+-/**
+- * si476x_core_stop() - chip power-down function
+- * @core: Core device structure
+- * @soft: When set, function sends a POWER_DOWN command instead of
+- * bringing reset line low
+- *
+- * Power down the chip by performing following actions:
+- * 1. Disable IRQ or stop the polling worker
+- * 2. Send the POWER_DOWN command if the power down is soft or bring
+- *    reset line low if not.
+- *
+- * The function returns zero in case of succes or negative error code
+- * otherwise.
+- */
+-int si476x_core_stop(struct si476x_core *core, bool soft)
+-{
+-	int err = 0;
+-	atomic_set(&core->is_alive, 0);
+-
+-	if (soft) {
+-		/* TODO: This probably shoud be a configurable option,
+-		 * so it is possible to have the chips keep their
+-		 * oscillators running
+-		 */
+-		struct si476x_power_down_args args = {
+-			.xosc = false,
+-		};
+-		err = si476x_core_cmd_power_down(core, &args);
+-	}
+-
+-	/* We couldn't disable those before
+-	 * 'si476x_core_cmd_power_down' since we expect to get CTS
+-	 * interrupt */
+-	if (core->client->irq)
+-		disable_irq(core->client->irq);
+-	else
+-		cancel_delayed_work_sync(&core->status_monitor);
+-
+-	if (!soft) {
+-		if (gpio_is_valid(core->gpio_reset))
+-			gpio_set_value_cansleep(core->gpio_reset, 0);
+-	}
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_stop);
+-
+-/**
+- * si476x_core_set_power_state() - set the level at which the power is
+- * supplied for the chip.
+- * @core: Core device structure
+- * @next_state: enum si476x_power_state describing power state to
+- *              switch to.
+- *
+- * Switch on all the required power supplies
+- *
+- * This function returns 0 in case of suvccess and negative error code
+- * otherwise.
+- */
+-int si476x_core_set_power_state(struct si476x_core *core,
+-				enum si476x_power_state next_state)
+-{
+-	/*
+-	   It is not clear form the datasheet if it is possible to
+-	   work with device if not all power domains are operational.
+-	   So for now the power-up policy is "power-up all the things!"
+-	 */
+-	int err = 0;
+-
+-	if (core->power_state == SI476X_POWER_INCONSISTENT) {
+-		dev_err(&core->client->dev,
+-			"The device in inconsistent power state\n");
+-		return -EINVAL;
+-	}
+-
+-	if (next_state != core->power_state) {
+-		switch (next_state) {
+-		case SI476X_POWER_UP_FULL:
+-			err = regulator_bulk_enable(ARRAY_SIZE(core->supplies),
+-						    core->supplies);
+-			if (err < 0) {
+-				core->power_state = SI476X_POWER_INCONSISTENT;
+-				break;
+-			}
+-			/*
+-			 * Startup timing diagram recommends to have a
+-			 * 100 us delay between enabling of the power
+-			 * supplies and turning the tuner on.
+-			 */
+-			udelay(100);
+-
+-			err = si476x_core_start(core, false);
+-			if (err < 0)
+-				goto disable_regulators;
+-
+-			core->power_state = next_state;
+-			break;
+-
+-		case SI476X_POWER_DOWN:
+-			core->power_state = next_state;
+-			err = si476x_core_stop(core, false);
+-			if (err < 0)
+-				core->power_state = SI476X_POWER_INCONSISTENT;
+-disable_regulators:
+-			err = regulator_bulk_disable(ARRAY_SIZE(core->supplies),
+-						     core->supplies);
+-			if (err < 0)
+-				core->power_state = SI476X_POWER_INCONSISTENT;
+-			break;
+-		default:
+-			BUG();
+-		}
+-	}
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_set_power_state);
+-
+-/**
+- * si476x_core_report_drainer_stop() - mark the completion of the RDS
+- * buffer drain porcess by the worker.
+- *
+- * @core: Core device structure
+- */
+-static inline void si476x_core_report_drainer_stop(struct si476x_core *core)
+-{
+-	mutex_lock(&core->rds_drainer_status_lock);
+-	core->rds_drainer_is_working = false;
+-	mutex_unlock(&core->rds_drainer_status_lock);
+-}
+-
+-/**
+- * si476x_core_start_rds_drainer_once() - start RDS drainer worker if
+- * ther is none working, do nothing otherwise
+- *
+- * @core: Datastructure corresponding to the chip.
+- */
+-static inline void si476x_core_start_rds_drainer_once(struct si476x_core *core)
+-{
+-	mutex_lock(&core->rds_drainer_status_lock);
+-	if (!core->rds_drainer_is_working) {
+-		core->rds_drainer_is_working = true;
+-		schedule_work(&core->rds_fifo_drainer);
+-	}
+-	mutex_unlock(&core->rds_drainer_status_lock);
+-}
+-/**
+- * si476x_drain_rds_fifo() - RDS buffer drainer.
+- * @work: struct work_struct being ppassed to the function by the
+- * kernel.
+- *
+- * Drain the contents of the RDS FIFO of
+- */
+-static void si476x_core_drain_rds_fifo(struct work_struct *work)
+-{
+-	int err;
+-
+-	struct si476x_core *core = container_of(work, struct si476x_core,
+-						rds_fifo_drainer);
+-
+-	struct si476x_rds_status_report report;
+-
+-	si476x_core_lock(core);
+-	err = si476x_core_cmd_fm_rds_status(core, true, false, false, &report);
+-	if (!err) {
+-		int i = report.rdsfifoused;
+-		dev_dbg(&core->client->dev,
+-			"%d elements in RDS FIFO. Draining.\n", i);
+-		for (; i > 0; --i) {
+-			err = si476x_core_cmd_fm_rds_status(core, false, false,
+-							    (i == 1), &report);
+-			if (err < 0)
+-				goto unlock;
+-
+-			kfifo_in(&core->rds_fifo, report.rds,
+-				 sizeof(report.rds));
+-			dev_dbg(&core->client->dev, "RDS data:\n %*ph\n",
+-				(int)sizeof(report.rds), report.rds);
+-		}
+-		dev_dbg(&core->client->dev, "Drrrrained!\n");
+-		wake_up_interruptible(&core->rds_read_queue);
+-	}
+-
+-unlock:
+-	si476x_core_unlock(core);
+-	si476x_core_report_drainer_stop(core);
+-}
+-
+-/**
+- * si476x_core_pronounce_dead()
+- *
+- * @core: Core device structure
+- *
+- * Mark the device as being dead and wake up all potentially waiting
+- * threads of execution.
+- *
+- */
+-static void si476x_core_pronounce_dead(struct si476x_core *core)
+-{
+-	dev_info(&core->client->dev, "Core device is dead.\n");
+-
+-	atomic_set(&core->is_alive, 0);
+-
+-	/* Wake up al possible waiting processes */
+-	wake_up_interruptible(&core->rds_read_queue);
+-
+-	atomic_set(&core->cts, 1);
+-	wake_up(&core->command);
+-
+-	atomic_set(&core->stc, 1);
+-	wake_up(&core->tuning);
+-}
+-
+-/**
+- * si476x_core_i2c_xfer()
+- *
+- * @core: Core device structure
+- * @type: Transfer type
+- * @buf: Transfer buffer for/with data
+- * @count: Transfer buffer size
+- *
+- * Perfrom and I2C transfer(either read or write) and keep a counter
+- * of I/O errors. If the error counter rises above the threshold
+- * pronounce device dead.
+- *
+- * The function returns zero on succes or negative error code on
+- * failure.
+- */
+-int si476x_core_i2c_xfer(struct si476x_core *core,
+-		    enum si476x_i2c_type type,
+-		    char *buf, int count)
+-{
+-	static int io_errors_count;
+-	int err;
+-	if (type == SI476X_I2C_SEND)
+-		err = i2c_master_send(core->client, buf, count);
+-	else
+-		err = i2c_master_recv(core->client, buf, count);
+-
+-	if (err < 0) {
+-		if (io_errors_count++ > SI476X_MAX_IO_ERRORS)
+-			si476x_core_pronounce_dead(core);
+-	} else {
+-		io_errors_count = 0;
+-	}
+-
+-	return err;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_i2c_xfer);
+-
+-/**
+- * si476x_get_status()
+- * @core: Core device structure
+- *
+- * Get the status byte of the core device by berforming one byte I2C
+- * read.
+- *
+- * The function returns a status value or a negative error code on
+- * error.
+- */
+-static int si476x_core_get_status(struct si476x_core *core)
+-{
+-	u8 response;
+-	int err = si476x_core_i2c_xfer(core, SI476X_I2C_RECV,
+-				  &response, sizeof(response));
+-
+-	return (err < 0) ? err : response;
+-}
+-
+-/**
+- * si476x_get_and_signal_status() - IRQ dispatcher
+- * @core: Core device structure
+- *
+- * Dispatch the arrived interrupt request based on the value of the
+- * status byte reported by the tuner.
+- *
+- */
+-static void si476x_core_get_and_signal_status(struct si476x_core *core)
+-{
+-	int status = si476x_core_get_status(core);
+-	if (status < 0) {
+-		dev_err(&core->client->dev, "Failed to get status\n");
+-		return;
+-	}
+-
+-	if (status & SI476X_CTS) {
+-		/* Unfortunately completions could not be used for
+-		 * signalling CTS since this flag cannot be cleared
+-		 * in status byte, and therefore once it becomes true
+-		 * multiple calls to 'complete' would cause the
+-		 * commands following the current one to be completed
+-		 * before they actually are */
+-		dev_dbg(&core->client->dev, "[interrupt] CTSINT\n");
+-		atomic_set(&core->cts, 1);
+-		wake_up(&core->command);
+-	}
+-
+-	if (status & SI476X_FM_RDS_INT) {
+-		dev_dbg(&core->client->dev, "[interrupt] RDSINT\n");
+-		si476x_core_start_rds_drainer_once(core);
+-	}
+-
+-	if (status & SI476X_STC_INT) {
+-		dev_dbg(&core->client->dev, "[interrupt] STCINT\n");
+-		atomic_set(&core->stc, 1);
+-		wake_up(&core->tuning);
+-	}
+-}
+-
+-static void si476x_core_poll_loop(struct work_struct *work)
+-{
+-	struct si476x_core *core = SI476X_WORK_TO_CORE(work);
+-
+-	si476x_core_get_and_signal_status(core);
+-
+-	if (atomic_read(&core->is_alive))
+-		si476x_core_schedule_polling_work(core);
+-}
+-
+-static irqreturn_t si476x_core_interrupt(int irq, void *dev)
+-{
+-	struct si476x_core *core = dev;
+-
+-	si476x_core_get_and_signal_status(core);
+-
+-	return IRQ_HANDLED;
+-}
+-
+-/**
+- * si476x_firmware_version_to_revision()
+- * @core: Core device structure
+- * @major:  Firmware major number
+- * @minor1: Firmware first minor number
+- * @minor2: Firmware second minor number
+- *
+- * Convert a chip's firmware version number into an offset that later
+- * will be used to as offset in "vtable" of tuner functions
+- *
+- * This function returns a positive offset in case of success and a -1
+- * in case of failure.
+- */
+-static int si476x_core_fwver_to_revision(struct si476x_core *core,
+-					 int func, int major,
+-					 int minor1, int minor2)
+-{
+-	switch (func) {
+-	case SI476X_FUNC_FM_RECEIVER:
+-		switch (major) {
+-		case 5:
+-			return SI476X_REVISION_A10;
+-		case 8:
+-			return SI476X_REVISION_A20;
+-		case 10:
+-			return SI476X_REVISION_A30;
+-		default:
+-			goto unknown_revision;
+-		}
+-	case SI476X_FUNC_AM_RECEIVER:
+-		switch (major) {
+-		case 5:
+-			return SI476X_REVISION_A10;
+-		case 7:
+-			return SI476X_REVISION_A20;
+-		case 9:
+-			return SI476X_REVISION_A30;
+-		default:
+-			goto unknown_revision;
+-		}
+-	case SI476X_FUNC_WB_RECEIVER:
+-		switch (major) {
+-		case 3:
+-			return SI476X_REVISION_A10;
+-		case 5:
+-			return SI476X_REVISION_A20;
+-		case 7:
+-			return SI476X_REVISION_A30;
+-		default:
+-			goto unknown_revision;
+-		}
+-	case SI476X_FUNC_BOOTLOADER:
+-	default:		/* FALLTHROUG */
+-		BUG();
+-		return -1;
+-	}
+-
+-unknown_revision:
+-	dev_err(&core->client->dev,
+-		"Unsupported version of the firmware: %d.%d.%d, "
+-		"reverting to A10 comptible functions\n",
+-		major, minor1, minor2);
+-
+-	return SI476X_REVISION_A10;
+-}
+-
+-/**
+- * si476x_get_revision_info()
+- * @core: Core device structure
+- *
+- * Get the firmware version number of the device. It is done in
+- * following three steps:
+- *    1. Power-up the device
+- *    2. Send the 'FUNC_INFO' command
+- *    3. Powering the device down.
+- *
+- * The function return zero on success and a negative error code on
+- * failure.
+- */
+-static int si476x_core_get_revision_info(struct si476x_core *core)
+-{
+-	int rval;
+-	struct si476x_func_info info;
+-
+-	si476x_core_lock(core);
+-	rval = si476x_core_set_power_state(core, SI476X_POWER_UP_FULL);
+-	if (rval < 0)
+-		goto exit;
+-
+-	rval = si476x_core_cmd_func_info(core, &info);
+-	if (rval < 0)
+-		goto power_down;
+-
+-	core->revision = si476x_core_fwver_to_revision(core, info.func,
+-						       info.firmware.major,
+-						       info.firmware.minor[0],
+-						       info.firmware.minor[1]);
+-power_down:
+-	si476x_core_set_power_state(core, SI476X_POWER_DOWN);
+-exit:
+-	si476x_core_unlock(core);
+-
+-	return rval;
+-}
+-
+-bool si476x_core_has_am(struct si476x_core *core)
+-{
+-	return core->chip_id == SI476X_CHIP_SI4761 ||
+-		core->chip_id == SI476X_CHIP_SI4764;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_has_am);
+-
+-bool si476x_core_has_diversity(struct si476x_core *core)
+-{
+-	return core->chip_id == SI476X_CHIP_SI4764;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_has_diversity);
+-
+-bool si476x_core_is_a_secondary_tuner(struct si476x_core *core)
+-{
+-	return si476x_core_has_diversity(core) &&
+-		(core->diversity_mode == SI476X_PHDIV_SECONDARY_ANTENNA ||
+-		 core->diversity_mode == SI476X_PHDIV_SECONDARY_COMBINING);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_is_a_secondary_tuner);
+-
+-bool si476x_core_is_a_primary_tuner(struct si476x_core *core)
+-{
+-	return si476x_core_has_diversity(core) &&
+-		(core->diversity_mode == SI476X_PHDIV_PRIMARY_ANTENNA ||
+-		 core->diversity_mode == SI476X_PHDIV_PRIMARY_COMBINING);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_is_a_primary_tuner);
+-
+-bool si476x_core_is_in_am_receiver_mode(struct si476x_core *core)
+-{
+-	return si476x_core_has_am(core) &&
+-		(core->power_up_parameters.func == SI476X_FUNC_AM_RECEIVER);
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_is_in_am_receiver_mode);
+-
+-bool si476x_core_is_powered_up(struct si476x_core *core)
+-{
+-	return core->power_state == SI476X_POWER_UP_FULL;
+-}
+-EXPORT_SYMBOL_GPL(si476x_core_is_powered_up);
+-
+-static int si476x_core_probe(struct i2c_client *client,
+-			     const struct i2c_device_id *id)
+-{
+-	int rval;
+-	struct si476x_core          *core;
+-	struct si476x_platform_data *pdata;
+-	struct mfd_cell *cell;
+-	int              cell_num;
+-
+-	core = devm_kzalloc(&client->dev, sizeof(*core), GFP_KERNEL);
+-	if (!core) {
+-		dev_err(&client->dev,
+-			"failed to allocate 'struct si476x_core'\n");
+-		return -ENOMEM;
+-	}
+-	core->client = client;
+-
+-	core->regmap = devm_regmap_init_si476x(core);
+-	if (IS_ERR(core->regmap)) {
+-		rval = PTR_ERR(core->regmap);
+-		dev_err(&client->dev,
+-			"Failed to allocate register map: %d\n",
+-			rval);
+-		return rval;
+-	}
+-
+-	i2c_set_clientdata(client, core);
+-
+-	atomic_set(&core->is_alive, 0);
+-	core->power_state = SI476X_POWER_DOWN;
+-
+-	pdata = client->dev.platform_data;
+-	if (pdata) {
+-		memcpy(&core->power_up_parameters,
+-		       &pdata->power_up_parameters,
+-		       sizeof(core->power_up_parameters));
+-
+-		core->gpio_reset = -1;
+-		if (gpio_is_valid(pdata->gpio_reset)) {
+-			rval = gpio_request(pdata->gpio_reset, "si476x reset");
+-			if (rval) {
+-				dev_err(&client->dev,
+-					"Failed to request gpio: %d\n", rval);
+-				return rval;
+-			}
+-			core->gpio_reset = pdata->gpio_reset;
+-			gpio_direction_output(core->gpio_reset, 0);
+-		}
+-
+-		core->diversity_mode = pdata->diversity_mode;
+-		memcpy(&core->pinmux, &pdata->pinmux,
+-		       sizeof(struct si476x_pinmux));
+-	} else {
+-		dev_err(&client->dev, "No platform data provided\n");
+-		return -EINVAL;
+-	}
+-
+-	core->supplies[0].supply = "vd";
+-	core->supplies[1].supply = "va";
+-	core->supplies[2].supply = "vio1";
+-	core->supplies[3].supply = "vio2";
+-
+-	rval = devm_regulator_bulk_get(&client->dev,
+-				       ARRAY_SIZE(core->supplies),
+-				       core->supplies);
+-	if (rval) {
+-		dev_err(&client->dev, "Failet to gett all of the regulators\n");
+-		goto free_gpio;
+-	}
+-
+-	mutex_init(&core->cmd_lock);
+-	init_waitqueue_head(&core->command);
+-	init_waitqueue_head(&core->tuning);
+-
+-	rval = kfifo_alloc(&core->rds_fifo,
+-			   SI476X_DRIVER_RDS_FIFO_DEPTH *
+-			   sizeof(struct v4l2_rds_data),
+-			   GFP_KERNEL);
+-	if (rval) {
+-		dev_err(&client->dev, "Could not alloate the FIFO\n");
+-		goto free_gpio;
+-	}
+-	mutex_init(&core->rds_drainer_status_lock);
+-	init_waitqueue_head(&core->rds_read_queue);
+-	INIT_WORK(&core->rds_fifo_drainer, si476x_core_drain_rds_fifo);
+-
+-	if (client->irq) {
+-		rval = devm_request_threaded_irq(&client->dev,
+-						 client->irq, NULL,
+-						 si476x_core_interrupt,
+-						 IRQF_TRIGGER_FALLING,
+-						 client->name, core);
+-		if (rval < 0) {
+-			dev_err(&client->dev, "Could not request IRQ %d\n",
+-				client->irq);
+-			goto free_kfifo;
+-		}
+-		disable_irq(client->irq);
+-		dev_dbg(&client->dev, "IRQ requested.\n");
+-
+-		core->rds_fifo_depth = 20;
+-	} else {
+-		INIT_DELAYED_WORK(&core->status_monitor,
+-				  si476x_core_poll_loop);
+-		dev_info(&client->dev,
+-			 "No IRQ number specified, will use polling\n");
+-
+-		core->rds_fifo_depth = 5;
+-	}
+-
+-	core->chip_id = id->driver_data;
+-
+-	rval = si476x_core_get_revision_info(core);
+-	if (rval < 0) {
+-		rval = -ENODEV;
+-		goto free_kfifo;
+-	}
+-
+-	cell_num = 0;
+-
+-	cell = &core->cells[SI476X_RADIO_CELL];
+-	cell->name = "si476x-radio";
+-	cell_num++;
+-
+-#ifdef CONFIG_SND_SOC_SI476X
+-	if ((core->chip_id == SI476X_CHIP_SI4761 ||
+-	     core->chip_id == SI476X_CHIP_SI4764)	&&
+-	    core->pinmux.dclk == SI476X_DCLK_DAUDIO     &&
+-	    core->pinmux.dfs  == SI476X_DFS_DAUDIO      &&
+-	    core->pinmux.dout == SI476X_DOUT_I2S_OUTPUT &&
+-	    core->pinmux.xout == SI476X_XOUT_TRISTATE) {
+-		cell = &core->cells[SI476X_CODEC_CELL];
+-		cell->name          = "si476x-codec";
+-		cell_num++;
+-	}
+-#endif
+-	rval = mfd_add_devices(&client->dev,
+-			       (client->adapter->nr << 8) + client->addr,
+-			       core->cells, cell_num,
+-			       NULL, 0, NULL);
+-	if (!rval)
+-		return 0;
+-
+-free_kfifo:
+-	kfifo_free(&core->rds_fifo);
+-
+-free_gpio:
+-	if (gpio_is_valid(core->gpio_reset))
+-		gpio_free(core->gpio_reset);
+-
+-	return rval;
+-}
+-
+-static int si476x_core_remove(struct i2c_client *client)
+-{
+-	struct si476x_core *core = i2c_get_clientdata(client);
+-
+-	si476x_core_pronounce_dead(core);
+-	mfd_remove_devices(&client->dev);
+-
+-	if (client->irq)
+-		disable_irq(client->irq);
+-	else
+-		cancel_delayed_work_sync(&core->status_monitor);
+-
+-	kfifo_free(&core->rds_fifo);
+-
+-	if (gpio_is_valid(core->gpio_reset))
+-		gpio_free(core->gpio_reset);
+-
+-	return 0;
+-}
+-
+-
+-static const struct i2c_device_id si476x_id[] = {
+-	{ "si4761", SI476X_CHIP_SI4761 },
+-	{ "si4764", SI476X_CHIP_SI4764 },
+-	{ "si4768", SI476X_CHIP_SI4768 },
+-	{ },
+-};
+-MODULE_DEVICE_TABLE(i2c, si476x_id);
+-
+-static struct i2c_driver si476x_core_driver = {
+-	.driver		= {
+-		.name	= "si476x-core",
+-		.owner  = THIS_MODULE,
+-	},
+-	.probe		= si476x_core_probe,
+-	.remove         = si476x_core_remove,
+-	.id_table       = si476x_id,
+-};
+-module_i2c_driver(si476x_core_driver);
+-
+-
+-MODULE_AUTHOR("Andrey Smirnov <andrew.smirnov@gmail.com>");
+-MODULE_DESCRIPTION("Si4761/64/68 AM/FM MFD core device driver");
+-MODULE_LICENSE("GPL");
+diff --git a/drivers/mfd/si476x-prop.c b/drivers/mfd/si476x-prop.c
+deleted file mode 100644
+index d1f548a..0000000
+--- a/drivers/mfd/si476x-prop.c
++++ /dev/null
+@@ -1,242 +0,0 @@
+-/*
+- * drivers/mfd/si476x-prop.c -- Subroutines to access
+- * properties of si476x chips
+- *
+- * Copyright (C) 2012 Innovative Converged Devices(ICD)
+- * Copyright (C) 2013 Andrey Smirnov
+- *
+- * Author: Andrey Smirnov <andrew.smirnov@gmail.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License as published by
+- * the Free Software Foundation; version 2 of the License.
+- *
+- * This program is distributed in the hope that it will be useful, but
+- * WITHOUT ANY WARRANTY; without even the implied warranty of
+- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+- * General Public License for more details.
+- */
+-#include <linux/module.h>
+-
+-#include <media/si476x.h>
+-#include <linux/mfd/si476x-core.h>
+-
+-struct si476x_property_range {
+-	u16 low, high;
+-};
+-
+-static bool si476x_core_element_is_in_array(u16 element,
+-					    const u16 array[],
+-					    size_t size)
+-{
+-	int i;
+-
+-	for (i = 0; i < size; i++)
+-		if (element == array[i])
+-			return true;
+-
+-	return false;
+-}
+-
+-static bool si476x_core_element_is_in_range(u16 element,
+-					    const struct si476x_property_range range[],
+-					    size_t size)
+-{
+-	int i;
+-
+-	for (i = 0; i < size; i++)
+-		if (element <= range[i].high && element >= range[i].low)
+-			return true;
+-
+-	return false;
+-}
+-
+-static bool si476x_core_is_valid_property_a10(struct si476x_core *core,
+-					      u16 property)
+-{
+-	static const u16 valid_properties[] = {
+-		0x0000,
+-		0x0500, 0x0501,
+-		0x0600,
+-		0x0709, 0x070C, 0x070D, 0x70E, 0x710,
+-		0x0718,
+-		0x1207, 0x1208,
+-		0x2007,
+-		0x2300,
+-	};
+-
+-	static const struct si476x_property_range valid_ranges[] = {
+-		{ 0x0200, 0x0203 },
+-		{ 0x0300, 0x0303 },
+-		{ 0x0400, 0x0404 },
+-		{ 0x0700, 0x0707 },
+-		{ 0x1100, 0x1102 },
+-		{ 0x1200, 0x1204 },
+-		{ 0x1300, 0x1306 },
+-		{ 0x2000, 0x2005 },
+-		{ 0x2100, 0x2104 },
+-		{ 0x2106, 0x2106 },
+-		{ 0x2200, 0x220E },
+-		{ 0x3100, 0x3104 },
+-		{ 0x3207, 0x320F },
+-		{ 0x3300, 0x3304 },
+-		{ 0x3500, 0x3517 },
+-		{ 0x3600, 0x3617 },
+-		{ 0x3700, 0x3717 },
+-		{ 0x4000, 0x4003 },
+-	};
+-
+-	return	si476x_core_element_is_in_range(property, valid_ranges,
+-						ARRAY_SIZE(valid_ranges)) ||
+-		si476x_core_element_is_in_array(property, valid_properties,
+-						ARRAY_SIZE(valid_properties));
+-}
+-
+-static bool si476x_core_is_valid_property_a20(struct si476x_core *core,
+-					      u16 property)
+-{
+-	static const u16 valid_properties[] = {
+-		0x071B,
+-		0x1006,
+-		0x2210,
+-		0x3401,
+-	};
+-
+-	static const struct si476x_property_range valid_ranges[] = {
+-		{ 0x2215, 0x2219 },
+-	};
+-
+-	return	si476x_core_is_valid_property_a10(core, property) ||
+-		si476x_core_element_is_in_range(property, valid_ranges,
+-						ARRAY_SIZE(valid_ranges))  ||
+-		si476x_core_element_is_in_array(property, valid_properties,
+-						ARRAY_SIZE(valid_properties));
+-}
+-
+-static bool si476x_core_is_valid_property_a30(struct si476x_core *core,
+-					      u16 property)
+-{
+-	static const u16 valid_properties[] = {
+-		0x071C, 0x071D,
+-		0x1007, 0x1008,
+-		0x220F, 0x2214,
+-		0x2301,
+-		0x3105, 0x3106,
+-		0x3402,
+-	};
+-
+-	static const struct si476x_property_range valid_ranges[] = {
+-		{ 0x0405, 0x0411 },
+-		{ 0x2008, 0x200B },
+-		{ 0x2220, 0x2223 },
+-		{ 0x3100, 0x3106 },
+-	};
+-
+-	return	si476x_core_is_valid_property_a20(core, property) ||
+-		si476x_core_element_is_in_range(property, valid_ranges,
+-						ARRAY_SIZE(valid_ranges)) ||
+-		si476x_core_element_is_in_array(property, valid_properties,
+-						ARRAY_SIZE(valid_properties));
+-}
+-
+-typedef bool (*valid_property_pred_t) (struct si476x_core *, u16);
+-
+-static bool si476x_core_is_valid_property(struct si476x_core *core,
+-					  u16 property)
+-{
+-	static const valid_property_pred_t is_valid_property[] = {
+-		[SI476X_REVISION_A10] = si476x_core_is_valid_property_a10,
+-		[SI476X_REVISION_A20] = si476x_core_is_valid_property_a20,
+-		[SI476X_REVISION_A30] = si476x_core_is_valid_property_a30,
+-	};
+-
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-	return is_valid_property[core->revision](core, property);
+-}
+-
+-
+-static bool si476x_core_is_readonly_property(struct si476x_core *core,
+-					     u16 property)
+-{
+-	BUG_ON(core->revision > SI476X_REVISION_A30 ||
+-	       core->revision == -1);
+-
+-	switch (core->revision) {
+-	case SI476X_REVISION_A10:
+-		return (property == 0x3200);
+-	case SI476X_REVISION_A20:
+-		return (property == 0x1006 ||
+-			property == 0x2210 ||
+-			property == 0x3200);
+-	case SI476X_REVISION_A30:
+-		return false;
+-	}
+-
+-	return false;
+-}
+-
+-static bool si476x_core_regmap_readable_register(struct device *dev,
+-						 unsigned int reg)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct si476x_core *core = i2c_get_clientdata(client);
+-
+-	return si476x_core_is_valid_property(core, (u16) reg);
+-
+-}
+-
+-static bool si476x_core_regmap_writable_register(struct device *dev,
+-						 unsigned int reg)
+-{
+-	struct i2c_client *client = to_i2c_client(dev);
+-	struct si476x_core *core = i2c_get_clientdata(client);
+-
+-	return si476x_core_is_valid_property(core, (u16) reg) &&
+-		!si476x_core_is_readonly_property(core, (u16) reg);
+-}
+-
+-
+-static int si476x_core_regmap_write(void *context, unsigned int reg,
+-				    unsigned int val)
+-{
+-	return si476x_core_cmd_set_property(context, reg, val);
+-}
+-
+-static int si476x_core_regmap_read(void *context, unsigned int reg,
+-				   unsigned *val)
+-{
+-	struct si476x_core *core = context;
+-	int err;
+-
+-	err = si476x_core_cmd_get_property(core, reg);
+-	if (err < 0)
+-		return err;
+-
+-	*val = err;
+-
+-	return 0;
+-}
+-
+-
+-static const struct regmap_config si476x_regmap_config = {
+-	.reg_bits = 16,
+-	.val_bits = 16,
+-
+-	.max_register = 0x4003,
+-
+-	.writeable_reg = si476x_core_regmap_writable_register,
+-	.readable_reg = si476x_core_regmap_readable_register,
+-
+-	.reg_read = si476x_core_regmap_read,
+-	.reg_write = si476x_core_regmap_write,
+-
+-	.cache_type = REGCACHE_RBTREE,
+-};
+-
+-struct regmap *devm_regmap_init_si476x(struct si476x_core *core)
+-{
+-	return devm_regmap_init(&core->client->dev, NULL,
+-				core, &si476x_regmap_config);
+-}
+-EXPORT_SYMBOL_GPL(devm_regmap_init_si476x);
