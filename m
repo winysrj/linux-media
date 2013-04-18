@@ -1,44 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from anakin.london.02.net ([87.194.255.134]:50887 "EHLO
-	anakin.london.02.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161197Ab3DEMZE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Apr 2013 08:25:04 -0400
-From: Adam Sampson <ats@offog.org>
-To: Hans-Peter Jansen <hpj@urpla.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Hauppauge Nova-S-Plus DVB-S works for one channel, but cannot tune in others
-References: <1463242.ms8FUp7FVg@xrated>
-Date: Fri, 05 Apr 2013 13:25:01 +0100
-In-Reply-To: <1463242.ms8FUp7FVg@xrated> (Hans-Peter Jansen's message of "Fri,
-	05 Apr 2013 13:46 +0200")
-Message-ID: <y2ar4ipcggy.fsf@cartman.at.offog.org>
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:40019 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966149Ab3DRO0V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Apr 2013 10:26:21 -0400
+Received: by mail-lb0-f178.google.com with SMTP id q13so2772066lbi.9
+        for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 07:26:19 -0700 (PDT)
+Message-ID: <51700247.2000905@cogentembedded.com>
+Date: Thu, 18 Apr 2013 18:25:11 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+CC: linux-media@vger.kernel.org, matsu@igel.co.jp,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Subject: Re: [PATCH 3/4] ARM: shmobile: Marzen: add VIN and ADV7180 support
+References: <201304180206.39465.sergei.shtylyov@cogentembedded.com> <201304180215.01218.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201304180215.01218.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans-Peter Jansen <hpj@urpla.net> writes:
+On 18-04-2013 2:15, I wrote:
 
-> In one of my systems, I've used a 
-> Hauppauge Nova-S-Plus DVB-S card successfully, but after a system upgrade to 
-> openSUSE 12.2, it cannot tune in all but one channel.
-[...]
-> initial transponder 12551500 V 22000000 5
->>>> tune to: 12551:v:0:22000
-> DVB-S IF freq is 1951500
-> WARNING: >>> tuning failed!!!
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-I suspect you might be running into this problem:
-  https://bugzilla.kernel.org/show_bug.cgi?id=9476
+> Add ADV7180 platform devices on the Marzen board, configure VIN1/3 pins, and
+> register VIN1/3 devices with the ADV7180 specific platform data.
 
-The bug title is misleading -- the problem is actually that the card
-doesn't get configured properly to send the 22kHz tone for high-band
-transponders, like the one in your error above.
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-Applying this patch makes my Nova-S-Plus work with recent kernels:
-  https://bugzilla.kernel.org/attachment.cgi?id=21905&action=edit
+    I'm going to repost this patch recasted using a macro for camera sensor data.
 
-Thanks,
+WBR, Sergei
 
--- 
-Adam Sampson <ats@offog.org>                         <http://offog.org/>
