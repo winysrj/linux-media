@@ -1,109 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:35074 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758845Ab3DYQTY convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:58969 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S936362Ab3DRVf5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 12:19:24 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT00AV9K078KA0@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 17:19:21 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Javier Martin' <javier.martin@vista-silicon.com>,
-	'Fabio Estevam' <fabio.estevam@freescale.com>
-References: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
- <1366889768-16677-5-git-send-email-k.debski@samsung.com>
- <1366905070.4419.21.camel@pizza.hi.pengutronix.de>
-In-reply-to: <1366905070.4419.21.camel@pizza.hi.pengutronix.de>
-Subject: RE: [PATCH 4/7 v2] coda: Add copy time stamp handling
-Date: Thu, 25 Apr 2013 18:19:10 +0200
-Message-id: <001f01ce41d0$9fdb3770$df91a650$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-Content-language: pl
+	Thu, 18 Apr 2013 17:35:57 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH 04/24] V4L2: fix Oops on rmmod path
+Date: Thu, 18 Apr 2013 23:35:25 +0200
+Message-Id: <1366320945-21591-5-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+v4l2_async_cleanup() clears the sd->dev pointer, avoid dereferencing it in
+v4l2_async_unregister().
 
-Thank you for testing the patch. I would love to add your Tested-by tag to the
-commit, but I had already sent the pull request to Mauro. It was already very
-late to post fixes.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/v4l2-core/v4l2-async.c |   18 ++++++------------
+ 1 files changed, 6 insertions(+), 12 deletions(-)
 
-Best wishes,
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 98db2e0..5d6b428 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -123,16 +123,6 @@ static void v4l2_async_cleanup(struct v4l2_async_subdev_list *asdl)
+ 	sd->dev = NULL;
+ }
+ 
+-static void v4l2_async_unregister(struct v4l2_async_subdev_list *asdl)
+-{
+-	struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
+-
+-	v4l2_async_cleanup(asdl);
+-
+-	/* If we handled USB devices, we'd have to lock the parent too */
+-	device_release_driver(sd->dev);
+-}
+-
+ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 				 struct v4l2_async_notifier *notifier)
+ {
+@@ -203,9 +193,13 @@ void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+ 	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
+ 		if (dev) {
+ 			struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
+-			dev[i++] = get_device(sd->dev);
++			dev[i] = get_device(sd->dev);
+ 		}
+-		v4l2_async_unregister(asdl);
++		v4l2_async_cleanup(asdl);
++
++		/* If we handled USB devices, we'd have to lock the parent too */
++		if (dev)
++			device_release_driver(dev[i++]);
+ 
+ 		if (notifier->unbind)
+ 			notifier->unbind(notifier, asdl);
 -- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-> -----Original Message-----
-> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
-> Sent: Thursday, April 25, 2013 5:51 PM
-> To: Kamil Debski
-> Cc: linux-media@vger.kernel.org; Kyungmin Park; Javier Martin; Fabio
-> Estevam
-> Subject: Re: [PATCH 4/7 v2] coda: Add copy time stamp handling
-> 
-> Hi Kamil,
-> 
-> Am Donnerstag, den 25.04.2013, 13:36 +0200 schrieb Kamil Debski:
-> > Since the introduction of the timestamp_type field, it is necessary
-> > that the driver chooses which type it will use. This patch adds
-> > support for the timestamp_type.
-> >
-> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
-> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> > Cc: Philipp Zabel <p.zabel@pengutronix.de>
-> > Cc: Javier Martin <javier.martin@vista-silicon.com>
-> > Cc: Fabio Estevam <fabio.estevam@freescale.com>
-> 
-> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> > ---
-> >  drivers/media/platform/coda.c |    5 +++++
-> >  1 file changed, 5 insertions(+)
-> >
-> > diff --git a/drivers/media/platform/coda.c
-> > b/drivers/media/platform/coda.c index 20827ba..5612329 100644
-> > --- a/drivers/media/platform/coda.c
-> > +++ b/drivers/media/platform/coda.c
-> > @@ -1422,6 +1422,7 @@ static int coda_queue_init(void *priv, struct
-> vb2_queue *src_vq,
-> >  	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-> >  	src_vq->ops = &coda_qops;
-> >  	src_vq->mem_ops = &vb2_dma_contig_memops;
-> > +	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> >
-> >  	ret = vb2_queue_init(src_vq);
-> >  	if (ret)
-> > @@ -1433,6 +1434,7 @@ static int coda_queue_init(void *priv, struct
-> vb2_queue *src_vq,
-> >  	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-> >  	dst_vq->ops = &coda_qops;
-> >  	dst_vq->mem_ops = &vb2_dma_contig_memops;
-> > +	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-> >
-> >  	return vb2_queue_init(dst_vq);
-> >  }
-> > @@ -1628,6 +1630,9 @@ static irqreturn_t coda_irq_handler(int irq,
-> void *data)
-> >  		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
-> >  	}
-> >
-> > +	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-> > +	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
-> > +
-> >  	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
-> >  	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
-> >
-> 
-> regards
-> Philipp
-
+1.7.2.5
 
