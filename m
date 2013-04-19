@@ -1,49 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:47500 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751254Ab3D3EmV (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:44139 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751783Ab3DSIon (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Apr 2013 00:42:21 -0400
-Received: by mail-pa0-f46.google.com with SMTP id ld11so131436pab.5
-        for <linux-media@vger.kernel.org>; Mon, 29 Apr 2013 21:42:21 -0700 (PDT)
-Message-ID: <1367296936.5772.2.camel@phoenix>
-Subject: [PATCH] [media] s5c73m3: Fix off-by-one valid range checking for
- fie->index
-From: Axel Lin <axel.lin@ingics.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Kyungmin Park <kyungmin.park@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	linux-media@vger.kernel.org
-Date: Tue, 30 Apr 2013 12:42:16 +0800
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 19 Apr 2013 04:44:43 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLH00F8XURAGPB0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 19 Apr 2013 09:44:40 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Wei Yongjun' <weiyj.lk@gmail.com>, kyungmin.park@samsung.com,
+	jtp.park@samsung.com, mchehab@redhat.com, grant.likely@linaro.org,
+	rob.herring@calxeda.com
+Cc: yongjun_wei@trendmicro.com.cn,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org
+References: <CAPgLHd_TwmtoaE7T7e3fRKh4NTGhOYjQZv0G7nt-iSVMLz3XEQ@mail.gmail.com>
+In-reply-to: <CAPgLHd_TwmtoaE7T7e3fRKh4NTGhOYjQZv0G7nt-iSVMLz3XEQ@mail.gmail.com>
+Subject: RE: [PATCH -next] [media] s5p-mfc: fix error return code in
+ s5p_mfc_probe()
+Date: Fri, 19 Apr 2013 10:44:29 +0200
+Message-id: <015501ce3cda$1cdfa900$569efb00$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Current code uses fie->index as array subscript, thus the valid value range
-is 0 ... ARRAY_SIZE(s5c73m3_intervals) - 1.
+Hi Wei,
 
-Signed-off-by: Axel Lin <axel.lin@ingics.com>
----
- drivers/media/i2c/s5c73m3/s5c73m3-core.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thank you for your patch.
 
-diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-index b353c50..cd365bb 100644
---- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-+++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-@@ -956,7 +956,7 @@ static int s5c73m3_oif_enum_frame_interval(struct v4l2_subdev *sd,
- 
- 	if (fie->pad != OIF_SOURCE_PAD)
- 		return -EINVAL;
--	if (fie->index > ARRAY_SIZE(s5c73m3_intervals))
-+	if (fie->index >= ARRAY_SIZE(s5c73m3_intervals))
- 		return -EINVAL;
- 
- 	mutex_lock(&state->lock);
--- 
-1.8.1.2
+Best wishes,
+Kamil Debski
 
+> From: Wei Yongjun [mailto:weiyj.lk@gmail.com]
+> Sent: Thursday, April 18, 2013 5:18 AM
+> 
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> Fix to return a negative error code from the error handling case
+> instead of 0, as returned elsewhere in this function.
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+
+Acked-by: Kamil Debski <k.debski@samsung.com>
+
+> ---
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> index e810b1a..a5853fa 100644
+> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+> @@ -1110,7 +1110,8 @@ static int s5p_mfc_probe(struct platform_device
+> *pdev)
+>  	}
+> 
+>  	if (pdev->dev.of_node) {
+> -		if (s5p_mfc_alloc_memdevs(dev) < 0)
+> +		ret = s5p_mfc_alloc_memdevs(dev);
+> +		if (ret < 0)
+>  			goto err_res;
+>  	} else {
+>  		dev->mem_dev_l = device_find_child(&dev->plat_dev->dev,
 
 
