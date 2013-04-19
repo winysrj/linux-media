@@ -1,90 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:48457 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751872Ab3DYTP0 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3786 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757957Ab3DSIgl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 15:15:26 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+	Fri, 19 Apr 2013 04:36:41 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3J8aU1j013318
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 19 Apr 2013 10:36:40 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id CE1E411E00AC
+	for <linux-media@vger.kernel.org>; Fri, 19 Apr 2013 10:36:29 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: jonjon.arnearne@gmail.com, linux-kernel@vger.kernel.org,
-	hverkuil@xs4all.nl, elezegarcia@gmail.com, mkrufky@linuxtv.org,
-	mchehab@redhat.com, bjorn@mork.no
-Subject: [RFC V2 3/3] [smi2021] Add smi2021 driver to buildsystem
-Date: Thu, 25 Apr 2013 21:10:20 +0200
-Message-Id: <1366917020-18217-4-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
-References: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
+Subject: Re: cron job: media_tree daily build: ERRORS
+Date: Fri, 19 Apr 2013 10:36:29 +0200
+References: <20130418174018.16E0111E014C@alastor.dyndns.org>
+In-Reply-To: <20130418174018.16E0111E014C@alastor.dyndns.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304191036.29749.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Sorry for the ongoing breakage. I expect to have time this weekend to fix it.
 
-Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
----
- drivers/media/usb/Kconfig          |  1 +
- drivers/media/usb/Makefile         |  1 +
- drivers/media/usb/smi2021/Kconfig  | 11 +++++++++++
- drivers/media/usb/smi2021/Makefile | 10 ++++++++++
- 4 files changed, 23 insertions(+)
- create mode 100644 drivers/media/usb/smi2021/Kconfig
- create mode 100644 drivers/media/usb/smi2021/Makefile
+Regards,
 
-diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
-index 0a7d520..dec0383 100644
---- a/drivers/media/usb/Kconfig
-+++ b/drivers/media/usb/Kconfig
-@@ -26,6 +26,7 @@ source "drivers/media/usb/hdpvr/Kconfig"
- source "drivers/media/usb/tlg2300/Kconfig"
- source "drivers/media/usb/usbvision/Kconfig"
- source "drivers/media/usb/stk1160/Kconfig"
-+source "drivers/media/usb/smi2021/Kconfig"
- endif
- 
- if (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT)
-diff --git a/drivers/media/usb/Makefile b/drivers/media/usb/Makefile
-index 7f51d7e..932a6ba 100644
---- a/drivers/media/usb/Makefile
-+++ b/drivers/media/usb/Makefile
-@@ -20,3 +20,4 @@ obj-$(CONFIG_VIDEO_STK1160) += stk1160/
- obj-$(CONFIG_VIDEO_CX231XX) += cx231xx/
- obj-$(CONFIG_VIDEO_TM6000) += tm6000/
- obj-$(CONFIG_VIDEO_EM28XX) += em28xx/
-+obj-$(CONFIG_VIDEO_SMI2021) += smi2021/
-diff --git a/drivers/media/usb/smi2021/Kconfig b/drivers/media/usb/smi2021/Kconfig
-new file mode 100644
-index 0000000..6a6fb8a
---- /dev/null
-+++ b/drivers/media/usb/smi2021/Kconfig
-@@ -0,0 +1,11 @@
-+config VIDEO_SMI2021
-+	tristate "Somagic SMI2021 USB video/audio capture support"
-+	depends on VIDEO_DEV && I2C && SND && USB
-+	select VIDEOBUF2_VMALLOC
-+	select VIDEO_SAA711X
-+	select SND_PCM
-+	help
-+	  This is a video4linux driver for SMI2021 based video capture devices.
-+
-+	  To compile this driver as a module, choose M here: the
-+	  module will be called smi2021
-diff --git a/drivers/media/usb/smi2021/Makefile b/drivers/media/usb/smi2021/Makefile
-new file mode 100644
-index 0000000..8a62f02
---- /dev/null
-+++ b/drivers/media/usb/smi2021/Makefile
-@@ -0,0 +1,10 @@
-+smi2021-y := smi2021_main.o		\
-+	     smi2021_bootloader.o	\
-+	     smi2021_v4l2.o		\
-+	     smi2021_video.o		\
-+	     smi2021_i2c.o		\
-+	     smi2021_audio.o		\
-+
-+obj-$(CONFIG_VIDEO_SMI2021) += smi2021.o
-+
-+ccflags-y += -Idrivers/media/i2c
--- 
-1.8.2.1
-
+	Hans
