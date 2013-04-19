@@ -1,221 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:19458 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932513Ab3DOXBd convert rfc822-to-8bit (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:52366 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S968316Ab3DSMmy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 19:01:33 -0400
-Date: Mon, 15 Apr 2013 20:01:27 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
-Message-ID: <20130415200127.3467a003@redhat.com>
-In-Reply-To: <516C2A50.3080409@googlemail.com>
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
-	<1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com>
-	<20130413114144.097a21a1@redhat.com>
-	<51697AC8.1050807@googlemail.com>
-	<20130413140444.2fba3e88@redhat.com>
-	<516999EC.6080605@googlemail.com>
-	<20130413150823.6e962285@redhat.com>
-	<516B12F9.4040609@googlemail.com>
-	<20130415095130.78a5ecd9@redhat.com>
-	<516C2A50.3080409@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 19 Apr 2013 08:42:54 -0400
+Date: Fri, 19 Apr 2013 14:42:50 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Marcio Campos de Lima <marcio@netopen.com.br>
+cc: linux-media@vger.kernel.org
+Subject: Re: AT91SAM9M10: Problem porting driver for MT9P031 sensor
+In-Reply-To: <CD95FB9B.AF55%marcio@netopen.com.br>
+Message-ID: <Pine.LNX.4.64.1304191441170.591@axis700.grange>
+References: <CD95FB9B.AF55%marcio@netopen.com.br>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 15 Apr 2013 18:26:56 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+On Thu, 18 Apr 2013, Marcio Campos de Lima wrote:
 
-> Am 15.04.2013 14:51, schrieb Mauro Carvalho Chehab:
-> > Em Sun, 14 Apr 2013 22:35:05 +0200
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+> Hi Guennadi
+> 
+> Thanks a lot for your attention.
+> I think I cannot apply the patches. My Linux sources, downloaded from
+> www.at91.com, does not have the V4l2-async.h header and, I suppose, many
+> others headers. The MT9P031 sources have been modified and it is in a
+> different tree. Can you tell me where I can download an already patched
+> Kernel 3.6.9 which I can add theses functionality to the driver I am using?
+
+Hm, no, sorry, today isn't your lucky day. I don't think I can help you 
+with a 3.6 kernel.
+
+Thanks
+Guennadi
+
+> By the way, our MT9P031 sensor board has 10-bit format. I have fixed
+> already.
+> 
+> Regards
+> MArcio 
+> 
+> On 18/04/13 19:44, "Guennadi Liakhovetski" <g.liakhovetski@gmx.de> wrote:
+> 
+> >Hi Marcio
 > >
-> >> Am 13.04.2013 20:08, schrieb Mauro Carvalho Chehab:
-> >>> Em Sat, 13 Apr 2013 19:46:20 +0200
-> >>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >>>
-> >>>> Am 13.04.2013 19:04, schrieb Mauro Carvalho Chehab:
-> >>>>> Em Sat, 13 Apr 2013 17:33:28 +0200
-> >>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >>>>>
-> >>>>>> Am 13.04.2013 16:41, schrieb Mauro Carvalho Chehab:
-> >>>>>>> Em Sat, 13 Apr 2013 11:48:39 +0200
-> >>>>>>> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >>>>>>>
-> >>>>>>>> The GPIO register tracking/caching code is partially broken, because newer
-> >>>>>>>> devices provide more than one GPIO register and some of them are even using
-> >>>>>>>> separate registers for read and write access.
-> >>>>>>>> Making it work would be too complicated.
-> >>>>>>>> It is also used nowhere and doesn't make sense in cases where input lines are
-> >>>>>>>> connected to buttons etc.
-> >>>>>>>>
-> >>>>>>>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
-> >>>>>>>> ---
-> >>>>>>>>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
-> >>>>>>>>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
-> >>>>>>>>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
-> >>>>>>>>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
-> >>>>>>> ...
-> >>>>>>>
-> >>>>>>>
-> >>>>>>>> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
-> >>>>>>>>  	int oldval;
-> >>>>>>>>  	u8 newval;
-> >>>>>>>>  
-> >>>>>>>> -	/* Uses cache for gpo/gpio registers */
-> >>>>>>>> -	if (reg == dev->reg_gpo_num)
-> >>>>>>>> -		oldval = dev->reg_gpo;
-> >>>>>>>> -	else if (reg == dev->reg_gpio_num)
-> >>>>>>>> -		oldval = dev->reg_gpio;
-> >>>>>>>> -	else
-> >>>>>>>> -		oldval = em28xx_read_reg(dev, reg);
-> >>>>>>>> -
-> >>>>>>>> +	oldval = em28xx_read_reg(dev, reg);
-> >>>>>>>>  	if (oldval < 0)
-> >>>>>>>>  		return oldval;
-> >>>>>>> That's plain wrong, as it will break GPIO input.
-> >>>>>>>
-> >>>>>>> With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
-> >>>>>>> code works for output ports.
-> >>>>>>>
-> >>>>>>> However, an input port requires an specific value (either 1 or 0 depending
-> >>>>>>> on the GPIO circuitry). If the wrong value is written there, the input port
-> >>>>>>> will stop working.
-> >>>>>>>
-> >>>>>>> So, you can't simply read a value from a GPIO input and write it. You need
-> >>>>>>> to shadow the GPIO write values instead.
-> >>>>>> I don't understand what you mean.
-> >>>>>> Why can I not read the value of a GPIO input and write it ?
-> >>>>> Because, depending on the value you write, it can transform the input into an
-> >>>>> output port.
-> >>>> I don't get it.
-> >>>> We always write to the GPIO register. That's why these functions are
-> >>>> called em28xx_write_* ;)
-> >>>> Whether the write operation is sane or not (e.g. because it modifies the
-> >>>> bit corresponding to an input line) is not subject of these functions.
-> >>> Writing is sane: GPIO input lines requires writing as well, in order to 
-> >>> set it to either pull-up or pull-down mode (not sure if em28xx supports
-> >>> both ways).
-> >>>
-> >>> So, the driver needs to know if it will write there a 0 or 1, and this is part
-> >>> of its GPIO configuration.
-> >>>
-> >>> Let's assume that, on a certain device, you need to write "1" to enable that
-> >>> input.
-> >>>
-> >>> A read I/O to that port can return either 0 or 1. 
-> >>>
-> >>> Giving an hypothetical example, please assume this code:
-> >>>
-> >>> static int write_gpio_bits(u32 out, u32 mask)
-> >>> {
-> >>> 	u32 gpio = (read_gpio_ports() & ~mask) | (out & mask);
-> >>> 	write_gpio_ports(gpio);
-> >>> }
-> >>>
-> >>>
-> >>> ...
-> >>> 	/* Use bit 1 as input GPIO */
-> >>> 	write_gpio_bits(1, 1);
-> >>>
-> >>> 	/* send a reset via bit 2 GPIO */
-> >>> 	write_gpio_bits(2, 2);
-> >>> 	write_gpio_bits(0, 2);
-> >>> 	write_gpio_bits(2, 2);
-> >>>
-> >>> If, at the time the above code runs, the input bit 1 is at "0" state,
-> >>> the subsequent calls will disable the input.
-> >>>
-> >>> If, instead, only the write operations are cached like:
-> >>>
-> >>> static int write_gpio_bits(u32 out, u32 mask)
-> >>> {
-> >>> 	static u32 shadow_cache;
-> >>>
-> >>> 	shadow_cache = (shadow_cache & ~mask) | (out & mask);
-> >>> 	write_gpio_ports(gpio);
-> >>> }
-> >>>
-> >>> there's no such risk, as it will keep using "1" for the input bit.
-> >> Hmm... ok, now I understand what you mean.
-> >> Are you sure the Empia chips are really working this way ?
-> > Yes. It uses a pretty standard GPIO mechanism at register 0x08.
+> >On Thu, 18 Apr 2013, Marcio Campos de Lima wrote:
+> >
+> >> >Hi
+> >> >
+> >> >I am porting the MT9P031 sensor device driver for a custom designed
+> >>board
+> >> >based at the AT91SAM9M45-EK development board and Linux 3.6.9.
+> >> >The driver detects the sensor but does not create /dev/video1.
+> >> >
+> >> >Can anybody help me?
+> >
+> >Congratulations, today is your lucky day :-) I've just posted a
+> >patch-series
+> >
+> >http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/635
+> >04
+> >
+> >to do exactly what you need. Well, 99% of what you need :) With at91
+> >you're using the atmel-isi soc-camera camera host driver. Shich isn't
+> >extended by this patch series to support the asynchronous subdevice
+> >registration, but it's rather easy to add, please, have a look at patch
+> >#15 for an example, based on the mx3_camera driver. Then there's a slight
+> >problem of mt9p031 only exporting 12-bit formats. You can "fix" it
+> >internally by substituting 8-bit formats (you are using 8 bits, right?)
+> >instead. We'll need a proper solution at some point. The last patch in
+> >the 
+> >series shows how to add support for the mt9p031 sensor to a board.
+> >
+> >Anyway, give it a try, feel free to ask.
+> >
+> >Thanks
+> >Guennadi
+> >
+> >> >Thanks
+> >> >Marcio
+> >> 
+> >> This is the probe code fo the driver if this can help:
+> >> 
+> >> /* 
+> >> 
+> >>-------------------------------------------------------------------------
+> >>--
+> >> --
+> >>  * Driver initialization and probing
+> >>  */
+> >> 
+> >> static int mt9p031_probe(struct i2c_client *client,
+> >> 			 const struct i2c_device_id *did)
+> >> {
+> >> 	struct mt9p031_platform_data *pdata = client->dev.platform_data;
+> >> 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+> >> 	struct mt9p031 *mt9p031;
+> >> 	unsigned int i;
+> >> 	int ret;
+> >> 
+> >> 	if (pdata == NULL) {
+> >> 		dev_err(&client->dev, "No platform data\n");
+> >> 		return -EINVAL;
+> >> 	}
+> >> 
+> >> 	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
+> >> 		dev_warn(&client->dev,
+> >> 			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
+> >> 		return -EIO;
+> >> 	}
+> >> 
+> >> 	mt9p031 = kzalloc(sizeof(*mt9p031), GFP_KERNEL);
+> >> 	if (mt9p031 == NULL)
+> >> 		return -ENOMEM;
+> >> 
+> >> 	mt9p031->pdata = pdata;
+> >> 	mt9p031->output_control	= MT9P031_OUTPUT_CONTROL_DEF;
+> >> 	mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
+> >> 
+> >> 	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 4);
+> >> 
+> >> 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+> >> 			  V4L2_CID_EXPOSURE, MT9P031_SHUTTER_WIDTH_MIN,
+> >> 			  MT9P031_SHUTTER_WIDTH_MAX, 1,
+> >> 			  MT9P031_SHUTTER_WIDTH_DEF);
+> >> 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+> >> 			  V4L2_CID_GAIN, MT9P031_GLOBAL_GAIN_MIN,
+> >> 			  MT9P031_GLOBAL_GAIN_MAX, 1, MT9P031_GLOBAL_GAIN_DEF);
+> >> 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+> >> 			  V4L2_CID_HFLIP, 0, 1, 1, 0);
+> >> 	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
+> >> 			  V4L2_CID_VFLIP, 0, 1, 1, 0);
+> >> 
+> >> 	for (i = 0; i < ARRAY_SIZE(mt9p031_ctrls); ++i)
+> >> 		v4l2_ctrl_new_custom(&mt9p031->ctrls, &mt9p031_ctrls[i], NULL);
+> >> 
+> >> 	mt9p031->subdev.ctrl_handler = &mt9p031->ctrls;
+> >> 
+> >> 	if (mt9p031->ctrls.error)
+> >> 		printk(KERN_INFO "%s: control initialization error %d\n",
+> >> 		       __func__, mt9p031->ctrls.error);
+> >> 
+> >> 	mutex_init(&mt9p031->power_lock);
+> >> 	v4l2_i2c_subdev_init(&mt9p031->subdev, client, &mt9p031_subdev_ops);
+> >> 	mt9p031->subdev.internal_ops = &mt9p031_subdev_internal_ops;
+> >> 
+> >> 	mt9p031->pad.flags = MEDIA_PAD_FL_SOURCE;
+> >> 	ret = media_entity_init(&mt9p031->subdev.entity, 1, &mt9p031->pad, 0);
+> >> 	if (ret < 0)
+> >> 		goto done;
+> >> 
+> >> 	mt9p031->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> >> 
+> >> 	mt9p031->crop.width = MT9P031_WINDOW_WIDTH_DEF;
+> >> 	mt9p031->crop.height = MT9P031_WINDOW_HEIGHT_DEF;
+> >> 	mt9p031->crop.left = MT9P031_COLUMN_START_DEF;
+> >> 	mt9p031->crop.top = MT9P031_ROW_START_DEF;
+> >> 
+> >> 	if (mt9p031->pdata->version == MT9P031_MONOCHROME_VERSION)
+> >> 		mt9p031->format.code = V4L2_MBUS_FMT_Y12_1X12;
+> >> 	else
+> >> 		mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
+> >> 
+> >> 	mt9p031->format.width = MT9P031_WINDOW_WIDTH_DEF;
+> >> 	mt9p031->format.height = MT9P031_WINDOW_HEIGHT_DEF;
+> >> 	mt9p031->format.field = V4L2_FIELD_NONE;
+> >> 	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
+> >> 	isi_set_clk();
+> >> 	mt9p031->pdata->ext_freq=21000000;
+> >> 	mt9p031->pdata->target_freq=48000000;
+> >> 	ret = mt9p031_pll_get_divs(mt9p031);
+> >> 
+> >> done:
+> >> 	if (ret < 0) {
+> >> 		v4l2_ctrl_handler_free(&mt9p031->ctrls);
+> >> 		media_entity_cleanup(&mt9p031->subdev.entity);
+> >> 		kfree(mt9p031);
+> >> 	}
+> >> 
+> >> 	return ret;
+> >> }
+> >> 
+> >> 
+> >> 
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >>in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >> 
+> >
+> >---
+> >Guennadi Liakhovetski, Ph.D.
+> >Freelance Open-Source Software Developer
+> >http://www.open-technology.de/
 > 
-> Ok, will try to find out how those 0x80...0x87 GPIO registers are working.
-
-Ok.
-> 
-> > I'm not so sure about the "GPO" register 0x04,
-> 
-> Well, we don't need caching for output lines, just for input lines.
-
-You understood me wrong: I mean that I'm not sure if register 0x04 is
-only for output pins, or if then can also be used for input.
-
-In doubt, better to cache.
-
-> > but using a shadow for it as
-> > well won't hurt, and will reduce a little bit the USB bus traffic.
-> 
-> Sure, but the problem is that caching is getting complicated with the
-> newer devices.
-> The em2765 in the VAD Laplace webcam for example uses registers
-> 0x80/0x84, 0x81/0x85, 0x83/0x87 and also at least register 0x08 for
-> GPIO. I don't not about about reg 0x04.
-> And its seems some bits of reg 0x0C are used for GPIO, too (current
-> snapshot button support uses bit 6).
-> Have fun. :(
-
-If GPIOLIB solves it on a clean way, then we have a reason to move it.
-Otherwise, we'll need to cache all those registers, and reg 0x0C GPIO
-bits.
-
-> >> I checked the em25xx datasheet (excerpt) and it talks about separate
-> >> registers for GPIO configuration (unfortunately without explaining their
-> >> function in detail).
-> > Interesting. There are several old designs (bttv, saa7134,...) that uses
-> > a separate register for defining the input and the output pins.
-> 
-> IMHO separate registers are the better design.
-
-It is a safer design, but it is harder to reverse engineer them.
-See the wiki page that explains it on bt848:
-	http://linuxtv.org/wiki/index.php/GPIO_pins
-Even experienced people sometimes do bad GPIO settings.
-
-Using just one register is a way easier.
-
-> >> I going to do some tests with the Laplace webcam, so far it seems to be
-> >> working fine without this caching stuff.
-> >> But the reverse-engineering possibilities are quite limited, so someone
-> >> with a detailed datasheet should really look this up.
-> > Well, that will affect only devices with input pins connected.
-> > If you test on a hardware without it, you won't notice any difference
-> > at all.
-> 
-> The Laplace webcam has three buttons assigned to regs 0x80/0x84 and
-> 0x81/0x85.
-> They are inverted (0=pressed, 1=unpressed), which could be the reason
-> why I didn't notice any problems without caching.
-
-It seems it uses a pull-up resistor on open-drain mode. That's the most
-common way to do GPIO.
-
-> I don't have any other devices with buttons for testing.
-> 
-> Regards,
-> Frank
-> 
-> > Cheers,
-> > Mauro
 > 
 
-
--- 
-
-Cheers,
-Mauro
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
