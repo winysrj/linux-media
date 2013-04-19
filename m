@@ -1,68 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42397 "EHLO mail.kapsi.fi"
+Received: from mga09.intel.com ([134.134.136.24]:13517 "EHLO mga09.intel.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965630Ab3DTDNX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 23:13:23 -0400
-Message-ID: <517207A2.9000103@iki.fi>
-Date: Sat, 20 Apr 2013 06:12:34 +0300
-From: Antti Palosaari <crope@iki.fi>
+	id S933525Ab3DSVb5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Apr 2013 17:31:57 -0400
+Date: Fri, 19 Apr 2013 23:31:52 +0200
+From: Samuel Ortiz <sameo@linux.intel.com>
+To: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: mchehab@redhat.com, hverkuil@xs4all.nl,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 00/12]  Driver for Si476x series of chips
+Message-ID: <20130419213152.GD11866@zurbaran>
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: v4l-utils build problem
-References: <51720176.9080400@iki.fi> <20130419235130.636d0f08@redhat.com>
-In-Reply-To: <20130419235130.636d0f08@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/20/2013 05:51 AM, Mauro Carvalho Chehab wrote:
-> Em Sat, 20 Apr 2013 05:46:14 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> I am unable to build that. It is Fedora 17 box. Any idea what is missing?
->>
->> Here is the error:
->>
->> [crope@localhost v4l-utils]$ autoreconf -vfi
->> autoreconf: Entering directory `.'
->> autoreconf: running: autopoint --force
->> autoreconf: running: aclocal --force -I m4
->> autoreconf: configure.ac: tracing
->> autoreconf: running: libtoolize --copy --force
->> libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, `build-aux'.
->> libtoolize: copying file `build-aux/ltmain.sh'
->> libtoolize: putting macros in AC_CONFIG_MACRO_DIR, `m4'.
->> libtoolize: copying file `m4/libtool.m4'
->> libtoolize: copying file `m4/ltoptions.m4'
->> libtoolize: copying file `m4/ltsugar.m4'
->> libtoolize: copying file `m4/ltversion.m4'
->> libtoolize: copying file `m4/lt~obsolete.m4'
->> autoreconf: running: /usr/bin/autoconf --force
->> autoreconf: running: /usr/bin/autoheader --force
->> autoreconf: running: automake --add-missing --copy --force-missing
->> Makefile.am:4: AM_GNU_GETTEXT used but `po' not in SUBDIRS
->> autoreconf: Leaving directory `.'
->> [crope@localhost v4l-utils]$ configure
->
-> It should be, instead:
-> 	$ ./configure
+Hi Andrey,
 
-How insane mistake! Now I feel embarrassed...
+On Thu, Apr 18, 2013 at 09:58:26AM -0700, Andrey Smirnov wrote:
+> Driver for Si476x series of chips
+> 
+> This is a eight version of the patchset originaly posted here:
+> https://lkml.org/lkml/2012/9/13/590
+> 
+> Second version of the patch was posted here:
+> https://lkml.org/lkml/2012/10/5/598
+> 
+> Third version of the patch was posted here:
+> https://lkml.org/lkml/2012/10/23/510
+> 
+> Fourth version of the patch was posted here:
+> https://lkml.org/lkml/2013/2/18/572
+> 
+> Fifth version of the patch was posted here:
+> https://lkml.org/lkml/2013/2/26/45
+> 
+> Sixth version of the patch was posted here:
+> https://lkml.org/lkml/2013/2/26/257
+> 
+> Seventh version of the patch was posted here:
+> https://lkml.org/lkml/2013/2/27/22
+> 
+> Eighth version of the patch was posted here:
+> https://lkml.org/lkml/2013/3/26/891
+> 
+> To save everyone's time I'll repost the original description of it:
+> 
+> This patchset contains a driver for a Silicon Laboratories 476x series
+> of radio tuners. The driver itself is implemented as an MFD devices
+> comprised of three parts: 
+>  1. Core device that provides all the other devices with basic
+> functionality and locking scheme.
+>  2. Radio device that translates between V4L2 subsystem requests into
+> Core device commands.
+>  3. Codec device that does similar to the earlier described task, but
+> for ALSA SoC subsystem.
+> 
+> v9 of this driver has following changes:
+>    - MFD part of the driver no longer depends on the header file added
+>      by the radio driver(media/si476x.h) which should potential
+>      restore the bisectability of the patches
+I applied all the MFD patches from this patchset (All 4 first ones), plus a
+follow up one for fixing the i2c related warning.
+I also squashed the REGMAP_I2C dependency into patch #4.
+It's all in mfd-next now, I'd appreciate if you could double check it's all
+fine.
 
-I really was thinking it fails just earlier, to autoreconf as 
-"Makefile.am:4: AM_GNU_GETTEXT used but `po' not in SUBDIRS". But that 
-seems to be normal printing.
+Mauro will take the rest, we made sure there won't be any merge conflict
+between our trees.
 
-> You probably need to go sleep ;)
-
-Y, indeed. Have been hacking whole night again in order to get GNU 
-Radio's sample module working... Finally it stars working. Too many 
-environment setup problems...
-
-regards
-Antti
+Cheers,
+Samuel.
 
 -- 
-http://palosaari.fi/
+Intel Open Source Technology Centre
+http://oss.intel.com/
