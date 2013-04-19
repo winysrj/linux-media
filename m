@@ -1,94 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:59176 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761532Ab3DIOq6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 10:46:58 -0400
-Received: from mailout-eu.gmx.com ([10.1.101.214]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0MGDg9-1UKtFu1Tmh-00FDKH for
- <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 16:46:57 +0200
-Content-Type: text/plain; charset=utf-8; format=flowed; delsp=yes
-To: "Antti Palosaari" <crope@iki.fi>
-Subject: Re: AverTV_A918R (af9035-af9033-tda18218) / patch proposal
-References: <op.wp845xcf4bfdfw@quantal> <50E36298.3040009@iki.fi>
-Date: Tue, 09 Apr 2013 16:46:54 +0200
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7bit
-From: Diorser <diorser@gmx.fr>
-Message-ID: <op.wu93cgqr4bfdfw@wheezy>
-In-Reply-To: <50E36298.3040009@iki.fi>
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:47198 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758536Ab3DSJrN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Apr 2013 05:47:13 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: [PATCH RFC] media: videobuf2: fix the length check for mmap
+Date: Fri, 19 Apr 2013 15:16:56 +0530
+Message-Id: <1366364816-3567-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Please find below some news for A918R
-[details @  
-http://www.linuxtv.org/wiki/index.php/AVerMedia_AVerTV_HD_Express_A918R ]
+>From commit 068a0df76023926af958a336a78bef60468d2033
+"[media] media: vb2: add length check for mmap"
+patch verifies that the mmap() size requested by userspace
+doesn't exceed the buffer size.
 
-* the patch proposed to automatically load the right modules for A918R  
-card is not yet available
-=> http://www.mail-archive.com/linux-media@vger.kernel.org/msg56659.html
-(I don't exactly know what is missing to make it accepted).
-This patch would at least avoid having to modify dvb-usb-ids.h & af9035.c  
-each time to test some git updates.
+As the mmap() size is rounded up to the next page boundary
+the check will fail for buffer sizes that are not multiple
+of the page size.
 
-* previously, in December, the signal level detection was fuzzy and not  
-reliable.
-Now, the reported signal level is strictly at 0000 (good antenna RF signal  
-confirmed with other device).
+This patch fixes the check by aligning the buffer size to page
+size during the check. Alongside fixes the vmalloc allocator
+to round up the size.
 
-I am aware A918R card is not the most requested one (Express card), but  
-that's all I can add in case it can help, even for another card.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/v4l2-core/videobuf2-core.c    |    2 +-
+ drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
 
-Regards.
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 58c1744..223fcd4 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -1886,7 +1886,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 
+ 	vb = q->bufs[buffer];
+ 
+-	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
++	if (PAGE_ALIGN(vb->v4l2_planes[plane].length) < (vma->vm_end - vma->vm_start)) {
+ 		dprintk(1, "Invalid length\n");
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+index 313d977..bf3b95c 100644
+--- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+@@ -44,7 +44,7 @@ static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fl
+ 		return NULL;
+ 
+ 	buf->size = size;
+-	buf->vaddr = vmalloc_user(buf->size);
++	buf->vaddr = vmalloc_user(PAGE_ALIGN(buf->size));
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_vmalloc_put;
+ 	buf->handler.arg = buf;
+-- 
+1.7.4.1
 
-
-see details below:
-------------------------------------------
-UPDATE April 8th 2013: result with modules compiled from git:
-
-tzap -r TEST
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-reading channels from file '/home/test_r/.tzap/channels.conf'
-tuning to 586167000 Hz
-video pid 0x0200, audio pid 0x028a
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-status 00 | signal 0000 | snr 0000 | ber 00000000 | unc 00000000 |
-
-kaffeine from command line
-
-kaffeine(1584) DvbScanFilter::timerEvent: timeout while reading section;  
-type = 0 pid = 0
-kaffeine(1584) DvbScanFilter::timerEvent: timeout while reading section;  
-type = 2 pid = 17
-demux_wavpack: (open_wv_file:127) open_wv_file: non-seekable inputs aren't  
-supported yet.
-net_buf_ctrl: dvbspeed mode
-kaffeine(1584) DvbScanFilter::timerEvent: timeout while reading section;  
-type = 0 pid = 0
-kaffeine(1584) DvbScanFilter::timerEvent: timeout while reading section;  
-type = 2 pid = 17
-net_buf_ctrl: dvbspeed OFF
-kaffeine(2186) DvbLinuxDevice::getSignal: ioctl FE_READ_SIGNAL_STRENGTH  
-failed for frontend "/dev/dvb/adapter0/frontend0"
-kaffeine(2186) DvbLinuxDevice::getSnr:    ioctl FE_READ_SNR failed for  
-frontend "/dev/dvb/adapter0/frontend0"
-kaffeine(2186) DvbLinuxDevice::isTuned:   ioctl FE_READ_STATUS failed for  
-frontend "/dev/dvb/adapter0/frontend0"
-.../...
-kaffeine(2186) DvbLinuxDevice::getSignal: ioctl FE_READ_SIGNAL_STRENGTH  
-failed for frontend "/dev/dvb/adapter0/frontend0"
-kaffeine(2186) DvbLinuxDevice::getSnr:    ioctl FE_READ_SNR failed for  
-frontend "/dev/dvb/adapter0/frontend0"
-kaffeine(2186) DvbLinuxDevice::isTuned:   ioctl FE_READ_STATUS failed for  
-frontend "/dev/dvb/adapter0/frontend0"
-
-demux_wavpack: (open_wv_file:127) open_wv_file: non-seekable inputs aren't  
-supported yet.
-net_buf_ctrl: dvbspeed mode
-net_buf_ctrl: dvbspeed OFF
-kaffeine(2215) DvbDevice::frontendEvent: tuning failed
-------------------------------------------
