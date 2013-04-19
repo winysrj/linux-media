@@ -1,129 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:57440 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965082Ab3DPSE4 (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3331 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756896Ab3DSJ6R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 14:04:56 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLD006SG0W5HQ00@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 16 Apr 2013 19:04:53 +0100 (BST)
-Message-id: <516D92C4.2040403@samsung.com>
-Date: Tue, 16 Apr 2013 20:04:52 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	Mike Turquette <mturquette@linaro.org>
-Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
-References: <3775187.HOcoQVPfEE@avalon> <8085333.TIMqcSUBaO@avalon>
- <20130415094248.2272db90@redhat.com> <1471330.zeTIWizKy8@avalon>
- <516D8C1E.2080704@redhat.com>
-In-reply-to: <516D8C1E.2080704@redhat.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Fri, 19 Apr 2013 05:58:17 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: Keene
+Date: Fri, 19 Apr 2013 11:58:04 +0200
+Cc: LMML <linux-media@vger.kernel.org>
+References: <5167513D.60804@iki.fi> <201304190912.06319.hverkuil@xs4all.nl> <51710A3F.10909@iki.fi>
+In-Reply-To: <51710A3F.10909@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304191158.04116.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Cc: Mark, Mike
-
-On 04/16/2013 07:36 PM, Mauro Carvalho Chehab wrote:
-> Em 16-04-2013 12:30, Laurent Pinchart escreveu:
->> Hi Mauro,
->>
->> On Monday 15 April 2013 09:42:48 Mauro Carvalho Chehab wrote:
->>> Em Mon, 15 Apr 2013 12:19:23 +0200 Laurent Pinchart escreveu:
->>>> On Sunday 14 April 2013 16:59:58 Mauro Carvalho Chehab wrote:
->>>>> Em Fri, 12 Apr 2013 11:13:06 +0200 Laurent Pinchart escreveu:
->>>>>> Hi Mauro,
->>>>>>
->>>>>> The following changes since commit
->>>>
->>>> 81e096c8ac6a064854c2157e0bf802dc4906678c:
->>>>>>    [media] budget: Add support for Philips Semi Sylt PCI ref. design
->>>>>>
->>>>>> (2013-04-08 07:28:01 -0300)
->>>>>>
->>>>>> are available in the git repository at:
->>>>>>    git://linuxtv.org/pinchartl/media.git sensors/next
->>>>>>
->>>>>> for you to fetch changes up to
->> c890926a06339944790c5c265e21e8547aa55e49:
->>>>>>    mt9p031: Use the common clock framework (2013-04-12 11:07:07 +0200)
->>>>>>
->>>>>> ----------------------------------------------------------------
->>>>>>
->>>>>> Laurent Pinchart (5):
->>>>>>        mt9m032: Fix PLL setup
->>>>>>        mt9m032: Define MT9M032_READ_MODE1 bits
->>>>>>        mt9p031: Use devm_* managed helpers
->>>>>>        mt9p031: Add support for regulators
->>>>>>        mt9p031: Use the common clock framework
->>>>>
->>>>> Hmm... It seems ugly to have regulators and clock framework and other
->>>>> SoC calls inside an i2c driver that can be used by a device that doesn't
->>>>> have regulators.
->>>>>
->>>>> I'm not sure what's the best solution for it, so, I'll be adding those
->>>>> two patches, but it seems that we'll need to restrict the usage of those
->>>>> calls only if the caller driver is a platform driver.
->>>>
->>>> The MT9P031 needs power supplies and a clock on all platforms, regardless
->>>> of the bridge bus type.
->>>
->>> Well, all digital devices require clock and power. If power is either a
->>> simple electric circuit, a battery or a regulator, that depends on the
->>> board.
->>>
->>>> I suppose the use case that mostly concerns you here is
->>>> USB webcams
->>>
->>> Yes.
->>>
->>>> where the power supplies and the clock are controlled automatically by the
->>>> device.
->>>
->>> Or could be not controlled at all. It could be a simple XTAL attached to the
->>> sensor or a clock signal provided by the bridge obtained from a fixed XTAL,
->>> and a resistor bridge or a Zenner diode providing the needed power voltage.
-
-Yes, and this are details of the whole system, which IMHO are supposed to be
-abstracted outside of a clock/power supply consumer driver. What resources
-are needed is well defined by a chip architecture, driver of a chip knows what
-voltage supply/clocks, etc. it needs and it should request that. Now on some
-systems there is no need to explicitly enable/disable, change parameters of
-some clocks/voltage regulators. And the question is, IIUC, at what layer we
-choose to abstract such differences. I don't think it is a good idea to push
-it into a sub-device driver. A sub-device driver would need to know details
-of its host driver, wouldn't it ? AFAICT it's not something subdev drivers are
-really supposed to deal with.
-
-I'm not sure if the regulators and the clock framework are "SoC calls". These
-are generic APIs that have well defined semantic of abstracting platform
-differences. At least it can be said about the regulators API IMHO.
-
-It's probably more clean to provide a dummy clock/regulator in a host driver
-(platform) than to add something in a sub-device drivers that would resolve
-which resources should be requested and which not.
-
->>>> If we ever need to support such a device in the future we can of course
->>>> revisit the driver then, and one possible solution would be to register
->>>> fixed voltage regulators and a fixed clock.
->>>
->>> That is an overkill: devices were the power supply/xtal clock can't be
->>> controlled should not require extra software that pretend to control it.
->>
->> If I'm not mistaken that's however the recommended way on embedded devices at
->> the moment. I don't have a strong opinion on the subject for now, but this
->> will need to be at least discussed with core clock and regulator developers.
+On Fri April 19 2013 11:11:27 Antti Palosaari wrote:
+> On 04/19/2013 10:12 AM, Hans Verkuil wrote:
+> > On Wed April 17 2013 21:45:24 Antti Palosaari wrote:
+> >> On 04/15/2013 09:55 AM, Hans Verkuil wrote:
+> >>> On Fri April 12 2013 02:11:41 Antti Palosaari wrote:
+> >>>> Hello Hans,
+> >>>> That device is working very, thank you for it. Anyhow, I noticed two things.
+> >>>>
+> >>>> 1) it does not start transmitting just after I plug it - I have to
+> >>>> retune it!
+> >>>> Output says it is tuned to 95.160000 MHz by default, but it is not.
+> >>>> After I issue retune, just to same channel it starts working.
+> >>>> $ v4l2-ctl -d /dev/radio0 --set-freq=95.16
+> >>>
+> >>> Can you try this patch:
+> >>>
+> >>
+> >> It does not resolve the problem. It is quite strange behavior. After I
+> >> install modules, and modules are unload, plug stick in first time, it
+> >> usually (not every-time) starts TX. But when I replug it without
+> >> unloading modules, it will never start TX. Tx is started always when I
+> >> set freq using v4l2-ctl.
+> >
+> > If you replace 'false' by 'true' in the cmd_main, does that make it work?
+> > I'm fairly certain that's the problem.
+> 
+> Nope, I replaces all 'false' with 'true' and problem remains. When 
+> modules were unload and device is plugged it starts TX. When I replug it 
+> doesn't start anymore.
+> 
+> I just added msleep(1000); just before keene_cmd_main() in .probe() and 
+> now it seems to work every-time. So it is definitely timing issue. I 
+> will try to find out some smallest suitable value for sleep and and sent 
+> patch.
 > 
 > 
-> Well, a customer's webcam is not an embedded device at all. That's why
-> I think that putting it at the I2C driver is wrong: those drivers are
-> not to be used only by embedded hardware.
+> >
+> >>
+> >> Possible timing issue?
+> >>
+> >>
+> >> Is there some flag API flag to tell start / stop device? For my mind
+> >> correct behavior is to stop TX and sleep when device is plugged/module
+> >> load. Something like set freq 0 when device is not active to tell user
+> >> it is not sending/receiving and must be tuned in order to operate.
+> >
+> > This is actually a core problem with the radio API: there is no clear
+> > way of turning the tuner or modulator on and off on command. With video
+> > you know that you can turn off the tuner if no filehandle is open. But
+> > with radio you do not have that luxury since audio can go through alsa
+> > or through an audio jack.
+> >
+> > One option is to use mute. Most radio receivers start off muted and you
+> > have to unmute first. This could be used as a signal for receivers to
+> > turn the tuner on/off. But for a modulator that's not an option: turning
+> > off the modulator means turning off the transmitter, and that's not what
+> > you want if you are, say, the presenter of a radio program and you want
+> > to quickly mute because you feel a sneeze coming :-)
+> >
+> > I think we need a specific API for this, but in the absence of one we should
+> > just leave the modulator enabled from the start.
+> 
+> yeah, that's just the issue I was wondering. Is there some reason 
+> frequency value could not be used? Defining frequency to 0MHz or -1MHz 
+> and Tx (maybe Rx too) is off?
+
+It's one option, yes. But I'm not entirely pleased with that as I'd like the
+driver to remember the last frequency. I would prefer to handle this as a
+separate setting. There may be other solutions as well, I'm not sure.
+
+The core problem is of course a poor design of the radio API: it really should
+behave like a video node where it is possible to power off if nobody has the
+node open. But that breaks compatibility...
+
+Since this is all very specific to radio devices I am inclined to introduce
+a radio-specific ioctl or control for this.
+
+But there is a related issue with USB video devices: after the last close()
+do you power off the device immediately, wait a bit before doing that or keep
+it alive all the time? This becomes relevant if powering up takes a long time
+because of e.g. having to reload firmware or intializing i2c devices.
+
+So perhaps this can be solved with two generic controls:
+
+bool CID_POWER_OFF_AT_LAST_CLOSE
+int CID_POWER_OFF_DELAY (unit: seconds)
+
+If POWER_OFF_AT_LAST_CLOSE is false, then you never power off. If it is true,
+then power off after a given delay. If the delay == 0 then power off immediately.
+
+Drivers can decide on proper default values. But radio devices must start
+with CID_POWER_OFF_AT_LAST_CLOSE set to false for compatibility reasons.
+
+I don't have time for the next few weeks to investigate this further, so if
+you are interested...
 
 Regards,
-Sylwester
+
+	Hans
+
+> Here is power consumption I measured:
+> 26.5mA play=false (idle mode)
+> 39.0mA Tx on 95.16 MHz
+> 
+> It wastes 12.5mA (from USB Vcc 5v) when Tx is enabled.
+> 
+> regards
+> Antti
+> 
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> >>
+> >>
+> >> regards
+> >> Antti
+> >>
+> >>
+> >>
+> >>
+> >>
+> >>
+> >>> diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
+> >>> index 4c9ae76..99da3d4 100644
+> >>> --- a/drivers/media/radio/radio-keene.c
+> >>> +++ b/drivers/media/radio/radio-keene.c
+> >>> @@ -93,7 +93,7 @@ static int keene_cmd_main(struct keene_device *radio, unsigned freq, bool play)
+> >>>    	/* If bit 4 is set, then tune to the frequency.
+> >>>    	   If bit 3 is set, then unmute; if bit 2 is set, then mute.
+> >>>    	   If bit 1 is set, then enter idle mode; if bit 0 is set,
+> >>> -	   then enter transit mode.
+> >>> +	   then enter transmit mode.
+> >>>    	 */
+> >>>    	radio->buffer[5] = (radio->muted ? 4 : 8) | (play ? 1 : 2) |
+> >>>    							(freq ? 0x10 : 0);
+> >>> @@ -350,7 +350,6 @@ static int usb_keene_probe(struct usb_interface *intf,
+> >>>    	radio->pa = 118;
+> >>>    	radio->tx = 0x32;
+> >>>    	radio->stereo = true;
+> >>> -	radio->curfreq = 95.16 * FREQ_MUL;
+> >>>    	if (hdl->error) {
+> >>>    		retval = hdl->error;
+> >>>
+> >>> @@ -383,6 +382,8 @@ static int usb_keene_probe(struct usb_interface *intf,
+> >>>    	video_set_drvdata(&radio->vdev, radio);
+> >>>    	set_bit(V4L2_FL_USE_FH_PRIO, &radio->vdev.flags);
+> >>>
+> >>> +	keene_cmd_main(radio, 95.16 * FREQ_MUL, false);
+> >>> +
+> >>>    	retval = video_register_device(&radio->vdev, VFL_TYPE_RADIO, -1);
+> >>>    	if (retval < 0) {
+> >>>    		dev_err(&intf->dev, "could not register video device\n");
+> >>>
+> >>>
+> >>>> 2) What is that log printing?
+> >>>> ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2
+> >>>> (id 13)
+> >>>>
+> >>>>
+> >>>> usb 5-2: new full-speed USB device number 3 using ohci_hcd
+> >>>> usb 5-2: New USB device found, idVendor=046d, idProduct=0a0e
+> >>>> usb 5-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> >>>> usb 5-2: Product: B-LINK USB Audio
+> >>>> usb 5-2: Manufacturer: HOLTEK
+> >>>> ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2
+> >>>> (id 13)
+> >>>> radio-keene 5-2:1.2: V4L2 device registered as radio0
+> >>>
+> >>> No idea, and I don't get that message either.
+> >>>
+> >>> Regards,
+> >>>
+> >>> 	Hans
+> >>>
+> >>>>
+> >>>>
+> >>>> $ v4l2-ctl -d /dev/radio0 --all -L
+> >>>> Driver Info (not using libv4l2):
+> >>>> 	Driver name   : radio-keene
+> >>>> 	Card type     : Keene FM Transmitter
+> >>>> 	Bus info      : usb-0000:00:13.0-2
+> >>>> 	Driver version: 3.9.0
+> >>>> 	Capabilities  : 0x800C0000
+> >>>> 		Modulator
+> >>>> 		Radio
+> >>>> Frequency: 1522560 (95.160000 MHz)
+> >>>> Modulator:
+> >>>> 	Name                 : FM
+> >>>> 	Capabilities         : 62.5 Hz stereo
+> >>>> 	Frequency range      : 76.0 MHz - 108.0 MHz
+> >>>> 	Subchannel modulation: stereo
+> >>>> Priority: 2
+> >>>>
+> >>>> User Controls
+> >>>>
+> >>>>                               mute (bool)   : default=0 value=0
+> >>>>
+> >>>> FM Radio Modulator Controls
+> >>>>
+> >>>>             audio_compression_gain (int)    : min=-15 max=18 step=3
+> >>>> default=0 value=0 flags=slider
+> >>>>                       pre_emphasis (menu)   : min=0 max=2 default=1 value=1
+> >>>> 				1: 50 Microseconds
+> >>>> 				2: 75 Microseconds
+> >>>>                   tune_power_level (int)    : min=84 max=118 step=1
+> >>>> default=118 value=118 flags=slider
+> >>>>
+> >>>>
+> >>>> regards
+> >>>> Antti
+> >>>>
+> >>>>
+> >>
+> >>
+> >>
+> 
+> 
+> 
