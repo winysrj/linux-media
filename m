@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2584 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752040Ab3DNP1s (ORCPT
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:40622 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S968061Ab3DSJxz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 11:27:48 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 09/30] cx25821: s_input didn't check for invalid input.
-Date: Sun, 14 Apr 2013 17:27:05 +0200
-Message-Id: <1365953246-8972-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 19 Apr 2013 05:53:55 -0400
+From: Prabhakar lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 2/2] media: davinci: vpif_display: move displaying of error to approppraite place
+Date: Fri, 19 Apr 2013 15:23:30 +0530
+Message-Id: <1366365210-3778-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1366365210-3778-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1366365210-3778-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-The s_input implementation allowed input 1 even if that didn't exist.
+this patch moves the displaying out error case  "VPIF IRQ request failed\n"
+when there is actual request_irq() fail.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/pci/cx25821/cx25821-video.c |    4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+ drivers/media/platform/davinci/vpif_display.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
-index a9aa096..9ddc7ac 100644
---- a/drivers/media/pci/cx25821/cx25821-video.c
-+++ b/drivers/media/pci/cx25821/cx25821-video.c
-@@ -1163,10 +1163,8 @@ int cx25821_vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 			return err;
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index d833056..7b17368 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1725,6 +1725,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 				for (j = 0; j < i; j++)
+ 					free_irq(j, (void *)
+ 					(&vpif_obj.dev[res_idx]->channel_id));
++				vpif_err("VPIF IRQ request failed\n");
+ 				goto vpif_int_err;
+ 			}
+ 		}
+@@ -1878,7 +1879,6 @@ vpif_sd_error:
  	}
- 
--	if (i >= CX25821_NR_INPUT) {
--		dprintk(1, "%s(): -EINVAL\n", __func__);
-+	if (i >= CX25821_NR_INPUT || INPUT(i)->type == 0)
- 		return -EINVAL;
--	}
- 
- 	mutex_lock(&dev->lock);
- 	cx25821_video_mux(dev, i);
+ vpif_int_err:
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+-	vpif_err("VPIF IRQ request failed\n");
+ 	for (i = 0; i < res_idx; i++) {
+ 		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
+ 		for (j = res->start; j <= res->end; j++)
 -- 
-1.7.10.4
+1.7.4.1
 
