@@ -1,219 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4931 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752042Ab3DVHLo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 03:11:44 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv3 04/10] [media] V4L2 sdr API: Add fields for VIDIOC_[G|S]_TUNER
-Date: Mon, 22 Apr 2013 09:11:24 +0200
-References: <1366570839-662-1-git-send-email-mchehab@redhat.com> <1366570839-662-5-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366570839-662-5-git-send-email-mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+Received: from mx1.redhat.com ([209.132.183.28]:43020 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S967984Ab3DSLSU (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Apr 2013 07:18:20 -0400
+Date: Fri, 19 Apr 2013 08:18:01 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Prabhakar lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: Re: [PATCH RFC] media: videobuf2: fix the length check for mmap
+Message-ID: <20130419081801.0af7ad73@redhat.com>
+In-Reply-To: <1366364816-3567-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1366364816-3567-1-git-send-email-prabhakar.csengg@gmail.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
-Message-Id: <201304220911.24162.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun April 21 2013 21:00:33 Mauro Carvalho Chehab wrote:
-> As discussed at:
-> 	http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/63123
+Em Fri, 19 Apr 2013 15:16:56 +0530
+Prabhakar lad <prabhakar.csengg@gmail.com> escreveu:
+
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > 
-> SDR radio require some other things at to set. VIDIOC_[G|S]_TUNER
-> is currently not enough.
+> From commit 068a0df76023926af958a336a78bef60468d2033
+> "[media] media: vb2: add length check for mmap"
+> patch verifies that the mmap() size requested by userspace
+> doesn't exceed the buffer size.
 > 
-> I proposed there to create an extra ioctl for it, but the thing
-> is that VIDIOC_[G|S]_TUNER is meant to set what's needed to configure
-> the tuner. So, add there the missing bits to:
-> 	- set/get the tuner sampling rate;
-> 	- set/get the tuner low pass bandwidth filter;
-> 	- get the tuner IF.
+> As the mmap() size is rounded up to the next page boundary
+> the check will fail for buffer sizes that are not multiple
+> of the page size.
 > 
-> VIDIOC_[G|S]_TUNER already provides:
-> 	- tuner input switch;
-> 	- tuner input name;
-> 	- tuner capability flags;
-> 	- tuner range;
-> 	- signal strength;
-> 	- afc.
+> This patch fixes the check by aligning the buffer size to page
+> size during the check. Alongside fixes the vmalloc allocator
+> to round up the size.
 > 
-> There are still 3 u32 reserved fields there that may be used for
-> SDR in the future, and may be neded at the final version.
-> 
-> For example, it may make sense to add a SDR flag with:
-> 	- bandwidth inversion flag;
-> 	- tuner PLL lock flag (or reuse signal strength for that).
-> 
-> It also makes sense to add sample_rate range there.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 > ---
->  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml | 30 ++++++++++++++---
->  drivers/media/tuners/tuner-xc2028.c                |  2 ++
->  include/uapi/linux/videodev2.h                     | 38 ++++++++++++++++++++--
->  3 files changed, 63 insertions(+), 7 deletions(-)
+>  drivers/media/v4l2-core/videobuf2-core.c    |    2 +-
+>  drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
+>  2 files changed, 2 insertions(+), 2 deletions(-)
 > 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> index 6cc8201..b8a3bcf 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> @@ -200,9 +200,10 @@ audio</entry>
->  <constant>_SAP</constant> flag is cleared in the
->  <structfield>capability</structfield> field, the corresponding
->  <constant>V4L2_TUNER_SUB_</constant> flag must not be set
-> -here.</para><para>This field is valid only if this is the tuner of the
-> +here.</para>
-> +<para>This field is valid only for if this is the tuner of the
->  current video input, or when the structure refers to a radio
-> -tuner.</para></entry>
-> +tuner. This field is not used by SDR tuners.</para></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -216,7 +217,7 @@ unless the requested mode is invalid or unsupported. See <xref
->  the selected and received audio programs do not
->  match.</para><para>Currently this is the only field of struct
->  <structname>v4l2_tuner</structname> applications can
-> -change.</para></entry>
-> +change. This field is not used by SDR tuners.</para></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -234,7 +235,28 @@ settles at zero, &ie; range is what? --></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[4]</entry>
-> +	    <entry><structfield>sample_rate</structfield></entry>
-> +	    <entry spanname="hspan">Sampling rate used by a SDR tuner, in Hz.
-> +		    This value is valid only for SDR tuners.</entry>
-
-Are frequencies >4GHz ever likely for SDR? If so, then a u64 might be needed
-here.
-
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>bandwidth</structfield></entry>
-> +	    <entry spanname="hspan">Bandwidth allowed by the SDR tuner
-> +		    low-pass saw filter, in Hz. This value is valid only for
-> +		    SDR tuners.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>int_freq</structfield></entry>
-> +	    <entry spanname="hspan">Intermediate Frequency (IF) used by
-> +	    the tuner, in Hz. This value is valid only for
-> +	    <constant>VIDIOC_G_TUNER</constant>, and it is valid only
-> +	    on SDR tuners.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[3]</entry>
-
-It's not clear from this doc that this is an anonymous union. See e.g. the
-decoder_cmd documentation how that is done elsewhere.
-
->  	    <entry spanname="hspan">Reserved for future extensions. Drivers and
->  applications must set the array to zero.</entry>
->  	  </row>
-> diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-> index 878d2c4..c61163f 100644
-> --- a/drivers/media/tuners/tuner-xc2028.c
-> +++ b/drivers/media/tuners/tuner-xc2028.c
-> @@ -1020,6 +1020,8 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
->  	 * Maybe this might also be needed for DTV.
->  	 */
->  	switch (new_type) {
-> +	default:			/* SDR currently not supported */
-> +		goto ret;
->  	case V4L2_TUNER_ANALOG_TV:
->  		rc = send_seq(priv, {0x00, 0x00});
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 58c1744..223fcd4 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -1886,7 +1886,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
 >  
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 974c49d..c002030 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -160,6 +160,22 @@ enum v4l2_tuner_type {
->  	V4L2_TUNER_RADIO	     = 1,
->  	V4L2_TUNER_ANALOG_TV	     = 2,
->  	V4L2_TUNER_DIGITAL_TV	     = 3,
-> +/*
-> + * Even not decoding the signal, SDR tuners may require to adjust IF,
-> + * low pass filters, center frequency, etc based on the signal envelope,
-> + * and its bandwidth. While we might be using here the V4L2_STD_*
-> + * types, plus DVB delsys, that doesn't seem to be the better thing to
-
-delsys? Is that a typo or is that DVB terminology that I am unfamiliar with?
-
-s/better/best/
-
-> + * do, as:
-> + *	1) it would require 64 bits for V4L2 std + 32 bits for DVB std;
-> + *	2) non-TV types of envelopes won't work.
-> + *
-> + * So, add a separate enum to describe the possible types of SDR envelopes.
-> + */
-> +	V4L2_TUNER_SDR_RADIO = 10,	/* Generic non-optimized Radio range */
-
-I'd go with 0x10, just in case we ever need to do some bitmask magic.
-
-> +	V4L2_TUNER_SDR_ATV,		/* Optimize for Analog TV */
-> +	V4L2_TUNER_SDR_DTV_ATSC,	/* Optimize for Digital TV, ATSC */
-> +	V4L2_TUNER_SDR_DTV_DVBT,	/* Optimize for Digital TV, DVB-T */
-> +	V4L2_TUNER_SDR_DTV_ISDBT,	/* Optimize for Digital TV, ISDB-T */
->  };
+>  	vb = q->bufs[buffer];
 >  
->  enum v4l2_memory {
-> @@ -1291,6 +1307,7 @@ struct v4l2_querymenu {
->  /*
->   *	T U N I N G
->   */
-> +
->  struct v4l2_tuner {
->  	__u32                   index;
->  	__u8			name[32];
-> @@ -1298,11 +1315,26 @@ struct v4l2_tuner {
->  	__u32			capability;
->  	__u32			rangelow;
->  	__u32			rangehigh;
-> -	__u32			rxsubchans;
-> -	__u32			audmode;
-> +
-> +	union {
-> +		/* non-SDR tuners */
-> +		struct {
-> +			__u32	rxsubchans;
-> +			__u32	audmode;
-> +		};
-> +		/* SDR tuners - audio demod data makes no sense here */
-> +		struct {
-> +			__u32	sample_rate;	/* Sample rate, in Hz */
-> +			__u32	bandwidth;	/* Bandwidth, in Hz */
-> +		};
-> +	};
-> +
->  	__s32			signal;
->  	__s32			afc;
-> -	__u32			reserved[4];
-> +
-> +		__u32	int_freq;	/* Read Only - IF used, in Hz */
-> +	/* non-SDR tuners */
-> +	__u32		reserved[3];
->  };
+> -	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
+> +	if (PAGE_ALIGN(vb->v4l2_planes[plane].length) < (vma->vm_end - vma->vm_start)) {
+>  		dprintk(1, "Invalid length\n");
+>  		return -EINVAL;
+>  	}
 
-Before we finalize this API we must be really certain that all the fields we
-need for the SDR tuner can actually fit in this struct. If we are not certain,
-then a G/S_SDR_TUNER ioctl might be more appropriate.
+That is tricky, as it assumes that vb->v4l2_planes[plane].length was round
+up to PAGE_SIZE at each memops driver, but the vb2 core doesn't enforce it.
 
-Regards,
+IMO, it would be cleaner to round vb->v4l2_planes[plane].length up
+at VB2 core, before calling the memops alloc functions at the drivers.
 
-	Hans
+Also, VB2 is already complex enough to put it there without proper
+comments (and there's a minor codingstyle issue there: line is bigger
+than 80 cols).
 
+> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> index 313d977..bf3b95c 100644
+> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> @@ -44,7 +44,7 @@ static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fl
+>  		return NULL;
 >  
->  struct v4l2_modulator {
-> 
+>  	buf->size = size;
+> -	buf->vaddr = vmalloc_user(buf->size);
+> +	buf->vaddr = vmalloc_user(PAGE_ALIGN(buf->size));
+
+See? You needed to put an alignment here as well, not because vmalloc
+needs it, but because this is needed by VB2 core.
+
+Also, on the other drivers, buf->size is stored page aligned, while
+here, you're doing different, without any documented reason for doing
+that, instead of doing the same as on the other memops drivers.
+
+That mistake reflects, for example, when the driver prints the failure:
+
+        if (!buf->vaddr) {
+                pr_debug("vmalloc of size %ld failed\n", buf->size);
+
+as it will show a different size than what you actually required.
+As those memory starving errors can also produce a dump at the mm
+core, the size there won't match the size on the above printed message.
+
+Also, it is a very bad idea to delegate the core's requirement of
+do page alignment from the core to the memops drivers, as other
+patches may change the logic there, or a new memops could be added,
+and the same problem will hit again (and unnoticed, as the check
+routine do page alignments).
+
+>  	buf->handler.refcount = &buf->refcount;
+>  	buf->handler.put = vb2_vmalloc_put;
+>  	buf->handler.arg = buf;
+
+IMO, a cleaner version would be the following (untested) code.
+
+-
+
+[media] videobuf2: fix the length check for mmap
+
+Memory maps typically require that the buffer size to be page
+aligned. Currently, two memops drivers do such alignment
+internally, but videobuf-vmalloc doesn't.
+
+Also, the buffer overflow check doesn't take it into account.
+
+So, instead of doing it at each memops driver, enforce it at
+VB2 core.
+
+Reported-by: Prabhakar lad <prabhakar.csengg@gmail.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 58c1744..7d833ee 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -54,10 +54,15 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+ 	void *mem_priv;
+ 	int plane;
+ 
+-	/* Allocate memory for all planes in this buffer */
++	/*
++	 * Allocate memory for all planes in this buffer
++	 * NOTE: mmapped areas should be page aligned
++	 */
+ 	for (plane = 0; plane < vb->num_planes; ++plane) {
++		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
++
+ 		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+-				      q->plane_sizes[plane], q->gfp_flags);
++				      size, q->gfp_flags);
+ 		if (IS_ERR_OR_NULL(mem_priv))
+ 			goto free;
+ 
+@@ -1852,6 +1857,7 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 	struct vb2_buffer *vb;
+ 	unsigned int buffer, plane;
+ 	int ret;
++	unsigned long length;
+ 
+ 	if (q->memory != V4L2_MEMORY_MMAP) {
+ 		dprintk(1, "Queue is not currently set up for mmap\n");
+@@ -1886,8 +1892,15 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
+ 
+ 	vb = q->bufs[buffer];
+ 
+-	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
+-		dprintk(1, "Invalid length\n");
++	/*
++	 * MMAP requires page_aligned buffers.
++	 * The buffer length was page_aligned at __vb2_buf_mem_alloc(),
++	 * so, we need to do the same here.
++	 */
++	length = PAGE_ALIGN(vb->v4l2_planes[plane].length);
++	if (length < (vma->vm_end - vma->vm_start)) {
++		dprintk(1,
++			"MMAP invalid, as it would overflow buffer length\n");
+ 		return -EINVAL;
+ 	}
+ 
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+index ae35d25..fd56f25 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+@@ -162,9 +162,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ 	if (!buf)
+ 		return ERR_PTR(-ENOMEM);
+ 
+-	/* align image size to PAGE_SIZE */
+-	size = PAGE_ALIGN(size);
+-
+ 	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+ 						GFP_KERNEL | gfp_flags);
+ 	if (!buf->vaddr) {
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 59522b2..16ae3dc 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -55,7 +55,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 	buf->write = 0;
+ 	buf->offset = 0;
+ 	buf->sg_desc.size = size;
+-	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
++	/* size is already page aligned */
++	buf->sg_desc.num_pages = size >> PAGE_SHIFT;
+ 
+ 	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
+ 				      sizeof(*buf->sg_desc.sglist));
+
