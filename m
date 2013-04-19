@@ -1,98 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:17001 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753343Ab3D0O2o (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Apr 2013 10:28:44 -0400
-Date: Sat, 27 Apr 2013 11:28:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Patrick Boettcher <pboettcher@kernellabs.com>
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3032 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757470Ab3DSK31 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Apr 2013 06:29:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 00/24] V4L2: subdevice pad-level API wrapper
+Date: Fri, 19 Apr 2013 12:29:16 +0200
 Cc: linux-media@vger.kernel.org,
-	Olivier GRENIE <olivier.grenie@parrot.com>,
-	Patrick BOETTCHER <patrick.boettcher@parrot.com>
-Subject: Re: [GIT PULL FOR 3.10] DiBxxxx: fixes and improvements
-Message-ID: <20130427112833.203d7fbb@redhat.com>
-In-Reply-To: <1411209.JetyNPSOgp@dibcom294>
-References: <1411209.JetyNPSOgp@dibcom294>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201304191229.16233.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Patrick,
-
-Em Mon, 22 Apr 2013 10:12:34 +0200
-Patrick Boettcher <pboettcher@kernellabs.com> escreveu:
-
-> Hi Mauro,
+On Thu April 18 2013 23:35:21 Guennadi Liakhovetski wrote:
+> This is the first very crude shot at the subdevice pad-level API wrapper.
+> The actual wrapper is added in patch #21, previous 20 patches are
+> preparation... They apply on top of the last version of my async / clock
+> patch series, respectively, on top of the announced branch of my linuxtv
+> git-tree. Patches 2 and 4 from this series should actually be merged into
+> respective patches from the async series.
 > 
-> These patches contains some fixes and changes for the DiBcom demods and 
-> SIPs.
+> I'm publishing this patch-series now, because I don't know when and how
+> much time I'll have to improve it... Maybe you don't want to spend too much
+> time reviewing implementation details, but comments to general concepts
+> would be appreciated.
 > 
-> Please merge for 3.10 if possible.
-> 
-> 
-> The following changes since commit 60d509fa6a9c4653a86ad830e4c4b30360b23f0e:
-> 
->   Linux 3.9-rc8 (2013-04-21 14:38:45 -0700)
-> 
-> are available in the git repository at:
-> 
->   git://git.linuxtv.org/pb/media_tree.git/ master
+> Further note, that patches 8-12 aren't really required. We can keep the
+> deprecated struct soc_camera_link for now, or use a more gentle and slow
+> way to remove it.
 
-Hmm... I suspect that there's something wrong with those changes.
+I just wanted to say that there is much here that I like very a lot. I
+would suggest splitting the patch series in two: first the struct
+v4l2_subdev_platform_data & soc_camera_link removal, then the patches
+dealing with the pad-level API.
 
-Testing it with a dib8076 usb stick seems that the code is worse than
-before, as it is now harder to get a lock here.
-
-With the previous code:
-
-INFO     Scanning frequency #1 725142857
-Carrier(0x03) Signal= 67.46% C/N= 0.00% UCB= 0 postBER= 0
-Viterbi(0x05) Signal= 67.08% C/N= 0.00% UCB= 0 postBER= 2097151
-Viterbi(0x07) Signal= 67.54% C/N= 0.25% UCB= 165 postBER= 0
-Sync   (0x0f) Signal= 67.06% C/N= 0.23% UCB= 151 postBER= 0
-Lock   (0x1f) Signal= 67.58% C/N= 0.24% UCB= 160 postBER= 338688
-Service #0 (60320) BAND HD channel 57.1.0
-Service #1 (60345) BAND 1SEG channel 57.1.1
-
-With the new code:
-
-INFO     Scanning frequency #1 725142857
-       (0x00) Signal= 68.80% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.78% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.69% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.82% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.29% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.27% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.28% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.27% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.55% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.50% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.43% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.65% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.75% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.29% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.28% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.25% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.43% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.46% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.43% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.90% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.50% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.28% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.22% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.22% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.43% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.41% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.41% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 68.96% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.42% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.24% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.22% C/N= 0.00% UCB= 0 postBER= 0
-RF     (0x01) Signal= 69.25% C/N= 0.00% UCB= 0 postBER= 0
-
-So, it seems that the changes broke something.
+The first part looks very nice, really the only problem I have there is
+with the host_priv field, which should be easy enough to fix.
 
 Regards,
-Mauro
+
+	Hans
