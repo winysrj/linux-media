@@ -1,50 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from racoon.tvdr.de ([188.40.50.18]:56318 "EHLO racoon.tvdr.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755149Ab3D0PTE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Apr 2013 11:19:04 -0400
-Received: from dolphin.tvdr.de (dolphin.tvdr.de [192.168.100.2])
-	by racoon.tvdr.de (8.14.5/8.14.5) with ESMTP id r3REpV8A003949
-	for <linux-media@vger.kernel.org>; Sat, 27 Apr 2013 16:51:32 +0200
-Received: from [192.168.100.11] (falcon.tvdr.de [192.168.100.11])
-	by dolphin.tvdr.de (8.14.4/8.14.4) with ESMTP id r3REpQxv028458
-	for <linux-media@vger.kernel.org>; Sat, 27 Apr 2013 16:51:26 +0200
-Message-ID: <517BE5EE.6050004@tvdr.de>
-Date: Sat, 27 Apr 2013 16:51:26 +0200
-From: Klaus Schmidinger <Klaus.Schmidinger@tvdr.de>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4238 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751712Ab3DSI0p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Apr 2013 04:26:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH 06/24] V4L2: add a common V4L2 subdevice platform data type
+Date: Fri, 19 Apr 2013 10:26:34 +0200
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <201304190933.33775.hverkuil@xs4all.nl> <Pine.LNX.4.64.1304190941280.591@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1304190941280.591@axis700.grange>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [linux-media] stb0899: no lock on dvb-s2 transponders in SCR
- environment
-References: <517BC11E.50105@gmx.de>
-In-Reply-To: <517BC11E.50105@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201304191026.34360.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 27.04.2013 14:14, Reinhard Nissl wrote:
-> Hi,
->
-> my stb0899 card works properly on dvb-s and dvb-s2 transponders when using a direct port on my sat multiswitch.
->
-> When using a SCR port on that multiswitch and changing VDR's config files accordingly, it only locks on dvb-s transponders.
->
-> A SCR converts the selected transponder's frequency after the LNB (IF1) to a fixed frequency (for example 1076 MHz) by mixing the signal with a local oscialator frequency above IF1 so that the lower sideband of the mixing product appears at 1076 MHz.
->
-> The lower sideband's spectrum is mirrored compared to the upper sideband, which is identical to the original spectrum on the original IF1.
->
-> Could that be the reason why the stb0899 cannot lock on dvb-s2 transponders in an SCR environment?
->
-> Any ideas on how to get a lock on dvb-s2 transponders?
+On Fri April 19 2013 09:48:27 Guennadi Liakhovetski wrote:
+> Hi Hans
+> 
+> Thanks for reviewing.
+> 
+> On Fri, 19 Apr 2013, Hans Verkuil wrote:
+> 
+> > On Thu April 18 2013 23:35:27 Guennadi Liakhovetski wrote:
+> > > This struct shall be used by subdevice drivers to pass per-subdevice data,
+> > > e.g. power supplies, to generic V4L2 methods, at the same time allowing
+> > > optional host-specific extensions via the host_priv pointer. To avoid
+> > > having to pass two pointers to those methods, add a pointer to this new
+> > > struct to struct v4l2_subdev.
+> > > 
+> > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > ---
+> > >  include/media/v4l2-subdev.h |   13 +++++++++++++
+> > >  1 files changed, 13 insertions(+), 0 deletions(-)
+> > > 
+> > > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > > index eb91366..b15c6e0 100644
+> > > --- a/include/media/v4l2-subdev.h
+> > > +++ b/include/media/v4l2-subdev.h
+> > > @@ -561,6 +561,17 @@ struct v4l2_subdev_internal_ops {
+> > >  /* Set this flag if this subdev generates events. */
+> > >  #define V4L2_SUBDEV_FL_HAS_EVENTS		(1U << 3)
+> > >  
+> > > +struct regulator_bulk_data;
+> > > +
+> > > +struct v4l2_subdev_platform_data {
+> > > +	/* Optional regulators uset to power on/off the subdevice */
+> > > +	struct regulator_bulk_data *regulators;
+> > > +	int num_regulators;
+> > > +
+> > > +	/* Per-subdevice data, specific for a certain video host device */
+> > > +	void *host_priv;
+> > > +};
+> > > +
+> > >  /* Each instance of a subdev driver should create this struct, either
+> > >     stand-alone or embedded in a larger struct.
+> > >   */
+> > > @@ -589,6 +600,8 @@ struct v4l2_subdev {
+> > >  	/* pointer to the physical device */
+> > >  	struct device *dev;
+> > >  	struct v4l2_async_subdev_list asdl;
+> > > +	/* common part of subdevice platform data */
+> > > +	struct v4l2_subdev_platform_data *pdata;
+> > >  };
+> > >  
+> > >  static inline struct v4l2_subdev *v4l2_async_to_subdev(
+> > > 
+> > 
+> > Sorry, this is the wrong approach.
+> > 
+> > This is data that is of no use to the subdev driver itself. It really is
+> > v4l2_subdev_host_platform_data, and as such must be maintained by the bridge
+> > driver.
+> 
+> I don't think so. It has been discussed and agreed upon, that only 
+> subdevice drivers know when to switch power on and off, because only they 
+> know when they need to access the hardware. So, they have to manage 
+> regulators. In fact, those regulators supply power to respective 
+> subdevices, e.g. a camera sensor. Why should the bridge driver manage 
+> them? The V4L2 core can (and probably should) provide helper functions for 
+> that, like soc-camera currently does, but in any case it's the subdevice 
+> driver, that has to call them.
 
-Just wanted to let you know that I can confirm the problem with
-the stb0899. On my TT S2-6400 I can receive DVB-S and DVB-S2 just
-fine with SCR. During development of SCR support for VDR I guess
-I did all tests with the 6400, so I didn't come across this problem.
-However, as a reaction to your posting I explicitly tested it with
-my budget cards, and there I indeed can only tune to DVB-S transponders.
+Ah, OK. I just realized I missed some context there. I didn't pay much
+attention to the regulator discussions since that's not my area of expertise.
 
-No idea how to solve this, though...
+In that case my only comment is to drop the host_priv pointer since that just
+duplicates v4l2_get/set_subdev_hostdata().
 
-Klaus
+Regards,
+
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> 
+> > It can use v4l2_get/set_subdev_hostdata() to associate this struct with a
+> > subdev, though.
+> > 
+> > Regards,
+> > 
+> > 	Hans
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
