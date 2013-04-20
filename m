@@ -1,177 +1,195 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3801 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755979Ab3DSHMW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 03:12:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: Keene
-Date: Fri, 19 Apr 2013 09:12:06 +0200
-Cc: LMML <linux-media@vger.kernel.org>
-References: <5167513D.60804@iki.fi> <201304150855.07081.hverkuil@xs4all.nl> <516EFBD4.7030601@iki.fi>
-In-Reply-To: <516EFBD4.7030601@iki.fi>
+Received: from mx1.redhat.com ([209.132.183.28]:10614 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753871Ab3DTRvY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Apr 2013 13:51:24 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3KHpOn6031518
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:51:24 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v2 0/3] Add SDR at V4L2 API
+Date: Sat, 20 Apr 2013 14:51:11 -0300
+Message-Id: <1366480274-31255-1-git-send-email-mchehab@redhat.com>
+In-Reply-To: <366469499-31640-1-git-send-email-mchehab@redhat.com>
+References: <366469499-31640-1-git-send-email-mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304190912.06319.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=true
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed April 17 2013 21:45:24 Antti Palosaari wrote:
-> On 04/15/2013 09:55 AM, Hans Verkuil wrote:
-> > On Fri April 12 2013 02:11:41 Antti Palosaari wrote:
-> >> Hello Hans,
-> >> That device is working very, thank you for it. Anyhow, I noticed two things.
-> >>
-> >> 1) it does not start transmitting just after I plug it - I have to
-> >> retune it!
-> >> Output says it is tuned to 95.160000 MHz by default, but it is not.
-> >> After I issue retune, just to same channel it starts working.
-> >> $ v4l2-ctl -d /dev/radio0 --set-freq=95.16
-> >
-> > Can you try this patch:
-> >
-> 
-> It does not resolve the problem. It is quite strange behavior. After I 
-> install modules, and modules are unload, plug stick in first time, it 
-> usually (not every-time) starts TX. But when I replug it without 
-> unloading modules, it will never start TX. Tx is started always when I 
-> set freq using v4l2-ctl.
+This is a version 2 of the V4L2 API bits to support Software Digital
+Radio (SDR).
 
-If you replace 'false' by 'true' in the cmd_main, does that make it work?
-I'm fairly certain that's the problem.
 
-> 
-> Possible timing issue?
-> 
-> 
-> Is there some flag API flag to tell start / stop device? For my mind 
-> correct behavior is to stop TX and sleep when device is plugged/module 
-> load. Something like set freq 0 when device is not active to tell user 
-> it is not sending/receiving and must be tuned in order to operate.
+The changes from version 1 are:
+	- fix compilation;
+	- add a new capture type for SDR (V4L2_BUF_TYPE_SDR_CAPTURE),
+	  with the corresponding documentation;
+	- remove legacy V4L1 buffer types from videobuf2.h.
 
-This is actually a core problem with the radio API: there is no clear
-way of turning the tuner or modulator on and off on command. With video
-you know that you can turn off the tuner if no filehandle is open. But
-with radio you do not have that luxury since audio can go through alsa
-or through an audio jack.
+With regards to VIDIOC_S_TUNER, what's currently defined there is
+that, in contrary to what a radio device does, this ioctl would
+set the input.
 
-One option is to use mute. Most radio receivers start off muted and you
-have to unmute first. This could be used as a signal for receivers to
-turn the tuner on/off. But for a modulator that's not an option: turning
-off the modulator means turning off the transmitter, and that's not what
-you want if you are, say, the presenter of a radio program and you want
-to quickly mute because you feel a sneeze coming :-)
+This patch adds the very basic stuff for SDR:
 
-I think we need a specific API for this, but in the absence of one we should
-just leave the modulator enabled from the start.
+	- a separate devnode;
+	- an VIDIOC_QUERYCAP caps for SDR;
+	- a fourcc group for SDR;
+	- a few DocBook bits.
 
-Regards,
+What's missing:
+	- SDR specific controls;
+	- Sample rate config;
+	...
 
-	Hans
+As discussing DocBook changes inside the patch is hard, I'm adding here
+the DocBook formatted changes.
 
-> 
-> 
-> regards
-> Antti
-> 
-> 
-> 
-> 
-> 
-> 
-> > diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
-> > index 4c9ae76..99da3d4 100644
-> > --- a/drivers/media/radio/radio-keene.c
-> > +++ b/drivers/media/radio/radio-keene.c
-> > @@ -93,7 +93,7 @@ static int keene_cmd_main(struct keene_device *radio, unsigned freq, bool play)
-> >   	/* If bit 4 is set, then tune to the frequency.
-> >   	   If bit 3 is set, then unmute; if bit 2 is set, then mute.
-> >   	   If bit 1 is set, then enter idle mode; if bit 0 is set,
-> > -	   then enter transit mode.
-> > +	   then enter transmit mode.
-> >   	 */
-> >   	radio->buffer[5] = (radio->muted ? 4 : 8) | (play ? 1 : 2) |
-> >   							(freq ? 0x10 : 0);
-> > @@ -350,7 +350,6 @@ static int usb_keene_probe(struct usb_interface *intf,
-> >   	radio->pa = 118;
-> >   	radio->tx = 0x32;
-> >   	radio->stereo = true;
-> > -	radio->curfreq = 95.16 * FREQ_MUL;
-> >   	if (hdl->error) {
-> >   		retval = hdl->error;
-> >
-> > @@ -383,6 +382,8 @@ static int usb_keene_probe(struct usb_interface *intf,
-> >   	video_set_drvdata(&radio->vdev, radio);
-> >   	set_bit(V4L2_FL_USE_FH_PRIO, &radio->vdev.flags);
-> >
-> > +	keene_cmd_main(radio, 95.16 * FREQ_MUL, false);
-> > +
-> >   	retval = video_register_device(&radio->vdev, VFL_TYPE_RADIO, -1);
-> >   	if (retval < 0) {
-> >   		dev_err(&intf->dev, "could not register video device\n");
-> >
-> >
-> >> 2) What is that log printing?
-> >> ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2
-> >> (id 13)
-> >>
-> >>
-> >> usb 5-2: new full-speed USB device number 3 using ohci_hcd
-> >> usb 5-2: New USB device found, idVendor=046d, idProduct=0a0e
-> >> usb 5-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> >> usb 5-2: Product: B-LINK USB Audio
-> >> usb 5-2: Manufacturer: HOLTEK
-> >> ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2
-> >> (id 13)
-> >> radio-keene 5-2:1.2: V4L2 device registered as radio0
-> >
-> > No idea, and I don't get that message either.
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> >>
-> >>
-> >> $ v4l2-ctl -d /dev/radio0 --all -L
-> >> Driver Info (not using libv4l2):
-> >> 	Driver name   : radio-keene
-> >> 	Card type     : Keene FM Transmitter
-> >> 	Bus info      : usb-0000:00:13.0-2
-> >> 	Driver version: 3.9.0
-> >> 	Capabilities  : 0x800C0000
-> >> 		Modulator
-> >> 		Radio
-> >> Frequency: 1522560 (95.160000 MHz)
-> >> Modulator:
-> >> 	Name                 : FM
-> >> 	Capabilities         : 62.5 Hz stereo
-> >> 	Frequency range      : 76.0 MHz - 108.0 MHz
-> >> 	Subchannel modulation: stereo
-> >> Priority: 2
-> >>
-> >> User Controls
-> >>
-> >>                              mute (bool)   : default=0 value=0
-> >>
-> >> FM Radio Modulator Controls
-> >>
-> >>            audio_compression_gain (int)    : min=-15 max=18 step=3
-> >> default=0 value=0 flags=slider
-> >>                      pre_emphasis (menu)   : min=0 max=2 default=1 value=1
-> >> 				1: 50 Microseconds
-> >> 				2: 75 Microseconds
-> >>                  tune_power_level (int)    : min=84 max=118 step=1
-> >> default=118 value=118 flags=slider
-> >>
-> >>
-> >> regards
-> >> Antti
-> >>
-> >>
-> 
-> 
-> 
+The DocBook changes add the following bits:
+
+At Chapter 1. Common API Elements, it adds:
+
+<text>
+Software Digital Radio (SDR) Tuners and Modulators
+==================================================
+
+Those devices are special types of Radio devices that don't have any 
+analog demodulator. Instead, it samples the radio IF or baseband and 
+sends the samples for userspace to demodulate. 
+
+Tuners
+======
+
+SDR receivers can have one or more tuners sampling RF signals. Each 
+tuner is associated with one or more inputs, depending on the number of 
+RF connectors on the tuner. The type field of the respective struct 
+v4l2_input returned by the VIDIOC_ENUMINPUT ioctl is set to 
+V4L2_INPUT_TYPE_TUNER and its tuner field contains the index number of 
+the tuner input.
+
+To query and change tuner properties applications use the VIDIOC_G_TUNER 
+and VIDIOC_S_TUNER ioctl, respectively. The struct v4l2_tuner returned 
+by VIDIOC_G_TUNER also contains signal status information applicable 
+when the tuner of the current SDR input is queried. In order to change 
+the SDR input, VIDIOC_S_TUNER with a new SDR index should be called. 
+Drivers must support both ioctls and set the V4L2_CAP_SDR and 
+V4L2_CAP_TUNER flags in the struct v4l2_capability returned by the 
+VIDIOC_QUERYCAP ioctl.
+
+Modulators
+==========
+
+To be defined.
+</text>
+
+At the end of Chapter 2. Image Formats, it adds:
+
+<text>
+SDR format struture
+===================
+
+Table 2.4. struct v4l2_sdr_format
+=================================
+
+__u32	sampleformat	The format of the samples used by the SDR device.
+			This is a little endian four character code.
+
+Table 2.5. SDR formats
+======================
+
+V4L2_SDR_FMT_I8Q8	Samples are given by a sequence of 8 bits in-phase(I)
+			and 8 bits quadrature (Q) samples taken from a
+			signal(t) represented by the following expression:
+			signal(t) = I * cos(2π fc t) - Q * sin(2π fc t)
+</text>
+
+Of course, other formats will be needed at Table 2.5, as SDR could also 
+be taken baseband samples, being, for example, a simple sequence of 
+equally time-spaced digitalized samples of the signal in time.
+SDR samples could also use other resolutions, use a non-linear
+(A-law, u-law) ADC, or even compress the samples (with ADPCM, for 
+example). So, this table will grow as newer devices get added, and an
+userspace library may be required to convert them into some common
+format.
+
+At "Chapter 4. Interfaces", it adds the following text:
+
+<text>
+Software Digital Radio(SDR) Interface
+=====================================
+
+This interface is intended for Software Digital Radio (SDR) receivers 
+and transmitters.
+
+Conventionally V4L2 SDR devices are accessed through character device 
+special files named /dev/sdr0 to/dev/radio255 and uses a dynamically 
+allocated major/minor number.
+
+Querying Capabilities
+=====================
+
+Devices supporting the radio interface set the V4L2_CAP_SDR and 
+V4L2_CAP_TUNER or V4L2_CAP_MODULATOR flag in the capabilities field of 
+struct v4l2_capability returned by the VIDIOC_QUERYCAP ioctl. Other 
+combinations of capability flags are reserved for future extensions. 
+
+Supplemental Functions
+======================
+
+SDR receivers should support tuner ioctls.
+
+SDR transmitter ioctl's will be defined in the future.
+
+SDR devices should also support one or more of the following I/O ioctls: 
+read or write, memory mapped IO, user memory IO and/or DMA buffers.
+
+SDR devices can also support controls ioctls.
+
+The SDR Input/Output are A/D or D/A samples taken from a modulated 
+signal, and can eventually be packed by the hardware. They are generally 
+encoded using cartesian in-phase/quadrature (I/Q) samples, to make 
+demodulation easier. The format of the samples should be according with 
+SDR format.
+</text>
+
+Note: "SDR format" on the last paragraph is an hyperlink to
+Chapter 2. Image Formats.
+
+At "Appendix A. Function Reference - ioctl VIDIOC_QUERYCAP", it adds:
+
+<text>
+Table A.93. Device Capabilities Flags
+...
+V4L2_CAP_SDR	0x00100000	The device is a Software Digital Radio. 
+				For more information about SDR programming
+				see the section called “Software Digital 
+				Radio (SDR) Tuners and Modulators”.
+</text>
+
+Mauro Carvalho Chehab (3):
+  [media] Add SDR at V4L2 API
+  videodev2.h: Remove the unused old V4L1 buffer types
+  [media] V4L2 api: Add a buffer capture type for SDR
+
+ Documentation/DocBook/media/v4l/common.xml         | 35 ++++++++++++++++++
+ Documentation/DocBook/media/v4l/dev-capture.xml    | 26 ++++++++------
+ Documentation/DocBook/media/v4l/io.xml             |  6 ++++
+ Documentation/DocBook/media/v4l/pixfmt.xml         | 41 ++++++++++++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
+ .../DocBook/media/v4l/vidioc-querycap.xml          |  7 ++++
+ drivers/media/v4l2-core/v4l2-dev.c                 |  3 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c               | 32 +++++++++++++++++
+ include/media/v4l2-dev.h                           |  3 +-
+ include/media/v4l2-ioctl.h                         |  8 +++++
+ include/uapi/linux/videodev2.h                     | 33 +++++++----------
+ 11 files changed, 163 insertions(+), 32 deletions(-)
+
+-- 
+1.8.1.4
+
