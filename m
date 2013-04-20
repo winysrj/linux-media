@@ -1,52 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:59918 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753660Ab3DVOGV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 10:06:21 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLN006ONTTN4QE0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Apr 2013 23:06:20 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 07/12] exynos4-is: Unregister fimc-is subdevs from the media
- device properly
-Date: Mon, 22 Apr 2013 16:03:42 +0200
-Message-id: <1366639427-14253-8-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
-References: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:62126 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752952Ab3DTRvX (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Apr 2013 13:51:23 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3KHpM3a022843
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:51:23 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFC v2 2/3] videodev2.h: Remove the unused old V4L1 buffer types
+Date: Sat, 20 Apr 2013 14:51:13 -0300
+Message-Id: <1366480274-31255-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366480274-31255-1-git-send-email-mchehab@redhat.com>
+References: <366469499-31640-1-git-send-email-mchehab@redhat.com>
+ <1366480274-31255-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add missing v4l2_device_unregister_subdev() call for the FIMC-IS subdevs
-(currently there is only the FIMC-IS-ISP subdev) so corresponding resources
-are properly freed upon the media device driver module removal.
+Those aren't used anywhere for a long time. Drop it.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/exynos4-is/media-dev.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ include/uapi/linux/videodev2.h | 21 ---------------------
+ 1 file changed, 21 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 1dbd554..a371ee5 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -823,6 +823,10 @@ static void fimc_md_unregister_entities(struct fimc_md *fmd)
- 		fimc_md_unregister_sensor(fmd->sensor[i].subdev);
- 		fmd->sensor[i].subdev = NULL;
- 	}
-+
-+	if (fmd->fimc_is)
-+		v4l2_device_unregister_subdev(&fmd->fimc_is->isp.subdev);
-+
- 	v4l2_info(&fmd->v4l2_dev, "Unregistered all entities\n");
- }
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 4aa24c3..5d8ee92 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -72,27 +72,6 @@
+ #define VIDEO_MAX_FRAME               32
+ #define VIDEO_MAX_PLANES               8
  
+-#ifndef __KERNEL__
+-
+-/* These defines are V4L1 specific and should not be used with the V4L2 API!
+-   They will be removed from this header in the future. */
+-
+-#define VID_TYPE_CAPTURE	1	/* Can capture */
+-#define VID_TYPE_TUNER		2	/* Can tune */
+-#define VID_TYPE_TELETEXT	4	/* Does teletext */
+-#define VID_TYPE_OVERLAY	8	/* Overlay onto frame buffer */
+-#define VID_TYPE_CHROMAKEY	16	/* Overlay by chromakey */
+-#define VID_TYPE_CLIPPING	32	/* Can clip */
+-#define VID_TYPE_FRAMERAM	64	/* Uses the frame buffer memory */
+-#define VID_TYPE_SCALES		128	/* Scalable */
+-#define VID_TYPE_MONOCHROME	256	/* Monochrome only */
+-#define VID_TYPE_SUBCAPTURE	512	/* Can capture subareas of the image */
+-#define VID_TYPE_MPEG_DECODER	1024	/* Can decode MPEG streams */
+-#define VID_TYPE_MPEG_ENCODER	2048	/* Can encode MPEG streams */
+-#define VID_TYPE_MJPEG_DECODER	4096	/* Can decode MJPEG streams */
+-#define VID_TYPE_MJPEG_ENCODER	8192	/* Can encode MJPEG streams */
+-#endif
+-
+ /*
+  *	M I S C E L L A N E O U S
+  */
 -- 
-1.7.9.5
+1.8.1.4
 
