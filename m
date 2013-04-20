@@ -1,60 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:48101 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935212Ab3DPDKv (ORCPT
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:59620 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965091Ab3DTALi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 23:10:51 -0400
-Received: by mail-pb0-f53.google.com with SMTP id un15so31247pbc.40
-        for <linux-media@vger.kernel.org>; Mon, 15 Apr 2013 20:10:51 -0700 (PDT)
-Date: Mon, 15 Apr 2013 20:10:49 -0700 (PDT)
-From: David Rientjes <rientjes@google.com>
-To: Antti Palosaari <crope@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-cc: Randy Dunlap <rdunlap@infradead.org>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH -next] media:
-In-Reply-To: <516461FE.4020007@iki.fi>
-Message-ID: <alpine.DEB.2.02.1304152010180.3952@chino.kir.corp.google.com>
-References: <20130408174343.cc13eb1972470d20d38ecff1@canb.auug.org.au> <51630297.2040803@infradead.org> <516461FE.4020007@iki.fi>
+	Fri, 19 Apr 2013 20:11:38 -0400
+Received: by mail-lb0-f182.google.com with SMTP id z13so4235049lbh.13
+        for <linux-media@vger.kernel.org>; Fri, 19 Apr 2013 17:11:36 -0700 (PDT)
+Message-ID: <5171DD05.6020400@cogentembedded.com>
+Date: Sat, 20 Apr 2013 04:10:45 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+CC: linux-media@vger.kernel.org, matsu@igel.co.jp,
+	Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Subject: Re: [PATCH v2 2/4] ARM: shmobile: r8a7779: add VIN support
+References: <201304200232.33731.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201304200232.33731.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 9 Apr 2013, Antti Palosaari wrote:
+Hello.
 
-> On 04/08/2013 08:47 PM, Randy Dunlap wrote:
-> > From: Randy Dunlap <rdunlap@infradead.org>
-> > 
-> > Fix randconfig error when USB is not enabled:
-> > 
-> > ERROR: "usb_control_msg" [drivers/media/common/cypress_firmware.ko]
-> > undefined!
-> > 
-> > Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> > Cc: Antti Palosaari <crope@iki.fi>
-> 
-> Reviewed-by: Antti Palosaari <crope@iki.fi>
-> 
-> 
-> > ---
-> >   drivers/media/common/Kconfig |    1 +
-> >   1 file changed, 1 insertion(+)
-> > 
-> > --- linux-next-20130408.orig/drivers/media/common/Kconfig
-> > +++ linux-next-20130408/drivers/media/common/Kconfig
-> > @@ -18,6 +18,7 @@ config VIDEO_TVEEPROM
-> > 
-> >   config CYPRESS_FIRMWARE
-> >   	tristate "Cypress firmware helper routines"
-> > +	depends on USB
-> > 
-> >   source "drivers/media/common/b2c2/Kconfig"
-> >   source "drivers/media/common/saa7146/Kconfig"
-> > 
+On 04/20/2013 02:32 AM, Sergei Shtylyov wrote:
 
-Mauro, this problem persists in linux-next seven days later, any chance we 
-can get this fix from Randy merged?
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>
+> Add VIN clocks and platform devices for R8A7779 SoC; add function to register
+> the VIN platform devices.
+>
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> [Sergei: added 'id' parameter check to r8a7779_add_vin_device(), renamed some
+> variables.]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
+[...]
+
+> Index: renesas/arch/arm/mach-shmobile/setup-r8a7779.c
+> ===================================================================
+> --- renesas.orig/arch/arm/mach-shmobile/setup-r8a7779.c
+> +++ renesas/arch/arm/mach-shmobile/setup-r8a7779.c
+> @@ -559,6 +559,33 @@ static struct resource ether_resources[]
+>   	},
+>   };
+>   
+> +#define R8A7779_VIN(idx) \
+> +static struct resource vin##idx##_resources[] = {		\
+> +	DEFINE_RES_MEM(0xffc50000 + 0x1000 * (idx), 0x1000),	\
+> +	DEFINE_RES_IRQ(gic_iid(0x5f + (idx))),			\
+> +};								\
+> +								\
+> +static struct platform_device_info vin##idx##_info = {		\
+
+    Hm, probably should have marked this as '__initdata'... maybe
+the resources too.
+
+> +	.parent		= &platform_bus,			\
+> +	.name		= "rcar_vin",				\
+> +	.id		= idx,					\
+> +	.res		= vin##idx##_resources,			\
+> +	.num_res	= ARRAY_SIZE(vin##idx##_resources),	\
+> +	.dma_mask	= DMA_BIT_MASK(32),			\
+> +}
+>
