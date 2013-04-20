@@ -1,138 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:58811 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936435Ab3DRVf5 (ORCPT
+Received: from mail-la0-f44.google.com ([209.85.215.44]:55578 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754358Ab3DTU3Y (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 17:35:57 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 07/24] soc-camera: switch to using the new struct v4l2_subdev_platform_data
-Date: Thu, 18 Apr 2013 23:35:28 +0200
-Message-Id: <1366320945-21591-8-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+	Sat, 20 Apr 2013 16:29:24 -0400
+Received: by mail-la0-f44.google.com with SMTP id ed20so1476190lab.31
+        for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:29:23 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH 3/5] ARM: shmobile: r8a7778: add VIN support
+Date: Sun, 21 Apr 2013 00:28:31 +0400
+Cc: linux-media@vger.kernel.org, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+References: <201304210013.46110.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201304210013.46110.sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304210028.32447.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This prepares soc-camera to use struct v4l2_subdev_platform_data for its
-subdevice-facing API, which would allow subdevice driver re-use.
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Add VIN clocks and platform devices on R8A7778 SoC; add function to register
+the VIN platform devices.
+
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+[Sergei: added 'id' parameter check to r8a7779_add_vin_device(), used '*pdata'
+in *sizeof* operator there, renamed some variables, marked 'vin[01]_info' as
+'__initdata'.]
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
 ---
- drivers/media/platform/soc_camera/soc_camera.c |   20 ++++++++++----------
- include/media/soc_camera.h                     |   17 +++++++++--------
- 2 files changed, 19 insertions(+), 18 deletions(-)
+ arch/arm/mach-shmobile/clock-r8a7778.c        |    5 +++
+ arch/arm/mach-shmobile/include/mach/r8a7778.h |    3 ++
+ arch/arm/mach-shmobile/setup-r8a7778.c        |   33 ++++++++++++++++++++++++++
+ 3 files changed, 41 insertions(+)
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index a790f81..c06e660 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -76,8 +76,8 @@ int soc_camera_power_on(struct device *dev, struct soc_camera_subdev_desc *ssdd,
- 		dev_err(dev, "Cannot enable clock: %d\n", ret);
- 		return ret;
- 	}
--	ret = regulator_bulk_enable(ssdd->num_regulators,
--					ssdd->regulators);
-+	ret = regulator_bulk_enable(ssdd->sd_pdata.num_regulators,
-+				    ssdd->sd_pdata.regulators);
- 	if (ret < 0) {
- 		dev_err(dev, "Cannot enable regulators\n");
- 		goto eregenable;
-@@ -95,8 +95,8 @@ int soc_camera_power_on(struct device *dev, struct soc_camera_subdev_desc *ssdd,
- 	return 0;
+Index: renesas/arch/arm/mach-shmobile/clock-r8a7778.c
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/clock-r8a7778.c
++++ renesas/arch/arm/mach-shmobile/clock-r8a7778.c
+@@ -106,6 +106,7 @@ static struct clk *main_clks[] = {
+ enum {
+ 	MSTP323, MSTP322, MSTP321,
+ 	MSTP114,
++	MSTP110, MSTP109,
+ 	MSTP100,
+ 	MSTP030, MSTP029,
+ 	MSTP028, MSTP027, MSTP026, MSTP025, MSTP024, MSTP023, MSTP022, MSTP021,
+@@ -117,6 +118,8 @@ static struct clk mstp_clks[MSTP_NR] = {
+ 	[MSTP322] = SH_CLK_MSTP32(&p_clk, MSTPCR3, 22, 0), /* SDHI1 */
+ 	[MSTP321] = SH_CLK_MSTP32(&p_clk, MSTPCR3, 21, 0), /* SDHI2 */
+ 	[MSTP114] = SH_CLK_MSTP32(&p_clk, MSTPCR1, 14, 0), /* Ether */
++	[MSTP110] = SH_CLK_MSTP32(&s_clk, MSTPCR1, 10, 0), /* VIN0 */
++	[MSTP109] = SH_CLK_MSTP32(&s_clk, MSTPCR1,  9, 0), /* VIN1 */
+ 	[MSTP100] = SH_CLK_MSTP32(&p_clk, MSTPCR1,  0, 0), /* USB0/1 */
+ 	[MSTP030] = SH_CLK_MSTP32(&p_clk, MSTPCR0, 30, 0), /* I2C0 */
+ 	[MSTP029] = SH_CLK_MSTP32(&p_clk, MSTPCR0, 29, 0), /* I2C1 */
+@@ -140,6 +143,8 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_DEV_ID("sh_mobile_sdhi.1", &mstp_clks[MSTP322]), /* SDHI1 */
+ 	CLKDEV_DEV_ID("sh_mobile_sdhi.2", &mstp_clks[MSTP321]), /* SDHI2 */
+ 	CLKDEV_DEV_ID("sh-eth",	&mstp_clks[MSTP114]), /* Ether */
++	CLKDEV_DEV_ID("rcar_vin.0", &mstp_clks[MSTP110]), /* VIN0 */
++	CLKDEV_DEV_ID("rcar_vin.1", &mstp_clks[MSTP109]), /* VIN1 */
+ 	CLKDEV_DEV_ID("ehci-platform", &mstp_clks[MSTP100]), /* USB EHCI port0/1 */
+ 	CLKDEV_DEV_ID("ohci-platform", &mstp_clks[MSTP100]), /* USB OHCI port0/1 */
+ 	CLKDEV_DEV_ID("i2c-rcar.0", &mstp_clks[MSTP030]), /* I2C0 */
+Index: renesas/arch/arm/mach-shmobile/include/mach/r8a7778.h
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/include/mach/r8a7778.h
++++ renesas/arch/arm/mach-shmobile/include/mach/r8a7778.h
+@@ -21,11 +21,14 @@
+ #include <linux/mmc/sh_mobile_sdhi.h>
+ #include <linux/sh_eth.h>
+ #include <linux/usb/rcar-phy.h>
++#include <linux/platform_data/camera-rcar.h>
  
- epwron:
--	regulator_bulk_disable(ssdd->num_regulators,
--			       ssdd->regulators);
-+	regulator_bulk_disable(ssdd->sd_pdata.num_regulators,
-+			       ssdd->sd_pdata.regulators);
- eregenable:
- 	if (clk)
- 		v4l2_clk_disable(clk);
-@@ -120,8 +120,8 @@ int soc_camera_power_off(struct device *dev, struct soc_camera_subdev_desc *ssdd
- 		}
- 	}
- 
--	err = regulator_bulk_disable(ssdd->num_regulators,
--				     ssdd->regulators);
-+	err = regulator_bulk_disable(ssdd->sd_pdata.num_regulators,
-+				     ssdd->sd_pdata.regulators);
- 	if (err < 0) {
- 		dev_err(dev, "Cannot disable regulators\n");
- 		ret = ret ? : err;
-@@ -137,8 +137,8 @@ EXPORT_SYMBOL(soc_camera_power_off);
- int soc_camera_power_init(struct device *dev, struct soc_camera_subdev_desc *ssdd)
- {
- 
--	return devm_regulator_bulk_get(dev, ssdd->num_regulators,
--				       ssdd->regulators);
-+	return devm_regulator_bulk_get(dev, ssdd->sd_pdata.num_regulators,
-+				       ssdd->sd_pdata.regulators);
+ extern void r8a7778_add_standard_devices(void);
+ extern void r8a7778_add_standard_devices_dt(void);
+ extern void r8a7778_add_ether_device(struct sh_eth_plat_data *pdata);
+ extern void r8a7778_add_usb_phy_device(struct rcar_phy_platform_data *pdata);
++extern void r8a7778_add_vin_device(int id,
++				   struct rcar_vin_platform_data *pdata);
+ extern void r8a7778_init_late(void);
+ extern void r8a7778_init_delay(void);
+ extern void r8a7778_init_irq(void);
+Index: renesas/arch/arm/mach-shmobile/setup-r8a7778.c
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/setup-r8a7778.c
++++ renesas/arch/arm/mach-shmobile/setup-r8a7778.c
+@@ -265,6 +265,39 @@ void __init r8a7778_sdhi_init(int id,
+ 		info, sizeof(*info));
  }
- EXPORT_SYMBOL(soc_camera_power_init);
  
-@@ -2033,8 +2033,8 @@ static int soc_camera_pdrv_probe(struct platform_device *pdev)
- 	 * in soc_camera_async_bind(). Also note, that in that case regulators
- 	 * are attached to the I2C device and not to the camera platform device.
- 	 */
--	ret = devm_regulator_bulk_get(&pdev->dev, ssdd->num_regulators,
--				      ssdd->regulators);
-+	ret = devm_regulator_bulk_get(&pdev->dev, ssdd->sd_pdata.num_regulators,
-+				      ssdd->sd_pdata.regulators);
- 	if (ret < 0)
- 		return ret;
- 
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 2d3c939..1331278 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -146,10 +146,6 @@ struct soc_camera_subdev_desc {
- 	/* sensor driver private platform data */
- 	void *drv_priv;
- 
--	/* Optional regulators that have to be managed on power on/off events */
--	struct regulator_bulk_data *regulators;
--	int num_regulators;
--
- 	/* Optional callbacks to power on or off and reset the sensor */
- 	int (*power)(struct device *, int);
- 	int (*reset)(struct device *);
-@@ -162,6 +158,9 @@ struct soc_camera_subdev_desc {
- 	int (*set_bus_param)(struct soc_camera_subdev_desc *, unsigned long flags);
- 	unsigned long (*query_bus_param)(struct soc_camera_subdev_desc *);
- 	void (*free_bus)(struct soc_camera_subdev_desc *);
++/* VIN */
++#define R8A7778_VIN(idx)						\
++static struct resource vin##idx##_resources[] = {			\
++	DEFINE_RES_MEM(0xffc50000 + 0x1000 * (idx), 0x1000),		\
++	DEFINE_RES_IRQ(gic_iid(0x5a)),					\
++};									\
++									\
++static struct platform_device_info vin##idx##_info __initdata = {	\
++	.parent		= &platform_bus,				\
++	.name		= "rcar_vin",					\
++	.id		= idx,						\
++	.res		= vin##idx##_resources,				\
++	.num_res	= ARRAY_SIZE(vin##idx##_resources),		\
++	.dma_mask	= DMA_BIT_MASK(32),				\
++}
 +
-+	/* Optional regulators that have to be managed on power on/off events */
-+	struct v4l2_subdev_platform_data sd_pdata;
- };
- 
- struct soc_camera_host_desc {
-@@ -202,10 +201,6 @@ struct soc_camera_link {
- 
- 	void *priv;
- 
--	/* Optional regulators that have to be managed on power on/off events */
--	struct regulator_bulk_data *regulators;
--	int num_regulators;
--
- 	/* Optional callbacks to power on or off and reset the sensor */
- 	int (*power)(struct device *, int);
- 	int (*reset)(struct device *);
-@@ -218,6 +213,12 @@ struct soc_camera_link {
- 	unsigned long (*query_bus_param)(struct soc_camera_link *);
- 	void (*free_bus)(struct soc_camera_link *);
- 
-+	/* Optional regulators that have to be managed on power on/off events */
-+	struct regulator_bulk_data *regulators;
-+	int num_regulators;
++R8A7778_VIN(0);
++R8A7778_VIN(1);
 +
-+	void *host_priv;
++static struct platform_device_info *vin_info_table[] __initdata = {
++	&vin0_info,
++	&vin1_info,
++};
 +
- 	/*
- 	 * Host part - keep at bottom and compatible to
- 	 * struct soc_camera_host_desc
--- 
-1.7.2.5
-
++void __init r8a7778_add_vin_device(int id, struct rcar_vin_platform_data *pdata)
++{
++	BUG_ON(id < 0 || id > 1);
++
++	vin_info_table[id]->data = pdata;
++	vin_info_table[id]->size_data = sizeof(*pdata);
++	platform_device_register_full(vin_info_table[id]);
++}
++
+ void __init r8a7778_add_standard_devices(void)
+ {
+ 	int i;
