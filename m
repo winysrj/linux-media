@@ -1,70 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:42568 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754743Ab3DWFqD convert rfc822-to-8bit (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:63867 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755284Ab3DTVFr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 01:46:03 -0400
-Received: by mail-pd0-f179.google.com with SMTP id x11so199900pdj.10
-        for <linux-media@vger.kernel.org>; Mon, 22 Apr 2013 22:46:02 -0700 (PDT)
-Date: Tue, 23 Apr 2013 14:45:49 +0900 (JST)
-Message-Id: <20130423.144549.45370868.matsu@igel.co.jp>
-To: sergei.shtylyov@cogentembedded.com
-Cc: g.liakhovetski@gmx.de, mchehab@redhat.com,
-	linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	linux-sh@vger.kernel.org, phil.edworthy@renesas.com,
-	vladimir.barinov@cogentembedded.com, mukawa@igel.co.jp
-Subject: Re: [PATCH v2 1/4] V4L2: soc_camera: Renesas R-Car VIN driver
-From: Katsuya MATSUBARA <matsu@igel.co.jp>
-In-Reply-To: <5176104B.7000401@cogentembedded.com>
-References: <201304200231.31802.sergei.shtylyov@cogentembedded.com>
-	<20130423.120834.239982915.matsu@igel.co.jp>
-	<5176104B.7000401@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=koi8-r
-Content-Transfer-Encoding: 8BIT
+	Sat, 20 Apr 2013 17:05:47 -0400
+Message-ID: <51730324.8090403@gmail.com>
+Date: Sat, 20 Apr 2013 23:05:40 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+CC: mchehab@redhat.com, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH 1/5] V4L2: I2C: ML86V7667 video decoder driver
+References: <201304210013.46110.sergei.shtylyov@cogentembedded.com> <201304210016.33720.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201304210016.33720.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
- Hi,
+On 04/20/2013 10:16 PM, Sergei Shtylyov wrote:
+> From: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
+>
+> Add OKI Semiconductor ML86V7667 video decoder driver.
+>
+> Signed-off-by: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
+> [Sergei: added v4l2_device_unregister_subdev() call to the error cleanup path of
+> ml86v7667_probe(); some cleanup.]
+> Signed-off-by: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
+>
+> ---
+>   drivers/media/i2c/Kconfig     |    9
+>   drivers/media/i2c/Makefile    |    1
+>   drivers/media/i2c/ml86v7667.c |  504 ++++++++++++++++++++++++++++++++++++++++++
+>   3 files changed, 514 insertions(+)
 
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Tue, 23 Apr 2013 08:38:35 +0400
+> +static int ml86v7667_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+> +{
+> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+> +
+> +	ml86v7667_querystd(sd,&priv->std);
+> +
+> +	a->bounds.left = 0;
+> +	a->bounds.top = 0;
+> +	a->bounds.width = 720;
+> +	a->bounds.height = priv->std&  V4L2_STD_525_60 ? 480 : 576;
+> +	a->defrect = a->bounds;
+> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	a->pixelaspect.numerator = 1;
+> +	a->pixelaspect.denominator = 1;
+> +
+> +	return 0;
+> +}
 
-> On 04/23/2013 07:08 AM, Katsuya MATSUBARA wrote:
-> 
->>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->>>
-(snip)
->>> +/* Register offsets for R-óar VIN */
->> Are you using a 2-byte character in the string 'R-Car'?
-> 
->    Hm, you have surprised me: indeed KMail chose UTF-8 and, even worse,
-> quoted-printable encoding. I played some with the settings, let's see
-> what
-> will it do...
-> 
-> [...]
-> 
->>
->>> +
->>> +/* Register bit fields for R-óar VIN */
->> s/R-óar/R-Car/
-> 
->     Sorry, I see no difference. :-)
+> +static struct v4l2_subdev_video_ops ml86v7667_subdev_video_ops = {
+> +	.querystd = ml86v7667_querystd,
+> +	.g_input_status = ml86v7667_g_input_status,
+> +	.enum_mbus_fmt = ml86v7667_enum_mbus_fmt,
+> +	.try_mbus_fmt = ml86v7667_try_mbus_fmt,
+> +	.g_mbus_fmt = ml86v7667_g_mbus_fmt,
+> +	.s_mbus_fmt = ml86v7667_s_mbus_fmt,
+> +	.cropcap = ml86v7667_cropcap,
+> +	.g_mbus_config = ml86v7667_g_mbus_config,
+> +};
 
-Replacing the UTF-8 character 'C'(0xd0 0xa1) in the two above
-comments in your patch with ASCII character 'C' (0x43) can
-solve the encoding issue.
+Why do you need .cropcap when there is no s_crop/g_crop ops ? Is it
+only for pixel aspect ratio ?
 
-00000cf0  2b 2f 2a 20 52 65 67 69  73 74 65 72 20 6f 66 66  |+/* Register off|
-00000d00  73 65 74 73 20 66 6f 72  20 52 2d d0 a1 61 72 20  |sets for R-..ar |
-                                            ^^^^^
-000012a0  74 65 72 20 2a 2f 0a 2b  0a 2b 2f 2a 20 52 65 67  |ter */.+.+/* Reg|
-000012b0  69 73 74 65 72 20 62 69  74 20 66 69 65 6c 64 73  |ister bit fields|
-000012c0  20 66 6f 72 20 52 2d d0  a1 61 72 20 56 49 4e 20  | for R-..ar VIN |
-                               ^^^^^^
-Thanks,
----
-Katsuya Matsubara / IGEL Co., Ltd
-matsu@igel.co.jp
+Also, new drivers are supposed to use the selections API instead
+(set/get_selection ops). However this requires pad level ops support
+in your host driver, hence might be a bigger issue.
+
+Regards,
+Sylwester
