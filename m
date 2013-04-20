@@ -1,64 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2072 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932835Ab3DFL0G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Apr 2013 07:26:06 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r36BQ3iG058246
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 6 Apr 2013 13:26:05 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.lan (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 87AB011E018E
-	for <linux-media@vger.kernel.org>; Sat,  6 Apr 2013 13:25:57 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: [REVIEW PATCH 0/7] VIDIOC_DBG_G_CHIP_NAME fixes/improvements
-Date: Sat,  6 Apr 2013 13:25:45 +0200
-Message-Id: <1365247552-26795-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:49660 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755644Ab3DTWAf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Apr 2013 18:00:35 -0400
+Received: by mail-la0-f53.google.com with SMTP id eg20so614717lab.26
+        for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 15:00:33 -0700 (PDT)
+Message-ID: <51730FCE.8000604@cogentembedded.com>
+Date: Sun, 21 Apr 2013 01:59:42 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+CC: linux-sh@vger.kernel.org, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH 1/5] V4L2: I2C: ML86V7667 video decoder driver
+References: <201304210013.46110.sergei.shtylyov@cogentembedded.com> <201304210016.33720.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201304210016.33720.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Recently VIDIOC_DBG_G_CHIP_NAME was introduced as a replacement for the old
-VIDIOC_DBG_G_CHIP_IDENT. While working on modifying v4l2-dbg to use the new
-API I realized that a few changes should be made before this API goes public.
+Hello.
 
-The first four patches make some essential improvements:
+On 04/21/2013 12:16 AM, Sergei Shtylyov wrote:
 
-- put VIDIOC_DBG_G_CHIP_NAME under ADV_DEBUG to prevent abuse of this ioctl
-  by other drivers (this happened with G_CHIP_IDENT as I discovered).
-- V4L2_CHIP_MATCH_SUBDEV_NAME is not needed. Drop it and rename
-  V4L2_CHIP_MATCH_SUBDEV_IDX to V4L2_CHIP_MATCH_SUBDEV.
-- make sure chip->name is filled in before calling the vidioc_g_chip_name
-  callback. That way drivers do not need to fill in the name field themselves.
-- rename CHIP_NAME to CHIP_INFO since more information about the chip is/will
-  be exposed than just the name.
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>
+> Add OKI Semiconductor ML86V7667 video decoder driver.
+>
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> [Sergei: added v4l2_device_unregister_subdev() call to the error cleanup path of
+> ml86v7667_probe(); some cleanup.]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-The last three patches add support for exposing register ranges. Some devices
-have multiple ranges and there is no easy way of exposing that. I have seen
-several ways in which this is done today:
+[...]
 
-- For the ivtv driver you just have to know the address ranges.
+> Index: renesas/drivers/media/i2c/ml86v7667.c
+> ===================================================================
+> --- /dev/null
+> +++ renesas/drivers/media/i2c/ml86v7667.c
+> @@ -0,0 +1,504 @@
 
-- The adv7604 driver maps registers 0x00-0xff of different internal i2c address
-  to different address ranges (0x000-0xcff). Note: this is common for these
-  adv drivers. I have two other adv drivers pending that use this scheme.
+[...]
 
-- cx231xx is a big mess with multiple register ranges mapped to different
-  bridge/i2c addresses. Sometimes the same register range is exposed but
-  with different register widths.
+> +/* ACC Loop filter & Chrominance control register bits */
+> +#define ACCC_CHROMA_CR_SHIFT	3
+> +#define ACCC_CHROMA_CR_MASK	(7 << 3)
+> +#define ACCC_CHROMA_CB_SHIFT	0
+> +#define ACCC_CHROMA_CB_MASK	(7 << 3)
 
-- v4l2-dbg has special support for several drivers: saa7127, ov7670,
-  cx25840, cs5345, ivtv, cx18 and cafe where it hardcodes the register
-  range based on the driver name.
+     Should be (7 << 0), of course. My fault. :-(
 
-By moving the information about register ranges into the driver under
-ADV_DEBUG it is much easier to keep track of it all, and the v4l2-dbg utility
-can be simplified.
+WBR, Sergei
 
-Regards,
-
-	Hans
 
