@@ -1,94 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:55674 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758600Ab3D3NxL (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2325 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755032Ab3DTLrd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Apr 2013 09:53:11 -0400
-Date: Tue, 30 Apr 2013 15:53:01 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v9 02/20] V4L2: support asynchronous subdevice
- registration
-Message-ID: <20130430135301.GD16843@pengutronix.de>
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
- <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
+	Sat, 20 Apr 2013 07:47:33 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3KBlMGn035731
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:47:32 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 6BDAA11E00F1
+	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:47:21 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.10] Various fixes
+Date: Sat, 20 Apr 2013 13:47:20 +0200
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304201347.20412.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Mauro,
 
-On Fri, Apr 12, 2013 at 05:40:22PM +0200, Guennadi Liakhovetski wrote:
-> Currently bridge device drivers register devices for all subdevices
-> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
-> is attached to a video bridge device, the bridge driver will create an I2C
-> device and wait for the respective I2C driver to probe. This makes linking
-> of devices straight forward, but this approach cannot be used with
-> intrinsically asynchronous and unordered device registration systems like
-> the Flattened Device Tree. To support such systems this patch adds an
-> asynchronous subdevice registration framework to V4L2. To use it respective
-> (e.g. I2C) subdevice drivers must register themselves with the framework.
-> A bridge driver on the other hand must register notification callbacks,
-> that will be called upon various related events.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
-> +
-> +static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
-> +						    struct v4l2_async_subdev_list *asdl)
-> +{
-> +	struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
-> +	struct v4l2_async_subdev *asd = NULL;
-> +	bool (*match)(struct device *,
-> +		      struct v4l2_async_hw_info *);
-> +
-> +	list_for_each_entry (asd, &notifier->waiting, list) {
-> +		struct v4l2_async_hw_info *hw = &asd->hw;
-> +
-> +		/* bus_type has been verified valid before */
-> +		switch (hw->bus_type) {
-> +		case V4L2_ASYNC_BUS_CUSTOM:
-> +			match = hw->match.custom.match;
-> +			if (!match)
-> +				/* Match always */
-> +				return asd;
-> +			break;
-> +		case V4L2_ASYNC_BUS_PLATFORM:
-> +			match = match_platform;
-> +			break;
-> +		case V4L2_ASYNC_BUS_I2C:
-> +			match = match_i2c;
-> +			break;
-> +		default:
-> +			/* Cannot happen, unless someone breaks us */
-> +			WARN_ON(true);
-> +			return NULL;
-> +		}
-> +
-> +		if (match && match(sd->dev, hw))
-> +			break;
-> +	}
-> +
-> +	return asd;
+Here is my set of patches for 3.10, various fixes for cx88, go7007, em28xx and solo6x10.
 
-'asd' can never be NULL here. You have to explicitly return NULL when
-leaving the loop without match.
+Regards,
 
-Sascha
+	Hans
 
+The following changes since commit 6695be6863b75620ffa6d422965680ce785cb7c8:
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+  [media] DT: export of_get_next_parent() for use by modules: fix modular V4L2 (2013-04-17 12:28:57 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.10
+
+for you to fetch changes up to acf69c28717a80f2240b49a81c10b37bd8998148:
+
+  em28xx: add a missing le16_to_cpu conversion (2013-04-20 13:42:41 +0200)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      cx88: Fix unsafe locking in suspend-resume
+
+Dan Carpenter (1):
+      go7007: dubious one-bit signed bitfields
+
+Frank Schaefer (1):
+      em28xx: add a missing le16_to_cpu conversion
+
+Ismael Luceno (2):
+      solo6x10: Update the encoder mode on VIDIOC_S_FMT
+      solo6x10: Fix pixelformat accepted/reported by the encoder
+
+ drivers/media/pci/cx88/cx88-mpeg.c                 |   10 ++++++----
+ drivers/media/pci/cx88/cx88-video.c                |   10 ++++++----
+ drivers/media/usb/em28xx/em28xx-cards.c            |    3 ++-
+ drivers/staging/media/go7007/go7007-priv.h         |    4 ++--
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   44 +++++++++++++++++++++++++++++++++-----------
+ 5 files changed, 49 insertions(+), 22 deletions(-)
