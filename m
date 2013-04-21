@@ -1,56 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f51.google.com ([209.85.216.51]:64235 "EHLO
-	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1765442Ab3DJAUe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 20:20:34 -0400
-Received: by mail-qa0-f51.google.com with SMTP id i20so1677458qad.3
-        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 17:20:33 -0700 (PDT)
+Received: from aserp1040.oracle.com ([141.146.126.69]:42797 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752794Ab3DUQm7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Apr 2013 12:42:59 -0400
+Date: Sun, 21 Apr 2013 19:42:56 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: walter harms <wharms@bfs.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] media: info leak in media_device_enum_entities()
+Message-ID: <20130421164256.GM6638@mwanda>
+References: <20130421111003.GD6171@elgon.mountain>
+ <5173D2DC.4060200@bfs.de>
 MIME-Version: 1.0
-In-Reply-To: <1365551600-3394-2-git-send-email-crope@iki.fi>
-References: <1365551600-3394-1-git-send-email-crope@iki.fi>
-	<1365551600-3394-2-git-send-email-crope@iki.fi>
-Date: Tue, 9 Apr 2013 20:20:33 -0400
-Message-ID: <CAGoCfiw_pyh5MchkU59Y9NJz+Rgf5B7Gvd92A1pF+e18DVWgKQ@mail.gmail.com>
-Subject: Re: [PATCH 1/5] mxl5007t: fix buggy register read
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: linux-media@vger.kernel.org, Michael Krufky <mkrufky@linuxtv.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <5173D2DC.4060200@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 9, 2013 at 7:53 PM, Antti Palosaari <crope@iki.fi> wrote:
-> Chip uses WRITE + STOP + READ + STOP sequence for I2C register read.
-> Driver was using REPEATED START condition which makes it failing if
-> I2C adapter was implemented correctly.
->
-> Add use_broken_read_reg_intentionally option to keep old buggy
-> implantation as there is buggy I2C adapter implementation relying
-> that bug...
->
-> Signed-off-by: Antti Palosaari <crope@iki.fi>
+On Sun, Apr 21, 2013 at 01:51:56PM +0200, walter harms wrote:
+> 
+> 
+> Am 21.04.2013 13:10, schrieb Dan Carpenter:
+> > The last part of the "u_ent.name" buffer isn't cleared so it still has
+> > uninitialized stack memory.
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > 
+> > diff --git a/drivers/media/media-device.c b/drivers/media/media-device.c
+> > index 99b80b6..1957c0d 100644
+> > --- a/drivers/media/media-device.c
+> > +++ b/drivers/media/media-device.c
+> > @@ -102,9 +102,12 @@ static long media_device_enum_entities(struct media_device *mdev,
+> >  		return -EINVAL;
+> >  
+> >  	u_ent.id = ent->id;
+> > -	u_ent.name[0] = '\0';
+> > -	if (ent->name)
+> > -		strlcpy(u_ent.name, ent->name, sizeof(u_ent.name));
+> > +	if (ent->name) {
+> > +		strncpy(u_ent.name, ent->name, sizeof(u_ent.name));
+> > +		u_ent.name[sizeof(u_ent.name) - 1] = '\0';
+> > +	} else {
+> > +		memset(u_ent.name, 0, sizeof(u_ent.name));
+> > +	}
+> 
+> I would always memset()
+> and then do strncpy() for sizeof(u_ent.name) - 1
+> the rest is always zero.
 
-Hi Antti,
+Both ways are fine.  You'd still have to test for "if (ent->name)",
+of course.  This way is a little faster because I do the test first.
 
-The existing code actually looks fine.  This is actually how most
-devices do register reads.
+Mauro, if you want I can redo it?
 
-Further, it *should* be done in a single call to i2c_transfer() or
-else you won't hold the lock and you will create a race condition.
+regards,
+dan carpenter
 
-This sounds more like it's a bug in the i2c master rather than the 5007 driver.
-
-Do you have i2c bus traces that clearly show that this was the cause
-of the issue?  If we need to define something as "broken" behavior, at
-first glance it looks like the way *you're* proposing is the broken
-behavior - presumably to work around a bug in the i2c master not
-properly supporting repeated start.
-
-Also, any reason you didn't put Mike into the cc: for this (since he
-owns the driver)?
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
