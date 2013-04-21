@@ -1,41 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:58664 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754300Ab3DCFMe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 01:12:34 -0400
-Received: by mail-pb0-f54.google.com with SMTP id xa7so642518pbc.13
-        for <linux-media@vger.kernel.org>; Tue, 02 Apr 2013 22:12:33 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1907 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753686Ab3DUSUk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Apr 2013 14:20:40 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3LIKTIk095912
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 20:20:39 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 7278611E02C4
+	for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 20:20:23 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org
-Subject: [PATCH 5/7] soc_camera/pxa_camera: Constify struct dev_pm_ops
-Date: Wed,  3 Apr 2013 10:30:39 +0530
-Message-Id: <1364965241-28225-5-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
-References: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130421182023.7278611E02C4@alastor.dyndns.org>
+Date: Sun, 21 Apr 2013 20:20:23 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-struct dev_pm_ops should be const.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/platform/soc_camera/pxa_camera.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/soc_camera/pxa_camera.c b/drivers/media/platform/soc_camera/pxa_camera.c
-index b0e6f3b..d665242 100644
---- a/drivers/media/platform/soc_camera/pxa_camera.c
-+++ b/drivers/media/platform/soc_camera/pxa_camera.c
-@@ -1796,7 +1796,7 @@ static int pxa_camera_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
--static struct dev_pm_ops pxa_camera_pm = {
-+static const struct dev_pm_ops pxa_camera_pm = {
- 	.suspend	= pxa_camera_suspend,
- 	.resume		= pxa_camera_resume,
- };
--- 
-1.7.9.5
+date:		Sun Apr 21 19:00:22 CEST 2013
+git branch:	test
+git hash:	6695be6863b75620ffa6d422965680ce785cb7c8
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
