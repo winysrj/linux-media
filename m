@@ -1,94 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:35045 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751717Ab3DOKcs (ORCPT
+Received: from mail-we0-f173.google.com ([74.125.82.173]:38778 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435Ab3DUFxN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 06:32:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v8 0/7] V4L2 clock and async patches and soc-camera example
-Date: Mon, 15 Apr 2013 12:32:52 +0200
-Message-ID: <1962227.hTcMcUbvyo@avalon>
-In-Reply-To: <51680291.3080303@samsung.com>
-References: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1304120733030.1727@axis700.grange> <51680291.3080303@samsung.com>
+	Sun, 21 Apr 2013 01:53:13 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <20130419213152.GD11866@zurbaran>
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+	<20130419213152.GD11866@zurbaran>
+Date: Sat, 20 Apr 2013 22:53:11 -0700
+Message-ID: <CAHQ1cqGnDvO+wkfdO-o-4JSBgT=0TEww01NM1+o7g=1Hy0QNxw@mail.gmail.com>
+Subject: Re: [PATCH v9 00/12] Driver for Si476x series of chips
+From: Andrey Smirnov <andrew.smirnov@gmail.com>
+To: Samuel Ortiz <sameo@linux.intel.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+> I applied all the MFD patches from this patchset (All 4 first ones), plus a
+> follow up one for fixing the i2c related warning.
+> I also squashed the REGMAP_I2C dependency into patch #4.
+> It's all in mfd-next now, I'd appreciate if you could double check it's all
+> fine.
 
-On Friday 12 April 2013 14:48:17 Sylwester Nawrocki wrote:
-> On 04/12/2013 08:13 AM, Guennadi Liakhovetski wrote:
-> > On Thu, 11 Apr 2013, Sylwester Nawrocki wrote:
-> >> On 04/11/2013 11:59 AM, Guennadi Liakhovetski wrote:
-> >>> On Mon, 8 Apr 2013, Guennadi Liakhovetski wrote:
+I checked out latest
+git://git.kernel.org/pub/scm/linux/kernel/git/sameo/mfd-next.git and
+applied patches 5 - 10, 12. There doesn't seem to be any problems, so
+I think MFD part of the driver is good to go.
 
-[snip]
+>
+> Mauro will take the rest, we made sure there won't be any merge conflict
+> between our trees.
 
-> >> A significant blocking point IMHO is that this API is bound to the
-> >> circular dependency issue between a sub-device and the host driver. I
-> >> think we should have at least some specific ideas on how to resolve it
-> >> before pushing the API upstream. Or are there any already ?
-> > 
-> > Of course there is at least one. I wouldn't propose (soc-camera) patches,
-> > that lock modules hard into memory, once probing is complete.
-> 
-> Alright then, maybe I should have more carefully analysed you last patch
-> series.
-> 
-> >> One of the ideas I had was to make a sub-device driver drop the reference
-> >> it has to the clock provider module (the host) as soon as it gets
-> >> registered to it. But it doesn't seem straightforward with the common
-> >> clock API.
-> > 
-> > It isn't.
-> > 
-> >> Other option is a sysfs attribute at a host driver that would allow to
-> >> release its sub-device(s). But it sounds a bit strange to me to require
-> >> userspace to touch some sysfs attributes before being able to remove some
-> >> modules.
-> >> 
-> >> Something probably needs to be changed at the high level design to avoid
-> >> this circular dependency.
-> > 
-> > Here's what I do in my soc-camera patches atm: holding a reference to a
-> > (V4L2) clock doesn't increment bridge driver's use-count (for this
-> > discussion I describe the combined soc-camera host and soc-camera core
-> > functionality as a bridge driver, because that's what most non soc-camera
-> > drivers will look like). So, it can be unloaded. Once unloaded, it
-> > unregisters its V4L2 async notifier. Inside that the v4l2-async framework
-> > first detaches the subdevice driver, then calls the notifier's .unbind()
-> > method, which should now unregister the clock. Then, back in
-> > v4l2_async_notifier_unregister() the subdevice driver is re-probed, this
-> > time with no clock available, so, it re-enters the deferred probing state.
-> 
-> Ok, it looks better than I thought initially.. :)
-> 
-> Still, aren't there races possible, when the host driver gets unregistered
-> while subdev holds a reference to the clock, and before it gets registered
-> to the host ? The likelihood of that seems very low, but I fail to find
-> any prove it can't happen either.
+Mauro, I am not sure if you need me to rebase any of the patches(it
+doesn't seem like you had a chance to make any further changes related
+to this driver in media tree), but if you do, ping me and I'll get on
+it.
 
-That was the concern I was about to raise as well, before reading your e-mail. 
-Holding a reference to an object that can disappear at any time is asking for 
-trouble. The method currently implemented should work, but is racy in my 
-opinion. The bridge module could be unloaded after the subdev gets a reference 
-to the clock but before it registers itself with v4l2_async_register_subdev(). 
-The clock would then be freed by the bridge, resulting in a crash.
-
-I'm not sure if the circular dependency problem can be solved without an 
-explicit way to break the dependency, possibly from userspace (although I'm 
-not sure if that's the best solution).
-
--- 
-Regards,
-
-Laurent Pinchart
-
+>
+> Cheers,
+> Samuel.
+>
+> --
+> Intel Open Source Technology Centre
+> http://oss.intel.com/
