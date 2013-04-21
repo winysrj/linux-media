@@ -1,106 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6747 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965997Ab3DRLf7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 07:35:59 -0400
-Date: Thu, 18 Apr 2013 08:35:47 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH v2] media: davinci: vpif: align the buffers size to page
- page size boundary
-Message-ID: <20130418083547.41f975f8@redhat.com>
-In-Reply-To: <20130418082121.0221e59e@redhat.com>
-References: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com>
-	<2933946.BRNjyJUSVm@avalon>
-	<CA+V-a8uV1e0FSe0kO6VBe=fRj9hf8Oo5VzrrbMtnR-onJo9pog@mail.gmail.com>
-	<20130418082121.0221e59e@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53106 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751881Ab3DUXL2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Apr 2013 19:11:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Kamal Mostafa <kamal@canonical.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] [media] uvcvideo: quirk PROBE_DEF for Dell Studio / OmniVision webcam
+Date: Mon, 22 Apr 2013 01:11:20 +0200
+Message-ID: <2645710.Gpj91p3W0i@avalon>
+In-Reply-To: <1366216723.20385.7.camel@fourier>
+References: <1366052511-27284-1-git-send-email-kamal@canonical.com> <3233904.U6nm1cedXx@avalon> <1366216723.20385.7.camel@fourier>
+MIME-Version: 1.0
+Content-Type: multipart/signed; boundary="nextPart7389361.xNRVaurBPr"; micalg="pgp-sha1"; protocol="application/pgp-signature"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Thu, 18 Apr 2013 08:21:21 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-> Em Thu, 18 Apr 2013 10:17:14 +0530
-> Prabhakar Lad <prabhakar.csengg@gmail.com> escreveu:
-> 
-> > Hi Marek,
+--nextPart7389361.xNRVaurBPr
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
+
+Hi Kamal,
+
+On Wednesday 17 April 2013 09:38:43 Kamal Mostafa wrote:
+> On Wed, 2013-04-17 at 01:05 +0200, Laurent Pinchart wrote:
+> > Hi Kamal,
 > > 
-> > On Tue, Apr 16, 2013 at 4:48 PM, Laurent Pinchart
-> > <laurent.pinchart@ideasonboard.com> wrote:
-> > > Hi Prabhakar,
+> > On Monday 15 April 2013 12:01:51 Kamal Mostafa wrote:
+> > > BugLink: https://bugs.launchpad.net/bugs/1168430
+> > > 
+> > > OminiVision webcam 0x05a9:0x264a (in Dell Studio Hybrid 140g) needs the
+> > > same UVC_QUIRK_PROBE_DEF as other OmniVision model to be recognized
+> > > consistently.
+> > > 
+> > > Signed-off-by: Kamal Mostafa <kamal@canonical.com>
+> > 
+> > Thank you for the patch.
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > 
+> > I've taken the patch in my tree and will submit it upstream for v3.11.
+> > 
+> > Could you please try to get the full 'lsusb -v -d 05a9:264a' output from
+> > the bug reporter ?
 > 
-> ...
-> 
-> > >> *nbuffers = config_params.min_numbuffers;
-> > >>
-> > >>       *nplanes = 1;
-> > >> +     size = PAGE_ALIGN(size);
-> > >
-> > > I wonder if that's the best fix.
-> > > The queue_setup operation is supposed to return the size required by the
-> > > driver for each plane. Depending on the hardware requirements, that size might
-> > > not be a multiple of the page size.
-> > >
-> > > As we can't mmap() a fraction of a page, the allocated plane size needs to be
-> > > rounded up to the next page boundary to allow mmap() support. The dma-contig
-> > > and dma-sg allocators already do so in their alloc operation, but the vmalloc
-> > > allocator doesn't.
-> > >
-> > > The recent "media: vb2: add length check for mmap" patch verifies that the
-> > > mmap() size requested by userspace doesn't exceed the buffer size. As the
-> > > mmap() size is rounded up to the next page boundary the check will fail for
-> > > buffer sizes that are not multiple of the page size.
-> > >
-> > > Your fix will not result in overallocation (as the allocator already rounds
-> > > the size up), but will prevent the driver from importing a buffer large enough
-> > > for the hardware but not rounded up to the page size.
-> > >
-> > > A better fix might be to round up the buffer size in the buffer size check at
-> > > mmap() time, and fix the vmalloc allocator to round up the size. That the
-> > > allocator, not drivers, is responsible for buffer size alignment should be
-> > > documented in videobuf2-core.h.
-> 
-> > >
-> > Do you plan to post a patch fixing it as per Laurent's suggestion ?
-> 
-> I agree with Laurent: page size roundup should be done at VB2 core code,
-> for memory allocated there, and not at driver's level. Yet, looking at
-> VB2 code, it already does page size align at __setup_offsets(), but it
-> doesn't do if for the size field; just for the offset.
-> 
-> The adjusted size should be stored at the VB2 size field, and the check for
-> buffer overflow, added on changeset 068a0df76023926af958a336a78bef60468d2033
-> should be kept.
-> 
-> IMO, it also makes sense to enforce that the USERPTR memory is multiple of the
-> page size, as otherwise the DMA transfer may overwrite some area that is
-> outside the allocated range. So, the size from USERPTR should be round down.
-> 
-> That change, however, will break userspace, as it uses the picture sizeimage
-> to allocate the buffers. So, sizeimage needs to be PAGE_SIZE roundup before
-> passing it to userspace.
-> 
-> Instead of modifying all drivers, the better seems to patch v4l_g_fmt() and
-> v4l_try_fmt() to return a roundup value for sizeimage. As usual, uvcvideo
-> requires a separate patch, because it doesn't use vidio_ioctl2.
+> Thanks Laurent.  The requested lsusb dump is now available at
+> https://launchpadlibrarian.net/137633994/lsusb-omnivision-264a.txt
 
-Hmm... PAGE_SIZE alignment is not needed on all places. It is needed only when
-DMA is done directly into the buffer, e. g. videobuf2-dma-contig and
-videobuf2-dma-sg.
+Thank you for the information.
 
-It means that we'll need an extra function for the VB2 memory allocation drivers
-to do do the memory-dependent roundups, and a new ancillary function at VB2 core
-for the VB2 clients to call to round sizeimage if needed.
-
+-- 
 Regards,
-Mauro
+
+Laurent Pinchart
+
+--nextPart7389361.xNRVaurBPr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part.
+Content-Transfer-Encoding: 7Bit
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQEcBAABAgAGBQJRdHInAAoJEIkPb2GL7hl1PJ8IALT00s4t2Ac0awsAbZQB1ID2
+fW2EEzGt38ixPMdPX/Qa5iwYjQlrQXBQorwA1g9oGfmaMFLuZBCTnTpNwnRGL2CT
+5P/P/cRb8bHeYHjEBQ8RfjGkzVj53Vamj17VrK3IBWDo58XVujXTq8H+XoH7/DBT
+znZa8jlD1cY/aML8rAm6rW6oUA1LtDjrczhUb9vPSxz3GPrd49chuD3mFNlQcgqC
+b4pu2sWD8yeHI4ZYm4m6HcF8S8L/qFrvIajmK8q0YN55yLQeBf3fjEc1X4V0bdPP
+PUKWPeDlDzzYfZbQGBcLQLbe0IZxh7Zz+NcjWrOhHyv0ll/VRpD1FMhc4fgcjBY=
+=6NYv
+-----END PGP SIGNATURE-----
+
+--nextPart7389361.xNRVaurBPr--
+
