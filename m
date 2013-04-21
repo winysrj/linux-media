@@ -1,241 +1,169 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3331 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756896Ab3DSJ6R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 05:58:17 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Antti Palosaari <crope@iki.fi>
-Subject: Re: Keene
-Date: Fri, 19 Apr 2013 11:58:04 +0200
-Cc: LMML <linux-media@vger.kernel.org>
-References: <5167513D.60804@iki.fi> <201304190912.06319.hverkuil@xs4all.nl> <51710A3F.10909@iki.fi>
-In-Reply-To: <51710A3F.10909@iki.fi>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304191158.04116.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:38791 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754092Ab3DUTA4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Apr 2013 15:00:56 -0400
+Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3LJ0u4O012541
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 15:00:56 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv3 08/10] [media] tuner-core: store tuner ranges at tuner struct
+Date: Sun, 21 Apr 2013 16:00:37 -0300
+Message-Id: <1366570839-662-9-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366570839-662-1-git-send-email-mchehab@redhat.com>
+References: <1366570839-662-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri April 19 2013 11:11:27 Antti Palosaari wrote:
-> On 04/19/2013 10:12 AM, Hans Verkuil wrote:
-> > On Wed April 17 2013 21:45:24 Antti Palosaari wrote:
-> >> On 04/15/2013 09:55 AM, Hans Verkuil wrote:
-> >>> On Fri April 12 2013 02:11:41 Antti Palosaari wrote:
-> >>>> Hello Hans,
-> >>>> That device is working very, thank you for it. Anyhow, I noticed two things.
-> >>>>
-> >>>> 1) it does not start transmitting just after I plug it - I have to
-> >>>> retune it!
-> >>>> Output says it is tuned to 95.160000 MHz by default, but it is not.
-> >>>> After I issue retune, just to same channel it starts working.
-> >>>> $ v4l2-ctl -d /dev/radio0 --set-freq=95.16
-> >>>
-> >>> Can you try this patch:
-> >>>
-> >>
-> >> It does not resolve the problem. It is quite strange behavior. After I
-> >> install modules, and modules are unload, plug stick in first time, it
-> >> usually (not every-time) starts TX. But when I replug it without
-> >> unloading modules, it will never start TX. Tx is started always when I
-> >> set freq using v4l2-ctl.
-> >
-> > If you replace 'false' by 'true' in the cmd_main, does that make it work?
-> > I'm fairly certain that's the problem.
-> 
-> Nope, I replaces all 'false' with 'true' and problem remains. When 
-> modules were unload and device is plugged it starts TX. When I replug it 
-> doesn't start anymore.
-> 
-> I just added msleep(1000); just before keene_cmd_main() in .probe() and 
-> now it seems to work every-time. So it is definitely timing issue. I 
-> will try to find out some smallest suitable value for sleep and and sent 
-> patch.
-> 
-> 
-> >
-> >>
-> >> Possible timing issue?
-> >>
-> >>
-> >> Is there some flag API flag to tell start / stop device? For my mind
-> >> correct behavior is to stop TX and sleep when device is plugged/module
-> >> load. Something like set freq 0 when device is not active to tell user
-> >> it is not sending/receiving and must be tuned in order to operate.
-> >
-> > This is actually a core problem with the radio API: there is no clear
-> > way of turning the tuner or modulator on and off on command. With video
-> > you know that you can turn off the tuner if no filehandle is open. But
-> > with radio you do not have that luxury since audio can go through alsa
-> > or through an audio jack.
-> >
-> > One option is to use mute. Most radio receivers start off muted and you
-> > have to unmute first. This could be used as a signal for receivers to
-> > turn the tuner on/off. But for a modulator that's not an option: turning
-> > off the modulator means turning off the transmitter, and that's not what
-> > you want if you are, say, the presenter of a radio program and you want
-> > to quickly mute because you feel a sneeze coming :-)
-> >
-> > I think we need a specific API for this, but in the absence of one we should
-> > just leave the modulator enabled from the start.
-> 
-> yeah, that's just the issue I was wondering. Is there some reason 
-> frequency value could not be used? Defining frequency to 0MHz or -1MHz 
-> and Tx (maybe Rx too) is off?
+Instead of using global values for tuner ranges, store them
+internally. That fixes the need of using a different range
+for SDR radio, and will help to latter add a tuner ops to
+retrieve the tuner range for SDR mode.
 
-It's one option, yes. But I'm not entirely pleased with that as I'd like the
-driver to remember the last frequency. I would prefer to handle this as a
-separate setting. There may be other solutions as well, I'm not sure.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/v4l2-core/tuner-core.c | 59 ++++++++++++++++++++++--------------
+ 1 file changed, 37 insertions(+), 22 deletions(-)
 
-The core problem is of course a poor design of the radio API: it really should
-behave like a video node where it is possible to power off if nobody has the
-node open. But that breaks compatibility...
+diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+index e54b5ae..abdcda4 100644
+--- a/drivers/media/v4l2-core/tuner-core.c
++++ b/drivers/media/v4l2-core/tuner-core.c
+@@ -67,8 +67,8 @@ static char secam[] = "--";
+ static char ntsc[] = "-";
+ 
+ module_param_named(debug, tuner_debug, int, 0644);
+-module_param_array(tv_range, int, NULL, 0644);
+-module_param_array(radio_range, int, NULL, 0644);
++module_param_array(tv_range, int, NULL, 0444);
++module_param_array(radio_range, int, NULL, 0444);
+ module_param_string(pal, pal, sizeof(pal), 0644);
+ module_param_string(secam, secam, sizeof(secam), 0644);
+ module_param_string(ntsc, ntsc, sizeof(ntsc), 0644);
+@@ -134,6 +134,8 @@ struct tuner {
+ 	unsigned int        type; /* chip type id */
+ 	void                *config;
+ 	const char          *name;
++
++	u32                 radio_range[2], tv_range[2], sdr_range[2];
+ };
+ 
+ /*
+@@ -266,7 +268,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 	struct dvb_tuner_ops *fe_tuner_ops = &t->fe.ops.tuner_ops;
+ 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+ 	unsigned char buffer[4];
+-	int tune_now = 1;
++	int i, tune_now = 1;
+ 
+ 	if (type == UNSET || type == TUNER_ABSENT) {
+ 		tuner_dbg("tuner 0x%02x: Tuner type absent\n", c->addr);
+@@ -451,6 +453,13 @@ static void set_type(struct i2c_client *c, unsigned int type,
+ 			set_tv_freq(c, t->tv_freq);
+ 	}
+ 
++	/* Initializes the tuner ranges from modprobe parameters */
++	for (i = 0; i < 2; i++) {
++		t->radio_range[i] = radio_range[i] * 16000;
++		t->sdr_range[i] = tv_range[i] * 16000;
++		t->tv_range[i] = tv_range[i] * 16;
++	}
++
+ 	tuner_dbg("%s %s I2C addr 0x%02x with type %d used for 0x%02x\n",
+ 		  c->adapter->name, c->driver->driver.name, c->addr << 1, type,
+ 		  t->mode_mask);
+@@ -831,16 +840,16 @@ static void set_tv_freq(struct i2c_client *c, unsigned int freq)
+ 		tuner_warn("Tuner has no way to set tv freq\n");
+ 		return;
+ 	}
+-	if (freq < tv_range[0] * 16 || freq > tv_range[1] * 16) {
++	if (freq < t->tv_range[0] || freq > t->tv_range[1]) {
+ 		tuner_dbg("TV freq (%d.%02d) out of range (%d-%d)\n",
+-			   freq / 16, freq % 16 * 100 / 16, tv_range[0],
+-			   tv_range[1]);
++			   freq / 16, freq % 16 * 100 / 16, t->tv_range[0] / 16,
++			   t->tv_range[1] / 16);
+ 		/* V4L2 spec: if the freq is not possible then the closest
+ 		   possible value should be selected */
+-		if (freq < tv_range[0] * 16)
+-			freq = tv_range[0] * 16;
++		if (freq < t->tv_range[0])
++			freq = t->tv_range[0];
+ 		else
+-			freq = tv_range[1] * 16;
++			freq = t->tv_range[1];
+ 	}
+ 	params.frequency = freq;
+ 	tuner_dbg("tv freq set to %d.%02d\n",
+@@ -957,7 +966,7 @@ static void set_radio_freq(struct i2c_client *c, unsigned int freq)
+ {
+ 	struct tuner *t = to_tuner(i2c_get_clientdata(c));
+ 	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+-
++	u32 *range;
+ 	struct analog_parameters params = {
+ 		.mode      = t->mode,
+ 		.audmode   = t->audmode,
+@@ -972,16 +981,22 @@ static void set_radio_freq(struct i2c_client *c, unsigned int freq)
+ 		tuner_warn("tuner has no way to set radio frequency\n");
+ 		return;
+ 	}
+-	if (freq < radio_range[0] * 16000 || freq > radio_range[1] * 16000) {
++
++	if (V4L2_TUNER_IS_SDR(t->mode))
++		range = t->sdr_range;
++	else
++		range = t->radio_range;
++
++	if (freq < range[0] || freq > range[1]) {
+ 		tuner_dbg("radio freq (%d.%02d) out of range (%d-%d)\n",
+ 			   freq / 16000, freq % 16000 * 100 / 16000,
+-			   radio_range[0], radio_range[1]);
++			   range[0] / 16000, range[1] / 16000);
+ 		/* V4L2 spec: if the freq is not possible then the closest
+ 		   possible value should be selected */
+-		if (freq < radio_range[0] * 16000)
+-			freq = radio_range[0] * 16000;
++		if (freq < range[0])
++			freq = range[0];
+ 		else
+-			freq = radio_range[1] * 16000;
++			freq = range[1];
+ 	}
+ 	params.frequency = freq;
+ 	tuner_dbg("radio freq set to %d.%02d\n",
+@@ -1184,8 +1199,8 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	}
+ 	if (!V4L2_TUNER_IS_RADIO(vt->type)) {
+ 		vt->capability |= V4L2_TUNER_CAP_NORM;
+-		vt->rangelow = tv_range[0] * 16;
+-		vt->rangehigh = tv_range[1] * 16;
++		vt->rangelow = t->tv_range[0];
++		vt->rangehigh = t->tv_range[1];
+ 		return 0;
+ 	}
+ 
+@@ -1193,11 +1208,11 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
+ 
+ 	if (V4L2_TUNER_IS_SDR(vt->type)) {
+-		vt->rangelow  = tv_range[0] * 16000;
+-		vt->rangehigh = tv_range[1] * 16000;
+-	else {
+-		vt->rangelow = radio_range[0] * 16000;
+-		vt->rangehigh = radio_range[1] * 16000;
++		vt->rangelow  = t->sdr_range[0];
++		vt->rangehigh = t->sdr_range[1];
++	} else {
++		vt->rangelow = t->radio_range[0];
++		vt->rangehigh = t->radio_range[1];
+ 	}
+ 	/* Check if the radio device is active */
+ 	if (vt->type != t->mode)
+-- 
+1.8.1.4
 
-Since this is all very specific to radio devices I am inclined to introduce
-a radio-specific ioctl or control for this.
-
-But there is a related issue with USB video devices: after the last close()
-do you power off the device immediately, wait a bit before doing that or keep
-it alive all the time? This becomes relevant if powering up takes a long time
-because of e.g. having to reload firmware or intializing i2c devices.
-
-So perhaps this can be solved with two generic controls:
-
-bool CID_POWER_OFF_AT_LAST_CLOSE
-int CID_POWER_OFF_DELAY (unit: seconds)
-
-If POWER_OFF_AT_LAST_CLOSE is false, then you never power off. If it is true,
-then power off after a given delay. If the delay == 0 then power off immediately.
-
-Drivers can decide on proper default values. But radio devices must start
-with CID_POWER_OFF_AT_LAST_CLOSE set to false for compatibility reasons.
-
-I don't have time for the next few weeks to investigate this further, so if
-you are interested...
-
-Regards,
-
-	Hans
-
-> Here is power consumption I measured:
-> 26.5mA play=false (idle mode)
-> 39.0mA Tx on 95.16 MHz
-> 
-> It wastes 12.5mA (from USB Vcc 5v) when Tx is enabled.
-> 
-> regards
-> Antti
-> 
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> >>
-> >>
-> >> regards
-> >> Antti
-> >>
-> >>
-> >>
-> >>
-> >>
-> >>
-> >>> diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
-> >>> index 4c9ae76..99da3d4 100644
-> >>> --- a/drivers/media/radio/radio-keene.c
-> >>> +++ b/drivers/media/radio/radio-keene.c
-> >>> @@ -93,7 +93,7 @@ static int keene_cmd_main(struct keene_device *radio, unsigned freq, bool play)
-> >>>    	/* If bit 4 is set, then tune to the frequency.
-> >>>    	   If bit 3 is set, then unmute; if bit 2 is set, then mute.
-> >>>    	   If bit 1 is set, then enter idle mode; if bit 0 is set,
-> >>> -	   then enter transit mode.
-> >>> +	   then enter transmit mode.
-> >>>    	 */
-> >>>    	radio->buffer[5] = (radio->muted ? 4 : 8) | (play ? 1 : 2) |
-> >>>    							(freq ? 0x10 : 0);
-> >>> @@ -350,7 +350,6 @@ static int usb_keene_probe(struct usb_interface *intf,
-> >>>    	radio->pa = 118;
-> >>>    	radio->tx = 0x32;
-> >>>    	radio->stereo = true;
-> >>> -	radio->curfreq = 95.16 * FREQ_MUL;
-> >>>    	if (hdl->error) {
-> >>>    		retval = hdl->error;
-> >>>
-> >>> @@ -383,6 +382,8 @@ static int usb_keene_probe(struct usb_interface *intf,
-> >>>    	video_set_drvdata(&radio->vdev, radio);
-> >>>    	set_bit(V4L2_FL_USE_FH_PRIO, &radio->vdev.flags);
-> >>>
-> >>> +	keene_cmd_main(radio, 95.16 * FREQ_MUL, false);
-> >>> +
-> >>>    	retval = video_register_device(&radio->vdev, VFL_TYPE_RADIO, -1);
-> >>>    	if (retval < 0) {
-> >>>    		dev_err(&intf->dev, "could not register video device\n");
-> >>>
-> >>>
-> >>>> 2) What is that log printing?
-> >>>> ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2
-> >>>> (id 13)
-> >>>>
-> >>>>
-> >>>> usb 5-2: new full-speed USB device number 3 using ohci_hcd
-> >>>> usb 5-2: New USB device found, idVendor=046d, idProduct=0a0e
-> >>>> usb 5-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> >>>> usb 5-2: Product: B-LINK USB Audio
-> >>>> usb 5-2: Manufacturer: HOLTEK
-> >>>> ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2
-> >>>> (id 13)
-> >>>> radio-keene 5-2:1.2: V4L2 device registered as radio0
-> >>>
-> >>> No idea, and I don't get that message either.
-> >>>
-> >>> Regards,
-> >>>
-> >>> 	Hans
-> >>>
-> >>>>
-> >>>>
-> >>>> $ v4l2-ctl -d /dev/radio0 --all -L
-> >>>> Driver Info (not using libv4l2):
-> >>>> 	Driver name   : radio-keene
-> >>>> 	Card type     : Keene FM Transmitter
-> >>>> 	Bus info      : usb-0000:00:13.0-2
-> >>>> 	Driver version: 3.9.0
-> >>>> 	Capabilities  : 0x800C0000
-> >>>> 		Modulator
-> >>>> 		Radio
-> >>>> Frequency: 1522560 (95.160000 MHz)
-> >>>> Modulator:
-> >>>> 	Name                 : FM
-> >>>> 	Capabilities         : 62.5 Hz stereo
-> >>>> 	Frequency range      : 76.0 MHz - 108.0 MHz
-> >>>> 	Subchannel modulation: stereo
-> >>>> Priority: 2
-> >>>>
-> >>>> User Controls
-> >>>>
-> >>>>                               mute (bool)   : default=0 value=0
-> >>>>
-> >>>> FM Radio Modulator Controls
-> >>>>
-> >>>>             audio_compression_gain (int)    : min=-15 max=18 step=3
-> >>>> default=0 value=0 flags=slider
-> >>>>                       pre_emphasis (menu)   : min=0 max=2 default=1 value=1
-> >>>> 				1: 50 Microseconds
-> >>>> 				2: 75 Microseconds
-> >>>>                   tune_power_level (int)    : min=84 max=118 step=1
-> >>>> default=118 value=118 flags=slider
-> >>>>
-> >>>>
-> >>>> regards
-> >>>> Antti
-> >>>>
-> >>>>
-> >>
-> >>
-> >>
-> 
-> 
-> 
