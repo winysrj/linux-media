@@ -1,288 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f46.google.com ([74.125.83.46]:45000 "EHLO
-	mail-ee0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759921Ab3D3RgK (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2007 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753045Ab3DUKe6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Apr 2013 13:36:10 -0400
-Received: by mail-ee0-f46.google.com with SMTP id c13so379853eek.19
-        for <linux-media@vger.kernel.org>; Tue, 30 Apr 2013 10:36:08 -0700 (PDT)
-Message-ID: <518000EE.40502@cogentembedded.com>
-Date: Tue, 30 Apr 2013 20:35:42 +0300
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+	Sun, 21 Apr 2013 06:34:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH RFC v2 0/3] Add SDR at V4L2 API
+Date: Sun, 21 Apr 2013 12:34:45 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <366469499-31640-1-git-send-email-mchehab@redhat.com> <201304211134.09073.hverkuil@xs4all.nl> <5173BAEF.3000805@redhat.com>
+In-Reply-To: <5173BAEF.3000805@redhat.com>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	mchehab@redhat.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Magnus Damm <magnus.damm@gmail.com>, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com, matsu@igel.co.jp
-Subject: Re: [PATCH v2 1/4] V4L2: soc_camera: Renesas R-Car VIN driver
-References: <201304200231.31802.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1304201201370.10520@axis700.grange> <517D7195.1020301@cogentembedded.com>
-In-Reply-To: <517D7195.1020301@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201304211234.45282.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi, Guennadi,
+On Sun April 21 2013 12:09:51 Mauro Carvalho Chehab wrote:
+> Em 21-04-2013 06:34, Hans Verkuil escreveu:
+> > Hi Mauro,
+> >
+> > On Sat April 20 2013 19:51:11 Mauro Carvalho Chehab wrote:
+> >> This is a version 2 of the V4L2 API bits to support Software Digital
+> >> Radio (SDR).
+> >
+> > It looks pretty good to me. Just one question though: what is your rationale
+> > for choosing a new device name (/dev/sdrX) instead of using the existing
+> > /dev/radioX?
+> >
+> > I'm not saying I'm opposed to it, in fact I agree with it, but I think the
+> > reasons for it should be stated explicitly.
+> 
+> Because a SDR radio is different than a normal radio device:
+> 
+> A normal radio device is actually radio and hardware demod. As the demod
+> is in hardware, several things that are required for the demodulate the
+> signal (IF, bandwidth, sample rate, RF/IF filters, etc) are internal to
+> the device and aren't part of the API.
+> 
+> SDR radio, on the other hand, requires that every control needed by the
+> tuner to be exposed on userspace, as userspace needs to adjust the
+> software decoder to match them.
+> 
+> So, they're different.
+> 
+> Btw, it is also possible that the same device to offer analog TV,
+> digital TV, hardware-decoded radio and SDR. One example of such devices
+> are cx88. The existing drivers supports already hardware demodulers,
+> but the device also allows to export the collected samples to userspace.
+> It is just a matter of programming the cx88 RISC code to do that.
+> 
+> Internally, cx2388x has 2 10 bits ADC, one for baseband (composite inputs)
+> and another one for IF signal capable of working up to 35.44 MHz sampling
+> rate (on "8x FSC PAL" supported mode). It would be easy to export its
+> output to userspace.
+> 
+> Btw, while seeking for more data about SDR this weekend, I discovered
+> one project doing exactly that:
+> 
+> 	http://www.geocities.ws/how_chee/cx23881fc6.htm
+> 
+> I did a very quick look at its source code. It is limited, as it works
+> only at a fixed sample rate of 27 MHz provides only 8 bits samples[1], and
+> I'm not sure if it allows using both ADCs.
+> 
+> Yet, It shows that it is possible that a driver/subdrivers to offer
+> the 4 different types of devices:
+> 	- analog TV;
+> 	- digital TV;
+> 	- radio;
+> 	- SDR.
+> 
+> So, IMO we should not abuse of /dev/radio for SDR.
 
-Thank you for the review!
+I agree. I just wanted to have it explicit :-)
 
-Sergei Shtylyov wrote:
->
->> I also strongly suspent some #include <media/v4l2-*.h> headers are 
->> missing
->> above.
->
->    Hm, I wonder which. I'm certainly not V4L2 expert...
-added following:
-#include <media/v4l2-common.h>
-#include <media/v4l2-dev.h>
-#include <media/v4l2-device.h>
-#include <media/v4l2-mediabus.h>
-#include <media/v4l2-subdev.h>
+I also think we should provide and maintain a library doing the decoding for
+SDR that is part of v4l-utils. Otherwise you'll end up with a big userspace
+mess.
 
->>> +    alloc_ctxs[0] = priv->alloc_ctx;
->>> +
->>> +    if (!vq->num_buffers)
->>> +        priv->sequence = 0;
->>> +
->>> +    if (!*count)
->>> +        *count = 2;
->>> +    priv->vb_count = *count;
->>> +
->>> +    *num_planes = 1;
->>> +
->>> +    /* Number of hardware slots */
->>> +    if (priv->vb_count > MAX_BUFFER_NUM)
->>> +        priv->nr_hw_slots = MAX_BUFFER_NUM;
->>> +    else
->>> +        priv->nr_hw_slots = 1;
->
->> Is this really correct: with up to 3 buffers only one HW slot is used?
->
->    Probably not.
-After replacing (priv->vb_count > MAX_BUFFER_NUM)  with 
-is_continuous_transfer(priv) the logic becomes clear.
-
->>> +        break;
->>> +    default:
->>> +        vnmc = VNMC_IM_ODD;
->>> +        break;
->>> +    }
->>> +
->>> +    /* input interface */
->>> +    switch (icd->current_fmt->code) {
->>> +    case V4L2_MBUS_FMT_YUYV8_1X16:
->>> +        /* BT.601/BT.1358 16bit YCbCr422 */
->>> +        vnmc |= VNMC_INF_YUV16;
->>> +        input_is_yuv = 1;
->>> +        break;
->>> +    case V4L2_MBUS_FMT_YUYV8_2X8:
->>> +        input_is_yuv = 1;
->>> +        /* BT.656 8bit YCbCr422 or BT.601 8bit YCbCr422 */
->>> +        vnmc |= priv->pdata->flags & RCAR_VIN_BT656 ?
->>> +            VNMC_INF_YUV8_BT656 : VNMC_INF_YUV8_BT601;
->
->> Let's clarify this. By BT.656 you mean embedded synchronisation 
->> patterns,
->> right? In that case HSYNC and VSYNC signals aren't used.
->
->    Probably so, at least I know for sure HSYNC/VSYNC aren't used.
-Yes, it is.
-BT.656 uses embedded synchronization and HSYNC/VSYNC are not used for 
-this type of interface.
-The BT.601 is a so-called by soc-camera layer MBUS_PARALLEL.
->
->> But in your
->> .set_bus_param() method you only support V4L2_MBUS_PARALLEL and not
->> V4L2_MBUS_BT656. And what do you call BT601? A bus with sync signals 
->> used?
->    Yeah, judging from the manual, HSYNC, VSYNC, FIELD are used in BT.601.
-The name ITUR BT601 YCbCr  that comes from specification is a 
-MBUS_PARALLEL name per soc-camera layer naming.
-The BT601 is expected to use h/w sync signals.
-
-I've removed the pre initialization of v4l2_mbus_config .type filed in 
-favour of getting it from camera/decoder subdevice.
-Thx for pointing to this.
->>> +        }
->>> +    }
->>> +    spin_unlock_irq(&priv->lock);
->>> +
->>> +    pm_runtime_put_sync(ici->v4l2_dev.dev);
->
->> Do you really need the _sync version above?
->
->    I'm not runtime PM expert, to be honest...
-replaced with pm_runtime_put().
-thx for pointing to this.
->
->>> +static u16 calc_scale(unsigned int src, unsigned int *dst)
->>> +{
->>> +    u16 scale;
->>> +
->>> +    if (src == *dst)
->>> +        return 0;
->>> +
->>> +    scale = (src * 4096 / *dst) & ~7;
->>> +
->>> +    while (scale > 4096 && size_dst(src, scale) < *dst)
->>> +        scale -= 8;
->>> +
->>> +    *dst = size_dst(src, scale);
->>> +
->>> +    return scale;
->
->> return value of this function is unused by the caller. Generally, 
->> your use
->> of these two functions is different than on CEU, you might want to 
->> get rid
->> of them completely.
-I'd prefer to leave this function and provide fixes after scaling is 
-fully tested.
-
-
->>> +    /* Set Start/End Pixel/Line Pre-Clip */
->>> +    iowrite32(left_offset << dsize, priv->base + VNSPPRC_REG);
->>> +    iowrite32((left_offset + cam->width - 1) << dsize,
->>> +          priv->base + VNEPPRC_REG);
->
->> Do you have to shift for all 32-bit formats, not only for RGB32? I
->> understand this is related to the fact, that you don't support
->> pass-through...
->
->    At least the manual says to program an even number to VnSPPrC...
-The driver explicitly says that V4L2_PIX_FMT_RGB32 is the only 32bit 
-format supported.
-
->>> +static void capture_stop_preserve(struct rcar_vin_priv *priv, u32 
->>> *vnmc)
->>> +{
->>> +    *vnmc = ioread32(priv->base + VNMC_REG);
->>> +    /* module disable */
->>> +    iowrite32(*vnmc & ~VNMC_ME, priv->base + VNMC_REG);
->>> +}
->>> +
->>> +static void capture_restore(struct rcar_vin_priv *priv, u32 vnmc)
->>> +{
->>> +    unsigned long timeout = jiffies + 10 * HZ;
->>> +
->>> +    if (!(vnmc & ~VNMC_ME))
->>> +        /* Nothing to restore */
->>> +        return;
->
->> And you don't have to wait for a frame end?
->
->    If the module wasn't active, there's probably no point... however, 
-> let's
-> defer it to Vladimir.
-Right. Thx for catching this.
->>> +    },
->>> +    {
->>> +        .fourcc            = V4L2_PIX_FMT_YUYV,
->>> +        .name            = "YUYV",
->>> +        .bits_per_sample    = 16,
->>> +        .packing        = SOC_MBUS_PACKING_NONE,
->>> +        .order            = SOC_MBUS_ORDER_LE,
->
->> This conversion block is identical to the respective one in
->> soc_mediabus.c, which suggests to me, that no conversion is taking place
->> here. Then this mode should be usable for generic 8- or 16-bit
->> pass-through?
->
->    Let's defer this question to Vladimir.
-Will add pass-through. Thank you.
-
->>> +    switch (code) {
->>> +    case V4L2_MBUS_FMT_YUYV8_1X16:
->>> +    case V4L2_MBUS_FMT_YUYV8_2X8:
->>> +        if (cam->extra_fmt)
->>> +            break;
->>> +
->>> +        /* Add all our formats that can be generated by VIN */
->>> +        cam->extra_fmt = rcar_vin_formats;
->>> +
->>> +        n = ARRAY_SIZE(rcar_vin_formats);
->>> +        formats += n;
->>> +        for (k = 0; xlate && k < n; k++, xlate++) {
->>> +            xlate->host_fmt = &rcar_vin_formats[k];
->>> +            xlate->code = code;
->>> +            dev_dbg(dev, "Providing format %s using code %d\n",
->>> +                rcar_vin_formats[k].name, code);
->>> +        }
->>> +        break;
->>> +    default:
->>> +        return 0;
->
->> The above tells me, that VIN (or at least this driver) can only capture
->> YUYV8 either over an 8- or a 16-bit bus. Isn't it possible to provide a
->> pass-through mode?
->
->    10/12-bit bus is also possible in UYUV format and 20/24-bit bus in 
-> 10/12 bits (Y) + 10/12 bits (CbCr) format on R-Car H1 VIN0/1. Not all 
-> VIN interfaces are created equal in capabilities even within one 
-> SoC... VIN2 indeed only supports 8 or 16 bits, and VIN3 only supports 
-> 8-bit bus.
-Ditto
->>> +/* Similar to set_crop multistage iterative algorithm */
->>> +static int rcar_vin_set_fmt(struct soc_camera_device *icd,
->>> +                struct v4l2_format *f)
->>> +{
->>> +    struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->>> +    struct rcar_vin_priv *priv = ici->priv;
->>> +    struct rcar_vin_cam *cam = icd->host_priv;
->>> +    struct v4l2_pix_format *pix = &f->fmt.pix;
->>> +    struct v4l2_mbus_framefmt mf;
->>> +    struct device *dev = icd->parent;
->>> +    __u32 pixfmt = pix->pixelformat;
->>> +    const struct soc_camera_format_xlate *xlate;
->>> +    unsigned int vin_sub_width = 0, vin_sub_height = 0;
->>> +    u16 scale_v, scale_h;
->>> +    int ret;
->>> +    bool can_scale;
->>> +    bool data_through;
->
->> What exactly does data_through mean? I thought it meant a pass-through
->> mode, but it is set to true for a YUYV->RGB32 conversion, which isn't
->> pass-through obviously.
->
->    Maybe it's just bset incorrectly. As I said, data through should 
-> only be supported on R-Car E1 IIRC.
-the data_through is removed per prev request and added just the check 
-for RGB32 FMT in order to use a shift.
->
-> [...]
->>> +    data_through = pixfmt == V4L2_PIX_FMT_RGB32;
->
->> What is "data_through" and why is RGB32 so special?
->
->    DIIK, to be honest. :-)
-We will provide all detailed info once E1 will be up. Unfortunately, the 
-E1 is not up but it is on the schedule.
->> VIN can scale _everything_ except NV16 and RGB32?
->
-Depends on SOC ..... RGB32 and NV16 are applicable to E1 only .... we'll 
-make the VIN module differentiation depending on SoC (H/M/E ...)
-
->>> +static int rcar_vin_init_videobuf2(struct vb2_queue *vq,
->>> +                   struct soc_camera_device *icd)
->>> +{
->>> +    vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
->>> +    vq->io_modes = VB2_MMAP | VB2_USERPTR;
->>> +    vq->drv_priv = icd;
->>> +    vq->ops = &rcar_vin_vb2_ops;
->>> +    vq->mem_ops = &vb2_dma_contig_memops;
->>> +    vq->buf_struct_size = sizeof(struct rcar_vin_buffer);
->
->> Please, add
->
->>     vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
->
-There is not such field in "struct vb2_queue".
-
-
-All other parts of review are reworked per suggestions.
+And we want this checked by v4l2-compliance, and qv4l2 should be able to use
+the library so we have at least one application that can handle it.
 
 Regards,
-Vladimir
+
+	Hans
+
+> 
+> Regards,
+> Mauro
+> 
+> [1] The trick is to program the cx88 RISC to output data from the
+> samplers, instead of from the demods. We do that already for the
+> audio standard detection.
+> 
+> I've no idea if cx88 has any upper DMA maximum bandwidth. If it has,
+> that might be the reason to limit to 27MHz, 8 bits, but I suspect
+> that it was done that way just because it was easier.
+> 
+> Btw, I'm almost sure that other Conexant designs can also offer
+> similar interfaces.
+> 
+> 
+> >
+> > Regards,
+> >
+> > 	Hans
+> >
+> >>
+> >>
+> >> The changes from version 1 are:
+> >> 	- fix compilation;
+> >> 	- add a new capture type for SDR (V4L2_BUF_TYPE_SDR_CAPTURE),
+> >> 	  with the corresponding documentation;
+> >> 	- remove legacy V4L1 buffer types from videobuf2.h.
+> >>
+> >> With regards to VIDIOC_S_TUNER, what's currently defined there is
+> >> that, in contrary to what a radio device does, this ioctl would
+> >> set the input.
+> >>
+> >> This patch adds the very basic stuff for SDR:
+> >>
+> >> 	- a separate devnode;
+> >> 	- an VIDIOC_QUERYCAP caps for SDR;
+> >> 	- a fourcc group for SDR;
+> >> 	- a few DocBook bits.
+> >>
+> >> What's missing:
+> >> 	- SDR specific controls;
+> >> 	- Sample rate config;
+> >> 	...
+> >>
+> >> As discussing DocBook changes inside the patch is hard, I'm adding here
+> >> the DocBook formatted changes.
+> >>
+> >> The DocBook changes add the following bits:
+> >>
+> >> At Chapter 1. Common API Elements, it adds:
+> >>
+> >> <text>
+> >> Software Digital Radio (SDR) Tuners and Modulators
+> >> ==================================================
+> >>
+> >> Those devices are special types of Radio devices that don't have any
+> >> analog demodulator. Instead, it samples the radio IF or baseband and
+> >> sends the samples for userspace to demodulate.
+> >>
+> >> Tuners
+> >> ======
+> >>
+> >> SDR receivers can have one or more tuners sampling RF signals. Each
+> >> tuner is associated with one or more inputs, depending on the number of
+> >> RF connectors on the tuner. The type field of the respective struct
+> >> v4l2_input returned by the VIDIOC_ENUMINPUT ioctl is set to
+> >> V4L2_INPUT_TYPE_TUNER and its tuner field contains the index number of
+> >> the tuner input.
+> >>
+> >> To query and change tuner properties applications use the VIDIOC_G_TUNER
+> >> and VIDIOC_S_TUNER ioctl, respectively. The struct v4l2_tuner returned
+> >> by VIDIOC_G_TUNER also contains signal status information applicable
+> >> when the tuner of the current SDR input is queried. In order to change
+> >> the SDR input, VIDIOC_S_TUNER with a new SDR index should be called.
+> >> Drivers must support both ioctls and set the V4L2_CAP_SDR and
+> >> V4L2_CAP_TUNER flags in the struct v4l2_capability returned by the
+> >> VIDIOC_QUERYCAP ioctl.
+> >>
+> >> Modulators
+> >> ==========
+> >>
+> >> To be defined.
+> >> </text>
+> >>
+> >> At the end of Chapter 2. Image Formats, it adds:
+> >>
+> >> <text>
+> >> SDR format struture
+> >> ===================
+> >>
+> >> Table 2.4. struct v4l2_sdr_format
+> >> =================================
+> >>
+> >> __u32	sampleformat	The format of the samples used by the SDR device.
+> >> 			This is a little endian four character code.
+> >>
+> >> Table 2.5. SDR formats
+> >> ======================
+> >>
+> >> V4L2_SDR_FMT_I8Q8	Samples are given by a sequence of 8 bits in-phase(I)
+> >> 			and 8 bits quadrature (Q) samples taken from a
+> >> 			signal(t) represented by the following expression:
+> >> 			signal(t) = I * cos(2Ï€ fc t) - Q * sin(2Ï€ fc t)
+> >> </text>
+> >>
+> >> Of course, other formats will be needed at Table 2.5, as SDR could also
+> >> be taken baseband samples, being, for example, a simple sequence of
+> >> equally time-spaced digitalized samples of the signal in time.
+> >> SDR samples could also use other resolutions, use a non-linear
+> >> (A-law, u-law) ADC, or even compress the samples (with ADPCM, for
+> >> example). So, this table will grow as newer devices get added, and an
+> >> userspace library may be required to convert them into some common
+> >> format.
+> >>
+> >> At "Chapter 4. Interfaces", it adds the following text:
+> >>
+> >> <text>
+> >> Software Digital Radio(SDR) Interface
+> >> =====================================
+> >>
+> >> This interface is intended for Software Digital Radio (SDR) receivers
+> >> and transmitters.
+> >>
+> >> Conventionally V4L2 SDR devices are accessed through character device
+> >> special files named /dev/sdr0 to/dev/radio255 and uses a dynamically
+> >> allocated major/minor number.
+> >>
+> >> Querying Capabilities
+> >> =====================
+> >>
+> >> Devices supporting the radio interface set the V4L2_CAP_SDR and
+> >> V4L2_CAP_TUNER or V4L2_CAP_MODULATOR flag in the capabilities field of
+> >> struct v4l2_capability returned by the VIDIOC_QUERYCAP ioctl. Other
+> >> combinations of capability flags are reserved for future extensions.
+> >>
+> >> Supplemental Functions
+> >> ======================
+> >>
+> >> SDR receivers should support tuner ioctls.
+> >>
+> >> SDR transmitter ioctl's will be defined in the future.
+> >>
+> >> SDR devices should also support one or more of the following I/O ioctls:
+> >> read or write, memory mapped IO, user memory IO and/or DMA buffers.
+> >>
+> >> SDR devices can also support controls ioctls.
+> >>
+> >> The SDR Input/Output are A/D or D/A samples taken from a modulated
+> >> signal, and can eventually be packed by the hardware. They are generally
+> >> encoded using cartesian in-phase/quadrature (I/Q) samples, to make
+> >> demodulation easier. The format of the samples should be according with
+> >> SDR format.
+> >> </text>
+> >>
+> >> Note: "SDR format" on the last paragraph is an hyperlink to
+> >> Chapter 2. Image Formats.
+> >>
+> >> At "Appendix A. Function Reference - ioctl VIDIOC_QUERYCAP", it adds:
+> >>
+> >> <text>
+> >> Table A.93. Device Capabilities Flags
+> >> ...
+> >> V4L2_CAP_SDR	0x00100000	The device is a Software Digital Radio.
+> >> 				For more information about SDR programming
+> >> 				see the section called â€œSoftware Digital
+> >> 				Radio (SDR) Tuners and Modulatorsâ€�.
+> >> </text>
+> >>
+> >> Mauro Carvalho Chehab (3):
+> >>    [media] Add SDR at V4L2 API
+> >>    videodev2.h: Remove the unused old V4L1 buffer types
+> >>    [media] V4L2 api: Add a buffer capture type for SDR
+> >>
+> >>   Documentation/DocBook/media/v4l/common.xml         | 35 ++++++++++++++++++
+> >>   Documentation/DocBook/media/v4l/dev-capture.xml    | 26 ++++++++------
+> >>   Documentation/DocBook/media/v4l/io.xml             |  6 ++++
+> >>   Documentation/DocBook/media/v4l/pixfmt.xml         | 41 ++++++++++++++++++++++
+> >>   Documentation/DocBook/media/v4l/v4l2.xml           |  1 +
+> >>   .../DocBook/media/v4l/vidioc-querycap.xml          |  7 ++++
+> >>   drivers/media/v4l2-core/v4l2-dev.c                 |  3 ++
+> >>   drivers/media/v4l2-core/v4l2-ioctl.c               | 32 +++++++++++++++++
+> >>   include/media/v4l2-dev.h                           |  3 +-
+> >>   include/media/v4l2-ioctl.h                         |  8 +++++
+> >>   include/uapi/linux/videodev2.h                     | 33 +++++++----------
+> >>   11 files changed, 163 insertions(+), 32 deletions(-)
+> >>
+> >>
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> 
