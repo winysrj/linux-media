@@ -1,91 +1,236 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:40564 "EHLO hydra.sisk.pl"
+Received: from mx1.redhat.com ([209.132.183.28]:57342 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751718Ab3DVLen (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 07:34:43 -0400
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	"patches@linaro.org" <patches@linaro.org>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	linux-samsung-soc@vger.kernel.org, myungjoo.ham@samsung.com,
-	Vikas Sajjan <vikas.sajjan@linaro.org>,
-	linaro-kernel@lists.linaro.org,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	khilman@deeprootsystems.com
-Subject: Re: [PATCH v4] drm/exynos: prepare FIMD clocks
-Date: Mon, 22 Apr 2013 13:42:43 +0200
-Message-ID: <1789889.I0NQprXLsB@vostro.rjw.lan>
-In-Reply-To: <2218256.k8DNv9nCJl@amdc1227>
-References: <1365419265-21238-1-git-send-email-vikas.sajjan@linaro.org> <51750E43.1050602@samsung.com> <2218256.k8DNv9nCJl@amdc1227>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
+	id S1754115Ab3DUTAs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Apr 2013 15:00:48 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3LJ0mTl022608
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 15:00:48 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH RFCv3 05/10] [media] v4l2-ioctl: Add tuner ioctl support for SDR radio type
+Date: Sun, 21 Apr 2013 16:00:34 -0300
+Message-Id: <1366570839-662-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366570839-662-1-git-send-email-mchehab@redhat.com>
+References: <1366570839-662-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, April 22, 2013 12:37:36 PM Tomasz Figa wrote:
-> On Monday 22 of April 2013 12:17:39 Sylwester Nawrocki wrote:
-> > On 04/22/2013 12:03 PM, Inki Dae wrote:
-> > >     > Also looks good to me. But what if power domain was disabled without
-> > >     > pm
-> > >     > runtime? In this case, you must enable the power domain at machine
-> > >     > code or
-> > >     > bootloader somewhere. This way would not only need some hard codes
-> > >     > to turn
-> > >     > the power domain on but also not manage power management fully. This
-> > >     > is same as only the use of pm runtime interface(needing some hard
-> > >     > codes without pm runtime) so I don't prefer to add
-> > >     > clk_enable/disable to fimd probe(). I quite tend to force only the
-> > >     > use of pm runtime as possible. So please add the hard codes to
-> > >     > machine code or bootloader like you did for power domain if you
-> > >     > want to use drm fimd without pm runtime.
-> > >     
-> > >     That's not how the runtime PM, clock subsystems work:
-> > >     
-> > >     1) When CONFIG_PM_RUNTIME is disabled, all the used hardware must be
-> > >     kept
-> > >     powered on all the time.
-> > >     
-> > >     2) Common Clock Framework will always gate all clocks that have zero
-> > >     enable_count. Note that CCF support for Exynos is already merged for
-> > >     3.10 and it will be the only available clock support method for
-> > >     Exynos.
-> > >     
-> > >     AFAIK, drivers must work correctly in both cases, with
-> > >     CONFIG_PM_RUNTIME
-> > >     enabled and disabled.
-> > > 
-> > > Then is the driver worked correctly if the power domain to this device was
-> > > disabled at bootloader without CONFIG_PM_RUNTIME and with clk_enable()?  I
-> > > think, in this case, the device wouldn't be worked correctly because the
-> > > power of the device remains off. So you must enable the power domain
-> > > somewhere. What is the difference between these two cases?
-> > 
-> > How about making the driver dependant on PM_RUNTIME and making it always
-> > use pm_runtime_* API, regardless if the platform actually implements runtime
-> > PM or not ? Is there any issue in using the Runtime PM core always, rather
-> > than coding any workarounds in drivers when PM_RUNTIME is disabled ?
-> 
-> I don't think this is a good idea. This would mean that any user that from 
-> some reasons don't want to use PM_RUNTIME, would not be able to use the driver 
-> anymore.
-> 
-> Rafael, Kevin, do you have any opinion on this?
+The tuner ioctl's are optimized to handle internally the
+differences between TV and normal AM/FM radio.
 
-I agree.
+SDR is different than both, so it needs its own way of doing things.
 
-Drivers should work for CONFIG_PM_RUNTIME unset too and static inline stubs for
-all runtime PM helpers are available in that case.
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/v4l2-core/v4l2-ioctl.c | 89 ++++++++++++++++++++++++++----------
+ include/uapi/linux/videodev2.h       |  5 ++
+ 2 files changed, 70 insertions(+), 24 deletions(-)
 
-Thanks,
-Rafael
-
-
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index fd853da..f8bb171 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -1296,6 +1296,19 @@ static int v4l_streamoff(const struct v4l2_ioctl_ops *ops,
+ 	return ops->vidioc_streamoff(file, fh, *(unsigned int *)arg);
+ }
+ 
++static u32 v4l_device_type(struct video_device *vfd)
++{
++	switch (vfd->vfl_type) {
++	case VFL_TYPE_RADIO:
++		return V4L2_TUNER_RADIO;
++	case VFL_TYPE_SDR:
++		/* May be overriden by the driver */
++		return V4L2_TUNER_SDR_RADIO;
++	default:
++		return V4L2_TUNER_ANALOG_TV;
++	}
++}
++
+ static int v4l_g_tuner(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+@@ -1303,8 +1316,7 @@ static int v4l_g_tuner(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_tuner *p = arg;
+ 	int err;
+ 
+-	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	p->type = v4l_device_type(vfd);
+ 	err = ops->vidioc_g_tuner(file, fh, p);
+ 	if (!err)
+ 		p->capability |= V4L2_TUNER_CAP_FREQ_BANDS;
+@@ -1316,9 +1328,18 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
+ {
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_tuner *p = arg;
++	u32 type;
++
++	/*
++	 * For non-SDR devices, the type is defined by the dev type;
++	 * For SDR devices, if the type is not an SDR type return error
++	 */
++	type = v4l_device_type(vfd);
++	if (type != VFL_TYPE_SDR)
++		p->type = type;
++	else if (!V4L2_TUNER_IS_SDR(p->type))
++		return -EINVAL;
+ 
+-	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+ 	return ops->vidioc_s_tuner(file, fh, p);
+ }
+ 
+@@ -1340,8 +1361,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
+ 	struct video_device *vfd = video_devdata(file);
+ 	struct v4l2_frequency *p = arg;
+ 
+-	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	p->type = v4l_device_type(vfd);
+ 	return ops->vidioc_g_frequency(file, fh, p);
+ }
+ 
+@@ -1352,10 +1372,13 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
+ 	const struct v4l2_frequency *p = arg;
+ 	enum v4l2_tuner_type type;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-	if (p->type != type)
++	type = v4l_device_type(vfd);
++	if (type != VFL_TYPE_SDR) {
++		if (p->type != type)
++			return -EINVAL;
++	} else if (!V4L2_TUNER_IS_SDR(p->type))
+ 		return -EINVAL;
++
+ 	return ops->vidioc_s_frequency(file, fh, p);
+ }
+ 
+@@ -1457,10 +1480,13 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_hw_freq_seek *p = arg;
+ 	enum v4l2_tuner_type type;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
+-	if (p->type != type)
++	type = v4l_device_type(vfd);
++	if (type != VFL_TYPE_SDR) {
++		if (p->type != type)
++			return -EINVAL;
++	} else if (!V4L2_TUNER_IS_SDR(p->type))
+ 		return -EINVAL;
++
+ 	return ops->vidioc_s_hw_freq_seek(file, fh, p);
+ }
+ 
+@@ -1974,12 +2000,19 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 	struct v4l2_frequency_band *p = arg;
+ 	enum v4l2_tuner_type type;
+ 	int err;
++	bool is_sdr;
+ 
+-	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
+-			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
++	type = v4l_device_type(vfd);
++	if (type != VFL_TYPE_SDR) {
++		if (p->type != type)
++			return -EINVAL;
++		is_sdr = false;
++	} else {
++		if (!V4L2_TUNER_IS_SDR(type))
++			return -EINVAL;
++		is_sdr = true;
++	}
+ 
+-	if (type != p->type)
+-		return -EINVAL;
+ 	if (ops->vidioc_enum_freq_bands)
+ 		return ops->vidioc_enum_freq_bands(file, fh, p);
+ 	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
+@@ -1988,7 +2021,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 			.type = type,
+ 		};
+ 
+-		if (p->index)
++		if (p->index && !is_sdr)
+ 			return -EINVAL;
+ 		err = ops->vidioc_g_tuner(file, fh, &t);
+ 		if (err)
+@@ -1996,16 +2029,15 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 		p->capability = t.capability | V4L2_TUNER_CAP_FREQ_BANDS;
+ 		p->rangelow = t.rangelow;
+ 		p->rangehigh = t.rangehigh;
+-		p->modulation = (type == V4L2_TUNER_RADIO) ?
+-			V4L2_BAND_MODULATION_FM : V4L2_BAND_MODULATION_VSB;
+-		return 0;
++
++		goto ret;
+ 	}
+ 	if (is_valid_ioctl(vfd, VIDIOC_G_MODULATOR)) {
+ 		struct v4l2_modulator m = {
+ 			.index = p->tuner,
+ 		};
+ 
+-		if (type != V4L2_TUNER_RADIO)
++		if (type == V4L2_TUNER_ANALOG_TV)
+ 			return -EINVAL;
+ 		if (p->index)
+ 			return -EINVAL;
+@@ -2015,11 +2047,20 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
+ 		p->capability = m.capability | V4L2_TUNER_CAP_FREQ_BANDS;
+ 		p->rangelow = m.rangelow;
+ 		p->rangehigh = m.rangehigh;
+-		p->modulation = (type == V4L2_TUNER_RADIO) ?
+-			V4L2_BAND_MODULATION_FM : V4L2_BAND_MODULATION_VSB;
+-		return 0;
++		goto ret;
+ 	}
+ 	return -ENOTTY;
++ret:
++	if (is_sdr) {
++		/* With SDR, modulation type can be anything */
++		p->modulation = V4L2_BAND_MODULATION_ANY;
++		return 0;
++	}
++
++	p->modulation = (type == V4L2_TUNER_RADIO) ?
++		V4L2_BAND_MODULATION_FM : V4L2_BAND_MODULATION_VSB;
++	return 0;
++
+ }
+ 
+ struct v4l2_ioctl_info {
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index c002030..e2cc369 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -176,8 +176,12 @@ enum v4l2_tuner_type {
+ 	V4L2_TUNER_SDR_DTV_ATSC,	/* Optimize for Digital TV, ATSC */
+ 	V4L2_TUNER_SDR_DTV_DVBT,	/* Optimize for Digital TV, DVB-T */
+ 	V4L2_TUNER_SDR_DTV_ISDBT,	/* Optimize for Digital TV, ISDB-T */
++	V4L2_TUNER_SDR_MAX
+ };
+ 
++#define V4L2_TUNER_IS_SDR(type)					\
++	(((type) >= V4L2_TUNER_SDR_RADIO) || ((type) < V4L2_TUNER_SDR_MAX))
++
+ enum v4l2_memory {
+ 	V4L2_MEMORY_MMAP             = 1,
+ 	V4L2_MEMORY_USERPTR          = 2,
+@@ -1388,6 +1392,7 @@ struct v4l2_frequency {
+ #define V4L2_BAND_MODULATION_VSB	(1 << 1)
+ #define V4L2_BAND_MODULATION_FM		(1 << 2)
+ #define V4L2_BAND_MODULATION_AM		(1 << 3)
++#define V4L2_BAND_MODULATION_ANY	(1 << 4)
+ 
+ struct v4l2_frequency_band {
+ 	__u32	tuner;
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.8.1.4
+
