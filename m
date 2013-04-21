@@ -1,118 +1,241 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:34560 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753045Ab3DRErf (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52947 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753227Ab3DUWh7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 00:47:35 -0400
-MIME-Version: 1.0
-In-Reply-To: <2933946.BRNjyJUSVm@avalon>
-References: <1366109670-28030-1-git-send-email-prabhakar.csengg@gmail.com> <2933946.BRNjyJUSVm@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 18 Apr 2013 10:17:14 +0530
-Message-ID: <CA+V-a8uV1e0FSe0kO6VBe=fRj9hf8Oo5VzrrbMtnR-onJo9pog@mail.gmail.com>
-Subject: Re: [PATCH v2] media: davinci: vpif: align the buffers size to page
- page size boundary
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sun, 21 Apr 2013 18:37:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Prabhakar lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
 	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	LKML <linux-kernel@vger.kernel.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: Re: [PATCH RFC] media: videobuf2: fix the length check for mmap
+Date: Mon, 22 Apr 2013 00:38:05 +0200
+Message-ID: <4764027.ER4TtP6hZT@avalon>
+In-Reply-To: <20130419081801.0af7ad73@redhat.com>
+References: <1366364816-3567-1-git-send-email-prabhakar.csengg@gmail.com> <20130419081801.0af7ad73@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Marek,
+Hi Mauro,
 
-On Tue, Apr 16, 2013 at 4:48 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> (CC'ing Marek)
->
-> On Tuesday 16 April 2013 16:24:30 Prabhakar lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> with recent commit with id 068a0df76023926af958a336a78bef60468d2033
->> which adds add length check for mmap, the application were failing to
->> mmap the buffers.
->>
->> This patch aligns the the buffer size to page size boundary for both
->> capture and display driver so the it pass the check.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> ---
->>  Changes for v2:
->>  1: Fixed a typo in commit message.
->>
->>  drivers/media/platform/davinci/vpif_capture.c |    1 +
->>  drivers/media/platform/davinci/vpif_display.c |    1 +
->>  2 files changed, 2 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/media/platform/davinci/vpif_capture.c
->> b/drivers/media/platform/davinci/vpif_capture.c index 5f98df1..25981d6
->> 100644
->> --- a/drivers/media/platform/davinci/vpif_capture.c
->> +++ b/drivers/media/platform/davinci/vpif_capture.c
->> @@ -183,6 +183,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
->> *nbuffers = config_params.min_numbuffers;
->>
->>       *nplanes = 1;
->> +     size = PAGE_ALIGN(size);
->
-> I wonder if that's the best fix.
->
-> The queue_setup operation is supposed to return the size required by the
-> driver for each plane. Depending on the hardware requirements, that size might
-> not be a multiple of the page size.
->
-> As we can't mmap() a fraction of a page, the allocated plane size needs to be
-> rounded up to the next page boundary to allow mmap() support. The dma-contig
-> and dma-sg allocators already do so in their alloc operation, but the vmalloc
-> allocator doesn't.
->
-> The recent "media: vb2: add length check for mmap" patch verifies that the
-> mmap() size requested by userspace doesn't exceed the buffer size. As the
-> mmap() size is rounded up to the next page boundary the check will fail for
-> buffer sizes that are not multiple of the page size.
->
-> Your fix will not result in overallocation (as the allocator already rounds
-> the size up), but will prevent the driver from importing a buffer large enough
-> for the hardware but not rounded up to the page size.
->
-> A better fix might be to round up the buffer size in the buffer size check at
-> mmap() time, and fix the vmalloc allocator to round up the size. That the
-> allocator, not drivers, is responsible for buffer size alignment should be
-> documented in videobuf2-core.h.
->
-Do you plan to post a patch fixing it as per Laurent's suggestion ?
+On Friday 19 April 2013 08:18:01 Mauro Carvalho Chehab wrote:
+> Em Fri, 19 Apr 2013 15:16:56 +0530 Prabhakar lad escreveu:
+> > From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> > 
+> > From commit 068a0df76023926af958a336a78bef60468d2033
+> > "[media] media: vb2: add length check for mmap"
+> > patch verifies that the mmap() size requested by userspace
+> > doesn't exceed the buffer size.
+> > 
+> > As the mmap() size is rounded up to the next page boundary
+> > the check will fail for buffer sizes that are not multiple
+> > of the page size.
+> > 
+> > This patch fixes the check by aligning the buffer size to page
+> > size during the check. Alongside fixes the vmalloc allocator
+> > to round up the size.
+> > 
+> > Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+> > Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > ---
+> > 
+> >  drivers/media/v4l2-core/videobuf2-core.c    |    2 +-
+> >  drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
+> >  2 files changed, 2 insertions(+), 2 deletions(-)
+> > 
+> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> > b/drivers/media/v4l2-core/videobuf2-core.c index 58c1744..223fcd4 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-core.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> > @@ -1886,7 +1886,7 @@ int vb2_mmap(struct vb2_queue *q, struct
+> > vm_area_struct *vma)> 
+> >  	vb = q->bufs[buffer];
+> > 
+> > -	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
+> > +	if (PAGE_ALIGN(vb->v4l2_planes[plane].length) < (vma->vm_end -
+> > vma->vm_start)) {> 
+> >  		dprintk(1, "Invalid length\n");
+> >  		return -EINVAL;
+> >  	
+> >  	}
+> 
+> That is tricky, as it assumes that vb->v4l2_planes[plane].length was round
+> up to PAGE_SIZE at each memops driver, but the vb2 core doesn't enforce it.
+> 
+> IMO, it would be cleaner to round vb->v4l2_planes[plane].length up
+> at VB2 core, before calling the memops alloc functions at the drivers.
 
+I don't think we should round vb->v4l2_planes[plane].length up. That variable 
+stores the buffer length required by the driver, and will be used to perform 
+size checks when importing a dmabuf buffer. We don't want to prevent a buffer 
+large enough for the driver but not page size aligned to be imported.
+
+What we could do is round in the core the size passed to the alloc function, 
+without storing the rounded value in vb->v4l2_planes[plane].length.
+
+And, reading down, I realize that this is exactly what you meant :-) The 
+proposed patch looks good to me.
+
+> Also, VB2 is already complex enough to put it there without proper
+> comments (and there's a minor codingstyle issue there: line is bigger
+> than 80 cols).
+
+A comment is definitely a good idea.
+
+> > diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> > b/drivers/media/v4l2-core/videobuf2-vmalloc.c index 313d977..bf3b95c
+> > 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+> > @@ -44,7 +44,7 @@ static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned
+> > long size, gfp_t gfp_fl> 
+> >  		return NULL;
+> >  	
+> >  	buf->size = size;
+> > 
+> > -	buf->vaddr = vmalloc_user(buf->size);
+> > +	buf->vaddr = vmalloc_user(PAGE_ALIGN(buf->size));
+> 
+> See? You needed to put an alignment here as well, not because vmalloc
+> needs it, but because this is needed by VB2 core.
+> 
+> Also, on the other drivers, buf->size is stored page aligned, while
+> here, you're doing different, without any documented reason for doing
+> that, instead of doing the same as on the other memops drivers.
+> 
+> That mistake reflects, for example, when the driver prints the failure:
+> 
+>         if (!buf->vaddr) {
+>                 pr_debug("vmalloc of size %ld failed\n", buf->size);
+> 
+> as it will show a different size than what you actually required.
+> As those memory starving errors can also produce a dump at the mm
+> core, the size there won't match the size on the above printed message.
+> 
+> Also, it is a very bad idea to delegate the core's requirement of
+> do page alignment from the core to the memops drivers, as other
+> patches may change the logic there, or a new memops could be added,
+> and the same problem will hit again (and unnoticed, as the check
+> routine do page alignments).
+
+Agreed. The memory allocator shouldn't need to guess the core requirements.
+
+> >  	buf->handler.refcount = &buf->refcount;
+> >  	buf->handler.put = vb2_vmalloc_put;
+> >  	buf->handler.arg = buf;
+> 
+> IMO, a cleaner version would be the following (untested) code.
+> 
+> -
+> 
+> [media] videobuf2: fix the length check for mmap
+> 
+> Memory maps typically require that the buffer size to be page
+> aligned. Currently, two memops drivers do such alignment
+> internally, but videobuf-vmalloc doesn't.
+> 
+> Also, the buffer overflow check doesn't take it into account.
+> 
+> So, instead of doing it at each memops driver, enforce it at
+> VB2 core.
+> 
+> Reported-by: Prabhakar lad <prabhakar.csengg@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 58c1744..7d833ee 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -54,10 +54,15 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>  	void *mem_priv;
+>  	int plane;
+> 
+> -	/* Allocate memory for all planes in this buffer */
+> +	/*
+> +	 * Allocate memory for all planes in this buffer
+> +	 * NOTE: mmapped areas should be page aligned
+> +	 */
+>  	for (plane = 0; plane < vb->num_planes; ++plane) {
+> +		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
+> +
+>  		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+> -				      q->plane_sizes[plane], q->gfp_flags);
+> +				      size, q->gfp_flags);
+>  		if (IS_ERR_OR_NULL(mem_priv))
+>  			goto free;
+> 
+> @@ -1852,6 +1857,7 @@ int vb2_mmap(struct vb2_queue *q, struct
+> vm_area_struct *vma) struct vb2_buffer *vb;
+>  	unsigned int buffer, plane;
+>  	int ret;
+> +	unsigned long length;
+> 
+>  	if (q->memory != V4L2_MEMORY_MMAP) {
+>  		dprintk(1, "Queue is not currently set up for mmap\n");
+> @@ -1886,8 +1892,15 @@ int vb2_mmap(struct vb2_queue *q, struct
+> vm_area_struct *vma)
+> 
+>  	vb = q->bufs[buffer];
+> 
+> -	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
+> -		dprintk(1, "Invalid length\n");
+> +	/*
+> +	 * MMAP requires page_aligned buffers.
+> +	 * The buffer length was page_aligned at __vb2_buf_mem_alloc(),
+> +	 * so, we need to do the same here.
+> +	 */
+> +	length = PAGE_ALIGN(vb->v4l2_planes[plane].length);
+> +	if (length < (vma->vm_end - vma->vm_start)) {
+> +		dprintk(1,
+> +			"MMAP invalid, as it would overflow buffer length\n");
+>  		return -EINVAL;
+>  	}
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index ae35d25..fd56f25
+> 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -162,9 +162,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long
+> size, gfp_t gfp_flags) if (!buf)
+>  		return ERR_PTR(-ENOMEM);
+> 
+> -	/* align image size to PAGE_SIZE */
+> -	size = PAGE_ALIGN(size);
+> -
+>  	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+>  						GFP_KERNEL | gfp_flags);
+>  	if (!buf->vaddr) {
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index 59522b2..16ae3dc 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -55,7 +55,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
+> long size, gfp_t gfp_fla buf->write = 0;
+>  	buf->offset = 0;
+>  	buf->sg_desc.size = size;
+> -	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+> +	/* size is already page aligned */
+> +	buf->sg_desc.num_pages = size >> PAGE_SHIFT;
+> 
+>  	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
+>  				      sizeof(*buf->sg_desc.sglist));
+-- 
 Regards,
---Prabhakar
 
->>       sizes[0] = size;
->>       alloc_ctxs[0] = common->alloc_ctx;
->>
->> diff --git a/drivers/media/platform/davinci/vpif_display.c
->> b/drivers/media/platform/davinci/vpif_display.c index 1b3fb5c..3414715
->> 100644
->> --- a/drivers/media/platform/davinci/vpif_display.c
->> +++ b/drivers/media/platform/davinci/vpif_display.c
->> @@ -162,6 +162,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
->> *nbuffers = config_params.min_numbuffers;
->>
->>       *nplanes = 1;
->> +     size = PAGE_ALIGN(size);
->>       sizes[0] = size;
->>       alloc_ctxs[0] = common->alloc_ctx;
->>       return 0;
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Laurent Pinchart
+
