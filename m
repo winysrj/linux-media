@@ -1,86 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:49955 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751694Ab3D2JzM (ORCPT
+Received: from mail-la0-f54.google.com ([209.85.215.54]:44398 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753948Ab3DUSmy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 05:55:12 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct v4l2_subdev_platform_data to platform data
-Date: Mon, 29 Apr 2013 11:55:16 +0200
-Message-ID: <1740663.UDksr2HIPi@avalon>
-In-Reply-To: <20130426091556.GQ32299@pengutronix.de>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1304261033170.32320@axis700.grange> <20130426091556.GQ32299@pengutronix.de>
+	Sun, 21 Apr 2013 14:42:54 -0400
+Received: by mail-la0-f54.google.com with SMTP id es20so1008203lab.13
+        for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 11:42:53 -0700 (PDT)
+To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v2 3/5] ARM: shmobile: r8a7778: add VIN support
+Cc: linux-media@vger.kernel.org, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Sun, 21 Apr 2013 22:42:02 +0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304212242.03076.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha,
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-On Friday 26 April 2013 11:15:56 Sascha Hauer wrote:
-> On Fri, Apr 26, 2013 at 10:43:28AM +0200, Guennadi Liakhovetski wrote:
-> > On Fri, 26 Apr 2013, Sascha Hauer wrote:
-> > > > > That information should be conveyed by platform/DT data for the
-> > > > > host, and be used to convert the 12-bit media bus code into a 8-bit
-> > > > > media bus code in the host (a core helper function would probably
-> > > > > be helpful).
-> > > > 
-> > > > Yes, and we discussed this before too, I think. I proposed based then
-> > > > to implement some compatibility table of "trivial" transformations,
-> > > > like a 12-bit Bayer, right-shifted by 4 bits, produces a respective 8-
-> > > > bit Bayer etc. Such transformations would fit nicely in soc_mediabus.c
-> > > > ;-) This just needs to be implemented...
-> > > 
-> > > These "trivial" transformations may turn out not to be so trivial. In
-> > > the devicetree we would then need kind of 'shift-4-bit-left' properties.
-> > 
-> > We already have a "data-shift" property exactly for this purpose.
-> > 
-> > > How about instead describing the sensor node with:
-> > > 	mbus-formats = <0x3010, 0x2013>;
-> > > 
-> > > and the corresponding host interface with:
-> > > 	mbus-formats = <0x3013, 0x2001>;
-> > 
-> > How would this describe _how_ the transformation should be performed?
-> 
-> nth index in the sensor array matches nth index in the csi array. The
-> above describes:
-> 
-> V4L2_MBUS_FMT_SGBRG12_1X12 on the sensor matches V4L2_MBUS_FMT_SGBRG8_1X8 on
-> the host V4L2_MBUS_FMT_Y12_1X12 on the sensor matches V4L2_MBUS_FMT_Y8_1X8
-> on the host
-> 
-> effectively implementing a shift by four bits. But also more complicated
-> transformations could be described, like a colour space converter
-> implemented in a DSP (not sure if anyone does this, but you get the
-> idea)
+Add VIN clocks and platform devices on R8A7778 SoC; add function to register
+the VIN platform devices.
 
-If there's a component on the board between the sensor and the host it should 
-be modeled as a proper subdev. I don't think trying to describe anything more 
-complex than shifting the lanes in the device tree sensor and/or bridge data 
-is a good idea.
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+[Sergei: added 'id' parameter check to r8a7779_add_vin_device(), used '*pdata'
+in *sizeof* operator there, renamed some variables, marked 'vin[01]_info' as
+'__initdata'.]
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-> > And why does the host driver need mbus formats?
-> 
-> Because mbus formats are effectively the input of a host driver. I assumed
-> that we translate the mbus formats the sensor can output into the
-> corresponding mbus formats that arrive at the host interface. Then
-> afterwards the usual translation from mbus to fourcc a host interface can do
-> is performed. I think what you aim at instead is a translation directly from
-> the sensor to memory which I think is more complicated to build correctly.
+---
+ arch/arm/mach-shmobile/clock-r8a7778.c        |    5 +++
+ arch/arm/mach-shmobile/include/mach/r8a7778.h |    3 ++
+ arch/arm/mach-shmobile/setup-r8a7778.c        |   33 ++++++++++++++++++++++++++
+ 3 files changed, 41 insertions(+)
 
-The sensor knows what mbus formats it supports at its output, and the host 
-knows what mbus formats it supports at its inputs. Both information can be 
-queried from user space and kernel space. With the data lanes shift property 
-the host can then compute the mbus format it will receive at its input. I 
-don't think we need to specify that in DT.
-
--- 
-Regards,
-
-Laurent Pinchart
+Index: renesas/arch/arm/mach-shmobile/clock-r8a7778.c
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/clock-r8a7778.c
++++ renesas/arch/arm/mach-shmobile/clock-r8a7778.c
+@@ -106,6 +106,7 @@ static struct clk *main_clks[] = {
+ enum {
+ 	MSTP323, MSTP322, MSTP321,
+ 	MSTP114,
++	MSTP110, MSTP109,
+ 	MSTP100,
+ 	MSTP030, MSTP029,
+ 	MSTP028, MSTP027, MSTP026, MSTP025, MSTP024, MSTP023, MSTP022, MSTP021,
+@@ -117,6 +118,8 @@ static struct clk mstp_clks[MSTP_NR] = {
+ 	[MSTP322] = SH_CLK_MSTP32(&p_clk, MSTPCR3, 22, 0), /* SDHI1 */
+ 	[MSTP321] = SH_CLK_MSTP32(&p_clk, MSTPCR3, 21, 0), /* SDHI2 */
+ 	[MSTP114] = SH_CLK_MSTP32(&p_clk, MSTPCR1, 14, 0), /* Ether */
++	[MSTP110] = SH_CLK_MSTP32(&s_clk, MSTPCR1, 10, 0), /* VIN0 */
++	[MSTP109] = SH_CLK_MSTP32(&s_clk, MSTPCR1,  9, 0), /* VIN1 */
+ 	[MSTP100] = SH_CLK_MSTP32(&p_clk, MSTPCR1,  0, 0), /* USB0/1 */
+ 	[MSTP030] = SH_CLK_MSTP32(&p_clk, MSTPCR0, 30, 0), /* I2C0 */
+ 	[MSTP029] = SH_CLK_MSTP32(&p_clk, MSTPCR0, 29, 0), /* I2C1 */
+@@ -140,6 +143,8 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_DEV_ID("sh_mobile_sdhi.1", &mstp_clks[MSTP322]), /* SDHI1 */
+ 	CLKDEV_DEV_ID("sh_mobile_sdhi.2", &mstp_clks[MSTP321]), /* SDHI2 */
+ 	CLKDEV_DEV_ID("sh-eth",	&mstp_clks[MSTP114]), /* Ether */
++	CLKDEV_DEV_ID("rcar_vin.0", &mstp_clks[MSTP110]), /* VIN0 */
++	CLKDEV_DEV_ID("rcar_vin.1", &mstp_clks[MSTP109]), /* VIN1 */
+ 	CLKDEV_DEV_ID("ehci-platform", &mstp_clks[MSTP100]), /* USB EHCI port0/1 */
+ 	CLKDEV_DEV_ID("ohci-platform", &mstp_clks[MSTP100]), /* USB OHCI port0/1 */
+ 	CLKDEV_DEV_ID("i2c-rcar.0", &mstp_clks[MSTP030]), /* I2C0 */
+Index: renesas/arch/arm/mach-shmobile/include/mach/r8a7778.h
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/include/mach/r8a7778.h
++++ renesas/arch/arm/mach-shmobile/include/mach/r8a7778.h
+@@ -21,11 +21,14 @@
+ #include <linux/mmc/sh_mobile_sdhi.h>
+ #include <linux/sh_eth.h>
+ #include <linux/usb/rcar-phy.h>
++#include <linux/platform_data/camera-rcar.h>
+ 
+ extern void r8a7778_add_standard_devices(void);
+ extern void r8a7778_add_standard_devices_dt(void);
+ extern void r8a7778_add_ether_device(struct sh_eth_plat_data *pdata);
+ extern void r8a7778_add_usb_phy_device(struct rcar_phy_platform_data *pdata);
++extern void r8a7778_add_vin_device(int id,
++				   struct rcar_vin_platform_data *pdata);
+ extern void r8a7778_init_late(void);
+ extern void r8a7778_init_delay(void);
+ extern void r8a7778_init_irq(void);
+Index: renesas/arch/arm/mach-shmobile/setup-r8a7778.c
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/setup-r8a7778.c
++++ renesas/arch/arm/mach-shmobile/setup-r8a7778.c
+@@ -265,6 +265,39 @@ void __init r8a7778_sdhi_init(int id,
+ 		info, sizeof(*info));
+ }
+ 
++/* VIN */
++#define R8A7778_VIN(idx)						\
++static struct resource vin##idx##_resources[] = {			\
++	DEFINE_RES_MEM(0xffc50000 + 0x1000 * (idx), 0x1000),		\
++	DEFINE_RES_IRQ(gic_iid(0x5a)),					\
++};									\
++									\
++static struct platform_device_info vin##idx##_info __initdata = {	\
++	.parent		= &platform_bus,				\
++	.name		= "rcar_vin",					\
++	.id		= idx,						\
++	.res		= vin##idx##_resources,				\
++	.num_res	= ARRAY_SIZE(vin##idx##_resources),		\
++	.dma_mask	= DMA_BIT_MASK(32),				\
++}
++
++R8A7778_VIN(0);
++R8A7778_VIN(1);
++
++static struct platform_device_info *vin_info_table[] __initdata = {
++	&vin0_info,
++	&vin1_info,
++};
++
++void __init r8a7778_add_vin_device(int id, struct rcar_vin_platform_data *pdata)
++{
++	BUG_ON(id < 0 || id > 1);
++
++	vin_info_table[id]->data = pdata;
++	vin_info_table[id]->size_data = sizeof(*pdata);
++	platform_device_register_full(vin_info_table[id]);
++}
++
+ void __init r8a7778_add_standard_devices(void)
+ {
+ 	int i;
