@@ -1,122 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40755 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758989Ab3DDLur (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 07:50:47 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Mike Turquette <mturquette@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH v2 2/2] mt9p031: Use the common clock framework
-Date: Thu,  4 Apr 2013 13:51:41 +0200
-Message-Id: <1365076301-6542-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1365076301-6542-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1365076301-6542-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50296 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752752Ab3DUJad (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Apr 2013 05:30:33 -0400
+Message-ID: <5173B1B4.2030500@redhat.com>
+Date: Sun, 21 Apr 2013 06:30:28 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFC v1] Add SDR at V4L2 API
+References: <1366469499-31640-1-git-send-email-mchehab@redhat.com> <51730C2A.90005@schinagl.nl> <5173AE70.4050803@schinagl.nl>
+In-Reply-To: <5173AE70.4050803@schinagl.nl>
+Content-Type: text/plain; charset=true; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Configure the device external clock using the common clock framework
-instead of a board code callback function.
+Em 21-04-2013 06:16, Oliver Schinagl escreveu:
+> On 04/20/13 23:44, Oliver Schinagl wrote:
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+> Not sure what happened there, I know I typed a bit more then that :p
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/mt9p031.c | 22 +++++++++++++++-------
- include/media/mt9p031.h     |  2 --
- 2 files changed, 15 insertions(+), 9 deletions(-)
+:)
 
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index e328332..825cc2d 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -12,6 +12,7 @@
-  * published by the Free Software Foundation.
-  */
- 
-+#include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/device.h>
- #include <linux/gpio.h>
-@@ -121,6 +122,8 @@ struct mt9p031 {
- 	struct mutex power_lock; /* lock to protect power_count */
- 	int power_count;
- 
-+	struct clk *clk;
-+
- 	enum mt9p031_model model;
- 	struct aptina_pll pll;
- 	int reset;
-@@ -195,7 +198,7 @@ static int mt9p031_reset(struct mt9p031 *mt9p031)
- 					  0);
- }
- 
--static int mt9p031_pll_setup(struct mt9p031 *mt9p031)
-+static int mt9p031_clk_setup(struct mt9p031 *mt9p031)
- {
- 	static const struct aptina_pll_limits limits = {
- 		.ext_clock_min = 6000000,
-@@ -216,6 +219,12 @@ static int mt9p031_pll_setup(struct mt9p031 *mt9p031)
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9p031->subdev);
- 	struct mt9p031_platform_data *pdata = mt9p031->pdata;
- 
-+	mt9p031->clk = devm_clk_get(&client->dev, NULL);
-+	if (IS_ERR(mt9p031->clk))
-+		return PTR_ERR(mt9p031->clk);
-+
-+	clk_set_rate(mt9p031->clk, pdata->ext_freq);
-+
- 	mt9p031->pll.ext_clock = pdata->ext_freq;
- 	mt9p031->pll.pix_clock = pdata->target_freq;
- 
-@@ -265,9 +274,8 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
- 	}
- 
- 	/* Emable clock */
--	if (mt9p031->pdata->set_xclk)
--		mt9p031->pdata->set_xclk(&mt9p031->subdev,
--					 mt9p031->pdata->ext_freq);
-+	if (mt9p031->clk)
-+		clk_prepare_enable(mt9p031->clk);
- 
- 	/* Now RESET_BAR must be high */
- 	if (mt9p031->reset != -1) {
-@@ -285,8 +293,8 @@ static void mt9p031_power_off(struct mt9p031 *mt9p031)
- 		usleep_range(1000, 2000);
- 	}
- 
--	if (mt9p031->pdata->set_xclk)
--		mt9p031->pdata->set_xclk(&mt9p031->subdev, 0);
-+	if (mt9p031->clk)
-+		clk_disable_unprepare(mt9p031->clk);
- }
- 
- static int __mt9p031_set_power(struct mt9p031 *mt9p031, bool on)
-@@ -1009,7 +1017,7 @@ static int mt9p031_probe(struct i2c_client *client,
- 		mt9p031->reset = pdata->reset;
- 	}
- 
--	ret = mt9p031_pll_setup(mt9p031);
-+	ret = mt9p031_clk_setup(mt9p031);
- 
- done:
- 	if (ret < 0) {
-diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
-index 0c97b19..b1e63f2 100644
---- a/include/media/mt9p031.h
-+++ b/include/media/mt9p031.h
-@@ -5,13 +5,11 @@ struct v4l2_subdev;
- 
- /*
-  * struct mt9p031_platform_data - MT9P031 platform data
-- * @set_xclk: Clock frequency set callback
-  * @reset: Chip reset GPIO (set to -1 if not used)
-  * @ext_freq: Input clock frequency
-  * @target_freq: Pixel clock frequency
-  */
- struct mt9p031_platform_data {
--	int (*set_xclk)(struct v4l2_subdev *subdev, int hz);
- 	int reset;
- 	int ext_freq;
- 	int target_freq;
--- 
-1.8.1.5
+> What I was wondering, how relevant the name will be with extensions like SDR.
+>Maybe for V4l3 it could be renamed to M4L (Media for Linux)? Since Video would
+>  imply only video, not even audio let alone radio. I know it's just a name so who cares right?
+
+Since very early, radio support was part of V4L. Not sure why this was
+not renamed on V4L on that time, but it is now too late to change it, as
+it would require an entire renaming at the core and at userspace API
+with no technical gain.
+
+With regards to a V4L3, I prefer if we never do that... radical changes
+like that mean a lot of hard work. We took ~10 years to finish the
+transition from V4L1 to V4L2. It is easier to just extend it where
+it needed than to rewrite it from scratch.
+
+Regards,
+Mauro
 
