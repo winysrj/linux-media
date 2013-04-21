@@ -1,73 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:16009 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:13520 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754985Ab3DOVeQ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Apr 2013 17:34:16 -0400
-Date: Mon, 15 Apr 2013 18:34:05 -0300
+	id S1752747Ab3DUJdO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Apr 2013 05:33:14 -0400
+Message-ID: <5173B254.7050804@redhat.com>
+Date: Sun, 21 Apr 2013 06:33:08 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+MIME-Version: 1.0
+To: Andrey Smirnov <andrew.smirnov@gmail.com>
+CC: Samuel Ortiz <sameo@linux.intel.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Michael Krufky <mkrufky@linuxtv.org>
-Subject: Re: Patchwork and em28xx delegates
-Message-ID: <20130415183405.44aa28eb@redhat.com>
-In-Reply-To: <516C6AFB.1060601@googlemail.com>
-References: <516C2DC8.8080203@googlemail.com>
-	<20130415135018.3a867598@redhat.com>
-	<516C6AFB.1060601@googlemail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH v9 00/12] Driver for Si476x series of chips
+References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com> <20130419213152.GD11866@zurbaran> <CAHQ1cqGnDvO+wkfdO-o-4JSBgT=0TEww01NM1+o7g=1Hy0QNxw@mail.gmail.com>
+In-Reply-To: <CAHQ1cqGnDvO+wkfdO-o-4JSBgT=0TEww01NM1+o7g=1Hy0QNxw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 15 Apr 2013 23:02:51 +0200
-Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
+Em 21-04-2013 02:53, Andrey Smirnov escreveu:
+>> I applied all the MFD patches from this patchset (All 4 first ones), plus a
+>> follow up one for fixing the i2c related warning.
+>> I also squashed the REGMAP_I2C dependency into patch #4.
+>> It's all in mfd-next now, I'd appreciate if you could double check it's all
+>> fine.
+>
+> I checked out latest
+> git://git.kernel.org/pub/scm/linux/kernel/git/sameo/mfd-next.git and
+> applied patches 5 - 10, 12. There doesn't seem to be any problems, so
+> I think MFD part of the driver is good to go.
+>
+>>
+>> Mauro will take the rest, we made sure there won't be any merge conflict
+>> between our trees.
+>
+> Mauro, I am not sure if you need me to rebase any of the patches(it
+> doesn't seem like you had a chance to make any further changes related
+> to this driver in media tree), but if you do, ping me and I'll get on
+> it.
 
-> Am 15.04.2013 18:50, schrieb Mauro Carvalho Chehab:
-> > Em Mon, 15 Apr 2013 18:41:44 +0200
-> > Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
-> >
-> >> I've just noticed that my 2 pending em28xx patches have got delegate
-> >> assigned:
-> >>
-> >> https://patchwork.linuxtv.org/patch/17834/
-> >> => delegated to mkrufky
-> >>
-> >> https://patchwork.linuxtv.org/patch/17928/     (Obsoleted)
-> >> => delegated to hverkuil
-> >>
-> >> Ist this a patchwork failure or is the new submaintainers workflow the
-> >> reason ?
-> > Sub-maintainers workflow. We expect that most patches will be applied via 
-> > one of the sub-maintainers. That will likely improve Kernel's quality and
-> > help to reduce the maintainers overload.
-> 
-> How is the em28xx driver split betweend the submaintainers ?
+No, I don't need. The V4L parts are on my experimental tree:
 
-Analog part => Hans
-Tuners, demods  => Mkrufky
+http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/si476x
 
-> Where should I send em28xx patches in the future ? 
+I'll just merge it at the main tree or as a topic branch later today
+or (more likely) tomorrow.
 
-To the same place: linux-media@vger.kernel.org.
+Please ping me today if you find anything wrong there.
 
-> You are still the em28xx maintainer, right ?
-
-Currently, I only wear the driver maintainer's hat when there's no other people
-looking into it, or when the patches would affect something that I'm working
-with.
-
-The advantage is that a patch get more reviews, with is good.
-
-Btw, em28xx is not auto-delegated. If it was received such delegation,
-it is likely because either Hans or Michael (or both) decided to add
-reviewing your patches on their todo list.
-
-Of course, if are there any dependency between the three patches in this
-series, that means that the entire 3 patch series will needed to be
-merged into just one sub-maintainers tree.
-
-Cheers,
+Regards,
 Mauro
