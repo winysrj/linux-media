@@ -1,65 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f42.google.com ([209.85.216.42]:38127 "EHLO
-	mail-qa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936177Ab3DJKiq (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53119 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752396Ab3DUXOA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 06:38:46 -0400
+	Sun, 21 Apr 2013 19:14:00 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mark Brown <broonie@kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
+Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
+Date: Mon, 22 Apr 2013 01:14:07 +0200
+Message-ID: <1905734.rpqfOCmvCu@avalon>
+In-Reply-To: <20130417113639.1c98f574@redhat.com>
+References: <3775187.HOcoQVPfEE@avalon> <20130417135503.GL13687@opensource.wolfsonmicro.com> <20130417113639.1c98f574@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1348754853-28619-8-git-send-email-g.liakhovetski@gmx.de>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de> <1348754853-28619-8-git-send-email-g.liakhovetski@gmx.de>
-From: Barry Song <21cnbao@gmail.com>
-Date: Wed, 10 Apr 2013 18:38:26 +0800
-Message-ID: <CAGsJ_4yUY6PE0NWZ9yaOLFmRb3O-HL55=w7Y6muwL0YbkJtP0Q@mail.gmail.com>
-Subject: Re: [PATCH 07/14] media: soc-camera: support deferred probing of clients
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"renwei.wu" <renwei.wu@csr.com>,
-	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
-	xiaomeng.hou@csr.com, zilong.wu@csr.com
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadia,
+Hi Mauro,
 
-2012/9/27 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> Currently soc-camera doesn't work with independently registered I2C client
-> devices, it has to register them itself. This patch adds support for such
-> configurations, in which case client drivers have to request deferred
-> probing until their host becomes available and enables the data interface.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+On Wednesday 17 April 2013 11:36:39 Mauro Carvalho Chehab wrote:
+> Em Wed, 17 Apr 2013 14:55:03 +0100 Mark Brown escreveu:
+> > On Tue, Apr 16, 2013 at 08:04:52PM +0200, Sylwester Nawrocki wrote:
+> > > It's probably more clean to provide a dummy clock/regulator in a host
+> > > driver (platform) than to add something in a sub-device drivers that
+> > > would resolve which resources should be requested and which not.
+> > 
+> > Yes, that's the general theory for regulators at least - it allows the
+> > device driver to just trundle along and not worry about how the board is
+> > hooked up.  The other issue it resolves that you didn't mention is that
+> > it avoids just ignoring errors which isn't terribly clever.
+> 
+> I agree. Adding dummy clock/regulator at the host platform driver makes
+> sense, as the platform driver knows how the board is hooked up; keeping
+> it at the I2C driver doesn't make sense, so the code needs to be moved
+> away from it.
+> 
+> Laurent,
+> 
+> Could you please work on a patch moving that code to the host platform
+> driver?
 
-it seems deferred probing for i2c camera sensors is a more workaround
-than a solution.
-currently,  soc-camera-pdrv is the manager of the whole initilization
-flow. it all requires the host/client registerred and initilized
-synchronously. so that results in strange things like that we fill a
-i2c_board_info structure in arch/arm/mach-xxx but we never call
-anything like i2c_new_device() to add the i2c client in mach. because
-we need to do that in the soc-camera-pdrv driver to make all things
-happen orderly.
+I think that Mark's point was that the regulators should be provided by 
+platform code (in the generic sense, it could be DT on ARM, board code, or a 
+USB bridge driver for a webcam that uses the mt9p031 sensor) and used by the 
+sensor driver. That's exactly what my mt9p031 patch does.
 
-but now after we move to DT, all i2c device will be registerred
-automatically by of_i2c_register_devices() in i2c_host 's probe, that
-makes the problem much worse and very urgent to get fixed.
+-- 
+Regards,
 
-returning DEFERRED_PROBE error until getting the private data filled
-by the manager, indirectly, makes the things seem to be asynchronous,
-but essentially it is still synchronous because the overall timing
-line is still controller by soc-camera-pdrv.
+Laurent Pinchart
 
-what about another possible way:
-we let all host and i2c client driver probed in any order, but let the
-final soc-camera-pdrv is the connection of all things. the situation
-of soc_camera is very similar with ALSA SoC. it turns out ASoC has
-done that very well.
-
--barry
