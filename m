@@ -1,189 +1,550 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:48929 "EHLO
-	relmlor1.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754781Ab3DYNZW (ORCPT
+Received: from mail-la0-f48.google.com ([209.85.215.48]:52278 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753934Ab3DUSlW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 09:25:22 -0400
-Received: from relmlir4.idc.renesas.com ([10.200.68.154])
- by relmlor1.idc.renesas.com ( SJSMS)
- with ESMTP id <0MLT00FUOBY8YYD0@relmlor1.idc.renesas.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 22:25:20 +0900 (JST)
-Received: from relmlac3.idc.renesas.com ([10.200.69.23])
- by relmlir4.idc.renesas.com ( SJSMS)
- with ESMTP id <0MLT003MJBY83P20@relmlir4.idc.renesas.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 22:25:20 +0900 (JST)
-In-reply-to: <Pine.LNX.4.64.1304251241430.21045@axis700.grange>
-References: <1366202619-4511-1-git-send-email-phil.edworthy@renesas.com>
- <Pine.LNX.4.64.1304242249410.16970@axis700.grange>
- <OF975E3643.061D9EDC-ON80257B58.003660C1-80257B58.00379495@eu.necel.com>
- <Pine.LNX.4.64.1304251241430.21045@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-version: 1.0
-From: phil.edworthy@renesas.com
-Subject: Re: [PATCH] soc_camera: Add V4L2_MBUS_FMT_YUYV10_2X10 format
-Message-id: <OF94EFCFB7.8EC190E4-ON80257B58.00450077-80257B58.0049B035@eu.necel.com>
-Date: Thu, 25 Apr 2013 14:24:49 +0100
-Content-type: text/plain; charset=US-ASCII
+	Sun, 21 Apr 2013 14:41:22 -0400
+Received: by mail-la0-f48.google.com with SMTP id eo20so984584lab.7
+        for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 11:41:21 -0700 (PDT)
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: [PATCH v2 1/5] V4L2: I2C: ML86V7667 video decoder driver
+Cc: linux-sh@vger.kernel.org, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Sun, 21 Apr 2013 22:40:30 +0400
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304212240.30949.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-> > > On Wed, 17 Apr 2013, Phil Edworthy wrote:
-> > > 
-> > > > The V4L2_MBUS_FMT_YUYV10_2X10 format has already been added to 
-> > mediabus, so
-> > > > this patch just adds SoC camera support.
-> > > > 
-> > > > Signed-off-by: Phil Edworthy <phil.edworthy@renesas.com>
-> > > > ---
-> > > >  drivers/media/platform/soc_camera/soc_mediabus.c |   15 
-> > +++++++++++++++
-> > > >  include/media/soc_mediabus.h                     |    3 +++
-> > > >  2 files changed, 18 insertions(+), 0 deletions(-)
-> > > > 
-> > > > diff --git a/drivers/media/platform/soc_camera/soc_mediabus.c b/
-> > > drivers/media/platform/soc_camera/soc_mediabus.c
-> > > > index 7569e77..be47d41 100644
-> > > > --- a/drivers/media/platform/soc_camera/soc_mediabus.c
-> > > > +++ b/drivers/media/platform/soc_camera/soc_mediabus.c
-> > > > @@ -57,6 +57,15 @@ static const struct soc_mbus_lookup mbus_fmt[] 
-= {
-> > > >        .layout         = SOC_MBUS_LAYOUT_PACKED,
-> > > >     },
-> > > >  }, {
-> > > > +   .code = V4L2_MBUS_FMT_YUYV10_2X10,
-> > > > +   .fmt = {
-> > > > +      .fourcc         = V4L2_PIX_FMT_YUYV,
-> > > > +      .name         = "YUYV",
-> > > > +      .bits_per_sample   = 10,
-> > > > +      .packing      = SOC_MBUS_PACKING_2X10_PADHI,
-> > > 
-> > > Wow, what kind of host can pack two 10-bit samples into 3 bytes and 
-> > write 
-> > > 3-byte pixels to memory?
-> > I think I might have misunderstood how this is used. From my 
-> > understanding, the MBUS formats are used to describe the hardware 
-> > interfaces to cameras, i.e. 2 samples of 10 bits. I guess that the 
-fourcc 
-> > field also determines what v4l2 format is required to capture this. 
-> 
-> No, not quite. This table describes default "pass-through" capture of 
-> video data on a media bus to memory. E.g. the first entry in the table 
-> means, that if you get the V4L2_MBUS_FMT_YUYV8_2X8 format on the bus, 
-you 
-> sample 8 bits at a time, and store the samples 1-to-1 into RAM, you get 
-> the V4L2_PIX_FMT_YUYV format in your buffer. It can also describe some 
-> standard operations with the sampled data, like swapping the order, 
-> filling missing high bits (e.g. if you sample 10 bits but store 16 bits 
-> per sample with high 6 bits nullified). The table also specifies which 
-> bits are used for padding in the original data, e.g. 
-> V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE has SOC_MBUS_PACKING_2X8_PADLO, 
-whereas 
-> V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE has SOC_MBUS_PACKING_2X8_PADHI, which 
+Add OKI Semiconductor ML86V7667 video decoder driver.
 
-> means, that out of 16 bits of data, that you get when you sample an 
-8-bit 
-> bus twice, either low or high 6 bits are invalid and should be 
-discarded.
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+[Sergei: added v4l2_device_unregister_subdev() call to the error cleanup path of
+ml86v7667_probe(); some cleanup.]
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-Ok, I see. However, is it necessary to provide a default pass-through v4l2 
-format? I can't see a suitable v4l2 format! For the hardware I have been 
-working on, there is always the option of converting the data to another 
-format, so this is not really needed. I doubt that it makes sense to add 
-yet another v4l2 format for userspace, when typical uses would involve the 
-host hardware converting the format to something else, e.g. 
-V4L2_PIX_FMT_RGB32.
+---
+Changes since the original posting:
+- fixed ACCC_CHROMA_CB_MASK;
+- got rid from the autodetection feature;
+- removed querystd() method calls from other methods;
+- removed deprecated g_chip_ident() method.
 
-> > However, I am not sure how the two relate to each other. How does the 
-> > above code imply 3 bytes?
-> 
-> Not the above code, but your entry in the soc_mbus_bytes_per_line() 
-> function below, where you multiply width * 3.
+ drivers/media/i2c/Kconfig     |    9 
+ drivers/media/i2c/Makefile    |    1 
+ drivers/media/i2c/ml86v7667.c |  473 ++++++++++++++++++++++++++++++++++++++++++
+ 3 files changed, 483 insertions(+)
 
-It looks like hosts use soc_mbus_bytes_per_line() to report the size of 
-video buffers needed. Shouldn't the hosts report the buffer metrics for 
-the v4l2 format, since that is what will be output? What has this to do 
-with the MBUS specifics?
-
-> > > > +      .order         = SOC_MBUS_ORDER_LE,
-> > > > +   },
-> > > > +}, {
-> > > >     .code = V4L2_MBUS_FMT_RGB555_2X8_PADHI_LE,
-> > > >     .fmt = {
-> > > >        .fourcc         = V4L2_PIX_FMT_RGB555,
-> > > > @@ -403,6 +412,10 @@ int soc_mbus_samples_per_pixel(const struct 
-> > > soc_mbus_pixelfmt *mf,
-> > > >        *numerator = 2;
-> > > >        *denominator = 1;
-> > > >        return 0;
-> > > > +   case SOC_MBUS_PACKING_2X10_PADHI:
-> > > > +      *numerator = 3;
-> > > > +      *denominator = 1;
-> > > 
-> > > Why 3? it's 2 samples per pixel, right? Should be *numerator = 2 
-above?
-> > Not sure why I thought it should be 3, I think I had it in my head 
-that 
-> > this was the number of bytes needed per pixel. Clearly this is not the 
-
-> > case!
-> > 
-> > > > +      return 0;
-> > > >     case SOC_MBUS_PACKING_1_5X8:
-> > > >        *numerator = 3;
-> > > >        *denominator = 2;
-> > > > @@ -428,6 +441,8 @@ s32 soc_mbus_bytes_per_line(u32 width, const 
-> > > struct soc_mbus_pixelfmt *mf)
-> > > >     case SOC_MBUS_PACKING_2X8_PADLO:
-> > > >     case SOC_MBUS_PACKING_EXTEND16:
-> > > >        return width * 2;
-> > > > +   case SOC_MBUS_PACKING_2X10_PADHI:
-> > > > +      return width * 3;
-> > > >     case SOC_MBUS_PACKING_1_5X8:
-> > > >        return width * 3 / 2;
-> > > >     case SOC_MBUS_PACKING_VARIABLE:
-> > > > diff --git a/include/media/soc_mediabus.h 
-> > b/include/media/soc_mediabus.h
-> > > > index d33f6d0..b131a47 100644
-> > > > --- a/include/media/soc_mediabus.h
-> > > > +++ b/include/media/soc_mediabus.h
-> > > > @@ -21,6 +21,8 @@
-> > > >   * @SOC_MBUS_PACKING_2X8_PADHI:   16 bits transferred in 2 8-bit 
-> > > samples, in the
-> > > >   *            possibly incomplete byte high bits are padding
-> > > >   * @SOC_MBUS_PACKING_2X8_PADLO:   as above, but low bits are 
-padding
-> > > > + * @SOC_MBUS_PACKING_2X10_PADHI:20 bits transferred in 2 10-bit 
-> > > samples. The
-> > > 
-> > > A TAB is missing after ":"?
-> > Ok.
-
-I just came to make this changes, however the text for 
-SOC_MBUS_PACKING_2X10_PADHI is in line with the surrounding text. Would 
-you like all of the other comments to be indented with another tab?
-
-> > > > + *            high bits are padding
-> > > >   * @SOC_MBUS_PACKING_EXTEND16:   sample width (e.g., 10 bits) has
-> > > to be extended
-> > > >   *            to 16 bits
-> > > >   * @SOC_MBUS_PACKING_VARIABLE:   compressed formats with variable 
-
-> > packing
-> > > > @@ -33,6 +35,7 @@ enum soc_mbus_packing {
-> > > >     SOC_MBUS_PACKING_NONE,
-> > > >     SOC_MBUS_PACKING_2X8_PADHI,
-> > > >     SOC_MBUS_PACKING_2X8_PADLO,
-> > > > +   SOC_MBUS_PACKING_2X10_PADHI,
-> > > >     SOC_MBUS_PACKING_EXTEND16,
-> > > >     SOC_MBUS_PACKING_VARIABLE,
-> > > >     SOC_MBUS_PACKING_1_5X8,
-> > > > -- 
-> > > > 1.7.5.4
-
-Thanks
-Phil
-
+Index: renesas/drivers/media/i2c/Kconfig
+===================================================================
+--- renesas.orig/drivers/media/i2c/Kconfig
++++ renesas/drivers/media/i2c/Kconfig
+@@ -227,6 +227,15 @@ config VIDEO_KS0127
+ 	  To compile this driver as a module, choose M here: the
+ 	  module will be called ks0127.
+ 
++config VIDEO_ML86V7667
++	tristate "OKI ML86V7667 video decoder"
++	depends on VIDEO_V4L2 && I2C
++	---help---
++	  Support for the OKI Semiconductor ML86V7667 video decoder.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called ml86v7667.
++
+ config VIDEO_SAA7110
+ 	tristate "Philips SAA7110 video decoder"
+ 	depends on VIDEO_V4L2 && I2C
+Index: renesas/drivers/media/i2c/Makefile
+===================================================================
+--- renesas.orig/drivers/media/i2c/Makefile
++++ renesas/drivers/media/i2c/Makefile
+@@ -64,3 +64,4 @@ obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
+ obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+ obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+ obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
++obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+Index: renesas/drivers/media/i2c/ml86v7667.c
+===================================================================
+--- /dev/null
++++ renesas/drivers/media/i2c/ml86v7667.c
+@@ -0,0 +1,473 @@
++/*
++ * OKI Semiconductor ML86V7667 video decoder driver
++ *
++ * Author: Vladimir Barinov <source@cogentembedded.com>
++ * Copyright (C) 2013 Cogent Embedded, Inc.
++ * Copyright (C) 2013 Renesas Solutions Corp.
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ */
++
++#include <linux/init.h>
++#include <linux/module.h>
++#include <linux/i2c.h>
++#include <linux/slab.h>
++#include <linux/videodev2.h>
++#include <media/v4l2-chip-ident.h>
++#include <media/v4l2-subdev.h>
++#include <media/v4l2-device.h>
++#include <media/v4l2-ioctl.h>
++#include <media/v4l2-ctrls.h>
++
++#define DRV_NAME "ml86v7667"
++
++/* Subaddresses */
++#define MRA_REG			0x00 /* Mode Register A */
++#define MRC_REG			0x02 /* Mode Register C */
++#define LUMC_REG		0x0C /* Luminance Control */
++#define CLC_REG			0x10 /* Contrast level control */
++#define SSEPL_REG		0x11 /* Sync separation level */
++#define CHRCA_REG		0x12 /* Chrominance Control A */
++#define ACCC_REG		0x14 /* ACC Loop filter & Chrominance control */
++#define ACCRC_REG		0x15 /* ACC Reference level control */
++#define HUE_REG			0x16 /* Hue control */
++#define ADC2_REG		0x1F /* ADC Register 2 */
++#define PLLR1_REG		0x20 /* PLL Register 1 */
++#define STATUS_REG		0x2C /* STATUS Register */
++
++/* Mode Register A register bits */
++#define MRA_OUTPUT_MODE_MASK	(3 << 6)
++#define MRA_ITUR_BT601		(1 << 6)
++#define MRA_ITUR_BT656		(0 << 6)
++#define MRA_INPUT_MODE_MASK	(7 << 3)
++#define MRA_PAL_BT601		(4 << 3)
++#define MRA_NTSC_BT601		(0 << 3)
++#define MRA_REGISTER_MODE	(1 << 0)
++
++/* Mode Register C register bits */
++#define MRC_AUTOSELECT		(1 << 7)
++
++/* Luminance Control register bits */
++#define LUMC_ONOFF_SHIFT	7
++#define LUMC_ONOFF_MASK		(1 << 7)
++
++/* Contrast level control register bits */
++#define CLC_CONTRAST_ONOFF	(1 << 7)
++#define CLC_CONTRAST_MASK	0x0F
++
++/* Sync separation level register bits */
++#define SSEPL_LUMINANCE_ONOFF	(1 << 7)
++#define SSEPL_LUMINANCE_MASK	0x7F
++
++/* Chrominance Control A register bits */
++#define CHRCA_MODE_SHIFT	6
++#define CHRCA_MODE_MASK		(1 << 6)
++
++/* ACC Loop filter & Chrominance control register bits */
++#define ACCC_CHROMA_CR_SHIFT	3
++#define ACCC_CHROMA_CR_MASK	(7 << 3)
++#define ACCC_CHROMA_CB_SHIFT	0
++#define ACCC_CHROMA_CB_MASK	(7 << 0)
++
++/* ACC Reference level control register bits */
++#define ACCRC_CHROMA_MASK	0xfc
++#define ACCRC_CHROMA_SHIFT	2
++
++/* ADC Register 2 register bits */
++#define ADC2_CLAMP_VOLTAGE_MASK	(7 << 1)
++#define ADC2_CLAMP_VOLTAGE(n)	((n & 7) << 1)
++
++/* PLL Register 1 register bits */
++#define PLLR1_FIXED_CLOCK	(1 << 7)
++
++/* STATUS Register register bits */
++#define STATUS_HLOCK_DETECT	(1 << 3)
++#define STATUS_NTSCPAL		(1 << 2)
++
++struct ml86v7667_priv {
++	struct v4l2_subdev		sd;
++	struct v4l2_ctrl_handler	hdl;
++	struct v4l2_mbus_framefmt	fmt;
++	v4l2_std_id			std;
++};
++
++static inline struct ml86v7667_priv *to_ml86v7667(struct v4l2_subdev *subdev)
++{
++	return container_of(subdev, struct ml86v7667_priv, sd);
++}
++
++static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
++{
++	return &container_of(ctrl->handler, struct ml86v7667_priv, hdl)->sd;
++}
++
++static int ml86v7667_mask_set(struct i2c_client *client, const u8 reg,
++			      const u8 mask, const u8 data)
++{
++	int val = i2c_smbus_read_byte_data(client, reg);
++	if (val < 0)
++		return val;
++
++	val = (val & ~mask) | (data & mask);
++	return i2c_smbus_write_byte_data(client, reg, val);
++}
++
++static int ml86v7667_s_ctrl(struct v4l2_ctrl *ctrl)
++{
++	struct v4l2_subdev *sd = to_sd(ctrl);
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret = 0;
++
++	switch (ctrl->id) {
++	case V4L2_CID_BRIGHTNESS:
++		ret = ml86v7667_mask_set(client, SSEPL_REG,
++					 SSEPL_LUMINANCE_MASK, ctrl->val);
++		break;
++	case V4L2_CID_CONTRAST:
++		ret = ml86v7667_mask_set(client, CLC_REG,
++					 CLC_CONTRAST_MASK, ctrl->val);
++		break;
++	case V4L2_CID_CHROMA_GAIN:
++		ret = ml86v7667_mask_set(client, ACCRC_REG, ACCRC_CHROMA_MASK,
++					 ctrl->val << ACCRC_CHROMA_SHIFT);
++		break;
++	case V4L2_CID_HUE:
++		ret = ml86v7667_mask_set(client, HUE_REG, ~0, ctrl->val);
++		break;
++	case V4L2_CID_RED_BALANCE:
++		ret = ml86v7667_mask_set(client, ACCC_REG,
++					 ACCC_CHROMA_CR_MASK,
++					 ctrl->val << ACCC_CHROMA_CR_SHIFT);
++		break;
++	case V4L2_CID_BLUE_BALANCE:
++		ret = ml86v7667_mask_set(client, ACCC_REG,
++					 ACCC_CHROMA_CB_MASK,
++					 ctrl->val << ACCC_CHROMA_CB_SHIFT);
++		break;
++	case V4L2_CID_SHARPNESS:
++		ret = ml86v7667_mask_set(client, LUMC_REG,
++					 LUMC_ONOFF_MASK,
++					 ctrl->val << LUMC_ONOFF_SHIFT);
++		break;
++	case V4L2_CID_COLOR_KILLER:
++		ret = ml86v7667_mask_set(client, CHRCA_REG,
++					 CHRCA_MODE_MASK,
++					 ctrl->val << CHRCA_MODE_SHIFT);
++		break;
++	}
++
++	return 0;
++}
++
++static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
++{
++	struct ml86v7667_priv *priv = to_ml86v7667(sd);
++
++	*std = priv->std;
++
++	return 0;
++}
++
++static int ml86v7667_g_input_status(struct v4l2_subdev *sd, u32 *status)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int status_reg;
++
++	status_reg = i2c_smbus_read_byte_data(client, STATUS_REG);
++	if (status_reg < 0)
++		return status_reg;
++
++	*status = status_reg & STATUS_HLOCK_DETECT ? 0 : V4L2_IN_ST_NO_SIGNAL;
++
++	return 0;
++}
++
++static int ml86v7667_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
++				   enum v4l2_mbus_pixelcode *code)
++{
++	if (index > 0)
++		return -EINVAL;
++
++	*code = V4L2_MBUS_FMT_YUYV8_2X8;
++
++	return 0;
++}
++
++static int ml86v7667_try_mbus_fmt(struct v4l2_subdev *sd,
++				  struct v4l2_mbus_framefmt *fmt)
++{
++	struct ml86v7667_priv *priv = to_ml86v7667(sd);
++
++	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
++	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	fmt->field = V4L2_FIELD_INTERLACED;
++	fmt->width = 720;
++	fmt->height = priv->std & V4L2_STD_525_60 ? 480 : 576;
++
++	return 0;
++}
++
++static int ml86v7667_g_mbus_fmt(struct v4l2_subdev *sd,
++				struct v4l2_mbus_framefmt *fmt)
++{
++	struct ml86v7667_priv *priv = to_ml86v7667(sd);
++
++	*fmt = priv->fmt;
++
++	return 0;
++}
++
++static int ml86v7667_s_mbus_fmt(struct v4l2_subdev *sd,
++				struct v4l2_mbus_framefmt *fmt)
++{
++	struct ml86v7667_priv *priv = to_ml86v7667(sd);
++
++	ml86v7667_try_mbus_fmt(sd, fmt);
++	priv->fmt = *fmt;
++
++	return 0;
++}
++
++static int ml86v7667_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
++{
++	struct ml86v7667_priv *priv = to_ml86v7667(sd);
++
++	a->bounds.left = 0;
++	a->bounds.top = 0;
++	a->bounds.width = 720;
++	a->bounds.height = priv->std & V4L2_STD_525_60 ? 480 : 576;
++	a->defrect = a->bounds;
++	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	a->pixelaspect.numerator = 1;
++	a->pixelaspect.denominator = 1;
++
++	return 0;
++}
++
++static int ml86v7667_g_mbus_config(struct v4l2_subdev *sd,
++				   struct v4l2_mbus_config *cfg)
++{
++	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
++		     V4L2_MBUS_DATA_ACTIVE_HIGH;
++	cfg->type = V4L2_MBUS_BT656;
++
++	return 0;
++}
++
++static int ml86v7667_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
++{
++	struct ml86v7667_priv *priv = to_ml86v7667(sd);
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->sd);
++	int ret;
++	u8 mode;
++
++	/* PAL/NTSC ITU-R BT.601 input mode */
++	mode = std & V4L2_STD_NTSC ? MRA_NTSC_BT601 : MRA_PAL_BT601;
++	ret = ml86v7667_mask_set(client, MRA_REG, MRA_INPUT_MODE_MASK, mode);
++	if (ret < 0)
++		return ret;
++
++	priv->std = std;
++
++	return 0;
++}
++
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++static int ml86v7667_g_register(struct v4l2_subdev *sd,
++				struct v4l2_dbg_register *reg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++	int ret;
++
++	if (!v4l2_chip_match_i2c_client(client, &reg->match))
++		return -EINVAL;
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	ret = i2c_smbus_read_byte_data(client, (u8)reg->reg);
++	if (ret < 0)
++		return ret;
++
++	reg->val = ret;
++	reg->size = sizeof(u8);
++
++	return 0;
++}
++
++static int ml86v7667_s_register(struct v4l2_subdev *sd,
++				struct v4l2_dbg_register *reg)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(sd);
++
++	if (!v4l2_chip_match_i2c_client(client, &reg->match))
++		return -EINVAL;
++	if (!capable(CAP_SYS_ADMIN))
++		return -EPERM;
++
++	return i2c_smbus_write_byte_data(client, (u8)reg->reg, (u8)reg->val);
++}
++#endif
++
++static const struct v4l2_ctrl_ops ml86v7667_ctrl_ops = {
++	.s_ctrl = ml86v7667_s_ctrl,
++};
++
++static struct v4l2_subdev_video_ops ml86v7667_subdev_video_ops = {
++	.querystd = ml86v7667_querystd,
++	.g_input_status = ml86v7667_g_input_status,
++	.enum_mbus_fmt = ml86v7667_enum_mbus_fmt,
++	.try_mbus_fmt = ml86v7667_try_mbus_fmt,
++	.g_mbus_fmt = ml86v7667_g_mbus_fmt,
++	.s_mbus_fmt = ml86v7667_s_mbus_fmt,
++	.cropcap = ml86v7667_cropcap,
++	.g_mbus_config = ml86v7667_g_mbus_config,
++};
++
++static struct v4l2_subdev_core_ops ml86v7667_subdev_core_ops = {
++	.s_std = ml86v7667_s_std,
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++	.g_register = ml86v7667_g_register,
++	.s_register = ml86v7667_s_register,
++#endif
++};
++
++static struct v4l2_subdev_ops ml86v7667_subdev_ops = {
++	.core = &ml86v7667_subdev_core_ops,
++	.video = &ml86v7667_subdev_video_ops,
++};
++
++static int ml86v7667_init(struct ml86v7667_priv *priv)
++{
++	struct i2c_client *client = v4l2_get_subdevdata(&priv->sd);
++	int val;
++	int ret;
++
++	/* BT.656-4 output mode, register mode */
++	ret = ml86v7667_mask_set(client, MRA_REG,
++				 MRA_OUTPUT_MODE_MASK | MRA_REGISTER_MODE,
++				 MRA_ITUR_BT656 | MRA_REGISTER_MODE);
++
++	/* PLL circuit fixed clock, 32MHz */
++	ret |= ml86v7667_mask_set(client, PLLR1_REG, PLLR1_FIXED_CLOCK,
++				  PLLR1_FIXED_CLOCK);
++
++	/* ADC2 clamping voltage maximum  */
++	ret |= ml86v7667_mask_set(client, ADC2_REG, ADC2_CLAMP_VOLTAGE_MASK,
++				  ADC2_CLAMP_VOLTAGE(7));
++
++	/* enable luminance function */
++	ret |= ml86v7667_mask_set(client, SSEPL_REG, SSEPL_LUMINANCE_ONOFF,
++				  SSEPL_LUMINANCE_ONOFF);
++
++	/* enable contrast function */
++	ret |= ml86v7667_mask_set(client, CLC_REG, CLC_CONTRAST_ONOFF, 0);
++
++	/*
++	 * PAL/NTSC autodetection is enabled after reset,
++	 * set the autodetected std in manual std mode and
++	 * disable autodetection
++	 */
++	val = i2c_smbus_read_byte_data(client, STATUS_REG);
++	if (val < 0)
++		return val;
++
++	priv->std = val & STATUS_NTSCPAL ? V4L2_STD_PAL : V4L2_STD_NTSC;
++	ret |= ml86v7667_mask_set(client, MRC_REG, MRC_AUTOSELECT, 0);
++
++	val = priv->std & V4L2_STD_NTSC ? MRA_NTSC_BT601 : MRA_PAL_BT601;
++	ret |= ml86v7667_mask_set(client, MRA_REG, MRA_INPUT_MODE_MASK, val);
++
++	return ret;
++}
++
++static int ml86v7667_probe(struct i2c_client *client,
++			   const struct i2c_device_id *did)
++{
++	struct ml86v7667_priv *priv;
++	int ret;
++
++	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
++		return -EIO;
++
++	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
++	if (!priv)
++		return -ENOMEM;
++
++	v4l2_i2c_subdev_init(&priv->sd, client, &ml86v7667_subdev_ops);
++
++	v4l2_ctrl_handler_init(&priv->hdl, 8);
++	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
++			  V4L2_CID_BRIGHTNESS, -64, 63, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
++			  V4L2_CID_CONTRAST, -8, 7, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
++			  V4L2_CID_CHROMA_GAIN, -32, 31, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
++			  V4L2_CID_HUE, -128, 127, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
++			  V4L2_CID_RED_BALANCE, -4, 3, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
++			  V4L2_CID_BLUE_BALANCE, -4, 3, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
++			  V4L2_CID_SHARPNESS, 0, 1, 1, 0);
++	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
++			  V4L2_CID_COLOR_KILLER, 0, 1, 1, 0);
++	priv->sd.ctrl_handler = &priv->hdl;
++
++	ret = priv->hdl.error;
++	if (ret)
++		goto cleanup;
++
++	v4l2_ctrl_handler_setup(&priv->hdl);
++
++	ret = ml86v7667_init(priv);
++	if (ret)
++		goto cleanup;
++
++	v4l_info(client, "chip found @ 0x%02x (%s)\n",
++		 client->addr, client->adapter->name);
++	return 0;
++
++cleanup:
++	v4l2_ctrl_handler_free(&priv->hdl);
++	v4l2_device_unregister_subdev(&priv->sd);
++	v4l_err(client, "failed to probe @ 0x%02x (%s)\n",
++		client->addr, client->adapter->name);
++	return ret;
++}
++
++static int ml86v7667_remove(struct i2c_client *client)
++{
++	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ml86v7667_priv *priv = to_ml86v7667(sd);
++
++	v4l2_ctrl_handler_free(&priv->hdl);
++	v4l2_device_unregister_subdev(&priv->sd);
++
++	return 0;
++}
++
++static const struct i2c_device_id ml86v7667_id[] = {
++	{DRV_NAME, 0},
++	{},
++};
++MODULE_DEVICE_TABLE(i2c, ml86v7667_id);
++
++static struct i2c_driver ml86v7667_i2c_driver = {
++	.driver = {
++		.name	= DRV_NAME,
++		.owner	= THIS_MODULE,
++	},
++	.probe		= ml86v7667_probe,
++	.remove		= ml86v7667_remove,
++	.id_table	= ml86v7667_id,
++};
++
++module_i2c_driver(ml86v7667_i2c_driver);
++
++MODULE_DESCRIPTION("OKI Semiconductor ML86V7667 video decoder driver");
++MODULE_AUTHOR("Vladimir Barinov");
++MODULE_LICENSE("GPL");
