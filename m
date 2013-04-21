@@ -1,62 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:45571 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758943Ab3DYSf7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 14:35:59 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Patrick Boettcher <pboettcher@kernellabs.com>,
-	Olivier Grenie <olivier.grenie@parrot.com>,
-	Patrick Boettcher <patrick.boettcher@parrot.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 4/5] [media] dib8000: fix a warning
-Date: Thu, 25 Apr 2013 15:35:48 -0300
-Message-Id: <1366914949-32587-4-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366914949-32587-1-git-send-email-mchehab@redhat.com>
-References: <1366914949-32587-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-la0-f45.google.com ([209.85.215.45]:37609 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753793Ab3DUSiP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Apr 2013 14:38:15 -0400
+Received: by mail-la0-f45.google.com with SMTP id fp12so869772lab.32
+        for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 11:38:14 -0700 (PDT)
+To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	linus.walleij@linaro.org
+Subject: [PATCH v2 0/5] OKI ML86V7667 driver and R8A7778/BOCK-W VIN support
+Cc: matsu@igel.co.jp, vladimir.barinov@cogentembedded.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Sun, 21 Apr 2013 22:37:22 +0400
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304212237.23500.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-drivers/media/dvb-frontends/dib8000.c: In function 'dib8000_wait_lock':
-drivers/media/dvb-frontends/dib8000.c:3972:1: warning: 'value' may be used uninitialized in this function [-Wmaybe-uninitialized]
-drivers/media/dvb-frontends/dib8000.c:2419:6: note: 'value' was declared here
+Hello.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb-frontends/dib8000.c | 12 ++++++------
- 1 file changed, 6 insertions(+), 6 deletions(-)
+   Here's the set of 5 patches against the Simon Horman's 'renesas.git' repo,
+'renesas-next-20130419' tag and my recent yet unapplied patches. Here we
+add the OKI ML86V7667 video decoder driver and the VIN platform code working on
+the R8A7778/BOCK-W with ML86V7667. The driver patch also applies (with offsets)
+to Mauro's 'media_tree.git'...
 
-diff --git a/drivers/media/dvb-frontends/dib8000.c b/drivers/media/dvb-frontends/dib8000.c
-index 57863d3..a54182d 100644
---- a/drivers/media/dvb-frontends/dib8000.c
-+++ b/drivers/media/dvb-frontends/dib8000.c
-@@ -2416,19 +2416,19 @@ static void dib8000_set_isdbt_common_channel(struct dib8000_state *state, u8 seq
- static u32 dib8000_wait_lock(struct dib8000_state *state, u32 internal,
- 			     u32 wait0_ms, u32 wait1_ms, u32 wait2_ms)
- {
--	u32 value;
--	u16 reg = 11; /* P_search_end0 start addr */
-+	u32 value = 0;	/* P_search_end0 wait time */
-+	u16 reg = 11;	/* P_search_end0 start addr */
- 
- 	for (reg = 11; reg < 16; reg += 2) {
- 		if (reg == 11) {
- 			if (state->revision == 0x8090)
--				value = internal * wait1_ms; /* P_search_end0 wait time */
-+				value = internal * wait1_ms;
- 			else
--				value = internal * wait0_ms; /* P_search_end0 wait time */
-+				value = internal * wait0_ms;
- 		} else if (reg == 13)
--			value = internal * wait1_ms; /* P_search_end0 wait time */
-+			value = internal * wait1_ms;
- 		else if (reg == 15)
--			value = internal * wait2_ms; /* P_search_end0 wait time */
-+			value = internal * wait2_ms;
- 		dib8000_write_word(state, reg, (u16)((value >> 16) & 0xffff));
- 		dib8000_write_word(state, (reg + 1), (u16)(value & 0xffff));
- 	}
--- 
-1.8.1.4
+[1/5] V4L2: I2C: ML86V7667 video decoder driver
+[2/5] sh-pfc: r8a7778: add VIN pin groups
+[3/5] ARM: shmobile: r8a7778: add VIN support
+[4/5] ARM: shmobile: BOCK-W: add VIN and ML86V7667 support
+[5/5] ARM: shmobile: BOCK-W: enable VIN and ML86V7667 in defconfig
 
+WBR, Sergei
