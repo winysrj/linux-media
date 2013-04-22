@@ -1,79 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50153 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56973 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756916Ab3DYLpR (ORCPT
+	with ESMTP id S1753128Ab3DVMbj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 07:45:17 -0400
+	Mon, 22 Apr 2013 08:31:39 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: a.andreyanau@sam-solutions.com
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: mt9p031 camera driver issue
-Date: Thu, 25 Apr 2013 13:45:17 +0200
-Message-ID: <2367258.ZkP6tu2Tsn@avalon>
-In-Reply-To: <517787DC.5070309@sam-solutions.com>
-References: <517787DC.5070309@sam-solutions.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct v4l2_subdev_platform_data to platform data
+Date: Mon, 22 Apr 2013 14:31:48 +0200
+Message-ID: <1621615.OUnKCBbkfO@avalon>
+In-Reply-To: <Pine.LNX.4.64.1304182346060.28933@axis700.grange>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <1366320945-21591-24-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1304182346060.28933@axis700.grange>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrei,
+Hi Guennadi,
 
-On Wednesday 24 April 2013 10:21:00 Andrei Andreyanau wrote:
-> Hi, Guennadi!
-> I have found interesting issue with mt9p031 camera driver.
-> As far as I got the value of hblank in the kernel driver is not
-> calculated correctly. According to the datasheet, the minimum horizontal
-> blanking value should be calculated using the following formula:
-> 346 x (Row_Bin + 1) + 64 + (Wdc / 2)
-> If I'm right, it should look like in the code attached.
-
-Row_Bin is ybin, not xbin. Furthermore, the Row_Bin value starts at 0, while 
-the ybin value starts at 1. I thus I believe the driver code is correct.
-
-> Also I wonder why it is decided to use the default value for vblank,
-> when it's said that is also should be calculated like this:
-> vblank = max(8, SW - H) + 1,
-> where SW - shutter width, H - output image height.
-
-That could be fixed, indeed.
-
-> Also, there might be an issue with the calculation of xskip/yskip within
-> the same function (mt9p031_set_params).
+On Thursday 18 April 2013 23:47:26 Guennadi Liakhovetski wrote:
+> On Thu, 18 Apr 2013, Guennadi Liakhovetski wrote:
+> > Adding struct v4l2_subdev_platform_data to mt9p031's platform data allows
+> > the driver to use generic functions to manage sensor power supplies.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 > 
-> xskip = DIV_ROUND_CLOSEST(crop->width, format->width);
-> yskip = DIV_ROUND_CLOSEST(crop->height, format->height);
-> 
-> As far as I got, these values are calculated using the predefined macros,
-> that rounds the calculated value to the nearest integer number. I faced
-> with the problem, that these values rounded correctly when the result
-> is > 1 (e.g. 1,5 will be rounded to 1).
-> But what concerns the value 0,8 it will be rounded to 0 by this function
-> (DIV_ROUND_CLOSEST). Could you please confirm this issue?
+> A small addition to this one too: to be absolutely honest, I also had to
+> replace 12-bit formats with their 8-bit counterparts, because only 8 data
+> lanes are connected to my camera host. We'll need to somehow properly
+> solve this too.
 
-The format rectangle should always be smaller than or equal to the crop 
-rectangle, so the xskip and yskip values should never be smaller than 1. If 
-that happens, it's a driver bug.
+That information should be conveyed by platform/DT data for the host, and be 
+used to convert the 12-bit media bus code into a 8-bit media bus code in the 
+host (a core helper function would probably be helpful).
 
-> Signed-off-by: Andrei Andreyanau <a.andreyanau@sam-solutions.com>
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index e328332..838b300 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -368,7 +368,7 @@ static int mt9p031_set_params(struct mt9p031 *mt9p031)
->  	/* Blanking - use minimum value for horizontal blanking and default
->  	 * value for vertical blanking.
->  	 */
-> -	hblank = 346 * ybin + 64 + (80 >> min_t(unsigned int, xbin, 3));
-> +	hblank = 346 * (xbin + 1) + 64 + ((80 >> clamp_t(unsigned int, xbin,
-> 0, 3)) / 2);
->  	vblank = MT9P031_VERTICAL_BLANK_DEF;
-> 
->  	ret = mt9p031_write(client, MT9P031_HORIZONTAL_BLANK, hblank - 1);
-
+> > ---
+> > 
+> >  drivers/media/i2c/mt9p031.c |    1 +
+> >  include/media/mt9p031.h     |    3 +++
+> >  2 files changed, 4 insertions(+), 0 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+> > index 70f4525..ca2cc6e 100644
+> > --- a/drivers/media/i2c/mt9p031.c
+> > +++ b/drivers/media/i2c/mt9p031.c
+> > @@ -1048,6 +1048,7 @@ static int mt9p031_probe(struct i2c_client *client,
+> >  		goto done;
+> >  	
+> >  	mt9p031->subdev.dev = &client->dev;
+> > +	mt9p031->subdev.pdata = &pdata->sd_pdata;
+> >  	ret = v4l2_async_register_subdev(&mt9p031->subdev);
+> >  
+> >  done:
+> > diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
+> > index 0c97b19..7bf7b53 100644
+> > --- a/include/media/mt9p031.h
+> > +++ b/include/media/mt9p031.h
+> > @@ -1,6 +1,8 @@
+> >  #ifndef MT9P031_H
+> >  #define MT9P031_H
+> > 
+> > +#include <media/v4l2-subdev.h>
+> > +
+> >  struct v4l2_subdev;
+> >  /*
+> > @@ -15,6 +17,7 @@ struct mt9p031_platform_data {
+> >  	int reset;
+> >  	int ext_freq;
+> >  	int target_freq;
+> > +	struct v4l2_subdev_platform_data sd_pdata;
+> >  };
+> >  
+> >  #endif
 -- 
 Regards,
 
 Laurent Pinchart
+
