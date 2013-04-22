@@ -1,123 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor1.renesas.com ([210.160.252.171]:35194 "EHLO
-	relmlor1.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755776Ab3DZQNA (ORCPT
+Received: from p3plsmtpa07-02.prod.phx3.secureserver.net ([173.201.192.231]:41716
+	"EHLO p3plsmtpa07-02.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754369Ab3DVH34 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 12:13:00 -0400
-Received: from relmlir3.idc.renesas.com ([10.200.68.153])
- by relmlor1.idc.renesas.com ( SJSMS)
- with ESMTP id <0MLV00D2DEDMND40@relmlor1.idc.renesas.com> for
- linux-media@vger.kernel.org; Sat, 27 Apr 2013 01:12:58 +0900 (JST)
-Received: from relmlac1.idc.renesas.com ([10.200.69.21])
- by relmlir3.idc.renesas.com ( SJSMS)
- with ESMTP id <0MLV003WNEDMOGB0@relmlir3.idc.renesas.com> for
- linux-media@vger.kernel.org; Sat, 27 Apr 2013 01:12:58 +0900 (JST)
-In-reply-to: <Pine.LNX.4.64.1304251535590.21045@axis700.grange>
-References: <1366202619-4511-1-git-send-email-phil.edworthy@renesas.com>
- <Pine.LNX.4.64.1304242249410.16970@axis700.grange>
- <OF975E3643.061D9EDC-ON80257B58.003660C1-80257B58.00379495@eu.necel.com>
- <Pine.LNX.4.64.1304251241430.21045@axis700.grange>
- <OF94EFCFB7.8EC190E4-ON80257B58.00450077-80257B58.0049B035@eu.necel.com>
- <Pine.LNX.4.64.1304251535590.21045@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-version: 1.0
-From: phil.edworthy@renesas.com
-Subject: Re: [PATCH] soc_camera: Add V4L2_MBUS_FMT_YUYV10_2X10 format
-Message-id: <OF3A7A50DA.5DC9276D-ON80257B59.0058D7D1-80257B59.005907F0@eu.necel.com>
-Date: Fri, 26 Apr 2013 17:12:25 +0100
-Content-type: text/plain; charset=US-ASCII
+	Mon, 22 Apr 2013 03:29:56 -0400
+From: Leonid Kegulskiy <leo@lumanate.com>
+To: hverkuil@xs4all.nl
+Cc: Leonid Kegulskiy <leo@lumanate.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] hdpvr: error handling and alloc abuse cleanup.
+Date: Mon, 22 Apr 2013 00:23:03 -0700
+Message-Id: <1366615383-12380-1-git-send-email-leo@lumanate.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Removed unnecessary use of kzalloc() in get_video_info().
+Removed unnecessary  get_video_info() call from hdpvr_device_init().
+Cleaned up error handling in hdpvr_start_streaming() to ensure
+caller gets a failure status if device is not functioning properly.
+Cleaned up error handling in vidioc_querystd(),
+vidioc_query_dv_timings() and vidioc_g_fmt_vid_cap().
+This change also causes vidioc_g_fmt_vid_cap() not to return
+-EFAULT when video lock is not detected, but return empty
+width/height fields (legacy mode only). This new behavior is
+supported by MythTV.
 
-<snip>
-> > > > > Wow, what kind of host can pack two 10-bit samples into 3 bytes 
-and 
-> > > > write 
-> > > > > 3-byte pixels to memory?
-> > > > I think I might have misunderstood how this is used. From my 
-> > > > understanding, the MBUS formats are used to describe the hardware 
-> > > > interfaces to cameras, i.e. 2 samples of 10 bits. I guess that the 
+Signed-off-by: Leonid Kegulskiy <leo@lumanate.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-control.c |   20 ++-------
+ drivers/media/usb/hdpvr/hdpvr-core.c    |    8 ----
+ drivers/media/usb/hdpvr/hdpvr-video.c   |   70 +++++++++++++++++--------------
+ drivers/media/usb/hdpvr/hdpvr.h         |    2 +-
+ 4 files changed, 43 insertions(+), 57 deletions(-)
 
-> > fourcc 
-> > > > field also determines what v4l2 format is required to capture 
-this. 
-> > > 
-> > > No, not quite. This table describes default "pass-through" capture 
-of 
-> > > video data on a media bus to memory. E.g. the first entry in the 
-table 
-> > > means, that if you get the V4L2_MBUS_FMT_YUYV8_2X8 format on the 
-bus, 
-> > you 
-> > > sample 8 bits at a time, and store the samples 1-to-1 into RAM, you 
-get 
-> > > the V4L2_PIX_FMT_YUYV format in your buffer. It can also describe 
-some 
-> > > standard operations with the sampled data, like swapping the order, 
-> > > filling missing high bits (e.g. if you sample 10 bits but store 16 
-bits 
-> > > per sample with high 6 bits nullified). The table also specifies 
-which 
-> > > bits are used for padding in the original data, e.g. 
-> > > V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE has SOC_MBUS_PACKING_2X8_PADLO, 
-> > whereas 
-> > > V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE has SOC_MBUS_PACKING_2X8_PADHI, 
-which 
-> > 
-> > > means, that out of 16 bits of data, that you get when you sample an 
-> > 8-bit 
-> > > bus twice, either low or high 6 bits are invalid and should be 
-> > discarded.
-> > 
-> > Ok, I see. However, is it necessary to provide a default pass-through 
-v4l2 
-> > format?
-> 
-> No, it's not. If no (soc-camera) host camera driver is willing to use 
-this 
-> pass-through conversion, then it's not required.
-Ok, I'll look at that when I get a moment!
+diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
+index ae8f229..16d2d64 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-control.c
++++ b/drivers/media/usb/hdpvr/hdpvr-control.c
+@@ -45,20 +45,10 @@ int hdpvr_config_call(struct hdpvr_device *dev, uint value, u8 valbuf)
+ 	return ret < 0 ? ret : 0;
+ }
+ 
+-struct hdpvr_video_info *get_video_info(struct hdpvr_device *dev)
++int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
+ {
+-	struct hdpvr_video_info *vidinf = NULL;
+-#ifdef HDPVR_DEBUG
+-	char print_buf[15];
+-#endif
+ 	int ret;
+ 
+-	vidinf = kzalloc(sizeof(struct hdpvr_video_info), GFP_KERNEL);
+-	if (!vidinf) {
+-		v4l2_err(&dev->v4l2_dev, "out of memory\n");
+-		goto err;
+-	}
+-
+ 	mutex_lock(&dev->usbc_mutex);
+ 	ret = usb_control_msg(dev->udev,
+ 			      usb_rcvctrlpipe(dev->udev, 0),
+@@ -74,6 +64,7 @@ struct hdpvr_video_info *get_video_info(struct hdpvr_device *dev)
+ 
+ #ifdef HDPVR_DEBUG
+ 	if (hdpvr_debug & MSG_INFO) {
++		char print_buf[15];
+ 		hex_dump_to_buffer(dev->usbc_buf, 5, 16, 1, print_buf,
+ 				   sizeof(print_buf), 0);
+ 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+@@ -82,12 +73,7 @@ struct hdpvr_video_info *get_video_info(struct hdpvr_device *dev)
+ #endif
+ 	mutex_unlock(&dev->usbc_mutex);
+ 
+-	if (!vidinf->width || !vidinf->height || !vidinf->fps) {
+-		kfree(vidinf);
+-		vidinf = NULL;
+-	}
+-err:
+-	return vidinf;
++	return ret < 0 ? ret : 0;
+ }
+ 
+ int get_input_lines_info(struct hdpvr_device *dev)
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index 8247c19..cb69405 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -220,7 +220,6 @@ static int hdpvr_device_init(struct hdpvr_device *dev)
+ {
+ 	int ret;
+ 	u8 *buf;
+-	struct hdpvr_video_info *vidinf;
+ 
+ 	if (device_authorization(dev))
+ 		return -EACCES;
+@@ -242,13 +241,6 @@ static int hdpvr_device_init(struct hdpvr_device *dev)
+ 		 "control request returned %d\n", ret);
+ 	mutex_unlock(&dev->usbc_mutex);
+ 
+-	vidinf = get_video_info(dev);
+-	if (!vidinf)
+-		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+-			"no valid video signal or device init failed\n");
+-	else
+-		kfree(vidinf);
+-
+ 	/* enable fan and bling leds */
+ 	mutex_lock(&dev->usbc_mutex);
+ 	buf[0] = 0x1;
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 774ba0e..5e8d6c2 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -277,20 +277,21 @@ error:
+ static int hdpvr_start_streaming(struct hdpvr_device *dev)
+ {
+ 	int ret;
+-	struct hdpvr_video_info *vidinf;
++	struct hdpvr_video_info vidinf;
+ 
+ 	if (dev->status == STATUS_STREAMING)
+ 		return 0;
+ 	else if (dev->status != STATUS_IDLE)
+ 		return -EAGAIN;
+ 
+-	vidinf = get_video_info(dev);
++	ret = get_video_info(dev, &vidinf);
++	if (ret)		/* device is dead */
++		return ret;	/* let the caller know */
+ 
+-	if (vidinf) {
++	if (vidinf.width && vidinf.height) {
+ 		v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
+-			 "video signal: %dx%d@%dhz\n", vidinf->width,
+-			 vidinf->height, vidinf->fps);
+-		kfree(vidinf);
++			 "video signal: %dx%d@%dhz\n", vidinf.width,
++			 vidinf.height, vidinf.fps);
+ 
+ 		/* start streaming 2 request */
+ 		ret = usb_control_msg(dev->udev,
+@@ -298,8 +299,12 @@ static int hdpvr_start_streaming(struct hdpvr_device *dev)
+ 				      0xb8, 0x38, 0x1, 0, NULL, 0, 8000);
+ 		v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
+ 			 "encoder start control request returned %d\n", ret);
++		if (ret < 0)
++			return ret;
+ 
+-		hdpvr_config_call(dev, CTRL_START_STREAMING_VALUE, 0x00);
++		ret = hdpvr_config_call(dev, CTRL_START_STREAMING_VALUE, 0x00);
++		if (ret)
++			return ret;
+ 
+ 		dev->status = STATUS_STREAMING;
+ 
+@@ -606,21 +611,22 @@ static int vidioc_g_std(struct file *file, void *_fh,
+ static int vidioc_querystd(struct file *file, void *_fh, v4l2_std_id *a)
+ {
+ 	struct hdpvr_device *dev = video_drvdata(file);
+-	struct hdpvr_video_info *vid_info;
++	struct hdpvr_video_info vid_info;
+ 	struct hdpvr_fh *fh = _fh;
++	int ret;
+ 
+ 	*a = V4L2_STD_ALL;
+ 	if (dev->options.video_input == HDPVR_COMPONENT)
+ 		return fh->legacy_mode ? 0 : -ENODATA;
+-	vid_info = get_video_info(dev);
+-	if (vid_info == NULL)
+-		return 0;
+-	if (vid_info->width == 720 &&
+-	    (vid_info->height == 480 || vid_info->height == 576)) {
+-		*a = (vid_info->height == 480) ?
++	ret = get_video_info(dev, &vid_info);
++	if (ret)
++		return ret;
++	if (vid_info.width == 720 &&
++	    (vid_info.height == 480 || vid_info.height == 576)) {
++		*a = (vid_info.height == 480) ?
+ 			V4L2_STD_525_60 : V4L2_STD_625_50;
+ 	}
+-	kfree(vid_info);
++
+ 	return 0;
+ }
+ 
+@@ -665,7 +671,7 @@ static int vidioc_query_dv_timings(struct file *file, void *_fh,
+ {
+ 	struct hdpvr_device *dev = video_drvdata(file);
+ 	struct hdpvr_fh *fh = _fh;
+-	struct hdpvr_video_info *vid_info;
++	struct hdpvr_video_info vid_info;
+ 	bool interlaced;
+ 	int ret = 0;
+ 	int i;
+@@ -673,10 +679,12 @@ static int vidioc_query_dv_timings(struct file *file, void *_fh,
+ 	fh->legacy_mode = false;
+ 	if (dev->options.video_input)
+ 		return -ENODATA;
+-	vid_info = get_video_info(dev);
+-	if (vid_info == NULL)
++	ret = get_video_info(dev, &vid_info);
++	if (ret)
++		return ret;
++	if (vid_info.fps == 0)
+ 		return -ENOLCK;
+-	interlaced = vid_info->fps <= 30;
++	interlaced = vid_info.fps <= 30;
+ 	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++) {
+ 		const struct v4l2_bt_timings *bt = &hdpvr_dv_timings[i].bt;
+ 		unsigned hsize;
+@@ -688,17 +696,17 @@ static int vidioc_query_dv_timings(struct file *file, void *_fh,
+ 			bt->il_vfrontporch + bt->il_vsync + bt->il_vbackporch +
+ 			bt->height;
+ 		fps = (unsigned)bt->pixelclock / (hsize * vsize);
+-		if (bt->width != vid_info->width ||
+-		    bt->height != vid_info->height ||
++		if (bt->width != vid_info.width ||
++		    bt->height != vid_info.height ||
+ 		    bt->interlaced != interlaced ||
+-		    (fps != vid_info->fps && fps + 1 != vid_info->fps))
++		    (fps != vid_info.fps && fps + 1 != vid_info.fps))
+ 			continue;
+ 		*timings = hdpvr_dv_timings[i];
+ 		break;
+ 	}
+ 	if (i == ARRAY_SIZE(hdpvr_dv_timings))
+ 		ret = -ERANGE;
+-	kfree(vid_info);
++
+ 	return ret;
+ }
+ 
+@@ -988,6 +996,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *_fh,
+ {
+ 	struct hdpvr_device *dev = video_drvdata(file);
+ 	struct hdpvr_fh *fh = _fh;
++	int ret;
+ 
+ 	/*
+ 	 * The original driver would always returns the current detected
+@@ -1000,14 +1009,13 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *_fh,
+ 	 * last set format.
+ 	 */
+ 	if (fh->legacy_mode) {
+-		struct hdpvr_video_info *vid_info;
+-
+-		vid_info = get_video_info(dev);
+-		if (!vid_info)
+-			return -EFAULT;
+-		f->fmt.pix.width = vid_info->width;
+-		f->fmt.pix.height = vid_info->height;
+-		kfree(vid_info);
++		struct hdpvr_video_info vid_info;
++
++		ret = get_video_info(dev, &vid_info);
++		if (ret)
++			return ret;
++		f->fmt.pix.width = vid_info.width;
++		f->fmt.pix.height = vid_info.height;
+ 	} else {
+ 		f->fmt.pix.width = dev->width;
+ 		f->fmt.pix.height = dev->height;
+diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
+index 1478f3d..808ea7a 100644
+--- a/drivers/media/usb/hdpvr/hdpvr.h
++++ b/drivers/media/usb/hdpvr/hdpvr.h
+@@ -303,7 +303,7 @@ int hdpvr_set_audio(struct hdpvr_device *dev, u8 input,
+ int hdpvr_config_call(struct hdpvr_device *dev, uint value,
+ 		      unsigned char valbuf);
+ 
+-struct hdpvr_video_info *get_video_info(struct hdpvr_device *dev);
++int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vid_info);
+ 
+ /* :0 s b8 81 1800 0003 0003 3 < */
+ /* :0 0 3 = 0301ff */
+-- 
+1.7.10.4
 
-> > I can't see a suitable v4l2 format! For the hardware I have been 
-> > working on, there is always the option of converting the data to 
-another 
-> > format, so this is not really needed. I doubt that it makes sense to 
-add 
-> > yet another v4l2 format for userspace, when typical uses would involve 
-the 
-> > host hardware converting the format to something else, e.g. 
-> > V4L2_PIX_FMT_RGB32.
-> 
-> Up to you, really. If you don't need this default conversion, don't add 
-> it.
-Ok, it seems like it would be a bad idea to provide a default conversion 
-that my not be supported by other hosts.
-
-> > > > However, I am not sure how the two relate to each other. How does 
-the 
-> > > > above code imply 3 bytes?
-> > > 
-> > > Not the above code, but your entry in the soc_mbus_bytes_per_line() 
-> > > function below, where you multiply width * 3.
-> > 
-> > It looks like hosts use soc_mbus_bytes_per_line() to report the size 
-of 
-> > video buffers needed. Shouldn't the hosts report the buffer metrics 
-for 
-> > the v4l2 format, since that is what will be output? What has this to 
-do 
-> > with the MBUS specifics?
-> 
-> struct soc_mbus_pixelfmt describes a conversion from an MBUS code to a 
-> pixel format in memory. Camera host drivers call that function with a 
-> _suitable_ conversion descriptor (either a standard or a special one) 
-and 
-> the function calculates the number of bytes.
-Right, I think I understand!
-
-Thanks
-Phil
