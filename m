@@ -1,42 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:37483 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932090Ab3DBTFp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Apr 2013 15:05:45 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c4so383084eek.24
-        for <linux-media@vger.kernel.org>; Tue, 02 Apr 2013 12:05:44 -0700 (PDT)
-Message-ID: <515B2C47.8020601@googlemail.com>
-Date: Tue, 02 Apr 2013 21:06:47 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57073 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752818Ab3DVMqi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 08:46:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct v4l2_subdev_platform_data to platform data
+Date: Mon, 22 Apr 2013 14:46:46 +0200
+Message-ID: <3524635.KtmUfWv2vm@avalon>
+In-Reply-To: <Pine.LNX.4.64.1304221435540.23906@axis700.grange>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <1621615.OUnKCBbkfO@avalon> <Pine.LNX.4.64.1304221435540.23906@axis700.grange>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 0/3] em28xx: add support for two buses on em2874 and upper
-References: <1362480928-20382-1-git-send-email-mchehab@redhat.com> <CAGoCfiwB9BT2mDQqu2cwsRM-0eraqyxdY0V3fnH+S2RSNiGSdQ@mail.gmail.com> <51378067.3000506@googlemail.com> <20130318182205.44f44e20@redhat.com> <5159C05B.10902@googlemail.com> <20130401162205.379bda4f@redhat.com> <5159F080.1030503@googlemail.com> <20130401191224.4da92bd8@redhat.com> <20130401191427.5d81fbc4@redhat.com> <CAGoCfiyaD_9T6OBKaiDGC7Mkme6EgDb7D9nEHd=pSYgSnk86+g@mail.gmail.com>
-In-Reply-To: <CAGoCfiyaD_9T6OBKaiDGC7Mkme6EgDb7D9nEHd=pSYgSnk86+g@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 02.04.2013 02:48, schrieb Devin Heitmueller:
-> On Mon, Apr 1, 2013 at 6:14 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
->> In time, I meant to say:
->>         "So, it seems very unlikely that any change here will keep it working for
->>          model 16009 while breaking it for other HVR-930 devices."
-> As far as I know, there's only ever been one em28xx/drxk variant of
-> the 930c.  And since it was obsoleted a while ago I don't see any
-> reason you will see any minor revisions of this board design in the
-> future (the current design uses the cx231xx).
+On Monday 22 April 2013 14:39:57 Guennadi Liakhovetski wrote:
+> On Mon, 22 Apr 2013, Laurent Pinchart wrote:
+> > On Thursday 18 April 2013 23:47:26 Guennadi Liakhovetski wrote:
+> > > On Thu, 18 Apr 2013, Guennadi Liakhovetski wrote:
+> > > > Adding struct v4l2_subdev_platform_data to mt9p031's platform data
+> > > > allows the driver to use generic functions to manage sensor power
+> > > > supplies.
+> > > > 
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > 
+> > > A small addition to this one too: to be absolutely honest, I also had to
+> > > replace 12-bit formats with their 8-bit counterparts, because only 8
+> > > data lanes are connected to my camera host. We'll need to somehow
+> > > properly solve this too.
+> > 
+> > That information should be conveyed by platform/DT data for the host, and
+> > be used to convert the 12-bit media bus code into a 8-bit media bus code
+> > in the host (a core helper function would probably be helpful).
+> 
+> Yes, and we discussed this before too, I think. I proposed based then to
+> implement some compatibility table of "trivial" transformations, like a
+> 12-bit Bayer, right-shifted by 4 bits, produces a respective 8-bit Bayer
+> etc. Such transformations would fit nicely in soc_mediabus.c ;-) This just
+> needs to be implemented...
+> 
+> Sure, I'd be happy to move soc_mediabus.c to
+> drivers/media/v4l2-core/v4l2-mediabus.c.
 
-Are the em28xx devices model 16xxx and the newer cx231xx devices model
-111xxx ?
+And the OMAP3 ISP driver has something similiar in 
+drivers/media/platform/omap3isp/ispvideo.c
 
-Frank
+> > > > ---
+> > > > 
+> > > >  drivers/media/i2c/mt9p031.c |    1 +
+> > > >  include/media/mt9p031.h     |    3 +++
+> > > >  2 files changed, 4 insertions(+), 0 deletions(-)
+> > > > 
+> > > > diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+> > > > index 70f4525..ca2cc6e 100644
+> > > > --- a/drivers/media/i2c/mt9p031.c
+> > > > +++ b/drivers/media/i2c/mt9p031.c
+> > > > @@ -1048,6 +1048,7 @@ static int mt9p031_probe(struct i2c_client
+> > > > *client,
+> > > > 
+> > > >  		goto done;
+> > > >  	
+> > > >  	mt9p031->subdev.dev = &client->dev;
+> > > > 
+> > > > +	mt9p031->subdev.pdata = &pdata->sd_pdata;
+> > > > 
+> > > >  	ret = v4l2_async_register_subdev(&mt9p031->subdev);
+> > > >  
+> > > >  done:
+> > > > diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
+> > > > index 0c97b19..7bf7b53 100644
+> > > > --- a/include/media/mt9p031.h
+> > > > +++ b/include/media/mt9p031.h
+> > > > @@ -1,6 +1,8 @@
+> > > > 
+> > > >  #ifndef MT9P031_H
+> > > >  #define MT9P031_H
+> > > > 
+> > > > +#include <media/v4l2-subdev.h>
+> > > > +
+> > > > 
+> > > >  struct v4l2_subdev;
+> > > >  /*
+> > > > 
+> > > > @@ -15,6 +17,7 @@ struct mt9p031_platform_data {
+> > > > 
+> > > >  	int reset;
+> > > >  	int ext_freq;
+> > > >  	int target_freq;
+> > > > 
+> > > > +	struct v4l2_subdev_platform_data sd_pdata;
+> > > > 
+> > > >  };
+> > > >  
+> > > >  #endif
 
->
-> Devin
->
+-- 
+Regards,
+
+Laurent Pinchart
 
