@@ -1,64 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f176.google.com ([209.85.216.176]:63069 "EHLO
-	mail-qc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S968340Ab3DSNWJ (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:41964 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754591Ab3DVKiQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 09:22:09 -0400
-Received: by mail-qc0-f176.google.com with SMTP id n41so1692747qco.7
-        for <linux-media@vger.kernel.org>; Fri, 19 Apr 2013 06:22:07 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201304191158.04116.hverkuil@xs4all.nl>
-References: <5167513D.60804@iki.fi>
-	<201304190912.06319.hverkuil@xs4all.nl>
-	<51710A3F.10909@iki.fi>
-	<201304191158.04116.hverkuil@xs4all.nl>
-Date: Fri, 19 Apr 2013 09:16:46 -0400
-Message-ID: <CAGoCfizZVS2Fu9o=oKHOVewObg++kROw2mNyQrEnTF4ydzRWPQ@mail.gmail.com>
-Subject: Re: Keene
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Antti Palosaari <crope@iki.fi>, LMML <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 22 Apr 2013 06:38:16 -0400
+From: Tomasz Figa <t.figa@samsung.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Inki Dae <inki.dae@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	"patches@linaro.org" <patches@linaro.org>,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-samsung-soc@vger.kernel.org, myungjoo.ham@samsung.com,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	linaro-kernel@lists.linaro.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	khilman@deeprootsystems.com, rjw@sisk.pl
+Subject: Re: [PATCH v4] drm/exynos: prepare FIMD clocks
+Date: Mon, 22 Apr 2013 12:37:36 +0200
+Message-id: <2218256.k8DNv9nCJl@amdc1227>
+In-reply-to: <51750E43.1050602@samsung.com>
+References: <1365419265-21238-1-git-send-email-vikas.sajjan@linaro.org>
+ <CAAQKjZPT8pMQtY4ud=mMwgw7MYGf-JdqXePCt=yvcNcM1XgxoA@mail.gmail.com>
+ <51750E43.1050602@samsung.com>
+MIME-version: 1.0
+Content-transfer-encoding: 7Bit
+Content-type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 19, 2013 at 5:58 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> So perhaps this can be solved with two generic controls:
->
-> bool CID_POWER_OFF_AT_LAST_CLOSE
-> int CID_POWER_OFF_DELAY (unit: seconds)
->
-> If POWER_OFF_AT_LAST_CLOSE is false, then you never power off. If it is true,
-> then power off after a given delay. If the delay == 0 then power off immediately.
->
-> Drivers can decide on proper default values. But radio devices must start
-> with CID_POWER_OFF_AT_LAST_CLOSE set to false for compatibility reasons.
->
-> I don't have time for the next few weeks to investigate this further, so if
-> you are interested...
+On Monday 22 of April 2013 12:17:39 Sylwester Nawrocki wrote:
+> On 04/22/2013 12:03 PM, Inki Dae wrote:
+> >     > Also looks good to me. But what if power domain was disabled without
+> >     > pm
+> >     > runtime? In this case, you must enable the power domain at machine
+> >     > code or
+> >     > bootloader somewhere. This way would not only need some hard codes
+> >     > to turn
+> >     > the power domain on but also not manage power management fully. This
+> >     > is same as only the use of pm runtime interface(needing some hard
+> >     > codes without pm runtime) so I don't prefer to add
+> >     > clk_enable/disable to fimd probe(). I quite tend to force only the
+> >     > use of pm runtime as possible. So please add the hard codes to
+> >     > machine code or bootloader like you did for power domain if you
+> >     > want to use drm fimd without pm runtime.
+> >     
+> >     That's not how the runtime PM, clock subsystems work:
+> >     
+> >     1) When CONFIG_PM_RUNTIME is disabled, all the used hardware must be
+> >     kept
+> >     powered on all the time.
+> >     
+> >     2) Common Clock Framework will always gate all clocks that have zero
+> >     enable_count. Note that CCF support for Exynos is already merged for
+> >     3.10 and it will be the only available clock support method for
+> >     Exynos.
+> >     
+> >     AFAIK, drivers must work correctly in both cases, with
+> >     CONFIG_PM_RUNTIME
+> >     enabled and disabled.
+> > 
+> > Then is the driver worked correctly if the power domain to this device was
+> > disabled at bootloader without CONFIG_PM_RUNTIME and with clk_enable()?  I
+> > think, in this case, the device wouldn't be worked correctly because the
+> > power of the device remains off. So you must enable the power domain
+> > somewhere. What is the difference between these two cases?
+> 
+> How about making the driver dependant on PM_RUNTIME and making it always
+> use pm_runtime_* API, regardless if the platform actually implements runtime
+> PM or not ? Is there any issue in using the Runtime PM core always, rather
+> than coding any workarounds in drivers when PM_RUNTIME is disabled ?
 
-Bear in mind that deferred shutdown opens a huge set of problems with
-hybrid tuners.  We already have many, many race known conditions
-related to closing V4L and then immediately opening the corresponding
-DVB device (and closing DVB then immediately opening the V4L device).
-Without a proper framework, a change such as this will exacerbate the
-problem.
+I don't think this is a good idea. This would mean that any user that from 
+some reasons don't want to use PM_RUNTIME, would not be able to use the driver 
+anymore.
 
-These race conditions typically result in completely undefined
-behavior, as you either having both sides of the device powered up at
-the same time, or you have the second half powered up and then
-conflicting commands are received to power it down because of deferred
-commands for the first half to go to sleep.
+Rafael, Kevin, do you have any opinion on this?
 
-It's an absolute mess.
-
-And please don't forget that this isn't just about a shared tuner chip
-- it's about the state of video decoders and demodulators as well.
-You cannot just introduce simple locking in tuner-core and hope that
-resolves the problem.
-
-Devin
-
+Best regards,
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Tomasz Figa
+Samsung Poland R&D Center
+SW Solution Development, Kernel and System Framework
+
