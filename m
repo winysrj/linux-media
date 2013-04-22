@@ -1,102 +1,244 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:63059 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753660Ab3DVOGN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 10:06:13 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLN00CYJTUCUVI0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Apr 2013 23:06:12 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 06/12] exynos4-is: Don't overwrite subdevdata in the fimc-is
- sensor driver
-Date: Mon, 22 Apr 2013 16:03:41 +0200
-Message-id: <1366639427-14253-7-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
-References: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:18591 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752474Ab3DVLwh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 07:52:37 -0400
+Message-ID: <51752475.5080600@redhat.com>
+Date: Mon, 22 Apr 2013 08:52:21 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Prabhakar lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: Re: [PATCH RFC] media: videobuf2: fix the length check for mmap
+References: <1366364816-3567-1-git-send-email-prabhakar.csengg@gmail.com> <20130419081801.0af7ad73@redhat.com> <4764027.ER4TtP6hZT@avalon>
+In-Reply-To: <4764027.ER4TtP6hZT@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's an I2C client driver and it must not overwrite the struct v4l2_subdev
-dev_priv field, which is used by the v4l2 core to store a pointer to
-struct i2c_client.
+Em 21-04-2013 19:38, Laurent Pinchart escreveu:
+> Hi Mauro,
+>
+> On Friday 19 April 2013 08:18:01 Mauro Carvalho Chehab wrote:
+>> Em Fri, 19 Apr 2013 15:16:56 +0530 Prabhakar lad escreveu:
+>>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>>
+>>>  From commit 068a0df76023926af958a336a78bef60468d2033
+>>> "[media] media: vb2: add length check for mmap"
+>>> patch verifies that the mmap() size requested by userspace
+>>> doesn't exceed the buffer size.
+>>>
+>>> As the mmap() size is rounded up to the next page boundary
+>>> the check will fail for buffer sizes that are not multiple
+>>> of the page size.
+>>>
+>>> This patch fixes the check by aligning the buffer size to page
+>>> size during the check. Alongside fixes the vmalloc allocator
+>>> to round up the size.
+>>>
+>>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> Cc: Marek Szyprowski <m.szyprowski@samsung.com>
+>>> Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>> ---
+>>>
+>>>   drivers/media/v4l2-core/videobuf2-core.c    |    2 +-
+>>>   drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
+>>>   2 files changed, 2 insertions(+), 2 deletions(-)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+>>> b/drivers/media/v4l2-core/videobuf2-core.c index 58c1744..223fcd4 100644
+>>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>>> @@ -1886,7 +1886,7 @@ int vb2_mmap(struct vb2_queue *q, struct
+>>> vm_area_struct *vma)>
+>>>   	vb = q->bufs[buffer];
+>>>
+>>> -	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
+>>> +	if (PAGE_ALIGN(vb->v4l2_planes[plane].length) < (vma->vm_end -
+>>> vma->vm_start)) {>
+>>>   		dprintk(1, "Invalid length\n");
+>>>   		return -EINVAL;
+>>>   	
+>>>   	}
+>>
+>> That is tricky, as it assumes that vb->v4l2_planes[plane].length was round
+>> up to PAGE_SIZE at each memops driver, but the vb2 core doesn't enforce it.
+>>
+>> IMO, it would be cleaner to round vb->v4l2_planes[plane].length up
+>> at VB2 core, before calling the memops alloc functions at the drivers.
+>
+> I don't think we should round vb->v4l2_planes[plane].length up. That variable
+> stores the buffer length required by the driver, and will be used to perform
+> size checks when importing a dmabuf buffer. We don't want to prevent a buffer
+> large enough for the driver but not page size aligned to be imported.
+>
+> What we could do is round in the core the size passed to the alloc function,
+> without storing the rounded value in vb->v4l2_planes[plane].length.
+>
+> And, reading down, I realize that this is exactly what you meant :-)
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-is-sensor.c |    8 +-------
- drivers/media/platform/exynos4-is/fimc-is-sensor.h |    6 ++++++
- drivers/media/platform/exynos4-is/fimc-is.c        |    2 +-
- 3 files changed, 8 insertions(+), 8 deletions(-)
+Yes. Touching at .length would have side effects, but touching at
+buffer's .size seem ok and VB2 dma contig code already does that
+with the current code.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.c b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-index 035fa14..6647421 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.c
-@@ -40,11 +40,6 @@ static const struct v4l2_mbus_framefmt fimc_is_sensor_formats[] = {
- 	}
- };
- 
--static struct fimc_is_sensor *sd_to_fimc_is_sensor(struct v4l2_subdev *sd)
--{
--	return container_of(sd, struct fimc_is_sensor, subdev);
--}
--
- static const struct v4l2_mbus_framefmt *find_sensor_format(
- 	struct v4l2_mbus_framefmt *mf)
- {
-@@ -147,7 +142,7 @@ static const struct v4l2_subdev_internal_ops fimc_is_sensor_sd_internal_ops = {
- 
- static int fimc_is_sensor_s_power(struct v4l2_subdev *sd, int on)
- {
--	struct fimc_is_sensor *sensor = v4l2_get_subdevdata(sd);
-+	struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
- 	int gpio = sensor->gpio_reset;
- 	int ret;
- 
-@@ -252,7 +247,6 @@ static int fimc_is_sensor_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		return ret;
- 
--	v4l2_set_subdevdata(sd, sensor);
- 	pm_runtime_no_callbacks(dev);
- 	pm_runtime_enable(dev);
- 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is-sensor.h b/drivers/media/platform/exynos4-is/fimc-is-sensor.h
-index 50b8e4d..6036d49 100644
---- a/drivers/media/platform/exynos4-is/fimc-is-sensor.h
-+++ b/drivers/media/platform/exynos4-is/fimc-is-sensor.h
-@@ -77,6 +77,12 @@ struct fimc_is_sensor {
- 	struct v4l2_mbus_framefmt format;
- };
- 
-+static inline
-+struct fimc_is_sensor *sd_to_fimc_is_sensor(struct v4l2_subdev *sd)
-+{
-+	return container_of(sd, struct fimc_is_sensor, subdev);
-+}
-+
- int fimc_is_register_sensor_driver(void);
- void fimc_is_unregister_sensor_driver(void);
- 
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
-index 3c81c88..c4049d4 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is.c
-@@ -220,7 +220,7 @@ static int fimc_is_register_subdevs(struct fimc_is *is)
- 			if (WARN_ON(is->sensor))
- 				continue;
- 
--			is->sensor = v4l2_get_subdevdata(sd);
-+			is->sensor = sd_to_fimc_is_sensor(sd);
- 
- 			if (fimc_is_parse_sensor_config(is->sensor, child)) {
- 				dev_warn(&is->pdev->dev, "DT parse error: %s\n",
--- 
-1.7.9.5
+> The proposed patch looks good to me.
+
+Good.
+
+>> Also, VB2 is already complex enough to put it there without proper
+>> comments (and there's a minor codingstyle issue there: line is bigger
+>> than 80 cols).
+>
+> A comment is definitely a good idea.
+>
+>>> diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+>>> b/drivers/media/v4l2-core/videobuf2-vmalloc.c index 313d977..bf3b95c
+>>> 100644
+>>> --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
+>>> +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
+>>> @@ -44,7 +44,7 @@ static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned
+>>> long size, gfp_t gfp_fl>
+>>>   		return NULL;
+>>>   	
+>>>   	buf->size = size;
+>>>
+>>> -	buf->vaddr = vmalloc_user(buf->size);
+>>> +	buf->vaddr = vmalloc_user(PAGE_ALIGN(buf->size));
+>>
+>> See? You needed to put an alignment here as well, not because vmalloc
+>> needs it, but because this is needed by VB2 core.
+>>
+>> Also, on the other drivers, buf->size is stored page aligned, while
+>> here, you're doing different, without any documented reason for doing
+>> that, instead of doing the same as on the other memops drivers.
+>>
+>> That mistake reflects, for example, when the driver prints the failure:
+>>
+>>          if (!buf->vaddr) {
+>>                  pr_debug("vmalloc of size %ld failed\n", buf->size);
+>>
+>> as it will show a different size than what you actually required.
+>> As those memory starving errors can also produce a dump at the mm
+>> core, the size there won't match the size on the above printed message.
+>>
+>> Also, it is a very bad idea to delegate the core's requirement of
+>> do page alignment from the core to the memops drivers, as other
+>> patches may change the logic there, or a new memops could be added,
+>> and the same problem will hit again (and unnoticed, as the check
+>> routine do page alignments).
+>
+> Agreed. The memory allocator shouldn't need to guess the core requirements.
+>
+>>>   	buf->handler.refcount = &buf->refcount;
+>>>   	buf->handler.put = vb2_vmalloc_put;
+>>>   	buf->handler.arg = buf;
+>>
+>> IMO, a cleaner version would be the following (untested) code.
+>>
+>> -
+>>
+>> [media] videobuf2: fix the length check for mmap
+>>
+>> Memory maps typically require that the buffer size to be page
+>> aligned. Currently, two memops drivers do such alignment
+>> internally, but videobuf-vmalloc doesn't.
+>>
+>> Also, the buffer overflow check doesn't take it into account.
+>>
+>> So, instead of doing it at each memops driver, enforce it at
+>> VB2 core.
+>>
+>> Reported-by: Prabhakar lad <prabhakar.csengg@gmail.com>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+>> b/drivers/media/v4l2-core/videobuf2-core.c index 58c1744..7d833ee 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-core.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+>> @@ -54,10 +54,15 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>>   	void *mem_priv;
+>>   	int plane;
+>>
+>> -	/* Allocate memory for all planes in this buffer */
+>> +	/*
+>> +	 * Allocate memory for all planes in this buffer
+>> +	 * NOTE: mmapped areas should be page aligned
+>> +	 */
+>>   	for (plane = 0; plane < vb->num_planes; ++plane) {
+>> +		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
+>> +
+>>   		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+>> -				      q->plane_sizes[plane], q->gfp_flags);
+>> +				      size, q->gfp_flags);
+>>   		if (IS_ERR_OR_NULL(mem_priv))
+>>   			goto free;
+>>
+>> @@ -1852,6 +1857,7 @@ int vb2_mmap(struct vb2_queue *q, struct
+>> vm_area_struct *vma) struct vb2_buffer *vb;
+>>   	unsigned int buffer, plane;
+>>   	int ret;
+>> +	unsigned long length;
+>>
+>>   	if (q->memory != V4L2_MEMORY_MMAP) {
+>>   		dprintk(1, "Queue is not currently set up for mmap\n");
+>> @@ -1886,8 +1892,15 @@ int vb2_mmap(struct vb2_queue *q, struct
+>> vm_area_struct *vma)
+>>
+>>   	vb = q->bufs[buffer];
+>>
+>> -	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
+>> -		dprintk(1, "Invalid length\n");
+>> +	/*
+>> +	 * MMAP requires page_aligned buffers.
+>> +	 * The buffer length was page_aligned at __vb2_buf_mem_alloc(),
+>> +	 * so, we need to do the same here.
+>> +	 */
+>> +	length = PAGE_ALIGN(vb->v4l2_planes[plane].length);
+>> +	if (length < (vma->vm_end - vma->vm_start)) {
+>> +		dprintk(1,
+>> +			"MMAP invalid, as it would overflow buffer length\n");
+>>   		return -EINVAL;
+>>   	}
+>>
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index ae35d25..fd56f25
+>> 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+>> @@ -162,9 +162,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long
+>> size, gfp_t gfp_flags) if (!buf)
+>>   		return ERR_PTR(-ENOMEM);
+>>
+>> -	/* align image size to PAGE_SIZE */
+>> -	size = PAGE_ALIGN(size);
+>> -
+>>   	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+>>   						GFP_KERNEL | gfp_flags);
+>>   	if (!buf->vaddr) {
+>> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index 59522b2..16ae3dc 100644
+>> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+>> @@ -55,7 +55,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
+>> long size, gfp_t gfp_fla buf->write = 0;
+>>   	buf->offset = 0;
+>>   	buf->sg_desc.size = size;
+>> -	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+>> +	/* size is already page aligned */
+>> +	buf->sg_desc.num_pages = size >> PAGE_SHIFT;
+>>
+>>   	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
+>>   				      sizeof(*buf->sg_desc.sglist));
 
