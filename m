@@ -1,138 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hm1479-1.locaweb.com.br ([201.76.49.71]:6456 "EHLO
-	hm1479-1.locaweb.com.br" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967494Ab3DRPnc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 11:43:32 -0400
-Received: from mcbain0006.email.locaweb.com.br (189.126.112.72) by hm1479-21.locaweb.com.br (PowerMTA(TM) v3.5r15) id he0aa80nvdcu for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 12:11:54 -0300 (envelope-from <marcio@netopen.com.br>)
-Received: from bart0017.correio.biz (bart0017.correio.biz [200.234.210.19])
-	by mcbain0006.email.locaweb.com.br (Postfix) with ESMTP id 48C7634006A
-	for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 12:11:54 -0300 (BRT)
-Received: from [192.168.1.3] (unknown [189.48.41.78])
-	(Authenticated sender: marcio@netopen.com.br)
-	by bart0017.correio.biz (Postfix) with ESMTPA id 39C43D8374
-	for <linux-media@vger.kernel.org>; Thu, 18 Apr 2013 12:11:51 -0300 (BRT)
-Date: Thu, 18 Apr 2013 12:11:48 -0200
-Subject: AT91SAM9M10: Problem porting driver for MT9P031 sensor
-From: Marcio Campos de Lima <marcio@netopen.com.br>
-To: <linux-media@vger.kernel.org>
-Message-ID: <CD959152.AF27%marcio@netopen.com.br>
-In-Reply-To: <CD957E83.AF12%marcio@netopen.com.br>
-Mime-version: 1.0
-Content-type: text/plain;
-	charset="US-ASCII"
-Content-transfer-encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:36774 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753070Ab3DVMNC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 08:13:02 -0400
+Message-ID: <51752949.8000901@redhat.com>
+Date: Mon, 22 Apr 2013 09:12:57 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv3 08/10] [media] tuner-core: store tuner ranges at
+ tuner struct
+References: <1366570839-662-1-git-send-email-mchehab@redhat.com> <1366570839-662-9-git-send-email-mchehab@redhat.com> <201304220922.18022.hverkuil@xs4all.nl>
+In-Reply-To: <201304220922.18022.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->Hi
+Em 22-04-2013 04:22, Hans Verkuil escreveu:
+> On Sun April 21 2013 21:00:37 Mauro Carvalho Chehab wrote:
+>> Instead of using global values for tuner ranges, store them
+>> internally. That fixes the need of using a different range
+>> for SDR radio, and will help to latter add a tuner ops to
+>> retrieve the tuner range for SDR mode.
+>>
+>> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>   drivers/media/v4l2-core/tuner-core.c | 59 ++++++++++++++++++++++--------------
+>>   1 file changed, 37 insertions(+), 22 deletions(-)
+>>
+>> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+>> index e54b5ae..abdcda4 100644
+>> --- a/drivers/media/v4l2-core/tuner-core.c
+>> +++ b/drivers/media/v4l2-core/tuner-core.c
+>> @@ -67,8 +67,8 @@ static char secam[] = "--";
+>>   static char ntsc[] = "-";
+>>
+>>   module_param_named(debug, tuner_debug, int, 0644);
+>> -module_param_array(tv_range, int, NULL, 0644);
+>> -module_param_array(radio_range, int, NULL, 0644);
+>> +module_param_array(tv_range, int, NULL, 0444);
+>> +module_param_array(radio_range, int, NULL, 0444);
 >
->I am porting the MT9P031 sensor device driver for a custom designed board
->based at the AT91SAM9M45-EK development board and Linux 3.6.9.
->The driver detects the sensor but does not create /dev/video1.
+> Shouldn't we add a sdr_range here as well?
+
+I don't think it is needed to have a modprobe parameter for that.
+If user wants to change the range, VIDIOC_S_TUNER can be used.
+
+Btw, I was tempted to even remove those ;)
+
 >
->Can anybody help me?
->Thanks
->Marcio
+>>   module_param_string(pal, pal, sizeof(pal), 0644);
+>>   module_param_string(secam, secam, sizeof(secam), 0644);
+>>   module_param_string(ntsc, ntsc, sizeof(ntsc), 0644);
+>> @@ -134,6 +134,8 @@ struct tuner {
+>>   	unsigned int        type; /* chip type id */
+>>   	void                *config;
+>>   	const char          *name;
+>> +
+>> +	u32                 radio_range[2], tv_range[2], sdr_range[2];
+>>   };
+>>
+>>   /*
+>> @@ -266,7 +268,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
+>>   	struct dvb_tuner_ops *fe_tuner_ops = &t->fe.ops.tuner_ops;
+>>   	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+>>   	unsigned char buffer[4];
+>> -	int tune_now = 1;
+>> +	int i, tune_now = 1;
+>>
+>>   	if (type == UNSET || type == TUNER_ABSENT) {
+>>   		tuner_dbg("tuner 0x%02x: Tuner type absent\n", c->addr);
+>> @@ -451,6 +453,13 @@ static void set_type(struct i2c_client *c, unsigned int type,
+>>   			set_tv_freq(c, t->tv_freq);
+>>   	}
+>>
+>> +	/* Initializes the tuner ranges from modprobe parameters */
+>> +	for (i = 0; i < 2; i++) {
+>> +		t->radio_range[i] = radio_range[i] * 16000;
+>> +		t->sdr_range[i] = tv_range[i] * 16000;
+>> +		t->tv_range[i] = tv_range[i] * 16;
+>> +	}
+>> +
+>>   	tuner_dbg("%s %s I2C addr 0x%02x with type %d used for 0x%02x\n",
+>>   		  c->adapter->name, c->driver->driver.name, c->addr << 1, type,
+>>   		  t->mode_mask);
+>> @@ -831,16 +840,16 @@ static void set_tv_freq(struct i2c_client *c, unsigned int freq)
+>>   		tuner_warn("Tuner has no way to set tv freq\n");
+>>   		return;
+>>   	}
+>> -	if (freq < tv_range[0] * 16 || freq > tv_range[1] * 16) {
+>> +	if (freq < t->tv_range[0] || freq > t->tv_range[1]) {
+>>   		tuner_dbg("TV freq (%d.%02d) out of range (%d-%d)\n",
+>> -			   freq / 16, freq % 16 * 100 / 16, tv_range[0],
+>> -			   tv_range[1]);
+>> +			   freq / 16, freq % 16 * 100 / 16, t->tv_range[0] / 16,
+>> +			   t->tv_range[1] / 16);
+>>   		/* V4L2 spec: if the freq is not possible then the closest
+>>   		   possible value should be selected */
+>> -		if (freq < tv_range[0] * 16)
+>> -			freq = tv_range[0] * 16;
+>> +		if (freq < t->tv_range[0])
+>> +			freq = t->tv_range[0];
+>>   		else
+>> -			freq = tv_range[1] * 16;
+>> +			freq = t->tv_range[1];
+>>   	}
+>>   	params.frequency = freq;
+>>   	tuner_dbg("tv freq set to %d.%02d\n",
+>> @@ -957,7 +966,7 @@ static void set_radio_freq(struct i2c_client *c, unsigned int freq)
+>>   {
+>>   	struct tuner *t = to_tuner(i2c_get_clientdata(c));
+>>   	struct analog_demod_ops *analog_ops = &t->fe.ops.analog_ops;
+>> -
+>> +	u32 *range;
+>>   	struct analog_parameters params = {
+>>   		.mode      = t->mode,
+>>   		.audmode   = t->audmode,
+>> @@ -972,16 +981,22 @@ static void set_radio_freq(struct i2c_client *c, unsigned int freq)
+>>   		tuner_warn("tuner has no way to set radio frequency\n");
+>>   		return;
+>>   	}
+>> -	if (freq < radio_range[0] * 16000 || freq > radio_range[1] * 16000) {
+>> +
+>> +	if (V4L2_TUNER_IS_SDR(t->mode))
+>> +		range = t->sdr_range;
+>> +	else
+>> +		range = t->radio_range;
+>> +
+>> +	if (freq < range[0] || freq > range[1]) {
+>>   		tuner_dbg("radio freq (%d.%02d) out of range (%d-%d)\n",
+>>   			   freq / 16000, freq % 16000 * 100 / 16000,
+>> -			   radio_range[0], radio_range[1]);
+>> +			   range[0] / 16000, range[1] / 16000);
+>>   		/* V4L2 spec: if the freq is not possible then the closest
+>>   		   possible value should be selected */
+>> -		if (freq < radio_range[0] * 16000)
+>> -			freq = radio_range[0] * 16000;
+>> +		if (freq < range[0])
+>> +			freq = range[0];
+>>   		else
+>> -			freq = radio_range[1] * 16000;
+>> +			freq = range[1];
+>>   	}
+>>   	params.frequency = freq;
+>>   	tuner_dbg("radio freq set to %d.%02d\n",
+>> @@ -1184,8 +1199,8 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>>   	}
+>>   	if (!V4L2_TUNER_IS_RADIO(vt->type)) {
+>>   		vt->capability |= V4L2_TUNER_CAP_NORM;
+>> -		vt->rangelow = tv_range[0] * 16;
+>> -		vt->rangehigh = tv_range[1] * 16;
+>> +		vt->rangelow = t->tv_range[0];
+>> +		vt->rangehigh = t->tv_range[1];
+>>   		return 0;
+>>   	}
+>>
+>> @@ -1193,11 +1208,11 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>>   	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
+>>
+>>   	if (V4L2_TUNER_IS_SDR(vt->type)) {
+>> -		vt->rangelow  = tv_range[0] * 16000;
+>> -		vt->rangehigh = tv_range[1] * 16000;
+>> -	else {
+>> -		vt->rangelow = radio_range[0] * 16000;
+>> -		vt->rangehigh = radio_range[1] * 16000;
+>> +		vt->rangelow  = t->sdr_range[0];
+>> +		vt->rangehigh = t->sdr_range[1];
+>
+> Ah, OK. So using tv_range was just a temporary measure.
 
-This is the probe code fo the driver if this can help:
+Yes. Now that a tuner callback was added, tuner-core can just use
+whatever is there. For tuners that don't implement the callback, it
+will still use the TV range, with is the broader known range for all
+existing tuners.
 
-/* 
----------------------------------------------------------------------------
---
- * Driver initialization and probing
- */
+As my plan is to allow the cx88 driver to be used as SDR, in thesis,
+all existing tuners could be used on SDR mode[1], and all of them supports
+the TV range, as, at least currently, all SDR devices we're working with
+are TV devices.
 
-static int mt9p031_probe(struct i2c_client *client,
-			 const struct i2c_device_id *did)
-{
-	struct mt9p031_platform_data *pdata = client->dev.platform_data;
-	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
-	struct mt9p031 *mt9p031;
-	unsigned int i;
-	int ret;
+There are actually some fixes that may be needed here in the future.
+As you know, TV tuners can actually have 2 separate ranges (VHF and UHF).
+Most devices support a continuous range from VHF min to UHF max freq, but
+there are some with a gap between VHF and UHF.
 
-	if (pdata == NULL) {
-		dev_err(&client->dev, "No platform data\n");
-		return -EINVAL;
-	}
+Also, some tuners supports a much wider range, but sometimes with
+gaps in the middle.
 
-	if (!i2c_check_functionality(adapter, I2C_FUNC_SMBUS_WORD_DATA)) {
-		dev_warn(&client->dev,
-			"I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
-		return -EIO;
-	}
+So, I expect that SDR tuners will need to support multiple tuner
+ranges.
 
-	mt9p031 = kzalloc(sizeof(*mt9p031), GFP_KERNEL);
-	if (mt9p031 == NULL)
-		return -ENOMEM;
+Regards,
+Mauro
 
-	mt9p031->pdata = pdata;
-	mt9p031->output_control	= MT9P031_OUTPUT_CONTROL_DEF;
-	mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
-
-	v4l2_ctrl_handler_init(&mt9p031->ctrls, ARRAY_SIZE(mt9p031_ctrls) + 4);
-
-	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
-			  V4L2_CID_EXPOSURE, MT9P031_SHUTTER_WIDTH_MIN,
-			  MT9P031_SHUTTER_WIDTH_MAX, 1,
-			  MT9P031_SHUTTER_WIDTH_DEF);
-	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
-			  V4L2_CID_GAIN, MT9P031_GLOBAL_GAIN_MIN,
-			  MT9P031_GLOBAL_GAIN_MAX, 1, MT9P031_GLOBAL_GAIN_DEF);
-	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
-			  V4L2_CID_HFLIP, 0, 1, 1, 0);
-	v4l2_ctrl_new_std(&mt9p031->ctrls, &mt9p031_ctrl_ops,
-			  V4L2_CID_VFLIP, 0, 1, 1, 0);
-
-	for (i = 0; i < ARRAY_SIZE(mt9p031_ctrls); ++i)
-		v4l2_ctrl_new_custom(&mt9p031->ctrls, &mt9p031_ctrls[i], NULL);
-
-	mt9p031->subdev.ctrl_handler = &mt9p031->ctrls;
-
-	if (mt9p031->ctrls.error)
-		printk(KERN_INFO "%s: control initialization error %d\n",
-		       __func__, mt9p031->ctrls.error);
-
-	mutex_init(&mt9p031->power_lock);
-	v4l2_i2c_subdev_init(&mt9p031->subdev, client, &mt9p031_subdev_ops);
-	mt9p031->subdev.internal_ops = &mt9p031_subdev_internal_ops;
-
-	mt9p031->pad.flags = MEDIA_PAD_FL_SOURCE;
-	ret = media_entity_init(&mt9p031->subdev.entity, 1, &mt9p031->pad, 0);
-	if (ret < 0)
-		goto done;
-
-	mt9p031->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-
-	mt9p031->crop.width = MT9P031_WINDOW_WIDTH_DEF;
-	mt9p031->crop.height = MT9P031_WINDOW_HEIGHT_DEF;
-	mt9p031->crop.left = MT9P031_COLUMN_START_DEF;
-	mt9p031->crop.top = MT9P031_ROW_START_DEF;
-
-	if (mt9p031->pdata->version == MT9P031_MONOCHROME_VERSION)
-		mt9p031->format.code = V4L2_MBUS_FMT_Y12_1X12;
-	else
-		mt9p031->format.code = V4L2_MBUS_FMT_SGRBG12_1X12;
-
-	mt9p031->format.width = MT9P031_WINDOW_WIDTH_DEF;
-	mt9p031->format.height = MT9P031_WINDOW_HEIGHT_DEF;
-	mt9p031->format.field = V4L2_FIELD_NONE;
-	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
-	isi_set_clk();
-	mt9p031->pdata->ext_freq=21000000;
-	mt9p031->pdata->target_freq=48000000;
-	ret = mt9p031_pll_get_divs(mt9p031);
-
-done:
-	if (ret < 0) {
-		v4l2_ctrl_handler_free(&mt9p031->ctrls);
-		media_entity_cleanup(&mt9p031->subdev.entity);
-		kfree(mt9p031);
-	}
-
-	return ret;
-}
-
-
-
+[1] Some experiments are required, though. Devices with tda9887 (and
+similar) could be filtering out the audio sub-carrier.
