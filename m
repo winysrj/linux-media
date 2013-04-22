@@ -1,103 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:58161 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936479Ab3DRVf7 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57165 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753870Ab3DVM5q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 17:35:59 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 14/24] mx3-camera: clean up the use of platform data, add driver owner
-Date: Thu, 18 Apr 2013 23:35:35 +0200
-Message-Id: <1366320945-21591-15-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 22 Apr 2013 08:57:46 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Prabhakar lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>
+Subject: Re: [PATCH RFC] media: videobuf2: fix the length check for mmap
+Date: Mon, 22 Apr 2013 14:57:54 +0200
+Message-ID: <2366802.YUrXa9z2HG@avalon>
+In-Reply-To: <20130419081801.0af7ad73@redhat.com>
+References: <1366364816-3567-1-git-send-email-prabhakar.csengg@gmail.com> <20130419081801.0af7ad73@redhat.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During probe verify availability of platform data before dereferencing it,
-then use the stored pointer instead of re-calculating it. Also add an
-.owner field to the driver object for proper module locking.
+Hi Mauro,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/mx3_camera.c |   23 ++++++++++++-----------
- 1 files changed, 12 insertions(+), 11 deletions(-)
+On Friday 19 April 2013 08:18:01 Mauro Carvalho Chehab wrote:
 
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 1047e3e..94203f6 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -1144,6 +1144,7 @@ static struct soc_camera_host_ops mx3_soc_camera_host_ops = {
- 
- static int mx3_camera_probe(struct platform_device *pdev)
- {
-+	struct mx3_camera_pdata	*pdata = pdev->dev.platform_data;
- 	struct mx3_camera_dev *mx3_cam;
- 	struct resource *res;
- 	void __iomem *base;
-@@ -1151,16 +1152,16 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	struct soc_camera_host *soc_host;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		err = -ENODEV;
--		goto egetres;
--	}
-+	if (!res)
-+		return -ENODEV;
-+
-+	if (!pdata)
-+		return -EINVAL;
- 
- 	mx3_cam = vzalloc(sizeof(*mx3_cam));
- 	if (!mx3_cam) {
- 		dev_err(&pdev->dev, "Could not allocate mx3 camera object\n");
--		err = -ENOMEM;
--		goto ealloc;
-+		return -ENOMEM;
- 	}
- 
- 	mx3_cam->clk = clk_get(&pdev->dev, NULL);
-@@ -1169,8 +1170,8 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 		goto eclkget;
- 	}
- 
--	mx3_cam->pdata = pdev->dev.platform_data;
--	mx3_cam->platform_flags = mx3_cam->pdata->flags;
-+	mx3_cam->pdata = pdata;
-+	mx3_cam->platform_flags = pdata->flags;
- 	if (!(mx3_cam->platform_flags & MX3_CAMERA_DATAWIDTH_MASK)) {
- 		/*
- 		 * Platform hasn't set available data widths. This is bad.
-@@ -1189,7 +1190,7 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	if (mx3_cam->platform_flags & MX3_CAMERA_DATAWIDTH_15)
- 		mx3_cam->width_flags |= 1 << 14;
- 
--	mx3_cam->mclk = mx3_cam->pdata->mclk_10khz * 10000;
-+	mx3_cam->mclk = pdata->mclk_10khz * 10000;
- 	if (!mx3_cam->mclk) {
- 		dev_warn(&pdev->dev,
- 			 "mclk_10khz == 0! Please, fix your platform data. "
-@@ -1240,8 +1241,7 @@ eioremap:
- 	clk_put(mx3_cam->clk);
- eclkget:
- 	vfree(mx3_cam);
--ealloc:
--egetres:
-+
- 	return err;
- }
- 
-@@ -1276,6 +1276,7 @@ static int mx3_camera_remove(struct platform_device *pdev)
- static struct platform_driver mx3_camera_driver = {
- 	.driver		= {
- 		.name	= MX3_CAM_DRV_NAME,
-+		.owner	= THIS_MODULE,
- 	},
- 	.probe		= mx3_camera_probe,
- 	.remove		= mx3_camera_remove,
+[snip]
+
+> [media] videobuf2: fix the length check for mmap
+> 
+> Memory maps typically require that the buffer size to be page
+
+s/that the/the/
+
+> aligned. Currently, two memops drivers do such alignment
+> internally, but videobuf-vmalloc doesn't.
+> 
+> Also, the buffer overflow check doesn't take it into account.
+> 
+> So, instead of doing it at each memops driver, enforce it at
+> VB2 core.
+> 
+> Reported-by: Prabhakar lad <prabhakar.csengg@gmail.com>
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
+> b/drivers/media/v4l2-core/videobuf2-core.c index 58c1744..7d833ee 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -54,10 +54,15 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
+>  	void *mem_priv;
+>  	int plane;
+> 
+> -	/* Allocate memory for all planes in this buffer */
+> +	/*
+> +	 * Allocate memory for all planes in this buffer
+> +	 * NOTE: mmapped areas should be page aligned
+> +	 */
+>  	for (plane = 0; plane < vb->num_planes; ++plane) {
+> +		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
+> +
+>  		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
+> -				      q->plane_sizes[plane], q->gfp_flags);
+> +				      size, q->gfp_flags);
+>  		if (IS_ERR_OR_NULL(mem_priv))
+>  			goto free;
+> 
+> @@ -1852,6 +1857,7 @@ int vb2_mmap(struct vb2_queue *q, struct
+> vm_area_struct *vma) struct vb2_buffer *vb;
+>  	unsigned int buffer, plane;
+>  	int ret;
+> +	unsigned long length;
+> 
+>  	if (q->memory != V4L2_MEMORY_MMAP) {
+>  		dprintk(1, "Queue is not currently set up for mmap\n");
+> @@ -1886,8 +1892,15 @@ int vb2_mmap(struct vb2_queue *q, struct
+> vm_area_struct *vma)
+> 
+>  	vb = q->bufs[buffer];
+> 
+> -	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
+> -		dprintk(1, "Invalid length\n");
+> +	/*
+> +	 * MMAP requires page_aligned buffers.
+> +	 * The buffer length was page_aligned at __vb2_buf_mem_alloc(),
+> +	 * so, we need to do the same here.
+> +	 */
+> +	length = PAGE_ALIGN(vb->v4l2_planes[plane].length);
+> +	if (length < (vma->vm_end - vma->vm_start)) {
+> +		dprintk(1,
+> +			"MMAP invalid, as it would overflow buffer length\n");
+>  		return -EINVAL;
+>  	}
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index ae35d25..fd56f25
+> 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
+> @@ -162,9 +162,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long
+> size, gfp_t gfp_flags) if (!buf)
+>  		return ERR_PTR(-ENOMEM);
+> 
+> -	/* align image size to PAGE_SIZE */
+> -	size = PAGE_ALIGN(size);
+> -
+>  	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
+>  						GFP_KERNEL | gfp_flags);
+>  	if (!buf->vaddr) {
+> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index 59522b2..16ae3dc 100644
+> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> @@ -55,7 +55,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
+> long size, gfp_t gfp_fla buf->write = 0;
+>  	buf->offset = 0;
+>  	buf->sg_desc.size = size;
+> -	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
+> +	/* size is already page aligned */
+> +	buf->sg_desc.num_pages = size >> PAGE_SHIFT;
+> 
+>  	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
+>  				      sizeof(*buf->sg_desc.sglist));
+
 -- 
-1.7.2.5
+Regards,
+
+Laurent Pinchart
 
