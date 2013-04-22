@@ -1,272 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:47733 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966162Ab3DQMty (ORCPT
+Received: from opensource.wolfsonmicro.com ([80.75.67.52]:34170 "EHLO
+	opensource.wolfsonmicro.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751498Ab3DVKDY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 08:49:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH 1/2] [media] videobuf-dma-contig: remove support for cached mem
-Date: Wed, 17 Apr 2013 14:49:47 +0200
-Cc: Clemens Ladisch <clemens@ladisch.de>,
-	Arnd Bergmann <arnd@arndb.de>, Takashi Iwai <tiwai@suse.de>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <20130417074300.33d05475@redhat.com> <1366201336-9481-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366201336-9481-1-git-send-email-mchehab@redhat.com>
+	Mon, 22 Apr 2013 06:03:24 -0400
+Date: Mon, 22 Apr 2013 11:03:20 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
+Subject: Re: [GIT PULL FOR v3.10] Camera sensors patches
+Message-ID: <20130422100320.GC30351@opensource.wolfsonmicro.com>
+References: <3775187.HOcoQVPfEE@avalon>
+ <20130417135503.GL13687@opensource.wolfsonmicro.com>
+ <20130417113639.1c98f574@redhat.com>
+ <1905734.rpqfOCmvCu@avalon>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304171449.47850.hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="yVhtmJPUSI46BTXb"
+Content-Disposition: inline
+In-Reply-To: <1905734.rpqfOCmvCu@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 17 April 2013 14:22:15 Mauro Carvalho Chehab wrote:
-> videobuf_queue_dma_contig_init_cached() is not used anywhere.
-> Drop support for it, cleaning up the code a little bit.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-Nice!
+--yVhtmJPUSI46BTXb
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, Apr 22, 2013 at 01:14:07AM +0200, Laurent Pinchart wrote:
 
-> ---
->  drivers/media/v4l2-core/videobuf-dma-contig.c | 130 +++-----------------------
->  include/media/videobuf-dma-contig.h           |  10 --
->  2 files changed, 14 insertions(+), 126 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
-> index 3a43ba0..67f572c 100644
-> --- a/drivers/media/v4l2-core/videobuf-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
-> @@ -27,7 +27,6 @@ struct videobuf_dma_contig_memory {
->  	u32 magic;
->  	void *vaddr;
->  	dma_addr_t dma_handle;
-> -	bool cached;
->  	unsigned long size;
->  };
->  
-> @@ -43,26 +42,8 @@ static int __videobuf_dc_alloc(struct device *dev,
->  			       unsigned long size, gfp_t flags)
->  {
->  	mem->size = size;
-> -	if (mem->cached) {
-> -		mem->vaddr = alloc_pages_exact(mem->size, flags | GFP_DMA);
-> -		if (mem->vaddr) {
-> -			int err;
-> -
-> -			mem->dma_handle = dma_map_single(dev, mem->vaddr,
-> -							 mem->size,
-> -							 DMA_FROM_DEVICE);
-> -			err = dma_mapping_error(dev, mem->dma_handle);
-> -			if (err) {
-> -				dev_err(dev, "dma_map_single failed\n");
-> -
-> -				free_pages_exact(mem->vaddr, mem->size);
-> -				mem->vaddr = NULL;
-> -				return err;
-> -			}
-> -		}
-> -	} else
-> -		mem->vaddr = dma_alloc_coherent(dev, mem->size,
-> -						&mem->dma_handle, flags);
-> +	mem->vaddr = dma_alloc_coherent(dev, mem->size,
-> +					&mem->dma_handle, flags);
->  
->  	if (!mem->vaddr) {
->  		dev_err(dev, "memory alloc size %ld failed\n", mem->size);
-> @@ -77,14 +58,7 @@ static int __videobuf_dc_alloc(struct device *dev,
->  static void __videobuf_dc_free(struct device *dev,
->  			       struct videobuf_dma_contig_memory *mem)
->  {
-> -	if (mem->cached) {
-> -		if (!mem->vaddr)
-> -			return;
-> -		dma_unmap_single(dev, mem->dma_handle, mem->size,
-> -				 DMA_FROM_DEVICE);
-> -		free_pages_exact(mem->vaddr, mem->size);
-> -	} else
-> -		dma_free_coherent(dev, mem->size, mem->vaddr, mem->dma_handle);
-> +	dma_free_coherent(dev, mem->size, mem->vaddr, mem->dma_handle);
->  
->  	mem->vaddr = NULL;
->  }
-> @@ -234,7 +208,7 @@ out_up:
->  	return ret;
->  }
->  
-> -static struct videobuf_buffer *__videobuf_alloc_vb(size_t size, bool cached)
-> +static struct videobuf_buffer *__videobuf_alloc(size_t size)
->  {
->  	struct videobuf_dma_contig_memory *mem;
->  	struct videobuf_buffer *vb;
-> @@ -244,22 +218,11 @@ static struct videobuf_buffer *__videobuf_alloc_vb(size_t size, bool cached)
->  		vb->priv = ((char *)vb) + size;
->  		mem = vb->priv;
->  		mem->magic = MAGIC_DC_MEM;
-> -		mem->cached = cached;
->  	}
->  
->  	return vb;
->  }
->  
-> -static struct videobuf_buffer *__videobuf_alloc_uncached(size_t size)
-> -{
-> -	return __videobuf_alloc_vb(size, false);
-> -}
-> -
-> -static struct videobuf_buffer *__videobuf_alloc_cached(size_t size)
-> -{
-> -	return __videobuf_alloc_vb(size, true);
-> -}
-> -
->  static void *__videobuf_to_vaddr(struct videobuf_buffer *buf)
->  {
->  	struct videobuf_dma_contig_memory *mem = buf->priv;
-> @@ -310,19 +273,6 @@ static int __videobuf_iolock(struct videobuf_queue *q,
->  	return 0;
->  }
->  
-> -static int __videobuf_sync(struct videobuf_queue *q,
-> -			   struct videobuf_buffer *buf)
-> -{
-> -	struct videobuf_dma_contig_memory *mem = buf->priv;
-> -	BUG_ON(!mem);
-> -	MAGIC_CHECK(mem->magic, MAGIC_DC_MEM);
-> -
-> -	dma_sync_single_for_cpu(q->dev, mem->dma_handle, mem->size,
-> -				DMA_FROM_DEVICE);
-> -
-> -	return 0;
-> -}
-> -
->  static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->  				  struct videobuf_buffer *buf,
->  				  struct vm_area_struct *vma)
-> @@ -331,8 +281,6 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->  	struct videobuf_mapping *map;
->  	int retval;
->  	unsigned long size;
-> -	unsigned long pos, start = vma->vm_start;
-> -	struct page *page;
->  
->  	dev_dbg(q->dev, "%s\n", __func__);
->  
-> @@ -359,43 +307,16 @@ static int __videobuf_mmap_mapper(struct videobuf_queue *q,
->  	size = vma->vm_end - vma->vm_start;
->  	size = (size < mem->size) ? size : mem->size;
->  
-> -	if (!mem->cached) {
-> -		vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-> -		retval = remap_pfn_range(vma, vma->vm_start,
-> -			 mem->dma_handle >> PAGE_SHIFT,
-> +	vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-> +	retval = remap_pfn_range(vma, vma->vm_start,
-> +				 mem->dma_handle >> PAGE_SHIFT,
->  				 size, vma->vm_page_prot);
-> -		if (retval) {
-> -			dev_err(q->dev, "mmap: remap failed with error %d. ",
-> -								retval);
-> -			dma_free_coherent(q->dev, mem->size,
-> -					mem->vaddr, mem->dma_handle);
-> -			goto error;
-> -		}
-> -	} else {
-> -		pos = (unsigned long)mem->vaddr;
-> -
-> -		while (size > 0) {
-> -			page = virt_to_page((void *)pos);
-> -			if (NULL == page) {
-> -				dev_err(q->dev, "mmap: virt_to_page failed\n");
-> -				__videobuf_dc_free(q->dev, mem);
-> -				goto error;
-> -			}
-> -			retval = vm_insert_page(vma, start, page);
-> -			if (retval) {
-> -				dev_err(q->dev, "mmap: insert failed with error %d\n",
-> -					retval);
-> -				__videobuf_dc_free(q->dev, mem);
-> -				goto error;
-> -			}
-> -			start += PAGE_SIZE;
-> -			pos += PAGE_SIZE;
-> -
-> -			if (size > PAGE_SIZE)
-> -				size -= PAGE_SIZE;
-> -			else
-> -				size = 0;
-> -		}
-> +	if (retval) {
-> +		dev_err(q->dev, "mmap: remap failed with error %d. ",
-> +			retval);
-> +		dma_free_coherent(q->dev, mem->size,
-> +				  mem->vaddr, mem->dma_handle);
-> +		goto error;
->  	}
->  
->  	vma->vm_ops = &videobuf_vm_ops;
-> @@ -417,17 +338,8 @@ error:
->  
->  static struct videobuf_qtype_ops qops = {
->  	.magic		= MAGIC_QTYPE_OPS,
-> -	.alloc_vb	= __videobuf_alloc_uncached,
-> -	.iolock		= __videobuf_iolock,
-> -	.mmap_mapper	= __videobuf_mmap_mapper,
-> -	.vaddr		= __videobuf_to_vaddr,
-> -};
-> -
-> -static struct videobuf_qtype_ops qops_cached = {
-> -	.magic		= MAGIC_QTYPE_OPS,
-> -	.alloc_vb	= __videobuf_alloc_cached,
-> +	.alloc_vb	= __videobuf_alloc,
->  	.iolock		= __videobuf_iolock,
-> -	.sync		= __videobuf_sync,
->  	.mmap_mapper	= __videobuf_mmap_mapper,
->  	.vaddr		= __videobuf_to_vaddr,
->  };
-> @@ -447,20 +359,6 @@ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
->  }
->  EXPORT_SYMBOL_GPL(videobuf_queue_dma_contig_init);
->  
-> -void videobuf_queue_dma_contig_init_cached(struct videobuf_queue *q,
-> -					   const struct videobuf_queue_ops *ops,
-> -					   struct device *dev,
-> -					   spinlock_t *irqlock,
-> -					   enum v4l2_buf_type type,
-> -					   enum v4l2_field field,
-> -					   unsigned int msize,
-> -					   void *priv, struct mutex *ext_lock)
-> -{
-> -	videobuf_queue_core_init(q, ops, dev, irqlock, type, field, msize,
-> -				 priv, &qops_cached, ext_lock);
-> -}
-> -EXPORT_SYMBOL_GPL(videobuf_queue_dma_contig_init_cached);
-> -
->  dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf)
->  {
->  	struct videobuf_dma_contig_memory *mem = buf->priv;
-> diff --git a/include/media/videobuf-dma-contig.h b/include/media/videobuf-dma-contig.h
-> index f473aeb..f0ed825 100644
-> --- a/include/media/videobuf-dma-contig.h
-> +++ b/include/media/videobuf-dma-contig.h
-> @@ -26,16 +26,6 @@ void videobuf_queue_dma_contig_init(struct videobuf_queue *q,
->  				    void *priv,
->  				    struct mutex *ext_lock);
->  
-> -void videobuf_queue_dma_contig_init_cached(struct videobuf_queue *q,
-> -					   const struct videobuf_queue_ops *ops,
-> -					   struct device *dev,
-> -					   spinlock_t *irqlock,
-> -					   enum v4l2_buf_type type,
-> -					   enum v4l2_field field,
-> -					   unsigned int msize,
-> -					   void *priv,
-> -					   struct mutex *ext_lock);
-> -
->  dma_addr_t videobuf_to_dma_contig(struct videobuf_buffer *buf);
->  void videobuf_dma_contig_free(struct videobuf_queue *q,
->  			      struct videobuf_buffer *buf);
-> 
+> I think that Mark's point was that the regulators should be provided by=
+=20
+> platform code (in the generic sense, it could be DT on ARM, board code, o=
+r a=20
+> USB bridge driver for a webcam that uses the mt9p031 sensor) and used by =
+the=20
+> sensor driver. That's exactly what my mt9p031 patch does.
+
+Yes, you understood me perfectly - to a good approximation the matching
+up should be done by whatever the chip is soldered down to.
+
+--yVhtmJPUSI46BTXb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRdQrTAAoJELSic+t+oim9UFQP/1gXeX/8D4K9s+K6b6/BAGK6
+oq4y28M5kF3q93Mm9idy+TnQXJfAOArlb3pBbnwzzLhezOmC4RLPRAfwRTfOYk1l
+CyZBg6mY4kOFernhQOTBYwMZKAEQ266g0+f1U4tRKGoyQy4chq+dRekNuecf3chr
+m5VGMJ/0he3V/4zzLgDO/94p55O6zZ12PWfNA+J+DdXhbs4NJox3CLZf7RaT2DaS
+Jl+bp6InE0OXGjcVc8zZaklNdZQOESIn2TBdQSB0E7SdaTXOidhQC0r2Cs7Q31qV
+8LG+6l1gGb+oIQz3Zy/t7rEO/lKVks+RAwo9xWr6k8yzxGQO29wZ7K7pRC2TAEB/
+xLAKFK+Thr4i/OUs8t5W8ZpPrcupjU5uxNppT/CwIWaknttI2z3QOmtOxparY6KT
+05AHEh5ErA/PitNaLCjcyfWoC+HYPUQZyX3Mq9o2uXrrYHGjbHQ+/iiHJlbzMa/E
+X/W8SFG8AXumd9VplYLR/2AGiCJD0ecFpjTP9zIyCu+MYwEaXFr1fo9YONptumSf
+okUHCKE3hb1u2buw9j8f9arHwQHaPjTbqRIc5CWwDgx0URvq8uyo7GCJICLSSDdB
++QJ1ha6k6INELgeCx8noN4zF15CfcC/94WIBQQncyZrcdIhpwk9aMAjcWR4aanyH
+aUMYuNdWXkR2I5FClymY
+=s1jO
+-----END PGP SIGNATURE-----
+
+--yVhtmJPUSI46BTXb--
