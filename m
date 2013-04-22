@@ -1,304 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:59879 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964852Ab3DHPFt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 11:05:49 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:37377 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751519Ab3DVKlw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 06:41:52 -0400
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1304221235230.23906@axis700.grange>
+References: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1366625848-743-2-git-send-email-prabhakar.csengg@gmail.com> <Pine.LNX.4.64.1304221235230.23906@axis700.grange>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 22 Apr 2013 16:11:30 +0530
+Message-ID: <CA+V-a8sc08V-ZuEcDSgDW_8TkyGOgf3JV0PyD=qDGh5hon+JMQ@mail.gmail.com>
+Subject: Re: [PATCH RFC v2 1/4] media: i2c: adv7343: add support for
+ asynchronous probing
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v8 1/7] media: V4L2: add temporary clock helpers
-Date: Mon,  8 Apr 2013 17:05:32 +0200
-Message-Id: <1365433538-15975-2-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1365433538-15975-1-git-send-email-g.liakhovetski@gmx.de>
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Typical video devices like camera sensors require an external clock source.
-Many such devices cannot even access their hardware registers without a
-running clock. These clock sources should be controlled by their consumers.
-This should be performed, using the generic clock framework. Unfortunately
-so far only very few systems have been ported to that framework. This patch
-adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
-Platforms, adopting the clock API, should switch to using it. Eventually
-this temporary API should be removed.
+Hi Guennadi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+Thanks for the quick review.
 
-v8: Updated both (C) dates
+On Mon, Apr 22, 2013 at 4:08 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Hi Prabhakar
+>
+> On Mon, 22 Apr 2013, Prabhakar Lad wrote:
+>
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> Both synchronous and asynchronous adv7343 subdevice probing is supported by
+>> this patch.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>  drivers/media/i2c/adv7343.c |   17 +++++++++++++----
+>>  1 files changed, 13 insertions(+), 4 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+>> index 9fc2b98..5b1417b 100644
+>> --- a/drivers/media/i2c/adv7343.c
+>> +++ b/drivers/media/i2c/adv7343.c
+>> @@ -27,6 +27,7 @@
+>>  #include <linux/uaccess.h>
+>>
+>>  #include <media/adv7343.h>
+>> +#include <media/v4l2-async.h>
+>>  #include <media/v4l2-device.h>
+>>  #include <media/v4l2-chip-ident.h>
+>>  #include <media/v4l2-ctrls.h>
+>> @@ -44,6 +45,7 @@ struct adv7343_state {
+>>       struct v4l2_subdev sd;
+>>       struct v4l2_ctrl_handler hdl;
+>>       const struct adv7343_platform_data *pdata;
+>> +     struct v4l2_async_subdev_list   asdl;
+>
+> Do you still need this? Don't think it's needed any more with the latest
+> V4L2-async version.
+>
+Yes not required missed to remove :)
 
- drivers/media/v4l2-core/Makefile   |    2 +-
- drivers/media/v4l2-core/v4l2-clk.c |  177 ++++++++++++++++++++++++++++++++++++
- include/media/v4l2-clk.h           |   54 +++++++++++
- 3 files changed, 232 insertions(+), 1 deletions(-)
- create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
- create mode 100644 include/media/v4l2-clk.h
+Regards,
+--Prabhakar
 
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index aa50c46..628c630 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -5,7 +5,7 @@
- tuner-objs	:=	tuner-core.o
- 
- videodev-objs	:=	v4l2-dev.o v4l2-ioctl.o v4l2-device.o v4l2-fh.o \
--			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o
-+			v4l2-event.o v4l2-ctrls.o v4l2-subdev.o v4l2-clk.o
- ifeq ($(CONFIG_COMPAT),y)
-   videodev-objs += v4l2-compat-ioctl32.o
- endif
-diff --git a/drivers/media/v4l2-core/v4l2-clk.c b/drivers/media/v4l2-core/v4l2-clk.c
-new file mode 100644
-index 0000000..d7cc13e
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-clk.c
-@@ -0,0 +1,177 @@
-+/*
-+ * V4L2 clock service
-+ *
-+ * Copyright (C) 2012-2013, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/atomic.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/slab.h>
-+#include <linux/string.h>
-+
-+#include <media/v4l2-clk.h>
-+#include <media/v4l2-subdev.h>
-+
-+static DEFINE_MUTEX(clk_lock);
-+static LIST_HEAD(clk_list);
-+
-+static struct v4l2_clk *v4l2_clk_find(const char *dev_id, const char *id)
-+{
-+	struct v4l2_clk *clk;
-+
-+	list_for_each_entry(clk, &clk_list, list) {
-+		if (strcmp(dev_id, clk->dev_id))
-+			continue;
-+
-+		if (!id || !clk->id || !strcmp(clk->id, id))
-+			return clk;
-+	}
-+
-+	return ERR_PTR(-ENODEV);
-+}
-+
-+struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id)
-+{
-+	struct v4l2_clk *clk;
-+
-+	mutex_lock(&clk_lock);
-+	clk = v4l2_clk_find(dev_name(dev), id);
-+
-+	if (!IS_ERR(clk) && !try_module_get(clk->ops->owner))
-+		clk = ERR_PTR(-ENODEV);
-+	mutex_unlock(&clk_lock);
-+
-+	if (!IS_ERR(clk))
-+		atomic_inc(&clk->use_count);
-+
-+	return clk;
-+}
-+EXPORT_SYMBOL(v4l2_clk_get);
-+
-+void v4l2_clk_put(struct v4l2_clk *clk)
-+{
-+	if (!IS_ERR(clk)) {
-+		atomic_dec(&clk->use_count);
-+		module_put(clk->ops->owner);
-+	}
-+}
-+EXPORT_SYMBOL(v4l2_clk_put);
-+
-+int v4l2_clk_enable(struct v4l2_clk *clk)
-+{
-+	int ret;
-+	mutex_lock(&clk->lock);
-+	if (++clk->enable == 1 && clk->ops->enable) {
-+		ret = clk->ops->enable(clk);
-+		if (ret < 0)
-+			clk->enable--;
-+	} else {
-+		ret = 0;
-+	}
-+	mutex_unlock(&clk->lock);
-+	return ret;
-+}
-+EXPORT_SYMBOL(v4l2_clk_enable);
-+
-+void v4l2_clk_disable(struct v4l2_clk *clk)
-+{
-+	int enable;
-+
-+	mutex_lock(&clk->lock);
-+	enable = --clk->enable;
-+	if (WARN(enable < 0, "Unbalanced %s() on %s:%s!\n", __func__,
-+		 clk->dev_id, clk->id))
-+		clk->enable++;
-+	else if (!enable && clk->ops->disable)
-+		clk->ops->disable(clk);
-+	mutex_unlock(&clk->lock);
-+}
-+EXPORT_SYMBOL(v4l2_clk_disable);
-+
-+unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
-+{
-+	if (!clk->ops->get_rate)
-+		return -ENOSYS;
-+
-+	return clk->ops->get_rate(clk);
-+}
-+EXPORT_SYMBOL(v4l2_clk_get_rate);
-+
-+int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate)
-+{
-+	if (!clk->ops->set_rate)
-+		return -ENOSYS;
-+
-+	return clk->ops->set_rate(clk, rate);
-+}
-+EXPORT_SYMBOL(v4l2_clk_set_rate);
-+
-+struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
-+				   const char *dev_id,
-+				   const char *id, void *priv)
-+{
-+	struct v4l2_clk *clk;
-+	int ret;
-+
-+	if (!ops || !dev_id)
-+		return ERR_PTR(-EINVAL);
-+
-+	clk = kzalloc(sizeof(struct v4l2_clk), GFP_KERNEL);
-+	if (!clk)
-+		return ERR_PTR(-ENOMEM);
-+
-+	clk->id = kstrdup(id, GFP_KERNEL);
-+	clk->dev_id = kstrdup(dev_id, GFP_KERNEL);
-+	if ((id && !clk->id) || !clk->dev_id) {
-+		ret = -ENOMEM;
-+		goto ealloc;
-+	}
-+	clk->ops = ops;
-+	clk->priv = priv;
-+	atomic_set(&clk->use_count, 0);
-+	mutex_init(&clk->lock);
-+
-+	mutex_lock(&clk_lock);
-+	if (!IS_ERR(v4l2_clk_find(dev_id, id))) {
-+		mutex_unlock(&clk_lock);
-+		ret = -EEXIST;
-+		goto eexist;
-+	}
-+	list_add_tail(&clk->list, &clk_list);
-+	mutex_unlock(&clk_lock);
-+
-+	return clk;
-+
-+eexist:
-+ealloc:
-+	kfree(clk->id);
-+	kfree(clk->dev_id);
-+	kfree(clk);
-+	return ERR_PTR(ret);
-+}
-+EXPORT_SYMBOL(v4l2_clk_register);
-+
-+void v4l2_clk_unregister(struct v4l2_clk *clk)
-+{
-+	if (WARN(atomic_read(&clk->use_count),
-+		 "%s(): Refusing to unregister ref-counted %s:%s clock!\n",
-+		 __func__, clk->dev_id, clk->id))
-+		return;
-+
-+	mutex_lock(&clk_lock);
-+	list_del(&clk->list);
-+	mutex_unlock(&clk_lock);
-+
-+	kfree(clk->id);
-+	kfree(clk->dev_id);
-+	kfree(clk);
-+}
-+EXPORT_SYMBOL(v4l2_clk_unregister);
-diff --git a/include/media/v4l2-clk.h b/include/media/v4l2-clk.h
-new file mode 100644
-index 0000000..89efbd7
---- /dev/null
-+++ b/include/media/v4l2-clk.h
-@@ -0,0 +1,54 @@
-+/*
-+ * V4L2 clock service
-+ *
-+ * Copyright (C) 2012-2013, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ *
-+ * ATTENTION: This is a temporary API and it shall be replaced by the generic
-+ * clock API, when the latter becomes widely available.
-+ */
-+
-+#ifndef MEDIA_V4L2_CLK_H
-+#define MEDIA_V4L2_CLK_H
-+
-+#include <linux/atomic.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+
-+struct module;
-+struct device;
-+
-+struct v4l2_clk {
-+	struct list_head list;
-+	const struct v4l2_clk_ops *ops;
-+	const char *dev_id;
-+	const char *id;
-+	int enable;
-+	struct mutex lock; /* Protect the enable count */
-+	atomic_t use_count;
-+	void *priv;
-+};
-+
-+struct v4l2_clk_ops {
-+	struct module	*owner;
-+	int		(*enable)(struct v4l2_clk *clk);
-+	void		(*disable)(struct v4l2_clk *clk);
-+	unsigned long	(*get_rate)(struct v4l2_clk *clk);
-+	int		(*set_rate)(struct v4l2_clk *clk, unsigned long);
-+};
-+
-+struct v4l2_clk *v4l2_clk_register(const struct v4l2_clk_ops *ops,
-+				   const char *dev_name,
-+				   const char *name, void *priv);
-+void v4l2_clk_unregister(struct v4l2_clk *clk);
-+struct v4l2_clk *v4l2_clk_get(struct device *dev, const char *id);
-+void v4l2_clk_put(struct v4l2_clk *clk);
-+int v4l2_clk_enable(struct v4l2_clk *clk);
-+void v4l2_clk_disable(struct v4l2_clk *clk);
-+unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk);
-+int v4l2_clk_set_rate(struct v4l2_clk *clk, unsigned long rate);
-+
-+#endif
-
--- 
-1.7.2.5
-
+> Thanks
+> Guennadi
+>
+>>       u8 reg00;
+>>       u8 reg01;
+>>       u8 reg02;
+>> @@ -455,16 +457,22 @@ static int adv7343_probe(struct i2c_client *client,
+>>                                      ADV7343_GAIN_DEF);
+>>       state->sd.ctrl_handler = &state->hdl;
+>>       if (state->hdl.error) {
+>> -             int err = state->hdl.error;
+>> -
+>> -             v4l2_ctrl_handler_free(&state->hdl);
+>> -             return err;
+>> +             err = state->hdl.error;
+>> +             goto done;
+>>       }
+>>       v4l2_ctrl_handler_setup(&state->hdl);
+>>
+>>       err = adv7343_initialize(&state->sd);
+>>       if (err)
+>> +             goto done;
+>> +
+>> +     state->sd.dev = &client->dev;
+>> +     err = v4l2_async_register_subdev(&state->sd);
+>> +
+>> +done:
+>> +     if (err < 0)
+>>               v4l2_ctrl_handler_free(&state->hdl);
+>> +
+>>       return err;
+>>  }
+>>
+>> @@ -473,6 +481,7 @@ static int adv7343_remove(struct i2c_client *client)
+>>       struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>>       struct adv7343_state *state = to_state(sd);
+>>
+>> +     v4l2_async_unregister_subdev(&state->sd);
+>>       v4l2_device_unregister_subdev(sd);
+>>       v4l2_ctrl_handler_free(&state->hdl);
+>>
+>> --
+>> 1.7.4.1
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
