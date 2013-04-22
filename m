@@ -1,61 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga03.intel.com ([143.182.124.21]:40805 "EHLO mga03.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934419Ab3DIHRP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Apr 2013 03:17:15 -0400
-Date: Tue, 9 Apr 2013 09:17:11 +0200
-From: Samuel Ortiz <sameo@linux.intel.com>
-To: Andrey Smirnov <andrew.smirnov@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH v8 1/9] mfd: Add commands abstraction layer for SI476X MFD
-Message-ID: <20130409071711.GB23447@zurbaran>
-References: <1364352446-28572-1-git-send-email-andrew.smirnov@gmail.com>
- <1364352446-28572-2-git-send-email-andrew.smirnov@gmail.com>
- <20130408101624.GR24058@zurbaran>
- <CAHQ1cqE4aokZA98VfCWwRtkaNPm6dMnegibVz4BHfYW_VrAUBA@mail.gmail.com>
- <20130408200946.GA23447@zurbaran>
- <CAHQ1cqGytarQ9bkOiq-MdpRbKiHBTRPJy90Cbg=Sr4J7MWNj+g@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAHQ1cqGytarQ9bkOiq-MdpRbKiHBTRPJy90Cbg=Sr4J7MWNj+g@mail.gmail.com>
+Received: from ven69-h01-31-33-9-98.dsl.sta.abo.bbox.fr ([31.33.9.98]:46598
+	"EHLO laptop-kevin.kbaradon.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755322Ab3DVUpe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 16:45:34 -0400
+From: Kevin Baradon <kevin.baradon@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Kevin Baradon <kevin.baradon@gmail.com>
+Subject: [PATCH 2/4] media/rc/imon.c: make send_packet() delay larger for 15c2:0036 [v2]
+Date: Mon, 22 Apr 2013 22:09:44 +0200
+Message-Id: <1366661386-6720-3-git-send-email-kevin.baradon@gmail.com>
+In-Reply-To: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
+References: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Apr 08, 2013 at 01:40:40PM -0700, Andrey Smirnov wrote:
-> On Mon, Apr 8, 2013 at 1:09 PM, Samuel Ortiz <sameo@linux.intel.com> wrote:
-> > On Mon, Apr 08, 2013 at 11:34:43AM -0700, Andrey Smirnov wrote:
-> > > On Mon, Apr 8, 2013 at 3:16 AM, Samuel Ortiz <sameo@linux.intel.com>
-> > wrote:
-> > > > This file doesn't exist yet, which breaks bisectability.
-> > > > I'm fine with you including it with the first patch. I will prepare a
-> > > branch
-> > > > with the mfd patches from your serie for Mauro to pull from.
-> > > >
-> > >
-> > > It was initially one single patch(in v1), and I split it in three upon
-> > > Hans' request(for ease of reviewing).
-> > It probably made sense then, but now, as I said, it breaks bisectability.
-> > So
-> > I'd appreciate if you could add this header file to this first patch so
-> > that I
-> > can merge the MFD parts independently.
-> > Again, I will provide a branch for Mauro to pull from and apply the
-> > remaining
-> > patches on top of it.
-> >
-> >
-> OK, I will squash the commits and make another version of the patches.
-The separation of the patches as it is now looks good to me. But you need to
-add the media header to the first MFD patches, no need to squash commits
-together.
+Imon device 15c2:0036 need a higher delay between send_packet() calls.
+Also use interruptible wait to avoid load average going too high (and let caller handle signals).
 
-Cheers,
-Samuel.
+Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
+---
+ drivers/media/rc/imon.c |   22 ++++++++++++++++------
+ 1 file changed, 16 insertions(+), 6 deletions(-)
 
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index e5d1c0d..624fd33 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -112,6 +112,7 @@ struct imon_context {
+ 	bool tx_control;
+ 	unsigned char usb_rx_buf[8];
+ 	unsigned char usb_tx_buf[8];
++	unsigned int send_packet_delay;
+ 
+ 	struct tx_t {
+ 		unsigned char data_buf[35];	/* user data buffer */
+@@ -185,6 +186,10 @@ enum {
+ 	IMON_KEY_PANEL	= 2,
+ };
+ 
++enum {
++	IMON_NEED_20MS_PKT_DELAY = 1
++};
++
+ /*
+  * USB Device ID for iMON USB Control Boards
+  *
+@@ -215,7 +220,7 @@ static struct usb_device_id imon_usb_id_table[] = {
+ 	/* SoundGraph iMON OEM Touch LCD (IR & 4.3" VGA LCD) */
+ 	{ USB_DEVICE(0x15c2, 0x0035) },
+ 	/* SoundGraph iMON OEM VFD (IR & VFD) */
+-	{ USB_DEVICE(0x15c2, 0x0036) },
++	{ USB_DEVICE(0x15c2, 0x0036), .driver_info = IMON_NEED_20MS_PKT_DELAY },
+ 	/* device specifics unknown */
+ 	{ USB_DEVICE(0x15c2, 0x0037) },
+ 	/* SoundGraph iMON OEM LCD (IR & LCD) */
+@@ -535,12 +540,12 @@ static int send_packet(struct imon_context *ictx)
+ 	kfree(control_req);
+ 
+ 	/*
+-	 * Induce a mandatory 5ms delay before returning, as otherwise,
++	 * Induce a mandatory delay before returning, as otherwise,
+ 	 * send_packet can get called so rapidly as to overwhelm the device,
+ 	 * particularly on faster systems and/or those with quirky usb.
+ 	 */
+-	timeout = msecs_to_jiffies(5);
+-	set_current_state(TASK_UNINTERRUPTIBLE);
++	timeout = msecs_to_jiffies(ictx->send_packet_delay);
++	set_current_state(TASK_INTERRUPTIBLE);
+ 	schedule_timeout(timeout);
+ 
+ 	return retval;
+@@ -2088,7 +2093,8 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+ 
+ }
+ 
+-static struct imon_context *imon_init_intf0(struct usb_interface *intf)
++static struct imon_context *imon_init_intf0(struct usb_interface *intf,
++					    const struct usb_device_id *id)
+ {
+ 	struct imon_context *ictx;
+ 	struct urb *rx_urb;
+@@ -2128,6 +2134,10 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+ 	ictx->vendor  = le16_to_cpu(ictx->usbdev_intf0->descriptor.idVendor);
+ 	ictx->product = le16_to_cpu(ictx->usbdev_intf0->descriptor.idProduct);
+ 
++	/* default send_packet delay is 5ms but some devices need more */
++	ictx->send_packet_delay = id->driver_info & IMON_NEED_20MS_PKT_DELAY ?
++				  20 : 5;
++
+ 	ret = -ENODEV;
+ 	iface_desc = intf->cur_altsetting;
+ 	if (!imon_find_endpoints(ictx, iface_desc)) {
+@@ -2306,7 +2316,7 @@ static int imon_probe(struct usb_interface *interface,
+ 	first_if_ctx = usb_get_intfdata(first_if);
+ 
+ 	if (ifnum == 0) {
+-		ictx = imon_init_intf0(interface);
++		ictx = imon_init_intf0(interface, id);
+ 		if (!ictx) {
+ 			pr_err("failed to initialize context!\n");
+ 			ret = -ENODEV;
 -- 
-Intel Open Source Technology Centre
-http://oss.intel.com/
+1.7.10.4
+
