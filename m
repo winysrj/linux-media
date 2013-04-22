@@ -1,33 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:49356 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753730Ab3DNVUJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 17:20:09 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] bttv: Add noname Bt848 capture card with 14MHz xtal
-Date: Sun, 14 Apr 2013 23:19:47 +0200
-Cc: linux-media@vger.kernel.org
-References: <201304141839.10168.linux@rainbow-software.org>
-In-Reply-To: <201304141839.10168.linux@rainbow-software.org>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3696 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754528Ab3DVHSr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 03:18:47 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH RFCv3 07/10] [media] tuner-core: add SDR support for g_tuner
+Date: Mon, 22 Apr 2013 09:18:27 +0200
+References: <1366570839-662-1-git-send-email-mchehab@redhat.com> <1366570839-662-8-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366570839-662-8-git-send-email-mchehab@redhat.com>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="iso-8859-1"
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
-Message-Id: <201304142319.47887.linux@rainbow-software.org>
+Message-Id: <201304220918.27748.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 14 April 2013 18:39:09 Ondrej Zary wrote:
-> Add support for noname Bt848 capture-only card (3x composite, 1x S-VHS)
-> with 14MHz crystal:
-> http://www.rainbow-software.org/images/hardware/bt848_.jpg
+On Sun April 21 2013 21:00:36 Mauro Carvalho Chehab wrote:
+> Properly initialize the fields for VIDIOC_G_TUNER, if the
+> device is in SDR mode.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/v4l2-core/tuner-core.c | 29 +++++++++++++++++++++++++----
+>  1 file changed, 25 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> index b97ec63..e54b5ae 100644
+> --- a/drivers/media/v4l2-core/tuner-core.c
+> +++ b/drivers/media/v4l2-core/tuner-core.c
+> @@ -1190,7 +1190,31 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  	}
+>  
+>  	/* radio mode */
+> -	if (vt->type == t->mode) {
+> +	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
+> +
+> +	if (V4L2_TUNER_IS_SDR(vt->type)) {
+> +		vt->rangelow  = tv_range[0] * 16000;
+> +		vt->rangehigh = tv_range[1] * 16000;
 
-Noticed that it takes ages to load the bttv module (about 30 seconds).
-If "disable_ir=1" parameter is used, it loads immediately.
-I wonder why the bttv driver probes for IR chips even when the "has_remote" 
-flag is not set?
+Why use tv_range for SDR? It's a bit odd for something called SD 'Radio'.
 
--- 
-Ondrej Zary
+Regards,
+
+	Hans
+
+> +	else {
+> +		vt->rangelow = radio_range[0] * 16000;
+> +		vt->rangehigh = radio_range[1] * 16000;
+> +	}
+> +	/* Check if the radio device is active */
+> +	if (vt->type != t->mode)
+> +		return 0;
+> +
+> +	if (V4L2_TUNER_IS_SDR(vt->type)) {
+> +		if (fe_tuner_ops->get_bandwidth)
+> +			fe_tuner_ops->get_bandwidth(&t->fe,
+> +							&vt->bandwidth);
+> +		if (fe_tuner_ops->get_if_frequency)
+> +			fe_tuner_ops->get_if_frequency(&t->fe,
+> +							&vt->int_freq);
+> +		/*
+> +			* Sampe rate is not a tuner props - it is up to the
+> +			* bridge driver to fill it.
+> +			*/
+> +	} else {
+>  		vt->rxsubchans = V4L2_TUNER_SUB_MONO | V4L2_TUNER_SUB_STEREO;
+>  		if (fe_tuner_ops->get_status) {
+>  			u32 tuner_status;
+> @@ -1203,9 +1227,6 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+>  		}
+>  		vt->audmode = t->audmode;
+>  	}
+> -	vt->capability |= V4L2_TUNER_CAP_LOW | V4L2_TUNER_CAP_STEREO;
+> -	vt->rangelow = radio_range[0] * 16000;
+> -	vt->rangehigh = radio_range[1] * 16000;
+>  
+>  	return 0;
+>  }
+> 
