@@ -1,75 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53571 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756877Ab3D2U6w (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:43614 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753742Ab3DVVBM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 16:58:52 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Scott Jiang <scott.jiang.linux@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"uclinux-dist-devel@blackfin.uclinux.org"
-	<uclinux-dist-devel@blackfin.uclinux.org>
-Subject: Re: [PATCH RFC] [media] add Aptina mt9m114 HD digital image sensor driver
-Date: Mon, 29 Apr 2013 22:58:58 +0200
-Message-ID: <2197086.VBJPhOlmgL@avalon>
-In-Reply-To: <CAHG8p1DdY=j1VJH0XdkK8TgYD8sSXvG7u2coX_BwrFB-uUzL5A@mail.gmail.com>
-References: <1358546444-30265-1-git-send-email-scott.jiang.linux@gmail.com> <1385456.JiqmfYkIEH@avalon> <CAHG8p1DdY=j1VJH0XdkK8TgYD8sSXvG7u2coX_BwrFB-uUzL5A@mail.gmail.com>
+	Mon, 22 Apr 2013 17:01:12 -0400
+Received: by mail-lb0-f178.google.com with SMTP id q13so20927lbi.9
+        for <linux-media@vger.kernel.org>; Mon, 22 Apr 2013 14:01:10 -0700 (PDT)
+Message-ID: <5175A501.2060009@cogentembedded.com>
+Date: Tue, 23 Apr 2013 01:00:49 +0400
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, matsu@igel.co.jp
+Subject: Re: [PATCH v2 1/5] V4L2: I2C: ML86V7667 video decoder driver
+References: <201304212240.30949.sergei.shtylyov@cogentembedded.com> <201304220848.04870.hverkuil@xs4all.nl> <5174F74E.9030707@cogentembedded.com> <201304221106.20598.hverkuil@xs4all.nl> <5175A3C9.4050204@cogentembedded.com>
+In-Reply-To: <5175A3C9.4050204@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Scott,
-
-Sorry for the (very) late reply.
-
-On Sunday 07 April 2013 18:35:54 Scott Jiang wrote:
-> Hi Laurent,
-> 
-> >> >> >> +struct mt9m114_reg {
-> >> >> >> +     u16 reg;
-> >> >> >> +     u32 val;
-> >> >> >> +     int width;
-> >> >> >> +};
-> >> >> >> +
-> >> >> >> +enum {
-> >> >> >> +     MT9M114_QVGA,
-> >> >> >> +     MT9M114_VGA,
-> >> >> >> +     MT9M114_WVGA,
-> >> >> >> +     MT9M114_720P,
-> >> >> >> +};
-> >> >> > 
-> >> >> > This is the part I don't like. Instead of hardcoding 4 different
-> >> >> > resolutions and using large register address/value tables, you
-> >> >> > should compute the register values from the image size requested by
-> >> >> > the user.
-> >> >> 
-> >> >> In fact we get this table with the Aptina development tool. So we only
-> >> >> support fixed resolutions. If we compute each register value, it only
-> >> >> makes the code more complex.
-> >> > 
-> >> > But it also makes the code more useful, as the user won't be limited to
-> >> > the 4 resolutions above.
-> >> 
-> >> The problem is Aptina datasheet doesn't tell us how to calculate these
-> >> values. We only have some register presets.
-> > 
-> > Have you tried requesting the information from Aptina ?
-> 
-> No, there is only a datasheet on its website. I refer to register
-> definition from Andrew Chew on  this website :
-> http://git.chromium.org/gitweb/?p=chromiumos/third_party/kernel-next.git;a=b
-> lob;f=drivers/media/video/mt9m114.c;h=a5d2724005e7863607ffe204eefabfb0fad4da
-> 46. Even if we have any NDA docs, we can't use it in open source code.
-
-Aptina is actually pretty supportive, I'm quite sure you could get 
-documentation under an NDA with an authorization to release the driver source 
-code.
-
--- 
-Regards,
-
-Laurent Pinchart
+Vladimir Barinov wrote:
+> Hi Hans,
+>
+> Hans Verkuil wrote:
+>>>>> +     */
+>>>>> +    val = i2c_smbus_read_byte_data(client, STATUS_REG);
+>>>>> +    if (val < 0)
+>>>>> +        return val;
+>>>>> +
+>>>>> +    priv->std = val & STATUS_NTSCPAL ? V4L2_STD_PAL : V4L2_STD_NTSC;
+>>>>>             
+>>>> Shouldn't this be 50 Hz vs 60 Hz formats? There are 60 Hz PAL 
+>>>> standards
+>>>> and usually these devices detect 50 Hz vs 60 Hz, not NTSC vs PAL.
+>>>>         
+>>> In the reference manual it is not mentioned about 50/60Hz input 
+>>> format selection/detection but it mentioned just PAL/NTSC.
+>>> The 50hz formats can be ether PAL and NTSC formats variants. The 
+>>> same is applied to 60Hz.
+>>>
+>>> In the ML86V7667 datasheet the description for STATUS register 
+>>> detection bit is just PAL/NTSC:
+>>> " $2C/STATUS [2] NTSC/PAL identification 0: NTSC /1: PAL "
+>>>
+>>> If you assure me that I must judge their description as 50 vs 60Hz 
+>>> formats and not PAL/NTSC then I will make the change.
+>>>     
+>>
+>> I can't judge that. Are there no status bits anywhere that tell you 
+>> something
+>> about the number of lines per frame or the framerate?
+>>   
+> You are right. I've found a relationship table with description of 
+> number of total H/V pixels vs Video Modes mentioned in datasheet.
+> It's  "NTSC" has Odd/263 and Even/262 vertical lines. The "PAL" has 
+> Odd/312 and Even/313.
+A little clarification: it's "NTSC" relates to 485 active lines (after 
+rejection of blank lines) and "PAL" relates to  578 active lines.
 
