@@ -1,89 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:62545 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932088Ab3DZIni (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:16876 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753128Ab3DVMaW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Apr 2013 04:43:38 -0400
-Date: Fri, 26 Apr 2013 10:43:28 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct v4l2_subdev_platform_data
- to platform data
-In-Reply-To: <20130426083023.GA16843@pengutronix.de>
-Message-ID: <Pine.LNX.4.64.1304261033170.32320@axis700.grange>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
- <1366320945-21591-24-git-send-email-g.liakhovetski@gmx.de>
- <Pine.LNX.4.64.1304182346060.28933@axis700.grange> <1621615.OUnKCBbkfO@avalon>
- <Pine.LNX.4.64.1304221435540.23906@axis700.grange> <20130426083023.GA16843@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Mon, 22 Apr 2013 08:30:22 -0400
+From: Tomasz Figa <t.figa@samsung.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: dri-devel@lists.freedesktop.org,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	linux-samsung-soc@vger.kernel.org,
+	"patches@linaro.org" <patches@linaro.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	linaro-kernel@lists.linaro.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	mturquette@linaro.org
+Subject: Re: [PATCH v4] drm/exynos: prepare FIMD clocks
+Date: Mon, 22 Apr 2013 14:30:10 +0200
+Message-id: <1939043.4I27nO6WDE@amdc1227>
+In-reply-to: <51750B7D.3050401@samsung.com>
+References: <1365419265-21238-1-git-send-email-vikas.sajjan@linaro.org>
+ <1731019.P1JXV7Hkkn@amdc1227> <51750B7D.3050401@samsung.com>
+MIME-version: 1.0
+Content-transfer-encoding: 7Bit
+Content-type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha
-
-On Fri, 26 Apr 2013, Sascha Hauer wrote:
-
-> Hi Guennadi,
+On Monday 22 of April 2013 12:05:49 Sylwester Nawrocki wrote:
+> On 04/22/2013 11:56 AM, Tomasz Figa wrote:
+> > On Monday 22 of April 2013 10:44:00 Viresh Kumar wrote:
+> >> On 21 April 2013 20:13, Tomasz Figa <tomasz.figa@gmail.com> wrote:
+> >>> 3) after those two changes, all that remains is to fix compliance with
+> >>> Common Clock Framework, in other words:
+> >>> 
+> >>> s/clk_enable/clk_prepare_enable/
+> >>> 
+> >>> and
+> >>> 
+> >>> s/clk_disable/clk_disable_unprepare/
+> >> 
+> >> We don't have to call  clk_{un}prepare() everytime for your platform as
+> >> you aren't doing anything in it. So just call them once at probe/remove
+> >> and
+> >> call clk_enable/disable everywhere else.
 > 
-> On Mon, Apr 22, 2013 at 02:39:57PM +0200, Guennadi Liakhovetski wrote:
-> > On Mon, 22 Apr 2013, Laurent Pinchart wrote:
-> > 
-> > > Hi Guennadi,
-> > > 
-> > > On Thursday 18 April 2013 23:47:26 Guennadi Liakhovetski wrote:
-> > > > On Thu, 18 Apr 2013, Guennadi Liakhovetski wrote:
-> > > > > Adding struct v4l2_subdev_platform_data to mt9p031's platform data allows
-> > > > > the driver to use generic functions to manage sensor power supplies.
-> > > > > 
-> > > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > > > 
-> > > > A small addition to this one too: to be absolutely honest, I also had to
-> > > > replace 12-bit formats with their 8-bit counterparts, because only 8 data
-> > > > lanes are connected to my camera host. We'll need to somehow properly
-> > > > solve this too.
-> > > 
-> > > That information should be conveyed by platform/DT data for the host, and be 
-> > > used to convert the 12-bit media bus code into a 8-bit media bus code in the 
-> > > host (a core helper function would probably be helpful).
-> > 
-> > Yes, and we discussed this before too, I think. I proposed based then to 
-> > implement some compatibility table of "trivial" transformations, like a 
-> > 12-bit Bayer, right-shifted by 4 bits, produces a respective 8-bit Bayer 
-> > etc. Such transformations would fit nicely in soc_mediabus.c ;-) This just 
-> > needs to be implemented...
-> 
-> These "trivial" transformations may turn out not to be so trivial. In
-> the devicetree we would then need kind of 'shift-4-bit-left' properties.
+> Yes, I agree with that. Additionally clk_(un)prepare must not be called in
+> atomic context, so some drivers will have to work like this anyway.
+> Or the clocks could be prepared/unprepared in the device open/close file op
+> for instance.
 
-We already have a "data-shift" property exactly for this purpose.
+Well, I don't think drivers should make any assumptions how particular clk ops 
+are implemented on particular platform.
 
-> How about instead describing the sensor node with:
-> 
-> 	mbus-formats = <0x3010, 0x2013>;
-> 
-> and the corresponding host interface with:
-> 
-> 	mbus-formats = <0x3013, 0x2001>;
+Instead, generic semantics of Common Clock Framework should be obeyed, which 
+AFAIK are:
+1) Each clock must be prepared before enabling.
+2) clk_prepare() can not be called from atomic contexts.
+3) clk_prepare_enable() can be used instead of clk_prepare() + clk_enable() 
+when the driver does not need to enable the clock from atomic context.
 
-How would this describe _how_ the transformation should be performed? And 
-why does the host driver need mbus formats? The translation is from mbus 
-formats to fourcc formats (in memory). If you use those as bridge DT node 
-properties, that would only tell the bridge driver which mbus format to 
-request from the subdevice when requested fourcc format X. This decision 
-soc-camera currently performs automatically, if this is ever needed as a 
-configuration parameter, we'll think then where and how to put it.
+Since the Exynos DRM FIMD driver does not need to do call any clock operations 
+in atomic contexts, the approach keeping the clock handling as simple as 
+possible would be to just replace all clk_{enable,disable} with 
+clk_{prepare_enable,disable_unprepare}, as I suggested.
 
-Thanks
-Guennadi
+CCing Mike, the maintainer of Common Clock Framework, since he's the right 
+person to pass any judgements when it is about clocks.
 
-> This would allow to describe arbitrary transformations without having to
-> limit to the 'trivial' ones. The result would be easier to understand
-> also I think.
+Best regards,
+-- 
+Tomasz Figa
+Samsung Poland R&D Center
+SW Solution Development, Kernel and System Framework
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
