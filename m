@@ -1,188 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25841 "EHLO mx1.redhat.com"
+Received: from hydra.sisk.pl ([212.160.235.94]:40564 "EHLO hydra.sisk.pl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755565Ab3DQAm6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:58 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0gvmx002392
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:57 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 06/31] [media] r820t: proper lock and set the I2C gate
-Date: Tue, 16 Apr 2013 21:42:17 -0300
-Message-Id: <1366159362-3773-7-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	id S1751718Ab3DVLen (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 07:34:43 -0400
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	"patches@linaro.org" <patches@linaro.org>,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-samsung-soc@vger.kernel.org, myungjoo.ham@samsung.com,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	linaro-kernel@lists.linaro.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	khilman@deeprootsystems.com
+Subject: Re: [PATCH v4] drm/exynos: prepare FIMD clocks
+Date: Mon, 22 Apr 2013 13:42:43 +0200
+Message-ID: <1789889.I0NQprXLsB@vostro.rjw.lan>
+In-Reply-To: <2218256.k8DNv9nCJl@amdc1227>
+References: <1365419265-21238-1-git-send-email-vikas.sajjan@linaro.org> <51750E43.1050602@samsung.com> <2218256.k8DNv9nCJl@amdc1227>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As this tuner can be used by analog and digital parts of the
-driver, be sure that all ops that access the hardware will
-be be properly locked.
+On Monday, April 22, 2013 12:37:36 PM Tomasz Figa wrote:
+> On Monday 22 of April 2013 12:17:39 Sylwester Nawrocki wrote:
+> > On 04/22/2013 12:03 PM, Inki Dae wrote:
+> > >     > Also looks good to me. But what if power domain was disabled without
+> > >     > pm
+> > >     > runtime? In this case, you must enable the power domain at machine
+> > >     > code or
+> > >     > bootloader somewhere. This way would not only need some hard codes
+> > >     > to turn
+> > >     > the power domain on but also not manage power management fully. This
+> > >     > is same as only the use of pm runtime interface(needing some hard
+> > >     > codes without pm runtime) so I don't prefer to add
+> > >     > clk_enable/disable to fimd probe(). I quite tend to force only the
+> > >     > use of pm runtime as possible. So please add the hard codes to
+> > >     > machine code or bootloader like you did for power domain if you
+> > >     > want to use drm fimd without pm runtime.
+> > >     
+> > >     That's not how the runtime PM, clock subsystems work:
+> > >     
+> > >     1) When CONFIG_PM_RUNTIME is disabled, all the used hardware must be
+> > >     kept
+> > >     powered on all the time.
+> > >     
+> > >     2) Common Clock Framework will always gate all clocks that have zero
+> > >     enable_count. Note that CCF support for Exynos is already merged for
+> > >     3.10 and it will be the only available clock support method for
+> > >     Exynos.
+> > >     
+> > >     AFAIK, drivers must work correctly in both cases, with
+> > >     CONFIG_PM_RUNTIME
+> > >     enabled and disabled.
+> > > 
+> > > Then is the driver worked correctly if the power domain to this device was
+> > > disabled at bootloader without CONFIG_PM_RUNTIME and with clk_enable()?  I
+> > > think, in this case, the device wouldn't be worked correctly because the
+> > > power of the device remains off. So you must enable the power domain
+> > > somewhere. What is the difference between these two cases?
+> > 
+> > How about making the driver dependant on PM_RUNTIME and making it always
+> > use pm_runtime_* API, regardless if the platform actually implements runtime
+> > PM or not ? Is there any issue in using the Runtime PM core always, rather
+> > than coding any workarounds in drivers when PM_RUNTIME is disabled ?
+> 
+> I don't think this is a good idea. This would mean that any user that from 
+> some reasons don't want to use PM_RUNTIME, would not be able to use the driver 
+> anymore.
+> 
+> Rafael, Kevin, do you have any opinion on this?
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/tuners/r820t.c | 50 +++++++++++++++++++++++++++++---------------
- 1 file changed, 33 insertions(+), 17 deletions(-)
+I agree.
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index 0fa355d..5cd8256 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1193,8 +1193,6 @@ static int generic_set_freq(struct dvb_frontend *fe,
- 	tuner_dbg("should set frequency to %d kHz, bw %d MHz\n",
- 		  freq / 1000, bw);
- 
--	mutex_lock(&priv->lock);
--
- 	if ((type == V4L2_TUNER_ANALOG_TV) && (std == V4L2_STD_SECAM_LC))
- 		lo_freq = freq - priv->int_freq;
- 	 else
-@@ -1218,7 +1216,6 @@ static int generic_set_freq(struct dvb_frontend *fe,
- 
- 	rc = r820t_sysfreq_sel(priv, freq, type, std, delsys);
- err:
--	mutex_unlock(&priv->lock);
- 
- 	if (rc < 0)
- 		tuner_dbg("%s: failed=%d\n", __func__, rc);
-@@ -1335,6 +1332,8 @@ static int r820t_xtal_check(struct r820t_priv *priv)
- 
- /*
-  *  r820t frontend operations and tuner attach code
-+ *
-+ * All driver locks and i2c control are only in this part of the code
-  */
- 
- static int r820t_init(struct dvb_frontend *fe)
-@@ -1345,11 +1344,10 @@ static int r820t_init(struct dvb_frontend *fe)
- 
- 	tuner_dbg("%s:\n", __func__);
- 
-+	mutex_lock(&priv->lock);
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
--	mutex_lock(&priv->lock);
--
- 	if ((priv->cfg->rafael_chip == CHIP_R820T) ||
- 	    (priv->cfg->rafael_chip == CHIP_R828S) ||
- 	    (priv->cfg->rafael_chip == CHIP_R820C)) {
-@@ -1369,17 +1367,13 @@ static int r820t_init(struct dvb_frontend *fe)
- 	rc = r820t_write(priv, 0x05,
- 			 r820t_init_array, sizeof(r820t_init_array));
- 
--	mutex_unlock(&priv->lock);
--
--	if (fe->ops.i2c_gate_ctrl)
--		fe->ops.i2c_gate_ctrl(fe, 0);
--
--	return rc;
- err:
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
-+	mutex_unlock(&priv->lock);
- 
--	tuner_dbg("%s: failed=%d\n", __func__, rc);
-+	if (rc < 0)
-+		tuner_dbg("%s: failed=%d\n", __func__, rc);
- 	return rc;
- }
- 
-@@ -1390,15 +1384,15 @@ static int r820t_sleep(struct dvb_frontend *fe)
- 
- 	tuner_dbg("%s:\n", __func__);
- 
-+	mutex_lock(&priv->lock);
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
--	mutex_lock(&priv->lock);
- 	rc = r820t_standby(priv);
--	mutex_unlock(&priv->lock);
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
-+	mutex_unlock(&priv->lock);
- 
- 	tuner_dbg("%s: failed=%d\n", __func__, rc);
- 	return rc;
-@@ -1409,6 +1403,7 @@ static int r820t_set_analog_freq(struct dvb_frontend *fe,
- {
- 	struct r820t_priv *priv = fe->tuner_priv;
- 	unsigned bw;
-+	int rc;
- 
- 	tuner_dbg("%s called\n", __func__);
- 
-@@ -1421,8 +1416,18 @@ static int r820t_set_analog_freq(struct dvb_frontend *fe,
- 	else
- 		bw = 8;
- 
--	return generic_set_freq(fe, 62500l * p->frequency, bw,
--				V4L2_TUNER_ANALOG_TV, p->std, SYS_UNDEFINED);
-+	mutex_lock(&priv->lock);
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
-+	rc = generic_set_freq(fe, 62500l * p->frequency, bw,
-+			      V4L2_TUNER_ANALOG_TV, p->std, SYS_UNDEFINED);
-+
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	mutex_unlock(&priv->lock);
-+
-+	return rc;
- }
- 
- static int r820t_set_params(struct dvb_frontend *fe)
-@@ -1435,6 +1440,7 @@ static int r820t_set_params(struct dvb_frontend *fe)
- 	tuner_dbg("%s: delivery_system=%d frequency=%d bandwidth_hz=%d\n",
- 		__func__, c->delivery_system, c->frequency, c->bandwidth_hz);
- 
-+	mutex_lock(&priv->lock);
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 1);
- 
-@@ -1447,6 +1453,7 @@ static int r820t_set_params(struct dvb_frontend *fe)
- 
- 	if (fe->ops.i2c_gate_ctrl)
- 		fe->ops.i2c_gate_ctrl(fe, 0);
-+	mutex_unlock(&priv->lock);
- 
- 	if (rc)
- 		tuner_dbg("%s: failed=%d\n", __func__, rc);
-@@ -1458,10 +1465,14 @@ static int r820t_signal(struct dvb_frontend *fe, u16 *strength)
- 	struct r820t_priv *priv = fe->tuner_priv;
- 	int rc = 0;
- 
-+	mutex_lock(&priv->lock);
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 1);
-+
- 	if (priv->has_lock) {
- 		rc = r820t_read_gain(priv);
- 		if (rc < 0)
--			return rc;
-+			goto err;
- 
- 		/* A higher gain at LNA means a lower signal strength */
- 		*strength = (45 - rc) << 4 | 0xff;
-@@ -1469,6 +1480,11 @@ static int r820t_signal(struct dvb_frontend *fe, u16 *strength)
- 		*strength = 0;
- 	}
- 
-+err:
-+	if (fe->ops.i2c_gate_ctrl)
-+		fe->ops.i2c_gate_ctrl(fe, 0);
-+	mutex_unlock(&priv->lock);
-+
- 	tuner_dbg("%s: %s, gain=%d strength=%d\n",
- 		  __func__,
- 		  priv->has_lock ? "PLL locked" : "no signal",
+Drivers should work for CONFIG_PM_RUNTIME unset too and static inline stubs for
+all runtime PM helpers are available in that case.
+
+Thanks,
+Rafael
+
+
 -- 
-1.8.1.4
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
