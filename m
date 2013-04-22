@@ -1,99 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2532 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751564Ab3DSSBu (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:59918 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753660Ab3DVOGV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 14:01:50 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3JI1dTk069119
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 19 Apr 2013 20:01:49 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 4882011E00DB
-	for <linux-media@vger.kernel.org>; Fri, 19 Apr 2013 20:01:40 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 22 Apr 2013 10:06:21 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLN006ONTTN4QE0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Apr 2013 23:06:20 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130419180140.4882011E00DB@alastor.dyndns.org>
-Date: Fri, 19 Apr 2013 20:01:40 +0200 (CEST)
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 07/12] exynos4-is: Unregister fimc-is subdevs from the media
+ device properly
+Date: Mon, 22 Apr 2013 16:03:42 +0200
+Message-id: <1366639427-14253-8-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+References: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add missing v4l2_device_unregister_subdev() call for the FIMC-IS subdevs
+(currently there is only the FIMC-IS-ISP subdev) so corresponding resources
+are properly freed upon the media device driver module removal.
 
-Results of the daily build of media_tree:
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyugmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/media-dev.c |    4 ++++
+ 1 file changed, 4 insertions(+)
 
-date:		Fri Apr 19 19:00:22 CEST 2013
-git branch:	test
-git hash:	6695be6863b75620ffa6d422965680ce785cb7c8
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index 1dbd554..a371ee5 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -823,6 +823,10 @@ static void fimc_md_unregister_entities(struct fimc_md *fmd)
+ 		fimc_md_unregister_sensor(fmd->sensor[i].subdev);
+ 		fmd->sensor[i].subdev = NULL;
+ 	}
++
++	if (fmd->fimc_is)
++		v4l2_device_unregister_subdev(&fmd->fimc_is->isp.subdev);
++
+ 	v4l2_info(&fmd->v4l2_dev, "Unregistered all entities\n");
+ }
+ 
+-- 
+1.7.9.5
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
