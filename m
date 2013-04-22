@@ -1,52 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f178.google.com ([209.85.217.178]:48424 "EHLO
-	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753943Ab3DUSnx (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:63101 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752844Ab3DVOGs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 14:43:53 -0400
-Received: by mail-lb0-f178.google.com with SMTP id q13so5032055lbi.37
-        for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 11:43:51 -0700 (PDT)
-To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v2 5/5] ARM: shmobile: BOCK-W: enable VIN and ML86V7667 in defconfig
-Cc: linux-media@vger.kernel.org, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Sun, 21 Apr 2013 22:43:01 +0400
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304212243.02148.sergei.shtylyov@cogentembedded.com>
+	Mon, 22 Apr 2013 10:06:48 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLN00CO9TUILVJ0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Apr 2013 23:06:47 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 09/12] exynos4-is: Remove redundant module_put() for MIPI-CSIS
+ module
+Date: Mon, 22 Apr 2013 16:03:44 +0200
+Message-id: <1366639427-14253-10-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+References: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Currently there is unbalanced module_put() on the s5p-csis module
+which prevents it from being unloaded. The subdev's owner module
+has reference count decremented in v4l2_device_unregister_subdev()
+so just remove this erroneous call.
 
-Add the VIN and ML86V7667 drivers to 'bockw_defconfig'.
-
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
+Cc: stable@vger.kernel.org # 3.8
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- arch/arm/configs/bockw_defconfig |    7 +++++++
- 1 file changed, 7 insertions(+)
+ drivers/media/platform/exynos4-is/media-dev.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-Index: renesas/arch/arm/configs/bockw_defconfig
-===================================================================
---- renesas.orig/arch/arm/configs/bockw_defconfig
-+++ renesas/arch/arm/configs/bockw_defconfig
-@@ -76,6 +76,13 @@ CONFIG_SERIAL_SH_SCI_CONSOLE=y
- # CONFIG_HWMON is not set
- CONFIG_I2C=y
- CONFIG_I2C_RCAR=y
-+CONFIG_MEDIA_SUPPORT=y
-+CONFIG_MEDIA_CAMERA_SUPPORT=y
-+CONFIG_V4L_PLATFORM_DRIVERS=y
-+CONFIG_SOC_CAMERA=y
-+CONFIG_VIDEO_RCAR_VIN=y
-+# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
-+CONFIG_VIDEO_ML86V7667=y
- CONFIG_USB=y
- CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
- CONFIG_USB_EHCI_HCD=y
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index a371ee5..15ef8f2 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -814,7 +814,6 @@ static void fimc_md_unregister_entities(struct fimc_md *fmd)
+ 		if (fmd->csis[i].sd == NULL)
+ 			continue;
+ 		v4l2_device_unregister_subdev(fmd->csis[i].sd);
+-		module_put(fmd->csis[i].sd->owner);
+ 		fmd->csis[i].sd = NULL;
+ 	}
+ 	for (i = 0; i < fmd->num_sensors; i++) {
+-- 
+1.7.9.5
+
