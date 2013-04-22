@@ -1,66 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:41946 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754310Ab3DYJvM (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:23946 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751989Ab3DVOHa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 05:51:12 -0400
+	Mon, 22 Apr 2013 10:07:30 -0400
 Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
+ by mailout3.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT00JTK20XNNL0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 18:50:57 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
+ 17 2011)) with ESMTP id <0MLN00JMYTW396L0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Apr 2013 23:07:29 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Shaik Ameer Basha <shaik.ameer@samsung.com>
-Subject: [PATCH 5/7] exynos-gsc: Add copy time stamp handling
-Date: Thu, 25 Apr 2013 11:49:48 +0200
-Message-id: <1366883390-12890-6-git-send-email-k.debski@samsung.com>
-In-reply-to: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
-References: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 12/12] exynos4-is: Fix runtime PM handling on fimc-is probe
+ error path
+Date: Mon, 22 Apr 2013 16:03:47 +0200
+Message-id: <1366639427-14253-13-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+References: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
----
- drivers/media/platform/exynos-gsc/gsc-m2m.c |    5 +++++
- 1 file changed, 5 insertions(+)
+Ensure there is no unbalanced pm_runtime_put().
 
-diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-index 386c0a7..40a73f7 100644
---- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-+++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-@@ -80,6 +80,9 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
- 	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-is.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 5e89077..47c6363 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -847,16 +847,17 @@ static int fimc_is_probe(struct platform_device *pdev)
+ 		goto err_irq;
  
- 	if (src_vb && dst_vb) {
-+		src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
-+		src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
+ 	ret = fimc_is_setup_clocks(is);
++	pm_runtime_put_sync(dev);
 +
- 		v4l2_m2m_buf_done(src_vb, vb_state);
- 		v4l2_m2m_buf_done(dst_vb, vb_state);
+ 	if (ret < 0)
+ 		goto err_irq;
  
-@@ -584,6 +587,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->ops = &gsc_m2m_qops;
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-+	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+-	pm_runtime_put_sync(dev);
+ 	is->clk_init = true;
  
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -596,6 +600,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->ops = &gsc_m2m_qops;
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
-+	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
- 
- 	return vb2_queue_init(dst_vq);
- }
+ 	is->alloc_ctx = vb2_dma_contig_init_ctx(dev);
+ 	if (IS_ERR(is->alloc_ctx)) {
+ 		ret = PTR_ERR(is->alloc_ctx);
+-		goto err_pm;
++		goto err_irq;
+ 	}
+ 	/*
+ 	 * Register FIMC-IS V4L2 subdevs to this driver. The video nodes
+@@ -885,8 +886,6 @@ err_sd:
+ 	fimc_is_unregister_subdevs(is);
+ err_irq:
+ 	free_irq(is->irq, is);
+-err_pm:
+-	pm_runtime_put(dev);
+ err_clk:
+ 	fimc_is_put_clocks(is);
+ 	return ret;
 -- 
 1.7.9.5
 
