@@ -1,78 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:49703 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753139Ab3DLLui (ORCPT
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:41059 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755966Ab3DVIkG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 07:50:38 -0400
+	Mon, 22 Apr 2013 04:40:06 -0400
+Received: by mail-lb0-f177.google.com with SMTP id x10so676579lbi.8
+        for <linux-media@vger.kernel.org>; Mon, 22 Apr 2013 01:40:05 -0700 (PDT)
+Message-ID: <5174F74E.9030707@cogentembedded.com>
+Date: Mon, 22 Apr 2013 12:39:42 +0400
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <CA+V-a8u+jNizu8EFfmwwh6kSr913n1JAFkx7r3_MfXrCyWnG0g@mail.gmail.com>
-References: <CA+V-a8sko61y73odE5efJWwqYyMkBqM7_FPrs7Uvh7sdtBsGvA@mail.gmail.com>
- <CA+V-a8u+jNizu8EFfmwwh6kSr913n1JAFkx7r3_MfXrCyWnG0g@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 12 Apr 2013 17:20:17 +0530
-Message-ID: <CA+V-a8vW50McasFWQJRquvBj=vf5oQeOnHC8eSFjBFUYm_M2eA@mail.gmail.com>
-Subject: Re: [GIT PULL FOR v3.10] DaVinci media cleanups + Updates
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Cc: dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sekhar Nori <nsekhar@ti.com>,
-	linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, matsu@igel.co.jp
+Subject: Re: [PATCH v2 1/5] V4L2: I2C: ML86V7667 video decoder driver
+References: <201304212240.30949.sergei.shtylyov@cogentembedded.com> <201304220848.04870.hverkuil@xs4all.nl>
+In-Reply-To: <201304220848.04870.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans/Mauro,
+Hi Hans,
 
-Ahh here is the final pull request hopefully I wont add anymore :)
-sorry for inconvenience,
-had to add on more patch at the final moment. Following is the fresh
-pull request.
-Let me know if replying on top if it is OK or if if you want a fresh mail.
+Thank you for the review.
 
-Note: All the ARM platform changes have been acked by its maintainer.
+Hans Verkuil wrote:
+>> +#include <media/v4l2-chip-ident.h>
+>>     
+>
+> This include should be removed as well.
+>   
+ok
+>   
+>> +
+>> +static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+>> +{
+>> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+>> +
+>> +	*std = priv->std;
+>>     
+>
+> That's not right. querystd should attempt to detect the standard, that's
+> what it is for. It should just return the detected standard, not actually
+> change it.
+>   
+Ok.
+I've mixed the things up with your review on removing the autoselection 
+feature and detection.
+Thx for pointing on this.
+>   
+>> +	 */
+>> +	val = i2c_smbus_read_byte_data(client, STATUS_REG);
+>> +	if (val < 0)
+>> +		return val;
+>> +
+>> +	priv->std = val & STATUS_NTSCPAL ? V4L2_STD_PAL : V4L2_STD_NTSC;
+>>     
+>
+> Shouldn't this be 50 Hz vs 60 Hz formats? There are 60 Hz PAL standards
+> and usually these devices detect 50 Hz vs 60 Hz, not NTSC vs PAL.
+>   
+In the reference manual it is not mentioned about 50/60Hz input format 
+selection/detection but it mentioned just PAL/NTSC.
+The 50hz formats can be ether PAL and NTSC formats variants. The same is 
+applied to 60Hz.
+
+In the ML86V7667 datasheet the description for STATUS register detection 
+bit is just PAL/NTSC:
+" $2C/STATUS [2] NTSC/PAL identification 0: NTSC /1: PAL "
+
+If you assure me that I must judge their description as 50 vs 60Hz 
+formats and not PAL/NTSC then I will make the change.
 
 Regards,
---Prabhakar
-
-The following changes since commit 81e096c8ac6a064854c2157e0bf802dc4906678c:
-
-  [media] budget: Add support for Philips Semi Sylt PCI ref. design
-(2013-04-08 07:28:01 -0300)
-
-are available in the git repository at:
-  git://linuxtv.org/mhadli/v4l-dvb-davinci_devices.git for_v3.10
-
-Lad, Prabhakar (9):
-      davinci: vpif: add pm_runtime support
-      media: davinci: vpss: enable vpss clocks
-      media: davinci: vpbe: venc: move the enabling of vpss clocks to driver
-      davinic: vpss: trivial cleanup
-      ARM: davinci: dm365: add support for v4l2 video display
-      ARM: davinci: dm365 EVM: add support for VPBE display
-      ARM: davinci: dm355: add support for v4l2 video display
-      ARM: davinci: dm355 EVM: add support for VPBE display
-      ARM: daVinci: dm644x/dm355/dm365: replace V4L2_STD_525_60/625_50
-with V4L2_STD_NTSC/PAL
-
-Sekhar Nori (1):
-      media: davinci: kconfig: fix incorrect selects
-
- arch/arm/mach-davinci/board-dm355-evm.c      |   71 +++++++++-
- arch/arm/mach-davinci/board-dm365-evm.c      |  166 ++++++++++++++++++++++-
- arch/arm/mach-davinci/board-dm644x-evm.c     |    4 +-
- arch/arm/mach-davinci/davinci.h              |   11 ++-
- arch/arm/mach-davinci/dm355.c                |  174 ++++++++++++++++++++++--
- arch/arm/mach-davinci/dm365.c                |  195 +++++++++++++++++++++++---
- arch/arm/mach-davinci/dm644x.c               |    9 +-
- arch/arm/mach-davinci/pm_domain.c            |    2 +-
- drivers/media/platform/davinci/Kconfig       |  103 +++++---------
- drivers/media/platform/davinci/Makefile      |   17 +--
- drivers/media/platform/davinci/dm355_ccdc.c  |   39 +-----
- drivers/media/platform/davinci/dm644x_ccdc.c |   44 ------
- drivers/media/platform/davinci/isif.c        |   28 +---
- drivers/media/platform/davinci/vpbe_venc.c   |   25 ++++
- drivers/media/platform/davinci/vpif.c        |   24 +---
- drivers/media/platform/davinci/vpss.c        |   36 ++++-
- 16 files changed, 694 insertions(+), 254 deletions(-)
+Vladimir
