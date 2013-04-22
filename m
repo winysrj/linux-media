@@ -1,146 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2068 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751877Ab3DNPhK (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:23935 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752531Ab3DVOHQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 11:37:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 22 Apr 2013 10:07:16 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLN00JMYTW396L0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Apr 2013 23:07:15 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Sri Deevi <Srinivasa.Deevi@conexant.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 26/30] cx25821: group all fmt functions together.
-Date: Sun, 14 Apr 2013 17:27:22 +0200
-Message-Id: <1365953246-8972-27-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365953246-8972-1-git-send-email-hverkuil@xs4all.nl>
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 11/12] exynos4-is: Change function call order in
+ fimc_is_module_exit()
+Date: Mon, 22 Apr 2013 16:03:46 +0200
+Message-id: <1366639427-14253-12-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+References: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Due to hardware dependencies (clocks/power domain) the I2C bus
+controller needs to be unregistered before fimc-is.
 
-No other changes, just function reordering.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/pci/cx25821/cx25821-video.c |   84 +++++++++++++++--------------
- 1 file changed, 43 insertions(+), 41 deletions(-)
+ drivers/media/platform/exynos4-is/fimc-is.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
-index 8d5d13b..d3cf259 100644
---- a/drivers/media/pci/cx25821/cx25821-video.c
-+++ b/drivers/media/pci/cx25821/cx25821-video.c
-@@ -551,6 +551,19 @@ static int video_release(struct file *file)
- }
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index ca72b02..5e89077 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -995,9 +995,9 @@ err_sens:
  
- /* VIDEO IOCTLS */
-+
-+static int cx25821_vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
-+			    struct v4l2_fmtdesc *f)
-+{
-+	if (unlikely(f->index >= ARRAY_SIZE(formats)))
-+		return -EINVAL;
-+
-+	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
-+	f->pixelformat = formats[f->index].fourcc;
-+
-+	return 0;
-+}
-+
- static int cx25821_vidioc_g_fmt_vid_cap(struct file *file, void *priv,
- 				 struct v4l2_format *f)
+ static void fimc_is_module_exit(void)
  {
-@@ -607,35 +620,6 @@ static int cx25821_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
- 
- 	return 0;
- }
--static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
--{
--	struct cx25821_channel *chan = video_drvdata(file);
--
--	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--
--	if (chan->streaming_fh && chan->streaming_fh != priv)
--		return -EBUSY;
--	chan->streaming_fh = priv;
--
--	return videobuf_streamon(&chan->vidq);
--}
--
--static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
--{
--	struct cx25821_channel *chan = video_drvdata(file);
--
--	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
--		return -EINVAL;
--
--	if (chan->streaming_fh && chan->streaming_fh != priv)
--		return -EBUSY;
--	if (chan->streaming_fh == NULL)
--		return 0;
--
--	chan->streaming_fh = NULL;
--	return videobuf_streamoff(&chan->vidq);
--}
- 
- static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
-@@ -673,6 +657,36 @@ static int vidioc_s_fmt_vid_cap(struct file *file, void *priv,
- 	return 0;
+-	platform_driver_unregister(&fimc_is_driver);
+-	fimc_is_unregister_i2c_driver();
+ 	fimc_is_unregister_sensor_driver();
++	fimc_is_unregister_i2c_driver();
++	platform_driver_unregister(&fimc_is_driver);
  }
  
-+static int vidioc_streamon(struct file *file, void *priv, enum v4l2_buf_type i)
-+{
-+	struct cx25821_channel *chan = video_drvdata(file);
-+
-+	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	if (chan->streaming_fh && chan->streaming_fh != priv)
-+		return -EBUSY;
-+	chan->streaming_fh = priv;
-+
-+	return videobuf_streamon(&chan->vidq);
-+}
-+
-+static int vidioc_streamoff(struct file *file, void *priv, enum v4l2_buf_type i)
-+{
-+	struct cx25821_channel *chan = video_drvdata(file);
-+
-+	if (i != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-+		return -EINVAL;
-+
-+	if (chan->streaming_fh && chan->streaming_fh != priv)
-+		return -EBUSY;
-+	if (chan->streaming_fh == NULL)
-+		return 0;
-+
-+	chan->streaming_fh = NULL;
-+	return videobuf_streamoff(&chan->vidq);
-+}
-+
- static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *p)
- {
- 	int ret_val = 0;
-@@ -718,18 +732,6 @@ static int cx25821_vidioc_querycap(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int cx25821_vidioc_enum_fmt_vid_cap(struct file *file, void *priv,
--			    struct v4l2_fmtdesc *f)
--{
--	if (unlikely(f->index >= ARRAY_SIZE(formats)))
--		return -EINVAL;
--
--	strlcpy(f->description, formats[f->index].name, sizeof(f->description));
--	f->pixelformat = formats[f->index].fourcc;
--
--	return 0;
--}
--
- static int cx25821_vidioc_reqbufs(struct file *file, void *priv,
- 			   struct v4l2_requestbuffers *p)
- {
+ module_init(fimc_is_module_init);
 -- 
-1.7.10.4
+1.7.9.5
 
