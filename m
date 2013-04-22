@@ -1,64 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4135 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756955Ab3DSHXB (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:59349 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754258Ab3DVK0g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 03:23:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH 05/24] V4L2: allow dummy file-handle initialisation by v4l2_fh_init()
-Date: Fri, 19 Apr 2013 09:22:50 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <1366320945-21591-6-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1366320945-21591-6-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 22 Apr 2013 06:26:36 -0400
+Received: by mail-ob0-f174.google.com with SMTP id wc20so2287240obb.5
+        for <linux-media@vger.kernel.org>; Mon, 22 Apr 2013 03:26:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304190922.50517.hverkuil@xs4all.nl>
+In-Reply-To: <1731019.P1JXV7Hkkn@amdc1227>
+References: <1365419265-21238-1-git-send-email-vikas.sajjan@linaro.org>
+	<3109033.iP2qIPD33v@flatron>
+	<CAKohpok+tNxCmy-TMRweObPLSVHECZzdgJxRh2iDWyXQCiJuqg@mail.gmail.com>
+	<1731019.P1JXV7Hkkn@amdc1227>
+Date: Mon, 22 Apr 2013 15:56:35 +0530
+Message-ID: <CAKohpokRzQLhmdi7o=ytuw9M62TvDGqp2TSmAnEE5AM3E2nq5g@mail.gmail.com>
+Subject: Re: [PATCH v4] drm/exynos: prepare FIMD clocks
+From: Viresh Kumar <viresh.kumar@linaro.org>
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: dri-devel@lists.freedesktop.org,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	linux-samsung-soc@vger.kernel.org,
+	"patches@linaro.org" <patches@linaro.org>,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Vikas Sajjan <vikas.sajjan@linaro.org>,
+	linaro-kernel@lists.linaro.org,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu April 18 2013 23:35:26 Guennadi Liakhovetski wrote:
-> v4l2_fh_init() can be used to initialise dummy file-handles with vdev ==
-> NULL.
+On 22 April 2013 15:26, Tomasz Figa <t.figa@samsung.com> wrote:
+> Can you assure that in future SoCs, on which this driver will be used, this
+> assumption will still hold true or even that in current Exynos driver this
+> behavior won't be changed?
 
-Why would you want that?
-
-Anyway, this would definitely have to be documented as well in v4l2-fh.h.
-
-I'm still going through your patch series so there may be a good reason
-for allowing this, but it definitely doesn't make me happy.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/v4l2-core/v4l2-fh.c |    8 +++++---
->  1 files changed, 5 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-fh.c b/drivers/media/v4l2-core/v4l2-fh.c
-> index e57c002..7ae608b 100644
-> --- a/drivers/media/v4l2-core/v4l2-fh.c
-> +++ b/drivers/media/v4l2-core/v4l2-fh.c
-> @@ -33,10 +33,12 @@
->  void v4l2_fh_init(struct v4l2_fh *fh, struct video_device *vdev)
->  {
->  	fh->vdev = vdev;
-> -	/* Inherit from video_device. May be overridden by the driver. */
-> -	fh->ctrl_handler = vdev->ctrl_handler;
-> +	if (vdev) {
-> +		/* Inherit from video_device. May be overridden by the driver. */
-> +		fh->ctrl_handler = vdev->ctrl_handler;
-> +		set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
-> +	}
->  	INIT_LIST_HEAD(&fh->list);
-> -	set_bit(V4L2_FL_USES_V4L2_FH, &fh->vdev->flags);
->  	fh->prio = V4L2_PRIORITY_UNSET;
->  	init_waitqueue_head(&fh->wait);
->  	INIT_LIST_HEAD(&fh->available);
-> 
+Probably yes.. Registers for enabling/disabling these clocks should always
+be on AMBA bus and not on SPI/I2C, i.e. on-soc... and so this will hold
+true.
