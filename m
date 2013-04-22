@@ -1,134 +1,474 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f51.google.com ([209.85.216.51]:57629 "EHLO
-	mail-qa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936834Ab3DJOa0 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56709 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750958Ab3DVLjF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 10:30:26 -0400
+	Mon, 22 Apr 2013 07:39:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v9 02/20] V4L2: support asynchronous subdevice registration
+Date: Mon, 22 Apr 2013 13:39:12 +0200
+Message-ID: <1489465.QAtJQiYEWC@avalon>
+In-Reply-To: <516BEB1D.80105@samsung.com>
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de> <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de> <516BEB1D.80105@samsung.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1304101601160.13557@axis700.grange>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-8-git-send-email-g.liakhovetski@gmx.de> <CAGsJ_4yUY6PE0NWZ9yaOLFmRb3O-HL55=w7Y6muwL0YbkJtP0Q@mail.gmail.com>
- <Pine.LNX.4.64.1304101358490.13557@axis700.grange> <CAGsJ_4xn_R7D7Uh0dJB7WuDQG3K_mZkMwYNtMDuHMhX+4oTk=Q@mail.gmail.com>
- <Pine.LNX.4.64.1304101601160.13557@axis700.grange>
-From: Barry Song <21cnbao@gmail.com>
-Date: Wed, 10 Apr 2013 22:30:05 +0800
-Message-ID: <CAGsJ_4z-FnbHtmbi16YD5LmYfpL+=ngke8EgkPHWy_PJ8QBPNg@mail.gmail.com>
-Subject: Re: [PATCH 07/14] media: soc-camera: support deferred probing of clients
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Mark Brown <broonie@opensource.wolfsonmicro.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"renwei.wu" <renwei.wu@csr.com>,
-	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
-	xiaomeng.hou@csr.com, zilong.wu@csr.com
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/4/10 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
-> On Wed, 10 Apr 2013, Barry Song wrote:
->
->> Hi Guennadi,
->
-> There's a typo above.
+Hi Guennadi and Sylwester,
 
-sorry for the typo.
+On Monday 15 April 2013 13:57:17 Sylwester Nawrocki wrote:
+> On 04/12/2013 05:40 PM, Guennadi Liakhovetski wrote:
+> > Currently bridge device drivers register devices for all subdevices
+> > synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> > is attached to a video bridge device, the bridge driver will create an I2C
+> > device and wait for the respective I2C driver to probe. This makes linking
+> > of devices straight forward, but this approach cannot be used with
+> > intrinsically asynchronous and unordered device registration systems like
+> > the Flattened Device Tree. To support such systems this patch adds an
+> > asynchronous subdevice registration framework to V4L2. To use it
+> > respective
+> > (e.g. I2C) subdevice drivers must register themselves with the framework.
+> > A bridge driver on the other hand must register notification callbacks,
+> > that will be called upon various related events.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > 
+> > v9: addressed Laurent's comments (thanks)
+> > 1. moved valid hw->bus_type check
+> > 2. made v4l2_async_unregister() void
+> > 3. renamed struct v4l2_async_hw_device to struct v4l2_async_hw_info
+> > 4. merged struct v4l2_async_subdev_list into struct v4l2_subdev
+> > 5. fixed a typo
+> > 6. made subdev_num unsigned
 
->
->> Thanks!
->>
->> 2013/4/10 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
->> > Hi Barry
->> >
->> > On Wed, 10 Apr 2013, Barry Song wrote:
->> >
->> >> Hi Guennadia,
->> >>
->> >> 2012/9/27 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
->> >> > Currently soc-camera doesn't work with independently registered I2C client
->> >> > devices, it has to register them itself. This patch adds support for such
->> >> > configurations, in which case client drivers have to request deferred
->> >> > probing until their host becomes available and enables the data interface.
->> >> >
->> >> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> >> > ---
->> >>
->> >> it seems deferred probing for i2c camera sensors is a more workaround
->> >> than a solution.
->> >> currently,  soc-camera-pdrv is the manager of the whole initilization
->> >> flow. it all requires the host/client registerred and initilized
->> >> synchronously. so that results in strange things like that we fill a
->> >> i2c_board_info structure in arch/arm/mach-xxx but we never call
->> >> anything like i2c_new_device() to add the i2c client in mach. because
->> >> we need to do that in the soc-camera-pdrv driver to make all things
->> >> happen orderly.
->> >>
->> >> but now after we move to DT, all i2c device will be registerred
->> >> automatically by of_i2c_register_devices() in i2c_host 's probe, that
->> >> makes the problem much worse and very urgent to get fixed.
->> >>
->> >> returning DEFERRED_PROBE error until getting the private data filled
->> >> by the manager,
->> >
->> > This hasn't been the case since several versions of these patches. We no
->> > longer use private data to decide whether subdevices can probe
->> > successfully or have to defer probing.
->>
->> sorry for missing.  i will refer to your newer versions.
->>
->> >
->> >> indirectly, makes the things seem to be asynchronous,
->> >> but essentially it is still synchronous because the overall timing
->> >> line is still controller by soc-camera-pdrv.
->> >
->> > It isn't. If your subdevice driver doesn't have any dependencies, like
->> > e.g. sh_mobile_csi2.c, it will probe asynchronously whenever it's loaded.
->> > It is the task of a bridge driver, in our case of the soc-camera core, to
->> > register notifiers and a list of expected subdevices with the v4l2-async
->> > subsystem. As subdevices complete their probing they signal that to the
->> > v4l2-async too, which then calls bridge's notifiers, which then can build
->> > the pipeline.
->>
->> it seems we didn't describle my idea clearly in the last mail. i
->> actually mean we don't need that if we put the pipeline building to
->> the last stage after all things have been placed there.
->>
->> >
->> >> what about another possible way:
->> >> we let all host and i2c client driver probed in any order,
->> >
->> > This cannot work, because some I2C devices, e.g. sensors, need a clock
->> > signal from the camera interface to probe. Before the bridge driver has
->> > completed its probing and registered a suitable clock source with the
->> > v4l2-clk framework, sensors cannot be probed. And no, we don't want to
->> > fake successful probing without actually being able to talk to the
->> > hardware.
->>
->> i'd say same dependency also exists on ASoC.  a "fake" successful
->> probing doesn't mean it should really begin to work if there is no
->> external trigger source.  ASoC has successfully done that by a machine
->> driver to connect all DAI.
->> a way is we put all things ready in their places, finally we connect
->> them together and launch the whole hardware flow.
->>
->> anyway, if you have maken the things work by some simple hacking and
->> that means minimial changes to current soc-camera, i think we can
->> follow.
->
-> If you want to volunteer to step up as a new soc-camera maintainer to
-> replace my simple hacking with your comprehencive and advanced designs -
-> feel free, I'll ack straight away.
+Remembering the media controller days, I know how it feels to reach v9. Please 
+keep on with the good work, we're getting there :-)
 
-i am not sure whether you agree the new way or not. if you also agree
-this is a better way, i think we can do something to move ahead. i
-need sync and get input from you expert :-)
+> >  drivers/media/v4l2-core/Makefile     |    3 +-
+> >  drivers/media/v4l2-core/v4l2-async.c |  284 +++++++++++++++++++++++++++++
+> >  include/media/v4l2-async.h           |   99 ++++++++++++
+> >  include/media/v4l2-subdev.h          |   10 ++
+> >  4 files changed, 395 insertions(+), 1 deletions(-)
+> >  create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+> >  create mode 100644 include/media/v4l2-async.h
 
->
-> Thanks
-> Guennadi
+[snip]
 
--barry
+> > diff --git a/drivers/media/v4l2-core/v4l2-async.c
+> > b/drivers/media/v4l2-core/v4l2-async.c new file mode 100644
+> > index 0000000..98db2e0
+> > --- /dev/null
+> > +++ b/drivers/media/v4l2-core/v4l2-async.c
+> > @@ -0,0 +1,284 @@
+> > +/*
+> > + * V4L2 asynchronous subdevice registration API
+> > + *
+> > + * Copyright (C) 2012-2013, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> 
+> [...]
+> 
+> > +static void v4l2_async_cleanup(struct v4l2_async_subdev_list *asdl)
+> > +{
+> > +	struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
+> > +
+> > +	v4l2_device_unregister_subdev(sd);
+> > +	/* Subdevice driver will reprobe and put asdl back onto the list */
+> > +	list_del_init(&asdl->list);
+> > +	asdl->asd = NULL;
+> > +	sd->dev = NULL;
+> > +}
+> > +
+> > +static void v4l2_async_unregister(struct v4l2_async_subdev_list *asdl)
+> > +{
+> > +	struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
+> > +
+> > +	v4l2_async_cleanup(asdl);
+> > +
+> > +	/* If we handled USB devices, we'd have to lock the parent too */
+> > +	device_release_driver(sd->dev);
+> > +}
+> > +
+> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > +				 struct v4l2_async_notifier *notifier)
+> > +{
+> > +	struct v4l2_async_subdev_list *asdl, *tmp;
+> > +	struct v4l2_async_subdev *asd;
+> > +	int i;
+> > +
+> > +	notifier->v4l2_dev = v4l2_dev;
+> > +	INIT_LIST_HEAD(&notifier->waiting);
+> > +	INIT_LIST_HEAD(&notifier->done);
+> > +
+> > +	for (i = 0; i < notifier->subdev_num; i++) {
+> > +		asd = notifier->subdev[i];
+> > +
+> > +		switch (asd->hw.bus_type) {
+> > +		case V4L2_ASYNC_BUS_CUSTOM:
+> > +		case V4L2_ASYNC_BUS_PLATFORM:
+> > +		case V4L2_ASYNC_BUS_I2C:
+> > +			break;
+> > +		default:
+> > +			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> > +				"Invalid bus-type %u on %p\n",
+> > +				asd->hw.bus_type, asd);
+> > +			return -EINVAL;
+> > +		}
+> > +		list_add_tail(&asd->list, &notifier->waiting);
+> > +	}
+> > +
+> > +	mutex_lock(&list_lock);
+> > +
+> > +	/* Keep also completed notifiers on the list */
+> > +	list_add(&notifier->list, &notifier_list);
+> > +
+> > +	list_for_each_entry_safe(asdl, tmp, &subdev_list, list) {
+> > +		int ret;
+> > +
+> > +		asd = v4l2_async_belongs(notifier, asdl);
+> > +		if (!asd)
+> > +			continue;
+> > +
+> > +		ret = v4l2_async_test_notify(notifier, asdl, asd);
+> > +		if (ret < 0) {
+> > +			mutex_unlock(&list_lock);
+> > +			return ret;
+> > +		}
+> > +	}
+> > +
+> > +	mutex_unlock(&list_lock);
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL(v4l2_async_notifier_register);
+> > +
+> > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier)
+> > +{
+> > +	struct v4l2_async_subdev_list *asdl, *tmp;
+> > +	int i = 0;
+> > +	struct device **dev = kcalloc(notifier->subdev_num,
+> > +				      sizeof(*dev), GFP_KERNEL);
+> > +	if (!dev)
+> > +		dev_err(notifier->v4l2_dev->dev,
+> > +			"Failed to allocate device cache!\n");
+> > +
+> > +	mutex_lock(&list_lock);
+> > +
+> > +	list_del(&notifier->list);
+> > +
+> > +	list_for_each_entry_safe(asdl, tmp, &notifier->done, list) {
+> > +		if (dev) {
+> > +			struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
+> > +			dev[i++] = get_device(sd->dev);
+> > +		}
+> > +		v4l2_async_unregister(asdl);
+> 
+> Hmm, couldn't we do without the **dev array ? Now when struct v42_subdev has
+> struct device * embedded in it ?
+> 
+> And if we can't get hold off struct device object is it safe to call
+> v4l2_async_unregister(), which references it ?
+> 
+> Why is get_device() optional ? Some comment might be useful here.
+> 
+> > +
+> > +		if (notifier->unbind)
+> > +			notifier->unbind(notifier, asdl);
+> > +	}
+> > +
+> > +	mutex_unlock(&list_lock);
+> > +
+> > +	if (dev) {
+> > +		while (i--) {
+> > +			if (dev[i] && device_attach(dev[i]) < 0)
+
+This is my last major pain point.
+
+To avoid race conditions we need circular references (see http://www.mail-archive.com/linux-media@vger.kernel.org/msg61092.html). We will thus need a 
+way to break the circle by explictly requesting the subdev to release its 
+resources. I'm afraid I have no well-designed solution for that at the moment.
+
+> > +				dev_err(dev[i], "Failed to re-probe to %s\n",
+> > +					dev[i]->driver ? dev[i]->driver->name : "(none)");
+> 
+> Is it safe to reference dev->driver without holding struct device::mutex ?
+> 
+> > +			put_device(dev[i]);
+> > +		}
+> > +		kfree(dev);
+> > +	}
+> > +	/*
+> > +	 * Don't care about the waiting list, it is initialised and populated
+> > +	 * upon notifier registration.
+> > +	 */
+> > +}
+> > +EXPORT_SYMBOL(v4l2_async_notifier_unregister);
+> > +
+> > +int v4l2_async_register_subdev(struct v4l2_subdev *sd)
+> > +{
+> > +	struct v4l2_async_subdev_list *asdl = &sd->asdl;
+> > +	struct v4l2_async_notifier *notifier;
+> > +
+> > +	mutex_lock(&list_lock);
+> > +
+> > +	INIT_LIST_HEAD(&asdl->list);
+> > +
+> > +	list_for_each_entry(notifier, &notifier_list, list) {
+> > +		struct v4l2_async_subdev *asd = v4l2_async_belongs(notifier, 
+asdl);
+> > +		if (asd) {
+> > +			int ret = v4l2_async_test_notify(notifier, asdl, asd);
+> > +			mutex_unlock(&list_lock);
+> > +			return ret;
+> > +		}
+> > +	}
+> > +
+> > +	/* None matched, wait for hot-plugging */
+> > +	list_add(&asdl->list, &subdev_list);
+> > +
+> > +	mutex_unlock(&list_lock);
+> > +
+> > +	return 0;
+> > +}
+> > +EXPORT_SYMBOL(v4l2_async_register_subdev);
+> > +
+> > +void v4l2_async_unregister_subdev(struct v4l2_subdev *sd)
+> > +{
+> > +	struct v4l2_async_subdev_list *asdl = &sd->asdl;
+> > +	struct v4l2_async_notifier *notifier = asdl->notifier;
+> > +	struct device *dev;
+> 
+> This variable appears unused, except a single assignment below.
+> 
+> > +	if (!asdl->asd) {
+> > +		if (!list_empty(&asdl->list))
+> > +			v4l2_async_cleanup(asdl);
+> > +		return;
+> > +	}
+> > +
+> > +	mutex_lock(&list_lock);
+> > +
+> > +	dev = sd->dev;
+> > 
+> > +	list_add(&asdl->asd->list, &notifier->waiting);
+> > +
+> > +	v4l2_async_cleanup(asdl);
+> > +
+> > +	if (notifier->unbind)
+> > +		notifier->unbind(notifier, asdl);
+> > +
+> > +	mutex_unlock(&list_lock);
+> > +}
+> > +EXPORT_SYMBOL(v4l2_async_unregister_subdev);
+> > diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> > new file mode 100644
+> > index 0000000..c638f5c
+> > --- /dev/null
+> > +++ b/include/media/v4l2-async.h
+> > @@ -0,0 +1,99 @@
+> > +/*
+> > + * V4L2 asynchronous subdevice registration API
+> > + *
+> > + * Copyright (C) 2012-2013, Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > + *
+> > + * This program is free software; you can redistribute it and/or modify
+> > + * it under the terms of the GNU General Public License version 2 as
+> > + * published by the Free Software Foundation.
+> > + */
+> > +
+> > +#ifndef V4L2_ASYNC_H
+> > +#define V4L2_ASYNC_H
+> > +
+> > +#include <linux/list.h>
+> > +#include <linux/mutex.h>
+> > +
+> > +struct device;
+> > +struct v4l2_device;
+> > +struct v4l2_subdev;
+> > +struct v4l2_async_notifier;
+> > +
+> > +enum v4l2_async_bus_type {
+> > +	V4L2_ASYNC_BUS_CUSTOM,
+> > +	V4L2_ASYNC_BUS_PLATFORM,
+> > +	V4L2_ASYNC_BUS_I2C,
+> > +};
+> > +
+> > +struct v4l2_async_hw_info {
+
+I think I'd go for dev_info instead of hw_info, as the structure doesn't 
+contain much hardware information.
+
+> > +	enum v4l2_async_bus_type bus_type;
+> > +	union {
+> > +		struct {
+> > +			const char *name;
+> > +		} platform;
+> > +		struct {
+> > +			int adapter_id;
+> > +			unsigned short address;
+> > +		} i2c;
+> > +		struct {
+> > +			bool (*match)(struct device *,
+> > +				      struct v4l2_async_hw_info *);
+> > +			void *priv;
+> > +		} custom;
+> > +	} match;
+> > +};
+> > +
+> > +/**
+> > + * struct v4l2_async_subdev - sub-device descriptor, as known to a bridge
+> > + * @hw:		this device descriptor
+> > + * @list:	member in a list of subdevices
+> > + */
+> > +struct v4l2_async_subdev {
+> > +	struct v4l2_async_hw_info hw;
+> > +	struct list_head list;
+> > +};
+> > +
+> > +/**
+> > + * v4l2_async_subdev_list - provided by subdevices
+> > + * @list:	member in a list of subdevices
+
+Could you please extend this comment to tell which list of subdevices ? Same 
+for the list in v4l2_async_subdev.
+
+> > + * @asd:	pointer to respective struct v4l2_async_subdev
+> > + * @notifier:	pointer to managing notifier
+> > + */
+> > +struct v4l2_async_subdev_list {
+> > +	struct list_head list;
+> > +	struct v4l2_async_subdev *asd;
+> > +	struct v4l2_async_notifier *notifier;
+> > +};
+> > +
+> > +/**
+> > + * v4l2_async_notifier - provided by bridges
+> 
+> It probably makes sense to just say e.g.
+> 
+>  v4l2_async_notifier - v4l2_device notifier data structure
+> 
+> I mean at least "bridge" to me doesn't sound generic enough.
+> 
+> > + * @subdev_num:	number of subdevices
+> > + * @subdev:	array of pointers to subdevices
+> > + * @v4l2_dev:	pointer to struct v4l2_device
+> > + * @waiting:	list of subdevices, waiting for their drivers
+
+s/subdevices/v4l2_async_subdev/ ?
+
+> > + * @done:	list of subdevices, already probed
+
+s/subdevices/v4l2_async_subdev_list/ ?
+
+> > + * @list:	member in a global list of notifiers
+> > + * @bound:	a subdevice driver has successfully probed one of subdevices
+> > + * @complete:	all subdevices have been probed successfully
+> > + * @unbind:	a subdevice is leaving
+> > + */
+> > +struct v4l2_async_notifier {
+> > +	unsigned int subdev_num;
+> > +	struct v4l2_async_subdev **subdev;
+> > +	struct v4l2_device *v4l2_dev;
+> > +	struct list_head waiting;
+> > +	struct list_head done;
+> > +	struct list_head list;
+> > +	int (*bound)(struct v4l2_async_notifier *notifier,
+> > +		     struct v4l2_async_subdev_list *asdl);
+> > +	int (*complete)(struct v4l2_async_notifier *notifier);
+> > +	void (*unbind)(struct v4l2_async_notifier *notifier,
+> > +		       struct v4l2_async_subdev_list *asdl);
+> 
+> I would preffer to simply pass struct v4l2_subdev * to bound/unbind.
+
+Agreed.
+
+> Since it is about just one subdevice's status change, why do we need
+> struct v4l2_async_subdev_list ?
+
+The bridge will need to identify the subdev. The idea AFAIK is to do so 
+through v4l2_async_hw_info, which can be accessed through asdl->asd->hw. As 
+asd should be considered as private from the bridge point of view, I would 
+rather pass the subdev pointer and the hw pointer to the bound and unbind 
+functions.
+
+> > +};
+> > +
+> > +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> > +				 struct v4l2_async_notifier *notifier);
+> > +void v4l2_async_notifier_unregister(struct v4l2_async_notifier
+> > *notifier);
+> 
+> How about naming it v4l2_device_notifier_(un)register() ?
+
+Or v4l2_subdev_notifier_(un)register ?
+
+> > +int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+> > +void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
+> 
+> Hopefully, one day it just becomes v4l2_(un)register_subdev() :-)
+> 
+> > +#endif
+> > diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> > index 5298d67..21174af 100644
+> > --- a/include/media/v4l2-subdev.h
+> > +++ b/include/media/v4l2-subdev.h
+> > @@ -24,6 +24,7 @@
+> >  #include <linux/types.h>
+> >  #include <linux/v4l2-subdev.h>
+> >  #include <media/media-entity.h>
+> > +#include <media/v4l2-async.h>
+> >  #include <media/v4l2-common.h>
+> >  #include <media/v4l2-dev.h>
+> >  #include <media/v4l2-fh.h>
+> > @@ -585,8 +586,17 @@ struct v4l2_subdev {
+> >  	void *host_priv;
+> >  	/* subdev device node */
+> >  	struct video_device *devnode;
+> > 
+> > +	/* pointer to the physical device */
+> > +	struct device *dev;
+> > +	struct v4l2_async_subdev_list asdl;
+> 
+> Why not embed respective fields directly in struct v4l2_subdev, rather
+> than adding this new data structure ? I find this all code pretty much
+> convoluted, probably one of the reason is that there are multiple
+> list_head objects at various levels.
+
+I agree, that should be at least tried. We could then merge the subdev list 
+field with the asdl list field after switching to async registration.
+
+I was also wondering whether merging v4l2_async_subdev with v4l2_async_hw_info 
+wouldn't produce simpler code.
+
+> >  };
+> > 
+> > +static inline struct v4l2_subdev *v4l2_async_to_subdev(
+> > +			struct v4l2_async_subdev_list *asdl)
+> > +{
+> > +	return container_of(asdl, struct v4l2_subdev, asdl);
+> > +}
+> > +
+> >  #define media_entity_to_v4l2_subdev(ent) \
+> >  	container_of(ent, struct v4l2_subdev, entity)
+> >  #define vdev_to_v4l2_subdev(vdev) \
+
+-- 
+Regards,
+
+Laurent Pinchart
+
