@@ -1,121 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1322 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932690Ab3DFIn3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Apr 2013 04:43:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:18073 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752977Ab3DVONU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 10:13:20 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLN0053NU53J0C0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Apr 2013 15:13:18 +0100 (BST)
+Message-id: <5175457D.4050408@samsung.com>
+Date: Mon, 22 Apr 2013 16:13:17 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 1/2] tuner-core/tda9887: get_afc can be tuner mode specific
-Date: Sat,  6 Apr 2013 10:43:13 +0200
-Message-Id: <1365237794-32380-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365237794-32380-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365237794-32380-1-git-send-email-hverkuil@xs4all.nl>
+Cc: kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com
+Subject: Re: [PATCH 00/12] exynos4-is driver fixes
+References: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1366639427-14253-1-git-send-email-s.nawrocki@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On 04/22/2013 04:03 PM, Sylwester Nawrocki wrote:
+> This patch series includes fixes for several issues found during
+> testing all exynos4-is device drivers build as modules. The exynos4-is
+> build with all sub-drivers as 'M' is hopefully now free of all serious
+> issues, but one. I.e. the requirement now is to have all sub-device
+> drivers, including the sensor subdev drivers, built as modules.
 
-The get_afc op in tda9887 is valid only for the radio mode.
-But due to the way get_afc in analog_demod_ops was designed it would
-overwrite the afc value with a bogus value when in TV mode.
+Hmm, to avoid issues all drivers must now be either statically linked or
+build as modules and all need to be inserted, the all removed. Leaving
+any one loaded all time may lead to a disaster... This is not a new
+issue and and is related to all drivers using MC framework, thus I plan
+to address it for 3.11.
 
-Pass a pointer to the afc value instead, and when not in radio mode
-leave it alone in the tda9887.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/dvb-core/dvb_frontend.h |    2 +-
- drivers/media/tuners/tda9887.c        |   14 +++++++-------
- drivers/media/v4l2-core/tuner-core.c  |   14 ++------------
- 3 files changed, 10 insertions(+), 20 deletions(-)
-
-diff --git a/drivers/media/dvb-core/dvb_frontend.h b/drivers/media/dvb-core/dvb_frontend.h
-index b34922a..44fad1c 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -246,7 +246,7 @@ struct analog_demod_ops {
- 	void (*set_params)(struct dvb_frontend *fe,
- 			   struct analog_parameters *params);
- 	int  (*has_signal)(struct dvb_frontend *fe);
--	int  (*get_afc)(struct dvb_frontend *fe);
-+	int  (*get_afc)(struct dvb_frontend *fe, s32 *afc);
- 	void (*tuner_status)(struct dvb_frontend *fe);
- 	void (*standby)(struct dvb_frontend *fe);
- 	void (*release)(struct dvb_frontend *fe);
-diff --git a/drivers/media/tuners/tda9887.c b/drivers/media/tuners/tda9887.c
-index cdb645d..300005c 100644
---- a/drivers/media/tuners/tda9887.c
-+++ b/drivers/media/tuners/tda9887.c
-@@ -596,22 +596,22 @@ static void tda9887_tuner_status(struct dvb_frontend *fe)
- 		   priv->data[1], priv->data[2], priv->data[3]);
- }
- 
--static int tda9887_get_afc(struct dvb_frontend *fe)
-+static int tda9887_get_afc(struct dvb_frontend *fe, s32 *afc)
- {
- 	struct tda9887_priv *priv = fe->analog_demod_priv;
--	static int AFC_BITS_2_kHz[] = {
-+	static const int AFC_BITS_2_kHz[] = {
- 		-12500,  -37500,  -62500,  -97500,
- 		-112500, -137500, -162500, -187500,
- 		187500,  162500,  137500,  112500,
- 		97500 ,  62500,   37500 ,  12500
- 	};
--	int afc=0;
- 	__u8 reg = 0;
- 
--	if (1 == tuner_i2c_xfer_recv(&priv->i2c_props,&reg,1))
--		afc = AFC_BITS_2_kHz[(reg>>1)&0x0f];
--
--	return afc;
-+	if (priv->mode != V4L2_TUNER_RADIO)
-+		return 0;
-+	if (1 == tuner_i2c_xfer_recv(&priv->i2c_props, &reg, 1))
-+		*afc = AFC_BITS_2_kHz[(reg >> 1) & 0x0f];
-+	return 0;
- }
- 
- static void tda9887_standby(struct dvb_frontend *fe)
-diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
-index cf9a9af..b2d057d 100644
---- a/drivers/media/v4l2-core/tuner-core.c
-+++ b/drivers/media/v4l2-core/tuner-core.c
-@@ -228,16 +228,6 @@ static int fe_has_signal(struct dvb_frontend *fe)
- 	return strength;
- }
- 
--static int fe_get_afc(struct dvb_frontend *fe)
--{
--	s32 afc;
--
--	if (fe->ops.tuner_ops.get_afc(fe, &afc) < 0)
--		return 0;
--
--	return afc;
--}
--
- static int fe_set_config(struct dvb_frontend *fe, void *priv_cfg)
- {
- 	struct dvb_tuner_ops *fe_tuner_ops = &fe->ops.tuner_ops;
-@@ -454,7 +444,7 @@ static void set_type(struct i2c_client *c, unsigned int type,
- 		if (fe_tuner_ops->get_rf_strength)
- 			analog_ops->has_signal = fe_has_signal;
- 		if (fe_tuner_ops->get_afc)
--			analog_ops->get_afc = fe_get_afc;
-+			analog_ops->get_afc = fe_tuner_ops->get_afc;
- 
- 	} else {
- 		t->name = analog_ops->info.name;
-@@ -1196,7 +1186,7 @@ static int tuner_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 	if (check_mode(t, vt->type) == -EINVAL)
- 		return 0;
- 	if (vt->type == t->mode && analog_ops->get_afc)
--		vt->afc = analog_ops->get_afc(&t->fe);
-+		analog_ops->get_afc(&t->fe, &vt->afc);
- 	if (analog_ops->has_signal)
- 		vt->signal = analog_ops->has_signal(&t->fe);
- 	if (vt->type != V4L2_TUNER_RADIO) {
--- 
-1.7.10.4
-
+> The problem when some of the sub-device drivers is statically linked
+> is that the media links of a media entity just unregistered from
+> the media device are not fully cleaned up in the media controller
+> API. This means other entities can have dangling pointers to the links
+> array owned by en entity just removed and freed. The problem is not
+> existent when all media entites are registered/unregistred together.
+> In such a case it doesn't hurt that media_entity_cleanup() function
+> just frees the links array.
+> 
+> I will post a separate RFC patch to address this issue, since it is
+> not trivial where the link references should be removed from all
+> involved media entities.
+> 
+> I verified that adding a call to media_entity_remove_links() as in
+> patch [1] to the v4l2_sdubdev_unregister_function() eliminates all
+> weird crashes present before, when inserting/removing all the host
+> driver modules while the sensor driver stays loaded.
+> 
+> [1] http://git.linuxtv.org/snawrocki/samsung.git/commitdiff/f7007880a37c28beef845aa0787696aa8cead1cd
