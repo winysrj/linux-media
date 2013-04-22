@@ -1,62 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:55164 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936494Ab3DRVf7 (ORCPT
+Received: from mail-wg0-f54.google.com ([74.125.82.54]:41587 "EHLO
+	mail-wg0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754319Ab3DVHSh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 17:35:59 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 18/24] V4L2: mt9p031: power down the sensor if no supported device has been detected
-Date: Thu, 18 Apr 2013 23:35:39 +0200
-Message-Id: <1366320945-21591-19-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 22 Apr 2013 03:18:37 -0400
+MIME-Version: 1.0
+In-Reply-To: <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de> <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 22 Apr 2013 12:47:46 +0530
+Message-ID: <CA+V-a8uLsr8MkLs8rjEohqEo=7x-PJq37nhVuAUzsfF5j_uJiA@mail.gmail.com>
+Subject: Re: [PATCH v9 02/20] V4L2: support asynchronous subdevice registration
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mt9p031 driver first accesses the I2C device in its .registered()
-method. While doing that it furst powers the device up, but if probing
-fails, it doesn't power the chip back down. This patch fixes that bug.
+Hi Guennadi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/mt9p031.c |   10 ++++++----
- 1 files changed, 6 insertions(+), 4 deletions(-)
+Thanks for the patch!
 
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index eb2de22..70f4525 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -844,7 +844,7 @@ static int mt9p031_registered(struct v4l2_subdev *subdev)
- 	ret = mt9p031_power_on(mt9p031);
- 	if (ret < 0) {
- 		dev_err(&client->dev, "MT9P031 power up failed\n");
--		return ret;
-+		goto done;
- 	}
- 
- 	/* Read out the chip version register */
-@@ -852,13 +852,15 @@ static int mt9p031_registered(struct v4l2_subdev *subdev)
- 	if (data != MT9P031_CHIP_VERSION_VALUE) {
- 		dev_err(&client->dev, "MT9P031 not detected, wrong version "
- 			"0x%04x\n", data);
--		return -ENODEV;
-+		ret = -ENODEV;
- 	}
- 
-+done:
- 	mt9p031_power_off(mt9p031);
- 
--	dev_info(&client->dev, "MT9P031 detected at address 0x%02x\n",
--		 client->addr);
-+	if (!ret)
-+		dev_info(&client->dev, "MT9P031 detected at address 0x%02x\n",
-+			 client->addr);
- 
- 	return ret;
- }
--- 
-1.7.2.5
+On Fri, Apr 12, 2013 at 9:10 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Currently bridge device drivers register devices for all subdevices
+> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> is attached to a video bridge device, the bridge driver will create an I2C
+> device and wait for the respective I2C driver to probe. This makes linking
+> of devices straight forward, but this approach cannot be used with
+> intrinsically asynchronous and unordered device registration systems like
+> the Flattened Device Tree. To support such systems this patch adds an
+> asynchronous subdevice registration framework to V4L2. To use it respective
+> (e.g. I2C) subdevice drivers must register themselves with the framework.
+> A bridge driver on the other hand must register notification callbacks,
+> that will be called upon various related events.
+>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
+with this https://patchwork.linuxtv.org/patch/18096/ patch applied, yo
+can add my
+
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+
+Regards,
+--Prabhakar
