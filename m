@@ -1,130 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:24885 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932892Ab3DIIj2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 04:39:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Michal Lazo <michal.lazo@mdragon.org>
-Subject: Re: vivi kernel driver
-Date: Tue, 9 Apr 2013 10:38:53 +0200
-Cc: Peter Senna Tschudin <peter.senna@gmail.com>,
-	"linux-media" <linux-media@vger.kernel.org>
-References: <CAFW1BFxJ-fe8N-=LSKUfRP=-R+XUY_it3miEUKKJ6twkZa1wZA@mail.gmail.com> <201304081446.33811.hverkuil@xs4all.nl> <CAFW1BFwF1WKgp0Bxyqo1WrvY98LaKCbakK+=rjNsbEW7LgB2cw@mail.gmail.com>
-In-Reply-To: <CAFW1BFwF1WKgp0Bxyqo1WrvY98LaKCbakK+=rjNsbEW7LgB2cw@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304091038.53593.hverkuil@xs4all.nl>
+Received: from ven69-h01-31-33-9-98.dsl.sta.abo.bbox.fr ([31.33.9.98]:46596
+	"EHLO laptop-kevin.kbaradon.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755375Ab3DVUpY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 16:45:24 -0400
+From: Kevin Baradon <kevin.baradon@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Kevin Baradon <kevin.baradon@gmail.com>
+Subject: [PATCH 3/4] media/rc/imon.c: do not try to register 2nd intf if 1st intf failed
+Date: Mon, 22 Apr 2013 22:09:45 +0200
+Message-Id: <1366661386-6720-4-git-send-email-kevin.baradon@gmail.com>
+In-Reply-To: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
+References: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 9 April 2013 09:58:33 Michal Lazo wrote:
-> I want to make API that will provide hw video decoder on Amlogic SOC
-> it is ARM cortex 9
-> 
-> with some proprietary video decoder
-> 
-> amlogic provide me with working example that generate output frames in
-> amlvideo driver.
-> It is v4l2 driver
-> and it did memcpy to mmap userspace memory
-> 
->     buffer_y_start=ioremap(cs0.addr,cs0.width*cs0.height);
->     for(i=0;i<buf->vb.height;i++) {
-> 		memcpy(vbuf + pos_dst, buffer_y_start+pos_src, buf->vb.width*3);
-> 		pos_dst+=buf->vb.width*3;
-> 		pos_src+= cs0.width;
-> 	}
-> 
-> I did it with one memcpy with same cpu load
-> 
-> https://github.com/Pivosgroup/buildroot-linux-kernel/blob/master/drivers/media/video/amlvideo/amlvideo.c#L218
-> 
-> top get me 50% cpu load on this driver for 25fps PAL
-> 
-> it is really too much
-> 
-> and funny is that vivi driver(amlvideo is completely base on vivi) get
-> me same cpu load
+This bug could be triggered if 1st interface configuration fails:
 
-Well, yes, because it is the memcpy that gives you all the load.
-Of course, in a well-written driver the amlvideo buffers would be available
-to userspace directly using mmap() and no memcpy would be needed.
+Apr  8 18:20:30 homeserver kernel: usb 5-1: new low-speed USB device number 2 using ohci_hcd
+Apr  8 18:20:30 homeserver kernel: input: iMON Panel, Knob and Mouse(15c2:0036) as /devices/pci0000:00/0000:00:13.0/usb5/5-1/5-1:1.0/input/input2
+Apr  8 18:20:30 homeserver kernel: Registered IR keymap rc-imon-pad
+Apr  8 18:20:30 homeserver kernel: input: iMON Remote (15c2:0036) as /devices/pci0000:00/0000:00:13.0/usb5/5-1/5-1:1.0/rc/rc0/input3
+Apr  8 18:20:30 homeserver kernel: rc0: iMON Remote (15c2:0036) as /devices/pci0000:00/0000:00:13.0/usb5/5-1/5-1:1.0/rc/rc0
+Apr  8 18:20:30 homeserver kernel: imon:send_packet: packet tx failed (-32)
+Apr  8 18:20:30 homeserver kernel: imon 5-1:1.0: remote input dev register failed
+Apr  8 18:20:30 homeserver kernel: imon 5-1:1.0: imon_init_intf0: rc device setup failed
+Apr  8 18:20:30 homeserver kernel: imon 5-1:1.0: unable to initialize intf0, err 0
+Apr  8 18:20:30 homeserver kernel: imon:imon_probe: failed to initialize context!
+Apr  8 18:20:30 homeserver kernel: imon 5-1:1.0: unable to register, err -19
+Apr  8 18:20:30 homeserver kernel: BUG: unable to handle kernel NULL pointer dereference at 00000014
+Apr  8 18:20:30 homeserver kernel: IP: [<c05c4e4c>] mutex_lock+0xc/0x30
+Apr  8 18:20:30 homeserver kernel: *pde = 00000000
+Apr  8 18:20:30 homeserver kernel: Oops: 0002 [#1] PREEMPT SMP
+Apr  8 18:20:30 homeserver kernel: Modules linked in:
+Apr  8 18:20:30 homeserver kernel: Pid: 367, comm: khubd Not tainted 3.8.3-htpc-00002-g79b1403 #23 Unknow Unknow/RS780-SB700
+Apr  8 18:20:30 homeserver kernel: EIP: 0060:[<c05c4e4c>] EFLAGS: 00010296 CPU: 1
+Apr  8 18:20:30 homeserver kernel: EIP is at mutex_lock+0xc/0x30
+Apr  8 18:20:30 homeserver kernel: EAX: 00000014 EBX: 00000014 ECX: 00000000 EDX: f590e480
+Apr  8 18:20:30 homeserver kernel: ESI: f5deac00 EDI: f590e480 EBP: f5f3ee00 ESP: f6577c28
+Apr  8 18:20:30 homeserver kernel: DS: 007b ES: 007b FS: 00d8 GS: 00e0 SS: 0068
+Apr  8 18:20:30 homeserver kernel: CR0: 8005003b CR2: 00000014 CR3: 0081b000 CR4: 000007d0
+Apr  8 18:20:30 homeserver kernel: DR0: 00000000 DR1: 00000000 DR2: 00000000 DR3: 00000000
+Apr  8 18:20:30 homeserver kernel: DR6: ffff0ff0 DR7: 00000400
+Apr  8 18:20:30 homeserver kernel: Process khubd (pid: 367, ti=f6576000 task=f649ea00 task.ti=f6576000)
+Apr  8 18:20:30 homeserver kernel: Stack:
+Apr  8 18:20:30 homeserver kernel: 00000000 f5deac00 c0448de4 f59714c0 f5deac64 c03b8ad2 f6577c90 00000004
+Apr  8 18:20:30 homeserver kernel: f649ea00 c0205142 f6779820 a1ff7f08 f5deac00 00000001 f5f3ee1c 00000014
+Apr  8 18:20:30 homeserver kernel: 00000004 00000202 15c20036 c07a03e8 fffee0ca f6795c00 f5f3ee1c f5deac00
+Apr  8 18:20:30 homeserver kernel: Call Trace:
+Apr  8 18:20:30 homeserver kernel: [<c0448de4>] ? imon_probe+0x494/0xde0
+Apr  8 18:20:30 homeserver kernel: [<c03b8ad2>] ? rpm_resume+0xb2/0x4f0
+Apr  8 18:20:30 homeserver kernel: [<c0205142>] ? sysfs_addrm_finish+0x12/0x90
+Apr  8 18:20:30 homeserver kernel: [<c04170e9>] ? usb_probe_interface+0x169/0x240
+Apr  8 18:20:30 homeserver kernel: [<c03b0ca0>] ? __driver_attach+0x80/0x80
+Apr  8 18:20:30 homeserver kernel: [<c03b0ca0>] ? __driver_attach+0x80/0x80
+Apr  8 18:20:30 homeserver kernel: [<c03b0a94>] ? driver_probe_device+0x54/0x1e0
+Apr  8 18:20:30 homeserver kernel: [<c0416abe>] ? usb_device_match+0x4e/0x80
+Apr  8 18:20:30 homeserver kernel: [<c03af314>] ? bus_for_each_drv+0x34/0x70
+Apr  8 18:20:30 homeserver kernel: [<c03b0a0b>] ? device_attach+0x7b/0x90
+Apr  8 18:20:30 homeserver kernel: [<c03b0ca0>] ? __driver_attach+0x80/0x80
+Apr  8 18:20:30 homeserver kernel: [<c03b00ff>] ? bus_probe_device+0x5f/0x80
+Apr  8 18:20:30 homeserver kernel: [<c03aeab7>] ? device_add+0x567/0x610
+Apr  8 18:20:30 homeserver kernel: [<c041a7bc>] ? usb_create_ep_devs+0x7c/0xd0
+Apr  8 18:20:30 homeserver kernel: [<c0413837>] ? create_intf_ep_devs+0x47/0x70
+Apr  8 18:20:30 homeserver kernel: [<c04156c4>] ? usb_set_configuration+0x454/0x750
+Apr  8 18:20:30 homeserver kernel: [<c03b0ca0>] ? __driver_attach+0x80/0x80
+Apr  8 18:20:30 homeserver kernel: [<c041de8a>] ? generic_probe+0x2a/0x80
+Apr  8 18:20:30 homeserver kernel: [<c03b0ca0>] ? __driver_attach+0x80/0x80
+Apr  8 18:20:30 homeserver kernel: [<c0205aff>] ? sysfs_create_link+0xf/0x20
+Apr  8 18:20:30 homeserver kernel: [<c04171db>] ? usb_probe_device+0x1b/0x40
+Apr  8 18:20:30 homeserver kernel: [<c03b0a94>] ? driver_probe_device+0x54/0x1e0
+Apr  8 18:20:30 homeserver kernel: [<c03af314>] ? bus_for_each_drv+0x34/0x70
+Apr  8 18:20:30 homeserver kernel: [<c03b0a0b>] ? device_attach+0x7b/0x90
+Apr  8 18:20:30 homeserver kernel: [<c03b0ca0>] ? __driver_attach+0x80/0x80
+Apr  8 18:20:30 homeserver kernel: [<c03b00ff>] ? bus_probe_device+0x5f/0x80
+Apr  8 18:20:30 homeserver kernel: [<c03aeab7>] ? device_add+0x567/0x610
+Apr  8 18:20:30 homeserver kernel: [<c040e6df>] ? usb_new_device+0x12f/0x1e0
+Apr  8 18:20:30 homeserver kernel: [<c040f4d8>] ? hub_thread+0x458/0x1230
+Apr  8 18:20:30 homeserver kernel: [<c015554f>] ? dequeue_task_fair+0x9f/0xc0
+Apr  8 18:20:30 homeserver kernel: [<c0131312>] ? release_task+0x1d2/0x330
+Apr  8 18:20:30 homeserver kernel: [<c01477b0>] ? abort_exclusive_wait+0x90/0x90
+Apr  8 18:20:30 homeserver kernel: [<c040f080>] ? usb_remote_wakeup+0x40/0x40
+Apr  8 18:20:30 homeserver kernel: [<c0146ed2>] ? kthread+0x92/0xa0
+Apr  8 18:20:30 homeserver kernel: [<c05c7877>] ? ret_from_kernel_thread+0x1b/0x28
+Apr  8 18:20:30 homeserver kernel: [<c0146e40>] ? kthread_freezable_should_stop+0x50/0x50
+Apr  8 18:20:30 homeserver kernel: Code: 89 04 24 89 f0 e8 05 ff ff ff 8b 5c 24 24 8b 74 24 28 8b 7c 24 2c 8b 6c 24 30 83 c4 34 c3 00 83 ec 08 89 1c 24 89 74 24 04 89 c3 <f0> ff 08 79 05 e8 ca 03 00 00 64 a1 70 d6 80 c0 8b 74 24 04 89
+Apr  8 18:20:30 homeserver kernel: EIP: [<c05c4e4c>] mutex_lock+0xc/0x30 SS:ESP 0068:f6577c28
+Apr  8 18:20:30 homeserver kernel: CR2: 0000000000000014
+Apr  8 18:20:30 homeserver kernel: ---[ end trace df134132c967205c ]---
 
-Basically amlogic gave you a crappy driver.
+Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
+---
+ drivers/media/rc/imon.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-Regards,
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 624fd33..3af7bb6 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -2324,7 +2324,14 @@ static int imon_probe(struct usb_interface *interface,
+ 		}
+ 
+ 	} else {
+-	/* this is the secondary interface on the device */
++		/* this is the secondary interface on the device */
++
++		/* fail early if first intf failed to register */
++		if (!first_if_ctx) {
++			ret = -ENODEV;
++			goto fail;
++		}
++
+ 		ictx = imon_init_intf1(interface, first_if_ctx);
+ 		if (!ictx) {
+ 			pr_err("failed to attach to context!\n");
+-- 
+1.7.10.4
 
-	Hans
-
-> 
-> it looks like memcpy isn't cached or something but I don't know how to
-> identify problem
-> Any idea how to identify this problem.
-> 
-> On Mon, Apr 8, 2013 at 2:46 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Mon April 8 2013 14:42:32 Michal Lazo wrote:
-> >> Hi
-> >> 720x576 RGB 25, 30 fps and it take
-> >>
-> >> 25% cpu load on raspberry pi(ARM 700Mhz linux 3.6.11) or 8% on x86(AMD
-> >> 2GHz linux 3.2.0-39)
-> >>
-> >> it is simply too much
-> >
-> > No, that's what I would expect. Note that vivi was substantially improved recently
-> > when it comes to the image generation. That will be in the upcoming 3.9 kernel.
-> >
-> > This should reduce CPU load by quite a bit if memory serves.
-> >
-> > Regards,
-> >
-> >         Hans
-> >
-> >>
-> >>
-> >>
-> >>
-> >> On Mon, Apr 8, 2013 at 9:42 AM, Peter Senna Tschudin
-> >> <peter.senna@gmail.com> wrote:
-> >> > Dear Michal,
-> >> >
-> >> > The CPU intensive part of the vivi driver is the image generation.
-> >> > This is not an issue for real drivers.
-> >> >
-> >> > Regards,
-> >> >
-> >> > Peter
-> >> >
-> >> > On Sun, Apr 7, 2013 at 9:32 PM, Michal Lazo <michal.lazo@mdragon.org> wrote:
-> >> >> Hi
-> >> >> V4L2 driver vivi
-> >> >> generate 25% cpu load on raspberry pi(linux 3.6.11) or 8% on x86(linux 3.2.0-39)
-> >> >>
-> >> >> player
-> >> >> GST_DEBUG="*:3,v4l2src:3,v4l2:3" gst-launch-0.10 v4l2src
-> >> >> device="/dev/video0" norm=255 ! video/x-raw-rgb, width=720,
-> >> >> height=576, framerate=30000/1001 ! fakesink sync=false
-> >> >>
-> >> >> Anybody can answer me why?
-> >> >> And how can I do it better ?
-> >> >>
-> >> >> I use vivi as base example for my driver
-> >> >> --
-> >> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> >> >> the body of a message to majordomo@vger.kernel.org
-> >> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> >> >
-> >> >
-> >> >
-> >> > --
-> >> > Peter
-> >>
-> >>
-> >>
-> >>
-> 
-> 
-> 
-> 
