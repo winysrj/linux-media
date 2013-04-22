@@ -1,85 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:38822 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755033Ab3DQPSU (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:57447 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754591Ab3DVKiv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 11:18:20 -0400
-From: Pawel Moll <pawel.moll@arm.com>
-To: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Pawel Moll <pawel.moll@arm.com>
-Subject: [RFC 02/10] video: display: Update the display with the video mode data
-Date: Wed, 17 Apr 2013 16:17:14 +0100
-Message-Id: <1366211842-21497-3-git-send-email-pawel.moll@arm.com>
-In-Reply-To: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
-References: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+	Mon, 22 Apr 2013 06:38:51 -0400
+Date: Mon, 22 Apr 2013 12:38:41 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH RFC v2 1/4] media: i2c: adv7343: add support for asynchronous
+ probing
+In-Reply-To: <1366625848-743-2-git-send-email-prabhakar.csengg@gmail.com>
+Message-ID: <Pine.LNX.4.64.1304221235230.23906@axis700.grange>
+References: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1366625848-743-2-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The display entity (sink) may need to know about the mode being
-changed, eg. to update timings.
+Hi Prabhakar
 
-Alternatively there could be a separate set_mode() operation...
+On Mon, 22 Apr 2013, Prabhakar Lad wrote:
 
-Signed-off-by: Pawel Moll <pawel.moll@arm.com>
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> Both synchronous and asynchronous adv7343 subdevice probing is supported by
+> this patch.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/i2c/adv7343.c |   17 +++++++++++++----
+>  1 files changed, 13 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+> index 9fc2b98..5b1417b 100644
+> --- a/drivers/media/i2c/adv7343.c
+> +++ b/drivers/media/i2c/adv7343.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/uaccess.h>
+>  
+>  #include <media/adv7343.h>
+> +#include <media/v4l2-async.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-chip-ident.h>
+>  #include <media/v4l2-ctrls.h>
+> @@ -44,6 +45,7 @@ struct adv7343_state {
+>  	struct v4l2_subdev sd;
+>  	struct v4l2_ctrl_handler hdl;
+>  	const struct adv7343_platform_data *pdata;
+> +	struct v4l2_async_subdev_list	asdl;
+
+Do you still need this? Don't think it's needed any more with the latest 
+V4L2-async version.
+
+Thanks
+Guennadi
+
+>  	u8 reg00;
+>  	u8 reg01;
+>  	u8 reg02;
+> @@ -455,16 +457,22 @@ static int adv7343_probe(struct i2c_client *client,
+>  				       ADV7343_GAIN_DEF);
+>  	state->sd.ctrl_handler = &state->hdl;
+>  	if (state->hdl.error) {
+> -		int err = state->hdl.error;
+> -
+> -		v4l2_ctrl_handler_free(&state->hdl);
+> -		return err;
+> +		err = state->hdl.error;
+> +		goto done;
+>  	}
+>  	v4l2_ctrl_handler_setup(&state->hdl);
+>  
+>  	err = adv7343_initialize(&state->sd);
+>  	if (err)
+> +		goto done;
+> +
+> +	state->sd.dev = &client->dev;
+> +	err = v4l2_async_register_subdev(&state->sd);
+> +
+> +done:
+> +	if (err < 0)
+>  		v4l2_ctrl_handler_free(&state->hdl);
+> +
+>  	return err;
+>  }
+>  
+> @@ -473,6 +481,7 @@ static int adv7343_remove(struct i2c_client *client)
+>  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>  	struct adv7343_state *state = to_state(sd);
+>  
+> +	v4l2_async_unregister_subdev(&state->sd);
+>  	v4l2_device_unregister_subdev(sd);
+>  	v4l2_ctrl_handler_free(&state->hdl);
+>  
+> -- 
+> 1.7.4.1
+> 
+
 ---
- drivers/video/display/display-core.c |    5 +++--
- include/video/display.h              |    6 ++++--
- 2 files changed, 7 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/video/display/display-core.c b/drivers/video/display/d=
-isplay-core.c
-index d2daa15..4b8e45a 100644
---- a/drivers/video/display/display-core.c
-+++ b/drivers/video/display/display-core.c
-@@ -69,12 +69,13 @@ EXPORT_SYMBOL_GPL(display_entity_set_state);
-  *
-  * Return 0 on success or a negative error code otherwise.
-  */
--int display_entity_update(struct display_entity *entity)
-+int display_entity_update(struct display_entity *entity,
-+=09=09=09     const struct videomode *mode)
- {
- =09if (!entity->ops.ctrl || !entity->ops.ctrl->update)
- =09=09return 0;
-=20
--=09return entity->ops.ctrl->update(entity);
-+=09return entity->ops.ctrl->update(entity, mode);
- }
- EXPORT_SYMBOL_GPL(display_entity_update);
-=20
-diff --git a/include/video/display.h b/include/video/display.h
-index 90d18ca..64f84d5 100644
---- a/include/video/display.h
-+++ b/include/video/display.h
-@@ -77,7 +77,8 @@ struct display_entity_interface_params {
- struct display_entity_control_ops {
- =09int (*set_state)(struct display_entity *ent,
- =09=09=09 enum display_entity_state state);
--=09int (*update)(struct display_entity *ent);
-+=09int (*update)(struct display_entity *ent,
-+=09=09=09 const struct videomode *mode);
- =09int (*get_modes)(struct display_entity *ent,
- =09=09=09 const struct videomode **modes);
- =09int (*get_params)(struct display_entity *ent,
-@@ -111,7 +112,8 @@ struct display_entity {
-=20
- int display_entity_set_state(struct display_entity *entity,
- =09=09=09     enum display_entity_state state);
--int display_entity_update(struct display_entity *entity);
-+int display_entity_update(struct display_entity *entity,
-+=09=09=09     const struct videomode *mode);
- int display_entity_get_modes(struct display_entity *entity,
- =09=09=09     const struct videomode **modes);
- int display_entity_get_params(struct display_entity *entity,
---=20
-1.7.10.4
-
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
