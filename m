@@ -1,465 +1,573 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:49730 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935057Ab3DHMT6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 08:19:58 -0400
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 1/3] media: davinci: vpss: enable vpss clocks
-Date: Mon,  8 Apr 2013 17:49:11 +0530
-Message-Id: <1365423553-12619-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1365423553-12619-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1365423553-12619-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2243 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752285Ab3DVGsh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 02:48:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v2 1/5] V4L2: I2C: ML86V7667 video decoder driver
+Date: Mon, 22 Apr 2013 08:48:04 +0200
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+References: <201304212240.30949.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201304212240.30949.sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304220848.04870.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Sun April 21 2013 20:40:30 Sergei Shtylyov wrote:
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> 
+> Add OKI Semiconductor ML86V7667 video decoder driver.
+> 
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> [Sergei: added v4l2_device_unregister_subdev() call to the error cleanup path of
+> ml86v7667_probe(); some cleanup.]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> ---
+> Changes since the original posting:
+> - fixed ACCC_CHROMA_CB_MASK;
+> - got rid from the autodetection feature;
+> - removed querystd() method calls from other methods;
+> - removed deprecated g_chip_ident() method.
+> 
+>  drivers/media/i2c/Kconfig     |    9 
+>  drivers/media/i2c/Makefile    |    1 
+>  drivers/media/i2c/ml86v7667.c |  473 ++++++++++++++++++++++++++++++++++++++++++
+>  3 files changed, 483 insertions(+)
+> 
+> Index: renesas/drivers/media/i2c/Kconfig
+> ===================================================================
+> --- renesas.orig/drivers/media/i2c/Kconfig
+> +++ renesas/drivers/media/i2c/Kconfig
+> @@ -227,6 +227,15 @@ config VIDEO_KS0127
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called ks0127.
+>  
+> +config VIDEO_ML86V7667
+> +	tristate "OKI ML86V7667 video decoder"
+> +	depends on VIDEO_V4L2 && I2C
+> +	---help---
+> +	  Support for the OKI Semiconductor ML86V7667 video decoder.
+> +
+> +	  To compile this driver as a module, choose M here: the
+> +	  module will be called ml86v7667.
+> +
+>  config VIDEO_SAA7110
+>  	tristate "Philips SAA7110 video decoder"
+>  	depends on VIDEO_V4L2 && I2C
+> Index: renesas/drivers/media/i2c/Makefile
+> ===================================================================
+> --- renesas.orig/drivers/media/i2c/Makefile
+> +++ renesas/drivers/media/i2c/Makefile
+> @@ -64,3 +64,4 @@ obj-$(CONFIG_VIDEO_AS3645A)	+= as3645a.o
+>  obj-$(CONFIG_VIDEO_SMIAPP_PLL)	+= smiapp-pll.o
+>  obj-$(CONFIG_VIDEO_AK881X)		+= ak881x.o
+>  obj-$(CONFIG_VIDEO_IR_I2C)  += ir-kbd-i2c.o
+> +obj-$(CONFIG_VIDEO_ML86V7667)	+= ml86v7667.o
+> Index: renesas/drivers/media/i2c/ml86v7667.c
+> ===================================================================
+> --- /dev/null
+> +++ renesas/drivers/media/i2c/ml86v7667.c
+> @@ -0,0 +1,473 @@
+> +/*
+> + * OKI Semiconductor ML86V7667 video decoder driver
+> + *
+> + * Author: Vladimir Barinov <source@cogentembedded.com>
+> + * Copyright (C) 2013 Cogent Embedded, Inc.
+> + * Copyright (C) 2013 Renesas Solutions Corp.
+> + *
+> + * This program is free software; you can redistribute  it and/or modify it
+> + * under  the terms of  the GNU General  Public License as published by the
+> + * Free Software Foundation;  either version 2 of the  License, or (at your
+> + * option) any later version.
+> + */
+> +
+> +#include <linux/init.h>
+> +#include <linux/module.h>
+> +#include <linux/i2c.h>
+> +#include <linux/slab.h>
+> +#include <linux/videodev2.h>
+> +#include <media/v4l2-chip-ident.h>
 
-By default the VPSS clocks were enabled in capture driver
-for davinci family which creates duplicates for dm355/dm365/dm644x.
-This patch adds support to enable the VPSS clocks in VPSS driver,
-which avoids duplication of code and also adding clock aliases.
+This include should be removed as well.
 
-This patch uses PM runtime API to enable/disable clock, instead
-of DaVinci clock framework. con_ids for master and slave clocks of
-vpss is added in pm_domain.
+> +#include <media/v4l2-subdev.h>
+> +#include <media/v4l2-device.h>
+> +#include <media/v4l2-ioctl.h>
+> +#include <media/v4l2-ctrls.h>
+> +
+> +#define DRV_NAME "ml86v7667"
+> +
+> +/* Subaddresses */
+> +#define MRA_REG			0x00 /* Mode Register A */
+> +#define MRC_REG			0x02 /* Mode Register C */
+> +#define LUMC_REG		0x0C /* Luminance Control */
+> +#define CLC_REG			0x10 /* Contrast level control */
+> +#define SSEPL_REG		0x11 /* Sync separation level */
+> +#define CHRCA_REG		0x12 /* Chrominance Control A */
+> +#define ACCC_REG		0x14 /* ACC Loop filter & Chrominance control */
+> +#define ACCRC_REG		0x15 /* ACC Reference level control */
+> +#define HUE_REG			0x16 /* Hue control */
+> +#define ADC2_REG		0x1F /* ADC Register 2 */
+> +#define PLLR1_REG		0x20 /* PLL Register 1 */
+> +#define STATUS_REG		0x2C /* STATUS Register */
+> +
+> +/* Mode Register A register bits */
+> +#define MRA_OUTPUT_MODE_MASK	(3 << 6)
+> +#define MRA_ITUR_BT601		(1 << 6)
+> +#define MRA_ITUR_BT656		(0 << 6)
+> +#define MRA_INPUT_MODE_MASK	(7 << 3)
+> +#define MRA_PAL_BT601		(4 << 3)
+> +#define MRA_NTSC_BT601		(0 << 3)
+> +#define MRA_REGISTER_MODE	(1 << 0)
+> +
+> +/* Mode Register C register bits */
+> +#define MRC_AUTOSELECT		(1 << 7)
+> +
+> +/* Luminance Control register bits */
+> +#define LUMC_ONOFF_SHIFT	7
+> +#define LUMC_ONOFF_MASK		(1 << 7)
+> +
+> +/* Contrast level control register bits */
+> +#define CLC_CONTRAST_ONOFF	(1 << 7)
+> +#define CLC_CONTRAST_MASK	0x0F
+> +
+> +/* Sync separation level register bits */
+> +#define SSEPL_LUMINANCE_ONOFF	(1 << 7)
+> +#define SSEPL_LUMINANCE_MASK	0x7F
+> +
+> +/* Chrominance Control A register bits */
+> +#define CHRCA_MODE_SHIFT	6
+> +#define CHRCA_MODE_MASK		(1 << 6)
+> +
+> +/* ACC Loop filter & Chrominance control register bits */
+> +#define ACCC_CHROMA_CR_SHIFT	3
+> +#define ACCC_CHROMA_CR_MASK	(7 << 3)
+> +#define ACCC_CHROMA_CB_SHIFT	0
+> +#define ACCC_CHROMA_CB_MASK	(7 << 0)
+> +
+> +/* ACC Reference level control register bits */
+> +#define ACCRC_CHROMA_MASK	0xfc
+> +#define ACCRC_CHROMA_SHIFT	2
+> +
+> +/* ADC Register 2 register bits */
+> +#define ADC2_CLAMP_VOLTAGE_MASK	(7 << 1)
+> +#define ADC2_CLAMP_VOLTAGE(n)	((n & 7) << 1)
+> +
+> +/* PLL Register 1 register bits */
+> +#define PLLR1_FIXED_CLOCK	(1 << 7)
+> +
+> +/* STATUS Register register bits */
+> +#define STATUS_HLOCK_DETECT	(1 << 3)
+> +#define STATUS_NTSCPAL		(1 << 2)
+> +
+> +struct ml86v7667_priv {
+> +	struct v4l2_subdev		sd;
+> +	struct v4l2_ctrl_handler	hdl;
+> +	struct v4l2_mbus_framefmt	fmt;
+> +	v4l2_std_id			std;
+> +};
+> +
+> +static inline struct ml86v7667_priv *to_ml86v7667(struct v4l2_subdev *subdev)
+> +{
+> +	return container_of(subdev, struct ml86v7667_priv, sd);
+> +}
+> +
+> +static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
+> +{
+> +	return &container_of(ctrl->handler, struct ml86v7667_priv, hdl)->sd;
+> +}
+> +
+> +static int ml86v7667_mask_set(struct i2c_client *client, const u8 reg,
+> +			      const u8 mask, const u8 data)
+> +{
+> +	int val = i2c_smbus_read_byte_data(client, reg);
+> +	if (val < 0)
+> +		return val;
+> +
+> +	val = (val & ~mask) | (data & mask);
+> +	return i2c_smbus_write_byte_data(client, reg, val);
+> +}
+> +
+> +static int ml86v7667_s_ctrl(struct v4l2_ctrl *ctrl)
+> +{
+> +	struct v4l2_subdev *sd = to_sd(ctrl);
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	int ret = 0;
+> +
+> +	switch (ctrl->id) {
+> +	case V4L2_CID_BRIGHTNESS:
+> +		ret = ml86v7667_mask_set(client, SSEPL_REG,
+> +					 SSEPL_LUMINANCE_MASK, ctrl->val);
+> +		break;
+> +	case V4L2_CID_CONTRAST:
+> +		ret = ml86v7667_mask_set(client, CLC_REG,
+> +					 CLC_CONTRAST_MASK, ctrl->val);
+> +		break;
+> +	case V4L2_CID_CHROMA_GAIN:
+> +		ret = ml86v7667_mask_set(client, ACCRC_REG, ACCRC_CHROMA_MASK,
+> +					 ctrl->val << ACCRC_CHROMA_SHIFT);
+> +		break;
+> +	case V4L2_CID_HUE:
+> +		ret = ml86v7667_mask_set(client, HUE_REG, ~0, ctrl->val);
+> +		break;
+> +	case V4L2_CID_RED_BALANCE:
+> +		ret = ml86v7667_mask_set(client, ACCC_REG,
+> +					 ACCC_CHROMA_CR_MASK,
+> +					 ctrl->val << ACCC_CHROMA_CR_SHIFT);
+> +		break;
+> +	case V4L2_CID_BLUE_BALANCE:
+> +		ret = ml86v7667_mask_set(client, ACCC_REG,
+> +					 ACCC_CHROMA_CB_MASK,
+> +					 ctrl->val << ACCC_CHROMA_CB_SHIFT);
+> +		break;
+> +	case V4L2_CID_SHARPNESS:
+> +		ret = ml86v7667_mask_set(client, LUMC_REG,
+> +					 LUMC_ONOFF_MASK,
+> +					 ctrl->val << LUMC_ONOFF_SHIFT);
+> +		break;
+> +	case V4L2_CID_COLOR_KILLER:
+> +		ret = ml86v7667_mask_set(client, CHRCA_REG,
+> +					 CHRCA_MODE_MASK,
+> +					 ctrl->val << CHRCA_MODE_SHIFT);
+> +		break;
+> +	}
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+> +{
+> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+> +
+> +	*std = priv->std;
 
-This patch cleanups the VPSS clock enabling in the capture driver,
-and also removes the clock alias in machine file. Along side adds
-a vpss slave clock for DM365 as mentioned by Sekhar
-(https://patchwork.kernel.org/patch/1221261/).
+That's not right. querystd should attempt to detect the standard, that's
+what it is for. It should just return the detected standard, not actually
+change it.
 
-The Suspend/Resume in dm644x_ccdc.c which enabled/disabled the VPSS clock
-is now implemented as part of the VPSS driver.
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_g_input_status(struct v4l2_subdev *sd, u32 *status)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	int status_reg;
+> +
+> +	status_reg = i2c_smbus_read_byte_data(client, STATUS_REG);
+> +	if (status_reg < 0)
+> +		return status_reg;
+> +
+> +	*status = status_reg & STATUS_HLOCK_DETECT ? 0 : V4L2_IN_ST_NO_SIGNAL;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
+> +				   enum v4l2_mbus_pixelcode *code)
+> +{
+> +	if (index > 0)
+> +		return -EINVAL;
+> +
+> +	*code = V4L2_MBUS_FMT_YUYV8_2X8;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_try_mbus_fmt(struct v4l2_subdev *sd,
+> +				  struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+> +
+> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
+> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +	fmt->field = V4L2_FIELD_INTERLACED;
+> +	fmt->width = 720;
+> +	fmt->height = priv->std & V4L2_STD_525_60 ? 480 : 576;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_g_mbus_fmt(struct v4l2_subdev *sd,
+> +				struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+> +
+> +	*fmt = priv->fmt;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_s_mbus_fmt(struct v4l2_subdev *sd,
+> +				struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+> +
+> +	ml86v7667_try_mbus_fmt(sd, fmt);
+> +	priv->fmt = *fmt;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+> +{
+> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+> +
+> +	a->bounds.left = 0;
+> +	a->bounds.top = 0;
+> +	a->bounds.width = 720;
+> +	a->bounds.height = priv->std & V4L2_STD_525_60 ? 480 : 576;
+> +	a->defrect = a->bounds;
+> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	a->pixelaspect.numerator = 1;
+> +	a->pixelaspect.denominator = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_g_mbus_config(struct v4l2_subdev *sd,
+> +				   struct v4l2_mbus_config *cfg)
+> +{
+> +	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
+> +		     V4L2_MBUS_DATA_ACTIVE_HIGH;
+> +	cfg->type = V4L2_MBUS_BT656;
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+> +{
+> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+> +	struct i2c_client *client = v4l2_get_subdevdata(&priv->sd);
+> +	int ret;
+> +	u8 mode;
+> +
+> +	/* PAL/NTSC ITU-R BT.601 input mode */
+> +	mode = std & V4L2_STD_NTSC ? MRA_NTSC_BT601 : MRA_PAL_BT601;
+> +	ret = ml86v7667_mask_set(client, MRA_REG, MRA_INPUT_MODE_MASK, mode);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	priv->std = std;
+> +
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> +static int ml86v7667_g_register(struct v4l2_subdev *sd,
+> +				struct v4l2_dbg_register *reg)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	int ret;
+> +
+> +	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+> +		return -EINVAL;
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +
+> +	ret = i2c_smbus_read_byte_data(client, (u8)reg->reg);
+> +	if (ret < 0)
+> +		return ret;
+> +
+> +	reg->val = ret;
+> +	reg->size = sizeof(u8);
+> +
+> +	return 0;
+> +}
+> +
+> +static int ml86v7667_s_register(struct v4l2_subdev *sd,
+> +				struct v4l2_dbg_register *reg)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +
+> +	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+> +		return -EINVAL;
+> +	if (!capable(CAP_SYS_ADMIN))
+> +		return -EPERM;
+> +
+> +	return i2c_smbus_write_byte_data(client, (u8)reg->reg, (u8)reg->val);
+> +}
+> +#endif
+> +
+> +static const struct v4l2_ctrl_ops ml86v7667_ctrl_ops = {
+> +	.s_ctrl = ml86v7667_s_ctrl,
+> +};
+> +
+> +static struct v4l2_subdev_video_ops ml86v7667_subdev_video_ops = {
+> +	.querystd = ml86v7667_querystd,
+> +	.g_input_status = ml86v7667_g_input_status,
+> +	.enum_mbus_fmt = ml86v7667_enum_mbus_fmt,
+> +	.try_mbus_fmt = ml86v7667_try_mbus_fmt,
+> +	.g_mbus_fmt = ml86v7667_g_mbus_fmt,
+> +	.s_mbus_fmt = ml86v7667_s_mbus_fmt,
+> +	.cropcap = ml86v7667_cropcap,
+> +	.g_mbus_config = ml86v7667_g_mbus_config,
+> +};
+> +
+> +static struct v4l2_subdev_core_ops ml86v7667_subdev_core_ops = {
+> +	.s_std = ml86v7667_s_std,
+> +#ifdef CONFIG_VIDEO_ADV_DEBUG
+> +	.g_register = ml86v7667_g_register,
+> +	.s_register = ml86v7667_s_register,
+> +#endif
+> +};
+> +
+> +static struct v4l2_subdev_ops ml86v7667_subdev_ops = {
+> +	.core = &ml86v7667_subdev_core_ops,
+> +	.video = &ml86v7667_subdev_video_ops,
+> +};
+> +
+> +static int ml86v7667_init(struct ml86v7667_priv *priv)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(&priv->sd);
+> +	int val;
+> +	int ret;
+> +
+> +	/* BT.656-4 output mode, register mode */
+> +	ret = ml86v7667_mask_set(client, MRA_REG,
+> +				 MRA_OUTPUT_MODE_MASK | MRA_REGISTER_MODE,
+> +				 MRA_ITUR_BT656 | MRA_REGISTER_MODE);
+> +
+> +	/* PLL circuit fixed clock, 32MHz */
+> +	ret |= ml86v7667_mask_set(client, PLLR1_REG, PLLR1_FIXED_CLOCK,
+> +				  PLLR1_FIXED_CLOCK);
+> +
+> +	/* ADC2 clamping voltage maximum  */
+> +	ret |= ml86v7667_mask_set(client, ADC2_REG, ADC2_CLAMP_VOLTAGE_MASK,
+> +				  ADC2_CLAMP_VOLTAGE(7));
+> +
+> +	/* enable luminance function */
+> +	ret |= ml86v7667_mask_set(client, SSEPL_REG, SSEPL_LUMINANCE_ONOFF,
+> +				  SSEPL_LUMINANCE_ONOFF);
+> +
+> +	/* enable contrast function */
+> +	ret |= ml86v7667_mask_set(client, CLC_REG, CLC_CONTRAST_ONOFF, 0);
+> +
+> +	/*
+> +	 * PAL/NTSC autodetection is enabled after reset,
+> +	 * set the autodetected std in manual std mode and
+> +	 * disable autodetection
+> +	 */
+> +	val = i2c_smbus_read_byte_data(client, STATUS_REG);
+> +	if (val < 0)
+> +		return val;
+> +
+> +	priv->std = val & STATUS_NTSCPAL ? V4L2_STD_PAL : V4L2_STD_NTSC;
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Sekhar Nori <nsekhar@ti.com>
----
- arch/arm/mach-davinci/dm355.c                |    7 +---
- arch/arm/mach-davinci/dm365.c                |   11 +++++--
- arch/arm/mach-davinci/dm644x.c               |    9 +----
- arch/arm/mach-davinci/pm_domain.c            |    2 +-
- drivers/media/platform/davinci/dm355_ccdc.c  |   39 +----------------------
- drivers/media/platform/davinci/dm644x_ccdc.c |   44 --------------------------
- drivers/media/platform/davinci/isif.c        |   28 ++--------------
- drivers/media/platform/davinci/vpss.c        |   25 ++++++++++++++
- 8 files changed, 43 insertions(+), 122 deletions(-)
+Shouldn't this be 50 Hz vs 60 Hz formats? There are 60 Hz PAL standards
+and usually these devices detect 50 Hz vs 60 Hz, not NTSC vs PAL.
 
-diff --git a/arch/arm/mach-davinci/dm355.c b/arch/arm/mach-davinci/dm355.c
-index b49c3b7..8e98bb0 100644
---- a/arch/arm/mach-davinci/dm355.c
-+++ b/arch/arm/mach-davinci/dm355.c
-@@ -345,8 +345,8 @@ static struct clk_lookup dm355_clks[] = {
- 	CLK(NULL, "pll1_aux", &pll1_aux_clk),
- 	CLK(NULL, "pll1_sysclkbp", &pll1_sysclkbp),
- 	CLK(NULL, "vpss_dac", &vpss_dac_clk),
--	CLK(NULL, "vpss_master", &vpss_master_clk),
--	CLK(NULL, "vpss_slave", &vpss_slave_clk),
-+	CLK("vpss", "master", &vpss_master_clk),
-+	CLK("vpss", "slave", &vpss_slave_clk),
- 	CLK(NULL, "clkout1", &clkout1_clk),
- 	CLK(NULL, "clkout2", &clkout2_clk),
- 	CLK(NULL, "pll2", &pll2_clk),
-@@ -873,9 +873,6 @@ static int __init dm355_init_devices(void)
- 	if (!cpu_is_davinci_dm355())
- 		return 0;
- 
--	/* Add ccdc clock aliases */
--	clk_add_alias("master", dm355_ccdc_dev.name, "vpss_master", NULL);
--	clk_add_alias("slave", dm355_ccdc_dev.name, "vpss_master", NULL);
- 	davinci_cfg_reg(DM355_INT_EDMA_CC);
- 	platform_device_register(&dm355_edma_device);
- 	platform_device_register(&dm355_vpss_device);
-diff --git a/arch/arm/mach-davinci/dm365.c b/arch/arm/mach-davinci/dm365.c
-index 6c39805..c61dd94 100644
---- a/arch/arm/mach-davinci/dm365.c
-+++ b/arch/arm/mach-davinci/dm365.c
-@@ -257,6 +257,12 @@ static struct clk vpss_master_clk = {
- 	.flags		= CLK_PSC,
- };
- 
-+static struct clk vpss_slave_clk = {
-+	.name		= "vpss_slave",
-+	.parent		= &pll1_sysclk5,
-+	.lpsc		= DAVINCI_LPSC_VPSSSLV,
-+};
-+
- static struct clk arm_clk = {
- 	.name		= "arm_clk",
- 	.parent		= &pll2_sysclk2,
-@@ -449,7 +455,8 @@ static struct clk_lookup dm365_clks[] = {
- 	CLK(NULL, "pll2_sysclk8", &pll2_sysclk8),
- 	CLK(NULL, "pll2_sysclk9", &pll2_sysclk9),
- 	CLK(NULL, "vpss_dac", &vpss_dac_clk),
--	CLK(NULL, "vpss_master", &vpss_master_clk),
-+	CLK("vpss", "master", &vpss_master_clk),
-+	CLK("vpss", "slave", &vpss_slave_clk),
- 	CLK(NULL, "arm", &arm_clk),
- 	CLK(NULL, "uart0", &uart0_clk),
- 	CLK(NULL, "uart1", &uart1_clk),
-@@ -1239,8 +1246,6 @@ static int __init dm365_init_devices(void)
- 	clk_add_alias(NULL, dev_name(&dm365_mdio_device.dev),
- 		      NULL, &dm365_emac_device.dev);
- 
--	/* Add isif clock alias */
--	clk_add_alias("master", dm365_isif_dev.name, "vpss_master", NULL);
- 	platform_device_register(&dm365_vpss_device);
- 	platform_device_register(&dm365_isif_dev);
- 	platform_device_register(&vpfe_capture_dev);
-diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
-index ee0e994..c2a9273 100644
---- a/arch/arm/mach-davinci/dm644x.c
-+++ b/arch/arm/mach-davinci/dm644x.c
-@@ -300,8 +300,8 @@ static struct clk_lookup dm644x_clks[] = {
- 	CLK(NULL, "dsp", &dsp_clk),
- 	CLK(NULL, "arm", &arm_clk),
- 	CLK(NULL, "vicp", &vicp_clk),
--	CLK(NULL, "vpss_master", &vpss_master_clk),
--	CLK(NULL, "vpss_slave", &vpss_slave_clk),
-+	CLK("vpss", "master", &vpss_master_clk),
-+	CLK("vpss", "slave", &vpss_slave_clk),
- 	CLK(NULL, "arm", &arm_clk),
- 	CLK(NULL, "uart0", &uart0_clk),
- 	CLK(NULL, "uart1", &uart1_clk),
-@@ -901,11 +901,6 @@ int __init dm644x_init_video(struct vpfe_config *vpfe_cfg,
- 		dm644x_vpfe_dev.dev.platform_data = vpfe_cfg;
- 		platform_device_register(&dm644x_ccdc_dev);
- 		platform_device_register(&dm644x_vpfe_dev);
--		/* Add ccdc clock aliases */
--		clk_add_alias("master", dm644x_ccdc_dev.name,
--			      "vpss_master", NULL);
--		clk_add_alias("slave", dm644x_ccdc_dev.name,
--			      "vpss_slave", NULL);
- 	}
- 
- 	if (vpbe_cfg) {
-diff --git a/arch/arm/mach-davinci/pm_domain.c b/arch/arm/mach-davinci/pm_domain.c
-index c90250e..6b98413 100644
---- a/arch/arm/mach-davinci/pm_domain.c
-+++ b/arch/arm/mach-davinci/pm_domain.c
-@@ -53,7 +53,7 @@ static struct dev_pm_domain davinci_pm_domain = {
- 
- static struct pm_clk_notifier_block platform_bus_notifier = {
- 	.pm_domain = &davinci_pm_domain,
--	.con_ids = { "fck", NULL, },
-+	.con_ids = { "fck", "master", "slave", NULL },
- };
- 
- static int __init davinci_pm_runtime_init(void)
-diff --git a/drivers/media/platform/davinci/dm355_ccdc.c b/drivers/media/platform/davinci/dm355_ccdc.c
-index 2364dba..05f8fb7 100644
---- a/drivers/media/platform/davinci/dm355_ccdc.c
-+++ b/drivers/media/platform/davinci/dm355_ccdc.c
-@@ -37,7 +37,6 @@
- #include <linux/platform_device.h>
- #include <linux/uaccess.h>
- #include <linux/videodev2.h>
--#include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/module.h>
- 
-@@ -59,10 +58,6 @@ static struct ccdc_oper_config {
- 	struct ccdc_params_raw bayer;
- 	/* YCbCr configuration */
- 	struct ccdc_params_ycbcr ycbcr;
--	/* Master clock */
--	struct clk *mclk;
--	/* slave clock */
--	struct clk *sclk;
- 	/* ccdc base address */
- 	void __iomem *base_addr;
- } ccdc_cfg = {
-@@ -997,32 +992,10 @@ static int dm355_ccdc_probe(struct platform_device *pdev)
- 		goto fail_nomem;
- 	}
- 
--	/* Get and enable Master clock */
--	ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
--	if (IS_ERR(ccdc_cfg.mclk)) {
--		status = PTR_ERR(ccdc_cfg.mclk);
--		goto fail_nomap;
--	}
--	if (clk_prepare_enable(ccdc_cfg.mclk)) {
--		status = -ENODEV;
--		goto fail_mclk;
--	}
--
--	/* Get and enable Slave clock */
--	ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
--	if (IS_ERR(ccdc_cfg.sclk)) {
--		status = PTR_ERR(ccdc_cfg.sclk);
--		goto fail_mclk;
--	}
--	if (clk_prepare_enable(ccdc_cfg.sclk)) {
--		status = -ENODEV;
--		goto fail_sclk;
--	}
--
- 	/* Platform data holds setup_pinmux function ptr */
- 	if (NULL == pdev->dev.platform_data) {
- 		status = -ENODEV;
--		goto fail_sclk;
-+		goto fail_nomap;
- 	}
- 	setup_pinmux = pdev->dev.platform_data;
- 	/*
-@@ -1033,12 +1006,6 @@ static int dm355_ccdc_probe(struct platform_device *pdev)
- 	ccdc_cfg.dev = &pdev->dev;
- 	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
- 	return 0;
--fail_sclk:
--	clk_disable_unprepare(ccdc_cfg.sclk);
--	clk_put(ccdc_cfg.sclk);
--fail_mclk:
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.mclk);
- fail_nomap:
- 	iounmap(ccdc_cfg.base_addr);
- fail_nomem:
-@@ -1052,10 +1019,6 @@ static int dm355_ccdc_remove(struct platform_device *pdev)
- {
- 	struct resource	*res;
- 
--	clk_disable_unprepare(ccdc_cfg.sclk);
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.sclk);
- 	iounmap(ccdc_cfg.base_addr);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res)
-diff --git a/drivers/media/platform/davinci/dm644x_ccdc.c b/drivers/media/platform/davinci/dm644x_ccdc.c
-index 971d639..30fa084 100644
---- a/drivers/media/platform/davinci/dm644x_ccdc.c
-+++ b/drivers/media/platform/davinci/dm644x_ccdc.c
-@@ -38,7 +38,6 @@
- #include <linux/uaccess.h>
- #include <linux/videodev2.h>
- #include <linux/gfp.h>
--#include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/module.h>
- 
-@@ -60,10 +59,6 @@ static struct ccdc_oper_config {
- 	struct ccdc_params_raw bayer;
- 	/* YCbCr configuration */
- 	struct ccdc_params_ycbcr ycbcr;
--	/* Master clock */
--	struct clk *mclk;
--	/* slave clock */
--	struct clk *sclk;
- 	/* ccdc base address */
- 	void __iomem *base_addr;
- } ccdc_cfg = {
-@@ -991,38 +986,9 @@ static int dm644x_ccdc_probe(struct platform_device *pdev)
- 		goto fail_nomem;
- 	}
- 
--	/* Get and enable Master clock */
--	ccdc_cfg.mclk = clk_get(&pdev->dev, "master");
--	if (IS_ERR(ccdc_cfg.mclk)) {
--		status = PTR_ERR(ccdc_cfg.mclk);
--		goto fail_nomap;
--	}
--	if (clk_prepare_enable(ccdc_cfg.mclk)) {
--		status = -ENODEV;
--		goto fail_mclk;
--	}
--
--	/* Get and enable Slave clock */
--	ccdc_cfg.sclk = clk_get(&pdev->dev, "slave");
--	if (IS_ERR(ccdc_cfg.sclk)) {
--		status = PTR_ERR(ccdc_cfg.sclk);
--		goto fail_mclk;
--	}
--	if (clk_prepare_enable(ccdc_cfg.sclk)) {
--		status = -ENODEV;
--		goto fail_sclk;
--	}
- 	ccdc_cfg.dev = &pdev->dev;
- 	printk(KERN_NOTICE "%s is registered with vpfe.\n", ccdc_hw_dev.name);
- 	return 0;
--fail_sclk:
--	clk_disable_unprepare(ccdc_cfg.sclk);
--	clk_put(ccdc_cfg.sclk);
--fail_mclk:
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.mclk);
--fail_nomap:
--	iounmap(ccdc_cfg.base_addr);
- fail_nomem:
- 	release_mem_region(res->start, resource_size(res));
- fail_nores:
-@@ -1034,10 +1000,6 @@ static int dm644x_ccdc_remove(struct platform_device *pdev)
- {
- 	struct resource	*res;
- 
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_disable_unprepare(ccdc_cfg.sclk);
--	clk_put(ccdc_cfg.mclk);
--	clk_put(ccdc_cfg.sclk);
- 	iounmap(ccdc_cfg.base_addr);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	if (res)
-@@ -1052,18 +1014,12 @@ static int dm644x_ccdc_suspend(struct device *dev)
- 	ccdc_save_context();
- 	/* Disable CCDC */
- 	ccdc_enable(0);
--	/* Disable both master and slave clock */
--	clk_disable_unprepare(ccdc_cfg.mclk);
--	clk_disable_unprepare(ccdc_cfg.sclk);
- 
- 	return 0;
- }
- 
- static int dm644x_ccdc_resume(struct device *dev)
- {
--	/* Enable both master and slave clock */
--	clk_prepare_enable(ccdc_cfg.mclk);
--	clk_prepare_enable(ccdc_cfg.sclk);
- 	/* Restore CCDC context */
- 	ccdc_restore_context();
- 
-diff --git a/drivers/media/platform/davinci/isif.c b/drivers/media/platform/davinci/isif.c
-index abc3ae3..3332cca 100644
---- a/drivers/media/platform/davinci/isif.c
-+++ b/drivers/media/platform/davinci/isif.c
-@@ -32,7 +32,6 @@
- #include <linux/uaccess.h>
- #include <linux/io.h>
- #include <linux/videodev2.h>
--#include <linux/clk.h>
- #include <linux/err.h>
- #include <linux/module.h>
- 
-@@ -88,8 +87,6 @@ static struct isif_oper_config {
- 	struct isif_ycbcr_config ycbcr;
- 	struct isif_params_raw bayer;
- 	enum isif_data_pack data_pack;
--	/* Master clock */
--	struct clk *mclk;
- 	/* ISIF base address */
- 	void __iomem *base_addr;
- 	/* ISIF Linear Table 0 */
-@@ -1039,6 +1036,10 @@ static int isif_probe(struct platform_device *pdev)
- 	void *__iomem addr;
- 	int status = 0, i;
- 
-+	/* Platform data holds setup_pinmux function ptr */
-+	if (!pdev->dev.platform_data)
-+		return -ENODEV;
-+
- 	/*
- 	 * first try to register with vpfe. If not correct platform, then we
- 	 * don't have to iomap
-@@ -1047,22 +1048,6 @@ static int isif_probe(struct platform_device *pdev)
- 	if (status < 0)
- 		return status;
- 
--	/* Get and enable Master clock */
--	isif_cfg.mclk = clk_get(&pdev->dev, "master");
--	if (IS_ERR(isif_cfg.mclk)) {
--		status = PTR_ERR(isif_cfg.mclk);
--		goto fail_mclk;
--	}
--	if (clk_prepare_enable(isif_cfg.mclk)) {
--		status = -ENODEV;
--		goto fail_mclk;
--	}
--
--	/* Platform data holds setup_pinmux function ptr */
--	if (NULL == pdev->dev.platform_data) {
--		status = -ENODEV;
--		goto fail_mclk;
--	}
- 	setup_pinmux = pdev->dev.platform_data;
- 	/*
- 	 * setup Mux configuration for ccdc which may be different for
-@@ -1124,9 +1109,6 @@ fail_nobase_res:
- 		release_mem_region(res->start, resource_size(res));
- 		i--;
- 	}
--fail_mclk:
--	clk_disable_unprepare(isif_cfg.mclk);
--	clk_put(isif_cfg.mclk);
- 	vpfe_unregister_ccdc_device(&isif_hw_dev);
- 	return status;
- }
-@@ -1146,8 +1128,6 @@ static int isif_remove(struct platform_device *pdev)
- 		i++;
- 	}
- 	vpfe_unregister_ccdc_device(&isif_hw_dev);
--	clk_disable_unprepare(isif_cfg.mclk);
--	clk_put(isif_cfg.mclk);
- 	return 0;
- }
- 
-diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-index a19c552..d36429d 100644
---- a/drivers/media/platform/davinci/vpss.c
-+++ b/drivers/media/platform/davinci/vpss.c
-@@ -25,6 +25,8 @@
- #include <linux/spinlock.h>
- #include <linux/compiler.h>
- #include <linux/io.h>
-+#include <linux/pm_runtime.h>
-+
- #include <media/davinci/vpss.h>
- 
- MODULE_LICENSE("GPL");
-@@ -490,6 +492,10 @@ static int vpss_probe(struct platform_device *pdev)
- 	} else
- 		oper_cfg.hw_ops.clear_wbl_overflow = dm644x_clear_wbl_overflow;
- 
-+	pm_runtime_enable(&pdev->dev);
-+
-+	pm_runtime_get(&pdev->dev);
-+
- 	spin_lock_init(&oper_cfg.vpss_lock);
- 	dev_info(&pdev->dev, "%s vpss probe success\n", platform_name);
- 	return 0;
-@@ -507,6 +513,7 @@ static int vpss_remove(struct platform_device *pdev)
- {
- 	struct resource		*res;
- 
-+	pm_runtime_disable(&pdev->dev);
- 	iounmap(oper_cfg.vpss_regs_base0);
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	release_mem_region(res->start, resource_size(res));
-@@ -518,10 +525,28 @@ static int vpss_remove(struct platform_device *pdev)
- 	return 0;
- }
- 
-+static int vpss_suspend(struct device *dev)
-+{
-+	pm_runtime_put(dev);
-+	return 0;
-+}
-+
-+static int vpss_resume(struct device *dev)
-+{
-+	pm_runtime_get(dev);
-+	return 0;
-+}
-+
-+static const struct dev_pm_ops vpss_pm_ops = {
-+	.suspend = vpss_suspend,
-+	.resume = vpss_resume,
-+};
-+
- static struct platform_driver vpss_driver = {
- 	.driver = {
- 		.name	= "vpss",
- 		.owner = THIS_MODULE,
-+		.pm = &vpss_pm_ops,
- 	},
- 	.remove = vpss_remove,
- 	.probe = vpss_probe,
--- 
-1.7.4.1
+> +	ret |= ml86v7667_mask_set(client, MRC_REG, MRC_AUTOSELECT, 0);
+> +
+> +	val = priv->std & V4L2_STD_NTSC ? MRA_NTSC_BT601 : MRA_PAL_BT601;
+> +	ret |= ml86v7667_mask_set(client, MRA_REG, MRA_INPUT_MODE_MASK, val);
+> +
+> +	return ret;
+> +}
+> +
+> +static int ml86v7667_probe(struct i2c_client *client,
+> +			   const struct i2c_device_id *did)
+> +{
+> +	struct ml86v7667_priv *priv;
+> +	int ret;
+> +
+> +	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+> +		return -EIO;
+> +
+> +	priv = devm_kzalloc(&client->dev, sizeof(*priv), GFP_KERNEL);
+> +	if (!priv)
+> +		return -ENOMEM;
+> +
+> +	v4l2_i2c_subdev_init(&priv->sd, client, &ml86v7667_subdev_ops);
+> +
+> +	v4l2_ctrl_handler_init(&priv->hdl, 8);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
+> +			  V4L2_CID_BRIGHTNESS, -64, 63, 1, 0);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
+> +			  V4L2_CID_CONTRAST, -8, 7, 1, 0);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
+> +			  V4L2_CID_CHROMA_GAIN, -32, 31, 1, 0);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
+> +			  V4L2_CID_HUE, -128, 127, 1, 0);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
+> +			  V4L2_CID_RED_BALANCE, -4, 3, 1, 0);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
+> +			  V4L2_CID_BLUE_BALANCE, -4, 3, 1, 0);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
+> +			  V4L2_CID_SHARPNESS, 0, 1, 1, 0);
+> +	v4l2_ctrl_new_std(&priv->hdl, &ml86v7667_ctrl_ops,
+> +			  V4L2_CID_COLOR_KILLER, 0, 1, 1, 0);
+> +	priv->sd.ctrl_handler = &priv->hdl;
+> +
+> +	ret = priv->hdl.error;
+> +	if (ret)
+> +		goto cleanup;
+> +
+> +	v4l2_ctrl_handler_setup(&priv->hdl);
+> +
+> +	ret = ml86v7667_init(priv);
+> +	if (ret)
+> +		goto cleanup;
+> +
+> +	v4l_info(client, "chip found @ 0x%02x (%s)\n",
+> +		 client->addr, client->adapter->name);
+> +	return 0;
+> +
+> +cleanup:
+> +	v4l2_ctrl_handler_free(&priv->hdl);
+> +	v4l2_device_unregister_subdev(&priv->sd);
+> +	v4l_err(client, "failed to probe @ 0x%02x (%s)\n",
+> +		client->addr, client->adapter->name);
+> +	return ret;
+> +}
+> +
+> +static int ml86v7667_remove(struct i2c_client *client)
+> +{
+> +	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
+> +
+> +	v4l2_ctrl_handler_free(&priv->hdl);
+> +	v4l2_device_unregister_subdev(&priv->sd);
+> +
+> +	return 0;
+> +}
+> +
+> +static const struct i2c_device_id ml86v7667_id[] = {
+> +	{DRV_NAME, 0},
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(i2c, ml86v7667_id);
+> +
+> +static struct i2c_driver ml86v7667_i2c_driver = {
+> +	.driver = {
+> +		.name	= DRV_NAME,
+> +		.owner	= THIS_MODULE,
+> +	},
+> +	.probe		= ml86v7667_probe,
+> +	.remove		= ml86v7667_remove,
+> +	.id_table	= ml86v7667_id,
+> +};
+> +
+> +module_i2c_driver(ml86v7667_i2c_driver);
+> +
+> +MODULE_DESCRIPTION("OKI Semiconductor ML86V7667 video decoder driver");
+> +MODULE_AUTHOR("Vladimir Barinov");
+> +MODULE_LICENSE("GPL");
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
 
+Regards,
+
+	Hans
