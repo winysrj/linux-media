@@ -1,83 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f43.google.com ([209.85.220.43]:50680 "EHLO
-	mail-pa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757853Ab3DAIoB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 04:44:01 -0400
-Received: by mail-pa0-f43.google.com with SMTP id hz11so1218997pad.2
-        for <linux-media@vger.kernel.org>; Mon, 01 Apr 2013 01:44:01 -0700 (PDT)
-From: Vikas Sajjan <vikas.sajjan@linaro.org>
-To: dri-devel@lists.freedesktop.org
-Cc: linux-media@vger.kernel.org, kgene.kim@samsung.com,
-	inki.dae@samsung.com, linaro-kernel@lists.linaro.org,
-	jy0922.shim@samsung.com, linux-samsung-soc@vger.kernel.org,
-	thomas.abraham@linaro.org
-Subject: [PATCH v3] drm/exynos: enable FIMD clocks
-Date: Mon,  1 Apr 2013 14:13:50 +0530
-Message-Id: <1364805830-6129-1-git-send-email-vikas.sajjan@linaro.org>
+Received: from ven69-h01-31-33-9-98.dsl.sta.abo.bbox.fr ([31.33.9.98]:46599
+	"EHLO laptop-kevin.kbaradon.com" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755477Ab3DVUpl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 16:45:41 -0400
+From: Kevin Baradon <kevin.baradon@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Cc: Kevin Baradon <kevin.baradon@gmail.com>
+Subject: [PATCH 4/4] media/rc/imon.c: kill urb when send_packet() is interrupted
+Date: Mon, 22 Apr 2013 22:09:46 +0200
+Message-Id: <1366661386-6720-5-git-send-email-kevin.baradon@gmail.com>
+In-Reply-To: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
+References: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-While migrating to common clock framework (CCF), found that the FIMD clocks
-were pulled down by the CCF.
-If CCF finds any clock(s) which has NOT been claimed by any of the
-drivers, then such clock(s) are PULLed low by CCF.
+This avoids:
+Apr 12 23:52:16 homeserver kernel: imon:send_packet: task interrupted
+Apr 12 23:52:16 homeserver kernel: ------------[ cut here ]------------
+Apr 12 23:52:16 homeserver kernel: WARNING: at drivers/usb/core/urb.c:327 usb_submit_urb+0x353/0x370()
+Apr 12 23:52:16 homeserver kernel: Hardware name: Unknow
+Apr 12 23:52:16 homeserver kernel: URB f64b6f00 submitted while active
+Apr 12 23:52:16 homeserver kernel: Modules linked in:
+Apr 12 23:52:16 homeserver kernel: Pid: 3154, comm: LCDd Not tainted 3.8.6-htpc-00005-g9e6fc5e #26
+Apr 12 23:52:16 homeserver kernel: Call Trace:
+Apr 12 23:52:16 homeserver kernel: [<c012d778>] ? warn_slowpath_common+0x78/0xb0
+Apr 12 23:52:16 homeserver kernel: [<c04136c3>] ? usb_submit_urb+0x353/0x370
+Apr 12 23:52:16 homeserver kernel: [<c04136c3>] ? usb_submit_urb+0x353/0x370
+Apr 12 23:52:16 homeserver kernel: [<c0447010>] ? imon_ir_change_protocol+0x150/0x150
+Apr 12 23:52:16 homeserver kernel: [<c012d843>] ? warn_slowpath_fmt+0x33/0x40
+Apr 12 23:52:16 homeserver kernel: [<c04136c3>] ? usb_submit_urb+0x353/0x370
+Apr 12 23:52:16 homeserver kernel: [<c0446c67>] ? send_packet+0x97/0x270
+Apr 12 23:52:16 homeserver kernel: [<c0446cfe>] ? send_packet+0x12e/0x270
+Apr 12 23:52:16 homeserver kernel: [<c05c5743>] ? do_nanosleep+0xa3/0xd0
+Apr 12 23:52:16 homeserver kernel: [<c044760e>] ? vfd_write+0xae/0x250
+Apr 12 23:52:16 homeserver kernel: [<c0447560>] ? lcd_write+0x180/0x180
+Apr 12 23:52:16 homeserver kernel: [<c01b2b19>] ? vfs_write+0x89/0x140
+Apr 12 23:52:16 homeserver kernel: [<c01b2dda>] ? sys_write+0x4a/0x90
+Apr 12 23:52:16 homeserver kernel: [<c05c7c45>] ? sysenter_do_call+0x12/0x26
+Apr 12 23:52:16 homeserver kernel: ---[ end trace a0b6f0fcfd2f9a1d ]---
+Apr 12 23:52:16 homeserver kernel: imon:send_packet: error submitting urb(-16)
+Apr 12 23:52:16 homeserver kernel: imon:vfd_write: send packet #3 failed
+Apr 12 23:52:16 homeserver kernel: imon:send_packet: error submitting urb(-16)
+Apr 12 23:52:16 homeserver kernel: imon:vfd_write: send packet #0 failed
 
-By calling clk_prepare_enable() for FIMD clocks fixes the issue.
-
-this patch also replaces clk_disable() with clk_disable_unprepare()
-during exit.
-
-Signed-off-by: Vikas Sajjan <vikas.sajjan@linaro.org>
+Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
 ---
-Changes since v2:
-	- moved clk_prepare_enable() and clk_disable_unprepare() from 
-	fimd_probe() to fimd_clock() as suggested by Inki Dae <inki.dae@samsung.com>
-Changes since v1:
-	- added error checking for clk_prepare_enable() and also replaced 
-	clk_disable() with clk_disable_unprepare() during exit.
----
- drivers/gpu/drm/exynos/exynos_drm_fimd.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+ drivers/media/rc/imon.c |    4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/gpu/drm/exynos/exynos_drm_fimd.c b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-index 9537761..f2400c8 100644
---- a/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-+++ b/drivers/gpu/drm/exynos/exynos_drm_fimd.c
-@@ -799,18 +799,18 @@ static int fimd_clock(struct fimd_context *ctx, bool enable)
- 	if (enable) {
- 		int ret;
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index 3af7bb6..72e3fa6 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -528,8 +528,10 @@ static int send_packet(struct imon_context *ictx)
+ 		mutex_unlock(&ictx->lock);
+ 		retval = wait_for_completion_interruptible(
+ 				&ictx->tx.finished);
+-		if (retval)
++		if (retval) {
++			usb_kill_urb(ictx->tx_urb);
+ 			pr_err_ratelimited("task interrupted\n");
++		}
+ 		mutex_lock(&ictx->lock);
  
--		ret = clk_enable(ctx->bus_clk);
-+		ret = clk_prepare_enable(ctx->bus_clk);
- 		if (ret < 0)
- 			return ret;
- 
--		ret = clk_enable(ctx->lcd_clk);
-+		ret = clk_prepare_enable(ctx->lcd_clk);
- 		if  (ret < 0) {
--			clk_disable(ctx->bus_clk);
-+			clk_disable_unprepare(ctx->bus_clk);
- 			return ret;
- 		}
- 	} else {
--		clk_disable(ctx->lcd_clk);
--		clk_disable(ctx->bus_clk);
-+		clk_disable_unprepare(ctx->lcd_clk);
-+		clk_disable_unprepare(ctx->bus_clk);
- 	}
- 
- 	return 0;
-@@ -981,8 +981,8 @@ static int fimd_remove(struct platform_device *pdev)
- 	if (ctx->suspended)
- 		goto out;
- 
--	clk_disable(ctx->lcd_clk);
--	clk_disable(ctx->bus_clk);
-+	clk_disable_unprepare(ctx->lcd_clk);
-+	clk_disable_unprepare(ctx->bus_clk);
- 
- 	pm_runtime_set_suspended(dev);
- 	pm_runtime_put_sync(dev);
+ 		retval = ictx->tx.status;
 -- 
-1.7.9.5
+1.7.10.4
 
