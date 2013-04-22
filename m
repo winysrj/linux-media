@@ -1,961 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34528 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751970Ab3DAPfG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Apr 2013 11:35:06 -0400
-Message-ID: <5159A9F8.1090407@redhat.com>
-Date: Mon, 01 Apr 2013 17:38:32 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: John McMaster <johndmcmaster@gmail.com>
-CC: mchehab@redhat.com, linux-kernel@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] gspca_touptek: Add support for ToupTek UCMOS
- series USB cameras
-References: <1364777633-10769-1-git-send-email-johndmcmaster@gmail.com>
-In-Reply-To: <1364777633-10769-1-git-send-email-johndmcmaster@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:46654 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752901Ab3DVKTv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Apr 2013 06:19:51 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH RFC v2 3/4] media: davinci: vpif: capture: add V4L2-async support
+Date: Mon, 22 Apr 2013 15:47:27 +0530
+Message-Id: <1366625848-743-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi John,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Thanks for the new driver! Unfortunately the driver is still
-using gspca's own/deprecated control mechanism rather then
-the new v4l2-control framework which all drivers now a days
-use.
+Add support for asynchronous subdevice probing, using the v4l2-async API.
+The legacy synchronous mode is still supported too, which allows to
+gradually update drivers and platforms.
 
-And we've just finished converting all the gspca sub-drivers
-to using this new control framework, and removing gspca's
-own custom control code.
+Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |  151 +++++++++++++++++--------
+ drivers/media/platform/davinci/vpif_capture.h |    2 +
+ include/media/davinci/vpif_types.h            |    2 +
+ 3 files changed, 108 insertions(+), 47 deletions(-)
 
-Can you please convert the driver to use the new control code
-(see other gspca drivers for examples how to do that, ie:
-http://git.linuxtv.org/hgoede/gspca.git/commitdiff/4e02a3cd647940be6a9b4b71dfa88dbcb6fe1af9
-http://git.linuxtv.org/hgoede/gspca.git/commitdiff/77f509f09754f46bcad35e13f1e6c95c1b8defdc
-http://git.linuxtv.org/hgoede/gspca.git/commitdiff/c535784016480ef17778c285915492b581fa6a5f
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index a1b42b0..d723b58 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-ioctl.h>
+ 
+@@ -2045,6 +2046,76 @@ vpif_init_free_channel_objects:
+ 	return err;
+ }
+ 
++static int vpif_async_bound(struct v4l2_async_notifier *notifier,
++		    struct v4l2_async_subdev_list *asdl)
++{
++	struct v4l2_subdev *subdev = v4l2_async_to_subdev(asdl);
++	int i = 0;
++
++	for (i = 0; i < vpif_obj.config->subdev_count; i++)
++		if (!strcmp(vpif_obj.config->subdev_info[i].name,
++			    subdev->name)) {
++			vpif_obj.sd[i] = subdev;
++			return 0;
++		}
++
++	return -EINVAL;
++}
++
++static int vpif_probe_complete(void)
++{
++	struct common_obj *common;
++	struct channel_obj *ch;
++	int i, j, err, k;
++
++	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
++		ch = vpif_obj.dev[j];
++		ch->channel_id = j;
++		common = &(ch->common[VPIF_VIDEO_INDEX]);
++		spin_lock_init(&common->irqlock);
++		mutex_init(&common->lock);
++		ch->video_dev->lock = &common->lock;
++		/* Initialize prio member of channel object */
++		v4l2_prio_init(&ch->prio);
++		video_set_drvdata(ch->video_dev, ch);
++
++		/* select input 0 */
++		err = vpif_set_input(vpif_obj.config, ch, 0);
++		if (err)
++			goto probe_out;
++
++		err = video_register_device(ch->video_dev,
++					    VFL_TYPE_GRABBER, (j ? 1 : 0));
++		if (err)
++			goto probe_out;
++	}
++
++	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
++	return 0;
++
++probe_out:
++	for (k = 0; k < j; k++) {
++		/* Get the pointer to the channel object */
++		ch = vpif_obj.dev[k];
++		/* Unregister video device */
++		video_unregister_device(ch->video_dev);
++	}
++	kfree(vpif_obj.sd);
++	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
++		ch = vpif_obj.dev[i];
++		/* Note: does nothing if ch->video_dev == NULL */
++		video_device_release(ch->video_dev);
++	}
++	v4l2_device_unregister(&vpif_obj.v4l2_dev);
++
++	return err;
++}
++
++static int vpif_async_complete(struct v4l2_async_notifier *notifier)
++{
++	return vpif_probe_complete();
++}
++
+ /**
+  * vpif_probe : This function probes the vpif capture driver
+  * @pdev: platform device pointer
+@@ -2055,12 +2126,10 @@ vpif_init_free_channel_objects:
+ static __init int vpif_probe(struct platform_device *pdev)
+ {
+ 	struct vpif_subdev_info *subdevdata;
+-	struct vpif_capture_config *config;
+-	int i, j, k, err;
++	int i, j, err;
+ 	int res_idx = 0;
+ 	struct i2c_adapter *i2c_adap;
+ 	struct channel_obj *ch;
+-	struct common_obj *common;
+ 	struct video_device *vfd;
+ 	struct resource *res;
+ 	int subdev_count;
+@@ -2137,10 +2206,9 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	i2c_adap = i2c_get_adapter(1);
+-	config = pdev->dev.platform_data;
++	vpif_obj.config = pdev->dev.platform_data;
+ 
+-	subdev_count = config->subdev_count;
++	subdev_count = vpif_obj.config->subdev_count;
+ 	vpif_obj.sd = kzalloc(sizeof(struct v4l2_subdev *) * subdev_count,
+ 				GFP_KERNEL);
+ 	if (vpif_obj.sd == NULL) {
+@@ -2149,53 +2217,42 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		goto vpif_sd_error;
+ 	}
+ 
+-	for (i = 0; i < subdev_count; i++) {
+-		subdevdata = &config->subdev_info[i];
+-		vpif_obj.sd[i] =
+-			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+-						  i2c_adap,
+-						  &subdevdata->board_info,
+-						  NULL);
+-
+-		if (!vpif_obj.sd[i]) {
+-			vpif_err("Error registering v4l2 subdevice\n");
++	if (!vpif_obj.config->asd_sizes) {
++		i2c_adap = i2c_get_adapter(1);
++		for (i = 0; i < subdev_count; i++) {
++			subdevdata = &vpif_obj.config->subdev_info[i];
++			vpif_obj.sd[i] =
++				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
++							  i2c_adap,
++							  &subdevdata->
++							  board_info,
++							  NULL);
++
++			if (!vpif_obj.sd[i]) {
++				vpif_err("Error registering v4l2 subdevice\n");
++				goto probe_subdev_out;
++			}
++			v4l2_info(&vpif_obj.v4l2_dev,
++				  "registered sub device %s\n",
++				   subdevdata->name);
++		}
++		vpif_probe_complete();
++	} else {
++		vpif_obj.notifier.subdev = vpif_obj.config->asd;
++		vpif_obj.notifier.subdev_num = vpif_obj.config->asd_sizes[0];
++		vpif_obj.notifier.bound = vpif_async_bound;
++		vpif_obj.notifier.complete = vpif_async_complete;
++		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
++						   &vpif_obj.notifier);
++		if (err) {
++			vpif_err("Error registering async notifier\n");
++			err = -EINVAL;
+ 			goto probe_subdev_out;
+ 		}
+-		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
+-			  subdevdata->name);
+ 	}
+ 
+-	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+-		ch = vpif_obj.dev[j];
+-		ch->channel_id = j;
+-		common = &(ch->common[VPIF_VIDEO_INDEX]);
+-		spin_lock_init(&common->irqlock);
+-		mutex_init(&common->lock);
+-		ch->video_dev->lock = &common->lock;
+-		/* Initialize prio member of channel object */
+-		v4l2_prio_init(&ch->prio);
+-		video_set_drvdata(ch->video_dev, ch);
+-
+-		/* select input 0 */
+-		err = vpif_set_input(config, ch, 0);
+-		if (err)
+-			goto probe_out;
+-
+-		err = video_register_device(ch->video_dev,
+-					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+-		if (err)
+-			goto probe_out;
+-	}
+-	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
+ 	return 0;
+ 
+-probe_out:
+-	for (k = 0; k < j; k++) {
+-		/* Get the pointer to the channel object */
+-		ch = vpif_obj.dev[k];
+-		/* Unregister video device */
+-		video_unregister_device(ch->video_dev);
+-	}
+ probe_subdev_out:
+ 	/* free sub devices memory */
+ 	kfree(vpif_obj.sd);
+diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
+index 0ebb312..5a29d9a 100644
+--- a/drivers/media/platform/davinci/vpif_capture.h
++++ b/drivers/media/platform/davinci/vpif_capture.h
+@@ -142,6 +142,8 @@ struct vpif_device {
+ 	struct v4l2_device v4l2_dev;
+ 	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
+ 	struct v4l2_subdev **sd;
++	struct v4l2_async_notifier notifier;
++	struct vpif_capture_config *config;
+ };
+ 
+ struct vpif_config_params {
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index 3882e06..e08bcde 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -81,5 +81,7 @@ struct vpif_capture_config {
+ 	struct vpif_subdev_info *subdev_info;
+ 	int subdev_count;
+ 	const char *card_name;
++	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
++	int *asd_sizes;		/* 0-terminated array of asd group sizes */
+ };
+ #endif /* _VPIF_TYPES_H */
+-- 
+1.7.4.1
 
-And then resubmit the converted driver?
-
-Thanks & Regards,
-
-Hans
-
-
-On 04/01/2013 02:53 AM, John McMaster wrote:
-> Adds support for AmScope MU800 / ToupTek UCMOS08000KPB USB microscope camera.
->
-> Signed-off-by: John McMaster <johndmcmaster@gmail.com>
-> ---
->   drivers/media/usb/gspca/Kconfig   |   10 +
->   drivers/media/usb/gspca/Makefile  |    2 +
->   drivers/media/usb/gspca/touptek.c |  857 +++++++++++++++++++++++++++++++++++++
->   3 files changed, 869 insertions(+)
->   create mode 100644 drivers/media/usb/gspca/touptek.c
->
-> diff --git a/drivers/media/usb/gspca/Kconfig b/drivers/media/usb/gspca/Kconfig
-> index 6345f93..113f181 100644
-> --- a/drivers/media/usb/gspca/Kconfig
-> +++ b/drivers/media/usb/gspca/Kconfig
-> @@ -376,6 +376,16 @@ config USB_GSPCA_TOPRO
->   	  To compile this driver as a module, choose M here: the
->   	  module will be called gspca_topro.
->
-> +config USB_GSPCA_TOUPTEK
-> +	tristate "Touptek USB Camera Driver"
-> +	depends on VIDEO_V4L2 && USB_GSPCA
-> +	help
-> +	  Say Y here if you want support for cameras based on the ToupTek UCMOS
-> +	  / AmScope MU series camera.
-> +
-> +	  To compile this driver as a module, choose M here: the
-> +	  module will be called gspca_touptek.
-> +
->   config USB_GSPCA_TV8532
->   	tristate "TV8532 USB Camera Driver"
->   	depends on VIDEO_V4L2 && USB_GSPCA
-> diff --git a/drivers/media/usb/gspca/Makefile b/drivers/media/usb/gspca/Makefile
-> index c901da0..5f18e7f 100644
-> --- a/drivers/media/usb/gspca/Makefile
-> +++ b/drivers/media/usb/gspca/Makefile
-> @@ -37,6 +37,7 @@ obj-$(CONFIG_USB_GSPCA_STK014)   += gspca_stk014.o
->   obj-$(CONFIG_USB_GSPCA_STV0680)  += gspca_stv0680.o
->   obj-$(CONFIG_USB_GSPCA_T613)     += gspca_t613.o
->   obj-$(CONFIG_USB_GSPCA_TOPRO)    += gspca_topro.o
-> +obj-$(CONFIG_USB_GSPCA_TOUPTEK)  += gspca_touptek.o
->   obj-$(CONFIG_USB_GSPCA_TV8532)   += gspca_tv8532.o
->   obj-$(CONFIG_USB_GSPCA_VC032X)   += gspca_vc032x.o
->   obj-$(CONFIG_USB_GSPCA_VICAM)    += gspca_vicam.o
-> @@ -82,6 +83,7 @@ gspca_stv0680-objs  := stv0680.o
->   gspca_sunplus-objs  := sunplus.o
->   gspca_t613-objs     := t613.o
->   gspca_topro-objs    := topro.o
-> +gspca_touptek-objs  := touptek.o
->   gspca_tv8532-objs   := tv8532.o
->   gspca_vc032x-objs   := vc032x.o
->   gspca_vicam-objs    := vicam.o
-> diff --git a/drivers/media/usb/gspca/touptek.c b/drivers/media/usb/gspca/touptek.c
-> new file mode 100644
-> index 0000000..9ce31f0
-> --- /dev/null
-> +++ b/drivers/media/usb/gspca/touptek.c
-> @@ -0,0 +1,857 @@
-> +/*
-> + * ToupTek UCMOS / AmScope MU series camera driver
-> + * TODO: contrast with ScopeTek / AmScope MDC cameras
-> + *
-> + * Copyright (C) 2012 John McMaster <JohnDMcMaster@gmail.com>
-> + *
-> + * Special thanks to Bushing for helping with the decrypt algorithm and
-> + * Sean O'Sullivan / the Rensselaer Center for Open Source
-> + * Software (RCOS) for helping me learn kernel development
-> + *
-> + * This program is free software; you can redistribute it and/or modify
-> + * it under the terms of the GNU General Public License as published by
-> + * the Free Software Foundation; either version 2 of the License, or
-> + * any later version.
-> + *
-> + * This program is distributed in the hope that it will be useful,
-> + * but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-> + * GNU General Public License for more details.
-> + *
-> + * You should have received a copy of the GNU General Public License
-> + * along with this program; if not, write to the Free Software
-> + * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA 02111-1307 USA
-> + */
-> +
-> +#include "gspca.h"
-> +
-> +#define MODULE_NAME "touptek"
-> +
-> +MODULE_AUTHOR("John McMaster");
-> +MODULE_DESCRIPTION("ToupTek UCMOS / Amscope MU microscope camera driver");
-> +MODULE_LICENSE("GPL");
-> +
-> +/*
-> +Register value is linear with exposure time
-> +Exposure (sec), E (reg)
-> +0.000400, 0x0002
-> +0.001000, 0x0005
-> +0.005000, 0x0019
-> +0.020000, 0x0064
-> +0.080000, 0x0190
-> +0.400000, 0x07D0
-> +1.000000, 0x1388
-> +2.000000, 0x2710
-> +*/
-> +#define INDEX_EXPOSURE		0x3012
-> +#define INDEX_WIDTH		0x034C
-> +#define INDEX_HEIGHT		0x034E
-> +
-> +/*
-> +Gain does not vary with resolution (checked 640x480 vs 1600x1200)
-> +Range 0x1000 (nothing) to 0x11FF (highest)
-> +However, there appear to be gaps
-> +
-> +Suspect three gain stages
-> +0x1000: master channel enable bit
-> +0x007F: low gain bits
-> +0x0080: medium gain bit
-> +0x0100: high gain bit
-> +
-> +gain = enable * (1 + regH) * (1 + regM) * z * regL
-> +
-> +zR = 0.0069605943152454778
-> +	about 3/431 = 0.0069605568445475635
-> +zB = 0.0095695970695970703
-> +	about 6/627 = 0.0095693779904306216
-> +zG = 0.010889328063241107
-> +	about 6/551 = 0.010889292196007259
-> +about 10 bits for constant + 7 bits for value => at least 17 bit intermediate
-> +with 32 bit ints should be fine for overflow etc
-> +Essentially gains are in range 0-0x001FF
-> +
-> +However, V4L expects a main gain channel + R and B balance
-> +To keep things simple for now saturate the values of balance is too high/low
-> +This isn't really ideal but easy way to fit the Linux model
-> +
-> +Raw data:
-> +Gain,   GTOP,   B,	  R,	  GBOT
-> +1.00,   0x105C, 0x1068, 0x10C8, 0x105C
-> +1.20,   0x106E, 0x107E, 0x10D6, 0x106E
-> +1.40,   0x10C0, 0x10CA, 0x10E5, 0x10C0
-> +1.60,   0x10C9, 0x10D4, 0x10F3, 0x10C9
-> +1.80,   0x10D2, 0x10DE, 0x11C1, 0x10D2
-> +2.00,   0x10DC, 0x10E9, 0x11C8, 0x10DC
-> +2.20,   0x10E5, 0x10F3, 0x11CF, 0x10E5
-> +2.40,   0x10EE, 0x10FE, 0x11D7, 0x10EE
-> +2.60,   0x10F7, 0x11C4, 0x11DE, 0x10F7
-> +2.80,   0x11C0, 0x11CA, 0x11E5, 0x11C0
-> +3.00,   0x11C5, 0x11CF, 0x11ED, 0x11C5
-> +
-> +Converted using gain model turns out to be quite linear:
-> +Gain, GTOP, B, R, GBOT
-> +1.00, 92, 104, 144, 92
-> +1.20, 110, 126, 172, 110
-> +1.40, 128, 148, 202, 128
-> +1.60, 146, 168, 230, 146
-> +1.80, 164, 188, 260, 164
-> +2.00, 184, 210, 288, 184
-> +2.20, 202, 230, 316, 202
-> +2.40, 220, 252, 348, 220
-> +2.60, 238, 272, 376, 238
-> +2.80, 256, 296, 404, 256
-> +3.00, 276, 316, 436, 276
-> +*/
-> +#define GAIN_BASE		0x1000
-> +/*
-> +Maximum gain is 0x7FF * 2 * 2 => 0x1FFC (8188)
-> +or about 13 effective bits of gain
-> +The highest the commercial driver goes in my setup 436
-> +However, because could potentially damage circuits
-> +limit the gain until have a reason to go higher
-> +*/
-> +#define GAIN_MAX		511
-> +#define BAL_MAX			511
-> +#define INDEX_GAIN_GTOP		0x3056
-> +#define INDEX_GAIN_B		0x3058
-> +#define INDEX_GAIN_R		0x305A
-> +#define INDEX_GAIN_GBOT		0x305C
-> +
-> +#define EXPOSURE_DEFAULT	350
-> +/*
-> +Gain implementation
-> +Goal: simple conversion for default gain at 1.00
-> +Want to do something similar to mt9v011.c's set_balance
-> +Problem: can lead to gains higher than possible
-> +When this happens the gain is clipped and a debug warning is emitted
-> +
-> +green_gain = sd->global_gain
-> +blue_gain = sd->global_gain +
-> +	((uint32_t)sd->global_gain) * sd->blue_bal / GAIN_MAX;
-> +red_gain = sd->global_gain +
-> +	((uint32_t)sd->global_gain) * sd->blue_bal / GAIN_MAX;
-> +
-> +Want initial gain of 1.4 (since it works well for me ;) ):
-> +-G: 128 => global_gain = 128
-> +-B: 148 => blue_bal = 80
-> +	148 = 128 + 128 * blue_bal / 511
-> +-R: 202 => red_bal = 295
-> +	202 = 128 + 128 * red_bal / 511
-> +*/
-> +#define GAIN_DEFAULT 128
-> +#define BLUE_DEFAULT 80
-> +#define RED_DEFAULT 295
-> +
-> +/* specific webcam descriptor */
-> +struct sd {
-> +	struct gspca_dev gspca_dev;	/* !! must be the first item */
-> +	/* How many bytes this frame */
-> +	unsigned int this_f;
-> +
-> +	/*
-> +	Device has separate gains for each Bayer quadrant
-> +	V4L supports master gain which is referenced to G1/G2 and supplies
-> +	individual balance controls for R/B
-> +	*/
-> +	u16 global_gain, red_bal, blue_bal;
-> +	/* In ms */
-> +	unsigned int exposure;
-> +};
-> +
-> +/* Used to simplify reg write error handling */
-> +struct cmd {
-> +	u16 value;
-> +	u16 index;
-> +};
-> +
-> +static const struct v4l2_pix_format vga_mode[] = {
-> +	{800, 600,
-> +		V4L2_PIX_FMT_SGRBG8,
-> +		V4L2_FIELD_NONE,
-> +		.bytesperline = 800,
-> +		.sizeimage = 800 * 600,
-> +		.colorspace = V4L2_COLORSPACE_SRGB},
-> +	{1600, 1200,
-> +		V4L2_PIX_FMT_SGRBG8,
-> +		V4L2_FIELD_NONE,
-> +		.bytesperline = 1600,
-> +		.sizeimage = 1600 * 1200,
-> +		.colorspace = V4L2_COLORSPACE_SRGB},
-> +	{3264, 2448,
-> +		V4L2_PIX_FMT_SGRBG8,
-> +		V4L2_FIELD_NONE,
-> +		.bytesperline = 3264,
-> +		.sizeimage = 3264 * 2448,
-> +		.colorspace = V4L2_COLORSPACE_SRGB},
-> +};
-> +
-> +/*
-> +As theres no (known) frame sync, the only way to keep synced is to try hard
-> +to never miss any packets
-> +*/
-> +#if MAX_NURBS < 4
-> +#error "Not enough URBs in the gspca table"
-> +#endif
-> +
-> +static int val_reply(const char *reply, int rc)
-> +{
-> +	if (rc < 0) {
-> +		pr_warn("reply has error %d", rc);
-> +		return -EIO;
-> +	}
-> +	if (rc != 1) {
-> +		pr_warn("Bad reply size %d", rc);
-> +		return -EIO;
-> +	}
-> +	if (reply[0] != 0x08) {
-> +		pr_warn("Bad reply 0x%02X", reply[0]);
-> +		return -EIO;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int reg_w(struct gspca_dev *gspca_dev, u16 value, u16 index)
-> +{
-> +	char buff[1];
-> +	int rc;
-> +
-> +	pr_devel("bReq=0x0B, bReqT=0xC0, wVal=0x%04X, wInd=0x%04X",
-> +		value, index);
-> +	rc = usb_control_msg(gspca_dev->dev, usb_rcvctrlpipe(gspca_dev->dev, 0),
-> +		0x0B, 0xC0, value, index, buff, 1, 500);
-> +	pr_devel("rc=%d, ret={0x%02X}", rc, buff[0]);
-> +	if (rc < 0) {
-> +		pr_warn("Failed reg_w(0x0B, 0xC0, 0x%04X, 0x%04X) w/ rc %d",
-> +			value, index, rc);
-> +		return rc;
-> +	}
-> +	if (val_reply(buff, rc)) {
-> +		pr_warn("Bad reply to reg_w(0x0B, 0xC0, 0x%04X, 0x%04X\n",
-> +			value, index);
-> +		return -EIO;
-> +	}
-> +	return 0;
-> +}
-> +
-> +static int reg_w_buf(struct gspca_dev *gspca_dev,
-> +		const struct cmd *p, int l)
-> +{
-> +	do {
-> +		int rc = reg_w(gspca_dev, p->value, p->index);
-> +
-> +		if (rc < 0)
-> +			return rc;
-> +		p++;
-> +	} while (--l > 0);
-> +	return 0;
-> +}
-> +
-> +static int sd_getexposure(struct gspca_dev *gspca_dev, s32 *val)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	*val = sd->exposure;
-> +	return 0;
-> +}
-> +
-> +static int set_exposure(struct gspca_dev *gspca_dev)
-> +{
-> +	int rc;
-> +	struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-> +	uint16_t value;
-> +	unsigned int w = gspca_dev->cam.cam_mode->width;
-> +
-> +	if (w == 800)
-> +		value = sd->exposure * 5;
-> +	else if (w == 1600)
-> +		value = sd->exposure * 3;
-> +	else if (w == 3264)
-> +		value = sd->exposure * 3 / 2;
-> +	else {
-> +		pr_devel("Invalid width %u", w);
-> +		return -EINVAL;
-> +	}
-> +	pr_devel("exposure: 0x%04X", value);
-> +	/* Wonder if theres a good reason for sending it twice */
-> +	rc = reg_w(gspca_dev, value, INDEX_EXPOSURE);
-> +	if (rc)
-> +		return rc;
-> +	rc = reg_w(gspca_dev, value, INDEX_EXPOSURE);
-> +	if (rc)
-> +		return rc;
-> +
-> +	return 0;
-> +}
-> +
-> +static int sd_setexposure(struct gspca_dev *gspca_dev, s32 val)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	sd->exposure = val;
-> +	if (gspca_dev->streaming)
-> +		return set_exposure(gspca_dev);
-> +	return 0;
-> +}
-> +
-> +
-> +static int gainify(int in)
-> +{
-> +	/*
-> +	TODO: check if there are any issues with corner cases
-> +	0x000 (0):0x07F (127): regL
-> +	0x080 (128) - 0x0FF (255): regM, regL
-> +	0x100 (256) - max: regH, regM, regL
-> +	*/
-> +	if (in <= 0x7F)
-> +		return 0x1000 | in;
-> +	else if (in <= 0xFF)
-> +		return 0x1080 | in / 2;
-> +	else
-> +		return 0x1180 | in / 4;
-> +}
-> +
-> +static int set_gain(struct gspca_dev *gspca_dev, int set)
-> +{
-> +	struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-> +	u16 green_gain, blue_gain, red_gain;
-> +	int rc;
-> +
-> +	green_gain = gainify(sd->global_gain);
-> +	pr_devel("gain G1/G2 (0x%04X): 0x%04X (src 0x%04X, def: 0x%04X)",
-> +		 INDEX_GAIN_GTOP,
-> +		 green_gain, sd->global_gain, GAIN_DEFAULT);
-> +
-> +	blue_gain = sd->global_gain +
-> +		((uint32_t)sd->global_gain) * sd->blue_bal / GAIN_MAX;
-> +	if (blue_gain > GAIN_MAX) {
-> +		pr_devel("Truncating blue 0x%04X w/ value 0x%04X",
-> +			 GAIN_MAX, blue_gain);
-> +		blue_gain = GAIN_MAX;
-> +	}
-> +	blue_gain = gainify(blue_gain);
-> +	pr_devel("gain B (0x%04X): 0x%04X w/ source 0x%04X, default 0x%04X",
-> +		 INDEX_GAIN_B, blue_gain, sd->blue_bal, BLUE_DEFAULT);
-> +
-> +	red_gain = sd->global_gain +
-> +		((uint32_t)sd->global_gain) * sd->red_bal / GAIN_MAX;
-> +	if (red_gain > GAIN_MAX) {
-> +		pr_devel("Truncating gain 0x%04X w/ value 0x%04X",
-> +			 GAIN_MAX, red_gain);
-> +		red_gain = GAIN_MAX;
-> +	}
-> +	red_gain = gainify(red_gain);
-> +	pr_devel("gain R (0x%04X): 0x%04X w / source 0x%04X, default 0x%04X",
-> +		 INDEX_GAIN_R, red_gain, sd->red_bal, RED_DEFAULT);
-> +
-> +	if (set) {
-> +		rc = reg_w(gspca_dev, green_gain, INDEX_GAIN_GTOP);
-> +		if (rc)
-> +			return rc;
-> +		rc = reg_w(gspca_dev, blue_gain, INDEX_GAIN_B);
-> +		if (rc)
-> +			return rc;
-> +		rc = reg_w(gspca_dev, red_gain, INDEX_GAIN_R);
-> +		if (rc)
-> +			return rc;
-> +		rc = reg_w(gspca_dev, green_gain, INDEX_GAIN_GBOT);
-> +		if (rc)
-> +			return rc;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +static int sd_setgain(struct gspca_dev *gspca_dev, s32 val)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	sd->global_gain = val;
-> +	if (gspca_dev->streaming)
-> +		return set_gain(gspca_dev, 1);
-> +	return 0;
-> +}
-> +
-> +static int sd_getgain(struct gspca_dev *gspca_dev, s32 *val)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	*val = sd->global_gain;
-> +	return 0;
-> +}
-> +
-> +static int sd_setredbalance(struct gspca_dev *gspca_dev, s32 val)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	sd->red_bal = val;
-> +	if (gspca_dev->streaming)
-> +		return set_gain(gspca_dev, 1);
-> +	return 0;
-> +}
-> +
-> +static int sd_getredbalance(struct gspca_dev *gspca_dev, s32 *val)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	*val = sd->red_bal;
-> +	return 0;
-> +}
-> +
-> +static int sd_setbluebalance(struct gspca_dev *gspca_dev, s32 val)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +
-> +	sd->blue_bal = val;
-> +	if (gspca_dev->streaming)
-> +		return set_gain(gspca_dev, 1);
-> +	return 0;
-> +}
-> +
-> +static int sd_getbluebalance(struct gspca_dev *gspca_dev, s32 *val)
-> +{
-> +	struct sd *sd = (struct sd *) gspca_dev;
-> +	*val = sd->blue_bal;
-> +	return 0;
-> +}
-> +
-> +static int configure_wh(struct gspca_dev *gspca_dev)
-> +{
-> +	unsigned int rc;
-> +	int w = gspca_dev->cam.cam_mode->width;
-> +
-> +	if (w == 800) {
-> +		static const struct cmd reg_init_res[] = {
-> +			{0x0060, 0x0344},
-> +			{0x0CD9, 0x0348},
-> +			{0x0036, 0x0346},
-> +			{0x098F, 0x034A},
-> +			{0x07C7, 0x3040},
-> +		};
-> +
-> +		rc = reg_w_buf(gspca_dev,
-> +			       reg_init_res, ARRAY_SIZE(reg_init_res));
-> +		if (rc < 0)
-> +			return rc;
-> +	} else if (w == 1600) {
-> +		static const struct cmd reg_init_res[] = {
-> +			{0x009C, 0x0344},
-> +			{0x0D19, 0x0348},
-> +			{0x0068, 0x0346},
-> +			{0x09C5, 0x034A},
-> +			{0x06C3, 0x3040},
-> +		};
-> +
-> +		rc = reg_w_buf(gspca_dev,
-> +			       reg_init_res, ARRAY_SIZE(reg_init_res));
-> +		if (rc < 0)
-> +			return rc;
-> +	} else if (w == 3264) {
-> +		static const struct cmd reg_init_res[] = {
-> +			{0x00E8, 0x0344},
-> +			{0x0DA7, 0x0348},
-> +			{0x009E, 0x0346},
-> +			{0x0A2D, 0x034A},
-> +			{0x0241, 0x3040},
-> +		};
-> +
-> +		rc = reg_w_buf(gspca_dev,
-> +			       reg_init_res, ARRAY_SIZE(reg_init_res));
-> +		if (rc < 0)
-> +			return rc;
-> +	} else {
-> +		pr_devel("bad width %u", w);
-> +		return -EINVAL;
-> +	}
-> +
-> +	rc = reg_w(gspca_dev, 0x0000, 0x0400);
-> +	if (rc)
-> +		return rc;
-> +	rc = reg_w(gspca_dev, 0x0010, 0x0404);
-> +	if (rc)
-> +		return rc;
-> +	rc = reg_w(gspca_dev, w, INDEX_WIDTH);
-> +	if (rc)
-> +		return rc;
-> +	rc = reg_w(gspca_dev, gspca_dev->cam.cam_mode->height, INDEX_HEIGHT);
-> +	if (rc)
-> +		return rc;
-> +
-> +	if (w == 800) {
-> +		rc = reg_w(gspca_dev, 0x0384, 0x300A);
-> +		if (rc)
-> +			return rc;
-> +		rc = reg_w(gspca_dev, 0x0960, 0x300C);
-> +		if (rc)
-> +			return rc;
-> +	} else if (w == 1600) {
-> +		rc = reg_w(gspca_dev, 0x0640, 0x300A);
-> +		if (rc)
-> +			return rc;
-> +		rc = reg_w(gspca_dev, 0x0FA0, 0x300C);
-> +		if (rc)
-> +			return rc;
-> +	} else if (w == 3264) {
-> +		rc = reg_w(gspca_dev, 0x0B4B, 0x300A);
-> +		if (rc)
-> +			return rc;
-> +		rc = reg_w(gspca_dev, 0x1F40, 0x300C);
-> +		if (rc)
-> +			return rc;
-> +	} else {
-> +		pr_devel("bad width %u", w);
-> +		return -EINVAL;
-> +	}
-> +
-> +	return 0;
-> +}
-> +
-> +/* Packets that were encrypted, no idea if the grouping is significant */
-> +static int configure_encrypted(struct gspca_dev *gspca_dev)
-> +{
-> +	unsigned int rc;
-> +	static const struct cmd reg_init_begin[] = {
-> +		{0x0100, 0x0103},
-> +		{0x0000, 0x0100},
-> +		{0x0100, 0x0104},
-> +		{0x0004, 0x0300},
-> +		{0x0001, 0x0302},
-> +		{0x0008, 0x0308},
-> +		{0x0001, 0x030A},
-> +		{0x0004, 0x0304},
-> +		{0x0040, 0x0306},
-> +		{0x0000, 0x0104},
-> +		{0x0100, 0x0104},
-> +	};
-> +	static const struct cmd reg_init_end[] = {
-> +		{0x0000, 0x0104},
-> +		{0x0301, 0x31AE},
-> +		{0x0805, 0x3064},
-> +		{0x0071, 0x3170},
-> +		{0x10DE, 0x301A},
-> +		{0x0000, 0x0100},
-> +		{0x0010, 0x0306},
-> +		{0x0100, 0x0100},
-> +	};
-> +
-> +	pr_devel("Encrypted begin, w = %u", gspca_dev->cam.cam_mode->width);
-> +	rc = reg_w_buf(gspca_dev, reg_init_begin, ARRAY_SIZE(reg_init_begin));
-> +	if (rc < 0)
-> +		return rc;
-> +	rc = configure_wh(gspca_dev);
-> +	if (rc < 0)
-> +		return rc;
-> +	rc = reg_w_buf(gspca_dev, reg_init_end, ARRAY_SIZE(reg_init_end));
-> +	if (rc < 0)
-> +		return rc;
-> +
-> +	pr_devel("Setting exposure");
-> +	rc = set_exposure(gspca_dev);
-> +	if (rc) {
-> +		pr_devel("Failed to set exposure");
-> +		return rc;
-> +	}
-> +
-> +	rc = reg_w(gspca_dev, 0x0100, 0x0104);
-> +	if (rc)
-> +		return rc;
-> +
-> +	pr_devel("Setting gain");
-> +	rc = set_gain(gspca_dev, 1);
-> +	if (rc) {
-> +		pr_devel("Failed to set gain");
-> +		return rc;
-> +	}
-> +
-> +	rc = reg_w(gspca_dev, 0x0000, 0x0104);
-> +	if (rc)
-> +		return rc;
-> +
-> +	pr_devel("Encrypted end");
-> +	return 0;
-> +}
-> +
-> +static int configure(struct gspca_dev *gspca_dev)
-> +{
-> +	uint8_t buff[4];
-> +	unsigned int rc;
-> +
-> +	pr_devel("Beginning configure");
-> +
-> +	/*
-> +	First driver sets a sort of encryption key
-> +	A number of futur requests of this type have wValue and wIndex encrypted
-> +	as follows:
-> +	-Compute key = this wValue rotate left by 4 bits
-> +		(decrypt.py rotates right because we are decrypting)
-> +	-Later packets encrypt packets by XOR'ing with key
-> +		XOR encrypt/decrypt is symmetrical
-> +		wValue, and wIndex are encrypted
-> +		bRequest is not and bRequestType is always 0xC0
-> +			This allows resyncing if key is unknown?
-> +	By setting 0 we XOR with 0 and the shifting and XOR drops out
-> +	*/
-> +	rc = usb_control_msg(gspca_dev->dev, usb_rcvctrlpipe(gspca_dev->dev, 0),
-> +			0x16, 0xC0, 0x0000, 0x0000, buff, 2, 500);
-> +	if (val_reply(buff, rc)) {
-> +		pr_warn("failed key req");
-> +		return -EIO;
-> +	}
-> +
-> +	/*
-> +	Next does some sort of 2 packet challenge / response
-> +	(to make sure its not cloned hardware?)
-> +	Ignore: I want to work with their hardware, not clone it
-> +	16 bytes out challenge, requestType: 0x40
-> +	16 bytes in response, requestType: 0xC0
-> +	*/
-> +
-> +	rc = usb_control_msg(gspca_dev->dev, usb_sndctrlpipe(gspca_dev->dev, 0),
-> +			0x01, 0x40, 0x0001, 0x000F, NULL, 0, 500);
-> +	if (rc < 0) {
-> +		pr_warn("failed to replay packet 176 w/ rc %d\n", rc);
-> +		return rc;
-> +	}
-> +
-> +	rc = usb_control_msg(gspca_dev->dev, usb_sndctrlpipe(gspca_dev->dev, 0),
-> +			0x01, 0x40, 0x0000, 0x000F, NULL, 0, 500);
-> +	if (rc < 0) {
-> +		pr_warn("failed to replay packet 178 w/ rc %d\n", rc);
-> +		return rc;
-> +	}
-> +
-> +	rc = usb_control_msg(gspca_dev->dev, usb_sndctrlpipe(gspca_dev->dev, 0),
-> +			0x01, 0x40, 0x0001, 0x000F, NULL, 0, 500);
-> +	if (rc < 0) {
-> +		pr_warn("failed to replay packet 180 w/ rc %d\n", rc);
-> +		return rc;
-> +	}
-> +
-> +	rc = usb_control_msg(gspca_dev->dev, usb_rcvctrlpipe(gspca_dev->dev, 0),
-> +			0x20, 0xC0, 0x0000, 0x0000, buff, 4, 500);
-> +	if (rc != 4 || memcmp((char[]){0xE6, 0x0D, 0x00, 0x00}, buff, 4)) {
-> +		pr_warn("failed to replay packet 182 w/ rc %d\n", rc);
-> +		if (rc < 0)
-> +			return rc;
-> +		return -EIO;
-> +	}
-> +
-> +	/* Large (EEPROM?) read, skip it since no idea what to do with it */
-> +
-> +	rc = configure_encrypted(gspca_dev);
-> +	if (rc)
-> +		return rc;
-> +
-> +	/* Omitted this by accident, does not work without it */
-> +	rc = usb_control_msg(gspca_dev->dev, usb_sndctrlpipe(gspca_dev->dev, 0),
-> +			0x01, 0x40, 0x0003, 0x000F, NULL, 0, 500);
-> +
-> +	pr_devel("Configure complete");
-> +	return 0;
-> +}
-> +
-> +static int sd_config(struct gspca_dev *gspca_dev,
-> +			const struct usb_device_id *id)
-> +{
-> +	pr_devel("sd_config start");
-> +	gspca_dev->cam.cam_mode = vga_mode;
-> +	gspca_dev->cam.nmodes = ARRAY_SIZE(vga_mode);
-> +	pr_devel("cam modes size: %d", gspca_dev->cam.nmodes);
-> +
-> +	pr_devel("Input flags: 0x%08X", gspca_dev->cam.input_flags);
-> +	/* Yes we want URBs and we want them now! */
-> +	gspca_dev->cam.no_urb_create = 0;
-> +	/*
-> +	TODO: considering increasing much higher
-> +	Without frame sync we need to make sure we never drop
-> +	*/
-> +	pr_devel("Max nurbs: %d", MAX_NURBS);
-> +	gspca_dev->cam.bulk_nurbs = 4;
-> +	/* Largest size the windows driver uses */
-> +	gspca_dev->cam.bulk_size = 0x4000;
-> +	/* Def need to use bulk transfers */
-> +	gspca_dev->cam.bulk = 1;
-> +
-> +	pr_devel("sd_config end");
-> +	return 0;
-> +}
-> +
-> +static int sd_start(struct gspca_dev *gspca_dev)
-> +{
-> +	struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-> +	int rc;
-> +
-> +	pr_devel("sd_start() begin");
-> +	sd->this_f = 0;
-> +
-> +	rc = configure(gspca_dev);
-> +	if (rc < 0) {
-> +		pr_warn("Failed configure");
-> +		return rc;
-> +	}
-> +	/* First two frames have messed up gains
-> +	Drop them to avoid special cases in user apps? */
-> +	rc = gspca_dev->cam.cam_mode->sizeimage;
-> +	if (rc < 0) {
-> +		pr_devel("Failed size");
-> +		return rc;
-> +	}
-> +
-> +	pr_devel("sd_start() end, status %d", gspca_dev->usb_err);
-> +	return gspca_dev->usb_err;
-> +}
-> +
-> +static void sd_pkt_scan(struct gspca_dev *gspca_dev,
-> +			u8 *data,		/* isoc packet */
-> +			int len)		/* iso packet length */
-> +{
-> +	struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-> +	size_t frame_sz;
-> +
-> +	frame_sz = gspca_dev->cam.cam_mode->sizeimage;
-> +
-> +	/* can we finish a frame? */
-> +	if (sd->this_f + len >= frame_sz) {
-> +		unsigned int remainder = frame_sz - sd->this_f;
-> +		gspca_frame_add(gspca_dev, LAST_PACKET,
-> +				data, remainder);
-> +		len -= remainder;
-> +		data += remainder;
-> +		sd->this_f = 0;
-> +	}
-> +	/* in theory even if finished a frame could have part of next,
-> +	   not sure if it ever happens though */
-> +	if (len > 0) {
-> +		if (sd->this_f == 0)
-> +			gspca_frame_add(gspca_dev, FIRST_PACKET, data, len);
-> +		else
-> +			gspca_frame_add(gspca_dev, INTER_PACKET, data, len);
-> +		sd->this_f += len;
-> +	}
-> +}
-> +
-> +static int sd_init(struct gspca_dev *gspca_dev)
-> +{
-> +	struct sd *sd = container_of(gspca_dev, struct sd, gspca_dev);
-> +
-> +	pr_devel("sd_init");
-> +	/* Setting at init allows one app to adjust and another take pictures */
-> +	sd->exposure = EXPOSURE_DEFAULT;
-> +	sd->global_gain = GAIN_DEFAULT;
-> +	sd->red_bal = RED_DEFAULT;
-> +	sd->blue_bal = BLUE_DEFAULT;
-> +
-> +	return 0;
-> +}
-> +
-> +static const struct ctrl sd_ctrls[] = {
-> +	{
-> +		{
-> +			.id	  = V4L2_CID_EXPOSURE,
-> +			.type	= V4L2_CTRL_TYPE_INTEGER,
-> +			.name	= "Exposure",
-> +			.minimum = 0,
-> +			/* Mostly limited by URB timeouts */
-> +			.maximum = 800,
-> +			.step	= 1,
-> +			.default_value = EXPOSURE_DEFAULT,
-> +		},
-> +		.set = sd_setexposure,
-> +		.get = sd_getexposure,
-> +	},
-> +	{
-> +		{
-> +			.id	 = V4L2_CID_GAIN,
-> +			.type	 = V4L2_CTRL_TYPE_INTEGER,
-> +			.name	 = "Gain",
-> +			.minimum = 0,
-> +			.maximum = GAIN_MAX,
-> +			.step	 = 1,
-> +			.default_value = GAIN_DEFAULT,
-> +		},
-> +		.set = sd_setgain,
-> +		.get = sd_getgain,
-> +	},
-> +	{
-> +		{
-> +			.id	 = V4L2_CID_BLUE_BALANCE,
-> +			.type	 = V4L2_CTRL_TYPE_INTEGER,
-> +			.name	 = "Blue Balance",
-> +			.minimum = 0,
-> +			.maximum = BAL_MAX,
-> +			.step	 = 1,
-> +			.default_value = BLUE_DEFAULT,
-> +		},
-> +		.set = sd_setbluebalance,
-> +		.get = sd_getbluebalance,
-> +	},
-> +	{
-> +		{
-> +			.id	 = V4L2_CID_RED_BALANCE,
-> +			.type	 = V4L2_CTRL_TYPE_INTEGER,
-> +			.name	 = "Red Balance",
-> +			.minimum = 0,
-> +			.maximum = BAL_MAX,
-> +			.step	 = 1,
-> +			.default_value = RED_DEFAULT,
-> +		},
-> +		.set = sd_setredbalance,
-> +		.get = sd_getredbalance,
-> +	},
-> +};
-> +
-> +static const struct sd_desc sd_desc = {
-> +	.name = MODULE_NAME,
-> +	.ctrls = sd_ctrls,
-> +	.nctrls = ARRAY_SIZE(sd_ctrls),
-> +	.config = sd_config,
-> +	.init = sd_init,
-> +	.start = sd_start,
-> +	.pkt_scan = sd_pkt_scan,
-> +};
-> +
-> +/* TODO: should add the untested devices? */
-> +static const struct usb_device_id device_table[] = {
-> +	{ USB_DEVICE(0x0547, 0x6801) }, /* UCMOS08000KPB */
-> +	{ }
-> +};
-> +MODULE_DEVICE_TABLE(usb, device_table);
-> +
-> +static int sd_probe(struct usb_interface *intf,
-> +			const struct usb_device_id *id)
-> +{
-> +	int rc = 0;
-> +	pr_devel("sd_probe start, alt 0x%p", intf->cur_altsetting);
-> +	rc = gspca_dev_probe(intf, id, &sd_desc, sizeof(struct sd),
-> +				THIS_MODULE);
-> +	pr_devel("sd_probe done, rc %d", rc);
-> +	return rc;
-> +}
-> +
-> +static struct usb_driver sd_driver = {
-> +	.name = MODULE_NAME,
-> +	.id_table = device_table,
-> +	.probe = sd_probe,
-> +	.disconnect = gspca_disconnect,
-> +#ifdef CONFIG_PM
-> +	.suspend = gspca_suspend,
-> +	.resume = gspca_resume,
-> +#endif
-> +};
-> +
-> +static int __init sd_mod_init(void)
-> +{
-> +	int ret;
-> +
-> +	ret = usb_register(&sd_driver);
-> +	if (ret < 0)
-> +		return ret;
-> +	return 0;
-> +}
-> +static void __exit sd_mod_exit(void)
-> +{
-> +	usb_deregister(&sd_driver);
-> +}
-> +
-> +module_init(sd_mod_init);
-> +module_exit(sd_mod_exit);
-> +
->
