@@ -1,115 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:57467 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936456Ab3DRVf6 (ORCPT
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:49856 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756688Ab3DWPjB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 17:35:58 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 13/24] ARM: pcm037: convert custom GPIO-based power function to a regulator
-Date: Thu, 18 Apr 2013 23:35:34 +0200
-Message-Id: <1366320945-21591-14-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+	Tue, 23 Apr 2013 11:39:01 -0400
+Received: by mail-ea0-f172.google.com with SMTP id g14so335679eak.31
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 08:39:00 -0700 (PDT)
+Message-ID: <5176AB5F.1050901@googlemail.com>
+Date: Tue, 23 Apr 2013 17:40:15 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: "Michael ." <boycee_@hotmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Fwd: Device no longer handled by em28xx kernel drivers
+References: <DUB118-W3105CA5468C478D0494A7687CE0@phx.gbl>,<516EF48C.2080804@iki.fi>,<DUB118-W43501C44B9B252CC5A03DD87CE0@phx.gbl> <DUB118-W30802FB90E04796F1FBDE187CF0@phx.gbl>
+In-Reply-To: <DUB118-W30802FB90E04796F1FBDE187CF0@phx.gbl>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a fixed-voltage GPIO-enabled regulator to switch the camera on and off
-instead of using a .power() platform callback.
+(forwarding to the linux-media mailing list) (2nd try)
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- arch/arm/mach-imx/mach-pcm037.c |   54 ++++++++++++++++++++++++++++-----------
- 1 files changed, 39 insertions(+), 15 deletions(-)
 
-diff --git a/arch/arm/mach-imx/mach-pcm037.c b/arch/arm/mach-imx/mach-pcm037.c
-index ef55ac1..f138481 100644
---- a/arch/arm/mach-imx/mach-pcm037.c
-+++ b/arch/arm/mach-imx/mach-pcm037.c
-@@ -288,12 +288,39 @@ static struct at24_platform_data board_eeprom = {
- 	.flags = AT24_FLAG_ADDR16,
- };
- 
--static int pcm037_camera_power(struct device *dev, int on)
--{
--	/* disable or enable the camera in X7 or X8 PCM970 connector */
--	gpio_set_value(IOMUX_TO_GPIO(MX31_PIN_CSI_D5), !on);
--	return 0;
--}
-+/* Fixed 3.3V regulator to be used by cameras */
-+static struct regulator_consumer_supply vcc_cam_consumers[] = {
-+	REGULATOR_SUPPLY("vcc", "2-005d"),
-+};
-+
-+static struct regulator_init_data vcc_cam_init_data = {
-+	.constraints = {
-+		.valid_ops_mask = REGULATOR_CHANGE_STATUS,
-+	},
-+	.num_consumer_supplies  = ARRAY_SIZE(vcc_cam_consumers),
-+	.consumer_supplies      = vcc_cam_consumers,
-+};
-+
-+static struct fixed_voltage_config vcc_cam_info = {
-+	.supply_name = "Camera Vcc",
-+	.microvolts = 2800000,
-+	.gpio = IOMUX_TO_GPIO(MX31_PIN_CSI_D5),
-+	.init_data = &vcc_cam_init_data,
-+};
-+
-+static struct platform_device vcc_cam = {
-+	.name = "reg-fixed-voltage",
-+	.id   = 1,
-+	.dev  = {
-+		.platform_data = &vcc_cam_info,
-+	},
-+};
-+
-+static struct regulator_bulk_data cam_supply[] = {
-+	{
-+		.supply = "vcc",
-+	},
-+};
- 
- static struct i2c_board_info pcm037_i2c_camera[] = {
- 	{
-@@ -314,8 +341,11 @@ static struct soc_camera_desc iclink_mt9v022 = {
- 
- static struct soc_camera_desc iclink_mt9t031 = {
- 	.subdev_desc	= {
--		.sd_pdata.host_priv = &iclink_mt9t031,
--		.power		= pcm037_camera_power,
-+		.sd_pdata	= {
-+			.num_regulators = ARRAY_SIZE(cam_supply),
-+			.regulators = cam_supply,
-+			.host_priv = &iclink_mt9t031,
-+		},
- 	},
- 	.host_desc	= {
- 		.bus_id		= 0,		/* Must match with the camera ID */
-@@ -445,6 +475,7 @@ err:
- static struct platform_device *devices[] __initdata = {
- 	&pcm037_flash,
- 	&pcm037_sram_device,
-+	&vcc_cam,
- 	&pcm037_mt9t031,
- 	&pcm037_mt9v022,
- };
-@@ -656,13 +687,6 @@ static void __init pcm037_init(void)
- 	imx31_add_mx3_sdc_fb(&mx3fb_pdata);
- 
- 	/* CSI */
--	/* Camera power: default - off */
--	ret = gpio_request(IOMUX_TO_GPIO(MX31_PIN_CSI_D5), "mt9t031-power");
--	if (!ret)
--		gpio_direction_output(IOMUX_TO_GPIO(MX31_PIN_CSI_D5), 1);
--	else
--		iclink_mt9t031.subdev_desc.power = NULL;
--
- 	pcm037_init_camera();
- 
- 	pcm970_sja1000_resources[1].start =
--- 
-1.7.2.5
+Am 18.04.2013 21:04, schrieb Michael .:
+> Hi
+>
+> I hope you don't mind me contacting you directly.
+
+Issues like this should always be discussed on the linux-media mailing
+list, so please CC it in the future.
+Neither I'm the em28xx maintainer nor do I know much about issues/things
+that happened in the past.
+
+> I have a USB device which I was surprised to find is no longer handled
+> by the driver:
+
+What does "no longer handled" mean ?
+What was the last kernel that supported this device ?
+
+>
+> Bus 001 Device 004: ID 0ccd:0072 TerraTec Electronic GmbH Cinergy Hybrid T
+>
+> I believe the hardware is em28xx + zl10353 + xc5000 as I can see my
+> precise hardware being detected by em28xx in dmesg output here:
+
+Yes, according to http://linux.terratec.de/tv_en.html it uses em2882+xc5000.
+
+>
+> http://doc.ubuntu-fr.org/terratec_cinergy_xs
+>
+> As I understand there might have been two parallel drivers being
+> developed.
+
+I never heard of a second driver.
+
+> I just wondered if there is any chance of this support being
+> re-instated for this particular one?
+> I am surprised to find that a device has gone from supported to
+> unsupported!
+
+I don't know. The em28xx driver is generally the right driver and it
+already supports other devices with the xc5000 tuner.
+If support for this device has really been removed a while ago, then
+there must have been good reasons...
+
+Mauro, Devin ?
+
+Regards,
+Frank
+
+>
+>
+> Cheers,
+>
+> Michael.
 
