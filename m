@@ -1,236 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:57342 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754115Ab3DUTAs (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 15:00:48 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3LJ0mTl022608
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sun, 21 Apr 2013 15:00:48 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH RFCv3 05/10] [media] v4l2-ioctl: Add tuner ioctl support for SDR radio type
-Date: Sun, 21 Apr 2013 16:00:34 -0300
-Message-Id: <1366570839-662-6-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366570839-662-1-git-send-email-mchehab@redhat.com>
-References: <1366570839-662-1-git-send-email-mchehab@redhat.com>
+Received: from fed1rmfepi102.cox.net ([68.230.241.133]:53617 "EHLO
+	fed1rmfepi102.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756997Ab3DWQtt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Apr 2013 12:49:49 -0400
+Received: from fed1rmimpo110 ([68.230.241.159]) by fed1rmfepo201.cox.net
+          (InterMail vM.8.01.05.09 201-2260-151-124-20120717) with ESMTP
+          id <20130423162638.UZIU22211.fed1rmfepo201.cox.net@fed1rmimpo110>
+          for <linux-media@vger.kernel.org>;
+          Tue, 23 Apr 2013 12:26:38 -0400
+Message-ID: <20130423122638.NN2JO.104712.imail@fed1rmwml106>
+Date: Tue, 23 Apr 2013 9:26:38 -0700
+From: Western-Union <open06@cox.net>
+Reply-To: mrbencollins001@msn.com
+Subject: =?utf-8?Q?The_first_$5,000.00_was_sent_tod?=
+ =?utf-8?Q?ay._My_working_partner_has_helpe?=
+ =?utf-8?Q?d_me_to_send_the_first_$5,000.00?=
+ =?utf-8?Q?_to_you_through_western_union._S?=
+ =?utf-8?Q?o_contact_our_Western_Union_clai?=
+ =?utf-8?Q?ms_Agent_to_pick_up_this_$5,000_?=
+ =?utf-8?Q?now:_Contact_person:_Mr._Ben_Col?=
+ =?utf-8?Q?lins,_.mail_:_(mrbencollins001@m?=
+ =?utf-8?Q?sn.com)_Ask_him_to_give_you_the_?=
+ =?utf-8?Q?MTCN,_Sender_Name_to_pick_the_$5?=
+ =?utf-8?Q?,000.00._I_told_him_to_keep_send?=
+ =?utf-8?Q?ing_you_$5,000.00_daily_until_th?=
+ =?utf-8?Q?e_payment_of_$1.500,000.00_is_co?=
+ =?utf-8?Q?mpleted._Again_forward_him_your_?=
+ =?utf-8?Q?Full_Name,_Telephone_number_and_?=
+ =?utf-8?Q?address_so_that_he_will_be_sure.=E2=80=8F?=
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 7bit
 To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tuner ioctl's are optimized to handle internally the
-differences between TV and normal AM/FM radio.
-
-SDR is different than both, so it needs its own way of doing things.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/v4l2-core/v4l2-ioctl.c | 89 ++++++++++++++++++++++++++----------
- include/uapi/linux/videodev2.h       |  5 ++
- 2 files changed, 70 insertions(+), 24 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index fd853da..f8bb171 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1296,6 +1296,19 @@ static int v4l_streamoff(const struct v4l2_ioctl_ops *ops,
- 	return ops->vidioc_streamoff(file, fh, *(unsigned int *)arg);
- }
- 
-+static u32 v4l_device_type(struct video_device *vfd)
-+{
-+	switch (vfd->vfl_type) {
-+	case VFL_TYPE_RADIO:
-+		return V4L2_TUNER_RADIO;
-+	case VFL_TYPE_SDR:
-+		/* May be overriden by the driver */
-+		return V4L2_TUNER_SDR_RADIO;
-+	default:
-+		return V4L2_TUNER_ANALOG_TV;
-+	}
-+}
-+
- static int v4l_g_tuner(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
-@@ -1303,8 +1316,7 @@ static int v4l_g_tuner(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_tuner *p = arg;
- 	int err;
- 
--	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-+	p->type = v4l_device_type(vfd);
- 	err = ops->vidioc_g_tuner(file, fh, p);
- 	if (!err)
- 		p->capability |= V4L2_TUNER_CAP_FREQ_BANDS;
-@@ -1316,9 +1328,18 @@ static int v4l_s_tuner(const struct v4l2_ioctl_ops *ops,
- {
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_tuner *p = arg;
-+	u32 type;
-+
-+	/*
-+	 * For non-SDR devices, the type is defined by the dev type;
-+	 * For SDR devices, if the type is not an SDR type return error
-+	 */
-+	type = v4l_device_type(vfd);
-+	if (type != VFL_TYPE_SDR)
-+		p->type = type;
-+	else if (!V4L2_TUNER_IS_SDR(p->type))
-+		return -EINVAL;
- 
--	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
- 	return ops->vidioc_s_tuner(file, fh, p);
- }
- 
-@@ -1340,8 +1361,7 @@ static int v4l_g_frequency(const struct v4l2_ioctl_ops *ops,
- 	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_frequency *p = arg;
- 
--	p->type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-+	p->type = v4l_device_type(vfd);
- 	return ops->vidioc_g_frequency(file, fh, p);
- }
- 
-@@ -1352,10 +1372,13 @@ static int v4l_s_frequency(const struct v4l2_ioctl_ops *ops,
- 	const struct v4l2_frequency *p = arg;
- 	enum v4l2_tuner_type type;
- 
--	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
--	if (p->type != type)
-+	type = v4l_device_type(vfd);
-+	if (type != VFL_TYPE_SDR) {
-+		if (p->type != type)
-+			return -EINVAL;
-+	} else if (!V4L2_TUNER_IS_SDR(p->type))
- 		return -EINVAL;
-+
- 	return ops->vidioc_s_frequency(file, fh, p);
- }
- 
-@@ -1457,10 +1480,13 @@ static int v4l_s_hw_freq_seek(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_hw_freq_seek *p = arg;
- 	enum v4l2_tuner_type type;
- 
--	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--		V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
--	if (p->type != type)
-+	type = v4l_device_type(vfd);
-+	if (type != VFL_TYPE_SDR) {
-+		if (p->type != type)
-+			return -EINVAL;
-+	} else if (!V4L2_TUNER_IS_SDR(p->type))
- 		return -EINVAL;
-+
- 	return ops->vidioc_s_hw_freq_seek(file, fh, p);
- }
- 
-@@ -1974,12 +2000,19 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 	struct v4l2_frequency_band *p = arg;
- 	enum v4l2_tuner_type type;
- 	int err;
-+	bool is_sdr;
- 
--	type = (vfd->vfl_type == VFL_TYPE_RADIO) ?
--			V4L2_TUNER_RADIO : V4L2_TUNER_ANALOG_TV;
-+	type = v4l_device_type(vfd);
-+	if (type != VFL_TYPE_SDR) {
-+		if (p->type != type)
-+			return -EINVAL;
-+		is_sdr = false;
-+	} else {
-+		if (!V4L2_TUNER_IS_SDR(type))
-+			return -EINVAL;
-+		is_sdr = true;
-+	}
- 
--	if (type != p->type)
--		return -EINVAL;
- 	if (ops->vidioc_enum_freq_bands)
- 		return ops->vidioc_enum_freq_bands(file, fh, p);
- 	if (is_valid_ioctl(vfd, VIDIOC_G_TUNER)) {
-@@ -1988,7 +2021,7 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 			.type = type,
- 		};
- 
--		if (p->index)
-+		if (p->index && !is_sdr)
- 			return -EINVAL;
- 		err = ops->vidioc_g_tuner(file, fh, &t);
- 		if (err)
-@@ -1996,16 +2029,15 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 		p->capability = t.capability | V4L2_TUNER_CAP_FREQ_BANDS;
- 		p->rangelow = t.rangelow;
- 		p->rangehigh = t.rangehigh;
--		p->modulation = (type == V4L2_TUNER_RADIO) ?
--			V4L2_BAND_MODULATION_FM : V4L2_BAND_MODULATION_VSB;
--		return 0;
-+
-+		goto ret;
- 	}
- 	if (is_valid_ioctl(vfd, VIDIOC_G_MODULATOR)) {
- 		struct v4l2_modulator m = {
- 			.index = p->tuner,
- 		};
- 
--		if (type != V4L2_TUNER_RADIO)
-+		if (type == V4L2_TUNER_ANALOG_TV)
- 			return -EINVAL;
- 		if (p->index)
- 			return -EINVAL;
-@@ -2015,11 +2047,20 @@ static int v4l_enum_freq_bands(const struct v4l2_ioctl_ops *ops,
- 		p->capability = m.capability | V4L2_TUNER_CAP_FREQ_BANDS;
- 		p->rangelow = m.rangelow;
- 		p->rangehigh = m.rangehigh;
--		p->modulation = (type == V4L2_TUNER_RADIO) ?
--			V4L2_BAND_MODULATION_FM : V4L2_BAND_MODULATION_VSB;
--		return 0;
-+		goto ret;
- 	}
- 	return -ENOTTY;
-+ret:
-+	if (is_sdr) {
-+		/* With SDR, modulation type can be anything */
-+		p->modulation = V4L2_BAND_MODULATION_ANY;
-+		return 0;
-+	}
-+
-+	p->modulation = (type == V4L2_TUNER_RADIO) ?
-+		V4L2_BAND_MODULATION_FM : V4L2_BAND_MODULATION_VSB;
-+	return 0;
-+
- }
- 
- struct v4l2_ioctl_info {
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index c002030..e2cc369 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -176,8 +176,12 @@ enum v4l2_tuner_type {
- 	V4L2_TUNER_SDR_DTV_ATSC,	/* Optimize for Digital TV, ATSC */
- 	V4L2_TUNER_SDR_DTV_DVBT,	/* Optimize for Digital TV, DVB-T */
- 	V4L2_TUNER_SDR_DTV_ISDBT,	/* Optimize for Digital TV, ISDB-T */
-+	V4L2_TUNER_SDR_MAX
- };
- 
-+#define V4L2_TUNER_IS_SDR(type)					\
-+	(((type) >= V4L2_TUNER_SDR_RADIO) || ((type) < V4L2_TUNER_SDR_MAX))
-+
- enum v4l2_memory {
- 	V4L2_MEMORY_MMAP             = 1,
- 	V4L2_MEMORY_USERPTR          = 2,
-@@ -1388,6 +1392,7 @@ struct v4l2_frequency {
- #define V4L2_BAND_MODULATION_VSB	(1 << 1)
- #define V4L2_BAND_MODULATION_FM		(1 << 2)
- #define V4L2_BAND_MODULATION_AM		(1 << 3)
-+#define V4L2_BAND_MODULATION_ANY	(1 << 4)
- 
- struct v4l2_frequency_band {
- 	__u32	tuner;
--- 
-1.8.1.4
 
