@@ -1,64 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:39132 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755462Ab3DIJ5m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 05:57:42 -0400
-Message-ID: <5163E603.3030103@ti.com>
-Date: Tue, 9 Apr 2013 15:27:23 +0530
-From: Sekhar Nori <nsekhar@ti.com>
+Received: from mx1.redhat.com ([209.132.183.28]:10675 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754224Ab3DWUed (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Apr 2013 16:34:33 -0400
+Message-ID: <5176F051.4030902@redhat.com>
+Date: Tue, 23 Apr 2013 17:34:25 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-To: Prabhakar lad <prabhakar.csengg@gmail.com>
-CC: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LAK <linux-arm-kernel@lists.infradead.org>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v3 2/3] media: davinci: vpbe: venc: move the enabling
- of vpss clocks to driver
-References: <1365423553-12619-1-git-send-email-prabhakar.csengg@gmail.com> <1365423553-12619-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1365423553-12619-3-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+To: Kevin Baradon <kevin.baradon@gmail.com>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH 1/4] Revert "media/rc/imon.c: make send_packet() delay
+ larger for 15c2:0036"
+References: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com> <1366661386-6720-2-git-send-email-kevin.baradon@gmail.com>
+In-Reply-To: <1366661386-6720-2-git-send-email-kevin.baradon@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Kevin,
+
+Em 22-04-2013 17:09, Kevin Baradon escreveu:
+> This reverts commit d92f150f9cb80b4df56331d1f42442da78e351f0.
+> It seems send_packet() is used during initialization, before send_packet_delay is set.
+>
+> This will be fixed by another patch.
+
+Reverting patches is a resource that we generally use only when
+there's something deadly wrong, as it makes the git history
+dirtier, hides the reasons why a change is needed, and might be bad
+for git bisecting.
+
+In this specific case, by applying both the revert patch and your newer
+one, it is clear that your intent is to move the logic that changes
+the send packet delay, because it needs to happen earlier.
+
+So, instead of applying both patches, I'll fold them into one,
+as enclosed.
+
+-
+
+From: Kevin Baradon <kevin.baradon@gmail.com>
+
+[media] imon: Use large delays earlier
+
+send_packet() is used during initialization, before send_packet_delay
+is set. So, move ictx->send_packet_delay to happen earlier.
+
+[mchehab@redhat.com: fold two patches into one to make git history clearer]
+Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
+
+diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
+index b8f9f85..624fd33 100644
+--- a/drivers/media/rc/imon.c
++++ b/drivers/media/rc/imon.c
+@@ -2093,7 +2093,8 @@ static bool imon_find_endpoints(struct imon_context *ictx,
+  
+  }
+  
+-static struct imon_context *imon_init_intf0(struct usb_interface *intf)
++static struct imon_context *imon_init_intf0(struct usb_interface *intf,
++					    const struct usb_device_id *id)
+  {
+  	struct imon_context *ictx;
+  	struct urb *rx_urb;
+@@ -2133,6 +2134,10 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
+  	ictx->vendor  = le16_to_cpu(ictx->usbdev_intf0->descriptor.idVendor);
+  	ictx->product = le16_to_cpu(ictx->usbdev_intf0->descriptor.idProduct);
+  
++	/* default send_packet delay is 5ms but some devices need more */
++	ictx->send_packet_delay = id->driver_info & IMON_NEED_20MS_PKT_DELAY ?
++				  20 : 5;
++
+  	ret = -ENODEV;
+  	iface_desc = intf->cur_altsetting;
+  	if (!imon_find_endpoints(ictx, iface_desc)) {
+@@ -2311,7 +2316,7 @@ static int imon_probe(struct usb_interface *interface,
+  	first_if_ctx = usb_get_intfdata(first_if);
+  
+  	if (ifnum == 0) {
+-		ictx = imon_init_intf0(interface);
++		ictx = imon_init_intf0(interface, id);
+  		if (!ictx) {
+  			pr_err("failed to initialize context!\n");
+  			ret = -ENODEV;
+@@ -2329,10 +2334,6 @@ static int imon_probe(struct usb_interface *interface,
+  
+  	}
+  
+-	/* default send_packet delay is 5ms but some devices need more */
+-	ictx->send_packet_delay = id->driver_info & IMON_NEED_20MS_PKT_DELAY ?
+-				  20 : 5;
+-
+  	usb_set_intfdata(interface, ictx);
+  
+  	if (ifnum == 0) {
 
 
-On 4/8/2013 5:49 PM, Prabhakar lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> The vpss clocks were enabled by calling a exported function from a driver
-> in a machine code. calling driver code from platform code is incorrect way.
-> 
-> This patch fixes this issue and calls the function from driver code itself.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpbe_venc.c |   25 +++++++++++++++++++++++++
->  1 files changed, 25 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
-> index f15f211..91d0272 100644
-> --- a/drivers/media/platform/davinci/vpbe_venc.c
-> +++ b/drivers/media/platform/davinci/vpbe_venc.c
-> @@ -202,6 +202,25 @@ static void venc_enabledigitaloutput(struct v4l2_subdev *sd, int benable)
->  	}
->  }
->  
-> +static void
-> +venc_enable_vpss_clock(int venc_type,
-> +		       enum vpbe_enc_timings_type type,
-> +		       unsigned int pclock)
-> +{
-> +	if (venc_type == VPBE_VERSION_1)
-> +		return;
-> +
-> +	if (venc_type == VPBE_VERSION_2 && (type == VPBE_ENC_STD ||
-> +	    (type == VPBE_ENC_DV_TIMINGS && pclock <= 27000000))) {
-
-checkpatch --strict will throw a "Alignment should match open
-parenthesis" check here. You may want to fix before you send the pull
-request. No need to resend the patch just for this.
-
-Thanks,
-Sekhar
