@@ -1,75 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42216 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751917Ab3DXJRy (ORCPT
+Received: from mail-qa0-f53.google.com ([209.85.216.53]:37322 "EHLO
+	mail-qa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756138Ab3DWNcy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 05:17:54 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: adam.lee@canonical.com
-Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"open list:USB VIDEO CLASS" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Revert "V4L/DVB: uvc: Enable USB autosuspend by default on uvcvideo"
-Date: Wed, 24 Apr 2013 11:17:52 +0200
-Message-ID: <6159110.qEtHHiJYtm@avalon>
-In-Reply-To: <1366790239-838-1-git-send-email-adam.lee@canonical.com>
-References: <1366790239-838-1-git-send-email-adam.lee@canonical.com>
+	Tue, 23 Apr 2013 09:32:54 -0400
+Received: by mail-qa0-f53.google.com with SMTP id p6so157436qad.5
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 06:32:53 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <CAOS+5GGVt7Zsr1jJz=kC=98meQ3D+LYnNwoWDg1PWbwCaij2QA@mail.gmail.com>
+References: <CAOS+5GGVt7Zsr1jJz=kC=98meQ3D+LYnNwoWDg1PWbwCaij2QA@mail.gmail.com>
+Date: Tue, 23 Apr 2013 09:32:53 -0400
+Message-ID: <CAGoCfizY7QQNFbwY=32fieRTtSzUm8enZc=FdpTYgpggHnJHAg@mail.gmail.com>
+Subject: Re: Elgato DTT Deluxe V2
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Another Sillyname <anothersname@googlemail.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Adam,
+On Tue, Apr 23, 2013 at 8:13 AM, Another Sillyname
+<anothersname@googlemail.com> wrote:
+> I recently picked up one of these very cheap and am trying to load it into 'nix.
+>
+> According to this
+>
+> http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_DTT_deluxe_v2
+>
+> It should be recognised and load, and indeed when plugged in dmesg
+> correctly reports it being detected and lsusb sees the device and the
+> correctly reports the device ID.
+>
+> However there's no DVB section loading and I'm not sure why.
+>
+> I've copied the two .hex files to firmware and dmesg is not reporting
+> any other outstanding requirements, however it's just not
+> partying........
+>
+> Installed into a windows machine the drivers load and it reports OK
+> (it's not tuning but I'm pretty sure that's a location issue at the
+> moment).
+>
+> any ideas anyone?
 
-Thanks for the patch.
+The driver is still in the staging tree, and isn't compiled into the
+kernel by default.  You'll have to either recompile your kernel to
+include the "AS102" driver, or build the "media_build" tree.
 
-On Wednesday 24 April 2013 15:57:19 adam.lee@canonical.com wrote:
-> From: Adam Lee <adam.lee@canonical.com>
-> 
-> This reverts commit 3dae8b41dc5651f8eb22cf310e8b116480ba25b7.
-> 
-> 1, I do have a Chicony webcam, implements autosuspend in a broken way,
-> make `poweroff` performs rebooting when its autosuspend enabled.
-> 
-> 2, There are other webcams which don't support autosuspend too, like
-> https://patchwork.kernel.org/patch/2356141/
-> 
-> 3, kernel removed USB_QUIRK_NO_AUTOSUSPEND in
-> a691efa9888e71232dfb4088fb8a8304ffc7b0f9, because autosuspend is
-> disabled by default.
-> 
-> So, we need to disable autosuspend in uvcvideo, maintaining a quirk list
-> only for uvcvideo is not a good idea.
-> 
-> Signed-off-by: Adam Lee <adam.lee@canonical.com>
-
-I've received very few bug reports about broken auto-suspend support in UVC 
-devices. Most of them could be solved by setting the RESET_RESUME quirk in USB 
-core, only the Creative Live! Cam Optia AF required a quirk in the uvcvideo 
-driver. I would thus rather use the available quirks (USB_QUIRK_RESET_RESUME 
-if possible, UVC_QUIRK_DISABLE_AUTOSUSPEND otherwise) than killing power 
-management for the vast majority of webcams that behave correctly.
-
-> ---
->  drivers/media/usb/uvc/uvc_driver.c |    1 -
->  1 file changed, 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 5dbefa6..8556f7c 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1914,7 +1914,6 @@ static int uvc_probe(struct usb_interface *intf,
->  	}
-> 
->  	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
-> -	usb_enable_autosuspend(udev);
->  	return 0;
-> 
->  error:
-
--- 
-Regards,
-
-Laurent Pinchart
-
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
