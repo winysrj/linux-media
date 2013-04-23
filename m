@@ -1,63 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f45.google.com ([209.85.216.45]:40236 "EHLO
-	mail-qa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759253Ab3DJOBN (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:53132 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756031Ab3DWPlm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 10:01:13 -0400
-MIME-Version: 1.0
-In-Reply-To: <20130410135627.GD9243@opensource.wolfsonmicro.com>
-References: <1348754853-28619-1-git-send-email-g.liakhovetski@gmx.de>
- <1348754853-28619-8-git-send-email-g.liakhovetski@gmx.de> <CAGsJ_4yUY6PE0NWZ9yaOLFmRb3O-HL55=w7Y6muwL0YbkJtP0Q@mail.gmail.com>
- <Pine.LNX.4.64.1304101358490.13557@axis700.grange> <CAGsJ_4xn_R7D7Uh0dJB7WuDQG3K_mZkMwYNtMDuHMhX+4oTk=Q@mail.gmail.com>
- <20130410135627.GD9243@opensource.wolfsonmicro.com>
-From: Barry Song <21cnbao@gmail.com>
-Date: Wed, 10 Apr 2013 22:00:52 +0800
-Message-ID: <CAGsJ_4wVx8qr1ge9g3ekmZd=BnYAmjOsSXSQh8Zsb=_NZOA9bQ@mail.gmail.com>
-Subject: Re: [PATCH 07/14] media: soc-camera: support deferred probing of clients
-To: Mark Brown <broonie@opensource.wolfsonmicro.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"renwei.wu" <renwei.wu@csr.com>,
-	DL-SHA-WorkGroupLinux <workgroup.linux@csr.com>,
-	xiaomeng.hou@csr.com, zilong.wu@csr.com
-Content-Type: text/plain; charset=UTF-8
+	Tue, 23 Apr 2013 11:41:42 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLP00L1ZSXHU830@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Apr 2013 00:41:41 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] exynos4-is: Fix TRY format propagation at MIPI-CSIS subdev
+Date: Tue, 23 Apr 2013 17:41:27 +0200
+Message-id: <1366731687-32566-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/4/10 Mark Brown <broonie@opensource.wolfsonmicro.com>:
-> On Wed, Apr 10, 2013 at 09:53:20PM +0800, Barry Song wrote:
->> 2013/4/10 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
->
->> >> what about another possible way:
->> >> we let all host and i2c client driver probed in any order,
->
->> > This cannot work, because some I2C devices, e.g. sensors, need a clock
->> > signal from the camera interface to probe. Before the bridge driver has
->> > completed its probing and registered a suitable clock source with the
->> > v4l2-clk framework, sensors cannot be probed. And no, we don't want to
->> > fake successful probing without actually being able to talk to the
->> > hardware.
->
->> i'd say same dependency also exists on ASoC.  a "fake" successful
->> probing doesn't mean it should really begin to work if there is no
->> external trigger source.  ASoC has successfully done that by a machine
->> driver to connect all DAI.
->> a way is we put all things ready in their places, finally we connect
->> them together and launch the whole hardware flow.
->
-> In the ASoC case the idea is that drivers should probe as far as they
-> can with just the chip and then register with the core.  The machine
-> driver defers probing until all components have probed and then runs
-> through second stage initialisaton which pulls everything together.
+Ensure TRY format is propagated from the sink to source pad.
+The format at both pads is always same so the TRY format buffer
+for pad 0 is used to hold format for both pads.
+While at it remove redundant fmt->pad checking.
 
-yes. thanks for clarification, Mark. that is really what i want in
-soc-camera too.
-put all things in their places, and the final connector wait for
-everyone and put them in the initialized status.
+Reported-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/mipi-csis.c |   14 ++++----------
+ 1 file changed, 4 insertions(+), 10 deletions(-)
 
--barry
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index d62b0d2..50f3c5c 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -579,10 +579,10 @@ static struct csis_pix_format const *s5pcsis_try_format(
+ 
+ static struct v4l2_mbus_framefmt *__s5pcsis_get_format(
+ 		struct csis_state *state, struct v4l2_subdev_fh *fh,
+-		u32 pad, enum v4l2_subdev_format_whence which)
++		enum v4l2_subdev_format_whence which)
+ {
+ 	if (which == V4L2_SUBDEV_FORMAT_TRY)
+-		return fh ? v4l2_subdev_get_try_format(fh, pad) : NULL;
++		return fh ? v4l2_subdev_get_try_format(fh, 0) : NULL;
+ 
+ 	return &state->format;
+ }
+@@ -594,10 +594,7 @@ static int s5pcsis_set_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	struct csis_pix_format const *csis_fmt;
+ 	struct v4l2_mbus_framefmt *mf;
+ 
+-	if (fmt->pad != CSIS_PAD_SOURCE && fmt->pad != CSIS_PAD_SINK)
+-		return -EINVAL;
+-
+-	mf = __s5pcsis_get_format(state, fh, fmt->pad, fmt->which);
++	mf = __s5pcsis_get_format(state, fh, fmt->which);
+ 
+ 	if (fmt->pad == CSIS_PAD_SOURCE) {
+ 		if (mf) {
+@@ -624,10 +621,7 @@ static int s5pcsis_get_fmt(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+ 	struct csis_state *state = sd_to_csis_state(sd);
+ 	struct v4l2_mbus_framefmt *mf;
+ 
+-	if (fmt->pad != CSIS_PAD_SOURCE && fmt->pad != CSIS_PAD_SINK)
+-		return -EINVAL;
+-
+-	mf = __s5pcsis_get_format(state, fh, fmt->pad, fmt->which);
++	mf = __s5pcsis_get_format(state, fh, fmt->which);
+ 	if (!mf)
+ 		return -EINVAL;
+ 
+-- 
+1.7.9.5
+
