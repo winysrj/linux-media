@@ -1,98 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1275 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1162370Ab3DESTl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Apr 2013 14:19:41 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r35IJcNO039541
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 5 Apr 2013 20:19:40 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 1F95311E018E
-	for <linux-media@vger.kernel.org>; Fri,  5 Apr 2013 20:19:32 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130405181932.1F95311E018E@alastor.dyndns.org>
-Date: Fri,  5 Apr 2013 20:19:32 +0200 (CEST)
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4358 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755089Ab3DWGp7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Apr 2013 02:45:59 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH RFCv3 08/10] [media] tuner-core: store tuner ranges at tuner struct
+Date: Tue, 23 Apr 2013 08:45:45 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <1366570839-662-1-git-send-email-mchehab@redhat.com> <201304220922.18022.hverkuil@xs4all.nl> <51752949.8000901@redhat.com>
+In-Reply-To: <51752949.8000901@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304230845.45209.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Monday, April 22, 2013 14:12:57 Mauro Carvalho Chehab wrote:
+> Em 22-04-2013 04:22, Hans Verkuil escreveu:
+> > On Sun April 21 2013 21:00:37 Mauro Carvalho Chehab wrote:
+> >> Instead of using global values for tuner ranges, store them
+> >> internally. That fixes the need of using a different range
+> >> for SDR radio, and will help to latter add a tuner ops to
+> >> retrieve the tuner range for SDR mode.
+> >>
+> >> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >> ---
+> >>   drivers/media/v4l2-core/tuner-core.c | 59 ++++++++++++++++++++++--------------
+> >>   1 file changed, 37 insertions(+), 22 deletions(-)
+> >>
+> >> diff --git a/drivers/media/v4l2-core/tuner-core.c b/drivers/media/v4l2-core/tuner-core.c
+> >> index e54b5ae..abdcda4 100644
+> >> --- a/drivers/media/v4l2-core/tuner-core.c
+> >> +++ b/drivers/media/v4l2-core/tuner-core.c
+> >> @@ -67,8 +67,8 @@ static char secam[] = "--";
+> >>   static char ntsc[] = "-";
+> >>
+> >>   module_param_named(debug, tuner_debug, int, 0644);
+> >> -module_param_array(tv_range, int, NULL, 0644);
+> >> -module_param_array(radio_range, int, NULL, 0644);
+> >> +module_param_array(tv_range, int, NULL, 0444);
+> >> +module_param_array(radio_range, int, NULL, 0444);
+> >
+> > Shouldn't we add a sdr_range here as well?
+> 
+> I don't think it is needed to have a modprobe parameter for that.
+> If user wants to change the range, VIDIOC_S_TUNER can be used.
 
-Results of the daily build of media_tree:
+You can't change the range using S_TUNER, it's not a settable field.
 
-date:		Fri Apr  5 19:00:23 CEST 2013
-git branch:	test
-git hash:	53faa685fa7df0e12751eebbda30bc7e7bb5e71a
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+> 
+> Btw, I was tempted to even remove those ;)
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+I'd either remove them or add an sdr_range rather than leaving it in
+an inconsistent state.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+	Hans
