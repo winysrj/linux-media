@@ -1,44 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from p3plsmtpa09-03.prod.phx3.secureserver.net ([173.201.193.232]:36761
-	"EHLO p3plsmtpa09-03.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757099Ab3DYKAT (ORCPT
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:45113 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755467Ab3DWMN0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 06:00:19 -0400
-From: Leonid Kegulskiy <leo@lumanate.com>
-To: hverkuil@xs4all.nl
-Cc: Leonid Kegulskiy <leo@lumanate.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 3/4] [media] hdpvr: Added some error handling in hdpvr_start_streaming()
-Date: Thu, 25 Apr 2013 02:59:56 -0700
-Message-Id: <1366883997-18909-4-git-send-email-leo@lumanate.com>
-In-Reply-To: <1366883997-18909-1-git-send-email-leo@lumanate.com>
-References: <1366883997-18909-1-git-send-email-leo@lumanate.com>
+	Tue, 23 Apr 2013 08:13:26 -0400
+Received: by mail-ea0-f169.google.com with SMTP id n15so217860ead.14
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 05:13:25 -0700 (PDT)
+MIME-Version: 1.0
+Date: Tue, 23 Apr 2013 13:13:25 +0100
+Message-ID: <CAOS+5GGVt7Zsr1jJz=kC=98meQ3D+LYnNwoWDg1PWbwCaij2QA@mail.gmail.com>
+Subject: Elgato DTT Deluxe V2
+From: Another Sillyname <anothersname@googlemail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Leonid Kegulskiy <leo@lumanate.com>
----
- drivers/media/usb/hdpvr/hdpvr-video.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+I recently picked up one of these very cheap and am trying to load it into 'nix.
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index d9eb8e1..2d02b49 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -297,8 +297,12 @@ static int hdpvr_start_streaming(struct hdpvr_device *dev)
- 				      0xb8, 0x38, 0x1, 0, NULL, 0, 8000);
- 		v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
- 			 "encoder start control request returned %d\n", ret);
-+		if (ret < 0)
-+			return ret;
- 
--		hdpvr_config_call(dev, CTRL_START_STREAMING_VALUE, 0x00);
-+		ret = hdpvr_config_call(dev, CTRL_START_STREAMING_VALUE, 0x00);
-+		if (ret)
-+			return ret;
- 
- 		dev->status = STATUS_STREAMING;
- 
--- 
-1.7.10.4
+According to this
 
+http://www.linuxtv.org/wiki/index.php/Elgato_EyeTV_DTT_deluxe_v2
+
+It should be recognised and load, and indeed when plugged in dmesg
+correctly reports it being detected and lsusb sees the device and the
+correctly reports the device ID.
+
+However there's no DVB section loading and I'm not sure why.
+
+I've copied the two .hex files to firmware and dmesg is not reporting
+any other outstanding requirements, however it's just not
+partying........
+
+Installed into a windows machine the drivers load and it reports OK
+(it's not tuning but I'm pretty sure that's a location issue at the
+moment).
+
+any ideas anyone?
+
+
+section from dmesg
+
+[88238.662053] usb 2-1: new high-speed USB device number 6 using ehci-pci
+[88238.777869] usb 2-1: New USB device found, idVendor=0fd9, idProduct=002c
+[88238.777881] usb 2-1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+[88238.777888] usb 2-1: Product: EyeTV DTT Dlx
+[88238.777895] usb 2-1: Manufacturer: Elgato
+[88238.777902] usb 2-1: SerialNumber: 0000xxxxxxxxxxxxxx
+[88554.865760] usb 2-1: USB disconnect, device number 6
