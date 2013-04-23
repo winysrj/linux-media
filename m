@@ -1,72 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:55913 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756264Ab3DYLh2 (ORCPT
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:52404 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751669Ab3DWKwb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 07:37:28 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT00JWJ6YCNNP0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 20:37:28 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH 4/7 v2] coda: Add copy time stamp handling
-Date: Thu, 25 Apr 2013 13:36:05 +0200
-Message-id: <1366889768-16677-5-git-send-email-k.debski@samsung.com>
-In-reply-to: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
-References: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
+	Tue, 23 Apr 2013 06:52:31 -0400
+Received: by mail-pd0-f169.google.com with SMTP id 10so362221pdc.28
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 03:52:31 -0700 (PDT)
+From: Katsuya Matsubara <matsu@igel.co.jp>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, Katsuya Matsubara <matsu@igel.co.jp>
+Subject: [PATCH 1/3] [media] sh_veu: invoke v4l2_m2m_job_finish() even if a job has been aborted
+Date: Tue, 23 Apr 2013 19:51:35 +0900
+Message-Id: <1366714297-2784-2-git-send-email-matsu@igel.co.jp>
+In-Reply-To: <1366714297-2784-1-git-send-email-matsu@igel.co.jp>
+References: <1366714297-2784-1-git-send-email-matsu@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Since the introduction of the timestamp_type field, it is necessary that
-the driver chooses which type it will use. This patch adds support for
-the timestamp_type.
+v4l2_m2m_job_finish() should be invoked even if the current
+ongoing job has been aborted since v4l2_m2m_ctx_release() which
+has issued the job abort may wait until the finish function is invoked.
 
-Signed-off-by: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Cc: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: Javier Martin <javier.martin@vista-silicon.com>
-Cc: Fabio Estevam <fabio.estevam@freescale.com>
+Signed-off-by: Katsuya Matsubara <matsu@igel.co.jp>
 ---
- drivers/media/platform/coda.c |    5 +++++
- 1 file changed, 5 insertions(+)
+ drivers/media/platform/sh_veu.c |    5 +----
+ 1 files changed, 1 insertions(+), 4 deletions(-)
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 20827ba..5612329 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1422,6 +1422,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->ops = &coda_qops;
- 	src_vq->mem_ops = &vb2_dma_contig_memops;
-+	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+index cb54c69..f88c0e8 100644
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -1137,10 +1137,7 @@ static irqreturn_t sh_veu_isr(int irq, void *dev_id)
  
- 	ret = vb2_queue_init(src_vq);
- 	if (ret)
-@@ -1433,6 +1434,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->ops = &coda_qops;
- 	dst_vq->mem_ops = &vb2_dma_contig_memops;
-+	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	veu->xaction++;
  
- 	return vb2_queue_init(dst_vq);
+-	if (!veu->aborting)
+-		return IRQ_WAKE_THREAD;
+-
+-	return IRQ_HANDLED;
++	return IRQ_WAKE_THREAD;
  }
-@@ -1628,6 +1630,9 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
- 		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
- 	}
  
-+	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
-+	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
-+
- 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
- 	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
- 
+ static int sh_veu_probe(struct platform_device *pdev)
 -- 
-1.7.9.5
+1.7.0.4
 
