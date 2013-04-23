@@ -1,241 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52947 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753227Ab3DUWh7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Apr 2013 18:37:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Prabhakar lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: Re: [PATCH RFC] media: videobuf2: fix the length check for mmap
-Date: Mon, 22 Apr 2013 00:38:05 +0200
-Message-ID: <4764027.ER4TtP6hZT@avalon>
-In-Reply-To: <20130419081801.0af7ad73@redhat.com>
-References: <1366364816-3567-1-git-send-email-prabhakar.csengg@gmail.com> <20130419081801.0af7ad73@redhat.com>
+Received: from mx1.redhat.com ([209.132.183.28]:5319 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932325Ab3DWQ2H (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Apr 2013 12:28:07 -0400
+Message-ID: <5176B688.7020702@redhat.com>
+Date: Tue, 23 Apr 2013 13:27:52 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+CC: "Michael ." <boycee_@hotmail.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: Fwd: Device no longer handled by em28xx kernel drivers
+References: <DUB118-W3105CA5468C478D0494A7687CE0@phx.gbl>,<516EF48C.2080804@iki.fi>,<DUB118-W43501C44B9B252CC5A03DD87CE0@phx.gbl> <DUB118-W30802FB90E04796F1FBDE187CF0@phx.gbl> <5176AB5F.1050901@googlemail.com>
+In-Reply-To: <5176AB5F.1050901@googlemail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Em 23-04-2013 12:40, Frank Schäfer escreveu:
+> (forwarding to the linux-media mailing list) (2nd try)
+>
+>
+> Am 18.04.2013 21:04, schrieb Michael .:
+>> Hi
+>>
+>> I hope you don't mind me contacting you directly.
+>
+> Issues like this should always be discussed on the linux-media mailing
+> list, so please CC it in the future.
+> Neither I'm the em28xx maintainer nor do I know much about issues/things
+> that happened in the past.
+>
+>> I have a USB device which I was surprised to find is no longer handled
+>> by the driver:
+>
+> What does "no longer handled" mean ?
+> What was the last kernel that supported this device ?
+>
+>>
+>> Bus 001 Device 004: ID 0ccd:0072 TerraTec Electronic GmbH Cinergy Hybrid T
+>>
+>> I believe the hardware is em28xx + zl10353 + xc5000 as I can see my
+>> precise hardware being detected by em28xx in dmesg output here:
+>
+> Yes, according to http://linux.terratec.de/tv_en.html it uses em2882+xc5000.
+>
+>>
+>> http://doc.ubuntu-fr.org/terratec_cinergy_xs
+>>
+>> As I understand there might have been two parallel drivers being
+>> developed.
+>
+> I never heard of a second driver.
+>
+>> I just wondered if there is any chance of this support being
+>> re-instated for this particular one?
+>> I am surprised to find that a device has gone from supported to
+>> unsupported!
+>
+> I don't know. The em28xx driver is generally the right driver and it
+> already supports other devices with the xc5000 tuner.
+> If support for this device has really been removed a while ago, then
+> there must have been good reasons...
+>
+> Mauro, Devin ?
 
-On Friday 19 April 2013 08:18:01 Mauro Carvalho Chehab wrote:
-> Em Fri, 19 Apr 2013 15:16:56 +0530 Prabhakar lad escreveu:
-> > From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> > 
-> > From commit 068a0df76023926af958a336a78bef60468d2033
-> > "[media] media: vb2: add length check for mmap"
-> > patch verifies that the mmap() size requested by userspace
-> > doesn't exceed the buffer size.
-> > 
-> > As the mmap() size is rounded up to the next page boundary
-> > the check will fail for buffer sizes that are not multiple
-> > of the page size.
-> > 
-> > This patch fixes the check by aligning the buffer size to page
-> > size during the check. Alongside fixes the vmalloc allocator
-> > to round up the size.
-> > 
-> > Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Marek Szyprowski <m.szyprowski@samsung.com>
-> > Cc: Seung-Woo Kim <sw0312.kim@samsung.com>
-> > Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > ---
-> > 
-> >  drivers/media/v4l2-core/videobuf2-core.c    |    2 +-
-> >  drivers/media/v4l2-core/videobuf2-vmalloc.c |    2 +-
-> >  2 files changed, 2 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> > b/drivers/media/v4l2-core/videobuf2-core.c index 58c1744..223fcd4 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-core.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> > @@ -1886,7 +1886,7 @@ int vb2_mmap(struct vb2_queue *q, struct
-> > vm_area_struct *vma)> 
-> >  	vb = q->bufs[buffer];
-> > 
-> > -	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
-> > +	if (PAGE_ALIGN(vb->v4l2_planes[plane].length) < (vma->vm_end -
-> > vma->vm_start)) {> 
-> >  		dprintk(1, "Invalid length\n");
-> >  		return -EINVAL;
-> >  	
-> >  	}
-> 
-> That is tricky, as it assumes that vb->v4l2_planes[plane].length was round
-> up to PAGE_SIZE at each memops driver, but the vb2 core doesn't enforce it.
-> 
-> IMO, it would be cleaner to round vb->v4l2_planes[plane].length up
-> at VB2 core, before calling the memops alloc functions at the drivers.
+It is hard to discuss without seeing the entire thread.
 
-I don't think we should round vb->v4l2_planes[plane].length up. That variable 
-stores the buffer length required by the driver, and will be used to perform 
-size checks when importing a dmabuf buffer. We don't want to prevent a buffer 
-large enough for the driver but not page size aligned to be imported.
+I don't remember having any USB ID removed from the driver.
 
-What we could do is round in the core the size passed to the alloc function, 
-without storing the rounded value in vb->v4l2_planes[plane].length.
+In any case, it is likely easy to add support for it. It is just
+a matter of capturing the logs from the other driver using
+the usbmon interface, and checking for the specific bits needed
+to make this device work.
 
-And, reading down, I realize that this is exactly what you meant :-) The 
-proposed patch looks good to me.
+This is described at:
+	http://linuxtv.org/wiki/index.php/Bus_snooping/sniffing
 
-> Also, VB2 is already complex enough to put it there without proper
-> comments (and there's a minor codingstyle issue there: line is bigger
-> than 80 cols).
+In summary, once compiled v4l2-utils, it should do:
 
-A comment is definitely a good idea.
+	$ cd contrib/
+	$ ./parse_tcpdump_log.pl --pcap |./parse_em28xx.pl
 
-> > diff --git a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> > b/drivers/media/v4l2-core/videobuf2-vmalloc.c index 313d977..bf3b95c
-> > 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-vmalloc.c
-> > @@ -44,7 +44,7 @@ static void *vb2_vmalloc_alloc(void *alloc_ctx, unsigned
-> > long size, gfp_t gfp_fl> 
-> >  		return NULL;
-> >  	
-> >  	buf->size = size;
-> > 
-> > -	buf->vaddr = vmalloc_user(buf->size);
-> > +	buf->vaddr = vmalloc_user(PAGE_ALIGN(buf->size));
-> 
-> See? You needed to put an alignment here as well, not because vmalloc
-> needs it, but because this is needed by VB2 core.
-> 
-> Also, on the other drivers, buf->size is stored page aligned, while
-> here, you're doing different, without any documented reason for doing
-> that, instead of doing the same as on the other memops drivers.
-> 
-> That mistake reflects, for example, when the driver prints the failure:
-> 
->         if (!buf->vaddr) {
->                 pr_debug("vmalloc of size %ld failed\n", buf->size);
-> 
-> as it will show a different size than what you actually required.
-> As those memory starving errors can also produce a dump at the mm
-> core, the size there won't match the size on the above printed message.
-> 
-> Also, it is a very bad idea to delegate the core's requirement of
-> do page alignment from the core to the memops drivers, as other
-> patches may change the logic there, or a new memops could be added,
-> and the same problem will hit again (and unnoticed, as the check
-> routine do page alignments).
+eventually, if the device is not at usbmon1, you may need
+to do:
 
-Agreed. The memory allocator shouldn't need to guess the core requirements.
+	$ ~/parse_tcpdump_log.pl --list-devices
+	usbmon2 ==> Camera (level 1)
+	usbmon2 ==> USB2.0 Hub (level 1)
 
-> >  	buf->handler.refcount = &buf->refcount;
-> >  	buf->handler.put = vb2_vmalloc_put;
-> >  	buf->handler.arg = buf;
-> 
-> IMO, a cleaner version would be the following (untested) code.
-> 
-> -
-> 
-> [media] videobuf2: fix the length check for mmap
-> 
-> Memory maps typically require that the buffer size to be page
-> aligned. Currently, two memops drivers do such alignment
-> internally, but videobuf-vmalloc doesn't.
-> 
-> Also, the buffer overflow check doesn't take it into account.
-> 
-> So, instead of doing it at each memops driver, enforce it at
-> VB2 core.
-> 
-> Reported-by: Prabhakar lad <prabhakar.csengg@gmail.com>
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c
-> b/drivers/media/v4l2-core/videobuf2-core.c index 58c1744..7d833ee 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -54,10 +54,15 @@ static int __vb2_buf_mem_alloc(struct vb2_buffer *vb)
->  	void *mem_priv;
->  	int plane;
-> 
-> -	/* Allocate memory for all planes in this buffer */
-> +	/*
-> +	 * Allocate memory for all planes in this buffer
-> +	 * NOTE: mmapped areas should be page aligned
-> +	 */
->  	for (plane = 0; plane < vb->num_planes; ++plane) {
-> +		unsigned long size = PAGE_ALIGN(q->plane_sizes[plane]);
-> +
->  		mem_priv = call_memop(q, alloc, q->alloc_ctx[plane],
-> -				      q->plane_sizes[plane], q->gfp_flags);
-> +				      size, q->gfp_flags);
->  		if (IS_ERR_OR_NULL(mem_priv))
->  			goto free;
-> 
-> @@ -1852,6 +1857,7 @@ int vb2_mmap(struct vb2_queue *q, struct
-> vm_area_struct *vma) struct vb2_buffer *vb;
->  	unsigned int buffer, plane;
->  	int ret;
-> +	unsigned long length;
-> 
->  	if (q->memory != V4L2_MEMORY_MMAP) {
->  		dprintk(1, "Queue is not currently set up for mmap\n");
-> @@ -1886,8 +1892,15 @@ int vb2_mmap(struct vb2_queue *q, struct
-> vm_area_struct *vma)
-> 
->  	vb = q->bufs[buffer];
-> 
-> -	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
-> -		dprintk(1, "Invalid length\n");
-> +	/*
-> +	 * MMAP requires page_aligned buffers.
-> +	 * The buffer length was page_aligned at __vb2_buf_mem_alloc(),
-> +	 * so, we need to do the same here.
-> +	 */
-> +	length = PAGE_ALIGN(vb->v4l2_planes[plane].length);
-> +	if (length < (vma->vm_end - vma->vm_start)) {
-> +		dprintk(1,
-> +			"MMAP invalid, as it would overflow buffer length\n");
->  		return -EINVAL;
->  	}
-> 
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> b/drivers/media/v4l2-core/videobuf2-dma-contig.c index ae35d25..fd56f25
-> 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-> @@ -162,9 +162,6 @@ static void *vb2_dc_alloc(void *alloc_ctx, unsigned long
-> size, gfp_t gfp_flags) if (!buf)
->  		return ERR_PTR(-ENOMEM);
-> 
-> -	/* align image size to PAGE_SIZE */
-> -	size = PAGE_ALIGN(size);
-> -
->  	buf->vaddr = dma_alloc_coherent(dev, size, &buf->dma_addr,
->  						GFP_KERNEL | gfp_flags);
->  	if (!buf->vaddr) {
-> diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> b/drivers/media/v4l2-core/videobuf2-dma-sg.c index 59522b2..16ae3dc 100644
-> --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> @@ -55,7 +55,8 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned
-> long size, gfp_t gfp_fla buf->write = 0;
->  	buf->offset = 0;
->  	buf->sg_desc.size = size;
-> -	buf->sg_desc.num_pages = (size + PAGE_SIZE - 1) >> PAGE_SHIFT;
-> +	/* size is already page aligned */
-> +	buf->sg_desc.num_pages = size >> PAGE_SHIFT;
-> 
->  	buf->sg_desc.sglist = vzalloc(buf->sg_desc.num_pages *
->  				      sizeof(*buf->sg_desc.sglist));
--- 
+To list where the device is inserted, and then pass the --devices
+to capture data on a different interface, like:
+
+$ ./parse_tcpdump_log.pl --device usbmon2 |./parse_em28xx.pl
+
 Regards,
-
-Laurent Pinchart
+Mauro
 
