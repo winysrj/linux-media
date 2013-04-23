@@ -1,112 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f44.google.com ([209.85.213.44]:40236 "EHLO
-	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761894Ab3DJVft (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4625 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754655Ab3DWGmU convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 17:35:49 -0400
-Received: by mail-yh0-f44.google.com with SMTP id m1so148419yhg.31
-        for <linux-media@vger.kernel.org>; Wed, 10 Apr 2013 14:35:49 -0700 (PDT)
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-To: linux-media@vger.kernel.org
-Cc: Alex Dvoretsky <alexdvoretsky@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Subject: [PATCH] solo6x10: Approximate frame intervals with non-standard denominator
-Date: Wed, 10 Apr 2013 18:28:05 -0300
-Message-Id: <1365629285-22793-1-git-send-email-ismael.luceno@corp.bluecherry.net>
+	Tue, 23 Apr 2013 02:42:20 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: Patch update notification: 2 patches updated
+Date: Tue, 23 Apr 2013 08:41:53 +0200
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <20130420121301.2461.37868@www.linuxtv.org> <CA+V-a8vNRWw=davSbBUpb9rozvm3GyXx+iu3r_UD4M6BuHJmuQ@mail.gmail.com>
+In-Reply-To: <CA+V-a8vNRWw=davSbBUpb9rozvm3GyXx+iu3r_UD4M6BuHJmuQ@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="windows-1252"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201304230841.53894.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of falling back to 1/25 (PAL) or 1/30 (NTSC).
+On Monday, April 22, 2013 12:50:50 Prabhakar Lad wrote:
+> Hi Mauro,
+> 
+> On Sat, Apr 20, 2013 at 5:43 PM, Patchwork <patchwork@linuxtv.org> wrote:
+> > Hello,
+> >
+> > The following patches (submitted by you) have been updated in patchwork:
+> >
+> >  * [2/2] media: davinci: vpif_display: move displaying of error to approppraite place
+> >      - http://patchwork.linuxtv.org/patch/18092/
+> >     was: Under Review
+> >     now: Accepted
+> >
+> >  * [1/2] media: davinci: vpif: remove unwanted header file inclusion
+> >      - http://patchwork.linuxtv.org/patch/18093/
+> >     was: Under Review
+> >     now: Accepted
+> >
+> The above patches have been marked as 'Accepted', However I haven’t
+> issued a pull request nor I find the patches in your master branch. Something
+> wrong while updating patchwork ?
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Since I'm the submaintainer these days for such patches I'm the one that
+accepted them. Patches for 3.11 I keep here:
 
-# Please enter the commit message for your changes. Lines starting
-# with '#' will be ignored, and an empty message aborts the commit.
-# On branch media
-# Changes to be committed:
-#   (use "git reset HEAD <file>..." to unstage)
-#
-#	modified:   drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-#
-# Untracked files:
-#   (use "git add <file>..." to include in what will be committed)
-#
-#	buildtest/
----
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 38 +++++++++-------------
- 1 file changed, 15 insertions(+), 23 deletions(-)
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.11
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index 6c7d20f..6965307 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -975,12 +975,11 @@ static int solo_g_parm(struct file *file, void *priv,
- 		       struct v4l2_streamparm *sp)
- {
- 	struct solo_enc_dev *solo_enc = video_drvdata(file);
--	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	struct v4l2_captureparm *cp = &sp->parm.capture;
- 
- 	cp->capability = V4L2_CAP_TIMEPERFRAME;
- 	cp->timeperframe.numerator = solo_enc->interval;
--	cp->timeperframe.denominator = solo_dev->fps;
-+	cp->timeperframe.denominator = solo_enc->solo_dev->fps;
- 	cp->capturemode = 0;
- 	/* XXX: Shouldn't we be able to get/set this from videobuf? */
- 	cp->readbuffers = 2;
-@@ -988,36 +987,29 @@ static int solo_g_parm(struct file *file, void *priv,
- 	return 0;
- }
- 
-+static inline int calc_interval(u8 fps, u32 n, u32 d)
-+{
-+	if (unlikely(!n || !d))
-+		return 1;
-+	if (likely(d == fps))
-+		return n;
-+	n *= fps;
-+	return min(15U, n / d + (n % d >= (fps >> 1)));
-+}
-+
- static int solo_s_parm(struct file *file, void *priv,
- 		       struct v4l2_streamparm *sp)
- {
- 	struct solo_enc_dev *solo_enc = video_drvdata(file);
--	struct solo_dev *solo_dev = solo_enc->solo_dev;
--	struct v4l2_captureparm *cp = &sp->parm.capture;
-+	struct v4l2_fract *t = &sp->parm.capture.timeperframe;
-+	u8 fps = solo_enc->solo_dev->fps;
- 
- 	if (vb2_is_streaming(&solo_enc->vidq))
- 		return -EBUSY;
- 
--	if ((cp->timeperframe.numerator == 0) ||
--	    (cp->timeperframe.denominator == 0)) {
--		/* reset framerate */
--		cp->timeperframe.numerator = 1;
--		cp->timeperframe.denominator = solo_dev->fps;
--	}
--
--	if (cp->timeperframe.denominator != solo_dev->fps)
--		cp->timeperframe.denominator = solo_dev->fps;
--
--	if (cp->timeperframe.numerator > 15)
--		cp->timeperframe.numerator = 15;
--
--	solo_enc->interval = cp->timeperframe.numerator;
--
--	cp->capability = V4L2_CAP_TIMEPERFRAME;
--	cp->readbuffers = 2;
--
-+	solo_enc->interval = calc_interval(fps, t->numerator, t->denominator);
- 	solo_update_mode(solo_enc);
--	return 0;
-+	return solo_g_parm(file, priv, sp);
- }
- 
- static long solo_enc_default(struct file *file, void *fh,
--- 
-1.8.2
+I can't post a pull request for it yet since the 3.11 window isn't open yet,
+but I'm collecting all patches there, otherwise things would just pile up.
 
+Regards,
+
+	Hans
+
+> 
+> Regards,
+> --Prabhakar
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
