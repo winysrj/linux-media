@@ -1,55 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:37671 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935621Ab3DHNVC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 09:21:02 -0400
-MIME-version: 1.0
-Content-transfer-encoding: 8BIT
-Content-type: text/plain; charset=UTF-8
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MKX00DU4U8NR290@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Apr 2013 14:21:01 +0100 (BST)
-Message-id: <5162C43A.80702@samsung.com>
-Date: Mon, 08 Apr 2013 15:20:58 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Fix s5c73m3-core.c compiler warning
-References: <201304081110.34877.hverkuil@xs4all.nl>
-In-reply-to: <201304081110.34877.hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:37237 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756453Ab3DWQOQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Apr 2013 12:14:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH] exynos4-is: Fix TRY format propagation at MIPI-CSIS subdev
+Date: Tue, 23 Apr 2013 18:14:16 +0200
+Message-ID: <1669228.BWC5kzPDSd@avalon>
+In-Reply-To: <1366731687-32566-1-git-send-email-s.nawrocki@samsung.com>
+References: <1366731687-32566-1-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/08/2013 11:10 AM, Hans Verkuil wrote:
-> Fix for this compiler warning:
+On Tuesday 23 April 2013 17:41:27 Sylwester Nawrocki wrote:
+> Ensure TRY format is propagated from the sink to source pad.
+> The format at both pads is always same so the TRY format buffer
+> for pad 0 is used to hold format for both pads.
+> While at it remove redundant fmt->pad checking.
 > 
->   CC [M]  drivers/media/i2c/s5c73m3/s5c73m3-core.o
-> drivers/media/i2c/s5c73m3/s5c73m3-core.c: In function ‘s5c73m3_load_fw’:
-> drivers/media/i2c/s5c73m3/s5c73m3-core.c:360:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 4 has type ‘size_t’ [-Wformat]
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Reported-by: Jacek Anaszewski <j.anaszewski@samsung.com>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-Thanks Hans, I somehow overlooked this in the daily build logs.
-Kamil will include this patch in his pull request.
+Reviewed-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-> Regards,
+> ---
+>  drivers/media/platform/exynos4-is/mipi-csis.c |   14 ++++----------
+>  1 file changed, 4 insertions(+), 10 deletions(-)
 > 
-> 	Hans
+> diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c
+> b/drivers/media/platform/exynos4-is/mipi-csis.c index d62b0d2..50f3c5c
+> 100644
+> --- a/drivers/media/platform/exynos4-is/mipi-csis.c
+> +++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+> @@ -579,10 +579,10 @@ static struct csis_pix_format const
+> *s5pcsis_try_format(
 > 
-> diff --git a/drivers/media/i2c/s5c73m3/s5c73m3-core.c b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> index 5dbb65e..b353c50 100644
-> --- a/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> +++ b/drivers/media/i2c/s5c73m3/s5c73m3-core.c
-> @@ -357,7 +357,7 @@ static int s5c73m3_load_fw(struct v4l2_subdev *sd)
+>  static struct v4l2_mbus_framefmt *__s5pcsis_get_format(
+>  		struct csis_state *state, struct v4l2_subdev_fh *fh,
+> -		u32 pad, enum v4l2_subdev_format_whence which)
+> +		enum v4l2_subdev_format_whence which)
+>  {
+>  	if (which == V4L2_SUBDEV_FORMAT_TRY)
+> -		return fh ? v4l2_subdev_get_try_format(fh, pad) : NULL;
+> +		return fh ? v4l2_subdev_get_try_format(fh, 0) : NULL;
+> 
+>  	return &state->format;
+>  }
+> @@ -594,10 +594,7 @@ static int s5pcsis_set_fmt(struct v4l2_subdev *sd,
+> struct v4l2_subdev_fh *fh, struct csis_pix_format const *csis_fmt;
+>  	struct v4l2_mbus_framefmt *mf;
+> 
+> -	if (fmt->pad != CSIS_PAD_SOURCE && fmt->pad != CSIS_PAD_SINK)
+> -		return -EINVAL;
+> -
+> -	mf = __s5pcsis_get_format(state, fh, fmt->pad, fmt->which);
+> +	mf = __s5pcsis_get_format(state, fh, fmt->which);
+> 
+>  	if (fmt->pad == CSIS_PAD_SOURCE) {
+>  		if (mf) {
+> @@ -624,10 +621,7 @@ static int s5pcsis_get_fmt(struct v4l2_subdev *sd,
+> struct v4l2_subdev_fh *fh, struct csis_state *state = sd_to_csis_state(sd);
+>  	struct v4l2_mbus_framefmt *mf;
+> 
+> -	if (fmt->pad != CSIS_PAD_SOURCE && fmt->pad != CSIS_PAD_SINK)
+> -		return -EINVAL;
+> -
+> -	mf = __s5pcsis_get_format(state, fh, fmt->pad, fmt->which);
+> +	mf = __s5pcsis_get_format(state, fh, fmt->which);
+>  	if (!mf)
 >  		return -EINVAL;
->  	}
->  
-> -	v4l2_info(sd, "Loading firmware (%s, %d B)\n", fw_name, fw->size);
-> +	v4l2_info(sd, "Loading firmware (%s, %zu B)\n", fw_name, fw->size);
->  
->  	ret = s5c73m3_spi_write(state, fw->data, fw->size, 64);
-
+-- 
 Regards,
-Sylwester
+
+Laurent Pinchart
+
