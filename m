@@ -1,94 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from service87.mimecast.com ([91.220.42.44]:34246 "EHLO
-	service87.mimecast.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966676Ab3DQPRn (ORCPT
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:45399 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754933Ab3DWIPM convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Apr 2013 11:17:43 -0400
-From: Pawel Moll <pawel.moll@arm.com>
-To: linux-fbdev@vger.kernel.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Linus Walleij <linus.walleij@linaro.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	Pawel Moll <pawel.moll@arm.com>
-Subject: [RFC 05/10] fbmon: Add extra video helper
-Date: Wed, 17 Apr 2013 16:17:17 +0100
-Message-Id: <1366211842-21497-6-git-send-email-pawel.moll@arm.com>
-In-Reply-To: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
-References: <1366211842-21497-1-git-send-email-pawel.moll@arm.com>
-Content-Type: text/plain; charset=WINDOWS-1252
-Content-Transfer-Encoding: quoted-printable
+	Tue, 23 Apr 2013 04:15:12 -0400
+Received: by mail-wg0-f45.google.com with SMTP id l18so136143wgh.0
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 01:15:10 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201304230841.53894.hverkuil@xs4all.nl>
+References: <20130420121301.2461.37868@www.linuxtv.org> <CA+V-a8vNRWw=davSbBUpb9rozvm3GyXx+iu3r_UD4M6BuHJmuQ@mail.gmail.com>
+ <201304230841.53894.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 23 Apr 2013 13:44:50 +0530
+Message-ID: <CA+V-a8vP2dke2OpAvyRJnxCSSopaSneDP0rMPTJej6U12kmV8w@mail.gmail.com>
+Subject: Re: Patch update notification: 2 patches updated
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function converts the fb_var_screeninfo to the videomode
-structure, to be used in fbdev drivers working with the
-Common Display Framework.
+Hi Hans,
 
-Signed-off-by: Pawel Moll <pawel.moll@arm.com>
----
- drivers/video/fbmon.c |   29 +++++++++++++++++++++++++++++
- include/linux/fb.h    |    3 +++
- 2 files changed, 32 insertions(+)
+On Tue, Apr 23, 2013 at 12:11 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Monday, April 22, 2013 12:50:50 Prabhakar Lad wrote:
+>> Hi Mauro,
+>>
+>> On Sat, Apr 20, 2013 at 5:43 PM, Patchwork <patchwork@linuxtv.org> wrote:
+>> > Hello,
+>> >
+>> > The following patches (submitted by you) have been updated in patchwork:
+>> >
+>> >  * [2/2] media: davinci: vpif_display: move displaying of error to approppraite place
+>> >      - http://patchwork.linuxtv.org/patch/18092/
+>> >     was: Under Review
+>> >     now: Accepted
+>> >
+>> >  * [1/2] media: davinci: vpif: remove unwanted header file inclusion
+>> >      - http://patchwork.linuxtv.org/patch/18093/
+>> >     was: Under Review
+>> >     now: Accepted
+>> >
+>> The above patches have been marked as 'Accepted', However I haven’t
+>> issued a pull request nor I find the patches in your master branch. Something
+>> wrong while updating patchwork ?
+>
+> Since I'm the submaintainer these days for such patches I'm the one that
+> accepted them. Patches for 3.11 I keep here:
+>
+> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.11
+>
+Thanks
 
-diff --git a/drivers/video/fbmon.c b/drivers/video/fbmon.c
-index 7f67099..f0ff2bf 100644
---- a/drivers/video/fbmon.c
-+++ b/drivers/video/fbmon.c
-@@ -1424,6 +1424,35 @@ int fb_videomode_from_videomode(const struct videomo=
-de *vm,
- =09return 0;
- }
- EXPORT_SYMBOL_GPL(fb_videomode_from_videomode);
-+
-+void videomode_from_fb_var_screeninfo(const struct fb_var_screeninfo *var,
-+=09=09=09=09      struct videomode *vm)
-+{
-+=09vm->pixelclock =3D PICOS2KHZ(var->pixclock) * 1000;
-+
-+=09vm->hactive =3D var->xres;
-+=09vm->hfront_porch =3D var->right_margin;
-+=09vm->hback_porch =3D var->left_margin;
-+=09vm->hsync_len =3D var->hsync_len;
-+
-+=09vm->vactive =3D var->yres;
-+=09vm->vfront_porch =3D var->lower_margin;
-+=09vm->vback_porch =3D var->upper_margin;
-+=09vm->vsync_len =3D var->vsync_len;
-+
-+=09vm->dmt_flags =3D 0;
-+=09if (var->sync & FB_SYNC_HOR_HIGH_ACT)
-+=09=09vm->dmt_flags |=3D VESA_DMT_HSYNC_HIGH;
-+=09if (var->sync & FB_SYNC_VERT_HIGH_ACT)
-+=09=09vm->dmt_flags |=3D VESA_DMT_VSYNC_HIGH;
-+
-+=09vm->data_flags =3D 0;
-+=09if (var->vmode & FB_VMODE_INTERLACED)
-+=09=09vm->data_flags |=3D DISPLAY_FLAGS_INTERLACED;
-+=09if (var->vmode & FB_VMODE_DOUBLE)
-+=09=09vm->data_flags |=3D DISPLAY_FLAGS_DOUBLESCAN;
-+}
-+EXPORT_SYMBOL_GPL(videomode_from_fb_var_screeninfo);
- #endif
-=20
- #if IS_ENABLED(CONFIG_OF_VIDEOMODE)
-diff --git a/include/linux/fb.h b/include/linux/fb.h
-index 58b9860..aae2ed3 100644
---- a/include/linux/fb.h
-+++ b/include/linux/fb.h
-@@ -721,6 +721,9 @@ extern int of_get_fb_videomode(struct device_node *np,
- =09=09=09       int index);
- extern int fb_videomode_from_videomode(const struct videomode *vm,
- =09=09=09=09       struct fb_videomode *fbmode);
-+extern void videomode_from_fb_var_screeninfo(
-+=09=09=09=09const struct fb_var_screeninfo *var,
-+=09=09=09=09struct videomode *vm);
-=20
- /* drivers/video/modedb.c */
- #define VESA_MODEDB_SIZE 34
---=20
-1.7.10.4
+> I can't post a pull request for it yet since the 3.11 window isn't open yet,
+> but I'm collecting all patches there, otherwise things would just pile up.
+>
+Yes agreed!
 
+Regards,
+--Prabhakar
 
+> Regards,
+>
+>         Hans
+>
+>>
+>> Regards,
+>> --Prabhakar
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
