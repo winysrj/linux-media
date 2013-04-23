@@ -1,54 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f182.google.com ([209.85.223.182]:42975 "EHLO
-	mail-ie0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761712Ab3DCJmL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 05:42:11 -0400
-Received: by mail-ie0-f182.google.com with SMTP id at1so1449274iec.27
-        for <linux-media@vger.kernel.org>; Wed, 03 Apr 2013 02:42:11 -0700 (PDT)
+Received: from mail-la0-f43.google.com ([209.85.215.43]:44411 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756529Ab3DWRT1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Apr 2013 13:19:27 -0400
+Received: by mail-la0-f43.google.com with SMTP id ea20so782499lab.30
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 10:19:26 -0700 (PDT)
+To: horms@verge.net.au, linux-sh@vger.kernel.org, mchehab@redhat.com,
+	linux-media@vger.kernel.org, linus.walleij@linaro.org
+Subject: [PATCH v3 0/5] OKI ML86V7667 driver and R8A7778/BOCK-W VIN support
+Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-arm-kernel@lists.infradead.org, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Tue, 23 Apr 2013 21:18:42 +0400
 MIME-Version: 1.0
-From: =?UTF-8?B?TWljaGHDq2wgTGVmw6h2cmU=?= <lefevre00@gmail.com>
-Date: Wed, 3 Apr 2013 11:41:51 +0200
-Message-ID: <CA+aEtksFHFjxJLHDm6u8HHkkYqNtwTmkbPTTFTuvnhCWC5NXLQ@mail.gmail.com>
-Subject: Driver for Cinergy Hybrid T USB XS FM
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201304232118.43686.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Following http://www.mail-archive.com/linux-media@vger.kernel.org/msg09960.html
+Hello.
 
-Usb id : 0x0ccd:0x0072
-I got a hand on such device and try to make it work under linux 3.5
-tree yesterday.
+   Here's the set of 5 patches against the Simon Horman's 'renesas.git' repo,
+'renesas-next-20130422' tag and my recent yet unapplied patches. Here we
+add the OKI ML86V7667 video decoder driver and the VIN platform code working on
+the R8A7778/BOCK-W with ML86V7667. The driver patch also applies (with offsets)
+to Mauro's 'media_tree.git'...
 
-However, it' s my first attempt at drivers coding.
+[1/5] V4L2: I2C: ML86V7667 video decoder driver
+[2/5] sh-pfc: r8a7778: add VIN pin groups
+[3/5] ARM: shmobile: r8a7778: add VIN support
+[4/5] ARM: shmobile: BOCK-W: add VIN and ML86V7667 support
+[5/5] ARM: shmobile: BOCK-W: enable VIN and ML86V7667 in defconfig
 
-Looks like we now have a mix em28xx/xc5000 with (extracted from em28xx-cards.c)
-
-         [EM2884_BOARD_HAUPPAUGE_WINTV_HVR_930C] = {
-                 .name         = "Hauppauge WinTV HVR 930C",
-                 .has_dvb      = 1,
- #if 0 /* FIXME: Add analog support */
-                 .tuner_type   = TUNER_XC5000,
-                 .tuner_addr   = 0x41,
-                 .dvb_gpio     = hauppauge_930c_digital,
-                 .tuner_gpio   = hauppauge_930c_gpio,
- #else
-                 .tuner_type   = TUNER_ABSENT,
- #endif
-                 .ir_codes     = RC_MAP_HAUPPAUGE,
-                 .def_i2c_bus  = 1,
-                 .i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE |
-                                 EM28XX_I2C_FREQ_400_KHZ,
-         },
-
-Older em28xx-new found at
-http://www.mathematik.uni-marburg.de/~kosslerj/em28xx-new/
-use to support this usb stick.
-It use cx25843 decoder.
-
-I manage to load em28xx and other modules, but xc5000 firmware wouldnt load.
-I can provide log if you want.
-
-Michaël
+WBR, Sergei
