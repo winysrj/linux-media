@@ -1,52 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3154 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752344Ab3DJLP6 (ORCPT
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:53838 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754777Ab3DWKwW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 07:15:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 1/2] dt3155v4l: fix incorrect mutex locking.
-Date: Wed, 10 Apr 2013 13:15:46 +0200
-Message-Id: <1365592547-21951-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365592547-21951-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365592547-21951-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 23 Apr 2013 06:52:22 -0400
+Received: by mail-pd0-f172.google.com with SMTP id 4so360312pdd.31
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 03:52:22 -0700 (PDT)
+From: Katsuya Matsubara <matsu@igel.co.jp>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, Katsuya Matsubara <matsu@igel.co.jp>
+Subject: [PATCH 0/3] Fix some bugs in the sh_veu driver
+Date: Tue, 23 Apr 2013 19:51:34 +0900
+Message-Id: <1366714297-2784-1-git-send-email-matsu@igel.co.jp>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Guennadi,
 
-A mutex_unlock was missing in the 'success' path of the open() call,
-and also at one error path in the same function.
+This patch set fixes some small bugs in the sh_veu driver.
+They have been tested on the Mackerel board.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks,
+
+Katsuya Matsubara (3):
+  [media] sh_veu: invoke v4l2_m2m_job_finish() even if a job has been
+    aborted
+  [media] sh_veu: keep power supply until the m2m context is released
+  [media] sh_veu: fix the buffer size calculation
+
+ drivers/media/platform/sh_veu.c |   15 ++++++---------
+ 1 files changed, 6 insertions(+), 9 deletions(-)
+
 ---
- drivers/staging/media/dt3155v4l/dt3155v4l.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-index 073b3b3..57fadea 100644
---- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-+++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-@@ -398,7 +398,7 @@ dt3155_open(struct file *filp)
- 		pd->field_count = 0;
- 		ret = vb2_queue_init(pd->q);
- 		if (ret < 0)
--			return ret;
-+			goto err_request_irq;
- 		INIT_LIST_HEAD(&pd->dmaq);
- 		spin_lock_init(&pd->lock);
- 		/* disable all irqs, clear all irq flags */
-@@ -410,6 +410,7 @@ dt3155_open(struct file *filp)
- 			goto err_request_irq;
- 	}
- 	pd->users++;
-+	mutex_unlock(&pd->mux);
- 	return 0; /* success */
- err_request_irq:
- 	kfree(pd->q);
--- 
-1.7.10.4
-
+Katsuya Matsubara / IGEL Co., Ltd
