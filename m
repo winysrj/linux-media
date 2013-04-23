@@ -1,80 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4452 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935469Ab3DHKr6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:47:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Eduardo Valentin <edubezval@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 1/7] radio-si4713: remove audout ioctls
-Date: Mon,  8 Apr 2013 12:47:35 +0200
-Message-Id: <1365418061-23694-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.187]:53889 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755850Ab3DWM0E (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Apr 2013 08:26:04 -0400
+Date: Tue, 23 Apr 2013 14:25:54 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Katsuya Matsubara <matsu@igel.co.jp>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH 0/3] Fix some bugs in the sh_veu driver
+In-Reply-To: <1366714297-2784-1-git-send-email-matsu@igel.co.jp>
+Message-ID: <Pine.LNX.4.64.1304231421420.1422@axis700.grange>
+References: <1366714297-2784-1-git-send-email-matsu@igel.co.jp>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Matsubara-san
 
-The audout ioctls are not appropriate for radio transmitters, they apply to
-video output devices only. Remove them from this driver.
+On Tue, 23 Apr 2013, Katsuya Matsubara wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Hi Guennadi,
+> 
+> This patch set fixes some small bugs in the sh_veu driver.
+> They have been tested on the Mackerel board.
+> 
+> Thanks,
+> 
+> Katsuya Matsubara (3):
+>   [media] sh_veu: invoke v4l2_m2m_job_finish() even if a job has been
+>     aborted
+>   [media] sh_veu: keep power supply until the m2m context is released
+>   [media] sh_veu: fix the buffer size calculation
+
+Thanks for your patches. I don't think we should push them to 3.9, I'll 
+get them queued to 3.10 as fixes, after 3.9 is released we can also send 
+them to stable, do you think they are important enough?
+
+Thanks
+Guennadi
+
+>  drivers/media/platform/sh_veu.c |   15 ++++++---------
+>  1 files changed, 6 insertions(+), 9 deletions(-)
+> 
+> ---
+> Katsuya Matsubara / IGEL Co., Ltd
+
 ---
- drivers/media/radio/radio-si4713.c |   32 --------------------------------
- 1 file changed, 32 deletions(-)
-
-diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
-index 38b3f15..320f301 100644
---- a/drivers/media/radio/radio-si4713.c
-+++ b/drivers/media/radio/radio-si4713.c
-@@ -59,35 +59,6 @@ static const struct v4l2_file_operations radio_si4713_fops = {
- };
- 
- /* Video4Linux Interface */
--static int radio_si4713_fill_audout(struct v4l2_audioout *vao)
--{
--	/* TODO: check presence of audio output */
--	strlcpy(vao->name, "FM Modulator Audio Out", 32);
--
--	return 0;
--}
--
--static int radio_si4713_enumaudout(struct file *file, void *priv,
--						struct v4l2_audioout *vao)
--{
--	return radio_si4713_fill_audout(vao);
--}
--
--static int radio_si4713_g_audout(struct file *file, void *priv,
--					struct v4l2_audioout *vao)
--{
--	int rval = radio_si4713_fill_audout(vao);
--
--	vao->index = 0;
--
--	return rval;
--}
--
--static int radio_si4713_s_audout(struct file *file, void *priv,
--					const struct v4l2_audioout *vao)
--{
--	return vao->index ? -EINVAL : 0;
--}
- 
- /* radio_si4713_querycap - query device capabilities */
- static int radio_si4713_querycap(struct file *file, void *priv,
-@@ -229,9 +200,6 @@ static long radio_si4713_default(struct file *file, void *p,
- }
- 
- static struct v4l2_ioctl_ops radio_si4713_ioctl_ops = {
--	.vidioc_enumaudout	= radio_si4713_enumaudout,
--	.vidioc_g_audout	= radio_si4713_g_audout,
--	.vidioc_s_audout	= radio_si4713_s_audout,
- 	.vidioc_querycap	= radio_si4713_querycap,
- 	.vidioc_queryctrl	= radio_si4713_queryctrl,
- 	.vidioc_g_ext_ctrls	= radio_si4713_g_ext_ctrls,
--- 
-1.7.10.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
