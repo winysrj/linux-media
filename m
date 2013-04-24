@@ -1,45 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:65048 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965209Ab3DPS1D (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 14:27:03 -0400
-Subject: [PATCH 16/28] zoran: Don't print proc_dir_entry data in debug [RFC]
-To: linux-kernel@vger.kernel.org
-From: David Howells <dhowells@redhat.com>
-Cc: linux-fsdevel@vger.kernel.org, mjpeg-users@lists.sourceforge.net,
-	viro@zeniv.linux.org.uk, linux-media@vger.kernel.org
-Date: Tue, 16 Apr 2013 19:26:54 +0100
-Message-ID: <20130416182654.27773.74830.stgit@warthog.procyon.org.uk>
-In-Reply-To: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
-References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Received: from mail-da0-f48.google.com ([209.85.210.48]:48698 "EHLO
+	mail-da0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758098Ab3DXMBl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Apr 2013 08:01:41 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LFBDEV <linux-fbdev@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 6/6] ARM: davinci: dm644x: enable fbdev driver
+Date: Wed, 24 Apr 2013 17:30:08 +0530
+Message-Id: <1366804808-22720-7-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1366804808-22720-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1366804808-22720-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Don't print proc_dir_entry data in debug as we're soon to have no direct
-access to the contents of the PDE.  Print what was put in there instead.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: David Howells <dhowells@redhat.com>
-cc: mjpeg-users@lists.sourceforge.net
-cc: linux-media@vger.kernel.org
+This patch enables fbdev driver by creating fbdev device and register it.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
+ arch/arm/mach-davinci/dm644x.c |   10 ++++++++++
+ 1 files changed, 10 insertions(+), 0 deletions(-)
 
- drivers/media/pci/zoran/zoran_procfs.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/pci/zoran/zoran_procfs.c b/drivers/media/pci/zoran/zoran_procfs.c
-index 07a104d..f7ceee0 100644
---- a/drivers/media/pci/zoran/zoran_procfs.c
-+++ b/drivers/media/pci/zoran/zoran_procfs.c
-@@ -201,7 +201,7 @@ zoran_proc_init (struct zoran *zr)
- 		dprintk(2,
- 			KERN_INFO
- 			"%s: procfs entry /proc/%s allocated. data=%p\n",
--			ZR_DEVNAME(zr), name, zr->zoran_proc->data);
-+			ZR_DEVNAME(zr), name, zr);
- 	} else {
- 		dprintk(1, KERN_ERR "%s: Unable to initialise /proc/%s\n",
- 			ZR_DEVNAME(zr), name);
+diff --git a/arch/arm/mach-davinci/dm644x.c b/arch/arm/mach-davinci/dm644x.c
+index c2a9273..a4fee07 100644
+--- a/arch/arm/mach-davinci/dm644x.c
++++ b/arch/arm/mach-davinci/dm644x.c
+@@ -745,6 +745,15 @@ static struct platform_device dm644x_vpbe_display = {
+ 	},
+ };
+ 
++static struct platform_device dm644x_davincifb = {
++	.name           = "davinci-vpbe-fb",
++	.id             = -1,
++	.dev            = {
++		.dma_mask		= &dm644x_video_dma_mask,
++		.coherent_dma_mask	= DMA_BIT_MASK(32),
++	},
++};
++
+ static struct venc_platform_data dm644x_venc_pdata = {
+ 	.setup_clock	= dm644x_venc_setup_clock,
+ };
+@@ -909,6 +918,7 @@ int __init dm644x_init_video(struct vpfe_config *vpfe_cfg,
+ 		platform_device_register(&dm644x_venc_dev);
+ 		platform_device_register(&dm644x_vpbe_dev);
+ 		platform_device_register(&dm644x_vpbe_display);
++		platform_device_register(&dm644x_davincifb);
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.4.1
 
