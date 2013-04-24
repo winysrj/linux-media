@@ -1,110 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:32954 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967751Ab3DRQ7V (ORCPT
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:34875 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756370Ab3DXHmP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 12:59:21 -0400
-From: Andrey Smirnov <andrew.smirnov@gmail.com>
-To: sameo@linux.intel.com
-Cc: mchehab@redhat.com, andrew.smirnov@gmail.com, hverkuil@xs4all.nl,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: [PATCH 10/12] radio-si476x: vidioc_s* now uses a const parameter
-Date: Thu, 18 Apr 2013 09:58:36 -0700
-Message-Id: <1366304318-29620-11-git-send-email-andrew.smirnov@gmail.com>
-In-Reply-To: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
-References: <1366304318-29620-1-git-send-email-andrew.smirnov@gmail.com>
+	Wed, 24 Apr 2013 03:42:15 -0400
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com,
+	arunkk.samsung@gmail.com
+Subject: [RFC v2 0/6] Adding media device driver for Exynos5 imaging subsystem
+Date: Wed, 24 Apr 2013 13:11:07 +0530
+Message-Id: <1366789273-30184-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
+The following patchset features:
 
-vidioc_s_tuner, vidioc_s_frequency and vidioc_s_register now
-uses a constant argument. So, the driver reports warnings:
+1] Creating a common pipeline framework which can be used by all
+Exynos series SoCs for developing media device drivers.
+2] Modified the existing fimc-mdevice for exynos4 to use the common
+pipeline framework.
+3] Adding of media device driver for Exynos5 Imaging subsystem.
+4] Upgrading mipi-csis and fimc-lite drivers for Exynos5 SoCs.
 
-	drivers/media/radio/radio-si476x.c:1196:2: warning: initialization from incompatible pointer type [enabled by default]
-	drivers/media/radio/radio-si476x.c:1196:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_tuner') [enabled by default]
-	drivers/media/radio/radio-si476x.c:1199:2: warning: initialization from incompatible pointer type [enabled by default]
-	drivers/media/radio/radio-si476x.c:1199:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_frequency') [enabled by default]
-	drivers/media/radio/radio-si476x.c:1209:2: warning: initialization from incompatible pointer type [enabled by default]
-	drivers/media/radio/radio-si476x.c:1209:2: warning: (near initialization for 'si4761_ioctl_ops.vidioc_s_register') [enabled by default]
+Current changes are not tested on exynos4 series SoCs. Current media
+device driver only support one pipeline (pipeline0) which consists of
+        Sensor --> MIPI-CSIS --> FIMC-LITE
+        Sensor --> FIMC-LITE
+G-Scaler support to pipeline0 will be added later.
 
-This is due to a (soft) merge conflict, as both this driver and the
-const patches were applied for the same Kernel version.
+Once the fimc-is device driver is posted, one more pipeline (pipeline1)
+will be added for exynos5 media device driver for fimc-is sub-devices.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-Acked-by: Andrey Smirnov <andrew.smirnov@gmail.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/radio/radio-si476x.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+This patchset is rebased on:
+git://linuxtv.org/snawrocki/samsung.git:for_v3.10_2
 
-diff --git a/drivers/media/radio/radio-si476x.c b/drivers/media/radio/radio-si476x.c
-index 0895a0c..9430c6a 100644
---- a/drivers/media/radio/radio-si476x.c
-+++ b/drivers/media/radio/radio-si476x.c
-@@ -472,7 +472,7 @@ static int si476x_radio_g_tuner(struct file *file, void *priv,
- }
- 
- static int si476x_radio_s_tuner(struct file *file, void *priv,
--				struct v4l2_tuner *tuner)
-+				const struct v4l2_tuner *tuner)
- {
- 	struct si476x_radio *radio = video_drvdata(file);
- 
-@@ -699,15 +699,16 @@ static int si476x_radio_g_frequency(struct file *file, void *priv,
- }
- 
- static int si476x_radio_s_frequency(struct file *file, void *priv,
--				    struct v4l2_frequency *f)
-+				    const struct v4l2_frequency *f)
- {
- 	int err;
-+	u32 freq = f->frequency;
- 	struct si476x_tune_freq_args args;
- 	struct si476x_radio *radio = video_drvdata(file);
- 
- 	const u32 midrange = (si476x_bands[SI476X_BAND_AM].rangehigh +
- 			      si476x_bands[SI476X_BAND_FM].rangelow) / 2;
--	const int band = (f->frequency > midrange) ?
-+	const int band = (freq > midrange) ?
- 		SI476X_BAND_FM : SI476X_BAND_AM;
- 	const enum si476x_func func = (band == SI476X_BAND_AM) ?
- 		SI476X_FUNC_AM_RECEIVER : SI476X_FUNC_FM_RECEIVER;
-@@ -718,11 +719,11 @@ static int si476x_radio_s_frequency(struct file *file, void *priv,
- 
- 	si476x_core_lock(radio->core);
- 
--	f->frequency = clamp(f->frequency,
--			     si476x_bands[band].rangelow,
--			     si476x_bands[band].rangehigh);
-+	freq = clamp(freq,
-+		     si476x_bands[band].rangelow,
-+		     si476x_bands[band].rangehigh);
- 
--	if (si476x_radio_freq_is_inside_of_the_band(f->frequency,
-+	if (si476x_radio_freq_is_inside_of_the_band(freq,
- 						    SI476X_BAND_AM) &&
- 	    (!si476x_core_has_am(radio->core) ||
- 	     si476x_core_is_a_secondary_tuner(radio->core))) {
-@@ -737,8 +738,7 @@ static int si476x_radio_s_frequency(struct file *file, void *priv,
- 	args.zifsr		= false;
- 	args.hd			= false;
- 	args.injside		= SI476X_INJSIDE_AUTO;
--	args.freq		= v4l2_to_si476x(radio->core,
--						 f->frequency);
-+	args.freq		= v4l2_to_si476x(radio->core, freq);
- 	args.tunemode		= SI476X_TM_VALIDATED_NORMAL_TUNE;
- 	args.smoothmetrics	= SI476X_SM_INITIALIZE_AUDIO;
- 	args.antcap		= 0;
-@@ -1046,7 +1046,7 @@ static int si476x_radio_g_register(struct file *file, void *fh,
- 	return err;
- }
- static int si476x_radio_s_register(struct file *file, void *fh,
--				   struct v4l2_dbg_register *reg)
-+				   const struct v4l2_dbg_register *reg)
- {
- 
- 	int err;
+Shaik Ameer Basha (6):
+  media: exynos4-is: modify existing mdev to use common pipeline
+  fimc-lite: Adding Exynos5 compatibility to fimc-lite driver
+  media: fimc-lite: Adding support for Exynos5
+  media: fimc-lite: Fix for DMA output corruption
+  media: s5p-csis: Adding Exynos5250 compatibility
+  media: exynos5-is: Adding media device driver for exynos5
+
+ .../devicetree/bindings/media/exynos5-mdev.txt     |  153 +++
+ drivers/media/platform/Kconfig                     |    1 +
+ drivers/media/platform/Makefile                    |    1 +
+ drivers/media/platform/exynos4-is/fimc-capture.c   |   47 +-
+ drivers/media/platform/exynos4-is/fimc-lite-reg.c  |   16 +-
+ drivers/media/platform/exynos4-is/fimc-lite-reg.h  |   41 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c      |   45 +-
+ drivers/media/platform/exynos4-is/fimc-lite.h      |    4 +-
+ drivers/media/platform/exynos4-is/media-dev.c      |  179 +++-
+ drivers/media/platform/exynos4-is/media-dev.h      |   16 +
+ drivers/media/platform/exynos4-is/mipi-csis.c      |    3 +-
+ drivers/media/platform/exynos5-is/Kconfig          |    7 +
+ drivers/media/platform/exynos5-is/Makefile         |    4 +
+ drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1131 ++++++++++++++++++++
+ drivers/media/platform/exynos5-is/exynos5-mdev.h   |  120 +++
+ include/media/s5p_fimc.h                           |   46 +-
+ 16 files changed, 1757 insertions(+), 57 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/exynos5-mdev.txt
+ create mode 100644 drivers/media/platform/exynos5-is/Kconfig
+ create mode 100644 drivers/media/platform/exynos5-is/Makefile
+ create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
+ create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
+
 -- 
-1.7.10.4
+1.7.9.5
 
