@@ -1,72 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:34875 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756370Ab3DXHmP (ORCPT
+Received: from s250.sam-solutions.net ([217.21.49.219]:56623 "EHLO
+	s250.sam-solutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756655Ab3DXHtq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 03:42:15 -0400
-From: Shaik Ameer Basha <shaik.ameer@samsung.com>
-To: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com,
-	arunkk.samsung@gmail.com
-Subject: [RFC v2 0/6] Adding media device driver for Exynos5 imaging subsystem
-Date: Wed, 24 Apr 2013 13:11:07 +0530
-Message-Id: <1366789273-30184-1-git-send-email-shaik.ameer@samsung.com>
+	Wed, 24 Apr 2013 03:49:46 -0400
+Message-ID: <517787DC.5070309@sam-solutions.com>
+Date: Wed, 24 Apr 2013 10:21:00 +0300
+From: Andrei Andreyanau <a.andreyanau@sam-solutions.com>
+Reply-To: a.andreyanau@sam-solutions.com
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: mt9p031 camera driver issue
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patchset features:
+Hi, Guennadi!
+I have found interesting issue with mt9p031 camera driver.
+As far as I got the value of hblank in the kernel driver is not
+calculated correctly. According to the datasheet, the minimum horizontal
+blanking value should be calculated using the following formula:
+346 x (Row_Bin + 1) + 64 + (Wdc / 2)
+If I'm right, it should look like in the code attached.
+Also I wonder why it is decided to use the default value for vblank,
+when it's said that is also should be calculated like this:
+vblank = max(8, SW - H) + 1,
+where SW - shutter width, H - output image height.
+Also, there might be an issue with the calculation of xskip/yskip within
+the same function (mt9p031_set_params).
 
-1] Creating a common pipeline framework which can be used by all
-Exynos series SoCs for developing media device drivers.
-2] Modified the existing fimc-mdevice for exynos4 to use the common
-pipeline framework.
-3] Adding of media device driver for Exynos5 Imaging subsystem.
-4] Upgrading mipi-csis and fimc-lite drivers for Exynos5 SoCs.
+xskip = DIV_ROUND_CLOSEST(crop->width, format->width);
+yskip = DIV_ROUND_CLOSEST(crop->height, format->height);
 
-Current changes are not tested on exynos4 series SoCs. Current media
-device driver only support one pipeline (pipeline0) which consists of
-        Sensor --> MIPI-CSIS --> FIMC-LITE
-        Sensor --> FIMC-LITE
-G-Scaler support to pipeline0 will be added later.
+As far as I got, these values are calculated using the predefined macros,
+that rounds the calculated value to the nearest integer number. I faced
+with the problem, that these values rounded correctly when the result
+is > 1 (e.g. 1,5 will be rounded to 1).
+But what concerns the value 0,8 it will be rounded to 0 by this function
+(DIV_ROUND_CLOSEST). Could you please confirm this issue?
 
-Once the fimc-is device driver is posted, one more pipeline (pipeline1)
-will be added for exynos5 media device driver for fimc-is sub-devices.
+With best regards,
+Andrei Andreyanau
 
-This patchset is rebased on:
-git://linuxtv.org/snawrocki/samsung.git:for_v3.10_2
+Signed-off-by: Andrei Andreyanau <a.andreyanau@sam-solutions.com>
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index e328332..838b300 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -368,7 +368,7 @@ static int mt9p031_set_params(struct mt9p031 *mt9p031)
+ 	/* Blanking - use minimum value for horizontal blanking and default
+ 	 * value for vertical blanking.
+ 	 */
+-	hblank = 346 * ybin + 64 + (80 >> min_t(unsigned int, xbin, 3));
++	hblank = 346 * (xbin + 1) + 64 + ((80 >> clamp_t(unsigned int, xbin,
+0, 3)) / 2);
+ 	vblank = MT9P031_VERTICAL_BLANK_DEF;
 
-Shaik Ameer Basha (6):
-  media: exynos4-is: modify existing mdev to use common pipeline
-  fimc-lite: Adding Exynos5 compatibility to fimc-lite driver
-  media: fimc-lite: Adding support for Exynos5
-  media: fimc-lite: Fix for DMA output corruption
-  media: s5p-csis: Adding Exynos5250 compatibility
-  media: exynos5-is: Adding media device driver for exynos5
-
- .../devicetree/bindings/media/exynos5-mdev.txt     |  153 +++
- drivers/media/platform/Kconfig                     |    1 +
- drivers/media/platform/Makefile                    |    1 +
- drivers/media/platform/exynos4-is/fimc-capture.c   |   47 +-
- drivers/media/platform/exynos4-is/fimc-lite-reg.c  |   16 +-
- drivers/media/platform/exynos4-is/fimc-lite-reg.h  |   41 +-
- drivers/media/platform/exynos4-is/fimc-lite.c      |   45 +-
- drivers/media/platform/exynos4-is/fimc-lite.h      |    4 +-
- drivers/media/platform/exynos4-is/media-dev.c      |  179 +++-
- drivers/media/platform/exynos4-is/media-dev.h      |   16 +
- drivers/media/platform/exynos4-is/mipi-csis.c      |    3 +-
- drivers/media/platform/exynos5-is/Kconfig          |    7 +
- drivers/media/platform/exynos5-is/Makefile         |    4 +
- drivers/media/platform/exynos5-is/exynos5-mdev.c   | 1131 ++++++++++++++++++++
- drivers/media/platform/exynos5-is/exynos5-mdev.h   |  120 +++
- include/media/s5p_fimc.h                           |   46 +-
- 16 files changed, 1757 insertions(+), 57 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/exynos5-mdev.txt
- create mode 100644 drivers/media/platform/exynos5-is/Kconfig
- create mode 100644 drivers/media/platform/exynos5-is/Makefile
- create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.c
- create mode 100644 drivers/media/platform/exynos5-is/exynos5-mdev.h
-
--- 
-1.7.9.5
-
+ 	ret = mt9p031_write(client, MT9P031_HORIZONTAL_BLANK, hblank - 1);
