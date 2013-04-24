@@ -1,71 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:38042 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763488Ab3DDQ7L (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 12:59:11 -0400
-Received: by mail-ie0-f169.google.com with SMTP id qd14so3287724ieb.14
-        for <linux-media@vger.kernel.org>; Thu, 04 Apr 2013 09:59:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1365093516.2609.109.camel@laptop>
-References: <20130228102452.15191.22673.stgit@patser>
-	<20130228102502.15191.14146.stgit@patser>
-	<1364900432.18374.24.camel@laptop>
-	<515AF1C1.7080508@canonical.com>
-	<1364921954.20640.22.camel@laptop>
-	<1365076908.2609.94.camel@laptop>
-	<20130404133123.GW2228@phenom.ffwll.local>
-	<1365093516.2609.109.camel@laptop>
-Date: Thu, 4 Apr 2013 18:59:10 +0200
-Message-ID: <CAKMK7uEV=Q4hnzfbQbDqRPqpcrzG=4B=knPk26Lfkenv+mmQ+Q@mail.gmail.com>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Peter Zijlstra <peterz@infradead.org>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, x86@kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	rob clark <robclark@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@elte.hu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3656 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756989Ab3DXSUk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Apr 2013 14:20:40 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3OIKSal078650
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 24 Apr 2013 20:20:38 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id CC77B11E015D
+	for <linux-media@vger.kernel.org>; Wed, 24 Apr 2013 20:20:27 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130424182027.CC77B11E015D@alastor.dyndns.org>
+Date: Wed, 24 Apr 2013 20:20:27 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 4, 2013 at 6:38 PM, Peter Zijlstra <peterz@infradead.org> wrote:
-> On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
->> Hm, I guess your aim with the TASK_DEADLOCK wakeup is to bound the
->> wait
->> times of older task.
->
-> No, imagine the following:
->
-> struct ww_mutex A, B;
-> struct mutex C;
->
->         task-O  task-Y  task-X
->                 A
->                 B
->                         C
->                 C
->         B
->
-> At this point O finds that Y owns B and thus we want to make Y 'yield'
-> B to make allow B progress. Since Y is blocked, we'll send a wakeup.
-> However Y is blocked on a different locking primitive; one that doesn't
-> collaborate in the -EDEADLK scheme therefore we don't want the wakeup to
-> succeed.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Yeah, I've thought about this some more and the special sleep state
-seems to be only required to ensure we don't cause spurious wakeups
-for other any other reasons a task blocks. But I think we can use that
-kick-current-holder approach to ensure that older tasks get the lock
-in a more timely fashion than the current code. I've tried to detail
-it a bit with another 3 task example - that seems to be the point
-where the fun starts ;-)
--Daniel
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Results of the daily build of media_tree:
+
+date:		Wed Apr 24 19:00:25 CEST 2013
+git branch:	test
+git hash:	5f3f254f7c138a22a544b80ce2c14a3fc4ed711e
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
+
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: WARNINGS
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: WARNINGS
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9-rc1-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9-rc1-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
