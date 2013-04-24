@@ -1,58 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:41562 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753788Ab3DMVYC (ORCPT
+Received: from mail-ye0-f202.google.com ([209.85.213.202]:53010 "EHLO
+	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754660Ab3DXAlh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 17:24:02 -0400
-Received: by mail-lb0-f169.google.com with SMTP id p11so3585559lbi.14
-        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 14:24:00 -0700 (PDT)
-Message-ID: <5169CCB0.9010705@cogentembedded.com>
-Date: Sun, 14 Apr 2013 01:22:56 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v9 15/20] sh-mobile-ceu-driver: support max width and
- height in DT
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de> <1365781240-16149-16-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365781240-16149-16-git-send-email-g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 23 Apr 2013 20:41:37 -0400
+Received: by mail-ye0-f202.google.com with SMTP id l8so138795yen.5
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 17:41:36 -0700 (PDT)
+From: Shawn Nematbakhsh <shawnn@google.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	shawnn@chromium.org
+Subject: [PATCH] [media] uvcvideo: Retry usb_submit_urb on -EPERM return
+Date: Tue, 23 Apr 2013 17:41:13 -0700
+Message-Id: <1366764073-9633-1-git-send-email-shawnn@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+From: Shawn Nematbakhsh <shawnn@chromium.org>
 
-On 12-04-2013 19:40, Guennadi Liakhovetski wrote:
+While usb_kill_urb is in progress, calls to usb_submit_urb will fail
+with -EPERM (documented in Documentation/usb/URB.txt). The UVC driver
+does not correctly handle this case -- there is no synchronization
+between uvc_v4l2_open / uvc_status_start and uvc_v4l2_release /
+uvc_status_stop.
 
-> Some CEU implementations have non-standard (larger) maximum supported
-> width and height values. Add two OF properties to specify them.
+This patch adds a retry / timeout when uvc_status_open / usb_submit_urb
+returns -EPERM. This usually means that usb_kill_urb is in progress, and
+we just need to wait a while.
 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Shawn Nematbakhsh <shawnn@chromium.org>
+---
+ drivers/media/usb/uvc/uvc_v4l2.c | 10 +++++++++-
+ drivers/media/usb/uvc/uvcvideo.h |  1 +
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
-    Minor grammar nitpicking.
-
-> diff --git a/Documentation/devicetree/bindings/media/sh_mobile_ceu.txt b/Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
-> new file mode 100644
-> index 0000000..1ce4e46
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
-> @@ -0,0 +1,18 @@
-> +Bindings, specific for the sh_mobile_ceu_camera.c driver:
-> + - compatible: Should be "renesas,sh-mobile-ceu"
-> + - reg: register base and size
-> + - interrupts: the interrupt number
-> + - interrupt-parent: the interrupt controller
-> + - renesas,max-width: maximum image width, supported on this SoC
-> + - renesas,max-height: maximum image height, supported on this SoC
-
-    Commas not needed above.
-
-WBR, Sergei
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index b2dc326..f1498a8 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -479,6 +479,7 @@ static int uvc_v4l2_open(struct file *file)
+ {
+ 	struct uvc_streaming *stream;
+ 	struct uvc_fh *handle;
++	unsigned long timeout;
+ 	int ret = 0;
+ 
+ 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_open\n");
+@@ -499,7 +500,14 @@ static int uvc_v4l2_open(struct file *file)
+ 	}
+ 
+ 	if (atomic_inc_return(&stream->dev->users) == 1) {
+-		ret = uvc_status_start(stream->dev);
++		timeout = jiffies + msecs_to_jiffies(UVC_STATUS_START_TIMEOUT);
++		/* -EPERM means stop in progress, wait for completion */
++		do {
++			ret = uvc_status_start(stream->dev);
++			if (ret == -EPERM)
++				usleep_range(5000, 6000);
++		} while (ret == -EPERM && time_before(jiffies, timeout));
++
+ 		if (ret < 0) {
+ 			atomic_dec(&stream->dev->users);
+ 			usb_autopm_put_interface(stream->dev->intf);
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index af505fd..a47e1d3 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -122,6 +122,7 @@
+ 
+ #define UVC_CTRL_CONTROL_TIMEOUT	300
+ #define UVC_CTRL_STREAMING_TIMEOUT	5000
++#define UVC_STATUS_START_TIMEOUT	100
+ 
+ /* Maximum allowed number of control mappings per device */
+ #define UVC_MAX_CONTROL_MAPPINGS	1024
+-- 
+1.7.12.4
 
