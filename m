@@ -1,95 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:60993 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754657Ab3DLPlH (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:56509 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757881Ab3DXH4v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 11:41:07 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [PATCH v9 12/20] soc-camera: make .clock_{start,stop} compulsory, .add / .remove optional
-Date: Fri, 12 Apr 2013 17:40:32 +0200
-Message-Id: <1365781240-16149-13-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+	Wed, 24 Apr 2013 03:56:51 -0400
+From: adam.lee@canonical.com
+To: linux-kernel@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Matthew Garrett <mjg@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Adam Lee <adam.lee@canonical.com>,
+	linux-media@vger.kernel.org (open list:USB VIDEO CLASS)
+Subject: [PATCH] Revert "V4L/DVB: uvc: Enable USB autosuspend by default on uvcvideo"
+Date: Wed, 24 Apr 2013 15:57:19 +0800
+Message-Id: <1366790239-838-1-git-send-email-adam.lee@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All existing soc-camera host drivers use .clock_start() and .clock_stop()
-callbacks to activate and deactivate their camera interfaces, whereas
-.add() and .remove() callbacks are usually dummy. Make the former two
-compulsory and the latter two optional.
+From: Adam Lee <adam.lee@canonical.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+This reverts commit 3dae8b41dc5651f8eb22cf310e8b116480ba25b7.
+
+1, I do have a Chicony webcam, implements autosuspend in a broken way,
+make `poweroff` performs rebooting when its autosuspend enabled.
+
+2, There are other webcams which don't support autosuspend too, like
+https://patchwork.kernel.org/patch/2356141/
+
+3, kernel removed USB_QUIRK_NO_AUTOSUSPEND in
+a691efa9888e71232dfb4088fb8a8304ffc7b0f9, because autosuspend is
+disabled by default.
+
+So, we need to disable autosuspend in uvcvideo, maintaining a quirk list
+only for uvcvideo is not a good idea.
+
+Signed-off-by: Adam Lee <adam.lee@canonical.com>
 ---
- drivers/media/platform/soc_camera/soc_camera.c |   27 +++++++++++------------
- 1 files changed, 13 insertions(+), 14 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 2f81af5..507f539 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -513,23 +513,22 @@ static int soc_camera_add_device(struct soc_camera_device *icd)
- 	if (ici->icd)
- 		return -EBUSY;
- 
--	if (ici->ops->clock_start) {
--		ret = ici->ops->clock_start(ici);
-+	ret = ici->ops->clock_start(ici);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (ici->ops->add) {
-+		ret = ici->ops->add(icd);
- 		if (ret < 0)
--			return ret;
-+			goto eadd;
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 5dbefa6..8556f7c 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1914,7 +1914,6 @@ static int uvc_probe(struct usb_interface *intf,
  	}
  
--	ret = ici->ops->add(icd);
--	if (ret < 0)
--		goto eadd;
--
- 	ici->icd = icd;
- 
+ 	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
+-	usb_enable_autosuspend(udev);
  	return 0;
  
- eadd:
--	if (ici->ops->clock_stop)
--		ici->ops->clock_stop(ici);
-+	ici->ops->clock_stop(ici);
- 	return ret;
- }
- 
-@@ -540,9 +539,9 @@ static void soc_camera_remove_device(struct soc_camera_device *icd)
- 	if (WARN_ON(icd != ici->icd))
- 		return;
- 
--	ici->ops->remove(icd);
--	if (ici->ops->clock_stop)
--		ici->ops->clock_stop(ici);
-+	if (ici->ops->remove)
-+		ici->ops->remove(icd);
-+	ici->ops->clock_stop(ici);
- 	ici->icd = NULL;
- }
- 
-@@ -1413,8 +1412,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
- 	    ((!ici->ops->init_videobuf ||
- 	      !ici->ops->reqbufs) &&
- 	     !ici->ops->init_videobuf2) ||
--	    !ici->ops->add ||
--	    !ici->ops->remove ||
-+	    !ici->ops->clock_start ||
-+	    !ici->ops->clock_stop ||
- 	    !ici->ops->poll ||
- 	    !ici->v4l2_dev.dev)
- 		return -EINVAL;
+ error:
 -- 
-1.7.2.5
+1.7.10.4
 
