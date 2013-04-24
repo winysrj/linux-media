@@ -1,91 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57791 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759520Ab3D3LpX (ORCPT
+Received: from mail-gg0-f202.google.com ([209.85.161.202]:65488 "EHLO
+	mail-gg0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755226Ab3DXAm6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Apr 2013 07:45:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH RFC] media: i2c: mt9p031: add OF support
-Date: Tue, 30 Apr 2013 13:45:31 +0200
-Message-ID: <2667885.kq9SiOBOqS@avalon>
-In-Reply-To: <20130430061625.GC16843@pengutronix.de>
-References: <1367222401-26649-1-git-send-email-prabhakar.csengg@gmail.com> <20130430061625.GC16843@pengutronix.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 23 Apr 2013 20:42:58 -0400
+Received: by mail-gg0-f202.google.com with SMTP id 4so138935ggm.5
+        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 17:42:58 -0700 (PDT)
+From: Shawn Nematbakhsh <shawnn@chromium.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	shawnn@chromium.org
+Subject: [PATCH] [media] uvcvideo: Retry usb_submit_urb on -EPERM return
+Date: Tue, 23 Apr 2013 17:42:32 -0700
+Message-Id: <1366764152-9797-1-git-send-email-shawnn@chromium.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha,
+While usb_kill_urb is in progress, calls to usb_submit_urb will fail
+with -EPERM (documented in Documentation/usb/URB.txt). The UVC driver
+does not correctly handle this case -- there is no synchronization
+between uvc_v4l2_open / uvc_status_start and uvc_v4l2_release /
+uvc_status_stop.
 
-On Tuesday 30 April 2013 08:16:25 Sascha Hauer wrote:
-> On Mon, Apr 29, 2013 at 01:30:01PM +0530, Prabhakar Lad wrote:
-> > From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> > 
-> > add OF support for the mt9p031 sensor driver.
-> > 
-> > +static struct mt9p031_platform_data
-> > +	*mt9p031_get_pdata(struct i2c_client *client)
-> > +
-> > +{
-> > +	if (!client->dev.platform_data && client->dev.of_node) {
-> > +		struct device_node *np;
-> > +		struct mt9p031_platform_data *pdata;
-> > +		int ret;
-> > +
-> > +		np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-> > +		if (!np)
-> > +			return NULL;
-> > +
-> > +		pdata = devm_kzalloc(&client->dev,
-> > +				     sizeof(struct mt9p031_platform_data),
-> > +				     GFP_KERNEL);
-> > +		if (!pdata) {
-> > +			pr_warn("mt9p031 failed allocate memeory\n");
-> > +			return NULL;
-> > +		}
-> > +		ret = of_property_read_u32(np, "reset", &pdata->reset);
-> > +		if (ret == -EINVAL)
-> > +			pdata->reset = -1;
-> > +		else if (ret == -ENODATA)
-> > +			return NULL;
-> > +
-> > +		if (of_property_read_u32(np, "ext_freq", &pdata->ext_freq))
-> > +			return NULL;
-> > +
-> > +		if (of_property_read_u32(np, "target_freq",
-> > +					 &pdata->target_freq))
-> > +			return NULL;
-> > +
-> > +		return pdata;
-> > +	}
-> 
-> I don't know how the others see this, but IMO it would be cleaner to
-> first add a duplicate of the members of pdata in struct mt9p031 and then
-> initialize them either from pdata or from devicetree data. The
-> (artificial) creation of platform_data for the devicetree case adds a
-> new level of indirection. This may not be a problem here, but there are
-> cases where there is no 1:1 transcription between pdata and devicetree
-> possible.
+This patch adds a retry / timeout when uvc_status_open / usb_submit_urb
+returns -EPERM. This usually means that usb_kill_urb is in progress, and
+we just need to wait a while.
 
-I have no strong opinion on this. In the mt9p031 case it won't matter much, 
-but it's probably a good idea in general.
+Signed-off-by: Shawn Nematbakhsh <shawnn@chromium.org>
+---
+ drivers/media/usb/uvc/uvc_v4l2.c | 10 +++++++++-
+ drivers/media/usb/uvc/uvcvideo.h |  1 +
+ 2 files changed, 10 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index b2dc326..f1498a8 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -479,6 +479,7 @@ static int uvc_v4l2_open(struct file *file)
+ {
+ 	struct uvc_streaming *stream;
+ 	struct uvc_fh *handle;
++	unsigned long timeout;
+ 	int ret = 0;
+ 
+ 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_open\n");
+@@ -499,7 +500,14 @@ static int uvc_v4l2_open(struct file *file)
+ 	}
+ 
+ 	if (atomic_inc_return(&stream->dev->users) == 1) {
+-		ret = uvc_status_start(stream->dev);
++		timeout = jiffies + msecs_to_jiffies(UVC_STATUS_START_TIMEOUT);
++		/* -EPERM means stop in progress, wait for completion */
++		do {
++			ret = uvc_status_start(stream->dev);
++			if (ret == -EPERM)
++				usleep_range(5000, 6000);
++		} while (ret == -EPERM && time_before(jiffies, timeout));
++
+ 		if (ret < 0) {
+ 			atomic_dec(&stream->dev->users);
+ 			usb_autopm_put_interface(stream->dev->intf);
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index af505fd..a47e1d3 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -122,6 +122,7 @@
+ 
+ #define UVC_CTRL_CONTROL_TIMEOUT	300
+ #define UVC_CTRL_STREAMING_TIMEOUT	5000
++#define UVC_STATUS_START_TIMEOUT	100
+ 
+ /* Maximum allowed number of control mappings per device */
+ #define UVC_MAX_CONTROL_MAPPINGS	1024
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.12.4
 
