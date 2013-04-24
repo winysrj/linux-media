@@ -1,99 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3656 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756989Ab3DXSUk (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:42216 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751917Ab3DXJRy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 14:20:40 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3OIKSal078650
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 24 Apr 2013 20:20:38 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id CC77B11E015D
-	for <linux-media@vger.kernel.org>; Wed, 24 Apr 2013 20:20:27 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130424182027.CC77B11E015D@alastor.dyndns.org>
-Date: Wed, 24 Apr 2013 20:20:27 +0200 (CEST)
+	Wed, 24 Apr 2013 05:17:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: adam.lee@canonical.com
+Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"open list:USB VIDEO CLASS" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Revert "V4L/DVB: uvc: Enable USB autosuspend by default on uvcvideo"
+Date: Wed, 24 Apr 2013 11:17:52 +0200
+Message-ID: <6159110.qEtHHiJYtm@avalon>
+In-Reply-To: <1366790239-838-1-git-send-email-adam.lee@canonical.com>
+References: <1366790239-838-1-git-send-email-adam.lee@canonical.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Adam,
 
-Results of the daily build of media_tree:
+Thanks for the patch.
 
-date:		Wed Apr 24 19:00:25 CEST 2013
-git branch:	test
-git hash:	5f3f254f7c138a22a544b80ce2c14a3fc4ed711e
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+On Wednesday 24 April 2013 15:57:19 adam.lee@canonical.com wrote:
+> From: Adam Lee <adam.lee@canonical.com>
+> 
+> This reverts commit 3dae8b41dc5651f8eb22cf310e8b116480ba25b7.
+> 
+> 1, I do have a Chicony webcam, implements autosuspend in a broken way,
+> make `poweroff` performs rebooting when its autosuspend enabled.
+> 
+> 2, There are other webcams which don't support autosuspend too, like
+> https://patchwork.kernel.org/patch/2356141/
+> 
+> 3, kernel removed USB_QUIRK_NO_AUTOSUSPEND in
+> a691efa9888e71232dfb4088fb8a8304ffc7b0f9, because autosuspend is
+> disabled by default.
+> 
+> So, we need to disable autosuspend in uvcvideo, maintaining a quirk list
+> only for uvcvideo is not a good idea.
+> 
+> Signed-off-by: Adam Lee <adam.lee@canonical.com>
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: WARNINGS
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: WARNINGS
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9-rc1-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+I've received very few bug reports about broken auto-suspend support in UVC 
+devices. Most of them could be solved by setting the RESET_RESUME quirk in USB 
+core, only the Creative Live! Cam Optia AF required a quirk in the uvcvideo 
+driver. I would thus rather use the available quirks (USB_QUIRK_RESET_RESUME 
+if possible, UVC_QUIRK_DISABLE_AUTOSUSPEND otherwise) than killing power 
+management for the vast majority of webcams that behave correctly.
 
-Detailed results are available here:
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c |    1 -
+>  1 file changed, 1 deletion(-)
+> 
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> b/drivers/media/usb/uvc/uvc_driver.c index 5dbefa6..8556f7c 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1914,7 +1914,6 @@ static int uvc_probe(struct usb_interface *intf,
+>  	}
+> 
+>  	uvc_trace(UVC_TRACE_PROBE, "UVC device initialized.\n");
+> -	usb_enable_autosuspend(udev);
+>  	return 0;
+> 
+>  error:
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+-- 
+Regards,
 
-Full logs are available here:
+Laurent Pinchart
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
