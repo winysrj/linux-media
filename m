@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3780 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934432Ab3DHK7W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 02/12] v4l2-dv-timings.h: add 480i59.94 and 576i50 CEA-861-E timings.
-Date: Mon,  8 Apr 2013 12:58:31 +0200
-Message-Id: <1365418721-23859-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-da0-f49.google.com ([209.85.210.49]:39419 "EHLO
+	mail-da0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492Ab3DXMAW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Apr 2013 08:00:22 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LFBDEV <linux-fbdev@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+Cc: LKML <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/6] Davinci fbdev driver and enable it for DMx platform
+Date: Wed, 24 Apr 2013 17:30:02 +0530
+Message-Id: <1366804808-22720-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-These formats are supported by the HDPVR, but they were missing in the list.
-Note that these formats are different from the common PAL/NTSC/SECAM formats
-since all color channels are transmitted separately and so there is no PAL
-or NTSC or SECAM color encoding involved.
+This patch series adds an fbdev driver for Texas
+Instruments Davinci SoC.The display subsystem consists
+of OSD and VENC, with OSD supporting 2 RGb planes and 
+2 video planes.
+http://focus.ti.com/general/docs/lit/
+getliterature.tsp?literatureNumber=sprue37d&fileType=pdf
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/v4l2-dv-timings.h |   18 ++++++++++++++++++
- 1 file changed, 18 insertions(+)
+A good amount of the OSD and VENC enabling code is
+present in the kernel, and this patch series adds the 
+fbdev interface.
 
-diff --git a/include/uapi/linux/v4l2-dv-timings.h b/include/uapi/linux/v4l2-dv-timings.h
-index 9ef8172..4e0c58d 100644
---- a/include/uapi/linux/v4l2-dv-timings.h
-+++ b/include/uapi/linux/v4l2-dv-timings.h
-@@ -42,6 +42,15 @@
- 		V4L2_DV_BT_STD_DMT | V4L2_DV_BT_STD_CEA861, 0) \
- }
- 
-+/* Note: these are the nominal timings, for HDMI links this format is typically
-+ * double-clocked to meet the minimum pixelclock requirements.  */
-+#define V4L2_DV_BT_CEA_720X480I59_94 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(720, 480, 1, 0, \
-+		13500000, 19, 62, 57, 4, 3, 15, 4, 3, 16, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_HALF_LINE) \
-+}
-+
- #define V4L2_DV_BT_CEA_720X480P59_94 { \
- 	.type = V4L2_DV_BT_656_1120, \
- 	V4L2_INIT_BT_TIMINGS(720, 480, 0, 0, \
-@@ -49,6 +58,15 @@
- 		V4L2_DV_BT_STD_CEA861, 0) \
- }
- 
-+/* Note: these are the nominal timings, for HDMI links this format is typically
-+ * double-clocked to meet the minimum pixelclock requirements.  */
-+#define V4L2_DV_BT_CEA_720X576I50 { \
-+	.type = V4L2_DV_BT_656_1120, \
-+	V4L2_INIT_BT_TIMINGS(720, 576, 1, 0, \
-+		13500000, 12, 63, 69, 2, 3, 19, 2, 3, 20, \
-+		V4L2_DV_BT_STD_CEA861, V4L2_DV_FL_HALF_LINE) \
-+}
-+
- #define V4L2_DV_BT_CEA_720X576P50 { \
- 	.type = V4L2_DV_BT_656_1120, \
- 	V4L2_INIT_BT_TIMINGS(720, 576, 0, 0, \
+The fbdev driver exports 4 nodes representing each
+plane to the user - from fb0 to fb3.
+
+
+Lad, Prabhakar (6):
+  media: davinci: vpbe: fix checkpatch warning for CamelCase
+  media: davinci: vpbe: enable vpbe for fbdev addition
+  davinci: vpbe: add fbdev driver
+  ARM: davinci: dm355: enable fbdev driver
+  ARM: davinci: dm365: enable fbdev driver
+  ARM: davinci: dm644x: enable fbdev driver
+
+ arch/arm/mach-davinci/dm355.c                 |   24 +-
+ arch/arm/mach-davinci/dm365.c                 |   10 +
+ arch/arm/mach-davinci/dm644x.c                |   10 +
+ drivers/media/platform/davinci/vpbe_display.c |    8 +-
+ drivers/media/platform/davinci/vpbe_osd.c     |  820 ++++++++-
+ drivers/media/platform/davinci/vpbe_venc.c    |   43 +
+ drivers/video/Kconfig                         |   12 +
+ drivers/video/Makefile                        |    1 +
+ drivers/video/davincifb.c                     | 2523 +++++++++++++++++++++++++
+ drivers/video/davincifb.h                     |  194 ++
+ include/media/davinci/vpbe_osd.h              |   66 +-
+ include/media/davinci/vpbe_venc.h             |   21 +
+ 12 files changed, 3702 insertions(+), 30 deletions(-)
+ create mode 100644 drivers/video/davincifb.c
+ create mode 100644 drivers/video/davincifb.h
+
 -- 
-1.7.10.4
+1.7.4.1
 
