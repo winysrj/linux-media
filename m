@@ -1,185 +1,148 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:60915 "EHLO mx1.redhat.com"
+Received: from mx1.redhat.com ([209.132.183.28]:12995 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755055Ab3DTUpl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 16:45:41 -0400
-Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3KKjfZE008911
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 16:45:41 -0400
-Date: Sat, 20 Apr 2013 17:45:36 -0300
+	id S1757864Ab3DXLP1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Apr 2013 07:15:27 -0400
+Date: Wed, 24 Apr 2013 08:15:22 -0300
 From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH RFCv1] [media] V4L2 sdr API: Add fields for
- VIDIOC_[G|S]_TUNER
-Message-ID: <20130420174536.64d7b095@redhat.com>
-In-Reply-To: <1366488649-14168-1-git-send-email-mchehab@redhat.com>
-References: <1366480274-31255-1-git-send-email-mchehab@redhat.com>
-	<1366488649-14168-1-git-send-email-mchehab@redhat.com>
+To: Marcel Kulicke <marcel.kulicke@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: em28xx: Kernel panic after installing latest linuxtv.org
+ modules
+Message-ID: <20130424081522.7d0fd37e@redhat.com>
+In-Reply-To: <CAEV8V2CoSGOCW90usDQ=KSNoom9Y-6Yn8Jn2nOHhSvHkazer0A@mail.gmail.com>
+References: <CAEV8V2CoSGOCW90usDQ=KSNoom9Y-6Yn8Jn2nOHhSvHkazer0A@mail.gmail.com>
 Mime-Version: 1.0
 Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 20 Apr 2013 17:10:49 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+Hi Marcel,
 
-> SDR radio requires some other things at VIDIOC_[G|S]_TUNER.
-> Change the ioctl to support them.
+Em Tue, 23 Apr 2013 22:56:45 +0200
+Marcel Kulicke <marcel.kulicke@gmail.com> escreveu:
+
+> Hi Linux Media,
 > 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> I was quite keen to try out the new modules for em28xx on my raspberry.
+> Unfortunately, when the module is about to be used by a frontend (TVHEADEND
+> in this case) a reproducable kernel panic occurs. Here is the console
+> output.
 
-As a convenience for reviewers, I'm posting the SDR API patches here:
-	http://git.linuxtv.org/mchehab/experimental.git/shortlog/refs/heads/sdr
+Did it used to work with a previous version? If so, could you please
+bisect to see what patch broke it?
 
-PS.: I rebase my experimental branches there when needed, as this is just a
-scratch repository for me to experiment new things.
+> pi@raspbmc:~$ tvheadend
+> Apr 23 00:16:06.977 [ INFO] charset: 71 entries loaded
+> kernel:Internal error: Oops: 17 [#1] PREEMPT ARM
+> kernel:Process tvheadend (pid: 1409, stack limit = 0xd79ea268)
+> kernel:Stack: (0xd79ebc48 to 0xd79ec000)
+> kernel:bc40: d7951260 d563f000 00000000 c046be40 d8da1140 d79ebc68
+> kernel:bc60: d8d84288 00000048 00000000 00000048 d7992684 d79ebcc7 d79ffa00
+> d5207360
+> kernel:bc80: bf099be0 00000000 d79ebcbc d79ebc98 bf04eca4 bf04eb00 00000001
+> bf0ec0e0
+> kernel:bca0: 00000000 d7991000 fffffff7 d7992684 d79ebcd4 d79ebcc0 bf04ee78
+> bf04ec80
+> kernel:bcc0: d78700b0 00000001 d79ebcfc d79ebcd8 bf04ef28 bf04ee60 d7992684
+> d7991000
+> kernel:bce0: d7a49418 d56546e0 d79ffa00 d5207360 d79ebd0c d79ebd00 bf04efa8
+> bf04ee8c
+> kernel:bd00: d79ebd1c d79ebd10 bf09d4b0 bf04ef5c d79ebd64 d79ebd20 bf091038
+> bf09d490
+> kernel:bd20: c009a098 c01c7b0c 0d400000 d5703798 d79ebd4c d79ebd40 c009a04c
+> d5207360
+> kernel:bd40: bf09685c d5703798 d56546e0 00000000 bf099be0 00000000 d79ebd84
+> d79ebd68
+> kernel:bd60: bf08916c bf090fa4 d79ea000 d5703798 d5207360 bf099be0 d79ebdbc
+> d79ebd88
+> kernel:bd80: c009a8bc bf0890dc d79ebdbc 00000000 d79ebdbc d5207360 d5703798
+> d5207368
+> kernel:bda0: c009a7fc d79ebe90 00000024 00000000 d79ebde4 d79ebdc0 c0094cd8
+> c009a808
+> kernel:bdc0: d79ebea4 d79ebf60 00000000 00020000 d79ebe90 00000000 d79ebdfc
+> d79ebde8
+> kernel:bde0: c0094d94 c0094b20 d79ebea4 d79ebee0 d79ebe74 d79ebe00 c00a4ad4
+> c0094d78
+> kernel:be00: c00a1c58 c00a1b98 d79ebe74 d79ebe18 c00a1f38 c00a1c48 00000028
+> d7b6a820
+> kernel:be20: 00000000 d79ebee8 00000000 00000000 d753ecc8 d5207360 00000000
+> 00000000
+> kernel:be40: d5703798 d57038e8 00000004 d79ebee0 d5207360 d79ebf60 d79ebe90
+> 00000000
+> kernel:be60: 00000041 d79ea000 d79ebed4 d79ebe78 c00a5174 c00a4514 d79ebea4
+> c0080018
+> kernel:be80: d547edb0 00000028 00000678 d79ea000 d78101d0 d753b1a0 d79ebeb4
+> d79ebea8
+> kernel:bea0: 00000000 00000000 d79ebefc d79ebf60 00000001 ffffff9c d5546000
+> ffffff9c
+> kernel:bec0: d79ea000 00000000 d79ebf54 d79ebed8 c00a57fc c00a50d0 00000041
+> b6c98350
+> kernel:bee0: d78101d0 d753b1a0 7924c38a 00000009 d5546012 c04365b8 00000000
+> d74082b0
+> kernel:bf00: d5703798 00000101 00000004 00000000 00000000 00000004 d79ebf54
+> d79ebf28
+> kernel:bf20: c00b2508 c00b1f2c 00020000 d5546000 00020000 00000000 d5546000
+> 00020000
+> kernel:bf40: 00000004 00000001 d79ebf94 d79ebf58 c0095af0 c00a57d4 d79ebf84
+> d79ebf68
+> kernel:bf60: 00020000 c0370000 00000024 00000100 be8eee30 00000000 00000000
+> 00000005
+> kernel:bf80: c000e444 00000000 d79ebfa4 d79ebf98 c0095bb4 c0095a0c 00000000
+> d79ebfa8
+> kernel:bfa0: c000e2c0 c0095b98 be8eee30 00000000 be8eee30 00020000 00000000
+> 00000000
+> kernel:bfc0: be8eee30 00000000 00000000 00000005 00000000 be8ef130 be8eee30
+> 00000000
+> kernel:bfe0: b6702220 be8ee9d8 b6c97044 b6c983d8 80000010 be8eee30 00000000
+> 00000000
+> kernel:Code: e3560000 e1a04000 e50b2030 e1a08003 (e5919000)
 
+I'm not familiar enough with ARM to understand what the above actually means.
+I would be expecting, instead, an error with the trace function stack.
 
-> ---
->  Documentation/DocBook/media/v4l/vidioc-g-tuner.xml | 30 +++++++++++++---
->  drivers/media/tuners/tuner-xc2028.c                |  2 ++
->  include/uapi/linux/videodev2.h                     | 40 ++++++++++++++++++++--
->  3 files changed, 65 insertions(+), 7 deletions(-)
+Perhaps you need to enable some things at .config to enable it, or to run
+./scripts/ksymoops manually to translate the above into something useful.
+
+Btw, most of media devices require a lot of power to work. In order to
+use them with Raspberry Pi, you may find troubles, depending on the power 
+source you have.
+
+I got a Rpi a few weeks ago, and I was able to run there only one USB
+device with has an external power, as the 1A power adapter I have was not
+enough to energize the usual usb sticks I tried, when the demod and tuner
+are powered on by the driver. That causes device reconnect or even
+hangs there.
+
+I heard that using a 2A power adapter would work, but I don't have it
+currently (I'm currently trying to get one). I tested also with an USB
+hub with its own power supply. I found there two issues:
+
+	- the hub was sending power also to the Rpi, causing problems
+there due to the other power adapter;
+
+	- the hub I used seemed to interfere at the USB isoc traffic.
+
+What I'm trying to say is that perhaps this is not a driver issue at all,
+but, instead, a problem with em28xx+demod high power consumption and Rpi.
+
+The best way is to test the device first on a x86, to be sure that the
+driver is OK there. Then, you need to properly address the power supply
+needs for RPi. Only after that, check if are there at em28xx anything
+that could be incompatible with arm.
+
+> In addition, I tried to use an older version in the GIT (from April 9th).
+> It compiles fine, but the successful load of the em28xx module does not
+> trigger the creation of a /dev/dvb/adapter node.
 > 
-> diff --git a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> index 6cc8201..b8a3bcf 100644
-> --- a/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> +++ b/Documentation/DocBook/media/v4l/vidioc-g-tuner.xml
-> @@ -200,9 +200,10 @@ audio</entry>
->  <constant>_SAP</constant> flag is cleared in the
->  <structfield>capability</structfield> field, the corresponding
->  <constant>V4L2_TUNER_SUB_</constant> flag must not be set
-> -here.</para><para>This field is valid only if this is the tuner of the
-> +here.</para>
-> +<para>This field is valid only for if this is the tuner of the
->  current video input, or when the structure refers to a radio
-> -tuner.</para></entry>
-> +tuner. This field is not used by SDR tuners.</para></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -216,7 +217,7 @@ unless the requested mode is invalid or unsupported. See <xref
->  the selected and received audio programs do not
->  match.</para><para>Currently this is the only field of struct
->  <structname>v4l2_tuner</structname> applications can
-> -change.</para></entry>
-> +change. This field is not used by SDR tuners.</para></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> @@ -234,7 +235,28 @@ settles at zero, &ie; range is what? --></entry>
->  	  </row>
->  	  <row>
->  	    <entry>__u32</entry>
-> -	    <entry><structfield>reserved</structfield>[4]</entry>
-> +	    <entry><structfield>sample_rate</structfield></entry>
-> +	    <entry spanname="hspan">Sampling rate used by a SDR tuner, in Hz.
-> +		    This value is valid only for SDR tuners.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>bandwidth</structfield></entry>
-> +	    <entry spanname="hspan">Bandwidth allowed by the SDR tuner
-> +		    low-pass saw filter, in Hz. This value is valid only for
-> +		    SDR tuners.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>int_freq</structfield></entry>
-> +	    <entry spanname="hspan">Intermediate Frequency (IF) used by
-> +	    the tuner, in Hz. This value is valid only for
-> +	    <constant>VIDIOC_G_TUNER</constant>, and it is valid only
-> +	    on SDR tuners.</entry>
-> +	  </row>
-> +	  <row>
-> +	    <entry>__u32</entry>
-> +	    <entry><structfield>reserved</structfield>[3]</entry>
->  	    <entry spanname="hspan">Reserved for future extensions. Drivers and
->  applications must set the array to zero.</entry>
->  	  </row>
-> diff --git a/drivers/media/tuners/tuner-xc2028.c b/drivers/media/tuners/tuner-xc2028.c
-> index 878d2c4..c61163f 100644
-> --- a/drivers/media/tuners/tuner-xc2028.c
-> +++ b/drivers/media/tuners/tuner-xc2028.c
-> @@ -1020,6 +1020,8 @@ static int generic_set_freq(struct dvb_frontend *fe, u32 freq /* in HZ */,
->  	 * Maybe this might also be needed for DTV.
->  	 */
->  	switch (new_type) {
-> +	default:			/* SDR currently not supported */
-> +		goto ret;
->  	case V4L2_TUNER_ANALOG_TV:
->  		rc = send_seq(priv, {0x00, 0x00});
->  
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 974c49d..765b646 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -160,6 +160,24 @@ enum v4l2_tuner_type {
->  	V4L2_TUNER_RADIO	     = 1,
->  	V4L2_TUNER_ANALOG_TV	     = 2,
->  	V4L2_TUNER_DIGITAL_TV	     = 3,
-> +/*
-> + * Even not decoding the signal, SDR tuners may require to adjust IF,
-> + * low pass filters, center frequency, etc based on the signal envelope,
-> + * and its bandwidth. While we might be using here the V4L2_STD_*
-> + * types, plus DVB delsys, that doesn't seem to be the better thing to
-> + * do, as:
-> + *	1) it would require 64 bits for V4L2 std + 32 bits for DVB std;
-> + *	2) non-TV types of envelopes won't work.
-> + *
-> + * So, add a separate enum to describe the possible types of SDR envelopes.
-> + */
-> +	V4L2_TUNER_SDR_RADIO,		/* Generic non-optimized Radio range */
-> +	V4L2_TUNER_SDR_ATV_PAL,		/* Optimize for Analog TV, PAL */
-> +	V4L2_TUNER_SDR_ATV_NTSC,	/* Optimize for Analog TV, NTSC */
-> +	V4L2_TUNER_SDR_ATV_SECAM,	/* Optimize for Analog TV, SECAM */
-> +	V4L2_TUNER_SDR_DTV_ATSC,	/* Optimize for Digital TV, ATSC */
-> +	V4L2_TUNER_SDR_DTV_DVBT,	/* Optimize for Digital TV, DVB-T */
-> +	V4L2_TUNER_SDR_DTV_ISDBT,	/* Optimize for Digital TV, ISDB-T */
->  };
->  
->  enum v4l2_memory {
-> @@ -1291,6 +1309,7 @@ struct v4l2_querymenu {
->  /*
->   *	T U N I N G
->   */
-> +
->  struct v4l2_tuner {
->  	__u32                   index;
->  	__u8			name[32];
-> @@ -1298,11 +1317,26 @@ struct v4l2_tuner {
->  	__u32			capability;
->  	__u32			rangelow;
->  	__u32			rangehigh;
-> -	__u32			rxsubchans;
-> -	__u32			audmode;
-> +
-> +	union {
-> +		/* non-SDR tuners */
-> +		struct {
-> +			__u32	rxsubchans;
-> +			__u32	audmode;
-> +		};
-> +		/* SDR tuners - audio demod data makes no sense here */
-> +		struct {
-> +			__u32	sample_rate;	/* Sample rate, in Hz */
-> +			__u32	bandwidth;	/* Bandwidth, in Hz */
-> +		};
-> +	};
-> +
->  	__s32			signal;
->  	__s32			afc;
-> -	__u32			reserved[4];
-> +
-> +		__u32	int_freq;	/* Read Only - IF used, in Hz */
-> +	/* non-SDR tuners */
-> +	__u32		reserved[3];
->  };
->  
->  struct v4l2_modulator {
+> Could anyone point me to a solution or how to find one? Thanks in advance,
+> 
+> Marcel
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
 -- 
