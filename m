@@ -1,214 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:10729 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755565Ab3DQAm4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:56 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0guQX003927
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:56 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 09/31] [media] rtl2832: add code to bind r820t on it
-Date: Tue, 16 Apr 2013 21:42:20 -0300
-Message-Id: <1366159362-3773-10-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-da0-f44.google.com ([209.85.210.44]:62635 "EHLO
+	mail-da0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757951Ab3DXHm1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Apr 2013 03:42:27 -0400
+From: Shaik Ameer Basha <shaik.ameer@samsung.com>
+To: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, shaik.samsung@gmail.com,
+	arunkk.samsung@gmail.com
+Subject: [RFC v2 4/6] media: fimc-lite: Fix for DMA output corruption
+Date: Wed, 24 Apr 2013 13:11:11 +0530
+Message-Id: <1366789273-30184-5-git-send-email-shaik.ameer@samsung.com>
+In-Reply-To: <1366789273-30184-1-git-send-email-shaik.ameer@samsung.com>
+References: <1366789273-30184-1-git-send-email-shaik.ameer@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are some init stuff to be done for each new tuner at the
-demod code. Add the code there for r820t.
+Fixes Buffer corruption on DMA output from fimc-lite
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
 ---
- drivers/media/dvb-frontends/rtl2832.c      | 76 +++++++++++++++++++++++-------
- drivers/media/dvb-frontends/rtl2832.h      |  1 +
- drivers/media/dvb-frontends/rtl2832_priv.h | 28 +++++++++++
- 3 files changed, 88 insertions(+), 17 deletions(-)
+ drivers/media/platform/exynos4-is/fimc-lite-reg.c |    3 ++-
+ drivers/media/platform/exynos4-is/fimc-lite.c     |   14 +++++++++-----
+ 2 files changed, 11 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/rtl2832.c b/drivers/media/dvb-frontends/rtl2832.c
-index 7388769..b6f50c7 100644
---- a/drivers/media/dvb-frontends/rtl2832.c
-+++ b/drivers/media/dvb-frontends/rtl2832.c
-@@ -432,22 +432,12 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 		{DVBT_TR_THD_SET2,		0x6},
- 		{DVBT_TRK_KC_I2,		0x5},
- 		{DVBT_CR_THD_SET2,		0x1},
--		{DVBT_SPEC_INV,			0x0},
- 	};
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite-reg.c b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
+index a1d566a..46eda5b 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite-reg.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
+@@ -68,7 +68,8 @@ void flite_hw_set_interrupt_mask(struct fimc_lite *dev)
+ 	if (atomic_read(&dev->out_path) == FIMC_IO_DMA) {
+ 		intsrc = FLITE_REG_CIGCTRL_IRQ_OVFEN |
+ 			 FLITE_REG_CIGCTRL_IRQ_LASTEN |
+-			 FLITE_REG_CIGCTRL_IRQ_STARTEN;
++			 FLITE_REG_CIGCTRL_IRQ_STARTEN |
++			 FLITE_REG_CIGCTRL_IRQ_ENDEN;
+ 	} else {
+ 		/* An output to the FIMC-IS */
+ 		intsrc = FLITE_REG_CIGCTRL_IRQ_OVFEN |
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 1b12ea8..5de2dd4 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -301,8 +301,16 @@ static irqreturn_t flite_irq_handler(int irq, void *priv)
  
- 	dev_dbg(&priv->i2c->dev, "%s:\n", __func__);
- 
- 	en_bbin = (priv->cfg.if_dvbt == 0 ? 0x1 : 0x0);
- 
--	/*
--	* PSET_IFFREQ = - floor((IfFreqHz % CrystalFreqHz) * pow(2, 22)
--	*		/ CrystalFreqHz)
--	*/
--	pset_iffreq = priv->cfg.if_dvbt % priv->cfg.xtal;
--	pset_iffreq *= 0x400000;
--	pset_iffreq = div_u64(pset_iffreq, priv->cfg.xtal);
--	pset_iffreq = pset_iffreq & 0x3fffff;
+ 	if ((intsrc & FLITE_REG_CISTATUS_IRQ_SRC_FRMSTART) &&
+ 	    test_bit(ST_FLITE_RUN, &fimc->state) &&
+-	    !list_empty(&fimc->active_buf_q) &&
+ 	    !list_empty(&fimc->pending_buf_q)) {
++		vbuf = fimc_lite_pending_queue_pop(fimc);
++		flite_hw_set_output_addr(fimc, vbuf->paddr,
++					vbuf->vb.v4l2_buf.index);
++		fimc_lite_active_queue_add(fimc, vbuf);
++	}
++
++	if ((intsrc & FLITE_REG_CISTATUS_IRQ_SRC_FRMEND) &&
++	    test_bit(ST_FLITE_RUN, &fimc->state) &&
++	    !list_empty(&fimc->active_buf_q)) {
+ 		vbuf = fimc_lite_active_queue_pop(fimc);
+ 		ktime_get_ts(&ts);
+ 		tv = &vbuf->vb.v4l2_buf.timestamp;
+@@ -311,10 +319,6 @@ static irqreturn_t flite_irq_handler(int irq, void *priv)
+ 		vbuf->vb.v4l2_buf.sequence = fimc->frame_count++;
+ 		flite_hw_clear_output_addr(fimc, vbuf->vb.v4l2_buf.index);
+ 		vb2_buffer_done(&vbuf->vb, VB2_BUF_STATE_DONE);
 -
- 	for (i = 0; i < ARRAY_SIZE(rtl2832_initial_regs); i++) {
- 		ret = rtl2832_wr_demod_reg(priv, rtl2832_initial_regs[i].reg,
- 			rtl2832_initial_regs[i].value);
-@@ -472,6 +462,10 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 		len = ARRAY_SIZE(rtl2832_tuner_init_e4000);
- 		init = rtl2832_tuner_init_e4000;
- 		break;
-+	case RTL2832_TUNER_R820T:
-+		len = ARRAY_SIZE(rtl2832_tuner_init_r820t);
-+		init = rtl2832_tuner_init_r820t;
-+		break;
- 	default:
- 		ret = -EINVAL;
- 		goto err;
-@@ -483,14 +477,43 @@ static int rtl2832_init(struct dvb_frontend *fe)
- 			goto err;
+-		vbuf = fimc_lite_pending_queue_pop(fimc);
+-		flite_hw_set_output_addr(fimc, vbuf->paddr,
+-					vbuf->vb.v4l2_buf.index);
  	}
  
--	/* if frequency settings */
--	ret = rtl2832_wr_demod_reg(priv, DVBT_EN_BBIN, en_bbin);
--		if (ret)
--			goto err;
-+	/*
-+	 * if frequency settings
-+	 * Some tuners (r820t) don't initialize IF here; instead; they do it
-+	 * at set_params()
-+	 */
-+	if (!fe->ops.tuner_ops.get_if_frequency) {
-+		/*
-+		* PSET_IFFREQ = - floor((IfFreqHz % CrystalFreqHz) * pow(2, 22)
-+		*		/ CrystalFreqHz)
-+		*/
-+		pset_iffreq = priv->cfg.if_dvbt % priv->cfg.xtal;
-+		pset_iffreq *= 0x400000;
-+		pset_iffreq = div_u64(pset_iffreq, priv->cfg.xtal);
-+		pset_iffreq = pset_iffreq & 0x3fffff;
-+		ret = rtl2832_wr_demod_reg(priv, DVBT_EN_BBIN, en_bbin);
-+			if (ret)
-+				goto err;
-+
-+		ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
-+			if (ret)
-+				goto err;
-+	}
- 
--	ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
--		if (ret)
--			goto err;
-+	/*
-+	 * r820t NIM code does a software reset here at the demod -
-+	 * may not be needed, as there's already a software reset at set_params()
-+	 */
-+#if 1
-+	/* soft reset */
-+	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x1);
-+	if (ret)
-+		goto err;
-+
-+	ret = rtl2832_wr_demod_reg(priv, DVBT_SOFT_RST, 0x0);
-+	if (ret)
-+		goto err;
-+#endif
- 
- 	priv->sleeping = false;
- 
-@@ -564,6 +587,25 @@ static int rtl2832_set_frontend(struct dvb_frontend *fe)
- 	if (fe->ops.tuner_ops.set_params)
- 		fe->ops.tuner_ops.set_params(fe);
- 
-+	/* If the frontend has get_if_frequency(), use it */
-+	if (fe->ops.tuner_ops.get_if_frequency) {
-+		u32 if_freq;
-+		u64 pset_iffreq;
-+
-+		ret = fe->ops.tuner_ops.get_if_frequency(fe, &if_freq);
-+		if (ret)
-+			goto err;
-+
-+		pset_iffreq = if_freq % priv->cfg.xtal;
-+		pset_iffreq *= 0x400000;
-+		pset_iffreq = div_u64(pset_iffreq, priv->cfg.xtal);
-+		pset_iffreq = pset_iffreq & 0x3fffff;
-+
-+		ret = rtl2832_wr_demod_reg(priv, DVBT_PSET_IFFREQ, pset_iffreq);
-+		if (ret)
-+			goto err;
-+	}
-+
- 	switch (c->bandwidth_hz) {
- 	case 6000000:
- 		i = 0;
-diff --git a/drivers/media/dvb-frontends/rtl2832.h b/drivers/media/dvb-frontends/rtl2832.h
-index fefba0e..91b2dcf 100644
---- a/drivers/media/dvb-frontends/rtl2832.h
-+++ b/drivers/media/dvb-frontends/rtl2832.h
-@@ -52,6 +52,7 @@ struct rtl2832_config {
- #define RTL2832_TUNER_FC0012    0x26
- #define RTL2832_TUNER_E4000     0x27
- #define RTL2832_TUNER_FC0013    0x29
-+#define RTL2832_TUNER_R820T	0x2a
- 	u8 tuner;
- };
- 
-diff --git a/drivers/media/dvb-frontends/rtl2832_priv.h b/drivers/media/dvb-frontends/rtl2832_priv.h
-index 7d97ce9..b5f2b80 100644
---- a/drivers/media/dvb-frontends/rtl2832_priv.h
-+++ b/drivers/media/dvb-frontends/rtl2832_priv.h
-@@ -267,6 +267,7 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_tua9001[] = {
- 	{DVBT_OPT_ADC_IQ,                0x1},
- 	{DVBT_AD_AVI,                    0x0},
- 	{DVBT_AD_AVQ,                    0x0},
-+	{DVBT_SPEC_INV,			 0x0},
- };
- 
- static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] = {
-@@ -300,6 +301,7 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_fc0012[] = {
- 	{DVBT_GI_PGA_STATE,              0x0},
- 	{DVBT_EN_AGC_PGA,                0x1},
- 	{DVBT_IF_AGC_MAN,                0x0},
-+	{DVBT_SPEC_INV,			 0x0},
- };
- 
- static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] = {
-@@ -337,6 +339,32 @@ static const struct rtl2832_reg_value rtl2832_tuner_init_e4000[] = {
- 	{DVBT_REG_MONSEL,                0x1},
- 	{DVBT_REG_MON,                   0x1},
- 	{DVBT_REG_4MSEL,                 0x0},
-+	{DVBT_SPEC_INV,			 0x0},
-+};
-+
-+static const struct rtl2832_reg_value rtl2832_tuner_init_r820t[] = {
-+	{DVBT_DAGC_TRG_VAL,		0x39},
-+	{DVBT_AGC_TARG_VAL_0,		0x0},
-+	{DVBT_AGC_TARG_VAL_8_1,		0x40},
-+	{DVBT_AAGC_LOOP_GAIN,		0x16},
-+	{DVBT_LOOP_GAIN2_3_0,		0x8},
-+	{DVBT_LOOP_GAIN2_4,		0x1},
-+	{DVBT_LOOP_GAIN3,		0x18},
-+	{DVBT_VTOP1,			0x35},
-+	{DVBT_VTOP2,			0x21},
-+	{DVBT_VTOP3,			0x21},
-+	{DVBT_KRF1,			0x0},
-+	{DVBT_KRF2,			0x40},
-+	{DVBT_KRF3,			0x10},
-+	{DVBT_KRF4,			0x10},
-+	{DVBT_IF_AGC_MIN,		0x80},
-+	{DVBT_IF_AGC_MAX,		0x7f},
-+	{DVBT_RF_AGC_MIN,		0x80},
-+	{DVBT_RF_AGC_MAX,		0x7f},
-+	{DVBT_POLAR_RF_AGC,		0x0},
-+	{DVBT_POLAR_IF_AGC,		0x0},
-+	{DVBT_AD7_SETTING,		0xe9f4},
-+	{DVBT_SPEC_INV,			0x1},
- };
- 
- #endif /* RTL2832_PRIV_H */
+ 	if (test_bit(ST_FLITE_CONFIG, &fimc->state))
 -- 
-1.8.1.4
+1.7.9.5
 
