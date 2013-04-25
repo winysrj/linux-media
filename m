@@ -1,38 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:40025 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:47846 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752825Ab3DMQdI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 12:33:08 -0400
-Message-ID: <5169889C.2000800@iki.fi>
-Date: Sat, 13 Apr 2013 19:32:28 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Jakob Haufe <sur5r@sur5r.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH] Add support for Delock 61959 and its remote control
-References: <1365865417-22853-1-git-send-email-sur5r@sur5r.net>
-In-Reply-To: <1365865417-22853-1-git-send-email-sur5r@sur5r.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S1758751Ab3DYTII (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 15:08:08 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3PJ87or011818
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 15:08:07 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 3/4] [media] cx25821-video: declare cx25821_vidioc_s_std as static
+Date: Thu, 25 Apr 2013 16:08:01 -0300
+Message-Id: <1366916882-3565-3-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366916882-3565-1-git-send-email-mchehab@redhat.com>
+References: <1366916882-3565-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/13/2013 06:03 PM, Jakob Haufe wrote:
-> This time for real with all bells and whistles:
->
-> Delock 61959 is a relabeled MexMedia UB-425TC with a different USB ID and a
-> different remote.
->
-> Patch 1 adds the keytable for the remote control and patch 2 adds support for
-> the device itself. I'm reusing maxmedia_ub425_tc as I didn't want to duplicate
-> it without need.
->
-> DVB-T is not working (yet) because of the DRX-K firmware issue.
+Fixes the following warning:
 
-Patches seems to be correct. Thank you!
+	drivers/media/pci/cx25821/cx25821-video.c: At top level:
+	drivers/media/pci/cx25821/cx25821-video.c:766:5: warning: no previous prototype for 'cx25821_vidioc_s_std' [-Wmissing-prototypes]
 
-regards
-Antti
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/pci/cx25821/cx25821-video.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index 3ba856a..d270819 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -762,7 +762,8 @@ static int cx25821_vidioc_g_std(struct file *file, void *priv, v4l2_std_id *tvno
+ 	return 0;
+ }
+ 
+-int cx25821_vidioc_s_std(struct file *file, void *priv, v4l2_std_id tvnorms)
++static int cx25821_vidioc_s_std(struct file *file, void *priv,
++				v4l2_std_id tvnorms)
+ {
+ 	struct cx25821_channel *chan = video_drvdata(file);
+ 	struct cx25821_dev *dev = chan->dev;
 -- 
-http://palosaari.fi/
+1.8.1.4
+
