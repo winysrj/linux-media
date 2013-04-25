@@ -1,54 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:59231 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757765Ab3DPPdh (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:11635 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932148Ab3DYJuw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 11:33:37 -0400
-Message-ID: <516D6F42.7000709@infradead.org>
-Date: Tue, 16 Apr 2013 08:33:22 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: David Rientjes <rientjes@google.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH -next] staging/media: fix go7007 dependencies and build
-References: <20130408174343.cc13eb1972470d20d38ecff1@canb.auug.org.au> <51630297.2040803@infradead.org> <516461FE.4020007@iki.fi> <alpine.DEB.2.02.1304152010180.3952@chino.kir.corp.google.com> <20130416061243.22d06140@redhat.com>
-In-Reply-To: <20130416061243.22d06140@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 25 Apr 2013 05:50:52 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT00BSH1Z5TYM0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 18:50:51 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH 4/7] coda: Add copy time stamp handling
+Date: Thu, 25 Apr 2013 11:49:47 +0200
+Message-id: <1366883390-12890-5-git-send-email-k.debski@samsung.com>
+In-reply-to: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
+References: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
-
-VIDEO_GO7007 uses usb interfaces so it should depend on USB.
-It also selects CYPRESS_FIRMWARE, which depends on USB.
-
-Fixes build errors and a kconfig warning:
-
-go7007-loader.c:(.text+0xcc7d0): undefined reference to `usb_get_dev'
-go7007-loader.c:(.init.text+0x49f0): undefined reference to `usb_register_driver'
-go7007-loader.c:(.exit.text+0x17ce): undefined reference to `usb_deregister'
-
-warning: (DVB_USB_AZ6007 && VIDEO_GO7007) selects CYPRESS_FIRMWARE which has unmet direct dependencies (MEDIA_SUPPORT && USB)
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Philipp Zabel <p.zabel@pengutronix.de> 
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Cc: Fabio Estevam <fabio.estevam@freescale.com>
 ---
- drivers/staging/media/go7007/Kconfig |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/coda.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
---- linux-next-20130416.orig/drivers/staging/media/go7007/Kconfig
-+++ linux-next-20130416/drivers/staging/media/go7007/Kconfig
-@@ -1,7 +1,7 @@
- config VIDEO_GO7007
- 	tristate "WIS GO7007 MPEG encoder support"
- 	depends on VIDEO_DEV && I2C
--	depends on SND
-+	depends on SND && USB
- 	select VIDEOBUF2_VMALLOC
- 	select VIDEO_TUNER
- 	select CYPRESS_FIRMWARE
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 20827ba..5612329 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1422,6 +1422,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->ops = &coda_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
++	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -1433,6 +1434,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->ops = &coda_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
++	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -1628,6 +1630,9 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+ 		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
+ 	}
+ 
++	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
++	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
++
+ 	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+ 	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
+ 
+-- 
+1.7.9.5
+
