@@ -1,79 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56973 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50114 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753128Ab3DVMbj (ORCPT
+	with ESMTP id S1757225Ab3DYLgl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 08:31:39 -0400
+	Thu, 25 Apr 2013 07:36:41 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Pierre ANTOINE <nunux@free.fr>
 Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct v4l2_subdev_platform_data to platform data
-Date: Mon, 22 Apr 2013 14:31:48 +0200
-Message-ID: <1621615.OUnKCBbkfO@avalon>
-In-Reply-To: <Pine.LNX.4.64.1304182346060.28933@axis700.grange>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <1366320945-21591-24-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1304182346060.28933@axis700.grange>
+Subject: Re: uvcvideo: Trying to lower the URB buffers on eMPIA minicam
+Date: Thu, 25 Apr 2013 13:36:41 +0200
+Message-ID: <2682572.gZg9L6lqOg@avalon>
+In-Reply-To: <1366843673.51786119b3ced@imp.free.fr>
+References: <1366843673.51786119b3ced@imp.free.fr>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Pierre,
 
-On Thursday 18 April 2013 23:47:26 Guennadi Liakhovetski wrote:
-> On Thu, 18 Apr 2013, Guennadi Liakhovetski wrote:
-> > Adding struct v4l2_subdev_platform_data to mt9p031's platform data allows
-> > the driver to use generic functions to manage sensor power supplies.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+On Thursday 25 April 2013 00:47:53 Pierre ANTOINE wrote:
+> Hello guys,
 > 
-> A small addition to this one too: to be absolutely honest, I also had to
-> replace 12-bit formats with their 8-bit counterparts, because only 8 data
-> lanes are connected to my camera host. We'll need to somehow properly
-> solve this too.
+> My nickname is Nunux, I'm a geek, and need some help ...
+> 
+> I just buy ten minicam to do a poker TV table.
+> The minicam are eMPIA: eb1a:299f
+> 
+> I've a PC with 1 internal USB BUS 2.0 and 3 PCI extension cards USB BUS 2.0
+> 
+> Currently, I can have only one cam eMPIA working per USB BUS but no more
+> even if I set the lower resolution of 160x120.
+> 
+> [ 2768.783291] uvcvideo: Device requested 1024 B/frame bandwidth.
+> [ 2768.783295] uvcvideo: Selecting alternate setting 4 (2736 B/frame
+> bandwidth). [ 2768.783641] uvcvideo: Allocated 5 URB buffers of 15x2736
+> bytes each. [ 2768.783664] uvcvideo: Failed to submit URB 0 (-28).
+> 
+> So I can have 4 minicam at a time, but need 10.
+> 
+> I'm running Linux 3.5.0 on Ubuntu.
+> 
+> pierre@SuperTable:/usr/src/linux-source-3.5.0/linux-source-3.5.0/drivers/med
+> ia/video/uvc$ uvcdynctrl -f -d /dev/video0
+> Listing available frame formats for device /dev/video0:
+> Pixel format: YUYV (YUV 4:2:2 (YUYV); MIME type: video/x-raw-yuv)
+>   Frame size: 640x480
+>     Frame rates: 30
+>   Frame size: 160x120
+>     Frame rates: 30
+>   Frame size: 176x144
+>     Frame rates: 30
+>   Frame size: 320x240
+>     Frame rates: 30
+>   Frame size: 352x288
+>     Frame rates: 30
+>   Frame size: 640x480
+>     Frame rates: 30
+> 
+> I try to patch uvc_video.c like this:
+>                 /* Isochronous endpoint, select the alternate setting. */
+>                 //bandwidth = stream->ctrl.dwMaxPayloadTransferSize;
+>                 bandwidth = 1024;
+> 
+> 
+> That help me to reduce the USB bandwidth down to 1024 on a Microsoft LifeCam
+> Cinema:
+> 
+> [  944.410066] USB Video Class driver (1.1.1)
+> [  948.636665] uvcvideo: Device requested 1024 B/frame bandwidth.
+> [  948.636670] uvcvideo: Selecting alternate setting 4 (1024 B/frame
+> bandwidth). [  948.912793] uvcvideo: Allocated 5 URB buffers of 32x1024
+> bytes each.
+> 
+> And allow me to run up to 3 Microsoft LifeCam Cinema on the same PCI USB
+> Card.
+> 
+> But it's not working on eMPIA minicam:
+> 
+> [  982.488896] uvcvideo: Device requested 1024 B/frame bandwidth.
+> [  982.488901] uvcvideo: Selecting alternate setting 4 (2736 B/frame
+> bandwidth). [  982.489355] uvcvideo: Allocated 5 URB buffers of 32x2736
+> bytes each.
+> 
+> Because even if the request bandwdith is fixed to 1024, there is no endpoint
+> with such lower bandwidth.
+> 
+> --------------
+> 
+> So my question is, is it possible to lower the bandwidth of the endpoint,
+> or use a different bandwidth, or the do anything to run 3 cams per usb ports
+> ?
 
-That information should be conveyed by platform/DT data for the host, and be 
-used to convert the 12-bit media bus code into a 8-bit media bus code in the 
-host (a core helper function would probably be helpful).
+That largely depends on the device. Even when not requiring the full bandwidth 
+on average, devices might send data in bursts (memory is expensive), in which 
+case you will need to allocate an average bandwidth larger than or equal to 
+the peak bandwidth (that's how USB works). However, your device might not need 
+the high bandwidth it reports in its endpoint descriptors. There's no way to 
+tell short of trying.
 
-> > ---
-> > 
-> >  drivers/media/i2c/mt9p031.c |    1 +
-> >  include/media/mt9p031.h     |    3 +++
-> >  2 files changed, 4 insertions(+), 0 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> > index 70f4525..ca2cc6e 100644
-> > --- a/drivers/media/i2c/mt9p031.c
-> > +++ b/drivers/media/i2c/mt9p031.c
-> > @@ -1048,6 +1048,7 @@ static int mt9p031_probe(struct i2c_client *client,
-> >  		goto done;
-> >  	
-> >  	mt9p031->subdev.dev = &client->dev;
-> > +	mt9p031->subdev.pdata = &pdata->sd_pdata;
-> >  	ret = v4l2_async_register_subdev(&mt9p031->subdev);
-> >  
-> >  done:
-> > diff --git a/include/media/mt9p031.h b/include/media/mt9p031.h
-> > index 0c97b19..7bf7b53 100644
-> > --- a/include/media/mt9p031.h
-> > +++ b/include/media/mt9p031.h
-> > @@ -1,6 +1,8 @@
-> >  #ifndef MT9P031_H
-> >  #define MT9P031_H
-> > 
-> > +#include <media/v4l2-subdev.h>
-> > +
-> >  struct v4l2_subdev;
-> >  /*
-> > @@ -15,6 +17,7 @@ struct mt9p031_platform_data {
-> >  	int reset;
-> >  	int ext_freq;
-> >  	int target_freq;
-> > +	struct v4l2_subdev_platform_data sd_pdata;
-> >  };
-> >  
-> >  #endif
+As a quick hack it's probably possible to patch the USB core to lower the 
+endpoint bandwidth in the endpoint USB descriptors for that device. That's 
+pretty dirty, but will at least let you find out whether your device can work 
+at lower bandwidth.
+
+> I host a mini poker mtt for my wife birthday this saturday, and hope get
+> some thing to work before...
+> 
+> So any help or comments would be really appreciated,
+
+Just for my records, could you please repost the 'lsusb -v -d eb1a:299f' 
+output running as root ? The string descriptors are not displayed otherwise.
+
 -- 
 Regards,
 
