@@ -1,54 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44783 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:23837 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965564Ab3DTCq4 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 22:46:56 -0400
-Received: from [82.128.187.254] (helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1UTNpG-0004Xz-4v
-	for linux-media@vger.kernel.org; Sat, 20 Apr 2013 05:46:54 +0300
-Message-ID: <51720176.9080400@iki.fi>
-Date: Sat, 20 Apr 2013 05:46:14 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: v4l-utils build problem
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S932085Ab3DYUkP convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 16:40:15 -0400
+Date: Thu, 25 Apr 2013 17:39:48 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Jon Arne =?UTF-8?B?SsO4cmdlbnNlbg==?= <jonarne@jonarne.no>
+Cc: linux-media@vger.kernel.org, jonjon.arnearne@gmail.com,
+	linux-kernel@vger.kernel.org, hverkuil@xs4all.nl,
+	elezegarcia@gmail.com, mkrufky@linuxtv.org, bjorn@mork.no
+Subject: Re: [RFC V2 1/3] [smi2021] Add gm7113c chip to the saa7115 driver
+Message-ID: <20130425173948.10ff0a2a@redhat.com>
+In-Reply-To: <20130425203319.GA18656@dell.arpanet.local>
+References: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
+	<1366917020-18217-2-git-send-email-jonarne@jonarne.no>
+	<20130425171328.08c79893@redhat.com>
+	<20130425203319.GA18656@dell.arpanet.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I am unable to build that. It is Fedora 17 box. Any idea what is missing?
+Em Thu, 25 Apr 2013 22:33:20 +0200
+Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
 
-Here is the error:
+> On Thu, Apr 25, 2013 at 05:13:28PM -0300, Mauro Carvalho Chehab wrote:
+> > Em Thu, 25 Apr 2013 21:10:18 +0200
+> > Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+> > 
+> > >  	/* Check whether this chip is part of the saa711x series */
+> > > -	if (memcmp(name + 1, "f711", 4)) {
+> > > +	if (memcmp(id->name + 1, "gm7113c", 7)) {
+> > > +		chip_id = 'c';
+> > 
+> > There are several issues on the above:
+> > 1) "id" may be NULL on autodetect mode;
+> > 
+> > 2) Why are you adding 1 here?
+> >    It should be, instead id->name
+> > 
+> > 3) memcmp returns 0 if matches. So, the test is wrong.
+> >    So, It should be instead:
+> > 	if (!memcmp(id->name, "gm7113c", 7)) {
+> > 
+> > 4) Also, while that works, it seems a little hackish...
+> > 
+> 
+> Oh, this is embarrassing.
+> I just tried to change as little as possible in this module to make the
+> device work.
 
-[crope@localhost v4l-utils]$ autoreconf -vfi
-autoreconf: Entering directory `.'
-autoreconf: running: autopoint --force
-autoreconf: running: aclocal --force -I m4
-autoreconf: configure.ac: tracing
-autoreconf: running: libtoolize --copy --force
-libtoolize: putting auxiliary files in AC_CONFIG_AUX_DIR, `build-aux'.
-libtoolize: copying file `build-aux/ltmain.sh'
-libtoolize: putting macros in AC_CONFIG_MACRO_DIR, `m4'.
-libtoolize: copying file `m4/libtool.m4'
-libtoolize: copying file `m4/ltoptions.m4'
-libtoolize: copying file `m4/ltsugar.m4'
-libtoolize: copying file `m4/ltversion.m4'
-libtoolize: copying file `m4/lt~obsolete.m4'
-autoreconf: running: /usr/bin/autoconf --force
-autoreconf: running: /usr/bin/autoheader --force
-autoreconf: running: automake --add-missing --copy --force-missing
-Makefile.am:4: AM_GNU_GETTEXT used but `po' not in SUBDIRS
-autoreconf: Leaving directory `.'
-[crope@localhost v4l-utils]$ configure
-bash: configure: command not found...
-[crope@localhost v4l-utils]$
+No problems. On my experience, quick hacks like that are the
+ones that generally have more troubles ;)
 
+> > Something like:
+> > 
+> > static int saa711x_detect_chip(struct i2c_client *client,
+> > 			       struct saa711x_state *state,
+> > 			       const struct i2c_device_id *id)
+> > {
+> > 	int i;
+> > 	char chip_id, name[16];
+> > 
+> > 	/*
+> > 	 * Check for gm7113c (a saa7113 clone). Currently, there's no
+> > 	 * known way to autodetect it, so boards that use will need to
+> > 	 * explicitly fill the id->name field.
+> > 	 */
+> > 	if (id && !memcmp(id->name, "gm7113c", 7)) {
+> > 		state->ident = V4L2_IDENT_GM7113C;
+> > 		snprintf(client->name, sizeof(client->name), "%s", id->name);
+> > 		return 0;
+> > 	}
+> > 
+> > 	/* Check for Philips/NXP original chips */
+> > 	for (i = 0; i < sizeof(name); i++) {
+> > 		i2c_smbus_write_byte_data(client, 0, i);
+> > 		name[i] = (i2c_smbus_read_byte_data(client, 0) & 0x0f) + '0';
+> > 		if (name[i] > '9')
+> > 			name[i] += 'a' - '9' - 1;
+> > 	}
+> > 	name[i] = '\0';
+> > 
+> > 	if (memcmp(name + 1, "f711", 4))
+> > 		return -ENODEV;
+> > 
+> > 	chip_id = name[5];
+> > 
+> > 	snprintf(client->name, sizeof(client->name), "saa711%c", chip_id);
+> > 
+> > 	/*
+> > 	 * Put here the code that fills state->ident for Philips/NXP chips
+> > 	 */
+> > ...
+> > 
+> > 	return 0;
+> 
+> Yes this seems to be a much better way to do it.
+> I will fix my code.
 
-regards
-Antti
--- 
-http://palosaari.fi/
+Thanks!
+Mauro
