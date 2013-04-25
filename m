@@ -1,39 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fed1rmfepi102.cox.net ([68.230.241.133]:53617 "EHLO
-	fed1rmfepi102.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756997Ab3DWQtt (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:58890 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757807Ab3DYLhH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 12:49:49 -0400
-Received: from fed1rmimpo110 ([68.230.241.159]) by fed1rmfepo201.cox.net
-          (InterMail vM.8.01.05.09 201-2260-151-124-20120717) with ESMTP
-          id <20130423162638.UZIU22211.fed1rmfepo201.cox.net@fed1rmimpo110>
-          for <linux-media@vger.kernel.org>;
-          Tue, 23 Apr 2013 12:26:38 -0400
-Message-ID: <20130423122638.NN2JO.104712.imail@fed1rmwml106>
-Date: Tue, 23 Apr 2013 9:26:38 -0700
-From: Western-Union <open06@cox.net>
-Reply-To: mrbencollins001@msn.com
-Subject: =?utf-8?Q?The_first_$5,000.00_was_sent_tod?=
- =?utf-8?Q?ay._My_working_partner_has_helpe?=
- =?utf-8?Q?d_me_to_send_the_first_$5,000.00?=
- =?utf-8?Q?_to_you_through_western_union._S?=
- =?utf-8?Q?o_contact_our_Western_Union_clai?=
- =?utf-8?Q?ms_Agent_to_pick_up_this_$5,000_?=
- =?utf-8?Q?now:_Contact_person:_Mr._Ben_Col?=
- =?utf-8?Q?lins,_.mail_:_(mrbencollins001@m?=
- =?utf-8?Q?sn.com)_Ask_him_to_give_you_the_?=
- =?utf-8?Q?MTCN,_Sender_Name_to_pick_the_$5?=
- =?utf-8?Q?,000.00._I_told_him_to_keep_send?=
- =?utf-8?Q?ing_you_$5,000.00_daily_until_th?=
- =?utf-8?Q?e_payment_of_$1.500,000.00_is_co?=
- =?utf-8?Q?mpleted._Again_forward_him_your_?=
- =?utf-8?Q?Full_Name,_Telephone_number_and_?=
- =?utf-8?Q?address_so_that_he_will_be_sure.=E2=80=8F?=
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Thu, 25 Apr 2013 07:37:07 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT005BD6XQOOO0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 20:37:06 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 1/7 v2] s5p-g2d: Add copy time stamp handling
+Date: Thu, 25 Apr 2013 13:36:02 +0200
+Message-id: <1366889768-16677-2-git-send-email-k.debski@samsung.com>
+In-reply-to: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
+References: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Since the introduction of the timestamp_type field, it is necessary that
+the driver chooses which type it will use. This patch adds support for
+the timestamp_type.
+
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-g2d/g2d.c |    5 +++++
+ 1 file changed, 5 insertions(+)
+
+diff --git a/drivers/media/platform/s5p-g2d/g2d.c b/drivers/media/platform/s5p-g2d/g2d.c
+index 14d663d..553d87e 100644
+--- a/drivers/media/platform/s5p-g2d/g2d.c
++++ b/drivers/media/platform/s5p-g2d/g2d.c
+@@ -158,6 +158,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &g2d_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -169,6 +170,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &g2d_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+@@ -635,6 +637,9 @@ static irqreturn_t g2d_isr(int irq, void *prv)
+ 	BUG_ON(src == NULL);
+ 	BUG_ON(dst == NULL);
+ 
++	dst->v4l2_buf.timecode = src->v4l2_buf.timecode;
++	dst->v4l2_buf.timestamp = src->v4l2_buf.timestamp;
++
+ 	v4l2_m2m_buf_done(src, VB2_BUF_STATE_DONE);
+ 	v4l2_m2m_buf_done(dst, VB2_BUF_STATE_DONE);
+ 	v4l2_m2m_job_finish(dev->m2m_dev, ctx->m2m_ctx);
+-- 
+1.7.9.5
 
