@@ -1,141 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f46.google.com ([209.85.215.46]:50531 "EHLO
-	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756315Ab3DWRaY (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53599 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759443Ab3DYWz4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 13:30:24 -0400
-Received: by mail-la0-f46.google.com with SMTP id ep20so792915lab.19
-        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 10:30:22 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: horms@verge.net.au, linux-sh@vger.kernel.org
-Subject: [PATCH v3 3/5] ARM: shmobile: r8a7778: add VIN support
-Date: Tue, 23 Apr 2013 21:29:40 +0400
-Cc: linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	linux@arm.linux.org.uk, linux-arm-kernel@lists.infradead.org,
-	matsu@igel.co.jp, vladimir.barinov@cogentembedded.com
-References: <201304232118.43686.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304232118.43686.sergei.shtylyov@cogentembedded.com>
+	Thu, 25 Apr 2013 18:55:56 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Pierre ANTOINE <nunux@free.fr>
+Cc: linux-media@vger.kernel.org
+Subject: Re: uvcvideo: Trying to lower the URB buffers on eMPIA minicam
+Date: Fri, 26 Apr 2013 00:55:56 +0200
+Message-ID: <2280626.yDrB0LeJ3D@avalon>
+In-Reply-To: <1366917228.5179806c5f343@imp.free.fr>
+References: <1366843673.51786119b3ced@imp.free.fr> <2682572.gZg9L6lqOg@avalon> <1366917228.5179806c5f343@imp.free.fr>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304232129.40773.sergei.shtylyov@cogentembedded.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Hi Pierre,
 
-Add VIN clocks and platform devices on R8A7778 SoC; add function to register
-the VIN platform devices.
+On Thursday 25 April 2013 21:13:48 Pierre ANTOINE wrote:
+> Selon Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> > Just for my records, could you please repost the 'lsusb -v -d eb1a:299f'
+> > output running as root ? The string descriptors are not displayed
+> > otherwise.
+> 
+> Hi Laurent,
+> 
+> Please find the requested informations as root.
 
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-[Sergei: added 'id' parameter check to r8a7779_add_vin_device(), used '*pdata'
-in *sizeof* operator there, renamed some variables, annotated 'vin[01]_info' and
-vin[01]_resources[] as '__initdata'.]
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Thank you. I'll update the supported devices list on the uvcvideo website. 
+Could you please give me the exact model name of the camera ?
 
----
-Changes from version 2:
-- annotated 'vin[01]_info' and vin[01]_resources[] as '__initdata' since they're
-  kmemdup()'ed while registering the platform devices anyway;
-- refreshed the patch.
+> Where do you think I can try to hack the bandwidth size ?
+> 
+> Something like: source/drivers/usb/core/config.c usb_parse_endpoint() ?
 
- arch/arm/mach-shmobile/clock-r8a7778.c        |    5 +++
- arch/arm/mach-shmobile/include/mach/r8a7778.h |    3 ++
- arch/arm/mach-shmobile/setup-r8a7778.c        |   33 ++++++++++++++++++++++++++
- 3 files changed, 41 insertions(+)
+Yes, that looks good. Just make sure you only hack the endpoint bandwidth for 
+the webcam and not for the other USB devices.
 
-Index: renesas/arch/arm/mach-shmobile/clock-r8a7778.c
-===================================================================
---- renesas.orig/arch/arm/mach-shmobile/clock-r8a7778.c
-+++ renesas/arch/arm/mach-shmobile/clock-r8a7778.c
-@@ -106,6 +106,7 @@ static struct clk *main_clks[] = {
- enum {
- 	MSTP323, MSTP322, MSTP321,
- 	MSTP114,
-+	MSTP110, MSTP109,
- 	MSTP100,
- 	MSTP030, MSTP029,
- 	MSTP028, MSTP027, MSTP026, MSTP025, MSTP024, MSTP023, MSTP022, MSTP021,
-@@ -117,6 +118,8 @@ static struct clk mstp_clks[MSTP_NR] = {
- 	[MSTP322] = SH_CLK_MSTP32(&p_clk, MSTPCR3, 22, 0), /* SDHI1 */
- 	[MSTP321] = SH_CLK_MSTP32(&p_clk, MSTPCR3, 21, 0), /* SDHI2 */
- 	[MSTP114] = SH_CLK_MSTP32(&p_clk, MSTPCR1, 14, 0), /* Ether */
-+	[MSTP110] = SH_CLK_MSTP32(&s_clk, MSTPCR1, 10, 0), /* VIN0 */
-+	[MSTP109] = SH_CLK_MSTP32(&s_clk, MSTPCR1,  9, 0), /* VIN1 */
- 	[MSTP100] = SH_CLK_MSTP32(&p_clk, MSTPCR1,  0, 0), /* USB0/1 */
- 	[MSTP030] = SH_CLK_MSTP32(&p_clk, MSTPCR0, 30, 0), /* I2C0 */
- 	[MSTP029] = SH_CLK_MSTP32(&p_clk, MSTPCR0, 29, 0), /* I2C1 */
-@@ -140,6 +143,8 @@ static struct clk_lookup lookups[] = {
- 	CLKDEV_DEV_ID("sh_mobile_sdhi.1", &mstp_clks[MSTP322]), /* SDHI1 */
- 	CLKDEV_DEV_ID("sh_mobile_sdhi.2", &mstp_clks[MSTP321]), /* SDHI2 */
- 	CLKDEV_DEV_ID("sh-eth",	&mstp_clks[MSTP114]), /* Ether */
-+	CLKDEV_DEV_ID("rcar_vin.0", &mstp_clks[MSTP110]), /* VIN0 */
-+	CLKDEV_DEV_ID("rcar_vin.1", &mstp_clks[MSTP109]), /* VIN1 */
- 	CLKDEV_DEV_ID("ehci-platform", &mstp_clks[MSTP100]), /* USB EHCI port0/1 */
- 	CLKDEV_DEV_ID("ohci-platform", &mstp_clks[MSTP100]), /* USB OHCI port0/1 */
- 	CLKDEV_DEV_ID("i2c-rcar.0", &mstp_clks[MSTP030]), /* I2C0 */
-Index: renesas/arch/arm/mach-shmobile/include/mach/r8a7778.h
-===================================================================
---- renesas.orig/arch/arm/mach-shmobile/include/mach/r8a7778.h
-+++ renesas/arch/arm/mach-shmobile/include/mach/r8a7778.h
-@@ -21,11 +21,14 @@
- #include <linux/mmc/sh_mobile_sdhi.h>
- #include <linux/sh_eth.h>
- #include <linux/usb/rcar-phy.h>
-+#include <linux/platform_data/camera-rcar.h>
- 
- extern void r8a7778_add_standard_devices(void);
- extern void r8a7778_add_standard_devices_dt(void);
- extern void r8a7778_add_ether_device(struct sh_eth_plat_data *pdata);
- extern void r8a7778_add_usb_phy_device(struct rcar_phy_platform_data *pdata);
-+extern void r8a7778_add_vin_device(int id,
-+				   struct rcar_vin_platform_data *pdata);
- extern void r8a7778_init_late(void);
- extern void r8a7778_init_delay(void);
- extern void r8a7778_init_irq(void);
-Index: renesas/arch/arm/mach-shmobile/setup-r8a7778.c
-===================================================================
---- renesas.orig/arch/arm/mach-shmobile/setup-r8a7778.c
-+++ renesas/arch/arm/mach-shmobile/setup-r8a7778.c
-@@ -299,6 +299,39 @@ void __init r8a7778_sdhi_init(int id,
- 		info, sizeof(*info));
- }
- 
-+/* VIN */
-+#define R8A7778_VIN(idx)						\
-+static struct resource vin##idx##_resources[] __initdata = {		\
-+	DEFINE_RES_MEM(0xffc50000 + 0x1000 * (idx), 0x1000),		\
-+	DEFINE_RES_IRQ(gic_iid(0x5a)),					\
-+};									\
-+									\
-+static struct platform_device_info vin##idx##_info __initdata = {	\
-+	.parent		= &platform_bus,				\
-+	.name		= "rcar_vin",					\
-+	.id		= idx,						\
-+	.res		= vin##idx##_resources,				\
-+	.num_res	= ARRAY_SIZE(vin##idx##_resources),		\
-+	.dma_mask	= DMA_BIT_MASK(32),				\
-+}
-+
-+R8A7778_VIN(0);
-+R8A7778_VIN(1);
-+
-+static struct platform_device_info *vin_info_table[] __initdata = {
-+	&vin0_info,
-+	&vin1_info,
-+};
-+
-+void __init r8a7778_add_vin_device(int id, struct rcar_vin_platform_data *pdata)
-+{
-+	BUG_ON(id < 0 || id > 1);
-+
-+	vin_info_table[id]->data = pdata;
-+	vin_info_table[id]->size_data = sizeof(*pdata);
-+	platform_device_register_full(vin_info_table[id]);
-+}
-+
- void __init r8a7778_add_standard_devices(void)
- {
- 	int i;
+-- 
+Regards,
+
+Laurent Pinchart
 
