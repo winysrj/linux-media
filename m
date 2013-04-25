@@ -1,56 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:46827 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755678Ab3D2Jht (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 05:37:49 -0400
-Received: by mail-pb0-f42.google.com with SMTP id up15so414195pbc.1
-        for <linux-media@vger.kernel.org>; Mon, 29 Apr 2013 02:37:49 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH 2/3] [media] s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL in mixer_drv.c
-Date: Mon, 29 Apr 2013 14:54:58 +0530
-Message-Id: <1367227499-543-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1367227499-543-1-git-send-email-sachin.kamat@linaro.org>
-References: <1367227499-543-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mx1.redhat.com ([209.132.183.28]:55008 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758720Ab3DYTIH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 15:08:07 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3PJ87dl011814
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 15:08:07 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/4] [media] r820t: Remove a warning for an unused value
+Date: Thu, 25 Apr 2013 16:07:59 -0300
+Message-Id: <1366916882-3565-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NULL check on clocks obtained using common clock APIs should not
-be done. Use IS_ERR only.
+Currently, the driver complains about the pre_detect var:
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+	drivers/media/tuners/r820t.c: In function 'r820t_sysfreq_sel':
+	drivers/media/tuners/r820t.c:722:31: warning: variable 'pre_dect' set but not used [-Wunused-but-set-variable]
+
+While rtl8232 code comments it, perhaps some other driver may use.
+So, the better is to keep the code there, allowing to enable it
+via r820t config data.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/s5p-tv/mixer_drv.c |   10 +++++-----
- 1 file changed, 5 insertions(+), 5 deletions(-)
+ drivers/media/tuners/r820t.c | 7 +++++++
+ drivers/media/tuners/r820t.h | 1 +
+ 2 files changed, 8 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-tv/mixer_drv.c b/drivers/media/platform/s5p-tv/mixer_drv.c
-index 5733033..8dd8b88 100644
---- a/drivers/media/platform/s5p-tv/mixer_drv.c
-+++ b/drivers/media/platform/s5p-tv/mixer_drv.c
-@@ -222,15 +222,15 @@ static void mxr_release_clocks(struct mxr_device *mdev)
- {
- 	struct mxr_resources *res = &mdev->res;
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index e6e7a06..4835021 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -797,6 +797,13 @@ static int r820t_sysfreq_sel(struct r820t_priv *priv, u32 freq,
+ 		cable2_in = 0x00;
+ 	}
  
--	if (!IS_ERR_OR_NULL(res->sclk_dac))
-+	if (!IS_ERR(res->sclk_dac))
- 		clk_put(res->sclk_dac);
--	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
-+	if (!IS_ERR(res->sclk_hdmi))
- 		clk_put(res->sclk_hdmi);
--	if (!IS_ERR_OR_NULL(res->sclk_mixer))
-+	if (!IS_ERR(res->sclk_mixer))
- 		clk_put(res->sclk_mixer);
--	if (!IS_ERR_OR_NULL(res->vp))
-+	if (!IS_ERR(res->vp))
- 		clk_put(res->vp);
--	if (!IS_ERR_OR_NULL(res->mixer))
-+	if (!IS_ERR(res->mixer))
- 		clk_put(res->mixer);
- }
++
++	if (priv->cfg->use_predetect) {
++		rc = r820t_write_reg_mask(priv, 0x06, pre_dect, 0x40);
++		if (rc < 0)
++			return rc;
++	}
++
+ 	rc = r820t_write_reg_mask(priv, 0x1d, lna_top, 0xc7);
+ 	if (rc < 0)
+ 		return rc;
+diff --git a/drivers/media/tuners/r820t.h b/drivers/media/tuners/r820t.h
+index 4c0823b..48af354 100644
+--- a/drivers/media/tuners/r820t.h
++++ b/drivers/media/tuners/r820t.h
+@@ -39,6 +39,7 @@ struct r820t_config {
+ 	enum r820t_chip rafael_chip;
+ 	unsigned max_i2c_msg_len;
+ 	bool use_diplexer;
++	bool use_predetect;
+ };
  
+ #if IS_ENABLED(CONFIG_MEDIA_TUNER_R820T)
 -- 
-1.7.9.5
+1.8.1.4
 
