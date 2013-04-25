@@ -1,47 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:23466 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755247Ab3DQAmx (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:42:53 -0400
-Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0grfF002348
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:42:53 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from p3plsmtpa09-03.prod.phx3.secureserver.net ([173.201.193.232]:36761
+	"EHLO p3plsmtpa09-03.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756801Ab3DYKAM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 06:00:12 -0400
+From: Leonid Kegulskiy <leo@lumanate.com>
+To: hverkuil@xs4all.nl
+Cc: Leonid Kegulskiy <leo@lumanate.com>,
 	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 25/31] [media] r820t: Don't put it in standby if not initialized yet
-Date: Tue, 16 Apr 2013 21:42:36 -0300
-Message-Id: <1366159362-3773-26-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Subject: [PATCH 1/4] [media] hdpvr: Removed unnecessary get_video_info() call from hdpvr_device_init()
+Date: Thu, 25 Apr 2013 02:59:54 -0700
+Message-Id: <1366883997-18909-2-git-send-email-leo@lumanate.com>
+In-Reply-To: <1366883997-18909-1-git-send-email-leo@lumanate.com>
+References: <1366883997-18909-1-git-send-email-leo@lumanate.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-r820t_standby() can be called before r820t_init().
-If that happens, just do nothing.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Leonid Kegulskiy <leo@lumanate.com>
 ---
- drivers/media/tuners/r820t.c | 4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/usb/hdpvr/hdpvr-core.c |    8 --------
+ 1 file changed, 8 deletions(-)
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index fc660f2..b679a3f 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -1298,6 +1298,10 @@ static int r820t_standby(struct r820t_priv *priv)
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index 8247c19..cb69405 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -220,7 +220,6 @@ static int hdpvr_device_init(struct hdpvr_device *dev)
  {
- 	int rc;
+ 	int ret;
+ 	u8 *buf;
+-	struct hdpvr_video_info *vidinf;
  
-+	/* If device was not initialized yet, don't need to standby */
-+	if (!priv->init_done)
-+		return 0;
-+
- 	rc = r820t_write_reg(priv, 0x06, 0xb1);
- 	if (rc < 0)
- 		return rc;
+ 	if (device_authorization(dev))
+ 		return -EACCES;
+@@ -242,13 +241,6 @@ static int hdpvr_device_init(struct hdpvr_device *dev)
+ 		 "control request returned %d\n", ret);
+ 	mutex_unlock(&dev->usbc_mutex);
+ 
+-	vidinf = get_video_info(dev);
+-	if (!vidinf)
+-		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+-			"no valid video signal or device init failed\n");
+-	else
+-		kfree(vidinf);
+-
+ 	/* enable fan and bling leds */
+ 	mutex_lock(&dev->usbc_mutex);
+ 	buf[0] = 0x1;
 -- 
-1.8.1.4
+1.7.10.4
 
