@@ -1,78 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:41059 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755966Ab3DVIkG (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:55927 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756264Ab3DYLhf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 04:40:06 -0400
-Received: by mail-lb0-f177.google.com with SMTP id x10so676579lbi.8
-        for <linux-media@vger.kernel.org>; Mon, 22 Apr 2013 01:40:05 -0700 (PDT)
-Message-ID: <5174F74E.9030707@cogentembedded.com>
-Date: Mon, 22 Apr 2013 12:39:42 +0400
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org, matsu@igel.co.jp
-Subject: Re: [PATCH v2 1/5] V4L2: I2C: ML86V7667 video decoder driver
-References: <201304212240.30949.sergei.shtylyov@cogentembedded.com> <201304220848.04870.hverkuil@xs4all.nl>
-In-Reply-To: <201304220848.04870.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 25 Apr 2013 07:37:35 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT00K4U6YM8IP0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 20:37:34 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>
+Subject: [PATCH 5/7 v2] exynos-gsc: Add copy time stamp handling
+Date: Thu, 25 Apr 2013 13:36:06 +0200
+Message-id: <1366889768-16677-6-git-send-email-k.debski@samsung.com>
+In-reply-to: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
+References: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Since the introduction of the timestamp_type field, it is necessary that
+the driver chooses which type it will use. This patch adds support for
+the timestamp_type.
 
-Thank you for the review.
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-m2m.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Hans Verkuil wrote:
->> +#include <media/v4l2-chip-ident.h>
->>     
->
-> This include should be removed as well.
->   
-ok
->   
->> +
->> +static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
->> +{
->> +	struct ml86v7667_priv *priv = to_ml86v7667(sd);
->> +
->> +	*std = priv->std;
->>     
->
-> That's not right. querystd should attempt to detect the standard, that's
-> what it is for. It should just return the detected standard, not actually
-> change it.
->   
-Ok.
-I've mixed the things up with your review on removing the autoselection 
-feature and detection.
-Thx for pointing on this.
->   
->> +	 */
->> +	val = i2c_smbus_read_byte_data(client, STATUS_REG);
->> +	if (val < 0)
->> +		return val;
->> +
->> +	priv->std = val & STATUS_NTSCPAL ? V4L2_STD_PAL : V4L2_STD_NTSC;
->>     
->
-> Shouldn't this be 50 Hz vs 60 Hz formats? There are 60 Hz PAL standards
-> and usually these devices detect 50 Hz vs 60 Hz, not NTSC vs PAL.
->   
-In the reference manual it is not mentioned about 50/60Hz input format 
-selection/detection but it mentioned just PAL/NTSC.
-The 50hz formats can be ether PAL and NTSC formats variants. The same is 
-applied to 60Hz.
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 386c0a7..40a73f7 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -80,6 +80,9 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
+ 	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+ 
+ 	if (src_vb && dst_vb) {
++		src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
++		src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
++
+ 		v4l2_m2m_buf_done(src_vb, vb_state);
+ 		v4l2_m2m_buf_done(dst_vb, vb_state);
+ 
+@@ -584,6 +587,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &gsc_m2m_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -596,6 +600,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &gsc_m2m_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+-- 
+1.7.9.5
 
-In the ML86V7667 datasheet the description for STATUS register detection 
-bit is just PAL/NTSC:
-" $2C/STATUS [2] NTSC/PAL identification 0: NTSC /1: PAL "
-
-If you assure me that I must judge their description as 50 vs 60Hz 
-formats and not PAL/NTSC then I will make the change.
-
-Regards,
-Vladimir
