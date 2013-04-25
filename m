@@ -1,154 +1,335 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:47710 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752354Ab3DMKUz (ORCPT
+Received: from e28smtp08.in.ibm.com ([122.248.162.8]:56304 "EHLO
+	e28smtp08.in.ibm.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932596Ab3DYPXC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 06:20:55 -0400
-Received: by mail-ea0-f170.google.com with SMTP id a15so1520125eae.1
-        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 03:20:53 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH] em28xx: add basic support for the "SpeedLink Vicious And Devine Laplace" webcam
-Date: Sat, 13 Apr 2013 12:21:44 +0200
-Message-Id: <1365848504-3689-1-git-send-email-fschaefer.oss@googlemail.com>
+	Thu, 25 Apr 2013 11:23:02 -0400
+Received: from /spool/local
+	by e28smtp08.in.ibm.com with IBM ESMTP SMTP Gateway: Authorized Use Only! Violators will be prosecuted
+	for <linux-media@vger.kernel.org> from <hegdevasant@linux.vnet.ibm.com>;
+	Thu, 25 Apr 2013 20:46:52 +0530
+Message-ID: <51794A3C.3040406@linux.vnet.ibm.com>
+Date: Thu, 25 Apr 2013 20:52:36 +0530
+From: Vasant Hegde <hegdevasant@linux.vnet.ibm.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: David Howells <dhowells@redhat.com>
+CC: linux-kernel@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-pci@vger.kernel.org, linux-wireless@vger.kernel.org,
+	netfilter-devel@vger.kernel.org, viro@zeniv.linux.org.uk,
+	netdev@vger.kernel.org, linux-fsdevel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH 04/28] proc: Supply PDE attribute setting accessor functions
+ [RFC]
+References: <20130416182550.27773.89310.stgit@warthog.procyon.org.uk> <20130416182606.27773.55054.stgit@warthog.procyon.org.uk>
+In-Reply-To: <20130416182606.27773.55054.stgit@warthog.procyon.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The SpeedLink Vicious And Devine Laplace webcam uses an EM2765 bridge and an
-OV2640 sensor which allows capturing at a max. resoultion of 1600x1200 at
-max. 7-8 fps. It has a built-in microphone (USB standard device class) and
-provides 3 buttons (snapshot, mute, illumination) and 2 LEDs (capturing/mute and
-illumination/flash). It is also equipped with an eeprom.
-The device is available in two colors: white (1ae7:9003) and black (1ae7:9004).
+On 04/16/2013 11:56 PM, David Howells wrote:
+> Supply accessor functions to set attributes in proc_dir_entry structs.
+>
+> The following are supplied: proc_set_size() and proc_set_user().
+>
+> Signed-off-by: David Howells<dhowells@redhat.com>
+> cc: linuxppc-dev@lists.ozlabs.org
+> cc: linux-media@vger.kernel.org
+> cc: netdev@vger.kernel.org
+> cc: linux-wireless@vger.kernel.org
+> cc: linux-pci@vger.kernel.org
+> cc: netfilter-devel@vger.kernel.org
+> cc: alsa-devel@alsa-project.org
+> ---
+>
+>   arch/powerpc/kernel/proc_powerpc.c        |    2 +-
+>   arch/powerpc/platforms/pseries/reconfig.c |    2 +-
 
-This patch adds only basic support for this device, the limitations are:
-- resolution limited to max. 640x480
-- image quality needs to be improved
-- support for the 3 buttons (snapshot, mute, illumination) is missing
-- illumination/flash LED support is missing (capturing LED is functional)
+arch/powerpc side changes looks good.
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
----
- drivers/media/usb/em28xx/em28xx-cards.c |   34 ++++++++++++++++++++++++++++++-
- drivers/media/usb/em28xx/em28xx-video.c |   14 +++++++++++++
- drivers/media/usb/em28xx/em28xx.h       |    1 +
- 3 Dateien geändert, 48 Zeilen hinzugefügt(+), 1 Zeile entfernt(-)
+-Vasant
 
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index e328159..c5d3fa56 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -411,6 +411,19 @@ static struct em28xx_reg_seq pctv_520e[] = {
- 	{             -1,   -1,   -1,  -1},
- };
- 
-+/* 1ae7:9003/9004 SpeedLink Vicious And Devine Laplace webcam
-+ * reg 0x80/0x84:
-+ * GPIO_0: capturing LED, 0=on, 1=off
-+ * GPIO_2: mute button, 0=pressed, 1=unpressed
-+ * GPIO 3: illumination button, 0=pressed, 1=unpressed
-+ * GPIO_6: illumination/flash LED, 0=on, 1=off
-+ */
-+static struct em28xx_reg_seq speedlink_vad_laplace_reg_seq[] = {
-+	{EM28XX_R08_GPIO,	0xf7,	0xff,		10},
-+	{EM25XX_R80_GPIO_P0_W,	0xff,	0xff,		10},
-+	{	-1,		-1,	-1,		-1},
-+};
-+
- /*
-  *  Board definitions
-  */
-@@ -1787,7 +1800,6 @@ struct em28xx_board em28xx_boards[] = {
- 			.type     = EM28XX_VMUX_TELEVISION,
- 			.vmux     = TVP5150_COMPOSITE0,
- 			.amux     = EM28XX_AMUX_VIDEO,
--
- 		}, {
- 			.type     = EM28XX_VMUX_COMPOSITE1,
- 			.vmux     = TVP5150_COMPOSITE1,
-@@ -2016,6 +2028,22 @@ struct em28xx_board em28xx_boards[] = {
- 		.i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE |
- 				EM28XX_I2C_FREQ_400_KHZ,
- 	},
-+	/* 1ae7:9003/9004 SpeedLink Vicious And Devine Laplace webcam
-+	 * Empia EM2765 + OmniVision OV2640 */
-+	[EM2765_BOARD_SPEEDLINK_VAD_LAPLACE] = {
-+		.name         = "SpeedLink Vicious And Devine Laplace webcam",
-+		.xclk         = EM28XX_XCLK_FREQUENCY_24MHZ,
-+		.i2c_speed    = EM28XX_I2C_CLK_WAIT_ENABLE |
-+				EM28XX_I2C_FREQ_100_KHZ,
-+		.def_i2c_bus  = 1,
-+		.tuner_type   = TUNER_ABSENT,
-+		.is_webcam    = 1,
-+		.input        = { {
-+			.type     = EM28XX_VMUX_COMPOSITE1,
-+			.amux     = EM28XX_AMUX_VIDEO,
-+			.gpio     = speedlink_vad_laplace_reg_seq,
-+		} },
-+	},
- };
- const unsigned int em28xx_bcount = ARRAY_SIZE(em28xx_boards);
- 
-@@ -2177,6 +2205,10 @@ struct usb_device_id em28xx_id_table[] = {
- 			.driver_info = EM2884_BOARD_PCTV_510E },
- 	{ USB_DEVICE(0x2013, 0x0251),
- 			.driver_info = EM2884_BOARD_PCTV_520E },
-+	{ USB_DEVICE(0x1ae7, 0x9003),
-+			.driver_info = EM2765_BOARD_SPEEDLINK_VAD_LAPLACE },
-+	{ USB_DEVICE(0x1ae7, 0x9004),
-+			.driver_info = EM2765_BOARD_SPEEDLINK_VAD_LAPLACE },
- 	{ },
- };
- MODULE_DEVICE_TABLE(usb, em28xx_id_table);
-diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
-index 792ead1..f949cdc 100644
---- a/drivers/media/usb/em28xx/em28xx-video.c
-+++ b/drivers/media/usb/em28xx/em28xx-video.c
-@@ -660,6 +660,13 @@ int em28xx_start_analog_streaming(struct vb2_queue *vq, unsigned int count)
- 		if (rc < 0)
- 			goto fail;
- 
-+		/* Switch on capturing LED */
-+		if (dev->model == EM2765_BOARD_SPEEDLINK_VAD_LAPLACE)
-+			em28xx_write_regs_bits(dev,
-+					       EM25XX_R84_GPIO_P0_R,
-+					       EM25XX_R80_GPIO_P0_W,
-+					       0x00, 0x01);
-+
- 		/*
- 		 * djh: it's not clear whether this code is still needed.  I'm
- 		 * leaving it in here for now entirely out of concern for
-@@ -693,6 +700,13 @@ static int em28xx_stop_streaming(struct vb2_queue *vq)
- 	if (dev->streaming_users-- == 1) {
- 		/* Last active user, so shutdown all the URBS */
- 		em28xx_uninit_usb_xfer(dev, EM28XX_ANALOG_MODE);
-+
-+		/* Switch off capturing LED */
-+		if (dev->model == EM2765_BOARD_SPEEDLINK_VAD_LAPLACE)
-+			em28xx_write_regs_bits(dev,
-+					       EM25XX_R84_GPIO_P0_R,
-+					       EM25XX_R80_GPIO_P0_W,
-+					       0x01, 0x01);
- 	}
- 
- 	spin_lock_irqsave(&dev->slock, flags);
-diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
-index a817c3d..d51f38f 100644
---- a/drivers/media/usb/em28xx/em28xx.h
-+++ b/drivers/media/usb/em28xx/em28xx.h
-@@ -130,6 +130,7 @@
- #define EM2884_BOARD_PCTV_520E			  86
- #define EM2884_BOARD_TERRATEC_HTC_USB_XS	  87
- #define EM2884_BOARD_C3TECH_DIGITAL_DUO		  88
-+#define EM2765_BOARD_SPEEDLINK_VAD_LAPLACE	  89
- 
- /* Limits minimum and default number of buffers */
- #define EM28XX_MIN_BUF 4
--- 
-1.7.10.4
+>   drivers/media/pci/ttpci/av7110_ir.c       |    2 +-
+>   drivers/net/irda/vlsi_ir.c                |    2 +-
+>   drivers/net/wireless/airo.c               |   34 +++++++++--------------------
+>   drivers/pci/proc.c                        |    2 +-
+>   fs/proc/generic.c                         |   13 +++++++++++
+>   include/linux/proc_fs.h                   |    5 ++++
+>   kernel/configs.c                          |    2 +-
+>   kernel/profile.c                          |    2 +-
+>   net/netfilter/xt_recent.c                 |    3 +--
+>   sound/core/info.c                         |    2 +-
+>   12 files changed, 38 insertions(+), 33 deletions(-)
+>
+> diff --git a/arch/powerpc/kernel/proc_powerpc.c b/arch/powerpc/kernel/proc_powerpc.c
+> index 41d8ee9..feb8580 100644
+> --- a/arch/powerpc/kernel/proc_powerpc.c
+> +++ b/arch/powerpc/kernel/proc_powerpc.c
+> @@ -83,7 +83,7 @@ static int __init proc_ppc64_init(void)
+>   			&page_map_fops, vdso_data);
+>   	if (!pde)
+>   		return 1;
+> -	pde->size = PAGE_SIZE;
+> +	proc_set_size(pde, PAGE_SIZE);
+>
+>   	return 0;
+>   }
+> diff --git a/arch/powerpc/platforms/pseries/reconfig.c b/arch/powerpc/platforms/pseries/reconfig.c
+> index d6491bd..f93cdf5 100644
+> --- a/arch/powerpc/platforms/pseries/reconfig.c
+> +++ b/arch/powerpc/platforms/pseries/reconfig.c
+> @@ -452,7 +452,7 @@ static int proc_ppc64_create_ofdt(void)
+>
+>   	ent = proc_create("powerpc/ofdt", S_IWUSR, NULL,&ofdt_fops);
+>   	if (ent)
+> -		ent->size = 0;
+> +		proc_set_size(ent, 0);
+>
+>   	return 0;
+>   }
+> diff --git a/drivers/media/pci/ttpci/av7110_ir.c b/drivers/media/pci/ttpci/av7110_ir.c
+> index eb82286..0e763a7 100644
+> --- a/drivers/media/pci/ttpci/av7110_ir.c
+> +++ b/drivers/media/pci/ttpci/av7110_ir.c
+> @@ -375,7 +375,7 @@ int av7110_ir_init(struct av7110 *av7110)
+>   	if (av_cnt == 1) {
+>   		e = proc_create("av7110_ir", S_IWUSR, NULL,&av7110_ir_proc_fops);
+>   		if (e)
+> -			e->size = 4 + 256 * sizeof(u16);
+> +			proc_set_size(e, 4 + 256 * sizeof(u16));
+>   	}
+>
+>   	tasklet_init(&av7110->ir.ir_tasklet, av7110_emit_key, (unsigned long)&av7110->ir);
+> diff --git a/drivers/net/irda/vlsi_ir.c b/drivers/net/irda/vlsi_ir.c
+> index e22cd4e..5f47584 100644
+> --- a/drivers/net/irda/vlsi_ir.c
+> +++ b/drivers/net/irda/vlsi_ir.c
+> @@ -1678,7 +1678,7 @@ vlsi_irda_probe(struct pci_dev *pdev, const struct pci_device_id *id)
+>   			IRDA_WARNING("%s: failed to create proc entry\n",
+>   				     __func__);
+>   		} else {
+> -			ent->size = 0;
+> +			proc_set_size(ent, 0);
+>   		}
+>   		idev->proc_entry = ent;
+>   	}
+> diff --git a/drivers/net/wireless/airo.c b/drivers/net/wireless/airo.c
+> index 66e398d..21d0233 100644
+> --- a/drivers/net/wireless/airo.c
+> +++ b/drivers/net/wireless/airo.c
+> @@ -4507,73 +4507,63 @@ static int setup_proc_entry( struct net_device *dev,
+>   					    airo_entry);
+>   	if (!apriv->proc_entry)
+>   		goto fail;
+> -	apriv->proc_entry->uid = proc_kuid;
+> -	apriv->proc_entry->gid = proc_kgid;
+> +	proc_set_user(apriv->proc_entry, proc_kuid, proc_kgid);
+>
+>   	/* Setup the StatsDelta */
+>   	entry = proc_create_data("StatsDelta", S_IRUGO&  proc_perm,
+>   				 apriv->proc_entry,&proc_statsdelta_ops, dev);
+>   	if (!entry)
+>   		goto fail_stats_delta;
+> -	entry->uid = proc_kuid;
+> -	entry->gid = proc_kgid;
+> +	proc_set_user(entry, proc_kuid, proc_kgid);
+>
+>   	/* Setup the Stats */
+>   	entry = proc_create_data("Stats", S_IRUGO&  proc_perm,
+>   				 apriv->proc_entry,&proc_stats_ops, dev);
+>   	if (!entry)
+>   		goto fail_stats;
+> -	entry->uid = proc_kuid;
+> -	entry->gid = proc_kgid;
+> +	proc_set_user(entry, proc_kuid, proc_kgid);
+>
+>   	/* Setup the Status */
+>   	entry = proc_create_data("Status", S_IRUGO&  proc_perm,
+>   				 apriv->proc_entry,&proc_status_ops, dev);
+>   	if (!entry)
+>   		goto fail_status;
+> -	entry->uid = proc_kuid;
+> -	entry->gid = proc_kgid;
+> +	proc_set_user(entry, proc_kuid, proc_kgid);
+>
+>   	/* Setup the Config */
+>   	entry = proc_create_data("Config", proc_perm,
+>   				 apriv->proc_entry,&proc_config_ops, dev);
+>   	if (!entry)
+>   		goto fail_config;
+> -	entry->uid = proc_kuid;
+> -	entry->gid = proc_kgid;
+> +	proc_set_user(entry, proc_kuid, proc_kgid);
+>
+>   	/* Setup the SSID */
+>   	entry = proc_create_data("SSID", proc_perm,
+>   				 apriv->proc_entry,&proc_SSID_ops, dev);
+>   	if (!entry)
+>   		goto fail_ssid;
+> -	entry->uid = proc_kuid;
+> -	entry->gid = proc_kgid;
+> +	proc_set_user(entry, proc_kuid, proc_kgid);
+>
+>   	/* Setup the APList */
+>   	entry = proc_create_data("APList", proc_perm,
+>   				 apriv->proc_entry,&proc_APList_ops, dev);
+>   	if (!entry)
+>   		goto fail_aplist;
+> -	entry->uid = proc_kuid;
+> -	entry->gid = proc_kgid;
+> +	proc_set_user(entry, proc_kuid, proc_kgid);
+>
+>   	/* Setup the BSSList */
+>   	entry = proc_create_data("BSSList", proc_perm,
+>   				 apriv->proc_entry,&proc_BSSList_ops, dev);
+>   	if (!entry)
+>   		goto fail_bsslist;
+> -	entry->uid = proc_kuid;
+> -	entry->gid = proc_kgid;
+> +	proc_set_user(entry, proc_kuid, proc_kgid);
+>
+>   	/* Setup the WepKey */
+>   	entry = proc_create_data("WepKey", proc_perm,
+>   				 apriv->proc_entry,&proc_wepkey_ops, dev);
+>   	if (!entry)
+>   		goto fail_wepkey;
+> -	entry->uid = proc_kuid;
+> -	entry->gid = proc_kgid;
+> -
+> +	proc_set_user(entry, proc_kuid, proc_kgid);
+>   	return 0;
+>
+>   fail_wepkey:
+> @@ -5695,10 +5685,8 @@ static int __init airo_init_module( void )
+>
+>   	airo_entry = proc_mkdir_mode("driver/aironet", airo_perm, NULL);
+>
+> -	if (airo_entry) {
+> -		airo_entry->uid = proc_kuid;
+> -		airo_entry->gid = proc_kgid;
+> -	}
+> +	if (airo_entry)
+> +		proc_set_user(airo_entry, proc_kuid, proc_kgid);
+>
+>   	for (i = 0; i<  4&&  io[i]&&  irq[i]; i++) {
+>   		airo_print_info("", "Trying to configure ISA adapter at irq=%d "
+> diff --git a/drivers/pci/proc.c b/drivers/pci/proc.c
+> index 12e4fb5..7cde7c1 100644
+> --- a/drivers/pci/proc.c
+> +++ b/drivers/pci/proc.c
+> @@ -419,7 +419,7 @@ int pci_proc_attach_device(struct pci_dev *dev)
+>   			&proc_bus_pci_operations, dev);
+>   	if (!e)
+>   		return -ENOMEM;
+> -	e->size = dev->cfg_size;
+> +	proc_set_size(e, dev->cfg_size);
+>   	dev->procent = e;
+>
+>   	return 0;
+> diff --git a/fs/proc/generic.c b/fs/proc/generic.c
+> index 1c07cad..5f6f6c3 100644
+> --- a/fs/proc/generic.c
+> +++ b/fs/proc/generic.c
+> @@ -498,6 +498,19 @@ out:
+>   	return NULL;
+>   }
+>   EXPORT_SYMBOL(proc_create_data);
+> +
+> +void proc_set_size(struct proc_dir_entry *de, loff_t size)
+> +{
+> +	de->size = size;
+> +}
+> +EXPORT_SYMBOL(proc_set_size);
+> +
+> +void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid)
+> +{
+> +	de->uid = uid;
+> +	de->gid = gid;
+> +}
+> +EXPORT_SYMBOL(proc_set_user);
+>
+>   static void free_proc_entry(struct proc_dir_entry *de)
+>   {
+> diff --git a/include/linux/proc_fs.h b/include/linux/proc_fs.h
+> index 805edac..28a4d7e 100644
+> --- a/include/linux/proc_fs.h
+> +++ b/include/linux/proc_fs.h
+> @@ -130,6 +130,9 @@ static inline struct proc_dir_entry *proc_create(const char *name, umode_t mode,
+>   extern struct proc_dir_entry *proc_net_mkdir(struct net *net, const char *name,
+>   	struct proc_dir_entry *parent);
+>
+> +extern void proc_set_size(struct proc_dir_entry *, loff_t);
+> +extern void proc_set_user(struct proc_dir_entry *, kuid_t, kgid_t);
+> +
+>   extern struct file *proc_ns_fget(int fd);
+>   extern bool proc_ns_inode(struct inode *inode);
+>
+> @@ -158,6 +161,8 @@ static inline struct proc_dir_entry *proc_mkdir(const char *name,
+>   	struct proc_dir_entry *parent) {return NULL;}
+>   static inline struct proc_dir_entry *proc_mkdir_mode(const char *name,
+>   	umode_t mode, struct proc_dir_entry *parent) { return NULL; }
+> +static inline void proc_set_size(struct proc_dir_entry *de, loff_t size) {}
+> +static inline void proc_set_user(struct proc_dir_entry *de, kuid_t uid, kgid_t gid) {}
+>
+>   struct tty_driver;
+>   static inline void proc_tty_register_driver(struct tty_driver *driver) {};
+> diff --git a/kernel/configs.c b/kernel/configs.c
+> index 42e8fa0..c18b1f1 100644
+> --- a/kernel/configs.c
+> +++ b/kernel/configs.c
+> @@ -79,7 +79,7 @@ static int __init ikconfig_init(void)
+>   	if (!entry)
+>   		return -ENOMEM;
+>
+> -	entry->size = kernel_config_data_size;
+> +	proc_set_size(entry, kernel_config_data_size);
+>
+>   	return 0;
+>   }
+> diff --git a/kernel/profile.c b/kernel/profile.c
+> index 524ce5e..0bf4007 100644
+> --- a/kernel/profile.c
+> +++ b/kernel/profile.c
+> @@ -600,7 +600,7 @@ int __ref create_proc_profile(void) /* false positive from hotcpu_notifier */
+>   			    NULL,&proc_profile_operations);
+>   	if (!entry)
+>   		return 0;
+> -	entry->size = (1+prof_len) * sizeof(atomic_t);
+> +	proc_set_size(entry, (1 + prof_len) * sizeof(atomic_t));
+>   	hotcpu_notifier(profile_cpu_callback, 0);
+>   	return 0;
+>   }
+> diff --git a/net/netfilter/xt_recent.c b/net/netfilter/xt_recent.c
+> index 3db2d38..1e657cf 100644
+> --- a/net/netfilter/xt_recent.c
+> +++ b/net/netfilter/xt_recent.c
+> @@ -401,8 +401,7 @@ static int recent_mt_check(const struct xt_mtchk_param *par,
+>   		ret = -ENOMEM;
+>   		goto out;
+>   	}
+> -	pde->uid = uid;
+> -	pde->gid = gid;
+> +	proc_set_user(pde, uid, gid);
+>   #endif
+>   	spin_lock_bh(&recent_lock);
+>   	list_add_tail(&t->list,&recent_net->tables);
+> diff --git a/sound/core/info.c b/sound/core/info.c
+> index 3aa8864..c7f41c3 100644
+> --- a/sound/core/info.c
+> +++ b/sound/core/info.c
+> @@ -970,7 +970,7 @@ int snd_info_register(struct snd_info_entry * entry)
+>   			mutex_unlock(&info_mutex);
+>   			return -ENOMEM;
+>   		}
+> -		p->size = entry->size;
+> +		proc_set_size(p, entry->size);
+>   	}
+>   	entry->p = p;
+>   	if (entry->parent)
+>
+> _______________________________________________
+> Linuxppc-dev mailing list
+> Linuxppc-dev@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/linuxppc-dev
+>
 
