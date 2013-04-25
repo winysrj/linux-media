@@ -1,47 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:62842 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759399Ab3DIL5y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 07:57:54 -0400
-Received: by mail-ee0-f48.google.com with SMTP id b15so2911301eek.21
-        for <linux-media@vger.kernel.org>; Tue, 09 Apr 2013 04:57:51 -0700 (PDT)
-Message-ID: <5164023c.417e0e0a.6195.ffffe691@mx.google.com>
-Date: Tue, 9 Apr 2013 13:57:46 +0200
-To: linux-media@vger.kernel.org
-From: Boian Mihailov <boian.mihailov@cvalka.com>
-Subject: Funding and Feature Request Management For Open Source
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8bit
-Content-Type: text/plain; charset="UTF-8"
+Received: from mx1.redhat.com ([209.132.183.28]:33498 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758289Ab3DYTIH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 15:08:07 -0400
+Received: from int-mx10.intmail.prod.int.phx2.redhat.com (int-mx10.intmail.prod.int.phx2.redhat.com [10.5.11.23])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3PJ86Ex011805
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 15:08:06 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 4/4] [media] cx25821-alsa; get rid of a __must_check error
+Date: Thu, 25 Apr 2013 16:08:02 -0300
+Message-Id: <1366916882-3565-4-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366916882-3565-1-git-send-email-mchehab@redhat.com>
+References: <1366916882-3565-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The hole reason for __must_check is to not ignore an error.
 
-We have just launched a site to help existing open source projects
-with funding (www.catincan.com). Our goal is to help more open source
-projects become self-sustaining and competitive with propriety
-solutions. We're hoping you might provide us with some insight by
-answering the 3 questions below.
+However, a "ret" value is used at cx25821 just to avoid the
+Kernel compilation to compain about it.
 
-1. Do you have any problems funding your open source project?
+That, however, produces another warning (with W=1):
 
-2. What would the perfect solution have to help the open source
-community gain funding?
+drivers/media/pci/cx25821/cx25821-alsa.c: In function 'cx25821_audio_fini':
+drivers/media/pci/cx25821/cx25821-alsa.c:727:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
 
-3. Would you use a solution like Catincan to fund your project? If no,
-why not?
+With the current implementation of driver_for_each_device() and
+cx25821_alsa_exit_callback(), there's actually just one
+very unlikely condition where it will currently produce
+an error: if driver_find() returns NULL.
 
-Thanks for your feedback. Hearing from open source developers really
-helps us understand what's most important. If you have any questions,
-just let me know.
+Ok, there's not much that can be done, as it is on a driver's
+function that returns void, but it can at least print some message
+if the error happens.
 
-Cheers,
-Boian
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/pci/cx25821/cx25821-alsa.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-
-
---
-Boian Mihailov
-
+diff --git a/drivers/media/pci/cx25821/cx25821-alsa.c b/drivers/media/pci/cx25821/cx25821-alsa.c
+index 81361c2..6e91e84 100644
+--- a/drivers/media/pci/cx25821/cx25821-alsa.c
++++ b/drivers/media/pci/cx25821/cx25821-alsa.c
+@@ -727,6 +727,8 @@ static void cx25821_audio_fini(void)
+ 	int ret;
+ 
+ 	ret = driver_for_each_device(drv, NULL, NULL, cx25821_alsa_exit_callback);
++	if (ret)
++		pr_err("%s failed to find a cx25821 driver.\n", __func__);
+ }
+ 
+ static int cx25821_alsa_init_callback(struct device *dev, void *data)
+-- 
+1.8.1.4
 
