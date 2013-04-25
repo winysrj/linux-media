@@ -1,99 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4513 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752139Ab3DTSUe (ORCPT
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:48460 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1755735Ab3DYTP0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 14:20:34 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3KIKNW5077119
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 20:20:33 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 7E32A11E00C5
-	for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 20:20:23 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Thu, 25 Apr 2013 15:15:26 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130420182023.7E32A11E00C5@alastor.dyndns.org>
-Date: Sat, 20 Apr 2013 20:20:23 +0200 (CEST)
+Cc: jonjon.arnearne@gmail.com, linux-kernel@vger.kernel.org,
+	hverkuil@xs4all.nl, elezegarcia@gmail.com, mkrufky@linuxtv.org,
+	mchehab@redhat.com, bjorn@mork.no
+Subject: [RFC V2 0/3] Add a driver for Somagic smi2021 
+Date: Thu, 25 Apr 2013 21:10:17 +0200
+Message-Id: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This is the 2nd version of a RFC for a driver for the Somagic SMI2021.
+The first version was sendt on 14th of Mars 2013, and can be found here:
+http://www.spinics.net/lists/kernel/msg1499018.html
 
-Results of the daily build of media_tree:
+The smi2021 is the usb controller for a range of video capture devices
+branded as EasyCap.
 
-date:		Sat Apr 20 19:00:18 CEST 2013
-git branch:	test
-git hash:	6695be6863b75620ffa6d422965680ce785cb7c8
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+The device consists of three major components.
+* smi2021 is the usb controller.
+* gm7113c is a saa7113 clone for video A/D conversion.
+* cs5340 is an audio A/D converter.
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+The smi2021 chip is in most configurations dependent of some firmware to work.
+The biggest change from the last version of this RFC is that I've included
+the bootloader module that was responsible for the firmware upload into
+the main driver module.
 
-Detailed results are available here:
+I've also made some changes to the saa7115 module to handle the gm7113c chip.
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+V4L2-Compliance:
 
-Full logs are available here:
+Driver Info:
+	Driver name   : smi2021
+	Card type     : smi2021
+	Bus info      : usb-0000:00:1d.0-1.1
+	Driver version: 3.9.0
+	Capabilities  : 0x85000001
+		Video Capture
+		Read/Write
+		Streaming
+		Device Capabilities
+	Device Caps   : 0x05000001
+		Video Capture
+		Read/Write
+		Streaming
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+Compliance test for device /dev/video1 (not using libv4l2):
 
-The Media Infrastructure API from this daily build is here:
+Required ioctls:
+	test VIDIOC_QUERYCAP: OK
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Allow for multiple opens:
+	test second video open: OK
+	test VIDIOC_QUERYCAP: OK
+	test VIDIOC_G/S_PRIORITY: OK
+
+Debug ioctls:
+	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+	test VIDIOC_LOG_STATUS: OK
+
+Input ioctls:
+	test VIDIOC_G/S_TUNER: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+	test VIDIOC_ENUMAUDIO: OK (Not Supported)
+	test VIDIOC_G/S/ENUMINPUT: OK
+	test VIDIOC_G/S_AUDIO: OK (Not Supported)
+	Inputs: 2 Audio Inputs: 0 Tuners: 0
+
+Output ioctls:
+	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
+	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+	Outputs: 0 Audio Outputs: 0 Modulators: 0
+
+Control ioctls:
+	test VIDIOC_QUERYCTRL/MENU: OK
+	test VIDIOC_G/S_CTRL: OK
+	test VIDIOC_G/S/TRY_EXT_CTRLS: OK
+	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK
+	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+	Standard Controls: 7 Private Controls: 0
+
+Input/Output configuration ioctls:
+	test VIDIOC_ENUM/G/S/QUERY_STD: OK
+	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
+	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
+
+Format ioctls:
+	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+	test VIDIOC_G/S_PARM: OK
+	test VIDIOC_G_FBUF: OK (Not Supported)
+	test VIDIOC_G_FMT: OK
+	test VIDIOC_TRY_FMT: OK
+	test VIDIOC_S_FMT: OK
+	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+Codec ioctls:
+	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+
+Total: 36, Succeeded: 36, Failed: 0, Warnings: 0
+
+ [smi2021] Add gm7113c chip to the saa7115 driver
+ [smi2021] This is the smi2021 driver
+ [smi2021] Add smi2021 driver to buildsystem
+
+ drivers/media/i2c/saa7115.c                    |  61 ++-
+ drivers/media/usb/Kconfig                      |   1 +
+ drivers/media/usb/Makefile                     |   1 +
+ drivers/media/usb/smi2021/Kconfig              |  11 +
+ drivers/media/usb/smi2021/Makefile             |  10 +
+ drivers/media/usb/smi2021/smi2021.h            | 278 +++++++++++++
+ drivers/media/usb/smi2021/smi2021_audio.c      | 380 +++++++++++++++++
+ drivers/media/usb/smi2021/smi2021_bootloader.c | 261 ++++++++++++
+ drivers/media/usb/smi2021/smi2021_i2c.c        | 137 +++++++
+ drivers/media/usb/smi2021/smi2021_main.c       | 431 ++++++++++++++++++++
+ drivers/media/usb/smi2021/smi2021_v4l2.c       | 542 ++++++++++++++++++++++++
+ drivers/media/usb/smi2021/smi2021_video.c      | 544 +++++++++++++++++++++++++
+ include/media/v4l2-chip-ident.h                |   3 +
+ 13 files changed, 2650 insertions(+), 10 deletions(-)
+ create mode 100644 drivers/media/usb/smi2021/Kconfig
+ create mode 100644 drivers/media/usb/smi2021/Makefile
+ create mode 100644 drivers/media/usb/smi2021/smi2021.h
+ create mode 100644 drivers/media/usb/smi2021/smi2021_audio.c
+ create mode 100644 drivers/media/usb/smi2021/smi2021_bootloader.c
+ create mode 100644 drivers/media/usb/smi2021/smi2021_i2c.c
+ create mode 100644 drivers/media/usb/smi2021/smi2021_main.c
+ create mode 100644 drivers/media/usb/smi2021/smi2021_v4l2.c
+ create mode 100644 drivers/media/usb/smi2021/smi2021_video.c
+
+Comments are welcome.
+
+Best regards,
+Jon Arne Jørgensen
+
+
