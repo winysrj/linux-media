@@ -1,65 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:35777 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934702Ab3DPKvq (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:35074 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758845Ab3DYQTY convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 06:51:46 -0400
-From: Prabhakar lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] media: davinci: vpif: allign the buffers size to page page size boundary
-Date: Tue, 16 Apr 2013 16:21:33 +0530
-Message-Id: <1366109493-27874-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 25 Apr 2013 12:19:24 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT00AV9K078KA0@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 17:19:21 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Philipp Zabel' <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Javier Martin' <javier.martin@vista-silicon.com>,
+	'Fabio Estevam' <fabio.estevam@freescale.com>
+References: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
+ <1366889768-16677-5-git-send-email-k.debski@samsung.com>
+ <1366905070.4419.21.camel@pizza.hi.pengutronix.de>
+In-reply-to: <1366905070.4419.21.camel@pizza.hi.pengutronix.de>
+Subject: RE: [PATCH 4/7 v2] coda: Add copy time stamp handling
+Date: Thu, 25 Apr 2013 18:19:10 +0200
+Message-id: <001f01ce41d0$9fdb3770$df91a650$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi Philipp,
 
-with recent commit with id 068a0df76023926af958a336a78bef60468d2033
-which adds add length check for mmap, the application were failing to
-mmap the buffers.
+Thank you for testing the patch. I would love to add your Tested-by tag to the
+commit, but I had already sent the pull request to Mauro. It was already very
+late to post fixes.
 
-This patch aligns the the buffer size to page size boundary for both
-capture and display driver so the it pass the check.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/platform/davinci/vpif_capture.c |    1 +
- drivers/media/platform/davinci/vpif_display.c |    1 +
- 2 files changed, 2 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 5f98df1..25981d6 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -183,6 +183,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- 		*nbuffers = config_params.min_numbuffers;
- 
- 	*nplanes = 1;
-+	size = PAGE_ALIGN(size);
- 	sizes[0] = size;
- 	alloc_ctxs[0] = common->alloc_ctx;
- 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 1b3fb5c..3414715 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -162,6 +162,7 @@ static int vpif_buffer_queue_setup(struct vb2_queue *vq,
- 			*nbuffers = config_params.min_numbuffers;
- 
- 	*nplanes = 1;
-+	size = PAGE_ALIGN(size);
- 	sizes[0] = size;
- 	alloc_ctxs[0] = common->alloc_ctx;
- 	return 0;
+Best wishes,
 -- 
-1.7.4.1
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+> -----Original Message-----
+> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
+> Sent: Thursday, April 25, 2013 5:51 PM
+> To: Kamil Debski
+> Cc: linux-media@vger.kernel.org; Kyungmin Park; Javier Martin; Fabio
+> Estevam
+> Subject: Re: [PATCH 4/7 v2] coda: Add copy time stamp handling
+> 
+> Hi Kamil,
+> 
+> Am Donnerstag, den 25.04.2013, 13:36 +0200 schrieb Kamil Debski:
+> > Since the introduction of the timestamp_type field, it is necessary
+> > that the driver chooses which type it will use. This patch adds
+> > support for the timestamp_type.
+> >
+> > Signed-off-by: Kamil Debski <k.debski@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > Cc: Philipp Zabel <p.zabel@pengutronix.de>
+> > Cc: Javier Martin <javier.martin@vista-silicon.com>
+> > Cc: Fabio Estevam <fabio.estevam@freescale.com>
+> 
+> Tested-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> > ---
+> >  drivers/media/platform/coda.c |    5 +++++
+> >  1 file changed, 5 insertions(+)
+> >
+> > diff --git a/drivers/media/platform/coda.c
+> > b/drivers/media/platform/coda.c index 20827ba..5612329 100644
+> > --- a/drivers/media/platform/coda.c
+> > +++ b/drivers/media/platform/coda.c
+> > @@ -1422,6 +1422,7 @@ static int coda_queue_init(void *priv, struct
+> vb2_queue *src_vq,
+> >  	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+> >  	src_vq->ops = &coda_qops;
+> >  	src_vq->mem_ops = &vb2_dma_contig_memops;
+> > +	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> >
+> >  	ret = vb2_queue_init(src_vq);
+> >  	if (ret)
+> > @@ -1433,6 +1434,7 @@ static int coda_queue_init(void *priv, struct
+> vb2_queue *src_vq,
+> >  	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+> >  	dst_vq->ops = &coda_qops;
+> >  	dst_vq->mem_ops = &vb2_dma_contig_memops;
+> > +	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+> >
+> >  	return vb2_queue_init(dst_vq);
+> >  }
+> > @@ -1628,6 +1630,9 @@ static irqreturn_t coda_irq_handler(int irq,
+> void *data)
+> >  		dst_buf->v4l2_buf.flags &= ~V4L2_BUF_FLAG_KEYFRAME;
+> >  	}
+> >
+> > +	dst_buf->v4l2_buf.timestamp = src_buf->v4l2_buf.timestamp;
+> > +	dst_buf->v4l2_buf.timecode = src_buf->v4l2_buf.timecode;
+> > +
+> >  	v4l2_m2m_buf_done(src_buf, VB2_BUF_STATE_DONE);
+> >  	v4l2_m2m_buf_done(dst_buf, VB2_BUF_STATE_DONE);
+> >
+> 
+> regards
+> Philipp
+
 
