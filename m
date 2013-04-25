@@ -1,53 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:54551 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755065Ab3DIGia (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 02:38:30 -0400
-Received: by mail-ie0-f169.google.com with SMTP id qd14so8074965ieb.14
-        for <linux-media@vger.kernel.org>; Mon, 08 Apr 2013 23:38:30 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1365489319-29343-1-git-send-email-tjlee@ambarella.com>
-References: <1365489319-29343-1-git-send-email-tjlee@ambarella.com>
-Date: Tue, 9 Apr 2013 14:38:30 +0800
-Message-ID: <CAEvN+1gihDhXVuE7swg-F6x5n80Gszs0cEYPUy_Em2wTYL1uvw@mail.gmail.com>
-Subject: Re: [PATCH] v4l2-ctl: skip precalculate_bars() for compressed formats
-From: Tzu-Jung Lee <roylee17@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Tzu-Jung Lee <tjlee@ambarella.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from p3plsmtpa09-03.prod.phx3.secureserver.net ([173.201.193.232]:36761
+	"EHLO p3plsmtpa09-03.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751436Ab3DYKAE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 06:00:04 -0400
+From: Leonid Kegulskiy <leo@lumanate.com>
+To: hverkuil@xs4all.nl
+Cc: Leonid Kegulskiy <leo@lumanate.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/4] HDPVR series of patches to replace Apr 22 patch
+Date: Thu, 25 Apr 2013 02:59:53 -0700
+Message-Id: <1366883997-18909-1-git-send-email-leo@lumanate.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry.. wrong patch..
-Please ignore this noise.
+Hi Hans,
 
-Thanks.
+This series of patches replace the previous patch sent on Apr 22:
+    [PATCH] [media] hdpvr_ error handling and alloc abuse cleanup.
 
-Roy
+Thank you,
+-Leo.
 
-On Tue, Apr 9, 2013 at 2:35 PM, Tzu-Jung Lee <roylee17@gmail.com> wrote:
-> Signed-off-by: Tzu-Jung Lee <tjlee@ambarella.com>
-> ---
->  utils/v4l2-ctl/v4l2-ctl-streaming.cpp | 5 ++++-
->  1 file changed, 4 insertions(+), 1 deletion(-)
->
-> diff --git a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> index a6ea8b3..ec18312 100644
-> --- a/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> +++ b/utils/v4l2-ctl/v4l2-ctl-streaming.cpp
-> @@ -771,7 +771,10 @@ void streaming_set(int fd)
->                 fmt.type = type;
->                 doioctl(fd, VIDIOC_G_FMT, &fmt);
->
-> -               if (!precalculate_bars(fmt.fmt.pix.pixelformat, stream_pat % NUM_PATTERNS)) {
-> +               if (!(fmt.flags && V4L2_FMT_FLAG_COMPRESSED) &&
-> +                               !precalculate_bars(fmt.fmt.pix.pixelformat,
-> +                                       stream_pat % NUM_PATTERNS)) {
-> +
->                         fprintf(stderr, "unsupported pixelformat\n");
->                         return;
->                 }
-> --
-> 1.8.1.5
->
+Leonid Kegulskiy (4):
+  [media] hdpvr: Removed unnecessary get_video_info() call from
+    hdpvr_device_init()
+  [media] hdpvr: Removed unnecessary use of kzalloc() in
+    get_video_info()
+  [media] hdpvr: Added some error handling in hdpvr_start_streaming()
+  [media] hdpvr: Cleaned up error handling
+
+ drivers/media/usb/hdpvr/hdpvr-control.c |   20 ++-------
+ drivers/media/usb/hdpvr/hdpvr-core.c    |    8 ----
+ drivers/media/usb/hdpvr/hdpvr-video.c   |   70 +++++++++++++++++--------------
+ drivers/media/usb/hdpvr/hdpvr.h         |    2 +-
+ 4 files changed, 43 insertions(+), 57 deletions(-)
+
+-- 
+1.7.10.4
+
