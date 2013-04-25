@@ -1,116 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:55483 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754792Ab3DTUgy (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:41946 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932143Ab3DYJvO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Apr 2013 16:36:54 -0400
-Received: by mail-la0-f54.google.com with SMTP id es20so622190lab.13
-        for <linux-media@vger.kernel.org>; Sat, 20 Apr 2013 13:36:52 -0700 (PDT)
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-To: horms@verge.net.au, magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 4/5] ARM: shmobile: BOCK-W: add VIN and ML86V7667 support
-Date: Sun, 21 Apr 2013 00:36:01 +0400
-Cc: linux-media@vger.kernel.org, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
-References: <201304210013.46110.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201304210013.46110.sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304210036.02003.sergei.shtylyov@cogentembedded.com>
+	Thu, 25 Apr 2013 05:51:14 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT00JTK20XNNL0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 18:51:09 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Javier Martin <javier.martin@vista-silicon.com>
+Subject: [PATCH 7/7] mx2-emmaprp: Add copy time stamp handling
+Date: Thu, 25 Apr 2013 11:49:50 +0200
+Message-id: <1366883390-12890-8-git-send-email-k.debski@samsung.com>
+In-reply-to: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
+References: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-
-Add ML86V7667 platform devices on BOCK-W board, configure VIN0/1 pins, and
-register VIN0/1 devices with the ML86V7667 specific platform data.
-
-Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-[Sergei: some macro/comment cleanup; updated the copyrights.]
-Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com> 
+Cc: Thierry Reding <thierry.reding@avionic-design.de>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
 ---
- arch/arm/mach-shmobile/board-bockw.c |   40 +++++++++++++++++++++++++++++++++++
- 1 file changed, 40 insertions(+)
+ drivers/media/platform/mx2_emmaprp.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-Index: renesas/arch/arm/mach-shmobile/board-bockw.c
-===================================================================
---- renesas.orig/arch/arm/mach-shmobile/board-bockw.c
-+++ renesas/arch/arm/mach-shmobile/board-bockw.c
-@@ -3,6 +3,7 @@
-  *
-  * Copyright (C) 2013  Renesas Solutions Corp.
-  * Copyright (C) 2013  Kuninori Morimoto <kuninori.morimoto.gx@renesas.com>
-+ * Copyright (C) 2013  Cogent Embedded, Inc.
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published by
-@@ -23,6 +24,8 @@
- #include <linux/regulator/fixed.h>
- #include <linux/regulator/machine.h>
- #include <linux/smsc911x.h>
-+#include <linux/pinctrl/machine.h>
-+#include <media/soc_camera.h>
- #include <mach/common.h>
- #include <mach/irqs.h>
- #include <mach/r8a7778.h>
-@@ -56,12 +59,41 @@ static struct resource smsc911x_resource
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index 4b9e0a2..f7440e5 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -377,6 +377,9 @@ static irqreturn_t emmaprp_irq(int irq_emma, void *data)
+ 			src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
+ 			dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
  
- static struct rcar_phy_platform_data usb_phy_platform_data;
- 
-+static struct rcar_vin_platform_data vin_platform_data = {
-+	.flags	= RCAR_VIN_BT656,
-+};
++			src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
++			src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
 +
-+/* In the default configuration both decoders reside on I2C bus 0 */
-+#define BOCKW_CAMERA(idx)						\
-+static struct i2c_board_info camera##idx##_info = {			\
-+	I2C_BOARD_INFO("ml86v7667", 0x41 + 2 * (idx)),			\
-+};									\
-+									\
-+static struct soc_camera_link iclink##idx##_ml86v7667 = {		\
-+	.bus_id		= idx,						\
-+	.i2c_adapter_id	= 0,						\
-+	.board_info	= &camera##idx##_info,				\
-+};
-+
-+BOCKW_CAMERA(0);
-+BOCKW_CAMERA(1);
-+
- static const struct pinctrl_map bockw_pinctrl_map[] = {
- 	/* SCIF0 */
- 	PIN_MAP_MUX_GROUP_DEFAULT("sh-sci.0", "pfc-r8a7778",
- 				  "scif0_data_a", "scif0"),
- 	PIN_MAP_MUX_GROUP_DEFAULT("sh-sci.0", "pfc-r8a7778",
- 				  "scif0_ctrl", "scif0"),
-+	/* VIN0 */
-+	PIN_MAP_MUX_GROUP_DEFAULT("rcar_vin.0", "pfc-r8a7778",
-+				  "vin0_clk", "vin0"),
-+	PIN_MAP_MUX_GROUP_DEFAULT("rcar_vin.0", "pfc-r8a7778",
-+				  "vin0_data8", "vin0"),
-+	/* VIN1 */
-+	PIN_MAP_MUX_GROUP_DEFAULT("rcar_vin.1", "pfc-r8a7778",
-+				  "vin1_clk", "vin1"),
-+	PIN_MAP_MUX_GROUP_DEFAULT("rcar_vin.1", "pfc-r8a7778",
-+				  "vin1_data8", "vin1"),
- };
+ 			spin_lock_irqsave(&pcdev->irqlock, flags);
+ 			v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
+ 			v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
+@@ -763,6 +766,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->ops = &emmaprp_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
++	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
  
- #define FPGA	0x18200000
-@@ -74,6 +106,14 @@ static void __init bockw_init(void)
- 	r8a7778_init_irq_extpin(1);
- 	r8a7778_add_standard_devices();
- 	r8a7778_add_usb_phy_device(&usb_phy_platform_data);
-+	r8a7778_add_vin_device(0, &vin_platform_data);
-+	r8a7778_add_vin_device(1, &vin_platform_data);
-+	platform_device_register_data(&platform_bus, "soc-camera-pdrv", 0,
-+				      &iclink0_ml86v7667,
-+				      sizeof(iclink0_ml86v7667));
-+	platform_device_register_data(&platform_bus, "soc-camera-pdrv", 1,
-+				      &iclink1_ml86v7667,
-+				      sizeof(iclink1_ml86v7667));
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -774,6 +778,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->ops = &emmaprp_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
++	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
  
- 	pinctrl_register_mappings(bockw_pinctrl_map,
- 				  ARRAY_SIZE(bockw_pinctrl_map));
+ 	return vb2_queue_init(dst_vq);
+ }
+-- 
+1.7.9.5
+
