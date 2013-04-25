@@ -1,98 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3912 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1763588Ab3DDSTm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Apr 2013 14:19:42 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r34IJcQn011768
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 4 Apr 2013 20:19:41 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id BE22711E00BD
-	for <linux-media@vger.kernel.org>; Thu,  4 Apr 2013 20:19:31 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130404181931.BE22711E00BD@alastor.dyndns.org>
-Date: Thu,  4 Apr 2013 20:19:31 +0200 (CEST)
+Received: from mail-qc0-f180.google.com ([209.85.216.180]:42341 "EHLO
+	mail-qc0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758748Ab3DYUxj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 16:53:39 -0400
+Received: by mail-qc0-f180.google.com with SMTP id b40so1750824qcq.39
+        for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 13:53:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <001901ce41f5$c4da31f0$4e8e95d0$@vizexperts.com>
+References: <001901ce41f5$c4da31f0$4e8e95d0$@vizexperts.com>
+Date: Thu, 25 Apr 2013 16:53:37 -0400
+Message-ID: <CAGoCfizbP4F-OEJ25cFevcUgDL9AaBVroGF6Su9rhsi1=AqdOA@mail.gmail.com>
+Subject: Re: Video Signal Type in V4L
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Abhishek Bansal <abhishek@vizexperts.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+> Is there any way by which I can know Input signal type (in terms of
+> DVI/Composite/USB/SDI) and refresh rate from a V4L video capture device.
+> Any available V4L Structure/Flag from which I can deduce this information.
+> Please help !
 
-Results of the daily build of media_tree:
+The extent to which the data is available is the name field in the G_FMT call:
 
-date:		Thu Apr  4 19:00:19 CEST 2013
-git branch:	test
-git hash:	f9f11dfe4831adb1531e1face9dcd9fc57665d2e
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-enuminput.html
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9-rc1-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+For most devices, the driver developer names the individual inputs
+"Composite", "S-Video", "Tuner", etc.
 
-Detailed results are available here:
+The only level of distinction other than the name is the type field,
+which today is V4L2_INPUT_TYPE_TUNER for an RF tuner and
+V4L2_INPUT_TYPE_CAMERA for everything else.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+To my knowledge there aren't any current drivers in the main tree that
+support DVI or SDI capture, so nobody has really cared to make the API
+more flexible to extend the "type" field with other values (which
+would both be easier to machine parse, localize, and be consistent
+across boards).
 
-Full logs are available here:
+Devin
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
