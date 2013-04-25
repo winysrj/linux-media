@@ -1,61 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3859 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860Ab3DAKTh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 06:19:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] xawtv: release buffer if it can't be displayed
-Date: Mon, 1 Apr 2013 12:19:30 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201303301047.41952.hverkuil@xs4all.nl> <51583081.4000806@redhat.com>
-In-Reply-To: <51583081.4000806@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304011219.30985.hverkuil@xs4all.nl>
+Received: from mailout3.samsung.com ([203.254.224.33]:58915 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757389Ab3DYLhU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 07:37:20 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT003AI6Y6ABQ0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 20:37:18 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Jeongtae Park <jtp.park@samsung.com>
+Subject: [PATCH 3/7 v2] s5p-mfc: Optimize copy time stamp handling
+Date: Thu, 25 Apr 2013 13:36:04 +0200
+Message-id: <1366889768-16677-4-git-send-email-k.debski@samsung.com>
+In-reply-to: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
+References: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+For the sake of simplicity and readability memcpy was replaced with
+assignment.
 
-On Sun March 31 2013 14:48:01 Hans de Goede wrote:
-> Hi,
-> 
-> On 03/30/2013 10:47 AM, Hans Verkuil wrote:
-> > This patch for xawtv3 releases the buffer if it can't be displayed because
-> > the resolution of the current format is larger than the size of the window.
-> >
-> > This will happen if the hardware cannot scale down to the initially quite
-> > small xawtv window. For example the au0828 driver has a fixed size of 720x480,
-> > so it will not display anything until the window is large enough for that
-> > resolution.
-> >
-> > The problem is that xawtv never releases (== calls QBUF) the buffer in that
-> > case, and it will of course run out of buffers and stall. The only way to
-> > kill it is to issue a 'kill -9' since ctrl-C won't work either.
-> >
-> > By releasing the buffer xawtv at least remains responsive and a picture will
-> > appear after resizing the window. Ideally of course xawtv should resize itself
-> > to the minimum supported resolution, but that's left as an exercise for the
-> > reader...
-> >
-> > Hans, the xawtv issues I reported off-list are all caused by this bug and by
-> > by the scaling bug introduced recently in em28xx. They had nothing to do with
-> > the alsa streaming, that was a red herring.
-> 
-> Thanks for the debugging and for the patch. I've pushed the patch to
-> xawtv3.git. I've a 2 patch follow up set which should fix the issue with being
-> able to resize the window to a too small size.
-> 
-> I'll send this patch set right after this mail, can you test it with the au0828
-> please?
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Jeongtae Park <jtp.park@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc.c |   10 ++++------
+ 1 file changed, 4 insertions(+), 6 deletions(-)
 
-I've tested it and it is not yet working. I've tracked it down to video_gd_configure
-where it calls ng_ratio_fixup() which changes the cur_tv_width of 736 to 640. The
-height remains the same at 480.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index e810b1a..49f2d9f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -243,12 +243,10 @@ static void s5p_mfc_handle_frame_copy_time(struct s5p_mfc_ctx *ctx)
+ 	src_buf = list_entry(ctx->src_queue.next, struct s5p_mfc_buf, list);
+ 	list_for_each_entry(dst_buf, &ctx->dst_queue, list) {
+ 		if (vb2_dma_contig_plane_dma_addr(dst_buf->b, 0) == dec_y_addr) {
+-			memcpy(&dst_buf->b->v4l2_buf.timecode,
+-				&src_buf->b->v4l2_buf.timecode,
+-				sizeof(struct v4l2_timecode));
+-			memcpy(&dst_buf->b->v4l2_buf.timestamp,
+-				&src_buf->b->v4l2_buf.timestamp,
+-				sizeof(struct timeval));
++			dst_buf->b->v4l2_buf.timecode =
++						src_buf->b->v4l2_buf.timecode;
++			dst_buf->b->v4l2_buf.timestamp =
++						src_buf->b->v4l2_buf.timestamp;
+ 			switch (frame_type) {
+ 			case S5P_FIMV_DECODE_FRAME_I_FRAME:
+ 				dst_buf->b->v4l2_buf.flags |=
+-- 
+1.7.9.5
 
-Regards,
-
-	Hans
