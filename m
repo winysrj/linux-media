@@ -1,83 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:55166 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758276Ab3DHG2D convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 02:28:03 -0400
-Received: by mail-ob0-f182.google.com with SMTP id ef5so5356361obb.41
-        for <linux-media@vger.kernel.org>; Sun, 07 Apr 2013 23:28:01 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1365056913-25772-1-git-send-email-sumit.semwal@linaro.org>
-References: <1365056913-25772-1-git-send-email-sumit.semwal@linaro.org>
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Mon, 8 Apr 2013 11:57:41 +0530
-Message-ID: <CAO_48GEz037DhpZzQe-Ek2ob=bxX=QXdrv2onw_2zmt7B7BqGA@mail.gmail.com>
-Subject: Re: [PATCH v3 0/2] dma-buf: Add support for debugfs
-To: Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	linux-media@vger.kernel.org,
-	DRI mailing list <dri-devel@lists.freedesktop.org>
-Cc: Patch Tracking <patches@linaro.org>,
-	linaro-kernel@lists.linaro.org,
-	Sumit Semwal <sumit.semwal@linaro.org>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:19080 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752455Ab3DYMpb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 08:45:31 -0400
+Date: Thu, 25 Apr 2013 09:45:23 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [GIT PULL] m2m: Time stamp related fixes
+Message-ID: <20130425094523.52ce633e@redhat.com>
+In-Reply-To: <000b01ce41ad$f5f6c160$e1e44420$%debski@samsung.com>
+References: <000b01ce41ad$f5f6c160$e1e44420$%debski@samsung.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Em Thu, 25 Apr 2013 14:11:04 +0200
+Kamil Debski <k.debski@samsung.com> escreveu:
 
+> Hi Mauro,
+> 
+> Sorry for posting this so late. The patches in this pull request add
+> timestamp_type 
+> handling to mem2mem drivers.
+> 
+> Best wishes,
+>--
 
-On 4 April 2013 11:58, Sumit Semwal <sumit.semwal@linaro.org> wrote:
-> The patch series adds a much-missed support for debugfs to dma-buf framework.
->
-> Based on the feedback received on v1 of this patch series, support is also
-> added to allow exporters to provide name-strings that will prove useful
-> while debugging.
+Kamil,
 
-Since there're no more comments, I'll add this to my for-next, to
-queue it up for 3.10.
+Not sure what your emailer is doing, but both patchwork and my emailer
+thinks that your message ends with "--". That causes pwclient to not
+get anything below it, forcing me to manually cut and paste the remaining
+parts of it.
 
-Best regards,
-~Sumit.
->
-> Some more magic can be added for more advanced debugging, but we'll leave that
-> for the time being.
->
-> Best regards,
-> ~Sumit.
->
-> ---
-> changes since v2: (based on review comments from Laurent Pinchart)
->  - reordered functions to avoid forward declaration
->  - added __exitcall for dma_buf_deinit()
->
-> changes since v1:
->  - added patch to replace dma_buf_export() with dma_buf_export_named(), per
->     suggestion from Daniel Vetter.
->  - fixes on init and warnings as reported and corrected by Dave Airlie.
->  - added locking while walking attachment list - reported by Daniel Vetter.
->
-> Sumit Semwal (2):
->   dma-buf: replace dma_buf_export() with dma_buf_export_named()
->   dma-buf: Add debugfs support
->
->  Documentation/dma-buf-sharing.txt |   13 ++-
->  drivers/base/dma-buf.c            |  170 ++++++++++++++++++++++++++++++++++++-
->  include/linux/dma-buf.h           |   16 +++-
->  3 files changed, 190 insertions(+), 9 deletions(-)
->
+Could you please fix it?
+
+Thanks!
+Mauro
+
+> Kamil Debski
+> Linux Platform Group
+> Samsung Poland R&D Center		
+> 
+> The following changes since commit 5f3f254f7c138a22a544b80ce2c14a3fc4ed711e:
+> 
+>   [media] media/rc/imon.c: kill urb when send_packet() is interrupted
+> (2013-04-23 17:50:34 -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://git.linuxtv.org/kdebski/media.git media_tree
+> 
+> for you to fetch changes up to 3a9e65ae54131b8d4568a9e1b0695c37fffb37a2:
+> 
+>   mem2mem_testdev: set timestamp_type and add debug param (2013-04-25
+> 13:51:13 +0200)
+> 
+> ----------------------------------------------------------------
+> Hans Verkuil (1):
+>       mem2mem_testdev: set timestamp_type and add debug param
+> 
+> Kamil Debski (7):
+>       s5p-g2d: Add copy time stamp handling
+>       s5p-jpeg: Add copy time stamp handling
+>       s5p-mfc: Optimize copy time stamp handling
+>       coda: Add copy time stamp handling
+>       exynos-gsc: Add copy time stamp handling
+>       m2m-deinterlace: Add copy time stamp handling
+>       mx2-emmaprp: Add copy time stamp handling
+> 
+>  drivers/media/platform/coda.c               |    5 +++++
+>  drivers/media/platform/exynos-gsc/gsc-m2m.c |    5 +++++
+>  drivers/media/platform/m2m-deinterlace.c    |    5 +++++
+>  drivers/media/platform/mem2mem_testdev.c    |   12 +++++++++++-
+>  drivers/media/platform/mx2_emmaprp.c        |    5 +++++
+>  drivers/media/platform/s5p-g2d/g2d.c        |    5 +++++
+>  drivers/media/platform/s5p-jpeg/jpeg-core.c |    5 +++++
+>  drivers/media/platform/s5p-mfc/s5p_mfc.c    |   10 ++++------
+>  8 files changed, 45 insertions(+), 7 deletions(-)
+> 
+> 
+> 
+> 
+> 
 > --
-> 1.7.10.4
->
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
+-- 
 
---
-Thanks and regards,
+Cheers,
+Mauro
 
-Sumit Semwal
 
-Linaro Kernel Engineer - Graphics working group
+-- 
 
-Linaro.org │ Open source software for ARM SoCs
-
-Follow Linaro: Facebook | Twitter | Blog
+Cheers,
+Mauro
