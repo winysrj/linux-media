@@ -1,125 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:54400 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936303Ab3DRVgB (ORCPT
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:48457 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751872Ab3DYTP0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 17:36:01 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	Thu, 25 Apr 2013 15:15:26 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH 11/24] soc-camera: completely remove struct soc_camera_link
-Date: Thu, 18 Apr 2013 23:35:32 +0200
-Message-Id: <1366320945-21591-12-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+Cc: jonjon.arnearne@gmail.com, linux-kernel@vger.kernel.org,
+	hverkuil@xs4all.nl, elezegarcia@gmail.com, mkrufky@linuxtv.org,
+	mchehab@redhat.com, bjorn@mork.no
+Subject: [RFC V2 3/3] [smi2021] Add smi2021 driver to buildsystem
+Date: Thu, 25 Apr 2013 21:10:20 +0200
+Message-Id: <1366917020-18217-4-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
+References: <1366917020-18217-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This updates the last user of struct soc_camera_link and finally removes it.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
 ---
- Documentation/video4linux/soc-camera.txt |    2 +-
- drivers/media/usb/em28xx/em28xx-camera.c |   12 +++++--
- include/media/soc_camera.h               |   48 ------------------------------
- 3 files changed, 9 insertions(+), 53 deletions(-)
+ drivers/media/usb/Kconfig          |  1 +
+ drivers/media/usb/Makefile         |  1 +
+ drivers/media/usb/smi2021/Kconfig  | 11 +++++++++++
+ drivers/media/usb/smi2021/Makefile | 10 ++++++++++
+ 4 files changed, 23 insertions(+)
+ create mode 100644 drivers/media/usb/smi2021/Kconfig
+ create mode 100644 drivers/media/usb/smi2021/Makefile
 
-diff --git a/Documentation/video4linux/soc-camera.txt b/Documentation/video4linux/soc-camera.txt
-index f62fcdb..04da87a 100644
---- a/Documentation/video4linux/soc-camera.txt
-+++ b/Documentation/video4linux/soc-camera.txt
-@@ -85,7 +85,7 @@ respective V4L2 operations.
- Camera API
- ----------
+diff --git a/drivers/media/usb/Kconfig b/drivers/media/usb/Kconfig
+index 0a7d520..dec0383 100644
+--- a/drivers/media/usb/Kconfig
++++ b/drivers/media/usb/Kconfig
+@@ -26,6 +26,7 @@ source "drivers/media/usb/hdpvr/Kconfig"
+ source "drivers/media/usb/tlg2300/Kconfig"
+ source "drivers/media/usb/usbvision/Kconfig"
+ source "drivers/media/usb/stk1160/Kconfig"
++source "drivers/media/usb/smi2021/Kconfig"
+ endif
  
--Sensor drivers can use struct soc_camera_link, typically provided by the
-+Sensor drivers can use struct soc_camera_desc, typically provided by the
- platform, and used to specify to which camera host bus the sensor is connected,
- and optionally provide platform .power and .reset methods for the camera. This
- struct is provided to the camera driver via the I2C client device platform data
-diff --git a/drivers/media/usb/em28xx/em28xx-camera.c b/drivers/media/usb/em28xx/em28xx-camera.c
-index 73cc50a..365b601 100644
---- a/drivers/media/usb/em28xx/em28xx-camera.c
-+++ b/drivers/media/usb/em28xx/em28xx-camera.c
-@@ -43,10 +43,14 @@ static unsigned short omnivision_sensor_addrs[] = {
- };
- 
- 
--static struct soc_camera_link camlink = {
--	.bus_id = 0,
--	.flags = 0,
--	.module_name = "em28xx",
-+static struct soc_camera_desc camlink = {
-+	.subdev_desc	= {
-+		.flags = 0,
-+	},
-+	.host_desc	= {
-+		.bus_id = 0,
-+		.module_name = "em28xx",
-+	},
- };
- 
- 
-diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
-index 1331278..a2a3b4f 100644
---- a/include/media/soc_camera.h
-+++ b/include/media/soc_camera.h
-@@ -190,54 +190,6 @@ struct soc_camera_desc {
- };
- 
- /* Prepare to replace this struct: don't change its layout any more! */
--struct soc_camera_link {
--	/*
--	 * Subdevice part - keep at top and compatible to
--	 * struct soc_camera_subdev_desc
--	 */
--
--	/* Per camera SOCAM_SENSOR_* bus flags */
--	unsigned long flags;
--
--	void *priv;
--
--	/* Optional callbacks to power on or off and reset the sensor */
--	int (*power)(struct device *, int);
--	int (*reset)(struct device *);
--	/*
--	 * some platforms may support different data widths than the sensors
--	 * native ones due to different data line routing. Let the board code
--	 * overwrite the width flags.
--	 */
--	int (*set_bus_param)(struct soc_camera_link *, unsigned long flags);
--	unsigned long (*query_bus_param)(struct soc_camera_link *);
--	void (*free_bus)(struct soc_camera_link *);
--
--	/* Optional regulators that have to be managed on power on/off events */
--	struct regulator_bulk_data *regulators;
--	int num_regulators;
--
--	void *host_priv;
--
--	/*
--	 * Host part - keep at bottom and compatible to
--	 * struct soc_camera_host_desc
--	 */
--
--	/* Camera bus id, used to match a camera and a bus */
--	int bus_id;
--	int i2c_adapter_id;
--	struct i2c_board_info *board_info;
--	const char *module_name;
--
--	/*
--	 * For non-I2C devices platform has to provide methods to add a device
--	 * to the system and to remove it
--	 */
--	int (*add_device)(struct soc_camera_device *);
--	void (*del_device)(struct soc_camera_device *);
--};
--
- static inline struct soc_camera_host *to_soc_camera_host(
- 	const struct device *dev)
- {
+ if (MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT)
+diff --git a/drivers/media/usb/Makefile b/drivers/media/usb/Makefile
+index 7f51d7e..932a6ba 100644
+--- a/drivers/media/usb/Makefile
++++ b/drivers/media/usb/Makefile
+@@ -20,3 +20,4 @@ obj-$(CONFIG_VIDEO_STK1160) += stk1160/
+ obj-$(CONFIG_VIDEO_CX231XX) += cx231xx/
+ obj-$(CONFIG_VIDEO_TM6000) += tm6000/
+ obj-$(CONFIG_VIDEO_EM28XX) += em28xx/
++obj-$(CONFIG_VIDEO_SMI2021) += smi2021/
+diff --git a/drivers/media/usb/smi2021/Kconfig b/drivers/media/usb/smi2021/Kconfig
+new file mode 100644
+index 0000000..6a6fb8a
+--- /dev/null
++++ b/drivers/media/usb/smi2021/Kconfig
+@@ -0,0 +1,11 @@
++config VIDEO_SMI2021
++	tristate "Somagic SMI2021 USB video/audio capture support"
++	depends on VIDEO_DEV && I2C && SND && USB
++	select VIDEOBUF2_VMALLOC
++	select VIDEO_SAA711X
++	select SND_PCM
++	help
++	  This is a video4linux driver for SMI2021 based video capture devices.
++
++	  To compile this driver as a module, choose M here: the
++	  module will be called smi2021
+diff --git a/drivers/media/usb/smi2021/Makefile b/drivers/media/usb/smi2021/Makefile
+new file mode 100644
+index 0000000..8a62f02
+--- /dev/null
++++ b/drivers/media/usb/smi2021/Makefile
+@@ -0,0 +1,10 @@
++smi2021-y := smi2021_main.o		\
++	     smi2021_bootloader.o	\
++	     smi2021_v4l2.o		\
++	     smi2021_video.o		\
++	     smi2021_i2c.o		\
++	     smi2021_audio.o		\
++
++obj-$(CONFIG_VIDEO_SMI2021) += smi2021.o
++
++ccflags-y += -Idrivers/media/i2c
 -- 
-1.7.2.5
+1.8.2.1
 
