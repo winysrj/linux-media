@@ -1,112 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.19]:61284 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1764841Ab3DDVbQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Apr 2013 17:31:16 -0400
-Received: from mailout-de.gmx.net ([10.1.76.35]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0LxZpd-1Uhgz21MRX-017HaE for
- <linux-media@vger.kernel.org>; Thu, 04 Apr 2013 23:31:15 +0200
-Message-ID: <515DF24C.2050000@gmx.de>
-Date: Thu, 04 Apr 2013 23:36:12 +0200
-From: Peter Wiese <peter.wiese@gmx.de>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: [PATCH] budget.c SAA7146 / BSRU6 additional SAT CARD support
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from p3plsmtpa09-03.prod.phx3.secureserver.net ([173.201.193.232]:36761
+	"EHLO p3plsmtpa09-03.prod.phx3.secureserver.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757099Ab3DYKAW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 06:00:22 -0400
+From: Leonid Kegulskiy <leo@lumanate.com>
+To: hverkuil@xs4all.nl
+Cc: Leonid Kegulskiy <leo@lumanate.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 4/4] [media] hdpvr: Cleaned up error handling
+Date: Thu, 25 Apr 2013 02:59:57 -0700
+Message-Id: <1366883997-18909-5-git-send-email-leo@lumanate.com>
+In-Reply-To: <1366883997-18909-1-git-send-email-leo@lumanate.com>
+References: <1366883997-18909-1-git-send-email-leo@lumanate.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Peter Wiese<peter.wiese@gmx.de>
-Committer: Peter Wiese <peter.wiese@gmx.de>
+Changed vidioc_g_fmt_vid_cap() implementation not to return
+-EFAULT when video lock is not detected, but return empty
+width/height fields (legacy mode only). This new behavior is
+supported by MythTV.
 
-modified:   drivers/media/pci/ttpci/budget.c
-
-added support for Philips Semiconductor (now NXP) SAA7146
-reference design DVB Sat card, using ALPS BSRU6 tuner
-3 changes in budget.c driver to enable proper detection of the
-card and load the tuner driver
-
+Signed-off-by: Leonid Kegulskiy <leo@lumanate.com>
 ---
+ drivers/media/usb/hdpvr/hdpvr-control.c |    5 -----
+ drivers/media/usb/hdpvr/hdpvr-video.c   |   10 +++++++---
+ 2 files changed, 7 insertions(+), 8 deletions(-)
 
-By making a contribution to this project, I certify that:
+diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
+index 5265b75..16d2d64 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-control.c
++++ b/drivers/media/usb/hdpvr/hdpvr-control.c
+@@ -73,11 +73,6 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
+ #endif
+ 	mutex_unlock(&dev->usbc_mutex);
+ 
+-	/* preserve original behavior - fail if no signal is detected */
+-	if (!vidinf->width || !vidinf->height || !vidinf->fps) {
+-		ret = -EFAULT;
+-	}
+-
+ 	return ret < 0 ? ret : 0;
+ }
+ 
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 2d02b49..5e8d6c2 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -285,8 +285,10 @@ static int hdpvr_start_streaming(struct hdpvr_device *dev)
+ 		return -EAGAIN;
+ 
+ 	ret = get_video_info(dev, &vidinf);
++	if (ret)		/* device is dead */
++		return ret;	/* let the caller know */
+ 
+-	if (!ret) {
++	if (vidinf.width && vidinf.height) {
+ 		v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
+ 			 "video signal: %dx%d@%dhz\n", vidinf.width,
+ 			 vidinf.height, vidinf.fps);
+@@ -618,7 +620,7 @@ static int vidioc_querystd(struct file *file, void *_fh, v4l2_std_id *a)
+ 		return fh->legacy_mode ? 0 : -ENODATA;
+ 	ret = get_video_info(dev, &vid_info);
+ 	if (ret)
+-		return 0;
++		return ret;
+ 	if (vid_info.width == 720 &&
+ 	    (vid_info.height == 480 || vid_info.height == 576)) {
+ 		*a = (vid_info.height == 480) ?
+@@ -679,6 +681,8 @@ static int vidioc_query_dv_timings(struct file *file, void *_fh,
+ 		return -ENODATA;
+ 	ret = get_video_info(dev, &vid_info);
+ 	if (ret)
++		return ret;
++	if (vid_info.fps == 0)
+ 		return -ENOLCK;
+ 	interlaced = vid_info.fps <= 30;
+ 	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++) {
+@@ -1009,7 +1013,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *_fh,
+ 
+ 		ret = get_video_info(dev, &vid_info);
+ 		if (ret)
+-			return -EFAULT;
++			return ret;
+ 		f->fmt.pix.width = vid_info.width;
+ 		f->fmt.pix.height = vid_info.height;
+ 	} else {
+-- 
+1.7.10.4
 
-(a) The contribution was created in whole or in part by me and I
-     have the right to submit it under the open source license
-     indicated in the file; or
-
-(b) The contribution is based upon previous work that, to the best
-     of my knowledge, is covered under an appropriate open source
-     license and I have the right under that license to submit that
-     work with modifications, whether created in whole or in part
-     by me, under the same open source license (unless I am
-     permitted to submit under a different license), as indicated
-     in the file; or
-
-(c) The contribution was provided directly to me by some other
-     person who certified (a), (b) or (c) and I have not modified
-     it.
-
-(d) I understand and agree that this project and the contribution
-     are public and that a record of the contribution (including all
-     personal information I submit with it, including my sign-off) is
-     maintained indefinitely and may be redistributed consistent with
-     this project or the open source license(s) involved.
-
----
-diff --git a/drivers/media/pci/ttpci/budget.c 
-b/drivers/media/pci/ttpci/budget.c
-index 7e6e43a..2a03bf0 100644
---- a/drivers/media/pci/ttpci/budget.c
-+++ b/drivers/media/pci/ttpci/budget.c
-@@ -13,6 +13,9 @@
-   *           Oliver Endriss <o.endriss@gmx.de> and
-   *           Andreas 'randy' Weinberger
-   *
-+ * 02mar2013 Support for Philips Semiconductors Sylt SAA7146 cards 
-(Alps tuner)
-+ *           Peter Wiese <peter.wiese@gmx.de>
-+ *
-   * This program is free software; you can redistribute it and/or
-   * modify it under the terms of the GNU General Public License
-   * as published by the Free Software Foundation; either version 2
-@@ -537,6 +540,16 @@ static void frontend_init(struct budget *budget)
-          }
-          break;
-
-+    case 0x4f52: /* Cards based on Philips Semi Sylt PCI ref. design */
-+        budget->dvb_frontend = dvb_attach(stv0299_attach, 
-&alps_bsru6_config, &budget->i2c_adap);
-+        if (budget->dvb_frontend) {
-+            printk(KERN_INFO "budget: tuner ALPS BSRU6 in Philips Semi. 
-Sylt detected\n");
-+            budget->dvb_frontend->ops.tuner_ops.set_params = 
-alps_bsru6_tuner_set_params;
-+            budget->dvb_frontend->tuner_priv = &budget->i2c_adap;
-+            break;
-+        }
-+        break;
-+
-      case 0x4f60: /* Fujitsu Siemens Activy Budget-S PCI rev AL 
-(stv0299/tsa5059) */
-      {
-          int subtype = i2c_readreg(&budget->i2c_adap, 0x50, 0x67);
-@@ -818,6 +831,7 @@ MAKE_BUDGET_INFO(fsacs1, "Fujitsu Siemens Activy 
-Budget-S PCI (rev AL/alps front
-  MAKE_BUDGET_INFO(fsact,     "Fujitsu Siemens Activy Budget-T PCI (rev 
-GR/Grundig frontend)", BUDGET_FS_ACTIVY);
-  MAKE_BUDGET_INFO(fsact1, "Fujitsu Siemens Activy Budget-T PCI (rev 
-AL/ALPS TDHD1-204A)", BUDGET_FS_ACTIVY);
-  MAKE_BUDGET_INFO(omicom, "Omicom S2 PCI", BUDGET_TT);
-+MAKE_BUDGET_INFO(sylt,    "Philips Semi Sylt PCI", BUDGET_TT_HW_DISEQC);
-
-  static struct pci_device_id pci_tbl[] = {
-      MAKE_EXTENSION_PCI(ttbs,  0x13c2, 0x1003),
-@@ -832,6 +846,7 @@ static struct pci_device_id pci_tbl[] = {
-      MAKE_EXTENSION_PCI(fsact1, 0x1131, 0x5f60),
-      MAKE_EXTENSION_PCI(fsact, 0x1131, 0x5f61),
-      MAKE_EXTENSION_PCI(omicom, 0x14c4, 0x1020),
-+    MAKE_EXTENSION_PCI(sylt, 0x1131, 0x4f52),
-      {
-          .vendor    = 0,
-      }
