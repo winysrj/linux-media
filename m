@@ -1,80 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ye0-f202.google.com ([209.85.213.202]:53010 "EHLO
-	mail-ye0-f202.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754660Ab3DXAlh (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:40536 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755185Ab3DYMLL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 20:41:37 -0400
-Received: by mail-ye0-f202.google.com with SMTP id l8so138795yen.5
-        for <linux-media@vger.kernel.org>; Tue, 23 Apr 2013 17:41:36 -0700 (PDT)
-From: Shawn Nematbakhsh <shawnn@google.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	shawnn@chromium.org
-Subject: [PATCH] [media] uvcvideo: Retry usb_submit_urb on -EPERM return
-Date: Tue, 23 Apr 2013 17:41:13 -0700
-Message-Id: <1366764073-9633-1-git-send-email-shawnn@google.com>
+	Thu, 25 Apr 2013 08:11:11 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT0065R8HL4W70@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 13:11:08 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync2.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MLT001V48IGDHB0@eusync2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 13:11:08 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL] m2m: Time stamp related fixes
+Date: Thu, 25 Apr 2013 14:11:04 +0200
+Message-id: <000b01ce41ad$f5f6c160$e1e44420$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Shawn Nematbakhsh <shawnn@chromium.org>
+Hi Mauro,
 
-While usb_kill_urb is in progress, calls to usb_submit_urb will fail
-with -EPERM (documented in Documentation/usb/URB.txt). The UVC driver
-does not correctly handle this case -- there is no synchronization
-between uvc_v4l2_open / uvc_status_start and uvc_v4l2_release /
-uvc_status_stop.
+Sorry for posting this so late. The patches in this pull request add
+timestamp_type 
+handling to mem2mem drivers.
 
-This patch adds a retry / timeout when uvc_status_open / usb_submit_urb
-returns -EPERM. This usually means that usb_kill_urb is in progress, and
-we just need to wait a while.
-
-Signed-off-by: Shawn Nematbakhsh <shawnn@chromium.org>
----
- drivers/media/usb/uvc/uvc_v4l2.c | 10 +++++++++-
- drivers/media/usb/uvc/uvcvideo.h |  1 +
- 2 files changed, 10 insertions(+), 1 deletion(-)
-
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index b2dc326..f1498a8 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -479,6 +479,7 @@ static int uvc_v4l2_open(struct file *file)
- {
- 	struct uvc_streaming *stream;
- 	struct uvc_fh *handle;
-+	unsigned long timeout;
- 	int ret = 0;
- 
- 	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_open\n");
-@@ -499,7 +500,14 @@ static int uvc_v4l2_open(struct file *file)
- 	}
- 
- 	if (atomic_inc_return(&stream->dev->users) == 1) {
--		ret = uvc_status_start(stream->dev);
-+		timeout = jiffies + msecs_to_jiffies(UVC_STATUS_START_TIMEOUT);
-+		/* -EPERM means stop in progress, wait for completion */
-+		do {
-+			ret = uvc_status_start(stream->dev);
-+			if (ret == -EPERM)
-+				usleep_range(5000, 6000);
-+		} while (ret == -EPERM && time_before(jiffies, timeout));
-+
- 		if (ret < 0) {
- 			atomic_dec(&stream->dev->users);
- 			usb_autopm_put_interface(stream->dev->intf);
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index af505fd..a47e1d3 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -122,6 +122,7 @@
- 
- #define UVC_CTRL_CONTROL_TIMEOUT	300
- #define UVC_CTRL_STREAMING_TIMEOUT	5000
-+#define UVC_STATUS_START_TIMEOUT	100
- 
- /* Maximum allowed number of control mappings per device */
- #define UVC_MAX_CONTROL_MAPPINGS	1024
+Best wishes,
 -- 
-1.7.12.4
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center		
+
+The following changes since commit 5f3f254f7c138a22a544b80ce2c14a3fc4ed711e:
+
+  [media] media/rc/imon.c: kill urb when send_packet() is interrupted
+(2013-04-23 17:50:34 -0300)
+
+are available in the git repository at:
+
+  git://git.linuxtv.org/kdebski/media.git media_tree
+
+for you to fetch changes up to 3a9e65ae54131b8d4568a9e1b0695c37fffb37a2:
+
+  mem2mem_testdev: set timestamp_type and add debug param (2013-04-25
+13:51:13 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      mem2mem_testdev: set timestamp_type and add debug param
+
+Kamil Debski (7):
+      s5p-g2d: Add copy time stamp handling
+      s5p-jpeg: Add copy time stamp handling
+      s5p-mfc: Optimize copy time stamp handling
+      coda: Add copy time stamp handling
+      exynos-gsc: Add copy time stamp handling
+      m2m-deinterlace: Add copy time stamp handling
+      mx2-emmaprp: Add copy time stamp handling
+
+ drivers/media/platform/coda.c               |    5 +++++
+ drivers/media/platform/exynos-gsc/gsc-m2m.c |    5 +++++
+ drivers/media/platform/m2m-deinterlace.c    |    5 +++++
+ drivers/media/platform/mem2mem_testdev.c    |   12 +++++++++++-
+ drivers/media/platform/mx2_emmaprp.c        |    5 +++++
+ drivers/media/platform/s5p-g2d/g2d.c        |    5 +++++
+ drivers/media/platform/s5p-jpeg/jpeg-core.c |    5 +++++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c    |   10 ++++------
+ 8 files changed, 45 insertions(+), 7 deletions(-)
+
+
+
+
 
