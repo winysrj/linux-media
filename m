@@ -1,90 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ven69-h01-31-33-9-98.dsl.sta.abo.bbox.fr ([31.33.9.98]:46594
-	"EHLO laptop-kevin.kbaradon.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754852Ab3DVUpO (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:42632 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751436Ab3DYJ4m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 16:45:14 -0400
-From: Kevin Baradon <kevin.baradon@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Kevin Baradon <kevin.baradon@gmail.com>
-Subject: [PATCH 1/4] Revert "media/rc/imon.c: make send_packet() delay larger for 15c2:0036"
-Date: Mon, 22 Apr 2013 22:09:43 +0200
-Message-Id: <1366661386-6720-2-git-send-email-kevin.baradon@gmail.com>
-In-Reply-To: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
-References: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
+	Thu, 25 Apr 2013 05:56:42 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT00M1N29OF7L0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 18:56:20 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: javier.martin@vista-silicon.com,
+	Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 6/7] m2m-deinterlace: Add copy time stamp handling
+Date: Thu, 25 Apr 2013 11:56:03 +0200
+Message-id: <1366883763-13272-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This reverts commit d92f150f9cb80b4df56331d1f42442da78e351f0.
-It seems send_packet() is used during initialization, before send_packet_delay is set.
-
-This will be fixed by another patch.
-
-Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/rc/imon.c |   17 ++++-------------
- 1 file changed, 4 insertions(+), 13 deletions(-)
+ drivers/media/platform/m2m-deinterlace.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index b8f9f85..e5d1c0d 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -112,7 +112,6 @@ struct imon_context {
- 	bool tx_control;
- 	unsigned char usb_rx_buf[8];
- 	unsigned char usb_tx_buf[8];
--	unsigned int send_packet_delay;
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index 6c4db9b..7585646 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -207,6 +207,9 @@ static void dma_callback(void *data)
+ 	src_vb = v4l2_m2m_src_buf_remove(curr_ctx->m2m_ctx);
+ 	dst_vb = v4l2_m2m_dst_buf_remove(curr_ctx->m2m_ctx);
  
- 	struct tx_t {
- 		unsigned char data_buf[35];	/* user data buffer */
-@@ -186,10 +185,6 @@ enum {
- 	IMON_KEY_PANEL	= 2,
- };
++	src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
++	src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
++
+ 	v4l2_m2m_buf_done(src_vb, VB2_BUF_STATE_DONE);
+ 	v4l2_m2m_buf_done(dst_vb, VB2_BUF_STATE_DONE);
  
--enum {
--	IMON_NEED_20MS_PKT_DELAY = 1
--};
--
- /*
-  * USB Device ID for iMON USB Control Boards
-  *
-@@ -220,7 +215,7 @@ static struct usb_device_id imon_usb_id_table[] = {
- 	/* SoundGraph iMON OEM Touch LCD (IR & 4.3" VGA LCD) */
- 	{ USB_DEVICE(0x15c2, 0x0035) },
- 	/* SoundGraph iMON OEM VFD (IR & VFD) */
--	{ USB_DEVICE(0x15c2, 0x0036), .driver_info = IMON_NEED_20MS_PKT_DELAY },
-+	{ USB_DEVICE(0x15c2, 0x0036) },
- 	/* device specifics unknown */
- 	{ USB_DEVICE(0x15c2, 0x0037) },
- 	/* SoundGraph iMON OEM LCD (IR & LCD) */
-@@ -540,12 +535,12 @@ static int send_packet(struct imon_context *ictx)
- 	kfree(control_req);
- 
- 	/*
--	 * Induce a mandatory delay before returning, as otherwise,
-+	 * Induce a mandatory 5ms delay before returning, as otherwise,
- 	 * send_packet can get called so rapidly as to overwhelm the device,
- 	 * particularly on faster systems and/or those with quirky usb.
- 	 */
--	timeout = msecs_to_jiffies(ictx->send_packet_delay);
--	set_current_state(TASK_INTERRUPTIBLE);
-+	timeout = msecs_to_jiffies(5);
-+	set_current_state(TASK_UNINTERRUPTIBLE);
- 	schedule_timeout(timeout);
- 
- 	return retval;
-@@ -2329,10 +2324,6 @@ static int imon_probe(struct usb_interface *interface,
- 
- 	}
- 
--	/* default send_packet delay is 5ms but some devices need more */
--	ictx->send_packet_delay = id->driver_info & IMON_NEED_20MS_PKT_DELAY ?
--				  20 : 5;
--
- 	usb_set_intfdata(interface, ictx);
- 
- 	if (ifnum == 0) {
+@@ -866,6 +869,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	src_vq->ops = &deinterlace_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
++	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	q_data[V4L2_M2M_SRC].fmt = &formats[0];
+ 	q_data[V4L2_M2M_SRC].width = 640;
+ 	q_data[V4L2_M2M_SRC].height = 480;
+@@ -882,6 +886,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
+ 	dst_vq->ops = &deinterlace_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
++	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 	q_data[V4L2_M2M_DST].fmt = &formats[0];
+ 	q_data[V4L2_M2M_DST].width = 640;
+ 	q_data[V4L2_M2M_DST].height = 480;
 -- 
-1.7.10.4
+1.7.9.5
 
