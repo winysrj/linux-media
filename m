@@ -1,46 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:58130 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935990Ab3DHJxz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 05:53:55 -0400
-Message-ID: <516293A2.8040908@ti.com>
-Date: Mon, 8 Apr 2013 15:23:38 +0530
-From: Sekhar Nori <nsekhar@ti.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Russell King <rmk+kernel@arm.linux.org.uk>,
-	<davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3] media: davinci: kconfig: fix incorrect selects
-References: <513EE45E.6050004@ti.com> <1363079692-16683-1-git-send-email-nsekhar@ti.com> <CA+V-a8ug3fre3WWp=1cri7rcPMFC+vhCOMkAViUyMz7yQ5nPaQ@mail.gmail.com>
-In-Reply-To: <CA+V-a8ug3fre3WWp=1cri7rcPMFC+vhCOMkAViUyMz7yQ5nPaQ@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mailout4.samsung.com ([203.254.224.34]:41946 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754310Ab3DYJvM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 05:51:12 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLT00JTK20XNNL0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Apr 2013 18:50:57 +0900 (KST)
+From: Kamil Debski <k.debski@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Shaik Ameer Basha <shaik.ameer@samsung.com>
+Subject: [PATCH 5/7] exynos-gsc: Add copy time stamp handling
+Date: Thu, 25 Apr 2013 11:49:48 +0200
+Message-id: <1366883390-12890-6-git-send-email-k.debski@samsung.com>
+In-reply-to: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
+References: <1366883390-12890-1-git-send-email-k.debski@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 4/8/2013 1:39 PM, Prabhakar Lad wrote:
-> Hi Sekhar,
+Signed-off-by: Kamil Debski <k.debski@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Shaik Ameer Basha <shaik.ameer@samsung.com>
+---
+ drivers/media/platform/exynos-gsc/gsc-m2m.c |    5 +++++
+ 1 file changed, 5 insertions(+)
 
->>  config VIDEO_DAVINCI_VPBE_DISPLAY
->> -       tristate "DM644X/DM365/DM355 VPBE HW module"
->> -       depends on ARCH_DAVINCI_DM644x || ARCH_DAVINCI_DM355 || ARCH_DAVINCI_DM365
->> -       select VIDEO_VPSS_SYSTEM
->> +       tristate "TI DaVinci VPBE V4L2-Display driver"
->> +       depends on ARCH_DAVINCI
->>         select VIDEOBUF2_DMA_CONTIG
->>         help
->>             Enables Davinci VPBE module used for display devices.
->> -           This module is common for following DM644x/DM365/DM355
->> +           This module is used for dipslay on TI DM644x/DM365/DM355
->>             based display devices.
->>
-> s/dipslay/display
-> 
-> Fixed it while queueing
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 386c0a7..40a73f7 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -80,6 +80,9 @@ void gsc_m2m_job_finish(struct gsc_ctx *ctx, int vb_state)
+ 	dst_vb = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+ 
+ 	if (src_vb && dst_vb) {
++		src_vb->v4l2_buf.timestamp = dst_vb->v4l2_buf.timestamp;
++		src_vb->v4l2_buf.timecode = dst_vb->v4l2_buf.timecode;
++
+ 		v4l2_m2m_buf_done(src_vb, vb_state);
+ 		v4l2_m2m_buf_done(dst_vb, vb_state);
+ 
+@@ -584,6 +587,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	src_vq->ops = &gsc_m2m_qops;
+ 	src_vq->mem_ops = &vb2_dma_contig_memops;
+ 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	src_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	ret = vb2_queue_init(src_vq);
+ 	if (ret)
+@@ -596,6 +600,7 @@ static int queue_init(void *priv, struct vb2_queue *src_vq,
+ 	dst_vq->ops = &gsc_m2m_qops;
+ 	dst_vq->mem_ops = &vb2_dma_contig_memops;
+ 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
++	dst_vq->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
+ 
+ 	return vb2_queue_init(dst_vq);
+ }
+-- 
+1.7.9.5
 
-Thanks!
-
-Regards,
-Sekhar
