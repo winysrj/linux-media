@@ -1,58 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:55849 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754383Ab3DYLhC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 07:37:02 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MLT000VE6XM3GN0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Apr 2013 20:37:00 +0900 (KST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 0/7 v2] Add copy time stamp handling to mem2mem drivers
-Date: Thu, 25 Apr 2013 13:36:01 +0200
-Message-id: <1366889768-16677-1-git-send-email-k.debski@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:53607 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756885Ab3DYTIH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 15:08:07 -0400
+Received: from int-mx01.intmail.prod.int.phx2.redhat.com (int-mx01.intmail.prod.int.phx2.redhat.com [10.5.11.11])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3PJ86b7018965
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 15:08:06 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 2/4] [media] cx25821-video: remove maxw from cx25821_vidioc_try_fmt_vid_cap
+Date: Thu, 25 Apr 2013 16:08:00 -0300
+Message-Id: <1366916882-3565-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1366916882-3565-1-git-send-email-mchehab@redhat.com>
+References: <1366916882-3565-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+After cx25821-video cleanup, this var is not used anymore:
 
-This set of patches adds support for copy time stamp handling in the following
-mem2mem drivers:
-* CODA video codec
-* Exynos GScaler
-* m2m-deinterlace
-* mx2_emmaprp
-* Exynos G2D
-* Exynos Jpeg
-In addition there is a slight optimisation for the Exynos MFC driver.
+drivers/media/pci/cx25821/cx25821-video.c: In function 'cx25821_vidioc_try_fmt_vid_cap':
+drivers/media/pci/cx25821/cx25821-video.c:591:15: warning: variable 'maxw' set but not used [-Wunused-but-set-variable]
 
-Second version includes commit messages.
+as the code now checks the max width as the default case for the
+range check.
 
-Best wishes,
-Kamil Debski
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/pci/cx25821/cx25821-video.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Kamil Debski (7):
-  s5p-g2d: Add copy time stamp handling
-  s5p-jpeg: Add copy time stamp handling
-  s5p-mfc: Optimize copy time stamp handling
-  coda: Add copy time stamp handling
-  exynos-gsc: Add copy time stamp handling
-  m2m-deinterlace: Add copy time stamp handling
-  mx2-emmaprp: Add copy time stamp handling
-
- drivers/media/platform/coda.c               |    5 +++++
- drivers/media/platform/exynos-gsc/gsc-m2m.c |    5 +++++
- drivers/media/platform/m2m-deinterlace.c    |    5 +++++
- drivers/media/platform/mx2_emmaprp.c        |    5 +++++
- drivers/media/platform/s5p-g2d/g2d.c        |    5 +++++
- drivers/media/platform/s5p-jpeg/jpeg-core.c |    5 +++++
- drivers/media/platform/s5p-mfc/s5p_mfc.c    |   10 ++++------
- 7 files changed, 34 insertions(+), 6 deletions(-)
-
+diff --git a/drivers/media/pci/cx25821/cx25821-video.c b/drivers/media/pci/cx25821/cx25821-video.c
+index b194138..3ba856a 100644
+--- a/drivers/media/pci/cx25821/cx25821-video.c
++++ b/drivers/media/pci/cx25821/cx25821-video.c
+@@ -588,13 +588,12 @@ static int cx25821_vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+ 	struct cx25821_dev *dev = chan->dev;
+ 	const struct cx25821_fmt *fmt;
+ 	enum v4l2_field field = f->fmt.pix.field;
+-	unsigned int maxw, maxh;
++	unsigned int maxh;
+ 	unsigned w;
+ 
+ 	fmt = cx25821_format_by_fourcc(f->fmt.pix.pixelformat);
+ 	if (NULL == fmt)
+ 		return -EINVAL;
+-	maxw = 720;
+ 	maxh = (dev->tvnorm & V4L2_STD_625_50) ? 576 : 480;
+ 
+ 	w = f->fmt.pix.width;
 -- 
-1.7.9.5
+1.8.1.4
 
