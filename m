@@ -1,144 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53526 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758152Ab3D2UwZ (ORCPT
+Received: from relmlor1.renesas.com ([210.160.252.171]:35194 "EHLO
+	relmlor1.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755776Ab3DZQNA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 16:52:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Kamil Debski <k.debski@samsung.com>
-Subject: Re: [RFC] Motion Detection API
-Date: Mon, 29 Apr 2013 22:52:31 +0200
-Message-ID: <1925455.QCByddZe4C@avalon>
-In-Reply-To: <201304121736.16542.hverkuil@xs4all.nl>
-References: <201304121736.16542.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 26 Apr 2013 12:13:00 -0400
+Received: from relmlir3.idc.renesas.com ([10.200.68.153])
+ by relmlor1.idc.renesas.com ( SJSMS)
+ with ESMTP id <0MLV00D2DEDMND40@relmlor1.idc.renesas.com> for
+ linux-media@vger.kernel.org; Sat, 27 Apr 2013 01:12:58 +0900 (JST)
+Received: from relmlac1.idc.renesas.com ([10.200.69.21])
+ by relmlir3.idc.renesas.com ( SJSMS)
+ with ESMTP id <0MLV003WNEDMOGB0@relmlir3.idc.renesas.com> for
+ linux-media@vger.kernel.org; Sat, 27 Apr 2013 01:12:58 +0900 (JST)
+In-reply-to: <Pine.LNX.4.64.1304251535590.21045@axis700.grange>
+References: <1366202619-4511-1-git-send-email-phil.edworthy@renesas.com>
+ <Pine.LNX.4.64.1304242249410.16970@axis700.grange>
+ <OF975E3643.061D9EDC-ON80257B58.003660C1-80257B58.00379495@eu.necel.com>
+ <Pine.LNX.4.64.1304251241430.21045@axis700.grange>
+ <OF94EFCFB7.8EC190E4-ON80257B58.00450077-80257B58.0049B035@eu.necel.com>
+ <Pine.LNX.4.64.1304251535590.21045@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-version: 1.0
+From: phil.edworthy@renesas.com
+Subject: Re: [PATCH] soc_camera: Add V4L2_MBUS_FMT_YUYV10_2X10 format
+Message-id: <OF3A7A50DA.5DC9276D-ON80257B59.0058D7D1-80257B59.005907F0@eu.necel.com>
+Date: Fri, 26 Apr 2013 17:12:25 +0100
+Content-type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Guennadi,
 
-Sorry for the late reply.
+<snip>
+> > > > > Wow, what kind of host can pack two 10-bit samples into 3 bytes 
+and 
+> > > > write 
+> > > > > 3-byte pixels to memory?
+> > > > I think I might have misunderstood how this is used. From my 
+> > > > understanding, the MBUS formats are used to describe the hardware 
+> > > > interfaces to cameras, i.e. 2 samples of 10 bits. I guess that the 
 
-On Friday 12 April 2013 17:36:16 Hans Verkuil wrote:
-> This RFC looks at adding support for motion detection to V4L2. This is the
-> main missing piece that prevents the go7007 and solo6x10 drivers from being
-> moved into mainline from the staging directory.
+> > fourcc 
+> > > > field also determines what v4l2 format is required to capture 
+this. 
+> > > 
+> > > No, not quite. This table describes default "pass-through" capture 
+of 
+> > > video data on a media bus to memory. E.g. the first entry in the 
+table 
+> > > means, that if you get the V4L2_MBUS_FMT_YUYV8_2X8 format on the 
+bus, 
+> > you 
+> > > sample 8 bits at a time, and store the samples 1-to-1 into RAM, you 
+get 
+> > > the V4L2_PIX_FMT_YUYV format in your buffer. It can also describe 
+some 
+> > > standard operations with the sampled data, like swapping the order, 
+> > > filling missing high bits (e.g. if you sample 10 bits but store 16 
+bits 
+> > > per sample with high 6 bits nullified). The table also specifies 
+which 
+> > > bits are used for padding in the original data, e.g. 
+> > > V4L2_MBUS_FMT_SBGGR10_2X8_PADLO_BE has SOC_MBUS_PACKING_2X8_PADLO, 
+> > whereas 
+> > > V4L2_MBUS_FMT_SBGGR10_2X8_PADHI_BE has SOC_MBUS_PACKING_2X8_PADHI, 
+which 
+> > 
+> > > means, that out of 16 bits of data, that you get when you sample an 
+> > 8-bit 
+> > > bus twice, either low or high 6 bits are invalid and should be 
+> > discarded.
+> > 
+> > Ok, I see. However, is it necessary to provide a default pass-through 
+v4l2 
+> > format?
 > 
-> Step one is to look at existing drivers/hardware:
-> 
-> 1) The go7007 driver:
-> 
-> 	- divides the frame into blocks of 16x16 pixels each (that's 45x36 blocks
-> 	  for PAL)
-> 	- each block can be assigned to region 0, 1, 2 or 3
-> 	- each region has:
-> 		- a pixel change threshold
-> 		- a motion vector change threshold
-> 		- a trigger level; if this is 0, then motion detection for this
-> 		  region is disabled
-> 	- when streaming the reserved field of v4l2_buffer is used as a bitmask:
-> 	  one bit for each region where motion is detected.
-> 
-> 2) The solo6x10 driver:
-> 
-> 	- divides the frame into blocks of 16x16 pixels each
-> 	- each block has its own threshold
-> 	- the driver adds one MOTION_ON buffer flag and one MOTION_DETECTED
-> 	  buffer flag.
-> 	- motion detection can be disabled or enabled.
-> 	- the driver has a global motion detection mode with just one threshold:
-> 	  in that case all blocks are set to the same threshold.
-> 	- there is also support for displaying a border around the image if 
-> 	  motion is detected (very hardware specific).
-> 
-> 3) The tw2804 video encoder (based on the datasheet, not implemented in the
-> driver):
-> 
-> 	- divides the image in 12x12 blocks (block size will differ for NTSC vs
-> 	  PAL)
-> 	- motion detection can be enabled or disabled for each block
-> 	- there are four controls:
-> 		- luminance level change threshold
-> 		- spatial sensitivity threshold
-> 		- temporal sensitivity threshold
-> 		- velocity control (determines how well slow motions are detected)
-> 	- detection is reported by a hardware pin in this case
-> 
-> Comparing these three examples of motion detection I see quite a lot of
-> similarities, enough to make a proposal for an API:
-> 
-> - Add a MOTION_DETECTION menu control:
-> 	- Disabled
-> 	- Global Motion Detection
-> 	- Regional Motion Detection
-> 
-> If 'Global Motion Detection' is selected, then various threshold controls
-> become available. What sort of thresholds are available seems to be quite
-> variable, so I am inclined to leave this as private controls.
-> 
-> - Add new buffer flags when motion is detected. The go7007 driver would need
-> 4 bits (one for each region), the others just one. This can be done by
-> taking 4 bits from the v4l2_buffer flags field. There are still 16 bits
-> left there, and if it becomes full, then we still have two reserved fields.
-> I see no reason for adding a 'MOTION_ON' flag as the solo6x10 driver does
-> today: just check the MOTION_DETECTION control if you want to know if
-> motion detection is on or not.
+> No, it's not. If no (soc-camera) host camera driver is willing to use 
+this 
+> pass-through conversion, then it's not required.
+Ok, I'll look at that when I get a moment!
 
-We're really starting to shove metadata in buffer flags. Isn't it time to add 
-a proper metadata API ? I don't really like the idea of using (valuable) 
-buffer flags for a feature supported by three drivers only.
+> > I can't see a suitable v4l2 format! For the hardware I have been 
+> > working on, there is always the option of converting the data to 
+another 
+> > format, so this is not really needed. I doubt that it makes sense to 
+add 
+> > yet another v4l2 format for userspace, when typical uses would involve 
+the 
+> > host hardware converting the format to something else, e.g. 
+> > V4L2_PIX_FMT_RGB32.
+> 
+> Up to you, really. If you don't need this default conversion, don't add 
+> it.
+Ok, it seems like it would be a bad idea to provide a default conversion 
+that my not be supported by other hosts.
 
-> - Add two new ioctls to get and set the block data:
+> > > > However, I am not sure how the two relate to each other. How does 
+the 
+> > > > above code imply 3 bytes?
+> > > 
+> > > Not the above code, but your entry in the soc_mbus_bytes_per_line() 
+> > > function below, where you multiply width * 3.
+> > 
+> > It looks like hosts use soc_mbus_bytes_per_line() to report the size 
+of 
+> > video buffers needed. Shouldn't the hosts report the buffer metrics 
+for 
+> > the v4l2 format, since that is what will be output? What has this to 
+do 
+> > with the MBUS specifics?
 > 
-> 	#define V4L2_MD_HOR_BLOCKS (64)
-> 	#define V4L2_MD_VERT_BLOCKS (48)
-> 
-> 	#define V4L2_MD_TYPE_REGION	(1)
-> 	#define V4L2_MD_TYPE_THRESHOLD	(2)
-> 
-> 	struct v4l2_md_blocks {
-> 		__u32 type;
-> 		struct v4l2_rect rect;
-> 		__u32 minimum;
-> 		__u32 maximum;
-> 		__u32 reserved[32];
-> 		__u16 blocks[V4L2_MD_HOR_BLOCKS][V4L2_MD_VERT_BLOCKS];
-> 	};
-> 
-> 	#define VIDIOC_G_MD_BLOCKS    _IORW('V', 103, struct v4l2_md_blocks)
-> 	#define VIDIOC_S_MD_BLOCKS    _IORW('V', 104, struct v4l2_md_blocks)
-> 
->   Apps must fill in type, then can call G_MD_BLOCKS to get the current block
-> values for that type. TYPE_REGION returns to which region each block
-> belongs, TYPE_THRESHOLD returns threshold values for each block.
-> 
->   rect returns the rectangle of valid blocks, minimum and maximum the min
-> and max values for each 'blocks' array element.
-> 
->   To change the blocks apps call S_MD_BLOCKS, fill in type, rect (rect is
-> useful here to set only a subset of all blocks) and blocks.
-> 
-> So the go7007 would return 45x36 in rect, type would be REGION, min/max
-> would be 0-3.
-> 
-> solo6x10 would return 45x36 in rect, type would be THRESHOLD, min/max would
-> be 0-65535.
-> 
-> TW2804 would return 12x12 in rect, type would be THRESHOLD, min/max would be
-> 0-1.
-> 
-> Comment? Questions?
+> struct soc_mbus_pixelfmt describes a conversion from an MBUS code to a 
+> pixel format in memory. Camera host drivers call that function with a 
+> _suitable_ conversion descriptor (either a standard or a special one) 
+and 
+> the function calculates the number of bytes.
+Right, I think I understand!
 
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks
+Phil
