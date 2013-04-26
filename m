@@ -1,104 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:40571 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753514Ab3DVKTS (ORCPT
+Received: from mail.free-electrons.com ([94.23.35.102]:37256 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752245Ab3DZNjk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 06:19:18 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH RFC v2 2/4] media: i2c: tvp514x: add support for asynchronous probing
-Date: Mon, 22 Apr 2013 15:47:26 +0530
-Message-Id: <1366625848-743-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1366625848-743-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 26 Apr 2013 09:39:40 -0400
+Date: Fri, 26 Apr 2013 10:39:19 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 2/2] saa7115: add detection code for gm7113c
+Message-ID: <20130426133917.GA20185@localhost>
+References: <1366980557-23077-1-git-send-email-mchehab@redhat.com>
+ <1366980557-23077-3-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1366980557-23077-3-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Fri, Apr 26, 2013 at 09:49:17AM -0300, Mauro Carvalho Chehab wrote:
+> Adds a code that (auto)detects gm7113c clones. The auto-detection
+> here is not perfect, as, on contrary to what it would be expected
+> by looking into its datasheets some devices would return, instead:
+> 
+> 	saa7115 0-0025: chip 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 @ 0x4a is unknown
+> 
+> (found on a device labeled as GM7113C 1145 by Ezequiel Garcia)
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/i2c/saa7115.c     | 36 ++++++++++++++++++++++++++++++++++++
+>  include/media/v4l2-chip-ident.h |  2 ++
+>  2 files changed, 38 insertions(+)
+> 
+> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+> index 2bc8b72..24672a7 100644
+> --- a/drivers/media/i2c/saa7115.c
+> +++ b/drivers/media/i2c/saa7115.c
+> @@ -1640,6 +1640,36 @@ static int saa711x_detect_chip(struct i2c_client *client,
+>  		}
+>  	}
+>  
+> +	/* Check if it is a gm1113c */
 
-Both synchronous and asynchronous tvp514x subdevice probing is supported by
-this patch.
+s/1113/7113
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/i2c/tvp514x.c |   23 ++++++++++++++++-------
- 1 files changed, 16 insertions(+), 7 deletions(-)
+> +	if (!memcmp(name, "0000", 4)) {
+> +		chip_id = 0;
+> +		for (i = 0; i < 4; i++) {
+> +			chip_id = chip_id << 1;
+> +			chip_id |= (chip_ver[i] & 0x80) ? 1 : 0;
+> +		}
+> +
+> +		/*
+> +		 * Note: From the datasheet, only versions 1 and 2
+> +		 * exists. However, tests on a device labeled as:
+> +		 *	"GM7113C 1145" returned "10" on all 16 chip
+> +		 *	version (reg 0x00) reads. So, we need to also
+> +		 *	accept at least verion 0. For now, let's just
+> +		 *	assume that a device that returns "0000" for
+> +		 *	the lower nibble is a gm1113c.
 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index ab8f3fe..887bd93 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -36,6 +36,7 @@
- #include <linux/module.h>
- #include <linux/v4l2-mediabus.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-mediabus.h>
-@@ -1109,9 +1110,9 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* Register with V4L2 layer as slave device */
- 	sd = &decoder->sd;
- 	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
--	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
-+	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
- 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	decoder->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-@@ -1138,16 +1139,23 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	sd->ctrl_handler = &decoder->hdl;
- 	if (decoder->hdl.error) {
- 		ret = decoder->hdl.error;
--
--		v4l2_ctrl_handler_free(&decoder->hdl);
--		return ret;
-+		goto done;
- 	}
- 	v4l2_ctrl_handler_setup(&decoder->hdl);
- 
--	v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
--
--	return 0;
-+	decoder->sd.dev = &client->dev;
-+	ret = v4l2_async_register_subdev(&decoder->sd);
-+	if (!ret)
-+		v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
- 
-+done:
-+	if (ret < 0) {
-+		v4l2_ctrl_handler_free(&decoder->hdl);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		media_entity_cleanup(&decoder->sd.entity);
-+#endif
-+	}
-+	return ret;
- }
- 
- /**
-@@ -1162,6 +1170,7 @@ static int tvp514x_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct tvp514x_decoder *decoder = to_decoder(sd);
- 
-+	v4l2_async_unregister_subdev(&decoder->sd);
- 	v4l2_device_unregister_subdev(sd);
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	media_entity_cleanup(&decoder->sd.entity);
+Is this weird comment indentation correct?
+
+And also:
+s/1113/7113
+
+> +		 */
+> +
+> +		snprintf(name, size, "gm1113c");
+
+Ditto.
+
+> +
+> +		if (!autodetect && strcmp(name, id->name))
+> +			return -EINVAL;
+> +
+> +		v4l_dbg(1, debug, client,
+> +			"It seems to be a %s chip (%*ph) @ 0x%x.\n",
+> +			name, 16, chip_ver, client->addr << 1);
+> +
+> +		return V4L2_IDENT_GM7113C;
+> +	}
+> +
+>  	/* Chip was not discovered. Return its ID and don't bind */
+>  	v4l_dbg(1, debug, client, "chip %*ph @ 0x%x is unknown.\n",
+>  		16, chip_ver, client->addr << 1);
+> @@ -1669,6 +1699,11 @@ static int saa711x_probe(struct i2c_client *client,
+>  	if (ident < 0)
+>  		return ident;
+>  
+> +	if (ident == V4L2_IDENT_GM7113C) {
+> +		v4l_warn(client, "%s not yet supported\n", name);
+> +		return -ENODEV;
+> +	}
+> +
+>  	strlcpy(client->name, name, sizeof(client->name));
+>  
+>  	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
+> @@ -1756,6 +1791,7 @@ static const struct i2c_device_id saa711x_id[] = {
+>  	{ "saa7114", 0 },
+>  	{ "saa7115", 0 },
+>  	{ "saa7118", 0 },
+> +	{ "gm7113c", 0 },
+>  	{ }
+>  };
+>  MODULE_DEVICE_TABLE(i2c, saa711x_id);
+> diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+> index c259b36..543f89c 100644
+> --- a/include/media/v4l2-chip-ident.h
+> +++ b/include/media/v4l2-chip-ident.h
+> @@ -52,6 +52,8 @@ enum {
+>  	V4L2_IDENT_SAA7115 = 105,
+>  	V4L2_IDENT_SAA7118 = 108,
+>  
+> +	V4L2_IDENT_GM7113C = 140,
+> +
+>  	/* module saa7127: reserved range 150-199 */
+>  	V4L2_IDENT_SAA7127 = 157,
+>  	V4L2_IDENT_SAA7129 = 159,
+> -- 
+> 1.8.1.4
+> 
+
 -- 
-1.7.4.1
-
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
