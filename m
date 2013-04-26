@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:43075 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S936123Ab3DHPUk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 11:20:40 -0400
-Message-id: <5162E043.9050103@samsung.com>
-Date: Mon, 08 Apr 2013 17:20:35 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: Re: [PATCH v6 1/7] media: V4L2: add temporary clock helpers
-References: <1363382873-20077-1-git-send-email-g.liakhovetski@gmx.de>
- <1363382873-20077-2-git-send-email-g.liakhovetski@gmx.de>
- <5147934D.2040908@gmail.com> <Pine.LNX.4.64.1304081234050.29945@axis700.grange>
-In-reply-to: <Pine.LNX.4.64.1304081234050.29945@axis700.grange>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:63797 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751530Ab3DZE4z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Apr 2013 00:56:55 -0400
+Received: by mail-pb0-f52.google.com with SMTP id mc17so805693pbc.39
+        for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 21:56:55 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 1/1] [media] exynos4-is: Fix potential null pointer dereference in mipi-csis.c
+Date: Fri, 26 Apr 2013 10:14:07 +0530
+Message-Id: <1366951447-6202-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/08/2013 12:36 PM, Guennadi Liakhovetski wrote:
-> On Mon, 18 Mar 2013, Sylwester Nawrocki wrote:
-> 
-> [snip]
-> 
->>> +unsigned long v4l2_clk_get_rate(struct v4l2_clk *clk)
->>> +{
->>> +	if (!clk->ops->get_rate)
->>> +		return -ENOSYS;
->>
->> I guess we should just WARN if this callback is null and return 0
->> or return value type of this function needs to be 'long'. Otherwise
->> we'll get insanely large frequency value by casting this error code
->> to unsigned long.
-> 
-> Comparing to the CCF: AFAICS, they do the same, you're supposed to use 
-> IS_ERR_VALUE() on the clock rate, obtained from clk_get_rate().
+When 'node' is NULL, the print statement tries to dereference it.
+Remove it from the error message.
 
-Hmm, that might work. Nevertheless I consider that a pretty horrible
-pattern. I couldn't find any references to IS_ERR_VALUE in the clock
-code though. Only that 0 is returned when clk is NULL.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/exynos4-is/mipi-csis.c |    3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
-Regards,
-Sylwester
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index a2eda9d..6ddc69f 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -745,8 +745,7 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 
+ 	node = v4l2_of_get_next_endpoint(node, NULL);
+ 	if (!node) {
+-		dev_err(&pdev->dev, "No port node at %s\n",
+-					node->full_name);
++		dev_err(&pdev->dev, "Port node not available\n");
+ 		return -EINVAL;
+ 	}
+ 	/* Get port node and validate MIPI-CSI channel id. */
+-- 
+1.7.9.5
+
