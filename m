@@ -1,205 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39017 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757416Ab3DSJMK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 05:12:10 -0400
-Message-ID: <51710A3F.10909@iki.fi>
-Date: Fri, 19 Apr 2013 12:11:27 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ea0-f178.google.com ([209.85.215.178]:59445 "EHLO
+	mail-ea0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754661Ab3DZUqu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Apr 2013 16:46:50 -0400
+Message-ID: <517AE7B5.4010108@gmail.com>
+Date: Fri, 26 Apr 2013 22:46:45 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: Keene
-References: <5167513D.60804@iki.fi> <201304150855.07081.hverkuil@xs4all.nl> <516EFBD4.7030601@iki.fi> <201304190912.06319.hverkuil@xs4all.nl>
-In-Reply-To: <201304190912.06319.hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v9 02/20] V4L2: support asynchronous subdevice registration
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de> <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de> <516BEB1D.80105@samsung.com> <1489465.QAtJQiYEWC@avalon> <Pine.LNX.4.64.1304231435540.1422@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1304231435540.1422@axis700.grange>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/19/2013 10:12 AM, Hans Verkuil wrote:
-> On Wed April 17 2013 21:45:24 Antti Palosaari wrote:
->> On 04/15/2013 09:55 AM, Hans Verkuil wrote:
->>> On Fri April 12 2013 02:11:41 Antti Palosaari wrote:
->>>> Hello Hans,
->>>> That device is working very, thank you for it. Anyhow, I noticed two things.
->>>>
->>>> 1) it does not start transmitting just after I plug it - I have to
->>>> retune it!
->>>> Output says it is tuned to 95.160000 MHz by default, but it is not.
->>>> After I issue retune, just to same channel it starts working.
->>>> $ v4l2-ctl -d /dev/radio0 --set-freq=95.16
->>>
->>> Can you try this patch:
->>>
+Hi Guennadi,
+
+On 04/23/2013 03:01 PM, Guennadi Liakhovetski wrote:
+> On Mon, 22 Apr 2013, Laurent Pinchart wrote:
+>> On Monday 15 April 2013 13:57:17 Sylwester Nawrocki wrote:
+>>> On 04/12/2013 05:40 PM, Guennadi Liakhovetski wrote:
+>>>> +
+>>>> +		if (notifier->unbind)
+>>>> +			notifier->unbind(notifier, asdl);
+>>>> +	}
+>>>> +
+>>>> +	mutex_unlock(&list_lock);
+>>>> +
+>>>> +	if (dev) {
+>>>> +		while (i--) {
+>>>> +			if (dev[i]&&  device_attach(dev[i])<  0)
 >>
->> It does not resolve the problem. It is quite strange behavior. After I
->> install modules, and modules are unload, plug stick in first time, it
->> usually (not every-time) starts TX. But when I replug it without
->> unloading modules, it will never start TX. Tx is started always when I
->> set freq using v4l2-ctl.
+>> This is my last major pain point.
+>>
+>> To avoid race conditions we need circular references (see
+>>http://www.mail-archive.com/linux-media@vger.kernel.org/msg61092.html).
+>>We will thus need a
+>> way to break the circle by explictly requesting the subdev to release its
+>> resources. I'm afraid I have no well-designed solution for that at the moment.
 >
-> If you replace 'false' by 'true' in the cmd_main, does that make it work?
-> I'm fairly certain that's the problem.
+> I think we really can design the framework to allow a _safe_ unloading of
+> the bridge driver. An rmmod run is not an immediate death - we have time
+> to clean up and release all resources properly. As an example, I just had
+> a network interface running, but rmmod-ing of one of hardware drivers just
+> safely destroyed the interface. In our case, rmmod<bridge>  should just
+> signal the subdevice to release the clock reference. Whether we have the
+> required - is a separate question.
 
-Nope, I replaces all 'false' with 'true' and problem remains. When 
-modules were unload and device is plugged it starts TX. When I replug it 
-doesn't start anymore.
+It sounds like a reasonable requirements.
 
-I just added msleep(1000); just before keene_cmd_main() in .probe() and 
-now it seems to work every-time. So it is definitely timing issue. I 
-will try to find out some smallest suitable value for sleep and and sent 
-patch.
-
-
+> Currently a call to v4l2_clk_get() increments the clock owner use-count.
+> This isn't a problem for soc-camera, since there the soc-camera core owns
+> the clock. For other bridge drivers they would probably own the clock
+> themselves, so, incrementing their use-count would block their modules in
+> memory. To avoid that we have to remove that use-count incrementing.
 >
->>
->> Possible timing issue?
->>
->>
->> Is there some flag API flag to tell start / stop device? For my mind
->> correct behavior is to stop TX and sleep when device is plugged/module
->> load. Something like set freq 0 when device is not active to tell user
->> it is not sending/receiving and must be tuned in order to operate.
+> The crash, described in the referenced mail can happen if the subdevice
+> driver calls (typically) v4l2_clk_enable() on a clock, that's already been
+> freed. Wouldn't a locked look-up in the global clock list in v4l2-clk.c
+> prevent such a crash? E.g.
 >
-> This is actually a core problem with the radio API: there is no clear
-> way of turning the tuner or modulator on and off on command. With video
-> you know that you can turn off the tuner if no filehandle is open. But
-> with radio you do not have that luxury since audio can go through alsa
-> or through an audio jack.
+> int v4l2_clk_enable(struct v4l2_clk *clk)
+> {
+> 	struct v4l2_clk *tmp;
+> 	int ret = -ENODEV;
 >
-> One option is to use mute. Most radio receivers start off muted and you
-> have to unmute first. This could be used as a signal for receivers to
-> turn the tuner on/off. But for a modulator that's not an option: turning
-> off the modulator means turning off the transmitter, and that's not what
-> you want if you are, say, the presenter of a radio program and you want
-> to quickly mute because you feel a sneeze coming :-)
+> 	mutex_lock(&clk_lock);
+> 	list_for_each_entry(tmp,&clk_list, list)
+> 		if (tmp == clk) {
+> 			ret = !try_module_get(clk->ops->owner);
+> 			if (ret)
+> 				ret = -EFAULT;
+> 			break;
+> 		}
+> 	mutex_unlock(&clk_lock);
 >
-> I think we need a specific API for this, but in the absence of one we should
-> just leave the modulator enabled from the start.
-
-yeah, that's just the issue I was wondering. Is there some reason 
-frequency value could not be used? Defining frequency to 0MHz or -1MHz 
-and Tx (maybe Rx too) is off?
-
-Here is power consumption I measured:
-26.5mA play=false (idle mode)
-39.0mA Tx on 95.16 MHz
-
-It wastes 12.5mA (from USB Vcc 5v) when Tx is enabled.
-
-regards
-Antti
-
+> 	if (ret<  0)
+> 		return ret;
 >
-> Regards,
+> 	...
+> }
 >
-> 	Hans
->
->>
->>
->> regards
->> Antti
->>
->>
->>
->>
->>
->>
->>> diff --git a/drivers/media/radio/radio-keene.c b/drivers/media/radio/radio-keene.c
->>> index 4c9ae76..99da3d4 100644
->>> --- a/drivers/media/radio/radio-keene.c
->>> +++ b/drivers/media/radio/radio-keene.c
->>> @@ -93,7 +93,7 @@ static int keene_cmd_main(struct keene_device *radio, unsigned freq, bool play)
->>>    	/* If bit 4 is set, then tune to the frequency.
->>>    	   If bit 3 is set, then unmute; if bit 2 is set, then mute.
->>>    	   If bit 1 is set, then enter idle mode; if bit 0 is set,
->>> -	   then enter transit mode.
->>> +	   then enter transmit mode.
->>>    	 */
->>>    	radio->buffer[5] = (radio->muted ? 4 : 8) | (play ? 1 : 2) |
->>>    							(freq ? 0x10 : 0);
->>> @@ -350,7 +350,6 @@ static int usb_keene_probe(struct usb_interface *intf,
->>>    	radio->pa = 118;
->>>    	radio->tx = 0x32;
->>>    	radio->stereo = true;
->>> -	radio->curfreq = 95.16 * FREQ_MUL;
->>>    	if (hdl->error) {
->>>    		retval = hdl->error;
->>>
->>> @@ -383,6 +382,8 @@ static int usb_keene_probe(struct usb_interface *intf,
->>>    	video_set_drvdata(&radio->vdev, radio);
->>>    	set_bit(V4L2_FL_USE_FH_PRIO, &radio->vdev.flags);
->>>
->>> +	keene_cmd_main(radio, 95.16 * FREQ_MUL, false);
->>> +
->>>    	retval = video_register_device(&radio->vdev, VFL_TYPE_RADIO, -1);
->>>    	if (retval < 0) {
->>>    		dev_err(&intf->dev, "could not register video device\n");
->>>
->>>
->>>> 2) What is that log printing?
->>>> ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2
->>>> (id 13)
->>>>
->>>>
->>>> usb 5-2: new full-speed USB device number 3 using ohci_hcd
->>>> usb 5-2: New USB device found, idVendor=046d, idProduct=0a0e
->>>> usb 5-2: New USB device strings: Mfr=1, Product=2, SerialNumber=0
->>>> usb 5-2: Product: B-LINK USB Audio
->>>> usb 5-2: Manufacturer: HOLTEK
->>>> ALSA sound/usb/mixer.c:932 13:0: cannot get min/max values for control 2
->>>> (id 13)
->>>> radio-keene 5-2:1.2: V4L2 device registered as radio0
->>>
->>> No idea, and I don't get that message either.
->>>
->>> Regards,
->>>
->>> 	Hans
->>>
->>>>
->>>>
->>>> $ v4l2-ctl -d /dev/radio0 --all -L
->>>> Driver Info (not using libv4l2):
->>>> 	Driver name   : radio-keene
->>>> 	Card type     : Keene FM Transmitter
->>>> 	Bus info      : usb-0000:00:13.0-2
->>>> 	Driver version: 3.9.0
->>>> 	Capabilities  : 0x800C0000
->>>> 		Modulator
->>>> 		Radio
->>>> Frequency: 1522560 (95.160000 MHz)
->>>> Modulator:
->>>> 	Name                 : FM
->>>> 	Capabilities         : 62.5 Hz stereo
->>>> 	Frequency range      : 76.0 MHz - 108.0 MHz
->>>> 	Subchannel modulation: stereo
->>>> Priority: 2
->>>>
->>>> User Controls
->>>>
->>>>                               mute (bool)   : default=0 value=0
->>>>
->>>> FM Radio Modulator Controls
->>>>
->>>>             audio_compression_gain (int)    : min=-15 max=18 step=3
->>>> default=0 value=0 flags=slider
->>>>                       pre_emphasis (menu)   : min=0 max=2 default=1 value=1
->>>> 				1: 50 Microseconds
->>>> 				2: 75 Microseconds
->>>>                   tune_power_level (int)    : min=84 max=118 step=1
->>>> default=118 value=118 flags=slider
->>>>
->>>>
->>>> regards
->>>> Antti
->>>>
->>>>
->>
->>
->>
+> We'd have to do a similar locked look-up in v4l2_clk_put().
 
+Sounds good. This way it will not be possible to unload modules when 
+clock is
+enabled, which is expected. And it seems straightforward to ensure 
+clk_prepare/
+clk_unprepare, clk_enable/clk_disable are properly balanced. If module 
+is gone
+before subdev driver calls v4l2_clk_put() the clock provider module will 
+have
+to ensure any source clocks it uses are properly released 
+(clk_unprepare/clk_put).
 
--- 
-http://palosaari.fi/
+I'm looking forward to try your v10. :-)
+
+Regards,
+Sylwester
