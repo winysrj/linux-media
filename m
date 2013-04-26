@@ -1,78 +1,229 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:62024 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754497Ab3DMPcU (ORCPT
+Received: from mail-da0-f49.google.com ([209.85.210.49]:34807 "EHLO
+	mail-da0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756013Ab3DZIFr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 11:32:20 -0400
-Received: by mail-ee0-f52.google.com with SMTP id d17so1545547eek.25
-        for <linux-media@vger.kernel.org>; Sat, 13 Apr 2013 08:32:19 -0700 (PDT)
-Message-ID: <51697AC8.1050807@googlemail.com>
-Date: Sat, 13 Apr 2013 17:33:28 +0200
-From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/3] em28xx: give up GPIO register tracking/caching
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <1365846521-3127-2-git-send-email-fschaefer.oss@googlemail.com> <20130413114144.097a21a1@redhat.com>
-In-Reply-To: <20130413114144.097a21a1@redhat.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Fri, 26 Apr 2013 04:05:47 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] media: i2c: tvp7002: enable TVP7002 decoder for media controller based usage
+Date: Fri, 26 Apr 2013 13:35:35 +0530
+Message-Id: <1366963535-15963-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 13.04.2013 16:41, schrieb Mauro Carvalho Chehab:
-> Em Sat, 13 Apr 2013 11:48:39 +0200
-> Frank Schäfer <fschaefer.oss@googlemail.com> escreveu:
->
->> The GPIO register tracking/caching code is partially broken, because newer
->> devices provide more than one GPIO register and some of them are even using
->> separate registers for read and write access.
->> Making it work would be too complicated.
->> It is also used nowhere and doesn't make sense in cases where input lines are
->> connected to buttons etc.
->>
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->> ---
->>  drivers/media/usb/em28xx/em28xx-cards.c |   12 ------------
->>  drivers/media/usb/em28xx/em28xx-core.c  |   27 ++-------------------------
->>  drivers/media/usb/em28xx/em28xx.h       |    6 ------
->>  3 Dateien geändert, 2 Zeilen hinzugefügt(+), 43 Zeilen entfernt(-)
-> ...
->
->
->> @@ -231,14 +215,7 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
->>  	int oldval;
->>  	u8 newval;
->>  
->> -	/* Uses cache for gpo/gpio registers */
->> -	if (reg == dev->reg_gpo_num)
->> -		oldval = dev->reg_gpo;
->> -	else if (reg == dev->reg_gpio_num)
->> -		oldval = dev->reg_gpio;
->> -	else
->> -		oldval = em28xx_read_reg(dev, reg);
->> -
->> +	oldval = em28xx_read_reg(dev, reg);
->>  	if (oldval < 0)
->>  		return oldval;
-> That's plain wrong, as it will break GPIO input.
->
-> With GPIO, you can write either 0 or 1 to a GPIO output port. So, your
-> code works for output ports.
->
-> However, an input port requires an specific value (either 1 or 0 depending
-> on the GPIO circuitry). If the wrong value is written there, the input port
-> will stop working.
->
-> So, you can't simply read a value from a GPIO input and write it. You need
-> to shadow the GPIO write values instead.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-I don't understand what you mean.
-Why can I not read the value of a GPIO input and write it ?
+This patch enables tvp7002 decoder driver for media controller
+based usage by adding v4l2_subdev_pad_ops  operations support
+for enum_mbus_code, set_pad_format, get_pad_format and media_entity_init()
+on probe and media_entity_cleanup() on remove.
 
-Regards,
-Frank
+The device supports 1 output pad and no input pads.
 
-> Regards,
-> Mauro
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/i2c/tvp7002.c |  125 +++++++++++++++++++++++++++++++++++++++++--
+ include/media/tvp7002.h     |    2 +
+ 2 files changed, 122 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 027809c..b212d41 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -424,6 +424,8 @@ struct tvp7002 {
+ 	int streaming;
+ 
+ 	const struct tvp7002_timings_definition *current_timings;
++	struct media_pad pad;
++	struct v4l2_mbus_framefmt format;
+ };
+ 
+ /*
+@@ -880,6 +882,93 @@ static const struct v4l2_ctrl_ops tvp7002_ctrl_ops = {
+ 	.s_ctrl = tvp7002_s_ctrl,
+ };
+ 
++/*
++ * tvp7002_enum_mbus_code() - Enum supported digital video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @code: pointer to subdev enum mbus code struct
++ *
++ * Enumerate supported digital video formats for pad.
++ */
++static int
++tvp7002_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_mbus_code_enum *code)
++{
++	/* Check pad index is valid */
++	if (code->pad != 0)
++		return -EINVAL;
++
++	/* Check requested format index is within range */
++	if (code->index != 0)
++		return -EINVAL;
++
++	code->code = V4L2_MBUS_FMT_YUYV10_1X20;
++
++	return 0;
++}
++
++/*
++ * tvp7002_set_pad_format() - set video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @fmt: pointer to subdev format struct
++ *
++ * set video format for pad.
++*/
++static int
++tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct tvp7002 *tvp7002 = to_tvp7002(sd);
++
++	/* Check pad index is valid */
++	if (fmt->pad != 0)
++		return -EINVAL;
++
++	if (fmt->format.field != tvp7002->current_timings->scanmode ||
++	    fmt->format.code != V4L2_MBUS_FMT_YUYV10_1X20 ||
++	    fmt->format.colorspace != tvp7002->current_timings->color_space ||
++	    fmt->format.width != tvp7002->current_timings->timings.bt.width ||
++	    fmt->format.height != tvp7002->current_timings->timings.bt.height)
++		return -EINVAL;
++
++	tvp7002->format = fmt->format;
++
++	return 0;
++}
++
++/*
++ * tvp7002_get_pad_format() - get video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @fmt: pointer to subdev format struct
++ *
++ * get video format for pad.
++ */
++static int
++tvp7002_get_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct tvp7002 *tvp7002 = to_tvp7002(sd);
++
++	/* Check pad index is valid */
++	if (fmt->pad != 0)
++		return -EINVAL;
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		fmt->format = tvp7002->format;
++		return 0;
++	}
++
++	fmt->format.code = V4L2_MBUS_FMT_YUYV10_1X20;
++	fmt->format.width = tvp7002->current_timings->timings.bt.width;
++	fmt->format.height = tvp7002->current_timings->timings.bt.height;
++	fmt->format.field = tvp7002->current_timings->scanmode;
++	fmt->format.colorspace = tvp7002->current_timings->color_space;
++
++	return 0;
++}
++
+ /* V4L2 core operation handlers */
+ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+ 	.g_chip_ident = tvp7002_g_chip_ident,
+@@ -910,10 +999,18 @@ static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+ 	.enum_mbus_fmt = tvp7002_enum_mbus_fmt,
+ };
+ 
++/* media pad related operation handlers */
++static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
++	.enum_mbus_code = tvp7002_enum_mbus_code,
++	.get_fmt = tvp7002_get_pad_format,
++	.set_fmt = tvp7002_set_pad_format,
++};
++
+ /* V4L2 top level operation handlers */
+ static const struct v4l2_subdev_ops tvp7002_ops = {
+ 	.core = &tvp7002_core_ops,
+ 	.video = &tvp7002_video_ops,
++	.pad = &tvp7002_pad_ops,
+ };
+ 
+ /*
+@@ -993,19 +1090,35 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 	timings = device->current_timings->timings;
+ 	error = tvp7002_s_dv_timings(sd, &timings);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	strlcpy(sd->name, TVP7002_MODULE_NAME, sizeof(sd->name));
++	device->pad.flags = MEDIA_PAD_FL_SOURCE;
++	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++
++	error = media_entity_init(&device->sd.entity, 1, &device->pad, 0);
++	if (error < 0)
++		return error;
++#endif
++
+ 	v4l2_ctrl_handler_init(&device->hdl, 1);
+ 	v4l2_ctrl_new_std(&device->hdl, &tvp7002_ctrl_ops,
+ 			V4L2_CID_GAIN, 0, 255, 1, 0);
+ 	sd->ctrl_handler = &device->hdl;
+ 	if (device->hdl.error) {
+-		int err = device->hdl.error;
+-
+-		v4l2_ctrl_handler_free(&device->hdl);
+-		return err;
++		error = device->hdl.error;
++		goto done;
+ 	}
+ 	v4l2_ctrl_handler_setup(&device->hdl);
+ 
+ 	return 0;
++
++done:
++	v4l2_ctrl_handler_free(&device->hdl);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&device->sd.entity);
++#endif
++	return error;
+ }
+ 
+ /*
+@@ -1022,7 +1135,9 @@ static int tvp7002_remove(struct i2c_client *c)
+ 
+ 	v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
+ 				"on address 0x%x\n", c->addr);
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&device->sd.entity);
++#endif
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&device->hdl);
+ 	return 0;
+diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
+index ee43534..7123048 100644
+--- a/include/media/tvp7002.h
++++ b/include/media/tvp7002.h
+@@ -26,6 +26,8 @@
+ #ifndef _TVP7002_H_
+ #define _TVP7002_H_
+ 
++#define TVP7002_MODULE_NAME "tvp7002"
++
+ /* Platform-dependent data
+  *
+  * clk_polarity:
+-- 
+1.7.4.1
 
