@@ -1,271 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53430 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758942Ab3D2Ueu (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:45231 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753561Ab3DZNSW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Apr 2013 16:34:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Shawn Nematbakhsh <shawnn@chromium.org>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] [media] uvcvideo: Retry usb_submit_urb on -EPERM return
-Date: Mon, 29 Apr 2013 22:34:56 +0200
-Message-ID: <2335654.c00h6tDv9u@avalon>
-In-Reply-To: <1366764152-9797-1-git-send-email-shawnn@chromium.org>
-References: <1366764152-9797-1-git-send-email-shawnn@chromium.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 26 Apr 2013 09:18:22 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Subject: [PATCH] media: i2c: adv7343: add OF support
+Date: Fri, 26 Apr 2013 18:48:06 +0530
+Message-Id: <1366982286-22950-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shawn,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Thank you for the patch.
+add OF support for the adv7343 driver.
 
-On Tuesday 23 April 2013 17:42:32 Shawn Nematbakhsh wrote:
-> While usb_kill_urb is in progress, calls to usb_submit_urb will fail
-> with -EPERM (documented in Documentation/usb/URB.txt). The UVC driver
-> does not correctly handle this case -- there is no synchronization
-> between uvc_v4l2_open / uvc_status_start and uvc_v4l2_release /
-> uvc_status_stop.
-
-Wouldn't it be better to synchronize status operations in open/release ?
-Something like the following patch:
-
->From 9285d678ed2f823bb215f6bdec3ca1a9e1cac977 Mon Sep 17 00:00:00 2001
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Date: Fri, 26 Apr 2013 03:28:51 +0200
-Subject: [PATCH] uvcvideo: Fix open/close race condition
-
-Maintaining the users count using an atomic variable makes sure that
-access to the counter won't be racy, but doesn't serialize access to the
-operations protected by the counter. This creates a race condition that
-could result in the status URB being submitted multiple times.
-
-Use a mutex to protect the users count and serialize access to the
-status start and stop operations.
-
-Reported-by: Shawn Nematbakhsh <shawnn@chromium.org>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
 ---
- drivers/media/usb/uvc/uvc_driver.c | 22 ++++++++++++++++------
- drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
- drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
- drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
- 4 files changed, 31 insertions(+), 33 deletions(-)
+ .../devicetree/bindings/media/i2c/adv7343.txt      |   69 ++++++++++++++++++
+ drivers/media/i2c/adv7343.c                        |   75 +++++++++++++++++++-
+ 2 files changed, 142 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7343.txt
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index e68fa53..b638037 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1836,8 +1836,8 @@ static int uvc_probe(struct usb_interface *intf,
- 	INIT_LIST_HEAD(&dev->chains);
- 	INIT_LIST_HEAD(&dev->streams);
- 	atomic_set(&dev->nstreams, 0);
--	atomic_set(&dev->users, 0);
- 	atomic_set(&dev->nmappings, 0);
-+	mutex_init(&dev->lock);
+diff --git a/Documentation/devicetree/bindings/media/i2c/adv7343.txt b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+new file mode 100644
+index 0000000..8426f8d
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+@@ -0,0 +1,69 @@
++* Analog Devices adv7343 video encoder
++
++The ADV7343 are high speed, digital-to-analog video encoders in a 64-lead LQFP
++package. Six high speed, 3.3 V, 11-bit video DACs provide support for composite
++(CVBS), S-Video (Y-C), and component (YPrPb/RGB) analog outputs in standard
++definition (SD), enhanced definition (ED), or high definition (HD) video
++formats.
++
++The ADV7343 have a 24-bit pixel input port that can be configured in a variety
++of ways. SD video formats are supported over an SDR interface, and ED/HD video
++formats are supported over SDR and DDR interfaces. Pixel data can be supplied
++in either the YCrCb or RGB color spaces.
++
++Required Properties :
++- compatible: Must be "ad,adv7343-encoder"
++
++Optional Properties :
++- ad-adv7343-power-mode-sleep-mode: on enable the current consumption is
++                                    reduced to micro ampere level. All DACs and
++                                    the internal PLL circuit are disabled.
++- ad-adv7343-power-mode-pll-ctrl: PLL and oversampling control. This control
++                                  allows internal PLL 1 circuit to be powered
++                                  down and the oversampling to beswitched off.
++- ad-adv7343-power-mode-dac-1: power on/off DAC 1.
++- ad-adv7343-power-mode-dac-2: power on/off DAC 2.
++- ad-adv7343-power-mode-dac-3: power on/off DAC 3.
++- ad-adv7343-power-mode-dac-4: power on/off DAC 4.
++- ad-adv7343-power-mode-dac-5: power on/off DAC 5.
++- ad-adv7343-power-mode-dac-6: power on/off DAC 6.
++- ad-adv7343-sd-config-dac-out-1: Configure SD DAC Output 1.
++- ad-adv7343-sd-config-dac-out-2: Configure SD DAC Output 2.
++
++Example:
++
++i2c0@1c22000 {
++	...
++	...
++
++	adv7343@2a {
++		compatible = "ad,adv7343-encoder";
++		reg = <0x2a>;
++
++		port {
++			adv7343_1: endpoint {
++					/* Active high (Defaults to false) */
++					ad-adv7343-power-mode-sleep-mode;
++					/* Active high (Defaults to false) */
++					ad-adv7343-power-mode-pll-ctrl;
++					/* Active high (Defaults to false) */
++					ad-adv7343-power-mode-dac-1;
++					/* Active high (Defaults to false) */
++					ad-adv7343-power-mode-dac-2;
++					/* Active high (Defaults to false) */
++					ad-adv7343-power-mode-dac-3;
++					/* Active high (Defaults to false) */
++					ad-adv7343-power-mode-dac-4;
++					/* Active high (Defaults to false) */
++					ad-adv7343-power-mode-dac-5;
++					/* Active high (Defaults to false) */
++					ad-adv7343-power-mode-dac-6;
++					/* Active high (Defaults to false) */
++					ad-adv7343-sd-config-dac-out-1;
++					/* Active high (Defaults to false) */
++					ad-adv7343-sd-config-dac-out-2 = <0>;
++			};
++		};
++	};
++	...
++};
+diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+index 469e262..eb12d1a 100644
+--- a/drivers/media/i2c/adv7343.c
++++ b/drivers/media/i2c/adv7343.c
+@@ -25,12 +25,14 @@
+ #include <linux/module.h>
+ #include <linux/videodev2.h>
+ #include <linux/uaccess.h>
++#include <linux/of_device.h>
  
- 	dev->udev = usb_get_dev(udev);
- 	dev->intf = usb_get_intf(intf);
-@@ -1953,8 +1953,12 @@ static int uvc_suspend(struct usb_interface *intf, pm_message_t message)
+ #include <media/adv7343.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-of.h>
  
- 	/* Controls are cached on the fly so they don't need to be saved. */
- 	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
--	    UVC_SC_VIDEOCONTROL)
--		return uvc_status_suspend(dev);
-+	    UVC_SC_VIDEOCONTROL) {
-+		mutex_lock(&dev->lock);
-+		if (dev->users)
-+			uvc_status_stop(dev);
-+		mutex_unlock(&dev->lock);
+ #include "adv7343_regs.h"
+ 
+@@ -409,6 +411,75 @@ static int adv7343_initialize(struct v4l2_subdev *sd)
+ 	return err;
+ }
+ 
++#if defined(CONFIG_OF)
++static const struct of_device_id adv7343_of_match[] = {
++	{.compatible = "ad,adv7343-encoder", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, adv7343_of_match);
++
++static void adv7343_get_pdata(struct i2c_client *client,
++			      struct adv7343_state *decoder)
++{
++	if (!client->dev.platform_data && client->dev.of_node) {
++		struct device_node *np;
++		struct adv7343_platform_data *pdata;
++
++		np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
++		if (!np)
++			return;
++
++		pdata = devm_kzalloc(&client->dev,
++				     sizeof(struct adv7343_platform_data),
++				     GFP_KERNEL);
++		if (!pdata) {
++			pr_warn("adv7343 failed allocate memeory\n");
++			return;
++		}
++
++		pdata->mode_config.sleep_mode =
++		  of_property_read_bool(np, "ad-adv7343-power-mode-sleep-mode");
++
++		pdata->mode_config.pll_control =
++		    of_property_read_bool(np, "ad-adv7343-power-mode-pll-ctrl");
++
++		pdata->mode_config.dac_1 =
++		       of_property_read_bool(np, "ad-adv7343-power-mode-dac-1");
++
++		pdata->mode_config.dac_2 =
++		       of_property_read_bool(np, "ad-adv7343-power-mode-dac-2");
++
++		pdata->mode_config.dac_3 =
++		       of_property_read_bool(np, "ad-adv7343-power-mode-dac-3");
++
++		pdata->mode_config.dac_4 =
++		       of_property_read_bool(np, "ad-adv7343-power-mode-dac-4");
++
++		pdata->mode_config.dac_5 =
++		       of_property_read_bool(np, "ad-adv7343-power-mode-dac-5");
++
++		pdata->mode_config.dac_6 =
++		       of_property_read_bool(np, "ad-adv7343-power-mode-dac-6");
++
++		pdata->sd_config.sd_dac_out1 =
++		    of_property_read_bool(np, "ad-adv7343-sd-config-dac-out-1");
++
++		pdata->sd_config.sd_dac_out2 =
++		    of_property_read_bool(np, "ad-adv7343-sd-config-dac-out-2");
++
++		decoder->pdata = pdata;
 +	}
- 
- 	list_for_each_entry(stream, &dev->streams, list) {
- 		if (stream->intf == intf)
-@@ -1976,14 +1980,20 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
- 
- 	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
- 	    UVC_SC_VIDEOCONTROL) {
--		if (reset) {
--			int ret = uvc_ctrl_resume_device(dev);
-+		int ret = 0;
- 
-+		if (reset) {
-+			ret = uvc_ctrl_resume_device(dev);
- 			if (ret < 0)
- 				return ret;
- 		}
- 
--		return uvc_status_resume(dev);
-+		mutex_lock(&dev->lock);
-+		if (dev->users)
-+			ret = uvc_status_start(dev, GFP_NOIO);
-+		mutex_unlock(&dev->lock);
++}
++#else
++#define adv7343_of_match NULL
 +
-+		return ret;
- 	}
- 
- 	list_for_each_entry(stream, &dev->streams, list) {
-diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
-index b749277..f552ab9 100644
---- a/drivers/media/usb/uvc/uvc_status.c
-+++ b/drivers/media/usb/uvc/uvc_status.c
-@@ -206,32 +206,15 @@ void uvc_status_cleanup(struct uvc_device *dev)
- 	uvc_input_cleanup(dev);
- }
- 
--int uvc_status_start(struct uvc_device *dev)
-+int uvc_status_start(struct uvc_device *dev, gfp_t flags)
++static void adv7343_get_pdata(struct i2c_client *client,
++			      struct adv7343_state *decoder)
++{
++	decoder->pdata = client->dev.platform_data;
++}
++#endif
++
+ static int adv7343_probe(struct i2c_client *client,
+ 				const struct i2c_device_id *id)
  {
- 	if (dev->int_urb == NULL)
- 		return 0;
- 
--	return usb_submit_urb(dev->int_urb, GFP_KERNEL);
-+	return usb_submit_urb(dev->int_urb, flags);
- }
- 
- void uvc_status_stop(struct uvc_device *dev)
- {
- 	usb_kill_urb(dev->int_urb);
- }
--
--int uvc_status_suspend(struct uvc_device *dev)
--{
--	if (atomic_read(&dev->users))
--		usb_kill_urb(dev->int_urb);
--
--	return 0;
--}
--
--int uvc_status_resume(struct uvc_device *dev)
--{
--	if (dev->int_urb == NULL || atomic_read(&dev->users) == 0)
--		return 0;
--
--	return usb_submit_urb(dev->int_urb, GFP_NOIO);
--}
--
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index b2dc326..3afff92 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -498,16 +498,20 @@ static int uvc_v4l2_open(struct file *file)
+@@ -426,8 +497,7 @@ static int adv7343_probe(struct i2c_client *client,
+ 	if (state == NULL)
  		return -ENOMEM;
- 	}
  
--	if (atomic_inc_return(&stream->dev->users) == 1) {
--		ret = uvc_status_start(stream->dev);
-+	mutex_lock(&stream->dev->lock);
-+	if (stream->dev->users == 0) {
-+		ret = uvc_status_start(stream->dev, GFP_KERNEL);
- 		if (ret < 0) {
--			atomic_dec(&stream->dev->users);
-+			mutex_unlock(&stream->dev->lock);
- 			usb_autopm_put_interface(stream->dev->intf);
- 			kfree(handle);
- 			return ret;
- 		}
- 	}
+-	/* Copy board specific information here */
+-	state->pdata = client->dev.platform_data;
++	adv7343_get_pdata(client, state);
  
-+	stream->dev->users++;
-+	mutex_unlock(&stream->dev->lock);
-+
- 	v4l2_fh_init(&handle->vfh, stream->vdev);
- 	v4l2_fh_add(&handle->vfh);
- 	handle->chain = stream->chain;
-@@ -538,8 +542,10 @@ static int uvc_v4l2_release(struct file *file)
- 	kfree(handle);
- 	file->private_data = NULL;
+ 	state->reg00	= 0x80;
+ 	state->reg01	= 0x00;
+@@ -496,6 +566,7 @@ MODULE_DEVICE_TABLE(i2c, adv7343_id);
  
--	if (atomic_dec_return(&stream->dev->users) == 0)
-+	mutex_lock(&stream->dev->lock);
-+	if (--stream->dev->users == 0)
- 		uvc_status_stop(stream->dev);
-+	mutex_unlock(&stream->dev->lock);
- 
- 	usb_autopm_put_interface(stream->dev->intf);
- 	return 0;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 9cd584a..eb90a92 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -515,7 +515,8 @@ struct uvc_device {
- 	char name[32];
- 
- 	enum uvc_device_state state;
--	atomic_t users;
-+	struct mutex lock;		/* Protects users */
-+	unsigned int users;
- 	atomic_t nmappings;
- 
- 	/* Video control interface */
-@@ -661,10 +662,8 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
- /* Status */
- extern int uvc_status_init(struct uvc_device *dev);
- extern void uvc_status_cleanup(struct uvc_device *dev);
--extern int uvc_status_start(struct uvc_device *dev);
-+extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
- extern void uvc_status_stop(struct uvc_device *dev);
--extern int uvc_status_suspend(struct uvc_device *dev);
--extern int uvc_status_resume(struct uvc_device *dev);
- 
- /* Controls */
- extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
-
-> This patch adds a retry / timeout when uvc_status_open / usb_submit_urb
-> returns -EPERM. This usually means that usb_kill_urb is in progress, and
-> we just need to wait a while.
-> 
-> Signed-off-by: Shawn Nematbakhsh <shawnn@chromium.org>
-> ---
->  drivers/media/usb/uvc/uvc_v4l2.c | 10 +++++++++-
->  drivers/media/usb/uvc/uvcvideo.h |  1 +
->  2 files changed, 10 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index b2dc326..f1498a8 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -479,6 +479,7 @@ static int uvc_v4l2_open(struct file *file)
->  {
->  	struct uvc_streaming *stream;
->  	struct uvc_fh *handle;
-> +	unsigned long timeout;
->  	int ret = 0;
-> 
->  	uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_open\n");
-> @@ -499,7 +500,14 @@ static int uvc_v4l2_open(struct file *file)
->  	}
-> 
->  	if (atomic_inc_return(&stream->dev->users) == 1) {
-> -		ret = uvc_status_start(stream->dev);
-> +		timeout = jiffies + msecs_to_jiffies(UVC_STATUS_START_TIMEOUT);
-> +		/* -EPERM means stop in progress, wait for completion */
-> +		do {
-> +			ret = uvc_status_start(stream->dev);
-> +			if (ret == -EPERM)
-> +				usleep_range(5000, 6000);
-> +		} while (ret == -EPERM && time_before(jiffies, timeout));
-> +
->  		if (ret < 0) {
->  			atomic_dec(&stream->dev->users);
->  			usb_autopm_put_interface(stream->dev->intf);
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index af505fd..a47e1d3 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -122,6 +122,7 @@
-> 
->  #define UVC_CTRL_CONTROL_TIMEOUT	300
->  #define UVC_CTRL_STREAMING_TIMEOUT	5000
-> +#define UVC_STATUS_START_TIMEOUT	100
-> 
->  /* Maximum allowed number of control mappings per device */
->  #define UVC_MAX_CONTROL_MAPPINGS	1024
+ static struct i2c_driver adv7343_driver = {
+ 	.driver = {
++		.of_match_table = adv7343_of_match,
+ 		.owner	= THIS_MODULE,
+ 		.name	= "adv7343",
+ 	},
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.4.1
 
