@@ -1,69 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:36711 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213Ab3DYGci (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 02:32:38 -0400
-Date: Thu, 25 Apr 2013 14:33:06 +0800
-From: Adam Lee <adam.lee@canonical.com>
+Received: from smtp6-g21.free.fr ([212.27.42.6]:60705 "EHLO smtp6-g21.free.fr"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757199Ab3DZAD6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 25 Apr 2013 20:03:58 -0400
+Message-ID: <1366934628.5179c4650033f@imp.free.fr>
+Date: Fri, 26 Apr 2013 02:03:49 +0200
+From: Pierre ANTOINE <nunux@free.fr>
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"open list:USB VIDEO CLASS" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Revert "V4L/DVB: uvc: Enable USB autosuspend by default
- on uvcvideo"
-Message-ID: <20130425063306.GA20928@adam-laptop>
-References: <1366790239-838-1-git-send-email-adam.lee@canonical.com>
- <6159110.qEtHHiJYtm@avalon>
+Cc: Pierre ANTOINE <nunux@free.fr>, linux-media@vger.kernel.org
+Subject: Re: uvcvideo: Trying to lower the URB buffers on eMPIA minicam
+References: <1366843673.51786119b3ced@imp.free.fr> <2682572.gZg9L6lqOg@avalon> <1366917228.5179806c5f343@imp.free.fr> <2280626.yDrB0LeJ3D@avalon>
+In-Reply-To: <2280626.yDrB0LeJ3D@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <6159110.qEtHHiJYtm@avalon>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 24, 2013 at 11:17:52AM +0200, Laurent Pinchart wrote:
-> Hi Adam,
-> 
-> Thanks for the patch.
-> 
-> On Wednesday 24 April 2013 15:57:19 adam.lee@canonical.com wrote:
-> > From: Adam Lee <adam.lee@canonical.com>
-> > 
-> > This reverts commit 3dae8b41dc5651f8eb22cf310e8b116480ba25b7.
-> > 
-> > 1, I do have a Chicony webcam, implements autosuspend in a broken way,
-> > make `poweroff` performs rebooting when its autosuspend enabled.
-> > 
-> > 2, There are other webcams which don't support autosuspend too, like
-> > https://patchwork.kernel.org/patch/2356141/
-> > 
-> > 3, kernel removed USB_QUIRK_NO_AUTOSUSPEND in
-> > a691efa9888e71232dfb4088fb8a8304ffc7b0f9, because autosuspend is
-> > disabled by default.
-> > 
-> > So, we need to disable autosuspend in uvcvideo, maintaining a quirk list
-> > only for uvcvideo is not a good idea.
-> 
-> I've received very few bug reports about broken auto-suspend support in UVC 
-> devices. Most of them could be solved by setting the RESET_RESUME quirk in USB 
-> core, only the Creative Live! Cam Optia AF required a quirk in the uvcvideo 
-> driver. I would thus rather use the available quirks (USB_QUIRK_RESET_RESUME 
-> if possible, UVC_QUIRK_DISABLE_AUTOSUSPEND otherwise) than killing power 
-> management for the vast majority of webcams that behave correctly.
+Selon Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
 
-Here comes another one, integrated Chicony webcam 04f2:b39f, its
-autosuspend makes `poweroff` performs rebooting at the laptop I'm
-working on. I tried USB_QUIRK_RESET_RESUME, not helping.
+> Thank you. I'll update the supported devices list on the uvcvideo website.
+> Could you please give me the exact model name of the camera ?
 
-The quirks list will go longer and longer absolutely, do uvcvideo wanna
-maintain that? And why only uvcvideo do this in kernel space which
-against general USB module?
+The product description is here:
 
-I still suggest we disable it by default, people can enable it in udev
-just like almost all distroes do for udisks. Please consider about it.
+http://www.amazon.fr/dp/B00A487TPC/ref=pe_205631_30430471_3p_M3_dp_1
 
--- 
-Regards,
-Adam Lee
-Hardware Enablement
+That is: Supereyes from XCSource know on Amazon as Microscope USB Cam.
+
+>
+> Yes, that looks good. Just make sure you only hack the endpoint bandwidth for
+> the webcam and not for the other USB devices.
+>
+
+I'm trying this one:
+
+---------------------------------------
+        if (to_usb_device(ddev)->speed == USB_SPEED_HIGH)
+        {
+                unsigned maxp;
+
+                maxp = usb_endpoint_maxp(&endpoint->desc) & 0x07ff;
+                if (maxp == 912) endpoint->desc.wMaxPacketSize =
+cpu_to_le16(256);
+                dev_warn(ddev, "Hack 912 to 256 downsize endpoint by Nunux");
+        }
+---------------------------------------
+
+That seem to trigger ... but not working ... and not showing is lsusb ...
+
+
+
