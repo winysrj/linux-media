@@ -1,62 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:37436 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751316Ab3DLGDT (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2939 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753071Ab3DZSUa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 02:03:19 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ML400KJUOSX0E40@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 12 Apr 2013 07:03:17 +0100 (BST)
-Message-id: <5167A3A3.5090200@samsung.com>
-Date: Fri, 12 Apr 2013 08:03:15 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Seung-Woo Kim <sw0312.kim@samsung.com>
-Cc: linux-media@vger.kernel.org, mchehab@redhat.com, pawel@osciak.com,
-	kyungmin.park@samsung.com
-Subject: Re: [PATCH] media: vb2: add length check for mmap
-References: <1365739077-8740-1-git-send-email-sw0312.kim@samsung.com>
-In-reply-to: <1365739077-8740-1-git-send-email-sw0312.kim@samsung.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Fri, 26 Apr 2013 14:20:30 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3QIKQVP070930
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 26 Apr 2013 20:20:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 5018411E0131
+	for <linux-media@vger.kernel.org>; Fri, 26 Apr 2013 20:20:25 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130426182025.5018411E0131@alastor.dyndns.org>
+Date: Fri, 26 Apr 2013 20:20:25 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 4/12/2013 5:57 AM, Seung-Woo Kim wrote:
-> The length of mmap() can be bigger than length of vb2 buffer, so
-> it should be checked.
->
-> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+Results of the daily build of media_tree:
 
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
+date:		Fri Apr 26 19:00:23 CEST 2013
+git branch:	test
+git hash:	4494f0fdd825958d596d05a4bd577df94b149038
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-> ---
->   drivers/media/v4l2-core/videobuf2-core.c |    5 +++++
->   1 files changed, 5 insertions(+), 0 deletions(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index db1235d..2c6ff2d 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -1886,6 +1886,11 @@ int vb2_mmap(struct vb2_queue *q, struct vm_area_struct *vma)
->   
->   	vb = q->bufs[buffer];
->   
-> +	if (vb->v4l2_planes[plane].length < (vma->vm_end - vma->vm_start)) {
-> +		dprintk(1, "Invalid length\n");
-> +		return -EINVAL;
-> +	}
-> +
->   	ret = call_memop(q, mmap, vb->planes[plane].mem_priv, vma);
->   	if (ret)
->   		return ret;
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Best regards
--- 
-Marek Szyprowski
-Samsung Poland R&D Center
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
