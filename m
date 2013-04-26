@@ -1,161 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f175.google.com ([209.85.128.175]:52739 "EHLO
-	mail-ve0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974Ab3DJEcY (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:58984 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758043Ab3DZIa1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 00:32:24 -0400
+	Fri, 26 Apr 2013 04:30:27 -0400
+Date: Fri, 26 Apr 2013 10:30:23 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct
+ v4l2_subdev_platform_data to platform data
+Message-ID: <20130426083023.GA16843@pengutronix.de>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+ <1366320945-21591-24-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1304182346060.28933@axis700.grange>
+ <1621615.OUnKCBbkfO@avalon>
+ <Pine.LNX.4.64.1304221435540.23906@axis700.grange>
 MIME-Version: 1.0
-In-Reply-To: <5154E09B.1050601@gmail.com>
-References: <1362754765-2651-1-git-send-email-arun.kk@samsung.com>
-	<1362754765-2651-2-git-send-email-arun.kk@samsung.com>
-	<514DAAC3.4050202@gmail.com>
-	<CALt3h7_nXSd6A2t55fi3PD+BkpZh5Lo4suWcg-ZF=jDq+V3NXA@mail.gmail.com>
-	<51522671.5080706@gmail.com>
-	<CALt3h7_nFQdRCJJA0n4i9_CnRJAeYvu8xCkwzDsfdqBZgf_NNw@mail.gmail.com>
-	<5152F857.6010409@samsung.com>
-	<CALt3h7-Hi4E6wL-Scd-45k0SGJnhrwZ7Ks_unmwU5ognyY-nmw@mail.gmail.com>
-	<5154E09B.1050601@gmail.com>
-Date: Wed, 10 Apr 2013 10:02:23 +0530
-Message-ID: <CALt3h79HjEObqiZ5-mE05D0ohikNETM03QG4+gp+XoeZtrN0Aw@mail.gmail.com>
-Subject: Re: [RFC 01/12] exynos-fimc-is: Adding device tree nodes
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1304221435540.23906@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Guennadi,
 
-Sorry for the late reply.
+On Mon, Apr 22, 2013 at 02:39:57PM +0200, Guennadi Liakhovetski wrote:
+> On Mon, 22 Apr 2013, Laurent Pinchart wrote:
+> 
+> > Hi Guennadi,
+> > 
+> > On Thursday 18 April 2013 23:47:26 Guennadi Liakhovetski wrote:
+> > > On Thu, 18 Apr 2013, Guennadi Liakhovetski wrote:
+> > > > Adding struct v4l2_subdev_platform_data to mt9p031's platform data allows
+> > > > the driver to use generic functions to manage sensor power supplies.
+> > > > 
+> > > > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > > 
+> > > A small addition to this one too: to be absolutely honest, I also had to
+> > > replace 12-bit formats with their 8-bit counterparts, because only 8 data
+> > > lanes are connected to my camera host. We'll need to somehow properly
+> > > solve this too.
+> > 
+> > That information should be conveyed by platform/DT data for the host, and be 
+> > used to convert the 12-bit media bus code into a 8-bit media bus code in the 
+> > host (a core helper function would probably be helpful).
+> 
+> Yes, and we discussed this before too, I think. I proposed based then to 
+> implement some compatibility table of "trivial" transformations, like a 
+> 12-bit Bayer, right-shifted by 4 bits, produces a respective 8-bit Bayer 
+> etc. Such transformations would fit nicely in soc_mediabus.c ;-) This just 
+> needs to be implemented...
 
->>>
->>> OK, thanks for the explanation.
->>>
->>> I can think of at least one possible way to get hold of the fimc-is
->>> context in the subdev. For instance, in subdev's .registered callback
->>> you get a pointer to struct v4l2_device, which is normally embedded
->>> in a top level driver's private data. Then with container_of()
->>> you could get hold of required data at the fimc-is driver.
->>
->>
->> But as per current implementation, it is not the fimc-is driver that is
->> registering the ISP subdevs. It will be registered from the
->> media controller driver. So fimc-is context cannot be obtained by
->> just using container_of().
->
->
-> I guess best option would be to have a function to get the IS slave
-> interface driver context at the sensor subdev exported by the IS driver
-> module, as you suggested previously.
+These "trivial" transformations may turn out not to be so trivial. In
+the devicetree we would then need kind of 'shift-4-bit-left' properties.
 
-Ok I will make the sensor as i2c device and check what is the best
-way to get the IS context in sensor subdev.
+How about instead describing the sensor node with:
 
->
-> You still could obtain the fimc-is object from the media device private
-> data structure, since the media device has normally a list of its all
-> entities in one form or the other. But the sensor would need to know
-> details of the media device, which makes it a bit pointless.
->
-> Nevertheless, my main concern is the DT binding. Sharing the sensor
-> subdev driver might not be that important at the moment, we are talking
-> about 300..500 lines of code per ISP driver currently anyway.
->
-> More important is to have the hardware described in a standard way, so
-> when the firmware changes there is no need to change the DT bindings.
->
+	mbus-formats = <0x3010, 0x2013>;
 
-Yes that's right. Need to define the hardware in a generic way regardless
-of what the firmware is doing.
+and the corresponding host interface with:
 
+	mbus-formats = <0x3013, 0x2001>;
 
->>>
->>
->> In case of ISP subdevs (isp, scc and scp), there is not much configuration
->> that the media device can do. Only control possible is to turn on/off
->> specific scaler DMA outputs which can be done via the video node ioctls.
->> The role of media device here is mostly to convey the pipeline structure
->> to the user. For eg. it is not possible to directly connect isp (sd)
->> -->  scp (sd).
->> In the media controller pipeline1 implementation, we were planning to
->> put immutable links between these subdevs. Is that acceptable?
->
->
-> Not sure I understand which links you mean exactly. Could you post the
-> media graph generated by media-ctl (--print-dot) ?
->
-> If you're talking about the on-the-fly (FIFO) links, then it probably
-> makes sense. The media device driver should respond to the link_notify
-> events and not to allow data links unsupported in the hardware. If you
-> create immutable OTF links, then how would you switch between DMA and
-> OTF interfaces ? Or can all processing blocks of the ISP chain work
-> simultaneously with the DMA and OTF ? The FD block, for instance, can fed
-> data from memory _or_ from previous processing block in the chain, right ?
-> You will need a user interface to control which input is used and the
-> links configuration seems most natural here.
+This would allow to describe arbitrary transformations without having to
+limit to the 'trivial' ones. The result would be easier to understand
+also I think.
 
-Yes I agree to that. Though in the current driver, there are no subdevs which
-can change between DMA <-> OTF inputs, in future versions we might add it.
-So link configuration option will be provided.
+Sascha
 
-
->
->
->>> The media driver has a list of media entities (subdevices and video
->>> nodes) and I though it could coordinate any requests involving whole
->>> video/image processing pipeline originating from /dev/video ioctls/fops.
->>>
->>> So for instance if /dev/video in this pipeline is opened
->>>
->>> sensor (sd) ->  mipi-csis (sd) ->  fimc-lite (sd) ->  memory (/dev/video)
->>>
->>> it would call s_power operation on the above subdevs and additionally
->>> on e.g. the isp subdev (or any other we choose as a main subdev
->>> implementing the FIMC-IS slave interface).
->>>
->>> Then couldn't it be done that video node ioctls invoke pipeline
->>> operations, and the media device resolves any dependencies/calls
->>> order, as in case of the exynos4 driver ?
->>
->>
->> On Exynos4 subdevs, it is well and good since all the subdevs are
->> independent IPs. Here in ISP since the same IP can take one input and
->
->
-> Not really, there are going to be 2 subdevs exposed by the fimc-is: ISP
-> and FD. However FD is still not supported in my last patch series. I was
-> planning this for a subsequent kernel release.
->
->
->> provide multiple outputs, we designed them as separate subdevs. So
->> here we cannot make the subdevs independent of each other where only
->> the sequence / dependencies is controlled from the media device.
->
->
-> I'm not asking you to make the FIMC-IS subdevs more self-contained,
-> it's of course perfectly fine to have multiple (logical) subdevs exposed
-> by a complex device like that. I have been thinking only about the
-> sensor driver, since the sensors are normally shared across ISPs from
-> various chip manufacturers. But let us leave this topic for now.
->
-> BTW, in my interpretation FIMC-IS is a collection of IPs/peripheral
-> devices, not a single black box, including an image sensor. And the
-> firmware should not be the most significant factor how we expose
-> the whole subsystem to the user. All elements of the ISP chain, i.e.
-> an IP control registers are visible to both, the main CPU and the
-> FIMC-IS (Cortex-A5) MCU. Still, it would be possible to create v4l2
-> subdevs dynamically, depending on the firmware architecture.
->
-
-Ok. I will address all these comments and work on v2 patchset.
-
-Thanks for the excellent help :)
-
-Regards
-Arun
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
