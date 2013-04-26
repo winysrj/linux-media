@@ -1,72 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46017 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965565Ab3DPXE7 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51979 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758302Ab3DZJP5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 19:04:59 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Kamal Mostafa <kamal@canonical.com>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] uvcvideo: quirk PROBE_DEF for Dell Studio / OmniVision webcam
-Date: Wed, 17 Apr 2013 01:05:05 +0200
-Message-ID: <3233904.U6nm1cedXx@avalon>
-In-Reply-To: <1366052511-27284-1-git-send-email-kamal@canonical.com>
-References: <1366052511-27284-1-git-send-email-kamal@canonical.com>
+	Fri, 26 Apr 2013 05:15:57 -0400
+Date: Fri, 26 Apr 2013 11:15:56 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct
+ v4l2_subdev_platform_data to platform data
+Message-ID: <20130426091556.GQ32299@pengutronix.de>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de>
+ <1366320945-21591-24-git-send-email-g.liakhovetski@gmx.de>
+ <Pine.LNX.4.64.1304182346060.28933@axis700.grange>
+ <1621615.OUnKCBbkfO@avalon>
+ <Pine.LNX.4.64.1304221435540.23906@axis700.grange>
+ <20130426083023.GA16843@pengutronix.de>
+ <Pine.LNX.4.64.1304261033170.32320@axis700.grange>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.64.1304261033170.32320@axis700.grange>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamal,
-
-On Monday 15 April 2013 12:01:51 Kamal Mostafa wrote:
-> BugLink: https://bugs.launchpad.net/bugs/1168430
+On Fri, Apr 26, 2013 at 10:43:28AM +0200, Guennadi Liakhovetski wrote:
+> Hi Sascha
 > 
-> OminiVision webcam 0x05a9:0x264a (in Dell Studio Hybrid 140g) needs the
-> same UVC_QUIRK_PROBE_DEF as other OmniVision model to be recognized
-> consistently.
+> On Fri, 26 Apr 2013, Sascha Hauer wrote:
 > 
-> Signed-off-by: Kamal Mostafa <kamal@canonical.com>
-
-Thank you for the patch.
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-I've taken the patch in my tree and will submit it upstream for v3.11.
-
-Could you please try to get the full 'lsusb -v -d 05a9:264a' output from the 
-bug reporter ?
-
-> ---
->  drivers/media/usb/uvc/uvc_driver.c |    9 +++++++++
->  1 file changed, 9 insertions(+)
+> > > > 
+> > > > That information should be conveyed by platform/DT data for the host, and be 
+> > > > used to convert the 12-bit media bus code into a 8-bit media bus code in the 
+> > > > host (a core helper function would probably be helpful).
+> > > 
+> > > Yes, and we discussed this before too, I think. I proposed based then to 
+> > > implement some compatibility table of "trivial" transformations, like a 
+> > > 12-bit Bayer, right-shifted by 4 bits, produces a respective 8-bit Bayer 
+> > > etc. Such transformations would fit nicely in soc_mediabus.c ;-) This just 
+> > > needs to be implemented...
+> > 
+> > These "trivial" transformations may turn out not to be so trivial. In
+> > the devicetree we would then need kind of 'shift-4-bit-left' properties.
 > 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 5dbefa6..17bd48d 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -2163,6 +2163,15 @@ static struct usb_device_id uvc_ids[] = {
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
->  	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
-> +	/* Dell Studio Hybrid 140g (OmniVision webcam) */
-> +	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> +				| USB_DEVICE_ID_MATCH_INT_INFO,
-> +	  .idVendor		= 0x05a9,
-> +	  .idProduct		= 0x264a,
-> +	  .bInterfaceClass	= USB_CLASS_VIDEO,
-> +	  .bInterfaceSubClass	= 1,
-> +	  .bInterfaceProtocol	= 0,
-> +	  .driver_info		= UVC_QUIRK_PROBE_DEF },
->  	/* Apple Built-In iSight */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+> We already have a "data-shift" property exactly for this purpose.
 > 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
+> > How about instead describing the sensor node with:
+> > 
+> > 	mbus-formats = <0x3010, 0x2013>;
+> > 
+> > and the corresponding host interface with:
+> > 
+> > 	mbus-formats = <0x3013, 0x2001>;
+> 
+> How would this describe _how_ the transformation should be performed?
+
+nth index in the sensor array matches nth index in the csi array. The
+above describes:
+
+V4L2_MBUS_FMT_SGBRG12_1X12 on the sensor matches V4L2_MBUS_FMT_SGBRG8_1X8 on the host
+V4L2_MBUS_FMT_Y12_1X12 on the sensor matches V4L2_MBUS_FMT_Y8_1X8 on the host
+
+effectively implementing a shift by four bits. But also more complicated
+transformations could be described, like a colour space converter
+implemented in a DSP (not sure if anyone does this, but you get the
+idea)
+
+> And why does the host driver need mbus formats?
+
+Because mbus formats are effectively the input of a host driver. I
+assumed that we translate the mbus formats the sensor can output into
+the corresponding mbus formats that arrive at the host interface. Then
+afterwards the usual translation from mbus to fourcc a host interface
+can do is performed.
+I think what you aim at instead is a translation directly from the
+sensor to memory which I think is more complicated to build correctly.
+
+Sascha
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
