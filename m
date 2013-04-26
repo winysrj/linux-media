@@ -1,74 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mga09.intel.com ([134.134.136.24]:37010 "EHLO mga09.intel.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S966799Ab3DRRhJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Apr 2013 13:37:09 -0400
-Date: Thu, 18 Apr 2013 20:37:02 +0300
-From: Ville =?iso-8859-1?Q?Syrj=E4l=E4?= <ville.syrjala@linux.intel.com>
-To: Daniel Vetter <daniel.vetter@ffwll.ch>
-Cc: Steven Rostedt <rostedt@goodmis.org>, linux-arch@vger.kernel.org,
-	Peter Zijlstra <peterz@infradead.org>, x86@kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	rob clark <robclark@gmail.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@elte.hu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
-Message-ID: <20130418173702.GV4469@intel.com>
-References: <20130228102452.15191.22673.stgit@patser>
- <20130228102502.15191.14146.stgit@patser>
- <1364900432.18374.24.camel@laptop>
- <515AF1C1.7080508@canonical.com>
- <1364921954.20640.22.camel@laptop>
- <1365076908.2609.94.camel@laptop>
- <20130404133123.GW2228@phenom.ffwll.local>
- <1365093662.2609.111.camel@laptop>
- <20130409222808.GC20739@home.goodmis.org>
- <CAKMK7uHst+s9x0u4J04Qck26EeeUDOORM_SgYovmjV4c+mKP0w@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <CAKMK7uHst+s9x0u4J04Qck26EeeUDOORM_SgYovmjV4c+mKP0w@mail.gmail.com>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:58687 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750835Ab3DZKZT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Apr 2013 06:25:19 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MLU0053HY7DTH70@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Apr 2013 11:25:17 +0100 (BST)
+Message-id: <517A560C.7090403@samsung.com>
+Date: Fri, 26 Apr 2013 12:25:16 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, patches@linaro.org
+Subject: Re: [PATCH v2] [media] exynos4-is: Fix potential null pointer
+ dereference in mipi-csis.c
+References: <1366966377-15808-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1366966377-15808-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 17, 2013 at 09:08:17PM +0200, Daniel Vetter wrote:
-> On Wed, Apr 10, 2013 at 12:28 AM, Steven Rostedt <rostedt@goodmis.org> wrote:
-> > On Thu, Apr 04, 2013 at 06:41:02PM +0200, Peter Zijlstra wrote:
-> >> On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
-> >> > The thing is now that you're not expected to hold these locks for a
-> >> > long
-> >> > time - if you need to synchronously stall while holding a lock
-> >> > performance
-> >> > will go down the gutters anyway. And since most current
-> >> > gpus/co-processors
-> >> > still can't really preempt fairness isn't that high a priority,
-> >> > either.
-> >> > So we didn't think too much about that.
-> >>
-> >> Yeah but you're proposing a new synchronization primitive for the core
-> >> kernel.. all such 'fun' details need to be considered, not only those
-> >> few that bear on the one usecase.
-> >
-> > Which bares the question, what other use cases are there?
+On 04/26/2013 10:52 AM, Sachin Kamat wrote:
+> When 'node' is NULL, the print statement tries to dereference it.
+> Hence replace the variable with the one that is accessible.
 > 
-> Just stumbled over one I think: If we have a big graph of connected
-> things (happens really often for video pipelines). And we want
-> multiple users to use them in parallel. But sometimes a configuration
-> change could take way too long and so would unduly stall a 2nd thread
-> with just a global mutex, then per-object ww_mutexes would be a fit:
-> You'd start with grabbing all the locks for the objects you want to
-> change anything with, then grab anything in the graph that you also
-> need to check. Thanks to loop detection and self-recursion this would
-> all nicely work out, even for cyclic graphs of objects.
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+> Changes since v1:
+> Used pdev->dev.of_node->full_name for node name.
 
-Indeed, that would make the locking for atomic modeset/page flip very
-easy to handle, while still allowing the use of suitable fine grained
-locks. I like the idea.
+Patch applied for 3.10-rc2+, thanks.
 
--- 
-Ville Syrjälä
-Intel OTC
