@@ -1,144 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:56595 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757617Ab3DXMAt (ORCPT
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:57158 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752141Ab3DZL1U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Apr 2013 08:00:49 -0400
+	Fri, 26 Apr 2013 07:27:20 -0400
 From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LFBDEV <linux-fbdev@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-Cc: LKML <linux-kernel@vger.kernel.org>, Sekhar Nori <nsekhar@ti.com>,
+To: LMML <linux-media@vger.kernel.org>
+Cc: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 1/6] media: davinci: vpbe: fix checkpatch warning for CamelCase
-Date: Wed, 24 Apr 2013 17:30:03 +0530
-Message-Id: <1366804808-22720-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1366804808-22720-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1366804808-22720-1-git-send-email-prabhakar.csengg@gmail.com>
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Subject: [PATCH] media: i2c: tvp514x: add OF support
+Date: Fri, 26 Apr 2013 16:53:50 +0530
+Message-Id: <1366975430-31806-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-This patch fixes checkpatch warning to avoid CamelCase.
+add OF support for the tvp514x driver.
 
 Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
 ---
- drivers/media/platform/davinci/vpbe_display.c |    2 +-
- drivers/media/platform/davinci/vpbe_osd.c     |   24 ++++++++++++------------
- include/media/davinci/vpbe_osd.h              |    4 ++--
- 3 files changed, 15 insertions(+), 15 deletions(-)
+ RFC v1: https://patchwork.kernel.org/patch/2030061/
+ RFC v2: https://patchwork.kernel.org/patch/2061811/
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 1802f11..1c4ba89 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -929,7 +929,7 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
- 	cfg->interlaced = vpbe_dev->current_timings.interlaced;
+ Changes for current version from RFC v2:
+ 1: Fixed review comments pointed by Sylwester.
+
+ .../devicetree/bindings/media/i2c/tvp514x.txt      |   38 +++++++++++
+ drivers/media/i2c/tvp514x.c                        |   67 +++++++++++++++++--
+ 2 files changed, 98 insertions(+), 7 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+new file mode 100644
+index 0000000..618640a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+@@ -0,0 +1,38 @@
++* Texas Instruments TVP514x video decoder
++
++The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
++digital video decoder that digitizes and decodes all popular baseband analog
++video formats into digital video component. The tvp514x decoder supports analog-
++to-digital (A/D) conversion of component RGB and YPbPr signals as well as A/D
++conversion and decoding of NTSC, PAL and SECAM composite and S-video into
++component YCbCr.
++
++Required Properties :
++- compatible: Must be "ti,tvp514x-decoder"
++- hsync-active: HSYNC Polarity configuration for current interface.
++- vsync-active: VSYNC Polarity configuration for current interface.
++- pclk-sample: Clock polarity of the current interface.
++
++Example:
++
++i2c0@1c22000 {
++	...
++	...
++
++	tvp514x@5c {
++		compatible = "ti,tvp514x-decoder";
++		reg = <0x5c>;
++
++		port {
++			tvp514x_1: endpoint {
++				/* Active high (Defaults to 0) */
++				hsync-active = <1>;
++				/* Active high (Defaults to 0) */
++				vsync-active = <1>;
++				/* Active low (Defaults to 0) */
++				pclk-sample = <0>;
++			};
++		};
++	};
++	...
++};
+diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+index 887bd93..d37b85e 100644
+--- a/drivers/media/i2c/tvp514x.c
++++ b/drivers/media/i2c/tvp514x.c
+@@ -35,7 +35,9 @@
+ #include <linux/videodev2.h>
+ #include <linux/module.h>
+ #include <linux/v4l2-mediabus.h>
++#include <linux/of_device.h>
  
- 	if (V4L2_PIX_FMT_UYVY == pixfmt->pixelformat)
--		cfg->pixfmt = PIXFMT_YCbCrI;
-+		cfg->pixfmt = PIXFMT_YCBCRI;
++#include <media/v4l2-of.h>
+ #include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+@@ -1056,6 +1058,58 @@ static struct tvp514x_decoder tvp514x_dev = {
  
- 	/* Change of the default pixel format for both video windows */
- 	if (V4L2_PIX_FMT_NV12 == pixfmt->pixelformat) {
-diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
-index 396a51c..6ed82e8 100644
---- a/drivers/media/platform/davinci/vpbe_osd.c
-+++ b/drivers/media/platform/davinci/vpbe_osd.c
-@@ -119,7 +119,7 @@ static inline u32 osd_modify(struct osd_state *sd, u32 mask, u32 val,
- #define is_rgb_pixfmt(pixfmt) \
- 	(((pixfmt) == PIXFMT_RGB565) || ((pixfmt) == PIXFMT_RGB888))
- #define is_yc_pixfmt(pixfmt) \
--	(((pixfmt) == PIXFMT_YCbCrI) || ((pixfmt) == PIXFMT_YCrCbI) || \
-+	(((pixfmt) == PIXFMT_YCBCRI) || ((pixfmt) == PIXFMT_YCRCBI) || \
- 	((pixfmt) == PIXFMT_NV12))
- #define MAX_WIN_SIZE OSD_VIDWIN0XP_V0X
- #define MAX_LINE_LENGTH (OSD_VIDWIN0OFST_V0LO << 5)
-@@ -360,8 +360,8 @@ static void _osd_enable_color_key(struct osd_state *sd,
- 			osd_write(sd, colorkey & OSD_TRANSPVALL_RGBL,
- 				  OSD_TRANSPVALL);
- 		break;
--	case PIXFMT_YCbCrI:
--	case PIXFMT_YCrCbI:
-+	case PIXFMT_YCBCRI:
-+	case PIXFMT_YCRCBI:
- 		if (sd->vpbe_type == VPBE_VERSION_3)
- 			osd_modify(sd, OSD_TRANSPVALU_Y, colorkey,
- 				   OSD_TRANSPVALU);
-@@ -813,8 +813,8 @@ static int try_layer_config(struct osd_state *sd, enum osd_layer layer,
- 		if (osd->vpbe_type == VPBE_VERSION_1)
- 			bad_config = !is_vid_win(layer);
- 		break;
--	case PIXFMT_YCbCrI:
--	case PIXFMT_YCrCbI:
-+	case PIXFMT_YCBCRI:
-+	case PIXFMT_YCRCBI:
- 		bad_config = !is_vid_win(layer);
- 		break;
- 	case PIXFMT_RGB888:
-@@ -950,9 +950,9 @@ static void _osd_set_cbcr_order(struct osd_state *sd,
- 	 * The caller must ensure that all windows using YC pixfmt use the same
- 	 * Cb/Cr order.
- 	 */
--	if (pixfmt == PIXFMT_YCbCrI)
-+	if (pixfmt == PIXFMT_YCBCRI)
- 		osd_clear(sd, OSD_MODE_CS, OSD_MODE);
--	else if (pixfmt == PIXFMT_YCrCbI)
-+	else if (pixfmt == PIXFMT_YCRCBI)
- 		osd_set(sd, OSD_MODE_CS, OSD_MODE);
- }
- 
-@@ -981,8 +981,8 @@ static void _osd_set_layer_config(struct osd_state *sd, enum osd_layer layer,
- 				winmd |= (2 << OSD_OSDWIN0MD_BMP0MD_SHIFT);
- 				_osd_enable_rgb888_pixblend(sd, OSDWIN_OSD0);
- 				break;
--			case PIXFMT_YCbCrI:
--			case PIXFMT_YCrCbI:
-+			case PIXFMT_YCBCRI:
-+			case PIXFMT_YCRCBI:
- 				winmd |= (3 << OSD_OSDWIN0MD_BMP0MD_SHIFT);
- 				break;
- 			default:
-@@ -1128,8 +1128,8 @@ static void _osd_set_layer_config(struct osd_state *sd, enum osd_layer layer,
- 					_osd_enable_rgb888_pixblend(sd,
- 							OSDWIN_OSD1);
- 					break;
--				case PIXFMT_YCbCrI:
--				case PIXFMT_YCrCbI:
-+				case PIXFMT_YCBCRI:
-+				case PIXFMT_YCRCBI:
- 					winmd |=
- 					    (3 << OSD_OSDWIN1MD_BMP1MD_SHIFT);
- 					break;
-@@ -1508,7 +1508,7 @@ static int osd_initialize(struct osd_state *osd)
- 	_osd_init(osd);
- 
- 	/* set default Cb/Cr order */
--	osd->yc_pixfmt = PIXFMT_YCbCrI;
-+	osd->yc_pixfmt = PIXFMT_YCBCRI;
- 
- 	if (osd->vpbe_type == VPBE_VERSION_3) {
- 		/*
-diff --git a/include/media/davinci/vpbe_osd.h b/include/media/davinci/vpbe_osd.h
-index 42628fc..de59364 100644
---- a/include/media/davinci/vpbe_osd.h
-+++ b/include/media/davinci/vpbe_osd.h
-@@ -82,9 +82,9 @@ enum osd_pix_format {
- 	PIXFMT_4BPP,
- 	PIXFMT_8BPP,
- 	PIXFMT_RGB565,
--	PIXFMT_YCbCrI,
-+	PIXFMT_YCBCRI,
- 	PIXFMT_RGB888,
--	PIXFMT_YCrCbI,
-+	PIXFMT_YCRCBI,
- 	PIXFMT_NV12,
- 	PIXFMT_OSD_ATTR,
  };
+ 
++#if defined(CONFIG_OF)
++static const struct of_device_id tvp514x_of_match[] = {
++	{.compatible = "ti,tvp5146-decoder", },
++	{.compatible = "ti,tvp5146m2-decoder", },
++	{.compatible = "ti,tvp5147-decoder", },
++	{.compatible = "ti,tvp5147m1-decoder", },
++	{},
++};
++MODULE_DEVICE_TABLE(of, tvp514x_of_match);
++
++static void tvp514x_get_pdata(struct i2c_client *client,
++			      struct tvp514x_decoder *decoder)
++{
++	if (!client->dev.platform_data && client->dev.of_node) {
++		struct device_node *endpoint;
++
++		endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
++		if (endpoint) {
++			struct tvp514x_platform_data *pdata;
++			struct v4l2_of_endpoint bus_cfg;
++			unsigned int flags;
++
++			pdata =
++			   devm_kzalloc(&client->dev,
++					sizeof(struct tvp514x_platform_data),
++					GFP_KERNEL);
++			if (!pdata)
++				return;
++
++			v4l2_of_parse_endpoint(endpoint, &bus_cfg);
++			flags = bus_cfg.bus.parallel.flags;
++
++			if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
++				pdata->hs_polarity = 1;
++			if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
++				pdata->vs_polarity = 1;
++			if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
++				pdata->clk_polarity = 1;
++			decoder->pdata = pdata;
++		}
++	}
++}
++#else
++#define tvp514x_of_match NULL
++
++static void tvp514x_get_pdata(struct i2c_client *client,
++			      struct tvp514x_decoder *decoder)
++{
++	decoder->pdata = client->dev.platform_data;
++}
++#endif
++
+ /**
+  * tvp514x_probe() - decoder driver i2c probe handler
+  * @client: i2c driver client device structure
+@@ -1075,11 +1129,6 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -EIO;
+ 
+-	if (!client->dev.platform_data) {
+-		v4l2_err(client, "No platform data!!\n");
+-		return -ENODEV;
+-	}
+-
+ 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+ 	if (!decoder)
+ 		return -ENOMEM;
+@@ -1090,8 +1139,11 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+ 	memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
+ 			sizeof(tvp514x_reg_list_default));
+ 
+-	/* Copy board specific information here */
+-	decoder->pdata = client->dev.platform_data;
++	tvp514x_get_pdata(client, decoder);
++	if (!decoder->pdata) {
++		v4l2_err(client, "No platform data!!\n");
++		return -EPROBE_DEFER;
++	}
+ 
+ 	/**
+ 	 * Fetch platform specific data, and configure the
+@@ -1242,6 +1294,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
+ 
+ static struct i2c_driver tvp514x_driver = {
+ 	.driver = {
++		.of_match_table = tvp514x_of_match,
+ 		.owner = THIS_MODULE,
+ 		.name = TVP514X_MODULE_NAME,
+ 	},
 -- 
 1.7.4.1
 
