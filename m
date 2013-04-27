@@ -1,62 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:9890 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757955Ab3DYU77 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 16:59:59 -0400
-Date: Thu, 25 Apr 2013 17:59:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: "Abhishek Bansal" <abhishek@vizexperts.com>
-Cc: <linux-media@vger.kernel.org>
-Subject: Re: Video Signal Type in V4L
-Message-ID: <20130425175954.71ecd0f1@redhat.com>
-In-Reply-To: <001901ce41f5$c4da31f0$4e8e95d0$@vizexperts.com>
-References: <001901ce41f5$c4da31f0$4e8e95d0$@vizexperts.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3134 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753369Ab3D0SUo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Apr 2013 14:20:44 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r3RIKeTB063777
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 27 Apr 2013 20:20:43 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id BF79311E02C4
+	for <linux-media@vger.kernel.org>; Sat, 27 Apr 2013 20:20:40 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130427182040.BF79311E02C4@alastor.dyndns.org>
+Date: Sat, 27 Apr 2013 20:20:40 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 26 Apr 2013 02:15:03 +0530
-"Abhishek Bansal" <abhishek@vizexperts.com> escreveu:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> Hi All,
-> 
-> Is there any way by which I can know Input signal type (in terms of
-> DVI/Composite/USB/SDI) 
+Results of the daily build of media_tree:
 
-As input "type", currently no. However, by looking at the video input 'name'
-field, it is possible to know if it is a composite, S-video, ... input entry.
-The input name is a string, and the naming convention depends on the driver.
+date:		Sat Apr 27 19:00:21 CEST 2013
+git branch:	test
+git hash:	4494f0fdd825958d596d05a4bd577df94b149038
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-see field 'name' at
-http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-enuminput.html
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-And this ioctl for retrieving it for the current input:
-	http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-input.html
+Detailed results are available here:
 
-> and refresh rate from a V4L video capture device.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
-Yes, via VIDIOC_G_PARM. see timeperframe field there:
-	http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-g-parm.html
+Full logs are available here:
 
-Not all drivers implement it through.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
 
-> Any available V4L Structure/Flag from which I can deduce this information. 
+The Media Infrastructure API from this daily build is here:
 
-
-> Please help !
-> 
-> Thank You
-> Abhishek Bansal
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-
--- 
-
-Cheers,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
