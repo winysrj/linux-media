@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:28264 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754358Ab3DMOZb convert rfc822-to-8bit (ORCPT
+Received: from fallback1.mail.ru ([94.100.176.18]:59866 "EHLO
+	fallback1.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752508Ab3D0FLx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Apr 2013 10:25:31 -0400
-Date: Sat, 13 Apr 2013 11:25:17 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Antti Palosaari <crope@iki.fi>
-Cc: Frank =?UTF-8?B?U2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] em28xx: clean up end extend the GPIO port handling
-Message-ID: <20130413112517.40833d48@redhat.com>
-In-Reply-To: <51695A7B.4010206@iki.fi>
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com>
-	<51695A7B.4010206@iki.fi>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Sat, 27 Apr 2013 01:11:53 -0400
+Received: from smtp8.mail.ru (smtp8.mail.ru [94.100.176.53])
+	by fallback1.mail.ru (mPOP.Fallback_MX) with ESMTP id B811819800D3
+	for <linux-media@vger.kernel.org>; Sat, 27 Apr 2013 09:07:05 +0400 (MSK)
+From: Alexander Shiyan <shc_work@mail.ru>
+To: linux-media@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
+	Alexander Shiyan <shc_work@mail.ru>
+Subject: [PATCH] media: coda: Fix compile breakage
+Date: Sat, 27 Apr 2013 09:06:38 +0400
+Message-Id: <1367039198-28639-1-git-send-email-shc_work@mail.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sat, 13 Apr 2013 16:15:39 +0300
-Antti Palosaari <crope@iki.fi> escreveu:
+Patch adds GENERIC_ALLOCATOR, if "coda" is selected.
 
-> On 04/13/2013 12:48 PM, Frank Schäfer wrote:
-> > Patch 1 removes the unneeded and broken gpio register caching code.
-> > Patch 2 adds the gpio register defintions for the em25xx/em276x/7x/8x
-> > and patch 3 finally adds a new helper function for gpio ports with separate
-> > registers for read and write access.
-> 
-> 
-> I have nothing to say directly about those patches - they looked good at 
-> the quick check. But I wonder if you have any idea if it is possible to 
-> use some existing Kernel GPIO functionality in order to provide standard 
-> interface (interface like I2C). I did some work last summer in order to 
-> use GPIOLIB and it is used between em28xx-dvb and cxd2820r for LNA 
-> control. Anyhow, I was a little bit disappointed as GPIOLIB is disabled 
-> by default and due to that there is macros to disable LNA when GPIOLIB 
-> is not compiled.
-> I noticed recently there is some ongoing development for Kernel GPIO. I 
-> haven't looked yet if it makes use of GPIO interface more common...
+drivers/built-in.o: In function `coda_remove':
+:(.text+0x110634): undefined reference to `gen_pool_free'
+drivers/built-in.o: In function `coda_probe':
+:(.text+0x1107d4): undefined reference to `of_get_named_gen_pool'
+:(.text+0x1108b8): undefined reference to `gen_pool_alloc'
+:(.text+0x1108d0): undefined reference to `gen_pool_virt_to_phys'
+:(.text+0x110918): undefined reference to `dev_get_gen_pool'
 
-I have conflicting opinions myself weather we should use gpiolib or not.
+Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
+---
+ drivers/media/platform/Kconfig | 1 +
+ 1 file changed, 1 insertion(+)
 
-I don't mind with the fact that GPIOLIB is disabled by default. If all
-media drivers start depending on it, distros will enable it to keep
-media support on it.
+diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+index 0cbe1ff..414a769 100644
+--- a/drivers/media/platform/Kconfig
++++ b/drivers/media/platform/Kconfig
+@@ -145,6 +145,7 @@ config VIDEO_CODA
+ 	depends on VIDEO_DEV && VIDEO_V4L2 && ARCH_MXC
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select V4L2_MEM2MEM_DEV
++	select GENERIC_ALLOCATOR
+ 	---help---
+ 	   Coda is a range of video codec IPs that supports
+ 	   H.264, MPEG-4, and other video formats.
+-- 
+1.8.1.5
 
-I never took the time to take a look on what methods gpiolib provides.
-Maybe it will bring some benefits. I dunno.
-
-Just looking at the existing drivers (almost all has some sort of GPIO
-config), GPIO is just a single register bitmask read/write. Most drivers
-need already bitmask read/write operations. So, in principle, I can't
-foresee any code simplification by using a library.
-
-Also, from a very pragmatic view, changing (almost) all existing drivers
-to use gpiolib is a big effort.
-
-However, for that to happen, one question should be answered: what
-benefits would be obtained by using gpiolib?
-
-Regards,
-Mauro
