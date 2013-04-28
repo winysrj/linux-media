@@ -1,44 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:52133 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935219Ab3DHRrV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 13:47:21 -0400
-Message-ID: <51630297.2040803@infradead.org>
-Date: Mon, 08 Apr 2013 10:47:03 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-CC: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH -next] media:
-References: <20130408174343.cc13eb1972470d20d38ecff1@canb.auug.org.au>
-In-Reply-To: <20130408174343.cc13eb1972470d20d38ecff1@canb.auug.org.au>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mx1.redhat.com ([209.132.183.28]:2406 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753722Ab3D1Pr5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Apr 2013 11:47:57 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3SFlv4p027454
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 11:47:57 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 7/9] [media] drxk_hard.h: don't use more than 80 columns
+Date: Sun, 28 Apr 2013 12:47:49 -0300
+Message-Id: <1367164071-11468-8-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
+References: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Randy Dunlap <rdunlap@infradead.org>
+Almost all 80-col warnings are related to comments. There's
+one, however, that it is due to a one-line enum declaration
+for enum agc_ctrl_mode.
 
-Fix randconfig error when USB is not enabled:
+Break it into one line per enumered data.
 
-ERROR: "usb_control_msg" [drivers/media/common/cypress_firmware.ko] undefined!
-
-Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-Cc: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/common/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/dvb-frontends/drxk_hard.h | 7 ++++++-
+ 1 file changed, 6 insertions(+), 1 deletion(-)
 
---- linux-next-20130408.orig/drivers/media/common/Kconfig
-+++ linux-next-20130408/drivers/media/common/Kconfig
-@@ -18,6 +18,7 @@ config VIDEO_TVEEPROM
+diff --git a/drivers/media/dvb-frontends/drxk_hard.h b/drivers/media/dvb-frontends/drxk_hard.h
+index e77d9f0..bae9c71 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.h
++++ b/drivers/media/dvb-frontends/drxk_hard.h
+@@ -93,7 +93,12 @@ enum drx_power_mode {
+ #endif
  
- config CYPRESS_FIRMWARE
- 	tristate "Cypress firmware helper routines"
-+	depends on USB
  
- source "drivers/media/common/b2c2/Kconfig"
- source "drivers/media/common/saa7146/Kconfig"
+-enum agc_ctrl_mode { DRXK_AGC_CTRL_AUTO = 0, DRXK_AGC_CTRL_USER, DRXK_AGC_CTRL_OFF };
++enum agc_ctrl_mode {
++	DRXK_AGC_CTRL_AUTO = 0,
++	DRXK_AGC_CTRL_USER,
++	DRXK_AGC_CTRL_OFF
++};
++
+ enum e_drxk_state {
+ 	DRXK_UNINITIALIZED = 0,
+ 	DRXK_STOPPED,
+-- 
+1.8.1.4
+
