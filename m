@@ -1,326 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4479 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934715Ab3DHK7W (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:59:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Janne Grunau <j@jannau.net>, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 04/12] hdpvr: remove hdpvr_fh and just use v4l2_fh.
-Date: Mon,  8 Apr 2013 12:58:33 +0200
-Message-Id: <1365418721-23859-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365418721-23859-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:48059 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754385Ab3D1PsE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Apr 2013 11:48:04 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3SFm4FC028452
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 11:48:04 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 5/9] [media] drxk_hard: use usleep_range()
+Date: Sun, 28 Apr 2013 12:47:47 -0300
+Message-Id: <1367164071-11468-6-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
+References: <1367164071-11468-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Fixes the following checkpatch.pl warnings:
 
-This prepares the driver for priority and control event handling.
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
++			msleep(10);
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
++		msleep(1);
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
++			msleep(1);
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
++		msleep(1);
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
++		msleep(1);
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
++		msleep(1);
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
++		msleep(1);
+WARNING: msleep < 20ms can sleep for up to 20ms; see Documentation/timers/timers-howto.txt
++		msleep(1);
 
-This patch also checks for correct streaming ownership and it makes a
-small improvement to the encoder_cmd ioctls: always zero 'flags' and
-drop the memset of 'raw' as that is already done by the v4l2 core.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/usb/hdpvr/hdpvr-video.c |  115 +++++++++++++--------------------
- drivers/media/usb/hdpvr/hdpvr.h       |    4 +-
- 2 files changed, 46 insertions(+), 73 deletions(-)
+ drivers/media/dvb-frontends/drxk_hard.c | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index a890127..4bbcf48 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -35,10 +35,6 @@
- 			 list_size(&dev->free_buff_list),		\
- 			 list_size(&dev->rec_buff_list)); }
- 
--struct hdpvr_fh {
--	struct hdpvr_device	*dev;
--};
--
- static uint list_size(struct list_head *list)
- {
- 	struct list_head *tmp;
-@@ -358,55 +354,21 @@ static int hdpvr_stop_streaming(struct hdpvr_device *dev)
-  * video 4 linux 2 file operations
-  */
- 
--static int hdpvr_open(struct file *file)
--{
--	struct hdpvr_device *dev;
--	struct hdpvr_fh *fh;
--	int retval = -ENOMEM;
--
--	dev = (struct hdpvr_device *)video_get_drvdata(video_devdata(file));
--	if (!dev) {
--		pr_err("open failing with with ENODEV\n");
--		retval = -ENODEV;
--		goto err;
--	}
--
--	fh = kzalloc(sizeof(struct hdpvr_fh), GFP_KERNEL);
--	if (!fh) {
--		v4l2_err(&dev->v4l2_dev, "Out of memory\n");
--		goto err;
--	}
--	/* lock the device to allow correctly handling errors
--	 * in resumption */
--	mutex_lock(&dev->io_mutex);
--	dev->open_count++;
--	mutex_unlock(&dev->io_mutex);
--
--	fh->dev = dev;
--
--	/* save our object in the file's private structure */
--	file->private_data = fh;
--
--	retval = 0;
--err:
--	return retval;
--}
--
- static int hdpvr_release(struct file *file)
- {
--	struct hdpvr_fh		*fh  = file->private_data;
--	struct hdpvr_device	*dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 
- 	if (!dev)
- 		return -ENODEV;
- 
- 	mutex_lock(&dev->io_mutex);
--	if (!(--dev->open_count) && dev->status == STATUS_STREAMING)
-+	if (file->private_data == dev->owner) {
- 		hdpvr_stop_streaming(dev);
--
-+		dev->owner = NULL;
-+	}
- 	mutex_unlock(&dev->io_mutex);
- 
--	return 0;
-+	return v4l2_fh_release(file);
- }
- 
- /*
-@@ -416,8 +378,7 @@ static int hdpvr_release(struct file *file)
- static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
- 			  loff_t *pos)
- {
--	struct hdpvr_fh *fh = file->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 	struct hdpvr_buffer *buf = NULL;
- 	struct urb *urb;
- 	unsigned int ret = 0;
-@@ -440,6 +401,7 @@ static ssize_t hdpvr_read(struct file *file, char __user *buffer, size_t count,
- 			mutex_unlock(&dev->io_mutex);
- 			goto err;
- 		}
-+		dev->owner = file->private_data;
- 		print_buffer_status();
- 	}
- 	mutex_unlock(&dev->io_mutex);
-@@ -518,8 +480,7 @@ err:
- static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
- {
- 	struct hdpvr_buffer *buf = NULL;
--	struct hdpvr_fh *fh = filp->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(filp);
- 	unsigned int mask = 0;
- 
- 	mutex_lock(&dev->io_mutex);
-@@ -534,6 +495,8 @@ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
- 			v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
- 				 "start_streaming failed\n");
- 			dev->status = STATUS_IDLE;
-+		} else {
-+			dev->owner = filp->private_data;
- 		}
- 
- 		print_buffer_status();
-@@ -555,7 +518,7 @@ static unsigned int hdpvr_poll(struct file *filp, poll_table *wait)
- 
- static const struct v4l2_file_operations hdpvr_fops = {
- 	.owner		= THIS_MODULE,
--	.open		= hdpvr_open,
-+	.open		= v4l2_fh_open,
- 	.release	= hdpvr_release,
- 	.read		= hdpvr_read,
- 	.poll		= hdpvr_poll,
-@@ -584,8 +547,7 @@ static int vidioc_querycap(struct file *file, void  *priv,
- static int vidioc_s_std(struct file *file, void *private_data,
- 			v4l2_std_id std)
- {
--	struct hdpvr_fh *fh = file->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 	u8 std_type = 1;
- 
- 	if (std & (V4L2_STD_NTSC | V4L2_STD_PAL_60))
-@@ -603,8 +565,7 @@ static const char *iname[] = {
- static int vidioc_enum_input(struct file *file, void *priv,
- 				struct v4l2_input *i)
- {
--	struct hdpvr_fh *fh = file->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 	unsigned int n;
- 
- 	n = i->index;
-@@ -626,8 +587,7 @@ static int vidioc_enum_input(struct file *file, void *priv,
- static int vidioc_s_input(struct file *file, void *private_data,
- 			  unsigned int index)
- {
--	struct hdpvr_fh *fh = file->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 	int retval;
- 
- 	if (index >= HDPVR_VIDEO_INPUTS)
-@@ -646,8 +606,7 @@ static int vidioc_s_input(struct file *file, void *private_data,
- static int vidioc_g_input(struct file *file, void *private_data,
- 			  unsigned int *index)
- {
--	struct hdpvr_fh *fh = file->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 
- 	*index = dev->options.video_input;
- 	return 0;
-@@ -680,8 +639,7 @@ static int vidioc_enumaudio(struct file *file, void *priv,
- static int vidioc_s_audio(struct file *file, void *private_data,
- 			  const struct v4l2_audio *audio)
- {
--	struct hdpvr_fh *fh = file->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 	int retval;
- 
- 	if (audio->index >= HDPVR_AUDIO_INPUTS)
-@@ -700,8 +658,7 @@ static int vidioc_s_audio(struct file *file, void *private_data,
- static int vidioc_g_audio(struct file *file, void *private_data,
- 			  struct v4l2_audio *audio)
- {
--	struct hdpvr_fh *fh = file->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 
- 	audio->index = dev->options.audio_input;
- 	audio->capability = V4L2_AUDCAP_STEREO;
-@@ -833,8 +790,7 @@ static int vidioc_enum_fmt_vid_cap(struct file *file, void *private_data,
- static int vidioc_g_fmt_vid_cap(struct file *file, void *private_data,
- 				struct v4l2_format *f)
- {
--	struct hdpvr_fh *fh = file->private_data;
--	struct hdpvr_device *dev = fh->dev;
-+	struct hdpvr_device *dev = video_drvdata(file);
- 	struct hdpvr_video_info *vid_info;
- 
- 	if (!dev)
-@@ -860,26 +816,44 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *private_data,
- static int vidioc_encoder_cmd(struct file *filp, void *priv,
- 			       struct v4l2_encoder_cmd *a)
- {
--	struct hdpvr_fh *fh = filp->private_data;
--	struct hdpvr_device *dev = fh->dev;
--	int res;
-+	struct hdpvr_device *dev = video_drvdata(filp);
-+	int res = 0;
- 
- 	mutex_lock(&dev->io_mutex);
-+	a->flags = 0;
- 
--	memset(&a->raw, 0, sizeof(a->raw));
- 	switch (a->cmd) {
- 	case V4L2_ENC_CMD_START:
--		a->flags = 0;
-+		if (dev->owner && filp->private_data != dev->owner) {
-+			res = -EBUSY;
-+			break;
-+		}
-+		if (dev->status == STATUS_STREAMING)
-+			break;
- 		res = hdpvr_start_streaming(dev);
-+		if (!res)
-+			dev->owner = filp->private_data;
-+		else
-+			dev->status = STATUS_IDLE;
- 		break;
- 	case V4L2_ENC_CMD_STOP:
-+		if (dev->owner && filp->private_data != dev->owner) {
-+			res = -EBUSY;
-+			break;
-+		}
-+		if (dev->status == STATUS_IDLE)
-+			break;
- 		res = hdpvr_stop_streaming(dev);
-+		if (!res)
-+			dev->owner = NULL;
- 		break;
- 	default:
- 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
- 			 "Unsupported encoder cmd %d\n", a->cmd);
- 		res = -EINVAL;
-+		break;
- 	}
-+
- 	mutex_unlock(&dev->io_mutex);
- 	return res;
- }
-@@ -887,6 +861,7 @@ static int vidioc_encoder_cmd(struct file *filp, void *priv,
- static int vidioc_try_encoder_cmd(struct file *filp, void *priv,
- 					struct v4l2_encoder_cmd *a)
- {
-+	a->flags = 0;
- 	switch (a->cmd) {
- 	case V4L2_ENC_CMD_START:
- 	case V4L2_ENC_CMD_STOP:
-@@ -935,8 +910,6 @@ static void hdpvr_device_release(struct video_device *vdev)
- }
- 
- static const struct video_device hdpvr_video_template = {
--/* 	.type			= VFL_TYPE_GRABBER, */
--/* 	.type2			= VID_TYPE_CAPTURE | VID_TYPE_MPEG_ENCODER, */
- 	.fops			= &hdpvr_fops,
- 	.release		= hdpvr_device_release,
- 	.ioctl_ops 		= &hdpvr_ioctl_ops,
-@@ -1031,9 +1004,9 @@ int hdpvr_register_videodev(struct hdpvr_device *dev, struct device *parent,
+diff --git a/drivers/media/dvb-frontends/drxk_hard.c b/drivers/media/dvb-frontends/drxk_hard.c
+index fdbe23a..1fd74f2 100644
+--- a/drivers/media/dvb-frontends/drxk_hard.c
++++ b/drivers/media/dvb-frontends/drxk_hard.c
+@@ -505,7 +505,7 @@ static int power_up_device(struct drxk_state *state)
+ 			data = 0;
+ 			status = i2c_write(state, state->demod_address,
+ 					   &data, 1);
+-			msleep(10);
++			usleep_range(10000, 11000);
+ 			retry_count++;
+ 			if (status < 0)
+ 				continue;
+@@ -1017,7 +1017,7 @@ static int hi_command(struct drxk_state *state, u16 cmd, u16 *p_result)
+ 	if (status < 0)
  		goto error;
- 	}
+ 	if (cmd == SIO_HI_RA_RAM_CMD_RESET)
+-		msleep(1);
++		usleep_range(1000, 2000);
  
--	*(dev->video_dev) = hdpvr_video_template;
-+	*dev->video_dev = hdpvr_video_template;
- 	strcpy(dev->video_dev->name, "Hauppauge HD PVR");
--	dev->video_dev->parent = parent;
-+	dev->video_dev->v4l2_dev = &dev->v4l2_dev;
- 	video_set_drvdata(dev->video_dev, dev);
+ 	powerdown_cmd =
+ 	    (bool) ((cmd == SIO_HI_RA_RAM_CMD_CONFIG) &&
+@@ -1030,7 +1030,7 @@ static int hi_command(struct drxk_state *state, u16 cmd, u16 *p_result)
+ 		u16 wait_cmd;
  
- 	res = video_register_device(dev->video_dev, VFL_TYPE_GRABBER, devnum);
-diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
-index 2a4deab..9450093 100644
---- a/drivers/media/usb/hdpvr/hdpvr.h
-+++ b/drivers/media/usb/hdpvr/hdpvr.h
-@@ -85,8 +85,6 @@ struct hdpvr_device {
+ 		do {
+-			msleep(1);
++			usleep_range(1000, 2000);
+ 			retry_count += 1;
+ 			status = read16(state, SIO_HI_RA_RAM_CMD__A,
+ 					  &wait_cmd);
+@@ -1279,7 +1279,7 @@ static int bl_chain_cmd(struct drxk_state *state,
  
- 	/* holds the current device status */
- 	__u8			status;
--	/* count the number of openers */
--	uint			open_count;
- 
- 	/* holds the cureent set options */
- 	struct hdpvr_options	options;
-@@ -107,6 +105,8 @@ struct hdpvr_device {
- 	struct workqueue_struct	*workqueue;
- 	/**/
- 	struct work_struct	worker;
-+	/* current stream owner */
-+	struct v4l2_fh		*owner;
- 
- 	/* I2C adapter */
- 	struct i2c_adapter	i2c_adapter;
+ 	end = jiffies + msecs_to_jiffies(time_out);
+ 	do {
+-		msleep(1);
++		usleep_range(1000, 2000);
+ 		status = read16(state, SIO_BL_STATUS__A, &bl_status);
+ 		if (status < 0)
+ 			goto error;
+@@ -1392,7 +1392,7 @@ static int dvbt_enable_ofdm_token_ring(struct drxk_state *state, bool enable)
+ 		status = read16(state, SIO_OFDM_SH_OFDM_RING_STATUS__A, &data);
+ 		if ((status >= 0 && data == desired_status) || time_is_after_jiffies(end))
+ 			break;
+-		msleep(1);
++		usleep_range(1000, 2000);
+ 	} while (1);
+ 	if (data != desired_status) {
+ 		pr_err("SIO not ready\n");
+@@ -1471,7 +1471,7 @@ static int scu_command(struct drxk_state *state,
+ 	/* Wait until SCU has processed command */
+ 	end = jiffies + msecs_to_jiffies(DRXK_MAX_WAITTIME);
+ 	do {
+-		msleep(1);
++		usleep_range(1000, 2000);
+ 		status = read16(state, SCU_RAM_COMMAND__A, &cur_cmd);
+ 		if (status < 0)
+ 			goto error;
+@@ -3187,7 +3187,7 @@ static int dvbt_sc_command(struct drxk_state *state,
+ 	/* Wait until sc is ready to receive command */
+ 	retry_cnt = 0;
+ 	do {
+-		msleep(1);
++		usleep_range(1000, 2000);
+ 		status = read16(state, OFDM_SC_RA_RAM_CMD__A, &cur_cmd);
+ 		retry_cnt++;
+ 	} while ((cur_cmd != 0) && (retry_cnt < DRXK_MAX_RETRIES));
+@@ -3239,7 +3239,7 @@ static int dvbt_sc_command(struct drxk_state *state,
+ 	/* Wait until sc is ready processing command */
+ 	retry_cnt = 0;
+ 	do {
+-		msleep(1);
++		usleep_range(1000, 2000);
+ 		status = read16(state, OFDM_SC_RA_RAM_CMD__A, &cur_cmd);
+ 		retry_cnt++;
+ 	} while ((cur_cmd != 0) && (retry_cnt < DRXK_MAX_RETRIES));
+@@ -5947,7 +5947,7 @@ static int init_drxk(struct drxk_state *state)
+ 		if (status < 0)
+ 			goto error;
+ 		/* TODO is this needed, if yes how much delay in worst case scenario */
+-		msleep(1);
++		usleep_range(1000, 2000);
+ 		state->m_drxk_a3_patch_code = true;
+ 		status = get_device_capabilities(state);
+ 		if (status < 0)
 -- 
-1.7.10.4
+1.8.1.4
 
