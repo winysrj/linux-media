@@ -1,38 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eastrmfepo103.cox.net ([68.230.241.215]:35204 "EHLO
-	eastrmfepo103.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754902Ab3DXByx (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:26291 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752873Ab3D2MIm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Apr 2013 21:54:53 -0400
-Received: from eastrmimpo210 ([68.230.241.225]) by eastrmfepo203.cox.net
-          (InterMail vM.8.01.05.09 201-2260-151-124-20120717) with ESMTP
-          id <20130424014523.CEGB26738.eastrmfepo203.cox.net@eastrmimpo210>
-          for <linux-media@vger.kernel.org>;
-          Tue, 23 Apr 2013 21:45:23 -0400
-Message-ID: <20130423214523.D7LJK.135345.imail@eastrmwml106>
-Date: Tue, 23 Apr 2013 18:45:23 -0700
-From: wins <ope12@cox.net>
-Reply-To: mrbencollins001@msn.com
-Subject: =?utf-8?Q?The_first_$5,000.00_was_sent_today._My_working_partner_has_help?=
- =?utf-8?Q?ed_me_to_send_the_first_$5,000.0?=
- =?utf-8?Q?0_to_you_through_western_union._?=
- =?utf-8?Q?So_contact_our_Western_Union_cla?=
- =?utf-8?Q?ims_Agent_to_pick_up_this_$5,000?=
- =?utf-8?Q?_now:_Contact_person:_Mr._Ben_Co?=
- =?utf-8?Q?llins_mail_:_(mrbencollins001@ms?=
- =?utf-8?Q?n.com)_Ask_him_to_give_you_the_M?=
- =?utf-8?Q?TCN,_Sender_Name_to_pick_the_$5,?=
- =?utf-8?Q?000.00._I_told_him_to_keep_sendi?=
- =?utf-8?Q?ng_you_$5,000.00_daily_until_the?=
- =?utf-8?Q?_payment_of_$1.500,000.00_is_com?=
- =?utf-8?Q?pleted._Again_forward_him_your_F?=
- =?utf-8?Q?ull_Name,_Telephone_number_and_a?=
- =?utf-8?Q?ddress_so_that_he_will_be_sure.=E2=80=8F?=
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+	Mon, 29 Apr 2013 08:08:42 -0400
+Message-id: <517E62C5.8030207@samsung.com>
+Date: Mon, 29 Apr 2013 14:08:37 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Shaik Ameer Basha <shaik.ameer@samsung.com>
+Cc: linux-media@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-samsung-soc@vger.kernel.org, shaik.samsung@gmail.com,
+	arunkk.samsung@gmail.com
+Subject: Re: [RFC v2 2/6] fimc-lite: Adding Exynos5 compatibility to fimc-lite
+ driver
+References: <1366789273-30184-1-git-send-email-shaik.ameer@samsung.com>
+ <1366789273-30184-3-git-send-email-shaik.ameer@samsung.com>
+In-reply-to: <1366789273-30184-3-git-send-email-shaik.ameer@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 04/24/2013 09:41 AM, Shaik Ameer Basha wrote:
+> This patch adds,
+> 1] Exynos5 soc compatibility to the fimc-lite driver
+> 2] Multiple dma output buffer support as from Exynos5 onwards,
+>    fimc-lite h/w ip supports multiple dma buffers.
+> 
+> Signed-off-by: Shaik Ameer Basha <shaik.ameer@samsung.com>
+> ---
+>  drivers/media/platform/exynos4-is/fimc-lite.c |   19 ++++++++++++++++++-
+>  drivers/media/platform/exynos4-is/fimc-lite.h |    4 +++-
+>  2 files changed, 21 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+> index 4878089..cb173ec 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+> @@ -1467,7 +1467,7 @@ static int fimc_lite_probe(struct platform_device *pdev)
+>  		fimc->index = pdev->id;
+>  	}
+>  
+> -	if (!drv_data || fimc->index < 0 || fimc->index >= FIMC_LITE_MAX_DEVS)
+> +	if (!drv_data || fimc->index < 0 || fimc->index >= drv_data->num_devs)
+>  		return -EINVAL;
+>  
+>  	fimc->dd = drv_data;
+> @@ -1625,6 +1625,19 @@ static struct flite_drvdata fimc_lite_drvdata_exynos4 = {
+>  	.out_width_align	= 8,
+>  	.win_hor_offs_align	= 2,
+>  	.out_hor_offs_align	= 8,
+> +	.support_multi_dma_buf	= false,
+> +	.num_devs = 2,
+> +};
 
+Could you include this in your patch:
+
+/**
+ * struct flite_drvdata - FIMC-LITE IP variant data structure
+ * @max_width: maximum camera interface input width in pixels
+ * @max_height: maximum camera interface input height in pixels
+ * @out_width_align: minimum output width alignment in pixels
+ * @win_hor_offs_align: minimum camera interface crop window horizontal
+ * 			offset alignment in pixels
+ * @out_hor_offs_align: minimum output DMA compose rectangle horizontal
+ * 			offset alignment in pixels
+ * @num_out_dma_bufs: number of output DMA buffer start address registers
+ */
+?
+> +/* EXYNOS5250 */
+> +static struct flite_drvdata fimc_lite_drvdata_exynos5 = {
+> +	.max_width		= 8192,
+> +	.max_height		= 8192,
+> +	.out_width_align	= 8,
+> +	.win_hor_offs_align	= 2,
+> +	.out_hor_offs_align	= 8,
+> +	.support_multi_dma_buf	= true,
+
+How about changing it to 'num_out_dma_bufs' ? And instead of
+
+if (dd->support_multi_dma_buf)
+
+having
+
+if (dd->num_out_dma_bufs > 1)
+
+?
+
+Otherwise the patch looks good to me. I will make a separate patch
+to update the binding documentation.
+
+I've found there is a mistake in the compatible property's documentation.
+I would like to fix it in the 3.10-rc cycle, I'm not 100% sure if it
+qualifies as the -rc material, but having kernel released with wrongly
+documented compatible property would have been bad I think.
+
+
+Thanks,
+Sylwester
