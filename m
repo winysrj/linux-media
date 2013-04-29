@@ -1,86 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2561 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756736Ab3DAOj7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Apr 2013 10:39:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: [PATCH] xawtv: release buffer if it can't be displayed
-Date: Mon, 1 Apr 2013 16:39:57 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201303301047.41952.hverkuil@xs4all.nl> <201304011219.30985.hverkuil@xs4all.nl> <51599877.2050801@redhat.com>
-In-Reply-To: <51599877.2050801@redhat.com>
+Received: from mail-wg0-f45.google.com ([74.125.82.45]:57367 "EHLO
+	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757014Ab3D2Ras (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Apr 2013 13:30:48 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304011639.57747.hverkuil@xs4all.nl>
+In-Reply-To: <32556864.ElKWl0cdN2@avalon>
+References: <1366963535-15963-1-git-send-email-prabhakar.csengg@gmail.com> <32556864.ElKWl0cdN2@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 29 Apr 2013 23:00:26 +0530
+Message-ID: <CA+V-a8u_YA=TJaRebboigM6z-A=R6-ZdyxZSED7H+4w+LN+cTQ@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: tvp7002: enable TVP7002 decoder for media
+ controller based usage
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon April 1 2013 16:23:51 Hans de Goede wrote:
-> Hi,
-> 
-> On 04/01/2013 12:19 PM, Hans Verkuil wrote:
-> > Hi Hans,
-> >
-> > On Sun March 31 2013 14:48:01 Hans de Goede wrote:
-> >> Hi,
-> >>
-> >> On 03/30/2013 10:47 AM, Hans Verkuil wrote:
-> >>> This patch for xawtv3 releases the buffer if it can't be displayed because
-> >>> the resolution of the current format is larger than the size of the window.
-> >>>
-> >>> This will happen if the hardware cannot scale down to the initially quite
-> >>> small xawtv window. For example the au0828 driver has a fixed size of 720x480,
-> >>> so it will not display anything until the window is large enough for that
-> >>> resolution.
-> >>>
-> >>> The problem is that xawtv never releases (== calls QBUF) the buffer in that
-> >>> case, and it will of course run out of buffers and stall. The only way to
-> >>> kill it is to issue a 'kill -9' since ctrl-C won't work either.
-> >>>
-> >>> By releasing the buffer xawtv at least remains responsive and a picture will
-> >>> appear after resizing the window. Ideally of course xawtv should resize itself
-> >>> to the minimum supported resolution, but that's left as an exercise for the
-> >>> reader...
-> >>>
-> >>> Hans, the xawtv issues I reported off-list are all caused by this bug and by
-> >>> by the scaling bug introduced recently in em28xx. They had nothing to do with
-> >>> the alsa streaming, that was a red herring.
-> >>
-> >> Thanks for the debugging and for the patch. I've pushed the patch to
-> >> xawtv3.git. I've a 2 patch follow up set which should fix the issue with being
-> >> able to resize the window to a too small size.
-> >>
-> >> I'll send this patch set right after this mail, can you test it with the au0828
-> >> please?
-> >
-> > I've tested it and it is not yet working. I've tracked it down to video_gd_configure
-> > where it calls ng_ratio_fixup() which changes the cur_tv_width of 736 to 640. The
-> > height remains the same at 480.
-> 
-> Thanks for testing and for figuring out where the problem lies. I've attached a
-> second version of the second patch, can you give that a try please?
+Hi Laurent,
 
-This is now working for au0828, but now vivi is broken... That worked fine with your
-previous patch.
+Thanks for the review.
 
-I'm getting:
+On Mon, Apr 29, 2013 at 7:57 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> Thank you for the patch.
+>
+> On Friday 26 April 2013 13:35:35 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> This patch enables tvp7002 decoder driver for media controller
+>> based usage by adding v4l2_subdev_pad_ops  operations support
+>> for enum_mbus_code, set_pad_format, get_pad_format and media_entity_init()
+>> on probe and media_entity_cleanup() on remove.
+>>
+>> The device supports 1 output pad and no input pads.
+>
+> We should actually define input pads, connected to connector entities, but
+> that's out of scope for this patch.
+>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+>>  drivers/media/i2c/tvp7002.c |  125 ++++++++++++++++++++++++++++++++++++++--
+>>  include/media/tvp7002.h     |    2 +
+>>  2 files changed, 122 insertions(+), 5 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+>> index 027809c..b212d41 100644
+>> --- a/drivers/media/i2c/tvp7002.c
+>> +++ b/drivers/media/i2c/tvp7002.c
+>> @@ -424,6 +424,8 @@ struct tvp7002 {
+>>       int streaming;
+>>
+>>       const struct tvp7002_timings_definition *current_timings;
+>> +     struct media_pad pad;
+>> +     struct v4l2_mbus_framefmt format;
+>>  };
+>>
+>>  /*
+>> @@ -880,6 +882,93 @@ static const struct v4l2_ctrl_ops tvp7002_ctrl_ops = {
+>>       .s_ctrl = tvp7002_s_ctrl,
+>>  };
+>>
+>> +/*
+>> + * tvp7002_enum_mbus_code() - Enum supported digital video format on pad
+>> + * @sd: pointer to standard V4L2 sub-device structure
+>> + * @fh: file handle for the subdev
+>> + * @code: pointer to subdev enum mbus code struct
+>> + *
+>> + * Enumerate supported digital video formats for pad.
+>> + */
+>> +static int
+>> +tvp7002_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>> +                    struct v4l2_subdev_mbus_code_enum *code)
+>> +{
+>> +     /* Check pad index is valid */
+>> +     if (code->pad != 0)
+>> +             return -EINVAL;
+>
+> That check is already performed in the subdev core, there's no need to
+> duplicate it here.
+>
+OK
 
-$ xawtv
-This is xawtv-3.102, running on Linux/x86_64 (3.9.0-rc1-tschai)
-ioctl: VIDIOC_QUERYMENU(id=134217731;index=2;name="Menu Item 1";reserved=0): Invalid argument
-vid-open-auto: using grabber/webcam device /dev/video0
-libv4l2: error setting pixformat: Device or resource busy
-ioctl: VIDIOC_S_FMT(type=VIDEO_CAPTURE;fmt.pix.width=384;fmt.pix.height=288;fmt.pix.pixelformat=0x34524742 [BGR4];fmt.pix.field=INTERLACED;fmt.pix.bytesperline=1536;fmt.pix.sizeimage=442368;fmt.pix.colorspace=SRGB;fmt.pix.priv=0): Device or resource busy
+>> +
+>> +     /* Check requested format index is within range */
+>> +     if (code->index != 0)
+>> +             return -EINVAL;
+>> +
+>> +     code->code = V4L2_MBUS_FMT_YUYV10_1X20;
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +/*
+>> + * tvp7002_set_pad_format() - set video format on pad
+>> + * @sd: pointer to standard V4L2 sub-device structure
+>> + * @fh: file handle for the subdev
+>> + * @fmt: pointer to subdev format struct
+>> + *
+>> + * set video format for pad.
+>> +*/
+>> +static int
+>> +tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>> +                    struct v4l2_subdev_format *fmt)
+>> +{
+>> +     struct tvp7002 *tvp7002 = to_tvp7002(sd);
+>> +
+>> +     /* Check pad index is valid */
+>> +     if (fmt->pad != 0)
+>> +             return -EINVAL;
+>
+> Redundant check as well.
+>
+OK
 
-Note that the QUERYMENU error is harmless, although it would be nice if xawtv
-would understand menu controls with 'holes' in the menu list.
+>> +     if (fmt->format.field != tvp7002->current_timings->scanmode ||
+>> +         fmt->format.code != V4L2_MBUS_FMT_YUYV10_1X20 ||
+>> +         fmt->format.colorspace != tvp7002->current_timings->color_space ||
+>> +         fmt->format.width != tvp7002->current_timings->timings.bt.width ||
+>> +         fmt->format.height != tvp7002->current_timings->timings.bt.height)
+>> +             return -EINVAL;
+>
+> You shouldn't return an error, but fix the input parameters according to what
+> the device supports. As the format is fixed for a giving set of timings, the
+> .set_pad_format() handler should just perform the same operations as
+> .get_pad_format(). You could even define tvp7002_get_pad_format() only and use
+> it as a handler for both .get_pad_format() and .set_pad_format().
+>
+OK. So its the job back in the application end to see what format was set.
 
-The 'Device or resource busy' errors are new and I didn't have them in your
-previous version.
+>> +     tvp7002->format = fmt->format;
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +/*
+>> + * tvp7002_get_pad_format() - get video format on pad
+>> + * @sd: pointer to standard V4L2 sub-device structure
+>> + * @fh: file handle for the subdev
+>> + * @fmt: pointer to subdev format struct
+>> + *
+>> + * get video format for pad.
+>> + */
+>> +static int
+>> +tvp7002_get_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+>> +                    struct v4l2_subdev_format *fmt)
+>> +{
+>> +     struct tvp7002 *tvp7002 = to_tvp7002(sd);
+>> +
+>> +     /* Check pad index is valid */
+>> +     if (fmt->pad != 0)
+>> +             return -EINVAL;
+>
+> Redundant check.
+>
+Ok
+
+>> +     if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
+>> +             fmt->format = tvp7002->format;
+>> +             return 0;
+>> +     }
+>> +
+>> +     fmt->format.code = V4L2_MBUS_FMT_YUYV10_1X20;
+>> +     fmt->format.width = tvp7002->current_timings->timings.bt.width;
+>> +     fmt->format.height = tvp7002->current_timings->timings.bt.height;
+>> +     fmt->format.field = tvp7002->current_timings->scanmode;
+>> +     fmt->format.colorspace = tvp7002->current_timings->color_space;
+>> +
+>> +     return 0;
+>> +}
+>> +
+>>  /* V4L2 core operation handlers */
+>>  static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+>>       .g_chip_ident = tvp7002_g_chip_ident,
+>> @@ -910,10 +999,18 @@ static const struct v4l2_subdev_video_ops
+>> tvp7002_video_ops = { .enum_mbus_fmt = tvp7002_enum_mbus_fmt,
+>>  };
+>>
+>> +/* media pad related operation handlers */
+>> +static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
+>> +     .enum_mbus_code = tvp7002_enum_mbus_code,
+>> +     .get_fmt = tvp7002_get_pad_format,
+>> +     .set_fmt = tvp7002_set_pad_format,
+>
+> We will need to define pad-aware DV timings operations.
+>
+I didn't get you this?
 
 Regards,
-
-	Hans
+--Prabhakar Lad
