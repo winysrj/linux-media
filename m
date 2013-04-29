@@ -1,59 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:51343 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755633Ab3D1S3R convert rfc822-to-8bit (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51434 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757253Ab3D2OMv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Apr 2013 14:29:17 -0400
-Received: by mail-ee0-f49.google.com with SMTP id d4so2300509eek.8
-        for <linux-media@vger.kernel.org>; Sun, 28 Apr 2013 11:29:16 -0700 (PDT)
-Content-Type: text/plain; charset=us-ascii
-Mime-Version: 1.0 (Mac OS X Mail 6.3 \(1503\))
-Subject: Re: em28xx: Kernel panic after installing latest linuxtv.org modules
-From: Marcel Kulicke <marcel.kulicke@gmail.com>
-In-Reply-To: <20130424081522.7d0fd37e@redhat.com>
-Date: Sun, 28 Apr 2013 20:29:19 +0200
-Cc: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8BIT
-Message-Id: <5A1B4C82-6E63-4E7F-A7E2-F3FA82669C70@gmail.com>
-References: <CAEV8V2CoSGOCW90usDQ=KSNoom9Y-6Yn8Jn2nOHhSvHkazer0A@mail.gmail.com> <20130424081522.7d0fd37e@redhat.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
+	Mon, 29 Apr 2013 10:12:51 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC] media: i2c: mt9p031: add OF support
+Date: Mon, 29 Apr 2013 16:12:57 +0200
+Message-ID: <1699729.OjpLK67acQ@avalon>
+In-Reply-To: <CA+V-a8ubM9NXA4XNACjXiO1RKRzVmaXOdoM4EyPx96m7S=ffVw@mail.gmail.com>
+References: <1367222401-26649-1-git-send-email-prabhakar.csengg@gmail.com> <3228007.esFOONCu9m@avalon> <CA+V-a8ubM9NXA4XNACjXiO1RKRzVmaXOdoM4EyPx96m7S=ffVw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-thanks a lot for taking the time to respond to my issue! 
-> Did it used to work with a previous version? If so, could you please
-> bisect to see what patch broke it?
-No, it also didn't work with the previous version, but since building the previous version was also a bit of a hassle, I am not so sure I got a clean module. 
-
-> I'm not familiar enough with ARM to understand what the above actually means.
-> I would be expecting, instead, an error with the trace function stack.
+On Monday 29 April 2013 17:18:02 Prabhakar Lad wrote:
+> On Mon, Apr 29, 2013 at 5:05 PM, Laurent Pinchart wrote:
+> > Hi Prabhakar,
+> > 
+> > Thank you for the patch. Please see below for a couple of comments in
+> > addition to the ones I've just sent (in reply to Sascha's e-mail).
 > 
-> Perhaps you need to enable some things at .config to enable it, or to run
-> ./scripts/ksymoops manually to translate the above into something useful.
-I only know the ksmoops way. Since I just read that you published a new version, I will try the new version and apply ksmoops there if necessary (hopefully not! :-)) 
+> Yep fixed them all.
 > 
-> I heard that using a 2A power adapter would work, but I don't have it
-> currently (I'm currently trying to get one). I tested also with an USB
-> hub with its own power supply. I found there two issues:
+>  [snip]
 > 
-> 	- the hub was sending power also to the Rpi, causing problems
-> there due to the other power adapter;
+> >> ---
+> >> 
+> >>  .../devicetree/bindings/media/i2c/mt9p031.txt      |   43 ++++++++++++++
+> >>  drivers/media/i2c/mt9p031.c                        |   61 +++++++++++++-
+> >>  2 files changed, 103 insertions(+), 1 deletions(-)
+> >>  create mode 100644
+> >>  Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+> >> 
+> >> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+> >> b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt new file mode
+> >> 100644
+> >> index 0000000..b985e63
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+> >> @@ -0,0 +1,43 @@
+> >> +* Aptina 1/2.5-Inch 5Mp CMOS Digital Image Sensor
+> >> +
+> >> +The Aptina MT9P031 is a 1/2.5-inch CMOS active pixel digital image
+> >> +sensor with an active imaging pixel array of 2592H x 1944V. It
+> >> +incorporates sophisticated camera functions on-chip such as windowing,
+> >> +column and row skip mode, and snapshot mode. It is programmable through
+> >> +a simple two-wire serial interface.
+> >> +The MT9P031 is a progressive-scan sensor that generates a stream of
+> >> +pixel data at a constant frame rate. It uses an on-chip, phase-locked
+> >> +loop (PLL) to generate all internal clocks from a single master input
+> >> +clock running between 6 and 27 MHz. The maximum pixel rate is 96 Mp/s,
+> >> +corresponding to a clock rate of 96 MHz.
+> > 
+> > Isn't this text (directly copied from the datasheet) under Aptina's
+> > copyright ?
 > 
-> 	- the hub I used seemed to interfere at the USB isoc traffic.
-> 
-> What I'm trying to say is that perhaps this is not a driver issue at all,
-> but, instead, a problem with em28xx+demod high power consumption and Rpi.
-Sad to say, but I am using a 2A USB power adapter already. I also tried to it with a powered hub (yeah, that powered the pi as well - as you mentioned) but same oops-results. There is one other possibility. An RTL8192CU-WiFi-Module is also connected to the pi. Maybe it interferes? I will check that out as well. 
+> hmm :) do you want me change it ?
 
-> The best way is to test the device first on a x86, to be sure that the
-> driver is OK there. Then, you need to properly address the power supply
-> needs for RPi. Only after that, check if are there at em28xx anything
-> that could be incompatible with arm.
-Will do!
+>From a personal point of view I don't care much, and I don't think Aptina 
+would either, but I'd rather be safe than sorry on such matters, so it would 
+probably be a good idea to change the text. One or two sentences should be 
+enough.
 
-Cheers, 
+-- 
+Regards,
 
-Marcel
+Laurent Pinchart
 
