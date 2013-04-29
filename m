@@ -1,79 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f45.google.com ([209.85.219.45]:38225 "EHLO
-	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760815Ab3DCJht (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Apr 2013 05:37:49 -0400
-Received: by mail-oa0-f45.google.com with SMTP id o6so1267400oag.4
-        for <linux-media@vger.kernel.org>; Wed, 03 Apr 2013 02:37:49 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53571 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756877Ab3D2U6w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Apr 2013 16:58:52 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Scott Jiang <scott.jiang.linux@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"uclinux-dist-devel@blackfin.uclinux.org"
+	<uclinux-dist-devel@blackfin.uclinux.org>
+Subject: Re: [PATCH RFC] [media] add Aptina mt9m114 HD digital image sensor driver
+Date: Mon, 29 Apr 2013 22:58:58 +0200
+Message-ID: <2197086.VBJPhOlmgL@avalon>
+In-Reply-To: <CAHG8p1DdY=j1VJH0XdkK8TgYD8sSXvG7u2coX_BwrFB-uUzL5A@mail.gmail.com>
+References: <1358546444-30265-1-git-send-email-scott.jiang.linux@gmail.com> <1385456.JiqmfYkIEH@avalon> <CAHG8p1DdY=j1VJH0XdkK8TgYD8sSXvG7u2coX_BwrFB-uUzL5A@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1303181108540.30957@axis700.grange>
-References: <1363599836-15824-1-git-send-email-fabio.porcedda@gmail.com> <Pine.LNX.4.64.1303181108540.30957@axis700.grange>
-From: Fabio Porcedda <fabio.porcedda@gmail.com>
-Date: Wed, 3 Apr 2013 11:37:28 +0200
-Message-ID: <CAHkwnC8yWYvcQbiTM+xfJMNeBzeY8Gv8A8SN3sROCKT2EtM0iw@mail.gmail.com>
-Subject: Re: [PATCH] [media] mx2_camera: use module_platform_driver_probe()
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Mar 18, 2013 at 11:09 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Hi Fabio
->
-> On Mon, 18 Mar 2013, Fabio Porcedda wrote:
->
->> The commit 39793c6 "[media] mx2_camera: Convert it to platform driver"
->> used module_platform_driver() to make code smaller,
->> but since the driver used platform_driver_probe is more appropriate
->> to use module_platform_driver_probe().
->>
->> Signed-off-by: Fabio Porcedda <fabio.porcedda@gmail.com>
->> Cc: Fabio Estevam <fabio.estevam@freescale.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->
-> Thanks, will queue for 3.10.
+Hi Scott,
 
-Thanks for taking it.
-In which repository/branch is it?
-This commit is not in linux-next or in
-git://linuxtv.org/mchehab/media-next.git yet.
+Sorry for the (very) late reply.
 
-Best regards
---
-Fabio Porcedda
+On Sunday 07 April 2013 18:35:54 Scott Jiang wrote:
+> Hi Laurent,
+> 
+> >> >> >> +struct mt9m114_reg {
+> >> >> >> +     u16 reg;
+> >> >> >> +     u32 val;
+> >> >> >> +     int width;
+> >> >> >> +};
+> >> >> >> +
+> >> >> >> +enum {
+> >> >> >> +     MT9M114_QVGA,
+> >> >> >> +     MT9M114_VGA,
+> >> >> >> +     MT9M114_WVGA,
+> >> >> >> +     MT9M114_720P,
+> >> >> >> +};
+> >> >> > 
+> >> >> > This is the part I don't like. Instead of hardcoding 4 different
+> >> >> > resolutions and using large register address/value tables, you
+> >> >> > should compute the register values from the image size requested by
+> >> >> > the user.
+> >> >> 
+> >> >> In fact we get this table with the Aptina development tool. So we only
+> >> >> support fixed resolutions. If we compute each register value, it only
+> >> >> makes the code more complex.
+> >> > 
+> >> > But it also makes the code more useful, as the user won't be limited to
+> >> > the 4 resolutions above.
+> >> 
+> >> The problem is Aptina datasheet doesn't tell us how to calculate these
+> >> values. We only have some register presets.
+> > 
+> > Have you tried requesting the information from Aptina ?
+> 
+> No, there is only a datasheet on its website. I refer to register
+> definition from Andrew Chew on  this website :
+> http://git.chromium.org/gitweb/?p=chromiumos/third_party/kernel-next.git;a=b
+> lob;f=drivers/media/video/mt9m114.c;h=a5d2724005e7863607ffe204eefabfb0fad4da
+> 46. Even if we have any NDA docs, we can't use it in open source code.
 
-> Guennadi
->
->> ---
->>  drivers/media/platform/soc_camera/mx2_camera.c | 3 +--
->>  1 file changed, 1 insertion(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
->> index ffba7d9..848dff9 100644
->> --- a/drivers/media/platform/soc_camera/mx2_camera.c
->> +++ b/drivers/media/platform/soc_camera/mx2_camera.c
->> @@ -1619,10 +1619,9 @@ static struct platform_driver mx2_camera_driver = {
->>       },
->>       .id_table       = mx2_camera_devtype,
->>       .remove         = mx2_camera_remove,
->> -     .probe          = mx2_camera_probe,
->>  };
->>
->> -module_platform_driver(mx2_camera_driver);
->> +module_platform_driver_probe(mx2_camera_driver, mx2_camera_probe);
->>
->>  MODULE_DESCRIPTION("i.MX27 SoC Camera Host driver");
->>  MODULE_AUTHOR("Sascha Hauer <sha@pengutronix.de>");
->> --
->> 1.8.2
->>
->
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
+Aptina is actually pretty supportive, I'm quite sure you could get 
+documentation under an NDA with an authorization to release the driver source 
+code.
+
+-- 
+Regards,
+
+Laurent Pinchart
+
