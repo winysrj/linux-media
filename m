@@ -1,58 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:25146 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755300Ab3DQAnA (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Apr 2013 20:43:00 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r3H0h0gj031274
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 16 Apr 2013 20:43:00 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH v2 22/31] [media] r820t: add a commented code for GPIO
-Date: Tue, 16 Apr 2013 21:42:33 -0300
-Message-Id: <1366159362-3773-23-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:33083 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1759027Ab3D2UiD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Apr 2013 16:38:03 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: mchehab@redhat.com
+Cc: ezequiel.garcia@free-electrons.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: [PATCH V2 2/3] saa7115: add detection code for gm7113c
+Date: Mon, 29 Apr 2013 22:41:08 +0200
+Message-Id: <1367268069-11429-3-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
+References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add the code to set the GPIO for this tuner. This code is
-currently unused, so it is kept there only for completeness.
-With this patch there are just two things that got left from
-the original driver:
-- At standby, there's another mode, not used by rtl2832u.
-  Not sure if it might be needed in the future, but I suspect
-  it is not used at all;
-- There is a "fast tune" mode. As nor DVB or V4L API supports
-  it, it seems an overkill to implement it.
+Adds a code that (auto)detects gm7113c clones. The auto-detection
+here is not perfect, as, on contrary to what it would be expected
+by looking into its datasheets some devices would return, instead:
+
+	saa7115 0-0025: chip 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 @ 0x4a is unknown
+
+(found on a device labeled as GM7113C 1145 by Ezequiel Garcia)
 
 Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
 ---
- drivers/media/tuners/r820t.c | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/i2c/saa7115.c     | 36 ++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-chip-ident.h |  2 ++
+ 2 files changed, 38 insertions(+)
 
-diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
-index fa2e9ae..0125de8 100644
---- a/drivers/media/tuners/r820t.c
-+++ b/drivers/media/tuners/r820t.c
-@@ -2055,6 +2055,14 @@ static int r820t_imr_callibrate(struct r820t_priv *priv)
- 	return 0;
- }
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index aa92478..eb2c19d 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1628,6 +1628,36 @@ static int saa711x_detect_chip(struct i2c_client *client,
+ 		}
+ 	}
  
-+#if 0
-+/* Not used, for now */
-+static int r820t_gpio(struct r820t_priv *priv, bool enable)
-+{
-+	return r820t_write_reg_mask(priv, 0x0f, enable ? 1 : 0, 0x01);
-+}
-+#endif
++	/* Check if it is a gm7113c */
++	if (!memcmp(name, "0000", 4)) {
++		chip_id = 0;
++		for (i = 0; i < 4; i++) {
++			chip_id = chip_id << 1;
++			chip_id |= (chip_ver[i] & 0x80) ? 1 : 0;
++		}
 +
- /*
-  *  r820t frontend operations and tuner attach code
-  *
++		/*
++		 * Note: From the datasheet, only versions 1 and 2
++		 * exists. However, tests on a device labeled as:
++		 *	"GM7113C 1145" returned "10" on all 16 chip
++		 *	version (reg 0x00) reads. So, we need to also
++		 *	accept at least verion 0. For now, let's just
++		 *	assume that a device that returns "0000" for
++		 *	the lower nibble is a gm7113c.
++		 */
++
++		snprintf(name, size, "gm7113c");
++
++		if (!autodetect && strcmp(name, id->name))
++			return -EINVAL;
++
++		v4l_dbg(1, debug, client,
++			"It seems to be a %s chip (%*ph) @ 0x%x.\n",
++			name, 16, chip_ver, client->addr << 1);
++
++		return V4L2_IDENT_GM7113C;
++	}
++
+ 	/* Chip was not discovered. Return its ID and don't bind */
+ 	v4l_dbg(1, debug, client, "chip %*ph @ 0x%x is unknown.\n",
+ 		16, chip_ver, client->addr << 1);
+@@ -1657,6 +1687,11 @@ static int saa711x_probe(struct i2c_client *client,
+ 	if (ident < 0)
+ 		return ident;
+ 
++	if (ident == V4L2_IDENT_GM7113C) {
++		v4l_warn(client, "%s not yet supported\n", name);
++		return -ENODEV;
++	}
++
+ 	strlcpy(client->name, name, sizeof(client->name));
+ 
+ 	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
+@@ -1744,6 +1779,7 @@ static const struct i2c_device_id saa711x_id[] = {
+ 	{ "saa7114", 0 },
+ 	{ "saa7115", 0 },
+ 	{ "saa7118", 0 },
++	{ "gm7113c", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, saa711x_id);
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index 4ee125b..ef7e1c4 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -52,6 +52,8 @@ enum {
+ 	V4L2_IDENT_SAA7115 = 105,
+ 	V4L2_IDENT_SAA7118 = 108,
+ 
++	V4L2_IDENT_GM7113C = 140,
++
+ 	/* module saa7127: reserved range 150-199 */
+ 	V4L2_IDENT_SAA7127 = 157,
+ 	V4L2_IDENT_SAA7129 = 159,
 -- 
-1.8.1.4
+1.8.2.1
 
