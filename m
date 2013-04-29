@@ -1,45 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3082 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935469Ab3DHKsB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 06:48:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Eduardo Valentin <edubezval@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 3/7] radio-si4713: improve querycap
-Date: Mon,  8 Apr 2013 12:47:37 +0200
-Message-Id: <1365418061-23694-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
-References: <1365418061-23694-1-git-send-email-hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:49955 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694Ab3D2JzM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Apr 2013 05:55:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 23/24] V4L2: mt9p031: add struct v4l2_subdev_platform_data to platform data
+Date: Mon, 29 Apr 2013 11:55:16 +0200
+Message-ID: <1740663.UDksr2HIPi@avalon>
+In-Reply-To: <20130426091556.GQ32299@pengutronix.de>
+References: <1366320945-21591-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1304261033170.32320@axis700.grange> <20130426091556.GQ32299@pengutronix.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sascha,
 
-Set bus_info and fill in device_caps.
+On Friday 26 April 2013 11:15:56 Sascha Hauer wrote:
+> On Fri, Apr 26, 2013 at 10:43:28AM +0200, Guennadi Liakhovetski wrote:
+> > On Fri, 26 Apr 2013, Sascha Hauer wrote:
+> > > > > That information should be conveyed by platform/DT data for the
+> > > > > host, and be used to convert the 12-bit media bus code into a 8-bit
+> > > > > media bus code in the host (a core helper function would probably
+> > > > > be helpful).
+> > > > 
+> > > > Yes, and we discussed this before too, I think. I proposed based then
+> > > > to implement some compatibility table of "trivial" transformations,
+> > > > like a 12-bit Bayer, right-shifted by 4 bits, produces a respective 8-
+> > > > bit Bayer etc. Such transformations would fit nicely in soc_mediabus.c
+> > > > ;-) This just needs to be implemented...
+> > > 
+> > > These "trivial" transformations may turn out not to be so trivial. In
+> > > the devicetree we would then need kind of 'shift-4-bit-left' properties.
+> > 
+> > We already have a "data-shift" property exactly for this purpose.
+> > 
+> > > How about instead describing the sensor node with:
+> > > 	mbus-formats = <0x3010, 0x2013>;
+> > > 
+> > > and the corresponding host interface with:
+> > > 	mbus-formats = <0x3013, 0x2001>;
+> > 
+> > How would this describe _how_ the transformation should be performed?
+> 
+> nth index in the sensor array matches nth index in the csi array. The
+> above describes:
+> 
+> V4L2_MBUS_FMT_SGBRG12_1X12 on the sensor matches V4L2_MBUS_FMT_SGBRG8_1X8 on
+> the host V4L2_MBUS_FMT_Y12_1X12 on the sensor matches V4L2_MBUS_FMT_Y8_1X8
+> on the host
+> 
+> effectively implementing a shift by four bits. But also more complicated
+> transformations could be described, like a colour space converter
+> implemented in a DSP (not sure if anyone does this, but you get the
+> idea)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/radio-si4713.c |    5 ++++-
- 1 file changed, 4 insertions(+), 1 deletion(-)
+If there's a component on the board between the sensor and the host it should 
+be modeled as a proper subdev. I don't think trying to describe anything more 
+complex than shifting the lanes in the device tree sensor and/or bridge data 
+is a good idea.
 
-diff --git a/drivers/media/radio/radio-si4713.c b/drivers/media/radio/radio-si4713.c
-index 70dc652..f0f0a90 100644
---- a/drivers/media/radio/radio-si4713.c
-+++ b/drivers/media/radio/radio-si4713.c
-@@ -67,7 +67,10 @@ static int radio_si4713_querycap(struct file *file, void *priv,
- 	strlcpy(capability->driver, "radio-si4713", sizeof(capability->driver));
- 	strlcpy(capability->card, "Silicon Labs Si4713 Modulator",
- 		sizeof(capability->card));
--	capability->capabilities = V4L2_CAP_MODULATOR | V4L2_CAP_RDS_OUTPUT;
-+	strlcpy(capability->bus_info, "platform:radio-si4713",
-+		sizeof(capability->bus_info));
-+	capability->device_caps = V4L2_CAP_MODULATOR | V4L2_CAP_RDS_OUTPUT;
-+	capability->capabilities = capability->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
- }
+> > And why does the host driver need mbus formats?
+> 
+> Because mbus formats are effectively the input of a host driver. I assumed
+> that we translate the mbus formats the sensor can output into the
+> corresponding mbus formats that arrive at the host interface. Then
+> afterwards the usual translation from mbus to fourcc a host interface can do
+> is performed. I think what you aim at instead is a translation directly from
+> the sensor to memory which I think is more complicated to build correctly.
+
+The sensor knows what mbus formats it supports at its output, and the host 
+knows what mbus formats it supports at its inputs. Both information can be 
+queried from user space and kernel space. With the data lanes shift property 
+the host can then compute the mbus format it will receive at its input. I 
+don't think we need to specify that in DT.
+
 -- 
-1.7.10.4
+Regards,
 
+Laurent Pinchart
