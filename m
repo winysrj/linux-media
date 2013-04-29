@@ -1,54 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:64955 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935191Ab3DJKXA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 06:23:00 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0ML1009BUBIBEEQ0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 10 Apr 2013 19:22:59 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: arun.kk@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] s5p-mfc: Remove potential uninitialized variable usage
-Date: Wed, 10 Apr 2013 12:21:42 +0200
-Message-id: <1365589302-5312-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:15500 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750907Ab3D2Mlz (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Apr 2013 08:41:55 -0400
+Date: Mon, 29 Apr 2013 09:41:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Lars Buerding <lindvb@metatux.net>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 00/31] Add r820t support at rtl28xxu
+Message-ID: <20130429094127.3a8306fd@redhat.com>
+In-Reply-To: <517D5F74.2050106@metatux.net>
+References: <1366159362-3773-1-git-send-email-mchehab@redhat.com>
+	<517D5F74.2050106@metatux.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Make sure mem_info[] array is not used uninitialized. This prevents
-following compiler warning:
+Em Sun, 28 Apr 2013 19:42:12 +0200
+Lars Buerding <lindvb@metatux.net> escreveu:
 
-drivers/media/platform/s5p-mfc/s5p_mfc.c: In function s5p_mfc_probe:
-drivers/media/platform/s5p-mfc/s5p_mfc.c:1032:33: warning: mem_info[0] may be used uninitialized in this function [-Wuninitialized]
-drivers/media/platform/s5p-mfc/s5p_mfc.c:1021:15: note: mem_info[0] was declared here
-drivers/media/platform/s5p-mfc/s5p_mfc.c:1032:33: warning: mem_info[1] may be used uninitialized in this function [-Wuninitialized]
-drivers/media/platform/s5p-mfc/s5p_mfc.c:1021:15: note: mem_info[1] was declared here
+> On 17.04.2013 02:42, Mauro Carvalho Chehab wrote:
+> > Add a tuner driver for Rafael Micro R820T silicon tuner.
+> >
+> > This tuner seems to be popular those days. Add support for it
+> > at rtl28xxu.
+> >
+> > This tuner was written from scratch, based on rtl-sdr driver.
+> 
+> Thanks Mauro, applied your patches to a vanilla v3.8.10 kernel yesterday, and a Nooelec r820t stick is working fine with it receiving DVB-T for a VDR. 
+> Not any issues so far.
 
-Cc: Kamil Debski <k.debski@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for your feedback! It's good to hear that everything is working
+fine there.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 7379dc6..5fb948c 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1018,7 +1018,7 @@ static void *mfc_get_drv_data(struct platform_device *pdev);
- 
- static int s5p_mfc_alloc_memdevs(struct s5p_mfc_dev *dev)
- {
--	unsigned int mem_info[2];
-+	unsigned int mem_info[2] = { };
- 
- 	dev->mem_dev_l = devm_kzalloc(&dev->plat_dev->dev,
- 			sizeof(struct device), GFP_KERNEL);
--- 
-1.7.9.5
-
+Regards,
+Mauro
