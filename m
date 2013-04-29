@@ -1,94 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2427 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752298Ab3DKSYX (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:37939 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750710Ab3D2IVo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Apr 2013 14:24:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrey Smirnov <andrew.smirnov@gmail.com>
-Subject: Re: [patch] [media] radio-si476x: check different function pointers
-Date: Thu, 11 Apr 2013 20:24:06 +0200
-Cc: Dan Carpenter <dan.carpenter@oracle.com>,
+	Mon, 29 Apr 2013 04:21:44 -0400
+Date: Mon, 29 Apr 2013 10:21:28 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-doc@vger.kernel.org, devicetree-discuss@lists.ozlabs.org,
+	linux-kernel@vger.kernel.org,
+	Rob Herring <rob.herring@calxeda.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-References: <20130410114051.GA21419@longonot.mountain>
-In-Reply-To: <20130410114051.GA21419@longonot.mountain>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH RFC] media: i2c: mt9p031: add OF support
+Message-ID: <20130429082128.GG32299@pengutronix.de>
+References: <1367222401-26649-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201304112024.06542.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1367222401-26649-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed April 10 2013 13:40:51 Dan Carpenter wrote:
-> This is a static checker where it complains if we check for one function
-> pointer and then call a different function on the next line.
+On Mon, Apr 29, 2013 at 01:30:01PM +0530, Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > 
-> In most cases, the code does the same thing before and after this patch.
-> For example, when ->phase_diversity is non-NULL then ->phase_div_status
-> is also non-NULL.
+> add OF support for the mt9p031 sensor driver.
 > 
-> The one place where that's not true is when we check ->rds_blckcnt
-> instead of ->rsq_status.  In those cases, we would want to call
-> ->rsq_status but we instead return -ENOENT.
-> 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Rob Landley <rob@landley.net>
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Cc: linux-doc@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
 > ---
-> Please review this carefully.  I don't have the hardware to test it.
-
-Andrey, can you review this? I think the first two chunks are correct, but
-the last two chunks are probably not what you want. In the case of an AM
-receiver there is no RDS data, so an error is probably correct.
-
-Regards,
-
-	Hans
-
+>  .../devicetree/bindings/media/i2c/mt9p031.txt      |   43 ++++++++++++++
+>  drivers/media/i2c/mt9p031.c                        |   61 +++++++++++++++++++-
+>  2 files changed, 103 insertions(+), 1 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9p031.txt
 > 
-> diff --git a/drivers/media/radio/radio-si476x.c b/drivers/media/radio/radio-si476x.c
-> index 9430c6a..817fc0c 100644
-> --- a/drivers/media/radio/radio-si476x.c
-> +++ b/drivers/media/radio/radio-si476x.c
-> @@ -854,7 +854,7 @@ static int si476x_radio_g_volatile_ctrl(struct v4l2_ctrl *ctrl)
->  	switch (ctrl->id) {
->  	case V4L2_CID_SI476X_INTERCHIP_LINK:
->  		if (si476x_core_has_diversity(radio->core)) {
-> -			if (radio->ops->phase_diversity) {
-> +			if (radio->ops->phase_div_status) {
->  				retval = radio->ops->phase_div_status(radio->core);
->  				if (retval < 0)
->  					break;
-> @@ -1285,7 +1285,7 @@ static ssize_t si476x_radio_read_agc_blob(struct file *file,
->  	struct si476x_agc_status_report report;
+> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9p031.txt b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+> new file mode 100644
+> index 0000000..b985e63
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+> @@ -0,0 +1,43 @@
+> +* Aptina 1/2.5-Inch 5Mp CMOS Digital Image Sensor
+> +
+> +The Aptina MT9P031 is a 1/2.5-inch CMOS active pixel digital image sensor with
+> +an active imaging pixel array of 2592H x 1944V. It incorporates sophisticated
+> +camera functions on-chip such as windowing, column and row skip mode, and
+> +snapshot mode. It is programmable through a simple two-wire serial interface.
+> +
+> +The MT9P031 is a progressive-scan sensor that generates a stream of pixel data
+> +at a constant frame rate. It uses an on-chip, phase-locked loop (PLL) to
+> +generate all internal clocks from a single master input clock running between 6
+> +and 27 MHz. The maximum pixel rate is 96 Mp/s, corresponding to a clock rate of
+> +96 MHz.
+> +
+> +Required Properties :
+> +- compatible : value should be either one among the following
+> +	(a) "aptina,mt9p031-sensor" for mt9p031 sensor
+> +	(b) "aptina,mt9p031m-sensor" for mt9p031m sensor
+> +
+> +- ext_freq: Input clock frequency.
+> +
+> +- target_freq:  Pixel clock frequency.
+
+For devicetree properties '-' is preferred over '_'. Most devicetree
+bindings we already have suggest that we shoud use 'frequency' and no
+abbreviation. probably 'clock-frequency' should be used.
+
+> +
+> +Optional Properties :
+> +-reset: Chip reset GPIO (If not specified defaults to -1)
+
+gpios must be specified as phandles, see of_get_named_gpio().
+
+> +
+> +Example:
+> +
+> +i2c0@1c22000 {
+> +	...
+> +	...
+> +	mt9p031@5d {
+> +		compatible = "aptina,mt9p031-sensor";
+> +		reg = <0x5d>;
+> +
+> +		port {
+> +			mt9p031_1: endpoint {
+> +				ext_freq = <6000000>;
+> +				target_freq = <96000000>;
+> +			};
+> +		};
+> +	};
+> +	...
+> +};
+> \ No newline at end of file
+> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+> index 28cf95b..66078a6 100644
+> --- a/drivers/media/i2c/mt9p031.c
+> +++ b/drivers/media/i2c/mt9p031.c
+> @@ -23,11 +23,13 @@
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/slab.h>
+>  #include <linux/videodev2.h>
+> +#include <linux/of_device.h>
 >  
->  	si476x_core_lock(radio->core);
-> -	if (radio->ops->rds_blckcnt)
-> +	if (radio->ops->agc_status)
->  		err = radio->ops->agc_status(ZZradio->core, &report);
->  	else
->  		err = -ENOENT;
-> @@ -1320,7 +1320,7 @@ static ssize_t si476x_radio_read_rsq_blob(struct file *file,
->  	};
+>  #include <media/mt9p031.h>
+>  #include <media/v4l2-chip-ident.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-device.h>
+> +#include <media/v4l2-of.h>
+>  #include <media/v4l2-subdev.h>
 >  
->  	si476x_core_lock(radio->core);
-> -	if (radio->ops->rds_blckcnt)
-> +	if (radio->ops->rsq_status)
->  		err = radio->ops->rsq_status(radio->core, &args, &report);
->  	else
->  		err = -ENOENT;
-> @@ -1355,7 +1355,7 @@ static ssize_t si476x_radio_read_rsq_primary_blob(struct file *file,
->  	};
+>  #include "aptina-pll.h"
+> @@ -928,10 +930,66 @@ static const struct v4l2_subdev_internal_ops mt9p031_subdev_internal_ops = {
+>   * Driver initialization and probing
+>   */
 >  
->  	si476x_core_lock(radio->core);
-> -	if (radio->ops->rds_blckcnt)
-> +	if (radio->ops->rsq_status)
->  		err = radio->ops->rsq_status(radio->core, &args, &report);
->  	else
->  		err = -ENOENT;
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id mt9p031_of_match[] = {
+> +	{.compatible = "aptina,mt9p031-sensor", },
+> +	{.compatible = "aptina,mt9p031m-sensor", },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, mt9p031_of_match);
+> +
+> +static struct mt9p031_platform_data
+> +	*mt9p031_get_pdata(struct i2c_client *client)
+> +
+> +{
+> +	if (!client->dev.platform_data && client->dev.of_node) {
+
+Just because the Kernel is compiled with devicetree support does not
+necessarily mean you actually boot from devicetree. You must still
+handle platform data properly.
+
+> +		struct device_node *np;
+> +		struct mt9p031_platform_data *pdata;
+> +		int ret;
+> +
+> +		np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
+> +		if (!np)
+> +			return NULL;
+> +
+> +		pdata = devm_kzalloc(&client->dev,
+> +				     sizeof(struct mt9p031_platform_data),
+> +				     GFP_KERNEL);
+> +		if (!pdata) {
+> +			pr_warn("mt9p031 failed allocate memeory\n");
+
+Use dev_* for messages inside drivers.
+
+> +			return NULL;
+> +		}
+> +		ret = of_property_read_u32(np, "reset", &pdata->reset);
+> +		if (ret == -EINVAL)
+> +			pdata->reset = -1;
+> +		else if (ret == -ENODATA)
+> +			return NULL;
+> +
+> +		if (of_property_read_u32(np, "ext_freq", &pdata->ext_freq))
+> +			return NULL;
+> +
+> +		if (of_property_read_u32(np, "target_freq",
+> +					 &pdata->target_freq))
+> +			return NULL;
+> +
+> +		return pdata;
+> +	}
+> +
+> +	return NULL;
+> +}
+> +#else
+> +#define mt9p031_of_match NULL
+> +
+> +static struct mt9p031_platform_data
+> +	*mt9p031_get_pdata(struct i2c_client *client)
+> +{
+> +	return client->dev.platform_data;
+> +}
+> +#endif
+> +
+>  static int mt9p031_probe(struct i2c_client *client,
+>  			 const struct i2c_device_id *did)
+>  {
+> -	struct mt9p031_platform_data *pdata = client->dev.platform_data;
+> +	struct mt9p031_platform_data *pdata = mt9p031_get_pdata(client);
+>  	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+>  	struct mt9p031 *mt9p031;
+>  	unsigned int i;
+> @@ -1072,6 +1130,7 @@ MODULE_DEVICE_TABLE(i2c, mt9p031_id);
+>  
+>  static struct i2c_driver mt9p031_i2c_driver = {
+>  	.driver = {
+> +		.of_match_table = mt9p031_of_match,
+>  		.name = "mt9p031",
+>  	},
+>  	.probe          = mt9p031_probe,
+> -- 
+> 1.7.4.1
 > 
+> _______________________________________________
+> devicetree-discuss mailing list
+> devicetree-discuss@lists.ozlabs.org
+> https://lists.ozlabs.org/listinfo/devicetree-discuss
+> 
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
