@@ -1,64 +1,139 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:50637 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752018Ab3DJJaY (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:64815 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758832Ab3D2RyN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Apr 2013 05:30:24 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c4so120742eek.10
-        for <linux-media@vger.kernel.org>; Wed, 10 Apr 2013 02:30:23 -0700 (PDT)
-Date: Wed, 10 Apr 2013 11:33:22 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Steven Rostedt <rostedt@goodmis.org>
-Cc: Peter Zijlstra <peterz@infradead.org>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-arch@vger.kernel.org, daniel.vetter@ffwll.ch, x86@kernel.org,
-	linux-kernel@vger.kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 2/3] mutex: add support for reservation style locks, v2
-Message-ID: <20130410093322.GH27612@phenom.ffwll.local>
-References: <20130228102452.15191.22673.stgit@patser>
- <20130228102502.15191.14146.stgit@patser>
- <1364900432.18374.24.camel@laptop>
- <515AF1C1.7080508@canonical.com>
- <1364921954.20640.22.camel@laptop>
- <1365076908.2609.94.camel@laptop>
- <20130404133123.GW2228@phenom.ffwll.local>
- <1365093662.2609.111.camel@laptop>
- <20130409222808.GC20739@home.goodmis.org>
+	Mon, 29 Apr 2013 13:54:13 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130409222808.GC20739@home.goodmis.org>
+In-Reply-To: <3966422.nINo6Q1vph@avalon>
+References: <1366982286-22950-1-git-send-email-prabhakar.csengg@gmail.com> <3966422.nINo6Q1vph@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 29 Apr 2013 23:23:51 +0530
+Message-ID: <CA+V-a8umJQhxna6jwLwSXqg_ymKDggmnUdzu_syRfyetFxr_yA@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: adv7343: add OF support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Apr 09, 2013 at 06:28:08PM -0400, Steven Rostedt wrote:
-> On Thu, Apr 04, 2013 at 06:41:02PM +0200, Peter Zijlstra wrote:
-> > On Thu, 2013-04-04 at 15:31 +0200, Daniel Vetter wrote:
-> > > The thing is now that you're not expected to hold these locks for a
-> > > long
-> > > time - if you need to synchronously stall while holding a lock
-> > > performance
-> > > will go down the gutters anyway. And since most current
-> > > gpus/co-processors
-> > > still can't really preempt fairness isn't that high a priority,
-> > > either.
-> > > So we didn't think too much about that.
-> > 
-> > Yeah but you're proposing a new synchronization primitive for the core
-> > kernel.. all such 'fun' details need to be considered, not only those
-> > few that bear on the one usecase.
-> 
-> Which bares the question, what other use cases are there?
+Hi Laurent,
 
-Tbh I don't see any other either - but I agree with Peter and thinking
-things through and making the api a bit more generic seems to help in
-clarifying the semantics. Reminds me that I still need to draw a few
-diagrams ;-)
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Thanks for the review.
+
+On Mon, Apr 29, 2013 at 7:32 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> Thank you for the patch.
+>
+> On Friday 26 April 2013 18:48:06 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> add OF support for the adv7343 driver.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Grant Likely <grant.likely@secretlab.ca>
+>> Cc: Rob Herring <rob.herring@calxeda.com>
+>> Cc: Rob Landley <rob@landley.net>
+>> Cc: devicetree-discuss@lists.ozlabs.org
+>> Cc: linux-doc@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: davinci-linux-open-source@linux.davincidsp.com
+>> ---
+>>  .../devicetree/bindings/media/i2c/adv7343.txt      |   69 +++++++++++++++++
+>>  drivers/media/i2c/adv7343.c                        |   75 ++++++++++++++++-
+>>  2 files changed, 142 insertions(+), 2 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7343.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+>> b/Documentation/devicetree/bindings/media/i2c/adv7343.txt new file mode
+>> 100644
+>> index 0000000..8426f8d
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
+>> @@ -0,0 +1,69 @@
+>> +* Analog Devices adv7343 video encoder
+>> +
+>> +The ADV7343 are high speed, digital-to-analog video encoders in a 64-lead
+>> LQFP +package. Six high speed, 3.3 V, 11-bit video DACs provide support for
+>> composite +(CVBS), S-Video (Y-C), and component (YPrPb/RGB) analog outputs
+>> in standard +definition (SD), enhanced definition (ED), or high definition
+>> (HD) video +formats.
+>> +
+>> +The ADV7343 have a 24-bit pixel input port that can be configured in a
+>> variety +of ways. SD video formats are supported over an SDR interface, and
+>> ED/HD video +formats are supported over SDR and DDR interfaces. Pixel data
+>> can be supplied +in either the YCrCb or RGB color spaces.
+>> +
+>> +Required Properties :
+>> +- compatible: Must be "ad,adv7343-encoder"
+>> +
+>> +Optional Properties :
+>> +- ad-adv7343-power-mode-sleep-mode: on enable the current consumption is
+>> +                                    reduced to micro ampere level. All DACs
+>> +                                    and the internal PLL circuit are
+>> +                                    disabled.
+>> +- ad-adv7343-power-mode-pll-ctrl: PLL and oversampling control. This
+>> +                                  control allows internal PLL 1 circuit to
+>> +                                  be powered down and the oversampling to
+>> +                                  be switched off.
+>> +
+>> +- ad-adv7343-power-mode-dac-1: power on/off DAC 1.
+>> +- ad-adv7343-power-mode-dac-2: power on/off DAC 2.
+>> +- ad-adv7343-power-mode-dac-3: power on/off DAC 3.
+>> +- ad-adv7343-power-mode-dac-4: power on/off DAC 4.
+>> +- ad-adv7343-power-mode-dac-5: power on/off DAC 5.
+>> +- ad-adv7343-power-mode-dac-6: power on/off DAC 6.
+>> +- ad-adv7343-sd-config-dac-out-1: Configure SD DAC Output 1.
+>> +- ad-adv7343-sd-config-dac-out-2: Configure SD DAC Output 2.
+>
+> s/ad-/ad,/
+>
+OK
+
+> Do all those properties really need to be specified at the endpoint level
+> instead of the device node level ?
+>
+Yes.
+
+> I'll let Hans comment on the individual properties, he knows more than I do
+> about DACs.
+>
+>> +Example:
+>> +
+>> +i2c0@1c22000 {
+>> +     ...
+>> +     ...
+>> +
+>> +     adv7343@2a {
+>> +             compatible = "ad,adv7343-encoder";
+>> +             reg = <0x2a>;
+>> +
+>> +             port {
+>> +                     adv7343_1: endpoint {
+>> +                                     /* Active high (Defaults to false) */
+>
+> Active high ?
+>
+:-) will fix it.
+
+Regards,
+--Prabhakar Lad
