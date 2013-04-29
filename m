@@ -1,131 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:56153 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753106Ab3DNTdQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Apr 2013 15:33:16 -0400
-Message-ID: <516B0452.7020801@iki.fi>
-Date: Sun, 14 Apr 2013 22:32:34 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51317 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757115Ab3D2N5a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Apr 2013 09:57:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Subject: Re: [PATCH] media: i2c: tvp514x: add OF support
+Date: Mon, 29 Apr 2013 15:57:34 +0200
+Message-ID: <7684541.nmKBKd3EoN@avalon>
+In-Reply-To: <1366975430-31806-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1366975430-31806-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-CC: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH 0/3] em28xx: clean up end extend the GPIO port handling
-References: <1365846521-3127-1-git-send-email-fschaefer.oss@googlemail.com> <51695A7B.4010206@iki.fi> <20130413112517.40833d48@redhat.com> <51696DA6.9020508@iki.fi> <20130413223247.3dc4da85@redhat.com>
-In-Reply-To: <20130413223247.3dc4da85@redhat.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/14/2013 04:32 AM, Mauro Carvalho Chehab wrote:
-> Em Sat, 13 Apr 2013 17:37:26 +0300
-> Antti Palosaari <crope@iki.fi> escreveu:
->
->> On 04/13/2013 05:25 PM, Mauro Carvalho Chehab wrote:
->>> Em Sat, 13 Apr 2013 16:15:39 +0300
->>> Antti Palosaari <crope@iki.fi> escreveu:
->>>
->>>> On 04/13/2013 12:48 PM, Frank Schäfer wrote:
->>>>> Patch 1 removes the unneeded and broken gpio register caching code.
->>>>> Patch 2 adds the gpio register defintions for the em25xx/em276x/7x/8x
->>>>> and patch 3 finally adds a new helper function for gpio ports with separate
->>>>> registers for read and write access.
->>>>
->>>>
->>>> I have nothing to say directly about those patches - they looked good at
->>>> the quick check. But I wonder if you have any idea if it is possible to
->>>> use some existing Kernel GPIO functionality in order to provide standard
->>>> interface (interface like I2C). I did some work last summer in order to
->>>> use GPIOLIB and it is used between em28xx-dvb and cxd2820r for LNA
->>>> control. Anyhow, I was a little bit disappointed as GPIOLIB is disabled
->>>> by default and due to that there is macros to disable LNA when GPIOLIB
->>>> is not compiled.
->>>> I noticed recently there is some ongoing development for Kernel GPIO. I
->>>> haven't looked yet if it makes use of GPIO interface more common...
->>>
->>> I have conflicting opinions myself weather we should use gpiolib or not.
->>>
->>> I don't mind with the fact that GPIOLIB is disabled by default. If all
->>> media drivers start depending on it, distros will enable it to keep
->>> media support on it.
->>>
->>> I never took the time to take a look on what methods gpiolib provides.
->>> Maybe it will bring some benefits. I dunno.
->>
->> Compare to benefits of I2C bus. It offers standard interface. Also it
->> offers userspace debug interface - like I2C also does.
->
-> I2C benefit is that the same I2C driver can be used by several different
-> drivers. GPIO code, on the other hand, is on most cases[1] specific to a
-> given device.
+Hi Prabhakar,
 
-That is same for GPIO - it offers standard interface between modules for 
-GPIO "bus".
+Thank you for the patch. Please see below for a couple of comments. Most of 
+them apply to your adv7343 patch as well.
 
-I used it to control LNA, which is connected to demodulator (cxd2820r) 
-GPIO. It is bridge which gets LNA API commands and GPIO is property of 
-demod. Some interface is needed in order to deliver data between bridge 
-and demod in that case.
+On Friday 26 April 2013 16:53:50 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> add OF support for the tvp514x driver.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Rob Landley <rob@landley.net>
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Cc: linux-doc@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: davinci-linux-open-source@linux.davincidsp.com
+> ---
+>  RFC v1: https://patchwork.kernel.org/patch/2030061/
+>  RFC v2: https://patchwork.kernel.org/patch/2061811/
+> 
+>  Changes for current version from RFC v2:
+>  1: Fixed review comments pointed by Sylwester.
+> 
+>  .../devicetree/bindings/media/i2c/tvp514x.txt      |   38 +++++++++++
+>  drivers/media/i2c/tvp514x.c                        |   67 +++++++++++++++--
+>  2 files changed, 98 insertions(+), 7 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+> b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt new file mode
+> 100644
+> index 0000000..618640a
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+> @@ -0,0 +1,38 @@
+> +* Texas Instruments TVP514x video decoder
+> +
+> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
+> +digital video decoder that digitizes and decodes all popular baseband
+> +analog video formats into digital video component. The tvp514x decoder
+> +supports analog-to-digital (A/D) conversion of component RGB and YPbPr
+> +signals as well as A/D conversion and decoding of NTSC, PAL and SECAM
+> +composite and S-video into component YCbCr.
+> +
+> +Required Properties :
+> +- compatible: Must be "ti,tvp514x-decoder"
 
+According to the code below, it must be one of
 
-> [1] Ok, if you're using a GPIO pin to carry some protocol inside it, like
-> UART, RC, etc, then I can see a benefit on using a bus type of solution.
->
->>> Just looking at the existing drivers (almost all has some sort of GPIO
->>> config), GPIO is just a single register bitmask read/write. Most drivers
->>> need already bitmask read/write operations. So, in principle, I can't
->>> foresee any code simplification by using a library.
->>
->> Use of lib interface is not very practical inside of module, however it
->> could be used. Again, as compared to I2C there is some bridge drivers
->> which do some I2C access using I2C interface, even bridge could do it
->> directly (as it offers I2C adapter). I think it is most common to do it
->> directly to simplify things.
->>
->>> Also, from a very pragmatic view, changing (almost) all existing drivers
->>> to use gpiolib is a big effort.
->>
->> It is not needed to implement for all driver as one go.
->>
->>> However, for that to happen, one question should be answered: what
->>> benefits would be obtained by using gpiolib?
->>
->> Obtain GPIO access between modules using standard interface and offer
->> handy debug interface to switch GPIOs from userspace.
->
-> It is known that enabling both analog and digital demods at the same time
-> can melt some devices. So, it is risky to allow userspace to touch
-> the GPIOs that enable such chips.
->
-> (ok, there are also other forms to melt such devices in userspace
->   if the user has CAP_SYS_ADMIN)
+        "ti,tvp5146-decoder"
+        "ti,tvp5146m2-decoder"
+        "ti,tvp5147-decoder"
+        "ti,tvp5147m1-decoder"
 
-Do you need eyeglasses? I said it is debug interface. It needs root 
-privileges in order to setup and use.
+Couldn't you remove "-decoder" ?
 
-I can say I could surely break more devices via I2C debug interface than 
-GPIO debug interface in case both are implemented by every driver. Just 
-sent garbage writes to well known eeprom addresses and kaboom. Your 
-device is bricked. It is totally stupid to say you could brick your 
-device using debug functionality - yes you can, but it is very unlikely 
-someone does it as a mistake.
+You should add a reference to the V4L2 DT bindings documentation to explain 
+what the port and endpoint nodes are for.
 
+> +- hsync-active: HSYNC Polarity configuration for current interface.
+> +- vsync-active: VSYNC Polarity configuration for current interface.
+> +- pclk-sample: Clock polarity of the current interface.
 
->> You could ask why we use Kernel I2C library as we could do it directly
->> :) Or clock framework. Or SPI, is there SPI bus modeled yet?
->
-> As I said, i2c allowed code re-usage. Probably, the clock framework and
-> SPI also can be used for that.
->
-> With regards to GPIO, at least currently, I can only see its usage
-> justified, in terms of code reuse, for remote controllers.
+s/current interface/endpoint/ ?
 
-Maybe better to read Kernel GPIO documentation. There is few points 
-mentioned why to use it and what are advantages.
+> +Example:
+> +
+> +i2c0@1c22000 {
+> +	...
+> +	...
+> +
+> +	tvp514x@5c {
+> +		compatible = "ti,tvp514x-decoder";
+> +		reg = <0x5c>;
+> +
+> +		port {
+> +			tvp514x_1: endpoint {
+> +				/* Active high (Defaults to 0) */
+> +				hsync-active = <1>;
+> +				/* Active high (Defaults to 0) */
+> +				vsync-active = <1>;
+> +				/* Active low (Defaults to 0) */
+> +				pclk-sample = <0>;
+> +			};
+> +		};
+> +	};
+> +	...
+> +};
+> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+> index 887bd93..d37b85e 100644
+> --- a/drivers/media/i2c/tvp514x.c
+> +++ b/drivers/media/i2c/tvp514x.c
+> @@ -35,7 +35,9 @@
+>  #include <linux/videodev2.h>
+>  #include <linux/module.h>
+>  #include <linux/v4l2-mediabus.h>
+> +#include <linux/of_device.h>
+> 
+> +#include <media/v4l2-of.h>
+>  #include <media/v4l2-async.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-common.h>
+> @@ -1056,6 +1058,58 @@ static struct tvp514x_decoder tvp514x_dev = {
+> 
+>  };
+> 
+> +#if defined(CONFIG_OF)
+> +static const struct of_device_id tvp514x_of_match[] = {
+> +	{.compatible = "ti,tvp5146-decoder", },
+> +	{.compatible = "ti,tvp5146m2-decoder", },
+> +	{.compatible = "ti,tvp5147-decoder", },
+> +	{.compatible = "ti,tvp5147m1-decoder", },
+> +	{},
+> +};
+> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
+> +
+> +static void tvp514x_get_pdata(struct i2c_client *client,
+> +			      struct tvp514x_decoder *decoder)
+> +{
+> +	if (!client->dev.platform_data && client->dev.of_node) {
+> +		struct device_node *endpoint;
+> +
+> +		endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
+> +		if (endpoint) {
+> +			struct tvp514x_platform_data *pdata;
+> +			struct v4l2_of_endpoint bus_cfg;
+> +			unsigned int flags;
+> +
+> +			pdata =
+> +			   devm_kzalloc(&client->dev,
+> +					sizeof(struct tvp514x_platform_data),
 
-regards
-Antti
+sizeof(*pdata) ? That's the preferred style, as it makes sure that you will 
+still allocate the right amount of memory if the type of the pdata variable 
+changes (that's pretty unlikely here of course, but the general principle 
+holds true).
 
+> +					GFP_KERNEL);
+> +			if (!pdata)
+> +				return;
+> +
+> +			v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+> +			flags = bus_cfg.bus.parallel.flags;
+> +
+> +			if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> +				pdata->hs_polarity = 1;
+> +			if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> +				pdata->vs_polarity = 1;
+> +			if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+> +				pdata->clk_polarity = 1;
+> +			decoder->pdata = pdata;
+> +		}
+> +	}
+
+As pointed out by Sascha in his review of your mt9p031 patch, you need to use 
+client->dev.platform_data if client->dev.of_node is NULL.
+
+> +}
+> +#else
+> +#define tvp514x_of_match NULL
+> +
+> +static void tvp514x_get_pdata(struct i2c_client *client,
+> +			      struct tvp514x_decoder *decoder)
+> +{
+> +	decoder->pdata = client->dev.platform_data;
+> +}
+> +#endif
+> +
+>  /**
+>   * tvp514x_probe() - decoder driver i2c probe handler
+>   * @client: i2c driver client device structure
+> @@ -1075,11 +1129,6 @@ tvp514x_probe(struct i2c_client *client, const struct
+> i2c_device_id *id) if (!i2c_check_functionality(client->adapter,
+> I2C_FUNC_SMBUS_BYTE_DATA)) return -EIO;
+> 
+> -	if (!client->dev.platform_data) {
+> -		v4l2_err(client, "No platform data!!\n");
+> -		return -ENODEV;
+> -	}
+> -
+>  	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+>  	if (!decoder)
+>  		return -ENOMEM;
+> @@ -1090,8 +1139,11 @@ tvp514x_probe(struct i2c_client *client, const struct
+> i2c_device_id *id) memcpy(decoder->tvp514x_regs, tvp514x_reg_list_default,
+>  			sizeof(tvp514x_reg_list_default));
+> 
+> -	/* Copy board specific information here */
+> -	decoder->pdata = client->dev.platform_data;
+> +	tvp514x_get_pdata(client, decoder);
+
+Getter functions usually return a value. The code would (at least in my 
+opinion) be clearer if you modifieid tvp514x_get_pdata() to return a pointer 
+to the pdata instead of assigning it directly to decoder->pdata inside the 
+function.
+
+> +	if (!decoder->pdata) {
+> +		v4l2_err(client, "No platform data!!\n");
+> +		return -EPROBE_DEFER;
+
+Why EPROBE_DEFER ? If there's no pdata now you won't magically get it later 
+:-)
+
+> +	}
+> 
+>  	/**
+>  	 * Fetch platform specific data, and configure the
+> @@ -1242,6 +1294,7 @@ MODULE_DEVICE_TABLE(i2c, tvp514x_id);
+> 
+>  static struct i2c_driver tvp514x_driver = {
+>  	.driver = {
+> +		.of_match_table = tvp514x_of_match,
+
+Please use of_match_ptr() instead of defining tvp514x_of_match as NULL above.
+
+>  		.owner = THIS_MODULE,
+>  		.name = TVP514X_MODULE_NAME,
+>  	},
 -- 
-http://palosaari.fi/
+Regards,
+
+Laurent Pinchart
+
