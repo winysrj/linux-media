@@ -1,48 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:60006 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030552Ab3DSOlF (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57791 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759520Ab3D3LpX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Apr 2013 10:41:05 -0400
-Date: Fri, 19 Apr 2013 16:41:02 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [PATCH] V4L2: fix subdevice matching in asynchronous probing
-Message-ID: <Pine.LNX.4.64.1304191640010.591@axis700.grange>
+	Tue, 30 Apr 2013 07:45:23 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Subject: Re: [PATCH RFC] media: i2c: mt9p031: add OF support
+Date: Tue, 30 Apr 2013 13:45:31 +0200
+Message-ID: <2667885.kq9SiOBOqS@avalon>
+In-Reply-To: <20130430061625.GC16843@pengutronix.de>
+References: <1367222401-26649-1-git-send-email-prabhakar.csengg@gmail.com> <20130430061625.GC16843@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A wrapped list iterating loop hasn't been correctly recognised in
-v4l2_async_belongs(), which led to false positives. Fix the bug by
-verifying the loop termination condition.
+Hi Sascha,
 
-Reported-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+On Tuesday 30 April 2013 08:16:25 Sascha Hauer wrote:
+> On Mon, Apr 29, 2013 at 01:30:01PM +0530, Prabhakar Lad wrote:
+> > From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> > 
+> > add OF support for the mt9p031 sensor driver.
+> > 
+> > +static struct mt9p031_platform_data
+> > +	*mt9p031_get_pdata(struct i2c_client *client)
+> > +
+> > +{
+> > +	if (!client->dev.platform_data && client->dev.of_node) {
+> > +		struct device_node *np;
+> > +		struct mt9p031_platform_data *pdata;
+> > +		int ret;
+> > +
+> > +		np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
+> > +		if (!np)
+> > +			return NULL;
+> > +
+> > +		pdata = devm_kzalloc(&client->dev,
+> > +				     sizeof(struct mt9p031_platform_data),
+> > +				     GFP_KERNEL);
+> > +		if (!pdata) {
+> > +			pr_warn("mt9p031 failed allocate memeory\n");
+> > +			return NULL;
+> > +		}
+> > +		ret = of_property_read_u32(np, "reset", &pdata->reset);
+> > +		if (ret == -EINVAL)
+> > +			pdata->reset = -1;
+> > +		else if (ret == -ENODATA)
+> > +			return NULL;
+> > +
+> > +		if (of_property_read_u32(np, "ext_freq", &pdata->ext_freq))
+> > +			return NULL;
+> > +
+> > +		if (of_property_read_u32(np, "target_freq",
+> > +					 &pdata->target_freq))
+> > +			return NULL;
+> > +
+> > +		return pdata;
+> > +	}
+> 
+> I don't know how the others see this, but IMO it would be cleaner to
+> first add a duplicate of the members of pdata in struct mt9p031 and then
+> initialize them either from pdata or from devicetree data. The
+> (artificial) creation of platform_data for the devicetree case adds a
+> new level of indirection. This may not be a problem here, but there are
+> cases where there is no 1:1 transcription between pdata and devicetree
+> possible.
 
-Prabhakar, please, check, whether this fixes your problem.
+I have no strong opinion on this. In the mt9p031 case it won't matter much, 
+but it's probably a good idea in general.
 
- drivers/media/v4l2-core/v4l2-async.c |    4 ++++
- 1 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 5d6b428..5631944 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -76,6 +76,10 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
- 			break;
- 	}
- 
-+	if (&asd->list == &notifier->waiting)
-+		/* Wrapped - no match found */
-+		return NULL;
-+
- 	return asd;
- }
- 
 -- 
-1.7.2.5
+Regards,
+
+Laurent Pinchart
 
