@@ -1,54 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37675 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1760051Ab3DDNKN (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:59620 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932725Ab3D3OGi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Apr 2013 09:10:13 -0400
-Date: Thu, 4 Apr 2013 16:10:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org,
-	Mike Turquette <mturquette@linaro.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v2 0/2] OMAP3 ISP common clock framework support
-Message-ID: <20130404131009.GI10541@valkosipuli.retiisi.org.uk>
-References: <1365076301-6542-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 30 Apr 2013 10:06:38 -0400
+Date: Tue, 30 Apr 2013 16:06:22 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v9 02/20] V4L2: support asynchronous subdevice registration
+In-Reply-To: <20130430135301.GD16843@pengutronix.de>
+Message-ID: <Pine.LNX.4.64.1304301604550.3302@axis700.grange>
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+ <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
+ <20130430135301.GD16843@pengutronix.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1365076301-6542-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sascha
 
-On Thu, Apr 04, 2013 at 01:51:39PM +0200, Laurent Pinchart wrote:
-> Hello,
-> 
-> Here's the second version of the common clock framework support for the OMAP3
-> ISP and MT9P031 drivers. They finally get rid of the last isp_platform_callback
-> operation, and thus of the isp_platform_callback structure completely, as well
-> as the only platform callback from the mt9p031 driver.
-> 
-> As with v1 the patches depend on Mike Turquette's common clock framework
-> reentrancy patches:
-> 
->   clk: abstract locking out into helper functions
->   clk: allow reentrant calls into the clk framework
-> 
-> v6 of those two patches has been posted to LKML and LAKML.
-> 
-> Changes since v1 are:
-> 
-> - Remove the unusued isp_xclk_init_data structure
-> - Move a variable declaration inside a loop
+On Tue, 30 Apr 2013, Sascha Hauer wrote:
 
-Thanks! For the set:
+> Hi Guennadi,
+> 
+> On Fri, Apr 12, 2013 at 05:40:22PM +0200, Guennadi Liakhovetski wrote:
+> > Currently bridge device drivers register devices for all subdevices
+> > synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> > is attached to a video bridge device, the bridge driver will create an I2C
+> > device and wait for the respective I2C driver to probe. This makes linking
+> > of devices straight forward, but this approach cannot be used with
+> > intrinsically asynchronous and unordered device registration systems like
+> > the Flattened Device Tree. To support such systems this patch adds an
+> > asynchronous subdevice registration framework to V4L2. To use it respective
+> > (e.g. I2C) subdevice drivers must register themselves with the framework.
+> > A bridge driver on the other hand must register notification callbacks,
+> > that will be called upon various related events.
+> > 
+> > Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> > ---
+> > +
+> > +static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+> > +						    struct v4l2_async_subdev_list *asdl)
+> > +{
+> > +	struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
+> > +	struct v4l2_async_subdev *asd = NULL;
+> > +	bool (*match)(struct device *,
+> > +		      struct v4l2_async_hw_info *);
+> > +
+> > +	list_for_each_entry (asd, &notifier->waiting, list) {
+> > +		struct v4l2_async_hw_info *hw = &asd->hw;
+> > +
+> > +		/* bus_type has been verified valid before */
+> > +		switch (hw->bus_type) {
+> > +		case V4L2_ASYNC_BUS_CUSTOM:
+> > +			match = hw->match.custom.match;
+> > +			if (!match)
+> > +				/* Match always */
+> > +				return asd;
+> > +			break;
+> > +		case V4L2_ASYNC_BUS_PLATFORM:
+> > +			match = match_platform;
+> > +			break;
+> > +		case V4L2_ASYNC_BUS_I2C:
+> > +			match = match_i2c;
+> > +			break;
+> > +		default:
+> > +			/* Cannot happen, unless someone breaks us */
+> > +			WARN_ON(true);
+> > +			return NULL;
+> > +		}
+> > +
+> > +		if (match && match(sd->dev, hw))
+> > +			break;
+> > +	}
+> > +
+> > +	return asd;
+> 
+> 'asd' can never be NULL here. You have to explicitly return NULL when
+> leaving the loop without match.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+I've already proposed a fix for this and Laurent has proposed a simplified 
+version.
 
--- 
-Cheers,
+Thanks
+Guennadi
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> 
+> Sascha
+> 
+> 
+> -- 
+> Pengutronix e.K.                           |                             |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
