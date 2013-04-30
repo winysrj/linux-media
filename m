@@ -1,66 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:64118 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755025Ab3DLMip (ORCPT
+Received: from mail-vb0-f54.google.com ([209.85.212.54]:65143 "EHLO
+	mail-vb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750751Ab3D3EVT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Apr 2013 08:38:45 -0400
-Date: Fri, 12 Apr 2013 14:38:43 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
-cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org
-Subject: Re: [PATCH] drivers: media: platform: convert to devm_ioremap_resource()
-In-Reply-To: <1365627565-17401-1-git-send-email-silviupopescu1990@gmail.com>
-Message-ID: <Pine.LNX.4.64.1304121434031.1727@axis700.grange>
-References: <1365627565-17401-1-git-send-email-silviupopescu1990@gmail.com>
+	Tue, 30 Apr 2013 00:21:19 -0400
+Received: by mail-vb0-f54.google.com with SMTP id w16so78387vbf.27
+        for <linux-media@vger.kernel.org>; Mon, 29 Apr 2013 21:21:18 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Date: Tue, 30 Apr 2013 07:21:18 +0300
+Message-ID: <CABuUpSUen2fsq_xFGxatBjEtxjNRNjWOK6LbG8RYjRweojUr9g@mail.gmail.com>
+Subject: V4L2: Get device/input status
+From: Vadim Golopupov <vgolopupov@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi
+I have plugged in usb digital camera (it has one input pin - 0).
 
-On Wed, 10 Apr 2013, Silviu-Mihai Popescu wrote:
+I check input status every 5 seconds via structure: v4l2_input (here
+is the example: http://pastebin.com/X9Z23DbZ), to process situation if
+one of the flags is set (V4L2_IN_ST_NO_POWER or V4L2_IN_ST_NO_SIGNAL
+or V4L2_IN_ST_NO_H_LOCK).
 
-> Convert all uses of devm_request_and_ioremap() to the newly introduced
-> devm_ioremap_resource() which provides more consistent error handling.
-> 
-> Signed-off-by: Silviu-Mihai Popescu <silviupopescu1990@gmail.com>
+The problem is that even i unplug my usb digital camera, the input
+status is always 0 (0x00).
 
-Thanks for the patch, but an equivalent one is already upstream:
+Why the driver does not change input status flag when the device is unplugged?
 
-http://git.linuxtv.org/media_tree.git/commitdiff/f2b4dc1a0fc8f52e06025497ce9bb252ff51f15f
+Maybe it is possible to check device status not only input pin? If
+yes, then which ioctl request should be set...?
 
-Thanks
-Guennadi
 
-> ---
->  drivers/media/platform/sh_veu.c |    6 +++---
->  1 file changed, 3 insertions(+), 3 deletions(-)
-> 
-> diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
-> index cb54c69..911f562 100644
-> --- a/drivers/media/platform/sh_veu.c
-> +++ b/drivers/media/platform/sh_veu.c
-> @@ -1164,9 +1164,9 @@ static int sh_veu_probe(struct platform_device *pdev)
->  
->  	veu->is_2h = resource_size(reg_res) == 0x22c;
->  
-> -	veu->base = devm_request_and_ioremap(&pdev->dev, reg_res);
-> -	if (!veu->base)
-> -		return -ENOMEM;
-> +	veu->base = devm_ioremap_resource(&pdev->dev, reg_res);
-> +	if (IS_ERR(veu->base))
-> +		return PTR_ERR(veu->base);
->  
->  	ret = devm_request_threaded_irq(&pdev->dev, irq, sh_veu_isr, sh_veu_bh,
->  					0, "veu", veu);
-> -- 
-> 1.7.9.5
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Operating system: Linux 2.6.32-5-amd64 #1 SMP Mon Feb 25 00:26:11 UTC
+2013 x86_64 GNU/Linux
