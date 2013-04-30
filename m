@@ -1,96 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:50886 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762574Ab3DHLH2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Apr 2013 07:07:28 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v7 6/7] imx074: support asynchronous probing
-Date: Mon,  8 Apr 2013 13:07:10 +0200
-Message-Id: <1365419231-14830-7-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1365419231-14830-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:32778 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933079Ab3D3TL3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Apr 2013 15:11:29 -0400
+Received: by mail-wi0-f170.google.com with SMTP id l13so4582478wie.3
+        for <linux-media@vger.kernel.org>; Tue, 30 Apr 2013 12:11:26 -0700 (PDT)
+Date: Tue, 30 Apr 2013 21:14:22 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
+	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
+Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks, v3
+Message-ID: <20130430191422.GA5763@phenom.ffwll.local>
+References: <20130428165914.17075.57751.stgit@patser>
+ <20130428170407.17075.80082.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130428170407.17075.80082.stgit@patser>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Both synchronous and asynchronous imx074 subdevice probing is supported by
-this patch.
+On Sun, Apr 28, 2013 at 07:04:07PM +0200, Maarten Lankhorst wrote:
+> Changes since RFC patch v1:
+>  - Updated to use atomic_long instead of atomic, since the reservation_id was a long.
+>  - added mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow
+>  - removed mutex_locked_set_reservation_id (or w/e it was called)
+> Changes since RFC patch v2:
+>  - remove use of __mutex_lock_retval_arg, add warnings when using wrong combination of
+>    mutex_(,reserve_)lock/unlock.
+> Changes since v1:
+>  - Add __always_inline to __mutex_lock_common, otherwise reservation paths can be
+>    triggered from normal locks, because __builtin_constant_p might evaluate to false
+>    for the constant 0 in that case. Tests for this have been added in the next patch.
+>  - Updated documentation slightly.
+> Changes since v2:
+>  - Renamed everything to ww_mutex. (mlankhorst)
+>  - Added ww_acquire_ctx and ww_class. (mlankhorst)
+>  - Added a lot of checks for wrong api usage. (mlankhorst)
+>  - Documentation updates. (danvet)
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/i2c/soc_camera/imx074.c |   24 +++++++++++++++++++++---
- 1 files changed, 21 insertions(+), 3 deletions(-)
+While writing the kerneldoc I've carefully check that all restrictions are
+enforced through debug checks somehow. I think that with full mutex debug
+(including lockdep) enabled, plus the slowpath injector patch I've just
+posted, _all_ interface abuse will be catched at runtime as long as all
+the single-threaded/uncontended cases are exercises sufficiently.
 
-diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
-index a6a5060..624d7c7 100644
---- a/drivers/media/i2c/soc_camera/imx074.c
-+++ b/drivers/media/i2c/soc_camera/imx074.c
-@@ -18,6 +18,7 @@
- #include <linux/module.h>
- 
- #include <media/soc_camera.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-clk.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-chip-ident.h>
-@@ -79,6 +80,7 @@ struct imx074 {
- 	struct v4l2_subdev		subdev;
- 	const struct imx074_datafmt	*fmt;
- 	struct v4l2_clk			*clk;
-+	struct v4l2_async_subdev_list	asdl;
- };
- 
- static const struct imx074_datafmt imx074_colour_fmts[] = {
-@@ -455,14 +457,28 @@ static int imx074_probe(struct i2c_client *client,
- 
- 	priv->fmt	= &imx074_colour_fmts[0];
- 
-+	priv->asdl.subdev = &priv->subdev;
-+	priv->asdl.dev = &client->dev;
-+
- 	priv->clk = v4l2_clk_get(&client->dev, "mclk");
--	if (IS_ERR(priv->clk))
--		return PTR_ERR(priv->clk);
-+	if (IS_ERR(priv->clk)) {
-+		dev_info(&client->dev, "Error %ld getting clock\n", PTR_ERR(priv->clk));
-+		return -EPROBE_DEFER;
-+	}
-+
-+	ret = soc_camera_power_init(&client->dev, ssdd);
-+	if (ret < 0)
-+		goto epwrinit;
- 
- 	ret = imx074_video_probe(client);
- 	if (ret < 0)
--		v4l2_clk_put(priv->clk);
-+		goto eprobe;
- 
-+	return v4l2_async_register_subdev(&priv->asdl);
-+
-+epwrinit:
-+eprobe:
-+	v4l2_clk_put(priv->clk);
- 	return ret;
- }
- 
-@@ -471,7 +487,9 @@ static int imx074_remove(struct i2c_client *client)
- 	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
- 	struct imx074 *priv = to_imx074(client);
- 
-+	v4l2_async_unregister_subdev(&priv->asdl);
- 	v4l2_clk_put(priv->clk);
-+
- 	if (ssdd->free_bus)
- 		ssdd->free_bus(ssdd);
- 
+So I think we've fully achieved level 5 on the Rusty API safety scale
+here. Higher levels seem pretty hard given that the concepts are rather
+fancy, but I think with the new (and much more consitent) naming, plus the
+explicit introduction as (more abstruct) structures for ww_class and
+ww_acquire_context the interface is about as intuitive as it gets.
+
+So all together I'm pretty happy with what the interface looks like. And
+one quick bikeshed below on the implementation.
+-Daniel
+
+> 
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> ---
+>  Documentation/ww-mutex-design.txt |  322 +++++++++++++++++++++++++++
+>  include/linux/mutex-debug.h       |    1 
+>  include/linux/mutex.h             |  257 +++++++++++++++++++++
+>  kernel/mutex.c                    |  445 ++++++++++++++++++++++++++++++++++++-
+>  lib/debug_locks.c                 |    2 
+>  5 files changed, 1010 insertions(+), 17 deletions(-)
+>  create mode 100644 Documentation/ww-mutex-design.txt
+
+[snip]
+
+> +/*
+> + * after acquiring lock with fastpath or when we lost out in contested
+> + * slowpath, set ctx and wake up any waiters so they can recheck.
+> + *
+> + * This function is never called when CONFIG_DEBUG_LOCK_ALLOC is set,
+> + * as the fastpath and opportunistic spinning are disabled in that case.
+> + */
+> +static __always_inline void
+> +ww_mutex_set_context_fastpath(struct ww_mutex *lock,
+> +			       struct ww_acquire_ctx *ctx)
+> +{
+> +	unsigned long flags;
+> +	struct mutex_waiter *cur;
+> +
+> +	ww_mutex_lock_acquired(lock, ctx, false);
+> +
+> +	lock->ctx = ctx;
+> +	smp_mb__after_atomic_dec();
+
+I think this should be
+
++	smp_mb__after_atomic_dec();
++	lock->ctx = ctx;
++	smp_mb();
+
+Also I wonder a bit how much this hurts the fastpath, and whether we
+should just shovel the ctx into the atomic field with a cmpxcht, like the
+rt mutex code does with the current pointer.
+
+> +
+> +	/*
+> +	 * Check if lock is contended, if not there is nobody to wake up
+> +	 */
+> +	if (likely(atomic_read(&lock->base.count) == 0))
+> +		return;
+> +
+> +	/*
+> +	 * Uh oh, we raced in fastpath, wake up everyone in this case,
+> +	 * so they can see the new ctx
+> +	 */
+> +	spin_lock_mutex(&lock->base.wait_lock, flags);
+> +	list_for_each_entry(cur, &lock->base.wait_list, list) {
+> +		debug_mutex_wake_waiter(&lock->base, cur);
+> +		wake_up_process(cur->task);
+> +	}
+> +	spin_unlock_mutex(&lock->base.wait_lock, flags);
+> +}
+> +
 -- 
-1.7.2.5
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
