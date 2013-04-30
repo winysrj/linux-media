@@ -1,51 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f45.google.com ([209.85.214.45]:62555 "EHLO
-	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932398Ab3DYOrO (ORCPT
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:41138 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753043Ab3D3G3U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Apr 2013 10:47:14 -0400
-Received: by mail-bk0-f45.google.com with SMTP id j4so1289205bkw.32
-        for <linux-media@vger.kernel.org>; Thu, 25 Apr 2013 07:47:13 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com,
-	Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] s5c73m3: fix indentation of the help section in Kconfig
-Date: Thu, 25 Apr 2013 16:46:38 +0200
-Message-Id: <1366901198-32030-1-git-send-email-gennarone@gmail.com>
+	Tue, 30 Apr 2013 02:29:20 -0400
+Received: by mail-pb0-f43.google.com with SMTP id ma3so110042pbc.16
+        for <linux-media@vger.kernel.org>; Mon, 29 Apr 2013 23:29:20 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 4/4] [media] s3c-camif: Use dev_info instead of printk
+Date: Tue, 30 Apr 2013 11:46:21 +0530
+Message-Id: <1367302581-15478-4-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1367302581-15478-1-git-send-email-sachin.kamat@linaro.org>
+References: <1367302581-15478-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The 'help' section of the Kconfig entry for this driver is missing a couple of
-extra spaces.
-The effect is an error running 'make xconfig' (seen on the old 2.6.32 kernel
-from Ubuntu 10.04 when compiling the latest media-build tree):
+dev_info is preferred to printk. Silences the related checkpatch
+warning.
+WARNING: Prefer netdev_info(netdev, ... then dev_info(dev, ...
+then pr_info(...  to printk(KERN_INFO ...
 
-/lib/modules/2.6.32-46-generic-pae/build/scripts/kconfig/qconf ./Kconfig
-./Kconfig:4985: unknown option "This"
-./Kconfig:4986: unknown option "8"
-make[1]: *** [xconfig] Errore 1
-
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/media/i2c/Kconfig | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/s3c-camif/camif-regs.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 9e7ce8b..f981d50 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -559,8 +559,8 @@ config VIDEO_S5C73M3
- 	tristate "Samsung S5C73M3 sensor support"
- 	depends on I2C && SPI && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
- 	---help---
--	This is a V4L2 sensor-level driver for Samsung S5C73M3
--	8 Mpixel camera.
-+	  This is a V4L2 sensor-level driver for Samsung S5C73M3
-+	  8 Mpixel camera.
- 
- comment "Flash devices"
- 
+diff --git a/drivers/media/platform/s3c-camif/camif-regs.c b/drivers/media/platform/s3c-camif/camif-regs.c
+index 7b22d6c..a9e3b16 100644
+--- a/drivers/media/platform/s3c-camif/camif-regs.c
++++ b/drivers/media/platform/s3c-camif/camif-regs.c
+@@ -601,6 +601,6 @@ void camif_hw_dump_regs(struct camif_dev *camif, const char *label)
+ 	pr_info("--- %s ---\n", label);
+ 	for (i = 0; i < ARRAY_SIZE(registers); i++) {
+ 		u32 cfg = readl(camif->io_base + registers[i].offset);
+-		printk(KERN_INFO "%s:\t0x%08x\n", registers[i].name, cfg);
++		dev_info(camif->dev, "%s:\t0x%08x\n", registers[i].name, cfg);
+ 	}
+ }
 -- 
-1.8.2.1
+1.7.9.5
 
