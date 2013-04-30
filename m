@@ -1,54 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:36698 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751300Ab3DIFRq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Apr 2013 01:17:46 -0400
-Date: Tue, 9 Apr 2013 08:15:40 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Bill Pemberton <wfp5p@virginia.edu>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] dt3155v4l: unlock on error path
-Message-ID: <20130409051540.GA1516@longonot.mountain>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:55674 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758600Ab3D3NxL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Apr 2013 09:53:11 -0400
+Date: Tue, 30 Apr 2013 15:53:01 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: Re: [PATCH v9 02/20] V4L2: support asynchronous subdevice
+ registration
+Message-ID: <20130430135301.GD16843@pengutronix.de>
+References: <1365781240-16149-1-git-send-email-g.liakhovetski@gmx.de>
+ <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
+In-Reply-To: <1365781240-16149-3-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-We should unlock here and do some cleanup before returning.
+Hi Guennadi,
 
-We can't actually hit this return path with the current code, so this
-patch is a basically a cleanup and doesn't change how the code works.
+On Fri, Apr 12, 2013 at 05:40:22PM +0200, Guennadi Liakhovetski wrote:
+> Currently bridge device drivers register devices for all subdevices
+> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+> is attached to a video bridge device, the bridge driver will create an I2C
+> device and wait for the respective I2C driver to probe. This makes linking
+> of devices straight forward, but this approach cannot be used with
+> intrinsically asynchronous and unordered device registration systems like
+> the Flattened Device Tree. To support such systems this patch adds an
+> asynchronous subdevice registration framework to V4L2. To use it respective
+> (e.g. I2C) subdevice drivers must register themselves with the framework.
+> A bridge driver on the other hand must register notification callbacks,
+> that will be called upon various related events.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> +
+> +static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *notifier,
+> +						    struct v4l2_async_subdev_list *asdl)
+> +{
+> +	struct v4l2_subdev *sd = v4l2_async_to_subdev(asdl);
+> +	struct v4l2_async_subdev *asd = NULL;
+> +	bool (*match)(struct device *,
+> +		      struct v4l2_async_hw_info *);
+> +
+> +	list_for_each_entry (asd, &notifier->waiting, list) {
+> +		struct v4l2_async_hw_info *hw = &asd->hw;
+> +
+> +		/* bus_type has been verified valid before */
+> +		switch (hw->bus_type) {
+> +		case V4L2_ASYNC_BUS_CUSTOM:
+> +			match = hw->match.custom.match;
+> +			if (!match)
+> +				/* Match always */
+> +				return asd;
+> +			break;
+> +		case V4L2_ASYNC_BUS_PLATFORM:
+> +			match = match_platform;
+> +			break;
+> +		case V4L2_ASYNC_BUS_I2C:
+> +			match = match_i2c;
+> +			break;
+> +		default:
+> +			/* Cannot happen, unless someone breaks us */
+> +			WARN_ON(true);
+> +			return NULL;
+> +		}
+> +
+> +		if (match && match(sd->dev, hw))
+> +			break;
+> +	}
+> +
+> +	return asd;
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+'asd' can never be NULL here. You have to explicitly return NULL when
+leaving the loop without match.
 
-diff --git a/drivers/staging/media/dt3155v4l/dt3155v4l.c b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-index 073b3b3..3da17bc 100644
---- a/drivers/staging/media/dt3155v4l/dt3155v4l.c
-+++ b/drivers/staging/media/dt3155v4l/dt3155v4l.c
-@@ -398,7 +398,7 @@ dt3155_open(struct file *filp)
- 		pd->field_count = 0;
- 		ret = vb2_queue_init(pd->q);
- 		if (ret < 0)
--			return ret;
-+			goto err_free_q;
- 		INIT_LIST_HEAD(&pd->dmaq);
- 		spin_lock_init(&pd->lock);
- 		/* disable all irqs, clear all irq flags */
-@@ -407,11 +407,11 @@ dt3155_open(struct file *filp)
- 		ret = request_irq(pd->pdev->irq, dt3155_irq_handler_even,
- 						IRQF_SHARED, DT3155_NAME, pd);
- 		if (ret)
--			goto err_request_irq;
-+			goto err_free_q;
- 	}
- 	pd->users++;
- 	return 0; /* success */
--err_request_irq:
-+err_free_q:
- 	kfree(pd->q);
- 	pd->q = NULL;
- err_alloc_queue:
+Sascha
+
+
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
