@@ -1,107 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ven69-h01-31-33-9-98.dsl.sta.abo.bbox.fr ([31.33.9.98]:46598
-	"EHLO laptop-kevin.kbaradon.com" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755322Ab3DVUpe (ORCPT
+Received: from mail-we0-f182.google.com ([74.125.82.182]:40234 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933393Ab3D3Uf6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Apr 2013 16:45:34 -0400
-From: Kevin Baradon <kevin.baradon@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
-Cc: Kevin Baradon <kevin.baradon@gmail.com>
-Subject: [PATCH 2/4] media/rc/imon.c: make send_packet() delay larger for 15c2:0036 [v2]
-Date: Mon, 22 Apr 2013 22:09:44 +0200
-Message-Id: <1366661386-6720-3-git-send-email-kevin.baradon@gmail.com>
-In-Reply-To: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
-References: <1366661386-6720-1-git-send-email-kevin.baradon@gmail.com>
+	Tue, 30 Apr 2013 16:35:58 -0400
+Received: by mail-we0-f182.google.com with SMTP id s43so794519wey.13
+        for <linux-media@vger.kernel.org>; Tue, 30 Apr 2013 13:35:57 -0700 (PDT)
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: LKML <linux-kernel@vger.kernel.org>
+Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
+	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org,
+	Daniel Vetter <daniel.vetter@ffwll.ch>
+Subject: [PATCH] [RFC] mutex: w/w mutex slowpath debugging
+Date: Tue, 30 Apr 2013 22:38:56 +0200
+Message-Id: <1367354336-13719-1-git-send-email-daniel.vetter@ffwll.ch>
+In-Reply-To: <1367350179.30667.70.camel@gandalf.local.home>
+References: <1367350179.30667.70.camel@gandalf.local.home>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Imon device 15c2:0036 need a higher delay between send_packet() calls.
-Also use interruptible wait to avoid load average going too high (and let caller handle signals).
+Injects EDEADLK conditions at pseudo-random interval, with exponential
+backoff up to UINT_MAX (to ensure that every lock operation still
+completes in a reasonable time).
 
-Signed-off-by: Kevin Baradon <kevin.baradon@gmail.com>
+This way we can test the wound slowpath even for ww mutex users where
+contention is never expected, and the ww deadlock avoidance algorithm
+is only needed for correctness against malicious userspace. An example
+would be protecting kernel modesetting properties, which thanks to
+single-threaded X isn't really expected to contend, ever.
+
+I've looked into using the CONFIG_FAULT_INJECTION infrastructure, but
+decided against it for two reasons:
+
+- EDEADLK handling is mandatory for ww mutex users and should never
+  affect the outcome of a syscall. This is in contrast to -ENOMEM
+  injection. So fine configurability isn't required.
+
+- The fault injection framework only allows to set a simple
+  probability for failure. Now the probability that a ww mutex acquire
+  stage with N locks will never complete (due to too many injected
+  EDEADLK backoffs) is zero. But the expected number of ww_mutex_lock
+  operations for the completely uncontended case would be O(exp(N)).
+  The per-acuiqire ctx exponential backoff solution choosen here only
+  results in O(log N) overhead due to injection and so O(log N * N)
+  lock operations. This way we can fail with high probability (and so
+  have good test coverage even for fancy backoff and lock acquisition
+  paths) without running into patalogical cases.
+
+Note that EDEADLK will only ever be injected when we managed to
+acquire the lock. This prevents any behaviour changes for users which
+rely on the EALREADY semantics.
+
+v2: Drop the cargo-culted __sched (I should read docs next time
+around) and annotate the non-debug case with inline to prevent gcc
+from doing something horrible.
+
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
 ---
- drivers/media/rc/imon.c |   22 ++++++++++++++++------
- 1 file changed, 16 insertions(+), 6 deletions(-)
+ include/linux/mutex.h |    8 ++++++++
+ kernel/mutex.c        |   32 ++++++++++++++++++++++++++++++++
+ lib/Kconfig.debug     |   10 ++++++++++
+ 3 files changed, 50 insertions(+)
 
-diff --git a/drivers/media/rc/imon.c b/drivers/media/rc/imon.c
-index e5d1c0d..624fd33 100644
---- a/drivers/media/rc/imon.c
-+++ b/drivers/media/rc/imon.c
-@@ -112,6 +112,7 @@ struct imon_context {
- 	bool tx_control;
- 	unsigned char usb_rx_buf[8];
- 	unsigned char usb_tx_buf[8];
-+	unsigned int send_packet_delay;
- 
- 	struct tx_t {
- 		unsigned char data_buf[35];	/* user data buffer */
-@@ -185,6 +186,10 @@ enum {
- 	IMON_KEY_PANEL	= 2,
+diff --git a/include/linux/mutex.h b/include/linux/mutex.h
+index 004f863..82d56ec 100644
+--- a/include/linux/mutex.h
++++ b/include/linux/mutex.h
+@@ -93,6 +93,10 @@ struct ww_acquire_ctx {
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ 	struct lockdep_map dep_map;
+ #endif
++#ifdef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
++	unsigned deadlock_inject_interval;
++	unsigned deadlock_inject_countdown;
++#endif
  };
  
-+enum {
-+	IMON_NEED_20MS_PKT_DELAY = 1
-+};
-+
- /*
-  * USB Device ID for iMON USB Control Boards
-  *
-@@ -215,7 +220,7 @@ static struct usb_device_id imon_usb_id_table[] = {
- 	/* SoundGraph iMON OEM Touch LCD (IR & 4.3" VGA LCD) */
- 	{ USB_DEVICE(0x15c2, 0x0035) },
- 	/* SoundGraph iMON OEM VFD (IR & VFD) */
--	{ USB_DEVICE(0x15c2, 0x0036) },
-+	{ USB_DEVICE(0x15c2, 0x0036), .driver_info = IMON_NEED_20MS_PKT_DELAY },
- 	/* device specifics unknown */
- 	{ USB_DEVICE(0x15c2, 0x0037) },
- 	/* SoundGraph iMON OEM LCD (IR & LCD) */
-@@ -535,12 +540,12 @@ static int send_packet(struct imon_context *ictx)
- 	kfree(control_req);
- 
- 	/*
--	 * Induce a mandatory 5ms delay before returning, as otherwise,
-+	 * Induce a mandatory delay before returning, as otherwise,
- 	 * send_packet can get called so rapidly as to overwhelm the device,
- 	 * particularly on faster systems and/or those with quirky usb.
- 	 */
--	timeout = msecs_to_jiffies(5);
--	set_current_state(TASK_UNINTERRUPTIBLE);
-+	timeout = msecs_to_jiffies(ictx->send_packet_delay);
-+	set_current_state(TASK_INTERRUPTIBLE);
- 	schedule_timeout(timeout);
- 
- 	return retval;
-@@ -2088,7 +2093,8 @@ static bool imon_find_endpoints(struct imon_context *ictx,
- 
+ struct ww_mutex {
+@@ -278,6 +282,10 @@ static inline void ww_acquire_init(struct ww_acquire_ctx *ctx,
+ 			 &ww_class->acquire_key, 0);
+ 	mutex_acquire(&ctx->dep_map, 0, 0, _RET_IP_);
+ #endif
++#ifdef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
++	ctx->deadlock_inject_interval = ctx->stamp & 0xf;
++	ctx->deadlock_inject_countdown = ctx->deadlock_inject_interval;
++#endif
  }
  
--static struct imon_context *imon_init_intf0(struct usb_interface *intf)
-+static struct imon_context *imon_init_intf0(struct usb_interface *intf,
-+					    const struct usb_device_id *id)
- {
- 	struct imon_context *ictx;
- 	struct urb *rx_urb;
-@@ -2128,6 +2134,10 @@ static struct imon_context *imon_init_intf0(struct usb_interface *intf)
- 	ictx->vendor  = le16_to_cpu(ictx->usbdev_intf0->descriptor.idVendor);
- 	ictx->product = le16_to_cpu(ictx->usbdev_intf0->descriptor.idProduct);
+ /**
+diff --git a/kernel/mutex.c b/kernel/mutex.c
+index 66807c7..816fdfc 100644
+--- a/kernel/mutex.c
++++ b/kernel/mutex.c
+@@ -827,6 +827,36 @@ int __sched mutex_trylock(struct mutex *lock)
+ EXPORT_SYMBOL(mutex_trylock);
  
-+	/* default send_packet delay is 5ms but some devices need more */
-+	ictx->send_packet_delay = id->driver_info & IMON_NEED_20MS_PKT_DELAY ?
-+				  20 : 5;
+ #ifndef CONFIG_DEBUG_LOCK_ALLOC
 +
- 	ret = -ENODEV;
- 	iface_desc = intf->cur_altsetting;
- 	if (!imon_find_endpoints(ictx, iface_desc)) {
-@@ -2306,7 +2316,7 @@ static int imon_probe(struct usb_interface *interface,
- 	first_if_ctx = usb_get_intfdata(first_if);
++#ifdef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
++static int
++ww_mutex_deadlock_injection(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
++{
++	if (ctx->deadlock_inject_countdown-- == 0) {
++		tmp = ctx->deadlock_inject_interval;
++		if (tmp > UINT_MAX/4)
++			tmp = UINT_MAX;
++		else
++			tmp = tmp*2 + tmp + tmp/2;
++
++		ctx->deadlock_inject_interval = tmp;
++		ctx->deadlock_inject_countdown = tmp;
++
++		ww_mutex_unlock(lock);
++
++		return -EDEADLK;
++	}
++
++	return 0;
++}
++#else
++static inline int
++ww_mutex_deadlock_injection(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
++{
++	return 0;
++}
++#endif
++
+ int __sched
+ ww_mutex_lock(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
+ {
+@@ -839,6 +869,7 @@ ww_mutex_lock(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
+ 	if (likely(!ret)) {
+ 		ww_mutex_set_context_fastpath(lock, ctx);
+ 		mutex_set_owner(&lock->base);
++		return ww_mutex_deadlock_injection(lock, ctx);
+ 	} else
+ 		ret = __ww_mutex_lock_slowpath(lock, ctx);
+ 	return ret;
+@@ -857,6 +888,7 @@ ww_mutex_lock_interruptible(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
+ 	if (likely(!ret)) {
+ 		ww_mutex_set_context_fastpath(lock, ctx);
+ 		mutex_set_owner(&lock->base);
++		return ww_mutex_deadlock_injection(lock, ctx);
+ 	} else
+ 		ret = __ww_mutex_lock_interruptible_slowpath(lock, ctx);
+ 	return ret;
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index 28be08c..8c41f73 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -547,6 +547,16 @@ config DEBUG_MUTEXES
+ 	 This feature allows mutex semantics violations to be detected and
+ 	 reported.
  
- 	if (ifnum == 0) {
--		ictx = imon_init_intf0(interface);
-+		ictx = imon_init_intf0(interface, id);
- 		if (!ictx) {
- 			pr_err("failed to initialize context!\n");
- 			ret = -ENODEV;
++config DEBUG_WW_MUTEX_SLOWPATH
++	bool "Wait/wound mutex debugging: Slowpath testing"
++	depends on DEBUG_KERNEL
++	help
++	 This feature enables slowpath testing for w/w mutex users by
++	 injecting additional -EDEADLK wound/backoff cases. Together with
++	 the full mutex checks enabled with (CONFIG_PROVE_LOCKING) this
++	 will test all possible w/w mutex interface abuse with the
++	 exception of simply not acquiring all the required locks.
++
+ config DEBUG_LOCK_ALLOC
+ 	bool "Lock debugging: detect incorrect freeing of live locks"
+ 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
 -- 
 1.7.10.4
 
