@@ -1,86 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:62393 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753162Ab3ELOW7 convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 May 2013 10:22:59 -0400
-Received: by mail-pa0-f48.google.com with SMTP id kp6so3972844pab.7
-        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 07:22:59 -0700 (PDT)
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:38986 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759423Ab3EAK2Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 06:28:25 -0400
+Message-ID: <5180EE41.50302@gmail.com>
+Date: Wed, 01 May 2013 12:28:17 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <20130512071719.GA6748@valkosipuli.retiisi.org.uk>
-References: <CAEt6MXmqv6KwkKoQzAGkG+vU07z_vV6gET8hSDAdxu=WBt3jtw@mail.gmail.com>
- <20130512071719.GA6748@valkosipuli.retiisi.org.uk>
-From: =?ISO-8859-1?Q?Roberto_Alc=E2ntara?= <roberto@eletronica.org>
-Date: Sun, 12 May 2013 11:22:38 -0300
-Message-ID: <CAEt6MXm_X70BAZEhYt9FypiH2JzNPDHrH1BK3hFXruaECCLOzg@mail.gmail.com>
-Subject: Re: [PATCH] smscoreapi: Make Siano firmware load more verbose
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Mark Brown <broonie@kernel.org>
+CC: Kyungmin Park <kmpark@infradead.org>, t.stanislaws@samsung.com,
+	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	linux@arm.linux.org.uk, jy0922.shim@samsung.com,
+	alsa-devel@alsa-project.org, sbkim73@samsung.com,
+	sw0312.kim@samsung.com, jg1.han@samsung.com,
+	linux-mmc@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>,
+	dri-devel@lists.freedesktop.org, inki.dae@samsung.com,
+	jtp.park@samsung.com, dh09.lee@samsung.com,
+	linux-arm-kernel@lists.infradead.org, s.nawrocki@samsung.com,
+	k.debski@samsung.com, linux-media@vger.kernel.org
+Subject: Re: [alsa-devel] [PATCH] MAINTAINERS: Add linux-samsung-soc list
+ to all related entries
+References: <1366572050-626-1-git-send-email-tomasz.figa@gmail.com> <CAH9JG2U7Qdq_xQbuqHu6PXzURS2fWwBC=HJmyrXT5n3n_pAa0w@mail.gmail.com> <20130430132755.GB1023@sirena.org.uk>
+In-Reply-To: <20130430132755.GB1023@sirena.org.uk>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+On 04/30/2013 03:27 PM, Mark Brown wrote:
+> On Mon, Apr 22, 2013 at 03:23:29PM +0900, Kyungmin Park wrote:
+>
+>> I don't think it's not required, each tree has each own mailing list. don't
+>> need to post all patches to samsung-soc list.
+>
+> It can be useful to get system level input on some stuff, I guess it
+> mostly depends if the people on the generic list mind the extra traffic
+> or if they find it useful.
 
-Ok I will review code looking for memory leaks.
+I think this could also improve testing coverage, if more people are aware
+of stuff going in through various mailing lists.
 
-Thank you for the tip.
+Also on a specific subsystem mailing lists yet another SoC specific patches
+may not get enough attention, as people care most about the core subsystem
+changes.
 
- - Roberto
+So I would in general encourage others to Cc linux-samsung-soc, even if the
+$subject patch gets ignored.
 
-
-On Sun, May 12, 2013 at 4:17 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> Hi Roberto,
->
-> On Sat, May 11, 2013 at 12:53:29PM -0300, Roberto Alcântara wrote:
->> Signed-off-by: Roberto Alcantara <roberto@eletronica.org>
->>
->> diff --git a/drivers/media/common/siano/smscoreapi.c
->> b/drivers/media/common/siano/smscoreapi.c
->> index 45ac9ee..dbe9b4d 100644
->> --- a/drivers/media/common/siano/smscoreapi.c
->> +++ b/drivers/media/common/siano/smscoreapi.c
->> @@ -1154,7 +1154,7 @@ static int
->> smscore_load_firmware_from_file(struct smscore_device_t *coredev,
->>
->>      char *fw_filename = smscore_get_fw_filename(coredev, mode);
->>      if (!fw_filename) {
->> -        sms_info("mode %d not supported on this device", mode);
->> +        sms_err("mode %d not supported on this device", mode);
->>          return -ENOENT;
->>      }
->>      sms_debug("Firmware name: %s", fw_filename);
->> @@ -1165,14 +1165,14 @@ static int
->> smscore_load_firmware_from_file(struct smscore_device_t *coredev,
->>
->>      rc = request_firmware(&fw, fw_filename, coredev->device);
->>      if (rc < 0) {
->> -        sms_info("failed to open \"%s\"", fw_filename);
->> +        sms_err("failed to open firmware file \"%s\"", fw_filename);
->>          return rc;
->>      }
->>      sms_info("read fw %s, buffer size=0x%zx", fw_filename, fw->size);
->>      fw_buf = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
->>               GFP_KERNEL | GFP_DMA);
->>      if (!fw_buf) {
->> -        sms_info("failed to allocate firmware buffer");
->> +        sms_err("failed to allocate firmware buffer");
->
-> It's not really related to this patch, but I think there's a memory leak
-> here: release_firmware() isn't called if kmalloc() above fails. I'd just add
-> a goto and a label to the end of the function where that's being done (and
-> set rc, too).
->
-> While you're at it, could you send a patch for that, please?
->
->>          return -ENOMEM;
->>      }
->>      memcpy(fw_buf, fw->data, fw->size);
->
-> --
-> Kind regards,
->
-> Sakari Ailus
-> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
+I seriously doubt anyone would have ever been disturbed with additional
+traffic on the list, with its current average of about 20..50 emails per 
+day.
