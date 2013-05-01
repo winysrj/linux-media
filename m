@@ -1,46 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:36609 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754364Ab3E0IAm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 04:00:42 -0400
-Date: Mon, 27 May 2013 10:00:19 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	x86@kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
-	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
-Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks, v3
-Message-ID: <20130527080019.GD2781@laptop>
-References: <20130428165914.17075.57751.stgit@patser>
- <20130428170407.17075.80082.stgit@patser>
- <20130430191422.GA5763@phenom.ffwll.local>
- <519CA976.9000109@canonical.com>
- <20130522161831.GQ18810@twins.programming.kicks-ass.net>
- <519CFF56.90600@canonical.com>
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:45008 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756331Ab3EAIxb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 04:53:31 -0400
+Received: by mail-ie0-f178.google.com with SMTP id aq17so1647556iec.23
+        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 01:53:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <519CFF56.90600@canonical.com>
+In-Reply-To: <1367382644-30788-1-git-send-email-airlied@gmail.com>
+References: <1367382644-30788-1-git-send-email-airlied@gmail.com>
+Date: Wed, 1 May 2013 10:53:30 +0200
+Message-ID: <CAKMK7uGJWHb7so8_uNe0JzH_EUAQLExFPda=ZR+8yuG+ALvo2w@mail.gmail.com>
+Subject: Re: [PATCH] drm/udl: avoid swiotlb for imported vmap buffers.
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Dave Airlie <airlied@gmail.com>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 22, 2013 at 07:24:38PM +0200, Maarten Lankhorst wrote:
-> >> +- Functions to only acquire a single w/w mutex, which results in the exact same
-> >> +  semantics as a normal mutex. These functions have the _single postfix.
-> > This is missing rationale.
+On Wed, May 1, 2013 at 6:30 AM, Dave Airlie <airlied@gmail.com> wrote:
+> Since we ask the dmabuf owner to map the dma-buf into our device
+> address space, but for udl at present that is the CPU address space,
+> since we don't DMA directly from the mapped buffer.
+>
+> However if we don't set a dma mask on the usb device, the mapping
+> ends up using swiotlb on machines that have it enabled, which
+> is less than desireable.
+>
+> Signed-off-by: Dave Airlie <airlied@redhat.com>
 
-> trylock_single is useful when iterating over a list, and you want to evict a bo, but only the first one that can be acquired.
-> lock_single is useful when only a single bo needs to be acquired, for example to lock a buffer during mmap.
+Fyi for everyone else who was not on irc when Dave&I discussed this:
+This really shouldn't be required and I think the real issue is that
+udl creates a dma_buf attachement (which is needed for device dma
+only), but only really wants to do cpu access through vmap/kmap. So
+not attached the device should be good enough. Cc'ing a few more lists
+for better fyi ;-)
+-Daniel
 
-OK, so given that its still early, monday and I haven't actually spend
-much time thinking on this; would it be possible to make:
-ww_mutex_lock(.ctx=NULL) act like ww_mutex_lock_single()?
+> ---
+>  drivers/gpu/drm/udl/udl_main.c | 1 +
+>  1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/gpu/drm/udl/udl_main.c b/drivers/gpu/drm/udl/udl_main.c
+> index 0ce2d71..6770e1b 100644
+> --- a/drivers/gpu/drm/udl/udl_main.c
+> +++ b/drivers/gpu/drm/udl/udl_main.c
+> @@ -293,6 +293,7 @@ int udl_driver_load(struct drm_device *dev, unsigned long flags)
+>         udl->ddev = dev;
+>         dev->dev_private = udl;
+>
+> +       dma_set_mask(dev->dev, DMA_BIT_MASK(64));
+>         if (!udl_parse_vendor_descriptor(dev, dev->usbdev)) {
+>                 DRM_ERROR("firmware not recognized. Assume incompatible device\n");
+>                 goto err;
+> --
+> 1.8.2
+>
+> _______________________________________________
+> dri-devel mailing list
+> dri-devel@lists.freedesktop.org
+> http://lists.freedesktop.org/mailman/listinfo/dri-devel
 
-The idea is that if we don't provide a ctx, we'll get a different
-lockdep annotation; mutex_lock() vs mutex_lock_nest_lock(). So if we
-then go and make a mistake, lockdep should warn us.
 
-Would that work or should I stock up on morning juice?
+
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
