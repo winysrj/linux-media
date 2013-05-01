@@ -1,122 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:62577 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750856Ab3E2ETZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 00:19:25 -0400
+Received: from mail-ia0-f179.google.com ([209.85.210.179]:61550 "EHLO
+	mail-ia0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759100Ab3EAK0D (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 06:26:03 -0400
+Received: by mail-ia0-f179.google.com with SMTP id p22so1231246iad.38
+        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 03:26:02 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1417519.vVjfDJcATe@avalon>
-References: <1369574386-24486-1-git-send-email-prabhakar.csengg@gmail.com> <1417519.vVjfDJcATe@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 29 May 2013 09:49:03 +0530
-Message-ID: <CA+V-a8vn7VOKjJ5EWnT-=eGeUgAwsUyeAF-bv1N6w3HmRefgBQ@mail.gmail.com>
-Subject: Re: [PATCH v5] media: i2c: tvp514x: add OF support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+In-Reply-To: <51785024.40305@codeaurora.org>
+References: <51785024.40305@codeaurora.org>
+Date: Wed, 1 May 2013 12:26:01 +0200
+Message-ID: <CAKMK7uE5HQs7JoyVp8HbOzQ4PM=mOW3=WpRtFUzvy3NJ49nYgQ@mail.gmail.com>
+Subject: Re: [Linaro-mm-sig] RFC: Unified DMA allocation algorithms
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Laura Abbott <lauraa@codeaurora.org>
+Cc: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	rob clark <robclark@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On Wed, Apr 24, 2013 at 11:35 PM, Laura Abbott <lauraa@codeaurora.org> wrote:
+> Hi all,
+>
+> I've been looking at a better way to do custom dma allocation algorithms in
+> a similar style to Ion heaps. Most drivers/clients have come up with a
+> series of semi-standard ways to get memory (CMA, memblock_reserve,
+> discontiguous pages etc.) . As these allocation schemes get more and more
+> complex, there needs to be a since place where all clients (Ion based driver
+> vs. DRM driver vs. ???)  can independently take advantage of any
+> optimizations and call a single API for the backing allocations.
+>
+> The dma_map_ops take care of almost everything needed for abstraction
+> but the question is where should new allocation algorithms be located?
+> Most of the work has been added to either arm/mm/dma-mapping.c or
+> dma-contiguous.c . My current thought:
+>
+> 1) split out the dma_map_ops currently in dma-mapping.c into separate files
+> (dma-mapping-common.c, dma-mapping-iommu.c)
+> 2) Extend dma-contiguous.c to support memblock_reserve memory
+> 3) Place additional algorithms in either arch/arm/mm or
+> drivers/base/dma-alloc/ as appropriate to the code. This is the part where
+> I'm most unsure about the direction.
+>
+> I don't have anything written yet but I plan to draft some patches assuming
+> the proposed approach sounds reasonable and no one else has started on
+> something similar already.
+>
+> Thoughts? Opinions?
 
-On Wed, May 29, 2013 at 6:52 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> Thanks for the patch.
->
-> On Sunday 26 May 2013 18:49:46 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> add OF support for the tvp514x driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Grant Likely <grant.likely@secretlab.ca>
->> Cc: Rob Herring <rob.herring@calxeda.com>
->> Cc: Rob Landley <rob@landley.net>
->> Cc: devicetree-discuss@lists.ozlabs.org
->> Cc: linux-doc@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: davinci-linux-open-source@linux.davincidsp.com
->
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-Thanks for the ack.
+>From my (oblivious to all the arm madness) pov the big thing is
+getting dma allocations working for more than one struct device. This
+way we could get rid of to "where do I need to allocate buffers"
+duplication between the kernel and userspace (which needs to know that
+to pick the right ion heap), which is my main gripe with ion ;-)
 
-> (with two small comment below).
->
->> ---
->> Tested on da850-evm.
->>
-[snip]
->
-> s/of port/on port/
-> s/refer/refer to/
->
-OK
+Rob Clark sent out a quick rfc for that a while back:
 
->> Documentation/devicetree/bindings/media/video-interfaces.txt.
->> +
->> +Example:
->> +
->> +     i2c0@1c22000 {
->> +             ...
->> +             ...
->> +             tvp514x@5c {
->> +                     compatible = "ti,tvp5146";
->> +                     reg = <0x5c>;
->> +
->> +                     port {
->> +                             tvp514x_1: endpoint {
->> +                                     hsync-active = <1>;
->> +                                     vsync-active = <1>;
->> +                                     pclk-sample = <0>;
->> +                             };
->> +                     };
->> +             };
->> +             ...
->> +     };
->> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
->> index 7438e01..7ed999b 100644
->> --- a/drivers/media/i2c/tvp514x.c
->> +++ b/drivers/media/i2c/tvp514x.c
->> @@ -39,6 +39,7 @@
->>  #include <media/v4l2-device.h>
->>  #include <media/v4l2-common.h>
->>  #include <media/v4l2-mediabus.h>
->> +#include <media/v4l2-of.h>
->>  #include <media/v4l2-chip-ident.h>
->>  #include <media/v4l2-ctrls.h>
->>  #include <media/tvp514x.h>
->> @@ -1055,6 +1056,42 @@ static struct tvp514x_decoder tvp514x_dev = {
->>
->>  };
->>
->> +static struct tvp514x_platform_data *
->> +tvp514x_get_pdata(struct i2c_client *client)
->> +{
->> +     struct tvp514x_platform_data *pdata = NULL;
->
-> No need to initialize pdata to NULL.
->
-OK will fix it in the next version.
+http://lists.linaro.org/pipermail/linaro-mm-sig/2012-July/002250.html
 
-Regards,
---Prabhakar Lad
+But that's by far not good enough for arm, especially now that cma
+gets tightly bound to individual devices with the dt bindings. Also,
+no one really followed up on Rob's patches, and personally I don't
+really care that much since x86 is a bit saner ... But it should be
+good enough for contiguous allocations, which leaves only really crazy
+stuff unsolved.
+
+So I think when you want to rework the various algorithms for
+allocating dma mem and consolidate them it should also solve this
+little multi-dev issue.
+
+Adding tons more people/lists who might be interested.
+
+Cheers, Daniel
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
