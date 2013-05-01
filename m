@@ -1,66 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:52587 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966916Ab3E3INy convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 May 2013 04:13:54 -0400
-Received: by mail-ie0-f171.google.com with SMTP id s9so9757940iec.16
-        for <linux-media@vger.kernel.org>; Thu, 30 May 2013 01:13:54 -0700 (PDT)
+Received: from casper.infradead.org ([85.118.1.10]:58702 "EHLO
+	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756882Ab3EAU64 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 16:58:56 -0400
+Message-ID: <518181F2.3@infradead.org>
+Date: Wed, 01 May 2013 13:58:26 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
 MIME-Version: 1.0
-In-Reply-To: <20130525070020.GA2122@dell.arpanet.local>
-References: <519D6CFA.2000506@gmail.com>
-	<CALF0-+UqJaNc7v86qakVTNEJx5npMFPqFp-=9rAByFV_+FEaww@mail.gmail.com>
-	<519E41AC.3040707@gmail.com>
-	<CALF0-+U5dFktwHwO5-h_7RJ1xyjc3JbHUWqG3g=WSPA=HcHnnw@mail.gmail.com>
-	<519E6046.8050509@gmail.com>
-	<CALF0-+UZnt9rfmQFSecqaf_9L29mwKeNV22w1XmMQQG0AE=jJw@mail.gmail.com>
-	<519E76F3.4070006@gmail.com>
-	<519EB8E6.5000503@gmail.com>
-	<20130525070020.GA2122@dell.arpanet.local>
-Date: Thu, 30 May 2013 05:13:53 -0300
-Message-ID: <CALF0-+XS0urZ=G=jCLgKifs6NeC=rNqZB_ft2PXpcEVezuG=rw@mail.gmail.com>
-Subject: Re: Audio: no sound
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: =?ISO-8859-1?B?IkFsZWphbmRybyBBLiBWYWxk6XMi?= <av2406@gmail.com>
-Cc: =?ISO-8859-1?Q?Jon_Arne_J=F8rgensen?= <jonarne@jonarne.no>,
-	linux-media <linux-media@vger.kernel.org>
+To: "Yann E. MORIN" <yann.morin.1998@free.fr>
+CC: David Rientjes <rientjes@google.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kbuild@vger.kernel.org
+Subject: Re: linux-next: Tree for May 1 (media/usb/stk1160)
+References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au> <518157EB.3010700@infradead.org> <20130501192845.GA18811@free.fr> <alpine.DEB.2.02.1305011258180.8448@chino.kir.corp.google.com> <518179BD.3010407@infradead.org> <20130501205355.GB18811@free.fr>
+In-Reply-To: <20130501205355.GB18811@free.fr>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Alejandro,
+On 05/01/13 13:53, Yann E. MORIN wrote:
+> Randy, All,
+> 
+> On Wed, May 01, 2013 at 01:23:25PM -0700, Randy Dunlap wrote:
+>> On 05/01/13 12:58, David Rientjes wrote:
+>>> On Wed, 1 May 2013, Yann E. MORIN wrote:
+>>>
+>>>>> When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
+>>>>> CONFIG_VIDEO_STK1160=y
+>>>>> CONFIG_VIDEO_STK1160_AC97=y
+>>>>>
+>>>>> drivers/built-in.o: In function `stk1160_ac97_register':
+>>>>> (.text+0x122706): undefined reference to `snd_card_create'
+>>>>> drivers/built-in.o: In function `stk1160_ac97_register':
+>>>>> (.text+0x1227b2): undefined reference to `snd_ac97_bus'
+>>>>> drivers/built-in.o: In function `stk1160_ac97_register':
+>>>>> (.text+0x1227cd): undefined reference to `snd_card_free'
+>>>>> drivers/built-in.o: In function `stk1160_ac97_register':
+>>>>> (.text+0x12281b): undefined reference to `snd_ac97_mixer'
+>>>>> drivers/built-in.o: In function `stk1160_ac97_register':
+>>>>> (.text+0x122832): undefined reference to `snd_card_register'
+>>>>> drivers/built-in.o: In function `stk1160_ac97_unregister':
+>>>>> (.text+0x12285e): undefined reference to `snd_card_free'
+>>>>>
+>>>>>
+>>>>> This kconfig fragment:
+>>>>> config VIDEO_STK1160_AC97
+>>>>> 	bool "STK1160 AC97 codec support"
+>>>>> 	depends on VIDEO_STK1160 && SND
+> 
+> BTW, can you check that:
+>     make silentoldconfig
+> does not warn about unmet dependencies for those symbols?
 
-See below.
+'make silentoldconfig' on the config file that I am using only gives me this:
 
-On Sat, May 25, 2013 at 4:00 AM, Jon Arne Jørgensen <jonarne@jonarne.no> wrote:
-> On Thu, May 23, 2013 at 09:48:38PM -0300, "Alejandro A. Valdés" wrote:
-[...]
->> [  187.472216] easycap::0adjust_contrast: adjusting contrast to  0x3F
->> [  187.496207] easycap::0adjust_saturation: adjusting saturation to  0x2F
->> [  187.520220] easycap::0adjust_hue: adjusting hue to  0x00
+warning: (VIDEO_EM28XX) selects VIDEO_MT9V011 which has unmet direct dependencies (MEDIA_SUPPORT && I2C && VIDEO_V4L2 && MEDIA_CAMERA_SUPPORT)
 
-Kernel dmesg should say stk1160.
 
-> [...]
->
->> Module                  Size  Used by
-[...]
->> easycap              1213860  1
->
+>>> This doesn't depend on SND, it depends on SND=y.
+>>
+>> Maybe this option *should* depend on SND=y, but that's not what the
+>> kconfig syntax says.
+> 
+> I'd say  Documentation/kbuild/kconfig-language.txt  is not complete wrt
+> the current syntax, grammar and semantics of the language. :-(
 
-As Jon says lsmod and dmesg should say stk1160, and not easycap.
-It's my bad: the first kernel version that includes stk1160 instead of the
-old driver is v3.7.x.
+OK, that's not surprising.
 
-You'll have to re-try with a newer kernel.
-
-Notice that you probably own a device with no AC97-compliant
-audio output. For those devices, the sound does not work.
-It's on my TODO list, but I'm not sure when I will be able to do it.
-
-AFAIK, some devices have AC97 sound (and thus work), and some doesn't.
-
-Sorry for the confusion,
+thanks,
 -- 
-    Ezequiel
+~Randy
