@@ -1,68 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor2.renesas.com ([210.160.252.172]:59702 "EHLO
-	relmlor2.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751303Ab3EUJvr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 05:51:47 -0400
-In-reply-to: <519A1FFC.6000304@cogentembedded.com>
-References: <201305180101.11383.sergei.shtylyov@cogentembedded.com>
- <OFC9B7B505.2CDF0AA3-ON80257B71.00291B65-80257B71.002952EB@eu.necel.com>
- <519A1FFC.6000304@cogentembedded.com>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	vladimir.barinov@cogentembedded.com
-Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
-	linux-sh@vger.kernel.org, magnus.damm@gmail.com, matsu@igel.co.jp,
-	mchehab@redhat.com
-MIME-version: 1.0
-From: phil.edworthy@renesas.com
-Subject: Re: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
-Message-id: <OF0ABE628B.1C271A20-ON80257B72.002ED824-80257B72.003627CD@eu.necel.com>
-Date: Tue, 21 May 2013 10:51:24 +0100
-Content-type: text/plain; charset=US-ASCII
+Received: from mail-ee0-f54.google.com ([74.125.83.54]:51070 "EHLO
+	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758529Ab3EAJ3F (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 05:29:05 -0400
+Received: by mail-ee0-f54.google.com with SMTP id e49so588492eek.27
+        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 02:29:03 -0700 (PDT)
+Message-ID: <5180E05C.7020206@gmail.com>
+Date: Wed, 01 May 2013 11:29:00 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	patches@linaro.org
+Subject: Re: [PATCH 1/1] [media] exynos4-is: Remove redundant NULL check in
+ fimc-lite.c
+References: <1367297493-31782-1-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1367297493-31782-1-git-send-email-sachin.kamat@linaro.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei, Vladimir,
+Sachin,
 
-> >> Subject: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
-> 
-> >> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> 
-> >> Add Renesas R-Car VIN (Video In) V4L2 driver.
-> 
-> >> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
-> 
-> > I've seen old patches that add VIN to the Marzen board, do you have an
-> > updated version?
-> 
->     The last version of that patchset is 4, here it is archived:
-> 
-> http://marc.info/?l=linux-sh&m=136865481429756
-> http://marc.info/?l=linux-sh&m=136865499029807
-> http://marc.info/?l=linux-sh&m=136865509129843
-> http://marc.info/?l=linux-sh&m=136865520029900
+On 04/30/2013 06:51 AM, Sachin Kamat wrote:
+> clk_unprepare checks for NULL pointer. Hence convert IS_ERR_OR_NULL
+> to IS_ERR only.
+>
+> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+> ---
+>   drivers/media/platform/exynos4-is/fimc-lite.c |    2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+> index 661d0d1..2a0ef82 100644
+> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+> @@ -1416,7 +1416,7 @@ static void fimc_lite_unregister_capture_subdev(struct fimc_lite *fimc)
+>
+>   static void fimc_lite_clk_put(struct fimc_lite *fimc)
+>   {
+> -	if (IS_ERR_OR_NULL(fimc->clock))
+> +	if (IS_ERR(fimc->clock))
+>   		return;
+>
+>   	clk_unprepare(fimc->clock);
 
-First of all, thank you for your work on this driver.
+I've queued this patch for 3.11 with the below chunk squashed to it:
 
-I have tried your patches on the Marzen board using an Expansion Board 
-with an OmniVision 10635 camera (progressive BT656), using an out-of-tree 
-driver. There appears to be an issue with the interrupt handling compared 
-to my original driver.
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c 
+b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 2ede148..faf2a75 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1422,7 +1422,7 @@ static void fimc_lite_clk_put(struct fimc_lite *fimc)
 
-Using a simple test app I wrote, I get an unhandled irq if the app does 
-some work after stopping the capture. In this case, the work after capture 
-is storing a captured image to a file. As a dirty hack to see what's 
-actually being captured, I just commented out the code that checks the 
-interrupt status:
-//      if (!int_status)
-//              goto done;
-This allows me to save the captured image. However, this shows about 
-2/3rds valid picture data (though it looks vertically shifted), with the 
-rest black. Also, a couple of other lines are black.
+         clk_unprepare(fimc->clock);
+         clk_put(fimc->clock);
+-       fimc->clock = NULL;
++       fimc->clock = ERR_PTR(-EINVAL);
+  }
 
-I realise that you don't have the Marzen Expansion Board & don't have an 
-ov10635 camera. However, unfortunately, I don't have much time that I can 
-spend on this. Do any of the boards you have use a progressive camera?
+  static int fimc_lite_clk_get(struct fimc_lite *fimc)
+@@ -1436,7 +1436,7 @@ static int fimc_lite_clk_get(struct fimc_lite *fimc)
+         ret = clk_prepare(fimc->clock);
+         if (ret < 0) {
+                 clk_put(fimc->clock);
+-               fimc->clock = NULL;
++               fimc->clock = ERR_PTR(-EINVAL);
+         }
+         return ret;
+  }
 
-Regards
-Phil
+Thanks.
+Sylwester
