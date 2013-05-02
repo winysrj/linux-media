@@ -1,97 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:65279 "EHLO mout.gmx.net"
+Received: from mx1.redhat.com ([209.132.183.28]:48581 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753336Ab3EHWvH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 May 2013 18:51:07 -0400
-Received: from mailout-de.gmx.net ([10.1.76.1]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0M9M3c-1UhOkB3QSM-00Ci8e for
- <linux-media@vger.kernel.org>; Thu, 09 May 2013 00:51:05 +0200
-From: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
-Subject: [PATCH 3/3] stb0899: use autodetected inversion instead of configured inversion
-Date: Thu,  9 May 2013 00:50:56 +0200
-Message-Id: <1368053456-18475-3-git-send-email-rnissl@gmx.de>
-In-Reply-To: <1368053456-18475-1-git-send-email-rnissl@gmx.de>
-References: <1368053456-18475-1-git-send-email-rnissl@gmx.de>
+	id S1751611Ab3EBOxK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 May 2013 10:53:10 -0400
+Message-ID: <51827DB1.7000304@redhat.com>
+Date: Thu, 02 May 2013 11:52:33 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+To: Randy Dunlap <rdunlap@infradead.org>,
+	"Yann E. MORIN" <yann.morin.1998@free.fr>,
+	=?UTF-8?B?RXplcXVpZWwgR2FyY8OtYQ==?= <elezegarcia@gmail.com>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kbuild@vger.kernel.org
+Subject: Re: linux-next: Tree for May 1 (media/usb/stk1160)
+References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au> <518157EB.3010700@infradead.org>
+In-Reply-To: <518157EB.3010700@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-For consistency, it is necessary to use the autodetected inversion
-instead of the configured one.
+Em 01-05-2013 14:59, Randy Dunlap escreveu:
+> On 05/01/13 01:37, Stephen Rothwell wrote:
+>> Hi all,
+>>
+>> Please do not add any v3.11 destined work to your linux-next included
+>> branches until after v3.10-rc1 is released.
+>>
+>> Changes since 20130430:
+>>
+>
+>
+> When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
+> CONFIG_VIDEO_STK1160=y
+> CONFIG_VIDEO_STK1160_AC97=y
+>
+> drivers/built-in.o: In function `stk1160_ac97_register':
+> (.text+0x122706): undefined reference to `snd_card_create'
+> drivers/built-in.o: In function `stk1160_ac97_register':
+> (.text+0x1227b2): undefined reference to `snd_ac97_bus'
+> drivers/built-in.o: In function `stk1160_ac97_register':
+> (.text+0x1227cd): undefined reference to `snd_card_free'
+> drivers/built-in.o: In function `stk1160_ac97_register':
+> (.text+0x12281b): undefined reference to `snd_ac97_mixer'
+> drivers/built-in.o: In function `stk1160_ac97_register':
+> (.text+0x122832): undefined reference to `snd_card_register'
+> drivers/built-in.o: In function `stk1160_ac97_unregister':
+> (.text+0x12285e): undefined reference to `snd_card_free'
+>
+>
+> This kconfig fragment:
+> config VIDEO_STK1160_AC97
+> 	bool "STK1160 AC97 codec support"
+> 	depends on VIDEO_STK1160 && SND
+> 	select SND_AC97_CODEC
+>
+> is unreliable (doesn't do what some people expect) when SND=m and SND_AC97_CODEC=m,
+> since VIDEO_STK1160_AC97 is a bool.
 
-Signed-off-by: Reinhard Nißl <rnissl@gmx.de>
----
- drivers/media/dvb-frontends/stb0899_algo.c | 18 +++++++++---------
- 1 file changed, 9 insertions(+), 9 deletions(-)
+Using select is always tricky.
 
-diff --git a/drivers/media/dvb-frontends/stb0899_algo.c b/drivers/media/dvb-frontends/stb0899_algo.c
-index 4ce542c..a338e06 100644
---- a/drivers/media/dvb-frontends/stb0899_algo.c
-+++ b/drivers/media/dvb-frontends/stb0899_algo.c
-@@ -226,8 +226,8 @@ static enum stb0899_status stb0899_search_tmg(struct stb0899_state *state)
- 			next_loop--;
- 
- 		if (next_loop) {
--			STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
--			STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
-+			STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(internal->inversion * derot_freq));
-+			STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(internal->inversion * derot_freq));
- 			stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency		*/
- 		}
- 		internal->direction = -internal->direction;	/* Change zigzag direction		*/
-@@ -235,7 +235,7 @@ static enum stb0899_status stb0899_search_tmg(struct stb0899_state *state)
- 
- 	if (internal->status == TIMINGOK) {
- 		stb0899_read_regs(state, STB0899_CFRM, cfr, 2); /* get derotator frequency		*/
--		internal->derot_freq = state->config->inversion * MAKEWORD16(cfr[0], cfr[1]);
-+		internal->derot_freq = internal->inversion * MAKEWORD16(cfr[0], cfr[1]);
- 		dprintk(state->verbose, FE_DEBUG, 1, "------->TIMING OK ! Derot Freq = %d", internal->derot_freq);
- 	}
- 
-@@ -306,8 +306,8 @@ static enum stb0899_status stb0899_search_carrier(struct stb0899_state *state)
- 				STB0899_SETFIELD_VAL(CFD_ON, reg, 1);
- 				stb0899_write_reg(state, STB0899_CFD, reg);
- 
--				STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
--				STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
-+				STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(internal->inversion * derot_freq));
-+				STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(internal->inversion * derot_freq));
- 				stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency	*/
- 			}
- 		}
-@@ -317,7 +317,7 @@ static enum stb0899_status stb0899_search_carrier(struct stb0899_state *state)
- 
- 	if (internal->status == CARRIEROK) {
- 		stb0899_read_regs(state, STB0899_CFRM, cfr, 2); /* get derotator frequency */
--		internal->derot_freq = state->config->inversion * MAKEWORD16(cfr[0], cfr[1]);
-+		internal->derot_freq = internal->inversion * MAKEWORD16(cfr[0], cfr[1]);
- 		dprintk(state->verbose, FE_DEBUG, 1, "----> CARRIER OK !, Derot Freq=%d", internal->derot_freq);
- 	} else {
- 		internal->derot_freq = last_derot_freq;
-@@ -412,8 +412,8 @@ static enum stb0899_status stb0899_search_data(struct stb0899_state *state)
- 				STB0899_SETFIELD_VAL(CFD_ON, reg, 1);
- 				stb0899_write_reg(state, STB0899_CFD, reg);
- 
--				STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(state->config->inversion * derot_freq));
--				STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(state->config->inversion * derot_freq));
-+				STB0899_SETFIELD_VAL(CFRM, cfr[0], MSB(internal->inversion * derot_freq));
-+				STB0899_SETFIELD_VAL(CFRL, cfr[1], LSB(internal->inversion * derot_freq));
- 				stb0899_write_regs(state, STB0899_CFRM, cfr, 2); /* derotator frequency	*/
- 
- 				stb0899_check_carrier(state);
-@@ -433,7 +433,7 @@ static enum stb0899_status stb0899_search_data(struct stb0899_state *state)
- 		else
- 			internal->inversion = IQ_SWAP_OFF;
- 
--		internal->derot_freq = state->config->inversion * MAKEWORD16(cfr[0], cfr[1]);
-+		internal->derot_freq = internal->inversion * MAKEWORD16(cfr[0], cfr[1]);
- 		dprintk(state->verbose, FE_DEBUG, 1, "------> DATAOK ! Derot Freq=%d", internal->derot_freq);
- 	}
- 
--- 
-1.8.1.4
+I can see a few possible fixes for it:
+
+1) split the alsa part into a separate module. IMHO, this is cleaner,
+but requires a little more work.
+
+2) Use the Kconfig syntax:
+
+	depends on SND || (SND=n)
+
+on a tristate symbol. That behaves like:
+
+	if SND is 'n', it won't depend on SND;
+	if SND is 'm', the symbol will be 'm'
+	if SND is 'y', the symbol will be 'y'.
+
+However, as as VIDEO_STK1160_AC97 is boolean, this will require
+an additional hidden Kconfig. Something like:
+
+config VIDEO_STK1160_COMMON
+	tristate "STK1160 USB video capture support"
+	depends on VIDEO_DEV && I2C
+
+config VIDEO_STK1160_AC97
+	bool "STK1160 AC97 codec support"
+	depends on VIDEO_STK1160_COMMON && SND
+
+config VIDEO_STK1160
+	tristate
+	depends on ((SND || (SND=n) || !VIDEO_STK1160_AC97) && VIDEO_STK1160_COMMON
+	default y
+	select SND_AC97_CODEC if SND
+	select VIDEOBUF2_VMALLOC
+	select VIDEO_SAA711X
+	select SND_AC97_CODEC
+
+We do already something similar to the above for the mutual dependency
+of most media drivers for I2C and V4L2 and/or DVB core.
+
+There's just one small drawback with the above: if SND='m', even if
+the user selects VIDEO_STK1160_COMMON='y', VIDEO_STK1160 will be 'm'.
+
+A quick test here with make allyesconfig and then changing SND to m
+seemed to produce the right value for CONFIG_VIDEO_STK1160:
+
+Selecting STK1160_AC97:
+
+$ grep -e STK1160 -e SND= .config
+CONFIG_VIDEO_STK1160_COMMON=y
+CONFIG_VIDEO_STK1160_AC97=y
+CONFIG_VIDEO_STK1160=m
+CONFIG_SND=m
+
+Unselecting STK1160_AC97:
+
+$ grep -e STK1160 -e SND= .config
+CONFIG_VIDEO_STK1160_COMMON=y
+# CONFIG_VIDEO_STK1160_AC97 is not set
+CONFIG_VIDEO_STK1160=y
+CONFIG_SND=m
+
+With a little more work, it could be possible to find a way to
+avoid the drawback of saying to the user that the module will be
+builtin, but compiling it as a module.
+
+Regards,
+Mauro.
+
+-
+
+[media] stk1160: Make stk1160 module if SND is m and audio support is selected
+
+As reported by Randy:
+
+When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
+CONFIG_VIDEO_STK1160=y
+CONFIG_VIDEO_STK1160_AC97=y
+
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x122706): undefined reference to `snd_card_create'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x1227b2): undefined reference to `snd_ac97_bus'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x1227cd): undefined reference to `snd_card_free'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x12281b): undefined reference to `snd_ac97_mixer'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x122832): undefined reference to `snd_card_register'
+drivers/built-in.o: In function `stk1160_ac97_unregister':
+(.text+0x12285e): undefined reference to `snd_card_free'
+
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+diff --git a/drivers/media/usb/stk1160/Kconfig b/drivers/media/usb/stk1160/Kconfig
+index 1c3a1ec..2bf6392 100644
+--- a/drivers/media/usb/stk1160/Kconfig
++++ b/drivers/media/usb/stk1160/Kconfig
+@@ -1,8 +1,6 @@
+-config VIDEO_STK1160
++config VIDEO_STK1160_COMMON
+  	tristate "STK1160 USB video capture support"
+  	depends on VIDEO_DEV && I2C
+-	select VIDEOBUF2_VMALLOC
+-	select VIDEO_SAA711X
+  
+  	---help---
+  	  This is a video4linux driver for STK1160 based video capture devices.
+@@ -12,9 +10,14 @@ config VIDEO_STK1160
+  
+  config VIDEO_STK1160_AC97
+  	bool "STK1160 AC97 codec support"
+-	depends on VIDEO_STK1160 && SND
+-	select SND_AC97_CODEC
+-
++	depends on VIDEO_STK1160_COMMON && SND
+  	---help---
+  	  Enables AC97 codec support for stk1160 driver.
+-.
++
++config VIDEO_STK1160
++	tristate
++	depends on (!VIDEO_STK1160_AC97 || (SND='n') || SND) && VIDEO_STK1160_COMMON
++	default y
++	select VIDEOBUF2_VMALLOC
++	select VIDEO_SAA711X
++	select SND_AC97_CODEC if SND
+
 
