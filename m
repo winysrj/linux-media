@@ -1,99 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4248 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751530Ab3ENRWj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 13:22:39 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4EHMZ2c078689
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 14 May 2013 19:22:37 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 5543C35E0035
-	for <linux-media@vger.kernel.org>; Tue, 14 May 2013 19:22:33 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130514172233.5543C35E0035@alastor.dyndns.org>
-Date: Tue, 14 May 2013 19:22:33 +0200 (CEST)
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:37901 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750737Ab3EBETY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 00:19:24 -0400
+Received: by mail-ob0-f171.google.com with SMTP id v19so130527obq.30
+        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 21:19:23 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <5180E05C.7020206@gmail.com>
+References: <1367297493-31782-1-git-send-email-sachin.kamat@linaro.org>
+	<5180E05C.7020206@gmail.com>
+Date: Thu, 2 May 2013 09:49:23 +0530
+Message-ID: <CAK9yfHz-Q6t5YtQOHj7TgDvKzxeiJntJWdimkw4qf0dek3BW0A@mail.gmail.com>
+Subject: Re: [PATCH 1/1] [media] exynos4-is: Remove redundant NULL check in fimc-lite.c
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	patches@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 1 May 2013 14:59, Sylwester Nawrocki <sylvester.nawrocki@gmail.com> wrote:
+> Sachin,
+>
+>
+> On 04/30/2013 06:51 AM, Sachin Kamat wrote:
+>>
+>> clk_unprepare checks for NULL pointer. Hence convert IS_ERR_OR_NULL
+>> to IS_ERR only.
+>>
+>> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
+>> ---
+>>   drivers/media/platform/exynos4-is/fimc-lite.c |    2 +-
+>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c
+>> b/drivers/media/platform/exynos4-is/fimc-lite.c
+>> index 661d0d1..2a0ef82 100644
+>> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
+>> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+>> @@ -1416,7 +1416,7 @@ static void
+>> fimc_lite_unregister_capture_subdev(struct fimc_lite *fimc)
+>>
+>>   static void fimc_lite_clk_put(struct fimc_lite *fimc)
+>>   {
+>> -       if (IS_ERR_OR_NULL(fimc->clock))
+>> +       if (IS_ERR(fimc->clock))
+>>                 return;
+>>
+>>         clk_unprepare(fimc->clock);
+>
+>
+> I've queued this patch for 3.11 with the below chunk squashed to it:
 
-Results of the daily build of media_tree:
+Thanks Sylwester.
 
-date:		Tue May 14 19:00:29 CEST 2013
-git branch:	test
-git hash:	4237c09a63906b980741725da63f85e454caec02
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
 
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9-rc1-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9-rc1-x86_64: ERRORS
-apps: ERRORS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+With warm regards,
+Sachin
