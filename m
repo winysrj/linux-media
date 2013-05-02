@@ -1,65 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48074 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751194Ab3EOBcZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 21:32:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	"linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>
-Subject: Re: omap3-isp : panic using previewer from V4L input
-Date: Wed, 15 May 2013 03:32:43 +0200
-Message-ID: <1579245.NgheaxZSaI@avalon>
-In-Reply-To: <CAGGh5h0eAdk+2pHcNn+xBgpvWmGgTa87_WN5GP-64Gexm-oK_Q@mail.gmail.com>
-References: <CAGGh5h00H10F7GWgjyhN_5Zn8JNMXRptt4FF+u=NHDdTXFD2MA@mail.gmail.com> <CAGGh5h1zzF7mKgof=jcEBHVmnG9i-A=xpzc9Ri8bHL5xe7bnuQ@mail.gmail.com> <CAGGh5h0eAdk+2pHcNn+xBgpvWmGgTa87_WN5GP-64Gexm-oK_Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2603 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759287Ab3EBSUT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 14:20:19 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r42IKFPd031752
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 2 May 2013 20:20:17 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 0D12F11E015D
+	for <linux-media@vger.kernel.org>; Thu,  2 May 2013 20:20:13 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130502182014.0D12F11E015D@alastor.dyndns.org>
+Date: Thu,  2 May 2013 20:20:13 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Philippe,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Tuesday 14 May 2013 11:29:39 jean-philippe francois wrote:
-> Hi Laurent,
-> 
-> I have a beagle xm board, but no sensor board. Is it possible to have
-> the omap3-isp initialised ?
+Results of the daily build of media_tree:
 
-Yes it is. You will just need to call omap3_init_camera() in your board code 
-with a pointer to platform data that contain an empty list of subdevs. 
-Something like
+date:		Thu May  2 19:00:30 CEST 2013
+git branch:	test
+git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-static struct isp_v4l2_subdevs_group beagle_camera_subdevs[] = {
-	{ },
-};
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-static struct isp_platform_data beagle_isp_platform_data = {
-	.subdevs = beagle_camera_subdevs,
-};
+Detailed results are available here:
 
-static int __init beagle_camera_init(void)
-{
-	if (!machine_is_omap3_beagle())
-		return 0;
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-	omap3_init_camera(&beagle_isp_platform_data);
+Full logs are available here:
 
-	return 0;
-}
-late_initcall(beagle_camera_init);
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-should do (you will also need to include the appropriate headers).
+The Media Infrastructure API from this daily build is here:
 
-> I would like to try my program on a beagle board to eliminate any
-> hardware related problem.
-> From the board file in mainline kernel, it seems omap3_init_camera is
-> not called, do you know any kernel tree where isp is initialized for beagle
-> board ?
-
--- 
-Regards,
-
-Laurent Pinchart
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
