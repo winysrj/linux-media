@@ -1,63 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13092 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754171Ab3ETGvw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 May 2013 02:51:52 -0400
-Message-ID: <5199C8FA.9060704@redhat.com>
-Date: Mon, 20 May 2013 08:55:54 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: Ted To <rainexpected@theo.to>
-CC: linux-media@vger.kernel.org
-Subject: Re: InstantFM
-References: <51993390.6080202@theo.to>
-In-Reply-To: <51993390.6080202@theo.to>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-la0-f54.google.com ([209.85.215.54]:58206 "EHLO
+	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750906Ab3EBHDl convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 03:03:41 -0400
+Received: by mail-la0-f54.google.com with SMTP id fd20so219687lab.41
+        for <linux-media@vger.kernel.org>; Thu, 02 May 2013 00:03:39 -0700 (PDT)
+Date: Thu, 2 May 2013 10:04:56 +0300
+From: Timo Teras <timo.teras@iki.fi>
+To: Jon Arne =?ISO-8859-1?Q?J=F8rgensen?= <jonarne@jonarne.no>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: Terratec Grabby hwrev 2
+Message-ID: <20130502100456.2fdf42e0@vostro>
+In-Reply-To: <20130501171153.GA1377@dell.arpanet.local>
+References: <20130325143647.3da1360f@redhat.com>
+	<20130325194820.7c122834@vostro>
+	<20130325153220.3e6dbfe5@redhat.com>
+	<20130325211238.7c325d5e@vostro>
+	<20130326102056.63b55916@vostro>
+	<20130327161049.683483f8@vostro>
+	<20130328105201.7bcc7388@vostro>
+	<20130328094052.26b7f3f5@redhat.com>
+	<20130328153556.0b58d1aa@vostro>
+	<20130328165459.6231a5b1@vostro>
+	<20130501171153.GA1377@dell.arpanet.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Wed, 1 May 2013 19:11:53 +0200
+Jon Arne Jørgensen <jonarne@jonarne.no> wrote:
 
-On 05/19/2013 10:18 PM, Ted To wrote:
-> Hi,
->
-> I purchased this device and while the device driver loads and I can set
-> up gnomeradio to access it, it picks up no radio stations, despite being
-> the model with an external antenna.  The log output says "software
-> version 0, hardware version 7".  I'm running Debian Wheezy and the
-> output from dmesg is:
->
-> [66842.724036] usb 2-3: new full-speed USB device number 3 using ohci_hcd
-> [66842.936144] usb 2-3: New USB device found, idVendor=06e1, idProduct=a155
-> [66842.936150] usb 2-3: New USB device strings: Mfr=1, Product=2,
-> SerialNumber=0
-> [66842.936154] usb 2-3: Product: ADS InstantFM Music
-> [66842.936156] usb 2-3: Manufacturer: ADS TECH
-> [66843.275730] Linux media interface: v0.10
-> [66843.296811] Linux video capture interface: v2.00
-> [66843.321815] USB radio driver for Si470x FM Radio Receivers, Version
-> 1.0.10
-> [66843.323136] radio-si470x 2-3:1.2: DeviceID=0xffff ChipID=0xffff
-> [66843.326127] radio-si470x 2-3:1.2: software version 0, hardware version 7
-> [66843.326131] radio-si470x 2-3:1.2: This driver is known to work with
-> software version 7,
-> [66843.326135] radio-si470x 2-3:1.2: but the device has software version 0.
-> [66843.326138] radio-si470x 2-3:1.2: If you have some trouble using this
-> driver,
-> [66843.326141] radio-si470x 2-3:1.2: please report to V4L ML at
-> linux-media@vger.kernel.org
-> [66843.338247] usbcore: registered new interface driver radio-si470x
-> [66843.407477] usbcore: registered new interface driver snd-usb-audio
->
-> Any help on what I need to do to get this working would be much appreciated.
+> On Thu, Mar 28, 2013 at 04:54:59PM +0200, Timo Teras wrote:
+> > On Thu, 28 Mar 2013 15:35:56 +0200
+> > Timo Teras <timo.teras@iki.fi> wrote:
+> > 
+> > > On Thu, 28 Mar 2013 09:40:52 -0300
+> > > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> > > 
+> > > > Em Thu, 28 Mar 2013 10:52:01 +0200
+> > > > Timo Teras <timo.teras@iki.fi> escreveu:
+> > > > 
+> > > > > On Wed, 27 Mar 2013 16:10:49 +0200
+> > > > > Timo Teras <timo.teras@iki.fi> wrote:
+> > > > > 
+> > > > > > On Tue, 26 Mar 2013 10:20:56 +0200
+> > > > > > Timo Teras <timo.teras@iki.fi> wrote:
+> > > > > > 
+> > > > > > > I did manage to get decent traces with USBlyzer evaluation
+> > > > > > > version.
+> > > > > > 
+> > > > > > Nothing _that_ exciting there. Though, there's quite a bit
+> > > > > > of differences on certain register writes. I tried copying
+> > > > > > the changed parts, but did not really help.
+> > > > > > 
+> > > > > > Turning on saa7115 debug gave:
+> > > > > > 
+> > > > > > saa7115 1-0025: chip found @ 0x4a (ID 000000000000000) does
+> > > > > > not match a known saa711x chip.
+> > > > > 
+> > > > > Well, I just made saa7115.c ignore this ID check, and
+> > > > > defeault to saa7113 which is apparently the chip used.
+> > > > > 
+> > > > > And now it looks like things start to work a lot better.
+> > > > > 
+> > > > > Weird that the saa7113 chip is missing the ID string. Will
+> > > > > continue testing.
+> > > > 
+> > > > That could happen if saa7113 is behind some I2C bridge and when
+> > > > saa7113 is not found when the detection code is called.
+> > > 
+> > > Smells to me that they replaced the saa7113 with cheaper clone
+> > > that does not support the ID string.
+> > > 
+> > > Sounds like the same issue as:
+> > > http://www.spinics.net/lists/linux-media/msg57926.html
+> > > 
+> > > Additionally noted that something is not initialized right:
+> > > 
+> > > With PAL signal:
+> > > - there's some junk pixel in beginning of each line (looks like
+> > > pixes from previous lines end), sync issue?
+> > > - some junk lines at the end
+> > > - distorted colors when white and black change between pixels
+> > 
+> > Still have not figured out this one. Could be probably related to
+> > the saa7113 differences.
+> > 
+> > > With NTSC signal:
+> > > - unable to get a lock, and the whole picture looks garbled
+> > 
+> > NTSC started working after I removed all the saa711x writes to
+> > following registers:
+> >  R_14_ANAL_ADC_COMPAT_CNTL
+> >  R_15_VGATE_START_FID_CHG
+> >  R_16_VGATE_STOP
+> >  R_17_MISC_VGATE_CONF_AND_MSB
+> > 
+> 
+> This is the exact same behavior as i see on the gm7113c chip
+> in the stk1160, and the smi2021 devices.
+> 
+> See here:
+> http://www.spinics.net/lists/linux-media/msg63163.html
 
-Can you try with the (console-based) radio app from the latest xawtv release,
-xawtv-3.103 ?
+Thanks. I tested the patch and it detects it properly, and I get
+picture. However, there's problems synchronizing to my PAL signal. The
+picture "jumps" once in a while.
 
-gnomeradio is not being actively maintained, so it could be your just hitting
-a gnomeradio issue.
+I guess the problem is in the init sequence. The W7 driver had
+following differences sequence changes compared to saa7113_init:
+-	R_02_INPUT_CNTL_1, 0xc2,
++	R_02_INPUT_CNTL_1, 0xc0,
+-	R_04_INPUT_CNTL_3, 0x00,
+-	R_05_INPUT_CNTL_4, 0x00,
+-	R_06_H_SYNC_START, 0x89,
++	R_06_H_SYNC_START, 0xeb,
+-	R_12_RT_SIGNAL_CNTL, 0x07,
++	R_12_RT_SIGNAL_CNTL, 0xe7,
+-	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
+-	R_15_VGATE_START_FID_CHG, 0x00,
+-	R_16_VGATE_STOP, 0x00,
+-	R_17_MISC_VGATE_CONF_AND_MSB, 0x00,
 
-Regards,
+Seems that R_14 is filtered in your patch, but other changes are not
+taken into account.
 
-Hans
+Otherwise, the patchset looks good.
+
+- Timo
