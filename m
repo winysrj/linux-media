@@ -1,65 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:51664 "EHLO
+Received: from moutng.kundenserver.de ([212.227.17.8]:60960 "EHLO
 	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756960Ab3EGGwE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 02:52:04 -0400
-Date: Tue, 7 May 2013 08:52:01 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/7] soc_camera/mx1_camera: Fix warnings related to
- spacing
-In-Reply-To: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
-Message-ID: <Pine.LNX.4.64.1305070851360.31972@axis700.grange>
-References: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
+	with ESMTP id S1758743Ab3EBQZh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 12:25:37 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: "edubezval@gmail.com" <edubezval@gmail.com>
+Subject: Re: [PATCH, RFC 22/22] radio-si4713: depend on SND_SOC
+Date: Thu, 2 May 2013 18:25:11 +0200
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+References: <1367507786-505303-1-git-send-email-arnd@arndb.de> <1367507786-505303-23-git-send-email-arnd@arndb.de> <CAC-25o9Xp+pu_AUwxyh+YsiOCOebzMRF37v1VWZJD6nrbx5e6Q@mail.gmail.com>
+In-Reply-To: <CAC-25o9Xp+pu_AUwxyh+YsiOCOebzMRF37v1VWZJD6nrbx5e6Q@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305021825.12094.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 3 Apr 2013, Sachin Kamat wrote:
-
-> Fixes the following checkpatch warnings:
-> WARNING: unnecessary whitespace before a quoted newline
-> WARNING: please, no space before tabs
+On Thursday 02 May 2013, edubezval@gmail.com wrote:
+> On Thu, May 2, 2013 at 11:16 AM, Arnd Bergmann <arnd@arndb.de> wrote:
+> > It is not possible to select SND_SOC_SI476X if we have not also
+> > enabled SND_SOC.
+> >
+> > warning: (RADIO_SI476X) selects SND_SOC_SI476X which has unmet
+> >          direct dependencies (SOUND && !M68K && !UML && SND && SND_SOC)
+> >
+> > Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> > Cc: linux-media@vger.kernel.org
+> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> > ---
 > 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-
-Thanks, all 7 queued for 3.11
-
-Guennadi
-
-> ---
->  drivers/media/platform/soc_camera/mx1_camera.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/soc_camera/mx1_camera.c b/drivers/media/platform/soc_camera/mx1_camera.c
-> index 4389f43..a3fd8d6 100644
-> --- a/drivers/media/platform/soc_camera/mx1_camera.c
-> +++ b/drivers/media/platform/soc_camera/mx1_camera.c
-> @@ -776,7 +776,7 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
->  	/* request irq */
->  	err = claim_fiq(&fh);
->  	if (err) {
-> -		dev_err(&pdev->dev, "Camera interrupt register failed \n");
-> +		dev_err(&pdev->dev, "Camera interrupt register failed\n");
->  		goto exit_free_dma;
->  	}
->  
-> @@ -853,7 +853,7 @@ static int __exit mx1_camera_remove(struct platform_device *pdev)
->  }
->  
->  static struct platform_driver mx1_camera_driver = {
-> -	.driver 	= {
-> +	.driver		= {
->  		.name	= DRIVER_NAME,
->  	},
->  	.remove		= __exit_p(mx1_camera_remove),
-> -- 
-> 1.7.9.5
+> Note on your patch title, this change is against si476X, not on *si4713*.
 > 
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Sorry about that, I must have copied the wrong prefix from an older patch
+then. I'll fix it up locally in case I need to resend.
+
+	Arnd
