@@ -1,51 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:47108 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755152Ab3EFP4Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 11:56:25 -0400
-Received: by mail-wg0-f42.google.com with SMTP id j13so2832142wgh.3
-        for <linux-media@vger.kernel.org>; Mon, 06 May 2013 08:56:23 -0700 (PDT)
-Date: Mon, 6 May 2013 17:59:30 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Dave Airlie <airlied@gmail.com>
-Cc: Daniel Vetter <daniel@ffwll.ch>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] drm/udl: avoid swiotlb for imported vmap buffers.
-Message-ID: <20130506155930.GG5763@phenom.ffwll.local>
-References: <1367382644-30788-1-git-send-email-airlied@gmail.com>
- <CAKMK7uGJWHb7so8_uNe0JzH_EUAQLExFPda=ZR+8yuG+ALvo2w@mail.gmail.com>
- <CAPM=9tzW-9U+ff2818asviXtm8+56-gp3NOFxy_u1m7b21TaQg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAPM=9tzW-9U+ff2818asviXtm8+56-gp3NOFxy_u1m7b21TaQg@mail.gmail.com>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:35250 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751545Ab3EBKXY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 06:23:24 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MM6003Q526LXO70@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 02 May 2013 11:23:22 +0100 (BST)
+Message-id: <51823E99.9040201@samsung.com>
+Date: Thu, 02 May 2013 12:23:21 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
+	patches@linaro.org
+Subject: Re: [PATCH v2 1/2] s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL in
+ hdmi_drv.c
+References: <1367471009-7103-1-git-send-email-sachin.kamat@linaro.org>
+In-reply-to: <1367471009-7103-1-git-send-email-sachin.kamat@linaro.org>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 06, 2013 at 10:35:35AM +1000, Dave Airlie wrote:
-> >>
-> >> However if we don't set a dma mask on the usb device, the mapping
-> >> ends up using swiotlb on machines that have it enabled, which
-> >> is less than desireable.
-> >>
-> >> Signed-off-by: Dave Airlie <airlied@redhat.com>
-> >
-> > Fyi for everyone else who was not on irc when Dave&I discussed this:
-> > This really shouldn't be required and I think the real issue is that
-> > udl creates a dma_buf attachement (which is needed for device dma
-> > only), but only really wants to do cpu access through vmap/kmap. So
-> > not attached the device should be good enough. Cc'ing a few more lists
-> > for better fyi ;-)
-> 
-> Though I've looked at this a bit more, and since I want to be able to expose
-> shared objects as proper GEM objects from the import side I really
-> need that list of pages.
+Hi Sachin,
 
-Hm, what does "proper GEM object" mean in the context of udl?
--Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+On 05/02/2013 07:03 AM, Sachin Kamat wrote:
+> NULL check on clocks obtained using common clock APIs should not
+> be done. Use IS_ERR only.
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+> Changes since v1:
+> Initialised clocks to invalid value.
+> ---
+>  drivers/media/platform/s5p-tv/hdmi_drv.c |   18 ++++++++++++------
+>  1 file changed, 12 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
+> index 4e86626..ed1a695 100644
+> --- a/drivers/media/platform/s5p-tv/hdmi_drv.c
+> +++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
+> @@ -765,15 +765,15 @@ static void hdmi_resources_cleanup(struct hdmi_device *hdev)
+>  		regulator_bulk_free(res->regul_count, res->regul_bulk);
+>  	/* kfree is NULL-safe */
+>  	kfree(res->regul_bulk);
+> -	if (!IS_ERR_OR_NULL(res->hdmiphy))
+> +	if (!IS_ERR(res->hdmiphy))
+>  		clk_put(res->hdmiphy);
+> -	if (!IS_ERR_OR_NULL(res->sclk_hdmiphy))
+> +	if (!IS_ERR(res->sclk_hdmiphy))
+>  		clk_put(res->sclk_hdmiphy);
+> -	if (!IS_ERR_OR_NULL(res->sclk_pixel))
+> +	if (!IS_ERR(res->sclk_pixel))
+>  		clk_put(res->sclk_pixel);
+> -	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
+> +	if (!IS_ERR(res->sclk_hdmi))
+>  		clk_put(res->sclk_hdmi);
+> -	if (!IS_ERR_OR_NULL(res->hdmi))
+> +	if (!IS_ERR(res->hdmi))
+>  		clk_put(res->hdmi);
+>  	memset(res, 0, sizeof(*res));
+
+Shouldn't this memset be removed not ? Then res->regul_count would need to
+be set to 0.
+
+>  }
+> @@ -793,8 +793,14 @@ static int hdmi_resources_init(struct hdmi_device *hdev)
+>  	dev_dbg(dev, "HDMI resource init\n");
+>  
+>  	memset(res, 0, sizeof(*res));
+
+This could be replaced with
+	res->regul_count = 0;
+
+> -	/* get clocks, power */
+>  
+> +	res->hdmi	 = ERR_PTR(-EINVAL);
+
+You could remove this line, as res->sclk_hdmi will be set by clk_get()
+right below.
+
+> +	res->sclk_hdmi	 = ERR_PTR(-EINVAL);
+> +	res->sclk_pixel	 = ERR_PTR(-EINVAL);
+> +	res->sclk_hdmiphy = ERR_PTR(-EINVAL);
+> +	res->hdmiphy	 = ERR_PTR(-EINVAL);
+> +
+> +	/* get clocks, power */
+>  	res->hdmi = clk_get(dev, "hdmi");
+>  	if (IS_ERR(res->hdmi)) {
+>  		dev_err(dev, "failed to get clock 'hdmi'\n");
+> 
+
+Regards,
+Sylwester
