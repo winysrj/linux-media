@@ -1,53 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:34906 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751832Ab3EULRy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 07:17:54 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r4LBHrH1005062
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Tue, 21 May 2013 07:17:53 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] update saa7134 and tuner cardlists
-Date: Tue, 21 May 2013 08:17:47 -0300
-Message-Id: <1369135067-661-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from perceval.ideasonboard.com ([95.142.166.194]:44068 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757786Ab3EBNYS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 09:24:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH RFC v2] media: i2c: mt9p031: add OF support
+Date: Thu, 02 May 2013 15:24:28 +0200
+Message-ID: <5629971.jIvxpOF1A0@avalon>
+In-Reply-To: <CA+V-a8sXNhiHhu9HJgFKCAZGZwvqptLy56Akqqu+xDVQ-4amyg@mail.gmail.com>
+References: <1367475754-19477-1-git-send-email-prabhakar.csengg@gmail.com> <1561679.1AUpDgdnFy@avalon> <CA+V-a8sXNhiHhu9HJgFKCAZGZwvqptLy56Akqqu+xDVQ-4amyg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those are automatically updated using the cardlist script.
+Hi Prabhakar,
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- Documentation/video4linux/CARDLIST.saa7134 | 1 +
- Documentation/video4linux/CARDLIST.tuner   | 6 +++---
- 2 files changed, 4 insertions(+), 3 deletions(-)
+On Thursday 02 May 2013 18:48:37 Prabhakar Lad wrote:
+> On Thu, May 2, 2013 at 4:32 PM, Laurent Pinchart wrote:
+> > On Thursday 02 May 2013 12:34:25 Prabhakar Lad wrote:
+> >> On Thu, May 2, 2013 at 12:25 PM, Sascha Hauer wrote:
+> >> > On Thu, May 02, 2013 at 11:52:34AM +0530, Prabhakar Lad wrote:
+> >> >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> >> 
+> >> >> add OF support for the mt9p031 sensor driver.
+> >> >> Alongside this patch sorts the header inclusion alphabetically.
 
-diff --git a/Documentation/video4linux/CARDLIST.saa7134 b/Documentation/video4linux/CARDLIST.saa7134
-index b3ad683..8df17d0 100644
---- a/Documentation/video4linux/CARDLIST.saa7134
-+++ b/Documentation/video4linux/CARDLIST.saa7134
-@@ -190,3 +190,4 @@
- 189 -> Kworld PC150-U                           [17de:a134]
- 190 -> Asus My Cinema PS3-100                   [1043:48cd]
- 191 -> Hawell HW-9004V1
-+192 -> AverMedia AverTV Satellite Hybrid+FM A706 [1461:2055]
-diff --git a/Documentation/video4linux/CARDLIST.tuner b/Documentation/video4linux/CARDLIST.tuner
-index 5b83a3f..ac88621 100644
---- a/Documentation/video4linux/CARDLIST.tuner
-+++ b/Documentation/video4linux/CARDLIST.tuner
-@@ -86,6 +86,6 @@ tuner=85 - Philips FQ1236 MK5
- tuner=86 - Tena TNF5337 MFD
- tuner=87 - Xceive 4000 tuner
- tuner=88 - Xceive 5000C tuner
--tuner=89 - Sony PAL+SECAM (BTF-PG472Z)
--tuner=90 - Sony NTSC-M-JP (BTF-PK467Z)
--tuner=91 - Sony NTSC-M (BTF-PB463Z)
-+tuner=89 - Sony BTF-PG472Z PAL/SECAM
-+tuner=90 - Sony BTF-PK467Z NTSC-M-JP
-+tuner=91 - Sony BTF-PB463Z NTSC-M
+[snip]
+
+> >> >> @@ -1070,8 +1120,16 @@ static const struct i2c_device_id mt9p031_id[]
+> >> >> = {
+> >> >>  };
+> >> >>  MODULE_DEVICE_TABLE(i2c, mt9p031_id);
+> >> >> 
+> >> >> +static const struct of_device_id mt9p031_of_match[] = {
+> >> >> +     { .compatible = "aptina,mt9p031", },
+> >> >> +     { .compatible = "aptina,mt9p031m", },
+> >> >> +     {},
+> >> >> +};
+> >> > 
+> >> > I would have expected something like:
+> >> > 
+> >> > static const struct of_device_id mt9p031_of_match[] = {
+> >> >         {
+> >> >                 .compatible = "aptina,mt9p031-sensor",
+> >> >                 .data = (void *)MT9P031_MODEL_COLOR,
+> >> >         }, {
+> >> >                 .compatible = "aptina,mt9p031m-sensor",
+> >> >                 .data = (void *)MT9P031_MODEL_MONOCHROME,
+> >> >         }, {
+> >> >                 /* sentinel */
+> >> >         },
+> >> > };
+> >> > 
+> >> >         of_id = of_match_device(mt9p031_of_match, &client->dev);
+> >> >         if (of_id)
+> >> >                 mt9p031->model = (enum mt9p031_model)of_id->data;
+> >> > 
+> >> > To handle monochrome sensors.
+> >> 
+> >> OK will do the same.
+> > 
+> > And please guard the table with #ifdef CONFIG_OF.
+> 
+> But guarding the table #ifdef CONFIG_OF would cause compilation failure
+> for below code when CONFIG_OF is undefined in probe
+> 
+> of_id = of_match_device(of_match_ptr(mt9p031_of_match),
+> 			&client->dev);
+> if (of_id)
+> 	mt9p031->model = (enum mt9p031_model)of_id->data;
+
+You could guard the above code with an #ifdef CONFIG_OF as well.
+
+> and also in mt9p031_i2c_driver structure,
+> of_match_table = of_match_ptr(mt9p031_of_match),
+> 
+> which force me to define mt9p031_of_match to NULL when
+> CONFIG_OF is undefined
+
+of_match_ptr is defined as NULL when CONFIG_OF is disabled.
+
 -- 
-1.8.1.4
+Regards,
+
+Laurent Pinchart
 
