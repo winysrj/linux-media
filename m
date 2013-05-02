@@ -1,60 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f49.google.com ([209.85.220.49]:60725 "EHLO
-	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752884Ab3EZMDU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 08:03:20 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 8/9] media: davinci: vpif_display: use module_platform_driver()
-Date: Sun, 26 May 2013 17:30:11 +0530
-Message-Id: <1369569612-30915-9-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mailto2.verwaltung.uni-muenchen.de ([141.84.149.7]:64263 "EHLO
+	mailto2.verwaltung.uni-muenchen.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1757750Ab3EBLfF convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 May 2013 07:35:05 -0400
+From: Treutwein Bernhard <Bernhard.Treutwein@Verwaltung.Uni-Muenchen.DE>
+To: "'linux-media@vger.kernel.org'" <linux-media@vger.kernel.org>
+Subject: distro-specific hint for build(ing) media_build
+Date: Thu, 2 May 2013 11:25:11 +0000
+Message-ID: <78A8BD6765DCF048A628A51C3FBD1D76089ECE8B@MXS2.zuv.uni-muenchen.de>
+Content-Language: de-DE
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi,
 
-This patch uses module_platform_driver() to simplify the code.
+using the debian derivate SolusOS (http://www.solusos.com/) I encountered the request to hint package names ...
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_display.c |   18 +-----------------
- 1 files changed, 1 insertions(+), 17 deletions(-)
+Distro "SolusOS Eveline" can be handled with: give_ubuntu_hints.
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 9c308e7..7bcfe7d 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -2005,20 +2005,4 @@ static __refdata struct platform_driver vpif_driver = {
- 	.remove	= vpif_remove,
- };
+Regards
+--
+  Bernhard Treutwein
+  Ludwig-Maximilians-Universität
+  Ref. VI.3 Anwendungsbetreuung
+  Martiusstr. 4/I Raum 107
+  80802 München
+  Tel. 089 2180-2774
+  Fax. 089 2180-992774
+  Mobil. 0152-01549335
+  e-mail: bernhard treutwein (at) verwaltung uni-muenchen de
  
--static __init int vpif_init(void)
--{
--	return platform_driver_register(&vpif_driver);
--}
--
--/*
-- * vpif_cleanup: This function un-registers device and driver to the kernel,
-- * frees requested irq handler and de-allocates memory allocated for channel
-- * objects.
-- */
--static void vpif_cleanup(void)
--{
--	platform_driver_unregister(&vpif_driver);
--}
--
--module_init(vpif_init);
--module_exit(vpif_cleanup);
-+module_platform_driver(vpif_driver);
--- 
-1.7.0.4
-
+ 
