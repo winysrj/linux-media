@@ -1,90 +1,231 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:59963 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933038Ab3ECT6y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 15:58:54 -0400
-Received: by mail-ea0-f172.google.com with SMTP id r16so929996ead.3
-        for <linux-media@vger.kernel.org>; Fri, 03 May 2013 12:58:53 -0700 (PDT)
-From: Alessandro Miceli <angelofsky1980@gmail.com>
-Cc: Alessandro Miceli <angelofsky1980@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [it913x] Add support for 'Digital Dual TV Receiver CTVDIGDUAL v2
-Date: Fri,  3 May 2013 21:58:21 +0200
-Message-Id: <1367611101-15688-1-git-send-email-angelofsky1980@gmail.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:39687 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834Ab3EBFo5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 01:44:57 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: =?UTF-8?q?=5BPATCH=20v2=5D=20media=3A=20i2c=3A=20tvp7002=3A=20enable=20TVP7002=20decoder=20for=20media=20controller=20based=20usage?=
+Date: Thu,  2 May 2013 11:14:42 +0530
+Message-Id: <1367473482-18308-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tested on a MIPSel box with 3.3.6 kernel
-The kernel output when the device will be detected follows:
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-usbcore: registered new interface driver dvb_usb_it913x
-it913x: Chip Version=01 Chip Type=9135
-it913x: Remote propriety (raw) mode
-it913x: Dual mode=3 Tuner Type=38
-it913x: Chip Version=01 Chip Type=9135
-usb 2-1: dvb_usb_v2: found a 'Digital Dual TV Receiver CTVDIGDUAL_V2' in cold state
-usb 2-1: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9137-01.fw'
-it913x: FRM Starting Firmware Download
-it913x: FRM Firmware Download Completed - Resetting Device
-it913x: Chip Version=01 Chip Type=9135
-it913x: Firmware Version 204147968
-usb 2-1: dvb_usb_v2: found a 'Digital Dual TV Receiver CTVDIGDUAL_V2' in warm state
-usb 2-1: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-DVB: registering new adapter (Digital Dual TV Receiver CTVDIGDUAL_V2)
-it913x-fe: ADF table value      :00
-it913x-fe: Crystal Frequency :12000000 Adc Frequency :20250000 ADC X2: 00
-it913x-fe: Tuner LNA type :38
-usb 2-1: DVB: registering adapter 1 frontend 0 (Digital Dual TV Receiver CTVDIGDUAL_V2_1)...
-usb 2-1: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-DVB: registering new adapter (Digital Dual TV Receiver CTVDIGDUAL_V2)
-it913x-fe: ADF table value      :00
-it913x-fe: Crystal Frequency :12000000 Adc Frequency :20250000 ADC X2: 00
-it913x-fe: Tuner LNA type :38
-usb 2-1: DVB: registering adapter 2 frontend 0 (Digital Dual TV Receiver CTVDIGDUAL_V2_2)...
-usb 2-1: dvb_usb_v2: 'Digital Dual TV Receiver CTVDIGDUAL_V2' successfully initialized and connected
+This patch enables tvp7002 decoder driver for media controller
+based usage by adding v4l2_subdev_pad_ops  operations support
+for enum_mbus_code, set_pad_format, get_pad_format and media_entity_init()
+on probe and media_entity_cleanup() on remove.
 
-RC part not tested
-
-Signed-off-by: Alessandro Miceli <angelofsky1980@gmail.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/dvb-core/dvb-usb-ids.h  |    1 +
- drivers/media/usb/dvb-usb-v2/it913x.c |    5 ++++-
- 2 files changed, 5 insertions(+), 1 deletion(-)
+ Changes for v2:
+ 1: Fixed review comment pointed by Laurent, Don’t return error for set_fmt
+    but fix the input parameters according to current timings.
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 335a8f4..2e0709a 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -367,4 +367,5 @@
- #define USB_PID_TECHNISAT_USB2_HDCI_V2			0x0002
- #define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2		0x0004
- #define USB_PID_TECHNISAT_USB2_DVB_S2			0x0500
-+#define USB_PID_CTVDIGDUAL_V2				0xe410
- #endif
-diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c b/drivers/media/usb/dvb-usb-v2/it913x.c
-index e48cdeb..1cb6899 100644
---- a/drivers/media/usb/dvb-usb-v2/it913x.c
-+++ b/drivers/media/usb/dvb-usb-v2/it913x.c
-@@ -45,7 +45,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info (or-able)).");
+ drivers/media/i2c/tvp7002.c |  122 +++++++++++++++++++++++++++++++++++++++++--
+ include/media/tvp7002.h     |    2 +
+ 2 files changed, 119 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 027809c..3be687e 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -424,6 +424,8 @@ struct tvp7002 {
+ 	int streaming;
  
- static int dvb_usb_it913x_firmware;
- module_param_named(firmware, dvb_usb_it913x_firmware, int, 0644);
--MODULE_PARM_DESC(firmware, "set firmware 0=auto"\
-+MODULE_PARM_DESC(firmware, "set firmware 0=auto "\
- 	"1=IT9137 2=IT9135 V1 3=IT9135 V2");
- #define FW_IT9137 "dvb-usb-it9137-01.fw"
- #define FW_IT9135_V1 "dvb-usb-it9135-01.fw"
-@@ -796,6 +796,9 @@ static const struct usb_device_id it913x_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
- 		&it913x_properties, "Avermedia A835B(4835)",
- 			RC_MAP_IT913X_V2) },
-+	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
-+		&it913x_properties, "Digital Dual TV Receiver CTVDIGDUAL_V2",
-+			RC_MAP_IT913X_V1) },
- 	{}		/* Terminating entry */
+ 	const struct tvp7002_timings_definition *current_timings;
++	struct media_pad pad;
++	struct v4l2_mbus_framefmt format;
  };
  
+ /*
+@@ -880,6 +882,90 @@ static const struct v4l2_ctrl_ops tvp7002_ctrl_ops = {
+ 	.s_ctrl = tvp7002_s_ctrl,
+ };
+ 
++/*
++ * tvp7002_enum_mbus_code() - Enum supported digital video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @code: pointer to subdev enum mbus code struct
++ *
++ * Enumerate supported digital video formats for pad.
++ */
++static int
++tvp7002_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_mbus_code_enum *code)
++{
++	/* Check requested format index is within range */
++	if (code->index != 0)
++		return -EINVAL;
++
++	code->code = V4L2_MBUS_FMT_YUYV10_1X20;
++
++	return 0;
++}
++
++/*
++ * tvp7002_set_pad_format() - set video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @fmt: pointer to subdev format struct
++ *
++ * set video format for pad.
++ */
++static int
++tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct tvp7002 *tvp7002 = to_tvp7002(sd);
++
++	/* if format doesn’t match the current timings fix the input
++	 * parameters according to what device supports.
++	 */
++	if (fmt->format.field != tvp7002->current_timings->scanmode ||
++	    fmt->format.code != V4L2_MBUS_FMT_YUYV10_1X20 ||
++	    fmt->format.colorspace != tvp7002->current_timings->color_space ||
++	    fmt->format.width != tvp7002->current_timings->timings.bt.width ||
++	    fmt->format.height != tvp7002->current_timings->timings.bt.height) {
++		fmt->format.field = tvp7002->current_timings->scanmode;
++		fmt->format.code = V4L2_MBUS_FMT_YUYV10_1X20;
++		fmt->format.colorspace = tvp7002->current_timings->color_space;
++		fmt->format.width = tvp7002->current_timings->timings.bt.width;
++		fmt->format.height =
++				tvp7002->current_timings->timings.bt.height;
++	}
++
++	tvp7002->format = fmt->format;
++
++	return 0;
++}
++
++/*
++ * tvp7002_get_pad_format() - get video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @fmt: pointer to subdev format struct
++ *
++ * get video format for pad.
++ */
++static int
++tvp7002_get_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct tvp7002 *tvp7002 = to_tvp7002(sd);
++
++	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE) {
++		fmt->format = tvp7002->format;
++		return 0;
++	}
++
++	fmt->format.code = V4L2_MBUS_FMT_YUYV10_1X20;
++	fmt->format.width = tvp7002->current_timings->timings.bt.width;
++	fmt->format.height = tvp7002->current_timings->timings.bt.height;
++	fmt->format.field = tvp7002->current_timings->scanmode;
++	fmt->format.colorspace = tvp7002->current_timings->color_space;
++
++	return 0;
++}
++
+ /* V4L2 core operation handlers */
+ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+ 	.g_chip_ident = tvp7002_g_chip_ident,
+@@ -910,10 +996,18 @@ static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+ 	.enum_mbus_fmt = tvp7002_enum_mbus_fmt,
+ };
+ 
++/* media pad related operation handlers */
++static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
++	.enum_mbus_code = tvp7002_enum_mbus_code,
++	.get_fmt = tvp7002_get_pad_format,
++	.set_fmt = tvp7002_set_pad_format,
++};
++
+ /* V4L2 top level operation handlers */
+ static const struct v4l2_subdev_ops tvp7002_ops = {
+ 	.core = &tvp7002_core_ops,
+ 	.video = &tvp7002_video_ops,
++	.pad = &tvp7002_pad_ops,
+ };
+ 
+ /*
+@@ -993,19 +1087,35 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 	timings = device->current_timings->timings;
+ 	error = tvp7002_s_dv_timings(sd, &timings);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	strlcpy(sd->name, TVP7002_MODULE_NAME, sizeof(sd->name));
++	device->pad.flags = MEDIA_PAD_FL_SOURCE;
++	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++
++	error = media_entity_init(&device->sd.entity, 1, &device->pad, 0);
++	if (error < 0)
++		return error;
++#endif
++
+ 	v4l2_ctrl_handler_init(&device->hdl, 1);
+ 	v4l2_ctrl_new_std(&device->hdl, &tvp7002_ctrl_ops,
+ 			V4L2_CID_GAIN, 0, 255, 1, 0);
+ 	sd->ctrl_handler = &device->hdl;
+ 	if (device->hdl.error) {
+-		int err = device->hdl.error;
+-
+-		v4l2_ctrl_handler_free(&device->hdl);
+-		return err;
++		error = device->hdl.error;
++		goto done;
+ 	}
+ 	v4l2_ctrl_handler_setup(&device->hdl);
+ 
+ 	return 0;
++
++done:
++	v4l2_ctrl_handler_free(&device->hdl);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&device->sd.entity);
++#endif
++	return error;
+ }
+ 
+ /*
+@@ -1022,7 +1132,9 @@ static int tvp7002_remove(struct i2c_client *c)
+ 
+ 	v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
+ 				"on address 0x%x\n", c->addr);
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&device->sd.entity);
++#endif
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&device->hdl);
+ 	return 0;
+diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
+index ee43534..7123048 100644
+--- a/include/media/tvp7002.h
++++ b/include/media/tvp7002.h
+@@ -26,6 +26,8 @@
+ #ifndef _TVP7002_H_
+ #define _TVP7002_H_
+ 
++#define TVP7002_MODULE_NAME "tvp7002"
++
+ /* Platform-dependent data
+  *
+  * clk_polarity:
 -- 
-1.7.9.5
+1.7.4.1
 
