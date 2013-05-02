@@ -1,55 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:34906 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753889Ab3EUDrd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 May 2013 23:47:33 -0400
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MN400558QINUN60@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 21 May 2013 12:47:30 +0900 (KST)
-From: Seung-Woo Kim <sw0312.kim@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: m.szyprowski@samsung.com, hans.verkuil@cisco.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com
-Subject: [RESEND][PATCH 2/2] media: v4l2-mem2mem: return for polling if a
- buffer is available
-Date: Tue, 21 May 2013 12:47:30 +0900
-Message-id: <1369108050-13522-3-git-send-email-sw0312.kim@samsung.com>
-In-reply-to: <1369108050-13522-1-git-send-email-sw0312.kim@samsung.com>
-References: <1369108050-13522-1-git-send-email-sw0312.kim@samsung.com>
+Received: from mx1.redhat.com ([209.132.183.28]:50513 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754931Ab3EBRiA (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 May 2013 13:38:00 -0400
+Message-ID: <5182A44E.7080701@redhat.com>
+Date: Thu, 02 May 2013 14:37:18 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-Version: 1.0
+To: Arnd Bergmann <arnd@arndb.de>
+CC: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
+Subject: Re: [PATCH, RFC 22/22] radio-si4713: depend on SND_SOC
+References: <1367507786-505303-1-git-send-email-arnd@arndb.de> <1367507786-505303-23-git-send-email-arnd@arndb.de>
+In-Reply-To: <1367507786-505303-23-git-send-email-arnd@arndb.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The v4l2_m2m_poll() does not need to wait if there is already a buffer in
-done_list of source and destination queues, but current v4l2_m2m_poll() always
-waits. So done_list of each queue is checked before calling poll_wait().
+Em 02-05-2013 12:16, Arnd Bergmann escreveu:
+> It is not possible to select SND_SOC_SI476X if we have not also
+> enabled SND_SOC.
+>
+> warning: (RADIO_SI476X) selects SND_SOC_SI476X which has unmet
+> 	 direct dependencies (SOUND && !M68K && !UML && SND && SND_SOC)
+>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: linux-media@vger.kernel.org
+> Signed-off-by: Arnd Bergmann <arnd@arndb.de>
+> ---
+>   drivers/media/radio/Kconfig | 1 +
+>   1 file changed, 1 insertion(+)
+>
+> diff --git a/drivers/media/radio/Kconfig b/drivers/media/radio/Kconfig
+> index c0beee2..d529ba7 100644
+> --- a/drivers/media/radio/Kconfig
+> +++ b/drivers/media/radio/Kconfig
+> @@ -22,6 +22,7 @@ config RADIO_SI476X
+>   	tristate "Silicon Laboratories Si476x I2C FM Radio"
+>   	depends on I2C && VIDEO_V4L2
+>   	depends on MFD_SI476X_CORE
+> +	depends on SND_SOC
+>   	select SND_SOC_SI476X
+>   	---help---
+>   	  Choose Y here if you have this FM radio chip.
+>
 
-Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> 
----
- drivers/media/v4l2-core/v4l2-mem2mem.c |    6 ++++--
- 1 files changed, 4 insertions(+), 2 deletions(-)
+Do you prefer to send it via your tree or via mine? Either way works for me.
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 66f599f..9ac39b5 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -486,8 +486,10 @@ unsigned int v4l2_m2m_poll(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
- 	if (m2m_ctx->m2m_dev->m2m_ops->unlock)
- 		m2m_ctx->m2m_dev->m2m_ops->unlock(m2m_ctx->priv);
- 
--	poll_wait(file, &src_q->done_wq, wait);
--	poll_wait(file, &dst_q->done_wq, wait);
-+	if (list_empty(&src_q->done_list))
-+		poll_wait(file, &src_q->done_wq, wait);
-+	if (list_empty(&dst_q->done_list))
-+		poll_wait(file, &dst_q->done_wq, wait);
- 
- 	if (m2m_ctx->m2m_dev->m2m_ops->lock)
- 		m2m_ctx->m2m_dev->m2m_ops->lock(m2m_ctx->priv);
--- 
-1.7.4.1
+If you're willing to send it via your tree:
 
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
