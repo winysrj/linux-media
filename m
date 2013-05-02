@@ -1,68 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:51067 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758359Ab3EWKpB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 06:45:01 -0400
-Received: by mail-ie0-f181.google.com with SMTP id x12so8227541ief.12
-        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 03:45:00 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <519DDDB2.80800@canonical.com>
-References: <20130428165914.17075.57751.stgit@patser>
-	<20130428170407.17075.80082.stgit@patser>
-	<20130430191422.GA5763@phenom.ffwll.local>
-	<519CA976.9000109@canonical.com>
-	<20130522161831.GQ18810@twins.programming.kicks-ass.net>
-	<519CFF56.90600@canonical.com>
-	<519DDDB2.80800@canonical.com>
-Date: Thu, 23 May 2013 12:45:00 +0200
-Message-ID: <CAKMK7uF=0aW4dY_0bmUox1N-kmQvXRr2-x3NBjL2VGO4grW6fQ@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH v3 2/3] mutex: add support for wound/wait
- style locks, v3
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Peter Zijlstra <peterz@infradead.org>, linux-arch@vger.kernel.org,
-	x86@kernel.org,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	rob clark <robclark@gmail.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
+Received: from hydra.sisk.pl ([212.160.235.94]:55392 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1761658Ab3EBSpc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 2 May 2013 14:45:32 -0400
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>,
 	Dave Airlie <airlied@redhat.com>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@elte.hu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Herbert Xu <herbert@gondor.hengli.com.au>,
+	"John W. Linville" <linville@tuxdriver.com>,
+	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Oliver Hartkopp <socketcan@hartkopp.net>,
+	Robert Richter <rric@kernel.org>,
+	Samuel Ortiz <sameo@linux.intel.com>,
+	Shawn Guo <shawn.guo@linaro.org>,
+	Thierry Reding <thierry.reding@avionic-design.de>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	Zhang Rui <rui.zhang@intel.com>, cpufreq@vger.kernel.org,
+	dri-devel@lists.freedesktop.org, linux-can@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-pm@vger.kernel.org,
+	oprofile-list@lists.sf.net
+Subject: Re: [PATCH, RFC 00/22] ARM randconfig bugs
+Date: Thu, 02 May 2013 20:53:44 +0200
+Message-ID: <2710056.LHQ0Ee0x8t@vostro.rjw.lan>
+In-Reply-To: <1367507786-505303-1-git-send-email-arnd@arndb.de>
+References: <1367507786-505303-1-git-send-email-arnd@arndb.de>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 23, 2013 at 11:13 AM, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
->> 2. Do you really want to drop the *_slow variants?
->> Doing so might reduce debugging slightly. I like method #2 in ww-mutex-design.txt, it makes it very clear why you
->> would handle the *_slow case differently anyway.
-> As you pointed out, we wouldn't lose much debugging information.
-> The same checks could be done in the normal variant with
-> WARN_ON(ctx->lock && ctx->lock != lock);
-> WARN_ON(ctx->lock && ctx->acquired > 0);
+On Thursday, May 02, 2013 05:16:04 PM Arnd Bergmann wrote:
+> Hi subsystem maintainers,
+> 
+> This is a set of patches to to fix build errors I hit while trying to
+> build lots of randconfig kernels on linux-next.
+> 
+> Most of them are simple missing dependencies in Kconfig, but some are
+> more substantial. I would like to see at least the obvious patches
+> get merged for 3.10. If you are happy with the patches, feel free
+> to apply them directly, otherwise please provide feedback.
+> 
+> No single patch out of these is very important though, most of them
+> only concern corner cases and don't matter in practice.
 
-s/lock/contending_lock/ I guess. But yeah, I should have more
-carefully read Peter's suggestion to fold in some of the ww_slow debug
-checks, we can indeed keep the important debug checks even when
-dropping slow. Silly me should be less sloppy.
+For cpufreq and cpuidle:
 
-> But it boils down to ww_mutex_lock_slow returning void instead of int __must_check from ww_mutex_lock.
->
-> Maybe add inlines for *_slow, that use the ww_mutex_lock functions, and check ctx->lock == lock in debugging mode?
+Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
 
-So either we keep the _slow versions or drop the __must_check for
-ww_mutex_lock. In both cases the ww mutex user needs to think a bit
-what to do, and I don't there's much we can do in the implementation
-(beside all the existing debug support we have) to help. So now I'm
-leaning more towards dropping the _slow variants to avoid interface
-proliferation.
--Daniel
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> Arnd Bergmann (22):
+>   can: move CONFIG_HAVE_CAN_FLEXCAN out of CAN_DEV
+>   cpufreq: ARM_DT_BL_CPUFREQ needs ARM_CPU_TOPOLOGY
+>   cpuidle: calxeda: select ARM_CPU_SUSPEND
+>   staging/drm: imx: add missing dependencies
+>   drm: always provide debugfs function prototypes
+>   gpu/drm: host1x: add dependency on Tegra
+>   drm/tilcd: select BACKLIGHT_LCD_SUPPORT
+>   OMAPDSS: DPI needs DSI
+>   crypto: lz4: don't build on ARM
+>   mfd: ab8500: debugfs code depends on gpadc
+>   iwlegacy: il_pm_ops is only provided for PM_SLEEP
+>   thermal: cpu_cooling: fix stub function
+>   staging/logger: use kuid_t internally
+>   oprofile: always enable IRQ_WORK
+>   USB: EHCI: remove bogus #error
+>   USB: UHCI: clarify Kconfig dependencies
+>   USB: OHCI: clarify Kconfig dependencies
+>   Xen: SWIOTLB is only used on x86
+>   staging/solo6x10: depend on CONFIG_FONTS
+>   media: coda: select GENERIC_ALLOCATOR
+>   davinci: vpfe_capture needs i2c
+>   radio-si4713: depend on SND_SOC
+> 
+>  arch/Kconfig                           |  1 +
+>  crypto/Kconfig                         |  2 ++
+>  drivers/cpufreq/Kconfig.arm            |  1 +
+>  drivers/cpuidle/Kconfig                |  1 +
+>  drivers/gpu/drm/tilcdc/Kconfig         |  1 +
+>  drivers/gpu/host1x/drm/Kconfig         |  1 +
+>  drivers/media/platform/Kconfig         |  1 +
+>  drivers/media/platform/davinci/Kconfig |  3 ++
+>  drivers/media/radio/Kconfig            |  1 +
+>  drivers/mfd/Kconfig                    |  2 +-
+>  drivers/net/can/Kconfig                |  6 ++--
+>  drivers/net/wireless/iwlegacy/common.h |  2 +-
+>  drivers/staging/android/logger.c       |  4 +--
+>  drivers/staging/android/logger.h       |  2 +-
+>  drivers/staging/imx-drm/Kconfig        |  4 +++
+>  drivers/staging/media/solo6x10/Kconfig |  1 +
+>  drivers/usb/host/Kconfig               | 65 +++++++++++++++++++++++++++++-----
+>  drivers/usb/host/Makefile              |  4 +--
+>  drivers/usb/host/ehci-hcd.c            | 17 ---------
+>  drivers/usb/host/ohci-hcd.c            | 19 ----------
+>  drivers/usb/host/uhci-hcd.c            |  4 +--
+>  drivers/video/console/Makefile         |  2 ++
+>  drivers/video/omap2/dss/Kconfig        |  1 +
+>  drivers/xen/Kconfig                    |  2 +-
+>  include/drm/drmP.h                     |  3 +-
+>  include/linux/cpu_cooling.h            |  2 +-
+>  26 files changed, 91 insertions(+), 61 deletions(-)
+> 
+> 
+-- 
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
