@@ -1,49 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:52947 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756339Ab3E3TGD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 May 2013 15:06:03 -0400
-Received: by mail-ie0-f171.google.com with SMTP id s9so1563292iec.30
-        for <linux-media@vger.kernel.org>; Thu, 30 May 2013 12:06:02 -0700 (PDT)
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43749 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1758995Ab3ECII7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 04:08:59 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: mchehab@redhat.com
+Cc: ezequiel.garcia@free-electrons.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: [PATCH V4 2/3] saa7115: add detection code for gm7113c
+Date: Fri,  3 May 2013 10:11:57 +0200
+Message-Id: <1367568718-4129-3-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1367568718-4129-1-git-send-email-jonarne@jonarne.no>
+References: <1367568718-4129-1-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
-In-Reply-To: <CAA1g13mVO_buU8AeROBT3qSXsS2EQtAvHVHdEo5-RGMcRYC47A@mail.gmail.com>
-References: <CAA1g13mVO_buU8AeROBT3qSXsS2EQtAvHVHdEo5-RGMcRYC47A@mail.gmail.com>
-Date: Thu, 30 May 2013 16:06:02 -0300
-Message-ID: <CALF0-+XcBRxqOb5gARG9JkFNoubXouHv_MHqC7paS5E5M7oSUg@mail.gmail.com>
-Subject: Re: Unrecognized decoder chip (not gm7113c)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Greg Horvath <horvath.105@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Greg,
+Adds a code that (auto)detects gm7113c clones. The auto-detection
+here is not perfect, as, on contrary to what it would be expected
+by looking into its datasheets some devices would return, instead:
 
-On Thu, May 30, 2013 at 3:58 PM, Greg Horvath <horvath.105@gmail.com> wrote:
-> I have ported the 3.2 version of driver to kernel version 3.0.8 running on
-> an rk3066 (mk808) device.
->
+	saa7115 0-0025: chip 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 @ 0x4a is unknown
 
-That's cool.
+(found on a device labeled as GM7113C 1145 by Ezequiel Garcia)
 
-> [13336.159017] stk1160: driver ver 0.9.5 successfully loaded
-[...]
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ drivers/media/i2c/saa7115.c     | 36 ++++++++++++++++++++++++++++++++++++
+ include/media/v4l2-chip-ident.h |  2 ++
+ 2 files changed, 38 insertions(+)
 
-First of all, look here: you seem to have ported stk1160 successfully.
-But...
-
-> [15757.888105] easycap: module is from the staging directory, the quality is
-> unknown, you have been warned.
-
-Are you *also* running easycap?
-
-Are both modules running at the same time?
-
-If yes, then please blacklist the "easycap" driver as it's deprecated: stk1160
-replaces it and you should not use both.
-
-Thanks,
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index aa92478..eb2c19d 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1628,6 +1628,36 @@ static int saa711x_detect_chip(struct i2c_client *client,
+ 		}
+ 	}
+ 
++	/* Check if it is a gm7113c */
++	if (!memcmp(name, "0000", 4)) {
++		chip_id = 0;
++		for (i = 0; i < 4; i++) {
++			chip_id = chip_id << 1;
++			chip_id |= (chip_ver[i] & 0x80) ? 1 : 0;
++		}
++
++		/*
++		 * Note: From the datasheet, only versions 1 and 2
++		 * exists. However, tests on a device labeled as:
++		 *	"GM7113C 1145" returned "10" on all 16 chip
++		 *	version (reg 0x00) reads. So, we need to also
++		 *	accept at least verion 0. For now, let's just
++		 *	assume that a device that returns "0000" for
++		 *	the lower nibble is a gm7113c.
++		 */
++
++		snprintf(name, size, "gm7113c");
++
++		if (!autodetect && strcmp(name, id->name))
++			return -EINVAL;
++
++		v4l_dbg(1, debug, client,
++			"It seems to be a %s chip (%*ph) @ 0x%x.\n",
++			name, 16, chip_ver, client->addr << 1);
++
++		return V4L2_IDENT_GM7113C;
++	}
++
+ 	/* Chip was not discovered. Return its ID and don't bind */
+ 	v4l_dbg(1, debug, client, "chip %*ph @ 0x%x is unknown.\n",
+ 		16, chip_ver, client->addr << 1);
+@@ -1657,6 +1687,11 @@ static int saa711x_probe(struct i2c_client *client,
+ 	if (ident < 0)
+ 		return ident;
+ 
++	if (ident == V4L2_IDENT_GM7113C) {
++		v4l_warn(client, "%s not yet supported\n", name);
++		return -ENODEV;
++	}
++
+ 	strlcpy(client->name, name, sizeof(client->name));
+ 
+ 	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
+@@ -1744,6 +1779,7 @@ static const struct i2c_device_id saa711x_id[] = {
+ 	{ "saa7114", 0 },
+ 	{ "saa7115", 0 },
+ 	{ "saa7118", 0 },
++	{ "gm7113c", 0 },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(i2c, saa711x_id);
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+index 4ee125b..ef7e1c4 100644
+--- a/include/media/v4l2-chip-ident.h
++++ b/include/media/v4l2-chip-ident.h
+@@ -52,6 +52,8 @@ enum {
+ 	V4L2_IDENT_SAA7115 = 105,
+ 	V4L2_IDENT_SAA7118 = 108,
+ 
++	V4L2_IDENT_GM7113C = 140,
++
+ 	/* module saa7127: reserved range 150-199 */
+ 	V4L2_IDENT_SAA7127 = 157,
+ 	V4L2_IDENT_SAA7129 = 159,
 -- 
-    Ezequiel
+1.8.2.1
+
