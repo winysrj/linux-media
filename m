@@ -1,52 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:41869 "EHLO plane.gmane.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756209Ab3E0XVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 19:21:11 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Uh6j0-0000aF-3C
-	for linux-media@vger.kernel.org; Tue, 28 May 2013 01:21:10 +0200
-Received: from 5ad012fd.bb.sky.com ([5ad012fd.bb.sky.com])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 28 May 2013 01:21:10 +0200
-Received: from alxgomz by 5ad012fd.bb.sky.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Tue, 28 May 2013 01:21:10 +0200
-To: linux-media@vger.kernel.org
-From: alxgomz <alxgomz@gmail.com>
-Subject: Re: EM28xx - new device ID - Ion "Video Forever" USB capture dongle
-Date: Mon, 27 May 2013 23:20:54 +0000 (UTC)
-Message-ID: <loom.20130528T010242-622@post.gmane.org>
-References: <51A1D475.5000106@philpem.me.uk>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail.free-electrons.com ([94.23.35.102]:38087 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753632Ab3ECCJu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 22:09:50 -0400
+Date: Thu, 2 May 2013 23:10:12 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: Re: [PATCH V2 2/3] saa7115: add detection code for gm7113c
+Message-ID: <20130503021011.GC5722@localhost>
+References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
+ <1367268069-11429-3-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1367268069-11429-3-git-send-email-jonarne@jonarne.no>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philip,
+On Mon, Apr 29, 2013 at 10:41:08PM +0200, Jon Arne Jørgensen wrote:
+> Adds a code that (auto)detects gm7113c clones. The auto-detection
+> here is not perfect, as, on contrary to what it would be expected
+> by looking into its datasheets some devices would return, instead:
+> 
+> 	saa7115 0-0025: chip 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 @ 0x4a is unknown
+> 
+> (found on a device labeled as GM7113C 1145 by Ezequiel Garcia)
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
 
-Thank you for sharing this bit of info. I just bought what I think to be the
-very same device from local maplin too.
-I have loaded it using your tweak.
-Just like you the composite video input works just great, however I can't
-get any sound captured using the RCA audio leads. 
-The S-video doesn't work either :( (only one new v4l2 video source is
-registred loading the device driver). 
-
-I have done all my test using ffmpeg (and arecord to test audio only) but I
-am quite confident the outcome would be the same with other programs.
-
-When loading the driver with card=9, I can see in the log:
-
-"em2860 #0: Sigmatel audio processor detected(stac 9752)"
-
-I wonder how much "detection" there is here under the hood, as I suspect the
-module param may have forced this (wrongly perhaps).
-So as far as I am concerned, this ion thingy doesn't match exactly, the 9 card.
-How can I gather more informations about that device?
-
-Regards Alex.
-
+Your SOB doesn't appear to be correct. See my previous comment.
+-- 
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
