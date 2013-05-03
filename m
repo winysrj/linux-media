@@ -1,101 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1301 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753696Ab3EaS24 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 14:28:56 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4VISiO6078424
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 31 May 2013 20:28:46 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 7861235E0050
-	for <linux-media@vger.kernel.org>; Fri, 31 May 2013 20:28:43 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130531182843.7861235E0050@alastor.dyndns.org>
-Date: Fri, 31 May 2013 20:28:43 +0200 (CEST)
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43578 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751456Ab3ECGzk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 02:55:40 -0400
+Date: Fri, 3 May 2013 08:58:46 +0200
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: Re: [PATCH V2 1/3] saa7115: move the autodetection code out of the
+ probe function
+Message-ID: <20130503065846.GD1232@dell.arpanet.local>
+References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
+ <1367268069-11429-2-git-send-email-jonarne@jonarne.no>
+ <20130503020913.GB5722@localhost>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130503020913.GB5722@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Thu, May 02, 2013 at 11:09:14PM -0300, Ezequiel Garcia wrote:
+> Hi Jon,
+> 
+> On Mon, Apr 29, 2013 at 10:41:07PM +0200, Jon Arne Jørgensen wrote:
+> > As we're now seeing other variants from chinese clones, like
+> > gm1113c, we'll need to add more bits at the detection code.
+> > 
+> > So, move it into a separate function.
+> > 
+> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> 
+> As far as I can see, this patch is identical to the one sent
+> by Mauro. Therefore, your SOB here is incorrect, since you are not
+> the author of the patch.
+> 
+> The proper way of re-submitting patches that have been previously
+> submitted by another developer is this:
+> 
+> --
+> From: Mauro Carvalho Chehab <mchehab@redhat.com>
+> 
+> Commit message goes here.
+> 
+> Notice how the first line is a 'From:' tagcindicating who's the
+> real submitter. The SOB tag indicates the patch author, and you
+> can add your acked-by, tested-by or reported-by if you want.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Reported-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> --
+> 
+> You can read more about this in Documentation/SubmittingPatches.
 
-Results of the daily build of media_tree:
+I just re-read SubmittingPatches.
+I couldn't see that there is anything wrong with multiple sign-off's.
 
-date:		Fri May 31 19:00:20 CEST 2013
-git branch:	test
-git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Quote:
+  The Signed-off-by: tag indicates that the signer was involved in the
+  development of the patch, or that he/she was in the patch's delivery
+  path.
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+and:
+  (c) The contribution was provided directly to me by some other
+      person who certified (a), (b) or (c) and I have not modified
+      it.
 
-Detailed results are available here:
+It's not that important to me, so If you insist, I'll remove the
+signed-off-by line :)
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> -- 
+> Ezequiel García, Free Electrons
+> Embedded Linux, Kernel and Android Engineering
+> http://free-electrons.com
