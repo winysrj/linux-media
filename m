@@ -1,49 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f47.google.com ([209.85.214.47]:49274 "EHLO
-	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752072Ab3EMFtP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 01:49:15 -0400
-Received: by mail-bk0-f47.google.com with SMTP id jg9so2213742bkc.34
-        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 22:49:14 -0700 (PDT)
+Received: from mail.free-electrons.com ([94.23.35.102]:39743 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750853Ab3ECLVM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 07:21:12 -0400
+Date: Fri, 3 May 2013 08:20:53 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: Re: [PATCH V2 1/3] saa7115: move the autodetection code out of the
+ probe function
+Message-ID: <20130503112052.GB2291@localhost>
+References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
+ <1367268069-11429-2-git-send-email-jonarne@jonarne.no>
+ <20130503020913.GB5722@localhost>
+ <20130503065846.GD1232@dell.arpanet.local>
 MIME-Version: 1.0
-Date: Mon, 13 May 2013 13:49:13 +0800
-Message-ID: <CAPgLHd80d_pLtTbDQLEAMiLzfoF6AZ5fpjxtxqAoAZ1myNKw+w@mail.gmail.com>
-Subject: [PATCH] [media] s5p-tv: fix error return code in mxr_acquire_video()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: kyungmin.park@samsung.com, t.stanislaws@samsung.com,
-	mchehab@redhat.com
-Cc: yongjun_wei@trendmicro.com.cn,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130503065846.GD1232@dell.arpanet.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hi Jon,
 
-Fix to return a negative error code in the vb2_dma_contig_init_ctx()
-error handling case instead of 0, as done elsewhere in this function.
-Also vb2_dma_contig_init_ctx() return ERR_PTR() in case of error and
-never return NULL, so use IS_ERR() replace IS_ERR_OR_NULL().
+On Fri, May 03, 2013 at 08:58:46AM +0200, Jon Arne Jørgensen wrote:
+[...]
+> > You can read more about this in Documentation/SubmittingPatches.
+> 
+> I just re-read SubmittingPatches.
+> I couldn't see that there is anything wrong with multiple sign-off's.
+> 
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/platform/s5p-tv/mixer_video.c | 3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Indeed there isn't anything wrong with multiple SOBs tags, but they're
+used a bit differently than this.
 
-diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
-index ef0efdf..641b1f0 100644
---- a/drivers/media/platform/s5p-tv/mixer_video.c
-+++ b/drivers/media/platform/s5p-tv/mixer_video.c
-@@ -81,8 +81,9 @@ int mxr_acquire_video(struct mxr_device *mdev,
- 	}
- 
- 	mdev->alloc_ctx = vb2_dma_contig_init_ctx(mdev->dev);
--	if (IS_ERR_OR_NULL(mdev->alloc_ctx)) {
-+	if (IS_ERR(mdev->alloc_ctx)) {
- 		mxr_err(mdev, "could not acquire vb2 allocator\n");
-+		ret = PTR_ERR(mdev->alloc_ctx);
- 		goto fail_v4l2_dev;
- 	}
- 
+> Quote:
+>   The Signed-off-by: tag indicates that the signer was involved in the
+>   development of the patch, or that he/she was in the patch's delivery
+>   path.
+> 
+>
 
+Ah, I see your point.
+
+@Mauro, perhaps you can explain this better then me?
+
+-- 
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
