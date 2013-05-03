@@ -1,61 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:37901 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750737Ab3EBETY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 00:19:24 -0400
-Received: by mail-ob0-f171.google.com with SMTP id v19so130527obq.30
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 21:19:23 -0700 (PDT)
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:48106 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762035Ab3ECNsK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 09:48:10 -0400
+Received: by mail-lb0-f169.google.com with SMTP id z5so1557455lbh.14
+        for <linux-media@vger.kernel.org>; Fri, 03 May 2013 06:48:08 -0700 (PDT)
+Message-ID: <5183BFFF.3020709@cogentembedded.com>
+Date: Fri, 03 May 2013 17:47:43 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <5180E05C.7020206@gmail.com>
-References: <1367297493-31782-1-git-send-email-sachin.kamat@linaro.org>
-	<5180E05C.7020206@gmail.com>
-Date: Thu, 2 May 2013 09:49:23 +0530
-Message-ID: <CAK9yfHz-Q6t5YtQOHj7TgDvKzxeiJntJWdimkw4qf0dek3BW0A@mail.gmail.com>
-Subject: Re: [PATCH 1/1] [media] exynos4-is: Remove redundant NULL check in fimc-lite.c
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH] media: davinci: vpbe: fix layer availability for NV12
+ format
+References: <1367574783-19090-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1367574783-19090-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 1 May 2013 14:59, Sylwester Nawrocki <sylvester.nawrocki@gmail.com> wrote:
-> Sachin,
->
->
-> On 04/30/2013 06:51 AM, Sachin Kamat wrote:
->>
->> clk_unprepare checks for NULL pointer. Hence convert IS_ERR_OR_NULL
->> to IS_ERR only.
->>
->> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
->> ---
->>   drivers/media/platform/exynos4-is/fimc-lite.c |    2 +-
->>   1 file changed, 1 insertion(+), 1 deletion(-)
->>
->> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c
->> b/drivers/media/platform/exynos4-is/fimc-lite.c
->> index 661d0d1..2a0ef82 100644
->> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
->> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
->> @@ -1416,7 +1416,7 @@ static void
->> fimc_lite_unregister_capture_subdev(struct fimc_lite *fimc)
->>
->>   static void fimc_lite_clk_put(struct fimc_lite *fimc)
->>   {
->> -       if (IS_ERR_OR_NULL(fimc->clock))
->> +       if (IS_ERR(fimc->clock))
->>                 return;
->>
->>         clk_unprepare(fimc->clock);
->
->
-> I've queued this patch for 3.11 with the below chunk squashed to it:
+Hello.
 
-Thanks Sylwester.
+On 03-05-2013 13:53, Prabhakar Lad wrote:
 
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
--- 
-With warm regards,
-Sachin
+> For NV12 format, even if display data is single image,
+> both VIDWIN0 and VIDWIN1 parameters must be used. The start
+> address of Y data plane and C data plane is configured in
+> VIDEOWIN0ADH/L and VIDEOWIN1ADH/L respectively.
+> cuurently only one layer was requested, which is suffice
+> for yuv422, but for yuv420(NV12) two layers are required and
+> fix the same by requesting for other layer if pix fmt is NV12
+> during set_fmt.
+
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>   drivers/media/platform/davinci/vpbe_display.c |   16 ++++++++++++++++
+>   1 files changed, 16 insertions(+), 0 deletions(-)
+
+> diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+> index 0341dcc..f2ee07b 100644
+> --- a/drivers/media/platform/davinci/vpbe_display.c
+> +++ b/drivers/media/platform/davinci/vpbe_display.c
+> @@ -922,6 +922,22 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
+>   	other video window */
+>
+>   	layer->pix_fmt = *pixfmt;
+> +	if (pixfmt->pixelformat == V4L2_PIX_FMT_NV12 &&
+> +	    cpu_is_davinci_dm365()) {
+
+    cpu_is_*() shouldn't be used in the drivers.
+
+> +		struct vpbe_layer *otherlayer;
+> +
+> +		otherlayer = _vpbe_display_get_other_win_layer(disp_dev, layer);
+> +		/* if other layer is available, only
+> +		* claim it, do not configure it
+> +		*/
+> +		ret = osd_device->ops.request_layer(osd_device,
+> +						    otherlayer->layer_info.id);
+> +		if (ret < 0) {
+> +			v4l2_err(&vpbe_dev->v4l2_dev,
+> +				 "Display Manager failed to allocate layer\n");
+> +			return -EBUSY;
+> +		}
+> +	}
+
+WBR, Sergei
+
