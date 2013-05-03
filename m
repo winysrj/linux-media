@@ -1,57 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f171.google.com ([209.85.192.171]:35486 "EHLO
-	mail-pd0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752463Ab3EZMBO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 08:01:14 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 0/9] media: davinci: vpif trivial cleanup
-Date: Sun, 26 May 2013 17:30:03 +0530
-Message-Id: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail.free-electrons.com ([94.23.35.102]:38069 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750984Ab3ECCAc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 22:00:32 -0400
+Date: Thu, 2 May 2013 23:00:41 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: Re: [PATCH 0/3] saa7115: add detection code for gm7113c
+Message-ID: <20130503020039.GA5722@localhost>
+References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi Jon,
 
-This patch series cleans the VPIF driver, uses devm_* api wherever
-required and uses module_platform_driver() to simplify the code.
+On Mon, Apr 29, 2013 at 10:41:06PM +0200, Jon Arne Jørgensen wrote:
+> This is the second version of a patch-set previously posted by Mauro,
+> the first verseon was posted on 26 April, and can be found here:
+> http://www.spinics.net/lists/linux-media/msg63079.html
+> 
+> The purpose of this patch is to add support for the gm7113c chip in the saa7115 driver.
+> The gm7113c chip is a chinese clone of the Philips/NXP saa7113 chip.
+> The chip is found in several cheap usb video capture devices.
+> 
+>  drivers/media/i2c/saa7115.c     | 207 +++++++++++++++++++++++++++++-----------
+>  include/media/v4l2-chip-ident.h |   2 +
+>  2 files changed, 155 insertions(+), 54 deletions(-)
+> 
 
-This patch series applies on http://git.linuxtv.org/hverkuil/media_tree.git/
-shortlog/refs/heads/for-v3.11 and is tested on OMAP-L138.
+Good work! Just some minor comments about the way the patchset
+has been submitted.
 
-Changes for v2:
-1: Rebased on v3.11 branch of Hans.
-2: Dropped the patches which removed headers as mentioned by Laurent.
+First of all, this is a very ackward cover letter patch (cover letter is
+the zero-index patch). I think you will find easier to use
+git-format-patch command like this (just an example):
+  
+# Create a three-patch patchset:
+$ git format-patch -3 --cover-letter --subject "PATCH v2" -o my-v2-patchset
 
-Changes for v3:
-1: Splitted the patches logically as mentioned by Laurent.
-2: Fixed review comments pointed by Laurent.
-3: Included Ack's.
-
-
-Lad, Prabhakar (9):
-  media: davinci: vpif: remove unwanted header mach/hardware.h and sort
-    the includes alphabetically
-  media: davinci: vpif: Convert to devm_* api
-  media: davinci: vpif: remove unnecessary braces around defines
-  media: davinci: vpif_capture: move the freeing of irq and global
-    variables to remove()
-  media: davinci: vpif_capture: use module_platform_driver()
-  media: davinci: vpif_capture: Convert to devm_* api
-  media: davinci: vpif_display: move the freeing of irq and global
-    variables to remove()
-  media: davinci: vpif_display: use module_platform_driver()
-  media: davinci: vpif_display: Convert to devm_* api
-
- drivers/media/platform/davinci/vpif.c         |   45 ++++-----------
- drivers/media/platform/davinci/vpif_capture.c |   75 +++++--------------------
- drivers/media/platform/davinci/vpif_display.c |   63 ++++----------------
- 3 files changed, 40 insertions(+), 143 deletions(-)
-
+-- 
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
