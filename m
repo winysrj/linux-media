@@ -1,253 +1,201 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:32837 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754676Ab3ENLBb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 07:01:31 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: [PATCH v3] media: i2c: tvp514x: add OF support
-Date: Tue, 14 May 2013 16:30:36 +0530
-Message-Id: <1368529236-18199-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43748 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1762760Ab3ECII7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 04:08:59 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: mchehab@redhat.com
+Cc: ezequiel.garcia@free-electrons.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: [PATCH V4 1/3] saa7115: move the autodetection code out of the probe function
+Date: Fri,  3 May 2013 10:11:56 +0200
+Message-Id: <1367568718-4129-2-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1367568718-4129-1-git-send-email-jonarne@jonarne.no>
+References: <1367568718-4129-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+As we're now seeing other variants from chinese clones, like
+gm1113c, we'll need to add more bits at the detection code.
 
-add OF support for the tvp514x driver. Alongside this patch
-removes unnecessary header file inclusion and sorts them alphabetically.
+So, move it into a separate function.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: devicetree-discuss@lists.ozlabs.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 ---
-Tested on da850-evm.
+ drivers/media/i2c/saa7115.c | 133 +++++++++++++++++++++++++++-----------------
+ 1 file changed, 83 insertions(+), 50 deletions(-)
 
- RFC v1: https://patchwork.kernel.org/patch/2030061/
- RFC v2: https://patchwork.kernel.org/patch/2061811/
-
- Changes for current version from RFC v2:
- 1: Fixed review comments pointed by Sylwester.
-
- Changes for v2:
- 1: Listed all the compatible property values in the documentation text file.
- 2: Removed "-decoder" from compatible property values.
- 3: Added a reference to the V4L2 DT bindings documentation to explain
-    what the port and endpoint nodes are for.
- 4: Fixed some Nits pointed by Laurent.
- 5: Removed unnecessary header file includes and sort them alphabetically.
-
- Changes for v3:
- 1: Rebased on patch https://patchwork.kernel.org/patch/2539411/
-
- .../devicetree/bindings/media/i2c/tvp514x.txt      |   45 ++++++++++++
- drivers/media/i2c/tvp514x.c                        |   74 +++++++++++++++----
- 2 files changed, 103 insertions(+), 16 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-new file mode 100644
-index 0000000..cc09424
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-@@ -0,0 +1,45 @@
-+* Texas Instruments TVP514x video decoder
-+
-+The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
-+digital video decoder that digitizes and decodes all popular baseband analog
-+video formats into digital video component. The tvp514x decoder supports analog-
-+to-digital (A/D) conversion of component RGB and YPbPr signals as well as A/D
-+conversion and decoding of NTSC, PAL and SECAM composite and S-video into
-+component YCbCr.
-+
-+Required Properties :
-+- compatible : value should be either one among the following
-+	(a) "ti,tvp5146" for tvp5146 decoder.
-+	(b) "ti,tvp5146m2" for tvp5146m2 decoder.
-+	(c) "ti,tvp5147" for tvp5147 decoder.
-+	(d) "ti,tvp5147m1" for tvp5147m1 decoder.
-+
-+- hsync-active: HSYNC Polarity configuration for endpoint.
-+
-+- vsync-active: VSYNC Polarity configuration for endpoint.
-+
-+- pclk-sample: Clock polarity of the endpoint.
-+
-+
-+For further reading of port node refer Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		...
-+		tvp514x@5c {
-+			compatible = "ti,tvp5146";
-+			reg = <0x5c>;
-+
-+			port {
-+				tvp514x_1: endpoint {
-+					hsync-active = <1>;
-+					vsync-active = <1>;
-+					pclk-sample = <0>;
-+				};
-+			};
-+		};
-+		...
-+	};
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 01d9757..202c8cb 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -29,21 +29,16 @@
-  *
-  */
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 6b6788c..aa92478 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1561,46 +1561,103 @@ static const struct v4l2_subdev_ops saa711x_ops = {
  
--#include <linux/i2c.h>
--#include <linux/slab.h>
- #include <linux/delay.h>
--#include <linux/videodev2.h>
-+#include <linux/i2c.h>
- #include <linux/module.h>
--#include <linux/v4l2-mediabus.h>
+ /* ----------------------------------------------------------------------- */
  
-+#include <media/media-entity.h>
-+#include <media/tvp514x.h>
- #include <media/v4l2-async.h>
--#include <media/v4l2-device.h>
--#include <media/v4l2-common.h>
--#include <media/v4l2-mediabus.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
--#include <media/tvp514x.h>
--#include <media/media-entity.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-of.h>
- 
- #include "tvp514x_regs.h"
- 
-@@ -1056,6 +1051,40 @@ static struct tvp514x_decoder tvp514x_dev = {
- 
- };
- 
-+static struct tvp514x_platform_data *
-+tvp514x_get_pdata(struct i2c_client *client)
++/**
++ * saa711x_detect_chip - Detects the saa711x (or clone) variant
++ * @client:		I2C client structure.
++ * @id:			I2C device ID structure.
++ * @name:		Name of the device to be filled.
++ * @size:		Size of the name var.
++ *
++ * Detects the Philips/NXP saa711x chip, or some clone of it.
++ * if 'id' is NULL or id->driver_data is equal to 1, it auto-probes
++ * the analog demod.
++ * If the tuner is not found, it returns -ENODEV.
++ * If auto-detection is disabled and the tuner doesn't match what it was
++ *	requred, it returns -EINVAL and fills 'name'.
++ * If the chip is found, it returns the chip ID and fills 'name'.
++ */
++static int saa711x_detect_chip(struct i2c_client *client,
++			       const struct i2c_device_id *id,
++			       char *name, unsigned size)
 +{
-+	struct tvp514x_platform_data *pdata;
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct device_node *endpoint;
-+	unsigned int flags;
++	char chip_ver[size - 1];
++	char chip_id;
++	int i;
++	int autodetect;
 +
-+	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-+		return client->dev.platform_data;
++	autodetect = !id || id->driver_data == 1;
 +
-+	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-+	if (!endpoint)
-+		return NULL;
++	/* Read the chip version register */
++	for (i = 0; i < size - 1; i++) {
++		i2c_smbus_write_byte_data(client, 0, i);
++		chip_ver[i] = i2c_smbus_read_byte_data(client, 0);
++		name[i] = (chip_ver[i] & 0x0f) + '0';
++		if (name[i] > '9')
++			name[i] += 'a' - '9' - 1;
++	}
++	name[i] = '\0';
 +
-+	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return NULL;
++	/* Check if it is a Philips/NXP chip */
++	if (!memcmp(name + 1, "f711", 4)) {
++		chip_id = name[5];
++		snprintf(name, size, "saa711%c", chip_id);
 +
-+	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	flags = bus_cfg.bus.parallel.flags;
++		if (!autodetect && strcmp(name, id->name))
++			return -EINVAL;
 +
-+	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+		pdata->hs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+		pdata->vs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		pdata->clk_polarity = 1;
-+
-+	return pdata;
-+}
-+
- /**
-  * tvp514x_probe() - decoder driver i2c probe handler
-  * @client: i2c driver client device structure
-@@ -1067,19 +1096,20 @@ static struct tvp514x_decoder tvp514x_dev = {
- static int
- tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
-+	struct tvp514x_platform_data *pdata = tvp514x_get_pdata(client);
- 	struct tvp514x_decoder *decoder;
- 	struct v4l2_subdev *sd;
- 	int ret;
- 
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "No platform data\n");
-+		return -EINVAL;
++		switch (chip_id) {
++		case '1':
++			if (chip_ver[0] & 0xf0) {
++				snprintf(name, size, "saa711%ca", chip_id);
++				v4l_info(client, "saa7111a variant found\n");
++				return V4L2_IDENT_SAA7111A;
++			}
++			return V4L2_IDENT_SAA7111;
++		case '3':
++			return V4L2_IDENT_SAA7113;
++		case '4':
++			return V4L2_IDENT_SAA7114;
++		case '5':
++			return V4L2_IDENT_SAA7115;
++		case '8':
++			return V4L2_IDENT_SAA7118;
++		default:
++			v4l2_info(client,
++				  "WARNING: Philips/NXP chip unknown - Falling back to saa7111\n");
++			return V4L2_IDENT_SAA7111;
++		}
 +	}
 +
++	/* Chip was not discovered. Return its ID and don't bind */
++	v4l_dbg(1, debug, client, "chip %*ph @ 0x%x is unknown.\n",
++		16, chip_ver, client->addr << 1);
++	return -ENODEV;
++}
++
+ static int saa711x_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *id)
+ {
+ 	struct saa711x_state *state;
+ 	struct v4l2_subdev *sd;
+ 	struct v4l2_ctrl_handler *hdl;
+-	int i;
++	int ident;
+ 	char name[17];
+-	char chip_id;
+-	int autodetect = !id || id->driver_data == 1;
+ 
  	/* Check if the adapter supports the needed features */
  	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
  		return -EIO;
  
--	if (!client->dev.platform_data) {
--		v4l2_err(client, "No platform data!!\n");
--		return -ENODEV;
+-	for (i = 0; i < 0x0f; i++) {
+-		i2c_smbus_write_byte_data(client, 0, i);
+-		name[i] = (i2c_smbus_read_byte_data(client, 0) & 0x0f) + '0';
+-		if (name[i] > '9')
+-			name[i] += 'a' - '9' - 1;
 -	}
+-	name[i] = '\0';
 -
- 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
- 	if (!decoder)
- 		return -ENOMEM;
-@@ -1091,7 +1121,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 			sizeof(tvp514x_reg_list_default));
+-	chip_id = name[5];
+-
+-	/* Check whether this chip is part of the saa711x series */
+-	if (memcmp(name + 1, "f711", 4)) {
+-		v4l_dbg(1, debug, client, "chip found @ 0x%x (ID %s) does not match a known saa711x chip.\n",
+-			client->addr << 1, name);
++	ident = saa711x_detect_chip(client, id, name, sizeof(name));
++	if (ident == -EINVAL) {
++		/* Chip exists, but doesn't match */
++		v4l_warn(client, "found %s while %s was expected\n",
++			 name, id->name);
+ 		return -ENODEV;
+ 	}
++	if (ident < 0)
++		return ident;
  
- 	/* Copy board specific information here */
--	decoder->pdata = client->dev.platform_data;
-+	decoder->pdata = pdata;
+-	/* Safety check */
+-	if (!autodetect && id->name[6] != chip_id) {
+-		v4l_warn(client, "found saa711%c while %s was expected\n",
+-			 chip_id, id->name);
+-	}
+-	snprintf(client->name, sizeof(client->name), "saa711%c", chip_id);
+-	v4l_info(client, "saa711%c found (%s) @ 0x%x (%s)\n", chip_id, name,
+-		 client->addr << 1, client->adapter->name);
++	strlcpy(client->name, name, sizeof(client->name));
  
- 	/**
- 	 * Fetch platform specific data, and configure the
-@@ -1239,8 +1269,20 @@ static const struct i2c_device_id tvp514x_id[] = {
+ 	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
+ 	if (state == NULL)
+@@ -1637,31 +1694,7 @@ static int saa711x_probe(struct i2c_client *client,
+ 	state->output = SAA7115_IPORT_ON;
+ 	state->enable = 1;
+ 	state->radio = 0;
+-	switch (chip_id) {
+-	case '1':
+-		state->ident = V4L2_IDENT_SAA7111;
+-		if (saa711x_read(sd, R_00_CHIP_VERSION) & 0xf0) {
+-			v4l_info(client, "saa7111a variant found\n");
+-			state->ident = V4L2_IDENT_SAA7111A;
+-		}
+-		break;
+-	case '3':
+-		state->ident = V4L2_IDENT_SAA7113;
+-		break;
+-	case '4':
+-		state->ident = V4L2_IDENT_SAA7114;
+-		break;
+-	case '5':
+-		state->ident = V4L2_IDENT_SAA7115;
+-		break;
+-	case '8':
+-		state->ident = V4L2_IDENT_SAA7118;
+-		break;
+-	default:
+-		state->ident = V4L2_IDENT_SAA7111;
+-		v4l2_info(sd, "WARNING: Chip is not known - Falling back to saa7111\n");
+-		break;
+-	}
++	state->ident = ident;
  
- MODULE_DEVICE_TABLE(i2c, tvp514x_id);
+ 	state->audclk_freq = 48000;
  
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id tvp514x_of_match[] = {
-+	{ .compatible = "ti,tvp5146", },
-+	{ .compatible = "ti,tvp5146m2", },
-+	{ .compatible = "ti,tvp5147", },
-+	{ .compatible = "ti,tvp5147m1", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, tvp514x_of_match);
-+#endif
-+
- static struct i2c_driver tvp514x_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(tvp514x_of_match),
- 		.owner = THIS_MODULE,
- 		.name = TVP514X_MODULE_NAME,
- 	},
 -- 
-1.7.4.1
+1.8.2.1
 
