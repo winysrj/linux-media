@@ -1,245 +1,219 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:57468 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985Ab3EZNUR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 09:20:17 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50515 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758945Ab3ECKMS convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 06:12:18 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: [PATCH v5] media: i2c: tvp514x: add OF support
-Date: Sun, 26 May 2013 18:49:46 +0530
-Message-Id: <1369574386-24486-1-git-send-email-prabhakar.csengg@gmail.com>
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v3] media: i2c: tvp7002: enable TVP7002 decoder for media controller based usage
+Date: Fri, 03 May 2013 12:12:30 +0200
+Message-ID: <5303595.KDVplkloxh@avalon>
+In-Reply-To: <1367569039-12735-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1367569039-12735-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi Prabhakar,
 
-add OF support for the tvp514x driver.
+Thank you for the patch.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: devicetree-discuss@lists.ozlabs.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
----
-Tested on da850-evm.
+On Friday 03 May 2013 13:47:19 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> This patch enables tvp7002 decoder driver for media controller
+> based usage by adding v4l2_subdev_pad_ops  operations support
+> for enum_mbus_code, set_pad_format, get_pad_format and media_entity_init()
+> on probe and media_entity_cleanup() on remove.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
- RFC v1: https://patchwork.kernel.org/patch/2030061/
- RFC v2: https://patchwork.kernel.org/patch/2061811/
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
- Changes for current version from RFC v2:
- 1: Fixed review comments pointed by Sylwester.
-
- Changes for v2:
- 1: Listed all the compatible property values in the documentation text file.
- 2: Removed "-decoder" from compatible property values.
- 3: Added a reference to the V4L2 DT bindings documentation to explain
-    what the port and endpoint nodes are for.
- 4: Fixed some Nits pointed by Laurent.
- 5: Removed unnecessary header file includes and sort them alphabetically.
-
- Changes for v3:
- 1: Rebased on patch https://patchwork.kernel.org/patch/2539411/
-
- Changes for v4:
- 1: added missing call for of_node_put().
- 2: Rebased the patch on v3.11.
- 
- Changes for v5:
- 1: Fixed calling to a wrong label.
- 
- .../devicetree/bindings/media/i2c/tvp514x.txt      |   45 ++++++++++++++
- drivers/media/i2c/tvp514x.c                        |   62 ++++++++++++++++++--
- 2 files changed, 101 insertions(+), 6 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-new file mode 100644
-index 0000000..cc09424
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
-@@ -0,0 +1,45 @@
-+* Texas Instruments TVP514x video decoder
-+
-+The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
-+digital video decoder that digitizes and decodes all popular baseband analog
-+video formats into digital video component. The tvp514x decoder supports analog-
-+to-digital (A/D) conversion of component RGB and YPbPr signals as well as A/D
-+conversion and decoding of NTSC, PAL and SECAM composite and S-video into
-+component YCbCr.
-+
-+Required Properties :
-+- compatible : value should be either one among the following
-+	(a) "ti,tvp5146" for tvp5146 decoder.
-+	(b) "ti,tvp5146m2" for tvp5146m2 decoder.
-+	(c) "ti,tvp5147" for tvp5147 decoder.
-+	(d) "ti,tvp5147m1" for tvp5147m1 decoder.
-+
-+- hsync-active: HSYNC Polarity configuration for endpoint.
-+
-+- vsync-active: VSYNC Polarity configuration for endpoint.
-+
-+- pclk-sample: Clock polarity of the endpoint.
-+
-+
-+For further reading of port node refer Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		...
-+		tvp514x@5c {
-+			compatible = "ti,tvp5146";
-+			reg = <0x5c>;
-+
-+			port {
-+				tvp514x_1: endpoint {
-+					hsync-active = <1>;
-+					vsync-active = <1>;
-+					pclk-sample = <0>;
-+				};
-+			};
-+		};
-+		...
-+	};
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 7438e01..7ed999b 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -39,6 +39,7 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-mediabus.h>
-+#include <media/v4l2-of.h>
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- #include <media/tvp514x.h>
-@@ -1055,6 +1056,42 @@ static struct tvp514x_decoder tvp514x_dev = {
- 
- };
- 
-+static struct tvp514x_platform_data *
-+tvp514x_get_pdata(struct i2c_client *client)
-+{
-+	struct tvp514x_platform_data *pdata = NULL;
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct device_node *endpoint;
-+	unsigned int flags;
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-+		return client->dev.platform_data;
-+
-+	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-+	if (!endpoint)
-+		return NULL;
-+
-+	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		goto done;
-+
-+	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	flags = bus_cfg.bus.parallel.flags;
-+
-+	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+		pdata->hs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+		pdata->vs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		pdata->clk_polarity = 1;
-+
-+done:
-+	of_node_put(endpoint);
-+	return pdata;
-+}
-+
- /**
-  * tvp514x_probe() - decoder driver i2c probe handler
-  * @client: i2c driver client device structure
-@@ -1066,19 +1103,20 @@ static struct tvp514x_decoder tvp514x_dev = {
- static int
- tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- {
-+	struct tvp514x_platform_data *pdata = tvp514x_get_pdata(client);
- 	struct tvp514x_decoder *decoder;
- 	struct v4l2_subdev *sd;
- 	int ret;
- 
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "No platform data\n");
-+		return -EINVAL;
-+	}
-+
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -EIO;
- 
--	if (!client->dev.platform_data) {
--		v4l2_err(client, "No platform data!!\n");
--		return -ENODEV;
--	}
--
- 	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
- 	if (!decoder)
- 		return -ENOMEM;
-@@ -1090,7 +1128,7 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 			sizeof(tvp514x_reg_list_default));
- 
- 	/* Copy board specific information here */
--	decoder->pdata = client->dev.platform_data;
-+	decoder->pdata = pdata;
- 
- 	/**
- 	 * Fetch platform specific data, and configure the
-@@ -1230,8 +1268,20 @@ static const struct i2c_device_id tvp514x_id[] = {
- 
- MODULE_DEVICE_TABLE(i2c, tvp514x_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id tvp514x_of_match[] = {
-+	{ .compatible = "ti,tvp5146", },
-+	{ .compatible = "ti,tvp5146m2", },
-+	{ .compatible = "ti,tvp5147", },
-+	{ .compatible = "ti,tvp5147m1", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, tvp514x_of_match);
-+#endif
-+
- static struct i2c_driver tvp514x_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(tvp514x_of_match),
- 		.owner = THIS_MODULE,
- 		.name = TVP514X_MODULE_NAME,
- 	},
+> ---
+>  Changes for v2:
+>   1: Fixed review comment pointed by Laurent, Don’t return error for set_fmt
+> but fix the input parameters according to current timings.
+> 
+>  Changes for v3:
+>   1: Fixed review comments pointed by Laurent.
+> 
+>  drivers/media/i2c/tvp7002.c |   96 ++++++++++++++++++++++++++++++++++++++--
+>  include/media/tvp7002.h     |    2 +
+>  2 files changed, 93 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+> index 027809c..270e699 100644
+> --- a/drivers/media/i2c/tvp7002.c
+> +++ b/drivers/media/i2c/tvp7002.c
+> @@ -424,6 +424,7 @@ struct tvp7002 {
+>  	int streaming;
+> 
+>  	const struct tvp7002_timings_definition *current_timings;
+> +	struct media_pad pad;
+>  };
+> 
+>  /*
+> @@ -880,6 +881,65 @@ static const struct v4l2_ctrl_ops tvp7002_ctrl_ops = {
+>  	.s_ctrl = tvp7002_s_ctrl,
+>  };
+> 
+> +/*
+> + * tvp7002_enum_mbus_code() - Enum supported digital video format on pad
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @fh: file handle for the subdev
+> + * @code: pointer to subdev enum mbus code struct
+> + *
+> + * Enumerate supported digital video formats for pad.
+> + */
+> +static int
+> +tvp7002_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> +		       struct v4l2_subdev_mbus_code_enum *code)
+> +{
+> +	/* Check requested format index is within range */
+> +	if (code->index != 0)
+> +		return -EINVAL;
+> +
+> +	code->code = V4L2_MBUS_FMT_YUYV10_1X20;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * tvp7002_get_pad_format() - get video format on pad
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @fh: file handle for the subdev
+> + * @fmt: pointer to subdev format struct
+> + *
+> + * get video format for pad.
+> + */
+> +static int
+> +tvp7002_get_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> +		       struct v4l2_subdev_format *fmt)
+> +{
+> +	struct tvp7002 *tvp7002 = to_tvp7002(sd);
+> +
+> +	fmt->format.code = V4L2_MBUS_FMT_YUYV10_1X20;
+> +	fmt->format.width = tvp7002->current_timings->timings.bt.width;
+> +	fmt->format.height = tvp7002->current_timings->timings.bt.height;
+> +	fmt->format.field = tvp7002->current_timings->scanmode;
+> +	fmt->format.colorspace = tvp7002->current_timings->color_space;
+> +
+> +	return 0;
+> +}
+> +
+> +/*
+> + * tvp7002_set_pad_format() - set video format on pad
+> + * @sd: pointer to standard V4L2 sub-device structure
+> + * @fh: file handle for the subdev
+> + * @fmt: pointer to subdev format struct
+> + *
+> + * set video format for pad.
+> + */
+> +static int
+> +tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
+> +		       struct v4l2_subdev_format *fmt)
+> +{
+> +	return tvp7002_get_pad_format(sd, fh, fmt);
+> +}
+> +
+>  /* V4L2 core operation handlers */
+>  static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+>  	.g_chip_ident = tvp7002_g_chip_ident,
+> @@ -910,10 +970,18 @@ static const struct v4l2_subdev_video_ops
+> tvp7002_video_ops = { .enum_mbus_fmt = tvp7002_enum_mbus_fmt,
+>  };
+> 
+> +/* media pad related operation handlers */
+> +static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
+> +	.enum_mbus_code = tvp7002_enum_mbus_code,
+> +	.get_fmt = tvp7002_get_pad_format,
+> +	.set_fmt = tvp7002_set_pad_format,
+> +};
+> +
+>  /* V4L2 top level operation handlers */
+>  static const struct v4l2_subdev_ops tvp7002_ops = {
+>  	.core = &tvp7002_core_ops,
+>  	.video = &tvp7002_video_ops,
+> +	.pad = &tvp7002_pad_ops,
+>  };
+> 
+>  /*
+> @@ -993,19 +1061,35 @@ static int tvp7002_probe(struct i2c_client *c, const
+> struct i2c_device_id *id) timings = device->current_timings->timings;
+>  	error = tvp7002_s_dv_timings(sd, &timings);
+> 
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	strlcpy(sd->name, TVP7002_MODULE_NAME, sizeof(sd->name));
+> +	device->pad.flags = MEDIA_PAD_FL_SOURCE;
+> +	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+> +	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+> +
+> +	error = media_entity_init(&device->sd.entity, 1, &device->pad, 0);
+> +	if (error < 0)
+> +		return error;
+> +#endif
+> +
+>  	v4l2_ctrl_handler_init(&device->hdl, 1);
+>  	v4l2_ctrl_new_std(&device->hdl, &tvp7002_ctrl_ops,
+>  			V4L2_CID_GAIN, 0, 255, 1, 0);
+>  	sd->ctrl_handler = &device->hdl;
+>  	if (device->hdl.error) {
+> -		int err = device->hdl.error;
+> -
+> -		v4l2_ctrl_handler_free(&device->hdl);
+> -		return err;
+> +		error = device->hdl.error;
+> +		goto error;
+>  	}
+>  	v4l2_ctrl_handler_setup(&device->hdl);
+> 
+>  	return 0;
+> +
+> +error:
+> +	v4l2_ctrl_handler_free(&device->hdl);
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	media_entity_cleanup(&device->sd.entity);
+> +#endif
+> +	return error;
+>  }
+> 
+>  /*
+> @@ -1022,7 +1106,9 @@ static int tvp7002_remove(struct i2c_client *c)
+> 
+>  	v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
+>  				"on address 0x%x\n", c->addr);
+> -
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	media_entity_cleanup(&device->sd.entity);
+> +#endif
+>  	v4l2_device_unregister_subdev(sd);
+>  	v4l2_ctrl_handler_free(&device->hdl);
+>  	return 0;
+> diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
+> index ee43534..7123048 100644
+> --- a/include/media/tvp7002.h
+> +++ b/include/media/tvp7002.h
+> @@ -26,6 +26,8 @@
+>  #ifndef _TVP7002_H_
+>  #define _TVP7002_H_
+> 
+> +#define TVP7002_MODULE_NAME "tvp7002"
+> +
+>  /* Platform-dependent data
+>   *
+>   * clk_polarity:
 -- 
-1.7.0.4
+Regards,
+
+Laurent Pinchart
 
