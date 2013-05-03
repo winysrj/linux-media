@@ -1,63 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:55967 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750936Ab3ENGrv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 02:47:51 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH RFC v3 0/4] media: davinci: vpif: capture/display support for async subdevice probing
-Date: Tue, 14 May 2013 12:17:32 +0530
-Message-Id: <1368514056-28859-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-wg0-f51.google.com ([74.125.82.51]:40647 "EHLO
+	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1762324Ab3ECNiW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 09:38:22 -0400
+Received: by mail-wg0-f51.google.com with SMTP id b13so1627449wgh.30
+        for <linux-media@vger.kernel.org>; Fri, 03 May 2013 06:38:21 -0700 (PDT)
+MIME-Version: 1.0
+Date: Fri, 3 May 2013 15:38:20 +0200
+Message-ID: <CAF3Vj=o-dmXFXTz8MaQhQ0SnB23Ppvz-BFtHmE-t9RTG7sz=7A@mail.gmail.com>
+Subject: [PATCH] it913x: add support for 'Digital Dual TV Receiver CTVDIGDUAL v2
+From: Alessandro Miceli <angelofsky1980@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+This patch add support for 'Digital Dual TV Receiver CTVDIGDUAL v2.
 
-This patch series adds support for vpif capture and display
-driver to support asynchronously register subdevices.
-The first two patches adds asynchronous probing for adv7343
-and tvp514x respectively.
+It's tested with a MIPSEL Linux box with 3.3.6 kernel.
 
-Need for this support:
-Currently bridge device drivers register devices for all subdevices
-synchronously, typically, during their probing. E.g. if an I2C CMOS sensor
-is attached to a video bridge device, the bridge driver will create an I2C
-device and wait for the respective I2C driver to probe. This makes linking
-of devices straight forward, but this approach cannot be used with
-intrinsically asynchronous and unordered device registration systems like
-the Flattened Device Tree.
+The kernel output text when the device is being detected is:
 
-This series is dependent on following patches:
-1: https://patchwork.kernel.org/patch/2437111/
-2: https://patchwork.linuxtv.org/patch/18096/
+usbcore: registered new interface driver dvb_usb_it913x
+it913x: Chip Version=01 Chip Type=9135
+it913x: Remote propriety (raw) mode
+it913x: Dual mode=3 Tuner Type=38
+it913x: Chip Version=01 Chip Type=9135
+usb 2-1: dvb_usb_v2: found a 'Digital Dual TV Receiver CTVDIGDUAL_V2'
+in cold state
+usb 2-1: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9137-01.fw'
+it913x: FRM Starting Firmware Download
+it913x: FRM Firmware Download Completed - Resetting Device
+it913x: Chip Version=01 Chip Type=9135
+it913x: Firmware Version 204147968
+usb 2-1: dvb_usb_v2: found a 'Digital Dual TV Receiver CTVDIGDUAL_V2'
+in warm state
+usb 2-1: dvb_usb_v2: will pass the complete MPEG2 transport stream to
+the software demuxer
+DVB: registering new adapter (Digital Dual TV Receiver CTVDIGDUAL_V2)
+it913x-fe: ADF table value      :00
+it913x-fe: Crystal Frequency :12000000 Adc Frequency :20250000 ADC X2: 00
+it913x-fe: Tuner LNA type :38
+usb 2-1: DVB: registering adapter 1 frontend 0 (Digital Dual TV
+Receiver CTVDIGDUAL_V2_1)...
+usb 2-1: dvb_usb_v2: will pass the complete MPEG2 transport stream to
+the software demuxer
+DVB: registering new adapter (Digital Dual TV Receiver CTVDIGDUAL_V2)
+it913x-fe: ADF table value      :00
+it913x-fe: Crystal Frequency :12000000 Adc Frequency :20250000 ADC X2: 00
+it913x-fe: Tuner LNA type :38
+usb 2-1: DVB: registering adapter 2 frontend 0 (Digital Dual TV
+Receiver CTVDIGDUAL_V2_2)...
+usb 2-1: dvb_usb_v2: 'Digital Dual TV Receiver CTVDIGDUAL_V2'
+successfully initialized and connected
 
-Changes for v3:
-1: Fixed review comment pointed out by Guennadi.
+RC part not tested
+DVB-T services scan and tune works regularly.
 
-Changes for v2:
-1: added support v4l-async support for vpif display driver.
-2: added asynchronous probing for adv7343.
+Signed-off-by: Alessandro Miceli <angelofsky1980@gmail.com>
 
+---
 
-Lad, Prabhakar (4):
-  media: i2c: adv7343: add support for asynchronous probing
-  media: i2c: tvp514x: add support for asynchronous probing
-  media: davinci: vpif: capture: add V4L2-async support
-  media: davinci: vpif: display: add V4L2-async support
+diff --git a/drivers/media/dvb-core/dvb-usb-ids.h
+b/drivers/media/dvb-core/dvb-usb-ids.h
+index 335a8f4..2e0709a 100644
+--- a/drivers/media/dvb-core/dvb-usb-ids.h
++++ b/drivers/media/dvb-core/dvb-usb-ids.h
+@@ -367,4 +367,5 @@
+ #define USB_PID_TECHNISAT_USB2_HDCI_V2                 0x0002
+ #define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2          0x0004
+ #define USB_PID_TECHNISAT_USB2_DVB_S2                  0x0500
++#define USB_PID_CTVDIGDUAL_V2                          0xe410
+ #endif
+diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c
+b/drivers/media/usb/dvb-usb-v2/it913x.c
+index e48cdeb..1cb6899 100644
+--- a/drivers/media/usb/dvb-usb-v2/it913x.c
++++ b/drivers/media/usb/dvb-usb-v2/it913x.c
+@@ -45,7 +45,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info
+(or-able)).");
 
- drivers/media/i2c/adv7343.c                   |   16 ++-
- drivers/media/i2c/tvp514x.c                   |   23 ++-
- drivers/media/platform/davinci/vpif_capture.c |  151 ++++++++++++------
- drivers/media/platform/davinci/vpif_capture.h |    2 +
- drivers/media/platform/davinci/vpif_display.c |  219 +++++++++++++++----------
- drivers/media/platform/davinci/vpif_display.h |    3 +-
- include/media/davinci/vpif_types.h            |    4 +
- 7 files changed, 272 insertions(+), 146 deletions(-)
-
--- 
-1.7.4.1
-
+ static int dvb_usb_it913x_firmware;
+ module_param_named(firmware, dvb_usb_it913x_firmware, int, 0644);
+-MODULE_PARM_DESC(firmware, "set firmware 0=auto"\
++MODULE_PARM_DESC(firmware, "set firmware 0=auto "\
+        "1=IT9137 2=IT9135 V1 3=IT9135 V2");
+ #define FW_IT9137 "dvb-usb-it9137-01.fw"
+ #define FW_IT9135_V1 "dvb-usb-it9135-01.fw"
+@@ -796,6 +796,9 @@ static const struct usb_device_id it913x_id_table[] = {
+        { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
+                &it913x_properties, "Avermedia A835B(4835)",
+                        RC_MAP_IT913X_V2) },
++       { DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
++               &it913x_properties, "Digital Dual TV Receiver CTVDIGDUAL_V2",
++                       RC_MAP_IT913X_V1) },
+        {}              /* Terminating entry */
+ };
