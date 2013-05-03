@@ -1,113 +1,208 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from hydra.sisk.pl ([212.160.235.94]:55392 "EHLO hydra.sisk.pl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1761658Ab3EBSpc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 May 2013 14:45:32 -0400
-From: "Rafael J. Wysocki" <rjw@sisk.pl>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Dave Airlie <airlied@redhat.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Herbert Xu <herbert@gondor.hengli.com.au>,
-	"John W. Linville" <linville@tuxdriver.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Oliver Hartkopp <socketcan@hartkopp.net>,
-	Robert Richter <rric@kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	Zhang Rui <rui.zhang@intel.com>, cpufreq@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-can@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-pm@vger.kernel.org,
-	oprofile-list@lists.sf.net
-Subject: Re: [PATCH, RFC 00/22] ARM randconfig bugs
-Date: Thu, 02 May 2013 20:53:44 +0200
-Message-ID: <2710056.LHQ0Ee0x8t@vostro.rjw.lan>
-In-Reply-To: <1367507786-505303-1-git-send-email-arnd@arndb.de>
-References: <1367507786-505303-1-git-send-email-arnd@arndb.de>
+Received: from mail-pa0-f53.google.com ([209.85.220.53]:43378 "EHLO
+	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761830Ab3ECIRg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 04:17:36 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: =?UTF-8?q?=5BPATCH=20v3=5D=20media=3A=20i2c=3A=20tvp7002=3A=20enable=20TVP7002=20decoder=20for=20media=20controller=20based=20usage?=
+Date: Fri,  3 May 2013 13:47:19 +0530
+Message-Id: <1367569039-12735-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="utf-8"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday, May 02, 2013 05:16:04 PM Arnd Bergmann wrote:
-> Hi subsystem maintainers,
-> 
-> This is a set of patches to to fix build errors I hit while trying to
-> build lots of randconfig kernels on linux-next.
-> 
-> Most of them are simple missing dependencies in Kconfig, but some are
-> more substantial. I would like to see at least the obvious patches
-> get merged for 3.10. If you are happy with the patches, feel free
-> to apply them directly, otherwise please provide feedback.
-> 
-> No single patch out of these is very important though, most of them
-> only concern corner cases and don't matter in practice.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-For cpufreq and cpuidle:
+This patch enables tvp7002 decoder driver for media controller
+based usage by adding v4l2_subdev_pad_ops  operations support
+for enum_mbus_code, set_pad_format, get_pad_format and media_entity_init()
+on probe and media_entity_cleanup() on remove.
 
-Acked-by: Rafael J. Wysocki <rafael.j.wysocki@intel.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ Changes for v2:
+  1: Fixed review comment pointed by Laurent, Don’t return error for set_fmt
+    but fix the input parameters according to current timings.
 
-> Arnd Bergmann (22):
->   can: move CONFIG_HAVE_CAN_FLEXCAN out of CAN_DEV
->   cpufreq: ARM_DT_BL_CPUFREQ needs ARM_CPU_TOPOLOGY
->   cpuidle: calxeda: select ARM_CPU_SUSPEND
->   staging/drm: imx: add missing dependencies
->   drm: always provide debugfs function prototypes
->   gpu/drm: host1x: add dependency on Tegra
->   drm/tilcd: select BACKLIGHT_LCD_SUPPORT
->   OMAPDSS: DPI needs DSI
->   crypto: lz4: don't build on ARM
->   mfd: ab8500: debugfs code depends on gpadc
->   iwlegacy: il_pm_ops is only provided for PM_SLEEP
->   thermal: cpu_cooling: fix stub function
->   staging/logger: use kuid_t internally
->   oprofile: always enable IRQ_WORK
->   USB: EHCI: remove bogus #error
->   USB: UHCI: clarify Kconfig dependencies
->   USB: OHCI: clarify Kconfig dependencies
->   Xen: SWIOTLB is only used on x86
->   staging/solo6x10: depend on CONFIG_FONTS
->   media: coda: select GENERIC_ALLOCATOR
->   davinci: vpfe_capture needs i2c
->   radio-si4713: depend on SND_SOC
-> 
->  arch/Kconfig                           |  1 +
->  crypto/Kconfig                         |  2 ++
->  drivers/cpufreq/Kconfig.arm            |  1 +
->  drivers/cpuidle/Kconfig                |  1 +
->  drivers/gpu/drm/tilcdc/Kconfig         |  1 +
->  drivers/gpu/host1x/drm/Kconfig         |  1 +
->  drivers/media/platform/Kconfig         |  1 +
->  drivers/media/platform/davinci/Kconfig |  3 ++
->  drivers/media/radio/Kconfig            |  1 +
->  drivers/mfd/Kconfig                    |  2 +-
->  drivers/net/can/Kconfig                |  6 ++--
->  drivers/net/wireless/iwlegacy/common.h |  2 +-
->  drivers/staging/android/logger.c       |  4 +--
->  drivers/staging/android/logger.h       |  2 +-
->  drivers/staging/imx-drm/Kconfig        |  4 +++
->  drivers/staging/media/solo6x10/Kconfig |  1 +
->  drivers/usb/host/Kconfig               | 65 +++++++++++++++++++++++++++++-----
->  drivers/usb/host/Makefile              |  4 +--
->  drivers/usb/host/ehci-hcd.c            | 17 ---------
->  drivers/usb/host/ohci-hcd.c            | 19 ----------
->  drivers/usb/host/uhci-hcd.c            |  4 +--
->  drivers/video/console/Makefile         |  2 ++
->  drivers/video/omap2/dss/Kconfig        |  1 +
->  drivers/xen/Kconfig                    |  2 +-
->  include/drm/drmP.h                     |  3 +-
->  include/linux/cpu_cooling.h            |  2 +-
->  26 files changed, 91 insertions(+), 61 deletions(-)
-> 
-> 
+ Changes for v3:
+  1: Fixed review comments pointed by Laurent.
+
+ drivers/media/i2c/tvp7002.c |   96 ++++++++++++++++++++++++++++++++++++++++--
+ include/media/tvp7002.h     |    2 +
+ 2 files changed, 93 insertions(+), 5 deletions(-)
+
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 027809c..270e699 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -424,6 +424,7 @@ struct tvp7002 {
+ 	int streaming;
+ 
+ 	const struct tvp7002_timings_definition *current_timings;
++	struct media_pad pad;
+ };
+ 
+ /*
+@@ -880,6 +881,65 @@ static const struct v4l2_ctrl_ops tvp7002_ctrl_ops = {
+ 	.s_ctrl = tvp7002_s_ctrl,
+ };
+ 
++/*
++ * tvp7002_enum_mbus_code() - Enum supported digital video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @code: pointer to subdev enum mbus code struct
++ *
++ * Enumerate supported digital video formats for pad.
++ */
++static int
++tvp7002_enum_mbus_code(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_mbus_code_enum *code)
++{
++	/* Check requested format index is within range */
++	if (code->index != 0)
++		return -EINVAL;
++
++	code->code = V4L2_MBUS_FMT_YUYV10_1X20;
++
++	return 0;
++}
++
++/*
++ * tvp7002_get_pad_format() - get video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @fmt: pointer to subdev format struct
++ *
++ * get video format for pad.
++ */
++static int
++tvp7002_get_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_format *fmt)
++{
++	struct tvp7002 *tvp7002 = to_tvp7002(sd);
++
++	fmt->format.code = V4L2_MBUS_FMT_YUYV10_1X20;
++	fmt->format.width = tvp7002->current_timings->timings.bt.width;
++	fmt->format.height = tvp7002->current_timings->timings.bt.height;
++	fmt->format.field = tvp7002->current_timings->scanmode;
++	fmt->format.colorspace = tvp7002->current_timings->color_space;
++
++	return 0;
++}
++
++/*
++ * tvp7002_set_pad_format() - set video format on pad
++ * @sd: pointer to standard V4L2 sub-device structure
++ * @fh: file handle for the subdev
++ * @fmt: pointer to subdev format struct
++ *
++ * set video format for pad.
++ */
++static int
++tvp7002_set_pad_format(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh,
++		       struct v4l2_subdev_format *fmt)
++{
++	return tvp7002_get_pad_format(sd, fh, fmt);
++}
++
+ /* V4L2 core operation handlers */
+ static const struct v4l2_subdev_core_ops tvp7002_core_ops = {
+ 	.g_chip_ident = tvp7002_g_chip_ident,
+@@ -910,10 +970,18 @@ static const struct v4l2_subdev_video_ops tvp7002_video_ops = {
+ 	.enum_mbus_fmt = tvp7002_enum_mbus_fmt,
+ };
+ 
++/* media pad related operation handlers */
++static const struct v4l2_subdev_pad_ops tvp7002_pad_ops = {
++	.enum_mbus_code = tvp7002_enum_mbus_code,
++	.get_fmt = tvp7002_get_pad_format,
++	.set_fmt = tvp7002_set_pad_format,
++};
++
+ /* V4L2 top level operation handlers */
+ static const struct v4l2_subdev_ops tvp7002_ops = {
+ 	.core = &tvp7002_core_ops,
+ 	.video = &tvp7002_video_ops,
++	.pad = &tvp7002_pad_ops,
+ };
+ 
+ /*
+@@ -993,19 +1061,35 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 	timings = device->current_timings->timings;
+ 	error = tvp7002_s_dv_timings(sd, &timings);
+ 
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	strlcpy(sd->name, TVP7002_MODULE_NAME, sizeof(sd->name));
++	device->pad.flags = MEDIA_PAD_FL_SOURCE;
++	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
++	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
++
++	error = media_entity_init(&device->sd.entity, 1, &device->pad, 0);
++	if (error < 0)
++		return error;
++#endif
++
+ 	v4l2_ctrl_handler_init(&device->hdl, 1);
+ 	v4l2_ctrl_new_std(&device->hdl, &tvp7002_ctrl_ops,
+ 			V4L2_CID_GAIN, 0, 255, 1, 0);
+ 	sd->ctrl_handler = &device->hdl;
+ 	if (device->hdl.error) {
+-		int err = device->hdl.error;
+-
+-		v4l2_ctrl_handler_free(&device->hdl);
+-		return err;
++		error = device->hdl.error;
++		goto error;
+ 	}
+ 	v4l2_ctrl_handler_setup(&device->hdl);
+ 
+ 	return 0;
++
++error:
++	v4l2_ctrl_handler_free(&device->hdl);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&device->sd.entity);
++#endif
++	return error;
+ }
+ 
+ /*
+@@ -1022,7 +1106,9 @@ static int tvp7002_remove(struct i2c_client *c)
+ 
+ 	v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
+ 				"on address 0x%x\n", c->addr);
+-
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&device->sd.entity);
++#endif
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&device->hdl);
+ 	return 0;
+diff --git a/include/media/tvp7002.h b/include/media/tvp7002.h
+index ee43534..7123048 100644
+--- a/include/media/tvp7002.h
++++ b/include/media/tvp7002.h
+@@ -26,6 +26,8 @@
+ #ifndef _TVP7002_H_
+ #define _TVP7002_H_
+ 
++#define TVP7002_MODULE_NAME "tvp7002"
++
+ /* Platform-dependent data
+  *
+  * clk_polarity:
 -- 
-I speak only for myself.
-Rafael J. Wysocki, Intel Open Source Technology Center.
+1.7.4.1
+
