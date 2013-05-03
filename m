@@ -1,223 +1,187 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:25594 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051Ab3EOLup (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 07:50:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [PATCH RFC v2 3/3] media: added managed v4l2 subdevice initialization
-Date: Wed, 15 May 2013 13:50:40 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com
-References: <1368434086-9027-1-git-send-email-a.hajda@samsung.com> <201305131124.23598.hverkuil@xs4all.nl> <5193475C.5040908@samsung.com>
-In-Reply-To: <5193475C.5040908@samsung.com>
+Received: from venus.vo.lu ([80.90.45.96]:64959 "EHLO venus.vo.lu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752809Ab3ECJGK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 May 2013 05:06:10 -0400
+Received: from cartman.bxl.tuxicoman.be ([172.18.0.2] helo=webmail.tuxicoman.be)
+	by ibiza.bxl.tuxicoman.be with esmtp (Exim 4.80.1)
+	(envelope-from <gmsoft@tuxicoman.be>)
+	id 1UYBhf-0004Sp-Vw
+	for linux-media@vger.kernel.org; Fri, 03 May 2013 10:50:56 +0200
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305151350.40979.hverkuil@xs4all.nl>
+Content-Type: multipart/mixed;
+ boundary="=_101232f5369a93b95dccd09bdbde5dbb"
+Date: Fri, 03 May 2013 10:50:55 +0200
+From: Guy Martin <gmsoft@tuxicoman.be>
+To: <linux-media@vger.kernel.org>
+Subject: [PATCH] v4l-utils: Fix POLARIZATION support for dvbv5-scan
+Message-ID: <d54c86d6dcfdff0252f52e2711f8651d@tuxicoman.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 15 May 2013 10:29:16 Andrzej Hajda wrote:
-> On 13.05.2013 11:24, Hans Verkuil wrote:
-> > Hi Andrzej,
-> >
-> > On Mon May 13 2013 10:34:46 Andrzej Hajda wrote:
-> >> This patch adds managed versions of initialization
-> >> functions for v4l2 subdevices.
-> > I figured out what is bothering me about this patch: the fact that it is
-> > tied to the v4l2_i2c_subdev_init/v4l2_subdev_init functions. Normally devm
-> > functions are wrappers around functions that actually allocate some resource.
-> > That's not the case with these subdev_init functions, they just initialize
-> > fields in a struct.
-> clk_get do not perform any allocation for now, there is only requirement(?)
-> that it should be paired with clk_put, and that is what devm_clk_get
-> actually does.
-> 
-> >
-> > Why not drop those wrappers and just provide the devm_v4l2_subdev_bind
-> > function? That's actually the one that is doing the binding, and is a function
-> > drivers can call explicitly.
-> 
-> struct v4l2_subdev does not need allocation on initialization,
-> but an 'allocation' (subdev registration) usually happens during its
-> lifetime and is performed from outside (from v4l2 device), in fact it can
-> happen multiple times.
-> On v4l2_subdev de-initialization/cleanup/destruction we should ensure
-> it is not registered and eventually unregister it and all this is performed
-> by v4l2_device_unregister_subdev. So v4l2_device_unregister_subdev function
-> seems to be natural cleanup routine for v4l2_subdev and it is used this
-> way in most of the drivers.
-> 
-> All this lengthly explanation is to show that devm_v4l2*subdev_init just
-> initializes v4l2_subdev in a managed way - besides fields initialization
-> it adds automatic cleanup routine.
-> >
-> > The only thing you need to add to devm_v4l2_subdev_bind is a WARN_ON check that
-> > sd->ops != NULL, verifying that v4l2_subdev_init was called before the
-> > bind().
-> OK.
-> >
-> > I would be much happier with that solution.
-> I hope my reasoning above will convince you, if not I will adjust the
-> patch accordingly.
+--=_101232f5369a93b95dccd09bdbde5dbb
+Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8;
+ format=flowed
 
-You have convinced me only partially. v4l2_subdev_init should *not* be managed:
-it really is just an initialization function and for non-i2c and non-spi subdevs
-there is generally no cleanup needed (or it is done automatically when the
-v4l2_device is unregistered).
+Hi all,
 
-For v4l2_i2c/spi_subdev_init it makes sense to manage that since there cleanup
-is needed. Actually, to be precise: cleanup is only needed if the i2c adapter
-is released before the v4l2_device is unregistered. In general the order is
-unknown, so cleanup is needed.
+The attached patch fix support for the POLARIZATION parameter in 
+channel files used by dvbv5-scan.
+I took the liberty of removing the parsing of the 'extra DTV_foo' 
+properties since they are all handled separately in dvb-file.c.
+Please note that the size of struct dvb_v5_fe_parms as well as struct 
+dvb_entry changes which might require a bump in library version.
+Tested with DVB-S and DVB-S2.
+
+Support for POLARIZATION is not working yet with dvbv5-zap and will 
+come in a later patch.
 
 Regards,
+   Guy
 
-	Hans
+dvbv5-scan: Add support for POLARIZATION setting
 
-> 
-> Regards
-> Andrzej
-> >
-> > Regards,
-> >
-> > 	Hans
-> >
-> >> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> >> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> ---
-> >> v2:
-> >> 	- changes of v4l2-ctrls.h moved to proper patch
-> >> ---
-> >>  drivers/media/v4l2-core/v4l2-common.c |   10 +++++++
-> >>  drivers/media/v4l2-core/v4l2-subdev.c |   52 +++++++++++++++++++++++++++++++++
-> >>  include/media/v4l2-common.h           |    2 ++
-> >>  include/media/v4l2-subdev.h           |    5 ++++
-> >>  4 files changed, 69 insertions(+)
-> >>
-> >> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> >> index 3fed63f..96aac931 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-common.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> >> @@ -301,7 +301,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
-> >>  
-> >> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> >> +			      const struct v4l2_subdev_ops *ops)
-> >> +{
-> >> +	int ret;
-> >>  
-> >> +	ret = devm_v4l2_subdev_bind(&client->dev, sd);
-> >> +	if (!ret)
-> >> +		v4l2_i2c_subdev_init(sd, client, ops);
-> >> +	return ret;
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
-> >>  
-> >>  /* Load an i2c sub-device. */
-> >>  struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-> >> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> >> index 996c248..87ce2f6 100644
-> >> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> >> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> >> @@ -474,3 +474,55 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
-> >>  #endif
-> >>  }
-> >>  EXPORT_SYMBOL(v4l2_subdev_init);
-> >> +
-> >> +static void devm_v4l2_subdev_release(struct device *dev, void *res)
-> >> +{
-> >> +	struct v4l2_subdev **sd = res;
-> >> +
-> >> +	v4l2_device_unregister_subdev(*sd);
-> >> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> >> +	media_entity_cleanup(&(*sd)->entity);
-> >> +#endif
-> >> +}
-> >> +
-> >> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
-> >> +{
-> >> +	struct v4l2_subdev **dr;
-> >> +
-> >> +	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
-> >> +	if (!dr)
-> >> +		return -ENOMEM;
-> >> +
-> >> +	*dr = sd;
-> >> +	devres_add(dev, dr);
-> >> +
-> >> +	return 0;
-> >> +}
-> >> +EXPORT_SYMBOL(devm_v4l2_subdev_bind);
-> >> +
-> >> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
-> >> +			  const struct v4l2_subdev_ops *ops)
-> >> +{
-> >> +	int ret;
-> >> +
-> >> +	ret = devm_v4l2_subdev_bind(dev, sd);
-> >> +	if (!ret)
-> >> +		v4l2_subdev_init(sd, ops);
-> >> +	return ret;
-> >> +}
-> >> +EXPORT_SYMBOL(devm_v4l2_subdev_init);
-> >> +
-> >> +static int devm_v4l2_subdev_match(struct device *dev, void *res,
-> >> +					void *data)
-> >> +{
-> >> +	struct v4l2_subdev **this = res, **sd = data;
-> >> +
-> >> +	return *this == *sd;
-> >> +}
-> >> +
-> >> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd)
-> >> +{
-> >> +	WARN_ON(devres_release(dev, devm_v4l2_subdev_release,
-> >> +			       devm_v4l2_subdev_match, &sd));
-> >> +}
-> >> +EXPORT_SYMBOL_GPL(devm_v4l2_subdev_free);
-> >> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> >> index 1d93c48..da62e2b 100644
-> >> --- a/include/media/v4l2-common.h
-> >> +++ b/include/media/v4l2-common.h
-> >> @@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-> >>  /* Initialize a v4l2_subdev with data from an i2c_client struct */
-> >>  void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> >>  		const struct v4l2_subdev_ops *ops);
-> >> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> >> +		const struct v4l2_subdev_ops *ops);
-> >>  /* Return i2c client address of v4l2_subdev. */
-> >>  unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
-> >>  
-> >> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> >> index 5298d67..881abdd 100644
-> >> --- a/include/media/v4l2-subdev.h
-> >> +++ b/include/media/v4l2-subdev.h
-> >> @@ -657,6 +657,11 @@ int v4l2_subdev_link_validate(struct media_link *link);
-> >>  void v4l2_subdev_init(struct v4l2_subdev *sd,
-> >>  		      const struct v4l2_subdev_ops *ops);
-> >>  
-> >> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
-> >> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
-> >> +			  const struct v4l2_subdev_ops *ops);
-> >> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd);
-> >> +
-> >>  /* Call an ops of a v4l2_subdev, doing the right checks against
-> >>     NULL pointers.
-> >>  
-> >>
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
+
+
+--=_101232f5369a93b95dccd09bdbde5dbb
+Content-Transfer-Encoding: base64
+Content-Type: text/x-diff;
+ name=v4l-utils-dvbv5-scan-polarization.diff
+Content-Disposition: attachment;
+ filename=v4l-utils-dvbv5-scan-polarization.diff
+
+ZGlmZiAtLWdpdCBhL2xpYi9pbmNsdWRlL2R2Yi1mZS5oIGIvbGliL2luY2x1ZGUvZHZiLWZlLmgK
+aW5kZXggZDcyNWE0Mi4uOWU4N2QxNCAxMDA2NDQKLS0tIGEvbGliL2luY2x1ZGUvZHZiLWZlLmgK
+KysrIGIvbGliL2luY2x1ZGUvZHZiLWZlLmgKQEAgLTEwNCw3ICsxMDQsNyBAQCBzdHJ1Y3QgZHZi
+X3Y1X2ZlX3Bhcm1zIHsKIAl1bnNpZ25lZAkJCWZyZXFfYnBmOwogCiAJLyogU2F0ZWxsaXRlIHNw
+ZWNpZmljIHN0dWZmLCB1c2VkIGludGVybmFsbHkgKi8KLQkvL2VudW0gZHZiX3NhdF9wb2xhcml6
+YXRpb24gICAgICAgcG9sOworCWVudW0gZHZiX3NhdF9wb2xhcml6YXRpb24JcG9sOwogCWludAkJ
+CQloaWdoX2JhbmQ7CiAJdW5zaWduZWQJCQlkaXNlcWNfd2FpdDsKIAl1bnNpZ25lZAkJCWZyZXFf
+b2Zmc2V0OwpkaWZmIC0tZ2l0IGEvbGliL2luY2x1ZGUvZHZiLWZpbGUuaCBiL2xpYi9pbmNsdWRl
+L2R2Yi1maWxlLmgKaW5kZXggZWE3NjA4MC4uMjI1OTg0NCAxMDA2NDQKLS0tIGEvbGliL2luY2x1
+ZGUvZHZiLWZpbGUuaAorKysgYi9saWIvaW5jbHVkZS9kdmItZmlsZS5oCkBAIC0zNSw3ICszNSw3
+IEBAIHN0cnVjdCBkdmJfZW50cnkgewogCiAJY2hhciAqbG9jYXRpb247CiAKLS8vCWVudW0gZHZi
+c2F0X3BvbGFyaXphdGlvbiBwb2w7CisJZW51bSBkdmJfc2F0X3BvbGFyaXphdGlvbiBwb2w7CiAJ
+aW50IHNhdF9udW1iZXI7CiAJdW5zaWduZWQgZnJlcV9icGY7CiAJdW5zaWduZWQgZGlzZXFjX3dh
+aXQ7CmRpZmYgLS1naXQgYS9saWIvbGliZHZidjUvZHZiLWZpbGUuYyBiL2xpYi9saWJkdmJ2NS9k
+dmItZmlsZS5jCmluZGV4IGQ4ZDU4M2MuLjNlYTQwY2MgMTAwNjQ0Ci0tLSBhL2xpYi9saWJkdmJ2
+NS9kdmItZmlsZS5jCisrKyBiL2xpYi9saWJkdmJ2NS9kdmItZmlsZS5jCkBAIC0zOTIsMzEgKzM5
+Miw2IEBAIHN0YXRpYyBpbnQgZmlsbF9lbnRyeShzdHJ1Y3QgZHZiX2VudHJ5ICplbnRyeSwgY2hh
+ciAqa2V5LCBjaGFyICp2YWx1ZSkKIAkJcmV0dXJuIDA7CiAJfQogCi0JLyogSGFuZGxlIHRoZSBE
+VkIgZXh0cmEgRFRWX2ZvbyBwcm9wZXJ0aWVzICovCi0JZm9yIChpID0gMDsgaSA8IEFSUkFZX1NJ
+WkUoZHZiX3VzZXJfbmFtZSk7IGkrKykgewotCQlpZiAoIWR2Yl91c2VyX25hbWVbaV0pCi0JCQlj
+b250aW51ZTsKLQkJaWYgKCFzdHJjYXNlY21wKGtleSwgZHZiX3VzZXJfbmFtZVtpXSkpCi0JCQli
+cmVhazsKLQl9Ci0JaWYgKGkgPCBBUlJBWV9TSVpFKGR2Yl91c2VyX25hbWUpKSB7Ci0JCWNvbnN0
+IGNoYXIgKiBjb25zdCAqYXR0cl9uYW1lID0gZHZiX2F0dHJfbmFtZXMoaSk7Ci0JCW5fcHJvcCA9
+IGVudHJ5LT5uX3Byb3BzOwotCQllbnRyeS0+cHJvcHNbbl9wcm9wXS5jbWQgPSBpICsgRFRWX1VT
+RVJfQ09NTUFORF9TVEFSVDsKLQkJaWYgKCFhdHRyX25hbWUgfHwgISphdHRyX25hbWUpCi0JCQll
+bnRyeS0+cHJvcHNbbl9wcm9wXS51LmRhdGEgPSBhdG9sKHZhbHVlKTsKLQkJZWxzZSB7Ci0JCQlm
+b3IgKGogPSAwOyBhdHRyX25hbWVbal07IGorKykKLQkJCQlpZiAoIXN0cmNhc2VjbXAodmFsdWUs
+IGF0dHJfbmFtZVtqXSkpCi0JCQkJCWJyZWFrOwotCQkJaWYgKCFhdHRyX25hbWVbal0pCi0JCQkJ
+cmV0dXJuIC0yOwotCQkJZW50cnktPnByb3BzW25fcHJvcF0udS5kYXRhID0gaiArIERUVl9VU0VS
+X0NPTU1BTkRfU1RBUlQ7Ci0JCX0KLQkJZW50cnktPm5fcHJvcHMrKzsKLQkJcmV0dXJuIDA7Ci0J
+fQotCiAJLyogSGFuZGxlIHRoZSBvdGhlciBwcm9wZXJ0aWVzICovCiAKIAlpZiAoIXN0cmNhc2Vj
+bXAoa2V5LCAiU0VSVklDRV9JRCIpKSB7CkBAIC00NTMsMTYgKzQyOCwxNSBAQCBzdGF0aWMgaW50
+IGZpbGxfZW50cnkoc3RydWN0IGR2Yl9lbnRyeSAqZW50cnksIGNoYXIgKmtleSwgY2hhciAqdmFs
+dWUpCiAJCWlzX3ZpZGVvID0gMTsKIAllbHNlIGlmICghc3RyY2FzZWNtcChrZXksICJBVURJT19Q
+SUQiKSkKIAkJaXNfYXVkaW8gPSAxOwotCS8qZWxzZSBpZiAoIXN0cmNhc2VjbXAoa2V5LCAiUE9M
+QVJJWkFUSU9OIikpIHsKLQkJZW50cnktPnNlcnZpY2VfaWQgPSBhdG9sKHZhbHVlKTsKLQkJZm9y
+IChqID0gMDsgQVJSQVlfU0laRShwb2xfbmFtZSk7IGorKykKLQkJCWlmICghc3RyY2FzZWNtcCh2
+YWx1ZSwgcG9sX25hbWVbal0pKQorCWVsc2UgaWYgKCFzdHJjYXNlY21wKGtleSwgIlBPTEFSSVpB
+VElPTiIpKSB7CisJCWZvciAoaiA9IDA7IEFSUkFZX1NJWkUoZHZiX3NhdF9wb2xfbmFtZSk7IGor
+KykKKwkJCWlmICghc3RyY2FzZWNtcCh2YWx1ZSwgZHZiX3NhdF9wb2xfbmFtZVtqXSkpCiAJCQkJ
+YnJlYWs7Ci0JCWlmIChqID09IEFSUkFZX1NJWkUocG9sX25hbWUpKQorCQlpZiAoaiA9PSBBUlJB
+WV9TSVpFKGR2Yl9zYXRfcG9sX25hbWUpKQogCQkJcmV0dXJuIC0yOwogCQllbnRyeS0+cG9sID0g
+ajsKIAkJcmV0dXJuIDA7Ci0JfSovIGVsc2UgaWYgKCFzdHJuY2FzZWNtcChrZXksIlBJRF8iLCA0
+KSl7CisJfSBlbHNlIGlmICghc3RybmNhc2VjbXAoa2V5LCJQSURfIiwgNCkpewogCQl0eXBlID0g
+c3RydG9sKCZrZXlbNF0sIE5VTEwsIDE2KTsKIAkJaWYgKCF0eXBlKQogCQkJcmV0dXJuIDA7CkBA
+IC02NzIsMTAgKzY0NiwxMCBAQCBpbnQgd3JpdGVfZHZiX2ZpbGUoY29uc3QgY2hhciAqZm5hbWUs
+IHN0cnVjdCBkdmJfZmlsZSAqZHZiX2ZpbGUpCiAJCQlmcHJpbnRmKGZwLCAiXG4iKTsKIAkJfQog
+Ci0JCS8qaWYgKGVudHJ5LT5wb2wgIT0gUE9MQVJJWkFUSU9OX09GRikgeyovCi0JCQkvKmZwcmlu
+dGYoZnAsICJcdFBPTEFSSVpBVElPTiA9ICVzXG4iLCovCi0JCQkJLypwb2xfbmFtZVtlbnRyeS0+
+cG9sXSk7Ki8KLQkJLyp9Ki8KKwkJaWYgKGVudHJ5LT5wb2wgIT0gUE9MQVJJWkFUSU9OX09GRikg
+eworCQkJZnByaW50ZihmcCwgIlx0UE9MQVJJWkFUSU9OID0gJXNcbiIsCisJCQkJZHZiX3NhdF9w
+b2xfbmFtZVtlbnRyeS0+cG9sXSk7CisJCX0KIAogCQlpZiAoZW50cnktPnNhdF9udW1iZXIgPj0g
+MCkgewogCQkJZnByaW50ZihmcCwgIlx0U0FUX05VTUJFUiA9ICVkXG4iLApkaWZmIC0tZ2l0IGEv
+bGliL2xpYmR2YnY1L2R2Yi1zYXQuYyBiL2xpYi9saWJkdmJ2NS9kdmItc2F0LmMKaW5kZXggZDAw
+YTA5ZS4uODlmOGU4OCAxMDA2NDQKLS0tIGEvbGliL2xpYmR2YnY1L2R2Yi1zYXQuYworKysgYi9s
+aWIvbGliZHZidjUvZHZiLXNhdC5jCkBAIC0yNzIsOCArMjcyLDcgQEAgc3RhdGljIGludCBkdmJz
+YXRfc2NyX29kdV9jaGFubmVsX2NoYW5nZShzdHJ1Y3QgZHZiX3Y1X2ZlX3Bhcm1zICpwYXJtcywg
+c3RydWN0IGQKIHN0YXRpYyBpbnQgZHZic2F0X2Rpc2VxY19zZXRfaW5wdXQoc3RydWN0IGR2Yl92
+NV9mZV9wYXJtcyAqcGFybXMsIHVpbnQxNl90IHQpCiB7CiAJaW50IHJjOwotCWVudW0gZHZiX3Nh
+dF9wb2xhcml6YXRpb24gcG9sOwotCWR2Yl9mZV9yZXRyaWV2ZV9wYXJtKHBhcm1zLCBEVFZfUE9M
+QVJJWkFUSU9OLCYgcG9sKTsKKwllbnVtIGR2Yl9zYXRfcG9sYXJpemF0aW9uIHBvbCA9IHBhcm1z
+LT5wb2w7CiAJaW50IHBvbF92ID0gKHBvbCA9PSBQT0xBUklaQVRJT05fVikgfHwgKHBvbCA9PSBQ
+T0xBUklaQVRJT05fUik7CiAJaW50IGhpZ2hfYmFuZCA9IHBhcm1zLT5oaWdoX2JhbmQ7CiAJaW50
+IHNhdF9udW1iZXIgPSBwYXJtcy0+c2F0X251bWJlcjsKQEAgLTI4NCwxMiArMjgzLDYgQEAgc3Rh
+dGljIGludCBkdmJzYXRfZGlzZXFjX3NldF9pbnB1dChzdHJ1Y3QgZHZiX3Y1X2ZlX3Bhcm1zICpw
+YXJtcywgdWludDE2X3QgdCkKIAogCWlmICghbG5iLT5yYW5nZXN3aXRjaCkgewogCQkvKgotCQkg
+KiBCYW5kc3RhY2tpbmcgYW5kIHNpbmdsZSBMTyBtYXkgbm90IGJlIHVzaW5nIERJU0VxQwotCQkg
+Ki8KLQkJaWYgKHNhdF9udW1iZXIgPCAwKQotCQkJcmV0dXJuIDA7Ci0KLQkJLyoKIAkJICogQmFu
+ZHN0YWNraW5nIHN3aXRjaGVzIGRvbid0IHVzZSAyIGJhbmRzIG5vciB1c2UKIAkJICogRElTRXFD
+IGZvciBzZXR0aW5nIHRoZSBwb2xhcml6YXRpb24uIEl0IGFsc28gZG9lc24ndAogCQkgKiB1c2Ug
+YW55IHRvbmUvdG9uZSBidXJzdApAQCAtMjk3LDExICsyOTAsNiBAQCBzdGF0aWMgaW50IGR2YnNh
+dF9kaXNlcWNfc2V0X2lucHV0KHN0cnVjdCBkdmJfdjVfZmVfcGFybXMgKnBhcm1zLCB1aW50MTZf
+dCB0KQogCQlwb2xfdiA9IDA7CiAJCWhpZ2hfYmFuZCA9IDE7CiAJfSBlbHNlIHsKLQkJaWYgKHNh
+dF9udW1iZXIgPCAwKSB7Ci0JCQlkdmJfbG9nZXJyKCJOZWVkIGEgc2F0ZWxsaXRlIG51bWJlciBm
+b3IgRElTRXFDIik7Ci0JCQlyZXR1cm4gLUVJTlZBTDsKLQkJfQotCiAJCS8qIEFkanVzdCB2b2x0
+YWdlL3RvbmUgYWNjb3JkaW5nbHkgKi8KIAkJaWYgKHBhcm1zLT5zYXRfbnVtYmVyIDwgMikgewog
+CQkJdm9sX2hpZ2ggPSBwb2xfdiA/IDAgOiAxOwpAQCAtMzEwLDMyICsyOTgsMzUgQEAgc3RhdGlj
+IGludCBkdmJzYXRfZGlzZXFjX3NldF9pbnB1dChzdHJ1Y3QgZHZiX3Y1X2ZlX3Bhcm1zICpwYXJt
+cywgdWludDE2X3QgdCkKIAkJfQogCX0KIAotCXJjID0gZHZiX2ZlX3NlY190b25lKHBhcm1zLCBT
+RUNfVE9ORV9PRkYpOwotCWlmIChyYykKLQkJcmV0dXJuIHJjOwotCiAJcmMgPSBkdmJfZmVfc2Vj
+X3ZvbHRhZ2UocGFybXMsIDEsIHZvbF9oaWdoKTsKIAlpZiAocmMpCiAJCXJldHVybiByYzsKLQl1
+c2xlZXAoMTUgKiAxMDAwKTsKKwkKKwlpZiAocGFybXMtPnNhdF9udW1iZXIgPiAwKSB7CisJCXJj
+ID0gZHZiX2ZlX3NlY190b25lKHBhcm1zLCBTRUNfVE9ORV9PRkYpOworCQlpZiAocmMpCisJCQly
+ZXR1cm4gcmM7CiAKLQlpZiAoIXQpCi0JCXJjID0gZHZic2F0X2Rpc2VxY193cml0ZV90b19wb3J0
+X2dyb3VwKHBhcm1zLCAmY21kLCBoaWdoX2JhbmQsCi0JCQkJCQkgICAgICAgcG9sX3YsIHNhdF9u
+dW1iZXIpOwotCWVsc2UKLQkJcmMgPSBkdmJzYXRfc2NyX29kdV9jaGFubmVsX2NoYW5nZShwYXJt
+cywgJmNtZCwgaGlnaF9iYW5kLAotCQkJCQkJICAgcG9sX3YsIHNhdF9udW1iZXIsIHQpOworCQl1
+c2xlZXAoMTUgKiAxMDAwKTsKIAotCWlmIChyYykgewotCQlkdmJfbG9nZXJyKCJzZW5kaW5nIGRp
+c2VxIGZhaWxlZCIpOwotCQlyZXR1cm4gcmM7Ci0JfQotCXVzbGVlcCgoMTUgKyBwYXJtcy0+ZGlz
+ZXFjX3dhaXQpICogMTAwMCk7CisJCWlmICghdCkKKwkJCXJjID0gZHZic2F0X2Rpc2VxY193cml0
+ZV90b19wb3J0X2dyb3VwKHBhcm1zLCAmY21kLCBoaWdoX2JhbmQsCisJCQkJCQkJICAgICAgIHBv
+bF92LCBzYXRfbnVtYmVyKTsKKwkJZWxzZQorCQkJcmMgPSBkdmJzYXRfc2NyX29kdV9jaGFubmVs
+X2NoYW5nZShwYXJtcywgJmNtZCwgaGlnaF9iYW5kLAorCQkJCQkJCSAgIHBvbF92LCBzYXRfbnVt
+YmVyLCB0KTsKIAotCXJjID0gZHZiX2ZlX2Rpc2VxY19idXJzdChwYXJtcywgbWluaV9iKTsKLQlp
+ZiAocmMpCi0JCXJldHVybiByYzsKLQl1c2xlZXAoMTUgKiAxMDAwKTsKKwkJaWYgKHJjKSB7CisJ
+CQlkdmJfbG9nZXJyKCJzZW5kaW5nIGRpc2VxIGZhaWxlZCIpOworCQkJcmV0dXJuIHJjOworCQl9
+CisJCXVzbGVlcCgoMTUgKyBwYXJtcy0+ZGlzZXFjX3dhaXQpICogMTAwMCk7CisKKwkJcmMgPSBk
+dmJfZmVfZGlzZXFjX2J1cnN0KHBhcm1zLCBtaW5pX2IpOworCQlpZiAocmMpCisJCQlyZXR1cm4g
+cmM7CisJCXVzbGVlcCgxNSAqIDEwMDApOworCX0KIAogCXJjID0gZHZiX2ZlX3NlY190b25lKHBh
+cm1zLCB0b25lX29uID8gU0VDX1RPTkVfT04gOiBTRUNfVE9ORV9PRkYpOwogCkBAIC0zNTAsOCAr
+MzQxLDcgQEAgc3RhdGljIGludCBkdmJzYXRfZGlzZXFjX3NldF9pbnB1dChzdHJ1Y3QgZHZiX3Y1
+X2ZlX3Bhcm1zICpwYXJtcywgdWludDE2X3QgdCkKIGludCBkdmJfc2F0X3NldF9wYXJtcyhzdHJ1
+Y3QgZHZiX3Y1X2ZlX3Bhcm1zICpwYXJtcykKIHsKIAljb25zdCBzdHJ1Y3QgZHZiX3NhdF9sbmIg
+KmxuYiA9IHBhcm1zLT5sbmI7Ci0JZW51bSBkdmJfc2F0X3BvbGFyaXphdGlvbiBwb2w7Ci0JZHZi
+X2ZlX3JldHJpZXZlX3Bhcm0ocGFybXMsIERUVl9QT0xBUklaQVRJT04sICZwb2wpOworCWVudW0g
+ZHZiX3NhdF9wb2xhcml6YXRpb24gcG9sID0gcGFybXMtPnBvbDsKIAl1aW50MzJfdCBmcmVxOwog
+CXVpbnQxNl90IHQgPSAwOwogCS8qdWludDMyX3Qgdm9sdGFnZSA9IFNFQ19WT0xUQUdFXzE4Oyov
+CmRpZmYgLS1naXQgYS9saWIvbGliZHZidjUvZHZiLXY1LXN0ZC5jIGIvbGliL2xpYmR2YnY1L2R2
+Yi12NS1zdGQuYwppbmRleCA1YTE4NTRiLi41MzgwOWVmIDEwMDY0NAotLS0gYS9saWIvbGliZHZi
+djUvZHZiLXY1LXN0ZC5jCisrKyBiL2xpYi9saWJkdmJ2NS9kdmItdjUtc3RkLmMKQEAgLTEyNSw5
+ICsxMjUsNiBAQCBjb25zdCB1bnNpZ25lZCBpbnQgc3lzX2R2YnNfcHJvcHNbXSA9IHsKIAlEVFZf
+SU5WRVJTSU9OLAogCURUVl9TWU1CT0xfUkFURSwKIAlEVFZfSU5ORVJfRkVDLAotCS8qRFRWX1ZP
+TFRBR0UsKi8KLQkvKkRUVl9UT05FLCovCi0JRFRWX1BPTEFSSVpBVElPTiwKIAkwCiB9OwogCkBA
+IC0xMzYsMTIgKzEzMyw5IEBAIGNvbnN0IHVuc2lnbmVkIGludCBzeXNfZHZiczJfcHJvcHNbXSA9
+IHsKIAlEVFZfSU5WRVJTSU9OLAogCURUVl9TWU1CT0xfUkFURSwKIAlEVFZfSU5ORVJfRkVDLAot
+CS8qRFRWX1ZPTFRBR0UsKi8KLQkvKkRUVl9UT05FLCovCiAJRFRWX01PRFVMQVRJT04sCiAJRFRW
+X1BJTE9ULAogCURUVl9ST0xMT0ZGLAotCURUVl9QT0xBUklaQVRJT04sCiAJMAogfTsKIApAQCAt
+MTUwLDggKzE0NCw2IEBAIGNvbnN0IHVuc2lnbmVkIGludCBzeXNfdHVyYm9fcHJvcHNbXSA9IHsK
+IAlEVFZfSU5WRVJTSU9OLAogCURUVl9TWU1CT0xfUkFURSwKIAlEVFZfSU5ORVJfRkVDLAotCURU
+Vl9WT0xUQUdFLAotCURUVl9UT05FLAogCURUVl9NT0RVTEFUSU9OLAogCTAKIH07CkBAIC0xNjEs
+NyArMTUzLDYgQEAgY29uc3QgdW5zaWduZWQgaW50IHN5c19pc2Ric19wcm9wc1tdID0gewogCURU
+Vl9JTlZFUlNJT04sCiAJRFRWX1NZTUJPTF9SQVRFLAogCURUVl9JTk5FUl9GRUMsCi0JRFRWX1ZP
+TFRBR0UsCiAJRFRWX0lTREJTX1RTX0lEX0xFR0FDWSwKIAkwCiB9OwpkaWZmIC0tZ2l0IGEvdXRp
+bHMvZHZiL2R2YnY1LXNjYW4uYyBiL3V0aWxzL2R2Yi9kdmJ2NS1zY2FuLmMKaW5kZXggOWEyOWIz
+NC4uNzJjYmEwZCAxMDA2NDQKLS0tIGEvdXRpbHMvZHZiL2R2YnY1LXNjYW4uYworKysgYi91dGls
+cy9kdmIvZHZidjUtc2Nhbi5jCkBAIC00MzYsNiArNDM2LDkgQEAgc3RhdGljIGludCBydW5fc2Nh
+bihzdHJ1Y3QgYXJndW1lbnRzICphcmdzLAogCQkJfQogCQl9CiAKKwkJLyogQ29weSBwb2xhcml0
+eSAqLworCQlwYXJtcy0+cG9sID0gZW50cnktPnBvbDsKKwogCQkvKgogCQkgKiBJZiB0aGUgY2hh
+bm5lbCBmaWxlIGhhcyBkdXBsaWNhdGVkIGZyZXF1ZW5jaWVzLCBvciBzb21lCiAJCSAqIGVudHJp
+ZXMgd2l0aG91dCBhbnkgZnJlcXVlbmN5IGF0IGFsbCwgZGlzY2FyZC4K
+--=_101232f5369a93b95dccd09bdbde5dbb--
+
+
