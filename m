@@ -1,77 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:50278 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753741Ab3EPMoA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:44:00 -0400
-MIME-Version: 1.0
-In-Reply-To: <11504129.E8jKKy4N2e@avalon>
-References: <1368529236-18199-1-git-send-email-prabhakar.csengg@gmail.com> <11504129.E8jKKy4N2e@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 16 May 2013 18:13:38 +0530
-Message-ID: <CA+V-a8ti58gdPR-fUEqgBvUQ=1GkoTUyLj9UK4D5aVwHv2R6mA@mail.gmail.com>
-Subject: Re: [PATCH v3] media: i2c: tvp514x: add OF support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+Received: from mail.free-electrons.com ([94.23.35.102]:39704 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1763179Ab3ECLNC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 07:13:02 -0400
+Date: Fri, 3 May 2013 08:12:41 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Cc: Timo Teras <timo.teras@iki.fi>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	linux-media@vger.kernel.org
+Subject: Re: Terratec Grabby hwrev 2
+Message-ID: <20130503111240.GA2291@localhost>
+References: <20130326102056.63b55916@vostro>
+ <20130327161049.683483f8@vostro>
+ <20130328105201.7bcc7388@vostro>
+ <20130328094052.26b7f3f5@redhat.com>
+ <20130328153556.0b58d1aa@vostro>
+ <20130328165459.6231a5b1@vostro>
+ <20130501171153.GA1377@dell.arpanet.local>
+ <20130502100456.2fdf42e0@vostro>
+ <20130503084755.7c2f9cd1@vostro>
+ <20130503091317.GE1232@dell.arpanet.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130503091317.GE1232@dell.arpanet.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Jon,
 
-Thanks for the review.
+On Fri, May 03, 2013 at 11:13:17AM +0200, Jon Arne Jørgensen wrote:
+[...]
+> 
+> I've tested the changes, and it doesn't seem to break/change the smi2021 driver.
+> I'll append this to the pending saa7115 patch and ask Ezequiel Garcia to check
+> that the change doesn't break the stk1160 driver.
+> 
 
-On Thu, May 16, 2013 at 5:40 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-[Snip]
->> +
->> +     pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
->> +     if (!pdata)
->
-> I've started playing with the V4L2 OF bindings, and realized that should
-> should call of_node_put() here.
->
-you were referring  of_node_get() here rite ?
+Wow, this gm7113c are starting to appear everywhere.
 
-of_node_get/put() got recently added I guess coz of which I missed it :)
+Will you submit a v5 including this? In that case please drop my Tested-by
+from the 3/3 patch since I need to re-test that again.
 
->> +             return NULL;
->> +
->> +     v4l2_of_parse_endpoint(endpoint, &bus_cfg);
->> +     flags = bus_cfg.bus.parallel.flags;
->> +
->> +     if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
->> +             pdata->hs_polarity = 1;
->> +
->> +     if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
->> +             pdata->vs_polarity = 1;
->> +
->> +     if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
->> +             pdata->clk_polarity = 1;
->> +
->
-> As well as here. Maybe a
->
-> done:
->         of_node_put(endpoint);
->         return pdata;
->
-> with a goto done in the devm_kzalloc error path would be better.
->
-OK
-
-Regards,
---Prabhakar Lad
+Thanks,
+-- 
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
