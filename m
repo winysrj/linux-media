@@ -1,108 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59173 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758436Ab3EZAt1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 20:49:27 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2 2/5] media: davinci: vpif: Convert to devm_* api
-Date: Sun, 26 May 2013 02:49:22 +0200
-Message-ID: <1492638.E2728sugZv@avalon>
-In-Reply-To: <1369499796-18762-3-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com> <1369499796-18762-3-git-send-email-prabhakar.csengg@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:56545 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754431Ab3ECJ4P (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 3 May 2013 05:56:15 -0400
+Message-ID: <51838994.7070805@ti.com>
+Date: Fri, 3 May 2013 15:25:32 +0530
+From: Sekhar Nori <nsekhar@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LFBDEV <linux-fbdev@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Florian Tobias Schandinat <FlorianSchandinat@gmx.de>
+Subject: Re: [PATCH 0/6] Davinci fbdev driver and enable it for DMx platform
+References: <1366804808-22720-1-git-send-email-prabhakar.csengg@gmail.com> <1780031.B4OAypccep@avalon> <CA+V-a8sLD2dP1RLb8ibZDOsLCP8hhMNUTr-zzU1zx_2ALDaDrg@mail.gmail.com>
+In-Reply-To: <CA+V-a8sLD2dP1RLb8ibZDOsLCP8hhMNUTr-zzU1zx_2ALDaDrg@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+On 4/26/2013 11:16 AM, Prabhakar Lad wrote:
+> Hi Laurent,
+> 
+> On Thu, Apr 25, 2013 at 2:32 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Prabhakar,
+>>
+>> Thank you for the patch.
+>>
+>> On Wednesday 24 April 2013 17:30:02 Prabhakar Lad wrote:
+>>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>>
+>>> This patch series adds an fbdev driver for Texas
+>>> Instruments Davinci SoC.The display subsystem consists
+>>> of OSD and VENC, with OSD supporting 2 RGb planes and
+>>> 2 video planes.
+>>> http://focus.ti.com/general/docs/lit/
+>>> getliterature.tsp?literatureNumber=sprue37d&fileType=pdf
+>>>
+>>> A good amount of the OSD and VENC enabling code is
+>>> present in the kernel, and this patch series adds the
+>>> fbdev interface.
+>>>
+>>> The fbdev driver exports 4 nodes representing each
+>>> plane to the user - from fb0 to fb3.
+>>
+>> The obvious question is: why not a KMS driver instead ? :-)
+>>
+> I did go through the KMS model (thanks for pointing to your work and the video)
+> and it looks like this would require a fair amount of development, at this point
+> of time I would go with the current implementation and revisit on KMS model
+> at later point of time.
 
-Thank you for the patch.
+But I doubt you will be able to sneak a new fbdev driver through. Last
+time I heard, Andrew is only taking in fixes not new features.
 
-On Saturday 25 May 2013 22:06:33 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> Use devm_ioremap_resource instead of reques_mem_region()/ioremap().
-> This ensures more consistent error values and simplifies error paths.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpif.c |   27 ++++-----------------------
->  1 files changed, 4 insertions(+), 23 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif.c
-> b/drivers/media/platform/davinci/vpif.c index 761c825..164c1b7 100644
-> --- a/drivers/media/platform/davinci/vpif.c
-> +++ b/drivers/media/platform/davinci/vpif.c
-> @@ -37,8 +37,6 @@ MODULE_LICENSE("GPL");
->  #define VPIF_CH2_MAX_MODES	(15)
->  #define VPIF_CH3_MAX_MODES	(02)
-> 
-> -static resource_size_t	res_len;
-> -static struct resource	*res;
->  spinlock_t vpif_lock;
-> 
->  void __iomem *vpif_base;
-> @@ -421,23 +419,12 @@ EXPORT_SYMBOL(vpif_channel_getfid);
-> 
->  static int vpif_probe(struct platform_device *pdev)
->  {
-> -	int status = 0;
-> +	static struct resource	*res;
-> 
->  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-> -	if (!res)
-> -		return -ENOENT;
-> -
-> -	res_len = resource_size(res);
-> -
-> -	res = request_mem_region(res->start, res_len, res->name);
-> -	if (!res)
-> -		return -EBUSY;
-> -
-> -	vpif_base = ioremap(res->start, res_len);
-> -	if (!vpif_base) {
-> -		status = -EBUSY;
-> -		goto fail;
-> -	}
-> +	vpif_base = devm_ioremap_resource(&pdev->dev, res);
-> +	if (IS_ERR(vpif_base))
-> +		return PTR_ERR(vpif_base);
-
-You're loosing the request_mem_region(). You should use 
-devm_request_and_ioremap() function instead of devm_ioremap_resource(). With 
-that change,
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
->  	pm_runtime_enable(&pdev->dev);
->  	pm_runtime_get(&pdev->dev);
-> @@ -445,17 +432,11 @@ static int vpif_probe(struct platform_device *pdev)
->  	spin_lock_init(&vpif_lock);
->  	dev_info(&pdev->dev, "vpif probe success\n");
->  	return 0;
-> -
-> -fail:
-> -	release_mem_region(res->start, res_len);
-> -	return status;
->  }
-> 
->  static int vpif_remove(struct platform_device *pdev)
->  {
->  	pm_runtime_disable(&pdev->dev);
-> -	iounmap(vpif_base);
-> -	release_mem_region(res->start, res_len);
->  	return 0;
->  }
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks,
+Sekhar
