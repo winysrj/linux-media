@@ -1,178 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2505 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751120Ab3EMJYi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 05:24:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [PATCH RFC v2 3/3] media: added managed v4l2 subdevice initialization
-Date: Mon, 13 May 2013 11:24:23 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com
-References: <1368434086-9027-1-git-send-email-a.hajda@samsung.com> <1368434086-9027-4-git-send-email-a.hajda@samsung.com>
-In-Reply-To: <1368434086-9027-4-git-send-email-a.hajda@samsung.com>
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43519 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1762722Ab3ECGc1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 02:32:27 -0400
+Date: Fri, 3 May 2013 08:35:33 +0200
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: Re: [PATCH V2 3/3] saa7115: Add register setup and config for gm7113c
+Message-ID: <20130503063533.GC1232@dell.arpanet.local>
+References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
+ <1367268069-11429-4-git-send-email-jonarne@jonarne.no>
+ <20130503022406.GD5722@localhost>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305131124.23598.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130503022406.GD5722@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
-
-On Mon May 13 2013 10:34:46 Andrzej Hajda wrote:
-> This patch adds managed versions of initialization
-> functions for v4l2 subdevices.
-
-I figured out what is bothering me about this patch: the fact that it is
-tied to the v4l2_i2c_subdev_init/v4l2_subdev_init functions. Normally devm
-functions are wrappers around functions that actually allocate some resource.
-That's not the case with these subdev_init functions, they just initialize
-fields in a struct.
-
-Why not drop those wrappers and just provide the devm_v4l2_subdev_bind
-function? That's actually the one that is doing the binding, and is a function
-drivers can call explicitly.
-
-The only thing you need to add to devm_v4l2_subdev_bind is a WARN_ON check that
-sd->ops != NULL, verifying that v4l2_subdev_init was called before the
-bind().
-
-I would be much happier with that solution.
-
-Regards,
-
-	Hans
-
+On Thu, May 02, 2013 at 11:24:07PM -0300, Ezequiel Garcia wrote:
+> On Mon, Apr 29, 2013 at 10:41:09PM +0200, Jon Arne Jørgensen wrote:
+> > 
+> > Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
 > 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> v2:
-> 	- changes of v4l2-ctrls.h moved to proper patch
-> ---
->  drivers/media/v4l2-core/v4l2-common.c |   10 +++++++
->  drivers/media/v4l2-core/v4l2-subdev.c |   52 +++++++++++++++++++++++++++++++++
->  include/media/v4l2-common.h           |    2 ++
->  include/media/v4l2-subdev.h           |    5 ++++
->  4 files changed, 69 insertions(+)
+> Every patch *must* have a proper commit message indicating what you're doing
+> and why you're doing it.
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index 3fed63f..96aac931 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -301,7 +301,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->  }
->  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
->  
-> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> +			      const struct v4l2_subdev_ops *ops)
-> +{
-> +	int ret;
->  
-> +	ret = devm_v4l2_subdev_bind(&client->dev, sd);
-> +	if (!ret)
-> +		v4l2_i2c_subdev_init(sd, client, ops);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
->  
->  /* Load an i2c sub-device. */
->  struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 996c248..87ce2f6 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -474,3 +474,55 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
->  #endif
->  }
->  EXPORT_SYMBOL(v4l2_subdev_init);
-> +
-> +static void devm_v4l2_subdev_release(struct device *dev, void *res)
-> +{
-> +	struct v4l2_subdev **sd = res;
-> +
-> +	v4l2_device_unregister_subdev(*sd);
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	media_entity_cleanup(&(*sd)->entity);
-> +#endif
-> +}
-> +
-> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
-> +{
-> +	struct v4l2_subdev **dr;
-> +
-> +	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
-> +	if (!dr)
-> +		return -ENOMEM;
-> +
-> +	*dr = sd;
-> +	devres_add(dev, dr);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(devm_v4l2_subdev_bind);
-> +
-> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
-> +			  const struct v4l2_subdev_ops *ops)
-> +{
-> +	int ret;
-> +
-> +	ret = devm_v4l2_subdev_bind(dev, sd);
-> +	if (!ret)
-> +		v4l2_subdev_init(sd, ops);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL(devm_v4l2_subdev_init);
-> +
-> +static int devm_v4l2_subdev_match(struct device *dev, void *res,
-> +					void *data)
-> +{
-> +	struct v4l2_subdev **this = res, **sd = data;
-> +
-> +	return *this == *sd;
-> +}
-> +
-> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd)
-> +{
-> +	WARN_ON(devres_release(dev, devm_v4l2_subdev_release,
-> +			       devm_v4l2_subdev_match, &sd));
-> +}
-> +EXPORT_SYMBOL_GPL(devm_v4l2_subdev_free);
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index 1d93c48..da62e2b 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
->  /* Initialize a v4l2_subdev with data from an i2c_client struct */
->  void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->  		const struct v4l2_subdev_ops *ops);
-> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> +		const struct v4l2_subdev_ops *ops);
->  /* Return i2c client address of v4l2_subdev. */
->  unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
->  
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 5298d67..881abdd 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -657,6 +657,11 @@ int v4l2_subdev_link_validate(struct media_link *link);
->  void v4l2_subdev_init(struct v4l2_subdev *sd,
->  		      const struct v4l2_subdev_ops *ops);
->  
-> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
-> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
-> +			  const struct v4l2_subdev_ops *ops);
-> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd);
-> +
->  /* Call an ops of a v4l2_subdev, doing the right checks against
->     NULL pointers.
->  
+> In particular, please add as much information as you can about this new clone decoder.
 > 
+> If you know *why* we have to add those quirks for PAL and NTSC, it would
+> be nice to add that information to the commit message and maybe even
+> in a comment somewhere in the code.
+>
+
+I'll fix this, I rushed this patch and wasn't sure about what to write.
+ 
+> > ---
+> >  drivers/media/i2c/saa7115.c | 48 ++++++++++++++++++++++++++++++++++++---------
+> >  1 file changed, 39 insertions(+), 9 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+> > index eb2c19d..77c13dc 100644
+> > --- a/drivers/media/i2c/saa7115.c
+> > +++ b/drivers/media/i2c/saa7115.c
+> > @@ -126,6 +126,8 @@ static int saa711x_has_reg(const int id, const u8 reg)
+> >  		return 0;
+> >  
+> >  	switch (id) {
+> > +	case V4L2_IDENT_GM7113C:
+> > +		return reg != 0x14 && (reg < 0x18 || reg > 0x1e) && reg < 0x20;
+> >  	case V4L2_IDENT_SAA7113:
+> >  		return reg != 0x14 && (reg < 0x18 || reg > 0x1e) && (reg < 0x20 || reg > 0x3f) &&
+> >  		       reg != 0x5d && reg < 0x63;
+> > @@ -447,6 +449,30 @@ static const unsigned char saa7115_cfg_50hz_video[] = {
+> >  
+> >  /* ============== SAA7715 VIDEO templates (end) =======  */
+> >  
+> > +/* ============== GM7113C VIDEO templates =============  */
+> > +static const unsigned char gm7113c_cfg_60hz_video[] = {
+> > +	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto detection, 0x68 = NTSC */
+> > +	R_0E_CHROMA_CNTL_1, 0x07,		/* video autodetection is on */
+> > +
+> > +#if 0
+> > +	R_5A_V_OFF_FOR_SLICER, 0x06,		/* standard 60hz value for ITU656 line counting */
+> > +#endif
+> 
+> What's the meaning of this ifdef? In general it's better to remove dead
+> code, or at least to put some fat comment about it.
+> 
+
+The gm7113c doesn't care about registers after 0x1f, I had to test that
+this wasn't needed and forgot to remove the dead code before submitting.
+
+I shall fix this also :)
+
+> > +	0x00, 0x00
+> > +};
+> > +
+> > +static const unsigned char gm7113c_cfg_50hz_video[] = {
+> > +	R_08_SYNC_CNTL, 0x28,			/* 0x28 = PAL */
+> > +	R_0E_CHROMA_CNTL_1, 0x07,
+> > +
+> > +#if 0
+> > +	R_5A_V_OFF_FOR_SLICER, 0x03,		/* standard 50hz value */
+> > +#endif
+> 
+> Ditto.
+> 
+> I've tested this with an stk1160/gm7113c device and now
+> it's working fine (NTSC, PAL-M, PAL-Nc).
+> 
+> I also tested against regressions using stk1160/saa7113 and
+> em28xx/saa7115 devices.
+> 
+> I must admit I'm quite happy to have this issue finally fixed!
+> 
+> Could you please re-send the whole series, taking account of this
+> comments. You can add my:
+> 
+> Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+> 
+> to every patch in the series.
+> 
+
+Great, thanks.
+
+> Thanks!
+> -- 
+> Ezequiel García, Free Electrons
+> Embedded Linux, Kernel and Android Engineering
+> http://free-electrons.com
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
