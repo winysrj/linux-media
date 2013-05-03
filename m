@@ -1,121 +1,290 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51740 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752798Ab3EGPHI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 11:07:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: "Kim, Milo" <Milo.Kim@ti.com>
-Cc: Andrzej Hajda <a.hajda@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"hj210.choi@samsung.com" <hj210.choi@samsung.com>,
-	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
-	"devicetree-discuss@lists.ozlabs.org"
-	<devicetree-discuss@lists.ozlabs.org>
-Subject: Re: [RFC 0/2] V4L2 API for exposing flash subdevs as LED class device
-Date: Tue, 07 May 2013 17:07:20 +0200
-Message-ID: <1958801.k4UEk5OhXt@avalon>
-In-Reply-To: <A874F61F95741C4A9BA573A70FE3998F82E5C879@DQHE06.ent.ti.com>
-References: <1367832828-30771-1-git-send-email-a.hajda@samsung.com> <A874F61F95741C4A9BA573A70FE3998F82E5C879@DQHE06.ent.ti.com>
+Received: from mail-vc0-f170.google.com ([209.85.220.170]:65089 "EHLO
+	mail-vc0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754135Ab3ECXAZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 19:00:25 -0400
+Received: by mail-vc0-f170.google.com with SMTP id gf12so1881299vcb.15
+        for <linux-media@vger.kernel.org>; Fri, 03 May 2013 16:00:24 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <2335654.c00h6tDv9u@avalon>
+References: <1366764152-9797-1-git-send-email-shawnn@chromium.org>
+	<2335654.c00h6tDv9u@avalon>
+Date: Fri, 3 May 2013 16:00:24 -0700
+Message-ID: <CALaWCOM5rr7jMFuW0q4FmGuUw_VK5rwmyt4qXH9EY2SkfdkSpg@mail.gmail.com>
+Subject: Re: [PATCH] [media] uvcvideo: Retry usb_submit_urb on -EPERM return
+From: Shawn Nematbakhsh <shawnn@chromium.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 07 May 2013 02:11:27 Kim, Milo wrote:
-> On Monday, May 06, 2013 6:34 PM Andrzej Hajda wrote:
-> > 
-> > This RFC proposes generic API for exposing flash subdevices via LED
-> > framework.
-> > 
-> > Rationale
-> > 
-> > Currently there are two frameworks which are used for exposing LED
-> > flash to user space:
-> > - V4L2 flash controls,
-> > - LED framework(with custom sysfs attributes).
-> > 
-> > The list below shows flash drivers in mainline kernel with initial
-> > commit date and typical chip application (according to producer):
-> > 
-> > LED API:
-> >     lm3642: 2012-09-12, Cameras
-> >     lm355x: 2012-09-05, Cameras
-> >     max8997: 2011-12-14, Cameras (?)
-> >     lp3944: 2009-06-19, Cameras, Lights, Indicators, Toys
-> >     pca955x: 2008-07-16, Cameras, Indicators (?)
-> > 
-> > V4L2 API:
-> >     as3645a:  2011-05-05, Cameras
-> >     adp1653: 2011-05-05, Cameras
-> > 
-> > V4L2 provides richest functionality, but there is often demand from
-> > application developers to provide already established LED API. We would
-> > like to have an unified user interface for flash devices. Some of devices
-> > already have the LED API driver exposing limited set of a Flash IC
-> > functionality. In order to support all required features the LED API
-> > would have to be extended or the V4L2 API would need to be used. However
-> > when switching from a LED to a V4L2 Flash driver existing LED API
-> > interface would need to be retained.
-> > 
-> > Proposed solution
-> > 
-> > This patch adds V4L2 helper functions to register existing V4L2 flash
-> > subdev as LED class device. After registration via v4l2_leddev_register
-> > appropriate entry in /sys/class/leds/ is created. During registration all
-> > V4L2 flash controls are enumerated and corresponding attributes are added.
-> > 
-> > I have attached also patch with new max77693-led driver using v4l2_leddev.
-> > This patch requires presence of the patch "max77693: added device tree
-> > support": https://patchwork.kernel.org/patch/2414351/ .
-> > 
-> > Additional features
-> > 
-> > - simple API to access all V4L2 flash controls via sysfs,
-> > - V4L2 subdevice should not be registered by V4L2 device to use it,
-> > - LED triggers API can be used to control the device,
-> > - LED device is optional - it will be created only if V4L2_LEDDEV
-> >   configuration option is enabled and the subdev driver calls
-> >   v4l2_leddev_register.
-> > 
-> > Doubts
-> > 
-> > This RFC is a result of a uncertainty which API developers should expose
-> > by their flash drivers. It is a try to gluing together both APIs. I am not
-> > sure if it is the best solution, but I hope there will be some discussion
-> > and hopefully some decisions will be taken which way we should follow.
-> 
-> The LED subsystem provides similar APIs for the Camera driver.
-> With LED trigger event, flash and torch are enabled/disabled.
-> I'm not sure this is applicable for you.
-> Could you take a look at LED camera trigger feature?
-> 
-> For the camera LED trigger,
-> https://git.kernel.org/cgit/linux/kernel/git/cooloney/linux-leds.git/commit/
-> ?h=f or-next&id=48a1d032c954b9b06c3adbf35ef4735dd70ab757
-> 
-> Example of camera flash driver,
-> https://git.kernel.org/cgit/linux/kernel/git/cooloney/linux-leds.git/commit/
-> ?h=f or-next&id=313bf0b1a0eaeaac17ea8c4b748f16e28fce8b7a
+Hi Laurent,
 
-I think we should decide on one API. Implementing two APIs for a single device 
-is usually messy, and will result in different feature sets (and different 
-bugs) being implemented through each API, depending on the driver. 
-Interactions between the APIs are also a pain point on the kernel side to 
-properly synchronize calls.
+Thanks for the changes! I agree that your synchronization logic is
+correct. Just two small comments:
 
-The LED API is too limited for torch and flash usage, but I'm definitely open 
-to moving flash devices to the LED API is we can extend it in a way that it 
-covers all the use cases.
+On Mon, Apr 29, 2013 at 1:34 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Shawn,
+>
+> Thank you for the patch.
+>
+> On Tuesday 23 April 2013 17:42:32 Shawn Nematbakhsh wrote:
+>> While usb_kill_urb is in progress, calls to usb_submit_urb will fail
+>> with -EPERM (documented in Documentation/usb/URB.txt). The UVC driver
+>> does not correctly handle this case -- there is no synchronization
+>> between uvc_v4l2_open / uvc_status_start and uvc_v4l2_release /
+>> uvc_status_stop.
+>
+> Wouldn't it be better to synchronize status operations in open/release ?
+> Something like the following patch:
+>
+> From 9285d678ed2f823bb215f6bdec3ca1a9e1cac977 Mon Sep 17 00:00:00 2001
+> From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Date: Fri, 26 Apr 2013 03:28:51 +0200
+> Subject: [PATCH] uvcvideo: Fix open/close race condition
+>
+> Maintaining the users count using an atomic variable makes sure that
+> access to the counter won't be racy, but doesn't serialize access to the
+> operations protected by the counter. This creates a race condition that
+> could result in the status URB being submitted multiple times.
+>
+> Use a mutex to protect the users count and serialize access to the
+> status start and stop operations.
+>
+> Reported-by: Shawn Nematbakhsh <shawnn@chromium.org>
+> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>  drivers/media/usb/uvc/uvc_driver.c | 22 ++++++++++++++++------
+>  drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
+>  drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
+>  drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
+>  4 files changed, 31 insertions(+), 33 deletions(-)
+>
+> diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+> index e68fa53..b638037 100644
+> --- a/drivers/media/usb/uvc/uvc_driver.c
+> +++ b/drivers/media/usb/uvc/uvc_driver.c
+> @@ -1836,8 +1836,8 @@ static int uvc_probe(struct usb_interface *intf,
+>         INIT_LIST_HEAD(&dev->chains);
+>         INIT_LIST_HEAD(&dev->streams);
+>         atomic_set(&dev->nstreams, 0);
+> -       atomic_set(&dev->users, 0);
 
--- 
-Regards,
+I think dev->users is uninitialized now? Probably we should initialize
+to 0 here.
 
-Laurent Pinchart
+>         atomic_set(&dev->nmappings, 0);
+> +       mutex_init(&dev->lock);
+>
+>         dev->udev = usb_get_dev(udev);
+>         dev->intf = usb_get_intf(intf);
+> @@ -1953,8 +1953,12 @@ static int uvc_suspend(struct usb_interface *intf, pm_message_t message)
+>
+>         /* Controls are cached on the fly so they don't need to be saved. */
+>         if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+> -           UVC_SC_VIDEOCONTROL)
+> -               return uvc_status_suspend(dev);
+> +           UVC_SC_VIDEOCONTROL) {
+> +               mutex_lock(&dev->lock);
+> +               if (dev->users)
+> +                       uvc_status_stop(dev);
+> +               mutex_unlock(&dev->lock);
 
+To keep the same control flow, should we return here?
+
+> +       }
+>
+>         list_for_each_entry(stream, &dev->streams, list) {
+>                 if (stream->intf == intf)
+> @@ -1976,14 +1980,20 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
+>
+>         if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+>             UVC_SC_VIDEOCONTROL) {
+> -               if (reset) {
+> -                       int ret = uvc_ctrl_resume_device(dev);
+> +               int ret = 0;
+>
+> +               if (reset) {
+> +                       ret = uvc_ctrl_resume_device(dev);
+>                         if (ret < 0)
+>                                 return ret;
+>                 }
+>
+> -               return uvc_status_resume(dev);
+> +               mutex_lock(&dev->lock);
+> +               if (dev->users)
+> +                       ret = uvc_status_start(dev, GFP_NOIO);
+> +               mutex_unlock(&dev->lock);
+> +
+> +               return ret;
+>         }
+>
+>         list_for_each_entry(stream, &dev->streams, list) {
+> diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
+> index b749277..f552ab9 100644
+> --- a/drivers/media/usb/uvc/uvc_status.c
+> +++ b/drivers/media/usb/uvc/uvc_status.c
+> @@ -206,32 +206,15 @@ void uvc_status_cleanup(struct uvc_device *dev)
+>         uvc_input_cleanup(dev);
+>  }
+>
+> -int uvc_status_start(struct uvc_device *dev)
+> +int uvc_status_start(struct uvc_device *dev, gfp_t flags)
+>  {
+>         if (dev->int_urb == NULL)
+>                 return 0;
+>
+> -       return usb_submit_urb(dev->int_urb, GFP_KERNEL);
+> +       return usb_submit_urb(dev->int_urb, flags);
+>  }
+>
+>  void uvc_status_stop(struct uvc_device *dev)
+>  {
+>         usb_kill_urb(dev->int_urb);
+>  }
+> -
+> -int uvc_status_suspend(struct uvc_device *dev)
+> -{
+> -       if (atomic_read(&dev->users))
+> -               usb_kill_urb(dev->int_urb);
+> -
+> -       return 0;
+> -}
+> -
+> -int uvc_status_resume(struct uvc_device *dev)
+> -{
+> -       if (dev->int_urb == NULL || atomic_read(&dev->users) == 0)
+> -               return 0;
+> -
+> -       return usb_submit_urb(dev->int_urb, GFP_NOIO);
+> -}
+> -
+> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+> index b2dc326..3afff92 100644
+> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+> @@ -498,16 +498,20 @@ static int uvc_v4l2_open(struct file *file)
+>                 return -ENOMEM;
+>         }
+>
+> -       if (atomic_inc_return(&stream->dev->users) == 1) {
+> -               ret = uvc_status_start(stream->dev);
+> +       mutex_lock(&stream->dev->lock);
+> +       if (stream->dev->users == 0) {
+> +               ret = uvc_status_start(stream->dev, GFP_KERNEL);
+>                 if (ret < 0) {
+> -                       atomic_dec(&stream->dev->users);
+> +                       mutex_unlock(&stream->dev->lock);
+>                         usb_autopm_put_interface(stream->dev->intf);
+>                         kfree(handle);
+>                         return ret;
+>                 }
+>         }
+>
+> +       stream->dev->users++;
+> +       mutex_unlock(&stream->dev->lock);
+> +
+>         v4l2_fh_init(&handle->vfh, stream->vdev);
+>         v4l2_fh_add(&handle->vfh);
+>         handle->chain = stream->chain;
+> @@ -538,8 +542,10 @@ static int uvc_v4l2_release(struct file *file)
+>         kfree(handle);
+>         file->private_data = NULL;
+>
+> -       if (atomic_dec_return(&stream->dev->users) == 0)
+> +       mutex_lock(&stream->dev->lock);
+> +       if (--stream->dev->users == 0)
+>                 uvc_status_stop(stream->dev);
+> +       mutex_unlock(&stream->dev->lock);
+>
+>         usb_autopm_put_interface(stream->dev->intf);
+>         return 0;
+> diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+> index 9cd584a..eb90a92 100644
+> --- a/drivers/media/usb/uvc/uvcvideo.h
+> +++ b/drivers/media/usb/uvc/uvcvideo.h
+> @@ -515,7 +515,8 @@ struct uvc_device {
+>         char name[32];
+>
+>         enum uvc_device_state state;
+> -       atomic_t users;
+> +       struct mutex lock;              /* Protects users */
+> +       unsigned int users;
+>         atomic_t nmappings;
+>
+>         /* Video control interface */
+> @@ -661,10 +662,8 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
+>  /* Status */
+>  extern int uvc_status_init(struct uvc_device *dev);
+>  extern void uvc_status_cleanup(struct uvc_device *dev);
+> -extern int uvc_status_start(struct uvc_device *dev);
+> +extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
+>  extern void uvc_status_stop(struct uvc_device *dev);
+> -extern int uvc_status_suspend(struct uvc_device *dev);
+> -extern int uvc_status_resume(struct uvc_device *dev);
+>
+>  /* Controls */
+>  extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
+>
+>> This patch adds a retry / timeout when uvc_status_open / usb_submit_urb
+>> returns -EPERM. This usually means that usb_kill_urb is in progress, and
+>> we just need to wait a while.
+>>
+>> Signed-off-by: Shawn Nematbakhsh <shawnn@chromium.org>
+>> ---
+>>  drivers/media/usb/uvc/uvc_v4l2.c | 10 +++++++++-
+>>  drivers/media/usb/uvc/uvcvideo.h |  1 +
+>>  2 files changed, 10 insertions(+), 1 deletion(-)
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+>> b/drivers/media/usb/uvc/uvc_v4l2.c index b2dc326..f1498a8 100644
+>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+>> @@ -479,6 +479,7 @@ static int uvc_v4l2_open(struct file *file)
+>>  {
+>>       struct uvc_streaming *stream;
+>>       struct uvc_fh *handle;
+>> +     unsigned long timeout;
+>>       int ret = 0;
+>>
+>>       uvc_trace(UVC_TRACE_CALLS, "uvc_v4l2_open\n");
+>> @@ -499,7 +500,14 @@ static int uvc_v4l2_open(struct file *file)
+>>       }
+>>
+>>       if (atomic_inc_return(&stream->dev->users) == 1) {
+>> -             ret = uvc_status_start(stream->dev);
+>> +             timeout = jiffies + msecs_to_jiffies(UVC_STATUS_START_TIMEOUT);
+>> +             /* -EPERM means stop in progress, wait for completion */
+>> +             do {
+>> +                     ret = uvc_status_start(stream->dev);
+>> +                     if (ret == -EPERM)
+>> +                             usleep_range(5000, 6000);
+>> +             } while (ret == -EPERM && time_before(jiffies, timeout));
+>> +
+>>               if (ret < 0) {
+>>                       atomic_dec(&stream->dev->users);
+>>                       usb_autopm_put_interface(stream->dev->intf);
+>> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+>> b/drivers/media/usb/uvc/uvcvideo.h index af505fd..a47e1d3 100644
+>> --- a/drivers/media/usb/uvc/uvcvideo.h
+>> +++ b/drivers/media/usb/uvc/uvcvideo.h
+>> @@ -122,6 +122,7 @@
+>>
+>>  #define UVC_CTRL_CONTROL_TIMEOUT     300
+>>  #define UVC_CTRL_STREAMING_TIMEOUT   5000
+>> +#define UVC_STATUS_START_TIMEOUT     100
+>>
+>>  /* Maximum allowed number of control mappings per device */
+>>  #define UVC_MAX_CONTROL_MAPPINGS     1024
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
+
+Thanks,
+
+Shawn
