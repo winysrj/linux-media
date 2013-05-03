@@ -1,41 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f50.google.com ([209.85.160.50]:36287 "EHLO
-	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757430Ab3EYRj7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 13:39:59 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 0/4] media: i2c: ths7303 cleanup
-Date: Sat, 25 May 2013 23:09:32 +0530
-Message-Id: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43747 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1762722Ab3ECII7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 04:08:59 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: mchehab@redhat.com
+Cc: ezequiel.garcia@free-electrons.com, linux-media@vger.kernel.org,
+	jonjon.arnearne@gmail.com
+Subject: [PATCH V4 0/3] saa7115: add the gm7113c chip
+Date: Fri,  3 May 2013 10:11:55 +0200
+Message-Id: <1367568718-4129-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+The purpose of this patch is to add support for the gm7113c chip in the saa7115 driver.
+The gm7113c chip is a chinese clone of the Philips/NXP saa7113 chip.
+The chip is found in several cheap usb video capture devices.
 
-Trivial cleanup of the driver.
+This is the forth version of a patch-set previously posted by Mauro,
+the first verson was posted on 26 April, and can be found here:
+http://www.spinics.net/lists/linux-media/msg63079.html
 
-Changes for v2:
-1: Dropped the asynchronous probing and, OF
-   support patches will be handling them independently because of dependencies.
-2: Arranged the patches logically so that git bisect 
-   succeeds.
+The second version was posted by Mauro on 26 April, and can be found here:
+http://www.spinics.net/lists/linux-media/msg63087.html
 
-Lad, Prabhakar (4):
-  ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
-  media: i2c: ths7303: remove init_enable option from pdata
-  media: i2c: ths7303: remove unnecessary function ths7303_setup()
-  media: i2c: ths7303: make the pdata as a constant pointer
+The third version was posted by me on 29 April and had a bad cover-letter:
+http://www.spinics.net/lists/linux-media/msg63163.html
 
- arch/arm/mach-davinci/board-dm365-evm.c |    1 -
- drivers/media/i2c/ths7303.c             |   48 ++++++++-----------------------
- include/media/ths7303.h                 |    2 -
- 3 files changed, 12 insertions(+), 39 deletions(-)
+This version has a better cover-letter and I've added a commit message to the last patch.
+
+Jon Arne Jørgensen (3):
+  saa7115: move the autodetection code out of the probe function
+  saa7115: add detection code for gm7113c
+  saa7115: Add register setup and config for gm7113c
+
+ drivers/media/i2c/saa7115.c     | 206 +++++++++++++++++++++++++++++-----------
+ include/media/v4l2-chip-ident.h |   2 +
+ 2 files changed, 153 insertions(+), 55 deletions(-)
+
+-- 
+1.8.2.1
 
