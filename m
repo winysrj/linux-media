@@ -1,94 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:38892 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753880Ab3EPM7U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:59:20 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 2/7] media: davinci: vpif: Convert to devm_* api
-Date: Thu, 16 May 2013 18:28:17 +0530
-Message-Id: <1368709102-2854-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368709102-2854-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368709102-2854-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-gh0-f176.google.com ([209.85.160.176]:62662 "EHLO
+	mail-gh0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934217Ab3ECTzc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 15:55:32 -0400
+Received: by mail-gh0-f176.google.com with SMTP id z17so342852ghb.21
+        for <linux-media@vger.kernel.org>; Fri, 03 May 2013 12:55:32 -0700 (PDT)
+From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Subject: [PATCH v2] solo6x10: Approximate frame intervals with non-standard denominator
+Date: Fri,  3 May 2013 16:54:57 -0300
+Message-Id: <1367610897-29942-1-git-send-email-ismael.luceno@corp.bluecherry.net>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Instead of falling back to 1/25 (PAL) or 1/30 (NTSC).
 
-Use devm_ioremap_resource instead of reques_mem_region()/ioremap().
-This ensures more consistent error values and simplifies error paths.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
 ---
- drivers/media/platform/davinci/vpif.c |   27 ++++-----------------------
- 1 files changed, 4 insertions(+), 23 deletions(-)
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 38 +++++++++-------------
+ 1 file changed, 15 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index d354d50..7d028ca 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -32,8 +32,6 @@ MODULE_LICENSE("GPL");
- #define VPIF_CH2_MAX_MODES	(15)
- #define VPIF_CH3_MAX_MODES	(02)
- 
--static resource_size_t	res_len;
--static struct resource	*res;
- spinlock_t vpif_lock;
- 
- void __iomem *vpif_base;
-@@ -416,23 +414,12 @@ EXPORT_SYMBOL(vpif_channel_getfid);
- 
- static int vpif_probe(struct platform_device *pdev)
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index 98e2902..a4c5896 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -996,12 +996,11 @@ static int solo_g_parm(struct file *file, void *priv,
+ 		       struct v4l2_streamparm *sp)
  {
--	int status = 0;
-+	static struct resource	*res;
+ 	struct solo_enc_dev *solo_enc = video_drvdata(file);
+-	struct solo_dev *solo_dev = solo_enc->solo_dev;
+ 	struct v4l2_captureparm *cp = &sp->parm.capture;
  
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res)
--		return -ENOENT;
--
--	res_len = resource_size(res);
--
--	res = request_mem_region(res->start, res_len, res->name);
--	if (!res)
--		return -EBUSY;
--
--	vpif_base = ioremap(res->start, res_len);
--	if (!vpif_base) {
--		status = -EBUSY;
--		goto fail;
+ 	cp->capability = V4L2_CAP_TIMEPERFRAME;
+ 	cp->timeperframe.numerator = solo_enc->interval;
+-	cp->timeperframe.denominator = solo_dev->fps;
++	cp->timeperframe.denominator = solo_enc->solo_dev->fps;
+ 	cp->capturemode = 0;
+ 	/* XXX: Shouldn't we be able to get/set this from videobuf? */
+ 	cp->readbuffers = 2;
+@@ -1009,36 +1008,29 @@ static int solo_g_parm(struct file *file, void *priv,
+ 	return 0;
+ }
+ 
++static inline int calc_interval(u8 fps, u32 n, u32 d)
++{
++	if (!n || !d)
++		return 1;
++	if (d == fps)
++		return n;
++	n *= fps;
++	return min(15U, n / d + (n % d >= (fps >> 1)));
++}
++
+ static int solo_s_parm(struct file *file, void *priv,
+ 		       struct v4l2_streamparm *sp)
+ {
+ 	struct solo_enc_dev *solo_enc = video_drvdata(file);
+-	struct solo_dev *solo_dev = solo_enc->solo_dev;
+-	struct v4l2_captureparm *cp = &sp->parm.capture;
++	struct v4l2_fract *t = &sp->parm.capture.timeperframe;
++	u8 fps = solo_enc->solo_dev->fps;
+ 
+ 	if (vb2_is_streaming(&solo_enc->vidq))
+ 		return -EBUSY;
+ 
+-	if ((cp->timeperframe.numerator == 0) ||
+-	    (cp->timeperframe.denominator == 0)) {
+-		/* reset framerate */
+-		cp->timeperframe.numerator = 1;
+-		cp->timeperframe.denominator = solo_dev->fps;
 -	}
-+	vpif_base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(vpif_base))
-+		return PTR_ERR(vpif_base);
- 
- 	pm_runtime_enable(&pdev->dev);
- 	pm_runtime_get(&pdev->dev);
-@@ -440,17 +427,11 @@ static int vpif_probe(struct platform_device *pdev)
- 	spin_lock_init(&vpif_lock);
- 	dev_info(&pdev->dev, "vpif probe success\n");
- 	return 0;
 -
--fail:
--	release_mem_region(res->start, res_len);
--	return status;
+-	if (cp->timeperframe.denominator != solo_dev->fps)
+-		cp->timeperframe.denominator = solo_dev->fps;
+-
+-	if (cp->timeperframe.numerator > 15)
+-		cp->timeperframe.numerator = 15;
+-
+-	solo_enc->interval = cp->timeperframe.numerator;
+-
+-	cp->capability = V4L2_CAP_TIMEPERFRAME;
+-	cp->readbuffers = 2;
+-
++	solo_enc->interval = calc_interval(fps, t->numerator, t->denominator);
+ 	solo_update_mode(solo_enc);
+-	return 0;
++	return solo_g_parm(file, priv, sp);
  }
  
- static int vpif_remove(struct platform_device *pdev)
- {
- 	pm_runtime_disable(&pdev->dev);
--	iounmap(vpif_base);
--	release_mem_region(res->start, res_len);
- 	return 0;
- }
- 
+ static long solo_enc_default(struct file *file, void *fh,
 -- 
-1.7.4.1
+1.8.2.1
 
