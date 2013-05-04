@@ -1,54 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55246 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752065Ab3EMOX5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 10:23:57 -0400
-Date: Mon, 13 May 2013 00:52:22 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Arnd Bergmann <arnd@arndb.de>, Takashi Iwai <tiwai@suse.de>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: Device driver memory 'mmap()' function helper cleanup
-Message-ID: <20130512215221.GD6748@valkosipuli.retiisi.org.uk>
-References: <CA+55aFyK2EEPuBPrqu3AGRbW+8TdP=kLLz4opvynNRcrSWC2ww@mail.gmail.com>
- <20130417074300.33d05475@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130417074300.33d05475@redhat.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4165 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757833Ab3EDSUP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 May 2013 14:20:15 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r44IKAQs041825
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 4 May 2013 20:20:13 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C9B8911E00DB
+	for <linux-media@vger.kernel.org>; Sat,  4 May 2013 20:20:04 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130504182004.C9B8911E00DB@alastor.dyndns.org>
+Date: Sat,  4 May 2013 20:20:04 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On Wed, Apr 17, 2013 at 07:43:00AM -0300, Mauro Carvalho Chehab wrote:
-> and a camera anymore. The OMAP2 were used on some Nokia phones.
-> They used to maintain that code, but now that they moved to the dark
-> side of the moon, they lost their interests on it. So, it may not 
-> be easily find testers for patches there.
+Results of the daily build of media_tree:
 
-There's one more underlying issue there than potentially having both no-one
-with the device and time to test it: the driver does not function as-is in
-mainline (nor any recent non-mainline kernel either). Quite some work would
-be required to update it (both to figure out why the whole system crashes
-when trying to capture images and change the driver use modern APIs). A
-small while back we decided to still keep the driver in the tree:
+date:		Sat May  4 19:00:21 CEST 2013
+git branch:	test
+git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-<URL:http://www.spinics.net/lists/linux-media/msg56237.html>
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-(The rest of the discussion took place in #v4l AFAIR.)
+Detailed results are available here:
 
-So, what could be done now is either 1) write a patch that changes the
-driver to use the right API and take a risk of adding one more bug to the
-driver; or 2) remove the driver now and bring it back only if someone really
-has time to make it work first.
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
 
--- 
-Kind regards,
+Full logs are available here:
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
