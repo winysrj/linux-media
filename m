@@ -1,302 +1,174 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3599 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965691Ab3E2LBH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:01:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCHv1 12/38] tveeprom: remove v4l2-chip-ident.h include.
-Date: Wed, 29 May 2013 12:59:45 +0200
-Message-Id: <1369825211-29770-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+Received: from co202.xi-lite.net ([149.6.83.202]:39013 "EHLO co202.xi-lite.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750705Ab3EDEIs (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 4 May 2013 00:08:48 -0400
+From: Olivier GRENIE <olivier.grenie@parrot.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Patrick BOETTCHER <patrick.boettcher@parrot.com>,
+	Patrick Boettcher <pboettcher@kernellabs.com>
+Date: Sat, 4 May 2013 05:05:50 +0100
+Subject: RE: [GIT PULL FOR 3.10] DiBxxxx: fixes and improvements
+Message-ID: <C73E570AC040D442A4DD326F39F0F00E2AE21490DA@SAPHIR.xi-lite.lan>
+References: <1411209.JetyNPSOgp@dibcom294>,<20130427112833.203d7fbb@redhat.com>
+In-Reply-To: <20130427112833.203d7fbb@redhat.com>
+Content-Language: en-US
+Content-Type: multipart/mixed;
+	boundary="_002_C73E570AC040D442A4DD326F39F0F00E2AE21490DASAPHIRxilitel_"
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+--_002_C73E570AC040D442A4DD326F39F0F00E2AE21490DASAPHIRxilitel_
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: quoted-printable
 
-Replace the V4L2_IDENT_* usage with tveeprom-specific defines. This header
-is deprecated, so those defines shouldn't be used anymore.
+Hello Mauro,
+can you apply the attached patch. This patch correct the proposed patch by =
+Patrick for the dib807x. Sorry to not have seen it before.
 
-The em28xx driver is the only one that uses the tveeprom audio_processor
-field, so that has been updated to use the new tveeprom AUDPROC define.
+regards,
+Olivier
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/common/tveeprom.c         |  142 ++++++++++++++-----------------
- drivers/media/usb/em28xx/em28xx-cards.c |    3 +-
- include/media/tveeprom.h                |   11 +++
- 3 files changed, 78 insertions(+), 78 deletions(-)
+________________________________________
+From: Mauro Carvalho Chehab [mchehab@redhat.com]
+Sent: Saturday, April 27, 2013 4:28 PM
+To: Patrick Boettcher
+Cc: linux-media@vger.kernel.org; Olivier GRENIE; Patrick BOETTCHER
+Subject: Re: [GIT PULL FOR 3.10] DiBxxxx: fixes and improvements
 
-diff --git a/drivers/media/common/tveeprom.c b/drivers/media/common/tveeprom.c
-index cc1e172..c7dace6 100644
---- a/drivers/media/common/tveeprom.c
-+++ b/drivers/media/common/tveeprom.c
-@@ -40,7 +40,6 @@
- #include <media/tuner.h>
- #include <media/tveeprom.h>
- #include <media/v4l2-common.h>
--#include <media/v4l2-chip-ident.h>
- 
- MODULE_DESCRIPTION("i2c Hauppauge eeprom decoder driver");
- MODULE_AUTHOR("John Klar");
-@@ -67,13 +66,10 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
-  * The Hauppauge eeprom uses an 8bit field to determine which
-  * tuner formats the tuner supports.
-  */
--static struct HAUPPAUGE_TUNER_FMT
--{
-+static const struct {
- 	int	id;
--	char *name;
--}
--hauppauge_tuner_fmt[] =
--{
-+	const char * const name;
-+} hauppauge_tuner_fmt[] = {
- 	{ V4L2_STD_UNKNOWN,                   " UNKNOWN" },
- 	{ V4L2_STD_UNKNOWN,                   " FM" },
- 	{ V4L2_STD_B|V4L2_STD_GH,             " PAL(B/G)" },
-@@ -88,13 +84,10 @@ hauppauge_tuner_fmt[] =
-    supplying this information. Note that many tuners where only used for
-    testing and never made it to the outside world. So you will only see
-    a subset in actual produced cards. */
--static struct HAUPPAUGE_TUNER
--{
-+static const struct {
- 	int  id;
--	char *name;
--}
--hauppauge_tuner[] =
--{
-+	const char * const name;
-+} hauppauge_tuner[] = {
- 	/* 0-9 */
- 	{ TUNER_ABSENT,			"None" },
- 	{ TUNER_ABSENT,			"External" },
-@@ -298,69 +291,66 @@ hauppauge_tuner[] =
- 	{ TUNER_ABSENT,                 "NXP 18272S"},
- };
- 
--/* Use V4L2_IDENT_AMBIGUOUS for those audio 'chips' that are
-+/* Use TVEEPROM_AUDPROC_INTERNAL for those audio 'chips' that are
-  * internal to a video chip, i.e. not a separate audio chip. */
--static struct HAUPPAUGE_AUDIOIC
--{
-+static const struct {
- 	u32   id;
--	char *name;
--}
--audioIC[] =
--{
-+	const char * const name;
-+} audio_ic[] = {
- 	/* 0-4 */
--	{ V4L2_IDENT_NONE,      "None"      },
--	{ V4L2_IDENT_UNKNOWN,   "TEA6300"   },
--	{ V4L2_IDENT_UNKNOWN,   "TEA6320"   },
--	{ V4L2_IDENT_UNKNOWN,   "TDA9850"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3400C"  },
-+	{ TVEEPROM_AUDPROC_NONE,  "None"      },
-+	{ TVEEPROM_AUDPROC_OTHER, "TEA6300"   },
-+	{ TVEEPROM_AUDPROC_OTHER, "TEA6320"   },
-+	{ TVEEPROM_AUDPROC_OTHER, "TDA9850"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3400C"  },
- 	/* 5-9 */
--	{ V4L2_IDENT_MSPX4XX,   "MSP3410D"  },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3415"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3430"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3438"   },
--	{ V4L2_IDENT_UNKNOWN,   "CS5331"    },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3410D"  },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3415"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3430"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3438"   },
-+	{ TVEEPROM_AUDPROC_OTHER, "CS5331"    },
- 	/* 10-14 */
--	{ V4L2_IDENT_MSPX4XX,   "MSP3435"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3440"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3445"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3411"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3416"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3435"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3440"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3445"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3411"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3416"   },
- 	/* 15-19 */
--	{ V4L2_IDENT_MSPX4XX,   "MSP3425"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3451"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP3418"   },
--	{ V4L2_IDENT_UNKNOWN,   "Type 0x12" },
--	{ V4L2_IDENT_UNKNOWN,   "OKI7716"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3425"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3451"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP3418"   },
-+	{ TVEEPROM_AUDPROC_OTHER, "Type 0x12" },
-+	{ TVEEPROM_AUDPROC_OTHER, "OKI7716"   },
- 	/* 20-24 */
--	{ V4L2_IDENT_MSPX4XX,   "MSP4410"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP4420"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP4440"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP4450"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP4408"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4410"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4420"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4440"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4450"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4408"   },
- 	/* 25-29 */
--	{ V4L2_IDENT_MSPX4XX,   "MSP4418"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP4428"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP4448"   },
--	{ V4L2_IDENT_MSPX4XX,   "MSP4458"   },
--	{ V4L2_IDENT_MSPX4XX,   "Type 0x1d" },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4418"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4428"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4448"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "MSP4458"   },
-+	{ TVEEPROM_AUDPROC_MSP,   "Type 0x1d" },
- 	/* 30-34 */
--	{ V4L2_IDENT_AMBIGUOUS, "CX880"     },
--	{ V4L2_IDENT_AMBIGUOUS, "CX881"     },
--	{ V4L2_IDENT_AMBIGUOUS, "CX883"     },
--	{ V4L2_IDENT_AMBIGUOUS, "CX882"     },
--	{ V4L2_IDENT_AMBIGUOUS, "CX25840"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX880"     },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX881"     },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX883"     },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX882"     },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX25840"   },
- 	/* 35-39 */
--	{ V4L2_IDENT_AMBIGUOUS, "CX25841"   },
--	{ V4L2_IDENT_AMBIGUOUS, "CX25842"   },
--	{ V4L2_IDENT_AMBIGUOUS, "CX25843"   },
--	{ V4L2_IDENT_AMBIGUOUS, "CX23418"   },
--	{ V4L2_IDENT_AMBIGUOUS, "CX23885"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX25841"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX25842"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX25843"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX23418"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX23885"   },
- 	/* 40-44 */
--	{ V4L2_IDENT_AMBIGUOUS, "CX23888"   },
--	{ V4L2_IDENT_AMBIGUOUS, "SAA7131"   },
--	{ V4L2_IDENT_AMBIGUOUS, "CX23887"   },
--	{ V4L2_IDENT_AMBIGUOUS, "SAA7164"   },
--	{ V4L2_IDENT_AMBIGUOUS, "AU8522"    },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX23888"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "SAA7131"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "CX23887"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "SAA7164"   },
-+	{ TVEEPROM_AUDPROC_INTERNAL, "AU8522"    },
- };
- 
- /* This list is supplied by Hauppauge. Thanks! */
-@@ -453,11 +443,11 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
- 	int i, j, len, done, beenhere, tag, start;
- 
- 	int tuner1 = 0, t_format1 = 0, audioic = -1;
--	char *t_name1 = NULL;
-+	const char *t_name1 = NULL;
- 	const char *t_fmt_name1[8] = { " none", "", "", "", "", "", "", "" };
- 
- 	int tuner2 = 0, t_format2 = 0;
--	char *t_name2 = NULL;
-+	const char *t_name2 = NULL;
- 	const char *t_fmt_name2[8] = { " none", "", "", "", "", "", "", "" };
- 
- 	memset(tvee, 0, sizeof(*tvee));
-@@ -545,10 +535,10 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
- 			to indicate 4052 mux was removed in favor of using MSP
- 			inputs directly. */
- 			audioic = eeprom_data[i+2] & 0x7f;
--			if (audioic < ARRAY_SIZE(audioIC))
--				tvee->audio_processor = audioIC[audioic].id;
-+			if (audioic < ARRAY_SIZE(audio_ic))
-+				tvee->audio_processor = audio_ic[audioic].id;
- 			else
--				tvee->audio_processor = V4L2_IDENT_UNKNOWN;
-+				tvee->audio_processor = TVEEPROM_AUDPROC_OTHER;
- 			break;
- 
- 		/* case 0x03: tag 'EEInfo' */
-@@ -578,10 +568,10 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
- 			to indicate 4052 mux was removed in favor of using MSP
- 			inputs directly. */
- 			audioic = eeprom_data[i+1] & 0x7f;
--			if (audioic < ARRAY_SIZE(audioIC))
--				tvee->audio_processor = audioIC[audioic].id;
-+			if (audioic < ARRAY_SIZE(audio_ic))
-+				tvee->audio_processor = audio_ic[audioic].id;
- 			else
--				tvee->audio_processor = V4L2_IDENT_UNKNOWN;
-+				tvee->audio_processor = TVEEPROM_AUDPROC_OTHER;
- 
- 			break;
- 
-@@ -726,11 +716,11 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
- 			t_fmt_name2[6], t_fmt_name2[7], t_format2);
- 	if (audioic < 0) {
- 		tveeprom_info("audio processor is unknown (no idx)\n");
--		tvee->audio_processor = V4L2_IDENT_UNKNOWN;
-+		tvee->audio_processor = TVEEPROM_AUDPROC_OTHER;
- 	} else {
--		if (audioic < ARRAY_SIZE(audioIC))
-+		if (audioic < ARRAY_SIZE(audio_ic))
- 			tveeprom_info("audio processor is %s (idx %d)\n",
--					audioIC[audioic].name, audioic);
-+					audio_ic[audioic].name, audioic);
- 		else
- 			tveeprom_info("audio processor is unknown (idx %d)\n",
- 								audioic);
-diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
-index 927956b..e4b0669 100644
---- a/drivers/media/usb/em28xx/em28xx-cards.c
-+++ b/drivers/media/usb/em28xx/em28xx-cards.c
-@@ -37,7 +37,6 @@
- #include <media/i2c-addr.h>
- #include <media/tveeprom.h>
- #include <media/v4l2-common.h>
--#include <media/v4l2-chip-ident.h>
- 
- #include "em28xx.h"
- 
-@@ -2669,7 +2668,7 @@ static void em28xx_card_setup(struct em28xx *dev)
- 
- 		dev->tuner_type = tv.tuner_type;
- 
--		if (tv.audio_processor == V4L2_IDENT_MSPX4XX) {
-+		if (tv.audio_processor == TVEEPROM_AUDPROC_MSP) {
- 			dev->i2s_speed = 2048000;
- 			dev->board.has_msp34xx = 1;
- 		}
-diff --git a/include/media/tveeprom.h b/include/media/tveeprom.h
-index a8ad75a..4a1191a 100644
---- a/include/media/tveeprom.h
-+++ b/include/media/tveeprom.h
-@@ -1,6 +1,17 @@
- /*
-  */
- 
-+enum tveeprom_audio_processor {
-+	/* No audio processor present */
-+	TVEEPROM_AUDPROC_NONE,
-+	/* The audio processor is internal to the video processor */
-+	TVEEPROM_AUDPROC_INTERNAL,
-+	/* The audio processor is a MSPXXXX device */
-+	TVEEPROM_AUDPROC_MSP,
-+	/* The audio processor is another device */
-+	TVEEPROM_AUDPROC_OTHER,
-+};
-+
- struct tveeprom {
- 	u32 has_radio;
- 	/* If has_ir == 0, then it is unknown what the IR capabilities are,
--- 
-1.7.10.4
+Hi Patrick,
 
+Em Mon, 22 Apr 2013 10:12:34 +0200
+Patrick Boettcher <pboettcher@kernellabs.com> escreveu:
+
+> Hi Mauro,
+>
+> These patches contains some fixes and changes for the DiBcom demods and
+> SIPs.
+>
+> Please merge for 3.10 if possible.
+>
+>
+> The following changes since commit 60d509fa6a9c4653a86ad830e4c4b30360b23f=
+0e:
+>
+>   Linux 3.9-rc8 (2013-04-21 14:38:45 -0700)
+>
+> are available in the git repository at:
+>
+>   git://git.linuxtv.org/pb/media_tree.git/ master
+
+Hmm... I suspect that there's something wrong with those changes.
+
+Testing it with a dib8076 usb stick seems that the code is worse than
+before, as it is now harder to get a lock here.
+
+With the previous code:
+
+INFO     Scanning frequency #1 725142857
+Carrier(0x03) Signal=3D 67.46% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+Viterbi(0x05) Signal=3D 67.08% C/N=3D 0.00% UCB=3D 0 postBER=3D 2097151
+Viterbi(0x07) Signal=3D 67.54% C/N=3D 0.25% UCB=3D 165 postBER=3D 0
+Sync   (0x0f) Signal=3D 67.06% C/N=3D 0.23% UCB=3D 151 postBER=3D 0
+Lock   (0x1f) Signal=3D 67.58% C/N=3D 0.24% UCB=3D 160 postBER=3D 338688
+Service #0 (60320) BAND HD channel 57.1.0
+Service #1 (60345) BAND 1SEG channel 57.1.1
+
+With the new code:
+
+INFO     Scanning frequency #1 725142857
+       (0x00) Signal=3D 68.80% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.78% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.69% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.82% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.29% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.27% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.28% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.27% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.55% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.50% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.43% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.65% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.75% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.29% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.28% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.25% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.43% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.46% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.43% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.90% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.50% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.28% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.22% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.22% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.43% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.41% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.41% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 68.96% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.42% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.24% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.22% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+RF     (0x01) Signal=3D 69.25% C/N=3D 0.00% UCB=3D 0 postBER=3D 0
+
+So, it seems that the changes broke something.
+
+Regards,
+Mauro=
+
+--_002_C73E570AC040D442A4DD326F39F0F00E2AE21490DASAPHIRxilitel_
+Content-Type: text/x-patch;
+	name="0001-media-dib8000-correct-previous-commit.patch"
+Content-Description: 0001-media-dib8000-correct-previous-commit.patch
+Content-Disposition: attachment;
+	filename="0001-media-dib8000-correct-previous-commit.patch"; size=2404;
+	creation-date="Sat, 04 May 2013 05:07:50 GMT";
+	modification-date="Sat, 04 May 2013 05:07:50 GMT"
+Content-Transfer-Encoding: base64
+
+RnJvbSA2ZDU2Nzk1NThhYTk5ZDk3NjNmYjJkNjM4ZGU3NzFhOGY1MmM5NGZhIE1vbiBTZXAgMTcg
+MDA6MDA6MDAgMjAwMQpGcm9tOiBPbGl2aWVyIEdyZW5pZSA8b2xpdmllci5ncmVuaWVAcGFycm90
+LmNvbT4KRGF0ZTogVGh1LCAyIE1heSAyMDEzIDE2OjExOjE0ICswMjAwClN1YmplY3Q6IFtQQVRD
+SF0gW21lZGlhXSBkaWI4MDAwOiBjb3JyZWN0IHByZXZpb3VzIGNvbW1pdCBUaGUgaW50ZW5kIG9m
+IHRoaXMKIHBhdGNoIGlzIHRvIGNvcnJlY3QgYSBwcmV2aW91cyBjb21taXQuIFRoaXMgY29tbWl0
+IGNvcnJlY3RzCiB0aGUgYmVoYXZpb3Igb2YgdGhlIGRpYjgwN3guCgpTaWduZWQtb2ZmLWJ5OiBP
+bGl2aWVyIEdyZW5pZSA8b2xpdmllci5ncmVuaWVAcGFycm90LmNvbT4KLS0tCiBkcml2ZXJzL21l
+ZGlhL2R2Yi1mcm9udGVuZHMvZGliODAwMC5jIHwgICAgNiArKystLS0KIDEgZmlsZSBjaGFuZ2Vk
+LCAzIGluc2VydGlvbnMoKyksIDMgZGVsZXRpb25zKC0pCgpkaWZmIC0tZ2l0IGEvZHJpdmVycy9t
+ZWRpYS9kdmItZnJvbnRlbmRzL2RpYjgwMDAuYyBiL2RyaXZlcnMvbWVkaWEvZHZiLWZyb250ZW5k
+cy9kaWI4MDAwLmMKaW5kZXggNGJhN2M5MC4uYTU3OTI2YiAxMDA2NDQKLS0tIGEvZHJpdmVycy9t
+ZWRpYS9kdmItZnJvbnRlbmRzL2RpYjgwMDAuYworKysgYi9kcml2ZXJzL21lZGlhL2R2Yi1mcm9u
+dGVuZHMvZGliODAwMC5jCkBAIC0yNDM5LDcgKzI0MzksNyBAQCBzdGF0aWMgaW50IGRpYjgwMDBf
+YXV0b3NlYXJjaF9zdGFydChzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSkKIAlpZiAoc3RhdGUtPnJl
+dmlzaW9uID09IDB4ODA5MCkKIAkJaW50ZXJuYWwgPSBkaWI4MDAwX3JlYWQzMihzdGF0ZSwgMjMp
+IC8gMTAwMDsKIAotCWlmIChzdGF0ZS0+YXV0b3NlYXJjaF9zdGF0ZSA9PSBBU19TRUFSQ0hJTkdf
+RkZUKSB7CisJaWYgKChzdGF0ZS0+cmV2aXNpb24gPj0gMHg4MDAyKSAmJiAoc3RhdGUtPmF1dG9z
+ZWFyY2hfc3RhdGUgPT0gQVNfU0VBUkNISU5HX0ZGVCkpIHsKIAkJZGliODAwMF93cml0ZV93b3Jk
+KHN0YXRlLCAgMzcsIDB4MDA2NSk7IC8qIFBfY3RybF9waGFfb2ZmX21heCBkZWZhdWx0IHZhbHVl
+cyAqLwogCQlkaWI4MDAwX3dyaXRlX3dvcmQoc3RhdGUsIDExNiwgMHgwMDAwKTsgLyogUF9hbmFf
+Z2FpbiB0byAwICovCiAKQEAgLTI0NzUsNyArMjQ3NSw3IEBAIHN0YXRpYyBpbnQgZGliODAwMF9h
+dXRvc2VhcmNoX3N0YXJ0KHN0cnVjdCBkdmJfZnJvbnRlbmQgKmZlKQogCQlkaWI4MDAwX3dyaXRl
+X3dvcmQoc3RhdGUsIDc3MCwgKGRpYjgwMDBfcmVhZF93b3JkKHN0YXRlLCA3NzApICYgMHhkZmZm
+KSB8ICgxIDw8IDEzKSk7IC8qIFBfcmVzdGFydF9jY2cgPSAxICovCiAJCWRpYjgwMDBfd3JpdGVf
+d29yZChzdGF0ZSwgNzcwLCAoZGliODAwMF9yZWFkX3dvcmQoc3RhdGUsIDc3MCkgJiAweGRmZmYp
+IHwgKDAgPDwgMTMpKTsgLyogUF9yZXN0YXJ0X2NjZyA9IDAgKi8KIAkJZGliODAwMF93cml0ZV93
+b3JkKHN0YXRlLCAwLCAoZGliODAwMF9yZWFkX3dvcmQoc3RhdGUsIDApICYgMHg3ZmYpIHwgKDAg
+PDwgMTUpIHwgKDEgPDwgMTMpKTsgLyogUF9yZXN0YXJ0X3NlYXJjaCA9IDA7ICovCi0JfSBlbHNl
+IGlmIChzdGF0ZS0+YXV0b3NlYXJjaF9zdGF0ZSA9PSBBU19TRUFSQ0hJTkdfR1VBUkQpIHsKKwl9
+IGVsc2UgaWYgKChzdGF0ZS0+cmV2aXNpb24gPj0gMHg4MDAyKSAmJiAoc3RhdGUtPmF1dG9zZWFy
+Y2hfc3RhdGUgPT0gQVNfU0VBUkNISU5HX0dVQVJEKSkgewogCQlzdGF0ZS0+ZmVbMF0tPmR0dl9w
+cm9wZXJ0eV9jYWNoZS50cmFuc21pc3Npb25fbW9kZSA9IFRSQU5TTUlTU0lPTl9NT0RFXzhLOwog
+CQlzdGF0ZS0+ZmVbMF0tPmR0dl9wcm9wZXJ0eV9jYWNoZS5ndWFyZF9pbnRlcnZhbCA9IEdVQVJE
+X0lOVEVSVkFMXzFfODsKIAkJc3RhdGUtPmZlWzBdLT5kdHZfcHJvcGVydHlfY2FjaGUuaW52ZXJz
+aW9uID0gMDsKQEAgLTI1NzcsNyArMjU3Nyw3IEBAIHN0YXRpYyBpbnQgZGliODAwMF9hdXRvc2Vh
+cmNoX2lycShzdHJ1Y3QgZHZiX2Zyb250ZW5kICpmZSkKIAlzdHJ1Y3QgZGliODAwMF9zdGF0ZSAq
+c3RhdGUgPSBmZS0+ZGVtb2R1bGF0b3JfcHJpdjsKIAl1MTYgaXJxX3BlbmRpbmcgPSBkaWI4MDAw
+X3JlYWRfd29yZChzdGF0ZSwgMTI4NCk7CiAKLQlpZiAoc3RhdGUtPmF1dG9zZWFyY2hfc3RhdGUg
+PT0gQVNfU0VBUkNISU5HX0ZGVCkgeworCWlmICgoc3RhdGUtPnJldmlzaW9uID49IDB4ODAwMikg
+JiYgKHN0YXRlLT5hdXRvc2VhcmNoX3N0YXRlID09IEFTX1NFQVJDSElOR19GRlQpKSB7CiAJCWlm
+IChpcnFfcGVuZGluZyAmIDB4MSkgewogCQkJZHByaW50aygiZGliODAwMF9hdXRvc2VhcmNoX2ly
+cTogbWF4IGNvcnJlbGF0aW9uIHJlc3VsdCBhdmFpbGFibGUiKTsKIAkJCXJldHVybiAzOwotLSAK
+MS43LjEwLjQKCg==
+
+--_002_C73E570AC040D442A4DD326F39F0F00E2AE21490DASAPHIRxilitel_--
