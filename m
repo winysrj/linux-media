@@ -1,71 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:45008 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756331Ab3EAIxb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 04:53:31 -0400
-Received: by mail-ie0-f178.google.com with SMTP id aq17so1647556iec.23
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 01:53:31 -0700 (PDT)
+Received: from mail.free-electrons.com ([94.23.35.102]:43503 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1761677Ab3EDRVw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 4 May 2013 13:21:52 -0400
+Date: Sat, 4 May 2013 14:21:44 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Randy Dunlap <rdunlap@infradead.org>,
+	"Yann E. MORIN" <yann.morin.1998@free.fr>,
+	Ezequiel =?utf-8?Q?Garc=C3=ADa?= <elezegarcia@gmail.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kbuild@vger.kernel.org
+Subject: Splitting stk1160-ac97 as a module (Re: linux-next: Tree for May 1
+ (media/usb/stk1160))
+Message-ID: <20130504172142.GA21656@localhost>
+References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au>
+ <518157EB.3010700@infradead.org>
+ <51827DB1.7000304@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <1367382644-30788-1-git-send-email-airlied@gmail.com>
-References: <1367382644-30788-1-git-send-email-airlied@gmail.com>
-Date: Wed, 1 May 2013 10:53:30 +0200
-Message-ID: <CAKMK7uGJWHb7so8_uNe0JzH_EUAQLExFPda=ZR+8yuG+ALvo2w@mail.gmail.com>
-Subject: Re: [PATCH] drm/udl: avoid swiotlb for imported vmap buffers.
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Dave Airlie <airlied@gmail.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <51827DB1.7000304@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 1, 2013 at 6:30 AM, Dave Airlie <airlied@gmail.com> wrote:
-> Since we ask the dmabuf owner to map the dma-buf into our device
-> address space, but for udl at present that is the CPU address space,
-> since we don't DMA directly from the mapped buffer.
->
-> However if we don't set a dma mask on the usb device, the mapping
-> ends up using swiotlb on machines that have it enabled, which
-> is less than desireable.
->
-> Signed-off-by: Dave Airlie <airlied@redhat.com>
+Hi Mauro,
 
-Fyi for everyone else who was not on irc when Dave&I discussed this:
-This really shouldn't be required and I think the real issue is that
-udl creates a dma_buf attachement (which is needed for device dma
-only), but only really wants to do cpu access through vmap/kmap. So
-not attached the device should be good enough. Cc'ing a few more lists
-for better fyi ;-)
--Daniel
+On Thu, May 02, 2013 at 11:52:33AM -0300, Mauro Carvalho Chehab wrote:
+> >
+> > is unreliable (doesn't do what some people expect) when SND=m and SND_AC97_CODEC=m,
+> > since VIDEO_STK1160_AC97 is a bool.
+> 
+> Using select is always tricky.
+> 
+> I can see a few possible fixes for it:
+> 
+> 1) split the alsa part into a separate module. IMHO, this is cleaner,
+> but requires a little more work.
+> 
 
-> ---
->  drivers/gpu/drm/udl/udl_main.c | 1 +
->  1 file changed, 1 insertion(+)
->
-> diff --git a/drivers/gpu/drm/udl/udl_main.c b/drivers/gpu/drm/udl/udl_main.c
-> index 0ce2d71..6770e1b 100644
-> --- a/drivers/gpu/drm/udl/udl_main.c
-> +++ b/drivers/gpu/drm/udl/udl_main.c
-> @@ -293,6 +293,7 @@ int udl_driver_load(struct drm_device *dev, unsigned long flags)
->         udl->ddev = dev;
->         dev->dev_private = udl;
->
-> +       dma_set_mask(dev->dev, DMA_BIT_MASK(64));
->         if (!udl_parse_vendor_descriptor(dev, dev->usbdev)) {
->                 DRM_ERROR("firmware not recognized. Assume incompatible device\n");
->                 goto err;
-> --
-> 1.8.2
->
-> _______________________________________________
-> dri-devel mailing list
-> dri-devel@lists.freedesktop.org
-> http://lists.freedesktop.org/mailman/listinfo/dri-devel
+I'm trying to split the ac97 support into a separate module.
+So far I've managed to do this with two different approaches,
+but both of them are broken in some way :-(
 
+Couple questions:
 
+1. Is it possible to force two symbols to be both built-in (=y) or both
+modules (=m)? This would make one of my solutions work.
 
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+2. Do you think it's possible to split this as a module *without*
+requesting the driver dynamically? I've tried the same extensions approach
+as in em28xx and others, but found some problems with the way
+snd-usb-audio driver registers.
+ 
+Thanks,
+-- 
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
