@@ -1,19 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtpout4.wanadoo.co.uk ([80.12.242.68]:38148 "EHLO
-	smtpout.wanadoo.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754605Ab3EBVtq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 17:49:46 -0400
-Message-ID: <5a344a3596663403aff9ee2bf7fd3b8e@mwinf5d56.me-wanadoo.net>
-Content-Type: text/plain; charset=US-ASCII
+Received: from [173.44.40.250] ([173.44.40.250]:44366 "EHLO gmail.com"
+	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751858Ab3EESt1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 5 May 2013 14:49:27 -0400
+To: linux-media@vger.kernel.org
+Subject: phpbb support
+Date: Sun, 5 May 2013 22:04:28 +0400
+From: phpbbspprt840@gmail.com
+Message-ID: <efd289339c6012768853eb7dbb557458@173.44.40.250>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7BIT
-Content-Description: Mail message body
-Subject: Special Request.
-To: Recipients <sh112@hotmail.com>
-From: sh112@hotmail.com
-Date: Thu, 02 May 2013 22:41:34 +0100
-Reply-To: abraham.walter@aol.com
+Content-Type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I seek your cooperation in a transaction that would profit us.Await your reply.
+phpBB 3.0.11 is now available
+updating your forum makes it stable and fixes security bugs
+
+We provide paid support to phpBB forums owners , we are happy to help you in any issue related to your forum administration or any technical issues.
+if you are interested in our services , or have any questions , please reply to us
+
+Thank you
+
+
+
