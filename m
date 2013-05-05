@@ -1,83 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ia0-f179.google.com ([209.85.210.179]:61550 "EHLO
-	mail-ia0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759100Ab3EAK0D (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 06:26:03 -0400
-Received: by mail-ia0-f179.google.com with SMTP id p22so1231246iad.38
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 03:26:02 -0700 (PDT)
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:49761 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751444Ab3EEIRJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 May 2013 04:17:09 -0400
+Date: Sun, 5 May 2013 10:20:08 +0200
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+	Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	linux-media@vger.kernel.org, jonjon.arnearne@gmail.com
+Subject: Re: [PATCH V2 1/3] saa7115: move the autodetection code out of the
+ probe function
+Message-ID: <20130505082007.GA2812@dell.arpanet.local>
+References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
+ <1367268069-11429-2-git-send-email-jonarne@jonarne.no>
+ <20130503020913.GB5722@localhost>
+ <20130503065846.GD1232@dell.arpanet.local>
+ <20130503112052.GB2291@localhost>
+ <5183A8B0.3040301@redhat.com>
 MIME-Version: 1.0
-In-Reply-To: <51785024.40305@codeaurora.org>
-References: <51785024.40305@codeaurora.org>
-Date: Wed, 1 May 2013 12:26:01 +0200
-Message-ID: <CAKMK7uE5HQs7JoyVp8HbOzQ4PM=mOW3=WpRtFUzvy3NJ49nYgQ@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] RFC: Unified DMA allocation algorithms
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Laura Abbott <lauraa@codeaurora.org>
-Cc: "linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	rob clark <robclark@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <5183A8B0.3040301@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Apr 24, 2013 at 11:35 PM, Laura Abbott <lauraa@codeaurora.org> wrote:
-> Hi all,
+On Fri, May 03, 2013 at 09:08:16AM -0300, Mauro Carvalho Chehab wrote:
+> Em 03-05-2013 08:20, Ezequiel Garcia escreveu:
+> >Hi Jon,
+> >
+> >On Fri, May 03, 2013 at 08:58:46AM +0200, Jon Arne Jørgensen wrote:
+> >[...]
+> >>>You can read more about this in Documentation/SubmittingPatches.
+> >>
+> >>I just re-read SubmittingPatches.
+> >>I couldn't see that there is anything wrong with multiple sign-off's.
+> >>
+> >
+> >Indeed there isn't anything wrong with multiple SOBs tags, but they're
+> >used a bit differently than this.
+> >
+> >>Quote:
+> >>   The Signed-off-by: tag indicates that the signer was involved in the
+> >>   development of the patch, or that he/she was in the patch's delivery
+> >>   path.
+> >>
+> >>
+> >
+> >Ah, I see your point.
+> >
+> >@Mauro, perhaps you can explain this better then me?
+> 
+> The SOB is used mainly to describe the patch flow. Each one that touched
+> on a patch attests that:
+> 
+>        "Developer's Certificate of Origin 1.1
+> 
+>         By making a contribution to this project, I certify that:
+> 
+>         (a) The contribution was created in whole or in part by me and I
+>             have the right to submit it under the open source license
+>             indicated in the file; or
+> 
+>         (b) The contribution is based upon previous work that, to the best
+>             of my knowledge, is covered under an appropriate open source
+>             license and I have the right under that license to submit that
+>             work with modifications, whether created in whole or in part
+>             by me, under the same open source license (unless I am
+>             permitted to submit under a different license), as indicated
+>             in the file; or
+> 
+>         (c) The contribution was provided directly to me by some other
+>             person who certified (a), (b) or (c) and I have not modified
+>             it.
+> 
+> 	(d) I understand and agree that this project and the contribution
+> 	    are public and that a record of the contribution (including all
+> 	    personal information I submit with it, including my sign-off) is
+> 	    maintained indefinitely and may be redistributed consistent with
+> 	    this project or the open source license(s) involved."
+> 
+> In other words, it tracks the custody chain, with is typically one of
+> the alternatives below[1]:
+> 
+> 	Author -> maintainer's tree -> upstream
+> 	Author -> sub-maintainer's tree -> maintainer's tree -> upstream
+> 	Author -> driver's maintainer -> maintainer's tree -> upstream
+> 	Author -> driver's maintainer -> sub-maintainer's tree -> maintainer's tree -> upstream\
+> 
+> In this specific case, as patches 1 and 2 are identical to the ones I submitted,
+> the right way would be for you both to just reply to my original e-mail with
+> your tested-by or reviewed-by. That patches will then be applied (either directly
+> or via Hverkuil's tree, as he is the sub-maintainer for those I2C drivers).
 >
-> I've been looking at a better way to do custom dma allocation algorithms in
-> a similar style to Ion heaps. Most drivers/clients have come up with a
-> series of semi-standard ways to get memory (CMA, memblock_reserve,
-> discontiguous pages etc.) . As these allocation schemes get more and more
-> complex, there needs to be a since place where all clients (Ion based driver
-> vs. DRM driver vs. ???)  can independently take advantage of any
-> optimizations and call a single API for the backing allocations.
->
-> The dma_map_ops take care of almost everything needed for abstraction
-> but the question is where should new allocation algorithms be located?
-> Most of the work has been added to either arm/mm/dma-mapping.c or
-> dma-contiguous.c . My current thought:
->
-> 1) split out the dma_map_ops currently in dma-mapping.c into separate files
-> (dma-mapping-common.c, dma-mapping-iommu.c)
-> 2) Extend dma-contiguous.c to support memblock_reserve memory
-> 3) Place additional algorithms in either arch/arm/mm or
-> drivers/base/dma-alloc/ as appropriate to the code. This is the part where
-> I'm most unsure about the direction.
->
-> I don't have anything written yet but I plan to draft some patches assuming
-> the proposed approach sounds reasonable and no one else has started on
-> something similar already.
->
-> Thoughts? Opinions?
 
->From my (oblivious to all the arm madness) pov the big thing is
-getting dma allocations working for more than one struct device. This
-way we could get rid of to "where do I need to allocate buffers"
-duplication between the kernel and userspace (which needs to know that
-to pick the right ion heap), which is my main gripe with ion ;-)
+The patch you submitted lacked all register setup so there wasn't that much
+to test without the stuff I added in the third patch in this
+series.
 
-Rob Clark sent out a quick rfc for that a while back:
+Is there any way to accnowledge this when I reply to your patch with tested-by?
+Should I maybe add the third patch in this series into that reply?
 
-http://lists.linaro.org/pipermail/linaro-mm-sig/2012-July/002250.html
+Also, when I post the next RFC for my smi2021 driver that
+depends on this patch. Are there any correct way to mention that
+dependency in the smi2021 patch?
 
-But that's by far not good enough for arm, especially now that cma
-gets tightly bound to individual devices with the dt bindings. Also,
-no one really followed up on Rob's patches, and personally I don't
-really care that much since x86 is a bit saner ... But it should be
-good enough for contiguous allocations, which leaves only really crazy
-stuff unsolved.
+Best,
+Jon Arne
 
-So I think when you want to rework the various algorithms for
-allocating dma mem and consolidate them it should also solve this
-little multi-dev issue.
-
-Adding tons more people/lists who might be interested.
-
-Cheers, Daniel
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+> I hope that helps to clarify it.
+> 
+> Regards,
+> Mauro
+> 
+> [1] when the driver is developed/patched internally on some company's trees,
+> it is possible to have there also the SOBs for that company's internal
+> maintainers.
+> 
+> There are also some other corner cases, like patches that are sent in
+> non-public mailing lists or in private, where everybody in the custody
+> chain sign it.
