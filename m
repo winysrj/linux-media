@@ -1,47 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm24-vm7.bullet.mail.ird.yahoo.com ([212.82.109.198]:37967 "HELO
-	nm24-vm7.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with SMTP id S932689Ab3EFWwh convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 May 2013 18:52:37 -0400
-References: <1367840892.39557.YahooMailNeo@web28904.mail.ir2.yahoo.com> <5187D1BC.8030204@gmail.com>
-Message-ID: <1367880378.47575.YahooMailNeo@web28901.mail.ir2.yahoo.com>
-Date: Mon, 6 May 2013 23:46:18 +0100 (BST)
-From: marco caminati <marco.caminati@yahoo.it>
-Reply-To: marco caminati <marco.caminati@yahoo.it>
-Subject: Re: rtl2832u+r820t dvb-t usb kernel crash
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <5187D1BC.8030204@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3574 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751613Ab3EESUJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 5 May 2013 14:20:09 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r45IK5AV074797
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 5 May 2013 20:20:07 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id B6E921300076
+	for <linux-media@vger.kernel.org>; Sun,  5 May 2013 20:20:04 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130505182004.B6E921300076@alastor.dyndns.org>
+Date: Sun,  5 May 2013 20:20:04 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-> Hi Marco,
-> I have the same device and the same issue on a 2.6.32 32 bit kernel.
-> However, I was able to run the driver successfully on 3.2.44 and 3.9.0
-> kernels (both 32 and 64 bit).
-> Also, I can run a similar device with a e4000 tuner with no problem even
-> on the old 2.6.32 kernel.
+date:		Sun May  5 19:00:23 CEST 2013
+git branch:	test
+git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-> I just posted a few patches for the r820t tuner, can you try them and
-> check if they fix your problem?
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Thanks for your prompt work!
+Detailed results are available here:
 
-I patched and built the modules in the same host OS.
-The system still crashes badly.
-Moreover, this time I get no crash log via klogd: last line in the log is 
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
-May  7 00:01:54 box user.info kernel: usbcore: registered new interface driver dvb_usb_rtl28xxu
+Full logs are available here:
 
-So I have no error messages this time. If it's useful, I can try to set up netconsole to get them.
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
-Concurrently, I will build a more recent kernel to test the device, as suggested by Mauro.
+The Media Infrastructure API from this daily build is here:
 
-Cheers,
-Marco
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
