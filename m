@@ -1,74 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:52505 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756975Ab3EaQXS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 12:23:18 -0400
-Message-ID: <1370017269.4135.2.camel@weser.hi.pengutronix.de>
-Subject: Re: [RFC][PATCH 0/2] dma-buf: add importer private data for
- reimporting
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: =?UTF-8?Q?=EA=B9=80=EC=8A=B9=EC=9A=B0?= <sw0312.kim@samsung.com>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Date: Fri, 31 May 2013 18:21:09 +0200
-In-Reply-To: <20130531152956.GX15743@phenom.ffwll.local>
-References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
-	 <CAKMK7uHYLG3iNphE+g4BBB-LuUM67NRvbQPBvCHE2FN71-GLnA@mail.gmail.com>
-	 <51A879E0.3080106@samsung.com> <20130531152956.GX15743@phenom.ffwll.local>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from mail.free-electrons.com ([94.23.35.102]:46532 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753090Ab3EFMr3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 08:47:29 -0400
+Date: Mon, 6 May 2013 09:47:19 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 1/2] saa7115: move the autodetection code out of the
+ probe function
+Message-ID: <20130506124718.GA2272@localhost>
+References: <366980557-23077-1-git-send-email-mchehab@redhat.com>
+ <1366986168-27756-1-git-send-email-mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
+In-Reply-To: <1366986168-27756-1-git-send-email-mchehab@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Freitag, den 31.05.2013, 17:29 +0200 schrieb Daniel Vetter:
-> On Fri, May 31, 2013 at 07:22:24PM +0900, 김승우 wrote:
-> > Hello Daniel,
-> > 
-> > Thanks for your comment.
-> > 
-> > On 2013년 05월 31일 18:14, Daniel Vetter wrote:
-> > > On Fri, May 31, 2013 at 10:54 AM, Seung-Woo Kim <sw0312.kim@samsung.com> wrote:
-> > >> importer private data in dma-buf attachment can be used by importer to
-> > >> reimport same dma-buf.
-> > >>
-> > >> Seung-Woo Kim (2):
-> > >>   dma-buf: add importer private data to attachment
-> > >>   drm/prime: find gem object from the reimported dma-buf
-> > > 
-> > > Self-import should already work (at least with the latest refcount
-> > > fixes merged). At least the tests to check both re-import on the same
-> > > drm fd and on a different all work as expected now.
-> > 
-> > Currently, prime works well for all case including self-importing,
-> > importing, and reimporting as you describe. Just, importing dma-buf from
-> > other driver twice with different drm_fd, each import create its own gem
-> > object even two import is done for same buffer because prime_priv is in
-> > struct drm_file. This means mapping to the device is done also twice.
-> > IMHO, these duplicated creations and maps are not necessary if drm can
-> > find previous import in different prime_priv.
+On Fri, Apr 26, 2013 at 11:22:47AM -0300, Mauro Carvalho Chehab wrote:
+> As we're now seeing other variants from chinese clones, like
+> gm1113c, we'll need to add more bits at the detection code.
 > 
-> Well, that's imo a bug with the other driver. If it doesn't export
-> something really simple (e.g. contiguous memory which doesn't require any
-> mmio resources at all) it should have a cache of exported dma_buf fds so
-> that it hands out the same dma_buf every time.
+> So, move it into a separate function.
+> 
+> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
 
-I agree with the reasoning here.
-
-Though it would be nice to have this "expected driver behavior" put down
-somewhere in the documentation. Any volunteers?
-
-Regards,
-Lucas
+Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
 -- 
-Pengutronix e.K.                           | Lucas Stach                 |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5076 |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
