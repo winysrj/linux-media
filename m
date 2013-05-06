@@ -1,70 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3652 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966094Ab3E2OTj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 10:19:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 07/14] tvp514x: fix querystd
-Date: Wed, 29 May 2013 16:19:00 +0200
-Message-Id: <1369837147-8747-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail.free-electrons.com ([94.23.35.102]:46637 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754130Ab3EFNL7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 09:11:59 -0400
+Date: Mon, 6 May 2013 10:11:52 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: "Yann E. MORIN" <yann.morin.1998@free.fr>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Ezequiel =?utf-8?Q?Garc=C3=ADa?= <elezegarcia@gmail.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	linux-kbuild@vger.kernel.org
+Subject: Re: Splitting stk1160-ac97 as a module (Re: linux-next: Tree for May
+ 1 (media/usb/stk1160))
+Message-ID: <20130506131150.GB18007@localhost>
+References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au>
+ <518157EB.3010700@infradead.org>
+ <51827DB1.7000304@redhat.com>
+ <20130504172142.GA21656@localhost>
+ <20130504195950.GA3254@free.fr>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130504195950.GA3254@free.fr>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sat, May 04, 2013 at 09:59:50PM +0200, Yann E. MORIN wrote:
+> Ezequiel, All,
+> 
+> On Sat, May 04, 2013 at 02:21:44PM -0300, Ezequiel Garcia wrote:
+> > I'm trying to split the ac97 support into a separate module.
+> > So far I've managed to do this with two different approaches,
+> > but both of them are broken in some way :-(
+> > 
+> > Couple questions:
+> > 
+> > 1. Is it possible to force two symbols to be both built-in (=y) or both
+> > modules (=m)? This would make one of my solutions work.
+> 
+> If they are always the same value, there is no need to have two symbols
+> in the first place.
+> 
+> However, given the original problem from this thread, if what you meant
+> was to have the second symbol either 'n' or the same as the first symbol,
+> ie. the following table:
+> 
+>     A:  n   m   m   y   y
+>     B:  n   n   m   n   y
+> 
+> Then the closest I came up with is:
+> 
+>     config MODULES
+>         bool "Modules"
+>     
+>     config A
+>         tristate "A"
+>     
+>     config B_dummy
+>         bool "B"
+>         depends on A
+>     
+>     config B
+>         tristate
+>         default m if A=m && B_dummy
+>         default y if A=y && B_dummy
+> 
+> where B_dummy is not used outside of Kconfig, and only A and B are the
+> symbols of interest (eg. to build the drivers).
+> 
 
-Return V4L2_STD_UNKNOWN if no signal is detected.
-Otherwise AND the standard mask with the detected standards.
+That worked like a charm!
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/tvp514x.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
-
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 7438e01..c2b343b 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -543,8 +543,6 @@ static int tvp514x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
- 	if (std_id == NULL)
- 		return -EINVAL;
- 
--	*std_id = V4L2_STD_UNKNOWN;
--
- 	/* To query the standard the TVP514x must power on the ADCs. */
- 	if (!decoder->streaming) {
- 		tvp514x_s_stream(sd, 1);
-@@ -553,8 +551,10 @@ static int tvp514x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
- 
- 	/* query the current standard */
- 	current_std = tvp514x_query_current_std(sd);
--	if (current_std == STD_INVALID)
-+	if (current_std == STD_INVALID) {
-+		*std_id = V4L2_STD_UNKNOWN;
- 		return 0;
-+	}
- 
- 	input_sel = decoder->input;
- 
-@@ -595,10 +595,12 @@ static int tvp514x_querystd(struct v4l2_subdev *sd, v4l2_std_id *std_id)
- 	}
- 	/* check whether signal is locked */
- 	sync_lock_status = tvp514x_read_reg(sd, REG_STATUS1);
--	if (lock_mask != (sync_lock_status & lock_mask))
-+	if (lock_mask != (sync_lock_status & lock_mask)) {
-+		*std_id = V4L2_STD_UNKNOWN;
- 		return 0;	/* No input detected */
-+	}
- 
--	*std_id = decoder->std_list[current_std].standard.id;
-+	*std_id &= decoder->std_list[current_std].standard.id;
- 
- 	v4l2_dbg(1, debug, sd, "Current STD: %s\n",
- 			decoder->std_list[current_std].standard.name);
+Thanks a lot,
 -- 
-1.7.10.4
-
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
