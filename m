@@ -1,46 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cpsmtpb-ews04.kpnxchange.com ([213.75.39.7]:50004 "EHLO
-	cpsmtpb-ews04.kpnxchange.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751120Ab3EMKF4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 06:05:56 -0400
-Message-ID: <1368439554.1350.49.camel@x61.thuisdomein>
-Subject: Re: [v3] media: davinci: kconfig: fix incorrect selects
-From: Paul Bolle <pebolle@tiscali.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	linux-media@vger.kernel.org
-Date: Mon, 13 May 2013 12:05:54 +0200
-In-Reply-To: <CA+V-a8sEMsQENPN+40bMtOpTs5Xq9HbtiR49shhd=+kXU3-2YA@mail.gmail.com>
-References: <1363079692-16683-1-git-send-email-nsekhar@ti.com>
-	 <1368438071.1350.43.camel@x61.thuisdomein>
-	 <CA+V-a8sEMsQENPN+40bMtOpTs5Xq9HbtiR49shhd=+kXU3-2YA@mail.gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from ankara.baskent.edu.tr ([193.140.164.20]:35062 "EHLO
+	ankara.baskent.edu.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752019Ab3EFM1g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 08:27:36 -0400
+Message-ID: <9620467ec63a5bad60b7732219201bc7.squirrel@www.baskent.edu.tr>
+Date: Mon, 6 May 2013 15:16:05 +0300
+Subject: =?utf-8?B?VUJTIEJlbmFjaHJpY2h0aWd1bmcgLSBJaHJlIEludGVybmV0LUJhbmtpbmcg?=
+ =?utf-8?B?Z2VzcGVycnTigI8=?=
+From: "UBS AG" <ch@ubs.com>
+MIME-Version: 1.0
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+To: undisclosed-recipients:;
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Prabhakar,
-
-On Mon, 2013-05-13 at 15:27 +0530, Prabhakar Lad wrote:
-> Good catch! the dependency can be dropped now.
-
-Great.
-
-> Are you planning to post a patch for it or shall I do it ?
-
-I don't mind submitting that trivial patch.
-
-However, it's probably better if you do that. I can only state that this
-dependency is now useless, because that is simply how the kconfig system
-works. But you can probably elaborate why it's OK to not replace it with
-another (negative) dependency. That would make a more informative commit
-explanation.
 
 
-Paul Bolle
+
+
+Sehr geehrter Kunde,
+
+Kürzlich zeigen unsere Aufzeichnungen, dass Ihr UBS-Konto möglich durch
+einen Dritten unbefugten Zutritt.
+
+Die Sicherheit Ihres Kontos ist unser wichtigstes Anliegen, deshalb haben
+wir beschlossen,den Zugang zu Ihrem Konto vorübergehend zu begrenzen. Für
+den vollen Zugang zu Ihrem Konto, Sie müssen Ihre Daten wiederherstellen
+und bestätigen Sie Ihr Konto über diesen link klicken:
+http://uolb.com.ru/sch/deu.html?login&locale=de-CH
+
+Sobald Ihre Angaben überprüft und bestätigt, erhalten Sie eine Nachricht
+von uns erhalten und wird Ihr Konto komplett zugreifen wiederhergestellt.
+
+Wir danken Ihnen für Ihre Kooperation.
+
+Mit freundlichen Grüßen,
+UBS AG
+Bahnhofstrasse 45 8001 Zurich
+UBS AG    CH-8098 Zurich
+SWIFT (BIC):    UBSWCHZH
+BIC: UBSWCHZH80A
+
+
+-- 
+This message has been scanned for viruses and
+dangerous content by MailScanner, and is
+believed to be clean.
 
