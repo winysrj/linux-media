@@ -1,47 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f43.google.com ([209.85.212.43]:63931 "EHLO
-	mail-vb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757821Ab3EWJZq (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 05:25:46 -0400
-Received: by mail-vb0-f43.google.com with SMTP id e15so1976467vbg.2
-        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 02:25:45 -0700 (PDT)
+Received: from mail-la0-f43.google.com ([209.85.215.43]:38672 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755573Ab3EFT4q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 15:56:46 -0400
+Received: by mail-la0-f43.google.com with SMTP id ea20so3688274lab.30
+        for <linux-media@vger.kernel.org>; Mon, 06 May 2013 12:56:44 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CA+V-a8v5Msfwr11tpC5xR90e5E02Mz+OJcqnYohmp2ri_VgC1Q@mail.gmail.com>
-References: <CAPgLHd_iDfVzq2S_uSh1tBVpQdFa4oyMpWGovDDNCYsh0bLJog@mail.gmail.com>
- <CA+V-a8v5Msfwr11tpC5xR90e5E02Mz+OJcqnYohmp2ri_VgC1Q@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 23 May 2013 14:55:25 +0530
-Message-ID: <CA+V-a8vTXaDmPuPxFUDxv4+pQc4jbwBafUWu7Y-Hdbbdo+=Xqg@mail.gmail.com>
-Subject: Re: [PATCH] [media] vpif_display: fix error return code in vpif_probe()
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: mchehab@redhat.com, yongjun_wei@trendmicro.com.cn,
-	linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Wei Yongjun <weiyj.lk@gmail.com>
+In-Reply-To: <20130506155930.GG5763@phenom.ffwll.local>
+References: <1367382644-30788-1-git-send-email-airlied@gmail.com>
+	<CAKMK7uGJWHb7so8_uNe0JzH_EUAQLExFPda=ZR+8yuG+ALvo2w@mail.gmail.com>
+	<CAPM=9tzW-9U+ff2818asviXtm8+56-gp3NOFxy_u1m7b21TaQg@mail.gmail.com>
+	<20130506155930.GG5763@phenom.ffwll.local>
+Date: Tue, 7 May 2013 05:56:44 +1000
+Message-ID: <CAPM=9txE51ZzPaX52rfqvvBp+=pwVe3fk=xE8p6qb79kJbQX=Q@mail.gmail.com>
+Subject: Re: [PATCH] drm/udl: avoid swiotlb for imported vmap buffers.
+From: Dave Airlie <airlied@gmail.com>
+To: Daniel Vetter <daniel@ffwll.ch>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-On Mon, May 13, 2013 at 11:34 AM, Prabhakar Lad
-<prabhakar.csengg@gmail.com> wrote:
-> Hi Wei,
->
-> Thanks for the patch.
->
-> On Mon, May 13, 2013 at 11:27 AM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
->> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+On Tue, May 7, 2013 at 1:59 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
+> On Mon, May 06, 2013 at 10:35:35AM +1000, Dave Airlie wrote:
+>> >>
+>> >> However if we don't set a dma mask on the usb device, the mapping
+>> >> ends up using swiotlb on machines that have it enabled, which
+>> >> is less than desireable.
+>> >>
+>> >> Signed-off-by: Dave Airlie <airlied@redhat.com>
+>> >
+>> > Fyi for everyone else who was not on irc when Dave&I discussed this:
+>> > This really shouldn't be required and I think the real issue is that
+>> > udl creates a dma_buf attachement (which is needed for device dma
+>> > only), but only really wants to do cpu access through vmap/kmap. So
+>> > not attached the device should be good enough. Cc'ing a few more lists
+>> > for better fyi ;-)
 >>
->> Fix to return -ENODEV in the subdevice register error handling
->> case instead of 0, as done elsewhere in this function.
->>
->> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>> Though I've looked at this a bit more, and since I want to be able to expose
+>> shared objects as proper GEM objects from the import side I really
+>> need that list of pages.
 >
-> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->
-Can you pick this patch ? and a similar looking patch for vpif display.
+> Hm, what does "proper GEM object" mean in the context of udl?
 
-Regards,
---Prabhakar Lad
+One that appears the same as a GEM object created by userspace. i.e. mmap works.
+
+Dave.
