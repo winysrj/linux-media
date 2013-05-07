@@ -1,44 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:54825 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757758Ab3EWQWj convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 12:22:39 -0400
-Received: by mail-ie0-f180.google.com with SMTP id ar20so9045205iec.25
-        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 09:22:38 -0700 (PDT)
+Received: from mout.gmx.net ([212.227.15.19]:54142 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753119Ab3EGVFC (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 May 2013 17:05:02 -0400
+Received: from mailout-de.gmx.net ([10.1.76.33]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0M06gE-1UHBDc1uCC-00uKpF for
+ <linux-media@vger.kernel.org>; Tue, 07 May 2013 23:05:00 +0200
+From: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
+Subject: [PATCH] stb0899: sign extend raw CRL_FREQ value
+Date: Tue,  7 May 2013 23:04:40 +0200
+Message-Id: <1367960680-17663-1-git-send-email-rnissl@gmx.de>
 MIME-Version: 1.0
-In-Reply-To: <519E41AC.3040707@gmail.com>
-References: <519D6CFA.2000506@gmail.com>
-	<CALF0-+UqJaNc7v86qakVTNEJx5npMFPqFp-=9rAByFV_+FEaww@mail.gmail.com>
-	<519E41AC.3040707@gmail.com>
-Date: Thu, 23 May 2013 13:22:38 -0300
-Message-ID: <CALF0-+U5dFktwHwO5-h_7RJ1xyjc3JbHUWqG3g=WSPA=HcHnnw@mail.gmail.com>
-Subject: Re: Audio: no sound
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: =?ISO-8859-1?Q?Alejandro_A=2E_Vald=E9s?= <av2406@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 23, 2013 at 1:19 PM, "Alejandro A. Valdés" <av2406@gmail.com> wrote:
-> Good morning,
->
-> Please find the output the cat /proc/asound/ command below:
->
-> # cat /proc/asound/cards
->  0 [Intel          ]: HDA-Intel - HDA Intel
->                       HDA Intel at 0xf7cf8000 irq 45
->  1 [EasyALSA1      ]: easycapdc60 - easycap_alsa
->                       easycap_alsa
->
-> Besides, this is what the lsusb shows for the device. Hope it helps...
+Contrary to the chip's specs, the register's value is signed, so we
+need to sign extend the value before using it in calculations like
+when determining the offset frequency.
 
-Yes, it certainly helps.
+Signed-off-by: Reinhard NiÃŸl <rnissl@gmx.de>
+---
+ drivers/media/dvb-frontends/stb0899_algo.c | 4 ++++
+ 1 file changed, 4 insertions(+)
 
-To complete, please output your kernel config and the output of lsmod.
-
-Also, please attach the output of dmesg from the moment you plug your device.
+diff --git a/drivers/media/dvb-frontends/stb0899_algo.c b/drivers/media/dvb-frontends/stb0899_algo.c
+index 117a569..bd9dbd7 100644
+--- a/drivers/media/dvb-frontends/stb0899_algo.c
++++ b/drivers/media/dvb-frontends/stb0899_algo.c
+@@ -1487,6 +1487,10 @@ enum stb0899_status stb0899_dvbs2_algo(struct stb0899_state *state)
+ 		/* Store signal parameters	*/
+ 		offsetfreq = STB0899_READ_S2REG(STB0899_S2DEMOD, CRL_FREQ);
+ 
++		/* sign extend 30 bit value before using it in calculations */
++		if (offsetfreq & (1 << 29))
++			offsetfreq |= -1 << 30;
++
+ 		offsetfreq = offsetfreq / ((1 << 30) / 1000);
+ 		offsetfreq *= (internal->master_clk / 1000000);
+ 		reg = STB0899_READ_S2REG(STB0899_S2DEMOD, DMD_CNTRL2);
 -- 
-    Ezequiel
+1.8.1.4
+
