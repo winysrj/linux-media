@@ -1,72 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:46142 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750822Ab3EBFQX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 01:16:23 -0400
-Received: by mail-pa0-f52.google.com with SMTP id bg2so149046pad.25
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 22:16:22 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH v2 1/2] s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL in hdmi_drv.c
-Date: Thu,  2 May 2013 10:33:28 +0530
-Message-Id: <1367471009-7103-1-git-send-email-sachin.kamat@linaro.org>
+Received: from mail.ispras.ru ([83.149.199.45]:57887 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753327Ab3EGV50 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 7 May 2013 17:57:26 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Raja Mani <raja_mani@ti.com>,
+	Manjunatha Halli <manjunatha_halli@ti.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org
+Subject: [PATCH] [media] wl128x: do not call copy_to_user() while holding spinlocks
+Date: Wed,  8 May 2013 01:57:08 +0400
+Message-Id: <1367963828-7910-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NULL check on clocks obtained using common clock APIs should not
-be done. Use IS_ERR only.
+copy_to_user() must not be called with spinlocks held, but it is in
+fmc_transfer_rds_from_internal_buff().
+The patch copies data to tmpbuf, releases spinlock and then passes it to userspace.
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
-Changes since v1:
-Initialised clocks to invalid value.
----
- drivers/media/platform/s5p-tv/hdmi_drv.c |   18 ++++++++++++------
- 1 file changed, 12 insertions(+), 6 deletions(-)
+By the way there is a small unification: replace a couple of hardcoded constants by a macro.
 
-diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
-index 4e86626..ed1a695 100644
---- a/drivers/media/platform/s5p-tv/hdmi_drv.c
-+++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
-@@ -765,15 +765,15 @@ static void hdmi_resources_cleanup(struct hdmi_device *hdev)
- 		regulator_bulk_free(res->regul_count, res->regul_bulk);
- 	/* kfree is NULL-safe */
- 	kfree(res->regul_bulk);
--	if (!IS_ERR_OR_NULL(res->hdmiphy))
-+	if (!IS_ERR(res->hdmiphy))
- 		clk_put(res->hdmiphy);
--	if (!IS_ERR_OR_NULL(res->sclk_hdmiphy))
-+	if (!IS_ERR(res->sclk_hdmiphy))
- 		clk_put(res->sclk_hdmiphy);
--	if (!IS_ERR_OR_NULL(res->sclk_pixel))
-+	if (!IS_ERR(res->sclk_pixel))
- 		clk_put(res->sclk_pixel);
--	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
-+	if (!IS_ERR(res->sclk_hdmi))
- 		clk_put(res->sclk_hdmi);
--	if (!IS_ERR_OR_NULL(res->hdmi))
-+	if (!IS_ERR(res->hdmi))
- 		clk_put(res->hdmi);
- 	memset(res, 0, sizeof(*res));
- }
-@@ -793,8 +793,14 @@ static int hdmi_resources_init(struct hdmi_device *hdev)
- 	dev_dbg(dev, "HDMI resource init\n");
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/media/radio/wl128x/fmdrv_common.c |   24 ++++++++++++++----------
+ 1 file changed, 14 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/radio/wl128x/fmdrv_common.c b/drivers/media/radio/wl128x/fmdrv_common.c
+index a002234..253f307 100644
+--- a/drivers/media/radio/wl128x/fmdrv_common.c
++++ b/drivers/media/radio/wl128x/fmdrv_common.c
+@@ -715,7 +715,7 @@ static void fm_irq_handle_rdsdata_getcmd_resp(struct fmdev *fmdev)
+ 	struct fm_rdsdata_format rds_fmt;
+ 	struct fm_rds *rds = &fmdev->rx.rds;
+ 	unsigned long group_idx, flags;
+-	u8 *rds_data, meta_data, tmpbuf[3];
++	u8 *rds_data, meta_data, tmpbuf[FM_RDS_BLK_SIZE];
+ 	u8 type, blk_idx;
+ 	u16 cur_picode;
+ 	u32 rds_len;
+@@ -1073,6 +1073,7 @@ int fmc_transfer_rds_from_internal_buff(struct fmdev *fmdev, struct file *file,
+ 		u8 __user *buf, size_t count)
+ {
+ 	u32 block_count;
++	u8 tmpbuf[FM_RDS_BLK_SIZE];
+ 	unsigned long flags;
+ 	int ret;
  
- 	memset(res, 0, sizeof(*res));
--	/* get clocks, power */
+@@ -1087,29 +1088,32 @@ int fmc_transfer_rds_from_internal_buff(struct fmdev *fmdev, struct file *file,
+ 	}
  
-+	res->hdmi	 = ERR_PTR(-EINVAL);
-+	res->sclk_hdmi	 = ERR_PTR(-EINVAL);
-+	res->sclk_pixel	 = ERR_PTR(-EINVAL);
-+	res->sclk_hdmiphy = ERR_PTR(-EINVAL);
-+	res->hdmiphy	 = ERR_PTR(-EINVAL);
+ 	/* Calculate block count from byte count */
+-	count /= 3;
++	count /= FM_RDS_BLK_SIZE;
+ 	block_count = 0;
+ 	ret = 0;
+ 
+-	spin_lock_irqsave(&fmdev->rds_buff_lock, flags);
+-
+ 	while (block_count < count) {
+-		if (fmdev->rx.rds.wr_idx == fmdev->rx.rds.rd_idx)
+-			break;
++		spin_lock_irqsave(&fmdev->rds_buff_lock, flags);
+ 
+-		if (copy_to_user(buf, &fmdev->rx.rds.buff[fmdev->rx.rds.rd_idx],
+-					FM_RDS_BLK_SIZE))
++		if (fmdev->rx.rds.wr_idx == fmdev->rx.rds.rd_idx) {
++			spin_unlock_irqrestore(&fmdev->rds_buff_lock, flags);
+ 			break;
+-
++		}
++		memcpy(tmpbuf, &fmdev->rx.rds.buff[fmdev->rx.rds.rd_idx],
++					FM_RDS_BLK_SIZE);
+ 		fmdev->rx.rds.rd_idx += FM_RDS_BLK_SIZE;
+ 		if (fmdev->rx.rds.rd_idx >= fmdev->rx.rds.buf_size)
+ 			fmdev->rx.rds.rd_idx = 0;
+ 
++		spin_unlock_irqrestore(&fmdev->rds_buff_lock, flags);
 +
-+	/* get clocks, power */
- 	res->hdmi = clk_get(dev, "hdmi");
- 	if (IS_ERR(res->hdmi)) {
- 		dev_err(dev, "failed to get clock 'hdmi'\n");
++		if (copy_to_user(buf, tmpbuf, FM_RDS_BLK_SIZE))
++			break;
++
+ 		block_count++;
+ 		buf += FM_RDS_BLK_SIZE;
+ 		ret += FM_RDS_BLK_SIZE;
+ 	}
+-	spin_unlock_irqrestore(&fmdev->rds_buff_lock, flags);
+ 	return ret;
+ }
+ 
 -- 
 1.7.9.5
 
