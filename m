@@ -1,155 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:50434 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752134Ab3EMLYF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 07:24:05 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>
-Cc: 'Rob Clark' <robdclark@gmail.com>,
-	'Daniel Vetter' <daniel@ffwll.ch>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'YoungJun Cho' <yj44.cho@samsung.com>
-References: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com>
- <51909DB4.2060208@canonical.com>
- <025201ce4fbb$363d0390$a2b70ab0$%dae@samsung.com>
- <5190B7D8.3010803@canonical.com>
-In-reply-to: <5190B7D8.3010803@canonical.com>
-Subject: RE: Introduce a new helper framework for buffer synchronization
-Date: Mon, 13 May 2013 20:24:01 +0900
-Message-id: <027a01ce4fcc$5e7c7320$1b755960$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51740 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752798Ab3EGPHI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 11:07:08 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: "Kim, Milo" <Milo.Kim@ti.com>
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"hj210.choi@samsung.com" <hj210.choi@samsung.com>,
+	"sw0312.kim@samsung.com" <sw0312.kim@samsung.com>,
+	Bryan Wu <cooloney@gmail.com>,
+	Richard Purdie <rpurdie@rpsys.net>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-leds@vger.kernel.org" <linux-leds@vger.kernel.org>,
+	"devicetree-discuss@lists.ozlabs.org"
+	<devicetree-discuss@lists.ozlabs.org>
+Subject: Re: [RFC 0/2] V4L2 API for exposing flash subdevs as LED class device
+Date: Tue, 07 May 2013 17:07:20 +0200
+Message-ID: <1958801.k4UEk5OhXt@avalon>
+In-Reply-To: <A874F61F95741C4A9BA573A70FE3998F82E5C879@DQHE06.ent.ti.com>
+References: <1367832828-30771-1-git-send-email-a.hajda@samsung.com> <A874F61F95741C4A9BA573A70FE3998F82E5C879@DQHE06.ent.ti.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-> -----Original Message-----
-> From: Maarten Lankhorst [mailto:maarten.lankhorst@canonical.com]
-> Sent: Monday, May 13, 2013 6:52 PM
-> To: Inki Dae
-> Cc: 'Rob Clark'; 'Daniel Vetter'; 'DRI mailing list'; linux-arm-
-> kernel@lists.infradead.org; linux-media@vger.kernel.org; 'linux-fbdev';
-> 'Kyungmin Park'; 'myungjoo.ham'; 'YoungJun Cho'
-> Subject: Re: Introduce a new helper framework for buffer synchronization
+On Tuesday 07 May 2013 02:11:27 Kim, Milo wrote:
+> On Monday, May 06, 2013 6:34 PM Andrzej Hajda wrote:
+> > 
+> > This RFC proposes generic API for exposing flash subdevices via LED
+> > framework.
+> > 
+> > Rationale
+> > 
+> > Currently there are two frameworks which are used for exposing LED
+> > flash to user space:
+> > - V4L2 flash controls,
+> > - LED framework(with custom sysfs attributes).
+> > 
+> > The list below shows flash drivers in mainline kernel with initial
+> > commit date and typical chip application (according to producer):
+> > 
+> > LED API:
+> >     lm3642: 2012-09-12, Cameras
+> >     lm355x: 2012-09-05, Cameras
+> >     max8997: 2011-12-14, Cameras (?)
+> >     lp3944: 2009-06-19, Cameras, Lights, Indicators, Toys
+> >     pca955x: 2008-07-16, Cameras, Indicators (?)
+> > 
+> > V4L2 API:
+> >     as3645a:  2011-05-05, Cameras
+> >     adp1653: 2011-05-05, Cameras
+> > 
+> > V4L2 provides richest functionality, but there is often demand from
+> > application developers to provide already established LED API. We would
+> > like to have an unified user interface for flash devices. Some of devices
+> > already have the LED API driver exposing limited set of a Flash IC
+> > functionality. In order to support all required features the LED API
+> > would have to be extended or the V4L2 API would need to be used. However
+> > when switching from a LED to a V4L2 Flash driver existing LED API
+> > interface would need to be retained.
+> > 
+> > Proposed solution
+> > 
+> > This patch adds V4L2 helper functions to register existing V4L2 flash
+> > subdev as LED class device. After registration via v4l2_leddev_register
+> > appropriate entry in /sys/class/leds/ is created. During registration all
+> > V4L2 flash controls are enumerated and corresponding attributes are added.
+> > 
+> > I have attached also patch with new max77693-led driver using v4l2_leddev.
+> > This patch requires presence of the patch "max77693: added device tree
+> > support": https://patchwork.kernel.org/patch/2414351/ .
+> > 
+> > Additional features
+> > 
+> > - simple API to access all V4L2 flash controls via sysfs,
+> > - V4L2 subdevice should not be registered by V4L2 device to use it,
+> > - LED triggers API can be used to control the device,
+> > - LED device is optional - it will be created only if V4L2_LEDDEV
+> >   configuration option is enabled and the subdev driver calls
+> >   v4l2_leddev_register.
+> > 
+> > Doubts
+> > 
+> > This RFC is a result of a uncertainty which API developers should expose
+> > by their flash drivers. It is a try to gluing together both APIs. I am not
+> > sure if it is the best solution, but I hope there will be some discussion
+> > and hopefully some decisions will be taken which way we should follow.
 > 
-> Op 13-05-13 11:21, Inki Dae schreef:
-> >
-> >> -----Original Message-----
-> >> From: Maarten Lankhorst [mailto:maarten.lankhorst@canonical.com]
-> >> Sent: Monday, May 13, 2013 5:01 PM
-> >> To: Inki Dae
-> >> Cc: Rob Clark; Daniel Vetter; DRI mailing list; linux-arm-
-> >> kernel@lists.infradead.org; linux-media@vger.kernel.org; linux-fbdev;
-> >> Kyungmin Park; myungjoo.ham; YoungJun Cho
-> >> Subject: Re: Introduce a new helper framework for buffer
-> synchronization
-> >>
-> >> Op 09-05-13 09:33, Inki Dae schreef:
-> >>> Hi all,
-> >>>
-> >>> This post introduces a new helper framework based on dma fence. And
-> the
-> >>> purpose of this post is to collect other opinions and advices before
-> RFC
-> >>> posting.
-> >>>
-> >>> First of all, this helper framework, called fence helper, is in
-> progress
-> >>> yet so might not have enough comments in codes and also might need to
-> be
-> >>> more cleaned up. Moreover, we might be missing some parts of the dma
-> >> fence.
-> >>> However, I'd like to say that all things mentioned below has been
-> tested
-> >>> with Linux platform and worked well.
-> >>> ....
-> >>>
-> >>> And tutorial for user process.
-> >>>         just before cpu access
-> >>>                 struct dma_buf_fence *df;
-> >>>
-> >>>                 df->type = DMA_BUF_ACCESS_READ or
-DMA_BUF_ACCESS_WRITE;
-> >>>                 ioctl(fd, DMA_BUF_GET_FENCE, &df);
-> >>>
-> >>>         after memset or memcpy
-> >>>                 ioctl(fd, DMA_BUF_PUT_FENCE, &df);
-> >> NAK.
-> >>
-> >> Userspace doesn't need to trigger fences. It can do a buffer idle wait,
-> >> and postpone submitting new commands until after it's done using the
-> >> buffer.
-> > Hi Maarten,
-> >
-> > It seems that you say user should wait for a buffer like KDS does: KDS
-> uses
-> > select() to postpone submitting new commands. But I think this way
-> assumes
-> > that every data flows a DMA device to a CPU. For example, a CPU should
-> keep
-> > polling for the completion of a buffer access by a DMA device. This
-> means
-> > that the this way isn't considered for data flow to opposite case; CPU
-> to
-> > DMA device.
-> Not really. You do both things the same way. You first wait for the bo to
-> be idle, this could be implemented by adding poll support to the dma-buf
-> fd.
-> Then you either do your read or write. Since userspace is supposed to be
-> the one controlling the bo it should stay idle at that point. If you have
-> another thread queueing
-> the buffer againbefore your thread is done that's a bug in the
-application,
-> and can be solved with userspace locking primitives. No need for the
-> kernel to get involved.
+> The LED subsystem provides similar APIs for the Camera driver.
+> With LED trigger event, flash and torch are enabled/disabled.
+> I'm not sure this is applicable for you.
+> Could you take a look at LED camera trigger feature?
 > 
+> For the camera LED trigger,
+> https://git.kernel.org/cgit/linux/kernel/git/cooloney/linux-leds.git/commit/
+> ?h=f or-next&id=48a1d032c954b9b06c3adbf35ef4735dd70ab757
+> 
+> Example of camera flash driver,
+> https://git.kernel.org/cgit/linux/kernel/git/cooloney/linux-leds.git/commit/
+> ?h=f or-next&id=313bf0b1a0eaeaac17ea8c4b748f16e28fce8b7a
 
-Yes, that is how we have synchronized buffer between CPU and DMA device
-until now without buffer synchronization mechanism. I thought that it's best
-to make user not considering anything: user can access a buffer regardless
-of any DMA device controlling and the buffer synchronization is performed in
-kernel level. Moreover, I think we could optimize graphics and multimedia
-hardware performance because hardware can do more works: one thread accesses
-a shared buffer and the other controls DMA device with the shared buffer in
-parallel. Thus, we could avoid sequential processing and that is my
-intention. Aren't you think about that we could improve hardware utilization
-with such way or other? of course, there could be better way.
+I think we should decide on one API. Implementing two APIs for a single device 
+is usually messy, and will result in different feature sets (and different 
+bugs) being implemented through each API, depending on the driver. 
+Interactions between the APIs are also a pain point on the kernel side to 
+properly synchronize calls.
 
-> >> Kernel space doesn't need the root hole you created by giving a
-> >> dereferencing a pointer passed from userspace.
-> >> Your next exercise should be to write a security exploit from the api
-> you
-> >> created here. It's the only way to learn how to write safe code. Hint:
-> >> df.ctx = mmap(..);
-> >>
-> > Also I'm not clear to use our way yet and that is why I posted. As you
-> > mentioned, it seems like that using mmap() is more safe. But there is
-> one
-> > issue it makes me confusing. For your hint, df.ctx = mmap(..), the issue
-> is
-> > that dmabuf mmap can be used to map a dmabuf with user space. And the
-> dmabuf
-> > means a physical memory region allocated by some allocator such as drm
-> gem
-> > or ion.
-> >
-> > There might be my missing point so could you please give me more
-> comments?
-> >
-> My point was that userspace could change df.ctx to some mmap'd memory,
-> forcing the kernel to execute some code prepared by userspace.
+The LED API is too limited for torch and flash usage, but I'm definitely open 
+to moving flash devices to the LED API is we can extend it in a way that it 
+covers all the use cases.
 
-Understood. I have to find a better way. And for this, I'd like to listen
-attentively more opinions and advices.
+-- 
+Regards,
 
-Thanks for comments,
-Inki Dae
+Laurent Pinchart
 
