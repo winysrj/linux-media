@@ -1,57 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:63156 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754050Ab3EIPwC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 11:52:02 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMJ005O6G2MNR10@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 May 2013 16:52:00 +0100 (BST)
-Message-id: <518BC61E.3040202@samsung.com>
-Date: Thu, 09 May 2013 17:51:58 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, a.hajda@samsung.com,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	devicetree-discuss@lists.ozlabs.org,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	George Joseph <george.jp@samsung.com>,
-	"aditya.ps" <aditya.ps@samsung.com>,
-	sunil joshi <joshi@samsung.com>
-Subject: Re: [PATCH] s5p-jpeg: Enable instantiation from device tree
-References: <1368103198-16485-1-git-send-email-s.nawrocki@samsung.com>
- <CAK9yfHx-o-3oYj8hMKzQK7N3CD7=tUwbxcHG-9gA25yfRjky2Q@mail.gmail.com>
-In-reply-to: <CAK9yfHx-o-3oYj8hMKzQK7N3CD7=tUwbxcHG-9gA25yfRjky2Q@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:9022 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756001Ab3EGMGu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 08:06:50 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [RFC PATCH for 3.10] Update Codec section in DocBook
+Date: Tue, 7 May 2013 14:06:11 +0200
+Cc: Kamil Debski <k.debski@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305071406.11826.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+I had feedback from two companies recently that they thought V4L2 didn't
+support codec hardware because the Codec section in the spec said it was
+'suspended'.
 
-On 05/09/2013 04:50 PM, Sachin Kamat wrote:
-> George from my team is working on adding JPEG IP support for 4412 and
-> 5250 SoCs which is quite different from 4210.
-> In this regard he has refactored the driver to accomodate the changes
-> required for the new IP and also added DT support.
-> The patches are almost ready and would be submitted in the next couple
-> of days. This is FYI :)
+That's really bad so I made a quick patch for this that I'd like to get into
+3.10 because of the unintended high impact this outdated documentation has.
 
-That's greats news, since on our side currently nobody has been working
-on the Exynos4x12+ JPEG codec support. I just prepared a patch adding
-DT matching table and checked the driver gets initialized on Exynos4x12.
-So it is at least usable on Exynos4210 in 3.11. I should not have listed
-"samsung,exynos4212-jpeg" in the driver, since it is missing adaptations
-for Exynos4x12 SoCs.
+Regards,
 
-We have plenty time to add proper support for the JPEG IP in 3.11. I'm
-looking forward to review and test your patches. Can you use the $subject
-patch as a base of your work ? ;-) Or is it rather useless ?
+	Hans
 
-FYI, I will be mostly offline for next 2 weeks.
+Subject: [PATCH] DocBook: media: update codec section, drop obsolete 'suspended' state.
 
-Thanks,
-Sylwester
+The Codec section in the V4L2 specification was marked as 'suspended', even
+though codec support has been around for quite some time. Update this
+section, explaining a bit about memory-to-memory devices and pointing to
+the MPEG controls section.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/dev-codec.xml |   35 ++++++++++++++++---------
+ 1 file changed, 22 insertions(+), 13 deletions(-)
+
+diff --git a/Documentation/DocBook/media/v4l/dev-codec.xml b/Documentation/DocBook/media/v4l/dev-codec.xml
+index dca0ecd..ff44c16 100644
+--- a/Documentation/DocBook/media/v4l/dev-codec.xml
++++ b/Documentation/DocBook/media/v4l/dev-codec.xml
+@@ -1,18 +1,27 @@
+   <title>Codec Interface</title>
+ 
+-  <note>
+-    <title>Suspended</title>
++  <para>A V4L2 codec can compress, decompress, transform, or otherwise
++convert video data from one format into another format, in memory. Typically
++such devices are memory-to-memory devices (i.e. devices with the
++<constant>V4L2_CAP_VIDEO_M2M</constant> or <constant>V4L2_CAP_VIDEO_M2M_MPLANE</constant>
++capability set).
++</para>
+ 
+-    <para>This interface has been be suspended from the V4L2 API
+-implemented in Linux 2.6 until we have more experience with codec
+-device interfaces.</para>
+-  </note>
++  <para>A memory-to-memory video node acts just like a normal video node, but it
++supports both output (sending frames from memory to the codec hardware) and
++capture (receiving the processed frames from the codec hardware into memory)
++stream I/O. An application will have to setup the stream
++I/O for both sides and finally call &VIDIOC-STREAMON; for both capture and output
++to start the codec.</para>
+ 
+-  <para>A V4L2 codec can compress, decompress, transform, or otherwise
+-convert video data from one format into another format, in memory.
+-Applications send data to be converted to the driver through a
+-&func-write; call, and receive the converted data through a
+-&func-read; call. For efficiency a driver may also support streaming
+-I/O.</para>
++  <para>Video compression codecs use the MPEG controls to setup their codec parameters
++(note that the MPEG controls actually support many more codecs than just MPEG).
++See <xref linkend="mpeg-controls"></xref>.</para>
+ 
+-  <para>[to do]</para>
++  <para>Memory-to-memory devices can often be used as a shared resource: you can
++open the video node multiple times, each application setting up their own codec properties
++that are local to the file handle, and each can use it independently from the others.
++The driver will arbitrate access to the codec and reprogram it whenever another file
++handler gets access. This is different from the usual video node behavior where the video properties
++are global to the device (i.e. changing something through one file handle is visible
++through another file handle).</para>
+-- 
+1.7.10.4
+
