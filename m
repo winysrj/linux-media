@@ -1,86 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1913 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752899Ab3EZN1h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 09:27:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 14/24] au8522_decoder: remove g_chip_ident op.
-Date: Sun, 26 May 2013 15:27:09 +0200
-Message-Id: <1369574839-6687-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.186]:51664 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756960Ab3EGGwE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 02:52:04 -0400
+Date: Tue, 7 May 2013 08:52:01 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/7] soc_camera/mx1_camera: Fix warnings related to
+ spacing
+In-Reply-To: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
+Message-ID: <Pine.LNX.4.64.1305070851360.31972@axis700.grange>
+References: <1364965241-28225-1-git-send-email-sachin.kamat@linaro.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed, 3 Apr 2013, Sachin Kamat wrote:
 
-This is no longer needed since the core now handles this through DBG_G_CHIP_INFO.
+> Fixes the following checkpatch warnings:
+> WARNING: unnecessary whitespace before a quoted newline
+> WARNING: please, no space before tabs
+> 
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks, all 7 queued for 3.11
+
+Guennadi
+
+> ---
+>  drivers/media/platform/soc_camera/mx1_camera.c |    4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/mx1_camera.c b/drivers/media/platform/soc_camera/mx1_camera.c
+> index 4389f43..a3fd8d6 100644
+> --- a/drivers/media/platform/soc_camera/mx1_camera.c
+> +++ b/drivers/media/platform/soc_camera/mx1_camera.c
+> @@ -776,7 +776,7 @@ static int __init mx1_camera_probe(struct platform_device *pdev)
+>  	/* request irq */
+>  	err = claim_fiq(&fh);
+>  	if (err) {
+> -		dev_err(&pdev->dev, "Camera interrupt register failed \n");
+> +		dev_err(&pdev->dev, "Camera interrupt register failed\n");
+>  		goto exit_free_dma;
+>  	}
+>  
+> @@ -853,7 +853,7 @@ static int __exit mx1_camera_remove(struct platform_device *pdev)
+>  }
+>  
+>  static struct platform_driver mx1_camera_driver = {
+> -	.driver 	= {
+> +	.driver		= {
+>  		.name	= DRIVER_NAME,
+>  	},
+>  	.remove		= __exit_p(mx1_camera_remove),
+> -- 
+> 1.7.9.5
+> 
+
 ---
- drivers/media/dvb-frontends/au8522_decoder.c |   17 -----------------
- 1 file changed, 17 deletions(-)
-
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 9d159b4..23a0d05 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -35,7 +35,6 @@
- #include <linux/i2c.h>
- #include <linux/delay.h>
- #include <media/v4l2-common.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-device.h>
- #include "au8522.h"
- #include "au8522_priv.h"
-@@ -524,11 +523,8 @@ static int au8522_s_ctrl(struct v4l2_ctrl *ctrl)
- static int au8522_g_register(struct v4l2_subdev *sd,
- 			     struct v4l2_dbg_register *reg)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct au8522_state *state = to_state(sd);
- 
--	if (!v4l2_chip_match_i2c_client(client, &reg->match))
--		return -EINVAL;
- 	reg->val = au8522_readreg(state, reg->reg & 0xffff);
- 	return 0;
- }
-@@ -536,11 +532,8 @@ static int au8522_g_register(struct v4l2_subdev *sd,
- static int au8522_s_register(struct v4l2_subdev *sd,
- 			     const struct v4l2_dbg_register *reg)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct au8522_state *state = to_state(sd);
- 
--	if (!v4l2_chip_match_i2c_client(client, &reg->match))
--		return -EINVAL;
- 	au8522_writereg(state, reg->reg, reg->val & 0xff);
- 	return 0;
- }
-@@ -632,20 +625,10 @@ static int au8522_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 	return 0;
- }
- 
--static int au8522_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *chip)
--{
--	struct au8522_state *state = to_state(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	return v4l2_chip_ident_i2c_client(client, chip, state->id, state->rev);
--}
--
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops au8522_core_ops = {
- 	.log_status = v4l2_ctrl_subdev_log_status,
--	.g_chip_ident = au8522_g_chip_ident,
- 	.reset = au8522_reset,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register = au8522_g_register,
--- 
-1.7.10.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
