@@ -1,193 +1,199 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2394 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751216Ab3EJMbi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 May 2013 08:31:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [PATCH RFC 3/3] media: added managed v4l2 subdevice initialization
-Date: Fri, 10 May 2013 14:31:23 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com
-References: <1368103965-15232-1-git-send-email-a.hajda@samsung.com> <1368103965-15232-4-git-send-email-a.hajda@samsung.com>
-In-Reply-To: <1368103965-15232-4-git-send-email-a.hajda@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305101431.23551.hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50610 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755550Ab3EGLT3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 07:19:29 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: Shawn Nematbakhsh <shawnn@chromium.org>
+Subject: [PATCH v2] uvcvideo: Fix open/close race condition
+Date: Tue,  7 May 2013 13:19:37 +0200
+Message-Id: <1367925577-26907-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu May 9 2013 14:52:44 Andrzej Hajda wrote:
-> This patch adds managed versions of initialization
-> functions for v4l2 subdevices.
+Maintaining the users count using an atomic variable makes sure that
+access to the counter won't be racy, but doesn't serialize access to the
+operations protected by the counter. This creates a race condition that
+could result in the status URB being submitted multiple times.
 
-I am not convinced of the usefulness of this. The *_subdev_init functions
-are void functions and so do not return an error. So there isn't much to
-manage.
+Use a mutex to protect the users count and serialize access to the
+status start and stop operations.
 
-It feels like the wrong approach to me.
+Reported-by: Shawn Nematbakhsh <shawnn@chromium.org>
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/usb/uvc/uvc_driver.c | 23 +++++++++++++++++------
+ drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
+ drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
+ drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
+ 4 files changed, 32 insertions(+), 33 deletions(-)
 
-The core problem is that you do not know what will be unregistered first:
-the i2c adapter or the subdev. Depending on that the v4l2_device_unregister_subdev()
-call is or is not needed.
+Changes since v1:
 
+- Add a missing return back in the uvc_suspend() function
+
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index e68fa53..d704be3 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -1836,8 +1836,8 @@ static int uvc_probe(struct usb_interface *intf,
+ 	INIT_LIST_HEAD(&dev->chains);
+ 	INIT_LIST_HEAD(&dev->streams);
+ 	atomic_set(&dev->nstreams, 0);
+-	atomic_set(&dev->users, 0);
+ 	atomic_set(&dev->nmappings, 0);
++	mutex_init(&dev->lock);
+ 
+ 	dev->udev = usb_get_dev(udev);
+ 	dev->intf = usb_get_intf(intf);
+@@ -1953,8 +1953,13 @@ static int uvc_suspend(struct usb_interface *intf, pm_message_t message)
+ 
+ 	/* Controls are cached on the fly so they don't need to be saved. */
+ 	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+-	    UVC_SC_VIDEOCONTROL)
+-		return uvc_status_suspend(dev);
++	    UVC_SC_VIDEOCONTROL) {
++		mutex_lock(&dev->lock);
++		if (dev->users)
++			uvc_status_stop(dev);
++		mutex_unlock(&dev->lock);
++		return 0;
++	}
+ 
+ 	list_for_each_entry(stream, &dev->streams, list) {
+ 		if (stream->intf == intf)
+@@ -1976,14 +1981,20 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
+ 
+ 	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+ 	    UVC_SC_VIDEOCONTROL) {
+-		if (reset) {
+-			int ret = uvc_ctrl_resume_device(dev);
++		int ret = 0;
+ 
++		if (reset) {
++			ret = uvc_ctrl_resume_device(dev);
+ 			if (ret < 0)
+ 				return ret;
+ 		}
+ 
+-		return uvc_status_resume(dev);
++		mutex_lock(&dev->lock);
++		if (dev->users)
++			ret = uvc_status_start(dev, GFP_NOIO);
++		mutex_unlock(&dev->lock);
++
++		return ret;
+ 	}
+ 
+ 	list_for_each_entry(stream, &dev->streams, list) {
+diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
+index b749277..f552ab9 100644
+--- a/drivers/media/usb/uvc/uvc_status.c
++++ b/drivers/media/usb/uvc/uvc_status.c
+@@ -206,32 +206,15 @@ void uvc_status_cleanup(struct uvc_device *dev)
+ 	uvc_input_cleanup(dev);
+ }
+ 
+-int uvc_status_start(struct uvc_device *dev)
++int uvc_status_start(struct uvc_device *dev, gfp_t flags)
+ {
+ 	if (dev->int_urb == NULL)
+ 		return 0;
+ 
+-	return usb_submit_urb(dev->int_urb, GFP_KERNEL);
++	return usb_submit_urb(dev->int_urb, flags);
+ }
+ 
+ void uvc_status_stop(struct uvc_device *dev)
+ {
+ 	usb_kill_urb(dev->int_urb);
+ }
+-
+-int uvc_status_suspend(struct uvc_device *dev)
+-{
+-	if (atomic_read(&dev->users))
+-		usb_kill_urb(dev->int_urb);
+-
+-	return 0;
+-}
+-
+-int uvc_status_resume(struct uvc_device *dev)
+-{
+-	if (dev->int_urb == NULL || atomic_read(&dev->users) == 0)
+-		return 0;
+-
+-	return usb_submit_urb(dev->int_urb, GFP_NOIO);
+-}
+-
+diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
+index b2dc326..3afff92 100644
+--- a/drivers/media/usb/uvc/uvc_v4l2.c
++++ b/drivers/media/usb/uvc/uvc_v4l2.c
+@@ -498,16 +498,20 @@ static int uvc_v4l2_open(struct file *file)
+ 		return -ENOMEM;
+ 	}
+ 
+-	if (atomic_inc_return(&stream->dev->users) == 1) {
+-		ret = uvc_status_start(stream->dev);
++	mutex_lock(&stream->dev->lock);
++	if (stream->dev->users == 0) {
++		ret = uvc_status_start(stream->dev, GFP_KERNEL);
+ 		if (ret < 0) {
+-			atomic_dec(&stream->dev->users);
++			mutex_unlock(&stream->dev->lock);
+ 			usb_autopm_put_interface(stream->dev->intf);
+ 			kfree(handle);
+ 			return ret;
+ 		}
+ 	}
+ 
++	stream->dev->users++;
++	mutex_unlock(&stream->dev->lock);
++
+ 	v4l2_fh_init(&handle->vfh, stream->vdev);
+ 	v4l2_fh_add(&handle->vfh);
+ 	handle->chain = stream->chain;
+@@ -538,8 +542,10 @@ static int uvc_v4l2_release(struct file *file)
+ 	kfree(handle);
+ 	file->private_data = NULL;
+ 
+-	if (atomic_dec_return(&stream->dev->users) == 0)
++	mutex_lock(&stream->dev->lock);
++	if (--stream->dev->users == 0)
+ 		uvc_status_stop(stream->dev);
++	mutex_unlock(&stream->dev->lock);
+ 
+ 	usb_autopm_put_interface(stream->dev->intf);
+ 	return 0;
+diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
+index 9cd584a..eb90a92 100644
+--- a/drivers/media/usb/uvc/uvcvideo.h
++++ b/drivers/media/usb/uvc/uvcvideo.h
+@@ -515,7 +515,8 @@ struct uvc_device {
+ 	char name[32];
+ 
+ 	enum uvc_device_state state;
+-	atomic_t users;
++	struct mutex lock;		/* Protects users */
++	unsigned int users;
+ 	atomic_t nmappings;
+ 
+ 	/* Video control interface */
+@@ -661,10 +662,8 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
+ /* Status */
+ extern int uvc_status_init(struct uvc_device *dev);
+ extern void uvc_status_cleanup(struct uvc_device *dev);
+-extern int uvc_status_start(struct uvc_device *dev);
++extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
+ extern void uvc_status_stop(struct uvc_device *dev);
+-extern int uvc_status_suspend(struct uvc_device *dev);
+-extern int uvc_status_resume(struct uvc_device *dev);
+ 
+ /* Controls */
+ extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/v4l2-core/v4l2-common.c |   10 +++++++
->  drivers/media/v4l2-core/v4l2-subdev.c |   52 +++++++++++++++++++++++++++++++++
->  include/media/v4l2-common.h           |    2 ++
->  include/media/v4l2-ctrls.h            |    7 +++--
->  include/media/v4l2-subdev.h           |    5 ++++
->  5 files changed, 74 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index 614316f..714d07c 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -302,7 +302,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->  }
->  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
->  
-> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> +			      const struct v4l2_subdev_ops *ops)
-> +{
-> +	int ret;
->  
-> +	ret = devm_v4l2_subdev_bind(&client->dev, sd);
-> +	if (!ret)
-> +		v4l2_i2c_subdev_init(sd, client, ops);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
->  
->  /* Load an i2c sub-device. */
->  struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-> index 996c248..87ce2f6 100644
-> --- a/drivers/media/v4l2-core/v4l2-subdev.c
-> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
-> @@ -474,3 +474,55 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
->  #endif
->  }
->  EXPORT_SYMBOL(v4l2_subdev_init);
-> +
-> +static void devm_v4l2_subdev_release(struct device *dev, void *res)
-> +{
-> +	struct v4l2_subdev **sd = res;
-> +
-> +	v4l2_device_unregister_subdev(*sd);
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +	media_entity_cleanup(&(*sd)->entity);
-> +#endif
-> +}
-> +
-> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
-> +{
-> +	struct v4l2_subdev **dr;
-> +
-> +	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
-> +	if (!dr)
-> +		return -ENOMEM;
-> +
-> +	*dr = sd;
-> +	devres_add(dev, dr);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL(devm_v4l2_subdev_bind);
-> +
-> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
-> +			  const struct v4l2_subdev_ops *ops)
-> +{
-> +	int ret;
-> +
-> +	ret = devm_v4l2_subdev_bind(dev, sd);
-> +	if (!ret)
-> +		v4l2_subdev_init(sd, ops);
-> +	return ret;
-> +}
-> +EXPORT_SYMBOL(devm_v4l2_subdev_init);
-> +
-> +static int devm_v4l2_subdev_match(struct device *dev, void *res,
-> +					void *data)
-> +{
-> +	struct v4l2_subdev **this = res, **sd = data;
-> +
-> +	return *this == *sd;
-> +}
-> +
-> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd)
-> +{
-> +	WARN_ON(devres_release(dev, devm_v4l2_subdev_release,
-> +			       devm_v4l2_subdev_match, &sd));
-> +}
-> +EXPORT_SYMBOL_GPL(devm_v4l2_subdev_free);
-> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-> index ec7c9c0..440d6b7 100644
-> --- a/include/media/v4l2-common.h
-> +++ b/include/media/v4l2-common.h
-> @@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
->  /* Initialize a v4l2_subdev with data from an i2c_client struct */
->  void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->  		const struct v4l2_subdev_ops *ops);
-> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-> +		const struct v4l2_subdev_ops *ops);
->  /* Return i2c client address of v4l2_subdev. */
->  unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
->  
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index a1d06db..fe6dcef 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -286,7 +286,10 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl);
->  /*
->   * devm_v4l2_ctrl_handler_init - managed control handler initialization
->   *
-> - * @dev: Device for which @hdl belongs to.
-> + * @dev: Device the @hdl belongs to.
-> + * @hdl:	The control handler.
-> + * @nr_of_controls_hint: A hint of how many controls this handler is
-> + *		expected to refer to.
->   *
->   * This is a managed version of v4l2_ctrl_handler_init. Handler initialized with
->   * this function will be automatically cleaned up on driver detach.
-> @@ -301,7 +304,7 @@ int devm_v4l2_ctrl_handler_init(struct device *dev,
->  /**
->   * devm_v4l2_ctrl_handler_free - managed control handler free
->   *
-> - * @dev: Device for which @hdl belongs to.
-> + * @dev: Device the @hdl belongs to.
->   * @hdl: Handler to be cleaned up.
->   *
->   * This function should be used to manual free of an control handler
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index b137a5e..0eab5b0 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -673,6 +673,11 @@ int v4l2_subdev_link_validate(struct media_link *link);
->  void v4l2_subdev_init(struct v4l2_subdev *sd,
->  		      const struct v4l2_subdev_ops *ops);
->  
-> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
-> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
-> +			  const struct v4l2_subdev_ops *ops);
-> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd);
-> +
->  /* Call an ops of a v4l2_subdev, doing the right checks against
->     NULL pointers.
->  
-> 
