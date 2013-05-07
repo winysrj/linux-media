@@ -1,129 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:15399 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758012Ab3EWKkf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 06:40:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [PATCH RFC v3 2/3] media: added managed v4l2 control initialization
-Date: Thu, 23 May 2013 12:40:18 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com
-References: <1368692074-483-1-git-send-email-a.hajda@samsung.com> <1368692074-483-3-git-send-email-a.hajda@samsung.com>
-In-Reply-To: <1368692074-483-3-git-send-email-a.hajda@samsung.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305231240.18157.hverkuil@xs4all.nl>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:53430 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754703Ab3EGPn0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 11:43:26 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMF00LIMQBEZ510@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 07 May 2013 16:43:24 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
+	'linux-media' <linux-media@vger.kernel.org>
+References: <201305071406.11826.hverkuil@xs4all.nl>
+In-reply-to: <201305071406.11826.hverkuil@xs4all.nl>
+Subject: RE: [RFC PATCH for 3.10] Update Codec section in DocBook
+Date: Tue, 07 May 2013 17:42:57 +0200
+Message-id: <036001ce4b39$8e775f50$ab661df0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 16 May 2013 10:14:33 Andrzej Hajda wrote:
-> This patch adds managed version of initialization
-> function for v4l2 control handler.
+Hi Hans,
+
+Thanks for this patch. I remember that there was some discussion about it
+and
+the conclusion was that a codec device is in fact a mem-2-mem device. This
+probably is the reason why codec documentation was not extended.
+
+Ack on my side.
+
+Hans, do you expect me to pull this or will you deal directly with Mauro?
+
+Best wishes,
+-- 
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+
+> -----Original Message-----
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Tuesday, May 07, 2013 2:06 PM
+> To: linux-media
+> Cc: Kamil Debski
+> Subject: [RFC PATCH for 3.10] Update Codec section in DocBook
 > 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> I had feedback from two companies recently that they thought V4L2
+> didn't support codec hardware because the Codec section in the spec
+> said it was 'suspended'.
+> 
+> That's really bad so I made a quick patch for this that I'd like to get
+> into
+> 3.10 because of the unintended high impact this outdated documentation
+> has.
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> Subject: [PATCH] DocBook: media: update codec section, drop obsolete
+> 'suspended' state.
+> 
+> The Codec section in the V4L2 specification was marked as 'suspended',
+> even though codec support has been around for quite some time. Update
+> this section, explaining a bit about memory-to-memory devices and
+> pointing to the MPEG controls section.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Regards,
-
-	Hans
+Acked-by: Kamil Debski <k.debski@samsung.com>
 
 > ---
-> v3:
-> 	- removed managed cleanup
-> v2:
-> 	- added missing struct device forward declaration,
-> 	- corrected few comments
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c |   32 ++++++++++++++++++++++++++++++++
->  include/media/v4l2-ctrls.h           |   16 ++++++++++++++++
->  2 files changed, 48 insertions(+)
+>  Documentation/DocBook/media/v4l/dev-codec.xml |   35 ++++++++++++++++-
+> --------
+>  1 file changed, 22 insertions(+), 13 deletions(-)
 > 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index ebb8e48..f47ccfa 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1421,6 +1421,38 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_handler_free);
->  
-> +static void devm_v4l2_ctrl_handler_release(struct device *dev, void *res)
-> +{
-> +	struct v4l2_ctrl_handler **hdl = res;
-> +
-> +	v4l2_ctrl_handler_free(*hdl);
-> +}
-> +
-> +int devm_v4l2_ctrl_handler_init(struct device *dev,
-> +				struct v4l2_ctrl_handler *hdl,
-> +				unsigned nr_of_controls_hint)
-> +{
-> +	struct v4l2_ctrl_handler **dr;
-> +	int rc;
-> +
-> +	dr = devres_alloc(devm_v4l2_ctrl_handler_release, sizeof(*dr),
-> +			  GFP_KERNEL);
-> +	if (!dr)
-> +		return -ENOMEM;
-> +
-> +	rc = v4l2_ctrl_handler_init(hdl, nr_of_controls_hint);
-> +	if (rc) {
-> +		devres_free(dr);
-> +		return rc;
-> +	}
-> +
-> +	*dr = hdl;
-> +	devres_add(dev, dr);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(devm_v4l2_ctrl_handler_init);
-> +
->  /* For backwards compatibility: V4L2_CID_PRIVATE_BASE should no longer
->     be used except in G_CTRL, S_CTRL, QUERYCTRL and QUERYMENU when dealing
->     with applications that do not use the NEXT_CTRL flag.
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 7343a27..169443f 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -25,6 +25,7 @@
->  #include <linux/videodev2.h>
->  
->  /* forward references */
-> +struct device;
->  struct file;
->  struct v4l2_ctrl_handler;
->  struct v4l2_ctrl_helper;
-> @@ -306,6 +307,21 @@ int v4l2_ctrl_handler_init_class(struct v4l2_ctrl_handler *hdl,
->    */
->  void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl);
->  
-> +/*
-> + * devm_v4l2_ctrl_handler_init - managed control handler initialization
-> + *
-> + * @dev: Device the @hdl belongs to.
-> + * @hdl:	The control handler.
-> + * @nr_of_controls_hint: A hint of how many controls this handler is
-> + *		expected to refer to.
-> + *
-> + * This is a managed version of v4l2_ctrl_handler_init. Handler initialized with
-> + * this function will be automatically cleaned up on driver detach.
-> + */
-> +int devm_v4l2_ctrl_handler_init(struct device *dev,
-> +				struct v4l2_ctrl_handler *hdl,
-> +				unsigned nr_of_controls_hint);
-> +
->  /** v4l2_ctrl_handler_setup() - Call the s_ctrl op for all controls belonging
->    * to the handler to initialize the hardware to the current control values.
->    * @hdl:	The control handler.
+> diff --git a/Documentation/DocBook/media/v4l/dev-codec.xml
+> b/Documentation/DocBook/media/v4l/dev-codec.xml
+> index dca0ecd..ff44c16 100644
+> --- a/Documentation/DocBook/media/v4l/dev-codec.xml
+> +++ b/Documentation/DocBook/media/v4l/dev-codec.xml
+> @@ -1,18 +1,27 @@
+>    <title>Codec Interface</title>
 > 
+> -  <note>
+> -    <title>Suspended</title>
+> +  <para>A V4L2 codec can compress, decompress, transform, or otherwise
+> +convert video data from one format into another format, in memory.
+> +Typically such devices are memory-to-memory devices (i.e. devices with
+> +the <constant>V4L2_CAP_VIDEO_M2M</constant> or
+> +<constant>V4L2_CAP_VIDEO_M2M_MPLANE</constant>
+> +capability set).
+> +</para>
+> 
+> -    <para>This interface has been be suspended from the V4L2 API
+> -implemented in Linux 2.6 until we have more experience with codec -
+> device interfaces.</para>
+> -  </note>
+> +  <para>A memory-to-memory video node acts just like a normal video
+> +node, but it supports both output (sending frames from memory to the
+> +codec hardware) and capture (receiving the processed frames from the
+> +codec hardware into memory) stream I/O. An application will have to
+> +setup the stream I/O for both sides and finally call &VIDIOC-STREAMON;
+> +for both capture and output to start the codec.</para>
+> 
+> -  <para>A V4L2 codec can compress, decompress, transform, or otherwise
+> -convert video data from one format into another format, in memory.
+> -Applications send data to be converted to the driver through a -&func-
+> write; call, and receive the converted data through a -&func-read; call.
+> For efficiency a driver may also support streaming -I/O.</para>
+> +  <para>Video compression codecs use the MPEG controls to setup their
+> +codec parameters (note that the MPEG controls actually support many
+> more codecs than just MPEG).
+> +See <xref linkend="mpeg-controls"></xref>.</para>
+> 
+> -  <para>[to do]</para>
+> +  <para>Memory-to-memory devices can often be used as a shared
+> +resource: you can open the video node multiple times, each application
+> +setting up their own codec properties that are local to the file
+> handle, and each can use it independently from the others.
+> +The driver will arbitrate access to the codec and reprogram it
+> whenever
+> +another file handler gets access. This is different from the usual
+> +video node behavior where the video properties are global to the
+> device
+> +(i.e. changing something through one file handle is visible through
+> +another file handle).</para>
+> --
+> 1.7.10.4
+
+
