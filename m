@@ -1,51 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:56001 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751933Ab3EMKlr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 06:41:47 -0400
-Received: by mail-wg0-f45.google.com with SMTP id l18so6371555wgh.24
-        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 03:41:46 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50582 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754373Ab3EGLOD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 07:14:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Shawn Nematbakhsh <shawnn@chromium.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Subject: Re: [PATCH] [media] uvcvideo: Retry usb_submit_urb on -EPERM return
+Date: Tue, 07 May 2013 13:14:14 +0200
+Message-ID: <1939487.3PSlGk3nBF@avalon>
+In-Reply-To: <CALaWCOM5rr7jMFuW0q4FmGuUw_VK5rwmyt4qXH9EY2SkfdkSpg@mail.gmail.com>
+References: <1366764152-9797-1-git-send-email-shawnn@chromium.org> <2335654.c00h6tDv9u@avalon> <CALaWCOM5rr7jMFuW0q4FmGuUw_VK5rwmyt4qXH9EY2SkfdkSpg@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <1368439554.1350.49.camel@x61.thuisdomein>
-References: <1363079692-16683-1-git-send-email-nsekhar@ti.com>
- <1368438071.1350.43.camel@x61.thuisdomein> <CA+V-a8sEMsQENPN+40bMtOpTs5Xq9HbtiR49shhd=+kXU3-2YA@mail.gmail.com>
- <1368439554.1350.49.camel@x61.thuisdomein>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 13 May 2013 16:11:26 +0530
-Message-ID: <CA+V-a8vOJocJttwQBnNA-sn2qWtAvgzQ96OGNbJ8NvVV_tt7uA@mail.gmail.com>
-Subject: Re: [v3] media: davinci: kconfig: fix incorrect selects
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+Hi Shawn,
 
-On Mon, May 13, 2013 at 3:35 PM, Paul Bolle <pebolle@tiscali.nl> wrote:
-> Prabhakar,
->
-> On Mon, 2013-05-13 at 15:27 +0530, Prabhakar Lad wrote:
->> Good catch! the dependency can be dropped now.
->
-> Great.
->
->> Are you planning to post a patch for it or shall I do it ?
->
-> I don't mind submitting that trivial patch.
->
-> However, it's probably better if you do that. I can only state that this
-> dependency is now useless, because that is simply how the kconfig system
-> works. But you can probably elaborate why it's OK to not replace it with
-> another (negative) dependency. That would make a more informative commit
-> explanation.
->
-Posted the patch fixing it https://patchwork.linuxtv.org/patch/18395/
+On Friday 03 May 2013 16:00:24 Shawn Nematbakhsh wrote:
+> Hi Laurent,
+> 
+> Thanks for the changes! I agree that your synchronization logic is
+> correct. Just two small comments:
+> 
+> On Mon, Apr 29, 2013 at 1:34 PM, Laurent Pinchart wrote:
+> > On Tuesday 23 April 2013 17:42:32 Shawn Nematbakhsh wrote:
+> >> While usb_kill_urb is in progress, calls to usb_submit_urb will fail
+> >> with -EPERM (documented in Documentation/usb/URB.txt). The UVC driver
+> >> does not correctly handle this case -- there is no synchronization
+> >> between uvc_v4l2_open / uvc_status_start and uvc_v4l2_release /
+> >> uvc_status_stop.
+> > 
+> > Wouldn't it be better to synchronize status operations in open/release ?
+> > Something like the following patch:
+> > 
+> > From 9285d678ed2f823bb215f6bdec3ca1a9e1cac977 Mon Sep 17 00:00:00 2001
+> > From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > Date: Fri, 26 Apr 2013 03:28:51 +0200
+> > Subject: [PATCH] uvcvideo: Fix open/close race condition
+> > 
+> > Maintaining the users count using an atomic variable makes sure that
+> > access to the counter won't be racy, but doesn't serialize access to the
+> > operations protected by the counter. This creates a race condition that
+> > could result in the status URB being submitted multiple times.
+> > 
+> > Use a mutex to protect the users count and serialize access to the
+> > status start and stop operations.
+> > 
+> > Reported-by: Shawn Nematbakhsh <shawnn@chromium.org>
+> > Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >  drivers/media/usb/uvc/uvc_driver.c | 22 ++++++++++++++++------
+> >  drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
+> >  drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
+> >  drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
+> >  4 files changed, 31 insertions(+), 33 deletions(-)
+> > 
+> > diff --git a/drivers/media/usb/uvc/uvc_driver.c
+> > b/drivers/media/usb/uvc/uvc_driver.c index e68fa53..b638037 100644
+> > --- a/drivers/media/usb/uvc/uvc_driver.c
+> > +++ b/drivers/media/usb/uvc/uvc_driver.c
+> > @@ -1836,8 +1836,8 @@ static int uvc_probe(struct usb_interface *intf,
+> >         INIT_LIST_HEAD(&dev->chains);
+> >         INIT_LIST_HEAD(&dev->streams);
+> >         atomic_set(&dev->nstreams, 0);
+> > -       atomic_set(&dev->users, 0);
+> 
+> I think dev->users is uninitialized now? Probably we should initialize
+> to 0 here.
 
+The whole dev structure is memset to 0 when allocated a couple of lines above, 
+so there's no need to explicitly zero all fields.
+
+> >         atomic_set(&dev->nmappings, 0);
+> > +       mutex_init(&dev->lock);
+> > 
+> >         dev->udev = usb_get_dev(udev);
+> >         dev->intf = usb_get_intf(intf);
+> > @@ -1953,8 +1953,12 @@ static int uvc_suspend(struct usb_interface *intf,
+> > pm_message_t message)> 
+> >         /* Controls are cached on the fly so they don't need to be saved.
+> >         */
+> >         if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+> > -           UVC_SC_VIDEOCONTROL)
+> > -               return uvc_status_suspend(dev);
+> > +           UVC_SC_VIDEOCONTROL) {
+> > +               mutex_lock(&dev->lock);
+> > +               if (dev->users)
+> > +                       uvc_status_stop(dev);
+> > +               mutex_unlock(&dev->lock);
+> 
+> To keep the same control flow, should we return here?
+
+Oops, my bad, I'll fix that and resubmit.
+
+> > +       }
+> >         list_for_each_entry(stream, &dev->streams, list) {
+> >                 if (stream->intf == intf)
+
+-- 
 Regards,
---Prabhakar Lad
+
+Laurent Pinchart
+
