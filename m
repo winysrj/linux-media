@@ -1,162 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40371 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752853Ab3EOLce (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 07:32:34 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC v2 2/3] media: added managed v4l2 control initialization
-Date: Wed, 15 May 2013 13:32:54 +0200
-Message-ID: <1820945.rcN45v55i8@avalon>
-In-Reply-To: <1368434086-9027-3-git-send-email-a.hajda@samsung.com>
-References: <1368434086-9027-1-git-send-email-a.hajda@samsung.com> <1368434086-9027-3-git-send-email-a.hajda@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:63468 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933094Ab3EGOEO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 10:04:14 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMF00HAZLOVBA00@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 07 May 2013 15:04:11 +0100 (BST)
+Message-id: <518909DA.8000407@samsung.com>
+Date: Tue, 07 May 2013 16:04:10 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Volokh Konstantin <volokh84@gmail.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Kamil Debski <k.debski@samsung.com>, sakari.ailus@iki.fi
+Subject: Re: [RFC] Motion Detection API
+References: <201304121736.16542.hverkuil@xs4all.nl>
+ <201305061541.41204.hverkuil@xs4all.nl> <2428502.07isB1rKTR@avalon>
+ <201305071435.30062.hverkuil@xs4all.nl>
+In-reply-to: <201305071435.30062.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+On 05/07/2013 02:35 PM, Hans Verkuil wrote:
+> A metadata plane works well if you have substantial amounts of data (e.g. histogram
+> data) but it has the disadvantage of requiring you to use the MPLANE buffer types,
+> something which standard apps do not support. I definitely think that is overkill
+> for things like this.
 
-Thank you for the patch.
+Standard application could use the MPLANE interface through the libv4l-mplane
+plugin [1]. And meta-data plane could be handled in libv4l, passed in raw form 
+from the kernel.
 
-On Monday 13 May 2013 10:34:45 Andrzej Hajda wrote:
-> This patch adds managed versions of initialization
-> and cleanup functions for v4l2 control handler.
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> v2:
-> 	- added missing struct device forward declaration,
-> 	- corrected few comments
-> ---
->  drivers/media/v4l2-core/v4l2-ctrls.c |   48 +++++++++++++++++++++++++++++++
->  include/media/v4l2-ctrls.h           |   31 ++++++++++++++++++++++
->  2 files changed, 79 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
-> b/drivers/media/v4l2-core/v4l2-ctrls.c index ebb8e48..69c9b95 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -1421,6 +1421,54 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler
-> *hdl) }
->  EXPORT_SYMBOL(v4l2_ctrl_handler_free);
-> 
-> +static void devm_v4l2_ctrl_handler_release(struct device *dev, void *res)
-> +{
-> +	struct v4l2_ctrl_handler **hdl = res;
-> +
-> +	v4l2_ctrl_handler_free(*hdl);
-> +}
-> +
-> +int devm_v4l2_ctrl_handler_init(struct device *dev,
-> +				struct v4l2_ctrl_handler *hdl,
-> +				unsigned nr_of_controls_hint)
-> +{
-> +	struct v4l2_ctrl_handler **dr;
-> +	int rc;
-> +
-> +	dr = devres_alloc(devm_v4l2_ctrl_handler_release, sizeof(*dr),
-> +			  GFP_KERNEL);
-> +	if (!dr)
-> +		return -ENOMEM;
-> +
-> +	rc = v4l2_ctrl_handler_init(hdl, nr_of_controls_hint);
-> +	if (rc) {
-> +		devres_free(dr);
-> +		return rc;
-> +	}
-> +
-> +	*dr = hdl;
-> +	devres_add(dev, dr);
-> +
-> +	return 0;
-> +}
-> +EXPORT_SYMBOL_GPL(devm_v4l2_ctrl_handler_init);
-> +
-> +static int devm_v4l2_ctrl_handler_match(struct device *dev, void *res,
-> +					void *data)
-> +{
-> +	struct v4l2_ctrl_handler **this = res, **hdl = data;
-> +
-> +	return *this == *hdl;
-> +}
-> +
-> +void devm_v4l2_ctrl_handler_free(struct device *dev,
-> +				 struct v4l2_ctrl_handler *hdl)
-> +{
-> +	WARN_ON(devres_release(dev, devm_v4l2_ctrl_handler_release,
-> +			       devm_v4l2_ctrl_handler_match, &hdl));
-> +}
-> +EXPORT_SYMBOL_GPL(devm_v4l2_ctrl_handler_free);
+There can be substantial amount of meta-data per frame and we were considering
+e.g. creating separate buffer queue for meta-data, to be able to use mmaped 
+buffer at user space, rather than parsing and copying data multiple times in 
+the kernel until it gets into user space and is further processed there.
 
-I expect very few drivers to actually need devm_v4l2_ctrl_handler_free(), if 
-any at all. Do you have a use case for that function at the moment ? If not, 
-what about removing it for now and adding it later when (if) needed ?
+I'm actually not sure if performance is a real issue here, were are talking
+of 1.5 KiB order amounts of data per frame. Likely on x86 desktop machines
+it is not a big deal, for ARM embedded platforms we would need to do some
+profiling.
 
-> +
->  /* For backwards compatibility: V4L2_CID_PRIVATE_BASE should no longer
->     be used except in G_CTRL, S_CTRL, QUERYCTRL and QUERYMENU when dealing
->     with applications that do not use the NEXT_CTRL flag.
-> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
-> index 7343a27..1986b90 100644
-> --- a/include/media/v4l2-ctrls.h
-> +++ b/include/media/v4l2-ctrls.h
-> @@ -25,6 +25,7 @@
->  #include <linux/videodev2.h>
-> 
->  /* forward references */
-> +struct device;
->  struct file;
->  struct v4l2_ctrl_handler;
->  struct v4l2_ctrl_helper;
-> @@ -306,6 +307,36 @@ int v4l2_ctrl_handler_init_class(struct
-> v4l2_ctrl_handler *hdl, */
->  void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl);
-> 
-> +/*
-> + * devm_v4l2_ctrl_handler_init - managed control handler initialization
-> + *
-> + * @dev: Device the @hdl belongs to.
-> + * @hdl:	The control handler.
-> + * @nr_of_controls_hint: A hint of how many controls this handler is
-> + *		expected to refer to.
-> + *
-> + * This is a managed version of v4l2_ctrl_handler_init. Handler initialized
-> with + * this function will be automatically cleaned up on driver detach. +
-> *
-> + * If an handler initialized with this function needs to be cleaned up
-> + * separately, devm_v4l2_ctrl_handler_free() must be used.
-> + */
-> +int devm_v4l2_ctrl_handler_init(struct device *dev,
-> +				struct v4l2_ctrl_handler *hdl,
-> +				unsigned nr_of_controls_hint);
-> +
-> +/**
-> + * devm_v4l2_ctrl_handler_free - managed control handler free
-> + *
-> + * @dev: Device the @hdl belongs to.
-> + * @hdl: Handler to be cleaned up.
-> + *
-> + * This function should be used to manual free of an control handler
-> + * initialized with devm_v4l2_ctrl_handler_init().
-> + */
-> +void devm_v4l2_ctrl_handler_free(struct device *dev,
-> +				 struct v4l2_ctrl_handler *hdl);
-> +
->  /** v4l2_ctrl_handler_setup() - Call the s_ctrl op for all controls
-> belonging * to the handler to initialize the hardware to the current
-> control values. * @hdl:	The control handler.
--- 
+I'm not sure myself yet how much such motion/object detection data should be 
+interpreted in the kernel, rather than in user space. I suspect some generic
+API like in your $subject RFC makes sense, it would cover as many cases as 
+possible. But I was wondering how much it makes sense to design a sort of 
+raw interface/buffer queue (similar to raw sockets concept), that would allow
+user space libraries to parse meta-data.
+
+The format of meta-data could for example have changed after switching to
+a new version of device's firmware. It might be rare, I'm just trying to say 
+I would like to avoid designing a kernel interface that might soon become a 
+limitation.
+
+Besides, I have been thinking of allowing application/libs to request an
+additional meta-data plane, which would be driver-specific. For instance
+it turns the Samsung S5C73M3 camera can send meta-data for YUV formats
+as well as for interleaved JPEG/YUV.
+
+[1] http://git.linuxtv.org/v4l-utils.git/commit/ced1be346fe4f61c864cba9d81f66089d4e32a56
+
 Regards,
-
-Laurent Pinchart
-
+Sylwester
