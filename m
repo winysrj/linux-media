@@ -1,37 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm33-vm2.bullet.mail.ne1.yahoo.com ([98.138.229.66]:24794 "EHLO
-	nm33-vm2.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752179Ab3ERPXW convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 May 2013 11:23:22 -0400
-References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com>
-Message-ID: <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com>
-Date: Sat, 18 May 2013 08:17:10 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
-Reply-To: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
-To: =?iso-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <519791E2.4080804@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58556 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755828Ab3EHNqz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 09:46:55 -0400
+Received: from avalon.ideasonboard.com (unknown [91.178.146.12])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 0443135A54
+	for <linux-media@vger.kernel.org>; Wed,  8 May 2013 15:46:24 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH RESEND 6/9] media: i2c: Convert to devm_regulator_bulk_get()
+Date: Wed,  8 May 2013 15:46:31 +0200
+Message-Id: <1368020794-21264-7-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------ Original Message -----
+Using the managed function the regulator_bulk_put() calls can be removed
+from the probe error path and the remove handler.
 
->> Am 18.05.2013 15:57, schrieb Chris Rankin:
->> I have a PCTV 290e DVB2 adapter (em28xx, em28xx_dvb, em28xx_rc, cxd2820r), and I have just discovered that the IR remote control has stopped working with VDR when using a vanilla 3.9.2 kernel.
->> Downgrading the kernel to 3.8.12 fixes things again. (Switching to my old DVB NOVA-T2 device fixes things too, although it cannot receive HDTV channels, of course).
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/media/i2c/m5mols/m5mols_core.c | 8 +++-----
+ drivers/media/i2c/noon010pc30.c        | 8 ++------
+ 2 files changed, 5 insertions(+), 11 deletions(-)
 
-> Great. :( :( :(
-> There have been several changes in the em28xx and core RC code between 3.8 and 3.9...
-> I can't see anything obvious, the RC device seems to be registered correctly.
-> Could you please bisect ?
-
-Unfortunately, no I can't. (No git tree here - just a tarball downloaded via FTP). However, maybe I could out some printk() statements into the code if you could point out where the "hot-spots" might be, please?
-
-Cheers,
-Chris
+diff --git a/drivers/media/i2c/m5mols/m5mols_core.c b/drivers/media/i2c/m5mols/m5mols_core.c
+index f870d50..11f6f87 100644
+--- a/drivers/media/i2c/m5mols/m5mols_core.c
++++ b/drivers/media/i2c/m5mols/m5mols_core.c
+@@ -966,7 +966,8 @@ static int m5mols_probe(struct i2c_client *client,
+ 		return ret;
+ 	}
+ 
+-	ret = regulator_bulk_get(&client->dev, ARRAY_SIZE(supplies), supplies);
++	ret = devm_regulator_bulk_get(&client->dev, ARRAY_SIZE(supplies),
++				      supplies);
+ 	if (ret) {
+ 		dev_err(&client->dev, "Failed to get regulators: %d\n", ret);
+ 		return ret;
+@@ -981,7 +982,7 @@ static int m5mols_probe(struct i2c_client *client,
+ 	info->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	ret = media_entity_init(&sd->entity, 1, &info->pad, 0);
+ 	if (ret < 0)
+-		goto out_reg;
++		return ret;
+ 	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+ 
+ 	init_waitqueue_head(&info->irq_waitq);
+@@ -1012,8 +1013,6 @@ out_irq:
+ 	free_irq(client->irq, sd);
+ out_me:
+ 	media_entity_cleanup(&sd->entity);
+-out_reg:
+-	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
+ 	return ret;
+ }
+ 
+@@ -1025,7 +1024,6 @@ static int m5mols_remove(struct i2c_client *client)
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ 	free_irq(client->irq, sd);
+ 
+-	regulator_bulk_free(ARRAY_SIZE(supplies), supplies);
+ 	media_entity_cleanup(&sd->entity);
+ 
+ 	return 0;
+diff --git a/drivers/media/i2c/noon010pc30.c b/drivers/media/i2c/noon010pc30.c
+index 6f81b99..2284b02 100644
+--- a/drivers/media/i2c/noon010pc30.c
++++ b/drivers/media/i2c/noon010pc30.c
+@@ -772,7 +772,7 @@ static int noon010_probe(struct i2c_client *client,
+ 	for (i = 0; i < NOON010_NUM_SUPPLIES; i++)
+ 		info->supply[i].supply = noon010_supply_name[i];
+ 
+-	ret = regulator_bulk_get(&client->dev, NOON010_NUM_SUPPLIES,
++	ret = devm_regulator_bulk_get(&client->dev, NOON010_NUM_SUPPLIES,
+ 				 info->supply);
+ 	if (ret)
+ 		goto np_err;
+@@ -781,14 +781,12 @@ static int noon010_probe(struct i2c_client *client,
+ 	sd->entity.type = MEDIA_ENT_T_V4L2_SUBDEV_SENSOR;
+ 	ret = media_entity_init(&sd->entity, 1, &info->pad, 0);
+ 	if (ret < 0)
+-		goto np_me_err;
++		goto np_err;
+ 
+ 	ret = noon010_detect(client, info);
+ 	if (!ret)
+ 		return 0;
+ 
+-np_me_err:
+-	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
+ np_err:
+ 	v4l2_ctrl_handler_free(&info->hdl);
+ 	v4l2_device_unregister_subdev(sd);
+@@ -802,8 +800,6 @@ static int noon010_remove(struct i2c_client *client)
+ 
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&info->hdl);
+-
+-	regulator_bulk_free(NOON010_NUM_SUPPLIES, info->supply);
+ 	media_entity_cleanup(&sd->entity);
+ 
+ 	return 0;
+-- 
+1.8.1.5
 
