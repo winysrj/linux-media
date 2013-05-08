@@ -1,118 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47037 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755679Ab3E2Mud (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 08:50:33 -0400
-Message-ID: <1369831772.4050.58.camel@pizza.hi.pengutronix.de>
-Subject: Re: [RFC] [media] mem2mem: add support for hardware buffered queue
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'John Sheu' <sheu@google.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>
-Date: Wed, 29 May 2013 14:49:32 +0200
-In-Reply-To: <51A5EEFF.7010404@samsung.com>
-References: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
-	 <01f401ce5c52$75dcee90$6196cbb0$%debski@samsung.com>
-	 <1369825995.4050.49.camel@pizza.hi.pengutronix.de>
-	 <51A5EEFF.7010404@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mout.gmx.net ([212.227.15.19]:50441 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755383Ab3EHV5V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 May 2013 17:57:21 -0400
+Received: from mailout-de.gmx.net ([10.1.76.4]) by mrigmx.server.lan
+ (mrigmx002) with ESMTP (Nemesis) id 0MZiPg-1Uq4WU1tUs-00LTc5 for
+ <linux-media@vger.kernel.org>; Wed, 08 May 2013 23:57:20 +0200
+From: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
+Subject: [PATCH 1/2] stb0899: fix inversion enum values to match usage with CFR
+Date: Wed,  8 May 2013 23:54:56 +0200
+Message-Id: <1368050097-6079-1-git-send-email-rnissl@gmx.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+Throughout the zig-zag-implementations, inversion is taken into
+account when reading and writing the CFR register, which contains
+the derotator frequency. As swapping IQ signals changes the sign
+of that register for example, the idea is to compensate that sign
+change by multiplying the register value with the inversion enum
+value.
+The current enum values 0 and 1 for IQ_SWAP_OFF and IQ_SWAP_ON
+don't work in the case IQ_SWAP_OFF, due to the multiplication by
+zero (I've only found a single device which actually uses
+IQ_SWAP_OFF in it's config).
+I've changed the enum values to +1 and -1 to accommodate to the
+intended usage.
 
-Am Mittwoch, den 29.05.2013, 14:05 +0200 schrieb Andrzej Hajda:
-> Hi Philipp,
-> 
-> On 05/29/2013 01:13 PM, Philipp Zabel wrote:
-> > Hi Kamil,
-> >
-> > Am Mittwoch, den 29.05.2013, 11:54 +0200 schrieb Kamil Debski:
-> >> Hi Philipp, Hans,
-> >>
-> >>> On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
-> >>> buffer at the end of the stream, remaining frames might need to be
-> >>> decoded without additional input buffers being provided, and after
-> >>> calling streamoff on the v4l2 output queue. This also allows a driver
-> >>> to copy input buffers into their bitstream ringbuffer and immediately
-> >>> mark them as done to be dequeued.
-> >>>
-> >>> The motivation for this patch is hardware assisted h.264 reordering
-> >>> support in the coda driver. For high profile streams, the coda can hold
-> >>> back out-of-order frames, causing a few mem2mem device runs in the
-> >>> beginning, that don't produce any decompressed buffer at the v4l2
-> >>> capture side. At the same time, the last few frames can be decoded from
-> >>> the bitstream with mem2mem device runs that don't need a new input
-> >>> buffer at the v4l2 output side. A streamoff on the v4l2 output side can
-> >>> be used to put the decoder into the ringbuffer draining end-of-stream
-> >>> mode.
-> >> If I remember correctly the main goal of introducing the m2m framework
-> >> was to support simple mem2mem devices where one input buffer = one output
-> >> buffer. In other cases m2m was not to be used. 
-> > The m2m context / queue handling and job scheduling are very useful even
-> > for drivers that don't always produce one CAPTURE buffer from one OUTPUT
-> > buffer, just as you drescribe below.
-> > The CODA encoder path fits the m2m model perfectly. I'd prefer not to
-> > duplicate most of mem2mem just because the decoder doesn't.
-> >
-> > There's two things that this patch allows me to do:
-> > a) running mem2mem device_run with an empty OUTPUT queue, which is
-> >    something I'd really like to make possible.
-> > b) running mem2mem device_run with the OUTPUT queue in STREAM OFF, which
-> >    I needed to get the remaining buffers out. But maybe there is a
-> >    better way to do this while keeping the output queue streaming.
-> >
-> >> An example of such mem2mem driver, which does not use m2m framework is
-> >> MFC. It uses videobuf2 directly and it is wholly up to the driver how
-> >> will it control the queues, stream on/off and so on. You can then have
-> >> one OUTPUT buffer generate multiple CAPTURE buffer, multiple OUTPUT
-> >> buffers generate a single CAPTURE buffer. Consume OUTPUT buffer without
-> >> generating CAPTURE buffer (e.g. when starting decoding) and produce
-> >> CAPTURE buffers without consuming OUTPUT buffers (e.g. when finishing
-> >> decoding).
-> >>
-> >> I think that stream off should not be used to signal EOS. For this we
-> >> have EOS event. You mentioned the EOS buffer flag. This is the idea
-> >> originally proposed by Andrzej Hajda, after some lengthy discussions
-> >> with v4l community this idea was changed to use an EOS event.
-> > I'm not set on using STREAMOFF to signal the stream-end condition to the
-> > hardware, but after switching to stream-end mode, no new frames should
-> > be queued, so I thought it fit quite well. It also allows to prepare the
-> > OUTPUT buffers (S_FMT/REQBUFS) for the next STREAMON while the CAPTURE
-> > side is still draining the bitstream, although that's probably not a
-> > very useful feature.
-> > I could instead have userspace signal the driver via an EOS buffer flag
-> > or any other mechanism. Then the OUTPUT queue would be kept streaming,
-> > but hold back all buffers queued via QBUF until the last buffer is
-> > dequeued from the CAPTURE queue.
-> >
-> >> I was all for the EOS buffer flag, but after discussion with Mauro I
-> >> understood his arguments. We can get back to this discussion, if we
-> >> are sure that events are not enough. Please also note that we need to
-> >> keep backward compatibility.
-> > Maybe I've missed something, but I thought the EOS signal is only for
-> > the driver to signal to userspace that the currently dequeued frame is
-> > the last one?
-> > I need userspace to signal to the driver that it won't queue any new
-> > OUTPUT buffers, but still wants to dequeue the remaining CAPTURE buffers
-> > until the bitstream buffer is empty.
-> In MFC encoder I have used:
-> - event V4L2_EVENT_EOS by driver to signal EOS to user,
-> - VIDIOC_ENCODER_CMD with cmd=V4L2_ENC_CMD_STOP by
-> user to signal EOS to driver.
-> It works, but IMO it would look much natural/simpler with EOS buffer flag.
+Signed-off-by: Reinhard Nißl <rnissl@gmx.de>
+---
+ drivers/media/dvb-frontends/stb0899_algo.c | 4 ++--
+ drivers/media/dvb-frontends/stb0899_drv.h  | 4 ++--
+ 2 files changed, 4 insertions(+), 4 deletions(-)
 
-Ok, thank you. I agree the buffer flag feels more natural, but this will
-work. I'll use VIDIOC_DECODER_CMD with cmd=V4L2_DEC_CMD_STOP and
-V4L2_EVENT_EOS for this.
-
-regards
-Philipp
+diff --git a/drivers/media/dvb-frontends/stb0899_algo.c b/drivers/media/dvb-frontends/stb0899_algo.c
+index 14d720b..e0d31a2 100644
+--- a/drivers/media/dvb-frontends/stb0899_algo.c
++++ b/drivers/media/dvb-frontends/stb0899_algo.c
+@@ -444,7 +444,7 @@ static enum stb0899_status stb0899_check_range(struct stb0899_state *state)
+ 	int range_offst, tp_freq;
+ 
+ 	range_offst = internal->srch_range / 2000;
+-	tp_freq = internal->freq + (internal->derot_freq * internal->mclk) / 1000;
++	tp_freq = internal->freq - (internal->derot_freq * internal->mclk) / 1000;
+ 
+ 	if ((tp_freq >= params->freq - range_offst) && (tp_freq <= params->freq + range_offst)) {
+ 		internal->status = RANGEOK;
+@@ -638,7 +638,7 @@ enum stb0899_status stb0899_dvbs_algo(struct stb0899_state *state)
+ 							"RANGE OK ! derot freq=%d, mclk=%d",
+ 							internal->derot_freq, internal->mclk);
+ 
+-						internal->freq = params->freq + ((internal->derot_freq * internal->mclk) / 1000);
++						internal->freq = params->freq - ((internal->derot_freq * internal->mclk) / 1000);
+ 						reg = stb0899_read_reg(state, STB0899_PLPARM);
+ 						internal->fecrate = STB0899_GETFIELD(VITCURPUN, reg);
+ 						dprintk(state->verbose, FE_DEBUG, 1,
+diff --git a/drivers/media/dvb-frontends/stb0899_drv.h b/drivers/media/dvb-frontends/stb0899_drv.h
+index 1ddad6a..139264d 100644
+--- a/drivers/media/dvb-frontends/stb0899_drv.h
++++ b/drivers/media/dvb-frontends/stb0899_drv.h
+@@ -45,8 +45,8 @@ struct stb0899_s2_reg {
+ };
+ 
+ enum stb0899_inversion {
+-	IQ_SWAP_OFF	= 0,
+-	IQ_SWAP_ON,
++	IQ_SWAP_OFF	= +1, /* inversion affects the sign of e. g. */
++	IQ_SWAP_ON	= -1, /* the derotator frequency register    */
+ };
+ 
+ #define STB0899_GPIO00				0xf140
+-- 
+1.8.1.4
 
