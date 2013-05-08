@@ -1,61 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:40663 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752051Ab3EOMAj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 08:00:39 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH 2/6] ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
-Date: Wed, 15 May 2013 17:27:18 +0530
-Message-Id: <1368619042-28252-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39872 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753495Ab3EHN16 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 09:27:58 -0400
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH] media-ctl error messages
+Date: Wed,  8 May 2013 15:27:52 +0200
+Message-Id: <1368019674-25761-1-git-send-email-s.hauer@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi All,
 
-remove init_enable from ths7303 pdata as it is no longer exists.
+As a first time media-ctl user it was quite frustrating to see that whatever I
+did media-ctl only responded with "Unable to parse link". The following is an
+attempt to add some more detailed error messages. With this applied media-ctl
+can answer with something like:
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Sekhar Nori <nsekhar@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-arm-kernel@lists.infradead.org
----
- arch/arm/mach-davinci/board-dm365-evm.c |    1 -
- 1 files changed, 0 insertions(+), 1 deletions(-)
+No pad '1' on entity "mt9p031 0-0048". Maximum pad number is 0
+media_parse_setup_link: Unable to parse link
 
-diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
-index 2a66743..4e02ae7 100644
---- a/arch/arm/mach-davinci/board-dm365-evm.c
-+++ b/arch/arm/mach-davinci/board-dm365-evm.c
-@@ -510,7 +510,6 @@ struct ths7303_platform_data ths7303_pdata = {
- 	.ch_1 = 3,
- 	.ch_2 = 3,
- 	.ch_3 = 3,
--	.init_enable = 1,
- };
- 
- static struct amp_config_info vpbe_amp = {
--- 
-1.7.4.1
+ "mt9p031 0-0048":1->"/soc/cammultiplex@plx0":1[0]
+                  ^
+
+Please consider applying.
+
+Sascha
+
+----------------------------------------------------------------
+Sascha Hauer (2):
+      Print more detailed parse error messages
+      Print parser position on error
+
+ src/mediactl.c | 83 +++++++++++++++++++++++++++++++++++++++++++++++++---------
+ 1 file changed, 71 insertions(+), 12 deletions(-)
 
