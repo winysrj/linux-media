@@ -1,71 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:62486 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755776Ab3EYL1h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 07:27:37 -0400
-Received: by mail-bk0-f51.google.com with SMTP id ji1so833218bkc.38
-        for <linux-media@vger.kernel.org>; Sat, 25 May 2013 04:27:35 -0700 (PDT)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: a.hajda@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
-	t.stanislaws@samsung.com,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH 5/5] s5p-mfc: Remove unused s5p_mfc_get_decoded_status_v6() function
-Date: Sat, 25 May 2013 13:25:55 +0200
-Message-Id: <1369481155-30446-6-git-send-email-sylvester.nawrocki@gmail.com>
-In-Reply-To: <1369481155-30446-1-git-send-email-sylvester.nawrocki@gmail.com>
-References: <1369481155-30446-1-git-send-email-sylvester.nawrocki@gmail.com>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:63588 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751031Ab3EHVSZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 17:18:25 -0400
+Date: Wed, 8 May 2013 23:18:19 +0200
+From: "Yann E. MORIN" <yann.morin.1998@free.fr>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kbuild@vger.kernel.org
+Subject: Re: [PATCH -next] media/usb: fix kconfig dependencies (aka bool
+ depending on tristate considered harmful)
+Message-ID: <20130508211819.GF3413@free.fr>
+References: <20130508140122.e4747b58be4333060b7a248a@canb.auug.org.au>
+ <518A98D9.4020906@infradead.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <518A98D9.4020906@infradead.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch fixes following compilation warning:
+Randy, All,
 
-  CC [M]  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.o
-drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:1733:12: warning: ‘s5p_mfc_get_decoded_status_v6’ defined but not used
+On Wed, May 08, 2013 at 11:26:33AM -0700, Randy Dunlap wrote:
+> (a.k.a. Kconfig bool depending on a tristate considered harmful)
 
-It assigns existing but not used s5p_mfc_get_dec_status_v6() function to the
-get_dec_status callback. It seems the get_dec_status callback is not used
-anyway, as there is no corresponding s5p_mfc_hw_call().
+Maybe that would warrant a bit of explanations in:
+    Documentation/kbuild/kconfig-language.txt
 
-Cc: Kamil Debski <k.debski@samsung.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
----
-WARNING: This patch has not been tested.
----
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 +-------
- 1 files changed, 1 insertions(+), 7 deletions(-)
+> Fix various build errors when CONFIG_USB=m and media USB drivers
+> are builtin.  In this case, CONFIG_USB_ZR364XX=y,
+> CONFIG_VIDEO_PVRUSB2=y, and CONFIG_VIDEO_STK1160=y.
+> 
+> This is caused by (from drivers/media/usb/Kconfig):
+> 
+> menuconfig MEDIA_USB_SUPPORT
+> 	bool "Media USB Adapters"
+> 	depends on USB && MEDIA_SUPPORT
+> 	           =m     =y
+> so MEDIA_USB_SUPPORT=y and all following Kconfig 'source' lines
+> are included.  By adding an "if USB" guard around the 'source' lines,
+> the needed dependencies are enforced.
+[--SNIP--]
+> 
+> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
+> ---
+>  drivers/media/usb/Kconfig |    2 ++
+>  1 file changed, 2 insertions(+)
+> 
+> --- linux-next-20130508.orig/drivers/media/usb/Kconfig
+> +++ linux-next-20130508/drivers/media/usb/Kconfig
+> @@ -5,6 +5,7 @@ menuconfig MEDIA_USB_SUPPORT
+>  	  Enable media drivers for USB bus.
+>  	  If you have such devices, say Y.
+>  
+> +if USB
+>  if MEDIA_USB_SUPPORT
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 7e76fce..3f97363 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -62,12 +62,6 @@ static void s5p_mfc_release_dec_desc_buffer_v6(struct s5p_mfc_ctx *ctx)
- 	/* NOP */
- }
- 
--static int s5p_mfc_get_dec_status_v6(struct s5p_mfc_dev *dev)
--{
--	/* NOP */
--	return -1;
--}
--
- /* Allocate codec buffers */
- static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- {
-@@ -1730,7 +1724,7 @@ static int s5p_mfc_get_dspl_status_v6(struct s5p_mfc_dev *dev)
- 	return mfc_read(dev, S5P_FIMV_D_DISPLAY_STATUS_V6);
- }
- 
--static int s5p_mfc_get_decoded_status_v6(struct s5p_mfc_dev *dev)
-+static int s5p_mfc_get_dec_status_v6(struct s5p_mfc_dev *dev)
- {
- 	return mfc_read(dev, S5P_FIMV_D_DECODED_STATUS_V6);
- }
+Why not starting the 'if USB' block just above MEDIA_USB_SUPPORT, and
+removing the 'depends on USB' from MEDIA_USB_SUPPORT :
+
+---8<--- 
+if USB
+menuconfig MEDIA_USB_SUPPORT
+    bool "Media USB Adapters"
+    depends on MEDIA_SUPPORT
+
+if MEDIA_USB_SUPPORT
+---8<--- 
+
+And keeping this hunk as-is:
+> @@ -52,3 +53,4 @@ source "drivers/media/usb/em28xx/Kconfig
+>  endif
+>  
+>  endif #MEDIA_USB_SUPPORT
+> +endif #USB
+
+Regards,
+Yann E. MORIN.
+
 -- 
-1.7.4.1
-
+.-----------------.--------------------.------------------.--------------------.
+|  Yann E. MORIN  | Real-Time Embedded | /"\ ASCII RIBBON | Erics' conspiracy: |
+| +33 662 376 056 | Software  Designer | \ / CAMPAIGN     |  ___               |
+| +33 223 225 172 `------------.-------:  X  AGAINST      |  \e/  There is no  |
+| http://ymorin.is-a-geek.org/ | _/*\_ | / \ HTML MAIL    |   v   conspiracy.  |
+'------------------------------^-------^------------------^--------------------'
