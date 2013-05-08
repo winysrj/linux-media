@@ -1,33 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm39-vm7.bullet.mail.ne1.yahoo.com ([98.138.229.167]:31620 "EHLO
-	nm39-vm7.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755331Ab3ETOvy convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 May 2013 10:51:54 -0400
-References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com> <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com> <51993DDE.4070800@googlemail.com> <1369004659.18393.YahooMailNeo@web120305.mail.ne1.yahoo.com> <519A1939.6030907@googlemail.com> <1369054869.78400.YahooMailNeo@web120305.mail.ne1.yahoo.com> <519A287C.9010804@googlemail.com>
-Message-ID: <1369061513.11886.YahooMailNeo@web120305.mail.ne1.yahoo.com>
-Date: Mon, 20 May 2013 07:51:53 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
-Reply-To: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
-To: =?iso-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <519A287C.9010804@googlemail.com>
+Received: from mail-qe0-f45.google.com ([209.85.128.45]:35554 "EHLO
+	mail-qe0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751107Ab3EHD3N (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 23:29:13 -0400
+Received: by mail-qe0-f45.google.com with SMTP id a11so815642qen.4
+        for <linux-media@vger.kernel.org>; Tue, 07 May 2013 20:29:12 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+In-Reply-To: <51898285.507@web.de>
+References: <assp.243108522f.1332706154.31585.245.camel@paddy.ipb-sub.ipb-halle.de>
+	<CAGoCfix+iDFg86nYKqQOn1=DKHWp8Fj+iFdKZgcQjxKKf4uyow@mail.gmail.com>
+	<CAGoCfiza2FcrFETEeP_PdZvzdW0YuiKm4AP=wMTG465f9zBA9w@mail.gmail.com>
+	<51898285.507@web.de>
+Date: Tue, 7 May 2013 23:29:12 -0400
+Message-ID: <CAGoCfiw3Q1d7qrrCJyZfhLpkNe7wWhsXnuXapb+MHemapHVg5A@mail.gmail.com>
+Subject: Re: Hauppauge WinTV HVR 930C-HD - new USB ID 2040:b130 ?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Jan Kiszka <jan.kiszka@web.de>
+Cc: Steffen Neumann <sneumann@ipb-halle.de>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------ Original Message -----
+On Tue, May 7, 2013 at 6:39 PM, Jan Kiszka <jan.kiszka@web.de> wrote:
+> To pick up this old topic (as I just got the wrong 930C delivered :( ):
+>
+> What is blocking the development of a si2165 driver? Lacking specs (due
+> to NDAs)? Or lacking interest / developer bandwidth?
 
-> If I had to guess, I would say you should check your rc_maps.cfg / keytable. ;)
+Probably a bit of both.  I've got the documentation under NDA, and
+last I checked it's not otherwise publicly available.  That said, the
+chip has been around for several years and no developer has ever cared
+to do a reverse engineered driver.  The chip isn't overly complicated
+(I could probably write a driver for it in a week even without the
+datasheets), alas there has never really been any interest.
 
-This is unchanged between 3.8.x and 3.9.x, and so is correct by definition.
+> In case of the
+> latter, how much effort may it take for a kernel hacker without
+> particular experience in the DVB subsystem to get things running?
 
-Kernel Upgrades Do Not Break Userspace.
+Not rocket science, for sure.  Probably the bigger issue is
+familiarity with reverse engineering techniques and a good
+understanding of how demodulators work.  Learning the API itself is
+the easy part (given there are plenty of example drivers to use as a
+model).
 
-Cheers,
-Chris
+I can count on one hand the number of developers who are actively
+contributing tuner/demod drivers.  There just is very little developer
+interest in this area nowadays.
 
+Devin
+
+--
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
