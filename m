@@ -1,61 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:56654 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756988Ab3EAUXz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 16:23:55 -0400
-Message-ID: <518179BD.3010407@infradead.org>
-Date: Wed, 01 May 2013 13:23:25 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
+Received: from moutng.kundenserver.de ([212.227.126.187]:50665 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753861Ab3EHMME convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 08:12:04 -0400
+Date: Wed, 8 May 2013 14:11:52 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: =?UTF-8?q?Philippe=20R=C3=A9tornaz?= <philippe.retornaz@epfl.ch>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/1] mt9t031: Fix panic on probe
+In-Reply-To: <1368014334-23680-1-git-send-email-philippe.retornaz@epfl.ch>
+Message-ID: <Pine.LNX.4.64.1305081411080.11707@axis700.grange>
+References: <1368014334-23680-1-git-send-email-philippe.retornaz@epfl.ch>
 MIME-Version: 1.0
-To: David Rientjes <rientjes@google.com>
-CC: "Yann E. MORIN" <yann.morin.1998@free.fr>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kbuild@vger.kernel.org
-Subject: Re: linux-next: Tree for May 1 (media/usb/stk1160)
-References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au> <518157EB.3010700@infradead.org> <20130501192845.GA18811@free.fr> <alpine.DEB.2.02.1305011258180.8448@chino.kir.corp.google.com>
-In-Reply-To: <alpine.DEB.2.02.1305011258180.8448@chino.kir.corp.google.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/01/13 12:58, David Rientjes wrote:
-> On Wed, 1 May 2013, Yann E. MORIN wrote:
+Hi Philippe
+
+On Wed, 8 May 2013, Philippe Rétornaz wrote:
+
+> The video device is not yet valid when probe() is called.
+> Call directly soc_camera_power_on/off() instead of calling mt9t031_s_power().
 > 
->>> When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
->>> CONFIG_VIDEO_STK1160=y
->>> CONFIG_VIDEO_STK1160_AC97=y
->>>
->>> drivers/built-in.o: In function `stk1160_ac97_register':
->>> (.text+0x122706): undefined reference to `snd_card_create'
->>> drivers/built-in.o: In function `stk1160_ac97_register':
->>> (.text+0x1227b2): undefined reference to `snd_ac97_bus'
->>> drivers/built-in.o: In function `stk1160_ac97_register':
->>> (.text+0x1227cd): undefined reference to `snd_card_free'
->>> drivers/built-in.o: In function `stk1160_ac97_register':
->>> (.text+0x12281b): undefined reference to `snd_ac97_mixer'
->>> drivers/built-in.o: In function `stk1160_ac97_register':
->>> (.text+0x122832): undefined reference to `snd_card_register'
->>> drivers/built-in.o: In function `stk1160_ac97_unregister':
->>> (.text+0x12285e): undefined reference to `snd_card_free'
->>>
->>>
->>> This kconfig fragment:
->>> config VIDEO_STK1160_AC97
->>> 	bool "STK1160 AC97 codec support"
->>> 	depends on VIDEO_STK1160 && SND
+> Signed-off-by: Philippe Rétornaz <philippe.retornaz@epfl.ch>
+
+There is already a patch for this:
+
+https://patchwork.kernel.org/patch/2462501/
+
+Thanks
+Guennadi
+
+> ---
+>  drivers/media/i2c/soc_camera/mt9t031.c |    5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
 > 
-> This doesn't depend on SND, it depends on SND=y.
-> --
+> diff --git a/drivers/media/i2c/soc_camera/mt9t031.c b/drivers/media/i2c/soc_camera/mt9t031.c
+> index d80d044..71c0b16 100644
+> --- a/drivers/media/i2c/soc_camera/mt9t031.c
+> +++ b/drivers/media/i2c/soc_camera/mt9t031.c
+> @@ -632,10 +632,11 @@ static int mt9t031_s_power(struct v4l2_subdev *sd, int on)
+>  static int mt9t031_video_probe(struct i2c_client *client)
+>  {
+>  	struct mt9t031 *mt9t031 = to_mt9t031(client);
+> +	struct soc_camera_subdev_desc *ssdd = soc_camera_i2c_to_desc(client);
+>  	s32 data;
+>  	int ret;
+>  
+> -	ret = mt9t031_s_power(&mt9t031->subdev, 1);
+> +	ret = soc_camera_power_on(&client->dev, ssdd);
+>  	if (ret < 0)
+>  		return ret;
+>  
+> @@ -664,7 +665,7 @@ static int mt9t031_video_probe(struct i2c_client *client)
+>  	ret = v4l2_ctrl_handler_setup(&mt9t031->hdl);
+>  
+>  done:
+> -	mt9t031_s_power(&mt9t031->subdev, 0);
+> +	soc_camera_power_off(&client->dev, ssdd);
+>  
+>  	return ret;
+>  }
+> -- 
+> 1.7.9.5
+> 
 
-
-Maybe this option *should* depend on SND=y, but that's not what the
-kconfig syntax says.  The kconfig language does not care if the variable is
-a bool or a tristate when evaluating a depends expression AFAICT (but I am
-only reading Documentation/kbuild/kconfig-language.txt, not the source code).
-
-
--- 
-~Randy
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
