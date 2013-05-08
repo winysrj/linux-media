@@ -1,84 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:50987 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753956Ab3EDT74 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 May 2013 15:59:56 -0400
-Date: Sat, 4 May 2013 21:59:50 +0200
-From: "Yann E. MORIN" <yann.morin.1998@free.fr>
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Ezequiel =?iso-8859-1?Q?Garc=EDa?= <elezegarcia@gmail.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kbuild@vger.kernel.org
-Subject: Re: Splitting stk1160-ac97 as a module (Re: linux-next: Tree for May
- 1 (media/usb/stk1160))
-Message-ID: <20130504195950.GA3254@free.fr>
-References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au>
- <518157EB.3010700@infradead.org>
- <51827DB1.7000304@redhat.com>
- <20130504172142.GA21656@localhost>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130504172142.GA21656@localhost>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:23931 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755055Ab3EHLr7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 07:47:59 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMH00HVUA3IOFC0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 08 May 2013 12:47:57 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Hans Verkuil' <hverkuil@xs4all.nl>
+Cc: 'linux-media' <linux-media@vger.kernel.org>
+References: <201305071406.11826.hverkuil@xs4all.nl>
+ <036001ce4b39$8e775f50$ab661df0$%debski@samsung.com>
+ <201305071847.01169.hverkuil@xs4all.nl>
+In-reply-to: <201305071847.01169.hverkuil@xs4all.nl>
+Subject: RE: [RFC PATCH for 3.10] Update Codec section in DocBook
+Date: Wed, 08 May 2013 13:47:38 +0200
+Message-id: <039d01ce4be1$d8681e30$89385a90$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ezequiel, All,
+Hi,
 
-On Sat, May 04, 2013 at 02:21:44PM -0300, Ezequiel Garcia wrote:
-> I'm trying to split the ac97 support into a separate module.
-> So far I've managed to do this with two different approaches,
-> but both of them are broken in some way :-(
+> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
+> Sent: Tuesday, May 07, 2013 6:47 PM
 > 
-> Couple questions:
+> On Tue 7 May 2013 17:42:57 Kamil Debski wrote:
+> > Hi Hans,
+> >
+> > Thanks for this patch. I remember that there was some discussion
+> about
+> > it and the conclusion was that a codec device is in fact a mem-2-mem
+> > device. This probably is the reason why codec documentation was not
+> > extended.
+> >
+> > Ack on my side.
+> >
+> > Hans, do you expect me to pull this or will you deal directly with
+> Mauro?
 > 
-> 1. Is it possible to force two symbols to be both built-in (=y) or both
-> modules (=m)? This would make one of my solutions work.
+> If you have anything pending for 3.10, then it might be easier if you
+> just add it for that. If not, then I can just create a 3.10 branch
+> myself and make a pull request for Mauro.
+> 
 
-If they are always the same value, there is no need to have two symbols
-in the first place.
+I have nothing pending for 3.10 right now, so go ahead.
 
-However, given the original problem from this thread, if what you meant
-was to have the second symbol either 'n' or the same as the first symbol,
-ie. the following table:
-
-    A:  n   m   m   y   y
-    B:  n   n   m   n   y
-
-Then the closest I came up with is:
-
-    config MODULES
-        bool "Modules"
-    
-    config A
-        tristate "A"
-    
-    config B_dummy
-        bool "B"
-        depends on A
-    
-    config B
-        tristate
-        default m if A=m && B_dummy
-        default y if A=y && B_dummy
-
-where B_dummy is not used outside of Kconfig, and only A and B are the
-symbols of interest (eg. to build the drivers).
-
-Otherwise, I was not able to get the desired behviour with only the A
-and B symbols.
-
-Regards,
-Yann E. MORIN.
-
+Best wishes,
 -- 
-.-----------------.--------------------.------------------.--------------------.
-|  Yann E. MORIN  | Real-Time Embedded | /"\ ASCII RIBBON | Erics' conspiracy: |
-| +33 662 376 056 | Software  Designer | \ / CAMPAIGN     |  ___               |
-| +33 223 225 172 `------------.-------:  X  AGAINST      |  \e/  There is no  |
-| http://ymorin.is-a-geek.org/ | _/*\_ | / \ HTML MAIL    |   v   conspiracy.  |
-'------------------------------^-------^------------------^--------------------'
+Kamil Debski
+Linux Platform Group
+Samsung Poland R&D Center
+
+
