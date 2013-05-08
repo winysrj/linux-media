@@ -1,87 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22751 "EHLO mx1.redhat.com"
+Received: from mout.gmx.net ([212.227.17.21]:56369 "EHLO mout.gmx.net"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965596Ab3E3AgR convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 20:36:17 -0400
-Date: Wed, 29 May 2013 21:35:54 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Jon Arne =?UTF-8?B?SsO4cmdlbnNlbg==?= <jonarne@jonarne.no>
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
-	timo.teras@iki.fi
-Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
-Message-ID: <20130529213554.690f7eaa@redhat.com>
-In-Reply-To: <1369860078-10334-2-git-send-email-jonarne@jonarne.no>
-References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
-	<1369860078-10334-2-git-send-email-jonarne@jonarne.no>
-Mime-Version: 1.0
+	id S1755376Ab3EHV5V (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 8 May 2013 17:57:21 -0400
+Received: from mailout-de.gmx.net ([10.1.76.12]) by mrigmx.server.lan
+ (mrigmx002) with ESMTP (Nemesis) id 0MQKkE-1UzST535EC-00Tl6z for
+ <linux-media@vger.kernel.org>; Wed, 08 May 2013 23:57:19 +0200
+From: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
+Subject: [PATCH 2/2] stb0899: remove commented value from IQ_SWAP_ON/OFF usages
+Date: Wed,  8 May 2013 23:54:57 +0200
+Message-Id: <1368050097-6079-2-git-send-email-rnissl@gmx.de>
+In-Reply-To: <1368050097-6079-1-git-send-email-rnissl@gmx.de>
+References: <1368050097-6079-1-git-send-email-rnissl@gmx.de>
+MIME-Version: 1.0
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Wed, 29 May 2013 22:41:16 +0200
-Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+As the enum values have changed recently, the comments are void.
 
-> Change all default values in the initial setup table to match the table
-> in the datasheet.
+Signed-off-by: Reinhard Nißl <rnissl@gmx.de>
+---
+ drivers/media/pci/mantis/mantis_vp1041.c | 2 +-
+ drivers/media/pci/ttpci/budget-av.c      | 2 +-
+ drivers/media/pci/ttpci/budget-ci.c      | 2 +-
+ drivers/media/usb/dvb-usb/az6027.c       | 2 +-
+ drivers/media/usb/dvb-usb/pctv452e.c     | 2 +-
+ 5 files changed, 5 insertions(+), 5 deletions(-)
 
-This is not a good idea, as it can produce undesired side effects
-on the existing drivers that depend on it, and can't be easily
-tested.
-
-Please, don't change the current "default". It is, of course, OK
-to change them if needed via the information provided inside the
-platform data.
-
-Regards,
-Mauro
-> 
-> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
-> ---
->  drivers/media/i2c/saa7115.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-> index d6f589a..4403679 100644
-> --- a/drivers/media/i2c/saa7115.c
-> +++ b/drivers/media/i2c/saa7115.c
-> @@ -223,12 +223,12 @@ static const unsigned char saa7111_init[] = {
->  static const unsigned char saa7113_init[] = {
->  	R_01_INC_DELAY, 0x08,
->  	R_02_INPUT_CNTL_1, 0xc2,
-> -	R_03_INPUT_CNTL_2, 0x30,
-> +	R_03_INPUT_CNTL_2, 0x33,
->  	R_04_INPUT_CNTL_3, 0x00,
->  	R_05_INPUT_CNTL_4, 0x00,
-> -	R_06_H_SYNC_START, 0x89,
-> +	R_06_H_SYNC_START, 0xe9,
->  	R_07_H_SYNC_STOP, 0x0d,
-> -	R_08_SYNC_CNTL, 0x88,
-> +	R_08_SYNC_CNTL, 0x98,
->  	R_09_LUMA_CNTL, 0x01,
->  	R_0A_LUMA_BRIGHT_CNTL, 0x80,
->  	R_0B_LUMA_CONTRAST_CNTL, 0x47,
-> @@ -236,11 +236,11 @@ static const unsigned char saa7113_init[] = {
->  	R_0D_CHROMA_HUE_CNTL, 0x00,
->  	R_0E_CHROMA_CNTL_1, 0x01,
->  	R_0F_CHROMA_GAIN_CNTL, 0x2a,
-> -	R_10_CHROMA_CNTL_2, 0x08,
-> +	R_10_CHROMA_CNTL_2, 0x00,
->  	R_11_MODE_DELAY_CNTL, 0x0c,
-> -	R_12_RT_SIGNAL_CNTL, 0x07,
-> +	R_12_RT_SIGNAL_CNTL, 0x01,
->  	R_13_RT_X_PORT_OUT_CNTL, 0x00,
-> -	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
-> +	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,	/* RESERVED */
->  	R_15_VGATE_START_FID_CHG, 0x00,
->  	R_16_VGATE_STOP, 0x00,
->  	R_17_MISC_VGATE_CONF_AND_MSB, 0x00,
-
-
+diff --git a/drivers/media/pci/mantis/mantis_vp1041.c b/drivers/media/pci/mantis/mantis_vp1041.c
+index 07aa887..07a2074 100644
+--- a/drivers/media/pci/mantis/mantis_vp1041.c
++++ b/drivers/media/pci/mantis/mantis_vp1041.c
+@@ -273,7 +273,7 @@ struct stb0899_config vp1041_stb0899_config = {
+ 	.demod_address 		= 0x68, /*  0xd0 >> 1 */
+ 
+ 	.xtal_freq		= 27000000,
+-	.inversion		= IQ_SWAP_ON, /* 1 */
++	.inversion		= IQ_SWAP_ON,
+ 
+ 	.lo_clk			= 76500000,
+ 	.hi_clk			= 99000000,
+diff --git a/drivers/media/pci/ttpci/budget-av.c b/drivers/media/pci/ttpci/budget-av.c
+index 1f8b1bb..0ba3875 100644
+--- a/drivers/media/pci/ttpci/budget-av.c
++++ b/drivers/media/pci/ttpci/budget-av.c
+@@ -1128,7 +1128,7 @@ static struct stb0899_config knc1_dvbs2_config = {
+ //	.ts_pfbit_toggle	= STB0899_MPEG_NORMAL,	/* DirecTV, MPEG toggling seq	*/
+ 
+ 	.xtal_freq		= 27000000,
+-	.inversion		= IQ_SWAP_OFF, /* 1 */
++	.inversion		= IQ_SWAP_OFF,
+ 
+ 	.lo_clk			= 76500000,
+ 	.hi_clk			= 90000000,
+diff --git a/drivers/media/pci/ttpci/budget-ci.c b/drivers/media/pci/ttpci/budget-ci.c
+index 98e5241..0acf920 100644
+--- a/drivers/media/pci/ttpci/budget-ci.c
++++ b/drivers/media/pci/ttpci/budget-ci.c
+@@ -1280,7 +1280,7 @@ static struct stb0899_config tt3200_config = {
+ 	.demod_address 		= 0x68,
+ 
+ 	.xtal_freq		= 27000000,
+-	.inversion		= IQ_SWAP_ON, /* 1 */
++	.inversion		= IQ_SWAP_ON,
+ 
+ 	.lo_clk			= 76500000,
+ 	.hi_clk			= 99000000,
+diff --git a/drivers/media/usb/dvb-usb/az6027.c b/drivers/media/usb/dvb-usb/az6027.c
+index 91e0119..ea2d5ee 100644
+--- a/drivers/media/usb/dvb-usb/az6027.c
++++ b/drivers/media/usb/dvb-usb/az6027.c
+@@ -264,7 +264,7 @@ struct stb0899_config az6027_stb0899_config = {
+ 	.demod_address 		= 0xd0, /* 0x68, 0xd0 >> 1 */
+ 
+ 	.xtal_freq		= 27000000,
+-	.inversion		= IQ_SWAP_ON, /* 1 */
++	.inversion		= IQ_SWAP_ON,
+ 
+ 	.lo_clk			= 76500000,
+ 	.hi_clk			= 99000000,
+diff --git a/drivers/media/usb/dvb-usb/pctv452e.c b/drivers/media/usb/dvb-usb/pctv452e.c
+index d1ddfa1..449a996 100644
+--- a/drivers/media/usb/dvb-usb/pctv452e.c
++++ b/drivers/media/usb/dvb-usb/pctv452e.c
+@@ -828,7 +828,7 @@ static struct stb0899_config stb0899_config = {
+ 	.block_sync_mode = STB0899_SYNC_FORCED, /* ? */
+ 
+ 	.xtal_freq       = 27000000,	 /* Assume Hz ? */
+-	.inversion       = IQ_SWAP_ON,       /* ? */
++	.inversion       = IQ_SWAP_ON,
+ 
+ 	.lo_clk	  = 76500000,
+ 	.hi_clk	  = 99000000,
 -- 
+1.8.1.4
 
-Cheers,
-Mauro
