@@ -1,32 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out.ipsmtp4nec.opaltelecom.net ([62.24.202.76]:7965 "EHLO
-	out.ipsmtp4nec.opaltelecom.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1757020Ab3EHQ7b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 May 2013 12:59:31 -0400
-Message-ID: <25756476.3830561368031789145.JavaMail.defaultUser@defaultHost>
-Date: Wed, 8 May 2013 17:49:49 +0100 (BST)
-From: Admin <robp_allen@lineone.net>
-Reply-To: help2@admin.in.th
-Subject: Technical Support
-MIME-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
-Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from gerard.telenet-ops.be ([195.130.132.48]:41966 "EHLO
+	gerard.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757499Ab3EHUXv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 16:23:51 -0400
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Andrey Smirnov <andrew.smirnov@gmail.com>
+Cc: linux-kernel@vger.kernel.org,
+	Geert Uytterhoeven <geert@linux-m68k.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 1/2] [media] v4l2: SI476X MFD - Do not use binary constants
+Date: Wed,  8 May 2013 22:23:41 +0200
+Message-Id: <1368044622-25645-1-git-send-email-geert@linux-m68k.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear Web-mail User,
+Gcc < 4.3 doesn't understand binary constanrs (0b*):
 
-Your Mail quota has reached limit, You might not 
-be able to send or receive new mail until you re-validate your mailbox 
-.
-To re-validate your mailbox reply to this mail and fill your 
+drivers/media/radio/radio-si476x.c:862:20: error: invalid suffix "b10000000" on integer constant
 
-{user-
-name:
-{Password:
-{Confirm Password:
+Hence use a hexadecimal constant (0x*) instead.
 
-Technical Support
-192.168.0.1
+Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+---
+ drivers/media/radio/radio-si476x.c |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/radio/radio-si476x.c b/drivers/media/radio/radio-si476x.c
+index 9430c6a..9dc8baf 100644
+--- a/drivers/media/radio/radio-si476x.c
++++ b/drivers/media/radio/radio-si476x.c
+@@ -44,7 +44,7 @@
+ 
+ #define FREQ_MUL (10000000 / 625)
+ 
+-#define SI476X_PHDIV_STATUS_LINK_LOCKED(status) (0b10000000 & (status))
++#define SI476X_PHDIV_STATUS_LINK_LOCKED(status) (0x80 & (status))
+ 
+ #define DRIVER_NAME "si476x-radio"
+ #define DRIVER_CARD "SI476x AM/FM Receiver"
+-- 
+1.7.0.4
+
