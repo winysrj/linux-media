@@ -1,66 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f47.google.com ([209.85.210.47]:53857 "EHLO
-	mail-da0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757967Ab3EGFHp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 01:07:45 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2] media: davinci: vpbe: fix layer availability for NV12 format
-Date: Tue,  7 May 2013 10:37:25 +0530
-Message-Id: <1367903245-4494-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-ve0-f176.google.com ([209.85.128.176]:56154 "EHLO
+	mail-ve0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751153Ab3EHTgA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 15:36:00 -0400
+Received: by mail-ve0-f176.google.com with SMTP id db10so564373veb.7
+        for <linux-media@vger.kernel.org>; Wed, 08 May 2013 12:36:00 -0700 (PDT)
+MIME-Version: 1.0
+Date: Wed, 8 May 2013 21:35:59 +0200
+Message-ID: <CACi0n_gEumMkj0t7ge2J-iFfwOgN2xBqwdxBhBGWvc=0whL6KA@mail.gmail.com>
+Subject: Capturing Nikon D7000 LiveView
+From: Federico Prades Illanes <fprades@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi all,
 
-For NV12 format, even if display data is single image,
-both VIDWIN0 and VIDWIN1 parameters must be used. The start
-address of Y data plane and C data plane is configured in
-VIDEOWIN0ADH/L and VIDEOWIN1ADH/L respectively.
-cuurently only one layer was requested, which is suffice
-for yuv422, but for yuv420(NV12) two layers are required and
-fix the same by requesting for other layer if pix fmt is NV12
-during set_fmt.
+I'm trying to connect a Nikon D7000 to my Linux box (a bit old Pentium
+IV) via USB. And I know from the camera spec and other software that
+it's able to send the Live View back to the computer. Obviously it's
+is working, I frankly have no idea how to debug this issue.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- Changes for v2:
- 1: Dropped cpu_is_*() check in driver as, any way driver would fail to set
-    NV12 if the device doesnt support it.
+I would expect to see the /dev/video0 device to be created on camera
+connection. (Done this with a Canon D5 previously). I only get to see
+the device recognition on the 'dmesg'.
 
- drivers/media/platform/davinci/vpbe_display.c |   15 +++++++++++++++
- 1 files changed, 15 insertions(+), 0 deletions(-)
+I'm not sure if the camera is supported by V4L2, or if this is a
+miss-configuration on my system. I done my best to read the wiki, but
+all I find is low level API calls and so. No simple-enough breakdown
+on architecture, so I will appreciate any help or right directions to
+continue.
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 0341dcc..4ceee3a 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -922,6 +922,21 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
- 	other video window */
- 
- 	layer->pix_fmt = *pixfmt;
-+	if (pixfmt->pixelformat == V4L2_PIX_FMT_NV12) {
-+		struct vpbe_layer *otherlayer;
-+
-+		otherlayer = _vpbe_display_get_other_win_layer(disp_dev, layer);
-+		/* if other layer is available, only
-+		 * claim it, do not configure it
-+		 */
-+		ret = osd_device->ops.request_layer(osd_device,
-+						    otherlayer->layer_info.id);
-+		if (ret < 0) {
-+			v4l2_err(&vpbe_dev->v4l2_dev,
-+				 "Display Manager failed to allocate layer\n");
-+			return -EBUSY;
-+		}
-+	}
- 
- 	/* Get osd layer config */
- 	osd_device->ops.get_layer_config(osd_device,
--- 
-1.7.4.1
+Thanks!
 
+Ps: For the record I have ubuntu 11.10, kernel 2.6.38-13-generic, i686
