@@ -1,79 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53146 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932280Ab3E2DeS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 May 2013 23:34:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 5/9] media: davinci: vpif_capture: use module_platform_driver()
-Date: Wed, 29 May 2013 05:34:16 +0200
-Message-ID: <1695975.sHT276StBG@avalon>
-In-Reply-To: <1369569612-30915-6-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com> <1369569612-30915-6-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4381 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757722Ab3EHSUK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 14:20:10 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r48IK6B4000779
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 8 May 2013 20:20:08 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 1AA6A1300085
+	for <linux-media@vger.kernel.org>; Wed,  8 May 2013 20:19:59 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130508182000.1AA6A1300085@alastor.dyndns.org>
+Date: Wed,  8 May 2013 20:19:59 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 26 May 2013 17:30:08 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> This patch uses module_platform_driver() to simplify the code.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Results of the daily build of media_tree:
 
-> ---
->  drivers/media/platform/davinci/vpif_capture.c |   28 +---------------------
->  1 files changed, 1 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> b/drivers/media/platform/davinci/vpif_capture.c index f8b7304..38c1fba
-> 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -2338,30 +2338,4 @@ static __refdata struct platform_driver vpif_driver =
-> { .remove = vpif_remove,
->  };
-> 
-> -/**
-> - * vpif_init: initialize the vpif driver
-> - *
-> - * This function registers device and driver to the kernel, requests irq
-> - * handler and allocates memory
-> - * for channel objects
-> - */
-> -static __init int vpif_init(void)
-> -{
-> -	return platform_driver_register(&vpif_driver);
-> -}
-> -
-> -/**
-> - * vpif_cleanup : This function clean up the vpif capture resources
-> - *
-> - * This will un-registers device and driver to the kernel, frees
-> - * requested irq handler and de-allocates memory allocated for channel
-> - * objects.
-> - */
-> -static void vpif_cleanup(void)
-> -{
-> -	platform_driver_unregister(&vpif_driver);
-> -}
-> -
-> -/* Function for module initialization and cleanup */
-> -module_init(vpif_init);
-> -module_exit(vpif_cleanup);
-> +module_platform_driver(vpif_driver);
--- 
-Regards,
+date:		Wed May  8 19:00:21 CEST 2013
+git branch:	test
+git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-Laurent Pinchart
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
