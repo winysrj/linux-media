@@ -1,128 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2851 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753417Ab3EFNmF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 09:42:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC] Motion Detection API
-Date: Mon, 6 May 2013 15:41:41 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Kamil Debski <k.debski@samsung.com>
-References: <201304121736.16542.hverkuil@xs4all.nl> <1925455.QCByddZe4C@avalon>
-In-Reply-To: <1925455.QCByddZe4C@avalon>
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:48342 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755545Ab3EHMn0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 08:43:26 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305061541.41204.hverkuil@xs4all.nl>
+In-Reply-To: <5750435.WVYuIYMX2V@avalon>
+References: <1367563919-2880-1-git-send-email-prabhakar.csengg@gmail.com>
+ <124364082.ILKsvVk9ro@avalon> <CA+V-a8sknnoq7M-HJUW6aW8jtf7T0qxA8OpPjsXdmxO22ic7og@mail.gmail.com>
+ <5750435.WVYuIYMX2V@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 8 May 2013 18:13:03 +0530
+Message-ID: <CA+V-a8sfPSEWJz1XAuGv7aPTWDjUpPTmU_Z8372tqjS8O0CCWQ@mail.gmail.com>
+Subject: Re: [PATCH RFC v3] media: i2c: mt9p031: add OF support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon April 29 2013 22:52:31 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Sorry for the late reply.
-> 
-> On Friday 12 April 2013 17:36:16 Hans Verkuil wrote:
-> > This RFC looks at adding support for motion detection to V4L2. This is the
-> > main missing piece that prevents the go7007 and solo6x10 drivers from being
-> > moved into mainline from the staging directory.
-> > 
-> > Step one is to look at existing drivers/hardware:
-> > 
-> > 1) The go7007 driver:
-> > 
-> > 	- divides the frame into blocks of 16x16 pixels each (that's 45x36 blocks
-> > 	  for PAL)
-> > 	- each block can be assigned to region 0, 1, 2 or 3
-> > 	- each region has:
-> > 		- a pixel change threshold
-> > 		- a motion vector change threshold
-> > 		- a trigger level; if this is 0, then motion detection for this
-> > 		  region is disabled
-> > 	- when streaming the reserved field of v4l2_buffer is used as a bitmask:
-> > 	  one bit for each region where motion is detected.
-> > 
-> > 2) The solo6x10 driver:
-> > 
-> > 	- divides the frame into blocks of 16x16 pixels each
-> > 	- each block has its own threshold
-> > 	- the driver adds one MOTION_ON buffer flag and one MOTION_DETECTED
-> > 	  buffer flag.
-> > 	- motion detection can be disabled or enabled.
-> > 	- the driver has a global motion detection mode with just one threshold:
-> > 	  in that case all blocks are set to the same threshold.
-> > 	- there is also support for displaying a border around the image if 
-> > 	  motion is detected (very hardware specific).
-> > 
-> > 3) The tw2804 video encoder (based on the datasheet, not implemented in the
-> > driver):
-> > 
-> > 	- divides the image in 12x12 blocks (block size will differ for NTSC vs
-> > 	  PAL)
-> > 	- motion detection can be enabled or disabled for each block
-> > 	- there are four controls:
-> > 		- luminance level change threshold
-> > 		- spatial sensitivity threshold
-> > 		- temporal sensitivity threshold
-> > 		- velocity control (determines how well slow motions are detected)
-> > 	- detection is reported by a hardware pin in this case
-> > 
-> > Comparing these three examples of motion detection I see quite a lot of
-> > similarities, enough to make a proposal for an API:
-> > 
-> > - Add a MOTION_DETECTION menu control:
-> > 	- Disabled
-> > 	- Global Motion Detection
-> > 	- Regional Motion Detection
-> > 
-> > If 'Global Motion Detection' is selected, then various threshold controls
-> > become available. What sort of thresholds are available seems to be quite
-> > variable, so I am inclined to leave this as private controls.
-> > 
-> > - Add new buffer flags when motion is detected. The go7007 driver would need
-> > 4 bits (one for each region), the others just one. This can be done by
-> > taking 4 bits from the v4l2_buffer flags field. There are still 16 bits
-> > left there, and if it becomes full, then we still have two reserved fields.
-> > I see no reason for adding a 'MOTION_ON' flag as the solo6x10 driver does
-> > today: just check the MOTION_DETECTION control if you want to know if
-> > motion detection is on or not.
-> 
-> We're really starting to shove metadata in buffer flags. Isn't it time to add 
-> a proper metadata API ? I don't really like the idea of using (valuable) 
-> buffer flags for a feature supported by three drivers only.
+Hi Laurent,
 
-There are still 18 (not 16) bits remaining, so we are hardly running out of bits.
-And I feel it is overkill to create a new metadata API for just a few bits.
-
-It's actually quite rare that bits are added here, so I am OK with this myself.
-
-I will produce an RFCv2 though (the current API doesn't really extend to 1080p motion
-detection due to the limited number of blocks), and I will take another look
-at this. Although I don't really know off-hand how to implement it. One idea that
-I had (just a brainstorm at this moment) is to associate V4L2 events with a buffer.
-So internally buffers would have an event queue and events could be added there
-once the driver is done with the buffer.
-
-An event buffer flag would be set, signalling to userspace that events are
-available for this buffer and DQEVENT can be used to determine which events
-there are (e.g. a motion detection event).
-
-This makes it easy to associate many types of event with a buffer (motion detection,
-face/smile/whatever detection) using standard ioctls, but it feels a bit convoluted
-at the same time. It's probably worth pursuing, though, as it is nicely generic.
-
-An alternative might be to set a 'DETECT' buffer flag, and rename 'reserved2'
-to 'detect_mask', thus having up to 32 things to detect. The problem with that
-is that we have no idea yet how to do face detection or any other type of
-detection since we have no experience with it at all. So 32 bits may also be
-insufficient, and I'd rather not use up a full field.
+On Wed, May 8, 2013 at 4:07 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> On Wednesday 08 May 2013 10:19:57 Prabhakar Lad wrote:
+>> On Wed, May 8, 2013 at 7:32 AM, Laurent Pinchart wrote:
+>> > On Tuesday 07 May 2013 15:10:36 Prabhakar Lad wrote:
+>> >> On Mon, May 6, 2013 at 8:29 PM, Prabhakar Lad wrote:
+>> >> > On Fri, May 3, 2013 at 8:04 PM, Arnd Bergmann <arnd@arndb.de> wrote:
+>> >> >> On Friday 03 May 2013, Prabhakar Lad wrote:
+>> >> > [snip]
+>> >> >
+>> >> >>> +}
+>> >> >>
+>> >> >> Ok, good.
+>> >> >>
+>> >> >>> @@ -955,7 +998,17 @@ static int mt9p031_probe(struct i2c_client
+>> >> >>> *client,
+>> >> >>>
+>> >> >>>         mt9p031->pdata = pdata;
+>> >> >>>         mt9p031->output_control = MT9P031_OUTPUT_CONTROL_DEF;
+>> >> >>>         mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
+>> >> >>>
+>> >> >>> -       mt9p031->model = did->driver_data;
+>> >> >>> +
+>> >> >>> +       if (!client->dev.of_node) {
+>> >> >>> +               mt9p031->model = (enum
+>> >> >>> mt9p031_model)did->driver_data;
+>> >> >>> +       } else {
+>> >> >>> +               const struct of_device_id *of_id;
+>> >> >>> +
+>> >> >>> +               of_id =
+>> >> >>> of_match_device(of_match_ptr(mt9p031_of_match),
+>> >> >>> +                                       &client->dev);
+>> >> >>> +               if (of_id)
+>> >> >>> +                       mt9p031->model = (enum
+>> >> >>> mt9p031_model)of_id->data;
+>> >> >>> +       }
+>> >> >>>
+>> >> >>>         mt9p031->reset = -1;
+>> >> >>
+>> >> >> Is this actually required? I thought the i2c core just compared the
+>> >> >> part of the "compatible" value after the first comma to the string, so
+>> >> >> "mt9p031->model = (enum mt9p031_model)did->driver_data" should work
+>> >> >> in both cases.
+>> >> >
+>> >> > I am OK with "mt9p031->model = (enum mt9p031_model)did->driver_data"
+>> >> > but I see still few drivers doing this, I am not sure for what reason.
+>> >> > If everyone is OK with it I can drop the above change.
+>> >>
+>> >> My bad, while booting with DT the i2c_device_id ie did in this case will
+>> >> be NULL, so the above changes are required :-)
+>> >
+>> > I've just tested your patch, and did isn't NULL when booting my
+>> > Beagleboard with DT (on v3.9-rc5).
+>>
+>> I am pretty much sure you tested it compatible property as "aptina,mt9p031"
+>> if the compatible property is set to "aptina,mt9p031m" the did will be NULL.
+>
+> I've tested both :-)
+>
+Thanks for the testing :-) I'll remove this changes in the next version.
 
 Regards,
-
-	Hans
+--Prabhakar Lad
