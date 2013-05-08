@@ -1,114 +1,162 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4071 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752343Ab3EJLUY convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 May 2013 07:20:24 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4ABKKti074489
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 10 May 2013 13:20:23 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from durdane.localnet (64-103-25-233.cisco.com [64.103.25.233])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 46FAF130009A
-	for <linux-media@vger.kernel.org>; Fri, 10 May 2013 13:20:20 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.11] Updates for 3.11.
-Date: Fri, 10 May 2013 13:20:19 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201305101320.19258.hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:58557 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755856Ab3EHNq4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 09:46:56 -0400
+Received: from avalon.ideasonboard.com (unknown [91.178.146.12])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 8738835A6B
+	for <linux-media@vger.kernel.org>; Wed,  8 May 2013 15:46:25 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCH RESEND 9/9] s5k6aa: Convert to devm_gpio_request_one()
+Date: Wed,  8 May 2013 15:46:34 +0200
+Message-Id: <1368020794-21264-10-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com>
+References: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 02615ed5e1b2283db2495af3cf8f4ee172c77d80:
+Use the devm_gpio_request_one() managed function to simplify cleanup
+code paths.
 
-  [media] cx88: make core less verbose (2013-04-28 12:40:52 -0300)
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/i2c/s5k6aa.c | 73 +++++++++++++++++-----------------------------
+ 1 file changed, 26 insertions(+), 47 deletions(-)
 
-are available in the git repository at:
+diff --git a/drivers/media/i2c/s5k6aa.c b/drivers/media/i2c/s5k6aa.c
+index bdf5e3d..789c02a 100644
+--- a/drivers/media/i2c/s5k6aa.c
++++ b/drivers/media/i2c/s5k6aa.c
+@@ -1491,58 +1491,41 @@ static const struct v4l2_subdev_ops s5k6aa_subdev_ops = {
+ /*
+  * GPIO setup
+  */
+-static int s5k6aa_configure_gpio(int nr, int val, const char *name)
+-{
+-	unsigned long flags = val ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW;
+-	int ret;
+-
+-	if (!gpio_is_valid(nr))
+-		return 0;
+-	ret = gpio_request_one(nr, flags, name);
+-	if (!ret)
+-		gpio_export(nr, 0);
+-	return ret;
+-}
+-
+-static void s5k6aa_free_gpios(struct s5k6aa *s5k6aa)
+-{
+-	int i;
+-
+-	for (i = 0; i < ARRAY_SIZE(s5k6aa->gpio); i++) {
+-		if (!gpio_is_valid(s5k6aa->gpio[i].gpio))
+-			continue;
+-		gpio_free(s5k6aa->gpio[i].gpio);
+-		s5k6aa->gpio[i].gpio = -EINVAL;
+-	}
+-}
+ 
+ static int s5k6aa_configure_gpios(struct s5k6aa *s5k6aa,
+ 				  const struct s5k6aa_platform_data *pdata)
+ {
+-	const struct s5k6aa_gpio *gpio = &pdata->gpio_stby;
++	struct i2c_client *client = v4l2_get_subdevdata(&s5k6aa->sd);
++	const struct s5k6aa_gpio *gpio;
++	unsigned long flags;
+ 	int ret;
+ 
+ 	s5k6aa->gpio[STBY].gpio = -EINVAL;
+ 	s5k6aa->gpio[RST].gpio  = -EINVAL;
+ 
+-	ret = s5k6aa_configure_gpio(gpio->gpio, gpio->level, "S5K6AA_STBY");
+-	if (ret) {
+-		s5k6aa_free_gpios(s5k6aa);
+-		return ret;
++	gpio = &pdata->gpio_stby;
++	if (gpio_is_valid(gpio->gpio)) {
++		flags = (gpio->level ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW)
++		      | GPIOF_EXPORT;
++		ret = devm_gpio_request_one(&client->dev, gpio->gpio, flags,
++					    "S5K6AA_STBY");
++		if (ret < 0)
++			return ret;
++
++		s5k6aa->gpio[STBY] = *gpio;
+ 	}
+-	s5k6aa->gpio[STBY] = *gpio;
+-	if (gpio_is_valid(gpio->gpio))
+-		gpio_set_value(gpio->gpio, 0);
+ 
+ 	gpio = &pdata->gpio_reset;
+-	ret = s5k6aa_configure_gpio(gpio->gpio, gpio->level, "S5K6AA_RST");
+-	if (ret) {
+-		s5k6aa_free_gpios(s5k6aa);
+-		return ret;
++	if (gpio_is_valid(gpio->gpio)) {
++		flags = (gpio->level ? GPIOF_OUT_INIT_HIGH : GPIOF_OUT_INIT_LOW)
++		      | GPIOF_EXPORT;
++		ret = devm_gpio_request_one(&client->dev, gpio->gpio, flags,
++					    "S5K6AA_RST");
++		if (ret < 0)
++			return ret;
++
++		s5k6aa->gpio[RST] = *gpio;
+ 	}
+-	s5k6aa->gpio[RST] = *gpio;
+-	if (gpio_is_valid(gpio->gpio))
+-		gpio_set_value(gpio->gpio, 0);
+ 
+ 	return 0;
+ }
+@@ -1593,7 +1576,7 @@ static int s5k6aa_probe(struct i2c_client *client,
+ 
+ 	ret = s5k6aa_configure_gpios(s5k6aa, pdata);
+ 	if (ret)
+-		goto out_err2;
++		goto out_err;
+ 
+ 	for (i = 0; i < S5K6AA_NUM_SUPPLIES; i++)
+ 		s5k6aa->supplies[i].supply = s5k6aa_supply_names[i];
+@@ -1602,12 +1585,12 @@ static int s5k6aa_probe(struct i2c_client *client,
+ 				 s5k6aa->supplies);
+ 	if (ret) {
+ 		dev_err(&client->dev, "Failed to get regulators\n");
+-		goto out_err3;
++		goto out_err;
+ 	}
+ 
+ 	ret = s5k6aa_initialize_ctrls(s5k6aa);
+ 	if (ret)
+-		goto out_err3;
++		goto out_err;
+ 
+ 	s5k6aa_presets_data_init(s5k6aa);
+ 
+@@ -1618,9 +1601,7 @@ static int s5k6aa_probe(struct i2c_client *client,
+ 
+ 	return 0;
+ 
+-out_err3:
+-	s5k6aa_free_gpios(s5k6aa);
+-out_err2:
++out_err:
+ 	media_entity_cleanup(&s5k6aa->sd.entity);
+ 	return ret;
+ }
+@@ -1628,12 +1609,10 @@ out_err2:
+ static int s5k6aa_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+-	struct s5k6aa *s5k6aa = to_s5k6aa(sd);
+ 
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(sd->ctrl_handler);
+ 	media_entity_cleanup(&sd->entity);
+-	s5k6aa_free_gpios(s5k6aa);
+ 
+ 	return 0;
+ }
+-- 
+1.8.1.5
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
-
-for you to fetch changes up to 2bd7485bcca252128e518829ccffb807c92db2bb:
-
-  saa7115: Add register setup and config for gm7113c (2013-05-10 13:19:08 +0200)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      wl128x: do not call copy_to_user() while holding spinlocks
-
-Hans Verkuil (2):
-      bttv: Add Adlink MPG24 entry to the bttv cardlist
-      CARDLIST.bttv: add new cards.
-
-Ismael Luceno (2):
-      videodev2.h: Make V4L2_PIX_FMT_MPEG4 comment more specific about its usage
-      solo6x10: Approximate frame intervals with non-standard denominator
-
-Jakob Haufe (2):
-      rc: Add rc-delock-61959
-      em28xx: Add support for 1b80:e1cc Delock 61959
-
-Jon Arne Jørgensen (1):
-      saa7115: Add register setup and config for gm7113c
-
-Lad, Prabhakar (4):
-      media: davinci: vpif: remove unwanted header file inclusion
-      media: davinci: vpif_display: move displaying of error to approppraite place
-      media: davinci: vpbe: fix checkpatch warning for CamelCase
-      media: i2c: tvp7002: enable TVP7002 decoder for media controller based usage
-
-Lars-Peter Clausen (1):
-      media:adv7180: Use dev_pm_ops
-
-Leonid Kegulskiy (2):
-      hdpvr: Removed unnecessary get_video_info() call from hdpvr_device_init()
-      hdpvr: Added some error handling in hdpvr_start_streaming()
-
-Mauro Carvalho Chehab (2):
-      saa7115: move the autodetection code out of the probe function
-      saa7115: add detection code for gm7113c
-
-Ondrej Zary (2):
-      bttv: Add noname Bt848 capture card with 14MHz xtal
-      bttv: Add CyberVision CV06
-
-Scott Jiang (2):
-      blackfin: add display support in ppi driver
-      bfin_capture: add query_dv_timings/enum_dv_timings support
-
- Documentation/video4linux/CARDLIST.bttv            |    3 ++
- drivers/media/i2c/adv7180.c                        |   19 ++++---
- drivers/media/i2c/saa7115.c                        |  206 ++++++++++++++++++++++++++++++++++++++++++++++++++++-------------------
- drivers/media/i2c/tvp7002.c                        |   96 +++++++++++++++++++++++++++++++--
- drivers/media/pci/bt8xx/bttv-cards.c               |   52 +++++++++++++++---
- drivers/media/pci/bt8xx/bttv.h                     |    4 ++
- drivers/media/platform/blackfin/bfin_capture.c     |   28 +++++++---
- drivers/media/platform/blackfin/ppi.c              |   12 +++++
- drivers/media/platform/davinci/vpbe_display.c      |    2 +-
- drivers/media/platform/davinci/vpbe_osd.c          |   24 ++++-----
- drivers/media/platform/davinci/vpif_capture.c      |   19 ++-----
- drivers/media/platform/davinci/vpif_capture.h      |    5 +-
- drivers/media/platform/davinci/vpif_display.c      |   25 ++-------
- drivers/media/platform/davinci/vpif_display.h      |    5 +-
- drivers/media/radio/wl128x/fmdrv_common.c          |   24 +++++----
- drivers/media/rc/keymaps/Makefile                  |    1 +
- drivers/media/rc/keymaps/rc-delock-61959.c         |   83 +++++++++++++++++++++++++++++
- drivers/media/usb/em28xx/em28xx-cards.c            |   16 ++++++
- drivers/media/usb/em28xx/em28xx-dvb.c              |    5 +-
- drivers/media/usb/em28xx/em28xx.h                  |    1 +
- drivers/media/usb/hdpvr/hdpvr-core.c               |    8 ---
- drivers/media/usb/hdpvr/hdpvr-video.c              |    6 ++-
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   38 ++++++-------
- include/media/davinci/vpbe_osd.h                   |    4 +-
- include/media/rc-map.h                             |    1 +
- include/media/tvp7002.h                            |    2 +
- include/media/v4l2-chip-ident.h                    |    2 +
- include/uapi/linux/videodev2.h                     |    2 +-
- 28 files changed, 509 insertions(+), 184 deletions(-)
- create mode 100644 drivers/media/rc/keymaps/rc-delock-61959.c
