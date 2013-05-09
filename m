@@ -1,122 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:50968 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751800Ab3EESEi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 May 2013 14:04:38 -0400
-Date: Sun, 5 May 2013 20:07:43 +0200
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: no To-header on input <""@post.subsys.no>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/2] saa7115: add detection code for gm7113c
-Message-ID: <20130505180743.GC2812@dell.arpanet.local>
-References: <366980557-23077-1-git-send-email-mchehab@redhat.com>
- <1366986168-27756-1-git-send-email-mchehab@redhat.com>
- <1366986168-27756-2-git-send-email-mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1366986168-27756-2-git-send-email-mchehab@redhat.com>
+Received: from mailout4.samsung.com ([203.254.224.34]:60565 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755573Ab3EIPhM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 11:37:12 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMJ00EQ1FDP2XF0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 May 2013 00:37:11 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hj210.choi@samsung.com, dh09.lee@samsung.com, a.hajda@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH 02/13] exynos4-is: Correct querycap ioctl handling at fimc-lite
+ driver
+Date: Thu, 09 May 2013 17:36:34 +0200
+Message-id: <1368113805-20233-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
+References: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 26, 2013 at 11:22:48AM -0300, Mauro Carvalho Chehab wrote:
-> Adds a code that (auto)detects gm7113c clones. The auto-detection
-> here is not perfect, as, on contrary to what it would be expected
-> by looking into its datasheets some devices would return, instead:
-> 
-> 	saa7115 0-0025: chip 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 @ 0x4a is unknown
-> 
-> (found on a device labeled as GM7113C 1145 by Ezequiel Garcia)
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Fill in properly bus_info and card fields and set device_caps.
+The querycap ioctl handler is renamed for consistency with the
+other ioctls.
 
-Tested-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-lite.c |   15 ++++++++++-----
+ 1 file changed, 10 insertions(+), 5 deletions(-)
 
-> ---
->  drivers/media/i2c/saa7115.c     | 36 ++++++++++++++++++++++++++++++++++++
->  include/media/v4l2-chip-ident.h |  2 ++
->  2 files changed, 38 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-> index 9340e0c..950a536 100644
-> --- a/drivers/media/i2c/saa7115.c
-> +++ b/drivers/media/i2c/saa7115.c
-> @@ -1640,6 +1640,36 @@ static int saa711x_detect_chip(struct i2c_client *client,
->  		}
->  	}
->  
-> +	/* Check if it is a gm7113c */
-> +	if (!memcmp(name, "0000", 4)) {
-> +		chip_id = 0;
-> +		for (i = 0; i < 4; i++) {
-> +			chip_id = chip_id << 1;
-> +			chip_id |= (chip_ver[i] & 0x80) ? 1 : 0;
-> +		}
-> +
-> +		/*
-> +		 * Note: From the datasheet, only versions 1 and 2
-> +		 * exists. However, tests on a device labeled as:
-> +		 * "GM7113C 1145" returned "10" on all 16 chip
-> +		 * version (reg 0x00) reads. So, we need to also
-> +		 * accept at least verion 0. For now, let's just
-> +		 * assume that a device that returns "0000" for
-> +		 * the lower nibble is a gm7113c.
-> +		 */
-> +
-> +		strlcpy(name, "gm7113c", size);
-> +
-> +		if (!autodetect && strcmp(name, id->name))
-> +			return -EINVAL;
-> +
-> +		v4l_dbg(1, debug, client,
-> +			"It seems to be a %s chip (%*ph) @ 0x%x.\n",
-> +			name, 16, chip_ver, client->addr << 1);
-> +
-> +		return V4L2_IDENT_GM7113C;
-> +	}
-> +
->  	/* Chip was not discovered. Return its ID and don't bind */
->  	v4l_dbg(1, debug, client, "chip %*ph @ 0x%x is unknown.\n",
->  		16, chip_ver, client->addr << 1);
-> @@ -1669,6 +1699,11 @@ static int saa711x_probe(struct i2c_client *client,
->  	if (ident < 0)
->  		return ident;
->  
-> +	if (ident == V4L2_IDENT_GM7113C) {
-> +		v4l_warn(client, "%s not yet supported\n", name);
-> +		return -ENODEV;
-> +	}
-> +
->  	strlcpy(client->name, name, sizeof(client->name));
->  
->  	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
-> @@ -1756,6 +1791,7 @@ static const struct i2c_device_id saa711x_id[] = {
->  	{ "saa7114", 0 },
->  	{ "saa7115", 0 },
->  	{ "saa7118", 0 },
-> +	{ "gm7113c", 0 },
->  	{ }
->  };
->  MODULE_DEVICE_TABLE(i2c, saa711x_id);
-> diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
-> index c259b36..543f89c 100644
-> --- a/include/media/v4l2-chip-ident.h
-> +++ b/include/media/v4l2-chip-ident.h
-> @@ -52,6 +52,8 @@ enum {
->  	V4L2_IDENT_SAA7115 = 105,
->  	V4L2_IDENT_SAA7118 = 108,
->  
-> +	V4L2_IDENT_GM7113C = 140,
-> +
->  	/* module saa7127: reserved range 150-199 */
->  	V4L2_IDENT_SAA7127 = 157,
->  	V4L2_IDENT_SAA7129 = 159,
-> -- 
-> 1.8.1.4
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 8af8add..c57fa65 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -637,13 +637,18 @@ static void fimc_lite_try_compose(struct fimc_lite *fimc, struct v4l2_rect *r)
+ /*
+  * Video node ioctl operations
+  */
+-static int fimc_vidioc_querycap_capture(struct file *file, void *priv,
++static int fimc_lite_querycap(struct file *file, void *priv,
+ 					struct v4l2_capability *cap)
+ {
++	struct fimc_lite *fimc = video_drvdata(file);
++
+ 	strlcpy(cap->driver, FIMC_LITE_DRV_NAME, sizeof(cap->driver));
+-	cap->bus_info[0] = 0;
+-	cap->card[0] = 0;
+-	cap->capabilities = V4L2_CAP_STREAMING;
++	strlcpy(cap->card, FIMC_LITE_DRV_NAME, sizeof(cap->card));
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s",
++					dev_name(&fimc->pdev->dev));
++
++	cap->device_caps = V4L2_CAP_STREAMING;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 	return 0;
+ }
+ 
+@@ -938,7 +943,7 @@ static int fimc_lite_s_selection(struct file *file, void *fh,
+ }
+ 
+ static const struct v4l2_ioctl_ops fimc_lite_ioctl_ops = {
+-	.vidioc_querycap		= fimc_vidioc_querycap_capture,
++	.vidioc_querycap		= fimc_lite_querycap,
+ 	.vidioc_enum_fmt_vid_cap_mplane	= fimc_lite_enum_fmt_mplane,
+ 	.vidioc_try_fmt_vid_cap_mplane	= fimc_lite_try_fmt_mplane,
+ 	.vidioc_s_fmt_vid_cap_mplane	= fimc_lite_s_fmt_mplane,
+-- 
+1.7.9.5
+
