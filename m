@@ -1,99 +1,137 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2841 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753119Ab3EZN1p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 09:27:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:14386 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754715Ab3EIMyV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 08:54:21 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMJ00D3A7UFRF00@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 May 2013 13:54:18 +0100 (BST)
+From: Andrzej Hajda <a.hajda@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 15/24] radio: remove g_chip_ident op.
-Date: Sun, 26 May 2013 15:27:10 +0200
-Message-Id: <1369574839-6687-16-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH RFC 2/3] media: added managed v4l2 control initialization
+Date: Thu, 09 May 2013 14:52:43 +0200
+Message-id: <1368103965-15232-3-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1368103965-15232-1-git-send-email-a.hajda@samsung.com>
+References: <1368103965-15232-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This patch adds managed versions of initialization
+and cleanup functions for v4l2 control handler.
 
-This is no longer needed since the core now handles this through DBG_G_CHIP_INFO.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/radio/saa7706h.c |   10 ----------
- drivers/media/radio/tef6862.c  |   14 --------------
- 2 files changed, 24 deletions(-)
+ drivers/media/v4l2-core/v4l2-ctrls.c |   48 ++++++++++++++++++++++++++++++++++
+ include/media/v4l2-ctrls.h           |   27 +++++++++++++++++++
+ 2 files changed, 75 insertions(+)
 
-diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
-index 06c06cc..d1f30d6 100644
---- a/drivers/media/radio/saa7706h.c
-+++ b/drivers/media/radio/saa7706h.c
-@@ -25,7 +25,6 @@
- #include <linux/i2c.h>
- #include <linux/slab.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-chip-ident.h>
- 
- #define DRIVER_NAME "saa7706h"
- 
-@@ -349,16 +348,7 @@ static int saa7706h_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 	return -EINVAL;
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index 6b56d7b..1f16405 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1411,6 +1411,54 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
  }
+ EXPORT_SYMBOL(v4l2_ctrl_handler_free);
  
--static int saa7706h_g_chip_ident(struct v4l2_subdev *sd,
--	struct v4l2_dbg_chip_ident *chip)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_SAA7706H, 0);
--}
--
- static const struct v4l2_subdev_core_ops saa7706h_core_ops = {
--	.g_chip_ident = saa7706h_g_chip_ident,
- 	.queryctrl = saa7706h_queryctrl,
- 	.g_ctrl = saa7706h_g_ctrl,
- 	.s_ctrl = saa7706h_s_ctrl,
-diff --git a/drivers/media/radio/tef6862.c b/drivers/media/radio/tef6862.c
-index 82c6c94..d78afbb 100644
---- a/drivers/media/radio/tef6862.c
-+++ b/drivers/media/radio/tef6862.c
-@@ -25,7 +25,6 @@
- #include <linux/slab.h>
- #include <media/v4l2-ioctl.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-chip-ident.h>
++static void devm_v4l2_ctrl_handler_release(struct device *dev, void *res)
++{
++	struct v4l2_ctrl_handler **hdl = res;
++
++	v4l2_ctrl_handler_free(*hdl);
++}
++
++int devm_v4l2_ctrl_handler_init(struct device *dev,
++				struct v4l2_ctrl_handler *hdl,
++				unsigned nr_of_controls_hint)
++{
++	struct v4l2_ctrl_handler **dr;
++	int rc;
++
++	dr = devres_alloc(devm_v4l2_ctrl_handler_release, sizeof(*dr),
++			  GFP_KERNEL);
++	if (!dr)
++		return -ENOMEM;
++
++	rc = v4l2_ctrl_handler_init(hdl, nr_of_controls_hint);
++	if (rc) {
++		devres_free(dr);
++		return rc;
++	}
++
++	*dr = hdl;
++	devres_add(dev, dr);
++
++	return 0;
++}
++EXPORT_SYMBOL_GPL(devm_v4l2_ctrl_handler_init);
++
++static int devm_v4l2_ctrl_handler_match(struct device *dev, void *res,
++					void *data)
++{
++	struct v4l2_ctrl_handler **this = res, **hdl = data;
++
++	return *this == *hdl;
++}
++
++void devm_v4l2_ctrl_handler_free(struct device *dev,
++				 struct v4l2_ctrl_handler *hdl)
++{
++	WARN_ON(devres_release(dev, devm_v4l2_ctrl_handler_release,
++			       devm_v4l2_ctrl_handler_match, &hdl));
++}
++EXPORT_SYMBOL_GPL(devm_v4l2_ctrl_handler_free);
++
+ /* For backwards compatibility: V4L2_CID_PRIVATE_BASE should no longer
+    be used except in G_CTRL, S_CTRL, QUERYCTRL and QUERYMENU when dealing
+    with applications that do not use the NEXT_CTRL flag.
+diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+index f00d42b..a1d06db 100644
+--- a/include/media/v4l2-ctrls.h
++++ b/include/media/v4l2-ctrls.h
+@@ -283,6 +283,33 @@ int v4l2_ctrl_handler_init(struct v4l2_ctrl_handler *hdl,
+   */
+ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl);
  
- #define DRIVER_NAME "tef6862"
- 
-@@ -136,14 +135,6 @@ static int tef6862_g_frequency(struct v4l2_subdev *sd, struct v4l2_frequency *f)
- 	return 0;
- }
- 
--static int tef6862_g_chip_ident(struct v4l2_subdev *sd,
--	struct v4l2_dbg_chip_ident *chip)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_TEF6862, 0);
--}
--
- static const struct v4l2_subdev_tuner_ops tef6862_tuner_ops = {
- 	.g_tuner = tef6862_g_tuner,
- 	.s_tuner = tef6862_s_tuner,
-@@ -151,12 +142,7 @@ static const struct v4l2_subdev_tuner_ops tef6862_tuner_ops = {
- 	.g_frequency = tef6862_g_frequency,
- };
- 
--static const struct v4l2_subdev_core_ops tef6862_core_ops = {
--	.g_chip_ident = tef6862_g_chip_ident,
--};
--
- static const struct v4l2_subdev_ops tef6862_ops = {
--	.core = &tef6862_core_ops,
- 	.tuner = &tef6862_tuner_ops,
- };
- 
++/*
++ * devm_v4l2_ctrl_handler_init - managed control handler initialization
++ *
++ * @dev: Device for which @hdl belongs to.
++ *
++ * This is a managed version of v4l2_ctrl_handler_init. Handler initialized with
++ * this function will be automatically cleaned up on driver detach.
++ *
++ * If an handler initialized with this function needs to be cleaned up
++ * separately, devm_v4l2_ctrl_handler_free() must be used.
++ */
++int devm_v4l2_ctrl_handler_init(struct device *dev,
++				struct v4l2_ctrl_handler *hdl,
++				unsigned nr_of_controls_hint);
++
++/**
++ * devm_v4l2_ctrl_handler_free - managed control handler free
++ *
++ * @dev: Device for which @hdl belongs to.
++ * @hdl: Handler to be cleaned up.
++ *
++ * This function should be used to manual free of an control handler
++ * initialized with devm_v4l2_ctrl_handler_init().
++ */
++void devm_v4l2_ctrl_handler_free(struct device *dev,
++				 struct v4l2_ctrl_handler *hdl);
++
+ /** v4l2_ctrl_handler_setup() - Call the s_ctrl op for all controls belonging
+   * to the handler to initialize the hardware to the current control values.
+   * @hdl:	The control handler.
 -- 
 1.7.10.4
 
