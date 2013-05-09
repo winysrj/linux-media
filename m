@@ -1,112 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:33157 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754007Ab3EaKbi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 06:31:38 -0400
-Message-id: <51A87C05.9020703@samsung.com>
-Date: Fri, 31 May 2013 12:31:33 +0200
+Received: from mailout1.samsung.com ([203.254.224.24]:35682 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755812Ab3EIPh7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 11:37:59 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMJ005BMFF8JR20@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 May 2013 00:37:58 +0900 (KST)
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+To: linux-media@vger.kernel.org
+Cc: hj210.choi@samsung.com, dh09.lee@samsung.com, a.hajda@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
-References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
- <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com>
- <51A0C6A8.5090302@gmail.com> <44193648.yaA827Trlv@avalon>
-In-reply-to: <44193648.yaA827Trlv@avalon>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Subject: [PATCH 12/13] exynos4-is: Add locking at fimc(-lite) subdev
+ unregistered handler
+Date: Thu, 09 May 2013 17:36:44 +0200
+Message-id: <1368113805-20233-13-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
+References: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2013 05:21 AM, Laurent Pinchart wrote:
-> Hi Sylwester,
-> 
-> On Saturday 25 May 2013 16:11:52 Sylwester Nawrocki wrote:
->> On 05/25/2013 11:17 AM, Prabhakar Lad wrote:
-[...]
->>>>>  And for synchronisation method on the analog part we could perhaps
->>>>>  define 'component-sync' or similar property that would enumerate all
->>>>>  possible synchronisation methods. We might as well use separate
->>>>>  boolean properties, but I'm a bit concerned about the increasing
->>>>>  number of properties that need to be parsed for each parallel video
->>>>>  bus "endpoint".
->>>
->>> I am not clear on it can please elaborate more on this.
->>
->> I thought about two possible options:
->>
->> 1. single property 'component-sync' or 'video-sync' that would have values:
->>
->> #define VIDEO_SEPARATE_SYNC	0x01
->> #define VIDEO_COMPOSITE_SYNC	0x02
->> #define VIDEO_SYNC_ON_COMPOSITE	0x04
->> #define VIDEO_SYNC_ON_GREEN	0x08
->> #define VIDEO_SYNC_ON_LUMINANCE	0x10
->>
->> And we could put these definitions into a separate header, e.g.
->> <dt-bindings/video-interfaces.h>
->>
->> Then in a device tree source file one could have, e.g.
->>
->> video-sync = <VIDEO_SYNC_ON_GREEN>;
->>
->>
->> 2. Separate boolean property for each video sync type, e.g.
->>
->> 	"video-composite-sync"
->> 	"video-sync-on-composite"
->> 	"video-sync-on-green"
->> 	"video-sync-on-luminance"
->>
->> Separate sync, with separate VSYNC, HSYNC lines, would be the default, when
->> none of the above is specified and 'vsync-active', 'hsync-active' properties
->> are present.
-> 
-> I prefer 1. over 2.
-> 
->> However, I suppose the better would be to deduce the video synchronisation
->> method from the sync signal polarity flags. Then, for instance, when an
->> endpoint node contains "composite-sync-active" property the parser would
->> determine the "composite sync" synchronisation type is used.
->>
->> Thus it might make sense to have only following integer properties (added
->> as needed):
->>
->> composite-sync-active
->> sync-on-green-active
->> sync-on-comp-active
->> sync-on-luma-active
->>
->> This would allow to specify polarity of each signal and at the same time
->> the parsing code could derive synchronisation type. A new field could be
->> added to struct v4l2_of_parallel_bus, e.g. sync_type and it would be filled
->> within v4l2_of_parse_endpoint().
->>
->> What do you think ?
-> 
-> My gut feeling is that we should have separate properties for the video sync 
-> type and the synchronization signals polarities. We could have a chip that 
-> supports sync-on-green on the analog (input) side and outputs separate hsync 
-> and vsync signals only on the digital (output) side. There would be no sync-
-> on-green polarity in that case.
+Protect the fimc/fimc-lite video nodes unregistration with their video
+lock. This prevents a kernel crash when e.g. udev opens a video node
+right after the driver registers it and then the driver tries to
+unregister it and defers its probing. Using video_is_unregistered()
+together with the video mutex allows safe unregistration of the video
+nodes at any time.
 
-Yes, agreed. I've had some doubts that using single DT property for defining
-really 2 distinct H/W properties like this might not be flexible enough.
-The option 1. seems most correct then.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-capture.c |    4 ++++
+ drivers/media/platform/exynos4-is/fimc-lite.c    |    4 ++++
+ 2 files changed, 8 insertions(+)
 
-Regards,
-Sylwester
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index 984a631..e4645cd 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -1855,6 +1855,8 @@ static void fimc_capture_subdev_unregistered(struct v4l2_subdev *sd)
+ 	if (fimc == NULL)
+ 		return;
+ 
++	mutex_lock(&fimc->lock);
++
+ 	fimc_unregister_m2m_device(fimc);
+ 	vdev = &fimc->vid_cap.ve.vdev;
+ 
+@@ -1866,6 +1868,8 @@ static void fimc_capture_subdev_unregistered(struct v4l2_subdev *sd)
+ 	}
+ 	kfree(fimc->vid_cap.ctx);
+ 	fimc->vid_cap.ctx = NULL;
++
++	mutex_unlock(&fimc->lock);
+ }
+ 
+ static const struct v4l2_subdev_internal_ops fimc_capture_sd_internal_ops = {
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 5f87e65..0985e31 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1300,11 +1300,15 @@ static void fimc_lite_subdev_unregistered(struct v4l2_subdev *sd)
+ 	if (fimc == NULL)
+ 		return;
+ 
++	mutex_lock(&fimc->lock);
++
+ 	if (video_is_registered(&fimc->ve.vdev)) {
+ 		video_unregister_device(&fimc->ve.vdev);
+ 		media_entity_cleanup(&fimc->ve.vdev.entity);
+ 		fimc->ve.pipe = NULL;
+ 	}
++
++	mutex_unlock(&fimc->lock);
+ }
+ 
+ static const struct v4l2_subdev_internal_ops fimc_lite_subdev_internal_ops = {
+-- 
+1.7.9.5
+
