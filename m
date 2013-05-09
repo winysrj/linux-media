@@ -1,48 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4148 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966014Ab3E2OTi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 10:19:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mout.gmx.net ([212.227.17.22]:56711 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750821Ab3EIRfb (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 May 2013 13:35:31 -0400
+Received: from mailout-de.gmx.net ([10.1.76.16]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0MSXbW-1V1xDi17Ho-00RcNt for
+ <linux-media@vger.kernel.org>; Thu, 09 May 2013 19:35:30 +0200
+From: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 11/14] v4l2-ioctl: clarify querystd comment.
-Date: Wed, 29 May 2013 16:19:04 +0200
-Message-Id: <1369837147-8747-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+Cc: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
+Subject: [PATCH] stb0899: sign of CRL_FREQ doesn't depend on inversion
+Date: Thu,  9 May 2013 19:10:59 +0200
+Message-Id: <1368119459-4461-1-git-send-email-rnissl@gmx.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Contrary to CFR (derotator frequency), which changes signedness
+depending on inversion, CRL_FREQ does not.
 
-Improve the querystd comment.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Reinhard Nißl <rnissl@gmx.de>
 ---
- drivers/media/v4l2-core/v4l2-ioctl.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ drivers/media/dvb-frontends/stb0899_algo.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index f81bda1..768f606 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1407,10 +1407,10 @@ static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
- 	v4l2_std_id *p = arg;
+diff --git a/drivers/media/dvb-frontends/stb0899_algo.c b/drivers/media/dvb-frontends/stb0899_algo.c
+index a338e06..93596e0 100644
+--- a/drivers/media/dvb-frontends/stb0899_algo.c
++++ b/drivers/media/dvb-frontends/stb0899_algo.c
+@@ -1504,9 +1504,7 @@ enum stb0899_status stb0899_dvbs2_algo(struct stb0899_state *state)
+ 		else
+ 			internal->inversion = IQ_SWAP_OFF;
  
- 	/*
--	 * If nothing detected, it should return all supported
--	 * standard.
--	 * Drivers just need to mask the std argument, in order
--	 * to remove the standards that don't apply from the mask.
-+	 * If no signal is detected, then the driver should return
-+	 * V4L2_STD_UNKNOWN. Otherwise it should return tvnorms with
-+	 * any standards that do not apply removed.
-+	 *
- 	 * This means that tuners, audio and video decoders can join
- 	 * their efforts to improve the standards detection.
- 	 */
+-		offsetfreq *= internal->inversion;
+-
+-		internal->freq = internal->freq - offsetfreq;
++		internal->freq = internal->freq + offsetfreq;
+ 		internal->srate = stb0899_dvbs2_get_srate(state);
+ 
+ 		reg = STB0899_READ_S2REG(STB0899_S2DEMOD, UWP_STAT2);
 -- 
-1.7.10.4
+1.8.1.4
 
