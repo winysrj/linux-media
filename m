@@ -1,38 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:47047 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934233Ab3E2MvA (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 08:51:00 -0400
-Message-ID: <1369831805.4050.59.camel@pizza.hi.pengutronix.de>
-Subject: Re: [PATCH 1/2] [media] v4l2-mem2mem: add v4l2_m2m_create_bufs
- helper
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Javier Martin' <javier.martin@vista-silicon.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'John Sheu' <sheu@google.com>
-Date: Wed, 29 May 2013 14:50:05 +0200
-In-Reply-To: <021601ce5c67$f5920f20$e0b62d60$%debski@samsung.com>
-References: <1369124189-590-1-git-send-email-p.zabel@pengutronix.de>
-	 <021601ce5c67$f5920f20$e0b62d60$%debski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:39702 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222Ab3EIMoA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 08:44:00 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMJ004Q87D4CK80@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 May 2013 21:43:59 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, hj210.choi@samsung.com,
+	devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] exynos4-is: Correct fimc-lite compatible property description
+Date: Thu, 09 May 2013 14:43:34 +0200
+Message-id: <1368103414-16645-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 29.05.2013, 14:28 +0200 schrieb Kamil Debski:
-> Hi,
-> 
-> Thanks for the patch. May I ask you to use use checkpath next time
-> and keep whitespaces tidy? This time I fixed it (spaces changed to a tab).
+Ensure the compatible property for FIMC-LITE IP blocks is properly
+documented, a cut&paste error fix.
 
-Yes, thanks
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ .../devicetree/bindings/media/exynos-fimc-lite.txt |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-regards
-Philipp
-
+diff --git a/Documentation/devicetree/bindings/media/exynos-fimc-lite.txt b/Documentation/devicetree/bindings/media/exynos-fimc-lite.txt
+index 3f62adf..de9f6b7 100644
+--- a/Documentation/devicetree/bindings/media/exynos-fimc-lite.txt
++++ b/Documentation/devicetree/bindings/media/exynos-fimc-lite.txt
+@@ -2,7 +2,7 @@ Exynos4x12/Exynos5 SoC series camera host interface (FIMC-LITE)
+ 
+ Required properties:
+ 
+-- compatible	: should be "samsung,exynos4212-fimc" for Exynos4212 and
++- compatible	: should be "samsung,exynos4212-fimc-lite" for Exynos4212 and
+ 		  Exynos4412 SoCs;
+ - reg		: physical base address and size of the device memory mapped
+ 		  registers;
+-- 
+1.7.9.5
 
