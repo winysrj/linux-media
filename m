@@ -1,124 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60390 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967340Ab3E3DWB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 23:22:01 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+Received: from mailout4.samsung.com ([203.254.224.34]:47222 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260Ab3EIMku (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 08:40:50 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMJ00AL577PZPE0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 09 May 2013 21:40:48 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, hj210.choi@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
 	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
-Date: Thu, 30 May 2013 05:21:57 +0200
-Message-ID: <44193648.yaA827Trlv@avalon>
-In-Reply-To: <51A0C6A8.5090302@gmail.com>
-References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com> <51A0C6A8.5090302@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Subject: [PATCH] s5p-jpeg: Enable instantiation from device tree
+Date: Thu, 09 May 2013 14:39:58 +0200
+Message-id: <1368103198-16485-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+This patch adds device tree support for the S5P/Exynos SoC
+JPEG codec IP block.
 
-On Saturday 25 May 2013 16:11:52 Sylwester Nawrocki wrote:
-> On 05/25/2013 11:17 AM, Prabhakar Lad wrote:
-> >> > From looking at Figure 8 "TVP7002 Application Example" in the TVP7002's
-> >> > datasheet ([2], p. 52) and your initial TVP7002 patches it looks like
-> >> > what you want is to specify polarity of the SOGOUT signal, so the
-> >> > processor that receives this signal can properly interpret it, is it
-> >> > correct ?
-> > 
-> > Yes
-> > 
-> >> >  If so then wouldn't it be more appropriate to define e.g. 'sog-active'
-> >> >  property and media bus flags:
-> >> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_LOW
-> >> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_HIGH
-> >> >  
-> >> >  ?
-> > 
-> > Agreed I'll add these flags.
-> > 
-> >> >  And for synchronisation method on the analog part we could perhaps
-> >> >  define 'component-sync' or similar property that would enumerate all
-> >> >  possible synchronisation methods. We might as well use separate
-> >> >  boolean properties, but I'm a bit concerned about the increasing
-> >> >  number of properties that need to be parsed for each parallel video
-> >> >  bus "endpoint".
-> > 
-> > I am not clear on it can please elaborate more on this.
-> 
-> I thought about two possible options:
-> 
-> 1. single property 'component-sync' or 'video-sync' that would have values:
-> 
-> #define VIDEO_SEPARATE_SYNC	0x01
-> #define VIDEO_COMPOSITE_SYNC	0x02
-> #define VIDEO_SYNC_ON_COMPOSITE	0x04
-> #define VIDEO_SYNC_ON_GREEN	0x08
-> #define VIDEO_SYNC_ON_LUMINANCE	0x10
-> 
-> And we could put these definitions into a separate header, e.g.
-> <dt-bindings/video-interfaces.h>
-> 
-> Then in a device tree source file one could have, e.g.
-> 
-> video-sync = <VIDEO_SYNC_ON_GREEN>;
-> 
-> 
-> 2. Separate boolean property for each video sync type, e.g.
-> 
-> 	"video-composite-sync"
-> 	"video-sync-on-composite"
-> 	"video-sync-on-green"
-> 	"video-sync-on-luminance"
-> 
-> Separate sync, with separate VSYNC, HSYNC lines, would be the default, when
-> none of the above is specified and 'vsync-active', 'hsync-active' properties
-> are present.
+Cc: Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ .../devicetree/bindings/media/samsung-s5p-jpeg.txt |   12 ++++++++++++
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        |   13 ++++++++++++-
+ 2 files changed, 24 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
 
-I prefer 1. over 2.
-
-> However, I suppose the better would be to deduce the video synchronisation
-> method from the sync signal polarity flags. Then, for instance, when an
-> endpoint node contains "composite-sync-active" property the parser would
-> determine the "composite sync" synchronisation type is used.
-> 
-> Thus it might make sense to have only following integer properties (added
-> as needed):
-> 
-> composite-sync-active
-> sync-on-green-active
-> sync-on-comp-active
-> sync-on-luma-active
-> 
-> This would allow to specify polarity of each signal and at the same time
-> the parsing code could derive synchronisation type. A new field could be
-> added to struct v4l2_of_parallel_bus, e.g. sync_type and it would be filled
-> within v4l2_of_parse_endpoint().
-> 
-> What do you think ?
-
-My gut feeling is that we should have separate properties for the video sync 
-type and the synchronization signals polarities. We could have a chip that 
-supports sync-on-green on the analog (input) side and outputs separate hsync 
-and vsync signals only on the digital (output) side. There would be no sync-
-on-green polarity in that case.
-
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt b/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
+new file mode 100644
+index 0000000..bc0938a
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
+@@ -0,0 +1,12 @@
++Samsung S5P/EXYNOS SoC series JPEG codec
++
++Required properties:
++
++- compatible	: "samsung,<soc_name>-jpeg", must be one of:
++		  "samsung,s5pv210-jpeg", "samsung,exynos4210-jpeg",
++		  "samsung,exynos4212-jpeg";
++- reg		: address and length of the JPEG codec register set;
++- interrupts	: should contain the JPEG codec interrupt; format of the
++		  interrupt specifier depends on the interrupt controller;
++- clocks	: jpeg clock specifier, as covered by common clock bindings.
++- clock-names	: must contain "jpeg" entry.
+diff --git a/drivers/media/platform/s5p-jpeg/jpeg-core.c b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+index 15d2396..cd4461c 100644
+--- a/drivers/media/platform/s5p-jpeg/jpeg-core.c
++++ b/drivers/media/platform/s5p-jpeg/jpeg-core.c
+@@ -17,6 +17,7 @@
+ #include <linux/io.h>
+ #include <linux/kernel.h>
+ #include <linux/module.h>
++#include <linux/of.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/slab.h>
+@@ -1513,10 +1514,21 @@ static const struct dev_pm_ops s5p_jpeg_pm_ops = {
+ 	.runtime_resume	 = s5p_jpeg_runtime_resume,
+ };
+ 
++#ifdef CONFIG_OF
++static const struct of_device_id s5p_jpeg_of_match[] = {
++	{ .compatible = "samsung,s5pv210-jpeg" },
++	{ .compatible = "samsung,exynos4210-jpeg" },
++	{ .compatible = "samsung,exynos4212-jpeg" },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, s5p_jpeg_of_match);
++#endif
++
+ static struct platform_driver s5p_jpeg_driver = {
+ 	.probe = s5p_jpeg_probe,
+ 	.remove = s5p_jpeg_remove,
+ 	.driver = {
++		.of_match_table = of_match_ptr(s5p_jpeg_of_match),
+ 		.owner = THIS_MODULE,
+ 		.name = S5P_JPEG_M2M_NAME,
+ 		.pm = &s5p_jpeg_pm_ops,
+@@ -1528,4 +1540,3 @@ module_platform_driver(s5p_jpeg_driver);
+ MODULE_AUTHOR("Andrzej Pietrasiewicz <andrzej.p@samsung.com>");
+ MODULE_DESCRIPTION("Samsung JPEG codec driver");
+ MODULE_LICENSE("GPL");
+-
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
