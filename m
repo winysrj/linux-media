@@ -1,47 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:57102 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753082Ab3EaInW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 04:43:22 -0400
+Received: from mout.gmx.net ([212.227.17.20]:60167 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751194Ab3EII3f (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 May 2013 04:29:35 -0400
+Received: from mailout-de.gmx.net ([10.1.76.31]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0M6yIl-1UO22q2Lu1-00wn6b for
+ <linux-media@vger.kernel.org>; Thu, 09 May 2013 10:29:33 +0200
+Message-ID: <518B5E6C.6010802@gmx.de>
+Date: Thu, 09 May 2013 10:29:32 +0200
+From: Eric Sander <eric.sander@gmx.de>
 MIME-Version: 1.0
-In-Reply-To: <CA+V-a8sAXXq=gBO_uDsOS1MonXJan+mpBwo15tvp+wR40kAMKA@mail.gmail.com>
-References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
- <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8sAXXq=gBO_uDsOS1MonXJan+mpBwo15tvp+wR40kAMKA@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 31 May 2013 14:13:00 +0530
-Message-ID: <CA+V-a8t8vx2S0rAZrZysF9PT2zVwx+EM0B5D=t50qoSiW8U_GA@mail.gmail.com>
-Subject: Re: [PATCH v2 1/4] ARM: davinci: dm365 evm: remove init_enable from
- ths7303 pdata
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	LAK <linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Eric Sander <eric.sander@gmx.de>
+CC: linux-media@vger.kernel.org
+Subject: If the board were missdetected... more information
+References: <518B4C9B.4030109@gmx.de>
+In-Reply-To: <518B4C9B.4030109@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sekhar,
+Sorry, here some more info:
 
-On Sat, May 25, 2013 at 11:13 PM, Prabhakar Lad
-<prabhakar.csengg@gmail.com> wrote:
-> Hi Sekhar,
+lsusb:
+Bus 001 Device 002: ID 2013:0251 PCTV Systems
+
+cat /proc/version
+Linux version 3.7.10-1.4-desktop (geeko@buildhost) (gcc version 4.7.2 
+20130108 [gcc-4_7-branch revision 195012] (SUSE Linux) ) #1 SMP PREEMPT 
+Fri Apr 19 12:06:34 UTC 2013 (8ef74f8)
+
+Opensuse 12.3
+
+On 09.05.2013 09:13, Eric Sander wrote:
+> Hi There,
+> i have the TV-USB-Stick: pctv QuatroStick nano  it is misdetected as 
+> Sharp S921
 >
-> On Sat, May 25, 2013 at 11:09 PM, Prabhakar Lad
-> <prabhakar.csengg@gmail.com> wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> remove init_enable from ths7303 pdata as it is being dropped
->> from ths7303_platform_data.
->>
-> Can you please ack this patch as I intend to take this patch via media
-> tree.
-gentle ping.
+> dmesg-log:
+> [ 1080.044027] usb 1-7: new high-speed USB device number 7 using ehci_hcd
+> [ 1080.159731] usb 1-7: New USB device found, idVendor=2013, 
+> idProduct=0251
+> [ 1080.159738] usb 1-7: New USB device strings: Mfr=1, Product=2, 
+> SerialNumber=3
+> [ 1080.159744] usb 1-7: Product: PCTV 520e
+> [ 1080.159748] usb 1-7: Manufacturer: PCTV Systems
+> [ 1080.159752] usb 1-7: SerialNumber: 00000010JR7F
+> [ 1080.160066] em28xx: New device PCTV Systems PCTV 520e @ 480 Mbps 
+> (2013:0251, interface 0, class 0)
+> [ 1080.160070] em28xx: Audio Vendor Class interface 0 found
+> [ 1080.160073] em28xx: Video interface 0 found
+> [ 1080.160076] em28xx: DVB interface 0 found
+> [ 1080.161045] em28xx #0: chip ID is em2884
+> [ 1080.256727] em28xx #0: found i2c device @ 0xa0 [eeprom]
+> [ 1080.268726] em28xx #0: Your board has no unique USB ID.
+> [ 1080.268732] em28xx #0: A hint were successfully done, based on i2c 
+> devicelist hash.
+> [ 1080.268736] em28xx #0: This method is not 100% failproof.
+> [ 1080.268738] em28xx #0: If the board were missdetected, please email 
+> this log to:
+> [ 1080.268741] em28xx #0:       V4L Mailing List 
+> <linux-media@vger.kernel.org>
+> [ 1080.268745] em28xx #0: Board detected as EM2874 Leadership ISDBT
+> [ 1080.352018] em28xx #0: Identified as EM2874 Leadership ISDBT (card=77)
+> [ 1080.352097] em28xx #0: Config register raw data: 0x1e
+> [ 1080.352844] em28xx #0: AC97 vendor ID = 0x8ca38ca3
+> [ 1080.353476] em28xx #0: AC97 features = 0x8ca3
+> [ 1080.353481] em28xx #0: Unknown AC97 audio processor detected!
+> [ 1080.375722] em28xx #0: v4l2 driver version 0.1.3
+> [ 1080.403724] em28xx #0: V4L2 video device registered as video0
+> [ 1080.404172] em28xx-audio.c: probing for em28xx Audio Vendor Class
+> [ 1080.404176] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
+> [ 1080.404179] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho 
+> Chehab
+> [ 1080.422057] s921: s921_attach:
+> [ 1080.422066] DVB: registering new adapter (em28xx #0)
+> [ 1080.422076] usb 1-7: DVB: registering adapter 0 frontend 0 (Sharp 
+> S921)...
+> [ 1080.422677] em28xx #0: Successfully loaded em28xx-dvb
+> [ 1080.796252] em28xx #0: submit of audio urb failed
+>
+> feel free to ask if you have further questions.
+>
 
-Regards,
---Prabhakar
