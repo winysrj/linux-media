@@ -1,164 +1,225 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:43963 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965381Ab3E2Jc2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 05:32:28 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MNJ00DNBZS6BKC0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 May 2013 10:32:26 +0100 (BST)
-Message-id: <51A5CB28.6080708@samsung.com>
-Date: Wed, 29 May 2013 11:32:24 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>, John Sheu <sheu@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC] [media] mem2mem: add support for hardware buffered queue
-References: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mout.gmx.net ([212.227.17.22]:63051 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751222Ab3EIN0d (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 9 May 2013 09:26:33 -0400
+Received: from mailout-de.gmx.net ([10.1.76.20]) by mrigmx.server.lan
+ (mrigmx001) with ESMTP (Nemesis) id 0LjP2f-1TzBEm3dCZ-00dTym for
+ <linux-media@vger.kernel.org>; Thu, 09 May 2013 15:26:31 +0200
+Message-ID: <518BBF53.9040809@gmx.de>
+Date: Thu, 09 May 2013 17:22:59 +0200
+From: Ingbert Braun <ingbert.braun@gmx.de>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+Subject: em2870 device undetected
+Content-Type: multipart/signed; protocol="application/pkcs7-signature"; micalg=sha1; boundary="------------ms080700050101030700010505"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Philip,
+This is a cryptographically signed message in MIME format.
 
-On 05/22/2013 12:17 PM, Philipp Zabel wrote:
-> On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
-> buffer at the end of the stream, remaining frames might need to be decoded
-> without additional input buffers being provided, and after calling streamoff
-> on the v4l2 output queue. This also allows a driver to copy input buffers
-> into their bitstream ringbuffer and immediately mark them as done to be
-> dequeued.
-> 
-> The motivation for this patch is hardware assisted h.264 reordering support
-> in the coda driver. For high profile streams, the coda can hold back
-> out-of-order frames, causing a few mem2mem device runs in the beginning, that
-> don't produce any decompressed buffer at the v4l2 capture side. At the same
-> time, the last few frames can be decoded from the bitstream with mem2mem device
-> runs that don't need a new input buffer at the v4l2 output side. A streamoff
-> on the v4l2 output side can be used to put the decoder into the ringbuffer
-> draining end-of-stream mode.
->
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 26 ++++++++++++++++++++------
->  include/media/v4l2-mem2mem.h           |  3 +++
->  2 files changed, 23 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 357efa4..52818cd 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -196,6 +196,10 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
->   * 2) at least one destination buffer has to be queued,
->   * 3) streaming has to be on.
->   *
-> + * If a queue is buffered (for example a decoder hardware ringbuffer that has
-> + * to be drained before doing streamoff), allow scheduling without v4l2 buffers
-> + * on that queue and even when the queue is not streaming anymore.
+--------------ms080700050101030700010505
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: quoted-printable
 
-Does it mean you want to be able to queue buffers on e.g. OUTPUT queue, while
-this queue is in STREAM OFF state ?
+Dear developer,
+I've a pinnacle pctv usb stick which is not supported. As mentioned in=20
+log, I'm sending the dmesg log to you:
 
-Or do you really want to be able to to queue/dequeue buffers on CAPTURE queue,
-while the OUTPUT queue is in STREAM OFF state ?
 
->   * There may also be additional, custom requirements. In such case the driver
->   * should supply a custom callback (job_ready in v4l2_m2m_ops) that should
->   * return 1 if the instance is ready.
-> @@ -210,7 +214,7 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
->  	m2m_dev = m2m_ctx->m2m_dev;
->  	dprintk("Trying to schedule a job for m2m_ctx: %p\n", m2m_ctx);
->  
-> -	if (!m2m_ctx->out_q_ctx.q.streaming
-> +	if ((!m2m_ctx->out_q_ctx.q.streaming && !m2m_ctx->out_q_ctx.buffered)
+hub 3-0:1.0: port 1: status 0101 change 0001
+[ 1219.090245] hub 3-0:1.0: state 7 ports 4 chg 0002 evt 0000
+[ 1219.090254] hub 3-0:1.0: port 1, status 0101, change 0000, 12 Mb/s
+[ 1219.141055] hub 3-0:1.0: port 1 not reset yet, waiting 50ms
+[ 1219.242697] usb 3-1: new high-speed USB device number 2 using xhci_hcd=
 
-This seems a bit asymmetric. Even if a driver sets 'buffered' on the capture
-queue nothing really changes, right ?
+[ 1219.254611] usb 3-1: default language 0x0409
+[ 1219.257510] usb 3-1: udev 2, busnum 3, minor =3D 257
+[ 1219.257514] usb 3-1: New USB device found, idVendor=3Deb1a, idProduct=3D=
+2870
+[ 1219.257517] usb 3-1: New USB device strings: Mfr=3D0, Product=3D1,=20
+SerialNumber=3D0
+[ 1219.257520] usb 3-1: Product: USB 2870 Device
+[ 1219.257658] usb 3-1: usb_probe_device
+[ 1219.257660] usb 3-1: configuration #1 chosen from 1 choice
+[ 1219.257725] usb 3-1: Successful Endpoint Configure command
+[ 1219.257766] usb 3-1: adding 3-1:1.0 (config #1, interface 0)
+[ 1219.277783] em28xx 3-1:1.0: usb_probe_interface
+[ 1219.277786] em28xx 3-1:1.0: usb_probe_interface - got id
+[ 1219.277789] em28xx: New device  USB 2870 Device @ 480 Mbps=20
+(eb1a:2870, interface 0, class 0)
+[ 1219.277790] em28xx: Video interface 0 found
+[ 1219.277791] em28xx: DVB interface 0 found
+[ 1219.277813] em28xx #0: chip ID is em2870
+[ 1219.352535] em28xx #0: i2c eeprom 00: 1a eb 67 95 1a eb 70 28 c0 12=20
+81 00 6a 22 00 00
+[ 1219.352541] em28xx #0: i2c eeprom 10: 00 00 04 57 02 0d 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352545] em28xx #0: i2c eeprom 20: 44 00 00 00 f0 10 02 00 00 00=20
+00 00 5b 00 00 00
+[ 1219.352549] em28xx #0: i2c eeprom 30: 00 00 20 40 20 80 02 20 01 01=20
+00 00 72 eb e4 49
+[ 1219.352553] em28xx #0: i2c eeprom 40: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352557] em28xx #0: i2c eeprom 50: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352561] em28xx #0: i2c eeprom 60: 00 00 00 00 00 00 00 00 00 00=20
+22 03 55 00 53 00
+[ 1219.352565] em28xx #0: i2c eeprom 70: 42 00 20 00 32 00 38 00 37 00=20
+30 00 20 00 44 00
+[ 1219.352569] em28xx #0: i2c eeprom 80: 65 00 76 00 69 00 63 00 65 00=20
+00 00 00 00 00 00
+[ 1219.352573] em28xx #0: i2c eeprom 90: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352577] em28xx #0: i2c eeprom a0: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352581] em28xx #0: i2c eeprom b0: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352585] em28xx #0: i2c eeprom c0: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352589] em28xx #0: i2c eeprom d0: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352593] em28xx #0: i2c eeprom e0: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352597] em28xx #0: i2c eeprom f0: 00 00 00 00 00 00 00 00 00 00=20
+00 00 00 00 00 00
+[ 1219.352602] em28xx #0: EEPROM ID=3D 0x9567eb1a, EEPROM hash =3D 0x11fa=
+5ec0
+[ 1219.352604] em28xx #0: EEPROM info:
+[ 1219.352604] em28xx #0:       No audio on board.
+[ 1219.352605] em28xx #0:       500mA max power
+[ 1219.352606] em28xx #0:       Table at 0x04, strings=3D0x226a, 0x0000, =
 
-Thanks,
-Sylwester
+0x0000
+[ 1219.390543] em28xx #0: found i2c device @ 0xa0 [eeprom]
+[ 1219.393247] em28xx #0: found i2c device @ 0xc0 [tuner (analog)]
+[ 1219.398489] em28xx #0: Your board has no unique USB ID and thus need=20
+a hint to be detected.
+[ 1219.398491] em28xx #0: You may try to use card=3D<n> insmod option to =
 
->  	    || !m2m_ctx->cap_q_ctx.q.streaming) {
->  		dprintk("Streaming needs to be on for both queues\n");
->  		return;
-> @@ -224,7 +228,7 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
->  	}
->  
->  	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
-> -	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)) {
-> +	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue) && !m2m_ctx->out_q_ctx.buffered) {
->  		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
->  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
->  		dprintk("No input buffers available\n");
-> @@ -434,9 +438,11 @@ int v4l2_m2m_streamoff(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->  
->  	m2m_dev = m2m_ctx->m2m_dev;
->  	spin_lock_irqsave(&m2m_dev->job_spinlock, flags_job);
-> -	/* We should not be scheduled anymore, since we're dropping a queue. */
-> -	INIT_LIST_HEAD(&m2m_ctx->queue);
-> -	m2m_ctx->job_flags = 0;gmane.linux.drivers.video-input-infrastructure	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue))
-> +	if (!q_ctx->buffered) {
-> +		/* We should not be scheduled anymore, since we're dropping a queue. */
-> +		INIT_LIST_HEAD(&m2m_ctx->queue);
-> +		m2m_ctx->job_flags = 0;
-> +	}
->  
->  	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
->  	/* Drop queue, since streamoff returns device to the same state as after
-> @@ -444,7 +450,7 @@ int v4l2_m2m_streamoff(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->  	INIT_LIST_HEAD(&q_ctx->rdy_queue);
->  	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
->  
-> -	if (m2m_dev->curr_ctx == m2m_ctx) {
-> +	if (!q_ctx->buffered && (m2m_dev->curr_ctx == m2m_ctx)) {
->  		m2m_dev->curr_ctx = NULL;
->  		wake_up(&m2m_ctx->finished);
->  	}
-> @@ -640,6 +646,14 @@ err:
->  }	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue))
->  EXPORT_SYMBOL_GPL(v4l2_m2m_ctx_init);
->  
-> +void v4l2_m2m_queue_set_buffered(struct vb2_queue *vq)
-> +{
-> +	struct v4l2_m2m_queue_ctx *q_ctx = container_of(vq, struct v4l2_m2m_queue_ctx, q);
-> +
-> +	q_ctx->buffered = true;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_queue_set_buffered);
-> +
->  /**
->   * v4l2_m2m_ctx_release() - release m2m context
->   *
-> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-> index 0f4555b..3415845 100644
-> --- a/include/media/v4l2-mem2mem.h
-> +++ b/include/media/v4l2-mem2mem.h
-> @@ -60,6 +60,7 @@ struct v4l2_m2m_queue_ctx {
->  	struct list_head	rdy_queue;
->  	spinlock_t		rdy_spinlock;
->  	u8			num_rdy;
-> +	bool			buffered;
->  };
->  
->  struct v4l2_m2m_ctx {
-> @@ -134,6 +135,8 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
->  		void *drv_priv,
->  		int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
->  
-> +void v4l2_m2m_queue_set_buffered(struct vb2_queue *vq);
-> +
->  void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx);
->  
->  void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct vb2_buffer *vb);
+workaround that.
+[ 1219.398491] em28xx #0: Please send an email with this log to:
+[ 1219.398492] em28xx #0:       V4L Mailing List=20
+<linux-media@vger.kernel.org>
+[ 1219.398493] em28xx #0: Board eeprom hash is 0x11fa5ec0
+[ 1219.398493] em28xx #0: Board i2c devicelist hash is 0x4b800080
+[ 1219.398494] em28xx #0: Here is a list of valid choices for the=20
+card=3D<n> insmod option:
+=2E..
+[ 1219.398567] em28xx #0:     card=3D86 -> PCTV QuatroStick nano (520e)
+[ 1219.398568] em28xx #0: Board not discovered
+[ 1219.398569] em28xx #0: Identified as Unknown EM2750/28xx video=20
+grabber (card=3D1)
+[ 1219.398570] em28xx #0: Your board has no unique USB ID and thus need=20
+a hint to be detected.
+[ 1219.398570] em28xx #0: You may try to use card=3D<n> insmod option to =
 
--- 
-Sylwester Nawrocki
-Samsung R&D Institute Poland
-Samsung Electronics
+workaround that.
+[ 1219.398571] em28xx #0: Please send an email with this log to:
+[ 1219.398571] em28xx #0:       V4L Mailing List=20
+<linux-media@vger.kernel.org>
+[ 1219.398572] em28xx #0: Board eeprom hash is 0x11fa5ec0
+[ 1219.398573] em28xx #0: Board i2c devicelist hash is 0x4b800080
+[ 1219.398573] em28xx #0: Here is a list of valid choices for the=20
+card=3D<n> insmod option:
+[ 1219.398574] em28xx #0:     card=3D0 -> Unknown EM2800 video grabber
+=2E..
+[ 1219.398641] em28xx #0:     card=3D86 -> PCTV QuatroStick nano (520e)
+[ 1219.398643] em28xx #0: v4l2 driver version 0.1.3
+[ 1219.398719] usb 3-1: Successful Endpoint Configure command
+[ 1219.400353] em28xx #0: V4L2 video device registered as video1
+[ 1219.400490] usbcore: registered new interface driver em28xx
+[ 1219.402311] usb 3-1: Successful Endpoint Configure command
+
+
+kernel 3.7.10 (Gentoo)
+
+I know this device was supported in the past by the old M. Rechberger=20
+drivers. If you need any other logs, please let me know.
+
+Best regards,
+
+Ingbert
+
+
+
+
+--------------ms080700050101030700010505
+Content-Type: application/pkcs7-signature; name="smime.p7s"
+Content-Transfer-Encoding: base64
+Content-Disposition: attachment; filename="smime.p7s"
+Content-Description: S/MIME Cryptographic Signature
+
+MIAGCSqGSIb3DQEHAqCAMIACAQExCzAJBgUrDgMCGgUAMIAGCSqGSIb3DQEHAQAAoIILGzCC
+BTswggQjoAMCAQICDkdPAAEAAgjcGYitKO9HMA0GCSqGSIb3DQEBBQUAMHwxCzAJBgNVBAYT
+AkRFMRwwGgYDVQQKExNUQyBUcnVzdENlbnRlciBHbWJIMSUwIwYDVQQLExxUQyBUcnVzdENl
+bnRlciBDbGFzcyAxIEwxIENBMSgwJgYDVQQDEx9UQyBUcnVzdENlbnRlciBDbGFzcyAxIEwx
+IENBIElYMB4XDTEyMDkwMjEzMjE1OVoXDTEzMDkwMzEzMjE1OVowJTELMAkGA1UEBhMCREUx
+FjAUBgNVBAMTDUluZ2JlcnQgQnJhdW4wggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEKAoIB
+AQCsOyejaimWP6+ZY0W4+HTcw6aTTniX5fz76Yx5Svf3Z7Xup1D3fi+99vSYbFvjz0Z1TPGo
+DnPA08BEj0Z+lYI5TFpjq9JpLxI8pM6l1iOpYqiD/kj7jeXTb42UrcJ2KhjQToGC7ate5y7c
+xqU0eCko7SzutwDA17/kpQ8nE8Iz9eE9YZ0hDPrgRIlya219W20waM2GxdqDZ36J3SJX2JjP
+1OSsfC28q16kUjCHNlE03XC9ZQ6VQa8GV+dk1sXrAyD7n9CJ4TL7yXUfQXsJLx0eLkMtdCPr
+Q5yZ+5ZTdqhVg4pWTNQn0d0Ec2i1TtDy/HZb9+q9apNe5kA0mRPAludvAgMBAAGjggIQMIIC
+DDCBpQYIKwYBBQUHAQEEgZgwgZUwUQYIKwYBBQUHMAKGRWh0dHA6Ly93d3cudHJ1c3RjZW50
+ZXIuZGUvY2VydHNlcnZpY2VzL2NhY2VydHMvdGNfY2xhc3MxX0wxX0NBX0lYLmNydDBABggr
+BgEFBQcwAYY0aHR0cDovL29jc3AuaXgudGNjbGFzczEudGN1bml2ZXJzYWwtaS50cnVzdGNl
+bnRlci5kZTAfBgNVHSMEGDAWgBTpuCgdRs/8zfhOm8XuS2Dr2Ds/0TAMBgNVHRMBAf8EAjAA
+MEoGA1UdIARDMEEwPwYJKoIUACwBAQEBMDIwMAYIKwYBBQUHAgEWJGh0dHA6Ly93d3cudHJ1
+c3RjZW50ZXIuZGUvZ3VpZGVsaW5lczAOBgNVHQ8BAf8EBAMCBPAwHQYDVR0OBBYEFG3NZiUi
+RiWGzAJPuzcTL1XvnamJMGIGA1UdHwRbMFkwV6BVoFOGUWh0dHA6Ly9jcmwuaXgudGNjbGFz
+czEudGN1bml2ZXJzYWwtaS50cnVzdGNlbnRlci5kZS9jcmwvdjIvdGNfQ2xhc3MxX0wxX0NB
+X0lYLmNybDAzBgNVHSUELDAqBggrBgEFBQcDAgYIKwYBBQUHAwQGCCsGAQUFBwMHBgorBgEE
+AYI3FAICMB8GA1UdEQQYMBaBFGluZ2JlcnQuYnJhdW5AZ214LmRlMA0GCSqGSIb3DQEBBQUA
+A4IBAQAPQxYhrI0IH3l5HjJDq3zbxu2Fj7eNwqEjvUeWahnzqVfTc/92VQv+hdbTvYcZvhGK
+N+MWw/wZJR2bxTwr/K+l2zUrsqJEgOStC4GkAzaKJpgkYH32NadxCIEXrKKcLy/bFsKPhOHj
+CvuE9eG+GmaUjdLpkKRSGK0eqIDkKkqMwdr6r9E8zOrvw+I50m5Gye0iqmRWbqqn6nLish8B
+DXxxnBX1expCI5R/3GmRRY+MceAulxl7uIOUjaC2AowUP9J915wA6ZYf4HPqidtPkjbQu9Tz
+LuopUK9sjyPetqNrtzgtQiVlSIzY0srqBH1nA7Td5TIo3hrhA19AMw6WRzfpMIIF2DCCBMCg
+AwIBAgIOBugAAQACSpYtJAz+xckwDQYJKoZIhvcNAQEFBQAweTELMAkGA1UEBhMCREUxHDAa
+BgNVBAoTE1RDIFRydXN0Q2VudGVyIEdtYkgxJDAiBgNVBAsTG1RDIFRydXN0Q2VudGVyIFVu
+aXZlcnNhbCBDQTEmMCQGA1UEAxMdVEMgVHJ1c3RDZW50ZXIgVW5pdmVyc2FsIENBIEkwHhcN
+MDkxMTAzMTQwODE5WhcNMjUxMjMxMjE1OTU5WjB8MQswCQYDVQQGEwJERTEcMBoGA1UEChMT
+VEMgVHJ1c3RDZW50ZXIgR21iSDElMCMGA1UECxMcVEMgVHJ1c3RDZW50ZXIgQ2xhc3MgMSBM
+MSBDQTEoMCYGA1UEAxMfVEMgVHJ1c3RDZW50ZXIgQ2xhc3MgMSBMMSBDQSBJWDCCASIwDQYJ
+KoZIhvcNAQEBBQADggEPADCCAQoCggEBALvmkG7PYunpC6q2ENVH5XxdKydxmmjNVW3kou/k
+/vJ6YxHCV4rIfc+OZh9lRUvrgGJpvUaOi8VuWpUYKt6n8R91GierbTJT4/tNWGIs/xnlx6AN
+mi0hiFmEzR3xw8iKPrDl3ggkz/xALLpBI5S7gBKJNUi2hgTgAU+MuqmY/ByJ7R+KoceGmCYe
+cmVr/s9l2QxkSxoJ9UMRYGYm4zNWmsk9PjRqeMblUEvIzYjkOWxQJp5ALLY7fDeyp/Xd3LNR
+y/TcggK41zre2jBcDfVC3RNpU1TpgCZCMx6l18xuymYJn4bwPb7GimEQ89H/W+Sy2y2yZQyp
+fResuidNQlzOCU8CAwEAAaOCAlkwggJVMIGaBggrBgEFBQcBAQSBjTCBijBSBggrBgEFBQcw
+AoZGaHR0cDovL3d3dy50cnVzdGNlbnRlci5kZS9jZXJ0c2VydmljZXMvY2FjZXJ0cy90Y191
+bml2ZXJzYWxfcm9vdF9JLmNydDA0BggrBgEFBQcwAYYoaHR0cDovL29jc3AudGN1bml2ZXJz
+YWwtSS50cnVzdGNlbnRlci5kZTAfBgNVHSMEGDAWgBSSpHUspJ6+gUTrefyKxZWl6xB1czAS
+BgNVHRMBAf8ECDAGAQH/AgEAMFIGA1UdIARLMEkwBgYEVR0gADA/BgkqghQALAEBAQEwMjAw
+BggrBgEFBQcCARYkaHR0cDovL3d3dy50cnVzdGNlbnRlci5kZS9ndWlkZWxpbmVzMA4GA1Ud
+DwEB/wQEAwIBBjAdBgNVHQ4EFgQU6bgoHUbP/M34TpvF7ktg69g7P9Ewgf0GA1UdHwSB9TCB
+8jCB76CB7KCB6YZGaHR0cDovL2NybC50Y3VuaXZlcnNhbC1JLnRydXN0Y2VudGVyLmRlL2Ny
+bC92Mi90Y191bml2ZXJzYWxfcm9vdF9JLmNybIaBnmxkYXA6Ly93d3cudHJ1c3RjZW50ZXIu
+ZGUvQ049VEMlMjBUcnVzdENlbnRlciUyMFVuaXZlcnNhbCUyMENBJTIwSSxPPVRDJTIwVHJ1
+c3RDZW50ZXIlMjBHbWJILE9VPXJvb3RjZXJ0cyxEQz10cnVzdGNlbnRlcixEQz1kZT9jZXJ0
+aWZpY2F0ZVJldm9jYXRpb25MaXN0P2Jhc2U/MA0GCSqGSIb3DQEBBQUAA4IBAQA5yMSb7r6Y
+7khyb43ncbYOkIzTssEVIahGkGhfSgTxOslohCHYpeYEdV2f0tTyS3dDMtyVy2C/AlXQrByw
+xRSXm2UKww+lHezYSTmVtam++vQeq1bnpuUBCIg1X2cF3UQkUBIiRGN58ZtXac6r1jNRT43w
+cDuOrVE6F381lmtoaGO2HArJ+N8dXs8rEaVj7czQxtMgb6r8aEh+bR64OkWqEobzx70Atev+
+6hKfczN45yg5aNOlbdp20U7hVZWApuAbuM2sVu9FWUeYUts6biayMTlpdbEuJPCknZeIXjMp
+xrW8B0A6DD26z3SMS056IfobOM3EQy9vtN947pmS5zocMYIDyzCCA8cCAQEwgY4wfDELMAkG
+A1UEBhMCREUxHDAaBgNVBAoTE1RDIFRydXN0Q2VudGVyIEdtYkgxJTAjBgNVBAsTHFRDIFRy
+dXN0Q2VudGVyIENsYXNzIDEgTDEgQ0ExKDAmBgNVBAMTH1RDIFRydXN0Q2VudGVyIENsYXNz
+IDEgTDEgQ0EgSVgCDkdPAAEAAgjcGYitKO9HMAkGBSsOAwIaBQCgggIRMBgGCSqGSIb3DQEJ
+AzELBgkqhkiG9w0BBwEwHAYJKoZIhvcNAQkFMQ8XDTEzMDUwOTE1MjI1OVowIwYJKoZIhvcN
+AQkEMRYEFJsG6ymG3TDarMjQCmB+Vvmis4ItMGwGCSqGSIb3DQEJDzFfMF0wCwYJYIZIAWUD
+BAEqMAsGCWCGSAFlAwQBAjAKBggqhkiG9w0DBzAOBggqhkiG9w0DAgICAIAwDQYIKoZIhvcN
+AwICAUAwBwYFKw4DAgcwDQYIKoZIhvcNAwICASgwgZ8GCSsGAQQBgjcQBDGBkTCBjjB8MQsw
+CQYDVQQGEwJERTEcMBoGA1UEChMTVEMgVHJ1c3RDZW50ZXIgR21iSDElMCMGA1UECxMcVEMg
+VHJ1c3RDZW50ZXIgQ2xhc3MgMSBMMSBDQTEoMCYGA1UEAxMfVEMgVHJ1c3RDZW50ZXIgQ2xh
+c3MgMSBMMSBDQSBJWAIOR08AAQACCNwZiK0o70cwgaEGCyqGSIb3DQEJEAILMYGRoIGOMHwx
+CzAJBgNVBAYTAkRFMRwwGgYDVQQKExNUQyBUcnVzdENlbnRlciBHbWJIMSUwIwYDVQQLExxU
+QyBUcnVzdENlbnRlciBDbGFzcyAxIEwxIENBMSgwJgYDVQQDEx9UQyBUcnVzdENlbnRlciBD
+bGFzcyAxIEwxIENBIElYAg5HTwABAAII3BmIrSjvRzANBgkqhkiG9w0BAQEFAASCAQCSWDzU
+PswusHhhh/B/C39cXYldYCujDt6Le194RBeaWe+GE1NtS1Dg8Eweajy8SXtx4WNCWifTEeyc
+8BAQaezRLjtG+b325CNdwPZVLm5fTcor9/gL1xAxcZyEWnQDRKftcDsyFnp3l0WwfpPRfGCh
+JV/MP70umyQqzs9srlePkDNjP3RV6iH4QCR2rzeAfrWEvVXAhXUPcnGgLcxI4cCfiCT42k24
+QCn/XedhjqMZA9sUO2dZZ32yASgCaanLnoLkRguIK8NcA138TkI8E7/oRofujGm4G984IyBx
+HGsjchCuYROyBWwwdLeURrWiVf59tS/SNWMVGmOeatDPe3wsAAAAAAAA
+--------------ms080700050101030700010505--
