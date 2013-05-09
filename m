@@ -1,79 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:64778 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753309Ab3ENNil (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 09:38:41 -0400
+Received: from zeniv.linux.org.uk ([195.92.253.2]:34254 "EHLO
+	ZenIV.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751844Ab3EITDe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 15:03:34 -0400
+Date: Thu, 9 May 2013 20:03:33 +0100
+From: Al Viro <viro@ZenIV.linux.org.uk>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Subject: videobuf_vm_{open,close} race fixes
+Message-ID: <20130509190333.GF25399@ZenIV.linux.org.uk>
 MIME-Version: 1.0
-In-Reply-To: <006a01ce504e$0de3b0e0$29ab12a0$%dae@samsung.com>
-References: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com>
-	<51909DB4.2060208@canonical.com>
-	<025201ce4fbb$363d0390$a2b70ab0$%dae@samsung.com>
-	<5190B7D8.3010803@canonical.com>
-	<027a01ce4fcc$5e7c7320$1b755960$%dae@samsung.com>
-	<5190D14A.7050904@canonical.com>
-	<028a01ce4fd4$5ec6f000$1c54d000$%dae@samsung.com>
-	<CAF6AEGvWazezZdLDn5=H8wNQdQSWV=EmqE1a4wh7QwrT_h6vKQ@mail.gmail.com>
-	<CAAQKjZP=iOmHRpHZCbZD3v_RKUFSn0eM_WVZZvhe7F9g3eTmPA@mail.gmail.com>
-	<CAF6AEGuDih-NR-VZCmQfqbvCOxjxreZRPGfhCyL12FQ1Qd616Q@mail.gmail.com>
-	<006a01ce504e$0de3b0e0$29ab12a0$%dae@samsung.com>
-Date: Tue, 14 May 2013 09:38:40 -0400
-Message-ID: <CAF6AEGv2FiKMUpb5s4zHPdj4uVxnQWdVJWL-i1mOOZRxBvMZ4Q@mail.gmail.com>
-Subject: Re: Introduce a new helper framework for buffer synchronization
-From: Rob Clark <robdclark@gmail.com>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: linux-fbdev <linux-fbdev@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"myungjoo.ham" <myungjoo.ham@samsung.com>,
-	YoungJun Cho <yj44.cho@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 13, 2013 at 10:52 PM, Inki Dae <inki.dae@samsung.com> wrote:
->> well, for cache management, I think it is a better idea.. I didn't
->> really catch that this was the motivation from the initial patch, but
->> maybe I read it too quickly.  But cache can be decoupled from
->> synchronization, because CPU access is not asynchronous.  For
->> userspace/CPU access to buffer, you should:
->>
->>   1) wait for buffer
->>   2) prepare-access
->>   3)  ... do whatever cpu access to buffer ...
->>   4) finish-access
->>   5) submit buffer for new dma-operation
->>
->
->
-> For data flow from CPU to DMA device,
-> 1) wait for buffer
-> 2) prepare-access (dma_buf_begin_cpu_access)
-> 3) cpu access to buffer
->
->
-> For data flow from DMA device to CPU
-> 1) wait for buffer
+just use videobuf_queue_lock(map->q) to protect map->count; vm_area_operations
+->open() and ->close() are called just under vma->vm_mm->mmap_sem, which
+doesn't help the drivers at all, since clonal VMAs are normally in different
+address spaces...
 
-Right, but CPU access isn't asynchronous (from the point of view of
-the CPU), so there isn't really any wait step at this point.  And if
-you do want the CPU to be able to signal a fence from userspace for
-some reason, you probably what something file/fd based so the
-refcnting/cleanup when process dies doesn't leave some pending DMA
-action wedged.  But I don't really see the point of that complexity
-when the CPU access isn't asynchronous in the first place.
+Signed-off-by: Al Viro <viro@zeniv.linux.org.uk>
+---
+WARNING: it's only build-tested
 
-BR,
--R
-
-
-> 2) finish-access (dma_buf_end _cpu_access)
-> 3) dma access to buffer
->
-> 1) and 2) are coupled with one function: we have implemented
-> fence_helper_commit_reserve() for it.
->
-> Cache control(cache clean or cache invalidate) is performed properly
-> checking previous access type and current access type.
-> And the below is actual codes for it,
+diff --git a/drivers/media/v4l2-core/videobuf-dma-contig.c b/drivers/media/v4l2-core/videobuf-dma-contig.c
+index 67f572c3..8204c88 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-contig.c
++++ b/drivers/media/v4l2-core/videobuf-dma-contig.c
+@@ -66,11 +66,14 @@ static void __videobuf_dc_free(struct device *dev,
+ static void videobuf_vm_open(struct vm_area_struct *vma)
+ {
+ 	struct videobuf_mapping *map = vma->vm_private_data;
++	struct videobuf_queue *q = map->q;
+ 
+-	dev_dbg(map->q->dev, "vm_open %p [count=%u,vma=%08lx-%08lx]\n",
++	dev_dbg(q->dev, "vm_open %p [count=%u,vma=%08lx-%08lx]\n",
+ 		map, map->count, vma->vm_start, vma->vm_end);
+ 
++	videobuf_queue_lock(q);
+ 	map->count++;
++	videobuf_queue_unlock(q);
+ }
+ 
+ static void videobuf_vm_close(struct vm_area_struct *vma)
+@@ -82,12 +85,11 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 	dev_dbg(q->dev, "vm_close %p [count=%u,vma=%08lx-%08lx]\n",
+ 		map, map->count, vma->vm_start, vma->vm_end);
+ 
+-	map->count--;
+-	if (0 == map->count) {
++	videobuf_queue_lock(q);
++	if (!--map->count) {
+ 		struct videobuf_dma_contig_memory *mem;
+ 
+ 		dev_dbg(q->dev, "munmap %p q=%p\n", map, q);
+-		videobuf_queue_lock(q);
+ 
+ 		/* We need first to cancel streams, before unmapping */
+ 		if (q->streaming)
+@@ -126,8 +128,8 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 
+ 		kfree(map);
+ 
+-		videobuf_queue_unlock(q);
+ 	}
++	videobuf_queue_unlock(q);
+ }
+ 
+ static const struct vm_operations_struct videobuf_vm_ops = {
+diff --git a/drivers/media/v4l2-core/videobuf-dma-sg.c b/drivers/media/v4l2-core/videobuf-dma-sg.c
+index 828e7c1..9db674c 100644
+--- a/drivers/media/v4l2-core/videobuf-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf-dma-sg.c
+@@ -338,11 +338,14 @@ EXPORT_SYMBOL_GPL(videobuf_dma_free);
+ static void videobuf_vm_open(struct vm_area_struct *vma)
+ {
+ 	struct videobuf_mapping *map = vma->vm_private_data;
++	struct videobuf_queue *q = map->q;
+ 
+ 	dprintk(2, "vm_open %p [count=%d,vma=%08lx-%08lx]\n", map,
+ 		map->count, vma->vm_start, vma->vm_end);
+ 
++	videobuf_queue_lock(q);
+ 	map->count++;
++	videobuf_queue_unlock(q);
+ }
+ 
+ static void videobuf_vm_close(struct vm_area_struct *vma)
+@@ -355,10 +358,9 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 	dprintk(2, "vm_close %p [count=%d,vma=%08lx-%08lx]\n", map,
+ 		map->count, vma->vm_start, vma->vm_end);
+ 
+-	map->count--;
+-	if (0 == map->count) {
++	videobuf_queue_lock(q);
++	if (!--map->count) {
+ 		dprintk(1, "munmap %p q=%p\n", map, q);
+-		videobuf_queue_lock(q);
+ 		for (i = 0; i < VIDEO_MAX_FRAME; i++) {
+ 			if (NULL == q->bufs[i])
+ 				continue;
+@@ -374,9 +376,9 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 			q->bufs[i]->baddr = 0;
+ 			q->ops->buf_release(q, q->bufs[i]);
+ 		}
+-		videobuf_queue_unlock(q);
+ 		kfree(map);
+ 	}
++	videobuf_queue_unlock(q);
+ 	return;
+ }
+ 
+diff --git a/drivers/media/v4l2-core/videobuf-vmalloc.c b/drivers/media/v4l2-core/videobuf-vmalloc.c
+index 2ff7fcc..1365c65 100644
+--- a/drivers/media/v4l2-core/videobuf-vmalloc.c
++++ b/drivers/media/v4l2-core/videobuf-vmalloc.c
+@@ -54,11 +54,14 @@ MODULE_LICENSE("GPL");
+ static void videobuf_vm_open(struct vm_area_struct *vma)
+ {
+ 	struct videobuf_mapping *map = vma->vm_private_data;
++	struct videobuf_queue *q = map->q;
+ 
+ 	dprintk(2, "vm_open %p [count=%u,vma=%08lx-%08lx]\n", map,
+ 		map->count, vma->vm_start, vma->vm_end);
+ 
++	videobuf_queue_lock(q);
+ 	map->count++;
++	videobuf_queue_unlock(q);
+ }
+ 
+ static void videobuf_vm_close(struct vm_area_struct *vma)
+@@ -70,12 +73,11 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 	dprintk(2, "vm_close %p [count=%u,vma=%08lx-%08lx]\n", map,
+ 		map->count, vma->vm_start, vma->vm_end);
+ 
+-	map->count--;
+-	if (0 == map->count) {
++	videobuf_queue_lock(q);
++	if (!--map->count) {
+ 		struct videobuf_vmalloc_memory *mem;
+ 
+ 		dprintk(1, "munmap %p q=%p\n", map, q);
+-		videobuf_queue_lock(q);
+ 
+ 		/* We need first to cancel streams, before unmapping */
+ 		if (q->streaming)
+@@ -114,8 +116,8 @@ static void videobuf_vm_close(struct vm_area_struct *vma)
+ 
+ 		kfree(map);
+ 
+-		videobuf_queue_unlock(q);
+ 	}
++	videobuf_queue_unlock(q);
+ 
+ 	return;
+ }
