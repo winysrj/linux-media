@@ -1,140 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1094 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754062Ab3EQJw2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 May 2013 05:52:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Subject: Re: [media] cx25821 regression from 3.9: BUG: bad unlock balance detected!
-Date: Fri, 17 May 2013 11:52:17 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1139404719.20130516194142@eikelenboom.it> <201305171025.24166.hverkuil@xs4all.nl> <1756541549.20130517110450@eikelenboom.it>
-In-Reply-To: <1756541549.20130517110450@eikelenboom.it>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305171152.17746.hverkuil@xs4all.nl>
+Received: from mailout4.samsung.com ([203.254.224.34]:60550 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753729Ab3EIPhF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 11:37:05 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMJ00EQ1FDP2XF0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 May 2013 00:37:03 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hj210.choi@samsung.com, dh09.lee@samsung.com, a.hajda@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 00/13] Media link_notify behaviour change an exynos4-is
+ updates
+Date: Thu, 09 May 2013 17:36:32 +0200
+Message-id: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri May 17 2013 11:04:50 Sander Eikelenboom wrote:
-> 
-> Friday, May 17, 2013, 10:25:24 AM, you wrote:
-> 
-> > On Thu May 16 2013 19:41:42 Sander Eikelenboom wrote:
-> >> Hi Hans / Mauro,
-> >> 
-> >> With 3.10.0-rc1 (including the cx25821 changes from Hans), I get the bug below which wasn't present with 3.9.
-> 
-> > How do I reproduce this? I've tried to, but I can't make this happen.
-> 
-> > Looking at the code I can't see how it could hit this bug anyway.
-> 
-> I'm using "motion" to grab and process 6 from the video streams of the card i have (card with 8 inputs).
-> It seems the cx25821 underwent quite some changes between 3.9 and 3.10.
+Hi All,
 
-It did.
+This patch set includes change of the link_notify callback semantics.
+This callback will now be invoked always before _and_ after link's state
+modification by the core.
 
-> And in the past there have been some more locking issues around mmap and media devices, although they seem to appear as circular locking dependencies and with different devices.
->    - http://www.mail-archive.com/linux-media@vger.kernel.org/msg46217.html
->    - Under kvm: http://www.spinics.net/lists/linux-media/msg63322.html
+Currently this callback is only used by the omap3isp and exynos4-is
+drivers, thus those drivers are also modified in patch
+[09/13] media: Change media device link_notify behaviour
 
-Neither of those are related to this issue.
+Any comments/suggestions on this patch are welcome.
 
-> 
-> - Perhaps that running in a VM could have to do with it ?
->    - The driver on 3.9 occasionaly gives this, probably latency related (but continues to work):
->      cx25821: cx25821_video_wakeup: 2 buffers handled (should be 1)
-> 
->      Could it be something double unlocking in that path ?
-> 
-> - Is there any extra debugging i could enable that could pinpoint the issue ?
+The rest of the series includes improvements, bug fixes and preprequsite
+patches for the exynos4-is driver to make some modules easier to reuse
+in the upcoming exynos5-is driver and to prepare it for addition of
+remaining subdevs and video nodes.
 
-Try this patch:
+This series depends on "[RFC PATCH 0/2] Media entity links handling"
+http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/64214
 
-diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
-index b762c5b..8f8d0e0 100644
---- a/drivers/media/pci/cx25821/cx25821-core.c
-+++ b/drivers/media/pci/cx25821/cx25821-core.c
-@@ -1208,7 +1208,6 @@ void cx25821_free_buffer(struct videobuf_queue *q, struct cx25821_buffer *buf)
- 	struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
- 
- 	BUG_ON(in_interrupt());
--	videobuf_waiton(q, &buf->vb, 0, 0);
- 	videobuf_dma_unmap(q->dev, dma);
- 	videobuf_dma_free(dma);
- 	btcx_riscmem_free(to_pci_dev(q->dev), &buf->risc);
+Thanks,
+Sylwester
 
-I don't think the waiton is really needed for this driver.
+Sylwester Nawrocki (13):
+  exynos4-is: Remove platform_device_id table at fimc-lite driver
+  exynos4-is: Correct querycap ioctl handling at fimc-lite driver
+  exynos4-is: Move common functions to a separate module
+  exynos4-is: Add struct exynos_video_entity
+  exynos4-is: Preserve state of controls between /dev/video open/close
+  exynos4-is: Media graph/video device locking rework
+  exynos4-is: Do not use asynchronous runtime PM in release fop
+  exynos4-is: Use common exynos_media_pipeline data structure
+  media: Change media device link_notify behaviour
+  exynos4-is: Extend link_notify handler to support fimc-is/lite
+    pipelines
+  exynos4-is: Fix sensor subdev -> FIMC notification setup
+  exynos4-is: Add locking at fimc(-lite) subdev unregistered handler
+  exynos4-is: Remove WARN_ON() from __fimc_pipeline_close()
 
-What really should happen is that videobuf is replaced by videobuf2 in this
-driver, but that's a fair amount of work.
+ drivers/media/media-entity.c                      |   18 +-
+ drivers/media/platform/exynos4-is/Kconfig         |    5 +
+ drivers/media/platform/exynos4-is/Makefile        |    2 +
+ drivers/media/platform/exynos4-is/common.c        |   41 ++++
+ drivers/media/platform/exynos4-is/common.h        |   12 +
+ drivers/media/platform/exynos4-is/fimc-capture.c  |  253 ++++++++++---------
+ drivers/media/platform/exynos4-is/fimc-core.h     |   11 +-
+ drivers/media/platform/exynos4-is/fimc-lite-reg.c |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c     |  132 +++++-----
+ drivers/media/platform/exynos4-is/fimc-lite.h     |    8 +-
+ drivers/media/platform/exynos4-is/fimc-reg.c      |    7 +-
+ drivers/media/platform/exynos4-is/media-dev.c     |  268 ++++++++++++++-------
+ drivers/media/platform/exynos4-is/media-dev.h     |   51 +++-
+ drivers/media/platform/omap3isp/isp.c             |   41 ++--
+ include/media/media-device.h                      |    9 +-
+ include/media/s5p_fimc.h                          |   56 +++--
+ 16 files changed, 556 insertions(+), 360 deletions(-)
+ create mode 100644 drivers/media/platform/exynos4-is/common.c
+ create mode 100644 drivers/media/platform/exynos4-is/common.h
 
-Regards,
+--
+1.7.9.5
 
-	Hans
-
-> 
-> 
-> --
-> 
-> Sander
-> 
-> 
-> 
-> > Regards,
-> 
-> >         Hans
-> 
-> >> 
-> >> --
-> >> Sander
-> >> 
-> >> 
-> >> [   53.004968] =====================================
-> >> [   53.004968] [ BUG: bad unlock balance detected! ]
-> >> [   53.004968] 3.10.0-rc1-20130516-jens+ #1 Not tainted
-> >> [   53.004968] -------------------------------------
-> >> [   53.004968] motion/3328 is trying to release lock (&dev->lock) at:
-> >> [   53.004968] [<ffffffff819be5f9>] mutex_unlock+0x9/0x10
-> >> [   53.004968] but there are no more locks to release!
-> >> [   53.004968]
-> >> [   53.004968] other info that might help us debug this:
-> >> [   53.004968] 1 lock held by motion/3328:
-> >> [   53.004968]  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff81156cae>] vm_munmap+0x3e/0x70
-> >> [   53.004968]
-> >> [   53.004968] stack backtrace:
-> >> [   53.004968] CPU: 1 PID: 3328 Comm: motion Not tainted 3.10.0-rc1-20130516-jens+ #1
-> >> [   53.004968] Hardware name: Xen HVM domU, BIOS 4.3-unstable 05/16/2013
-> >> [   53.004968]  ffffffff819be5f9 ffff88002ac35c58 ffffffff819b9029 ffff88002ac35c88
-> >> [   53.004968]  ffffffff810e615e ffff88002ac35cb8 ffff88002b7c18a8 ffffffff819be5f9
-> >> [   53.004968]  00000000ffffffff ffff88002ac35d28 ffffffff810eb17e ffffffff810e7ba5
-> >> [   53.004968] Call Trace:
-> >> [   53.004968]  [<ffffffff819be5f9>] ? mutex_unlock+0x9/0x10
-> >> [   53.004968]  [<ffffffff819b9029>] dump_stack+0x19/0x1b
-> >> [   53.004968]  [<ffffffff810e615e>] print_unlock_imbalance_bug+0xfe/0x110
-> >> [   53.004968]  [<ffffffff819be5f9>] ? mutex_unlock+0x9/0x10
-> >> [   53.004968]  [<ffffffff810eb17e>] lock_release_non_nested+0x1ce/0x320
-> >> [   53.004968]  [<ffffffff810e7ba5>] ? debug_check_no_locks_freed+0x105/0x1b0
-> >> [   53.353529]  [<ffffffff819be5f9>] ? mutex_unlock+0x9/0x10
-> >> [   53.353529]  [<ffffffff810eb3cc>] lock_release+0xfc/0x250
-> >> [   53.353529]  [<ffffffff819be4b2>] __mutex_unlock_slowpath+0xb2/0x1f0
-> >> [   53.353529]  [<ffffffff819be5f9>] mutex_unlock+0x9/0x10
-> >> [   53.353529]  [<ffffffff81711105>] videobuf_waiton+0x55/0x230
-> >> [   53.353529]  [<ffffffff8114d052>] ? tlb_finish_mmu+0x32/0x50
-> >> [   53.353529]  [<ffffffff81154a46>] ? unmap_region+0xc6/0x100
-> >> [   53.353529]  [<ffffffff81172e05>] ? kmem_cache_free+0x195/0x230
-> >> [   53.353529]  [<ffffffff8172d3d9>] cx25821_free_buffer+0x49/0xa0
-> >> [   53.353529]  [<ffffffff8172f939>] cx25821_buffer_release+0x9/0x10
-> >> [   53.353529]  [<ffffffff81712c35>] videobuf_vm_close+0xc5/0x160
-> >> [   53.353529]  [<ffffffff81154aa5>] remove_vma+0x25/0x60
-> >> [   53.353529]  [<ffffffff81156b67>] do_munmap+0x307/0x410
-> >> [   53.353529]  [<ffffffff81156cbc>] vm_munmap+0x4c/0x70
-> >> [   53.353529]  [<ffffffff81157c09>] SyS_munmap+0x9/0x10
-> >> [   53.353529]  [<ffffffff819c20a9>] system_call_fastpath+0x16/0x1b
-> >> 
-> 
-> 
