@@ -1,113 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:41898 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750807Ab3EHEsN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 00:48:13 -0400
-MIME-Version: 1.0
-In-Reply-To: <2799899.cTq52i3x0Z@avalon>
-References: <1367563919-2880-1-git-send-email-prabhakar.csengg@gmail.com> <2799899.cTq52i3x0Z@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 8 May 2013 10:17:51 +0530
-Message-ID: <CA+V-a8tcDi3sTyyLvjcX87ZaKSqUU8fWc07LkRgRsAiDS+ov2g@mail.gmail.com>
-Subject: Re: [PATCH RFC v3] media: i2c: mt9p031: add OF support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2394 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751216Ab3EJMbi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 May 2013 08:31:38 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH RFC 3/3] media: added managed v4l2 subdevice initialization
+Date: Fri, 10 May 2013 14:31:23 +0200
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>, Arnd Bergmann <arnd@arndb.de>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+References: <1368103965-15232-1-git-send-email-a.hajda@samsung.com> <1368103965-15232-4-git-send-email-a.hajda@samsung.com>
+In-Reply-To: <1368103965-15232-4-git-send-email-a.hajda@samsung.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305101431.23551.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-HI Laurent,
+On Thu May 9 2013 14:52:44 Andrzej Hajda wrote:
+> This patch adds managed versions of initialization
+> functions for v4l2 subdevices.
 
-On Wed, May 8, 2013 at 7:31 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> Thank you for the patch.
->
-> On Friday 03 May 2013 12:21:59 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> add OF support for the mt9p031 sensor driver.
->> Alongside this patch sorts the header inclusion alphabetically.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Grant Likely <grant.likely@secretlab.ca>
->> Cc: Sascha Hauer <s.hauer@pengutronix.de>
->> Cc: Rob Herring <rob.herring@calxeda.com>
->> Cc: Rob Landley <rob@landley.net>
->> Cc: Arnd Bergmann <arnd@arndb.de>
->> Cc: devicetree-discuss@lists.ozlabs.org
->> Cc: davinci-linux-open-source@linux.davincidsp.com
->> Cc: linux-doc@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> ---
->>  Changes for v2:
->>  1: Used '-' instead of '_' for device properties.
->>  2: Specified gpio reset pin as phandle in device node.
->>  3: Handle platform data properly even if kernel is compiled with
->>     devicetree support.
->>  4: Used dev_* for messages in drivers instead of pr_*.
->>  5: Changed compatible property to "aptina,mt9p031" and "aptina,mt9p031m".
->>  6: Sorted the header inclusion alphabetically and fixed some minor code
->> nits.
->>
->> Changes for v3:
->>  1: Dropped check if gpio-reset is valid.
->>  2: Fixed some code nits.
->>  3: Included a reference to the V4L2 DT bindings documentation.
->>
->>  .../devicetree/bindings/media/i2c/mt9p031.txt      |   40 +++++++++++++
->>  drivers/media/i2c/mt9p031.c                        |   60 ++++++++++++++++-
->>  2 files changed, 97 insertions(+), 3 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9p031.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
->> b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt new file mode
->> 100644
->> index 0000000..e740541
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
->> @@ -0,0 +1,40 @@
->> +* Aptina 1/2.5-Inch 5Mp CMOS Digital Image Sensor
->> +
->> +The Aptina MT9P031 is a 1/2.5-inch CMOS active pixel digital image sensor
->> with +an active array size of 2592H x 1944V. It is programmable through a
->> simple +two-wire serial interface.
->> +
->> +Required Properties :
->> +- compatible : value should be either one among the following
->> +     (a) "aptina,mt9p031" for mt9p031 sensor
->> +     (b) "aptina,mt9p031m" for mt9p031m sensor
->> +
->> +- input-clock-frequency : Input clock frequency.
->> +
->> +- pixel-clock-frequency : Pixel clock frequency.
->> +
->> +Optional Properties :
->> +-gpio-reset: Chip reset GPIO
->
-> According to Documentation/devicetree/bindings/gpio/gpio.txt, this should be
-> "gpios" or "reset-gpios".
->
-OK I'll make it as "reset-gpios"
+I am not convinced of the usefulness of this. The *_subdev_init functions
+are void functions and so do not return an error. So there isn't much to
+manage.
+
+It feels like the wrong approach to me.
+
+The core problem is that you do not know what will be unregistered first:
+the i2c adapter or the subdev. Depending on that the v4l2_device_unregister_subdev()
+call is or is not needed.
 
 Regards,
---Prabhakar Lad
+
+	Hans
+
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-common.c |   10 +++++++
+>  drivers/media/v4l2-core/v4l2-subdev.c |   52 +++++++++++++++++++++++++++++++++
+>  include/media/v4l2-common.h           |    2 ++
+>  include/media/v4l2-ctrls.h            |    7 +++--
+>  include/media/v4l2-subdev.h           |    5 ++++
+>  5 files changed, 74 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index 614316f..714d07c 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -302,7 +302,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>  }
+>  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+>  
+> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+> +			      const struct v4l2_subdev_ops *ops)
+> +{
+> +	int ret;
+>  
+> +	ret = devm_v4l2_subdev_bind(&client->dev, sd);
+> +	if (!ret)
+> +		v4l2_i2c_subdev_init(sd, client, ops);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
+>  
+>  /* Load an i2c sub-device. */
+>  struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+> index 996c248..87ce2f6 100644
+> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+> @@ -474,3 +474,55 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+>  #endif
+>  }
+>  EXPORT_SYMBOL(v4l2_subdev_init);
+> +
+> +static void devm_v4l2_subdev_release(struct device *dev, void *res)
+> +{
+> +	struct v4l2_subdev **sd = res;
+> +
+> +	v4l2_device_unregister_subdev(*sd);
+> +#if defined(CONFIG_MEDIA_CONTROLLER)
+> +	media_entity_cleanup(&(*sd)->entity);
+> +#endif
+> +}
+> +
+> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
+> +{
+> +	struct v4l2_subdev **dr;
+> +
+> +	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
+> +	if (!dr)
+> +		return -ENOMEM;
+> +
+> +	*dr = sd;
+> +	devres_add(dev, dr);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL(devm_v4l2_subdev_bind);
+> +
+> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
+> +			  const struct v4l2_subdev_ops *ops)
+> +{
+> +	int ret;
+> +
+> +	ret = devm_v4l2_subdev_bind(dev, sd);
+> +	if (!ret)
+> +		v4l2_subdev_init(sd, ops);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL(devm_v4l2_subdev_init);
+> +
+> +static int devm_v4l2_subdev_match(struct device *dev, void *res,
+> +					void *data)
+> +{
+> +	struct v4l2_subdev **this = res, **sd = data;
+> +
+> +	return *this == *sd;
+> +}
+> +
+> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd)
+> +{
+> +	WARN_ON(devres_release(dev, devm_v4l2_subdev_release,
+> +			       devm_v4l2_subdev_match, &sd));
+> +}
+> +EXPORT_SYMBOL_GPL(devm_v4l2_subdev_free);
+> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+> index ec7c9c0..440d6b7 100644
+> --- a/include/media/v4l2-common.h
+> +++ b/include/media/v4l2-common.h
+> @@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+>  /* Initialize a v4l2_subdev with data from an i2c_client struct */
+>  void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>  		const struct v4l2_subdev_ops *ops);
+> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+> +		const struct v4l2_subdev_ops *ops);
+>  /* Return i2c client address of v4l2_subdev. */
+>  unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
+>  
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index a1d06db..fe6dcef 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -286,7 +286,10 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl);
+>  /*
+>   * devm_v4l2_ctrl_handler_init - managed control handler initialization
+>   *
+> - * @dev: Device for which @hdl belongs to.
+> + * @dev: Device the @hdl belongs to.
+> + * @hdl:	The control handler.
+> + * @nr_of_controls_hint: A hint of how many controls this handler is
+> + *		expected to refer to.
+>   *
+>   * This is a managed version of v4l2_ctrl_handler_init. Handler initialized with
+>   * this function will be automatically cleaned up on driver detach.
+> @@ -301,7 +304,7 @@ int devm_v4l2_ctrl_handler_init(struct device *dev,
+>  /**
+>   * devm_v4l2_ctrl_handler_free - managed control handler free
+>   *
+> - * @dev: Device for which @hdl belongs to.
+> + * @dev: Device the @hdl belongs to.
+>   * @hdl: Handler to be cleaned up.
+>   *
+>   * This function should be used to manual free of an control handler
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index b137a5e..0eab5b0 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -673,6 +673,11 @@ int v4l2_subdev_link_validate(struct media_link *link);
+>  void v4l2_subdev_init(struct v4l2_subdev *sd,
+>  		      const struct v4l2_subdev_ops *ops);
+>  
+> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
+> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
+> +			  const struct v4l2_subdev_ops *ops);
+> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd);
+> +
+>  /* Call an ops of a v4l2_subdev, doing the right checks against
+>     NULL pointers.
+>  
+> 
