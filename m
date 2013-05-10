@@ -1,74 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f52.google.com ([74.125.83.52]:58696 "EHLO
-	mail-ee0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761535Ab3EBUPh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 16:15:37 -0400
-Received: by mail-ee0-f52.google.com with SMTP id d41so440979eek.25
-        for <linux-media@vger.kernel.org>; Thu, 02 May 2013 13:15:36 -0700 (PDT)
-Message-ID: <5182C965.1040804@gmail.com>
-Date: Thu, 02 May 2013 22:15:33 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail.skyhub.de ([78.46.96.112]:58914 "EHLO mail.skyhub.de"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756141Ab3EJO0U (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 May 2013 10:26:20 -0400
+Date: Fri, 10 May 2013 16:33:00 +0200
+From: Borislav Petkov <bp@alien8.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: WARNING: at drivers/media/v4l2-core/videobuf2-core.c:2065
+ vb2_queue_init+0x74/0x142()
+Message-ID: <20130510143300.GC22942@pd.tnic>
+References: <20130508201118.GH30955@pd.tnic>
+ <201305101406.50935.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH] mt9p031: Use gpio_is_valid()
-References: <1367492652-28704-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1367492652-28704-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+In-Reply-To: <201305101406.50935.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/02/2013 01:04 PM, Laurent Pinchart wrote:
-> Replace the manual validity checks for the reset GPIO with the
-> gpio_is_valid() function.
->
-> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+On Fri, May 10, 2013 at 02:06:50PM +0200, Hans Verkuil wrote:
+> Can you try this patch? This should fix it.
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Yep, it does.
 
-> ---
->   drivers/media/i2c/mt9p031.c | 8 ++++----
->   1 file changed, 4 insertions(+), 4 deletions(-)
->
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 8de84c0..bf49899 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -272,7 +272,7 @@ static inline int mt9p031_pll_disable(struct mt9p031 *mt9p031)
->   static int mt9p031_power_on(struct mt9p031 *mt9p031)
->   {
->   	/* Ensure RESET_BAR is low */
-> -	if (mt9p031->reset != -1) {
-> +	if (gpio_is_valid(mt9p031->reset)) {
->   		gpio_set_value(mt9p031->reset, 0);
->   		usleep_range(1000, 2000);
->   	}
-> @@ -287,7 +287,7 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
->   		clk_prepare_enable(mt9p031->clk);
->
->   	/* Now RESET_BAR must be high */
-> -	if (mt9p031->reset != -1) {
-> +	if (gpio_is_valid(mt9p031->reset)) {
->   		gpio_set_value(mt9p031->reset, 1);
->   		usleep_range(1000, 2000);
->   	}
-> @@ -297,7 +297,7 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
->
->   static void mt9p031_power_off(struct mt9p031 *mt9p031)
->   {
-> -	if (mt9p031->reset != -1) {
-> +	if (gpio_is_valid(mt9p031->reset)) {
->   		gpio_set_value(mt9p031->reset, 0);
->   		usleep_range(1000, 2000);
->   	}
-> @@ -1031,7 +1031,7 @@ static int mt9p031_probe(struct i2c_client *client,
->   	mt9p031->format.field = V4L2_FIELD_NONE;
->   	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
->
-> -	if (pdata->reset != -1) {
-> +	if (gpio_is_valid(pdata->reset)) {
->   		ret = devm_gpio_request_one(&client->dev, pdata->reset,
->   					    GPIOF_OUT_INIT_LOW, "mt9p031_rst");
->   		if (ret<  0)
+Tested-by: Borislav Petkov <bp@suse.de>
+
+> diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
+> index 06231b8..d12bd33 100644
+> --- a/drivers/media/parport/bw-qcam.c
+> +++ b/drivers/media/parport/bw-qcam.c
+> @@ -687,6 +687,7 @@ static int buffer_finish(struct vb2_buffer *vb)
+>  
+>  	parport_release(qcam->pdev);
+>  	mutex_unlock(&qcam->lock);
+> +	v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
+>  	if (len != size)
+>  		vb->state = VB2_BUF_STATE_ERROR;
+>  	vb2_set_plane_payload(vb, 0, len);
+> @@ -964,6 +965,7 @@ static struct qcam *qcam_init(struct parport *port)
+>  	q->drv_priv = qcam;
+>  	q->ops = &qcam_video_qops;
+>  	q->mem_ops = &vb2_vmalloc_memops;
+> +	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+
+However, just FYI: I do trigger the warning in a guest and not on the
+real hardware. So I can't really confirm whether _MONOTONIC is the
+proper timestamp type or not. But it looks like you know what you're
+doing. :-)
+
+Thanks.
+
+-- 
+Regards/Gruss,
+    Boris.
+
+Sent from a fat crate under my desk. Formatting is fine.
+--
