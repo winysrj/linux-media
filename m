@@ -1,102 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:40035 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932490Ab3EOMwy (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:13839 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754459Ab3EJQrG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 08:52:54 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH RFC] media: OF: add field-active and sync-on-green endpoint properties
-Date: Wed, 15 May 2013 18:22:29 +0530
-Message-Id: <1368622349-32185-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 10 May 2013 12:47:06 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, inki.dae@samsung.com,
+	linux-samsung-soc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH] exynos4-is: Remove "sysreg" clock handling
+Date: Fri, 10 May 2013 18:46:35 +0200
+Message-id: <1368204395-12732-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+The "sysreg" clock is required by multiple subsystems and none of the
+other drivers handles this clock explicitly. It is currently assumed
+that this clock is always on, left in its default state after system
+reset.
 
-This patch adds "field-active" and "sync-on-green" as part of
-endpoint properties and also support to parse them in the parser.
+Remove handling of this clock from the FIMC-IS driver to avoid breaking
+other subsystems.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: devicetree-discuss@lists.ozlabs.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- .../devicetree/bindings/media/video-interfaces.txt |    4 ++++
- drivers/media/v4l2-core/v4l2-of.c                  |    6 ++++++
- include/media/v4l2-mediabus.h                      |    2 ++
- 3 files changed, 12 insertions(+), 0 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index e022d2d..6bf87d0 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -101,6 +101,10 @@ Optional endpoint properties
-   array contains only one entry.
- - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
-   clock mode.
-+-field-active: a boolean property indicating active high filed ID output
-+ polarity is inverted.
-+-sync-on-green: a boolean property indicating to sync with the green signal in
-+ RGB.
- 
- 
- Example
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index aa59639..1d59455 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -100,6 +100,12 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 	if (!of_property_read_u32(node, "data-shift", &v))
- 		bus->data_shift = v;
- 
-+	if (of_get_property(node, "field-active", &v))
-+		flags |= V4L2_MBUS_FIELD_ACTIVE;
-+
-+	if (of_get_property(node, "sync-on-green", &v))
-+		flags |= V4L2_MBUS_SOG;
-+
- 	bus->flags = flags;
- 
- }
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 83ae07e..b95553d 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -40,6 +40,8 @@
- #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
- /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
- #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
-+#define V4L2_MBUS_FIELD_ACTIVE			(1 << 12)
-+#define V4L2_MBUS_SOG				(1 << 13)
- 
- /* Serial flags */
- /* How many lanes the client can use */
--- 
-1.7.4.1
+This patch should be applied after:
+[PATCH] clk: samsung: Add CLK_IGNORE_UNUSED flag for the sysreg clocks
+http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg18076.html
+
+ drivers/media/platform/exynos4-is/fimc-is.c |    1 -
+ drivers/media/platform/exynos4-is/fimc-is.h |    1 -
+ 2 files changed, 2 deletions(-)
+
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 47c6363..a094bb6 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -48,7 +48,6 @@ static char *fimc_is_clocks[ISS_CLKS_MAX] = {
+ 	[ISS_CLK_LITE0]			= "lite0",
+ 	[ISS_CLK_LITE1]			= "lite1",
+ 	[ISS_CLK_MPLL]			= "mpll",
+-	[ISS_CLK_SYSREG]		= "sysreg",
+ 	[ISS_CLK_ISP]			= "isp",
+ 	[ISS_CLK_DRC]			= "drc",
+ 	[ISS_CLK_FD]			= "fd",
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.h b/drivers/media/platform/exynos4-is/fimc-is.h
+index f5275a5..606a7c9 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.h
++++ b/drivers/media/platform/exynos4-is/fimc-is.h
+@@ -73,7 +73,6 @@ enum {
+ 	ISS_CLK_LITE0,
+ 	ISS_CLK_LITE1,
+ 	ISS_CLK_MPLL,
+-	ISS_CLK_SYSREG,
+ 	ISS_CLK_ISP,
+ 	ISS_CLK_DRC,
+ 	ISS_CLK_FD,
+--
+1.7.9.5
 
