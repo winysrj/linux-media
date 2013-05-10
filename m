@@ -1,113 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f50.google.com ([209.85.214.50]:60248 "EHLO
-	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756598Ab3EYOL6 (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:37957 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750808Ab3EJJTg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 10:11:58 -0400
-Message-ID: <51A0C6A8.5090302@gmail.com>
-Date: Sat, 25 May 2013 16:11:52 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
-References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com> <519F4AE7.8000003@gmail.com> <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com>
-In-Reply-To: <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 10 May 2013 05:19:36 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMK00ICYSK20G90@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 May 2013 10:19:31 +0100 (BST)
+Message-id: <518CBBA2.7020905@samsung.com>
+Date: Fri, 10 May 2013 11:19:30 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Dan Carpenter <dan.carpenter@oracle.com>
+Cc: kbuild@01.org, Kyungmin Park <kyungmin.park@samsung.com>,
+	Julia Lawall <julia.lawall@lip6.fr>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [kbuild] [linuxtv-samsung:next/exynos-is 3/17]
+ drivers/media/media-entity.c:477:1-11: second lock on line 479
+References: <20130509232644.GI30128@mwanda>
+In-reply-to: <20130509232644.GI30128@mwanda>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 05/10/2013 01:26 AM, Dan Carpenter wrote:
+> Hi Sylwester,
+> 
+> FYI, there are coccinelle warnings in
 
-On 05/25/2013 11:17 AM, Prabhakar Lad wrote:
->>  From looking at Figure 8 "TVP7002 Application Example" in the TVP7002's
->> >  datasheet
->> >  ([2], p. 52) and your initial TVP7002 patches it looks like what you want is
->> >  to
->> >  specify polarity of the SOGOUT signal, so the processor that receives this
->> >  signal
->> >  can properly interpret it, is it correct ?
->> >
-> Yes
->> >  If so then wouldn't it be more appropriate to define e.g. 'sog-active'
->> >  property
->> >  and media bus flags:
->> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_LOW
->> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_HIGH
->> >  ?
->> >
-> Agreed I'll add these flags.
->
->> >  And for synchronisation method on the analog part we could perhaps define
->> >  'component-sync' or similar property that would enumerate all possible
->> >  synchronisation methods. We might as well use separate boolean properties,
->> >  but I'm a bit concerned about the increasing number of properties that need
->> >  to be parsed for each parallel video bus "endpoint".
->> >
-> I am not clear on it can please elaborate more on this.
+Thanks a lot for this bug report. I've just re-tested the patch
+and the bug is evident there, looks like it was introduced in
+a "last minute" changes and the test environment wasn't updated
+properly. The corrected patch to follow.
 
-I thought about two possible options:
-
-1. single property 'component-sync' or 'video-sync' that would have values:
-
-#define VIDEO_SEPARATE_SYNC	0x01
-#define VIDEO_COMPOSITE_SYNC	0x02
-#define VIDEO_SYNC_ON_COMPOSITE	0x04
-#define VIDEO_SYNC_ON_GREEN	0x08
-#define VIDEO_SYNC_ON_LUMINANCE	0x10
-
-And we could put these definitions into a separate header, e.g.
-<dt-bindings/video-interfaces.h>
-
-Then in a device tree source file one could have, e.g.
-
-video-sync = <VIDEO_SYNC_ON_GREEN>;
-
-
-2. Separate boolean property for each video sync type, e.g.
-
-	"video-composite-sync"
-	"video-sync-on-composite"
-	"video-sync-on-green"
-	"video-sync-on-luminance"
-
-Separate sync, with separate VSYNC, HSYNC lines, would be the default, when
-none of the above is specified and 'vsync-active', 'hsync-active' properties
-are present.
-
-However, I suppose the better would be to deduce the video synchronisation
-method from the sync signal polarity flags. Then, for instance, when an
-endpoint node contains "composite-sync-active" property the parser would
-determine the "composite sync" synchronisation type is used.
-
-Thus it might make sense to have only following integer properties (added
-as needed):
-
-composite-sync-active
-sync-on-green-active
-sync-on-comp-active
-sync-on-luma-active
-
-This would allow to specify polarity of each signal and at the same time
-the parsing code could derive synchronisation type. A new field could be
-added to struct v4l2_of_parallel_bus, e.g. sync_type and it would be filled
-within v4l2_of_parse_endpoint().
-
-What do you think ?
-
-
-Thanks,
+Regards,
 Sylwester
+
+> tree:   git://linuxtv.org/snawrocki/samsung.git next/exynos-is
+> head:   90029a2ca496f71ba629ea932ac761e16f4e823b
+> commit: cae9aa2c7b182d1b687196292059bca2f2cedf0f [3/17] media: Add function removing all media entity links
+> 
+>>> drivers/media/media-entity.c:477:1-11: second lock on line 479
+> --
+>>> drivers/media/media-entity.c:477:1-11: second lock on line 479
+> 
+> git remote add linuxtv-samsung git://linuxtv.org/snawrocki/samsung.git
+> git remote update linuxtv-samsung
+> git checkout cae9aa2c7b182d1b687196292059bca2f2cedf0f
+> vim +477 drivers/media/media-entity.c
+> 
+> cae9aa2c Sylwester Nawrocki 2013-05-08  471  
+> cae9aa2c Sylwester Nawrocki 2013-05-08  472  void media_entity_remove_links(struct media_entity *entity)
+> cae9aa2c Sylwester Nawrocki 2013-05-08  473  {
+> cae9aa2c Sylwester Nawrocki 2013-05-08  474  	if (WARN_ON_ONCE(entity->parent == NULL))
+> cae9aa2c Sylwester Nawrocki 2013-05-08  475  		return;
+> cae9aa2c Sylwester Nawrocki 2013-05-08  476  
+> cae9aa2c Sylwester Nawrocki 2013-05-08 @477  	mutex_lock(&entity->parent->graph_mutex);
+> cae9aa2c Sylwester Nawrocki 2013-05-08  478  	__media_entity_remove_links(entity);
+> cae9aa2c Sylwester Nawrocki 2013-05-08 @479  	mutex_lock(&entity->parent->graph_mutex);
+> cae9aa2c Sylwester Nawrocki 2013-05-08  480  }
+> cae9aa2c Sylwester Nawrocki 2013-05-08  481  EXPORT_SYMBOL_GPL(media_entity_remove_links);
+> cae9aa2c Sylwester Nawrocki 2013-05-08  482  
+> 
+> ---
+> 0-DAY kernel build testing backend              Open Source Technology Center
+> http://lists.01.org/mailman/listinfo/kbuild                 Intel Corporation
+> _______________________________________________
+> kbuild mailing list
+> kbuild@lists.01.org
+> https://lists.01.org/mailman/listinfo/kbuild
