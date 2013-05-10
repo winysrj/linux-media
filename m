@@ -1,48 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from li248-118.members.linode.com ([173.255.238.118]:40771 "EHLO
-	kahlo.theo.to" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1756661Ab3EVQvp (ORCPT
+Received: from mail-we0-f182.google.com ([74.125.82.182]:35489 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751271Ab3EJNrc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 12:51:45 -0400
-Message-ID: <519CF79D.3020804@theo.to>
-Date: Wed, 22 May 2013 12:51:41 -0400
-From: Ted To <rainexpected@theo.to>
+	Fri, 10 May 2013 09:47:32 -0400
+Received: by mail-we0-f182.google.com with SMTP id t60so4090819wes.27
+        for <linux-media@vger.kernel.org>; Fri, 10 May 2013 06:47:31 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: InstantFM
-References: <51993390.6080202@theo.to> <5199C8FA.9060704@redhat.com> <519A4464.7060006@theo.to> <519A6DBB.60608@theo.to> <519B23A7.90504@redhat.com> <519B649C.9040903@theo.to> <519C7E8B.9090406@redhat.com>
-In-Reply-To: <519C7E8B.9090406@redhat.com>
+Date: Fri, 10 May 2013 15:47:26 +0200
+Message-ID: <CA+ByhatpbhUdnQ0Hm+LwnTiqfx+i=JxGXWaY00S1-7MRheAuPA@mail.gmail.com>
+Subject: Working DVB-C USB-Sticks
+From: Johannes Horn <johannesnews@googlemail.com>
+To: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/22/2013 04:15 AM, Hans de Goede wrote:
-> Hi,
-> 
-> On 05/21/2013 02:12 PM, Ted To wrote:
->> Hi Hans,
-> 
-> <snip>
-> 
->>> Which kernel version are you using ?
->>
->> 3.2.0-4-amd64
->>
->> I could try the liquorix kernel (3.8) if you thought it might help.
-> 
-> Yes, if you could try that that would be great.
-> 
-> Regards,
-> 
-> Hans
+Hello,
+I successfully use a Terratec Cinergy HTC Stick HD (ID 0ccd:00b2) in
+my Ubuntu 12.10 machine (Kernel  3.5.0-28).
 
-I did a live boot from the most recent Ubuntu (kernel 3.8), installed
-radio and it worked!  The signal was pretty weak though so there was a
-lot of static.  I suppose the only solution then is to get a better
-antenna...
+I just had to plug it in and it worked out of the box with tvheadend,
+i also didn't need to add any firmware.
 
-Thanks very much!
+I noticed that only DVB-C seems to work out-of-the-box, but in my
+opinion it can be added in the wiki as a working DVB-C device.
 
-Ted
+Wiki:
+http://linuxtv.org/wiki/index.php/DVB-C_USB_Devices
+
+Thanks a lot in advance for your efforts!
+All the best!
+
+J.H.
