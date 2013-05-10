@@ -1,53 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from venus.vo.lu ([80.90.45.96]:54258 "EHLO venus.vo.lu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756920Ab3ENJiB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 05:38:01 -0400
-Received: from lan226.bxl.tuxicoman.be ([172.19.1.226] helo=me)
-	by ibiza.bxl.tuxicoman.be with smtp (Exim 4.80.1)
-	(envelope-from <gmsoft@tuxicoman.be>)
-	id 1UcBg5-0002w2-Py
-	for linux-media@vger.kernel.org; Tue, 14 May 2013 11:37:50 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:63499 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750787Ab3EJGQL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 May 2013 02:16:11 -0400
+Received: by mail-ob0-f176.google.com with SMTP id wc20so3813372obb.35
+        for <linux-media@vger.kernel.org>; Thu, 09 May 2013 23:16:11 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAP6c-yw3Ms_N_381N9HpUJLd_6UB7B30k8GSP25+c-h2i3MFiQ@mail.gmail.com>
+References: <CAP6c-yw3Ms_N_381N9HpUJLd_6UB7B30k8GSP25+c-h2i3MFiQ@mail.gmail.com>
+Date: Fri, 10 May 2013 16:16:11 +1000
+Message-ID: <CAP6c-ywedzyPGHS0Ja1vw-GfJQwZ2EM6WQ8SVSbrJitrNXdZwQ@mail.gmail.com>
+Subject: Fwd: DVB recording failures in recent Fedora kernel
+From: Paul Wilson <mylists@wilsononline.id.au>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/5] v4l-utils: Fix satellite support in dvbv5-{scan,zap} tools
-Date: Tue, 14 May 2013 11:23:50 +0200
-Message-Id: <cover.1368522021.git.gmsoft@tuxicoman.be>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Up until recently My recording has been very stable but the last
+couple of kernels or updates I'm seeing occasion failures in my
+recordings.
 
-Hi all,
+Can someone tell if the following errors are driver bugs?
 
-These patches fix satellite support in current dvbv5-{scan,zap} tools by
-fixing the parsing of the POLARIZATION parameter as well as applying those
-parameters to the frontend.
+Linux mythbox.salsola 3.8.11-100.fc17.i686 #1 SMP
 
-This pathset is a broken down and improved version of the previous patch I send in
-my mail "Fix POLARIZATION support for dvbv5-scan". Please disregard this previous patch.
+Here is my dmesg output
 
-  Guy
+248375.223277] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
+[248375.223280] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
+[248375.223282] tda18271_init: [18-0060|S] error -5 on line 836
+[248375.223285] tda18271_tune: [18-0060|S] error -5 on line 909
+[248375.223287] tda18271_set_params: [18-0060|S] error -5 on line 984
+[271757.587443] saa7164_api_i2c_read() error, ret(2) = 0x13
+[271757.587450] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
+[271757.587453] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
+[271757.587456] tda18271_init: [18-0060|S] error -5 on line 836
+[271757.587458] tda18271_tune: [18-0060|S] error -5 on line 909
+[271757.587461] tda18271_set_params: [18-0060|S] error -5 on line 984
+[326161.053901] saa7164_api_i2c_read() error, ret(2) = 0x13
+[326161.053907] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
+[326161.053910] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
+[326161.053913] tda18271_init: [18-0060|S] error -5 on line 836
+[326161.053915] tda18271_tune: [18-0060|S] error -5 on line 909
+[326161.053918] tda18271_set_params: [18-0060|S] error -5 on line 984
+[359677.846084] saa7164_api_i2c_read() error, ret(2) = 0x13
+[359677.846090] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
+[359677.846093] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
+[359677.846096] tda18271_init: [18-0060|S] error -5 on line 836
+[359677.846099] tda18271_tune: [18-0060|S] error -5 on line 909
 
-
-Guy Martin (5):
-  libdvbv5: Remove buggy parsing of extra DTV_foo properties
-  libdvbv5: Add parsing of POLARIZATION
-  libdvbv5: Export dvb_fe_is_satellite()
-  libdvbv5: Apply polarization parameters to the frontend
-  dvbv5-zap: Copy satellite parameters before tuning
-  dvbv5-scan:  Likewise
-
- lib/include/dvb-fe.h      |  3 ++-
- lib/include/dvb-file.h    |  2 +-
- lib/libdvbv5/dvb-fe.c     | 14 +++++------
- lib/libdvbv5/dvb-file.c   | 44 +++++++---------------------------
- lib/libdvbv5/dvb-sat.c    | 60 ++++++++++++++++++++---------------------------
- lib/libdvbv5/dvb-v5-std.c |  9 -------
- utils/dvb/dvbv5-scan.c    | 14 +++++++++++
- utils/dvb/dvbv5-zap.c     | 14 +++++++++++
- 8 files changed, 72 insertions(+), 88 deletions(-)
-
--- 
-1.8.1.5
-
-
+Paul
