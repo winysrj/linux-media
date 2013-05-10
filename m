@@ -1,46 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:35600 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751124Ab3EWFFH (ORCPT
+Received: from smtp2.ecole.ensicaen.fr ([193.49.200.34]:33265 "EHLO
+	smtp2.ensicaen.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754137Ab3EJVm6 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 01:05:07 -0400
-Received: by mail-pa0-f45.google.com with SMTP id lj1so2560705pab.4
-        for <linux-media@vger.kernel.org>; Wed, 22 May 2013 22:05:07 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: s.nawrocki@samsung.com, sylvester.nawrocki@gmail.com,
-	sachin.kamat@linaro.org, patches@linaro.org,
-	Kamil Debski <k.debski@samsung.com>
-Subject: [PATCH 2/2] [media] s5p-mfc: Remove redundant use of of_match_ptr macro
-Date: Thu, 23 May 2013 10:21:19 +0530
-Message-Id: <1369284679-14716-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1369284679-14716-1-git-send-email-sachin.kamat@linaro.org>
-References: <1369284679-14716-1-git-send-email-sachin.kamat@linaro.org>
+	Fri, 10 May 2013 17:42:58 -0400
+MIME-Version: 1.0
+from: "Metadjer Natjet" <natjet.metadjer@ensicaen.fr>
+subject: =?utf-8?q?MISE_=C3=80_JOUR_VOTRE_COMPTE_WEBAMIL_MAINTENANT_...?=
+message-id: <6eb8-518d6800-155-6b21ef00@29487801>
+content-type: text/plain; charset="utf-8"
+date: Fri, 10 May 2013 23:34:37 +0200
+content-transfer-encoding: 8BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-'exynos_mfc_match' is always compiled in. Hence of_match_ptr
-is unnecessary.
+Vous avez dépassé votre quota email limite de 450MB. Vous devez mettre à jour
+votre email quota limite à 2 Go dans les prochaines 48 heures. Utiliser le Web ci-dessous
+un lien pour mettre à niveau votre compte de messagerie:
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Kamil Debski <k.debski@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+http://websdaz.webs.com
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index 01f9ae0..5d0419b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1426,7 +1426,7 @@ static void *mfc_get_drv_data(struct platform_device *pdev)
- 
- 	if (pdev->dev.of_node) {
- 		const struct of_device_id *match;
--		match = of_match_node(of_match_ptr(exynos_mfc_match),
-+		match = of_match_node(exynos_mfc_match,
- 				pdev->dev.of_node);
- 		if (match)
- 			driver_data = (struct s5p_mfc_variant *)match->data;
--- 
-1.7.9.5
-
+Merci d'utiliser notre email.
