@@ -1,69 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:51546 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964841Ab3E2HWm (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:47645 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751659Ab3EJLB3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 03:22:42 -0400
-Received: by mail-ie0-f177.google.com with SMTP id 9so24035129iec.36
-        for <linux-media@vger.kernel.org>; Wed, 29 May 2013 00:22:41 -0700 (PDT)
+	Fri, 10 May 2013 07:01:29 -0400
 MIME-Version: 1.0
-In-Reply-To: <51A51DA4.7010805@canonical.com>
-References: <20130528144420.4538.70725.stgit@patser>
-	<20130528144845.4538.93485.stgit@patser>
-	<20130528191847.GE15743@phenom.ffwll.local>
-	<51A51DA4.7010805@canonical.com>
-Date: Wed, 29 May 2013 09:22:41 +0200
-Message-ID: <CAKMK7uE_-QAg6fLMeJS8v+fFjBX+Su-4p=b09bFEvooAs0SmCw@mail.gmail.com>
-Subject: Re: [Linaro-mm-sig] [PATCH v4 3/4] mutex: Add ww tests to
- lib/locking-selftest.c. v4
-From: Daniel Vetter <daniel.vetter@ffwll.ch>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	linux-arch@vger.kernel.org, Peter Zijlstra <peterz@infradead.org>,
-	x86@kernel.org, dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	rob clark <robclark@gmail.com>,
-	Steven Rostedt <rostedt@goodmis.org>,
-	Thomas Gleixner <tglx@linutronix.de>,
-	Ingo Molnar <mingo@elte.hu>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <201305101255.47709.hverkuil@xs4all.nl>
+References: <1368161318-16128-1-git-send-email-prabhakar.csengg@gmail.com> <201305101255.47709.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 10 May 2013 16:31:07 +0530
+Message-ID: <CA+V-a8s-7r7bmdJJ2k7ABkhsfb6WrQ6xqUBpWjF=aRAUyJ=F=Q@mail.gmail.com>
+Subject: Re: [PATCH] davinci: vpfe: fix error path in probe
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 28, 2013 at 11:12 PM, Maarten Lankhorst
-<maarten.lankhorst@canonical.com> wrote:
->>> +static void ww_test_spin_nest_unlocked(void)
->>> +{
->>> +    raw_spin_lock_nest_lock(&lock_A, &o.base);
->>> +    U(A);
->>> +}
->> I don't quite see the point of this one here ...
-> It's a lockdep test that was missing. o.base is not locked. So lock_A is being nested into an unlocked lock, resulting in a lockdep error.
+Hi Hans,
 
-Sounds like a different patch then ...
-
->>> +
->>> +static void ww_test_unneeded_slow(void)
->>> +{
->>> +    int ret;
->>> +
->>> +    WWAI(&t);
->>> +
->>> +    ww_mutex_lock_slow(&o, &t);
->>> +}
->> I think checking the _slow debug stuff would be neat, i.e.
->> - fail/success tests for properly unlocking all held locks
->> - fail/success tests for lock_slow acquiring the right lock.
+On Fri, May 10, 2013 at 4:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Fri May 10 2013 06:48:38 Lad Prabhakar wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+[Snip]
 >>
->> Otherwise I didn't spot anything that seems missing in these self-tests
->> here.
->>
-> Yes it would be nice, doing so is left as an excercise for the reviewer, who failed to raise this point sooner. ;-)
+>
+> Just FYI:
+>
+> After applying this patch I get a compiler warning that the probe_free_lock
+> label is unused. I've added a patch removing that label.
+>
+Thanks for fixing it :)
 
-Hm, I guess I've volunteered myself to look into this a bit ;-)
--Daniel
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
+Regards,
+--Prabhakar
