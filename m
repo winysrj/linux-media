@@ -1,73 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2494 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752526Ab3EaKDV (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4243 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751039Ab3EJLjQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 06:03:21 -0400
+	Fri, 10 May 2013 07:39:16 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard.rojfors@pelagicore.com>
-Subject: [PATCH 12/21] radio-timb: convert to the control framework.
-Date: Fri, 31 May 2013 12:02:32 +0200
-Message-Id: <1369994561-25236-13-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+To: Konke Radlow <koradlow@gmail.com>
+Subject: Re: [RFC PATCH 2/4] rds-ctl.cpp: added functionality to print RDS-EON information
+Date: Fri, 10 May 2013 13:39:01 +0200
+Cc: linux-media@vger.kernel.org, hdegoede@redhat.com
+References: <1367943863-28803-1-git-send-email-koradlow@gmail.com> <63291557e0c1b342aea66fc33ef900cf22051db3.1367943797.git.koradlow@gmail.com>
+In-Reply-To: <63291557e0c1b342aea66fc33ef900cf22051db3.1367943797.git.koradlow@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305101339.01805.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue May 7 2013 18:24:21 Konke Radlow wrote:
+> Signed-off-by: Konke Radlow <koradlow@gmail.com>
+> ---
+>  utils/rds-ctl/rds-ctl.cpp |   29 +++++++++++++++++++++++++++++
+>  1 file changed, 29 insertions(+)
+> 
+> diff --git a/utils/rds-ctl/rds-ctl.cpp b/utils/rds-ctl/rds-ctl.cpp
+> index de76d9f..51536cf 100644
+> --- a/utils/rds-ctl/rds-ctl.cpp
+> +++ b/utils/rds-ctl/rds-ctl.cpp
+> @@ -550,6 +550,33 @@ static void print_rds_af(const struct v4l2_rds_af_set *af_set)
+>  	}
+>  }
+>  
+> +static void print_rds_eon(const struct v4l2_rds_eon_set *eon_set)
+> +{
+> +	int counter = 0;
+> +
+> +	printf("\n\nEnhanced Other Network information: %u channels", eon_set->size);
+> +	for (int i = 0; i < eon_set->size; i++, counter++) {
+> +		if (eon_set->eon[i].valid_fields & V4L2_RDS_PI)
+> +			printf("\nPI(ON %02i) =  %04x", i, eon_set->eon[i].pi);
+> +		if (eon_set->eon[i].valid_fields & V4L2_RDS_PS)
+> +			printf("\nPS(ON %02i) =  %s", i, eon_set->eon[i].ps);
+> +		if (eon_set->eon[i].valid_fields & V4L2_RDS_PTY)
+> +			printf("\nPTY(ON %02i) =  %0u", i, eon_set->eon[i].pty);
+> +		if (eon_set->eon[i].valid_fields & V4L2_RDS_LSF)
+> +			printf("\nLSF(ON %02i) =  %0u", i, eon_set->eon[i].lsf);
+> +		if (eon_set->eon[i].valid_fields & V4L2_RDS_AF)
+> +			printf("\nPTY(ON %02i) =  %0u", i, eon_set->eon[i].pty);
+> +		if (eon_set->eon[i].valid_fields & V4L2_RDS_TP)
+> +			printf("\nTP(ON %02i): %s" ,i ,eon_set->eon[i].tp? "yes":"no");
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Richard Röjfors <richard.rojfors@pelagicore.com>
----
- drivers/media/radio/radio-timb.c |   24 ------------------------
- 1 file changed, 24 deletions(-)
+Spacing is a bit messy. This is better:
 
-diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
-index cecf7d7..99694dd 100644
---- a/drivers/media/radio/radio-timb.c
-+++ b/drivers/media/radio/radio-timb.c
-@@ -77,36 +77,12 @@ static int timbradio_vidioc_g_frequency(struct file *file, void *priv,
- 	return v4l2_subdev_call(tr->sd_tuner, tuner, g_frequency, f);
- }
- 
--static int timbradio_vidioc_queryctrl(struct file *file, void *priv,
--	struct v4l2_queryctrl *qc)
--{
--	struct timbradio *tr = video_drvdata(file);
--	return v4l2_subdev_call(tr->sd_dsp, core, queryctrl, qc);
--}
--
--static int timbradio_vidioc_g_ctrl(struct file *file, void *priv,
--	struct v4l2_control *ctrl)
--{
--	struct timbradio *tr = video_drvdata(file);
--	return v4l2_subdev_call(tr->sd_dsp, core, g_ctrl, ctrl);
--}
--
--static int timbradio_vidioc_s_ctrl(struct file *file, void *priv,
--	struct v4l2_control *ctrl)
--{
--	struct timbradio *tr = video_drvdata(file);
--	return v4l2_subdev_call(tr->sd_dsp, core, s_ctrl, ctrl);
--}
--
- static const struct v4l2_ioctl_ops timbradio_ioctl_ops = {
- 	.vidioc_querycap	= timbradio_vidioc_querycap,
- 	.vidioc_g_tuner		= timbradio_vidioc_g_tuner,
- 	.vidioc_s_tuner		= timbradio_vidioc_s_tuner,
- 	.vidioc_g_frequency	= timbradio_vidioc_g_frequency,
- 	.vidioc_s_frequency	= timbradio_vidioc_s_frequency,
--	.vidioc_queryctrl	= timbradio_vidioc_queryctrl,
--	.vidioc_g_ctrl		= timbradio_vidioc_g_ctrl,
--	.vidioc_s_ctrl		= timbradio_vidioc_s_ctrl
- };
- 
- static const struct v4l2_file_operations timbradio_fops = {
--- 
-1.7.10.4
+			printf("\nTP(ON %02i): %s", i, eon_set->eon[i].tp ? "yes" : "no");
 
+> +		if (eon_set->eon[i].valid_fields & V4L2_RDS_TA)
+> +			printf("\nTA(ON %02i): %s",i ,eon_set->eon[i].tp? "yes":"no");
+
+Ditto:
+			printf("\nTA(ON %02i): %s", i, eon_set->eon[i].tp ? "yes" : "no");
+
+> +		if (eon_set->eon[i].valid_fields & V4L2_RDS_AF) {
+> +			printf("\nAF(ON %02i): size=%i", i, eon_set->eon[i].af.size);
+> +			print_rds_af(&(eon_set->eon[i].af));
+> +		}
+> +	}
+> +}
+> +
+>  static void print_rds_pi(const struct v4l2_rds *handle)
+>  {
+>  	printf("\nArea Coverage: %s", v4l2_rds_get_coverage_str(handle));
+> @@ -662,6 +689,8 @@ static void read_rds_from_fd(const int fd)
+>  
+>  	/* try to receive and decode RDS data */
+>  	read_rds(rds_handle, fd, params.wait_limit);
+> +	if (rds_handle->valid_fields & V4L2_RDS_EON)
+> +		print_rds_eon(&rds_handle->rds_eon);
+>  	print_rds_statistics(&rds_handle->rds_statistics);
+>  
+>  	v4l2_rds_destroy(rds_handle);
+> 
+
+Regards,
+
+	Hans
