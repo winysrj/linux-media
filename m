@@ -1,132 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:37908 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1750837Ab3EaOL1 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:37001 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750825Ab3EJKBP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 10:11:27 -0400
-Date: Fri, 31 May 2013 16:14:20 +0200
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	Timo Teras <timo.teras@iki.fi>,
-	Andy Walls <awalls@md.metrocast.net>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com
-Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
-Message-ID: <20130531141420.GH2367@dell.arpanet.local>
-References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
- <1369860078-10334-2-git-send-email-jonarne@jonarne.no>
- <20130529213554.690f7eaa@redhat.com>
- <7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
- <20130530052136.GF2367@dell.arpanet.local>
- <20130530083332.245e3c62@vostro>
- <20130530190001.GG2367@dell.arpanet.local>
- <20130531100827.10710841@redhat.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130531100827.10710841@redhat.com>
+	Fri, 10 May 2013 06:01:15 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMK00DTDUHJXIZ0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 10 May 2013 19:01:01 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [RFC PATCH v2 1/2] media: Add function removing all media entity links
+Date: Fri, 10 May 2013 12:00:37 +0200
+Message-id: <1368180037-24091-1-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1368102573-16183-2-git-send-email-s.nawrocki@samsung.com>
+References: <1368102573-16183-2-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 31, 2013 at 10:08:27AM -0300, Mauro Carvalho Chehab wrote:
-> Em Thu, 30 May 2013 21:00:01 +0200
-> Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
-> 
-> > On Thu, May 30, 2013 at 08:33:32AM +0300, Timo Teras wrote:
-> > > On Thu, 30 May 2013 07:21:36 +0200
-> > > Jon Arne Jørgensen <jonarne@jonarne.no> wrote:
-> > > 
-> > > > On Wed, May 29, 2013 at 10:19:49PM -0400, Andy Walls wrote:
-> > > > > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> > > > > 
-> > > > > >Em Wed, 29 May 2013 22:41:16 +0200
-> > > > > >Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
-> > > > > >
-> > > > > >> Change all default values in the initial setup table to match the
-> > > > > >table
-> > > > > >> in the datasheet.
-> > > > > >
-> > > > > >This is not a good idea, as it can produce undesired side effects
-> > > > > >on the existing drivers that depend on it, and can't be easily
-> > > > > >tested.
-> > > > > >
-> > > > > >Please, don't change the current "default". It is, of course, OK
-> > > > > >to change them if needed via the information provided inside the
-> > > > > >platform data.
-> > > > >
-> > > > > I was going to make a comment along the same line as Mauro.  
-> > > > > Please leave the driver defaults alone.  It is almost impossible to
-> > > > > regression test all the different devices with a SAA7113 chip, to
-> > > > > ensure the change doesn't cause someone's device to not work
-> > > > > properly.
-> > > > >
-> > > > 
-> > > > You guys are totally right.
-> > > > 
-> > > > What if I clone the original saa7113_init table into a new one, and
-> > > > make the driver use the new one if the calling driver sets
-> > > > platform_data.
-> > > > 
-> > > > Something like this?
-> > > > 
-> > > >         switch (state->ident) {
-> > > >         case V4L2_IDENT_SAA7111:
-> > > >         case V4L2_IDENT_SAA7111A:
-> > > >                 saa711x_writeregs(sd, saa7111_init);
-> > > >                 break;
-> > > >         case V4L2_IDENT_GM7113C:
-> > > >         case V4L2_IDENT_SAA7113:
-> > > > -		saa711x_writeregs(sd, saa7113_init);
-> > > > +		if (client->dev.platform_data)
-> > > > +			saa711x_writeregs(sd, saa7113_new_init);
-> > > > +		else
-> > > > +			saa711x_writeregs(sd, saa7113_init);
-> > > 
-> > > I would rather have the platform_data provide the new table. Or if you
-> > > think bulk of the table will be the same for most users, then perhaps
-> > > add there an enum saying which table to use - and name the tables
-> > > according to the chip variant it applies to.
-> > > 
-> > 
-> > I think the bulk of the table will be the same for all drivers.
-> > It's one bit here and one bit there that needs changing.
-> > As the driver didn't support platform data.
-> > Changing to a new init table for the drivers that implement
-> > platform_data shouldn't cause any regressions.
-> 
-> There are several things that are very bad on passing a table via
-> platform data:
-> 
-> 	1) you're adding saa711x-specific data at the bridge driver,
-> 	   so, the saa711x code is spread on several places at the
-> 	   long term;
-> 
-> 	2) some part of the saa711x code may override the data there, 
-> 	   as it is not aware about what bits should be preserved from
-> 	   the new device;
-> 
-> 	3) due (2), latter changes on the code are more likely to
-> 	   cause regressions;
-> 
-> 	4) also due to (2), some hacks can be needed, in order to warn
-> 	   saa711x to handle some things differently.
-> 
-> That's why it is a way better to add meaningful parameters telling what
-> bits are needed for the driver to work with the bridge. That's also
-> why we do this with all other drivers.
-> 
+This function allows to remove all media entity's links to other
+entities, leaving no references to a media entity's links array
+at its remote entities.
 
-I agree with you here.
-I never planned to pass the table via platform data.
+Currently when a driver of some entity is removed it will free its
+media entities links[] array, leaving dangling pointers at other
+entities that are part of same media graph. This is troublesome when
+drivers of a media device entities are in separate kernel modules,
+removing only some modules will leave others in incorrect state.
 
-I've just posted a new version of this patch set.
-Please have a look.
+This function is intended to be used when an entity is being
+unregistered from a media device.
 
-Best regards
-Jon Arne Jørgensen
+With an assumption that media links should be created only after
+they are registered to a media device and with the graph mutex held.
 
-> Regards,
-> Mauro
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+[locking error in the initial patch version]
+Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Changes since the initial version:
+ - fixed erroneous double mutex lock in media_entity_links_remove() 
+   function.
+
+ drivers/media/media-entity.c |   51 ++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-entity.h |    3 +++
+ 2 files changed, 54 insertions(+)
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index e1cd132..bd85dc3 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -429,6 +429,57 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
+ }
+ EXPORT_SYMBOL_GPL(media_entity_create_link);
+ 
++void __media_entity_remove_links(struct media_entity *entity)
++{
++	int i, r;
++
++	for (i = 0; i < entity->num_links; i++) {
++		struct media_link *link = &entity->links[i];
++		struct media_entity *remote;
++		int num_links;
++
++		if (link->source->entity == entity)
++			remote = link->sink->entity;
++		else
++			remote = link->source->entity;
++
++		num_links = remote->num_links;
++
++		for (r = 0; r < num_links; r++) {
++			struct media_link *rlink = &remote->links[r];
++
++			if (rlink != link->reverse)
++				continue;
++
++			if (link->source->entity == entity)
++				remote->num_backlinks--;
++
++			remote->num_links--;
++
++			if (remote->num_links < 1)
++				break;
++
++			/* Insert last entry in place of the dropped link. */
++			remote->links[r--] = remote->links[remote->num_links];
++		}
++	}
++
++	entity->num_links = 0;
++	entity->num_backlinks = 0;
++}
++EXPORT_SYMBOL_GPL(__media_entity_remove_links);
++
++void media_entity_remove_links(struct media_entity *entity)
++{
++	if (WARN_ON_ONCE(entity->parent == NULL))
++		return;
++
++	mutex_lock(&entity->parent->graph_mutex);
++	__media_entity_remove_links(entity);
++	mutex_unlock(&entity->parent->graph_mutex);
++}
++EXPORT_SYMBOL_GPL(media_entity_remove_links);
++
+ static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
+ {
+ 	int ret;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 0c16f51..0d941d2 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -128,6 +128,9 @@ void media_entity_cleanup(struct media_entity *entity);
+ 
+ int media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
++void __media_entity_remove_links(struct media_entity *entity);
++void media_entity_remove_links(struct media_entity *entity);
++
+ int __media_entity_setup_link(struct media_link *link, u32 flags);
+ int media_entity_setup_link(struct media_link *link, u32 flags);
+ struct media_link *media_entity_find_link(struct media_pad *source,
+-- 
+1.7.9.5
+
