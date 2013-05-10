@@ -1,78 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:46702 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752531Ab3EUJgO (ORCPT
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:49826 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750818Ab3EJGQx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 05:36:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v3] adv7180: add more subdev video ops
-Date: Tue, 21 May 2013 11:35:59 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
-	matsu@igel.co.jp
-References: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
+	Fri, 10 May 2013 02:16:53 -0400
+Received: by mail-ob0-f176.google.com with SMTP id wc20so3746760obb.7
+        for <linux-media@vger.kernel.org>; Thu, 09 May 2013 23:16:52 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305211135.59706.hverkuil@xs4all.nl>
+In-Reply-To: <CAP6c-yw3Ms_N_381N9HpUJLd_6UB7B30k8GSP25+c-h2i3MFiQ@mail.gmail.com>
+References: <CAP6c-yw3Ms_N_381N9HpUJLd_6UB7B30k8GSP25+c-h2i3MFiQ@mail.gmail.com>
+Date: Fri, 10 May 2013 16:16:52 +1000
+Message-ID: <CAP6c-yyLR1Au8QBjbuC+Zx8TOmLSyK3LgsoE_tLXZUUTFS1gsg@mail.gmail.com>
+Subject: Fwd: DVB recording failures in recent Fedora kernel
+From: Paul Wilson <mylists@wilsononline.id.au>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 13 May 2013 21:21:39 Sergei Shtylyov wrote:
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> 
-> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
-> the soc-camera drivers.
-> 
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> ---
-> This patch is against the 'media_tree.git' repo.
-> 
-> Changes from version 2:
-> - set the field format depending on video standard in try_mbus_fmt() method;
-> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
-> - removed g_crop() method.
-> 
->  drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 86 insertions(+)
-> 
-> Index: media_tree/drivers/media/i2c/adv7180.c
-> ===================================================================
-> --- media_tree.orig/drivers/media/i2c/adv7180.c
-> +++ media_tree/drivers/media/i2c/adv7180.c
+Up until recently My recording has been very stable but the last
+couple of kernels or updates I'm seeing occasion failures in my
+recordings.
 
+Can someone tell if the following errors are driver bugs?
 
-> +
-> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
-> +				struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
-> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
+Linux mythbox.salsola 3.8.11-100.fc17.i686 #1 SMP
 
-Just noticed this: use V4L2_FIELD_INTERLACED as that does the right thing.
-No need to split in _BT and _TB.
+Here is my dmesg output
 
-> +	fmt->width = 720;
-> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> +
-> +	return 0;
-> +}
+248375.223277] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
+[248375.223280] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
+[248375.223282] tda18271_init: [18-0060|S] error -5 on line 836
+[248375.223285] tda18271_tune: [18-0060|S] error -5 on line 909
+[248375.223287] tda18271_set_params: [18-0060|S] error -5 on line 984
+[271757.587443] saa7164_api_i2c_read() error, ret(2) = 0x13
+[271757.587450] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
+[271757.587453] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
+[271757.587456] tda18271_init: [18-0060|S] error -5 on line 836
+[271757.587458] tda18271_tune: [18-0060|S] error -5 on line 909
+[271757.587461] tda18271_set_params: [18-0060|S] error -5 on line 984
+[326161.053901] saa7164_api_i2c_read() error, ret(2) = 0x13
+[326161.053907] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
+[326161.053910] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
+[326161.053913] tda18271_init: [18-0060|S] error -5 on line 836
+[326161.053915] tda18271_tune: [18-0060|S] error -5 on line 909
+[326161.053918] tda18271_set_params: [18-0060|S] error -5 on line 984
+[359677.846084] saa7164_api_i2c_read() error, ret(2) = 0x13
+[359677.846090] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
+[359677.846093] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
+[359677.846096] tda18271_init: [18-0060|S] error -5 on line 836
+[359677.846099] tda18271_tune: [18-0060|S] error -5 on line 909
 
-Actually, all this code can be simplified substantially: the try/g/s_mbus_fmt
-functions are really all identical since the data returned is only dependent
-on the current standard. So this means you can use just a single function for
-all three ops, and you can do away with adding struct v4l2_mbus_framefmt to
-adv7180_state.
-
-Regards,
-
-	Hans
+Paul
