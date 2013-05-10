@@ -1,65 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37739 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S934764Ab3E2R7f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 13:59:35 -0400
-Message-ID: <51A641DE.9020403@iki.fi>
-Date: Wed, 29 May 2013 20:58:54 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3782 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751450Ab3EJLzT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 10 May 2013 07:55:19 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Phillip Norisez <phillip.norisez@creationtech.com>
+Subject: Re: Media controller versus int device in V4L2
+Date: Fri, 10 May 2013 13:55:05 +0200
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+References: <72B01BB430E48246B160E44B43976D910CFCF18C@CTFIREBIRD.creationtech.com>
+In-Reply-To: <72B01BB430E48246B160E44B43976D910CFCF18C@CTFIREBIRD.creationtech.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: LMML <linux-media@vger.kernel.org>
-Subject: Re: Keene
-References: <5167513D.60804@iki.fi> <201304190912.06319.hverkuil@xs4all.nl> <51710A3F.10909@iki.fi> <201305291626.20170.hverkuil@xs4all.nl>
-In-Reply-To: <201305291626.20170.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201305101355.05814.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/29/2013 05:26 PM, Hans Verkuil wrote:
-> On Fri April 19 2013 11:11:27 Antti Palosaari wrote:
->> On 04/19/2013 10:12 AM, Hans Verkuil wrote:
->>> On Wed April 17 2013 21:45:24 Antti Palosaari wrote:
->>>> On 04/15/2013 09:55 AM, Hans Verkuil wrote:
->>>>> On Fri April 12 2013 02:11:41 Antti Palosaari wrote:
->>>>>> Hello Hans,
->>>>>> That device is working very, thank you for it. Anyhow, I noticed two things.
->>>>>>
->>>>>> 1) it does not start transmitting just after I plug it - I have to
->>>>>> retune it!
->>>>>> Output says it is tuned to 95.160000 MHz by default, but it is not.
->>>>>> After I issue retune, just to same channel it starts working.
->>>>>> $ v4l2-ctl -d /dev/radio0 --set-freq=95.16
->>>>>
->>>>> Can you try this patch:
->>>>>
->>>>
->>>> It does not resolve the problem. It is quite strange behavior. After I
->>>> install modules, and modules are unload, plug stick in first time, it
->>>> usually (not every-time) starts TX. But when I replug it without
->>>> unloading modules, it will never start TX. Tx is started always when I
->>>> set freq using v4l2-ctl.
->>>
->>> If you replace 'false' by 'true' in the cmd_main, does that make it work?
->>> I'm fairly certain that's the problem.
->>
->> Nope, I replaces all 'false' with 'true' and problem remains. When
->> modules were unload and device is plugged it starts TX. When I replug it
->> doesn't start anymore.
->>
->> I just added msleep(1000); just before keene_cmd_main() in .probe() and
->> now it seems to work every-time. So it is definitely timing issue. I
->> will try to find out some smallest suitable value for sleep and and sent
->> patch.
->
-> Have you had time to find a smaller msleep value?
+On Wed May 8 2013 17:06:17 Phillip Norisez wrote:
+> I have the following question, who or what can help me with some information on the specific differences, from a programming viewpoint, between the "media controller" and "int device" frameworks for V4L2?
 
-Nope, but I will do it today (if I don't meet any problems when 
-upgrading to latest master).
+v4l2-int-device is deprecated and should never be used. There is only one
+remaining driver that uses it. Hopefully one day that will be converted as
+well and the int-device API will disappear.
 
-regards
-Antti
+The int-device API has nothing to do with the media controller. It has been
+superseded by the v4l2-subdev API.
 
--- 
-http://palosaari.fi/
+Reasonably detailed information is available in Documentation/video4linux/v4l2-frameworks.txt
+and in the V4L2 Spec (which also contains the Media Controller documentation).
+
+It is not entirely clear to me what you want to achieve, but if you happen
+to have int-device based drivers then those should be converted to v4l2_subdev
+based drivers for which there are a ton of examples.
+
+Regards,
+
+	Hans
+
+> A checklist for forward and back porting is what I seek, but I don't expect such a thing to exist.  However, I believe someone on here may have the knowledge to author such a list, and I would be willing to pay reasonably for it.
+> 
+> Phillip Norisez
+> Software Design Engineer
+> Creation Technologies
+> 
+> Office: 303.835.7494
+> 6833 Joyce Street | Arvada, CO  80007 | USA
+> phillip.norisez@creationtech.com | www.creationtech.com
+> ________________________________
+> Confidentiality Notice
+> 
+> This e-mail and any attachment(s) are intended for the individual or entity to which this email is addressed and may contain information that is confidential. If you are not the intended recipient or an employee or agent responsible for delivering this e-mail to the intended recipient, please be aware that any dissemination, distribution or copying of this communication is strictly prohibited. If you have received this in error, please notify the sender by telephone at 604.430.4336 or by return e-mail, and please delete or destroy all copies of this communication. Thank you!
+> 
+> P     Please consider the impact on the environment before printing this email or its attachments
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
