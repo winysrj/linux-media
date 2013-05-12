@@ -1,37 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx2.mendoza-conicet.gob.ar ([200.69.149.90]:40948 "EHLO
-	mx2.mendoza-conicet.gob.ar" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751190Ab3EHJG6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 8 May 2013 05:06:58 -0400
-Date: Wed, 8 May 2013 05:46:28 -0300 (ART)
-From: "John P. Goldman" <gliceaga@mendoza-conicet.gob.ar>
-Reply-To: "John P. Goldman" <johnp.goldman@yahoo.com>
-Message-ID: <351326728.69416.1368002788604.JavaMail.root@correo.mendoza-conicet.gob.ar>
-Subject: dringender Vorschlag
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: undisclosed-recipients:;
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3238 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750855Ab3ELS30 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 12 May 2013 14:29:26 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4CITLkT083059
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 12 May 2013 20:29:24 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 7E1E51300051
+	for <linux-media@vger.kernel.org>; Sun, 12 May 2013 20:29:20 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130512182920.7E1E51300051@alastor.dyndns.org>
+Date: Sun, 12 May 2013 20:29:20 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-Entschuldigungen für kommen in Ihre Privatsphäre! Ich bin Rechtsanwalt
-Werner Erich Zeller; Ich habe einen meiner einflussreichen und
-wohlhabenden Kunden zum Tode; und er hatte eine sehr geheime und private
-Investitionen von €15,000,000.00 bei einer privaten Bank in Großbritannien
-hier zu Lebzeiten. Diese Investition wurde ohne einen deklarierten
-nächsten Angehörigen und begünstigte. Jetzt brauche ich Sie arbeiten mit
-mir als mein Partner zu erholen und zu je 50 % Aktienfonds. Alle Dokumente
-werden rechtlich beantragt und beschafft, und in 5 Werktage, wird diese
-Transaktion auftreten. Aber ich brauche einen ernsten, treuen und
-glaubwürdigen Partner.
+date:		Sun May 12 19:00:27 CEST 2013
+git branch:	test
+git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-Bitte senden Sie mir eine vertrauliche Antwort, wenn Sie denken, Sie
-vertraut werden können und sind von den Qualitäten! Ich warte auf Ihre
-schnelle Antwort.
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9-rc1-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9-rc1-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Werner Erich Zeller (Rechtsanwalt)
-Rufen Sie + 44-702-409-0820 (Office)
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
