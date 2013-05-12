@@ -1,59 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:36839 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751071Ab3EMOCF (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54996 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751421Ab3ELHee (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 10:02:05 -0400
-Received: by mail-ea0-f181.google.com with SMTP id a11so1332815eae.12
-        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 07:02:03 -0700 (PDT)
-From: Federico Vaga <federico.vaga@gmail.com>
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: mchehab@redhat.com, hans.verkuil@cisco.com,
-	giancarlo.asnaghi@st.com, prabhakar.csengg@gmail.com,
-	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] [media] sta2x11_vip: fix error return code in sta2x11_vip_init_one()
-Date: Mon, 13 May 2013 16:02:21 +0200
-Message-ID: <1587030.87unLCKBly@harkonnen>
-In-Reply-To: <CAPgLHd8gFagqNM8y3WAfw1F8sddPWzB9TN1U8EOF8VrknOoeOg@mail.gmail.com>
-References: <CAPgLHd8gFagqNM8y3WAfw1F8sddPWzB9TN1U8EOF8VrknOoeOg@mail.gmail.com>
+	Sun, 12 May 2013 03:34:34 -0400
+Date: Sun, 12 May 2013 10:34:31 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hverkuil@xs4all.nl
+Subject: Re: [Q] Querying Y/Gb Average Level in a sensor.
+Message-ID: <20130512073431.GB6748@valkosipuli.retiisi.org.uk>
+References: <CACKLOr2t84A8OVXBd1AEcK2U7bg0ufKZ7gZQZemX8uznz3_bgg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CACKLOr2t84A8OVXBd1AEcK2U7bg0ufKZ7gZQZemX8uznz3_bgg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 13 May 2013 22:00:01 Wei Yongjun wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-> 
-> The orig code will release all the resources if v4l2_device_register()
-> failed and return 0. But what we need in this case is to return an
-> negative error code to let the caller known we are failed.
-> So the patch save the return value of v4l2_device_register() to 'ret'
-> and return it when error.
-> 
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hi Javier,
 
-Acked-by: Federico Vaga <federico.vaga@gmail.com>
+My apologies for the late reply.
 
-> ---
-> v1 -> v2: change the commit message
-> ---
->  drivers/media/pci/sta2x11/sta2x11_vip.c | 3 ++-
->  1 file changed, 2 insertions(+), 1 deletion(-)
+On Mon, Jan 21, 2013 at 12:20:23PM +0100, javier Martin wrote:
+> Hi,
+> ov7670 and ov7675 sensors have the possibility of querying the average
+> value of the Y/Cb components of the image reading a register. This
+> could be useful for applications such as calise [1]. This program
+> grabs frames from a video camera, calculates the average brightness
+> and then adjusts screen's backlight accordingly.
 > 
-> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c
-> b/drivers/media/pci/sta2x11/sta2x11_vip.c index 7005695..77edc11 100644
-> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
-> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
-> @@ -1047,7 +1047,8 @@ static int sta2x11_vip_init_one(struct pci_dev *pdev,
->  	ret = sta2x11_vip_init_controls(vip);
->  	if (ret)
->  		goto free_mem;
-> -	if (v4l2_device_register(&pdev->dev, &vip->v4l2_dev))
-> +	ret = v4l2_device_register(&pdev->dev, &vip->v4l2_dev);
-> +	if (ret)
->  		goto free_mem;
+> If the user could query the value of this register t in cameras that
+> support it we could save a lot of processing effort.
 > 
->  	dev_dbg(&pdev->dev, "BAR #0 at 0x%lx 0x%lx irq %d\n",
+> The first idea that came into my mind was to define a new v4l2-ctrl
+> for this but I'm not sure if it is a common feature in other sensors.
+> Is it worth it to define a new v4l2-ctrl for this or should I use a
+> private ctrl instead?
+
+Is this register something you can just read back from the sensor, or is it
+associated to a particular frame?
+
+In general the information sounds like such that it should be part of the
+frame metadata, but I don't think the driver should read the value back from
+the sensor just to provide the metadata to the user space. I could imagine
+that most of the time the user space wouldn't be even interested in that at
+all, but only in very specific situations. (Related to the recent frame
+metadata discussion, not to your proposal.)
+
+So I'm also leaning towards having a control for the purpose. I haven't seen
+a sensor which would implement the same (anyone else?) so I'd probably start
+with a private control.
+
+Cc Hans and Laurent.
+
 -- 
-Federico Vaga
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
