@@ -1,89 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2397 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753831Ab3EaIWy (ORCPT
+Received: from mail-pa0-f48.google.com ([209.85.220.48]:62393 "EHLO
+	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753162Ab3ELOW7 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 04:22:54 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v6] V4L2: I2C: ML86V7667 video decoder driver
-Date: Fri, 31 May 2013 10:22:31 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org, matsu@igel.co.jp,
-	linux-sh@vger.kernel.org, vladimir.barinov@cogentembedded.com
-References: <201305292252.29007.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201305292252.29007.sergei.shtylyov@cogentembedded.com>
+	Sun, 12 May 2013 10:22:59 -0400
+Received: by mail-pa0-f48.google.com with SMTP id kp6so3972844pab.7
+        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 07:22:59 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305311022.31321.hverkuil@xs4all.nl>
+In-Reply-To: <20130512071719.GA6748@valkosipuli.retiisi.org.uk>
+References: <CAEt6MXmqv6KwkKoQzAGkG+vU07z_vV6gET8hSDAdxu=WBt3jtw@mail.gmail.com>
+ <20130512071719.GA6748@valkosipuli.retiisi.org.uk>
+From: =?ISO-8859-1?Q?Roberto_Alc=E2ntara?= <roberto@eletronica.org>
+Date: Sun, 12 May 2013 11:22:38 -0300
+Message-ID: <CAEt6MXm_X70BAZEhYt9FypiH2JzNPDHrH1BK3hFXruaECCLOzg@mail.gmail.com>
+Subject: Re: [PATCH] smscoreapi: Make Siano firmware load more verbose
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi!
+Hi Sakari,
 
-On Wed May 29 2013 20:52:28 Sergei Shtylyov wrote:
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> 
-> Add OKI Semiconductor ML86V7667 video decoder driver.
-> 
+Ok I will review code looking for memory leaks.
 
-I've accepted this patch, but I've added a patch to fix this function:
+Thank you for the tip.
 
-> +static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
-> +{
-> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
-> +	int status;
-> +
-> +	status = i2c_smbus_read_byte_data(client, STATUS_REG);
-> +	if (status < 0)
-> +		return status;
-> +
-> +	if (!(status & STATUS_HLOCK_DETECT))
-> +		return V4L2_STD_UNKNOWN;
-> +
-> +	*std = status & STATUS_NTSCPAL ? V4L2_STD_625_50 : V4L2_STD_525_60;
-> +
-> +	return 0;
-> +}
-> +
+ - Roberto
 
-[PATCH] ml86v7667: fix the querystd implementation
 
-The *std should be set to V4L2_STD_UNKNOWN, not the function's return code.
-
-Also, *std should be ANDed with 525_60 or 625_50.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/ml86v7667.c |    8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/i2c/ml86v7667.c b/drivers/media/i2c/ml86v7667.c
-index 0f256d3..cd9f86e 100644
---- a/drivers/media/i2c/ml86v7667.c
-+++ b/drivers/media/i2c/ml86v7667.c
-@@ -169,10 +169,10 @@ static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
- 	if (status < 0)
- 		return status;
- 
--	if (!(status & STATUS_HLOCK_DETECT))
--		return V4L2_STD_UNKNOWN;
--
--	*std = status & STATUS_NTSCPAL ? V4L2_STD_625_50 : V4L2_STD_525_60;
-+	if (status & STATUS_HLOCK_DETECT)
-+		*std &= status & STATUS_NTSCPAL ? V4L2_STD_625_50 : V4L2_STD_525_60;
-+	else
-+		*std = V4L2_STD_UNKNOWN;
- 
- 	return 0;
- }
--- 
-1.7.10.4
-
-I've queued this one up in my for-v3.11 branch, so you don't need to do
-anything.
-
-Regards,
-
-	Hans
+On Sun, May 12, 2013 at 4:17 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Roberto,
+>
+> On Sat, May 11, 2013 at 12:53:29PM -0300, Roberto Alcântara wrote:
+>> Signed-off-by: Roberto Alcantara <roberto@eletronica.org>
+>>
+>> diff --git a/drivers/media/common/siano/smscoreapi.c
+>> b/drivers/media/common/siano/smscoreapi.c
+>> index 45ac9ee..dbe9b4d 100644
+>> --- a/drivers/media/common/siano/smscoreapi.c
+>> +++ b/drivers/media/common/siano/smscoreapi.c
+>> @@ -1154,7 +1154,7 @@ static int
+>> smscore_load_firmware_from_file(struct smscore_device_t *coredev,
+>>
+>>      char *fw_filename = smscore_get_fw_filename(coredev, mode);
+>>      if (!fw_filename) {
+>> -        sms_info("mode %d not supported on this device", mode);
+>> +        sms_err("mode %d not supported on this device", mode);
+>>          return -ENOENT;
+>>      }
+>>      sms_debug("Firmware name: %s", fw_filename);
+>> @@ -1165,14 +1165,14 @@ static int
+>> smscore_load_firmware_from_file(struct smscore_device_t *coredev,
+>>
+>>      rc = request_firmware(&fw, fw_filename, coredev->device);
+>>      if (rc < 0) {
+>> -        sms_info("failed to open \"%s\"", fw_filename);
+>> +        sms_err("failed to open firmware file \"%s\"", fw_filename);
+>>          return rc;
+>>      }
+>>      sms_info("read fw %s, buffer size=0x%zx", fw_filename, fw->size);
+>>      fw_buf = kmalloc(ALIGN(fw->size, SMS_ALLOC_ALIGNMENT),
+>>               GFP_KERNEL | GFP_DMA);
+>>      if (!fw_buf) {
+>> -        sms_info("failed to allocate firmware buffer");
+>> +        sms_err("failed to allocate firmware buffer");
+>
+> It's not really related to this patch, but I think there's a memory leak
+> here: release_firmware() isn't called if kmalloc() above fails. I'd just add
+> a goto and a label to the end of the function where that's being done (and
+> set rc, too).
+>
+> While you're at it, could you send a patch for that, please?
+>
+>>          return -ENOMEM;
+>>      }
+>>      memcpy(fw_buf, fw->data, fw->size);
+>
+> --
+> Kind regards,
+>
+> Sakari Ailus
+> e-mail: sakari.ailus@iki.fi     XMPP: sailus@retiisi.org.uk
