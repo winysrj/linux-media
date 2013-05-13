@@ -1,94 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:64538 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758125Ab3EOMBy (ORCPT
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:37133 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750874Ab3EMMqj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 08:01:54 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 4/6] media: i2c: ths7303: make the pdata as a constant pointer
-Date: Wed, 15 May 2013 17:27:20 +0530
-Message-Id: <1368619042-28252-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 13 May 2013 08:46:39 -0400
+Received: by mail-ea0-f172.google.com with SMTP id d10so417328eaj.17
+        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 05:46:38 -0700 (PDT)
+From: Federico Vaga <federico.vaga@gmail.com>
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: mchehab@redhat.com, hans.verkuil@cisco.com,
+	giancarlo.asnaghi@st.com, prabhakar.csengg@gmail.com,
+	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] sta2x11_vip: fix error return code in sta2x11_vip_init_one()
+Date: Mon, 13 May 2013 14:46:53 +0200
+Message-ID: <152054915.14cJhqgY8Y@harkonnen>
+In-Reply-To: <CAPgLHd87Pzp=OCzOb__5nTv0dy-_hbVeZv6buz__uv-sfYiuww@mail.gmail.com>
+References: <CAPgLHd8UFD4p=PAK+Ukno8qvmvaxVxvSrrZw=qpUtERCyP7hpg@mail.gmail.com> <44148472.RS4fqJslTV@harkonnen> <CAPgLHd87Pzp=OCzOb__5nTv0dy-_hbVeZv6buz__uv-sfYiuww@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Monday 13 May 2013 20:40:33 Wei Yongjun wrote:
+> On 05/13/2013 08:19 PM, Federico Vaga wrote:
+> > Hello,
+> > 
+> > I agree with the content of the patch, but I disagree with the commit
+> > message.> 
+> > >From the commit message it seems that you fixed a bug about the error
+> > >code,
+> > 
+> > but the aim of this patch is to uniform the code style. I suggest
+> > something
+> > like: "uniform code style in sta2x11_vip_init_one()"
+> 
+> The orig code will release all the resources if v4l2_device_register()
+> failed and return 0.
+> But what we need in this case is to return an negative error code
+> to let the caller known we are failed. So the patch save the return
+> value of v4l2_device_register() to 'ret' and return it when error.
 
-generally the pdata needs to be a constant pointer in the device
-state structure. This patch makes the pdata as a constant pointer
-and alongside returns -EINVAL when pdata is NULL.
+Oh sure, you are right :)
+I did not understand it immediately from the commit message. Can you put this 
+answer as commit message? It is perfectly clear where is the bug now.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
----
- drivers/media/i2c/ths7303.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
-index af06187c..b954195 100644
---- a/drivers/media/i2c/ths7303.c
-+++ b/drivers/media/i2c/ths7303.c
-@@ -35,7 +35,7 @@
- 
- struct ths7303_state {
- 	struct v4l2_subdev		sd;
--	struct ths7303_platform_data	pdata;
-+	const struct ths7303_platform_data *pdata;
- 	struct v4l2_bt_timings		bt;
- 	int std_id;
- 	int stream_on;
-@@ -89,7 +89,7 @@ int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ths7303_state *state = to_state(sd);
--	struct ths7303_platform_data *pdata = &state->pdata;
-+	const struct ths7303_platform_data *pdata = state->pdata;
- 	u8 val, sel = 0;
- 	int err, disable = 0;
- 
-@@ -356,6 +356,11 @@ static int ths7303_probe(struct i2c_client *client,
- 	struct ths7303_state *state;
- 	struct v4l2_subdev *sd;
- 
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "No platform data\n");
-+		return -EINVAL;
-+	}
-+
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
- 
-@@ -367,11 +372,7 @@ static int ths7303_probe(struct i2c_client *client,
- 	if (!state)
- 		return -ENOMEM;
- 
--	if (!pdata)
--		v4l_warn(client, "No platform data, using default data!\n");
--	else
--		state->pdata = *pdata;
--
-+	state->pdata = pdata;
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &ths7303_ops);
- 
+Thank you
 -- 
-1.7.4.1
-
+Federico Vaga
