@@ -1,67 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f171.google.com ([209.85.214.171]:64632 "EHLO
-	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750970Ab3EQIYu (ORCPT
+Received: from mail-la0-f41.google.com ([209.85.215.41]:57203 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753994Ab3EMTVo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 May 2013 04:24:50 -0400
-Received: by mail-ob0-f171.google.com with SMTP id ef5so4429744obb.30
-        for <linux-media@vger.kernel.org>; Fri, 17 May 2013 01:24:50 -0700 (PDT)
+	Mon, 13 May 2013 15:21:44 -0400
+Received: by mail-la0-f41.google.com with SMTP id lx15so4098568lab.14
+        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 12:21:42 -0700 (PDT)
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: [PATCH v3] adv7180: add more subdev video ops
+Cc: vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
+	matsu@igel.co.jp
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Mon, 13 May 2013 23:21:39 +0400
 MIME-Version: 1.0
-Date: Fri, 17 May 2013 13:54:50 +0530
-Message-ID: <CAK9yfHxBW4wF_sqyzW0+h1xycbDUyJLfWkSKBwZAjU00sh7akA@mail.gmail.com>
-Subject: Warnings related to anonymous unions in s5p-tv driver
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	hans.verkuil@cisco.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-I noticed the following sparse warnings with S5P HDMI driver which I
-think got introduced due to the following commit:
-5efb54b2b7b ([media] s5p-tv: add dv_timings support for hdmi)
+Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
+the soc-camera drivers.
 
-Warnings:
-drivers/media/platform/s5p-tv/hdmi_drv.c:483:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:484:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:485:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:486:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:487:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:488:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:489:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:490:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:491:18: error: unknown field
-name in initializer
-drivers/media/platform/s5p-tv/hdmi_drv.c:492:18: error: unknown field
-name in initializer
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-This looks like the anonymous union initialization problem with GCC.
-Surprisingly I get this with GCC 4.6, 4.7 and 4.8 as well.
+---
+This patch is against the 'media_tree.git' repo.
 
-If I add additional braces to the macro V4L2_INIT_BT_TIMINGS like done
-for GCC version < 4.6
-like
-{ .bt = { _width , ## args } }
+Changes from version 2:
+- set the field format depending on video standard in try_mbus_fmt() method;
+- removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
+- removed g_crop() method.
 
-or if I change the GNUC_MINOR comparison to 9 like (__GNUC_MINOR__ < 9)
-I dont see this error.
+ drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
+ 1 file changed, 86 insertions(+)
 
-I am using the Linaro GCC toolchain.
-
-I am not sure if this has already been reported and/or fixed.
--- 
-With warm regards,
-Sachin
+Index: media_tree/drivers/media/i2c/adv7180.c
+===================================================================
+--- media_tree.orig/drivers/media/i2c/adv7180.c
++++ media_tree/drivers/media/i2c/adv7180.c
+@@ -1,6 +1,8 @@
+ /*
+  * adv7180.c Analog Devices ADV7180 video decoder driver
+  * Copyright (c) 2009 Intel Corporation
++ * Copyright (C) 2013 Cogent Embedded, Inc.
++ * Copyright (C) 2013 Renesas Solutions Corp.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License version 2 as
+@@ -128,6 +130,7 @@ struct adv7180_state {
+ 	v4l2_std_id		curr_norm;
+ 	bool			autodetect;
+ 	u8			input;
++	struct v4l2_mbus_framefmt fmt;
+ };
+ #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
+ 					    struct adv7180_state,	\
+@@ -397,10 +400,93 @@ static void adv7180_exit_controls(struct
+ 	v4l2_ctrl_handler_free(&state->ctrl_hdl);
+ }
+ 
++static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
++				 enum v4l2_mbus_pixelcode *code)
++{
++	if (index > 0)
++		return -EINVAL;
++
++	*code = V4L2_MBUS_FMT_YUYV8_2X8;
++
++	return 0;
++}
++
++static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
++				struct v4l2_mbus_framefmt *fmt)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
++	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
++		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
++	fmt->width = 720;
++	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
++
++	return 0;
++}
++
++static int adv7180_g_mbus_fmt(struct v4l2_subdev *sd,
++			      struct v4l2_mbus_framefmt *fmt)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	*fmt = state->fmt;
++
++	return 0;
++}
++
++static int adv7180_s_mbus_fmt(struct v4l2_subdev *sd,
++			      struct v4l2_mbus_framefmt *fmt)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	adv7180_try_mbus_fmt(sd, fmt);
++	state->fmt = *fmt;
++
++	return 0;
++}
++
++static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
++{
++	struct adv7180_state *state = to_state(sd);
++
++	a->bounds.left = 0;
++	a->bounds.top = 0;
++	a->bounds.width = 720;
++	a->bounds.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
++	a->defrect = a->bounds;
++	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
++	a->pixelaspect.numerator = 1;
++	a->pixelaspect.denominator = 1;
++
++	return 0;
++}
++
++static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
++				 struct v4l2_mbus_config *cfg)
++{
++	/*
++	 * The ADV7180 sensor supports BT.601/656 output modes.
++	 * The BT.656 is default and not yet configurable by s/w.
++	 */
++	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
++		     V4L2_MBUS_DATA_ACTIVE_HIGH;
++	cfg->type = V4L2_MBUS_BT656;
++
++	return 0;
++}
++
+ static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+ 	.querystd = adv7180_querystd,
+ 	.g_input_status = adv7180_g_input_status,
+ 	.s_routing = adv7180_s_routing,
++	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
++	.try_mbus_fmt = adv7180_try_mbus_fmt,
++	.g_mbus_fmt = adv7180_g_mbus_fmt,
++	.s_mbus_fmt = adv7180_s_mbus_fmt,
++	.cropcap = adv7180_cropcap,
++	.g_mbus_config = adv7180_g_mbus_config,
+ };
+ 
+ static const struct v4l2_subdev_core_ops adv7180_core_ops = {
