@@ -1,59 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:56227 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752827Ab3EMIA6 (ORCPT
+Received: from m54.creationtech.com ([206.47.221.54]:44221 "EHLO
+	smtp.creationtech.com" rhost-flags-OK-FAIL-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751968Ab3EMSDl convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 04:00:58 -0400
-Message-ID: <51909DB4.2060208@canonical.com>
-Date: Mon, 13 May 2013 10:00:52 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+	Mon, 13 May 2013 14:03:41 -0400
+From: Phillip Norisez <phillip.norisez@creationtech.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Media controller versus int device in V4L2
+Date: Mon, 13 May 2013 18:03:38 +0000
+Message-ID: <72B01BB430E48246B160E44B43976D910CFD2938@CTFIREBIRD.creationtech.com>
+References: <72B01BB430E48246B160E44B43976D910CFCF18C@CTFIREBIRD.creationtech.com>
+ <201305101355.05814.hverkuil@xs4all.nl>
+In-Reply-To: <201305101355.05814.hverkuil@xs4all.nl>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Inki Dae <inki.dae@samsung.com>
-CC: Rob Clark <robdclark@gmail.com>, Daniel Vetter <daniel@ffwll.ch>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"myungjoo.ham" <myungjoo.ham@samsung.com>,
-	YoungJun Cho <yj44.cho@samsung.com>
-Subject: Re: Introduce a new helper framework for buffer synchronization
-References: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com>
-In-Reply-To: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 09-05-13 09:33, Inki Dae schreef:
-> Hi all,
->
-> This post introduces a new helper framework based on dma fence. And the
-> purpose of this post is to collect other opinions and advices before RFC
-> posting.
->
-> First of all, this helper framework, called fence helper, is in progress
-> yet so might not have enough comments in codes and also might need to be
-> more cleaned up. Moreover, we might be missing some parts of the dma fence.
-> However, I'd like to say that all things mentioned below has been tested
-> with Linux platform and worked well.
+Hans,
 
-> ....
->
-> And tutorial for user process.
->         just before cpu access
->                 struct dma_buf_fence *df;
->
->                 df->type = DMA_BUF_ACCESS_READ or DMA_BUF_ACCESS_WRITE;
->                 ioctl(fd, DMA_BUF_GET_FENCE, &df);
->
->         after memset or memcpy
->                 ioctl(fd, DMA_BUF_PUT_FENCE, &df);
-NAK.
+I fear that in my ignorance of V4L2, I have backed my client into a corner, so to speak.  I am developing embedded Linux firmware for boards intended to driver video sensors within a medical device.  As such, tried and true versions of everything on board are preferred,  even if they are not cutting edge.   Applying this philosophy has gotten me into the situation where I am committed, for first human use, to a 2.6.37 kernel which does not have media controller v4l2, only int device.  Hence my question about back-porting drivers, and the programming differences.  I hope that clears up my situation for you.  If a patch exists to make the v4l2 on a 2.6.37 kernel into a media controller version, I am unaware of it, though I have not conducted a search for it (I will as soon as I finish this e-mail).
 
-Userspace doesn't need to trigger fences. It can do a buffer idle wait, and postpone submitting new commands until after it's done using the buffer.
-Kernel space doesn't need the root hole you created by giving a dereferencing a pointer passed from userspace.
-Your next exercise should be to write a security exploit from the api you created here. It's the only way to learn how to write safe code. Hint: df.ctx = mmap(..);
+Sincerely,
+Phillip Norisez
+Software Design Engineer
+Creation Technologies
 
-~Maarten
+Office: 303.835.7494
+phillip.norisez@creationtech.com | www.creationtech.com
+
+
+
+-----Original Message-----
+From: Hans Verkuil [mailto:hverkuil@xs4all.nl] 
+Sent: Friday, May 10, 2013 5:55 AM
+To: Phillip Norisez
+Cc: linux-media@vger.kernel.org
+Subject: Re: Media controller versus int device in V4L2
+
+On Wed May 8 2013 17:06:17 Phillip Norisez wrote:
+> I have the following question, who or what can help me with some information on the specific differences, from a programming viewpoint, between the "media controller" and "int device" frameworks for V4L2?
+
+v4l2-int-device is deprecated and should never be used. There is only one remaining driver that uses it. Hopefully one day that will be converted as well and the int-device API will disappear.
+
+The int-device API has nothing to do with the media controller. It has been superseded by the v4l2-subdev API.
+
+Reasonably detailed information is available in Documentation/video4linux/v4l2-frameworks.txt
+and in the V4L2 Spec (which also contains the Media Controller documentation).
+
+It is not entirely clear to me what you want to achieve, but if you happen to have int-device based drivers then those should be converted to v4l2_subdev based drivers for which there are a ton of examples.
+
+Regards,
+
+	Hans
+
+> A checklist for forward and back porting is what I seek, but I don't expect such a thing to exist.  However, I believe someone on here may have the knowledge to author such a list, and I would be willing to pay reasonably for it.
+> 
+> Phillip Norisez
+> Software Design Engineer
+> Creation Technologies
+> 
+> Office: 303.835.7494
+> 6833 Joyce Street | Arvada, CO  80007 | USA 
+> phillip.norisez@creationtech.com | www.creationtech.com 
+> ________________________________ Confidentiality Notice
+> 
+> This e-mail and any attachment(s) are intended for the individual or entity to which this email is addressed and may contain information that is confidential. If you are not the intended recipient or an employee or agent responsible for delivering this e-mail to the intended recipient, please be aware that any dissemination, distribution or copying of this communication is strictly prohibited. If you have received this in error, please notify the sender by telephone at 604.430.4336 or by return e-mail, and please delete or destroy all copies of this communication. Thank you!
+> 
+> P     Please consider the impact on the environment before printing this email or its attachments
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" 
+> in the body of a message to majordomo@vger.kernel.org More majordomo 
+> info at  http://vger.kernel.org/majordomo-info.html
+> 
