@@ -1,71 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f54.google.com ([209.85.215.54]:58501 "EHLO
-	mail-la0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753398Ab3ENRqA (ORCPT
+Received: from mail-lb0-f193.google.com ([209.85.217.193]:52116 "EHLO
+	mail-lb0-f193.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752485Ab3EMIdd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 13:46:00 -0400
+	Mon, 13 May 2013 04:33:33 -0400
+Received: by mail-lb0-f193.google.com with SMTP id t11so1495658lbd.0
+        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 01:33:31 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <1368542918-8861-5-git-send-email-imre.deak@intel.com>
-References: <1368188011-23661-1-git-send-email-imre.deak@intel.com>
-	<1368542918-8861-1-git-send-email-imre.deak@intel.com>
-	<1368542918-8861-5-git-send-email-imre.deak@intel.com>
-Date: Tue, 14 May 2013 13:45:58 -0400
-Message-ID: <CAC-25o-iHZikYLhBo_ckB07y7GgiVn4-9uhc7yN9iZiZC171jw@mail.gmail.com>
-Subject: Re: [PATCH v2 4/8] media/si4713-i2c: take usecs_to_jiffies_timeout
- into use
-From: "edubezval@gmail.com" <edubezval@gmail.com>
-To: Imre Deak <imre.deak@intel.com>
-Cc: linux-kernel@vger.kernel.org,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Daniel Vetter <daniel.vetter@ffwll.ch>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	linux-media@vger.kernel.org
+In-Reply-To: <CALF0-+U5isYqbW5DSYauZOYmqit6Q8TMsSQGRxWg-TkJY7oPMw@mail.gmail.com>
+References: <CALPBhf5Sx2-OOhASJVCu+oO39yAh4uBT3JgFa3RPpDGKVp9gTA@mail.gmail.com>
+	<CALF0-+XxTwjyGVb8EWrmoa2NPSpVZSmpE6Ha2Q-R++aSC8XeNg@mail.gmail.com>
+	<CALF0-+U5isYqbW5DSYauZOYmqit6Q8TMsSQGRxWg-TkJY7oPMw@mail.gmail.com>
+Date: Mon, 13 May 2013 09:33:31 +0100
+Message-ID: <CALPBhf7vYJh=G7fttft+C=0gCdV2+Bpe09RYZjeRQ3vt9Q5uPQ@mail.gmail.com>
+Subject: Re: stk1160: cannot alloc 196608 bytes
+From: a b <genericgroupmail@gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Imre,
+Hi Ezequiel,
 
-On Tue, May 14, 2013 at 10:48 AM, Imre Deak <imre.deak@intel.com> wrote:
-> Use usecs_to_jiffies_timeout instead of open-coding the same.
->
-> Signed-off-by: Imre Deak <imre.deak@intel.com>
+Sorry, just saw your suggestion RE: keep_buffers, i will definitely
+try this out and let you know how it goes.
+Will probably give it a few days worth of runs to see if it re-occurs.
 
-Acked-by: Eduardo Valentin <edubezval@gmail.com>
+Thanks again!
 
-> ---
->  drivers/media/radio/si4713-i2c.c |    4 ++--
->  1 file changed, 2 insertions(+), 2 deletions(-)
+On Sat, May 11, 2013 at 3:40 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> On Sat, May 11, 2013 at 10:28 AM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+>> On Thu, May 9, 2013 at 1:11 PM, a b <genericgroupmail@gmail.com> wrote:
+>>> Hi,
+>>>
+>>> I am seeing occasional issues when using an easycap card on our fedora
+>>> 17 machine.
+>> [...]
+>>
+>> On a very quick look you seem to be getting out of memory (out of
+>> blocks of pages large enough for stk1160). Now, this may be some bug
+>> in stk1160, maybe not.
+>>
+>> I'll take a closer look in the next weeks.
 >
-> diff --git a/drivers/media/radio/si4713-i2c.c b/drivers/media/radio/si4713-i2c.c
-> index fe16088..e12f058 100644
-> --- a/drivers/media/radio/si4713-i2c.c
-> +++ b/drivers/media/radio/si4713-i2c.c
-> @@ -233,7 +233,7 @@ static int si4713_send_command(struct si4713_device *sdev, const u8 command,
+> Could you try using "keep_buffers" option? This option should tell the driver
+> to try to not release the video buffers, in an attempt to prevent
+> memory from fragmenting.
 >
->         /* Wait response from interrupt */
->         if (!wait_for_completion_timeout(&sdev->work,
-> -                               usecs_to_jiffies(usecs) + 1))
-> +                               usecs_to_jiffies_timeout(usecs)))
->                 v4l2_warn(&sdev->sd,
->                                 "(%s) Device took too much time to answer.\n",
->                                 __func__);
-> @@ -470,7 +470,7 @@ static int si4713_wait_stc(struct si4713_device *sdev, const int usecs)
+> Like this:
 >
->         /* Wait response from STC interrupt */
->         if (!wait_for_completion_timeout(&sdev->work,
-> -                       usecs_to_jiffies(usecs) + 1))
-> +                       usecs_to_jiffies_timeout(usecs)))
->                 v4l2_warn(&sdev->sd,
->                         "%s: device took too much time to answer (%d usec).\n",
->                                 __func__, usecs);
+> $ modprobe stk1160 keep_buffers=1
+>
+> or like this to make it permanent:
+>
+> $ echo "options stk1160 keep_buffers=1" > /etc/modprobe.d/stk1160.conf
+>
+> Please try this, see if it solves your issue and report your results.
 > --
-> 1.7.10.4
->
-
-
-
--- 
-Eduardo Bezerra Valentin
+>     Ezequiel
