@@ -1,101 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3435 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752402Ab3ERS2R (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55233 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751205Ab3EMOX2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 May 2013 14:28:17 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4IISDIM064608
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 18 May 2013 20:28:16 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 0D58635E003D
-	for <linux-media@vger.kernel.org>; Sat, 18 May 2013 20:28:07 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130518182808.0D58635E003D@alastor.dyndns.org>
-Date: Sat, 18 May 2013 20:28:07 +0200 (CEST)
+	Mon, 13 May 2013 10:23:28 -0400
+Date: Mon, 13 May 2013 10:25:35 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, mchehab@redhat.com,
+	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] v4l: vb2: fix error return code in
+ __vb2_init_fileio()
+Message-ID: <20130513072535.GE6748@valkosipuli.retiisi.org.uk>
+References: <CAPgLHd9ydkkQ_yOmhnU1awN08kBhiM-ZryGBqq8S0qisHkYvqA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAPgLHd9ydkkQ_yOmhnU1awN08kBhiM-ZryGBqq8S0qisHkYvqA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Wei,
 
-Results of the daily build of media_tree:
+On Mon, May 13, 2013 at 01:48:45PM +0800, Wei Yongjun wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> 
+> Fix to return -EINVAL in the get kernel address error handling
+> case instead of 0, as done elsewhere in this function.
+> 
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> ---
+>  drivers/media/v4l2-core/videobuf2-core.c | 4 +++-
+>  1 file changed, 3 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+> index 7d833ee..7bd3ee6 100644
+> --- a/drivers/media/v4l2-core/videobuf2-core.c
+> +++ b/drivers/media/v4l2-core/videobuf2-core.c
+> @@ -2193,8 +2193,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+>  	 */
+>  	for (i = 0; i < q->num_buffers; i++) {
+>  		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
+> -		if (fileio->bufs[i].vaddr == NULL)
+> +		if (fileio->bufs[i].vaddr == NULL) {
+> +			ret = -EINVAL;
+>  			goto err_reqbufs;
+> +		}
+>  		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
+>  	}
+>  
+> 
 
-date:		Sat May 18 19:00:19 CEST 2013
-git branch:	test
-git hash:	4237c09a63906b980741725da63f85e454caec02
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Nice patch!
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: ERRORS
-spec-git: OK
-sparse: ERRORS
+Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-Detailed results are available here:
+-- 
+Kind regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
