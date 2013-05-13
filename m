@@ -1,76 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:50204 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755866Ab3E0LYG (ORCPT
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:64484 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752889Ab3EMFsq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 07:24:06 -0400
-Message-ID: <51A34250.6040601@canonical.com>
-Date: Mon, 27 May 2013 13:24:00 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+	Mon, 13 May 2013 01:48:46 -0400
+Received: by mail-bk0-f48.google.com with SMTP id jf3so2182194bkc.7
+        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 22:48:45 -0700 (PDT)
 MIME-Version: 1.0
-To: Peter Zijlstra <peterz@infradead.org>
-CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	x86@kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
-	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
-Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks,
- v3
-References: <20130428165914.17075.57751.stgit@patser> <20130428170407.17075.80082.stgit@patser> <20130430191422.GA5763@phenom.ffwll.local> <519CA976.9000109@canonical.com> <20130522161831.GQ18810@twins.programming.kicks-ass.net> <519CFF56.90600@canonical.com> <20130527082149.GE2781@laptop> <51A32F0E.9000206@canonical.com> <20130527102457.GA4341@laptop> <51A33AD0.4030406@canonical.com> <20130527111557.GB4341@laptop>
-In-Reply-To: <20130527111557.GB4341@laptop>
+Date: Mon, 13 May 2013 13:48:45 +0800
+Message-ID: <CAPgLHd9ydkkQ_yOmhnU1awN08kBhiM-ZryGBqq8S0qisHkYvqA@mail.gmail.com>
+Subject: [PATCH] [media] v4l: vb2: fix error return code in __vb2_init_fileio()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: pawel@osciak.com, m.szyprowski@samsung.com,
+	kyungmin.park@samsung.com, mchehab@redhat.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 27-05-13 13:15, Peter Zijlstra schreef:
-> On Mon, May 27, 2013 at 12:52:00PM +0200, Maarten Lankhorst wrote:
->> The reason ttm needed it was because there was another lock that interacted
->> with the ctx lock in a weird way. The ww lock it was using was inverted with another
->> lock, so it had to grab that lock first, perform a trylock on the ww lock, and if that failed
->> unlock the lock, wait for it to be unlocked, then retry the same thing again.
->> I'm so glad I managed to fix that mess, if you really need ww_mutex_trylock with a ctx,
->> it's an indication your locking is wrong.
->>
->> For ww_mutex_trylock with a context to be of any use you would also need to return
->> 0 or a -errno, (-EDEADLK, -EBUSY (already locked by someone else), or -EALREADY).
->> This would make the trylock very different from other trylocks, and very confusing because
->> if (ww_mutex_trylock(lock, ctx)) would not do what you would think it would do.
-> Yuck ;-)
->
-> Anyway, what I was thinking of is something like:
->
-> 	T0		T1
->
-> 	try A
-> 			lock B
-> 	lock B
-> 			lock A
->
-> Now, if for some reason T1 won the lottery such that T0 would have to be
-> wounded, T0's context would indicate its the first entry and not return
-> -EDEADLK.
-And this sounds like something lockdep is designed to complain about.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Nothing stops you from doing try A then doing try B, which would be the correct way to deal with this situation.
-Why would you trylock one, and then not do the same for another?
+Fix to return -EINVAL in the get kernel address error handling
+case instead of 0, as done elsewhere in this function.
 
-> OTOH, anybody doing creative things like that might well deserve
-> whatever they get ;-)
-Indeed!
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/v4l2-core/videobuf2-core.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
->>> The thing is; if there could exist something like:
->>>
->>>   ww_mutex_trylock(struct ww_mutex *, struct ww_acquire_ctx *ctx);
->>>
->>> Then we should not now take away that name and make it mean something
->>> else; namely: ww_mutex_trylock_single().
->>>
->>> Unless we want to allow .ctx=NULL to mean _single.
->>>
->>> As to why I proposed that (.ctx=NULL meaning _single); I suppose because
->>> I'm a minimalist at heart.
->> Minimalism isn't bad, it's just knowing when to sto
-> :-)
->
+diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
+index 7d833ee..7bd3ee6 100644
+--- a/drivers/media/v4l2-core/videobuf2-core.c
++++ b/drivers/media/v4l2-core/videobuf2-core.c
+@@ -2193,8 +2193,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
+ 	 */
+ 	for (i = 0; i < q->num_buffers; i++) {
+ 		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
+-		if (fileio->bufs[i].vaddr == NULL)
++		if (fileio->bufs[i].vaddr == NULL) {
++			ret = -EINVAL;
+ 			goto err_reqbufs;
++		}
+ 		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
+ 	}
+ 
 
