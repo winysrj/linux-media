@@ -1,96 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f176.google.com ([209.85.160.176]:62662 "EHLO
-	mail-gh0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934217Ab3ECTzc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 15:55:32 -0400
-Received: by mail-gh0-f176.google.com with SMTP id z17so342852ghb.21
-        for <linux-media@vger.kernel.org>; Fri, 03 May 2013 12:55:32 -0700 (PDT)
-From: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Received: from mail-pb0-f42.google.com ([209.85.160.42]:57626 "EHLO
+	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751120Ab3EMJhc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 May 2013 05:37:32 -0400
+Received: by mail-pb0-f42.google.com with SMTP id up7so4318378pbc.15
+        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 02:37:32 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>
-Subject: [PATCH v2] solo6x10: Approximate frame intervals with non-standard denominator
-Date: Fri,  3 May 2013 16:54:57 -0300
-Message-Id: <1367610897-29942-1-git-send-email-ismael.luceno@corp.bluecherry.net>
+Cc: mchehab@redhat.com, sachin.kamat@linaro.org
+Subject: [PATCH 2/2] [media] rc: gpio-ir-recv: Remove redundant platform_set_drvdata()
+Date: Mon, 13 May 2013 14:54:08 +0530
+Message-Id: <1368437048-13172-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1368437048-13172-1-git-send-email-sachin.kamat@linaro.org>
+References: <1368437048-13172-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Instead of falling back to 1/25 (PAL) or 1/30 (NTSC).
+Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
+driver is bound) removes the need to set driver data field to
+NULL.
 
-Signed-off-by: Ismael Luceno <ismael.luceno@corp.bluecherry.net>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 38 +++++++++-------------
- 1 file changed, 15 insertions(+), 23 deletions(-)
+ drivers/media/rc/gpio-ir-recv.c |    2 --
+ 1 file changed, 2 deletions(-)
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index 98e2902..a4c5896 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -996,12 +996,11 @@ static int solo_g_parm(struct file *file, void *priv,
- 		       struct v4l2_streamparm *sp)
- {
- 	struct solo_enc_dev *solo_enc = video_drvdata(file);
--	struct solo_dev *solo_dev = solo_enc->solo_dev;
- 	struct v4l2_captureparm *cp = &sp->parm.capture;
- 
- 	cp->capability = V4L2_CAP_TIMEPERFRAME;
- 	cp->timeperframe.numerator = solo_enc->interval;
--	cp->timeperframe.denominator = solo_dev->fps;
-+	cp->timeperframe.denominator = solo_enc->solo_dev->fps;
- 	cp->capturemode = 0;
- 	/* XXX: Shouldn't we be able to get/set this from videobuf? */
- 	cp->readbuffers = 2;
-@@ -1009,36 +1008,29 @@ static int solo_g_parm(struct file *file, void *priv,
+diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
+index 8b82ae9..07aacfa 100644
+--- a/drivers/media/rc/gpio-ir-recv.c
++++ b/drivers/media/rc/gpio-ir-recv.c
+@@ -178,7 +178,6 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
  	return 0;
- }
  
-+static inline int calc_interval(u8 fps, u32 n, u32 d)
-+{
-+	if (!n || !d)
-+		return 1;
-+	if (d == fps)
-+		return n;
-+	n *= fps;
-+	return min(15U, n / d + (n % d >= (fps >> 1)));
-+}
-+
- static int solo_s_parm(struct file *file, void *priv,
- 		       struct v4l2_streamparm *sp)
- {
- 	struct solo_enc_dev *solo_enc = video_drvdata(file);
--	struct solo_dev *solo_dev = solo_enc->solo_dev;
--	struct v4l2_captureparm *cp = &sp->parm.capture;
-+	struct v4l2_fract *t = &sp->parm.capture.timeperframe;
-+	u8 fps = solo_enc->solo_dev->fps;
+ err_request_irq:
+-	platform_set_drvdata(pdev, NULL);
+ 	rc_unregister_device(rcdev);
+ 	rcdev = NULL;
+ err_register_rc_device:
+@@ -196,7 +195,6 @@ static int gpio_ir_recv_remove(struct platform_device *pdev)
+ 	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
  
- 	if (vb2_is_streaming(&solo_enc->vidq))
- 		return -EBUSY;
- 
--	if ((cp->timeperframe.numerator == 0) ||
--	    (cp->timeperframe.denominator == 0)) {
--		/* reset framerate */
--		cp->timeperframe.numerator = 1;
--		cp->timeperframe.denominator = solo_dev->fps;
--	}
--
--	if (cp->timeperframe.denominator != solo_dev->fps)
--		cp->timeperframe.denominator = solo_dev->fps;
--
--	if (cp->timeperframe.numerator > 15)
--		cp->timeperframe.numerator = 15;
--
--	solo_enc->interval = cp->timeperframe.numerator;
--
--	cp->capability = V4L2_CAP_TIMEPERFRAME;
--	cp->readbuffers = 2;
--
-+	solo_enc->interval = calc_interval(fps, t->numerator, t->denominator);
- 	solo_update_mode(solo_enc);
--	return 0;
-+	return solo_g_parm(file, priv, sp);
- }
- 
- static long solo_enc_default(struct file *file, void *fh,
+ 	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
+-	platform_set_drvdata(pdev, NULL);
+ 	rc_unregister_device(gpio_dev->rcdev);
+ 	gpio_free(gpio_dev->gpio_nr);
+ 	kfree(gpio_dev);
 -- 
-1.8.2.1
+1.7.9.5
 
