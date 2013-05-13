@@ -1,68 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:63008 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962Ab3ENGPK (ORCPT
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:57810 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab3EMMTN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 02:15:10 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMR0098NYOWS090@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 14 May 2013 07:15:07 +0100 (BST)
-Message-id: <5191D661.6030408@samsung.com>
-Date: Tue, 14 May 2013 08:14:57 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
+	Mon, 13 May 2013 08:19:13 -0400
+Received: by mail-wi0-f169.google.com with SMTP id hn14so517867wib.2
+        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 05:19:12 -0700 (PDT)
+From: Federico Vaga <federico.vaga@gmail.com>
 To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: pawel@osciak.com, kyungmin.park@samsung.com, mchehab@redhat.com,
+Cc: mchehab@redhat.com, hans.verkuil@cisco.com,
+	giancarlo.asnaghi@st.com, prabhakar.csengg@gmail.com,
 	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] v4l: vb2: fix error return code in
- __vb2_init_fileio()
-References: <CAPgLHd9ydkkQ_yOmhnU1awN08kBhiM-ZryGBqq8S0qisHkYvqA@mail.gmail.com>
-In-reply-to: <CAPgLHd9ydkkQ_yOmhnU1awN08kBhiM-ZryGBqq8S0qisHkYvqA@mail.gmail.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Subject: Re: [PATCH] [media] sta2x11_vip: fix error return code in sta2x11_vip_init_one()
+Date: Mon, 13 May 2013 14:19:29 +0200
+Message-ID: <44148472.RS4fqJslTV@harkonnen>
+In-Reply-To: <CAPgLHd8UFD4p=PAK+Ukno8qvmvaxVxvSrrZw=qpUtERCyP7hpg@mail.gmail.com>
+References: <CAPgLHd8UFD4p=PAK+Ukno8qvmvaxVxvSrrZw=qpUtERCyP7hpg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-On 2013-05-13 07:48, Wei Yongjun wrote:
+I agree with the content of the patch, but I disagree with the commit message. 
+>From the commit message it seems that you fixed a bug about the error code, 
+but the aim of this patch is to uniform the code style. I suggest something 
+like: "uniform code style in sta2x11_vip_init_one()"
+
+On Monday 13 May 2013 13:59:45 Wei Yongjun wrote:
 > From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->
-> Fix to return -EINVAL in the get kernel address error handling
+> 
+> Fix to return a negative error code from the error handling
 > case instead of 0, as done elsewhere in this function.
->
+> 
 > Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
-
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com>
-
 > ---
->   drivers/media/v4l2-core/videobuf2-core.c | 4 +++-
->   1 file changed, 3 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-> index 7d833ee..7bd3ee6 100644
-> --- a/drivers/media/v4l2-core/videobuf2-core.c
-> +++ b/drivers/media/v4l2-core/videobuf2-core.c
-> @@ -2193,8 +2193,10 @@ static int __vb2_init_fileio(struct vb2_queue *q, int read)
->   	 */
->   	for (i = 0; i < q->num_buffers; i++) {
->   		fileio->bufs[i].vaddr = vb2_plane_vaddr(q->bufs[i], 0);
-> -		if (fileio->bufs[i].vaddr == NULL)
-> +		if (fileio->bufs[i].vaddr == NULL) {
-> +			ret = -EINVAL;
->   			goto err_reqbufs;
-> +		}
->   		fileio->bufs[i].size = vb2_plane_size(q->bufs[i], 0);
->   	}
->   
->
->
-
-Best regards
+>  drivers/media/pci/sta2x11/sta2x11_vip.c | 3 ++-
+>  1 file changed, 2 insertions(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> b/drivers/media/pci/sta2x11/sta2x11_vip.c index 7005695..77edc11 100644
+> --- a/drivers/media/pci/sta2x11/sta2x11_vip.c
+> +++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+> @@ -1047,7 +1047,8 @@ static int sta2x11_vip_init_one(struct pci_dev *pdev,
+>  	ret = sta2x11_vip_init_controls(vip);
+>  	if (ret)
+>  		goto free_mem;
+> -	if (v4l2_device_register(&pdev->dev, &vip->v4l2_dev))
+> +	ret = v4l2_device_register(&pdev->dev, &vip->v4l2_dev);
+> +	if (ret)
+>  		goto free_mem;
+> 
+>  	dev_dbg(&pdev->dev, "BAR #0 at 0x%lx 0x%lx irq %d\n",
 -- 
-Marek Szyprowski
-Samsung Poland R&D Center
-
-
+Federico Vaga
