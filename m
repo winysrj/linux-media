@@ -1,28 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f43.google.com ([74.125.83.43]:36727 "EHLO
-	mail-ee0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756972Ab3EHVEM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 17:04:12 -0400
-Received: by mail-ee0-f43.google.com with SMTP id b15so1256199eek.16
-        for <linux-media@vger.kernel.org>; Wed, 08 May 2013 14:04:11 -0700 (PDT)
-Message-ID: <518ABDC9.9080907@gmail.com>
-Date: Wed, 08 May 2013 23:04:09 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:41040 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753115Ab3EMF7r (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 May 2013 01:59:47 -0400
+Received: by mail-bk0-f53.google.com with SMTP id mx1so14606bkb.40
+        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 22:59:45 -0700 (PDT)
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND 9/9] s5k6aa: Convert to devm_gpio_request_one()
-References: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com> <1368020794-21264-10-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1368020794-21264-10-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Date: Mon, 13 May 2013 13:59:45 +0800
+Message-ID: <CAPgLHd8UFD4p=PAK+Ukno8qvmvaxVxvSrrZw=qpUtERCyP7hpg@mail.gmail.com>
+Subject: [PATCH] [media] sta2x11_vip: fix error return code in sta2x11_vip_init_one()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: mchehab@redhat.com, hans.verkuil@cisco.com,
+	giancarlo.asnaghi@st.com, federico.vaga@gmail.com,
+	prabhakar.csengg@gmail.com
+Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/08/2013 03:46 PM, Laurent Pinchart wrote:
-> Use the devm_gpio_request_one() managed function to simplify cleanup
-> code paths.
->
-> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Fix to return a negative error code from the error handling
+case instead of 0, as done elsewhere in this function.
+
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/pci/sta2x11/sta2x11_vip.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/sta2x11/sta2x11_vip.c b/drivers/media/pci/sta2x11/sta2x11_vip.c
+index 7005695..77edc11 100644
+--- a/drivers/media/pci/sta2x11/sta2x11_vip.c
++++ b/drivers/media/pci/sta2x11/sta2x11_vip.c
+@@ -1047,7 +1047,8 @@ static int sta2x11_vip_init_one(struct pci_dev *pdev,
+ 	ret = sta2x11_vip_init_controls(vip);
+ 	if (ret)
+ 		goto free_mem;
+-	if (v4l2_device_register(&pdev->dev, &vip->v4l2_dev))
++	ret = v4l2_device_register(&pdev->dev, &vip->v4l2_dev);
++	if (ret)
+ 		goto free_mem;
+ 
+ 	dev_dbg(&pdev->dev, "BAR #0 at 0x%lx 0x%lx irq %d\n",
+
