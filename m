@@ -1,54 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:41903 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756332Ab3E0Cdl (ORCPT
+Received: from mail-wi0-f176.google.com ([209.85.212.176]:60857 "EHLO
+	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752555Ab3EMGGR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 22:33:41 -0400
-From: Libo Chen <libo.chen@huawei.com>
-To: <mchehab@redhat.com>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<lizefan@huawei.com>, <libo.chen@huawei.com>,
-	<gregkh@linuxfoundation.org>
-Subject: [PATCH 19/24] drivers/media/pci/dm1105/dm1105: Convert to module_pci_driver
-Date: Mon, 27 May 2013 10:31:49 +0800
-Message-ID: <1369621909-38264-1-git-send-email-libo.chen@huawei.com>
+	Mon, 13 May 2013 02:06:17 -0400
+Received: by mail-wi0-f176.google.com with SMTP id hr14so2519041wib.9
+        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 23:06:16 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAPgLHd_crJZgL3HxbCju0Zsq9q+vq8BrTnVxmhZWK9x464PF3A@mail.gmail.com>
+References: <CAPgLHd_crJZgL3HxbCju0Zsq9q+vq8BrTnVxmhZWK9x464PF3A@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 13 May 2013 11:35:56 +0530
+Message-ID: <CA+V-a8s8owT1CA-HFE+q9OZbmqFt-PjBzYQc3bztK=0cqfySEg@mail.gmail.com>
+Subject: Re: [PATCH] [media] vpif_capture: fix error return code in vpif_probe()
+To: Wei Yongjun <weiyj.lk@gmail.com>
+Cc: mchehab@redhat.com, yongjun_wei@trendmicro.com.cn,
+	linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-use module_pci_driver instead of init/exit, make code clean.
+Hi Wei
 
-Signed-off-by: Libo Chen <libo.chen@huawei.com>
----
- drivers/media/pci/dm1105/dm1105.c |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
-index 026767b..ab797fe 100644
---- a/drivers/media/pci/dm1105/dm1105.c
-+++ b/drivers/media/pci/dm1105/dm1105.c
-@@ -1241,18 +1241,7 @@ static struct pci_driver dm1105_driver = {
- 	.remove = dm1105_remove,
- };
- 
--static int __init dm1105_init(void)
--{
--	return pci_register_driver(&dm1105_driver);
--}
--
--static void __exit dm1105_exit(void)
--{
--	pci_unregister_driver(&dm1105_driver);
--}
--
--module_init(dm1105_init);
--module_exit(dm1105_exit);
-+module_pci_driver(dm1105_driver);
- 
- MODULE_AUTHOR("Igor M. Liplianin <liplianin@me.by>");
- MODULE_DESCRIPTION("SDMC DM1105 DVB driver");
--- 
-1.7.1
+On Mon, May 13, 2013 at 11:27 AM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>
+> Fix to return -ENODEV in the subdevice register error handling
+> case instead of 0, as done elsewhere in this function.
+>
+> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
+Regards,
+--Prabhakar Lad
