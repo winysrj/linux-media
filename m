@@ -1,54 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:58708 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750933Ab3EXLiz (ORCPT
+Received: from mail-la0-f65.google.com ([209.85.215.65]:49115 "EHLO
+	mail-la0-f65.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752586Ab3EMIaI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 May 2013 07:38:55 -0400
-Received: by mail-pa0-f47.google.com with SMTP id kl12so749288pab.20
-        for <linux-media@vger.kernel.org>; Fri, 24 May 2013 04:38:55 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org,
-	Kuninori Morimoto <morimoto.kuninori@renesas.com>
-Subject: [PATCH 1/2] [media] soc_camera: mt9t112: Remove empty function
-Date: Fri, 24 May 2013 16:55:06 +0530
-Message-Id: <1369394707-13049-1-git-send-email-sachin.kamat@linaro.org>
+	Mon, 13 May 2013 04:30:08 -0400
+Received: by mail-la0-f65.google.com with SMTP id er20so504272lab.4
+        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 01:30:07 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALF0-+XxTwjyGVb8EWrmoa2NPSpVZSmpE6Ha2Q-R++aSC8XeNg@mail.gmail.com>
+References: <CALPBhf5Sx2-OOhASJVCu+oO39yAh4uBT3JgFa3RPpDGKVp9gTA@mail.gmail.com>
+	<CALF0-+XxTwjyGVb8EWrmoa2NPSpVZSmpE6Ha2Q-R++aSC8XeNg@mail.gmail.com>
+Date: Mon, 13 May 2013 09:30:07 +0100
+Message-ID: <CALPBhf6Gt4o2+TW5tb0PMJLKPTd6KjaP_uWVU1ec6hpcNgaCyQ@mail.gmail.com>
+Subject: Re: stk1160: cannot alloc 196608 bytes
+From: a b <genericgroupmail@gmail.com>
+To: Ezequiel Garcia <elezegarcia@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-After the switch to devm_* functions, the 'remove' function does
-not do anything. Delete it.
+Hey Ezequiel,
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
----
- drivers/media/i2c/soc_camera/mt9t112.c |    6 ------
- 1 file changed, 6 deletions(-)
+Thank you for taking the time to look at this, it really is appreciated.
+If you need anything else just let me know.
 
-diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
-index a7256b7..0af29a4 100644
---- a/drivers/media/i2c/soc_camera/mt9t112.c
-+++ b/drivers/media/i2c/soc_camera/mt9t112.c
-@@ -1118,11 +1118,6 @@ static int mt9t112_probe(struct i2c_client *client,
- 	return ret;
- }
- 
--static int mt9t112_remove(struct i2c_client *client)
--{
--	return 0;
--}
--
- static const struct i2c_device_id mt9t112_id[] = {
- 	{ "mt9t112", 0 },
- 	{ }
-@@ -1134,7 +1129,6 @@ static struct i2c_driver mt9t112_i2c_driver = {
- 		.name = "mt9t112",
- 	},
- 	.probe    = mt9t112_probe,
--	.remove   = mt9t112_remove,
- 	.id_table = mt9t112_id,
- };
- 
--- 
-1.7.9.5
+Thanks!!
 
+On Sat, May 11, 2013 at 2:28 PM, Ezequiel Garcia <elezegarcia@gmail.com> wrote:
+> On Thu, May 9, 2013 at 1:11 PM, a b <genericgroupmail@gmail.com> wrote:
+>> Hi,
+>>
+>> I am seeing occasional issues when using an easycap card on our fedora
+>> 17 machine.
+> [...]
+>
+> On a very quick look you seem to be getting out of memory (out of
+> blocks of pages large enough for stk1160). Now, this may be some bug
+> in stk1160, maybe not.
+>
+> I'll take a closer look in the next weeks.
+> --
+>     Ezequiel
