@@ -1,80 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:60462 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639Ab3EVLF3 (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4571 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751040Ab3EMMOx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 07:05:29 -0400
-Received: by mail-ob0-f181.google.com with SMTP id dn14so2048402obc.40
-        for <linux-media@vger.kernel.org>; Wed, 22 May 2013 04:05:29 -0700 (PDT)
+	Mon, 13 May 2013 08:14:53 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4DCEo1t089209
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 13 May 2013 14:14:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from durdane.localnet (64-103-25-233.cisco.com [64.103.25.233])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 4BFF71300054
+	for <linux-media@vger.kernel.org>; Mon, 13 May 2013 14:14:44 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [RFC] Support for events with a large payload
+Date: Mon, 13 May 2013 14:14:43 +0200
 MIME-Version: 1.0
-In-Reply-To: <201305211128.31301.hverkuil@xs4all.nl>
-References: <CAK9yfHxBW4wF_sqyzW0+h1xycbDUyJLfWkSKBwZAjU00sh7akA@mail.gmail.com>
-	<201305211128.31301.hverkuil@xs4all.nl>
-Date: Wed, 22 May 2013 16:35:29 +0530
-Message-ID: <CAK9yfHyPGdNBbn6o-GLaoeTuYLCEQdCjaw+r2T_UU7_TQLHk8Q@mail.gmail.com>
-Subject: Re: Warnings related to anonymous unions in s5p-tv driver
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	hans.verkuil@cisco.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305131414.43685.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 21 May 2013 14:58, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Fri 17 May 2013 10:24:50 Sachin Kamat wrote:
->> Hi Hans,
->>
->> I noticed the following sparse warnings with S5P HDMI driver which I
->> think got introduced due to the following commit:
->> 5efb54b2b7b ([media] s5p-tv: add dv_timings support for hdmi)
->>
->> Warnings:
->> drivers/media/platform/s5p-tv/hdmi_drv.c:483:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:484:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:485:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:486:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:487:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:488:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:489:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:490:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:491:18: error: unknown field
->> name in initializer
->> drivers/media/platform/s5p-tv/hdmi_drv.c:492:18: error: unknown field
->> name in initializer
->>
->> This looks like the anonymous union initialization problem with GCC.
->> Surprisingly I get this with GCC 4.6, 4.7 and 4.8 as well.
->>
->> If I add additional braces to the macro V4L2_INIT_BT_TIMINGS like done
->> for GCC version < 4.6
->> like
->> { .bt = { _width , ## args } }
->>
->> or if I change the GNUC_MINOR comparison to 9 like (__GNUC_MINOR__ < 9)
->> I dont see this error.
->>
->> I am using the Linaro GCC toolchain.
->>
->> I am not sure if this has already been reported and/or fixed.
->>
->
-> Could it be that a different compiler version is used when using sparse?
-> I don't see these errors when running sparse during the daily build.
+Currently the event API allows for a payload of up to 64 bytes. Sometimes we
+would like to pass larger payloads to userspace such as metadata associated
+with a particular video stream.
 
-Please let me know your compiler version. I could probably try with it and see.
+A typical example of that would be object detection events.
 
+This RFC describes one approach for doing this.
 
--- 
-With warm regards,
-Sachin
+The event framework has the nice property of being able to use from within
+interrupts. Copying large payloads does not fit into that framework, so
+such payloads should be adminstrated separately.
+
+In addition, I wouldn't allow large payloads to be filled in from interrupt
+context: a worker queue would be much more appropriate.
+
+Note that the event API is only useful for relatively low-bandwidth data
+since the data is always copied. When dealing with high-bandwidth data the
+data should either be a separate plane or become a special stream I/O buffer
+type.
+
+The userspace API enhancements in order to achieve this would be the
+following:
+
+- Any event that has a large payload would specify a payload_sequence counter
+  and a payload size value (in bytes).
+
+- A new VIDIOC_DQEVENT_PAYLOAD ioctl would be added which passes the event type,
+  the payload_sequence counter and a pointer to a buffer to the kernel, and the
+  payload is returned, or an error is returned if the payload data is no longer
+  available.
+
+Optional enhancements:
+
+- Have VIDIOC_SUBSCRIBE_EVENT return the maximum payload size (lets apps
+  preallocate payload memory, but it might be overkill).
+
+- Add functionality to VIDIOC_SUBSCRIBE_EVENT to define the number of
+  events in the event queue for the filehandle. If the payload is large,
+  you may want to limit the number of allocated payload buffers. For
+  example: when dealing with metadata associated with frame you might want
+  to limit the number of payload buffers to the number of allocated frames.
+
+I feel that this can always be added later if we decide it is really needed,
+and leave it out for now.
+
+So the userspace API would be quite simple.
+
+The internal implementation would look like this:
+
+struct v4l2_event_payload {
+	u32 payload_size;
+	u32 payload_sequence;
+	void *payload;
+};
+
+struct v4l2_event_payloads {
+	// lock serializing access to this struct
+	struct mutex lock;
+	// global payload sequence number counter
+	u32 payload_sequence;
+	// size of the payload array
+	unsigned payloads;
+	// index of the oldest payload
+	unsigned first;
+	// number of payloads available
+	unsigned in_use; 
+	struct v4l2_event_payload payloads[];
+};
+
+and a pointer to struct v4l2_event_payloads would be added to struct
+v4l2_subscribed_event.
+
+It is up to the driver to decide whether there is one v4l2_event_payloads
+struct per filehandle or whether there is a global struct shared by any
+filehandle subscribed to this event. This will depend on the event and the
+size of the payload. Most likely it will be the latter option (a global
+queue of payloads).
+
+Internal functions would look like this:
+
+// Initialize the structs.
+void v4l2_event_payloads_init(struct v4l2_event_payloads *p, unsigned payloads);
+// Get the first available payload (the mutex must be locked). If no payloads
+// are available then the oldest payload will be reused. A new sequence number
+// will be generated as well.
+struct v4l2_event_payload *v4l2_event_payloads_new(struct v4l2_event_payloads *p);
+// Find the payload with the given sequence number. The mutex must be locked.
+struct v4l2_event_payload *v4l2_event_payloads_find(struct v4l2_event_payloads *p, unsigned seqnr);
+
+So when a new payload arrives the driver would take the mutex, call
+v4l2_event_payloads_new(), set payload_size and fill the payload data,
+remember the payload_size and payload_sequence values, release the mutex
+and queue the event with the remembered size and sequence values. Setting
+up the payload part cannot be done from interrupt context.
+
+When calling DQEVENT_PAYLOAD the core will use the pointer to struct
+v4l2_event_payloads from struct v4l2_subscribed_event, take the mutex,
+find the payload, copy it to userspace and release the mutex.
+
+Right now the mutex is in struct v4l2_event_payloads. This is not optimal:
+it might be better to have a spinlock for controlling access to the
+v4l2_event_payloads struct and a mutex for each v4l2_event_payload struct.
+That way setting and getting two different payload structs wouldn't depend
+on one another.
+
+Comments?
+
+	Hans
+
+PS: I have no immediate plans to implement this, but based on recent discussions
+it seems there is a desire to have support for this at some point in the future,
+so I decided to see how this could be implemented.
