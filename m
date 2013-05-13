@@ -1,140 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:63489 "EHLO
+Received: from mailout4.samsung.com ([203.254.224.34]:32766 "EHLO
 	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755335Ab3EaOlN (ORCPT
+	with ESMTP id S1751167Ab3EMJVf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 10:41:13 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MNO0013V3GOA000@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 31 May 2013 23:41:12 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hj210.choi@samsung.com,
-	arun.kk@samsung.com, shaik.ameer@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [REVIEW PATCH v2 08/11] exynos4-is: Fix sensor subdev -> FIMC
- notification setup
-Date: Fri, 31 May 2013 16:37:24 +0200
-Message-id: <1370011047-11488-9-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
-References: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 13 May 2013 05:21:35 -0400
+From: Inki Dae <inki.dae@samsung.com>
+To: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>
+Cc: 'Rob Clark' <robdclark@gmail.com>,
+	'Daniel Vetter' <daniel@ffwll.ch>,
+	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
+	'YoungJun Cho' <yj44.cho@samsung.com>
+References: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com>
+ <51909DB4.2060208@canonical.com>
+In-reply-to: <51909DB4.2060208@canonical.com>
+Subject: RE: Introduce a new helper framework for buffer synchronization
+Date: Mon, 13 May 2013 18:21:12 +0900
+Message-id: <025201ce4fbb$363d0390$a2b70ab0$%dae@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure the v4l2_device notifications from sensor subdev works
-also after the media links reconfiguration.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/media-dev.c |   47 ++++++++++++++++---------
- 1 file changed, 31 insertions(+), 16 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 973f8a9..d7f7342 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1,8 +1,8 @@
- /*
-  * S5P/EXYNOS4 SoC series camera host interface media device driver
-  *
-- * Copyright (C) 2011 - 2012 Samsung Electronics Co., Ltd.
-- * Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ * Copyright (C) 2011 - 2013 Samsung Electronics Co., Ltd.
-+ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published
-@@ -39,6 +39,26 @@
- static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 				struct fimc_source_info *si,
- 				bool on);
-+
-+/* Set up image sensor subdev -> FIMC capture node notifications. */
-+static void __setup_sensor_notification(struct fimc_md *fmd,
-+					struct v4l2_subdev *sensor,
-+					struct v4l2_subdev *fimc_sd)
-+{
-+	struct fimc_source_info *src_inf;
-+	struct fimc_sensor_info *md_si;
-+	unsigned long flags;
-+
-+	src_inf = v4l2_get_subdev_hostdata(sensor);
-+	if (!src_inf || WARN_ON(fmd == NULL))
-+		return;
-+
-+	md_si = source_to_sensor_info(src_inf);
-+	spin_lock_irqsave(&fmd->slock, flags);
-+	md_si->host = v4l2_get_subdevdata(fimc_sd);
-+	spin_unlock_irqrestore(&fmd->slock, flags);
-+}
-+
- /**
-  * fimc_pipeline_prepare - update pipeline information with subdevice pointers
-  * @me: media entity terminating the pipeline
-@@ -48,7 +68,9 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 					struct media_entity *me)
- {
-+	struct fimc_md *fmd = entity_to_fimc_mdev(me);
- 	struct v4l2_subdev *sd;
-+	struct v4l2_subdev *sensor = NULL;
- 	int i;
- 
- 	for (i = 0; i < IDX_MAX; i++)
-@@ -73,8 +95,10 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 		sd = media_entity_to_v4l2_subdev(pad->entity);
- 
- 		switch (sd->grp_id) {
--		case GRP_ID_FIMC_IS_SENSOR:
- 		case GRP_ID_SENSOR:
-+			sensor = sd;
-+			/* fall through */
-+		case GRP_ID_FIMC_IS_SENSOR:
- 			p->subdevs[IDX_SENSOR] = sd;
- 			break;
- 		case GRP_ID_CSIS:
-@@ -84,7 +108,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 			p->subdevs[IDX_FLITE] = sd;
- 			break;
- 		case GRP_ID_FIMC:
--			/* No need to control FIMC subdev through subdev ops */
-+			p->subdevs[IDX_FIMC] = sd;
- 			break;
- 		case GRP_ID_FIMC_IS:
- 			p->subdevs[IDX_IS_ISP] = sd;
-@@ -96,6 +120,9 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 		if (me->num_pads == 1)
- 			break;
- 	}
-+
-+	if (sensor && p->subdevs[IDX_FIMC])
-+		__setup_sensor_notification(fmd, sensor, p->subdevs[IDX_FIMC]);
- }
- 
- /**
-@@ -923,18 +950,6 @@ static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
- 
- 		v4l2_info(&fmd->v4l2_dev, "created link [%s] %c> [%s]\n",
- 			  source->name, flags ? '=' : '-', sink->name);
--
--		if (flags == 0 || sensor == NULL)
--			continue;
--
--		if (!WARN_ON(si == NULL)) {
--			unsigned long irq_flags;
--			struct fimc_sensor_info *inf = source_to_sensor_info(si);
--
--			spin_lock_irqsave(&fmd->slock, irq_flags);
--			inf->host = fmd->fimc[i];
--			spin_unlock_irqrestore(&fmd->slock, irq_flags);
--		}
- 	}
- 
- 	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
--- 
-1.7.9.5
+> -----Original Message-----
+> From: Maarten Lankhorst [mailto:maarten.lankhorst@canonical.com]
+> Sent: Monday, May 13, 2013 5:01 PM
+> To: Inki Dae
+> Cc: Rob Clark; Daniel Vetter; DRI mailing list; linux-arm-
+> kernel@lists.infradead.org; linux-media@vger.kernel.org; linux-fbdev;
+> Kyungmin Park; myungjoo.ham; YoungJun Cho
+> Subject: Re: Introduce a new helper framework for buffer synchronization
+> 
+> Op 09-05-13 09:33, Inki Dae schreef:
+> > Hi all,
+> >
+> > This post introduces a new helper framework based on dma fence. And the
+> > purpose of this post is to collect other opinions and advices before RFC
+> > posting.
+> >
+> > First of all, this helper framework, called fence helper, is in progress
+> > yet so might not have enough comments in codes and also might need to be
+> > more cleaned up. Moreover, we might be missing some parts of the dma
+> fence.
+> > However, I'd like to say that all things mentioned below has been tested
+> > with Linux platform and worked well.
+> 
+> > ....
+> >
+> > And tutorial for user process.
+> >         just before cpu access
+> >                 struct dma_buf_fence *df;
+> >
+> >                 df->type = DMA_BUF_ACCESS_READ or DMA_BUF_ACCESS_WRITE;
+> >                 ioctl(fd, DMA_BUF_GET_FENCE, &df);
+> >
+> >         after memset or memcpy
+> >                 ioctl(fd, DMA_BUF_PUT_FENCE, &df);
+> NAK.
+> 
+> Userspace doesn't need to trigger fences. It can do a buffer idle wait,
+> and postpone submitting new commands until after it's done using the
+> buffer.
+
+Hi Maarten,
+
+It seems that you say user should wait for a buffer like KDS does: KDS uses
+select() to postpone submitting new commands. But I think this way assumes
+that every data flows a DMA device to a CPU. For example, a CPU should keep
+polling for the completion of a buffer access by a DMA device. This means
+that the this way isn't considered for data flow to opposite case; CPU to
+DMA device.
+
+> Kernel space doesn't need the root hole you created by giving a
+> dereferencing a pointer passed from userspace.
+> Your next exercise should be to write a security exploit from the api you
+> created here. It's the only way to learn how to write safe code. Hint:
+> df.ctx = mmap(..);
+> 
+
+Also I'm not clear to use our way yet and that is why I posted. As you
+mentioned, it seems like that using mmap() is more safe. But there is one
+issue it makes me confusing. For your hint, df.ctx = mmap(..), the issue is
+that dmabuf mmap can be used to map a dmabuf with user space. And the dmabuf
+means a physical memory region allocated by some allocator such as drm gem
+or ion.
+
+There might be my missing point so could you please give me more comments?
+
+Thanks,
+Inki Dae
+
+
+
+> ~Maarten
 
