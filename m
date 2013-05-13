@@ -1,50 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:61527 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751259Ab3ELUDx (ORCPT
+Received: from mail-bk0-f47.google.com ([209.85.214.47]:49274 "EHLO
+	mail-bk0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752072Ab3EMFtP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 May 2013 16:03:53 -0400
-Received: by mail-pa0-f44.google.com with SMTP id jh10so4132567pab.3
-        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 13:03:52 -0700 (PDT)
+	Mon, 13 May 2013 01:49:15 -0400
+Received: by mail-bk0-f47.google.com with SMTP id jg9so2213742bkc.34
+        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 22:49:14 -0700 (PDT)
 MIME-Version: 1.0
-From: =?ISO-8859-1?Q?Roberto_Alc=E2ntara?= <roberto@eletronica.org>
-Date: Sun, 12 May 2013 17:03:31 -0300
-Message-ID: <CAEt6MXk3xqb3D6-j30JigGahYVvQvf5ZcikD5WO0A=5cm8_GJw@mail.gmail.com>
-Subject: [PATCH] smscoreapi: fixing memory leak
-To: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: multipart/mixed; boundary=047d7b675a5a35203904dc8ae639
+Date: Mon, 13 May 2013 13:49:13 +0800
+Message-ID: <CAPgLHd80d_pLtTbDQLEAMiLzfoF6AZ5fpjxtxqAoAZ1myNKw+w@mail.gmail.com>
+Subject: [PATCH] [media] s5p-tv: fix error return code in mxr_acquire_video()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: kyungmin.park@samsung.com, t.stanislaws@samsung.com,
+	mchehab@redhat.com
+Cc: yongjun_wei@trendmicro.com.cn,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---047d7b675a5a35203904dc8ae639
-Content-Type: text/plain; charset=ISO-8859-1
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
- - Roberto
+Fix to return a negative error code in the vb2_dma_contig_init_ctx()
+error handling case instead of 0, as done elsewhere in this function.
+Also vb2_dma_contig_init_ctx() return ERR_PTR() in case of error and
+never return NULL, so use IS_ERR() replace IS_ERR_OR_NULL().
 
---047d7b675a5a35203904dc8ae639
-Content-Type: application/octet-stream; name="mem.patch"
-Content-Disposition: attachment; filename="mem.patch"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hgmmfql60
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/platform/s5p-tv/mixer_video.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-U2lnbmVkLW9mZi1ieTogUm9iZXJ0byBBbGNhbnRhcmEgPHJvYmVydG9AZWxldHJvbmljYS5vcmc+
-CmRpZmYgLS1naXQgYS9kcml2ZXJzL21lZGlhL2NvbW1vbi9zaWFuby9zbXNjb3JlYXBpLmMgYi9k
-cml2ZXJzL21lZGlhL2NvbW1vbi9zaWFuby9zbXNjb3JlYXBpLmMKaW5kZXggZGJlOWI0ZC4uZjY1
-YjRlMyAxMDA2NDQKLS0tIGEvZHJpdmVycy9tZWRpYS9jb21tb24vc2lhbm8vc21zY29yZWFwaS5j
-CisrKyBiL2RyaXZlcnMvbWVkaWEvY29tbW9uL3NpYW5vL3Ntc2NvcmVhcGkuYwpAQCAtMTE3Mywx
-NiArMTE3MywxNiBAQCBzdGF0aWMgaW50IHNtc2NvcmVfbG9hZF9maXJtd2FyZV9mcm9tX2ZpbGUo
-c3RydWN0IHNtc2NvcmVfZGV2aWNlX3QgKmNvcmVkZXYsCiAJCQkgR0ZQX0tFUk5FTCB8IEdGUF9E
-TUEpOwogCWlmICghZndfYnVmKSB7CiAJCXNtc19lcnIoImZhaWxlZCB0byBhbGxvY2F0ZSBmaXJt
-d2FyZSBidWZmZXIiKTsKLQkJcmV0dXJuIC1FTk9NRU07Ci0JfQotCW1lbWNweShmd19idWYsIGZ3
-LT5kYXRhLCBmdy0+c2l6ZSk7Ci0JZndfYnVmX3NpemUgPSBmdy0+c2l6ZTsKLQotCXJjID0gKGNv
-cmVkZXYtPmRldmljZV9mbGFncyAmIFNNU19ERVZJQ0VfRkFNSUxZMikgPwotCQlzbXNjb3JlX2xv
-YWRfZmlybXdhcmVfZmFtaWx5Mihjb3JlZGV2LCBmd19idWYsIGZ3X2J1Zl9zaXplKQotCQk6IGxv
-YWRmaXJtd2FyZV9oYW5kbGVyKGNvcmVkZXYtPmNvbnRleHQsIGZ3X2J1ZiwKLQkJZndfYnVmX3Np
-emUpOworCQlyYyA9IC1FTk9NRU07CisJfSBlbHNlIHsKKwkJbWVtY3B5KGZ3X2J1ZiwgZnctPmRh
-dGEsIGZ3LT5zaXplKTsKKwkJZndfYnVmX3NpemUgPSBmdy0+c2l6ZTsKIAorCQlyYyA9IChjb3Jl
-ZGV2LT5kZXZpY2VfZmxhZ3MgJiBTTVNfREVWSUNFX0ZBTUlMWTIpID8KKwkJCXNtc2NvcmVfbG9h
-ZF9maXJtd2FyZV9mYW1pbHkyKGNvcmVkZXYsIGZ3X2J1ZiwgZndfYnVmX3NpemUpCisJCQk6IGxv
-YWRmaXJtd2FyZV9oYW5kbGVyKGNvcmVkZXYtPmNvbnRleHQsIGZ3X2J1ZiwKKwkJCWZ3X2J1Zl9z
-aXplKTsKKwl9CiAJa2ZyZWUoZndfYnVmKTsKIAlyZWxlYXNlX2Zpcm13YXJlKGZ3KTsKIAo=
---047d7b675a5a35203904dc8ae639--
+diff --git a/drivers/media/platform/s5p-tv/mixer_video.c b/drivers/media/platform/s5p-tv/mixer_video.c
+index ef0efdf..641b1f0 100644
+--- a/drivers/media/platform/s5p-tv/mixer_video.c
++++ b/drivers/media/platform/s5p-tv/mixer_video.c
+@@ -81,8 +81,9 @@ int mxr_acquire_video(struct mxr_device *mdev,
+ 	}
+ 
+ 	mdev->alloc_ctx = vb2_dma_contig_init_ctx(mdev->dev);
+-	if (IS_ERR_OR_NULL(mdev->alloc_ctx)) {
++	if (IS_ERR(mdev->alloc_ctx)) {
+ 		mxr_err(mdev, "could not acquire vb2 allocator\n");
++		ret = PTR_ERR(mdev->alloc_ctx);
+ 		goto fail_v4l2_dev;
+ 	}
+ 
+
