@@ -1,98 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2316 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752781Ab3EFSUJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 14:20:09 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r46IK5sR075481
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 6 May 2013 20:20:08 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 131751300076
-	for <linux-media@vger.kernel.org>; Mon,  6 May 2013 20:20:03 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130506182004.131751300076@alastor.dyndns.org>
-Date: Mon,  6 May 2013 20:20:03 +0200 (CEST)
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:57018 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753115Ab3EMF7c (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 13 May 2013 01:59:32 -0400
+Received: by mail-bk0-f50.google.com with SMTP id ik5so2195923bkc.23
+        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 22:59:31 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 13 May 2013 13:59:30 +0800
+Message-ID: <CAPgLHd_RFb8soKV_ceoozB4ms2tGY+o-m6j+Z9ES38NnrhgU7Q@mail.gmail.com>
+Subject: [PATCH] [media] blackfin: fix error return code in bcap_probe()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: scott.jiang.linux@gmail.com, mchehab@redhat.com
+Cc: yongjun_wei@trendmicro.com.cn,
+	uclinux-dist-devel@blackfin.uclinux.org,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 
-Results of the daily build of media_tree:
+Fix to return a negative error code from the error handling
+case instead of 0, as done elsewhere in this function.
 
-date:		Mon May  6 19:00:24 CEST 2013
-git branch:	test
-git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 0e55b08..2d1e032 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -1070,6 +1070,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 		if (!config->num_inputs) {
+ 			v4l2_err(&bcap_dev->v4l2_dev,
+ 					"Unable to work without input\n");
++			ret = -EINVAL;
+ 			goto err_unreg_vdev;
+ 		}
+ 
+@@ -1079,6 +1080,7 @@ static int bcap_probe(struct platform_device *pdev)
+ 	} else {
+ 		v4l2_err(&bcap_dev->v4l2_dev,
+ 				"Unable to register sub device\n");
++		ret = -ENODEV;
+ 		goto err_unreg_vdev;
+ 	}
+ 
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
