@@ -1,93 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:37894 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750720Ab3EXEBi (ORCPT
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:56568 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752114Ab3EMNs0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 May 2013 00:01:38 -0400
-Received: by mail-ie0-f177.google.com with SMTP id 9so10994017iec.36
-        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 21:01:37 -0700 (PDT)
-Message-ID: <519EE637.5040501@jeffhansen.com>
-Date: Thu, 23 May 2013 22:01:59 -0600
-From: Jeff Hansen <x@jeffhansen.com>
+	Mon, 13 May 2013 09:48:26 -0400
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Leonid Kegulskiy <leo@lumanate.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] hdpvr: Disable IR receiver by default.
-References: <1368506659-13722-1-git-send-email-x@jeffhansen.com> <201305231041.38871.hverkuil@xs4all.nl>
-In-Reply-To: <201305231041.38871.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <028a01ce4fd4$5ec6f000$1c54d000$%dae@samsung.com>
+References: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com>
+	<51909DB4.2060208@canonical.com>
+	<025201ce4fbb$363d0390$a2b70ab0$%dae@samsung.com>
+	<5190B7D8.3010803@canonical.com>
+	<027a01ce4fcc$5e7c7320$1b755960$%dae@samsung.com>
+	<5190D14A.7050904@canonical.com>
+	<028a01ce4fd4$5ec6f000$1c54d000$%dae@samsung.com>
+Date: Mon, 13 May 2013 09:48:25 -0400
+Message-ID: <CAF6AEGvWazezZdLDn5=H8wNQdQSWV=EmqE1a4wh7QwrT_h6vKQ@mail.gmail.com>
+Subject: Re: Introduce a new helper framework for buffer synchronization
+From: Rob Clark <robdclark@gmail.com>
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"myungjoo.ham" <myungjoo.ham@samsung.com>,
+	YoungJun Cho <yj44.cho@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Does anyone have any contacts at Hauppauge that could make HD-PVR
-firmware source available?  I have done a little bit of work on
-Ambarella chips, and I'd be happy to take a look at why the firmware is
-crashing.  My firmware is yet to crash after disabling IR RX.
-
--Jeff
-
-On 05/23/2013 02:41 AM, Hans Verkuil wrote:
-> On Tue 14 May 2013 06:44:19 Jeff Hansen wrote:
->> All of the firmwares I've tested, including 0x1e, will inevitably crash
->> before recording for even 10 minutes. There must be a race condition of
->> IR RX vs. video-encoding in the firmware, because if you disable IR receiver
->> polling, then the firmware is stable again. I'd guess that most people don't
->> use this feature anyway, so we might as well disable it by default, and
->> warn them that it might be unstable until Hauppauge fixes it in a future
->> firmware.
-> Leonid, have you ever seen this? Can you verify that this happens for you
-> as well?
+On Mon, May 13, 2013 at 8:21 AM, Inki Dae <inki.dae@samsung.com> wrote:
 >
-> Regards,
->
-> 	Hans
->
->> Signed-off-by: Jeff Hansen <x@jeffhansen.com>
->> ---
->>  drivers/media/usb/hdpvr/hdpvr-core.c |   16 +++++++++++-----
->>  1 file changed, 11 insertionshau(+), 5 deletions(-)
+>> In that case you still wouldn't give userspace control over the fences. I
+>> don't see any way that can end well.
+>> What if userspace never signals? What if userspace gets killed by oom
+>> killer. Who keeps track of that?
 >>
->> diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
->> index 8247c19..3e80202 100644
->> --- a/drivers/media/usb/hdpvr/hdpvr-core.c
->> +++ b/drivers/media/usb/hdpvr/hdpvr-core.c
->> @@ -53,6 +53,10 @@ static bool boost_audio;
->>  module_param(boost_audio, bool, S_IRUGO|S_IWUSR);
->>  MODULE_PARM_DESC(boost_audio, "boost the audio signal");
->>  
->> +int ir_rx_enable;
->> +module_param(ir_rx_enable, int, S_IRUGO|S_IWUSR);
->> +MODULE_PARM_DESC(ir_rx_enable, "Enable HDPVR IR receiver (firmware may be unstable)");
->> +
->>  
->>  /* table of devices that work with this driver */
->>  static struct usb_device_id hdpvr_table[] = {
->> @@ -394,11 +398,13 @@ static int hdpvr_probe(struct usb_interface *interface,
->>  		goto error;
->>  	}
->>  
->> -	client = hdpvr_register_ir_rx_i2c(dev);
->> -	if (!client) {
->> -		v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
->> -		retval = -ENODEV;
->> -		goto reg_fail;
->> +	if (ir_rx_enable) {
->> +		client = hdpvr_register_ir_rx_i2c(dev);
->> +		if (!client) {
->> +			v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
->> +			retval = -ENODEV;
->> +			goto reg_fail;
->> +		}
->>  	}
->>  
->>  	client = hdpvr_register_ir_tx_i2c(dev);
->>
+>
+> In all cases, all kernel resources to user fence will be released by kernel
+> once the fence is timed out: never signaling and process killing by oom
+> killer makes the fence timed out. And if we use mmap mechanism you mentioned
+> before, I think user resource could also be freed properly.
 
 
--- 
----------------------------------------------------
-"If someone's gotta do it, it might as well be me."
-                x@jeffhansen.com
+I tend to agree w/ Maarten here.. there is no good reason for
+userspace to be *signaling* fences.  The exception might be some blob
+gpu drivers which don't have enough knowledge in the kernel to figure
+out what to do.  (In which case you can add driver private ioctls for
+that.. still not the right thing to do but at least you don't make a
+public API out of it.)
 
+BR,
+-R
