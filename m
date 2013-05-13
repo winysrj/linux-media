@@ -1,55 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2147 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965648Ab3E2OT1 (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:56211 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750918Ab3EMKjS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 10:19:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 02/14] bt819: fix querystd
-Date: Wed, 29 May 2013 16:18:55 +0200
-Message-Id: <1369837147-8747-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 13 May 2013 06:39:18 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	devel@driverdev.osuosl.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH] drivers/staging: davinci: vpfe: fix dependency for building the driver
+Date: Mon, 13 May 2013 16:09:07 +0530
+Message-Id: <1368441547-6078-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Return V4L2_STD_UNKNOWN if no signal is detected.
-Otherwise AND the standard mask with the detected standards.
+from commit 3778d05036cc7ddd983ae2451da579af00acdac2
+[media: davinci: kconfig: fix incorrect selects]
+VIDEO_VPFE_CAPTURE was removed but there was a negative
+dependancy for building the DM365 VPFE MC based capture driver
+(VIDEO_DM365_VPFE), This patch fixes this dependency by replacing
+the VIDEO_VPFE_CAPTURE with VIDEO_DM365_ISIF, so as when older DM365
+ISIF v4l driver is selected the newer media controller driver for
+DM365 isnt visible.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Reported-by: Paul Bolle <pebolle@tiscali.nl>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/i2c/bt819.c |    8 +++++---
- 1 file changed, 5 insertions(+), 3 deletions(-)
+ drivers/staging/media/davinci_vpfe/Kconfig |    2 +-
+ 1 files changed, 1 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/i2c/bt819.c b/drivers/media/i2c/bt819.c
-index ee9ed67..3c0a5ab 100644
---- a/drivers/media/i2c/bt819.c
-+++ b/drivers/media/i2c/bt819.c
-@@ -217,15 +217,17 @@ static int bt819_status(struct v4l2_subdev *sd, u32 *pstatus, v4l2_std_id *pstd)
- 	struct bt819 *decoder = to_bt819(sd);
- 	int status = bt819_read(decoder, 0x00);
- 	int res = V4L2_IN_ST_NO_SIGNAL;
--	v4l2_std_id std;
-+	v4l2_std_id std = pstd ? *pstd : V4L2_STD_ALL;
- 
- 	if ((status & 0x80))
- 		res = 0;
-+	else
-+		std = V4L2_STD_UNKNOWN;
- 
- 	if ((status & 0x10))
--		std = V4L2_STD_PAL;
-+		std &= V4L2_STD_PAL;
- 	else
--		std = V4L2_STD_NTSC;
-+		std &= V4L2_STD_NTSC;
- 	if (pstd)
- 		*pstd = std;
- 	if (pstatus)
+diff --git a/drivers/staging/media/davinci_vpfe/Kconfig b/drivers/staging/media/davinci_vpfe/Kconfig
+index 2e4a28b..12f321d 100644
+--- a/drivers/staging/media/davinci_vpfe/Kconfig
++++ b/drivers/staging/media/davinci_vpfe/Kconfig
+@@ -1,6 +1,6 @@
+ config VIDEO_DM365_VPFE
+ 	tristate "DM365 VPFE Media Controller Capture Driver"
+-	depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_VPFE_CAPTURE
++	depends on VIDEO_V4L2 && ARCH_DAVINCI_DM365 && !VIDEO_DM365_ISIF
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	help
+ 	  Support for DM365 VPFE based Media Controller Capture driver.
 -- 
-1.7.10.4
+1.7.4.1
 
