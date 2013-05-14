@@ -1,170 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39877 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755305Ab3EHN2G (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 09:28:06 -0400
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Sascha Hauer <s.hauer@pengutronix.de>
-Subject: [PATCH 2/2] Print parser position on error
-Date: Wed,  8 May 2013 15:27:54 +0200
-Message-Id: <1368019674-25761-3-git-send-email-s.hauer@pengutronix.de>
-In-Reply-To: <1368019674-25761-1-git-send-email-s.hauer@pengutronix.de>
-References: <1368019674-25761-1-git-send-email-s.hauer@pengutronix.de>
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:63003 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751635Ab3ENEpH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 May 2013 00:45:07 -0400
+Received: by mail-pa0-f47.google.com with SMTP id kl13so163068pab.20
+        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 21:45:05 -0700 (PDT)
+From: Jeff Hansen <x@jeffhansen.com>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jeff Hansen <x@jeffhansen.com>
+Subject: [PATCH] [media] hdpvr: Disable IR receiver by default.
+Date: Mon, 13 May 2013 22:44:19 -0600
+Message-Id: <1368506659-13722-1-git-send-email-x@jeffhansen.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most parser functions take a **endp argument to indicate the caller
-where parsing has stopped. This is currently only used after parsing
-something successfully. This patch sets **endp to the erroneous
-position in the error case and prints its position after an error
-has occured.
+All of the firmwares I've tested, including 0x1e, will inevitably crash
+before recording for even 10 minutes. There must be a race condition of
+IR RX vs. video-encoding in the firmware, because if you disable IR receiver
+polling, then the firmware is stable again. I'd guess that most people don't
+use this feature anyway, so we might as well disable it by default, and
+warn them that it might be unstable until Hauppauge fixes it in a future
+firmware.
 
-Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
+Signed-off-by: Jeff Hansen <x@jeffhansen.com>
 ---
- src/mediactl.c | 48 +++++++++++++++++++++++++++++++++++++++++++++---
- 1 file changed, 45 insertions(+), 3 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-core.c |   16 +++++++++++-----
+ 1 file changed, 11 insertions(+), 5 deletions(-)
 
-diff --git a/src/mediactl.c b/src/mediactl.c
-index c65de50..04ade15 100644
---- a/src/mediactl.c
-+++ b/src/mediactl.c
-@@ -40,6 +40,22 @@
- #include "mediactl.h"
- #include "tools.h"
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index 8247c19..3e80202 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -53,6 +53,10 @@ static bool boost_audio;
+ module_param(boost_audio, bool, S_IRUGO|S_IWUSR);
+ MODULE_PARM_DESC(boost_audio, "boost the audio signal");
  
-+void media_print_streampos(struct media_device *media, const char *p, const char *end)
-+{
-+	int pos;
++int ir_rx_enable;
++module_param(ir_rx_enable, int, S_IRUGO|S_IWUSR);
++MODULE_PARM_DESC(ir_rx_enable, "Enable HDPVR IR receiver (firmware may be unstable)");
 +
-+	pos = end - p + 1;
-+
-+	if (pos < 0)
-+		pos = 0;
-+	if (pos > strlen(p))
-+		pos = strlen(p);
-+
-+	media_dbg(media, "\n");
-+	media_dbg(media, " %s\n", p);
-+	media_dbg(media, " %*s\n", pos, "^");
-+}
-+
- struct media_pad *media_entity_remote_source(struct media_pad *pad)
- {
- 	unsigned int i;
-@@ -538,12 +554,16 @@ struct media_pad *media_parse_pad(struct media_device *media,
- 	if (*p == '"') {
- 		for (end = (char *)p + 1; *end && *end != '"'; ++end);
- 		if (*end != '"') {
-+			if (endp)
-+				*endp = (char *)end;
- 			media_dbg(media, "missing matching '\"'\n");
- 			return NULL;
- 		}
  
- 		entity = media_get_entity_by_name(media, p + 1, end - p - 1);
- 		if (entity == NULL) {
-+			if (endp)
-+				*endp = (char *)p + 1;
- 			media_dbg(media, "no such entity \"%.*s\"\n", end - p - 1, p + 1);
- 			return NULL;
- 		}
-@@ -553,6 +573,8 @@ struct media_pad *media_parse_pad(struct media_device *media,
- 		entity_id = strtoul(p, &end, 10);
- 		entity = media_get_entity_by_id(media, entity_id);
- 		if (entity == NULL) {
-+			if (endp)
-+				*endp = (char *)p;
- 			media_dbg(media, "no such entity %d\n", entity_id);
- 			return NULL;
- 		}
-@@ -560,6 +582,8 @@ struct media_pad *media_parse_pad(struct media_device *media,
- 	for (; isspace(*end); ++end);
- 
- 	if (*end != ':') {
-+		if (endp)
-+			*endp = end;
- 		media_dbg(media, "Expected ':'\n", *end);
- 		return NULL;
+ /* table of devices that work with this driver */
+ static struct usb_device_id hdpvr_table[] = {
+@@ -394,11 +398,13 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 		goto error;
  	}
-@@ -569,6 +593,8 @@ struct media_pad *media_parse_pad(struct media_device *media,
- 	pad = strtoul(p, &end, 10);
  
- 	if (pad >= entity->info.pads) {
-+		if (endp)
-+			*endp = (char *)p;
- 		media_dbg(media, "No pad '%d' on entity \"%s\". Maximum pad number is %d\n",
- 				pad, entity->info.name, entity->info.pads - 1);
- 		return NULL;
-@@ -591,10 +617,15 @@ struct media_link *media_parse_link(struct media_device *media,
- 	char *end;
- 
- 	source = media_parse_pad(media, p, &end);
--	if (source == NULL)
-+	if (source == NULL) {
-+		if (endp)
-+			*endp = end;
- 		return NULL;
-+	}
- 
- 	if (end[0] != '-' || end[1] != '>') {
-+		if (endp)
-+			*endp = end;
- 		media_dbg(media, "Expected '->'\n");
- 		return NULL;
- 	}
-@@ -602,8 +633,11 @@ struct media_link *media_parse_link(struct media_device *media,
- 	p = end + 2;
- 
- 	sink = media_parse_pad(media, p, &end);
--	if (sink == NULL)
-+	if (sink == NULL) {
-+		if (endp)
-+			*endp = end;
- 		return NULL;
-+	}
- 
- 	*endp = end;
- 
-@@ -629,6 +663,8 @@ int media_parse_setup_link(struct media_device *media,
- 
- 	link = media_parse_link(media, p, &end);
- 	if (link == NULL) {
-+		if (endp)
-+			*endp = end;
- 		media_dbg(media,
- 			  "%s: Unable to parse link\n", __func__);
- 		return -EINVAL;
-@@ -636,6 +672,8 @@ int media_parse_setup_link(struct media_device *media,
- 
- 	p = end;
- 	if (*p++ != '[') {
-+		if (endp)
-+			*endp = (char *)p - 1;
- 		media_dbg(media, "Unable to parse link flags: expected '['.\n");
- 		return -EINVAL;
- 	}
-@@ -643,6 +681,8 @@ int media_parse_setup_link(struct media_device *media,
- 	flags = strtoul(p, &end, 10);
- 	for (p = end; isspace(*p); p++);
- 	if (*p++ != ']') {
-+		if (endp)
-+			*endp = (char *)p - 1;
- 		media_dbg(media, "Unable to parse link flags: expected ']'.\n");
- 		return -EINVAL;
- 	}
-@@ -666,8 +706,10 @@ int media_parse_setup_links(struct media_device *media, const char *p)
- 
- 	do {
- 		ret = media_parse_setup_link(media, p, &end);
--		if (ret < 0)
-+		if (ret < 0) {
-+			media_print_streampos(media, p, end);
- 			return ret;
+-	client = hdpvr_register_ir_rx_i2c(dev);
+-	if (!client) {
+-		v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
+-		retval = -ENODEV;
+-		goto reg_fail;
++	if (ir_rx_enable) {
++		client = hdpvr_register_ir_rx_i2c(dev);
++		if (!client) {
++			v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
++			retval = -ENODEV;
++			goto reg_fail;
 +		}
+ 	}
  
- 		p = end + 1;
- 	} while (*end == ',');
+ 	client = hdpvr_register_ir_tx_i2c(dev);
 -- 
-1.8.2.rc2
+1.7.9.5
 
