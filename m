@@ -1,236 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44985 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753369Ab3ENPd5 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:16228 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752841Ab3ENLuX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 11:33:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH 5/5] media: i2c: tvp7002: add OF support
-Date: Tue, 14 May 2013 17:34:15 +0200
-Message-ID: <4149647.zqpmlIlQDP@avalon>
-In-Reply-To: <1368528334-13595-6-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368528334-13595-1-git-send-email-prabhakar.csengg@gmail.com> <1368528334-13595-6-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Tue, 14 May 2013 07:50:23 -0400
+From: George Joseph <george.jp@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com, ym.song@samsung.com
+Subject: [RFC PATCH 0/3] [media] s5p-jpeg: Add support for Exynos4x12 and 5250
+Date: Tue, 14 May 2013 17:23:37 +0530
+Message-id: <1368532420-21555-1-git-send-email-george.jp@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: George Joseph Palathingal <george.jp@samsung.com>
 
-Thank you for the patch.
+This patch series refactors the JPEG driver to add code to support Exynos4x12
+and Exynos5250 JPEG IPs and makes the driver DT and CCF compliant.
 
-On Tuesday 14 May 2013 16:15:34 Lad Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> add OF support for the tvp7002 driver.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Rob Landley <rob@landley.net>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
-> ---
->  .../devicetree/bindings/media/i2c/tvp7002.txt      |   42 +++++++++++++
->  drivers/media/i2c/tvp7002.c                        |   64 +++++++++++++++--
->  2 files changed, 99 insertions(+), 7 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-> b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt new file mode
-> 100644
-> index 0000000..1ebd8b1
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-> @@ -0,0 +1,42 @@
-> +* Texas Instruments TV7002 video decoder
-> +
-> +The TVP7002 device supports digitizing of video and graphics signal in RGB
-> and
-> +YPbPr color space.
-> +
-> +Required Properties :
-> +- compatible : Must be "ti,tvp7002"
-> +
-> +- hsync-active: HSYNC Polarity configuration for endpoint.
-> +
-> +- vsync-active: VSYNC Polarity configuration for endpoint.
-> +
-> +- pclk-sample: Clock polarity of the endpoint.
-> +
-> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
-> +
-> +- ti,tvp7002-sog-polarity: Sync on Green output polarity of the endpoint.
+Exynos4210 JPEG driver supports only single planar image formats.
+The JPEG IP on Exynos4412 and 5250 supports multiplanar image formats as well.
+So the existing JPEG driver is refactored to support the JPEG h/w on all
+the three SoCs. The encoder/decoder functionalities are separated to
+two different files for better modularity.
 
-Would it make sense to define field-active and sog-active properties in the 
-V4L2 bindings instead of having per-chip properties ?
+The encoder/decoder functionalities have been tested on Origen 4210, 4412 and SMDK 5250
+boards. There is currently an issue with the Exynos 4210 JPEG encoder which will be
+fixed in subsequent patches.
 
-> +For further reading of port node refer
-> Documentation/devicetree/bindings/media/ +video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c0@1c22000 {
-> +		...
-> +		...
-> +		tvp7002@5c {
-> +			compatible = "ti,tvp7002";
-> +			reg = <0x5c>;
-> +
-> +			port {
-> +				tvp7002_1: endpoint {
-> +					hsync-active = <1>;
-> +					vsync-active = <1>;
-> +					pclk-sample = <0>;
-> +					ti,tvp7002-fid-polarity;
-> +					ti,tvp7002-sog-polarity;
-> +				};
-> +			};
-> +		};
-> +		...
-> +	};
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index d5113d1..942e0d8 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -35,6 +35,7 @@
->  #include <media/v4l2-chip-ident.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
-> +#include <media/v4l2-of.h>
-> 
->  #include "tvp7002_reg.h"
-> 
-> @@ -976,6 +977,46 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
->  	.pad = &tvp7002_pad_ops,
->  };
-> 
-> +static struct tvp7002_config *
-> +tvp7002_get_pdata(struct i2c_client *client)
-> +{
-> +	struct v4l2_of_endpoint bus_cfg;
-> +	struct tvp7002_config *pdata;
-> +	struct device_node *endpoint;
-> +	unsigned int flags;
-> +
-> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-> +		return client->dev.platform_data;
-> +
-> +	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-> +	if (!endpoint)
-> +		return NULL;
-> +
-> +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		return NULL;
-> +
-> +	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-> +	flags = bus_cfg.bus.parallel.flags;
-> +
-> +	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> +		pdata->hs_polarity = 1;
-> +
-> +	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> +		pdata->vs_polarity = 1;
-> +
-> +	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> +		pdata->clk_polarity = 1;
-> +
-> +	pdata->fid_polarity = of_property_read_bool(endpoint,
-> +						    "ti,tvp7002-fid-polarity");
-> +
-> +	pdata->sog_polarity = of_property_read_bool(endpoint,
-> +						    "ti,tvp7002-sog-polarity");
-> +
-> +	return pdata;
-> +}
-> +
->  /*
->   * tvp7002_probe - Probe a TVP7002 device
->   * @c: ptr to i2c_client struct
-> @@ -987,32 +1028,32 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
->   */
->  static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id
-> *id) {
-> +	struct tvp7002_config *pdata = tvp7002_get_pdata(c);
->  	struct v4l2_subdev *sd;
->  	struct tvp7002 *device;
->  	struct v4l2_dv_timings timings;
->  	int polarity_a;
->  	int polarity_b;
->  	u8 revision;
-> -
->  	int error;
-> 
-> +	if (pdata == NULL) {
-> +		dev_err(&c->dev, "No platform data\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	/* Check if the adapter supports the needed features */
->  	if (!i2c_check_functionality(c->adapter,
->  		I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
->  		return -EIO;
-> 
-> -	if (!c->dev.platform_data) {
-> -		v4l_err(c, "No platform data!!\n");
-> -		return -ENODEV;
-> -	}
-> -
->  	device = devm_kzalloc(&c->dev, sizeof(struct tvp7002), GFP_KERNEL);
-> 
->  	if (!device)
->  		return -ENOMEM;
-> 
->  	sd = &device->sd;
-> -	device->pdata = c->dev.platform_data;
-> +	device->pdata = pdata;
->  	device->current_timings = tvp7002_timings;
-> 
->  	/* Tell v4l2 the device is ready */
-> @@ -1119,9 +1160,18 @@ static const struct i2c_device_id tvp7002_id[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, tvp7002_id);
-> 
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id tvp7002_of_match[] = {
-> +	{ .compatible = "ti,tvp7002", },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, tvp7002_of_match);
-> +#endif
-> +
->  /* I2C driver data */
->  static struct i2c_driver tvp7002_driver = {
->  	.driver = {
-> +		.of_match_table = of_match_ptr(tvp7002_of_match),
->  		.owner = THIS_MODULE,
->  		.name = TVP7002_MODULE_NAME,
->  	},
+The patch series is based on linux-next tree (20130514).
+
+George Joseph Palathingal (2):
+  [media] s5p-jpeg: Add support for Exynos4x12 and 5250
+  [media] s5p-jpeg: Add DT support to JPEG driver
+
+Sylwester Nawrocki (1):
+  ARM: dts: Add documentation for Samsung JPEG driver bindings
+
+ .../devicetree/bindings/media/samsung-s5p-jpeg.txt |   21 +
+ drivers/media/platform/s5p-jpeg/Makefile           |    4 +-
+ drivers/media/platform/s5p-jpeg/jpeg-core.c        | 2041 +++++++++-----------
+ drivers/media/platform/s5p-jpeg/jpeg-core.h        |  428 ++--
+ drivers/media/platform/s5p-jpeg/jpeg-dec.c         |  489 +++++
+ drivers/media/platform/s5p-jpeg/jpeg-enc.c         |  521 +++++
+ drivers/media/platform/s5p-jpeg/jpeg-hw-v1.h       |  528 +++++
+ drivers/media/platform/s5p-jpeg/jpeg-hw-v2.c       |  614 ++++++
+ drivers/media/platform/s5p-jpeg/jpeg-hw-v2.h       |   47 +
+ drivers/media/platform/s5p-jpeg/jpeg-hw.h          |  357 ----
+ drivers/media/platform/s5p-jpeg/jpeg-regs-v1.h     |  171 ++
+ drivers/media/platform/s5p-jpeg/jpeg-regs-v2.h     |  191 ++
+ drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  170 --
+ 13 files changed, 3787 insertions(+), 1795 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-dec.c
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-enc.c
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-v1.h
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-v2.c
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-v2.h
+ delete mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw.h
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-regs-v1.h
+ create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-regs-v2.h
+ delete mode 100644 drivers/media/platform/s5p-jpeg/jpeg-regs.h
+
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
