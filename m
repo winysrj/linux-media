@@ -1,95 +1,270 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:57077 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753950Ab3EMJw3 (ORCPT
+Received: from mail-da0-f51.google.com ([209.85.210.51]:45739 "EHLO
+	mail-da0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756010Ab3ENGsJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 05:52:29 -0400
-Message-ID: <5190B7D8.3010803@canonical.com>
-Date: Mon, 13 May 2013 11:52:24 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: Inki Dae <inki.dae@samsung.com>
-CC: 'Rob Clark' <robdclark@gmail.com>,
-	'Daniel Vetter' <daniel@ffwll.ch>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'YoungJun Cho' <yj44.cho@samsung.com>
-Subject: Re: Introduce a new helper framework for buffer synchronization
-References: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com> <51909DB4.2060208@canonical.com> <025201ce4fbb$363d0390$a2b70ab0$%dae@samsung.com>
-In-Reply-To: <025201ce4fbb$363d0390$a2b70ab0$%dae@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Tue, 14 May 2013 02:48:09 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH RFC v3 3/4] media: davinci: vpif: capture: add V4L2-async support
+Date: Tue, 14 May 2013 12:17:35 +0530
+Message-Id: <1368514056-28859-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1368514056-28859-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1368514056-28859-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 13-05-13 11:21, Inki Dae schreef:
->
->> -----Original Message-----
->> From: Maarten Lankhorst [mailto:maarten.lankhorst@canonical.com]
->> Sent: Monday, May 13, 2013 5:01 PM
->> To: Inki Dae
->> Cc: Rob Clark; Daniel Vetter; DRI mailing list; linux-arm-
->> kernel@lists.infradead.org; linux-media@vger.kernel.org; linux-fbdev;
->> Kyungmin Park; myungjoo.ham; YoungJun Cho
->> Subject: Re: Introduce a new helper framework for buffer synchronization
->>
->> Op 09-05-13 09:33, Inki Dae schreef:
->>> Hi all,
->>>
->>> This post introduces a new helper framework based on dma fence. And the
->>> purpose of this post is to collect other opinions and advices before RFC
->>> posting.
->>>
->>> First of all, this helper framework, called fence helper, is in progress
->>> yet so might not have enough comments in codes and also might need to be
->>> more cleaned up. Moreover, we might be missing some parts of the dma
->> fence.
->>> However, I'd like to say that all things mentioned below has been tested
->>> with Linux platform and worked well.
->>> ....
->>>
->>> And tutorial for user process.
->>>         just before cpu access
->>>                 struct dma_buf_fence *df;
->>>
->>>                 df->type = DMA_BUF_ACCESS_READ or DMA_BUF_ACCESS_WRITE;
->>>                 ioctl(fd, DMA_BUF_GET_FENCE, &df);
->>>
->>>         after memset or memcpy
->>>                 ioctl(fd, DMA_BUF_PUT_FENCE, &df);
->> NAK.
->>
->> Userspace doesn't need to trigger fences. It can do a buffer idle wait,
->> and postpone submitting new commands until after it's done using the
->> buffer.
-> Hi Maarten,
->
-> It seems that you say user should wait for a buffer like KDS does: KDS uses
-> select() to postpone submitting new commands. But I think this way assumes
-> that every data flows a DMA device to a CPU. For example, a CPU should keep
-> polling for the completion of a buffer access by a DMA device. This means
-> that the this way isn't considered for data flow to opposite case; CPU to
-> DMA device.
-Not really. You do both things the same way. You first wait for the bo to be idle, this could be implemented by adding poll support to the dma-buf fd.
-Then you either do your read or write. Since userspace is supposed to be the one controlling the bo it should stay idle at that point. If you have another thread queueing
-the buffer againbefore your thread is done that's a bug in the application, and can be solved with userspace locking primitives. No need for the kernel to get involved.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
->> Kernel space doesn't need the root hole you created by giving a
->> dereferencing a pointer passed from userspace.
->> Your next exercise should be to write a security exploit from the api you
->> created here. It's the only way to learn how to write safe code. Hint:
->> df.ctx = mmap(..);
->>
-> Also I'm not clear to use our way yet and that is why I posted. As you
-> mentioned, it seems like that using mmap() is more safe. But there is one
-> issue it makes me confusing. For your hint, df.ctx = mmap(..), the issue is
-> that dmabuf mmap can be used to map a dmabuf with user space. And the dmabuf
-> means a physical memory region allocated by some allocator such as drm gem
-> or ion.
->
-> There might be my missing point so could you please give me more comments?
->
-My point was that userspace could change df.ctx to some mmap'd memory, forcing the kernel to execute some code prepared by userspace.
+Add support for asynchronous subdevice probing, using the v4l2-async API.
+The legacy synchronous mode is still supported too, which allows to
+gradually update drivers and platforms.
+
+Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |  151 +++++++++++++++++--------
+ drivers/media/platform/davinci/vpif_capture.h |    2 +
+ include/media/davinci/vpif_types.h            |    2 +
+ 3 files changed, 108 insertions(+), 47 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index a1b42b0..d723b58 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -24,6 +24,7 @@
+ #include <linux/platform_device.h>
+ #include <linux/slab.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-ioctl.h>
+ 
+@@ -2045,6 +2046,76 @@ vpif_init_free_channel_objects:
+ 	return err;
+ }
+ 
++static int vpif_async_bound(struct v4l2_async_notifier *notifier,
++		    struct v4l2_async_subdev_list *asdl)
++{
++	struct v4l2_subdev *subdev = v4l2_async_to_subdev(asdl);
++	int i = 0;
++
++	for (i = 0; i < vpif_obj.config->subdev_count; i++)
++		if (!strcmp(vpif_obj.config->subdev_info[i].name,
++			    subdev->name)) {
++			vpif_obj.sd[i] = subdev;
++			return 0;
++		}
++
++	return -EINVAL;
++}
++
++static int vpif_probe_complete(void)
++{
++	struct common_obj *common;
++	struct channel_obj *ch;
++	int i, j, err, k;
++
++	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
++		ch = vpif_obj.dev[j];
++		ch->channel_id = j;
++		common = &(ch->common[VPIF_VIDEO_INDEX]);
++		spin_lock_init(&common->irqlock);
++		mutex_init(&common->lock);
++		ch->video_dev->lock = &common->lock;
++		/* Initialize prio member of channel object */
++		v4l2_prio_init(&ch->prio);
++		video_set_drvdata(ch->video_dev, ch);
++
++		/* select input 0 */
++		err = vpif_set_input(vpif_obj.config, ch, 0);
++		if (err)
++			goto probe_out;
++
++		err = video_register_device(ch->video_dev,
++					    VFL_TYPE_GRABBER, (j ? 1 : 0));
++		if (err)
++			goto probe_out;
++	}
++
++	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
++	return 0;
++
++probe_out:
++	for (k = 0; k < j; k++) {
++		/* Get the pointer to the channel object */
++		ch = vpif_obj.dev[k];
++		/* Unregister video device */
++		video_unregister_device(ch->video_dev);
++	}
++	kfree(vpif_obj.sd);
++	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
++		ch = vpif_obj.dev[i];
++		/* Note: does nothing if ch->video_dev == NULL */
++		video_device_release(ch->video_dev);
++	}
++	v4l2_device_unregister(&vpif_obj.v4l2_dev);
++
++	return err;
++}
++
++static int vpif_async_complete(struct v4l2_async_notifier *notifier)
++{
++	return vpif_probe_complete();
++}
++
+ /**
+  * vpif_probe : This function probes the vpif capture driver
+  * @pdev: platform device pointer
+@@ -2055,12 +2126,10 @@ vpif_init_free_channel_objects:
+ static __init int vpif_probe(struct platform_device *pdev)
+ {
+ 	struct vpif_subdev_info *subdevdata;
+-	struct vpif_capture_config *config;
+-	int i, j, k, err;
++	int i, j, err;
+ 	int res_idx = 0;
+ 	struct i2c_adapter *i2c_adap;
+ 	struct channel_obj *ch;
+-	struct common_obj *common;
+ 	struct video_device *vfd;
+ 	struct resource *res;
+ 	int subdev_count;
+@@ -2137,10 +2206,9 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 	}
+ 
+-	i2c_adap = i2c_get_adapter(1);
+-	config = pdev->dev.platform_data;
++	vpif_obj.config = pdev->dev.platform_data;
+ 
+-	subdev_count = config->subdev_count;
++	subdev_count = vpif_obj.config->subdev_count;
+ 	vpif_obj.sd = kzalloc(sizeof(struct v4l2_subdev *) * subdev_count,
+ 				GFP_KERNEL);
+ 	if (vpif_obj.sd == NULL) {
+@@ -2149,53 +2217,42 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		goto vpif_sd_error;
+ 	}
+ 
+-	for (i = 0; i < subdev_count; i++) {
+-		subdevdata = &config->subdev_info[i];
+-		vpif_obj.sd[i] =
+-			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+-						  i2c_adap,
+-						  &subdevdata->board_info,
+-						  NULL);
+-
+-		if (!vpif_obj.sd[i]) {
+-			vpif_err("Error registering v4l2 subdevice\n");
++	if (!vpif_obj.config->asd_sizes) {
++		i2c_adap = i2c_get_adapter(1);
++		for (i = 0; i < subdev_count; i++) {
++			subdevdata = &vpif_obj.config->subdev_info[i];
++			vpif_obj.sd[i] =
++				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
++							  i2c_adap,
++							  &subdevdata->
++							  board_info,
++							  NULL);
++
++			if (!vpif_obj.sd[i]) {
++				vpif_err("Error registering v4l2 subdevice\n");
++				goto probe_subdev_out;
++			}
++			v4l2_info(&vpif_obj.v4l2_dev,
++				  "registered sub device %s\n",
++				   subdevdata->name);
++		}
++		vpif_probe_complete();
++	} else {
++		vpif_obj.notifier.subdev = vpif_obj.config->asd;
++		vpif_obj.notifier.subdev_num = vpif_obj.config->asd_sizes[0];
++		vpif_obj.notifier.bound = vpif_async_bound;
++		vpif_obj.notifier.complete = vpif_async_complete;
++		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
++						   &vpif_obj.notifier);
++		if (err) {
++			vpif_err("Error registering async notifier\n");
++			err = -EINVAL;
+ 			goto probe_subdev_out;
+ 		}
+-		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
+-			  subdevdata->name);
+ 	}
+ 
+-	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+-		ch = vpif_obj.dev[j];
+-		ch->channel_id = j;
+-		common = &(ch->common[VPIF_VIDEO_INDEX]);
+-		spin_lock_init(&common->irqlock);
+-		mutex_init(&common->lock);
+-		ch->video_dev->lock = &common->lock;
+-		/* Initialize prio member of channel object */
+-		v4l2_prio_init(&ch->prio);
+-		video_set_drvdata(ch->video_dev, ch);
+-
+-		/* select input 0 */
+-		err = vpif_set_input(config, ch, 0);
+-		if (err)
+-			goto probe_out;
+-
+-		err = video_register_device(ch->video_dev,
+-					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+-		if (err)
+-			goto probe_out;
+-	}
+-	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
+ 	return 0;
+ 
+-probe_out:
+-	for (k = 0; k < j; k++) {
+-		/* Get the pointer to the channel object */
+-		ch = vpif_obj.dev[k];
+-		/* Unregister video device */
+-		video_unregister_device(ch->video_dev);
+-	}
+ probe_subdev_out:
+ 	/* free sub devices memory */
+ 	kfree(vpif_obj.sd);
+diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
+index 0ebb312..5a29d9a 100644
+--- a/drivers/media/platform/davinci/vpif_capture.h
++++ b/drivers/media/platform/davinci/vpif_capture.h
+@@ -142,6 +142,8 @@ struct vpif_device {
+ 	struct v4l2_device v4l2_dev;
+ 	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
+ 	struct v4l2_subdev **sd;
++	struct v4l2_async_notifier notifier;
++	struct vpif_capture_config *config;
+ };
+ 
+ struct vpif_config_params {
+diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+index 3882e06..e08bcde 100644
+--- a/include/media/davinci/vpif_types.h
++++ b/include/media/davinci/vpif_types.h
+@@ -81,5 +81,7 @@ struct vpif_capture_config {
+ 	struct vpif_subdev_info *subdev_info;
+ 	int subdev_count;
+ 	const char *card_name;
++	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
++	int *asd_sizes;		/* 0-terminated array of asd group sizes */
+ };
+ #endif /* _VPIF_TYPES_H */
+-- 
+1.7.4.1
+
