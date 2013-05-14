@@ -1,79 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43489 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932072Ab3E0MEf (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 08:04:35 -0400
-Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r4RC4Zr4020968
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Mon, 27 May 2013 08:04:35 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [media] hdpvr: Simplify the logic that checks for error
-Date: Mon, 27 May 2013 09:04:29 -0300
-Message-Id: <1369656269-11444-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout3.samsung.com ([203.254.224.33]:28128 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757360Ab3ENLvy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 May 2013 07:51:54 -0400
+From: George Joseph <george.jp@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, a.hajda@samsung.com, ym.song@samsung.com
+Subject: [RFC PATCH 3/3] ARM: dts: Add documentation for Samsung JPEG driver
+ bindings
+Date: Tue, 14 May 2013 17:23:40 +0530
+Message-id: <1368532420-21555-4-git-send-email-george.jp@samsung.com>
+In-reply-to: <1368532420-21555-1-git-send-email-george.jp@samsung.com>
+References: <1368532420-21555-1-git-send-email-george.jp@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-At get_video_info, there's a somewhat complex logic that checks
-for error.
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-That logic can be highly simplified, as usb_control_msg will
-only return a negative value, or the buffer length, as it does
-the transfers via DMA.
+Added documentation for Samsung JPEG driver DT bindings.
 
-While here, document why this particular driver is returning -EFAULT,
-instead of the USB error code.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: George Joseph Palathingal <george.jp@samsung.com>
+Cc: devicetree-discuss@lists.ozlabs.org
 ---
- drivers/media/usb/hdpvr/hdpvr-control.c | 23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+ .../devicetree/bindings/media/samsung-s5p-jpeg.txt |   21 ++++++++++++++++++++
+ 1 file changed, 21 insertions(+)
+ create mode 100644 Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
-index d1a3d84..a015a24 100644
---- a/drivers/media/usb/hdpvr/hdpvr-control.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-control.c
-@@ -56,12 +56,6 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- 			      0x1400, 0x0003,
- 			      dev->usbc_buf, 5,
- 			      1000);
--	if (ret == 5) {
--		vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
--		vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
--		vidinf->fps	= dev->usbc_buf[4];
--	}
--
- #ifdef HDPVR_DEBUG
- 	if (hdpvr_debug & MSG_INFO) {
- 		char print_buf[15];
-@@ -73,11 +67,20 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- #endif
- 	mutex_unlock(&dev->usbc_mutex);
- 
--	if (ret > 0 && ret != 5) { /* fail if unexpected byte count returned */
--		ret = -EFAULT;
--	}
-+	/*
-+	 * Returning EFAULT is wrong. Unfortunately, MythTV hdpvr
-+	 * handling code was written to expect this specific error,
-+	 * instead of accepting any error code. So, we can't fix it
-+	 * in Kernel without breaking userspace.
-+	 */
-+	if (ret < 0)
-+		return -EFAULT;
- 
--	return ret < 0 ? ret : 0;
-+	vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
-+	vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
-+	vidinf->fps	= dev->usbc_buf[4];
+diff --git a/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt b/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
+new file mode 100644
+index 0000000..e44c4da
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
+@@ -0,0 +1,21 @@
++Samsung S5P/EXYNOS SoC series JPEG codec
 +
-+	return 0;
- }
- 
- int get_input_lines_info(struct hdpvr_device *dev)
++Required properties:
++
++- compatible	: "samsung,<soc_name>-jpeg", must be one of:
++		  "samsung,s5pv210-jpeg", "samsung,exynos4212-jpeg";
++- reg		: address and length of the JPEG codec register set;
++- interrupts	: should contain the JPEG codec interrupt; format of the
++		  interrupt specifier depends on the interrupt controller;
++- clocks	: jpeg clock specifier, as covered by common clock bindings.
++- clock-names	: must contain "jpeg" entry.
++
++Example:
++
++jpeg@11840000 {
++	compatible = "samsung,s5pv210-jpeg";
++	reg = <0x11840000 0x3FF>;
++	interrupts = <0 88 0>;
++	clocks = <&clock 262>;
++	clock-names = "jpeg";
++};
 -- 
-1.8.1.4
+1.7.9.5
 
