@@ -1,65 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:52286 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1758675Ab3E1C6e (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:45702 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034Ab3ENGr5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 22:58:34 -0400
-Message-ID: <1369709900.3469.418.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [PATCH stable < v3.7] media mantis: fix silly crash case
-From: Ben Hutchings <ben@decadent.org.uk>
-To: =?ISO-8859-1?Q?Bj=F8rn?= Mork <bjorn@mork.no>
-Cc: stable@vger.kernel.org, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Alan Cox <alan@linux.intel.com>
-Date: Tue, 28 May 2013 03:58:20 +0100
-In-Reply-To: <87ehd0lbwo.fsf@nemi.mork.no>
-References: <87ehd0lbwo.fsf@nemi.mork.no>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-rfPh3NJRJKJMXTVqRkH2"
-Mime-Version: 1.0
+	Tue, 14 May 2013 02:47:57 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH RFC v3 1/4] media: i2c: adv7343: add support for asynchronous probing
+Date: Tue, 14 May 2013 12:17:33 +0530
+Message-Id: <1368514056-28859-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1368514056-28859-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1368514056-28859-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
---=-rfPh3NJRJKJMXTVqRkH2
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Both synchronous and asynchronous adv7343 subdevice probing is supported by
+this patch.
 
-On Tue, 2013-05-21 at 15:07 +0200, Bj=C3=B8rn Mork wrote:
-> Hello,
->=20
-> Please apply mainline commit e1d45ae to any maintained stable kernel
-> prior to v3.7.  I just hit this bug on a Debian 3.2.41-2+deb7u2 kernel:
-[...]
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/i2c/adv7343.c |   16 ++++++++++++----
+ 1 files changed, 12 insertions(+), 4 deletions(-)
 
-Queued up for 3.2, thanks.
+diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+index 9fc2b98..469e262 100644
+--- a/drivers/media/i2c/adv7343.c
++++ b/drivers/media/i2c/adv7343.c
+@@ -27,6 +27,7 @@
+ #include <linux/uaccess.h>
+ 
+ #include <media/adv7343.h>
++#include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-ctrls.h>
+@@ -455,16 +456,22 @@ static int adv7343_probe(struct i2c_client *client,
+ 				       ADV7343_GAIN_DEF);
+ 	state->sd.ctrl_handler = &state->hdl;
+ 	if (state->hdl.error) {
+-		int err = state->hdl.error;
+-
+-		v4l2_ctrl_handler_free(&state->hdl);
+-		return err;
++		err = state->hdl.error;
++		goto done;
+ 	}
+ 	v4l2_ctrl_handler_setup(&state->hdl);
+ 
+ 	err = adv7343_initialize(&state->sd);
+ 	if (err)
++		goto done;
++
++	state->sd.dev = &client->dev;
++	err = v4l2_async_register_subdev(&state->sd);
++
++done:
++	if (err < 0)
+ 		v4l2_ctrl_handler_free(&state->hdl);
++
+ 	return err;
+ }
+ 
+@@ -473,6 +480,7 @@ static int adv7343_remove(struct i2c_client *client)
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+ 	struct adv7343_state *state = to_state(sd);
+ 
++	v4l2_async_unregister_subdev(&state->sd);
+ 	v4l2_device_unregister_subdev(sd);
+ 	v4l2_ctrl_handler_free(&state->hdl);
+ 
+-- 
+1.7.4.1
 
-Ben.
-
---=20
-Ben Hutchings
-If at first you don't succeed, you're doing about average.
-
---=-rfPh3NJRJKJMXTVqRkH2
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIVAwUAUaQdTOe/yOyVhhEJAQoa/w/+OCmyXhLB52f5jWaBRmueyW/efWbf3Mnl
-BoC6a5w+OWwIdJqIwH9gSZ8y4MliqvjqcujqReBtBj8Vp0OVRqdOT7p51VQVwzZJ
-TAlbGNhI7cKT8axJxX+GSUycdO7uz7oP+wkEP4XJeHHGI/TuL0wajrToyGBAaDyo
-21XSJYKYMQbFFAzcZ4u61C9EnSgAuY1rLDYyqXZsoAdji42dHgYkTW4xc4l8WRHU
-IM/KZcI/BZ5amkDabBMyT15iRokW4zLhz5bED4E1h9kyLaqMGKMTit8RC127TCf4
-z2U18kQ+NLY4oel4e47QtDBqYfBGW/ks3rB6pGgMEGUT5Lhnh0Ke0pViAHkNyGs1
-BKHovTzF7D4b7ucJWsX4gp/Rm/VK3FgG4gD9eOaa0jzEMJ58dxcCEF6kggffMBxv
-p96ppewhumfO3NTNscqBzSaV4e0oZ52pJrT6V0YLJuWoYl4iPv6g0xYDjHvG5nTo
-ySODF2RUC10u4jvt75WYBxbx9nbE7M7M0KNZEQu+ATh2TtxaZmnbaL2HF6QZRXRz
-hVv5MZ8HkAXV7R5KS79rRNxEabAqJTvGlVhLkcgpSEc2HiMZiifFPyPGMT+IjIhC
-jE7GkroTKEho3GqrYbGciISwlUGy3184UrXh/euUdADgjPWl1/WUZ/TkwyAgOEPW
-2xXQ9y12ovg=
-=/cbA
------END PGP SIGNATURE-----
-
---=-rfPh3NJRJKJMXTVqRkH2--
