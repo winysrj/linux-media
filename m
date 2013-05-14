@@ -1,192 +1,207 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:48581 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751611Ab3EBOxK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 2 May 2013 10:53:10 -0400
-Message-ID: <51827DB1.7000304@redhat.com>
-Date: Thu, 02 May 2013 11:52:33 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-Version: 1.0
-To: Randy Dunlap <rdunlap@infradead.org>,
-	"Yann E. MORIN" <yann.morin.1998@free.fr>,
-	=?UTF-8?B?RXplcXVpZWwgR2FyY8OtYQ==?= <elezegarcia@gmail.com>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kbuild@vger.kernel.org
-Subject: Re: linux-next: Tree for May 1 (media/usb/stk1160)
-References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au> <518157EB.3010700@infradead.org>
-In-Reply-To: <518157EB.3010700@infradead.org>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:52044 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751654Ab3ENFso (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 May 2013 01:48:44 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	uclinux-dist-devel@blackfin.uclinux.org, ivtv-devel@ivtvdriver.org
+Cc: linux-kernel@vger.kernel.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Mike Isely <isely@pobox.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Antti Palosaari <crope@iki.fi>,
+	=?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
+	Janne Grunau <j@jannau.net>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 4/4] media: pci: remove duplicate checks for EPERM
+Date: Tue, 14 May 2013 11:15:17 +0530
+Message-Id: <1368510317-4356-5-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1368510317-4356-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1368510317-4356-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em 01-05-2013 14:59, Randy Dunlap escreveu:
-> On 05/01/13 01:37, Stephen Rothwell wrote:
->> Hi all,
->>
->> Please do not add any v3.11 destined work to your linux-next included
->> branches until after v3.10-rc1 is released.
->>
->> Changes since 20130430:
->>
->
->
-> When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
-> CONFIG_VIDEO_STK1160=y
-> CONFIG_VIDEO_STK1160_AC97=y
->
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x122706): undefined reference to `snd_card_create'
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x1227b2): undefined reference to `snd_ac97_bus'
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x1227cd): undefined reference to `snd_card_free'
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x12281b): undefined reference to `snd_ac97_mixer'
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x122832): undefined reference to `snd_card_register'
-> drivers/built-in.o: In function `stk1160_ac97_unregister':
-> (.text+0x12285e): undefined reference to `snd_card_free'
->
->
-> This kconfig fragment:
-> config VIDEO_STK1160_AC97
-> 	bool "STK1160 AC97 codec support"
-> 	depends on VIDEO_STK1160 && SND
-> 	select SND_AC97_CODEC
->
-> is unreliable (doesn't do what some people expect) when SND=m and SND_AC97_CODEC=m,
-> since VIDEO_STK1160_AC97 is a bool.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Using select is always tricky.
+This patch removes check for EPERM in dbg_g/s_register and
+vidioc_g/s_register as this check is already performed by core.
 
-I can see a few possible fixes for it:
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/pci/bt8xx/bttv-driver.c       |    6 ------
+ drivers/media/pci/cx18/cx18-av-core.c       |    4 ----
+ drivers/media/pci/cx23885/cx23885-ioctl.c   |    6 ------
+ drivers/media/pci/cx23885/cx23888-ir.c      |    4 ----
+ drivers/media/pci/ivtv/ivtv-ioctl.c         |    2 --
+ drivers/media/pci/saa7146/mxb.c             |    4 ----
+ drivers/media/pci/saa7164/saa7164-encoder.c |    6 ------
+ 7 files changed, 0 insertions(+), 32 deletions(-)
 
-1) split the alsa part into a separate module. IMHO, this is cleaner,
-but requires a little more work.
-
-2) Use the Kconfig syntax:
-
-	depends on SND || (SND=n)
-
-on a tristate symbol. That behaves like:
-
-	if SND is 'n', it won't depend on SND;
-	if SND is 'm', the symbol will be 'm'
-	if SND is 'y', the symbol will be 'y'.
-
-However, as as VIDEO_STK1160_AC97 is boolean, this will require
-an additional hidden Kconfig. Something like:
-
-config VIDEO_STK1160_COMMON
-	tristate "STK1160 USB video capture support"
-	depends on VIDEO_DEV && I2C
-
-config VIDEO_STK1160_AC97
-	bool "STK1160 AC97 codec support"
-	depends on VIDEO_STK1160_COMMON && SND
-
-config VIDEO_STK1160
-	tristate
-	depends on ((SND || (SND=n) || !VIDEO_STK1160_AC97) && VIDEO_STK1160_COMMON
-	default y
-	select SND_AC97_CODEC if SND
-	select VIDEOBUF2_VMALLOC
-	select VIDEO_SAA711X
-	select SND_AC97_CODEC
-
-We do already something similar to the above for the mutual dependency
-of most media drivers for I2C and V4L2 and/or DVB core.
-
-There's just one small drawback with the above: if SND='m', even if
-the user selects VIDEO_STK1160_COMMON='y', VIDEO_STK1160 will be 'm'.
-
-A quick test here with make allyesconfig and then changing SND to m
-seemed to produce the right value for CONFIG_VIDEO_STK1160:
-
-Selecting STK1160_AC97:
-
-$ grep -e STK1160 -e SND= .config
-CONFIG_VIDEO_STK1160_COMMON=y
-CONFIG_VIDEO_STK1160_AC97=y
-CONFIG_VIDEO_STK1160=m
-CONFIG_SND=m
-
-Unselecting STK1160_AC97:
-
-$ grep -e STK1160 -e SND= .config
-CONFIG_VIDEO_STK1160_COMMON=y
-# CONFIG_VIDEO_STK1160_AC97 is not set
-CONFIG_VIDEO_STK1160=y
-CONFIG_SND=m
-
-With a little more work, it could be possible to find a way to
-avoid the drawback of saying to the user that the module will be
-builtin, but compiling it as a module.
-
-Regards,
-Mauro.
-
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index e7d0884..a334c94 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -1936,9 +1936,6 @@ static int bttv_g_register(struct file *file, void *f,
+ 	struct bttv_fh *fh = f;
+ 	struct bttv *btv = fh->btv;
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
 -
-
-[media] stk1160: Make stk1160 module if SND is m and audio support is selected
-
-As reported by Randy:
-
-When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
-CONFIG_VIDEO_STK1160=y
-CONFIG_VIDEO_STK1160_AC97=y
-
-drivers/built-in.o: In function `stk1160_ac97_register':
-(.text+0x122706): undefined reference to `snd_card_create'
-drivers/built-in.o: In function `stk1160_ac97_register':
-(.text+0x1227b2): undefined reference to `snd_ac97_bus'
-drivers/built-in.o: In function `stk1160_ac97_register':
-(.text+0x1227cd): undefined reference to `snd_card_free'
-drivers/built-in.o: In function `stk1160_ac97_register':
-(.text+0x12281b): undefined reference to `snd_ac97_mixer'
-drivers/built-in.o: In function `stk1160_ac97_register':
-(.text+0x122832): undefined reference to `snd_card_register'
-drivers/built-in.o: In function `stk1160_ac97_unregister':
-(.text+0x12285e): undefined reference to `snd_card_free'
-
-Reported-by: Randy Dunlap <rdunlap@infradead.org>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-
-diff --git a/drivers/media/usb/stk1160/Kconfig b/drivers/media/usb/stk1160/Kconfig
-index 1c3a1ec..2bf6392 100644
---- a/drivers/media/usb/stk1160/Kconfig
-+++ b/drivers/media/usb/stk1160/Kconfig
-@@ -1,8 +1,6 @@
--config VIDEO_STK1160
-+config VIDEO_STK1160_COMMON
-  	tristate "STK1160 USB video capture support"
-  	depends on VIDEO_DEV && I2C
--	select VIDEOBUF2_VMALLOC
--	select VIDEO_SAA711X
-  
-  	---help---
-  	  This is a video4linux driver for STK1160 based video capture devices.
-@@ -12,9 +10,14 @@ config VIDEO_STK1160
-  
-  config VIDEO_STK1160_AC97
-  	bool "STK1160 AC97 codec support"
--	depends on VIDEO_STK1160 && SND
--	select SND_AC97_CODEC
+ 	if (!v4l2_chip_match_host(&reg->match)) {
+ 		/* TODO: subdev errors should not be ignored, this should become a
+ 		   subdev helper function. */
+@@ -1960,9 +1957,6 @@ static int bttv_s_register(struct file *file, void *f,
+ 	struct bttv_fh *fh = f;
+ 	struct bttv *btv = fh->btv;
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
 -
-+	depends on VIDEO_STK1160_COMMON && SND
-  	---help---
-  	  Enables AC97 codec support for stk1160 driver.
--.
-+
-+config VIDEO_STK1160
-+	tristate
-+	depends on (!VIDEO_STK1160_AC97 || (SND='n') || SND) && VIDEO_STK1160_COMMON
-+	default y
-+	select VIDEOBUF2_VMALLOC
-+	select VIDEO_SAA711X
-+	select SND_AC97_CODEC if SND
-
+ 	if (!v4l2_chip_match_host(&reg->match)) {
+ 		/* TODO: subdev errors should not be ignored, this should become a
+ 		   subdev helper function. */
+diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
+index 38b1d64..ba8caf0 100644
+--- a/drivers/media/pci/cx18/cx18-av-core.c
++++ b/drivers/media/pci/cx18/cx18-av-core.c
+@@ -1258,8 +1258,6 @@ static int cx18_av_g_register(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 	if ((reg->reg & 0x3) != 0)
+ 		return -EINVAL;
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+ 	reg->size = 4;
+ 	reg->val = cx18_av_read4(cx, reg->reg & 0x00000ffc);
+ 	return 0;
+@@ -1274,8 +1272,6 @@ static int cx18_av_s_register(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 	if ((reg->reg & 0x3) != 0)
+ 		return -EINVAL;
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+ 	cx18_av_write4(cx, reg->reg & 0x00000ffc, reg->val);
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/cx23885/cx23885-ioctl.c b/drivers/media/pci/cx23885/cx23885-ioctl.c
+index acdb6d5..00f5125 100644
+--- a/drivers/media/pci/cx23885/cx23885-ioctl.c
++++ b/drivers/media/pci/cx23885/cx23885-ioctl.c
+@@ -138,9 +138,6 @@ int cx23885_g_register(struct file *file, void *fh,
+ {
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)fh)->dev;
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+-
+ 	if (reg->match.type == V4L2_CHIP_MATCH_HOST) {
+ 		switch (reg->match.addr) {
+ 		case 0:
+@@ -186,9 +183,6 @@ int cx23885_s_register(struct file *file, void *fh,
+ {
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)fh)->dev;
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+-
+ 	if (reg->match.type == V4L2_CHIP_MATCH_HOST) {
+ 		switch (reg->match.addr) {
+ 		case 0:
+diff --git a/drivers/media/pci/cx23885/cx23888-ir.c b/drivers/media/pci/cx23885/cx23888-ir.c
+index fa672fe..cd98651 100644
+--- a/drivers/media/pci/cx23885/cx23888-ir.c
++++ b/drivers/media/pci/cx23885/cx23888-ir.c
+@@ -1116,8 +1116,6 @@ static int cx23888_ir_g_register(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 	if (addr < CX23888_IR_CNTRL_REG || addr > CX23888_IR_LEARN_REG)
+ 		return -EINVAL;
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+ 	reg->size = 4;
+ 	reg->val = cx23888_ir_read4(state->dev, addr);
+ 	return 0;
+@@ -1135,8 +1133,6 @@ static int cx23888_ir_s_register(struct v4l2_subdev *sd,
+ 		return -EINVAL;
+ 	if (addr < CX23888_IR_CNTRL_REG || addr > CX23888_IR_LEARN_REG)
+ 		return -EINVAL;
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+ 	cx23888_ir_write4(state->dev, addr, reg->val);
+ 	return 0;
+ }
+diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
+index 9cbbce0..3e281ec 100644
+--- a/drivers/media/pci/ivtv/ivtv-ioctl.c
++++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
+@@ -715,8 +715,6 @@ static int ivtv_itvc(struct ivtv *itv, bool get, u64 reg, u64 *val)
+ {
+ 	volatile u8 __iomem *reg_start;
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+ 	if (reg >= IVTV_REG_OFFSET && reg < IVTV_REG_OFFSET + IVTV_REG_SIZE)
+ 		reg_start = itv->reg_mem - IVTV_REG_OFFSET;
+ 	else if (itv->has_cx23415 && reg >= IVTV_DECODER_OFFSET &&
+diff --git a/drivers/media/pci/saa7146/mxb.c b/drivers/media/pci/saa7146/mxb.c
+index 71e8bea..52cbe7a0 100644
+--- a/drivers/media/pci/saa7146/mxb.c
++++ b/drivers/media/pci/saa7146/mxb.c
+@@ -669,8 +669,6 @@ static int vidioc_g_register(struct file *file, void *fh, struct v4l2_dbg_regist
+ {
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+ 	if (v4l2_chip_match_host(&reg->match)) {
+ 		reg->val = saa7146_read(dev, reg->reg);
+ 		reg->size = 4;
+@@ -684,8 +682,6 @@ static int vidioc_s_register(struct file *file, void *fh, const struct v4l2_dbg_
+ {
+ 	struct saa7146_dev *dev = ((struct saa7146_fh *)fh)->dev;
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+ 	if (v4l2_chip_match_host(&reg->match)) {
+ 		saa7146_write(dev, reg->reg, reg->val);
+ 		return 0;
+diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
+index 0b74fb2..63a72fb 100644
+--- a/drivers/media/pci/saa7164/saa7164-encoder.c
++++ b/drivers/media/pci/saa7164/saa7164-encoder.c
+@@ -1306,9 +1306,6 @@ static int saa7164_g_register(struct file *file, void *fh,
+ 	struct saa7164_dev *dev = port->dev;
+ 	dprintk(DBGLVL_ENC, "%s()\n", __func__);
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+-
+ 	return 0;
+ }
+ 
+@@ -1319,9 +1316,6 @@ static int saa7164_s_register(struct file *file, void *fh,
+ 	struct saa7164_dev *dev = port->dev;
+ 	dprintk(DBGLVL_ENC, "%s()\n", __func__);
+ 
+-	if (!capable(CAP_SYS_ADMIN))
+-		return -EPERM;
+-
+ 	return 0;
+ }
+ #endif
+-- 
+1.7.4.1
 
