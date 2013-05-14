@@ -1,117 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:49310 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751186Ab3EOFo2 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:39308 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751962Ab3ENFOS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 01:44:28 -0400
-Date: Wed, 15 May 2013 07:44:20 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH v4] V4L2: soc_camera: Renesas R-Car VIN driver
-In-Reply-To: <201305150256.36966.sergei.shtylyov@cogentembedded.com>
-Message-ID: <Pine.LNX.4.64.1305150742470.10596@axis700.grange>
-References: <201305150256.36966.sergei.shtylyov@cogentembedded.com>
+	Tue, 14 May 2013 01:14:18 -0400
+Date: Tue, 14 May 2013 07:13:56 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Arnd Bergmann <arnd@arndb.de>,
+	LMML <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH RFC v3] media: i2c: mt9p031: add OF support
+Message-ID: <20130514051356.GW32299@pengutronix.de>
+References: <1367563919-2880-1-git-send-email-prabhakar.csengg@gmail.com>
+ <5750435.WVYuIYMX2V@avalon>
+ <20130513104604.GU20989@pengutronix.de>
+ <2897565.OjqREpRvoz@avalon>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <2897565.OjqREpRvoz@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei, Vladimir
-
-On Wed, 15 May 2013, Sergei Shtylyov wrote:
-
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+On Tue, May 14, 2013 at 12:59:27AM +0200, Laurent Pinchart wrote:
+> Hi Sascha,
 > 
-> Add Renesas R-Car VIN (Video In) V4L2 driver.
+> On Monday 13 May 2013 12:46:04 Sascha Hauer wrote:
+> > On Wed, May 08, 2013 at 12:37:29PM +0200, Laurent Pinchart wrote:
+> > > Hi Prabhakar,
+> > > 
+> > > On Wednesday 08 May 2013 10:19:57 Prabhakar Lad wrote:
+> > > > On Wed, May 8, 2013 at 7:32 AM, Laurent Pinchart wrote:
+> > > > > On Tuesday 07 May 2013 15:10:36 Prabhakar Lad wrote:
+> > > > >> On Mon, May 6, 2013 at 8:29 PM, Prabhakar Lad wrote:
+> > > > >> > On Fri, May 3, 2013 at 8:04 PM, Arnd Bergmann wrote:
+> > > > >> >> On Friday 03 May 2013, Prabhakar Lad wrote:
+> > > > >> > [snip]
+> > > > >> > 
+> > > > >> >>> +}
+> > > > >> >> 
+> > > > >> >> Ok, good.
+> > > > >> >> 
+> > > > >> >>> @@ -955,7 +998,17 @@ static int mt9p031_probe(struct i2c_client
+> > > > >> >>> *client,
+> > > > >> >>> 
+> > > > >> >>>         mt9p031->pdata = pdata;
+> > > > >> >>>         mt9p031->output_control = MT9P031_OUTPUT_CONTROL_DEF;
+> > > > >> >>>         mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
+> > > > >> >>> 
+> > > > >> >>> -       mt9p031->model = did->driver_data;
+> > > > >> >>> +
+> > > > >> >>> +       if (!client->dev.of_node) {
+> > > > >> >>> +               mt9p031->model = (enum
+> > > > >> >>> mt9p031_model)did->driver_data;
+> > > > >> >>> +       } else {
+> > > > >> >>> +               const struct of_device_id *of_id;
+> > > > >> >>> +
+> > > > >> >>> +               of_id =
+> > > > >> >>> of_match_device(of_match_ptr(mt9p031_of_match),
+> > > > >> >>> +                                       &client->dev);
+> > > > >> >>> +               if (of_id)
+> > > > >> >>> +                       mt9p031->model = (enum
+> > > > >> >>> mt9p031_model)of_id->data;
+> > > > >> >>> +       }
+> > > > >> >>> 
+> > > > >> >>>         mt9p031->reset = -1;
+> > > > >> >> 
+> > > > >> >> Is this actually required? I thought the i2c core just compared
+> > > > >> >> the
+> > > > >> >> part of the "compatible" value after the first comma to the
+> > > > >> >> string, so
+> > > > >> >> "mt9p031->model = (enum mt9p031_model)did->driver_data" should
+> > > > >> >> work
+> > > > >> >> in both cases.
+> > 
+> > At least on v3.8 I just checked that 'did' is indeed NULL for the
+> > devicetree case. Also I see no indication that i2c starts comparing
+> > after the first comma in the string.
+> > 
+> > > > >> > I am OK with "mt9p031->model = (enum
+> > > > >> > mt9p031_model)did->driver_data"
+> > > > >> > but I see still few drivers doing this, I am not sure for what
+> > > > >> > reason.
+> > > > >> > If everyone is OK with it I can drop the above change.
+> > > > >> 
+> > > > >> My bad, while booting with DT the i2c_device_id ie did in this case
+> > > > >> will
+> > > > >> be NULL, so the above changes are required :-)
+> > > > > 
+> > > > > I've just tested your patch, and did isn't NULL when booting my
+> > > > > Beagleboard with DT (on v3.9-rc5).
+> > > > 
+> > > > I am pretty much sure you tested it compatible property as
+> > > > "aptina,mt9p031"
+> > > > if the compatible property is set to "aptina,mt9p031m" the did will be
+> > > > NULL.> 
+> > > I've tested both :-)
+> > 
+> > Sorry to nag, but did you use "aptina,mt9p031[m]" as a compatible string or
+> > did you use "mt9p031[m]". With "aptina,..." 'did' should really be NULL.
 > 
-> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> I've used "aptina,mt9p031[m]".
 > 
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
-> values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
-> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
-> *if* statement  and  used 'bool' values instead of 0/1 where necessary, done
-> some reformatting and clarified some comments.]
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> ---
-> This patch is against the 'media_tree.git' repo.
-> 
-> Changes since version 3:
+> Please see the of_modalias_node() call in of_i2c_register_devices() 
+> (drivers/of/of-i2c.c), that's where the I2C device type name should be 
+> initialized.
 
-Why aren't you using this:
+Ok, got it. I still had the older aptina,mt9p031m-sensor binding in my
+patch.
 
-http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/63820
+Sorry for the noise.
 
-?
+Sascha
 
-Thanks
-Guennadi
-
-> - removed the driver's dependency on R-Car M1A/H1 SoCs from Kconfig;
-> - made the driver aware of the differences between R-Car E1/M1/H1 SoCs by having
->   different platform device IDs for different SoCs, introcduced 'enum chips_id'
->   to be used as the 'driver_data' field of 'struct platform_device_id' and then
->   copied to the 'chip' field of 'struct rcar_vin_priv';
-> - sorted #include's alphabetically, added a number of #includes <media/v4l2-*>;
-> - removed the 'data_through' field of the 'struct rcar_vin_priv' and the pass-
->   through logic from set_fmt() method;
-> - simplified is_continuous_transfer(), used it where applicable;
-> - removed senseless parens from to_buf_list() macro;
-> - removed the 'code' field from the 'struct rcar_vin_cam';
-> - largely rewrote the queue_setup() method;
-> - removed 'input_is_yuv' variable from rcar_vin_setup(), made 'progressive'  and
->   'output_is_yuv' variables 'bool', and made setting VnDMR.EXRGB bit only happen
->   on R-Car E1/H1 there;
-> - made use of ALIGN() macro in rcar_vin_setup() and rcar_vin_set_rect();
-> - fixed missing {} on one branch of the *if* statement in several places, added
->   {} to the *if* statement where necessary;
-> - stopped saving/restoring flags when grabbing/dropping a spinlock in the
->   buf_queue() and buf_cleanup() methods;
-> - made 'dsize' variable calculation depend on R-Car E1 in rcar_vin_set_rect()
-> - fix the continuous capturing to stop when there is no buffer to be set into
->   the VnMBm registers in rcar_vin_irq();
-> - replaced BUG_ON() with WARN_ON() and *return* in the remove() method, also
->   replaced pm_runtime_put_sync() with pm_runtime_put() there;
-> - removed size_dst() and calc_scale() as the calls to calc_scale() were also
->   removed from the set_fmt() method;
-> - removed the VnMC register value check from capture_restore();
-> - removed 'cfg' variable initializers from set_bus_param() method and
->   rcar_vin_try_bus_param();
-> - added bus width check to rcar_vin_try_bus_param();
-> - removed V4L2_PIX_FMT_YUYV format from rcar_vin_formats[], initialize 'layout'
->   field of every element in this table;
-> - changed dev_err() call and *return* -EINVAL to dev_warn() and *return* 0 in
->   the get_formats() method,
-> - added rcar_vin_packing_supported() and started handling pass-through mode in
->   the get_formats() method;
-> - constified the parameters of is_smaller() and is_inside();
-> - redid the scaling logic so that it can't scale RGB32 data on R-Car E1 in the
->   set_fmt() method, also stopped assigning to 'cam->code' there;
-> - started selecting the current format if soc_camera_xlate_by_fourcc() call
->   failed in the try_fmt() method, also started letting 'soc-camera' calculate
->   bytes-per-line and image size there;
-> - removed pm_runtime_resume() call from the driver's probe() method
-> - added setting of the 'timestamp_type' field to the init_videobuf2() method.
-> 
-> Changes since version 2:
-> - replaced Cyrillic characters in comments with the proper Latinic ones.
-> 
-> Changes since the original posting:
-> - added IRQF_SHARED flag in devm_request_irq() call (since on R8A7778 VIN0/1
->   share the same IRQ) and removed deprecated IRQF_DISABLED flag.
-> 
->  drivers/media/platform/soc_camera/Kconfig    |    7 
->  drivers/media/platform/soc_camera/Makefile   |    1 
->  drivers/media/platform/soc_camera/rcar_vin.c | 1814 +++++++++++++++++++++++++++
->  include/linux/platform_data/camera-rcar.h    |   25 
->  4 files changed, 1847 insertions(+)
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
