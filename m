@@ -1,64 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from li248-118.members.linode.com ([173.255.238.118]:49010 "EHLO
-	kahlo.theo.to" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1754167Ab3ESUZN (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4248 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751530Ab3ENRWj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 May 2013 16:25:13 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by kahlo.theo.to (Postfix) with ESMTP id BDE6EE0004
-	for <linux-media@vger.kernel.org>; Sun, 19 May 2013 16:18:26 -0400 (EDT)
-Received: from kahlo.theo.to ([127.0.0.1])
-	by localhost (kahlo.theo.to [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id 3YiTTVTlpUsG for <linux-media@vger.kernel.org>;
-	Sun, 19 May 2013 16:18:25 -0400 (EDT)
-Received: from [192.168.2.66] (pool-108-22-230-94.bltmmd.east.verizon.net [108.22.230.94])
-	(using TLSv1 with cipher AES256-SHA (256/256 bits))
-	(No client certificate requested)
-	(Authenticated sender: rainexpected@theo.to)
-	by kahlo.theo.to (Postfix) with ESMTPSA id AA1C7E0001
-	for <linux-media@vger.kernel.org>; Sun, 19 May 2013 16:18:25 -0400 (EDT)
-Message-ID: <51993390.6080202@theo.to>
-Date: Sun, 19 May 2013 16:18:24 -0400
-From: Ted To <rainexpected@theo.to>
-MIME-Version: 1.0
+	Tue, 14 May 2013 13:22:39 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4EHMZ2c078689
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 14 May 2013 19:22:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 5543C35E0035
+	for <linux-media@vger.kernel.org>; Tue, 14 May 2013 19:22:33 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: InstantFM
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130514172233.5543C35E0035@alastor.dyndns.org>
+Date: Tue, 14 May 2013 19:22:33 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I purchased this device and while the device driver loads and I can set
-up gnomeradio to access it, it picks up no radio stations, despite being
-the model with an external antenna.  The log output says "software
-version 0, hardware version 7".  I'm running Debian Wheezy and the
-output from dmesg is:
+Results of the daily build of media_tree:
 
-[66842.724036] usb 2-3: new full-speed USB device number 3 using ohci_hcd
-[66842.936144] usb 2-3: New USB device found, idVendor=06e1, idProduct=a155
-[66842.936150] usb 2-3: New USB device strings: Mfr=1, Product=2,
-SerialNumber=0
-[66842.936154] usb 2-3: Product: ADS InstantFM Music
-[66842.936156] usb 2-3: Manufacturer: ADS TECH
-[66843.275730] Linux media interface: v0.10
-[66843.296811] Linux video capture interface: v2.00
-[66843.321815] USB radio driver for Si470x FM Radio Receivers, Version
-1.0.10
-[66843.323136] radio-si470x 2-3:1.2: DeviceID=0xffff ChipID=0xffff
-[66843.326127] radio-si470x 2-3:1.2: software version 0, hardware version 7
-[66843.326131] radio-si470x 2-3:1.2: This driver is known to work with
-software version 7,
-[66843.326135] radio-si470x 2-3:1.2: but the device has software version 0.
-[66843.326138] radio-si470x 2-3:1.2: If you have some trouble using this
-driver,
-[66843.326141] radio-si470x 2-3:1.2: please report to V4L ML at
-linux-media@vger.kernel.org
-[66843.338247] usbcore: registered new interface driver radio-si470x
-[66843.407477] usbcore: registered new interface driver snd-usb-audio
+date:		Tue May 14 19:00:29 CEST 2013
+git branch:	test
+git hash:	4237c09a63906b980741725da63f85e454caec02
+gcc version:	i686-linux-gcc (GCC) 4.7.2
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-Any help on what I need to do to get this working would be much appreciated.
+linux-git-arm-davinci: ERRORS
+linux-git-arm-exynos: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-blackfin: ERRORS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: ERRORS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9-rc1-i686: ERRORS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9-rc1-x86_64: ERRORS
+apps: ERRORS
+spec-git: OK
+sparse: ERRORS
 
-Cheers,
-Ted To
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
