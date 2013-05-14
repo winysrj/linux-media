@@ -1,141 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:50993 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752536Ab3ECLj4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 07:39:56 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH RESEND] media: davinci: vpbe: fix checkpatch warning for CamelCase
-Date: Fri,  3 May 2013 17:09:25 +0530
-Message-Id: <1367581165-20805-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from venus.vo.lu ([80.90.45.96]:54257 "EHLO venus.vo.lu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756917Ab3ENJiB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 May 2013 05:38:01 -0400
+Received: from lan226.bxl.tuxicoman.be ([172.19.1.226] helo=me)
+	by ibiza.bxl.tuxicoman.be with smtp (Exim 4.80.1)
+	(envelope-from <gmsoft@tuxicoman.be>)
+	id 1UcBg7-0002w6-IA
+	for linux-media@vger.kernel.org; Tue, 14 May 2013 11:37:52 +0200
+From: Guy Martin <gmsoft@tuxicoman.be>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 4/5] libdvbv5: Apply polarization parameters to the frontend
+Date: Tue, 14 May 2013 11:23:54 +0200
+Message-Id: <a313e75ecb5d16533a6143bd268a15b1274f8819.1368522021.git.gmsoft@tuxicoman.be>
+In-Reply-To: <cover.1368522021.git.gmsoft@tuxicoman.be>
+References: <cover.1368522021.git.gmsoft@tuxicoman.be>
+In-Reply-To: <cover.1368522021.git.gmsoft@tuxicoman.be>
+References: <cover.1368522021.git.gmsoft@tuxicoman.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Apply polarization parameters even if a satellite number is not provided.
+The polarization is fetched from struct dvb_v5_fe_parms directly and not from the
+parameter DTV_POLARIZATION.
+Since DTV_VOLTAGE and DTV_TONE are set according the polarization, those parameters
+are removed from the props structures in dvb-v5-std.c.
 
-This patch fixes checkpatch warning to avoid CamelCase.
+Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- The initial version of this patch was a part of series, which
- is intended to be dropped so sending this patch individually.
-
- drivers/media/platform/davinci/vpbe_display.c |    2 +-
- drivers/media/platform/davinci/vpbe_osd.c     |   24 ++++++++++++------------
- include/media/davinci/vpbe_osd.h              |    4 ++--
- 3 files changed, 15 insertions(+), 15 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 1802f11..1c4ba89 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -929,7 +929,7 @@ static int vpbe_display_s_fmt(struct file *file, void *priv,
- 	cfg->interlaced = vpbe_dev->current_timings.interlaced;
+diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+index 7352218..571d4ac 100644
+--- a/lib/include/dvb-fe.h
++++ b/lib/include/dvb-fe.h
+@@ -104,7 +104,7 @@ struct dvb_v5_fe_parms {
+ 	unsigned			freq_bpf;
  
- 	if (V4L2_PIX_FMT_UYVY == pixfmt->pixelformat)
--		cfg->pixfmt = PIXFMT_YCbCrI;
-+		cfg->pixfmt = PIXFMT_YCBCRI;
+ 	/* Satellite specific stuff, used internally */
+-	//enum dvb_sat_polarization       pol;
++	enum dvb_sat_polarization	pol;
+ 	int				high_band;
+ 	unsigned			diseqc_wait;
+ 	unsigned			freq_offset;
+diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+index d00a09e..89f8e88 100644
+--- a/lib/libdvbv5/dvb-sat.c
++++ b/lib/libdvbv5/dvb-sat.c
+@@ -272,8 +272,7 @@ static int dvbsat_scr_odu_channel_change(struct dvb_v5_fe_parms *parms, struct d
+ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+ {
+ 	int rc;
+-	enum dvb_sat_polarization pol;
+-	dvb_fe_retrieve_parm(parms, DTV_POLARIZATION,& pol);
++	enum dvb_sat_polarization pol = parms->pol;
+ 	int pol_v = (pol == POLARIZATION_V) || (pol == POLARIZATION_R);
+ 	int high_band = parms->high_band;
+ 	int sat_number = parms->sat_number;
+@@ -284,12 +283,6 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
  
- 	/* Change of the default pixel format for both video windows */
- 	if (V4L2_PIX_FMT_NV12 == pixfmt->pixelformat) {
-diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
-index 396a51c..6ed82e8 100644
---- a/drivers/media/platform/davinci/vpbe_osd.c
-+++ b/drivers/media/platform/davinci/vpbe_osd.c
-@@ -119,7 +119,7 @@ static inline u32 osd_modify(struct osd_state *sd, u32 mask, u32 val,
- #define is_rgb_pixfmt(pixfmt) \
- 	(((pixfmt) == PIXFMT_RGB565) || ((pixfmt) == PIXFMT_RGB888))
- #define is_yc_pixfmt(pixfmt) \
--	(((pixfmt) == PIXFMT_YCbCrI) || ((pixfmt) == PIXFMT_YCrCbI) || \
-+	(((pixfmt) == PIXFMT_YCBCRI) || ((pixfmt) == PIXFMT_YCRCBI) || \
- 	((pixfmt) == PIXFMT_NV12))
- #define MAX_WIN_SIZE OSD_VIDWIN0XP_V0X
- #define MAX_LINE_LENGTH (OSD_VIDWIN0OFST_V0LO << 5)
-@@ -360,8 +360,8 @@ static void _osd_enable_color_key(struct osd_state *sd,
- 			osd_write(sd, colorkey & OSD_TRANSPVALL_RGBL,
- 				  OSD_TRANSPVALL);
- 		break;
--	case PIXFMT_YCbCrI:
--	case PIXFMT_YCrCbI:
-+	case PIXFMT_YCBCRI:
-+	case PIXFMT_YCRCBI:
- 		if (sd->vpbe_type == VPBE_VERSION_3)
- 			osd_modify(sd, OSD_TRANSPVALU_Y, colorkey,
- 				   OSD_TRANSPVALU);
-@@ -813,8 +813,8 @@ static int try_layer_config(struct osd_state *sd, enum osd_layer layer,
- 		if (osd->vpbe_type == VPBE_VERSION_1)
- 			bad_config = !is_vid_win(layer);
- 		break;
--	case PIXFMT_YCbCrI:
--	case PIXFMT_YCrCbI:
-+	case PIXFMT_YCBCRI:
-+	case PIXFMT_YCRCBI:
- 		bad_config = !is_vid_win(layer);
- 		break;
- 	case PIXFMT_RGB888:
-@@ -950,9 +950,9 @@ static void _osd_set_cbcr_order(struct osd_state *sd,
- 	 * The caller must ensure that all windows using YC pixfmt use the same
- 	 * Cb/Cr order.
- 	 */
--	if (pixfmt == PIXFMT_YCbCrI)
-+	if (pixfmt == PIXFMT_YCBCRI)
- 		osd_clear(sd, OSD_MODE_CS, OSD_MODE);
--	else if (pixfmt == PIXFMT_YCrCbI)
-+	else if (pixfmt == PIXFMT_YCRCBI)
- 		osd_set(sd, OSD_MODE_CS, OSD_MODE);
- }
- 
-@@ -981,8 +981,8 @@ static void _osd_set_layer_config(struct osd_state *sd, enum osd_layer layer,
- 				winmd |= (2 << OSD_OSDWIN0MD_BMP0MD_SHIFT);
- 				_osd_enable_rgb888_pixblend(sd, OSDWIN_OSD0);
- 				break;
--			case PIXFMT_YCbCrI:
--			case PIXFMT_YCrCbI:
-+			case PIXFMT_YCBCRI:
-+			case PIXFMT_YCRCBI:
- 				winmd |= (3 << OSD_OSDWIN0MD_BMP0MD_SHIFT);
- 				break;
- 			default:
-@@ -1128,8 +1128,8 @@ static void _osd_set_layer_config(struct osd_state *sd, enum osd_layer layer,
- 					_osd_enable_rgb888_pixblend(sd,
- 							OSDWIN_OSD1);
- 					break;
--				case PIXFMT_YCbCrI:
--				case PIXFMT_YCrCbI:
-+				case PIXFMT_YCBCRI:
-+				case PIXFMT_YCRCBI:
- 					winmd |=
- 					    (3 << OSD_OSDWIN1MD_BMP1MD_SHIFT);
- 					break;
-@@ -1508,7 +1508,7 @@ static int osd_initialize(struct osd_state *osd)
- 	_osd_init(osd);
- 
- 	/* set default Cb/Cr order */
--	osd->yc_pixfmt = PIXFMT_YCbCrI;
-+	osd->yc_pixfmt = PIXFMT_YCBCRI;
- 
- 	if (osd->vpbe_type == VPBE_VERSION_3) {
+ 	if (!lnb->rangeswitch) {
  		/*
-diff --git a/include/media/davinci/vpbe_osd.h b/include/media/davinci/vpbe_osd.h
-index 42628fc..de59364 100644
---- a/include/media/davinci/vpbe_osd.h
-+++ b/include/media/davinci/vpbe_osd.h
-@@ -82,9 +82,9 @@ enum osd_pix_format {
- 	PIXFMT_4BPP,
- 	PIXFMT_8BPP,
- 	PIXFMT_RGB565,
--	PIXFMT_YCbCrI,
-+	PIXFMT_YCBCRI,
- 	PIXFMT_RGB888,
--	PIXFMT_YCrCbI,
-+	PIXFMT_YCRCBI,
- 	PIXFMT_NV12,
- 	PIXFMT_OSD_ATTR,
+-		 * Bandstacking and single LO may not be using DISEqC
+-		 */
+-		if (sat_number < 0)
+-			return 0;
+-
+-		/*
+ 		 * Bandstacking switches don't use 2 bands nor use
+ 		 * DISEqC for setting the polarization. It also doesn't
+ 		 * use any tone/tone burst
+@@ -297,11 +290,6 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+ 		pol_v = 0;
+ 		high_band = 1;
+ 	} else {
+-		if (sat_number < 0) {
+-			dvb_logerr("Need a satellite number for DISEqC");
+-			return -EINVAL;
+-		}
+-
+ 		/* Adjust voltage/tone accordingly */
+ 		if (parms->sat_number < 2) {
+ 			vol_high = pol_v ? 0 : 1;
+@@ -310,32 +298,35 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+ 		}
+ 	}
+ 
+-	rc = dvb_fe_sec_tone(parms, SEC_TONE_OFF);
+-	if (rc)
+-		return rc;
+-
+ 	rc = dvb_fe_sec_voltage(parms, 1, vol_high);
+ 	if (rc)
+ 		return rc;
+-	usleep(15 * 1000);
++	
++	if (parms->sat_number > 0) {
++		rc = dvb_fe_sec_tone(parms, SEC_TONE_OFF);
++		if (rc)
++			return rc;
+ 
+-	if (!t)
+-		rc = dvbsat_diseqc_write_to_port_group(parms, &cmd, high_band,
+-						       pol_v, sat_number);
+-	else
+-		rc = dvbsat_scr_odu_channel_change(parms, &cmd, high_band,
+-						   pol_v, sat_number, t);
++		usleep(15 * 1000);
+ 
+-	if (rc) {
+-		dvb_logerr("sending diseq failed");
+-		return rc;
+-	}
+-	usleep((15 + parms->diseqc_wait) * 1000);
++		if (!t)
++			rc = dvbsat_diseqc_write_to_port_group(parms, &cmd, high_band,
++							       pol_v, sat_number);
++		else
++			rc = dvbsat_scr_odu_channel_change(parms, &cmd, high_band,
++							   pol_v, sat_number, t);
+ 
+-	rc = dvb_fe_diseqc_burst(parms, mini_b);
+-	if (rc)
+-		return rc;
+-	usleep(15 * 1000);
++		if (rc) {
++			dvb_logerr("sending diseq failed");
++			return rc;
++		}
++		usleep((15 + parms->diseqc_wait) * 1000);
++
++		rc = dvb_fe_diseqc_burst(parms, mini_b);
++		if (rc)
++			return rc;
++		usleep(15 * 1000);
++	}
+ 
+ 	rc = dvb_fe_sec_tone(parms, tone_on ? SEC_TONE_ON : SEC_TONE_OFF);
+ 
+@@ -350,8 +341,7 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+ int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms)
+ {
+ 	const struct dvb_sat_lnb *lnb = parms->lnb;
+-	enum dvb_sat_polarization pol;
+-	dvb_fe_retrieve_parm(parms, DTV_POLARIZATION, &pol);
++	enum dvb_sat_polarization pol = parms->pol;
+ 	uint32_t freq;
+ 	uint16_t t = 0;
+ 	/*uint32_t voltage = SEC_VOLTAGE_18;*/
+diff --git a/lib/libdvbv5/dvb-v5-std.c b/lib/libdvbv5/dvb-v5-std.c
+index 5a1854b..53809ef 100644
+--- a/lib/libdvbv5/dvb-v5-std.c
++++ b/lib/libdvbv5/dvb-v5-std.c
+@@ -125,9 +125,6 @@ const unsigned int sys_dvbs_props[] = {
+ 	DTV_INVERSION,
+ 	DTV_SYMBOL_RATE,
+ 	DTV_INNER_FEC,
+-	/*DTV_VOLTAGE,*/
+-	/*DTV_TONE,*/
+-	DTV_POLARIZATION,
+ 	0
+ };
+ 
+@@ -136,12 +133,9 @@ const unsigned int sys_dvbs2_props[] = {
+ 	DTV_INVERSION,
+ 	DTV_SYMBOL_RATE,
+ 	DTV_INNER_FEC,
+-	/*DTV_VOLTAGE,*/
+-	/*DTV_TONE,*/
+ 	DTV_MODULATION,
+ 	DTV_PILOT,
+ 	DTV_ROLLOFF,
+-	DTV_POLARIZATION,
+ 	0
+ };
+ 
+@@ -150,8 +144,6 @@ const unsigned int sys_turbo_props[] = {
+ 	DTV_INVERSION,
+ 	DTV_SYMBOL_RATE,
+ 	DTV_INNER_FEC,
+-	DTV_VOLTAGE,
+-	DTV_TONE,
+ 	DTV_MODULATION,
+ 	0
+ };
+@@ -161,7 +153,6 @@ const unsigned int sys_isdbs_props[] = {
+ 	DTV_INVERSION,
+ 	DTV_SYMBOL_RATE,
+ 	DTV_INNER_FEC,
+-	DTV_VOLTAGE,
+ 	DTV_ISDBS_TS_ID_LEGACY,
+ 	0
  };
 -- 
-1.7.4.1
+1.8.1.5
+
 
