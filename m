@@ -1,52 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:24691 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230Ab3EMIfG (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:36253 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751123Ab3ENFph (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 04:35:06 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMQ00M82ABJH680@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 13 May 2013 09:35:03 +0100 (BST)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH RFC v2 0/3] added managed media/v4l2 initialization
-Date: Mon, 13 May 2013 10:34:43 +0200
-Message-id: <1368434086-9027-1-git-send-email-a.hajda@samsung.com>
+	Tue, 14 May 2013 01:45:37 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	uclinux-dist-devel@blackfin.uclinux.org, ivtv-devel@ivtvdriver.org
+Cc: linux-kernel@vger.kernel.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Mike Isely <isely@pobox.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Antti Palosaari <crope@iki.fi>,
+	=?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>,
+	Janne Grunau <j@jannau.net>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/4] media: remove duplicate check for EPERM
+Date: Tue, 14 May 2013 11:15:13 +0530
+Message-Id: <1368510317-4356-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the 2nd version of managed initializations for media/v4l2.
-There are small changes documented in separate patches.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Additionally to advertise this solution I suggest to look at all *_remove
-functions in drivers/media/i2c/ tree. After conversion to devm_* versions
-most of the *_remove routines could be removed completely.
-Below grep for showing all *_remove functions from drivers/media/i2c:
-grep -rPzo "(?s)^(\s*)\N*_remove.*?{.*?^\1}" drivers/media/i2c/ --include='*.c'
+This patch series cleanups the check for EPERM in dbg_g/s_register
+and vidioc_g/s_register.
 
-Andrzej Hajda (3):
-  media: added managed media entity initialization
-  media: added managed v4l2 control initialization
-  media: added managed v4l2 subdevice initialization
+Lad, Prabhakar (4):
+  media: i2c: remove duplicate checks for EPERM in dbg_g/s_register
+  media: dvb-frontends: remove duplicate checks for EPERM in
+    dbg_g/s_register
+  media: usb: remove duplicate checks for EPERM in vidioc_g/s_register
+  media: pci: remove duplicate checks for EPERM
 
- drivers/media/media-entity.c          |   70 +++++++++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-common.c |   10 +++++
- drivers/media/v4l2-core/v4l2-ctrls.c  |   48 ++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-subdev.c |   52 ++++++++++++++++++++++++
- include/media/media-entity.h          |    6 +++
- include/media/v4l2-common.h           |    2 +
- include/media/v4l2-ctrls.h            |   31 +++++++++++++++
- include/media/v4l2-subdev.h           |    5 +++
- 8 files changed, 224 insertions(+)
+ drivers/media/dvb-frontends/au8522_decoder.c |    4 ----
+ drivers/media/i2c/ad9389b.c                  |    4 ----
+ drivers/media/i2c/adv7183.c                  |    4 ----
+ drivers/media/i2c/adv7604.c                  |    4 ----
+ drivers/media/i2c/cs5345.c                   |    4 ----
+ drivers/media/i2c/cx25840/cx25840-core.c     |    4 ----
+ drivers/media/i2c/m52790.c                   |    4 ----
+ drivers/media/i2c/mt9v011.c                  |    4 ----
+ drivers/media/i2c/ov7670.c                   |    4 ----
+ drivers/media/i2c/saa7115.c                  |    4 ----
+ drivers/media/i2c/saa7127.c                  |    4 ----
+ drivers/media/i2c/saa717x.c                  |    4 ----
+ drivers/media/i2c/ths7303.c                  |    4 ----
+ drivers/media/i2c/tvp5150.c                  |    4 ----
+ drivers/media/i2c/tvp7002.c                  |   10 ++--------
+ drivers/media/i2c/upd64031a.c                |    4 ----
+ drivers/media/i2c/upd64083.c                 |    4 ----
+ drivers/media/i2c/vs6624.c                   |    4 ----
+ drivers/media/pci/bt8xx/bttv-driver.c        |    6 ------
+ drivers/media/pci/cx18/cx18-av-core.c        |    4 ----
+ drivers/media/pci/cx23885/cx23885-ioctl.c    |    6 ------
+ drivers/media/pci/cx23885/cx23888-ir.c       |    4 ----
+ drivers/media/pci/ivtv/ivtv-ioctl.c          |    2 --
+ drivers/media/pci/saa7146/mxb.c              |    4 ----
+ drivers/media/pci/saa7164/saa7164-encoder.c  |    6 ------
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c      |    2 --
+ 26 files changed, 2 insertions(+), 110 deletions(-)
 
 -- 
-1.7.10.4
+1.7.4.1
 
