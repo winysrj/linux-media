@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f54.google.com ([209.85.219.54]:63226 "EHLO
-	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751042Ab3EJDnx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 23:43:53 -0400
-Received: by mail-oa0-f54.google.com with SMTP id j1so4375889oag.27
-        for <linux-media@vger.kernel.org>; Thu, 09 May 2013 20:43:52 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <518BC61E.3040202@samsung.com>
-References: <1368103198-16485-1-git-send-email-s.nawrocki@samsung.com>
-	<CAK9yfHx-o-3oYj8hMKzQK7N3CD7=tUwbxcHG-9gA25yfRjky2Q@mail.gmail.com>
-	<518BC61E.3040202@samsung.com>
-Date: Fri, 10 May 2013 09:13:52 +0530
-Message-ID: <CAK9yfHwLm=2fDXqR-LWTwYTE3ETJ1HqkyadKVkAxpT+-dFzh1w@mail.gmail.com>
-Subject: Re: [PATCH] s5p-jpeg: Enable instantiation from device tree
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, a.hajda@samsung.com,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	devicetree-discuss@lists.ozlabs.org,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	George Joseph <george.jp@samsung.com>,
-	"aditya.ps" <aditya.ps@samsung.com>,
-	sunil joshi <joshi@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from venus.vo.lu ([80.90.45.96]:54261 "EHLO venus.vo.lu"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756931Ab3ENJiE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 May 2013 05:38:04 -0400
+Received: from lan226.bxl.tuxicoman.be ([172.19.1.226] helo=me)
+	by ibiza.bxl.tuxicoman.be with smtp (Exim 4.80.1)
+	(envelope-from <gmsoft@tuxicoman.be>)
+	id 1UcBgA-0002wE-4v
+	for linux-media@vger.kernel.org; Tue, 14 May 2013 11:37:54 +0200
+From: Guy Martin <gmsoft@tuxicoman.be>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/5] libdvbv5: Remove buggy parsing of extra DTV_foo properties
+Date: Tue, 14 May 2013 11:23:51 +0200
+Message-Id: <e10ca4f5588066aea09f0c7e8979545ee9e63a03.1368522021.git.gmsoft@tuxicoman.be>
+In-Reply-To: <cover.1368522021.git.gmsoft@tuxicoman.be>
+References: <cover.1368522021.git.gmsoft@tuxicoman.be>
+In-Reply-To: <cover.1368522021.git.gmsoft@tuxicoman.be>
+References: <cover.1368522021.git.gmsoft@tuxicoman.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+The parsing of those extra parameters is buggy and completely useless since they are parsed
+individually later on in the code.
 
-On 9 May 2013 21:21, Sylwester Nawrocki <s.nawrocki@samsung.com> wrote:
-> Hi Sachin,
->
-> On 05/09/2013 04:50 PM, Sachin Kamat wrote:
->> George from my team is working on adding JPEG IP support for 4412 and
->> 5250 SoCs which is quite different from 4210.
->> In this regard he has refactored the driver to accomodate the changes
->> required for the new IP and also added DT support.
->> The patches are almost ready and would be submitted in the next couple
->> of days. This is FYI :)
->
-> That's greats news, since on our side currently nobody has been working
-> on the Exynos4x12+ JPEG codec support. I just prepared a patch adding
-> DT matching table and checked the driver gets initialized on Exynos4x12.
-> So it is at least usable on Exynos4210 in 3.11. I should not have listed
-> "samsung,exynos4212-jpeg" in the driver, since it is missing adaptations
-> for Exynos4x12 SoCs.
+Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
 
-Right.
-
-> We have plenty time to add proper support for the JPEG IP in 3.11. I'm
-> looking forward to review and test your patches.
-
-Thanks.
-
->Can you use the $subject
-> patch as a base of your work ? ;-) Or is it rather useless ?
-
-It is not useless per se. But I am afraid it might not apply directly
-due to the refactoring.
-However we will be happy to use your documentation for the bindings :)
-
->
-> FYI, I will be mostly offline for next 2 weeks.
-
-OK.
-
+diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
+index d8d583c..aa42a37 100644
+--- a/lib/libdvbv5/dvb-file.c
++++ b/lib/libdvbv5/dvb-file.c
+@@ -392,31 +392,6 @@ static int fill_entry(struct dvb_entry *entry, char *key, char *value)
+ 		return 0;
+ 	}
+ 
+-	/* Handle the DVB extra DTV_foo properties */
+-	for (i = 0; i < ARRAY_SIZE(dvb_user_name); i++) {
+-		if (!dvb_user_name[i])
+-			continue;
+-		if (!strcasecmp(key, dvb_user_name[i]))
+-			break;
+-	}
+-	if (i < ARRAY_SIZE(dvb_user_name)) {
+-		const char * const *attr_name = dvb_attr_names(i);
+-		n_prop = entry->n_props;
+-		entry->props[n_prop].cmd = i + DTV_USER_COMMAND_START;
+-		if (!attr_name || !*attr_name)
+-			entry->props[n_prop].u.data = atol(value);
+-		else {
+-			for (j = 0; attr_name[j]; j++)
+-				if (!strcasecmp(value, attr_name[j]))
+-					break;
+-			if (!attr_name[j])
+-				return -2;
+-			entry->props[n_prop].u.data = j + DTV_USER_COMMAND_START;
+-		}
+-		entry->n_props++;
+-		return 0;
+-	}
+-
+ 	/* Handle the other properties */
+ 
+ 	if (!strcasecmp(key, "SERVICE_ID")) {
 -- 
-With warm regards,
-Sachin
+1.8.1.5
+
+
