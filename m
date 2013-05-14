@@ -1,123 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f44.google.com ([74.125.82.44]:55870 "EHLO
-	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756536Ab3EAUyB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 16:54:01 -0400
-Date: Wed, 1 May 2013 22:53:55 +0200
-From: "Yann E. MORIN" <yann.morin.1998@free.fr>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: David Rientjes <rientjes@google.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kbuild@vger.kernel.org
-Subject: Re: linux-next: Tree for May 1 (media/usb/stk1160)
-Message-ID: <20130501205355.GB18811@free.fr>
-References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au>
- <518157EB.3010700@infradead.org>
- <20130501192845.GA18811@free.fr>
- <alpine.DEB.2.02.1305011258180.8448@chino.kir.corp.google.com>
- <518179BD.3010407@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <518179BD.3010407@infradead.org>
+Received: from mail-1.atlantis.sk ([80.94.52.57]:59188 "EHLO mail.atlantis.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758212Ab3ENUzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 14 May 2013 16:55:19 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/3] tea575x-tuner: move HW init to a separate function
+Date: Tue, 14 May 2013 22:54:43 +0200
+Message-Id: <1368564885-20940-2-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1368564885-20940-1-git-send-email-linux@rainbow-software.org>
+References: <1368564885-20940-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Randy, All,
+Move HW initialization to separate function to allow using the code without
+the v4l parts. This is needed for use in the bttv driver.
 
-On Wed, May 01, 2013 at 01:23:25PM -0700, Randy Dunlap wrote:
-> On 05/01/13 12:58, David Rientjes wrote:
-> > On Wed, 1 May 2013, Yann E. MORIN wrote:
-> > 
-> >>> When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
-> >>> CONFIG_VIDEO_STK1160=y
-> >>> CONFIG_VIDEO_STK1160_AC97=y
-> >>>
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x122706): undefined reference to `snd_card_create'
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x1227b2): undefined reference to `snd_ac97_bus'
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x1227cd): undefined reference to `snd_card_free'
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x12281b): undefined reference to `snd_ac97_mixer'
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x122832): undefined reference to `snd_card_register'
-> >>> drivers/built-in.o: In function `stk1160_ac97_unregister':
-> >>> (.text+0x12285e): undefined reference to `snd_card_free'
-> >>>
-> >>>
-> >>> This kconfig fragment:
-> >>> config VIDEO_STK1160_AC97
-> >>> 	bool "STK1160 AC97 codec support"
-> >>> 	depends on VIDEO_STK1160 && SND
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ include/sound/tea575x-tuner.h   |    1 +
+ sound/i2c/other/tea575x-tuner.c |   19 +++++++++++++------
+ 2 files changed, 14 insertions(+), 6 deletions(-)
 
-BTW, can you check that:
-    make silentoldconfig
-does not warn about unmet dependencies for those symbols?
-
-> > This doesn't depend on SND, it depends on SND=y.
-> 
-> Maybe this option *should* depend on SND=y, but that's not what the
-> kconfig syntax says.
-
-I'd say  Documentation/kbuild/kconfig-language.txt  is not complete wrt
-the current syntax, grammar and semantics of the language. :-(
-
-> The kconfig language does not care if the variable is
-> a bool or a tristate when evaluating a depends expression AFAICT (but I am
-> only reading Documentation/kbuild/kconfig-language.txt, not the source code).
-
-Yes, it does, I've just tried with the following snippet:
-
-    config MODULES
-        bool "modules"
-    
-    config A
-        tristate "A"
-    
-    config B
-        tristate "B"
-        depends on A
-    
-    config C
-        tristate "C"
-    
-    config D
-        bool "D"
-        depends on C
-        select B
-    
-    config E
-        bool "E"
-        depends on C=y
-        select B
-
-As you can test, E will not be visible if C is not =y, while D will be
-visible if C is =m or =y.
-
-Also, if A=m (and C=n), then B can only be =n or =m.
-
-But with the test-case above, if C=y and ( D=y or E=y ), then B will be
-forced to =y, even though A might be unset, which means silentoldconfig
-would warn abount unmet dependencies:
-    warning: (D && E) selects B which has unmet direct dependencies (A)
-
-Worse! With: A=m, C=y, D=y  -> B is forced to =y, which is wrong because
-it can only be =n or =m (see above), but silentoldconfig will not warn
-about this situation.
-
-Sigh... :-(
-
-Regards,
-Yann E. MORIN.
-
+diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
+index 098c4de..2d4fa59 100644
+--- a/include/sound/tea575x-tuner.h
++++ b/include/sound/tea575x-tuner.h
+@@ -71,6 +71,7 @@ struct snd_tea575x {
+ 	int (*ext_init)(struct snd_tea575x *tea);
+ };
+ 
++int snd_tea575x_hw_init(struct snd_tea575x *tea);
+ int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
+ void snd_tea575x_exit(struct snd_tea575x *tea);
+ void snd_tea575x_set_freq(struct snd_tea575x *tea);
+diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
+index 8a36a1d..46ec4dff 100644
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -486,13 +486,9 @@ static const struct v4l2_ctrl_ops tea575x_ctrl_ops = {
+ 	.s_ctrl = tea575x_s_ctrl,
+ };
+ 
+-/*
+- * initialize all the tea575x chips
+- */
+-int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner)
+-{
+-	int retval;
+ 
++int snd_tea575x_hw_init(struct snd_tea575x *tea)
++{
+ 	tea->mute = true;
+ 
+ 	/* Not all devices can or know how to read the data back.
+@@ -507,6 +503,17 @@ int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner)
+ 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
+ 	snd_tea575x_set_freq(tea);
+ 
++	return 0;
++}
++EXPORT_SYMBOL(snd_tea575x_hw_init);
++
++int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner)
++{
++	int retval = snd_tea575x_hw_init(tea);
++
++	if (retval)
++		return retval;
++
+ 	tea->vd = tea575x_radio;
+ 	video_set_drvdata(&tea->vd, tea);
+ 	mutex_init(&tea->mutex);
 -- 
-.-----------------.--------------------.------------------.--------------------.
-|  Yann E. MORIN  | Real-Time Embedded | /"\ ASCII RIBBON | Erics' conspiracy: |
-| +33 662 376 056 | Software  Designer | \ / CAMPAIGN     |  ___               |
-| +33 223 225 172 `------------.-------:  X  AGAINST      |  \e/  There is no  |
-| http://ymorin.is-a-geek.org/ | _/*\_ | / \ HTML MAIL    |   v   conspiracy.  |
-'------------------------------^-------^------------------^--------------------'
+Ondrej Zary
+
