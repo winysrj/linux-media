@@ -1,967 +1,173 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4759 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965680Ab3E2LA6 (ORCPT
+Received: from mail-lb0-f172.google.com ([209.85.217.172]:53287 "EHLO
+	mail-lb0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753324Ab3EOV4R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:00:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCHv1 17/38] soc_camera sensors: remove g_chip_ident op.
-Date: Wed, 29 May 2013 12:59:50 +0200
-Message-Id: <1369825211-29770-18-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 15 May 2013 17:56:17 -0400
+Received: by mail-lb0-f172.google.com with SMTP id y6so2439362lbh.31
+        for <linux-media@vger.kernel.org>; Wed, 15 May 2013 14:56:15 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: horms@verge.net.au, linux-sh@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v4 1/3] ARM: shmobile: r8a7779: add VIN support
+Date: Thu, 16 May 2013 01:56:14 +0400
+Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com, linux-media@vger.kernel.org
+References: <201305160153.29827.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201305160153.29827.sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305160156.15596.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-This is no longer needed since the core now handles this through DBG_G_CHIP_INFO.
+Add VIN clocks and platform devices for R8A7779 SoC; add function to register
+the VIN platform devices.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+[Sergei: added 'id' parameter check to r8a7779_add_vin_device(), used '*pdata'
+in *sizeof* operator there, renamed some variables, annotated vin[0-3]_resources
+[] and 'vin[0-3]_info' as '__initdata'.]
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
 ---
- drivers/media/i2c/soc_camera/imx074.c     |   19 ------------
- drivers/media/i2c/soc_camera/mt9m001.c    |   33 ++------------------
- drivers/media/i2c/soc_camera/mt9m111.c    |   33 ++------------------
- drivers/media/i2c/soc_camera/mt9t031.c    |   32 ++------------------
- drivers/media/i2c/soc_camera/mt9t112.c    |   16 ----------
- drivers/media/i2c/soc_camera/mt9v022.c    |   47 ++++++++---------------------
- drivers/media/i2c/soc_camera/ov2640.c     |   16 ----------
- drivers/media/i2c/soc_camera/ov5642.c     |   19 ------------
- drivers/media/i2c/soc_camera/ov6650.c     |   12 --------
- drivers/media/i2c/soc_camera/ov772x.c     |   16 ----------
- drivers/media/i2c/soc_camera/ov9640.c     |   16 ----------
- drivers/media/i2c/soc_camera/ov9740.c     |   17 -----------
- drivers/media/i2c/soc_camera/rj54n1cb0c.c |   31 ++-----------------
- drivers/media/i2c/soc_camera/tw9910.c     |   14 ---------
- 14 files changed, 21 insertions(+), 300 deletions(-)
+Changes since version 3:
+- changed the VIN platform device name to be R8A7779 specific; 
+- used '*pdata' in *sizeof* operator in r8a7779_add_vin_device();
+- resolved reject in <mach/r8a7779.h> due to USB patch rework.
 
-diff --git a/drivers/media/i2c/soc_camera/imx074.c b/drivers/media/i2c/soc_camera/imx074.c
-index a2a5cbb..a315d43 100644
---- a/drivers/media/i2c/soc_camera/imx074.c
-+++ b/drivers/media/i2c/soc_camera/imx074.c
-@@ -19,7 +19,6 @@
- 
- #include <media/soc_camera.h>
- #include <media/v4l2-subdev.h>
--#include <media/v4l2-chip-ident.h>
- 
- /* IMX074 registers */
- 
-@@ -251,23 +250,6 @@ static int imx074_s_stream(struct v4l2_subdev *sd, int enable)
- 	return reg_write(client, MODE_SELECT, !!enable);
- }
- 
--static int imx074_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	if (id->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
--		return -EINVAL;
--
--	if (id->match.addr != client->addr)
--		return -ENODEV;
--
--	id->ident	= V4L2_IDENT_IMX074;
--	id->revision	= 0;
--
--	return 0;
--}
--
- static int imx074_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -299,7 +281,6 @@ static struct v4l2_subdev_video_ops imx074_subdev_video_ops = {
+Changes since version 2:
+- annotated vin[0-3]_resources[] and 'vin[0-3]_info' as '__initdata' since they
+  are kmemdup()'ed while registering the platform devices anyway;
+
+Changes since the original posting:
+- added 'id' parameter check to r8a7779_add_vin_device().
+
+ arch/arm/mach-shmobile/clock-r8a7779.c        |   10 +++++++
+ arch/arm/mach-shmobile/include/mach/r8a7779.h |    3 ++
+ arch/arm/mach-shmobile/setup-r8a7779.c        |   37 ++++++++++++++++++++++++++
+ 3 files changed, 50 insertions(+)
+
+Index: renesas/arch/arm/mach-shmobile/clock-r8a7779.c
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/clock-r8a7779.c
++++ renesas/arch/arm/mach-shmobile/clock-r8a7779.c
+@@ -112,7 +112,9 @@ static struct clk *main_clks[] = {
  };
  
- static struct v4l2_subdev_core_ops imx074_subdev_core_ops = {
--	.g_chip_ident	= imx074_g_chip_ident,
- 	.s_power	= imx074_s_power,
+ enum { MSTP323, MSTP322, MSTP321, MSTP320,
++	MSTP120,
+ 	MSTP116, MSTP115, MSTP114,
++	MSTP110, MSTP109, MSTP108,
+ 	MSTP103, MSTP101, MSTP100,
+ 	MSTP030,
+ 	MSTP029, MSTP028, MSTP027, MSTP026, MSTP025, MSTP024, MSTP023, MSTP022, MSTP021,
+@@ -125,9 +127,13 @@ static struct clk mstp_clks[MSTP_NR] = {
+ 	[MSTP322] = SH_CLK_MSTP32(&clkp_clk, MSTPCR3, 22, 0), /* SDHI1 */
+ 	[MSTP321] = SH_CLK_MSTP32(&clkp_clk, MSTPCR3, 21, 0), /* SDHI2 */
+ 	[MSTP320] = SH_CLK_MSTP32(&clkp_clk, MSTPCR3, 20, 0), /* SDHI3 */
++	[MSTP120] = SH_CLK_MSTP32(&clks_clk, MSTPCR1, 20, 0), /* VIN3 */
+ 	[MSTP116] = SH_CLK_MSTP32(&clkp_clk, MSTPCR1, 16, 0), /* PCIe */
+ 	[MSTP115] = SH_CLK_MSTP32(&clkp_clk, MSTPCR1, 15, 0), /* SATA */
+ 	[MSTP114] = SH_CLK_MSTP32(&clkp_clk, MSTPCR1, 14, 0), /* Ether */
++	[MSTP110] = SH_CLK_MSTP32(&clks_clk, MSTPCR1, 10, 0), /* VIN0 */
++	[MSTP109] = SH_CLK_MSTP32(&clks_clk, MSTPCR1,  9, 0), /* VIN1 */
++	[MSTP108] = SH_CLK_MSTP32(&clks_clk, MSTPCR1,  8, 0), /* VIN2 */
+ 	[MSTP103] = SH_CLK_MSTP32(&clks_clk, MSTPCR1,  3, 0), /* DU */
+ 	[MSTP101] = SH_CLK_MSTP32(&clkp_clk, MSTPCR1,  1, 0), /* USB2 */
+ 	[MSTP100] = SH_CLK_MSTP32(&clkp_clk, MSTPCR1,  0, 0), /* USB0/1 */
+@@ -162,10 +168,14 @@ static struct clk_lookup lookups[] = {
+ 	CLKDEV_CON_ID("peripheral_clk",	&clkp_clk),
+ 
+ 	/* MSTP32 clocks */
++	CLKDEV_DEV_ID("r8a7779-vin.3", &mstp_clks[MSTP120]), /* VIN3 */
+ 	CLKDEV_DEV_ID("rcar-pcie", &mstp_clks[MSTP116]), /* PCIe */
+ 	CLKDEV_DEV_ID("sata_rcar", &mstp_clks[MSTP115]), /* SATA */
+ 	CLKDEV_DEV_ID("fc600000.sata", &mstp_clks[MSTP115]), /* SATA w/DT */
+ 	CLKDEV_DEV_ID("sh-eth", &mstp_clks[MSTP114]), /* Ether */
++	CLKDEV_DEV_ID("r8a7779-vin.0", &mstp_clks[MSTP110]), /* VIN0 */
++	CLKDEV_DEV_ID("r8a7779-vin.1", &mstp_clks[MSTP109]), /* VIN1 */
++	CLKDEV_DEV_ID("r8a7779-vin.2", &mstp_clks[MSTP108]), /* VIN2 */
+ 	CLKDEV_DEV_ID("ehci-platform.1", &mstp_clks[MSTP101]), /* USB EHCI port2 */
+ 	CLKDEV_DEV_ID("ohci-platform.1", &mstp_clks[MSTP101]), /* USB OHCI port2 */
+ 	CLKDEV_DEV_ID("ehci-platform.0", &mstp_clks[MSTP100]), /* USB EHCI port0/1 */
+Index: renesas/arch/arm/mach-shmobile/include/mach/r8a7779.h
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/include/mach/r8a7779.h
++++ renesas/arch/arm/mach-shmobile/include/mach/r8a7779.h
+@@ -5,6 +5,7 @@
+ #include <linux/pm_domain.h>
+ #include <linux/sh_eth.h>
+ #include <linux/platform_data/usb-rcar-phy.h>
++#include <linux/platform_data/camera-rcar.h>
+ 
+ struct platform_device;
+ 
+@@ -35,6 +36,8 @@ extern void r8a7779_add_standard_devices
+ extern void r8a7779_add_standard_devices_dt(void);
+ extern void r8a7779_add_ether_device(struct sh_eth_plat_data *pdata);
+ extern void r8a7779_add_usb_phy_device(struct rcar_phy_platform_data *pdata);
++extern void r8a7779_add_vin_device(int idx,
++				   struct rcar_vin_platform_data *pdata);
+ extern void r8a7779_init_late(void);
+ extern void r8a7779_clock_init(void);
+ extern void r8a7779_pinmux_init(void);
+Index: renesas/arch/arm/mach-shmobile/setup-r8a7779.c
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/setup-r8a7779.c
++++ renesas/arch/arm/mach-shmobile/setup-r8a7779.c
+@@ -559,6 +559,33 @@ static struct resource ether_resources[]
+ 	},
  };
  
-diff --git a/drivers/media/i2c/soc_camera/mt9m001.c b/drivers/media/i2c/soc_camera/mt9m001.c
-index dd90898..3f1f437 100644
---- a/drivers/media/i2c/soc_camera/mt9m001.c
-+++ b/drivers/media/i2c/soc_camera/mt9m001.c
-@@ -17,7 +17,6 @@
- #include <media/soc_camera.h>
- #include <media/soc_mediabus.h>
- #include <media/v4l2-subdev.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- 
- /*
-@@ -97,7 +96,6 @@ struct mt9m001 {
- 	const struct mt9m001_datafmt *fmt;
- 	const struct mt9m001_datafmt *fmts;
- 	int num_fmts;
--	int model;	/* V4L2_IDENT_MT9M001* codes from v4l2-chip-ident.h */
- 	unsigned int total_h;
- 	unsigned short y_skip_top;	/* Lines to skip at the top */
- };
-@@ -320,36 +318,15 @@ static int mt9m001_try_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int mt9m001_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9m001 *mt9m001 = to_mt9m001(client);
--
--	if (id->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
--		return -EINVAL;
--
--	if (id->match.addr != client->addr)
--		return -ENODEV;
--
--	id->ident	= mt9m001->model;
--	id->revision	= 0;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int mt9m001_g_register(struct v4l2_subdev *sd,
- 			      struct v4l2_dbg_register *reg)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-+	if (reg->reg > 0xff)
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	reg->size = 2;
- 	reg->val = reg_read(client, reg->reg);
- 
-@@ -364,12 +341,9 @@ static int mt9m001_s_register(struct v4l2_subdev *sd,
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-+	if (reg->reg > 0xff)
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	if (reg_write(client, reg->reg, reg->val) < 0)
- 		return -EIO;
- 
-@@ -505,11 +479,9 @@ static int mt9m001_video_probe(struct soc_camera_subdev_desc *ssdd,
- 	switch (data) {
- 	case 0x8411:
- 	case 0x8421:
--		mt9m001->model = V4L2_IDENT_MT9M001C12ST;
- 		mt9m001->fmts = mt9m001_colour_fmts;
- 		break;
- 	case 0x8431:
--		mt9m001->model = V4L2_IDENT_MT9M001C12STM;
- 		mt9m001->fmts = mt9m001_monochrome_fmts;
- 		break;
- 	default:
-@@ -580,7 +552,6 @@ static const struct v4l2_ctrl_ops mt9m001_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops mt9m001_subdev_core_ops = {
--	.g_chip_ident	= mt9m001_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= mt9m001_g_register,
- 	.s_register	= mt9m001_s_register,
-diff --git a/drivers/media/i2c/soc_camera/mt9m111.c b/drivers/media/i2c/soc_camera/mt9m111.c
-index 8bd4e0d..1aaca04 100644
---- a/drivers/media/i2c/soc_camera/mt9m111.c
-+++ b/drivers/media/i2c/soc_camera/mt9m111.c
-@@ -19,7 +19,6 @@
- #include <media/soc_camera.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
--#include <media/v4l2-chip-ident.h>
- 
- /*
-  * MT9M111, MT9M112 and MT9M131:
-@@ -205,8 +204,6 @@ struct mt9m111 {
- 	struct v4l2_subdev subdev;
- 	struct v4l2_ctrl_handler hdl;
- 	struct v4l2_ctrl *gain;
--	int model;	/* V4L2_IDENT_MT9M111 or V4L2_IDENT_MT9M112 code
--			 * from v4l2-chip-ident.h */
- 	struct mt9m111_context *ctx;
- 	struct v4l2_rect rect;	/* cropping rectangle */
- 	int width;		/* output */
-@@ -600,24 +597,6 @@ static int mt9m111_s_fmt(struct v4l2_subdev *sd,
- 	return ret;
- }
- 
--static int mt9m111_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9m111 *mt9m111 = container_of(sd, struct mt9m111, subdev);
--
--	if (id->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
--		return -EINVAL;
--
--	if (id->match.addr != client->addr)
--		return -ENODEV;
--
--	id->ident	= mt9m111->model;
--	id->revision	= 0;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int mt9m111_g_register(struct v4l2_subdev *sd,
- 			      struct v4l2_dbg_register *reg)
-@@ -625,10 +604,8 @@ static int mt9m111_g_register(struct v4l2_subdev *sd,
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	int val;
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0x2ff)
-+	if (reg->reg > 0x2ff)
- 		return -EINVAL;
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
- 
- 	val = mt9m111_reg_read(client, reg->reg);
- 	reg->size = 2;
-@@ -645,12 +622,9 @@ static int mt9m111_s_register(struct v4l2_subdev *sd,
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0x2ff)
-+	if (reg->reg > 0x2ff)
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	if (mt9m111_reg_write(client, reg->reg, reg->val) < 0)
- 		return -EIO;
- 
-@@ -856,7 +830,6 @@ static const struct v4l2_ctrl_ops mt9m111_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops mt9m111_subdev_core_ops = {
--	.g_chip_ident	= mt9m111_g_chip_ident,
- 	.s_power	= mt9m111_s_power,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= mt9m111_g_register,
-@@ -923,12 +896,10 @@ static int mt9m111_video_probe(struct i2c_client *client)
- 
- 	switch (data) {
- 	case 0x143a: /* MT9M111 or MT9M131 */
--		mt9m111->model = V4L2_IDENT_MT9M111;
- 		dev_info(&client->dev,
- 			"Detected a MT9M111/MT9M131 chip ID %x\n", data);
- 		break;
- 	case 0x148c: /* MT9M112 */
--		mt9m111->model = V4L2_IDENT_MT9M112;
- 		dev_info(&client->dev, "Detected a MT9M112 chip ID %x\n", data);
- 		break;
- 	default:
-diff --git a/drivers/media/i2c/soc_camera/mt9t031.c b/drivers/media/i2c/soc_camera/mt9t031.c
-index 26a15b8..1d2cc27 100644
---- a/drivers/media/i2c/soc_camera/mt9t031.c
-+++ b/drivers/media/i2c/soc_camera/mt9t031.c
-@@ -18,7 +18,6 @@
- #include <linux/module.h>
- 
- #include <media/soc_camera.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- 
-@@ -76,7 +75,6 @@ struct mt9t031 {
- 		struct v4l2_ctrl *exposure;
- 	};
- 	struct v4l2_rect rect;	/* Sensor window */
--	int model;	/* V4L2_IDENT_MT9T031* codes from v4l2-chip-ident.h */
- 	u16 xskip;
- 	u16 yskip;
- 	unsigned int total_h;
-@@ -391,36 +389,15 @@ static int mt9t031_try_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int mt9t031_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t031 *mt9t031 = to_mt9t031(client);
--
--	if (id->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
--		return -EINVAL;
--
--	if (id->match.addr != client->addr)
--		return -ENODEV;
--
--	id->ident	= mt9t031->model;
--	id->revision	= 0;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int mt9t031_g_register(struct v4l2_subdev *sd,
- 			      struct v4l2_dbg_register *reg)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-+	if (reg->reg > 0xff)
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	reg->val = reg_read(client, reg->reg);
- 
- 	if (reg->val > 0xffff)
-@@ -434,12 +411,9 @@ static int mt9t031_s_register(struct v4l2_subdev *sd,
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-+	if (reg->reg > 0xff)
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	if (reg_write(client, reg->reg, reg->val) < 0)
- 		return -EIO;
- 
-@@ -650,7 +624,6 @@ static int mt9t031_video_probe(struct i2c_client *client)
- 
- 	switch (data) {
- 	case 0x1621:
--		mt9t031->model = V4L2_IDENT_MT9T031;
- 		break;
- 	default:
- 		dev_err(&client->dev,
-@@ -685,7 +658,6 @@ static const struct v4l2_ctrl_ops mt9t031_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops mt9t031_subdev_core_ops = {
--	.g_chip_ident	= mt9t031_g_chip_ident,
- 	.s_power	= mt9t031_s_power,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= mt9t031_g_register,
-diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
-index a7256b7..0391d01 100644
---- a/drivers/media/i2c/soc_camera/mt9t112.c
-+++ b/drivers/media/i2c/soc_camera/mt9t112.c
-@@ -27,7 +27,6 @@
- 
- #include <media/mt9t112.h>
- #include <media/soc_camera.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-common.h>
- 
- /* you can check PLL/clock info */
-@@ -91,7 +90,6 @@ struct mt9t112_priv {
- 	struct i2c_client		*client;
- 	struct v4l2_rect		 frame;
- 	const struct mt9t112_format	*format;
--	int				 model;
- 	int				 num_formats;
- 	u32				 flags;
- /* for flags */
-@@ -738,17 +736,6 @@ static int mt9t112_init_camera(const struct i2c_client *client)
- /************************************************************************
- 			v4l2_subdev_core_ops
- ************************************************************************/
--static int mt9t112_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9t112_priv *priv = to_mt9t112(client);
--
--	id->ident    = priv->model;
--	id->revision = 0;
--
--	return 0;
--}
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int mt9t112_g_register(struct v4l2_subdev *sd,
-@@ -786,7 +773,6 @@ static int mt9t112_s_power(struct v4l2_subdev *sd, int on)
- }
- 
- static struct v4l2_subdev_core_ops mt9t112_subdev_core_ops = {
--	.g_chip_ident	= mt9t112_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= mt9t112_g_register,
- 	.s_register	= mt9t112_s_register,
-@@ -1061,12 +1047,10 @@ static int mt9t112_camera_probe(struct i2c_client *client)
- 	switch (chipid) {
- 	case 0x2680:
- 		devname = "mt9t111";
--		priv->model = V4L2_IDENT_MT9T111;
- 		priv->num_formats = 1;
- 		break;
- 	case 0x2682:
- 		devname = "mt9t112";
--		priv->model = V4L2_IDENT_MT9T112;
- 		priv->num_formats = ARRAY_SIZE(mt9t112_cfmts);
- 		break;
- 	default:
-diff --git a/drivers/media/i2c/soc_camera/mt9v022.c b/drivers/media/i2c/soc_camera/mt9v022.c
-index a295e59..41ff453 100644
---- a/drivers/media/i2c/soc_camera/mt9v022.c
-+++ b/drivers/media/i2c/soc_camera/mt9v022.c
-@@ -19,7 +19,6 @@
- #include <media/soc_camera.h>
- #include <media/soc_mediabus.h>
- #include <media/v4l2-subdev.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- 
- /*
-@@ -133,6 +132,11 @@ static const struct mt9v02x_register mt9v024_register = {
- 	.pixclk_fv_lv			= MT9V024_PIXCLK_FV_LV,
- };
- 
-+enum mt9v022_model {
-+	MT9V022IX7ATM,
-+	MT9V022IX7ATC,
++#define R8A7779_VIN(idx) \
++static struct resource vin##idx##_resources[] __initdata = {		\
++	DEFINE_RES_MEM(0xffc50000 + 0x1000 * (idx), 0x1000),		\
++	DEFINE_RES_IRQ(gic_iid(0x5f + (idx))),				\
++};									\
++									\
++static struct platform_device_info vin##idx##_info __initdata = {	\
++	.parent		= &platform_bus,				\
++	.name		= "r8a7779-vin",				\
++	.id		= idx,						\
++	.res		= vin##idx##_resources,				\
++	.num_res	= ARRAY_SIZE(vin##idx##_resources),		\
++	.dma_mask	= DMA_BIT_MASK(32),				\
++}
++
++R8A7779_VIN(0);
++R8A7779_VIN(1);
++R8A7779_VIN(2);
++R8A7779_VIN(3);
++
++static struct platform_device_info *vin_info_table[] __initdata = {
++	&vin0_info,
++	&vin1_info,
++	&vin2_info,
++	&vin3_info,
 +};
 +
- struct mt9v022 {
- 	struct v4l2_subdev subdev;
- 	struct v4l2_ctrl_handler hdl;
-@@ -153,7 +157,7 @@ struct mt9v022 {
- 	const struct mt9v022_datafmt *fmts;
- 	const struct mt9v02x_register *reg;
- 	int num_fmts;
--	int model;	/* V4L2_IDENT_MT9V022* codes from v4l2-chip-ident.h */
-+	enum mt9v022_model model;
- 	u16 chip_control;
- 	u16 chip_version;
- 	unsigned short y_skip_top;	/* Lines to skip at the top */
-@@ -406,12 +410,12 @@ static int mt9v022_s_fmt(struct v4l2_subdev *sd,
- 	switch (mf->code) {
- 	case V4L2_MBUS_FMT_Y8_1X8:
- 	case V4L2_MBUS_FMT_Y10_1X10:
--		if (mt9v022->model != V4L2_IDENT_MT9V022IX7ATM)
-+		if (mt9v022->model != MT9V022IX7ATM)
- 			return -EINVAL;
- 		break;
- 	case V4L2_MBUS_FMT_SBGGR8_1X8:
- 	case V4L2_MBUS_FMT_SBGGR10_1X10:
--		if (mt9v022->model != V4L2_IDENT_MT9V022IX7ATC)
-+		if (mt9v022->model != MT9V022IX7ATC)
- 			return -EINVAL;
- 		break;
- 	default:
-@@ -457,36 +461,15 @@ static int mt9v022_try_fmt(struct v4l2_subdev *sd,
- 	return 0;
+ static struct platform_device *r8a7779_devices_dt[] __initdata = {
+ 	&scif0_device,
+ 	&scif1_device,
+@@ -610,6 +637,16 @@ void __init r8a7779_add_usb_phy_device(s
+ 					  pdata, sizeof(*pdata));
  }
  
--static int mt9v022_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct mt9v022 *mt9v022 = to_mt9v022(client);
--
--	if (id->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
--		return -EINVAL;
--
--	if (id->match.addr != client->addr)
--		return -ENODEV;
--
--	id->ident	= mt9v022->model;
--	id->revision	= 0;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int mt9v022_g_register(struct v4l2_subdev *sd,
- 			      struct v4l2_dbg_register *reg)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
++void __init r8a7779_add_vin_device(int id, struct rcar_vin_platform_data *pdata)
++{
++	BUG_ON(id < 0 || id > 3);
++
++	vin_info_table[id]->data = pdata;
++	vin_info_table[id]->size_data = sizeof(*pdata);
++
++	platform_device_register_full(vin_info_table[id]);
++}
++
+ /* do nothing for !CONFIG_SMP or !CONFIG_HAVE_TWD */
+ void __init __weak r8a7779_register_twd(void) { }
  
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-+	if (reg->reg > 0xff)
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	reg->size = 2;
- 	reg->val = reg_read(client, reg->reg);
- 
-@@ -501,12 +484,9 @@ static int mt9v022_s_register(struct v4l2_subdev *sd,
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR || reg->reg > 0xff)
-+	if (reg->reg > 0xff)
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	if (reg_write(client, reg->reg, reg->val) < 0)
- 		return -EIO;
- 
-@@ -706,11 +686,11 @@ static int mt9v022_video_probe(struct i2c_client *client)
- 	if (sensor_type && (!strcmp("colour", sensor_type) ||
- 			    !strcmp("color", sensor_type))) {
- 		ret = reg_write(client, MT9V022_PIXEL_OPERATION_MODE, 4 | 0x11);
--		mt9v022->model = V4L2_IDENT_MT9V022IX7ATC;
-+		mt9v022->model = MT9V022IX7ATC;
- 		mt9v022->fmts = mt9v022_colour_fmts;
- 	} else {
- 		ret = reg_write(client, MT9V022_PIXEL_OPERATION_MODE, 0x11);
--		mt9v022->model = V4L2_IDENT_MT9V022IX7ATM;
-+		mt9v022->model = MT9V022IX7ATM;
- 		mt9v022->fmts = mt9v022_monochrome_fmts;
- 	}
- 
-@@ -740,7 +720,7 @@ static int mt9v022_video_probe(struct i2c_client *client)
- 	mt9v022->fmt = &mt9v022->fmts[0];
- 
- 	dev_info(&client->dev, "Detected a MT9V022 chip ID %x, %s sensor\n",
--		 data, mt9v022->model == V4L2_IDENT_MT9V022IX7ATM ?
-+		 data, mt9v022->model == MT9V022IX7ATM ?
- 		 "monochrome" : "colour");
- 
- 	ret = mt9v022_init(client);
-@@ -768,7 +748,6 @@ static const struct v4l2_ctrl_ops mt9v022_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops mt9v022_subdev_core_ops = {
--	.g_chip_ident	= mt9v022_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= mt9v022_g_register,
- 	.s_register	= mt9v022_s_register,
-diff --git a/drivers/media/i2c/soc_camera/ov2640.c b/drivers/media/i2c/soc_camera/ov2640.c
-index e316842..7961cba 100644
---- a/drivers/media/i2c/soc_camera/ov2640.c
-+++ b/drivers/media/i2c/soc_camera/ov2640.c
-@@ -22,7 +22,6 @@
- #include <linux/videodev2.h>
- 
- #include <media/soc_camera.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-subdev.h>
- #include <media/v4l2-ctrls.h>
- 
-@@ -304,7 +303,6 @@ struct ov2640_priv {
- 	struct v4l2_ctrl_handler	hdl;
- 	enum v4l2_mbus_pixelcode	cfmt_code;
- 	const struct ov2640_win_size	*win;
--	int				model;
- };
- 
- /*
-@@ -723,18 +721,6 @@ static int ov2640_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return -EINVAL;
- }
- 
--static int ov2640_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct ov2640_priv *priv = to_ov2640(client);
--
--	id->ident    = priv->model;
--	id->revision = 0;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int ov2640_g_register(struct v4l2_subdev *sd,
- 			     struct v4l2_dbg_register *reg)
-@@ -1009,7 +995,6 @@ static int ov2640_video_probe(struct i2c_client *client)
- 	switch (VERSION(pid, ver)) {
- 	case PID_OV2640:
- 		devname     = "ov2640";
--		priv->model = V4L2_IDENT_OV2640;
- 		break;
- 	default:
- 		dev_err(&client->dev,
-@@ -1034,7 +1019,6 @@ static const struct v4l2_ctrl_ops ov2640_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops ov2640_subdev_core_ops = {
--	.g_chip_ident	= ov2640_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= ov2640_g_register,
- 	.s_register	= ov2640_s_register,
-diff --git a/drivers/media/i2c/soc_camera/ov5642.c b/drivers/media/i2c/soc_camera/ov5642.c
-index 9aa56de..c93a157 100644
---- a/drivers/media/i2c/soc_camera/ov5642.c
-+++ b/drivers/media/i2c/soc_camera/ov5642.c
-@@ -24,7 +24,6 @@
- #include <linux/v4l2-mediabus.h>
- 
- #include <media/soc_camera.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-subdev.h>
- 
- /* OV5642 registers */
-@@ -848,23 +847,6 @@ static int ov5642_enum_fmt(struct v4l2_subdev *sd, unsigned int index,
- 	return 0;
- }
- 
--static int ov5642_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	if (id->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
--		return -EINVAL;
--
--	if (id->match.addr != client->addr)
--		return -ENODEV;
--
--	id->ident	= V4L2_IDENT_OV5642;
--	id->revision	= 0;
--
--	return 0;
--}
--
- static int ov5642_s_crop(struct v4l2_subdev *sd, const struct v4l2_crop *a)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -966,7 +948,6 @@ static struct v4l2_subdev_video_ops ov5642_subdev_video_ops = {
- 
- static struct v4l2_subdev_core_ops ov5642_subdev_core_ops = {
- 	.s_power	= ov5642_s_power,
--	.g_chip_ident	= ov5642_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= ov5642_get_register,
- 	.s_register	= ov5642_set_register,
-diff --git a/drivers/media/i2c/soc_camera/ov6650.c b/drivers/media/i2c/soc_camera/ov6650.c
-index 991202d..d2869d8 100644
---- a/drivers/media/i2c/soc_camera/ov6650.c
-+++ b/drivers/media/i2c/soc_camera/ov6650.c
-@@ -32,7 +32,6 @@
- #include <linux/module.h>
- 
- #include <media/soc_camera.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- 
- /* Register definitions */
-@@ -390,16 +389,6 @@ static int ov6550_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return -EINVAL;
- }
- 
--/* Get chip identification */
--static int ov6650_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *id)
--{
--	id->ident	= V4L2_IDENT_OV6650;
--	id->revision	= 0;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int ov6650_get_register(struct v4l2_subdev *sd,
- 				struct v4l2_dbg_register *reg)
-@@ -879,7 +868,6 @@ static const struct v4l2_ctrl_ops ov6550_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops ov6650_core_ops = {
--	.g_chip_ident		= ov6650_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register		= ov6650_get_register,
- 	.s_register		= ov6650_set_register,
-diff --git a/drivers/media/i2c/soc_camera/ov772x.c b/drivers/media/i2c/soc_camera/ov772x.c
-index 713d62e..b2f6236 100644
---- a/drivers/media/i2c/soc_camera/ov772x.c
-+++ b/drivers/media/i2c/soc_camera/ov772x.c
-@@ -27,7 +27,6 @@
- #include <media/ov772x.h>
- #include <media/soc_camera.h>
- #include <media/v4l2-ctrls.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-subdev.h>
- 
- /*
-@@ -399,7 +398,6 @@ struct ov772x_priv {
- 	struct ov772x_camera_info        *info;
- 	const struct ov772x_color_format *cfmt;
- 	const struct ov772x_win_size     *win;
--	int                               model;
- 	unsigned short                    flag_vflip:1;
- 	unsigned short                    flag_hflip:1;
- 	/* band_filter = COM8[5] ? 256 - BDBASE : 0 */
-@@ -620,17 +618,6 @@ static int ov772x_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return -EINVAL;
- }
- 
--static int ov772x_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *id)
--{
--	struct ov772x_priv *priv = to_ov772x(sd);
--
--	id->ident    = priv->model;
--	id->revision = 0;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int ov772x_g_register(struct v4l2_subdev *sd,
- 			     struct v4l2_dbg_register *reg)
-@@ -965,11 +952,9 @@ static int ov772x_video_probe(struct ov772x_priv *priv)
- 	switch (VERSION(pid, ver)) {
- 	case OV7720:
- 		devname     = "ov7720";
--		priv->model = V4L2_IDENT_OV7720;
- 		break;
- 	case OV7725:
- 		devname     = "ov7725";
--		priv->model = V4L2_IDENT_OV7725;
- 		break;
- 	default:
- 		dev_err(&client->dev,
-@@ -997,7 +982,6 @@ static const struct v4l2_ctrl_ops ov772x_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops ov772x_subdev_core_ops = {
--	.g_chip_ident	= ov772x_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= ov772x_g_register,
- 	.s_register	= ov772x_s_register,
-diff --git a/drivers/media/i2c/soc_camera/ov9640.c b/drivers/media/i2c/soc_camera/ov9640.c
-index 20ca62d..6817be3 100644
---- a/drivers/media/i2c/soc_camera/ov9640.c
-+++ b/drivers/media/i2c/soc_camera/ov9640.c
-@@ -28,7 +28,6 @@
- #include <linux/videodev2.h>
- 
- #include <media/soc_camera.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
- 
-@@ -287,18 +286,6 @@ static int ov9640_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return -EINVAL;
- }
- 
--/* Get chip identification */
--static int ov9640_g_chip_ident(struct v4l2_subdev *sd,
--				struct v4l2_dbg_chip_ident *id)
--{
--	struct ov9640_priv *priv = to_ov9640_sensor(sd);
--
--	id->ident	= priv->model;
--	id->revision	= priv->revision;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int ov9640_get_register(struct v4l2_subdev *sd,
- 				struct v4l2_dbg_register *reg)
-@@ -615,12 +602,10 @@ static int ov9640_video_probe(struct i2c_client *client)
- 	switch (VERSION(pid, ver)) {
- 	case OV9640_V2:
- 		devname		= "ov9640";
--		priv->model	= V4L2_IDENT_OV9640;
- 		priv->revision	= 2;
- 		break;
- 	case OV9640_V3:
- 		devname		= "ov9640";
--		priv->model	= V4L2_IDENT_OV9640;
- 		priv->revision	= 3;
- 		break;
- 	default:
-@@ -644,7 +629,6 @@ static const struct v4l2_ctrl_ops ov9640_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops ov9640_core_ops = {
--	.g_chip_ident		= ov9640_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register		= ov9640_get_register,
- 	.s_register		= ov9640_set_register,
-diff --git a/drivers/media/i2c/soc_camera/ov9740.c b/drivers/media/i2c/soc_camera/ov9740.c
-index 012bd62..0bc21a6 100644
---- a/drivers/media/i2c/soc_camera/ov9740.c
-+++ b/drivers/media/i2c/soc_camera/ov9740.c
-@@ -17,7 +17,6 @@
- #include <linux/v4l2-mediabus.h>
- 
- #include <media/soc_camera.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- 
- #define to_ov9740(sd)		container_of(sd, struct ov9740_priv, subdev)
-@@ -197,7 +196,6 @@ struct ov9740_priv {
- 	struct v4l2_subdev		subdev;
- 	struct v4l2_ctrl_handler	hdl;
- 
--	int				ident;
- 	u16				model;
- 	u8				revision;
- 	u8				manid;
-@@ -772,18 +770,6 @@ static int ov9740_s_ctrl(struct v4l2_ctrl *ctrl)
- 	return 0;
- }
- 
--/* Get chip identification */
--static int ov9740_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *id)
--{
--	struct ov9740_priv *priv = to_ov9740(sd);
--
--	id->ident = priv->ident;
--	id->revision = priv->revision;
--
--	return 0;
--}
--
- static int ov9740_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
-@@ -887,8 +873,6 @@ static int ov9740_video_probe(struct i2c_client *client)
- 		goto done;
- 	}
- 
--	priv->ident = V4L2_IDENT_OV9740;
--
- 	dev_info(&client->dev, "ov9740 Model ID 0x%04x, Revision 0x%02x, "
- 		 "Manufacturer 0x%02x, SMIA Version 0x%02x\n",
- 		 priv->model, priv->revision, priv->manid, priv->smiaver);
-@@ -927,7 +911,6 @@ static struct v4l2_subdev_video_ops ov9740_video_ops = {
- };
- 
- static struct v4l2_subdev_core_ops ov9740_core_ops = {
--	.g_chip_ident		= ov9740_g_chip_ident,
- 	.s_power		= ov9740_s_power,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register		= ov9740_get_register,
-diff --git a/drivers/media/i2c/soc_camera/rj54n1cb0c.c b/drivers/media/i2c/soc_camera/rj54n1cb0c.c
-index 1f9ec3b..81b515c 100644
---- a/drivers/media/i2c/soc_camera/rj54n1cb0c.c
-+++ b/drivers/media/i2c/soc_camera/rj54n1cb0c.c
-@@ -18,7 +18,6 @@
- #include <media/rj54n1cb0c.h>
- #include <media/soc_camera.h>
- #include <media/v4l2-subdev.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- 
- #define RJ54N1_DEV_CODE			0x0400
-@@ -1120,37 +1119,16 @@ static int rj54n1_s_fmt(struct v4l2_subdev *sd,
- 	return 0;
- }
- 
--static int rj54n1_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--
--	if (id->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
--		return -EINVAL;
--
--	if (id->match.addr != client->addr)
--		return -ENODEV;
--
--	id->ident	= V4L2_IDENT_RJ54N1CB0C;
--	id->revision	= 0;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int rj54n1_g_register(struct v4l2_subdev *sd,
- 			     struct v4l2_dbg_register *reg)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR ||
--	    reg->reg < 0x400 || reg->reg > 0x1fff)
-+	if (reg->reg < 0x400 || reg->reg > 0x1fff)
- 		/* Registers > 0x0800 are only available from Sharp support */
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	reg->size = 1;
- 	reg->val = reg_read(client, reg->reg);
- 
-@@ -1165,14 +1143,10 @@ static int rj54n1_s_register(struct v4l2_subdev *sd,
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 
--	if (reg->match.type != V4L2_CHIP_MATCH_I2C_ADDR ||
--	    reg->reg < 0x400 || reg->reg > 0x1fff)
-+	if (reg->reg < 0x400 || reg->reg > 0x1fff)
- 		/* Registers >= 0x0800 are only available from Sharp support */
- 		return -EINVAL;
- 
--	if (reg->match.addr != client->addr)
--		return -ENODEV;
--
- 	if (reg_write(client, reg->reg, reg->val) < 0)
- 		return -EIO;
- 
-@@ -1233,7 +1207,6 @@ static const struct v4l2_ctrl_ops rj54n1_ctrl_ops = {
- };
- 
- static struct v4l2_subdev_core_ops rj54n1_subdev_core_ops = {
--	.g_chip_ident	= rj54n1_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register	= rj54n1_g_register,
- 	.s_register	= rj54n1_s_register,
-diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
-index bad90b1..8a2ac24 100644
---- a/drivers/media/i2c/soc_camera/tw9910.c
-+++ b/drivers/media/i2c/soc_camera/tw9910.c
-@@ -27,7 +27,6 @@
- 
- #include <media/soc_camera.h>
- #include <media/tw9910.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-subdev.h>
- 
- #define GET_ID(val)  ((val & 0xF8) >> 3)
-@@ -518,18 +517,6 @@ static int tw9910_s_std(struct v4l2_subdev *sd, v4l2_std_id norm)
- 	return 0;
- }
- 
--static int tw9910_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *id)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct tw9910_priv *priv = to_tw9910(client);
--
--	id->ident = V4L2_IDENT_TW9910;
--	id->revision = priv->revision;
--
--	return 0;
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int tw9910_g_register(struct v4l2_subdev *sd,
- 			     struct v4l2_dbg_register *reg)
-@@ -823,7 +810,6 @@ done:
- }
- 
- static struct v4l2_subdev_core_ops tw9910_subdev_core_ops = {
--	.g_chip_ident	= tw9910_g_chip_ident,
- 	.s_std		= tw9910_s_std,
- 	.g_std		= tw9910_g_std,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
--- 
-1.7.10.4
-
