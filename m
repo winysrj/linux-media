@@ -1,98 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f51.google.com ([74.125.82.51]:40647 "EHLO
-	mail-wg0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1762324Ab3ECNiW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 09:38:22 -0400
-Received: by mail-wg0-f51.google.com with SMTP id b13so1627449wgh.30
-        for <linux-media@vger.kernel.org>; Fri, 03 May 2013 06:38:21 -0700 (PDT)
+Received: from mail-la0-f50.google.com ([209.85.215.50]:54446 "EHLO
+	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752978Ab3EOV6J (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 May 2013 17:58:09 -0400
+Received: by mail-la0-f50.google.com with SMTP id ed20so2308880lab.37
+        for <linux-media@vger.kernel.org>; Wed, 15 May 2013 14:58:07 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: horms@verge.net.au, linux-sh@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v4 2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
+Date: Thu, 16 May 2013 01:58:07 +0400
+Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com, linux-media@vger.kernel.org
+References: <201305160153.29827.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201305160153.29827.sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Date: Fri, 3 May 2013 15:38:20 +0200
-Message-ID: <CAF3Vj=o-dmXFXTz8MaQhQ0SnB23Ppvz-BFtHmE-t9RTG7sz=7A@mail.gmail.com>
-Subject: [PATCH] it913x: add support for 'Digital Dual TV Receiver CTVDIGDUAL v2
-From: Alessandro Miceli <angelofsky1980@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305160158.08239.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add support for 'Digital Dual TV Receiver CTVDIGDUAL v2.
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-It's tested with a MIPSEL Linux box with 3.3.6 kernel.
+Add ADV7180 platform devices on the Marzen board, configure VIN1/3 pins, and
+register VIN1/3 devices with the ADV7180 specific platform data.
 
-The kernel output text when the device is being detected is:
-
-usbcore: registered new interface driver dvb_usb_it913x
-it913x: Chip Version=01 Chip Type=9135
-it913x: Remote propriety (raw) mode
-it913x: Dual mode=3 Tuner Type=38
-it913x: Chip Version=01 Chip Type=9135
-usb 2-1: dvb_usb_v2: found a 'Digital Dual TV Receiver CTVDIGDUAL_V2'
-in cold state
-usb 2-1: dvb_usb_v2: downloading firmware from file 'dvb-usb-it9137-01.fw'
-it913x: FRM Starting Firmware Download
-it913x: FRM Firmware Download Completed - Resetting Device
-it913x: Chip Version=01 Chip Type=9135
-it913x: Firmware Version 204147968
-usb 2-1: dvb_usb_v2: found a 'Digital Dual TV Receiver CTVDIGDUAL_V2'
-in warm state
-usb 2-1: dvb_usb_v2: will pass the complete MPEG2 transport stream to
-the software demuxer
-DVB: registering new adapter (Digital Dual TV Receiver CTVDIGDUAL_V2)
-it913x-fe: ADF table value      :00
-it913x-fe: Crystal Frequency :12000000 Adc Frequency :20250000 ADC X2: 00
-it913x-fe: Tuner LNA type :38
-usb 2-1: DVB: registering adapter 1 frontend 0 (Digital Dual TV
-Receiver CTVDIGDUAL_V2_1)...
-usb 2-1: dvb_usb_v2: will pass the complete MPEG2 transport stream to
-the software demuxer
-DVB: registering new adapter (Digital Dual TV Receiver CTVDIGDUAL_V2)
-it913x-fe: ADF table value      :00
-it913x-fe: Crystal Frequency :12000000 Adc Frequency :20250000 ADC X2: 00
-it913x-fe: Tuner LNA type :38
-usb 2-1: DVB: registering adapter 2 frontend 0 (Digital Dual TV
-Receiver CTVDIGDUAL_V2_2)...
-usb 2-1: dvb_usb_v2: 'Digital Dual TV Receiver CTVDIGDUAL_V2'
-successfully initialized and connected
-
-RC part not tested
-DVB-T services scan and tune works regularly.
-
-Signed-off-by: Alessandro Miceli <angelofsky1980@gmail.com>
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+[Sergei: removed superfluous tabulation and inserted empty lines in the  macro
+definition, updated the copyrights, annotated VIN platform data as '__initdata']
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
 ---
+Changes since version 3:
+- changed the VIN platform device names to be R8A7779 specific;
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h
-b/drivers/media/dvb-core/dvb-usb-ids.h
-index 335a8f4..2e0709a 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -367,4 +367,5 @@
- #define USB_PID_TECHNISAT_USB2_HDCI_V2                 0x0002
- #define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2          0x0004
- #define USB_PID_TECHNISAT_USB2_DVB_S2                  0x0500
-+#define USB_PID_CTVDIGDUAL_V2                          0xe410
- #endif
-diff --git a/drivers/media/usb/dvb-usb-v2/it913x.c
-b/drivers/media/usb/dvb-usb-v2/it913x.c
-index e48cdeb..1cb6899 100644
---- a/drivers/media/usb/dvb-usb-v2/it913x.c
-+++ b/drivers/media/usb/dvb-usb-v2/it913x.c
-@@ -45,7 +45,7 @@ MODULE_PARM_DESC(debug, "set debugging level (1=info
-(or-able)).");
+Changes since version 2:
+- annotated 'vin_platform_data' as '__initdata' since they're kmemdup()'ed while
+  registering the platform devices anyway.
 
- static int dvb_usb_it913x_firmware;
- module_param_named(firmware, dvb_usb_it913x_firmware, int, 0644);
--MODULE_PARM_DESC(firmware, "set firmware 0=auto"\
-+MODULE_PARM_DESC(firmware, "set firmware 0=auto "\
-        "1=IT9137 2=IT9135 V1 3=IT9135 V2");
- #define FW_IT9137 "dvb-usb-it9137-01.fw"
- #define FW_IT9135_V1 "dvb-usb-it9135-01.fw"
-@@ -796,6 +796,9 @@ static const struct usb_device_id it913x_id_table[] = {
-        { DVB_USB_DEVICE(USB_VID_AVERMEDIA, USB_PID_AVERMEDIA_A835B_4835,
-                &it913x_properties, "Avermedia A835B(4835)",
-                        RC_MAP_IT913X_V2) },
-+       { DVB_USB_DEVICE(USB_VID_KWORLD_2, USB_PID_CTVDIGDUAL_V2,
-+               &it913x_properties, "Digital Dual TV Receiver CTVDIGDUAL_V2",
-+                       RC_MAP_IT913X_V1) },
-        {}              /* Terminating entry */
+Changes since the original posting:
+- used a macro to define the camera platform devices;
+- updated the copyrights;
+- refreshed the patch.
+
+ arch/arm/mach-shmobile/board-marzen.c |   44 +++++++++++++++++++++++++++++++++-
+ 1 file changed, 43 insertions(+), 1 deletion(-)
+
+Index: renesas/arch/arm/mach-shmobile/board-marzen.c
+===================================================================
+--- renesas.orig/arch/arm/mach-shmobile/board-marzen.c
++++ renesas/arch/arm/mach-shmobile/board-marzen.c
+@@ -1,8 +1,9 @@
+ /*
+  * marzen board support
+  *
+- * Copyright (C) 2011  Renesas Solutions Corp.
++ * Copyright (C) 2011, 2013  Renesas Solutions Corp.
+  * Copyright (C) 2011  Magnus Damm
++ * Copyright (C) 2013  Cogent Embedded, Inc.
+  *
+  * This program is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -37,6 +38,7 @@
+ #include <linux/mmc/host.h>
+ #include <linux/mmc/sh_mobile_sdhi.h>
+ #include <linux/mfd/tmio.h>
++#include <media/soc_camera.h>
+ #include <mach/hardware.h>
+ #include <mach/r8a7779.h>
+ #include <mach/common.h>
+@@ -178,12 +180,40 @@ static struct platform_device leds_devic
+ 	},
  };
+ 
++static struct rcar_vin_platform_data vin_platform_data __initdata = {
++	.flags	= RCAR_VIN_BT656,
++};
++
++#define MARZEN_CAMERA(idx)					\
++static struct i2c_board_info camera##idx##_info = {		\
++	I2C_BOARD_INFO("adv7180", 0x20 + (idx)),		\
++};								\
++								\
++static struct soc_camera_link iclink##idx##_adv7180 = {		\
++	.bus_id		= 1 + 2 * (idx),			\
++	.i2c_adapter_id	= 0,					\
++	.board_info	= &camera##idx##_info,			\
++};								\
++								\
++static struct platform_device camera##idx##_device = {		\
++	.name	= "soc-camera-pdrv",				\
++	.id	= idx,						\
++	.dev	= {						\
++		.platform_data	= &iclink##idx##_adv7180,	\
++	},							\
++};
++
++MARZEN_CAMERA(0);
++MARZEN_CAMERA(1);
++
+ static struct platform_device *marzen_devices[] __initdata = {
+ 	&eth_device,
+ 	&sdhi0_device,
+ 	&thermal_device,
+ 	&hspi_device,
+ 	&leds_device,
++	&camera0_device,
++	&camera1_device,
+ };
+ 
+ static const struct pinctrl_map marzen_pinctrl_map[] = {
+@@ -219,6 +249,16 @@ static const struct pinctrl_map marzen_p
+ 	/* USB2 */
+ 	PIN_MAP_MUX_GROUP_DEFAULT("ehci-platform.1", "pfc-r8a7779",
+ 				  "usb2", "usb2"),
++	/* VIN1 */
++	PIN_MAP_MUX_GROUP_DEFAULT("r8a7779-vin.1", "pfc-r8a7779",
++				  "vin1_clk", "vin1"),
++	PIN_MAP_MUX_GROUP_DEFAULT("r8a7779-vin.1", "pfc-r8a7779",
++				  "vin1_data8", "vin1"),
++	/* VIN3 */
++	PIN_MAP_MUX_GROUP_DEFAULT("r8a7779-vin.3", "pfc-r8a7779",
++				  "vin3_clk", "vin3"),
++	PIN_MAP_MUX_GROUP_DEFAULT("r8a7779-vin.3", "pfc-r8a7779",
++				  "vin3_data8", "vin3"),
+ };
+ 
+ static void __init marzen_init(void)
+@@ -235,6 +275,8 @@ static void __init marzen_init(void)
+ 
+ 	r8a7779_add_standard_devices();
+ 	r8a7779_add_usb_phy_device(&usb_phy_platform_data);
++	r8a7779_add_vin_device(1, &vin_platform_data);
++	r8a7779_add_vin_device(3, &vin_platform_data);
+ 	platform_add_devices(marzen_devices, ARRAY_SIZE(marzen_devices));
+ }
+ 
