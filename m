@@ -1,40 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f43.google.com ([209.85.210.43]:61206 "EHLO
-	mail-da0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752545Ab3EQLYN (ORCPT
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:23008 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752935Ab3EOV4V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 May 2013 07:24:13 -0400
-Date: Fri, 17 May 2013 19:24:05 +0800 (CST)
-From: Xiong Zhou <jencce.kernel@gmail.com>
-To: hans.verkuil@cisco.com, mchehab@redhat.com,
-	ismael.luceno@corp.bluecherry.net
-cc: linux-kernel@vger.kernel.org, gregkh@suse.de,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Subject: [PATCH] staging/solo6x10: select the desired font
-Message-ID: <alpine.DEB.2.02.1305171916540.10247@M2420>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 15 May 2013 17:56:21 -0400
+Date: Wed, 15 May 2013 23:56:11 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Linux Media <linux-media@vger.kernel.org>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] [media] sony-btf-mpx: Drop needless newline in param
+ description
+Message-ID: <20130515235611.4271a684@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Xiong Zhou <jencce.kernel@gmail.com>
+Module parameter descriptions need not be terminated with a newline.
 
-Make sure FONT_8x16 can be found by find_font().
-
-Signed-off-by: Xiong Zhou <jencce.kernel@gmail.com>
+Signed-off-by: Jean Delvare <khali@linux-fr.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/staging/media/solo6x10/Kconfig |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/i2c/sony-btf-mpx.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
-index ec32776..0bc743b 100644
---- a/drivers/staging/media/solo6x10/Kconfig
-+++ b/drivers/staging/media/solo6x10/Kconfig
-@@ -4,6 +4,7 @@ config SOLO6X10
- 	select VIDEOBUF2_DMA_SG
- 	select VIDEOBUF2_DMA_CONTIG
- 	select SND_PCM
-+	select FONT_8x16
- 	---help---
- 	  This driver supports the Softlogic based MPEG-4 and h.264 codec
- 	  cards.
+--- linux-3.10-rc1.orig/drivers/media/i2c/sony-btf-mpx.c	2013-05-13 15:27:46.176134998 +0200
++++ linux-3.10-rc1/drivers/media/i2c/sony-btf-mpx.c	2013-05-15 23:28:55.519803198 +0200
+@@ -30,7 +30,7 @@ MODULE_LICENSE("GPL v2");
+ 
+ static int debug;
+ module_param(debug, int, 0644);
+-MODULE_PARM_DESC(debug, "debug level 0=off(default) 1=on\n");
++MODULE_PARM_DESC(debug, "debug level 0=off(default) 1=on");
+ 
+ /* #define MPX_DEBUG */
+ 
+
+
+-- 
+Jean Delvare
