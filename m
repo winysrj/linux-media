@@ -1,52 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:34906 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754723Ab3EUDrc (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:49310 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751186Ab3EOFo2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 May 2013 23:47:32 -0400
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MN400F77QJ69OM0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 21 May 2013 12:47:30 +0900 (KST)
-From: Seung-Woo Kim <sw0312.kim@samsung.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Cc: m.szyprowski@samsung.com, hans.verkuil@cisco.com, pawel@osciak.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com
-Subject: [RESEND][PATCH 1/2] media: vb2: return for polling if a buffer is
- available
-Date: Tue, 21 May 2013 12:47:29 +0900
-Message-id: <1369108050-13522-2-git-send-email-sw0312.kim@samsung.com>
-In-reply-to: <1369108050-13522-1-git-send-email-sw0312.kim@samsung.com>
-References: <1369108050-13522-1-git-send-email-sw0312.kim@samsung.com>
+	Wed, 15 May 2013 01:44:28 -0400
+Date: Wed, 15 May 2013 07:44:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH v4] V4L2: soc_camera: Renesas R-Car VIN driver
+In-Reply-To: <201305150256.36966.sergei.shtylyov@cogentembedded.com>
+Message-ID: <Pine.LNX.4.64.1305150742470.10596@axis700.grange>
+References: <201305150256.36966.sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The vb2_poll() does not need to wait next vb_buffer_done() if there is already
-a buffer in done_list of queue, but current vb2_poll() always waits.
-So done_list is checked before calling poll_wait().
+Hi Sergei, Vladimir
 
-Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
-Acked-by: Marek Szyprowski <m.szyprowski@samsung.com> 
+On Wed, 15 May 2013, Sergei Shtylyov wrote:
+
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> 
+> Add Renesas R-Car VIN (Video In) V4L2 driver.
+> 
+> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> 
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
+> values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
+> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
+> *if* statement  and  used 'bool' values instead of 0/1 where necessary, done
+> some reformatting and clarified some comments.]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> ---
+> This patch is against the 'media_tree.git' repo.
+> 
+> Changes since version 3:
+
+Why aren't you using this:
+
+http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/63820
+
+?
+
+Thanks
+Guennadi
+
+> - removed the driver's dependency on R-Car M1A/H1 SoCs from Kconfig;
+> - made the driver aware of the differences between R-Car E1/M1/H1 SoCs by having
+>   different platform device IDs for different SoCs, introcduced 'enum chips_id'
+>   to be used as the 'driver_data' field of 'struct platform_device_id' and then
+>   copied to the 'chip' field of 'struct rcar_vin_priv';
+> - sorted #include's alphabetically, added a number of #includes <media/v4l2-*>;
+> - removed the 'data_through' field of the 'struct rcar_vin_priv' and the pass-
+>   through logic from set_fmt() method;
+> - simplified is_continuous_transfer(), used it where applicable;
+> - removed senseless parens from to_buf_list() macro;
+> - removed the 'code' field from the 'struct rcar_vin_cam';
+> - largely rewrote the queue_setup() method;
+> - removed 'input_is_yuv' variable from rcar_vin_setup(), made 'progressive'  and
+>   'output_is_yuv' variables 'bool', and made setting VnDMR.EXRGB bit only happen
+>   on R-Car E1/H1 there;
+> - made use of ALIGN() macro in rcar_vin_setup() and rcar_vin_set_rect();
+> - fixed missing {} on one branch of the *if* statement in several places, added
+>   {} to the *if* statement where necessary;
+> - stopped saving/restoring flags when grabbing/dropping a spinlock in the
+>   buf_queue() and buf_cleanup() methods;
+> - made 'dsize' variable calculation depend on R-Car E1 in rcar_vin_set_rect()
+> - fix the continuous capturing to stop when there is no buffer to be set into
+>   the VnMBm registers in rcar_vin_irq();
+> - replaced BUG_ON() with WARN_ON() and *return* in the remove() method, also
+>   replaced pm_runtime_put_sync() with pm_runtime_put() there;
+> - removed size_dst() and calc_scale() as the calls to calc_scale() were also
+>   removed from the set_fmt() method;
+> - removed the VnMC register value check from capture_restore();
+> - removed 'cfg' variable initializers from set_bus_param() method and
+>   rcar_vin_try_bus_param();
+> - added bus width check to rcar_vin_try_bus_param();
+> - removed V4L2_PIX_FMT_YUYV format from rcar_vin_formats[], initialize 'layout'
+>   field of every element in this table;
+> - changed dev_err() call and *return* -EINVAL to dev_warn() and *return* 0 in
+>   the get_formats() method,
+> - added rcar_vin_packing_supported() and started handling pass-through mode in
+>   the get_formats() method;
+> - constified the parameters of is_smaller() and is_inside();
+> - redid the scaling logic so that it can't scale RGB32 data on R-Car E1 in the
+>   set_fmt() method, also stopped assigning to 'cam->code' there;
+> - started selecting the current format if soc_camera_xlate_by_fourcc() call
+>   failed in the try_fmt() method, also started letting 'soc-camera' calculate
+>   bytes-per-line and image size there;
+> - removed pm_runtime_resume() call from the driver's probe() method
+> - added setting of the 'timestamp_type' field to the init_videobuf2() method.
+> 
+> Changes since version 2:
+> - replaced Cyrillic characters in comments with the proper Latinic ones.
+> 
+> Changes since the original posting:
+> - added IRQF_SHARED flag in devm_request_irq() call (since on R8A7778 VIN0/1
+>   share the same IRQ) and removed deprecated IRQF_DISABLED flag.
+> 
+>  drivers/media/platform/soc_camera/Kconfig    |    7 
+>  drivers/media/platform/soc_camera/Makefile   |    1 
+>  drivers/media/platform/soc_camera/rcar_vin.c | 1814 +++++++++++++++++++++++++++
+>  include/linux/platform_data/camera-rcar.h    |   25 
+>  4 files changed, 1847 insertions(+)
+
 ---
- drivers/media/v4l2-core/videobuf2-core.c |    3 ++-
- 1 files changed, 2 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/videobuf2-core.c b/drivers/media/v4l2-core/videobuf2-core.c
-index 7d833ee..e3bdc3b 100644
---- a/drivers/media/v4l2-core/videobuf2-core.c
-+++ b/drivers/media/v4l2-core/videobuf2-core.c
-@@ -2014,7 +2014,8 @@ unsigned int vb2_poll(struct vb2_queue *q, struct file *file, poll_table *wait)
- 	if (list_empty(&q->queued_list))
- 		return res | POLLERR;
- 
--	poll_wait(file, &q->done_wq, wait);
-+	if (list_empty(&q->done_list))
-+		poll_wait(file, &q->done_wq, wait);
- 
- 	/*
- 	 * Take first buffer available for dequeuing.
--- 
-1.7.4.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
