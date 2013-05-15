@@ -1,119 +1,221 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:51614 "EHLO
-	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756463Ab3E0Vxl (ORCPT
+Received: from mail-vb0-f46.google.com ([209.85.212.46]:52610 "EHLO
+	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756698Ab3EOR3q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 17:53:41 -0400
-Message-ID: <1369691595.3469.404.camel@deadeye.wl.decadent.org.uk>
-Subject: Re: [GIT PULL] go7007 firmware updates
-From: Ben Hutchings <ben@decadent.org.uk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: David Woodhouse <dwmw2@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Pete Eberlein <pete@sensoray.com>
-Date: Mon, 27 May 2013 22:53:15 +0100
-In-Reply-To: <201305272156.18975.hverkuil@xs4all.nl>
-References: <201305231025.31812.hverkuil@xs4all.nl>
-	 <1369671872.3469.383.camel@deadeye.wl.decadent.org.uk>
-	 <201305272156.18975.hverkuil@xs4all.nl>
-Content-Type: multipart/signed; micalg="pgp-sha512";
-	protocol="application/pgp-signature"; boundary="=-ftiRingPo2iouuWWAyR3"
-Mime-Version: 1.0
+	Wed, 15 May 2013 13:29:46 -0400
+Received: by mail-vb0-f46.google.com with SMTP id 10so652695vbe.5
+        for <linux-media@vger.kernel.org>; Wed, 15 May 2013 10:29:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <10450810.MOPyhOxKX4@avalon>
+References: <1367925577-26907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<10450810.MOPyhOxKX4@avalon>
+Date: Wed, 15 May 2013 10:29:22 -0700
+Message-ID: <CALaWCONOMESHSZ2FvOfSPN6uWgYXedObtwoqRuYhaw-gVUw4rQ@mail.gmail.com>
+Subject: Re: [PATCH v2] uvcvideo: Fix open/close race condition
+From: Shawn Nematbakhsh <shawnn@chromium.org>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Laurent,
 
---=-ftiRingPo2iouuWWAyR3
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: quoted-printable
+Thanks for the revised patch. I tested and confirmed that it fixes the
+issue I reported.
 
-On Mon, 2013-05-27 at 21:56 +0200, Hans Verkuil wrote:
-> On Mon May 27 2013 18:24:32 Ben Hutchings wrote:
-> > On Thu, 2013-05-23 at 10:25 +0200, Hans Verkuil wrote:
-> > > Hi Ben, David,
-> > >=20
-> > > The go7007 staging driver has been substantially overhauled for kerne=
-l 3.10.
-> > > As part of that process the firmware situation has been improved as w=
-ell.
-> > >=20
-> > > While Micronas allowed the firmware to be redistributed, it was never=
- made
-> > > part of linux-firmware. Only the firmwares for the Sensoray S2250 wer=
-e added
-> > > in the past, but those need the go7007*.bin firmwares as well to work=
-.
-> > >=20
-> > > This pull request collects all the firmwares necessary to support all=
- the
-> > > go7007 devices into the go7007 directory. With this change the go7007=
- driver
-> > > will work out-of-the-box starting with kernel 3.10.
-> > [...]
-> >=20
-> > You should not rename files like this.  linux-firmware is not versioned
-> > and needs to be compatible with old and new kernel versions, so far as
-> > possible.
->=20
-> I understand, and I wouldn't have renamed these two firmware files if it
-> wasn't for the fact that 1) it concerns a staging driver, so in my view
-> backwards compatibility is not a requirement,
-
-This driver (or set of drivers) has been requesting go7007fw.bin,
-go7007tv.bin, s2250.fw and s2250_loader.fw for nearly 5 years.  It's a
-bit late to say those were just temporary filenames.
-
-> and 2) the firmware files
-> currently in linux-firmware were never enough to make the Sensoray S2250
-> work, you always needed additional external firmwares as well.
->=20
-> > So the filenames in linux-firmware should match whatever the driver has
-> > used up to now.  If the driver has been changed in 3.10-rc to use
-> > different filenames, it's not too late to revert this mistake in the
-> > driver.  But if such a change was made earlier, we'll need to add
-> > symlinks.
->=20
-> I can revert the rename action, but I would rather not do it. I believe
-> there are good reasons for doing this, especially since the current
-> situation is effectively broken anyway due to the missing firmware files.
-
-Were the 'new' files unavailable to the public, or only available from a
-manufacturer web site?
-
-Ben.
-
-> If you really don't want to rename the two S2250 files, then I'll make
-> a patch reverting those to the original filename.
->=20
-> Pete, if you have an opinion regarding this, please let us know. After al=
-l,
-> it concerns a Sensoray device.
-
---=20
-Ben Hutchings
-Experience is what causes a person to make new mistakes instead of old ones=
-.
-
---=-ftiRingPo2iouuWWAyR3
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: This is a digitally signed message part
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIVAwUAUaPVy+e/yOyVhhEJAQpONw/9FFQU83uvHQI6T5jsoWgITLLlUoEEzuKD
-SJv7Y7zC7mQYAqd5q8jMhHw9rALMfr8yf8Gp7WZ2p4PnsmsBuQe9L0EZx5R7bEGL
-oOM3h2Haywu0OBdcyUYmmVKCSbWwfQ70FHwB1tjfbJLkLfMzd0jVSQJlkvnmWGOl
-u5s2toRiECZO8I0r4WmzM3vcPA7MrBiqsDr+LEjdlWLGgeLuetpYkpmNQ/EyKhT7
-xdRBnx2TzL6d6hPBq1SctCus3UTNDVjh8sdA2m4dNlHZiIIfzxLXt7O58fG6hVQT
-h6TLb2US9YccoAzrXHTWA0SpXgobruyE4m7sszodQQGfCORmjYGh+whPgfZI7qqD
-CswJegchjcywK+pRsPDYA4GzDKDsV0Mruj2I3hgtZ8d2TZNN1tIIMNh2RnUeZCyb
-DgSkN72t7I9MkfLBiUFcyQxFLngHlE3tiKGgiUFU5/IebNwUCHi8L2MOYVSeEa/P
-vvordSSPQ9yDx2EcLblQdptgA5a8sKk1PjethQlnBo5kJ+nuMUOUfdWgPDAviD3R
-tIt7FuDoC3jr7vTf2eaNcAOWHNIdntk0R65nPUnotX5ammZmDRl24tViAWcJsWaL
-b5S53V7kGtT/D1DWExtgJxjslI+Nwglot9KXap0D+lxZaiU0Pi2S0duzq6XKmAHO
-YoMvHnA7iW4=
-=FpRo
------END PGP SIGNATURE-----
-
---=-ftiRingPo2iouuWWAyR3--
+On Wed, May 15, 2013 at 2:58 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Shawn,
+>
+> Could you please confirm whether this patch fixes the issue you've reported ?
+>
+> On Tuesday 07 May 2013 13:19:37 Laurent Pinchart wrote:
+>> Maintaining the users count using an atomic variable makes sure that
+>> access to the counter won't be racy, but doesn't serialize access to the
+>> operations protected by the counter. This creates a race condition that
+>> could result in the status URB being submitted multiple times.
+>>
+>> Use a mutex to protect the users count and serialize access to the
+>> status start and stop operations.
+>>
+>> Reported-by: Shawn Nematbakhsh <shawnn@chromium.org>
+>> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> ---
+>>  drivers/media/usb/uvc/uvc_driver.c | 23 +++++++++++++++++------
+>>  drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
+>>  drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
+>>  drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
+>>  4 files changed, 32 insertions(+), 33 deletions(-)
+>>
+>> Changes since v1:
+>>
+>> - Add a missing return back in the uvc_suspend() function
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+>> b/drivers/media/usb/uvc/uvc_driver.c index e68fa53..d704be3 100644
+>> --- a/drivers/media/usb/uvc/uvc_driver.c
+>> +++ b/drivers/media/usb/uvc/uvc_driver.c
+>> @@ -1836,8 +1836,8 @@ static int uvc_probe(struct usb_interface *intf,
+>>       INIT_LIST_HEAD(&dev->chains);
+>>       INIT_LIST_HEAD(&dev->streams);
+>>       atomic_set(&dev->nstreams, 0);
+>> -     atomic_set(&dev->users, 0);
+>>       atomic_set(&dev->nmappings, 0);
+>> +     mutex_init(&dev->lock);
+>>
+>>       dev->udev = usb_get_dev(udev);
+>>       dev->intf = usb_get_intf(intf);
+>> @@ -1953,8 +1953,13 @@ static int uvc_suspend(struct usb_interface *intf,
+>> pm_message_t message)
+>>
+>>       /* Controls are cached on the fly so they don't need to be saved. */
+>>       if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+>> -         UVC_SC_VIDEOCONTROL)
+>> -             return uvc_status_suspend(dev);
+>> +         UVC_SC_VIDEOCONTROL) {
+>> +             mutex_lock(&dev->lock);
+>> +             if (dev->users)
+>> +                     uvc_status_stop(dev);
+>> +             mutex_unlock(&dev->lock);
+>> +             return 0;
+>> +     }
+>>
+>>       list_for_each_entry(stream, &dev->streams, list) {
+>>               if (stream->intf == intf)
+>> @@ -1976,14 +1981,20 @@ static int __uvc_resume(struct usb_interface *intf,
+>> int reset)
+>>
+>>       if (intf->cur_altsetting->desc.bInterfaceSubClass ==
+>>           UVC_SC_VIDEOCONTROL) {
+>> -             if (reset) {
+>> -                     int ret = uvc_ctrl_resume_device(dev);
+>> +             int ret = 0;
+>>
+>> +             if (reset) {
+>> +                     ret = uvc_ctrl_resume_device(dev);
+>>                       if (ret < 0)
+>>                               return ret;
+>>               }
+>>
+>> -             return uvc_status_resume(dev);
+>> +             mutex_lock(&dev->lock);
+>> +             if (dev->users)
+>> +                     ret = uvc_status_start(dev, GFP_NOIO);
+>> +             mutex_unlock(&dev->lock);
+>> +
+>> +             return ret;
+>>       }
+>>
+>>       list_for_each_entry(stream, &dev->streams, list) {
+>> diff --git a/drivers/media/usb/uvc/uvc_status.c
+>> b/drivers/media/usb/uvc/uvc_status.c index b749277..f552ab9 100644
+>> --- a/drivers/media/usb/uvc/uvc_status.c
+>> +++ b/drivers/media/usb/uvc/uvc_status.c
+>> @@ -206,32 +206,15 @@ void uvc_status_cleanup(struct uvc_device *dev)
+>>       uvc_input_cleanup(dev);
+>>  }
+>>
+>> -int uvc_status_start(struct uvc_device *dev)
+>> +int uvc_status_start(struct uvc_device *dev, gfp_t flags)
+>>  {
+>>       if (dev->int_urb == NULL)
+>>               return 0;
+>>
+>> -     return usb_submit_urb(dev->int_urb, GFP_KERNEL);
+>> +     return usb_submit_urb(dev->int_urb, flags);
+>>  }
+>>
+>>  void uvc_status_stop(struct uvc_device *dev)
+>>  {
+>>       usb_kill_urb(dev->int_urb);
+>>  }
+>> -
+>> -int uvc_status_suspend(struct uvc_device *dev)
+>> -{
+>> -     if (atomic_read(&dev->users))
+>> -             usb_kill_urb(dev->int_urb);
+>> -
+>> -     return 0;
+>> -}
+>> -
+>> -int uvc_status_resume(struct uvc_device *dev)
+>> -{
+>> -     if (dev->int_urb == NULL || atomic_read(&dev->users) == 0)
+>> -             return 0;
+>> -
+>> -     return usb_submit_urb(dev->int_urb, GFP_NOIO);
+>> -}
+>> -
+>> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
+>> b/drivers/media/usb/uvc/uvc_v4l2.c index b2dc326..3afff92 100644
+>> --- a/drivers/media/usb/uvc/uvc_v4l2.c
+>> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
+>> @@ -498,16 +498,20 @@ static int uvc_v4l2_open(struct file *file)
+>>               return -ENOMEM;
+>>       }
+>>
+>> -     if (atomic_inc_return(&stream->dev->users) == 1) {
+>> -             ret = uvc_status_start(stream->dev);
+>> +     mutex_lock(&stream->dev->lock);
+>> +     if (stream->dev->users == 0) {
+>> +             ret = uvc_status_start(stream->dev, GFP_KERNEL);
+>>               if (ret < 0) {
+>> -                     atomic_dec(&stream->dev->users);
+>> +                     mutex_unlock(&stream->dev->lock);
+>>                       usb_autopm_put_interface(stream->dev->intf);
+>>                       kfree(handle);
+>>                       return ret;
+>>               }
+>>       }
+>>
+>> +     stream->dev->users++;
+>> +     mutex_unlock(&stream->dev->lock);
+>> +
+>>       v4l2_fh_init(&handle->vfh, stream->vdev);
+>>       v4l2_fh_add(&handle->vfh);
+>>       handle->chain = stream->chain;
+>> @@ -538,8 +542,10 @@ static int uvc_v4l2_release(struct file *file)
+>>       kfree(handle);
+>>       file->private_data = NULL;
+>>
+>> -     if (atomic_dec_return(&stream->dev->users) == 0)
+>> +     mutex_lock(&stream->dev->lock);
+>> +     if (--stream->dev->users == 0)
+>>               uvc_status_stop(stream->dev);
+>> +     mutex_unlock(&stream->dev->lock);
+>>
+>>       usb_autopm_put_interface(stream->dev->intf);
+>>       return 0;
+>> diff --git a/drivers/media/usb/uvc/uvcvideo.h
+>> b/drivers/media/usb/uvc/uvcvideo.h index 9cd584a..eb90a92 100644
+>> --- a/drivers/media/usb/uvc/uvcvideo.h
+>> +++ b/drivers/media/usb/uvc/uvcvideo.h
+>> @@ -515,7 +515,8 @@ struct uvc_device {
+>>       char name[32];
+>>
+>>       enum uvc_device_state state;
+>> -     atomic_t users;
+>> +     struct mutex lock;              /* Protects users */
+>> +     unsigned int users;
+>>       atomic_t nmappings;
+>>
+>>       /* Video control interface */
+>> @@ -661,10 +662,8 @@ void uvc_video_clock_update(struct uvc_streaming
+>> *stream, /* Status */
+>>  extern int uvc_status_init(struct uvc_device *dev);
+>>  extern void uvc_status_cleanup(struct uvc_device *dev);
+>> -extern int uvc_status_start(struct uvc_device *dev);
+>> +extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
+>>  extern void uvc_status_stop(struct uvc_device *dev);
+>> -extern int uvc_status_suspend(struct uvc_device *dev);
+>> -extern int uvc_status_resume(struct uvc_device *dev);
+>>
+>>  /* Controls */
+>>  extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
