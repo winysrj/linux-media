@@ -1,135 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:53430 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754703Ab3EGPn0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 11:43:26 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:59457 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932187Ab3EOI3f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 May 2013 04:29:35 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMF00LIMQBEZ510@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 07 May 2013 16:43:24 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Hans Verkuil' <hverkuil@xs4all.nl>,
-	'linux-media' <linux-media@vger.kernel.org>
-References: <201305071406.11826.hverkuil@xs4all.nl>
-In-reply-to: <201305071406.11826.hverkuil@xs4all.nl>
-Subject: RE: [RFC PATCH for 3.10] Update Codec section in DocBook
-Date: Tue, 07 May 2013 17:42:57 +0200
-Message-id: <036001ce4b39$8e775f50$ab661df0$%debski@samsung.com>
+ 17 2011)) with ESMTP id <0MMT00M1LZKY1X00@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 15 May 2013 09:29:23 +0100 (BST)
+Message-id: <5193475C.5040908@samsung.com>
+Date: Wed, 15 May 2013 10:29:16 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
 MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC v2 3/3] media: added managed v4l2 subdevice
+ initialization
+References: <1368434086-9027-1-git-send-email-a.hajda@samsung.com>
+ <1368434086-9027-4-git-send-email-a.hajda@samsung.com>
+ <201305131124.23598.hverkuil@xs4all.nl>
+In-reply-to: <201305131124.23598.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-15
 Content-transfer-encoding: 7bit
-Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On 13.05.2013 11:24, Hans Verkuil wrote:
+> Hi Andrzej,
+>
+> On Mon May 13 2013 10:34:46 Andrzej Hajda wrote:
+>> This patch adds managed versions of initialization
+>> functions for v4l2 subdevices.
+> I figured out what is bothering me about this patch: the fact that it is
+> tied to the v4l2_i2c_subdev_init/v4l2_subdev_init functions. Normally devm
+> functions are wrappers around functions that actually allocate some resource.
+> That's not the case with these subdev_init functions, they just initialize
+> fields in a struct.
+clk_get do not perform any allocation for now, there is only requirement(?)
+that it should be paired with clk_put, and that is what devm_clk_get
+actually does.
 
-Thanks for this patch. I remember that there was some discussion about it
-and
-the conclusion was that a codec device is in fact a mem-2-mem device. This
-probably is the reason why codec documentation was not extended.
+>
+> Why not drop those wrappers and just provide the devm_v4l2_subdev_bind
+> function? That's actually the one that is doing the binding, and is a function
+> drivers can call explicitly.
 
-Ack on my side.
+struct v4l2_subdev does not need allocation on initialization,
+but an 'allocation' (subdev registration) usually happens during its
+lifetime and is performed from outside (from v4l2 device), in fact it can
+happen multiple times.
+On v4l2_subdev de-initialization/cleanup/destruction we should ensure
+it is not registered and eventually unregister it and all this is performed
+by v4l2_device_unregister_subdev. So v4l2_device_unregister_subdev function
+seems to be natural cleanup routine for v4l2_subdev and it is used this
+way in most of the drivers.
 
-Hans, do you expect me to pull this or will you deal directly with Mauro?
+All this lengthly explanation is to show that devm_v4l2*subdev_init just
+initializes v4l2_subdev in a managed way - besides fields initialization
+it adds automatic cleanup routine.
+>
+> The only thing you need to add to devm_v4l2_subdev_bind is a WARN_ON check that
+> sd->ops != NULL, verifying that v4l2_subdev_init was called before the
+> bind().
+OK.
+>
+> I would be much happier with that solution.
+I hope my reasoning above will convince you, if not I will adjust the
+patch accordingly.
 
-Best wishes,
--- 
-Kamil Debski
-Linux Platform Group
-Samsung Poland R&D Center
-
-
-> -----Original Message-----
-> From: Hans Verkuil [mailto:hverkuil@xs4all.nl]
-> Sent: Tuesday, May 07, 2013 2:06 PM
-> To: linux-media
-> Cc: Kamil Debski
-> Subject: [RFC PATCH for 3.10] Update Codec section in DocBook
-> 
-> I had feedback from two companies recently that they thought V4L2
-> didn't support codec hardware because the Codec section in the spec
-> said it was 'suspended'.
-> 
-> That's really bad so I made a quick patch for this that I'd like to get
-> into
-> 3.10 because of the unintended high impact this outdated documentation
-> has.
-> 
+Regards
+Andrzej
+>
 > Regards,
-> 
+>
 > 	Hans
-> 
-> Subject: [PATCH] DocBook: media: update codec section, drop obsolete
-> 'suspended' state.
-> 
-> The Codec section in the V4L2 specification was marked as 'suspended',
-> even though codec support has been around for quite some time. Update
-> this section, explaining a bit about memory-to-memory devices and
-> pointing to the MPEG controls section.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-
-Acked-by: Kamil Debski <k.debski@samsung.com>
-
-> ---
->  Documentation/DocBook/media/v4l/dev-codec.xml |   35 ++++++++++++++++-
-> --------
->  1 file changed, 22 insertions(+), 13 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/dev-codec.xml
-> b/Documentation/DocBook/media/v4l/dev-codec.xml
-> index dca0ecd..ff44c16 100644
-> --- a/Documentation/DocBook/media/v4l/dev-codec.xml
-> +++ b/Documentation/DocBook/media/v4l/dev-codec.xml
-> @@ -1,18 +1,27 @@
->    <title>Codec Interface</title>
-> 
-> -  <note>
-> -    <title>Suspended</title>
-> +  <para>A V4L2 codec can compress, decompress, transform, or otherwise
-> +convert video data from one format into another format, in memory.
-> +Typically such devices are memory-to-memory devices (i.e. devices with
-> +the <constant>V4L2_CAP_VIDEO_M2M</constant> or
-> +<constant>V4L2_CAP_VIDEO_M2M_MPLANE</constant>
-> +capability set).
-> +</para>
-> 
-> -    <para>This interface has been be suspended from the V4L2 API
-> -implemented in Linux 2.6 until we have more experience with codec -
-> device interfaces.</para>
-> -  </note>
-> +  <para>A memory-to-memory video node acts just like a normal video
-> +node, but it supports both output (sending frames from memory to the
-> +codec hardware) and capture (receiving the processed frames from the
-> +codec hardware into memory) stream I/O. An application will have to
-> +setup the stream I/O for both sides and finally call &VIDIOC-STREAMON;
-> +for both capture and output to start the codec.</para>
-> 
-> -  <para>A V4L2 codec can compress, decompress, transform, or otherwise
-> -convert video data from one format into another format, in memory.
-> -Applications send data to be converted to the driver through a -&func-
-> write; call, and receive the converted data through a -&func-read; call.
-> For efficiency a driver may also support streaming -I/O.</para>
-> +  <para>Video compression codecs use the MPEG controls to setup their
-> +codec parameters (note that the MPEG controls actually support many
-> more codecs than just MPEG).
-> +See <xref linkend="mpeg-controls"></xref>.</para>
-> 
-> -  <para>[to do]</para>
-> +  <para>Memory-to-memory devices can often be used as a shared
-> +resource: you can open the video node multiple times, each application
-> +setting up their own codec properties that are local to the file
-> handle, and each can use it independently from the others.
-> +The driver will arbitrate access to the codec and reprogram it
-> whenever
-> +another file handler gets access. This is different from the usual
-> +video node behavior where the video properties are global to the
-> device
-> +(i.e. changing something through one file handle is visible through
-> +another file handle).</para>
-> --
-> 1.7.10.4
-
+>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>> v2:
+>> 	- changes of v4l2-ctrls.h moved to proper patch
+>> ---
+>>  drivers/media/v4l2-core/v4l2-common.c |   10 +++++++
+>>  drivers/media/v4l2-core/v4l2-subdev.c |   52 +++++++++++++++++++++++++++++++++
+>>  include/media/v4l2-common.h           |    2 ++
+>>  include/media/v4l2-subdev.h           |    5 ++++
+>>  4 files changed, 69 insertions(+)
+>>
+>> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+>> index 3fed63f..96aac931 100644
+>> --- a/drivers/media/v4l2-core/v4l2-common.c
+>> +++ b/drivers/media/v4l2-core/v4l2-common.c
+>> @@ -301,7 +301,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>>  }
+>>  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+>>  
+>> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>> +			      const struct v4l2_subdev_ops *ops)
+>> +{
+>> +	int ret;
+>>  
+>> +	ret = devm_v4l2_subdev_bind(&client->dev, sd);
+>> +	if (!ret)
+>> +		v4l2_i2c_subdev_init(sd, client, ops);
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
+>>  
+>>  /* Load an i2c sub-device. */
+>>  struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+>> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+>> index 996c248..87ce2f6 100644
+>> --- a/drivers/media/v4l2-core/v4l2-subdev.c
+>> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
+>> @@ -474,3 +474,55 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+>>  #endif
+>>  }
+>>  EXPORT_SYMBOL(v4l2_subdev_init);
+>> +
+>> +static void devm_v4l2_subdev_release(struct device *dev, void *res)
+>> +{
+>> +	struct v4l2_subdev **sd = res;
+>> +
+>> +	v4l2_device_unregister_subdev(*sd);
+>> +#if defined(CONFIG_MEDIA_CONTROLLER)
+>> +	media_entity_cleanup(&(*sd)->entity);
+>> +#endif
+>> +}
+>> +
+>> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
+>> +{
+>> +	struct v4l2_subdev **dr;
+>> +
+>> +	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
+>> +	if (!dr)
+>> +		return -ENOMEM;
+>> +
+>> +	*dr = sd;
+>> +	devres_add(dev, dr);
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL(devm_v4l2_subdev_bind);
+>> +
+>> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
+>> +			  const struct v4l2_subdev_ops *ops)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = devm_v4l2_subdev_bind(dev, sd);
+>> +	if (!ret)
+>> +		v4l2_subdev_init(sd, ops);
+>> +	return ret;
+>> +}
+>> +EXPORT_SYMBOL(devm_v4l2_subdev_init);
+>> +
+>> +static int devm_v4l2_subdev_match(struct device *dev, void *res,
+>> +					void *data)
+>> +{
+>> +	struct v4l2_subdev **this = res, **sd = data;
+>> +
+>> +	return *this == *sd;
+>> +}
+>> +
+>> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd)
+>> +{
+>> +	WARN_ON(devres_release(dev, devm_v4l2_subdev_release,
+>> +			       devm_v4l2_subdev_match, &sd));
+>> +}
+>> +EXPORT_SYMBOL_GPL(devm_v4l2_subdev_free);
+>> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+>> index 1d93c48..da62e2b 100644
+>> --- a/include/media/v4l2-common.h
+>> +++ b/include/media/v4l2-common.h
+>> @@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+>>  /* Initialize a v4l2_subdev with data from an i2c_client struct */
+>>  void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>>  		const struct v4l2_subdev_ops *ops);
+>> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>> +		const struct v4l2_subdev_ops *ops);
+>>  /* Return i2c client address of v4l2_subdev. */
+>>  unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
+>>  
+>> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+>> index 5298d67..881abdd 100644
+>> --- a/include/media/v4l2-subdev.h
+>> +++ b/include/media/v4l2-subdev.h
+>> @@ -657,6 +657,11 @@ int v4l2_subdev_link_validate(struct media_link *link);
+>>  void v4l2_subdev_init(struct v4l2_subdev *sd,
+>>  		      const struct v4l2_subdev_ops *ops);
+>>  
+>> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
+>> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
+>> +			  const struct v4l2_subdev_ops *ops);
+>> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd);
+>> +
+>>  /* Call an ops of a v4l2_subdev, doing the right checks against
+>>     NULL pointers.
+>>  
+>>
 
