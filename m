@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:49889 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750904Ab3EMF5Y (ORCPT
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:37167 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751446Ab3EOV74 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 01:57:24 -0400
-Received: by mail-bk0-f51.google.com with SMTP id ji2so2217023bkc.24
-        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 22:57:23 -0700 (PDT)
+	Wed, 15 May 2013 17:59:56 -0400
+Received: by mail-lb0-f179.google.com with SMTP id d10so2439632lbj.38
+        for <linux-media@vger.kernel.org>; Wed, 15 May 2013 14:59:54 -0700 (PDT)
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+To: horms@verge.net.au, linux-sh@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v4 3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
+Date: Thu, 16 May 2013 01:59:54 +0400
+Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com, linux-media@vger.kernel.org
+References: <201305160153.29827.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201305160153.29827.sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Date: Mon, 13 May 2013 13:57:23 +0800
-Message-ID: <CAPgLHd_iDfVzq2S_uSh1tBVpQdFa4oyMpWGovDDNCYsh0bLJog@mail.gmail.com>
-Subject: [PATCH] [media] vpif_display: fix error return code in vpif_probe()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: prabhakar.csengg@gmail.com, mchehab@redhat.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
-	davinci-linux-open-source@linux.davincidsp.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305160159.55056.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-Fix to return -ENODEV in the subdevice register error handling
-case instead of 0, as done elsewhere in this function.
+Add the VIN and ADV7180 drivers to 'marzen_defconfig'.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
 ---
- drivers/media/platform/davinci/vpif_display.c | 1 +
- 1 file changed, 1 insertion(+)
+ arch/arm/configs/marzen_defconfig |    7 +++++++
+ 1 file changed, 7 insertions(+)
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 1b3fb5c..50b2f39 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1813,6 +1813,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 						NULL);
- 		if (!vpif_obj.sd[i]) {
- 			vpif_err("Error registering v4l2 subdevice\n");
-+			err = -ENODEV;
- 			goto probe_subdev_out;
- 		}
- 
-
+Index: renesas/arch/arm/configs/marzen_defconfig
+===================================================================
+--- renesas.orig/arch/arm/configs/marzen_defconfig
++++ renesas/arch/arm/configs/marzen_defconfig
+@@ -84,6 +84,13 @@ CONFIG_GPIO_RCAR=y
+ CONFIG_THERMAL=y
+ CONFIG_RCAR_THERMAL=y
+ CONFIG_SSB=y
++CONFIG_MEDIA_SUPPORT=y
++CONFIG_MEDIA_CAMERA_SUPPORT=y
++CONFIG_V4L_PLATFORM_DRIVERS=y
++CONFIG_SOC_CAMERA=y
++CONFIG_VIDEO_RCAR_VIN=y
++# CONFIG_MEDIA_SUBDRV_AUTOSELECT is not set
++CONFIG_VIDEO_ADV7180=y
+ CONFIG_USB=y
+ CONFIG_USB_RCAR_PHY=y
+ CONFIG_MMC=y
