@@ -1,73 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:57642 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757341Ab3E0Kib (ORCPT
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:37067 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752141Ab3EOW1m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 06:38:31 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>,
-	'Daniel Vetter' <daniel@ffwll.ch>,
-	'Rob Clark' <robdclark@gmail.com>
-Cc: 'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <CAAQKjZP=iOmHRpHZCbZD3v_RKUFSn0eM_WVZZvhe7F9g3eTmPA@mail.gmail.com>
- <CAF6AEGuDih-NR-VZCmQfqbvCOxjxreZRPGfhCyL12FQ1Qd616Q@mail.gmail.com>
- <006a01ce504e$0de3b0e0$29ab12a0$%dae@samsung.com>
- <CAF6AEGv2FiKMUpb5s4zHPdj4uVxnQWdVJWL-i1mOOZRxBvMZ4Q@mail.gmail.com>
- <00cf01ce512b$bacc5540$3064ffc0$%dae@samsung.com>
- <CAF6AEGuBexKUpTwm9cjGjkxCTKgEaDhAakeP0RN=rtLS6Qy=Mg@mail.gmail.com>
- <CAAQKjZP37koEPob6yqpn-WxxTh3+O=twyvRzDiEhVJTD8BxQzw@mail.gmail.com>
- <20130520211304.GV12292@phenom.ffwll.local>
- <20130520213033.GW12292@phenom.ffwll.local>
- <032701ce55f1$3e9ba4b0$bbd2ee10$%dae@samsung.com>
- <20130521074441.GZ12292@phenom.ffwll.local>
- <033a01ce5604$c32bd250$498376f0$%dae@samsung.com>
- <CAKMK7uHtk+A7CDZH3qHt+F3H_fdSsWwt-bEPn-N0919oOE+Jkg@mail.gmail.com>
- <012801ce57ba$a5a87fa0$f0f97ee0$%dae@samsung.com>
-In-reply-to: <012801ce57ba$a5a87fa0$f0f97ee0$%dae@samsung.com>
-Subject: RE: Introduce a new helper framework for buffer synchronization
-Date: Mon, 27 May 2013 19:38:24 +0900
-Message-id: <014501ce5ac6$511a8500$f34f8f00$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Wed, 15 May 2013 18:27:42 -0400
+Message-ID: <51940BD9.5040405@gmail.com>
+Date: Thu, 16 May 2013 00:27:37 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: George Joseph <george.jp@samsung.com>
+CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	s.nawrocki@samsung.com, a.hajda@samsung.com, ym.song@samsung.com,
+	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
+Subject: Re: [RFC PATCH 1/3] [media] s5p-jpeg: Add support for Exynos4x12
+ and 5250
+References: <1368532420-21555-1-git-send-email-george.jp@samsung.com> <1368532420-21555-2-git-send-email-george.jp@samsung.com>
+In-Reply-To: <1368532420-21555-2-git-send-email-george.jp@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi George,
 
-I have been removed previous branch and added new one with more cleanup.
-This time, the fence helper doesn't include user side interfaces and cache
-operation relevant codes anymore because not only we are not sure that
-coupling those two things, synchronizing caches and buffer access between
-CPU and CPU, CPU and DMA, and DMA and DMA with fences, in kernel side is a
-good idea yet but also existing codes for user side have problems with badly
-behaved or crashing userspace. So this could be more discussed later.
+Thanks for the patches. Sorry, I can't review the $subject patch in detail
+as is, there is way too many things done in this single patch. It looks more
+like a driver replacement. It is even hard to edit due to its size in my
+e-mail client.
 
-The below is a new branch,
-	
-https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-exynos.git/?h=dma-f
-ence-helper
+Hence, may I ask you to split it into several patches, each possibly 
+including
+single logical change, with an explanation what the patch does and why, 
+e.g.:
 
-And fence helper codes,
-	
-https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-exynos.git/commit/?
-h=dma-fence-helper&id=adcbc0fe7e285ce866e5816e5e21443dcce01005
+  - encoder/decoder code split into different files (I'm not 100% sure 
+it is
+    needed),
+  - multiplanar format support addition,
+  - software watchdog addition,
+  - the quantization/Huffman tables modification,
+  - device tree support addition,
+  - ...
 
-And example codes for device driver,
-	
-https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-exynos.git/commit/?
-h=dma-fence-helper&id=d2ce7af23835789602a99d0ccef1f53cdd5caaae
+The reason I'm asking for it is also there seems to be some unrelated
+or unnecessary changes, like, e.g. introducing several JPEG fourccs for
+different YCbCr subsampling or adding unused v4l2 control ioctls (
+jpeg_enc_vidioc_g/s_ctrl, jpeg_enc_vidioc_g/s_ctrl).
 
-I think the time is not yet ripe for RFC posting: maybe existing dma fence
-and reservation need more review and addition work. So I'd glad for somebody
-giving other opinions and advices in advance before RFC posting.
+It should be also be easier to test and bisect set of smaller changes when
+needed. I know it means more work for you, but maybe the exynos4210
+regression described in your cover letter could be avoided that way.
+
+A general note, please don't remove "s5p_" prefix from functions that are
+not static. "jpeg_" sounds a bit to generic prefix for symbols in this
+single driver.
+
+Also please make sure indentation is not broken, it looks like you are
+using TAB size different than 8 characters.
+
+It might be worth testing the driver as a loadable module, it doesn't
+appear it has been tested, looking at the Makefile modifications. And
+it doesn't even build currently:
+
+drivers/media/platform/s5p-jpeg/jpeg-core: struct platform_device_id is 
+24 bytes.  The last of 3 is:
+0x65 0x78 0x79 0x6e 0x6f 0x73 0x34 0x32 0x31 0x32 0x2d 0x6a 0x70 0x65 
+0x67 0x00 0x00 0x00 0x00 0x00 0x44 0x01 0x00 0x00
+FATAL: drivers/media/platform/s5p-jpeg/jpeg-core: struct 
+platform_device_id is not terminated with a NULL entry!
+make[1]: *** [__modpost] Error 1
+
+When I fix that there are errors due to your incorrect Makefile changes
+(separate module for each file ??):
+
+ERROR: "jpeg_get_frame_size" 
+[drivers/media/platform/s5p-jpeg/jpeg-dec.ko] undefined!
+ERROR: "jpeg_set_dec_bitstream_size" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_dec_out_fmt" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_dec_scaling" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_frame_buf_address" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_enc_dec_mode" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_encode_hoff_cnt" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_stream_buf_address" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_enc_in_fmt" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_enc_out_fmt" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_stream_size" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_encode_tbl_select" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_enc_tbl" [drivers/media/platform/s5p-jpeg/jpeg-core.ko] 
+undefined!
+ERROR: "jpeg_set_huf_table_enable" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_set_interrupt" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_sw_reset" [drivers/media/platform/s5p-jpeg/jpeg-core.ko] 
+undefined!
+ERROR: "jpeg_get_stream_size" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "jpeg_get_int_status" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "get_jpeg_dec_v4l2_ioctl_ops" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+ERROR: "get_jpeg_enc_v4l2_ioctl_ops" 
+[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
+make[1]: *** [__modpost] Error 1
+make: *** [modules] Error 2
+
+Could you please add Andrzej Pietrasiewicz to Cc next time ? He might be
+busy with other things, nevertheless I wouldn't like to miss any comments/
+remarks from his side.
 
 Thanks,
-Inki Dae
-
+Sylwester
