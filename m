@@ -1,58 +1,94 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:43744 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754636Ab3EWIYH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 04:24:07 -0400
-Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r4N8O7Vu010335
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 23 May 2013 04:24:07 -0400
-Received: from shalem.localdomain (vpn1-7-57.ams2.redhat.com [10.36.7.57])
-	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id r4N8O5du005554
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Thu, 23 May 2013 04:24:06 -0400
-Message-ID: <519DD31D.5080802@redhat.com>
-Date: Thu, 23 May 2013 10:28:13 +0200
-From: Hans de Goede <hdegoede@redhat.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: InstantFM
-References: <51993390.6080202@theo.to> <5199C8FA.9060704@redhat.com> <519A4464.7060006@theo.to> <519A6DBB.60608@theo.to> <519B23A7.90504@redhat.com> <519B649C.9040903@theo.to> <519C7E8B.9090406@redhat.com> <20130522140525.GF4308@ptaff.ca>
-In-Reply-To: <20130522140525.GF4308@ptaff.ca>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:64538 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758125Ab3EOMBy (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 May 2013 08:01:54 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 4/6] media: i2c: ths7303: make the pdata as a constant pointer
+Date: Wed, 15 May 2013 17:27:20 +0530
+Message-Id: <1368619042-28252-5-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-On 05/22/2013 04:05 PM, Patrice Levesque wrote:
->
->>> I could try the liquorix kernel (3.8) if you thought it might help.
->> Yes, if you could try that that would be great.
->
-> If I may join the party, I too own an InstantFM USB device and I can't
-> get it to play radio.  All of this under kernel 3.9.3-gentoo.
->
-> dmesg:
->
-> 	usb 4-2.4: new full-speed USB device number 5 using uhci_hcd
-> 	usb 4-2.4: New USB device found, idVendor=06e1, idProduct=a155
-> 	usb 4-2.4: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> 	usb 4-2.4: Product: ADS InstantFM Music
-> 	usb 4-2.4: Manufacturer: ADS TECH
-> 	radio-si470x 4-2.4:1.2: DeviceID=0xffff ChipID=0xffff
+generally the pdata needs to be a constant pointer in the device
+state structure. This patch makes the pdata as a constant pointer
+and alongside returns -EINVAL when pdata is NULL.
 
-This, as well as the "Invalid freq '127150000'" and the
-"get_baseline:  min=65535.000000 max=65535.000000" messages seem to indicate
-that only FFFF is being read from all the registers of the tuner chip, so
-somehow the communication between the usb micro-controller and the
-si470x tuner chip is not working.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-kernel@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
+---
+ drivers/media/i2c/ths7303.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
 
-If it does work under $otheros, you can try running $otheros in a
-qemu vm with usb passthrough, and then with wireshark on the host catch the usb
-traffic, and see what $otheros is doing ...
+diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+index af06187c..b954195 100644
+--- a/drivers/media/i2c/ths7303.c
++++ b/drivers/media/i2c/ths7303.c
+@@ -35,7 +35,7 @@
+ 
+ struct ths7303_state {
+ 	struct v4l2_subdev		sd;
+-	struct ths7303_platform_data	pdata;
++	const struct ths7303_platform_data *pdata;
+ 	struct v4l2_bt_timings		bt;
+ 	int std_id;
+ 	int stream_on;
+@@ -89,7 +89,7 @@ int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ths7303_state *state = to_state(sd);
+-	struct ths7303_platform_data *pdata = &state->pdata;
++	const struct ths7303_platform_data *pdata = state->pdata;
+ 	u8 val, sel = 0;
+ 	int err, disable = 0;
+ 
+@@ -356,6 +356,11 @@ static int ths7303_probe(struct i2c_client *client,
+ 	struct ths7303_state *state;
+ 	struct v4l2_subdev *sd;
+ 
++	if (pdata == NULL) {
++		dev_err(&client->dev, "No platform data\n");
++		return -EINVAL;
++	}
++
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+ 
+@@ -367,11 +372,7 @@ static int ths7303_probe(struct i2c_client *client,
+ 	if (!state)
+ 		return -ENOMEM;
+ 
+-	if (!pdata)
+-		v4l_warn(client, "No platform data, using default data!\n");
+-	else
+-		state->pdata = *pdata;
+-
++	state->pdata = pdata;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &ths7303_ops);
+ 
+-- 
+1.7.4.1
 
-Regards,
-
-Hans
