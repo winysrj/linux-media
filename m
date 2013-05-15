@@ -1,124 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:37067 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752141Ab3EOW1m (ORCPT
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:57079 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758979Ab3EOOGP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 18:27:42 -0400
-Message-ID: <51940BD9.5040405@gmail.com>
-Date: Thu, 16 May 2013 00:27:37 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Wed, 15 May 2013 10:06:15 -0400
 MIME-Version: 1.0
-To: George Joseph <george.jp@samsung.com>
-CC: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	s.nawrocki@samsung.com, a.hajda@samsung.com, ym.song@samsung.com,
-	Andrzej Pietrasiewicz <andrzej.p@samsung.com>
-Subject: Re: [RFC PATCH 1/3] [media] s5p-jpeg: Add support for Exynos4x12
- and 5250
-References: <1368532420-21555-1-git-send-email-george.jp@samsung.com> <1368532420-21555-2-git-send-email-george.jp@samsung.com>
-In-Reply-To: <1368532420-21555-2-git-send-email-george.jp@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <00cf01ce512b$bacc5540$3064ffc0$%dae@samsung.com>
+References: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com>
+	<51909DB4.2060208@canonical.com>
+	<025201ce4fbb$363d0390$a2b70ab0$%dae@samsung.com>
+	<5190B7D8.3010803@canonical.com>
+	<027a01ce4fcc$5e7c7320$1b755960$%dae@samsung.com>
+	<5190D14A.7050904@canonical.com>
+	<028a01ce4fd4$5ec6f000$1c54d000$%dae@samsung.com>
+	<CAF6AEGvWazezZdLDn5=H8wNQdQSWV=EmqE1a4wh7QwrT_h6vKQ@mail.gmail.com>
+	<CAAQKjZP=iOmHRpHZCbZD3v_RKUFSn0eM_WVZZvhe7F9g3eTmPA@mail.gmail.com>
+	<CAF6AEGuDih-NR-VZCmQfqbvCOxjxreZRPGfhCyL12FQ1Qd616Q@mail.gmail.com>
+	<006a01ce504e$0de3b0e0$29ab12a0$%dae@samsung.com>
+	<CAF6AEGv2FiKMUpb5s4zHPdj4uVxnQWdVJWL-i1mOOZRxBvMZ4Q@mail.gmail.com>
+	<00cf01ce512b$bacc5540$3064ffc0$%dae@samsung.com>
+Date: Wed, 15 May 2013 10:06:15 -0400
+Message-ID: <CAF6AEGuBexKUpTwm9cjGjkxCTKgEaDhAakeP0RN=rtLS6Qy=Mg@mail.gmail.com>
+Subject: Re: Introduce a new helper framework for buffer synchronization
+From: Rob Clark <robdclark@gmail.com>
+To: Inki Dae <inki.dae@samsung.com>
+Cc: linux-fbdev <linux-fbdev@vger.kernel.org>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"myungjoo.ham" <myungjoo.ham@samsung.com>,
+	YoungJun Cho <yj44.cho@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi George,
+On Wed, May 15, 2013 at 1:19 AM, Inki Dae <inki.dae@samsung.com> wrote:
+>
+>
+>> -----Original Message-----
+>> From: Rob Clark [mailto:robdclark@gmail.com]
+>> Sent: Tuesday, May 14, 2013 10:39 PM
+>> To: Inki Dae
+>> Cc: linux-fbdev; DRI mailing list; Kyungmin Park; myungjoo.ham; YoungJun
+>> Cho; linux-arm-kernel@lists.infradead.org; linux-media@vger.kernel.org
+>> Subject: Re: Introduce a new helper framework for buffer synchronization
+>>
+>> On Mon, May 13, 2013 at 10:52 PM, Inki Dae <inki.dae@samsung.com> wrote:
+>> >> well, for cache management, I think it is a better idea.. I didn't
+>> >> really catch that this was the motivation from the initial patch, but
+>> >> maybe I read it too quickly.  But cache can be decoupled from
+>> >> synchronization, because CPU access is not asynchronous.  For
+>> >> userspace/CPU access to buffer, you should:
+>> >>
+>> >>   1) wait for buffer
+>> >>   2) prepare-access
+>> >>   3)  ... do whatever cpu access to buffer ...
+>> >>   4) finish-access
+>> >>   5) submit buffer for new dma-operation
+>> >>
+>> >
+>> >
+>> > For data flow from CPU to DMA device,
+>> > 1) wait for buffer
+>> > 2) prepare-access (dma_buf_begin_cpu_access)
+>> > 3) cpu access to buffer
+>> >
+>> >
+>> > For data flow from DMA device to CPU
+>> > 1) wait for buffer
+>>
+>> Right, but CPU access isn't asynchronous (from the point of view of
+>> the CPU), so there isn't really any wait step at this point.  And if
+>> you do want the CPU to be able to signal a fence from userspace for
+>> some reason, you probably what something file/fd based so the
+>> refcnting/cleanup when process dies doesn't leave some pending DMA
+>> action wedged.  But I don't really see the point of that complexity
+>> when the CPU access isn't asynchronous in the first place.
+>>
+>
+> There was my missing comments, please see the below sequence.
+>
+> For data flow from CPU to DMA device and then from DMA device to CPU,
+> 1) wait for buffer <- at user side - ioctl(fd, DMA_BUF_GET_FENCE, ...)
+>         - including prepare-access (dma_buf_begin_cpu_access)
+> 2) cpu access to buffer
+> 3) wait for buffer <- at device driver
+>         - but CPU is already accessing the buffer so blocked.
+> 4) signal <- at user side - ioctl(fd, DMA_BUF_PUT_FENCE, ...)
+> 5) the thread, blocked at 3), is waked up by 4).
+>         - and then finish-access (dma_buf_end_cpu_access)
 
-Thanks for the patches. Sorry, I can't review the $subject patch in detail
-as is, there is way too many things done in this single patch. It looks more
-like a driver replacement. It is even hard to edit due to its size in my
-e-mail client.
+right, I understand you can have background threads, etc, in
+userspace.  But there are already plenty of synchronization primitives
+that can be used for cpu->cpu synchronization, either within the same
+process or between multiple processes.  For cpu access, even if it is
+handled by background threads/processes, I think it is better to use
+the traditional pthreads or unix synchronization primitives.  They
+have existed forever, they are well tested, and they work.
 
-Hence, may I ask you to split it into several patches, each possibly 
-including
-single logical change, with an explanation what the patch does and why, 
-e.g.:
+So while it seems nice and orthogonal/clean to couple cache and
+synchronization and handle dma->cpu and cpu->cpu and cpu->dma in the
+same generic way, but I think in practice we have to make things more
+complex than they otherwise need to be to do this.  Otherwise I think
+we'll be having problems with badly behaved or crashing userspace.
 
-  - encoder/decoder code split into different files (I'm not 100% sure 
-it is
-    needed),
-  - multiplanar format support addition,
-  - software watchdog addition,
-  - the quantization/Huffman tables modification,
-  - device tree support addition,
-  - ...
+BR,
+-R
 
-The reason I'm asking for it is also there seems to be some unrelated
-or unnecessary changes, like, e.g. introducing several JPEG fourccs for
-different YCbCr subsampling or adding unused v4l2 control ioctls (
-jpeg_enc_vidioc_g/s_ctrl, jpeg_enc_vidioc_g/s_ctrl).
-
-It should be also be easier to test and bisect set of smaller changes when
-needed. I know it means more work for you, but maybe the exynos4210
-regression described in your cover letter could be avoided that way.
-
-A general note, please don't remove "s5p_" prefix from functions that are
-not static. "jpeg_" sounds a bit to generic prefix for symbols in this
-single driver.
-
-Also please make sure indentation is not broken, it looks like you are
-using TAB size different than 8 characters.
-
-It might be worth testing the driver as a loadable module, it doesn't
-appear it has been tested, looking at the Makefile modifications. And
-it doesn't even build currently:
-
-drivers/media/platform/s5p-jpeg/jpeg-core: struct platform_device_id is 
-24 bytes.  The last of 3 is:
-0x65 0x78 0x79 0x6e 0x6f 0x73 0x34 0x32 0x31 0x32 0x2d 0x6a 0x70 0x65 
-0x67 0x00 0x00 0x00 0x00 0x00 0x44 0x01 0x00 0x00
-FATAL: drivers/media/platform/s5p-jpeg/jpeg-core: struct 
-platform_device_id is not terminated with a NULL entry!
-make[1]: *** [__modpost] Error 1
-
-When I fix that there are errors due to your incorrect Makefile changes
-(separate module for each file ??):
-
-ERROR: "jpeg_get_frame_size" 
-[drivers/media/platform/s5p-jpeg/jpeg-dec.ko] undefined!
-ERROR: "jpeg_set_dec_bitstream_size" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_dec_out_fmt" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_dec_scaling" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_frame_buf_address" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_enc_dec_mode" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_encode_hoff_cnt" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_stream_buf_address" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_enc_in_fmt" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_enc_out_fmt" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_stream_size" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_encode_tbl_select" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_enc_tbl" [drivers/media/platform/s5p-jpeg/jpeg-core.ko] 
-undefined!
-ERROR: "jpeg_set_huf_table_enable" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_set_interrupt" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_sw_reset" [drivers/media/platform/s5p-jpeg/jpeg-core.ko] 
-undefined!
-ERROR: "jpeg_get_stream_size" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "jpeg_get_int_status" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "get_jpeg_dec_v4l2_ioctl_ops" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-ERROR: "get_jpeg_enc_v4l2_ioctl_ops" 
-[drivers/media/platform/s5p-jpeg/jpeg-core.ko] undefined!
-make[1]: *** [__modpost] Error 1
-make: *** [modules] Error 2
-
-Could you please add Andrzej Pietrasiewicz to Cc next time ? He might be
-busy with other things, nevertheless I wouldn't like to miss any comments/
-remarks from his side.
-
-Thanks,
-Sylwester
+> 6) dma access to buffer
+> 7) wait for buffer <- at user side - ioctl(fd, DMA_BUF_GET_FENCE, ...)
+>         - but DMA is already accessing the buffer so blocked.
+> 8) signal <- at device driver
+> 9) the thread, blocked at 7), is waked up by 8)
+>         - and then prepare-access (dma_buf_begin_cpu_access)
+> 10 cpu access to buffer
+>
+> Basically, 'wait for buffer' includes buffer synchronization, committing
+> processing, and cache operation. The buffer synchronization means that a
+> current thread should wait for other threads accessing a shared buffer until
+> the completion of their access. And the committing processing means that a
+> current thread possesses the shared buffer so any trying to access the
+> shared buffer by another thread makes the thread to be blocked. However, as
+> I already mentioned before, it seems that these user interfaces are so ugly
+> yet. So we need better way.
+>
+> Give me more comments if there is my missing point :)
+>
+> Thanks,
+> Inki Dae
+>
+>> BR,
+>> -R
+>>
+>>
+>> > 2) finish-access (dma_buf_end _cpu_access)
+>> > 3) dma access to buffer
+>> >
+>> > 1) and 2) are coupled with one function: we have implemented
+>> > fence_helper_commit_reserve() for it.
+>> >
+>> > Cache control(cache clean or cache invalidate) is performed properly
+>> > checking previous access type and current access type.
+>> > And the below is actual codes for it,
+>
