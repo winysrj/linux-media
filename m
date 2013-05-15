@@ -1,123 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:49761 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751444Ab3EEIRJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 May 2013 04:17:09 -0400
-Date: Sun, 5 May 2013 10:20:08 +0200
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-	Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	linux-media@vger.kernel.org, jonjon.arnearne@gmail.com
-Subject: Re: [PATCH V2 1/3] saa7115: move the autodetection code out of the
- probe function
-Message-ID: <20130505082007.GA2812@dell.arpanet.local>
-References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
- <1367268069-11429-2-git-send-email-jonarne@jonarne.no>
- <20130503020913.GB5722@localhost>
- <20130503065846.GD1232@dell.arpanet.local>
- <20130503112052.GB2291@localhost>
- <5183A8B0.3040301@redhat.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39742 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758785Ab3EOJlx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 15 May 2013 05:41:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH 5/5] media: i2c: tvp7002: add OF support
+Date: Wed, 15 May 2013 11:42:11 +0200
+Message-ID: <4739069.jGxFT2O6sk@avalon>
+In-Reply-To: <CA+V-a8u+peO+6MiZuU_juhYpzHa3yUZbyjeEU3xi3gDhPRb3Bw@mail.gmail.com>
+References: <1368528334-13595-1-git-send-email-prabhakar.csengg@gmail.com> <4149647.zqpmlIlQDP@avalon> <CA+V-a8u+peO+6MiZuU_juhYpzHa3yUZbyjeEU3xi3gDhPRb3Bw@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <5183A8B0.3040301@redhat.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 03, 2013 at 09:08:16AM -0300, Mauro Carvalho Chehab wrote:
-> Em 03-05-2013 08:20, Ezequiel Garcia escreveu:
-> >Hi Jon,
-> >
-> >On Fri, May 03, 2013 at 08:58:46AM +0200, Jon Arne Jørgensen wrote:
-> >[...]
-> >>>You can read more about this in Documentation/SubmittingPatches.
-> >>
-> >>I just re-read SubmittingPatches.
-> >>I couldn't see that there is anything wrong with multiple sign-off's.
-> >>
-> >
-> >Indeed there isn't anything wrong with multiple SOBs tags, but they're
-> >used a bit differently than this.
-> >
-> >>Quote:
-> >>   The Signed-off-by: tag indicates that the signer was involved in the
-> >>   development of the patch, or that he/she was in the patch's delivery
-> >>   path.
-> >>
-> >>
-> >
-> >Ah, I see your point.
-> >
-> >@Mauro, perhaps you can explain this better then me?
-> 
-> The SOB is used mainly to describe the patch flow. Each one that touched
-> on a patch attests that:
-> 
->        "Developer's Certificate of Origin 1.1
-> 
->         By making a contribution to this project, I certify that:
-> 
->         (a) The contribution was created in whole or in part by me and I
->             have the right to submit it under the open source license
->             indicated in the file; or
-> 
->         (b) The contribution is based upon previous work that, to the best
->             of my knowledge, is covered under an appropriate open source
->             license and I have the right under that license to submit that
->             work with modifications, whether created in whole or in part
->             by me, under the same open source license (unless I am
->             permitted to submit under a different license), as indicated
->             in the file; or
-> 
->         (c) The contribution was provided directly to me by some other
->             person who certified (a), (b) or (c) and I have not modified
->             it.
-> 
-> 	(d) I understand and agree that this project and the contribution
-> 	    are public and that a record of the contribution (including all
-> 	    personal information I submit with it, including my sign-off) is
-> 	    maintained indefinitely and may be redistributed consistent with
-> 	    this project or the open source license(s) involved."
-> 
-> In other words, it tracks the custody chain, with is typically one of
-> the alternatives below[1]:
-> 
-> 	Author -> maintainer's tree -> upstream
-> 	Author -> sub-maintainer's tree -> maintainer's tree -> upstream
-> 	Author -> driver's maintainer -> maintainer's tree -> upstream
-> 	Author -> driver's maintainer -> sub-maintainer's tree -> maintainer's tree -> upstream\
-> 
-> In this specific case, as patches 1 and 2 are identical to the ones I submitted,
-> the right way would be for you both to just reply to my original e-mail with
-> your tested-by or reviewed-by. That patches will then be applied (either directly
-> or via Hverkuil's tree, as he is the sub-maintainer for those I2C drivers).
->
+Hi Prabhakar,
 
-The patch you submitted lacked all register setup so there wasn't that much
-to test without the stuff I added in the third patch in this
-series.
-
-Is there any way to accnowledge this when I reply to your patch with tested-by?
-Should I maybe add the third patch in this series into that reply?
-
-Also, when I post the next RFC for my smi2021 driver that
-depends on this patch. Are there any correct way to mention that
-dependency in the smi2021 patch?
-
-Best,
-Jon Arne
-
-> I hope that helps to clarify it.
+On Wednesday 15 May 2013 10:48:05 Prabhakar Lad wrote:
+> On Tue, May 14, 2013 at 9:04 PM, Laurent Pinchart wrote:
+> > On Tuesday 14 May 2013 16:15:34 Lad Prabhakar wrote:
+> >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> 
+> >> add OF support for the tvp7002 driver.
+> >> 
+> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> >> Cc: Grant Likely <grant.likely@secretlab.ca>
+> >> Cc: Rob Herring <rob.herring@calxeda.com>
+> >> Cc: Rob Landley <rob@landley.net>
+> >> Cc: devicetree-discuss@lists.ozlabs.org
+> >> Cc: linux-doc@vger.kernel.org
+> >> Cc: linux-kernel@vger.kernel.org
+> >> Cc: davinci-linux-open-source@linux.davincidsp.com
+> >> ---
+> >> 
+> >>  .../devicetree/bindings/media/i2c/tvp7002.txt      |   42 +++++++++++++
+> >>  drivers/media/i2c/tvp7002.c                        |   64 ++++++++++++--
+> >>  2 files changed, 99 insertions(+), 7 deletions(-)
+> >>  create mode 100644
+> >>  Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+> >> 
+> >> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+> >> b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt new file mode
+> >> 100644
+> >> index 0000000..1ebd8b1
+> >> --- /dev/null
+> >> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+> >> @@ -0,0 +1,42 @@
+> >> +* Texas Instruments TV7002 video decoder
+> >> +
+> >> +The TVP7002 device supports digitizing of video and graphics signal in
+> >> +RGB and +YPbPr color space.
+> >> +
+> >> +Required Properties :
+> >> +- compatible : Must be "ti,tvp7002"
+> >> +
+> >> +- hsync-active: HSYNC Polarity configuration for endpoint.
+> >> +
+> >> +- vsync-active: VSYNC Polarity configuration for endpoint.
+> >> +
+> >> +- pclk-sample: Clock polarity of the endpoint.
+> >> +
+> >> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the
+> >> endpoint.
+> >> +
+> >> +- ti,tvp7002-sog-polarity: Sync on Green output polarity of the
+> >> endpoint.
+> > 
+> > Would it make sense to define field-active and sog-active properties in
+> > the V4L2 bindings instead of having per-chip properties ?
 > 
-> Regards,
-> Mauro
-> 
-> [1] when the driver is developed/patched internally on some company's trees,
-> it is possible to have there also the SOBs for that company's internal
-> maintainers.
-> 
-> There are also some other corner cases, like patches that are sent in
-> non-public mailing lists or in private, where everybody in the custody
-> chain sign it.
+> yes you are right these properties need to be in the device node rather than
+> the port node. I'll send alone this patch of the series as v2 fixing the
+> above.
+
+That wasn't my point. What I'm wondering is whether ti,tvp7002-fid-polarity 
+shouldn't be named field-active and specified in 
+Documentation/devicetree/bindings/media/video-interfaces.txt (same for 
+ti,tvp7002-sog-polarity).
+
+-- 
+Regards,
+
+Laurent Pinchart
+
