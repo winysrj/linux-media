@@ -1,132 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:39308 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751962Ab3ENFOS (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:31265 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757289Ab3EOLpI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 01:14:18 -0400
-Date: Tue, 14 May 2013 07:13:56 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Arnd Bergmann <arnd@arndb.de>,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH RFC v3] media: i2c: mt9p031: add OF support
-Message-ID: <20130514051356.GW32299@pengutronix.de>
-References: <1367563919-2880-1-git-send-email-prabhakar.csengg@gmail.com>
- <5750435.WVYuIYMX2V@avalon>
- <20130513104604.GU20989@pengutronix.de>
- <2897565.OjqREpRvoz@avalon>
+	Wed, 15 May 2013 07:45:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+Subject: Re: [PATCH] console/font: Refactor font support code selection logic
+Date: Wed, 15 May 2013 13:45:02 +0200
+Cc: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
+	linux-fbdev@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Thomas Winischhofer <thomas@winischhofer.net>,
+	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
+	Helge Deller <deller@gmx.de>, linux-media@vger.kernel.org,
+	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+References: <1368618050-26895-1-git-send-email-geert@linux-m68k.org>
+In-Reply-To: <1368618050-26895-1-git-send-email-geert@linux-m68k.org>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <2897565.OjqREpRvoz@avalon>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305151345.02306.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 14, 2013 at 12:59:27AM +0200, Laurent Pinchart wrote:
-> Hi Sascha,
+On Wed 15 May 2013 13:40:50 Geert Uytterhoeven wrote:
+> The current Makefile rules to build font support are messy and buggy.
+> Replace them by Kconfig rules:
+>   - Introduce CONFIG_FONT_SUPPORT, which controls the building of all font
+>     code,
+>   - Select CONFIG_FONT_SUPPORT for all drivers that use fonts,
+>   - Select CONFIG_FONT_8x16 for all drivers that default to the VGA8x16
+>     font,
+>   - Drop the bogus console dependency for CONFIG_VIDEO_VIVI.
 > 
-> On Monday 13 May 2013 12:46:04 Sascha Hauer wrote:
-> > On Wed, May 08, 2013 at 12:37:29PM +0200, Laurent Pinchart wrote:
-> > > Hi Prabhakar,
-> > > 
-> > > On Wednesday 08 May 2013 10:19:57 Prabhakar Lad wrote:
-> > > > On Wed, May 8, 2013 at 7:32 AM, Laurent Pinchart wrote:
-> > > > > On Tuesday 07 May 2013 15:10:36 Prabhakar Lad wrote:
-> > > > >> On Mon, May 6, 2013 at 8:29 PM, Prabhakar Lad wrote:
-> > > > >> > On Fri, May 3, 2013 at 8:04 PM, Arnd Bergmann wrote:
-> > > > >> >> On Friday 03 May 2013, Prabhakar Lad wrote:
-> > > > >> > [snip]
-> > > > >> > 
-> > > > >> >>> +}
-> > > > >> >> 
-> > > > >> >> Ok, good.
-> > > > >> >> 
-> > > > >> >>> @@ -955,7 +998,17 @@ static int mt9p031_probe(struct i2c_client
-> > > > >> >>> *client,
-> > > > >> >>> 
-> > > > >> >>>         mt9p031->pdata = pdata;
-> > > > >> >>>         mt9p031->output_control = MT9P031_OUTPUT_CONTROL_DEF;
-> > > > >> >>>         mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
-> > > > >> >>> 
-> > > > >> >>> -       mt9p031->model = did->driver_data;
-> > > > >> >>> +
-> > > > >> >>> +       if (!client->dev.of_node) {
-> > > > >> >>> +               mt9p031->model = (enum
-> > > > >> >>> mt9p031_model)did->driver_data;
-> > > > >> >>> +       } else {
-> > > > >> >>> +               const struct of_device_id *of_id;
-> > > > >> >>> +
-> > > > >> >>> +               of_id =
-> > > > >> >>> of_match_device(of_match_ptr(mt9p031_of_match),
-> > > > >> >>> +                                       &client->dev);
-> > > > >> >>> +               if (of_id)
-> > > > >> >>> +                       mt9p031->model = (enum
-> > > > >> >>> mt9p031_model)of_id->data;
-> > > > >> >>> +       }
-> > > > >> >>> 
-> > > > >> >>>         mt9p031->reset = -1;
-> > > > >> >> 
-> > > > >> >> Is this actually required? I thought the i2c core just compared
-> > > > >> >> the
-> > > > >> >> part of the "compatible" value after the first comma to the
-> > > > >> >> string, so
-> > > > >> >> "mt9p031->model = (enum mt9p031_model)did->driver_data" should
-> > > > >> >> work
-> > > > >> >> in both cases.
-> > 
-> > At least on v3.8 I just checked that 'did' is indeed NULL for the
-> > devicetree case. Also I see no indication that i2c starts comparing
-> > after the first comma in the string.
-> > 
-> > > > >> > I am OK with "mt9p031->model = (enum
-> > > > >> > mt9p031_model)did->driver_data"
-> > > > >> > but I see still few drivers doing this, I am not sure for what
-> > > > >> > reason.
-> > > > >> > If everyone is OK with it I can drop the above change.
-> > > > >> 
-> > > > >> My bad, while booting with DT the i2c_device_id ie did in this case
-> > > > >> will
-> > > > >> be NULL, so the above changes are required :-)
-> > > > > 
-> > > > > I've just tested your patch, and did isn't NULL when booting my
-> > > > > Beagleboard with DT (on v3.9-rc5).
-> > > > 
-> > > > I am pretty much sure you tested it compatible property as
-> > > > "aptina,mt9p031"
-> > > > if the compatible property is set to "aptina,mt9p031m" the did will be
-> > > > NULL.> 
-> > > I've tested both :-)
-> > 
-> > Sorry to nag, but did you use "aptina,mt9p031[m]" as a compatible string or
-> > did you use "mt9p031[m]". With "aptina,..." 'did' should really be NULL.
+> This fixes (if CONFIG_SOLO6X10=y and there are no built-in console
+> drivers):
 > 
-> I've used "aptina,mt9p031[m]".
+> drivers/built-in.o: In function `solo_osd_print':
+> drivers/staging/media/solo6x10/solo6x10-enc.c:144: undefined reference to `.find_font'
 > 
-> Please see the of_modalias_node() call in of_i2c_register_devices() 
-> (drivers/of/of-i2c.c), that's where the I2C device type name should be 
-> initialized.
+> Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
 
-Ok, got it. I still had the older aptina,mt9p031m-sensor binding in my
-patch.
+That looks much more sane. Thanks!
 
-Sorry for the noise.
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Sascha
-
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+> ---
+>  drivers/media/platform/Kconfig         |    2 +-
+>  drivers/staging/media/solo6x10/Kconfig |    2 ++
+>  drivers/usb/misc/sisusbvga/Kconfig     |    1 +
+>  drivers/video/console/Kconfig          |   12 ++++++++++--
+>  drivers/video/console/Makefile         |   14 +++++---------
+>  5 files changed, 19 insertions(+), 12 deletions(-)
+> 
+> diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
+> index 0cbe1ff..c1f29d5 100644
+> --- a/drivers/media/platform/Kconfig
+> +++ b/drivers/media/platform/Kconfig
+> @@ -220,7 +220,7 @@ if V4L_TEST_DRIVERS
+>  config VIDEO_VIVI
+>  	tristate "Virtual Video Driver"
+>  	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
+> -	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
+> +	select FONT_SUPPORT
+>  	select FONT_8x16
+>  	select VIDEOBUF2_VMALLOC
+>  	default n
+> diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
+> index ec32776..b34bb6c 100644
+> --- a/drivers/staging/media/solo6x10/Kconfig
+> +++ b/drivers/staging/media/solo6x10/Kconfig
+> @@ -1,6 +1,8 @@
+>  config SOLO6X10
+>  	tristate "Softlogic 6x10 MPEG codec cards"
+>  	depends on PCI && VIDEO_DEV && SND && I2C
+> +	select FONT_SUPPORT
+> +	select FONT_8x16
+>  	select VIDEOBUF2_DMA_SG
+>  	select VIDEOBUF2_DMA_CONTIG
+>  	select SND_PCM
+> diff --git a/drivers/usb/misc/sisusbvga/Kconfig b/drivers/usb/misc/sisusbvga/Kconfig
+> index 0d03a52..36bc28c 100644
+> --- a/drivers/usb/misc/sisusbvga/Kconfig
+> +++ b/drivers/usb/misc/sisusbvga/Kconfig
+> @@ -2,6 +2,7 @@
+>  config USB_SISUSBVGA
+>  	tristate "USB 2.0 SVGA dongle support (Net2280/SiS315)"
+>  	depends on (USB_MUSB_HDRC || USB_EHCI_HCD)
+> +	select FONT_SUPPORT if USB_SISUSBVGA_CON
+>          ---help---
+>  	  Say Y here if you intend to attach a USB2VGA dongle based on a
+>  	  Net2280 and a SiS315 chip.
+> diff --git a/drivers/video/console/Kconfig b/drivers/video/console/Kconfig
+> index bc922c4..baf27dc 100644
+> --- a/drivers/video/console/Kconfig
+> +++ b/drivers/video/console/Kconfig
+> @@ -62,6 +62,7 @@ config MDA_CONSOLE
+>  config SGI_NEWPORT_CONSOLE
+>          tristate "SGI Newport Console support"
+>          depends on SGI_IP22 
+> +        select FONT_SUPPORT
+>          help
+>            Say Y here if you want the console on the Newport aka XL graphics
+>            card of your Indy.  Most people say Y here.
+> @@ -91,6 +92,7 @@ config FRAMEBUFFER_CONSOLE
+>  	tristate "Framebuffer Console support"
+>  	depends on FB
+>  	select CRC32
+> +	select FONT_SUPPORT
+>  	help
+>  	  Low-level framebuffer-based console driver.
+>  
+> @@ -123,12 +125,18 @@ config FRAMEBUFFER_CONSOLE_ROTATION
+>  config STI_CONSOLE
+>          bool "STI text console"
+>          depends on PARISC
+> +        select FONT_SUPPORT
+>          default y
+>          help
+>            The STI console is the builtin display/keyboard on HP-PARISC
+>            machines.  Say Y here to build support for it into your kernel.
+>            The alternative is to use your primary serial port as a console.
+>  
+> +config FONT_SUPPORT
+> +	tristate
+> +
+> +if FONT_SUPPORT
+> +
+>  config FONTS
+>  	bool "Select compiled-in fonts"
+>  	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
+> @@ -158,7 +166,6 @@ config FONT_8x8
+>  
+>  config FONT_8x16
+>  	bool "VGA 8x16 font" if FONTS
+> -	depends on FRAMEBUFFER_CONSOLE || SGI_NEWPORT_CONSOLE || STI_CONSOLE || USB_SISUSBVGA_CON
+>  	default y if !SPARC && !FONTS
+>  	help
+>  	  This is the "high resolution" font for the VGA frame buffer (the one
+> @@ -226,7 +233,6 @@ config FONT_10x18
+>  
+>  config FONT_AUTOSELECT
+>  	def_bool y
+> -	depends on FRAMEBUFFER_CONSOLE || SGI_NEWPORT_CONSOLE || STI_CONSOLE || USB_SISUSBVGA_CON
+>  	depends on !FONT_8x8
+>  	depends on !FONT_6x11
+>  	depends on !FONT_7x14
+> @@ -238,5 +244,7 @@ config FONT_AUTOSELECT
+>  	depends on !FONT_10x18
+>  	select FONT_8x16
+>  
+> +endif # FONT_SUPPORT
+> +
+>  endmenu
+>  
+> diff --git a/drivers/video/console/Makefile b/drivers/video/console/Makefile
+> index a862e91..3a11b63 100644
+> --- a/drivers/video/console/Makefile
+> +++ b/drivers/video/console/Makefile
+> @@ -18,14 +18,14 @@ font-objs-$(CONFIG_FONT_MINI_4x6)  += font_mini_4x6.o
+>  
+>  font-objs += $(font-objs-y)
+>  
+> -# Each configuration option enables a list of files.
+> +obj-$(CONFIG_FONT_SUPPORT)         += font.o
+>  
+>  obj-$(CONFIG_DUMMY_CONSOLE)       += dummycon.o
+> -obj-$(CONFIG_SGI_NEWPORT_CONSOLE) += newport_con.o font.o
+> -obj-$(CONFIG_STI_CONSOLE)         += sticon.o sticore.o font.o
+> +obj-$(CONFIG_SGI_NEWPORT_CONSOLE) += newport_con.o
+> +obj-$(CONFIG_STI_CONSOLE)         += sticon.o sticore.o
+>  obj-$(CONFIG_VGA_CONSOLE)         += vgacon.o
+>  obj-$(CONFIG_MDA_CONSOLE)         += mdacon.o
+> -obj-$(CONFIG_FRAMEBUFFER_CONSOLE) += fbcon.o bitblit.o font.o softcursor.o
+> +obj-$(CONFIG_FRAMEBUFFER_CONSOLE) += fbcon.o bitblit.o softcursor.o
+>  ifeq ($(CONFIG_FB_TILEBLITTING),y)
+>  obj-$(CONFIG_FRAMEBUFFER_CONSOLE)     += tileblit.o
+>  endif
+> @@ -34,8 +34,4 @@ obj-$(CONFIG_FRAMEBUFFER_CONSOLE)     += fbcon_rotate.o fbcon_cw.o fbcon_ud.o \
+>                                           fbcon_ccw.o
+>  endif
+>  
+> -obj-$(CONFIG_FB_STI)              += sticore.o font.o
+> -
+> -ifeq ($(CONFIG_USB_SISUSBVGA_CON),y)
+> -obj-$(CONFIG_USB_SISUSBVGA)           += font.o
+> -endif
+> +obj-$(CONFIG_FB_STI)              += sticore.o
+> 
