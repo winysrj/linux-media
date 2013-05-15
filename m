@@ -1,82 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:32912 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S966821Ab3E2Uia (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:51251 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756613Ab3EOUjC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 16:38:30 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, mchehab@redhat.com,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
-	timo.teras@iki.fi
-Subject: [RFC 2/3] saa7115: Remove unneeded register change for gm7113c
-Date: Wed, 29 May 2013 22:41:17 +0200
-Message-Id: <1369860078-10334-3-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
-References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Wed, 15 May 2013 16:39:02 -0400
+From: joseph.salisbury@canonical.com
+To: linux-kernel@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, mchehab@redhat.com,
+	linux-media@vger.kernel.org, stable@vger.kernel.org
+Subject: [PATCH 1/1] [media] uvcvideo: quirk PROBE_DEF for Alienware X51 OmniVision webcam
+Date: Wed, 15 May 2013 16:38:48 -0400
+Message-Id: <1368650328-21128-1-git-send-email-joseph.salisbury@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On video std change, the driver would disable the automatic field
-detection on the gm7113c chip, and force either 50Hz or 60Hz.
-Don't do this any more.
+From: Joseph Salisbury <joseph.salisbury@canonical.com>
 
-Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+BugLink: http://bugs.launchpad.net/bugs/1180409
+
+OminiVision webcam 0x05a9:0x2643 needs the same UVC_QUIRK_PROBE_DEF as other OmniVision models to work properly.
+
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Cc: stable@vger.kernel.org
+Signed-off-by: Joseph Salisbury <joseph.salisbury@canonical.com>
 ---
- drivers/media/i2c/saa7115.c | 25 ++-----------------------
- 1 file changed, 2 insertions(+), 23 deletions(-)
+ drivers/media/usb/uvc/uvc_driver.c |    9 +++++++++
+ 1 file changed, 9 insertions(+)
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index 4403679..ccfaac9 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -453,23 +453,6 @@ static const unsigned char saa7115_cfg_50hz_video[] = {
- 
- /* ============== SAA7715 VIDEO templates (end) =======  */
- 
--/* ============== GM7113C VIDEO templates =============  */
--static const unsigned char gm7113c_cfg_60hz_video[] = {
--	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto detection, 0x68 = NTSC */
--	R_0E_CHROMA_CNTL_1, 0x07,		/* video autodetection is on */
--
--	0x00, 0x00
--};
--
--static const unsigned char gm7113c_cfg_50hz_video[] = {
--	R_08_SYNC_CNTL, 0x28,			/* 0x28 = PAL */
--	R_0E_CHROMA_CNTL_1, 0x07,
--
--	0x00, 0x00
--};
--
--/* ============== GM7113C VIDEO templates (end) =======  */
--
- 
- static const unsigned char saa7115_cfg_vbi_on[] = {
- 	R_80_GLOBAL_CNTL_1, 0x00,			/* reset tasks */
-@@ -955,16 +938,12 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
- 	// This works for NTSC-M, SECAM-L and the 50Hz PAL variants.
- 	if (std & V4L2_STD_525_60) {
- 		v4l2_dbg(1, debug, sd, "decoder set standard 60 Hz\n");
--		if (state->ident == V4L2_IDENT_GM7113C)
--			saa711x_writeregs(sd, gm7113c_cfg_60hz_video);
--		else
-+		if (state->ident != V4L2_IDENT_GM7113C)
- 			saa711x_writeregs(sd, saa7115_cfg_60hz_video);
- 		saa711x_set_size(sd, 720, 480);
- 	} else {
- 		v4l2_dbg(1, debug, sd, "decoder set standard 50 Hz\n");
--		if (state->ident == V4L2_IDENT_GM7113C)
--			saa711x_writeregs(sd, gm7113c_cfg_50hz_video);
--		else
-+		if (state->ident != V4L2_IDENT_GM7113C)
- 			saa711x_writeregs(sd, saa7115_cfg_50hz_video);
- 		saa711x_set_size(sd, 720, 576);
- 	}
+diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
+index 5dbefa6..411682c 100644
+--- a/drivers/media/usb/uvc/uvc_driver.c
++++ b/drivers/media/usb/uvc/uvc_driver.c
+@@ -2163,6 +2163,15 @@ static struct usb_device_id uvc_ids[] = {
+ 	  .bInterfaceSubClass	= 1,
+ 	  .bInterfaceProtocol	= 0,
+ 	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
++ 	/* Alienware X51*/
++        { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
++                                | USB_DEVICE_ID_MATCH_INT_INFO,
++          .idVendor             = 0x05a9,
++          .idProduct            = 0x2643,
++          .bInterfaceClass      = USB_CLASS_VIDEO,
++          .bInterfaceSubClass   = 1,
++          .bInterfaceProtocol   = 0,
++          .driver_info          = UVC_QUIRK_PROBE_DEF },
+ 	/* Apple Built-In iSight */
+ 	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+ 				| USB_DEVICE_ID_MATCH_INT_INFO,
 -- 
-1.8.2.3
+1.7.9.5
 
