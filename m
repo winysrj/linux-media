@@ -1,89 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4512 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752923Ab3EZN1i (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:34891 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755699Ab3EOL63 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 09:27:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 13/24] v4l2: remove obsolete v4l2_chip_match_host().
-Date: Sun, 26 May 2013 15:27:08 +0200
-Message-Id: <1369574839-6687-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 15 May 2013 07:58:29 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH 1/6] media: i2c: ths7303: remove init_enable option from pdata
+Date: Wed, 15 May 2013 17:27:17 +0530
+Message-Id: <1368619042-28252-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-This function is no longer needed since it is now the responsibility of the
-v4l2 core to check if the DBG_G/S_REGISTER and DBG_G_CHIP_INFO ioctls are
-called for the bridge driver or not.
+This patch removes init_enable option from pdata, the init_enable
+was intended that the device should start streaming video immediately
+but ideally the bridge drivers should call s_stream explicitly for such
+devices to start video.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-kernel@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
 ---
- drivers/media/usb/usbvision/usbvision-video.c |    4 ----
- drivers/media/v4l2-core/v4l2-common.c         |   11 -----------
- include/media/v4l2-common.h                   |    1 -
- 3 files changed, 16 deletions(-)
+ drivers/media/i2c/ths7303.c |    4 +---
+ include/media/ths7303.h     |    2 --
+ 2 files changed, 1 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index d34c2af..f959197 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -467,8 +467,6 @@ static int vidioc_g_register(struct file *file, void *priv,
- 	struct usb_usbvision *usbvision = video_drvdata(file);
- 	int err_code;
+diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+index 65853ee..8cddcd0 100644
+--- a/drivers/media/i2c/ths7303.c
++++ b/drivers/media/i2c/ths7303.c
+@@ -356,9 +356,7 @@ static int ths7303_setup(struct v4l2_subdev *sd)
+ 	int ret;
+ 	u8 mask;
  
--	if (!v4l2_chip_match_host(&reg->match))
--		return -EINVAL;
- 	/* NT100x has a 8-bit register space */
- 	err_code = usbvision_read_reg(usbvision, reg->reg&0xff);
- 	if (err_code < 0) {
-@@ -488,8 +486,6 @@ static int vidioc_s_register(struct file *file, void *priv,
- 	struct usb_usbvision *usbvision = video_drvdata(file);
- 	int err_code;
- 
--	if (!v4l2_chip_match_host(&reg->match))
--		return -EINVAL;
- 	/* NT100x has a 8-bit register space */
- 	err_code = usbvision_write_reg(usbvision, reg->reg & 0xff, reg->val);
- 	if (err_code < 0) {
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 3fed63f..5fd7660 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -227,17 +227,6 @@ u32 v4l2_ctrl_next(const u32 * const * ctrl_classes, u32 id)
- }
- EXPORT_SYMBOL(v4l2_ctrl_next);
- 
--int v4l2_chip_match_host(const struct v4l2_dbg_match *match)
--{
--	switch (match->type) {
--	case V4L2_CHIP_MATCH_BRIDGE:
--		return match->addr == 0;
--	default:
--		return 0;
--	}
--}
--EXPORT_SYMBOL(v4l2_chip_match_host);
+-	state->stream_on = pdata->init_enable;
 -
- #if IS_ENABLED(CONFIG_I2C)
- int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match)
- {
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 1d93c48..e7821fb 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -106,7 +106,6 @@ struct i2c_client; /* forward reference */
- int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match);
- int v4l2_chip_ident_i2c_client(struct i2c_client *c, struct v4l2_dbg_chip_ident *chip,
- 		u32 ident, u32 revision);
--int v4l2_chip_match_host(const struct v4l2_dbg_match *match);
+-	mask = state->stream_on ? 0xff : 0xf8;
++	mask = 0xf8;
  
- /* ------------------------------------------------------------------------- */
+ 	ret = ths7303_write(sd, THS7303_CHANNEL_1, pdata->ch_1 & mask);
+ 	if (ret)
+diff --git a/include/media/ths7303.h b/include/media/ths7303.h
+index 980ec51..a7b4929 100644
+--- a/include/media/ths7303.h
++++ b/include/media/ths7303.h
+@@ -30,13 +30,11 @@
+  * @ch_1: Bias value for channel one.
+  * @ch_2: Bias value for channel two.
+  * @ch_3: Bias value for channel three.
+- * @init_enable: initalize on init.
+  */
+ struct ths7303_platform_data {
+ 	u8 ch_1;
+ 	u8 ch_2;
+ 	u8 ch_3;
+-	u8 init_enable;
+ };
  
+ #endif
 -- 
-1.7.10.4
+1.7.4.1
 
