@@ -1,88 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f176.google.com ([209.85.217.176]:44209 "EHLO
-	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752923Ab3EZOPX (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:38809 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752527Ab3EPLsV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 10:15:23 -0400
-Received: by mail-lb0-f176.google.com with SMTP id x10so5918774lbi.7
-        for <linux-media@vger.kernel.org>; Sun, 26 May 2013 07:15:21 -0700 (PDT)
-Message-ID: <51A218F7.7050804@cogentembedded.com>
-Date: Sun, 26 May 2013 18:15:19 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Thu, 16 May 2013 07:48:21 -0400
 MIME-Version: 1.0
+In-Reply-To: <CA+V-a8uU6QkYcMg1b5BPHbA0gUGypZeXZNScE-WLa-GqK4_fQA@mail.gmail.com>
+References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1368619042-28252-3-git-send-email-prabhakar.csengg@gmail.com>
+ <1928313.pnnBGKgv0p@avalon> <CA+V-a8uU6QkYcMg1b5BPHbA0gUGypZeXZNScE-WLa-GqK4_fQA@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 16 May 2013 17:18:00 +0530
+Message-ID: <CA+V-a8txWU=ohuJfmtKk5fQ_rh_qsp8wA72vUXWEDBZU1TJR-g@mail.gmail.com>
+Subject: Re: [PATCH 2/6] ARM: davinci: dm365 evm: remove init_enable from
+ ths7303 pdata
 To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+Cc: LMML <linux-media@vger.kernel.org>,
 	LKML <linux-kernel@vger.kernel.org>,
 	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Sekhar Nori <nsekhar@ti.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/5] media: davinci: vpif: Convert to devm_* api
-References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com> <1369499796-18762-3-git-send-email-prabhakar.csengg@gmail.com> <1492638.E2728sugZv@avalon>
-In-Reply-To: <1492638.E2728sugZv@avalon>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-arm-kernel@lists.infradead.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi Laurent,
 
-On 26-05-2013 4:49, Laurent Pinchart wrote:
-
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
->> Use devm_ioremap_resource instead of reques_mem_region()/ioremap().
->> This ensures more consistent error values and simplifies error paths.
-
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>   drivers/media/platform/davinci/vpif.c |   27 ++++-----------------------
->>   1 files changed, 4 insertions(+), 23 deletions(-)
-
->> diff --git a/drivers/media/platform/davinci/vpif.c
->> b/drivers/media/platform/davinci/vpif.c index 761c825..164c1b7 100644
->> --- a/drivers/media/platform/davinci/vpif.c
->> +++ b/drivers/media/platform/davinci/vpif.c
-[...]
->> @@ -421,23 +419,12 @@ EXPORT_SYMBOL(vpif_channel_getfid);
+On Wed, May 15, 2013 at 5:41 PM, Prabhakar Lad
+<prabhakar.csengg@gmail.com> wrote:
+> Hi Laurent,
+>
+> Thanks for the review.
+>
+> On Wed, May 15, 2013 at 5:35 PM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>> Hi Prabhakar,
 >>
->>   static int vpif_probe(struct platform_device *pdev)
->>   {
->> -	int status = 0;
->> +	static struct resource	*res;
+>> Thank you for the patch.
 >>
->>   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> -	if (!res)
->> -		return -ENOENT;
->> -
->> -	res_len = resource_size(res);
->> -
->> -	res = request_mem_region(res->start, res_len, res->name);
->> -	if (!res)
->> -		return -EBUSY;
->> -
->> -	vpif_base = ioremap(res->start, res_len);
->> -	if (!vpif_base) {
->> -		status = -EBUSY;
->> -		goto fail;
->> -	}
->> +	vpif_base = devm_ioremap_resource(&pdev->dev, res);
->> +	if (IS_ERR(vpif_base))
->> +		return PTR_ERR(vpif_base);
+>> On Wednesday 15 May 2013 17:27:18 Lad Prabhakar wrote:
+>>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>>
+>>> remove init_enable from ths7303 pdata as it is no longer exists.
+>>
+>> You should move this before 1/6, otherwise you will break bisection.
+>>
+How about I just reshuffles while issuing a pull rather than resending
+the whole series ?
 
-> You're loosing the request_mem_region().
-
-    He's not losing anything, first look at how devm_ioremp_resource() 
-is defined.
-
-> You should use devm_request_and_ioremap()
-
-     Already deprecated by now.
-
-> function instead of devm_ioremap_resource(). With
-> that change,
-
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-WBR, Sergei
-
+Regards,
+--Prabhakar Lad
