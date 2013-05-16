@@ -1,87 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3911 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751718Ab3EJMHH (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47870 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751033Ab3EPML2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 May 2013 08:07:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Borislav Petkov <bp@alien8.de>
-Subject: Re: WARNING: at drivers/media/v4l2-core/videobuf2-core.c:2065 vb2_queue_init+0x74/0x142()
-Date: Fri, 10 May 2013 14:06:50 +0200
-Cc: linux-media@vger.kernel.org
-References: <20130508201118.GH30955@pd.tnic>
-In-Reply-To: <20130508201118.GH30955@pd.tnic>
+	Thu, 16 May 2013 08:11:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>, Arnd Bergmann <arnd@arndb.de>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH RFC V4 FINAL] media: i2c: mt9p031: add OF support
+Date: Thu, 16 May 2013 14:11:47 +0200
+Message-ID: <3373593.tmPgXHFIzk@avalon>
+In-Reply-To: <1368422224-19590-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1368422224-19590-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305101406.50935.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed May 8 2013 22:11:18 Borislav Petkov wrote:
-> This one looks legit: bw-qcam.c doesn't set q->timestamp_type.
+Hi Prabhakar,
+
+Thank you for the patch.
+
+On Monday 13 May 2013 10:47:04 Lad Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > 
-> [  146.989016] Colour QuickCam for Video4Linux v0.06
-> [  147.713065] ------------[ cut here ]------------
-> [  147.928854] WARNING: at drivers/media/v4l2-core/videobuf2-core.c:2065 vb2_queue_init+0x74/0x142()
-> [  148.364433] CPU: 0 PID: 1 Comm: swapper/0 Not tainted 3.9.0-12947-g0f99ebe5052a #1
-> [  148.799135] Hardware name: Bochs Bochs, BIOS Bochs 01/01/2007
-> [  149.017598]  ffffffff8239cab3 ffff88007b789d48 ffffffff81d81cb0 ffff88007b789d88
-> [  149.465524]  ffffffff810943a8 ffff88007b789d88 0000000000000000 ffff880079a7a700
-> [  149.909985]  ffff880079a7a068 ffff880079a7a608 ffff8800798d1c00 ffff88007b789d98
-> [  150.345653] Call Trace:
-> [  150.550444]  [<ffffffff81d81cb0>] dump_stack+0x19/0x1b
-> [  150.756860]  [<ffffffff810943a8>] warn_slowpath_common+0x62/0x7b
-> [  150.962012]  [<ffffffff8109448c>] warn_slowpath_null+0x1a/0x1e
-> [  151.160574]  [<ffffffff818e914a>] vb2_queue_init+0x74/0x142
-> [  151.354795]  [<ffffffff818ff072>] bwqcam_attach+0x1e0/0x54a
-> [  151.543644]  [<ffffffff815cdeb1>] parport_register_driver+0x2e/0x6d
-> [  151.727651]  [<ffffffff82a8ddf5>] ? cqcam_init+0x20/0x20
-> [  151.906958]  [<ffffffff82a8de05>] init_bw_qcams+0x10/0x12
-> [  152.084031]  [<ffffffff82a3cdb9>] do_one_initcall+0x7b/0x116
-> [  152.262088]  [<ffffffff82a3cfb4>] kernel_init_freeable+0x160/0x1f2
-> [  152.441466]  [<ffffffff82a3c73a>] ? do_early_param+0x8c/0x8c
-> [  152.619998]  [<ffffffff81d6874b>] ? rest_init+0xdf/0xdf
-> [  152.797458]  [<ffffffff81d68759>] kernel_init+0xe/0xdb
-> [  152.970650]  [<ffffffff81d9663c>] ret_from_fork+0x7c/0xb0
-> [  153.140434]  [<ffffffff81d6874b>] ? rest_init+0xdf/0xdf
-> [  153.305520] ---[ end trace a72f2983de4c60b5 ]---
-> [  154.459479] No Quickcam found on port parport0
-> [  154.613448] Quickcam detection counter: 0
+> add OF support for the mt9p031 sensor driver.
+> Alongside this patch sorts the header inclusion alphabetically.
 > 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Sascha Hauer <s.hauer@pengutronix.de>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Rob Landley <rob@landley.net>
+> Cc: Arnd Bergmann <arnd@arndb.de>
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Cc: davinci-linux-open-source@linux.davincidsp.com
+> Cc: linux-doc@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> ---
+>  Changes for v4:
+>  1: Renamed "gpio-reset" property to "reset-gpios".
+>  2: Dropped assigning the driver data from the of node.
 > 
+>  Changes for v3:
+>  1: Dropped check if gpio-reset is valid.
+>  2: Fixed some code nits.
+>  3: Included a reference to the V4L2 DT bindings documentation.
+> 
+>  Changes for v2:
+>  1: Used '-' instead of '_' for device properties.
+>  2: Specified gpio reset pin as phandle in device node.
+>  3: Handle platform data properly even if kernel is compiled with
+>     devicetree support.
+>  4: Used dev_* for messages in drivers instead of pr_*.
+>  5: Changed compatible property to "aptina,mt9p031" and "aptina,mt9p031m".
+>  6: Sorted the header inclusion alphabetically and fixed some minor code
+> nits.
+> 
+>  .../devicetree/bindings/media/i2c/mt9p031.txt      |   40 +++++++++++++++++
+>  drivers/media/i2c/mt9p031.c                        |   42 ++++++++++++++++-
+>  2 files changed, 80 insertions(+), 2 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+> b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt new file mode
+> 100644
+> index 0000000..59d613c
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+> @@ -0,0 +1,40 @@
+> +* Aptina 1/2.5-Inch 5Mp CMOS Digital Image Sensor
+> +
+> +The Aptina MT9P031 is a 1/2.5-inch CMOS active pixel digital image sensor
+> with +an active array size of 2592H x 1944V. It is programmable through a
+> simple +two-wire serial interface.
+> +
+> +Required Properties :
+> +- compatible : value should be either one among the following
+> +	(a) "aptina,mt9p031" for mt9p031 sensor
+> +	(b) "aptina,mt9p031m" for mt9p031m sensor
+> +
+> +- input-clock-frequency : Input clock frequency.
+> +
+> +- pixel-clock-frequency : Pixel clock frequency.
+> +
+> +Optional Properties :
+> +- reset-gpios: Chip reset GPIO
+> +
+> +For further reading of port node refer
+> Documentation/devicetree/bindings/media/ +video-interfaces.txt.
+> +
+> +Example:
+> +
+> +	i2c0@1c22000 {
+> +		...
+> +		...
+> +		mt9p031@5d {
+> +			compatible = "aptina,mt9p031";
+> +			reg = <0x5d>;
+> +			reset-gpios = <&gpio3 30 0>;
+> +
+> +			port {
+> +				mt9p031_1: endpoint {
+> +					input-clock-frequency = <6000000>;
+> +					pixel-clock-frequency = <96000000>;
+> +				};
+> +			};
+> +		};
+> +		...
+> +	};
+> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+> index 28cf95b..a58207c 100644
+> --- a/drivers/media/i2c/mt9p031.c
+> +++ b/drivers/media/i2c/mt9p031.c
+> @@ -16,9 +16,11 @@
+>  #include <linux/delay.h>
+>  #include <linux/device.h>
+>  #include <linux/gpio.h>
+> -#include <linux/module.h>
+>  #include <linux/i2c.h>
+>  #include <linux/log2.h>
+> +#include <linux/module.h>
+> +#include <linux/of_device.h>
+> +#include <linux/of_gpio.h>
+>  #include <linux/pm.h>
+>  #include <linux/regulator/consumer.h>
+>  #include <linux/slab.h>
+> @@ -28,6 +30,7 @@
+>  #include <media/v4l2-chip-ident.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/v4l2-device.h>
+> +#include <media/v4l2-of.h>
+>  #include <media/v4l2-subdev.h>
+> 
+>  #include "aptina-pll.h"
+> @@ -928,10 +931,35 @@ static const struct v4l2_subdev_internal_ops
+> mt9p031_subdev_internal_ops = { * Driver initialization and probing
+>   */
+> 
+> +static struct mt9p031_platform_data *
+> +mt9p031_get_pdata(struct i2c_client *client)
+> +{
+> +	struct device_node *np;
+> +	struct mt9p031_platform_data *pdata;
+> +
+> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+> +		return client->dev.platform_data;
+> +
+> +	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
+> +	if (!np)
+> +		return NULL;
+> +
+> +	pdata = devm_kzalloc(&client->dev, sizeof(struct mt9p031_platform_data),
+> +			     GFP_KERNEL);
+> +	if (!pdata)
 
-Hi Borislav!
+As mentioned in my review of your tvp514x OF support patch, you're missing 
+of_node_put() calls here and at the end of this function.
 
-Thanks for the report.
-
-Can you try this patch? This should fix it.
-
+> +		return NULL;
+> +
+> +	pdata->reset = of_get_named_gpio(client->dev.of_node, "reset-gpios", 0);
+> +	of_property_read_u32(np, "input-clock-frequency", &pdata->ext_freq);
+> +	of_property_read_u32(np, "pixel-clock-frequency", &pdata->target_freq);
+> +
+> +	return pdata;
+> +}
+> +
+>  static int mt9p031_probe(struct i2c_client *client,
+>  			 const struct i2c_device_id *did)
+>  {
+> -	struct mt9p031_platform_data *pdata = client->dev.platform_data;
+> +	struct mt9p031_platform_data *pdata = mt9p031_get_pdata(client);
+>  	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+>  	struct mt9p031 *mt9p031;
+>  	unsigned int i;
+> @@ -1070,8 +1098,18 @@ static const struct i2c_device_id mt9p031_id[] = {
+>  };
+>  MODULE_DEVICE_TABLE(i2c, mt9p031_id);
+> 
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id mt9p031_of_match[] = {
+> +	{ .compatible = "aptina,mt9p031", },
+> +	{ .compatible = "aptina,mt9p031m", },
+> +	{ /* sentinel */ },
+> +};
+> +MODULE_DEVICE_TABLE(of, mt9p031_of_match);
+> +#endif
+> +
+>  static struct i2c_driver mt9p031_i2c_driver = {
+>  	.driver = {
+> +		.of_match_table = of_match_ptr(mt9p031_of_match),
+>  		.name = "mt9p031",
+>  	},
+>  	.probe          = mt9p031_probe,
+-- 
 Regards,
 
-	Hans
-
-diff --git a/drivers/media/parport/bw-qcam.c b/drivers/media/parport/bw-qcam.c
-index 06231b8..d12bd33 100644
---- a/drivers/media/parport/bw-qcam.c
-+++ b/drivers/media/parport/bw-qcam.c
-@@ -687,6 +687,7 @@ static int buffer_finish(struct vb2_buffer *vb)
- 
- 	parport_release(qcam->pdev);
- 	mutex_unlock(&qcam->lock);
-+	v4l2_get_timestamp(&vb->v4l2_buf.timestamp);
- 	if (len != size)
- 		vb->state = VB2_BUF_STATE_ERROR;
- 	vb2_set_plane_payload(vb, 0, len);
-@@ -964,6 +965,7 @@ static struct qcam *qcam_init(struct parport *port)
- 	q->drv_priv = qcam;
- 	q->ops = &qcam_video_qops;
- 	q->mem_ops = &vb2_vmalloc_memops;
-+	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 	err = vb2_queue_init(q);
- 	if (err < 0) {
- 		v4l2_err(v4l2_dev, "couldn't init vb2_queue for %s.\n", port->name);
--- 
-1.7.10.4
+Laurent Pinchart
 
