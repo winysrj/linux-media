@@ -1,149 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2861 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935106Ab3E2Hzn (ORCPT
+Received: from mail-wi0-f173.google.com ([209.85.212.173]:33512 "EHLO
+	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756242Ab3EPHyJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 03:55:43 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: leo@lumanate.com, Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 3/3] hdpvr: improve error handling
-Date: Wed, 29 May 2013 09:55:15 +0200
-Message-Id: <1369814115-12174-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369814115-12174-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369814115-12174-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 16 May 2013 03:54:09 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
+References: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
+Date: Thu, 16 May 2013 09:54:07 +0200
+Message-ID: <CAGGh5h0zsTLGp-Bzy8FEpESqp7Vs2wUfpiu8Mqtu9Uy9EhwTyA@mail.gmail.com>
+Subject: Re: omap3 : isp clock a : Difference between dmesg frequency and
+ actual frequency with 3.9
+From: jean-philippe francois <jp.francois@cynove.com>
+To: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+2013/5/15 jean-philippe francois <jp.francois@cynove.com>:
+> Hi,
+>
+> I am working on a dm3730 based camera.
+> The sensor input clock is provided by the cpu via the CAM_XCLK pin.
+> Here is the corresponding log :
+>
+> [    9.115966] Entering cam_set_xclk
+> [    9.119781] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 24685714 Hz
+> [    9.121337] ov10x33 1-0010: sensor id : 0xa630
+> [   10.293640] Entering cam_set_xclk
+> [   10.297149] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+> [   10.393920] Entering cam_set_xclk
+> [   10.397979] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 24685714 Hz
+>
+> However, when mesured on the actual pin, the frequency is around 30 MHz
+>
+> The crystal clock is 19.2 MHz
+> All this was correct with 3.6.11.
 
-get_video_info() should never return EFAULT, instead it should return
-the low-level usb_control_msg() error. Add a valid field to the hdpvr_video_info
-struct so the driver can easily check if a valid format was detected.
+It seems the dpll4_m5_ck is not correctly set,
+3.6.11 code in isp.c (without error handling)
 
-Whenever get_video_info is called and it returns an error (e.g. usb_control_msg
-failed), then return that error to userspace as well.
+    r = clk_set_rate(isp->clock[ISP_CLK_DPLL4_M5_CK],
+              CM_CAM_MCLK_HZ/divisor);
+    ...
+    r = clk_enable(isp->clock[ISP_CLK_CAM_MCLK]);
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/hdpvr/hdpvr-control.c |   21 +++++++++------------
- drivers/media/usb/hdpvr/hdpvr-video.c   |   18 +++++++++++-------
- drivers/media/usb/hdpvr/hdpvr.h         |    1 +
- 3 files changed, 21 insertions(+), 19 deletions(-)
+3.9 code in isp.c (without error handling)
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
-index df6bcb5..6053661 100644
---- a/drivers/media/usb/hdpvr/hdpvr-control.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-control.c
-@@ -49,6 +49,7 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- {
- 	int ret;
- 
-+	vidinf->valid = false;
- 	mutex_lock(&dev->usbc_mutex);
- 	ret = usb_control_msg(dev->udev,
- 			      usb_rcvctrlpipe(dev->udev, 0),
-@@ -56,11 +57,6 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- 			      0x1400, 0x0003,
- 			      dev->usbc_buf, 5,
- 			      1000);
--	if (ret == 5) {
--		vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
--		vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
--		vidinf->fps	= dev->usbc_buf[4];
--	}
- 
- #ifdef HDPVR_DEBUG
- 	if (hdpvr_debug & MSG_INFO) {
-@@ -73,14 +69,15 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- #endif
- 	mutex_unlock(&dev->usbc_mutex);
- 
--	if ((ret > 0 && ret != 5) ||/* fail if unexpected byte count returned */
--	    !vidinf->width ||	/* preserve original behavior -  */
--	    !vidinf->height ||	/* fail if no signal is detected */
--	    !vidinf->fps) {
--		ret = -EFAULT;
--	}
-+	if (ret < 0)
-+		return ret;
- 
--	return ret < 0 ? ret : 0;
-+	vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
-+	vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
-+	vidinf->fps	= dev->usbc_buf[4];
-+	vidinf->valid   = vidinf->width && vidinf->height && vidinf->fps;
-+
-+	return 0;
- }
- 
- int get_input_lines_info(struct hdpvr_device *dev)
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index e947105..4f8567a 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -285,7 +285,10 @@ static int hdpvr_start_streaming(struct hdpvr_device *dev)
- 		return -EAGAIN;
- 
- 	ret = get_video_info(dev, &vidinf);
--	if (ret) {
-+	if (ret < 0)
-+		return ret;
-+
-+	if (!vidinf.valid) {
- 		msleep(250);
- 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
- 				"no video signal at input %d\n", dev->options.video_input);
-@@ -617,15 +620,12 @@ static int vidioc_querystd(struct file *file, void *_fh, v4l2_std_id *a)
- 	if (dev->options.video_input == HDPVR_COMPONENT)
- 		return fh->legacy_mode ? 0 : -ENODATA;
- 	ret = get_video_info(dev, &vid_info);
--	if (ret)
--		return 0;
--	if (vid_info.width == 720 &&
-+	if (vid_info.valid && vid_info.width == 720 &&
- 	    (vid_info.height == 480 || vid_info.height == 576)) {
- 		*a = (vid_info.height == 480) ?
- 			V4L2_STD_525_60 : V4L2_STD_625_50;
- 	}
--
--	return 0;
-+	return ret;
- }
- 
- static int vidioc_s_dv_timings(struct file *file, void *_fh,
-@@ -679,6 +679,8 @@ static int vidioc_query_dv_timings(struct file *file, void *_fh,
- 		return -ENODATA;
- 	ret = get_video_info(dev, &vid_info);
- 	if (ret)
-+		return ret;
-+	if (!vid_info.valid)
- 		return -ENOLCK;
- 	interlaced = vid_info.fps <= 30;
- 	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++) {
-@@ -1008,7 +1010,9 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *_fh,
- 		struct hdpvr_video_info vid_info;
- 
- 		ret = get_video_info(dev, &vid_info);
--		if (ret)
-+		if (ret < 0)
-+			return ret;
-+		if (!vid_info.valid)
- 			return -EFAULT;
- 		f->fmt.pix.width = vid_info.width;
- 		f->fmt.pix.height = vid_info.height;
-diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
-index 808ea7a..dc685d4 100644
---- a/drivers/media/usb/hdpvr/hdpvr.h
-+++ b/drivers/media/usb/hdpvr/hdpvr.h
-@@ -154,6 +154,7 @@ struct hdpvr_video_info {
- 	u16	width;
- 	u16	height;
- 	u8	fps;
-+	bool	valid;
- };
- 
- enum {
--- 
-1.7.10.4
+    r = clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK],
+              CM_CAM_MCLK_HZ/divisor);
 
+
+>
+> Jean-Philippe Francois
