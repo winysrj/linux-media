@@ -1,66 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f175.google.com ([209.85.223.175]:33108 "EHLO
-	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756226Ab3EFUoM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 16:44:12 -0400
-Received: by mail-ie0-f175.google.com with SMTP id s9so4706568iec.34
-        for <linux-media@vger.kernel.org>; Mon, 06 May 2013 13:44:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAPM=9txE51ZzPaX52rfqvvBp+=pwVe3fk=xE8p6qb79kJbQX=Q@mail.gmail.com>
-References: <1367382644-30788-1-git-send-email-airlied@gmail.com>
-	<CAKMK7uGJWHb7so8_uNe0JzH_EUAQLExFPda=ZR+8yuG+ALvo2w@mail.gmail.com>
-	<CAPM=9tzW-9U+ff2818asviXtm8+56-gp3NOFxy_u1m7b21TaQg@mail.gmail.com>
-	<20130506155930.GG5763@phenom.ffwll.local>
-	<CAPM=9txE51ZzPaX52rfqvvBp+=pwVe3fk=xE8p6qb79kJbQX=Q@mail.gmail.com>
-Date: Mon, 6 May 2013 22:44:11 +0200
-Message-ID: <CAKMK7uHBD3nGJU_xd1eX39Ee1ikojbp62AXZKAvB-wO1nyFqOg@mail.gmail.com>
-Subject: Re: [PATCH] drm/udl: avoid swiotlb for imported vmap buffers.
-From: Daniel Vetter <daniel@ffwll.ch>
-To: Dave Airlie <airlied@gmail.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:32066 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755941Ab3EPIPK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 May 2013 04:15:10 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MMV00189TKYHT40@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 16 May 2013 09:15:01 +0100 (BST)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH RFC v3 3/3] media: added managed v4l2/i2c subdevice
+ initialization
+Date: Thu, 16 May 2013 10:14:34 +0200
+Message-id: <1368692074-483-4-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1368692074-483-1-git-send-email-a.hajda@samsung.com>
+References: <1368692074-483-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 6, 2013 at 9:56 PM, Dave Airlie <airlied@gmail.com> wrote:
-> On Tue, May 7, 2013 at 1:59 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
->> On Mon, May 06, 2013 at 10:35:35AM +1000, Dave Airlie wrote:
->>> >>
->>> >> However if we don't set a dma mask on the usb device, the mapping
->>> >> ends up using swiotlb on machines that have it enabled, which
->>> >> is less than desireable.
->>> >>
->>> >> Signed-off-by: Dave Airlie <airlied@redhat.com>
->>> >
->>> > Fyi for everyone else who was not on irc when Dave&I discussed this:
->>> > This really shouldn't be required and I think the real issue is that
->>> > udl creates a dma_buf attachement (which is needed for device dma
->>> > only), but only really wants to do cpu access through vmap/kmap. So
->>> > not attached the device should be good enough. Cc'ing a few more lists
->>> > for better fyi ;-)
->>>
->>> Though I've looked at this a bit more, and since I want to be able to expose
->>> shared objects as proper GEM objects from the import side I really
->>> need that list of pages.
->>
->> Hm, what does "proper GEM object" mean in the context of udl?
->
-> One that appears the same as a GEM object created by userspace. i.e. mmap works.
+This patch adds managed version of initialization
+function for v4l2/i2c subdevices.
 
-Oh, we have an mmap interface in the dma_buf thing for that, and iirc
-Rob Clark even bothered to implement the gem->dma_buf mmap forwarding
-somewhere. And iirc android's ion-on-dma_buf stuff is even using the
-mmap interface stuff.
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+v3:
+	- removed devm_v4l2_subdev_(init|free),
+v2:
+	- changes of v4l2-ctrls.h moved to proper patch
+---
+ drivers/media/v4l2-core/v4l2-common.c |   10 ++++++++++
+ drivers/media/v4l2-core/v4l2-subdev.c |   25 +++++++++++++++++++++++++
+ include/media/v4l2-common.h           |    2 ++
+ include/media/v4l2-subdev.h           |    2 ++
+ 4 files changed, 39 insertions(+)
 
-Now for prime "let's just ship this, dammit" prevailed for now. But I
-still think that hiding the backing storage a bit better (with the
-eventual goal of supporting eviction with Maarten's fence/ww_mutex
-madness) feels like a worthy long-term goal.
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 3fed63f..96aac931 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -301,7 +301,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+ 
++int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
++			      const struct v4l2_subdev_ops *ops)
++{
++	int ret;
+ 
++	ret = devm_v4l2_subdev_bind(&client->dev, sd);
++	if (!ret)
++		v4l2_i2c_subdev_init(sd, client, ops);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
+ 
+ /* Load an i2c sub-device. */
+ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
+index 996c248..d79ee22 100644
+--- a/drivers/media/v4l2-core/v4l2-subdev.c
++++ b/drivers/media/v4l2-core/v4l2-subdev.c
+@@ -474,3 +474,28 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
+ #endif
+ }
+ EXPORT_SYMBOL(v4l2_subdev_init);
++
++static void devm_v4l2_subdev_release(struct device *dev, void *res)
++{
++	struct v4l2_subdev **sd = res;
++
++	v4l2_device_unregister_subdev(*sd);
++#if defined(CONFIG_MEDIA_CONTROLLER)
++	media_entity_cleanup(&(*sd)->entity);
++#endif
++}
++
++int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
++{
++	struct v4l2_subdev **dr;
++
++	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
++	if (!dr)
++		return -ENOMEM;
++
++	*dr = sd;
++	devres_add(dev, dr);
++
++	return 0;
++}
++EXPORT_SYMBOL(devm_v4l2_subdev_bind);
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index 1d93c48..da62e2b 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+ /* Initialize a v4l2_subdev with data from an i2c_client struct */
+ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+ 		const struct v4l2_subdev_ops *ops);
++int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
++		const struct v4l2_subdev_ops *ops);
+ /* Return i2c client address of v4l2_subdev. */
+ unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
+ 
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 5298d67..e086cfe 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -657,6 +657,8 @@ int v4l2_subdev_link_validate(struct media_link *link);
+ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ 		      const struct v4l2_subdev_ops *ops);
+ 
++int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
++
+ /* Call an ops of a v4l2_subdev, doing the right checks against
+    NULL pointers.
+ 
+-- 
+1.7.10.4
 
-Cheers, Daniel
---
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
