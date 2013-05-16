@@ -1,46 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.22]:56711 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750821Ab3EIRfb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 May 2013 13:35:31 -0400
-Received: from mailout-de.gmx.net ([10.1.76.16]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0MSXbW-1V1xDi17Ho-00RcNt for
- <linux-media@vger.kernel.org>; Thu, 09 May 2013 19:35:30 +0200
-From: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Reinhard=20Ni=C3=9Fl?= <rnissl@gmx.de>
-Subject: [PATCH] stb0899: sign of CRL_FREQ doesn't depend on inversion
-Date: Thu,  9 May 2013 19:10:59 +0200
-Message-Id: <1368119459-4461-1-git-send-email-rnissl@gmx.de>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:43654 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751068Ab3EPVWc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 May 2013 17:22:32 -0400
+Received: by mail-lb0-f177.google.com with SMTP id 13so3579294lba.8
+        for <linux-media@vger.kernel.org>; Thu, 16 May 2013 14:22:31 -0700 (PDT)
+To: horms@verge.net.au, linux-sh@vger.kernel.org, mchehab@redhat.com,
+	linux-media@vger.kernel.org, linus.walleij@linaro.org
+Subject: [PATCH v4 0/3] R8A7778/BOCK-W R-Car VIN driver support
+Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
+	linux-arm-kernel@lists.infradead.org, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Fri, 17 May 2013 01:22:33 +0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305170122.33996.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Contrary to CFR (derotator frequency), which changes signedness
-depending on inversion, CRL_FREQ does not.
+Hello.
 
-Signed-off-by: Reinhard Nißl <rnissl@gmx.de>
----
- drivers/media/dvb-frontends/stb0899_algo.c | 4 +---
- 1 file changed, 1 insertion(+), 3 deletions(-)
+   Here's the set of 3 patches against the Simon Horman's 'renesas.git' repo,
+'renesas-next-20130515v2' tag and my recent yet unapplied patches. Here we
+add the VIN platform code working on
+the R8A7778/BOCK-W with ML86V7667. The driver patch also applies (with offsets)
+to Mauro's 'media_tree.git'...
 
-diff --git a/drivers/media/dvb-frontends/stb0899_algo.c b/drivers/media/dvb-frontends/stb0899_algo.c
-index a338e06..93596e0 100644
---- a/drivers/media/dvb-frontends/stb0899_algo.c
-+++ b/drivers/media/dvb-frontends/stb0899_algo.c
-@@ -1504,9 +1504,7 @@ enum stb0899_status stb0899_dvbs2_algo(struct stb0899_state *state)
- 		else
- 			internal->inversion = IQ_SWAP_OFF;
- 
--		offsetfreq *= internal->inversion;
--
--		internal->freq = internal->freq - offsetfreq;
-+		internal->freq = internal->freq + offsetfreq;
- 		internal->srate = stb0899_dvbs2_get_srate(state);
- 
- 		reg = STB0899_READ_S2REG(STB0899_S2DEMOD, UWP_STAT2);
--- 
-1.8.1.4
+[1/3] ARM: shmobile: r8a7778: add VIN support
+[2/3] ARM: shmobile: BOCK-W: add VIN and ML86V7667 support
+[3/3] ARM: shmobile: BOCK-W: enable VIN and ML86V7667 in defconfig
 
+   The patch containing OKI ML86V7667 video decoder driver has been removed
+from the series as it should be applied to the 'media_tree.git' repo. The patch
+containing the VIN PFC support has been also removed from the series and has
+now been merged.
+
+WBR, Sergei
