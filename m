@@ -1,76 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3002 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965597Ab3E2OT1 (ORCPT
+Received: from mail-we0-f169.google.com ([74.125.82.169]:33672 "EHLO
+	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755189Ab3EPGlC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 10:19:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [RFC PATCH 01/14] adv7183: fix querystd
-Date: Wed, 29 May 2013 16:18:54 +0200
-Message-Id: <1369837147-8747-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 16 May 2013 02:41:02 -0400
+Received: by mail-we0-f169.google.com with SMTP id x54so2453150wes.28
+        for <linux-media@vger.kernel.org>; Wed, 15 May 2013 23:41:00 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAPrYoTGjMQtTu5VTTY802YaFy8-zR-aEd=27ZKqcF60FAsR-JA@mail.gmail.com>
+References: <CAPrYoTGjMQtTu5VTTY802YaFy8-zR-aEd=27ZKqcF60FAsR-JA@mail.gmail.com>
+Date: Thu, 16 May 2013 12:11:00 +0530
+Message-ID: <CAK7N6vpEp6E5ekUeqyQbYhE75rqSU1JP6sjonTb575yqDkhNXw@mail.gmail.com>
+Subject: Re: Doubt regarding DMA / VMALLOC memory ops
+From: anish singh <anish198519851985@gmail.com>
+To: Chetan Nanda <chetannanda@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-If no signal is detected, return V4L2_STD_UNKNOWN. Otherwise AND the standard
-with the detected standards.
-
-Note that the v4l2 core initializes the std with tvnorms before calling the
-querystd ioctl.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
----
- drivers/media/i2c/adv7183.c |   16 ++++++++--------
- 1 file changed, 8 insertions(+), 8 deletions(-)
-
-diff --git a/drivers/media/i2c/adv7183.c b/drivers/media/i2c/adv7183.c
-index 7c48e22..b5e51d8 100644
---- a/drivers/media/i2c/adv7183.c
-+++ b/drivers/media/i2c/adv7183.c
-@@ -375,28 +375,28 @@ static int adv7183_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
- 	reg = adv7183_read(sd, ADV7183_STATUS_1);
- 	switch ((reg >> 0x4) & 0x7) {
- 	case 0:
--		*std = V4L2_STD_NTSC;
-+		*std &= V4L2_STD_NTSC;
- 		break;
- 	case 1:
--		*std = V4L2_STD_NTSC_443;
-+		*std &= V4L2_STD_NTSC_443;
- 		break;
- 	case 2:
--		*std = V4L2_STD_PAL_M;
-+		*std &= V4L2_STD_PAL_M;
- 		break;
- 	case 3:
--		*std = V4L2_STD_PAL_60;
-+		*std &= V4L2_STD_PAL_60;
- 		break;
- 	case 4:
--		*std = V4L2_STD_PAL;
-+		*std &= V4L2_STD_PAL;
- 		break;
- 	case 5:
--		*std = V4L2_STD_SECAM;
-+		*std &= V4L2_STD_SECAM;
- 		break;
- 	case 6:
--		*std = V4L2_STD_PAL_Nc;
-+		*std &= V4L2_STD_PAL_Nc;
- 		break;
- 	case 7:
--		*std = V4L2_STD_SECAM;
-+		*std &= V4L2_STD_SECAM;
- 		break;
- 	default:
- 		*std = V4L2_STD_UNKNOWN;
--- 
-1.7.10.4
-
+On Wed, May 15, 2013 at 4:10 PM, Chetan Nanda <chetannanda@gmail.com> wrote:
+> Hi,
+>
+> I am new to V4L2 kernel framework. And currently trying to understand V4L2
+> kernel sub-system.
+> In videobuf2 sub-system, before calling 'vb2_queue_init(q)',  q's mem_ops is
+> being initialized (depending on type of buffer) as
+>
+> q->mem_ops = &vb2_vmalloc_memops;
+> or
+> q->mem_ops = &vb2_dma_contig_memops
+These are just assigning function pointers to be called when we do
+memory related operations.
+>
+> What is the purpose of these memory operations?
+> If user space is allocating the buffer (physically contiguous) via some other
+> kernel driver (hwmem - for android). Even then do we need to set mem_ops =
+> vb2_dma_contig_memops?
+I think what you are referring here is the ION/PMEM memory being assigned
+by the user space in android.If the user space is assinging the memory
+then VB2_MMAP | VB2_USERPTR will be used and this function pointer
+mentioned by you earlier would not be same but it would be ION/PMEM related
+callbacks.
+Basically in the case of userptr the OEM's have a specific way of handling
+contigiuos memory and is not covered by the generic VB2 code but managing
+those contigious memory is covered by VB2.
+VB2 provides all the callbacks using which you can write your own memory
+management code.
+>
+>
+> Thanks,
+> Chetan Nanda
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
