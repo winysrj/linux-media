@@ -1,98 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f50.google.com ([209.85.215.50]:54679 "EHLO
-	mail-la0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755887Ab3EVMXj (ORCPT
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:37139 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751763Ab3EPKnI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 08:23:39 -0400
-Received: by mail-la0-f50.google.com with SMTP id ed20so1882775lab.37
-        for <linux-media@vger.kernel.org>; Wed, 22 May 2013 05:23:38 -0700 (PDT)
-Message-ID: <519CB8CE.3060700@cogentembedded.com>
-Date: Wed, 22 May 2013 16:23:42 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Thu, 16 May 2013 06:43:08 -0400
+Message-ID: <5194B836.1020808@gmail.com>
+Date: Thu, 16 May 2013 12:43:02 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: mchehab@redhat.com, linux-media@vger.kernel.org,
-	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
-	matsu@igel.co.jp
-Subject: Re: [PATCH v3] adv7180: add more subdev video ops
-References: <201305132321.39495.sergei.shtylyov@cogentembedded.com> <201305211645.49257.hverkuil@xs4all.nl> <519BAC15.8000503@cogentembedded.com> <201305220855.34503.hverkuil@xs4all.nl>
-In-Reply-To: <201305220855.34503.hverkuil@xs4all.nl>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC] media: OF: add field-active and sync-on-green endpoint
+ properties
+References: <1368622349-32185-1-git-send-email-prabhakar.csengg@gmail.com> <2510029.UKsn4JyZOW@avalon> <CA+V-a8tsohAyGRCn3NhwsS19X84N_xOwLB_wd0bPvyu1fLy3+g@mail.gmail.com>
+In-Reply-To: <CA+V-a8tsohAyGRCn3NhwsS19X84N_xOwLB_wd0bPvyu1fLy3+g@mail.gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi,
 
-On 22-05-2013 10:55, Hans Verkuil wrote:
+On 05/16/2013 06:53 AM, Prabhakar Lad wrote:
+>>> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
+>>> >>  b/Documentation/devicetree/bindings/media/video-interfaces.txt index
+>>> >>  e022d2d..6bf87d0 100644
+>>> >>  --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+>>> >>  +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+>>> >>  @@ -101,6 +101,10 @@ Optional endpoint properties
+>>> >>      array contains only one entry.
+>>> >>    - clock-noncontinuous: a boolean property to allow MIPI CSI-2
+>>> >>  non-continuous clock mode.
+>>> >>  +-field-active: a boolean property indicating active high filed ID output
+>>> >>  + polarity is inverted.
+>> >
+>> >  Looks like we already have field-even-active property to describe the level of
+>> >  the field signal. Could you please check whether it fulfills your use cases ?
+>> >  Sorry for not pointing you to it earlier.
+>> >
+> I had looked at it earlier it only means "field signal level during the even
+> field data transmission" it only speaks of even filed. Ideally the field ID
+> output is set to logic 1 for odd field and set to 0 for even field, what I
+> want is to invert the FID out polarity when "field-active" property is set.
+>
+> May be we rename "field-active" to "fid-pol" ?
 
->>>>>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+I guess we failed to clearly describe the 'field-even-active' property then.
+It seems to be exactly what you need.
 
->>>>>> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
->>>>>> the soc-camera drivers.
+It is not enough to say e.g. field-active = <1>;, because it would not have
+been clear which field it refers to, odd or even ? Unlike VSYNC, HSYNC both
+levels of the FIELD signal are "active", there is no "idle" state for FIELD.
 
->>>>>> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->>>>>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+So field-even-active = <1>; means the FIELD signal at logic high level
+indicates EVEN field _and_ this implies FIELD = 0 indicates ODD field, i.e.
 
->>>>>> ---
->>>>>> This patch is against the 'media_tree.git' repo.
+FIELD = 0 => odd field
+FIELD = 1 => even field
 
->>>>>> Changes from version 2:
->>>>>> - set the field format depending on video standard in try_mbus_fmt() method;
->>>>>> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
->>>>>> - removed g_crop() method.
+For field-even-active = <0>; it is the other way around:
 
->>>>>>     drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
->>>>>>     1 file changed, 86 insertions(+)
+FIELD = 0 => even field
+FIELD = 1 => odd field
 
->>>>>> Index: media_tree/drivers/media/i2c/adv7180.c
->>>>>> ===================================================================
->>>>>> --- media_tree.orig/drivers/media/i2c/adv7180.c
->>>>>> +++ media_tree/drivers/media/i2c/adv7180.c
+It looks like only "sync-on-green" property is missing. BTW, is it really
+commonly used ? What drivers would need it ?
+I'm not against making it a common property, it's just first time I see it.
 
->>>>>> +
->>>>>> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
->>>>>> +				struct v4l2_mbus_framefmt *fmt)
->>>>>> +{
->>>>>> +	struct adv7180_state *state = to_state(sd);
->>>>>> +
->>>>>> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
->>>>>> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
->>>>>> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
->>>>>> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
-
->>>>> Just noticed this: use V4L2_FIELD_INTERLACED as that does the right thing.
->>>>> No need to split in _BT and _TB.
-
->>>>       Hm, testers have reported that _BT vs _TB do make a difference. I'll
->>>> try to look into how V4L2 handles interlacing for different standards.
->>> When using V4L2_FIELD_INTERLACED the BT vs TB is implicit (i.e. the application
->>> is supposed to know that the order will be different depending on the standard).
->>> Explicitly using BT/TB is only useful if you want to override the default, e.g.
->>> if a video was encoded using the wrong temporal order.
-
->>       We have used V4L2_FIELD_INTERLACED before and people reported
->> incorrect field ordering -- that's why we changed to what it is now. So this
->> might be an application failure?
-
-> I've fairly certain it is, yes. The spec says this about FIELD_INTERLACED:
-
-> "Images contain both fields, interleaved line by line. The temporal order of the
->   fields (whether the top or bottom field is first transmitted) depends on the
->   current video standard. M/NTSC transmits the bottom field first, all other
->   standards the top field first."
-
-> So if the application needs to know the temporal order, it will have to look
-> at the current video standard.
-
-    It appeared that it's our R-Car VIN soc_camera driver that misses 
-this video standard check. It just always treats V4L2_FIELD_INTERLACED 
-the same as V4L2_FIELD_INTERLACED_TB when programming the video mode 
-control register.
-
-> Regards,
-
-> 	Hans
-
-WBR, Sergei
-
+Thanks,
+Sylwester
