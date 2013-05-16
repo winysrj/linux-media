@@ -1,54 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:41096 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756251Ab3E0Cca (ORCPT
+Received: from mail-we0-f182.google.com ([74.125.82.182]:51542 "EHLO
+	mail-we0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751763Ab3EPKwm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 22:32:30 -0400
-From: Libo Chen <libo.chen@huawei.com>
-To: <mchehab@redhat.com>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<lizefan@huawei.com>, <libo.chen@huawei.com>,
-	<gregkh@linuxfoundation.org>
-Subject: [PATCH 17/24] drivers/media/pci/dm1105/dm1105: Convert to module_pci_driver
-Date: Mon, 27 May 2013 10:31:43 +0800
-Message-ID: <1369621903-14768-1-git-send-email-libo.chen@huawei.com>
+	Thu, 16 May 2013 06:52:42 -0400
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <5194B836.1020808@gmail.com>
+References: <1368622349-32185-1-git-send-email-prabhakar.csengg@gmail.com>
+ <2510029.UKsn4JyZOW@avalon> <CA+V-a8tsohAyGRCn3NhwsS19X84N_xOwLB_wd0bPvyu1fLy3+g@mail.gmail.com>
+ <5194B836.1020808@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 16 May 2013 16:22:20 +0530
+Message-ID: <CA+V-a8s_G78tDCGebUEw_WNmOmxHzEpsNjJ2w4oTEJ=QZzqcUQ@mail.gmail.com>
+Subject: Re: [PATCH RFC] media: OF: add field-active and sync-on-green
+ endpoint properties
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-use module_pci_driver instead of init/exit, make code clean.
+Hi Sylwester,
 
-Signed-off-by: Libo Chen <libo.chen@huawei.com>
----
- drivers/media/pci/b2c2/flexcop-pci.c |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
+On Thu, May 16, 2013 at 4:13 PM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi,
+>
+>
+> On 05/16/2013 06:53 AM, Prabhakar Lad wrote:
+>>>>
+[Snip]
+>> May be we rename "field-active" to "fid-pol" ?
+>
+>
+> I guess we failed to clearly describe the 'field-even-active' property then.
+> It seems to be exactly what you need.
+>
+> It is not enough to say e.g. field-active = <1>;, because it would not have
+> been clear which field it refers to, odd or even ? Unlike VSYNC, HSYNC both
+> levels of the FIELD signal are "active", there is no "idle" state for FIELD.
+>
+> So field-even-active = <1>; means the FIELD signal at logic high level
+> indicates EVEN field _and_ this implies FIELD = 0 indicates ODD field, i.e.
+>
+> FIELD = 0 => odd field
+> FIELD = 1 => even field
+>
+> For field-even-active = <0>; it is the other way around:
+>
+> FIELD = 0 => even field
+> FIELD = 1 => odd field
+>
+Thanks that makes it clear :)
 
-diff --git a/drivers/media/pci/b2c2/flexcop-pci.c b/drivers/media/pci/b2c2/flexcop-pci.c
-index 44f8fb5..447afbd 100644
---- a/drivers/media/pci/b2c2/flexcop-pci.c
-+++ b/drivers/media/pci/b2c2/flexcop-pci.c
-@@ -432,18 +432,7 @@ static struct pci_driver flexcop_pci_driver = {
- 	.remove   = flexcop_pci_remove,
- };
- 
--static int __init flexcop_pci_module_init(void)
--{
--	return pci_register_driver(&flexcop_pci_driver);
--}
--
--static void __exit flexcop_pci_module_exit(void)
--{
--	pci_unregister_driver(&flexcop_pci_driver);
--}
--
--module_init(flexcop_pci_module_init);
--module_exit(flexcop_pci_module_exit);
-+module_pci_driver(flexcop_pci_driver);
- 
- MODULE_AUTHOR(DRIVER_AUTHOR);
- MODULE_DESCRIPTION(DRIVER_NAME);
--- 
-1.7.1
+> It looks like only "sync-on-green" property is missing. BTW, is it really
+> commonly used ? What drivers would need it ?
+> I'm not against making it a common property, it's just first time I see it.
+>
+I have comes across a decoder tvp7002 which uses it, may be Laurent/Hans/Sakari
+may point much more devices.
 
-
+Regards,
+--Prabhakar Lad
