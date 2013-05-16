@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f43.google.com ([209.85.210.43]:45672 "EHLO
-	mail-da0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753648Ab3EPNSS (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:62510 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753702Ab3EPMxp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 09:18:18 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
+	Thu, 16 May 2013 08:53:45 -0400
+MIME-Version: 1.0
+In-Reply-To: <2750806.COjXX3GeT0@avalon>
+References: <1368529236-18199-1-git-send-email-prabhakar.csengg@gmail.com>
+ <11504129.E8jKKy4N2e@avalon> <CA+V-a8ti58gdPR-fUEqgBvUQ=1GkoTUyLj9UK4D5aVwHv2R6mA@mail.gmail.com>
+ <2750806.COjXX3GeT0@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 16 May 2013 18:23:24 +0530
+Message-ID: <CA+V-a8vQhJs5KNTAOzbPcxfv4AjQCTzSdXCYJTAvf0cFTykrwQ@mail.gmail.com>
+Subject: Re: [PATCH v3] media: i2c: tvp514x: add OF support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
 	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
 	Grant Likely <grant.likely@secretlab.ca>,
 	Rob Herring <rob.herring@calxeda.com>,
 	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
-Date: Thu, 16 May 2013 18:48:07 +0530
-Message-Id: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi Laurent,
 
-This patch adds "sync-on-green" property as part of
-endpoint properties and also support to parse them in the parser.
+On Thu, May 16, 2013 at 6:20 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> On Thursday 16 May 2013 18:13:38 Prabhakar Lad wrote:
+>> On Thu, May 16, 2013 at 5:40 PM, Laurent Pinchart wrote:
+>> > Hi Prabhakar,
+>>
+>> [Snip]
+>>
+>> >> +
+>> >> +     pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+>> >> +     if (!pdata)
+>> >
+>> > I've started playing with the V4L2 OF bindings, and realized that should
+>> > should call of_node_put() here.
+>>
+>> you were referring  of_node_get() here rite ?
+>
+> No, I'm referring to of_node_put(). The v4l2_of_get_next_endpoint() function
+> mentions
+>
+>  * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+>  * of the passed @prev node is not decremented, the caller have to use
+>  * of_node_put() on it when done.
+>
+Ahh I see thanks for clarifying, I'll fix it  for v3.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: devicetree-discuss@lists.ozlabs.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
-Cc: Kyungmin Park <kyungmin.park@samsung.com>
----
- Changes for v2:
- 1: Dropped "field-active" property as it same as existing
-    "field-even-active" property.
-
- .../devicetree/bindings/media/video-interfaces.txt |    2 ++
- drivers/media/v4l2-core/v4l2-of.c                  |    3 +++
- include/media/v4l2-mediabus.h                      |    1 +
- 3 files changed, 6 insertions(+), 0 deletions(-)
-
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index e022d2d..f91821f 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -101,6 +101,8 @@ Optional endpoint properties
-   array contains only one entry.
- - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
-   clock mode.
-+-sync-on-green: a boolean property indicating to sync with the green signal in
-+ RGB.
- 
- 
- Example
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index aa59639..b51d61f 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -100,6 +100,9 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 	if (!of_property_read_u32(node, "data-shift", &v))
- 		bus->data_shift = v;
- 
-+	if (of_get_property(node, "sync-on-green", &v))
-+		flags |= V4L2_MBUS_SYNC_ON_GREEN;
-+
- 	bus->flags = flags;
- 
- }
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 83ae07e..cf2c66f9 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -40,6 +40,7 @@
- #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
- /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
- #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
-+#define V4L2_MBUS_SYNC_ON_GREEN			(1 << 12)
- 
- /* Serial flags */
- /* How many lanes the client can use */
--- 
-1.7.4.1
-
+Regards,
+--Prabhakar Lad
