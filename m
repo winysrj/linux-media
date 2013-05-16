@@ -1,45 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1029 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965713Ab3E2LBU (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47755 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752269Ab3EPLxt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:01:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCHv1 37/38] ivtv: fix register range check
-Date: Wed, 29 May 2013 13:00:10 +0200
-Message-Id: <1369825211-29770-38-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 16 May 2013 07:53:49 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-arm-kernel@lists.infradead.org
+Subject: Re: [PATCH 2/6] ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
+Date: Thu, 16 May 2013 13:54:08 +0200
+Message-ID: <8665087.XDPi8z3vzr@avalon>
+In-Reply-To: <CA+V-a8txWU=ohuJfmtKk5fQ_rh_qsp8wA72vUXWEDBZU1TJR-g@mail.gmail.com>
+References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8uU6QkYcMg1b5BPHbA0gUGypZeXZNScE-WLa-GqK4_fQA@mail.gmail.com> <CA+V-a8txWU=ohuJfmtKk5fQ_rh_qsp8wA72vUXWEDBZU1TJR-g@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Prabhakar,
 
-Ensure that the register is aligned to a dword, otherwise the range check
-could fail since it assumes dword alignment.
+On Thursday 16 May 2013 17:18:00 Prabhakar Lad wrote:
+> On Wed, May 15, 2013 at 5:41 PM, Prabhakar Lad wrote:
+> > On Wed, May 15, 2013 at 5:35 PM, Laurent Pinchart wrote:
+> >> On Wednesday 15 May 2013 17:27:18 Lad Prabhakar wrote:
+> >>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >>> 
+> >>> remove init_enable from ths7303 pdata as it is no longer exists.
+> >> 
+> >> You should move this before 1/6, otherwise you will break bisection.
+> 
+> How about I just reshuffles while issuing a pull rather than resending
+> the whole series ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
----
- drivers/media/pci/ivtv/ivtv-ioctl.c |    2 ++
- 1 file changed, 2 insertions(+)
+As long as you don't forget to do so, sure :-)
 
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 944300f..807b275 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -696,6 +696,8 @@ static int ivtv_itvc(struct ivtv *itv, bool get, u64 reg, u64 *val)
- {
- 	volatile u8 __iomem *reg_start;
- 
-+	if (reg & 0x3)
-+		return -EINVAL;
- 	if (reg >= IVTV_REG_OFFSET && reg < IVTV_REG_OFFSET + IVTV_REG_SIZE)
- 		reg_start = itv->reg_mem - IVTV_REG_OFFSET;
- 	else if (itv->has_cx23415 && reg >= IVTV_DECODER_OFFSET &&
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
