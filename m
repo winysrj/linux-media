@@ -1,43 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm24-vm2.bullet.mail.ne1.yahoo.com ([98.138.91.212]:44901 "EHLO
-	nm24-vm2.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1754898Ab3ETApE convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 May 2013 20:45:04 -0400
-References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com> <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com> <51993DDE.4070800@googlemail.com>
-Message-ID: <1369010702.23562.YahooMailNeo@web120304.mail.ne1.yahoo.com>
-Date: Sun, 19 May 2013 17:45:02 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
-Reply-To: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
-To: =?iso-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <51993DDE.4070800@googlemail.com>
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:35529 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751763Ab3EPKpv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 May 2013 06:45:51 -0400
+Message-ID: <5194B8DA.4080204@gmail.com>
+Date: Thu, 16 May 2013 12:45:46 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC] media: OF: add field-active and sync-on-green endpoint
+ properties
+References: <1368622349-32185-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1368622349-32185-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------ Original Message -----
+On 05/15/2013 02:52 PM, Lad Prabhakar wrote:
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index e022d2d..6bf87d0 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -101,6 +101,10 @@ Optional endpoint properties
+>     array contains only one entry.
+>   - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
+>     clock mode.
+> +-field-active: a boolean property indicating active high filed ID output
+> + polarity is inverted.
 
-> I'm not familar with ir-keytable and the RC core.
-> Mauro ? Can you take over ? ;)
+You can drop this property and use the existing 'field-even-active' property
+instead.
 
-This patch seems to "do the right thing"... I doubt it will apply cleanly because of TAB/space issues, but you should get the idea :-).
+> +-sync-on-green: a boolean property indicating to sync with the green signal in
+> + RGB.
 
---- linux-3.9/drivers/media/usb/em28xx/em28xx-input.c.orig    2013-05-19 21:18:39.000000000 +0100
-+++ linux-3.9/drivers/media/usb/em28xx/em28xx-input.c    2013-05-20 01:36:51.000000000 +0100
-@@ -417,6 +417,7 @@
-         *rc_type = RC_BIT_RC6_0;
-     } else if (*rc_type & RC_BIT_UNKNOWN) {
-         *rc_type = RC_BIT_UNKNOWN;
-+                return 0;
-     } else {
-         *rc_type = ir->rc_type;
-         return -EINVAL;
+> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+> index 83ae07e..b95553d 100644
+> --- a/include/media/v4l2-mediabus.h
+> +++ b/include/media/v4l2-mediabus.h
+> @@ -40,6 +40,8 @@
+>   #define V4L2_MBUS_FIELD_EVEN_HIGH		(1<<  10)
+>   /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
+>   #define V4L2_MBUS_FIELD_EVEN_LOW		(1<<  11)
+> +#define V4L2_MBUS_FIELD_ACTIVE			(1<<  12)
+> +#define V4L2_MBUS_SOG				(1<<  13)
 
-This is against 3.9.3.
+How about V4L2_MBUS_SYNC_ON_GREEN ?
 
-Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+Thanks,
+Sylwester
