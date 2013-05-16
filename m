@@ -1,141 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50792 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756490Ab3EGL42 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 07:56:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: jean-philippe francois <jp.francois@cynove.com>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	linux-omap@vger.kernel.org
-Subject: Re: omap3-isp : panic using previewer from V4L input
-Date: Tue, 07 May 2013 13:56:41 +0200
-Message-ID: <7361840.3pfFsIn2FS@avalon>
-In-Reply-To: <CAGGh5h00H10F7GWgjyhN_5Zn8JNMXRptt4FF+u=NHDdTXFD2MA@mail.gmail.com>
-References: <CAGGh5h00H10F7GWgjyhN_5Zn8JNMXRptt4FF+u=NHDdTXFD2MA@mail.gmail.com>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:38823 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750767Ab3EPPAZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 May 2013 11:00:25 -0400
+Received: by mail-bk0-f52.google.com with SMTP id mz10so942605bkb.25
+        for <linux-media@vger.kernel.org>; Thu, 16 May 2013 08:00:23 -0700 (PDT)
+Message-ID: <5194F484.6060701@gmail.com>
+Date: Thu, 16 May 2013 17:00:20 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFCv2] Motion Detection API
+References: <201305131132.26033.hverkuil@xs4all.nl> <5193A875.3000805@gmail.com> <201305160954.54413.hverkuil@xs4all.nl>
+In-Reply-To: <201305160954.54413.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jean-Philippe,
+On 05/16/2013 09:54 AM, Hans Verkuil wrote:
+>>> 	#define V4L2_EVENT_MOTION_DET 5
+>>>
+>>> 	/**
+>>> 	 * struct v4l2_event_motion_det - motion detection event
+>>> 	 * @flags:             if set to V4L2_EVENT_MD_VALID_FRAME, then the
+>>> 	 *                     frame_sequence field is valid.
+>>> 	 * @frame_sequence:    the frame sequence number associated with this event.
+>>> 	 * @mask:              which regions detected motion.
+>>> 	 */
+>>> 	struct v4l2_event_motion_det {
+>>> 	       __u32 flags;
+>>> 	       __u32 frame_sequence;
+>>> 	       __u32 mask;
+>>> 	};	
+>>>
+>>> - Add two new ioctls to get and set the block data:
+>>>
+>>>           #define V4L2_MD_TYPE_REGION     (1)
+>>>           #define V4L2_MD_TYPE_THRESHOLD  (2)
+>>>
+>>>           struct v4l2_md_blocks {
+>>>                   __u32 type;
+>>>                   struct v4l2_rect rect;
+>>>                   __u32 block_min;
+>>>                   __u32 block_max;
+>>> 		__u32 __user *blocks;
+>>>                   __u32 reserved[32];
+>>>           } __attribute__ ((packed));
+>>
+>> How about changing it to:
+>>
+>>             struct v4l2_md_blocks {
+>>                   __u32 type;
+>>                   __u32 size;
+>>                   struct v4l2_rect rect;
+>>                   __u32 block_min;
+>>                   __u32 block_max;
+>>                   __u32 reserved[32];
+>>    		__u16 __user blocks[];
+>>             } __attribute__ ((packed));
+>>
+>> i.e. making 'blocks' a flexible length array, so the size of the structure
+>> is same on 32 and 64-bit architectures ? And we don't need any compat code ?
+>> 'size' would indicate actual size of the blocks array.
+>
+> Nice idea, but it won't work: video_usercopy() will copy that struct to a
+> kernel-space buffer and pass that on to the driver. But at that point the
+> blocks array is cut off and the driver doesn't have access to the userspace
+> pointer anymore.
 
-(CC'ed linux-omap)
+I should have mentioned that it would require some modification at
+video_usercopy(), but then it would not have been that much different from
+adding compat code I guess. It would certainly not simplify already complex
+video_usercopy()...
 
-On Monday 06 May 2013 10:59:07 jean-philippe francois wrote:
-> Hi,
-> 
-> I am trying to use the previewer to debayer pictures coming from the
-> filesystem instead of the capture hardware. The media-ctl links are as
-> follows :
-> 
-> preview V4L input -> preview pad 0 (sink), preview pad 1(src)
-> ->preview V4L output.
-> 
-> Input output format is set via media-ctl for the preview element, and
-> via the V4L2 api for the V4L2 file descriptors. I am using USERPTR
-> buffer allocated via memalign, and the application goes like this :
-> 
-> REQBUFS 1 buf on on input
-> REQBUFS 1 buf on output
-> alloc buffers
-> QBUF on input
-> QBUF on output
-> STREAMON on output
-> STREAMON on input
-> DQBUF on output.
-> 
-> The board either panics or hangs (though HUNG_TASK_DETECTION and
-> SOFT_LOCKUP_DETECTION is set)
+> It's really not all that difficult to add compat code for this, so I'll just
+> stick with a pointer.
+>
+>> Also, the motion detection normally involves at least 2 frames, but
+>> don't we
+>> need a means to get MD result per frame ? Since the event is per frame ?
+>> I guess this is something that could be added later if required.
+>
+> ???
+>
+> The event provides the result on a per-frame basis. Actually, it doesn't
+> have to be per-frame: if flags == 0, it will depend on the hardware whether
+> you can actually relate motion to frames.
 
-Does it happen every time you run the application, including on the first run 
-after a cold boot ?
+I thought about adding, e.g. frame_sequence field to struct v4l2_md_blocks,
+but there seems to be no practical use for it.
 
-> Please find attached the panic log, and the application code.
+> I just realized that there is a hole in this RFC if flags == 0: if the motion
+> detection is not per-frame, but just some global state, then we also need a
+> way to tell userspace when the motion stopped.
 
-(log inlined)
+> My original idea was that you get an event per frame where there is motion.
+> So if you get a frame but no associated event, then motion stopped.
 
-> omap3isp omap3isp: can't find source, failing now
-> omap3isp omap3isp: can't find source, failing now
+Hmm, not that good. I think it would be simpler for user space if it can use
+the events API only to get all basic data.
 
-Those are harmless warnings. I have a fix for them, I'll repost it.
+> An alternative implementation would be that you get an event whenever the
+> mask changes value (with the assumption that mask == 0 when you start
+> streaming).
 
-> ------------[ cut here ]------------
-> Kernel BUG at c019bb1c [verbose debug info unavailable]
-> Internal error: Oops - BUG: 0 [#1] PREEMPT ARM
-> Modules linked in: omap3_isp ov10630(O)
-> CPU: 0    Tainted: G           O  (3.9.0 #3)
-> PC is at omap3_l3_app_irq+0x3c/0xbc
+Yes, this sounds quite intuitive. You get an event whenever motion started
+or stopped.
 
-L3 APP interconnect timeout errors are not supposed to happen. This is the 
-first time I see one. Maybe someone on the linux-omap list will have some 
-clues regarding how to debug this.
+And this way there would be no need for sending events continuously for 
+each
+frame when there is motion detected ?
 
-> LR is at handle_irq_event_percpu+0x28/0x10c
-> pc : [<c019bb1c>]    lr : [<c006b354>]    psr: 20000193
-> sp : c0507e58  ip : 00060000  fp : 00000000
-> r10: cf804dc0  r9 : ffff9e65  r8 : 00200000
-> r7 : 00000000  r6 : 00001000  r5 : 00000000  r4 : cf87f3c0
-> r3 : 00000000  r2 : 00001000  r1 : cf8ffc80  r0 : 00001000
-> Flags: nzCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM  Segment kernel
-> Control: 10c5387d  Table: 8fa80019  DAC: 00000015
-> Process swapper (pid: 0, stack limit = 0xc0506230)
-> Stack: (0xc0507e58 to 0xc0508000)
-> 7e40:                                                      00000002 cf87f3c0
-> 7e60:0000001a 00000000 00000000 c006b354 cf804dc0 cf87f3c0 cf804dc0 c0506000
-> 7e80:cf87f3c0 c0507f0c 00200000 ffff9e65 c054d640 c006b490 cf804dc0 c0507f80
-> 7ea0:ffffffff c006da68 0000001a c006ac44 0000001a c000ebc8 0000000a c0507ed8
-> 7ec0:0000001a c0008594 c054d600 c003400c 60000113 c000df00 00000001 c054d600
-> 7ee0:00000101 c0506000 00000002 00000000 ffffffff c0507fb4 00200000 ffff9e65
-> 7f00:c054d640 00000000 c0526f28 c0507f20 c054d600 c003400c 60000113 ffffffff
-> 7f20:cf805c40 c0506000 c0511c98 c0507fb4 80004059 00000035 00000000 ffffffff
-> 7f40:c0507fb4 80004059 413fc082 00000000 00000000 c003440c 00000035 c000ebcc
-> 7f60:00000025 c0507f80 00000035 c0008594 c0506008 c000ed78 20000013 c000df00
-> 7f80:c0547548 c050fb50 00000001 c0506000 c050e0d8 00000000 c04fb954 c0510844
-> 7fa0:80004059 413fc082 00000000 00000000 00000000 c0507fc8 c0506008 c000ed78
-> 7fc0:20000013 ffffffff c036c958 c04da7a8 ffffffff ffffffff c04da344 00000000
-> 7fe0:c04fb958 271ae41c 00000000 10c53c7d c050e028 80008070 00000000 00000000
-> [<c019bb1c>] (omap3_l3_app_irq+0x3c/0xbc)
-> from [<c006b354>] (handle_irq_event_percpu+0x28/0x10c)
-> [<c006b354>] (handle_irq_event_percpu+0x28/0x10c)
-> from [<c006b490>] (handle_irq_event+0x58/0x74)
-> [<c006b490>] (handle_irq_event+0x58/0x74)
-> from [<c006da68>] (handle_level_irq+0xd8/0x110)
-> [<c006da68>] (handle_level_irq+0xd8/0x110)
-> from [<c006ac44>] (generic_handle_irq+0x20/0x30)
-> [<c006ac44>] (generic_handle_irq+0x20/0x30)
-> from [<c000ebc8>] (handle_IRQ+0x60/0x84)
-> [<c000ebc8>] (handle_IRQ+0x60/0x84)
-> from [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
-> [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
-> from [<c000df00>] (__irq_svc+0x40/0x70)
-> Exception stack(0xc0507ed8 to 0xc0507f20)
-> 7ec0:                                                      00000001 c054d600
-> 7ee0:00000101 c0506000 00000002 00000000 ffffffff c0507fb4 00200000 ffff9e65
-> 7f00:c054d640 00000000 c0526f28 c0507f20 c054d600 c003400c 60000113 ffffffff
-> [<c000df00>] (__irq_svc+0x40/0x70)
-> from [<c003400c>] (__do_softirq+0x60/0x184)
-> [<c003400c>] (__do_softirq+0x60/0x184)
-> from [<c003440c>] (irq_exit+0x70/0xc4)
-> [<c003440c>] (irq_exit+0x70/0xc4)
-> from [<c000ebcc>] (handle_IRQ+0x64/0x84)
-> [<c000ebcc>] (handle_IRQ+0x64/0x84)
-> from [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
-> [<c0008594>] (omap3_intc_handle_irq+0x58/0x6c)
-> from [<c000df00>] (__irq_svc+0x40/0x70)
-> Exception stack(0xc0507f80 to 0xc0507fc8)
-> 7f80:c0547548 c050fb50 00000001 c0506000 c050e0d8 00000000 c04fb954 c0510844
-> 7fa0:80004059 413fc082 00000000 00000000 00000000 c0507fc8 c0506008 c000ed78
-> 7fc0:20000013 ffffffff
-> [<c000df00>] (__irq_svc+0x40/0x70) from [<c000ed78>] (cpu_idle+0x60/0x90)
-> [<c000ed78>] (cpu_idle+0x60/0x90)
-> from [<c04da7a8>] (start_kernel+0x234/0x284)
-> Code: e0022006 e0033007 e1920003 0a000002 (e7f001f2)
-> ---[ end trace 58d781a6c1166535 ]---
-> Kernel panic - not syncing: Fatal exception in interrupt
+> I think this might be more efficient and it works better if you can't
+> associate this event with a specific frame.
 
--- 
+Yes, that makes sense to me. I assume it is better to have this API not
+coupled too much with the streaming IO ioctls.
+
+> What do you think?
+
 Regards,
-
-Laurent Pinchart
-
+Sylwester
