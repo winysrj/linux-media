@@ -1,122 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3743 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075Ab3EZN1j (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:41950 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754287Ab3EPNw1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 09:27:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 20/24] v4l2-common: remove unused v4l2_chip_match/ident_i2c_client functions
-Date: Sun, 26 May 2013 15:27:15 +0200
-Message-Id: <1369574839-6687-21-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 16 May 2013 09:52:27 -0400
+MIME-Version: 1.0
+In-Reply-To: <4943563.lUEuHDFNBN@avalon>
+References: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com>
+	<CAGGh5h3cFqCyjhncLTSfuL+vceO6CWDUTWgBsLGW=-spn6Z8qA@mail.gmail.com>
+	<4943563.lUEuHDFNBN@avalon>
+Date: Thu, 16 May 2013 15:52:03 +0200
+Message-ID: <CAGGh5h1hVb5rihksHOF29eU=VedDqrhtjnGA8eG7mMQdQVKVuA@mail.gmail.com>
+Subject: Re: omap3 : isp clock a : Difference between dmesg frequency and
+ actual frequency with 3.9
+From: jean-philippe francois <jp.francois@cynove.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+2013/5/16 Laurent Pinchart <laurent.pinchart@ideasonboard.com>:
+> Hi Jean-Philippe,
+>
+> On Thursday 16 May 2013 10:21:14 jean-philippe francois wrote:
+>> 2013/5/15 jean-philippe francois <jp.francois@cynove.com>:
+>> > Hi,
+>> >
+>> > I am working on a dm3730 based camera.
+>> > The sensor input clock is provided by the cpu via the CAM_XCLK pin.
+>> > Here is the corresponding log :
+>> >
+>> > [    9.115966] Entering cam_set_xclk
+>> > [    9.119781] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>> > 24685714 Hz
+>> > [    9.121337] ov10x33 1-0010: sensor id : 0xa630
+>> > [   10.293640] Entering cam_set_xclk
+>> > [   10.297149] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+>> > [   10.393920] Entering cam_set_xclk
+>> > [   10.397979] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>> > 24685714 Hz
+>> >
+>> > However, when mesured on the actual pin, the frequency is around 30 MHz
+>> >
+>> > The crystal clock is 19.2 MHz
+>> > All this was correct with 3.6.11.
+>>
+>> Sorry for the resend, wrong tab and enter key sequence in gmail ...
+>>
+>> It seems the dpll4_m5_ck is not correctly set,
+>> 3.6.11 code in isp.c (without error handling)
+>>
+>>     r = clk_set_rate(isp->clock[ISP_CLK_DPLL4_M5_CK],
+>>               CM_CAM_MCLK_HZ/divisor);
+>>     ...
+>>     r = clk_enable(isp->clock[ISP_CLK_CAM_MCLK]);
+>>
+>> 3.9 code in isp.c (without error handling)
+>>
+>>     r = clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK],
+>>               CM_CAM_MCLK_HZ/divisor);
+>>
+>>     r = clk_prepare_enable(isp->clock[ISP_CLK_CAM_MCLK]);
+>>
+>> The PLL settings ie multiplier and divisor are the same in each case,
+>> but the dmesg output differ :
+>> Here is what happens when isp_enable_clock is called on 3.6
+>>
+>> 3.6
+>>     [   10.133697] Entering cam_set_xclk
+>>     [   10.137573] clock: clksel_round_rate_div: dpll4_m5_ck
+>> target_rate 172800000
+>>     [   10.137573] clock: new_div = 5, new_rate = 172800000
+>>     [   10.137603] clock: dpll4_m5_ck: set rate to 172800000
+>>     [   10.138061] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>> 24685714 Hz
+>>
+>> 3.9
+>>     [    9.095581] Entering cam_set_xclk
+>>     [    9.102661] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+>> 24685714 Hz
+>>
+>> So the frequency setting register are correctly set, but the actual
+>> output frequency is not.
+>> maybe dpll4 is not correctly locked ? I will also check
+>> isp_enable_clock is really called.
+>> But I suppose it is, because except for the frequency, everything is
+>> working correctly.
+>
+> Does the following patch fix the issue ?
+>
+Hi Laurent, thank you for your help.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-common.c |   47 +--------------------------------
- include/media/v4l2-common.h           |    9 -------
- 2 files changed, 1 insertion(+), 55 deletions(-)
+I am on a dm3730, si I already had the back propagation thing.
+I tried the patch anyway, but it did not solve the issue.
+If I look at the registers, on both version :
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 5fd7660..3b2a760 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -61,7 +61,6 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
--#include <media/v4l2-chip-ident.h>
- 
- #include <linux/videodev2.h>
- 
-@@ -227,51 +226,9 @@ u32 v4l2_ctrl_next(const u32 * const * ctrl_classes, u32 id)
- }
- EXPORT_SYMBOL(v4l2_ctrl_next);
- 
--#if IS_ENABLED(CONFIG_I2C)
--int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match)
--{
--	int len;
--
--	if (c == NULL || match == NULL)
--		return 0;
--
--	switch (match->type) {
--	case V4L2_CHIP_MATCH_I2C_DRIVER:
--		if (c->driver == NULL || c->driver->driver.name == NULL)
--			return 0;
--		len = strlen(c->driver->driver.name);
--		return len && !strncmp(c->driver->driver.name, match->name, len);
--	case V4L2_CHIP_MATCH_I2C_ADDR:
--		return c->addr == match->addr;
--	case V4L2_CHIP_MATCH_SUBDEV:
--		return 1;
--	default:
--		return 0;
--	}
--}
--EXPORT_SYMBOL(v4l2_chip_match_i2c_client);
--
--int v4l2_chip_ident_i2c_client(struct i2c_client *c, struct v4l2_dbg_chip_ident *chip,
--		u32 ident, u32 revision)
--{
--	if (!v4l2_chip_match_i2c_client(c, &chip->match))
--		return 0;
--	if (chip->ident == V4L2_IDENT_NONE) {
--		chip->ident = ident;
--		chip->revision = revision;
--	}
--	else {
--		chip->ident = V4L2_IDENT_AMBIGUOUS;
--		chip->revision = 0;
--	}
--	return 0;
--}
--EXPORT_SYMBOL(v4l2_chip_ident_i2c_client);
--
--/* ----------------------------------------------------------------- */
--
- /* I2C Helper functions */
- 
-+#if IS_ENABLED(CONFIG_I2C)
- 
- void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- 		const struct v4l2_subdev_ops *ops)
-@@ -290,8 +247,6 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- }
- EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
- 
--
--
- /* Load an i2c sub-device. */
- struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
- 		struct i2c_adapter *adapter, struct i2c_board_info *info,
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index e7821fb..015ff82 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -100,15 +100,6 @@ u32 v4l2_ctrl_next(const u32 * const *ctrl_classes, u32 id);
- 
- /* ------------------------------------------------------------------------- */
- 
--/* Register/chip ident helper function */
--
--struct i2c_client; /* forward reference */
--int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match);
--int v4l2_chip_ident_i2c_client(struct i2c_client *c, struct v4l2_dbg_chip_ident *chip,
--		u32 ident, u32 revision);
--
--/* ------------------------------------------------------------------------- */
--
- /* I2C Helper functions */
- 
- struct i2c_driver;
--- 
-1.7.10.4
+0x48004d44 contains 0x04816807 whiche gives a dpll4 frequency of 864 MHz
+0x48004f40  contains 0x5 which gives a cam_mclk frequency of 172,8 MHz
+0x480bc050 (ISP.TCTRL_CTRL) contains 0x7 which should give a 24 MHz frequency
 
+In my dmesg output, I never see a message like the following but for dpll4_ck.
+
+omap3_noncore_dpll_set_rate: dpll5_ck: set rate: locking rate to 120000000.
+
+I wonder why.
+
+
+
+> commit 577f8ea9ba7b1276096713b8148b3a8fca96d805
+> Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Date:   Thu May 16 13:15:40 2013 +0200
+>
+>     ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5 on all OMAP3 platforms
+>
+>     Commit 7b2e1277598e4187c9be3e61fd9b0f0423f97986 ("ARM: OMAP3: clock:
+>     Back-propagate rate change from cam_mclk to dpll4_m5") enabled clock
+>     rate back-propagation from cam_mclk do dpll4_m5 on OMAP3630 only.
+>     Perform back-propagation on other OMAP3 platforms as well.
+>
+>     Reported-by: Jean-Philippe François <jp.francois@cynove.com>
+>     Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+> diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
+> index 4579c3c..c21065a 100644
+> --- a/arch/arm/mach-omap2/cclock3xxx_data.c
+> +++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+> @@ -418,7 +418,8 @@ static struct clk_hw_omap dpll4_m5x2_ck_hw = {
+>         .clkdm_name     = "dpll4_clkdm",
+>  };
+>
+> -DEFINE_STRUCT_CLK(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names, dpll4_m5x2_ck_ops);
+> +DEFINE_STRUCT_CLK_FLAGS(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names,
+> +                       dpll4_m5x2_ck_ops, CLK_SET_RATE_PARENT);
+>
+>  static struct clk dpll4_m5x2_ck_3630 = {
+>         .name           = "dpll4_m5x2_ck",
+>
+>
+> --
+> Regards,
+>
+> Laurent Pinchart
+>
