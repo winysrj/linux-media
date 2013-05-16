@@ -1,69 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:63003 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751635Ab3ENEpH (ORCPT
+Received: from mail-da0-f43.google.com ([209.85.210.43]:45672 "EHLO
+	mail-da0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753648Ab3EPNSS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 00:45:07 -0400
-Received: by mail-pa0-f47.google.com with SMTP id kl13so163068pab.20
-        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 21:45:05 -0700 (PDT)
-From: Jeff Hansen <x@jeffhansen.com>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Thu, 16 May 2013 09:18:18 -0400
+From: Lad Prabhakar <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Jeff Hansen <x@jeffhansen.com>
-Subject: [PATCH] [media] hdpvr: Disable IR receiver by default.
-Date: Mon, 13 May 2013 22:44:19 -0600
-Message-Id: <1368506659-13722-1-git-send-email-x@jeffhansen.com>
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
+Date: Thu, 16 May 2013 18:48:07 +0530
+Message-Id: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All of the firmwares I've tested, including 0x1e, will inevitably crash
-before recording for even 10 minutes. There must be a race condition of
-IR RX vs. video-encoding in the firmware, because if you disable IR receiver
-polling, then the firmware is stable again. I'd guess that most people don't
-use this feature anyway, so we might as well disable it by default, and
-warn them that it might be unstable until Hauppauge fixes it in a future
-firmware.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Jeff Hansen <x@jeffhansen.com>
+This patch adds "sync-on-green" property as part of
+endpoint properties and also support to parse them in the parser.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/usb/hdpvr/hdpvr-core.c |   16 +++++++++++-----
- 1 file changed, 11 insertions(+), 5 deletions(-)
+ Changes for v2:
+ 1: Dropped "field-active" property as it same as existing
+    "field-even-active" property.
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
-index 8247c19..3e80202 100644
---- a/drivers/media/usb/hdpvr/hdpvr-core.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-core.c
-@@ -53,6 +53,10 @@ static bool boost_audio;
- module_param(boost_audio, bool, S_IRUGO|S_IWUSR);
- MODULE_PARM_DESC(boost_audio, "boost the audio signal");
+ .../devicetree/bindings/media/video-interfaces.txt |    2 ++
+ drivers/media/v4l2-core/v4l2-of.c                  |    3 +++
+ include/media/v4l2-mediabus.h                      |    1 +
+ 3 files changed, 6 insertions(+), 0 deletions(-)
+
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index e022d2d..f91821f 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -101,6 +101,8 @@ Optional endpoint properties
+   array contains only one entry.
+ - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
+   clock mode.
++-sync-on-green: a boolean property indicating to sync with the green signal in
++ RGB.
  
-+int ir_rx_enable;
-+module_param(ir_rx_enable, int, S_IRUGO|S_IWUSR);
-+MODULE_PARM_DESC(ir_rx_enable, "Enable HDPVR IR receiver (firmware may be unstable)");
+ 
+ Example
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index aa59639..b51d61f 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -100,6 +100,9 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+ 	if (!of_property_read_u32(node, "data-shift", &v))
+ 		bus->data_shift = v;
+ 
++	if (of_get_property(node, "sync-on-green", &v))
++		flags |= V4L2_MBUS_SYNC_ON_GREEN;
 +
+ 	bus->flags = flags;
  
- /* table of devices that work with this driver */
- static struct usb_device_id hdpvr_table[] = {
-@@ -394,11 +398,13 @@ static int hdpvr_probe(struct usb_interface *interface,
- 		goto error;
- 	}
+ }
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 83ae07e..cf2c66f9 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -40,6 +40,7 @@
+ #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
+ /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
+ #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
++#define V4L2_MBUS_SYNC_ON_GREEN			(1 << 12)
  
--	client = hdpvr_register_ir_rx_i2c(dev);
--	if (!client) {
--		v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
--		retval = -ENODEV;
--		goto reg_fail;
-+	if (ir_rx_enable) {
-+		client = hdpvr_register_ir_rx_i2c(dev);
-+		if (!client) {
-+			v4l2_err(&dev->v4l2_dev, "i2c IR RX device register failed\n");
-+			retval = -ENODEV;
-+			goto reg_fail;
-+		}
- 	}
- 
- 	client = hdpvr_register_ir_tx_i2c(dev);
+ /* Serial flags */
+ /* How many lanes the client can use */
 -- 
-1.7.9.5
+1.7.4.1
 
