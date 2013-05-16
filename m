@@ -1,57 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f169.google.com ([74.125.82.169]:33672 "EHLO
-	mail-we0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755189Ab3EPGlC (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47587 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752902Ab3EPLUx convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 02:41:02 -0400
-Received: by mail-we0-f169.google.com with SMTP id x54so2453150wes.28
-        for <linux-media@vger.kernel.org>; Wed, 15 May 2013 23:41:00 -0700 (PDT)
+	Thu, 16 May 2013 07:20:53 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: "linux-omap@vger.kernel.org" <linux-omap@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: omap3 : isp clock a : Difference between dmesg frequency and actual frequency with 3.9
+Date: Thu, 16 May 2013 13:21:12 +0200
+Message-ID: <4943563.lUEuHDFNBN@avalon>
+In-Reply-To: <CAGGh5h3cFqCyjhncLTSfuL+vceO6CWDUTWgBsLGW=-spn6Z8qA@mail.gmail.com>
+References: <CAGGh5h1CKAUKwdM=Y7W5_ycDoucXLVF8vpxpEKJF_5naGzhPDQ@mail.gmail.com> <CAGGh5h3cFqCyjhncLTSfuL+vceO6CWDUTWgBsLGW=-spn6Z8qA@mail.gmail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAPrYoTGjMQtTu5VTTY802YaFy8-zR-aEd=27ZKqcF60FAsR-JA@mail.gmail.com>
-References: <CAPrYoTGjMQtTu5VTTY802YaFy8-zR-aEd=27ZKqcF60FAsR-JA@mail.gmail.com>
-Date: Thu, 16 May 2013 12:11:00 +0530
-Message-ID: <CAK7N6vpEp6E5ekUeqyQbYhE75rqSU1JP6sjonTb575yqDkhNXw@mail.gmail.com>
-Subject: Re: Doubt regarding DMA / VMALLOC memory ops
-From: anish singh <anish198519851985@gmail.com>
-To: Chetan Nanda <chetannanda@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 15, 2013 at 4:10 PM, Chetan Nanda <chetannanda@gmail.com> wrote:
-> Hi,
->
-> I am new to V4L2 kernel framework. And currently trying to understand V4L2
-> kernel sub-system.
-> In videobuf2 sub-system, before calling 'vb2_queue_init(q)',  q's mem_ops is
-> being initialized (depending on type of buffer) as
->
-> q->mem_ops = &vb2_vmalloc_memops;
-> or
-> q->mem_ops = &vb2_dma_contig_memops
-These are just assigning function pointers to be called when we do
-memory related operations.
->
-> What is the purpose of these memory operations?
-> If user space is allocating the buffer (physically contiguous) via some other
-> kernel driver (hwmem - for android). Even then do we need to set mem_ops =
-> vb2_dma_contig_memops?
-I think what you are referring here is the ION/PMEM memory being assigned
-by the user space in android.If the user space is assinging the memory
-then VB2_MMAP | VB2_USERPTR will be used and this function pointer
-mentioned by you earlier would not be same but it would be ION/PMEM related
-callbacks.
-Basically in the case of userptr the OEM's have a specific way of handling
-contigiuos memory and is not covered by the generic VB2 code but managing
-those contigious memory is covered by VB2.
-VB2 provides all the callbacks using which you can write your own memory
-management code.
->
->
-> Thanks,
-> Chetan Nanda
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Jean-Philippe,
+
+On Thursday 16 May 2013 10:21:14 jean-philippe francois wrote:
+> 2013/5/15 jean-philippe francois <jp.francois@cynove.com>:
+> > Hi,
+> > 
+> > I am working on a dm3730 based camera.
+> > The sensor input clock is provided by the cpu via the CAM_XCLK pin.
+> > Here is the corresponding log :
+> > 
+> > [    9.115966] Entering cam_set_xclk
+> > [    9.119781] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+> > 24685714 Hz
+> > [    9.121337] ov10x33 1-0010: sensor id : 0xa630
+> > [   10.293640] Entering cam_set_xclk
+> > [   10.297149] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to 0 Hz
+> > [   10.393920] Entering cam_set_xclk
+> > [   10.397979] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+> > 24685714 Hz
+> > 
+> > However, when mesured on the actual pin, the frequency is around 30 MHz
+> > 
+> > The crystal clock is 19.2 MHz
+> > All this was correct with 3.6.11.
+> 
+> Sorry for the resend, wrong tab and enter key sequence in gmail ...
+> 
+> It seems the dpll4_m5_ck is not correctly set,
+> 3.6.11 code in isp.c (without error handling)
+> 
+>     r = clk_set_rate(isp->clock[ISP_CLK_DPLL4_M5_CK],
+>               CM_CAM_MCLK_HZ/divisor);
+>     ...
+>     r = clk_enable(isp->clock[ISP_CLK_CAM_MCLK]);
+> 
+> 3.9 code in isp.c (without error handling)
+> 
+>     r = clk_set_rate(isp->clock[ISP_CLK_CAM_MCLK],
+>               CM_CAM_MCLK_HZ/divisor);
+> 
+>     r = clk_prepare_enable(isp->clock[ISP_CLK_CAM_MCLK]);
+> 
+> The PLL settings ie multiplier and divisor are the same in each case,
+> but the dmesg output differ :
+> Here is what happens when isp_enable_clock is called on 3.6
+> 
+> 3.6
+>     [   10.133697] Entering cam_set_xclk
+>     [   10.137573] clock: clksel_round_rate_div: dpll4_m5_ck
+> target_rate 172800000
+>     [   10.137573] clock: new_div = 5, new_rate = 172800000
+>     [   10.137603] clock: dpll4_m5_ck: set rate to 172800000
+>     [   10.138061] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+> 24685714 Hz
+> 
+> 3.9
+>     [    9.095581] Entering cam_set_xclk
+>     [    9.102661] omap3isp omap3isp: isp_set_xclk(): cam_xclka set to
+> 24685714 Hz
+> 
+> So the frequency setting register are correctly set, but the actual
+> output frequency is not.
+> maybe dpll4 is not correctly locked ? I will also check
+> isp_enable_clock is really called.
+> But I suppose it is, because except for the frequency, everything is
+> working correctly.
+
+Does the following patch fix the issue ?
+
+commit 577f8ea9ba7b1276096713b8148b3a8fca96d805
+Author: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Date:   Thu May 16 13:15:40 2013 +0200
+
+    ARM: OMAP3: clock: Back-propagate rate change from cam_mclk to dpll4_m5 on all OMAP3 platforms
+    
+    Commit 7b2e1277598e4187c9be3e61fd9b0f0423f97986 ("ARM: OMAP3: clock:
+    Back-propagate rate change from cam_mclk to dpll4_m5") enabled clock
+    rate back-propagation from cam_mclk do dpll4_m5 on OMAP3630 only.
+    Perform back-propagation on other OMAP3 platforms as well.
+    
+    Reported-by: Jean-Philippe François <jp.francois@cynove.com>
+    Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+diff --git a/arch/arm/mach-omap2/cclock3xxx_data.c b/arch/arm/mach-omap2/cclock3xxx_data.c
+index 4579c3c..c21065a 100644
+--- a/arch/arm/mach-omap2/cclock3xxx_data.c
++++ b/arch/arm/mach-omap2/cclock3xxx_data.c
+@@ -418,7 +418,8 @@ static struct clk_hw_omap dpll4_m5x2_ck_hw = {
+ 	.clkdm_name	= "dpll4_clkdm",
+ };
+ 
+-DEFINE_STRUCT_CLK(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names, dpll4_m5x2_ck_ops);
++DEFINE_STRUCT_CLK_FLAGS(dpll4_m5x2_ck, dpll4_m5x2_ck_parent_names,
++			dpll4_m5x2_ck_ops, CLK_SET_RATE_PARENT);
+ 
+ static struct clk dpll4_m5x2_ck_3630 = {
+ 	.name		= "dpll4_m5x2_ck",
+
+
+-- 
+Regards,
+
+Laurent Pinchart
+
