@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:34369 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752733Ab3EVLAL (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:57231 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752823Ab3EPTqN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 07:00:11 -0400
-Message-ID: <1369220358.4426.10.camel@pizza.hi.pengutronix.de>
-Subject: Re: [RFC] [media] mem2mem: add support for hardware buffered queue
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>, John Sheu <sheu@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Date: Wed, 22 May 2013 12:59:18 +0200
-In-Reply-To: <201305221236.48467.hverkuil@xs4all.nl>
-References: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
-	 <201305221236.48467.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Thu, 16 May 2013 15:46:13 -0400
+Date: Thu, 16 May 2013 21:46:09 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Andrei Andreyanau <a.andreyanau@sam-solutions.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: mt9p031 shows purple coloured capture
+In-Reply-To: <5194D9AB.3030608@sam-solutions.com>
+Message-ID: <Pine.LNX.4.64.1305162142210.27706@axis700.grange>
+References: <5194D9AB.3030608@sam-solutions.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 22.05.2013, 12:36 +0200 schrieb Hans Verkuil:
-> On Wed 22 May 2013 12:17:36 Philipp Zabel wrote:
-> > On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
-> > buffer at the end of the stream, remaining frames might need to be decoded
-> > without additional input buffers being provided, and after calling streamoff
-> > on the v4l2 output queue. This also allows a driver to copy input buffers
-> > into their bitstream ringbuffer and immediately mark them as done to be
-> > dequeued.
-> > 
-> > The motivation for this patch is hardware assisted h.264 reordering support
-> > in the coda driver. For high profile streams, the coda can hold back
-> > out-of-order frames, causing a few mem2mem device runs in the beginning, that
-> > don't produce any decompressed buffer at the v4l2 capture side. At the same
-> > time, the last few frames can be decoded from the bitstream with mem2mem device
-> > runs that don't need a new input buffer at the v4l2 output side. A streamoff
-> > on the v4l2 output side can be used to put the decoder into the ringbuffer
-> > draining end-of-stream mode.
-> 
-> This is just a pointer to a related issue: how to signal to the application
-> that the end-of-stream has been reached:
-> 
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg60916.html
+On Thu, 16 May 2013, Andrei Andreyanau wrote:
 
-Thank you for the pointer, this is exactly
+> Hi, Laurent,
+> I have an issue with the mt9p031 camera. The kernel version I use
+> uses soc camera framework as well as camera does. And I have
+> the following thing which appears randomly while capturing the
+> image using gstreamer. When I start the capture for the first time, it
+> shows the correct image (live stream). When I stop and start it again
+> it may show the image in purple (it can appear on the third or fourth
+> time). Or it can show the correct image every time I start the capture.
+> Do you have any idea why it appears so?
 
-> How does the coda driver handle eos signalling?
+Wrong clock or *sync polarity selection? Which leads to random 
+start-of-frame misplacement?
 
-It does not, yet. The patches I'm currently preparing are still just
-calling v4l2_event_queue_fh before v4l2_m2m_job_finish from the
-interrupt handler after the device run signals that there is no more
-data, but I think this needs to be done with the DQBUF instead.
-
-I like the idea of an EOS buffer flag for the capture side.
-
-regards
-Philipp
-
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
