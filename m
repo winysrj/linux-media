@@ -1,47 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm31-vm7.bullet.mail.ne1.yahoo.com ([98.138.229.47]:33784 "EHLO
-	nm31-vm7.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753806Ab3ESXEV convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 19 May 2013 19:04:21 -0400
-References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com> <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com> <51993DDE.4070800@googlemail.com>
-Message-ID: <1369004659.18393.YahooMailNeo@web120305.mail.ne1.yahoo.com>
-Date: Sun, 19 May 2013 16:04:19 -0700 (PDT)
-From: Chris Rankin <rankincj@yahoo.com>
-Reply-To: Chris Rankin <rankincj@yahoo.com>
-Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
-To: =?iso-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <51993DDE.4070800@googlemail.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:58384 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752425Ab3EPQII (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 16 May 2013 12:08:08 -0400
+Message-ID: <5195045A.5080507@canonical.com>
+Date: Thu, 16 May 2013 12:07:54 -0400
+From: Joseph Salisbury <joseph.salisbury@canonical.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-kernel@vger.kernel.org, mchehab@redhat.com,
+	linux-media@vger.kernel.org, stable@vger.kernel.org
+Subject: Re: [PATCH 1/1] [media] uvcvideo: quirk PROBE_DEF for Alienware X51
+ OmniVision webcam
+References: <1368650328-21128-1-git-send-email-joseph.salisbury@canonical.com> <4475290.i8RRTUStdI@avalon>
+In-Reply-To: <4475290.i8RRTUStdI@avalon>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
------ Original Message -----
+On 05/16/2013 08:03 AM, Laurent Pinchart wrote:
+> Hi Joseph,
+>
+> Thank you for the patch.
+Thanks for the feedback.
 
-> What happens with kernel 3.8 ? Does ir-keytable trigger an
-> em28xx_ir_change_protocol() call there, too, but with type=8 ? Or is this call missing ?
+>
+> On Wednesday 15 May 2013 16:38:48 joseph.salisbury@canonical.com wrote:
+>> From: Joseph Salisbury <joseph.salisbury@canonical.com>
+>>
+>> BugLink: http://bugs.launchpad.net/bugs/1180409
+>>
+>> OminiVision webcam 0x05a9:0x2643 needs the same UVC_QUIRK_PROBE_DEF as other
+>> OmniVision models to work properly.
+>>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Cc: linux-media@vger.kernel.org
+>> Cc: stable@vger.kernel.org
+>> Signed-off-by: Joseph Salisbury <joseph.salisbury@canonical.com>
+> There's already a 05a9:2643 webcam model, found in a Dell monitor, that has 
+> been reported to work properly without the UVC_QUIRK_PROBE_DEF. Enabling the 
+> quirk shouldn't hurt, but I'd like to check differences between the two 
+> devices. Could you please send me the output of
+>
+> lsusb -v -d 05a9:2643
+>
+> (running as root if possible) ?
+The lsusb output can be seen at:
+https://bugs.launchpad.net/ubuntu/+source/linux/+bug/1180409/comments/10/+download
 
-This is the dmesg output from 3.8, with an extra ex28xx_info() call at the start of em28xx_ir_change_protocol():
+I can also send this to you as an attachment if needed.
 
-[ 2149.668729] Em28xx: Initialized (Em28xx dvb Extension) extension
-[ 2149.674447] em28xx #0: Changing protocol: rc_type=1
-[ 2149.700087] Registered IR keymap rc-pinnacle-pctv-hd
-[ 2149.700444] input: em28xx IR (em28xx #0) as /devices/pci0000:00/0000:00:1d.7/usb5/5-1/rc/rc0/input15
-[ 2149.700655] rc0: em28xx IR (em28xx #0) as /devices/pci0000:00/0000:00:1d.7/usb5/5-1/rc/rc0
-[ 2149.700660] em28xx #0: Changing protocol: rc_type=8
-[ 2149.702337] Em28xx: Initialized (Em28xx Input Extension) extension
-[ 2149.704204] em28xx #0: Changing protocol: rc_type=1
+>
+>> ---
+>>  drivers/media/usb/uvc/uvc_driver.c |    9 +++++++++
+>>  1 file changed, 9 insertions(+)
+>>
+>> diff --git a/drivers/media/usb/uvc/uvc_driver.c
+>> b/drivers/media/usb/uvc/uvc_driver.c index 5dbefa6..411682c 100644
+>> --- a/drivers/media/usb/uvc/uvc_driver.c
+>> +++ b/drivers/media/usb/uvc/uvc_driver.c
+>> @@ -2163,6 +2163,15 @@ static struct usb_device_id uvc_ids[] = {
+>>  	  .bInterfaceSubClass	= 1,
+>>  	  .bInterfaceProtocol	= 0,
+>>  	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
+>> + 	/* Alienware X51*/
+>> +        { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
+>> +                                | USB_DEVICE_ID_MATCH_INT_INFO,
+>> +          .idVendor             = 0x05a9,
+>> +          .idProduct            = 0x2643,
+>> +          .bInterfaceClass      = USB_CLASS_VIDEO,
+>> +          .bInterfaceSubClass   = 1,
+>> +          .bInterfaceProtocol   = 0,
+>> +          .driver_info          = UVC_QUIRK_PROBE_DEF },
+> Your mailer messed up formatting. As the patch is small I've fixed it 
+> manually, but please make sure to use a proper mail client next time. I advise 
+> using git-send-email to send patches.
 
-And this is me calling ir-keytable:
+Thanks.  I did in fact use git-send-email, which is what I use to send
+all patches.  Can you point out the bad formatting.  Is it that   '|
+USB_DEVICE_ID_MATCH_INT_INFO,' was not indented?  If so, I'll
+investigate why that happened.
+>
+>>  	/* Apple Built-In iSight */
+>>  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
+>>
+>>  				| USB_DEVICE_ID_MATCH_INT_INFO,
 
-[ 2183.812407] em28xx #0: Changing protocol: rc_type=1
-
-The point is that 3.8 ignores rc_type=1, whereas 3.9 uses it to update a new ir->rc_type field - which in turn controls how em2874_polling_getkey() encodes its scancode.
-
-Cheers,
-Chris
-
+Thanks again for reviewing this patch.
