@@ -1,81 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1413 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752812Ab3EZN1f (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:48090 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753771Ab3EPMtr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 09:27:35 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 08/24] saa6752hs: drop obsolete g_chip_ident.
-Date: Sun, 26 May 2013 15:27:03 +0200
-Message-Id: <1369574839-6687-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 16 May 2013 08:49:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH v3] media: i2c: tvp514x: add OF support
+Date: Thu, 16 May 2013 14:50:06 +0200
+Message-ID: <2750806.COjXX3GeT0@avalon>
+In-Reply-To: <CA+V-a8ti58gdPR-fUEqgBvUQ=1GkoTUyLj9UK4D5aVwHv2R6mA@mail.gmail.com>
+References: <1368529236-18199-1-git-send-email-prabhakar.csengg@gmail.com> <11504129.E8jKKy4N2e@avalon> <CA+V-a8ti58gdPR-fUEqgBvUQ=1GkoTUyLj9UK4D5aVwHv2R6mA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Prabhakar,
 
-This op and the v4l2-chip-ident.h header are no longer needed.
+On Thursday 16 May 2013 18:13:38 Prabhakar Lad wrote:
+> On Thu, May 16, 2013 at 5:40 PM, Laurent Pinchart wrote:
+> > Hi Prabhakar,
+> 
+> [Snip]
+> 
+> >> +
+> >> +     pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+> >> +     if (!pdata)
+> > 
+> > I've started playing with the V4L2 OF bindings, and realized that should
+> > should call of_node_put() here.
+> 
+> you were referring  of_node_get() here rite ?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa6752hs.c |   14 --------------
- 1 file changed, 14 deletions(-)
+No, I'm referring to of_node_put(). The v4l2_of_get_next_endpoint() function 
+mentions
 
-diff --git a/drivers/media/pci/saa7134/saa6752hs.c b/drivers/media/pci/saa7134/saa6752hs.c
-index f147b05..244b286 100644
---- a/drivers/media/pci/saa7134/saa6752hs.c
-+++ b/drivers/media/pci/saa7134/saa6752hs.c
-@@ -35,7 +35,6 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
--#include <media/v4l2-chip-ident.h>
- #include <linux/init.h>
- #include <linux/crc32.h>
- 
-@@ -92,7 +91,6 @@ static const struct v4l2_format v4l2_format_table[] =
- 
- struct saa6752hs_state {
- 	struct v4l2_subdev            sd;
--	int 			      chip;
- 	u32 			      revision;
- 	int 			      has_ac3;
- 	struct saa6752hs_mpeg_params  params;
-@@ -914,19 +912,9 @@ static int saa6752hs_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
- 	return 0;
- }
- 
--static int saa6752hs_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct saa6752hs_state *h = to_state(sd);
--
--	return v4l2_chip_ident_i2c_client(client,
--			chip, h->chip, h->revision);
--}
--
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops saa6752hs_core_ops = {
--	.g_chip_ident = saa6752hs_g_chip_ident,
- 	.init = saa6752hs_init,
- 	.queryctrl = saa6752hs_queryctrl,
- 	.querymenu = saa6752hs_querymenu,
-@@ -963,11 +951,9 @@ static int saa6752hs_probe(struct i2c_client *client,
- 
- 	i2c_master_send(client, &addr, 1);
- 	i2c_master_recv(client, data, sizeof(data));
--	h->chip = V4L2_IDENT_SAA6752HS;
- 	h->revision = (data[8] << 8) | data[9];
- 	h->has_ac3 = 0;
- 	if (h->revision == 0x0206) {
--		h->chip = V4L2_IDENT_SAA6752HS_AC3;
- 		h->has_ac3 = 1;
- 		v4l_info(client, "support AC-3\n");
- 	}
+ * Return: An 'endpoint' node pointer with refcount incremented. Refcount
+ * of the passed @prev node is not decremented, the caller have to use
+ * of_node_put() on it when done.
+
+> of_node_get/put() got recently added I guess coz of which I missed it :)
+> 
+> >> +             return NULL;
+> >> +
+> >> +     v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+> >> +     flags = bus_cfg.bus.parallel.flags;
+> >> +
+> >> +     if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> >> +             pdata->hs_polarity = 1;
+> >> +
+> >> +     if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> >> +             pdata->vs_polarity = 1;
+> >> +
+> >> +     if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+> >> +             pdata->clk_polarity = 1;
+> >> +
+> > 
+> > As well as here. Maybe a
+> > 
+> > done:
+> >         of_node_put(endpoint);
+> >         return pdata;
+> > 
+> > with a goto done in the devm_kzalloc error path would be better.
+
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
