@@ -1,405 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:8662 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752835Ab3EFJeg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 05:34:36 -0400
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org, linux-leds@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	Bryan Wu <cooloney@gmail.com>,
-	Richard Purdie <rpurdie@rpsys.net>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH RFC 1/2] v4l2-leddev: added LED class support for V4L2 flash
- subdevices
-Date: Mon, 06 May 2013 11:33:47 +0200
-Message-id: <1367832828-30771-2-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1367832828-30771-1-git-send-email-a.hajda@samsung.com>
-References: <1367832828-30771-1-git-send-email-a.hajda@samsung.com>
+Received: from smtprelay03.ispgateway.de ([80.67.29.28]:56350 "EHLO
+	smtprelay03.ispgateway.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751315Ab3EQQgk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 May 2013 12:36:40 -0400
+Message-ID: <51965C42.4060801@dct.mine.nu>
+Date: Fri, 17 May 2013 18:35:14 +0200
+From: Karsten Malcher <debian@dct.mine.nu>
+Reply-To: debian@dct.mine.nu
+MIME-Version: 1.0
+To: poma <pomidorabelisima@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Support of RTL2832U+R820T
+References: <51898A55.8050005@dct.mine.nu> <5189B5E1.3050201@gmail.com>
+In-Reply-To: <5189B5E1.3050201@gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds helper functions for exposing V4L2 flash
-subdevice as LED class device. For such device there will be
-created appropriate entry in <sysfs>/class/leds/ directory with
-standard LED class attributes and attributes corresponding
-to V4L2 flash controls exposed by the subdevice.
+Hello poma,
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/v4l2-core/Kconfig       |    7 +
- drivers/media/v4l2-core/Makefile      |    1 +
- drivers/media/v4l2-core/v4l2-leddev.c |  269 +++++++++++++++++++++++++++++++++
- include/media/v4l2-leddev.h           |   49 ++++++
- 4 files changed, 326 insertions(+)
- create mode 100644 drivers/media/v4l2-core/v4l2-leddev.c
- create mode 100644 include/media/v4l2-leddev.h
+Am 08.05.2013 04:18, schrieb poma:
+> On 08.05.2013 01:12, Karsten Malcher wrote:
+>> Hello,
+>>
+>> i want to ask how i can get the DVB-T RTL2832U with the new R820T Tuner
+>> supported?
+>>
+>> First i found this GitHub that i could compile, but it does not support
+>> the new Tuner.
+>> https://github.com/ambrosa/DVB-Realtek-RTL2832U-2.2.2-10tuner-mod_kernel-3.0.0
+>>
+>>
+>> Here i found the tuner supported, but i don't know how to integrate this
+>> stuff into the driver?
+>> http://sdr.osmocom.org/trac/wiki/rtl-sdr
+>>
+>> Can you help?
+> Oh dear. :)
+>
+> http://git.linuxtv.org/media_build.git
+>
+> Typical usage is:
+> …
+>
+>
+> poma
+>
+>
+>
 
-diff --git a/drivers/media/v4l2-core/Kconfig b/drivers/media/v4l2-core/Kconfig
-index 8c05565..c32b7f2 100644
---- a/drivers/media/v4l2-core/Kconfig
-+++ b/drivers/media/v4l2-core/Kconfig
-@@ -35,6 +35,13 @@ config V4L2_MEM2MEM_DEV
-         tristate
-         depends on VIDEOBUF2_CORE
- 
-+# Used by drivers that need v4l2-leddev.ko
-+config V4L2_LEDDEV
-+	tristate "LED support for V4L2 flash subdevices"
-+	depends on VIDEO_V4L2 && LEDS_CLASS
-+	---help---
-+	  This option enables LED class support for V4L2 flash devices.
-+
- # Used by drivers that need Videobuf modules
- config VIDEOBUF_GEN
- 	tristate
-diff --git a/drivers/media/v4l2-core/Makefile b/drivers/media/v4l2-core/Makefile
-index aa50c46..2906c7c 100644
---- a/drivers/media/v4l2-core/Makefile
-+++ b/drivers/media/v4l2-core/Makefile
-@@ -20,6 +20,7 @@ obj-$(CONFIG_VIDEO_V4L2) += v4l2-common.o
- obj-$(CONFIG_VIDEO_TUNER) += tuner.o
- 
- obj-$(CONFIG_V4L2_MEM2MEM_DEV) += v4l2-mem2mem.o
-+obj-$(CONFIG_V4L2_LEDDEV) += v4l2-leddev.o
- 
- obj-$(CONFIG_VIDEOBUF_GEN) += videobuf-core.o
- obj-$(CONFIG_VIDEOBUF_DMA_SG) += videobuf-dma-sg.o
-diff --git a/drivers/media/v4l2-core/v4l2-leddev.c b/drivers/media/v4l2-core/v4l2-leddev.c
-new file mode 100644
-index 0000000..f41885e
---- /dev/null
-+++ b/drivers/media/v4l2-core/v4l2-leddev.c
-@@ -0,0 +1,269 @@
-+/*
-+ * V4L2 API for exposing flash subdevs as LED class devices
-+ *
-+ * Copyright (C) 2013, Samsung Electronics Co., Ltd.
-+ * Andrzej Hajda <a.hajda@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#include <linux/leds.h>
-+#include <linux/module.h>
-+#include <linux/sysfs.h>
-+#include <media/v4l2-ctrls.h>
-+#include <media/v4l2-leddev.h>
-+
-+struct v4l2_leddev_attr {
-+	u32 ctrl_id;
-+	u8 name[32];
-+	struct device_attribute dattr;
-+};
-+
-+struct v4l2_leddev_attr *to_v4l2_leddev_attr(struct device_attribute *da)
-+{
-+	return container_of(da, struct v4l2_leddev_attr, dattr);
-+}
-+
-+struct v4l2_leddev *to_v4l2_leddev(struct led_classdev *cdev)
-+{
-+	return container_of(cdev, struct v4l2_leddev, cdev);
-+}
-+
-+static void v4l2_leddev_brightness_set(struct led_classdev *cdev,
-+				       enum led_brightness value)
-+{
-+	struct v4l2_ext_control ctrls[2] = {
-+		{
-+			.id = V4L2_CID_FLASH_LED_MODE,
-+			.value = value ? V4L2_FLASH_LED_MODE_TORCH
-+				       : V4L2_FLASH_LED_MODE_NONE,
-+		},
-+		{
-+			.id = V4L2_CID_FLASH_TORCH_INTENSITY,
-+			.value = value
-+		}
-+
-+	};
-+	struct v4l2_ext_controls ext_ctrls = {
-+		.ctrl_class = V4L2_CTRL_CLASS_FLASH,
-+		.controls = ctrls,
-+		.count = value ? 2 : 1,
-+	};
-+	struct v4l2_leddev *ld = to_v4l2_leddev(cdev);
-+
-+	v4l2_subdev_s_ext_ctrls(ld->sd, &ext_ctrls);
-+}
-+
-+static enum led_brightness v4l2_leddev_brightness_get(struct led_classdev *cdev)
-+{
-+	struct v4l2_ext_control ctrls[2] = {
-+		{
-+			.id = V4L2_CID_FLASH_LED_MODE,
-+		},
-+		{
-+			.id = V4L2_CID_FLASH_TORCH_INTENSITY,
-+		},
-+
-+	};
-+	struct v4l2_ext_controls ext_ctrls = {
-+		.ctrl_class = V4L2_CTRL_CLASS_FLASH,
-+		.controls = ctrls,
-+		.count = 2,
-+	};
-+	struct v4l2_leddev *ld = to_v4l2_leddev(cdev);
-+	int ret;
-+
-+	ret = v4l2_subdev_g_ext_ctrls(ld->sd, &ext_ctrls);
-+
-+	if (ret || ctrls[0].value != V4L2_FLASH_LED_MODE_TORCH)
-+		return 0;
-+
-+	return ctrls[1].value;
-+}
-+
-+static ssize_t v4l2_leddev_show(struct device *dev,
-+		struct device_attribute *attr, char *buf)
-+{
-+	struct led_classdev *cdev = dev_get_drvdata(dev);
-+	struct v4l2_leddev *ld = to_v4l2_leddev(cdev);
-+	struct v4l2_leddev_attr *ldattr = to_v4l2_leddev_attr(attr);
-+	struct v4l2_ext_control ctrl = {
-+		.id = ldattr->ctrl_id,
-+	};
-+	struct v4l2_ext_controls ext_ctrls = {
-+		.ctrl_class = V4L2_CTRL_CLASS_FLASH,
-+		.controls = &ctrl,
-+		.count = 1,
-+	};
-+	int ret;
-+
-+	ret = v4l2_subdev_g_ext_ctrls(ld->sd, &ext_ctrls);
-+	if (ret)
-+		return 0;
-+
-+	return sprintf(buf, "%d\n", ctrl.value);
-+}
-+
-+static ssize_t v4l2_leddev_store(struct device *dev,
-+				 struct device_attribute *attr,
-+				 const char *buf, size_t size)
-+{
-+	struct led_classdev *cdev = dev_get_drvdata(dev);
-+	struct v4l2_leddev *ld = to_v4l2_leddev(cdev);
-+	struct v4l2_leddev_attr *ldattr = to_v4l2_leddev_attr(attr);
-+	struct v4l2_ext_control ctrl = {
-+		.id = ldattr->ctrl_id,
-+	};
-+	struct v4l2_ext_controls ext_ctrls = {
-+		.ctrl_class = V4L2_CTRL_CLASS_FLASH,
-+		.controls = &ctrl,
-+		.count = 1,
-+	};
-+	int ret;
-+
-+	ret = kstrtos32(buf, 0, &ctrl.value);
-+	if (!ret)
-+		ret = v4l2_subdev_s_ext_ctrls(ld->sd, &ext_ctrls);
-+
-+	return ret ? 0 : size;
-+}
-+
-+static int v4l2_leddev_ctrls_count(struct v4l2_leddev *ld)
-+{
-+	struct v4l2_queryctrl qc = {
-+		.id = V4L2_CID_FLASH_CLASS | V4L2_CTRL_FLAG_NEXT_CTRL,
-+	};
-+	int n = 0;
-+
-+	while (v4l2_queryctrl(ld->sd->ctrl_handler, &qc) == 0) {
-+		if (V4L2_CTRL_ID2CLASS (qc.id) != V4L2_CTRL_CLASS_FLASH)
-+			break;
-+		++n;
-+		qc.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
-+	}
-+	return n;
-+}
-+
-+static int v4l2_leddev_create_attrs(struct v4l2_leddev *ld)
-+{
-+	struct v4l2_queryctrl qc = {
-+		.id = V4L2_CID_FLASH_CLASS | V4L2_CTRL_FLAG_NEXT_CTRL,
-+	};
-+	int i = 0;
-+	int ret;
-+
-+	ld->attr_count = v4l2_leddev_ctrls_count(ld);
-+	ld->attrs = kzalloc(sizeof(*ld->attrs) * ld->attr_count, GFP_KERNEL);
-+	if (!ld->attrs)
-+		return -ENOMEM;
-+
-+	while (v4l2_queryctrl(ld->sd->ctrl_handler, &qc) == 0) {
-+		struct v4l2_leddev_attr *attr = &ld->attrs[i];
-+		if (V4L2_CTRL_ID2CLASS (qc.id) != V4L2_CTRL_CLASS_FLASH)
-+			break;
-+
-+		attr->ctrl_id = qc.id;
-+		strncpy(attr->name, qc.name, sizeof(attr->name));
-+		attr->dattr.attr.name = attr->name;
-+		if (!(qc.flags & V4L2_CTRL_FLAG_READ_ONLY)) {
-+			attr->dattr.store = v4l2_leddev_store;
-+			attr->dattr.attr.mode |= 0220;
-+		}
-+		if (!(qc.flags & V4L2_CTRL_FLAG_WRITE_ONLY)) {
-+			attr->dattr.show = v4l2_leddev_show;
-+			attr->dattr.attr.mode |= 0444;
-+		}
-+		v4l2_info(ld->sd, "creating attr %s(%d/%d)\n", attr->name, i,
-+			  ld->attr_count);
-+		ret = device_create_file(ld->cdev.dev, &attr->dattr);
-+		if (!ret) {
-+			if (++i == ld->attr_count)
-+				break;
-+		} else {
-+			v4l2_err(ld->sd, "error creating attr %s (%d)\n",
-+				 attr->name, ret);
-+		}
-+
-+		qc.id |= V4L2_CTRL_FLAG_NEXT_CTRL;
-+	}
-+	ld->attr_count = i;
-+	return 0;
-+}
-+
-+static void v4l2_leddev_remove_attrs(struct v4l2_leddev *ld)
-+{
-+	int i;
-+
-+	for (i = ld->attr_count - 1; i >= 0; --i)
-+		device_remove_file(ld->cdev.dev, &ld->attrs[i].dattr);
-+
-+	kfree(ld->attrs);
-+	ld->attrs = NULL;
-+	ld->attr_count = 0;
-+}
-+
-+static int v4l2_leddev_get_max_brightness(struct v4l2_leddev *ld)
-+{
-+	struct v4l2_queryctrl qc = {
-+		.id = V4L2_CID_FLASH_TORCH_INTENSITY,
-+	};
-+	int ret;
-+
-+	ret = v4l2_queryctrl(ld->sd->ctrl_handler, &qc);
-+	if (ret) {
-+		v4l2_err(ld->sd, "cannot query torch intensity (%d)\n", ret);
-+		return 0;
-+	}
-+	return qc.maximum;
-+}
-+
-+int v4l2_leddev_register(struct device *dev, struct v4l2_leddev *ld)
-+{
-+	int ret;
-+
-+	if (!ld->sd) {
-+		dev_err(dev, "cannot register leddev without subdev provided\n");
-+		return -EINVAL;
-+	}
-+	if (!ld->cdev.name)
-+		ld->cdev.name = ld->sd->name;
-+	if (!ld->cdev.max_brightness)
-+		ld->cdev.max_brightness = v4l2_leddev_get_max_brightness(ld);
-+	if (!ld->cdev.brightness_set)
-+		ld->cdev.brightness_set = v4l2_leddev_brightness_set;
-+	if (!ld->cdev.brightness_get)
-+		ld->cdev.brightness_get = v4l2_leddev_brightness_get;
-+
-+	ret = led_classdev_register(dev, &ld->cdev);
-+	if (ret < 0)
-+		return ret;
-+
-+	ret = v4l2_leddev_create_attrs(ld);
-+	if (ret < 0)
-+		led_classdev_unregister(&ld->cdev);
-+
-+	return ret;
-+}
-+EXPORT_SYMBOL(v4l2_leddev_register);
-+
-+void v4l2_leddev_unregister(struct v4l2_leddev *ld)
-+{
-+	v4l2_leddev_remove_attrs(ld);
-+	led_classdev_unregister(&ld->cdev);
-+}
-+EXPORT_SYMBOL(v4l2_leddev_unregister);
-+
-+MODULE_AUTHOR("Andrzej Hajda <a.hajda@samsung.com>");
-+MODULE_DESCRIPTION("V4L2 API for exposing flash subdevs as LED class devices");
-+MODULE_LICENSE("GPL");
-diff --git a/include/media/v4l2-leddev.h b/include/media/v4l2-leddev.h
-new file mode 100644
-index 0000000..384b71f
---- /dev/null
-+++ b/include/media/v4l2-leddev.h
-@@ -0,0 +1,49 @@
-+/*
-+ * V4L2 API for exposing flash subdevs as led class devices
-+ *
-+ * Copyright (C) 2013, Samsung Electronics Co., Ltd.
-+ * Andrzej Hajda <a.hajda@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * version 2 as published by the Free Software Foundation.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ */
-+
-+#ifndef _V4L2_LEDDEV_H
-+#define _V4L2_LEDDEV_H
-+
-+#include <linux/device.h>
-+#include <linux/leds.h>
-+#include <media/v4l2-subdev.h>
-+
-+struct v4l2_leddev_attr;
-+
-+struct v4l2_leddev {
-+	struct v4l2_subdev *sd;
-+	struct led_classdev cdev;
-+	int attr_count;
-+	struct v4l2_leddev_attr *attrs;
-+};
-+
-+#ifdef CONFIG_V4L2_LEDDEV
-+
-+int v4l2_leddev_register(struct device *dev, struct v4l2_leddev *ld);
-+void v4l2_leddev_unregister(struct v4l2_leddev *ld);
-+
-+#else
-+
-+#define v4l2_leddev_register(dev, ld) (0)
-+#define v4l2_leddev_unregister(ld) (void)
-+
-+#endif
-+
-+#endif /* _V4L2_LEDDEV_H */
--- 
-1.7.10.4
+The driver is working but after some time the system crashes and does not react any more.
+Just doing the simple test "rtl_test -s 3.2e6".
 
+Here is what the syslog shows:
+
+May 17 18:15:57 PC10 anacron[4446]: Updated timestamp for job `cron.daily' to 2013-05-17
+May 17 18:17:01 PC10 /USR/SBIN/CRON[4537]: (root) CMD (   cd / && run-parts --report /etc/cron.hourly)
+May 17 18:25:34 PC10 kernel: [  890.646246] usb 1-2.1.1: USB disconnect, device number 5
+May 17 18:25:34 PC10 kernel: [  890.646997] usb 1-2.1.1: dvb_usb_v2: 'MSI Mega Sky 55801 DVB-T USB2.0' successfully 
+deinitialized and disconnected
+May 17 18:25:35 PC10 acpid: input device has been disconnected, fd 18
+May 17 18:26:00 PC10 kernel: [  916.432558] usb 1-2.1.1: new high-speed USB device number 6 using ehci_hcd
+May 17 18:26:00 PC10 kernel: [  916.536923] usb 1-2.1.1: New USB device found, idVendor=0bda, idProduct=2838
+May 17 18:26:00 PC10 kernel: [  916.536934] usb 1-2.1.1: New USB device strings: Mfr=1, Product=2, SerialNumber=3
+May 17 18:26:00 PC10 kernel: [  916.536941] usb 1-2.1.1: Product: RTL2838UHIDIR
+May 17 18:26:00 PC10 kernel: [  916.536946] usb 1-2.1.1: Manufacturer: Realtek
+May 17 18:26:00 PC10 kernel: [  916.536951] usb 1-2.1.1: SerialNumber: 00000001
+May 17 18:26:00 PC10 udevd[4852]: failed to execute '/lib/udev/mtp-probe' 'mtp-probe 
+/sys/devices/pci0000:00/0000:00:12.2/usb1/1-2/1-2.1/1-2.1.1 1 6': No such file or directory
+May 17 18:26:00 PC10 kernel: [  916.609927] usb 1-2.1.1: dvb_usb_v2: found a 'Realtek RTL2832U reference design' in warm 
+state
+May 17 18:26:00 PC10 kernel: [  916.610029] usbcore: registered new interface driver dvb_usb_rtl28xxu
+May 17 18:26:01 PC10 kernel: [  916.677157] usb 1-2.1.1: dvb_usb_v2: will pass the complete MPEG2 transport stream to 
+the software demuxer
+May 17 18:26:01 PC10 kernel: [  916.677193] DVB: registering new adapter (Realtek RTL2832U reference design)
+May 17 18:26:01 PC10 kernel: [  916.700879] usb 1-2.1.1: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
+May 17 18:26:01 PC10 kernel: [  916.794880] dvb_usb_rtl2832u: disagrees about version of symbol dvb_usb_device_init
+May 17 18:26:01 PC10 kernel: [  916.794892] dvb_usb_rtl2832u: Unknown symbol dvb_usb_device_init (err -22)
+May 17 18:26:01 PC10 kernel: [  916.794902] dvb_usb_rtl2832u: disagrees about version of symbol dvb_usb_device_init
+May 17 18:26:01 PC10 kernel: [  916.794915] dvb_usb_rtl2832u: Unknown symbol dvb_usb_device_init (err -22)
+May 17 18:26:01 PC10 kernel: [  916.808351] r820t 3-001a: creating new instance
+May 17 18:26:01 PC10 kernel: [  916.820371] r820t 3-001a: Rafael Micro r820t successfully identified
+May 17 18:26:01 PC10 kernel: [  916.827020] Registered IR keymap rc-empty
+May 17 18:26:01 PC10 kernel: [  916.827277] input: Realtek RTL2832U reference design as 
+/devices/pci0000:00/0000:00:12.2/usb1/1-2/1-2.1/1-2.1.1/rc/rc0/input12
+May 17 18:26:01 PC10 kernel: [  916.827531] rc0: Realtek RTL2832U reference design as 
+/devices/pci0000:00/0000:00:12.2/usb1/1-2/1-2.1/1-2.1.1/rc/rc0
+May 17 18:26:01 PC10 kernel: [  916.827544] usb 1-2.1.1: dvb_usb_v2: schedule remote query interval to 400 msecs
+May 17 18:26:01 PC10 kernel: [  916.840839] usb 1-2.1.1: dvb_usb_v2: 'Realtek RTL2832U reference design' successfully 
+initialized and connected
+May 17 18:26:14 PC10 acpid: input device has been disconnected, fd 18
+May 17 18:26:14 PC10 kernel: [  930.576375] r820t 3-001a: destroying instance
+May 17 18:26:14 PC10 kernel: [  930.578921] usb 1-2.1.1: dvb_usb_v2: 'Realtek RTL2832U reference design' successfully 
+deinitialized and disconnected
+May 17 18:26:15 PC10 kernel: [  931.048882] usb 1-2.1.1: dvb_usb_v2: found a 'Realtek RTL2832U reference design' in warm 
+state
+May 17 18:26:15 PC10 kernel: [  931.117410] usb 1-2.1.1: dvb_usb_v2: will pass the complete MPEG2 transport stream to 
+the software demuxer
+May 17 18:26:15 PC10 kernel: [  931.117446] DVB: registering new adapter (Realtek RTL2832U reference design)
+May 17 18:26:15 PC10 kernel: [  931.123284] usb 1-2.1.1: DVB: registering adapter 0 frontend 0 (Realtek RTL2832 (DVB-T))...
+May 17 18:26:15 PC10 kernel: [  931.123451] r820t 3-001a: creating new instance
+May 17 18:26:15 PC10 kernel: [  931.135279] r820t 3-001a: Rafael Micro r820t successfully identified
+May 17 18:26:15 PC10 kernel: [  931.143162] Registered IR keymap rc-empty
+May 17 18:26:15 PC10 kernel: [  931.143422] input: Realtek RTL2832U reference design as 
+/devices/pci0000:00/0000:00:12.2/usb1/1-2/1-2.1/1-2.1.1/rc/rc1/input13
+May 17 18:26:15 PC10 kernel: [  931.143658] rc1: Realtek RTL2832U reference design as 
+/devices/pci0000:00/0000:00:12.2/usb1/1-2/1-2.1/1-2.1.1/rc/rc1
+May 17 18:26:15 PC10 kernel: [  931.143670] usb 1-2.1.1: dvb_usb_v2: schedule remote query interval to 400 msecs
+May 17 18:26:15 PC10 kernel: [  931.156039] usb 1-2.1.1: dvb_usb_v2: 'Realtek RTL2832U reference design' successfully 
+initialized and connected
+May 17 18:26:47 PC10 acpid: input device has been disconnected, fd 18
+May 17 18:26:47 PC10 kernel: [  963.468382] r820t 3-001a: destroying instance
+May 17 18:26:47 PC10 kernel: [  963.469754] usb 1-2.1.1: dvb_usb_v2: 'Realtek RTL2832U reference design' successfully 
+deinitialized and disconnected
+May 17 18:27:21 PC10 kernel: [  996.728959] ------------[ cut here ]------------
+May 17 18:27:21 PC10 kernel: [  996.728972] kernel BUG at 
+/build/buildd-linux_3.2.23-1-amd64-zj7gxu/linux-3.2.23/mm/slab.c:3111!
+May 17 18:27:21 PC10 kernel: [  996.728980] invalid opcode: 0000 [#1] SMP
+May 17 18:27:21 PC10 kernel: [  996.728988] CPU 2
+May 17 18:27:21 PC10 kernel: [  996.728992] Modules linked in: r820t(O) rtl2832(O) dvb_usb(O) dvb_usb_rtl28xxu(O) 
+rtl2830(O) qt1010(O) zl10353(O) dvb_usb_gl861(O) dvb_usb_v2(O) dvb_core(O) rc_core(O) pci_stub vboxpci(O) vboxnetadp(O) 
+vboxnetflt(O) vboxdrv(O) ppdev lp snd_hrtimer cpufreq_conservative cpufreq_stats cpufreq_powersave cpufreq_userspace 
+fuse ext3 jbd w83627ehf hwmon_vid loop snd_hda_codec_hdmi nvidia(P) parport_pc parport sp5100_tco snd_hda_codec_via 
+i2c_piix4 i2c_core powernow_k8 edac_mce_amd mperf edac_core k10temp processor psmouse evdev pcspkr serio_raw 
+snd_hda_intel snd_hda_codec snd_seq_midi snd_seq_midi_event snd_hwdep snd_pcm_oss snd_rawmidi snd_mixer_oss wmi snd_pcm 
+snd_seq button snd_seq_device snd_page_alloc snd_timer snd soundcore thermal_sys ext4 crc16 jbd2 mbcache microcode 
+usbhid hid sg sr_mod cdrom sd_mod crc_t10dif ata_generic pata_atiixp ohci_hcd ahci libahci r8169 mii ehci_hcd libata 
+scsi_mod floppy usbcore usb_common [last unloaded: scsi_wait_scan]
+May 17 18:27:21 PC10 kernel: [  996.729142]
+May 17 18:27:21 PC10 kernel: [  996.729150] Pid: 3129, comm: Xorg Tainted: P           O 3.2.0-3-amd64 #1 To Be Filled 
+By O.E.M. To Be Filled By O.E.M./M3A770DE
+May 17 18:27:21 PC10 kernel: [  996.729162] RIP: 0010:[<ffffffff810eab41>]  [<ffffffff810eab41>] ____cache_alloc+0xed/0x1fa
+May 17 18:27:21 PC10 kernel: [  996.729181] RSP: 0018:ffff8802247dbc08  EFLAGS: 00010046
+May 17 18:27:21 PC10 kernel: [  996.729187] RAX: ffff88020bdaf000 RBX: ffff88022f000680 RCX: 000000000000000f
+May 17 18:27:21 PC10 kernel: [  996.729194] RDX: ffff88022f0023d0 RSI: dead000000200200 RDI: ffff88020bdaf000
+May 17 18:27:21 PC10 kernel: [  996.729200] RBP: 0000000000000000 R08: 0000000000000007 R09: ffff88022f011000
+May 17 18:27:21 PC10 kernel: [  996.729206] R10: 0000000000000004 R11: 0000000000000004 R12: 00000000000412d0
+May 17 18:27:21 PC10 kernel: [  996.729213] R13: ffff88022f0023c0 R14: ffff880226cd4400 R15: 0000000000000002
+May 17 18:27:21 PC10 kernel: [  996.729221] FS:  00007fdf0cb67880(0000) GS:ffff88022fc80000(0000) knlGS:0000000000000000
+May 17 18:27:21 PC10 kernel: [  996.729228] CS:  0010 DS: 0000 ES: 0000 CR0: 0000000080050033
+May 17 18:27:21 PC10 kernel: [  996.729234] CR2: 00007f2198e0f008 CR3: 0000000225d98000 CR4: 00000000000006e0
+May 17 18:27:21 PC10 kernel: [  996.729241] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+May 17 18:27:21 PC10 kernel: [  996.729248] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+May 17 18:27:21 PC10 kernel: [  996.729255] Process Xorg (pid: 3129, threadinfo ffff8802247da000, task ffff8802242ea930)
+May 17 18:27:21 PC10 kernel: [  996.729261] Stack:
+May 17 18:27:21 PC10 kernel: [  996.729265]  ffff880225940008 ffff88022f0023d0 ffff88020bdaf000 ffff88022f0023e0
+May 17 18:27:21 PC10 kernel: [  996.729278]  ffff880225093200 ffff880224ecefe8 00000000000000c8 ffffffffa095aab8
+May 17 18:27:21 PC10 kernel: [  996.729289]  ffff88022f000680 00000000000002d0 00000000000002d0 ffffffff810eb684
+May 17 18:27:21 PC10 kernel: [  996.729300] Call Trace:
+May 17 18:27:21 PC10 kernel: [  996.729570]  [<ffffffffa095aab8>] ? os_alloc_mem+0x75/0xb7 [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.729581]  [<ffffffff810eb684>] ? __kmalloc+0x9f/0x112
+May 17 18:27:21 PC10 kernel: [  996.729820]  [<ffffffffa095aab8>] ? os_alloc_mem+0x75/0xb7 [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.730064]  [<ffffffffa0929e92>] ? _nv014822rm+0x30/0x3f [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.730288]  [<ffffffffa0366455>] ? _nv001209rm+0xda5/0x3391 [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.730509]  [<ffffffffa03657eb>] ? _nv001209rm+0x13b/0x3391 [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.730723]  [<ffffffffa034198e>] ? _nv000966rm+0xd5/0x235 [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.730967]  [<ffffffffa09281dc>] ? _nv001108rm+0x3ac/0xaaf [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.731204]  [<ffffffffa09342a7>] ? rm_ioctl+0x76/0x100 [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.731441]  [<ffffffffa0952950>] ? nv_kern_ioctl+0x34f/0x3bb [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.731676]  [<ffffffffa09529f5>] ? nv_kern_unlocked_ioctl+0x1a/0x1e [nvidia]
+May 17 18:27:21 PC10 kernel: [  996.731687]  [<ffffffff81106911>] ? do_vfs_ioctl+0x459/0x49a
+May 17 18:27:21 PC10 kernel: [  996.731697]  [<ffffffff8110699d>] ? sys_ioctl+0x4b/0x72
+May 17 18:27:21 PC10 kernel: [  996.731708]  [<ffffffff8100ee8e>] ? math_state_restore+0x4b/0x55
+May 17 18:27:21 PC10 kernel: [  996.731719]  [<ffffffff8134fc92>] ? system_call_fastpath+0x16/0x1b
+May 17 18:27:21 PC10 kernel: [  996.731725] Code: 00 00 00 49 8b 45 00 4c 39 e8 75 17 49 8b 45 20 48 3b 44 24 18 41 c7 
+45 60 01 00 00 00 0f 84 a8 00 00 00 8b 4b 18 39 48 20 72 2d <0f> 0b 44 8b 40 24 8b 4b 0c ff c6 41 8b 3e 89 70 20 41 0f 
+af c8
+May 17 18:27:21 PC10 kernel: [  996.731811] RIP  [<ffffffff810eab41>] ____cache_alloc+0xed/0x1fa
+May 17 18:27:21 PC10 kernel: [  996.731821]  RSP <ffff8802247dbc08>
+May 17 18:27:21 PC10 kernel: [  996.731827] ---[ end trace 0eacac80028afd2a ]---
+
+
+Karsten
