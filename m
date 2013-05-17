@@ -1,55 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47918 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754764Ab3EPWiO (ORCPT
+Received: from mail-da0-f43.google.com ([209.85.210.43]:61206 "EHLO
+	mail-da0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752545Ab3EQLYN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 18:38:14 -0400
-Date: Fri, 17 May 2013 01:37:39 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 1/6] media: i2c: ths7303: remove init_enable option from
- pdata
-Message-ID: <20130516223739.GB2077@valkosipuli.retiisi.org.uk>
-References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
- <1368619042-28252-2-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 17 May 2013 07:24:13 -0400
+Date: Fri, 17 May 2013 19:24:05 +0800 (CST)
+From: Xiong Zhou <jencce.kernel@gmail.com>
+To: hans.verkuil@cisco.com, mchehab@redhat.com,
+	ismael.luceno@corp.bluecherry.net
+cc: linux-kernel@vger.kernel.org, gregkh@suse.de,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Subject: [PATCH] staging/solo6x10: select the desired font
+Message-ID: <alpine.DEB.2.02.1305171916540.10247@M2420>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1368619042-28252-2-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Xiong Zhou <jencce.kernel@gmail.com>
 
-Thanks for the patch!
+Make sure FONT_8x16 can be found by find_font().
 
-On Wed, May 15, 2013 at 05:27:17PM +0530, Lad Prabhakar wrote:
-> diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
-> index 65853ee..8cddcd0 100644
-> --- a/drivers/media/i2c/ths7303.c
-> +++ b/drivers/media/i2c/ths7303.c
-> @@ -356,9 +356,7 @@ static int ths7303_setup(struct v4l2_subdev *sd)
->  	int ret;
->  	u8 mask;
->  
-> -	state->stream_on = pdata->init_enable;
-> -
-> -	mask = state->stream_on ? 0xff : 0xf8;
-> +	mask = 0xf8;
+Signed-off-by: Xiong Zhou <jencce.kernel@gmail.com>
+---
+ drivers/staging/media/solo6x10/Kconfig |    1 +
+ 1 file changed, 1 insertion(+)
 
-You can assign mask in declaration. It'd be nice to have a human-readable
-name for the mask, too.
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
+index ec32776..0bc743b 100644
+--- a/drivers/staging/media/solo6x10/Kconfig
++++ b/drivers/staging/media/solo6x10/Kconfig
+@@ -4,6 +4,7 @@ config SOLO6X10
+ 	select VIDEOBUF2_DMA_SG
+ 	select VIDEOBUF2_DMA_CONTIG
+ 	select SND_PCM
++	select FONT_8x16
+ 	---help---
+ 	  This driver supports the Softlogic based MPEG-4 and h.264 codec
+ 	  cards.
