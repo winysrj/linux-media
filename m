@@ -1,38 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:38798 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751345Ab3EOVxc (ORCPT
+Received: from mail-vb0-f52.google.com ([209.85.212.52]:42388 "EHLO
+	mail-vb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750972Ab3EQE47 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 17:53:32 -0400
-Received: by mail-lb0-f170.google.com with SMTP id t11so2434310lbd.29
-        for <linux-media@vger.kernel.org>; Wed, 15 May 2013 14:53:31 -0700 (PDT)
-To: horms@verge.net.au, linux-sh@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org
-Subject: [PATCH v4 0/3] R8A7779/Marzen R-Car VIN driver support
-Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com, linux-media@vger.kernel.org
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Thu, 16 May 2013 01:53:29 +0400
+	Fri, 17 May 2013 00:56:59 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305160153.29827.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <20130516223739.GB2077@valkosipuli.retiisi.org.uk>
+References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1368619042-28252-2-git-send-email-prabhakar.csengg@gmail.com> <20130516223739.GB2077@valkosipuli.retiisi.org.uk>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Fri, 17 May 2013 10:26:38 +0530
+Message-ID: <CA+V-a8uzz=P9LzVeuzUhX5PTzi_VpFvVfKuGFHkcYaX02w1JrQ@mail.gmail.com>
+Subject: Re: [PATCH 1/6] media: i2c: ths7303: remove init_enable option from pdata
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi Sakari,
 
-   Here's the set of 3 patches against the Simon Horman's 'renesas.git' repo,
-'renesas-next-20130515v2' tag and my recent yet unapplied USB/I2C patches.
-Here we add the VIN driver platform code for the R8A7779/Marzen with ADV7180
-I2C video decoder.
+Thanks for the review.
 
-[1/3] ARM: shmobile: r8a7779: add VIN support
-[2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
-[3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
+On Fri, May 17, 2013 at 4:07 AM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
+> Hi Prabhakar,
+>
+> Thanks for the patch!
+>
+> On Wed, May 15, 2013 at 05:27:17PM +0530, Lad Prabhakar wrote:
+>> diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+>> index 65853ee..8cddcd0 100644
+>> --- a/drivers/media/i2c/ths7303.c
+>> +++ b/drivers/media/i2c/ths7303.c
+>> @@ -356,9 +356,7 @@ static int ths7303_setup(struct v4l2_subdev *sd)
+>>       int ret;
+>>       u8 mask;
+>>
+>> -     state->stream_on = pdata->init_enable;
+>> -
+>> -     mask = state->stream_on ? 0xff : 0xf8;
+>> +     mask = 0xf8;
+>
+> You can assign mask in declaration. It'd be nice to have a human-readable
+> name for the mask, too.
+>
+This function gets removed in the preceding patch of this series.
 
-   The VIN driver itself has been excluded from the series as it will be developed
-against Mauro's 'media_tree.git' plus some yet unapplied patches in the future...
-
-WBR, Sergei
+Regards,
+--Prabhakar Lad
