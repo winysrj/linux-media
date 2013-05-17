@@ -1,78 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f49.google.com ([209.85.210.49]:35204 "EHLO
-	mail-da0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755921Ab3ENKq5 (ORCPT
+Received: from s250.sam-solutions.net ([217.21.49.219]:43901 "EHLO
+	s250.sam-solutions.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752834Ab3EQGmi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 06:46:57 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 4/5] media: i2c: tvp7002: add support for asynchronous probing
-Date: Tue, 14 May 2013 16:15:33 +0530
-Message-Id: <1368528334-13595-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368528334-13595-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368528334-13595-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 17 May 2013 02:42:38 -0400
+Message-ID: <5195D159.6000501@sam-solutions.com>
+Date: Fri, 17 May 2013 09:42:33 +0300
+From: Andrei Andreyanau <a.andreyanau@sam-solutions.com>
+Reply-To: a.andreyanau@sam-solutions.com
+MIME-Version: 1.0
+To: Chris MacGregor <chris@cybermato.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: mt9p031 shows purple coloured capture
+References: <5194D9AB.3030608@sam-solutions.com> <5194EF88.7070403@cybermato.com>
+In-Reply-To: <5194EF88.7070403@cybermato.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi, Chris,
 
-Both synchronous and asynchronous tvp7002 subdevice probing is supported by
-this patch.
+No, I didn't try this, but I'll try. Also I was thinking that this issue
+appears because
+the bus width is not 12 bits as needed by the datasheet, but 10 bits (as
+it is limited
+by the hardware) so I was thinking that it may cause this issue to appear.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
----
- drivers/media/i2c/tvp7002.c |    7 +++++++
- 1 files changed, 7 insertions(+), 0 deletions(-)
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index f4114bf..d5113d1 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -31,6 +31,7 @@
- #include <linux/v4l2-dv-timings.h>
- 
- #include <media/tvp7002.h>
-+#include <media/v4l2-async.h>
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-@@ -1073,6 +1074,11 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- 	}
- 	v4l2_ctrl_handler_setup(&device->hdl);
- 
-+	device->sd.dev = &c->dev;
-+	error = v4l2_async_register_subdev(&device->sd);
-+	if (error)
-+		goto error;
-+
- 	return 0;
- 
- error:
-@@ -1097,6 +1103,7 @@ static int tvp7002_remove(struct i2c_client *c)
- 
- 	v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
- 				"on address 0x%x\n", c->addr);
-+	v4l2_async_unregister_subdev(&device->sd);
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	media_entity_cleanup(&device->sd.entity);
- #endif
--- 
-1.7.4.1
+Regards,
+Andrei
+
+On 05/16/2013 05:39 PM, Chris MacGregor wrote:
+> Hi.  IIRC, I had this problem as well.  I think I "solved" it by 
+> noticing that other users were simply skipping the first 3 frames. That 
+> seems to consistently avoid the issue for me.  Have you tried that?
+>
+>      Chris
+>
+> On 05/16/2013 06:05 AM, Andrei Andreyanau wrote:
+>> Hi, Laurent,
+>> I have an issue with the mt9p031 camera. The kernel version I use
+>> uses soc camera framework as well as camera does. And I have
+>> the following thing which appears randomly while capturing the
+>> image using gstreamer. When I start the capture for the first time, it
+>> shows the correct image (live stream). When I stop and start it again
+>> it may show the image in purple (it can appear on the third or fourth
+>> time). Or it can show the correct image every time I start the capture.
+>> Do you have any idea why it appears so?
+>>
+>> Thanks in advance,
+>> Andrei Andreyanau
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
