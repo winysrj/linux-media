@@ -1,222 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f54.google.com ([209.85.210.54]:48435 "EHLO
-	mail-da0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755493Ab3ENKrR (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:50624 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755380Ab3EQVEx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 06:47:17 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: [PATCH 5/5] media: i2c: tvp7002: add OF support
-Date: Tue, 14 May 2013 16:15:34 +0530
-Message-Id: <1368528334-13595-6-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368528334-13595-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368528334-13595-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 17 May 2013 17:04:53 -0400
+Date: Fri, 17 May 2013 23:04:45 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH v4] V4L2: soc_camera: Renesas R-Car VIN driver
+In-Reply-To: <519698D8.7050107@cogentembedded.com>
+Message-ID: <Pine.LNX.4.64.1305172259500.5515@axis700.grange>
+References: <201305150256.36966.sergei.shtylyov@cogentembedded.com>
+ <Pine.LNX.4.64.1305150742470.10596@axis700.grange> <519698D8.7050107@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Sat, 18 May 2013, Sergei Shtylyov wrote:
 
-add OF support for the tvp7002 driver.
+> Hello.
+> 
+> On 05/15/2013 09:44 AM, Guennadi Liakhovetski wrote:
+> 
+> > 
+> > > From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> > > 
+> > > Add Renesas R-Car VIN (Video In) V4L2 driver.
+> > > 
+> > > Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> > > 
+> > > Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> > > [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum
+> > > chip_id'
+> > > values, reordered rcar_vin_id_table[] entries,  removed senseless parens
+> > > from
+> > > to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to
+> > > the
+> > > *if* statement  and  used 'bool' values instead of 0/1 where necessary,
+> > > done
+> > > some reformatting and clarified some comments.]
+> > > Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> > > 
+> > > ---
+> > > This patch is against the 'media_tree.git' repo.
+> > > 
+> > > Changes since version 3:
+> > Why aren't you using this:
+> > 
+> > http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/63820
+> > 
+> > ?
+> > 
+> > Thanks
+> > Guennadi
+> 
+>     We have now incorporated the needed changes and I will post the updated
+> patch.
+> I must note that you haven't managed to get rid of all CEU references in the
+> shared
+> soc_scale_crop.c module, both in the variable names and in the comments.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: devicetree-discuss@lists.ozlabs.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
+Ok, I'll try to remember this and prepare an improved v2. Otherwise you're 
+welcome to suggest an improvement. As long as those "ceu" occurrences 
+aren't exposed in the API, it shouldn't affect users though.
+
+Thanks
+Guennadi
 ---
- .../devicetree/bindings/media/i2c/tvp7002.txt      |   42 +++++++++++++
- drivers/media/i2c/tvp7002.c                        |   64 +++++++++++++++++--
- 2 files changed, 99 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-new file mode 100644
-index 0000000..1ebd8b1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-@@ -0,0 +1,42 @@
-+* Texas Instruments TV7002 video decoder
-+
-+The TVP7002 device supports digitizing of video and graphics signal in RGB and
-+YPbPr color space.
-+
-+Required Properties :
-+- compatible : Must be "ti,tvp7002"
-+
-+- hsync-active: HSYNC Polarity configuration for endpoint.
-+
-+- vsync-active: VSYNC Polarity configuration for endpoint.
-+
-+- pclk-sample: Clock polarity of the endpoint.
-+
-+- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
-+
-+- ti,tvp7002-sog-polarity: Sync on Green output polarity of the endpoint.
-+
-+For further reading of port node refer Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		...
-+		tvp7002@5c {
-+			compatible = "ti,tvp7002";
-+			reg = <0x5c>;
-+
-+			port {
-+				tvp7002_1: endpoint {
-+					hsync-active = <1>;
-+					vsync-active = <1>;
-+					pclk-sample = <0>;
-+					ti,tvp7002-fid-polarity;
-+					ti,tvp7002-sog-polarity;
-+				};
-+			};
-+		};
-+		...
-+	};
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index d5113d1..942e0d8 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -35,6 +35,7 @@
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-of.h>
- 
- #include "tvp7002_reg.h"
- 
-@@ -976,6 +977,46 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
- 	.pad = &tvp7002_pad_ops,
- };
- 
-+static struct tvp7002_config *
-+tvp7002_get_pdata(struct i2c_client *client)
-+{
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct tvp7002_config *pdata;
-+	struct device_node *endpoint;
-+	unsigned int flags;
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-+		return client->dev.platform_data;
-+
-+	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-+	if (!endpoint)
-+		return NULL;
-+
-+	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		return NULL;
-+
-+	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	flags = bus_cfg.bus.parallel.flags;
-+
-+	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+		pdata->hs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+		pdata->vs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		pdata->clk_polarity = 1;
-+
-+	pdata->fid_polarity = of_property_read_bool(endpoint,
-+						    "ti,tvp7002-fid-polarity");
-+
-+	pdata->sog_polarity = of_property_read_bool(endpoint,
-+						    "ti,tvp7002-sog-polarity");
-+
-+	return pdata;
-+}
-+
- /*
-  * tvp7002_probe - Probe a TVP7002 device
-  * @c: ptr to i2c_client struct
-@@ -987,32 +1028,32 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
-  */
- static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- {
-+	struct tvp7002_config *pdata = tvp7002_get_pdata(c);
- 	struct v4l2_subdev *sd;
- 	struct tvp7002 *device;
- 	struct v4l2_dv_timings timings;
- 	int polarity_a;
- 	int polarity_b;
- 	u8 revision;
--
- 	int error;
- 
-+	if (pdata == NULL) {
-+		dev_err(&c->dev, "No platform data\n");
-+		return -EINVAL;
-+	}
-+
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(c->adapter,
- 		I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
- 		return -EIO;
- 
--	if (!c->dev.platform_data) {
--		v4l_err(c, "No platform data!!\n");
--		return -ENODEV;
--	}
--
- 	device = devm_kzalloc(&c->dev, sizeof(struct tvp7002), GFP_KERNEL);
- 
- 	if (!device)
- 		return -ENOMEM;
- 
- 	sd = &device->sd;
--	device->pdata = c->dev.platform_data;
-+	device->pdata = pdata;
- 	device->current_timings = tvp7002_timings;
- 
- 	/* Tell v4l2 the device is ready */
-@@ -1119,9 +1160,18 @@ static const struct i2c_device_id tvp7002_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, tvp7002_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id tvp7002_of_match[] = {
-+	{ .compatible = "ti,tvp7002", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, tvp7002_of_match);
-+#endif
-+
- /* I2C driver data */
- static struct i2c_driver tvp7002_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(tvp7002_of_match),
- 		.owner = THIS_MODULE,
- 		.name = TVP7002_MODULE_NAME,
- 	},
--- 
-1.7.4.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
