@@ -1,59 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f43.google.com ([209.85.219.43]:50576 "EHLO
-	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752442Ab3EAMlR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 08:41:17 -0400
-Received: by mail-oa0-f43.google.com with SMTP id k7so1390980oag.2
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 05:41:17 -0700 (PDT)
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:58468 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755385Ab3EQUxi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 17 May 2013 16:53:38 -0400
+Received: by mail-lb0-f177.google.com with SMTP id o10so582368lbi.8
+        for <linux-media@vger.kernel.org>; Fri, 17 May 2013 13:53:36 -0700 (PDT)
+Message-ID: <519698D8.7050107@cogentembedded.com>
+Date: Sat, 18 May 2013 00:53:44 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-From: Sumit Semwal <sumit.semwal@linaro.org>
-Date: Wed, 1 May 2013 18:10:56 +0530
-Message-ID: <CAO_48GGBRwXuSoWuCr1eHhjGFmkzoC4Ji8osv+frjO1em8odfQ@mail.gmail.com>
-Subject: [GIT PULL]: dma-buf updates for 3.10
-To: Linus Torvalds <torvalds@linux-foundation.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Linaro MM SIG <linaro-mm-sig@lists.linaro.org>,
-	linux-media@vger.kernel.org
-Cc: akpm@linux-foundation.org, Daniel Vetter <daniel@ffwll.ch>,
-	Arnd Bergmann <arnd@arndb.de>, Dave Airlie <airlied@linux.ie>,
-	Tom Gall <tom.gall@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH v4] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <201305150256.36966.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1305150742470.10596@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1305150742470.10596@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Hello.
 
-The 3.10 pull request for dma-buf framework updates: small one, could
-you please pull?
+On 05/15/2013 09:44 AM, Guennadi Liakhovetski wrote:
 
-Thanks and best regards,
-~Sumit.
+>
+>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>>
+>> Add Renesas R-Car VIN (Video In) V4L2 driver.
+>>
+>> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+>>
+>> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
+>> values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
+>> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
+>> *if* statement  and  used 'bool' values instead of 0/1 where necessary, done
+>> some reformatting and clarified some comments.]
+>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>>
+>> ---
+>> This patch is against the 'media_tree.git' repo.
+>>
+>> Changes since version 3:
+> Why aren't you using this:
+>
+> http://thread.gmane.org/gmane.linux.drivers.video-input-infrastructure/63820
+>
+> ?
+>
+> Thanks
+> Guennadi
 
+     We have now incorporated the needed changes and I will post the 
+updated patch.
+I must note that you haven't managed to get rid of all CEU references in 
+the shared
+soc_scale_crop.c module, both in the variable names and in the comments.
 
-The following changes since commit 5f56886521d6ddd3648777fae44d82382dd8c87f:
+WBR, Sergei
 
-  Merge branch 'akpm' (incoming from Andrew) (2013-04-30 17:37:43 -0700)
-
-are available in the git repository at:
-
-
-  git://git.linaro.org/people/sumitsemwal/linux-dma-buf.git
-tags/tag-for-linus-3.10
-
-for you to fetch changes up to b89e35636bc75b72d15a1af6d49798802aff77d5:
-
-  dma-buf: Add debugfs support (2013-05-01 16:36:22 +0530)
-
-----------------------------------------------------------------
-3.10 dma-buf updates
-  Added debugfs support to dma-buf.
-----------------------------------------------------------------
-Sumit Semwal (2):
-      dma-buf: replace dma_buf_export() with dma_buf_export_named()
-      dma-buf: Add debugfs support
-
- Documentation/dma-buf-sharing.txt |  13 ++-
- drivers/base/dma-buf.c            | 169 +++++++++++++++++++++++++++++++++++++-
- include/linux/dma-buf.h           |  16 +++-
- 3 files changed, 189 insertions(+), 9 deletions(-)
