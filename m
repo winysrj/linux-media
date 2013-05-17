@@ -1,63 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from elasmtp-galgo.atl.sa.earthlink.net ([209.86.89.61]:51984 "EHLO
-	elasmtp-galgo.atl.sa.earthlink.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1755971Ab3EFUQ7 (ORCPT
+Received: from mail-da0-f41.google.com ([209.85.210.41]:64396 "EHLO
+	mail-da0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751660Ab3EQEog (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 6 May 2013 16:16:59 -0400
-Message-ID: <51880FB9.7000006@earthlink.net>
-Date: Mon, 06 May 2013 15:16:57 -0500
-From: The Bit Pit <thebitpit@earthlink.net>
-MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: Re: Driver for KWorld UB435Q Version 3 (ATSC) USB id: 1b80:e34c
-References: <51841517.4030504@earthlink.net> <CAGoCfiy5qWrqH1ptGc4LKvbN1w-TtsV+ogCr7qWX6zn9L=MaSQ@mail.gmail.com>
-In-Reply-To: <CAGoCfiy5qWrqH1ptGc4LKvbN1w-TtsV+ogCr7qWX6zn9L=MaSQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Fri, 17 May 2013 00:44:36 -0400
+Received: by mail-da0-f41.google.com with SMTP id y19so2117607dan.14
+        for <linux-media@vger.kernel.org>; Thu, 16 May 2013 21:44:35 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: t.stanislaws@samsung.com, sylvester.nawrocki@gmail.com,
+	s.nawrocki@samsung.com, sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH v4 2/2] s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL in mixer_drv.c
+Date: Fri, 17 May 2013 10:01:02 +0530
+Message-Id: <1368765062-6194-2-git-send-email-sachin.kamat@linaro.org>
+In-Reply-To: <1368765062-6194-1-git-send-email-sachin.kamat@linaro.org>
+References: <1368765062-6194-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/03/2013 04:29 PM, Devin Heitmueller wrote:
-> The lgdt3305 is probably on the second i2c bus -- typical for em2874
-> based devices. The tuner is probably gated behind the 3305. It's also
-> likely that the 3305 is being held in reset by default. You'll
-> probably need to tweak a GPIO to take it out of reset before it will
-> answer i2c. 
-Thanks, I found it on the second i2c bus. I tweaked the GPIO to get is
-going. It attached OK.
-> One is probably the eeprom.
-Right!  It is the eeprom at 0x50 on bus 0.  After I figured out how to
-access bus 1, it reports:
-[39839.472893] em2874 #0: found i2c device @ 0xc0 on bus 1 [tuner (analog)]
-This I assume is the tda18272.
+NULL check on clocks obtained using common clock APIs should not
+be done. Use IS_ERR only.
 
-The next challenge is a driver for the tuner tda18272.  There is a
-driver for tda18271.  The 10 page product data sheet block diagrams are
-different for the tda18271 and tda18272.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+ drivers/media/platform/s5p-tv/mixer_drv.c |   24 ++++++++++++++++++------
+ 1 file changed, 18 insertions(+), 6 deletions(-)
 
-I tried to attach the tda18272 as a tda18271 and got:
+diff --git a/drivers/media/platform/s5p-tv/mixer_drv.c b/drivers/media/platform/s5p-tv/mixer_drv.c
+index 5733033..7aeefdb 100644
+--- a/drivers/media/platform/s5p-tv/mixer_drv.c
++++ b/drivers/media/platform/s5p-tv/mixer_drv.c
+@@ -211,6 +211,15 @@ fail:
+ 	return ret;
+ }
+ 
++static void mxr_resource_clear_clocks(struct mxr_resources *res)
++{
++	res->mixer	= ERR_PTR(-EINVAL);
++	res->vp		= ERR_PTR(-EINVAL);
++	res->sclk_mixer	= ERR_PTR(-EINVAL);
++	res->sclk_hdmi	= ERR_PTR(-EINVAL);
++	res->sclk_dac	= ERR_PTR(-EINVAL);
++}
++
+ static void mxr_release_plat_resources(struct mxr_device *mdev)
+ {
+ 	free_irq(mdev->res.irq, mdev);
+@@ -222,15 +231,15 @@ static void mxr_release_clocks(struct mxr_device *mdev)
+ {
+ 	struct mxr_resources *res = &mdev->res;
+ 
+-	if (!IS_ERR_OR_NULL(res->sclk_dac))
++	if (!IS_ERR(res->sclk_dac))
+ 		clk_put(res->sclk_dac);
+-	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
++	if (!IS_ERR(res->sclk_hdmi))
+ 		clk_put(res->sclk_hdmi);
+-	if (!IS_ERR_OR_NULL(res->sclk_mixer))
++	if (!IS_ERR(res->sclk_mixer))
+ 		clk_put(res->sclk_mixer);
+-	if (!IS_ERR_OR_NULL(res->vp))
++	if (!IS_ERR(res->vp))
+ 		clk_put(res->vp);
+-	if (!IS_ERR_OR_NULL(res->mixer))
++	if (!IS_ERR(res->mixer))
+ 		clk_put(res->mixer);
+ }
+ 
+@@ -239,7 +248,9 @@ static int mxr_acquire_clocks(struct mxr_device *mdev)
+ 	struct mxr_resources *res = &mdev->res;
+ 	struct device *dev = mdev->dev;
+ 
+-	res->mixer = clk_get(dev, "mixer");
++	mxr_resource_clear_clocks(res);
++
++	res->mixer	= clk_get(dev, "mixer");
+ 	if (IS_ERR(res->mixer)) {
+ 		mxr_err(mdev, "failed to get clock 'mixer'\n");
+ 		goto fail;
+@@ -299,6 +310,7 @@ static void mxr_release_resources(struct mxr_device *mdev)
+ 	mxr_release_clocks(mdev);
+ 	mxr_release_plat_resources(mdev);
+ 	memset(&mdev->res, 0, sizeof(mdev->res));
++	mxr_resource_clear_clocks(&mdev->res);
+ }
+ 
+ static void mxr_release_layers(struct mxr_device *mdev)
+-- 
+1.7.9.5
 
-[39839.510613] tda18271 10-0060: creating new instance
-[39839.510615]435 em2874 #0 at em28xx_i2c_xfer: write nonstop addr=c0
-len=1: 00
-[39839.510992] em2874 #0 at em28xx_i2c_xfer: read stop addr=c0 len=16:
-c7 60 11 52 00 02 0c 00 20 80 00 00 c9 0f 3f 35
-[39839.512636] Unknown device (199) detected @ 10-0060, device not
-supported.
-[39839.512640] tda18271_attach: [10-0060|M] error -22 on line 1285
-[39839.512642] tda18271 10-0060: destroying instance
-
-There are a few references to 18272 in usb/dvb-usb-v2/rtl28xxu.c  - All
-I could see is code to detect the tda18272. I don't understand this code
-yet.
-
-If they are similar enough maybe 18271 driver could be modified to
-handle the 18272.
-
-Can anyone send me register specs for the tda18272 and tda18271 so I can
-figure out how they could be merged. Better yet, maybe someone has
-already done this.
-
-Thank you,
-Wilson Michaels
