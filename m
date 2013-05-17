@@ -1,72 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:48859 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754820Ab3ETL1J (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1094 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754062Ab3EQJw2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 May 2013 07:27:09 -0400
-Received: by mail-ob0-f176.google.com with SMTP id wp18so6882858obc.35
-        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 04:27:09 -0700 (PDT)
+	Fri, 17 May 2013 05:52:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sander Eikelenboom <linux@eikelenboom.it>
+Subject: Re: [media] cx25821 regression from 3.9: BUG: bad unlock balance detected!
+Date: Fri, 17 May 2013 11:52:17 +0200
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1139404719.20130516194142@eikelenboom.it> <201305171025.24166.hverkuil@xs4all.nl> <1756541549.20130517110450@eikelenboom.it>
+In-Reply-To: <1756541549.20130517110450@eikelenboom.it>
 MIME-Version: 1.0
-In-Reply-To: <1368436761-12183-1-git-send-email-sachin.kamat@linaro.org>
-References: <1368436761-12183-1-git-send-email-sachin.kamat@linaro.org>
-Date: Mon, 20 May 2013 16:57:08 +0530
-Message-ID: <CAK9yfHxOpoNFoTV6LkqTJGAL_K4R7n5e4ke0Cw-WeceWZ6MK_Q@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] soc_camera/sh_mobile_csi2: Remove redundant platform_set_drvdata()
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305171152.17746.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13 May 2013 14:49, Sachin Kamat <sachin.kamat@linaro.org> wrote:
-> Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
-> driver is bound) removes the need to set driver data field to
-> NULL.
->
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> ---
->  drivers/media/platform/soc_camera/sh_mobile_csi2.c |    8 +-------
->  1 file changed, 1 insertion(+), 7 deletions(-)
->
-> diff --git a/drivers/media/platform/soc_camera/sh_mobile_csi2.c b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-> index 09cb4fc..13a1f8f 100644
-> --- a/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-> +++ b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
-> @@ -340,18 +340,13 @@ static int sh_csi2_probe(struct platform_device *pdev)
->         ret = v4l2_device_register_subdev(pdata->v4l2_dev, &priv->subdev);
->         dev_dbg(&pdev->dev, "%s(%p): ret(register_subdev) = %d\n", __func__, priv, ret);
->         if (ret < 0)
-> -               goto esdreg;
-> +               return ret;
->
->         pm_runtime_enable(&pdev->dev);
->
->         dev_dbg(&pdev->dev, "CSI2 probed.\n");
->
->         return 0;
-> -
-> -esdreg:
-> -       platform_set_drvdata(pdev, NULL);
-> -
-> -       return ret;
->  }
->
->  static int sh_csi2_remove(struct platform_device *pdev)
-> @@ -360,7 +355,6 @@ static int sh_csi2_remove(struct platform_device *pdev)
->
->         v4l2_device_unregister_subdev(&priv->subdev);
->         pm_runtime_disable(&pdev->dev);
-> -       platform_set_drvdata(pdev, NULL);
->
->         return 0;
->  }
+On Fri May 17 2013 11:04:50 Sander Eikelenboom wrote:
+> 
+> Friday, May 17, 2013, 10:25:24 AM, you wrote:
+> 
+> > On Thu May 16 2013 19:41:42 Sander Eikelenboom wrote:
+> >> Hi Hans / Mauro,
+> >> 
+> >> With 3.10.0-rc1 (including the cx25821 changes from Hans), I get the bug below which wasn't present with 3.9.
+> 
+> > How do I reproduce this? I've tried to, but I can't make this happen.
+> 
+> > Looking at the code I can't see how it could hit this bug anyway.
+> 
+> I'm using "motion" to grab and process 6 from the video streams of the card i have (card with 8 inputs).
+> It seems the cx25821 underwent quite some changes between 3.9 and 3.10.
+
+It did.
+
+> And in the past there have been some more locking issues around mmap and media devices, although they seem to appear as circular locking dependencies and with different devices.
+>    - http://www.mail-archive.com/linux-media@vger.kernel.org/msg46217.html
+>    - Under kvm: http://www.spinics.net/lists/linux-media/msg63322.html
+
+Neither of those are related to this issue.
+
+> 
+> - Perhaps that running in a VM could have to do with it ?
+>    - The driver on 3.9 occasionaly gives this, probably latency related (but continues to work):
+>      cx25821: cx25821_video_wakeup: 2 buffers handled (should be 1)
+> 
+>      Could it be something double unlocking in that path ?
+> 
+> - Is there any extra debugging i could enable that could pinpoint the issue ?
+
+Try this patch:
+
+diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+index b762c5b..8f8d0e0 100644
+--- a/drivers/media/pci/cx25821/cx25821-core.c
++++ b/drivers/media/pci/cx25821/cx25821-core.c
+@@ -1208,7 +1208,6 @@ void cx25821_free_buffer(struct videobuf_queue *q, struct cx25821_buffer *buf)
+ 	struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
+ 
+ 	BUG_ON(in_interrupt());
+-	videobuf_waiton(q, &buf->vb, 0, 0);
+ 	videobuf_dma_unmap(q->dev, dma);
+ 	videobuf_dma_free(dma);
+ 	btcx_riscmem_free(to_pci_dev(q->dev), &buf->risc);
+
+I don't think the waiton is really needed for this driver.
+
+What really should happen is that videobuf is replaced by videobuf2 in this
+driver, but that's a fair amount of work.
+
+Regards,
+
+	Hans
+
+> 
+> 
 > --
-> 1.7.9.5
->
-
-Ping...
-
--- 
-With warm regards,
-Sachin
+> 
+> Sander
+> 
+> 
+> 
+> > Regards,
+> 
+> >         Hans
+> 
+> >> 
+> >> --
+> >> Sander
+> >> 
+> >> 
+> >> [   53.004968] =====================================
+> >> [   53.004968] [ BUG: bad unlock balance detected! ]
+> >> [   53.004968] 3.10.0-rc1-20130516-jens+ #1 Not tainted
+> >> [   53.004968] -------------------------------------
+> >> [   53.004968] motion/3328 is trying to release lock (&dev->lock) at:
+> >> [   53.004968] [<ffffffff819be5f9>] mutex_unlock+0x9/0x10
+> >> [   53.004968] but there are no more locks to release!
+> >> [   53.004968]
+> >> [   53.004968] other info that might help us debug this:
+> >> [   53.004968] 1 lock held by motion/3328:
+> >> [   53.004968]  #0:  (&mm->mmap_sem){++++++}, at: [<ffffffff81156cae>] vm_munmap+0x3e/0x70
+> >> [   53.004968]
+> >> [   53.004968] stack backtrace:
+> >> [   53.004968] CPU: 1 PID: 3328 Comm: motion Not tainted 3.10.0-rc1-20130516-jens+ #1
+> >> [   53.004968] Hardware name: Xen HVM domU, BIOS 4.3-unstable 05/16/2013
+> >> [   53.004968]  ffffffff819be5f9 ffff88002ac35c58 ffffffff819b9029 ffff88002ac35c88
+> >> [   53.004968]  ffffffff810e615e ffff88002ac35cb8 ffff88002b7c18a8 ffffffff819be5f9
+> >> [   53.004968]  00000000ffffffff ffff88002ac35d28 ffffffff810eb17e ffffffff810e7ba5
+> >> [   53.004968] Call Trace:
+> >> [   53.004968]  [<ffffffff819be5f9>] ? mutex_unlock+0x9/0x10
+> >> [   53.004968]  [<ffffffff819b9029>] dump_stack+0x19/0x1b
+> >> [   53.004968]  [<ffffffff810e615e>] print_unlock_imbalance_bug+0xfe/0x110
+> >> [   53.004968]  [<ffffffff819be5f9>] ? mutex_unlock+0x9/0x10
+> >> [   53.004968]  [<ffffffff810eb17e>] lock_release_non_nested+0x1ce/0x320
+> >> [   53.004968]  [<ffffffff810e7ba5>] ? debug_check_no_locks_freed+0x105/0x1b0
+> >> [   53.353529]  [<ffffffff819be5f9>] ? mutex_unlock+0x9/0x10
+> >> [   53.353529]  [<ffffffff810eb3cc>] lock_release+0xfc/0x250
+> >> [   53.353529]  [<ffffffff819be4b2>] __mutex_unlock_slowpath+0xb2/0x1f0
+> >> [   53.353529]  [<ffffffff819be5f9>] mutex_unlock+0x9/0x10
+> >> [   53.353529]  [<ffffffff81711105>] videobuf_waiton+0x55/0x230
+> >> [   53.353529]  [<ffffffff8114d052>] ? tlb_finish_mmu+0x32/0x50
+> >> [   53.353529]  [<ffffffff81154a46>] ? unmap_region+0xc6/0x100
+> >> [   53.353529]  [<ffffffff81172e05>] ? kmem_cache_free+0x195/0x230
+> >> [   53.353529]  [<ffffffff8172d3d9>] cx25821_free_buffer+0x49/0xa0
+> >> [   53.353529]  [<ffffffff8172f939>] cx25821_buffer_release+0x9/0x10
+> >> [   53.353529]  [<ffffffff81712c35>] videobuf_vm_close+0xc5/0x160
+> >> [   53.353529]  [<ffffffff81154aa5>] remove_vma+0x25/0x60
+> >> [   53.353529]  [<ffffffff81156b67>] do_munmap+0x307/0x410
+> >> [   53.353529]  [<ffffffff81156cbc>] vm_munmap+0x4c/0x70
+> >> [   53.353529]  [<ffffffff81157c09>] SyS_munmap+0x9/0x10
+> >> [   53.353529]  [<ffffffff819c20a9>] system_call_fastpath+0x16/0x1b
+> >> 
+> 
+> 
