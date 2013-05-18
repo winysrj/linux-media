@@ -1,37 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f179.google.com ([74.125.82.179]:45243 "EHLO
-	mail-we0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967670Ab3E3HH7 (ORCPT
+Received: from mail-ee0-f47.google.com ([74.125.83.47]:53884 "EHLO
+	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752046Ab3ERQ6z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 May 2013 03:07:59 -0400
-Received: by mail-we0-f179.google.com with SMTP id m46so6931795wev.38
-        for <linux-media@vger.kernel.org>; Thu, 30 May 2013 00:07:58 -0700 (PDT)
+	Sat, 18 May 2013 12:58:55 -0400
+Received: by mail-ee0-f47.google.com with SMTP id t10so3096795eei.34
+        for <linux-media@vger.kernel.org>; Sat, 18 May 2013 09:58:53 -0700 (PDT)
+Message-ID: <5197B34A.8010700@googlemail.com>
+Date: Sat, 18 May 2013 18:58:50 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <1369837147-8747-8-git-send-email-hverkuil@xs4all.nl>
-References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl> <1369837147-8747-8-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 30 May 2013 12:37:38 +0530
-Message-ID: <CA+V-a8vdBLLUiLucac3NmJGf+4kAV2dRu3pPOv5qGRDKsD+21A@mail.gmail.com>
-Subject: Re: [RFC PATCH 07/14] tvp514x: fix querystd
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Chris Rankin <rankincj@yahoo.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
+References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com>
+In-Reply-To: <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
-
-Thanks for the patch.
-
-On Wed, May 29, 2013 at 7:49 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Am 18.05.2013 17:17, schrieb Chris Rankin:
+> ----- Original Message -----
 >
-> Return V4L2_STD_UNKNOWN if no signal is detected.
-> Otherwise AND the standard mask with the detected standards.
+>>> Am 18.05.2013 15:57, schrieb Chris Rankin:
+>>> I have a PCTV 290e DVB2 adapter (em28xx, em28xx_dvb, em28xx_rc, cxd2820r), and I have just discovered that the IR remote control has stopped working with VDR when using a vanilla 3.9.2 kernel.
+>>> Downgrading the kernel to 3.8.12 fixes things again. (Switching to my old DVB NOVA-T2 device fixes things too, although it cannot receive HDTV channels, of course).
+>> Great. :( :( :(
+>> There have been several changes in the em28xx and core RC code between 3.8 and 3.9...
+>> I can't see anything obvious, the RC device seems to be registered correctly.
+>> Could you please bisect ?
+> Unfortunately, no I can't. (No git tree here - just a tarball downloaded via FTP). However, maybe I could out some printk() statements into the code if you could point out where the "hot-spots" might be, please?
 >
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+For the em28xx driver: em28xx-input.c:
+em28xx_ir_work() is called every 100ms
+     calls em28xx_ir_handle_key()
+         - calls ir->get_key() which is em2874_polling_getkey() in case 
+of your device
+         - reports the detected key via rc_keydown() through the RC core
 
-Regards,
---Prabhakar Lad
+HTH,
+Frank
+
