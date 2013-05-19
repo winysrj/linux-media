@@ -1,54 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f176.google.com ([209.85.214.176]:49826 "EHLO
-	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818Ab3EJGQx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 May 2013 02:16:53 -0400
-Received: by mail-ob0-f176.google.com with SMTP id wc20so3746760obb.7
-        for <linux-media@vger.kernel.org>; Thu, 09 May 2013 23:16:52 -0700 (PDT)
+Received: from nm28-vm0.bullet.mail.ne1.yahoo.com ([98.138.91.22]:36186 "EHLO
+	nm28-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754172Ab3EST7x convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 May 2013 15:59:53 -0400
+References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com>
+Message-ID: <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com>
+Date: Sun, 19 May 2013 12:59:51 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Reply-To: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
+To: =?iso-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <51990B63.5090402@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <CAP6c-yw3Ms_N_381N9HpUJLd_6UB7B30k8GSP25+c-h2i3MFiQ@mail.gmail.com>
-References: <CAP6c-yw3Ms_N_381N9HpUJLd_6UB7B30k8GSP25+c-h2i3MFiQ@mail.gmail.com>
-Date: Fri, 10 May 2013 16:16:52 +1000
-Message-ID: <CAP6c-yyLR1Au8QBjbuC+Zx8TOmLSyK3LgsoE_tLXZUUTFS1gsg@mail.gmail.com>
-Subject: Fwd: DVB recording failures in recent Fedora kernel
-From: Paul Wilson <mylists@wilsononline.id.au>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Up until recently My recording has been very stable but the last
-couple of kernels or updates I'm seeing occasion failures in my
-recordings.
+----- Original Message -----
 
-Can someone tell if the following errors are driver bugs?
+> Hmm... that's weird. Are you sure about that ? Is this really a 3.9.2 vanilla kernel ?
 
-Linux mythbox.salsola 3.8.11-100.fc17.i686 #1 SMP
+Quite sure, although it turns out that there's a bit more to it. Here is the dmesg output with my debugging messages in:
 
-Here is my dmesg output
+[ 6263.496794] em28174 #0: Calling em28xx_ir_change_protocol...
+[ 6263.533332] em28174 #0: Calling em2874_ir_change_protocol...(type=1)
+[ 6263.576099] Registered IR keymap rc-pinnacle-pctv-hd
+[ 6263.607181] input: em28xx IR (em28174 #0) as /devices/pci0000:00/0000:00:1d.7/usb10/10-4/rc/rc6/input22
+[ 6263.608329] ir-keytable[30882]: segfault at 0 ip 0000000000401cc0 sp 00007fff7ca22dd0 error 4 in ir-keytable[400000+8000]
+[ 6263.756019] rc6: em28xx IR (em28174 #0) as /devices/pci0000:00/0000:00:1d.7/usb10/10-4/rc/rc6
+[ 6263.816551] em28174 #0: Calling em28xx_ir_change_protocol...
+[ 6263.853024] em28174 #0: Calling em2874_ir_change_protocol...(type=8)
+[ 6263.895796] Em28xx: Initialized (Em28xx Input Extension) extension
 
-248375.223277] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
-[248375.223280] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
-[248375.223282] tda18271_init: [18-0060|S] error -5 on line 836
-[248375.223285] tda18271_tune: [18-0060|S] error -5 on line 909
-[248375.223287] tda18271_set_params: [18-0060|S] error -5 on line 984
-[271757.587443] saa7164_api_i2c_read() error, ret(2) = 0x13
-[271757.587450] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
-[271757.587453] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
-[271757.587456] tda18271_init: [18-0060|S] error -5 on line 836
-[271757.587458] tda18271_tune: [18-0060|S] error -5 on line 909
-[271757.587461] tda18271_set_params: [18-0060|S] error -5 on line 984
-[326161.053901] saa7164_api_i2c_read() error, ret(2) = 0x13
-[326161.053907] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
-[326161.053910] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
-[326161.053913] tda18271_init: [18-0060|S] error -5 on line 836
-[326161.053915] tda18271_tune: [18-0060|S] error -5 on line 909
-[326161.053918] tda18271_set_params: [18-0060|S] error -5 on line 984
-[359677.846084] saa7164_api_i2c_read() error, ret(2) = 0x13
-[359677.846090] tda18271_read_regs: [18-0060|S] ERROR: i2c_transfer returned: -5
-[359677.846093] tda18271_ir_cal_init: [18-0060|S] error -5 on line 812
-[359677.846096] tda18271_init: [18-0060|S] error -5 on line 836
-[359677.846099] tda18271_tune: [18-0060|S] error -5 on line 909
+This is the state after I have loaded my em28xx_rc modue. But then I need to call ir-keytable:
 
-Paul
+# ir-keytable -a /etc/rc_maps.cfg -s rc6
+
+[ 6284.491992] em28174 #0: Calling em28xx_ir_change_protocol...
+[ 6284.528492] em28174 #0: Calling em2874_ir_change_protocol...(type=1)
+
+And this seems to reset the protocol back to "unknown". (But I need to use this other remote control to use VDR - the PCTV one just doesn't have enough buttons).
+
+Cheers,
+Chris
+
