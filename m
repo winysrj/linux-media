@@ -1,45 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4705 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966092Ab3E2OTi (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:57712 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751567Ab3ESNam (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 10:19:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 09/14] bttv: fix querystd
-Date: Wed, 29 May 2013 16:19:02 +0200
-Message-Id: <1369837147-8747-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 19 May 2013 09:30:42 -0400
+From: Jakob Normark <jakobnormark@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Jakob Normark <jakobnormark@gmail.com>
+Subject: [PATCH 1/1] Missing break statement added in smsdvb-main.c
+Date: Sun, 19 May 2013 15:30:23 +0200
+Message-Id: <1368970223-3280-1-git-send-email-jakobnormark@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Fix missing break that so that n_layers are not accidentally incorrect
 
-AND the standard mask with the detected standards.
+Kernel version: v3.10-rc1
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Jakob Normark <jakobnormark@gmail.com>
 ---
- drivers/media/pci/bt8xx/bttv-driver.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/common/siano/smsdvb-main.c |    1 +
+ 1 file changed, 1 insertion(+)
 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index a334c94..555d37c 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -1761,9 +1761,9 @@ static int bttv_querystd(struct file *file, void *f, v4l2_std_id *id)
- 	struct bttv *btv = fh->btv;
- 
- 	if (btread(BT848_DSTATUS) & BT848_DSTATUS_NUML)
--		*id = V4L2_STD_625_50;
-+		*id &= V4L2_STD_625_50;
- 	else
--		*id = V4L2_STD_525_60;
-+		*id &= V4L2_STD_525_60;
- 	return 0;
- }
- 
+diff --git a/drivers/media/common/siano/smsdvb-main.c b/drivers/media/common/siano/smsdvb-main.c
+index 297f1b2..0862622 100644
+--- a/drivers/media/common/siano/smsdvb-main.c
++++ b/drivers/media/common/siano/smsdvb-main.c
+@@ -140,6 +140,7 @@ static void smsdvb_stats_not_ready(struct dvb_frontend *fe)
+ 	case DEVICE_MODE_ISDBT:
+ 	case DEVICE_MODE_ISDBT_BDA:
+ 		n_layers = 4;
++		break;
+ 	default:
+ 		n_layers = 1;
+ 	}
 -- 
-1.7.10.4
+1.7.9.5
 
