@@ -1,41 +1,33 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f42.google.com ([209.85.219.42]:40099 "EHLO
-	mail-oa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752584Ab3ETMCW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 May 2013 08:02:22 -0400
-Received: by mail-oa0-f42.google.com with SMTP id i10so7586302oag.15
-        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 05:02:22 -0700 (PDT)
+Received: from nm39-vm5.bullet.mail.ne1.yahoo.com ([98.138.229.165]:32615 "EHLO
+	nm39-vm5.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752831Ab3ESOLd convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 May 2013 10:11:33 -0400
+References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com>
+Message-ID: <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com>
+Date: Sun, 19 May 2013 07:11:32 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Reply-To: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
+To: =?iso-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <5198D669.6030007@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1305201359390.25754@axis700.grange>
-References: <1368436761-12183-1-git-send-email-sachin.kamat@linaro.org>
-	<CAK9yfHxOpoNFoTV6LkqTJGAL_K4R7n5e4ke0Cw-WeceWZ6MK_Q@mail.gmail.com>
-	<Pine.LNX.4.64.1305201359390.25754@axis700.grange>
-Date: Mon, 20 May 2013 17:32:21 +0530
-Message-ID: <CAK9yfHwQ3z5oWn8AOAbNR-4AyXU_UWpLxqjibXA1S=PB1F77uw@mail.gmail.com>
-Subject: Re: [PATCH 1/2] [media] soc_camera/sh_mobile_csi2: Remove redundant platform_set_drvdata()
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 20 May 2013 17:30, Guennadi Liakhovetski <g.liakhovetski@gmx.de> wrote:
-> On Mon, 20 May 2013, Sachin Kamat wrote:
->
->> On 13 May 2013 14:49, Sachin Kamat <sachin.kamat@linaro.org> wrote:
->> > Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
->> > driver is bound) removes the need to set driver data field to
->> > NULL.
->> >
->> > Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
->
-> Thanks, both queued for 3.11.
+----- Original Message -----
 
+> em28xx_ir_change_protocol() should be called at least twice:
+> First from em28xx_ir_init() with RC_BIT_UNKNOWN (initial configuration) 
+> and later from the RC core with RC_BIT_RC5.
+> Can you confirm that ?
 
-Thanks Guennadi :)
+Yes, it does appear to be called twice: first with *rc_type=1 and then later with *rc_type=8. But that still doesn't seem to stop ir->rc_type being RC_BIT_UNKNOWN in em2874_polling_getkey().
 
--- 
-With warm regards,
-Sachin
+Cheers,
+Chris
+
