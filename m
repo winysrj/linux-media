@@ -1,44 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f170.google.com ([209.85.217.170]:41988 "EHLO
-	mail-lb0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751773Ab3EFAfg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 5 May 2013 20:35:36 -0400
-Received: by mail-lb0-f170.google.com with SMTP id t11so2951818lbd.1
-        for <linux-media@vger.kernel.org>; Sun, 05 May 2013 17:35:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAKMK7uGJWHb7so8_uNe0JzH_EUAQLExFPda=ZR+8yuG+ALvo2w@mail.gmail.com>
-References: <1367382644-30788-1-git-send-email-airlied@gmail.com>
-	<CAKMK7uGJWHb7so8_uNe0JzH_EUAQLExFPda=ZR+8yuG+ALvo2w@mail.gmail.com>
-Date: Mon, 6 May 2013 10:35:35 +1000
-Message-ID: <CAPM=9tzW-9U+ff2818asviXtm8+56-gp3NOFxy_u1m7b21TaQg@mail.gmail.com>
-Subject: Re: [PATCH] drm/udl: avoid swiotlb for imported vmap buffers.
-From: Dave Airlie <airlied@gmail.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+Received: from nm19-vm4.bullet.mail.ne1.yahoo.com ([98.138.91.179]:46359 "EHLO
+	nm19-vm4.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753755Ab3ESWgT convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 19 May 2013 18:36:19 -0400
+References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com> <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com> <51993DDE.4070800@googlemail.com>
+Message-ID: <1369002977.37692.YahooMailNeo@web120303.mail.ne1.yahoo.com>
+Date: Sun, 19 May 2013 15:36:17 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Reply-To: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
+To: =?iso-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <51993DDE.4070800@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
->>
->> However if we don't set a dma mask on the usb device, the mapping
->> ends up using swiotlb on machines that have it enabled, which
->> is less than desireable.
->>
->> Signed-off-by: Dave Airlie <airlied@redhat.com>
->
-> Fyi for everyone else who was not on irc when Dave&I discussed this:
-> This really shouldn't be required and I think the real issue is that
-> udl creates a dma_buf attachement (which is needed for device dma
-> only), but only really wants to do cpu access through vmap/kmap. So
-> not attached the device should be good enough. Cc'ing a few more lists
-> for better fyi ;-)
+----- Original Message -----
 
-Though I've looked at this a bit more, and since I want to be able to expose
-shared objects as proper GEM objects from the import side I really
-need that list of pages.
+>> And this seems to reset the protocol back to "unknown". (But I need to use this other remote control to use VDR - the PCTV one just doesn't have enough buttons).
 
-So it looks like this won't really fly.
+> Ok, then it seems to be no em28xx issue.
+> What happens with kernel 3.8 ? Does ir-keytable trigger an
+> em28xx_ir_change_protocol() call there, too, but with type=8 ? Or is this call missing ?
 
-Dave.
+Possibly the significant difference between 3.8 and 3.9 is that the em2874_polling_getkey() function in 3.8 can only do one thing, whereas in 3.9 its behaviour switches on ir->rc_type.
+
+The 3.9 version of em28xx_ir_change_protocol() also sets ir->rc_type to *rc_type before it exits, which means that the RC framework will "unconfigure" the em28xx remote control if it were to send RC_BIT_UNKNOWN for any reason.
+
+And "yes", the 3.8 kernel does seem to call em28xx_ir_change_protocol() with *rc_type = RC_BIT_UNKNOWN occasionally too. It's just that under 3.8, the em28xx neither noticed nor cared.
+
+Cheers,
+Chris
