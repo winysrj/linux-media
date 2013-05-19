@@ -1,122 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1161 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965702Ab3E2LBN (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4838 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752073Ab3ESS2U (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:01:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 19 May 2013 14:28:20 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4JISGdD019677
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 19 May 2013 20:28:19 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 9216D35E006D
+	for <linux-media@vger.kernel.org>; Sun, 19 May 2013 20:28:15 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: =?UTF-8?q?=5BPATCHv1=2024/38=5D=20v4l2-framework=3A=20replace=20g=5Fchip=5Fident=20by=20g=5Fstd=20in=20the=20examples=2E?=
-Date: Wed, 29 May 2013 12:59:57 +0200
-Message-Id: <1369825211-29770-25-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130519182815.9216D35E006D@alastor.dyndns.org>
+Date: Sun, 19 May 2013 20:28:15 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The framework documentation used the g_chip_ident op as an example. This
-op has been removed, so replace its use in the examples by the g_std op.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- Documentation/video4linux/v4l2-framework.txt       |   13 ++++++-------
- Documentation/zh_CN/video4linux/v4l2-framework.txt |   13 ++++++-------
- 2 files changed, 12 insertions(+), 14 deletions(-)
+date:		Sun May 19 19:00:20 CEST 2013
+git branch:	test
+git hash:	4237c09a63906b980741725da63f85e454caec02
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index a300b28..24353ec 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -246,7 +246,6 @@ may be NULL if the subdev driver does not support anything from that category.
- It looks like this:
- 
- struct v4l2_subdev_core_ops {
--	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
- 	int (*log_status)(struct v4l2_subdev *sd);
- 	int (*init)(struct v4l2_subdev *sd, u32 val);
- 	...
-@@ -346,24 +345,24 @@ Afterwards the subdev module can be unloaded and sd->dev == NULL.
- 
- You can call an ops function either directly:
- 
--	err = sd->ops->core->g_chip_ident(sd, &chip);
-+	err = sd->ops->core->g_std(sd, &norm);
- 
- but it is better and easier to use this macro:
- 
--	err = v4l2_subdev_call(sd, core, g_chip_ident, &chip);
-+	err = v4l2_subdev_call(sd, core, g_std, &norm);
- 
- The macro will to the right NULL pointer checks and returns -ENODEV if subdev
--is NULL, -ENOIOCTLCMD if either subdev->core or subdev->core->g_chip_ident is
--NULL, or the actual result of the subdev->ops->core->g_chip_ident ops.
-+is NULL, -ENOIOCTLCMD if either subdev->core or subdev->core->g_std is
-+NULL, or the actual result of the subdev->ops->core->g_std ops.
- 
- It is also possible to call all or a subset of the sub-devices:
- 
--	v4l2_device_call_all(v4l2_dev, 0, core, g_chip_ident, &chip);
-+	v4l2_device_call_all(v4l2_dev, 0, core, g_std, &norm);
- 
- Any subdev that does not support this ops is skipped and error results are
- ignored. If you want to check for errors use this:
- 
--	err = v4l2_device_call_until_err(v4l2_dev, 0, core, g_chip_ident, &chip);
-+	err = v4l2_device_call_until_err(v4l2_dev, 0, core, g_std, &norm);
- 
- Any error except -ENOIOCTLCMD will exit the loop with that error. If no
- errors (except -ENOIOCTLCMD) occurred, then 0 is returned.
-diff --git a/Documentation/zh_CN/video4linux/v4l2-framework.txt b/Documentation/zh_CN/video4linux/v4l2-framework.txt
-index 44c1d93..0da95db 100644
---- a/Documentation/zh_CN/video4linux/v4l2-framework.txt
-+++ b/Documentation/zh_CN/video4linux/v4l2-framework.txt
-@@ -247,7 +247,6 @@ i2c_client 结构体，i2c_set_clientdata() 函数可用于保存一个 v4l2_sub
- 这些结构体定义如下：
- 
- struct v4l2_subdev_core_ops {
--	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
- 	int (*log_status)(struct v4l2_subdev *sd);
- 	int (*init)(struct v4l2_subdev *sd, u32 val);
- 	...
-@@ -337,24 +336,24 @@ subdev->dev 域就指向了 v4l2_device。
- 
- 注册之设备后，可通过以下方式直接调用其操作函数：
- 
--	err = sd->ops->core->g_chip_ident(sd, &chip);
-+	err = sd->ops->core->g_std(sd, &norm);
- 
- 但使用如下宏会比较容易且合适：
- 
--	err = v4l2_subdev_call(sd, core, g_chip_ident, &chip);
-+	err = v4l2_subdev_call(sd, core, g_std, &norm);
- 
- 这个宏将会做 NULL 指针检查，如果 subdev 为 NULL，则返回-ENODEV；如果
--subdev->core 或 subdev->core->g_chip_ident 为 NULL，则返回 -ENOIOCTLCMD；
--否则将返回 subdev->ops->core->g_chip_ident ops 调用的实际结果。
-+subdev->core 或 subdev->core->g_std 为 NULL，则返回 -ENOIOCTLCMD；
-+否则将返回 subdev->ops->core->g_std ops 调用的实际结果。
- 
- 有时也可能同时调用所有或一系列子设备的某个操作函数：
- 
--	v4l2_device_call_all(v4l2_dev, 0, core, g_chip_ident, &chip);
-+	v4l2_device_call_all(v4l2_dev, 0, core, g_std, &norm);
- 
- 任何不支持此操作的子设备都会被跳过，并忽略错误返回值。但如果你需要
- 检查出错码，则可使用如下函数：
- 
--	err = v4l2_device_call_until_err(v4l2_dev, 0, core, g_chip_ident, &chip);
-+	err = v4l2_device_call_until_err(v4l2_dev, 0, core, g_std, &norm);
- 
- 除 -ENOIOCTLCMD 外的任何错误都会跳出循环并返回错误值。如果（除 -ENOIOCTLCMD
- 外）没有错误发生，则返回 0。
--- 
-1.7.10.4
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: ERRORS
+spec-git: OK
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
