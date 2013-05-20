@@ -1,154 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:63665 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751330Ab3EBHEs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 03:04:48 -0400
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:58649 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756421Ab3ETNlv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 May 2013 09:41:51 -0400
+Received: by mail-ea0-f173.google.com with SMTP id n15so3879409ead.4
+        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 06:41:49 -0700 (PDT)
+Message-ID: <519A287C.9010804@googlemail.com>
+Date: Mon, 20 May 2013 15:43:24 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <20130502065518.GN32299@pengutronix.de>
-References: <1367475754-19477-1-git-send-email-prabhakar.csengg@gmail.com> <20130502065518.GN32299@pengutronix.de>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 2 May 2013 12:34:25 +0530
-Message-ID: <CA+V-a8tbbgbyNF37_u-cbWQCDphhb0q+wQSGnBdYVS90o+HSXw@mail.gmail.com>
-Subject: Re: [PATCH RFC v2] media: i2c: mt9p031: add OF support
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+To: Chris Rankin <rankincj@yahoo.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
+References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com> <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com> <51993DDE.4070800@googlemail.com> <1369004659.18393.YahooMailNeo@web120305.mail.ne1.yahoo.com> <519A1939.6030907@googlemail.com> <1369054869.78400.YahooMailNeo@web120305.mail.ne1.yahoo.com>
+In-Reply-To: <1369054869.78400.YahooMailNeo@web120305.mail.ne1.yahoo.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sascha,
+Am 20.05.2013 15:01, schrieb Chris Rankin:
+> ----- Original Message -----
+>
+>>> And this is me calling ir-keytable:
+>>>
+>>> [ 2183.812407] em28xx #0: Changing protocol: rc_type=1
+>> So with 3.8 the same happens as with 3.9.
+> Yes, that does appear to be part of the RC core ABI.
+>
+>> Well, if ir-keycode / the RC core requests RC_BIT_UNKNOWN, they get RC_BIT_UNKNOWN. ;)
+>> If you expect the device to be configured for another protocol (RC5 ?),
+>> you need to find out what's going wrong in the RC core and/or ir-keycode.
+> Are other RCs affected by this? I have difficulty blaming RC core when its behaviour hasn't changed.
 
-Thanks for the quick review.
+If I had to guess, I would say you should check your rc_maps.cfg /
+keytable. ;)
 
-On Thu, May 2, 2013 at 12:25 PM, Sascha Hauer <s.hauer@pengutronix.de> wrote:
-> On Thu, May 02, 2013 at 11:52:34AM +0530, Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>
+>> The point is that 3.8 ignores rc_type=1, whereas 3.9 uses it to update a new ir->rc_type field - which in turn controls how em2874_polling_getkey() encodes its scancode.
+>> Indeed, since 3.9
+>> 1.) em2874_polling_getkey() cares about the rc_type
+>> 2.) the new rc_type is saved back to ir->rc_type
 >>
->> add OF support for the mt9p031 sensor driver.
->> Alongside this patch sorts the header inclusion alphabetically.
-[Snip]
+>> AFAICS both changes are correct.
+> Except that given the current ABI, these changes break my RC.
 
->> +#if defined(CONFIG_OF)
->> +static struct mt9p031_platform_data *
->> +     mt9p031_get_pdata(struct i2c_client *client)
->> +
->> +{
->> +     if (client->dev.of_node) {
->
-> By inverting the logic here and returning immediately you can safe an
-> indention level for the bulk of this function.
->
-OK
+No, the change that actually broke your RC is the third change.
 
->> +             struct device_node *np;
->> +             struct mt9p031_platform_data *pdata;
->> +
->> +             np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
->> +             if (!np)
->> +                     return NULL;
->> +
->> +             pdata = devm_kzalloc(&client->dev,
->> +                                  sizeof(struct mt9p031_platform_data),
->> +                                  GFP_KERNEL);
->> +             if (!pdata) {
->> +                     dev_err(&client->dev,
->> +                             "mt9p031 failed allocate memeory\n");
->> +                     return NULL;
 >
-> s/memeory/memory/
->
-> Better drop this message completely. If you are really out of memory
-> you'll notice it quite fast anyway.
->
-alright I'll drop the message.
-
->> +             }
->> +             pdata->reset = of_get_named_gpio(client->dev.of_node,
->> +                                              "gpio-reset", 0);
->> +             if (!gpio_is_valid(pdata->reset))
->> +                     pdata->reset = -1;
->> +
->> +             if (of_property_read_u32(np, "input-clock-frequency",
->> +                                      &pdata->ext_freq))
->> +                     return NULL;
->> +
->> +             if (of_property_read_u32(np, "pixel-clock-frequency",
->> +                                      &pdata->target_freq))
->> +                     return NULL;
->
-> returning NULL here means that when these properties are missing the
-> driver bails out with the message "No platform data\n" which is not
-> very helpful for users. How about just ignoring this here and return
-> pdata? The driver will probably print a more useful message later when
-> it notices that the clock params are invalid.
->
-Yes would be good idea of not returning NULL.
-
->> +
->> +             return pdata;
->> +     }
->> +
->> +     return client->dev.platform_data;
->> +}
->> +#else
->> +static struct mt9p031_platform_data *
->> +     mt9p031_get_pdata(struct i2c_client *client)
->> +{
->> +     return client->dev.platform_data;
->> +}
->> +#endif
->> +
->>  static int mt9p031_probe(struct i2c_client *client,
->>                        const struct i2c_device_id *did)
->>  {
->> -     struct mt9p031_platform_data *pdata = client->dev.platform_data;
->> +     struct mt9p031_platform_data *pdata = mt9p031_get_pdata(client);
->>       struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
->>       struct mt9p031 *mt9p031;
->>       unsigned int i;
->> @@ -1070,8 +1120,16 @@ static const struct i2c_device_id mt9p031_id[] = {
->>  };
->>  MODULE_DEVICE_TABLE(i2c, mt9p031_id);
+>> But there was a third change:
+>> 3.) the scancode passed to the RC core with rc_keypress() in case of
+>> RC_BIT_UNKNOWN changed from a 16 bit value to 32 bit value (e.g.: old: 00 00 ab cd => new: ab cd xx xx).
 >>
->> +static const struct of_device_id mt9p031_of_match[] = {
->> +     { .compatible = "aptina,mt9p031", },
->> +     { .compatible = "aptina,mt9p031m", },
->> +     {},
->> +};
->
-> I would have expected something like:
->
-> static const struct of_device_id mt9p031_of_match[] = {
->         {
->                 .compatible = "aptina,mt9p031-sensor",
->                 .data = (void *)MT9P031_MODEL_COLOR,
->         }, {
->                 .compatible = "aptina,mt9p031m-sensor",
->                 .data = (void *)MT9P031_MODEL_MONOCHROME,
->         }, {
->                 /* sentinel */
->         },
-> };
->
->         of_id = of_match_device(mt9p031_of_match, &client->dev);
->         if (of_id)
->                 mt9p031->model = (enum mt9p031_model)of_id->data;
->
-> To handle monochrome sensors.
->
-OK will do the same.
+>> Hmm... isn't this an ABI break !?
+> em28xx only used to support RC5 in 3.8, by the looks of things.
+
+... and NEC.
+
+>  The behaviour when configured for "RC_BIT_UNKNOWN" would therefore have been "undefined"... ;-).
+
+With both kernels (3.8 and 3.9), the hardware is configured for RC5 when
+RC_BIT_UNKNOWN is selected.
+The only thing that changed in the configuration part (apart from the
+new ir->rc_type field and RC& support) is,
+that em28xx_ir_change_protocol() used to return -EINVAL for
+RC_NIT_UNKNOWN and 3.9 now returns 0.
+But that seems to be no issue here.
 
 Regards,
---Prabhakar Lad
+Frank
+
+>
+> Cheers,
+> Chris
+
