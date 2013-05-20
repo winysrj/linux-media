@@ -1,42 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58556 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755272Ab3EHNqw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 09:46:52 -0400
-Received: from avalon.ideasonboard.com (unknown [91.178.146.12])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5856535A4F
-	for <linux-media@vger.kernel.org>; Wed,  8 May 2013 15:46:24 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH RESEND 2/9] tvp514x: Fix double free
-Date: Wed,  8 May 2013 15:46:27 +0200
-Message-Id: <1368020794-21264-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-la0-f44.google.com ([209.85.215.44]:39078 "EHLO
+	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755920Ab3ETNHN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 May 2013 09:07:13 -0400
+Received: by mail-la0-f44.google.com with SMTP id fr10so6404067lab.31
+        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 06:07:11 -0700 (PDT)
+Message-ID: <519A1FFC.6000304@cogentembedded.com>
+Date: Mon, 20 May 2013 17:07:08 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: phil.edworthy@renesas.com
+CC: vladimir.barinov@cogentembedded.com, g.liakhovetski@gmx.de,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	magnus.damm@gmail.com, matsu@igel.co.jp, mchehab@redhat.com
+Subject: Re: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <201305180101.11383.sergei.shtylyov@cogentembedded.com> <OFC9B7B505.2CDF0AA3-ON80257B71.00291B65-80257B71.002952EB@eu.necel.com>
+In-Reply-To: <OFC9B7B505.2CDF0AA3-ON80257B71.00291B65-80257B71.002952EB@eu.necel.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The tvp514x data structure is allocated using devm_kzalloc(). Freeing it
-explictly would result in a double free. Fix it.
+Hello.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/i2c/tvp514x.c | 1 -
- 1 file changed, 1 deletion(-)
+On 20-05-2013 11:31, phil.edworthy@renesas.com wrote:
 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index ab8f3fe..7438e01 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -1120,7 +1120,6 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	if (ret < 0) {
- 		v4l2_err(sd, "%s decoder driver failed to register !!\n",
- 			 sd->name);
--		kfree(decoder);
- 		return ret;
- 	}
- #endif
--- 
-1.8.1.5
+>> Subject: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
+
+>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+
+>> Add Renesas R-Car VIN (Video In) V4L2 driver.
+
+>> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+
+> I've seen old patches that add VIN to the Marzen board, do you have an
+> updated version?
+
+    The last version of that patchset is 4, here it is archived:
+
+http://marc.info/?l=linux-sh&m=136865481429756
+http://marc.info/?l=linux-sh&m=136865499029807
+http://marc.info/?l=linux-sh&m=136865509129843
+http://marc.info/?l=linux-sh&m=136865520029900
+
+> Thanks
+> Phil
+
+WBR, Sergei
 
