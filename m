@@ -1,101 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3119 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751480Ab3EOT2W (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:47022 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756614Ab3ETK6a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 15:28:22 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4FJSG7h043244
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 15 May 2013 21:28:20 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id D493235E0039
-	for <linux-media@vger.kernel.org>; Wed, 15 May 2013 21:28:15 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130515192815.D493235E0039@alastor.dyndns.org>
-Date: Wed, 15 May 2013 21:28:15 +0200 (CEST)
+	Mon, 20 May 2013 06:58:30 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [PATCH] videodev2.h: fix typos
+Date: Mon, 20 May 2013 12:58:47 +0200
+Message-ID: <5288300.PnnGMIV8gA@avalon>
+In-Reply-To: <1369044160-7571-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369044160-7571-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Prabhakar,
 
-Results of the daily build of media_tree:
+Thank you for the patch.
 
-date:		Wed May 15 19:59:44 CEST 2013
-git branch:	test
-git hash:	4237c09a63906b980741725da63f85e454caec02
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+On Monday 20 May 2013 15:32:40 Lad Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> This patch fixes several typos in videodev2.h file
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: ERRORS
-spec-git: OK
-sparse: ERRORS
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Detailed results are available here:
+> ---
+>  include/uapi/linux/videodev2.h |    8 ++++----
+>  1 files changed, 4 insertions(+), 4 deletions(-)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index f40b41c..ee4af53 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -555,7 +555,7 @@ struct v4l2_jpegcompression {
+>  	__u32 jpeg_markers;     /* Which markers should go into the JPEG
+>  				 * output. Unless you exactly know what
+>  				 * you do, leave them untouched.
+> -				 * Inluding less markers will make the
+> +				 * Including less markers will make the
+>  				 * resulting code smaller, but there will
+>  				 * be fewer applications which can read it.
+>  				 * The presence of the APP and COM marker
+> @@ -567,7 +567,7 @@ struct v4l2_jpegcompression {
+>  #define V4L2_JPEG_MARKER_DRI (1<<5)    /* Define Restart Interval */
+>  #define V4L2_JPEG_MARKER_COM (1<<6)    /* Comment segment */
+>  #define V4L2_JPEG_MARKER_APP (1<<7)    /* App segment, driver will
+> -					* allways use APP0 */
+> +					* always use APP0 */
+>  };
+> 
+>  /*
+> @@ -900,7 +900,7 @@ typedef __u64 v4l2_std_id;
+>  /*
+>   * "Common" PAL - This macro is there to be compatible with the old
+>   * V4L1 concept of "PAL": /BGDKHI.
+> - * Several PAL standards are mising here: /M, /N and /Nc
+> + * Several PAL standards are missing here: /M, /N and /Nc
+>   */
+>  #define V4L2_STD_PAL		(V4L2_STD_PAL_BG	|\
+>  				 V4L2_STD_PAL_DK	|\
+> @@ -1790,7 +1790,7 @@ struct v4l2_event_subscription {
+>  #define V4L2_CHIP_MATCH_HOST V4L2_CHIP_MATCH_BRIDGE
+>  #define V4L2_CHIP_MATCH_I2C_DRIVER  1  /* Match against I2C driver name */
+>  #define V4L2_CHIP_MATCH_I2C_ADDR    2  /* Match against I2C 7-bit address
+> */ -#define V4L2_CHIP_MATCH_AC97        3  /* Match against anciliary AC97
+> chip */ +#define V4L2_CHIP_MATCH_AC97        3  /* Match against ancillary
+> AC97 chip */ #define V4L2_CHIP_MATCH_SUBDEV      4  /* Match against subdev
+> index */
+> 
+>  struct v4l2_dbg_match {
+-- 
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Laurent Pinchart
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
