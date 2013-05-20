@@ -1,91 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:61211 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753645Ab3EUO2L (ORCPT
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:53810 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755331Ab3ETMjO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 10:28:11 -0400
-Received: by mail-la0-f43.google.com with SMTP id ez20so762893lab.30
-        for <linux-media@vger.kernel.org>; Tue, 21 May 2013 07:28:09 -0700 (PDT)
-Message-ID: <519B8478.9010305@cogentembedded.com>
-Date: Tue, 21 May 2013 18:28:08 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Mon, 20 May 2013 08:39:14 -0400
+Received: by mail-ee0-f51.google.com with SMTP id e51so3887622eek.10
+        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 05:39:13 -0700 (PDT)
+Message-ID: <519A19CF.5020605@googlemail.com>
+Date: Mon, 20 May 2013 14:40:47 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: mchehab@redhat.com, linux-media@vger.kernel.org,
-	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
-	matsu@igel.co.jp
-Subject: Re: [PATCH v3] adv7180: add more subdev video ops
-References: <201305132321.39495.sergei.shtylyov@cogentembedded.com> <201305211135.59706.hverkuil@xs4all.nl>
-In-Reply-To: <201305211135.59706.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Chris Rankin <rankincj@yahoo.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
+References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com> <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com> <51993DDE.4070800@googlemail.com> <1369010702.23562.YahooMailNeo@web120304.mail.ne1.yahoo.com>
+In-Reply-To: <1369010702.23562.YahooMailNeo@web120304.mail.ne1.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Am 20.05.2013 02:45, schrieb Chris Rankin:
+> ----- Original Message -----
+>
+>> I'm not familar with ir-keytable and the RC core.
+>> Mauro ? Can you take over ? ;)
+> This patch seems to "do the right thing"... I doubt it will apply cleanly because of TAB/space issues, but you should get the idea :-).
+>
+> --- linux-3.9/drivers/media/usb/em28xx/em28xx-input.c.orig    2013-05-19 21:18:39.000000000 +0100
+> +++ linux-3.9/drivers/media/usb/em28xx/em28xx-input.c    2013-05-20 01:36:51.000000000 +0100
+> @@ -417,6 +417,7 @@
+>          *rc_type = RC_BIT_RC6_0;
+>      } else if (*rc_type & RC_BIT_UNKNOWN) {
+>          *rc_type = RC_BIT_UNKNOWN;
+> +                return 0;
+>      } else {
+>          *rc_type = ir->rc_type;
+>          return -EINVAL;
+>
+> This is against 3.9.3.
+>
+> Signed-off-by: Chris Rankin <rankincj@yahoo.com>
+No, this patch is wrong.
+Updating ir->rc_type with the new value of *rc_type is correct.
 
-On 21-05-2013 13:35, Hans Verkuil wrote:
-
->> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-
->> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
->> the soc-camera drivers.
-
->> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
->> ---
->> This patch is against the 'media_tree.git' repo.
-
->> Changes from version 2:
->> - set the field format depending on video standard in try_mbus_fmt() method;
->> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
->> - removed g_crop() method.
-
->>   drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
->>   1 file changed, 86 insertions(+)
->>
->> Index: media_tree/drivers/media/i2c/adv7180.c
->> ===================================================================
->> --- media_tree.orig/drivers/media/i2c/adv7180.c
->> +++ media_tree/drivers/media/i2c/adv7180.c
-
-
->> +
->> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
->> +				struct v4l2_mbus_framefmt *fmt)
->> +{
->> +	struct adv7180_state *state = to_state(sd);
->> +
->> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
->> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
->> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
->> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
-
-> Just noticed this: use V4L2_FIELD_INTERLACED as that does the right thing.
-> No need to split in _BT and _TB.
-
-    Hm, testers have reported that _BT vs _TB do make a difference. I'll 
-try to look into how V4L2 handles interlacing for different standards.
-
->> +	fmt->width = 720;
->> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
->> +
->> +	return 0;
->> +}
-
-> Actually, all this code can be simplified substantially: the try/g/s_mbus_fmt
-> functions are really all identical since the data returned is only dependent
-> on the current standard. So this means you can use just a single function for
-> all three ops, and you can do away with adding struct v4l2_mbus_framefmt to
-> adv7180_state.
-
-    Hm, I wonder how "get" and "set" methods can be identical... I'll 
-look into this some more.
-
-> Regards,
-
-> 	Hans
-
-WBR, Sergei
-
+Regards,
+Frank
