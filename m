@@ -1,91 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:58952 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757608Ab3EYRkk (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:60570 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751228Ab3ETMAG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 13:40:40 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH v2 4/4] media: i2c: ths7303: make the pdata as a constant pointer
-Date: Sat, 25 May 2013 23:09:36 +0530
-Message-Id: <1369503576-22271-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 20 May 2013 08:00:06 -0400
+Date: Mon, 20 May 2013 14:00:03 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 1/2] [media] soc_camera/sh_mobile_csi2: Remove redundant
+ platform_set_drvdata()
+In-Reply-To: <CAK9yfHxOpoNFoTV6LkqTJGAL_K4R7n5e4ke0Cw-WeceWZ6MK_Q@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1305201359390.25754@axis700.grange>
+References: <1368436761-12183-1-git-send-email-sachin.kamat@linaro.org>
+ <CAK9yfHxOpoNFoTV6LkqTJGAL_K4R7n5e4ke0Cw-WeceWZ6MK_Q@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Mon, 20 May 2013, Sachin Kamat wrote:
 
-generally the pdata needs to be a constant pointer in the device
-state structure. This patch makes the pdata as a constant pointer
-and alongside returns -EINVAL when pdata is NULL.
+> On 13 May 2013 14:49, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> > Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
+> > driver is bound) removes the need to set driver data field to
+> > NULL.
+> >
+> > Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
+Thanks, both queued for 3.11.
+
+Guennadi
+
+> > ---
+> >  drivers/media/platform/soc_camera/sh_mobile_csi2.c |    8 +-------
+> >  1 file changed, 1 insertion(+), 7 deletions(-)
+> >
+> > diff --git a/drivers/media/platform/soc_camera/sh_mobile_csi2.c b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> > index 09cb4fc..13a1f8f 100644
+> > --- a/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> > +++ b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> > @@ -340,18 +340,13 @@ static int sh_csi2_probe(struct platform_device *pdev)
+> >         ret = v4l2_device_register_subdev(pdata->v4l2_dev, &priv->subdev);
+> >         dev_dbg(&pdev->dev, "%s(%p): ret(register_subdev) = %d\n", __func__, priv, ret);
+> >         if (ret < 0)
+> > -               goto esdreg;
+> > +               return ret;
+> >
+> >         pm_runtime_enable(&pdev->dev);
+> >
+> >         dev_dbg(&pdev->dev, "CSI2 probed.\n");
+> >
+> >         return 0;
+> > -
+> > -esdreg:
+> > -       platform_set_drvdata(pdev, NULL);
+> > -
+> > -       return ret;
+> >  }
+> >
+> >  static int sh_csi2_remove(struct platform_device *pdev)
+> > @@ -360,7 +355,6 @@ static int sh_csi2_remove(struct platform_device *pdev)
+> >
+> >         v4l2_device_unregister_subdev(&priv->subdev);
+> >         pm_runtime_disable(&pdev->dev);
+> > -       platform_set_drvdata(pdev, NULL);
+> >
+> >         return 0;
+> >  }
+> > --
+> > 1.7.9.5
+> >
+> 
+> Ping...
+> 
+> -- 
+> With warm regards,
+> Sachin
+> 
+
 ---
- drivers/media/i2c/ths7303.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
-index af06187..b954195 100644
---- a/drivers/media/i2c/ths7303.c
-+++ b/drivers/media/i2c/ths7303.c
-@@ -35,7 +35,7 @@
- 
- struct ths7303_state {
- 	struct v4l2_subdev		sd;
--	struct ths7303_platform_data	pdata;
-+	const struct ths7303_platform_data *pdata;
- 	struct v4l2_bt_timings		bt;
- 	int std_id;
- 	int stream_on;
-@@ -89,7 +89,7 @@ int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
- {
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct ths7303_state *state = to_state(sd);
--	struct ths7303_platform_data *pdata = &state->pdata;
-+	const struct ths7303_platform_data *pdata = state->pdata;
- 	u8 val, sel = 0;
- 	int err, disable = 0;
- 
-@@ -356,6 +356,11 @@ static int ths7303_probe(struct i2c_client *client,
- 	struct ths7303_state *state;
- 	struct v4l2_subdev *sd;
- 
-+	if (pdata == NULL) {
-+		dev_err(&client->dev, "No platform data\n");
-+		return -EINVAL;
-+	}
-+
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
- 		return -ENODEV;
- 
-@@ -367,11 +372,7 @@ static int ths7303_probe(struct i2c_client *client,
- 	if (!state)
- 		return -ENOMEM;
- 
--	if (!pdata)
--		v4l_warn(client, "No platform data, using default data!\n");
--	else
--		state->pdata = *pdata;
--
-+	state->pdata = pdata;
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &ths7303_ops);
- 
--- 
-1.7.0.4
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
