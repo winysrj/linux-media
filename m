@@ -1,79 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43578 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751456Ab3ECGzk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 02:55:40 -0400
-Date: Fri, 3 May 2013 08:58:46 +0200
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	jonjon.arnearne@gmail.com
-Subject: Re: [PATCH V2 1/3] saa7115: move the autodetection code out of the
- probe function
-Message-ID: <20130503065846.GD1232@dell.arpanet.local>
-References: <1367268069-11429-1-git-send-email-jonarne@jonarne.no>
- <1367268069-11429-2-git-send-email-jonarne@jonarne.no>
- <20130503020913.GB5722@localhost>
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:56399 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756953Ab3ETUUG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 May 2013 16:20:06 -0400
+Received: by mail-lb0-f182.google.com with SMTP id z5so4509001lbh.41
+        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 13:20:04 -0700 (PDT)
+Message-ID: <519A8572.7050700@cogentembedded.com>
+Date: Tue, 21 May 2013 00:20:02 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130503020913.GB5722@localhost>
+To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
+CC: mchehab@redhat.com, vladimir.barinov@cogentembedded.com,
+	linux-sh@vger.kernel.org
+Subject: Re: [PATCH v3] adv7180: add more subdev video ops
+References: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 02, 2013 at 11:09:14PM -0300, Ezequiel Garcia wrote:
-> Hi Jon,
-> 
-> On Mon, Apr 29, 2013 at 10:41:07PM +0200, Jon Arne Jørgensen wrote:
-> > As we're now seeing other variants from chinese clones, like
-> > gm1113c, we'll need to add more bits at the detection code.
-> > 
-> > So, move it into a separate function.
-> > 
-> > Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
-> 
-> As far as I can see, this patch is identical to the one sent
-> by Mauro. Therefore, your SOB here is incorrect, since you are not
-> the author of the patch.
-> 
-> The proper way of re-submitting patches that have been previously
-> submitted by another developer is this:
-> 
-> --
-> From: Mauro Carvalho Chehab <mchehab@redhat.com>
-> 
-> Commit message goes here.
-> 
-> Notice how the first line is a 'From:' tagcindicating who's the
-> real submitter. The SOB tag indicates the patch author, and you
-> can add your acked-by, tested-by or reported-by if you want.
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Reported-by: Jon Arne Jørgensen <jonarne@jonarne.no>
-> --
-> 
-> You can read more about this in Documentation/SubmittingPatches.
+Hello.
 
-I just re-read SubmittingPatches.
-I couldn't see that there is anything wrong with multiple sign-off's.
+On 05/13/2013 11:21 PM, Sergei Shtylyov wrote:
 
-Quote:
-  The Signed-off-by: tag indicates that the signer was involved in the
-  development of the patch, or that he/she was in the patch's delivery
-  path.
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>
+> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
+> the soc-camera drivers.
+>
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-and:
-  (c) The contribution was provided directly to me by some other
-      person who certified (a), (b) or (c) and I have not modified
-      it.
+     Hans, what's your opinion of this version? Mauro said I should ask 
+you first...
 
-It's not that important to me, so If you insist, I'll remove the
-signed-off-by line :)
+> ---
+> This patch is against the 'media_tree.git' repo.
+>
+> Changes from version 2:
+> - set the field format depending on video standard in try_mbus_fmt() method;
+> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
+> - removed g_crop() method.
+>
+>   drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
+>   1 file changed, 86 insertions(+)
+>
+> Index: media_tree/drivers/media/i2c/adv7180.c
+> ===================================================================
+> --- media_tree.orig/drivers/media/i2c/adv7180.c
+> +++ media_tree/drivers/media/i2c/adv7180.c
+> @@ -1,6 +1,8 @@
+>   /*
+>    * adv7180.c Analog Devices ADV7180 video decoder driver
+>    * Copyright (c) 2009 Intel Corporation
+> + * Copyright (C) 2013 Cogent Embedded, Inc.
+> + * Copyright (C) 2013 Renesas Solutions Corp.
+>    *
+>    * This program is free software; you can redistribute it and/or modify
+>    * it under the terms of the GNU General Public License version 2 as
+> @@ -128,6 +130,7 @@ struct adv7180_state {
+>   	v4l2_std_id		curr_norm;
+>   	bool			autodetect;
+>   	u8			input;
+> +	struct v4l2_mbus_framefmt fmt;
+>   };
+>   #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
+>   					    struct adv7180_state,	\
+> @@ -397,10 +400,93 @@ static void adv7180_exit_controls(struct
+>   	v4l2_ctrl_handler_free(&state->ctrl_hdl);
+>   }
+>   
+> +static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
+> +				 enum v4l2_mbus_pixelcode *code)
+> +{
+> +	if (index > 0)
+> +		return -EINVAL;
+> +
+> +	*code = V4L2_MBUS_FMT_YUYV8_2X8;
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
+> +				struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +
+> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
+> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
+> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
+> +	fmt->width = 720;
+> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7180_g_mbus_fmt(struct v4l2_subdev *sd,
+> +			      struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +
+> +	*fmt = state->fmt;
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7180_s_mbus_fmt(struct v4l2_subdev *sd,
+> +			      struct v4l2_mbus_framefmt *fmt)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +
+> +	adv7180_try_mbus_fmt(sd, fmt);
+> +	state->fmt = *fmt;
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +
+> +	a->bounds.left = 0;
+> +	a->bounds.top = 0;
+> +	a->bounds.width = 720;
+> +	a->bounds.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+> +	a->defrect = a->bounds;
+> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+> +	a->pixelaspect.numerator = 1;
+> +	a->pixelaspect.denominator = 1;
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+> +				 struct v4l2_mbus_config *cfg)
+> +{
+> +	/*
+> +	 * The ADV7180 sensor supports BT.601/656 output modes.
+> +	 * The BT.656 is default and not yet configurable by s/w.
+> +	 */
+> +	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
+> +		     V4L2_MBUS_DATA_ACTIVE_HIGH;
+> +	cfg->type = V4L2_MBUS_BT656;
+> +
+> +	return 0;
+> +}
+> +
+>   static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>   	.querystd = adv7180_querystd,
+>   	.g_input_status = adv7180_g_input_status,
+>   	.s_routing = adv7180_s_routing,
+> +	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
+> +	.try_mbus_fmt = adv7180_try_mbus_fmt,
+> +	.g_mbus_fmt = adv7180_g_mbus_fmt,
+> +	.s_mbus_fmt = adv7180_s_mbus_fmt,
+> +	.cropcap = adv7180_cropcap,
+> +	.g_mbus_config = adv7180_g_mbus_config,
+>   };
+>   
+>   static const struct v4l2_subdev_core_ops adv7180_core_ops = {
 
-> -- 
-> Ezequiel García, Free Electrons
-> Embedded Linux, Kernel and Android Engineering
-> http://free-electrons.com
+WBR, Sergei
+
