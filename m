@@ -1,101 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3132 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754061Ab3EQS23 (ORCPT
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:48859 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754820Ab3ETL1J (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 May 2013 14:28:29 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4HISPjC016841
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 17 May 2013 20:28:27 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 0CB2D35E001B
-	for <linux-media@vger.kernel.org>; Fri, 17 May 2013 20:28:24 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Mon, 20 May 2013 07:27:09 -0400
+Received: by mail-ob0-f176.google.com with SMTP id wp18so6882858obc.35
+        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 04:27:09 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1368436761-12183-1-git-send-email-sachin.kamat@linaro.org>
+References: <1368436761-12183-1-git-send-email-sachin.kamat@linaro.org>
+Date: Mon, 20 May 2013 16:57:08 +0530
+Message-ID: <CAK9yfHxOpoNFoTV6LkqTJGAL_K4R7n5e4ke0Cw-WeceWZ6MK_Q@mail.gmail.com>
+Subject: Re: [PATCH 1/2] [media] soc_camera/sh_mobile_csi2: Remove redundant platform_set_drvdata()
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130517182825.0CB2D35E001B@alastor.dyndns.org>
-Date: Fri, 17 May 2013 20:28:24 +0200 (CEST)
+Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 13 May 2013 14:49, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
+> driver is bound) removes the need to set driver data field to
+> NULL.
+>
+> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> ---
+>  drivers/media/platform/soc_camera/sh_mobile_csi2.c |    8 +-------
+>  1 file changed, 1 insertion(+), 7 deletions(-)
+>
+> diff --git a/drivers/media/platform/soc_camera/sh_mobile_csi2.c b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> index 09cb4fc..13a1f8f 100644
+> --- a/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> +++ b/drivers/media/platform/soc_camera/sh_mobile_csi2.c
+> @@ -340,18 +340,13 @@ static int sh_csi2_probe(struct platform_device *pdev)
+>         ret = v4l2_device_register_subdev(pdata->v4l2_dev, &priv->subdev);
+>         dev_dbg(&pdev->dev, "%s(%p): ret(register_subdev) = %d\n", __func__, priv, ret);
+>         if (ret < 0)
+> -               goto esdreg;
+> +               return ret;
+>
+>         pm_runtime_enable(&pdev->dev);
+>
+>         dev_dbg(&pdev->dev, "CSI2 probed.\n");
+>
+>         return 0;
+> -
+> -esdreg:
+> -       platform_set_drvdata(pdev, NULL);
+> -
+> -       return ret;
+>  }
+>
+>  static int sh_csi2_remove(struct platform_device *pdev)
+> @@ -360,7 +355,6 @@ static int sh_csi2_remove(struct platform_device *pdev)
+>
+>         v4l2_device_unregister_subdev(&priv->subdev);
+>         pm_runtime_disable(&pdev->dev);
+> -       platform_set_drvdata(pdev, NULL);
+>
+>         return 0;
+>  }
+> --
+> 1.7.9.5
+>
 
-Results of the daily build of media_tree:
+Ping...
 
-date:		Fri May 17 19:00:22 CEST 2013
-git branch:	test
-git hash:	4237c09a63906b980741725da63f85e454caec02
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
-
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: ERRORS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+With warm regards,
+Sachin
