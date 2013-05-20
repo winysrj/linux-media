@@ -1,186 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46112 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759440Ab3EWOnK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 10:43:10 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 7/9] [media] coda: add coda_encode_header helper function
-Date: Thu, 23 May 2013 16:42:59 +0200
-Message-Id: <1369320181-17933-8-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
-References: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
+Received: from nm20-vm0.bullet.mail.ne1.yahoo.com ([98.138.91.45]:38407 "EHLO
+	nm20-vm0.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755331Ab3ETMsK convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 May 2013 08:48:10 -0400
+References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com> <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com> <51993DDE.4070800@googlemail.com> <1369010702.23562.YahooMailNeo@web120304.mail.ne1.yahoo.com> <519A19CF.5020605@googlemail.com>
+Message-ID: <1369054084.54858.YahooMailNeo@web120306.mail.ne1.yahoo.com>
+Date: Mon, 20 May 2013 05:48:04 -0700 (PDT)
+From: Chris Rankin <rankincj@yahoo.com>
+Reply-To: Chris Rankin <rankincj@yahoo.com>
+Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
+To: =?iso-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+In-Reply-To: <519A19CF.5020605@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In preparation for CODA7541 and CODA960 multi-stream support and for
-replacement of the completion with a mutex lock, consolidate the
-header encoding in a helper function.
+----- Original Message -----
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 112 ++++++++++++++++++++----------------------
- 1 file changed, 53 insertions(+), 59 deletions(-)
+> This patch seems to "do the right thing"... I doubt it will apply cleanly because of TAB/space issues, but you should get the idea :-).
+>
+> --- linux-3.9/drivers/media/usb/em28xx/em28xx-input.c.orig    2013-05-19 21:18:39.000000000 +0100
+> +++ linux-3.9/drivers/media/usb/em28xx/em28xx-input.c    2013-05-20 01:36:51.000000000 +0100
+> @@ -417,6 +417,7 @@
+>          *rc_type = RC_BIT_RC6_0;
+>      } else if (*rc_type & RC_BIT_UNKNOWN) {
+>          *rc_type = RC_BIT_UNKNOWN;
+> +                return 0;
+>      } else {
+>          *rc_type = ir->rc_type;
+>          return -EINVAL;
+>
+> This is against 3.9.3.
+>
+> Signed-off-by: Chris Rankin <rankincj@yahoo.com>
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 83e3caf..cd1ce70 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1031,6 +1031,28 @@ static int coda_h264_padding(int size, char *p)
- 	return nal_size;
- }
- 
-+static int coda_encode_header(struct coda_ctx *ctx, struct vb2_buffer *buf,
-+			      int header_code, u8 *header, int *size)
-+{
-+	struct coda_dev *dev = ctx->dev;
-+	int ret;
-+
-+	coda_write(dev, vb2_dma_contig_plane_dma_addr(buf, 0),
-+		   CODA_CMD_ENC_HEADER_BB_START);
-+	coda_write(dev, vb2_plane_size(buf, 0), CODA_CMD_ENC_HEADER_BB_SIZE);
-+	coda_write(dev, header_code, CODA_CMD_ENC_HEADER_CODE);
-+	ret = coda_command_sync(ctx, CODA_COMMAND_ENCODE_HEADER);
-+	if (ret < 0) {
-+		v4l2_err(&dev->v4l2_dev, "CODA_COMMAND_ENCODE_HEADER timeout\n");
-+		return ret;
-+	}
-+	*size = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx)) -
-+		coda_read(dev, CODA_CMD_ENC_HEADER_BB_START);
-+	memcpy(header, vb2_plane_vaddr(buf, 0), *size);
-+
-+	return 0;
-+}
-+
- static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- {
- 	struct coda_ctx *ctx = vb2_get_drv_priv(q);
-@@ -1041,7 +1063,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	struct vb2_buffer *buf;
- 	u32 dst_fourcc;
- 	u32 value;
--	int ret;
-+	int ret = 0;
- 
- 	if (count < 1)
- 		return -EINVAL;
-@@ -1228,33 +1250,22 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 		 * Get SPS in the first frame and copy it to an
- 		 * intermediate buffer.
- 		 */
--		coda_write(dev, vb2_dma_contig_plane_dma_addr(buf, 0), CODA_CMD_ENC_HEADER_BB_START);
--		coda_write(dev, bitstream_size, CODA_CMD_ENC_HEADER_BB_SIZE);
--		coda_write(dev, CODA_HEADER_H264_SPS, CODA_CMD_ENC_HEADER_CODE);
--		if (coda_command_sync(ctx, CODA_COMMAND_ENCODE_HEADER)) {
--			v4l2_err(v4l2_dev, "CODA_COMMAND_ENCODE_HEADER timeout\n");
--			return -ETIMEDOUT;
--		}
--		ctx->vpu_header_size[0] = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx)) -
--				coda_read(dev, CODA_CMD_ENC_HEADER_BB_START);
--		memcpy(&ctx->vpu_header[0][0], vb2_plane_vaddr(buf, 0),
--		       ctx->vpu_header_size[0]);
-+		ret = coda_encode_header(ctx, buf, CODA_HEADER_H264_SPS,
-+					 &ctx->vpu_header[0][0],
-+					 &ctx->vpu_header_size[0]);
-+		if (ret < 0)
-+			goto out;
- 
- 		/*
- 		 * Get PPS in the first frame and copy it to an
- 		 * intermediate buffer.
- 		 */
--		coda_write(dev, vb2_dma_contig_plane_dma_addr(buf, 0), CODA_CMD_ENC_HEADER_BB_START);
--		coda_write(dev, bitstream_size, CODA_CMD_ENC_HEADER_BB_SIZE);
--		coda_write(dev, CODA_HEADER_H264_PPS, CODA_CMD_ENC_HEADER_CODE);
--		if (coda_command_sync(ctx, CODA_COMMAND_ENCODE_HEADER)) {
--			v4l2_err(v4l2_dev, "CODA_COMMAND_ENCODE_HEADER timeout\n");
--			return -ETIMEDOUT;
--		}
--		ctx->vpu_header_size[1] = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx)) -
--				coda_read(dev, CODA_CMD_ENC_HEADER_BB_START);
--		memcpy(&ctx->vpu_header[1][0], vb2_plane_vaddr(buf, 0),
--		       ctx->vpu_header_size[1]);
-+		ret = coda_encode_header(ctx, buf, CODA_HEADER_H264_PPS,
-+					 &ctx->vpu_header[1][0],
-+					 &ctx->vpu_header_size[1]);
-+		if (ret < 0)
-+			goto out;
-+
- 		/*
- 		 * Length of H.264 headers is variable and thus it might not be
- 		 * aligned for the coda to append the encoded frame. In that is
-@@ -1270,48 +1281,31 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 		 * Get VOS in the first frame and copy it to an
- 		 * intermediate buffer
- 		 */
--		coda_write(dev, vb2_dma_contig_plane_dma_addr(buf, 0), CODA_CMD_ENC_HEADER_BB_START);
--		coda_write(dev, bitstream_size, CODA_CMD_ENC_HEADER_BB_SIZE);
--		coda_write(dev, CODA_HEADER_MP4V_VOS, CODA_CMD_ENC_HEADER_CODE);
--		if (coda_command_sync(ctx, CODA_COMMAND_ENCODE_HEADER)) {
--			v4l2_err(v4l2_dev, "CODA_COMMAND_ENCODE_HEADER timeout\n");
--			return -ETIMEDOUT;
--		}
--		ctx->vpu_header_size[0] = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx)) -
--				coda_read(dev, CODA_CMD_ENC_HEADER_BB_START);
--		memcpy(&ctx->vpu_header[0][0], vb2_plane_vaddr(buf, 0),
--		       ctx->vpu_header_size[0]);
--
--		coda_write(dev, vb2_dma_contig_plane_dma_addr(buf, 0), CODA_CMD_ENC_HEADER_BB_START);
--		coda_write(dev, bitstream_size, CODA_CMD_ENC_HEADER_BB_SIZE);
--		coda_write(dev, CODA_HEADER_MP4V_VIS, CODA_CMD_ENC_HEADER_CODE);
--		if (coda_command_sync(ctx, CODA_COMMAND_ENCODE_HEADER)) {
--			v4l2_err(v4l2_dev, "CODA_COMMAND_ENCODE_HEADER failed\n");
--			return -ETIMEDOUT;
--		}
--		ctx->vpu_header_size[1] = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx)) -
--				coda_read(dev, CODA_CMD_ENC_HEADER_BB_START);
--		memcpy(&ctx->vpu_header[1][0], vb2_plane_vaddr(buf, 0),
--		       ctx->vpu_header_size[1]);
--
--		coda_write(dev, vb2_dma_contig_plane_dma_addr(buf, 0), CODA_CMD_ENC_HEADER_BB_START);
--		coda_write(dev, bitstream_size, CODA_CMD_ENC_HEADER_BB_SIZE);
--		coda_write(dev, CODA_HEADER_MP4V_VOL, CODA_CMD_ENC_HEADER_CODE);
--		if (coda_command_sync(ctx, CODA_COMMAND_ENCODE_HEADER)) {
--			v4l2_err(v4l2_dev, "CODA_COMMAND_ENCODE_HEADER failed\n");
--			return -ETIMEDOUT;
--		}
--		ctx->vpu_header_size[2] = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx)) -
--				coda_read(dev, CODA_CMD_ENC_HEADER_BB_START);
--		memcpy(&ctx->vpu_header[2][0], vb2_plane_vaddr(buf, 0),
--		       ctx->vpu_header_size[2]);
-+		ret = coda_encode_header(ctx, buf, CODA_HEADER_MP4V_VOS,
-+					 &ctx->vpu_header[0][0],
-+					 &ctx->vpu_header_size[0]);
-+		if (ret < 0)
-+			goto out;
-+
-+		ret = coda_encode_header(ctx, buf, CODA_HEADER_MP4V_VIS,
-+					 &ctx->vpu_header[1][0],
-+					 &ctx->vpu_header_size[1]);
-+		if (ret < 0)
-+			goto out;
-+
-+		ret = coda_encode_header(ctx, buf, CODA_HEADER_MP4V_VOL,
-+					 &ctx->vpu_header[2][0],
-+					 &ctx->vpu_header_size[2]);
-+		if (ret < 0)
-+			goto out;
- 		break;
- 	default:
- 		/* No more formats need to save headers at the moment */
- 		break;
- 	}
- 
--	return 0;
-+out:
-+	return ret;
- }
- 
- static int coda_stop_streaming(struct vb2_queue *q)
--- 
-1.8.2.rc2
+> No, this patch is wrong.
+> Updating ir->rc_type with the new value of *rc_type is correct.
+
+Well, it restores 3.8 behaviour, i.e. em28xx not clobbering its "RC5" configuration when RC core subsequently calls ir_change_protocol() with *rc_type=RC_BIT_UNKNOWN. The ir->rc_type parameter is new to 3.9, by the looks of things.
+
+Cheers,
+Chris
 
