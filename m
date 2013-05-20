@@ -1,39 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:55327 "EHLO plane.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:64740 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030465Ab3E3KuE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 May 2013 06:50:04 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1Ui0Ql-00075t-Es
-	for linux-media@vger.kernel.org; Thu, 30 May 2013 12:50:03 +0200
-Received: from 79-134-123-90.cust.suomicom.fi ([79.134.123.90])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 30 May 2013 12:50:03 +0200
-Received: from www.linuxtv.org by 79-134-123-90.cust.suomicom.fi with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Thu, 30 May 2013 12:50:03 +0200
-To: linux-media@vger.kernel.org
-From: Jussi =?utf-8?b?SsOkw6Rza2Vsw6RpbmVu?=
-	<www.linuxtv.org@jjussi.com>
-Subject: All models of Technotrend TT-connect CT-3650 are not supported
-Date: Thu, 30 May 2013 10:37:54 +0000 (UTC)
-Message-ID: <loom.20130530T123614-761@post.gmane.org>
+	id S1755226Ab3ETVWU convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 20 May 2013 17:22:20 -0400
+Date: Mon, 20 May 2013 18:22:15 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: Can you take a look at these dvb-apps warnings/errors?
+Message-ID: <20130520182215.54e2e3b0@redhat.com>
+In-Reply-To: <201305171030.57794.hverkuil@xs4all.nl>
+References: <201305171030.57794.hverkuil@xs4all.nl>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Older models have: idVendor=0b48, idProduct=300d
-Model what I just bought was: idVendor=04b4, idProduct=8613 and this is not 
-supported!
+Hi Hans,
 
-usb 2-1: New USB device found, idVendor=04b4, idProduct=8613
-usb 2-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-usbtest 2-1:1.0: FX2 device
-usbtest 2-1:1.0: high-speed {control bulk-in bulk-out} tests (+alt)
+Em Fri, 17 May 2013 10:30:57 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Both products looks just same!
+> Hi Mauro,
+> 
+> Can you take a look at these? The daily build is failing because of this.
+> 
+> Thanks!
+> 
+> 	Hans
+> 
+> test_video.c:322:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 2 has type ‘ssize_t’ [-Wformat]
+> dvbscan.c:128:6: warning: variable ‘output_type’ set but not used [-Wunused-but-set-variable]
+> dvbscan.c:126:6: warning: variable ‘uk_ordering’ set but not used [-Wunused-but-set-variable]
+> dvbscan.c:124:32: warning: variable ‘inversion’ set but not used [-Wunused-but-set-variable]
+> dvbscan_dvb.c:27:44: warning: unused parameter ‘fe’ [-Wunused-parameter]
+> dvbscan_atsc.c:27:45: warning: unused parameter ‘fe’ [-Wunused-parameter]
+> util.c:193:7: error: ‘SYS_DVBC_ANNEX_A’ undeclared (first use in this function)
+> util.c:194:7: error: ‘SYS_DVBC_ANNEX_C’ undeclared (first use in this function)
+> util.c:262:26: error: ‘DTV_ENUM_DELSYS’ undeclared (first use in this function)
+> util.c:263:1: warning: control reaches end of non-void function [-Wreturn-type]
+> make[2]: *** [util.o] Error 1
+> make[1]: *** [all] Error 2
+> make: *** [all] Error 2
 
+I'm not touching on dvb-apps for a long time. From my side, all I need in
+terms of userspace apps for DVB is there at dvbv5/libdvbv5 on v4l-utils.
+
+That's said, from the above errors, it seems that it got added (partial)
+support for DVB v5 but, somehow, it is compiling with an older
+dvb/frontend.h header on your build.
+
+Regards,
+Mauro
