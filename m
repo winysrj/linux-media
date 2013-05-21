@@ -1,67 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43327 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756042Ab3EBLEF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 07:04:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [PATCH] mt9p031: Use gpio_is_valid()
-Date: Thu,  2 May 2013 13:04:12 +0200
-Message-Id: <1367492652-28704-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-la0-f43.google.com ([209.85.215.43]:61211 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753645Ab3EUO2L (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 May 2013 10:28:11 -0400
+Received: by mail-la0-f43.google.com with SMTP id ez20so762893lab.30
+        for <linux-media@vger.kernel.org>; Tue, 21 May 2013 07:28:09 -0700 (PDT)
+Message-ID: <519B8478.9010305@cogentembedded.com>
+Date: Tue, 21 May 2013 18:28:08 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: mchehab@redhat.com, linux-media@vger.kernel.org,
+	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
+	matsu@igel.co.jp
+Subject: Re: [PATCH v3] adv7180: add more subdev video ops
+References: <201305132321.39495.sergei.shtylyov@cogentembedded.com> <201305211135.59706.hverkuil@xs4all.nl>
+In-Reply-To: <201305211135.59706.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the manual validity checks for the reset GPIO with the
-gpio_is_valid() function.
+Hello.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/i2c/mt9p031.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+On 21-05-2013 13:35, Hans Verkuil wrote:
 
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index 8de84c0..bf49899 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -272,7 +272,7 @@ static inline int mt9p031_pll_disable(struct mt9p031 *mt9p031)
- static int mt9p031_power_on(struct mt9p031 *mt9p031)
- {
- 	/* Ensure RESET_BAR is low */
--	if (mt9p031->reset != -1) {
-+	if (gpio_is_valid(mt9p031->reset)) {
- 		gpio_set_value(mt9p031->reset, 0);
- 		usleep_range(1000, 2000);
- 	}
-@@ -287,7 +287,7 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
- 		clk_prepare_enable(mt9p031->clk);
- 
- 	/* Now RESET_BAR must be high */
--	if (mt9p031->reset != -1) {
-+	if (gpio_is_valid(mt9p031->reset)) {
- 		gpio_set_value(mt9p031->reset, 1);
- 		usleep_range(1000, 2000);
- 	}
-@@ -297,7 +297,7 @@ static int mt9p031_power_on(struct mt9p031 *mt9p031)
- 
- static void mt9p031_power_off(struct mt9p031 *mt9p031)
- {
--	if (mt9p031->reset != -1) {
-+	if (gpio_is_valid(mt9p031->reset)) {
- 		gpio_set_value(mt9p031->reset, 0);
- 		usleep_range(1000, 2000);
- 	}
-@@ -1031,7 +1031,7 @@ static int mt9p031_probe(struct i2c_client *client,
- 	mt9p031->format.field = V4L2_FIELD_NONE;
- 	mt9p031->format.colorspace = V4L2_COLORSPACE_SRGB;
- 
--	if (pdata->reset != -1) {
-+	if (gpio_is_valid(pdata->reset)) {
- 		ret = devm_gpio_request_one(&client->dev, pdata->reset,
- 					    GPIOF_OUT_INIT_LOW, "mt9p031_rst");
- 		if (ret < 0)
--- 
-Regards,
+>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-Laurent Pinchart
+>> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
+>> the soc-camera drivers.
+
+>> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
+>> ---
+>> This patch is against the 'media_tree.git' repo.
+
+>> Changes from version 2:
+>> - set the field format depending on video standard in try_mbus_fmt() method;
+>> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
+>> - removed g_crop() method.
+
+>>   drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
+>>   1 file changed, 86 insertions(+)
+>>
+>> Index: media_tree/drivers/media/i2c/adv7180.c
+>> ===================================================================
+>> --- media_tree.orig/drivers/media/i2c/adv7180.c
+>> +++ media_tree/drivers/media/i2c/adv7180.c
+
+
+>> +
+>> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
+>> +				struct v4l2_mbus_framefmt *fmt)
+>> +{
+>> +	struct adv7180_state *state = to_state(sd);
+>> +
+>> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
+>> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+>> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
+>> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
+
+> Just noticed this: use V4L2_FIELD_INTERLACED as that does the right thing.
+> No need to split in _BT and _TB.
+
+    Hm, testers have reported that _BT vs _TB do make a difference. I'll 
+try to look into how V4L2 handles interlacing for different standards.
+
+>> +	fmt->width = 720;
+>> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+>> +
+>> +	return 0;
+>> +}
+
+> Actually, all this code can be simplified substantially: the try/g/s_mbus_fmt
+> functions are really all identical since the data returned is only dependent
+> on the current standard. So this means you can use just a single function for
+> all three ops, and you can do away with adding struct v4l2_mbus_framefmt to
+> adv7180_state.
+
+    Hm, I wonder how "get" and "set" methods can be identical... I'll 
+look into this some more.
+
+> Regards,
+
+> 	Hans
+
+WBR, Sergei
 
