@@ -1,143 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4476 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965542Ab3E2LAm (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:51336 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752648Ab3EUOcp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:00:42 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 21 May 2013 10:32:45 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCHv1 05/38] ivtv: remove g_chip_ident
-Date: Wed, 29 May 2013 12:59:38 +0200
-Message-Id: <1369825211-29770-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: do not use v4l2_dev in coda_timeout
+Date: Tue, 21 May 2013 16:32:42 +0200
+Message-Id: <1369146762-26297-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The timeout delayed work might be scheduled even after the v4l2 device is
+released.
 
-g_chip_ident was used to determine if a saa7114 or saa7115 was used. Instead
-just check the subdev name.
-
-After that the g_chip_ident function can be removed.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/pci/ivtv/ivtv-driver.c |    8 +------
- drivers/media/pci/ivtv/ivtv-ioctl.c  |   41 ++++------------------------------
- 2 files changed, 5 insertions(+), 44 deletions(-)
+ drivers/media/platform/coda.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/pci/ivtv/ivtv-driver.c b/drivers/media/pci/ivtv/ivtv-driver.c
-index 07b8460..db61452 100644
---- a/drivers/media/pci/ivtv/ivtv-driver.c
-+++ b/drivers/media/pci/ivtv/ivtv-driver.c
-@@ -58,7 +58,6 @@
- #include <linux/dma-mapping.h>
- #include <media/tveeprom.h>
- #include <media/saa7115.h>
--#include <media/v4l2-chip-ident.h>
- #include "tuner-xc2028.h"
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 037e2bc..22d1b1b 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1685,7 +1685,7 @@ static void coda_timeout(struct work_struct *work)
  
- /* If you have already X v4l cards, then set this to X. This way
-@@ -968,15 +967,10 @@ static void ivtv_load_and_init_modules(struct ivtv *itv)
- 	}
+ 	complete(&dev->done);
  
- 	if (hw & IVTV_HW_SAA711X) {
--		struct v4l2_dbg_chip_ident v;
--
- 		/* determine the exact saa711x model */
- 		itv->hw_flags &= ~IVTV_HW_SAA711X;
+-	v4l2_err(&dev->v4l2_dev, "CODA PIC_RUN timeout, stopping all streams\n");
++	dev_err(&dev->plat_dev->dev, "CODA PIC_RUN timeout, stopping all streams\n");
  
--		v.match.type = V4L2_CHIP_MATCH_I2C_DRIVER;
--		strlcpy(v.match.name, "saa7115", sizeof(v.match.name));
--		ivtv_call_hw(itv, IVTV_HW_SAA711X, core, g_chip_ident, &v);
--		if (v.ident == V4L2_IDENT_SAA7114) {
-+		if (strstr(itv->sd_video->name, "saa7114")) {
- 			itv->hw_flags |= IVTV_HW_SAA7114;
- 			/* VBI is not yet supported by the saa7114 driver. */
- 			itv->v4l2_cap &= ~(V4L2_CAP_SLICED_VBI_CAPTURE|V4L2_CAP_VBI_CAPTURE);
-diff --git a/drivers/media/pci/ivtv/ivtv-ioctl.c b/drivers/media/pci/ivtv/ivtv-ioctl.c
-index 3e281ec..944300f 100644
---- a/drivers/media/pci/ivtv/ivtv-ioctl.c
-+++ b/drivers/media/pci/ivtv/ivtv-ioctl.c
-@@ -34,7 +34,6 @@
- #include "ivtv-cards.h"
- #include <media/saa7127.h>
- #include <media/tveeprom.h>
--#include <media/v4l2-chip-ident.h>
- #include <media/v4l2-event.h>
- #include <linux/dvb/audio.h>
- 
-@@ -692,24 +691,6 @@ static int ivtv_s_fmt_vid_out_overlay(struct file *file, void *fh, struct v4l2_f
- 	return ret;
- }
- 
--static int ivtv_g_chip_ident(struct file *file, void *fh, struct v4l2_dbg_chip_ident *chip)
--{
--	struct ivtv *itv = fh2id(fh)->itv;
--
--	chip->ident = V4L2_IDENT_NONE;
--	chip->revision = 0;
--	if (chip->match.type == V4L2_CHIP_MATCH_HOST) {
--		if (v4l2_chip_match_host(&chip->match))
--			chip->ident = itv->has_cx23415 ? V4L2_IDENT_CX23415 : V4L2_IDENT_CX23416;
--		return 0;
--	}
--	if (chip->match.type != V4L2_CHIP_MATCH_I2C_DRIVER &&
--	    chip->match.type != V4L2_CHIP_MATCH_I2C_ADDR)
--		return -EINVAL;
--	/* TODO: is this correct? */
--	return ivtv_call_all_err(itv, core, g_chip_ident, chip);
--}
--
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int ivtv_itvc(struct ivtv *itv, bool get, u64 reg, u64 *val)
- {
-@@ -736,29 +717,16 @@ static int ivtv_g_register(struct file *file, void *fh, struct v4l2_dbg_register
- {
- 	struct ivtv *itv = fh2id(fh)->itv;
- 
--	if (v4l2_chip_match_host(&reg->match)) {
--		reg->size = 4;
--		return ivtv_itvc(itv, true, reg->reg, &reg->val);
--	}
--	/* TODO: subdev errors should not be ignored, this should become a
--	   subdev helper function. */
--	ivtv_call_all(itv, core, g_register, reg);
--	return 0;
-+	reg->size = 4;
-+	return ivtv_itvc(itv, true, reg->reg, &reg->val);
- }
- 
- static int ivtv_s_register(struct file *file, void *fh, const struct v4l2_dbg_register *reg)
- {
- 	struct ivtv *itv = fh2id(fh)->itv;
-+	u64 val = reg->val;
- 
--	if (v4l2_chip_match_host(&reg->match)) {
--		u64 val = reg->val;
--
--		return ivtv_itvc(itv, false, reg->reg, &val);
--	}
--	/* TODO: subdev errors should not be ignored, this should become a
--	   subdev helper function. */
--	ivtv_call_all(itv, core, s_register, reg);
--	return 0;
-+	return ivtv_itvc(itv, false, reg->reg, &val);
- }
- #endif
- 
-@@ -1912,7 +1880,6 @@ static const struct v4l2_ioctl_ops ivtv_ioctl_ops = {
- 	.vidioc_try_fmt_vid_out_overlay     = ivtv_try_fmt_vid_out_overlay,
- 	.vidioc_try_fmt_sliced_vbi_out 	    = ivtv_try_fmt_sliced_vbi_out,
- 	.vidioc_g_sliced_vbi_cap 	    = ivtv_g_sliced_vbi_cap,
--	.vidioc_g_chip_ident 		    = ivtv_g_chip_ident,
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.vidioc_g_register 		    = ivtv_g_register,
- 	.vidioc_s_register 		    = ivtv_s_register,
+ 	mutex_lock(&dev->dev_mutex);
+ 	list_for_each_entry(ctx, &dev->instances, list) {
 -- 
-1.7.10.4
+1.8.2.rc2
 
