@@ -1,104 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:35128 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S966496Ab3E3CUO (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:43786 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab3EUJ2o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 22:20:14 -0400
-References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no> <1369860078-10334-2-git-send-email-jonarne@jonarne.no> <20130529213554.690f7eaa@redhat.com>
-In-Reply-To: <20130529213554.690f7eaa@redhat.com>
+	Tue, 21 May 2013 05:28:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Subject: Re: Warnings related to anonymous unions in s5p-tv driver
+Date: Tue, 21 May 2013 11:28:31 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	hans.verkuil@cisco.com
+References: <CAK9yfHxBW4wF_sqyzW0+h1xycbDUyJLfWkSKBwZAjU00sh7akA@mail.gmail.com>
+In-Reply-To: <CAK9yfHxBW4wF_sqyzW0+h1xycbDUyJLfWkSKBwZAjU00sh7akA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain;
- charset=UTF-8
-Content-Transfer-Encoding: 8bit
-Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
-From: Andy Walls <awalls@md.metrocast.net>
-Date: Wed, 29 May 2013 22:19:49 -0400
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	=?ISO-8859-1?Q?Jon_Arne_J=F8rgensen?= <jonarne@jonarne.no>
-CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
-	timo.teras@iki.fi
-Message-ID: <7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305211128.31301.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+On Fri 17 May 2013 10:24:50 Sachin Kamat wrote:
+> Hi Hans,
+> 
+> I noticed the following sparse warnings with S5P HDMI driver which I
+> think got introduced due to the following commit:
+> 5efb54b2b7b ([media] s5p-tv: add dv_timings support for hdmi)
+> 
+> Warnings:
+> drivers/media/platform/s5p-tv/hdmi_drv.c:483:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:484:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:485:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:486:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:487:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:488:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:489:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:490:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:491:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:492:18: error: unknown field
+> name in initializer
+> 
+> This looks like the anonymous union initialization problem with GCC.
+> Surprisingly I get this with GCC 4.6, 4.7 and 4.8 as well.
+> 
+> If I add additional braces to the macro V4L2_INIT_BT_TIMINGS like done
+> for GCC version < 4.6
+> like
+> { .bt = { _width , ## args } }
+> 
+> or if I change the GNUC_MINOR comparison to 9 like (__GNUC_MINOR__ < 9)
+> I dont see this error.
+> 
+> I am using the Linaro GCC toolchain.
+> 
+> I am not sure if this has already been reported and/or fixed.
+> 
 
->Em Wed, 29 May 2013 22:41:16 +0200
->Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
->
->> Change all default values in the initial setup table to match the
->table
->> in the datasheet.
->
->This is not a good idea, as it can produce undesired side effects
->on the existing drivers that depend on it, and can't be easily
->tested.
->
->Please, don't change the current "default". It is, of course, OK
->to change them if needed via the information provided inside the
->platform data.
->
->Regards,
->Mauro
->> 
->> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
->> ---
->>  drivers/media/i2c/saa7115.c | 12 ++++++------
->>  1 file changed, 6 insertions(+), 6 deletions(-)
->> 
->> diff --git a/drivers/media/i2c/saa7115.c
->b/drivers/media/i2c/saa7115.c
->> index d6f589a..4403679 100644
->> --- a/drivers/media/i2c/saa7115.c
->> +++ b/drivers/media/i2c/saa7115.c
->> @@ -223,12 +223,12 @@ static const unsigned char saa7111_init[] = {
->>  static const unsigned char saa7113_init[] = {
->>  	R_01_INC_DELAY, 0x08,
->>  	R_02_INPUT_CNTL_1, 0xc2,
->> -	R_03_INPUT_CNTL_2, 0x30,
->> +	R_03_INPUT_CNTL_2, 0x33,
->>  	R_04_INPUT_CNTL_3, 0x00,
->>  	R_05_INPUT_CNTL_4, 0x00,
->> -	R_06_H_SYNC_START, 0x89,
->> +	R_06_H_SYNC_START, 0xe9,
->>  	R_07_H_SYNC_STOP, 0x0d,
->> -	R_08_SYNC_CNTL, 0x88,
->> +	R_08_SYNC_CNTL, 0x98,
->>  	R_09_LUMA_CNTL, 0x01,
->>  	R_0A_LUMA_BRIGHT_CNTL, 0x80,
->>  	R_0B_LUMA_CONTRAST_CNTL, 0x47,
->> @@ -236,11 +236,11 @@ static const unsigned char saa7113_init[] = {
->>  	R_0D_CHROMA_HUE_CNTL, 0x00,
->>  	R_0E_CHROMA_CNTL_1, 0x01,
->>  	R_0F_CHROMA_GAIN_CNTL, 0x2a,
->> -	R_10_CHROMA_CNTL_2, 0x08,
->> +	R_10_CHROMA_CNTL_2, 0x00,
->>  	R_11_MODE_DELAY_CNTL, 0x0c,
->> -	R_12_RT_SIGNAL_CNTL, 0x07,
->> +	R_12_RT_SIGNAL_CNTL, 0x01,
->>  	R_13_RT_X_PORT_OUT_CNTL, 0x00,
->> -	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
->> +	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,	/* RESERVED */
->>  	R_15_VGATE_START_FID_CHG, 0x00,
->>  	R_16_VGATE_STOP, 0x00,
->>  	R_17_MISC_VGATE_CONF_AND_MSB, 0x00,
->
->
->-- 
->
->Cheers,
->Mauro
->--
->To unsubscribe from this list: send the line "unsubscribe linux-media"
->in
->the body of a message to majordomo@vger.kernel.org
->More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
-I was going to make a comment along the same line as Mauro.  
-Please leave the driver defaults alone.  It is almost impossible to regression test all the different devices with a SAA7113 chip, to ensure the change doesn't cause someone's device to not work properly.
+Could it be that a different compiler version is used when using sparse?
+I don't see these errors when running sparse during the daily build.
 
 Regards,
-Andy
 
+	Hans
