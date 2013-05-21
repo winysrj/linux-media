@@ -1,232 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f43.google.com ([74.125.82.43]:34818 "EHLO
-	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753093Ab3EFI7I (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 04:59:08 -0400
-Received: by mail-wg0-f43.google.com with SMTP id c11so3314608wgh.22
-        for <linux-media@vger.kernel.org>; Mon, 06 May 2013 01:59:07 -0700 (PDT)
+Received: from canardo.mork.no ([148.122.252.1]:44736 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750886Ab3EUNHO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 May 2013 09:07:14 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: stable@vger.kernel.org
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Alan Cox <alan@linux.intel.com>
+Subject: [PATCH stable < v3.7] media mantis: fix silly crash case
+Date: Tue, 21 May 2013 15:07:03 +0200
+Message-ID: <87ehd0lbwo.fsf@nemi.mork.no>
 MIME-Version: 1.0
-Date: Mon, 6 May 2013 10:59:07 +0200
-Message-ID: <CAGGh5h00H10F7GWgjyhN_5Zn8JNMXRptt4FF+u=NHDdTXFD2MA@mail.gmail.com>
-Subject: omap3-isp : panic using previewer from V4L input
-From: jean-philippe francois <jp.francois@cynove.com>
-To: linux-media <linux-media@vger.kernel.org>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: multipart/mixed; boundary=e89a8f3ba457cfbc3604dc08e90c
+Content-Type: multipart/mixed; boundary="=-=-="
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---e89a8f3ba457cfbc3604dc08e90c
-Content-Type: text/plain; charset=UTF-8
+--=-=-=
+Content-Type: text/plain
 
-Hi,
+Hello,
 
-I am trying to use the previewer to debayer pictures coming from the
-filesystem instead of the capture hardware. The media-ctl links are as
-follows :
+Please apply mainline commit e1d45ae to any maintained stable kernel
+prior to v3.7.  I just hit this bug on a Debian 3.2.41-2+deb7u2 kernel:
 
-preview V4L input -> preview pad 0 (sink), preview pad 1(src)
-->preview V4L output.
 
-Input output format is set via media-ctl for the preview element, and
-via the V4L2 api for the V4L2 file descriptors. I am using USERPTR
-buffer allocated via memalign, and the application goes like this :
+May 19 06:52:54 canardo kernel: [   49.013774] BUG: unable to handle kernel NULL pointer dereference at 0000000000000308
+May 19 06:52:54 canardo kernel: [   49.017735] IP: [<ffffffffa02e7ae5>] dvb_unregister_frontend+0x10/0xf4 [dvb_core]
+May 19 06:52:54 canardo kernel: [   49.017735] PGD 0 
+May 19 06:52:54 canardo kernel: [   49.017735] Oops: 0000 [#1] SMP 
+May 19 06:52:54 canardo kernel: [   49.017735] CPU 2 
+May 19 06:52:54 canardo kernel: [   49.017735] Modules linked in: tda10023 tda10021 ir_lirc_codec lirc_dev ir_mce_kbd_decoder ir_sony_decoder ir_jvc_decoder mantis(+) ir_rc6_decoder snd_pcm mantis_core dvb_core ir_rc5_decoder ir_nec_decoder io_edgeport radeon snd_page_alloc snd_timer rc_core ttm snd usbserial soundcore serio_raw drm_kms_helper acpi_cpufreq drm mperf i2c_i801 power_supply i2c_algo_bit iTCO_wdt pcspkr joydev coretemp iTCO_vendor_support evdev asus_atk0110 i2c_core button processor thermal_sys ext3 mbcache jbd dm_mod raid1 md_mod microcode usbhid hid sg sd_mod crc_t10dif mptsas ata_generic scsi_transport_sas mptscsih firewire_ohci uhci_hcd pata_jmicron ahci libahci mptbase atl1 mii libata ehci_hcd firewire_core crc_itu_t scsi_mod e1000e usbcore usb_common [last unloaded: scsi_wait_scan]
+May 19 06:52:54 canardo kernel: [   49.017735] 
+May 19 06:52:54 canardo kernel: [   49.017735] Pid: 612, comm: modprobe Not tainted 3.2.0-4-amd64 #1 Debian 3.2.41-2+deb7u2 System manufacturer P5K/P5K
+May 19 06:52:54 canardo kernel: [   49.017735] RIP: 0010:[<ffffffffa02e7ae5>]  [<ffffffffa02e7ae5>] dvb_unregister_frontend+0x10/0xf4 [dvb_core]
+May 19 06:52:54 canardo kernel: [   49.017735] RSP: 0018:ffff88021274bcc8  EFLAGS: 00010246
+May 19 06:52:54 canardo kernel: [   49.017735] RAX: 0000000000000023 RBX: ffff880213571000 RCX: ffff8802135d3208
+May 19 06:52:54 canardo kernel: [   49.017735] RDX: 0000000000000022 RSI: ffff880213078ac0 RDI: 0000000000000000
+May 19 06:52:54 canardo kernel: [   49.017735] RBP: 0000000000000000 R08: 0000000000000011 R09: 0000000000000011
+May 19 06:52:54 canardo kernel: [   49.017735] R10: 0000000000000000 R11: 0000000000000000 R12: 00000000ffffffff
+May 19 06:52:54 canardo kernel: [   49.017735] R13: ffff8802135714a0 R14: ffff880213571838 R15: ffff880213571058
+May 19 06:52:54 canardo kernel: [   49.017735] FS:  00007f03b3934700(0000) GS:ffff88021fd00000(0000) knlGS:0000000000000000
+May 19 06:52:54 canardo kernel: [   49.017735] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+May 19 06:52:54 canardo kernel: [   49.017735] CR2: 0000000000000308 CR3: 0000000214969000 CR4: 00000000000006e0
+May 19 06:52:54 canardo kernel: [   49.017735] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
+May 19 06:52:54 canardo kernel: [   49.017735] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
+May 19 06:52:54 canardo kernel: [   49.017735] Process modprobe (pid: 612, threadinfo ffff88021274a000, task ffff8802125d2970)
+May 19 06:52:54 canardo kernel: [   49.017735] Stack:
+May 19 06:52:54 canardo kernel: [   49.017735]  ffff880213571080 ffffffff81072f0e ffff880213571000 ffffffffa03ba000
+May 19 06:52:54 canardo kernel: [   49.017735]  ffff8802135714a0 ffffffff8104be19 ffff880213571410 ffff880213571000
+May 19 06:52:54 canardo kernel: [   49.017735]  ffff880213571410 ffffffffa03ffd6f ffff880213571790 ffff880213571850
+May 19 06:52:54 canardo kernel: [   49.017735] Call Trace:
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff81072f0e>] ? __symbol_put+0x29/0x2e
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff8104be19>] ? tasklet_kill+0x4a/0x60
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03ffd6f>] ? mantis_dvb_init+0x3ac/0x402 [mantis_core]
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03d8707>] ? mantis_pci_probe+0x173/0x270 [mantis]
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff811c5a5b>] ? local_pci_probe+0x39/0x68
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff811c6504>] ? pci_device_probe+0xcd/0xfa
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff812510c1>] ? driver_probe_device+0xa8/0x138
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff812511a0>] ? __driver_attach+0x4f/0x6f
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff81251151>] ? driver_probe_device+0x138/0x138
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff8124fcf0>] ? bus_for_each_dev+0x4f/0x7a
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff81250a5a>] ? bus_add_driver+0xa5/0x1f5
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03d8804>] ? mantis_pci_probe+0x270/0x270 [mantis]
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff812515c8>] ? driver_register+0x8d/0xf5
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03d8804>] ? mantis_pci_probe+0x270/0x270 [mantis]
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff811c6d1f>] ? __pci_register_driver+0x4d/0xb6
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03d8804>] ? mantis_pci_probe+0x270/0x270 [mantis]
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff81002085>] ? do_one_initcall+0x75/0x12c
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff8107540f>] ? sys_init_module+0x10c/0x25b
+May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff813529d2>] ? system_call_fastpath+0x16/0x1b
+May 19 06:52:54 canardo kernel: [   49.017735] Code: 48 8b b3 18 02 00 00 48 85 f6 74 0d 5b 48 c7 c7 47 f8 2e a0 e9 c2 f7 05 e1 5b c3 55 48 89 fd 53 48 83 ec 38 83 3d 43 a2 00 00 00 <48> 8b 9f 08 03 00 00 74 15 48 c7 c6 90 d5 2e a0 48 c7 c7 40 f6 
+May 19 06:52:54 canardo kernel: [   49.017735] RIP  [<ffffffffa02e7ae5>] dvb_unregister_frontend+0x10/0xf4 [dvb_core]
+May 19 06:52:54 canardo kernel: [   49.017735]  RSP <ffff88021274bcc8>
+May 19 06:52:54 canardo kernel: [   49.017735] CR2: 0000000000000308
+May 19 06:52:54 canardo kernel: [   53.786264] ---[ end trace c8caf018e0a882dd ]---
 
-REQBUFS 1 buf on on input
-REQBUFS 1 buf on output
-alloc buffers
-QBUF on input
-QBUF on output
-STREAMON on output
-STREAMON on input
-DQBUF on output.
 
-The board either panics or hangs (though HUNG_TASK_DETECTION and
-SOFT_LOCKUP_DETECTION is set)
 
-Please find attached the panic log, and the application code.
+--=-=-=
+Content-Type: text/x-diff
+Content-Disposition: inline;
+ filename=0001-media-mantis-fix-silly-crash-case.patch
 
---e89a8f3ba457cfbc3604dc08e90c
-Content-Type: application/octet-stream; name="session.log"
-Content-Disposition: attachment; filename="session.log"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hgdf26yn0
+>From e1d45ae10aea8e8a403e5d96bf5902ee670007ff Mon Sep 17 00:00:00 2001
+From: Alan Cox <alan@linux.intel.com>
+Date: Thu, 9 Aug 2012 12:33:52 -0300
+Subject: [PATCH] [media] mantis: fix silly crash case
 
-bWVkIyBtZWRpYS1jdGwgG1tKLXIKIyBwcmUHIyBwcmVwYXJlLhtbSmRlYiMgcHJlcGFyZS5kZWJh
-eWVyIBtbSgojIGNkIC90bXAKIyBvbSMgb21hcGRlYmF5ZXIgG1tKcmEjIG9tYXBkZWJheWVyIHJh
-dzk1Yy5yYXcgG1tKCmlucHV0IGlzIDM2NjQgeCAyNzUyCmJ5dGVzcGVybGluZSBpcyA3MzYwCnNp
-emVpbWFnZSBpcyAyMDI1NDcyMApvdXRwdXQgaXMgMzY1MCB4IDI3NDQKYnl0ZXNwZXJsaW5lIGlz
-IDczMjgKc2l6ZWltYWdlIGlzIDIwMTA4MDMyCk9wZW5pbmcgcmF3OTVjLnJhdyBmb3IgZGViYXll
-cmluZwp1c3JwdHIgPSAweGI1YTQzMDIwIAp2NGwyYnVmLmxlbmd0aCA9IDIwMjU0NzIwCmlucHV0
-IGJ1ZmZlciBxdWV1ZWQKb3V0cHV0IGJ1ZmZlciBxdVsgICA1MC4xMDg4MjVdIG9tYXAzaXNwIG9t
-YXAzaXNwOiBjYW4ndCBmaW5kIHNvdXJjZSwgZmFpbGluZyBub3cKZXVlZApbICAgNTAuMTE2NDg1
-XSBvbWFwM2lzcCBvbWFwM2lzcDogY2FuJ3QgZmluZCBzb3VyY2UsIGZhaWxpbmcgbm93ClsgICA1
-MC4xMjcyMjddIC0tLS0tLS0tLS0tLVsgY3V0IGhlcmUgXS0tLS0tLS0tLS0tLQpbICAgNTAuMTMy
-MDgwXSBLZXJuZWwgQlVHIGF0IGMwMTliYjFjIFt2ZXJib3NlIGRlYnVnIGluZm8gdW5hdmFpbGFi
-bGVdClsgICA1MC4xMzg3MDJdIEludGVybmFsIGVycm9yOiBPb3BzIC0gQlVHOiAwIFsjMV0gUFJF
-RU1QVCBBUk0KWyAgIDUwLjE0NDQ3MF0gTW9kdWxlcyBsaW5rZWQgaW46IG9tYXAzX2lzcCBvdjEw
-NjMwKE8pClsgICA1MC4xNDk2MjddIENQVTogMCAgICBUYWludGVkOiBHICAgICAgICAgICBPICAo
-My45LjAgIzMpClsgICA1MC4xNTUyNzNdIFBDIGlzIGF0IG9tYXAzX2wzX2FwcF9pcnErMHgzYy8w
-eGJjClsgICA1MC4xNjAwMzRdIExSIGlzIGF0IGhhbmRsZV9pcnFfZXZlbnRfcGVyY3B1KzB4Mjgv
-MHgxMGMKWyAgIDUwLjE2NTU1N10gcGMgOiBbPGMwMTliYjFjPl0gICAgbHIgOiBbPGMwMDZiMzU0
-Pl0gICAgcHNyOiAyMDAwMDE5MwpbICAgNTAuMTY1NTU3XSBzcCA6IGMwNTA3ZTU4ICBpcCA6IDAw
-MDYwMDAwICBmcCA6IDAwMDAwMDAwClsgICA1MC4xNzc2NzNdIHIxMDogY2Y4MDRkYzAgIHI5IDog
-ZmZmZjllNjUgIHI4IDogMDAyMDAwMDAKWyAgIDUwLjE4MzE2Nl0gcjcgOiAwMDAwMDAwMCAgcjYg
-OiAwMDAwMTAwMCAgcjUgOiAwMDAwMDAwMCAgcjQgOiBjZjg3ZjNjMApbICAgNTAuMTkwMDYzXSBy
-MyA6IDAwMDAwMDAwICByMiA6IDAwMDAxMDAwICByMSA6IGNmOGZmYzgwICByMCA6IDAwMDAxMDAw
-ClsgICA1MC4xOTY5MjldIEZsYWdzOiBuekN2ICBJUlFzIG9mZiAgRklRcyBvbiAgTW9kZSBTVkNf
-MzIgIElTQSBBUk0gIFNlZ21lbnQga2VybmVsClsgICA1MC4yMDQ3NDJdIENvbnRyb2w6IDEwYzUz
-ODdkICBUYWJsZTogOGZhODAwMTkgIERBQzogMDAwMDAwMTUKWyAgIDUwLjIxMDc4NF0gUHJvY2Vz
-cyBzd2FwcGVyIChwaWQ6IDAsIHN0YWNrIGxpbWl0ID0gMHhjMDUwNjIzMCkKWyAgIDUwLjIxNjk0
-OV0gU3RhY2s6ICgweGMwNTA3ZTU4IHRvIDB4YzA1MDgwMDApClsgICA1MC4yMjE1MjddIDdlNDA6
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDAw
-MDAwMDAyIGNmODdmM2MwClsgICA1MC4yMzAxNjNdIDdlNjA6IDAwMDAwMDFhIDAwMDAwMDAwIDAw
-MDAwMDAwIGMwMDZiMzU0IGNmODA0ZGMwIGNmODdmM2MwIGNmODA0ZGMwIGMwNTA2MDAwClsgICA1
-MC4yMzg4MDBdIDdlODA6IGNmODdmM2MwIGMwNTA3ZjBjIDAwMjAwMDAwIGZmZmY5ZTY1IGMwNTRk
-NjQwIGMwMDZiNDkwIGNmODA0ZGMwIGMwNTA3ZjgwClsgICA1MC4yNDc0MzZdIDdlYTA6IGZmZmZm
-ZmZmIGMwMDZkYTY4IDAwMDAwMDFhIGMwMDZhYzQ0IDAwMDAwMDFhIGMwMDBlYmM4IDAwMDAwMDBh
-IGMwNTA3ZWQ4ClsgICA1MC4yNTYwNzJdIDdlYzA6IDAwMDAwMDFhIGMwMDA4NTk0IGMwNTRkNjAw
-IGMwMDM0MDBjIDYwMDAwMTEzIGMwMDBkZjAwIDAwMDAwMDAxIGMwNTRkNjAwClsgICA1MC4yNjQ3
-MDldIDdlZTA6IDAwMDAwMTAxIGMwNTA2MDAwIDAwMDAwMDAyIDAwMDAwMDAwIGZmZmZmZmZmIGMw
-NTA3ZmI0IDAwMjAwMDAwIGZmZmY5ZTY1ClsgICA1MC4yNzMzMTVdIDdmMDA6IGMwNTRkNjQwIDAw
-MDAwMDAwIGMwNTI2ZjI4IGMwNTA3ZjIwIGMwNTRkNjAwIGMwMDM0MDBjIDYwMDAwMTEzIGZmZmZm
-ZmZmClsgICA1MC4yODE5NTFdIDdmMjA6IGNmODA1YzQwIGMwNTA2MDAwIGMwNTExYzk4IGMwNTA3
-ZmI0IDgwMDA0MDU5IDAwMDAwMDM1IDAwMDAwMDAwIGZmZmZmZmZmClsgICA1MC4yOTA1ODhdIDdm
-NDA6IGMwNTA3ZmI0IDgwMDA0MDU5IDQxM2ZjMDgyIDAwMDAwMDAwIDAwMDAwMDAwIGMwMDM0NDBj
-IDAwMDAwMDM1IGMwMDBlYmNjClsgICA1MC4yOTkyMjRdIDdmNjA6IDAwMDAwMDI1IGMwNTA3Zjgw
-IDAwMDAwMDM1IGMwMDA4NTk0IGMwNTA2MDA4IGMwMDBlZDc4IDIwMDAwMDEzIGMwMDBkZjAwClsg
-ICA1MC4zMDc4NjFdIDdmODA6IGMwNTQ3NTQ4IGMwNTBmYjUwIDAwMDAwMDAxIGMwNTA2MDAwIGMw
-NTBlMGQ4IDAwMDAwMDAwIGMwNGZiOTU0IGMwNTEwODQ0ClsgICA1MC4zMTY0OTddIDdmYTA6IDgw
-MDA0MDU5IDQxM2ZjMDgyIDAwMDAwMDAwIDAwMDAwMDAwIDAwMDAwMDAwIGMwNTA3ZmM4IGMwNTA2
-MDA4IGMwMDBlZDc4ClsgICA1MC4zMjUxMDNdIDdmYzA6IDIwMDAwMDEzIGZmZmZmZmZmIGMwMzZj
-OTU4IGMwNGRhN2E4IGZmZmZmZmZmIGZmZmZmZmZmIGMwNGRhMzQ0IDAwMDAwMDAwClsgICA1MC4z
-MzM3NDBdIDdmZTA6IGMwNGZiOTU4IDI3MWFlNDFjIDAwMDAwMDAwIDEwYzUzYzdkIGMwNTBlMDI4
-IDgwMDA4MDcwIDAwMDAwMDAwIDAwMDAwMDAwClsgICA1MC4zNDI0MDddIFs8YzAxOWJiMWM+XSAo
-b21hcDNfbDNfYXBwX2lycSsweDNjLzB4YmMpIGZyb20gWzxjMDA2YjM1ND5dIChoYW5kbGVfaXJx
-X2V2ZW50X3BlcmNwdSsweDI4LzB4MTBjKQpbICAgNTAuMzUyNzgzXSBbPGMwMDZiMzU0Pl0gKGhh
-bmRsZV9pcnFfZXZlbnRfcGVyY3B1KzB4MjgvMHgxMGMpIGZyb20gWzxjMDA2YjQ5MD5dIChoYW5k
-bGVfaXJxX2V2ZW50KzB4NTgvMHg3NCkKWyAgIDUwLjM2MzE1OV0gWzxjMDA2YjQ5MD5dIChoYW5k
-bGVfaXJxX2V2ZW50KzB4NTgvMHg3NCkgZnJvbSBbPGMwMDZkYTY4Pl0gKGhhbmRsZV9sZXZlbF9p
-cnErMHhkOC8weDExMCkKWyAgIDUwLjM3Mjg5NF0gWzxjMDA2ZGE2OD5dIChoYW5kbGVfbGV2ZWxf
-aXJxKzB4ZDgvMHgxMTApIGZyb20gWzxjMDA2YWM0ND5dIChnZW5lcmljX2hhbmRsZV9pcnErMHgy
-MC8weDMwKQpbICAgNTAuMzgyODEyXSBbPGMwMDZhYzQ0Pl0gKGdlbmVyaWNfaGFuZGxlX2lycSsw
-eDIwLzB4MzApIGZyb20gWzxjMDAwZWJjOD5dIChoYW5kbGVfSVJRKzB4NjAvMHg4NCkKWyAgIDUw
-LjM5MjA4OV0gWzxjMDAwZWJjOD5dIChoYW5kbGVfSVJRKzB4NjAvMHg4NCkgZnJvbSBbPGMwMDA4
-NTk0Pl0gKG9tYXAzX2ludGNfaGFuZGxlX2lycSsweDU4LzB4NmMpClsgICA1MC40MDE2NDFdIFs8
-YzAwMDg1OTQ+XSAob21hcDNfaW50Y19oYW5kbGVfaXJxKzB4NTgvMHg2YykgZnJvbSBbPGMwMDBk
-ZjAwPl0gKF9faXJxX3N2YysweDQwLzB4NzApClsgICA1MC40MTExMDJdIEV4Y2VwdGlvbiBzdGFj
-aygweGMwNTA3ZWQ4IHRvIDB4YzA1MDdmMjApClsgICA1MC40MTY0MTJdIDdlYzA6ICAgICAgICAg
-ICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgIDAwMDAwMDAxIGMw
-NTRkNjAwClsgICA1MC40MjUwNDhdIDdlZTA6IDAwMDAwMTAxIGMwNTA2MDAwIDAwMDAwMDAyIDAw
-MDAwMDAwIGZmZmZmZmZmIGMwNTA3ZmI0IDAwMjAwMDAwIGZmZmY5ZTY1ClsgICA1MC40MzM2ODVd
-IDdmMDA6IGMwNTRkNjQwIDAwMDAwMDAwIGMwNTI2ZjI4IGMwNTA3ZjIwIGMwNTRkNjAwIGMwMDM0
-MDBjIDYwMDAwMTEzIGZmZmZmZmZmClsgICA1MC40NDIzMjFdIFs8YzAwMGRmMDA+XSAoX19pcnFf
-c3ZjKzB4NDAvMHg3MCkgZnJvbSBbPGMwMDM0MDBjPl0gKF9fZG9fc29mdGlycSsweDYwLzB4MTg0
-KQpbICAgNTAuNDUxMDQ5XSBbPGMwMDM0MDBjPl0gKF9fZG9fc29mdGlycSsweDYwLzB4MTg0KSBm
-cm9tIFs8YzAwMzQ0MGM+XSAoaXJxX2V4aXQrMHg3MC8weGM0KQpbICAgNTAuNDU5Njg2XSBbPGMw
-MDM0NDBjPl0gKGlycV9leGl0KzB4NzAvMHhjNCkgZnJvbSBbPGMwMDBlYmNjPl0gKGhhbmRsZV9J
-UlErMHg2NC8weDg0KQpbICAgNTAuNDY4MDQ4XSBbPGMwMDBlYmNjPl0gKGhhbmRsZV9JUlErMHg2
-NC8weDg0KSBmcm9tIFs8YzAwMDg1OTQ+XSAob21hcDNfaW50Y19oYW5kbGVfaXJxKzB4NTgvMHg2
-YykKWyAgIDUwLjQ3NzYwMF0gWzxjMDAwODU5ND5dIChvbWFwM19pbnRjX2hhbmRsZV9pcnErMHg1
-OC8weDZjKSBmcm9tIFs8YzAwMGRmMDA+XSAoX19pcnFfc3ZjKzB4NDAvMHg3MCkKWyAgIDUwLjQ4
-NzAzMF0gRXhjZXB0aW9uIHN0YWNrKDB4YzA1MDdmODAgdG8gMHhjMDUwN2ZjOCkKWyAgIDUwLjQ5
-MjM3MF0gN2Y4MDogYzA1NDc1NDggYzA1MGZiNTAgMDAwMDAwMDEgYzA1MDYwMDAgYzA1MGUwZDgg
-MDAwMDAwMDAgYzA0ZmI5NTQgYzA1MTA4NDQKWyAgIDUwLjUwMTAwN10gN2ZhMDogODAwMDQwNTkg
-NDEzZmMwODIgMDAwMDAwMDAgMDAwMDAwMDAgMDAwMDAwMDAgYzA1MDdmYzggYzA1MDYwMDggYzAw
-MGVkNzgKWyAgIDUwLjUwOTY0M10gN2ZjMDogMjAwMDAwMTMgZmZmZmZmZmYKWyAgIDUwLjUxMzMw
-NV0gWzxjMDAwZGYwMD5dIChfX2lycV9zdmMrMHg0MC8weDcwKSBmcm9tIFs8YzAwMGVkNzg+XSAo
-Y3B1X2lkbGUrMHg2MC8weDkwKQpbICAgNTAuNTIxNTc1XSBbPGMwMDBlZDc4Pl0gKGNwdV9pZGxl
-KzB4NjAvMHg5MCkgZnJvbSBbPGMwNGRhN2E4Pl0gKHN0YXJ0X2tlcm5lbCsweDIzNC8weDI4NCkK
-WyAgIDUwLjUzMDMwM10gQ29kZTogZTAwMjIwMDYgZTAwMzMwMDcgZTE5MjAwMDMgMGEwMDAwMDIg
-KGU3ZjAwMWYyKSAKWyAgIDUwLjUzNjc0M10gLS0tWyBlbmQgdHJhY2UgNThkNzgxYTZjMTE2NjUz
-NSBdLS0tClsgICA1MC41NDE1OTVdIEtlcm5lbCBwYW5pYyAtIG5vdCBzeW5jaW5nOiBGYXRhbCBl
-eGNlcHRpb24gaW4gaW50ZXJydXB0Cg==
---e89a8f3ba457cfbc3604dc08e90c
-Content-Type: text/x-csrc; charset=US-ASCII; name="omapdebayer.c"
-Content-Disposition: attachment; filename="omapdebayer.c"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hgdf2l291
+If we set mantis->fe to NULL on an error its not a good idea to then try
+passing NULL to the unregister paths and oopsing really.
 
-I2luY2x1ZGUgPHN0ZGlvLmg+CiNpbmNsdWRlIDxzdGRsaWIuaD4KI2luY2x1ZGUgPHN0cmluZy5o
-PgojaW5jbHVkZSA8ZXJybm8uaD4KI2luY2x1ZGUgPHN5cy90eXBlcy5oPgojaW5jbHVkZSA8c3lz
-L3N0YXQuaD4KI2luY2x1ZGUgPGZjbnRsLmg+CiNpbmNsdWRlIDx1bmlzdGQuaD4KI2luY2x1ZGUg
-PHN5cy9pb2N0bC5oPgojaW5jbHVkZSA8bGludXgvdmlkZW9kZXYyLmg+CiNpbmNsdWRlIDxtYWxs
-b2MuaD4KI2luY2x1ZGUgInZpZGVvYnVmLmgiCgojZGVmaW5lIFdJRFRIIDM2NjQKI2RlZmluZSBI
-RUlHSFQgMjc1MgoKY29uc3QgY2hhciAqIHY0bDJfaW5wdXQgPSAiL2Rldi92aWRlbzMiOwpjb25z
-dCBjaGFyICogdjRsMl9vdXRwdXQgPSAiL2Rldi92aWRlbzQiOwoKdmJ1Zl9kZXNjIGlidWY7CnZi
-dWZfZGVzYyBvYnVmOwoKI2RlZmluZSBYSU9DVEwoZmQsIG5hbWUsIGRhdGEpIGRvIHsJCQkJXAoJ
-CWludCByYzsJCQkJCQkJCQlcCgkJcmMgPSBpb2N0bChmZCwgbmFtZSwgZGF0YSk7CQkJCVwKCQlp
-ZihyYyA8IDApIHsJCQkJCQkJXAoJCQlwZXJyb3IoI25hbWUpOwkJCQkJCVwKCQkJZXhpdChFWElU
-X0ZBSUxVUkUpOwkJCQkJXAoJCX0JCQkJCQkJCQkJXAoJfSB3aGlsZSgwKQoKc3RhdGljIGxvbmcg
-ZmlsZXNpemUoRklMRSAqIHN0cmVhbSkgCnsKCWxvbmcgb2ZmczsKCWZzZWVrKHN0cmVhbSwgMCwg
-U0VFS19FTkQpOwoJb2ZmcyA9IGZ0ZWxsKHN0cmVhbSk7CglyZXdpbmQoc3RyZWFtKTsKCXJldHVy
-biBvZmZzOwp9CgppbnQgbWFpbihpbnQgYXJnYywgY2hhciAqKmFyZ3YpCnsKCWludCBpZmQsIG9m
-ZDsKCUZJTEUgKiBpc3RyZWFtLCAgKiBvc3RyZWFtOwoJc3RydWN0IHY0bDJfZm9ybWF0IGZtdDsK
-CXN0cnVjdCB2NGwyX3BpeF9mb3JtYXQgaXBmbXQ7CglzdHJ1Y3QgdjRsMl9waXhfZm9ybWF0IG9w
-Zm10OwogICAgc3RydWN0IHY0bDJfcmVxdWVzdGJ1ZmZlcnMgIHJlcTsKCXN0cnVjdCB2NGwyX2J1
-ZmZlciB2NGwyYnVmOwoJdW5zaWduZWQgY2hhciAqIGxpbmU7CgljaGFyICogZm5hbWU7Cglsb25n
-IGZzaXplOwoJaW50IGw7CgoJLy8gb3BlbiB2aWRlbyBmZHMKCWlmZCA9IG9wZW4odjRsMl9pbnB1
-dCwgT19SRFdSKTsKCWlmKGlmZCA8IDApIHsKCQlwZXJyb3IodjRsMl9pbnB1dCk7CgkJZXhpdChF
-WElUX0ZBSUxVUkUpOwoJfQoKCW9mZCA9IG9wZW4odjRsMl9vdXRwdXQsIE9fUkRXUik7CglpZihv
-ZmQgPCAwKSB7CgkJcGVycm9yKHY0bDJfb3V0cHV0KTsKCQlleGl0KEVYSVRfRkFJTFVSRSk7Cgl9
-CgoJLy8gZ2V0IC8gc2V0IGlucHV0IHBpeGVsIGZvcm1hdCBhdCBTQkdHUjEwCglmbXQudHlwZSA9
-IFY0TDJfQlVGX1RZUEVfVklERU9fT1VUUFVUOwoJaXBmbXQud2lkdGggPSBXSURUSDsKCWlwZm10
-LmhlaWdodCA9IEhFSUdIVDsKCWZtdC5mbXQucGl4ID0gaXBmbXQ7CglYSU9DVEwoaWZkLCBWSURJ
-T0NfVFJZX0ZNVCwgJmZtdCk7CglpcGZtdCA9IGZtdC5mbXQucGl4OwoKCXByaW50ZigiaW5wdXQg
-aXMgJWQgeCAlZFxuIiwgaXBmbXQud2lkdGgsIGlwZm10LmhlaWdodCk7CglYSU9DVEwoaWZkLCBW
-SURJT0NfU19GTVQsICZmbXQpOwoJcHJpbnRmKCJieXRlc3BlcmxpbmUgaXMgJWRcbiIsaXBmbXQu
-Ynl0ZXNwZXJsaW5lKTsKCXByaW50Zigic2l6ZWltYWdlIGlzICVkXG4iLGlwZm10LnNpemVpbWFn
-ZSk7CgkvLyBhbGxvY2F0ZSBpbnB1dCBidWZmZXIKCS8vIGFsbG9jYXRlIG91dHB1dCBidWZmZXIg
-dmlhIG1hbGxvYwoJaWJ1Zi5sZW5ndGggPSBpcGZtdC5zaXplaW1hZ2U7CglpYnVmLnVzcnB0ciA9
-IG1lbWFsaWduKDMyLCBpYnVmLmxlbmd0aCk7CglsaW5lID0gbWFsbG9jKGlwZm10LndpZHRoKTsK
-CgkvLyByZXF1ZXN0IGJ1ZmZlciBpbiBkcml2ZXIKCXJlcS5jb3VudCA9IDE7CglyZXEudHlwZSA9
-IFY0TDJfQlVGX1RZUEVfVklERU9fT1VUUFVUOwoJcmVxLm1lbW9yeSA9IFY0TDJfTUVNT1JZX1VT
-RVJQVFI7CglYSU9DVEwoaWZkLCBWSURJT0NfUkVRQlVGUywgJnJlcSk7CgoKCgkvLyBnZXQgLyBz
-ZXQgb3V0cHV0IHBpeGVsIGZvcm1hdAoJZm10LnR5cGUgPSBWNEwyX0JVRl9UWVBFX1ZJREVPX0NB
-UFRVUkU7CglYSU9DVEwob2ZkLCBWSURJT0NfVFJZX0ZNVCwgJmZtdCk7CglvcGZtdCA9IGZtdC5m
-bXQucGl4OwoJcHJpbnRmKCJvdXRwdXQgaXMgJWQgeCAlZFxuIiwgb3BmbXQud2lkdGgsIG9wZm10
-LmhlaWdodCk7CglwcmludGYoImJ5dGVzcGVybGluZSBpcyAlZFxuIixvcGZtdC5ieXRlc3Blcmxp
-bmUpOwoJcHJpbnRmKCJzaXplaW1hZ2UgaXMgJWRcbiIsb3BmbXQuc2l6ZWltYWdlKTsKCVhJT0NU
-TChvZmQsIFZJRElPQ19TX0ZNVCwgJmZtdCk7CgoJLy8gYWxsb2NhdGUgb3V0cHV0IGJ1ZmZlciB2
-aWEgbWFsbG9jCglvYnVmLmxlbmd0aCA9IGZtdC5mbXQucGl4LnNpemVpbWFnZTsKCW9idWYudXNy
-cHRyID0gbWVtYWxpZ24oMzIsIG9idWYubGVuZ3RoKTsKCglyZXEuY291bnQgPSAxOwoJcmVxLnR5
-cGUgPSBWNEwyX0JVRl9UWVBFX1ZJREVPX0NBUFRVUkU7CglyZXEubWVtb3J5ID0gVjRMMl9NRU1P
-UllfVVNFUlBUUjsKCVhJT0NUTChvZmQsIFZJRElPQ19SRVFCVUZTLCAmcmVxKTsKCgoJLy8gb3Bl
-biBpbnB1dCBmaWxlCglpZihhcmdjIDwgMikgewoJCXByaW50ZigicGxlYXNlIHByb3ZpZGUgYSBp
-bnB1dCBmaWxlIHRvIGRlYmF5ZXIiKTsKCX0KCWZuYW1lID0gYXJndlsxXTsKCXByaW50ZigiT3Bl
-bmluZyAlcyBmb3IgZGViYXllcmluZ1xuIiwgZm5hbWUpOwoJaXN0cmVhbSA9IGZvcGVuKGZuYW1l
-LCAiciIpOwoJaWYoIWlzdHJlYW0pIHsKCQlwZXJyb3IoZm5hbWUpOwoJCWV4aXQoRVhJVF9GQUlM
-VVJFKTsKCX0KCglmc2l6ZSA9IGZpbGVzaXplKGlzdHJlYW0pOwoJaWYoZnNpemUgIT0gaXBmbXQu
-d2lkdGggKiBpcGZtdC5oZWlnaHQpIHsKCQlpZihmc2l6ZSA8IGlwZm10LndpZHRoICogaXBmbXQu
-aGVpZ2h0KSB7CgkJCXByaW50ZigiRmlsZSBpcyB0b28gc2hvcnQgZm90IGN1cnJlbnQgaW5wdXQg
-OiAlZCA8ICVkXG4iLCBmc2l6ZSwgaXBmbXQud2lkdGggKiBpcGZtdC5oZWlnaHQpOwoJCQlleGl0
-KEVYSVRfRkFJTFVSRSk7CgkJfSBlbHNlIHsKCQkJcHJpbnRmKCJXYXJuaW5nIDogdG9vIG1hbnkg
-ZGF0YSBpbiBpbnB1dCBmaWxlXG4iKTsKCQl9Cgl9CgoKCS8vIHJlYWQgOCBiaXQgcGl4ZWwgbGlu
-ZQoJZm9yKGwgPSAgMDsgbCA8IGlwZm10LmhlaWdodDsgbCsrKSB7CgkJaW50IGlkeDsKCQlmcmVh
-ZChsaW5lLCAxLCBpcGZtdC53aWR0aCwgaXN0cmVhbSk7CgkJLy8gdHJhbnNmb3JtIGFuZCBzdG9y
-ZSA4IGJpdCBpbnB1dCBsaW5lIHRvIDEwIGJpdCBpbiBpbnB1dCBidWZmZXIKCQlmb3IoaWR4ID0g
-MDsgaWR4IDwgaXBmbXQud2lkdGg7IGlkeCsrKSB7CgkJCXVuc2lnbmVkIHNob3J0ICogcGl4OwoJ
-CQlwaXggPSAodW5zaWduZWQgc2hvcnQgKikmaWJ1Zi51c3JwdHJbbCAqIGlwZm10LmJ5dGVzcGVy
-bGluZSArIGlkeCAqIDJdOwoJCQkqcGl4ID0gbGluZVtpZHhdICogNDsKCQl9Cgl9CgkKCgkvLyBx
-dWV1ZSBpbnB1dCBidWYsIHF1ZXVlIG91dHB1dCBidWYKCXY0bDJidWYuaW5kZXggPSAwOwoJdjRs
-MmJ1Zi50eXBlID0gVjRMMl9CVUZfVFlQRV9WSURFT19PVVRQVVQ7Cgl2NGwyYnVmLm1lbW9yeSA9
-IFY0TDJfTUVNT1JZX1VTRVJQVFI7Cgl2NGwyYnVmLm0udXNlcnB0ciA9IGlidWYudXNycHRyOwoJ
-djRsMmJ1Zi5sZW5ndGggPSBpYnVmLmxlbmd0aDsKCXByaW50ZigidXNycHRyID0gMHgleCBcbiIs
-IHY0bDJidWYubS51c2VycHRyKTsKCXByaW50ZigidjRsMmJ1Zi5sZW5ndGggPSAlZFxuIixpYnVm
-Lmxlbmd0aCk7CglYSU9DVEwoaWZkLCBWSURJT0NfUUJVRiwgJnY0bDJidWYpOwoJcHJpbnRmKCJp
-bnB1dCBidWZmZXIgcXVldWVkXG4iKTsKCgl2NGwyYnVmLmluZGV4ID0gMDsKCXY0bDJidWYudHlw
-ZSA9IFY0TDJfQlVGX1RZUEVfVklERU9fQ0FQVFVSRTsKCXY0bDJidWYubWVtb3J5ID0gVjRMMl9N
-RU1PUllfVVNFUlBUUjsKCXY0bDJidWYubS51c2VycHRyID0gb2J1Zi51c3JwdHI7Cgl2NGwyYnVm
-Lmxlbmd0aCA9IG9idWYubGVuZ3RoOwoJWElPQ1RMKG9mZCwgVklESU9DX1FCVUYsICZ2NGwyYnVm
-KTsKCXByaW50Zigib3V0cHV0IGJ1ZmZlciBxdWV1ZWRcbiIpOwoKCS8vIHN0cmVhbW9uCglYSU9D
-VEwob2ZkLCBWSURJT0NfU1RSRUFNT04sICZ2NGwyYnVmLnR5cGUpOwoJLy9wcmludGYoIm91dHB1
-dCBzdHJlYW1vblxuIik7Cgl2NGwyYnVmLnR5cGUgPSBWNEwyX0JVRl9UWVBFX1ZJREVPX09VVFBV
-VDsKCVhJT0NUTChpZmQsIFZJRElPQ19TVFJFQU1PTiwgJnY0bDJidWYudHlwZSk7CgkvL3ByaW50
-ZigiaW5wdXQgc3RyZWFtb25cbiIpOwoJLy8gZGVxdWV1ZSBvdXRwdXQgYnVmZmVyCgl2NGwyYnVm
-LnR5cGUgPSBWNEwyX0JVRl9UWVBFX1ZJREVPX0NBUFRVUkU7CglYSU9DVEwob2ZkLCBWSURJT0Nf
-RFFCVUYsICZ2NGwyYnVmKTsKCgkvLyBzdG9yZSBidWZmZXIgZGF0YSBpbiBvdXRwdXQgZmlsZSAK
-CW9zdHJlYW0gPSBmb3Blbigib3V0cHV0Lnl1diIsICJ3Iik7Cglmb3IobCA9IDA7IGwgPCBvcGZt
-dC5oZWlnaHQ7IGwrKykgewoJCWZ3cml0ZSgmb2J1Zi51c3JwdHJbbCpvcGZtdC53aWR0aCoyXSwg
-Miwgb3BmbXQud2lkdGgsIG9zdHJlYW0pOwoJfQoJZmNsb3NlKG9zdHJlYW0pOwoJcmV0dXJuIDA7
-Cn0K
---e89a8f3ba457cfbc3604dc08e90c--
+Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=16473
+
+Signed-off-by: Alan Cox <alan@linux.intel.com>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/dvb/mantis/mantis_dvb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/dvb/mantis/mantis_dvb.c b/drivers/media/dvb/mantis/mantis_dvb.c
+index e5180e4..5d15c6b 100644
+--- a/drivers/media/dvb/mantis/mantis_dvb.c
++++ b/drivers/media/dvb/mantis/mantis_dvb.c
+@@ -248,8 +248,10 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
+ err5:
+ 	tasklet_kill(&mantis->tasklet);
+ 	dvb_net_release(&mantis->dvbnet);
+-	dvb_unregister_frontend(mantis->fe);
+-	dvb_frontend_detach(mantis->fe);
++	if (mantis->fe) {
++		dvb_unregister_frontend(mantis->fe);
++		dvb_frontend_detach(mantis->fe);
++	}
+ err4:
+ 	mantis->demux.dmx.remove_frontend(&mantis->demux.dmx, &mantis->fe_mem);
+ 
+-- 
+1.7.10.4
+
+
+--=-=-=--
