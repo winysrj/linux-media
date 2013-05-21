@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:14386 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753936Ab3EIMyT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 08:54:19 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMJ00D3A7UFRF00@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 09 May 2013 13:54:17 +0100 (BST)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH RFC 0/3] added managed media/v4l2 initialization
-Date: Thu, 09 May 2013 14:52:41 +0200
-Message-id: <1368103965-15232-1-git-send-email-a.hajda@samsung.com>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:61042 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757Ab3EUHuh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 May 2013 03:50:37 -0400
+Received: by mail-oa0-f43.google.com with SMTP id o6so397119oag.16
+        for <linux-media@vger.kernel.org>; Tue, 21 May 2013 00:50:37 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAK9yfHxBW4wF_sqyzW0+h1xycbDUyJLfWkSKBwZAjU00sh7akA@mail.gmail.com>
+References: <CAK9yfHxBW4wF_sqyzW0+h1xycbDUyJLfWkSKBwZAjU00sh7akA@mail.gmail.com>
+Date: Tue, 21 May 2013 13:20:37 +0530
+Message-ID: <CAK9yfHzpvru59t9NcEnuXbPRU-qrscSc3YMZB7FpE6F900W_aw@mail.gmail.com>
+Subject: Re: Warnings related to anonymous unions in s5p-tv driver
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Tomasz Stanislawski <t.stanislaws@samsung.com>,
+	hans.verkuil@cisco.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Those three patches adds devm_* functions for initialization of:
-- media entity,
-- subdevice,
-- v4l2 controls handler.
+On 17 May 2013 13:54, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> Hi Hans,
+>
+> I noticed the following sparse warnings with S5P HDMI driver which I
+> think got introduced due to the following commit:
+> 5efb54b2b7b ([media] s5p-tv: add dv_timings support for hdmi)
+>
+> Warnings:
+> drivers/media/platform/s5p-tv/hdmi_drv.c:483:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:484:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:485:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:486:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:487:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:488:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:489:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:490:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:491:18: error: unknown field
+> name in initializer
+> drivers/media/platform/s5p-tv/hdmi_drv.c:492:18: error: unknown field
+> name in initializer
+>
+> This looks like the anonymous union initialization problem with GCC.
+> Surprisingly I get this with GCC 4.6, 4.7 and 4.8 as well.
+>
+> If I add additional braces to the macro V4L2_INIT_BT_TIMINGS like done
+> for GCC version < 4.6
+> like
+> { .bt = { _width , ## args } }
+>
+> or if I change the GNUC_MINOR comparison to 9 like (__GNUC_MINOR__ < 9)
+> I dont see this error.
+>
+> I am using the Linaro GCC toolchain.
+>
+> I am not sure if this has already been reported and/or fixed.
 
-Converting current v4l2 (sub-)devices to use devm API should simplify
-device cleanup routines.
+Ping Hans..
 
-Andrzej Hajda (3):
-  media: added managed media entity initialization
-  media: added managed v4l2 control initialization
-  media: added managed v4l2 subdevice initialization
-
- drivers/media/media-entity.c          |   70 +++++++++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-common.c |   10 +++++
- drivers/media/v4l2-core/v4l2-ctrls.c  |   48 ++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-subdev.c |   52 ++++++++++++++++++++++++
- include/media/media-entity.h          |    4 ++
- include/media/v4l2-common.h           |    2 +
- include/media/v4l2-ctrls.h            |   30 ++++++++++++++
- include/media/v4l2-subdev.h           |    5 +++
- 8 files changed, 221 insertions(+)
 
 -- 
-1.7.10.4
-
+With warm regards,
+Sachin
