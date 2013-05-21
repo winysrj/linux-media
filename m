@@ -1,62 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f179.google.com ([209.85.215.179]:52894 "EHLO
-	mail-ea0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751250Ab3ELUAU (ORCPT
+Received: from relmlor2.renesas.com ([210.160.252.172]:59702 "EHLO
+	relmlor2.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751303Ab3EUJvr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 May 2013 16:00:20 -0400
-Received: by mail-ea0-f179.google.com with SMTP id h14so3162693eaj.10
-        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 13:00:19 -0700 (PDT)
-Received: from [192.168.1.110] (093105185086.warszawa.vectranet.pl. [93.105.185.86])
-        by mx.google.com with ESMTPSA id r10sm18260349eez.10.2013.05.12.13.00.17
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Sun, 12 May 2013 13:00:18 -0700 (PDT)
-Message-ID: <518FF4D0.5070803@gmail.com>
-Date: Sun, 12 May 2013 22:00:16 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL - BUG FIXES FOR 3.10] Samsung media driver fixes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 21 May 2013 05:51:47 -0400
+In-reply-to: <519A1FFC.6000304@cogentembedded.com>
+References: <201305180101.11383.sergei.shtylyov@cogentembedded.com>
+ <OFC9B7B505.2CDF0AA3-ON80257B71.00291B65-80257B71.002952EB@eu.necel.com>
+ <519A1FFC.6000304@cogentembedded.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	vladimir.barinov@cogentembedded.com
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, magnus.damm@gmail.com, matsu@igel.co.jp,
+	mchehab@redhat.com
+MIME-version: 1.0
+From: phil.edworthy@renesas.com
+Subject: Re: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
+Message-id: <OF0ABE628B.1C271A20-ON80257B72.002ED824-80257B72.003627CD@eu.necel.com>
+Date: Tue, 21 May 2013 10:51:24 +0100
+Content-type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Hi Sergei, Vladimir,
 
-The following are couple bug fixes for the Samsung SoC camera and sensor
-drivers.
+> >> Subject: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
+> 
+> >> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> 
+> >> Add Renesas R-Car VIN (Video In) V4L2 driver.
+> 
+> >> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> 
+> > I've seen old patches that add VIN to the Marzen board, do you have an
+> > updated version?
+> 
+>     The last version of that patchset is 4, here it is archived:
+> 
+> http://marc.info/?l=linux-sh&m=136865481429756
+> http://marc.info/?l=linux-sh&m=136865499029807
+> http://marc.info/?l=linux-sh&m=136865509129843
+> http://marc.info/?l=linux-sh&m=136865520029900
 
-I have included also a patch correcting the Exynos FIMC-LITE device DT
-binding documentation, so as to avoid confusing any board integrators
-trying to write .dts files including support for those devices. I hope
-it still qualifies for 3.10, it's a fix for stuff that got first added
-in this release.
+First of all, thank you for your work on this driver.
 
-Thanks,
-Sylwester
+I have tried your patches on the Marzen board using an Expansion Board 
+with an OmniVision 10635 camera (progressive BT656), using an out-of-tree 
+driver. There appears to be an issue with the interrupt handling compared 
+to my original driver.
 
-The following changes since commit f722406faae2d073cc1d01063d1123c35425939e:
+Using a simple test app I wrote, I get an unhandled irq if the app does 
+some work after stopping the capture. In this case, the work after capture 
+is storing a captured image to a file. As a dirty hack to see what's 
+actually being captured, I just commented out the code that checks the 
+interrupt status:
+//      if (!int_status)
+//              goto done;
+This allows me to save the captured image. However, this shows about 
+2/3rds valid picture data (though it looks vertically shifted), with the 
+rest black. Also, a couple of other lines are black.
 
-   Linux 3.10-rc1 (2013-05-11 17:14:08 -0700)
+I realise that you don't have the Marzen Expansion Board & don't have an 
+ov10635 camera. However, unfortunately, I don't have much time that I can 
+spend on this. Do any of the boards you have use a progressive camera?
 
-are available in the git repository at:
-   git://linuxtv.org/snawrocki/samsung.git v3.10-fixes-1
-
-Axel Lin (2):
-       s5c73m3: Fix off-by-one valid range checking for fie->index
-       exynos4-is: Fix off-by-one valid range checking for is->config_index
-
-Sachin Kamat (2):
-       exynos4-is: Fix potential null pointer dereference in mipi-csis.c
-       s3c-camif: Fix incorrect variable type
-
-Sylwester Nawrocki (1):
-       exynos4-is: Correct fimc-lite compatible property description
-
-  .../devicetree/bindings/media/exynos-fimc-lite.txt |    2 +-
-  drivers/media/i2c/s5c73m3/s5c73m3-core.c           |    2 +-
-  drivers/media/platform/exynos4-is/fimc-is-regs.c   |    2 +-
-  drivers/media/platform/exynos4-is/mipi-csis.c      |    2 +-
-  drivers/media/platform/s3c-camif/camif-core.h      |    2 +-
-  5 files changed, 5 insertions(+), 5 deletions(-)
+Regards
+Phil
