@@ -1,96 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:48341 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752872Ab3EUOqE (ORCPT
+Received: from relmlor1.renesas.com ([210.160.252.171]:35935 "EHLO
+	relmlor1.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753577Ab3EUMOP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 10:46:04 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v3] adv7180: add more subdev video ops
-Date: Tue, 21 May 2013 16:45:49 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
-	matsu@igel.co.jp
-References: <201305132321.39495.sergei.shtylyov@cogentembedded.com> <201305211135.59706.hverkuil@xs4all.nl> <519B8478.9010305@cogentembedded.com>
-In-Reply-To: <519B8478.9010305@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305211645.49257.hverkuil@xs4all.nl>
+	Tue, 21 May 2013 08:14:15 -0400
+In-reply-to: <OF0ABE628B.1C271A20-ON80257B72.002ED824-80257B72.003627CD@LocalDomain>
+References: <201305180101.11383.sergei.shtylyov@cogentembedded.com>
+ <OFC9B7B505.2CDF0AA3-ON80257B71.00291B65-80257B71.002952EB@eu.necel.com>
+ <519A1FFC.6000304@cogentembedded.com>
+ <OF0ABE628B.1C271A20-ON80257B72.002ED824-80257B72.003627CD@LocalDomain>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	vladimir.barinov@cogentembedded.com
+Cc: g.liakhovetski@gmx.de, linux-media@vger.kernel.org,
+	linux-sh@vger.kernel.org, magnus.damm@gmail.com, matsu@igel.co.jp,
+	mchehab@redhat.com
+MIME-version: 1.0
+From: phil.edworthy@renesas.com
+Subject: Re: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
+Message-id: <OF7D5F7F7E.CF4ED120-ON80257B72.0042ED42-80257B72.004332EB@eu.necel.com>
+Date: Tue, 21 May 2013 13:13:52 +0100
+Content-type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 21 May 2013 16:28:08 Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 21-05-2013 13:35, Hans Verkuil wrote:
-> 
-> >> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> 
-> >> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
-> >> the soc-camera drivers.
-> 
-> >> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> >> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> >> ---
-> >> This patch is against the 'media_tree.git' repo.
-> 
-> >> Changes from version 2:
-> >> - set the field format depending on video standard in try_mbus_fmt() method;
-> >> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
-> >> - removed g_crop() method.
-> 
-> >>   drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
-> >>   1 file changed, 86 insertions(+)
-> >>
-> >> Index: media_tree/drivers/media/i2c/adv7180.c
-> >> ===================================================================
-> >> --- media_tree.orig/drivers/media/i2c/adv7180.c
-> >> +++ media_tree/drivers/media/i2c/adv7180.c
-> 
-> 
-> >> +
-> >> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
-> >> +				struct v4l2_mbus_framefmt *fmt)
-> >> +{
-> >> +	struct adv7180_state *state = to_state(sd);
-> >> +
-> >> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
-> >> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> >> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
-> >> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
-> 
-> > Just noticed this: use V4L2_FIELD_INTERLACED as that does the right thing.
-> > No need to split in _BT and _TB.
-> 
->     Hm, testers have reported that _BT vs _TB do make a difference. I'll 
-> try to look into how V4L2 handles interlacing for different standards.
+Hi Sergei, Vladimir,
 
-When using V4L2_FIELD_INTERLACED the BT vs TB is implicit (i.e. the application
-is supposed to know that the order will be different depending on the standard).
-Explicitly using BT/TB is only useful if you want to override the default, e.g.
-if a video was encoded using the wrong temporal order.
- 
-> >> +	fmt->width = 720;
-> >> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> >> +
-> >> +	return 0;
-> >> +}
+> > >> Subject: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
+> > 
+> > >> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> > 
+> > >> Add Renesas R-Car VIN (Video In) V4L2 driver.
+> > 
+> > >> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> > 
+> > > I've seen old patches that add VIN to the Marzen board, do you have 
+an
+> > > updated version?
+> > 
+> >     The last version of that patchset is 4, here it is archived:
+> > 
+> > http://marc.info/?l=linux-sh&m=136865481429756
+> > http://marc.info/?l=linux-sh&m=136865499029807
+> > http://marc.info/?l=linux-sh&m=136865509129843
+> > http://marc.info/?l=linux-sh&m=136865520029900
+
+> First of all, thank you for your work on this driver.
 > 
-> > Actually, all this code can be simplified substantially: the try/g/s_mbus_fmt
-> > functions are really all identical since the data returned is only dependent
-> > on the current standard. So this means you can use just a single function for
-> > all three ops, and you can do away with adding struct v4l2_mbus_framefmt to
-> > adv7180_state.
+> I have tried your patches on the Marzen board using an Expansion 
+> Board with an OmniVision 10635 camera (progressive BT656), using an 
+> out-of-tree driver. There appears to be an issue with the interrupt 
+> handling compared to my original driver.
 > 
->     Hm, I wonder how "get" and "set" methods can be identical... I'll 
-> look into this some more.
+> Using a simple test app I wrote, I get an unhandled irq if the app 
+> does some work after stopping the capture. In this case, the work 
+> after capture is storing a captured image to a file. As a dirty hack
+> to see what's actually being captured, I just commented out the code
+> that checks the interrupt status:
+> // if (!int_status)
+> //  goto done;
+> This allows me to save the captured image. However, this shows about
+> 2/3rds valid picture data (though it looks vertically shifted), with
+> the rest black. Also, a couple of other lines are black.
+> 
+> I realise that you don't have the Marzen Expansion Board & don't 
+> have an ov10635 camera. However, unfortunately, I don't have much 
+> time that I can spend on this. Do any of the boards you have use a 
+> progressive camera?
 
-Normally they aren't, but in this case there is only one possible format, so
-any values you attempt to set are ignored completely.
+Oops, the comments about the captured image contents are my fault. 
+However, the unhandled irq after stopping capture is still an issue.
 
-Regards,
+Regards
+Phil
 
-	Hans
