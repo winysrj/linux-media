@@ -1,114 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50814 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965579Ab3E2LON (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:34906 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753889Ab3EUDrb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:14:13 -0400
-Message-ID: <1369825995.4050.49.camel@pizza.hi.pengutronix.de>
-Subject: Re: [RFC] [media] mem2mem: add support for hardware buffered queue
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Kamil Debski <k.debski@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'John Sheu' <sheu@google.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Date: Wed, 29 May 2013 13:13:15 +0200
-In-Reply-To: <01f401ce5c52$75dcee90$6196cbb0$%debski@samsung.com>
-References: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
-	 <01f401ce5c52$75dcee90$6196cbb0$%debski@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Mon, 20 May 2013 23:47:31 -0400
+Received: from epcpsbgr4.samsung.com
+ (u144.gpu120.samsung.co.kr [203.254.230.144])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MN400558QINUN60@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 21 May 2013 12:47:30 +0900 (KST)
+From: Seung-Woo Kim <sw0312.kim@samsung.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com
+Cc: m.szyprowski@samsung.com, hans.verkuil@cisco.com, pawel@osciak.com,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com
+Subject: [RESEND][PATCH 0/2] media: fix polling not to wait if a buffer is
+ available
+Date: Tue, 21 May 2013 12:47:28 +0900
+Message-id: <1369108050-13522-1-git-send-email-sw0312.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Kamil,
+As poll behavior described in following link, polling needs to just return if
+already some buffer is in done list.
+Link: http://www.spinics.net/lists/linux-media/msg34759.html
 
-Am Mittwoch, den 29.05.2013, 11:54 +0200 schrieb Kamil Debski:
-> Hi Philipp, Hans,
-> 
-> > On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
-> > buffer at the end of the stream, remaining frames might need to be
-> > decoded without additional input buffers being provided, and after
-> > calling streamoff on the v4l2 output queue. This also allows a driver
-> > to copy input buffers into their bitstream ringbuffer and immediately
-> > mark them as done to be dequeued.
-> > 
-> > The motivation for this patch is hardware assisted h.264 reordering
-> > support in the coda driver. For high profile streams, the coda can hold
-> > back out-of-order frames, causing a few mem2mem device runs in the
-> > beginning, that don't produce any decompressed buffer at the v4l2
-> > capture side. At the same time, the last few frames can be decoded from
-> > the bitstream with mem2mem device runs that don't need a new input
-> > buffer at the v4l2 output side. A streamoff on the v4l2 output side can
-> > be used to put the decoder into the ringbuffer draining end-of-stream
-> > mode.
-> 
-> If I remember correctly the main goal of introducing the m2m framework
-> was to support simple mem2mem devices where one input buffer = one output
-> buffer. In other cases m2m was not to be used. 
+But in current vb2 and v4l2_m2m, poll function always calls poll_wait(), so it
+needs to wait until next vb2_buffer_done() or queue is cancelled.
 
-The m2m context / queue handling and job scheduling are very useful even
-for drivers that don't always produce one CAPTURE buffer from one OUTPUT
-buffer, just as you drescribe below.
-The CODA encoder path fits the m2m model perfectly. I'd prefer not to
-duplicate most of mem2mem just because the decoder doesn't.
+So I add check routine for done_list before calling poll_wait().
+But I'm not sure that locking for done_lock of queue is also needed in this
+case or not because done_list of queue is checked without locking in some
+other parts of vb2.
 
-There's two things that this patch allows me to do:
-a) running mem2mem device_run with an empty OUTPUT queue, which is
-   something I'd really like to make possible.
-b) running mem2mem device_run with the OUTPUT queue in STREAM OFF, which
-   I needed to get the remaining buffers out. But maybe there is a
-   better way to do this while keeping the output queue streaming.
+Seung-Woo Kim (2):
+  media: vb2: return for polling if a buffer is available
+  media: v4l2-mem2mem: return for polling if a buffer is available
 
-> An example of such mem2mem driver, which does not use m2m framework is
-> MFC. It uses videobuf2 directly and it is wholly up to the driver how
-> will it control the queues, stream on/off and so on. You can then have
-> one OUTPUT buffer generate multiple CAPTURE buffer, multiple OUTPUT
-> buffers generate a single CAPTURE buffer. Consume OUTPUT buffer without
-> generating CAPTURE buffer (e.g. when starting decoding) and produce
-> CAPTURE buffers without consuming OUTPUT buffers (e.g. when finishing
-> decoding).
->
-> I think that stream off should not be used to signal EOS. For this we
-> have EOS event. You mentioned the EOS buffer flag. This is the idea
-> originally proposed by Andrzej Hajda, after some lengthy discussions
-> with v4l community this idea was changed to use an EOS event.
+ drivers/media/v4l2-core/v4l2-mem2mem.c   |    6 ++++--
+ drivers/media/v4l2-core/videobuf2-core.c |    3 ++-
+ 2 files changed, 6 insertions(+), 3 deletions(-)
 
-I'm not set on using STREAMOFF to signal the stream-end condition to the
-hardware, but after switching to stream-end mode, no new frames should
-be queued, so I thought it fit quite well. It also allows to prepare the
-OUTPUT buffers (S_FMT/REQBUFS) for the next STREAMON while the CAPTURE
-side is still draining the bitstream, although that's probably not a
-very useful feature.
-I could instead have userspace signal the driver via an EOS buffer flag
-or any other mechanism. Then the OUTPUT queue would be kept streaming,
-but hold back all buffers queued via QBUF until the last buffer is
-dequeued from the CAPTURE queue.
-
-> I was all for the EOS buffer flag, but after discussion with Mauro I
-> understood his arguments. We can get back to this discussion, if we
-> are sure that events are not enough. Please also note that we need to
-> keep backward compatibility.
-
-Maybe I've missed something, but I thought the EOS signal is only for
-the driver to signal to userspace that the currently dequeued frame is
-the last one?
-I need userspace to signal to the driver that it won't queue any new
-OUTPUT buffers, but still wants to dequeue the remaining CAPTURE buffers
-until the bitstream buffer is empty.
-
-> Original EOS buffer flag patches by Andrzej and part of the discussion
-> can be found here:
-> 1) https://linuxtv.org/patch/10624/
-> 2) https://linuxtv.org/patch/11373/
-> 
-> Best wishes,
-> Kamil Debski
-
-regards
-Philipp
-
+-- 
+1.7.4.1
