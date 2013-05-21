@@ -1,48 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from intranet.asianux.com ([58.214.24.6]:33331 "EHLO
-	intranet.asianux.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757435Ab3EGML7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 08:11:59 -0400
-Message-ID: <5188EF5C.3030003@asianux.com>
-Date: Tue, 07 May 2013 20:11:08 +0800
-From: Chen Gang <gang.chen@asianux.com>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:35970 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750886Ab3EUJUc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 May 2013 05:20:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: Can you take a look at these dvb-apps warnings/errors?
+Date: Tue, 21 May 2013 11:20:18 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
+References: <201305171030.57794.hverkuil@xs4all.nl> <20130520182215.54e2e3b0@redhat.com>
+In-Reply-To: <20130520182215.54e2e3b0@redhat.com>
 MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	josephdanielwalter@gmail.com
-CC: Greg KH <gregkh@linuxfoundation.org>, linux-media@vger.kernel.org,
-	"devel@driverdev.osuosl.org" <devel@driverdev.osuosl.org>
-Subject: [PATCH] staging: strncpy issue, need always let NUL terminated string
-  ended by zero.
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201305211120.18566.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Mon 20 May 2013 23:22:15 Mauro Carvalho Chehab wrote:
+> Hi Hans,
+> 
+> Em Fri, 17 May 2013 10:30:57 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > Hi Mauro,
+> > 
+> > Can you take a look at these? The daily build is failing because of this.
+> > 
+> > Thanks!
+> > 
+> > 	Hans
+> > 
+> > test_video.c:322:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 2 has type ‘ssize_t’ [-Wformat]
+> > dvbscan.c:128:6: warning: variable ‘output_type’ set but not used [-Wunused-but-set-variable]
+> > dvbscan.c:126:6: warning: variable ‘uk_ordering’ set but not used [-Wunused-but-set-variable]
+> > dvbscan.c:124:32: warning: variable ‘inversion’ set but not used [-Wunused-but-set-variable]
+> > dvbscan_dvb.c:27:44: warning: unused parameter ‘fe’ [-Wunused-parameter]
+> > dvbscan_atsc.c:27:45: warning: unused parameter ‘fe’ [-Wunused-parameter]
+> > util.c:193:7: error: ‘SYS_DVBC_ANNEX_A’ undeclared (first use in this function)
+> > util.c:194:7: error: ‘SYS_DVBC_ANNEX_C’ undeclared (first use in this function)
+> > util.c:262:26: error: ‘DTV_ENUM_DELSYS’ undeclared (first use in this function)
+> > util.c:263:1: warning: control reaches end of non-void function [-Wreturn-type]
+> > make[2]: *** [util.o] Error 1
+> > make[1]: *** [all] Error 2
+> > make: *** [all] Error 2
+> 
+> I'm not touching on dvb-apps for a long time. From my side, all I need in
+> terms of userspace apps for DVB is there at dvbv5/libdvbv5 on v4l-utils.
+> 
+> That's said, from the above errors, it seems that it got added (partial)
+> support for DVB v5 but, somehow, it is compiling with an older
+> dvb/frontend.h header on your build.
+> 
+> Regards,
+> Mauro
+> 
 
-For NUL terminated string, need always let it ended by zero.
+I've running a 3.8 kernel on my daily build server, so that's why those
+headers are old. I've manually updated the headers.
 
-The 'name' may be copied to user mode ('dvb_fe->ops.info' is 'struct
-dvb_frontend_info' which is defined in ./include/uapi/...), and its
-length is also known within as102_dvb_register_fe(), so need fully
-initialize it (not use strlcpy instead of strncpy).
+Note that dvb-apps has an include directory with old headers as well, but
+those headers aren't used anyway it seems.
 
+Should I bother with building dvb-apps at all?
 
-Signed-off-by: Chen Gang <gang.chen@asianux.com>
----
- drivers/staging/media/as102/as102_fe.c |    1 +
- 1 files changed, 1 insertions(+), 0 deletions(-)
+Regards,
 
-diff --git a/drivers/staging/media/as102/as102_fe.c b/drivers/staging/media/as102/as102_fe.c
-index 9ce8c9d..b3efec9 100644
---- a/drivers/staging/media/as102/as102_fe.c
-+++ b/drivers/staging/media/as102/as102_fe.c
-@@ -334,6 +334,7 @@ int as102_dvb_register_fe(struct as102_dev_t *as102_dev,
- 	memcpy(&dvb_fe->ops, &as102_fe_ops, sizeof(struct dvb_frontend_ops));
- 	strncpy(dvb_fe->ops.info.name, as102_dev->name,
- 		sizeof(dvb_fe->ops.info.name));
-+	dvb_fe->ops.info.name[sizeof(dvb_fe->ops.info.name) - 1] = '\0';
- 
- 	/* register dvb frontend */
- 	errno = dvb_register_frontend(dvb_adap, dvb_fe);
--- 
-1.7.7.6
+	Hans
