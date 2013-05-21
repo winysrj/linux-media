@@ -1,41 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f174.google.com ([209.85.223.174]:38630 "EHLO
-	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758693Ab3E3WM2 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41178 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751945Ab3EUISZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 May 2013 18:12:28 -0400
-Received: by mail-ie0-f174.google.com with SMTP id aq17so2057319iec.33
-        for <linux-media@vger.kernel.org>; Thu, 30 May 2013 15:12:27 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAA1g13n2GknjeCZ2fJbXH1trz8aog01BqEB_JwqU8QX9bda2Cg@mail.gmail.com>
-References: <CAA1g13mVO_buU8AeROBT3qSXsS2EQtAvHVHdEo5-RGMcRYC47A@mail.gmail.com>
-	<CALF0-+XcBRxqOb5gARG9JkFNoubXouHv_MHqC7paS5E5M7oSUg@mail.gmail.com>
-	<CAA1g13n2GknjeCZ2fJbXH1trz8aog01BqEB_JwqU8QX9bda2Cg@mail.gmail.com>
-Date: Thu, 30 May 2013 19:12:27 -0300
-Message-ID: <CALF0-+V5mShZmVt=gJmA6dAH+3JGtJFv-UOxCbbWoPtZvf1+SA@mail.gmail.com>
-Subject: Re: Unrecognized decoder chip (not gm7113c)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Greg Horvath <horvath.105@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 21 May 2013 04:18:25 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH] [media] coda: v4l2-compliance fix: add bus_info prefix 'platform'
+Date: Tue, 21 May 2013 10:18:22 +0200
+Message-Id: <1369124302-12625-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 30, 2013 at 6:22 PM, Greg Horvath <horvath.105@gmail.com> wrote:
-> I am not running them at the same time. There are two sets of dmesg output.
-> One for the stk1160 driver and the other when I attempted to load easycap
-> driver without loading stk1160.
->
->
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Right. In that case you can forget about the "easycap" driver.
-I can only help you getting your stuff working with stk1160.
-
-Do you have any chance to upgrade your kernel to a v3.7+ ?
-
-Keep in mind it's very unlikely that you'll get much support from the community
-using such an ancient kernel, and with a driver that you backported yourself
-(although I'll investigate this a bit).
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 48b8d7a..d64908a 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -323,7 +323,7 @@ static int vidioc_querycap(struct file *file, void *priv,
+ {
+ 	strlcpy(cap->driver, CODA_NAME, sizeof(cap->driver));
+ 	strlcpy(cap->card, CODA_NAME, sizeof(cap->card));
+-	strlcpy(cap->bus_info, CODA_NAME, sizeof(cap->bus_info));
++	strlcpy(cap->bus_info, "platform:" CODA_NAME, sizeof(cap->bus_info));
+ 	/*
+ 	 * This is only a mem-to-mem video device. The capture and output
+ 	 * device capability flags are left only for backward compatibility
 -- 
-    Ezequiel
+1.8.2.rc2
+
