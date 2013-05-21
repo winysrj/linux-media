@@ -1,28 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from outrelay03.libero.it ([212.52.84.103]:44750 "EHLO
-	outrelay03.libero.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751674Ab3EIVp3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 17:45:29 -0400
-Message-ID: <1350633439.17553111368135746898.JavaMail.defaultUser@defaultHost>
-Date: Thu, 9 May 2013 23:42:26 +0200 (CEST)
-From: lili33443 <lilianlilian33443@libero.it>
-Reply-To: lilianlilian769@yahoo.com
-Subject: HI
+Received: from mail-la0-f43.google.com ([209.85.215.43]:51373 "EHLO
+	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754691Ab3EURRM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 May 2013 13:17:12 -0400
+Received: by mail-la0-f43.google.com with SMTP id ez20so983070lab.30
+        for <linux-media@vger.kernel.org>; Tue, 21 May 2013 10:17:10 -0700 (PDT)
+Message-ID: <519BAC15.8000503@cogentembedded.com>
+Date: Tue, 21 May 2013 21:17:09 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain;charset="UTF-8"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: mchehab@redhat.com, linux-media@vger.kernel.org,
+	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
+	matsu@igel.co.jp
+Subject: Re: [PATCH v3] adv7180: add more subdev video ops
+References: <201305132321.39495.sergei.shtylyov@cogentembedded.com> <201305211135.59706.hverkuil@xs4all.nl> <519B8478.9010305@cogentembedded.com> <201305211645.49257.hverkuil@xs4all.nl>
+In-Reply-To: <201305211645.49257.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hello.
 
+On 05/21/2013 06:45 PM, Hans Verkuil wrote:
 
+>>>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>>>> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
+>>>> the soc-camera drivers.
+>>>> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>>>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>>>> ---
+>>>> This patch is against the 'media_tree.git' repo.
+>>>> Changes from version 2:
+>>>> - set the field format depending on video standard in try_mbus_fmt() method;
+>>>> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
+>>>> - removed g_crop() method.
+>>>>    drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
+>>>>    1 file changed, 86 insertions(+)
+>>>>
+>>>> Index: media_tree/drivers/media/i2c/adv7180.c
+>>>> ===================================================================
+>>>> --- media_tree.orig/drivers/media/i2c/adv7180.c
+>>>> +++ media_tree/drivers/media/i2c/adv7180.c
+>>
+>>>> +
+>>>> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
+>>>> +				struct v4l2_mbus_framefmt *fmt)
+>>>> +{
+>>>> +	struct adv7180_state *state = to_state(sd);
+>>>> +
+>>>> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
+>>>> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+>>>> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
+>>>> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
+>>> Just noticed this: use V4L2_FIELD_INTERLACED as that does the right thing.
+>>> No need to split in _BT and _TB.
+>>      Hm, testers have reported that _BT vs _TB do make a difference. I'll
+>> try to look into how V4L2 handles interlacing for different standards.
+> When using V4L2_FIELD_INTERLACED the BT vs TB is implicit (i.e. the application
+> is supposed to know that the order will be different depending on the standard).
+> Explicitly using BT/TB is only useful if you want to override the default, e.g.
+> if a video was encoded using the wrong temporal order.
 
-Hello
-how are you today and work?
-My name is Miss lilian. I wish to be in good relationship
-with you.
-Please if you feel interested write me through the contact so i will send you
-my pictures and for us to know each other more better,
-I will be happy to seeing a good responds from you
-lilian
+     We have used V4L2_FIELD_INTERLACED before and people reported
+incorrect field ordering -- that's why we changed to what it is now. So this
+might be an application failure?
+
+WBR, Sergei
+
