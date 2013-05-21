@@ -1,64 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:55118 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756740Ab3EAUk3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 16:40:29 -0400
-Received: by mail-pa0-f51.google.com with SMTP id lj1so108pab.10
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 13:40:29 -0700 (PDT)
-Date: Wed, 1 May 2013 13:40:27 -0700 (PDT)
-From: David Rientjes <rientjes@google.com>
-To: Randy Dunlap <rdunlap@infradead.org>
-cc: "Yann E. MORIN" <yann.morin.1998@free.fr>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kbuild@vger.kernel.org
-Subject: Re: linux-next: Tree for May 1 (media/usb/stk1160)
-In-Reply-To: <518179BD.3010407@infradead.org>
-Message-ID: <alpine.DEB.2.02.1305011337430.14366@chino.kir.corp.google.com>
-References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au> <518157EB.3010700@infradead.org> <20130501192845.GA18811@free.fr> <alpine.DEB.2.02.1305011258180.8448@chino.kir.corp.google.com> <518179BD.3010407@infradead.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3060 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751915Ab3EUR4B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 21 May 2013 13:56:01 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4LHtucD056198
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 21 May 2013 19:55:59 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id F026A35E0190
+	for <linux-media@vger.kernel.org>; Tue, 21 May 2013 19:55:49 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130521175549.F026A35E0190@alastor.dyndns.org>
+Date: Tue, 21 May 2013 19:55:49 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 1 May 2013, Randy Dunlap wrote:
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-> >>> When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
-> >>> CONFIG_VIDEO_STK1160=y
-> >>> CONFIG_VIDEO_STK1160_AC97=y
-> >>>
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x122706): undefined reference to `snd_card_create'
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x1227b2): undefined reference to `snd_ac97_bus'
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x1227cd): undefined reference to `snd_card_free'
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x12281b): undefined reference to `snd_ac97_mixer'
-> >>> drivers/built-in.o: In function `stk1160_ac97_register':
-> >>> (.text+0x122832): undefined reference to `snd_card_register'
-> >>> drivers/built-in.o: In function `stk1160_ac97_unregister':
-> >>> (.text+0x12285e): undefined reference to `snd_card_free'
-> >>>
-> >>>
-> >>> This kconfig fragment:
-> >>> config VIDEO_STK1160_AC97
-> >>> 	bool "STK1160 AC97 codec support"
-> >>> 	depends on VIDEO_STK1160 && SND
-> > 
-> > This doesn't depend on SND, it depends on SND=y.
-> > --
-> 
-> 
-> Maybe this option *should* depend on SND=y, but that's not what the
-> kconfig syntax says.  The kconfig language does not care if the variable is
-> a bool or a tristate when evaluating a depends expression AFAICT (but I am
-> only reading Documentation/kbuild/kconfig-language.txt, not the source code).
-> 
+Results of the daily build of media_tree:
 
-Doing "depends on SND=y" will only allow an option to be enabled if SND is 
-builtin so the snd_card_* functions above will be defined (with your 
-config we have a builtin function calling a module which may or may not be 
-loaded).  I think you've already addressed the snd_ac97_* functions, so 
-the fix here should be relatively simple.  Yann?
+date:		Tue May 21 19:03:03 CEST 2013
+git branch:	test
+git hash:	6a084d6b3dc200b855ae8a3c6771abe285a3835d
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
+
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: ERRORS
+linux-3.3.8-i686: ERRORS
+linux-3.4.27-i686: ERRORS
+linux-3.5.7-i686: ERRORS
+linux-3.6.11-i686: ERRORS
+linux-3.7.4-i686: ERRORS
+linux-3.8-i686: ERRORS
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: ERRORS
+linux-3.3.8-x86_64: ERRORS
+linux-3.4.27-x86_64: ERRORS
+linux-3.5.7-x86_64: ERRORS
+linux-3.6.11-x86_64: ERRORS
+linux-3.7.4-x86_64: ERRORS
+linux-3.8-x86_64: ERRORS
+linux-3.9.2-x86_64: OK
+apps: ERRORS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
