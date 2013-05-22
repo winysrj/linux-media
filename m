@@ -1,78 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2627 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752480Ab3EJLJc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 May 2013 07:09:32 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4AB9SnZ038902
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 10 May 2013 13:09:31 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from durdane.localnet (64-103-25-233.cisco.com [64.103.25.233])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 93EFC1300099
-	for <linux-media@vger.kernel.org>; Fri, 10 May 2013 13:09:28 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.10] Fixes for 3.10
-Date: Fri, 10 May 2013 13:09:27 +0200
+Received: from brandt2.jaunorange.com ([46.4.243.167]:41208 "EHLO ptaff.ca"
+	rhost-flags-OK-FAIL-OK-OK) by vger.kernel.org with ESMTP
+	id S1755054Ab3EVOeY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 May 2013 10:34:24 -0400
+Received: from nestor.ptaff.ca (modemcable021.216-19-135.mc.videotron.ca [135.19.216.21])
+	by ptaff.ca (Postfix) with ESMTP id EF38E1BC3CD6
+	for <linux-media@vger.kernel.org>; Wed, 22 May 2013 10:05:28 -0400 (EDT)
+Date: Wed, 22 May 2013 10:05:26 -0400
+From: Patrice Levesque <video4linux.wayne@ptaff.ca>
+To: linux-media@vger.kernel.org
+Subject: Re: InstantFM
+Message-ID: <20130522140525.GF4308@ptaff.ca>
+Reply-To: Patrice Levesque <video4linux.wayne@ptaff.ca>
+References: <51993390.6080202@theo.to>
+ <5199C8FA.9060704@redhat.com>
+ <519A4464.7060006@theo.to>
+ <519A6DBB.60608@theo.to>
+ <519B23A7.90504@redhat.com>
+ <519B649C.9040903@theo.to>
+ <519C7E8B.9090406@redhat.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305101309.27588.hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha256;
+	protocol="application/pgp-signature"; boundary="A9z/3b/E4MkkD+7G"
+Content-Disposition: inline
+In-Reply-To: <519C7E8B.9090406@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
 
-It's all small stuff for 3.10.
+--A9z/3b/E4MkkD+7G
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Note the DocBook change: while not a bug fix, I do want this fixed for 3.10:
-at least two companies I talked to assumed that there is no codec support in
-V4L2 due to this incorrect text. I consider that a major bug, which is why
-I'm queuing this for 3.10.
 
-Regards,
+>> I could try the liquorix kernel (3.8) if you thought it might help.
+> Yes, if you could try that that would be great.
 
-	Hans
+If I may join the party, I too own an InstantFM USB device and I can't
+get it to play radio.  All of this under kernel 3.9.3-gentoo.
 
-The following changes since commit 02615ed5e1b2283db2495af3cf8f4ee172c77d80:
+dmesg:
 
-  [media] cx88: make core less verbose (2013-04-28 12:40:52 -0300)
+	usb 4-2.4: new full-speed USB device number 5 using uhci_hcd
+	usb 4-2.4: New USB device found, idVendor=3D06e1, idProduct=3Da155
+	usb 4-2.4: New USB device strings: Mfr=3D1, Product=3D2, SerialNumber=3D0
+	usb 4-2.4: Product: ADS InstantFM Music
+	usb 4-2.4: Manufacturer: ADS TECH
+	radio-si470x 4-2.4:1.2: DeviceID=3D0xffff ChipID=3D0xffff
+	radio-si470x 4-2.4:1.2: software version 0, hardware version 7
+	radio-si470x 4-2.4:1.2: This driver is known to work with software version=
+ 1,
+	radio-si470x 4-2.4:1.2: but the device has software version 0.
+	radio-si470x 4-2.4:1.2: If you have some trouble using this driver,
+	radio-si470x 4-2.4:1.2: please report to V4L ML at linux-media@vger.kernel=
+=2Eorg
+	usbcore: registered new interface driver radio-si470x
+	usbcore: registered new interface driver radio-si470x
 
-are available in the git repository at:
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.10
+xawtv-3.95-r2 (gentoo):
 
-for you to fetch changes up to 7ac492209145da3f08a524d39435aca0fe4d1f93:
+	radio:
 
-  vpfe-capture.c: remove unused label probe_free_lock (2013-05-10 12:53:08 +0200)
+	// The interface shows up with 0.00 tuned, and across the screen I
+	// see
+	VIDIOCGAUDIO: Inappropriate ioctl for device
+	VIDIOCSAUDIO: Inappropriate ioctl for device
 
-----------------------------------------------------------------
-Arnd Bergmann (1):
-      radio-si476x: depend on SND_SOC
+	radio -f 98.5:
+	// The interface shows up with 98.5 tuned, and across the screen I
+	// see
+	VIDIOCGAUDIO: Inappropriate ioctl for device
+	VIDIOCSAUDIO: Inappropriate ioctl for device
 
-Geert Uytterhoeven (1):
-      v4l2: SI476X MFD - Do not use binary constants
+	radio -d -i:
+	// Seems to scan the proper range, then returns nothing:
+	[Stations]
+	get_baseline:  min=3D0.000000 max=3D0.000000
 
-Hans Verkuil (2):
-      DocBook: media: update codec section, drop obsolete 'suspended' state.
-      vpfe-capture.c: remove unused label probe_free_lock
 
-Lad, Prabhakar (2):
-      media: davinci: vpbe: fix layer availability for NV12 format
-      davinci: vpfe: fix error path in probe
+xawtv3-320b1ab (seemed to be the latest version snapshot yesterday):
 
-Wei Yongjun (1):
-      davinci: vpfe: fix error return code in vpfe_probe()
+	radio:
+	// Does not start.
+	Invalid freq '127150000'. Current freq out of range?
 
- Documentation/DocBook/media/v4l/dev-codec.xml        |   35 ++++++++++++++++++++++-------------
- drivers/media/platform/davinci/vpbe_display.c        |   15 +++++++++++++++
- drivers/media/platform/davinci/vpfe_capture.c        |    3 +--
- drivers/media/radio/Kconfig                          |    1 +
- drivers/media/radio/radio-si476x.c                   |    2 +-
- drivers/staging/media/davinci_vpfe/vpfe_mc_capture.c |    6 ++++--
- 6 files changed, 44 insertions(+), 18 deletions(-)
+	radio -f 98.5:
+	// Does not start
+	Tuning to 98.50 MHz
+	Invalid freq '127150000'. Current freq out of range?
+
+	radio -d -i:
+	// Starts scanning out of range
+	Warning no band specified, scanning band 1.
+	scanning: 127.15 MHz - 327675
+	// Then still fails
+	get_baseline:  min=3D65535.000000 max=3D65535.000000
+	[Stations]
+
+
+Is there anything else I can try to help debug this?
+
+
+
+--=20
+ --=3D=3D=3D=3D|=3D=3D=3D=3D--
+    --------=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D|=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D--------
+        Patrice Levesque
+         http://ptaff.ca/
+        video4linux.wayne@ptaff.ca
+    --------=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D|=3D=3D=3D=3D=
+=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D=3D--------
+ --=3D=3D=3D=3D|=3D=3D=3D=3D--
+--
+
+--A9z/3b/E4MkkD+7G
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.19 (GNU/Linux)
+
+iQEcBAEBCAAGBQJRnNClAAoJEPFsbcakB4r75JMH/j4+tnhUN6uezOxlrrWcxH6+
+delInPpTj8OSC0sHQ0qO2867W+5FCoK32wUcpZ/IlaltOeHwB6HPcXgllw6nGre8
+KtVioGPGoSUV5eTcsoT6F4MwrbgCPuYCeXV+bXgyLvM8Jka3EPMjzoyMHW7YKSiI
+bJpFtP9j0HHCUy0AeFAtEb4wg3YiWvKpZkug8FJkKBTmFmn+uVl/H7BBMveXpjir
+M4osAlDDQUQF7/aCL2hZs4dgoLVqhrG7k6fubUOrrMHjDRzmLvjJQHa2ANhE3tE7
++DIdB7WFhCqE4C26S5K7X5nyWE2OBhGhrmQwsQzfsp9tuwo/+YPQTARYDn38q1k=
+=D4uo
+-----END PGP SIGNATURE-----
+
+--A9z/3b/E4MkkD+7G--
