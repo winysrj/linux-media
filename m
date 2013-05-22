@@ -1,76 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:51070 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758529Ab3EAJ3F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 05:29:05 -0400
-Received: by mail-ee0-f54.google.com with SMTP id e49so588492eek.27
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 02:29:03 -0700 (PDT)
-Message-ID: <5180E05C.7020206@gmail.com>
-Date: Wed, 01 May 2013 11:29:00 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from youngberry.canonical.com ([91.189.89.112]:45632 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753055Ab3EVLro (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 May 2013 07:47:44 -0400
+Message-ID: <519CB05E.3060903@canonical.com>
+Date: Wed, 22 May 2013 13:47:42 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org
-Subject: Re: [PATCH 1/1] [media] exynos4-is: Remove redundant NULL check in
- fimc-lite.c
-References: <1367297493-31782-1-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1367297493-31782-1-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Peter Zijlstra <peterz@infradead.org>
+CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	x86@kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
+	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
+Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks,
+ v3
+References: <20130428165914.17075.57751.stgit@patser> <20130428170407.17075.80082.stgit@patser> <20130430191422.GA5763@phenom.ffwll.local> <519CA976.9000109@canonical.com> <20130522113736.GO18810@twins.programming.kicks-ass.net>
+In-Reply-To: <20130522113736.GO18810@twins.programming.kicks-ass.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sachin,
-
-On 04/30/2013 06:51 AM, Sachin Kamat wrote:
-> clk_unprepare checks for NULL pointer. Hence convert IS_ERR_OR_NULL
-> to IS_ERR only.
+Op 22-05-13 13:37, Peter Zijlstra schreef:
+>> Are there any issues left? I included the patch you wrote for injecting -EDEADLK too
+>> in my tree. The overwhelming silence makes me think there are either none, or
+>> nobody cared enough to review it. :(
+> It didn't manage to reach my inbox it seems,.. I can only find a debug
+> patch in this thread.
 >
-> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
-> ---
->   drivers/media/platform/exynos4-is/fimc-lite.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-> index 661d0d1..2a0ef82 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-> @@ -1416,7 +1416,7 @@ static void fimc_lite_unregister_capture_subdev(struct fimc_lite *fimc)
->
->   static void fimc_lite_clk_put(struct fimc_lite *fimc)
->   {
-> -	if (IS_ERR_OR_NULL(fimc->clock))
-> +	if (IS_ERR(fimc->clock))
->   		return;
->
->   	clk_unprepare(fimc->clock);
+Odd, maybe in your spam folder?
+It arrived on all mailing lists, so I have no idea why you were left out.
 
-I've queued this patch for 3.11 with the below chunk squashed to it:
+http://www.spinics.net/lists/linux-arch/msg21425.html
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c 
-b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 2ede148..faf2a75 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -1422,7 +1422,7 @@ static void fimc_lite_clk_put(struct fimc_lite *fimc)
 
-         clk_unprepare(fimc->clock);
-         clk_put(fimc->clock);
--       fimc->clock = NULL;
-+       fimc->clock = ERR_PTR(-EINVAL);
-  }
-
-  static int fimc_lite_clk_get(struct fimc_lite *fimc)
-@@ -1436,7 +1436,7 @@ static int fimc_lite_clk_get(struct fimc_lite *fimc)
-         ret = clk_prepare(fimc->clock);
-         if (ret < 0) {
-                 clk_put(fimc->clock);
--               fimc->clock = NULL;
-+               fimc->clock = ERR_PTR(-EINVAL);
-         }
-         return ret;
-  }
-
-Thanks.
-Sylwester
+~Maarten
