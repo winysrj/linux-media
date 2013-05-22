@@ -1,60 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:28128 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757360Ab3ENLvy (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1046 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755207Ab3EVGtO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 07:51:54 -0400
-From: George Joseph <george.jp@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com, ym.song@samsung.com
-Subject: [RFC PATCH 3/3] ARM: dts: Add documentation for Samsung JPEG driver
- bindings
-Date: Tue, 14 May 2013 17:23:40 +0530
-Message-id: <1368532420-21555-4-git-send-email-george.jp@samsung.com>
-In-reply-to: <1368532420-21555-1-git-send-email-george.jp@samsung.com>
-References: <1368532420-21555-1-git-send-email-george.jp@samsung.com>
+	Wed, 22 May 2013 02:49:14 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH 0/4] media: remove duplicate check for EPERM
+Date: Wed, 22 May 2013 08:47:05 +0200
+Cc: LMML <linux-media@vger.kernel.org>,
+	uclinux-dist-devel@blackfin.uclinux.org, ivtv-devel@ivtvdriver.org,
+	linux-kernel@vger.kernel.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Mike Isely <isely@pobox.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Antti Palosaari <crope@iki.fi>,
+	Jon Arne =?iso-8859-1?q?J=F8rgensen?= <jonarne@jonarne.no>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Alexey Klimov <klimov.linux@gmail.com>,
+	Martin Bugge <marbugge@cisco.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Frank =?iso-8859-1?q?Sch=E4fer?= <fschaefer.oss@googlemail.com>,
+	Janne Grunau <j@jannau.net>
+References: <1368510317-4356-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8s9-n2nEpbT97StctRL5jU=9hLF_d4p5bKCJx93uSUxrA@mail.gmail.com>
+In-Reply-To: <CA+V-a8s9-n2nEpbT97StctRL5jU=9hLF_d4p5bKCJx93uSUxrA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305220847.05588.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+On Wed May 22 2013 07:52:03 Prabhakar Lad wrote:
+> Hi All,
+> 
+> On Tue, May 14, 2013 at 11:15 AM, Lad Prabhakar
+> <prabhakar.csengg@gmail.com> wrote:
+> > From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >
+> > This patch series cleanups the check for EPERM in dbg_g/s_register
+> > and vidioc_g/s_register.
+> >
+> > Lad, Prabhakar (4):
+> >   media: i2c: remove duplicate checks for EPERM in dbg_g/s_register
+> >   media: dvb-frontends: remove duplicate checks for EPERM in
+> >     dbg_g/s_register
+> >   media: usb: remove duplicate checks for EPERM in vidioc_g/s_register
+> >   media: pci: remove duplicate checks for EPERM
+> >
+> Gentle ping..
 
-Added documentation for Samsung JPEG driver DT bindings.
+For the record: it's in my queue and I plan on merging this on Friday.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: George Joseph Palathingal <george.jp@samsung.com>
-Cc: devicetree-discuss@lists.ozlabs.org
----
- .../devicetree/bindings/media/samsung-s5p-jpeg.txt |   21 ++++++++++++++++++++
- 1 file changed, 21 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
+Regards,
 
-diff --git a/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt b/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
-new file mode 100644
-index 0000000..e44c4da
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
-@@ -0,0 +1,21 @@
-+Samsung S5P/EXYNOS SoC series JPEG codec
-+
-+Required properties:
-+
-+- compatible	: "samsung,<soc_name>-jpeg", must be one of:
-+		  "samsung,s5pv210-jpeg", "samsung,exynos4212-jpeg";
-+- reg		: address and length of the JPEG codec register set;
-+- interrupts	: should contain the JPEG codec interrupt; format of the
-+		  interrupt specifier depends on the interrupt controller;
-+- clocks	: jpeg clock specifier, as covered by common clock bindings.
-+- clock-names	: must contain "jpeg" entry.
-+
-+Example:
-+
-+jpeg@11840000 {
-+	compatible = "samsung,s5pv210-jpeg";
-+	reg = <0x11840000 0x3FF>;
-+	interrupts = <0 88 0>;
-+	clocks = <&clock 262>;
-+	clock-names = "jpeg";
-+};
--- 
-1.7.9.5
-
+	Hans
