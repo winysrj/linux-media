@@ -1,133 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f173.google.com ([74.125.82.173]:48726 "EHLO
-	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756178Ab3EYO1D (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:45499 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755320Ab3EVKRl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 10:27:03 -0400
-MIME-Version: 1.0
-In-Reply-To: <51A0C6A8.5090302@gmail.com>
-References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
- <519F4AE7.8000003@gmail.com> <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com>
- <51A0C6A8.5090302@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 25 May 2013 19:56:41 +0530
-Message-ID: <CA+V-a8tqQGk1v_QdSsn2rt-OJY5PxoFmr1LLkp1bQQb3GuerMA@mail.gmail.com>
-Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Wed, 22 May 2013 06:17:41 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>, John Sheu <sheu@google.com>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [RFC] [media] mem2mem: add support for hardware buffered queue
+Date: Wed, 22 May 2013 12:17:36 +0200
+Message-Id: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
+buffer at the end of the stream, remaining frames might need to be decoded
+without additional input buffers being provided, and after calling streamoff
+on the v4l2 output queue. This also allows a driver to copy input buffers
+into their bitstream ringbuffer and immediately mark them as done to be
+dequeued.
 
-On Sat, May 25, 2013 at 7:41 PM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi,
->
->
-> On 05/25/2013 11:17 AM, Prabhakar Lad wrote:
->>>
->>>  From looking at Figure 8 "TVP7002 Application Example" in the TVP7002's
->>> >  datasheet
->>> >  ([2], p. 52) and your initial TVP7002 patches it looks like what you
->>> > want is
->>> >  to
->>> >  specify polarity of the SOGOUT signal, so the processor that receives
->>> > this
->>> >  signal
->>> >  can properly interpret it, is it correct ?
->>> >
->>
->> Yes
->>>
->>> >  If so then wouldn't it be more appropriate to define e.g. 'sog-active'
->>> >  property
->>> >  and media bus flags:
->>> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_LOW
->>> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_HIGH
->>> >  ?
->>> >
->>
->> Agreed I'll add these flags.
->>
->>> >  And for synchronisation method on the analog part we could perhaps
->>> > define
->>> >  'component-sync' or similar property that would enumerate all possible
->>> >  synchronisation methods. We might as well use separate boolean
->>> > properties,
->>> >  but I'm a bit concerned about the increasing number of properties that
->>> > need
->>> >  to be parsed for each parallel video bus "endpoint".
->>> >
->>
->> I am not clear on it can please elaborate more on this.
->
->
-> I thought about two possible options:
->
-> 1. single property 'component-sync' or 'video-sync' that would have values:
->
-> #define VIDEO_SEPARATE_SYNC     0x01
-> #define VIDEO_COMPOSITE_SYNC    0x02
-> #define VIDEO_SYNC_ON_COMPOSITE 0x04
-> #define VIDEO_SYNC_ON_GREEN     0x08
-> #define VIDEO_SYNC_ON_LUMINANCE 0x10
->
-> And we could put these definitions into a separate header, e.g.
-> <dt-bindings/video-interfaces.h>
->
-> Then in a device tree source file one could have, e.g.
->
-> video-sync = <VIDEO_SYNC_ON_GREEN>;
->
->
-> 2. Separate boolean property for each video sync type, e.g.
->
->         "video-composite-sync"
->         "video-sync-on-composite"
->         "video-sync-on-green"
->         "video-sync-on-luminance"
->
-> Separate sync, with separate VSYNC, HSYNC lines, would be the default, when
-> none of the above is specified and 'vsync-active', 'hsync-active' properties
-> are present.
->
-> However, I suppose the better would be to deduce the video synchronisation
-> method from the sync signal polarity flags. Then, for instance, when an
-> endpoint node contains "composite-sync-active" property the parser would
-> determine the "composite sync" synchronisation type is used.
->
-> Thus it might make sense to have only following integer properties (added
-> as needed):
->
-> composite-sync-active
-> sync-on-green-active
-> sync-on-comp-active
-> sync-on-luma-active
->
-> This would allow to specify polarity of each signal and at the same time
-> the parsing code could derive synchronisation type. A new field could be
-> added to struct v4l2_of_parallel_bus, e.g. sync_type and it would be filled
-> within v4l2_of_parse_endpoint().
->
-I am OK with this option. and I hope you meant "struct
-v4l2_of_bus_parallel" instead
-of " struct v4l2_of_parallel_bus" and to fill sync_type within
-v4l2_of_parse_parallel_bus()
-and not in v4l2_of_parse_endpoint().
+The motivation for this patch is hardware assisted h.264 reordering support
+in the coda driver. For high profile streams, the coda can hold back
+out-of-order frames, causing a few mem2mem device runs in the beginning, that
+don't produce any decompressed buffer at the v4l2 capture side. At the same
+time, the last few frames can be decoded from the bitstream with mem2mem device
+runs that don't need a new input buffer at the v4l2 output side. A streamoff
+on the v4l2 output side can be used to put the decoder into the ringbuffer
+draining end-of-stream mode.
 
-Regards,
---Prabhakar Lad
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 26 ++++++++++++++++++++------
+ include/media/v4l2-mem2mem.h           |  3 +++
+ 2 files changed, 23 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 357efa4..52818cd 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -196,6 +196,10 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+  * 2) at least one destination buffer has to be queued,
+  * 3) streaming has to be on.
+  *
++ * If a queue is buffered (for example a decoder hardware ringbuffer that has
++ * to be drained before doing streamoff), allow scheduling without v4l2 buffers
++ * on that queue and even when the queue is not streaming anymore.
++ *
+  * There may also be additional, custom requirements. In such case the driver
+  * should supply a custom callback (job_ready in v4l2_m2m_ops) that should
+  * return 1 if the instance is ready.
+@@ -210,7 +214,7 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	m2m_dev = m2m_ctx->m2m_dev;
+ 	dprintk("Trying to schedule a job for m2m_ctx: %p\n", m2m_ctx);
+ 
+-	if (!m2m_ctx->out_q_ctx.q.streaming
++	if ((!m2m_ctx->out_q_ctx.q.streaming && !m2m_ctx->out_q_ctx.buffered)
+ 	    || !m2m_ctx->cap_q_ctx.q.streaming) {
+ 		dprintk("Streaming needs to be on for both queues\n");
+ 		return;
+@@ -224,7 +228,7 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 	}
+ 
+ 	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
+-	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)) {
++	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue) && !m2m_ctx->out_q_ctx.buffered) {
+ 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No input buffers available\n");
+@@ -434,9 +438,11 @@ int v4l2_m2m_streamoff(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 
+ 	m2m_dev = m2m_ctx->m2m_dev;
+ 	spin_lock_irqsave(&m2m_dev->job_spinlock, flags_job);
+-	/* We should not be scheduled anymore, since we're dropping a queue. */
+-	INIT_LIST_HEAD(&m2m_ctx->queue);
+-	m2m_ctx->job_flags = 0;
++	if (!q_ctx->buffered) {
++		/* We should not be scheduled anymore, since we're dropping a queue. */
++		INIT_LIST_HEAD(&m2m_ctx->queue);
++		m2m_ctx->job_flags = 0;
++	}
+ 
+ 	spin_lock_irqsave(&q_ctx->rdy_spinlock, flags);
+ 	/* Drop queue, since streamoff returns device to the same state as after
+@@ -444,7 +450,7 @@ int v4l2_m2m_streamoff(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
+ 	INIT_LIST_HEAD(&q_ctx->rdy_queue);
+ 	spin_unlock_irqrestore(&q_ctx->rdy_spinlock, flags);
+ 
+-	if (m2m_dev->curr_ctx == m2m_ctx) {
++	if (!q_ctx->buffered && (m2m_dev->curr_ctx == m2m_ctx)) {
+ 		m2m_dev->curr_ctx = NULL;
+ 		wake_up(&m2m_ctx->finished);
+ 	}
+@@ -640,6 +646,14 @@ err:
+ }
+ EXPORT_SYMBOL_GPL(v4l2_m2m_ctx_init);
+ 
++void v4l2_m2m_queue_set_buffered(struct vb2_queue *vq)
++{
++	struct v4l2_m2m_queue_ctx *q_ctx = container_of(vq, struct v4l2_m2m_queue_ctx, q);
++
++	q_ctx->buffered = true;
++}
++EXPORT_SYMBOL_GPL(v4l2_m2m_queue_set_buffered);
++
+ /**
+  * v4l2_m2m_ctx_release() - release m2m context
+  *
+diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
+index 0f4555b..3415845 100644
+--- a/include/media/v4l2-mem2mem.h
++++ b/include/media/v4l2-mem2mem.h
+@@ -60,6 +60,7 @@ struct v4l2_m2m_queue_ctx {
+ 	struct list_head	rdy_queue;
+ 	spinlock_t		rdy_spinlock;
+ 	u8			num_rdy;
++	bool			buffered;
+ };
+ 
+ struct v4l2_m2m_ctx {
+@@ -134,6 +135,8 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
+ 		void *drv_priv,
+ 		int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
+ 
++void v4l2_m2m_queue_set_buffered(struct vb2_queue *vq);
++
+ void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx);
+ 
+ void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct vb2_buffer *vb);
+-- 
+1.8.2.rc2
+
