@@ -1,87 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp08.smtpout.orange.fr ([80.12.242.130]:28389 "EHLO
-	smtp.smtpout.orange.fr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751392Ab3EIPEF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 11:04:05 -0400
-Message-ID: <518BBAE4.4010507@libertysurf.fr>
-Date: Thu, 09 May 2013 17:04:04 +0200
-From: pierre <pdurand13@libertysurf.fr>
-Reply-To: pdurand13@libertysurf.fr
+Received: from youngberry.canonical.com ([91.189.89.112]:45405 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752953Ab3EVLST (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 22 May 2013 07:18:19 -0400
+Message-ID: <519CA976.9000109@canonical.com>
+Date: Wed, 22 May 2013 13:18:14 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: HD-Audio Generic HDMI/DP on wheezy
-References: <20130509144422.420FC8FF9BB@zimbra65-e11.priv.proxad.net>
-In-Reply-To: <20130509144422.420FC8FF9BB@zimbra65-e11.priv.proxad.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+To: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, tglx@linutronix.de,
+	mingo@elte.hu, linux-media@vger.kernel.org,
+	Dave Airlie <airlied@redhat.com>
+Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks,
+ v3
+References: <20130428165914.17075.57751.stgit@patser> <20130428170407.17075.80082.stgit@patser> <20130430191422.GA5763@phenom.ffwll.local>
+In-Reply-To: <20130430191422.GA5763@phenom.ffwll.local>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hey,
 
-Some difficult on wheezy, on my computer
-product: Inspiron 620
-vendor: Dell Inc.
-version: 00
-serial: D9V135J
-width: 64 bits
+Op 30-04-13 21:14, Daniel Vetter schreef:
+> On Sun, Apr 28, 2013 at 07:04:07PM +0200, Maarten Lankhorst wrote:
+>> Changes since RFC patch v1:
+>>  - Updated to use atomic_long instead of atomic, since the reservation_id was a long.
+>>  - added mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow
+>>  - removed mutex_locked_set_reservation_id (or w/e it was called)
+>> Changes since RFC patch v2:
+>>  - remove use of __mutex_lock_retval_arg, add warnings when using wrong combination of
+>>    mutex_(,reserve_)lock/unlock.
+>> Changes since v1:
+>>  - Add __always_inline to __mutex_lock_common, otherwise reservation paths can be
+>>    triggered from normal locks, because __builtin_constant_p might evaluate to false
+>>    for the constant 0 in that case. Tests for this have been added in the next patch.
+>>  - Updated documentation slightly.
+>> Changes since v2:
+>>  - Renamed everything to ww_mutex. (mlankhorst)
+>>  - Added ww_acquire_ctx and ww_class. (mlankhorst)
+>>  - Added a lot of checks for wrong api usage. (mlankhorst)
+>>  - Documentation updates. (danvet)
+> While writing the kerneldoc I've carefully check that all restrictions are
+> enforced through debug checks somehow. I think that with full mutex debug
+> (including lockdep) enabled, plus the slowpath injector patch I've just
+> posted, _all_ interface abuse will be catched at runtime as long as all
+> the single-threaded/uncontended cases are exercises sufficiently.
+>
+> So I think we've fully achieved level 5 on the Rusty API safety scale
+> here. Higher levels seem pretty hard given that the concepts are rather
+> fancy, but I think with the new (and much more consitent) naming, plus the
+> explicit introduction as (more abstruct) structures for ww_class and
+> ww_acquire_context the interface is about as intuitive as it gets.
+>
+> So all together I'm pretty happy with what the interface looks like. And
+> one quick bikeshed below on the implementation.
+> -Daniel
+I included your fix below. I'm hoping to get this included in 3.11 through the drm tree, so
+I can convert ttm to use it, but I haven't received any further reply on the patch series.
 
-My sound card is now defined as Caicos HDMI Audio [Radeon HD 6400 
-Series] Digital Stereo (HDMI) on Squeeze, it was HD-Audio Generic 
-Digital Stereo (HDMI).
-It works but i'm not able to get analogic output, only HDMI / display 
-port that i can't use.
+The 3.10 mutex improvement patches don't seem to cause any conflicts when merging
+linus' tree, so I'll use drm-next as a base.
 
-extract of kern.log:
-May  9 14:46:53 retraite kernel: [    6.852532] snd_hda_intel 
-0000:01:00.1: irq 45 for MSI/MSI-X
-May  9 14:46:53 retraite kernel: [    6.852560] snd_hda_intel 
-0000:01:00.1: setting latency timer to 64
-May  9 14:46:53 retraite kernel: [    6.885811] HDMI status: Codec=0 
-Pin=3 Presence_Detect=0 ELD_Valid=0
-May  9 14:46:53 retraite kernel: [    6.885931] input: HD-Audio Generic 
-HDMI/DP,pcm=3 as 
-/devices/pci0000:00/0000:00:01.0/0000:01:00.1/sound/card1/input6
-May  9 14:46:53 retraite kernel: [    8.968035] WARNING: You are using 
-an experimental version of the media stack.
-May  9 14:46:53 retraite kernel: [    8.968037]     As the driver is 
-backported to an older kernel, it doesn't offer
-May  9 14:46:53 retraite kernel: [    8.968039]     enough quality for 
-its usage in production.
-May  9 14:46:53 retraite kernel: [    8.968040]     Use it with care.
-May  9 14:46:53 retraite kernel: [    8.968041] Latest git patches 
-(needed if you report a bug to linux-media@vger.kernel.org):
-May  9 14:46:53 retraite kernel: [    8.968042]     
-02615ed5e1b2283db2495af3cf8f4ee172c77d80 [media] cx88: make core less 
-verbose
-May  9 14:46:53 retraite kernel: [    8.968044]     
-a3b60209e7dd4db05249a9fb27940bb6705cd186 [media] em28xx: fix oops at 
-em28xx_dvb_bus_ctrl()
-May  9 14:46:53 retraite kernel: [    8.968046]     
-4494f0fdd825958d596d05a4bd577df94b149038 [media] s5c73m3: fix 
-indentation of the help section in Kconfig
-May  9 14:46:53 retraite kernel: [    8.985632] WARNING: You are using 
-an experimental version of the media stack.
-May  9 14:46:53 retraite kernel: [    8.985634]     As the driver is 
-backported to an older kernel, it doesn't offer
-May  9 14:46:53 retraite kernel: [    8.985635]     enough quality for 
-its usage in production.
-May  9 14:46:53 retraite kernel: [    8.985636]     Use it with care.
-May  9 14:46:53 retraite kernel: [    8.985636] Latest git patches 
-(needed if you report a bug to linux-media@vger.kernel.org):
-May  9 14:46:53 retraite kernel: [    8.985637]     
-02615ed5e1b2283db2495af3cf8f4ee172c77d80 [media] cx88: make core less 
-verbose
-May  9 14:46:53 retraite kernel: [    8.985639]     
-a3b60209e7dd4db05249a9fb27940bb6705cd186 [media] em28xx: fix oops at 
-em28xx_dvb_bus_ctrl()
-May  9 14:46:53 retraite kernel: [    8.985640]     
-4494f0fdd825958d596d05a4bd577df94b149038 [media] s5c73m3: fix 
-indentation of the help section in Kconfig
+Are there any issues left? I included the patch you wrote for injecting -EDEADLK too
+in my tree. The overwhelming silence makes me think there are either none, or
+nobody cared enough to review it. :(
 
-Hoping theese informations can help you ... and me.
+>> +/*
+>> + * after acquiring lock with fastpath or when we lost out in contested
+>> + * slowpath, set ctx and wake up any waiters so they can recheck.
+>> + *
+>> + * This function is never called when CONFIG_DEBUG_LOCK_ALLOC is set,
+>> + * as the fastpath and opportunistic spinning are disabled in that case.
+>> + */
+>> +static __always_inline void
+>> +ww_mutex_set_context_fastpath(struct ww_mutex *lock,
+>> +			       struct ww_acquire_ctx *ctx)
+>> +{
+>> +	unsigned long flags;
+>> +	struct mutex_waiter *cur;
+>> +
+>> +	ww_mutex_lock_acquired(lock, ctx, false);
+>> +
+>> +	lock->ctx = ctx;
+>> +	smp_mb__after_atomic_dec();
+> I think this should be
+>
+> +	smp_mb__after_atomic_dec();
+> +	lock->ctx = ctx;
+> +	smp_mb();
+>
+> Also I wonder a bit how much this hurts the fastpath, and whether we
+> should just shovel the ctx into the atomic field with a cmpxcht, like the
+> rt mutex code does with the current pointer.
+>
+Fixed. I'm not sure if the second smp_mb is really needed. If there was a
+smp_mb__before_atomic_read it would have been sufficient.
 
-Thanks.
-
-Pierre.
-
+~Maarten
