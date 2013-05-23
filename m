@@ -1,73 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:37533 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754944Ab3EAJcL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 05:32:11 -0400
-Received: by mail-ee0-f51.google.com with SMTP id c1so592098eek.10
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 02:32:10 -0700 (PDT)
-Message-ID: <5180E117.1020006@gmail.com>
-Date: Wed, 01 May 2013 11:32:07 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-vb0-f43.google.com ([209.85.212.43]:63931 "EHLO
+	mail-vb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757821Ab3EWJZq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 May 2013 05:25:46 -0400
+Received: by mail-vb0-f43.google.com with SMTP id e15so1976467vbg.2
+        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 02:25:45 -0700 (PDT)
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	patches@linaro.org
-Subject: Re: [PATCH 1/4] [media] s3c-camif: Remove redundant NULL check
-References: <1367302581-15478-1-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1367302581-15478-1-git-send-email-sachin.kamat@linaro.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CA+V-a8v5Msfwr11tpC5xR90e5E02Mz+OJcqnYohmp2ri_VgC1Q@mail.gmail.com>
+References: <CAPgLHd_iDfVzq2S_uSh1tBVpQdFa4oyMpWGovDDNCYsh0bLJog@mail.gmail.com>
+ <CA+V-a8v5Msfwr11tpC5xR90e5E02Mz+OJcqnYohmp2ri_VgC1Q@mail.gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 23 May 2013 14:55:25 +0530
+Message-ID: <CA+V-a8vTXaDmPuPxFUDxv4+pQc4jbwBafUWu7Y-Hdbbdo+=Xqg@mail.gmail.com>
+Subject: Re: [PATCH] [media] vpif_display: fix error return code in vpif_probe()
+To: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: mchehab@redhat.com, yongjun_wei@trendmicro.com.cn,
+	linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Wei Yongjun <weiyj.lk@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/30/2013 08:16 AM, Sachin Kamat wrote:
-> clk_unprepare checks for NULL pointer. Hence convert IS_ERR_OR_NULL
-> to IS_ERR only.
+Hi Hans,
+
+On Mon, May 13, 2013 at 11:34 AM, Prabhakar Lad
+<prabhakar.csengg@gmail.com> wrote:
+> Hi Wei,
 >
-> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
-> ---
->   drivers/media/platform/s3c-camif/camif-core.c |    2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
+> Thanks for the patch.
 >
-> diff --git a/drivers/media/platform/s3c-camif/camif-core.c b/drivers/media/platform/s3c-camif/camif-core.c
-> index 0d0fab1..2449f13 100644
-> --- a/drivers/media/platform/s3c-camif/camif-core.c
-> +++ b/drivers/media/platform/s3c-camif/camif-core.c
-> @@ -341,7 +341,7 @@ static void camif_clk_put(struct camif_dev *camif)
->   	int i;
+> On Mon, May 13, 2013 at 11:27 AM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+>> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>>
+>> Fix to return -ENODEV in the subdevice register error handling
+>> case instead of 0, as done elsewhere in this function.
+>>
+>> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
 >
->   	for (i = 0; i<  CLK_MAX_NUM; i++) {
-> -		if (IS_ERR_OR_NULL(camif->clock[i]))
-> +		if (IS_ERR(camif->clock[i]))
->   			continue;
->   		clk_unprepare(camif->clock[i]);
->   		clk_put(camif->clock[i]);
+> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>
+Can you pick this patch ? and a similar looking patch for vpif display.
 
-Patch applied for 3.11 with following chunk squashed to it:
-
-diff --git a/drivers/media/platform/s3c-camif/camif-core.c 
-b/drivers/media/platform/s3c-camif/camif-core.c
-index 2449f13..b385747 100644
---- a/drivers/media/platform/s3c-camif/camif-core.c
-+++ b/drivers/media/platform/s3c-camif/camif-core.c
-@@ -345,6 +345,7 @@ static void camif_clk_put(struct camif_dev *camif)
-                         continue;
-                 clk_unprepare(camif->clock[i]);
-                 clk_put(camif->clock[i]);
-+               camif->clock[i] = ERR_PTR(-EINVAL);
-         }
-  }
-
-@@ -352,6 +353,9 @@ static int camif_clk_get(struct camif_dev *camif)
-  {
-         int ret, i;
-
-+       for (i = 1; i < CLK_MAX_NUM; i++)
-+               camif->clock[i] = ERR_PTR(-EINVAL);
-+
-         for (i = 0; i < CLK_MAX_NUM; i++) {
-                 camif->clock[i] = clk_get(camif->dev, camif_clocks[i]);
-                 if (IS_ERR(camif->clock[i])) {
-
-Thanks!
-Sylwester
+Regards,
+--Prabhakar Lad
