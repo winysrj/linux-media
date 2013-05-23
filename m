@@ -1,97 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:58076 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757481Ab3EOMBR (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:34672 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757918Ab3EWKX3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 08:01:17 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Thu, 23 May 2013 06:23:29 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [v3] media: davinci: kconfig: fix incorrect selects
+Date: Thu, 23 May 2013 12:23:12 +0200
+Cc: Paul Bolle <pebolle@tiscali.nl>, Sekhar Nori <nsekhar@ti.com>,
+	davinci-linux-open-source@linux.davincidsp.com,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 3/6] media: i2c: ths7303: remove unnecessary function ths7303_setup()
-Date: Wed, 15 May 2013 17:27:19 +0530
-Message-Id: <1368619042-28252-4-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com>
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	linux-media@vger.kernel.org
+References: <1363079692-16683-1-git-send-email-nsekhar@ti.com> <1368439554.1350.49.camel@x61.thuisdomein> <CA+V-a8vOJocJttwQBnNA-sn2qWtAvgzQ96OGNbJ8NvVV_tt7uA@mail.gmail.com>
+In-Reply-To: <CA+V-a8vOJocJttwQBnNA-sn2qWtAvgzQ96OGNbJ8NvVV_tt7uA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305231223.12721.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Mon 13 May 2013 12:41:26 Prabhakar Lad wrote:
+> Hi Paul,
+> 
+> On Mon, May 13, 2013 at 3:35 PM, Paul Bolle <pebolle@tiscali.nl> wrote:
+> > Prabhakar,
+> >
+> > On Mon, 2013-05-13 at 15:27 +0530, Prabhakar Lad wrote:
+> >> Good catch! the dependency can be dropped now.
+> >
+> > Great.
+> >
+> >> Are you planning to post a patch for it or shall I do it ?
+> >
+> > I don't mind submitting that trivial patch.
+> >
+> > However, it's probably better if you do that. I can only state that this
+> > dependency is now useless, because that is simply how the kconfig system
+> > works. But you can probably elaborate why it's OK to not replace it with
+> > another (negative) dependency. That would make a more informative commit
+> > explanation.
+> >
+> Posted the patch fixing it https://patchwork.linuxtv.org/patch/18395/
 
-the ths7303_setup() was doing the same thing as ths7303_setval()
-except that ths7303_setval() sets it to some particular mode.
-This patch removes ths7303_setup() function and calls ths7303_setval()
-in the probe setting the device to 480I_576I filter mode in the probe.
+Prabhakar,
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
----
- drivers/media/i2c/ths7303.c |   31 ++++---------------------------
- 1 files changed, 4 insertions(+), 27 deletions(-)
+Is this for 3.10 or 3.11?
 
-diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
-index 8cddcd0..af06187c 100644
---- a/drivers/media/i2c/ths7303.c
-+++ b/drivers/media/i2c/ths7303.c
-@@ -349,30 +349,6 @@ static const struct v4l2_subdev_ops ths7303_ops = {
- 	.video 	= &ths7303_video_ops,
- };
- 
--static int ths7303_setup(struct v4l2_subdev *sd)
--{
--	struct ths7303_state *state = to_state(sd);
--	struct ths7303_platform_data *pdata = &state->pdata;
--	int ret;
--	u8 mask;
--
--	mask = 0xf8;
--
--	ret = ths7303_write(sd, THS7303_CHANNEL_1, pdata->ch_1 & mask);
--	if (ret)
--		return ret;
--
--	ret = ths7303_write(sd, THS7303_CHANNEL_2, pdata->ch_2 & mask);
--	if (ret)
--		return ret;
--
--	ret = ths7303_write(sd, THS7303_CHANNEL_3, pdata->ch_3 & mask);
--	if (ret)
--		return ret;
--
--	return 0;
--}
--
- static int ths7303_probe(struct i2c_client *client,
- 			const struct i2c_device_id *id)
- {
-@@ -402,9 +378,10 @@ static int ths7303_probe(struct i2c_client *client,
- 	/* store the driver data to differntiate the chip */
- 	state->driver_data = (int)id->driver_data;
- 
--	if (ths7303_setup(sd) < 0) {
--		v4l_err(client, "init failed\n");
--		return -EIO;
-+	/* set to default 480I_576I filter mode */
-+	if (ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I) < 0) {
-+		v4l_err(client, "Setting to 480I_576I filter mode failed!\n");
-+		return -EINVAL;
- 	}
- 
- 	return 0;
--- 
-1.7.4.1
+Regards,
 
+	Hans
