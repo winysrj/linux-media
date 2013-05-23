@@ -1,77 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3583 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965703Ab3E2LBO (ORCPT
+Received: from mail-vb0-f51.google.com ([209.85.212.51]:58789 "EHLO
+	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757881Ab3EWJl5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:01:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCHv1 31/38] cx231xx: the reg->size field wasn't filled in.
-Date: Wed, 29 May 2013 13:00:04 +0200
-Message-Id: <1369825211-29770-32-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 23 May 2013 05:41:57 -0400
+MIME-Version: 1.0
+In-Reply-To: <201305231135.37204.hverkuil@xs4all.nl>
+References: <1368528334-13595-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1368528334-13595-4-git-send-email-prabhakar.csengg@gmail.com> <201305231135.37204.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 23 May 2013 15:11:36 +0530
+Message-ID: <CA+V-a8vyg_OjWkvsuEdi_-NZRLkA3ZSEWnM_vox9KG+vK=k6Dw@mail.gmail.com>
+Subject: Re: [PATCH 3/5] media: i2c: tvp7002: rearrange header inclusion alphabetically
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/cx231xx/cx231xx-video.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+On Thu, May 23, 2013 at 3:05 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tue 14 May 2013 12:45:32 Lad Prabhakar wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> This patch rearranges the header inclusion alphabetically
+>> and also removes unnecessary includes.
+>
+> As Laurent mentioned in a review for another patch (vpif) you probably
+> shouldn't remove these headers. videodev2.h is certainly used, as is slab.h
+> and v4l2-common.h. In the past removing slab.h causes problems on other
+> architectures where that header isn't automatically included by other
+> headers.
+>
+OK
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
-index 54cdd4d..9906261 100644
---- a/drivers/media/usb/cx231xx/cx231xx-video.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-video.c
-@@ -1272,36 +1272,43 @@ int cx231xx_g_register(struct file *file, void *priv,
- 				(u16)reg->reg, value, 4);
- 		reg->val = value[0] | value[1] << 8 |
- 			value[2] << 16 | value[3] << 24;
-+		reg->size = 4;
- 		break;
- 	case 1:	/* AFE - read byte */
- 		ret = cx231xx_read_i2c_data(dev, AFE_DEVICE_ADDRESS,
- 				(u16)reg->reg, 2, &data, 1);
- 		reg->val = data;
-+		reg->size = 1;
- 		break;
- 	case 2:	/* Video Block - read byte */
- 		ret = cx231xx_read_i2c_data(dev, VID_BLK_I2C_ADDRESS,
- 				(u16)reg->reg, 2, &data, 1);
- 		reg->val = data;
-+		reg->size = 1;
- 		break;
- 	case 3:	/* I2S block - read byte */
- 		ret = cx231xx_read_i2c_data(dev, I2S_BLK_DEVICE_ADDRESS,
- 				(u16)reg->reg, 1, &data, 1);
- 		reg->val = data;
-+		reg->size = 1;
- 		break;
- 	case 4: /* AFE - read dword */
- 		ret = cx231xx_read_i2c_data(dev, AFE_DEVICE_ADDRESS,
- 				(u16)reg->reg, 2, &data, 4);
- 		reg->val = data;
-+		reg->size = 4;
- 		break;
- 	case 5: /* Video Block - read dword */
- 		ret = cx231xx_read_i2c_data(dev, VID_BLK_I2C_ADDRESS,
- 				(u16)reg->reg, 2, &data, 4);
- 		reg->val = data;
-+		reg->size = 4;
- 		break;
- 	case 6: /* I2S Block - read dword */
- 		ret = cx231xx_read_i2c_data(dev, I2S_BLK_DEVICE_ADDRESS,
- 				(u16)reg->reg, 1, &data, 4);
- 		reg->val = data;
-+		reg->size = 4;
- 		break;
- 	default:
- 		return -EINVAL;
--- 
-1.7.10.4
+> I would just drop this patch. I've merged the first two patches of
+> this patch series, the last two I can't merge as long as the async
+> code isn't in yet.
+>
+Thanks. yes the last two depend on v4l-async patches.
 
+Regards,
+--Prabhakar Lad
