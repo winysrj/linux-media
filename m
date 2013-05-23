@@ -1,83 +1,109 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3344 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752724Ab3EVGzv (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46107 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759225Ab3EWOnK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 02:55:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v3] adv7180: add more subdev video ops
-Date: Wed, 22 May 2013 08:55:34 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
-	matsu@igel.co.jp
-References: <201305132321.39495.sergei.shtylyov@cogentembedded.com> <201305211645.49257.hverkuil@xs4all.nl> <519BAC15.8000503@cogentembedded.com>
-In-Reply-To: <519BAC15.8000503@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305220855.34503.hverkuil@xs4all.nl>
+	Thu, 23 May 2013 10:43:10 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 5/9] [media] coda: simplify parameter buffer setup code
+Date: Thu, 23 May 2013 16:42:57 +0200
+Message-Id: <1369320181-17933-6-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
+References: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue May 21 2013 19:17:09 Sergei Shtylyov wrote:
-> Hello.
-> 
-> On 05/21/2013 06:45 PM, Hans Verkuil wrote:
-> 
-> >>>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> >>>> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
-> >>>> the soc-camera drivers.
-> >>>> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> >>>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> >>>> ---
-> >>>> This patch is against the 'media_tree.git' repo.
-> >>>> Changes from version 2:
-> >>>> - set the field format depending on video standard in try_mbus_fmt() method;
-> >>>> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
-> >>>> - removed g_crop() method.
-> >>>>    drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
-> >>>>    1 file changed, 86 insertions(+)
-> >>>>
-> >>>> Index: media_tree/drivers/media/i2c/adv7180.c
-> >>>> ===================================================================
-> >>>> --- media_tree.orig/drivers/media/i2c/adv7180.c
-> >>>> +++ media_tree/drivers/media/i2c/adv7180.c
-> >>
-> >>>> +
-> >>>> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
-> >>>> +				struct v4l2_mbus_framefmt *fmt)
-> >>>> +{
-> >>>> +	struct adv7180_state *state = to_state(sd);
-> >>>> +
-> >>>> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
-> >>>> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> >>>> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
-> >>>> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
-> >>> Just noticed this: use V4L2_FIELD_INTERLACED as that does the right thing.
-> >>> No need to split in _BT and _TB.
-> >>      Hm, testers have reported that _BT vs _TB do make a difference. I'll
-> >> try to look into how V4L2 handles interlacing for different standards.
-> > When using V4L2_FIELD_INTERLACED the BT vs TB is implicit (i.e. the application
-> > is supposed to know that the order will be different depending on the standard).
-> > Explicitly using BT/TB is only useful if you want to override the default, e.g.
-> > if a video was encoded using the wrong temporal order.
-> 
->      We have used V4L2_FIELD_INTERLACED before and people reported
-> incorrect field ordering -- that's why we changed to what it is now. So this
-> might be an application failure?
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 51 +++++++++++++++++++------------------------
+ 1 file changed, 23 insertions(+), 28 deletions(-)
 
-I've fairly certain it is, yes. The spec says this about FIELD_INTERLACED:
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index ef541b0..625ef3f 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -914,21 +914,34 @@ static void coda_free_framebuffers(struct coda_ctx *ctx)
+ 	}
+ }
+ 
++static void coda_parabuf_write(struct coda_ctx *ctx, int index, u32 value)
++{
++	struct coda_dev *dev = ctx->dev;
++	u32 *p = ctx->parabuf.vaddr;
++
++	if (dev->devtype->product == CODA_DX6)
++		p[index] = value;
++	else
++		p[index ^ 1] = value;
++}
++
+ static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_data, u32 fourcc)
+ {
+ 	struct coda_dev *dev = ctx->dev;
+ 
+ 	int height = q_data->height;
+-	int width = q_data->width;
+-	u32 *p;
++	dma_addr_t paddr;
++	int ysize;
+ 	int i;
+ 
++	ysize = round_up(q_data->width, 8) * height;
++
+ 	/* Allocate frame buffers */
+ 	ctx->num_internal_frames = CODA_MAX_FRAMEBUFFERS;
+ 	for (i = 0; i < ctx->num_internal_frames; i++) {
+ 		ctx->internal_frames[i].size = q_data->sizeimage;
+ 		if (fourcc == V4L2_PIX_FMT_H264 && dev->devtype->product != CODA_DX6)
+-			ctx->internal_frames[i].size += width / 2 * height / 2;
++			ctx->internal_frames[i].size += ysize/4;
+ 		ctx->internal_frames[i].vaddr = dma_alloc_coherent(
+ 				&dev->plat_dev->dev, ctx->internal_frames[i].size,
+ 				&ctx->internal_frames[i].paddr, GFP_KERNEL);
+@@ -939,32 +952,14 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_d
+ 	}
+ 
+ 	/* Register frame buffers in the parameter buffer */
+-	p = ctx->parabuf.vaddr;
++	for (i = 0; i < ctx->num_internal_frames; i++) {
++		paddr = ctx->internal_frames[i].paddr;
++		coda_parabuf_write(ctx, i * 3 + 0, paddr); /* Y */
++		coda_parabuf_write(ctx, i * 3 + 1, paddr + ysize); /* Cb */
++		coda_parabuf_write(ctx, i * 3 + 2, paddr + ysize + ysize/4); /* Cr */
+ 
+-	if (dev->devtype->product == CODA_DX6) {
+-		for (i = 0; i < ctx->num_internal_frames; i++) {
+-			p[i * 3] = ctx->internal_frames[i].paddr; /* Y */
+-			p[i * 3 + 1] = p[i * 3] + width * height; /* Cb */
+-			p[i * 3 + 2] = p[i * 3 + 1] + width / 2 * height / 2; /* Cr */
+-		}
+-	} else {
+-		for (i = 0; i < ctx->num_internal_frames; i += 2) {
+-			p[i * 3 + 1] = ctx->internal_frames[i].paddr; /* Y */
+-			p[i * 3] = p[i * 3 + 1] + width * height; /* Cb */
+-			p[i * 3 + 3] = p[i * 3] + (width / 2) * (height / 2); /* Cr */
+-
+-			if (fourcc == V4L2_PIX_FMT_H264)
+-				p[96 + i + 1] = p[i * 3 + 3] + (width / 2) * (height / 2);
+-
+-			if (i + 1 < ctx->num_internal_frames) {
+-				p[i * 3 + 2] = ctx->internal_frames[i+1].paddr; /* Y */
+-				p[i * 3 + 5] = p[i * 3 + 2] + width * height ; /* Cb */
+-				p[i * 3 + 4] = p[i * 3 + 5] + (width / 2) * (height / 2); /* Cr */
+-
+-				if (fourcc == V4L2_PIX_FMT_H264)
+-					p[96 + i] = p[i * 3 + 4] + (width / 2) * (height / 2);
+-			}
+-		}
++		if (dev->devtype->product != CODA_DX6 && fourcc == V4L2_PIX_FMT_H264)
++			coda_parabuf_write(ctx, 96 + i, ctx->internal_frames[i].paddr + ysize + ysize/4 + ysize/4);
+ 	}
+ 
+ 	return 0;
+-- 
+1.8.2.rc2
 
-"Images contain both fields, interleaved line by line. The temporal order of the
- fields (whether the top or bottom field is first transmitted) depends on the
- current video standard. M/NTSC transmits the bottom field first, all other
- standards the top field first."
-
-So if the application needs to know the temporal order, it will have to look
-at the current video standard.
-
-Regards,
-
-	Hans
