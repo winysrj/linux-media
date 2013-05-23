@@ -1,85 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:60167 "EHLO mout.gmx.net"
+Received: from mx1.redhat.com ([209.132.183.28]:43744 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751194Ab3EII3f (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 9 May 2013 04:29:35 -0400
-Received: from mailout-de.gmx.net ([10.1.76.31]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0M6yIl-1UO22q2Lu1-00wn6b for
- <linux-media@vger.kernel.org>; Thu, 09 May 2013 10:29:33 +0200
-Message-ID: <518B5E6C.6010802@gmx.de>
-Date: Thu, 09 May 2013 10:29:32 +0200
-From: Eric Sander <eric.sander@gmx.de>
+	id S1754636Ab3EWIYH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 May 2013 04:24:07 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r4N8O7Vu010335
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 23 May 2013 04:24:07 -0400
+Received: from shalem.localdomain (vpn1-7-57.ams2.redhat.com [10.36.7.57])
+	by int-mx11.intmail.prod.int.phx2.redhat.com (8.14.4/8.14.4) with ESMTP id r4N8O5du005554
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-CAMELLIA256-SHA bits=256 verify=NO)
+	for <linux-media@vger.kernel.org>; Thu, 23 May 2013 04:24:06 -0400
+Message-ID: <519DD31D.5080802@redhat.com>
+Date: Thu, 23 May 2013 10:28:13 +0200
+From: Hans de Goede <hdegoede@redhat.com>
 MIME-Version: 1.0
-To: Eric Sander <eric.sander@gmx.de>
-CC: linux-media@vger.kernel.org
-Subject: If the board were missdetected... more information
-References: <518B4C9B.4030109@gmx.de>
-In-Reply-To: <518B4C9B.4030109@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: Re: InstantFM
+References: <51993390.6080202@theo.to> <5199C8FA.9060704@redhat.com> <519A4464.7060006@theo.to> <519A6DBB.60608@theo.to> <519B23A7.90504@redhat.com> <519B649C.9040903@theo.to> <519C7E8B.9090406@redhat.com> <20130522140525.GF4308@ptaff.ca>
+In-Reply-To: <20130522140525.GF4308@ptaff.ca>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Sorry, here some more info:
+Hi,
 
-lsusb:
-Bus 001 Device 002: ID 2013:0251 PCTV Systems
-
-cat /proc/version
-Linux version 3.7.10-1.4-desktop (geeko@buildhost) (gcc version 4.7.2 
-20130108 [gcc-4_7-branch revision 195012] (SUSE Linux) ) #1 SMP PREEMPT 
-Fri Apr 19 12:06:34 UTC 2013 (8ef74f8)
-
-Opensuse 12.3
-
-On 09.05.2013 09:13, Eric Sander wrote:
-> Hi There,
-> i have the TV-USB-Stick: pctv QuatroStick nano  it is misdetected as 
-> Sharp S921
+On 05/22/2013 04:05 PM, Patrice Levesque wrote:
 >
-> dmesg-log:
-> [ 1080.044027] usb 1-7: new high-speed USB device number 7 using ehci_hcd
-> [ 1080.159731] usb 1-7: New USB device found, idVendor=2013, 
-> idProduct=0251
-> [ 1080.159738] usb 1-7: New USB device strings: Mfr=1, Product=2, 
-> SerialNumber=3
-> [ 1080.159744] usb 1-7: Product: PCTV 520e
-> [ 1080.159748] usb 1-7: Manufacturer: PCTV Systems
-> [ 1080.159752] usb 1-7: SerialNumber: 00000010JR7F
-> [ 1080.160066] em28xx: New device PCTV Systems PCTV 520e @ 480 Mbps 
-> (2013:0251, interface 0, class 0)
-> [ 1080.160070] em28xx: Audio Vendor Class interface 0 found
-> [ 1080.160073] em28xx: Video interface 0 found
-> [ 1080.160076] em28xx: DVB interface 0 found
-> [ 1080.161045] em28xx #0: chip ID is em2884
-> [ 1080.256727] em28xx #0: found i2c device @ 0xa0 [eeprom]
-> [ 1080.268726] em28xx #0: Your board has no unique USB ID.
-> [ 1080.268732] em28xx #0: A hint were successfully done, based on i2c 
-> devicelist hash.
-> [ 1080.268736] em28xx #0: This method is not 100% failproof.
-> [ 1080.268738] em28xx #0: If the board were missdetected, please email 
-> this log to:
-> [ 1080.268741] em28xx #0:       V4L Mailing List 
-> <linux-media@vger.kernel.org>
-> [ 1080.268745] em28xx #0: Board detected as EM2874 Leadership ISDBT
-> [ 1080.352018] em28xx #0: Identified as EM2874 Leadership ISDBT (card=77)
-> [ 1080.352097] em28xx #0: Config register raw data: 0x1e
-> [ 1080.352844] em28xx #0: AC97 vendor ID = 0x8ca38ca3
-> [ 1080.353476] em28xx #0: AC97 features = 0x8ca3
-> [ 1080.353481] em28xx #0: Unknown AC97 audio processor detected!
-> [ 1080.375722] em28xx #0: v4l2 driver version 0.1.3
-> [ 1080.403724] em28xx #0: V4L2 video device registered as video0
-> [ 1080.404172] em28xx-audio.c: probing for em28xx Audio Vendor Class
-> [ 1080.404176] em28xx-audio.c: Copyright (C) 2006 Markus Rechberger
-> [ 1080.404179] em28xx-audio.c: Copyright (C) 2007-2011 Mauro Carvalho 
-> Chehab
-> [ 1080.422057] s921: s921_attach:
-> [ 1080.422066] DVB: registering new adapter (em28xx #0)
-> [ 1080.422076] usb 1-7: DVB: registering adapter 0 frontend 0 (Sharp 
-> S921)...
-> [ 1080.422677] em28xx #0: Successfully loaded em28xx-dvb
-> [ 1080.796252] em28xx #0: submit of audio urb failed
+>>> I could try the liquorix kernel (3.8) if you thought it might help.
+>> Yes, if you could try that that would be great.
 >
-> feel free to ask if you have further questions.
+> If I may join the party, I too own an InstantFM USB device and I can't
+> get it to play radio.  All of this under kernel 3.9.3-gentoo.
 >
+> dmesg:
+>
+> 	usb 4-2.4: new full-speed USB device number 5 using uhci_hcd
+> 	usb 4-2.4: New USB device found, idVendor=06e1, idProduct=a155
+> 	usb 4-2.4: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> 	usb 4-2.4: Product: ADS InstantFM Music
+> 	usb 4-2.4: Manufacturer: ADS TECH
+> 	radio-si470x 4-2.4:1.2: DeviceID=0xffff ChipID=0xffff
 
+This, as well as the "Invalid freq '127150000'" and the
+"get_baseline:  min=65535.000000 max=65535.000000" messages seem to indicate
+that only FFFF is being read from all the registers of the tuner chip, so
+somehow the communication between the usb micro-controller and the
+si470x tuner chip is not working.
+
+If it does work under $otheros, you can try running $otheros in a
+qemu vm with usb passthrough, and then with wireshark on the host catch the usb
+traffic, and see what $otheros is doing ...
+
+Regards,
+
+Hans
