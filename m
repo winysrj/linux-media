@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:42352 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753648Ab3EPM7B (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:37251 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124Ab3EWFFF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:59:01 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 1/7] media: davinci: vpif: remove unwanted header includes
-Date: Thu, 16 May 2013 18:28:16 +0530
-Message-Id: <1368709102-2854-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368709102-2854-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368709102-2854-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 23 May 2013 01:05:05 -0400
+Received: by mail-pa0-f47.google.com with SMTP id kl1so682157pab.20
+        for <linux-media@vger.kernel.org>; Wed, 22 May 2013 22:05:04 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: s.nawrocki@samsung.com, sylvester.nawrocki@gmail.com,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 1/2] [media] exynos-gsc: Remove redundant use of of_match_ptr macro
+Date: Thu, 23 May 2013 10:21:18 +0530
+Message-Id: <1369284679-14716-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+This is a DT only driver and exynos_gsc_match is always compiled
+in. Hence of_match_ptr is unnecessary.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
 ---
- drivers/media/platform/davinci/vpif.c |    7 -------
- 1 files changed, 0 insertions(+), 7 deletions(-)
+ drivers/media/platform/exynos-gsc/gsc-core.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index ea82a8b..d354d50 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -17,18 +17,11 @@
-  * GNU General Public License for more details.
-  */
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 33b5ffc..559fab2 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -988,7 +988,7 @@ static void *gsc_get_drv_data(struct platform_device *pdev)
  
--#include <linux/init.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/spinlock.h>
--#include <linux/kernel.h>
--#include <linux/io.h>
--#include <linux/err.h>
- #include <linux/pm_runtime.h>
- #include <linux/v4l2-dv-timings.h>
- 
--#include <mach/hardware.h>
--
- #include "vpif.h"
- 
- MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
+ 	if (pdev->dev.of_node) {
+ 		const struct of_device_id *match;
+-		match = of_match_node(of_match_ptr(exynos_gsc_match),
++		match = of_match_node(exynos_gsc_match,
+ 					pdev->dev.of_node);
+ 		if (match)
+ 			driver_data = (struct gsc_driverdata *)match->data;
 -- 
-1.7.4.1
+1.7.9.5
 
