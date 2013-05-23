@@ -1,107 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:49095 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752877Ab3EZMD2 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46116 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759442Ab3EWOnK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 08:03:28 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 9/9] media: davinci: vpif_display: Convert to devm_* api
-Date: Sun, 26 May 2013 17:30:12 +0530
-Message-Id: <1369569612-30915-10-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 23 May 2013 10:43:10 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 9/9] [media] coda: do not call v4l2_m2m_job_finish from .job_abort
+Date: Thu, 23 May 2013 16:43:01 +0200
+Message-Id: <1369320181-17933-10-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
+References: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+If we just declare the job finished here while the CODA is still
+running, the call to v4l2_m2m_ctx_release in coda_release, which
+is supposed to wait for a running job to finish, will return
+immediately and free memory that the CODA is still using.
 
-use devm_request_irq() instead of request_irq(). This ensures
-more consistent error values and simplifies error paths.
+Just set the 'aborting' flag and let coda_irq_handler deal with it.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 ---
- drivers/media/platform/davinci/vpif_display.c |   35 ++++++------------------
- 1 files changed, 9 insertions(+), 26 deletions(-)
+ drivers/media/platform/coda.c | 9 ++++++---
+ 1 file changed, 6 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 7bcfe7d..e2f080b 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1718,15 +1718,14 @@ static __init int vpif_probe(struct platform_device *pdev)
- 
- 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
- 		for (i = res->start; i <= res->end; i++) {
--			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
--					"VPIF_Display", (void *)
--					(&vpif_obj.dev[res_idx]->channel_id))) {
--				err = -EBUSY;
--				for (j = 0; j < i; j++)
--					free_irq(j, (void *)
--					(&vpif_obj.dev[res_idx]->channel_id));
-+			err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
-+					     IRQF_SHARED, "VPIF_Display",
-+					     (void *)(&vpif_obj.dev[res_idx]->
-+					     channel_id));
-+			if (err) {
-+				err = -EINVAL;
- 				vpif_err("VPIF IRQ request failed\n");
--				goto vpif_int_err;
-+				goto vpif_unregister;
- 			}
- 		}
- 		res_idx++;
-@@ -1744,7 +1743,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 				video_device_release(ch->video_dev);
- 			}
- 			err = -ENOMEM;
--			goto vpif_int_err;
-+			goto vpif_unregister;
- 		}
- 
- 		/* Initialize field of video device */
-@@ -1878,13 +1877,8 @@ vpif_sd_error:
- 		/* Note: does nothing if ch->video_dev == NULL */
- 		video_device_release(ch->video_dev);
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index f5d4144..df4ada88 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -821,6 +821,12 @@ static int coda_job_ready(void *m2m_priv)
+ 		return 0;
  	}
--vpif_int_err:
-+vpif_unregister:
- 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
--	for (i = 0; i < res_idx; i++) {
--		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
--		for (j = res->start; j <= res->end; j++)
--			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
--	}
  
- 	return err;
- }
-@@ -1894,20 +1888,9 @@ vpif_int_err:
-  */
- static int vpif_remove(struct platform_device *device)
++	if (ctx->aborting) {
++		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
++			 "not ready: aborting\n");
++		return 0;
++	}
++
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 			"job ready\n");
+ 	return 1;
+@@ -829,14 +835,11 @@ static int coda_job_ready(void *m2m_priv)
+ static void coda_job_abort(void *priv)
  {
--	struct platform_device *pdev;
- 	struct channel_obj *ch;
--	struct resource *res;
--	int irq_num;
- 	int i = 0;
+ 	struct coda_ctx *ctx = priv;
+-	struct coda_dev *dev = ctx->dev;
  
--	pdev = container_of(vpif_dev, struct platform_device, dev);
--	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
--		for (irq_num = res->start; irq_num <= res->end; irq_num++)
--			free_irq(irq_num,
--				 (void *)(&vpif_obj.dev[i]->channel_id));
--		i++;
--	}
+ 	ctx->aborting = 1;
+ 
+ 	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+ 		 "Aborting task\n");
 -
- 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+-	v4l2_m2m_job_finish(dev->m2m_dev, ctx->m2m_ctx);
+ }
  
- 	kfree(vpif_obj.sd);
+ static void coda_lock(void *m2m_priv)
 -- 
-1.7.0.4
+1.8.2.rc2
 
