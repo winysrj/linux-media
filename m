@@ -1,51 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f52.google.com ([209.85.210.52]:53207 "EHLO
-	mail-da0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753917Ab3EPM7j (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:43166 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757922Ab3EWJgp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:59:39 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 3/7] media: davinci: vpif: remove unnecessary braces around defines
-Date: Thu, 16 May 2013 18:28:18 +0530
-Message-Id: <1368709102-2854-4-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368709102-2854-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368709102-2854-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 23 May 2013 05:36:45 -0400
+From: Hans Verkuil <hansverk@cisco.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] [media] vpif_display: fix error return code in vpif_probe()
+Date: Thu, 23 May 2013 11:26:53 +0200
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, mchehab@redhat.com,
+	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
+	davinci-linux-open-source@linux.davincidsp.com,
+	Wei Yongjun <weiyj.lk@gmail.com>
+References: <CAPgLHd_iDfVzq2S_uSh1tBVpQdFa4oyMpWGovDDNCYsh0bLJog@mail.gmail.com> <CA+V-a8v5Msfwr11tpC5xR90e5E02Mz+OJcqnYohmp2ri_VgC1Q@mail.gmail.com> <CA+V-a8vTXaDmPuPxFUDxv4+pQc4jbwBafUWu7Y-Hdbbdo+=Xqg@mail.gmail.com>
+In-Reply-To: <CA+V-a8vTXaDmPuPxFUDxv4+pQc4jbwBafUWu7Y-Hdbbdo+=Xqg@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305231126.53333.hansverk@cisco.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Thu 23 May 2013 11:25:25 Prabhakar Lad wrote:
+> Hi Hans,
+> 
+> On Mon, May 13, 2013 at 11:34 AM, Prabhakar Lad
+> <prabhakar.csengg@gmail.com> wrote:
+> > Hi Wei,
+> >
+> > Thanks for the patch.
+> >
+> > On Mon, May 13, 2013 at 11:27 AM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
+> >> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> >>
+> >> Fix to return -ENODEV in the subdevice register error handling
+> >> case instead of 0, as done elsewhere in this function.
+> >>
+> >> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+> >
+> > Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >
+> Can you pick this patch ? and a similar looking patch for vpif display.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif.c |    8 ++++----
- 1 files changed, 4 insertions(+), 4 deletions(-)
+It's already in my queue.
 
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index 7d028ca..1f2b2c6 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -27,10 +27,10 @@
- MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
- MODULE_LICENSE("GPL");
- 
--#define VPIF_CH0_MAX_MODES	(22)
--#define VPIF_CH1_MAX_MODES	(02)
--#define VPIF_CH2_MAX_MODES	(15)
--#define VPIF_CH3_MAX_MODES	(02)
-+#define VPIF_CH0_MAX_MODES	22
-+#define VPIF_CH1_MAX_MODES	02
-+#define VPIF_CH2_MAX_MODES	15
-+#define VPIF_CH3_MAX_MODES	02
- 
- spinlock_t vpif_lock;
- 
--- 
-1.7.4.1
-
+	Hans
