@@ -1,91 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f182.google.com ([209.85.212.182]:63588 "EHLO
-	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751031Ab3EHVSZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 17:18:25 -0400
-Date: Wed, 8 May 2013 23:18:19 +0200
-From: "Yann E. MORIN" <yann.morin.1998@free.fr>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kbuild@vger.kernel.org
-Subject: Re: [PATCH -next] media/usb: fix kconfig dependencies (aka bool
- depending on tristate considered harmful)
-Message-ID: <20130508211819.GF3413@free.fr>
-References: <20130508140122.e4747b58be4333060b7a248a@canb.auug.org.au>
- <518A98D9.4020906@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-In-Reply-To: <518A98D9.4020906@infradead.org>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:46102 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759435Ab3EWOnJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 May 2013 10:43:09 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Javier Martin <javier.martin@vista-silicon.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH 1/9] [media] coda: fix ENC_SEQ_OPTION for CODA7
+Date: Thu, 23 May 2013 16:42:53 +0200
+Message-Id: <1369320181-17933-2-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
+References: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Randy, All,
+GAMMA_OFFSET is different between CodaDx6 and CODA7.
+Also, this is a bitfield, so drop the various
 
-On Wed, May 08, 2013 at 11:26:33AM -0700, Randy Dunlap wrote:
-> (a.k.a. Kconfig bool depending on a tristate considered harmful)
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 10 ++++++++--
+ drivers/media/platform/coda.h |  8 ++------
+ 2 files changed, 10 insertions(+), 8 deletions(-)
 
-Maybe that would warrant a bit of explanations in:
-    Documentation/kbuild/kconfig-language.txt
-
-> Fix various build errors when CONFIG_USB=m and media USB drivers
-> are builtin.  In this case, CONFIG_USB_ZR364XX=y,
-> CONFIG_VIDEO_PVRUSB2=y, and CONFIG_VIDEO_STK1160=y.
-> 
-> This is caused by (from drivers/media/usb/Kconfig):
-> 
-> menuconfig MEDIA_USB_SUPPORT
-> 	bool "Media USB Adapters"
-> 	depends on USB && MEDIA_SUPPORT
-> 	           =m     =y
-> so MEDIA_USB_SUPPORT=y and all following Kconfig 'source' lines
-> are included.  By adding an "if USB" guard around the 'source' lines,
-> the needed dependencies are enforced.
-[--SNIP--]
-> 
-> Signed-off-by: Randy Dunlap <rdunlap@infradead.org>
-> ---
->  drivers/media/usb/Kconfig |    2 ++
->  1 file changed, 2 insertions(+)
-> 
-> --- linux-next-20130508.orig/drivers/media/usb/Kconfig
-> +++ linux-next-20130508/drivers/media/usb/Kconfig
-> @@ -5,6 +5,7 @@ menuconfig MEDIA_USB_SUPPORT
->  	  Enable media drivers for USB bus.
->  	  If you have such devices, say Y.
->  
-> +if USB
->  if MEDIA_USB_SUPPORT
-
-Why not starting the 'if USB' block just above MEDIA_USB_SUPPORT, and
-removing the 'depends on USB' from MEDIA_USB_SUPPORT :
-
----8<--- 
-if USB
-menuconfig MEDIA_USB_SUPPORT
-    bool "Media USB Adapters"
-    depends on MEDIA_SUPPORT
-
-if MEDIA_USB_SUPPORT
----8<--- 
-
-And keeping this hunk as-is:
-> @@ -52,3 +53,4 @@ source "drivers/media/usb/em28xx/Kconfig
->  endif
->  
->  endif #MEDIA_USB_SUPPORT
-> +endif #USB
-
-Regards,
-Yann E. MORIN.
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 22d1b1b..7ac2299 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1138,8 +1138,14 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	value = (CODA_DEFAULT_GAMMA & CODA_GAMMA_MASK) << CODA_GAMMA_OFFSET;
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_RC_GAMMA);
+ 
+-	value  = (CODA_DEFAULT_GAMMA > 0) << CODA_OPTION_GAMMA_OFFSET;
+-	value |= (0 & CODA_OPTION_SLICEREPORT_MASK) << CODA_OPTION_SLICEREPORT_OFFSET;
++	if (CODA_DEFAULT_GAMMA > 0) {
++		if (dev->devtype->product == CODA_DX6)
++			value  = 1 << CODADX6_OPTION_GAMMA_OFFSET;
++		else
++			value  = 1 << CODA7_OPTION_GAMMA_OFFSET;
++	} else {
++		value = 0;
++	}
+ 	coda_write(dev, value, CODA_CMD_ENC_SEQ_OPTION);
+ 
+ 	if (dst_fourcc == V4L2_PIX_FMT_H264) {
+diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda.h
+index f3f5e43..3c350ac 100644
+--- a/drivers/media/platform/coda.h
++++ b/drivers/media/platform/coda.h
+@@ -96,16 +96,12 @@
+ #define CODA_CMD_ENC_SEQ_BB_START				0x180
+ #define CODA_CMD_ENC_SEQ_BB_SIZE				0x184
+ #define CODA_CMD_ENC_SEQ_OPTION				0x188
+-#define		CODA_OPTION_GAMMA_OFFSET			7
+-#define		CODA_OPTION_GAMMA_MASK				0x01
++#define		CODA7_OPTION_GAMMA_OFFSET			8
++#define		CODADX6_OPTION_GAMMA_OFFSET			7
+ #define		CODA_OPTION_LIMITQP_OFFSET			6
+-#define		CODA_OPTION_LIMITQP_MASK			0x01
+ #define		CODA_OPTION_RCINTRAQP_OFFSET			5
+-#define		CODA_OPTION_RCINTRAQP_MASK			0x01
+ #define		CODA_OPTION_FMO_OFFSET				4
+-#define		CODA_OPTION_FMO_MASK				0x01
+ #define		CODA_OPTION_SLICEREPORT_OFFSET			1
+-#define		CODA_OPTION_SLICEREPORT_MASK			0x01
+ #define CODA_CMD_ENC_SEQ_COD_STD				0x18c
+ #define		CODA_STD_MPEG4					0
+ #define		CODA_STD_H263					1
 -- 
-.-----------------.--------------------.------------------.--------------------.
-|  Yann E. MORIN  | Real-Time Embedded | /"\ ASCII RIBBON | Erics' conspiracy: |
-| +33 662 376 056 | Software  Designer | \ / CAMPAIGN     |  ___               |
-| +33 223 225 172 `------------.-------:  X  AGAINST      |  \e/  There is no  |
-| http://ymorin.is-a-geek.org/ | _/*\_ | / \ HTML MAIL    |   v   conspiracy.  |
-'------------------------------^-------^------------------^--------------------'
+1.8.2.rc2
+
