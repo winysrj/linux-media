@@ -1,99 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3179 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751230Ab3EMSU6 (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:57580 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751438Ab3EWIZs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 14:20:58 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4DIKs1H015706
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 13 May 2013 20:20:57 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 2EA341300051
-	for <linux-media@vger.kernel.org>; Mon, 13 May 2013 20:20:54 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130513182054.2EA341300051@alastor.dyndns.org>
-Date: Mon, 13 May 2013 20:20:54 +0200 (CEST)
+	Thu, 23 May 2013 04:25:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: David Woodhouse <dwmw2@infradead.org>,
+	Ben Hutchings <ben@decadent.org.uk>
+Subject: [GIT PULL] go7007 firmware updates
+Date: Thu, 23 May 2013 10:25:31 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Pete Eberlein <pete@sensoray.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305231025.31812.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Ben, David,
 
-Results of the daily build of media_tree:
+The go7007 staging driver has been substantially overhauled for kernel 3.10.
+As part of that process the firmware situation has been improved as well.
 
-date:		Mon May 13 19:00:28 CEST 2013
-git branch:	test
-git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+While Micronas allowed the firmware to be redistributed, it was never made
+part of linux-firmware. Only the firmwares for the Sensoray S2250 were added
+in the past, but those need the go7007*.bin firmwares as well to work.
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: ERRORS
-spec-git: OK
-sparse: ERRORS
+This pull request collects all the firmwares necessary to support all the
+go7007 devices into the go7007 directory. With this change the go7007 driver
+will work out-of-the-box starting with kernel 3.10.
 
-Detailed results are available here:
+Regards,
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
+	Hans
 
-Full logs are available here:
+The following changes since commit 07ea598af5b9dde3acdf279846b062fa1b2987b8:
 
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+  Merge branch 'linux-firmware' of git://github.com/TI-OpenLink/firmwares (2013-05-06 14:21:49 +0100)
 
-The Media Infrastructure API from this daily build is here:
+are available in the git repository at:
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+
+  git://linuxtv.org/hverkuil/linux-firmware.git go7007
+
+for you to fetch changes up to 88512c918b5f7fd7f41ced07dbc59251c9215c8f:
+
+  Add go7007 firmware. (2013-05-23 10:04:25 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (1):
+      Add go7007 firmware.
+
+ LICENCE.go7007                       |  457 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ WHENCE                               |   25 +++-
+ go7007/go7007fw.bin                  |  Bin 0 -> 30800 bytes
+ go7007/go7007tv.bin                  |  Bin 0 -> 124668 bytes
+ go7007/lr192.fw                      |  Bin 0 -> 5793 bytes
+ go7007/px-m402u.fw                   |  Bin 0 -> 5838 bytes
+ go7007/px-tv402u.fw                  |  Bin 0 -> 6581 bytes
+ s2250_loader.fw => go7007/s2250-1.fw |  Bin 1092 -> 1092 bytes
+ s2250.fw => go7007/s2250-2.fw        |  Bin 9508 -> 9508 bytes
+ go7007/wis-startrek.fw               |  Bin 0 -> 6381 bytes
+ 10 files changed, 480 insertions(+), 2 deletions(-)
+ create mode 100644 LICENCE.go7007
+ create mode 100644 go7007/go7007fw.bin
+ create mode 100644 go7007/go7007tv.bin
+ create mode 100644 go7007/lr192.fw
+ create mode 100644 go7007/px-m402u.fw
+ create mode 100644 go7007/px-tv402u.fw
+ rename s2250_loader.fw => go7007/s2250-1.fw (100%)
+ rename s2250.fw => go7007/s2250-2.fw (100%)
+ create mode 100644 go7007/wis-startrek.fw
