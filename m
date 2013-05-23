@@ -1,69 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41186 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751945Ab3EUIUO (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:27538 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758125Ab3EWKyX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 04:20:14 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: enable dmabuf support
-Date: Tue, 21 May 2013 10:20:11 +0200
-Message-Id: <1369124411-19108-1-git-send-email-p.zabel@pengutronix.de>
+	Thu, 23 May 2013 06:54:23 -0400
+Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id r4NAsIxx026796
+	for <linux-media@vger.kernel.org>; Thu, 23 May 2013 10:54:18 GMT
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.10] Build dependency fixes
+Date: Thu, 23 May 2013 12:54:05 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305231254.05071.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 13 +++++++++++--
- 1 file changed, 11 insertions(+), 2 deletions(-)
+Note: this superceeds my previous 3.10 pull request: I realized that the solo fix
+should also go to 3.10.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 1cc4d64..16bef5e 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -570,6 +570,14 @@ static int vidioc_qbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
- 	return v4l2_m2m_qbuf(file, ctx->m2m_ctx, buf);
- }
- 
-+static int vidioc_expbuf(struct file *file, void *priv,
-+			 struct v4l2_exportbuffer *eb)
-+{
-+	struct coda_ctx *ctx = fh_to_ctx(priv);
-+
-+	return v4l2_m2m_expbuf(file, ctx->m2m_ctx, eb);
-+}
-+
- static int vidioc_dqbuf(struct file *file, void *priv, struct v4l2_buffer *buf)
- {
- 	struct coda_ctx *ctx = fh_to_ctx(priv);
-@@ -618,6 +626,7 @@ static const struct v4l2_ioctl_ops coda_ioctl_ops = {
- 	.vidioc_querybuf	= vidioc_querybuf,
- 
- 	.vidioc_qbuf		= vidioc_qbuf,
-+	.vidioc_expbuf		= vidioc_expbuf,
- 	.vidioc_dqbuf		= vidioc_dqbuf,
- 	.vidioc_create_bufs	= vidioc_create_bufs,
- 
-@@ -1432,7 +1441,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 	int ret;
- 
- 	src_vq->type = V4L2_BUF_TYPE_VIDEO_OUTPUT;
--	src_vq->io_modes = VB2_MMAP | VB2_USERPTR;
-+	src_vq->io_modes = VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
- 	src_vq->drv_priv = ctx;
- 	src_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	src_vq->ops = &coda_qops;
-@@ -1444,7 +1453,7 @@ static int coda_queue_init(void *priv, struct vb2_queue *src_vq,
- 		return ret;
- 
- 	dst_vq->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	dst_vq->io_modes = VB2_MMAP | VB2_USERPTR;
-+	dst_vq->io_modes = VB2_DMABUF | VB2_MMAP | VB2_USERPTR;
- 	dst_vq->drv_priv = ctx;
- 	dst_vq->buf_struct_size = sizeof(struct v4l2_m2m_buffer);
- 	dst_vq->ops = &coda_qops;
--- 
-1.8.2.rc2
+Regards,
 
+	Hans
+
+The following changes since commit 6a084d6b3dc200b855ae8a3c6771abe285a3835d:
+
+  [media] saa7115: Don't use a dynamic array (2013-05-21 12:04:16 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.10b
+
+for you to fetch changes up to a77dac0ac37a9ee6a72a6d2b864feb894d88fbaf:
+
+  staging/solo6x10: select the desired font (2013-05-23 12:52:42 +0200)
+
+----------------------------------------------------------------
+Lad, Prabhakar (1):
+      drivers/staging: davinci: vpfe: fix dependency for building the driver
+
+Xiong Zhou (1):
+      staging/solo6x10: select the desired font
+
+ drivers/staging/media/davinci_vpfe/Kconfig |    2 +-
+ drivers/staging/media/solo6x10/Kconfig     |    1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
