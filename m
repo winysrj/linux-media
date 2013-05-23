@@ -1,72 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40540 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932414Ab3EOMEs (ORCPT
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:54825 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757758Ab3EWQWj convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 08:04:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Sekhar Nori <nsekhar@ti.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-arm-kernel@lists.infradead.org
-Subject: Re: [PATCH 2/6] ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
-Date: Wed, 15 May 2013 14:05:07 +0200
-Message-ID: <1928313.pnnBGKgv0p@avalon>
-In-Reply-To: <1368619042-28252-3-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com> <1368619042-28252-3-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 23 May 2013 12:22:39 -0400
+Received: by mail-ie0-f180.google.com with SMTP id ar20so9045205iec.25
+        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 09:22:38 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <519E41AC.3040707@gmail.com>
+References: <519D6CFA.2000506@gmail.com>
+	<CALF0-+UqJaNc7v86qakVTNEJx5npMFPqFp-=9rAByFV_+FEaww@mail.gmail.com>
+	<519E41AC.3040707@gmail.com>
+Date: Thu, 23 May 2013 13:22:38 -0300
+Message-ID: <CALF0-+U5dFktwHwO5-h_7RJ1xyjc3JbHUWqG3g=WSPA=HcHnnw@mail.gmail.com>
+Subject: Re: Audio: no sound
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: =?ISO-8859-1?Q?Alejandro_A=2E_Vald=E9s?= <av2406@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+On Thu, May 23, 2013 at 1:19 PM, "Alejandro A. Valdés" <av2406@gmail.com> wrote:
+> Good morning,
+>
+> Please find the output the cat /proc/asound/ command below:
+>
+> # cat /proc/asound/cards
+>  0 [Intel          ]: HDA-Intel - HDA Intel
+>                       HDA Intel at 0xf7cf8000 irq 45
+>  1 [EasyALSA1      ]: easycapdc60 - easycap_alsa
+>                       easycap_alsa
+>
+> Besides, this is what the lsusb shows for the device. Hope it helps...
 
-Thank you for the patch.
+Yes, it certainly helps.
 
-On Wednesday 15 May 2013 17:27:18 Lad Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> remove init_enable from ths7303 pdata as it is no longer exists.
+To complete, please output your kernel config and the output of lsmod.
 
-You should move this before 1/6, otherwise you will break bisection.
-
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Sekhar Nori <nsekhar@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: linux-kernel@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
-> Cc: linux-arm-kernel@lists.infradead.org
-> ---
->  arch/arm/mach-davinci/board-dm365-evm.c |    1 -
->  1 files changed, 0 insertions(+), 1 deletions(-)
-> 
-> diff --git a/arch/arm/mach-davinci/board-dm365-evm.c
-> b/arch/arm/mach-davinci/board-dm365-evm.c index 2a66743..4e02ae7 100644
-> --- a/arch/arm/mach-davinci/board-dm365-evm.c
-> +++ b/arch/arm/mach-davinci/board-dm365-evm.c
-> @@ -510,7 +510,6 @@ struct ths7303_platform_data ths7303_pdata = {
->  	.ch_1 = 3,
->  	.ch_2 = 3,
->  	.ch_3 = 3,
-> -	.init_enable = 1,
->  };
-> 
->  static struct amp_config_info vpbe_amp = {
+Also, please attach the output of dmesg from the moment you plug your device.
 -- 
-Regards,
-
-Laurent Pinchart
-
+    Ezequiel
