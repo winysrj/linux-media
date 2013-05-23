@@ -1,70 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2341 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966090Ab3E2OTi (ORCPT
+Received: from mail-vc0-f178.google.com ([209.85.220.178]:35887 "EHLO
+	mail-vc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757781Ab3EWJKo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 10:19:38 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 10/14] zoran: remove bogus autodetect mode in set_norm
-Date: Wed, 29 May 2013 16:19:03 +0200
-Message-Id: <1369837147-8747-11-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+	Thu, 23 May 2013 05:10:44 -0400
+MIME-Version: 1.0
+In-Reply-To: <1368619042-28252-3-git-send-email-prabhakar.csengg@gmail.com>
+References: <1368619042-28252-1-git-send-email-prabhakar.csengg@gmail.com> <1368619042-28252-3-git-send-email-prabhakar.csengg@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 23 May 2013 14:40:23 +0530
+Message-ID: <CA+V-a8vXkH-N=1cCsj2KtXz6Jz3UprNrrbA9w1TN-NrBRHuAog@mail.gmail.com>
+Subject: Re: [PATCH 2/6] ARM: davinci: dm365 evm: remove init_enable from
+ ths7303 pdata
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	LAK <linux-arm-kernel@lists.infradead.org>,
+	LMML <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sekhar,
 
-Currently, if the norm set is V4L2_STD_ALL, then autodetect the current
-standard and use that. This is non-standard behavior, and in fact it hasn't
-worked for a very long time: before s_std is called in this driver, the
-v4l2 core will mask it with the tvnorms field. So even if the application
-passes V4L2_STD_ALL, the zoran driver will always see a subset of that.
+On Wed, May 15, 2013 at 5:27 PM, Lad Prabhakar
+<prabhakar.csengg@gmail.com> wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>
+> remove init_enable from ths7303 pdata as it is no longer exists.
+>
+Can you please ack this patch, as this patch is intended to go via media tree.
 
-Since nobody ever complained about this we just remove this non-standard
-functionality.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/zoran/zoran_driver.c |   23 -----------------------
- 1 file changed, 23 deletions(-)
-
-diff --git a/drivers/media/pci/zoran/zoran_driver.c b/drivers/media/pci/zoran/zoran_driver.c
-index 1168a84..4ec2708 100644
---- a/drivers/media/pci/zoran/zoran_driver.c
-+++ b/drivers/media/pci/zoran/zoran_driver.c
-@@ -1456,29 +1456,6 @@ zoran_set_norm (struct zoran *zr,
- 		return -EINVAL;
- 	}
- 
--	if (norm == V4L2_STD_ALL) {
--		unsigned int status = 0;
--		v4l2_std_id std = 0;
--
--		decoder_call(zr, video, querystd, &std);
--		decoder_call(zr, core, s_std, std);
--
--		/* let changes come into effect */
--		ssleep(2);
--
--		decoder_call(zr, video, g_input_status, &status);
--		if (status & V4L2_IN_ST_NO_SIGNAL) {
--			dprintk(1,
--				KERN_ERR
--				"%s: %s - no norm detected\n",
--				ZR_DEVNAME(zr), __func__);
--			/* reset norm */
--			decoder_call(zr, core, s_std, zr->norm);
--			return -EIO;
--		}
--
--		norm = std;
--	}
- 	if (norm & V4L2_STD_SECAM)
- 		zr->timing = zr->card.tvn[2];
- 	else if (norm & V4L2_STD_NTSC)
--- 
-1.7.10.4
-
+Regards,
+--Prabhakar Lad
