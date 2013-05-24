@@ -1,83 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47808 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751123Ab3EPMCp (ORCPT
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:39529 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753446Ab3EXQcl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:02:45 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: joseph.salisbury@canonical.com
-Cc: linux-kernel@vger.kernel.org, mchehab@redhat.com,
-	linux-media@vger.kernel.org, stable@vger.kernel.org
-Subject: Re: [PATCH 1/1] [media] uvcvideo: quirk PROBE_DEF for Alienware X51 OmniVision webcam
-Date: Thu, 16 May 2013 14:03:04 +0200
-Message-ID: <4475290.i8RRTUStdI@avalon>
-In-Reply-To: <1368650328-21128-1-git-send-email-joseph.salisbury@canonical.com>
-References: <1368650328-21128-1-git-send-email-joseph.salisbury@canonical.com>
+	Fri, 24 May 2013 12:32:41 -0400
+Received: by mail-ee0-f44.google.com with SMTP id b57so2846090eek.31
+        for <linux-media@vger.kernel.org>; Fri, 24 May 2013 09:32:39 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 2/2] em28xx: complete GPIO register caching
+Date: Fri, 24 May 2013 18:34:08 +0200
+Message-Id: <1369413248-7028-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1369413248-7028-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1369413248-7028-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joseph,
+The current GPIO register caching is incomplete.
+Only one GPIO register and one GPO register is cached, but
+nearly all chip variants have more than one GPIO register.
+Caching of pure GPO registers (reg 0x04) also isn't needed.
+At least parts of register 0x0c seem to be assigned to GPIO lines,
+so we need to cache this register, too.
 
-Thank you for the patch.
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-cards.c | 12 ---------
+ drivers/media/usb/em28xx/em28xx-core.c  | 43 ++++++++++++++++++++++-----------
+ drivers/media/usb/em28xx/em28xx.h       | 15 ++++++++----
+ 3 files changed, 39 insertions(+), 31 deletions(-)
 
-On Wednesday 15 May 2013 16:38:48 joseph.salisbury@canonical.com wrote:
-> From: Joseph Salisbury <joseph.salisbury@canonical.com>
-> 
-> BugLink: http://bugs.launchpad.net/bugs/1180409
-> 
-> OminiVision webcam 0x05a9:0x2643 needs the same UVC_QUIRK_PROBE_DEF as other
-> OmniVision models to work properly.
-> 
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: linux-media@vger.kernel.org
-> Cc: stable@vger.kernel.org
-> Signed-off-by: Joseph Salisbury <joseph.salisbury@canonical.com>
-
-There's already a 05a9:2643 webcam model, found in a Dell monitor, that has 
-been reported to work properly without the UVC_QUIRK_PROBE_DEF. Enabling the 
-quirk shouldn't hurt, but I'd like to check differences between the two 
-devices. Could you please send me the output of
-
-lsusb -v -d 05a9:2643
-
-(running as root if possible) ?
-
-> ---
->  drivers/media/usb/uvc/uvc_driver.c |    9 +++++++++
->  1 file changed, 9 insertions(+)
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index 5dbefa6..411682c 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -2163,6 +2163,15 @@ static struct usb_device_id uvc_ids[] = {
->  	  .bInterfaceSubClass	= 1,
->  	  .bInterfaceProtocol	= 0,
->  	  .driver_info 		= UVC_QUIRK_PROBE_DEF },
-> + 	/* Alienware X51*/
-> +        { .match_flags          = USB_DEVICE_ID_MATCH_DEVICE
-> +                                | USB_DEVICE_ID_MATCH_INT_INFO,
-> +          .idVendor             = 0x05a9,
-> +          .idProduct            = 0x2643,
-> +          .bInterfaceClass      = USB_CLASS_VIDEO,
-> +          .bInterfaceSubClass   = 1,
-> +          .bInterfaceProtocol   = 0,
-> +          .driver_info          = UVC_QUIRK_PROBE_DEF },
-
-Your mailer messed up formatting. As the patch is small I've fixed it 
-manually, but please make sure to use a proper mail client next time. I advise 
-using git-send-email to send patches.
-
->  	/* Apple Built-In iSight */
->  	{ .match_flags		= USB_DEVICE_ID_MATCH_DEVICE
-> 
->  				| USB_DEVICE_ID_MATCH_INT_INFO,
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 83bfbe4..7486533 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -2881,10 +2881,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 
+ 	em28xx_set_model(dev);
+ 
+-	/* Set the default GPO/GPIO for legacy devices */
+-	dev->reg_gpo_num = EM2880_R04_GPO;
+-	dev->reg_gpio_num = EM28XX_R08_GPIO;
+-
+ 	dev->wait_after_write = 5;
+ 
+ 	/* Based on the Chip ID, set the device configuration */
+@@ -2932,13 +2928,11 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			break;
+ 		case CHIP_ID_EM2874:
+ 			chip_name = "em2874";
+-			dev->reg_gpio_num = EM2874_R80_GPIO;
+ 			dev->wait_after_write = 0;
+ 			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+ 		case CHIP_ID_EM28174:
+ 			chip_name = "em28174";
+-			dev->reg_gpio_num = EM2874_R80_GPIO;
+ 			dev->wait_after_write = 0;
+ 			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+@@ -2948,7 +2942,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			break;
+ 		case CHIP_ID_EM2884:
+ 			chip_name = "em2884";
+-			dev->reg_gpio_num = EM2874_R80_GPIO;
+ 			dev->wait_after_write = 0;
+ 			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+@@ -2977,11 +2970,6 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 		return 0;
+ 	}
+ 
+-	/* Prepopulate cached GPO register content */
+-	retval = em28xx_read_reg(dev, dev->reg_gpo_num);
+-	if (retval >= 0)
+-		dev->reg_gpo = retval;
+-
+ 	em28xx_pre_card_setup(dev);
+ 
+ 	if (!dev->board.is_em2800) {
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index a802128..58f8d22 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -197,16 +197,19 @@ int em28xx_write_regs(struct em28xx *dev, u16 reg, char *buf, int len)
+ 
+ 	rc = em28xx_write_regs_req(dev, USB_REQ_GET_STATUS, reg, buf, len);
+ 
+-	/* Stores GPO/GPIO values at the cache, if changed
+-	   Only write values should be stored, since input on a GPIO
+-	   register will return the input bits.
+-	   Not sure what happens on reading GPO register.
+-	 */
++
+ 	if (rc >= 0) {
+-		if (reg == dev->reg_gpo_num)
+-			dev->reg_gpo = buf[0];
+-		else if (reg == dev->reg_gpio_num)
+-			dev->reg_gpio = buf[0];
++		/* Cache gpio register values (see em28xx_write_reg_bits()) */
++		if (reg == EM28XX_R08_GPIO)
++			dev->gpio_reg08_val = buf[0];
++		else if (reg == EM28XX_R0C_USBSUSP)
++			dev->gpio_reg0C_val = buf[0];
++		else if (reg == EM25XX_R80_GPIO_P0_W)
++			dev->gpio_reg80_val = buf[0];
++		else if (reg == EM25XX_R81_GPIO_P1_W)
++			dev->gpio_reg81_val = buf[0];
++		else if (reg == EM25XX_R83_GPIO_P3_W)
++			dev->gpio_reg83_val = buf[0];
+ 	}
+ 
+ 	return rc;
+@@ -231,11 +234,23 @@ int em28xx_write_reg_bits(struct em28xx *dev, u16 reg, u8 val,
+ 	int oldval;
+ 	u8 newval;
+ 
+-	/* Uses cache for gpo/gpio registers */
+-	if (reg == dev->reg_gpo_num)
+-		oldval = dev->reg_gpo;
+-	else if (reg == dev->reg_gpio_num)
+-		oldval = dev->reg_gpio;
++	/* Use cached values for gpio registers */
++	/* NOTE: for unmasked bits corresponding to input lines we can't take
++	 * the current value from the register, because reads and writes have
++	 * different meanings in this case:
++	 * write: enable/disable input; read: current line state (if enenabled)
++	 * => if input is enabled and line is low, we would disable the input !
++	 */
++	if (reg == EM28XX_R08_GPIO)
++		oldval = dev->gpio_reg08_val;
++	else if (reg == EM28XX_R0C_USBSUSP)
++		oldval = dev->gpio_reg0C_val;
++	else if (reg == EM25XX_R80_GPIO_P0_W)
++		oldval = dev->gpio_reg80_val;
++	else if (reg == EM25XX_R81_GPIO_P1_W)
++		oldval = dev->gpio_reg81_val;
++	else if (reg == EM25XX_R83_GPIO_P3_W)
++		oldval = dev->gpio_reg83_val;
+ 	else
+ 		oldval = em28xx_read_reg(dev, reg);
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx.h b/drivers/media/usb/em28xx/em28xx.h
+index a9323b6..a536eb6 100644
+--- a/drivers/media/usb/em28xx/em28xx.h
++++ b/drivers/media/usb/em28xx/em28xx.h
+@@ -636,11 +636,16 @@ struct em28xx {
+ 
+ 	enum em28xx_mode mode;
+ 
+-	/* register numbers for GPO/GPIO registers */
+-	u16 reg_gpo_num, reg_gpio_num;
+-
+-	/* Caches GPO and GPIO registers */
+-	unsigned char	reg_gpo, reg_gpio;
++	/* GPIO register values */
++	/*
++	 * NOTE: GPI config needs to be cached for em28xx_write_reg_bits().
++	 *       There is no need to cache pure GPO registers.
++	 */
++	unsigned char gpio_reg08_val;
++	unsigned char gpio_reg0C_val;
++	unsigned char gpio_reg80_val;
++	unsigned char gpio_reg81_val;
++	unsigned char gpio_reg83_val;
+ 
+ 	/* Snapshot button */
+ 	char snapshot_button_path[30];	/* path of the input dev */
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.1.2
 
