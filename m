@@ -1,45 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from s1.joserv.de ([31.214.172.21]:47441 "EHLO s1.joserv.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753026Ab3ELN6K (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 May 2013 09:58:10 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by s1.joserv.de (Postfix) with ESMTP id E393B42A075
-	for <linux-media@vger.kernel.org>; Sun, 12 May 2013 15:52:05 +0200 (CEST)
-Received: from s1.joserv.de ([127.0.0.1])
-	by localhost (s1.joserv.de [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id N+8O42aUY4b6 for <linux-media@vger.kernel.org>;
-	Sun, 12 May 2013 15:52:05 +0200 (CEST)
-Message-ID: <20130512155205.12812x2pyoehrrt1@webmail.9mal6.de>
-Date: Sun, 12 May 2013 15:52:05 +0200
-From: Johann Wilhelm <johann.wilhelm@9mal6.de>
+Received: from mail-ye0-f201.google.com ([209.85.213.201]:40359 "EHLO
+	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757810Ab3EXAmL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 23 May 2013 20:42:11 -0400
+Received: by mail-ye0-f201.google.com with SMTP id q9so106781yen.4
+        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 17:42:10 -0700 (PDT)
+From: John Sheu <sheu@google.com>
 To: linux-media@vger.kernel.org
-Subject: Si2169 support
-MIME-Version: 1.0
-Content-Type: text/plain;
- charset=ISO-8859-1;
- DelSp="Yes";
- format="flowed"
-Content-Disposition: inline
-Content-Transfer-Encoding: 7bit
+Cc: mchehab@redhat.com, pawel@osciak.com, John Sheu <sheu@google.com>
+Subject: [PATCH] [media] v4l2: mem2mem: save irq flags correctly
+Date: Thu, 23 May 2013 17:41:48 -0700
+Message-Id: <1369356108-15865-1-git-send-email-sheu@google.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi there!
+Save flags correctly when taking spinlocks in v4l2_m2m_try_schedule.
 
-I got one of these Hauppauge HVR-930C HD. They seem not to be  
-supported by the kernel so far. Is there anyone working on the Si2169  
-support (afaik the demodulator is the only problem)?
+Signed-off-by: John Sheu <sheu@google.com>
+---
+ drivers/media/v4l2-core/v4l2-mem2mem.c | 19 +++++++++++--------
+ 1 file changed, 11 insertions(+), 8 deletions(-)
 
-If not does anyone have a "programmers manual" from SiLabs? The  
-datasheet I found isn't worth mentioning :/
-
-Thanks,
-   Hans
+diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
+index 66f599f..3606ff2 100644
+--- a/drivers/media/v4l2-core/v4l2-mem2mem.c
++++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+@@ -205,7 +205,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
+ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ {
+ 	struct v4l2_m2m_dev *m2m_dev;
+-	unsigned long flags_job, flags;
++	unsigned long flags_job, flags_out, flags_cap;
+ 
+ 	m2m_dev = m2m_ctx->m2m_dev;
+ 	dprintk("Trying to schedule a job for m2m_ctx: %p\n", m2m_ctx);
+@@ -223,23 +223,26 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+ 		return;
+ 	}
+ 
+-	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
++	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+ 	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)) {
+-		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
++		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
++					flags_out);
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No input buffers available\n");
+ 		return;
+ 	}
+-	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
++	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
+ 	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)) {
+-		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
+-		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
++		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock,
++					flags_cap);
++		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
++					flags_out);
+ 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+ 		dprintk("No output buffers available\n");
+ 		return;
+ 	}
+-	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
+-	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
++	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
++	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
+ 
+ 	if (m2m_dev->m2m_ops->job_ready
+ 		&& (!m2m_dev->m2m_ops->job_ready(m2m_ctx->priv))) {
 -- 
-DI Johann Wilhelm
-
-
-----------------------------------------------------------------
-This message was sent using IMP, the Internet Messaging Program.
+1.8.2.1
 
