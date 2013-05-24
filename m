@@ -1,46 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:32910 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S966865Ab3E2Uia (ORCPT
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:58708 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750933Ab3EXLiz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 16:38:30 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+	Fri, 24 May 2013 07:38:55 -0400
+Received: by mail-pa0-f47.google.com with SMTP id kl12so749288pab.20
+        for <linux-media@vger.kernel.org>; Fri, 24 May 2013 04:38:55 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
 To: linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, mchehab@redhat.com,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
-	timo.teras@iki.fi
-Subject: [RFC 0/3] saa7115: Implement i2c_board_info.platform_data
-Date: Wed, 29 May 2013 22:41:15 +0200
-Message-Id: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: g.liakhovetski@gmx.de, sachin.kamat@linaro.org,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Subject: [PATCH 1/2] [media] soc_camera: mt9t112: Remove empty function
+Date: Fri, 24 May 2013 16:55:06 +0530
+Message-Id: <1369394707-13049-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch set adds handling of the i2c_board_info struct to the saa7115 driver.
-The main goal of this patch is to give the different devices with the gm7113c
-chip an opportunity to configure the chip to their needs.
+After the switch to devm_* functions, the 'remove' function does
+not do anything. Delete it.
 
-I've only implemented the overrides I know are necessary to get the stk1160
-and the smi2021 drivers to work.
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+---
+ drivers/media/i2c/soc_camera/mt9t112.c |    6 ------
+ 1 file changed, 6 deletions(-)
 
-The first patch in the series sets the saa7113 init table to the defaults
-according to the datasheet. Maybe it's better to add a new initialization
-table for the gm7113c chip to avoid breaking devices that depend on the
-settings as they are now?
-That would introduce some unneeded code duplication.
-
-Jon Arne Jørgensen (3):
-  saa7115: Set saa7113 init to values from datasheet
-  saa7115: [gm7113c] Remove unneeded register change
-  saa7115: Implement i2c_board_info.platform data
-
- drivers/media/i2c/saa7115.c |  91 ++++++++++++++++++++++++------------
- include/media/saa7115.h     | 109 ++++++++++++++++++++++++++++++++++++++++++++
- 2 files changed, 170 insertions(+), 30 deletions(-)
-
+diff --git a/drivers/media/i2c/soc_camera/mt9t112.c b/drivers/media/i2c/soc_camera/mt9t112.c
+index a7256b7..0af29a4 100644
+--- a/drivers/media/i2c/soc_camera/mt9t112.c
++++ b/drivers/media/i2c/soc_camera/mt9t112.c
+@@ -1118,11 +1118,6 @@ static int mt9t112_probe(struct i2c_client *client,
+ 	return ret;
+ }
+ 
+-static int mt9t112_remove(struct i2c_client *client)
+-{
+-	return 0;
+-}
+-
+ static const struct i2c_device_id mt9t112_id[] = {
+ 	{ "mt9t112", 0 },
+ 	{ }
+@@ -1134,7 +1129,6 @@ static struct i2c_driver mt9t112_i2c_driver = {
+ 		.name = "mt9t112",
+ 	},
+ 	.probe    = mt9t112_probe,
+-	.remove   = mt9t112_remove,
+ 	.id_table = mt9t112_id,
+ };
+ 
 -- 
-1.8.2.3
+1.7.9.5
 
