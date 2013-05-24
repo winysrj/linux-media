@@ -1,150 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1559 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933383Ab3E1I2X (ORCPT
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:46558 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751483Ab3EXLLk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 May 2013 04:28:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: leo@lumanate.com, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 3/3] hdpvr: improve error handling
-Date: Tue, 28 May 2013 10:27:54 +0200
-Message-Id: <1369729674-1802-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369729674-1802-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369729674-1802-1-git-send-email-hverkuil@xs4all.nl>
+	Fri, 24 May 2013 07:11:40 -0400
+Message-ID: <519F4AE7.8000003@gmail.com>
+Date: Fri, 24 May 2013 13:11:35 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Lad Prabhakar <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
+References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Prabhakar,
 
-get_video_info() should never return EFAULT, instead it should return
-the low-level usb_control_msg() error. Add a valid field to the hdpvr_video_info
-struct so the driver can easily check if a valid format was detected.
+On 05/16/2013 03:18 PM, Lad Prabhakar wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>
+> This patch adds "sync-on-green" property as part of
+> endpoint properties and also support to parse them in the parser.
 
-Whenever get_video_info is called and it returns an error (e.g. usb_control_msg
-failed), then return that error to userspace as well. The sole exception is
-the legacy code in vidioc_g_fmt_vid_cap: there EFAULT is returned to avoid
-breaking MythTV.
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -101,6 +101,8 @@ Optional endpoint properties
+>     array contains only one entry.
+>   - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
+>     clock mode.
+> +-sync-on-green: a boolean property indicating to sync with the green signal in
+> + RGB.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/hdpvr/hdpvr-control.c |   21 +++++++++------------
- drivers/media/usb/hdpvr/hdpvr-video.c   |   16 +++++++++-------
- drivers/media/usb/hdpvr/hdpvr.h         |    1 +
- 3 files changed, 19 insertions(+), 19 deletions(-)
+Are you sure this is what you need for the TVP7002 chip ?
 
-diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
-index df6bcb5..6053661 100644
---- a/drivers/media/usb/hdpvr/hdpvr-control.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-control.c
-@@ -49,6 +49,7 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- {
- 	int ret;
- 
-+	vidinf->valid = false;
- 	mutex_lock(&dev->usbc_mutex);
- 	ret = usb_control_msg(dev->udev,
- 			      usb_rcvctrlpipe(dev->udev, 0),
-@@ -56,11 +57,6 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- 			      0x1400, 0x0003,
- 			      dev->usbc_buf, 5,
- 			      1000);
--	if (ret == 5) {
--		vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
--		vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
--		vidinf->fps	= dev->usbc_buf[4];
--	}
- 
- #ifdef HDPVR_DEBUG
- 	if (hdpvr_debug & MSG_INFO) {
-@@ -73,14 +69,15 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
- #endif
- 	mutex_unlock(&dev->usbc_mutex);
- 
--	if ((ret > 0 && ret != 5) ||/* fail if unexpected byte count returned */
--	    !vidinf->width ||	/* preserve original behavior -  */
--	    !vidinf->height ||	/* fail if no signal is detected */
--	    !vidinf->fps) {
--		ret = -EFAULT;
--	}
-+	if (ret < 0)
-+		return ret;
- 
--	return ret < 0 ? ret : 0;
-+	vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
-+	vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
-+	vidinf->fps	= dev->usbc_buf[4];
-+	vidinf->valid   = vidinf->width && vidinf->height && vidinf->fps;
-+
-+	return 0;
- }
- 
- int get_input_lines_info(struct hdpvr_device *dev)
-diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
-index e947105..eb0e806 100644
---- a/drivers/media/usb/hdpvr/hdpvr-video.c
-+++ b/drivers/media/usb/hdpvr/hdpvr-video.c
-@@ -285,7 +285,10 @@ static int hdpvr_start_streaming(struct hdpvr_device *dev)
- 		return -EAGAIN;
- 
- 	ret = get_video_info(dev, &vidinf);
--	if (ret) {
-+	if (ret < 0)
-+		return ret;
-+
-+	if (!vidinf.valid) {
- 		msleep(250);
- 		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
- 				"no video signal at input %d\n", dev->options.video_input);
-@@ -617,15 +620,12 @@ static int vidioc_querystd(struct file *file, void *_fh, v4l2_std_id *a)
- 	if (dev->options.video_input == HDPVR_COMPONENT)
- 		return fh->legacy_mode ? 0 : -ENODATA;
- 	ret = get_video_info(dev, &vid_info);
--	if (ret)
--		return 0;
--	if (vid_info.width == 720 &&
-+	if (vid_info.valid && vid_info.width == 720 &&
- 	    (vid_info.height == 480 || vid_info.height == 576)) {
- 		*a = (vid_info.height == 480) ?
- 			V4L2_STD_525_60 : V4L2_STD_625_50;
- 	}
--
--	return 0;
-+	return ret;
- }
- 
- static int vidioc_s_dv_timings(struct file *file, void *_fh,
-@@ -679,6 +679,8 @@ static int vidioc_query_dv_timings(struct file *file, void *_fh,
- 		return -ENODATA;
- 	ret = get_video_info(dev, &vid_info);
- 	if (ret)
-+		return ret;
-+	if (!vid_info.valid)
- 		return -ENOLCK;
- 	interlaced = vid_info.fps <= 30;
- 	for (i = 0; i < ARRAY_SIZE(hdpvr_dv_timings); i++) {
-@@ -1008,7 +1010,7 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *_fh,
- 		struct hdpvr_video_info vid_info;
- 
- 		ret = get_video_info(dev, &vid_info);
--		if (ret)
-+		if (!vid_info.valid)
- 			return -EFAULT;
- 		f->fmt.pix.width = vid_info.width;
- 		f->fmt.pix.height = vid_info.height;
-diff --git a/drivers/media/usb/hdpvr/hdpvr.h b/drivers/media/usb/hdpvr/hdpvr.h
-index 808ea7a..dc685d4 100644
---- a/drivers/media/usb/hdpvr/hdpvr.h
-+++ b/drivers/media/usb/hdpvr/hdpvr.h
-@@ -154,6 +154,7 @@ struct hdpvr_video_info {
- 	u16	width;
- 	u16	height;
- 	u8	fps;
-+	bool	valid;
- };
- 
- enum {
--- 
-1.7.10.4
+I think we should differentiate between analog and digital signals and 
+the related
+device's configuration. AFAIU for the analog part there can be various video
+sychronisation methods, i.e. ways in which the synchronisation signals are
+transmitted along side the video component (RGB or luma/chroma) signals. 
+According
+to [1] (presumably not most reliable source of information) there are 
+following
+methods of transmitting sync signals:
 
+  - Separate sync
+  - Composite sync
+  - Sync-on-green (SOG)
+  - Sync-on-luminance
+  - Sync-on-composite
+
+And all these seem to refer to analog video signal.
+
+ From looking at Figure 8 "TVP7002 Application Example" in the TVP7002's 
+datasheet
+([2], p. 52) and your initial TVP7002 patches it looks like what you 
+want is to
+specify polarity of the SOGOUT signal, so the processor that receives 
+this signal
+can properly interpret it, is it correct ?
+
+If so then wouldn't it be more appropriate to define e.g. 'sog-active' 
+property
+and media bus flags:
+	V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_LOW
+	V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_HIGH
+?
+
+And for synchronisation method on the analog part we could perhaps define
+'component-sync' or similar property that would enumerate all possible
+synchronisation methods. We might as well use separate boolean properties,
+but I'm a bit concerned about the increasing number of properties that need
+to be parsed for each parallel video bus "endpoint".
+
+Anyway I'm not sure if we would already have use cases for the 
+'component-sync'
+property.
+
+[1] http://en.wikipedia.org/wiki/Component_video_sync
+[2] 
+http://www.ti.com/general/docs/lit/getliterature.tsp?genericPartNumber=tvp7002&fileType=pdf
+
+>   Example
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+> index aa59639..b51d61f 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -100,6 +100,9 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+>   	if (!of_property_read_u32(node, "data-shift",&v))
+>   		bus->data_shift = v;
+>
+> +	if (of_get_property(node, "sync-on-green",&v))
+> +		flags |= V4L2_MBUS_SYNC_ON_GREEN;
+> +
+>   	bus->flags = flags;
+>
+>   }
+> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+> index 83ae07e..cf2c66f9 100644
+> --- a/include/media/v4l2-mediabus.h
+> +++ b/include/media/v4l2-mediabus.h
+> @@ -40,6 +40,7 @@
+>   #define V4L2_MBUS_FIELD_EVEN_HIGH		(1<<  10)
+>   /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
+>   #define V4L2_MBUS_FIELD_EVEN_LOW		(1<<  11)
+> +#define V4L2_MBUS_SYNC_ON_GREEN		(1<<  12)
+
+--
+Regards,
+Sylwester
