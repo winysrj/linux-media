@@ -1,49 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:51902 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753115Ab3EMGAM (ORCPT
+Received: from mail-bk0-f50.google.com ([209.85.214.50]:60248 "EHLO
+	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756598Ab3EYOL6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 02:00:12 -0400
-Received: by mail-bk0-f44.google.com with SMTP id jk13so2212667bkc.3
-        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 23:00:10 -0700 (PDT)
+	Sat, 25 May 2013 10:11:58 -0400
+Message-ID: <51A0C6A8.5090302@gmail.com>
+Date: Sat, 25 May 2013 16:11:52 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Date: Mon, 13 May 2013 14:00:10 +0800
-Message-ID: <CAPgLHd_5h-ZBTB+ouZ9At1MRR8tCf2XFUD2qag3p=ceMdVfgUA@mail.gmail.com>
-Subject: [PATCH] [media] ad9389b: fix error return code in ad9389b_probe()
-From: Wei Yongjun <weiyj.lk@gmail.com>
-To: hans.verkuil@cisco.com, mchehab@redhat.com
-Cc: yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
+References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com> <519F4AE7.8000003@gmail.com> <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com>
+In-Reply-To: <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+Hi,
 
-Fix to return a negative error code from the error handling
-case instead of 0, as done elsewhere in this function.
+On 05/25/2013 11:17 AM, Prabhakar Lad wrote:
+>>  From looking at Figure 8 "TVP7002 Application Example" in the TVP7002's
+>> >  datasheet
+>> >  ([2], p. 52) and your initial TVP7002 patches it looks like what you want is
+>> >  to
+>> >  specify polarity of the SOGOUT signal, so the processor that receives this
+>> >  signal
+>> >  can properly interpret it, is it correct ?
+>> >
+> Yes
+>> >  If so then wouldn't it be more appropriate to define e.g. 'sog-active'
+>> >  property
+>> >  and media bus flags:
+>> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_LOW
+>> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_HIGH
+>> >  ?
+>> >
+> Agreed I'll add these flags.
+>
+>> >  And for synchronisation method on the analog part we could perhaps define
+>> >  'component-sync' or similar property that would enumerate all possible
+>> >  synchronisation methods. We might as well use separate boolean properties,
+>> >  but I'm a bit concerned about the increasing number of properties that need
+>> >  to be parsed for each parallel video bus "endpoint".
+>> >
+> I am not clear on it can please elaborate more on this.
 
-Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
----
- drivers/media/i2c/ad9389b.c | 2 ++
- 1 file changed, 2 insertions(+)
+I thought about two possible options:
 
-diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
-index 58344b6..decef36 100644
---- a/drivers/media/i2c/ad9389b.c
-+++ b/drivers/media/i2c/ad9389b.c
-@@ -1251,12 +1251,14 @@ static int ad9389b_probe(struct i2c_client *client, const struct i2c_device_id *
- 	state->edid_i2c_client = i2c_new_dummy(client->adapter, (0x7e>>1));
- 	if (state->edid_i2c_client == NULL) {
- 		v4l2_err(sd, "failed to register edid i2c client\n");
-+		err = -ENOMEM;
- 		goto err_entity;
- 	}
- 
- 	state->work_queue = create_singlethread_workqueue(sd->name);
- 	if (state->work_queue == NULL) {
- 		v4l2_err(sd, "could not create workqueue\n");
-+		err = -ENOMEM;
- 		goto err_unreg;
- 	}
- 
+1. single property 'component-sync' or 'video-sync' that would have values:
 
+#define VIDEO_SEPARATE_SYNC	0x01
+#define VIDEO_COMPOSITE_SYNC	0x02
+#define VIDEO_SYNC_ON_COMPOSITE	0x04
+#define VIDEO_SYNC_ON_GREEN	0x08
+#define VIDEO_SYNC_ON_LUMINANCE	0x10
+
+And we could put these definitions into a separate header, e.g.
+<dt-bindings/video-interfaces.h>
+
+Then in a device tree source file one could have, e.g.
+
+video-sync = <VIDEO_SYNC_ON_GREEN>;
+
+
+2. Separate boolean property for each video sync type, e.g.
+
+	"video-composite-sync"
+	"video-sync-on-composite"
+	"video-sync-on-green"
+	"video-sync-on-luminance"
+
+Separate sync, with separate VSYNC, HSYNC lines, would be the default, when
+none of the above is specified and 'vsync-active', 'hsync-active' properties
+are present.
+
+However, I suppose the better would be to deduce the video synchronisation
+method from the sync signal polarity flags. Then, for instance, when an
+endpoint node contains "composite-sync-active" property the parser would
+determine the "composite sync" synchronisation type is used.
+
+Thus it might make sense to have only following integer properties (added
+as needed):
+
+composite-sync-active
+sync-on-green-active
+sync-on-comp-active
+sync-on-luma-active
+
+This would allow to specify polarity of each signal and at the same time
+the parsing code could derive synchronisation type. A new field could be
+added to struct v4l2_of_parallel_bus, e.g. sync_type and it would be filled
+within v4l2_of_parse_endpoint().
+
+What do you think ?
+
+
+Thanks,
+Sylwester
