@@ -1,31 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-gh0-f172.google.com ([209.85.160.172]:33766 "EHLO
-	mail-gh0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756662Ab3EWBUc (ORCPT
+Received: from mail-pb0-f50.google.com ([209.85.160.50]:36287 "EHLO
+	mail-pb0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757430Ab3EYRj7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 21:20:32 -0400
-Received: by mail-gh0-f172.google.com with SMTP id r18so1013429ghr.3
-        for <linux-media@vger.kernel.org>; Wed, 22 May 2013 18:20:31 -0700 (PDT)
-Message-ID: <519D6CFA.2000506@gmail.com>
-Date: Wed, 22 May 2013 22:12:26 -0300
-From: =?ISO-8859-1?Q?=22Alejandro_A=2E_Vald=E9s=22?= <av2406@gmail.com>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org, elezegarcia@gmail.com
-Subject: Audio: no sound
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 25 May 2013 13:39:59 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 0/4] media: i2c: ths7303 cleanup
+Date: Sat, 25 May 2013 23:09:32 +0530
+Message-Id: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ezequiel,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Being able to capture the TV signal from a cable decoder; but can't make 
-it with getting audio working.I'm using an Easycap dc60 USB adapter, 
-plugged in to one of the  USB 2.0 ports of an ASUS laptop, running the 
-Ubuntu 12.04, distro, kernel: 3.5.0-30-generic.
+Trivial cleanup of the driver.
 
-Can you please provide any suggestions?
+Changes for v2:
+1: Dropped the asynchronous probing and, OF
+   support patches will be handling them independently because of dependencies.
+2: Arranged the patches logically so that git bisect 
+   succeeds.
 
-Thanks,
-Alejandro.
+Lad, Prabhakar (4):
+  ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
+  media: i2c: ths7303: remove init_enable option from pdata
+  media: i2c: ths7303: remove unnecessary function ths7303_setup()
+  media: i2c: ths7303: make the pdata as a constant pointer
+
+ arch/arm/mach-davinci/board-dm365-evm.c |    1 -
+ drivers/media/i2c/ths7303.c             |   48 ++++++++-----------------------
+ include/media/ths7303.h                 |    2 -
+ 3 files changed, 12 insertions(+), 39 deletions(-)
 
