@@ -1,41 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f180.google.com ([209.85.214.180]:64013 "EHLO
-	mail-ob0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754338Ab3ELKeq (ORCPT
+Received: from mail-bk0-f46.google.com ([209.85.214.46]:64519 "EHLO
+	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754244Ab3EYL1R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 12 May 2013 06:34:46 -0400
-Received: by mail-ob0-f180.google.com with SMTP id xk17so3518693obc.11
-        for <linux-media@vger.kernel.org>; Sun, 12 May 2013 03:34:45 -0700 (PDT)
+	Sat, 25 May 2013 07:27:17 -0400
+Received: by mail-bk0-f46.google.com with SMTP id my13so2941504bkb.5
+        for <linux-media@vger.kernel.org>; Sat, 25 May 2013 04:27:16 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: a.hajda@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	t.stanislaws@samsung.com,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH 2/5] s5p-tv: Don't ignore return value of regulator_enable() in sii9234_drv.c
+Date: Sat, 25 May 2013 13:25:52 +0200
+Message-Id: <1369481155-30446-3-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1369481155-30446-1-git-send-email-sylvester.nawrocki@gmail.com>
+References: <1369481155-30446-1-git-send-email-sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Date: Sun, 12 May 2013 14:34:45 +0400
-Message-ID: <CAK3bHNUXdh+c=vEO1z2f1xZUTnpqV5fZzZ7LGQiuNv_4XAMc6w@mail.gmail.com>
-Subject: V4L read I&Q data and constellation visualization added
-From: Abylay Ospan <aospan1@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+This patch fixes following compilation warning:
 
-Reading I&Q data from frontend and generation PNG image was added.
-Linux kernel (v4l subsystem) should be patched. DTV_READ_IQ and
-.read_iq added.
+  CC [M]  drivers/media/platform/s5p-tv/sii9234_drv.o
+drivers/media/platform/s5p-tv/sii9234_drv.c: In function ‘sii9234_runtime_resume’:
+drivers/media/platform/s5p-tv/sii9234_drv.c:252:18: warning: ignoring return
+  value of ‘regulator_enable’, declared with attribute warn_unused_result
 
-Here is a description with some images obtained from real environment:
-http://www.linuxtv.org/wiki/index.php/Dvb_constellation
+Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+---
+ drivers/media/platform/s5p-tv/sii9234_drv.c |    4 +++-
+ 1 files changed, 3 insertions(+), 1 deletions(-)
 
-Currently .read_iq implemented for NetUP's cards only (T/C and S2
-card). Other developers can implement read_iq for another cards.
+diff --git a/drivers/media/platform/s5p-tv/sii9234_drv.c b/drivers/media/platform/s5p-tv/sii9234_drv.c
+index 39b77d2..3dd762e 100644
+--- a/drivers/media/platform/s5p-tv/sii9234_drv.c
++++ b/drivers/media/platform/s5p-tv/sii9234_drv.c
+@@ -249,7 +249,9 @@ static int sii9234_runtime_resume(struct device *dev)
+ 	int ret;
+ 
+ 	dev_info(dev, "resume start\n");
+-	regulator_enable(ctx->power);
++	ret = regulator_enable(ctx->power);
++	if (ret < 0)
++		return ret;
+ 
+ 	ret = sii9234_reset(ctx);
+ 	if (ret)
+-- 
+1.7.4.1
 
-Reading I&Q data and visualization tools was added into v4l-utils package.
-
-Here is a patches:
-Patch for Linux kernel: http://stand.netup.tv/downloads/iq_constellation.patch
-Patch for v4l-utils:
-http://stand.netup.tv/downloads/iq_constellation_v4l-utils.patch
-
-Mauro, please apply this patches if they are ok ?
-
---
-Abylay Ospan
