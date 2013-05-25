@@ -1,76 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2827 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753397Ab3EaKDT (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:59883 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757430Ab3EYRkI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 06:03:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard.rojfors@pelagicore.com>
-Subject: [PATCH 13/21] radio-timb: actually load the requested subdevs
-Date: Fri, 31 May 2013 12:02:33 +0200
-Message-Id: <1369994561-25236-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sat, 25 May 2013 13:40:08 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH v2 1/4] ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
+Date: Sat, 25 May 2013 23:09:33 +0530
+Message-Id: <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-For some reason the tuner and dsp subdevs were never actually loaded.
-Added the relevant code to do that.
+remove init_enable from ths7303 pdata as it is being dropped
+from ths7303_platform_data.
 
-Also remove bogus calls to video_device_release_empty().
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Richard Röjfors <richard.rojfors@pelagicore.com>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
 ---
- drivers/media/radio/radio-timb.c |   13 +++++++++----
- 1 file changed, 9 insertions(+), 4 deletions(-)
+ arch/arm/mach-davinci/board-dm365-evm.c |    1 -
+ 1 files changed, 0 insertions(+), 1 deletions(-)
 
-diff --git a/drivers/media/radio/radio-timb.c b/drivers/media/radio/radio-timb.c
-index 99694dd..1931ef7 100644
---- a/drivers/media/radio/radio-timb.c
-+++ b/drivers/media/radio/radio-timb.c
-@@ -126,6 +126,15 @@ static int timbradio_probe(struct platform_device *pdev)
+diff --git a/arch/arm/mach-davinci/board-dm365-evm.c b/arch/arm/mach-davinci/board-dm365-evm.c
+index fd38c8d..afbc439 100644
+--- a/arch/arm/mach-davinci/board-dm365-evm.c
++++ b/arch/arm/mach-davinci/board-dm365-evm.c
+@@ -509,7 +509,6 @@ struct ths7303_platform_data ths7303_pdata = {
+ 	.ch_1 = 3,
+ 	.ch_2 = 3,
+ 	.ch_3 = 3,
+-	.init_enable = 1,
+ };
  
- 	tr->video_dev.v4l2_dev = &tr->v4l2_dev;
- 
-+	tr->sd_tuner = v4l2_i2c_new_subdev_board(&tr->v4l2_dev,
-+		i2c_get_adapter(pdata->i2c_adapter), pdata->tuner, NULL);
-+	tr->sd_dsp = v4l2_i2c_new_subdev_board(&tr->v4l2_dev,
-+		i2c_get_adapter(pdata->i2c_adapter), pdata->dsp, NULL);
-+	if (tr->sd_tuner == NULL || tr->sd_dsp == NULL)
-+		goto err_video_req;
-+
-+	tr->v4l2_dev.ctrl_handler = tr->sd_dsp->ctrl_handler;
-+
- 	err = video_register_device(&tr->video_dev, VFL_TYPE_RADIO, -1);
- 	if (err) {
- 		dev_err(&pdev->dev, "Error reg video\n");
-@@ -138,7 +147,6 @@ static int timbradio_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_video_req:
--	video_device_release_empty(&tr->video_dev);
- 	v4l2_device_unregister(&tr->v4l2_dev);
- err:
- 	dev_err(&pdev->dev, "Failed to register: %d\n", err);
-@@ -151,10 +159,7 @@ static int timbradio_remove(struct platform_device *pdev)
- 	struct timbradio *tr = platform_get_drvdata(pdev);
- 
- 	video_unregister_device(&tr->video_dev);
--	video_device_release_empty(&tr->video_dev);
--
- 	v4l2_device_unregister(&tr->v4l2_dev);
--
- 	return 0;
- }
- 
+ static struct amp_config_info vpbe_amp = {
 -- 
-1.7.10.4
+1.7.0.4
 
