@@ -1,124 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from canardo.mork.no ([148.122.252.1]:44736 "EHLO canardo.mork.no"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750886Ab3EUNHO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 09:07:14 -0400
-From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
-To: stable@vger.kernel.org
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Alan Cox <alan@linux.intel.com>
-Subject: [PATCH stable < v3.7] media mantis: fix silly crash case
-Date: Tue, 21 May 2013 15:07:03 +0200
-Message-ID: <87ehd0lbwo.fsf@nemi.mork.no>
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:55288 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751716Ab3EYG5a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 May 2013 02:57:30 -0400
+Date: Sat, 25 May 2013 09:00:20 +0200
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: =?utf-8?Q?=22Alejandro_A=2E_Vald=C3=A9s=22?= <av2406@gmail.com>
+Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Audio: no sound
+Message-ID: <20130525070020.GA2122@dell.arpanet.local>
+References: <519D6CFA.2000506@gmail.com>
+ <CALF0-+UqJaNc7v86qakVTNEJx5npMFPqFp-=9rAByFV_+FEaww@mail.gmail.com>
+ <519E41AC.3040707@gmail.com>
+ <CALF0-+U5dFktwHwO5-h_7RJ1xyjc3JbHUWqG3g=WSPA=HcHnnw@mail.gmail.com>
+ <519E6046.8050509@gmail.com>
+ <CALF0-+UZnt9rfmQFSecqaf_9L29mwKeNV22w1XmMQQG0AE=jJw@mail.gmail.com>
+ <519E76F3.4070006@gmail.com>
+ <519EB8E6.5000503@gmail.com>
 MIME-Version: 1.0
-Content-Type: multipart/mixed; boundary="=-=-="
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <519EB8E6.5000503@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---=-=-=
-Content-Type: text/plain
+On Thu, May 23, 2013 at 09:48:38PM -0300, "Alejandro A. Valdés" wrote:
+Hi,
 
-Hello,
+> On 05/23/2013 05:07 PM, "Alejandro A. Valdés" wrote:
+> >On 05/23/2013 04:12 PM, Ezequiel Garcia wrote:
+> >>Alejandro,
+> >>
+> >>You dropped the linux-media list from Cc. I'm adding it back.
+> >>
+> >>On Thu, May 23, 2013 at 3:30 PM, "Alejandro A. Valdés"
+> >><av2406@gmail.com> wrote:
+> >>># lsmod
+> >>>Module                  Size  Used by
+> >>>snd_usb_audio         106622  0
+> >>>snd_usbmidi_lib        24590  1 snd_usb_audio
+> >>>easycap              1213861  1
+> >>Okey. This is all I need. You're using the "easycap" driver which is
+> >>an old, deprecated and staging (i.e. experimental) driver for easycap
+> >>devices.
+> >>
+> >>The new driver, which is fully supported, is called "stk1160". It's
+> >>been completely written from scratch, so it's not related to the old
+> >>one.
+> >>
+> >>Upgrade your kernel and/or your distribution to get a kernel >= v3.6
+> >>which includes the new driver, try again and let me know what happens.
+> >>
+> >>-- 
+> >>     Ezequiel
+> > Thanks for the tip. Will do so as son as I get another box to
+> >play with for a while. Not in shape to risk this environment. Will
+> >let you know the results. Regards,
+> >Alejandro
+> Good evening,
+> 
+> I upgraded the kernel as recommend, but it still doesn't seem to be
+> working. Still no sound. I attached some files with the output of
+> the same set of commands, we have been working with this afternoon.
+> 
+> I'll be grateful if you can provide further guidelines on this.
+> 
+> Thanks a lot,
+> Alejandro,
 
-Please apply mainline commit e1d45ae to any maintained stable kernel
-prior to v3.7.  I just hit this bug on a Debian 3.2.41-2+deb7u2 kernel:
+>  0 [Intel          ]: HDA-Intel - HDA Intel
+>                       HDA Intel at 0xf7cf8000 irq 45
 
+> [  183.776116] usb 1-1: new high-speed USB device number 5 using ehci_hcd
+> [  183.908837] usb 1-1: New USB device found, idVendor=05e1, idProduct=0408
+> [  183.908852] usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
+> [  183.908862] usb 1-1: Product: USB 2.0 Video Capture Controller
+> [  183.908871] usb 1-1: Manufacturer: Syntek Semiconductor
+> [  187.113354] easycap::0adjust_standard: selected standard: PAL_BGHIN
+> [  187.424338] easycap::0adjust_format: sought:    640x480,UYVY(0x59565955),1=field,0x00=std mask
+> [  187.424352] easycap::0adjust_format: sought:    V4L2_FIELD_NONE
+> [  187.424367] easycap::0adjust_format: actioning: 640x480 PAL_BGHIN_AT_640x480_FMT_UYVY-n
+> [  187.448211] easycap::0adjust_brightness: adjusting brightness to  0x7F
+> [  187.472216] easycap::0adjust_contrast: adjusting contrast to  0x3F
+> [  187.496207] easycap::0adjust_saturation: adjusting saturation to  0x2F
+> [  187.520220] easycap::0adjust_hue: adjusting hue to  0x00
+> [  187.521800] easycap::0easycap_register_video: registered with videodev: 1=minor
+> [  187.521812] easycap::0easycap_usb_probe: ends successfully for interface 0
+> [  187.522249] easycap::0easycap_usb_probe: ends successfully for interface 1
+> [  187.522604] easycap::0easycap_usb_probe: audio hardware is AC'97
+> [  187.522662] easycap: probe of 1-1:1.2 failed with error -146692016
+> [  187.525726] easycap:: easycap_open: ==========OPEN=========
+> [  190.581347] easycap::0adjust_standard: selected standard: PAL_BGHIN
+> [  190.892343] easycap::0adjust_format: sought:    640x480,UYVY(0x59565955),1=field,0x00=std mask
+> [  190.892356] easycap::0adjust_format: sought:    V4L2_FIELD_NONE
+> [  190.892371] easycap::0adjust_format: actioning: 640x480 PAL_BGHIN_AT_640x480_FMT_UYVY-n
+> [  190.916222] easycap::0adjust_brightness: adjusting brightness to  0x7F
+> [  190.940224] easycap::0adjust_contrast: adjusting contrast to  0x3F
+> [  190.964224] easycap::0adjust_saturation: adjusting saturation to  0x2F
+> [  190.988221] easycap::0adjust_hue: adjusting hue to  0x00
 
-May 19 06:52:54 canardo kernel: [   49.013774] BUG: unable to handle kernel NULL pointer dereference at 0000000000000308
-May 19 06:52:54 canardo kernel: [   49.017735] IP: [<ffffffffa02e7ae5>] dvb_unregister_frontend+0x10/0xf4 [dvb_core]
-May 19 06:52:54 canardo kernel: [   49.017735] PGD 0 
-May 19 06:52:54 canardo kernel: [   49.017735] Oops: 0000 [#1] SMP 
-May 19 06:52:54 canardo kernel: [   49.017735] CPU 2 
-May 19 06:52:54 canardo kernel: [   49.017735] Modules linked in: tda10023 tda10021 ir_lirc_codec lirc_dev ir_mce_kbd_decoder ir_sony_decoder ir_jvc_decoder mantis(+) ir_rc6_decoder snd_pcm mantis_core dvb_core ir_rc5_decoder ir_nec_decoder io_edgeport radeon snd_page_alloc snd_timer rc_core ttm snd usbserial soundcore serio_raw drm_kms_helper acpi_cpufreq drm mperf i2c_i801 power_supply i2c_algo_bit iTCO_wdt pcspkr joydev coretemp iTCO_vendor_support evdev asus_atk0110 i2c_core button processor thermal_sys ext3 mbcache jbd dm_mod raid1 md_mod microcode usbhid hid sg sd_mod crc_t10dif mptsas ata_generic scsi_transport_sas mptscsih firewire_ohci uhci_hcd pata_jmicron ahci libahci mptbase atl1 mii libata ehci_hcd firewire_core crc_itu_t scsi_mod e1000e usbcore usb_common [last unloaded: scsi_wait_scan]
-May 19 06:52:54 canardo kernel: [   49.017735] 
-May 19 06:52:54 canardo kernel: [   49.017735] Pid: 612, comm: modprobe Not tainted 3.2.0-4-amd64 #1 Debian 3.2.41-2+deb7u2 System manufacturer P5K/P5K
-May 19 06:52:54 canardo kernel: [   49.017735] RIP: 0010:[<ffffffffa02e7ae5>]  [<ffffffffa02e7ae5>] dvb_unregister_frontend+0x10/0xf4 [dvb_core]
-May 19 06:52:54 canardo kernel: [   49.017735] RSP: 0018:ffff88021274bcc8  EFLAGS: 00010246
-May 19 06:52:54 canardo kernel: [   49.017735] RAX: 0000000000000023 RBX: ffff880213571000 RCX: ffff8802135d3208
-May 19 06:52:54 canardo kernel: [   49.017735] RDX: 0000000000000022 RSI: ffff880213078ac0 RDI: 0000000000000000
-May 19 06:52:54 canardo kernel: [   49.017735] RBP: 0000000000000000 R08: 0000000000000011 R09: 0000000000000011
-May 19 06:52:54 canardo kernel: [   49.017735] R10: 0000000000000000 R11: 0000000000000000 R12: 00000000ffffffff
-May 19 06:52:54 canardo kernel: [   49.017735] R13: ffff8802135714a0 R14: ffff880213571838 R15: ffff880213571058
-May 19 06:52:54 canardo kernel: [   49.017735] FS:  00007f03b3934700(0000) GS:ffff88021fd00000(0000) knlGS:0000000000000000
-May 19 06:52:54 canardo kernel: [   49.017735] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
-May 19 06:52:54 canardo kernel: [   49.017735] CR2: 0000000000000308 CR3: 0000000214969000 CR4: 00000000000006e0
-May 19 06:52:54 canardo kernel: [   49.017735] DR0: 0000000000000000 DR1: 0000000000000000 DR2: 0000000000000000
-May 19 06:52:54 canardo kernel: [   49.017735] DR3: 0000000000000000 DR6: 00000000ffff0ff0 DR7: 0000000000000400
-May 19 06:52:54 canardo kernel: [   49.017735] Process modprobe (pid: 612, threadinfo ffff88021274a000, task ffff8802125d2970)
-May 19 06:52:54 canardo kernel: [   49.017735] Stack:
-May 19 06:52:54 canardo kernel: [   49.017735]  ffff880213571080 ffffffff81072f0e ffff880213571000 ffffffffa03ba000
-May 19 06:52:54 canardo kernel: [   49.017735]  ffff8802135714a0 ffffffff8104be19 ffff880213571410 ffff880213571000
-May 19 06:52:54 canardo kernel: [   49.017735]  ffff880213571410 ffffffffa03ffd6f ffff880213571790 ffff880213571850
-May 19 06:52:54 canardo kernel: [   49.017735] Call Trace:
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff81072f0e>] ? __symbol_put+0x29/0x2e
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff8104be19>] ? tasklet_kill+0x4a/0x60
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03ffd6f>] ? mantis_dvb_init+0x3ac/0x402 [mantis_core]
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03d8707>] ? mantis_pci_probe+0x173/0x270 [mantis]
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff811c5a5b>] ? local_pci_probe+0x39/0x68
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff811c6504>] ? pci_device_probe+0xcd/0xfa
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff812510c1>] ? driver_probe_device+0xa8/0x138
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff812511a0>] ? __driver_attach+0x4f/0x6f
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff81251151>] ? driver_probe_device+0x138/0x138
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff8124fcf0>] ? bus_for_each_dev+0x4f/0x7a
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff81250a5a>] ? bus_add_driver+0xa5/0x1f5
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03d8804>] ? mantis_pci_probe+0x270/0x270 [mantis]
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff812515c8>] ? driver_register+0x8d/0xf5
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03d8804>] ? mantis_pci_probe+0x270/0x270 [mantis]
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff811c6d1f>] ? __pci_register_driver+0x4d/0xb6
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffffa03d8804>] ? mantis_pci_probe+0x270/0x270 [mantis]
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff81002085>] ? do_one_initcall+0x75/0x12c
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff8107540f>] ? sys_init_module+0x10c/0x25b
-May 19 06:52:54 canardo kernel: [   49.017735]  [<ffffffff813529d2>] ? system_call_fastpath+0x16/0x1b
-May 19 06:52:54 canardo kernel: [   49.017735] Code: 48 8b b3 18 02 00 00 48 85 f6 74 0d 5b 48 c7 c7 47 f8 2e a0 e9 c2 f7 05 e1 5b c3 55 48 89 fd 53 48 83 ec 38 83 3d 43 a2 00 00 00 <48> 8b 9f 08 03 00 00 74 15 48 c7 c6 90 d5 2e a0 48 c7 c7 40 f6 
-May 19 06:52:54 canardo kernel: [   49.017735] RIP  [<ffffffffa02e7ae5>] dvb_unregister_frontend+0x10/0xf4 [dvb_core]
-May 19 06:52:54 canardo kernel: [   49.017735]  RSP <ffff88021274bcc8>
-May 19 06:52:54 canardo kernel: [   49.017735] CR2: 0000000000000308
-May 19 06:52:54 canardo kernel: [   53.786264] ---[ end trace c8caf018e0a882dd ]---
+It seems you are still using the easycap driver.
 
+[...]
 
+> Module                  Size  Used by
+> snd_hda_intel          33051  5 
+> snd_hda_codec         116694  2 snd_hda_codec_realtek,snd_hda_intel
+> bluetooth             191657  10 rfcomm,bnep
+> uvcvideo               72248  0 
+> easycap              1213860  1 
 
---=-=-=
-Content-Type: text/x-diff
-Content-Disposition: inline;
- filename=0001-media-mantis-fix-silly-crash-case.patch
+This should say stk1160 if you were using the new driver.
+I'm not sure what about what kernel first included the stk1160, but it
+doesn't seem to be included in the kernel you built.
 
->From e1d45ae10aea8e8a403e5d96bf5902ee670007ff Mon Sep 17 00:00:00 2001
-From: Alan Cox <alan@linux.intel.com>
-Date: Thu, 9 Aug 2012 12:33:52 -0300
-Subject: [PATCH] [media] mantis: fix silly crash case
+Best regards
+Jon Arne Jørgensen
 
-If we set mantis->fe to NULL on an error its not a good idea to then try
-passing NULL to the unregister paths and oopsing really.
-
-Resolves-bug: https://bugzilla.kernel.org/show_bug.cgi?id=16473
-
-Signed-off-by: Alan Cox <alan@linux.intel.com>
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/dvb/mantis/mantis_dvb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/dvb/mantis/mantis_dvb.c b/drivers/media/dvb/mantis/mantis_dvb.c
-index e5180e4..5d15c6b 100644
---- a/drivers/media/dvb/mantis/mantis_dvb.c
-+++ b/drivers/media/dvb/mantis/mantis_dvb.c
-@@ -248,8 +248,10 @@ int __devinit mantis_dvb_init(struct mantis_pci *mantis)
- err5:
- 	tasklet_kill(&mantis->tasklet);
- 	dvb_net_release(&mantis->dvbnet);
--	dvb_unregister_frontend(mantis->fe);
--	dvb_frontend_detach(mantis->fe);
-+	if (mantis->fe) {
-+		dvb_unregister_frontend(mantis->fe);
-+		dvb_frontend_detach(mantis->fe);
-+	}
- err4:
- 	mantis->demux.dmx.remove_frontend(&mantis->demux.dmx, &mantis->fe_mem);
- 
--- 
-1.7.10.4
-
-
---=-=-=--
