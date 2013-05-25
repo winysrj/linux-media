@@ -1,98 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2844 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756009Ab3EGSUF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 14:20:05 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r47IK1gi099629
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Tue, 7 May 2013 20:20:04 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id D524D1300090
-	for <linux-media@vger.kernel.org>; Tue,  7 May 2013 20:20:00 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130507182000.D524D1300090@alastor.dyndns.org>
-Date: Tue,  7 May 2013 20:20:00 +0200 (CEST)
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:42285 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757142Ab3EYQi4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 May 2013 12:38:56 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 5/5] media: davinci: vpif_display: Convert to devm_* api
+Date: Sat, 25 May 2013 22:06:36 +0530
+Message-Id: <1369499796-18762-6-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Results of the daily build of media_tree:
+use devm_request_irq() instead of request_irq().
+This ensures more consistent error values and simplifies error paths.
 
-date:		Tue May  7 19:00:22 CEST 2013
-git branch:	test
-git hash:	02615ed5e1b2283db2495af3cf8f4ee172c77d80
-gcc version:	i686-linux-gcc (GCC) 4.7.2
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+use module_platform_driver to simplify the code.
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9-rc1-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9-rc1-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   61 +++++--------------------
+ 1 files changed, 12 insertions(+), 49 deletions(-)
 
-Detailed results are available here:
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 5b6f906..1bb24cb 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1718,15 +1718,14 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 
+ 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
+ 		for (i = res->start; i <= res->end; i++) {
+-			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
+-					"VPIF_Display", (void *)
+-					(&vpif_obj.dev[res_idx]->channel_id))) {
+-				err = -EBUSY;
+-				for (j = 0; j < i; j++)
+-					free_irq(j, (void *)
+-					(&vpif_obj.dev[res_idx]->channel_id));
++			err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
++					     IRQF_SHARED, "VPIF_Display",
++					     (void *)(&vpif_obj.dev[res_idx]->
++					     channel_id));
++			if (err) {
++				err = -EINVAL;
+ 				vpif_err("VPIF IRQ request failed\n");
+-				goto vpif_int_err;
++				goto vpif_unregister;
+ 			}
+ 		}
+ 		res_idx++;
+@@ -1744,7 +1743,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 				video_device_release(ch->video_dev);
+ 			}
+ 			err = -ENOMEM;
+-			goto vpif_int_err;
++			goto vpif_unregister;
+ 		}
+ 
+ 		/* Initialize field of video device */
+@@ -1878,13 +1877,8 @@ vpif_sd_error:
+ 		/* Note: does nothing if ch->video_dev == NULL */
+ 		video_device_release(ch->video_dev);
+ 	}
+-vpif_int_err:
++vpif_unregister:
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+-	for (i = 0; i < res_idx; i++) {
+-		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
+-		for (j = res->start; j <= res->end; j++)
+-			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
+-	}
+ 
+ 	return err;
+ }
+@@ -1899,6 +1893,7 @@ static int vpif_remove(struct platform_device *device)
+ 
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+ 
++	kfree(vpif_obj.sd);
+ 	/* un-register device */
+ 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+ 		/* Get the pointer to the channel object */
+@@ -1907,6 +1902,7 @@ static int vpif_remove(struct platform_device *device)
+ 		video_unregister_device(ch->video_dev);
+ 
+ 		ch->video_dev = NULL;
++		kfree(vpif_obj.dev[i]);
+ 	}
+ 
+ 	return 0;
+@@ -1992,37 +1988,4 @@ static __refdata struct platform_driver vpif_driver = {
+ 	.remove	= vpif_remove,
+ };
+ 
+-static __init int vpif_init(void)
+-{
+-	return platform_driver_register(&vpif_driver);
+-}
+-
+-/*
+- * vpif_cleanup: This function un-registers device and driver to the kernel,
+- * frees requested irq handler and de-allocates memory allocated for channel
+- * objects.
+- */
+-static void vpif_cleanup(void)
+-{
+-	struct platform_device *pdev;
+-	struct resource *res;
+-	int irq_num;
+-	int i = 0;
+-
+-	pdev = container_of(vpif_dev, struct platform_device, dev);
+-
+-	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+-		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+-			free_irq(irq_num,
+-				 (void *)(&vpif_obj.dev[i]->channel_id));
+-		i++;
+-	}
+-
+-	platform_driver_unregister(&vpif_driver);
+-	kfree(vpif_obj.sd);
+-	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)
+-		kfree(vpif_obj.dev[i]);
+-}
+-
+-module_init(vpif_init);
+-module_exit(vpif_cleanup);
++module_platform_driver(vpif_driver);
+-- 
+1.7.0.4
 
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
