@@ -1,49 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:19572 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751348Ab3E0JEX convert rfc822-to-8bit (ORCPT
+Received: from mail-we0-f176.google.com ([74.125.82.176]:34922 "EHLO
+	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757457Ab3EYRnv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 05:04:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Diego Viola <diego.viola@gmail.com>
-Subject: Re: [PATCH] Fix spelling of Qt in .desktop file (typo)
-Date: Mon, 27 May 2013 11:03:59 +0200
-Cc: linux-media@vger.kernel.org
-References: <1369556151-4614-1-git-send-email-diego.viola@gmail.com>
-In-Reply-To: <1369556151-4614-1-git-send-email-diego.viola@gmail.com>
+	Sat, 25 May 2013 13:43:51 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201305271103.59617.hverkuil@xs4all.nl>
+In-Reply-To: <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com> <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 25 May 2013 23:13:29 +0530
+Message-ID: <CA+V-a8sAXXq=gBO_uDsOS1MonXJan+mpBwo15tvp+wR40kAMKA@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] ARM: davinci: dm365 evm: remove init_enable from
+ ths7303 pdata
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	LAK <linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun 26 May 2013 10:15:51 Diego Viola wrote:
-> Proper spelling of Qt is Qt, not QT.  "QT" is often confused with
-> QuickTime, here is a minor patch to fix this issue in the .desktop file.
+Hi Sekhar,
 
-Thanks, I've committed this.
+On Sat, May 25, 2013 at 11:09 PM, Prabhakar Lad
+<prabhakar.csengg@gmail.com> wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>
+> remove init_enable from ths7303 pdata as it is being dropped
+> from ths7303_platform_data.
+>
+Can you please ack this patch as I intend to take this patch via media
+tree.
 
 Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Diego Viola <diego.viola@gmail.com>
-> ---
->  utils/qv4l2/qv4l2.desktop | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/utils/qv4l2/qv4l2.desktop b/utils/qv4l2/qv4l2.desktop
-> index 00f3e33..69413e1 100644
-> --- a/utils/qv4l2/qv4l2.desktop
-> +++ b/utils/qv4l2/qv4l2.desktop
-> @@ -1,5 +1,5 @@
->  [Desktop Entry]
-> -Name=QT V4L2 test Utility
-> +Name=Qt V4L2 test Utility
->  Name[pt]=Utilitário de teste V4L2
->  Comment=Allow testing Video4Linux devices
->  Comment[pt]=Permite testar dispositivos Video4Linux
-> 
+--Prabhakar Lad
