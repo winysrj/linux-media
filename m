@@ -1,45 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:53884 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752046Ab3ERQ6z (ORCPT
+Received: from mail-pb0-f43.google.com ([209.85.160.43]:58952 "EHLO
+	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757608Ab3EYRkk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 18 May 2013 12:58:55 -0400
-Received: by mail-ee0-f47.google.com with SMTP id t10so3096795eei.34
-        for <linux-media@vger.kernel.org>; Sat, 18 May 2013 09:58:53 -0700 (PDT)
-Message-ID: <5197B34A.8010700@googlemail.com>
-Date: Sat, 18 May 2013 18:58:50 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
-References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com>
-In-Reply-To: <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Sat, 25 May 2013 13:40:40 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH v2 4/4] media: i2c: ths7303: make the pdata as a constant pointer
+Date: Sat, 25 May 2013 23:09:36 +0530
+Message-Id: <1369503576-22271-5-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 18.05.2013 17:17, schrieb Chris Rankin:
-> ----- Original Message -----
->
->>> Am 18.05.2013 15:57, schrieb Chris Rankin:
->>> I have a PCTV 290e DVB2 adapter (em28xx, em28xx_dvb, em28xx_rc, cxd2820r), and I have just discovered that the IR remote control has stopped working with VDR when using a vanilla 3.9.2 kernel.
->>> Downgrading the kernel to 3.8.12 fixes things again. (Switching to my old DVB NOVA-T2 device fixes things too, although it cannot receive HDTV channels, of course).
->> Great. :( :( :(
->> There have been several changes in the em28xx and core RC code between 3.8 and 3.9...
->> I can't see anything obvious, the RC device seems to be registered correctly.
->> Could you please bisect ?
-> Unfortunately, no I can't. (No git tree here - just a tarball downloaded via FTP). However, maybe I could out some printk() statements into the code if you could point out where the "hot-spots" might be, please?
->
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-For the em28xx driver: em28xx-input.c:
-em28xx_ir_work() is called every 100ms
-     calls em28xx_ir_handle_key()
-         - calls ir->get_key() which is em2874_polling_getkey() in case 
-of your device
-         - reports the detected key via rc_keydown() through the RC core
+generally the pdata needs to be a constant pointer in the device
+state structure. This patch makes the pdata as a constant pointer
+and alongside returns -EINVAL when pdata is NULL.
 
-HTH,
-Frank
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-kernel@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
+---
+ drivers/media/i2c/ths7303.c |   15 ++++++++-------
+ 1 files changed, 8 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+index af06187..b954195 100644
+--- a/drivers/media/i2c/ths7303.c
++++ b/drivers/media/i2c/ths7303.c
+@@ -35,7 +35,7 @@
+ 
+ struct ths7303_state {
+ 	struct v4l2_subdev		sd;
+-	struct ths7303_platform_data	pdata;
++	const struct ths7303_platform_data *pdata;
+ 	struct v4l2_bt_timings		bt;
+ 	int std_id;
+ 	int stream_on;
+@@ -89,7 +89,7 @@ int ths7303_setval(struct v4l2_subdev *sd, enum ths7303_filter_mode mode)
+ {
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct ths7303_state *state = to_state(sd);
+-	struct ths7303_platform_data *pdata = &state->pdata;
++	const struct ths7303_platform_data *pdata = state->pdata;
+ 	u8 val, sel = 0;
+ 	int err, disable = 0;
+ 
+@@ -356,6 +356,11 @@ static int ths7303_probe(struct i2c_client *client,
+ 	struct ths7303_state *state;
+ 	struct v4l2_subdev *sd;
+ 
++	if (pdata == NULL) {
++		dev_err(&client->dev, "No platform data\n");
++		return -EINVAL;
++	}
++
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+ 		return -ENODEV;
+ 
+@@ -367,11 +372,7 @@ static int ths7303_probe(struct i2c_client *client,
+ 	if (!state)
+ 		return -ENOMEM;
+ 
+-	if (!pdata)
+-		v4l_warn(client, "No platform data, using default data!\n");
+-	else
+-		state->pdata = *pdata;
+-
++	state->pdata = pdata;
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &ths7303_ops);
+ 
+-- 
+1.7.0.4
 
