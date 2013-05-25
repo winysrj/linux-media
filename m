@@ -1,221 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f46.google.com ([209.85.212.46]:52610 "EHLO
-	mail-vb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756698Ab3EOR3q (ORCPT
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:58478 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757142Ab3EYQiS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 13:29:46 -0400
-Received: by mail-vb0-f46.google.com with SMTP id 10so652695vbe.5
-        for <linux-media@vger.kernel.org>; Wed, 15 May 2013 10:29:46 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <10450810.MOPyhOxKX4@avalon>
-References: <1367925577-26907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-	<10450810.MOPyhOxKX4@avalon>
-Date: Wed, 15 May 2013 10:29:22 -0700
-Message-ID: <CALaWCONOMESHSZ2FvOfSPN6uWgYXedObtwoqRuYhaw-gVUw4rQ@mail.gmail.com>
-Subject: Re: [PATCH v2] uvcvideo: Fix open/close race condition
-From: Shawn Nematbakhsh <shawnn@chromium.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 25 May 2013 12:38:18 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 1/5] media: davinci: vpif: remove unwanted header mach/hardware.h and sort the includes alphabetically
+Date: Sat, 25 May 2013 22:06:32 +0530
+Message-Id: <1369499796-18762-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Thanks for the revised patch. I tested and confirmed that it fixes the
-issue I reported.
+This patch removes unwanted header include of mach/hardware.h
+and along side sorts the header inclusion alphabetically.
 
-On Wed, May 15, 2013 at 2:58 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Shawn,
->
-> Could you please confirm whether this patch fixes the issue you've reported ?
->
-> On Tuesday 07 May 2013 13:19:37 Laurent Pinchart wrote:
->> Maintaining the users count using an atomic variable makes sure that
->> access to the counter won't be racy, but doesn't serialize access to the
->> operations protected by the counter. This creates a race condition that
->> could result in the status URB being submitted multiple times.
->>
->> Use a mutex to protect the users count and serialize access to the
->> status start and stop operations.
->>
->> Reported-by: Shawn Nematbakhsh <shawnn@chromium.org>
->> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> ---
->>  drivers/media/usb/uvc/uvc_driver.c | 23 +++++++++++++++++------
->>  drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
->>  drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
->>  drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
->>  4 files changed, 32 insertions(+), 33 deletions(-)
->>
->> Changes since v1:
->>
->> - Add a missing return back in the uvc_suspend() function
->>
->> diff --git a/drivers/media/usb/uvc/uvc_driver.c
->> b/drivers/media/usb/uvc/uvc_driver.c index e68fa53..d704be3 100644
->> --- a/drivers/media/usb/uvc/uvc_driver.c
->> +++ b/drivers/media/usb/uvc/uvc_driver.c
->> @@ -1836,8 +1836,8 @@ static int uvc_probe(struct usb_interface *intf,
->>       INIT_LIST_HEAD(&dev->chains);
->>       INIT_LIST_HEAD(&dev->streams);
->>       atomic_set(&dev->nstreams, 0);
->> -     atomic_set(&dev->users, 0);
->>       atomic_set(&dev->nmappings, 0);
->> +     mutex_init(&dev->lock);
->>
->>       dev->udev = usb_get_dev(udev);
->>       dev->intf = usb_get_intf(intf);
->> @@ -1953,8 +1953,13 @@ static int uvc_suspend(struct usb_interface *intf,
->> pm_message_t message)
->>
->>       /* Controls are cached on the fly so they don't need to be saved. */
->>       if (intf->cur_altsetting->desc.bInterfaceSubClass ==
->> -         UVC_SC_VIDEOCONTROL)
->> -             return uvc_status_suspend(dev);
->> +         UVC_SC_VIDEOCONTROL) {
->> +             mutex_lock(&dev->lock);
->> +             if (dev->users)
->> +                     uvc_status_stop(dev);
->> +             mutex_unlock(&dev->lock);
->> +             return 0;
->> +     }
->>
->>       list_for_each_entry(stream, &dev->streams, list) {
->>               if (stream->intf == intf)
->> @@ -1976,14 +1981,20 @@ static int __uvc_resume(struct usb_interface *intf,
->> int reset)
->>
->>       if (intf->cur_altsetting->desc.bInterfaceSubClass ==
->>           UVC_SC_VIDEOCONTROL) {
->> -             if (reset) {
->> -                     int ret = uvc_ctrl_resume_device(dev);
->> +             int ret = 0;
->>
->> +             if (reset) {
->> +                     ret = uvc_ctrl_resume_device(dev);
->>                       if (ret < 0)
->>                               return ret;
->>               }
->>
->> -             return uvc_status_resume(dev);
->> +             mutex_lock(&dev->lock);
->> +             if (dev->users)
->> +                     ret = uvc_status_start(dev, GFP_NOIO);
->> +             mutex_unlock(&dev->lock);
->> +
->> +             return ret;
->>       }
->>
->>       list_for_each_entry(stream, &dev->streams, list) {
->> diff --git a/drivers/media/usb/uvc/uvc_status.c
->> b/drivers/media/usb/uvc/uvc_status.c index b749277..f552ab9 100644
->> --- a/drivers/media/usb/uvc/uvc_status.c
->> +++ b/drivers/media/usb/uvc/uvc_status.c
->> @@ -206,32 +206,15 @@ void uvc_status_cleanup(struct uvc_device *dev)
->>       uvc_input_cleanup(dev);
->>  }
->>
->> -int uvc_status_start(struct uvc_device *dev)
->> +int uvc_status_start(struct uvc_device *dev, gfp_t flags)
->>  {
->>       if (dev->int_urb == NULL)
->>               return 0;
->>
->> -     return usb_submit_urb(dev->int_urb, GFP_KERNEL);
->> +     return usb_submit_urb(dev->int_urb, flags);
->>  }
->>
->>  void uvc_status_stop(struct uvc_device *dev)
->>  {
->>       usb_kill_urb(dev->int_urb);
->>  }
->> -
->> -int uvc_status_suspend(struct uvc_device *dev)
->> -{
->> -     if (atomic_read(&dev->users))
->> -             usb_kill_urb(dev->int_urb);
->> -
->> -     return 0;
->> -}
->> -
->> -int uvc_status_resume(struct uvc_device *dev)
->> -{
->> -     if (dev->int_urb == NULL || atomic_read(&dev->users) == 0)
->> -             return 0;
->> -
->> -     return usb_submit_urb(dev->int_urb, GFP_NOIO);
->> -}
->> -
->> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
->> b/drivers/media/usb/uvc/uvc_v4l2.c index b2dc326..3afff92 100644
->> --- a/drivers/media/usb/uvc/uvc_v4l2.c
->> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
->> @@ -498,16 +498,20 @@ static int uvc_v4l2_open(struct file *file)
->>               return -ENOMEM;
->>       }
->>
->> -     if (atomic_inc_return(&stream->dev->users) == 1) {
->> -             ret = uvc_status_start(stream->dev);
->> +     mutex_lock(&stream->dev->lock);
->> +     if (stream->dev->users == 0) {
->> +             ret = uvc_status_start(stream->dev, GFP_KERNEL);
->>               if (ret < 0) {
->> -                     atomic_dec(&stream->dev->users);
->> +                     mutex_unlock(&stream->dev->lock);
->>                       usb_autopm_put_interface(stream->dev->intf);
->>                       kfree(handle);
->>                       return ret;
->>               }
->>       }
->>
->> +     stream->dev->users++;
->> +     mutex_unlock(&stream->dev->lock);
->> +
->>       v4l2_fh_init(&handle->vfh, stream->vdev);
->>       v4l2_fh_add(&handle->vfh);
->>       handle->chain = stream->chain;
->> @@ -538,8 +542,10 @@ static int uvc_v4l2_release(struct file *file)
->>       kfree(handle);
->>       file->private_data = NULL;
->>
->> -     if (atomic_dec_return(&stream->dev->users) == 0)
->> +     mutex_lock(&stream->dev->lock);
->> +     if (--stream->dev->users == 0)
->>               uvc_status_stop(stream->dev);
->> +     mutex_unlock(&stream->dev->lock);
->>
->>       usb_autopm_put_interface(stream->dev->intf);
->>       return 0;
->> diff --git a/drivers/media/usb/uvc/uvcvideo.h
->> b/drivers/media/usb/uvc/uvcvideo.h index 9cd584a..eb90a92 100644
->> --- a/drivers/media/usb/uvc/uvcvideo.h
->> +++ b/drivers/media/usb/uvc/uvcvideo.h
->> @@ -515,7 +515,8 @@ struct uvc_device {
->>       char name[32];
->>
->>       enum uvc_device_state state;
->> -     atomic_t users;
->> +     struct mutex lock;              /* Protects users */
->> +     unsigned int users;
->>       atomic_t nmappings;
->>
->>       /* Video control interface */
->> @@ -661,10 +662,8 @@ void uvc_video_clock_update(struct uvc_streaming
->> *stream, /* Status */
->>  extern int uvc_status_init(struct uvc_device *dev);
->>  extern void uvc_status_cleanup(struct uvc_device *dev);
->> -extern int uvc_status_start(struct uvc_device *dev);
->> +extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
->>  extern void uvc_status_stop(struct uvc_device *dev);
->> -extern int uvc_status_suspend(struct uvc_device *dev);
->> -extern int uvc_status_resume(struct uvc_device *dev);
->>
->>  /* Controls */
->>  extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
-> --
-> Regards,
->
-> Laurent Pinchart
->
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif.c |   10 ++++------
+ 1 files changed, 4 insertions(+), 6 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index ea82a8b..761c825 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -17,18 +17,16 @@
+  * GNU General Public License for more details.
+  */
+ 
++#include <linux/err.h>
+ #include <linux/init.h>
++#include <linux/io.h>
++#include <linux/kernel.h>
+ #include <linux/module.h>
+ #include <linux/platform_device.h>
+-#include <linux/spinlock.h>
+-#include <linux/kernel.h>
+-#include <linux/io.h>
+-#include <linux/err.h>
+ #include <linux/pm_runtime.h>
++#include <linux/spinlock.h>
+ #include <linux/v4l2-dv-timings.h>
+ 
+-#include <mach/hardware.h>
+-
+ #include "vpif.h"
+ 
+ MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
+-- 
+1.7.0.4
+
