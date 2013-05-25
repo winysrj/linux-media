@@ -1,74 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ye0-f201.google.com ([209.85.213.201]:40359 "EHLO
-	mail-ye0-f201.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757810Ab3EXAmL (ORCPT
+Received: from mail-bk0-f51.google.com ([209.85.214.51]:62486 "EHLO
+	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755776Ab3EYL1h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 20:42:11 -0400
-Received: by mail-ye0-f201.google.com with SMTP id q9so106781yen.4
-        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 17:42:10 -0700 (PDT)
-From: John Sheu <sheu@google.com>
+	Sat, 25 May 2013 07:27:37 -0400
+Received: by mail-bk0-f51.google.com with SMTP id ji1so833218bkc.38
+        for <linux-media@vger.kernel.org>; Sat, 25 May 2013 04:27:35 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, pawel@osciak.com, John Sheu <sheu@google.com>
-Subject: [PATCH] [media] v4l2: mem2mem: save irq flags correctly
-Date: Thu, 23 May 2013 17:41:48 -0700
-Message-Id: <1369356108-15865-1-git-send-email-sheu@google.com>
+Cc: a.hajda@samsung.com, arun.kk@samsung.com, k.debski@samsung.com,
+	t.stanislaws@samsung.com,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: [PATCH 5/5] s5p-mfc: Remove unused s5p_mfc_get_decoded_status_v6() function
+Date: Sat, 25 May 2013 13:25:55 +0200
+Message-Id: <1369481155-30446-6-git-send-email-sylvester.nawrocki@gmail.com>
+In-Reply-To: <1369481155-30446-1-git-send-email-sylvester.nawrocki@gmail.com>
+References: <1369481155-30446-1-git-send-email-sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Save flags correctly when taking spinlocks in v4l2_m2m_try_schedule.
+This patch fixes following compilation warning:
 
-Signed-off-by: John Sheu <sheu@google.com>
+  CC [M]  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.o
+drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c:1733:12: warning: ‘s5p_mfc_get_decoded_status_v6’ defined but not used
+
+It assigns existing but not used s5p_mfc_get_dec_status_v6() function to the
+get_dec_status callback. It seems the get_dec_status callback is not used
+anyway, as there is no corresponding s5p_mfc_hw_call().
+
+Cc: Kamil Debski <k.debski@samsung.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 ---
- drivers/media/v4l2-core/v4l2-mem2mem.c | 19 +++++++++++--------
- 1 file changed, 11 insertions(+), 8 deletions(-)
+WARNING: This patch has not been tested.
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |    8 +-------
+ 1 files changed, 1 insertions(+), 7 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 66f599f..3606ff2 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -205,7 +205,7 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
- static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 7e76fce..3f97363 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -62,12 +62,6 @@ static void s5p_mfc_release_dec_desc_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 	/* NOP */
+ }
+ 
+-static int s5p_mfc_get_dec_status_v6(struct s5p_mfc_dev *dev)
+-{
+-	/* NOP */
+-	return -1;
+-}
+-
+ /* Allocate codec buffers */
+ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
  {
- 	struct v4l2_m2m_dev *m2m_dev;
--	unsigned long flags_job, flags;
-+	unsigned long flags_job, flags_out, flags_cap;
+@@ -1730,7 +1724,7 @@ static int s5p_mfc_get_dspl_status_v6(struct s5p_mfc_dev *dev)
+ 	return mfc_read(dev, S5P_FIMV_D_DISPLAY_STATUS_V6);
+ }
  
- 	m2m_dev = m2m_ctx->m2m_dev;
- 	dprintk("Trying to schedule a job for m2m_ctx: %p\n", m2m_ctx);
-@@ -223,23 +223,26 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
- 		return;
- 	}
- 
--	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
-+	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
- 	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)) {
--		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
-+		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
-+					flags_out);
- 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 		dprintk("No input buffers available\n");
- 		return;
- 	}
--	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
-+	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
- 	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)) {
--		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
--		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
-+		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock,
-+					flags_cap);
-+		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
-+					flags_out);
- 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 		dprintk("No output buffers available\n");
- 		return;
- 	}
--	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
--	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
-+	spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags_cap);
-+	spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags_out);
- 
- 	if (m2m_dev->m2m_ops->job_ready
- 		&& (!m2m_dev->m2m_ops->job_ready(m2m_ctx->priv))) {
+-static int s5p_mfc_get_decoded_status_v6(struct s5p_mfc_dev *dev)
++static int s5p_mfc_get_dec_status_v6(struct s5p_mfc_dev *dev)
+ {
+ 	return mfc_read(dev, S5P_FIMV_D_DECODED_STATUS_V6);
+ }
 -- 
-1.8.2.1
+1.7.4.1
 
