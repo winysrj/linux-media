@@ -1,39 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:46578 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752970Ab3EFMzb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 08:55:31 -0400
-Date: Mon, 6 May 2013 09:55:26 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: [PATCH v2 2/2] saa7115: add detection code for gm7113c
-Message-ID: <20130506125525.GB2272@localhost>
-References: <366980557-23077-1-git-send-email-mchehab@redhat.com>
- <1366986168-27756-1-git-send-email-mchehab@redhat.com>
- <1366986168-27756-2-git-send-email-mchehab@redhat.com>
+Received: from mail-bk0-f51.google.com ([209.85.214.51]:37644 "EHLO
+	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757491Ab3EYSCg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 May 2013 14:02:36 -0400
+Message-ID: <51A0FCB6.7060609@gmail.com>
+Date: Sat, 25 May 2013 20:02:30 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <1366986168-27756-2-git-send-email-mchehab@redhat.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
+References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com> <519F4AE7.8000003@gmail.com> <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com> <51A0C6A8.5090302@gmail.com> <CA+V-a8tqQGk1v_QdSsn2rt-OJY5PxoFmr1LLkp1bQQb3GuerMA@mail.gmail.com>
+In-Reply-To: <CA+V-a8tqQGk1v_QdSsn2rt-OJY5PxoFmr1LLkp1bQQb3GuerMA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Apr 26, 2013 at 11:22:48AM -0300, Mauro Carvalho Chehab wrote:
-> Adds a code that (auto)detects gm7113c clones. The auto-detection
-> here is not perfect, as, on contrary to what it would be expected
-> by looking into its datasheets some devices would return, instead:
-> 
-> 	saa7115 0-0025: chip 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 10 @ 0x4a is unknown
-> 
-> (found on a device labeled as GM7113C 1145 by Ezequiel Garcia)
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+On 05/25/2013 04:26 PM, Prabhakar Lad wrote:
+>> Thus it might make sense to have only following integer properties (added
+>> >  as needed):
+>> >
+>> >  composite-sync-active
+>> >  sync-on-green-active
+>> >  sync-on-comp-active
+>> >  sync-on-luma-active
+>> >
+>> >  This would allow to specify polarity of each signal and at the same time
+>> >  the parsing code could derive synchronisation type. A new field could be
+>> >  added to struct v4l2_of_parallel_bus, e.g. sync_type and it would be filled
+>> >  within v4l2_of_parse_endpoint().
+>> >
+> I am OK with this option. and I hope you meant "struct
+> v4l2_of_bus_parallel" instead
+> of " struct v4l2_of_parallel_bus" and to fill sync_type within
+> v4l2_of_parse_parallel_bus()
+> and not in v4l2_of_parse_endpoint().
 
-Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Yes, that's what I meant, sorry for this confusion.
 
--- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+Regards,
+Sylwester
