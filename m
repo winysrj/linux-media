@@ -1,56 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60456 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966739Ab3E3DfV (ORCPT
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:34962 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757142Ab3EYQhu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 23:35:21 -0400
-Received: from avalon.localnet (p2155-ipngn4501marunouchi.tokyo.ocn.ne.jp [153.135.240.155])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5E22135A4D
-	for <linux-media@vger.kernel.org>; Thu, 30 May 2013 05:35:17 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.11] uvcvideo patches
-Date: Thu, 30 May 2013 05:35:18 +0200
-Message-ID: <1695053.ptG3MVOcOO@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Sat, 25 May 2013 12:37:50 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 0/5] media: davinci: vpif trivial cleanup
+Date: Sat, 25 May 2013 22:06:31 +0530
+Message-Id: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-The following changes since commit 7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
+This patch series cleans the VPIF driver, uses devm_* api wherever
+required and uses module_platform_driver() to simplify the code.
 
-  [media] media: pci: remove duplicate checks for EPERM (2013-05-27 09:34:56 
--0300)
+This patch series applies on http://git.linuxtv.org/hverkuil/media_tree.git/
+shortlog/refs/heads/for-v3.11 and is tested on OMAP-L138.
 
-are available in the git repository at:
+Changes for v2:
+1: Rebased on v3.11 branch of Hans.
+2: Dropped the patches which removed headers as mentioned by Laurent.
 
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
+Lad, Prabhakar (5):
+  media: davinci: vpif: remove unwanted header mach/hardware.h and sort
+    the includes alphabetically
+  media: davinci: vpif: Convert to devm_* api
+  media: davinci: vpif: remove unnecessary braces around defines
+  media: davinci: vpif_capture: Convert to devm_* api
+  media: davinci: vpif_display: Convert to devm_* api
 
-for you to fetch changes up to f8ba161bd9a9cd474839e25e9729187766633056:
-
-  uvcvideo: Fix open/close race condition (2013-05-30 05:31:59 +0200)
-
-----------------------------------------------------------------
-Joseph Salisbury (1):
-      uvcvideo: quirk PROBE_DEF for Alienware X51 OmniVision webcam
-
-Kamal Mostafa (1):
-      uvcvideo: quirk PROBE_DEF for Dell Studio / OmniVision webcam
-
-Laurent Pinchart (1):
-      uvcvideo: Fix open/close race condition
-
- drivers/media/usb/uvc/uvc_driver.c | 41 +++++++++++++++++++++++++++++++------
- drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
- drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
- drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
- 4 files changed, 50 insertions(+), 33 deletions(-)
-
--- 
-Regards,
-
-Laurent Pinchart
+ drivers/media/platform/davinci/vpif.c         |   45 ++++-----------
+ drivers/media/platform/davinci/vpif_capture.c |   73 +++++--------------------
+ drivers/media/platform/davinci/vpif_display.c |   61 ++++-----------------
+ 3 files changed, 37 insertions(+), 142 deletions(-)
 
