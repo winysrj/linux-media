@@ -1,43 +1,242 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46127 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759441Ab3EWOnQ (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2029 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752692Ab3EZN1f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 10:43:16 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Sun, 26 May 2013 09:27:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 2/9] [media] coda: frame stride must be a multiple of 8
-Date: Thu, 23 May 2013 16:42:54 +0200
-Message-Id: <1369320181-17933-3-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
-References: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 03/24] cx18: remove g_chip_ident support.
+Date: Sun, 26 May 2013 15:26:58 +0200
+Message-Id: <1369574839-6687-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 7ac2299..79a81eb 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -422,8 +422,9 @@ static int vidioc_try_fmt(struct coda_dev *dev, struct v4l2_format *f)
- 		v4l_bound_align_image(&f->fmt.pix.width, MIN_W, MAX_W,
- 				      W_ALIGN, &f->fmt.pix.height,
- 				      MIN_H, MAX_H, H_ALIGN, S_ALIGN);
--		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 2);
--		f->fmt.pix.sizeimage = f->fmt.pix.width *
-+		/* Frame stride must be multiple of 8 */
-+		f->fmt.pix.bytesperline = round_up(f->fmt.pix.width, 8);
-+		f->fmt.pix.sizeimage = f->fmt.pix.bytesperline *
- 					f->fmt.pix.height * 3 / 2;
- 	} else { /*encoded formats h.264/mpeg4 */
- 		f->fmt.pix.bytesperline = 0;
+The av-core is really a subdev, so there is no need anymore to act as if it
+is a 'second' bridge chip.
+
+As a result of this the g_chip_ident implementation can be completely dropped.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx18/cx18-av-core.c |   32 --------------
+ drivers/media/pci/cx18/cx18-av-core.h |    1 -
+ drivers/media/pci/cx18/cx18-ioctl.c   |   78 +++------------------------------
+ 3 files changed, 7 insertions(+), 104 deletions(-)
+
+diff --git a/drivers/media/pci/cx18/cx18-av-core.c b/drivers/media/pci/cx18/cx18-av-core.c
+index ba8caf0..c4890a4 100644
+--- a/drivers/media/pci/cx18/cx18-av-core.c
++++ b/drivers/media/pci/cx18/cx18-av-core.c
+@@ -22,7 +22,6 @@
+  *  02110-1301, USA.
+  */
+ 
+-#include <media/v4l2-chip-ident.h>
+ #include "cx18-driver.h"
+ #include "cx18-io.h"
+ #include "cx18-cards.h"
+@@ -1231,31 +1230,12 @@ static int cx18_av_log_status(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
+-static inline int cx18_av_dbg_match(const struct v4l2_dbg_match *match)
+-{
+-	return match->type == V4L2_CHIP_MATCH_HOST && match->addr == 1;
+-}
+-
+-static int cx18_av_g_chip_ident(struct v4l2_subdev *sd,
+-				struct v4l2_dbg_chip_ident *chip)
+-{
+-	struct cx18_av_state *state = to_cx18_av_state(sd);
+-
+-	if (cx18_av_dbg_match(&chip->match)) {
+-		chip->ident = state->id;
+-		chip->revision = state->rev;
+-	}
+-	return 0;
+-}
+-
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int cx18_av_g_register(struct v4l2_subdev *sd,
+ 			      struct v4l2_dbg_register *reg)
+ {
+ 	struct cx18 *cx = v4l2_get_subdevdata(sd);
+ 
+-	if (!cx18_av_dbg_match(&reg->match))
+-		return -EINVAL;
+ 	if ((reg->reg & 0x3) != 0)
+ 		return -EINVAL;
+ 	reg->size = 4;
+@@ -1268,8 +1248,6 @@ static int cx18_av_s_register(struct v4l2_subdev *sd,
+ {
+ 	struct cx18 *cx = v4l2_get_subdevdata(sd);
+ 
+-	if (!cx18_av_dbg_match(&reg->match))
+-		return -EINVAL;
+ 	if ((reg->reg & 0x3) != 0)
+ 		return -EINVAL;
+ 	cx18_av_write4(cx, reg->reg & 0x00000ffc, reg->val);
+@@ -1282,17 +1260,9 @@ static const struct v4l2_ctrl_ops cx18_av_ctrl_ops = {
+ };
+ 
+ static const struct v4l2_subdev_core_ops cx18_av_general_ops = {
+-	.g_chip_ident = cx18_av_g_chip_ident,
+ 	.log_status = cx18_av_log_status,
+ 	.load_fw = cx18_av_load_fw,
+ 	.reset = cx18_av_reset,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+-	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+-	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+-	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.querymenu = v4l2_subdev_querymenu,
+ 	.s_std = cx18_av_s_std,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = cx18_av_g_register,
+@@ -1340,8 +1310,6 @@ int cx18_av_probe(struct cx18 *cx)
+ 	int err;
+ 
+ 	state->rev = cx18_av_read4(cx, CXADEC_CHIP_CTRL) & 0xffff;
+-	state->id = ((state->rev >> 4) == CXADEC_CHIP_TYPE_MAKO)
+-		    ? V4L2_IDENT_CX23418_843 : V4L2_IDENT_UNKNOWN;
+ 
+ 	state->vid_input = CX18_AV_COMPOSITE7;
+ 	state->aud_input = CX18_AV_AUDIO8;
+diff --git a/drivers/media/pci/cx18/cx18-av-core.h b/drivers/media/pci/cx18/cx18-av-core.h
+index e9c69d9..4c559e8 100644
+--- a/drivers/media/pci/cx18/cx18-av-core.h
++++ b/drivers/media/pci/cx18/cx18-av-core.h
+@@ -104,7 +104,6 @@ struct cx18_av_state {
+ 	enum cx18_av_audio_input aud_input;
+ 	u32 audclk_freq;
+ 	int audmode;
+-	u32 id;
+ 	u32 rev;
+ 	int is_initialized;
+ 
+diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
+index aee7b6d..414b0ec 100644
+--- a/drivers/media/pci/cx18/cx18-ioctl.c
++++ b/drivers/media/pci/cx18/cx18-ioctl.c
+@@ -39,7 +39,6 @@
+ #include "cx18-cards.h"
+ #include "cx18-av-core.h"
+ #include <media/tveeprom.h>
+-#include <media/v4l2-chip-ident.h>
+ 
+ u16 cx18_service2vbi(int type)
+ {
+@@ -362,73 +361,16 @@ static int cx18_s_fmt_sliced_vbi_cap(struct file *file, void *fh,
+ 	return 0;
+ }
+ 
+-static int cx18_g_chip_ident(struct file *file, void *fh,
+-				struct v4l2_dbg_chip_ident *chip)
+-{
+-	struct cx18 *cx = fh2id(fh)->cx;
+-	int err = 0;
+-
+-	chip->ident = V4L2_IDENT_NONE;
+-	chip->revision = 0;
+-	switch (chip->match.type) {
+-	case V4L2_CHIP_MATCH_HOST:
+-		switch (chip->match.addr) {
+-		case 0:
+-			chip->ident = V4L2_IDENT_CX23418;
+-			chip->revision = cx18_read_reg(cx, 0xC72028);
+-			break;
+-		case 1:
+-			/*
+-			 * The A/V decoder is always present, but in the rare
+-			 * case that the card doesn't have analog, we don't
+-			 * use it.  We find it w/o using the cx->sd_av pointer
+-			 */
+-			cx18_call_hw(cx, CX18_HW_418_AV,
+-				     core, g_chip_ident, chip);
+-			break;
+-		default:
+-			/*
+-			 * Could return ident = V4L2_IDENT_UNKNOWN if we had
+-			 * other host chips at higher addresses, but we don't
+-			 */
+-			err = -EINVAL; /* per V4L2 spec */
+-			break;
+-		}
+-		break;
+-	case V4L2_CHIP_MATCH_I2C_DRIVER:
+-		/* If needed, returns V4L2_IDENT_AMBIGUOUS without extra work */
+-		cx18_call_all(cx, core, g_chip_ident, chip);
+-		break;
+-	case V4L2_CHIP_MATCH_I2C_ADDR:
+-		/*
+-		 * We could return V4L2_IDENT_UNKNOWN, but we don't do the work
+-		 * to look if a chip is at the address with no driver.  That's a
+-		 * dangerous thing to do with EEPROMs anyway.
+-		 */
+-		cx18_call_all(cx, core, g_chip_ident, chip);
+-		break;
+-	default:
+-		err = -EINVAL;
+-		break;
+-	}
+-	return err;
+-}
+-
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int cx18_g_register(struct file *file, void *fh,
+ 				struct v4l2_dbg_register *reg)
+ {
+ 	struct cx18 *cx = fh2id(fh)->cx;
+ 
+-	if (v4l2_chip_match_host(&reg->match)) {
+-		if (reg->reg >= CX18_MEM_OFFSET + CX18_MEM_SIZE)
+-			return -EINVAL;
+-		reg->size = 4;
+-		reg->val = cx18_read_enc(cx, reg->reg);
+-		return 0;
+-	}
+-	/* FIXME - errors shouldn't be ignored */
+-	cx18_call_all(cx, core, g_register, reg);
++	if (reg->reg >= CX18_MEM_OFFSET + CX18_MEM_SIZE)
++		return -EINVAL;
++	reg->size = 4;
++	reg->val = cx18_read_enc(cx, reg->reg);
+ 	return 0;
+ }
+ 
+@@ -437,14 +379,9 @@ static int cx18_s_register(struct file *file, void *fh,
+ {
+ 	struct cx18 *cx = fh2id(fh)->cx;
+ 
+-	if (v4l2_chip_match_host(&reg->match)) {
+-		if (reg->reg >= CX18_MEM_OFFSET + CX18_MEM_SIZE)
+-			return -EINVAL;
+-		cx18_write_enc(cx, reg->val, reg->reg);
+-		return 0;
+-	}
+-	/* FIXME - errors shouldn't be ignored */
+-	cx18_call_all(cx, core, s_register, reg);
++	if (reg->reg >= CX18_MEM_OFFSET + CX18_MEM_SIZE)
++		return -EINVAL;
++	cx18_write_enc(cx, reg->val, reg->reg);
+ 	return 0;
+ }
+ #endif
+@@ -1162,7 +1099,6 @@ static const struct v4l2_ioctl_ops cx18_ioctl_ops = {
+ 	.vidioc_try_fmt_vbi_cap         = cx18_try_fmt_vbi_cap,
+ 	.vidioc_try_fmt_sliced_vbi_cap  = cx18_try_fmt_sliced_vbi_cap,
+ 	.vidioc_g_sliced_vbi_cap        = cx18_g_sliced_vbi_cap,
+-	.vidioc_g_chip_ident            = cx18_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register              = cx18_g_register,
+ 	.vidioc_s_register              = cx18_s_register,
 -- 
-1.8.2.rc2
+1.7.10.4
 
