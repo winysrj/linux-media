@@ -1,90 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from casper.infradead.org ([85.118.1.10]:56138 "EHLO
-	casper.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756186Ab3EATd0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 15:33:26 -0400
-Message-ID: <51816DE6.9060308@infradead.org>
-Date: Wed, 01 May 2013 12:32:54 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59177 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758593Ab3EZAtl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 May 2013 20:49:41 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 1/5] media: davinci: vpif: remove unwanted header mach/hardware.h and sort the includes alphabetically
+Date: Sun, 26 May 2013 02:49:37 +0200
+Message-ID: <97825926.dhHpFOhUhr@avalon>
+In-Reply-To: <1369499796-18762-2-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com> <1369499796-18762-2-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-To: "Yann E. MORIN" <yann.morin.1998@free.fr>
-CC: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kbuild@vger.kernel.org
-Subject: Re: linux-next: Tree for May 1 (media/usb/stk1160)
-References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au> <518157EB.3010700@infradead.org> <20130501192845.GA18811@free.fr>
-In-Reply-To: <20130501192845.GA18811@free.fr>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/01/13 12:28, Yann E. MORIN wrote:
-> On Wed, May 01, 2013 at 10:59:07AM -0700, Randy Dunlap wrote:
->> On 05/01/13 01:37, Stephen Rothwell wrote:
->>> Hi all,
->>>
->>> Please do not add any v3.11 destined work to your linux-next included
->>> branches until after v3.10-rc1 is released.
->>>
->>> Changes since 20130430:
->>>
->>
->>
->> When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
->> CONFIG_VIDEO_STK1160=y
->> CONFIG_VIDEO_STK1160_AC97=y
->>
->> drivers/built-in.o: In function `stk1160_ac97_register':
->> (.text+0x122706): undefined reference to `snd_card_create'
->> drivers/built-in.o: In function `stk1160_ac97_register':
->> (.text+0x1227b2): undefined reference to `snd_ac97_bus'
->> drivers/built-in.o: In function `stk1160_ac97_register':
->> (.text+0x1227cd): undefined reference to `snd_card_free'
->> drivers/built-in.o: In function `stk1160_ac97_register':
->> (.text+0x12281b): undefined reference to `snd_ac97_mixer'
->> drivers/built-in.o: In function `stk1160_ac97_register':
->> (.text+0x122832): undefined reference to `snd_card_register'
->> drivers/built-in.o: In function `stk1160_ac97_unregister':
->> (.text+0x12285e): undefined reference to `snd_card_free'
->>
->>
->> This kconfig fragment:
->> config VIDEO_STK1160_AC97
->> 	bool "STK1160 AC97 codec support"
->> 	depends on VIDEO_STK1160 && SND
->> 	select SND_AC97_CODEC
->>
->> is unreliable (doesn't do what some people expect) when SND=m and SND_AC97_CODEC=m,
->> since VIDEO_STK1160_AC97 is a bool.
+Hi Prabhakar,
+
+Thank you for the patch.
+
+On Saturday 25 May 2013 22:06:32 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > 
-> I'm not sure to understand what you want, here.
-
-I just want the build errors fixed.  I'm not asking for any particular fix.
-
-> I find it valid that a 'bool' can 'select' a 'tristate', to force it to 'y'.
-
-But a bool selecting a tristate that already =m does not force it to y AFAICT.
-I guess that would be an acceptable change/fix.  Maybe.
-
-> Do you mean there is an issue with Kconfig, the parser?
-
-I think so.
-
->   -> should Kconfig warn or error out in such a case?
+> This patch removes unwanted header include of mach/hardware.h
+> and along side sorts the header inclusion alphabetically.
 > 
-> Or do you mean the structure above is wrong, and should be ammended?
->   -> change the 'select' to a 'depends on'?
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-That should be one way to fix the problem, yes.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
->   -> change the symbol to a tristate?
-
-I thought about that, but I don't think that it will work.  There is no
-separate module that is built for AC97 codec support.
-
-
-thanks,
+> ---
+>  drivers/media/platform/davinci/vpif.c |   10 ++++------
+>  1 files changed, 4 insertions(+), 6 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif.c
+> b/drivers/media/platform/davinci/vpif.c index ea82a8b..761c825 100644
+> --- a/drivers/media/platform/davinci/vpif.c
+> +++ b/drivers/media/platform/davinci/vpif.c
+> @@ -17,18 +17,16 @@
+>   * GNU General Public License for more details.
+>   */
+> 
+> +#include <linux/err.h>
+>  #include <linux/init.h>
+> +#include <linux/io.h>
+> +#include <linux/kernel.h>
+>  #include <linux/module.h>
+>  #include <linux/platform_device.h>
+> -#include <linux/spinlock.h>
+> -#include <linux/kernel.h>
+> -#include <linux/io.h>
+> -#include <linux/err.h>
+>  #include <linux/pm_runtime.h>
+> +#include <linux/spinlock.h>
+>  #include <linux/v4l2-dv-timings.h>
+> 
+> -#include <mach/hardware.h>
+> -
+>  #include "vpif.h"
+> 
+>  MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
 -- 
-~Randy
+Regards,
+
+Laurent Pinchart
+
