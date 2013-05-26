@@ -1,139 +1,313 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:14934 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965860Ab3E2M2H (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1636 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752845Ab3EZN1h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 08:28:07 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MNK00IL57V57J40@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 29 May 2013 13:28:04 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org
-Cc: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Javier Martin' <javier.martin@vista-silicon.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'John Sheu' <sheu@google.com>
-References: <1369124189-590-1-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1369124189-590-1-git-send-email-p.zabel@pengutronix.de>
-Subject: RE: [PATCH 1/2] [media] v4l2-mem2mem: add v4l2_m2m_create_bufs helper
-Date: Wed, 29 May 2013 14:28:00 +0200
-Message-id: <021601ce5c67$f5920f20$e0b62d60$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Sun, 26 May 2013 09:27:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 09/24] gspca: remove g_chip_ident
+Date: Sun, 26 May 2013 15:27:04 +0200
+Message-Id: <1369574839-6687-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the patch. May I ask you to use use checkpath next time
-and keep whitespaces tidy? This time I fixed it (spaces changed to a tab).
+Remove g_chip_ident and replace it with g_chip_info.
 
-Checkpatch:
-------------------------------
-ERROR: code indent should use tabs where possible
-#41: FILE: drivers/media/v4l2-core/v4l2-mem2mem.c:384:
-+        return vb2_create_bufs(vq, create);$
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/gspca/gspca.c   |   32 +++++++++---------
+ drivers/media/usb/gspca/gspca.h   |    6 ++--
+ drivers/media/usb/gspca/pac7302.c |   19 +----------
+ drivers/media/usb/gspca/sn9c20x.c |   67 +++++++++----------------------------
+ 4 files changed, 34 insertions(+), 90 deletions(-)
 
-WARNING: please, no spaces at the start of a line
-#41: FILE: drivers/media/v4l2-core/v4l2-mem2mem.c:384:
-+        return vb2_create_bufs(vq, create);$
-
-total: 1 errors, 1 warnings, 28 lines checked
-
-Fix:
-------------------------------
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c
-b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 674e5a0..a756170 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -381,7 +381,7 @@ int v4l2_m2m_create_bufs(struct file *file, struct
-v4l2_m2m_ctx *m2m_ctx,
-        struct vb2_queue *vq;
- 
-        vq = v4l2_m2m_get_vq(m2m_ctx, create->format.type);
--        return vb2_create_bufs(vq, create);
-+       return vb2_create_bufs(vq, create);
+diff --git a/drivers/media/usb/gspca/gspca.c b/drivers/media/usb/gspca/gspca.c
+index 5995ec4..b7ae872 100644
+--- a/drivers/media/usb/gspca/gspca.c
++++ b/drivers/media/usb/gspca/gspca.c
+@@ -1029,33 +1029,35 @@ static int gspca_get_mode(struct gspca_dev *gspca_dev,
  }
- EXPORT_SYMBOL_GPL(v4l2_m2m_create_bufs);
-
-
-Best wishes,
+ 
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-static int vidioc_g_register(struct file *file, void *priv,
+-			struct v4l2_dbg_register *reg)
++static int vidioc_g_chip_info(struct file *file, void *priv,
++				struct v4l2_dbg_chip_info *chip)
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(file);
+ 
+ 	gspca_dev->usb_err = 0;
+-	return gspca_dev->sd_desc->get_register(gspca_dev, reg);
++	if (gspca_dev->sd_desc->get_chip_info)
++		return gspca_dev->sd_desc->get_chip_info(gspca_dev, chip);
++	return chip->match.addr ? -EINVAL : 0;
+ }
+ 
+-static int vidioc_s_register(struct file *file, void *priv,
+-			const struct v4l2_dbg_register *reg)
++static int vidioc_g_register(struct file *file, void *priv,
++		struct v4l2_dbg_register *reg)
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(file);
+ 
+ 	gspca_dev->usb_err = 0;
+-	return gspca_dev->sd_desc->set_register(gspca_dev, reg);
++	return gspca_dev->sd_desc->get_register(gspca_dev, reg);
+ }
+-#endif
+ 
+-static int vidioc_g_chip_ident(struct file *file, void *priv,
+-			struct v4l2_dbg_chip_ident *chip)
++static int vidioc_s_register(struct file *file, void *priv,
++		const struct v4l2_dbg_register *reg)
+ {
+ 	struct gspca_dev *gspca_dev = video_drvdata(file);
+ 
+ 	gspca_dev->usb_err = 0;
+-	return gspca_dev->sd_desc->get_chip_ident(gspca_dev, chip);
++	return gspca_dev->sd_desc->set_register(gspca_dev, reg);
+ }
++#endif
+ 
+ static int vidioc_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 				struct v4l2_fmtdesc *fmtdesc)
+@@ -1974,10 +1976,10 @@ static const struct v4l2_ioctl_ops dev_ioctl_ops = {
+ 	.vidioc_enum_framesizes = vidioc_enum_framesizes,
+ 	.vidioc_enum_frameintervals = vidioc_enum_frameintervals,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_chip_info	= vidioc_g_chip_info,
+ 	.vidioc_g_register	= vidioc_g_register,
+ 	.vidioc_s_register	= vidioc_s_register,
+ #endif
+-	.vidioc_g_chip_ident	= vidioc_g_chip_ident,
+ 	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+@@ -2086,14 +2088,10 @@ int gspca_dev_probe2(struct usb_interface *intf,
+ 	v4l2_disable_ioctl_locking(&gspca_dev->vdev, VIDIOC_DQBUF);
+ 	v4l2_disable_ioctl_locking(&gspca_dev->vdev, VIDIOC_QBUF);
+ 	v4l2_disable_ioctl_locking(&gspca_dev->vdev, VIDIOC_QUERYBUF);
+-	if (!gspca_dev->sd_desc->get_chip_ident)
+-		v4l2_disable_ioctl(&gspca_dev->vdev, VIDIOC_DBG_G_CHIP_IDENT);
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+-	if (!gspca_dev->sd_desc->get_chip_ident ||
+-	    !gspca_dev->sd_desc->get_register)
++	if (!gspca_dev->sd_desc->get_register)
+ 		v4l2_disable_ioctl(&gspca_dev->vdev, VIDIOC_DBG_G_REGISTER);
+-	if (!gspca_dev->sd_desc->get_chip_ident ||
+-	    !gspca_dev->sd_desc->set_register)
++	if (!gspca_dev->sd_desc->set_register)
+ 		v4l2_disable_ioctl(&gspca_dev->vdev, VIDIOC_DBG_S_REGISTER);
+ #endif
+ 	if (!gspca_dev->sd_desc->get_jcomp)
+diff --git a/drivers/media/usb/gspca/gspca.h b/drivers/media/usb/gspca/gspca.h
+index ef8efeb..ac0b11f 100644
+--- a/drivers/media/usb/gspca/gspca.h
++++ b/drivers/media/usb/gspca/gspca.h
+@@ -78,8 +78,8 @@ typedef int (*cam_get_reg_op) (struct gspca_dev *,
+ 				struct v4l2_dbg_register *);
+ typedef int (*cam_set_reg_op) (struct gspca_dev *,
+ 				const struct v4l2_dbg_register *);
+-typedef int (*cam_ident_op) (struct gspca_dev *,
+-				struct v4l2_dbg_chip_ident *);
++typedef int (*cam_chip_info_op) (struct gspca_dev *,
++				struct v4l2_dbg_chip_info *);
+ typedef void (*cam_streamparm_op) (struct gspca_dev *,
+ 				  struct v4l2_streamparm *);
+ typedef void (*cam_pkt_op) (struct gspca_dev *gspca_dev,
+@@ -112,8 +112,8 @@ struct sd_desc {
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	cam_set_reg_op set_register;
+ 	cam_get_reg_op get_register;
++	cam_chip_info_op get_chip_info;
+ #endif
+-	cam_ident_op get_chip_ident;
+ #if IS_ENABLED(CONFIG_INPUT)
+ 	cam_int_pkt_op int_pkt_scan;
+ 	/* other_input makes the gspca core create gspca_dev->input even when
+diff --git a/drivers/media/usb/gspca/pac7302.c b/drivers/media/usb/gspca/pac7302.c
+index 6008c8d..a915096 100644
+--- a/drivers/media/usb/gspca/pac7302.c
++++ b/drivers/media/usb/gspca/pac7302.c
+@@ -93,7 +93,6 @@
+ #define pr_fmt(fmt) KBUILD_MODNAME ": " fmt
+ 
+ #include <linux/input.h>
+-#include <media/v4l2-chip-ident.h>
+ #include "gspca.h"
+ /* Include pac common sof detection functions */
+ #include "pac_common.h"
+@@ -849,8 +848,7 @@ static int sd_dbg_s_register(struct gspca_dev *gspca_dev,
+ 	 * reg->reg: bit0..15: reserved for register index (wIndex is 16bit
+ 	 *		       long on the USB bus)
+ 	 */
+-	if (reg->match.type == V4L2_CHIP_MATCH_HOST &&
+-	    reg->match.addr == 0 &&
++	if (reg->match.addr == 0 &&
+ 	    (reg->reg < 0x000000ff) &&
+ 	    (reg->val <= 0x000000ff)
+ 	) {
+@@ -871,20 +869,6 @@ static int sd_dbg_s_register(struct gspca_dev *gspca_dev,
+ 	}
+ 	return gspca_dev->usb_err;
+ }
+-
+-static int sd_chip_ident(struct gspca_dev *gspca_dev,
+-			struct v4l2_dbg_chip_ident *chip)
+-{
+-	int ret = -EINVAL;
+-
+-	if (chip->match.type == V4L2_CHIP_MATCH_HOST &&
+-	    chip->match.addr == 0) {
+-		chip->revision = 0;
+-		chip->ident = V4L2_IDENT_UNKNOWN;
+-		ret = 0;
+-	}
+-	return ret;
+-}
+ #endif
+ 
+ #if IS_ENABLED(CONFIG_INPUT)
+@@ -931,7 +915,6 @@ static const struct sd_desc sd_desc = {
+ 	.dq_callback = do_autogain,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.set_register = sd_dbg_s_register,
+-	.get_chip_ident = sd_chip_ident,
+ #endif
+ #if IS_ENABLED(CONFIG_INPUT)
+ 	.int_pkt_scan = sd_int_pkt_scan,
+diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
+index ead9a1f..23b71f9 100644
+--- a/drivers/media/usb/gspca/sn9c20x.c
++++ b/drivers/media/usb/gspca/sn9c20x.c
+@@ -27,7 +27,6 @@
+ #include "gspca.h"
+ #include "jpeg.h"
+ 
+-#include <media/v4l2-chip-ident.h>
+ #include <linux/dmi.h>
+ 
+ MODULE_AUTHOR("Brian Johnson <brijohn@gmail.com>, "
+@@ -582,22 +581,6 @@ static const s16 hsv_blue_y[] = {
+ 	4,   2,   0,  -1,  -3,  -5,  -7,  -9, -11
+ };
+ 
+-static const u16 i2c_ident[] = {
+-	V4L2_IDENT_OV9650,
+-	V4L2_IDENT_OV9655,
+-	V4L2_IDENT_SOI968,
+-	V4L2_IDENT_OV7660,
+-	V4L2_IDENT_OV7670,
+-	V4L2_IDENT_MT9V011,
+-	V4L2_IDENT_MT9V111,
+-	V4L2_IDENT_MT9V112,
+-	V4L2_IDENT_MT9M001C12ST,
+-	V4L2_IDENT_MT9M111,
+-	V4L2_IDENT_MT9M112,
+-	V4L2_IDENT_HV7131R,
+-[SENSOR_MT9VPRB] = V4L2_IDENT_UNKNOWN,
+-};
+-
+ static const u16 bridge_init[][2] = {
+ 	{0x1000, 0x78}, {0x1001, 0x40}, {0x1002, 0x1c},
+ 	{0x1020, 0x80}, {0x1061, 0x01}, {0x1067, 0x40},
+@@ -1574,18 +1557,14 @@ static int sd_dbg_g_register(struct gspca_dev *gspca_dev,
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	switch (reg->match.type) {
+-	case V4L2_CHIP_MATCH_HOST:
+-		if (reg->match.addr != 0)
+-			return -EINVAL;
++	switch (reg->match.addr) {
++	case 0:
+ 		if (reg->reg < 0x1000 || reg->reg > 0x11ff)
+ 			return -EINVAL;
+ 		reg_r(gspca_dev, reg->reg, 1);
+ 		reg->val = gspca_dev->usb_buf[0];
+ 		return gspca_dev->usb_err;
+-	case V4L2_CHIP_MATCH_I2C_ADDR:
+-		if (reg->match.addr != sd->i2c_addr)
+-			return -EINVAL;
++	case 1:
+ 		if (sd->sensor >= SENSOR_MT9V011 &&
+ 		    sd->sensor <= SENSOR_MT9M112) {
+ 			i2c_r2(gspca_dev, reg->reg, (u16 *) &reg->val);
+@@ -1602,17 +1581,13 @@ static int sd_dbg_s_register(struct gspca_dev *gspca_dev,
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
+ 
+-	switch (reg->match.type) {
+-	case V4L2_CHIP_MATCH_HOST:
+-		if (reg->match.addr != 0)
+-			return -EINVAL;
++	switch (reg->match.addr) {
++	case 0:
+ 		if (reg->reg < 0x1000 || reg->reg > 0x11ff)
+ 			return -EINVAL;
+ 		reg_w1(gspca_dev, reg->reg, reg->val);
+ 		return gspca_dev->usb_err;
+-	case V4L2_CHIP_MATCH_I2C_ADDR:
+-		if (reg->match.addr != sd->i2c_addr)
+-			return -EINVAL;
++	case 1:
+ 		if (sd->sensor >= SENSOR_MT9V011 &&
+ 		    sd->sensor <= SENSOR_MT9M112) {
+ 			i2c_w2(gspca_dev, reg->reg, reg->val);
+@@ -1623,29 +1598,17 @@ static int sd_dbg_s_register(struct gspca_dev *gspca_dev,
+ 	}
+ 	return -EINVAL;
+ }
+-#endif
+ 
+-static int sd_chip_ident(struct gspca_dev *gspca_dev,
+-			struct v4l2_dbg_chip_ident *chip)
++static int sd_chip_info(struct gspca_dev *gspca_dev,
++			struct v4l2_dbg_chip_info *chip)
+ {
+-	struct sd *sd = (struct sd *) gspca_dev;
+-
+-	switch (chip->match.type) {
+-	case V4L2_CHIP_MATCH_HOST:
+-		if (chip->match.addr != 0)
+-			return -EINVAL;
+-		chip->revision = 0;
+-		chip->ident = V4L2_IDENT_SN9C20X;
+-		return 0;
+-	case V4L2_CHIP_MATCH_I2C_ADDR:
+-		if (chip->match.addr != sd->i2c_addr)
+-			return -EINVAL;
+-		chip->revision = 0;
+-		chip->ident = i2c_ident[sd->sensor];
+-		return 0;
+-	}
+-	return -EINVAL;
++	if (chip->match.addr > 1)
++		return -EINVAL;
++	if (chip->match.addr == 1)
++		strlcpy(chip->name, "sensor", sizeof(chip->name));
++	return 0;
+ }
++#endif
+ 
+ static int sd_config(struct gspca_dev *gspca_dev,
+ 			const struct usb_device_id *id)
+@@ -2356,8 +2319,8 @@ static const struct sd_desc sd_desc = {
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.set_register = sd_dbg_s_register,
+ 	.get_register = sd_dbg_g_register,
++	.get_chip_info = sd_chip_info,
+ #endif
+-	.get_chip_ident = sd_chip_ident,
+ };
+ 
+ #define SN9C20X(sensor, i2c_addr, flags) \
 -- 
-Kamil Debski
-Linux Kernel Developer
-Samsung R&D Institute Poland
-
-
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Philipp Zabel
-> Sent: Tuesday, May 21, 2013 10:16 AM
-> To: linux-media@vger.kernel.org
-> Cc: Mauro Carvalho Chehab; Javier Martin; Pawel Osciak; John Sheu;
-> Philipp Zabel
-> Subject: [PATCH 1/2] [media] v4l2-mem2mem: add v4l2_m2m_create_bufs
-> helper
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 14 ++++++++++++++
->  include/media/v4l2-mem2mem.h           |  2 ++
->  2 files changed, 16 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 66f599f..357efa4 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -372,6 +372,20 @@ int v4l2_m2m_dqbuf(struct file *file, struct
-> v4l2_m2m_ctx *m2m_ctx,  EXPORT_SYMBOL_GPL(v4l2_m2m_dqbuf);
-> 
->  /**
-> + * v4l2_m2m_create_bufs() - create a source or destination buffer,
-> +depending
-> + * on the type
-> + */
-> +int v4l2_m2m_create_bufs(struct file *file, struct v4l2_m2m_ctx
-> *m2m_ctx,
-> +			 struct v4l2_create_buffers *create) {
-> +	struct vb2_queue *vq;
-> +
-> +	vq = v4l2_m2m_get_vq(m2m_ctx, create->format.type);
-> +        return vb2_create_bufs(vq, create); }
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_create_bufs);
-> +
-> +/**
->   * v4l2_m2m_expbuf() - export a source or destination buffer,
-> depending on
->   * the type
->   */
-> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-
-> mem2mem.h index d3eef01..0f4555b 100644
-> --- a/include/media/v4l2-mem2mem.h
-> +++ b/include/media/v4l2-mem2mem.h
-> @@ -110,6 +110,8 @@ int v4l2_m2m_qbuf(struct file *file, struct
-> v4l2_m2m_ctx *m2m_ctx,
->  		  struct v4l2_buffer *buf);
->  int v4l2_m2m_dqbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->  		   struct v4l2_buffer *buf);
-> +int v4l2_m2m_create_bufs(struct file *file, struct v4l2_m2m_ctx
-> *m2m_ctx,
-> +			 struct v4l2_create_buffers *create);
-> 
->  int v4l2_m2m_expbuf(struct file *file, struct v4l2_m2m_ctx *m2m_ctx,
->  		   struct v4l2_exportbuffer *eb);
-> --
-> 1.8.2.rc2
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
-
+1.7.10.4
 
