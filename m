@@ -1,39 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:42031 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754657Ab3EZGe1 (ORCPT
+Received: from mail-pd0-f175.google.com ([209.85.192.175]:50624 "EHLO
+	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752671Ab3EZMCr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 02:34:27 -0400
-Received: by mail-we0-f174.google.com with SMTP id x50so1762262wes.19
-        for <linux-media@vger.kernel.org>; Sat, 25 May 2013 23:34:26 -0700 (PDT)
-MIME-Version: 1.0
-Date: Sun, 26 May 2013 15:34:26 +0900
-Message-ID: <CACySJQX-GUYax5MPounyFCUczgncPx=SV=8O6ORd_zwfn31jkQ@mail.gmail.com>
-Subject: Mistake on the colorspace page in the API doc
-From: Wouter Thielen <wouter@morannon.org>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+	Sun, 26 May 2013 08:02:47 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 5/9] media: davinci: vpif_capture: use module_platform_driver()
+Date: Sun, 26 May 2013 17:30:08 +0530
+Message-Id: <1369569612-30915-6-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-I have been trying to get the colors right in the images grabbed from my
-webcam, and I tried the color conversion code on
-http://linuxtv.org/downloads/v4l-dvb-apis/colorspaces.html.
+This patch uses module_platform_driver() to simplify the code.
 
-It turned out to be very white, so I checked out the intermediate steps,
-and thought the part:
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |   28 +------------------------
+ 1 files changed, 1 insertions(+), 27 deletions(-)
 
-ER = clamp (r * 255); /* [ok? one should prob. limit y1,pb,pr] */
-EG = clamp (g * 255);
-EB = clamp (b * 255);
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index f8b7304..38c1fba 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -2338,30 +2338,4 @@ static __refdata struct platform_driver vpif_driver = {
+ 	.remove = vpif_remove,
+ };
+ 
+-/**
+- * vpif_init: initialize the vpif driver
+- *
+- * This function registers device and driver to the kernel, requests irq
+- * handler and allocates memory
+- * for channel objects
+- */
+-static __init int vpif_init(void)
+-{
+-	return platform_driver_register(&vpif_driver);
+-}
+-
+-/**
+- * vpif_cleanup : This function clean up the vpif capture resources
+- *
+- * This will un-registers device and driver to the kernel, frees
+- * requested irq handler and de-allocates memory allocated for channel
+- * objects.
+- */
+-static void vpif_cleanup(void)
+-{
+-	platform_driver_unregister(&vpif_driver);
+-}
+-
+-/* Function for module initialization and cleanup */
+-module_init(vpif_init);
+-module_exit(vpif_cleanup);
++module_platform_driver(vpif_driver);
+-- 
+1.7.0.4
 
-
-should be without the * 255. I tried removing *255 and that worked.
-
-Regards,
-
---
-Wouter Thielen
-http://morannon.org/
