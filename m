@@ -1,40 +1,212 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f182.google.com ([209.85.220.182]:63469 "EHLO
-	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753630Ab3EaHuV (ORCPT
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:65073 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751939Ab3EZNJ2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 03:50:21 -0400
-Received: by mail-vc0-f182.google.com with SMTP id gf12so833496vcb.41
-        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 00:50:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1369837147-8747-2-git-send-email-hverkuil@xs4all.nl>
-References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
-	<1369837147-8747-2-git-send-email-hverkuil@xs4all.nl>
-Date: Fri, 31 May 2013 15:50:20 +0800
-Message-ID: <CAHG8p1Bs66ih6_COQynE6hOhriwSLQNp9C=eC6CMWFs+te9FHg@mail.gmail.com>
-Subject: Re: [RFC PATCH 01/14] adv7183: fix querystd
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 26 May 2013 09:09:28 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>, Arnd Bergmann <arnd@arndb.de>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Subject: [PATCH] media: i2c: mt9p031: add OF support
+Date: Sun, 26 May 2013 18:38:54 +0530
+Message-Id: <1369573734-19272-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/5/29 Hans Verkuil <hverkuil@xs4all.nl>:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> If no signal is detected, return V4L2_STD_UNKNOWN. Otherwise AND the standard
-> with the detected standards.
->
-> Note that the v4l2 core initializes the std with tvnorms before calling the
-> querystd ioctl.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-> ---
->  drivers/media/i2c/adv7183.c |   16 ++++++++--------
->  1 file changed, 8 insertions(+), 8 deletions(-)
->
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+add OF support for the mt9p031 sensor driver.
+Alongside this patch sorts the header inclusion alphabetically.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: Arnd Bergmann <arnd@arndb.de>
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ Changes for NON RFC v1:
+ 1: added missing call for of_node_put().
+ 
+ Changes for RFC v4 (https://patchwork.kernel.org/patch/2556251/):
+ 1: Renamed "gpio-reset" property to "reset-gpios".
+ 2: Dropped assigning the driver data from the of node.
+
+ Changes for RFC v3(https://patchwork.kernel.org/patch/2515921/):
+ 1: Dropped check if gpio-reset is valid.
+ 2: Fixed some code nits.
+ 3: Included a reference to the V4L2 DT bindings documentation.
+
+ Changes for RFC v2 (https://patchwork.kernel.org/patch/2510201/):
+ 1: Used '-' instead of '_' for device properties.
+ 2: Specified gpio reset pin as phandle in device node.
+ 3: Handle platform data properly even if kernel is compiled with
+    devicetree support.
+ 4: Used dev_* for messages in drivers instead of pr_*.
+ 5: Changed compatible property to "aptina,mt9p031" and "aptina,mt9p031m".
+ 6: Sorted the header inclusion alphabetically and fixed some minor code nits.
+ 
+ RFC v1: https://patchwork.kernel.org/patch/2498791/
+ 
+ .../devicetree/bindings/media/i2c/mt9p031.txt      |   40 ++++++++++++++++++
+ drivers/media/i2c/mt9p031.c                        |   43 +++++++++++++++++++-
+ 2 files changed, 81 insertions(+), 2 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+
+diff --git a/Documentation/devicetree/bindings/media/i2c/mt9p031.txt b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+new file mode 100644
+index 0000000..59d613c
+--- /dev/null
++++ b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+@@ -0,0 +1,40 @@
++* Aptina 1/2.5-Inch 5Mp CMOS Digital Image Sensor
++
++The Aptina MT9P031 is a 1/2.5-inch CMOS active pixel digital image sensor with
++an active array size of 2592H x 1944V. It is programmable through a simple
++two-wire serial interface.
++
++Required Properties :
++- compatible : value should be either one among the following
++	(a) "aptina,mt9p031" for mt9p031 sensor
++	(b) "aptina,mt9p031m" for mt9p031m sensor
++
++- input-clock-frequency : Input clock frequency.
++
++- pixel-clock-frequency : Pixel clock frequency.
++
++Optional Properties :
++- reset-gpios: Chip reset GPIO
++
++For further reading of port node refer Documentation/devicetree/bindings/media/
++video-interfaces.txt.
++
++Example:
++
++	i2c0@1c22000 {
++		...
++		...
++		mt9p031@5d {
++			compatible = "aptina,mt9p031";
++			reg = <0x5d>;
++			reset-gpios = <&gpio3 30 0>;
++
++			port {
++				mt9p031_1: endpoint {
++					input-clock-frequency = <6000000>;
++					pixel-clock-frequency = <96000000>;
++				};
++			};
++		};
++		...
++	};
+diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
+index bf49899..bb1f993 100644
+--- a/drivers/media/i2c/mt9p031.c
++++ b/drivers/media/i2c/mt9p031.c
+@@ -16,9 +16,10 @@
+ #include <linux/delay.h>
+ #include <linux/device.h>
+ #include <linux/gpio.h>
+-#include <linux/module.h>
+ #include <linux/i2c.h>
+ #include <linux/log2.h>
++#include <linux/module.h>
++#include <linux/of_gpio.h>
+ #include <linux/pm.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/slab.h>
+@@ -28,6 +29,7 @@
+ #include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-device.h>
++#include <media/v4l2-of.h>
+ #include <media/v4l2-subdev.h>
+ 
+ #include "aptina-pll.h"
+@@ -928,10 +930,37 @@ static const struct v4l2_subdev_internal_ops mt9p031_subdev_internal_ops = {
+  * Driver initialization and probing
+  */
+ 
++static struct mt9p031_platform_data *
++mt9p031_get_pdata(struct i2c_client *client)
++{
++	struct mt9p031_platform_data *pdata = NULL;
++	struct device_node *np;
++
++	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
++		return client->dev.platform_data;
++
++	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
++	if (!np)
++		return NULL;
++
++	pdata = devm_kzalloc(&client->dev, sizeof(struct mt9p031_platform_data),
++			     GFP_KERNEL);
++	if (!pdata)
++		goto done;
++
++	pdata->reset = of_get_named_gpio(client->dev.of_node, "reset-gpios", 0);
++	of_property_read_u32(np, "input-clock-frequency", &pdata->ext_freq);
++	of_property_read_u32(np, "pixel-clock-frequency", &pdata->target_freq);
++
++done:
++	of_node_put(np);
++	return pdata;
++}
++
+ static int mt9p031_probe(struct i2c_client *client,
+ 			 const struct i2c_device_id *did)
+ {
+-	struct mt9p031_platform_data *pdata = client->dev.platform_data;
++	struct mt9p031_platform_data *pdata = mt9p031_get_pdata(client);
+ 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
+ 	struct mt9p031 *mt9p031;
+ 	unsigned int i;
+@@ -1070,8 +1099,18 @@ static const struct i2c_device_id mt9p031_id[] = {
+ };
+ MODULE_DEVICE_TABLE(i2c, mt9p031_id);
+ 
++#if IS_ENABLED(CONFIG_OF)
++static const struct of_device_id mt9p031_of_match[] = {
++	{ .compatible = "aptina,mt9p031", },
++	{ .compatible = "aptina,mt9p031m", },
++	{ /* sentinel */ },
++};
++MODULE_DEVICE_TABLE(of, mt9p031_of_match);
++#endif
++
+ static struct i2c_driver mt9p031_i2c_driver = {
+ 	.driver = {
++		.of_match_table = of_match_ptr(mt9p031_of_match),
+ 		.name = "mt9p031",
+ 	},
+ 	.probe          = mt9p031_probe,
+-- 
+1.7.0.4
+
