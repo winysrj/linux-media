@@ -1,50 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:39984 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758284Ab3EWUHW (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1413 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752812Ab3EZN1f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 16:07:22 -0400
-Received: by mail-pa0-f46.google.com with SMTP id fa10so3406590pad.33
-        for <linux-media@vger.kernel.org>; Thu, 23 May 2013 13:07:22 -0700 (PDT)
-Message-ID: <519E76F3.4070006@gmail.com>
-Date: Thu, 23 May 2013 17:07:15 -0300
-From: =?ISO-8859-1?Q?=22Alejandro_A=2E_Vald=E9s=22?= <av2406@gmail.com>
-MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: Audio: no sound
-References: <519D6CFA.2000506@gmail.com> <CALF0-+UqJaNc7v86qakVTNEJx5npMFPqFp-=9rAByFV_+FEaww@mail.gmail.com> <519E41AC.3040707@gmail.com> <CALF0-+U5dFktwHwO5-h_7RJ1xyjc3JbHUWqG3g=WSPA=HcHnnw@mail.gmail.com> <519E6046.8050509@gmail.com> <CALF0-+UZnt9rfmQFSecqaf_9L29mwKeNV22w1XmMQQG0AE=jJw@mail.gmail.com>
-In-Reply-To: <CALF0-+UZnt9rfmQFSecqaf_9L29mwKeNV22w1XmMQQG0AE=jJw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+	Sun, 26 May 2013 09:27:35 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 08/24] saa6752hs: drop obsolete g_chip_ident.
+Date: Sun, 26 May 2013 15:27:03 +0200
+Message-Id: <1369574839-6687-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/23/2013 04:12 PM, Ezequiel Garcia wrote:
-> Alejandro,
->
-> You dropped the linux-media list from Cc. I'm adding it back.
->
-> On Thu, May 23, 2013 at 3:30 PM, "Alejandro A. Valdés" <av2406@gmail.com> wrote:
->> # lsmod
->> Module                  Size  Used by
->> snd_usb_audio         106622  0
->> snd_usbmidi_lib        24590  1 snd_usb_audio
->> easycap              1213861  1
-> Okey. This is all I need. You're using the "easycap" driver which is
-> an old, deprecated and staging (i.e. experimental) driver for easycap
-> devices.
->
-> The new driver, which is fully supported, is called "stk1160". It's
-> been completely written from scratch, so it's not related to the old
-> one.
->
-> Upgrade your kernel and/or your distribution to get a kernel >= v3.6
-> which includes the new driver, try again and let me know what happens.
->
-> --
->      Ezequiel
-  Thanks for the tip. Will do so as son as I get another box to play 
-with for a while. Not in shape to risk this environment. Will let you 
-know the results. Regards,
-Alejandro
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+This op and the v4l2-chip-ident.h header are no longer needed.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa6752hs.c |   14 --------------
+ 1 file changed, 14 deletions(-)
+
+diff --git a/drivers/media/pci/saa7134/saa6752hs.c b/drivers/media/pci/saa7134/saa6752hs.c
+index f147b05..244b286 100644
+--- a/drivers/media/pci/saa7134/saa6752hs.c
++++ b/drivers/media/pci/saa7134/saa6752hs.c
+@@ -35,7 +35,6 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <linux/init.h>
+ #include <linux/crc32.h>
+ 
+@@ -92,7 +91,6 @@ static const struct v4l2_format v4l2_format_table[] =
+ 
+ struct saa6752hs_state {
+ 	struct v4l2_subdev            sd;
+-	int 			      chip;
+ 	u32 			      revision;
+ 	int 			      has_ac3;
+ 	struct saa6752hs_mpeg_params  params;
+@@ -914,19 +912,9 @@ static int saa6752hs_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	return 0;
+ }
+ 
+-static int saa6752hs_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct saa6752hs_state *h = to_state(sd);
+-
+-	return v4l2_chip_ident_i2c_client(client,
+-			chip, h->chip, h->revision);
+-}
+-
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_subdev_core_ops saa6752hs_core_ops = {
+-	.g_chip_ident = saa6752hs_g_chip_ident,
+ 	.init = saa6752hs_init,
+ 	.queryctrl = saa6752hs_queryctrl,
+ 	.querymenu = saa6752hs_querymenu,
+@@ -963,11 +951,9 @@ static int saa6752hs_probe(struct i2c_client *client,
+ 
+ 	i2c_master_send(client, &addr, 1);
+ 	i2c_master_recv(client, data, sizeof(data));
+-	h->chip = V4L2_IDENT_SAA6752HS;
+ 	h->revision = (data[8] << 8) | data[9];
+ 	h->has_ac3 = 0;
+ 	if (h->revision == 0x0206) {
+-		h->chip = V4L2_IDENT_SAA6752HS_AC3;
+ 		h->has_ac3 = 1;
+ 		v4l_info(client, "support AC-3\n");
+ 	}
+-- 
+1.7.10.4
+
