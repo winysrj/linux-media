@@ -1,61 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:63478 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753873Ab3EaOlD (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:60725 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752884Ab3EZMDU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 10:41:03 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MNO00ELB3G99NW0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 31 May 2013 23:41:02 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hj210.choi@samsung.com,
-	arun.kk@samsung.com, shaik.ameer@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [REVIEW PATCH v2 05/11] exynos4-is: Do not use asynchronous runtime PM
- in release fop
-Date: Fri, 31 May 2013 16:37:21 +0200
-Message-id: <1370011047-11488-6-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
-References: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 26 May 2013 08:03:20 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 8/9] media: davinci: vpif_display: use module_platform_driver()
+Date: Sun, 26 May 2013 17:30:11 +0530
+Message-Id: <1369569612-30915-9-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use pm_runtime_put_sync() instead of pm_runtime_put() to avoid races
-in handling the 'state' bit flags when the fimc-capture drivers'
-runtime_resume callback is called from the PM workqueue.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+This patch uses module_platform_driver() to simplify the code.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/platform/exynos4-is/fimc-capture.c |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/platform/davinci/vpif_display.c |   18 +-----------------
+ 1 files changed, 1 insertions(+), 17 deletions(-)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index 3b24f29..534ea68 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -496,7 +496,7 @@ static int fimc_capture_open(struct file *file)
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 9c308e7..7bcfe7d 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -2005,20 +2005,4 @@ static __refdata struct platform_driver vpif_driver = {
+ 	.remove	= vpif_remove,
+ };
  
- 	ret = v4l2_fh_open(file);
- 	if (ret) {
--		pm_runtime_put(&fimc->pdev->dev);
-+		pm_runtime_put_sync(&fimc->pdev->dev);
- 		goto unlock;
- 	}
- 
-@@ -564,7 +564,7 @@ static int fimc_capture_release(struct file *file)
- 		fimc_md_graph_unlock(&vc->ve);
- 	}
- 
--	pm_runtime_put(&fimc->pdev->dev);
-+	pm_runtime_put_sync(&fimc->pdev->dev);
- 	mutex_unlock(&fimc->lock);
- 
- 	return ret;
+-static __init int vpif_init(void)
+-{
+-	return platform_driver_register(&vpif_driver);
+-}
+-
+-/*
+- * vpif_cleanup: This function un-registers device and driver to the kernel,
+- * frees requested irq handler and de-allocates memory allocated for channel
+- * objects.
+- */
+-static void vpif_cleanup(void)
+-{
+-	platform_driver_unregister(&vpif_driver);
+-}
+-
+-module_init(vpif_init);
+-module_exit(vpif_cleanup);
++module_platform_driver(vpif_driver);
 -- 
-1.7.9.5
+1.7.0.4
 
