@@ -1,42 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:43654 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751068Ab3EPVWc (ORCPT
+Received: from mail-la0-f48.google.com ([209.85.215.48]:64441 "EHLO
+	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753295Ab3EZOhF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 17:22:32 -0400
-Received: by mail-lb0-f177.google.com with SMTP id 13so3579294lba.8
-        for <linux-media@vger.kernel.org>; Thu, 16 May 2013 14:22:31 -0700 (PDT)
-To: horms@verge.net.au, linux-sh@vger.kernel.org, mchehab@redhat.com,
-	linux-media@vger.kernel.org, linus.walleij@linaro.org
-Subject: [PATCH v4 0/3] R8A7778/BOCK-W R-Car VIN driver support
-Cc: magnus.damm@gmail.com, linux@arm.linux.org.uk,
-	linux-arm-kernel@lists.infradead.org, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
+	Sun, 26 May 2013 10:37:05 -0400
+Received: by mail-la0-f48.google.com with SMTP id fs12so5745501lab.21
+        for <linux-media@vger.kernel.org>; Sun, 26 May 2013 07:37:03 -0700 (PDT)
+Message-ID: <51A21E0D.2030509@cogentembedded.com>
+Date: Sun, 26 May 2013 18:37:01 +0400
 From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Fri, 17 May 2013 01:22:33 +0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 2/9] media: davinci: vpif: Convert to devm_* api
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com> <1369569612-30915-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369569612-30915-3-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201305170122.33996.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hello.
 
-   Here's the set of 3 patches against the Simon Horman's 'renesas.git' repo,
-'renesas-next-20130515v2' tag and my recent yet unapplied patches. Here we
-add the VIN platform code working on
-the R8A7778/BOCK-W with ML86V7667. The driver patch also applies (with offsets)
-to Mauro's 'media_tree.git'...
+On 26-05-2013 16:00, Prabhakar Lad wrote:
 
-[1/3] ARM: shmobile: r8a7778: add VIN support
-[2/3] ARM: shmobile: BOCK-W: add VIN and ML86V7667 support
-[3/3] ARM: shmobile: BOCK-W: enable VIN and ML86V7667 in defconfig
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-   The patch containing OKI ML86V7667 video decoder driver has been removed
-from the series as it should be applied to the 'media_tree.git' repo. The patch
-containing the VIN PFC support has been also removed from the series and has
-now been merged.
+> Use devm_ioremap_resource instead of reques_mem_region()/ioremap().
+> This ensures more consistent error values and simplifies error paths.
+
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> ---
+>   drivers/media/platform/davinci/vpif.c |   27 ++++-----------------------
+>   1 files changed, 4 insertions(+), 23 deletions(-)
+
+> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+> index 761c825..f857d8f 100644
+> --- a/drivers/media/platform/davinci/vpif.c
+> +++ b/drivers/media/platform/davinci/vpif.c
+[...]
+> @@ -421,23 +419,12 @@ EXPORT_SYMBOL(vpif_channel_getfid);
+>
+>   static int vpif_probe(struct platform_device *pdev)
+>   {
+> -	int status = 0;
+> +	static struct resource	*res;
+>
+>   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+[...]
+> +	vpif_base = devm_request_and_ioremap(&pdev->dev, res);
+
+    No, don't use this deprecated funtion please. Undo to 
+devm_ioremap_resource().
+
+> +	if (IS_ERR(vpif_base))
+
+     NAK, devm_request_and_ioremap() doesn't rethrn error cpdes, only 
+NULL. BTW, it's implemented via a call to devm_ioremap_resource() now.
+Is it so hard to look at the code that you've calling?
+
+> +		return PTR_ERR(vpif_base);
 
 WBR, Sergei
+
