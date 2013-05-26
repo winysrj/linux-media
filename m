@@ -1,54 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:41898 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756320Ab3E0Cdl (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59173 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758436Ab3EZAt1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 22:33:41 -0400
-From: Libo Chen <libo.chen@huawei.com>
-To: <mchehab@redhat.com>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<lizefan@huawei.com>, <libo.chen@huawei.com>,
-	<gregkh@linuxfoundation.org>
-Subject: [PATCH 18/24] drivers/media/pci/mantis/hopper_cards: Convert to module_pci_driver
-Date: Mon, 27 May 2013 10:31:46 +0800
-Message-ID: <1369621906-21268-1-git-send-email-libo.chen@huawei.com>
+	Sat, 25 May 2013 20:49:27 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 2/5] media: davinci: vpif: Convert to devm_* api
+Date: Sun, 26 May 2013 02:49:22 +0200
+Message-ID: <1492638.E2728sugZv@avalon>
+In-Reply-To: <1369499796-18762-3-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com> <1369499796-18762-3-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-use module_pci_driver instead of init/exit, make code clean.
+Hi Prabhakar,
 
-Signed-off-by: Libo Chen <libo.chen@huawei.com>
----
- drivers/media/pci/mantis/hopper_cards.c |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/pci/mantis/hopper_cards.c b/drivers/media/pci/mantis/hopper_cards.c
-index 6fe9fe5..104914a 100644
---- a/drivers/media/pci/mantis/hopper_cards.c
-+++ b/drivers/media/pci/mantis/hopper_cards.c
-@@ -260,18 +260,7 @@ static struct pci_driver hopper_pci_driver = {
- 	.remove		= hopper_pci_remove,
- };
- 
--static int hopper_init(void)
--{
--	return pci_register_driver(&hopper_pci_driver);
--}
--
--static void hopper_exit(void)
--{
--	return pci_unregister_driver(&hopper_pci_driver);
--}
--
--module_init(hopper_init);
--module_exit(hopper_exit);
-+module_pci_driver(hopper_pci_driver);
- 
- MODULE_DESCRIPTION("HOPPER driver");
- MODULE_AUTHOR("Manu Abraham");
+On Saturday 25 May 2013 22:06:33 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> Use devm_ioremap_resource instead of reques_mem_region()/ioremap().
+> This ensures more consistent error values and simplifies error paths.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  drivers/media/platform/davinci/vpif.c |   27 ++++-----------------------
+>  1 files changed, 4 insertions(+), 23 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif.c
+> b/drivers/media/platform/davinci/vpif.c index 761c825..164c1b7 100644
+> --- a/drivers/media/platform/davinci/vpif.c
+> +++ b/drivers/media/platform/davinci/vpif.c
+> @@ -37,8 +37,6 @@ MODULE_LICENSE("GPL");
+>  #define VPIF_CH2_MAX_MODES	(15)
+>  #define VPIF_CH3_MAX_MODES	(02)
+> 
+> -static resource_size_t	res_len;
+> -static struct resource	*res;
+>  spinlock_t vpif_lock;
+> 
+>  void __iomem *vpif_base;
+> @@ -421,23 +419,12 @@ EXPORT_SYMBOL(vpif_channel_getfid);
+> 
+>  static int vpif_probe(struct platform_device *pdev)
+>  {
+> -	int status = 0;
+> +	static struct resource	*res;
+> 
+>  	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> -	if (!res)
+> -		return -ENOENT;
+> -
+> -	res_len = resource_size(res);
+> -
+> -	res = request_mem_region(res->start, res_len, res->name);
+> -	if (!res)
+> -		return -EBUSY;
+> -
+> -	vpif_base = ioremap(res->start, res_len);
+> -	if (!vpif_base) {
+> -		status = -EBUSY;
+> -		goto fail;
+> -	}
+> +	vpif_base = devm_ioremap_resource(&pdev->dev, res);
+> +	if (IS_ERR(vpif_base))
+> +		return PTR_ERR(vpif_base);
+
+You're loosing the request_mem_region(). You should use 
+devm_request_and_ioremap() function instead of devm_ioremap_resource(). With 
+that change,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+>  	pm_runtime_enable(&pdev->dev);
+>  	pm_runtime_get(&pdev->dev);
+> @@ -445,17 +432,11 @@ static int vpif_probe(struct platform_device *pdev)
+>  	spin_lock_init(&vpif_lock);
+>  	dev_info(&pdev->dev, "vpif probe success\n");
+>  	return 0;
+> -
+> -fail:
+> -	release_mem_region(res->start, res_len);
+> -	return status;
+>  }
+> 
+>  static int vpif_remove(struct platform_device *pdev)
+>  {
+>  	pm_runtime_disable(&pdev->dev);
+> -	iounmap(vpif_base);
+> -	release_mem_region(res->start, res_len);
+>  	return 0;
+>  }
 -- 
-1.7.1
+Regards,
 
+Laurent Pinchart
 
