@@ -1,51 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:63508 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753446Ab3EXQcj (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:38635 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752674Ab3EZMCg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 24 May 2013 12:32:39 -0400
-Received: by mail-ee0-f47.google.com with SMTP id t10so2729924eei.20
-        for <linux-media@vger.kernel.org>; Fri, 24 May 2013 09:32:38 -0700 (PDT)
-From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-To: mchehab@redhat.com
-Cc: linux-media@vger.kernel.org,
-	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
-Subject: [PATCH 1/2] em28xx: add register defines for em25xx/em276x/7x/8x GPIO registers
-Date: Fri, 24 May 2013 18:34:07 +0200
-Message-Id: <1369413248-7028-1-git-send-email-fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sun, 26 May 2013 08:02:36 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 4/9] media: davinci: vpif_capture: move the freeing of irq and global variables to remove()
+Date: Sun, 26 May 2013 17:30:07 +0530
+Message-Id: <1369569612-30915-5-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-em25xx/em276x/7x/8x provides 3 GPIO register sets,
-each of them consisting of separate read and a write registers.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+Ideally the freeing of irq's and the global variables needs to be
+done in the remove() rather than module_exit(), this patch moves
+the freeing up of irq's and freeing the memory allocated to channel
+objects to remove() callback of struct platform_driver.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/usb/em28xx/em28xx-reg.h | 8 ++++++++
- 1 file changed, 8 insertions(+)
+ drivers/media/platform/davinci/vpif_capture.c |   31 ++++++++++--------------
+ 1 files changed, 13 insertions(+), 18 deletions(-)
 
-diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
-index 622871d..17bdb78 100644
---- a/drivers/media/usb/em28xx/em28xx-reg.h
-+++ b/drivers/media/usb/em28xx/em28xx-reg.h
-@@ -210,6 +210,14 @@
- #define EM2874_TS2_FILTER_ENABLE  (1 << 5)
- #define EM2874_TS2_NULL_DISCARD   (1 << 6)
- 
-+/* em25xx, em276x/7x/8x GPIO registers */
-+#define EM25XX_R80_GPIO_P0_W    0x80
-+#define EM25XX_R81_GPIO_P1_W    0x81
-+#define EM25XX_R83_GPIO_P3_W    0x83
-+#define EM25XX_R84_GPIO_P0_R    0x84
-+#define EM25XX_R85_GPIO_P1_R    0x85
-+#define EM25XX_R87_GPIO_P3_R    0x87
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index caaf4fe..f8b7304 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -2225,17 +2225,29 @@ vpif_int_err:
+  */
+ static int vpif_remove(struct platform_device *device)
+ {
+-	int i;
++	struct platform_device *pdev;
+ 	struct channel_obj *ch;
++	struct resource *res;
++	int irq_num, i = 0;
 +
- /* register settings */
- #define EM2800_AUDIO_SRC_TUNER  0x0d
- #define EM2800_AUDIO_SRC_LINE   0x0c
++	pdev = container_of(vpif_dev, struct platform_device, dev);
++	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
++		for (irq_num = res->start; irq_num <= res->end; irq_num++)
++			free_irq(irq_num,
++				 (void *)(&vpif_obj.dev[i]->channel_id));
++		i++;
++	}
+ 
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+ 
++	kfree(vpif_obj.sd);
+ 	/* un-register device */
+ 	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+ 		/* Get the pointer to the channel object */
+ 		ch = vpif_obj.dev[i];
+ 		/* Unregister video device */
+ 		video_unregister_device(ch->video_dev);
++		kfree(vpif_obj.dev[i]);
+ 	}
+ 	return 0;
+ }
+@@ -2347,24 +2359,7 @@ static __init int vpif_init(void)
+  */
+ static void vpif_cleanup(void)
+ {
+-	struct platform_device *pdev;
+-	struct resource *res;
+-	int irq_num;
+-	int i = 0;
+-
+-	pdev = container_of(vpif_dev, struct platform_device, dev);
+-	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+-		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+-			free_irq(irq_num,
+-				 (void *)(&vpif_obj.dev[i]->channel_id));
+-		i++;
+-	}
+-
+ 	platform_driver_unregister(&vpif_driver);
+-
+-	kfree(vpif_obj.sd);
+-	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++)
+-		kfree(vpif_obj.dev[i]);
+ }
+ 
+ /* Function for module initialization and cleanup */
 -- 
-1.8.1.2
+1.7.0.4
 
