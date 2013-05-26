@@ -1,62 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4917 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965655Ab3E2LA4 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59292 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758476Ab3EZBOY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:00:56 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv1 16/38] indycam: remove g_chip_ident op.
-Date: Wed, 29 May 2013 12:59:49 +0200
-Message-Id: <1369825211-29770-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 25 May 2013 21:14:24 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 4/5] media: davinci: vpif_capture: Convert to devm_* api
+Date: Sun, 26 May 2013 03:14:21 +0200
+Message-ID: <1395615.ytVps5UbEx@avalon>
+In-Reply-To: <1369499796-18762-5-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com> <1369499796-18762-5-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Prabhakar,
 
-This is no longer needed since the core now handles this through DBG_G_CHIP_INFO.
+Thank you for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/platform/indycam.c |   12 ------------
- 1 file changed, 12 deletions(-)
+On Saturday 25 May 2013 22:06:35 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> use devm_request_irq() instead of request_irq().
+> This ensures more consistent error values and simplifies error paths.
+> 
+> use module_platform_driver to simplify the code.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-diff --git a/drivers/media/platform/indycam.c b/drivers/media/platform/indycam.c
-index 5482363..f1d192b 100644
---- a/drivers/media/platform/indycam.c
-+++ b/drivers/media/platform/indycam.c
-@@ -23,7 +23,6 @@
- #include <linux/videodev2.h>
- #include <linux/i2c.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-chip-ident.h>
- 
- #include "indycam.h"
- 
-@@ -283,20 +282,9 @@ static int indycam_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 
- /* I2C-interface */
- 
--static int indycam_g_chip_ident(struct v4l2_subdev *sd,
--		struct v4l2_dbg_chip_ident *chip)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct indycam *camera = to_indycam(sd);
--
--	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_INDYCAM,
--		       camera->version);
--}
--
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops indycam_core_ops = {
--	.g_chip_ident = indycam_g_chip_ident,
- 	.g_ctrl = indycam_g_ctrl,
- 	.s_ctrl = indycam_s_ctrl,
- };
+There's two separate changes in this patch, could you split it in two if you 
+resubmit the series ? It would then be good to work on removing the vpif_obj 
+and vpif_dev global variables.
+
+Same comment for patch 5/5.
+
+> ---
+>  drivers/media/platform/davinci/vpif_capture.c |   73 ++++------------------
+>  1 files changed, 13 insertions(+), 60 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c
+> b/drivers/media/platform/davinci/vpif_capture.c index caaf4fe..f37adf1
+> 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -2082,14 +2082,13 @@ static __init int vpif_probe(struct platform_device
+> *pdev)
+> 
+>  	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
+>  		for (i = res->start; i <= res->end; i++) {
+> -			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
+> -					"VPIF_Capture", (void *)
+> -					(&vpif_obj.dev[res_idx]->channel_id))) {
+> -				err = -EBUSY;
+> -				for (j = 0; j < i; j++)
+> -					free_irq(j, (void *)
+> -					(&vpif_obj.dev[res_idx]->channel_id));
+> -				goto vpif_int_err;
+> +			err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
+> +					     IRQF_SHARED, "VPIF_Capture",
+> +					     (void *)(&vpif_obj.dev[res_idx]->
+> +					     channel_id));
+> +			if (err) {
+> +				err = -EINVAL;
+> +				goto vpif_unregister;
+>  			}
+>  		}
+>  		res_idx++;
+> @@ -2106,7 +2105,7 @@ static __init int vpif_probe(struct platform_device
+> *pdev) video_device_release(ch->video_dev);
+>  			}
+>  			err = -ENOMEM;
+> -			goto vpif_int_err;
+> +			goto vpif_unregister;
+>  		}
+> 
+>  		/* Initialize field of video device */
+> @@ -2207,13 +2206,8 @@ vpif_sd_error:
+>  		/* Note: does nothing if ch->video_dev == NULL */
+>  		video_device_release(ch->video_dev);
+>  	}
+> -vpif_int_err:
+> +vpif_unregister:
+>  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+> -	for (i = 0; i < res_idx; i++) {
+> -		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
+> -		for (j = res->start; j <= res->end; j++)
+> -			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
+> -	}
+>  	return err;
+>  }
+> 
+> @@ -2229,14 +2223,16 @@ static int vpif_remove(struct platform_device
+> *device) struct channel_obj *ch;
+> 
+>  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+> -
+> +	kfree(vpif_obj.sd);
+>  	/* un-register device */
+>  	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+>  		/* Get the pointer to the channel object */
+>  		ch = vpif_obj.dev[i];
+>  		/* Unregister video device */
+>  		video_unregister_device(ch->video_dev);
+> +		kfree(vpif_obj.dev[i]);
+>  	}
+> +
+>  	return 0;
+>  }
+> 
+> @@ -2326,47 +2322,4 @@ static __refdata struct platform_driver vpif_driver =
+> { .remove = vpif_remove,
+>  };
+> 
+> -/**
+> - * vpif_init: initialize the vpif driver
+> - *
+> - * This function registers device and driver to the kernel, requests irq
+> - * handler and allocates memory
+> - * for channel objects
+> - */
+> -static __init int vpif_init(void)
+> -{
+> -	return platform_driver_register(&vpif_driver);
+> -}
+> -
+> -/**
+> - * vpif_cleanup : This function clean up the vpif capture resources
+> - *
+> - * This will un-registers device and driver to the kernel, frees
+> - * requested irq handler and de-allocates memory allocated for channel
+> - * objects.
+> - */
+> -static void vpif_cleanup(void)
+> -{
+> -	struct platform_device *pdev;
+> -	struct resource *res;
+> -	int irq_num;
+> -	int i = 0;
+> -
+> -	pdev = container_of(vpif_dev, struct platform_device, dev);
+> -	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+> -		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+> -			free_irq(irq_num,
+> -				 (void *)(&vpif_obj.dev[i]->channel_id));
+> -		i++;
+> -	}
+> -
+> -	platform_driver_unregister(&vpif_driver);
+> -
+> -	kfree(vpif_obj.sd);
+> -	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++)
+> -		kfree(vpif_obj.dev[i]);
+> -}
+> -
+> -/* Function for module initialization and cleanup */
+> -module_init(vpif_init);
+> -module_exit(vpif_cleanup);
+> +module_platform_driver(vpif_driver);
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
