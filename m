@@ -1,138 +1,364 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:12622 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab3EIPhy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 11:37:54 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMJ00C2GFF5A8B0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 May 2013 00:37:53 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: hj210.choi@samsung.com, dh09.lee@samsung.com, a.hajda@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 11/13] exynos4-is: Fix sensor subdev -> FIMC notification setup
-Date: Thu, 09 May 2013 17:36:43 +0200
-Message-id: <1368113805-20233-12-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
-References: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-bk0-f45.google.com ([209.85.214.45]:38358 "EHLO
+	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755119Ab3EZU7b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 May 2013 16:59:31 -0400
+Received: by mail-bk0-f45.google.com with SMTP id je9so2714627bkc.32
+        for <linux-media@vger.kernel.org>; Sun, 26 May 2013 13:59:29 -0700 (PDT)
+Message-ID: <51A277AE.9050502@gmail.com>
+Date: Sun, 26 May 2013 22:59:26 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC] media: Rename media_entity_remote_source to media_entity_remote_pad
+References: <1358843095-4839-1-git-send-email-a.hajda@samsung.com>
+In-Reply-To: <1358843095-4839-1-git-send-email-a.hajda@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure the v4l2_device notifications from sensor subdev works
-also after the media links reconfiguration.
+On 01/22/2013 09:24 AM, Andrzej Hajda wrote:
+> Function media_entity_remote_source actually returns the remote pad to
+> the given one, regardless if this is the source or the sink pad.
+> Name media_entity_remote_pad is more adequate for this function.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/media-dev.c |   47 ++++++++++++++++---------
- 1 file changed, 31 insertions(+), 16 deletions(-)
+It seems this patch had slipped through the cracks.
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index f8bd823..bf932d7 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1,8 +1,8 @@
- /*
-  * S5P/EXYNOS4 SoC series camera host interface media device driver
-  *
-- * Copyright (C) 2011 - 2012 Samsung Electronics Co., Ltd.
-- * Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ * Copyright (C) 2011 - 2013 Samsung Electronics Co., Ltd.
-+ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-  *
-  * This program is free software; you can redistribute it and/or modify
-  * it under the terms of the GNU General Public License as published
-@@ -39,6 +39,26 @@
- static int __fimc_md_set_camclk(struct fimc_md *fmd,
- 				struct fimc_source_info *si,
- 				bool on);
-+
-+/* Set up image sensor subdev -> FIMC capture node notifications. */
-+static void __setup_sensor_notification(struct fimc_md *fmd,
-+					struct v4l2_subdev *sensor,
-+					struct v4l2_subdev *fimc_sd)
-+{
-+	struct fimc_source_info *src_inf;
-+	struct fimc_sensor_info *md_si;
-+	unsigned long flags;
-+
-+	src_inf = v4l2_get_subdev_hostdata(sensor);
-+	if (!src_inf || WARN_ON(fmd == NULL))
-+		return;
-+
-+	md_si = source_to_sensor_info(src_inf);
-+	spin_lock_irqsave(&fmd->slock, flags);
-+	md_si->host = v4l2_get_subdevdata(fimc_sd);
-+	spin_unlock_irqrestore(&fmd->slock, flags);
-+}
-+
- /**
-  * fimc_pipeline_prepare - update pipeline information with subdevice pointers
-  * @me: media entity terminating the pipeline
-@@ -48,7 +68,9 @@ static int __fimc_md_set_camclk(struct fimc_md *fmd,
- static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 					struct media_entity *me)
- {
-+	struct fimc_md *fmd = entity_to_fimc_mdev(me);
- 	struct v4l2_subdev *sd;
-+	struct v4l2_subdev *sensor = NULL;
- 	int i;
- 
- 	for (i = 0; i < IDX_MAX; i++)
-@@ -73,8 +95,10 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 		sd = media_entity_to_v4l2_subdev(pad->entity);
- 
- 		switch (sd->grp_id) {
--		case GRP_ID_FIMC_IS_SENSOR:
- 		case GRP_ID_SENSOR:
-+			sensor = sd;
-+			/* fall through */
-+		case GRP_ID_FIMC_IS_SENSOR:
- 			p->subdevs[IDX_SENSOR] = sd;
- 			break;
- 		case GRP_ID_CSIS:
-@@ -84,7 +108,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 			p->subdevs[IDX_FLITE] = sd;
- 			break;
- 		case GRP_ID_FIMC:
--			/* No need to control FIMC subdev through subdev ops */
-+			p->subdevs[IDX_FIMC] = sd;
- 			break;
- 		case GRP_ID_FIMC_IS:
- 			p->subdevs[IDX_IS_ISP] = sd;
-@@ -96,6 +120,9 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
- 		if (me->num_pads == 1)
- 			break;
- 	}
-+
-+	if (sensor && p->subdevs[IDX_FIMC])
-+		__setup_sensor_notification(fmd, sensor, p->subdevs[IDX_FIMC]);
- }
- 
- /**
-@@ -923,18 +950,6 @@ static int __fimc_md_create_fimc_sink_links(struct fimc_md *fmd,
- 
- 		v4l2_info(&fmd->v4l2_dev, "created link [%s] %c> [%s]\n",
- 			  source->name, flags ? '=' : '-', sink->name);
--
--		if (flags == 0 || sensor == NULL)
--			continue;
--
--		if (!WARN_ON(si == NULL)) {
--			unsigned long irq_flags;
--			struct fimc_sensor_info *inf = source_to_sensor_info(si);
--
--			spin_lock_irqsave(&fmd->slock, irq_flags);
--			inf->host = fmd->fimc[i];
--			spin_unlock_irqrestore(&fmd->slock, irq_flags);
--		}
- 	}
- 
- 	for (i = 0; i < FIMC_LITE_MAX_DEVS; i++) {
--- 
-1.7.9.5
+Laurent, would you have any comments on this patch ?
 
+I might have rebased it on top of this series [1], once it is reviewed
+and merged.
+
+[1] http://www.spinics.net/lists/linux-media/msg63423.html
+
+Regards,
+Sylwester
+
+> Signed-off-by: Andrzej Hajda<a.hajda@samsung.com>
+> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
+> ---
+>   Documentation/media-framework.txt                |    2 +-
+>   drivers/media/media-entity.c                     |   13 ++++++-------
+>   drivers/media/platform/omap3isp/isp.c            |    6 +++---
+>   drivers/media/platform/omap3isp/ispccdc.c        |    2 +-
+>   drivers/media/platform/omap3isp/ispccp2.c        |    2 +-
+>   drivers/media/platform/omap3isp/ispcsi2.c        |    2 +-
+>   drivers/media/platform/omap3isp/ispvideo.c       |    6 +++---
+>   drivers/media/platform/s3c-camif/camif-capture.c |    2 +-
+>   drivers/media/platform/s5p-fimc/fimc-capture.c   |    8 ++++----
+>   drivers/media/platform/s5p-fimc/fimc-lite.c      |    4 ++--
+>   drivers/media/platform/s5p-fimc/fimc-mdevice.c   |    2 +-
+>   drivers/staging/media/davinci_vpfe/vpfe_video.c  |   12 ++++++------
+>   include/media/media-entity.h                     |    2 +-
+>   13 files changed, 31 insertions(+), 32 deletions(-)
+>
+> diff --git a/Documentation/media-framework.txt b/Documentation/media-framework.txt
+> index 8028754..e68744a 100644
+> --- a/Documentation/media-framework.txt
+> +++ b/Documentation/media-framework.txt
+> @@ -265,7 +265,7 @@ connected to another pad through an enabled link
+>   	media_entity_find_link(struct media_pad *source,
+>   			       struct media_pad *sink);
+>
+> -	media_entity_remote_source(struct media_pad *pad);
+> +	media_entity_remote_pad(struct media_pad *pad);
+>
+>   Refer to the kerneldoc documentation for more information.
+>
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index e1cd132..0438209 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -560,17 +560,16 @@ media_entity_find_link(struct media_pad *source, struct media_pad *sink)
+>   EXPORT_SYMBOL_GPL(media_entity_find_link);
+>
+>   /**
+> - * media_entity_remote_source - Find the source pad at the remote end of a link
+> - * @pad: Sink pad at the local end of the link
+> + * media_entity_remote_pad - Find the pad at the remote end of a link
+> + * @pad: Pad at the local end of the link
+>    *
+> - * Search for a remote source pad connected to the given sink pad by iterating
+> - * over all links originating or terminating at that pad until an enabled link
+> - * is found.
+> + * Search for a remote pad connected to the given pad by iterating over all
+> + * links originating or terminating at that pad until an enabled link is found.
+>    *
+>    * Return a pointer to the pad at the remote end of the first found enabled
+>    * link, or NULL if no enabled link has been found.
+>    */
+> -struct media_pad *media_entity_remote_source(struct media_pad *pad)
+> +struct media_pad *media_entity_remote_pad(struct media_pad *pad)
+>   {
+>   	unsigned int i;
+>
+> @@ -590,4 +589,4 @@ struct media_pad *media_entity_remote_source(struct media_pad *pad)
+>   	return NULL;
+>
+>   }
+> -EXPORT_SYMBOL_GPL(media_entity_remote_source);
+> +EXPORT_SYMBOL_GPL(media_entity_remote_pad);
+> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+> index a9f6de5..5bb1698 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -757,7 +757,7 @@ static int isp_pipeline_enable(struct isp_pipeline *pipe,
+>   		if (!(pad->flags&  MEDIA_PAD_FL_SINK))
+>   			break;
+>
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (pad == NULL ||
+>   		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+>   			break;
+> @@ -847,7 +847,7 @@ static int isp_pipeline_disable(struct isp_pipeline *pipe)
+>   		if (!(pad->flags&  MEDIA_PAD_FL_SINK))
+>   			break;
+>
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (pad == NULL ||
+>   		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+>   			break;
+> @@ -963,7 +963,7 @@ static int isp_pipeline_is_last(struct media_entity *me)
+>   	pipe = to_isp_pipeline(me);
+>   	if (pipe->stream_state == ISP_PIPELINE_STREAM_STOPPED)
+>   		return 0;
+> -	pad = media_entity_remote_source(&pipe->output->pad);
+> +	pad = media_entity_remote_pad(&pipe->output->pad);
+>   	return pad->entity == me;
+>   }
+>
+> diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+> index 60e60aa..907a205 100644
+> --- a/drivers/media/platform/omap3isp/ispccdc.c
+> +++ b/drivers/media/platform/omap3isp/ispccdc.c
+> @@ -1120,7 +1120,7 @@ static void ccdc_configure(struct isp_ccdc_device *ccdc)
+>   	u32 syn_mode;
+>   	u32 ccdc_pattern;
+>
+> -	pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
+> +	pad = media_entity_remote_pad(&ccdc->pads[CCDC_PAD_SINK]);
+>   	sensor = media_entity_to_v4l2_subdev(pad->entity);
+>   	if (ccdc->input == CCDC_INPUT_PARALLEL)
+>   		pdata =&((struct isp_v4l2_subdevs_group *)sensor->host_priv)
+> diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+> index 85f0de8..d134e60 100644
+> --- a/drivers/media/platform/omap3isp/ispccp2.c
+> +++ b/drivers/media/platform/omap3isp/ispccp2.c
+> @@ -360,7 +360,7 @@ static int ccp2_if_configure(struct isp_ccp2_device *ccp2)
+>
+>   	ccp2_pwr_cfg(ccp2);
+>
+> -	pad = media_entity_remote_source(&ccp2->pads[CCP2_PAD_SINK]);
+> +	pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
+>   	sensor = media_entity_to_v4l2_subdev(pad->entity);
+>   	pdata = sensor->host_priv;
+>
+> diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+> index 783f4b0..6db245d 100644
+> --- a/drivers/media/platform/omap3isp/ispcsi2.c
+> +++ b/drivers/media/platform/omap3isp/ispcsi2.c
+> @@ -573,7 +573,7 @@ static int csi2_configure(struct isp_csi2_device *csi2)
+>   	if (csi2->contexts[0].enabled || csi2->ctrl.if_enable)
+>   		return -EBUSY;
+>
+> -	pad = media_entity_remote_source(&csi2->pads[CSI2_PAD_SINK]);
+> +	pad = media_entity_remote_pad(&csi2->pads[CSI2_PAD_SINK]);
+>   	sensor = media_entity_to_v4l2_subdev(pad->entity);
+>   	pdata = sensor->host_priv;
+>
+> diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+> index e0d73a6..ed3e136 100644
+> --- a/drivers/media/platform/omap3isp/ispvideo.c
+> +++ b/drivers/media/platform/omap3isp/ispvideo.c
+> @@ -222,7 +222,7 @@ isp_video_remote_subdev(struct isp_video *video, u32 *pad)
+>   {
+>   	struct media_pad *remote;
+>
+> -	remote = media_entity_remote_source(&video->pad);
+> +	remote = media_entity_remote_pad(&video->pad);
+>
+>   	if (remote == NULL ||
+>   	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+> @@ -317,7 +317,7 @@ static int isp_video_validate_pipeline(struct isp_pipeline *pipe)
+>   		 * entity can be found, and stop checking the pipeline if the
+>   		 * source entity isn't a subdev.
+>   		 */
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (pad == NULL)
+>   			return -EPIPE;
+>
+> @@ -904,7 +904,7 @@ static int isp_video_check_external_subdevs(struct isp_video *video,
+>   			continue;
+>
+>   		/* ISP entities have always sink pad == 0. Find source. */
+> -		source_pad = media_entity_remote_source(&ents[i]->pads[0]);
+> +		source_pad = media_entity_remote_pad(&ents[i]->pads[0]);
+>   		if (source_pad == NULL)
+>   			continue;
+>
+> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c b/drivers/media/platform/s3c-camif/camif-capture.c
+> index a55793c..4397722 100644
+> --- a/drivers/media/platform/s3c-camif/camif-capture.c
+> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
+> @@ -845,7 +845,7 @@ static int camif_pipeline_validate(struct camif_dev *camif)
+>   	int ret;
+>
+>   	/* Retrieve format at the sensor subdev source pad */
+> -	pad = media_entity_remote_source(&camif->pads[0]);
+> +	pad = media_entity_remote_pad(&camif->pads[0]);
+>   	if (!pad || media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+>   		return -EPIPE;
+>
+> diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c b/drivers/media/platform/s5p-fimc/fimc-capture.c
+> index 18a70e4..b5a0a2f 100644
+> --- a/drivers/media/platform/s5p-fimc/fimc-capture.c
+> +++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
+> @@ -799,7 +799,7 @@ static struct media_entity *fimc_pipeline_get_head(struct media_entity *me)
+>   	struct media_pad *pad =&me->pads[0];
+>
+>   	while (!(pad->flags&  MEDIA_PAD_FL_SOURCE)) {
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (!pad)
+>   			break;
+>   		me = pad->entity;
+> @@ -871,7 +871,7 @@ static int fimc_pipeline_try_format(struct fimc_ctx *ctx,
+>   					return ret;
+>   			}
+>
+> -			pad = media_entity_remote_source(&me->pads[sfmt.pad]);
+> +			pad = media_entity_remote_pad(&me->pads[sfmt.pad]);
+>   			if (!pad)
+>   				return -EINVAL;
+>   			me = pad->entity;
+> @@ -1158,7 +1158,7 @@ static int fimc_pipeline_validate(struct fimc_dev *fimc)
+>   	int ret;
+>
+>   	/* Start with the video capture node pad */
+> -	pad = media_entity_remote_source(&vid_cap->vd_pad);
+> +	pad = media_entity_remote_pad(&vid_cap->vd_pad);
+>   	if (pad == NULL)
+>   		return -EPIPE;
+>   	/* FIMC.{N} subdevice */
+> @@ -1183,7 +1183,7 @@ static int fimc_pipeline_validate(struct fimc_dev *fimc)
+>   				return -EPIPE;
+>   		}
+>   		/* Retrieve format at the source pad */
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (pad == NULL ||
+>   		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+>   			break;
+> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c b/drivers/media/platform/s5p-fimc/fimc-lite.c
+> index ef31c39..a48abb2 100644
+> --- a/drivers/media/platform/s5p-fimc/fimc-lite.c
+> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
+> @@ -774,7 +774,7 @@ static int fimc_pipeline_validate(struct fimc_lite *fimc)
+>   				return -EPIPE;
+>   		}
+>   		/* Retrieve format at the source pad */
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (pad == NULL ||
+>   		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+>   			break;
+> @@ -981,7 +981,7 @@ static struct v4l2_subdev *__find_remote_sensor(struct media_entity *me)
+>
+>   	while (pad->flags&  MEDIA_PAD_FL_SINK) {
+>   		/* source pad */
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (pad == NULL ||
+>   		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+>   			break;
+> diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+> index 62f3a71..8399d31 100644
+> --- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+> +++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
+> @@ -54,7 +54,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
+>   			break;
+>
+>   		/* source pad */
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (pad == NULL ||
+>   		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
+>   			break;
+> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> index 99ccbeb..de52978 100644
+> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+> @@ -39,7 +39,7 @@ static struct media_entity *vpfe_get_input_entity
+>   	struct vpfe_device *vpfe_dev = video->vpfe_dev;
+>   	struct media_pad *remote;
+>
+> -	remote = media_entity_remote_source(&vpfe_dev->vpfe_isif.pads[0]);
+> +	remote = media_entity_remote_pad(&vpfe_dev->vpfe_isif.pads[0]);
+>   	if (remote == NULL) {
+>   		pr_err("Invalid media connection to isif/ccdc\n");
+>   		return NULL;
+> @@ -56,7 +56,7 @@ static int vpfe_update_current_ext_subdev(struct vpfe_video_device *video)
+>   	struct media_pad *remote;
+>   	int i;
+>
+> -	remote = media_entity_remote_source(&vpfe_dev->vpfe_isif.pads[0]);
+> +	remote = media_entity_remote_pad(&vpfe_dev->vpfe_isif.pads[0]);
+>   	if (remote == NULL) {
+>   		pr_err("Invalid media connection to isif/ccdc\n");
+>   		return -EINVAL;
+> @@ -89,7 +89,7 @@ static int vpfe_update_current_ext_subdev(struct vpfe_video_device *video)
+>   static struct v4l2_subdev *
+>   vpfe_video_remote_subdev(struct vpfe_video_device *video, u32 *pad)
+>   {
+> -	struct media_pad *remote = media_entity_remote_source(&video->pad);
+> +	struct media_pad *remote = media_entity_remote_pad(&video->pad);
+>
+>   	if (remote == NULL || remote->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
+>   		return NULL;
+> @@ -114,7 +114,7 @@ __vpfe_video_get_format(struct vpfe_video_device *video,
+>   		return -EINVAL;
+>
+>   	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
+> -	remote = media_entity_remote_source(&video->pad);
+> +	remote = media_entity_remote_pad(&video->pad);
+>   	fmt.pad = remote->index;
+>
+>   	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL,&fmt);
+> @@ -245,7 +245,7 @@ static int vpfe_video_validate_pipeline(struct vpfe_pipeline *pipe)
+>   			return -EPIPE;
+>
+>   		/* Retrieve the source format */
+> -		pad = media_entity_remote_source(pad);
+> +		pad = media_entity_remote_pad(pad);
+>   		if (pad == NULL ||
+>   			pad->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
+>   			break;
+> @@ -667,7 +667,7 @@ static int vpfe_enum_fmt(struct file *file, void  *priv,
+>   		return -EINVAL;
+>   	}
+>   	/* get the remote pad */
+> -	remote = media_entity_remote_source(&video->pad);
+> +	remote = media_entity_remote_pad(&video->pad);
+>   	if (remote == NULL) {
+>   		v4l2_err(&vpfe_dev->v4l2_dev,
+>   			 "invalid remote pad for video node\n");
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 0c16f51..4eefedc 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -132,7 +132,7 @@ int __media_entity_setup_link(struct media_link *link, u32 flags);
+>   int media_entity_setup_link(struct media_link *link, u32 flags);
+>   struct media_link *media_entity_find_link(struct media_pad *source,
+>   		struct media_pad *sink);
+> -struct media_pad *media_entity_remote_source(struct media_pad *pad);
+> +struct media_pad *media_entity_remote_pad(struct media_pad *pad);
+>
+>   struct media_entity *media_entity_get(struct media_entity *entity);
+>   void media_entity_put(struct media_entity *entity);
