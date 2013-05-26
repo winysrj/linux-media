@@ -1,320 +1,300 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:46474 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934359Ab3E1OtL (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1719 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753041Ab3EZN1j (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 May 2013 10:49:11 -0400
-Subject: [PATCH v4 1/4] arch: make __mutex_fastpath_lock_retval return whether
- fastpath succeeded or not.
-To: linux-kernel@vger.kernel.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
-	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
-Date: Tue, 28 May 2013 16:48:33 +0200
-Message-ID: <20130528144833.4538.16154.stgit@patser>
-In-Reply-To: <20130528144420.4538.70725.stgit@patser>
-References: <20130528144420.4538.70725.stgit@patser>
-MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+	Sun, 26 May 2013 09:27:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 12/24] tveeprom: remove v4l2-chip-ident.h include.
+Date: Sun, 26 May 2013 15:27:07 +0200
+Message-Id: <1369574839-6687-13-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This will allow me to call functions that have multiple arguments if fastpath fails.
-This is required to support ticket mutexes, because they need to be able to pass an
-extra argument to the fail function.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Originally I duplicated the functions, by adding __mutex_fastpath_lock_retval_arg.
-This ended up being just a duplication of the existing function, so a way to test
-if fastpath was called ended up being better.
+Replace the V4L2_IDENT_* usage with tveeprom-specific defines. This header
+is deprecated, so those defines shouldn't be used anymore.
 
-This also cleaned up the reservation mutex patch some by being able to call an
-atomic_set instead of atomic_xchg, and making it easier to detect if the wrong
-unlock function was previously used.
+The em28xx driver is the only one that uses the tveeprom audio_processor
+field, so that has been updated to use the new tveeprom AUDPROC define.
 
-Changes since v1, pointed out by Francesco Lavra:
-- fix a small comment issue in mutex_32.h
-- fix the __mutex_fastpath_lock_retval macro for mutex-null.h
-
-Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- arch/ia64/include/asm/mutex.h    |   10 ++++------
- arch/powerpc/include/asm/mutex.h |   10 ++++------
- arch/sh/include/asm/mutex-llsc.h |    4 ++--
- arch/x86/include/asm/mutex_32.h  |   11 ++++-------
- arch/x86/include/asm/mutex_64.h  |   11 ++++-------
- include/asm-generic/mutex-dec.h  |   10 ++++------
- include/asm-generic/mutex-null.h |    2 +-
- include/asm-generic/mutex-xchg.h |   10 ++++------
- kernel/mutex.c                   |   32 ++++++++++++++------------------
- 9 files changed, 41 insertions(+), 59 deletions(-)
+ drivers/media/common/tveeprom.c         |  142 ++++++++++++++-----------------
+ drivers/media/usb/em28xx/em28xx-cards.c |    3 +-
+ include/media/tveeprom.h                |   11 +++
+ 3 files changed, 78 insertions(+), 78 deletions(-)
 
-diff --git a/arch/ia64/include/asm/mutex.h b/arch/ia64/include/asm/mutex.h
-index bed73a6..f41e66d 100644
---- a/arch/ia64/include/asm/mutex.h
-+++ b/arch/ia64/include/asm/mutex.h
-@@ -29,17 +29,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns.
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
+diff --git a/drivers/media/common/tveeprom.c b/drivers/media/common/tveeprom.c
+index cc1e172..c7dace6 100644
+--- a/drivers/media/common/tveeprom.c
++++ b/drivers/media/common/tveeprom.c
+@@ -40,7 +40,6 @@
+ #include <media/tuner.h>
+ #include <media/tveeprom.h>
+ #include <media/v4l2-common.h>
+-#include <media/v4l2-chip-ident.h>
+ 
+ MODULE_DESCRIPTION("i2c Hauppauge eeprom decoder driver");
+ MODULE_AUTHOR("John Klar");
+@@ -67,13 +66,10 @@ MODULE_PARM_DESC(debug, "Debug level (0-1)");
+  * The Hauppauge eeprom uses an 8bit field to determine which
+  * tuner formats the tuner supports.
   */
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(ia64_fetchadd4_acq(count, -1) != 1))
--		return fail_fn(count);
-+		return -1;
- 	return 0;
- }
+-static struct HAUPPAUGE_TUNER_FMT
+-{
++static const struct {
+ 	int	id;
+-	char *name;
+-}
+-hauppauge_tuner_fmt[] =
+-{
++	const char * const name;
++} hauppauge_tuner_fmt[] = {
+ 	{ V4L2_STD_UNKNOWN,                   " UNKNOWN" },
+ 	{ V4L2_STD_UNKNOWN,                   " FM" },
+ 	{ V4L2_STD_B|V4L2_STD_GH,             " PAL(B/G)" },
+@@ -88,13 +84,10 @@ hauppauge_tuner_fmt[] =
+    supplying this information. Note that many tuners where only used for
+    testing and never made it to the outside world. So you will only see
+    a subset in actual produced cards. */
+-static struct HAUPPAUGE_TUNER
+-{
++static const struct {
+ 	int  id;
+-	char *name;
+-}
+-hauppauge_tuner[] =
+-{
++	const char * const name;
++} hauppauge_tuner[] = {
+ 	/* 0-9 */
+ 	{ TUNER_ABSENT,			"None" },
+ 	{ TUNER_ABSENT,			"External" },
+@@ -298,69 +291,66 @@ hauppauge_tuner[] =
+ 	{ TUNER_ABSENT,                 "NXP 18272S"},
+ };
  
-diff --git a/arch/powerpc/include/asm/mutex.h b/arch/powerpc/include/asm/mutex.h
-index 5399f7e..127ab23 100644
---- a/arch/powerpc/include/asm/mutex.h
-+++ b/arch/powerpc/include/asm/mutex.h
-@@ -82,17 +82,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns.
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
+-/* Use V4L2_IDENT_AMBIGUOUS for those audio 'chips' that are
++/* Use TVEEPROM_AUDPROC_INTERNAL for those audio 'chips' that are
+  * internal to a video chip, i.e. not a separate audio chip. */
+-static struct HAUPPAUGE_AUDIOIC
+-{
++static const struct {
+ 	u32   id;
+-	char *name;
+-}
+-audioIC[] =
+-{
++	const char * const name;
++} audio_ic[] = {
+ 	/* 0-4 */
+-	{ V4L2_IDENT_NONE,      "None"      },
+-	{ V4L2_IDENT_UNKNOWN,   "TEA6300"   },
+-	{ V4L2_IDENT_UNKNOWN,   "TEA6320"   },
+-	{ V4L2_IDENT_UNKNOWN,   "TDA9850"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3400C"  },
++	{ TVEEPROM_AUDPROC_NONE,  "None"      },
++	{ TVEEPROM_AUDPROC_OTHER, "TEA6300"   },
++	{ TVEEPROM_AUDPROC_OTHER, "TEA6320"   },
++	{ TVEEPROM_AUDPROC_OTHER, "TDA9850"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3400C"  },
+ 	/* 5-9 */
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3410D"  },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3415"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3430"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3438"   },
+-	{ V4L2_IDENT_UNKNOWN,   "CS5331"    },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3410D"  },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3415"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3430"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3438"   },
++	{ TVEEPROM_AUDPROC_OTHER, "CS5331"    },
+ 	/* 10-14 */
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3435"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3440"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3445"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3411"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3416"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3435"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3440"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3445"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3411"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3416"   },
+ 	/* 15-19 */
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3425"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3451"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP3418"   },
+-	{ V4L2_IDENT_UNKNOWN,   "Type 0x12" },
+-	{ V4L2_IDENT_UNKNOWN,   "OKI7716"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3425"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3451"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP3418"   },
++	{ TVEEPROM_AUDPROC_OTHER, "Type 0x12" },
++	{ TVEEPROM_AUDPROC_OTHER, "OKI7716"   },
+ 	/* 20-24 */
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4410"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4420"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4440"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4450"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4408"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4410"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4420"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4440"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4450"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4408"   },
+ 	/* 25-29 */
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4418"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4428"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4448"   },
+-	{ V4L2_IDENT_MSPX4XX,   "MSP4458"   },
+-	{ V4L2_IDENT_MSPX4XX,   "Type 0x1d" },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4418"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4428"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4448"   },
++	{ TVEEPROM_AUDPROC_MSP,   "MSP4458"   },
++	{ TVEEPROM_AUDPROC_MSP,   "Type 0x1d" },
+ 	/* 30-34 */
+-	{ V4L2_IDENT_AMBIGUOUS, "CX880"     },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX881"     },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX883"     },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX882"     },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX25840"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX880"     },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX881"     },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX883"     },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX882"     },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX25840"   },
+ 	/* 35-39 */
+-	{ V4L2_IDENT_AMBIGUOUS, "CX25841"   },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX25842"   },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX25843"   },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX23418"   },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX23885"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX25841"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX25842"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX25843"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX23418"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX23885"   },
+ 	/* 40-44 */
+-	{ V4L2_IDENT_AMBIGUOUS, "CX23888"   },
+-	{ V4L2_IDENT_AMBIGUOUS, "SAA7131"   },
+-	{ V4L2_IDENT_AMBIGUOUS, "CX23887"   },
+-	{ V4L2_IDENT_AMBIGUOUS, "SAA7164"   },
+-	{ V4L2_IDENT_AMBIGUOUS, "AU8522"    },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX23888"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "SAA7131"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "CX23887"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "SAA7164"   },
++	{ TVEEPROM_AUDPROC_INTERNAL, "AU8522"    },
+ };
+ 
+ /* This list is supplied by Hauppauge. Thanks! */
+@@ -453,11 +443,11 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 	int i, j, len, done, beenhere, tag, start;
+ 
+ 	int tuner1 = 0, t_format1 = 0, audioic = -1;
+-	char *t_name1 = NULL;
++	const char *t_name1 = NULL;
+ 	const char *t_fmt_name1[8] = { " none", "", "", "", "", "", "", "" };
+ 
+ 	int tuner2 = 0, t_format2 = 0;
+-	char *t_name2 = NULL;
++	const char *t_name2 = NULL;
+ 	const char *t_fmt_name2[8] = { " none", "", "", "", "", "", "", "" };
+ 
+ 	memset(tvee, 0, sizeof(*tvee));
+@@ -545,10 +535,10 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 			to indicate 4052 mux was removed in favor of using MSP
+ 			inputs directly. */
+ 			audioic = eeprom_data[i+2] & 0x7f;
+-			if (audioic < ARRAY_SIZE(audioIC))
+-				tvee->audio_processor = audioIC[audioic].id;
++			if (audioic < ARRAY_SIZE(audio_ic))
++				tvee->audio_processor = audio_ic[audioic].id;
+ 			else
+-				tvee->audio_processor = V4L2_IDENT_UNKNOWN;
++				tvee->audio_processor = TVEEPROM_AUDPROC_OTHER;
+ 			break;
+ 
+ 		/* case 0x03: tag 'EEInfo' */
+@@ -578,10 +568,10 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 			to indicate 4052 mux was removed in favor of using MSP
+ 			inputs directly. */
+ 			audioic = eeprom_data[i+1] & 0x7f;
+-			if (audioic < ARRAY_SIZE(audioIC))
+-				tvee->audio_processor = audioIC[audioic].id;
++			if (audioic < ARRAY_SIZE(audio_ic))
++				tvee->audio_processor = audio_ic[audioic].id;
+ 			else
+-				tvee->audio_processor = V4L2_IDENT_UNKNOWN;
++				tvee->audio_processor = TVEEPROM_AUDPROC_OTHER;
+ 
+ 			break;
+ 
+@@ -726,11 +716,11 @@ void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
+ 			t_fmt_name2[6], t_fmt_name2[7], t_format2);
+ 	if (audioic < 0) {
+ 		tveeprom_info("audio processor is unknown (no idx)\n");
+-		tvee->audio_processor = V4L2_IDENT_UNKNOWN;
++		tvee->audio_processor = TVEEPROM_AUDPROC_OTHER;
+ 	} else {
+-		if (audioic < ARRAY_SIZE(audioIC))
++		if (audioic < ARRAY_SIZE(audio_ic))
+ 			tveeprom_info("audio processor is %s (idx %d)\n",
+-					audioIC[audioic].name, audioic);
++					audio_ic[audioic].name, audioic);
+ 		else
+ 			tveeprom_info("audio processor is unknown (idx %d)\n",
+ 								audioic);
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 927956b..e4b0669 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -37,7 +37,6 @@
+ #include <media/i2c-addr.h>
+ #include <media/tveeprom.h>
+ #include <media/v4l2-common.h>
+-#include <media/v4l2-chip-ident.h>
+ 
+ #include "em28xx.h"
+ 
+@@ -2669,7 +2668,7 @@ static void em28xx_card_setup(struct em28xx *dev)
+ 
+ 		dev->tuner_type = tv.tuner_type;
+ 
+-		if (tv.audio_processor == V4L2_IDENT_MSPX4XX) {
++		if (tv.audio_processor == TVEEPROM_AUDPROC_MSP) {
+ 			dev->i2s_speed = 2048000;
+ 			dev->board.has_msp34xx = 1;
+ 		}
+diff --git a/include/media/tveeprom.h b/include/media/tveeprom.h
+index a8ad75a..4a1191a 100644
+--- a/include/media/tveeprom.h
++++ b/include/media/tveeprom.h
+@@ -1,6 +1,17 @@
+ /*
   */
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(__mutex_dec_return_lock(count) < 0))
--		return fail_fn(count);
-+		return -1;
- 	return 0;
- }
  
-diff --git a/arch/sh/include/asm/mutex-llsc.h b/arch/sh/include/asm/mutex-llsc.h
-index 090358a..dad29b6 100644
---- a/arch/sh/include/asm/mutex-llsc.h
-+++ b/arch/sh/include/asm/mutex-llsc.h
-@@ -37,7 +37,7 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
- }
- 
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	int __done, __res;
- 
-@@ -51,7 +51,7 @@ __mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
- 		: "t");
- 
- 	if (unlikely(!__done || __res != 0))
--		__res = fail_fn(count);
-+		__res = -1;
- 
- 	return __res;
- }
-diff --git a/arch/x86/include/asm/mutex_32.h b/arch/x86/include/asm/mutex_32.h
-index 03f90c8..0208c3c 100644
---- a/arch/x86/include/asm/mutex_32.h
-+++ b/arch/x86/include/asm/mutex_32.h
-@@ -42,17 +42,14 @@ do {								\
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
-- * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
--static inline int __mutex_fastpath_lock_retval(atomic_t *count,
--					       int (*fail_fn)(atomic_t *))
-+static inline int __mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(atomic_dec_return(count) < 0))
--		return fail_fn(count);
-+		return -1;
- 	else
- 		return 0;
- }
-diff --git a/arch/x86/include/asm/mutex_64.h b/arch/x86/include/asm/mutex_64.h
-index 68a87b0..2c543ff 100644
---- a/arch/x86/include/asm/mutex_64.h
-+++ b/arch/x86/include/asm/mutex_64.h
-@@ -37,17 +37,14 @@ do {								\
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
--static inline int __mutex_fastpath_lock_retval(atomic_t *count,
--					       int (*fail_fn)(atomic_t *))
-+static inline int __mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(atomic_dec_return(count) < 0))
--		return fail_fn(count);
-+		return -1;
- 	else
- 		return 0;
- }
-diff --git a/include/asm-generic/mutex-dec.h b/include/asm-generic/mutex-dec.h
-index f104af7..d4f9fb4 100644
---- a/include/asm-generic/mutex-dec.h
-+++ b/include/asm-generic/mutex-dec.h
-@@ -28,17 +28,15 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if
-- * it wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns.
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(atomic_dec_return(count) < 0))
--		return fail_fn(count);
-+		return -1;
- 	return 0;
- }
- 
-diff --git a/include/asm-generic/mutex-null.h b/include/asm-generic/mutex-null.h
-index e1bbbc7..61069ed 100644
---- a/include/asm-generic/mutex-null.h
-+++ b/include/asm-generic/mutex-null.h
-@@ -11,7 +11,7 @@
- #define _ASM_GENERIC_MUTEX_NULL_H
- 
- #define __mutex_fastpath_lock(count, fail_fn)		fail_fn(count)
--#define __mutex_fastpath_lock_retval(count, fail_fn)	fail_fn(count)
-+#define __mutex_fastpath_lock_retval(count)		(-1)
- #define __mutex_fastpath_unlock(count, fail_fn)		fail_fn(count)
- #define __mutex_fastpath_trylock(count, fail_fn)	fail_fn(count)
- #define __mutex_slowpath_needs_to_unlock()		1
-diff --git a/include/asm-generic/mutex-xchg.h b/include/asm-generic/mutex-xchg.h
-index c04e0db..f169ec0 100644
---- a/include/asm-generic/mutex-xchg.h
-+++ b/include/asm-generic/mutex-xchg.h
-@@ -39,18 +39,16 @@ __mutex_fastpath_lock(atomic_t *count, void (*fail_fn)(atomic_t *))
-  *  __mutex_fastpath_lock_retval - try to take the lock by moving the count
-  *                                 from 1 to a 0 value
-  *  @count: pointer of type atomic_t
-- *  @fail_fn: function to call if the original value was not 1
-  *
-- * Change the count from 1 to a value lower than 1, and call <fail_fn> if it
-- * wasn't 1 originally. This function returns 0 if the fastpath succeeds,
-- * or anything the slow path function returns
-+ * Change the count from 1 to a value lower than 1. This function returns 0
-+ * if the fastpath succeeds, or -1 otherwise.
-  */
- static inline int
--__mutex_fastpath_lock_retval(atomic_t *count, int (*fail_fn)(atomic_t *))
-+__mutex_fastpath_lock_retval(atomic_t *count)
- {
- 	if (unlikely(atomic_xchg(count, 0) != 1))
- 		if (likely(atomic_xchg(count, -1) != 1))
--			return fail_fn(count);
-+			return -1;
- 	return 0;
- }
- 
-diff --git a/kernel/mutex.c b/kernel/mutex.c
-index 52f2301..84a5f07 100644
---- a/kernel/mutex.c
-+++ b/kernel/mutex.c
-@@ -351,10 +351,10 @@ __mutex_unlock_slowpath(atomic_t *lock_count)
-  * mutex_lock_interruptible() and mutex_trylock().
-  */
- static noinline int __sched
--__mutex_lock_killable_slowpath(atomic_t *lock_count);
-+__mutex_lock_killable_slowpath(struct mutex *lock);
- 
- static noinline int __sched
--__mutex_lock_interruptible_slowpath(atomic_t *lock_count);
-+__mutex_lock_interruptible_slowpath(struct mutex *lock);
- 
- /**
-  * mutex_lock_interruptible - acquire the mutex, interruptible
-@@ -372,12 +372,12 @@ int __sched mutex_lock_interruptible(struct mutex *lock)
- 	int ret;
- 
- 	might_sleep();
--	ret =  __mutex_fastpath_lock_retval
--			(&lock->count, __mutex_lock_interruptible_slowpath);
--	if (!ret)
-+	ret =  __mutex_fastpath_lock_retval(&lock->count);
-+	if (likely(!ret)) {
- 		mutex_set_owner(lock);
--
--	return ret;
-+		return 0;
-+	} else
-+		return __mutex_lock_interruptible_slowpath(lock);
- }
- 
- EXPORT_SYMBOL(mutex_lock_interruptible);
-@@ -387,12 +387,12 @@ int __sched mutex_lock_killable(struct mutex *lock)
- 	int ret;
- 
- 	might_sleep();
--	ret = __mutex_fastpath_lock_retval
--			(&lock->count, __mutex_lock_killable_slowpath);
--	if (!ret)
-+	ret = __mutex_fastpath_lock_retval(&lock->count);
-+	if (likely(!ret)) {
- 		mutex_set_owner(lock);
--
--	return ret;
-+		return 0;
-+	} else
-+		return __mutex_lock_killable_slowpath(lock);
- }
- EXPORT_SYMBOL(mutex_lock_killable);
- 
-@@ -405,18 +405,14 @@ __mutex_lock_slowpath(atomic_t *lock_count)
- }
- 
- static noinline int __sched
--__mutex_lock_killable_slowpath(atomic_t *lock_count)
-+__mutex_lock_killable_slowpath(struct mutex *lock)
- {
--	struct mutex *lock = container_of(lock_count, struct mutex, count);
--
- 	return __mutex_lock_common(lock, TASK_KILLABLE, 0, NULL, _RET_IP_);
- }
- 
- static noinline int __sched
--__mutex_lock_interruptible_slowpath(atomic_t *lock_count)
-+__mutex_lock_interruptible_slowpath(struct mutex *lock)
- {
--	struct mutex *lock = container_of(lock_count, struct mutex, count);
--
- 	return __mutex_lock_common(lock, TASK_INTERRUPTIBLE, 0, NULL, _RET_IP_);
- }
- #endif
++enum tveeprom_audio_processor {
++	/* No audio processor present */
++	TVEEPROM_AUDPROC_NONE,
++	/* The audio processor is internal to the video processor */
++	TVEEPROM_AUDPROC_INTERNAL,
++	/* The audio processor is a MSPXXXX device */
++	TVEEPROM_AUDPROC_MSP,
++	/* The audio processor is another device */
++	TVEEPROM_AUDPROC_OTHER,
++};
++
+ struct tveeprom {
+ 	u32 has_radio;
+ 	/* If has_ir == 0, then it is unknown what the IR capabilities are,
+-- 
+1.7.10.4
 
