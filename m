@@ -1,77 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-1.atlantis.sk ([80.94.52.57]:59188 "EHLO mail.atlantis.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758212Ab3ENUzT (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 16:55:19 -0400
-From: Ondrej Zary <linux@rainbow-software.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 1/3] tea575x-tuner: move HW init to a separate function
-Date: Tue, 14 May 2013 22:54:43 +0200
-Message-Id: <1368564885-20940-2-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1368564885-20940-1-git-send-email-linux@rainbow-software.org>
-References: <1368564885-20940-1-git-send-email-linux@rainbow-software.org>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59327 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758505Ab3EZBUr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 25 May 2013 21:20:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 0/4] media: i2c: ths7303 cleanup
+Date: Sun, 26 May 2013 03:20:44 +0200
+Message-ID: <2855590.yx9zfYZLis@avalon>
+In-Reply-To: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Move HW initialization to separate function to allow using the code without
-the v4l parts. This is needed for use in the bttv driver.
+On Saturday 25 May 2013 23:09:32 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> Trivial cleanup of the driver.
+> 
+> Changes for v2:
+> 1: Dropped the asynchronous probing and, OF
+>    support patches will be handling them independently because of
+> dependencies. 2: Arranged the patches logically so that git bisect
+>    succeeds.
+> 
+> Lad, Prabhakar (4):
+>   ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
+>   media: i2c: ths7303: remove init_enable option from pdata
+>   media: i2c: ths7303: remove unnecessary function ths7303_setup()
+>   media: i2c: ths7303: make the pdata as a constant pointer
+> 
+>  arch/arm/mach-davinci/board-dm365-evm.c |    1 -
+>  drivers/media/i2c/ths7303.c             |   48 ++++++++--------------------
+>  include/media/ths7303.h                 |    2 -
+>  3 files changed, 12 insertions(+), 39 deletions(-)
 
-Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
----
- include/sound/tea575x-tuner.h   |    1 +
- sound/i2c/other/tea575x-tuner.c |   19 +++++++++++++------
- 2 files changed, 14 insertions(+), 6 deletions(-)
+For the whole series,
 
-diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
-index 098c4de..2d4fa59 100644
---- a/include/sound/tea575x-tuner.h
-+++ b/include/sound/tea575x-tuner.h
-@@ -71,6 +71,7 @@ struct snd_tea575x {
- 	int (*ext_init)(struct snd_tea575x *tea);
- };
- 
-+int snd_tea575x_hw_init(struct snd_tea575x *tea);
- int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
- void snd_tea575x_exit(struct snd_tea575x *tea);
- void snd_tea575x_set_freq(struct snd_tea575x *tea);
-diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-index 8a36a1d..46ec4dff 100644
---- a/sound/i2c/other/tea575x-tuner.c
-+++ b/sound/i2c/other/tea575x-tuner.c
-@@ -486,13 +486,9 @@ static const struct v4l2_ctrl_ops tea575x_ctrl_ops = {
- 	.s_ctrl = tea575x_s_ctrl,
- };
- 
--/*
-- * initialize all the tea575x chips
-- */
--int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner)
--{
--	int retval;
- 
-+int snd_tea575x_hw_init(struct snd_tea575x *tea)
-+{
- 	tea->mute = true;
- 
- 	/* Not all devices can or know how to read the data back.
-@@ -507,6 +503,17 @@ int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner)
- 	tea->freq = 90500 * 16;		/* 90.5Mhz default */
- 	snd_tea575x_set_freq(tea);
- 
-+	return 0;
-+}
-+EXPORT_SYMBOL(snd_tea575x_hw_init);
-+
-+int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner)
-+{
-+	int retval = snd_tea575x_hw_init(tea);
-+
-+	if (retval)
-+		return retval;
-+
- 	tea->vd = tea575x_radio;
- 	video_set_drvdata(&tea->vd, tea);
- 	mutex_init(&tea->mutex);
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
 -- 
-Ondrej Zary
+Regards,
+
+Laurent Pinchart
 
