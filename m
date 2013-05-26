@@ -1,37 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:25906 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751331Ab3EaIyj (ORCPT
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:55519 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753007Ab3EZMDL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 04:54:39 -0400
-From: Seung-Woo Kim <sw0312.kim@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
-	airlied@linux.ie
-Cc: linux-kernel@vger.kernel.org, daniel.vetter@ffwll.ch,
-	inki.dae@samsung.com, sw0312.kim@samsung.com,
-	kyungmin.park@samsung.com
-Subject: [RFC][PATCH 0/2] dma-buf: add importer private data for reimporting
-Date: Fri, 31 May 2013 17:54:45 +0900
-Message-id: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
+	Sun, 26 May 2013 08:03:11 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 7/9] media: davinci: vpif_display: move the freeing of irq and global variables to remove()
+Date: Sun, 26 May 2013 17:30:10 +0530
+Message-Id: <1369569612-30915-8-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-importer private data in dma-buf attachment can be used by importer to
-reimport same dma-buf.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Seung-Woo Kim (2):
-  dma-buf: add importer private data to attachment
-  drm/prime: find gem object from the reimported dma-buf
+Ideally the freeing of irq's and the global variables needs to be
+done in the remove() rather than module_exit(), this patch moves
+the freeing up of irq's and freeing the memory allocated to channel
+objects to remove() callback of struct platform_driver.
 
- drivers/base/dma-buf.c                     |   31 ++++++++++++++++++++++++++++
- drivers/gpu/drm/drm_prime.c                |   19 ++++++++++++----
- drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
- drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
- drivers/gpu/drm/udl/udl_gem.c              |    1 +
- include/linux/dma-buf.h                    |    4 +++
- 6 files changed, 52 insertions(+), 5 deletions(-)
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   32 +++++++++++--------------
+ 1 files changed, 14 insertions(+), 18 deletions(-)
 
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 5b6f906..9c308e7 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1894,11 +1894,23 @@ vpif_int_err:
+  */
+ static int vpif_remove(struct platform_device *device)
+ {
++	struct platform_device *pdev;
+ 	struct channel_obj *ch;
+-	int i;
++	struct resource *res;
++	int irq_num;
++	int i = 0;
++
++	pdev = container_of(vpif_dev, struct platform_device, dev);
++	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
++		for (irq_num = res->start; irq_num <= res->end; irq_num++)
++			free_irq(irq_num,
++				 (void *)(&vpif_obj.dev[i]->channel_id));
++		i++;
++	}
+ 
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+ 
++	kfree(vpif_obj.sd);
+ 	/* un-register device */
+ 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+ 		/* Get the pointer to the channel object */
+@@ -1907,6 +1919,7 @@ static int vpif_remove(struct platform_device *device)
+ 		video_unregister_device(ch->video_dev);
+ 
+ 		ch->video_dev = NULL;
++		kfree(vpif_obj.dev[i]);
+ 	}
+ 
+ 	return 0;
+@@ -2004,24 +2017,7 @@ static __init int vpif_init(void)
+  */
+ static void vpif_cleanup(void)
+ {
+-	struct platform_device *pdev;
+-	struct resource *res;
+-	int irq_num;
+-	int i = 0;
+-
+-	pdev = container_of(vpif_dev, struct platform_device, dev);
+-
+-	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+-		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+-			free_irq(irq_num,
+-				 (void *)(&vpif_obj.dev[i]->channel_id));
+-		i++;
+-	}
+-
+ 	platform_driver_unregister(&vpif_driver);
+-	kfree(vpif_obj.sd);
+-	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)
+-		kfree(vpif_obj.dev[i]);
+ }
+ 
+ module_init(vpif_init);
 -- 
-1.7.4.1
+1.7.0.4
 
