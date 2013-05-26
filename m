@@ -1,81 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from venus.vo.lu ([80.90.45.96]:54263 "EHLO venus.vo.lu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756931Ab3ENJiH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 05:38:07 -0400
-Received: from lan226.bxl.tuxicoman.be ([172.19.1.226] helo=me)
-	by ibiza.bxl.tuxicoman.be with smtp (Exim 4.80.1)
-	(envelope-from <gmsoft@tuxicoman.be>)
-	id 1UcBgB-0002wI-C5
-	for linux-media@vger.kernel.org; Tue, 14 May 2013 11:37:56 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 5/5] dvbv5-zap: Copy satellite parameters before tuning dvbv5-scan: Likewise
-Date: Tue, 14 May 2013 11:23:55 +0200
-Message-Id: <e89ed7155a31f745bae11fc81ce02874c59fe22a.1368522021.git.gmsoft@tuxicoman.be>
-In-Reply-To: <cover.1368522021.git.gmsoft@tuxicoman.be>
-References: <cover.1368522021.git.gmsoft@tuxicoman.be>
-In-Reply-To: <cover.1368522021.git.gmsoft@tuxicoman.be>
-References: <cover.1368522021.git.gmsoft@tuxicoman.be>
+Received: from mail-pd0-f180.google.com ([209.85.192.180]:61404 "EHLO
+	mail-pd0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752887Ab3EZMC4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 May 2013 08:02:56 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v3 6/9] media: davinci: vpif_capture: Convert to devm_* api
+Date: Sun, 26 May 2013 17:30:09 +0530
+Message-Id: <1369569612-30915-7-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Copy satellite parameters to the frontend params. Since an LNB can be specified in
-the channel/tuning file, set it correctly as well.
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
+use devm_request_irq() instead of request_irq(). This ensures
+more consistent error values and simplifies error paths.
 
-diff --git a/utils/dvb/dvbv5-scan.c b/utils/dvb/dvbv5-scan.c
-index 9a29b34..fa236fc 100644
---- a/utils/dvb/dvbv5-scan.c
-+++ b/utils/dvb/dvbv5-scan.c
-@@ -436,6 +436,20 @@ static int run_scan(struct arguments *args,
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c |   38 ++++++++-----------------
+ 1 files changed, 12 insertions(+), 26 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index 38c1fba..5e1e5f6 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -2082,14 +2082,14 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 
+ 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
+ 		for (i = res->start; i <= res->end; i++) {
+-			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
+-					"VPIF_Capture", (void *)
+-					(&vpif_obj.dev[res_idx]->channel_id))) {
+-				err = -EBUSY;
+-				for (j = 0; j < i; j++)
+-					free_irq(j, (void *)
+-					(&vpif_obj.dev[res_idx]->channel_id));
+-				goto vpif_int_err;
++			err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
++					     IRQF_SHARED, "VPIF_Capture",
++					     (void *)(&vpif_obj.dev[res_idx]->
++					     channel_id));
++			if (err) {
++				err = -EINVAL;
++				goto vpif_unregister;
++
  			}
  		}
- 
-+		/* Copy sat parameters */
-+		if (dvb_fe_is_satellite(parms->current_sys)) {
-+			parms->pol = entry->pol;
-+			/* If an LNB is specified for this entry, parse it */
-+			if (entry->lnb) {
-+				int lnb = dvb_sat_search_lnb(entry->lnb);
-+				if (lnb == -1) {
-+					PERROR("unknown LNB %s\n", entry->lnb);
-+					return -1;
-+				}
-+				parms->lnb = dvb_sat_get_lnb(lnb);
-+			}
-+		}
-+
- 		/*
- 		 * If the channel file has duplicated frequencies, or some
- 		 * entries without any frequency at all, discard.
-diff --git a/utils/dvb/dvbv5-zap.c b/utils/dvb/dvbv5-zap.c
-index c84cf70..3d8ac8c 100644
---- a/utils/dvb/dvbv5-zap.c
-+++ b/utils/dvb/dvbv5-zap.c
-@@ -237,6 +237,20 @@ static int parse(struct arguments *args,
+ 		res_idx++;
+@@ -2106,7 +2106,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 				video_device_release(ch->video_dev);
+ 			}
+ 			err = -ENOMEM;
+-			goto vpif_int_err;
++			goto vpif_unregister;
  		}
- 	}
  
-+	/* Copy sat parameters */
-+	if (dvb_fe_is_satellite(parms->current_sys)) {
-+		parms->pol = entry->pol;
-+		/* If an LNB is specified for this entry, parse it */
-+		if (entry->lnb) {
-+			int lnb = dvb_sat_search_lnb(entry->lnb);
-+			if (lnb == -1) {
-+				PERROR("unknown LNB %s\n", entry->lnb);
-+				return -1;
-+			}
-+			parms->lnb = dvb_sat_get_lnb(lnb);
-+		}
-+	}
+ 		/* Initialize field of video device */
+@@ -2207,13 +2207,9 @@ vpif_sd_error:
+ 		/* Note: does nothing if ch->video_dev == NULL */
+ 		video_device_release(ch->video_dev);
+ 	}
+-vpif_int_err:
++vpif_unregister:
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+-	for (i = 0; i < res_idx; i++) {
+-		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
+-		for (j = res->start; j <= res->end; j++)
+-			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
+-	}
 +
- #if 0
- 	/* HACK to test the write file function */
- 	write_dvb_file("dvb_channels.conf", dvb_file);
+ 	return err;
+ }
+ 
+@@ -2225,18 +2221,8 @@ vpif_int_err:
+  */
+ static int vpif_remove(struct platform_device *device)
+ {
+-	struct platform_device *pdev;
+ 	struct channel_obj *ch;
+-	struct resource *res;
+-	int irq_num, i = 0;
+-
+-	pdev = container_of(vpif_dev, struct platform_device, dev);
+-	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+-		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+-			free_irq(irq_num,
+-				 (void *)(&vpif_obj.dev[i]->channel_id));
+-		i++;
+-	}
++	int i;
+ 
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+ 
 -- 
-1.8.1.5
-
+1.7.0.4
 
