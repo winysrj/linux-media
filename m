@@ -1,82 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:32722 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752639Ab3EVLMK (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:48137 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754510Ab3EZP7I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 07:12:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Subject: Re: Warnings related to anonymous unions in s5p-tv driver
-Date: Wed, 22 May 2013 13:11:54 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	hans.verkuil@cisco.com
-References: <CAK9yfHxBW4wF_sqyzW0+h1xycbDUyJLfWkSKBwZAjU00sh7akA@mail.gmail.com> <201305211128.31301.hverkuil@xs4all.nl> <CAK9yfHyPGdNBbn6o-GLaoeTuYLCEQdCjaw+r2T_UU7_TQLHk8Q@mail.gmail.com>
-In-Reply-To: <CAK9yfHyPGdNBbn6o-GLaoeTuYLCEQdCjaw+r2T_UU7_TQLHk8Q@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305221311.54681.hverkuil@xs4all.nl>
+	Sun, 26 May 2013 11:59:08 -0400
+From: Jiang Liu <liuj97@gmail.com>
+To: Bjorn Helgaas <bhelgaas@google.com>,
+	Yinghai Lu <yinghai@kernel.org>
+Cc: Jiang Liu <jiang.liu@huawei.com>,
+	"Rafael J . Wysocki" <rjw@sisk.pl>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	Gu Zheng <guz.fnst@cn.fujitsu.com>,
+	Toshi Kani <toshi.kani@hp.com>,
+	Myron Stowe <myron.stowe@redhat.com>,
+	Yijing Wang <wangyijing@huawei.com>,
+	Jiang Liu <liuj97@gmail.com>, linux-pci@vger.kernel.org,
+	linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Daniel Drake <dsd@laptop.org>,
+	Jonathan Corbet <corbet@lwn.net>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH v3, part2 16/20] PCI, via-camera: use hotplug-safe iterators to walk PCI buses
+Date: Sun, 26 May 2013 23:53:13 +0800
+Message-Id: <1369583597-3801-17-git-send-email-jiang.liu@huawei.com>
+In-Reply-To: <1369583597-3801-1-git-send-email-jiang.liu@huawei.com>
+References: <1369583597-3801-1-git-send-email-jiang.liu@huawei.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 22 May 2013 13:05:29 Sachin Kamat wrote:
-> On 21 May 2013 14:58, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > On Fri 17 May 2013 10:24:50 Sachin Kamat wrote:
-> >> Hi Hans,
-> >>
-> >> I noticed the following sparse warnings with S5P HDMI driver which I
-> >> think got introduced due to the following commit:
-> >> 5efb54b2b7b ([media] s5p-tv: add dv_timings support for hdmi)
-> >>
-> >> Warnings:
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:483:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:484:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:485:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:486:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:487:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:488:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:489:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:490:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:491:18: error: unknown field
-> >> name in initializer
-> >> drivers/media/platform/s5p-tv/hdmi_drv.c:492:18: error: unknown field
-> >> name in initializer
-> >>
-> >> This looks like the anonymous union initialization problem with GCC.
-> >> Surprisingly I get this with GCC 4.6, 4.7 and 4.8 as well.
-> >>
-> >> If I add additional braces to the macro V4L2_INIT_BT_TIMINGS like done
-> >> for GCC version < 4.6
-> >> like
-> >> { .bt = { _width , ## args } }
-> >>
-> >> or if I change the GNUC_MINOR comparison to 9 like (__GNUC_MINOR__ < 9)
-> >> I dont see this error.
-> >>
-> >> I am using the Linaro GCC toolchain.
-> >>
-> >> I am not sure if this has already been reported and/or fixed.
-> >>
-> >
-> > Could it be that a different compiler version is used when using sparse?
-> > I don't see these errors when running sparse during the daily build.
-> 
-> Please let me know your compiler version. I could probably try with it and see.
+Enhance via-camera drviers to use hotplug-safe iterators to walk
+PCI buses.
 
-For the sparse run I suspect it is using the standard compiler which is version
-4.7.2. It might use a 4.8.0 cross-compiler, but certainly nothing older than 4.7.2.
+Signed-off-by: Jiang Liu <jiang.liu@huawei.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Daniel Drake <dsd@laptop.org>
+Cc: Jonathan Corbet <corbet@lwn.net>
+Cc: Javier Martin <javier.martin@vista-silicon.com>
+Cc: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+---
+ drivers/media/platform/via-camera.c | 12 ++++++++----
+ 1 file changed, 8 insertions(+), 4 deletions(-)
 
-Regards,
+diff --git a/drivers/media/platform/via-camera.c b/drivers/media/platform/via-camera.c
+index a794cd6..3ea3fac 100644
+--- a/drivers/media/platform/via-camera.c
++++ b/drivers/media/platform/via-camera.c
+@@ -1284,7 +1284,8 @@ static struct video_device viacam_v4l_template = {
+ 
+ static bool viacam_serial_is_enabled(void)
+ {
+-	struct pci_bus *pbus = pci_find_bus(0, 0);
++	struct pci_bus *pbus = pci_get_bus(0, 0);
++	bool ret = false;
+ 	u8 cbyte;
+ 
+ 	if (!pbus)
+@@ -1292,18 +1293,21 @@ static bool viacam_serial_is_enabled(void)
+ 	pci_bus_read_config_byte(pbus, VIACAM_SERIAL_DEVFN,
+ 			VIACAM_SERIAL_CREG, &cbyte);
+ 	if ((cbyte & VIACAM_SERIAL_BIT) == 0)
+-		return false; /* Not enabled */
++		goto out; /* Not enabled */
+ 	if (override_serial == 0) {
+ 		printk(KERN_NOTICE "Via camera: serial port is enabled, " \
+ 				"refusing to load.\n");
+ 		printk(KERN_NOTICE "Specify override_serial=1 to force " \
+ 				"module loading.\n");
+-		return true;
++		ret = true;
++		goto out;
+ 	}
+ 	printk(KERN_NOTICE "Via camera: overriding serial port\n");
+ 	pci_bus_write_config_byte(pbus, VIACAM_SERIAL_DEVFN,
+ 			VIACAM_SERIAL_CREG, cbyte & ~VIACAM_SERIAL_BIT);
+-	return false;
++out:
++	pci_bus_put(pbus);
++	return ret;
+ }
+ 
+ static struct ov7670_config sensor_cfg = {
+-- 
+1.8.1.2
 
-	Hans
