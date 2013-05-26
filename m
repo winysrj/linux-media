@@ -1,229 +1,568 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:61511 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab3EaOjM (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4436 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751188Ab3EZN1m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 10:39:12 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MNO009QV3D7QJV0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Fri, 31 May 2013 23:39:11 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Sun, 26 May 2013 09:27:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, hj210.choi@samsung.com,
-	arun.kk@samsung.com, shaik.ameer@samsung.com,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [REVIEW PATCH v2 01/11] exynos4-is: Move common functions to a
- separate module
-Date: Fri, 31 May 2013 16:37:17 +0200
-Message-id: <1370011047-11488-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
-References: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 22/24] v4l2-core: remove support for obsolete VIDIOC_DBG_G_CHIP_IDENT.
+Date: Sun, 26 May 2013 15:27:17 +0200
+Message-Id: <1369574839-6687-23-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Create a common module (exynos4-is-common.ko) which will hold
-the common functions used across video device and subdev drivers
-contained in .../exynos4-is directory.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-Changes since v1:
- - renamed exynos4-common.ko to exynos4-is-common.ko as the
-   original name seemed too generic.
----
- drivers/media/platform/exynos4-is/Kconfig     |    7 ++++-
- drivers/media/platform/exynos4-is/Makefile    |    5 ++-
- drivers/media/platform/exynos4-is/common.c    |   41 +++++++++++++++++++++++++
- drivers/media/platform/exynos4-is/common.h    |   12 ++++++++
- drivers/media/platform/exynos4-is/fimc-lite.c |   29 ++---------------
- 5 files changed, 66 insertions(+), 28 deletions(-)
- create mode 100644 drivers/media/platform/exynos4-is/common.c
- create mode 100644 drivers/media/platform/exynos4-is/common.h
+This has been replaced by the new and much better VIDIOC_DBG_G_CHIP_INFO.
 
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index 6ff99b5..c622532 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -8,12 +8,16 @@ config VIDEO_SAMSUNG_EXYNOS4_IS
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-compat-ioctl32.c |    1 -
+ drivers/media/v4l2-core/v4l2-dev.c            |    1 -
+ drivers/media/v4l2-core/v4l2-ioctl.c          |   28 --
+ include/media/v4l2-chip-ident.h               |  354 -------------------------
+ include/media/v4l2-ioctl.h                    |    2 -
+ include/media/v4l2-subdev.h                   |    4 +-
+ include/uapi/linux/videodev2.h                |   17 +-
+ 7 files changed, 4 insertions(+), 403 deletions(-)
+ delete mode 100644 include/media/v4l2-chip-ident.h
+
+diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+index f129551..8f7a6a4 100644
+--- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
++++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+@@ -1074,7 +1074,6 @@ long v4l2_compat_ioctl32(struct file *file, unsigned int cmd, unsigned long arg)
+ 	case VIDIOC_TRY_DECODER_CMD:
+ 	case VIDIOC_DBG_S_REGISTER:
+ 	case VIDIOC_DBG_G_REGISTER:
+-	case VIDIOC_DBG_G_CHIP_IDENT:
+ 	case VIDIOC_S_HW_FREQ_SEEK:
+ 	case VIDIOC_S_DV_TIMINGS:
+ 	case VIDIOC_G_DV_TIMINGS:
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index 5923c5d..fb3fcde 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -596,7 +596,6 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	set_bit(_IOC_NR(VIDIOC_DBG_G_REGISTER), valid_ioctls);
+ 	set_bit(_IOC_NR(VIDIOC_DBG_S_REGISTER), valid_ioctls);
+ #endif
+-	SET_VALID_IOCTL(ops, VIDIOC_DBG_G_CHIP_IDENT, vidioc_g_chip_ident);
+ 	/* yes, really vidioc_subscribe_event */
+ 	SET_VALID_IOCTL(ops, VIDIOC_DQEVENT, vidioc_subscribe_event);
+ 	SET_VALID_IOCTL(ops, VIDIOC_SUBSCRIBE_EVENT, vidioc_subscribe_event);
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 60b8c25..7a7f5f0 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -26,7 +26,6 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-event.h>
+ #include <media/v4l2-device.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <media/videobuf2-core.h>
  
- if VIDEO_SAMSUNG_EXYNOS4_IS
- 
-+config VIDEO_EXYNOS4_IS_COMMON
-+       tristate
-+
- config VIDEO_S5P_FIMC
- 	tristate "S5P/EXYNOS4 FIMC/CAMIF camera interface driver"
- 	depends on I2C
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	select MFD_SYSCON if OF
-+	select VIDEO_EXYNOS4_IS_COMMON
- 	help
- 	  This is a V4L2 driver for Samsung S5P and EXYNOS4 SoC camera host
- 	  interface and video postprocessor (FIMC) devices.
-@@ -38,6 +42,7 @@ config VIDEO_EXYNOS_FIMC_LITE
- 	tristate "EXYNOS FIMC-LITE camera interface driver"
- 	depends on I2C
- 	select VIDEOBUF2_DMA_CONTIG
-+	select VIDEO_EXYNOS4_IS_COMMON
- 	help
- 	  This is a V4L2 driver for Samsung EXYNOS4/5 SoC FIMC-LITE camera
- 	  host interface.
-@@ -58,4 +63,4 @@ config VIDEO_EXYNOS4_FIMC_IS
- 	  To compile this driver as a module, choose M here: the
- 	  module will be called exynos4-fimc-is.
- 
--endif # VIDEO_SAMSUNG_S5P_FIMC
-+endif # VIDEO_SAMSUNG_EXYNOS4_IS
-diff --git a/drivers/media/platform/exynos4-is/Makefile b/drivers/media/platform/exynos4-is/Makefile
-index f25f463..c2ff29b 100644
---- a/drivers/media/platform/exynos4-is/Makefile
-+++ b/drivers/media/platform/exynos4-is/Makefile
-@@ -1,10 +1,13 @@
- s5p-fimc-objs := fimc-core.o fimc-reg.o fimc-m2m.o fimc-capture.o media-dev.o
- exynos-fimc-lite-objs += fimc-lite-reg.o fimc-lite.o
-+s5p-csis-objs := mipi-csis.o
-+exynos4-is-common-objs := common.o
-+
- exynos-fimc-is-objs := fimc-is.o fimc-isp.o fimc-is-sensor.o fimc-is-regs.o
- exynos-fimc-is-objs += fimc-is-param.o fimc-is-errno.o fimc-is-i2c.o
--s5p-csis-objs := mipi-csis.o
- 
- obj-$(CONFIG_VIDEO_S5P_MIPI_CSIS)	+= s5p-csis.o
- obj-$(CONFIG_VIDEO_EXYNOS_FIMC_LITE)	+= exynos-fimc-lite.o
- obj-$(CONFIG_VIDEO_EXYNOS4_FIMC_IS)	+= exynos-fimc-is.o
- obj-$(CONFIG_VIDEO_S5P_FIMC)		+= s5p-fimc.o
-+obj-$(CONFIG_VIDEO_EXYNOS4_IS_COMMON)	+= exynos4-is-common.o
-diff --git a/drivers/media/platform/exynos4-is/common.c b/drivers/media/platform/exynos4-is/common.c
-new file mode 100644
-index 0000000..6720520
---- /dev/null
-+++ b/drivers/media/platform/exynos4-is/common.c
-@@ -0,0 +1,41 @@
-+/*
-+ * Samsung S5P/EXYNOS4 SoC Camera Subsystem driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <linux/module.h>
-+#include <media/s5p_fimc.h>
-+#include "common.h"
-+
-+/* Called with the media graph mutex held or entity->stream_count > 0. */
-+struct v4l2_subdev *fimc_find_remote_sensor(struct media_entity *entity)
-+{
-+	struct media_pad *pad = &entity->pads[0];
-+	struct v4l2_subdev *sd;
-+
-+	while (pad->flags & MEDIA_PAD_FL_SINK) {
-+		/* source pad */
-+		pad = media_entity_remote_source(pad);
-+		if (pad == NULL ||
-+		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+			break;
-+
-+		sd = media_entity_to_v4l2_subdev(pad->entity);
-+
-+		if (sd->grp_id == GRP_ID_FIMC_IS_SENSOR ||
-+		    sd->grp_id == GRP_ID_SENSOR)
-+			return sd;
-+		/* sink pad */
-+		pad = &sd->entity.pads[0];
-+	}
-+	return NULL;
-+}
-+EXPORT_SYMBOL(fimc_find_remote_sensor);
-+
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/exynos4-is/common.h b/drivers/media/platform/exynos4-is/common.h
-new file mode 100644
-index 0000000..3c39803
---- /dev/null
-+++ b/drivers/media/platform/exynos4-is/common.h
-@@ -0,0 +1,12 @@
-+/*
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-subdev.h>
-+
-+struct v4l2_subdev *fimc_find_remote_sensor(struct media_entity *entity);
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index c57fa65..66480e7 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -32,6 +32,7 @@
- #include <media/videobuf2-dma-contig.h>
- #include <media/s5p_fimc.h>
- 
-+#include "common.h"
- #include "fimc-core.h"
- #include "fimc-lite.h"
- #include "fimc-lite-reg.h"
-@@ -131,30 +132,6 @@ static const struct fimc_fmt *fimc_lite_find_format(const u32 *pixelformat,
- 	return def_fmt;
+ /* Zero out the end of the struct pointed to by p.  Everything after, but
+@@ -624,20 +623,6 @@ static void v4l_print_decoder_cmd(const void *arg, bool write_only)
+ 		pr_info("pts=%llu\n", p->stop.pts);
  }
  
--/* Called with the media graph mutex held or @me stream_count > 0. */
--static struct v4l2_subdev *__find_remote_sensor(struct media_entity *me)
+-static void v4l_print_dbg_chip_ident(const void *arg, bool write_only)
 -{
--	struct media_pad *pad = &me->pads[0];
--	struct v4l2_subdev *sd;
+-	const struct v4l2_dbg_chip_ident *p = arg;
 -
--	while (pad->flags & MEDIA_PAD_FL_SINK) {
--		/* source pad */
--		pad = media_entity_remote_source(pad);
--		if (pad == NULL ||
--		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
--			break;
--
--		sd = media_entity_to_v4l2_subdev(pad->entity);
--
--		if (sd->grp_id == GRP_ID_FIMC_IS_SENSOR ||
--		    sd->grp_id == GRP_ID_SENSOR)
--			return sd;
--		/* sink pad */
--		pad = &sd->entity.pads[0];
--	}
--	return NULL;
+-	pr_cont("type=%u, ", p->match.type);
+-	if (p->match.type == V4L2_CHIP_MATCH_I2C_DRIVER)
+-		pr_cont("name=%.*s, ",
+-				(int)sizeof(p->match.name), p->match.name);
+-	else
+-		pr_cont("addr=%u, ", p->match.addr);
+-	pr_cont("chip_ident=%u, revision=0x%x\n",
+-			p->ident, p->revision);
 -}
 -
- static int fimc_lite_hw_init(struct fimc_lite *fimc, bool isp_output)
+ static void v4l_print_dbg_chip_info(const void *arg, bool write_only)
  {
- 	struct fimc_source_info *si;
-@@ -830,7 +807,7 @@ static int fimc_lite_streamon(struct file *file, void *priv,
- 	if (ret < 0)
- 		goto err_p_stop;
+ 	const struct v4l2_dbg_chip_info *p = arg;
+@@ -1844,18 +1829,6 @@ static int v4l_dbg_s_register(const struct v4l2_ioctl_ops *ops,
+ #endif
+ }
  
--	fimc->sensor = __find_remote_sensor(&fimc->subdev.entity);
-+	fimc->sensor = fimc_find_remote_sensor(&fimc->subdev.entity);
+-static int v4l_dbg_g_chip_ident(const struct v4l2_ioctl_ops *ops,
+-				struct file *file, void *fh, void *arg)
+-{
+-	struct v4l2_dbg_chip_ident *p = arg;
+-
+-	p->ident = V4L2_IDENT_NONE;
+-	p->revision = 0;
+-	if (p->match.type == V4L2_CHIP_MATCH_SUBDEV)
+-		return -EINVAL;
+-	return ops->vidioc_g_chip_ident(file, fh, p);
+-}
+-
+ static int v4l_dbg_g_chip_info(const struct v4l2_ioctl_ops *ops,
+ 				struct file *file, void *fh, void *arg)
+ {
+@@ -2105,7 +2078,6 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_STD(VIDIOC_TRY_DECODER_CMD, vidioc_try_decoder_cmd, v4l_print_decoder_cmd, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_S_REGISTER, v4l_dbg_s_register, v4l_print_dbg_register, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_G_REGISTER, v4l_dbg_g_register, v4l_print_dbg_register, 0),
+-	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_IDENT, v4l_dbg_g_chip_ident, v4l_print_dbg_chip_ident, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_S_HW_FREQ_SEEK, v4l_s_hw_freq_seek, v4l_print_hw_freq_seek, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings, v4l_print_dv_timings, INFO_FL_PRIO),
+ 	IOCTL_INFO_STD(VIDIOC_G_DV_TIMINGS, vidioc_g_dv_timings, v4l_print_dv_timings, 0),
+diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-chip-ident.h
+deleted file mode 100644
+index 543f89c..0000000
+--- a/include/media/v4l2-chip-ident.h
++++ /dev/null
+@@ -1,354 +0,0 @@
+-/*
+-    v4l2 chip identifiers header
+-
+-    This header provides a list of chip identifiers that can be returned
+-    through the VIDIOC_DBG_G_CHIP_IDENT ioctl.
+-
+-    Copyright (C) 2007 Hans Verkuil <hverkuil@xs4all.nl>
+-
+-    This program is free software; you can redistribute it and/or modify
+-    it under the terms of the GNU General Public License as published by
+-    the Free Software Foundation; either version 2 of the License, or
+-    (at your option) any later version.
+-
+-    This program is distributed in the hope that it will be useful,
+-    but WITHOUT ANY WARRANTY; without even the implied warranty of
+-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+-    GNU General Public License for more details.
+-
+-    You should have received a copy of the GNU General Public License
+-    along with this program; if not, write to the Free Software
+-    Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+- */
+-
+-#ifndef V4L2_CHIP_IDENT_H_
+-#define V4L2_CHIP_IDENT_H_
+-
+-/* VIDIOC_DBG_G_CHIP_IDENT: identifies the actual chip installed on the board */
+-
+-/* KEEP THIS LIST ORDERED BY ID!
+-   Otherwise it will be hard to see which ranges are already in use when
+-   adding support to a new chip family. */
+-enum {
+-	/* general idents: reserved range 0-49 */
+-	V4L2_IDENT_NONE      = 0,       /* No chip matched */
+-	V4L2_IDENT_AMBIGUOUS = 1,       /* Match too general, multiple chips matched */
+-	V4L2_IDENT_UNKNOWN   = 2,       /* Chip found, but cannot identify */
+-
+-	/* module tvaudio: reserved range 50-99 */
+-	V4L2_IDENT_TVAUDIO = 50,	/* A tvaudio chip, unknown which it is exactly */
+-
+-	/* Sony IMX074 */
+-	V4L2_IDENT_IMX074 = 74,
+-
+-	/* module saa7110: just ident 100 */
+-	V4L2_IDENT_SAA7110 = 100,
+-
+-	/* module saa7115: reserved range 101-149 */
+-	V4L2_IDENT_SAA7111 = 101,
+-	V4L2_IDENT_SAA7111A = 102,
+-	V4L2_IDENT_SAA7113 = 103,
+-	V4L2_IDENT_SAA7114 = 104,
+-	V4L2_IDENT_SAA7115 = 105,
+-	V4L2_IDENT_SAA7118 = 108,
+-
+-	V4L2_IDENT_GM7113C = 140,
+-
+-	/* module saa7127: reserved range 150-199 */
+-	V4L2_IDENT_SAA7127 = 157,
+-	V4L2_IDENT_SAA7129 = 159,
+-
+-	/* module cx25840: reserved range 200-249 */
+-	V4L2_IDENT_CX25836 = 236,
+-	V4L2_IDENT_CX25837 = 237,
+-	V4L2_IDENT_CX25840 = 240,
+-	V4L2_IDENT_CX25841 = 241,
+-	V4L2_IDENT_CX25842 = 242,
+-	V4L2_IDENT_CX25843 = 243,
+-
+-	/* OmniVision sensors: reserved range 250-299 */
+-	V4L2_IDENT_OV7670 = 250,
+-	V4L2_IDENT_OV7720 = 251,
+-	V4L2_IDENT_OV7725 = 252,
+-	V4L2_IDENT_OV7660 = 253,
+-	V4L2_IDENT_OV9650 = 254,
+-	V4L2_IDENT_OV9655 = 255,
+-	V4L2_IDENT_SOI968 = 256,
+-	V4L2_IDENT_OV9640 = 257,
+-	V4L2_IDENT_OV6650 = 258,
+-	V4L2_IDENT_OV2640 = 259,
+-	V4L2_IDENT_OV9740 = 260,
+-	V4L2_IDENT_OV5642 = 261,
+-
+-	/* module saa7146: reserved range 300-309 */
+-	V4L2_IDENT_SAA7146 = 300,
+-
+-	/* Conexant MPEG encoder/decoders: reserved range 400-420 */
+-	V4L2_IDENT_CX23418_843 = 403, /* Integrated A/V Decoder on the '418 */
+-	V4L2_IDENT_CX23415 = 415,
+-	V4L2_IDENT_CX23416 = 416,
+-	V4L2_IDENT_CX23417 = 417,
+-	V4L2_IDENT_CX23418 = 418,
+-
+-	/* module bt819: reserved range 810-819 */
+-	V4L2_IDENT_BT815A = 815,
+-	V4L2_IDENT_BT817A = 817,
+-	V4L2_IDENT_BT819A = 819,
+-
+-	/* module au0828 */
+-	V4L2_IDENT_AU0828 = 828,
+-
+-	/* module bttv: ident 848 + 849 */
+-	V4L2_IDENT_BT848 = 848,
+-	V4L2_IDENT_BT849 = 849,
+-
+-	/* module bt856: just ident 856 */
+-	V4L2_IDENT_BT856 = 856,
+-
+-	/* module bt866: just ident 866 */
+-	V4L2_IDENT_BT866 = 866,
+-
+-	/* module bttv: ident 878 + 879 */
+-	V4L2_IDENT_BT878 = 878,
+-	V4L2_IDENT_BT879 = 879,
+-
+-	/* module ks0127: reserved range 1120-1129 */
+-	V4L2_IDENT_KS0122S = 1122,
+-	V4L2_IDENT_KS0127  = 1127,
+-	V4L2_IDENT_KS0127B = 1128,
+-
+-	/* module indycam: just ident 2000 */
+-	V4L2_IDENT_INDYCAM = 2000,
+-
+-	/* module vp27smpx: just ident 2700 */
+-	V4L2_IDENT_VP27SMPX = 2700,
+-
+-	/* module vpx3220: reserved range: 3210-3229 */
+-	V4L2_IDENT_VPX3214C = 3214,
+-	V4L2_IDENT_VPX3216B = 3216,
+-	V4L2_IDENT_VPX3220A = 3220,
+-
+-	/* VX855 just ident 3409 */
+-	/* Other via devs could use 3314, 3324, 3327, 3336, 3364, 3353 */
+-	V4L2_IDENT_VIA_VX855 = 3409,
+-
+-	/* module tvp5150 */
+-	V4L2_IDENT_TVP5150 = 5150,
+-
+-	/* module saa5246a: just ident 5246 */
+-	V4L2_IDENT_SAA5246A = 5246,
+-
+-	/* module saa5249: just ident 5249 */
+-	V4L2_IDENT_SAA5249 = 5249,
+-
+-	/* module cs5345: just ident 5345 */
+-	V4L2_IDENT_CS5345 = 5345,
+-
+-	/* module tea6415c: just ident 6415 */
+-	V4L2_IDENT_TEA6415C = 6415,
+-
+-	/* module tea6420: just ident 6420 */
+-	V4L2_IDENT_TEA6420 = 6420,
+-
+-	/* module saa6588: just ident 6588 */
+-	V4L2_IDENT_SAA6588 = 6588,
+-
+-	/* module vs6624: just ident 6624 */
+-	V4L2_IDENT_VS6624 = 6624,
+-
+-	/* module saa6752hs: reserved range 6750-6759 */
+-	V4L2_IDENT_SAA6752HS = 6752,
+-	V4L2_IDENT_SAA6752HS_AC3 = 6753,
+-
+-	/* modules tef6862: just ident 6862 */
+-	V4L2_IDENT_TEF6862 = 6862,
+-
+-	/* module tvp7002: just ident 7002 */
+-	V4L2_IDENT_TVP7002 = 7002,
+-
+-	/* module adv7170: just ident 7170 */
+-	V4L2_IDENT_ADV7170 = 7170,
+-
+-	/* module adv7175: just ident 7175 */
+-	V4L2_IDENT_ADV7175 = 7175,
+-
+-	/* module adv7180: just ident 7180 */
+-	V4L2_IDENT_ADV7180 = 7180,
+-
+-	/* module adv7183: just ident 7183 */
+-	V4L2_IDENT_ADV7183 = 7183,
+-
+-	/* module saa7185: just ident 7185 */
+-	V4L2_IDENT_SAA7185 = 7185,
+-
+-	/* module saa7191: just ident 7191 */
+-	V4L2_IDENT_SAA7191 = 7191,
+-
+-	/* module ths7303: just ident 7303 */
+-	V4L2_IDENT_THS7303 = 7303,
+-
+-	/* module adv7343: just ident 7343 */
+-	V4L2_IDENT_ADV7343 = 7343,
+-
+-	/* module ths7353: just ident 7353 */
+-	V4L2_IDENT_THS7353 = 7353,
+-
+-	/* module adv7393: just ident 7393 */
+-	V4L2_IDENT_ADV7393 = 7393,
+-
+-	/* module adv7604: just ident 7604 */
+-	V4L2_IDENT_ADV7604 = 7604,
+-
+-	/* module saa7706h: just ident 7706 */
+-	V4L2_IDENT_SAA7706H = 7706,
+-
+-	/* module mt9v011, just ident 8243 */
+-	V4L2_IDENT_MT9V011 = 8243,
+-
+-	/* module wm8739: just ident 8739 */
+-	V4L2_IDENT_WM8739 = 8739,
+-
+-	/* module wm8775: just ident 8775 */
+-	V4L2_IDENT_WM8775 = 8775,
+-
+-	/* Marvell controllers starting at 8801 */
+-	V4L2_IDENT_CAFE = 8801,
+-	V4L2_IDENT_ARMADA610 = 8802,
+-
+-	/* AKM AK8813/AK8814 */
+-	V4L2_IDENT_AK8813 = 8813,
+-	V4L2_IDENT_AK8814 = 8814,
+-
+-	/* module cx23885 and cx25840 */
+-	V4L2_IDENT_CX23885    = 8850,
+-	V4L2_IDENT_CX23885_AV = 8851, /* Integrated A/V decoder */
+-	V4L2_IDENT_CX23887    = 8870,
+-	V4L2_IDENT_CX23887_AV = 8871, /* Integrated A/V decoder */
+-	V4L2_IDENT_CX23888    = 8880,
+-	V4L2_IDENT_CX23888_AV = 8881, /* Integrated A/V decoder */
+-	V4L2_IDENT_CX23888_IR = 8882, /* Integrated infrared controller */
+-
+-	/* module ad9389b: just ident 9389 */
+-	V4L2_IDENT_AD9389B = 9389,
+-
+-	/* module tda9840: just ident 9840 */
+-	V4L2_IDENT_TDA9840 = 9840,
+-
+-	/* module tw9910: just ident 9910 */
+-	V4L2_IDENT_TW9910 = 9910,
+-
+-	/* module sn9c20x: just ident 10000 */
+-	V4L2_IDENT_SN9C20X = 10000,
+-
+-	/* module cx231xx and cx25840 */
+-	V4L2_IDENT_CX2310X_AV = 23099, /* Integrated A/V decoder; not in '100 */
+-	V4L2_IDENT_CX23100    = 23100,
+-	V4L2_IDENT_CX23101    = 23101,
+-	V4L2_IDENT_CX23102    = 23102,
+-
+-	/* module msp3400: reserved range 34000-34999 for msp34xx */
+-	V4L2_IDENT_MSPX4XX  = 34000, /* generic MSPX4XX identifier, only
+-					use internally (tveeprom.c). */
+-
+-	V4L2_IDENT_MSP3400B = 34002,
+-	V4L2_IDENT_MSP3400C = 34003,
+-	V4L2_IDENT_MSP3400D = 34004,
+-	V4L2_IDENT_MSP3400G = 34007,
+-	V4L2_IDENT_MSP3401G = 34017,
+-	V4L2_IDENT_MSP3402G = 34027,
+-	V4L2_IDENT_MSP3405D = 34054,
+-	V4L2_IDENT_MSP3405G = 34057,
+-	V4L2_IDENT_MSP3407D = 34074,
+-	V4L2_IDENT_MSP3407G = 34077,
+-
+-	V4L2_IDENT_MSP3410B = 34102,
+-	V4L2_IDENT_MSP3410C = 34103,
+-	V4L2_IDENT_MSP3410D = 34104,
+-	V4L2_IDENT_MSP3410G = 34107,
+-	V4L2_IDENT_MSP3411G = 34117,
+-	V4L2_IDENT_MSP3412G = 34127,
+-	V4L2_IDENT_MSP3415D = 34154,
+-	V4L2_IDENT_MSP3415G = 34157,
+-	V4L2_IDENT_MSP3417D = 34174,
+-	V4L2_IDENT_MSP3417G = 34177,
+-
+-	V4L2_IDENT_MSP3420G = 34207,
+-	V4L2_IDENT_MSP3421G = 34217,
+-	V4L2_IDENT_MSP3422G = 34227,
+-	V4L2_IDENT_MSP3425G = 34257,
+-	V4L2_IDENT_MSP3427G = 34277,
+-
+-	V4L2_IDENT_MSP3430G = 34307,
+-	V4L2_IDENT_MSP3431G = 34317,
+-	V4L2_IDENT_MSP3435G = 34357,
+-	V4L2_IDENT_MSP3437G = 34377,
+-
+-	V4L2_IDENT_MSP3440G = 34407,
+-	V4L2_IDENT_MSP3441G = 34417,
+-	V4L2_IDENT_MSP3442G = 34427,
+-	V4L2_IDENT_MSP3445G = 34457,
+-	V4L2_IDENT_MSP3447G = 34477,
+-
+-	V4L2_IDENT_MSP3450G = 34507,
+-	V4L2_IDENT_MSP3451G = 34517,
+-	V4L2_IDENT_MSP3452G = 34527,
+-	V4L2_IDENT_MSP3455G = 34557,
+-	V4L2_IDENT_MSP3457G = 34577,
+-
+-	V4L2_IDENT_MSP3460G = 34607,
+-	V4L2_IDENT_MSP3461G = 34617,
+-	V4L2_IDENT_MSP3465G = 34657,
+-	V4L2_IDENT_MSP3467G = 34677,
+-
+-	/* module msp3400: reserved range 44000-44999 for msp44xx */
+-	V4L2_IDENT_MSP4400G = 44007,
+-	V4L2_IDENT_MSP4408G = 44087,
+-	V4L2_IDENT_MSP4410G = 44107,
+-	V4L2_IDENT_MSP4418G = 44187,
+-	V4L2_IDENT_MSP4420G = 44207,
+-	V4L2_IDENT_MSP4428G = 44287,
+-	V4L2_IDENT_MSP4440G = 44407,
+-	V4L2_IDENT_MSP4448G = 44487,
+-	V4L2_IDENT_MSP4450G = 44507,
+-	V4L2_IDENT_MSP4458G = 44587,
+-
+-	/* Micron CMOS sensor chips: 45000-45099 */
+-	V4L2_IDENT_MT9M001C12ST		= 45000,
+-	V4L2_IDENT_MT9M001C12STM	= 45005,
+-	V4L2_IDENT_MT9M111		= 45007,
+-	V4L2_IDENT_MT9M112		= 45008,
+-	V4L2_IDENT_MT9V022IX7ATC	= 45010, /* No way to detect "normal" I77ATx */
+-	V4L2_IDENT_MT9V022IX7ATM	= 45015, /* and "lead free" IA7ATx chips */
+-	V4L2_IDENT_MT9T031		= 45020,
+-	V4L2_IDENT_MT9T111		= 45021,
+-	V4L2_IDENT_MT9T112		= 45022,
+-	V4L2_IDENT_MT9V111		= 45031,
+-	V4L2_IDENT_MT9V112		= 45032,
+-
+-	/* HV7131R CMOS sensor: just ident 46000 */
+-	V4L2_IDENT_HV7131R		= 46000,
+-
+-	/* Sharp RJ54N1CB0C, 0xCB0C = 51980 */
+-	V4L2_IDENT_RJ54N1CB0C = 51980,
+-
+-	/* module m52790: just ident 52790 */
+-	V4L2_IDENT_M52790 = 52790,
+-
+-	/* module cs53132a: just ident 53132 */
+-	V4L2_IDENT_CS53l32A = 53132,
+-
+-	/* modules upd61151 MPEG2 encoder: just ident 54000 */
+-	V4L2_IDENT_UPD61161 = 54000,
+-	/* modules upd61152 MPEG2 encoder with AC3: just ident 54001 */
+-	V4L2_IDENT_UPD61162 = 54001,
+-
+-	/* module upd64031a: just ident 64031 */
+-	V4L2_IDENT_UPD64031A = 64031,
+-
+-	/* module upd64083: just ident 64083 */
+-	V4L2_IDENT_UPD64083 = 64083,
+-
+-	/* Don't just add new IDs at the end: KEEP THIS LIST ORDERED BY ID! */
+-};
+-
+-#endif
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index 931652f..e0b74a4 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -247,8 +247,6 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_g_chip_info)      (struct file *file, void *fh,
+ 					struct v4l2_dbg_chip_info *chip);
+ #endif
+-	int (*vidioc_g_chip_ident)     (struct file *file, void *fh,
+-					struct v4l2_dbg_chip_ident *chip);
  
- 	ret = vb2_ioctl_streamon(file, priv, type);
- 	if (!ret) {
-@@ -1212,7 +1189,7 @@ static int fimc_lite_subdev_s_stream(struct v4l2_subdev *sd, int on)
- 	 * The pipeline links are protected through entity.stream_count
- 	 * so there is no need to take the media graph mutex here.
- 	 */
--	fimc->sensor = __find_remote_sensor(&sd->entity);
-+	fimc->sensor = fimc_find_remote_sensor(&sd->entity);
+ 	int (*vidioc_enum_framesizes)   (struct file *file, void *fh,
+ 					 struct v4l2_frmsizeenum *fsize);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 5298d67..21fc9e1 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -88,7 +88,6 @@ struct v4l2_decode_vbi_line {
  
- 	if (atomic_read(&fimc->out_path) != FIMC_IO_ISP)
- 		return -ENOIOCTLCMD;
+ /* Core ops: it is highly recommended to implement at least these ops:
+ 
+-   g_chip_ident
+    log_status
+    g_register
+    s_register
+@@ -145,7 +144,6 @@ struct v4l2_subdev_io_pin_config {
+ 	performed later.  It must not sleep.  *Called from an IRQ context*.
+  */
+ struct v4l2_subdev_core_ops {
+-	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
+ 	int (*log_status)(struct v4l2_subdev *sd);
+ 	int (*s_io_pin_config)(struct v4l2_subdev *sd, size_t n,
+ 				      struct v4l2_subdev_io_pin_config *pincfg);
+@@ -660,7 +658,7 @@ void v4l2_subdev_init(struct v4l2_subdev *sd,
+ /* Call an ops of a v4l2_subdev, doing the right checks against
+    NULL pointers.
+ 
+-   Example: err = v4l2_subdev_call(sd, core, g_chip_ident, &chip);
++   Example: err = v4l2_subdev_call(sd, core, s_std, norm);
+  */
+ #define v4l2_subdev_call(sd, o, f, args...)				\
+ 	(!(sd) ? -ENODEV : (((sd)->ops->o && (sd)->ops->o->f) ?	\
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 2c5e67a..95ef455 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1787,11 +1787,13 @@ struct v4l2_event_subscription {
+ /* VIDIOC_DBG_G_REGISTER and VIDIOC_DBG_S_REGISTER */
+ 
+ #define V4L2_CHIP_MATCH_BRIDGE      0  /* Match against chip ID on the bridge (0 for the bridge) */
++#define V4L2_CHIP_MATCH_SUBDEV      4  /* Match against subdev index */
++
++/* The following four defines are no longer in use */
+ #define V4L2_CHIP_MATCH_HOST V4L2_CHIP_MATCH_BRIDGE
+ #define V4L2_CHIP_MATCH_I2C_DRIVER  1  /* Match against I2C driver name */
+ #define V4L2_CHIP_MATCH_I2C_ADDR    2  /* Match against I2C 7-bit address */
+ #define V4L2_CHIP_MATCH_AC97        3  /* Match against ancillary AC97 chip */
+-#define V4L2_CHIP_MATCH_SUBDEV      4  /* Match against subdev index */
+ 
+ struct v4l2_dbg_match {
+ 	__u32 type; /* Match type */
+@@ -1808,13 +1810,6 @@ struct v4l2_dbg_register {
+ 	__u64 val;
+ } __attribute__ ((packed));
+ 
+-/* VIDIOC_DBG_G_CHIP_IDENT */
+-struct v4l2_dbg_chip_ident {
+-	struct v4l2_dbg_match match;
+-	__u32 ident;       /* chip identifier as specified in <media/v4l2-chip-ident.h> */
+-	__u32 revision;    /* chip revision, chip specific */
+-} __attribute__ ((packed));
+-
+ #define V4L2_CHIP_FL_READABLE (1 << 0)
+ #define V4L2_CHIP_FL_WRITABLE (1 << 1)
+ 
+@@ -1915,12 +1910,6 @@ struct v4l2_create_buffers {
+ #define	VIDIOC_DBG_S_REGISTER 	 _IOW('V', 79, struct v4l2_dbg_register)
+ #define	VIDIOC_DBG_G_REGISTER 	_IOWR('V', 80, struct v4l2_dbg_register)
+ 
+-/* Experimental, meant for debugging, testing and internal use.
+-   Never use this ioctl in applications!
+-   Note: this ioctl is deprecated in favor of VIDIOC_DBG_G_CHIP_INFO and
+-   will go away in the future. */
+-#define VIDIOC_DBG_G_CHIP_IDENT _IOWR('V', 81, struct v4l2_dbg_chip_ident)
+-
+ #define VIDIOC_S_HW_FREQ_SEEK	 _IOW('V', 82, struct v4l2_hw_freq_seek)
+ 
+ #define	VIDIOC_S_DV_TIMINGS	_IOWR('V', 87, struct v4l2_dv_timings)
 -- 
-1.7.9.5
+1.7.10.4
 
