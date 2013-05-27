@@ -1,41 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:60960 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758743Ab3EBQZh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 12:25:37 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: "edubezval@gmail.com" <edubezval@gmail.com>
-Subject: Re: [PATCH, RFC 22/22] radio-si4713: depend on SND_SOC
-Date: Thu, 2 May 2013 18:25:11 +0200
-Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-References: <1367507786-505303-1-git-send-email-arnd@arndb.de> <1367507786-505303-23-git-send-email-arnd@arndb.de> <CAC-25o9Xp+pu_AUwxyh+YsiOCOebzMRF37v1VWZJD6nrbx5e6Q@mail.gmail.com>
-In-Reply-To: <CAC-25o9Xp+pu_AUwxyh+YsiOCOebzMRF37v1VWZJD6nrbx5e6Q@mail.gmail.com>
+Received: from szxga01-in.huawei.com ([119.145.14.64]:41132 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756256Ab3E0Ccb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 26 May 2013 22:32:31 -0400
+From: Libo Chen <libo.chen@huawei.com>
+To: <hverkuil@xs4all.nl>, <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<lizefan@huawei.com>, <libo.chen@huawei.com>,
+	<gregkh@linuxfoundation.org>
+Subject: [PATCH 22/24] drivers/media/radio/radio-maxiradio: Convert to module_pci_driver
+Date: Mon, 27 May 2013 10:31:59 +0800
+Message-ID: <1369621919-12800-1-git-send-email-libo.chen@huawei.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305021825.12094.arnd@arndb.de>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 02 May 2013, edubezval@gmail.com wrote:
-> On Thu, May 2, 2013 at 11:16 AM, Arnd Bergmann <arnd@arndb.de> wrote:
-> > It is not possible to select SND_SOC_SI476X if we have not also
-> > enabled SND_SOC.
-> >
-> > warning: (RADIO_SI476X) selects SND_SOC_SI476X which has unmet
-> >          direct dependencies (SOUND && !M68K && !UML && SND && SND_SOC)
-> >
-> > Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> > Cc: linux-media@vger.kernel.org
-> > Signed-off-by: Arnd Bergmann <arnd@arndb.de>
-> > ---
-> 
-> Note on your patch title, this change is against si476X, not on *si4713*.
-> 
+use module_pci_driver instead of init/exit, make code clean
 
-Sorry about that, I must have copied the wrong prefix from an older patch
-then. I'll fix it up locally in case I need to resend.
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+---
+ drivers/media/radio/radio-maxiradio.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-	Arnd
+diff --git a/drivers/media/radio/radio-maxiradio.c b/drivers/media/radio/radio-maxiradio.c
+index bd4d3a7..1d1c9e1 100644
+--- a/drivers/media/radio/radio-maxiradio.c
++++ b/drivers/media/radio/radio-maxiradio.c
+@@ -200,15 +200,4 @@ static struct pci_driver maxiradio_driver = {
+ 	.remove		= maxiradio_remove,
+ };
+ 
+-static int __init maxiradio_init(void)
+-{
+-	return pci_register_driver(&maxiradio_driver);
+-}
+-
+-static void __exit maxiradio_exit(void)
+-{
+-	pci_unregister_driver(&maxiradio_driver);
+-}
+-
+-module_init(maxiradio_init);
+-module_exit(maxiradio_exit);
++module_pci_driver(maxiradio_driver);
+-- 
+1.7.1
+
+
