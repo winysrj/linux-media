@@ -1,52 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f49.google.com ([74.125.83.49]:38986 "EHLO
-	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759423Ab3EAK2Z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 06:28:25 -0400
-Message-ID: <5180EE41.50302@gmail.com>
-Date: Wed, 01 May 2013 12:28:17 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-la0-f47.google.com ([209.85.215.47]:59107 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751261Ab3E0FCE convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 May 2013 01:02:04 -0400
+Received: by mail-la0-f47.google.com with SMTP id fq12so6055587lab.20
+        for <linux-media@vger.kernel.org>; Sun, 26 May 2013 22:02:02 -0700 (PDT)
 MIME-Version: 1.0
-To: Mark Brown <broonie@kernel.org>
-CC: Kyungmin Park <kmpark@infradead.org>, t.stanislaws@samsung.com,
-	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	linux@arm.linux.org.uk, jy0922.shim@samsung.com,
-	alsa-devel@alsa-project.org, sbkim73@samsung.com,
-	sw0312.kim@samsung.com, jg1.han@samsung.com,
-	linux-mmc@vger.kernel.org, Tomasz Figa <tomasz.figa@gmail.com>,
-	dri-devel@lists.freedesktop.org, inki.dae@samsung.com,
-	jtp.park@samsung.com, dh09.lee@samsung.com,
-	linux-arm-kernel@lists.infradead.org, s.nawrocki@samsung.com,
-	k.debski@samsung.com, linux-media@vger.kernel.org
-Subject: Re: [alsa-devel] [PATCH] MAINTAINERS: Add linux-samsung-soc list
- to all related entries
-References: <1366572050-626-1-git-send-email-tomasz.figa@gmail.com> <CAH9JG2U7Qdq_xQbuqHu6PXzURS2fWwBC=HJmyrXT5n3n_pAa0w@mail.gmail.com> <20130430132755.GB1023@sirena.org.uk>
-In-Reply-To: <20130430132755.GB1023@sirena.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1369556151-4614-1-git-send-email-diego.viola@gmail.com>
+References: <1369556151-4614-1-git-send-email-diego.viola@gmail.com>
+Date: Mon, 27 May 2013 01:02:02 -0400
+Message-ID: <CA+ToGPE-UXUG5j4Qoq7vN64ggsEho79O_VQekAi4txP2BEnMtw@mail.gmail.com>
+Subject: Re: [PATCH] Fix spelling of Qt in .desktop file (typo)
+From: Diego Viola <diego.viola@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 04/30/2013 03:27 PM, Mark Brown wrote:
-> On Mon, Apr 22, 2013 at 03:23:29PM +0900, Kyungmin Park wrote:
+This patch is for v4l-utils.git. Please apply it.
+
+Thanks,
+
+Diego
+
+On Sun, May 26, 2013 at 4:15 AM, Diego Viola <diego.viola@gmail.com> wrote:
+> Proper spelling of Qt is Qt, not QT.  "QT" is often confused with
+> QuickTime, here is a minor patch to fix this issue in the .desktop file.
 >
->> I don't think it's not required, each tree has each own mailing list. don't
->> need to post all patches to samsung-soc list.
+> Signed-off-by: Diego Viola <diego.viola@gmail.com>
+> ---
+>  utils/qv4l2/qv4l2.desktop | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
 >
-> It can be useful to get system level input on some stuff, I guess it
-> mostly depends if the people on the generic list mind the extra traffic
-> or if they find it useful.
-
-I think this could also improve testing coverage, if more people are aware
-of stuff going in through various mailing lists.
-
-Also on a specific subsystem mailing lists yet another SoC specific patches
-may not get enough attention, as people care most about the core subsystem
-changes.
-
-So I would in general encourage others to Cc linux-samsung-soc, even if the
-$subject patch gets ignored.
-
-I seriously doubt anyone would have ever been disturbed with additional
-traffic on the list, with its current average of about 20..50 emails per 
-day.
+> diff --git a/utils/qv4l2/qv4l2.desktop b/utils/qv4l2/qv4l2.desktop
+> index 00f3e33..69413e1 100644
+> --- a/utils/qv4l2/qv4l2.desktop
+> +++ b/utils/qv4l2/qv4l2.desktop
+> @@ -1,5 +1,5 @@
+>  [Desktop Entry]
+> -Name=QT V4L2 test Utility
+> +Name=Qt V4L2 test Utility
+>  Name[pt]=Utilitário de teste V4L2
+>  Comment=Allow testing Video4Linux devices
+>  Comment[pt]=Permite testar dispositivos Video4Linux
+> --
+> 1.8.2.3
+>
