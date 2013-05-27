@@ -1,63 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:34483 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752463Ab3EZMBx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 08:01:53 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 1/9] media: davinci: vpif: remove unwanted header mach/hardware.h and sort the includes alphabetically
-Date: Sun, 26 May 2013 17:30:04 +0530
-Message-Id: <1369569612-30915-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mout.gmx.net ([74.208.4.200]:52019 "EHLO mout.gmx.net"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932792Ab3E0OkH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 May 2013 10:40:07 -0400
+Received: from mailout-us.gmx.com ([172.19.198.46]) by mrigmx.server.lan
+ (mrigmxus001) with ESMTP (Nemesis) id 0MMjfv-1Unqkj1q5X-008ZkR for
+ <linux-media@vger.kernel.org>; Mon, 27 May 2013 16:40:06 +0200
+Content-Type: text/plain; charset="utf-8"
+Date: Mon, 27 May 2013 10:40:02 -0400
+From: kewlcat@gmx.com
+Message-ID: <20130527144003.287100@gmx.com>
+MIME-Version: 1.0
+Subject: Creative WebCam Live! Pro recognized, initialised but unusable
+To: linux-media@vger.kernel.org
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-This patch removes unwanted header include of mach/hardware.h
-and along side sorts the header inclusion alphabetically.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/davinci/vpif.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index ea82a8b..761c825 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -17,18 +17,16 @@
-  * GNU General Public License for more details.
-  */
+Hello
  
-+#include <linux/err.h>
- #include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/spinlock.h>
--#include <linux/kernel.h>
--#include <linux/io.h>
--#include <linux/err.h>
- #include <linux/pm_runtime.h>
-+#include <linux/spinlock.h>
- #include <linux/v4l2-dv-timings.h>
+I'm having trouble with a Creative WebCam Live! Pro, usb id 041e:4038 "Creative Technology, Ltd ORITE CCD Webcam [PC370R]"
+This device is supposed to be "supported" but is marked as "untested". Apparently it works up to the point where sq930x fail with this message : gspca_sq930x: reg_r 001f failed -32
  
--#include <mach/hardware.h>
--
- #include "vpif.h"
+See a more complete log here : http://pastebin.com/SMTuhdAF
  
- MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
--- 
-1.7.0.4
-
+The kernel I'm using is a custom made 3.9.3.
+What other information do you need to debug this issue ? What options must I activate in the kernel in order to get a more verbose syslog regarding this component ?
+Is there any hope at all for this device, as there seems to be no information available at all from Creative or any other source ?
+ 
+Sincerely,
+  =^.^=
