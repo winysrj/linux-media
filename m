@@ -1,50 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ankara.baskent.edu.tr ([193.140.164.20]:35062 "EHLO
-	ankara.baskent.edu.tr" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752019Ab3EFM1g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 08:27:36 -0400
-Message-ID: <9620467ec63a5bad60b7732219201bc7.squirrel@www.baskent.edu.tr>
-Date: Mon, 6 May 2013 15:16:05 +0300
-Subject: =?utf-8?B?VUJTIEJlbmFjaHJpY2h0aWd1bmcgLSBJaHJlIEludGVybmV0LUJhbmtpbmcg?=
- =?utf-8?B?Z2VzcGVycnTigI8=?=
-From: "UBS AG" <ch@ubs.com>
-MIME-Version: 1.0
-Content-Type: text/plain;charset=utf-8
-Content-Transfer-Encoding: 8bit
-To: undisclosed-recipients:;
+Received: from mx1.redhat.com ([209.132.183.28]:43489 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932072Ab3E0MEf (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 May 2013 08:04:35 -0400
+Received: from int-mx09.intmail.prod.int.phx2.redhat.com (int-mx09.intmail.prod.int.phx2.redhat.com [10.5.11.22])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r4RC4Zr4020968
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Mon, 27 May 2013 08:04:35 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH] [media] hdpvr: Simplify the logic that checks for error
+Date: Mon, 27 May 2013 09:04:29 -0300
+Message-Id: <1369656269-11444-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+At get_video_info, there's a somewhat complex logic that checks
+for error.
 
+That logic can be highly simplified, as usb_control_msg will
+only return a negative value, or the buffer length, as it does
+the transfers via DMA.
 
+While here, document why this particular driver is returning -EFAULT,
+instead of the USB error code.
 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-control.c | 23 +++++++++++++----------
+ 1 file changed, 13 insertions(+), 10 deletions(-)
 
-Sehr geehrter Kunde,
-
-Kürzlich zeigen unsere Aufzeichnungen, dass Ihr UBS-Konto möglich durch
-einen Dritten unbefugten Zutritt.
-
-Die Sicherheit Ihres Kontos ist unser wichtigstes Anliegen, deshalb haben
-wir beschlossen,den Zugang zu Ihrem Konto vorübergehend zu begrenzen. Für
-den vollen Zugang zu Ihrem Konto, Sie müssen Ihre Daten wiederherstellen
-und bestätigen Sie Ihr Konto über diesen link klicken:
-http://uolb.com.ru/sch/deu.html?login&locale=de-CH
-
-Sobald Ihre Angaben überprüft und bestätigt, erhalten Sie eine Nachricht
-von uns erhalten und wird Ihr Konto komplett zugreifen wiederhergestellt.
-
-Wir danken Ihnen für Ihre Kooperation.
-
-Mit freundlichen Grüßen,
-UBS AG
-Bahnhofstrasse 45 8001 Zurich
-UBS AG    CH-8098 Zurich
-SWIFT (BIC):    UBSWCHZH
-BIC: UBSWCHZH80A
-
-
+diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
+index d1a3d84..a015a24 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-control.c
++++ b/drivers/media/usb/hdpvr/hdpvr-control.c
+@@ -56,12 +56,6 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
+ 			      0x1400, 0x0003,
+ 			      dev->usbc_buf, 5,
+ 			      1000);
+-	if (ret == 5) {
+-		vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
+-		vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
+-		vidinf->fps	= dev->usbc_buf[4];
+-	}
+-
+ #ifdef HDPVR_DEBUG
+ 	if (hdpvr_debug & MSG_INFO) {
+ 		char print_buf[15];
+@@ -73,11 +67,20 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
+ #endif
+ 	mutex_unlock(&dev->usbc_mutex);
+ 
+-	if (ret > 0 && ret != 5) { /* fail if unexpected byte count returned */
+-		ret = -EFAULT;
+-	}
++	/*
++	 * Returning EFAULT is wrong. Unfortunately, MythTV hdpvr
++	 * handling code was written to expect this specific error,
++	 * instead of accepting any error code. So, we can't fix it
++	 * in Kernel without breaking userspace.
++	 */
++	if (ret < 0)
++		return -EFAULT;
+ 
+-	return ret < 0 ? ret : 0;
++	vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
++	vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
++	vidinf->fps	= dev->usbc_buf[4];
++
++	return 0;
+ }
+ 
+ int get_input_lines_info(struct hdpvr_device *dev)
 -- 
-This message has been scanned for viruses and
-dangerous content by MailScanner, and is
-believed to be clean.
+1.8.1.4
 
