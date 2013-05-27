@@ -1,97 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:35250 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751545Ab3EBKXY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 06:23:24 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MM6003Q526LXO70@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 02 May 2013 11:23:22 +0100 (BST)
-Message-id: <51823E99.9040201@samsung.com>
-Date: Thu, 02 May 2013 12:23:21 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
-	patches@linaro.org
-Subject: Re: [PATCH v2 1/2] s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL in
- hdmi_drv.c
-References: <1367471009-7103-1-git-send-email-sachin.kamat@linaro.org>
-In-reply-to: <1367471009-7103-1-git-send-email-sachin.kamat@linaro.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from youngberry.canonical.com ([91.189.89.112]:49827 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756904Ab3E0KBw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 May 2013 06:01:52 -0400
+Message-ID: <51A32F0E.9000206@canonical.com>
+Date: Mon, 27 May 2013 12:01:50 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: Peter Zijlstra <peterz@infradead.org>
+CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	x86@kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
+	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
+Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks,
+ v3
+References: <20130428165914.17075.57751.stgit@patser> <20130428170407.17075.80082.stgit@patser> <20130430191422.GA5763@phenom.ffwll.local> <519CA976.9000109@canonical.com> <20130522161831.GQ18810@twins.programming.kicks-ass.net> <519CFF56.90600@canonical.com> <20130527082149.GE2781@laptop>
+In-Reply-To: <20130527082149.GE2781@laptop>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Op 27-05-13 10:21, Peter Zijlstra schreef:
+> On Wed, May 22, 2013 at 07:24:38PM +0200, Maarten Lankhorst wrote:
+>>>> +static inline void ww_acquire_init(struct ww_acquire_ctx *ctx,
+>>>> +				   struct ww_class *ww_class)
+>>>> +{
+>>>> +	ctx->task = current;
+>>>> +	do {
+>>>> +		ctx->stamp = atomic_long_inc_return(&ww_class->stamp);
+>>>> +	} while (unlikely(!ctx->stamp));
+>>> I suppose we'll figure something out when this becomes a bottleneck. Ideally
+>>> we'd do something like:
+>>>
+>>>  ctx->stamp = local_clock();
+>>>
+>>> but for now we cannot guarantee that's not jiffies, and I suppose that's a tad
+>>> too coarse to work for this.
+>> This might mess up when 2 cores happen to return exactly the same time, how do you choose a winner in that case?
+>> EDIT: Using pointer address like you suggested below is fine with me. ctx pointer would be static enough.
+> Right, but for now I suppose the 'global' atomic is ok, if/when we find
+> it hurts performance we can revisit. I was just spewing ideas :-)
+If  accurate timers are available it wouldn't be a bad idea. I fixed up the code to at least support this case should it happen.
+For now the source of the stamp is still a single atomic_long.
 
-On 05/02/2013 07:03 AM, Sachin Kamat wrote:
-> NULL check on clocks obtained using common clock APIs should not
-> be done. Use IS_ERR only.
-> 
-> Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-> ---
-> Changes since v1:
-> Initialised clocks to invalid value.
-> ---
->  drivers/media/platform/s5p-tv/hdmi_drv.c |   18 ++++++++++++------
->  1 file changed, 12 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c b/drivers/media/platform/s5p-tv/hdmi_drv.c
-> index 4e86626..ed1a695 100644
-> --- a/drivers/media/platform/s5p-tv/hdmi_drv.c
-> +++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
-> @@ -765,15 +765,15 @@ static void hdmi_resources_cleanup(struct hdmi_device *hdev)
->  		regulator_bulk_free(res->regul_count, res->regul_bulk);
->  	/* kfree is NULL-safe */
->  	kfree(res->regul_bulk);
-> -	if (!IS_ERR_OR_NULL(res->hdmiphy))
-> +	if (!IS_ERR(res->hdmiphy))
->  		clk_put(res->hdmiphy);
-> -	if (!IS_ERR_OR_NULL(res->sclk_hdmiphy))
-> +	if (!IS_ERR(res->sclk_hdmiphy))
->  		clk_put(res->sclk_hdmiphy);
-> -	if (!IS_ERR_OR_NULL(res->sclk_pixel))
-> +	if (!IS_ERR(res->sclk_pixel))
->  		clk_put(res->sclk_pixel);
-> -	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
-> +	if (!IS_ERR(res->sclk_hdmi))
->  		clk_put(res->sclk_hdmi);
-> -	if (!IS_ERR_OR_NULL(res->hdmi))
-> +	if (!IS_ERR(res->hdmi))
->  		clk_put(res->hdmi);
->  	memset(res, 0, sizeof(*res));
+>>> Also, why is 0 special?
+>> Oops, 0 is no longer special.
+>>
+>> I used to set the samp directly on the lock, so 0 used to mean no ctx set.
+> Ah, ok :-)
+>
+>>>> +static inline int __must_check ww_mutex_trylock_single(struct ww_mutex *lock)
+>>>> +{
+>>>> +	return mutex_trylock(&lock->base);
+>>>> +}
+>>> trylocks can never deadlock they don't block per definition, I don't see the
+>>> point of the _single() thing here.
+>> I called it single because they weren't annotated into any ctx. I can drop the _single suffix though,
+>> but you'd still need to unlock with unlock_single, or we need to remove that distinction altogether,
+>> lose a few lockdep checks and only have a one unlock function.
+> Again, early.. monday.. would a trylock, even if successful still need
+> the ctx?
+No ctx for trylock is supported. You can still do a trylock while holding a context, but the mutex won't be
+a part of the context. Normal lockdep rules apply. lib/locking-selftest.c:
 
-Shouldn't this memset be removed not ? Then res->regul_count would need to
-be set to 0.
+context + ww_mutex_lock first, then a trylock:
+dotest(ww_test_context_try, SUCCESS, LOCKTYPE_WW);
 
->  }
-> @@ -793,8 +793,14 @@ static int hdmi_resources_init(struct hdmi_device *hdev)
->  	dev_dbg(dev, "HDMI resource init\n");
->  
->  	memset(res, 0, sizeof(*res));
+trylock first, then context + ww_mutex_lock:
+dotest(ww_test_try_context, FAILURE, LOCKTYPE_WW);
 
-This could be replaced with
-	res->regul_count = 0;
+For now I don't want to add support for a trylock with context, I'm very glad I managed to fix ttm locking
+to not require this any more, and it was needed there only because it was a workaround for the locking
+being wrong.  There was no annotation for the buffer locking it was using, so the real problem wasn't easy to spot.
 
-> -	/* get clocks, power */
->  
-> +	res->hdmi	 = ERR_PTR(-EINVAL);
-
-You could remove this line, as res->sclk_hdmi will be set by clk_get()
-right below.
-
-> +	res->sclk_hdmi	 = ERR_PTR(-EINVAL);
-> +	res->sclk_pixel	 = ERR_PTR(-EINVAL);
-> +	res->sclk_hdmiphy = ERR_PTR(-EINVAL);
-> +	res->hdmiphy	 = ERR_PTR(-EINVAL);
-> +
-> +	/* get clocks, power */
->  	res->hdmi = clk_get(dev, "hdmi");
->  	if (IS_ERR(res->hdmi)) {
->  		dev_err(dev, "failed to get clock 'hdmi'\n");
-> 
-
-Regards,
-Sylwester
+~Maarten
