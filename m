@@ -1,54 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f49.google.com ([209.85.212.49]:35388 "EHLO
-	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753792Ab3EaHxn (ORCPT
+Received: from szxga01-in.huawei.com ([119.145.14.64]:41898 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756320Ab3E0Cdl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 03:53:43 -0400
-Received: by mail-vb0-f49.google.com with SMTP id q13so822459vbe.22
-        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 00:53:42 -0700 (PDT)
+	Sun, 26 May 2013 22:33:41 -0400
+From: Libo Chen <libo.chen@huawei.com>
+To: <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<lizefan@huawei.com>, <libo.chen@huawei.com>,
+	<gregkh@linuxfoundation.org>
+Subject: [PATCH 18/24] drivers/media/pci/mantis/hopper_cards: Convert to module_pci_driver
+Date: Mon, 27 May 2013 10:31:46 +0800
+Message-ID: <1369621906-21268-1-git-send-email-libo.chen@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <1369825211-29770-3-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-	<1369825211-29770-3-git-send-email-hverkuil@xs4all.nl>
-Date: Fri, 31 May 2013 15:53:42 +0800
-Message-ID: <CAHG8p1AsG1DiTxdnztqrcCu-RANpUUY=d9+V4D9-4ub4umZcLQ@mail.gmail.com>
-Subject: Re: [PATCHv1 02/38] v4l2: remove g_chip_ident from bridge drivers
- where it is easy to do so.
-From: Scott Jiang <scott.jiang.linux@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	stoth@linuxtv.org, "Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andrey Smirnov <andrew.smirnov@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-2013/5/29 Hans Verkuil <hverkuil@xs4all.nl>:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> VIDIOC_DBG_G_CHIP_IDENT has been replaced by VIDIOC_DBG_G_CHIP_INFO. Remove
-> g_chip_ident support from bridge drivers since it is no longer needed.
->
-> This patch takes care of all the trivial cases.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: stoth@linuxtv.org
-> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-> Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
-> ---
+use module_pci_driver instead of init/exit, make code clean.
 
->  drivers/media/platform/blackfin/bfin_capture.c |   41 ---------------
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+---
+ drivers/media/pci/mantis/hopper_cards.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
+diff --git a/drivers/media/pci/mantis/hopper_cards.c b/drivers/media/pci/mantis/hopper_cards.c
+index 6fe9fe5..104914a 100644
+--- a/drivers/media/pci/mantis/hopper_cards.c
++++ b/drivers/media/pci/mantis/hopper_cards.c
+@@ -260,18 +260,7 @@ static struct pci_driver hopper_pci_driver = {
+ 	.remove		= hopper_pci_remove,
+ };
+ 
+-static int hopper_init(void)
+-{
+-	return pci_register_driver(&hopper_pci_driver);
+-}
+-
+-static void hopper_exit(void)
+-{
+-	return pci_unregister_driver(&hopper_pci_driver);
+-}
+-
+-module_init(hopper_init);
+-module_exit(hopper_exit);
++module_pci_driver(hopper_pci_driver);
+ 
+ MODULE_DESCRIPTION("HOPPER driver");
+ MODULE_AUTHOR("Manu Abraham");
+-- 
+1.7.1
+
+
