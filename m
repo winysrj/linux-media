@@ -1,45 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f180.google.com ([74.125.82.180]:50642 "EHLO
-	mail-we0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755214Ab3EVFvO (ORCPT
+Received: from szxga01-in.huawei.com ([119.145.14.64]:41096 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756251Ab3E0Cca (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 01:51:14 -0400
+	Sun, 26 May 2013 22:32:30 -0400
+From: Libo Chen <libo.chen@huawei.com>
+To: <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<lizefan@huawei.com>, <libo.chen@huawei.com>,
+	<gregkh@linuxfoundation.org>
+Subject: [PATCH 17/24] drivers/media/pci/dm1105/dm1105: Convert to module_pci_driver
+Date: Mon, 27 May 2013 10:31:43 +0800
+Message-ID: <1369621903-14768-1-git-send-email-libo.chen@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 22 May 2013 11:20:53 +0530
-Message-ID: <CA+V-a8sO69E-owx5ztDaG5MV=HJYEszHH2k_EajudOd9N1Yz1g@mail.gmail.com>
-Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
-To: LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent/Sylwester,
+use module_pci_driver instead of init/exit, make code clean.
 
-On Thu, May 16, 2013 at 6:48 PM, Lad Prabhakar
-<prabhakar.csengg@gmail.com> wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->
-> This patch adds "sync-on-green" property as part of
-> endpoint properties and also support to parse them in the parser.
->
-If you are ok with the patch can I send non RFC version of it ?
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+---
+ drivers/media/pci/b2c2/flexcop-pci.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-Regards,
---Prabhakar Lad
+diff --git a/drivers/media/pci/b2c2/flexcop-pci.c b/drivers/media/pci/b2c2/flexcop-pci.c
+index 44f8fb5..447afbd 100644
+--- a/drivers/media/pci/b2c2/flexcop-pci.c
++++ b/drivers/media/pci/b2c2/flexcop-pci.c
+@@ -432,18 +432,7 @@ static struct pci_driver flexcop_pci_driver = {
+ 	.remove   = flexcop_pci_remove,
+ };
+ 
+-static int __init flexcop_pci_module_init(void)
+-{
+-	return pci_register_driver(&flexcop_pci_driver);
+-}
+-
+-static void __exit flexcop_pci_module_exit(void)
+-{
+-	pci_unregister_driver(&flexcop_pci_driver);
+-}
+-
+-module_init(flexcop_pci_module_init);
+-module_exit(flexcop_pci_module_exit);
++module_pci_driver(flexcop_pci_driver);
+ 
+ MODULE_AUTHOR(DRIVER_AUTHOR);
+ MODULE_DESCRIPTION(DRIVER_NAME);
+-- 
+1.7.1
+
+
