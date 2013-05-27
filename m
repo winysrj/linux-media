@@ -1,177 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:60915 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751005Ab3EUJ2T (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:49343 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756974Ab3E0I0n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 05:28:19 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: Re: [PATCH v3] adv7180: add more subdev video ops
-Date: Tue, 21 May 2013 11:28:05 +0200
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
-	matsu@igel.co.jp
-References: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
+	Mon, 27 May 2013 04:26:43 -0400
+Message-ID: <51A318BF.7010109@canonical.com>
+Date: Mon, 27 May 2013 10:26:39 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Peter Zijlstra <peterz@infradead.org>
+CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	x86@kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
+	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
+Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks,
+ v3
+References: <20130428165914.17075.57751.stgit@patser> <20130428170407.17075.80082.stgit@patser> <20130430191422.GA5763@phenom.ffwll.local> <519CA976.9000109@canonical.com> <20130522161831.GQ18810@twins.programming.kicks-ass.net> <519CFF56.90600@canonical.com> <20130527080019.GD2781@laptop>
+In-Reply-To: <20130527080019.GD2781@laptop>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
-Message-Id: <201305211128.05066.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei,
+Op 27-05-13 10:00, Peter Zijlstra schreef:
+> On Wed, May 22, 2013 at 07:24:38PM +0200, Maarten Lankhorst wrote:
+>>>> +- Functions to only acquire a single w/w mutex, which results in the exact same
+>>>> +  semantics as a normal mutex. These functions have the _single postfix.
+>>> This is missing rationale.
+>> trylock_single is useful when iterating over a list, and you want to evict a bo, but only the first one that can be acquired.
+>> lock_single is useful when only a single bo needs to be acquired, for example to lock a buffer during mmap.
+> OK, so given that its still early, monday and I haven't actually spend
+> much time thinking on this; would it be possible to make:
+> ww_mutex_lock(.ctx=NULL) act like ww_mutex_lock_single()?
+>
+> The idea is that if we don't provide a ctx, we'll get a different
+> lockdep annotation; mutex_lock() vs mutex_lock_nest_lock(). So if we
+> then go and make a mistake, lockdep should warn us.
+>
+> Would that work or should I stock up on morning juice?
+>
+It's easy to merge unlock_single and unlock, which I did in the next version I'll post.
+Lockdep will already warn if ww_mutex_lock and ww_mutex_lock_single are both
+used. ww_test_block_context and ww_test_context_block in lib/locking-selftest.c
+are the testcases for this.
 
-Sorry for the delay, I had planned to work on this during the weekend, but
-I became ill.
+The locking paths are too different, it will end up with doing "if (ctx == NULL) mutex_lock(); else ww_mutex_lock();"
 
-On Mon 13 May 2013 21:21:39 Sergei Shtylyov wrote:
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> 
-> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
-> the soc-camera drivers.
-> 
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> ---
-> This patch is against the 'media_tree.git' repo.
-> 
-> Changes from version 2:
-> - set the field format depending on video standard in try_mbus_fmt() method;
-> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
-> - removed g_crop() method.
+~Maarten
 
-OK, it looks good with one exception: since no cropping is supported, cropcap
-can be dropped as well. cropcap is only needed in combination with cropping
-support.
-
-Regards,
-
-	Hans
-
-> 
->  drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
->  1 file changed, 86 insertions(+)
-> 
-> Index: media_tree/drivers/media/i2c/adv7180.c
-> ===================================================================
-> --- media_tree.orig/drivers/media/i2c/adv7180.c
-> +++ media_tree/drivers/media/i2c/adv7180.c
-> @@ -1,6 +1,8 @@
->  /*
->   * adv7180.c Analog Devices ADV7180 video decoder driver
->   * Copyright (c) 2009 Intel Corporation
-> + * Copyright (C) 2013 Cogent Embedded, Inc.
-> + * Copyright (C) 2013 Renesas Solutions Corp.
->   *
->   * This program is free software; you can redistribute it and/or modify
->   * it under the terms of the GNU General Public License version 2 as
-> @@ -128,6 +130,7 @@ struct adv7180_state {
->  	v4l2_std_id		curr_norm;
->  	bool			autodetect;
->  	u8			input;
-> +	struct v4l2_mbus_framefmt fmt;
->  };
->  #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
->  					    struct adv7180_state,	\
-> @@ -397,10 +400,93 @@ static void adv7180_exit_controls(struct
->  	v4l2_ctrl_handler_free(&state->ctrl_hdl);
->  }
->  
-> +static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
-> +				 enum v4l2_mbus_pixelcode *code)
-> +{
-> +	if (index > 0)
-> +		return -EINVAL;
-> +
-> +	*code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
-> +				struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
-> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
-> +	fmt->width = 720;
-> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_g_mbus_fmt(struct v4l2_subdev *sd,
-> +			      struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	*fmt = state->fmt;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_s_mbus_fmt(struct v4l2_subdev *sd,
-> +			      struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	adv7180_try_mbus_fmt(sd, fmt);
-> +	state->fmt = *fmt;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	a->bounds.left = 0;
-> +	a->bounds.top = 0;
-> +	a->bounds.width = 720;
-> +	a->bounds.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> +	a->defrect = a->bounds;
-> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	a->pixelaspect.numerator = 1;
-> +	a->pixelaspect.denominator = 1;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
-> +				 struct v4l2_mbus_config *cfg)
-> +{
-> +	/*
-> +	 * The ADV7180 sensor supports BT.601/656 output modes.
-> +	 * The BT.656 is default and not yet configurable by s/w.
-> +	 */
-> +	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
-> +		     V4L2_MBUS_DATA_ACTIVE_HIGH;
-> +	cfg->type = V4L2_MBUS_BT656;
-> +
-> +	return 0;
-> +}
-> +
->  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->  	.querystd = adv7180_querystd,
->  	.g_input_status = adv7180_g_input_status,
->  	.s_routing = adv7180_s_routing,
-> +	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
-> +	.try_mbus_fmt = adv7180_try_mbus_fmt,
-> +	.g_mbus_fmt = adv7180_g_mbus_fmt,
-> +	.s_mbus_fmt = adv7180_s_mbus_fmt,
-> +	.cropcap = adv7180_cropcap,
-> +	.g_mbus_config = adv7180_g_mbus_config,
->  };
->  
->  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
