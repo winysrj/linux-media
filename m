@@ -1,43 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3511 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965701Ab3E2LBQ (ORCPT
+Received: from szxga01-in.huawei.com ([119.145.14.64]:41903 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756332Ab3E0Cdl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:01:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCHv1 30/38] au0828: set reg->size.
-Date: Wed, 29 May 2013 13:00:03 +0200
-Message-Id: <1369825211-29770-31-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+	Sun, 26 May 2013 22:33:41 -0400
+From: Libo Chen <libo.chen@huawei.com>
+To: <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<lizefan@huawei.com>, <libo.chen@huawei.com>,
+	<gregkh@linuxfoundation.org>
+Subject: [PATCH 19/24] drivers/media/pci/dm1105/dm1105: Convert to module_pci_driver
+Date: Mon, 27 May 2013 10:31:49 +0800
+Message-ID: <1369621909-38264-1-git-send-email-libo.chen@huawei.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+use module_pci_driver instead of init/exit, make code clean.
 
-The size field wasn't filled in.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
 ---
- drivers/media/usb/au0828/au0828-video.c |    1 +
- 1 file changed, 1 insertion(+)
+ drivers/media/pci/dm1105/dm1105.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/media/usb/au0828/au0828-video.c b/drivers/media/usb/au0828/au0828-video.c
-index 4944a36..f615454 100644
---- a/drivers/media/usb/au0828/au0828-video.c
-+++ b/drivers/media/usb/au0828/au0828-video.c
-@@ -1759,6 +1759,7 @@ static int vidioc_g_register(struct file *file, void *priv,
- 	struct au0828_dev *dev = fh->dev;
+diff --git a/drivers/media/pci/dm1105/dm1105.c b/drivers/media/pci/dm1105/dm1105.c
+index 026767b..ab797fe 100644
+--- a/drivers/media/pci/dm1105/dm1105.c
++++ b/drivers/media/pci/dm1105/dm1105.c
+@@ -1241,18 +1241,7 @@ static struct pci_driver dm1105_driver = {
+ 	.remove = dm1105_remove,
+ };
  
- 	reg->val = au0828_read(dev, reg->reg);
-+	reg->size = 1;
- 	return 0;
- }
+-static int __init dm1105_init(void)
+-{
+-	return pci_register_driver(&dm1105_driver);
+-}
+-
+-static void __exit dm1105_exit(void)
+-{
+-	pci_unregister_driver(&dm1105_driver);
+-}
+-
+-module_init(dm1105_init);
+-module_exit(dm1105_exit);
++module_pci_driver(dm1105_driver);
  
+ MODULE_AUTHOR("Igor M. Liplianin <liplianin@me.by>");
+ MODULE_DESCRIPTION("SDMC DM1105 DVB driver");
 -- 
-1.7.10.4
+1.7.1
+
 
