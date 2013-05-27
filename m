@@ -1,56 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2763 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753235Ab3EaKD0 (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:19572 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751348Ab3E0JEX convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 06:03:26 -0400
+	Mon, 27 May 2013 05:04:23 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard.rojfors@pelagicore.com>
-Subject: [PATCH 16/21] timblogiw: fix querycap.
-Date: Fri, 31 May 2013 12:02:36 +0200
-Message-Id: <1369994561-25236-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+To: Diego Viola <diego.viola@gmail.com>
+Subject: Re: [PATCH] Fix spelling of Qt in .desktop file (typo)
+Date: Mon, 27 May 2013 11:03:59 +0200
+Cc: linux-media@vger.kernel.org
+References: <1369556151-4614-1-git-send-email-diego.viola@gmail.com>
+In-Reply-To: <1369556151-4614-1-git-send-email-diego.viola@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201305271103.59617.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sun 26 May 2013 10:15:51 Diego Viola wrote:
+> Proper spelling of Qt is Qt, not QT.  "QT" is often confused with
+> QuickTime, here is a minor patch to fix this issue in the .desktop file.
 
-Don't set version (the core does that for you), fill in device_caps and
-prefix bus_info with "platform:".
+Thanks, I've committed this.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Richard Röjfors <richard.rojfors@pelagicore.com>
----
- drivers/media/platform/timblogiw.c |    7 +++----
- 1 file changed, 3 insertions(+), 4 deletions(-)
+Regards,
 
-diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
-index 99861c63..b557caf 100644
---- a/drivers/media/platform/timblogiw.c
-+++ b/drivers/media/platform/timblogiw.c
-@@ -239,13 +239,12 @@ static int timblogiw_querycap(struct file *file, void  *priv,
- 	struct video_device *vdev = video_devdata(file);
- 
- 	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
--	memset(cap, 0, sizeof(*cap));
- 	strncpy(cap->card, TIMBLOGIWIN_NAME, sizeof(cap->card)-1);
- 	strncpy(cap->driver, DRIVER_NAME, sizeof(cap->driver) - 1);
--	strlcpy(cap->bus_info, vdev->name, sizeof(cap->bus_info));
--	cap->version = TIMBLOGIW_VERSION_CODE;
--	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
-+	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s", vdev->name);
-+	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
- 		V4L2_CAP_READWRITE;
-+	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
- 
- 	return 0;
- }
--- 
-1.7.10.4
+	Hans
 
+> 
+> Signed-off-by: Diego Viola <diego.viola@gmail.com>
+> ---
+>  utils/qv4l2/qv4l2.desktop | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/utils/qv4l2/qv4l2.desktop b/utils/qv4l2/qv4l2.desktop
+> index 00f3e33..69413e1 100644
+> --- a/utils/qv4l2/qv4l2.desktop
+> +++ b/utils/qv4l2/qv4l2.desktop
+> @@ -1,5 +1,5 @@
+>  [Desktop Entry]
+> -Name=QT V4L2 test Utility
+> +Name=Qt V4L2 test Utility
+>  Name[pt]=Utilitário de teste V4L2
+>  Comment=Allow testing Video4Linux devices
+>  Comment[pt]=Permite testar dispositivos Video4Linux
+> 
