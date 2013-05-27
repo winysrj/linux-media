@@ -1,102 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35246 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756042Ab3EHNca (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 09:32:30 -0400
-Date: Wed, 8 May 2013 15:32:29 +0200
-From: Sascha Hauer <s.hauer@pengutronix.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH 1/2] Print more detailed parse error messages
-Message-ID: <20130508133229.GB32299@pengutronix.de>
-References: <1368019674-25761-1-git-send-email-s.hauer@pengutronix.de>
- <1368019674-25761-2-git-send-email-s.hauer@pengutronix.de>
-MIME-Version: 1.0
+Received: from plane.gmane.org ([80.91.229.3]:41869 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756209Ab3E0XVL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 May 2013 19:21:11 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1Uh6j0-0000aF-3C
+	for linux-media@vger.kernel.org; Tue, 28 May 2013 01:21:10 +0200
+Received: from 5ad012fd.bb.sky.com ([5ad012fd.bb.sky.com])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 28 May 2013 01:21:10 +0200
+Received: from alxgomz by 5ad012fd.bb.sky.com with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Tue, 28 May 2013 01:21:10 +0200
+To: linux-media@vger.kernel.org
+From: alxgomz <alxgomz@gmail.com>
+Subject: Re: EM28xx - new device ID - Ion "Video Forever" USB capture dongle
+Date: Mon, 27 May 2013 23:20:54 +0000 (UTC)
+Message-ID: <loom.20130528T010242-622@post.gmane.org>
+References: <51A1D475.5000106@philpem.me.uk>
+Mime-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1368019674-25761-2-git-send-email-s.hauer@pengutronix.de>
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 08, 2013 at 03:27:53PM +0200, Sascha Hauer wrote:
-> The following errors usually resulted in the same 'Unable to parse link'
-> message:
-> 
-> - one of the given entities does not exist
-> - one of the pads of a given entity does not exist
-> - No link exists between given pads
-> - syntax error in link description
-> 
-> Add more detailed error messages to give the user a clue what is going wrong.
-> 
-> Signed-off-by: Sascha Hauer <s.hauer@pengutronix.de>
-> ---
->  src/mediactl.c | 35 ++++++++++++++++++++++++++---------
->  1 file changed, 26 insertions(+), 9 deletions(-)
-> 
-> diff --git a/src/mediactl.c b/src/mediactl.c
-> index 4783a58..c65de50 100644
-> --- a/src/mediactl.c
-> +++ b/src/mediactl.c
-> @@ -537,31 +537,42 @@ struct media_pad *media_parse_pad(struct media_device *media,
->  
->  	if (*p == '"') {
->  		for (end = (char *)p + 1; *end && *end != '"'; ++end);
-> -		if (*end != '"')
-> +		if (*end != '"') {
-> +			media_dbg(media, "missing matching '\"'\n");
->  			return NULL;
-> +		}
->  
->  		entity = media_get_entity_by_name(media, p + 1, end - p - 1);
-> -		if (entity == NULL)
-> +		if (entity == NULL) {
-> +			media_dbg(media, "no such entity \"%.*s\"\n", end - p - 1, p + 1);
->  			return NULL;
-> +		}
->  
->  		++end;
->  	} else {
->  		entity_id = strtoul(p, &end, 10);
->  		entity = media_get_entity_by_id(media, entity_id);
-> -		if (entity == NULL)
-> +		if (entity == NULL) {
-> +			media_dbg(media, "no such entity %d\n", entity_id);
->  			return NULL;
-> +		}
->  	}
->  	for (; isspace(*end); ++end);
->  
-> -	if (*end != ':')
-> +	if (*end != ':') {
-> +		media_dbg(media, "Expected ':'\n", *end);
->  		return NULL;
-> +	}
-> +
->  	for (p = end + 1; isspace(*p); ++p);
->  
->  	pad = strtoul(p, &end, 10);
-> -	for (p = end; isspace(*p); ++p);
+Hi Philip,
 
-Oops, this maybe should be a separate patch. This is not needed here...
+Thank you for sharing this bit of info. I just bought what I think to be the
+very same device from local maplin too.
+I have loaded it using your tweak.
+Just like you the composite video input works just great, however I can't
+get any sound captured using the RCA audio leads. 
+The S-video doesn't work either :( (only one new v4l2 video source is
+registred loading the device driver). 
 
->  
-> -	if (pad >= entity->info.pads)
-> +	if (pad >= entity->info.pads) {
-> +		media_dbg(media, "No pad '%d' on entity \"%s\". Maximum pad number is %d\n",
-> +				pad, entity->info.name, entity->info.pads - 1);
->  		return NULL;
-> +	}
->  
->  	for (p = end; isspace(*p); ++p);
+I have done all my test using ffmpeg (and arecord to test audio only) but I
+am quite confident the outcome would be the same with other programs.
 
-... since eating whitespaces once is enough.
+When loading the driver with card=9, I can see in the log:
 
-Sascha
+"em2860 #0: Sigmatel audio processor detected(stac 9752)"
 
+I wonder how much "detection" there is here under the hood, as I suspect the
+module param may have forced this (wrongly perhaps).
+So as far as I am concerned, this ion thingy doesn't match exactly, the 9 card.
+How can I gather more informations about that device?
 
--- 
-Pengutronix e.K.                           |                             |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+Regards Alex.
+
