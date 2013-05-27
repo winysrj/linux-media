@@ -1,39 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:47645 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751659Ab3EJLB3 (ORCPT
+Received: from szxga01-in.huawei.com ([119.145.14.64]:40747 "EHLO
+	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755779Ab3E0CcI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 May 2013 07:01:29 -0400
+	Sun, 26 May 2013 22:32:08 -0400
+From: Libo Chen <libo.chen@huawei.com>
+To: <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<lizefan@huawei.com>, <libo.chen@huawei.com>,
+	<gregkh@linuxfoundation.org>
+Subject: [PATCH 20/24] drivers/media/pci/pluto2/pluto2: Convert to module_pci_driver
+Date: Mon, 27 May 2013 10:31:53 +0800
+Message-ID: <1369621913-30532-1-git-send-email-libo.chen@huawei.com>
 MIME-Version: 1.0
-In-Reply-To: <201305101255.47709.hverkuil@xs4all.nl>
-References: <1368161318-16128-1-git-send-email-prabhakar.csengg@gmail.com> <201305101255.47709.hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 10 May 2013 16:31:07 +0530
-Message-ID: <CA+V-a8s-7r7bmdJJ2k7ABkhsfb6WrQ6xqUBpWjF=aRAUyJ=F=Q@mail.gmail.com>
-Subject: Re: [PATCH] davinci: vpfe: fix error path in probe
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+use module_pci_driver instead of init/exit, make code clean.
 
-On Fri, May 10, 2013 at 4:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Fri May 10 2013 06:48:38 Lad Prabhakar wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-[Snip]
->>
->
-> Just FYI:
->
-> After applying this patch I get a compiler warning that the probe_free_lock
-> label is unused. I've added a patch removing that label.
->
-Thanks for fixing it :)
+Signed-off-by: Libo Chen <libo.chen@huawei.com>
+---
+ drivers/media/pci/pluto2/pluto2.c |   13 +------------
+ 1 files changed, 1 insertions(+), 12 deletions(-)
 
-Regards,
---Prabhakar
+diff --git a/drivers/media/pci/pluto2/pluto2.c b/drivers/media/pci/pluto2/pluto2.c
+index 2290fae..4938285 100644
+--- a/drivers/media/pci/pluto2/pluto2.c
++++ b/drivers/media/pci/pluto2/pluto2.c
+@@ -796,18 +796,7 @@ static struct pci_driver pluto2_driver = {
+ 	.remove = pluto2_remove,
+ };
+ 
+-static int __init pluto2_init(void)
+-{
+-	return pci_register_driver(&pluto2_driver);
+-}
+-
+-static void __exit pluto2_exit(void)
+-{
+-	pci_unregister_driver(&pluto2_driver);
+-}
+-
+-module_init(pluto2_init);
+-module_exit(pluto2_exit);
++module_pci_driver(pluto2_driver);
+ 
+ MODULE_AUTHOR("Andreas Oberritter <obi@linuxtv.org>");
+ MODULE_DESCRIPTION("Pluto2 driver");
+-- 
+1.7.1
+
+
