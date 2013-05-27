@@ -1,199 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50610 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755550Ab3EGLT3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 07:19:29 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Shawn Nematbakhsh <shawnn@chromium.org>
-Subject: [PATCH v2] uvcvideo: Fix open/close race condition
-Date: Tue,  7 May 2013 13:19:37 +0200
-Message-Id: <1367925577-26907-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:54686 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752324Ab3E0I7Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 May 2013 04:59:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v4] adv7180: add more subdev video ops
+Date: Mon, 27 May 2013 10:59:01 +0200
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	vladimir.barinov@cogentembedded.com, linux-sh@vger.kernel.org,
+	matsu@igel.co.jp
+References: <201305240005.42748.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201305240005.42748.sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305271059.01451.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Maintaining the users count using an atomic variable makes sure that
-access to the counter won't be racy, but doesn't serialize access to the
-operations protected by the counter. This creates a race condition that
-could result in the status URB being submitted multiple times.
+Hi Sergei, Vladimir,
 
-Use a mutex to protect the users count and serialize access to the
-status start and stop operations.
+Just one small remaining issue:
 
-Reported-by: Shawn Nematbakhsh <shawnn@chromium.org>
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/uvc_driver.c | 23 +++++++++++++++++------
- drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
- drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
- drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
- 4 files changed, 32 insertions(+), 33 deletions(-)
+On Thu 23 May 2013 22:05:42 Sergei Shtylyov wrote:
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> 
+> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
+> the soc-camera drivers.
+> 
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> ---
+> This patch is against the 'media_tree.git' repo.
+> 
+> Changes from version 3:
+> - set the field format independent of a video standard in try_mbus_fmt() method;
+> - removed adv7180_g_mbus_fmt(), adv7180_g_mbus_fmt(), and the 'fmt' field from
+>   'struct adv7180_state', and so use adv7180_try_mbus_fmt()  to implement both
+>   g_mbus_fmt() and s_mbus_fmt() methods;
+> - removed cropcap() method.
+> 
+> Changes from version 2:
+> - set the field format depending on video standard in try_mbus_fmt() method;
+> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
+> - removed g_crop() method.
+> 
+>  drivers/media/i2c/adv7180.c |   46 ++++++++++++++++++++++++++++++++++++++++++++
+>  1 file changed, 46 insertions(+)
+> 
+> Index: media_tree/drivers/media/i2c/adv7180.c
+> ===================================================================
+> --- media_tree.orig/drivers/media/i2c/adv7180.c
+> +++ media_tree/drivers/media/i2c/adv7180.c
+> @@ -1,6 +1,8 @@
+>  /*
+>   * adv7180.c Analog Devices ADV7180 video decoder driver
+>   * Copyright (c) 2009 Intel Corporation
+> + * Copyright (C) 2013 Cogent Embedded, Inc.
+> + * Copyright (C) 2013 Renesas Solutions Corp.
+>   *
+>   * This program is free software; you can redistribute it and/or modify
+>   * it under the terms of the GNU General Public License version 2 as
+> @@ -397,10 +399,54 @@ static void adv7180_exit_controls(struct
+>  	v4l2_ctrl_handler_free(&state->ctrl_hdl);
+>  }
+>  
+> +static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
+> +				 enum v4l2_mbus_pixelcode *code)
+> +{
+> +	if (index > 0)
+> +		return -EINVAL;
+> +
+> +	*code = V4L2_MBUS_FMT_YUYV8_2X8;
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
+> +				struct v4l2_mbus_framefmt *fmt)
 
-Changes since v1:
+Since this is used for set/get and try I recommend renaming it to
+adv7180_mbus_fmt.
 
-- Add a missing return back in the uvc_suspend() function
+> +{
+> +	struct adv7180_state *state = to_state(sd);
+> +
+> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
+> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+> +	fmt->field = V4L2_FIELD_INTERLACED;
+> +	fmt->width = 720;
+> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
+> +
+> +	return 0;
+> +}
+> +
+> +static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
+> +				 struct v4l2_mbus_config *cfg)
+> +{
+> +	/*
+> +	 * The ADV7180 sensor supports BT.601/656 output modes.
+> +	 * The BT.656 is default and not yet configurable by s/w.
+> +	 */
+> +	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
+> +		     V4L2_MBUS_DATA_ACTIVE_HIGH;
+> +	cfg->type = V4L2_MBUS_BT656;
+> +
+> +	return 0;
+> +}
+> +
+>  static const struct v4l2_subdev_video_ops adv7180_video_ops = {
+>  	.querystd = adv7180_querystd,
+>  	.g_input_status = adv7180_g_input_status,
+>  	.s_routing = adv7180_s_routing,
+> +	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
+> +	.try_mbus_fmt = adv7180_try_mbus_fmt,
+> +	.g_mbus_fmt = adv7180_try_mbus_fmt,
+> +	.s_mbus_fmt = adv7180_try_mbus_fmt,
+> +	.g_mbus_config = adv7180_g_mbus_config,
+>  };
+>  
+>  static const struct v4l2_subdev_core_ops adv7180_core_ops = {
 
-diff --git a/drivers/media/usb/uvc/uvc_driver.c b/drivers/media/usb/uvc/uvc_driver.c
-index e68fa53..d704be3 100644
---- a/drivers/media/usb/uvc/uvc_driver.c
-+++ b/drivers/media/usb/uvc/uvc_driver.c
-@@ -1836,8 +1836,8 @@ static int uvc_probe(struct usb_interface *intf,
- 	INIT_LIST_HEAD(&dev->chains);
- 	INIT_LIST_HEAD(&dev->streams);
- 	atomic_set(&dev->nstreams, 0);
--	atomic_set(&dev->users, 0);
- 	atomic_set(&dev->nmappings, 0);
-+	mutex_init(&dev->lock);
- 
- 	dev->udev = usb_get_dev(udev);
- 	dev->intf = usb_get_intf(intf);
-@@ -1953,8 +1953,13 @@ static int uvc_suspend(struct usb_interface *intf, pm_message_t message)
- 
- 	/* Controls are cached on the fly so they don't need to be saved. */
- 	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
--	    UVC_SC_VIDEOCONTROL)
--		return uvc_status_suspend(dev);
-+	    UVC_SC_VIDEOCONTROL) {
-+		mutex_lock(&dev->lock);
-+		if (dev->users)
-+			uvc_status_stop(dev);
-+		mutex_unlock(&dev->lock);
-+		return 0;
-+	}
- 
- 	list_for_each_entry(stream, &dev->streams, list) {
- 		if (stream->intf == intf)
-@@ -1976,14 +1981,20 @@ static int __uvc_resume(struct usb_interface *intf, int reset)
- 
- 	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
- 	    UVC_SC_VIDEOCONTROL) {
--		if (reset) {
--			int ret = uvc_ctrl_resume_device(dev);
-+		int ret = 0;
- 
-+		if (reset) {
-+			ret = uvc_ctrl_resume_device(dev);
- 			if (ret < 0)
- 				return ret;
- 		}
- 
--		return uvc_status_resume(dev);
-+		mutex_lock(&dev->lock);
-+		if (dev->users)
-+			ret = uvc_status_start(dev, GFP_NOIO);
-+		mutex_unlock(&dev->lock);
-+
-+		return ret;
- 	}
- 
- 	list_for_each_entry(stream, &dev->streams, list) {
-diff --git a/drivers/media/usb/uvc/uvc_status.c b/drivers/media/usb/uvc/uvc_status.c
-index b749277..f552ab9 100644
---- a/drivers/media/usb/uvc/uvc_status.c
-+++ b/drivers/media/usb/uvc/uvc_status.c
-@@ -206,32 +206,15 @@ void uvc_status_cleanup(struct uvc_device *dev)
- 	uvc_input_cleanup(dev);
- }
- 
--int uvc_status_start(struct uvc_device *dev)
-+int uvc_status_start(struct uvc_device *dev, gfp_t flags)
- {
- 	if (dev->int_urb == NULL)
- 		return 0;
- 
--	return usb_submit_urb(dev->int_urb, GFP_KERNEL);
-+	return usb_submit_urb(dev->int_urb, flags);
- }
- 
- void uvc_status_stop(struct uvc_device *dev)
- {
- 	usb_kill_urb(dev->int_urb);
- }
--
--int uvc_status_suspend(struct uvc_device *dev)
--{
--	if (atomic_read(&dev->users))
--		usb_kill_urb(dev->int_urb);
--
--	return 0;
--}
--
--int uvc_status_resume(struct uvc_device *dev)
--{
--	if (dev->int_urb == NULL || atomic_read(&dev->users) == 0)
--		return 0;
--
--	return usb_submit_urb(dev->int_urb, GFP_NOIO);
--}
--
-diff --git a/drivers/media/usb/uvc/uvc_v4l2.c b/drivers/media/usb/uvc/uvc_v4l2.c
-index b2dc326..3afff92 100644
---- a/drivers/media/usb/uvc/uvc_v4l2.c
-+++ b/drivers/media/usb/uvc/uvc_v4l2.c
-@@ -498,16 +498,20 @@ static int uvc_v4l2_open(struct file *file)
- 		return -ENOMEM;
- 	}
- 
--	if (atomic_inc_return(&stream->dev->users) == 1) {
--		ret = uvc_status_start(stream->dev);
-+	mutex_lock(&stream->dev->lock);
-+	if (stream->dev->users == 0) {
-+		ret = uvc_status_start(stream->dev, GFP_KERNEL);
- 		if (ret < 0) {
--			atomic_dec(&stream->dev->users);
-+			mutex_unlock(&stream->dev->lock);
- 			usb_autopm_put_interface(stream->dev->intf);
- 			kfree(handle);
- 			return ret;
- 		}
- 	}
- 
-+	stream->dev->users++;
-+	mutex_unlock(&stream->dev->lock);
-+
- 	v4l2_fh_init(&handle->vfh, stream->vdev);
- 	v4l2_fh_add(&handle->vfh);
- 	handle->chain = stream->chain;
-@@ -538,8 +542,10 @@ static int uvc_v4l2_release(struct file *file)
- 	kfree(handle);
- 	file->private_data = NULL;
- 
--	if (atomic_dec_return(&stream->dev->users) == 0)
-+	mutex_lock(&stream->dev->lock);
-+	if (--stream->dev->users == 0)
- 		uvc_status_stop(stream->dev);
-+	mutex_unlock(&stream->dev->lock);
- 
- 	usb_autopm_put_interface(stream->dev->intf);
- 	return 0;
-diff --git a/drivers/media/usb/uvc/uvcvideo.h b/drivers/media/usb/uvc/uvcvideo.h
-index 9cd584a..eb90a92 100644
---- a/drivers/media/usb/uvc/uvcvideo.h
-+++ b/drivers/media/usb/uvc/uvcvideo.h
-@@ -515,7 +515,8 @@ struct uvc_device {
- 	char name[32];
- 
- 	enum uvc_device_state state;
--	atomic_t users;
-+	struct mutex lock;		/* Protects users */
-+	unsigned int users;
- 	atomic_t nmappings;
- 
- 	/* Video control interface */
-@@ -661,10 +662,8 @@ void uvc_video_clock_update(struct uvc_streaming *stream,
- /* Status */
- extern int uvc_status_init(struct uvc_device *dev);
- extern void uvc_status_cleanup(struct uvc_device *dev);
--extern int uvc_status_start(struct uvc_device *dev);
-+extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
- extern void uvc_status_stop(struct uvc_device *dev);
--extern int uvc_status_suspend(struct uvc_device *dev);
--extern int uvc_status_resume(struct uvc_device *dev);
- 
- /* Controls */
- extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
--- 
 Regards,
 
-Laurent Pinchart
-
+	Hans
