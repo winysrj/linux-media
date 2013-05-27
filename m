@@ -1,79 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4934 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965694Ab3E2LBI (ORCPT
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:65203 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932759Ab3E0Orl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:01:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: [PATCHv1 28/38] vpbe_display: drop g/s_register ioctls.
-Date: Wed, 29 May 2013 13:00:01 +0200
-Message-Id: <1369825211-29770-29-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 27 May 2013 10:47:41 -0400
+Received: by mail-ie0-f171.google.com with SMTP id s9so807839iec.16
+        for <linux-media@vger.kernel.org>; Mon, 27 May 2013 07:47:41 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20130527082149.GE2781@laptop>
+References: <20130428165914.17075.57751.stgit@patser>
+	<20130428170407.17075.80082.stgit@patser>
+	<20130430191422.GA5763@phenom.ffwll.local>
+	<519CA976.9000109@canonical.com>
+	<20130522161831.GQ18810@twins.programming.kicks-ass.net>
+	<519CFF56.90600@canonical.com>
+	<20130527082149.GE2781@laptop>
+Date: Mon, 27 May 2013 16:47:40 +0200
+Message-ID: <CAKMK7uEG1t5ahSfCkUm39vK-K-A=XgnPK_2RKcCYU7pHuc1v1g@mail.gmail.com>
+Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks, v3
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Peter Zijlstra <peterz@infradead.org>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-arch@vger.kernel.org, x86@kernel.org,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	rob clark <robclark@gmail.com>,
+	Steven Rostedt <rostedt@goodmis.org>,
+	Dave Airlie <airlied@redhat.com>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Ingo Molnar <mingo@elte.hu>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Mon, May 27, 2013 at 10:21 AM, Peter Zijlstra <peterz@infradead.org> wrote:
+> On Wed, May 22, 2013 at 07:24:38PM +0200, Maarten Lankhorst wrote:
+>> >> +static inline void ww_acquire_init(struct ww_acquire_ctx *ctx,
+>> >> +                             struct ww_class *ww_class)
+>> >> +{
+>> >> +  ctx->task = current;
+>> >> +  do {
+>> >> +          ctx->stamp = atomic_long_inc_return(&ww_class->stamp);
+>> >> +  } while (unlikely(!ctx->stamp));
+>> > I suppose we'll figure something out when this becomes a bottleneck. Ideally
+>> > we'd do something like:
+>> >
+>> >  ctx->stamp = local_clock();
+>> >
+>> > but for now we cannot guarantee that's not jiffies, and I suppose that's a tad
+>> > too coarse to work for this.
+>> This might mess up when 2 cores happen to return exactly the same time, how do you choose a winner in that case?
+>> EDIT: Using pointer address like you suggested below is fine with me. ctx pointer would be static enough.
+>
+> Right, but for now I suppose the 'global' atomic is ok, if/when we find
+> it hurts performance we can revisit. I was just spewing ideas :-)
 
-These are no longer needed: register access to subdevices no longer needs
-the bridge driver to forward them.
+We could do a simple
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_display.c |   29 -------------------------
- 1 file changed, 29 deletions(-)
+ctx->stamp = (local_clock() << nr_cpu_shift) | local_processor_id()
 
-diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
-index 1c4ba89..48cb0da 100644
---- a/drivers/media/platform/davinci/vpbe_display.c
-+++ b/drivers/media/platform/davinci/vpbe_display.c
-@@ -1578,31 +1578,6 @@ static int vpbe_display_release(struct file *file)
- 	return 0;
- }
- 
--#ifdef CONFIG_VIDEO_ADV_DEBUG
--static int vpbe_display_g_register(struct file *file, void *priv,
--			struct v4l2_dbg_register *reg)
--{
--	struct v4l2_dbg_match *match = &reg->match;
--	struct vpbe_fh *fh = file->private_data;
--	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
--
--	if (match->type >= 2) {
--		v4l2_subdev_call(vpbe_dev->venc,
--				 core,
--				 g_register,
--				 reg);
--	}
--
--	return 0;
--}
--
--static int vpbe_display_s_register(struct file *file, void *priv,
--			const struct v4l2_dbg_register *reg)
--{
--	return 0;
--}
--#endif
--
- /* vpbe capture ioctl operations */
- static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
- 	.vidioc_querycap	 = vpbe_display_querycap,
-@@ -1629,10 +1604,6 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
- 	.vidioc_s_dv_timings	 = vpbe_display_s_dv_timings,
- 	.vidioc_g_dv_timings	 = vpbe_display_g_dv_timings,
- 	.vidioc_enum_dv_timings	 = vpbe_display_enum_dv_timings,
--#ifdef CONFIG_VIDEO_ADV_DEBUG
--	.vidioc_g_register	 = vpbe_display_g_register,
--	.vidioc_s_register	 = vpbe_display_s_register,
--#endif
- };
- 
- static struct v4l2_file_operations vpbe_fops = {
--- 
-1.7.10.4
-
+to work around any bad luck in grabbing the ticket. With sufficient
+fine clocks the bias towards smaller cpu ids would be rather
+irrelevant. Just wanted to drop this idea before I'll forget about it
+again ;-)
+-Daniel
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
