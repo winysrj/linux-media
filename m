@@ -1,64 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:13839 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459Ab3EJQrG (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:36609 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754364Ab3E0IAm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 10 May 2013 12:47:06 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, inki.dae@samsung.com,
-	linux-samsung-soc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH] exynos4-is: Remove "sysreg" clock handling
-Date: Fri, 10 May 2013 18:46:35 +0200
-Message-id: <1368204395-12732-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 27 May 2013 04:00:42 -0400
+Date: Mon, 27 May 2013 10:00:19 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	x86@kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
+	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
+Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks, v3
+Message-ID: <20130527080019.GD2781@laptop>
+References: <20130428165914.17075.57751.stgit@patser>
+ <20130428170407.17075.80082.stgit@patser>
+ <20130430191422.GA5763@phenom.ffwll.local>
+ <519CA976.9000109@canonical.com>
+ <20130522161831.GQ18810@twins.programming.kicks-ass.net>
+ <519CFF56.90600@canonical.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <519CFF56.90600@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The "sysreg" clock is required by multiple subsystems and none of the
-other drivers handles this clock explicitly. It is currently assumed
-that this clock is always on, left in its default state after system
-reset.
+On Wed, May 22, 2013 at 07:24:38PM +0200, Maarten Lankhorst wrote:
+> >> +- Functions to only acquire a single w/w mutex, which results in the exact same
+> >> +  semantics as a normal mutex. These functions have the _single postfix.
+> > This is missing rationale.
 
-Remove handling of this clock from the FIMC-IS driver to avoid breaking
-other subsystems.
+> trylock_single is useful when iterating over a list, and you want to evict a bo, but only the first one that can be acquired.
+> lock_single is useful when only a single bo needs to be acquired, for example to lock a buffer during mmap.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
+OK, so given that its still early, monday and I haven't actually spend
+much time thinking on this; would it be possible to make:
+ww_mutex_lock(.ctx=NULL) act like ww_mutex_lock_single()?
 
-This patch should be applied after:
-[PATCH] clk: samsung: Add CLK_IGNORE_UNUSED flag for the sysreg clocks
-http://www.mail-archive.com/linux-samsung-soc@vger.kernel.org/msg18076.html
+The idea is that if we don't provide a ctx, we'll get a different
+lockdep annotation; mutex_lock() vs mutex_lock_nest_lock(). So if we
+then go and make a mistake, lockdep should warn us.
 
- drivers/media/platform/exynos4-is/fimc-is.c |    1 -
- drivers/media/platform/exynos4-is/fimc-is.h |    1 -
- 2 files changed, 2 deletions(-)
-
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
-index 47c6363..a094bb6 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.c
-+++ b/drivers/media/platform/exynos4-is/fimc-is.c
-@@ -48,7 +48,6 @@ static char *fimc_is_clocks[ISS_CLKS_MAX] = {
- 	[ISS_CLK_LITE0]			= "lite0",
- 	[ISS_CLK_LITE1]			= "lite1",
- 	[ISS_CLK_MPLL]			= "mpll",
--	[ISS_CLK_SYSREG]		= "sysreg",
- 	[ISS_CLK_ISP]			= "isp",
- 	[ISS_CLK_DRC]			= "drc",
- 	[ISS_CLK_FD]			= "fd",
-diff --git a/drivers/media/platform/exynos4-is/fimc-is.h b/drivers/media/platform/exynos4-is/fimc-is.h
-index f5275a5..606a7c9 100644
---- a/drivers/media/platform/exynos4-is/fimc-is.h
-+++ b/drivers/media/platform/exynos4-is/fimc-is.h
-@@ -73,7 +73,6 @@ enum {
- 	ISS_CLK_LITE0,
- 	ISS_CLK_LITE1,
- 	ISS_CLK_MPLL,
--	ISS_CLK_SYSREG,
- 	ISS_CLK_ISP,
- 	ISS_CLK_DRC,
- 	ISS_CLK_FD,
---
-1.7.9.5
-
+Would that work or should I stock up on morning juice?
