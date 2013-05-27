@@ -1,40 +1,28 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3301 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753577Ab3EQIbJ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 May 2013 04:31:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Can you take a look at these dvb-apps warnings/errors?
-Date: Fri, 17 May 2013 10:30:57 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
+Received: from pegasus.bluefishhosting.com.au ([202.74.46.21]:3404 "EHLO
+	pegasus.bluefishhosting.com.au" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1750841Ab3E0Eht convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 27 May 2013 00:37:49 -0400
+From: "tatyana_karpenko_1960" <info@n-circled.com>
+To: <voschieva@mail.ru>, <14zah88@bk.ru>,
+	<linux-media@vger.kernel.org>, <heibaizhuli@yahoo.com.cn>,
+	<uppoisc@mtu-net.ru>
+Subject: =?iso-8859-5?Q?=DD=D5=D4=E3=E0=E1=E2=D2=D5=DD=DD=DE_=DF?=
+	=?iso-8859-5?Q?=DE=D3=DB=EF=D4=D5=E2=EC_=DD=D0_=DD=D0=E8_?=
+	=?iso-8859-5?Q?=E1=D0=D9=E2=2E_=D2=D0=DC_=DF=DE=DB=EE=D1?=
+	=?iso-8859-5?Q?=D8=E2=E1=EF_=E2=DE_=E0=DE=D2=DD=DE_=B2=EB?=
+	=?iso-8859-5?Q?_=DD=D0_=DD=D5=DC_=DF=E0=D8=D3=DB=EF=DD=D5?=
+	=?iso-8859-5?Q?=E2=D5=2E?=
+Date: Mon, 27 May 2013 07:09:52 +0300
+Message-ID: <47r017ey7jo03$30rx287w31$9821dk92or73@alexlesk>
+Reply-To: "tatyana_karpenko_1960" <lambin_d@kqna.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
+Content-Type: text/plain;
+	charset="iso-8859-5";
 Content-Transfer-Encoding: 8BIT
-Message-Id: <201305171030.57794.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+ÝÐØßÞÛÕ×ÝÕÙèÕÕ ßàÕÔÛÞÖÕÝØÕ ÝÐ áÕÓÞÔÝï http://goo.gl/uCqWn?/DydsoZdx
 
-Can you take a look at these? The daily build is failing because of this.
-
-Thanks!
-
-	Hans
-
-test_video.c:322:2: warning: format â€˜%dâ€™ expects argument of type â€˜intâ€™, but argument 2 has type â€˜ssize_tâ€™ [-Wformat]
-dvbscan.c:128:6: warning: variable â€˜output_typeâ€™ set but not used [-Wunused-but-set-variable]
-dvbscan.c:126:6: warning: variable â€˜uk_orderingâ€™ set but not used [-Wunused-but-set-variable]
-dvbscan.c:124:32: warning: variable â€˜inversionâ€™ set but not used [-Wunused-but-set-variable]
-dvbscan_dvb.c:27:44: warning: unused parameter â€˜feâ€™ [-Wunused-parameter]
-dvbscan_atsc.c:27:45: warning: unused parameter â€˜feâ€™ [-Wunused-parameter]
-util.c:193:7: error: â€˜SYS_DVBC_ANNEX_Aâ€™ undeclared (first use in this function)
-util.c:194:7: error: â€˜SYS_DVBC_ANNEX_Câ€™ undeclared (first use in this function)
-util.c:262:26: error: â€˜DTV_ENUM_DELSYSâ€™ undeclared (first use in this function)
-util.c:263:1: warning: control reaches end of non-void function [-Wreturn-type]
-make[2]: *** [util.o] Error 1
-make[1]: *** [all] Error 2
-make: *** [all] Error 2
