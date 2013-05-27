@@ -1,145 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f178.google.com ([209.85.223.178]:57079 "EHLO
-	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758979Ab3EOOGP (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:40731 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757709Ab3E0LQN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 10:06:15 -0400
+	Mon, 27 May 2013 07:16:13 -0400
+Date: Mon, 27 May 2013 13:15:57 +0200
+From: Peter Zijlstra <peterz@infradead.org>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	x86@kernel.org, dri-devel@lists.freedesktop.org,
+	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
+	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
+	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
+Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks, v3
+Message-ID: <20130527111557.GB4341@laptop>
+References: <20130428165914.17075.57751.stgit@patser>
+ <20130428170407.17075.80082.stgit@patser>
+ <20130430191422.GA5763@phenom.ffwll.local>
+ <519CA976.9000109@canonical.com>
+ <20130522161831.GQ18810@twins.programming.kicks-ass.net>
+ <519CFF56.90600@canonical.com>
+ <20130527082149.GE2781@laptop>
+ <51A32F0E.9000206@canonical.com>
+ <20130527102457.GA4341@laptop>
+ <51A33AD0.4030406@canonical.com>
 MIME-Version: 1.0
-In-Reply-To: <00cf01ce512b$bacc5540$3064ffc0$%dae@samsung.com>
-References: <CAAQKjZNNw4qddo6bE5OY_CahrqDtqkxdO7Pm9RCguXyj9F4cMQ@mail.gmail.com>
-	<51909DB4.2060208@canonical.com>
-	<025201ce4fbb$363d0390$a2b70ab0$%dae@samsung.com>
-	<5190B7D8.3010803@canonical.com>
-	<027a01ce4fcc$5e7c7320$1b755960$%dae@samsung.com>
-	<5190D14A.7050904@canonical.com>
-	<028a01ce4fd4$5ec6f000$1c54d000$%dae@samsung.com>
-	<CAF6AEGvWazezZdLDn5=H8wNQdQSWV=EmqE1a4wh7QwrT_h6vKQ@mail.gmail.com>
-	<CAAQKjZP=iOmHRpHZCbZD3v_RKUFSn0eM_WVZZvhe7F9g3eTmPA@mail.gmail.com>
-	<CAF6AEGuDih-NR-VZCmQfqbvCOxjxreZRPGfhCyL12FQ1Qd616Q@mail.gmail.com>
-	<006a01ce504e$0de3b0e0$29ab12a0$%dae@samsung.com>
-	<CAF6AEGv2FiKMUpb5s4zHPdj4uVxnQWdVJWL-i1mOOZRxBvMZ4Q@mail.gmail.com>
-	<00cf01ce512b$bacc5540$3064ffc0$%dae@samsung.com>
-Date: Wed, 15 May 2013 10:06:15 -0400
-Message-ID: <CAF6AEGuBexKUpTwm9cjGjkxCTKgEaDhAakeP0RN=rtLS6Qy=Mg@mail.gmail.com>
-Subject: Re: Introduce a new helper framework for buffer synchronization
-From: Rob Clark <robdclark@gmail.com>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: linux-fbdev <linux-fbdev@vger.kernel.org>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"myungjoo.ham" <myungjoo.ham@samsung.com>,
-	YoungJun Cho <yj44.cho@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <51A33AD0.4030406@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 15, 2013 at 1:19 AM, Inki Dae <inki.dae@samsung.com> wrote:
->
->
->> -----Original Message-----
->> From: Rob Clark [mailto:robdclark@gmail.com]
->> Sent: Tuesday, May 14, 2013 10:39 PM
->> To: Inki Dae
->> Cc: linux-fbdev; DRI mailing list; Kyungmin Park; myungjoo.ham; YoungJun
->> Cho; linux-arm-kernel@lists.infradead.org; linux-media@vger.kernel.org
->> Subject: Re: Introduce a new helper framework for buffer synchronization
->>
->> On Mon, May 13, 2013 at 10:52 PM, Inki Dae <inki.dae@samsung.com> wrote:
->> >> well, for cache management, I think it is a better idea.. I didn't
->> >> really catch that this was the motivation from the initial patch, but
->> >> maybe I read it too quickly.  But cache can be decoupled from
->> >> synchronization, because CPU access is not asynchronous.  For
->> >> userspace/CPU access to buffer, you should:
->> >>
->> >>   1) wait for buffer
->> >>   2) prepare-access
->> >>   3)  ... do whatever cpu access to buffer ...
->> >>   4) finish-access
->> >>   5) submit buffer for new dma-operation
->> >>
->> >
->> >
->> > For data flow from CPU to DMA device,
->> > 1) wait for buffer
->> > 2) prepare-access (dma_buf_begin_cpu_access)
->> > 3) cpu access to buffer
->> >
->> >
->> > For data flow from DMA device to CPU
->> > 1) wait for buffer
->>
->> Right, but CPU access isn't asynchronous (from the point of view of
->> the CPU), so there isn't really any wait step at this point.  And if
->> you do want the CPU to be able to signal a fence from userspace for
->> some reason, you probably what something file/fd based so the
->> refcnting/cleanup when process dies doesn't leave some pending DMA
->> action wedged.  But I don't really see the point of that complexity
->> when the CPU access isn't asynchronous in the first place.
->>
->
-> There was my missing comments, please see the below sequence.
->
-> For data flow from CPU to DMA device and then from DMA device to CPU,
-> 1) wait for buffer <- at user side - ioctl(fd, DMA_BUF_GET_FENCE, ...)
->         - including prepare-access (dma_buf_begin_cpu_access)
-> 2) cpu access to buffer
-> 3) wait for buffer <- at device driver
->         - but CPU is already accessing the buffer so blocked.
-> 4) signal <- at user side - ioctl(fd, DMA_BUF_PUT_FENCE, ...)
-> 5) the thread, blocked at 3), is waked up by 4).
->         - and then finish-access (dma_buf_end_cpu_access)
+On Mon, May 27, 2013 at 12:52:00PM +0200, Maarten Lankhorst wrote:
+> The reason ttm needed it was because there was another lock that interacted
+> with the ctx lock in a weird way. The ww lock it was using was inverted with another
+> lock, so it had to grab that lock first, perform a trylock on the ww lock, and if that failed
+> unlock the lock, wait for it to be unlocked, then retry the same thing again.
+> I'm so glad I managed to fix that mess, if you really need ww_mutex_trylock with a ctx,
+> it's an indication your locking is wrong.
+> 
+> For ww_mutex_trylock with a context to be of any use you would also need to return
+> 0 or a -errno, (-EDEADLK, -EBUSY (already locked by someone else), or -EALREADY).
+> This would make the trylock very different from other trylocks, and very confusing because
+> if (ww_mutex_trylock(lock, ctx)) would not do what you would think it would do.
 
-right, I understand you can have background threads, etc, in
-userspace.  But there are already plenty of synchronization primitives
-that can be used for cpu->cpu synchronization, either within the same
-process or between multiple processes.  For cpu access, even if it is
-handled by background threads/processes, I think it is better to use
-the traditional pthreads or unix synchronization primitives.  They
-have existed forever, they are well tested, and they work.
+Yuck ;-)
 
-So while it seems nice and orthogonal/clean to couple cache and
-synchronization and handle dma->cpu and cpu->cpu and cpu->dma in the
-same generic way, but I think in practice we have to make things more
-complex than they otherwise need to be to do this.  Otherwise I think
-we'll be having problems with badly behaved or crashing userspace.
+Anyway, what I was thinking of is something like:
 
-BR,
--R
+	T0		T1
 
-> 6) dma access to buffer
-> 7) wait for buffer <- at user side - ioctl(fd, DMA_BUF_GET_FENCE, ...)
->         - but DMA is already accessing the buffer so blocked.
-> 8) signal <- at device driver
-> 9) the thread, blocked at 7), is waked up by 8)
->         - and then prepare-access (dma_buf_begin_cpu_access)
-> 10 cpu access to buffer
->
-> Basically, 'wait for buffer' includes buffer synchronization, committing
-> processing, and cache operation. The buffer synchronization means that a
-> current thread should wait for other threads accessing a shared buffer until
-> the completion of their access. And the committing processing means that a
-> current thread possesses the shared buffer so any trying to access the
-> shared buffer by another thread makes the thread to be blocked. However, as
-> I already mentioned before, it seems that these user interfaces are so ugly
-> yet. So we need better way.
->
-> Give me more comments if there is my missing point :)
->
-> Thanks,
-> Inki Dae
->
->> BR,
->> -R
->>
->>
->> > 2) finish-access (dma_buf_end _cpu_access)
->> > 3) dma access to buffer
->> >
->> > 1) and 2) are coupled with one function: we have implemented
->> > fence_helper_commit_reserve() for it.
->> >
->> > Cache control(cache clean or cache invalidate) is performed properly
->> > checking previous access type and current access type.
->> > And the below is actual codes for it,
->
+	try A
+			lock B
+	lock B
+			lock A
+
+Now, if for some reason T1 won the lottery such that T0 would have to be
+wounded, T0's context would indicate its the first entry and not return
+-EDEADLK.
+
+OTOH, anybody doing creative things like that might well deserve
+whatever they get ;-)
+
+> > The thing is; if there could exist something like:
+> >
+> >   ww_mutex_trylock(struct ww_mutex *, struct ww_acquire_ctx *ctx);
+> >
+> > Then we should not now take away that name and make it mean something
+> > else; namely: ww_mutex_trylock_single().
+> >
+> > Unless we want to allow .ctx=NULL to mean _single.
+> >
+> > As to why I proposed that (.ctx=NULL meaning _single); I suppose because
+> > I'm a minimalist at heart.
+> Minimalism isn't bad, it's just knowing when to sto
+
+:-)
