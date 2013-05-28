@@ -1,67 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:16228 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752841Ab3ENLuX (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:47748 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758927Ab3E1H05 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 07:50:23 -0400
-From: George Joseph <george.jp@samsung.com>
-To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
-Cc: s.nawrocki@samsung.com, a.hajda@samsung.com, ym.song@samsung.com
-Subject: [RFC PATCH 0/3] [media] s5p-jpeg: Add support for Exynos4x12 and 5250
-Date: Tue, 14 May 2013 17:23:37 +0530
-Message-id: <1368532420-21555-1-git-send-email-george.jp@samsung.com>
+	Tue, 28 May 2013 03:26:57 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNH00BQBZAWJB70@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 28 May 2013 08:26:56 +0100 (BST)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org
+Cc: Jeongtae Park <jtp.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: [PATCH 2/3] s5p-mfc: v4l2 controls setup routine moved to
+ initialization code
+Date: Tue, 28 May 2013 09:26:15 +0200
+Message-id: <1369725976-7828-3-git-send-email-a.hajda@samsung.com>
+In-reply-to: <1369725976-7828-1-git-send-email-a.hajda@samsung.com>
+References: <1369725976-7828-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: George Joseph Palathingal <george.jp@samsung.com>
+Callback .start_streaming is called once for every queue,
+so v4l2_ctrl_handler_setup was called twice during stream start.
+Moving v4l2_ctrl_handler_setup to context initialization
+reduces numbers of calls and seems to be more consistent with API.
 
-This patch series refactors the JPEG driver to add code to support Exynos4x12
-and Exynos5250 JPEG IPs and makes the driver DT and CCF compliant.
+Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Exynos4210 JPEG driver supports only single planar image formats.
-The JPEG IP on Exynos4412 and 5250 supports multiplanar image formats as well.
-So the existing JPEG driver is refactored to support the JPEG h/w on all
-the three SoCs. The encoder/decoder functionalities are separated to
-two different files for better modularity.
-
-The encoder/decoder functionalities have been tested on Origen 4210, 4412 and SMDK 5250
-boards. There is currently an issue with the Exynos 4210 JPEG encoder which will be
-fixed in subsequent patches.
-
-The patch series is based on linux-next tree (20130514).
-
-George Joseph Palathingal (2):
-  [media] s5p-jpeg: Add support for Exynos4x12 and 5250
-  [media] s5p-jpeg: Add DT support to JPEG driver
-
-Sylwester Nawrocki (1):
-  ARM: dts: Add documentation for Samsung JPEG driver bindings
-
- .../devicetree/bindings/media/samsung-s5p-jpeg.txt |   21 +
- drivers/media/platform/s5p-jpeg/Makefile           |    4 +-
- drivers/media/platform/s5p-jpeg/jpeg-core.c        | 2041 +++++++++-----------
- drivers/media/platform/s5p-jpeg/jpeg-core.h        |  428 ++--
- drivers/media/platform/s5p-jpeg/jpeg-dec.c         |  489 +++++
- drivers/media/platform/s5p-jpeg/jpeg-enc.c         |  521 +++++
- drivers/media/platform/s5p-jpeg/jpeg-hw-v1.h       |  528 +++++
- drivers/media/platform/s5p-jpeg/jpeg-hw-v2.c       |  614 ++++++
- drivers/media/platform/s5p-jpeg/jpeg-hw-v2.h       |   47 +
- drivers/media/platform/s5p-jpeg/jpeg-hw.h          |  357 ----
- drivers/media/platform/s5p-jpeg/jpeg-regs-v1.h     |  171 ++
- drivers/media/platform/s5p-jpeg/jpeg-regs-v2.h     |  191 ++
- drivers/media/platform/s5p-jpeg/jpeg-regs.h        |  170 --
- 13 files changed, 3787 insertions(+), 1795 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/samsung-s5p-jpeg.txt
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-dec.c
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-enc.c
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-v1.h
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-v2.c
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw-v2.h
- delete mode 100644 drivers/media/platform/s5p-jpeg/jpeg-hw.h
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-regs-v1.h
- create mode 100644 drivers/media/platform/s5p-jpeg/jpeg-regs-v2.h
- delete mode 100644 drivers/media/platform/s5p-jpeg/jpeg-regs.h
-
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 4f6b553..64bb31e 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -1760,7 +1760,6 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 
+-	v4l2_ctrl_handler_setup(&ctx->ctrl_handler);
+ 	/* If context is ready then dev = work->data;schedule it to run */
+ 	if (s5p_mfc_ctx_ready(ctx))
+ 		set_work_bit_irqsave(ctx);
+@@ -1920,6 +1919,7 @@ int s5p_mfc_enc_ctrls_setup(struct s5p_mfc_ctx *ctx)
+ 		if (controls[i].is_volatile && ctx->ctrls[i])
+ 			ctx->ctrls[i]->flags |= V4L2_CTRL_FLAG_VOLATILE;
+ 	}
++	v4l2_ctrl_handler_setup(&ctx->ctrl_handler);
+ 	return 0;
+ }
+ 
 -- 
-1.7.9.5
+1.8.1.2
 
