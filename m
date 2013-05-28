@@ -1,84 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from venus.vo.lu ([80.90.45.96]:54256 "EHLO venus.vo.lu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756917Ab3ENJh6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 05:37:58 -0400
-Received: from lan226.bxl.tuxicoman.be ([172.19.1.226] helo=me)
-	by ibiza.bxl.tuxicoman.be with smtp (Exim 4.80.1)
-	(envelope-from <gmsoft@tuxicoman.be>)
-	id 1UcBg4-0002w0-No
-	for linux-media@vger.kernel.org; Tue, 14 May 2013 11:37:49 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 2/5] libdvbv5: Add parsing of POLARIZATION
-Date: Tue, 14 May 2013 11:23:52 +0200
-Message-Id: <d76cac455ac428e73b72cfc7f19f2ef6efc1c595.1368522021.git.gmsoft@tuxicoman.be>
-In-Reply-To: <cover.1368522021.git.gmsoft@tuxicoman.be>
-References: <cover.1368522021.git.gmsoft@tuxicoman.be>
-In-Reply-To: <cover.1368522021.git.gmsoft@tuxicoman.be>
-References: <cover.1368522021.git.gmsoft@tuxicoman.be>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:38114 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933806Ab3E1JiU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 28 May 2013 05:38:20 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNI00BKV5B5VEC0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 28 May 2013 10:38:18 +0100 (BST)
+Message-id: <51A47B07.2090707@samsung.com>
+Date: Tue, 28 May 2013 11:38:15 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 3/3] s5p-mfc: added missing end-of-lines in debug messages
+References: <1369725976-7828-1-git-send-email-a.hajda@samsung.com>
+ <1369725976-7828-4-git-send-email-a.hajda@samsung.com>
+ <CAK9yfHzoGmMi4JRbAbYZxbipFgB=TkdcBvSnZ0E7CjEJS7UZNA@mail.gmail.com>
+In-reply-to: <CAK9yfHzoGmMi4JRbAbYZxbipFgB=TkdcBvSnZ0E7CjEJS7UZNA@mail.gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch add parsing support for the POLARIZATION parameter for the DVBv5 file format.
+Hi Sachin,
 
-Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
+Thanks for comment.
 
-diff --git a/lib/include/dvb-file.h b/lib/include/dvb-file.h
-index ea76080..2259844 100644
---- a/lib/include/dvb-file.h
-+++ b/lib/include/dvb-file.h
-@@ -35,7 +35,7 @@ struct dvb_entry {
- 
- 	char *location;
- 
--//	enum dvbsat_polarization pol;
-+	enum dvb_sat_polarization pol;
- 	int sat_number;
- 	unsigned freq_bpf;
- 	unsigned diseqc_wait;
-diff --git a/lib/libdvbv5/dvb-file.c b/lib/libdvbv5/dvb-file.c
-index aa42a37..3ea40cc 100644
---- a/lib/libdvbv5/dvb-file.c
-+++ b/lib/libdvbv5/dvb-file.c
-@@ -428,16 +428,15 @@ static int fill_entry(struct dvb_entry *entry, char *key, char *value)
- 		is_video = 1;
- 	else if (!strcasecmp(key, "AUDIO_PID"))
- 		is_audio = 1;
--	/*else if (!strcasecmp(key, "POLARIZATION")) {
--		entry->service_id = atol(value);
--		for (j = 0; ARRAY_SIZE(pol_name); j++)
--			if (!strcasecmp(value, pol_name[j]))
-+	else if (!strcasecmp(key, "POLARIZATION")) {
-+		for (j = 0; ARRAY_SIZE(dvb_sat_pol_name); j++)
-+			if (!strcasecmp(value, dvb_sat_pol_name[j]))
- 				break;
--		if (j == ARRAY_SIZE(pol_name))
-+		if (j == ARRAY_SIZE(dvb_sat_pol_name))
- 			return -2;
- 		entry->pol = j;
- 		return 0;
--	}*/ else if (!strncasecmp(key,"PID_", 4)){
-+	} else if (!strncasecmp(key,"PID_", 4)){
- 		type = strtol(&key[4], NULL, 16);
- 		if (!type)
- 			return 0;
-@@ -647,10 +646,10 @@ int write_dvb_file(const char *fname, struct dvb_file *dvb_file)
- 			fprintf(fp, "\n");
- 		}
- 
--		/*if (entry->pol != POLARIZATION_OFF) {*/
--			/*fprintf(fp, "\tPOLARIZATION = %s\n",*/
--				/*pol_name[entry->pol]);*/
--		/*}*/
-+		if (entry->pol != POLARIZATION_OFF) {
-+			fprintf(fp, "\tPOLARIZATION = %s\n",
-+				dvb_sat_pol_name[entry->pol]);
-+		}
- 
- 		if (entry->sat_number >= 0) {
- 			fprintf(fp, "\tSAT_NUMBER = %d\n",
--- 
-1.8.1.5
+On 05/28/2013 10:42 AM, Sachin Kamat wrote:
+> Hi Andrzej,
+>
+> On 28 May 2013 12:56, Andrzej Hajda <a.hajda@samsung.com> wrote:
+>> Many debug messages missed end-of-line.
+>>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>>  drivers/media/platform/s5p-mfc/s5p_mfc.c        |  2 +-
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_debug.h  |  4 ++--
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    | 16 ++++++++--------
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v5.c |  4 ++--
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c | 16 ++++++++--------
+>>  drivers/media/platform/s5p-mfc/s5p_mfc_pm.c     |  4 ++--
+>>  6 files changed, 23 insertions(+), 23 deletions(-)
+> Instead of changing in so many places, can't we add it in the macro
+> itself, something like this?
+>  #define mfc_debug(level, fmt, args...)                         \
+>         do {                                                    \
+>                 if (debug >= level)                             \
+> -                       printk(KERN_DEBUG "%s:%d: " fmt,        \
+> +                       printk(KERN_DEBUG "%s:%d: " fmt "\n",   \
+>                                 __func__, __LINE__, ##args);    \
+>         } while (0)
+Enforcing EOL in mfc_debug will result in removing EOL from above 120 places
+where it is currently used :) Also similar change probably should be
+made with
+mfc_err to make it consistent.
+Anyway such change seems to be not consistent with other printk related
+functions.
 
-
+Regards
+Andrzej
