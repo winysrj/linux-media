@@ -1,51 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:23546 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751921Ab3EaQrn (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2833 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750761Ab3E1S2V (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 12:47:43 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MNO007279BEUYR0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Sat, 01 Jun 2013 01:47:42 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Tue, 28 May 2013 14:28:21 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4SIS95W090675
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 28 May 2013 20:28:11 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 1433735E00B0
+	for <linux-media@vger.kernel.org>; Tue, 28 May 2013 20:28:07 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hj210.choi@samsung.com, yhwan.joo@samsung.com, arun.kk@samsung.com,
-	shaik.ameer@samsung.com, kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [REVIEW PATCH 1/7] exynos4-is: Remove leftovers of non-dt FIMC-LITE
- support
-Date: Fri, 31 May 2013 18:46:59 +0200
-Message-id: <1370018825-13088-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1370018825-13088-1-git-send-email-s.nawrocki@samsung.com>
-References: <1370018825-13088-1-git-send-email-s.nawrocki@samsung.com>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130528182808.1433735E00B0@alastor.dyndns.org>
+Date: Tue, 28 May 2013 20:28:07 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-FIMC-LITE devices are never looked up by iterating over all platform
-devices with bus_for_each_device() as these IP blocks are available
-only on dt-only Exynos SoC platforms.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/media-dev.c |    2 --
- 1 file changed, 2 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index f8ada95..af49e0f 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -804,8 +804,6 @@ static int fimc_md_pdev_match(struct device *dev, void *data)
- 
- 	if (!strcmp(pdev->name, CSIS_DRIVER_NAME)) {
- 		plat_entity = IDX_CSIS;
--	} else if (!strcmp(pdev->name, FIMC_LITE_DRV_NAME)) {
--		plat_entity = IDX_FLITE;
- 	} else {
- 		p = strstr(pdev->name, "fimc");
- 		if (p && *(p + 4) == 0)
--- 
-1.7.9.5
+date:		Tue May 28 19:00:18 CEST 2013
+git branch:	test
+git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
