@@ -1,167 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f182.google.com ([209.85.217.182]:56399 "EHLO
-	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756953Ab3ETUUG (ORCPT
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:52211 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933785Ab3E1Nso (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 May 2013 16:20:06 -0400
-Received: by mail-lb0-f182.google.com with SMTP id z5so4509001lbh.41
-        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 13:20:04 -0700 (PDT)
-Message-ID: <519A8572.7050700@cogentembedded.com>
-Date: Tue, 21 May 2013 00:20:02 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Tue, 28 May 2013 09:48:44 -0400
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org, hverkuil@xs4all.nl
-CC: mchehab@redhat.com, vladimir.barinov@cogentembedded.com,
-	linux-sh@vger.kernel.org
-Subject: Re: [PATCH v3] adv7180: add more subdev video ops
-References: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
-In-Reply-To: <201305132321.39495.sergei.shtylyov@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <005701ce5b57$667c7d40$337577c0$%dae@samsung.com>
+References: <CAAQKjZP=iOmHRpHZCbZD3v_RKUFSn0eM_WVZZvhe7F9g3eTmPA@mail.gmail.com>
+	<CAF6AEGuDih-NR-VZCmQfqbvCOxjxreZRPGfhCyL12FQ1Qd616Q@mail.gmail.com>
+	<006a01ce504e$0de3b0e0$29ab12a0$%dae@samsung.com>
+	<CAF6AEGv2FiKMUpb5s4zHPdj4uVxnQWdVJWL-i1mOOZRxBvMZ4Q@mail.gmail.com>
+	<00cf01ce512b$bacc5540$3064ffc0$%dae@samsung.com>
+	<CAF6AEGuBexKUpTwm9cjGjkxCTKgEaDhAakeP0RN=rtLS6Qy=Mg@mail.gmail.com>
+	<CAAQKjZP37koEPob6yqpn-WxxTh3+O=twyvRzDiEhVJTD8BxQzw@mail.gmail.com>
+	<20130520211304.GV12292@phenom.ffwll.local>
+	<20130520213033.GW12292@phenom.ffwll.local>
+	<032701ce55f1$3e9ba4b0$bbd2ee10$%dae@samsung.com>
+	<20130521074441.GZ12292@phenom.ffwll.local>
+	<033a01ce5604$c32bd250$498376f0$%dae@samsung.com>
+	<CAKMK7uHtk+A7CDZH3qHt+F3H_fdSsWwt-bEPn-N0919oOE+Jkg@mail.gmail.com>
+	<012801ce57ba$a5a87fa0$f0f97ee0$%dae@samsung.com>
+	<014501ce5ac6$511a8500$f34f8f00$%dae@samsung.com>
+	<CAF6AEGvGv539Ktdeg03n783nD+HofDamcJCLX93rzzKGOCV8_Q@mail.gmail.com>
+	<005701ce5b57$667c7d40$337577c0$%dae@samsung.com>
+Date: Tue, 28 May 2013 09:48:43 -0400
+Message-ID: <CAF6AEGv6E38bwszcFV3sV3yMPjD9BkLM4asEscJ8Jt5z+duxTQ@mail.gmail.com>
+Subject: Re: Introduce a new helper framework for buffer synchronization
+From: Rob Clark <robdclark@gmail.com>
+To: Inki Dae <inki.dae@samsung.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	YoungJun Cho <yj44.cho@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"myungjoo.ham" <myungjoo.ham@samsung.com>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
-
-On 05/13/2013 11:21 PM, Sergei Shtylyov wrote:
-
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+On Mon, May 27, 2013 at 11:56 PM, Inki Dae <inki.dae@samsung.com> wrote:
 >
-> Add subdev video ops for ADV7180 video decoder.  This makes decoder usable on
-> the soc-camera drivers.
 >
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
-     Hans, what's your opinion of this version? Mauro said I should ask 
-you first...
-
-> ---
-> This patch is against the 'media_tree.git' repo.
+>> -----Original Message-----
+>> From: linux-fbdev-owner@vger.kernel.org [mailto:linux-fbdev-
+>> owner@vger.kernel.org] On Behalf Of Rob Clark
+>> Sent: Tuesday, May 28, 2013 12:48 AM
+>> To: Inki Dae
+>> Cc: Maarten Lankhorst; Daniel Vetter; linux-fbdev; YoungJun Cho; Kyungmin
+>> Park; myungjoo.ham; DRI mailing list;
+> linux-arm-kernel@lists.infradead.org;
+>> linux-media@vger.kernel.org
+>> Subject: Re: Introduce a new helper framework for buffer synchronization
+>>
+>> On Mon, May 27, 2013 at 6:38 AM, Inki Dae <inki.dae@samsung.com> wrote:
+>> > Hi all,
+>> >
+>> > I have been removed previous branch and added new one with more cleanup.
+>> > This time, the fence helper doesn't include user side interfaces and
+>> cache
+>> > operation relevant codes anymore because not only we are not sure that
+>> > coupling those two things, synchronizing caches and buffer access
+>> between
+>> > CPU and CPU, CPU and DMA, and DMA and DMA with fences, in kernel side is
+>> a
+>> > good idea yet but also existing codes for user side have problems with
+>> badly
+>> > behaved or crashing userspace. So this could be more discussed later.
+>> >
+>> > The below is a new branch,
+>> >
+>> > https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
+>> exynos.git/?h=dma-f
+>> > ence-helper
+>> >
+>> > And fence helper codes,
+>> >
+>> > https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
+>> exynos.git/commit/?
+>> > h=dma-fence-helper&id=adcbc0fe7e285ce866e5816e5e21443dcce01005
+>> >
+>> > And example codes for device driver,
+>> >
+>> > https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
+>> exynos.git/commit/?
+>> > h=dma-fence-helper&id=d2ce7af23835789602a99d0ccef1f53cdd5caaae
+>> >
+>> > I think the time is not yet ripe for RFC posting: maybe existing dma
+>> fence
+>> > and reservation need more review and addition work. So I'd glad for
+>> somebody
+>> > giving other opinions and advices in advance before RFC posting.
+>>
+>> thoughts from a *really* quick, pre-coffee, first look:
+>> * any sort of helper to simplify single-buffer sort of use-cases (v4l)
+>> probably wouldn't want to bake in assumption that seqno_fence is used.
+>> * I guess g2d is probably not actually a simple use case, since I
+>> expect you can submit blits involving multiple buffers :-P
 >
-> Changes from version 2:
-> - set the field format depending on video standard in try_mbus_fmt() method;
-> - removed querystd() method calls from try_mbus_fmt() and cropcap() methods;
-> - removed g_crop() method.
->
->   drivers/media/i2c/adv7180.c |   86 ++++++++++++++++++++++++++++++++++++++++++++
->   1 file changed, 86 insertions(+)
->
-> Index: media_tree/drivers/media/i2c/adv7180.c
-> ===================================================================
-> --- media_tree.orig/drivers/media/i2c/adv7180.c
-> +++ media_tree/drivers/media/i2c/adv7180.c
-> @@ -1,6 +1,8 @@
->   /*
->    * adv7180.c Analog Devices ADV7180 video decoder driver
->    * Copyright (c) 2009 Intel Corporation
-> + * Copyright (C) 2013 Cogent Embedded, Inc.
-> + * Copyright (C) 2013 Renesas Solutions Corp.
->    *
->    * This program is free software; you can redistribute it and/or modify
->    * it under the terms of the GNU General Public License version 2 as
-> @@ -128,6 +130,7 @@ struct adv7180_state {
->   	v4l2_std_id		curr_norm;
->   	bool			autodetect;
->   	u8			input;
-> +	struct v4l2_mbus_framefmt fmt;
->   };
->   #define to_adv7180_sd(_ctrl) (&container_of(_ctrl->handler,		\
->   					    struct adv7180_state,	\
-> @@ -397,10 +400,93 @@ static void adv7180_exit_controls(struct
->   	v4l2_ctrl_handler_free(&state->ctrl_hdl);
->   }
->   
-> +static int adv7180_enum_mbus_fmt(struct v4l2_subdev *sd, unsigned int index,
-> +				 enum v4l2_mbus_pixelcode *code)
-> +{
-> +	if (index > 0)
-> +		return -EINVAL;
-> +
-> +	*code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_try_mbus_fmt(struct v4l2_subdev *sd,
-> +				struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
-> +	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
-> +	fmt->field = state->curr_norm & V4L2_STD_525_60 ?
-> +		     V4L2_FIELD_INTERLACED_BT : V4L2_FIELD_INTERLACED_TB;
-> +	fmt->width = 720;
-> +	fmt->height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_g_mbus_fmt(struct v4l2_subdev *sd,
-> +			      struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	*fmt = state->fmt;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_s_mbus_fmt(struct v4l2_subdev *sd,
-> +			      struct v4l2_mbus_framefmt *fmt)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	adv7180_try_mbus_fmt(sd, fmt);
-> +	state->fmt = *fmt;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_cropcap(struct v4l2_subdev *sd, struct v4l2_cropcap *a)
-> +{
-> +	struct adv7180_state *state = to_state(sd);
-> +
-> +	a->bounds.left = 0;
-> +	a->bounds.top = 0;
-> +	a->bounds.width = 720;
-> +	a->bounds.height = state->curr_norm & V4L2_STD_525_60 ? 480 : 576;
-> +	a->defrect = a->bounds;
-> +	a->type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-> +	a->pixelaspect.numerator = 1;
-> +	a->pixelaspect.denominator = 1;
-> +
-> +	return 0;
-> +}
-> +
-> +static int adv7180_g_mbus_config(struct v4l2_subdev *sd,
-> +				 struct v4l2_mbus_config *cfg)
-> +{
-> +	/*
-> +	 * The ADV7180 sensor supports BT.601/656 output modes.
-> +	 * The BT.656 is default and not yet configurable by s/w.
-> +	 */
-> +	cfg->flags = V4L2_MBUS_MASTER | V4L2_MBUS_PCLK_SAMPLE_RISING |
-> +		     V4L2_MBUS_DATA_ACTIVE_HIGH;
-> +	cfg->type = V4L2_MBUS_BT656;
-> +
-> +	return 0;
-> +}
-> +
->   static const struct v4l2_subdev_video_ops adv7180_video_ops = {
->   	.querystd = adv7180_querystd,
->   	.g_input_status = adv7180_g_input_status,
->   	.s_routing = adv7180_s_routing,
-> +	.enum_mbus_fmt = adv7180_enum_mbus_fmt,
-> +	.try_mbus_fmt = adv7180_try_mbus_fmt,
-> +	.g_mbus_fmt = adv7180_g_mbus_fmt,
-> +	.s_mbus_fmt = adv7180_s_mbus_fmt,
-> +	.cropcap = adv7180_cropcap,
-> +	.g_mbus_config = adv7180_g_mbus_config,
->   };
->   
->   static const struct v4l2_subdev_core_ops adv7180_core_ops = {
+> I don't think so. One and more buffers can be used: seqno_fence also has
+> only one buffer. Actually, we have already applied this approach to most
+> devices; multimedia, gpu and display controller. And this approach shows
+> more performance; reduced power consumption against traditional way. And g2d
+> example is just to show you how to apply my approach to device driver.
 
-WBR, Sergei
+no, you need the ww-mutex / reservation stuff any time you have
+multiple independent devices (or rings/contexts for hw that can
+support multiple contexts) which can do operations with multiple
+buffers.  So you could conceivably hit this w/ gpu + g2d if multiple
+buffers where shared between the two.  vram migration and such
+'desktop stuff' might make the problem worse, but just because you
+don't have vram doesn't mean you don't have a problem with multiple
+buffers.
 
+>> * otherwise, you probably don't want to depend on dmabuf, which is why
+>> reservation/fence is split out the way it is..  you want to be able to
+>> use a single reservation/fence mechanism within your driver without
+>> having to care about which buffers are exported to dmabuf's and which
+>> are not.  Creating a dmabuf for every GEM bo is too heavyweight.
+>
+> Right. But I think we should dealt with this separately. Actually, we are
+> trying to use reservation for gpu pipe line synchronization such as sgx sync
+> object and this approach is used without dmabuf. In order words, some device
+> can use only reservation for such pipe line synchronization and at the same
+> time, fence helper or similar thing with dmabuf for buffer synchronization.
+
+it is probably easier to approach from the reverse direction.. ie, get
+reservation/synchronization right first, and then dmabuf.  (Well, that
+isn't really a problem because Maarten's reservation/fence patches
+support dmabuf from the beginning.)
+
+BR,
+-R
+
+>>
+>> I'm not entirely sure if reservation/fence could/should be made any
+>> simpler for multi-buffer users.  Probably the best thing to do is just
+>> get reservation/fence rolled out in a few drivers and see if some
+>> common patterns emerge.
+>>
+>> BR,
+>> -R
+>>
+>> >
+>> > Thanks,
+>> > Inki Dae
+>> >
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
