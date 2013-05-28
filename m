@@ -1,137 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:35254 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758787Ab3E1D5A (ORCPT
+Received: from adelie.canonical.com ([91.189.90.139]:46503 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934408Ab3E1OtW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 23:57:00 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Rob Clark' <robdclark@gmail.com>
-Cc: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>,
-	'Daniel Vetter' <daniel@ffwll.ch>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <CAAQKjZP=iOmHRpHZCbZD3v_RKUFSn0eM_WVZZvhe7F9g3eTmPA@mail.gmail.com>
- <CAF6AEGuDih-NR-VZCmQfqbvCOxjxreZRPGfhCyL12FQ1Qd616Q@mail.gmail.com>
- <006a01ce504e$0de3b0e0$29ab12a0$%dae@samsung.com>
- <CAF6AEGv2FiKMUpb5s4zHPdj4uVxnQWdVJWL-i1mOOZRxBvMZ4Q@mail.gmail.com>
- <00cf01ce512b$bacc5540$3064ffc0$%dae@samsung.com>
- <CAF6AEGuBexKUpTwm9cjGjkxCTKgEaDhAakeP0RN=rtLS6Qy=Mg@mail.gmail.com>
- <CAAQKjZP37koEPob6yqpn-WxxTh3+O=twyvRzDiEhVJTD8BxQzw@mail.gmail.com>
- <20130520211304.GV12292@phenom.ffwll.local>
- <20130520213033.GW12292@phenom.ffwll.local>
- <032701ce55f1$3e9ba4b0$bbd2ee10$%dae@samsung.com>
- <20130521074441.GZ12292@phenom.ffwll.local>
- <033a01ce5604$c32bd250$498376f0$%dae@samsung.com>
- <CAKMK7uHtk+A7CDZH3qHt+F3H_fdSsWwt-bEPn-N0919oOE+Jkg@mail.gmail.com>
- <012801ce57ba$a5a87fa0$f0f97ee0$%dae@samsung.com>
- <014501ce5ac6$511a8500$f34f8f00$%dae@samsung.com>
- <CAF6AEGvGv539Ktdeg03n783nD+HofDamcJCLX93rzzKGOCV8_Q@mail.gmail.com>
-In-reply-to: <CAF6AEGvGv539Ktdeg03n783nD+HofDamcJCLX93rzzKGOCV8_Q@mail.gmail.com>
-Subject: RE: Introduce a new helper framework for buffer synchronization
-Date: Tue, 28 May 2013 12:56:57 +0900
-Message-id: <005701ce5b57$667c7d40$337577c0$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Tue, 28 May 2013 10:49:22 -0400
+Subject: [PATCH v4 4/4] mutex: w/w mutex slowpath debugging
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
+	tglx@linutronix.de, mingo@elte.hu, linux-media@vger.kernel.org
+Date: Tue, 28 May 2013 16:48:51 +0200
+Message-ID: <20130528144851.4538.75070.stgit@patser>
+In-Reply-To: <20130528144420.4538.70725.stgit@patser>
+References: <20130528144420.4538.70725.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
 
+Injects EDEADLK conditions at pseudo-random interval, with exponential
+backoff up to UINT_MAX (to ensure that every lock operation still
+completes in a reasonable time).
 
-> -----Original Message-----
-> From: linux-fbdev-owner@vger.kernel.org [mailto:linux-fbdev-
-> owner@vger.kernel.org] On Behalf Of Rob Clark
-> Sent: Tuesday, May 28, 2013 12:48 AM
-> To: Inki Dae
-> Cc: Maarten Lankhorst; Daniel Vetter; linux-fbdev; YoungJun Cho; Kyungmin
-> Park; myungjoo.ham; DRI mailing list;
-linux-arm-kernel@lists.infradead.org;
-> linux-media@vger.kernel.org
-> Subject: Re: Introduce a new helper framework for buffer synchronization
-> 
-> On Mon, May 27, 2013 at 6:38 AM, Inki Dae <inki.dae@samsung.com> wrote:
-> > Hi all,
-> >
-> > I have been removed previous branch and added new one with more cleanup.
-> > This time, the fence helper doesn't include user side interfaces and
-> cache
-> > operation relevant codes anymore because not only we are not sure that
-> > coupling those two things, synchronizing caches and buffer access
-> between
-> > CPU and CPU, CPU and DMA, and DMA and DMA with fences, in kernel side is
-> a
-> > good idea yet but also existing codes for user side have problems with
-> badly
-> > behaved or crashing userspace. So this could be more discussed later.
-> >
-> > The below is a new branch,
-> >
-> > https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
-> exynos.git/?h=dma-f
-> > ence-helper
-> >
-> > And fence helper codes,
-> >
-> > https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
-> exynos.git/commit/?
-> > h=dma-fence-helper&id=adcbc0fe7e285ce866e5816e5e21443dcce01005
-> >
-> > And example codes for device driver,
-> >
-> > https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
-> exynos.git/commit/?
-> > h=dma-fence-helper&id=d2ce7af23835789602a99d0ccef1f53cdd5caaae
-> >
-> > I think the time is not yet ripe for RFC posting: maybe existing dma
-> fence
-> > and reservation need more review and addition work. So I'd glad for
-> somebody
-> > giving other opinions and advices in advance before RFC posting.
-> 
-> thoughts from a *really* quick, pre-coffee, first look:
-> * any sort of helper to simplify single-buffer sort of use-cases (v4l)
-> probably wouldn't want to bake in assumption that seqno_fence is used.
-> * I guess g2d is probably not actually a simple use case, since I
-> expect you can submit blits involving multiple buffers :-P
+This way we can test the wound slowpath even for ww mutex users where
+contention is never expected, and the ww deadlock avoidance algorithm
+is only needed for correctness against malicious userspace. An example
+would be protecting kernel modesetting properties, which thanks to
+single-threaded X isn't really expected to contend, ever.
 
-I don't think so. One and more buffers can be used: seqno_fence also has
-only one buffer. Actually, we have already applied this approach to most
-devices; multimedia, gpu and display controller. And this approach shows
-more performance; reduced power consumption against traditional way. And g2d
-example is just to show you how to apply my approach to device driver.
+I've looked into using the CONFIG_FAULT_INJECTION infrastructure, but
+decided against it for two reasons:
 
-> * otherwise, you probably don't want to depend on dmabuf, which is why
-> reservation/fence is split out the way it is..  you want to be able to
-> use a single reservation/fence mechanism within your driver without
-> having to care about which buffers are exported to dmabuf's and which
-> are not.  Creating a dmabuf for every GEM bo is too heavyweight.
+- EDEADLK handling is mandatory for ww mutex users and should never
+  affect the outcome of a syscall. This is in contrast to -ENOMEM
+  injection. So fine configurability isn't required.
 
-Right. But I think we should dealt with this separately. Actually, we are
-trying to use reservation for gpu pipe line synchronization such as sgx sync
-object and this approach is used without dmabuf. In order words, some device
-can use only reservation for such pipe line synchronization and at the same
-time, fence helper or similar thing with dmabuf for buffer synchronization.
+- The fault injection framework only allows to set a simple
+  probability for failure. Now the probability that a ww mutex acquire
+  stage with N locks will never complete (due to too many injected
+  EDEADLK backoffs) is zero. But the expected number of ww_mutex_lock
+  operations for the completely uncontended case would be O(exp(N)).
+  The per-acuiqire ctx exponential backoff solution choosen here only
+  results in O(log N) overhead due to injection and so O(log N * N)
+  lock operations. This way we can fail with high probability (and so
+  have good test coverage even for fancy backoff and lock acquisition
+  paths) without running into patalogical cases.
 
-> 
-> I'm not entirely sure if reservation/fence could/should be made any
-> simpler for multi-buffer users.  Probably the best thing to do is just
-> get reservation/fence rolled out in a few drivers and see if some
-> common patterns emerge.
-> 
-> BR,
-> -R
-> 
-> >
-> > Thanks,
-> > Inki Dae
-> >
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-fbdev" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Note that EDEADLK will only ever be injected when we managed to
+acquire the lock. This prevents any behaviour changes for users which
+rely on the EALREADY semantics.
+
+v2: Drop the cargo-culted __sched (I should read docs next time
+around) and annotate the non-debug case with inline to prevent gcc
+from doing something horrible.
+
+v3: Rebase on top of Maarten's latest patches.
+
+v4: Actually make this stuff compile, I've misplace the hunk in the
+wrong #ifdef block.
+
+v5: Simplify ww_mutex_deadlock_injection definition, and fix
+lib/locking-selftest.c warnings. Fix lib/Kconfig.debug definition
+to work correctly. (mlankhorst)
+
+v6:
+Do not inject -EDEADLK when ctx->acquired == 0, because
+the _slow paths are merged now. (mlankhorst)
+
+Cc: Steven Rostedt <rostedt@goodmis.org>
+Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+---
+ include/linux/mutex.h  |    8 ++++++++
+ kernel/mutex.c         |   44 +++++++++++++++++++++++++++++++++++++++++---
+ lib/Kconfig.debug      |   13 +++++++++++++
+ lib/locking-selftest.c |    5 +++++
+ 4 files changed, 67 insertions(+), 3 deletions(-)
+
+diff --git a/include/linux/mutex.h b/include/linux/mutex.h
+index f3ad181..2ff9178 100644
+--- a/include/linux/mutex.h
++++ b/include/linux/mutex.h
+@@ -95,6 +95,10 @@ struct ww_acquire_ctx {
+ #ifdef CONFIG_DEBUG_LOCK_ALLOC
+ 	struct lockdep_map dep_map;
+ #endif
++#ifdef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
++	unsigned deadlock_inject_interval;
++	unsigned deadlock_inject_countdown;
++#endif
+ };
+ 
+ struct ww_mutex {
+@@ -280,6 +284,10 @@ static inline void ww_acquire_init(struct ww_acquire_ctx *ctx,
+ 			 &ww_class->acquire_key, 0);
+ 	mutex_acquire(&ctx->dep_map, 0, 0, _RET_IP_);
+ #endif
++#ifdef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
++	ctx->deadlock_inject_interval = 1;
++	ctx->deadlock_inject_countdown = ctx->stamp & 0xf;
++#endif
+ }
+ 
+ /**
+diff --git a/kernel/mutex.c b/kernel/mutex.c
+index 75fc7c4..e40004b 100644
+--- a/kernel/mutex.c
++++ b/kernel/mutex.c
+@@ -508,22 +508,60 @@ mutex_lock_interruptible_nested(struct mutex *lock, unsigned int subclass)
+ 
+ EXPORT_SYMBOL_GPL(mutex_lock_interruptible_nested);
+ 
++static inline int
++ww_mutex_deadlock_injection(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
++{
++#ifdef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
++	unsigned tmp;
++
++	if (ctx->deadlock_inject_countdown-- == 0) {
++		tmp = ctx->deadlock_inject_interval;
++		if (tmp > UINT_MAX/4)
++			tmp = UINT_MAX;
++		else
++			tmp = tmp*2 + tmp + tmp/2;
++
++		ctx->deadlock_inject_interval = tmp;
++		ctx->deadlock_inject_countdown = tmp;
++		ctx->contending_lock = lock;
++
++		ww_mutex_unlock(lock);
++
++		return -EDEADLK;
++	}
++#endif
++
++	return 0;
++}
+ 
+ int __sched
+ __ww_mutex_lock(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
+ {
++	int ret;
++
+ 	might_sleep();
+-	return __mutex_lock_common(&lock->base, TASK_UNINTERRUPTIBLE,
++	ret =  __mutex_lock_common(&lock->base, TASK_UNINTERRUPTIBLE,
+ 				   0, &ctx->dep_map, _RET_IP_, ctx);
++	if (!ret && ctx->acquired > 0)
++		return ww_mutex_deadlock_injection(lock, ctx);
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(__ww_mutex_lock);
+ 
+ int __sched
+ __ww_mutex_lock_interruptible(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
+ {
++	int ret;
++
+ 	might_sleep();
+-	return __mutex_lock_common(&lock->base, TASK_INTERRUPTIBLE,
+-				   0, &ctx->dep_map, _RET_IP_, ctx);
++	ret = __mutex_lock_common(&lock->base, TASK_INTERRUPTIBLE,
++				  0, &ctx->dep_map, _RET_IP_, ctx);
++
++	if (!ret && ctx->acquired > 0)
++		return ww_mutex_deadlock_injection(lock, ctx);
++
++	return ret;
+ }
+ EXPORT_SYMBOL_GPL(__ww_mutex_lock_interruptible);
+ 
+diff --git a/lib/Kconfig.debug b/lib/Kconfig.debug
+index 28be08c..06538ee 100644
+--- a/lib/Kconfig.debug
++++ b/lib/Kconfig.debug
+@@ -547,6 +547,19 @@ config DEBUG_MUTEXES
+ 	 This feature allows mutex semantics violations to be detected and
+ 	 reported.
+ 
++config DEBUG_WW_MUTEX_SLOWPATH
++	bool "Wait/wound mutex debugging: Slowpath testing"
++	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
++	select DEBUG_LOCK_ALLOC
++	select DEBUG_SPINLOCK
++	select DEBUG_MUTEXES
++	help
++	 This feature enables slowpath testing for w/w mutex users by
++	 injecting additional -EDEADLK wound/backoff cases. Together with
++	 the full mutex checks enabled with (CONFIG_PROVE_LOCKING) this
++	 will test all possible w/w mutex interface abuse with the
++	 exception of simply not acquiring all the required locks.
++
+ config DEBUG_LOCK_ALLOC
+ 	bool "Lock debugging: detect incorrect freeing of live locks"
+ 	depends on DEBUG_KERNEL && TRACE_IRQFLAGS_SUPPORT && STACKTRACE_SUPPORT && LOCKDEP_SUPPORT
+diff --git a/lib/locking-selftest.c b/lib/locking-selftest.c
+index b18f1d3..7f0bacc 100644
+--- a/lib/locking-selftest.c
++++ b/lib/locking-selftest.c
+@@ -199,7 +199,12 @@ static void init_shared_classes(void)
+ #define RSU(x)			up_read(&rwsem_##x)
+ #define RWSI(x)			init_rwsem(&rwsem_##x)
+ 
++#ifndef CONFIG_DEBUG_WW_MUTEX_SLOWPATH
+ #define WWAI(x)			ww_acquire_init(x, &ww_lockdep)
++#else
++#define WWAI(x)			do { ww_acquire_init(x, &ww_lockdep); (x)->deadlock_inject_countdown = ~0U; } while (0)
++
++#endif
+ #define WWAD(x)			ww_acquire_done(x)
+ #define WWAF(x)			ww_acquire_fini(x)
+ 
 
