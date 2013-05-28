@@ -1,58 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:26645 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754566Ab3EaIwZ (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:36368 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933699Ab3E1JLn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 04:52:25 -0400
+	Tue, 28 May 2013 05:11:43 -0400
 Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
+ by mailout4.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MNN00M1EN9K9U90@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 31 May 2013 09:52:23 +0100 (BST)
-Message-id: <51A864C5.4090703@samsung.com>
-Date: Fri, 31 May 2013 10:52:21 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+ 17 2011)) with ESMTP id <0MNI00B1V46XVEC0@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 28 May 2013 10:11:41 +0100 (BST)
+Message-id: <51A474CA.4040303@samsung.com>
+Date: Tue, 28 May 2013 11:11:38 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
 MIME-version: 1.0
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>, John Sheu <sheu@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [RFC PATCH v3] [media] mem2mem: add support for hardware buffered
- queue
-References: <1369989199-20952-1-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1369989199-20952-1-git-send-email-p.zabel@pengutronix.de>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Kamil Debski <k.debski@samsung.com>, linux-media@vger.kernel.org,
+	Jeongtae Park <jtp.park@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 1/3] s5p-mfc: separate encoder parameters for h264 and mpeg4
+References: <1369725976-7828-1-git-send-email-a.hajda@samsung.com>
+ <1369725976-7828-2-git-send-email-a.hajda@samsung.com>
+ <CAK9yfHytCAvghurn8djWOKtf7MYsZbfjgu9yuBbmPPrC8tu4yA@mail.gmail.com>
+In-reply-to: <CAK9yfHytCAvghurn8djWOKtf7MYsZbfjgu9yuBbmPPrC8tu4yA@mail.gmail.com>
 Content-type: text/plain; charset=ISO-8859-1
 Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+On 05/28/2013 10:31 AM, Sachin Kamat wrote:
+> Hi Andrzej,
+>
+> On 28 May 2013 12:56, Andrzej Hajda <a.hajda@samsung.com> wrote:
+>> This patch fixes a bug which caused overwriting h264 codec
+>> parameters by mpeg4 parameters during V4L2 control setting.
+> Just curious, what was the use case that triggered this issue?
+>
+For example it was not possible to set h264 profile and level -
+they were overwritten by "struct s5p_mfc_mpeg4_enc_params" fields.
 
-On 05/31/2013 10:33 AM, Philipp Zabel wrote:
-> +void v4l2_m2m_queue_set_buffered(struct vb2_queue *vq, bool buffered)
+In general all 'union' fields of s5p_mfc_h264_enc_params were
+overwritten by
+s5p_mfc_mpeg4_enc_params and vice versa, the control which was set later
+was 'the winner'.
+Furthermore during stream start v4l2_ctrl_handler_setup was called so
+all controls
+were refreshed, so the final winners order was determined by controls
+definition order.
 
-How about making it a 'static inline' function in include/media/v4l2-mem2mem.h
-instead ?
-
-> +{
-> +	struct v4l2_m2m_queue_ctx *q_ctx = container_of(vq, struct v4l2_m2m_queue_ctx, q);
-> +
-> +	q_ctx->buffered = buffered;
-> +}
-> +EXPORT_SYMBOL_GPL(v4l2_m2m_queue_set_buffered);
+Regards
+Andrzej
 
 
-Also, I was wondering how do you handle now in the coda driver a situation
-when, e.g. during normal stream decoding more than one buffer is produced
-by the decoder from one compressed data buffer on its input side ?
 
-Regards,
-Sylwester
 
--- 
-Sylwester Nawrocki
-Samsung R&D Institute Poland
-Samsung Electronics
+
