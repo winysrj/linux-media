@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:48090 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52508 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753771Ab3EPMtr (ORCPT
+	with ESMTP id S932863Ab3E2BXR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:49:47 -0400
+	Tue, 28 May 2013 21:23:17 -0400
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
@@ -18,11 +18,11 @@ Cc: LMML <linux-media@vger.kernel.org>,
 	Rob Herring <rob.herring@calxeda.com>,
 	Rob Landley <rob@landley.net>,
 	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v3] media: i2c: tvp514x: add OF support
-Date: Thu, 16 May 2013 14:50:06 +0200
-Message-ID: <2750806.COjXX3GeT0@avalon>
-In-Reply-To: <CA+V-a8ti58gdPR-fUEqgBvUQ=1GkoTUyLj9UK4D5aVwHv2R6mA@mail.gmail.com>
-References: <1368529236-18199-1-git-send-email-prabhakar.csengg@gmail.com> <11504129.E8jKKy4N2e@avalon> <CA+V-a8ti58gdPR-fUEqgBvUQ=1GkoTUyLj9UK4D5aVwHv2R6mA@mail.gmail.com>
+Subject: Re: [PATCH v5] media: i2c: tvp514x: add OF support
+Date: Wed, 29 May 2013 03:22:59 +0200
+Message-ID: <1417519.vVjfDJcATe@avalon>
+In-Reply-To: <1369574386-24486-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369574386-24486-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
@@ -31,53 +31,234 @@ List-ID: <linux-media.vger.kernel.org>
 
 Hi Prabhakar,
 
-On Thursday 16 May 2013 18:13:38 Prabhakar Lad wrote:
-> On Thu, May 16, 2013 at 5:40 PM, Laurent Pinchart wrote:
-> > Hi Prabhakar,
-> 
-> [Snip]
-> 
-> >> +
-> >> +     pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-> >> +     if (!pdata)
-> > 
-> > I've started playing with the V4L2 OF bindings, and realized that should
-> > should call of_node_put() here.
-> 
-> you were referring  of_node_get() here rite ?
+Thanks for the patch.
 
-No, I'm referring to of_node_put(). The v4l2_of_get_next_endpoint() function 
-mentions
-
- * Return: An 'endpoint' node pointer with refcount incremented. Refcount
- * of the passed @prev node is not decremented, the caller have to use
- * of_node_put() on it when done.
-
-> of_node_get/put() got recently added I guess coz of which I missed it :)
+On Sunday 26 May 2013 18:49:46 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 > 
-> >> +             return NULL;
-> >> +
-> >> +     v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-> >> +     flags = bus_cfg.bus.parallel.flags;
-> >> +
-> >> +     if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> >> +             pdata->hs_polarity = 1;
-> >> +
-> >> +     if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> >> +             pdata->vs_polarity = 1;
-> >> +
-> >> +     if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> >> +             pdata->clk_polarity = 1;
-> >> +
-> > 
-> > As well as here. Maybe a
-> > 
-> > done:
-> >         of_node_put(endpoint);
-> >         return pdata;
-> > 
-> > with a goto done in the devm_kzalloc error path would be better.
+> add OF support for the tvp514x driver.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Grant Likely <grant.likely@secretlab.ca>
+> Cc: Rob Herring <rob.herring@calxeda.com>
+> Cc: Rob Landley <rob@landley.net>
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Cc: linux-doc@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: davinci-linux-open-source@linux.davincidsp.com
 
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+(with two small comment below).
+
+> ---
+> Tested on da850-evm.
+> 
+>  RFC v1: https://patchwork.kernel.org/patch/2030061/
+>  RFC v2: https://patchwork.kernel.org/patch/2061811/
+> 
+>  Changes for current version from RFC v2:
+>  1: Fixed review comments pointed by Sylwester.
+> 
+>  Changes for v2:
+>  1: Listed all the compatible property values in the documentation text
+> file. 2: Removed "-decoder" from compatible property values.
+>  3: Added a reference to the V4L2 DT bindings documentation to explain
+>     what the port and endpoint nodes are for.
+>  4: Fixed some Nits pointed by Laurent.
+>  5: Removed unnecessary header file includes and sort them alphabetically.
+> 
+>  Changes for v3:
+>  1: Rebased on patch https://patchwork.kernel.org/patch/2539411/
+> 
+>  Changes for v4:
+>  1: added missing call for of_node_put().
+>  2: Rebased the patch on v3.11.
+> 
+>  Changes for v5:
+>  1: Fixed calling to a wrong label.
+> 
+>  .../devicetree/bindings/media/i2c/tvp514x.txt      |   45 ++++++++++++++
+>  drivers/media/i2c/tvp514x.c                        |   62 +++++++++++++++--
+>  2 files changed, 101 insertions(+), 6 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+> 
+> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+> b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt new file mode
+> 100644
+> index 0000000..cc09424
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/tvp514x.txt
+> @@ -0,0 +1,45 @@
+> +* Texas Instruments TVP514x video decoder
+> +
+> +The TVP5146/TVP5146m2/TVP5147/TVP5147m1 device is high quality, single-chip
+> +digital video decoder that digitizes and decodes all popular baseband
+> analog +video formats into digital video component. The tvp514x decoder
+> supports analog- +to-digital (A/D) conversion of component RGB and YPbPr
+> signals as well as A/D +conversion and decoding of NTSC, PAL and SECAM
+> composite and S-video into +component YCbCr.
+> +
+> +Required Properties :
+> +- compatible : value should be either one among the following
+> +	(a) "ti,tvp5146" for tvp5146 decoder.
+> +	(b) "ti,tvp5146m2" for tvp5146m2 decoder.
+> +	(c) "ti,tvp5147" for tvp5147 decoder.
+> +	(d) "ti,tvp5147m1" for tvp5147m1 decoder.
+> +
+> +- hsync-active: HSYNC Polarity configuration for endpoint.
+> +
+> +- vsync-active: VSYNC Polarity configuration for endpoint.
+> +
+> +- pclk-sample: Clock polarity of the endpoint.
+> +
+> +
+> +For further reading of port node refer
+
+s/of port/on port/
+s/refer/refer to/
+
+> Documentation/devicetree/bindings/media/video-interfaces.txt.
+> +
+> +Example:
+> +
+> +	i2c0@1c22000 {
+> +		...
+> +		...
+> +		tvp514x@5c {
+> +			compatible = "ti,tvp5146";
+> +			reg = <0x5c>;
+> +
+> +			port {
+> +				tvp514x_1: endpoint {
+> +					hsync-active = <1>;
+> +					vsync-active = <1>;
+> +					pclk-sample = <0>;
+> +				};
+> +			};
+> +		};
+> +		...
+> +	};
+> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+> index 7438e01..7ed999b 100644
+> --- a/drivers/media/i2c/tvp514x.c
+> +++ b/drivers/media/i2c/tvp514x.c
+> @@ -39,6 +39,7 @@
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-common.h>
+>  #include <media/v4l2-mediabus.h>
+> +#include <media/v4l2-of.h>
+>  #include <media/v4l2-chip-ident.h>
+>  #include <media/v4l2-ctrls.h>
+>  #include <media/tvp514x.h>
+> @@ -1055,6 +1056,42 @@ static struct tvp514x_decoder tvp514x_dev = {
+> 
+>  };
+> 
+> +static struct tvp514x_platform_data *
+> +tvp514x_get_pdata(struct i2c_client *client)
+> +{
+> +	struct tvp514x_platform_data *pdata = NULL;
+
+No need to initialize pdata to NULL.
+
+> +	struct v4l2_of_endpoint bus_cfg;
+> +	struct device_node *endpoint;
+> +	unsigned int flags;
+> +
+> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+> +		return client->dev.platform_data;
+> +
+> +	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
+> +	if (!endpoint)
+> +		return NULL;
+> +
+> +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata)
+> +		goto done;
+> +
+> +	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
+> +	flags = bus_cfg.bus.parallel.flags;
+> +
+> +	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> +		pdata->hs_polarity = 1;
+> +
+> +	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> +		pdata->vs_polarity = 1;
+> +
+> +	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
+> +		pdata->clk_polarity = 1;
+> +
+> +done:
+> +	of_node_put(endpoint);
+> +	return pdata;
+> +}
+> +
+>  /**
+>   * tvp514x_probe() - decoder driver i2c probe handler
+>   * @client: i2c driver client device structure
+> @@ -1066,19 +1103,20 @@ static struct tvp514x_decoder tvp514x_dev = {
+>  static int
+>  tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>  {
+> +	struct tvp514x_platform_data *pdata = tvp514x_get_pdata(client);
+>  	struct tvp514x_decoder *decoder;
+>  	struct v4l2_subdev *sd;
+>  	int ret;
+> 
+> +	if (pdata == NULL) {
+> +		dev_err(&client->dev, "No platform data\n");
+> +		return -EINVAL;
+> +	}
+> +
+>  	/* Check if the adapter supports the needed features */
+>  	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+>  		return -EIO;
+> 
+> -	if (!client->dev.platform_data) {
+> -		v4l2_err(client, "No platform data!!\n");
+> -		return -ENODEV;
+> -	}
+> -
+>  	decoder = devm_kzalloc(&client->dev, sizeof(*decoder), GFP_KERNEL);
+>  	if (!decoder)
+>  		return -ENOMEM;
+> @@ -1090,7 +1128,7 @@ tvp514x_probe(struct i2c_client *client, const struct
+> i2c_device_id *id) sizeof(tvp514x_reg_list_default));
+> 
+>  	/* Copy board specific information here */
+> -	decoder->pdata = client->dev.platform_data;
+> +	decoder->pdata = pdata;
+> 
+>  	/**
+>  	 * Fetch platform specific data, and configure the
+> @@ -1230,8 +1268,20 @@ static const struct i2c_device_id tvp514x_id[] = {
+> 
+>  MODULE_DEVICE_TABLE(i2c, tvp514x_id);
+> 
+> +#if IS_ENABLED(CONFIG_OF)
+> +static const struct of_device_id tvp514x_of_match[] = {
+> +	{ .compatible = "ti,tvp5146", },
+> +	{ .compatible = "ti,tvp5146m2", },
+> +	{ .compatible = "ti,tvp5147", },
+> +	{ .compatible = "ti,tvp5147m1", },
+> +	{ /* sentinel */ },
+> +};
+> +MODULE_DEVICE_TABLE(of, tvp514x_of_match);
+> +#endif
+> +
+>  static struct i2c_driver tvp514x_driver = {
+>  	.driver = {
+> +		.of_match_table = of_match_ptr(tvp514x_of_match),
+>  		.owner = THIS_MODULE,
+>  		.name = TVP514X_MODULE_NAME,
+>  	},
 -- 
 Regards,
 
