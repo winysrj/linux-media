@@ -1,24 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3156 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753375Ab3EVS06 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2884 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965160Ab3E2S3B (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 14:26:58 -0400
+	Wed, 29 May 2013 14:29:01 -0400
 Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
 	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4MIQjtw089188
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4TISnKb027531
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 22 May 2013 20:26:53 +0200 (CEST)
+	for <linux-media@vger.kernel.org>; Wed, 29 May 2013 20:28:52 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (marune.xs4all.nl [80.101.105.217])
 	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 5414A35E0194
-	for <linux-media@vger.kernel.org>; Wed, 22 May 2013 20:26:44 +0200 (CEST)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 1B9CD35E00B0
+	for <linux-media@vger.kernel.org>; Wed, 29 May 2013 20:28:49 +0200 (CEST)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130522182644.5414A35E0194@alastor.dyndns.org>
-Date: Wed, 22 May 2013 20:26:44 +0200 (CEST)
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130529182849.1B9CD35E00B0@alastor.dyndns.org>
+Date: Wed, 29 May 2013 20:28:49 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -27,9 +27,9 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Wed May 22 19:00:17 CEST 2013
+date:		Wed May 29 19:00:20 CEST 2013
 git branch:	test
-git hash:	6a084d6b3dc200b855ae8a3c6771abe285a3835d
+git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
 gcc version:	i686-linux-gcc (GCC) 4.8.0
 host hardware:	x86_64
 host os:	3.8-3.slh.2-amd64
@@ -58,7 +58,7 @@ linux-3.10-rc1-i686: WARNINGS
 linux-3.1.10-i686: WARNINGS
 linux-3.2.37-i686: WARNINGS
 linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: ERRORS
+linux-3.4.27-i686: WARNINGS
 linux-3.5.7-i686: WARNINGS
 linux-3.6.11-i686: WARNINGS
 linux-3.7.4-i686: WARNINGS
@@ -78,13 +78,13 @@ linux-3.10-rc1-x86_64: WARNINGS
 linux-3.1.10-x86_64: WARNINGS
 linux-3.2.37-x86_64: WARNINGS
 linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: ERRORS
+linux-3.4.27-x86_64: WARNINGS
 linux-3.5.7-x86_64: WARNINGS
 linux-3.6.11-x86_64: WARNINGS
 linux-3.7.4-x86_64: WARNINGS
 linux-3.8-x86_64: OK
 linux-3.9.2-x86_64: OK
-apps: ERRORS
+apps: WARNINGS
 spec-git: OK
 sparse: ERRORS
 
