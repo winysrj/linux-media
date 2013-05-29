@@ -1,109 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:54791 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755671Ab3E1HXO (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52828 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753075Ab3E2Cch (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 May 2013 03:23:14 -0400
-Message-ID: <51A45B5C.6030407@canonical.com>
-Date: Tue, 28 May 2013 09:23:08 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+	Tue, 28 May 2013 22:32:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 4/9] media: davinci: vpif_capture: move the freeing of irq and global variables to remove()
+Date: Wed, 29 May 2013 04:32:30 +0200
+Message-ID: <2564718.Z6XYOtT7FL@avalon>
+In-Reply-To: <1369569612-30915-5-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com> <1369569612-30915-5-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-To: Inki Dae <inki.dae@samsung.com>
-CC: 'Daniel Vetter' <daniel@ffwll.ch>,
-	'Rob Clark' <robdclark@gmail.com>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: Introduce a new helper framework for buffer synchronization
-References: <CAAQKjZP=iOmHRpHZCbZD3v_RKUFSn0eM_WVZZvhe7F9g3eTmPA@mail.gmail.com> <CAF6AEGuDih-NR-VZCmQfqbvCOxjxreZRPGfhCyL12FQ1Qd616Q@mail.gmail.com> <006a01ce504e$0de3b0e0$29ab12a0$%dae@samsung.com> <CAF6AEGv2FiKMUpb5s4zHPdj4uVxnQWdVJWL-i1mOOZRxBvMZ4Q@mail.gmail.com> <00cf01ce512b$bacc5540$3064ffc0$%dae@samsung.com> <CAF6AEGuBexKUpTwm9cjGjkxCTKgEaDhAakeP0RN=rtLS6Qy=Mg@mail.gmail.com> <CAAQKjZP37koEPob6yqpn-WxxTh3+O=twyvRzDiEhVJTD8BxQzw@mail.gmail.com> <20130520211304.GV12292@phenom.ffwll.local> <20130520213033.GW12292@phenom.ffwll.local> <032701ce55f1$3e9ba4b0$bbd2ee10$%dae@samsung.com> <20130521074441.GZ12292@phenom.ffwll.local> <033a01ce5604$c32bd250$498376f0$%dae@samsung.com> <CAKMK7uHtk+A7CDZH3qHt+F3H_fdSsWwt-bEPn-N0919oOE+Jkg@mail.gmail.com> <012801ce57ba$a5a87fa0$f0f97ee0$%dae@samsung.com> <014501ce5ac6$511a8500$f34f8f00$%dae@samsung.com> <51A37A54.1040700@canonical.com> <005601ce5b4d$f95e0160$ec1a0420$%dae@samsung.com>
-In-Reply-To: <005601ce5b4d$f95e0160$ec1a0420$%dae@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+Hi Prabhakar,
 
-Op 28-05-13 04:49, Inki Dae schreef:
->
->> -----Original Message-----
->> From: Maarten Lankhorst [mailto:maarten.lankhorst@canonical.com]
->> Sent: Tuesday, May 28, 2013 12:23 AM
->> To: Inki Dae
->> Cc: 'Daniel Vetter'; 'Rob Clark'; 'linux-fbdev'; 'YoungJun Cho'; 'Kyungmin
->> Park'; 'myungjoo.ham'; 'DRI mailing list'; linux-arm-
->> kernel@lists.infradead.org; linux-media@vger.kernel.org
->> Subject: Re: Introduce a new helper framework for buffer synchronization
->>
->> Hey,
->>
->> Op 27-05-13 12:38, Inki Dae schreef:
->>> Hi all,
->>>
->>> I have been removed previous branch and added new one with more cleanup.
->>> This time, the fence helper doesn't include user side interfaces and
->> cache
->>> operation relevant codes anymore because not only we are not sure that
->>> coupling those two things, synchronizing caches and buffer access
->> between
->>> CPU and CPU, CPU and DMA, and DMA and DMA with fences, in kernel side is
->> a
->>> good idea yet but also existing codes for user side have problems with
->> badly
->>> behaved or crashing userspace. So this could be more discussed later.
->>>
->>> The below is a new branch,
->>>
->>> https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
->> exynos.git/?h=dma-f
->>> ence-helper
->>>
->>> And fence helper codes,
->>>
->>> https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
->> exynos.git/commit/?
->>> h=dma-fence-helper&id=adcbc0fe7e285ce866e5816e5e21443dcce01005
->>>
->>> And example codes for device driver,
->>>
->>> https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
->> exynos.git/commit/?
->>> h=dma-fence-helper&id=d2ce7af23835789602a99d0ccef1f53cdd5caaae
->>>
->>> I think the time is not yet ripe for RFC posting: maybe existing dma
->> fence
->>> and reservation need more review and addition work. So I'd glad for
->> somebody
->>> giving other opinions and advices in advance before RFC posting.
->>>
->> NAK.
->>
->> For examples for how to handle locking properly, see Documentation/ww-
->> mutex-design.txt in my recent tree.
->> I could list what I believe is wrong with your implementation, but real
->> problem is that the approach you're taking is wrong.
-> I just removed ticket stubs to show my approach you guys as simple as
-> possible, and I just wanted to show that we could use buffer synchronization
-> mechanism without ticket stubs.
-The tickets have been removed in favor of a ww_context. Moving it in as a base primitive
-allows more locking abuse to be detected, and makes some other things easier too.
+Thanks for the patch.
 
-> Question, WW-Mutexes could be used for all devices? I guess this has
-> dependence on x86 gpu: gpu has VRAM and it means different memory domain.
-> And could you tell my why shared fence should have only eight objects? I
-> think we could need more than eight objects for read access. Anyway I think
-> I don't surely understand yet so there might be my missing point.
-Yes, ww mutexes are not limited in any way to x86. They're a locking mechanism.
-When you acquired the ww mutexes for all buffer objects, all it does is say at
-that point in time you have exclusively acquired the locks of all bo's.
+On Sunday 26 May 2013 17:30:07 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> Ideally the freeing of irq's and the global variables needs to be
+> done in the remove() rather than module_exit(), this patch moves
+> the freeing up of irq's and freeing the memory allocated to channel
+> objects to remove() callback of struct platform_driver.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> ---
+>  drivers/media/platform/davinci/vpif_capture.c |   31 ++++++++++------------
+>  1 files changed, 13 insertions(+), 18 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c
+> b/drivers/media/platform/davinci/vpif_capture.c index caaf4fe..f8b7304
+> 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -2225,17 +2225,29 @@ vpif_int_err:
+>   */
+>  static int vpif_remove(struct platform_device *device)
+>  {
+> -	int i;
+> +	struct platform_device *pdev;
+>  	struct channel_obj *ch;
+> +	struct resource *res;
+> +	int irq_num, i = 0;
+> +
+> +	pdev = container_of(vpif_dev, struct platform_device, dev);
 
-After locking everything you can read the fence pointers safely, queue waits, and set a
-new fence pointer on all reservation_objects. You only need a single fence
-on all those objects, so 8 is plenty. Nonetheless this was a limitation of my
-earlier design, and I'll dynamically allocate fence_shared in the future.
+As Sergei mentioned, the platform device is already passed to the function as 
+an argument.
 
-~Maarten
+> +	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+> +		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+> +			free_irq(irq_num,
+> +				 (void *)(&vpif_obj.dev[i]->channel_id));
+
+A quick look at board code shows that each IRQ resource contains a single IRQ. 
+The second loop could thus be removed. You could also add another patch to 
+perform similar cleanup for the probe code.
+
+> +		i++;
+> +	}
+> 
+>  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+> 
+> +	kfree(vpif_obj.sd);
+>  	/* un-register device */
+>  	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+>  		/* Get the pointer to the channel object */
+>  		ch = vpif_obj.dev[i];
+>  		/* Unregister video device */
+>  		video_unregister_device(ch->video_dev);
+> +		kfree(vpif_obj.dev[i]);
+>  	}
+>  	return 0;
+>  }
+> @@ -2347,24 +2359,7 @@ static __init int vpif_init(void)
+>   */
+>  static void vpif_cleanup(void)
+>  {
+> -	struct platform_device *pdev;
+> -	struct resource *res;
+> -	int irq_num;
+> -	int i = 0;
+> -
+> -	pdev = container_of(vpif_dev, struct platform_device, dev);
+> -	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+> -		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+> -			free_irq(irq_num,
+> -				 (void *)(&vpif_obj.dev[i]->channel_id));
+> -		i++;
+> -	}
+> -
+>  	platform_driver_unregister(&vpif_driver);
+> -
+> -	kfree(vpif_obj.sd);
+> -	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++)
+> -		kfree(vpif_obj.dev[i]);
+>  }
+> 
+>  /* Function for module initialization and cleanup */
+-- 
+Regards,
+
+Laurent Pinchart
 
