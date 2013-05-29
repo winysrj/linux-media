@@ -1,15 +1,17 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2742 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965542Ab3E2LAd (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3816 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965704Ab3E2LBO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:00:33 -0400
+	Wed, 29 May 2013 07:01:14 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv1 04/38] saa7115: add back the dropped 'found' message.
-Date: Wed, 29 May 2013 12:59:37 +0200
-Message-Id: <1369825211-29770-5-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Brian Johnson <brijohn@gmail.com>
+Subject: [PATCHv1 32/38] sn9c20x: the reg->size field wasn't filled in.
+Date: Wed, 29 May 2013 13:00:05 +0200
+Message-Id: <1369825211-29770-33-git-send-email-hverkuil@xs4all.nl>
 In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,28 +19,33 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The saa7115 driver used to show a 'chip found' message during probe. This
-was accidentally dropped during recent commits. Add it back as it is quite
-useful.
-
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Hans de Goede <hdegoede@redhat.com>
+Cc: Brian Johnson <brijohn@gmail.com>
 ---
- drivers/media/i2c/saa7115.c |    2 ++
+ drivers/media/usb/gspca/sn9c20x.c |    2 ++
  1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index 18cf0bf..4daa81c 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -1735,6 +1735,8 @@ static int saa711x_probe(struct i2c_client *client,
- 	sd = &state->sd;
- 	v4l2_i2c_subdev_init(sd, client, &saa711x_ops);
+diff --git a/drivers/media/usb/gspca/sn9c20x.c b/drivers/media/usb/gspca/sn9c20x.c
+index 23b71f9..f4453d5 100644
+--- a/drivers/media/usb/gspca/sn9c20x.c
++++ b/drivers/media/usb/gspca/sn9c20x.c
+@@ -1557,6 +1557,7 @@ static int sd_dbg_g_register(struct gspca_dev *gspca_dev,
+ {
+ 	struct sd *sd = (struct sd *) gspca_dev;
  
-+	v4l_info(client, "%s found @ 0x%x (%s)\n", name,
-+		 client->addr << 1, client->adapter->name);
- 	hdl = &state->hdl;
- 	v4l2_ctrl_handler_init(hdl, 6);
- 	/* add in ascending ID order */
++	reg->size = 1;
+ 	switch (reg->match.addr) {
+ 	case 0:
+ 		if (reg->reg < 0x1000 || reg->reg > 0x11ff)
+@@ -1568,6 +1569,7 @@ static int sd_dbg_g_register(struct gspca_dev *gspca_dev,
+ 		if (sd->sensor >= SENSOR_MT9V011 &&
+ 		    sd->sensor <= SENSOR_MT9M112) {
+ 			i2c_r2(gspca_dev, reg->reg, (u16 *) &reg->val);
++			reg->size = 2;
+ 		} else {
+ 			i2c_r1(gspca_dev, reg->reg, (u8 *) &reg->val);
+ 		}
 -- 
 1.7.10.4
 
