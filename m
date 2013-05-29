@@ -1,65 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:35684 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab3EIPiD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 11:38:03 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMJ005BMFF8JR20@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 May 2013 00:38:02 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: hj210.choi@samsung.com, dh09.lee@samsung.com, a.hajda@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 13/13] exynos4-is: Remove WARN_ON() from __fimc_pipeline_close()
-Date: Thu, 09 May 2013 17:36:45 +0200
-Message-id: <1368113805-20233-14-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
-References: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:47058 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934233Ab3E2Mvk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 May 2013 08:51:40 -0400
+Message-ID: <1369831845.4050.60.camel@pizza.hi.pengutronix.de>
+Subject: Re: [PATCH 0/9] CODA patches in preparation for decoding support
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	'Javier Martin' <javier.martin@vista-silicon.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>
+Date: Wed, 29 May 2013 14:50:45 +0200
+In-Reply-To: <021701ce5c67$fe85ede0$fb91c9a0$%debski@samsung.com>
+References: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
+	 <021701ce5c67$fe85ede0$fb91c9a0$%debski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's not a critical error to call __fimc_pipeline_close() with missing
-sensor subdev entity. Replace WARN_ON() with pr_warn() and return 0
-instead of -EINVAL to fix control flow in some conditions.
+Am Mittwoch, den 29.05.2013, 14:28 +0200 schrieb Kamil Debski:
+> Hi,
+> 
+> Patches 5/9 an 6/9 have a style issues (Line > 80) found by checkpatch.
+> Can you comment on this?
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/media-dev.c |   14 +++++++-------
- 1 file changed, 7 insertions(+), 7 deletions(-)
+I think that especially with the CODA_CODEC array, readability is
+improved by overstepping the 80 character barrier.
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index bf932d7..beec27b 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -247,16 +247,16 @@ static int __fimc_pipeline_close(struct exynos_media_pipeline *ep)
- 	struct fimc_pipeline *p = to_fimc_pipeline(ep);
- 	struct v4l2_subdev *sd = p ? p->subdevs[IDX_SENSOR] : NULL;
- 	struct fimc_md *fmd;
--	int ret = 0;
--
--	if (WARN_ON(sd == NULL))
--		return -EINVAL;
-+	int ret;
- 
--	if (p->subdevs[IDX_SENSOR]) {
--		ret = fimc_pipeline_s_power(p, 0);
--		fimc_md_set_camclk(sd, false);
-+	if (sd == NULL) {
-+		pr_warn("%s(): No sensor subdev\n", __func__);
-+		return 0;
- 	}
- 
-+	ret = fimc_pipeline_s_power(p, 0);
-+	fimc_md_set_camclk(sd, false);
-+
- 	fmd = entity_to_fimc_mdev(&sd->entity);
- 
- 	/* Disable PXLASYNC clock if this pipeline includes FIMC-IS */
--- 
-1.7.9.5
+> Also patch 8/9 does not apply cleanly to my branch. I think that it might be
+> because
+> I am missing patches that were taken by Hans.
+
+That is correct. I should have mentioned those are prerequisites.
+
+regards
+Philipp
+
+> Warnings from checkpatch:
+> 
+> Patch 5/9
+> 
+> WARNING: line over 80 characters
+> #73: FILE: drivers/media/platform/coda.c:959:
+> +		coda_parabuf_write(ctx, i * 3 + 2, paddr + ysize + ysize/4);
+> /* Cr */
+> 
+> WARNING: line over 80 characters
+> #99: FILE: drivers/media/platform/coda.c:961:
+> +		if (dev->devtype->product != CODA_DX6 && fourcc ==
+> V4L2_PIX_FMT_H264)
+> 
+> WARNING: line over 80 characters
+> #100: FILE: drivers/media/platform/coda.c:962:
+> +			coda_parabuf_write(ctx, 96 + i,
+> ctx->internal_frames[i].paddr + ysize + ysize/4 + ysize/4);
+> 
+> total: 0 errors, 3 warnings, 76 lines checked
+> 
+> Patch 6/9
+> WARNING: line over 80 characters
+> #186: FILE: drivers/media/platform/coda.c:293:
+> +	CODA_CODEC(CODADX6_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420,
+> V4L2_PIX_FMT_H264,  720, 576),
+> 
+> WARNING: line over 80 characters
+> #187: FILE: drivers/media/platform/coda.c:294:
+> +	CODA_CODEC(CODADX6_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420,
+> V4L2_PIX_FMT_MPEG4, 720, 576),
+> 
+> WARNING: line over 80 characters
+> #191: FILE: drivers/media/platform/coda.c:298:
+> +	CODA_CODEC(CODA7_MODE_ENCODE_H264, V4L2_PIX_FMT_YUV420,
+> V4L2_PIX_FMT_H264,   1280, 720),
+> 
+> WARNING: line over 80 characters
+> #192: FILE: drivers/media/platform/coda.c:299:
+> +	CODA_CODEC(CODA7_MODE_ENCODE_MP4,  V4L2_PIX_FMT_YUV420,
+> V4L2_PIX_FMT_MPEG4,  1280, 720),
+> 
+> WARNING: line over 80 characters
+> #584: FILE: drivers/media/platform/coda.c:1110:
+> +		value |= (q_data_src->height & CODADX6_PICHEIGHT_MASK) <<
+> CODA_PICHEIGHT_OFFSET;
+> 
+> WARNING: line over 80 characters
+> #588: FILE: drivers/media/platform/coda.c:1114:
+> +		value |= (q_data_src->height & CODA7_PICHEIGHT_MASK) <<
+> CODA_PICHEIGHT_OFFSET;
+> 
+> total: 0 errors, 6 warnings, 603 lines checked
+> 
+> Best wishes,
+
 
