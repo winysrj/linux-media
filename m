@@ -1,15 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3692 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965643Ab3E2LJH (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1507 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965694Ab3E2LBn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:09:07 -0400
+	Wed, 29 May 2013 07:01:43 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCHv1 38/38] DocBook/media/v4l: update VIDIOC_DBG_ documentation
-Date: Wed, 29 May 2013 13:00:11 +0200
-Message-Id: <1369825211-29770-39-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>, Mike Isely <isely@isely.net>
+Subject: [PATCHv1 33/38] pvrusb2: drop g/s_register ioctls.
+Date: Wed, 29 May 2013 13:00:06 +0200
+Message-Id: <1369825211-29770-34-git-send-email-hverkuil@xs4all.nl>
 In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -17,84 +17,133 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-- Remove the "On failure the structure remains unchanged." part since
-  that isn't necessarily true.
-- Document the 'size' field.
+Register access to subdevices no longer needs bridge support for those
+ioctls. The v4l2 core handles that these days.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mike Isely <isely@isely.net>
 ---
- .../DocBook/media/v4l/vidioc-dbg-g-chip-info.xml        |    3 +--
- .../DocBook/media/v4l/vidioc-dbg-g-register.xml         |   15 ++++++++++-----
- 2 files changed, 11 insertions(+), 7 deletions(-)
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c  |   36 ------------------------------
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.h  |    9 --------
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c |   34 ----------------------------
+ 3 files changed, 79 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-info.xml b/Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-info.xml
-index 706989d..4c4603c 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-info.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dbg-g-chip-info.xml
-@@ -73,8 +73,7 @@ fields of a &v4l2-dbg-chip-info;
- and call <constant>VIDIOC_DBG_G_CHIP_INFO</constant> with a pointer to
- this structure. On success the driver stores information about the
- selected chip in the <structfield>name</structfield> and
--<structfield>flags</structfield> fields. On failure the structure
--remains unchanged.</para>
-+<structfield>flags</structfield> fields.</para>
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+index 01d1c2d..d329209 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+@@ -5162,39 +5162,3 @@ static int pvr2_hdw_get_eeprom_addr(struct pvr2_hdw *hdw)
+ 	} while(0); LOCK_GIVE(hdw->ctl_lock);
+ 	return result;
+ }
+-
+-
+-int pvr2_hdw_register_access(struct pvr2_hdw *hdw,
+-			     const struct v4l2_dbg_match *match, u64 reg_id,
+-			     int setFl, u64 *val_ptr)
+-{
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-	struct v4l2_dbg_register req;
+-	int stat = 0;
+-	int okFl = 0;
+-
+-	req.match = *match;
+-	req.reg = reg_id;
+-	if (setFl) req.val = *val_ptr;
+-	/* It would be nice to know if a sub-device answered the request */
+-	v4l2_device_call_all(&hdw->v4l2_dev, 0, core, g_register, &req);
+-	if (!setFl) *val_ptr = req.val;
+-	if (okFl) {
+-		return stat;
+-	}
+-	return -EINVAL;
+-#else
+-	return -ENOSYS;
+-#endif
+-}
+-
+-
+-/*
+-  Stuff for Emacs to see, in order to encourage consistent editing style:
+-  *** Local Variables: ***
+-  *** mode: c ***
+-  *** fill-column: 75 ***
+-  *** tab-width: 8 ***
+-  *** c-basic-offset: 8 ***
+-  *** End: ***
+-  */
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.h b/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
+index 91bae93..1a135cf 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
+@@ -234,15 +234,6 @@ int pvr2_hdw_v4l_get_minor_number(struct pvr2_hdw *,enum pvr2_v4l_type index);
+ void pvr2_hdw_v4l_store_minor_number(struct pvr2_hdw *,
+ 				     enum pvr2_v4l_type index,int);
  
-     <para>When <structfield>match.type</structfield> is
- <constant>V4L2_CHIP_MATCH_BRIDGE</constant>,
-diff --git a/Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml b/Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml
-index b3f6100..3d038e7 100644
---- a/Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml
-@@ -76,7 +76,7 @@ compiled with the <constant>CONFIG_VIDEO_ADV_DEBUG</constant> option
- to enable these ioctls.</para>
+-/* Direct read/write access to chip's registers:
+-   match - specify criteria to identify target chip (this is a v4l dbg struct)
+-   reg_id  - register number to access
+-   setFl   - true to set the register, false to read it
+-   val_ptr - storage location for source / result. */
+-int pvr2_hdw_register_access(struct pvr2_hdw *,
+-			     const struct v4l2_dbg_match *match, u64 reg_id,
+-			     int setFl, u64 *val_ptr);
+-
+ /* The following entry points are all lower level things you normally don't
+    want to worry about. */
  
-     <para>To write a register applications must initialize all fields
--of a &v4l2-dbg-register; and call
-+of a &v4l2-dbg-register; except for <structfield>size</structfield> and call
- <constant>VIDIOC_DBG_S_REGISTER</constant> with a pointer to this
- structure. The <structfield>match.type</structfield> and
- <structfield>match.addr</structfield> or <structfield>match.name</structfield>
-@@ -91,8 +91,8 @@ written into the register.</para>
- <structfield>reg</structfield> fields, and call
- <constant>VIDIOC_DBG_G_REGISTER</constant> with a pointer to this
- structure. On success the driver stores the register value in the
--<structfield>val</structfield> field. On failure the structure remains
--unchanged.</para>
-+<structfield>val</structfield> field and the size (in bytes) of the
-+value in <structfield>size</structfield>.</para>
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index a8a65fa..82f619b 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -800,36 +800,6 @@ static int pvr2_log_status(struct file *file, void *priv)
+ 	return 0;
+ }
  
-     <para>When <structfield>match.type</structfield> is
- <constant>V4L2_CHIP_MATCH_BRIDGE</constant>,
-@@ -120,7 +120,7 @@ LinuxTV v4l-dvb repository; see <ulink
- url="http://linuxtv.org/repo/">http://linuxtv.org/repo/</ulink> for
- access instructions.</para>
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-static int pvr2_g_register(struct file *file, void *priv, struct v4l2_dbg_register *req)
+-{
+-	struct pvr2_v4l2_fh *fh = file->private_data;
+-	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
+-	u64 val;
+-	int ret;
+-
+-	ret = pvr2_hdw_register_access(
+-			hdw, &req->match, req->reg,
+-			0, &val);
+-	req->val = val;
+-	return ret;
+-}
+-
+-static int pvr2_s_register(struct file *file, void *priv, const struct v4l2_dbg_register *req)
+-{
+-	struct pvr2_v4l2_fh *fh = file->private_data;
+-	struct pvr2_hdw *hdw = fh->channel.mc_head->hdw;
+-	u64 val;
+-	int ret;
+-
+-	val = req->val;
+-	ret = pvr2_hdw_register_access(
+-			hdw, &req->match, req->reg,
+-			1, &val);
+-	return ret;
+-}
+-#endif
+-
+ static const struct v4l2_ioctl_ops pvr2_ioctl_ops = {
+ 	.vidioc_querycap		    = pvr2_querycap,
+ 	.vidioc_g_priority		    = pvr2_g_priority,
+@@ -864,10 +834,6 @@ static const struct v4l2_ioctl_ops pvr2_ioctl_ops = {
+ 	.vidioc_g_ext_ctrls		    = pvr2_g_ext_ctrls,
+ 	.vidioc_s_ext_ctrls		    = pvr2_s_ext_ctrls,
+ 	.vidioc_try_ext_ctrls		    = pvr2_try_ext_ctrls,
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-	.vidioc_g_register		    = pvr2_g_register,
+-	.vidioc_s_register		    = pvr2_s_register,
+-#endif
+ };
  
--    <!-- Note for convenience vidioc-dbg-g-chip-ident.sgml
-+    <!-- Note for convenience vidioc-dbg-g-chip-info.sgml
- 	 contains a duplicate of this table. -->
-     <table pgwide="1" frame="none" id="v4l2-dbg-match">
-       <title>struct <structname>v4l2_dbg_match</structname></title>
-@@ -169,6 +169,11 @@ to the <structfield>type</structfield> field. Currently unused.</entry>
- 	    <entry>How to match the chip, see <xref linkend="v4l2-dbg-match" />.</entry>
- 	  </row>
- 	  <row>
-+	    <entry>__u32</entry>
-+	    <entry><structfield>size</structfield></entry>
-+	    <entry>The register size in bytes.</entry>
-+	  </row>
-+	  <row>
- 	    <entry>__u64</entry>
- 	    <entry><structfield>reg</structfield></entry>
- 	    <entry>A register number.</entry>
-@@ -183,7 +188,7 @@ register.</entry>
-       </tgroup>
-     </table>
- 
--    <!-- Note for convenience vidioc-dbg-g-chip-ident.sgml
-+    <!-- Note for convenience vidioc-dbg-g-chip-info.sgml
- 	 contains a duplicate of this table. -->
-     <table pgwide="1" frame="none" id="chip-match-types">
-       <title>Chip Match Types</title>
+ static void pvr2_v4l2_dev_destroy(struct pvr2_v4l2_dev *dip)
 -- 
 1.7.10.4
 
