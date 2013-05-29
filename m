@@ -1,62 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3865 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753051Ab3EZN1j (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4595 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965572Ab3E2OT1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 09:27:39 -0400
+	Wed, 29 May 2013 10:19:27 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 16/24] indycam: remove g_chip_ident op.
-Date: Sun, 26 May 2013 15:27:11 +0200
-Message-Id: <1369574839-6687-17-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369574839-6687-1-git-send-email-hverkuil@xs4all.nl>
+Subject: [RFC PATCH 03/14] ks0127: fix querystd
+Date: Wed, 29 May 2013 16:18:56 +0200
+Message-Id: <1369837147-8747-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is no longer needed since the core now handles this through DBG_G_CHIP_INFO.
+Return V4L2_STD_UNKNOWN if no signal is detected.
+Otherwise AND the standard mask with the detected standards.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/indycam.c |   12 ------------
- 1 file changed, 12 deletions(-)
+ drivers/media/i2c/ks0127.c |   17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/indycam.c b/drivers/media/platform/indycam.c
-index 5482363..f1d192b 100644
---- a/drivers/media/platform/indycam.c
-+++ b/drivers/media/platform/indycam.c
-@@ -23,7 +23,6 @@
- #include <linux/videodev2.h>
- #include <linux/i2c.h>
- #include <media/v4l2-device.h>
--#include <media/v4l2-chip-ident.h>
+diff --git a/drivers/media/i2c/ks0127.c b/drivers/media/i2c/ks0127.c
+index c722776..f7250e5 100644
+--- a/drivers/media/i2c/ks0127.c
++++ b/drivers/media/i2c/ks0127.c
+@@ -616,17 +616,24 @@ static int ks0127_status(struct v4l2_subdev *sd, u32 *pstatus, v4l2_std_id *pstd
+ {
+ 	int stat = V4L2_IN_ST_NO_SIGNAL;
+ 	u8 status;
+-	v4l2_std_id std = V4L2_STD_ALL;
++	v4l2_std_id std = pstd ? *pstd : V4L2_STD_ALL;
  
- #include "indycam.h"
- 
-@@ -283,20 +282,9 @@ static int indycam_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
- 
- /* I2C-interface */
- 
--static int indycam_g_chip_ident(struct v4l2_subdev *sd,
--		struct v4l2_dbg_chip_ident *chip)
--{
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	struct indycam *camera = to_indycam(sd);
--
--	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_INDYCAM,
--		       camera->version);
--}
--
- /* ----------------------------------------------------------------------- */
- 
- static const struct v4l2_subdev_core_ops indycam_core_ops = {
--	.g_chip_ident = indycam_g_chip_ident,
- 	.g_ctrl = indycam_g_ctrl,
- 	.s_ctrl = indycam_s_ctrl,
- };
+ 	status = ks0127_read(sd, KS_STAT);
+ 	if (!(status & 0x20))		 /* NOVID not set */
+ 		stat = 0;
+-	if (!(status & 0x01))		      /* CLOCK set */
++	if (!(status & 0x01)) {		      /* CLOCK set */
+ 		stat |= V4L2_IN_ST_NO_COLOR;
+-	if ((status & 0x08))		   /* PALDET set */
+-		std = V4L2_STD_PAL;
++		std = V4L2_STD_UNKNOWN;
++	} else {
++		if ((status & 0x08))		   /* PALDET set */
++			std &= V4L2_STD_PAL;
++		else
++			std &= V4L2_STD_NTSC;
++	}
++	if ((status & 0x10))		   /* PALDET set */
++		std &= V4L2_STD_525_60;
+ 	else
+-		std = V4L2_STD_NTSC;
++		std &= V4L2_STD_625_50;
+ 	if (pstd)
+ 		*pstd = std;
+ 	if (pstatus)
 -- 
 1.7.10.4
 
