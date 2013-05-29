@@ -1,212 +1,575 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39832 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932495Ab3EOJ5m (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3838 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965643Ab3E2LJM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 05:57:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Wed, 29 May 2013 07:09:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Shawn Nematbakhsh <shawnn@chromium.org>
-Subject: Re: [PATCH v2] uvcvideo: Fix open/close race condition
-Date: Wed, 15 May 2013 11:58:02 +0200
-Message-ID: <10450810.MOPyhOxKX4@avalon>
-In-Reply-To: <1367925577-26907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1367925577-26907-1-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv1 10/38] cx231xx: remove g_chip_ident.
+Date: Wed, 29 May 2013 12:59:43 +0200
+Message-Id: <1369825211-29770-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Shawn,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Could you please confirm whether this patch fixes the issue you've reported ?
+Remove g_chip_ident and replace it with g_chip_info.
 
-On Tuesday 07 May 2013 13:19:37 Laurent Pinchart wrote:
-> Maintaining the users count using an atomic variable makes sure that
-> access to the counter won't be racy, but doesn't serialize access to the
-> operations protected by the counter. This creates a race condition that
-> could result in the status URB being submitted multiple times.
-> 
-> Use a mutex to protect the users count and serialize access to the
-> status start and stop operations.
-> 
-> Reported-by: Shawn Nematbakhsh <shawnn@chromium.org>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->  drivers/media/usb/uvc/uvc_driver.c | 23 +++++++++++++++++------
->  drivers/media/usb/uvc/uvc_status.c | 21 ++-------------------
->  drivers/media/usb/uvc/uvc_v4l2.c   | 14 ++++++++++----
->  drivers/media/usb/uvc/uvcvideo.h   |  7 +++----
->  4 files changed, 32 insertions(+), 33 deletions(-)
-> 
-> Changes since v1:
-> 
-> - Add a missing return back in the uvc_suspend() function
-> 
-> diff --git a/drivers/media/usb/uvc/uvc_driver.c
-> b/drivers/media/usb/uvc/uvc_driver.c index e68fa53..d704be3 100644
-> --- a/drivers/media/usb/uvc/uvc_driver.c
-> +++ b/drivers/media/usb/uvc/uvc_driver.c
-> @@ -1836,8 +1836,8 @@ static int uvc_probe(struct usb_interface *intf,
->  	INIT_LIST_HEAD(&dev->chains);
->  	INIT_LIST_HEAD(&dev->streams);
->  	atomic_set(&dev->nstreams, 0);
-> -	atomic_set(&dev->users, 0);
->  	atomic_set(&dev->nmappings, 0);
-> +	mutex_init(&dev->lock);
-> 
->  	dev->udev = usb_get_dev(udev);
->  	dev->intf = usb_get_intf(intf);
-> @@ -1953,8 +1953,13 @@ static int uvc_suspend(struct usb_interface *intf,
-> pm_message_t message)
-> 
->  	/* Controls are cached on the fly so they don't need to be saved. */
->  	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
-> -	    UVC_SC_VIDEOCONTROL)
-> -		return uvc_status_suspend(dev);
-> +	    UVC_SC_VIDEOCONTROL) {
-> +		mutex_lock(&dev->lock);
-> +		if (dev->users)
-> +			uvc_status_stop(dev);
-> +		mutex_unlock(&dev->lock);
-> +		return 0;
-> +	}
-> 
->  	list_for_each_entry(stream, &dev->streams, list) {
->  		if (stream->intf == intf)
-> @@ -1976,14 +1981,20 @@ static int __uvc_resume(struct usb_interface *intf,
-> int reset)
-> 
->  	if (intf->cur_altsetting->desc.bInterfaceSubClass ==
->  	    UVC_SC_VIDEOCONTROL) {
-> -		if (reset) {
-> -			int ret = uvc_ctrl_resume_device(dev);
-> +		int ret = 0;
-> 
-> +		if (reset) {
-> +			ret = uvc_ctrl_resume_device(dev);
->  			if (ret < 0)
->  				return ret;
->  		}
-> 
-> -		return uvc_status_resume(dev);
-> +		mutex_lock(&dev->lock);
-> +		if (dev->users)
-> +			ret = uvc_status_start(dev, GFP_NOIO);
-> +		mutex_unlock(&dev->lock);
-> +
-> +		return ret;
->  	}
-> 
->  	list_for_each_entry(stream, &dev->streams, list) {
-> diff --git a/drivers/media/usb/uvc/uvc_status.c
-> b/drivers/media/usb/uvc/uvc_status.c index b749277..f552ab9 100644
-> --- a/drivers/media/usb/uvc/uvc_status.c
-> +++ b/drivers/media/usb/uvc/uvc_status.c
-> @@ -206,32 +206,15 @@ void uvc_status_cleanup(struct uvc_device *dev)
->  	uvc_input_cleanup(dev);
->  }
-> 
-> -int uvc_status_start(struct uvc_device *dev)
-> +int uvc_status_start(struct uvc_device *dev, gfp_t flags)
->  {
->  	if (dev->int_urb == NULL)
->  		return 0;
-> 
-> -	return usb_submit_urb(dev->int_urb, GFP_KERNEL);
-> +	return usb_submit_urb(dev->int_urb, flags);
->  }
-> 
->  void uvc_status_stop(struct uvc_device *dev)
->  {
->  	usb_kill_urb(dev->int_urb);
->  }
-> -
-> -int uvc_status_suspend(struct uvc_device *dev)
-> -{
-> -	if (atomic_read(&dev->users))
-> -		usb_kill_urb(dev->int_urb);
-> -
-> -	return 0;
-> -}
-> -
-> -int uvc_status_resume(struct uvc_device *dev)
-> -{
-> -	if (dev->int_urb == NULL || atomic_read(&dev->users) == 0)
-> -		return 0;
-> -
-> -	return usb_submit_urb(dev->int_urb, GFP_NOIO);
-> -}
-> -
-> diff --git a/drivers/media/usb/uvc/uvc_v4l2.c
-> b/drivers/media/usb/uvc/uvc_v4l2.c index b2dc326..3afff92 100644
-> --- a/drivers/media/usb/uvc/uvc_v4l2.c
-> +++ b/drivers/media/usb/uvc/uvc_v4l2.c
-> @@ -498,16 +498,20 @@ static int uvc_v4l2_open(struct file *file)
->  		return -ENOMEM;
->  	}
-> 
-> -	if (atomic_inc_return(&stream->dev->users) == 1) {
-> -		ret = uvc_status_start(stream->dev);
-> +	mutex_lock(&stream->dev->lock);
-> +	if (stream->dev->users == 0) {
-> +		ret = uvc_status_start(stream->dev, GFP_KERNEL);
->  		if (ret < 0) {
-> -			atomic_dec(&stream->dev->users);
-> +			mutex_unlock(&stream->dev->lock);
->  			usb_autopm_put_interface(stream->dev->intf);
->  			kfree(handle);
->  			return ret;
->  		}
->  	}
-> 
-> +	stream->dev->users++;
-> +	mutex_unlock(&stream->dev->lock);
-> +
->  	v4l2_fh_init(&handle->vfh, stream->vdev);
->  	v4l2_fh_add(&handle->vfh);
->  	handle->chain = stream->chain;
-> @@ -538,8 +542,10 @@ static int uvc_v4l2_release(struct file *file)
->  	kfree(handle);
->  	file->private_data = NULL;
-> 
-> -	if (atomic_dec_return(&stream->dev->users) == 0)
-> +	mutex_lock(&stream->dev->lock);
-> +	if (--stream->dev->users == 0)
->  		uvc_status_stop(stream->dev);
-> +	mutex_unlock(&stream->dev->lock);
-> 
->  	usb_autopm_put_interface(stream->dev->intf);
->  	return 0;
-> diff --git a/drivers/media/usb/uvc/uvcvideo.h
-> b/drivers/media/usb/uvc/uvcvideo.h index 9cd584a..eb90a92 100644
-> --- a/drivers/media/usb/uvc/uvcvideo.h
-> +++ b/drivers/media/usb/uvc/uvcvideo.h
-> @@ -515,7 +515,8 @@ struct uvc_device {
->  	char name[32];
-> 
->  	enum uvc_device_state state;
-> -	atomic_t users;
-> +	struct mutex lock;		/* Protects users */
-> +	unsigned int users;
->  	atomic_t nmappings;
-> 
->  	/* Video control interface */
-> @@ -661,10 +662,8 @@ void uvc_video_clock_update(struct uvc_streaming
-> *stream, /* Status */
->  extern int uvc_status_init(struct uvc_device *dev);
->  extern void uvc_status_cleanup(struct uvc_device *dev);
-> -extern int uvc_status_start(struct uvc_device *dev);
-> +extern int uvc_status_start(struct uvc_device *dev, gfp_t flags);
->  extern void uvc_status_stop(struct uvc_device *dev);
-> -extern int uvc_status_suspend(struct uvc_device *dev);
-> -extern int uvc_status_resume(struct uvc_device *dev);
-> 
->  /* Controls */
->  extern const struct v4l2_subscribed_event_ops uvc_ctrl_sub_ev_ops;
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-417.c    |    1 -
+ drivers/media/usb/cx231xx/cx231xx-avcore.c |    1 -
+ drivers/media/usb/cx231xx/cx231xx-cards.c  |    1 -
+ drivers/media/usb/cx231xx/cx231xx-vbi.c    |    1 -
+ drivers/media/usb/cx231xx/cx231xx-video.c  |  417 +++++++---------------------
+ drivers/media/usb/cx231xx/cx231xx.h        |    2 +-
+ 6 files changed, 103 insertions(+), 320 deletions(-)
+
+diff --git a/drivers/media/usb/cx231xx/cx231xx-417.c b/drivers/media/usb/cx231xx/cx231xx-417.c
+index f548db8..2f63029 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-417.c
++++ b/drivers/media/usb/cx231xx/cx231xx-417.c
+@@ -1840,7 +1840,6 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_streamon	 = vidioc_streamon,
+ 	.vidioc_streamoff	 = vidioc_streamoff,
+ 	.vidioc_log_status	 = vidioc_log_status,
+-	.vidioc_g_chip_ident	 = cx231xx_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register	 = cx231xx_g_register,
+ 	.vidioc_s_register	 = cx231xx_s_register,
+diff --git a/drivers/media/usb/cx231xx/cx231xx-avcore.c b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+index 235ba65..89de00b 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-avcore.c
++++ b/drivers/media/usb/cx231xx/cx231xx-avcore.c
+@@ -35,7 +35,6 @@
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/v4l2-chip-ident.h>
+ 
+ #include "cx231xx.h"
+ #include "cx231xx-dif.h"
+diff --git a/drivers/media/usb/cx231xx/cx231xx-cards.c b/drivers/media/usb/cx231xx/cx231xx-cards.c
+index 13249e5..27948e1 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-cards.c
++++ b/drivers/media/usb/cx231xx/cx231xx-cards.c
+@@ -29,7 +29,6 @@
+ #include <media/tuner.h>
+ #include <media/tveeprom.h>
+ #include <media/v4l2-common.h>
+-#include <media/v4l2-chip-ident.h>
+ 
+ #include <media/cx25840.h>
+ #include "dvb-usb-ids.h"
+diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+index 1340ff2..c027942 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
++++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+@@ -32,7 +32,6 @@
+ 
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <media/msp3400.h>
+ #include <media/tuner.h>
+ 
+diff --git a/drivers/media/usb/cx231xx/cx231xx-video.c b/drivers/media/usb/cx231xx/cx231xx-video.c
+index cd22147..54cdd4d 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-video.c
++++ b/drivers/media/usb/cx231xx/cx231xx-video.c
+@@ -36,7 +36,6 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-event.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <media/msp3400.h>
+ #include <media/tuner.h>
+ 
+@@ -1228,179 +1227,86 @@ int cx231xx_s_frequency(struct file *file, void *priv,
+ 	return rc;
+ }
+ 
+-int cx231xx_g_chip_ident(struct file *file, void *fh,
+-			struct v4l2_dbg_chip_ident *chip)
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++
++int cx231xx_g_chip_info(struct file *file, void *fh,
++			struct v4l2_dbg_chip_info *chip)
+ {
+-	chip->ident = V4L2_IDENT_NONE;
+-	chip->revision = 0;
+-	if (chip->match.type == V4L2_CHIP_MATCH_HOST) {
+-		if (v4l2_chip_match_host(&chip->match))
+-			chip->ident = V4L2_IDENT_CX23100;
++	switch (chip->match.addr) {
++	case 0:	/* Cx231xx - internal registers */
++		return 0;
++	case 1:	/* AFE - read byte */
++		strlcpy(chip->name, "AFE (byte)", sizeof(chip->name));
++		return 0;
++	case 2:	/* Video Block - read byte */
++		strlcpy(chip->name, "Video (byte)", sizeof(chip->name));
++		return 0;
++	case 3:	/* I2S block - read byte */
++		strlcpy(chip->name, "I2S (byte)", sizeof(chip->name));
++		return 0;
++	case 4: /* AFE - read dword */
++		strlcpy(chip->name, "AFE (dword)", sizeof(chip->name));
++		return 0;
++	case 5: /* Video Block - read dword */
++		strlcpy(chip->name, "Video (dword)", sizeof(chip->name));
++		return 0;
++	case 6: /* I2S Block - read dword */
++		strlcpy(chip->name, "I2S (dword)", sizeof(chip->name));
+ 		return 0;
+ 	}
+ 	return -EINVAL;
+ }
+ 
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-
+-/*
+-  -R, --list-registers=type=<host/i2cdrv/i2caddr>,
+-				chip=<chip>[,min=<addr>,max=<addr>]
+-		     dump registers from <min> to <max> [VIDIOC_DBG_G_REGISTER]
+-  -r, --set-register=type=<host/i2cdrv/i2caddr>,
+-				chip=<chip>,reg=<addr>,val=<val>
+-		     set the register [VIDIOC_DBG_S_REGISTER]
+-
+-  if type == host, then <chip> is the hosts chip ID (default 0)
+-  if type == i2cdrv (default), then <chip> is the I2C driver name or ID
+-  if type == i2caddr, then <chip> is the 7-bit I2C address
+-*/
+-
+ int cx231xx_g_register(struct file *file, void *priv,
+ 			     struct v4l2_dbg_register *reg)
+ {
+ 	struct cx231xx_fh *fh = priv;
+ 	struct cx231xx *dev = fh->dev;
+-	int ret = 0;
++	int ret;
+ 	u8 value[4] = { 0, 0, 0, 0 };
+ 	u32 data = 0;
+ 
+-	switch (reg->match.type) {
+-	case V4L2_CHIP_MATCH_HOST:
+-		switch (reg->match.addr) {
+-		case 0:	/* Cx231xx - internal registers */
+-			ret = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
+-						  (u16)reg->reg, value, 4);
+-			reg->val = value[0] | value[1] << 8 |
+-				   value[2] << 16 | value[3] << 24;
+-			break;
+-		case 1:	/* AFE - read byte */
+-			ret = cx231xx_read_i2c_data(dev, AFE_DEVICE_ADDRESS,
+-						  (u16)reg->reg, 2, &data, 1);
+-			reg->val = le32_to_cpu(data & 0xff);
+-			break;
+-		case 14: /* AFE - read dword */
+-			ret = cx231xx_read_i2c_data(dev, AFE_DEVICE_ADDRESS,
+-						  (u16)reg->reg, 2, &data, 4);
+-			reg->val = le32_to_cpu(data);
+-			break;
+-		case 2:	/* Video Block - read byte */
+-			ret = cx231xx_read_i2c_data(dev, VID_BLK_I2C_ADDRESS,
+-						  (u16)reg->reg, 2, &data, 1);
+-			reg->val = le32_to_cpu(data & 0xff);
+-			break;
+-		case 24: /* Video Block - read dword */
+-			ret = cx231xx_read_i2c_data(dev, VID_BLK_I2C_ADDRESS,
+-						  (u16)reg->reg, 2, &data, 4);
+-			reg->val = le32_to_cpu(data);
+-			break;
+-		case 3:	/* I2S block - read byte */
+-			ret = cx231xx_read_i2c_data(dev,
+-						    I2S_BLK_DEVICE_ADDRESS,
+-						    (u16)reg->reg, 1,
+-						    &data, 1);
+-			reg->val = le32_to_cpu(data & 0xff);
+-			break;
+-		case 34: /* I2S Block - read dword */
+-			ret =
+-			    cx231xx_read_i2c_data(dev, I2S_BLK_DEVICE_ADDRESS,
+-						  (u16)reg->reg, 1, &data, 4);
+-			reg->val = le32_to_cpu(data);
+-			break;
+-		}
+-		return ret < 0 ? ret : 0;
+-
+-	case V4L2_CHIP_MATCH_I2C_DRIVER:
+-		call_all(dev, core, g_register, reg);
+-		return 0;
+-	case V4L2_CHIP_MATCH_I2C_ADDR:/*for register debug*/
+-		switch (reg->match.addr) {
+-		case 0:	/* Cx231xx - internal registers */
+-			ret = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
+-						  (u16)reg->reg, value, 4);
+-			reg->val = value[0] | value[1] << 8 |
+-				   value[2] << 16 | value[3] << 24;
+-
+-			break;
+-		case 0x600:/* AFE - read byte */
+-			ret = cx231xx_read_i2c_master(dev, AFE_DEVICE_ADDRESS,
+-						 (u16)reg->reg, 2,
+-						 &data, 1 , 0);
+-			reg->val = le32_to_cpu(data & 0xff);
+-			break;
+-
+-		case 0x880:/* Video Block - read byte */
+-			if (reg->reg < 0x0b) {
+-				ret = cx231xx_read_i2c_master(dev,
+-						VID_BLK_I2C_ADDRESS,
+-						 (u16)reg->reg, 2,
+-						 &data, 1 , 0);
+-				reg->val = le32_to_cpu(data & 0xff);
+-			} else {
+-				ret = cx231xx_read_i2c_master(dev,
+-						VID_BLK_I2C_ADDRESS,
+-						 (u16)reg->reg, 2,
+-						 &data, 4 , 0);
+-				reg->val = le32_to_cpu(data);
+-			}
+-			break;
+-		case 0x980:
+-			ret = cx231xx_read_i2c_master(dev,
+-						I2S_BLK_DEVICE_ADDRESS,
+-						(u16)reg->reg, 1,
+-						&data, 1 , 0);
+-			reg->val = le32_to_cpu(data & 0xff);
+-			break;
+-		case 0x400:
+-			ret =
+-			    cx231xx_read_i2c_master(dev, 0x40,
+-						  (u16)reg->reg, 1,
+-						 &data, 1 , 0);
+-			reg->val = le32_to_cpu(data & 0xff);
+-			break;
+-		case 0xc01:
+-			ret =
+-				cx231xx_read_i2c_master(dev, 0xc0,
+-						(u16)reg->reg, 2,
+-						 &data, 38, 1);
+-			reg->val = le32_to_cpu(data);
+-			break;
+-		case 0x022:
+-			ret =
+-				cx231xx_read_i2c_master(dev, 0x02,
+-						(u16)reg->reg, 1,
+-						 &data, 1, 2);
+-			reg->val = le32_to_cpu(data & 0xff);
+-			break;
+-		case 0x322:
+-			ret = cx231xx_read_i2c_master(dev,
+-						0x32,
+-						 (u16)reg->reg, 1,
+-						 &data, 4 , 2);
+-				reg->val = le32_to_cpu(data);
+-			break;
+-		case 0x342:
+-			ret = cx231xx_read_i2c_master(dev,
+-						0x34,
+-						 (u16)reg->reg, 1,
+-						 &data, 4 , 2);
+-				reg->val = le32_to_cpu(data);
+-			break;
+-
+-		default:
+-			cx231xx_info("no match device address!!\n");
+-			break;
+-			}
+-		return ret < 0 ? ret : 0;
+-		/*return -EINVAL;*/
++	switch (reg->match.addr) {
++	case 0:	/* Cx231xx - internal registers */
++		ret = cx231xx_read_ctrl_reg(dev, VRT_GET_REGISTER,
++				(u16)reg->reg, value, 4);
++		reg->val = value[0] | value[1] << 8 |
++			value[2] << 16 | value[3] << 24;
++		break;
++	case 1:	/* AFE - read byte */
++		ret = cx231xx_read_i2c_data(dev, AFE_DEVICE_ADDRESS,
++				(u16)reg->reg, 2, &data, 1);
++		reg->val = data;
++		break;
++	case 2:	/* Video Block - read byte */
++		ret = cx231xx_read_i2c_data(dev, VID_BLK_I2C_ADDRESS,
++				(u16)reg->reg, 2, &data, 1);
++		reg->val = data;
++		break;
++	case 3:	/* I2S block - read byte */
++		ret = cx231xx_read_i2c_data(dev, I2S_BLK_DEVICE_ADDRESS,
++				(u16)reg->reg, 1, &data, 1);
++		reg->val = data;
++		break;
++	case 4: /* AFE - read dword */
++		ret = cx231xx_read_i2c_data(dev, AFE_DEVICE_ADDRESS,
++				(u16)reg->reg, 2, &data, 4);
++		reg->val = data;
++		break;
++	case 5: /* Video Block - read dword */
++		ret = cx231xx_read_i2c_data(dev, VID_BLK_I2C_ADDRESS,
++				(u16)reg->reg, 2, &data, 4);
++		reg->val = data;
++		break;
++	case 6: /* I2S Block - read dword */
++		ret = cx231xx_read_i2c_data(dev, I2S_BLK_DEVICE_ADDRESS,
++				(u16)reg->reg, 1, &data, 4);
++		reg->val = data;
++		break;
+ 	default:
+-		if (!v4l2_chip_match_host(&reg->match))
+-			return -EINVAL;
++		return -EINVAL;
+ 	}
+-
+-	call_all(dev, core, g_register, reg);
+-
+-	return ret;
++	return ret < 0 ? ret : 0;
+ }
+ 
+ int cx231xx_s_register(struct file *file, void *priv,
+@@ -1408,165 +1314,46 @@ int cx231xx_s_register(struct file *file, void *priv,
+ {
+ 	struct cx231xx_fh *fh = priv;
+ 	struct cx231xx *dev = fh->dev;
+-	int ret = 0;
+-	__le64 buf;
+-	u32 value;
++	int ret;
+ 	u8 data[4] = { 0, 0, 0, 0 };
+ 
+-	buf = cpu_to_le64(reg->val);
+-
+-	switch (reg->match.type) {
+-	case V4L2_CHIP_MATCH_HOST:
+-		{
+-			value = (u32) buf & 0xffffffff;
+-
+-			switch (reg->match.addr) {
+-			case 0:	/* cx231xx internal registers */
+-				data[0] = (u8) value;
+-				data[1] = (u8) (value >> 8);
+-				data[2] = (u8) (value >> 16);
+-				data[3] = (u8) (value >> 24);
+-				ret = cx231xx_write_ctrl_reg(dev,
+-							   VRT_SET_REGISTER,
+-							   (u16)reg->reg, data,
+-							   4);
+-				break;
+-			case 1:	/* AFE - read byte */
+-				ret = cx231xx_write_i2c_data(dev,
+-							AFE_DEVICE_ADDRESS,
+-							(u16)reg->reg, 2,
+-							value, 1);
+-				break;
+-			case 14: /* AFE - read dword */
+-				ret = cx231xx_write_i2c_data(dev,
+-							AFE_DEVICE_ADDRESS,
+-							(u16)reg->reg, 2,
+-							value, 4);
+-				break;
+-			case 2:	/* Video Block - read byte */
+-				ret =
+-				    cx231xx_write_i2c_data(dev,
+-							VID_BLK_I2C_ADDRESS,
+-							(u16)reg->reg, 2,
+-							value, 1);
+-				break;
+-			case 24: /* Video Block - read dword */
+-				ret =
+-				    cx231xx_write_i2c_data(dev,
+-							VID_BLK_I2C_ADDRESS,
+-							(u16)reg->reg, 2,
+-							value, 4);
+-				break;
+-			case 3:	/* I2S block - read byte */
+-				ret =
+-				    cx231xx_write_i2c_data(dev,
+-							I2S_BLK_DEVICE_ADDRESS,
+-							(u16)reg->reg, 1,
+-							value, 1);
+-				break;
+-			case 34: /* I2S block - read dword */
+-				ret =
+-				    cx231xx_write_i2c_data(dev,
+-							I2S_BLK_DEVICE_ADDRESS,
+-							(u16)reg->reg, 1,
+-							value, 4);
+-				break;
+-			}
+-		}
+-		return ret < 0 ? ret : 0;
+-	case V4L2_CHIP_MATCH_I2C_ADDR:
+-		{
+-			value = (u32) buf & 0xffffffff;
+-
+-			switch (reg->match.addr) {
+-			case 0:/*cx231xx internal registers*/
+-					data[0] = (u8) value;
+-					data[1] = (u8) (value >> 8);
+-					data[2] = (u8) (value >> 16);
+-					data[3] = (u8) (value >> 24);
+-					ret = cx231xx_write_ctrl_reg(dev,
+-							   VRT_SET_REGISTER,
+-							   (u16)reg->reg, data,
+-							   4);
+-					break;
+-			case 0x600:/* AFE - read byte */
+-					ret = cx231xx_write_i2c_master(dev,
+-							AFE_DEVICE_ADDRESS,
+-							(u16)reg->reg, 2,
+-							value, 1 , 0);
+-					break;
+-
+-			case 0x880:/* Video Block - read byte */
+-					if (reg->reg < 0x0b)
+-						cx231xx_write_i2c_master(dev,
+-							VID_BLK_I2C_ADDRESS,
+-							(u16)reg->reg, 2,
+-							value, 1, 0);
+-					else
+-						cx231xx_write_i2c_master(dev,
+-							VID_BLK_I2C_ADDRESS,
+-							(u16)reg->reg, 2,
+-							value, 4, 0);
+-					break;
+-			case 0x980:
+-					ret =
+-						cx231xx_write_i2c_master(dev,
+-							I2S_BLK_DEVICE_ADDRESS,
+-							(u16)reg->reg, 1,
+-							value, 1, 0);
+-					break;
+-			case 0x400:
+-					ret =
+-						cx231xx_write_i2c_master(dev,
+-							0x40,
+-							(u16)reg->reg, 1,
+-							value, 1, 0);
+-					break;
+-			case 0xc01:
+-					ret =
+-						cx231xx_write_i2c_master(dev,
+-							 0xc0,
+-							 (u16)reg->reg, 1,
+-							 value, 1, 1);
+-					break;
+-
+-			case 0x022:
+-					ret =
+-						cx231xx_write_i2c_master(dev,
+-							0x02,
+-							(u16)reg->reg, 1,
+-							value, 1, 2);
+-					break;
+-			case 0x322:
+-					ret =
+-						cx231xx_write_i2c_master(dev,
+-							0x32,
+-							(u16)reg->reg, 1,
+-							value, 4, 2);
+-					break;
+-
+-			case 0x342:
+-					ret =
+-						cx231xx_write_i2c_master(dev,
+-							0x34,
+-							(u16)reg->reg, 1,
+-							value, 4, 2);
+-					break;
+-			default:
+-				cx231xx_info("no match device address, "
+-					"the value is %x\n", reg->match.addr);
+-					break;
+-
+-					}
+-
+-		}
+-	default:
++	switch (reg->match.addr) {
++	case 0:	/* cx231xx internal registers */
++		data[0] = (u8) reg->val;
++		data[1] = (u8) (reg->val >> 8);
++		data[2] = (u8) (reg->val >> 16);
++		data[3] = (u8) (reg->val >> 24);
++		ret = cx231xx_write_ctrl_reg(dev, VRT_SET_REGISTER,
++				(u16)reg->reg, data, 4);
++		break;
++	case 1:	/* AFE - write byte */
++		ret = cx231xx_write_i2c_data(dev, AFE_DEVICE_ADDRESS,
++				(u16)reg->reg, 2, reg->val, 1);
++		break;
++	case 2:	/* Video Block - write byte */
++		ret = cx231xx_write_i2c_data(dev, VID_BLK_I2C_ADDRESS,
++				(u16)reg->reg, 2, reg->val, 1);
++		break;
++	case 3:	/* I2S block - write byte */
++		ret = cx231xx_write_i2c_data(dev, I2S_BLK_DEVICE_ADDRESS,
++				(u16)reg->reg, 1, reg->val, 1);
++		break;
++	case 4: /* AFE - write dword */
++		ret = cx231xx_write_i2c_data(dev, AFE_DEVICE_ADDRESS,
++				(u16)reg->reg, 2, reg->val, 4);
++		break;
++	case 5: /* Video Block - write dword */
++		ret = cx231xx_write_i2c_data(dev, VID_BLK_I2C_ADDRESS,
++				(u16)reg->reg, 2, reg->val, 4);
+ 		break;
++	case 6: /* I2S block - write dword */
++		ret = cx231xx_write_i2c_data(dev, I2S_BLK_DEVICE_ADDRESS,
++				(u16)reg->reg, 1, reg->val, 4);
++		break;
++	default:
++		return -EINVAL;
+ 	}
+-
+-	call_all(dev, core, s_register, reg);
+-
+-	return ret;
++	return ret < 0 ? ret : 0;
+ }
+ #endif
+ 
+@@ -2208,8 +1995,8 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_tuner                = cx231xx_s_tuner,
+ 	.vidioc_g_frequency            = cx231xx_g_frequency,
+ 	.vidioc_s_frequency            = cx231xx_s_frequency,
+-	.vidioc_g_chip_ident           = cx231xx_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_chip_info            = cx231xx_g_chip_info,
+ 	.vidioc_g_register             = cx231xx_g_register,
+ 	.vidioc_s_register             = cx231xx_s_register,
+ #endif
+@@ -2240,8 +2027,8 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	.vidioc_s_tuner     = radio_s_tuner,
+ 	.vidioc_g_frequency = cx231xx_g_frequency,
+ 	.vidioc_s_frequency = cx231xx_s_frequency,
+-	.vidioc_g_chip_ident = cx231xx_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_chip_info = cx231xx_g_chip_info,
+ 	.vidioc_g_register  = cx231xx_g_register,
+ 	.vidioc_s_register  = cx231xx_s_register,
+ #endif
+diff --git a/drivers/media/usb/cx231xx/cx231xx.h b/drivers/media/usb/cx231xx/cx231xx.h
+index 5ad9fd6..e812119 100644
+--- a/drivers/media/usb/cx231xx/cx231xx.h
++++ b/drivers/media/usb/cx231xx/cx231xx.h
+@@ -945,7 +945,7 @@ int cx231xx_enum_input(struct file *file, void *priv,
+ 			     struct v4l2_input *i);
+ int cx231xx_g_input(struct file *file, void *priv, unsigned int *i);
+ int cx231xx_s_input(struct file *file, void *priv, unsigned int i);
+-int cx231xx_g_chip_ident(struct file *file, void *fh, struct v4l2_dbg_chip_ident *chip);
++int cx231xx_g_chip_info(struct file *file, void *fh, struct v4l2_dbg_chip_info *chip);
+ int cx231xx_g_register(struct file *file, void *priv,
+ 			     struct v4l2_dbg_register *reg);
+ int cx231xx_s_register(struct file *file, void *priv,
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
