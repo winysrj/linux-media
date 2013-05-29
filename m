@@ -1,49 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway08.websitewelcome.com ([67.18.53.17]:49356 "EHLO
-	gateway08.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S934660Ab3E1Q3t (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2520 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965681Ab3E2LA6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 May 2013 12:29:49 -0400
-Received: from gator886.hostgator.com (gator886.hostgator.com [174.120.40.226])
-	by gateway08.websitewelcome.com (Postfix) with ESMTP id 488D950B625FF
-	for <linux-media@vger.kernel.org>; Tue, 28 May 2013 11:05:53 -0500 (CDT)
-Message-ID: <51A4D5E0.9010804@sensoray.com>
-Date: Tue, 28 May 2013 09:05:52 -0700
-From: Pete Eberlein <pete@sensoray.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Ben Hutchings <ben@decadent.org.uk>,
-	David Woodhouse <dwmw2@infradead.org>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [GIT PULL] go7007 firmware updates
-References: <201305231025.31812.hverkuil@xs4all.nl> <1369671872.3469.383.camel@deadeye.wl.decadent.org.uk> <201305272156.18975.hverkuil@xs4all.nl>
-In-Reply-To: <201305272156.18975.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 29 May 2013 07:00:58 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: [PATCHv1 14/38] au8522_decoder: remove g_chip_ident op.
+Date: Wed, 29 May 2013 12:59:47 +0200
+Message-Id: <1369825211-29770-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 05/27/2013 12:56 PM, Hans Verkuil wrote:
-> I can revert the rename action,  but I would rather not do it. I
- > believe there are good reasons for doing this, especially since the
- > current situation is effectively broken anyway due to the missing
- > firmware files.
- >
- > If you really don't want to rename the two S2250 files, then I'll
- > make a patch reverting those to the original filename.
- >
- > Pete, if you have an opinion regarding this, please let us know.
- > After all, it concerns a Sensoray device.
+This is no longer needed since the core now handles this through DBG_G_CHIP_INFO.
 
-I am okay with the change of the firmware filenames.  I've changed them 
-myself several times in the past before it got into kernel staging.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+---
+ drivers/media/dvb-frontends/au8522_decoder.c |   17 -----------------
+ 1 file changed, 17 deletions(-)
 
-> Regards,
- >
- > Hans
- >
+diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
+index 9d159b4..23a0d05 100644
+--- a/drivers/media/dvb-frontends/au8522_decoder.c
++++ b/drivers/media/dvb-frontends/au8522_decoder.c
+@@ -35,7 +35,6 @@
+ #include <linux/i2c.h>
+ #include <linux/delay.h>
+ #include <media/v4l2-common.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <media/v4l2-device.h>
+ #include "au8522.h"
+ #include "au8522_priv.h"
+@@ -524,11 +523,8 @@ static int au8522_s_ctrl(struct v4l2_ctrl *ctrl)
+ static int au8522_g_register(struct v4l2_subdev *sd,
+ 			     struct v4l2_dbg_register *reg)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct au8522_state *state = to_state(sd);
+ 
+-	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+-		return -EINVAL;
+ 	reg->val = au8522_readreg(state, reg->reg & 0xffff);
+ 	return 0;
+ }
+@@ -536,11 +532,8 @@ static int au8522_g_register(struct v4l2_subdev *sd,
+ static int au8522_s_register(struct v4l2_subdev *sd,
+ 			     const struct v4l2_dbg_register *reg)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+ 	struct au8522_state *state = to_state(sd);
+ 
+-	if (!v4l2_chip_match_i2c_client(client, &reg->match))
+-		return -EINVAL;
+ 	au8522_writereg(state, reg->reg, reg->val & 0xff);
+ 	return 0;
+ }
+@@ -632,20 +625,10 @@ static int au8522_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
+ 	return 0;
+ }
+ 
+-static int au8522_g_chip_ident(struct v4l2_subdev *sd,
+-			       struct v4l2_dbg_chip_ident *chip)
+-{
+-	struct au8522_state *state = to_state(sd);
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-
+-	return v4l2_chip_ident_i2c_client(client, chip, state->id, state->rev);
+-}
+-
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_subdev_core_ops au8522_core_ops = {
+ 	.log_status = v4l2_ctrl_subdev_log_status,
+-	.g_chip_ident = au8522_g_chip_ident,
+ 	.reset = au8522_reset,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = au8522_g_register,
+-- 
+1.7.10.4
 
-Regards,
-Pete
