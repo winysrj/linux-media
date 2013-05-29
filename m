@@ -1,58 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58555 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755272Ab3EHNqv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 09:46:51 -0400
-Received: from avalon.ideasonboard.com (unknown [91.178.146.12])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 2BEBB35A4E
-	for <linux-media@vger.kernel.org>; Wed,  8 May 2013 15:46:24 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2979 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965676Ab3E2LJL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 May 2013 07:09:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH RESEND 1/9] mt9v032: Free control handler in cleanup paths
-Date: Wed,  8 May 2013 15:46:26 +0200
-Message-Id: <1368020794-21264-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1368020794-21264-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv1 36/38] cx88: fix register mask.
+Date: Wed, 29 May 2013 13:00:09 +0200
+Message-Id: <1369825211-29770-37-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The control handler must be freed in the probe error path and in the
-remove handler.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Ensure that the register is aligned to a dword, otherwise the read could
+read out-of-range data.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/i2c/mt9v032.c | 7 ++++++-
- 1 file changed, 6 insertions(+), 1 deletion(-)
+ drivers/media/pci/cx88/cx88-video.c |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 3f356cb..24ea6fd 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -830,8 +830,11 @@ static int mt9v032_probe(struct i2c_client *client,
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 6b3a9ae..c3af4aa 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -1362,7 +1362,7 @@ static int vidioc_g_register (struct file *file, void *fh,
+ 	struct cx88_core *core = ((struct cx8800_fh*)fh)->dev->core;
  
- 	mt9v032->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	ret = media_entity_init(&mt9v032->subdev.entity, 1, &mt9v032->pad, 0);
--	if (ret < 0)
-+
-+	if (ret < 0) {
-+		v4l2_ctrl_handler_free(&mt9v032->ctrls);
- 		kfree(mt9v032);
-+	}
- 
- 	return ret;
- }
-@@ -841,9 +844,11 @@ static int mt9v032_remove(struct i2c_client *client)
- 	struct v4l2_subdev *subdev = i2c_get_clientdata(client);
- 	struct mt9v032 *mt9v032 = to_mt9v032(subdev);
- 
-+	v4l2_ctrl_handler_free(&mt9v032->ctrls);
- 	v4l2_device_unregister_subdev(subdev);
- 	media_entity_cleanup(&subdev->entity);
- 	kfree(mt9v032);
-+
+ 	/* cx2388x has a 24-bit register space */
+-	reg->val = cx_read(reg->reg & 0xffffff);
++	reg->val = cx_read(reg->reg & 0xfffffc);
+ 	reg->size = 4;
  	return 0;
  }
+@@ -1372,7 +1372,7 @@ static int vidioc_s_register (struct file *file, void *fh,
+ {
+ 	struct cx88_core *core = ((struct cx8800_fh*)fh)->dev->core;
  
+-	cx_write(reg->reg & 0xffffff, reg->val);
++	cx_write(reg->reg & 0xfffffc, reg->val);
+ 	return 0;
+ }
+ #endif
 -- 
-1.8.1.5
+1.7.10.4
 
