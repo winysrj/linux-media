@@ -1,204 +1,332 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43888 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755368Ab3ECJKR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 05:10:17 -0400
-Date: Fri, 3 May 2013 11:13:17 +0200
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: Timo Teras <timo.teras@iki.fi>
-Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-Subject: Re: Terratec Grabby hwrev 2
-Message-ID: <20130503091317.GE1232@dell.arpanet.local>
-References: <20130325211238.7c325d5e@vostro>
- <20130326102056.63b55916@vostro>
- <20130327161049.683483f8@vostro>
- <20130328105201.7bcc7388@vostro>
- <20130328094052.26b7f3f5@redhat.com>
- <20130328153556.0b58d1aa@vostro>
- <20130328165459.6231a5b1@vostro>
- <20130501171153.GA1377@dell.arpanet.local>
- <20130502100456.2fdf42e0@vostro>
- <20130503084755.7c2f9cd1@vostro>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130503084755.7c2f9cd1@vostro>
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1794 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965655Ab3E2LAt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 May 2013 07:00:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@linuxtv.org>
+Subject: [PATCHv1 06/38] cx23885: remove g_chip_ident.
+Date: Wed, 29 May 2013 12:59:39 +0200
+Message-Id: <1369825211-29770-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 03, 2013 at 08:47:55AM +0300, Timo Teras wrote:
-> On Thu, 2 May 2013 10:04:56 +0300
-> Timo Teras <timo.teras@iki.fi> wrote:
-> 
-> > On Wed, 1 May 2013 19:11:53 +0200
-> > Jon Arne Jørgensen <jonarne@jonarne.no> wrote:
-> > 
-> > > On Thu, Mar 28, 2013 at 04:54:59PM +0200, Timo Teras wrote:
-> > > > On Thu, 28 Mar 2013 15:35:56 +0200
-> > > > Timo Teras <timo.teras@iki.fi> wrote:
-> > > > 
-> > > > > On Thu, 28 Mar 2013 09:40:52 -0300
-> > > > > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> > > > > 
-> > > > > > Em Thu, 28 Mar 2013 10:52:01 +0200
-> > > > > > Timo Teras <timo.teras@iki.fi> escreveu:
-> > > > > > 
-> > > > > > > On Wed, 27 Mar 2013 16:10:49 +0200
-> > > > > > > Timo Teras <timo.teras@iki.fi> wrote:
-> > > > > > > 
-> > > > > > > > On Tue, 26 Mar 2013 10:20:56 +0200
-> > > > > > > > Timo Teras <timo.teras@iki.fi> wrote:
-> > > > > > > > 
-> > > > > > > > > I did manage to get decent traces with USBlyzer
-> > > > > > > > > evaluation version.
-> > > > > > > > 
-> > > > > > > > Nothing _that_ exciting there. Though, there's quite a bit
-> > > > > > > > of differences on certain register writes. I tried copying
-> > > > > > > > the changed parts, but did not really help.
-> > > > > > > > 
-> > > > > > > > Turning on saa7115 debug gave:
-> > > > > > > > 
-> > > > > > > > saa7115 1-0025: chip found @ 0x4a (ID 000000000000000)
-> > > > > > > > does not match a known saa711x chip.
-> > > > > > > 
-> > > > > > > Well, I just made saa7115.c ignore this ID check, and
-> > > > > > > defeault to saa7113 which is apparently the chip used.
-> > > > > > > 
-> > > > > > > And now it looks like things start to work a lot better.
-> > > > > > > 
-> > > > > > > Weird that the saa7113 chip is missing the ID string. Will
-> > > > > > > continue testing.
-> > > > > > 
-> > > > > > That could happen if saa7113 is behind some I2C bridge and
-> > > > > > when saa7113 is not found when the detection code is called.
-> > > > > 
-> > > > > Smells to me that they replaced the saa7113 with cheaper clone
-> > > > > that does not support the ID string.
-> > > > > 
-> > > > > Sounds like the same issue as:
-> > > > > http://www.spinics.net/lists/linux-media/msg57926.html
-> > > > > 
-> > > > > Additionally noted that something is not initialized right:
-> > > > > 
-> > > > > With PAL signal:
-> > > > > - there's some junk pixel in beginning of each line (looks like
-> > > > > pixes from previous lines end), sync issue?
-> > > > > - some junk lines at the end
-> > > > > - distorted colors when white and black change between pixels
-> > > > 
-> > > > Still have not figured out this one. Could be probably related to
-> > > > the saa7113 differences.
-> > > > 
-> > > > > With NTSC signal:
-> > > > > - unable to get a lock, and the whole picture looks garbled
-> > > > 
-> > > > NTSC started working after I removed all the saa711x writes to
-> > > > following registers:
-> > > >  R_14_ANAL_ADC_COMPAT_CNTL
-> > > >  R_15_VGATE_START_FID_CHG
-> > > >  R_16_VGATE_STOP
-> > > >  R_17_MISC_VGATE_CONF_AND_MSB
-> > > > 
-> > > 
-> > > This is the exact same behavior as i see on the gm7113c chip
-> > > in the stk1160, and the smi2021 devices.
-> > > 
-> > > See here:
-> > > http://www.spinics.net/lists/linux-media/msg63163.html
-> > 
-> > Thanks. I tested the patch and it detects it properly, and I get
-> > picture. However, there's problems synchronizing to my PAL signal. The
-> > picture "jumps" once in a while.
-> > 
-> > I guess the problem is in the init sequence. The W7 driver had
-> > following differences sequence changes compared to saa7113_init:
-> > -	R_02_INPUT_CNTL_1, 0xc2,
-> > +	R_02_INPUT_CNTL_1, 0xc0,
-> > -	R_04_INPUT_CNTL_3, 0x00,
-> > -	R_05_INPUT_CNTL_4, 0x00,
-> > -	R_06_H_SYNC_START, 0x89,
-> > +	R_06_H_SYNC_START, 0xeb,
-> > -	R_12_RT_SIGNAL_CNTL, 0x07,
-> > +	R_12_RT_SIGNAL_CNTL, 0xe7,
-> > -	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
-> > -	R_15_VGATE_START_FID_CHG, 0x00,
-> > -	R_16_VGATE_STOP, 0x00,
-> > -	R_17_MISC_VGATE_CONF_AND_MSB, 0x00,
-> > 
-> > Seems that R_14 is filtered in your patch, but other changes are not
-> > taken into account.
-> > 
-> > Otherwise, the patchset looks good.
-> 
-> Not sure if part of the problems were related to the fact that I tried
-> this patch set first with 3.8.10. And that had problems.
-> 
-> Now I'm using 3.9.0 with  the above mentioned patchset, and my
-> additional patch (below). This seems to work nicely.
-> 
-> In any case it strongly looks like Terratec Grabby hwrev2 has also
-> the gm7113c chip; I still have not opened one to look, though.
-> 
-> --- a/drivers/media/i2c/saa7115.c
-> +++ b/drivers/media/i2c/saa7115.c
-> @@ -450,6 +450,28 @@
->  /* ============== SAA7715 VIDEO templates (end) =======  */
->  
->  /* ============== GM7113C VIDEO templates =============  */
-> +static const unsigned char gm7113c_init[] = {
-> +	R_01_INC_DELAY, 0x08,
-> +	R_02_INPUT_CNTL_1, 0xc0,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Register 0x02 is overridden when saa711x_s_routing is
-called to select input, so the value of that register in this table shouldn't
-make any difference :)
+Replace g_chip_ident by g_chip_info. Note that the IR support is implemented
+as a subdev, so this part no longer needs to be handled as a 'bridge' chip.
 
-> +	R_03_INPUT_CNTL_2, 0x30,
-> +	R_06_H_SYNC_START, 0xeb,
-> +	R_07_H_SYNC_STOP, 0x0d,
-> +	R_08_SYNC_CNTL, 0x88,
-> +	R_09_LUMA_CNTL, 0x01,
-> +	R_0A_LUMA_BRIGHT_CNTL, 0x80,
-> +	R_0B_LUMA_CONTRAST_CNTL, 0x47,
-> +	R_0C_CHROMA_SAT_CNTL, 0x40,
-> +	R_0D_CHROMA_HUE_CNTL, 0x00,
-> +	R_0E_CHROMA_CNTL_1, 0x01,
-> +	R_0F_CHROMA_GAIN_CNTL, 0x2a,
-> +	R_10_CHROMA_CNTL_2, 0x08,
-> +	R_11_MODE_DELAY_CNTL, 0x0c,
-> +	R_12_RT_SIGNAL_CNTL, 0xe7,
-> +	R_13_RT_X_PORT_OUT_CNTL, 0x00,
-> +
-> +	0x00, 0x00
-> +};
-> +
->  static const unsigned char gm7113c_cfg_60hz_video[] = {
->  	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto
-> detection, 0x68 = NTSC */ R_0E_CHROMA_CNTL_1, 0x07,		/*
-> video autodetection is on */ @@ -1771,9 +1793,11 @@
->  	case V4L2_IDENT_SAA7111A:
->  		saa711x_writeregs(sd, saa7111_init);
->  		break;
-> -	case V4L2_IDENT_GM7113C:
->  	case V4L2_IDENT_SAA7113:
->  		saa711x_writeregs(sd, saa7113_init);
-> +		break;
-> +	case V4L2_IDENT_GM7113C:
-> +		saa711x_writeregs(sd, gm7113c_init);
->  		break;
->  	default:
->  		state->crystal_freq = SAA7115_FREQ_32_11_MHZ;
-> 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Steven Toth <stoth@linuxtv.org>
+---
+ drivers/media/pci/cx23885/cx23885-417.c   |    2 +-
+ drivers/media/pci/cx23885/cx23885-ioctl.c |  139 ++++++-----------------------
+ drivers/media/pci/cx23885/cx23885-ioctl.h |    4 +-
+ drivers/media/pci/cx23885/cx23885-video.c |    2 +-
+ drivers/media/pci/cx23885/cx23888-ir.c    |   27 ------
+ 5 files changed, 29 insertions(+), 145 deletions(-)
 
-I've tested the changes, and it doesn't seem to break/change the smi2021 driver.
-I'll append this to the pending saa7115 patch and ask Ezequiel Garcia to check
-that the change doesn't break the stk1160 driver.
+diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+index 6dea11a..68568d3 100644
+--- a/drivers/media/pci/cx23885/cx23885-417.c
++++ b/drivers/media/pci/cx23885/cx23885-417.c
+@@ -1690,8 +1690,8 @@ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+ 	.vidioc_log_status	 = vidioc_log_status,
+ 	.vidioc_querymenu	 = vidioc_querymenu,
+ 	.vidioc_queryctrl	 = vidioc_queryctrl,
+-	.vidioc_g_chip_ident	 = cx23885_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_chip_info	 = cx23885_g_chip_info,
+ 	.vidioc_g_register	 = cx23885_g_register,
+ 	.vidioc_s_register	 = cx23885_s_register,
+ #endif
+diff --git a/drivers/media/pci/cx23885/cx23885-ioctl.c b/drivers/media/pci/cx23885/cx23885-ioctl.c
+index 00f5125..271d69d 100644
+--- a/drivers/media/pci/cx23885/cx23885-ioctl.c
++++ b/drivers/media/pci/cx23885/cx23885-ioctl.c
+@@ -24,93 +24,21 @@
+ #include "cx23885.h"
+ #include "cx23885-ioctl.h"
+ 
+-#include <media/v4l2-chip-ident.h>
+-
+-int cx23885_g_chip_ident(struct file *file, void *fh,
+-			 struct v4l2_dbg_chip_ident *chip)
++#ifdef CONFIG_VIDEO_ADV_DEBUG
++int cx23885_g_chip_info(struct file *file, void *fh,
++			 struct v4l2_dbg_chip_info *chip)
+ {
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)fh)->dev;
+-	int err = 0;
+-	u8 rev;
+-
+-	chip->ident = V4L2_IDENT_NONE;
+-	chip->revision = 0;
+-	switch (chip->match.type) {
+-	case V4L2_CHIP_MATCH_HOST:
+-		switch (chip->match.addr) {
+-		case 0:
+-			rev = cx_read(RDR_CFG2) & 0xff;
+-			switch (dev->pci->device) {
+-			case 0x8852:
+-				/* rev 0x04 could be '885 or '888. Pick '888. */
+-				if (rev == 0x04)
+-					chip->ident = V4L2_IDENT_CX23888;
+-				else
+-					chip->ident = V4L2_IDENT_CX23885;
+-				break;
+-			case 0x8880:
+-				if (rev == 0x0e || rev == 0x0f)
+-					chip->ident = V4L2_IDENT_CX23887;
+-				else
+-					chip->ident = V4L2_IDENT_CX23888;
+-				break;
+-			default:
+-				chip->ident = V4L2_IDENT_UNKNOWN;
+-				break;
+-			}
+-			chip->revision = (dev->pci->device << 16) | (rev << 8) |
+-					 (dev->hwrevision & 0xff);
+-			break;
+-		case 1:
+-			if (dev->v4l_device != NULL) {
+-				chip->ident = V4L2_IDENT_CX23417;
+-				chip->revision = 0;
+-			}
+-			break;
+-		case 2:
+-			/*
+-			 * The integrated IR controller on the CX23888 is
+-			 * host chip 2.  It may not be used/initialized or sd_ir
+-			 * may be pointing at the cx25840 subdevice for the
+-			 * IR controller on the CX23885.  Thus we find it
+-			 * without using the dev->sd_ir pointer.
+-			 */
+-			call_hw(dev, CX23885_HW_888_IR, core, g_chip_ident,
+-				chip);
+-			break;
+-		default:
+-			err = -EINVAL; /* per V4L2 spec */
+-			break;
+-		}
+-		break;
+-	case V4L2_CHIP_MATCH_I2C_DRIVER:
+-		/* If needed, returns V4L2_IDENT_AMBIGUOUS without extra work */
+-		call_all(dev, core, g_chip_ident, chip);
+-		break;
+-	case V4L2_CHIP_MATCH_I2C_ADDR:
+-		/*
+-		 * We could return V4L2_IDENT_UNKNOWN, but we don't do the work
+-		 * to look if a chip is at the address with no driver.  That's a
+-		 * dangerous thing to do with EEPROMs anyway.
+-		 */
+-		call_all(dev, core, g_chip_ident, chip);
+-		break;
+-	default:
+-		err = -EINVAL;
+-		break;
+-	}
+-	return err;
+-}
+ 
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-static int cx23885_g_host_register(struct cx23885_dev *dev,
+-				   struct v4l2_dbg_register *reg)
+-{
+-	if ((reg->reg & 0x3) != 0 || reg->reg >= pci_resource_len(dev->pci, 0))
++	if (chip->match.addr > 1)
+ 		return -EINVAL;
+-
+-	reg->size = 4;
+-	reg->val = cx_read(reg->reg);
++	if (chip->match.addr == 1) {
++		if (dev->v4l_device == NULL)
++			return -EINVAL;
++		strlcpy(chip->name, "cx23417", sizeof(chip->name));
++	} else {
++		strlcpy(chip->name, dev->v4l2_dev.name, sizeof(chip->name));
++	}
+ 	return 0;
+ }
+ 
+@@ -138,29 +66,16 @@ int cx23885_g_register(struct file *file, void *fh,
+ {
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)fh)->dev;
+ 
+-	if (reg->match.type == V4L2_CHIP_MATCH_HOST) {
+-		switch (reg->match.addr) {
+-		case 0:
+-			return cx23885_g_host_register(dev, reg);
+-		case 1:
+-			return cx23417_g_register(dev, reg);
+-		default:
+-			break;
+-		}
+-	}
+-
+-	/* FIXME - any error returns should not be ignored */
+-	call_all(dev, core, g_register, reg);
+-	return 0;
+-}
++	if (reg->match.addr > 1)
++		return -EINVAL;
++	if (reg->match.addr)
++		return cx23417_g_register(dev, reg);
+ 
+-static int cx23885_s_host_register(struct cx23885_dev *dev,
+-				   const struct v4l2_dbg_register *reg)
+-{
+ 	if ((reg->reg & 0x3) != 0 || reg->reg >= pci_resource_len(dev->pci, 0))
+ 		return -EINVAL;
+ 
+-	cx_write(reg->reg, reg->val);
++	reg->size = 4;
++	reg->val = cx_read(reg->reg);
+ 	return 0;
+ }
+ 
+@@ -183,19 +98,15 @@ int cx23885_s_register(struct file *file, void *fh,
+ {
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)fh)->dev;
+ 
+-	if (reg->match.type == V4L2_CHIP_MATCH_HOST) {
+-		switch (reg->match.addr) {
+-		case 0:
+-			return cx23885_s_host_register(dev, reg);
+-		case 1:
+-			return cx23417_s_register(dev, reg);
+-		default:
+-			break;
+-		}
+-	}
++	if (reg->match.addr > 1)
++		return -EINVAL;
++	if (reg->match.addr)
++		return cx23417_s_register(dev, reg);
++
++	if ((reg->reg & 0x3) != 0 || reg->reg >= pci_resource_len(dev->pci, 0))
++		return -EINVAL;
+ 
+-	/* FIXME - any error returns should not be ignored */
+-	call_all(dev, core, s_register, reg);
++	cx_write(reg->reg, reg->val);
+ 	return 0;
+ }
+ #endif
+diff --git a/drivers/media/pci/cx23885/cx23885-ioctl.h b/drivers/media/pci/cx23885/cx23885-ioctl.h
+index a608096..92d9f07 100644
+--- a/drivers/media/pci/cx23885/cx23885-ioctl.h
++++ b/drivers/media/pci/cx23885/cx23885-ioctl.h
+@@ -24,8 +24,8 @@
+ #ifndef _CX23885_IOCTL_H_
+ #define _CX23885_IOCTL_H_
+ 
+-int cx23885_g_chip_ident(struct file *file, void *fh,
+-			 struct v4l2_dbg_chip_ident *chip);
++int cx23885_g_chip_info(struct file *file, void *fh,
++			 struct v4l2_dbg_chip_info *chip);
+ 
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ int cx23885_g_register(struct file *file, void *fh,
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index ed08c89..ce05739 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -1757,8 +1757,8 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_tuner       = vidioc_s_tuner,
+ 	.vidioc_g_frequency   = vidioc_g_frequency,
+ 	.vidioc_s_frequency   = vidioc_s_frequency,
+-	.vidioc_g_chip_ident  = cx23885_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
++	.vidioc_g_chip_info   = cx23885_g_chip_info,
+ 	.vidioc_g_register    = cx23885_g_register,
+ 	.vidioc_s_register    = cx23885_s_register,
+ #endif
+diff --git a/drivers/media/pci/cx23885/cx23888-ir.c b/drivers/media/pci/cx23885/cx23888-ir.c
+index cd98651..2c951de 100644
+--- a/drivers/media/pci/cx23885/cx23888-ir.c
++++ b/drivers/media/pci/cx23885/cx23888-ir.c
+@@ -25,7 +25,6 @@
+ #include <linux/slab.h>
+ 
+ #include <media/v4l2-device.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <media/rc-core.h>
+ 
+ #include "cx23885.h"
+@@ -131,8 +130,6 @@ union cx23888_ir_fifo_rec {
+ struct cx23888_ir_state {
+ 	struct v4l2_subdev sd;
+ 	struct cx23885_dev *dev;
+-	u32 id;
+-	u32 rev;
+ 
+ 	struct v4l2_subdev_ir_parameters rx_params;
+ 	struct mutex rx_params_lock;
+@@ -1086,23 +1083,6 @@ static int cx23888_ir_log_status(struct v4l2_subdev *sd)
+ 	return 0;
+ }
+ 
+-static inline int cx23888_ir_dbg_match(const struct v4l2_dbg_match *match)
+-{
+-	return match->type == V4L2_CHIP_MATCH_HOST && match->addr == 2;
+-}
+-
+-static int cx23888_ir_g_chip_ident(struct v4l2_subdev *sd,
+-				   struct v4l2_dbg_chip_ident *chip)
+-{
+-	struct cx23888_ir_state *state = to_state(sd);
+-
+-	if (cx23888_ir_dbg_match(&chip->match)) {
+-		chip->ident = state->id;
+-		chip->revision = state->rev;
+-	}
+-	return 0;
+-}
+-
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int cx23888_ir_g_register(struct v4l2_subdev *sd,
+ 				 struct v4l2_dbg_register *reg)
+@@ -1110,8 +1090,6 @@ static int cx23888_ir_g_register(struct v4l2_subdev *sd,
+ 	struct cx23888_ir_state *state = to_state(sd);
+ 	u32 addr = CX23888_IR_REG_BASE + (u32) reg->reg;
+ 
+-	if (!cx23888_ir_dbg_match(&reg->match))
+-		return -EINVAL;
+ 	if ((addr & 0x3) != 0)
+ 		return -EINVAL;
+ 	if (addr < CX23888_IR_CNTRL_REG || addr > CX23888_IR_LEARN_REG)
+@@ -1127,8 +1105,6 @@ static int cx23888_ir_s_register(struct v4l2_subdev *sd,
+ 	struct cx23888_ir_state *state = to_state(sd);
+ 	u32 addr = CX23888_IR_REG_BASE + (u32) reg->reg;
+ 
+-	if (!cx23888_ir_dbg_match(&reg->match))
+-		return -EINVAL;
+ 	if ((addr & 0x3) != 0)
+ 		return -EINVAL;
+ 	if (addr < CX23888_IR_CNTRL_REG || addr > CX23888_IR_LEARN_REG)
+@@ -1139,7 +1115,6 @@ static int cx23888_ir_s_register(struct v4l2_subdev *sd,
+ #endif
+ 
+ static const struct v4l2_subdev_core_ops cx23888_ir_core_ops = {
+-	.g_chip_ident = cx23888_ir_g_chip_ident,
+ 	.log_status = cx23888_ir_log_status,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.g_register = cx23888_ir_g_register,
+@@ -1213,8 +1188,6 @@ int cx23888_ir_probe(struct cx23885_dev *dev)
+ 		return -ENOMEM;
+ 
+ 	state->dev = dev;
+-	state->id = V4L2_IDENT_CX23888_IR;
+-	state->rev = 0;
+ 	sd = &state->sd;
+ 
+ 	v4l2_subdev_init(sd, &cx23888_ir_controller_ops);
+-- 
+1.7.10.4
 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
