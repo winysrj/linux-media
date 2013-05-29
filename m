@@ -1,125 +1,265 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:32066 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755941Ab3EPIPD (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1270 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965542Ab3E2LAt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 04:15:03 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMV00189TKYHT40@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 May 2013 09:15:01 +0100 (BST)
-From: Andrzej Hajda <a.hajda@samsung.com>
+	Wed, 29 May 2013 07:00:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH RFC v3 1/3] media: added managed media entity initialization
-Date: Thu, 16 May 2013 10:14:32 +0200
-Message-id: <1368692074-483-2-git-send-email-a.hajda@samsung.com>
-In-reply-to: <1368692074-483-1-git-send-email-a.hajda@samsung.com>
-References: <1368692074-483-1-git-send-email-a.hajda@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv1 07/38] cx88: remove g_chip_ident.
+Date: Wed, 29 May 2013 12:59:40 +0200
+Message-Id: <1369825211-29770-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds managed versions of initialization
-function for media entity.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-v3:
-	- removed managed cleanup
----
- drivers/media/media-entity.c |   44 ++++++++++++++++++++++++++++++++++++++++++
- include/media/media-entity.h |    5 +++++
- 2 files changed, 49 insertions(+)
+Remove g_chip_ident from cx88. Also remove the v4l2-chip-ident.h include.
+The board code used defines from v4l2-chip-ident.h to tell the driver which
+audio chip is used. Replace this with a cx88-specific enum.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index e1cd132..b1e29a7 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -82,9 +82,53 @@ void
- media_entity_cleanup(struct media_entity *entity)
- {
- 	kfree(entity->links);
-+	entity->links = NULL;
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/pci/cx88/cx88-alsa.c  |    6 +++---
+ drivers/media/pci/cx88/cx88-cards.c |   12 ++++++------
+ drivers/media/pci/cx88/cx88-video.c |   27 +++++----------------------
+ drivers/media/pci/cx88/cx88.h       |    8 ++++++--
+ 4 files changed, 20 insertions(+), 33 deletions(-)
+
+diff --git a/drivers/media/pci/cx88/cx88-alsa.c b/drivers/media/pci/cx88/cx88-alsa.c
+index 27d6262..ce02105 100644
+--- a/drivers/media/pci/cx88/cx88-alsa.c
++++ b/drivers/media/pci/cx88/cx88-alsa.c
+@@ -615,7 +615,7 @@ static int snd_cx88_volume_put(struct snd_kcontrol *kcontrol,
+ 	int changed = 0;
+ 	u32 old;
+ 
+-	if (core->board.audio_chip == V4L2_IDENT_WM8775)
++	if (core->board.audio_chip == CX88_AUDIO_WM8775)
+ 		snd_cx88_wm8775_volume_put(kcontrol, value);
+ 
+ 	left = value->value.integer.value[0] & 0x3f;
+@@ -682,7 +682,7 @@ static int snd_cx88_switch_put(struct snd_kcontrol *kcontrol,
+ 		vol ^= bit;
+ 		cx_swrite(SHADOW_AUD_VOL_CTL, AUD_VOL_CTL, vol);
+ 		/* Pass mute onto any WM8775 */
+-		if ((core->board.audio_chip == V4L2_IDENT_WM8775) &&
++		if ((core->board.audio_chip == CX88_AUDIO_WM8775) &&
+ 		    ((1<<6) == bit))
+ 			wm8775_s_ctrl(core, V4L2_CID_AUDIO_MUTE, 0 != (vol & bit));
+ 		ret = 1;
+@@ -903,7 +903,7 @@ static int cx88_audio_initdev(struct pci_dev *pci,
+ 		goto error;
+ 
+ 	/* If there's a wm8775 then add a Line-In ALC switch */
+-	if (core->board.audio_chip == V4L2_IDENT_WM8775)
++	if (core->board.audio_chip == CX88_AUDIO_WM8775)
+ 		snd_ctl_add(card, snd_ctl_new1(&snd_cx88_alc_switch, chip));
+ 
+ 	strcpy (card->driver, "CX88x");
+diff --git a/drivers/media/pci/cx88/cx88-cards.c b/drivers/media/pci/cx88/cx88-cards.c
+index a87a0e1..e18a7ac 100644
+--- a/drivers/media/pci/cx88/cx88-cards.c
++++ b/drivers/media/pci/cx88/cx88-cards.c
+@@ -744,7 +744,7 @@ static const struct cx88_board cx88_boards[] = {
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+ 		/* Some variants use a tda9874 and so need the tvaudio module. */
+-		.audio_chip     = V4L2_IDENT_TVAUDIO,
++		.audio_chip     = CX88_AUDIO_TVAUDIO,
+ 		.input          = {{
+ 			.type   = CX88_VMUX_TELEVISION,
+ 			.vmux   = 0,
+@@ -976,7 +976,7 @@ static const struct cx88_board cx88_boards[] = {
+ 		.radio_type	= UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.audio_chip	= V4L2_IDENT_WM8775,
++		.audio_chip	= CX88_AUDIO_WM8775,
+ 		.i2sinputcntl   = 2,
+ 		.input		= {{
+ 			.type	= CX88_VMUX_DVB,
+@@ -1014,7 +1014,7 @@ static const struct cx88_board cx88_boards[] = {
+ 		.radio_type	= UNSET,
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+-		.audio_chip = V4L2_IDENT_WM8775,
++		.audio_chip = CX88_AUDIO_WM8775,
+ 		.input		= {{
+ 			.type	= CX88_VMUX_DVB,
+ 			.vmux	= 0,
+@@ -1376,7 +1376,7 @@ static const struct cx88_board cx88_boards[] = {
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+ 		.tda9887_conf   = TDA9887_PRESENT,
+-		.audio_chip     = V4L2_IDENT_WM8775,
++		.audio_chip     = CX88_AUDIO_WM8775,
+ 		.input          = {{
+ 			.type   = CX88_VMUX_TELEVISION,
+ 			.vmux   = 0,
+@@ -1461,7 +1461,7 @@ static const struct cx88_board cx88_boards[] = {
+ 		.tuner_addr	= ADDR_UNSET,
+ 		.radio_addr	= ADDR_UNSET,
+ 		.tda9887_conf   = TDA9887_PRESENT,
+-		.audio_chip     = V4L2_IDENT_WM8775,
++		.audio_chip     = CX88_AUDIO_WM8775,
+ 		/*
+ 		 * gpio0 as reported by Mike Crash <mike AT mikecrash.com>
+ 		 */
+@@ -1929,7 +1929,7 @@ static const struct cx88_board cx88_boards[] = {
+ 		.tuner_addr     = ADDR_UNSET,
+ 		.radio_addr     = ADDR_UNSET,
+ 		.tda9887_conf   = TDA9887_PRESENT,
+-		.audio_chip     = V4L2_IDENT_WM8775,
++		.audio_chip     = CX88_AUDIO_WM8775,
+ 		/*
+ 		 * GPIO0 (WINTV2000)
+ 		 *
+diff --git a/drivers/media/pci/cx88/cx88-video.c b/drivers/media/pci/cx88/cx88-video.c
+index 1b00615..6b3a9ae 100644
+--- a/drivers/media/pci/cx88/cx88-video.c
++++ b/drivers/media/pci/cx88/cx88-video.c
+@@ -386,7 +386,7 @@ int cx88_video_mux(struct cx88_core *core, unsigned int input)
+ 		   the initialization. Some boards may use different
+ 		   routes for different inputs. HVR-1300 surely does */
+ 		if (core->board.audio_chip &&
+-		    core->board.audio_chip == V4L2_IDENT_WM8775) {
++		    core->board.audio_chip == CX88_AUDIO_WM8775) {
+ 			call_all(core, audio, s_routing,
+ 				 INPUT(input).audioroute, 0, 0);
+ 		}
+@@ -772,7 +772,7 @@ static int video_open(struct file *file)
+ 		cx_write(MO_GP2_IO, core->board.radio.gpio2);
+ 		if (core->board.radio.audioroute) {
+ 			if(core->board.audio_chip &&
+-				core->board.audio_chip == V4L2_IDENT_WM8775) {
++				core->board.audio_chip == CX88_AUDIO_WM8775) {
+ 				call_all(core, audio, s_routing,
+ 					core->board.radio.audioroute, 0, 0);
+ 			}
+@@ -959,7 +959,7 @@ static int cx8800_s_aud_ctrl(struct v4l2_ctrl *ctrl)
+ 	u32 value,mask;
+ 
+ 	/* Pass changes onto any WM8775 */
+-	if (core->board.audio_chip == V4L2_IDENT_WM8775) {
++	if (core->board.audio_chip == CX88_AUDIO_WM8775) {
+ 		switch (ctrl->id) {
+ 		case V4L2_CID_AUDIO_MUTE:
+ 			wm8775_s_ctrl(core, ctrl->id, ctrl->val);
+@@ -1355,24 +1355,12 @@ static int vidioc_s_frequency (struct file *file, void *priv,
+ 	return cx88_set_freq(core, f);
  }
- EXPORT_SYMBOL_GPL(media_entity_cleanup);
  
-+static void devm_media_entity_release(struct device *dev, void *res)
-+{
-+	struct media_entity **entity = res;
-+
-+	media_entity_cleanup(*entity);
-+}
-+
-+/**
-+ * devm_media_entity_init - managed media entity initialization
-+ *
-+ * @dev: Device for which @entity belongs to.
-+ * @entity: Entity to be initialized.
-+ * @num_pads: Total number of sink and source pads.
-+ * @pads: Array of 'num_pads' pads.
-+ * @extra_links: Initial estimate of the number of extra links.
-+ *
-+ * This is a managed version of media_entity_init. Entity initialized with
-+ * this function will be automatically cleaned up on driver detach.
-+ */
-+int
-+devm_media_entity_init(struct device *dev, struct media_entity *entity,
-+		       u16 num_pads, struct media_pad *pads, u16 extra_links)
-+{
-+	struct media_entity **dr;
-+	int rc;
-+
-+	dr = devres_alloc(devm_media_entity_release, sizeof(*dr), GFP_KERNEL);
-+	if (!dr)
-+		return -ENOMEM;
-+
-+	rc = media_entity_init(entity, num_pads, pads, extra_links);
-+	if (rc) {
-+		devres_free(dr);
-+		return rc;
-+	}
-+
-+	*dr = entity;
-+	devres_add(dev, dr);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL_GPL(devm_media_entity_init);
-+
- /* -----------------------------------------------------------------------------
-  * Graph traversal
-  */
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 0c16f51..e25730e 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -26,6 +26,8 @@
- #include <linux/list.h>
- #include <linux/media.h>
+-static int vidioc_g_chip_ident(struct file *file, void *priv,
+-				struct v4l2_dbg_chip_ident *chip)
+-{
+-	if (!v4l2_chip_match_host(&chip->match))
+-		return -EINVAL;
+-	chip->revision = 0;
+-	chip->ident = V4L2_IDENT_UNKNOWN;
+-	return 0;
+-}
+-
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ static int vidioc_g_register (struct file *file, void *fh,
+ 				struct v4l2_dbg_register *reg)
+ {
+ 	struct cx88_core *core = ((struct cx8800_fh*)fh)->dev->core;
  
-+struct device;
-+
- struct media_pipeline {
+-	if (!v4l2_chip_match_host(&reg->match))
+-		return -EINVAL;
+ 	/* cx2388x has a 24-bit register space */
+ 	reg->val = cx_read(reg->reg & 0xffffff);
+ 	reg->size = 4;
+@@ -1384,8 +1372,6 @@ static int vidioc_s_register (struct file *file, void *fh,
+ {
+ 	struct cx88_core *core = ((struct cx8800_fh*)fh)->dev->core;
+ 
+-	if (!v4l2_chip_match_host(&reg->match))
+-		return -EINVAL;
+ 	cx_write(reg->reg & 0xffffff, reg->val);
+ 	return 0;
+ }
+@@ -1580,7 +1566,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_s_frequency   = vidioc_s_frequency,
+ 	.vidioc_subscribe_event      = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
+-	.vidioc_g_chip_ident  = vidioc_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register    = vidioc_g_register,
+ 	.vidioc_s_register    = vidioc_s_register,
+@@ -1614,7 +1599,6 @@ static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
+ 	.vidioc_s_tuner       = vidioc_s_tuner,
+ 	.vidioc_g_frequency   = vidioc_g_frequency,
+ 	.vidioc_s_frequency   = vidioc_s_frequency,
+-	.vidioc_g_chip_ident  = vidioc_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register    = vidioc_g_register,
+ 	.vidioc_s_register    = vidioc_s_register,
+@@ -1645,7 +1629,6 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
+ 	.vidioc_s_frequency   = vidioc_s_frequency,
+ 	.vidioc_subscribe_event      = v4l2_ctrl_subscribe_event,
+ 	.vidioc_unsubscribe_event    = v4l2_event_unsubscribe,
+-	.vidioc_g_chip_ident  = vidioc_g_chip_ident,
+ #ifdef CONFIG_VIDEO_ADV_DEBUG
+ 	.vidioc_g_register    = vidioc_g_register,
+ 	.vidioc_s_register    = vidioc_s_register,
+@@ -1796,7 +1779,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 
+ 	/* load and configure helper modules */
+ 
+-	if (core->board.audio_chip == V4L2_IDENT_WM8775) {
++	if (core->board.audio_chip == CX88_AUDIO_WM8775) {
+ 		struct i2c_board_info wm8775_info = {
+ 			.type = "wm8775",
+ 			.addr = 0x36 >> 1,
+@@ -1817,7 +1800,7 @@ static int cx8800_initdev(struct pci_dev *pci_dev,
+ 		}
+ 	}
+ 
+-	if (core->board.audio_chip == V4L2_IDENT_TVAUDIO) {
++	if (core->board.audio_chip == CX88_AUDIO_TVAUDIO) {
+ 		/* This probes for a tda9874 as is used on some
+ 		   Pixelview Ultra boards. */
+ 		v4l2_i2c_new_subdev(&core->v4l2_dev, &core->i2c_adap,
+diff --git a/drivers/media/pci/cx88/cx88.h b/drivers/media/pci/cx88/cx88.h
+index 51ce2c0..afe0eae 100644
+--- a/drivers/media/pci/cx88/cx88.h
++++ b/drivers/media/pci/cx88/cx88.h
+@@ -30,7 +30,6 @@
+ #include <media/tuner.h>
+ #include <media/tveeprom.h>
+ #include <media/videobuf-dma-sg.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <media/cx2341x.h>
+ #include <media/videobuf-dvb.h>
+ #include <media/ir-kbd-i2c.h>
+@@ -259,6 +258,11 @@ struct cx88_input {
+ 	unsigned int    audioroute:4;
  };
  
-@@ -126,6 +128,9 @@ int media_entity_init(struct media_entity *entity, u16 num_pads,
- 		struct media_pad *pads, u16 extra_links);
- void media_entity_cleanup(struct media_entity *entity);
- 
-+int devm_media_entity_init(struct device *dev, struct media_entity *entity,
-+		u16 num_pads, struct media_pad *pads, u16 extra_links);
++enum cx88_audio_chip {
++	CX88_AUDIO_WM8775,
++	CX88_AUDIO_TVAUDIO,
++};
 +
- int media_entity_create_link(struct media_entity *source, u16 source_pad,
- 		struct media_entity *sink, u16 sink_pad, u32 flags);
- int __media_entity_setup_link(struct media_link *link, u32 flags);
+ struct cx88_board {
+ 	const char              *name;
+ 	unsigned int            tuner_type;
+@@ -269,7 +273,7 @@ struct cx88_board {
+ 	struct cx88_input       input[MAX_CX88_INPUT];
+ 	struct cx88_input       radio;
+ 	enum cx88_board_type    mpeg;
+-	unsigned int            audio_chip;
++	enum cx88_audio_chip	audio_chip;
+ 	int			num_frontends;
+ 
+ 	/* Used for I2S devices */
 -- 
 1.7.10.4
 
