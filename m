@@ -1,59 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47937 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755243Ab3EPXr3 (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3781 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933784Ab3E2Hzm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 19:47:29 -0400
-Date: Fri, 17 May 2013 02:47:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Phillip Norisez <phillip.norisez@creationtech.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Media controller versus int device in V4L2
-Message-ID: <20130516234724.GE2077@valkosipuli.retiisi.org.uk>
-References: <72B01BB430E48246B160E44B43976D910CFCF18C@CTFIREBIRD.creationtech.com>
- <201305101355.05814.hverkuil@xs4all.nl>
- <72B01BB430E48246B160E44B43976D910CFD2938@CTFIREBIRD.creationtech.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <72B01BB430E48246B160E44B43976D910CFD2938@CTFIREBIRD.creationtech.com>
+	Wed, 29 May 2013 03:55:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: leo@lumanate.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 1/3] hdpvr: fix querystd 'unknown format' return.
+Date: Wed, 29 May 2013 09:55:13 +0200
+Message-Id: <1369814115-12174-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369814115-12174-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369814115-12174-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phillip,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Mon, May 13, 2013 at 06:03:38PM +0000, Phillip Norisez wrote:
-> Hans,
-> 
-> I fear that in my ignorance of V4L2, I have backed my client into a
-> corner, so to speak. I am developing embedded Linux firmware for boards
-> intended to driver video sensors within a medical device. As such, tried
-> and true versions of everything on board are preferred, even if they are
-> not cutting edge. Applying this philosophy has gotten me into the
-> situation where I am committed, for first human use, to a 2.6.37 kernel
-> which does not have media controller v4l2, only int device. Hence my
-> question about back-porting drivers, and the programming differences. I
-> hope that clears up my situation for you. If a patch exists to make the
-> v4l2 on a 2.6.37 kernel into a media controller version, I am unaware of
-> it, though I have not conducted a search for it (I will as soon as I
-> finish this e-mail).
+If no format has been detected, then querystd should return V4L2_STD_UNKNOWN,
+not V4L2_STD_ALL.
 
-To amend what Hans already told you, V4L2 int device has nothing to do with
-Media controller. What comes closest is V4L2 subdev interface which is part
-of your kernel.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-If you wish to use V4L2 subdev in the user space (and Media controller),
-you'll need to backport patches from at least v2.6.39 which is the one where
-the two were merged.
-
-I'd really try to start with something closer to mainline if reliability is
-important: there may be issues in backporting patches, too. Just that the
-code hasn't been changed for a long time does not make it magically better.
-Often it's quite the contrary.
-
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 2d02b49..81018c4 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -613,7 +613,7 @@ static int vidioc_querystd(struct file *file, void *_fh, v4l2_std_id *a)
+ 	struct hdpvr_fh *fh = _fh;
+ 	int ret;
+ 
+-	*a = V4L2_STD_ALL;
++	*a = V4L2_STD_UNKNOWN;
+ 	if (dev->options.video_input == HDPVR_COMPONENT)
+ 		return fh->legacy_mode ? 0 : -ENODATA;
+ 	ret = get_video_info(dev, &vid_info);
 -- 
-Kind regards,
+1.7.10.4
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
