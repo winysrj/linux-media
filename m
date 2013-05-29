@@ -1,83 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:47836 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751416Ab3E3Fbt convert rfc822-to-8bit (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:64194 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965107Ab3E2JyP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 May 2013 01:31:49 -0400
-Date: Thu, 30 May 2013 08:33:32 +0300
-From: Timo Teras <timo.teras@iki.fi>
-To: Jon Arne =?UTF-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-Cc: Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
-	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com
-Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
-Message-ID: <20130530083332.245e3c62@vostro>
-In-Reply-To: <20130530052136.GF2367@dell.arpanet.local>
-References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
-	<1369860078-10334-2-git-send-email-jonarne@jonarne.no>
-	<20130529213554.690f7eaa@redhat.com>
-	<7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
-	<20130530052136.GF2367@dell.arpanet.local>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Wed, 29 May 2013 05:54:15 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNK00I9M0SZ7J20@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 29 May 2013 10:54:13 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org
+Cc: 'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'John Sheu' <sheu@google.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+References: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
+In-reply-to: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
+Subject: RE: [RFC] [media] mem2mem: add support for hardware buffered queue
+Date: Wed, 29 May 2013 11:54:05 +0200
+Message-id: <01f401ce5c52$75dcee90$6196cbb0$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 30 May 2013 07:21:36 +0200
-Jon Arne Jørgensen <jonarne@jonarne.no> wrote:
+Hi Philipp, Hans,
 
-> On Wed, May 29, 2013 at 10:19:49PM -0400, Andy Walls wrote:
-> > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
-> > 
-> > >Em Wed, 29 May 2013 22:41:16 +0200
-> > >Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
-> > >
-> > >> Change all default values in the initial setup table to match the
-> > >table
-> > >> in the datasheet.
-> > >
-> > >This is not a good idea, as it can produce undesired side effects
-> > >on the existing drivers that depend on it, and can't be easily
-> > >tested.
-> > >
-> > >Please, don't change the current "default". It is, of course, OK
-> > >to change them if needed via the information provided inside the
-> > >platform data.
-> >
-> > I was going to make a comment along the same line as Mauro.  
-> > Please leave the driver defaults alone.  It is almost impossible to
-> > regression test all the different devices with a SAA7113 chip, to
-> > ensure the change doesn't cause someone's device to not work
-> > properly.
-> >
+> On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
+> buffer at the end of the stream, remaining frames might need to be
+> decoded without additional input buffers being provided, and after
+> calling streamoff on the v4l2 output queue. This also allows a driver
+> to copy input buffers into their bitstream ringbuffer and immediately
+> mark them as done to be dequeued.
 > 
-> You guys are totally right.
-> 
-> What if I clone the original saa7113_init table into a new one, and
-> make the driver use the new one if the calling driver sets
-> platform_data.
-> 
-> Something like this?
-> 
->         switch (state->ident) {
->         case V4L2_IDENT_SAA7111:
->         case V4L2_IDENT_SAA7111A:
->                 saa711x_writeregs(sd, saa7111_init);
->                 break;
->         case V4L2_IDENT_GM7113C:
->         case V4L2_IDENT_SAA7113:
-> -		saa711x_writeregs(sd, saa7113_init);
-> +		if (client->dev.platform_data)
-> +			saa711x_writeregs(sd, saa7113_new_init);
-> +		else
-> +			saa711x_writeregs(sd, saa7113_init);
+> The motivation for this patch is hardware assisted h.264 reordering
+> support in the coda driver. For high profile streams, the coda can hold
+> back out-of-order frames, causing a few mem2mem device runs in the
+> beginning, that don't produce any decompressed buffer at the v4l2
+> capture side. At the same time, the last few frames can be decoded from
+> the bitstream with mem2mem device runs that don't need a new input
+> buffer at the v4l2 output side. A streamoff on the v4l2 output side can
+> be used to put the decoder into the ringbuffer draining end-of-stream
+> mode.
 
-I would rather have the platform_data provide the new table. Or if you
-think bulk of the table will be the same for most users, then perhaps
-add there an enum saying which table to use - and name the tables
-according to the chip variant it applies to.
+If I remember correctly the main goal of introducing the m2m framework
+was to support simple mem2mem devices where one input buffer = one output
+buffer. In other cases m2m was not to be used. 
 
-- Timo
+An example of such mem2mem driver, which does not use m2m framework is
+MFC. It uses videobuf2 directly and it is wholly up to the driver how
+will it control the queues, stream on/off and so on. You can then have
+one OUTPUT buffer generate multiple CAPTURE buffer, multiple OUTPUT
+buffers generate a single CAPTURE buffer. Consume OUTPUT buffer without
+generating CAPTURE buffer (e.g. when starting decoding) and produce
+CAPTURE buffers without consuming OUTPUT buffers (e.g. when finishing
+decoding).
+
+I think that stream off should not be used to signal EOS. For this we
+have EOS event. You mentioned the EOS buffer flag. This is the idea
+originally proposed by Andrzej Hajda, after some lengthy discussions
+with v4l community this idea was changed to use an EOS event.
+
+I was all for the EOS buffer flag, but after discussion with Mauro I
+understood his arguments. We can get back to this discussion, if we
+are sure that events are not enough. Please also note that we need to
+keep backward compatibility.
+
+Original EOS buffer flag patches by Andrzej and part of the discussion
+can be found here:
+1) https://linuxtv.org/patch/10624/
+2) https://linuxtv.org/patch/11373/
+
+Best wishes,
+Kamil Debski
+
+
