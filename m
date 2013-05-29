@@ -1,33 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:40197 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055Ab3EVLhs (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2147 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965648Ab3E2OT1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 07:37:48 -0400
-Date: Wed, 22 May 2013 13:37:36 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	x86@kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
-	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
-Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks, v3
-Message-ID: <20130522113736.GO18810@twins.programming.kicks-ass.net>
-References: <20130428165914.17075.57751.stgit@patser>
- <20130428170407.17075.80082.stgit@patser>
- <20130430191422.GA5763@phenom.ffwll.local>
- <519CA976.9000109@canonical.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <519CA976.9000109@canonical.com>
+	Wed, 29 May 2013 10:19:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 02/14] bt819: fix querystd
+Date: Wed, 29 May 2013 16:18:55 +0200
+Message-Id: <1369837147-8747-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> Are there any issues left? I included the patch you wrote for injecting -EDEADLK too
-> in my tree. The overwhelming silence makes me think there are either none, or
-> nobody cared enough to review it. :(
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-It didn't manage to reach my inbox it seems,.. I can only find a debug
-patch in this thread.
+Return V4L2_STD_UNKNOWN if no signal is detected.
+Otherwise AND the standard mask with the detected standards.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/bt819.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/i2c/bt819.c b/drivers/media/i2c/bt819.c
+index ee9ed67..3c0a5ab 100644
+--- a/drivers/media/i2c/bt819.c
++++ b/drivers/media/i2c/bt819.c
+@@ -217,15 +217,17 @@ static int bt819_status(struct v4l2_subdev *sd, u32 *pstatus, v4l2_std_id *pstd)
+ 	struct bt819 *decoder = to_bt819(sd);
+ 	int status = bt819_read(decoder, 0x00);
+ 	int res = V4L2_IN_ST_NO_SIGNAL;
+-	v4l2_std_id std;
++	v4l2_std_id std = pstd ? *pstd : V4L2_STD_ALL;
+ 
+ 	if ((status & 0x80))
+ 		res = 0;
++	else
++		std = V4L2_STD_UNKNOWN;
+ 
+ 	if ((status & 0x10))
+-		std = V4L2_STD_PAL;
++		std &= V4L2_STD_PAL;
+ 	else
+-		std = V4L2_STD_NTSC;
++		std &= V4L2_STD_NTSC;
+ 	if (pstd)
+ 		*pstd = std;
+ 	if (pstatus)
+-- 
+1.7.10.4
+
