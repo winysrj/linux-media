@@ -1,122 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:55288 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751716Ab3EYG5a (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1161 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965702Ab3E2LBN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 02:57:30 -0400
-Date: Sat, 25 May 2013 09:00:20 +0200
-From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: =?utf-8?Q?=22Alejandro_A=2E_Vald=C3=A9s=22?= <av2406@gmail.com>
-Cc: Ezequiel Garcia <elezegarcia@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Audio: no sound
-Message-ID: <20130525070020.GA2122@dell.arpanet.local>
-References: <519D6CFA.2000506@gmail.com>
- <CALF0-+UqJaNc7v86qakVTNEJx5npMFPqFp-=9rAByFV_+FEaww@mail.gmail.com>
- <519E41AC.3040707@gmail.com>
- <CALF0-+U5dFktwHwO5-h_7RJ1xyjc3JbHUWqG3g=WSPA=HcHnnw@mail.gmail.com>
- <519E6046.8050509@gmail.com>
- <CALF0-+UZnt9rfmQFSecqaf_9L29mwKeNV22w1XmMQQG0AE=jJw@mail.gmail.com>
- <519E76F3.4070006@gmail.com>
- <519EB8E6.5000503@gmail.com>
+	Wed, 29 May 2013 07:01:13 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: =?UTF-8?q?=5BPATCHv1=2024/38=5D=20v4l2-framework=3A=20replace=20g=5Fchip=5Fident=20by=20g=5Fstd=20in=20the=20examples=2E?=
+Date: Wed, 29 May 2013 12:59:57 +0200
+Message-Id: <1369825211-29770-25-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <519EB8E6.5000503@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, May 23, 2013 at 09:48:38PM -0300, "Alejandro A. Valdés" wrote:
-Hi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> On 05/23/2013 05:07 PM, "Alejandro A. Valdés" wrote:
-> >On 05/23/2013 04:12 PM, Ezequiel Garcia wrote:
-> >>Alejandro,
-> >>
-> >>You dropped the linux-media list from Cc. I'm adding it back.
-> >>
-> >>On Thu, May 23, 2013 at 3:30 PM, "Alejandro A. Valdés"
-> >><av2406@gmail.com> wrote:
-> >>># lsmod
-> >>>Module                  Size  Used by
-> >>>snd_usb_audio         106622  0
-> >>>snd_usbmidi_lib        24590  1 snd_usb_audio
-> >>>easycap              1213861  1
-> >>Okey. This is all I need. You're using the "easycap" driver which is
-> >>an old, deprecated and staging (i.e. experimental) driver for easycap
-> >>devices.
-> >>
-> >>The new driver, which is fully supported, is called "stk1160". It's
-> >>been completely written from scratch, so it's not related to the old
-> >>one.
-> >>
-> >>Upgrade your kernel and/or your distribution to get a kernel >= v3.6
-> >>which includes the new driver, try again and let me know what happens.
-> >>
-> >>-- 
-> >>     Ezequiel
-> > Thanks for the tip. Will do so as son as I get another box to
-> >play with for a while. Not in shape to risk this environment. Will
-> >let you know the results. Regards,
-> >Alejandro
-> Good evening,
-> 
-> I upgraded the kernel as recommend, but it still doesn't seem to be
-> working. Still no sound. I attached some files with the output of
-> the same set of commands, we have been working with this afternoon.
-> 
-> I'll be grateful if you can provide further guidelines on this.
-> 
-> Thanks a lot,
-> Alejandro,
+The framework documentation used the g_chip_ident op as an example. This
+op has been removed, so replace its use in the examples by the g_std op.
 
->  0 [Intel          ]: HDA-Intel - HDA Intel
->                       HDA Intel at 0xf7cf8000 irq 45
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ Documentation/video4linux/v4l2-framework.txt       |   13 ++++++-------
+ Documentation/zh_CN/video4linux/v4l2-framework.txt |   13 ++++++-------
+ 2 files changed, 12 insertions(+), 14 deletions(-)
 
-> [  183.776116] usb 1-1: new high-speed USB device number 5 using ehci_hcd
-> [  183.908837] usb 1-1: New USB device found, idVendor=05e1, idProduct=0408
-> [  183.908852] usb 1-1: New USB device strings: Mfr=1, Product=2, SerialNumber=0
-> [  183.908862] usb 1-1: Product: USB 2.0 Video Capture Controller
-> [  183.908871] usb 1-1: Manufacturer: Syntek Semiconductor
-> [  187.113354] easycap::0adjust_standard: selected standard: PAL_BGHIN
-> [  187.424338] easycap::0adjust_format: sought:    640x480,UYVY(0x59565955),1=field,0x00=std mask
-> [  187.424352] easycap::0adjust_format: sought:    V4L2_FIELD_NONE
-> [  187.424367] easycap::0adjust_format: actioning: 640x480 PAL_BGHIN_AT_640x480_FMT_UYVY-n
-> [  187.448211] easycap::0adjust_brightness: adjusting brightness to  0x7F
-> [  187.472216] easycap::0adjust_contrast: adjusting contrast to  0x3F
-> [  187.496207] easycap::0adjust_saturation: adjusting saturation to  0x2F
-> [  187.520220] easycap::0adjust_hue: adjusting hue to  0x00
-> [  187.521800] easycap::0easycap_register_video: registered with videodev: 1=minor
-> [  187.521812] easycap::0easycap_usb_probe: ends successfully for interface 0
-> [  187.522249] easycap::0easycap_usb_probe: ends successfully for interface 1
-> [  187.522604] easycap::0easycap_usb_probe: audio hardware is AC'97
-> [  187.522662] easycap: probe of 1-1:1.2 failed with error -146692016
-> [  187.525726] easycap:: easycap_open: ==========OPEN=========
-> [  190.581347] easycap::0adjust_standard: selected standard: PAL_BGHIN
-> [  190.892343] easycap::0adjust_format: sought:    640x480,UYVY(0x59565955),1=field,0x00=std mask
-> [  190.892356] easycap::0adjust_format: sought:    V4L2_FIELD_NONE
-> [  190.892371] easycap::0adjust_format: actioning: 640x480 PAL_BGHIN_AT_640x480_FMT_UYVY-n
-> [  190.916222] easycap::0adjust_brightness: adjusting brightness to  0x7F
-> [  190.940224] easycap::0adjust_contrast: adjusting contrast to  0x3F
-> [  190.964224] easycap::0adjust_saturation: adjusting saturation to  0x2F
-> [  190.988221] easycap::0adjust_hue: adjusting hue to  0x00
-
-It seems you are still using the easycap driver.
-
-[...]
-
-> Module                  Size  Used by
-> snd_hda_intel          33051  5 
-> snd_hda_codec         116694  2 snd_hda_codec_realtek,snd_hda_intel
-> bluetooth             191657  10 rfcomm,bnep
-> uvcvideo               72248  0 
-> easycap              1213860  1 
-
-This should say stk1160 if you were using the new driver.
-I'm not sure what about what kernel first included the stk1160, but it
-doesn't seem to be included in the kernel you built.
-
-Best regards
-Jon Arne Jørgensen
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index a300b28..24353ec 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -246,7 +246,6 @@ may be NULL if the subdev driver does not support anything from that category.
+ It looks like this:
+ 
+ struct v4l2_subdev_core_ops {
+-	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
+ 	int (*log_status)(struct v4l2_subdev *sd);
+ 	int (*init)(struct v4l2_subdev *sd, u32 val);
+ 	...
+@@ -346,24 +345,24 @@ Afterwards the subdev module can be unloaded and sd->dev == NULL.
+ 
+ You can call an ops function either directly:
+ 
+-	err = sd->ops->core->g_chip_ident(sd, &chip);
++	err = sd->ops->core->g_std(sd, &norm);
+ 
+ but it is better and easier to use this macro:
+ 
+-	err = v4l2_subdev_call(sd, core, g_chip_ident, &chip);
++	err = v4l2_subdev_call(sd, core, g_std, &norm);
+ 
+ The macro will to the right NULL pointer checks and returns -ENODEV if subdev
+-is NULL, -ENOIOCTLCMD if either subdev->core or subdev->core->g_chip_ident is
+-NULL, or the actual result of the subdev->ops->core->g_chip_ident ops.
++is NULL, -ENOIOCTLCMD if either subdev->core or subdev->core->g_std is
++NULL, or the actual result of the subdev->ops->core->g_std ops.
+ 
+ It is also possible to call all or a subset of the sub-devices:
+ 
+-	v4l2_device_call_all(v4l2_dev, 0, core, g_chip_ident, &chip);
++	v4l2_device_call_all(v4l2_dev, 0, core, g_std, &norm);
+ 
+ Any subdev that does not support this ops is skipped and error results are
+ ignored. If you want to check for errors use this:
+ 
+-	err = v4l2_device_call_until_err(v4l2_dev, 0, core, g_chip_ident, &chip);
++	err = v4l2_device_call_until_err(v4l2_dev, 0, core, g_std, &norm);
+ 
+ Any error except -ENOIOCTLCMD will exit the loop with that error. If no
+ errors (except -ENOIOCTLCMD) occurred, then 0 is returned.
+diff --git a/Documentation/zh_CN/video4linux/v4l2-framework.txt b/Documentation/zh_CN/video4linux/v4l2-framework.txt
+index 44c1d93..0da95db 100644
+--- a/Documentation/zh_CN/video4linux/v4l2-framework.txt
++++ b/Documentation/zh_CN/video4linux/v4l2-framework.txt
+@@ -247,7 +247,6 @@ i2c_client 结构体，i2c_set_clientdata() 函数可用于保存一个 v4l2_sub
+ 这些结构体定义如下：
+ 
+ struct v4l2_subdev_core_ops {
+-	int (*g_chip_ident)(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip);
+ 	int (*log_status)(struct v4l2_subdev *sd);
+ 	int (*init)(struct v4l2_subdev *sd, u32 val);
+ 	...
+@@ -337,24 +336,24 @@ subdev->dev 域就指向了 v4l2_device。
+ 
+ 注册之设备后，可通过以下方式直接调用其操作函数：
+ 
+-	err = sd->ops->core->g_chip_ident(sd, &chip);
++	err = sd->ops->core->g_std(sd, &norm);
+ 
+ 但使用如下宏会比较容易且合适：
+ 
+-	err = v4l2_subdev_call(sd, core, g_chip_ident, &chip);
++	err = v4l2_subdev_call(sd, core, g_std, &norm);
+ 
+ 这个宏将会做 NULL 指针检查，如果 subdev 为 NULL，则返回-ENODEV；如果
+-subdev->core 或 subdev->core->g_chip_ident 为 NULL，则返回 -ENOIOCTLCMD；
+-否则将返回 subdev->ops->core->g_chip_ident ops 调用的实际结果。
++subdev->core 或 subdev->core->g_std 为 NULL，则返回 -ENOIOCTLCMD；
++否则将返回 subdev->ops->core->g_std ops 调用的实际结果。
+ 
+ 有时也可能同时调用所有或一系列子设备的某个操作函数：
+ 
+-	v4l2_device_call_all(v4l2_dev, 0, core, g_chip_ident, &chip);
++	v4l2_device_call_all(v4l2_dev, 0, core, g_std, &norm);
+ 
+ 任何不支持此操作的子设备都会被跳过，并忽略错误返回值。但如果你需要
+ 检查出错码，则可使用如下函数：
+ 
+-	err = v4l2_device_call_until_err(v4l2_dev, 0, core, g_chip_ident, &chip);
++	err = v4l2_device_call_until_err(v4l2_dev, 0, core, g_std, &norm);
+ 
+ 除 -ENOIOCTLCMD 外的任何错误都会跳出循环并返回错误值。如果（除 -ENOIOCTLCMD
+ 外）没有错误发生，则返回 0。
+-- 
+1.7.10.4
 
