@@ -1,49 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:53810 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755331Ab3ETMjO (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:52443 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932863Ab3E2BMH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 20 May 2013 08:39:14 -0400
-Received: by mail-ee0-f51.google.com with SMTP id e51so3887622eek.10
-        for <linux-media@vger.kernel.org>; Mon, 20 May 2013 05:39:13 -0700 (PDT)
-Message-ID: <519A19CF.5020605@googlemail.com>
-Date: Mon, 20 May 2013 14:40:47 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+	Tue, 28 May 2013 21:12:07 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH v2 2/5] media: davinci: vpif: Convert to devm_* api
+Date: Wed, 29 May 2013 03:12:01 +0200
+Message-ID: <25368927.Jiqsh9t82O@avalon>
+In-Reply-To: <51A218F7.7050804@cogentembedded.com>
+References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com> <1492638.E2728sugZv@avalon> <51A218F7.7050804@cogentembedded.com>
 MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: 3.9.2 kernel - IR / em28xx_rc broken?
-References: <1368885450.24433.YahooMailNeo@web120306.mail.ne1.yahoo.com> <519791E2.4080804@googlemail.com> <1368890230.26016.YahooMailNeo@web120301.mail.ne1.yahoo.com> <5197B34A.8010700@googlemail.com> <1368910949.59547.YahooMailNeo@web120304.mail.ne1.yahoo.com> <5198D669.6030007@googlemail.com> <1368972692.46197.YahooMailNeo@web120301.mail.ne1.yahoo.com> <51990B63.5090402@googlemail.com> <1368993591.43913.YahooMailNeo@web120305.mail.ne1.yahoo.com> <51993DDE.4070800@googlemail.com> <1369010702.23562.YahooMailNeo@web120304.mail.ne1.yahoo.com>
-In-Reply-To: <1369010702.23562.YahooMailNeo@web120304.mail.ne1.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 20.05.2013 02:45, schrieb Chris Rankin:
-> ----- Original Message -----
->
->> I'm not familar with ir-keytable and the RC core.
->> Mauro ? Can you take over ? ;)
-> This patch seems to "do the right thing"... I doubt it will apply cleanly because of TAB/space issues, but you should get the idea :-).
->
-> --- linux-3.9/drivers/media/usb/em28xx/em28xx-input.c.orig    2013-05-19 21:18:39.000000000 +0100
-> +++ linux-3.9/drivers/media/usb/em28xx/em28xx-input.c    2013-05-20 01:36:51.000000000 +0100
-> @@ -417,6 +417,7 @@
->          *rc_type = RC_BIT_RC6_0;
->      } else if (*rc_type & RC_BIT_UNKNOWN) {
->          *rc_type = RC_BIT_UNKNOWN;
-> +                return 0;
->      } else {
->          *rc_type = ir->rc_type;
->          return -EINVAL;
->
-> This is against 3.9.3.
->
-> Signed-off-by: Chris Rankin <rankincj@yahoo.com>
-No, this patch is wrong.
-Updating ir->rc_type with the new value of *rc_type is correct.
+Hi Sergei,
 
+On Sunday 26 May 2013 18:15:19 Sergei Shtylyov wrote:
+> On 26-05-2013 4:49, Laurent Pinchart wrote:
+> >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> 
+> >> Use devm_ioremap_resource instead of reques_mem_region()/ioremap().
+> >> This ensures more consistent error values and simplifies error paths.
+> >> 
+> >> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> >> ---
+> >> 
+> >>   drivers/media/platform/davinci/vpif.c |   27
+> >>   ++++-----------------------
+> >>   1 files changed, 4 insertions(+), 23 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/platform/davinci/vpif.c
+> >> b/drivers/media/platform/davinci/vpif.c index 761c825..164c1b7 100644
+> >> --- a/drivers/media/platform/davinci/vpif.c
+> >> +++ b/drivers/media/platform/davinci/vpif.c
+> 
+> [...]
+> 
+> >> @@ -421,23 +419,12 @@ EXPORT_SYMBOL(vpif_channel_getfid);
+> >> 
+> >>   static int vpif_probe(struct platform_device *pdev)
+> >>   {
+> >> 
+> >> -	int status = 0;
+> >> +	static struct resource	*res;
+> >> 
+> >>   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> >> 
+> >> -	if (!res)
+> >> -		return -ENOENT;
+> >> -
+> >> -	res_len = resource_size(res);
+> >> -
+> >> -	res = request_mem_region(res->start, res_len, res->name);
+> >> -	if (!res)
+> >> -		return -EBUSY;
+> >> -
+> >> -	vpif_base = ioremap(res->start, res_len);
+> >> -	if (!vpif_base) {
+> >> -		status = -EBUSY;
+> >> -		goto fail;
+> >> -	}
+> >> +	vpif_base = devm_ioremap_resource(&pdev->dev, res);
+> >> +	if (IS_ERR(vpif_base))
+> >> +		return PTR_ERR(vpif_base);
+> > 
+> > You're loosing the request_mem_region().
+> 
+> He's not losing anything, first look at how devm_ioremp_resource() is
+> defined.
+
+My bad. I'm not sure where I got that idea from. Thanks for pointing out the 
+mistake.
+
+> > You should use devm_request_and_ioremap()
+> 
+>      Already deprecated by now.
+> 
+> > function instead of devm_ioremap_resource(). With that change,
+> > 
+> > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+-- 
 Regards,
-Frank
+
+Laurent Pinchart
+
