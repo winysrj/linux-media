@@ -1,75 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:46102 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759435Ab3EWOnJ (ORCPT
+Received: from mail-we0-f177.google.com ([74.125.82.177]:43585 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750856Ab3E2EQT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 10:43:09 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH 1/9] [media] coda: fix ENC_SEQ_OPTION for CODA7
-Date: Thu, 23 May 2013 16:42:53 +0200
-Message-Id: <1369320181-17933-2-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
-References: <1369320181-17933-1-git-send-email-p.zabel@pengutronix.de>
+	Wed, 29 May 2013 00:16:19 -0400
+MIME-Version: 1.0
+In-Reply-To: <1915324.uRjOv648gy@avalon>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1369569612-30915-10-git-send-email-prabhakar.csengg@gmail.com> <1915324.uRjOv648gy@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 29 May 2013 09:45:57 +0530
+Message-ID: <CA+V-a8u7wBxCfovwrca2-K5ksQtSWfGWyu9=V8Sd3hv+g4cpQw@mail.gmail.com>
+Subject: Re: [PATCH v3 9/9] media: davinci: vpif_display: Convert to devm_* api
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-GAMMA_OFFSET is different between CodaDx6 and CODA7.
-Also, this is a bitfield, so drop the various
+Hi Laurent,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 10 ++++++++--
- drivers/media/platform/coda.h |  8 ++------
- 2 files changed, 10 insertions(+), 8 deletions(-)
+On Wed, May 29, 2013 at 9:08 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> On Sunday 26 May 2013 17:30:12 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> use devm_request_irq() instead of request_irq(). This ensures
+>> more consistent error values and simplifies error paths.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+Thanks for the ack.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 22d1b1b..7ac2299 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1138,8 +1138,14 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 	value = (CODA_DEFAULT_GAMMA & CODA_GAMMA_MASK) << CODA_GAMMA_OFFSET;
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_RC_GAMMA);
- 
--	value  = (CODA_DEFAULT_GAMMA > 0) << CODA_OPTION_GAMMA_OFFSET;
--	value |= (0 & CODA_OPTION_SLICEREPORT_MASK) << CODA_OPTION_SLICEREPORT_OFFSET;
-+	if (CODA_DEFAULT_GAMMA > 0) {
-+		if (dev->devtype->product == CODA_DX6)
-+			value  = 1 << CODADX6_OPTION_GAMMA_OFFSET;
-+		else
-+			value  = 1 << CODA7_OPTION_GAMMA_OFFSET;
-+	} else {
-+		value = 0;
-+	}
- 	coda_write(dev, value, CODA_CMD_ENC_SEQ_OPTION);
- 
- 	if (dst_fourcc == V4L2_PIX_FMT_H264) {
-diff --git a/drivers/media/platform/coda.h b/drivers/media/platform/coda.h
-index f3f5e43..3c350ac 100644
---- a/drivers/media/platform/coda.h
-+++ b/drivers/media/platform/coda.h
-@@ -96,16 +96,12 @@
- #define CODA_CMD_ENC_SEQ_BB_START				0x180
- #define CODA_CMD_ENC_SEQ_BB_SIZE				0x184
- #define CODA_CMD_ENC_SEQ_OPTION				0x188
--#define		CODA_OPTION_GAMMA_OFFSET			7
--#define		CODA_OPTION_GAMMA_MASK				0x01
-+#define		CODA7_OPTION_GAMMA_OFFSET			8
-+#define		CODADX6_OPTION_GAMMA_OFFSET			7
- #define		CODA_OPTION_LIMITQP_OFFSET			6
--#define		CODA_OPTION_LIMITQP_MASK			0x01
- #define		CODA_OPTION_RCINTRAQP_OFFSET			5
--#define		CODA_OPTION_RCINTRAQP_MASK			0x01
- #define		CODA_OPTION_FMO_OFFSET				4
--#define		CODA_OPTION_FMO_MASK				0x01
- #define		CODA_OPTION_SLICEREPORT_OFFSET			1
--#define		CODA_OPTION_SLICEREPORT_MASK			0x01
- #define CODA_CMD_ENC_SEQ_COD_STD				0x18c
- #define		CODA_STD_MPEG4					0
- #define		CODA_STD_H263					1
--- 
-1.8.2.rc2
+> with a small comment below.
+>
+>> ---
+>>  drivers/media/platform/davinci/vpif_display.c |   35 ++++++----------------
+>>  1 files changed, 9 insertions(+), 26 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpif_display.c
+>> b/drivers/media/platform/davinci/vpif_display.c index 7bcfe7d..e2f080b
+>> 100644
+>> --- a/drivers/media/platform/davinci/vpif_display.c
+>> +++ b/drivers/media/platform/davinci/vpif_display.c
+>> @@ -1718,15 +1718,14 @@ static __init int vpif_probe(struct platform_device
+>> *pdev)
+>>
+>>       while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
+>>               for (i = res->start; i <= res->end; i++) {
+>> -                     if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
+>> -                                     "VPIF_Display", (void *)
+>> -                                     (&vpif_obj.dev[res_idx]->channel_id))) {
+>> -                             err = -EBUSY;
+>> -                             for (j = 0; j < i; j++)
+>> -                                     free_irq(j, (void *)
+>> -                                     (&vpif_obj.dev[res_idx]->channel_id));
+>> +                     err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
+>> +                                          IRQF_SHARED, "VPIF_Display",
+>> +                                          (void *)(&vpif_obj.dev[res_idx]->
+>> +                                          channel_id));
+>> +                     if (err) {
+>> +                             err = -EINVAL;
+>>                               vpif_err("VPIF IRQ request failed\n");
+>> -                             goto vpif_int_err;
+>> +                             goto vpif_unregister;
+>>                       }
+>>               }
+>>               res_idx++;
+>> @@ -1744,7 +1743,7 @@ static __init int vpif_probe(struct platform_device
+>> *pdev) video_device_release(ch->video_dev);
+>>                       }
+>>                       err = -ENOMEM;
+>> -                     goto vpif_int_err;
+>> +                     goto vpif_unregister;
+>>               }
+>>
+>>               /* Initialize field of video device */
+>> @@ -1878,13 +1877,8 @@ vpif_sd_error:
+>>               /* Note: does nothing if ch->video_dev == NULL */
+>>               video_device_release(ch->video_dev);
+>>       }
+>> -vpif_int_err:
+>> +vpif_unregister:
+>>       v4l2_device_unregister(&vpif_obj.v4l2_dev);
+>> -     for (i = 0; i < res_idx; i++) {
+>> -             res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
+>> -             for (j = res->start; j <= res->end; j++)
+>> -                     free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
+>> -     }
+>>
+>>       return err;
+>>  }
+>> @@ -1894,20 +1888,9 @@ vpif_int_err:
+>>   */
+>>  static int vpif_remove(struct platform_device *device)
+>>  {
+>> -     struct platform_device *pdev;
+>>       struct channel_obj *ch;
+>> -     struct resource *res;
+>> -     int irq_num;
+>>       int i = 0;
+>
+> There's no need to initialize i to 0 anymore (same comment for patch 6/9).
+>
+Ok will fix it in the next version.
 
+Regards,
+--Prabhakar Lad
