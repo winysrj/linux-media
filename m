@@ -1,62 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:58478 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757142Ab3EYQiS (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1232 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965680Ab3E2LBH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 12:38:18 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 1/5] media: davinci: vpif: remove unwanted header mach/hardware.h and sort the includes alphabetically
-Date: Sat, 25 May 2013 22:06:32 +0530
-Message-Id: <1369499796-18762-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 29 May 2013 07:01:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv1 20/38] v4l2-common: remove unused v4l2_chip_match/ident_i2c_client functions
+Date: Wed, 29 May 2013 12:59:53 +0200
+Message-Id: <1369825211-29770-21-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch removes unwanted header include of mach/hardware.h
-and along side sorts the header inclusion alphabetically.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
 ---
- drivers/media/platform/davinci/vpif.c |   10 ++++------
- 1 files changed, 4 insertions(+), 6 deletions(-)
+ drivers/media/v4l2-core/v4l2-common.c |   47 +--------------------------------
+ include/media/v4l2-common.h           |    9 -------
+ 2 files changed, 1 insertion(+), 55 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index ea82a8b..761c825 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -17,18 +17,16 @@
-  * GNU General Public License for more details.
-  */
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 5fd7660..3b2a760 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -61,7 +61,6 @@
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+-#include <media/v4l2-chip-ident.h>
  
-+#include <linux/err.h>
- #include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/spinlock.h>
--#include <linux/kernel.h>
--#include <linux/io.h>
--#include <linux/err.h>
- #include <linux/pm_runtime.h>
-+#include <linux/spinlock.h>
- #include <linux/v4l2-dv-timings.h>
+ #include <linux/videodev2.h>
  
--#include <mach/hardware.h>
+@@ -227,51 +226,9 @@ u32 v4l2_ctrl_next(const u32 * const * ctrl_classes, u32 id)
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_next);
+ 
+-#if IS_ENABLED(CONFIG_I2C)
+-int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match)
+-{
+-	int len;
 -
- #include "vpif.h"
+-	if (c == NULL || match == NULL)
+-		return 0;
+-
+-	switch (match->type) {
+-	case V4L2_CHIP_MATCH_I2C_DRIVER:
+-		if (c->driver == NULL || c->driver->driver.name == NULL)
+-			return 0;
+-		len = strlen(c->driver->driver.name);
+-		return len && !strncmp(c->driver->driver.name, match->name, len);
+-	case V4L2_CHIP_MATCH_I2C_ADDR:
+-		return c->addr == match->addr;
+-	case V4L2_CHIP_MATCH_SUBDEV:
+-		return 1;
+-	default:
+-		return 0;
+-	}
+-}
+-EXPORT_SYMBOL(v4l2_chip_match_i2c_client);
+-
+-int v4l2_chip_ident_i2c_client(struct i2c_client *c, struct v4l2_dbg_chip_ident *chip,
+-		u32 ident, u32 revision)
+-{
+-	if (!v4l2_chip_match_i2c_client(c, &chip->match))
+-		return 0;
+-	if (chip->ident == V4L2_IDENT_NONE) {
+-		chip->ident = ident;
+-		chip->revision = revision;
+-	}
+-	else {
+-		chip->ident = V4L2_IDENT_AMBIGUOUS;
+-		chip->revision = 0;
+-	}
+-	return 0;
+-}
+-EXPORT_SYMBOL(v4l2_chip_ident_i2c_client);
+-
+-/* ----------------------------------------------------------------- */
+-
+ /* I2C Helper functions */
  
- MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
++#if IS_ENABLED(CONFIG_I2C)
+ 
+ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+ 		const struct v4l2_subdev_ops *ops)
+@@ -290,8 +247,6 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+ }
+ EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
+ 
+-
+-
+ /* Load an i2c sub-device. */
+ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
+ 		struct i2c_adapter *adapter, struct i2c_board_info *info,
+diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
+index e7821fb..015ff82 100644
+--- a/include/media/v4l2-common.h
++++ b/include/media/v4l2-common.h
+@@ -100,15 +100,6 @@ u32 v4l2_ctrl_next(const u32 * const *ctrl_classes, u32 id);
+ 
+ /* ------------------------------------------------------------------------- */
+ 
+-/* Register/chip ident helper function */
+-
+-struct i2c_client; /* forward reference */
+-int v4l2_chip_match_i2c_client(struct i2c_client *c, const struct v4l2_dbg_match *match);
+-int v4l2_chip_ident_i2c_client(struct i2c_client *c, struct v4l2_dbg_chip_ident *chip,
+-		u32 ident, u32 revision);
+-
+-/* ------------------------------------------------------------------------- */
+-
+ /* I2C Helper functions */
+ 
+ struct i2c_driver;
 -- 
-1.7.0.4
+1.7.10.4
 
