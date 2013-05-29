@@ -1,16 +1,15 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:3615 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965716Ab3E2LBV (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2742 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965542Ab3E2LAd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:01:21 -0400
+	Wed, 29 May 2013 07:00:33 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Andy Walls <awalls@md.metrocast.net>
-Subject: [PATCHv1 35/38] cx18: fix register range check
-Date: Wed, 29 May 2013 13:00:08 +0200
-Message-Id: <1369825211-29770-36-git-send-email-hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv1 04/38] saa7115: add back the dropped 'found' message.
+Date: Wed, 29 May 2013 12:59:37 +0200
+Message-Id: <1369825211-29770-5-git-send-email-hverkuil@xs4all.nl>
 In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -18,37 +17,28 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Ensure that the register is aligned to a dword, otherwise the range check
-could fail since it assumes dword alignment.
+The saa7115 driver used to show a 'chip found' message during probe. This
+was accidentally dropped during recent commits. Add it back as it is quite
+useful.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Andy Walls <awalls@md.metrocast.net>
 ---
- drivers/media/pci/cx18/cx18-ioctl.c |    4 ++++
- 1 file changed, 4 insertions(+)
+ drivers/media/i2c/saa7115.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-diff --git a/drivers/media/pci/cx18/cx18-ioctl.c b/drivers/media/pci/cx18/cx18-ioctl.c
-index 414b0ec..1110bcb 100644
---- a/drivers/media/pci/cx18/cx18-ioctl.c
-+++ b/drivers/media/pci/cx18/cx18-ioctl.c
-@@ -367,6 +367,8 @@ static int cx18_g_register(struct file *file, void *fh,
- {
- 	struct cx18 *cx = fh2id(fh)->cx;
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 18cf0bf..4daa81c 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -1735,6 +1735,8 @@ static int saa711x_probe(struct i2c_client *client,
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &saa711x_ops);
  
-+	if (reg->reg & 0x3)
-+		return -EINVAL;
- 	if (reg->reg >= CX18_MEM_OFFSET + CX18_MEM_SIZE)
- 		return -EINVAL;
- 	reg->size = 4;
-@@ -379,6 +381,8 @@ static int cx18_s_register(struct file *file, void *fh,
- {
- 	struct cx18 *cx = fh2id(fh)->cx;
- 
-+	if (reg->reg & 0x3)
-+		return -EINVAL;
- 	if (reg->reg >= CX18_MEM_OFFSET + CX18_MEM_SIZE)
- 		return -EINVAL;
- 	cx18_write_enc(cx, reg->val, reg->reg);
++	v4l_info(client, "%s found @ 0x%x (%s)\n", name,
++		 client->addr << 1, client->adapter->name);
+ 	hdl = &state->hdl;
+ 	v4l2_ctrl_handler_init(hdl, 6);
+ 	/* add in ascending ID order */
 -- 
 1.7.10.4
 
