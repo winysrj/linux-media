@@ -1,49 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:45979 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755310Ab3EPIPC (ORCPT
+Received: from mail-wi0-f180.google.com ([209.85.212.180]:58188 "EHLO
+	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750856Ab3E2EOj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 04:15:02 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMV005MPTILO420@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 16 May 2013 09:15:00 +0100 (BST)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: [PATCH RFC v3 0/3] added managed media/v4l2 initialization
-Date: Thu, 16 May 2013 10:14:31 +0200
-Message-id: <1368692074-483-1-git-send-email-a.hajda@samsung.com>
+	Wed, 29 May 2013 00:14:39 -0400
+MIME-Version: 1.0
+In-Reply-To: <2564718.Z6XYOtT7FL@avalon>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1369569612-30915-5-git-send-email-prabhakar.csengg@gmail.com> <2564718.Z6XYOtT7FL@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 29 May 2013 09:44:17 +0530
+Message-ID: <CA+V-a8tQ27Sz7fjS0SACURLbowojp=O24Czuac83LCg-dKzcBg@mail.gmail.com>
+Subject: Re: [PATCH v3 4/9] media: davinci: vpif_capture: move the freeing of
+ irq and global variables to remove()
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is the 3rd version of managed initializations for media/v4l2.
-Patches are adjusted according to Hans and Laurent suggestions.
-Details of changes documented in individual patches.
+Hi Laurent,
 
-*** BLURB HERE ***
+Thanks for the review.
 
-Andrzej Hajda (3):
-  media: added managed media entity initialization
-  media: added managed v4l2 control initialization
-  media: added managed v4l2/i2c subdevice initialization
+On Wed, May 29, 2013 at 8:02 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> Thanks for the patch.
+>
+> On Sunday 26 May 2013 17:30:07 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> Ideally the freeing of irq's and the global variables needs to be
+>> done in the remove() rather than module_exit(), this patch moves
+>> the freeing up of irq's and freeing the memory allocated to channel
+>> objects to remove() callback of struct platform_driver.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+>>  drivers/media/platform/davinci/vpif_capture.c |   31 ++++++++++------------
+>>  1 files changed, 13 insertions(+), 18 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpif_capture.c
+>> b/drivers/media/platform/davinci/vpif_capture.c index caaf4fe..f8b7304
+>> 100644
+>> --- a/drivers/media/platform/davinci/vpif_capture.c
+>> +++ b/drivers/media/platform/davinci/vpif_capture.c
+>> @@ -2225,17 +2225,29 @@ vpif_int_err:
+>>   */
+>>  static int vpif_remove(struct platform_device *device)
+>>  {
+>> -     int i;
+>> +     struct platform_device *pdev;
+>>       struct channel_obj *ch;
+>> +     struct resource *res;
+>> +     int irq_num, i = 0;
+>> +
+>> +     pdev = container_of(vpif_dev, struct platform_device, dev);
+>
+> As Sergei mentioned, the platform device is already passed to the function as
+> an argument.
+>
+OK
 
- drivers/media/media-entity.c          |   44 +++++++++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-common.c |   10 ++++++++
- drivers/media/v4l2-core/v4l2-ctrls.c  |   32 ++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-subdev.c |   25 +++++++++++++++++++
- include/media/media-entity.h          |    5 ++++
- include/media/v4l2-common.h           |    2 ++
- include/media/v4l2-ctrls.h            |   16 ++++++++++++
- include/media/v4l2-subdev.h           |    2 ++
- 8 files changed, 136 insertions(+)
+>> +     while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+>> +             for (irq_num = res->start; irq_num <= res->end; irq_num++)
+>> +                     free_irq(irq_num,
+>> +                              (void *)(&vpif_obj.dev[i]->channel_id));
+>
+> A quick look at board code shows that each IRQ resource contains a single IRQ.
+> The second loop could thus be removed. You could also add another patch to
+> perform similar cleanup for the probe code.
+>
+Any way this will code will be removed in the next patch of the same
+series due to usage
+of devm_* api. I'll do this change only in the probe code.
 
--- 
-1.7.10.4
-
+Regards,
+--Prabhakar Lad
