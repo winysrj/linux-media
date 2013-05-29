@@ -1,104 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:32812 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756010Ab3ENGsD (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4473 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965542Ab3E2LA1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 14 May 2013 02:48:03 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	"Lad, Prabhakar" <prabhakar.lad@ti.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH RFC v3 2/4] media: i2c: tvp514x: add support for asynchronous probing
-Date: Tue, 14 May 2013 12:17:34 +0530
-Message-Id: <1368514056-28859-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1368514056-28859-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368514056-28859-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 29 May 2013 07:00:27 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4TB0Fus071064
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 29 May 2013 13:00:17 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 913AB35E019E
+	for <linux-media@vger.kernel.org>; Wed, 29 May 2013 13:00:14 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv1 00/38] Remove VIDIOC_DBG_G_CHIP_IDENT
+Date: Wed, 29 May 2013 12:59:33 +0200
+Message-Id: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+With the introduction in 3.10 of the new superior VIDIOC_DBG_G_CHIP_INFO
+ioctl there is no longer any need for the DBG_G_CHIP_IDENT ioctl or the
+v4l2-chip-ident.h header. The V4L2 core is now responsible for handling
+the G_CHIP_INFO ioctl. Only if a bridge driver has multiple address ranges
+represented as different 'chips' does a bridge driver have to implement the
+g_chip_info handler.
 
-Both synchronous and asynchronous tvp514x subdevice probing is supported by
-this patch.
+This patch series removes all code related to the old CHIP_IDENT ioctl and
+the v4l2-chip-ident.h header.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.lad@ti.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/i2c/tvp514x.c |   23 ++++++++++++++++-------
- 1 files changed, 16 insertions(+), 7 deletions(-)
+See the documentation of the new VIDIOC_DBG_G_CHIP_INFO ioctl:
 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index ab8f3fe..887bd93 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -36,6 +36,7 @@
- #include <linux/module.h>
- #include <linux/v4l2-mediabus.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-mediabus.h>
-@@ -1109,9 +1110,9 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* Register with V4L2 layer as slave device */
- 	sd = &decoder->sd;
- 	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
--	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
-+	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
- 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	decoder->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-@@ -1138,16 +1139,23 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	sd->ctrl_handler = &decoder->hdl;
- 	if (decoder->hdl.error) {
- 		ret = decoder->hdl.error;
--
--		v4l2_ctrl_handler_free(&decoder->hdl);
--		return ret;
-+		goto done;
- 	}
- 	v4l2_ctrl_handler_setup(&decoder->hdl);
- 
--	v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
--
--	return 0;
-+	decoder->sd.dev = &client->dev;
-+	ret = v4l2_async_register_subdev(&decoder->sd);
-+	if (!ret)
-+		v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
- 
-+done:
-+	if (ret < 0) {
-+		v4l2_ctrl_handler_free(&decoder->hdl);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		media_entity_cleanup(&decoder->sd.entity);
-+#endif
-+	}
-+	return ret;
- }
- 
- /**
-@@ -1162,6 +1170,7 @@ static int tvp514x_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct tvp514x_decoder *decoder = to_decoder(sd);
- 
-+	v4l2_async_unregister_subdev(&decoder->sd);
- 	v4l2_device_unregister_subdev(sd);
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	media_entity_cleanup(&decoder->sd.entity);
--- 
-1.7.4.1
+http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-dbg-g-chip-info.html
+
+It also fixes a number of bugs relating to the VIDIOC_DBG_G/S_REGISTER
+ioctls: adding/fixing register address checks where appropriate, and
+set the size field correctly (not all drivers set that field).
+
+This patch series simplifies drivers substantially and deletes almost
+2900 lines in total.
+
+Regards,
+
+        Hans
 
