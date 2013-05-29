@@ -1,172 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59292 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758476Ab3EZBOY (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3004 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S935105Ab3E2Hzn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 25 May 2013 21:14:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2 4/5] media: davinci: vpif_capture: Convert to devm_* api
-Date: Sun, 26 May 2013 03:14:21 +0200
-Message-ID: <1395615.ytVps5UbEx@avalon>
-In-Reply-To: <1369499796-18762-5-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369499796-18762-1-git-send-email-prabhakar.csengg@gmail.com> <1369499796-18762-5-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 29 May 2013 03:55:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: leo@lumanate.com, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 2/3] hdpvr: code cleanup
+Date: Wed, 29 May 2013 09:55:14 +0200
+Message-Id: <1369814115-12174-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369814115-12174-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369814115-12174-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch.
+Remove an unnecessary 'else' and invert a condition which makes the code
+more readable.
 
-On Saturday 25 May 2013 22:06:35 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> use devm_request_irq() instead of request_irq().
-> This ensures more consistent error values and simplifies error paths.
-> 
-> use module_platform_driver to simplify the code.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/hdpvr/hdpvr-video.c |   54 ++++++++++++++++-----------------
+ 1 file changed, 27 insertions(+), 27 deletions(-)
 
-There's two separate changes in this patch, could you split it in two if you 
-resubmit the series ? It would then be good to work on removing the vpif_obj 
-and vpif_dev global variables.
-
-Same comment for patch 5/5.
-
-> ---
->  drivers/media/platform/davinci/vpif_capture.c |   73 ++++------------------
->  1 files changed, 13 insertions(+), 60 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> b/drivers/media/platform/davinci/vpif_capture.c index caaf4fe..f37adf1
-> 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -2082,14 +2082,13 @@ static __init int vpif_probe(struct platform_device
-> *pdev)
-> 
->  	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
->  		for (i = res->start; i <= res->end; i++) {
-> -			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
-> -					"VPIF_Capture", (void *)
-> -					(&vpif_obj.dev[res_idx]->channel_id))) {
-> -				err = -EBUSY;
-> -				for (j = 0; j < i; j++)
-> -					free_irq(j, (void *)
-> -					(&vpif_obj.dev[res_idx]->channel_id));
-> -				goto vpif_int_err;
-> +			err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
-> +					     IRQF_SHARED, "VPIF_Capture",
-> +					     (void *)(&vpif_obj.dev[res_idx]->
-> +					     channel_id));
-> +			if (err) {
-> +				err = -EINVAL;
-> +				goto vpif_unregister;
->  			}
->  		}
->  		res_idx++;
-> @@ -2106,7 +2105,7 @@ static __init int vpif_probe(struct platform_device
-> *pdev) video_device_release(ch->video_dev);
->  			}
->  			err = -ENOMEM;
-> -			goto vpif_int_err;
-> +			goto vpif_unregister;
->  		}
-> 
->  		/* Initialize field of video device */
-> @@ -2207,13 +2206,8 @@ vpif_sd_error:
->  		/* Note: does nothing if ch->video_dev == NULL */
->  		video_device_release(ch->video_dev);
->  	}
-> -vpif_int_err:
-> +vpif_unregister:
->  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-> -	for (i = 0; i < res_idx; i++) {
-> -		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
-> -		for (j = res->start; j <= res->end; j++)
-> -			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
-> -	}
->  	return err;
->  }
-> 
-> @@ -2229,14 +2223,16 @@ static int vpif_remove(struct platform_device
-> *device) struct channel_obj *ch;
-> 
->  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-> -
-> +	kfree(vpif_obj.sd);
->  	/* un-register device */
->  	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[i];
->  		/* Unregister video device */
->  		video_unregister_device(ch->video_dev);
-> +		kfree(vpif_obj.dev[i]);
->  	}
-> +
->  	return 0;
->  }
-> 
-> @@ -2326,47 +2322,4 @@ static __refdata struct platform_driver vpif_driver =
-> { .remove = vpif_remove,
->  };
-> 
-> -/**
-> - * vpif_init: initialize the vpif driver
-> - *
-> - * This function registers device and driver to the kernel, requests irq
-> - * handler and allocates memory
-> - * for channel objects
-> - */
-> -static __init int vpif_init(void)
-> -{
-> -	return platform_driver_register(&vpif_driver);
-> -}
-> -
-> -/**
-> - * vpif_cleanup : This function clean up the vpif capture resources
-> - *
-> - * This will un-registers device and driver to the kernel, frees
-> - * requested irq handler and de-allocates memory allocated for channel
-> - * objects.
-> - */
-> -static void vpif_cleanup(void)
-> -{
-> -	struct platform_device *pdev;
-> -	struct resource *res;
-> -	int irq_num;
-> -	int i = 0;
-> -
-> -	pdev = container_of(vpif_dev, struct platform_device, dev);
-> -	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
-> -		for (irq_num = res->start; irq_num <= res->end; irq_num++)
-> -			free_irq(irq_num,
-> -				 (void *)(&vpif_obj.dev[i]->channel_id));
-> -		i++;
-> -	}
-> -
-> -	platform_driver_unregister(&vpif_driver);
-> -
-> -	kfree(vpif_obj.sd);
-> -	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++)
-> -		kfree(vpif_obj.dev[i]);
-> -}
-> -
-> -/* Function for module initialization and cleanup */
-> -module_init(vpif_init);
-> -module_exit(vpif_cleanup);
-> +module_platform_driver(vpif_driver);
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 81018c4..e947105 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -281,43 +281,43 @@ static int hdpvr_start_streaming(struct hdpvr_device *dev)
+ 
+ 	if (dev->status == STATUS_STREAMING)
+ 		return 0;
+-	else if (dev->status != STATUS_IDLE)
++	if (dev->status != STATUS_IDLE)
+ 		return -EAGAIN;
+ 
+ 	ret = get_video_info(dev, &vidinf);
++	if (ret) {
++		msleep(250);
++		v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
++				"no video signal at input %d\n", dev->options.video_input);
++		return -EAGAIN;
++	}
+ 
+-	if (!ret) {
+-		v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
+-			 "video signal: %dx%d@%dhz\n", vidinf.width,
+-			 vidinf.height, vidinf.fps);
++	v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
++			"video signal: %dx%d@%dhz\n", vidinf.width,
++			vidinf.height, vidinf.fps);
+ 
+-		/* start streaming 2 request */
+-		ret = usb_control_msg(dev->udev,
+-				      usb_sndctrlpipe(dev->udev, 0),
+-				      0xb8, 0x38, 0x1, 0, NULL, 0, 8000);
+-		v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
+-			 "encoder start control request returned %d\n", ret);
+-		if (ret < 0)
+-			return ret;
++	/* start streaming 2 request */
++	ret = usb_control_msg(dev->udev,
++			usb_sndctrlpipe(dev->udev, 0),
++			0xb8, 0x38, 0x1, 0, NULL, 0, 8000);
++	v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
++			"encoder start control request returned %d\n", ret);
++	if (ret < 0)
++		return ret;
+ 
+-		ret = hdpvr_config_call(dev, CTRL_START_STREAMING_VALUE, 0x00);
+-		if (ret)
+-			return ret;
++	ret = hdpvr_config_call(dev, CTRL_START_STREAMING_VALUE, 0x00);
++	if (ret)
++		return ret;
+ 
+-		dev->status = STATUS_STREAMING;
++	dev->status = STATUS_STREAMING;
+ 
+-		INIT_WORK(&dev->worker, hdpvr_transmit_buffers);
+-		queue_work(dev->workqueue, &dev->worker);
++	INIT_WORK(&dev->worker, hdpvr_transmit_buffers);
++	queue_work(dev->workqueue, &dev->worker);
+ 
+-		v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
+-			 "streaming started\n");
++	v4l2_dbg(MSG_BUFFER, hdpvr_debug, &dev->v4l2_dev,
++			"streaming started\n");
+ 
+-		return 0;
+-	}
+-	msleep(250);
+-	v4l2_dbg(MSG_INFO, hdpvr_debug, &dev->v4l2_dev,
+-		 "no video signal at input %d\n", dev->options.video_input);
+-	return -EAGAIN;
++	return 0;
+ }
+ 
+ 
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
