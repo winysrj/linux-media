@@ -1,50 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f43.google.com ([209.85.215.43]:38672 "EHLO
-	mail-la0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755573Ab3EFT4q (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 15:56:46 -0400
-Received: by mail-la0-f43.google.com with SMTP id ea20so3688274lab.30
-        for <linux-media@vger.kernel.org>; Mon, 06 May 2013 12:56:44 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20130506155930.GG5763@phenom.ffwll.local>
-References: <1367382644-30788-1-git-send-email-airlied@gmail.com>
-	<CAKMK7uGJWHb7so8_uNe0JzH_EUAQLExFPda=ZR+8yuG+ALvo2w@mail.gmail.com>
-	<CAPM=9tzW-9U+ff2818asviXtm8+56-gp3NOFxy_u1m7b21TaQg@mail.gmail.com>
-	<20130506155930.GG5763@phenom.ffwll.local>
-Date: Tue, 7 May 2013 05:56:44 +1000
-Message-ID: <CAPM=9txE51ZzPaX52rfqvvBp+=pwVe3fk=xE8p6qb79kJbQX=Q@mail.gmail.com>
-Subject: Re: [PATCH] drm/udl: avoid swiotlb for imported vmap buffers.
-From: Dave Airlie <airlied@gmail.com>
-To: Daniel Vetter <daniel@ffwll.ch>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4934 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965694Ab3E2LBI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 May 2013 07:01:08 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: [PATCHv1 28/38] vpbe_display: drop g/s_register ioctls.
+Date: Wed, 29 May 2013 13:00:01 +0200
+Message-Id: <1369825211-29770-29-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, May 7, 2013 at 1:59 AM, Daniel Vetter <daniel@ffwll.ch> wrote:
-> On Mon, May 06, 2013 at 10:35:35AM +1000, Dave Airlie wrote:
->> >>
->> >> However if we don't set a dma mask on the usb device, the mapping
->> >> ends up using swiotlb on machines that have it enabled, which
->> >> is less than desireable.
->> >>
->> >> Signed-off-by: Dave Airlie <airlied@redhat.com>
->> >
->> > Fyi for everyone else who was not on irc when Dave&I discussed this:
->> > This really shouldn't be required and I think the real issue is that
->> > udl creates a dma_buf attachement (which is needed for device dma
->> > only), but only really wants to do cpu access through vmap/kmap. So
->> > not attached the device should be good enough. Cc'ing a few more lists
->> > for better fyi ;-)
->>
->> Though I've looked at this a bit more, and since I want to be able to expose
->> shared objects as proper GEM objects from the import side I really
->> need that list of pages.
->
-> Hm, what does "proper GEM object" mean in the context of udl?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-One that appears the same as a GEM object created by userspace. i.e. mmap works.
+These are no longer needed: register access to subdevices no longer needs
+the bridge driver to forward them.
 
-Dave.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpbe_display.c |   29 -------------------------
+ 1 file changed, 29 deletions(-)
+
+diff --git a/drivers/media/platform/davinci/vpbe_display.c b/drivers/media/platform/davinci/vpbe_display.c
+index 1c4ba89..48cb0da 100644
+--- a/drivers/media/platform/davinci/vpbe_display.c
++++ b/drivers/media/platform/davinci/vpbe_display.c
+@@ -1578,31 +1578,6 @@ static int vpbe_display_release(struct file *file)
+ 	return 0;
+ }
+ 
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-static int vpbe_display_g_register(struct file *file, void *priv,
+-			struct v4l2_dbg_register *reg)
+-{
+-	struct v4l2_dbg_match *match = &reg->match;
+-	struct vpbe_fh *fh = file->private_data;
+-	struct vpbe_device *vpbe_dev = fh->disp_dev->vpbe_dev;
+-
+-	if (match->type >= 2) {
+-		v4l2_subdev_call(vpbe_dev->venc,
+-				 core,
+-				 g_register,
+-				 reg);
+-	}
+-
+-	return 0;
+-}
+-
+-static int vpbe_display_s_register(struct file *file, void *priv,
+-			const struct v4l2_dbg_register *reg)
+-{
+-	return 0;
+-}
+-#endif
+-
+ /* vpbe capture ioctl operations */
+ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+ 	.vidioc_querycap	 = vpbe_display_querycap,
+@@ -1629,10 +1604,6 @@ static const struct v4l2_ioctl_ops vpbe_ioctl_ops = {
+ 	.vidioc_s_dv_timings	 = vpbe_display_s_dv_timings,
+ 	.vidioc_g_dv_timings	 = vpbe_display_g_dv_timings,
+ 	.vidioc_enum_dv_timings	 = vpbe_display_enum_dv_timings,
+-#ifdef CONFIG_VIDEO_ADV_DEBUG
+-	.vidioc_g_register	 = vpbe_display_g_register,
+-	.vidioc_s_register	 = vpbe_display_s_register,
+-#endif
+ };
+ 
+ static struct v4l2_file_operations vpbe_fops = {
+-- 
+1.7.10.4
+
