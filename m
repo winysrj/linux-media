@@ -1,184 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from juliette.telenet-ops.be ([195.130.137.74]:59108 "EHLO
-	juliette.telenet-ops.be" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757658Ab3EOLlA (ORCPT
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:32942 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S966734Ab3E2Upz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 07:41:00 -0400
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Florian Tobias Schandinat <FlorianSchandinat@gmx.de>,
-	linux-fbdev@vger.kernel.org
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Thomas Winischhofer <thomas@winischhofer.net>,
-	Thomas Bogendoerfer <tsbogend@alpha.franken.de>,
-	Helge Deller <deller@gmx.de>, linux-media@vger.kernel.org,
-	devel@driverdev.osuosl.org, linux-usb@vger.kernel.org,
-	linux-kernel@vger.kernel.org,
-	Geert Uytterhoeven <geert@linux-m68k.org>
-Subject: [PATCH] console/font: Refactor font support code selection logic
-Date: Wed, 15 May 2013 13:40:50 +0200
-Message-Id: <1368618050-26895-1-git-send-email-geert@linux-m68k.org>
+	Wed, 29 May 2013 16:45:55 -0400
+Date: Wed, 29 May 2013 22:48:50 +0200
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	mchehab@redhat.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, g.liakhovetski@gmx.de,
+	ezequiel.garcia@free-electrons.com, timo.teras@iki.fi
+Subject: Re: [RFC 0/3] saa7115: Implement i2c_board_info.platform_data
+Message-ID: <20130529204850.GD2367@dell.arpanet.local>
+References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The current Makefile rules to build font support are messy and buggy.
-Replace them by Kconfig rules:
-  - Introduce CONFIG_FONT_SUPPORT, which controls the building of all font
-    code,
-  - Select CONFIG_FONT_SUPPORT for all drivers that use fonts,
-  - Select CONFIG_FONT_8x16 for all drivers that default to the VGA8x16
-    font,
-  - Drop the bogus console dependency for CONFIG_VIDEO_VIVI.
+On Wed, May 29, 2013 at 10:41:15PM +0200, Jon Arne Jørgensen wrote:
+> This patch set adds handling of the i2c_board_info struct to the saa7115 driver.
+> The main goal of this patch is to give the different devices with the gm7113c
+> chip an opportunity to configure the chip to their needs.
+> 
+> I've only implemented the overrides I know are necessary to get the stk1160
+> and the smi2021 drivers to work.
+> 
+> The first patch in the series sets the saa7113 init table to the defaults
+> according to the datasheet. Maybe it's better to add a new initialization
+> table for the gm7113c chip to avoid breaking devices that depend on the
+> settings as they are now?
+> That would introduce some unneeded code duplication.
+>
 
-This fixes (if CONFIG_SOLO6X10=y and there are no built-in console
-drivers):
+Hi,
+I just realized that there are som grave errors in patch 3 in the
+series.
 
-drivers/built-in.o: In function `solo_osd_print':
-drivers/staging/media/solo6x10/solo6x10-enc.c:144: undefined reference to `.find_font'
+I'll fix them and repost this series.
 
-Signed-off-by: Geert Uytterhoeven <geert@linux-m68k.org>
----
- drivers/media/platform/Kconfig         |    2 +-
- drivers/staging/media/solo6x10/Kconfig |    2 ++
- drivers/usb/misc/sisusbvga/Kconfig     |    1 +
- drivers/video/console/Kconfig          |   12 ++++++++++--
- drivers/video/console/Makefile         |   14 +++++---------
- 5 files changed, 19 insertions(+), 12 deletions(-)
-
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 0cbe1ff..c1f29d5 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -220,7 +220,7 @@ if V4L_TEST_DRIVERS
- config VIDEO_VIVI
- 	tristate "Virtual Video Driver"
- 	depends on VIDEO_DEV && VIDEO_V4L2 && !SPARC32 && !SPARC64
--	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
-+	select FONT_SUPPORT
- 	select FONT_8x16
- 	select VIDEOBUF2_VMALLOC
- 	default n
-diff --git a/drivers/staging/media/solo6x10/Kconfig b/drivers/staging/media/solo6x10/Kconfig
-index ec32776..b34bb6c 100644
---- a/drivers/staging/media/solo6x10/Kconfig
-+++ b/drivers/staging/media/solo6x10/Kconfig
-@@ -1,6 +1,8 @@
- config SOLO6X10
- 	tristate "Softlogic 6x10 MPEG codec cards"
- 	depends on PCI && VIDEO_DEV && SND && I2C
-+	select FONT_SUPPORT
-+	select FONT_8x16
- 	select VIDEOBUF2_DMA_SG
- 	select VIDEOBUF2_DMA_CONTIG
- 	select SND_PCM
-diff --git a/drivers/usb/misc/sisusbvga/Kconfig b/drivers/usb/misc/sisusbvga/Kconfig
-index 0d03a52..36bc28c 100644
---- a/drivers/usb/misc/sisusbvga/Kconfig
-+++ b/drivers/usb/misc/sisusbvga/Kconfig
-@@ -2,6 +2,7 @@
- config USB_SISUSBVGA
- 	tristate "USB 2.0 SVGA dongle support (Net2280/SiS315)"
- 	depends on (USB_MUSB_HDRC || USB_EHCI_HCD)
-+	select FONT_SUPPORT if USB_SISUSBVGA_CON
-         ---help---
- 	  Say Y here if you intend to attach a USB2VGA dongle based on a
- 	  Net2280 and a SiS315 chip.
-diff --git a/drivers/video/console/Kconfig b/drivers/video/console/Kconfig
-index bc922c4..baf27dc 100644
---- a/drivers/video/console/Kconfig
-+++ b/drivers/video/console/Kconfig
-@@ -62,6 +62,7 @@ config MDA_CONSOLE
- config SGI_NEWPORT_CONSOLE
-         tristate "SGI Newport Console support"
-         depends on SGI_IP22 
-+        select FONT_SUPPORT
-         help
-           Say Y here if you want the console on the Newport aka XL graphics
-           card of your Indy.  Most people say Y here.
-@@ -91,6 +92,7 @@ config FRAMEBUFFER_CONSOLE
- 	tristate "Framebuffer Console support"
- 	depends on FB
- 	select CRC32
-+	select FONT_SUPPORT
- 	help
- 	  Low-level framebuffer-based console driver.
+Best regards,
+Jon Arne Jørgensen
  
-@@ -123,12 +125,18 @@ config FRAMEBUFFER_CONSOLE_ROTATION
- config STI_CONSOLE
-         bool "STI text console"
-         depends on PARISC
-+        select FONT_SUPPORT
-         default y
-         help
-           The STI console is the builtin display/keyboard on HP-PARISC
-           machines.  Say Y here to build support for it into your kernel.
-           The alternative is to use your primary serial port as a console.
- 
-+config FONT_SUPPORT
-+	tristate
-+
-+if FONT_SUPPORT
-+
- config FONTS
- 	bool "Select compiled-in fonts"
- 	depends on FRAMEBUFFER_CONSOLE || STI_CONSOLE
-@@ -158,7 +166,6 @@ config FONT_8x8
- 
- config FONT_8x16
- 	bool "VGA 8x16 font" if FONTS
--	depends on FRAMEBUFFER_CONSOLE || SGI_NEWPORT_CONSOLE || STI_CONSOLE || USB_SISUSBVGA_CON
- 	default y if !SPARC && !FONTS
- 	help
- 	  This is the "high resolution" font for the VGA frame buffer (the one
-@@ -226,7 +233,6 @@ config FONT_10x18
- 
- config FONT_AUTOSELECT
- 	def_bool y
--	depends on FRAMEBUFFER_CONSOLE || SGI_NEWPORT_CONSOLE || STI_CONSOLE || USB_SISUSBVGA_CON
- 	depends on !FONT_8x8
- 	depends on !FONT_6x11
- 	depends on !FONT_7x14
-@@ -238,5 +244,7 @@ config FONT_AUTOSELECT
- 	depends on !FONT_10x18
- 	select FONT_8x16
- 
-+endif # FONT_SUPPORT
-+
- endmenu
- 
-diff --git a/drivers/video/console/Makefile b/drivers/video/console/Makefile
-index a862e91..3a11b63 100644
---- a/drivers/video/console/Makefile
-+++ b/drivers/video/console/Makefile
-@@ -18,14 +18,14 @@ font-objs-$(CONFIG_FONT_MINI_4x6)  += font_mini_4x6.o
- 
- font-objs += $(font-objs-y)
- 
--# Each configuration option enables a list of files.
-+obj-$(CONFIG_FONT_SUPPORT)         += font.o
- 
- obj-$(CONFIG_DUMMY_CONSOLE)       += dummycon.o
--obj-$(CONFIG_SGI_NEWPORT_CONSOLE) += newport_con.o font.o
--obj-$(CONFIG_STI_CONSOLE)         += sticon.o sticore.o font.o
-+obj-$(CONFIG_SGI_NEWPORT_CONSOLE) += newport_con.o
-+obj-$(CONFIG_STI_CONSOLE)         += sticon.o sticore.o
- obj-$(CONFIG_VGA_CONSOLE)         += vgacon.o
- obj-$(CONFIG_MDA_CONSOLE)         += mdacon.o
--obj-$(CONFIG_FRAMEBUFFER_CONSOLE) += fbcon.o bitblit.o font.o softcursor.o
-+obj-$(CONFIG_FRAMEBUFFER_CONSOLE) += fbcon.o bitblit.o softcursor.o
- ifeq ($(CONFIG_FB_TILEBLITTING),y)
- obj-$(CONFIG_FRAMEBUFFER_CONSOLE)     += tileblit.o
- endif
-@@ -34,8 +34,4 @@ obj-$(CONFIG_FRAMEBUFFER_CONSOLE)     += fbcon_rotate.o fbcon_cw.o fbcon_ud.o \
-                                          fbcon_ccw.o
- endif
- 
--obj-$(CONFIG_FB_STI)              += sticore.o font.o
--
--ifeq ($(CONFIG_USB_SISUSBVGA_CON),y)
--obj-$(CONFIG_USB_SISUSBVGA)           += font.o
--endif
-+obj-$(CONFIG_FB_STI)              += sticore.o
--- 
-1.7.0.4
-
+> Jon Arne Jørgensen (3):
+>   saa7115: Set saa7113 init to values from datasheet
+>   saa7115: [gm7113c] Remove unneeded register change
+>   saa7115: Implement i2c_board_info.platform data
+> 
+>  drivers/media/i2c/saa7115.c |  91 ++++++++++++++++++++++++------------
+>  include/media/saa7115.h     | 109 ++++++++++++++++++++++++++++++++++++++++++++
+>  2 files changed, 170 insertions(+), 30 deletions(-)
+> 
+> -- 
+> 1.8.2.3
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
