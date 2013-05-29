@@ -1,56 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:62142 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751531Ab3EMJh3 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3002 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965597Ab3E2OT1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 05:37:29 -0400
-Received: by mail-pb0-f49.google.com with SMTP id rp2so1593249pbb.22
-        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 02:37:29 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+	Wed, 29 May 2013 10:19:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, sachin.kamat@linaro.org,
-	Pelagicore AB <info@pelagicore.com>
-Subject: [PATCH 1/2] [media] timblogiw: Remove redundant platform_set_drvdata()
-Date: Mon, 13 May 2013 14:54:07 +0530
-Message-Id: <1368437048-13172-1-git-send-email-sachin.kamat@linaro.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [RFC PATCH 01/14] adv7183: fix querystd
+Date: Wed, 29 May 2013 16:18:54 +0200
+Message-Id: <1369837147-8747-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
-driver is bound) removes the need to set driver data field to
-NULL.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Pelagicore AB <info@pelagicore.com>
+If no signal is detected, return V4L2_STD_UNKNOWN. Otherwise AND the standard
+with the detected standards.
+
+Note that the v4l2 core initializes the std with tvnorms before calling the
+querystd ioctl.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>
 ---
- drivers/media/platform/timblogiw.c |    4 ----
- 1 file changed, 4 deletions(-)
+ drivers/media/i2c/adv7183.c |   16 ++++++++--------
+ 1 file changed, 8 insertions(+), 8 deletions(-)
 
-diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
-index a2f7bdd..99861c63 100644
---- a/drivers/media/platform/timblogiw.c
-+++ b/drivers/media/platform/timblogiw.c
-@@ -834,11 +834,9 @@ static int timblogiw_probe(struct platform_device *pdev)
- 		goto err_request;
- 	}
- 
--
- 	return 0;
- 
- err_request:
--	platform_set_drvdata(pdev, NULL);
- 	v4l2_device_unregister(&lw->v4l2_dev);
- err_register:
- 	kfree(lw);
-@@ -858,8 +856,6 @@ static int timblogiw_remove(struct platform_device *pdev)
- 
- 	kfree(lw);
- 
--	platform_set_drvdata(pdev, NULL);
--
- 	return 0;
- }
- 
+diff --git a/drivers/media/i2c/adv7183.c b/drivers/media/i2c/adv7183.c
+index 7c48e22..b5e51d8 100644
+--- a/drivers/media/i2c/adv7183.c
++++ b/drivers/media/i2c/adv7183.c
+@@ -375,28 +375,28 @@ static int adv7183_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ 	reg = adv7183_read(sd, ADV7183_STATUS_1);
+ 	switch ((reg >> 0x4) & 0x7) {
+ 	case 0:
+-		*std = V4L2_STD_NTSC;
++		*std &= V4L2_STD_NTSC;
+ 		break;
+ 	case 1:
+-		*std = V4L2_STD_NTSC_443;
++		*std &= V4L2_STD_NTSC_443;
+ 		break;
+ 	case 2:
+-		*std = V4L2_STD_PAL_M;
++		*std &= V4L2_STD_PAL_M;
+ 		break;
+ 	case 3:
+-		*std = V4L2_STD_PAL_60;
++		*std &= V4L2_STD_PAL_60;
+ 		break;
+ 	case 4:
+-		*std = V4L2_STD_PAL;
++		*std &= V4L2_STD_PAL;
+ 		break;
+ 	case 5:
+-		*std = V4L2_STD_SECAM;
++		*std &= V4L2_STD_SECAM;
+ 		break;
+ 	case 6:
+-		*std = V4L2_STD_PAL_Nc;
++		*std &= V4L2_STD_PAL_Nc;
+ 		break;
+ 	case 7:
+-		*std = V4L2_STD_SECAM;
++		*std &= V4L2_STD_SECAM;
+ 		break;
+ 	default:
+ 		*std = V4L2_STD_UNKNOWN;
 -- 
-1.7.9.5
+1.7.10.4
 
