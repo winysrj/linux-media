@@ -1,203 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:52983 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751418Ab3EMFRc (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:1123 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755679Ab3E2O0s (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 01:17:32 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>, Arnd Bergmann <arnd@arndb.de>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: [PATCH RFC V4 FINAL] media: i2c: mt9p031: add OF support
-Date: Mon, 13 May 2013 10:47:04 +0530
-Message-Id: <1368422224-19590-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 29 May 2013 10:26:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Antti Palosaari <crope@iki.fi>
+Subject: Re: Keene
+Date: Wed, 29 May 2013 16:26:20 +0200
+Cc: LMML <linux-media@vger.kernel.org>
+References: <5167513D.60804@iki.fi> <201304190912.06319.hverkuil@xs4all.nl> <51710A3F.10909@iki.fi>
+In-Reply-To: <51710A3F.10909@iki.fi>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305291626.20170.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Fri April 19 2013 11:11:27 Antti Palosaari wrote:
+> On 04/19/2013 10:12 AM, Hans Verkuil wrote:
+> > On Wed April 17 2013 21:45:24 Antti Palosaari wrote:
+> >> On 04/15/2013 09:55 AM, Hans Verkuil wrote:
+> >>> On Fri April 12 2013 02:11:41 Antti Palosaari wrote:
+> >>>> Hello Hans,
+> >>>> That device is working very, thank you for it. Anyhow, I noticed two things.
+> >>>>
+> >>>> 1) it does not start transmitting just after I plug it - I have to
+> >>>> retune it!
+> >>>> Output says it is tuned to 95.160000 MHz by default, but it is not.
+> >>>> After I issue retune, just to same channel it starts working.
+> >>>> $ v4l2-ctl -d /dev/radio0 --set-freq=95.16
+> >>>
+> >>> Can you try this patch:
+> >>>
+> >>
+> >> It does not resolve the problem. It is quite strange behavior. After I
+> >> install modules, and modules are unload, plug stick in first time, it
+> >> usually (not every-time) starts TX. But when I replug it without
+> >> unloading modules, it will never start TX. Tx is started always when I
+> >> set freq using v4l2-ctl.
+> >
+> > If you replace 'false' by 'true' in the cmd_main, does that make it work?
+> > I'm fairly certain that's the problem.
+> 
+> Nope, I replaces all 'false' with 'true' and problem remains. When 
+> modules were unload and device is plugged it starts TX. When I replug it 
+> doesn't start anymore.
+> 
+> I just added msleep(1000); just before keene_cmd_main() in .probe() and 
+> now it seems to work every-time. So it is definitely timing issue. I 
+> will try to find out some smallest suitable value for sleep and and sent 
+> patch.
 
-add OF support for the mt9p031 sensor driver.
-Alongside this patch sorts the header inclusion alphabetically.
+Have you had time to find a smaller msleep value?
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: Arnd Bergmann <arnd@arndb.de>
-Cc: devicetree-discuss@lists.ozlabs.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
----
- Changes for v4:
- 1: Renamed "gpio-reset" property to "reset-gpios".
- 2: Dropped assigning the driver data from the of node.
+Regards,
 
- Changes for v3:
- 1: Dropped check if gpio-reset is valid.
- 2: Fixed some code nits.
- 3: Included a reference to the V4L2 DT bindings documentation.
-
- Changes for v2:
- 1: Used '-' instead of '_' for device properties.
- 2: Specified gpio reset pin as phandle in device node.
- 3: Handle platform data properly even if kernel is compiled with
-    devicetree support.
- 4: Used dev_* for messages in drivers instead of pr_*.
- 5: Changed compatible property to "aptina,mt9p031" and "aptina,mt9p031m".
- 6: Sorted the header inclusion alphabetically and fixed some minor code nits.
-
- .../devicetree/bindings/media/i2c/mt9p031.txt      |   40 +++++++++++++++++++
- drivers/media/i2c/mt9p031.c                        |   42 +++++++++++++++++++-
- 2 files changed, 80 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-
-diff --git a/Documentation/devicetree/bindings/media/i2c/mt9p031.txt b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-new file mode 100644
-index 0000000..59d613c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-@@ -0,0 +1,40 @@
-+* Aptina 1/2.5-Inch 5Mp CMOS Digital Image Sensor
-+
-+The Aptina MT9P031 is a 1/2.5-inch CMOS active pixel digital image sensor with
-+an active array size of 2592H x 1944V. It is programmable through a simple
-+two-wire serial interface.
-+
-+Required Properties :
-+- compatible : value should be either one among the following
-+	(a) "aptina,mt9p031" for mt9p031 sensor
-+	(b) "aptina,mt9p031m" for mt9p031m sensor
-+
-+- input-clock-frequency : Input clock frequency.
-+
-+- pixel-clock-frequency : Pixel clock frequency.
-+
-+Optional Properties :
-+- reset-gpios: Chip reset GPIO
-+
-+For further reading of port node refer Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		...
-+		mt9p031@5d {
-+			compatible = "aptina,mt9p031";
-+			reg = <0x5d>;
-+			reset-gpios = <&gpio3 30 0>;
-+
-+			port {
-+				mt9p031_1: endpoint {
-+					input-clock-frequency = <6000000>;
-+					pixel-clock-frequency = <96000000>;
-+				};
-+			};
-+		};
-+		...
-+	};
-diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-index 28cf95b..a58207c 100644
---- a/drivers/media/i2c/mt9p031.c
-+++ b/drivers/media/i2c/mt9p031.c
-@@ -16,9 +16,11 @@
- #include <linux/delay.h>
- #include <linux/device.h>
- #include <linux/gpio.h>
--#include <linux/module.h>
- #include <linux/i2c.h>
- #include <linux/log2.h>
-+#include <linux/module.h>
-+#include <linux/of_device.h>
-+#include <linux/of_gpio.h>
- #include <linux/pm.h>
- #include <linux/regulator/consumer.h>
- #include <linux/slab.h>
-@@ -28,6 +30,7 @@
- #include <media/v4l2-chip-ident.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-device.h>
-+#include <media/v4l2-of.h>
- #include <media/v4l2-subdev.h>
- 
- #include "aptina-pll.h"
-@@ -928,10 +931,35 @@ static const struct v4l2_subdev_internal_ops mt9p031_subdev_internal_ops = {
-  * Driver initialization and probing
-  */
- 
-+static struct mt9p031_platform_data *
-+mt9p031_get_pdata(struct i2c_client *client)
-+{
-+	struct device_node *np;
-+	struct mt9p031_platform_data *pdata;
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-+		return client->dev.platform_data;
-+
-+	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-+	if (!np)
-+		return NULL;
-+
-+	pdata = devm_kzalloc(&client->dev, sizeof(struct mt9p031_platform_data),
-+			     GFP_KERNEL);
-+	if (!pdata)
-+		return NULL;
-+
-+	pdata->reset = of_get_named_gpio(client->dev.of_node, "reset-gpios", 0);
-+	of_property_read_u32(np, "input-clock-frequency", &pdata->ext_freq);
-+	of_property_read_u32(np, "pixel-clock-frequency", &pdata->target_freq);
-+
-+	return pdata;
-+}
-+
- static int mt9p031_probe(struct i2c_client *client,
- 			 const struct i2c_device_id *did)
- {
--	struct mt9p031_platform_data *pdata = client->dev.platform_data;
-+	struct mt9p031_platform_data *pdata = mt9p031_get_pdata(client);
- 	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
- 	struct mt9p031 *mt9p031;
- 	unsigned int i;
-@@ -1070,8 +1098,18 @@ static const struct i2c_device_id mt9p031_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, mt9p031_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id mt9p031_of_match[] = {
-+	{ .compatible = "aptina,mt9p031", },
-+	{ .compatible = "aptina,mt9p031m", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, mt9p031_of_match);
-+#endif
-+
- static struct i2c_driver mt9p031_i2c_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(mt9p031_of_match),
- 		.name = "mt9p031",
- 	},
- 	.probe          = mt9p031_probe,
--- 
-1.7.4.1
-
+	Hans
