@@ -1,43 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3734 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753327Ab3EaKDQ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:53178 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932427Ab3E2Dik (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 06:03:16 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
+	Tue, 28 May 2013 23:38:40 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Fabio Belavenuto <belavenuto@gmail.com>
-Subject: [PATCH 08/21] radio-tea5764: add device_caps support.
-Date: Fri, 31 May 2013 12:02:28 +0200
-Message-Id: <1369994561-25236-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
-References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v3 9/9] media: davinci: vpif_display: Convert to devm_* api
+Date: Wed, 29 May 2013 05:38:38 +0200
+Message-ID: <1915324.uRjOv648gy@avalon>
+In-Reply-To: <1369569612-30915-10-git-send-email-prabhakar.csengg@gmail.com>
+References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com> <1369569612-30915-10-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Sunday 26 May 2013 17:30:12 Prabhakar Lad wrote:
+> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> 
+> use devm_request_irq() instead of request_irq(). This ensures
+> more consistent error values and simplifies error paths.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Fabio Belavenuto <belavenuto@gmail.com>
----
- drivers/media/radio/radio-tea5764.c |    3 ++-
- 1 file changed, 2 insertions(+), 1 deletion(-)
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
-index 5a60990..077d906 100644
---- a/drivers/media/radio/radio-tea5764.c
-+++ b/drivers/media/radio/radio-tea5764.c
-@@ -294,7 +294,8 @@ static int vidioc_querycap(struct file *file, void  *priv,
- 	strlcpy(v->card, dev->name, sizeof(v->card));
- 	snprintf(v->bus_info, sizeof(v->bus_info),
- 		 "I2C:%s", dev_name(&dev->dev));
--	v->capabilities = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+	v->device_caps = V4L2_CAP_TUNER | V4L2_CAP_RADIO;
-+	v->capabilities = v->device_caps | V4L2_CAP_DEVICE_CAPS;
- 	return 0;
- }
- 
+with a small comment below.
+
+> ---
+>  drivers/media/platform/davinci/vpif_display.c |   35 ++++++----------------
+>  1 files changed, 9 insertions(+), 26 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif_display.c
+> b/drivers/media/platform/davinci/vpif_display.c index 7bcfe7d..e2f080b
+> 100644
+> --- a/drivers/media/platform/davinci/vpif_display.c
+> +++ b/drivers/media/platform/davinci/vpif_display.c
+> @@ -1718,15 +1718,14 @@ static __init int vpif_probe(struct platform_device
+> *pdev)
+> 
+>  	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
+>  		for (i = res->start; i <= res->end; i++) {
+> -			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
+> -					"VPIF_Display", (void *)
+> -					(&vpif_obj.dev[res_idx]->channel_id))) {
+> -				err = -EBUSY;
+> -				for (j = 0; j < i; j++)
+> -					free_irq(j, (void *)
+> -					(&vpif_obj.dev[res_idx]->channel_id));
+> +			err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
+> +					     IRQF_SHARED, "VPIF_Display",
+> +					     (void *)(&vpif_obj.dev[res_idx]->
+> +					     channel_id));
+> +			if (err) {
+> +				err = -EINVAL;
+>  				vpif_err("VPIF IRQ request failed\n");
+> -				goto vpif_int_err;
+> +				goto vpif_unregister;
+>  			}
+>  		}
+>  		res_idx++;
+> @@ -1744,7 +1743,7 @@ static __init int vpif_probe(struct platform_device
+> *pdev) video_device_release(ch->video_dev);
+>  			}
+>  			err = -ENOMEM;
+> -			goto vpif_int_err;
+> +			goto vpif_unregister;
+>  		}
+> 
+>  		/* Initialize field of video device */
+> @@ -1878,13 +1877,8 @@ vpif_sd_error:
+>  		/* Note: does nothing if ch->video_dev == NULL */
+>  		video_device_release(ch->video_dev);
+>  	}
+> -vpif_int_err:
+> +vpif_unregister:
+>  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+> -	for (i = 0; i < res_idx; i++) {
+> -		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
+> -		for (j = res->start; j <= res->end; j++)
+> -			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
+> -	}
+> 
+>  	return err;
+>  }
+> @@ -1894,20 +1888,9 @@ vpif_int_err:
+>   */
+>  static int vpif_remove(struct platform_device *device)
+>  {
+> -	struct platform_device *pdev;
+>  	struct channel_obj *ch;
+> -	struct resource *res;
+> -	int irq_num;
+>  	int i = 0;
+
+There's no need to initialize i to 0 anymore (same comment for patch 6/9).
+
+> -	pdev = container_of(vpif_dev, struct platform_device, dev);
+> -	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+> -		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+> -			free_irq(irq_num,
+> -				 (void *)(&vpif_obj.dev[i]->channel_id));
+> -		i++;
+> -	}
+> -
+>  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+> 
+>  	kfree(vpif_obj.sd);
 -- 
-1.7.10.4
+Regards,
+
+Laurent Pinchart
 
