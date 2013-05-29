@@ -1,53 +1,114 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:51070 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751141Ab3EMJ5g (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:50814 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965579Ab3E2LON (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 05:57:36 -0400
-Received: by mail-we0-f174.google.com with SMTP id x53so5996635wes.33
-        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 02:57:35 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1368438071.1350.43.camel@x61.thuisdomein>
-References: <1363079692-16683-1-git-send-email-nsekhar@ti.com> <1368438071.1350.43.camel@x61.thuisdomein>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 13 May 2013 15:27:15 +0530
-Message-ID: <CA+V-a8sEMsQENPN+40bMtOpTs5Xq9HbtiR49shhd=+kXU3-2YA@mail.gmail.com>
-Subject: Re: [v3] media: davinci: kconfig: fix incorrect selects
-To: Paul Bolle <pebolle@tiscali.nl>
-Cc: Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 29 May 2013 07:14:13 -0400
+Message-ID: <1369825995.4050.49.camel@pizza.hi.pengutronix.de>
+Subject: Re: [RFC] [media] mem2mem: add support for hardware buffered queue
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'John Sheu' <sheu@google.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Date: Wed, 29 May 2013 13:13:15 +0200
+In-Reply-To: <01f401ce5c52$75dcee90$6196cbb0$%debski@samsung.com>
+References: <1369217856-10385-1-git-send-email-p.zabel@pengutronix.de>
+	 <01f401ce5c52$75dcee90$6196cbb0$%debski@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paul,
+Hi Kamil,
 
-On Mon, May 13, 2013 at 3:11 PM, Paul Bolle <pebolle@tiscali.nl> wrote:
-> On Tue, 2013-03-12 at 09:14 +0000, Sekhar Nori wrote:
-[Snip]
->> This patch has only been build tested; I have tried to not break
->> any existing assumptions. I do not have the setup to test video,
->> so any test reports welcome.
->>
->> Reported-by: Russell King <rmk+kernel@arm.linux.org.uk>
->> Signed-off-by: Sekhar Nori <nsekhar@ti.com>
->> Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->
-> This seems to be the patch that ended up as mainline commit
-> 3778d05036cc7ddd983ae2451da579af00acdac2 (which was included in
-> v3.10-rc1).
->
-> After that commit there's still one reference to VIDEO_VPFE_CAPTURE in
-> the tree: as a (negative) dependency in
-> drivers/staging/media/davinci_vpfe/Kconfig. Can that (negative)
-> dependency now be dropped (as it's currently useless) or should it be
-> replaced with a (negative) dependency on a related symbol?
->
-Good catch! the dependency can be dropped now. Are you planning to post a
-patch for it or shall I do it ?
+Am Mittwoch, den 29.05.2013, 11:54 +0200 schrieb Kamil Debski:
+> Hi Philipp, Hans,
+> 
+> > On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
+> > buffer at the end of the stream, remaining frames might need to be
+> > decoded without additional input buffers being provided, and after
+> > calling streamoff on the v4l2 output queue. This also allows a driver
+> > to copy input buffers into their bitstream ringbuffer and immediately
+> > mark them as done to be dequeued.
+> > 
+> > The motivation for this patch is hardware assisted h.264 reordering
+> > support in the coda driver. For high profile streams, the coda can hold
+> > back out-of-order frames, causing a few mem2mem device runs in the
+> > beginning, that don't produce any decompressed buffer at the v4l2
+> > capture side. At the same time, the last few frames can be decoded from
+> > the bitstream with mem2mem device runs that don't need a new input
+> > buffer at the v4l2 output side. A streamoff on the v4l2 output side can
+> > be used to put the decoder into the ringbuffer draining end-of-stream
+> > mode.
+> 
+> If I remember correctly the main goal of introducing the m2m framework
+> was to support simple mem2mem devices where one input buffer = one output
+> buffer. In other cases m2m was not to be used. 
 
-Regards,
---Prabhakar Lad
+The m2m context / queue handling and job scheduling are very useful even
+for drivers that don't always produce one CAPTURE buffer from one OUTPUT
+buffer, just as you drescribe below.
+The CODA encoder path fits the m2m model perfectly. I'd prefer not to
+duplicate most of mem2mem just because the decoder doesn't.
+
+There's two things that this patch allows me to do:
+a) running mem2mem device_run with an empty OUTPUT queue, which is
+   something I'd really like to make possible.
+b) running mem2mem device_run with the OUTPUT queue in STREAM OFF, which
+   I needed to get the remaining buffers out. But maybe there is a
+   better way to do this while keeping the output queue streaming.
+
+> An example of such mem2mem driver, which does not use m2m framework is
+> MFC. It uses videobuf2 directly and it is wholly up to the driver how
+> will it control the queues, stream on/off and so on. You can then have
+> one OUTPUT buffer generate multiple CAPTURE buffer, multiple OUTPUT
+> buffers generate a single CAPTURE buffer. Consume OUTPUT buffer without
+> generating CAPTURE buffer (e.g. when starting decoding) and produce
+> CAPTURE buffers without consuming OUTPUT buffers (e.g. when finishing
+> decoding).
+>
+> I think that stream off should not be used to signal EOS. For this we
+> have EOS event. You mentioned the EOS buffer flag. This is the idea
+> originally proposed by Andrzej Hajda, after some lengthy discussions
+> with v4l community this idea was changed to use an EOS event.
+
+I'm not set on using STREAMOFF to signal the stream-end condition to the
+hardware, but after switching to stream-end mode, no new frames should
+be queued, so I thought it fit quite well. It also allows to prepare the
+OUTPUT buffers (S_FMT/REQBUFS) for the next STREAMON while the CAPTURE
+side is still draining the bitstream, although that's probably not a
+very useful feature.
+I could instead have userspace signal the driver via an EOS buffer flag
+or any other mechanism. Then the OUTPUT queue would be kept streaming,
+but hold back all buffers queued via QBUF until the last buffer is
+dequeued from the CAPTURE queue.
+
+> I was all for the EOS buffer flag, but after discussion with Mauro I
+> understood his arguments. We can get back to this discussion, if we
+> are sure that events are not enough. Please also note that we need to
+> keep backward compatibility.
+
+Maybe I've missed something, but I thought the EOS signal is only for
+the driver to signal to userspace that the currently dequeued frame is
+the last one?
+I need userspace to signal to the driver that it won't queue any new
+OUTPUT buffers, but still wants to dequeue the remaining CAPTURE buffers
+until the bitstream buffer is empty.
+
+> Original EOS buffer flag patches by Andrzej and part of the discussion
+> can be found here:
+> 1) https://linuxtv.org/patch/10624/
+> 2) https://linuxtv.org/patch/11373/
+> 
+> Best wishes,
+> Kamil Debski
+
+regards
+Philipp
+
