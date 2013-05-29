@@ -1,84 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:35682 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755812Ab3EIPh7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 9 May 2013 11:37:59 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMJ005BMFF8JR20@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 10 May 2013 00:37:58 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2393 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965701Ab3E2LBM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 May 2013 07:01:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: hj210.choi@samsung.com, dh09.lee@samsung.com, a.hajda@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH 12/13] exynos4-is: Add locking at fimc(-lite) subdev
- unregistered handler
-Date: Thu, 09 May 2013 17:36:44 +0200
-Message-id: <1368113805-20233-13-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
-References: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCHv1 34/38] media/i2c: fill in missing reg->size fields.
+Date: Wed, 29 May 2013 13:00:07 +0200
+Message-Id: <1369825211-29770-35-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Protect the fimc/fimc-lite video nodes unregistration with their video
-lock. This prevents a kernel crash when e.g. udev opens a video node
-right after the driver registers it and then the driver tries to
-unregister it and defers its probing. Using video_is_unregistered()
-together with the video mutex allows safe unregistration of the video
-nodes at any time.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/platform/exynos4-is/fimc-capture.c |    4 ++++
- drivers/media/platform/exynos4-is/fimc-lite.c    |    4 ++++
- 2 files changed, 8 insertions(+)
+ drivers/media/i2c/ak881x.c             |    1 +
+ drivers/media/i2c/soc_camera/mt9t031.c |    1 +
+ drivers/media/i2c/soc_camera/tw9910.c  |    1 +
+ drivers/media/i2c/tvp7002.c            |    1 +
+ 4 files changed, 4 insertions(+)
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index 984a631..e4645cd 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -1855,6 +1855,8 @@ static void fimc_capture_subdev_unregistered(struct v4l2_subdev *sd)
- 	if (fimc == NULL)
- 		return;
+diff --git a/drivers/media/i2c/ak881x.c b/drivers/media/i2c/ak881x.c
+index fcd8a3f..c14e667 100644
+--- a/drivers/media/i2c/ak881x.c
++++ b/drivers/media/i2c/ak881x.c
+@@ -69,6 +69,7 @@ static int ak881x_g_register(struct v4l2_subdev *sd,
+ 	if (reg->reg > 0x26)
+ 		return -EINVAL;
  
-+	mutex_lock(&fimc->lock);
-+
- 	fimc_unregister_m2m_device(fimc);
- 	vdev = &fimc->vid_cap.ve.vdev;
++	reg->size = 1;
+ 	reg->val = reg_read(client, reg->reg);
  
-@@ -1866,6 +1868,8 @@ static void fimc_capture_subdev_unregistered(struct v4l2_subdev *sd)
- 	}
- 	kfree(fimc->vid_cap.ctx);
- 	fimc->vid_cap.ctx = NULL;
-+
-+	mutex_unlock(&fimc->lock);
+ 	if (reg->val > 0xffff)
+diff --git a/drivers/media/i2c/soc_camera/mt9t031.c b/drivers/media/i2c/soc_camera/mt9t031.c
+index 1d2cc27..8f71c9a 100644
+--- a/drivers/media/i2c/soc_camera/mt9t031.c
++++ b/drivers/media/i2c/soc_camera/mt9t031.c
+@@ -398,6 +398,7 @@ static int mt9t031_g_register(struct v4l2_subdev *sd,
+ 	if (reg->reg > 0xff)
+ 		return -EINVAL;
+ 
++	reg->size = 1;
+ 	reg->val = reg_read(client, reg->reg);
+ 
+ 	if (reg->val > 0xffff)
+diff --git a/drivers/media/i2c/soc_camera/tw9910.c b/drivers/media/i2c/soc_camera/tw9910.c
+index 8a2ac24..b5407df 100644
+--- a/drivers/media/i2c/soc_camera/tw9910.c
++++ b/drivers/media/i2c/soc_camera/tw9910.c
+@@ -527,6 +527,7 @@ static int tw9910_g_register(struct v4l2_subdev *sd,
+ 	if (reg->reg > 0xff)
+ 		return -EINVAL;
+ 
++	reg->size = 1;
+ 	ret = i2c_smbus_read_byte_data(client, reg->reg);
+ 	if (ret < 0)
+ 		return ret;
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index c2d0280..36ad565 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -722,6 +722,7 @@ static int tvp7002_g_register(struct v4l2_subdev *sd,
+ 
+ 	ret = tvp7002_read(sd, reg->reg & 0xff, &val);
+ 	reg->val = val;
++	reg->size = 1;
+ 	return ret;
  }
  
- static const struct v4l2_subdev_internal_ops fimc_capture_sd_internal_ops = {
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index 5f87e65..0985e31 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -1300,11 +1300,15 @@ static void fimc_lite_subdev_unregistered(struct v4l2_subdev *sd)
- 	if (fimc == NULL)
- 		return;
- 
-+	mutex_lock(&fimc->lock);
-+
- 	if (video_is_registered(&fimc->ve.vdev)) {
- 		video_unregister_device(&fimc->ve.vdev);
- 		media_entity_cleanup(&fimc->ve.vdev.entity);
- 		fimc->ve.pipe = NULL;
- 	}
-+
-+	mutex_unlock(&fimc->lock);
- }
- 
- static const struct v4l2_subdev_internal_ops fimc_lite_subdev_internal_ops = {
 -- 
-1.7.9.5
+1.7.10.4
 
