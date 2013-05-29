@@ -1,101 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:3942 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756698Ab3EOR0y (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2419 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965700Ab3E2LBM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 13:26:54 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4FHQmDN073117
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 15 May 2013 19:26:51 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 99C3535E0050
-	for <linux-media@vger.kernel.org>; Wed, 15 May 2013 19:26:41 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Wed, 29 May 2013 07:01:12 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130515172641.99C3535E0050@alastor.dyndns.org>
-Date: Wed, 15 May 2013 19:26:41 +0200 (CEST)
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCHv1 08/38] saa6752hs: drop obsolete g_chip_ident.
+Date: Wed, 29 May 2013 12:59:41 +0200
+Message-Id: <1369825211-29770-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Results of the daily build of media_tree:
+This op and the v4l2-chip-ident.h header are no longer needed.
 
-date:		Wed May 15 19:00:22 CEST 2013
-git branch:	test
-git hash:	4237c09a63906b980741725da63f85e454caec02
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/pci/saa7134/saa6752hs.c |   14 --------------
+ 1 file changed, 14 deletions(-)
 
-linux-git-arm-davinci: ERRORS
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: ERRORS
-linux-git-blackfin: ERRORS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: ERRORS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: ERRORS
-linux-3.5.7-i686: ERRORS
-linux-3.6.11-i686: ERRORS
-linux-3.7.4-i686: ERRORS
-linux-3.8-i686: ERRORS
-linux-3.9.2-i686: ERRORS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: ERRORS
-linux-3.5.7-x86_64: ERRORS
-linux-3.6.11-x86_64: ERRORS
-linux-3.7.4-x86_64: ERRORS
-linux-3.8-x86_64: ERRORS
-linux-3.9.2-x86_64: ERRORS
-apps: ERRORS
-spec-git: OK
-sparse: ERRORS
+diff --git a/drivers/media/pci/saa7134/saa6752hs.c b/drivers/media/pci/saa7134/saa6752hs.c
+index f147b05..244b286 100644
+--- a/drivers/media/pci/saa7134/saa6752hs.c
++++ b/drivers/media/pci/saa7134/saa6752hs.c
+@@ -35,7 +35,6 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <linux/init.h>
+ #include <linux/crc32.h>
+ 
+@@ -92,7 +91,6 @@ static const struct v4l2_format v4l2_format_table[] =
+ 
+ struct saa6752hs_state {
+ 	struct v4l2_subdev            sd;
+-	int 			      chip;
+ 	u32 			      revision;
+ 	int 			      has_ac3;
+ 	struct saa6752hs_mpeg_params  params;
+@@ -914,19 +912,9 @@ static int saa6752hs_s_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	return 0;
+ }
+ 
+-static int saa6752hs_g_chip_ident(struct v4l2_subdev *sd, struct v4l2_dbg_chip_ident *chip)
+-{
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct saa6752hs_state *h = to_state(sd);
+-
+-	return v4l2_chip_ident_i2c_client(client,
+-			chip, h->chip, h->revision);
+-}
+-
+ /* ----------------------------------------------------------------------- */
+ 
+ static const struct v4l2_subdev_core_ops saa6752hs_core_ops = {
+-	.g_chip_ident = saa6752hs_g_chip_ident,
+ 	.init = saa6752hs_init,
+ 	.queryctrl = saa6752hs_queryctrl,
+ 	.querymenu = saa6752hs_querymenu,
+@@ -963,11 +951,9 @@ static int saa6752hs_probe(struct i2c_client *client,
+ 
+ 	i2c_master_send(client, &addr, 1);
+ 	i2c_master_recv(client, data, sizeof(data));
+-	h->chip = V4L2_IDENT_SAA6752HS;
+ 	h->revision = (data[8] << 8) | data[9];
+ 	h->has_ac3 = 0;
+ 	if (h->revision == 0x0206) {
+-		h->chip = V4L2_IDENT_SAA6752HS_AC3;
+ 		h->has_ac3 = 1;
+ 		v4l_info(client, "support AC-3\n");
+ 	}
+-- 
+1.7.10.4
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
