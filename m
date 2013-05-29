@@ -1,116 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:53168 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932427Ab3E2DhD (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:1777 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965687Ab3E2LBD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 May 2013 23:37:03 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 6/9] media: davinci: vpif_capture: Convert to devm_* api
-Date: Wed, 29 May 2013 05:37:01 +0200
-Message-ID: <1758769.0xLW0L5ybf@avalon>
-In-Reply-To: <1369569612-30915-7-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com> <1369569612-30915-7-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 29 May 2013 07:01:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCHv1 25/38] DocBook: remove obsolete note from the dbg_g_register doc.
+Date: Wed, 29 May 2013 12:59:58 +0200
+Message-Id: <1369825211-29770-26-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 26 May 2013 17:30:09 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> use devm_request_irq() instead of request_irq(). This ensures
-> more consistent error values and simplifies error paths.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml |    9 ---------
+ 1 file changed, 9 deletions(-)
 
-> ---
->  drivers/media/platform/davinci/vpif_capture.c |   38 ++++++++--------------
->  1 files changed, 12 insertions(+), 26 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> b/drivers/media/platform/davinci/vpif_capture.c index 38c1fba..5e1e5f6
-> 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -2082,14 +2082,14 @@ static __init int vpif_probe(struct platform_device
-> *pdev)
-> 
->  	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
->  		for (i = res->start; i <= res->end; i++) {
-> -			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
-> -					"VPIF_Capture", (void *)
-> -					(&vpif_obj.dev[res_idx]->channel_id))) {
-> -				err = -EBUSY;
-> -				for (j = 0; j < i; j++)
-> -					free_irq(j, (void *)
-> -					(&vpif_obj.dev[res_idx]->channel_id));
-> -				goto vpif_int_err;
-> +			err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
-> +					     IRQF_SHARED, "VPIF_Capture",
-> +					     (void *)(&vpif_obj.dev[res_idx]->
-> +					     channel_id));
-> +			if (err) {
-> +				err = -EINVAL;
-> +				goto vpif_unregister;
-> +
->  			}
->  		}
->  		res_idx++;
-> @@ -2106,7 +2106,7 @@ static __init int vpif_probe(struct platform_device
-> *pdev) video_device_release(ch->video_dev);
->  			}
->  			err = -ENOMEM;
-> -			goto vpif_int_err;
-> +			goto vpif_unregister;
->  		}
-> 
->  		/* Initialize field of video device */
-> @@ -2207,13 +2207,9 @@ vpif_sd_error:
->  		/* Note: does nothing if ch->video_dev == NULL */
->  		video_device_release(ch->video_dev);
->  	}
-> -vpif_int_err:
-> +vpif_unregister:
->  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-> -	for (i = 0; i < res_idx; i++) {
-> -		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
-> -		for (j = res->start; j <= res->end; j++)
-> -			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
-> -	}
-> +
->  	return err;
->  }
-> 
-> @@ -2225,18 +2221,8 @@ vpif_int_err:
->   */
->  static int vpif_remove(struct platform_device *device)
->  {
-> -	struct platform_device *pdev;
->  	struct channel_obj *ch;
-> -	struct resource *res;
-> -	int irq_num, i = 0;
-> -
-> -	pdev = container_of(vpif_dev, struct platform_device, dev);
-> -	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
-> -		for (irq_num = res->start; irq_num <= res->end; irq_num++)
-> -			free_irq(irq_num,
-> -				 (void *)(&vpif_obj.dev[i]->channel_id));
-> -		i++;
-> -	}
-> +	int i;
-> 
->  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+diff --git a/Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml b/Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml
+index 8d554db..b3f6100 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-dbg-g-register.xml
+@@ -105,15 +105,6 @@ present with the &VIDIOC-DBG-G-CHIP-INFO; ioctl.</para>
+ <constant>V4L2_CHIP_MATCH_SUBDEV</constant>,
+ <structfield>match.addr</structfield> selects the nth sub-device.</para>
+ 
+-    <note>
+-      <title>Success not guaranteed</title>
+-
+-      <para>Due to a flaw in the Linux &i2c; bus driver these ioctls may
+-return successfully without actually reading or writing a register. To
+-catch the most likely failure we recommend a &VIDIOC-DBG-G-CHIP-INFO;
+-call confirming the presence of the selected &i2c; chip.</para>
+-    </note>
+-
+     <para>These ioctls are optional, not all drivers may support them.
+ However when a driver supports these ioctls it must also support
+ &VIDIOC-DBG-G-CHIP-INFO;. Conversely it may support
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
