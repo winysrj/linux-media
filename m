@@ -1,71 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f48.google.com ([209.85.215.48]:64441 "EHLO
-	mail-la0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753295Ab3EZOhF (ORCPT
+Received: from mail-wg0-f42.google.com ([74.125.82.42]:34405 "EHLO
+	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759239Ab3E2Drv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 10:37:05 -0400
-Received: by mail-la0-f48.google.com with SMTP id fs12so5745501lab.21
-        for <linux-media@vger.kernel.org>; Sun, 26 May 2013 07:37:03 -0700 (PDT)
-Message-ID: <51A21E0D.2030509@cogentembedded.com>
-Date: Sun, 26 May 2013 18:37:01 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Tue, 28 May 2013 23:47:51 -0400
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
+In-Reply-To: <8619949.XQMpgRNGdV@avalon>
+References: <1369573734-19272-1-git-send-email-prabhakar.csengg@gmail.com> <8619949.XQMpgRNGdV@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 29 May 2013 09:17:29 +0530
+Message-ID: <CA+V-a8sX7uynnUt9GebH5hu=K_AQ5p-g7mpeSZhRJ5LeF6BhKA@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: mt9p031: add OF support
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
 	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 2/9] media: davinci: vpif: Convert to devm_* api
-References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com> <1369569612-30915-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1369569612-30915-3-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	LKML <linux-kernel@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>, Arnd Bergmann <arnd@arndb.de>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi Laurent,
 
-On 26-05-2013 16:00, Prabhakar Lad wrote:
-
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-> Use devm_ioremap_resource instead of reques_mem_region()/ioremap().
-> This ensures more consistent error values and simplifies error paths.
-
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+On Wed, May 29, 2013 at 9:01 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> Thanks for the patch.
+>
+> On Sunday 26 May 2013 18:38:54 Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> add OF support for the mt9p031 sensor driver.
+>> Alongside this patch sorts the header inclusion alphabetically.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Grant Likely <grant.likely@secretlab.ca>
+>> Cc: Sascha Hauer <s.hauer@pengutronix.de>
+>> Cc: Rob Herring <rob.herring@calxeda.com>
+>> Cc: Rob Landley <rob@landley.net>
+>> Cc: Arnd Bergmann <arnd@arndb.de>
+>> Cc: devicetree-discuss@lists.ozlabs.org
+>> Cc: davinci-linux-open-source@linux.davincidsp.com
+>> Cc: linux-doc@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>
 > Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
->   drivers/media/platform/davinci/vpif.c |   27 ++++-----------------------
->   1 files changed, 4 insertions(+), 23 deletions(-)
-
-> diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-> index 761c825..f857d8f 100644
-> --- a/drivers/media/platform/davinci/vpif.c
-> +++ b/drivers/media/platform/davinci/vpif.c
-[...]
-> @@ -421,23 +419,12 @@ EXPORT_SYMBOL(vpif_channel_getfid);
 >
->   static int vpif_probe(struct platform_device *pdev)
->   {
-> -	int status = 0;
-> +	static struct resource	*res;
+> And added to my tree with three small changes (please see below).
 >
->   	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-[...]
-> +	vpif_base = devm_request_and_ioremap(&pdev->dev, res);
+Thanks for applying it, with the changes :)
 
-    No, don't use this deprecated funtion please. Undo to 
-devm_ioremap_resource().
-
-> +	if (IS_ERR(vpif_base))
-
-     NAK, devm_request_and_ioremap() doesn't rethrn error cpdes, only 
-NULL. BTW, it's implemented via a call to devm_ioremap_resource() now.
-Is it so hard to look at the code that you've calling?
-
-> +		return PTR_ERR(vpif_base);
-
-WBR, Sergei
-
+Regards,
+--Prabhakar lad
