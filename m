@@ -1,116 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:52828 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753075Ab3E2Cch (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1288 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S966093Ab3E2OTj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 May 2013 22:32:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v3 4/9] media: davinci: vpif_capture: move the freeing of irq and global variables to remove()
-Date: Wed, 29 May 2013 04:32:30 +0200
-Message-ID: <2564718.Z6XYOtT7FL@avalon>
-In-Reply-To: <1369569612-30915-5-git-send-email-prabhakar.csengg@gmail.com>
-References: <1369569612-30915-1-git-send-email-prabhakar.csengg@gmail.com> <1369569612-30915-5-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 29 May 2013 10:19:39 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 13/14] tvp5150: fix s_std support
+Date: Wed, 29 May 2013 16:19:06 +0200
+Message-Id: <1369837147-8747-14-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the patch.
+- do exact matching for special formats like PAL-M
+- drop autodetect support: it's non-standard, and it is bogus as well since there
+  is no way to get back the detected standard since neither g_std nor querystd are
+  implemented.
 
-On Sunday 26 May 2013 17:30:07 Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> Ideally the freeing of irq's and the global variables needs to be
-> done in the remove() rather than module_exit(), this patch moves
-> the freeing up of irq's and freeing the memory allocated to channel
-> objects to remove() callback of struct platform_driver.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpif_capture.c |   31 ++++++++++------------
->  1 files changed, 13 insertions(+), 18 deletions(-)
-> 
-> diff --git a/drivers/media/platform/davinci/vpif_capture.c
-> b/drivers/media/platform/davinci/vpif_capture.c index caaf4fe..f8b7304
-> 100644
-> --- a/drivers/media/platform/davinci/vpif_capture.c
-> +++ b/drivers/media/platform/davinci/vpif_capture.c
-> @@ -2225,17 +2225,29 @@ vpif_int_err:
->   */
->  static int vpif_remove(struct platform_device *device)
->  {
-> -	int i;
-> +	struct platform_device *pdev;
->  	struct channel_obj *ch;
-> +	struct resource *res;
-> +	int irq_num, i = 0;
-> +
-> +	pdev = container_of(vpif_dev, struct platform_device, dev);
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/tvp5150.c |    8 +++-----
+ 1 file changed, 3 insertions(+), 5 deletions(-)
 
-As Sergei mentioned, the platform device is already passed to the function as 
-an argument.
-
-> +	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
-> +		for (irq_num = res->start; irq_num <= res->end; irq_num++)
-> +			free_irq(irq_num,
-> +				 (void *)(&vpif_obj.dev[i]->channel_id));
-
-A quick look at board code shows that each IRQ resource contains a single IRQ. 
-The second loop could thus be removed. You could also add another patch to 
-perform similar cleanup for the probe code.
-
-> +		i++;
-> +	}
-> 
->  	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-> 
-> +	kfree(vpif_obj.sd);
->  	/* un-register device */
->  	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
->  		/* Get the pointer to the channel object */
->  		ch = vpif_obj.dev[i];
->  		/* Unregister video device */
->  		video_unregister_device(ch->video_dev);
-> +		kfree(vpif_obj.dev[i]);
->  	}
->  	return 0;
->  }
-> @@ -2347,24 +2359,7 @@ static __init int vpif_init(void)
->   */
->  static void vpif_cleanup(void)
->  {
-> -	struct platform_device *pdev;
-> -	struct resource *res;
-> -	int irq_num;
-> -	int i = 0;
-> -
-> -	pdev = container_of(vpif_dev, struct platform_device, dev);
-> -	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
-> -		for (irq_num = res->start; irq_num <= res->end; irq_num++)
-> -			free_irq(irq_num,
-> -				 (void *)(&vpif_obj.dev[i]->channel_id));
-> -		i++;
-> -	}
-> -
->  	platform_driver_unregister(&vpif_driver);
-> -
-> -	kfree(vpif_obj.sd);
-> -	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++)
-> -		kfree(vpif_obj.dev[i]);
->  }
-> 
->  /* Function for module initialization and cleanup */
+diff --git a/drivers/media/i2c/tvp5150.c b/drivers/media/i2c/tvp5150.c
+index b3cf266..0e95e5e 100644
+--- a/drivers/media/i2c/tvp5150.c
++++ b/drivers/media/i2c/tvp5150.c
+@@ -727,13 +727,11 @@ static int tvp5150_set_std(struct v4l2_subdev *sd, v4l2_std_id std)
+ 
+ 	/* First tests should be against specific std */
+ 
+-	if (std == V4L2_STD_ALL) {
+-		fmt = VIDEO_STD_AUTO_SWITCH_BIT;	/* Autodetect mode */
+-	} else if (std & V4L2_STD_NTSC_443) {
++	if (std == V4L2_STD_NTSC_443) {
+ 		fmt = VIDEO_STD_NTSC_4_43_BIT;
+-	} else if (std & V4L2_STD_PAL_M) {
++	} else if (std == V4L2_STD_PAL_M) {
+ 		fmt = VIDEO_STD_PAL_M_BIT;
+-	} else if (std & (V4L2_STD_PAL_N | V4L2_STD_PAL_Nc)) {
++	} else if (std == V4L2_STD_PAL_N || std == V4L2_STD_PAL_Nc) {
+ 		fmt = VIDEO_STD_PAL_COMBINATION_N_BIT;
+ 	} else {
+ 		/* Then, test against generic ones */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
