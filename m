@@ -1,16 +1,16 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2520 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965681Ab3E2LA6 (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2252 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965542Ab3E2LAx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 07:00:58 -0400
+	Wed, 29 May 2013 07:00:53 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>
-Subject: [PATCHv1 14/38] au8522_decoder: remove g_chip_ident op.
-Date: Wed, 29 May 2013 12:59:47 +0200
-Message-Id: <1369825211-29770-15-git-send-email-hverkuil@xs4all.nl>
+	Jonathan Corbet <corbet@lwn.net>
+Subject: [PATCHv1 11/38] marvell-ccic: remove g_chip_ident.
+Date: Wed, 29 May 2013 12:59:44 +0200
+Message-Id: <1369825211-29770-12-git-send-email-hverkuil@xs4all.nl>
 In-Reply-To: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
@@ -18,71 +18,217 @@ List-ID: <linux-media.vger.kernel.org>
 
 From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This is no longer needed since the core now handles this through DBG_G_CHIP_INFO.
+Remove g_chip_ident. This driver used some of the V4L2_IDENT defines, replace
+those with a driver-specific enum. This makes it possible to drop the
+v4l2-chip-ident.h define as well.
 
 Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Jonathan Corbet <corbet@lwn.net>
 ---
- drivers/media/dvb-frontends/au8522_decoder.c |   17 -----------------
- 1 file changed, 17 deletions(-)
+ drivers/media/platform/marvell-ccic/cafe-driver.c |    3 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c   |   55 +++------------------
+ drivers/media/platform/marvell-ccic/mcam-core.h   |    8 ++-
+ drivers/media/platform/marvell-ccic/mmp-driver.c  |    3 +-
+ 4 files changed, 16 insertions(+), 53 deletions(-)
 
-diff --git a/drivers/media/dvb-frontends/au8522_decoder.c b/drivers/media/dvb-frontends/au8522_decoder.c
-index 9d159b4..23a0d05 100644
---- a/drivers/media/dvb-frontends/au8522_decoder.c
-+++ b/drivers/media/dvb-frontends/au8522_decoder.c
-@@ -35,7 +35,6 @@
- #include <linux/i2c.h>
- #include <linux/delay.h>
- #include <media/v4l2-common.h>
--#include <media/v4l2-chip-ident.h>
+diff --git a/drivers/media/platform/marvell-ccic/cafe-driver.c b/drivers/media/platform/marvell-ccic/cafe-driver.c
+index d030f9b..7b07fc5 100644
+--- a/drivers/media/platform/marvell-ccic/cafe-driver.c
++++ b/drivers/media/platform/marvell-ccic/cafe-driver.c
+@@ -27,7 +27,6 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
  #include <media/v4l2-device.h>
- #include "au8522.h"
- #include "au8522_priv.h"
-@@ -524,11 +523,8 @@ static int au8522_s_ctrl(struct v4l2_ctrl *ctrl)
- static int au8522_g_register(struct v4l2_subdev *sd,
- 			     struct v4l2_dbg_register *reg)
+-#include <media/v4l2-chip-ident.h>
+ #include <linux/device.h>
+ #include <linux/wait.h>
+ #include <linux/delay.h>
+@@ -469,7 +468,7 @@ static int cafe_pci_probe(struct pci_dev *pdev,
+ 		goto out;
+ 	cam->pdev = pdev;
+ 	mcam = &cam->mcam;
+-	mcam->chip_id = V4L2_IDENT_CAFE;
++	mcam->chip_id = MCAM_CAFE;
+ 	spin_lock_init(&mcam->dev_lock);
+ 	init_waitqueue_head(&cam->smbus_wait);
+ 	mcam->plat_power_up = cafe_ctlr_power_up;
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 64ab91e..a187161 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -23,7 +23,6 @@
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <media/ov7670.h>
+ #include <media/videobuf2-vmalloc.h>
+ #include <media/videobuf2-dma-contig.h>
+@@ -336,7 +335,7 @@ static void mcam_ctlr_dma_vmalloc(struct mcam_camera *cam)
+ 		mcam_reg_clear_bit(cam, REG_CTRL1, C1_TWOBUFS);
+ 	} else
+ 		mcam_reg_set_bit(cam, REG_CTRL1, C1_TWOBUFS);
+-	if (cam->chip_id == V4L2_IDENT_CAFE)
++	if (cam->chip_id == MCAM_CAFE)
+ 		mcam_reg_write(cam, REG_UBAR, 0); /* 32 bits only */
+ }
+ 
+@@ -796,7 +795,6 @@ static int __mcam_cam_reset(struct mcam_camera *cam)
+  */
+ static int mcam_cam_init(struct mcam_camera *cam)
  {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct au8522_state *state = to_state(sd);
+-	struct v4l2_dbg_chip_ident chip;
+ 	int ret;
  
--	if (!v4l2_chip_match_i2c_client(client, &reg->match))
--		return -EINVAL;
- 	reg->val = au8522_readreg(state, reg->reg & 0xffff);
- 	return 0;
+ 	mutex_lock(&cam->s_mutex);
+@@ -804,24 +802,8 @@ static int mcam_cam_init(struct mcam_camera *cam)
+ 		cam_warn(cam, "Cam init with device in funky state %d",
+ 				cam->state);
+ 	ret = __mcam_cam_reset(cam);
+-	if (ret)
+-		goto out;
+-	chip.ident = V4L2_IDENT_NONE;
+-	chip.match.type = V4L2_CHIP_MATCH_I2C_ADDR;
+-	chip.match.addr = cam->sensor_addr;
+-	ret = sensor_call(cam, core, g_chip_ident, &chip);
+-	if (ret)
+-		goto out;
+-	cam->sensor_type = chip.ident;
+-	if (cam->sensor_type != V4L2_IDENT_OV7670) {
+-		cam_err(cam, "Unsupported sensor type 0x%x", cam->sensor_type);
+-		ret = -EINVAL;
+-		goto out;
+-	}
+-/* Get/set parameters? */
+-	ret = 0;
++	/* Get/set parameters? */
+ 	cam->state = S_IDLE;
+-out:
+ 	mcam_ctlr_power_down(cam);
+ 	mutex_unlock(&cam->s_mutex);
+ 	return ret;
+@@ -1392,20 +1374,6 @@ static int mcam_vidioc_s_parm(struct file *filp, void *priv,
+ 	return ret;
  }
-@@ -536,11 +532,8 @@ static int au8522_g_register(struct v4l2_subdev *sd,
- static int au8522_s_register(struct v4l2_subdev *sd,
- 			     const struct v4l2_dbg_register *reg)
- {
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
- 	struct au8522_state *state = to_state(sd);
  
--	if (!v4l2_chip_match_i2c_client(client, &reg->match))
--		return -EINVAL;
- 	au8522_writereg(state, reg->reg, reg->val & 0xff);
- 	return 0;
- }
-@@ -632,20 +625,10 @@ static int au8522_g_tuner(struct v4l2_subdev *sd, struct v4l2_tuner *vt)
- 	return 0;
- }
- 
--static int au8522_g_chip_ident(struct v4l2_subdev *sd,
--			       struct v4l2_dbg_chip_ident *chip)
+-static int mcam_vidioc_g_chip_ident(struct file *file, void *priv,
+-		struct v4l2_dbg_chip_ident *chip)
 -{
--	struct au8522_state *state = to_state(sd);
--	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	struct mcam_camera *cam = priv;
 -
--	return v4l2_chip_ident_i2c_client(client, chip, state->id, state->rev);
+-	chip->ident = V4L2_IDENT_NONE;
+-	chip->revision = 0;
+-	if (v4l2_chip_match_host(&chip->match)) {
+-		chip->ident = cam->chip_id;
+-		return 0;
+-	}
+-	return sensor_call(cam, core, g_chip_ident, chip);
 -}
 -
- /* ----------------------------------------------------------------------- */
+ static int mcam_vidioc_enum_framesizes(struct file *filp, void *priv,
+ 		struct v4l2_frmsizeenum *sizes)
+ {
+@@ -1436,12 +1404,9 @@ static int mcam_vidioc_g_register(struct file *file, void *priv,
+ {
+ 	struct mcam_camera *cam = priv;
  
- static const struct v4l2_subdev_core_ops au8522_core_ops = {
- 	.log_status = v4l2_ctrl_subdev_log_status,
--	.g_chip_ident = au8522_g_chip_ident,
- 	.reset = au8522_reset,
+-	if (v4l2_chip_match_host(&reg->match)) {
+-		reg->val = mcam_reg_read(cam, reg->reg);
+-		reg->size = 4;
+-		return 0;
+-	}
+-	return sensor_call(cam, core, g_register, reg);
++	reg->val = mcam_reg_read(cam, reg->reg);
++	reg->size = 4;
++	return 0;
+ }
+ 
+ static int mcam_vidioc_s_register(struct file *file, void *priv,
+@@ -1449,11 +1414,8 @@ static int mcam_vidioc_s_register(struct file *file, void *priv,
+ {
+ 	struct mcam_camera *cam = priv;
+ 
+-	if (v4l2_chip_match_host(&reg->match)) {
+-		mcam_reg_write(cam, reg->reg, reg->val);
+-		return 0;
+-	}
+-	return sensor_call(cam, core, s_register, reg);
++	mcam_reg_write(cam, reg->reg, reg->val);
++	return 0;
+ }
+ #endif
+ 
+@@ -1477,7 +1439,6 @@ static const struct v4l2_ioctl_ops mcam_v4l_ioctl_ops = {
+ 	.vidioc_s_parm		= mcam_vidioc_s_parm,
+ 	.vidioc_enum_framesizes = mcam_vidioc_enum_framesizes,
+ 	.vidioc_enum_frameintervals = mcam_vidioc_enum_frameintervals,
+-	.vidioc_g_chip_ident	= mcam_vidioc_g_chip_ident,
  #ifdef CONFIG_VIDEO_ADV_DEBUG
- 	.g_register = au8522_g_register,
+ 	.vidioc_g_register	= mcam_vidioc_g_register,
+ 	.vidioc_s_register	= mcam_vidioc_s_register,
+@@ -1695,7 +1656,7 @@ int mccic_register(struct mcam_camera *cam)
+ 	if (buffer_mode >= 0)
+ 		cam->buffer_mode = buffer_mode;
+ 	if (cam->buffer_mode == B_DMA_sg &&
+-			cam->chip_id == V4L2_IDENT_CAFE) {
++			cam->chip_id == MCAM_CAFE) {
+ 		printk(KERN_ERR "marvell-cam: Cafe can't do S/G I/O, "
+ 			"attempting vmalloc mode instead\n");
+ 		cam->buffer_mode = B_vmalloc;
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 01dec9e..46b6ea3 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -53,6 +53,11 @@ enum mcam_buffer_mode {
+ 	B_DMA_sg = 2
+ };
+ 
++enum mcam_chip_id {
++	MCAM_CAFE,
++	MCAM_ARMADA610,
++};
++
+ /*
+  * Is a given buffer mode supported by the current kernel configuration?
+  */
+@@ -98,7 +103,7 @@ struct mcam_camera {
+ 	unsigned char __iomem *regs;
+ 	spinlock_t dev_lock;
+ 	struct device *dev; /* For messages, dma alloc */
+-	unsigned int chip_id;
++	enum mcam_chip_id chip_id;
+ 	short int clock_speed;	/* Sensor clock speed, default 30 */
+ 	short int use_smbus;	/* SMBUS or straight I2c? */
+ 	enum mcam_buffer_mode buffer_mode;
+@@ -152,7 +157,6 @@ struct mcam_camera {
+ 	void (*frame_complete)(struct mcam_camera *cam, int frame);
+ 
+ 	/* Current operating parameters */
+-	u32 sensor_type;		/* Currently ov7670 only */
+ 	struct v4l2_pix_format pix_format;
+ 	enum v4l2_mbus_pixelcode mbus_code;
+ 
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index c4c17fe..cadad64 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -18,7 +18,6 @@
+ #include <linux/slab.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+-#include <media/v4l2-chip-ident.h>
+ #include <media/mmp-camera.h>
+ #include <linux/device.h>
+ #include <linux/platform_device.h>
+@@ -185,7 +184,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam->plat_power_down = mmpcam_power_down;
+ 	mcam->dev = &pdev->dev;
+ 	mcam->use_smbus = 0;
+-	mcam->chip_id = V4L2_IDENT_ARMADA610;
++	mcam->chip_id = MCAM_ARMADA610;
+ 	mcam->buffer_mode = B_DMA_sg;
+ 	spin_lock_init(&mcam->dev_lock);
+ 	/*
 -- 
 1.7.10.4
 
