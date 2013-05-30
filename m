@@ -1,73 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f171.google.com ([209.85.212.171]:54869 "EHLO
-	mail-wi0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753997Ab3EFO7n (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 6 May 2013 10:59:43 -0400
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:34100 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1751182Ab3E3FSs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 May 2013 01:18:48 -0400
+Date: Thu, 30 May 2013 07:21:36 +0200
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: Andy Walls <awalls@md.metrocast.net>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
+	timo.teras@iki.fi
+Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
+Message-ID: <20130530052136.GF2367@dell.arpanet.local>
+References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
+ <1369860078-10334-2-git-send-email-jonarne@jonarne.no>
+ <20130529213554.690f7eaa@redhat.com>
+ <7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
 MIME-Version: 1.0
-In-Reply-To: <201305031634.39129.arnd@arndb.de>
-References: <1367563919-2880-1-git-send-email-prabhakar.csengg@gmail.com> <201305031634.39129.arnd@arndb.de>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 6 May 2013 20:29:22 +0530
-Message-ID: <CA+V-a8vxhedos6cQbxAbMAwiXOmjrqh0TVp8Rhc_Ou4y9tSaoQ@mail.gmail.com>
-Subject: Re: [PATCH RFC v3] media: i2c: mt9p031: add OF support
-To: Arnd Bergmann <arnd@arndb.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+On Wed, May 29, 2013 at 10:19:49PM -0400, Andy Walls wrote:
+> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> 
+> >Em Wed, 29 May 2013 22:41:16 +0200
+> >Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+> >
+> >> Change all default values in the initial setup table to match the
+> >table
+> >> in the datasheet.
+> >
+> >This is not a good idea, as it can produce undesired side effects
+> >on the existing drivers that depend on it, and can't be easily
+> >tested.
+> >
+> >Please, don't change the current "default". It is, of course, OK
+> >to change them if needed via the information provided inside the
+> >platform data.
+> >
+> >Regards,
+> >Mauro
+> >> 
+> >> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> >> ---
+> >>  drivers/media/i2c/saa7115.c | 12 ++++++------
+> >>  1 file changed, 6 insertions(+), 6 deletions(-)
+> >> 
+> >> diff --git a/drivers/media/i2c/saa7115.c
+> >b/drivers/media/i2c/saa7115.c
+> >> index d6f589a..4403679 100644
+> >> --- a/drivers/media/i2c/saa7115.c
+> >> +++ b/drivers/media/i2c/saa7115.c
+> >> @@ -223,12 +223,12 @@ static const unsigned char saa7111_init[] = {
+> >>  static const unsigned char saa7113_init[] = {
+> >>  	R_01_INC_DELAY, 0x08,
+> >>  	R_02_INPUT_CNTL_1, 0xc2,
+> >> -	R_03_INPUT_CNTL_2, 0x30,
+> >> +	R_03_INPUT_CNTL_2, 0x33,
+> >>  	R_04_INPUT_CNTL_3, 0x00,
+> >>  	R_05_INPUT_CNTL_4, 0x00,
+> >> -	R_06_H_SYNC_START, 0x89,
+> >> +	R_06_H_SYNC_START, 0xe9,
+> >>  	R_07_H_SYNC_STOP, 0x0d,
+> >> -	R_08_SYNC_CNTL, 0x88,
+> >> +	R_08_SYNC_CNTL, 0x98,
+> >>  	R_09_LUMA_CNTL, 0x01,
+> >>  	R_0A_LUMA_BRIGHT_CNTL, 0x80,
+> >>  	R_0B_LUMA_CONTRAST_CNTL, 0x47,
+> >> @@ -236,11 +236,11 @@ static const unsigned char saa7113_init[] = {
+> >>  	R_0D_CHROMA_HUE_CNTL, 0x00,
+> >>  	R_0E_CHROMA_CNTL_1, 0x01,
+> >>  	R_0F_CHROMA_GAIN_CNTL, 0x2a,
+> >> -	R_10_CHROMA_CNTL_2, 0x08,
+> >> +	R_10_CHROMA_CNTL_2, 0x00,
+> >>  	R_11_MODE_DELAY_CNTL, 0x0c,
+> >> -	R_12_RT_SIGNAL_CNTL, 0x07,
+> >> +	R_12_RT_SIGNAL_CNTL, 0x01,
+> >>  	R_13_RT_X_PORT_OUT_CNTL, 0x00,
+> >> -	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
+> >> +	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,	/* RESERVED */
+> >>  	R_15_VGATE_START_FID_CHG, 0x00,
+> >>  	R_16_VGATE_STOP, 0x00,
+> >>  	R_17_MISC_VGATE_CONF_AND_MSB, 0x00,
+> >
+> >
+> >-- 
+> >
+> >Cheers,
+> >Mauro
+> >--
+> >To unsubscribe from this list: send the line "unsubscribe linux-media"
+> >in
+> >the body of a message to majordomo@vger.kernel.org
+> >More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
+> I was going to make a comment along the same line as Mauro.  
+> Please leave the driver defaults alone.  It is almost impossible to regression test all the different devices with a SAA7113 chip, to ensure the change doesn't cause someone's device to not work properly.
+>
 
-On Fri, May 3, 2013 at 8:04 PM, Arnd Bergmann <arnd@arndb.de> wrote:
-> On Friday 03 May 2013, Prabhakar Lad wrote:
->>
-[snip]
->> +}
->
-> Ok, good.
->
->> @@ -955,7 +998,17 @@ static int mt9p031_probe(struct i2c_client *client,
->>         mt9p031->pdata = pdata;
->>         mt9p031->output_control = MT9P031_OUTPUT_CONTROL_DEF;
->>         mt9p031->mode2 = MT9P031_READ_MODE_2_ROW_BLC;
->> -       mt9p031->model = did->driver_data;
->> +
->> +       if (!client->dev.of_node) {
->> +               mt9p031->model = (enum mt9p031_model)did->driver_data;
->> +       } else {
->> +               const struct of_device_id *of_id;
->> +
->> +               of_id = of_match_device(of_match_ptr(mt9p031_of_match),
->> +                                       &client->dev);
->> +               if (of_id)
->> +                       mt9p031->model = (enum mt9p031_model)of_id->data;
->> +       }
->>         mt9p031->reset = -1;
->
-> Is this actually required? I thought the i2c core just compared the
-> part of the "compatible" value after the first comma to the string, so
-> "mt9p031->model = (enum mt9p031_model)did->driver_data" should work
-> in both cases.
->
-I am OK with "mt9p031->model = (enum mt9p031_model)did->driver_data"
-but I see still few drivers doing this, I am not sure for what reason.
-If everyone is
-OK with it I can drop the above change.
+You guys are totally right.
 
-Laurent, Sascha what do you suggest ?
+What if I clone the original saa7113_init table into a new one, and make
+the driver use the new one if the calling driver sets platform_data.
 
-Regards,
---Prabhakar Lad
+Something like this?
+
+        switch (state->ident) {
+        case V4L2_IDENT_SAA7111:
+        case V4L2_IDENT_SAA7111A:
+                saa711x_writeregs(sd, saa7111_init);
+                break;
+        case V4L2_IDENT_GM7113C:
+        case V4L2_IDENT_SAA7113:
+-		saa711x_writeregs(sd, saa7113_init);
++		if (client->dev.platform_data)
++			saa711x_writeregs(sd, saa7113_new_init);
++		else
++			saa711x_writeregs(sd, saa7113_init);
+
+                break;
+        default:
+                state->crystal_freq = SAA7115_FREQ_32_11_MHZ;
+                saa711x_writeregs(sd, saa7115_init_auto_input);
+        }
+        if (state->ident > V4L2_IDENT_SAA7111A)
+                saa711x_writeregs(sd, saa7115_init_misc);
+
+        if (client->dev.platform_data) {
+                struct saa7115_platform_data *data = client->dev.platform_data;
+                saa7115_load_platform_data(state, data);
+        }
+
+It's not strictly necessary, but it feels a lot cleaner?
+Would you accept this into the kernel, or would it just increase
+maintenance?
+
+Best regards
+Jon Arne Jørgensen
+
+> Regards,
+> Andy
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
