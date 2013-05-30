@@ -1,255 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:3207 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753062Ab3EPHzA (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59770 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759694Ab3E3BR2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 03:55:00 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [RFCv2] Motion Detection API
-Date: Thu, 16 May 2013 09:54:54 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>
-References: <201305131132.26033.hverkuil@xs4all.nl> <5193A875.3000805@gmail.com>
-In-Reply-To: <5193A875.3000805@gmail.com>
+	Wed, 29 May 2013 21:17:28 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCHv1 18/38] media/i2c: remove g_chip_ident op.
+Date: Thu, 30 May 2013 03:17:23 +0200
+Message-ID: <4324449.niclkIejJB@avalon>
+In-Reply-To: <1369825211-29770-19-git-send-email-hverkuil@xs4all.nl>
+References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl> <1369825211-29770-19-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305160954.54413.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester!
+Hi Hans,
 
-On Wed 15 May 2013 17:23:33 Sylwester Nawrocki wrote:
-> Hi Hans,
+Thanks for the patch.
+
+On Wednesday 29 May 2013 12:59:51 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> On 05/13/2013 11:32 AM, Hans Verkuil wrote:
-> > This RFC looks at adding support for motion detection to V4L2. This is the main
-> > missing piece that prevents the go7007 and solo6x10 drivers from being moved
-> > into mainline from the staging directory.
-> >
-> > This is the second version of this RFC. The changes are:
-> >
-> > - Use a new event to signal motion detection
-> > - Make the blocks array a pointer to data to allow for a larger number of blocks
-> >    (important when dealing with HDTV in the future).
+> This is no longer needed since the core now handles this through
+> DBG_G_CHIP_INFO.
 > 
-> This version looks much better. :)
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> Cc: Andy Walls <awalls@md.metrocast.net>
+> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+> ---
+>  drivers/media/i2c/ad9389b.c              |   21 +-----
+>  drivers/media/i2c/adv7170.c              |   13 ----
+>  drivers/media/i2c/adv7175.c              |    9 ---
+>  drivers/media/i2c/adv7180.c              |   10 ---
+>  drivers/media/i2c/adv7183.c              |   22 -------
+>  drivers/media/i2c/adv7343.c              |   10 ---
+>  drivers/media/i2c/adv7393.c              |   10 ---
+>  drivers/media/i2c/adv7604.c              |   18 -----
+>  drivers/media/i2c/ak881x.c               |   34 +---------
+>  drivers/media/i2c/bt819.c                |   14 ----
+>  drivers/media/i2c/bt856.c                |    9 ---
+>  drivers/media/i2c/bt866.c                |   13 ----
+>  drivers/media/i2c/cs5345.c               |   17 -----
+>  drivers/media/i2c/cs53l32a.c             |   10 ---
+>  drivers/media/i2c/cx25840/cx25840-core.c |   14 ----
+>  drivers/media/i2c/ks0127.c               |   16 -----
+>  drivers/media/i2c/m52790.c               |   15 -----
+>  drivers/media/i2c/msp3400-driver.c       |   10 ---
+>  drivers/media/i2c/mt9m032.c              |    9 +--
+>  drivers/media/i2c/mt9p031.c              |    1 -
+>  drivers/media/i2c/mt9v011.c              |   24 -------
 
-Thanks!
+For the Aptina sensors drivers,
 
-> 
-> > Step one is to look at existing drivers/hardware:
-> >
-> > 1) The go7007 driver:
-> >
-> >          - divides the frame into blocks of 16x16 pixels each (that's 45x36 blocks for PAL)
-> >          - each block can be assigned to region 0, 1, 2 or 3
-> >          - each region has:
-> >                  - a pixel change threshold
-> >                  - a motion vector change threshold
-> >                  - a trigger level; if this is 0, then motion detection for this
-> >                    region is disabled
-> >          - when streaming the reserved field of v4l2_buffer is used as a bitmask:
-> >            one bit for each region where motion is detected.
-> >
-> > 2) The solo6x10 driver:
-> >
-> >          - divides the frame into blocks of 16x16 pixels each
-> >          - each block has its own threshold
-> >          - the driver adds one MOTION_ON buffer flag and one MOTION_DETECTED buffer
-> >            flag.
-> >          - motion detection can be disabled or enabled.
-> >          - the driver has a global motion detection mode with just one threshold:
-> >            in that case all blocks are set to the same threshold.
-> >          - there is also support for displaying a border around the image if motion
-> >            is detected (very hardware specific).
-> 
-> As a side note, there is a similar functionality for face detection 
-> feature in the
-> Toshiba M-5MOLS and Samsung S5C73M3 camera modules, i.e. a rectangle 
-> around detected
-> face(s) can be blended by the hardware into the output frames. Even the 
-> line's
-> thickness (and colour) can be configurable. Such borders look a bit 
-> obscure to my
-> taste, I guess such things are normally added at GPU stage. Nevertheless 
-> such
-> functionality seems to be supported by multiple devices.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Thanks for the info. At some point we might want to compare the various
-implementations for this and see if there is some common ground.
+>  drivers/media/i2c/noon010pc30.c          |    1 -
+>  drivers/media/i2c/ov7640.c               |    1 -
+>  drivers/media/i2c/ov7670.c               |   17 -----
+>  drivers/media/i2c/saa6588.c              |    9 ---
+>  drivers/media/i2c/saa7110.c              |    9 ---
+>  drivers/media/i2c/saa7115.c              |  105 +++++++++++++--------------
+>  drivers/media/i2c/saa7127.c              |   47 +++++--------
+>  drivers/media/i2c/saa717x.c              |    7 --
+>  drivers/media/i2c/saa7185.c              |    9 ---
+>  drivers/media/i2c/saa7191.c              |   10 ---
+>  drivers/media/i2c/tda9840.c              |   13 ----
+>  drivers/media/i2c/tea6415c.c             |   13 ----
+>  drivers/media/i2c/tea6420.c              |   13 ----
+>  drivers/media/i2c/ths7303.c              |   25 +------
+>  drivers/media/i2c/tvaudio.c              |    9 ---
+>  drivers/media/i2c/tvp514x.c              |    1 -
+>  drivers/media/i2c/tvp5150.c              |   24 -------
+>  drivers/media/i2c/tvp7002.c              |   34 ----------
+>  drivers/media/i2c/tw2804.c               |    1 -
+>  drivers/media/i2c/upd64031a.c            |   17 -----
+>  drivers/media/i2c/upd64083.c             |   17 -----
+>  drivers/media/i2c/vp27smpx.c             |    9 ---
+>  drivers/media/i2c/vpx3220.c              |   14 ----
+>  drivers/media/i2c/vs6624.c               |   22 -------
+>  drivers/media/i2c/wm8739.c               |    9 ---
+>  drivers/media/i2c/wm8775.c               |    9 ---
+>  47 files changed, 73 insertions(+), 671 deletions(-)
 
-> > 3) The tw2804 video encoder (based on the datasheet, not implemented in the driver):
-> >
-> >          - divides the image in 12x12 blocks (block size will differ for NTSC vs PAL)
-> >          - motion detection can be enabled or disabled for each block
-> >          - there are four controls:
-> >                  - luminance level change threshold
-> >                  - spatial sensitivity threshold
-> >                  - temporal sensitivity threshold
-> >                  - velocity control (determines how well slow motions are detected)
-> >          - detection is reported by a hardware pin in this case
-> >
-> > Comparing these three examples of motion detection I see quite a lot of similarities,
-> > enough to make a proposal for an API:
-> >
-> > - Add a MOTION_DETECTION menu control:
-> >          - Disabled
-> >          - Global Motion Detection
-> >          - Regional Motion Detection
-> >
-> > If 'Global Motion Detection' is selected, then various threshold controls become
-> > available. What sort of thresholds are available seems to be quite variable, so
-> > I am inclined to leave this as private controls.
-> >
-> > - Use a new event to report motion detection:
-> >
-> >    The go7007 driver would need 4 bits for the mask field (one for each region),
-> >    the others just one. I see no reason for adding a 'MOTION_ON' flag as the
-> >    solo6x10 driver does today: just check the MOTION_DETECTION control if you want
-> >    to know if motion detection is on or not.
-> 
-> Yes, it looks odd 'MOTION_ON' was a buffer flag in the first place, as 
-> it would be
-> required to control the motion detection per buffer. But AFAICS that's 
-> not the case.
-
-No, it isn't the case. You get this flag back from the driver, you don't set it,
-so it is pretty pointless if you also have a control that you can just read.
- 
-> > 	#define V4L2_EVENT_MOTION_DET 5
-> >
-> > 	/**
-> > 	 * struct v4l2_event_motion_det - motion detection event
-> > 	 * @flags:             if set to V4L2_EVENT_MD_VALID_FRAME, then the
-> > 	 *                     frame_sequence field is valid.
-> > 	 * @frame_sequence:    the frame sequence number associated with this event.
-> > 	 * @mask:              which regions detected motion.
-> > 	 */
-> > 	struct v4l2_event_motion_det {
-> > 	       __u32 flags;
-> > 	       __u32 frame_sequence;
-> > 	       __u32 mask;
-> > 	};	
-> >
-> > - Add two new ioctls to get and set the block data:
-> >
-> >          #define V4L2_MD_TYPE_REGION     (1)
-> >          #define V4L2_MD_TYPE_THRESHOLD  (2)
-> >
-> >          struct v4l2_md_blocks {
-> >                  __u32 type;
-> >                  struct v4l2_rect rect;
-> >                  __u32 block_min;
-> >                  __u32 block_max;
-> > 		__u32 __user *blocks;
-> >                  __u32 reserved[32];
-> >          } __attribute__ ((packed));
-> 
-> How about changing it to:
-> 
->            struct v4l2_md_blocks {
->                  __u32 type;
->                  __u32 size;
->                  struct v4l2_rect rect;
->                  __u32 block_min;
->                  __u32 block_max;
->                  __u32 reserved[32];
->   		__u16 __user blocks[];
->            } __attribute__ ((packed));
-> 
-> i.e. making 'blocks' a flexible length array, so the size of the structure
-> is same on 32 and 64-bit architectures ? And we don't need any compat code ?
-> 'size' would indicate actual size of the blocks array.
-
-Nice idea, but it won't work: video_usercopy() will copy that struct to a
-kernel-space buffer and pass that on to the driver. But at that point the
-blocks array is cut off and the driver doesn't have access to the userspace
-pointer anymore.
-
-It's really not all that difficult to add compat code for this, so I'll just
-stick with a pointer.
-
-> 
-> Also, the motion detection normally involves at least 2 frames, but 
-> don't we
-> need a means to get MD result per frame ? Since the event is per frame ?
-> I guess this is something that could be added later if required.
-
-???
-
-The event provides the result on a per-frame basis. Actually, it doesn't
-have to be per-frame: if flags == 0, it will depend on the hardware whether
-you can actually relate motion to frames.
-
-I just realized that there is a hole in this RFC if flags == 0: if the motion
-detection is not per-frame, but just some global state, then we also need a
-way to tell userspace when the motion stopped.
-
-My original idea was that you get an event per frame where there is motion.
-So if you get a frame but no associated event, then motion stopped.
-
-An alternative implementation would be that you get an event whenever the
-mask changes value (with the assumption that mask == 0 when you start
-streaming).
-
-I think this might be more efficient and it works better if you can't
-associate this event with a specific frame.
-
-What do you think?
-
-> 
-> I have been thinking about similar dedicated ioctl for object detection 
-> features,
-> then the OD result would have associated frame_sequence with it. I'm 
-> going to
-> look closer at your extended event payload RFC and perhaps prepare some POC
-> implementation using that idea. However I'm inclined to use dedicated 
-> ioctl(s)
-> and v4l2 events and controls for OD.
-> 
-> >          #define VIDIOC_G_MD_BLOCKS    _IORW('V', 103, struct v4l2_md_blocks)
-> >          #define VIDIOC_S_MD_BLOCKS    _IORW('V', 104, struct v4l2_md_blocks)
-> >
-> >    Apps must fill in type and blocks, then can call G_MD_BLOCKS to get the current
-> >    block values for that type. TYPE_REGION returns to which region each block belongs,
-> >    TYPE_THRESHOLD returns threshold values for each block.
-> >
-> >    If blocks == NULL, then no data is returned, but all other fields are filled in.
-> >
-> >    rect returns the rectangle of valid blocks, and blocks_min and blocks_max are the
-> >    min and max values for each 'blocks' array element. If type == REGION, then
-> >    blocks_max is the maximum number of regions - 1.
-> >
-> >    blocks points to a buffer of size 'sizeof(__u32) * rect.width * rect.height'.
-> >
-> >    To change the blocks apps call S_MD_BLOCKS, fill in type, rect (rect is useful
-> >    here to set only a subset of all blocks) and blocks.
-> >
-> > So the go7007 would return 45x36 in rect, only the REGION type would be supported,
-> > min/max would be 0-3.
-> >
-> > solo6x10 would return 45x36 in rect, type REGION would return all 0's in blocks
-> > (as there is only one region), and for type THRESHOLD min/max would be 0-65535.
-> >
-> > TW2804 would return 12x12 in rect, type REGION would return all 0's in blocks
-> > (as there is only one region), and for type THRESHOLD min/max would be 0-1.
-> >
-> > Currently blocks is a __u32 pointer, but that is perhaps overkill. __u16 might
-> > be OK as well.
-> 
-> I would expect u16 to be large enough. For small rectangles this array 
-> may become
-> significantly large. In theory we could have 1x1 'rectangles' and size 
-> of the blocks
-> array would be comparable to the image size ?
-
-Right, I'll switch to u16.
-
-Thanks for your comments!
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
+
