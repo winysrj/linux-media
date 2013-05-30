@@ -1,62 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f175.google.com ([209.85.215.175]:58960 "EHLO
-	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754502Ab3EHNTj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 8 May 2013 09:19:39 -0400
-Received: by mail-ea0-f175.google.com with SMTP id q10so922240eaj.20
-        for <linux-media@vger.kernel.org>; Wed, 08 May 2013 06:19:38 -0700 (PDT)
-Received: from gears (cable-178-148-169-89.dynamic.sbb.rs. [178.148.169.89])
-        by mx.google.com with ESMTPSA id x41sm36632844eey.17.2013.05.08.06.19.36
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1.2 cipher=RC4-SHA bits=128/128);
-        Wed, 08 May 2013 06:19:37 -0700 (PDT)
-Date: Wed, 8 May 2013 15:19:30 +0200
-From: Zoran Turalija <zoran.turalija@gmail.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] [media] stb0899: allow minimum symbol rate of 1000000
-Message-ID: <20130508131930.GA27051@gears>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:60390 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S967340Ab3E3DWB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 29 May 2013 23:22:01 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
+Date: Thu, 30 May 2013 05:21:57 +0200
+Message-ID: <44193648.yaA827Trlv@avalon>
+In-Reply-To: <51A0C6A8.5090302@gmail.com>
+References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com> <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com> <51A0C6A8.5090302@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This makes minimum symbol rate driver capabilities on par with
-windows driver, and allows tuning on linux to transponders that
-have symbol rate below 5000000, too.
+Hi Sylwester,
 
-Patch was tested successfully on Eutelsat 16A transponders that
-became reachable with it (1000000 < symbol rate < 5000000):
+On Saturday 25 May 2013 16:11:52 Sylwester Nawrocki wrote:
+> On 05/25/2013 11:17 AM, Prabhakar Lad wrote:
+> >> > From looking at Figure 8 "TVP7002 Application Example" in the TVP7002's
+> >> > datasheet ([2], p. 52) and your initial TVP7002 patches it looks like
+> >> > what you want is to specify polarity of the SOGOUT signal, so the
+> >> > processor that receives this signal can properly interpret it, is it
+> >> > correct ?
+> > 
+> > Yes
+> > 
+> >> >  If so then wouldn't it be more appropriate to define e.g. 'sog-active'
+> >> >  property and media bus flags:
+> >> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_LOW
+> >> >           V4L2_MBUS_SYNC_ON_GREEN_ACTIVE_HIGH
+> >> >  
+> >> >  ?
+> > 
+> > Agreed I'll add these flags.
+> > 
+> >> >  And for synchronisation method on the analog part we could perhaps
+> >> >  define 'component-sync' or similar property that would enumerate all
+> >> >  possible synchronisation methods. We might as well use separate
+> >> >  boolean properties, but I'm a bit concerned about the increasing
+> >> >  number of properties that need to be parsed for each parallel video
+> >> >  bus "endpoint".
+> > 
+> > I am not clear on it can please elaborate more on this.
+> 
+> I thought about two possible options:
+> 
+> 1. single property 'component-sync' or 'video-sync' that would have values:
+> 
+> #define VIDEO_SEPARATE_SYNC	0x01
+> #define VIDEO_COMPOSITE_SYNC	0x02
+> #define VIDEO_SYNC_ON_COMPOSITE	0x04
+> #define VIDEO_SYNC_ON_GREEN	0x08
+> #define VIDEO_SYNC_ON_LUMINANCE	0x10
+> 
+> And we could put these definitions into a separate header, e.g.
+> <dt-bindings/video-interfaces.h>
+> 
+> Then in a device tree source file one could have, e.g.
+> 
+> video-sync = <VIDEO_SYNC_ON_GREEN>;
+> 
+> 
+> 2. Separate boolean property for each video sync type, e.g.
+> 
+> 	"video-composite-sync"
+> 	"video-sync-on-composite"
+> 	"video-sync-on-green"
+> 	"video-sync-on-luminance"
+> 
+> Separate sync, with separate VSYNC, HSYNC lines, would be the default, when
+> none of the above is specified and 'vsync-active', 'hsync-active' properties
+> are present.
 
-      * DVB/S  12507050 V  2532000 3/4
-      * DVB/S2 12574000 V  4355000 3/4 8PSK
-      * DVB/S  12593000 V  2500000 2/3
-      * DVB/S  12596940 V  2848000 2/3
-      * DVB/S  12600750 V  2500000 1/2
-      * DVB/S  12675590 H  4248000 3/4
+I prefer 1. over 2.
 
-Signed-off-by: Zoran Turalija <zoran.turalija@gmail.com>
----
- stb0899_drv.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+> However, I suppose the better would be to deduce the video synchronisation
+> method from the sync signal polarity flags. Then, for instance, when an
+> endpoint node contains "composite-sync-active" property the parser would
+> determine the "composite sync" synchronisation type is used.
+> 
+> Thus it might make sense to have only following integer properties (added
+> as needed):
+> 
+> composite-sync-active
+> sync-on-green-active
+> sync-on-comp-active
+> sync-on-luma-active
+> 
+> This would allow to specify polarity of each signal and at the same time
+> the parsing code could derive synchronisation type. A new field could be
+> added to struct v4l2_of_parallel_bus, e.g. sync_type and it would be filled
+> within v4l2_of_parse_endpoint().
+> 
+> What do you think ?
 
-diff --git a/stb0899_drv.c b/stb0899_drv.c
-index cc278b3..527f5c3 100644
---- a/stb0899_drv.c
-+++ b/stb0899_drv.c
-@@ -1581,7 +1581,7 @@ static struct dvb_frontend_ops stb0899_ops = {
- 		.frequency_max 		= 2150000,
- 		.frequency_stepsize	= 0,
- 		.frequency_tolerance	= 0,
--		.symbol_rate_min 	=  5000000,
-+		.symbol_rate_min 	=  1000000,
- 		.symbol_rate_max 	= 45000000,
- 
- 		.caps 			= FE_CAN_INVERSION_AUTO	|
+My gut feeling is that we should have separate properties for the video sync 
+type and the synchronization signals polarities. We could have a chip that 
+supports sync-on-green on the analog (input) side and outputs separate hsync 
+and vsync signals only on the digital (output) side. There would be no sync-
+on-green polarity in that case.
+
 -- 
-1.8.1.2
+Regards,
 
+Laurent Pinchart
 
--- 
-Kind regards,
-Zoran Turalija
