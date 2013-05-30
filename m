@@ -1,38 +1,266 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47931 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752811Ab3EPXak (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59979 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759846Ab3E3CCQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 19:30:40 -0400
-Date: Fri, 17 May 2013 02:30:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH RESEND] media: davinci: vpbe: fix checkpatch warning for
- CamelCase
-Message-ID: <20130516233004.GD2077@valkosipuli.retiisi.org.uk>
-References: <1367581165-20805-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 29 May 2013 22:02:16 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, hj210.choi@samsung.com,
+	dh09.lee@samsung.com, a.hajda@samsung.com, shaik.ameer@samsung.com,
+	arun.kk@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 09/13] media: Change media device link_notify behaviour
+Date: Thu, 30 May 2013 04:02:13 +0200
+Message-ID: <3488951.XA3XI6iGCP@avalon>
+In-Reply-To: <1368113805-20233-10-git-send-email-s.nawrocki@samsung.com>
+References: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com> <1368113805-20233-10-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1367581165-20805-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 03, 2013 at 05:09:25PM +0530, Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Hi Sylwester,
+
+Thank you for the patch, and sorry for the late reply.
+
+On Thursday 09 May 2013 17:36:41 Sylwester Nawrocki wrote:
+> Currently the media device link_notify callback is invoked before the
+> actual change of state of a link when the link is being enabled, and
+> after the actual change of state when the link is being disabled.
 > 
-> This patch fixes checkpatch warning to avoid CamelCase.
+> This doesn't allow a media device driver to perform any operations
+> on a full graph before a link is disabled, as well as performing
+> any tasks on a modified graph right after a link's state is changed.
 > 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> This patch modifies signature of the link_notify callback. This
+> callback is now called always before and after a link's state change.
+> To distinguish the notifications a 'notification' argument is added
+> to the link_notify callback: MEDIA_DEV_NOTIFY_PRE_LINK_CH indicates
+> notification before link's state change and
+> MEDIA_DEV_NOTIFY_POST_LINK_CH corresponds to a notification after
+> link flags change.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/media-entity.c                  |   18 +++--------
+>  drivers/media/platform/exynos4-is/media-dev.c |   16 +++++-----
+>  drivers/media/platform/omap3isp/isp.c         |   41 +++++++++++++---------
+>  include/media/media-device.h                  |    9 ++++--
+>  4 files changed, 46 insertions(+), 38 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index 7c2b51c..0fcf4c0 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -547,25 +547,17 @@ int __media_entity_setup_link(struct media_link *link,
+> u32 flags)
+> 
+>  	mdev = source->parent;
+> 
+> -	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify) {
+> -		ret = mdev->link_notify(link->source, link->sink,
+> -					MEDIA_LNK_FL_ENABLED);
+> +	if (mdev->link_notify) {
+> +		ret = mdev->link_notify(link, MEDIA_LNK_FL_ENABLED,
+> +						MEDIA_DEV_NOTIFY_PRE_LINK_CH);
 
-Thanks!
+As you correctly pointed out in a self-reply to your patch, you should pass 
+the flags here instead of MEDIA_LNK_FL_ENABLED.
 
-Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+>  		if (ret < 0)
+>  			return ret;
+>  	}
+> 
+>  	ret = __media_entity_setup_link_notify(link, flags);
+> -	if (ret < 0)
+> -		goto err;
+> 
+> -	if (!(flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
+> -		mdev->link_notify(link->source, link->sink, 0);
+> -
+> -	return 0;
+> -
+> -err:
+> -	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
+> -		mdev->link_notify(link->source, link->sink, 0);
+> +	if (mdev->link_notify)
+> +		mdev->link_notify(link, flags, MEDIA_DEV_NOTIFY_POST_LINK_CH);
+> 
+>  	return ret;
+>  }
+> diff --git a/drivers/media/platform/exynos4-is/media-dev.c
+> b/drivers/media/platform/exynos4-is/media-dev.c index e95a6d5..ca58dfc
+> 100644
+> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> @@ -1274,34 +1274,36 @@ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool
+> on) return __fimc_md_set_camclk(fmd, si, on);
+>  }
+> 
+> -static int fimc_md_link_notify(struct media_pad *source,
+> -			       struct media_pad *sink, u32 flags)
+> +static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
+> +						unsigned int notification)
+>  {
+> +	struct media_entity *sink = link->sink->entity;
+>  	struct exynos_video_entity *ve;
+>  	struct video_device *vdev;
+>  	struct fimc_pipeline *pipeline;
+>  	int i, ret = 0;
+> 
+> -	if (media_entity_type(sink->entity) != MEDIA_ENT_T_DEVNODE_V4L)
+> +	if (media_entity_type(sink) != MEDIA_ENT_T_DEVNODE_V4L ||
+> +	    notification == MEDIA_DEV_NOTIFY_LINK_PRE_CH)
 
+Don't you need to call __fimc_pipeline_open() on post-notify instead of pre-
+notified below ?
+
+>  		return 0;
+> 
+> -	vdev = media_entity_to_video_device(sink->entity);
+> +	vdev = media_entity_to_video_device(sink);
+>  	ve = vdev_to_exynos_video_entity(vdev);
+>  	pipeline = to_fimc_pipeline(ve->pipe);
+> 
+>  	if (!(flags & MEDIA_LNK_FL_ENABLED) && pipeline->subdevs[IDX_SENSOR]) {
+> -		if (sink->entity->use_count > 0)
+> +		if (sink->use_count > 0)
+>  			ret = __fimc_pipeline_close(ve->pipe);
+> 
+>  		for (i = 0; i < IDX_MAX; i++)
+>  			pipeline->subdevs[i] = NULL;
+> -	} else if (sink->entity->use_count > 0) {
+> +	} else if (sink->use_count > 0) {
+>  		/*
+>  		 * Link activation. Enable power of pipeline elements only if
+>  		 * the pipeline is already in use, i.e. its video node is open.
+>  		 * Recreate the controls destroyed during the link deactivation.
+>  		 */
+> -		ret = __fimc_pipeline_open(ve->pipe, sink->entity, true);
+> +		ret = __fimc_pipeline_open(ve->pipe, sink, true);
+>  	}
+> 
+>  	return ret ? -EPIPE : ret;
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 6e5ad8e..a762aeb 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -670,9 +670,9 @@ int omap3isp_pipeline_pm_use(struct media_entity
+> *entity, int use)
+> 
+>  /*
+>   * isp_pipeline_link_notify - Link management notification callback
+> - * @source: Pad at the start of the link
+> - * @sink: Pad at the end of the link
+> + * @link: The link
+>   * @flags: New link flags that will be applied
+> + * @notification: The link's state change notification type
+> (MEDIA_DEV_NOTIFY_*) *
+>   * React to link management on powered pipelines by updating the use count
+>   * of all entities in the source and sink sides of the link. Entities are
+>   * powered
+> @@ -682,29 +682,38 @@ int omap3isp_pipeline_pm_use(struct
+> media_entity *entity, int use)
+>   * off is assumed to never fail. This function will not fail for
+>   * disconnection events.
+>   */
+> -static int isp_pipeline_link_notify(struct media_pad *source,
+> -				    struct media_pad *sink, u32 flags)
+> +static int isp_pipeline_link_notify(struct media_link *link, unsigned int
+> +						flags, unsigned int notification)
+>  {
+> -	int source_use = isp_pipeline_pm_use_count(source->entity);
+> -	int sink_use = isp_pipeline_pm_use_count(sink->entity);
+> +	struct media_entity *source = link->source->entity;
+> +	struct media_entity *sink = link->sink->entity;
+> +	int source_use = isp_pipeline_pm_use_count(source);
+> +	int sink_use = isp_pipeline_pm_use_count(sink);
+>  	int ret;
+> 
+> -	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
+> +	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
+> +	    !(flags & MEDIA_LNK_FL_ENABLED)) {
+
+Shouldn't the condition be
+
+	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
+	    (flags & MEDIA_LNK_FL_ENABLED))
+
+here ? The code currently pre-notifies on link enable and post-notifies on 
+link disable.
+
+>  		/* Powering off entities is assumed to never fail. */
+> -		isp_pipeline_pm_power(source->entity, -sink_use);
+> -		isp_pipeline_pm_power(sink->entity, -source_use);
+> +		isp_pipeline_pm_power(source, -sink_use);
+> +		isp_pipeline_pm_power(sink, -source_use);
+>  		return 0;
+>  	}
+> 
+> -	ret = isp_pipeline_pm_power(source->entity, sink_use);
+> -	if (ret < 0)
+> -		return ret;
+> +	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+> +	        (flags & MEDIA_LNK_FL_ENABLED)) {
+
+Similarly, shouldn't this be
+
+	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+	    !(flags & MEDIA_LNK_FL_ENABLED))
+
+> -	ret = isp_pipeline_pm_power(sink->entity, source_use);
+> -	if (ret < 0)
+> -		isp_pipeline_pm_power(source->entity, -sink_use);
+> +		ret = isp_pipeline_pm_power(source, sink_use);
+> +		if (ret < 0)
+> +			return ret;
+> 
+> -	return ret;
+> +		ret = isp_pipeline_pm_power(sink, source_use);
+> +		if (ret < 0)
+> +			isp_pipeline_pm_power(source, -sink_use);
+> +
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+>  }
+> 
+>  /*
+> ---------------------------------------------------------------------------
+> -- diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index eaade98..353c4ee 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -45,6 +45,7 @@ struct device;
+>   * @entities:	List of registered entities
+>   * @lock:	Entities list lock
+>   * @graph_mutex: Entities graph operation lock
+> + * @link_notify: Link state change notification callback
+>   *
+>   * This structure represents an abstract high-level media device. It allows
+> easy * access to entities and provides basic media device-level support.
+> The @@ -75,10 +76,14 @@ struct media_device {
+>  	/* Serializes graph operations. */
+>  	struct mutex graph_mutex;
+> 
+> -	int (*link_notify)(struct media_pad *source,
+> -			   struct media_pad *sink, u32 flags);
+> +	int (*link_notify)(struct media_link *link, unsigned int flags,
+> +			   unsigned int notification);
+>  };
+> 
+> +/* Supported link_notify @notification values. */
+> +#define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
+> +#define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
+> +
+>  /* media_devnode to media_device */
+>  #define to_media_device(node) container_of(node, struct media_device,
+> devnode)
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+
+Laurent Pinchart
+
