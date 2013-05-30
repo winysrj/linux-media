@@ -1,266 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59979 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759846Ab3E3CCQ (ORCPT
+Received: from shadbolt.e.decadent.org.uk ([88.96.1.126]:58090 "EHLO
+	shadbolt.e.decadent.org.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1754763Ab3E3BKv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 22:02:16 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, hj210.choi@samsung.com,
-	dh09.lee@samsung.com, a.hajda@samsung.com, shaik.ameer@samsung.com,
-	arun.kk@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH 09/13] media: Change media device link_notify behaviour
-Date: Thu, 30 May 2013 04:02:13 +0200
-Message-ID: <3488951.XA3XI6iGCP@avalon>
-In-Reply-To: <1368113805-20233-10-git-send-email-s.nawrocki@samsung.com>
-References: <1368113805-20233-1-git-send-email-s.nawrocki@samsung.com> <1368113805-20233-10-git-send-email-s.nawrocki@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 29 May 2013 21:10:51 -0400
+Message-ID: <1369876224.3469.444.camel@deadeye.wl.decadent.org.uk>
+Subject: Re: [GIT PULL] go7007 firmware updates
+From: Ben Hutchings <ben@decadent.org.uk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: David Woodhouse <dwmw2@infradead.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Pete Eberlein <pete@sensoray.com>, mchehab@redhat.com
+Date: Thu, 30 May 2013 02:10:24 +0100
+In-Reply-To: <201305280842.01068.hverkuil@xs4all.nl>
+References: <201305231025.31812.hverkuil@xs4all.nl>
+	 <201305272156.18975.hverkuil@xs4all.nl>
+	 <1369691595.3469.404.camel@deadeye.wl.decadent.org.uk>
+	 <201305280842.01068.hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg="pgp-sha512";
+	protocol="application/pgp-signature"; boundary="=-tzixmyz75p3ylmTv3JHb"
+Mime-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
 
-Thank you for the patch, and sorry for the late reply.
+--=-tzixmyz75p3ylmTv3JHb
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: quoted-printable
 
-On Thursday 09 May 2013 17:36:41 Sylwester Nawrocki wrote:
-> Currently the media device link_notify callback is invoked before the
-> actual change of state of a link when the link is being enabled, and
-> after the actual change of state when the link is being disabled.
-> 
-> This doesn't allow a media device driver to perform any operations
-> on a full graph before a link is disabled, as well as performing
-> any tasks on a modified graph right after a link's state is changed.
-> 
-> This patch modifies signature of the link_notify callback. This
-> callback is now called always before and after a link's state change.
-> To distinguish the notifications a 'notification' argument is added
-> to the link_notify callback: MEDIA_DEV_NOTIFY_PRE_LINK_CH indicates
-> notification before link's state change and
-> MEDIA_DEV_NOTIFY_POST_LINK_CH corresponds to a notification after
-> link flags change.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/media-entity.c                  |   18 +++--------
->  drivers/media/platform/exynos4-is/media-dev.c |   16 +++++-----
->  drivers/media/platform/omap3isp/isp.c         |   41 +++++++++++++---------
->  include/media/media-device.h                  |    9 ++++--
->  4 files changed, 46 insertions(+), 38 deletions(-)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index 7c2b51c..0fcf4c0 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -547,25 +547,17 @@ int __media_entity_setup_link(struct media_link *link,
-> u32 flags)
-> 
->  	mdev = source->parent;
-> 
-> -	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify) {
-> -		ret = mdev->link_notify(link->source, link->sink,
-> -					MEDIA_LNK_FL_ENABLED);
-> +	if (mdev->link_notify) {
-> +		ret = mdev->link_notify(link, MEDIA_LNK_FL_ENABLED,
-> +						MEDIA_DEV_NOTIFY_PRE_LINK_CH);
+On Tue, 2013-05-28 at 08:42 +0200, Hans Verkuil wrote:
+> On Mon May 27 2013 23:53:15 Ben Hutchings wrote:
+> > On Mon, 2013-05-27 at 21:56 +0200, Hans Verkuil wrote:
+> > > On Mon May 27 2013 18:24:32 Ben Hutchings wrote:
+> > > > On Thu, 2013-05-23 at 10:25 +0200, Hans Verkuil wrote:
+> > > > > Hi Ben, David,
+> > > > >=20
+> > > > > The go7007 staging driver has been substantially overhauled for k=
+ernel 3.10.
+> > > > > As part of that process the firmware situation has been improved =
+as well.
+> > > > >=20
+> > > > > While Micronas allowed the firmware to be redistributed, it was n=
+ever made
+> > > > > part of linux-firmware. Only the firmwares for the Sensoray S2250=
+ were added
+> > > > > in the past, but those need the go7007*.bin firmwares as well to =
+work.
+> > > > >=20
+> > > > > This pull request collects all the firmwares necessary to support=
+ all the
+> > > > > go7007 devices into the go7007 directory. With this change the go=
+7007 driver
+> > > > > will work out-of-the-box starting with kernel 3.10.
+> > > > [...]
+> > > >=20
+> > > > You should not rename files like this.  linux-firmware is not versi=
+oned
+> > > > and needs to be compatible with old and new kernel versions, so far=
+ as
+> > > > possible.
+> > >=20
+> > > I understand, and I wouldn't have renamed these two firmware files if=
+ it
+> > > wasn't for the fact that 1) it concerns a staging driver, so in my vi=
+ew
+> > > backwards compatibility is not a requirement,
+> >=20
+> > This driver (or set of drivers) has been requesting go7007fw.bin,
+> > go7007tv.bin, s2250.fw and s2250_loader.fw for nearly 5 years.  It's a
+> > bit late to say those were just temporary filenames.
+>=20
+> Why not? It is a staging driver for good reasons. Just because it is in s=
+taging
+> for a long time (because nobody found the time to actually work on it unt=
+il
+> 3.10) doesn't mean it magically becomes non-staging. The Kconfig in stagi=
+ng
+> says:
+>=20
+>           This option allows you to select a number of drivers that are
+>           not of the "normal" Linux kernel quality level.  These drivers
+>           are placed here in order to get a wider audience to make use of
+>           them.  Please note that these drivers are under heavy
+>           development, may or may not work, and may contain userspace
+>           interfaces that most likely will be changed in the near
+>           future.
+>=20
+> In other words, there are no guarantees. That's the whole point of stagin=
+g.
+[...]
 
-As you correctly pointed out in a self-reply to your patch, you should pass 
-the flags here instead of MEDIA_LNK_FL_ENABLED.
+But the reality is that many drivers don't get that heavy development,
+and so they linger in staging for a long time.  So it shouldn't be
+surprising that users start to rely on them, and distributions ship
+them, and then it's a bit rough to pull the rug from under them some
+years later.
 
->  		if (ret < 0)
->  			return ret;
->  	}
-> 
->  	ret = __media_entity_setup_link_notify(link, flags);
-> -	if (ret < 0)
-> -		goto err;
-> 
-> -	if (!(flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
-> -		mdev->link_notify(link->source, link->sink, 0);
-> -
-> -	return 0;
-> -
-> -err:
-> -	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
-> -		mdev->link_notify(link->source, link->sink, 0);
-> +	if (mdev->link_notify)
-> +		mdev->link_notify(link, flags, MEDIA_DEV_NOTIFY_POST_LINK_CH);
-> 
->  	return ret;
->  }
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c
-> b/drivers/media/platform/exynos4-is/media-dev.c index e95a6d5..ca58dfc
-> 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -1274,34 +1274,36 @@ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool
-> on) return __fimc_md_set_camclk(fmd, si, on);
->  }
-> 
-> -static int fimc_md_link_notify(struct media_pad *source,
-> -			       struct media_pad *sink, u32 flags)
-> +static int fimc_md_link_notify(struct media_link *link, unsigned int flags,
-> +						unsigned int notification)
->  {
-> +	struct media_entity *sink = link->sink->entity;
->  	struct exynos_video_entity *ve;
->  	struct video_device *vdev;
->  	struct fimc_pipeline *pipeline;
->  	int i, ret = 0;
-> 
-> -	if (media_entity_type(sink->entity) != MEDIA_ENT_T_DEVNODE_V4L)
-> +	if (media_entity_type(sink) != MEDIA_ENT_T_DEVNODE_V4L ||
-> +	    notification == MEDIA_DEV_NOTIFY_LINK_PRE_CH)
+I don't know how true that is of go7007 but I'd like to avoid causing
+regressions.  So I've pulled from you, but I've then added back s2250.fw
+and s2250_loader.fw as symlinks.
 
-Don't you need to call __fimc_pipeline_open() on post-notify instead of pre-
-notified below ?
+Ben.
 
->  		return 0;
-> 
-> -	vdev = media_entity_to_video_device(sink->entity);
-> +	vdev = media_entity_to_video_device(sink);
->  	ve = vdev_to_exynos_video_entity(vdev);
->  	pipeline = to_fimc_pipeline(ve->pipe);
-> 
->  	if (!(flags & MEDIA_LNK_FL_ENABLED) && pipeline->subdevs[IDX_SENSOR]) {
-> -		if (sink->entity->use_count > 0)
-> +		if (sink->use_count > 0)
->  			ret = __fimc_pipeline_close(ve->pipe);
-> 
->  		for (i = 0; i < IDX_MAX; i++)
->  			pipeline->subdevs[i] = NULL;
-> -	} else if (sink->entity->use_count > 0) {
-> +	} else if (sink->use_count > 0) {
->  		/*
->  		 * Link activation. Enable power of pipeline elements only if
->  		 * the pipeline is already in use, i.e. its video node is open.
->  		 * Recreate the controls destroyed during the link deactivation.
->  		 */
-> -		ret = __fimc_pipeline_open(ve->pipe, sink->entity, true);
-> +		ret = __fimc_pipeline_open(ve->pipe, sink, true);
->  	}
-> 
->  	return ret ? -EPIPE : ret;
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 6e5ad8e..a762aeb 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -670,9 +670,9 @@ int omap3isp_pipeline_pm_use(struct media_entity
-> *entity, int use)
-> 
->  /*
->   * isp_pipeline_link_notify - Link management notification callback
-> - * @source: Pad at the start of the link
-> - * @sink: Pad at the end of the link
-> + * @link: The link
->   * @flags: New link flags that will be applied
-> + * @notification: The link's state change notification type
-> (MEDIA_DEV_NOTIFY_*) *
->   * React to link management on powered pipelines by updating the use count
->   * of all entities in the source and sink sides of the link. Entities are
->   * powered
-> @@ -682,29 +682,38 @@ int omap3isp_pipeline_pm_use(struct
-> media_entity *entity, int use)
->   * off is assumed to never fail. This function will not fail for
->   * disconnection events.
->   */
-> -static int isp_pipeline_link_notify(struct media_pad *source,
-> -				    struct media_pad *sink, u32 flags)
-> +static int isp_pipeline_link_notify(struct media_link *link, unsigned int
-> +						flags, unsigned int notification)
->  {
-> -	int source_use = isp_pipeline_pm_use_count(source->entity);
-> -	int sink_use = isp_pipeline_pm_use_count(sink->entity);
-> +	struct media_entity *source = link->source->entity;
-> +	struct media_entity *sink = link->sink->entity;
-> +	int source_use = isp_pipeline_pm_use_count(source);
-> +	int sink_use = isp_pipeline_pm_use_count(sink);
->  	int ret;
-> 
-> -	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-> +	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
-> +	    !(flags & MEDIA_LNK_FL_ENABLED)) {
+--=20
+Ben Hutchings
+If at first you don't succeed, you're doing about average.
 
-Shouldn't the condition be
+--=-tzixmyz75p3ylmTv3JHb
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: This is a digitally signed message part
 
-	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
-	    (flags & MEDIA_LNK_FL_ENABLED))
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-here ? The code currently pre-notifies on link enable and post-notifies on 
-link disable.
+iQIVAwUAUaanAOe/yOyVhhEJAQqIPw//fDDsanZ+KWFdHEe3XcDqlDuyE2aBMlSZ
+e+telGeXiQUaKQyAyjvjCmYs+hfb1thsoOcWUNwn1ZMzp/24q0UpaBK6I2iEnswX
+3IbsQDcxyFMJ4fvoAkpTV1RdsZ6xPfWdDO+ezTggYmyryvR77ZycLPEmM9+rhzTz
+JX9xVO1p2kqCJR2vSIf7y7MiHm+zOiv+6LkC1zkjxRq1rtp8p0b+cntgaA/Ywxmn
+bzRJYTFVO4hYg4cQ8biyslCZfAjfa1GMa2a3vc5yRNTtJ5YlLghxsEcWpIijgCUv
+0QYSc07pdhjZD8rvVVVhlUIiko7gPYdLRbpoJX+aVMVUiJ/wn4fqrbDvFTbWtt+u
+abwZXrtCWG2k7IPpufyZxHf2sMPOj2+WA/Uz6Nqr0ui+o9MHxXq8/h7Pf7Za1tFn
+AneFAbgeZBhsuzTHsXfgFbDWz1/QBgv9Si8kbnC+T+F1T9bIAegdDIcGDoTE+93T
+ZXuM+alSqSmHlnrIbMvWBVLpfTnjg4zRUkfYQsaM4LsVJGt2gZI5rgRn9WVHHLuh
+qxZxXJAMcoy0fsA4Qvlqafgru2d9OgfTJqUNK3IwES1NHXXm3cQTUCgS9CWcKpuG
+Bd6DYu1tkVMXXUyBBkKAnOCxaAREClQDivwFaccrlqxA+qA+Tiz9WuvP7Z2AkXOy
+F+jdLQ0TRK8=
+=mVaE
+-----END PGP SIGNATURE-----
 
->  		/* Powering off entities is assumed to never fail. */
-> -		isp_pipeline_pm_power(source->entity, -sink_use);
-> -		isp_pipeline_pm_power(sink->entity, -source_use);
-> +		isp_pipeline_pm_power(source, -sink_use);
-> +		isp_pipeline_pm_power(sink, -source_use);
->  		return 0;
->  	}
-> 
-> -	ret = isp_pipeline_pm_power(source->entity, sink_use);
-> -	if (ret < 0)
-> -		return ret;
-> +	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-> +	        (flags & MEDIA_LNK_FL_ENABLED)) {
-
-Similarly, shouldn't this be
-
-	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-	    !(flags & MEDIA_LNK_FL_ENABLED))
-
-> -	ret = isp_pipeline_pm_power(sink->entity, source_use);
-> -	if (ret < 0)
-> -		isp_pipeline_pm_power(source->entity, -sink_use);
-> +		ret = isp_pipeline_pm_power(source, sink_use);
-> +		if (ret < 0)
-> +			return ret;
-> 
-> -	return ret;
-> +		ret = isp_pipeline_pm_power(sink, source_use);
-> +		if (ret < 0)
-> +			isp_pipeline_pm_power(source, -sink_use);
-> +
-> +		return ret;
-> +	}
-> +
-> +	return 0;
->  }
-> 
->  /*
-> ---------------------------------------------------------------------------
-> -- diff --git a/include/media/media-device.h b/include/media/media-device.h
-> index eaade98..353c4ee 100644
-> --- a/include/media/media-device.h
-> +++ b/include/media/media-device.h
-> @@ -45,6 +45,7 @@ struct device;
->   * @entities:	List of registered entities
->   * @lock:	Entities list lock
->   * @graph_mutex: Entities graph operation lock
-> + * @link_notify: Link state change notification callback
->   *
->   * This structure represents an abstract high-level media device. It allows
-> easy * access to entities and provides basic media device-level support.
-> The @@ -75,10 +76,14 @@ struct media_device {
->  	/* Serializes graph operations. */
->  	struct mutex graph_mutex;
-> 
-> -	int (*link_notify)(struct media_pad *source,
-> -			   struct media_pad *sink, u32 flags);
-> +	int (*link_notify)(struct media_link *link, unsigned int flags,
-> +			   unsigned int notification);
->  };
-> 
-> +/* Supported link_notify @notification values. */
-> +#define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
-> +#define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
-> +
->  /* media_devnode to media_device */
->  #define to_media_device(node) container_of(node, struct media_device,
-> devnode)
--- 
-Regards,
-
-Laurent Pinchart
-
+--=-tzixmyz75p3ylmTv3JHb--
