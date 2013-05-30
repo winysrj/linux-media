@@ -1,50 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:27538 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758125Ab3EWKyX (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4454 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752127Ab3E3S2o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 06:54:23 -0400
-Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id r4NAsIxx026796
-	for <linux-media@vger.kernel.org>; Thu, 23 May 2013 10:54:18 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.10] Build dependency fixes
-Date: Thu, 23 May 2013 12:54:05 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305231254.05071.hverkuil@xs4all.nl>
+	Thu, 30 May 2013 14:28:44 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4UISWlN047071
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 30 May 2013 20:28:35 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id E6A7C35E0028
+	for <linux-media@vger.kernel.org>; Thu, 30 May 2013 20:28:31 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130530182831.E6A7C35E0028@alastor.dyndns.org>
+Date: Thu, 30 May 2013 20:28:31 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Note: this superceeds my previous 3.10 pull request: I realized that the solo fix
-should also go to 3.10.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Regards,
+Results of the daily build of media_tree:
 
-	Hans
+date:		Thu May 30 19:00:20 CEST 2013
+git branch:	test
+git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-The following changes since commit 6a084d6b3dc200b855ae8a3c6771abe285a3835d:
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-  [media] saa7115: Don't use a dynamic array (2013-05-21 12:04:16 -0300)
+Detailed results are available here:
 
-are available in the git repository at:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.10b
+Full logs are available here:
 
-for you to fetch changes up to a77dac0ac37a9ee6a72a6d2b864feb894d88fbaf:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-  staging/solo6x10: select the desired font (2013-05-23 12:52:42 +0200)
+The Media Infrastructure API from this daily build is here:
 
-----------------------------------------------------------------
-Lad, Prabhakar (1):
-      drivers/staging: davinci: vpfe: fix dependency for building the driver
-
-Xiong Zhou (1):
-      staging/solo6x10: select the desired font
-
- drivers/staging/media/davinci_vpfe/Kconfig |    2 +-
- drivers/staging/media/solo6x10/Kconfig     |    1 +
- 2 files changed, 2 insertions(+), 1 deletion(-)
+http://www.xs4all.nl/~hverkuil/spec/media.html
