@@ -1,70 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:38486 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753668Ab3E0JNv (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:35128 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S966496Ab3E3CUO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 27 May 2013 05:13:51 -0400
-Date: Mon, 27 May 2013 11:13:33 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	x86@kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
-	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
-Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks, v3
-Message-ID: <20130527091333.GH2781@laptop>
-References: <20130428165914.17075.57751.stgit@patser>
- <20130428170407.17075.80082.stgit@patser>
- <20130430191422.GA5763@phenom.ffwll.local>
- <519CA976.9000109@canonical.com>
- <20130522161831.GQ18810@twins.programming.kicks-ass.net>
- <519CFF56.90600@canonical.com>
- <20130527080019.GD2781@laptop>
- <51A318BF.7010109@canonical.com>
+	Wed, 29 May 2013 22:20:14 -0400
+References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no> <1369860078-10334-2-git-send-email-jonarne@jonarne.no> <20130529213554.690f7eaa@redhat.com>
+In-Reply-To: <20130529213554.690f7eaa@redhat.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <51A318BF.7010109@canonical.com>
+Content-Type: text/plain;
+ charset=UTF-8
+Content-Transfer-Encoding: 8bit
+Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
+From: Andy Walls <awalls@md.metrocast.net>
+Date: Wed, 29 May 2013 22:19:49 -0400
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	=?ISO-8859-1?Q?Jon_Arne_J=F8rgensen?= <jonarne@jonarne.no>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
+	timo.teras@iki.fi
+Message-ID: <7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, May 27, 2013 at 10:26:39AM +0200, Maarten Lankhorst wrote:
-> Op 27-05-13 10:00, Peter Zijlstra schreef:
-> > On Wed, May 22, 2013 at 07:24:38PM +0200, Maarten Lankhorst wrote:
-> >>>> +- Functions to only acquire a single w/w mutex, which results in the exact same
-> >>>> +  semantics as a normal mutex. These functions have the _single postfix.
-> >>> This is missing rationale.
-> >> trylock_single is useful when iterating over a list, and you want to evict a bo, but only the first one that can be acquired.
-> >> lock_single is useful when only a single bo needs to be acquired, for example to lock a buffer during mmap.
-> > OK, so given that its still early, monday and I haven't actually spend
-> > much time thinking on this; would it be possible to make:
-> > ww_mutex_lock(.ctx=NULL) act like ww_mutex_lock_single()?
-> >
-> > The idea is that if we don't provide a ctx, we'll get a different
-> > lockdep annotation; mutex_lock() vs mutex_lock_nest_lock(). So if we
-> > then go and make a mistake, lockdep should warn us.
-> >
-> > Would that work or should I stock up on morning juice?
-> >
-> It's easy to merge unlock_single and unlock, which I did in the next version I'll post.
-> Lockdep will already warn if ww_mutex_lock and ww_mutex_lock_single are both
-> used. ww_test_block_context and ww_test_context_block in lib/locking-selftest.c
-> are the testcases for this.
-> 
-> The locking paths are too different, it will end up with doing "if (ctx == NULL) mutex_lock(); else ww_mutex_lock();"
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-I was more thinking like:
+>Em Wed, 29 May 2013 22:41:16 +0200
+>Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+>
+>> Change all default values in the initial setup table to match the
+>table
+>> in the datasheet.
+>
+>This is not a good idea, as it can produce undesired side effects
+>on the existing drivers that depend on it, and can't be easily
+>tested.
+>
+>Please, don't change the current "default". It is, of course, OK
+>to change them if needed via the information provided inside the
+>platform data.
+>
+>Regards,
+>Mauro
+>> 
+>> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+>> ---
+>>  drivers/media/i2c/saa7115.c | 12 ++++++------
+>>  1 file changed, 6 insertions(+), 6 deletions(-)
+>> 
+>> diff --git a/drivers/media/i2c/saa7115.c
+>b/drivers/media/i2c/saa7115.c
+>> index d6f589a..4403679 100644
+>> --- a/drivers/media/i2c/saa7115.c
+>> +++ b/drivers/media/i2c/saa7115.c
+>> @@ -223,12 +223,12 @@ static const unsigned char saa7111_init[] = {
+>>  static const unsigned char saa7113_init[] = {
+>>  	R_01_INC_DELAY, 0x08,
+>>  	R_02_INPUT_CNTL_1, 0xc2,
+>> -	R_03_INPUT_CNTL_2, 0x30,
+>> +	R_03_INPUT_CNTL_2, 0x33,
+>>  	R_04_INPUT_CNTL_3, 0x00,
+>>  	R_05_INPUT_CNTL_4, 0x00,
+>> -	R_06_H_SYNC_START, 0x89,
+>> +	R_06_H_SYNC_START, 0xe9,
+>>  	R_07_H_SYNC_STOP, 0x0d,
+>> -	R_08_SYNC_CNTL, 0x88,
+>> +	R_08_SYNC_CNTL, 0x98,
+>>  	R_09_LUMA_CNTL, 0x01,
+>>  	R_0A_LUMA_BRIGHT_CNTL, 0x80,
+>>  	R_0B_LUMA_CONTRAST_CNTL, 0x47,
+>> @@ -236,11 +236,11 @@ static const unsigned char saa7113_init[] = {
+>>  	R_0D_CHROMA_HUE_CNTL, 0x00,
+>>  	R_0E_CHROMA_CNTL_1, 0x01,
+>>  	R_0F_CHROMA_GAIN_CNTL, 0x2a,
+>> -	R_10_CHROMA_CNTL_2, 0x08,
+>> +	R_10_CHROMA_CNTL_2, 0x00,
+>>  	R_11_MODE_DELAY_CNTL, 0x0c,
+>> -	R_12_RT_SIGNAL_CNTL, 0x07,
+>> +	R_12_RT_SIGNAL_CNTL, 0x01,
+>>  	R_13_RT_X_PORT_OUT_CNTL, 0x00,
+>> -	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
+>> +	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,	/* RESERVED */
+>>  	R_15_VGATE_START_FID_CHG, 0x00,
+>>  	R_16_VGATE_STOP, 0x00,
+>>  	R_17_MISC_VGATE_CONF_AND_MSB, 0x00,
+>
+>
+>-- 
+>
+>Cheers,
+>Mauro
+>--
+>To unsubscribe from this list: send the line "unsubscribe linux-media"
+>in
+>the body of a message to majordomo@vger.kernel.org
+>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-int __sched ww_mutex_lock(struct ww_mutex *lock, struct ww_acquire_ctx *ctx)
-{
-	might_sleep();
-	return __mutex_lock_common(&lock->base, TASK_UNINTERRUPTIBLE, 0,
-				   ctx ? ctx->dep_map : NULL, _RET_IP_,
-				   ctx, 0);
-}
+I was going to make a comment along the same line as Mauro.  
+Please leave the driver defaults alone.  It is almost impossible to regression test all the different devices with a SAA7113 chip, to ensure the change doesn't cause someone's device to not work properly.
 
-That should make ww_mutex_lock(.ctx=NULL) equivalent to
-mutex_lock(&lock->base), no?
+Regards,
+Andy
 
-Anyway, implementation aside, it would again reduce the interface some.
