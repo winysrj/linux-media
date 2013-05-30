@@ -1,36 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f181.google.com ([209.85.223.181]:50276 "EHLO
-	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755399Ab3EaP1F (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:6824 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752593Ab3E3AnQ convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 31 May 2013 11:27:05 -0400
-Received: by mail-ie0-f181.google.com with SMTP id x14so4373410ief.12
-        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 08:27:04 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAA1g13=i8XC=NbKeazO90eOXNMMhcK=MT1S+pXJ_SQFLMjoCSA@mail.gmail.com>
-References: <CAA1g13mVO_buU8AeROBT3qSXsS2EQtAvHVHdEo5-RGMcRYC47A@mail.gmail.com>
-	<CALF0-+XcBRxqOb5gARG9JkFNoubXouHv_MHqC7paS5E5M7oSUg@mail.gmail.com>
-	<CAA1g13n2GknjeCZ2fJbXH1trz8aog01BqEB_JwqU8QX9bda2Cg@mail.gmail.com>
-	<CALF0-+V5mShZmVt=gJmA6dAH+3JGtJFv-UOxCbbWoPtZvf1+SA@mail.gmail.com>
-	<CAA1g13=i8XC=NbKeazO90eOXNMMhcK=MT1S+pXJ_SQFLMjoCSA@mail.gmail.com>
-Date: Fri, 31 May 2013 12:27:04 -0300
-Message-ID: <CALF0-+UBWPU3+XRRkyeSQBrnh=i2eekTEjQORY0wfO=NEgGtmQ@mail.gmail.com>
-Subject: Re: Unrecognized decoder chip (not gm7113c)
-From: Ezequiel Garcia <elezegarcia@gmail.com>
-To: Greg Horvath <horvath.105@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 29 May 2013 20:43:16 -0400
+Date: Wed, 29 May 2013 21:42:50 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Jon Arne =?UTF-8?B?SsO4cmdlbnNlbg==?= <jonarne@jonarne.no>
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
+	timo.teras@iki.fi
+Subject: Re: [RFC 3/3] saa7115: Implement i2c_board_info.platform data
+Message-ID: <20130529214250.435b252b@redhat.com>
+In-Reply-To: <1369860078-10334-4-git-send-email-jonarne@jonarne.no>
+References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
+	<1369860078-10334-4-git-send-email-jonarne@jonarne.no>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 31, 2013 at 12:23 PM, Greg Horvath <horvath.105@gmail.com> wrote:
-> I will try and get a 3.7 kernel running on an x86 machine and
-> see if I can get it to run though. Thanks for taking the time to
-> investigate.
->
+Em Wed, 29 May 2013 22:41:18 +0200
+Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
 
-That sounds like a good plan! Please try with a v3.7+ kernel on x86
-and report your findings.
+> Implement i2c_board_info.platform_data handling in the driver so we can
+> make device specific changes to the chips we support.
+> 
+
+...
+
+> +struct saa7115_platform_data {
+> +	/* Horizontal time constant */
+> +	u8 saa7113_r08_htc;
+> +
+> +	u8 saa7113_r10_vrln;
+> +	u8 saa7113_r10_ofts;
+> +
+> +	u8 saa7113_r12_rts0;
+> +	u8 saa7113_r12_rts1;
+> +
+> +	u8 saa7113_r13_adlsb;
+> +};
+
+While this works, it makes harder to analyze what's changed there,
+as the above nomenclature is too obfuscated.
+
+The better would be if you could, instead, name the bits (or bytes)
+that will require different data, like (I just got some random
+bits from reg08, on saa7113 datasheet - I didn't actually checked
+what bits are you using):
+
+	unsigned pll_closed: 1;
+	unsigned fast_mode: 1;
+	unsigned fast_locking: 1;
+
 
 -- 
-    Ezequiel
+
+Cheers,
+Mauro
