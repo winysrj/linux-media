@@ -1,39 +1,31 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:45632 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753055Ab3EVLro (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 07:47:44 -0400
-Message-ID: <519CB05E.3060903@canonical.com>
-Date: Wed, 22 May 2013 13:47:42 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Received: from mta.bitpro.no ([92.42.64.202]:59713 "EHLO mta.bitpro.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S966916Ab3E3IOY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 May 2013 04:14:24 -0400
+Message-ID: <51A70713.6030802@bitfrost.no>
+Date: Thu, 30 May 2013 10:00:19 +0200
+From: Hans Petter Selasky <hps@bitfrost.no>
 MIME-Version: 1.0
-To: Peter Zijlstra <peterz@infradead.org>
-CC: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	x86@kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
-	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
-Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks,
- v3
-References: <20130428165914.17075.57751.stgit@patser> <20130428170407.17075.80082.stgit@patser> <20130430191422.GA5763@phenom.ffwll.local> <519CA976.9000109@canonical.com> <20130522113736.GO18810@twins.programming.kicks-ass.net>
-In-Reply-To: <20130522113736.GO18810@twins.programming.kicks-ass.net>
-Content-Type: text/plain; charset=ISO-8859-1
+To: linux-media@vger.kernel.org, Juergen Lock <nox@jelal.kn-bremen.de>
+Subject: TT-USB2.0 and high bitrate packet loss (DVB-C/T)
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 22-05-13 13:37, Peter Zijlstra schreef:
->> Are there any issues left? I included the patch you wrote for injecting -EDEADLK too
->> in my tree. The overwhelming silence makes me think there are either none, or
->> nobody cared enough to review it. :(
-> It didn't manage to reach my inbox it seems,.. I can only find a debug
-> patch in this thread.
->
-Odd, maybe in your spam folder?
-It arrived on all mailing lists, so I have no idea why you were left out.
+Hi there,
 
-http://www.spinics.net/lists/linux-arch/msg21425.html
+I need to get in concat with someone that can handle, test and review a 
+patch for TT-USB2.0. I've found that for certain high-bitrate streams, 
+the TT-USB2.0 sends more ISOCHRONOUS MPEG data than is specified in the 
+wMaxPacketSize fields. I have a USB analyzer capture which shows this 
+clearly. This of course won't be received at the USB host and packet 
+drops appear inside the stream. The solution is to use another alternate 
+setting. The technotrend chip has many of these. I've now tested using 
+alternate setting 7 instead of 3.
 
+Alternate setting 7 allows transferring a maximum of 3 * 1024 bytes.
+Alternate setting 3 allows transferring a maximum of 1 * 940 bytes.
 
-~Maarten
+--HPS
