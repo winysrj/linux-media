@@ -1,131 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:55635 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756468Ab3EBPRR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 11:17:17 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: linux-kernel@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	Arnd Bergmann <arnd@arndb.de>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Daniel Lezcano <daniel.lezcano@linaro.org>,
-	Dave Airlie <airlied@redhat.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Herbert Xu <herbert@gondor.hengli.com.au>,
-	"John W. Linville" <linville@tuxdriver.com>,
-	Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>,
-	Oliver Hartkopp <socketcan@hartkopp.net>,
-	"Rafael J. Wysocki" <rjw@sisk.pl>,
-	Robert Richter <rric@kernel.org>,
-	Samuel Ortiz <sameo@linux.intel.com>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Thierry Reding <thierry.reding@avionic-design.de>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	Viresh Kumar <viresh.kumar@linaro.org>,
-	Zhang Rui <rui.zhang@intel.com>, cpufreq@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linux-can@vger.kernel.org,
-	linux-media@vger.kernel.org, linux-pm@vger.kernel.org,
-	oprofile-list@lists.sf.net
-Subject: [PATCH, RFC 00/22] ARM randconfig bugs
-Date: Thu,  2 May 2013 17:16:04 +0200
-Message-Id: <1367507786-505303-1-git-send-email-arnd@arndb.de>
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:33157 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754007Ab3EaKbi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 06:31:38 -0400
+Message-id: <51A87C05.9020703@samsung.com>
+Date: Fri, 31 May 2013 12:31:33 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH RFC v2] media: OF: add sync-on-green endpoint property
+References: <1368710287-8741-1-git-send-email-prabhakar.csengg@gmail.com>
+ <CA+V-a8tMQnjh=8qaRoNhwkdrcoTCK2zofTkCOd79hAMoz5qK2A@mail.gmail.com>
+ <51A0C6A8.5090302@gmail.com> <44193648.yaA827Trlv@avalon>
+In-reply-to: <44193648.yaA827Trlv@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi subsystem maintainers,
+On 05/30/2013 05:21 AM, Laurent Pinchart wrote:
+> Hi Sylwester,
+> 
+> On Saturday 25 May 2013 16:11:52 Sylwester Nawrocki wrote:
+>> On 05/25/2013 11:17 AM, Prabhakar Lad wrote:
+[...]
+>>>>>  And for synchronisation method on the analog part we could perhaps
+>>>>>  define 'component-sync' or similar property that would enumerate all
+>>>>>  possible synchronisation methods. We might as well use separate
+>>>>>  boolean properties, but I'm a bit concerned about the increasing
+>>>>>  number of properties that need to be parsed for each parallel video
+>>>>>  bus "endpoint".
+>>>
+>>> I am not clear on it can please elaborate more on this.
+>>
+>> I thought about two possible options:
+>>
+>> 1. single property 'component-sync' or 'video-sync' that would have values:
+>>
+>> #define VIDEO_SEPARATE_SYNC	0x01
+>> #define VIDEO_COMPOSITE_SYNC	0x02
+>> #define VIDEO_SYNC_ON_COMPOSITE	0x04
+>> #define VIDEO_SYNC_ON_GREEN	0x08
+>> #define VIDEO_SYNC_ON_LUMINANCE	0x10
+>>
+>> And we could put these definitions into a separate header, e.g.
+>> <dt-bindings/video-interfaces.h>
+>>
+>> Then in a device tree source file one could have, e.g.
+>>
+>> video-sync = <VIDEO_SYNC_ON_GREEN>;
+>>
+>>
+>> 2. Separate boolean property for each video sync type, e.g.
+>>
+>> 	"video-composite-sync"
+>> 	"video-sync-on-composite"
+>> 	"video-sync-on-green"
+>> 	"video-sync-on-luminance"
+>>
+>> Separate sync, with separate VSYNC, HSYNC lines, would be the default, when
+>> none of the above is specified and 'vsync-active', 'hsync-active' properties
+>> are present.
+> 
+> I prefer 1. over 2.
+> 
+>> However, I suppose the better would be to deduce the video synchronisation
+>> method from the sync signal polarity flags. Then, for instance, when an
+>> endpoint node contains "composite-sync-active" property the parser would
+>> determine the "composite sync" synchronisation type is used.
+>>
+>> Thus it might make sense to have only following integer properties (added
+>> as needed):
+>>
+>> composite-sync-active
+>> sync-on-green-active
+>> sync-on-comp-active
+>> sync-on-luma-active
+>>
+>> This would allow to specify polarity of each signal and at the same time
+>> the parsing code could derive synchronisation type. A new field could be
+>> added to struct v4l2_of_parallel_bus, e.g. sync_type and it would be filled
+>> within v4l2_of_parse_endpoint().
+>>
+>> What do you think ?
+> 
+> My gut feeling is that we should have separate properties for the video sync 
+> type and the synchronization signals polarities. We could have a chip that 
+> supports sync-on-green on the analog (input) side and outputs separate hsync 
+> and vsync signals only on the digital (output) side. There would be no sync-
+> on-green polarity in that case.
 
-This is a set of patches to to fix build errors I hit while trying to
-build lots of randconfig kernels on linux-next.
+Yes, agreed. I've had some doubts that using single DT property for defining
+really 2 distinct H/W properties like this might not be flexible enough.
+The option 1. seems most correct then.
 
-Most of them are simple missing dependencies in Kconfig, but some are
-more substantial. I would like to see at least the obvious patches
-get merged for 3.10. If you are happy with the patches, feel free
-to apply them directly, otherwise please provide feedback.
-
-No single patch out of these is very important though, most of them
-only concern corner cases and don't matter in practice.
-
-	Arnd
-
-Arnd Bergmann (22):
-  can: move CONFIG_HAVE_CAN_FLEXCAN out of CAN_DEV
-  cpufreq: ARM_DT_BL_CPUFREQ needs ARM_CPU_TOPOLOGY
-  cpuidle: calxeda: select ARM_CPU_SUSPEND
-  staging/drm: imx: add missing dependencies
-  drm: always provide debugfs function prototypes
-  gpu/drm: host1x: add dependency on Tegra
-  drm/tilcd: select BACKLIGHT_LCD_SUPPORT
-  OMAPDSS: DPI needs DSI
-  crypto: lz4: don't build on ARM
-  mfd: ab8500: debugfs code depends on gpadc
-  iwlegacy: il_pm_ops is only provided for PM_SLEEP
-  thermal: cpu_cooling: fix stub function
-  staging/logger: use kuid_t internally
-  oprofile: always enable IRQ_WORK
-  USB: EHCI: remove bogus #error
-  USB: UHCI: clarify Kconfig dependencies
-  USB: OHCI: clarify Kconfig dependencies
-  Xen: SWIOTLB is only used on x86
-  staging/solo6x10: depend on CONFIG_FONTS
-  media: coda: select GENERIC_ALLOCATOR
-  davinci: vpfe_capture needs i2c
-  radio-si4713: depend on SND_SOC
-
- arch/Kconfig                           |  1 +
- crypto/Kconfig                         |  2 ++
- drivers/cpufreq/Kconfig.arm            |  1 +
- drivers/cpuidle/Kconfig                |  1 +
- drivers/gpu/drm/tilcdc/Kconfig         |  1 +
- drivers/gpu/host1x/drm/Kconfig         |  1 +
- drivers/media/platform/Kconfig         |  1 +
- drivers/media/platform/davinci/Kconfig |  3 ++
- drivers/media/radio/Kconfig            |  1 +
- drivers/mfd/Kconfig                    |  2 +-
- drivers/net/can/Kconfig                |  6 ++--
- drivers/net/wireless/iwlegacy/common.h |  2 +-
- drivers/staging/android/logger.c       |  4 +--
- drivers/staging/android/logger.h       |  2 +-
- drivers/staging/imx-drm/Kconfig        |  4 +++
- drivers/staging/media/solo6x10/Kconfig |  1 +
- drivers/usb/host/Kconfig               | 65 +++++++++++++++++++++++++++++-----
- drivers/usb/host/Makefile              |  4 +--
- drivers/usb/host/ehci-hcd.c            | 17 ---------
- drivers/usb/host/ohci-hcd.c            | 19 ----------
- drivers/usb/host/uhci-hcd.c            |  4 +--
- drivers/video/console/Makefile         |  2 ++
- drivers/video/omap2/dss/Kconfig        |  1 +
- drivers/xen/Kconfig                    |  2 +-
- include/drm/drmP.h                     |  3 +-
- include/linux/cpu_cooling.h            |  2 +-
- 26 files changed, 91 insertions(+), 61 deletions(-)
-
--- 
-1.8.1.2
-
-Cc: Alan Stern <stern@rowland.harvard.edu>
-Cc: Daniel Lezcano <daniel.lezcano@linaro.org>
-Cc: Dave Airlie <airlied@redhat.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Herbert Xu <herbert@gondor.hengli.com.au>
-Cc: John W. Linville <linville@tuxdriver.com>
-Cc: Konrad Rzeszutek Wilk <konrad.wilk@oracle.com>
-Cc: Mauro Carvalho Chehab <mchehab@infradead.org>
-Cc: Oliver Hartkopp <socketcan@hartkopp.net>
-Cc: Rafael J. Wysocki <rjw@sisk.pl>
-Cc: Robert Richter <rric@kernel.org>
-Cc: Samuel Ortiz <sameo@linux.intel.com>
-Cc: Shawn Guo <shawn.guo@linaro.org>
-Cc: Thierry Reding <thierry.reding@avionic-design.de>
-Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>
-Cc: Viresh Kumar <viresh.kumar@linaro.org>
-Cc: Zhang Rui <rui.zhang@intel.com>
-Cc: cpufreq@vger.kernel.org
-Cc: dri-devel@lists.freedesktop.org
-Cc: linux-can@vger.kernel.org
-Cc: linux-media@vger.kernel.org
-Cc: linux-pm@vger.kernel.org
-Cc: oprofile-list@lists.sf.net
-
+Regards,
+Sylwester
