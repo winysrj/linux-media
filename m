@@ -1,103 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:44068 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757786Ab3EBNYS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 09:24:18 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Sascha Hauer <s.hauer@pengutronix.de>,
-	LMML <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH RFC v2] media: i2c: mt9p031: add OF support
-Date: Thu, 02 May 2013 15:24:28 +0200
-Message-ID: <5629971.jIvxpOF1A0@avalon>
-In-Reply-To: <CA+V-a8sXNhiHhu9HJgFKCAZGZwvqptLy56Akqqu+xDVQ-4amyg@mail.gmail.com>
-References: <1367475754-19477-1-git-send-email-prabhakar.csengg@gmail.com> <1561679.1AUpDgdnFy@avalon> <CA+V-a8sXNhiHhu9HJgFKCAZGZwvqptLy56Akqqu+xDVQ-4amyg@mail.gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56330 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751999Ab3EaBDX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 30 May 2013 21:03:23 -0400
+Message-ID: <51A7F811.5090805@iki.fi>
+Date: Fri, 31 May 2013 04:08:33 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC v3 2/3] media: added managed v4l2 control initialization
+References: <1368692074-483-1-git-send-email-a.hajda@samsung.com> <1368692074-483-3-git-send-email-a.hajda@samsung.com> <20130516223451.GA2077@valkosipuli.retiisi.org.uk> <201305231239.32156.hverkuil@xs4all.nl>
+In-Reply-To: <201305231239.32156.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Hi Hans,
 
-On Thursday 02 May 2013 18:48:37 Prabhakar Lad wrote:
-> On Thu, May 2, 2013 at 4:32 PM, Laurent Pinchart wrote:
-> > On Thursday 02 May 2013 12:34:25 Prabhakar Lad wrote:
-> >> On Thu, May 2, 2013 at 12:25 PM, Sascha Hauer wrote:
-> >> > On Thu, May 02, 2013 at 11:52:34AM +0530, Prabhakar Lad wrote:
-> >> >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> >> >> 
-> >> >> add OF support for the mt9p031 sensor driver.
-> >> >> Alongside this patch sorts the header inclusion alphabetically.
+Hans Verkuil wrote:
+> On Fri 17 May 2013 00:34:51 Sakari Ailus wrote:
+>> Hi Andrzej,
+>>
+>> Thanks for the patchset!
+>>
+>> On Thu, May 16, 2013 at 10:14:33AM +0200, Andrzej Hajda wrote:
+>>> This patch adds managed version of initialization
+>>> function for v4l2 control handler.
+>>>
+>>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>> ---
+>>> v3:
+>>> 	- removed managed cleanup
+>>> v2:
+>>> 	- added missing struct device forward declaration,
+>>> 	- corrected few comments
+>>> ---
+>>>   drivers/media/v4l2-core/v4l2-ctrls.c |   32 ++++++++++++++++++++++++++++++++
+>>>   include/media/v4l2-ctrls.h           |   16 ++++++++++++++++
+>>>   2 files changed, 48 insertions(+)
+>>>
+>>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> index ebb8e48..f47ccfa 100644
+>>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+>>> @@ -1421,6 +1421,38 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+>>>   }
+>>>   EXPORT_SYMBOL(v4l2_ctrl_handler_free);
+>>>
+>>> +static void devm_v4l2_ctrl_handler_release(struct device *dev, void *res)
+>>> +{
+>>> +	struct v4l2_ctrl_handler **hdl = res;
+>>> +
+>>> +	v4l2_ctrl_handler_free(*hdl);
+>>
+>> v4l2_ctrl_handler_free() acquires hdl->mutex which is independent of the
+>> existence of hdl. By default hdl->lock is in the handler, but it may also be
+>> elsewhere, e.g. in a driver-specific device struct such as struct
+>> smiapp_sensor defined in drivers/media/i2c/smiapp/smiapp.h. I wonder if
+>> anything guarantees that hdl->mutex still exists at the time the device is
+>> removed.
+>
+> If it is a driver-managed lock, then the driver should also be responsible for
+> that lock during the life-time of the control handler. I think that is a fair
+> assumption.
 
-[snip]
+Agreed.
 
-> >> >> @@ -1070,8 +1120,16 @@ static const struct i2c_device_id mt9p031_id[]
-> >> >> = {
-> >> >>  };
-> >> >>  MODULE_DEVICE_TABLE(i2c, mt9p031_id);
-> >> >> 
-> >> >> +static const struct of_device_id mt9p031_of_match[] = {
-> >> >> +     { .compatible = "aptina,mt9p031", },
-> >> >> +     { .compatible = "aptina,mt9p031m", },
-> >> >> +     {},
-> >> >> +};
-> >> > 
-> >> > I would have expected something like:
-> >> > 
-> >> > static const struct of_device_id mt9p031_of_match[] = {
-> >> >         {
-> >> >                 .compatible = "aptina,mt9p031-sensor",
-> >> >                 .data = (void *)MT9P031_MODEL_COLOR,
-> >> >         }, {
-> >> >                 .compatible = "aptina,mt9p031m-sensor",
-> >> >                 .data = (void *)MT9P031_MODEL_MONOCHROME,
-> >> >         }, {
-> >> >                 /* sentinel */
-> >> >         },
-> >> > };
-> >> > 
-> >> >         of_id = of_match_device(mt9p031_of_match, &client->dev);
-> >> >         if (of_id)
-> >> >                 mt9p031->model = (enum mt9p031_model)of_id->data;
-> >> > 
-> >> > To handle monochrome sensors.
-> >> 
-> >> OK will do the same.
-> > 
-> > And please guard the table with #ifdef CONFIG_OF.
-> 
-> But guarding the table #ifdef CONFIG_OF would cause compilation failure
-> for below code when CONFIG_OF is undefined in probe
-> 
-> of_id = of_match_device(of_match_ptr(mt9p031_of_match),
-> 			&client->dev);
-> if (of_id)
-> 	mt9p031->model = (enum mt9p031_model)of_id->data;
+>> I have to say I don't think it's neither meaningful to acquire that mutex in
+>> v4l2_ctrl_handler_free(), though, since the whole going to be freed next
+>> anyway: reference counting would be needed to prevent bad things from
+>> happening, in case the drivers wouldn't take care of that.
+>
+> It's probably not meaningful today, but it might become meaningful in the
+> future. And in any case, not taking the lock when manipulating internal
+> lists is very unexpected even though it might work with today's use cases.
 
-You could guard the above code with an #ifdef CONFIG_OF as well.
+I simply don't think it's meaningful to acquire a lock related to an 
+object when that object is being destroyed. If something else was 
+holding that lock, you should not have begun destroying that object in 
+the first place. This could be solved by reference counting the handler 
+which I don't think is needed.
 
-> and also in mt9p031_i2c_driver structure,
-> of_match_table = of_match_ptr(mt9p031_of_match),
-> 
-> which force me to define mt9p031_of_match to NULL when
-> CONFIG_OF is undefined
+I'd just shout out loud about this rather than hiding such potential 
+bug, i.e. replace mutex_lock() and mutex_unlock() in the function by 
+WARN_ON(mutex_is_lock()).
 
-of_match_ptr is defined as NULL when CONFIG_OF is disabled.
+But that should be a separate patch.
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Sakari Ailus
+sakari.ailus@iki.fi
