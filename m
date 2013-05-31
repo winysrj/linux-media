@@ -1,77 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f45.google.com ([209.85.219.45]:57295 "EHLO
-	mail-oa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878Ab3EBFRi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 01:17:38 -0400
-Received: by mail-oa0-f45.google.com with SMTP id o17so168792oag.32
-        for <linux-media@vger.kernel.org>; Wed, 01 May 2013 22:17:37 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <5180E13A.8050008@gmail.com>
-References: <1367227499-543-1-git-send-email-sachin.kamat@linaro.org>
-	<5180E13A.8050008@gmail.com>
-Date: Thu, 2 May 2013 10:47:37 +0530
-Message-ID: <CAK9yfHw34weW3mDtk1O1pcC04=nYnHzRfGLBdXT1TFjj_t9A9Q@mail.gmail.com>
-Subject: Re: [PATCH 1/3] [media] s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL
- in hdmi_drv.c
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: linux-media@vger.kernel.org, t.stanislaws@samsung.com,
-	s.nawrocki@samsung.com, patches@linaro.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3106 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753333Ab3EaKDS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 06:03:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Fabio Belavenuto <belavenuto@gmail.com>
+Subject: [PATCH 09/21] radio-tea5764: add prio and control event support.
+Date: Fri, 31 May 2013 12:02:29 +0200
+Message-Id: <1369994561-25236-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 1 May 2013 15:02, Sylwester Nawrocki <sylvester.nawrocki@gmail.com> wrote:
-> On 04/29/2013 11:24 AM, Sachin Kamat wrote:
->>
->> NULL check on clocks obtained using common clock APIs should not
->> be done. Use IS_ERR only.
->>
->> Signed-off-by: Sachin Kamat<sachin.kamat@linaro.org>
->> ---
->>   drivers/media/platform/s5p-tv/hdmi_drv.c |   10 +++++-----
->>   1 file changed, 5 insertions(+), 5 deletions(-)
->>
->> diff --git a/drivers/media/platform/s5p-tv/hdmi_drv.c
->> b/drivers/media/platform/s5p-tv/hdmi_drv.c
->> index 4e86626..b3344cb 100644
->> --- a/drivers/media/platform/s5p-tv/hdmi_drv.c
->> +++ b/drivers/media/platform/s5p-tv/hdmi_drv.c
->> @@ -765,15 +765,15 @@ static void hdmi_resources_cleanup(struct
->> hdmi_device *hdev)
->>                 regulator_bulk_free(res->regul_count, res->regul_bulk);
->>         /* kfree is NULL-safe */
->>         kfree(res->regul_bulk);
->> -       if (!IS_ERR_OR_NULL(res->hdmiphy))
->> +       if (!IS_ERR(res->hdmiphy))
->>                 clk_put(res->hdmiphy);
->> -       if (!IS_ERR_OR_NULL(res->sclk_hdmiphy))
->> +       if (!IS_ERR(res->sclk_hdmiphy))
->>                 clk_put(res->sclk_hdmiphy);
->> -       if (!IS_ERR_OR_NULL(res->sclk_pixel))
->> +       if (!IS_ERR(res->sclk_pixel))
->>                 clk_put(res->sclk_pixel);
->> -       if (!IS_ERR_OR_NULL(res->sclk_hdmi))
->> +       if (!IS_ERR(res->sclk_hdmi))
->>                 clk_put(res->sclk_hdmi);
->> -       if (!IS_ERR_OR_NULL(res->hdmi))
->> +       if (!IS_ERR(res->hdmi))
->>                 clk_put(res->hdmi);
->>         memset(res, 0, sizeof(*res));
->>   }
->
->
-> I think this patch is incomplete. You need to ensure all the clock pointers
-> are initially set to an invalid value. This is currently done with
-> memsetting
-> whole hdmi_resource structure to 0. But now some ERR_PTR() value needs to be
-> used instead. Same applies to your subsequent patch.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Fabio Belavenuto <belavenuto@gmail.com>
+---
+ drivers/media/radio/radio-tea5764.c |    8 ++++++++
+ 1 file changed, 8 insertions(+)
 
-Yes you are right.
-Initialised the clocks to invalid value and sent v2 of both these patches.
-
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 077d906..c22feed 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -41,6 +41,7 @@
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
++#include <media/v4l2-event.h>
+ 
+ #define DRIVER_VERSION	"0.0.2"
+ 
+@@ -397,6 +398,9 @@ static const struct v4l2_ctrl_ops tea5764_ctrl_ops = {
+ /* File system interface */
+ static const struct v4l2_file_operations tea5764_fops = {
+ 	.owner		= THIS_MODULE,
++	.open		= v4l2_fh_open,
++	.release	= v4l2_fh_release,
++	.poll		= v4l2_ctrl_poll,
+ 	.unlocked_ioctl	= video_ioctl2,
+ };
+ 
+@@ -406,6 +410,9 @@ static const struct v4l2_ioctl_ops tea5764_ioctl_ops = {
+ 	.vidioc_s_tuner     = vidioc_s_tuner,
+ 	.vidioc_g_frequency = vidioc_g_frequency,
+ 	.vidioc_s_frequency = vidioc_s_frequency,
++	.vidioc_log_status  = v4l2_ctrl_log_status,
++	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
++	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
+ };
+ 
+ /* V4L2 interface */
+@@ -469,6 +476,7 @@ static int tea5764_i2c_probe(struct i2c_client *client,
+ 	video_set_drvdata(&radio->vdev, radio);
+ 	radio->vdev.lock = &radio->mutex;
+ 	radio->vdev.v4l2_dev = v4l2_dev;
++	set_bit(V4L2_FL_USE_FH_PRIO, &radio->vdev.flags);
+ 
+ 	/* initialize and power off the chip */
+ 	tea5764_i2c_read(radio);
 -- 
-With warm regards,
-Sachin
+1.7.10.4
+
