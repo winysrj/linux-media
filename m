@@ -1,71 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f44.google.com ([209.85.215.44]:51258 "EHLO
-	mail-la0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753452Ab3EUOrI (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:57414 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757797Ab3EaWYY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 10:47:08 -0400
-Received: by mail-la0-f44.google.com with SMTP id fr10so789736lab.31
-        for <linux-media@vger.kernel.org>; Tue, 21 May 2013 07:47:06 -0700 (PDT)
-Message-ID: <519B88E8.3040101@cogentembedded.com>
-Date: Tue, 21 May 2013 18:47:04 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: phil.edworthy@renesas.com
-CC: vladimir.barinov@cogentembedded.com, g.liakhovetski@gmx.de,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	magnus.damm@gmail.com, matsu@igel.co.jp, mchehab@redhat.com
-Subject: Re: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
-References: <201305180101.11383.sergei.shtylyov@cogentembedded.com> <OFC9B7B505.2CDF0AA3-ON80257B71.00291B65-80257B71.002952EB@eu.necel.com> <519A1FFC.6000304@cogentembedded.com> <OF0ABE628B.1C271A20-ON80257B72.002ED824-80257B72.003627CD@LocalDomain> <OF7D5F7F7E.CF4ED120-ON80257B72.0042ED42-80257B72.004332EB@eu.necel.com>
-In-Reply-To: <OF7D5F7F7E.CF4ED120-ON80257B72.0042ED42-80257B72.004332EB@eu.necel.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Fri, 31 May 2013 18:24:24 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: linux-kernel@vger.kernel.org
+Cc: patches@lists.linaro.org, linux-arm-kernel@lists.infradead.org,
+	Arnd Bergmann <arnd@arndb.de>,
+	"James E.J. Bottomley" <JBottomley@parallels.com>,
+	Artem Bityutskiy <artem.bityutskiy@linux.intel.com>,
+	Dave Airlie <airlied@redhat.com>,
+	David Woodhouse <dwmw2@infradead.org>,
+	Herbert Xu <herbert@gondor.apana.org.au>,
+	"John W. Linville" <linville@tuxdriver.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>, Rob Clark <robdclark@gmail.com>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Russell King <rmk+kernel@arm.linux.org.uk>,
+	Stephen Warren <swarren@wwwdotorg.org>,
+	Thomas Gleixner <tglx@linutronix.de>,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	cpufreq@vger.kernel.org, dri-devel@lists.freedesktop.org,
+	linux-media@vger.kernel.org, linux-mtd@lists.infradead.org,
+	linux-pm@vger.kernel.org, linux-rpi-kernel@lists.infradead.org,
+	linux-scsi@vger.kernel.org
+Subject: [PATCH 00/15] Linux-3.10 ARM randconfig fixes
+Date: Sat,  1 Jun 2013 00:22:37 +0200
+Message-Id: <1370038972-2318779-1-git-send-email-arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+Hi subsystem maintainers,
 
-On 21-05-2013 16:13, phil.edworthy@renesas.com wrote:
+These are a few patches left over from doing randconfig tests
+a couple of weeks ago. Please apply them directly into your
+trees unless you see problems. All patches can theoretically
+be seen as bug fixes for 3.10, but they are not critical,
+so applying them for 3.11 is fine as well.
 
->>>>> Subject: [PATCH v5] V4L2: soc_camera: Renesas R-Car VIN driver
+	Arnd
 
->>>>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Arnd Bergmann (15):
+  irqdomain: export irq_domain_add_simple
+  mtd: omap2: allow bulding as a module
+  drm/nouveau: use mdelay instead of large udelay constants
+  [SCSI] nsp32: use mdelay instead of large udelay constants
+  hwrng: bcm2835: fix MODULE_LICENSE tag
+  cpuidle: calxeda: select ARM_CPU_SUSPEND
+  cpufreq: spear needs cpufreq table
+  thermal: cpu_cooling: fix stub function
+  drm: always provide debugfs function prototypes
+  drm/tilcd: select BACKLIGHT_LCD_SUPPORT
+  iwlegacy: il_pm_ops is only provided for PM_SLEEP
+  [media] davinci: vpfe_capture needs i2c
+  [media] omap3isp: include linux/mm_types.h
+  clk: tegra: provide tegra_periph_reset_assert alternative
+  OF: remove #ifdef from linux/of_platform.h
 
->>>>> Add Renesas R-Car VIN (Video In) V4L2 driver.
+ drivers/char/hw_random/bcm2835-rng.c               |  2 +-
+ drivers/cpufreq/Kconfig.arm                        |  1 +
+ drivers/cpuidle/Kconfig                            |  1 +
+ drivers/gpu/drm/nouveau/core/engine/disp/dacnv50.c |  3 ++-
+ drivers/gpu/drm/tilcdc/Kconfig                     |  1 +
+ drivers/media/platform/davinci/Kconfig             |  3 +++
+ drivers/media/platform/omap3isp/ispqueue.h         |  1 +
+ drivers/mtd/nand/Kconfig                           |  2 +-
+ drivers/net/wireless/iwlegacy/common.h             |  6 +++---
+ drivers/scsi/nsp32.c                               |  2 +-
+ include/drm/drmP.h                                 |  3 +--
+ include/linux/clk/tegra.h                          |  5 +++++
+ include/linux/cpu_cooling.h                        |  4 ++--
+ include/linux/of_platform.h                        | 14 +++-----------
+ kernel/irq/irqdomain.c                             |  1 +
+ 15 files changed, 27 insertions(+), 22 deletions(-)
 
->>>>> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+Cc: "James E.J. Bottomley" <JBottomley@parallels.com>
+Cc: Artem Bityutskiy <artem.bityutskiy@linux.intel.com>
+Cc: Dave Airlie <airlied@redhat.com>
+Cc: David Woodhouse <dwmw2@infradead.org>
+Cc: Herbert Xu <herbert@gondor.apana.org.au>
+Cc: John W. Linville <linville@tuxdriver.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Rafael J. Wysocki <rjw@sisk.pl>
+Cc: Rob Clark <robdclark@gmail.com>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Russell King <rmk+kernel@arm.linux.org.uk>
+Cc: Stephen Warren <swarren@wwwdotorg.org>
+Cc: Thomas Gleixner <tglx@linutronix.de>
+Cc: Viresh Kumar <viresh.kumar@linaro.org>
+Cc: cpufreq@vger.kernel.org
+Cc: dri-devel@lists.freedesktop.org
+Cc: linux-media@vger.kernel.org
+Cc: linux-mtd@lists.infradead.org
+Cc: linux-pm@vger.kernel.org
+Cc: linux-rpi-kernel@lists.infradead.org
+Cc: linux-scsi@vger.kernel.org
 
->>>> I've seen old patches that add VIN to the Marzen board, do you have an
->>>> updated version?
 
->>>      The last version of that patchset is 4, here it is archived:
-
->>> http://marc.info/?l=linux-sh&m=136865481429756
->>> http://marc.info/?l=linux-sh&m=136865499029807
->>> http://marc.info/?l=linux-sh&m=136865509129843
->>> http://marc.info/?l=linux-sh&m=136865520029900
-
->> First of all, thank you for your work on this driver.
-
->> I have tried your patches on the Marzen board using an Expansion
->> Board with an OmniVision 10635 camera (progressive BT656), using an
->> out-of-tree driver. There appears to be an issue with the interrupt
->> handling compared to my original driver.
-
->> I realise that you don't have the Marzen Expansion Board & don't
->> have an ov10635 camera. However, unfortunately, I don't have much
->> time that I can spend on this. Do any of the boards you have use a
->> progressive camera?
-
-    No. Is there any way you can send us that expansion board? It seems
-the only way we can get some progress on this issue.
-
-> Oops, the comments about the captured image contents are my fault.
-> However, the unhandled irq after stopping capture is still an issue.
-
-    Thanks for letting us know.
-
-> Regards
-> Phil
-
-WBR, Sergei
+-- 
+1.8.1.2
 
