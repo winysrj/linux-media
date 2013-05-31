@@ -1,63 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:43503 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1761677Ab3EDRVw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 4 May 2013 13:21:52 -0400
-Date: Sat, 4 May 2013 14:21:44 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Randy Dunlap <rdunlap@infradead.org>,
-	"Yann E. MORIN" <yann.morin.1998@free.fr>,
-	Ezequiel =?utf-8?Q?Garc=C3=ADa?= <elezegarcia@gmail.com>,
-	Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kbuild@vger.kernel.org
-Subject: Splitting stk1160-ac97 as a module (Re: linux-next: Tree for May 1
- (media/usb/stk1160))
-Message-ID: <20130504172142.GA21656@localhost>
-References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au>
- <518157EB.3010700@infradead.org>
- <51827DB1.7000304@redhat.com>
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:35418 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756560Ab3EaPaB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 11:30:01 -0400
+Received: by mail-ea0-f181.google.com with SMTP id a11so1778002eae.26
+        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 08:30:00 -0700 (PDT)
+Date: Fri, 31 May 2013 17:29:56 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: =?utf-8?B?6rmA7Iq57Jqw?= <sw0312.kim@samsung.com>
+Cc: Daniel Vetter <daniel.vetter@ffwll.ch>,
+	dri-devel <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Dave Airlie <airlied@linux.ie>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC][PATCH 0/2] dma-buf: add importer private data for
+ reimporting
+Message-ID: <20130531152956.GX15743@phenom.ffwll.local>
+References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
+ <CAKMK7uHYLG3iNphE+g4BBB-LuUM67NRvbQPBvCHE2FN71-GLnA@mail.gmail.com>
+ <51A879E0.3080106@samsung.com>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=utf-8
 Content-Disposition: inline
 Content-Transfer-Encoding: 8bit
-In-Reply-To: <51827DB1.7000304@redhat.com>
+In-Reply-To: <51A879E0.3080106@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-On Thu, May 02, 2013 at 11:52:33AM -0300, Mauro Carvalho Chehab wrote:
-> >
-> > is unreliable (doesn't do what some people expect) when SND=m and SND_AC97_CODEC=m,
-> > since VIDEO_STK1160_AC97 is a bool.
+On Fri, May 31, 2013 at 07:22:24PM +0900, 김승우 wrote:
+> Hello Daniel,
 > 
-> Using select is always tricky.
+> Thanks for your comment.
 > 
-> I can see a few possible fixes for it:
+> On 2013년 05월 31일 18:14, Daniel Vetter wrote:
+> > On Fri, May 31, 2013 at 10:54 AM, Seung-Woo Kim <sw0312.kim@samsung.com> wrote:
+> >> importer private data in dma-buf attachment can be used by importer to
+> >> reimport same dma-buf.
+> >>
+> >> Seung-Woo Kim (2):
+> >>   dma-buf: add importer private data to attachment
+> >>   drm/prime: find gem object from the reimported dma-buf
+> > 
+> > Self-import should already work (at least with the latest refcount
+> > fixes merged). At least the tests to check both re-import on the same
+> > drm fd and on a different all work as expected now.
 > 
-> 1) split the alsa part into a separate module. IMHO, this is cleaner,
-> but requires a little more work.
+> Currently, prime works well for all case including self-importing,
+> importing, and reimporting as you describe. Just, importing dma-buf from
+> other driver twice with different drm_fd, each import create its own gem
+> object even two import is done for same buffer because prime_priv is in
+> struct drm_file. This means mapping to the device is done also twice.
+> IMHO, these duplicated creations and maps are not necessary if drm can
+> find previous import in different prime_priv.
+
+Well, that's imo a bug with the other driver. If it doesn't export
+something really simple (e.g. contiguous memory which doesn't require any
+mmio resources at all) it should have a cache of exported dma_buf fds so
+that it hands out the same dma_buf every time.
+
+Or it needs to be more clever in it's dma_buf_attachment_map functions and
+lookup up a pre-existing iommu mapping.
+
+But dealing with this in the importer is just broken.
+
+> > Second, the dma_buf_attachment is _definitely_ the wrong place to do
+> > this. If you need iommu mapping caching, that should happen at a lower
+> > level (i.e. in the map_attachment callback somewhere of the exporter,
+> > that's what the priv field in the attachment is for). Snatching away
+> > the attachement from some random other import is certainly not the way
+> > to go - attachements are _not_ refcounted!
 > 
+> Yes, attachments do not have refcount, so importer should handle and drm
+> case in my patch, importer private data is gem object and it has, of
+> course, refcount.
+> 
+> And at current, exporter can not classify map_dma_buf requests of same
+> importer to same buffer with different attachment because dma_buf_attach
+> always makes new attachments. To resolve this exporter should search all
+> different attachment from same importer of dma-buf and it seems more
+> complex than importer private data to me.
+> 
+> If I misunderstood something, please let me know.
 
-I'm trying to split the ac97 support into a separate module.
-So far I've managed to do this with two different approaches,
-but both of them are broken in some way :-(
+Like I've said above, just fix this in the exporter. If an importer sees
+two different dma_bufs it can very well presume that it those two indeed
+point to different backing storage.
 
-Couple questions:
+This will be even more important if we attach fences two dma_bufs. If your
+broken exporter creates multiple dma_bufs each one of them will have their
+own fences attached, leading to a complete disasters. Ok, strictly
+speaking if you keep the same reservation pointer for each dma_buf it'll
+work, but that's just a detail of how you solve this in the exporter.
 
-1. Is it possible to force two symbols to be both built-in (=y) or both
-modules (=m)? This would make one of my solutions work.
-
-2. Do you think it's possible to split this as a module *without*
-requesting the driver dynamically? I've tried the same extensions approach
-as in em28xx and others, but found some problems with the way
-snd-usb-audio driver registers.
- 
-Thanks,
+Cheers, Daniel
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
