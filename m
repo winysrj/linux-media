@@ -1,51 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from szxga01-in.huawei.com ([119.145.14.64]:41132 "EHLO
-	szxga01-in.huawei.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756256Ab3E0Ccb (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1910 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753305Ab3EaKDQ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 26 May 2013 22:32:31 -0400
-From: Libo Chen <libo.chen@huawei.com>
-To: <hverkuil@xs4all.nl>, <mchehab@redhat.com>
-CC: <linux-media@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<lizefan@huawei.com>, <libo.chen@huawei.com>,
-	<gregkh@linuxfoundation.org>
-Subject: [PATCH 22/24] drivers/media/radio/radio-maxiradio: Convert to module_pci_driver
-Date: Mon, 27 May 2013 10:31:59 +0800
-Message-ID: <1369621919-12800-1-git-send-email-libo.chen@huawei.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Fri, 31 May 2013 06:03:16 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Fabio Belavenuto <belavenuto@gmail.com>
+Subject: [PATCH 07/21] radio-tea5764: audio and input ioctls do not apply to radio devices.
+Date: Fri, 31 May 2013 12:02:27 +0200
+Message-Id: <1369994561-25236-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-use module_pci_driver instead of init/exit, make code clean
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Libo Chen <libo.chen@huawei.com>
+Deleted those ioctls from this driver.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Fabio Belavenuto <belavenuto@gmail.com>
 ---
- drivers/media/radio/radio-maxiradio.c |   13 +------------
- 1 files changed, 1 insertions(+), 12 deletions(-)
+ drivers/media/radio/radio-tea5764.c |   37 -----------------------------------
+ 1 file changed, 37 deletions(-)
 
-diff --git a/drivers/media/radio/radio-maxiradio.c b/drivers/media/radio/radio-maxiradio.c
-index bd4d3a7..1d1c9e1 100644
---- a/drivers/media/radio/radio-maxiradio.c
-+++ b/drivers/media/radio/radio-maxiradio.c
-@@ -200,15 +200,4 @@ static struct pci_driver maxiradio_driver = {
- 	.remove		= maxiradio_remove,
- };
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index 5c47a97..5a60990 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -389,39 +389,6 @@ static int tea5764_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return -EINVAL;
+ }
  
--static int __init maxiradio_init(void)
+-static int vidioc_g_input(struct file *filp, void *priv, unsigned int *i)
 -{
--	return pci_register_driver(&maxiradio_driver);
+-	*i = 0;
+-	return 0;
 -}
 -
--static void __exit maxiradio_exit(void)
+-static int vidioc_s_input(struct file *filp, void *priv, unsigned int i)
 -{
--	pci_unregister_driver(&maxiradio_driver);
+-	if (i != 0)
+-		return -EINVAL;
+-	return 0;
 -}
 -
--module_init(maxiradio_init);
--module_exit(maxiradio_exit);
-+module_pci_driver(maxiradio_driver);
+-static int vidioc_g_audio(struct file *file, void *priv,
+-			   struct v4l2_audio *a)
+-{
+-	if (a->index > 1)
+-		return -EINVAL;
+-
+-	strcpy(a->name, "Radio");
+-	a->capability = V4L2_AUDCAP_STEREO;
+-	return 0;
+-}
+-
+-static int vidioc_s_audio(struct file *file, void *priv,
+-			   const struct v4l2_audio *a)
+-{
+-	if (a->index != 0)
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+ static const struct v4l2_ctrl_ops tea5764_ctrl_ops = {
+ 	.s_ctrl = tea5764_s_ctrl,
+ };
+@@ -436,10 +403,6 @@ static const struct v4l2_ioctl_ops tea5764_ioctl_ops = {
+ 	.vidioc_querycap    = vidioc_querycap,
+ 	.vidioc_g_tuner     = vidioc_g_tuner,
+ 	.vidioc_s_tuner     = vidioc_s_tuner,
+-	.vidioc_g_audio     = vidioc_g_audio,
+-	.vidioc_s_audio     = vidioc_s_audio,
+-	.vidioc_g_input     = vidioc_g_input,
+-	.vidioc_s_input     = vidioc_s_input,
+ 	.vidioc_g_frequency = vidioc_g_frequency,
+ 	.vidioc_s_frequency = vidioc_s_frequency,
+ };
 -- 
-1.7.1
-
+1.7.10.4
 
