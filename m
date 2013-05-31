@@ -1,78 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:39745 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752655Ab3EUKTB convert rfc822-to-8bit (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:11469 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754008Ab3EaQsH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 06:19:01 -0400
-Date: Tue, 21 May 2013 07:18:56 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media" <linux-media@vger.kernel.org>
-Subject: Re: Can you take a look at these dvb-apps warnings/errors?
-Message-ID: <20130521071856.26588be9@redhat.com>
-In-Reply-To: <201305211120.18566.hverkuil@xs4all.nl>
-References: <201305171030.57794.hverkuil@xs4all.nl>
-	<20130520182215.54e2e3b0@redhat.com>
-	<201305211120.18566.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+	Fri, 31 May 2013 12:48:07 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNO0025J9BXB9O0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 01 Jun 2013 01:48:06 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hj210.choi@samsung.com, yhwan.joo@samsung.com, arun.kk@samsung.com,
+	shaik.ameer@samsung.com, kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [REVIEW PATCH 6/7] exynos4-is: Add isp_dbg() macro
+Date: Fri, 31 May 2013 18:47:04 +0200
+Message-id: <1370018825-13088-7-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1370018825-13088-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370018825-13088-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Tue, 21 May 2013 11:20:18 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+This patch adds a debug trace macro for the FIMC-IS ISP subdev
+and video node drivers.
 
-> On Mon 20 May 2013 23:22:15 Mauro Carvalho Chehab wrote:
-> > Hi Hans,
-> > 
-> > Em Fri, 17 May 2013 10:30:57 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> > > Hi Mauro,
-> > > 
-> > > Can you take a look at these? The daily build is failing because of this.
-> > > 
-> > > Thanks!
-> > > 
-> > > 	Hans
-> > > 
-> > > test_video.c:322:2: warning: format ‘%d’ expects argument of type ‘int’, but argument 2 has type ‘ssize_t’ [-Wformat]
-> > > dvbscan.c:128:6: warning: variable ‘output_type’ set but not used [-Wunused-but-set-variable]
-> > > dvbscan.c:126:6: warning: variable ‘uk_ordering’ set but not used [-Wunused-but-set-variable]
-> > > dvbscan.c:124:32: warning: variable ‘inversion’ set but not used [-Wunused-but-set-variable]
-> > > dvbscan_dvb.c:27:44: warning: unused parameter ‘fe’ [-Wunused-parameter]
-> > > dvbscan_atsc.c:27:45: warning: unused parameter ‘fe’ [-Wunused-parameter]
-> > > util.c:193:7: error: ‘SYS_DVBC_ANNEX_A’ undeclared (first use in this function)
-> > > util.c:194:7: error: ‘SYS_DVBC_ANNEX_C’ undeclared (first use in this function)
-> > > util.c:262:26: error: ‘DTV_ENUM_DELSYS’ undeclared (first use in this function)
-> > > util.c:263:1: warning: control reaches end of non-void function [-Wreturn-type]
-> > > make[2]: *** [util.o] Error 1
-> > > make[1]: *** [all] Error 2
-> > > make: *** [all] Error 2
-> > 
-> > I'm not touching on dvb-apps for a long time. From my side, all I need in
-> > terms of userspace apps for DVB is there at dvbv5/libdvbv5 on v4l-utils.
-> > 
-> > That's said, from the above errors, it seems that it got added (partial)
-> > support for DVB v5 but, somehow, it is compiling with an older
-> > dvb/frontend.h header on your build.
-> > 
-> > Regards,
-> > Mauro
-> > 
-> 
-> I've running a 3.8 kernel on my daily build server, so that's why those
-> headers are old. I've manually updated the headers.
-> 
-> Note that dvb-apps has an include directory with old headers as well, but
-> those headers aren't used anyway it seems.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-isp.c |   16 ++++++++--------
+ drivers/media/platform/exynos4-is/fimc-isp.h |    5 +++++
+ 2 files changed, 13 insertions(+), 8 deletions(-)
 
-Yes, it has old headers on it, but I've no idea if it uses them or not.
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
+index 3a29e41..ecb82a9 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.c
++++ b/drivers/media/platform/exynos4-is/fimc-isp.c
+@@ -30,8 +30,8 @@
+ #include "fimc-is-regs.h"
+ #include "fimc-is.h"
+ 
+-static int debug;
+-module_param_named(debug_isp, debug, int, S_IRUGO | S_IWUSR);
++int fimc_isp_debug;
++module_param_named(debug_isp, fimc_isp_debug, int, S_IRUGO | S_IWUSR);
+ 
+ static const struct fimc_fmt fimc_isp_formats[FIMC_ISP_NUM_FORMATS] = {
+ 	{
+@@ -157,8 +157,8 @@ static int fimc_isp_subdev_get_fmt(struct v4l2_subdev *sd,
+ 
+ 	mutex_unlock(&isp->subdev_lock);
+ 
+-	v4l2_dbg(1, debug, sd, "%s: pad%d: fmt: 0x%x, %dx%d\n",
+-		 __func__, fmt->pad, mf->code, mf->width, mf->height);
++	isp_dbg(1, sd, "%s: pad%d: fmt: 0x%x, %dx%d\n", __func__,
++		fmt->pad, mf->code, mf->width, mf->height);
+ 
+ 	return 0;
+ }
+@@ -191,7 +191,7 @@ static int fimc_isp_subdev_set_fmt(struct v4l2_subdev *sd,
+ 	struct v4l2_mbus_framefmt *mf = &fmt->format;
+ 	int ret = 0;
+ 
+-	v4l2_dbg(1, debug, sd, "%s: pad%d: code: 0x%x, %dx%d\n",
++	isp_dbg(1, sd, "%s: pad%d: code: 0x%x, %dx%d\n",
+ 		 __func__, fmt->pad, mf->code, mf->width, mf->height);
+ 
+ 	mf->colorspace = V4L2_COLORSPACE_SRGB;
+@@ -221,7 +221,7 @@ static int fimc_isp_subdev_s_stream(struct v4l2_subdev *sd, int on)
+ 	struct fimc_is *is = fimc_isp_to_is(isp);
+ 	int ret;
+ 
+-	v4l2_dbg(1, debug, sd, "%s: on: %d\n", __func__, on);
++	isp_dbg(1, sd, "%s: on: %d\n", __func__, on);
+ 
+ 	if (!test_bit(IS_ST_INIT_DONE, &is->state))
+ 		return -EBUSY;
+@@ -235,8 +235,8 @@ static int fimc_isp_subdev_s_stream(struct v4l2_subdev *sd, int on)
+ 				return ret;
+ 		}
+ 
+-		v4l2_dbg(1, debug, sd, "changing mode to %d\n",
+-						is->config_index);
++		isp_dbg(1, sd, "changing mode to %d\n", is->config_index);
++
+ 		ret = fimc_is_itf_mode_change(is);
+ 		if (ret)
+ 			return -EINVAL;
+diff --git a/drivers/media/platform/exynos4-is/fimc-isp.h b/drivers/media/platform/exynos4-is/fimc-isp.h
+index f5c802c..756063e 100644
+--- a/drivers/media/platform/exynos4-is/fimc-isp.h
++++ b/drivers/media/platform/exynos4-is/fimc-isp.h
+@@ -26,6 +26,11 @@
+ #include <media/v4l2-mediabus.h>
+ #include <media/s5p_fimc.h>
+ 
++extern int fimc_isp_debug;
++
++#define isp_dbg(level, dev, fmt, arg...) \
++	v4l2_dbg(level, fimc_isp_debug, dev, fmt, ## arg)
++
+ /* FIXME: revisit these constraints */
+ #define FIMC_ISP_SINK_WIDTH_MIN		(16 + 8)
+ #define FIMC_ISP_SINK_HEIGHT_MIN	(12 + 8)
+-- 
+1.7.9.5
 
-> Should I bother with building dvb-apps at all?
-
-It's your call. As I said, from my side, I don't bother about it anymore.
-
-Regards,
-Mauro
