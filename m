@@ -1,156 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43750 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1762759Ab3ECII7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 04:08:59 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: mchehab@redhat.com
-Cc: ezequiel.garcia@free-electrons.com, linux-media@vger.kernel.org,
-	jonjon.arnearne@gmail.com
-Subject: [PATCH V4 3/3] saa7115: Add register setup and config for gm7113c
-Date: Fri,  3 May 2013 10:11:58 +0200
-Message-Id: <1367568718-4129-4-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1367568718-4129-1-git-send-email-jonarne@jonarne.no>
-References: <1367568718-4129-1-git-send-email-jonarne@jonarne.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.samsung.com ([203.254.224.24]:41417 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756279Ab3EaMlD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 08:41:03 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNN000KAXW8JPU0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 May 2013 21:41:02 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hj210.choi@samsung.com, kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 1/3] exynos4-is: Prevent NULL pointer dereference when firmware
+ isn't loaded
+Date: Fri, 31 May 2013 14:40:35 +0200
+Message-id: <1370004037-18314-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1370004037-18314-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370004037-18314-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The gm7113c chip is similar to the original saa7113 chip, so I try to
-re-use most of the saa7113 specific setup-/configuration registers.
+Ensure the firmware isn't accessed in the driver when the firmware loading
+routine has not completed. This fixes a potential kernel crash:
 
-According to the datasheet, the gm7113c chip has not implemented
-any register addresses after 0x1f, so I add a new entry for the chip
-in the saa711x_has_reg function.
+[   96.510000] Unable to handle kernel NULL pointer dereference at virtual address 00000000
+[   96.520000] pgd = ee604000
+[   96.520000] [00000000] *pgd=6e947831, *pte=00000000, *ppte=00000000
+[   96.530000] Internal error: Oops: 17 [#1] PREEMPT SMP ARM
+[   96.530000] Modules linked in:
+[   96.530000] CPU: 2 PID: 2787 Comm: camera_test Not tainted 3.10.0-rc1-00269-gcdbde37-dirty #2158
+[   96.545000] task: ee42e400 ti: edfcc000 task.ti: edfcc000
+[   96.545000] PC is at fimc_is_start_firmware+0x14/0x94
+[   96.545000] LR is at fimc_isp_subdev_s_power+0x13c/0x1f8
+	...
+[   96.745000] [<c03e0354>] (fimc_is_start_firmware+0x14/0x94) from [<c03e1cc4>] (fimc_isp_subdev_s_power+0x13c/0x1f8)
+[   96.745000] [<c03e1cc4>] (fimc_isp_subdev_s_power+0x13c/0x1f8) from [<c03ed088>] (__subdev_set_power+0x70/0x84)
+[   96.745000] [<c03ed088>] (__subdev_set_power+0x70/0x84) from [<c03ed164>] (fimc_pipeline_s_power+0xc8/0x164)
+[   96.745000] [<c03ed164>] (fimc_pipeline_s_power+0xc8/0x164) from [<c03ee2b8>] (__fimc_pipeline_open+0x90/0x268)
+[   96.745000] [<c03ee2b8>] (__fimc_pipeline_open+0x90/0x268) from [<c03ec5f0>] (fimc_capture_open+0xe4/0x1ec)
+[   96.745000] [<c03ec5f0>] (fimc_capture_open+0xe4/0x1ec) from [<c03c5560>] (v4l2_open+0xa8/0xe4)
+[   96.745000] [<c03c5560>] (v4l2_open+0xa8/0xe4) from [<c0112900>] (chrdev_open+0x9c/0x158)
+[   96.745000] [<c0112900>] (chrdev_open+0x9c/0x158) from [<c010d3e0>] (do_dentry_open+0x1f4/0x27c)
+[   96.745000] [<c010d3e0>] (do_dentry_open+0x1f4/0x27c) from [<c010d558>] (finish_open+0x34/0x50)
+[   96.745000] [<c010d558>] (finish_open+0x34/0x50) from [<c011bea0>] (do_last+0x59c/0xbcc)
+[   96.745000] [<c011bea0>] (do_last+0x59c/0xbcc) from [<c011c580>] (path_openat+0xb0/0x484)
+[   96.745000] [<c011c580>] (path_openat+0xb0/0x484) from [<c011ca58>] (do_filp_open+0x30/0x84)
+[   96.745000] [<c011ca58>] (do_filp_open+0x30/0x84) from [<c010d060>] (do_sys_open+0xe8/0x170)
+[   96.745000] [<c010d060>] (do_sys_open+0xe8/0x170) from [<c000f040>] (ret_fast_syscall+0x0/0x30)
 
-The devices I've seen using this chip will fail to get stable video-sync
-if these registers are not zeroed:
-	R_14_ANAL_ADC_COMPAT_CNTL
-	R_15_VGATE_START_FID_CHG
-	R_16_VGATE_STOP
-	R_17_MISC_VGATE_CONF_AND_MSB
-
-The saa711x_set_v4lstd is updated to send a simpler configuration-table
-to avoid setting these registers.
-
-Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
-Tested-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/i2c/saa7115.c | 47 +++++++++++++++++++++++++++++++++++----------
- 1 file changed, 37 insertions(+), 10 deletions(-)
+ drivers/media/platform/exynos4-is/fimc-is.c |    8 +++++++-
+ 1 file changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index eb2c19d..efdc7fd 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -126,6 +126,8 @@ static int saa711x_has_reg(const int id, const u8 reg)
- 		return 0;
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index a094bb6..140c58f 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -325,6 +325,11 @@ int fimc_is_start_firmware(struct fimc_is *is)
+ 	struct device *dev = &is->pdev->dev;
+ 	int ret;
  
- 	switch (id) {
-+	case V4L2_IDENT_GM7113C:
-+		return reg != 0x14 && (reg < 0x18 || reg > 0x1e) && reg < 0x20;
- 	case V4L2_IDENT_SAA7113:
- 		return reg != 0x14 && (reg < 0x18 || reg > 0x1e) && (reg < 0x20 || reg > 0x3f) &&
- 		       reg != 0x5d && reg < 0x63;
-@@ -213,7 +215,10 @@ static const unsigned char saa7111_init[] = {
- 	0x00, 0x00
- };
- 
--/* SAA7113 init codes */
-+/* SAA7113/GM7113C init codes
-+ * It's important that R_14... R_17 == 0x00
-+ * for the gm7113c chip to deliver stable video
-+ */
- static const unsigned char saa7113_init[] = {
- 	R_01_INC_DELAY, 0x08,
- 	R_02_INPUT_CNTL_1, 0xc2,
-@@ -447,6 +452,24 @@ static const unsigned char saa7115_cfg_50hz_video[] = {
- 
- /* ============== SAA7715 VIDEO templates (end) =======  */
- 
-+/* ============== GM7113C VIDEO templates =============  */
-+static const unsigned char gm7113c_cfg_60hz_video[] = {
-+	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto detection, 0x68 = NTSC */
-+	R_0E_CHROMA_CNTL_1, 0x07,		/* video autodetection is on */
++	if (is->fw.f_w == NULL) {
++		dev_err(dev, "firmware is not loaded\n");
++		return -EINVAL;
++	}
 +
-+	0x00, 0x00
-+};
-+
-+static const unsigned char gm7113c_cfg_50hz_video[] = {
-+	R_08_SYNC_CNTL, 0x28,			/* 0x28 = PAL */
-+	R_0E_CHROMA_CNTL_1, 0x07,
-+
-+	0x00, 0x00
-+};
-+
-+/* ============== GM7113C VIDEO templates (end) =======  */
-+
-+
- static const unsigned char saa7115_cfg_vbi_on[] = {
- 	R_80_GLOBAL_CNTL_1, 0x00,			/* reset tasks */
- 	R_88_POWER_SAVE_ADC_PORT_CNTL, 0xd0,		/* reset scaler */
-@@ -927,11 +950,17 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
- 	// This works for NTSC-M, SECAM-L and the 50Hz PAL variants.
- 	if (std & V4L2_STD_525_60) {
- 		v4l2_dbg(1, debug, sd, "decoder set standard 60 Hz\n");
--		saa711x_writeregs(sd, saa7115_cfg_60hz_video);
-+		if (state->ident == V4L2_IDENT_GM7113C)
-+			saa711x_writeregs(sd, gm7113c_cfg_60hz_video);
-+		else
-+			saa711x_writeregs(sd, saa7115_cfg_60hz_video);
- 		saa711x_set_size(sd, 720, 480);
- 	} else {
- 		v4l2_dbg(1, debug, sd, "decoder set standard 50 Hz\n");
--		saa711x_writeregs(sd, saa7115_cfg_50hz_video);
-+		if (state->ident == V4L2_IDENT_GM7113C)
-+			saa711x_writeregs(sd, gm7113c_cfg_50hz_video);
-+		else
-+			saa711x_writeregs(sd, saa7115_cfg_50hz_video);
- 		saa711x_set_size(sd, 720, 576);
- 	}
+ 	memcpy(is->memory.vaddr, is->fw.f_w->data, is->fw.f_w->size);
+ 	wmb();
  
-@@ -944,7 +973,8 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
- 	011 NTSC N (3.58MHz)            PAL M (3.58MHz)
- 	100 reserved                    NTSC-Japan (3.58MHz)
- 	*/
--	if (state->ident <= V4L2_IDENT_SAA7113) {
-+	if (state->ident <= V4L2_IDENT_SAA7113 ||
-+	    state->ident == V4L2_IDENT_GM7113C) {
- 		u8 reg = saa711x_read(sd, R_0E_CHROMA_CNTL_1) & 0x8f;
+@@ -940,7 +945,8 @@ static int fimc_is_remove(struct platform_device *pdev)
+ 	vb2_dma_contig_cleanup_ctx(is->alloc_ctx);
+ 	fimc_is_put_clocks(is);
+ 	fimc_is_debugfs_remove(is);
+-	release_firmware(is->fw.f_w);
++	if (is->fw.f_w)
++		release_firmware(is->fw.f_w);
+ 	fimc_is_free_cpu_memory(is);
  
- 		if (std == V4L2_STD_PAL_M) {
-@@ -1215,7 +1245,8 @@ static int saa711x_s_routing(struct v4l2_subdev *sd,
- 		input, output);
- 
- 	/* saa7111/3 does not have these inputs */
--	if (state->ident <= V4L2_IDENT_SAA7113 &&
-+	if ((state->ident <= V4L2_IDENT_SAA7113 ||
-+	     state->ident == V4L2_IDENT_GM7113C) &&
- 	    (input == SAA7115_COMPOSITE4 ||
- 	     input == SAA7115_COMPOSITE5)) {
- 		return -EINVAL;
-@@ -1687,11 +1718,6 @@ static int saa711x_probe(struct i2c_client *client,
- 	if (ident < 0)
- 		return ident;
- 
--	if (ident == V4L2_IDENT_GM7113C) {
--		v4l_warn(client, "%s not yet supported\n", name);
--		return -ENODEV;
--	}
--
- 	strlcpy(client->name, name, sizeof(client->name));
- 
- 	state = kzalloc(sizeof(struct saa711x_state), GFP_KERNEL);
-@@ -1742,6 +1768,7 @@ static int saa711x_probe(struct i2c_client *client,
- 	case V4L2_IDENT_SAA7111A:
- 		saa711x_writeregs(sd, saa7111_init);
- 		break;
-+	case V4L2_IDENT_GM7113C:
- 	case V4L2_IDENT_SAA7113:
- 		saa711x_writeregs(sd, saa7113_init);
- 		break;
+ 	return 0;
 -- 
-1.8.2.1
+1.7.9.5
 
