@@ -1,104 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1400 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932832Ab3E1G7U (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:12026 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751776Ab3EaIyk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 28 May 2013 02:59:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] [media] hdpvr: Simplify the logic that checks for error
-Date: Tue, 28 May 2013 08:58:48 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	leo@lumanate.com
-References: <1369656269-11444-1-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1369656269-11444-1-git-send-email-mchehab@redhat.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201305280858.48478.hverkuil@xs4all.nl>
+	Fri, 31 May 2013 04:54:40 -0400
+From: Seung-Woo Kim <sw0312.kim@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	airlied@linux.ie
+Cc: linux-kernel@vger.kernel.org, daniel.vetter@ffwll.ch,
+	inki.dae@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com
+Subject: [RFC][PATCH 2/2] drm/prime: find gem object from the reimported dma-buf
+Date: Fri, 31 May 2013 17:54:47 +0900
+Message-id: <1369990487-23510-3-git-send-email-sw0312.kim@samsung.com>
+In-reply-to: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
+References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon May 27 2013 14:04:29 Mauro Carvalho Chehab wrote:
-> At get_video_info, there's a somewhat complex logic that checks
-> for error.
-> 
-> That logic can be highly simplified, as usb_control_msg will
-> only return a negative value, or the buffer length, as it does
-> the transfers via DMA.
-> 
-> While here, document why this particular driver is returning -EFAULT,
-> instead of the USB error code.
+Reimported dma-buf can reuse same gem object only when prime import
+is done with same drm open context. So prime import is done with
+other drm open context, gem object is newly created and mapped even
+there is already mapped gem object. To avoid recreating gem object,
+importer private data can be used at reimport time if it is assigned
+with drm gem object at first import.
+This can also remove remapping dma address for the hardware having
+its own iommu.
 
-Nacked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+---
+ drivers/gpu/drm/drm_prime.c                |   19 ++++++++++++++-----
+ drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
+ drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
+ drivers/gpu/drm/udl/udl_gem.c              |    1 +
+ 4 files changed, 17 insertions(+), 5 deletions(-)
 
-The EFAULT comment is wrong. The way it is done today is that the error
-return of this function is never passed on to userspace.
+diff --git a/drivers/gpu/drm/drm_prime.c b/drivers/gpu/drm/drm_prime.c
+index dcde352..78a3c7d 100644
+--- a/drivers/gpu/drm/drm_prime.c
++++ b/drivers/gpu/drm/drm_prime.c
+@@ -294,6 +294,7 @@ struct drm_gem_object *drm_gem_prime_import(struct drm_device *dev,
+ 	}
+ 
+ 	obj->import_attach = attach;
++	attach->importer_priv = obj;
+ 
+ 	return obj;
+ 
+@@ -312,6 +313,7 @@ int drm_gem_prime_fd_to_handle(struct drm_device *dev,
+ {
+ 	struct dma_buf *dma_buf;
+ 	struct drm_gem_object *obj;
++	struct dma_buf_attachment *attach;
+ 	int ret;
+ 
+ 	dma_buf = dma_buf_get(prime_fd);
+@@ -327,11 +329,18 @@ int drm_gem_prime_fd_to_handle(struct drm_device *dev,
+ 		goto out_put;
+ 	}
+ 
+-	/* never seen this one, need to import */
+-	obj = dev->driver->gem_prime_import(dev, dma_buf);
+-	if (IS_ERR(obj)) {
+-		ret = PTR_ERR(obj);
+-		goto out_put;
++	attach = dma_buf_get_attachment(dma_buf, dev->dev);
++	if (IS_ERR(attach)) {
++		/* never seen this one, need to import */
++		obj = dev->driver->gem_prime_import(dev, dma_buf);
++		if (IS_ERR(obj)) {
++			ret = PTR_ERR(obj);
++			goto out_put;
++		}
++	} else {
++		/* found attachment to same device */
++		obj = attach->importer_priv;
++		drm_gem_object_reference(obj);
+ 	}
+ 
+ 	ret = drm_gem_handle_create(file_priv, obj, handle);
+diff --git a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
+index ff7f2a8..268da36 100644
+--- a/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
++++ b/drivers/gpu/drm/exynos/exynos_drm_dmabuf.c
+@@ -285,6 +285,7 @@ struct drm_gem_object *exynos_dmabuf_prime_import(struct drm_device *drm_dev,
+ 	exynos_gem_obj->buffer = buffer;
+ 	buffer->sgt = sgt;
+ 	exynos_gem_obj->base.import_attach = attach;
++	attach->importer_priv = &exynos_gem_obj->base;
+ 
+ 	DRM_DEBUG_PRIME("dma_addr = 0x%x, size = 0x%lx\n", buffer->dma_addr,
+ 								buffer->size);
+diff --git a/drivers/gpu/drm/i915/i915_gem_dmabuf.c b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+index dc53a52..75ef28c 100644
+--- a/drivers/gpu/drm/i915/i915_gem_dmabuf.c
++++ b/drivers/gpu/drm/i915/i915_gem_dmabuf.c
+@@ -297,6 +297,7 @@ struct drm_gem_object *i915_gem_prime_import(struct drm_device *dev,
+ 
+ 	i915_gem_object_init(obj, &i915_gem_object_dmabuf_ops);
+ 	obj->base.import_attach = attach;
++	attach->importer_priv = &obj->base;
+ 
+ 	return &obj->base;
+ 
+diff --git a/drivers/gpu/drm/udl/udl_gem.c b/drivers/gpu/drm/udl/udl_gem.c
+index ef034fa..0652db1 100644
+--- a/drivers/gpu/drm/udl/udl_gem.c
++++ b/drivers/gpu/drm/udl/udl_gem.c
+@@ -317,6 +317,7 @@ struct drm_gem_object *udl_gem_prime_import(struct drm_device *dev,
+ 	}
+ 
+ 	uobj->base.import_attach = attach;
++	attach->importer_priv = &uobj->base;
+ 
+ 	return &uobj->base;
+ 
+-- 
+1.7.4.1
 
-It's getting messy, so I think it is best if I make two patches based on this
-patch and on Leo's fourth patch and post those. If everyone agrees on my solution,
-then they can be merged.
-
-Sorry Leo, I wasn't aware when we discussed the usb_control_msg return values
-before that usb_control_msg() will either return an error or the buffer length,
-and nothing else.
-
-Your fourth patch introduced some bugs which I hadn't realized until yesterday.
-Which is why it wasn't merged. The main problem with your fourth patch was that
-it passed on the get_video_info error code to userspace, but that error code was
-for internal use only, and -EFAULT is an inappropriate error code to pass on.
-
-Regards,
-
-	Hans
-
-> 
-> Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/usb/hdpvr/hdpvr-control.c | 23 +++++++++++++----------
->  1 file changed, 13 insertions(+), 10 deletions(-)
-> 
-> diff --git a/drivers/media/usb/hdpvr/hdpvr-control.c b/drivers/media/usb/hdpvr/hdpvr-control.c
-> index d1a3d84..a015a24 100644
-> --- a/drivers/media/usb/hdpvr/hdpvr-control.c
-> +++ b/drivers/media/usb/hdpvr/hdpvr-control.c
-> @@ -56,12 +56,6 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
->  			      0x1400, 0x0003,
->  			      dev->usbc_buf, 5,
->  			      1000);
-> -	if (ret == 5) {
-> -		vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
-> -		vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
-> -		vidinf->fps	= dev->usbc_buf[4];
-> -	}
-> -
->  #ifdef HDPVR_DEBUG
->  	if (hdpvr_debug & MSG_INFO) {
->  		char print_buf[15];
-> @@ -73,11 +67,20 @@ int get_video_info(struct hdpvr_device *dev, struct hdpvr_video_info *vidinf)
->  #endif
->  	mutex_unlock(&dev->usbc_mutex);
->  
-> -	if (ret > 0 && ret != 5) { /* fail if unexpected byte count returned */
-> -		ret = -EFAULT;
-> -	}
-> +	/*
-> +	 * Returning EFAULT is wrong. Unfortunately, MythTV hdpvr
-> +	 * handling code was written to expect this specific error,
-> +	 * instead of accepting any error code. So, we can't fix it
-> +	 * in Kernel without breaking userspace.
-> +	 */
-> +	if (ret < 0)
-> +		return -EFAULT;
->  
-> -	return ret < 0 ? ret : 0;
-> +	vidinf->width	= dev->usbc_buf[1] << 8 | dev->usbc_buf[0];
-> +	vidinf->height	= dev->usbc_buf[3] << 8 | dev->usbc_buf[2];
-> +	vidinf->fps	= dev->usbc_buf[4];
-> +
-> +	return 0;
->  }
->  
->  int get_input_lines_info(struct hdpvr_device *dev)
-> 
