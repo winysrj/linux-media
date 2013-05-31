@@ -1,101 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f172.google.com ([74.125.82.172]:59485 "EHLO
-	mail-we0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213Ab3EOFSh (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2763 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753235Ab3EaKD0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 01:18:37 -0400
+	Fri, 31 May 2013 06:03:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard.rojfors@pelagicore.com>
+Subject: [PATCH 16/21] timblogiw: fix querycap.
+Date: Fri, 31 May 2013 12:02:36 +0200
+Message-Id: <1369994561-25236-17-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <4149647.zqpmlIlQDP@avalon>
-References: <1368528334-13595-1-git-send-email-prabhakar.csengg@gmail.com>
- <1368528334-13595-6-git-send-email-prabhakar.csengg@gmail.com> <4149647.zqpmlIlQDP@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 15 May 2013 10:48:05 +0530
-Message-ID: <CA+V-a8u+peO+6MiZuU_juhYpzHa3yUZbyjeEU3xi3gDhPRb3Bw@mail.gmail.com>
-Subject: Re: [PATCH 5/5] media: i2c: tvp7002: add OF support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the review.
+Don't set version (the core does that for you), fill in device_caps and
+prefix bus_info with "platform:".
 
-On Tue, May 14, 2013 at 9:04 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> Thank you for the patch.
->
-> On Tuesday 14 May 2013 16:15:34 Lad Prabhakar wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> add OF support for the tvp7002 driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Cc: Sakari Ailus <sakari.ailus@iki.fi>
->> Cc: Grant Likely <grant.likely@secretlab.ca>
->> Cc: Rob Herring <rob.herring@calxeda.com>
->> Cc: Rob Landley <rob@landley.net>
->> Cc: devicetree-discuss@lists.ozlabs.org
->> Cc: linux-doc@vger.kernel.org
->> Cc: linux-kernel@vger.kernel.org
->> Cc: davinci-linux-open-source@linux.davincidsp.com
->> ---
->>  .../devicetree/bindings/media/i2c/tvp7002.txt      |   42 +++++++++++++
->>  drivers/media/i2c/tvp7002.c                        |   64 +++++++++++++++--
->>  2 files changed, 99 insertions(+), 7 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->> b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt new file mode
->> 100644
->> index 0000000..1ebd8b1
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->> @@ -0,0 +1,42 @@
->> +* Texas Instruments TV7002 video decoder
->> +
->> +The TVP7002 device supports digitizing of video and graphics signal in RGB
->> and
->> +YPbPr color space.
->> +
->> +Required Properties :
->> +- compatible : Must be "ti,tvp7002"
->> +
->> +- hsync-active: HSYNC Polarity configuration for endpoint.
->> +
->> +- vsync-active: VSYNC Polarity configuration for endpoint.
->> +
->> +- pclk-sample: Clock polarity of the endpoint.
->> +
->> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
->> +
->> +- ti,tvp7002-sog-polarity: Sync on Green output polarity of the endpoint.
->
-> Would it make sense to define field-active and sog-active properties in the
-> V4L2 bindings instead of having per-chip properties ?
->
-yes you are right these properties need to be in the device node
-rather than the
-port node. I'll send alone this patch of the series as v2 fixing the above.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Richard Röjfors <richard.rojfors@pelagicore.com>
+---
+ drivers/media/platform/timblogiw.c |    7 +++----
+ 1 file changed, 3 insertions(+), 4 deletions(-)
 
-Regards,
---Prabhakar Lad
+diff --git a/drivers/media/platform/timblogiw.c b/drivers/media/platform/timblogiw.c
+index 99861c63..b557caf 100644
+--- a/drivers/media/platform/timblogiw.c
++++ b/drivers/media/platform/timblogiw.c
+@@ -239,13 +239,12 @@ static int timblogiw_querycap(struct file *file, void  *priv,
+ 	struct video_device *vdev = video_devdata(file);
+ 
+ 	dev_dbg(&vdev->dev, "%s: Entry\n",  __func__);
+-	memset(cap, 0, sizeof(*cap));
+ 	strncpy(cap->card, TIMBLOGIWIN_NAME, sizeof(cap->card)-1);
+ 	strncpy(cap->driver, DRIVER_NAME, sizeof(cap->driver) - 1);
+-	strlcpy(cap->bus_info, vdev->name, sizeof(cap->bus_info));
+-	cap->version = TIMBLOGIW_VERSION_CODE;
+-	cap->capabilities = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
++	snprintf(cap->bus_info, sizeof(cap->bus_info), "platform:%s", vdev->name);
++	cap->device_caps = V4L2_CAP_VIDEO_CAPTURE | V4L2_CAP_STREAMING |
+ 		V4L2_CAP_READWRITE;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+ 
+ 	return 0;
+ }
+-- 
+1.7.10.4
+
