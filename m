@@ -1,103 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:45405 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752953Ab3EVLST (ORCPT
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:37526 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756022Ab3EaLhd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 07:18:19 -0400
-Message-ID: <519CA976.9000109@canonical.com>
-Date: Wed, 22 May 2013 13:18:14 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+	Fri, 31 May 2013 07:37:33 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, mchehab@redhat.com,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
+	timo.teras@iki.fi
+Subject: [RFC v2 2/2] saa7115: Remove gm7113c video_std register change
+Date: Fri, 31 May 2013 13:40:26 +0200
+Message-Id: <1370000426-3324-3-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1370000426-3324-1-git-send-email-jonarne@jonarne.no>
+References: <1370000426-3324-1-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
-To: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	peterz@infradead.org, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, rostedt@goodmis.org, tglx@linutronix.de,
-	mingo@elte.hu, linux-media@vger.kernel.org,
-	Dave Airlie <airlied@redhat.com>
-Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks,
- v3
-References: <20130428165914.17075.57751.stgit@patser> <20130428170407.17075.80082.stgit@patser> <20130430191422.GA5763@phenom.ffwll.local>
-In-Reply-To: <20130430191422.GA5763@phenom.ffwll.local>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hey,
+On video std change, the driver would disable the automatic field
+detection on the gm7113c chip, and force either 50Hz or 60Hz.
+Don't do this any more.
 
-Op 30-04-13 21:14, Daniel Vetter schreef:
-> On Sun, Apr 28, 2013 at 07:04:07PM +0200, Maarten Lankhorst wrote:
->> Changes since RFC patch v1:
->>  - Updated to use atomic_long instead of atomic, since the reservation_id was a long.
->>  - added mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow
->>  - removed mutex_locked_set_reservation_id (or w/e it was called)
->> Changes since RFC patch v2:
->>  - remove use of __mutex_lock_retval_arg, add warnings when using wrong combination of
->>    mutex_(,reserve_)lock/unlock.
->> Changes since v1:
->>  - Add __always_inline to __mutex_lock_common, otherwise reservation paths can be
->>    triggered from normal locks, because __builtin_constant_p might evaluate to false
->>    for the constant 0 in that case. Tests for this have been added in the next patch.
->>  - Updated documentation slightly.
->> Changes since v2:
->>  - Renamed everything to ww_mutex. (mlankhorst)
->>  - Added ww_acquire_ctx and ww_class. (mlankhorst)
->>  - Added a lot of checks for wrong api usage. (mlankhorst)
->>  - Documentation updates. (danvet)
-> While writing the kerneldoc I've carefully check that all restrictions are
-> enforced through debug checks somehow. I think that with full mutex debug
-> (including lockdep) enabled, plus the slowpath injector patch I've just
-> posted, _all_ interface abuse will be catched at runtime as long as all
-> the single-threaded/uncontended cases are exercises sufficiently.
->
-> So I think we've fully achieved level 5 on the Rusty API safety scale
-> here. Higher levels seem pretty hard given that the concepts are rather
-> fancy, but I think with the new (and much more consitent) naming, plus the
-> explicit introduction as (more abstruct) structures for ww_class and
-> ww_acquire_context the interface is about as intuitive as it gets.
->
-> So all together I'm pretty happy with what the interface looks like. And
-> one quick bikeshed below on the implementation.
-> -Daniel
-I included your fix below. I'm hoping to get this included in 3.11 through the drm tree, so
-I can convert ttm to use it, but I haven't received any further reply on the patch series.
+Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+---
+ drivers/media/i2c/saa7115.c | 26 ++------------------------
+ 1 file changed, 2 insertions(+), 24 deletions(-)
 
-The 3.10 mutex improvement patches don't seem to cause any conflicts when merging
-linus' tree, so I'll use drm-next as a base.
+diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+index 4a52b4d..ba18e57 100644
+--- a/drivers/media/i2c/saa7115.c
++++ b/drivers/media/i2c/saa7115.c
+@@ -479,24 +479,6 @@ static const unsigned char saa7115_cfg_50hz_video[] = {
+ 
+ /* ============== SAA7715 VIDEO templates (end) =======  */
+ 
+-/* ============== GM7113C VIDEO templates =============  */
+-static const unsigned char gm7113c_cfg_60hz_video[] = {
+-	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto detection, 0x68 = NTSC */
+-	R_0E_CHROMA_CNTL_1, 0x07,		/* video autodetection is on */
+-
+-	0x00, 0x00
+-};
+-
+-static const unsigned char gm7113c_cfg_50hz_video[] = {
+-	R_08_SYNC_CNTL, 0x28,			/* 0x28 = PAL */
+-	R_0E_CHROMA_CNTL_1, 0x07,
+-
+-	0x00, 0x00
+-};
+-
+-/* ============== GM7113C VIDEO templates (end) =======  */
+-
+-
+ static const unsigned char saa7115_cfg_vbi_on[] = {
+ 	R_80_GLOBAL_CNTL_1, 0x00,			/* reset tasks */
+ 	R_88_POWER_SAVE_ADC_PORT_CNTL, 0xd0,		/* reset scaler */
+@@ -981,16 +963,12 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
+ 	// This works for NTSC-M, SECAM-L and the 50Hz PAL variants.
+ 	if (std & V4L2_STD_525_60) {
+ 		v4l2_dbg(1, debug, sd, "decoder set standard 60 Hz\n");
+-		if (state->ident == V4L2_IDENT_GM7113C)
+-			saa711x_writeregs(sd, gm7113c_cfg_60hz_video);
+-		else
++		if (state->ident != V4L2_IDENT_GM7113C)
+ 			saa711x_writeregs(sd, saa7115_cfg_60hz_video);
+ 		saa711x_set_size(sd, 720, 480);
+ 	} else {
+ 		v4l2_dbg(1, debug, sd, "decoder set standard 50 Hz\n");
+-		if (state->ident == V4L2_IDENT_GM7113C)
+-			saa711x_writeregs(sd, gm7113c_cfg_50hz_video);
+-		else
++		if (state->ident != V4L2_IDENT_GM7113C)
+ 			saa711x_writeregs(sd, saa7115_cfg_50hz_video);
+ 		saa711x_set_size(sd, 720, 576);
+ 	}
+-- 
+1.8.2.3
 
-Are there any issues left? I included the patch you wrote for injecting -EDEADLK too
-in my tree. The overwhelming silence makes me think there are either none, or
-nobody cared enough to review it. :(
-
->> +/*
->> + * after acquiring lock with fastpath or when we lost out in contested
->> + * slowpath, set ctx and wake up any waiters so they can recheck.
->> + *
->> + * This function is never called when CONFIG_DEBUG_LOCK_ALLOC is set,
->> + * as the fastpath and opportunistic spinning are disabled in that case.
->> + */
->> +static __always_inline void
->> +ww_mutex_set_context_fastpath(struct ww_mutex *lock,
->> +			       struct ww_acquire_ctx *ctx)
->> +{
->> +	unsigned long flags;
->> +	struct mutex_waiter *cur;
->> +
->> +	ww_mutex_lock_acquired(lock, ctx, false);
->> +
->> +	lock->ctx = ctx;
->> +	smp_mb__after_atomic_dec();
-> I think this should be
->
-> +	smp_mb__after_atomic_dec();
-> +	lock->ctx = ctx;
-> +	smp_mb();
->
-> Also I wonder a bit how much this hurts the fastpath, and whether we
-> should just shovel the ctx into the atomic field with a cmpxcht, like the
-> rt mutex code does with the current pointer.
->
-Fixed. I'm not sure if the second smp_mb is really needed. If there was a
-smp_mb__before_atomic_read it would have been sufficient.
-
-~Maarten
