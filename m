@@ -1,220 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47870 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751033Ab3EPML2 (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4278 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751207Ab3EaH7e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:11:28 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Fri, 31 May 2013 03:59:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH RFC v3 2/3] media: added managed v4l2 control initialization
+Date: Fri, 31 May 2013 09:59:11 +0200
+Cc: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>, Arnd Bergmann <arnd@arndb.de>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH RFC V4 FINAL] media: i2c: mt9p031: add OF support
-Date: Thu, 16 May 2013 14:11:47 +0200
-Message-ID: <3373593.tmPgXHFIzk@avalon>
-In-Reply-To: <1368422224-19590-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368422224-19590-1-git-send-email-prabhakar.csengg@gmail.com>
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+References: <1368692074-483-1-git-send-email-a.hajda@samsung.com> <201305231239.32156.hverkuil@xs4all.nl> <51A7F811.5090805@iki.fi>
+In-Reply-To: <51A7F811.5090805@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305310959.11948.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+On Fri May 31 2013 03:08:33 Sakari Ailus wrote:
+> Hi Hans,
+> 
+> Hans Verkuil wrote:
+> > On Fri 17 May 2013 00:34:51 Sakari Ailus wrote:
+> >> Hi Andrzej,
+> >>
+> >> Thanks for the patchset!
+> >>
+> >> On Thu, May 16, 2013 at 10:14:33AM +0200, Andrzej Hajda wrote:
+> >>> This patch adds managed version of initialization
+> >>> function for v4l2 control handler.
+> >>>
+> >>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> >>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >>> ---
+> >>> v3:
+> >>> 	- removed managed cleanup
+> >>> v2:
+> >>> 	- added missing struct device forward declaration,
+> >>> 	- corrected few comments
+> >>> ---
+> >>>   drivers/media/v4l2-core/v4l2-ctrls.c |   32 ++++++++++++++++++++++++++++++++
+> >>>   include/media/v4l2-ctrls.h           |   16 ++++++++++++++++
+> >>>   2 files changed, 48 insertions(+)
+> >>>
+> >>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>> index ebb8e48..f47ccfa 100644
+> >>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>> @@ -1421,6 +1421,38 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+> >>>   }
+> >>>   EXPORT_SYMBOL(v4l2_ctrl_handler_free);
+> >>>
+> >>> +static void devm_v4l2_ctrl_handler_release(struct device *dev, void *res)
+> >>> +{
+> >>> +	struct v4l2_ctrl_handler **hdl = res;
+> >>> +
+> >>> +	v4l2_ctrl_handler_free(*hdl);
+> >>
+> >> v4l2_ctrl_handler_free() acquires hdl->mutex which is independent of the
+> >> existence of hdl. By default hdl->lock is in the handler, but it may also be
+> >> elsewhere, e.g. in a driver-specific device struct such as struct
+> >> smiapp_sensor defined in drivers/media/i2c/smiapp/smiapp.h. I wonder if
+> >> anything guarantees that hdl->mutex still exists at the time the device is
+> >> removed.
+> >
+> > If it is a driver-managed lock, then the driver should also be responsible for
+> > that lock during the life-time of the control handler. I think that is a fair
+> > assumption.
+> 
+> Agreed.
+> 
+> >> I have to say I don't think it's neither meaningful to acquire that mutex in
+> >> v4l2_ctrl_handler_free(), though, since the whole going to be freed next
+> >> anyway: reference counting would be needed to prevent bad things from
+> >> happening, in case the drivers wouldn't take care of that.
+> >
+> > It's probably not meaningful today, but it might become meaningful in the
+> > future. And in any case, not taking the lock when manipulating internal
+> > lists is very unexpected even though it might work with today's use cases.
+> 
+> I simply don't think it's meaningful to acquire a lock related to an 
+> object when that object is being destroyed. If something else was 
+> holding that lock, you should not have begun destroying that object in 
+> the first place. This could be solved by reference counting the handler 
+> which I don't think is needed.
 
-Thank you for the patch.
+Right now the way controls are set up is very static, but in the future I
+expect to see more dynamical behavior (I'm thinking of FPGAs supporting
+partial reconfiguration). In cases like that it you do want to take the
+lock preventing others from making modifications while the handler is
+freed. I am well aware that much more work will have to be done if we want
+to support such scenarios, but it is one reason why I would like to keep
+the lock there.
 
-On Monday 13 May 2013 10:47:04 Lad Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> add OF support for the mt9p031 sensor driver.
-> Alongside this patch sorts the header inclusion alphabetically.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Sascha Hauer <s.hauer@pengutronix.de>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Rob Landley <rob@landley.net>
-> Cc: Arnd Bergmann <arnd@arndb.de>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> ---
->  Changes for v4:
->  1: Renamed "gpio-reset" property to "reset-gpios".
->  2: Dropped assigning the driver data from the of node.
-> 
->  Changes for v3:
->  1: Dropped check if gpio-reset is valid.
->  2: Fixed some code nits.
->  3: Included a reference to the V4L2 DT bindings documentation.
-> 
->  Changes for v2:
->  1: Used '-' instead of '_' for device properties.
->  2: Specified gpio reset pin as phandle in device node.
->  3: Handle platform data properly even if kernel is compiled with
->     devicetree support.
->  4: Used dev_* for messages in drivers instead of pr_*.
->  5: Changed compatible property to "aptina,mt9p031" and "aptina,mt9p031m".
->  6: Sorted the header inclusion alphabetically and fixed some minor code
-> nits.
-> 
->  .../devicetree/bindings/media/i2c/mt9p031.txt      |   40 +++++++++++++++++
->  drivers/media/i2c/mt9p031.c                        |   42 ++++++++++++++++-
->  2 files changed, 80 insertions(+), 2 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-> b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt new file mode
-> 100644
-> index 0000000..59d613c
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/mt9p031.txt
-> @@ -0,0 +1,40 @@
-> +* Aptina 1/2.5-Inch 5Mp CMOS Digital Image Sensor
-> +
-> +The Aptina MT9P031 is a 1/2.5-inch CMOS active pixel digital image sensor
-> with +an active array size of 2592H x 1944V. It is programmable through a
-> simple +two-wire serial interface.
-> +
-> +Required Properties :
-> +- compatible : value should be either one among the following
-> +	(a) "aptina,mt9p031" for mt9p031 sensor
-> +	(b) "aptina,mt9p031m" for mt9p031m sensor
-> +
-> +- input-clock-frequency : Input clock frequency.
-> +
-> +- pixel-clock-frequency : Pixel clock frequency.
-> +
-> +Optional Properties :
-> +- reset-gpios: Chip reset GPIO
-> +
-> +For further reading of port node refer
-> Documentation/devicetree/bindings/media/ +video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c0@1c22000 {
-> +		...
-> +		...
-> +		mt9p031@5d {
-> +			compatible = "aptina,mt9p031";
-> +			reg = <0x5d>;
-> +			reset-gpios = <&gpio3 30 0>;
-> +
-> +			port {
-> +				mt9p031_1: endpoint {
-> +					input-clock-frequency = <6000000>;
-> +					pixel-clock-frequency = <96000000>;
-> +				};
-> +			};
-> +		};
-> +		...
-> +	};
-> diff --git a/drivers/media/i2c/mt9p031.c b/drivers/media/i2c/mt9p031.c
-> index 28cf95b..a58207c 100644
-> --- a/drivers/media/i2c/mt9p031.c
-> +++ b/drivers/media/i2c/mt9p031.c
-> @@ -16,9 +16,11 @@
->  #include <linux/delay.h>
->  #include <linux/device.h>
->  #include <linux/gpio.h>
-> -#include <linux/module.h>
->  #include <linux/i2c.h>
->  #include <linux/log2.h>
-> +#include <linux/module.h>
-> +#include <linux/of_device.h>
-> +#include <linux/of_gpio.h>
->  #include <linux/pm.h>
->  #include <linux/regulator/consumer.h>
->  #include <linux/slab.h>
-> @@ -28,6 +30,7 @@
->  #include <media/v4l2-chip-ident.h>
->  #include <media/v4l2-ctrls.h>
->  #include <media/v4l2-device.h>
-> +#include <media/v4l2-of.h>
->  #include <media/v4l2-subdev.h>
-> 
->  #include "aptina-pll.h"
-> @@ -928,10 +931,35 @@ static const struct v4l2_subdev_internal_ops
-> mt9p031_subdev_internal_ops = { * Driver initialization and probing
->   */
-> 
-> +static struct mt9p031_platform_data *
-> +mt9p031_get_pdata(struct i2c_client *client)
-> +{
-> +	struct device_node *np;
-> +	struct mt9p031_platform_data *pdata;
-> +
-> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-> +		return client->dev.platform_data;
-> +
-> +	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-> +	if (!np)
-> +		return NULL;
-> +
-> +	pdata = devm_kzalloc(&client->dev, sizeof(struct mt9p031_platform_data),
-> +			     GFP_KERNEL);
-> +	if (!pdata)
-
-As mentioned in my review of your tvp514x OF support patch, you're missing 
-of_node_put() calls here and at the end of this function.
-
-> +		return NULL;
-> +
-> +	pdata->reset = of_get_named_gpio(client->dev.of_node, "reset-gpios", 0);
-> +	of_property_read_u32(np, "input-clock-frequency", &pdata->ext_freq);
-> +	of_property_read_u32(np, "pixel-clock-frequency", &pdata->target_freq);
-> +
-> +	return pdata;
-> +}
-> +
->  static int mt9p031_probe(struct i2c_client *client,
->  			 const struct i2c_device_id *did)
->  {
-> -	struct mt9p031_platform_data *pdata = client->dev.platform_data;
-> +	struct mt9p031_platform_data *pdata = mt9p031_get_pdata(client);
->  	struct i2c_adapter *adapter = to_i2c_adapter(client->dev.parent);
->  	struct mt9p031 *mt9p031;
->  	unsigned int i;
-> @@ -1070,8 +1098,18 @@ static const struct i2c_device_id mt9p031_id[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, mt9p031_id);
-> 
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id mt9p031_of_match[] = {
-> +	{ .compatible = "aptina,mt9p031", },
-> +	{ .compatible = "aptina,mt9p031m", },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, mt9p031_of_match);
-> +#endif
-> +
->  static struct i2c_driver mt9p031_i2c_driver = {
->  	.driver = {
-> +		.of_match_table = of_match_ptr(mt9p031_of_match),
->  		.name = "mt9p031",
->  	},
->  	.probe          = mt9p031_probe,
--- 
 Regards,
 
-Laurent Pinchart
+	Hans
 
+> I'd just shout out loud about this rather than hiding such potential 
+> bug, i.e. replace mutex_lock() and mutex_unlock() in the function by 
+> WARN_ON(mutex_is_lock()).
+> 
+> But that should be a separate patch.
+> 
+> 
