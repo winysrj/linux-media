@@ -1,51 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:40729 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755392Ab3EVMJb (ORCPT
+Received: from mail-vc0-f182.google.com ([209.85.220.182]:63469 "EHLO
+	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753630Ab3EaHuV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 22 May 2013 08:09:31 -0400
-Date: Wed, 22 May 2013 14:07:32 +0200
-From: Peter Zijlstra <peterz@infradead.org>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	x86@kernel.org, dri-devel@lists.freedesktop.org,
-	linaro-mm-sig@lists.linaro.org, robclark@gmail.com,
-	rostedt@goodmis.org, tglx@linutronix.de, mingo@elte.hu,
-	linux-media@vger.kernel.org, Dave Airlie <airlied@redhat.com>
-Subject: Re: [PATCH v3 2/3] mutex: add support for wound/wait style locks, v3
-Message-ID: <20130522120732.GA17463@dyad.programming.kicks-ass.net>
-References: <20130428165914.17075.57751.stgit@patser>
- <20130428170407.17075.80082.stgit@patser>
- <20130430191422.GA5763@phenom.ffwll.local>
- <519CA976.9000109@canonical.com>
- <20130522113736.GO18810@twins.programming.kicks-ass.net>
- <519CB05E.3060903@canonical.com>
+	Fri, 31 May 2013 03:50:21 -0400
+Received: by mail-vc0-f182.google.com with SMTP id gf12so833496vcb.41
+        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 00:50:20 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <519CB05E.3060903@canonical.com>
+In-Reply-To: <1369837147-8747-2-git-send-email-hverkuil@xs4all.nl>
+References: <1369837147-8747-1-git-send-email-hverkuil@xs4all.nl>
+	<1369837147-8747-2-git-send-email-hverkuil@xs4all.nl>
+Date: Fri, 31 May 2013 15:50:20 +0800
+Message-ID: <CAHG8p1Bs66ih6_COQynE6hOhriwSLQNp9C=eC6CMWFs+te9FHg@mail.gmail.com>
+Subject: Re: [RFC PATCH 01/14] adv7183: fix querystd
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 22, 2013 at 01:47:42PM +0200, Maarten Lankhorst wrote:
-> Op 22-05-13 13:37, Peter Zijlstra schreef:
-> >> Are there any issues left? I included the patch you wrote for injecting -EDEADLK too
-> >> in my tree. The overwhelming silence makes me think there are either none, or
-> >> nobody cared enough to review it. :(
-> > It didn't manage to reach my inbox it seems,.. I can only find a debug
-> > patch in this thread.
-> >
-> Odd, maybe in your spam folder?
+2013/5/29 Hans Verkuil <hverkuil@xs4all.nl>:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> If no signal is detected, return V4L2_STD_UNKNOWN. Otherwise AND the standard
+> with the detected standards.
+>
+> Note that the v4l2 core initializes the std with tvnorms before calling the
+> querystd ioctl.
+>
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+> ---
+>  drivers/media/i2c/adv7183.c |   16 ++++++++--------
+>  1 file changed, 8 insertions(+), 8 deletions(-)
+>
 
-Couldn't spot it there either.. weird.
-
-> It arrived on all mailing lists,
-
-I should both clean up my one huge lkml maildir and hack notmuch into
-submission so I can read LKML again :/
-
-> so I have no idea why you were left out.
-> 
-> http://www.spinics.net/lists/linux-arch/msg21425.html
-
-Thanks, I'll go stare at it.
+Acked-by: Scott Jiang <scott.jiang.linux@gmail.com>
