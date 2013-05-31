@@ -1,49 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:48153 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S966927Ab3E3IHL (ORCPT
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:37908 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1750837Ab3EaOL1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 May 2013 04:07:11 -0400
-Received: by mail-wi0-f169.google.com with SMTP id hn14so5000902wib.4
-        for <linux-media@vger.kernel.org>; Thu, 30 May 2013 01:07:10 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1369825211-29770-19-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl> <1369825211-29770-19-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 30 May 2013 13:36:49 +0530
-Message-ID: <CA+V-a8u7EKPhKvf54VGiLQ+GPS23H+_KcrO0FL0Wks5Db00_Zg@mail.gmail.com>
-Subject: Re: [PATCHv1 18/38] media/i2c: remove g_chip_ident op.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Fri, 31 May 2013 10:11:27 -0400
+Date: Fri, 31 May 2013 16:14:20 +0200
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	Timo Teras <timo.teras@iki.fi>,
 	Andy Walls <awalls@md.metrocast.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com
+Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
+Message-ID: <20130531141420.GH2367@dell.arpanet.local>
+References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
+ <1369860078-10334-2-git-send-email-jonarne@jonarne.no>
+ <20130529213554.690f7eaa@redhat.com>
+ <7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
+ <20130530052136.GF2367@dell.arpanet.local>
+ <20130530083332.245e3c62@vostro>
+ <20130530190001.GG2367@dell.arpanet.local>
+ <20130531100827.10710841@redhat.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130531100827.10710841@redhat.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Fri, May 31, 2013 at 10:08:27AM -0300, Mauro Carvalho Chehab wrote:
+> Em Thu, 30 May 2013 21:00:01 +0200
+> Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+> 
+> > On Thu, May 30, 2013 at 08:33:32AM +0300, Timo Teras wrote:
+> > > On Thu, 30 May 2013 07:21:36 +0200
+> > > Jon Arne Jørgensen <jonarne@jonarne.no> wrote:
+> > > 
+> > > > On Wed, May 29, 2013 at 10:19:49PM -0400, Andy Walls wrote:
+> > > > > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> > > > > 
+> > > > > >Em Wed, 29 May 2013 22:41:16 +0200
+> > > > > >Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+> > > > > >
+> > > > > >> Change all default values in the initial setup table to match the
+> > > > > >table
+> > > > > >> in the datasheet.
+> > > > > >
+> > > > > >This is not a good idea, as it can produce undesired side effects
+> > > > > >on the existing drivers that depend on it, and can't be easily
+> > > > > >tested.
+> > > > > >
+> > > > > >Please, don't change the current "default". It is, of course, OK
+> > > > > >to change them if needed via the information provided inside the
+> > > > > >platform data.
+> > > > >
+> > > > > I was going to make a comment along the same line as Mauro.  
+> > > > > Please leave the driver defaults alone.  It is almost impossible to
+> > > > > regression test all the different devices with a SAA7113 chip, to
+> > > > > ensure the change doesn't cause someone's device to not work
+> > > > > properly.
+> > > > >
+> > > > 
+> > > > You guys are totally right.
+> > > > 
+> > > > What if I clone the original saa7113_init table into a new one, and
+> > > > make the driver use the new one if the calling driver sets
+> > > > platform_data.
+> > > > 
+> > > > Something like this?
+> > > > 
+> > > >         switch (state->ident) {
+> > > >         case V4L2_IDENT_SAA7111:
+> > > >         case V4L2_IDENT_SAA7111A:
+> > > >                 saa711x_writeregs(sd, saa7111_init);
+> > > >                 break;
+> > > >         case V4L2_IDENT_GM7113C:
+> > > >         case V4L2_IDENT_SAA7113:
+> > > > -		saa711x_writeregs(sd, saa7113_init);
+> > > > +		if (client->dev.platform_data)
+> > > > +			saa711x_writeregs(sd, saa7113_new_init);
+> > > > +		else
+> > > > +			saa711x_writeregs(sd, saa7113_init);
+> > > 
+> > > I would rather have the platform_data provide the new table. Or if you
+> > > think bulk of the table will be the same for most users, then perhaps
+> > > add there an enum saying which table to use - and name the tables
+> > > according to the chip variant it applies to.
+> > > 
+> > 
+> > I think the bulk of the table will be the same for all drivers.
+> > It's one bit here and one bit there that needs changing.
+> > As the driver didn't support platform data.
+> > Changing to a new init table for the drivers that implement
+> > platform_data shouldn't cause any regressions.
+> 
+> There are several things that are very bad on passing a table via
+> platform data:
+> 
+> 	1) you're adding saa711x-specific data at the bridge driver,
+> 	   so, the saa711x code is spread on several places at the
+> 	   long term;
+> 
+> 	2) some part of the saa711x code may override the data there, 
+> 	   as it is not aware about what bits should be preserved from
+> 	   the new device;
+> 
+> 	3) due (2), latter changes on the code are more likely to
+> 	   cause regressions;
+> 
+> 	4) also due to (2), some hacks can be needed, in order to warn
+> 	   saa711x to handle some things differently.
+> 
+> That's why it is a way better to add meaningful parameters telling what
+> bits are needed for the driver to work with the bridge. That's also
+> why we do this with all other drivers.
+> 
 
-Thanks for the patch.
+I agree with you here.
+I never planned to pass the table via platform data.
 
-On Wed, May 29, 2013 at 4:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> This is no longer needed since the core now handles this through DBG_G_CHIP_INFO.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>
-> Cc: Andy Walls <awalls@md.metrocast.net>
-> Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-> ---
->  drivers/media/i2c/adv7343.c              |   10 ---
->  drivers/media/i2c/ths7303.c              |   25 +------
->  drivers/media/i2c/tvp514x.c              |    1 -
->  drivers/media/i2c/tvp7002.c              |   34 ----------
-For the above,
+I've just posted a new version of this patch set.
+Please have a look.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Best regards
+Jon Arne Jørgensen
 
-Regards,
---Prabhakar Lad
+> Regards,
+> Mauro
