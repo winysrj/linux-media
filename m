@@ -1,51 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:57626 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751120Ab3EMJhc (ORCPT
+Received: from mail-ie0-f174.google.com ([209.85.223.174]:44164 "EHLO
+	mail-ie0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753831Ab3EaJOD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 13 May 2013 05:37:32 -0400
-Received: by mail-pb0-f42.google.com with SMTP id up7so4318378pbc.15
-        for <linux-media@vger.kernel.org>; Mon, 13 May 2013 02:37:32 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: linux-media@vger.kernel.org
-Cc: mchehab@redhat.com, sachin.kamat@linaro.org
-Subject: [PATCH 2/2] [media] rc: gpio-ir-recv: Remove redundant platform_set_drvdata()
-Date: Mon, 13 May 2013 14:54:08 +0530
-Message-Id: <1368437048-13172-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1368437048-13172-1-git-send-email-sachin.kamat@linaro.org>
-References: <1368437048-13172-1-git-send-email-sachin.kamat@linaro.org>
+	Fri, 31 May 2013 05:14:03 -0400
+Received: by mail-ie0-f174.google.com with SMTP id aq17so3302933iec.19
+        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 02:14:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
+References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
+Date: Fri, 31 May 2013 11:14:02 +0200
+Message-ID: <CAKMK7uHYLG3iNphE+g4BBB-LuUM67NRvbQPBvCHE2FN71-GLnA@mail.gmail.com>
+Subject: Re: [RFC][PATCH 0/2] dma-buf: add importer private data for reimporting
+From: Daniel Vetter <daniel.vetter@ffwll.ch>
+To: Seung-Woo Kim <sw0312.kim@samsung.com>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Dave Airlie <airlied@linux.ie>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Commit 0998d06310 (device-core: Ensure drvdata = NULL when no
-driver is bound) removes the need to set driver data field to
-NULL.
+On Fri, May 31, 2013 at 10:54 AM, Seung-Woo Kim <sw0312.kim@samsung.com> wrote:
+> importer private data in dma-buf attachment can be used by importer to
+> reimport same dma-buf.
+>
+> Seung-Woo Kim (2):
+>   dma-buf: add importer private data to attachment
+>   drm/prime: find gem object from the reimported dma-buf
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
----
- drivers/media/rc/gpio-ir-recv.c |    2 --
- 1 file changed, 2 deletions(-)
+Self-import should already work (at least with the latest refcount
+fixes merged). At least the tests to check both re-import on the same
+drm fd and on a different all work as expected now.
 
-diff --git a/drivers/media/rc/gpio-ir-recv.c b/drivers/media/rc/gpio-ir-recv.c
-index 8b82ae9..07aacfa 100644
---- a/drivers/media/rc/gpio-ir-recv.c
-+++ b/drivers/media/rc/gpio-ir-recv.c
-@@ -178,7 +178,6 @@ static int gpio_ir_recv_probe(struct platform_device *pdev)
- 	return 0;
- 
- err_request_irq:
--	platform_set_drvdata(pdev, NULL);
- 	rc_unregister_device(rcdev);
- 	rcdev = NULL;
- err_register_rc_device:
-@@ -196,7 +195,6 @@ static int gpio_ir_recv_remove(struct platform_device *pdev)
- 	struct gpio_rc_dev *gpio_dev = platform_get_drvdata(pdev);
- 
- 	free_irq(gpio_to_irq(gpio_dev->gpio_nr), gpio_dev);
--	platform_set_drvdata(pdev, NULL);
- 	rc_unregister_device(gpio_dev->rcdev);
- 	gpio_free(gpio_dev->gpio_nr);
- 	kfree(gpio_dev);
--- 
-1.7.9.5
+Second, the dma_buf_attachment is _definitely_ the wrong place to do
+this. If you need iommu mapping caching, that should happen at a lower
+level (i.e. in the map_attachment callback somewhere of the exporter,
+that's what the priv field in the attachment is for). Snatching away
+the attachement from some random other import is certainly not the way
+to go - attachements are _not_ refcounted!
+-Daniel
 
+>
+>  drivers/base/dma-buf.c                     |   31 ++++++++++++++++++++++++++++
+>  drivers/gpu/drm/drm_prime.c                |   19 ++++++++++++----
+>  drivers/gpu/drm/exynos/exynos_drm_dmabuf.c |    1 +
+>  drivers/gpu/drm/i915/i915_gem_dmabuf.c     |    1 +
+>  drivers/gpu/drm/udl/udl_gem.c              |    1 +
+>  include/linux/dma-buf.h                    |    4 +++
+>  6 files changed, 52 insertions(+), 5 deletions(-)
+>
+> --
+> 1.7.4.1
+>
+
+
+
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
