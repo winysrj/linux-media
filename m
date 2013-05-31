@@ -1,381 +1,474 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:60296 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967322Ab3E3DIs (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:49510 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751921Ab3EaOjW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 23:08:48 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH RFC] media: Rename media_entity_remote_source to media_entity_remote_pad
-Date: Thu, 30 May 2013 05:08:44 +0200
-Message-ID: <1375092.UAambmK7BY@avalon>
-In-Reply-To: <1358843095-4839-1-git-send-email-a.hajda@samsung.com>
-References: <1358843095-4839-1-git-send-email-a.hajda@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 31 May 2013 10:39:22 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNO001443DFBQX0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 May 2013 23:39:20 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hj210.choi@samsung.com,
+	arun.kk@samsung.com, shaik.ameer@samsung.com,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [REVIEW PATCH v2 02/11] exynos4-is: Add struct exynos_video_entity
+Date: Fri, 31 May 2013 16:37:18 +0200
+Message-id: <1370011047-11488-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+This patch introduces common structure for the video entities
+to handle all video nodes and media pipelines associated with
+them in more generic way.
 
-Thank you for the patch, and sorry for not handling this earlier.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-capture.c  |   43 ++++++++++++---------
+ drivers/media/platform/exynos4-is/fimc-core.h     |    4 +-
+ drivers/media/platform/exynos4-is/fimc-lite-reg.c |    2 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c     |   20 +++++-----
+ drivers/media/platform/exynos4-is/fimc-lite.h     |    4 +-
+ drivers/media/platform/exynos4-is/fimc-reg.c      |    7 ++--
+ drivers/media/platform/exynos4-is/media-dev.c     |    4 +-
+ drivers/media/platform/exynos4-is/media-dev.h     |    8 ++--
+ include/media/s5p_fimc.h                          |    5 +++
+ 9 files changed, 55 insertions(+), 42 deletions(-)
 
-On Tuesday 22 January 2013 09:24:55 Andrzej Hajda wrote:
-> Function media_entity_remote_source actually returns the remote pad to
-> the given one, regardless if this is the source or the sink pad.
-> Name media_entity_remote_pad is more adequate for this function.
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-
-However, the patch doesn't apply on top of the latest linuxtv master branch. 
-Could you please respin it ?
-
-Mauro, as this patch touches several drivers in addition to the media core, 
-would you prefer to apply it yourself, or should I take it in my tree and send 
-a pull request ?
-
-> ---
->  Documentation/media-framework.txt                |    2 +-
->  drivers/media/media-entity.c                     |   13 ++++++-------
->  drivers/media/platform/omap3isp/isp.c            |    6 +++---
->  drivers/media/platform/omap3isp/ispccdc.c        |    2 +-
->  drivers/media/platform/omap3isp/ispccp2.c        |    2 +-
->  drivers/media/platform/omap3isp/ispcsi2.c        |    2 +-
->  drivers/media/platform/omap3isp/ispvideo.c       |    6 +++---
->  drivers/media/platform/s3c-camif/camif-capture.c |    2 +-
->  drivers/media/platform/s5p-fimc/fimc-capture.c   |    8 ++++----
->  drivers/media/platform/s5p-fimc/fimc-lite.c      |    4 ++--
->  drivers/media/platform/s5p-fimc/fimc-mdevice.c   |    2 +-
->  drivers/staging/media/davinci_vpfe/vpfe_video.c  |   12 ++++++------
->  include/media/media-entity.h                     |    2 +-
->  13 files changed, 31 insertions(+), 32 deletions(-)
-> 
-> diff --git a/Documentation/media-framework.txt
-> b/Documentation/media-framework.txt index 8028754..e68744a 100644
-> --- a/Documentation/media-framework.txt
-> +++ b/Documentation/media-framework.txt
-> @@ -265,7 +265,7 @@ connected to another pad through an enabled link
->  	media_entity_find_link(struct media_pad *source,
->  			       struct media_pad *sink);
-> 
-> -	media_entity_remote_source(struct media_pad *pad);
-> +	media_entity_remote_pad(struct media_pad *pad);
-> 
->  Refer to the kerneldoc documentation for more information.
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index e1cd132..0438209 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -560,17 +560,16 @@ media_entity_find_link(struct media_pad *source,
-> struct media_pad *sink) EXPORT_SYMBOL_GPL(media_entity_find_link);
-> 
->  /**
-> - * media_entity_remote_source - Find the source pad at the remote end of a
-> link
-> - * @pad: Sink pad at the local end of the link
-> + * media_entity_remote_pad - Find the pad at the remote end of a link
-> + * @pad: Pad at the local end of the link
->   *
-> - * Search for a remote source pad connected to the given sink pad by
-> - * iterating over all links originating or terminating at that pad until an
-> - * enabled link is found.
-> + * Search for a remote pad connected to the given pad by iterating over all
-> + * links originating or terminating at that pad until an enabled link is
-> found.
->   *
->   * Return a pointer to the pad at the remote end of the first found enabled
->   * link, or NULL if no enabled link has been found.
->   */
-> -struct media_pad *media_entity_remote_source(struct media_pad *pad)
-> +struct media_pad *media_entity_remote_pad(struct media_pad *pad)
->  {
->  	unsigned int i;
-> 
-> @@ -590,4 +589,4 @@ struct media_pad *media_entity_remote_source(struct
-> media_pad *pad) return NULL;
-> 
->  }
-> -EXPORT_SYMBOL_GPL(media_entity_remote_source);
-> +EXPORT_SYMBOL_GPL(media_entity_remote_pad);
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index a9f6de5..5bb1698 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -757,7 +757,7 @@ static int isp_pipeline_enable(struct isp_pipeline
-> *pipe, if (!(pad->flags & MEDIA_PAD_FL_SINK))
->  			break;
-> 
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> @@ -847,7 +847,7 @@ static int isp_pipeline_disable(struct isp_pipeline
-> *pipe) if (!(pad->flags & MEDIA_PAD_FL_SINK))
->  			break;
-> 
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> @@ -963,7 +963,7 @@ static int isp_pipeline_is_last(struct media_entity *me)
-> pipe = to_isp_pipeline(me);
->  	if (pipe->stream_state == ISP_PIPELINE_STREAM_STOPPED)
->  		return 0;
-> -	pad = media_entity_remote_source(&pipe->output->pad);
-> +	pad = media_entity_remote_pad(&pipe->output->pad);
->  	return pad->entity == me;
->  }
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispccdc.c
-> b/drivers/media/platform/omap3isp/ispccdc.c index 60e60aa..907a205 100644
-> --- a/drivers/media/platform/omap3isp/ispccdc.c
-> +++ b/drivers/media/platform/omap3isp/ispccdc.c
-> @@ -1120,7 +1120,7 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc) u32 syn_mode;
->  	u32 ccdc_pattern;
-> 
-> -	pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
-> +	pad = media_entity_remote_pad(&ccdc->pads[CCDC_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
->  	if (ccdc->input == CCDC_INPUT_PARALLEL)
->  		pdata = &((struct isp_v4l2_subdevs_group *)sensor->host_priv)
-> diff --git a/drivers/media/platform/omap3isp/ispccp2.c
-> b/drivers/media/platform/omap3isp/ispccp2.c index 85f0de8..d134e60 100644
-> --- a/drivers/media/platform/omap3isp/ispccp2.c
-> +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> @@ -360,7 +360,7 @@ static int ccp2_if_configure(struct isp_ccp2_device
-> *ccp2)
-> 
->  	ccp2_pwr_cfg(ccp2);
-> 
-> -	pad = media_entity_remote_source(&ccp2->pads[CCP2_PAD_SINK]);
-> +	pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
->  	pdata = sensor->host_priv;
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispcsi2.c
-> b/drivers/media/platform/omap3isp/ispcsi2.c index 783f4b0..6db245d 100644
-> --- a/drivers/media/platform/omap3isp/ispcsi2.c
-> +++ b/drivers/media/platform/omap3isp/ispcsi2.c
-> @@ -573,7 +573,7 @@ static int csi2_configure(struct isp_csi2_device *csi2)
->  	if (csi2->contexts[0].enabled || csi2->ctrl.if_enable)
->  		return -EBUSY;
-> 
-> -	pad = media_entity_remote_source(&csi2->pads[CSI2_PAD_SINK]);
-> +	pad = media_entity_remote_pad(&csi2->pads[CSI2_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
->  	pdata = sensor->host_priv;
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> b/drivers/media/platform/omap3isp/ispvideo.c index e0d73a6..ed3e136 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -222,7 +222,7 @@ isp_video_remote_subdev(struct isp_video *video, u32
-> *pad) {
->  	struct media_pad *remote;
-> 
-> -	remote = media_entity_remote_source(&video->pad);
-> +	remote = media_entity_remote_pad(&video->pad);
-> 
->  	if (remote == NULL ||
->  	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-> @@ -317,7 +317,7 @@ static int isp_video_validate_pipeline(struct
-> isp_pipeline *pipe) * entity can be found, and stop checking the pipeline
-> if the
->  		 * source entity isn't a subdev.
->  		 */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL)
->  			return -EPIPE;
-> 
-> @@ -904,7 +904,7 @@ static int isp_video_check_external_subdevs(struct
-> isp_video *video, continue;
-> 
->  		/* ISP entities have always sink pad == 0. Find source. */
-> -		source_pad = media_entity_remote_source(&ents[i]->pads[0]);
-> +		source_pad = media_entity_remote_pad(&ents[i]->pads[0]);
->  		if (source_pad == NULL)
->  			continue;
-> 
-> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c
-> b/drivers/media/platform/s3c-camif/camif-capture.c index a55793c..4397722
-> 100644
-> --- a/drivers/media/platform/s3c-camif/camif-capture.c
-> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
-> @@ -845,7 +845,7 @@ static int camif_pipeline_validate(struct camif_dev
-> *camif) int ret;
-> 
->  	/* Retrieve format at the sensor subdev source pad */
-> -	pad = media_entity_remote_source(&camif->pads[0]);
-> +	pad = media_entity_remote_pad(&camif->pads[0]);
->  	if (!pad || media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  		return -EPIPE;
-> 
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-capture.c
-> b/drivers/media/platform/s5p-fimc/fimc-capture.c index 18a70e4..b5a0a2f
-> 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-capture.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-capture.c
-> @@ -799,7 +799,7 @@ static struct media_entity
-> *fimc_pipeline_get_head(struct media_entity *me) struct media_pad *pad =
-> &me->pads[0];
-> 
->  	while (!(pad->flags & MEDIA_PAD_FL_SOURCE)) {
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (!pad)
->  			break;
->  		me = pad->entity;
-> @@ -871,7 +871,7 @@ static int fimc_pipeline_try_format(struct fimc_ctx
-> *ctx, return ret;
->  			}
-> 
-> -			pad = media_entity_remote_source(&me->pads[sfmt.pad]);
-> +			pad = media_entity_remote_pad(&me->pads[sfmt.pad]);
->  			if (!pad)
->  				return -EINVAL;
->  			me = pad->entity;
-> @@ -1158,7 +1158,7 @@ static int fimc_pipeline_validate(struct fimc_dev
-> *fimc) int ret;
-> 
->  	/* Start with the video capture node pad */
-> -	pad = media_entity_remote_source(&vid_cap->vd_pad);
-> +	pad = media_entity_remote_pad(&vid_cap->vd_pad);
->  	if (pad == NULL)
->  		return -EPIPE;
->  	/* FIMC.{N} subdevice */
-> @@ -1183,7 +1183,7 @@ static int fimc_pipeline_validate(struct fimc_dev
-> *fimc) return -EPIPE;
->  		}
->  		/* Retrieve format at the source pad */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-lite.c
-> b/drivers/media/platform/s5p-fimc/fimc-lite.c index ef31c39..a48abb2 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-lite.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-lite.c
-> @@ -774,7 +774,7 @@ static int fimc_pipeline_validate(struct fimc_lite
-> *fimc) return -EPIPE;
->  		}
->  		/* Retrieve format at the source pad */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> @@ -981,7 +981,7 @@ static struct v4l2_subdev *__find_remote_sensor(struct
-> media_entity *me)
-> 
->  	while (pad->flags & MEDIA_PAD_FL_SINK) {
->  		/* source pad */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> diff --git a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> b/drivers/media/platform/s5p-fimc/fimc-mdevice.c index 62f3a71..8399d31
-> 100644
-> --- a/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> +++ b/drivers/media/platform/s5p-fimc/fimc-mdevice.c
-> @@ -54,7 +54,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
-> break;
-> 
->  		/* source pad */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index 99ccbeb..de52978
-> 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> @@ -39,7 +39,7 @@ static struct media_entity *vpfe_get_input_entity
->  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
->  	struct media_pad *remote;
-> 
-> -	remote = media_entity_remote_source(&vpfe_dev->vpfe_isif.pads[0]);
-> +	remote = media_entity_remote_pad(&vpfe_dev->vpfe_isif.pads[0]);
->  	if (remote == NULL) {
->  		pr_err("Invalid media connection to isif/ccdc\n");
->  		return NULL;
-> @@ -56,7 +56,7 @@ static int vpfe_update_current_ext_subdev(struct
-> vpfe_video_device *video) struct media_pad *remote;
->  	int i;
-> 
-> -	remote = media_entity_remote_source(&vpfe_dev->vpfe_isif.pads[0]);
-> +	remote = media_entity_remote_pad(&vpfe_dev->vpfe_isif.pads[0]);
->  	if (remote == NULL) {
->  		pr_err("Invalid media connection to isif/ccdc\n");
->  		return -EINVAL;
-> @@ -89,7 +89,7 @@ static int vpfe_update_current_ext_subdev(struct
-> vpfe_video_device *video) static struct v4l2_subdev *
->  vpfe_video_remote_subdev(struct vpfe_video_device *video, u32 *pad)
->  {
-> -	struct media_pad *remote = media_entity_remote_source(&video->pad);
-> +	struct media_pad *remote = media_entity_remote_pad(&video->pad);
-> 
->  	if (remote == NULL || remote->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
->  		return NULL;
-> @@ -114,7 +114,7 @@ __vpfe_video_get_format(struct vpfe_video_device *video,
-> return -EINVAL;
-> 
->  	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> -	remote = media_entity_remote_source(&video->pad);
-> +	remote = media_entity_remote_pad(&video->pad);
->  	fmt.pad = remote->index;
-> 
->  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
-> @@ -245,7 +245,7 @@ static int vpfe_video_validate_pipeline(struct
-> vpfe_pipeline *pipe) return -EPIPE;
-> 
->  		/* Retrieve the source format */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  			pad->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> @@ -667,7 +667,7 @@ static int vpfe_enum_fmt(struct file *file, void  *priv,
-> return -EINVAL;
->  	}
->  	/* get the remote pad */
-> -	remote = media_entity_remote_source(&video->pad);
-> +	remote = media_entity_remote_pad(&video->pad);
->  	if (remote == NULL) {
->  		v4l2_err(&vpfe_dev->v4l2_dev,
->  			 "invalid remote pad for video node\n");
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 0c16f51..4eefedc 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -132,7 +132,7 @@ int __media_entity_setup_link(struct media_link *link,
-> u32 flags); int media_entity_setup_link(struct media_link *link, u32
-> flags);
->  struct media_link *media_entity_find_link(struct media_pad *source,
->  		struct media_pad *sink);
-> -struct media_pad *media_entity_remote_source(struct media_pad *pad);
-> +struct media_pad *media_entity_remote_pad(struct media_pad *pad);
-> 
->  struct media_entity *media_entity_get(struct media_entity *entity);
->  void media_entity_put(struct media_entity *entity);
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index 528f413..be4387b 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -320,6 +320,7 @@ static void buffer_queue(struct vb2_buffer *vb);
+ int fimc_capture_resume(struct fimc_dev *fimc)
+ {
+ 	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
++	struct exynos_video_entity *ve = &vid_cap->ve;
+ 	struct fimc_vid_buffer *buf;
+ 	int i;
+ 
+@@ -329,7 +330,7 @@ int fimc_capture_resume(struct fimc_dev *fimc)
+ 	INIT_LIST_HEAD(&fimc->vid_cap.active_buf_q);
+ 	vid_cap->buf_index = 0;
+ 	fimc_pipeline_call(fimc, open, &fimc->pipeline,
+-			   &vid_cap->vfd.entity, false);
++			   &ve->vdev.entity, false);
+ 	fimc_capture_hw_init(fimc);
+ 
+ 	clear_bit(ST_CAPT_SUSPENDED, &fimc->state);
+@@ -397,7 +398,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
+ 		unsigned long size = ctx->d_frame.payload[i];
+ 
+ 		if (vb2_plane_size(vb, i) < size) {
+-			v4l2_err(&ctx->fimc_dev->vid_cap.vfd,
++			v4l2_err(&ctx->fimc_dev->vid_cap.ve.vdev,
+ 				 "User buffer too small (%ld < %ld)\n",
+ 				 vb2_plane_size(vb, i), size);
+ 			return -EINVAL;
+@@ -415,6 +416,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 	struct fimc_ctx *ctx = vb2_get_drv_priv(vb->vb2_queue);
+ 	struct fimc_dev *fimc = ctx->fimc_dev;
+ 	struct fimc_vid_cap *vid_cap = &fimc->vid_cap;
++	struct exynos_video_entity *ve = &vid_cap->ve;
+ 	unsigned long flags;
+ 	int min_bufs;
+ 
+@@ -454,7 +456,7 @@ static void buffer_queue(struct vb2_buffer *vb)
+ 
+ 		ret = fimc_pipeline_call(fimc, set_stream, &fimc->pipeline, 1);
+ 		if (ret < 0)
+-			v4l2_err(&vid_cap->vfd, "stream on failed: %d\n", ret);
++			v4l2_err(&ve->vdev, "stream on failed: %d\n", ret);
+ 		return;
+ 	}
+ 	spin_unlock_irqrestore(&fimc->slock, flags);
+@@ -503,11 +505,12 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc);
+ static int fimc_capture_open(struct file *file)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
++	struct exynos_video_entity *ve = &fimc->vid_cap.ve;
+ 	int ret = -EBUSY;
+ 
+ 	dbg("pid: %d, state: 0x%lx", task_pid_nr(current), fimc->state);
+ 
+-	fimc_md_graph_lock(fimc);
++	fimc_md_graph_lock(ve);
+ 	mutex_lock(&fimc->lock);
+ 
+ 	if (fimc_m2m_active(fimc))
+@@ -526,7 +529,7 @@ static int fimc_capture_open(struct file *file)
+ 
+ 	if (v4l2_fh_is_singular_file(file)) {
+ 		ret = fimc_pipeline_call(fimc, open, &fimc->pipeline,
+-					 &fimc->vid_cap.vfd.entity, true);
++					 &fimc->vid_cap.ve.vdev.entity, true);
+ 
+ 		if (!ret && !fimc->vid_cap.user_subdev_api)
+ 			ret = fimc_capture_set_default_format(fimc);
+@@ -544,7 +547,7 @@ static int fimc_capture_open(struct file *file)
+ 	}
+ unlock:
+ 	mutex_unlock(&fimc->lock);
+-	fimc_md_graph_unlock(fimc);
++	fimc_md_graph_unlock(ve);
+ 	return ret;
+ }
+ 
+@@ -560,7 +563,7 @@ static int fimc_capture_release(struct file *file)
+ 
+ 	if (v4l2_fh_is_singular_file(file)) {
+ 		if (vc->streaming) {
+-			media_entity_pipeline_stop(&vc->vfd.entity);
++			media_entity_pipeline_stop(&vc->ve.vdev.entity);
+ 			vc->streaming = false;
+ 		}
+ 		clear_bit(ST_CAPT_BUSY, &fimc->state);
+@@ -935,11 +938,12 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
+ 	struct v4l2_pix_format_mplane *pix = &f->fmt.pix_mp;
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	struct fimc_ctx *ctx = fimc->vid_cap.ctx;
++	struct exynos_video_entity *ve = &fimc->vid_cap.ve;
+ 	struct v4l2_mbus_framefmt mf;
+ 	struct fimc_fmt *ffmt = NULL;
+ 	int ret = 0;
+ 
+-	fimc_md_graph_lock(fimc);
++	fimc_md_graph_lock(ve);
+ 	mutex_lock(&fimc->lock);
+ 
+ 	if (fimc_jpeg_fourcc(pix->pixelformat)) {
+@@ -975,7 +979,7 @@ static int fimc_cap_try_fmt_mplane(struct file *file, void *fh,
+ 					pix->plane_fmt, ffmt->memplanes, true);
+ unlock:
+ 	mutex_unlock(&fimc->lock);
+-	fimc_md_graph_unlock(fimc);
++	fimc_md_graph_unlock(ve);
+ 
+ 	return ret;
+ }
+@@ -1076,7 +1080,7 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	int ret;
+ 
+-	fimc_md_graph_lock(fimc);
++	fimc_md_graph_lock(&fimc->vid_cap.ve);
+ 	mutex_lock(&fimc->lock);
+ 	/*
+ 	 * The graph is walked within __fimc_capture_set_format() to set
+@@ -1088,8 +1092,8 @@ static int fimc_cap_s_fmt_mplane(struct file *file, void *priv,
+ 	 */
+ 	ret = __fimc_capture_set_format(fimc, f);
+ 
++	fimc_md_graph_unlock(&fimc->vid_cap.ve);
+ 	mutex_unlock(&fimc->lock);
+-	fimc_md_graph_unlock(fimc);
+ 	return ret;
+ }
+ 
+@@ -1209,7 +1213,7 @@ static int fimc_cap_streamon(struct file *file, void *priv,
+ 	struct fimc_dev *fimc = video_drvdata(file);
+ 	struct fimc_pipeline *p = &fimc->pipeline;
+ 	struct fimc_vid_cap *vc = &fimc->vid_cap;
+-	struct media_entity *entity = &vc->vfd.entity;
++	struct media_entity *entity = &vc->ve.vdev.entity;
+ 	struct fimc_source_info *si = NULL;
+ 	struct v4l2_subdev *sd;
+ 	int ret;
+@@ -1259,14 +1263,15 @@ static int fimc_cap_streamoff(struct file *file, void *priv,
+ 			    enum v4l2_buf_type type)
+ {
+ 	struct fimc_dev *fimc = video_drvdata(file);
++	struct fimc_vid_cap *vc = &fimc->vid_cap;
+ 	int ret;
+ 
+ 	ret = vb2_ioctl_streamoff(file, priv, type);
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	media_entity_pipeline_stop(&fimc->vid_cap.vfd.entity);
+-	fimc->vid_cap.streaming = false;
++	media_entity_pipeline_stop(&vc->ve.vdev.entity);
++	vc->streaming = false;
+ 	return 0;
+ }
+ 
+@@ -1735,7 +1740,7 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc)
+ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 				 struct v4l2_device *v4l2_dev)
+ {
+-	struct video_device *vfd = &fimc->vid_cap.vfd;
++	struct video_device *vfd = &fimc->vid_cap.ve.vdev;
+ 	struct vb2_queue *q = &fimc->vid_cap.vbq;
+ 	struct fimc_ctx *ctx;
+ 	struct fimc_vid_cap *vid_cap;
+@@ -1840,15 +1845,17 @@ static int fimc_capture_subdev_registered(struct v4l2_subdev *sd)
+ static void fimc_capture_subdev_unregistered(struct v4l2_subdev *sd)
+ {
+ 	struct fimc_dev *fimc = v4l2_get_subdevdata(sd);
++	struct video_device *vdev;
+ 
+ 	if (fimc == NULL)
+ 		return;
+ 
+ 	fimc_unregister_m2m_device(fimc);
++	vdev = &fimc->vid_cap.ve.vdev;
+ 
+-	if (video_is_registered(&fimc->vid_cap.vfd)) {
+-		video_unregister_device(&fimc->vid_cap.vfd);
+-		media_entity_cleanup(&fimc->vid_cap.vfd.entity);
++	if (video_is_registered(vdev)) {
++		video_unregister_device(vdev);
++		media_entity_cleanup(&vdev->entity);
+ 		fimc->pipeline_ops = NULL;
+ 	}
+ 	kfree(fimc->vid_cap.ctx);
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
+index 8666e4b..401b746 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.h
++++ b/drivers/media/platform/exynos4-is/fimc-core.h
+@@ -285,8 +285,8 @@ struct fimc_m2m_device {
+ /**
+  * struct fimc_vid_cap - camera capture device information
+  * @ctx: hardware context data
+- * @vfd: video device node for camera capture mode
+  * @subdev: subdev exposing the FIMC processing block
++ * @ve: exynos video device entity structure
+  * @vd_pad: fimc video capture node pad
+  * @sd_pads: fimc video processing block pads
+  * @ci_fmt: image format at the FIMC camera input (and the scaler output)
+@@ -307,8 +307,8 @@ struct fimc_m2m_device {
+ struct fimc_vid_cap {
+ 	struct fimc_ctx			*ctx;
+ 	struct vb2_alloc_ctx		*alloc_ctx;
+-	struct video_device		vfd;
+ 	struct v4l2_subdev		subdev;
++	struct exynos_video_entity	ve;
+ 	struct media_pad		vd_pad;
+ 	struct media_pad		sd_pads[FIMC_SD_PADS_NUM];
+ 	struct v4l2_mbus_framefmt	ci_fmt;
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite-reg.c b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
+index 8cc0d39..eb4f763 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite-reg.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite-reg.c
+@@ -137,7 +137,7 @@ void flite_hw_set_source_format(struct fimc_lite *dev, struct flite_frame *f)
+ 	}
+ 
+ 	if (i == 0 && src_pixfmt_map[i][0] != pixelcode) {
+-		v4l2_err(&dev->vfd,
++		v4l2_err(&dev->ve.vdev,
+ 			 "Unsupported pixel code, falling back to %#08x\n",
+ 			 src_pixfmt_map[i][0]);
+ 	}
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 66480e7..a68c9c6 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -392,7 +392,7 @@ static int buffer_prepare(struct vb2_buffer *vb)
+ 		unsigned long size = fimc->payload[i];
+ 
+ 		if (vb2_plane_size(vb, i) < size) {
+-			v4l2_err(&fimc->vfd,
++			v4l2_err(&fimc->ve.vdev,
+ 				 "User buffer too small (%ld < %ld)\n",
+ 				 vb2_plane_size(vb, i), size);
+ 			return -EINVAL;
+@@ -458,7 +458,7 @@ static void fimc_lite_clear_event_counters(struct fimc_lite *fimc)
+ static int fimc_lite_open(struct file *file)
+ {
+ 	struct fimc_lite *fimc = video_drvdata(file);
+-	struct media_entity *me = &fimc->vfd.entity;
++	struct media_entity *me = &fimc->ve.vdev.entity;
+ 	int ret;
+ 
+ 	mutex_lock(&me->parent->graph_mutex);
+@@ -509,7 +509,7 @@ static int fimc_lite_release(struct file *file)
+ 	if (v4l2_fh_is_singular_file(file) &&
+ 	    atomic_read(&fimc->out_path) == FIMC_IO_DMA) {
+ 		if (fimc->streaming) {
+-			media_entity_pipeline_stop(&fimc->vfd.entity);
++			media_entity_pipeline_stop(&fimc->ve.vdev.entity);
+ 			fimc->streaming = false;
+ 		}
+ 		clear_bit(ST_FLITE_IN_USE, &fimc->state);
+@@ -792,7 +792,7 @@ static int fimc_lite_streamon(struct file *file, void *priv,
+ 			      enum v4l2_buf_type type)
+ {
+ 	struct fimc_lite *fimc = video_drvdata(file);
+-	struct media_entity *entity = &fimc->vfd.entity;
++	struct media_entity *entity = &fimc->ve.vdev.entity;
+ 	struct fimc_pipeline *p = &fimc->pipeline;
+ 	int ret;
+ 
+@@ -830,7 +830,7 @@ static int fimc_lite_streamoff(struct file *file, void *priv,
+ 	if (ret < 0)
+ 		return ret;
+ 
+-	media_entity_pipeline_stop(&fimc->vfd.entity);
++	media_entity_pipeline_stop(&fimc->ve.vdev.entity);
+ 	fimc->streaming = false;
+ 	return 0;
+ }
+@@ -1234,7 +1234,7 @@ static int fimc_lite_subdev_registered(struct v4l2_subdev *sd)
+ {
+ 	struct fimc_lite *fimc = v4l2_get_subdevdata(sd);
+ 	struct vb2_queue *q = &fimc->vb_queue;
+-	struct video_device *vfd = &fimc->vfd;
++	struct video_device *vfd = &fimc->ve.vdev;
+ 	int ret;
+ 
+ 	memset(vfd, 0, sizeof(*vfd));
+@@ -1298,9 +1298,9 @@ static void fimc_lite_subdev_unregistered(struct v4l2_subdev *sd)
+ 	if (fimc == NULL)
+ 		return;
+ 
+-	if (video_is_registered(&fimc->vfd)) {
+-		video_unregister_device(&fimc->vfd);
+-		media_entity_cleanup(&fimc->vfd.entity);
++	if (video_is_registered(&fimc->ve.vdev)) {
++		video_unregister_device(&fimc->ve.vdev);
++		media_entity_cleanup(&fimc->ve.vdev.entity);
+ 		fimc->pipeline_ops = NULL;
+ 	}
+ }
+@@ -1548,7 +1548,7 @@ static int fimc_lite_resume(struct device *dev)
+ 
+ 	INIT_LIST_HEAD(&fimc->active_buf_q);
+ 	fimc_pipeline_call(fimc, open, &fimc->pipeline,
+-			   &fimc->vfd.entity, false);
++			   &fimc->ve.vdev.entity, false);
+ 	fimc_lite_hw_init(fimc, atomic_read(&fimc->out_path) == FIMC_IO_ISP);
+ 	clear_bit(ST_FLITE_SUSPENDED, &fimc->state);
+ 
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
+index 47da5e0..fa3886a 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.h
++++ b/drivers/media/platform/exynos4-is/fimc-lite.h
+@@ -95,8 +95,8 @@ struct flite_buffer {
+  * struct fimc_lite - fimc lite structure
+  * @pdev: pointer to FIMC-LITE platform device
+  * @dd: SoC specific driver data structure
++ * @ve: exynos video device entity structure
+  * @v4l2_dev: pointer to top the level v4l2_device
+- * @vfd: video device node
+  * @fh: v4l2 file handle
+  * @alloc_ctx: videobuf2 memory allocator context
+  * @subdev: FIMC-LITE subdev
+@@ -130,8 +130,8 @@ struct flite_buffer {
+ struct fimc_lite {
+ 	struct platform_device	*pdev;
+ 	struct flite_drvdata	*dd;
++	struct exynos_video_entity ve;
+ 	struct v4l2_device	*v4l2_dev;
+-	struct video_device	vfd;
+ 	struct v4l2_fh		fh;
+ 	struct vb2_alloc_ctx	*alloc_ctx;
+ 	struct v4l2_subdev	subdev;
+diff --git a/drivers/media/platform/exynos4-is/fimc-reg.c b/drivers/media/platform/exynos4-is/fimc-reg.c
+index f079f36..1db8cb4 100644
+--- a/drivers/media/platform/exynos4-is/fimc-reg.c
++++ b/drivers/media/platform/exynos4-is/fimc-reg.c
+@@ -618,7 +618,7 @@ int fimc_hw_set_camera_source(struct fimc_dev *fimc,
+ 		}
+ 
+ 		if (i == ARRAY_SIZE(pix_desc)) {
+-			v4l2_err(&vc->vfd,
++			v4l2_err(&vc->ve.vdev,
+ 				 "Camera color format not supported: %d\n",
+ 				 vc->ci_fmt.code);
+ 			return -EINVAL;
+@@ -698,7 +698,7 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
+ 			cfg |= FIMC_REG_CIGCTRL_CAM_JPEG;
+ 			break;
+ 		default:
+-			v4l2_err(&vid_cap->vfd,
++			v4l2_err(&vid_cap->ve.vdev,
+ 				 "Not supported camera pixel format: %#x\n",
+ 				 vid_cap->ci_fmt.code);
+ 			return -EINVAL;
+@@ -721,7 +721,8 @@ int fimc_hw_set_camera_type(struct fimc_dev *fimc,
+ 			WARN_ONCE(1, "ISP Writeback input is not supported\n");
+ 		break;
+ 	default:
+-		v4l2_err(&vid_cap->vfd, "Invalid FIMC bus type selected: %d\n",
++		v4l2_err(&vid_cap->ve.vdev,
++			 "Invalid FIMC bus type selected: %d\n",
+ 			 source->fimc_bus_type);
+ 		return -EINVAL;
+ 	}
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index 15ef8f2..032d2b7 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -929,7 +929,7 @@ static int __fimc_md_create_flite_source_links(struct fimc_md *fmd)
+ 			continue;
+ 
+ 		source = &fimc->subdev.entity;
+-		sink = &fimc->vfd.entity;
++		sink = &fimc->ve.vdev.entity;
+ 		/* FIMC-LITE's subdev and video node */
+ 		ret = media_entity_create_link(source, FLITE_SD_PAD_SOURCE_DMA,
+ 					       sink, 0, 0);
+@@ -1066,7 +1066,7 @@ static int fimc_md_create_links(struct fimc_md *fmd)
+ 			continue;
+ 
+ 		source = &fmd->fimc[i]->vid_cap.subdev.entity;
+-		sink = &fmd->fimc[i]->vid_cap.vfd.entity;
++		sink = &fmd->fimc[i]->vid_cap.ve.vdev.entity;
+ 
+ 		ret = media_entity_create_link(source, FIMC_SD_PAD_SOURCE,
+ 					      sink, 0, flags);
+diff --git a/drivers/media/platform/exynos4-is/media-dev.h b/drivers/media/platform/exynos4-is/media-dev.h
+index 44d86b6..3e9680c 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.h
++++ b/drivers/media/platform/exynos4-is/media-dev.h
+@@ -127,14 +127,14 @@ static inline struct fimc_md *entity_to_fimc_mdev(struct media_entity *me)
+ 		container_of(me->parent, struct fimc_md, media_dev);
+ }
+ 
+-static inline void fimc_md_graph_lock(struct fimc_dev *fimc)
++static inline void fimc_md_graph_lock(struct exynos_video_entity *ve)
+ {
+-	mutex_lock(&fimc->vid_cap.vfd.entity.parent->graph_mutex);
++	mutex_lock(&ve->vdev.entity.parent->graph_mutex);
+ }
+ 
+-static inline void fimc_md_graph_unlock(struct fimc_dev *fimc)
++static inline void fimc_md_graph_unlock(struct exynos_video_entity *ve)
+ {
+-	mutex_unlock(&fimc->vid_cap.vfd.entity.parent->graph_mutex);
++	mutex_unlock(&ve->vdev.entity.parent->graph_mutex);
+ }
+ 
+ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on);
+diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
+index f509690..f5313b4 100644
+--- a/include/media/s5p_fimc.h
++++ b/include/media/s5p_fimc.h
+@@ -13,6 +13,7 @@
+ #define S5P_FIMC_H_
+ 
+ #include <media/media-entity.h>
++#include <media/v4l2-dev.h>
+ #include <media/v4l2-mediabus.h>
+ 
+ /*
+@@ -157,6 +158,10 @@ struct fimc_pipeline {
+ 	struct media_pipeline *m_pipeline;
+ };
+ 
++struct exynos_video_entity {
++	struct video_device vdev;
++};
++
+ /*
+  * Media pipeline operations to be called from within the fimc(-lite)
+  * video node when it is the last entity of the pipeline. Implemented
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
