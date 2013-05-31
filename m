@@ -1,41 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f49.google.com ([74.125.82.49]:44258 "EHLO
-	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758559Ab3EGMaO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 7 May 2013 08:30:14 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAPgLHd_nr=X9JsE3w7BYg3GtbCFzMuvgoNAQPAGgM2h0g0injg@mail.gmail.com>
-References: <CAPgLHd_nr=X9JsE3w7BYg3GtbCFzMuvgoNAQPAGgM2h0g0injg@mail.gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 7 May 2013 17:59:52 +0530
-Message-ID: <CA+V-a8tW22dfpFzKs2K92mgoJUWVsy7V9P1nYsidmLC7xbGEOg@mail.gmail.com>
-Subject: Re: [PATCH] [media] davinci: vpfe: fix error return code in vpfe_probe()
-To: Wei Yongjun <weiyj.lk@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	yongjun_wei@trendmicro.com.cn,
-	linux-media <linux-media@vger.kernel.org>,
-	devel@driverdev.osuosl.org,
-	dlos <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout2.samsung.com ([203.254.224.25]:23259 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751878Ab3EaIyk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 04:54:40 -0400
+From: Seung-Woo Kim <sw0312.kim@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	airlied@linux.ie
+Cc: linux-kernel@vger.kernel.org, daniel.vetter@ffwll.ch,
+	inki.dae@samsung.com, sw0312.kim@samsung.com,
+	kyungmin.park@samsung.com
+Subject: [RFC][PATCH 1/2] dma-buf: add importer private data to attachment
+Date: Fri, 31 May 2013 17:54:46 +0900
+Message-id: <1369990487-23510-2-git-send-email-sw0312.kim@samsung.com>
+In-reply-to: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
+References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wei,
+dma-buf attachment has only exporter private data, but importer private data
+can be useful for importer especially to re-import the same dma-buf.
+To use importer private data in attachment of the device, the function to
+search attachment in the attachment list of dma-buf is also added.
 
-Thanks for the patch.
+Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+---
+ drivers/base/dma-buf.c  |   31 +++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h |    4 ++++
+ 2 files changed, 35 insertions(+), 0 deletions(-)
 
-On Tue, May 7, 2013 at 5:21 PM, Wei Yongjun <weiyj.lk@gmail.com> wrote:
-> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
->
-> Fix to return a negative error code from the error handling
-> case instead of 0, as done elsewhere in this function.
->
-> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 08fe897..a1eaaf2 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -259,6 +259,37 @@ err_attach:
+ EXPORT_SYMBOL_GPL(dma_buf_attach);
+ 
+ /**
++ * dma_buf_get_attachment - Get attachment with the device from dma_buf's
++ * attachments list
++ * @dmabuf:	[in]	buffer to find device from.
++ * @dev:	[in]	device to be found.
++ *
++ * Returns struct dma_buf_attachment * attaching the device; may return
++ * negative error codes.
++ *
++ */
++struct dma_buf_attachment *dma_buf_get_attachment(struct dma_buf *dmabuf,
++						  struct device *dev)
++{
++	struct dma_buf_attachment *attach;
++
++	if (WARN_ON(!dmabuf || !dev))
++		return ERR_PTR(-EINVAL);
++
++	mutex_lock(&dmabuf->lock);
++	list_for_each_entry(attach, &dmabuf->attachments, node) {
++		if (attach->dev == dev) {
++			mutex_unlock(&dmabuf->lock);
++			return attach;
++		}
++	}
++	mutex_unlock(&dmabuf->lock);
++
++	return ERR_PTR(-ENODEV);
++}
++EXPORT_SYMBOL_GPL(dma_buf_get_attachment);
++
++/**
+  * dma_buf_detach - Remove the given attachment from dmabuf's attachments list;
+  * optionally calls detach() of dma_buf_ops for device-specific detach
+  * @dmabuf:	[in]	buffer to detach from.
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index dfac5ed..09cff0f 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -136,6 +136,7 @@ struct dma_buf {
+  * @dev: device attached to the buffer.
+  * @node: list of dma_buf_attachment.
+  * @priv: exporter specific attachment data.
++ * @importer_priv: importer specific attachment data.
+  *
+  * This structure holds the attachment information between the dma_buf buffer
+  * and its user device(s). The list contains one attachment struct per device
+@@ -146,6 +147,7 @@ struct dma_buf_attachment {
+ 	struct device *dev;
+ 	struct list_head node;
+ 	void *priv;
++	void *importer_priv;
+ };
+ 
+ /**
+@@ -164,6 +166,8 @@ static inline void get_dma_buf(struct dma_buf *dmabuf)
+ 
+ struct dma_buf_attachment *dma_buf_attach(struct dma_buf *dmabuf,
+ 							struct device *dev);
++struct dma_buf_attachment *dma_buf_get_attachment(struct dma_buf *dmabuf,
++							struct device *dev);
+ void dma_buf_detach(struct dma_buf *dmabuf,
+ 				struct dma_buf_attachment *dmabuf_attach);
+ 
+-- 
+1.7.4.1
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-Regards,
---Prabhakar Lad
