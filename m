@@ -1,209 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:59457 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932187Ab3EOI3f (ORCPT
+Received: from mx1.redhat.com ([209.132.183.28]:36757 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750791Ab3EaNIz convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 04:29:35 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MMT00M1LZKY1X00@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 15 May 2013 09:29:23 +0100 (BST)
-Message-id: <5193475C.5040908@samsung.com>
-Date: Wed, 15 May 2013 10:29:16 +0200
-From: Andrzej Hajda <a.hajda@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC v2 3/3] media: added managed v4l2 subdevice
- initialization
-References: <1368434086-9027-1-git-send-email-a.hajda@samsung.com>
- <1368434086-9027-4-git-send-email-a.hajda@samsung.com>
- <201305131124.23598.hverkuil@xs4all.nl>
-In-reply-to: <201305131124.23598.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=ISO-8859-15
-Content-transfer-encoding: 7bit
+	Fri, 31 May 2013 09:08:55 -0400
+Date: Fri, 31 May 2013 10:08:27 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Jon Arne =?UTF-8?B?SsO4cmdlbnNlbg==?= <jonarne@jonarne.no>
+Cc: Timo Teras <timo.teras@iki.fi>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com
+Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
+Message-ID: <20130531100827.10710841@redhat.com>
+In-Reply-To: <20130530190001.GG2367@dell.arpanet.local>
+References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
+	<1369860078-10334-2-git-send-email-jonarne@jonarne.no>
+	<20130529213554.690f7eaa@redhat.com>
+	<7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
+	<20130530052136.GF2367@dell.arpanet.local>
+	<20130530083332.245e3c62@vostro>
+	<20130530190001.GG2367@dell.arpanet.local>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 13.05.2013 11:24, Hans Verkuil wrote:
-> Hi Andrzej,
->
-> On Mon May 13 2013 10:34:46 Andrzej Hajda wrote:
->> This patch adds managed versions of initialization
->> functions for v4l2 subdevices.
-> I figured out what is bothering me about this patch: the fact that it is
-> tied to the v4l2_i2c_subdev_init/v4l2_subdev_init functions. Normally devm
-> functions are wrappers around functions that actually allocate some resource.
-> That's not the case with these subdev_init functions, they just initialize
-> fields in a struct.
-clk_get do not perform any allocation for now, there is only requirement(?)
-that it should be paired with clk_put, and that is what devm_clk_get
-actually does.
+Em Thu, 30 May 2013 21:00:01 +0200
+Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
 
->
-> Why not drop those wrappers and just provide the devm_v4l2_subdev_bind
-> function? That's actually the one that is doing the binding, and is a function
-> drivers can call explicitly.
+> On Thu, May 30, 2013 at 08:33:32AM +0300, Timo Teras wrote:
+> > On Thu, 30 May 2013 07:21:36 +0200
+> > Jon Arne Jørgensen <jonarne@jonarne.no> wrote:
+> > 
+> > > On Wed, May 29, 2013 at 10:19:49PM -0400, Andy Walls wrote:
+> > > > Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+> > > > 
+> > > > >Em Wed, 29 May 2013 22:41:16 +0200
+> > > > >Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+> > > > >
+> > > > >> Change all default values in the initial setup table to match the
+> > > > >table
+> > > > >> in the datasheet.
+> > > > >
+> > > > >This is not a good idea, as it can produce undesired side effects
+> > > > >on the existing drivers that depend on it, and can't be easily
+> > > > >tested.
+> > > > >
+> > > > >Please, don't change the current "default". It is, of course, OK
+> > > > >to change them if needed via the information provided inside the
+> > > > >platform data.
+> > > >
+> > > > I was going to make a comment along the same line as Mauro.  
+> > > > Please leave the driver defaults alone.  It is almost impossible to
+> > > > regression test all the different devices with a SAA7113 chip, to
+> > > > ensure the change doesn't cause someone's device to not work
+> > > > properly.
+> > > >
+> > > 
+> > > You guys are totally right.
+> > > 
+> > > What if I clone the original saa7113_init table into a new one, and
+> > > make the driver use the new one if the calling driver sets
+> > > platform_data.
+> > > 
+> > > Something like this?
+> > > 
+> > >         switch (state->ident) {
+> > >         case V4L2_IDENT_SAA7111:
+> > >         case V4L2_IDENT_SAA7111A:
+> > >                 saa711x_writeregs(sd, saa7111_init);
+> > >                 break;
+> > >         case V4L2_IDENT_GM7113C:
+> > >         case V4L2_IDENT_SAA7113:
+> > > -		saa711x_writeregs(sd, saa7113_init);
+> > > +		if (client->dev.platform_data)
+> > > +			saa711x_writeregs(sd, saa7113_new_init);
+> > > +		else
+> > > +			saa711x_writeregs(sd, saa7113_init);
+> > 
+> > I would rather have the platform_data provide the new table. Or if you
+> > think bulk of the table will be the same for most users, then perhaps
+> > add there an enum saying which table to use - and name the tables
+> > according to the chip variant it applies to.
+> > 
+> 
+> I think the bulk of the table will be the same for all drivers.
+> It's one bit here and one bit there that needs changing.
+> As the driver didn't support platform data.
+> Changing to a new init table for the drivers that implement
+> platform_data shouldn't cause any regressions.
 
-struct v4l2_subdev does not need allocation on initialization,
-but an 'allocation' (subdev registration) usually happens during its
-lifetime and is performed from outside (from v4l2 device), in fact it can
-happen multiple times.
-On v4l2_subdev de-initialization/cleanup/destruction we should ensure
-it is not registered and eventually unregister it and all this is performed
-by v4l2_device_unregister_subdev. So v4l2_device_unregister_subdev function
-seems to be natural cleanup routine for v4l2_subdev and it is used this
-way in most of the drivers.
+There are several things that are very bad on passing a table via
+platform data:
 
-All this lengthly explanation is to show that devm_v4l2*subdev_init just
-initializes v4l2_subdev in a managed way - besides fields initialization
-it adds automatic cleanup routine.
->
-> The only thing you need to add to devm_v4l2_subdev_bind is a WARN_ON check that
-> sd->ops != NULL, verifying that v4l2_subdev_init was called before the
-> bind().
-OK.
->
-> I would be much happier with that solution.
-I hope my reasoning above will convince you, if not I will adjust the
-patch accordingly.
+	1) you're adding saa711x-specific data at the bridge driver,
+	   so, the saa711x code is spread on several places at the
+	   long term;
 
-Regards
-Andrzej
->
-> Regards,
->
-> 	Hans
->
->> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
->> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->> v2:
->> 	- changes of v4l2-ctrls.h moved to proper patch
->> ---
->>  drivers/media/v4l2-core/v4l2-common.c |   10 +++++++
->>  drivers/media/v4l2-core/v4l2-subdev.c |   52 +++++++++++++++++++++++++++++++++
->>  include/media/v4l2-common.h           |    2 ++
->>  include/media/v4l2-subdev.h           |    5 ++++
->>  4 files changed, 69 insertions(+)
->>
->> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
->> index 3fed63f..96aac931 100644
->> --- a/drivers/media/v4l2-core/v4l2-common.c
->> +++ b/drivers/media/v4l2-core/v4l2-common.c
->> @@ -301,7 +301,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->>  }
->>  EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
->>  
->> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->> +			      const struct v4l2_subdev_ops *ops)
->> +{
->> +	int ret;
->>  
->> +	ret = devm_v4l2_subdev_bind(&client->dev, sd);
->> +	if (!ret)
->> +		v4l2_i2c_subdev_init(sd, client, ops);
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
->>  
->>  /* Load an i2c sub-device. */
->>  struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
->> diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
->> index 996c248..87ce2f6 100644
->> --- a/drivers/media/v4l2-core/v4l2-subdev.c
->> +++ b/drivers/media/v4l2-core/v4l2-subdev.c
->> @@ -474,3 +474,55 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
->>  #endif
->>  }
->>  EXPORT_SYMBOL(v4l2_subdev_init);
->> +
->> +static void devm_v4l2_subdev_release(struct device *dev, void *res)
->> +{
->> +	struct v4l2_subdev **sd = res;
->> +
->> +	v4l2_device_unregister_subdev(*sd);
->> +#if defined(CONFIG_MEDIA_CONTROLLER)
->> +	media_entity_cleanup(&(*sd)->entity);
->> +#endif
->> +}
->> +
->> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
->> +{
->> +	struct v4l2_subdev **dr;
->> +
->> +	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
->> +	if (!dr)
->> +		return -ENOMEM;
->> +
->> +	*dr = sd;
->> +	devres_add(dev, dr);
->> +
->> +	return 0;
->> +}
->> +EXPORT_SYMBOL(devm_v4l2_subdev_bind);
->> +
->> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
->> +			  const struct v4l2_subdev_ops *ops)
->> +{
->> +	int ret;
->> +
->> +	ret = devm_v4l2_subdev_bind(dev, sd);
->> +	if (!ret)
->> +		v4l2_subdev_init(sd, ops);
->> +	return ret;
->> +}
->> +EXPORT_SYMBOL(devm_v4l2_subdev_init);
->> +
->> +static int devm_v4l2_subdev_match(struct device *dev, void *res,
->> +					void *data)
->> +{
->> +	struct v4l2_subdev **this = res, **sd = data;
->> +
->> +	return *this == *sd;
->> +}
->> +
->> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd)
->> +{
->> +	WARN_ON(devres_release(dev, devm_v4l2_subdev_release,
->> +			       devm_v4l2_subdev_match, &sd));
->> +}
->> +EXPORT_SYMBOL_GPL(devm_v4l2_subdev_free);
->> diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
->> index 1d93c48..da62e2b 100644
->> --- a/include/media/v4l2-common.h
->> +++ b/include/media/v4l2-common.h
->> @@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
->>  /* Initialize a v4l2_subdev with data from an i2c_client struct */
->>  void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->>  		const struct v4l2_subdev_ops *ops);
->> +int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->> +		const struct v4l2_subdev_ops *ops);
->>  /* Return i2c client address of v4l2_subdev. */
->>  unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
->>  
->> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
->> index 5298d67..881abdd 100644
->> --- a/include/media/v4l2-subdev.h
->> +++ b/include/media/v4l2-subdev.h
->> @@ -657,6 +657,11 @@ int v4l2_subdev_link_validate(struct media_link *link);
->>  void v4l2_subdev_init(struct v4l2_subdev *sd,
->>  		      const struct v4l2_subdev_ops *ops);
->>  
->> +int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
->> +int devm_v4l2_subdev_init(struct device *dev, struct v4l2_subdev *sd,
->> +			  const struct v4l2_subdev_ops *ops);
->> +void devm_v4l2_subdev_free(struct device *dev, struct v4l2_subdev *sd);
->> +
->>  /* Call an ops of a v4l2_subdev, doing the right checks against
->>     NULL pointers.
->>  
->>
+	2) some part of the saa711x code may override the data there, 
+	   as it is not aware about what bits should be preserved from
+	   the new device;
 
+	3) due (2), latter changes on the code are more likely to
+	   cause regressions;
+
+	4) also due to (2), some hacks can be needed, in order to warn
+	   saa711x to handle some things differently.
+
+That's why it is a way better to add meaningful parameters telling what
+bits are needed for the driver to work with the bridge. That's also
+why we do this with all other drivers.
+
+Regards,
+Mauro
