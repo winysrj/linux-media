@@ -1,40 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:51336 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752648Ab3EUOcp (ORCPT
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:45404 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754715Ab3EaVaP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 21 May 2013 10:32:45 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Javier Martin <javier.martin@vista-silicon.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH] [media] coda: do not use v4l2_dev in coda_timeout
-Date: Tue, 21 May 2013 16:32:42 +0200
-Message-Id: <1369146762-26297-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 31 May 2013 17:30:15 -0400
+Received: by mail-bk0-f52.google.com with SMTP id mz10so973499bkb.39
+        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 14:30:14 -0700 (PDT)
+Received: from [192.168.1.110] (093105185086.warszawa.vectranet.pl. [93.105.185.86])
+        by mx.google.com with ESMTPSA id og1sm12064054bkb.16.2013.05.31.14.30.12
+        for <linux-media@vger.kernel.org>
+        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
+        Fri, 31 May 2013 14:30:13 -0700 (PDT)
+Message-ID: <51A91663.8020305@gmail.com>
+Date: Fri, 31 May 2013 23:30:11 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.10] exynos4-is fixes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The timeout delayed work might be scheduled even after the v4l2 device is
-released.
+Hi Mauro,
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+This includes couple bug fixes for the exynos imaging subsystem driver.
+Please pull for v3.10.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 037e2bc..22d1b1b 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1685,7 +1685,7 @@ static void coda_timeout(struct work_struct *work)
- 
- 	complete(&dev->done);
- 
--	v4l2_err(&dev->v4l2_dev, "CODA PIC_RUN timeout, stopping all streams\n");
-+	dev_err(&dev->plat_dev->dev, "CODA PIC_RUN timeout, stopping all streams\n");
- 
- 	mutex_lock(&dev->dev_mutex);
- 	list_for_each_entry(ctx, &dev->instances, list) {
--- 
-1.8.2.rc2
+The following changes since commit 6719a4974600fdaa4a3ac2ea2aed819a35d06605:
 
+   [media] staging/solo6x10: select the desired font (2013-05-27 
+09:38:57 -0300)
+
+are available in the git repository at:
+   git://linuxtv.org/snawrocki/samsung.git v3.10-fixes-2
+
+Sylwester Nawrocki (4):
+       exynos4-is: Prevent NULL pointer dereference when firmware isn't 
+loaded
+       exynos4-is: Ensure fimc-is clocks are not enabled until properly 
+configured
+       exynos4-is: Fix reported colorspace at FIMC-IS-ISP subdev
+       exynos4-is: Remove "sysreg" clock handling
+
+  drivers/media/platform/exynos4-is/fimc-is.c  |   22 ++++++++++------------
+  drivers/media/platform/exynos4-is/fimc-is.h  |    1 -
+  drivers/media/platform/exynos4-is/fimc-isp.c |    4 ++--
+  3 files changed, 12 insertions(+), 15 deletions(-)
+
+Thanks,
+Sylwester
