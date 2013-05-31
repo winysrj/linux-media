@@ -1,101 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2884 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965160Ab3E2S3B (ORCPT
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:44881 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751374Ab3EaOGV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 29 May 2013 14:29:01 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4TISnKb027531
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 29 May 2013 20:28:52 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 1B9CD35E00B0
-	for <linux-media@vger.kernel.org>; Wed, 29 May 2013 20:28:49 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130529182849.1B9CD35E00B0@alastor.dyndns.org>
-Date: Wed, 29 May 2013 20:28:49 +0200 (CEST)
+	Fri, 31 May 2013 10:06:21 -0400
+Date: Fri, 31 May 2013 17:08:02 +0300
+From: Timo Teras <timo.teras@iki.fi>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Jon Arne =?UTF-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>,
+	Andy Walls <awalls@md.metrocast.net>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com
+Subject: Re: [RFC 1/3] saa7115: Set saa7113 init to values from datasheet
+Message-ID: <20130531170802.642fbc3e@vostro>
+In-Reply-To: <20130531100827.10710841@redhat.com>
+References: <1369860078-10334-1-git-send-email-jonarne@jonarne.no>
+	<1369860078-10334-2-git-send-email-jonarne@jonarne.no>
+	<20130529213554.690f7eaa@redhat.com>
+	<7454763a-75fe-4d98-b7ab-29b6649dc25e@email.android.com>
+	<20130530052136.GF2367@dell.arpanet.local>
+	<20130530083332.245e3c62@vostro>
+	<20130530190001.GG2367@dell.arpanet.local>
+	<20130531100827.10710841@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On Fri, 31 May 2013 10:08:27 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
 
-Results of the daily build of media_tree:
+> Em Thu, 30 May 2013 21:00:01 +0200
+> Jon Arne Jørgensen <jonarne@jonarne.no> escreveu:
+> 
+> > On Thu, May 30, 2013 at 08:33:32AM +0300, Timo Teras wrote:
+> > > I would rather have the platform_data provide the new table. Or
+> > > if you think bulk of the table will be the same for most users,
+> > > then perhaps add there an enum saying which table to use - and
+> > > name the tables according to the chip variant it applies to.
+> > > 
+> > 
+> > I think the bulk of the table will be the same for all drivers.
+> > It's one bit here and one bit there that needs changing.
+> > As the driver didn't support platform data.
+> > Changing to a new init table for the drivers that implement
+> > platform_data shouldn't cause any regressions.
+> 
+> There are several things that are very bad on passing a table via
+> platform data:
 
-date:		Wed May 29 19:00:20 CEST 2013
-git branch:	test
-git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+Sorry, my wording was self-conflicting. The intention was to
+suggest providing an enum saying which table to use. Not that the
+platform data would provide the whole table.
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+> 	1) you're adding saa711x-specific data at the bridge driver,
+> 	   so, the saa711x code is spread on several places at the
+> 	   long term;
+> 
+> 	2) some part of the saa711x code may override the data there, 
+> 	   as it is not aware about what bits should be preserved from
+> 	   the new device;
+> 
+> 	3) due (2), latter changes on the code are more likely to
+> 	   cause regressions;
+> 
+> 	4) also due to (2), some hacks can be needed, in order to warn
+> 	   saa711x to handle some things differently.
 
-Detailed results are available here:
+Agreed.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+> That's why it is a way better to add meaningful parameters telling
+> what bits are needed for the driver to work with the bridge. That's
+> also why we do this with all other drivers.
 
-Full logs are available here:
+Based on the latest patch, more of these bits need to be controlled
+individually than I figured. So yes, individual meaningful bits do make
+the most sense.
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Thanks,
+ Timo
