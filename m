@@ -1,46 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:43747 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1762722Ab3ECII7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 04:08:59 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: mchehab@redhat.com
-Cc: ezequiel.garcia@free-electrons.com, linux-media@vger.kernel.org,
-	jonjon.arnearne@gmail.com
-Subject: [PATCH V4 0/3] saa7115: add the gm7113c chip
-Date: Fri,  3 May 2013 10:11:55 +0200
-Message-Id: <1367568718-4129-1-git-send-email-jonarne@jonarne.no>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Received: from mailout1.samsung.com ([203.254.224.24]:49665 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755565Ab3EaOlQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 10:41:16 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNO000MJ3GRJPW0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 May 2013 23:41:15 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, hj210.choi@samsung.com,
+	arun.kk@samsung.com, shaik.ameer@samsung.com,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [REVIEW PATCH v2 09/11] exynos4-is: Add locking at fimc(-lite) subdev
+ unregistered handler
+Date: Fri, 31 May 2013 16:37:25 +0200
+Message-id: <1370011047-11488-10-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The purpose of this patch is to add support for the gm7113c chip in the saa7115 driver.
-The gm7113c chip is a chinese clone of the Philips/NXP saa7113 chip.
-The chip is found in several cheap usb video capture devices.
+Protect the fimc/fimc-lite video nodes unregistration with their video
+lock. This prevents a kernel crash when e.g. udev opens a video node
+right after the driver registers it and then the driver tries to
+unregister it and defers its probing. Using video_is_unregistered()
+together with the video mutex allows safe unregistration of the video
+nodes at any time.
 
-This is the forth version of a patch-set previously posted by Mauro,
-the first verson was posted on 26 April, and can be found here:
-http://www.spinics.net/lists/linux-media/msg63079.html
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-capture.c |    4 ++++
+ drivers/media/platform/exynos4-is/fimc-lite.c    |    4 ++++
+ 2 files changed, 8 insertions(+)
 
-The second version was posted by Mauro on 26 April, and can be found here:
-http://www.spinics.net/lists/linux-media/msg63087.html
-
-The third version was posted by me on 29 April and had a bad cover-letter:
-http://www.spinics.net/lists/linux-media/msg63163.html
-
-This version has a better cover-letter and I've added a commit message to the last patch.
-
-Jon Arne Jørgensen (3):
-  saa7115: move the autodetection code out of the probe function
-  saa7115: add detection code for gm7113c
-  saa7115: Add register setup and config for gm7113c
-
- drivers/media/i2c/saa7115.c     | 206 +++++++++++++++++++++++++++++-----------
- include/media/v4l2-chip-ident.h |   2 +
- 2 files changed, 153 insertions(+), 55 deletions(-)
-
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index c2586a2..25f8a1e 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -1855,6 +1855,8 @@ static void fimc_capture_subdev_unregistered(struct v4l2_subdev *sd)
+ 	if (fimc == NULL)
+ 		return;
+ 
++	mutex_lock(&fimc->lock);
++
+ 	fimc_unregister_m2m_device(fimc);
+ 	vdev = &fimc->vid_cap.ve.vdev;
+ 
+@@ -1866,6 +1868,8 @@ static void fimc_capture_subdev_unregistered(struct v4l2_subdev *sd)
+ 	}
+ 	kfree(fimc->vid_cap.ctx);
+ 	fimc->vid_cap.ctx = NULL;
++
++	mutex_unlock(&fimc->lock);
+ }
+ 
+ static const struct v4l2_subdev_internal_ops fimc_capture_sd_internal_ops = {
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 27232cd..142788a 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1300,11 +1300,15 @@ static void fimc_lite_subdev_unregistered(struct v4l2_subdev *sd)
+ 	if (fimc == NULL)
+ 		return;
+ 
++	mutex_lock(&fimc->lock);
++
+ 	if (video_is_registered(&fimc->ve.vdev)) {
+ 		video_unregister_device(&fimc->ve.vdev);
+ 		media_entity_cleanup(&fimc->ve.vdev.entity);
+ 		fimc->ve.pipe = NULL;
+ 	}
++
++	mutex_unlock(&fimc->lock);
+ }
+ 
+ static const struct v4l2_subdev_internal_ops fimc_lite_subdev_internal_ops = {
 -- 
-1.8.2.1
+1.7.9.5
 
