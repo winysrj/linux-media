@@ -1,48 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-da0-f53.google.com ([209.85.210.53]:53261 "EHLO
-	mail-da0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752055Ab3EPM6i (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2798 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753235Ab3EaKDS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:58:38 -0400
-From: Lad Prabhakar <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 0/7] media: davinci: vpif trivial cleanup
-Date: Thu, 16 May 2013 18:28:15 +0530
-Message-Id: <1368709102-2854-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 31 May 2013 06:03:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Fabio Belavenuto <belavenuto@gmail.com>
+Subject: [PATCH 10/21] radio-tea5764: some cleanups and clamp frequency when out-of-range
+Date: Fri, 31 May 2013 12:02:30 +0200
+Message-Id: <1369994561-25236-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch series cleans the VPIF driver, uses devm_* api wherever
-required and uses module_platform_driver() to simplify the code.
+Some small cleanups and when setting the frequency it is now clamped
+to the valid frequency range instead of returning an error.
 
-This patch series applies on 3.10.rc1 and is tested on OMAP-L138.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Fabio Belavenuto <belavenuto@gmail.com>
+---
+ drivers/media/radio/radio-tea5764.c |   24 +++++++++++++-----------
+ 1 file changed, 13 insertions(+), 11 deletions(-)
 
-Lad, Prabhakar (7):
-  media: davinci: vpif: remove unwanted header includes
-  media: davinci: vpif: Convert to devm_* api
-  media: davinci: vpif: remove unnecessary braces around defines
-  media: davinci: vpif_capture: remove unwanted header inclusion and
-    sort them alphabetically
-  media: davinci: vpif_capture: Convert to devm_* api
-  media: davinci: vpif_display: remove unwanted header inclusion and
-    sort them alphabetically
-  media: davinci: vpif_display: Convert to devm_* api
-
- drivers/media/platform/davinci/vpif.c         |   42 ++---------
- drivers/media/platform/davinci/vpif_capture.c |   96 +++++--------------------
- drivers/media/platform/davinci/vpif_capture.h |    6 +-
- drivers/media/platform/davinci/vpif_display.c |   85 ++++------------------
- drivers/media/platform/davinci/vpif_display.h |    6 +-
- 5 files changed, 46 insertions(+), 189 deletions(-)
-
+diff --git a/drivers/media/radio/radio-tea5764.c b/drivers/media/radio/radio-tea5764.c
+index c22feed..036e2f5 100644
+--- a/drivers/media/radio/radio-tea5764.c
++++ b/drivers/media/radio/radio-tea5764.c
+@@ -60,8 +60,8 @@
+ 
+ /* Frequency limits in MHz -- these are European values.  For Japanese
+ devices, that would be 76000 and 91000.  */
+-#define FREQ_MIN  87500
+-#define FREQ_MAX 108000
++#define FREQ_MIN  87500U
++#define FREQ_MAX 108000U
+ #define FREQ_MUL 16
+ 
+ /* TEA5764 registers */
+@@ -309,8 +309,7 @@ static int vidioc_g_tuner(struct file *file, void *priv,
+ 	if (v->index > 0)
+ 		return -EINVAL;
+ 
+-	memset(v, 0, sizeof(*v));
+-	strcpy(v->name, "FM");
++	strlcpy(v->name, "FM", sizeof(v->name));
+ 	v->type = V4L2_TUNER_RADIO;
+ 	tea5764_i2c_read(radio);
+ 	v->rangelow   = FREQ_MIN * FREQ_MUL;
+@@ -343,19 +342,23 @@ static int vidioc_s_frequency(struct file *file, void *priv,
+ 				const struct v4l2_frequency *f)
+ {
+ 	struct tea5764_device *radio = video_drvdata(file);
++	unsigned freq = f->frequency;
+ 
+ 	if (f->tuner != 0 || f->type != V4L2_TUNER_RADIO)
+ 		return -EINVAL;
+-	if (f->frequency == 0) {
++	if (freq == 0) {
+ 		/* We special case this as a power down control. */
+ 		tea5764_power_down(radio);
+-	}
+-	if (f->frequency < (FREQ_MIN * FREQ_MUL))
+-		return -EINVAL;
+-	if (f->frequency > (FREQ_MAX * FREQ_MUL))
++		/* Yes, that's what is returned in this case. This
++		   whole special case is non-compliant and should really
++		   be replaced with something better, but changing this
++		   might well break code that depends on this behavior.
++		   So we keep it as-is. */
+ 		return -EINVAL;
++	}
++	clamp(freq, FREQ_MIN * FREQ_MUL, FREQ_MAX * FREQ_MUL);
+ 	tea5764_power_up(radio);
+-	tea5764_tune(radio, (f->frequency * 125) / 2);
++	tea5764_tune(radio, (freq * 125) / 2);
+ 	return 0;
+ }
+ 
+@@ -368,7 +371,6 @@ static int vidioc_g_frequency(struct file *file, void *priv,
+ 	if (f->tuner != 0)
+ 		return -EINVAL;
+ 	tea5764_i2c_read(radio);
+-	memset(f, 0, sizeof(*f));
+ 	f->type = V4L2_TUNER_RADIO;
+ 	if (r->tnctrl & TEA5764_TNCTRL_PUPD0)
+ 		f->frequency = (tea5764_get_freq(radio) * 2) / 125;
 -- 
-1.7.4.1
+1.7.10.4
 
