@@ -1,81 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f42.google.com ([74.125.82.42]:45653 "EHLO
-	mail-wg0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755530Ab3EAT2w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 1 May 2013 15:28:52 -0400
-Date: Wed, 1 May 2013 21:28:45 +0200
-From: "Yann E. MORIN" <yann.morin.1998@free.fr>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	linux-kbuild@vger.kernel.org
-Subject: Re: linux-next: Tree for May 1 (media/usb/stk1160)
-Message-ID: <20130501192845.GA18811@free.fr>
-References: <20130501183734.7ad1efca2d06e75432edabbd@canb.auug.org.au>
- <518157EB.3010700@infradead.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <518157EB.3010700@infradead.org>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1301 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753696Ab3EaS24 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 14:28:56 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r4VISiO6078424
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 31 May 2013 20:28:46 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 7861235E0050
+	for <linux-media@vger.kernel.org>; Fri, 31 May 2013 20:28:43 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130531182843.7861235E0050@alastor.dyndns.org>
+Date: Fri, 31 May 2013 20:28:43 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, May 01, 2013 at 10:59:07AM -0700, Randy Dunlap wrote:
-> On 05/01/13 01:37, Stephen Rothwell wrote:
-> > Hi all,
-> > 
-> > Please do not add any v3.11 destined work to your linux-next included
-> > branches until after v3.10-rc1 is released.
-> > 
-> > Changes since 20130430:
-> > 
-> 
-> 
-> When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
-> CONFIG_VIDEO_STK1160=y
-> CONFIG_VIDEO_STK1160_AC97=y
-> 
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x122706): undefined reference to `snd_card_create'
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x1227b2): undefined reference to `snd_ac97_bus'
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x1227cd): undefined reference to `snd_card_free'
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x12281b): undefined reference to `snd_ac97_mixer'
-> drivers/built-in.o: In function `stk1160_ac97_register':
-> (.text+0x122832): undefined reference to `snd_card_register'
-> drivers/built-in.o: In function `stk1160_ac97_unregister':
-> (.text+0x12285e): undefined reference to `snd_card_free'
-> 
-> 
-> This kconfig fragment:
-> config VIDEO_STK1160_AC97
-> 	bool "STK1160 AC97 codec support"
-> 	depends on VIDEO_STK1160 && SND
-> 	select SND_AC97_CODEC
-> 
-> is unreliable (doesn't do what some people expect) when SND=m and SND_AC97_CODEC=m,
-> since VIDEO_STK1160_AC97 is a bool.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I'm not sure to understand what you want, here.
-I find it valid that a 'bool' can 'select' a 'tristate', to force it to 'y'.
+Results of the daily build of media_tree:
 
-Do you mean there is an issue with Kconfig, the parser?
-  -> should Kconfig warn or error out in such a case?
+date:		Fri May 31 19:00:20 CEST 2013
+git branch:	test
+git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-Or do you mean the structure above is wrong, and should be ammended?
-  -> change the 'select' to a 'depends on'?
-  -> change the symbol to a tristate?
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Regards,
-Yann E. MORIN.
+Detailed results are available here:
 
--- 
-.-----------------.--------------------.------------------.--------------------.
-|  Yann E. MORIN  | Real-Time Embedded | /"\ ASCII RIBBON | Erics' conspiracy: |
-| +33 662 376 056 | Software  Designer | \ / CAMPAIGN     |  ___               |
-| +33 223 225 172 `------------.-------:  X  AGAINST      |  \e/  There is no  |
-| http://ymorin.is-a-geek.org/ | _/*\_ | / \ HTML MAIL    |   v   conspiracy.  |
-'------------------------------^-------^------------------^--------------------'
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
