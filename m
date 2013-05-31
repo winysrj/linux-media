@@ -1,92 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:35027 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753159Ab3EBMFL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 2 May 2013 08:05:11 -0400
-Received: by mail-pa0-f44.google.com with SMTP id jh10so323846pab.17
-        for <linux-media@vger.kernel.org>; Thu, 02 May 2013 05:05:10 -0700 (PDT)
-From: Sachin Kamat <sachin.kamat@linaro.org>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2347 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752358Ab3EaKDH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 06:03:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: t.stanislaws@samsung.com, s.nawrocki@samsung.com,
-	sachin.kamat@linaro.org, patches@linaro.org
-Subject: [PATCH v3 2/2] s5p-tv: Fix incorrect usage of IS_ERR_OR_NULL in mixer_drv.c
-Date: Thu,  2 May 2013 17:22:15 +0530
-Message-Id: <1367495535-12888-2-git-send-email-sachin.kamat@linaro.org>
-In-Reply-To: <1367495535-12888-1-git-send-email-sachin.kamat@linaro.org>
-References: <1367495535-12888-1-git-send-email-sachin.kamat@linaro.org>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	=?UTF-8?q?Richard=20R=C3=B6jfors?= <richard.rojfors@pelagicore.com>
+Subject: [PATCH 01/21] saa7706h: convert to the control framework.
+Date: Fri, 31 May 2013 12:02:21 +0200
+Message-Id: <1369994561-25236-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+References: <1369994561-25236-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-NULL check on clocks obtained using common clock APIs should not
-be done. Use IS_ERR only.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Richard Röjfors <richard.rojfors@pelagicore.com>
 ---
- drivers/media/platform/s5p-tv/mixer_drv.c |   26 ++++++++++++++++++++------
- 1 file changed, 20 insertions(+), 6 deletions(-)
+ drivers/media/radio/saa7706h.c |   58 +++++++++++++++++++++-------------------
+ 1 file changed, 30 insertions(+), 28 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-tv/mixer_drv.c b/drivers/media/platform/s5p-tv/mixer_drv.c
-index 5733033..bdee3bb 100644
---- a/drivers/media/platform/s5p-tv/mixer_drv.c
-+++ b/drivers/media/platform/s5p-tv/mixer_drv.c
-@@ -211,6 +211,17 @@ fail:
- 	return ret;
+diff --git a/drivers/media/radio/saa7706h.c b/drivers/media/radio/saa7706h.c
+index 06c06cc..1f09844 100644
+--- a/drivers/media/radio/saa7706h.c
++++ b/drivers/media/radio/saa7706h.c
+@@ -26,6 +26,7 @@
+ #include <linux/slab.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-chip-ident.h>
++#include <media/v4l2-ctrls.h>
+ 
+ #define DRIVER_NAME "saa7706h"
+ 
+@@ -127,6 +128,7 @@
+ 
+ struct saa7706h_state {
+ 	struct v4l2_subdev sd;
++	struct v4l2_ctrl_handler hdl;
+ 	unsigned muted;
+ };
+ 
+@@ -317,34 +319,16 @@ static int saa7706h_mute(struct v4l2_subdev *sd)
+ 	return err;
  }
  
-+static void mxr_reset_clocks(struct mxr_device *mdev)
-+{
-+	struct mxr_resources *res = &mdev->res;
-+
-+	res->mixer	= ERR_PTR(-EINVAL);
-+	res->vp		= ERR_PTR(-EINVAL);
-+	res->sclk_mixer	= ERR_PTR(-EINVAL);
-+	res->sclk_hdmi	= ERR_PTR(-EINVAL);
-+	res->sclk_dac	= ERR_PTR(-EINVAL);
-+}
-+
- static void mxr_release_plat_resources(struct mxr_device *mdev)
+-static int saa7706h_queryctrl(struct v4l2_subdev *sd, struct v4l2_queryctrl *qc)
++static int saa7706h_s_ctrl(struct v4l2_ctrl *ctrl)
  {
- 	free_irq(mdev->res.irq, mdev);
-@@ -222,15 +233,15 @@ static void mxr_release_clocks(struct mxr_device *mdev)
- {
- 	struct mxr_resources *res = &mdev->res;
+-	switch (qc->id) {
+-	case V4L2_CID_AUDIO_MUTE:
+-		return v4l2_ctrl_query_fill(qc, 0, 1, 1, 1);
+-	}
+-	return -EINVAL;
+-}
+-
+-static int saa7706h_g_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+-	struct saa7706h_state *state = to_state(sd);
+-
+-	switch (ctrl->id) {
+-	case V4L2_CID_AUDIO_MUTE:
+-		ctrl->value = state->muted;
+-		return 0;
+-	}
+-	return -EINVAL;
+-}
++	struct saa7706h_state *state =
++		container_of(ctrl->handler, struct saa7706h_state, hdl);
  
--	if (!IS_ERR_OR_NULL(res->sclk_dac))
-+	if (!IS_ERR(res->sclk_dac))
- 		clk_put(res->sclk_dac);
--	if (!IS_ERR_OR_NULL(res->sclk_hdmi))
-+	if (!IS_ERR(res->sclk_hdmi))
- 		clk_put(res->sclk_hdmi);
--	if (!IS_ERR_OR_NULL(res->sclk_mixer))
-+	if (!IS_ERR(res->sclk_mixer))
- 		clk_put(res->sclk_mixer);
--	if (!IS_ERR_OR_NULL(res->vp))
-+	if (!IS_ERR(res->vp))
- 		clk_put(res->vp);
--	if (!IS_ERR_OR_NULL(res->mixer))
-+	if (!IS_ERR(res->mixer))
- 		clk_put(res->mixer);
+-static int saa7706h_s_ctrl(struct v4l2_subdev *sd, struct v4l2_control *ctrl)
+-{
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+-		if (ctrl->value)
+-			return saa7706h_mute(sd);
+-		return saa7706h_unmute(sd);
++		if (ctrl->val)
++			return saa7706h_mute(&state->sd);
++		return saa7706h_unmute(&state->sd);
+ 	}
+ 	return -EINVAL;
+ }
+@@ -357,11 +341,19 @@ static int saa7706h_g_chip_ident(struct v4l2_subdev *sd,
+ 	return v4l2_chip_ident_i2c_client(client, chip, V4L2_IDENT_SAA7706H, 0);
  }
  
-@@ -239,7 +250,9 @@ static int mxr_acquire_clocks(struct mxr_device *mdev)
- 	struct mxr_resources *res = &mdev->res;
- 	struct device *dev = mdev->dev;
- 
--	res->mixer = clk_get(dev, "mixer");
-+	mxr_reset_clocks(mdev);
++static const struct v4l2_ctrl_ops saa7706h_ctrl_ops = {
++	.s_ctrl = saa7706h_s_ctrl,
++};
 +
-+	res->mixer	= clk_get(dev, "mixer");
- 	if (IS_ERR(res->mixer)) {
- 		mxr_err(mdev, "failed to get clock 'mixer'\n");
- 		goto fail;
-@@ -299,6 +312,7 @@ static void mxr_release_resources(struct mxr_device *mdev)
- 	mxr_release_clocks(mdev);
- 	mxr_release_plat_resources(mdev);
- 	memset(&mdev->res, 0, sizeof(mdev->res));
-+	mxr_reset_clocks(mdev);
- }
+ static const struct v4l2_subdev_core_ops saa7706h_core_ops = {
+ 	.g_chip_ident = saa7706h_g_chip_ident,
+-	.queryctrl = saa7706h_queryctrl,
+-	.g_ctrl = saa7706h_g_ctrl,
+-	.s_ctrl = saa7706h_s_ctrl,
++	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
++	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
++	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
++	.g_ctrl = v4l2_subdev_g_ctrl,
++	.s_ctrl = v4l2_subdev_s_ctrl,
++	.queryctrl = v4l2_subdev_queryctrl,
++	.querymenu = v4l2_subdev_querymenu,
+ };
  
- static void mxr_release_layers(struct mxr_device *mdev)
+ static const struct v4l2_subdev_ops saa7706h_ops = {
+@@ -393,13 +385,20 @@ static int saa7706h_probe(struct i2c_client *client,
+ 	sd = &state->sd;
+ 	v4l2_i2c_subdev_init(sd, client, &saa7706h_ops);
+ 
++	v4l2_ctrl_handler_init(&state->hdl, 4);
++	v4l2_ctrl_new_std(&state->hdl, &saa7706h_ctrl_ops,
++			V4L2_CID_AUDIO_MUTE, 0, 1, 1, 1);
++	sd->ctrl_handler = &state->hdl;
++	err = state->hdl.error;
++	if (err)
++		goto err;
++
+ 	/* check the rom versions */
+ 	err = saa7706h_get_reg16(sd, SAA7706H_DSP1_ROM_VER);
+ 	if (err < 0)
+ 		goto err;
+ 	if (err != SUPPORTED_DSP1_ROM_VER)
+ 		v4l2_warn(sd, "Unknown DSP1 ROM code version: 0x%x\n", err);
+-
+ 	state->muted = 1;
+ 
+ 	/* startup in a muted state */
+@@ -411,6 +410,7 @@ static int saa7706h_probe(struct i2c_client *client,
+ 
+ err:
+ 	v4l2_device_unregister_subdev(sd);
++	v4l2_ctrl_handler_free(&state->hdl);
+ 	kfree(to_state(sd));
+ 
+ 	printk(KERN_ERR DRIVER_NAME ": Failed to probe: %d\n", err);
+@@ -421,9 +421,11 @@ err:
+ static int saa7706h_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct saa7706h_state *state = to_state(sd);
+ 
+ 	saa7706h_mute(sd);
+ 	v4l2_device_unregister_subdev(sd);
++	v4l2_ctrl_handler_free(&state->hdl);
+ 	kfree(to_state(sd));
+ 	return 0;
+ }
 -- 
-1.7.9.5
+1.7.10.4
 
