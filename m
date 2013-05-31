@@ -1,64 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f174.google.com ([209.85.212.174]:62510 "EHLO
-	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753702Ab3EPMxp (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2397 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753831Ab3EaIWy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 16 May 2013 08:53:45 -0400
+	Fri, 31 May 2013 04:22:54 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Subject: Re: [PATCH v6] V4L2: I2C: ML86V7667 video decoder driver
+Date: Fri, 31 May 2013 10:22:31 +0200
+Cc: mchehab@redhat.com, linux-media@vger.kernel.org, matsu@igel.co.jp,
+	linux-sh@vger.kernel.org, vladimir.barinov@cogentembedded.com
+References: <201305292252.29007.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201305292252.29007.sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <2750806.COjXX3GeT0@avalon>
-References: <1368529236-18199-1-git-send-email-prabhakar.csengg@gmail.com>
- <11504129.E8jKKy4N2e@avalon> <CA+V-a8ti58gdPR-fUEqgBvUQ=1GkoTUyLj9UK4D5aVwHv2R6mA@mail.gmail.com>
- <2750806.COjXX3GeT0@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 16 May 2013 18:23:24 +0530
-Message-ID: <CA+V-a8vQhJs5KNTAOzbPcxfv4AjQCTzSdXCYJTAvf0cFTykrwQ@mail.gmail.com>
-Subject: Re: [PATCH v3] media: i2c: tvp514x: add OF support
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201305311022.31321.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi!
 
-On Thu, May 16, 2013 at 6:20 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> On Thursday 16 May 2013 18:13:38 Prabhakar Lad wrote:
->> On Thu, May 16, 2013 at 5:40 PM, Laurent Pinchart wrote:
->> > Hi Prabhakar,
->>
->> [Snip]
->>
->> >> +
->> >> +     pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
->> >> +     if (!pdata)
->> >
->> > I've started playing with the V4L2 OF bindings, and realized that should
->> > should call of_node_put() here.
->>
->> you were referring  of_node_get() here rite ?
->
-> No, I'm referring to of_node_put(). The v4l2_of_get_next_endpoint() function
-> mentions
->
->  * Return: An 'endpoint' node pointer with refcount incremented. Refcount
->  * of the passed @prev node is not decremented, the caller have to use
->  * of_node_put() on it when done.
->
-Ahh I see thanks for clarifying, I'll fix it  for v3.
+On Wed May 29 2013 20:52:28 Sergei Shtylyov wrote:
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> 
+> Add OKI Semiconductor ML86V7667 video decoder driver.
+> 
+
+I've accepted this patch, but I've added a patch to fix this function:
+
+> +static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+> +{
+> +	struct i2c_client *client = v4l2_get_subdevdata(sd);
+> +	int status;
+> +
+> +	status = i2c_smbus_read_byte_data(client, STATUS_REG);
+> +	if (status < 0)
+> +		return status;
+> +
+> +	if (!(status & STATUS_HLOCK_DETECT))
+> +		return V4L2_STD_UNKNOWN;
+> +
+> +	*std = status & STATUS_NTSCPAL ? V4L2_STD_625_50 : V4L2_STD_525_60;
+> +
+> +	return 0;
+> +}
+> +
+
+[PATCH] ml86v7667: fix the querystd implementation
+
+The *std should be set to V4L2_STD_UNKNOWN, not the function's return code.
+
+Also, *std should be ANDed with 525_60 or 625_50.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/i2c/ml86v7667.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/media/i2c/ml86v7667.c b/drivers/media/i2c/ml86v7667.c
+index 0f256d3..cd9f86e 100644
+--- a/drivers/media/i2c/ml86v7667.c
++++ b/drivers/media/i2c/ml86v7667.c
+@@ -169,10 +169,10 @@ static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ 	if (status < 0)
+ 		return status;
+ 
+-	if (!(status & STATUS_HLOCK_DETECT))
+-		return V4L2_STD_UNKNOWN;
+-
+-	*std = status & STATUS_NTSCPAL ? V4L2_STD_625_50 : V4L2_STD_525_60;
++	if (status & STATUS_HLOCK_DETECT)
++		*std &= status & STATUS_NTSCPAL ? V4L2_STD_625_50 : V4L2_STD_525_60;
++	else
++		*std = V4L2_STD_UNKNOWN;
+ 
+ 	return 0;
+ }
+-- 
+1.7.10.4
+
+I've queued this one up in my for-v3.11 branch, so you don't need to do
+anything.
 
 Regards,
---Prabhakar Lad
+
+	Hans
