@@ -1,55 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:34672 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757918Ab3EWKX3 (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:40981 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751489Ab3EaJ3z (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 23 May 2013 06:23:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [v3] media: davinci: kconfig: fix incorrect selects
-Date: Thu, 23 May 2013 12:23:12 +0200
-Cc: Paul Bolle <pebolle@tiscali.nl>, Sekhar Nori <nsekhar@ti.com>,
-	davinci-linux-open-source@linux.davincidsp.com,
+	Fri, 31 May 2013 05:29:55 -0400
+Message-ID: <1369992590.4951.9.camel@pizza.hi.pengutronix.de>
+Subject: Re: [RFC PATCH v3] [media] mem2mem: add support for hardware
+ buffered queue
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Russell King <rmk+kernel@arm.linux.org.uk>,
-	linux-media@vger.kernel.org
-References: <1363079692-16683-1-git-send-email-nsekhar@ti.com> <1368439554.1350.49.camel@x61.thuisdomein> <CA+V-a8vOJocJttwQBnNA-sn2qWtAvgzQ96OGNbJ8NvVV_tt7uA@mail.gmail.com>
-In-Reply-To: <CA+V-a8vOJocJttwQBnNA-sn2qWtAvgzQ96OGNbJ8NvVV_tt7uA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+	Pawel Osciak <pawel@osciak.com>, John Sheu <sheu@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Date: Fri, 31 May 2013 11:29:50 +0200
+In-Reply-To: <51A864C5.4090703@samsung.com>
+References: <1369989199-20952-1-git-send-email-p.zabel@pengutronix.de>
+	 <51A864C5.4090703@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
-Message-Id: <201305231223.12721.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 13 May 2013 12:41:26 Prabhakar Lad wrote:
-> Hi Paul,
+Hi Sylwester,
+
+Am Freitag, den 31.05.2013, 10:52 +0200 schrieb Sylwester Nawrocki:
+> Hi Philipp,
 > 
-> On Mon, May 13, 2013 at 3:35 PM, Paul Bolle <pebolle@tiscali.nl> wrote:
-> > Prabhakar,
-> >
-> > On Mon, 2013-05-13 at 15:27 +0530, Prabhakar Lad wrote:
-> >> Good catch! the dependency can be dropped now.
-> >
-> > Great.
-> >
-> >> Are you planning to post a patch for it or shall I do it ?
-> >
-> > I don't mind submitting that trivial patch.
-> >
-> > However, it's probably better if you do that. I can only state that this
-> > dependency is now useless, because that is simply how the kconfig system
-> > works. But you can probably elaborate why it's OK to not replace it with
-> > another (negative) dependency. That would make a more informative commit
-> > explanation.
-> >
-> Posted the patch fixing it https://patchwork.linuxtv.org/patch/18395/
+> On 05/31/2013 10:33 AM, Philipp Zabel wrote:
+> > +void v4l2_m2m_queue_set_buffered(struct vb2_queue *vq, bool buffered)
+> 
+> How about making it a 'static inline' function in include/media/v4l2-mem2mem.h
+> instead ?
 
-Prabhakar,
+Thanks, I'll change this.
 
-Is this for 3.10 or 3.11?
+> > +{
+> > +	struct v4l2_m2m_queue_ctx *q_ctx = container_of(vq, struct v4l2_m2m_queue_ctx, q);
+> > +
+> > +	q_ctx->buffered = buffered;
+> > +}
+> > +EXPORT_SYMBOL_GPL(v4l2_m2m_queue_set_buffered);
+> 
+> 
+> Also, I was wondering how do you handle now in the coda driver a situation
+> when, e.g. during normal stream decoding more than one buffer is produced
+> by the decoder from one compressed data buffer on its input side ?
 
-Regards,
+I didn't properly test it yet. In principle it should just work because
+the compressed OUTPUT source buffer is always copied into the internal
+bitstream ringbuffer, and then device_run can be scheduled multiple
+times as long as there is enough bitstream data available, each run
+producing a single CAPTURE destination buffer.
 
-	Hans
+But I'm counting input buffers to send the EOS signal with the last
+CAPTURE buffer DQBUF, assuming that there is one compressed frame per
+OUTPUT source buffer.
+
+regards
+Philipp
+
