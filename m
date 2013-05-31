@@ -1,85 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f46.google.com ([209.85.216.46]:64391 "EHLO
-	mail-qa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753410Ab3ECV3h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 3 May 2013 17:29:37 -0400
-Received: by mail-qa0-f46.google.com with SMTP id g10so423562qah.19
-        for <linux-media@vger.kernel.org>; Fri, 03 May 2013 14:29:36 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <51841517.4030504@earthlink.net>
-References: <51841517.4030504@earthlink.net>
-Date: Fri, 3 May 2013 17:29:36 -0400
-Message-ID: <CAGoCfiy5qWrqH1ptGc4LKvbN1w-TtsV+ogCr7qWX6zn9L=MaSQ@mail.gmail.com>
-Subject: Re: Driver for KWorld UB435Q Version 3 (ATSC) USB id: 1b80:e34c
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: The Bit Pit <thebitpit@earthlink.net>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout4.samsung.com ([203.254.224.34]:13700 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751921Ab3EaQsC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 12:48:02 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNO001RN9C1A010@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Sat, 01 Jun 2013 01:48:01 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hj210.choi@samsung.com, yhwan.joo@samsung.com, arun.kk@samsung.com,
+	shaik.ameer@samsung.com, kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [REVIEW PATCH 5/7] exynos4-is: Move __fimc_videoc_querycap() function
+ to the common module
+Date: Fri, 31 May 2013 18:47:03 +0200
+Message-id: <1370018825-13088-6-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1370018825-13088-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370018825-13088-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, May 3, 2013 at 3:50 PM, The Bit Pit <thebitpit@earthlink.net> wrote:
-> I am Wilson Michaels, please let me introduce myself:
->
-> Eight years ago I contributed a driver for the DViCO FusionHDTV 3 & 5
-> PCI TV tuner cards (see lgdt330x.c).  The code is still in linux today.
->  One of my tuners is starting to fail so a purchased a KWorld UB435Q
-> Version 3 (ATSC) from Newegg.  It's not supported so I started working
-> on a driver. Is anyone else working on a driver for the  KWorld UB435Q V-3?
->
-> I opened the case easily as it just snaps together with a plastic clip.
-> It is not glued :-) I verified that it contains:
-> EM2874B
-> NXP TDA18272/M
-> lgdt3305
->
-> I git the latest media_build tree and added entries to make it recognize
-> the KWorld USB id: 1b80:e34c.  The added code is like the KWorld UB435Q
-> Version 2 code with lgdt3304 replaced by lgdt3305 and no .dvb_gpio or
-> .tuner_gpio. It reports finding an em2874 chip using bulk transfer mode
-> as expected.
+Move __fimc_videoc_querycap() function to the common exynos4-is-common.ko
+module so it don't need to be reimplemented in multiple video node drivers
+of the exynos4-is.
 
-No bulk support currently for em28xx dvb.  I never got around to it
-because the only sticks I ever came across them that use them is that
-particular KWorld model, and from everything I've heard it's a piece
-of garbage (unreliable, prone to failure even under WIndows).
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/common.c    |   12 ++++++++++++
+ drivers/media/platform/exynos4-is/common.h    |    4 ++++
+ drivers/media/platform/exynos4-is/fimc-core.c |   11 -----------
+ drivers/media/platform/exynos4-is/fimc-core.h |    2 --
+ drivers/media/platform/exynos4-is/fimc-m2m.c  |    1 +
+ 5 files changed, 17 insertions(+), 13 deletions(-)
 
-That said, a bulk endpoint driver isn't rocket science to add support for.  :-)
+diff --git a/drivers/media/platform/exynos4-is/common.c b/drivers/media/platform/exynos4-is/common.c
+index 6720520..e427e1d 100644
+--- a/drivers/media/platform/exynos4-is/common.c
++++ b/drivers/media/platform/exynos4-is/common.c
+@@ -38,4 +38,16 @@ struct v4l2_subdev *fimc_find_remote_sensor(struct media_entity *entity)
+ }
+ EXPORT_SYMBOL(fimc_find_remote_sensor);
+ 
++void __fimc_vidioc_querycap(struct device *dev, struct v4l2_capability *cap,
++						unsigned int caps)
++{
++	strlcpy(cap->driver, dev->driver->name, sizeof(cap->driver));
++	strlcpy(cap->card, dev->driver->name, sizeof(cap->card));
++	snprintf(cap->bus_info, sizeof(cap->bus_info),
++				"platform:%s", dev_name(dev));
++	cap->device_caps = caps;
++	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
++}
++EXPORT_SYMBOL(__fimc_vidioc_querycap);
++
+ MODULE_LICENSE("GPL");
+diff --git a/drivers/media/platform/exynos4-is/common.h b/drivers/media/platform/exynos4-is/common.h
+index 3c39803..75b9c71 100644
+--- a/drivers/media/platform/exynos4-is/common.h
++++ b/drivers/media/platform/exynos4-is/common.h
+@@ -6,7 +6,11 @@
+  * published by the Free Software Foundation.
+  */
+ 
++#include <linux/device.h>
++#include <linux/videodev2.h>
+ #include <media/media-entity.h>
+ #include <media/v4l2-subdev.h>
+ 
+ struct v4l2_subdev *fimc_find_remote_sensor(struct media_entity *entity);
++void __fimc_vidioc_querycap(struct device *dev, struct v4l2_capability *cap,
++			    unsigned int caps);
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.c b/drivers/media/platform/exynos4-is/fimc-core.c
+index e856730..aa6716e 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.c
++++ b/drivers/media/platform/exynos4-is/fimc-core.c
+@@ -213,17 +213,6 @@ struct fimc_fmt *fimc_get_format(unsigned int index)
+ 	return &fimc_formats[index];
+ }
+ 
+-void __fimc_vidioc_querycap(struct device *dev, struct v4l2_capability *cap,
+-						unsigned int caps)
+-{
+-	strlcpy(cap->driver, dev->driver->name, sizeof(cap->driver));
+-	strlcpy(cap->card, dev->driver->name, sizeof(cap->card));
+-	snprintf(cap->bus_info, sizeof(cap->bus_info),
+-				"platform:%s", dev_name(dev));
+-	cap->device_caps = caps;
+-	cap->capabilities = cap->device_caps | V4L2_CAP_DEVICE_CAPS;
+-}
+-
+ int fimc_check_scaler_ratio(struct fimc_ctx *ctx, int sw, int sh,
+ 			    int dw, int dh, int rotation)
+ {
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
+index bba6b25..0f25ce0 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.h
++++ b/drivers/media/platform/exynos4-is/fimc-core.h
+@@ -621,8 +621,6 @@ static inline struct fimc_frame *ctx_get_frame(struct fimc_ctx *ctx,
+ /* fimc-core.c */
+ int fimc_vidioc_enum_fmt_mplane(struct file *file, void *priv,
+ 				struct v4l2_fmtdesc *f);
+-void __fimc_vidioc_querycap(struct device *dev, struct v4l2_capability *cap,
+-						unsigned int caps);
+ int fimc_ctrls_create(struct fimc_ctx *ctx);
+ void fimc_ctrls_delete(struct fimc_ctx *ctx);
+ void fimc_ctrls_activate(struct fimc_ctx *ctx, bool active);
+diff --git a/drivers/media/platform/exynos4-is/fimc-m2m.c b/drivers/media/platform/exynos4-is/fimc-m2m.c
+index bde1f47..8d33b68 100644
+--- a/drivers/media/platform/exynos4-is/fimc-m2m.c
++++ b/drivers/media/platform/exynos4-is/fimc-m2m.c
+@@ -27,6 +27,7 @@
+ #include <media/videobuf2-core.h>
+ #include <media/videobuf2-dma-contig.h>
+ 
++#include "common.h"
+ #include "fimc-core.h"
+ #include "fimc-reg.h"
+ #include "media-dev.h"
+-- 
+1.7.9.5
 
-> There appears to be code in the em28xx driver to handle
-> bulk transfer.  It does not recognize the lgdt3305.
-
-The lgdt3305 is probably on the second i2c bus -- typical for em2874
-based devices.  The tuner is probably gated behind the 3305.
-
-It's also likely that the 3305 is being held in reset by default.
-You'll probably need to tweak a GPIO to take it out of reset before it
-will answer i2c.
-
-> I discovered (brute force scan) that there are two i2c addresses 0x50
-> and 0xd0. The lgdt3305 detection code is able to read something from
-> either i2c address, but is is always 0.
-
-One is probably the eeprom.
-
-> Does the eeprom data below have anything to help writing a driver for
-> the KWorld UB435Q?
-
-Almost certainly not.
-
-> I suspect some initialization needs to be done, but I don't know what to
-> try.  Does anyone have any information about how the hardware is
-> configured or information captured from the Windows driver?
->
-> Does anyone know where I can get a copy of the programming spec for the
-> lgdt3305?  The em2874 spec would be useful too.
-
-I have them both, but under NDA (neither are publicly available).  You
-probably don't need either though.  Aside from the bulk support, the
-em2874 implementation is pretty complete.  Same goes for the 3305.
-
-Devin
-
---
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
