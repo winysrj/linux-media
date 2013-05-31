@@ -1,61 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f47.google.com ([74.125.82.47]:41313 "EHLO
-	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S967578Ab3E3HUW (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:41417 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756419Ab3EaMlF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 30 May 2013 03:20:22 -0400
-Received: by mail-wg0-f47.google.com with SMTP id e11so7205166wgh.14
-        for <linux-media@vger.kernel.org>; Thu, 30 May 2013 00:20:20 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1369825211-29770-3-git-send-email-hverkuil@xs4all.nl>
-References: <1369825211-29770-1-git-send-email-hverkuil@xs4all.nl> <1369825211-29770-3-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 30 May 2013 12:50:00 +0530
-Message-ID: <CA+V-a8s8ersTemd4tb0LrO8AdV=XO9RzwtVgOMRV0Z4XCbNxAQ@mail.gmail.com>
-Subject: Re: [PATCHv1 02/38] v4l2: remove g_chip_ident from bridge drivers
- where it is easy to do so.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	stoth@linuxtv.org, Scott Jiang <scott.jiang.linux@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Jonathan Corbet <corbet@lwn.net>,
-	Ezequiel Garcia <elezegarcia@gmail.com>,
-	Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Andrey Smirnov <andrew.smirnov@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 31 May 2013 08:41:05 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MNN000KAXW8JPU0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 31 May 2013 21:41:04 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: hj210.choi@samsung.com, kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 2/3] exynos4-is: Ensure fimc-is clocks are not enabled until
+ properly configured
+Date: Fri, 31 May 2013 14:40:36 +0200
+Message-id: <1370004037-18314-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1370004037-18314-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370004037-18314-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Use clk_prepare_enable/clk_unprepare_disable instead of preparing the
+clocks during the driver initalization and then using just clk_disable/
+clk_enable. The clock framework doesn't guarantee a clock will not get
+enabled during e.g. clk_set_parent if clk_prepare has been called on it.
+So we ensure clk_prepare() is called only when it is safe to enable
+the clocks, i.e. the parent clocks and the clocks' frequencies are set.
 
-Thanks for the patch.
+It must be ensured the FIMC-IS clocks have proper frequencies before they
+are enabled, otherwise the whole system will hang.
 
-On Wed, May 29, 2013 at 4:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> VIDIOC_DBG_G_CHIP_IDENT has been replaced by VIDIOC_DBG_G_CHIP_INFO. Remove
-> g_chip_ident support from bridge drivers since it is no longer needed.
->
-> This patch takes care of all the trivial cases.
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: stoth@linuxtv.org
-> Cc: Scott Jiang <scott.jiang.linux@gmail.com>
-> Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Jonathan Corbet <corbet@lwn.net>
-> Cc: Ezequiel Garcia <elezegarcia@gmail.com>
-> Cc: Devin Heitmueller <dheitmueller@kernellabs.com>
-> Cc: Andrey Smirnov <andrew.smirnov@gmail.com>
-> ---
->  drivers/media/platform/davinci/vpif_capture.c  |   66 ------------------------
->  drivers/media/platform/davinci/vpif_display.c  |   66 ------------------------
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyunmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-is.c |   13 +++----------
+ 1 file changed, 3 insertions(+), 10 deletions(-)
 
-for the above,
+diff --git a/drivers/media/platform/exynos4-is/fimc-is.c b/drivers/media/platform/exynos4-is/fimc-is.c
+index 140c58f..520e439 100644
+--- a/drivers/media/platform/exynos4-is/fimc-is.c
++++ b/drivers/media/platform/exynos4-is/fimc-is.c
+@@ -70,7 +70,6 @@ static void fimc_is_put_clocks(struct fimc_is *is)
+ 	for (i = 0; i < ISS_CLKS_MAX; i++) {
+ 		if (IS_ERR(is->clocks[i]))
+ 			continue;
+-		clk_unprepare(is->clocks[i]);
+ 		clk_put(is->clocks[i]);
+ 		is->clocks[i] = ERR_PTR(-EINVAL);
+ 	}
+@@ -89,12 +88,6 @@ static int fimc_is_get_clocks(struct fimc_is *is)
+ 			ret = PTR_ERR(is->clocks[i]);
+ 			goto err;
+ 		}
+-		ret = clk_prepare(is->clocks[i]);
+-		if (ret < 0) {
+-			clk_put(is->clocks[i]);
+-			is->clocks[i] = ERR_PTR(-EINVAL);
+-			goto err;
+-		}
+ 	}
+ 
+ 	return 0;
+@@ -102,7 +95,7 @@ err:
+ 	fimc_is_put_clocks(is);
+ 	dev_err(&is->pdev->dev, "failed to get clock: %s\n",
+ 		fimc_is_clocks[i]);
+-	return -ENXIO;
++	return ret;
+ }
+ 
+ static int fimc_is_setup_clocks(struct fimc_is *is)
+@@ -143,7 +136,7 @@ int fimc_is_enable_clocks(struct fimc_is *is)
+ 	for (i = 0; i < ISS_GATE_CLKS_MAX; i++) {
+ 		if (IS_ERR(is->clocks[i]))
+ 			continue;
+-		ret = clk_enable(is->clocks[i]);
++		ret = clk_prepare_enable(is->clocks[i]);
+ 		if (ret < 0) {
+ 			dev_err(&is->pdev->dev, "clock %s enable failed\n",
+ 				fimc_is_clocks[i]);
+@@ -162,7 +155,7 @@ void fimc_is_disable_clocks(struct fimc_is *is)
+ 
+ 	for (i = 0; i < ISS_GATE_CLKS_MAX; i++) {
+ 		if (!IS_ERR(is->clocks[i])) {
+-			clk_disable(is->clocks[i]);
++			clk_disable_unprepare(is->clocks[i]);
+ 			pr_debug("disabled clock: %s\n", fimc_is_clocks[i]);
+ 		}
+ 	}
+-- 
+1.7.9.5
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-
-Regards,
---Prabhakar Lad
