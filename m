@@ -1,119 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:40986 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754581Ab3EONYE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 15 May 2013 09:24:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Lad Prabhakar <prabhakar.csengg@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH RFC] media: OF: add field-active and sync-on-green endpoint properties
-Date: Wed, 15 May 2013 15:24:23 +0200
-Message-ID: <2510029.UKsn4JyZOW@avalon>
-In-Reply-To: <1368622349-32185-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1368622349-32185-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from plane.gmane.org ([80.91.229.3]:35715 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751028Ab3EaFyN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 31 May 2013 01:54:13 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1UiIHy-00085v-GQ
+	for linux-media@vger.kernel.org; Fri, 31 May 2013 07:54:10 +0200
+Received: from 79-134-123-90.cust.suomicom.fi ([79.134.123.90])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 07:54:10 +0200
+Received: from www.linuxtv.org by 79-134-123-90.cust.suomicom.fi with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Fri, 31 May 2013 07:54:10 +0200
+To: linux-media@vger.kernel.org
+From: Jussi =?utf-8?b?SsOkw6Rza2Vsw6RpbmVu?=
+	<www.linuxtv.org@jjussi.com>
+Subject: Re: All models of Technotrend TT-connect CT-3650 are not supported
+Date: Fri, 31 May 2013 05:53:52 +0000 (UTC)
+Message-ID: <loom.20130531T075102-721@post.gmane.org>
+References: <loom.20130530T123614-761@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Jussi Jääskeläinen <www.linuxtv.org <at> jjussi.com> writes:
 
-Thank you for the patch.
+> Older models have: idVendor=0b48, idProduct=300d
+> Model what I just bought was: idVendor=04b4, idProduct=8613 and this is not 
+> supported!
+> 
+> usb 2-1: New USB device found, idVendor=04b4, idProduct=8613
+> usb 2-1: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+> usbtest 2-1:1.0: FX2 device
+> usbtest 2-1:1.0: high-speed {control bulk-in bulk-out} tests (+alt)
+> 
+> Both products looks just same!
 
-On Wednesday 15 May 2013 18:22:29 Lad Prabhakar wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> This patch adds "field-active" and "sync-on-green" as part of
-> endpoint properties and also support to parse them in the parser.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Rob Landley <rob@landley.net>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  .../devicetree/bindings/media/video-interfaces.txt |    4 ++++
->  drivers/media/v4l2-core/v4l2-of.c                  |    6 ++++++
->  include/media/v4l2-mediabus.h                      |    2 ++
->  3 files changed, 12 insertions(+), 0 deletions(-)
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> b/Documentation/devicetree/bindings/media/video-interfaces.txt index
-> e022d2d..6bf87d0 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -101,6 +101,10 @@ Optional endpoint properties
->    array contains only one entry.
->  - clock-noncontinuous: a boolean property to allow MIPI CSI-2
-> non-continuous clock mode.
-> +-field-active: a boolean property indicating active high filed ID output
-> + polarity is inverted.
+Is there some program I could run what would "extract" all needed information 
+to developer, so driver could be created or known driver could be connected to 
+this ID?
 
-Looks like we already have field-even-active property to describe the level of 
-the field signal. Could you please check whether it fulfills your use cases ? 
-Sorry for not pointing you to it earlier.
+-- JJussi
 
-> +-sync-on-green: a boolean property indicating to sync with the green signal
-> in + RGB.
-> 
-> 
->  Example
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c
-> b/drivers/media/v4l2-core/v4l2-of.c index aa59639..1d59455 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -100,6 +100,12 @@ static void v4l2_of_parse_parallel_bus(const struct
-> device_node *node, if (!of_property_read_u32(node, "data-shift", &v))
->  		bus->data_shift = v;
-> 
-> +	if (of_get_property(node, "field-active", &v))
-> +		flags |= V4L2_MBUS_FIELD_ACTIVE;
-> +
-> +	if (of_get_property(node, "sync-on-green", &v))
-> +		flags |= V4L2_MBUS_SOG;
-> +
->  	bus->flags = flags;
-> 
->  }
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 83ae07e..b95553d 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -40,6 +40,8 @@
->  #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
->  /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
->  #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
-> +#define V4L2_MBUS_FIELD_ACTIVE			(1 << 12)
-> +#define V4L2_MBUS_SOG				(1 << 13)
-> 
->  /* Serial flags */
->  /* How many lanes the client can use */
--- 
-Regards,
 
-Laurent Pinchart
 
