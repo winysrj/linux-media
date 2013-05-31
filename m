@@ -1,70 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f43.google.com ([209.85.212.43]:65368 "EHLO
-	mail-vb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752235Ab3EQFKp (ORCPT
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:37525 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1756017Ab3EaLhd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 17 May 2013 01:10:45 -0400
+	Fri, 31 May 2013 07:37:33 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, mchehab@redhat.com,
+	hans.verkuil@cisco.com, prabhakar.csengg@gmail.com,
+	g.liakhovetski@gmx.de, ezequiel.garcia@free-electrons.com,
+	timo.teras@iki.fi
+Subject: [RFC v2 0/2] saa7115: Implement i2c_board_info.platform_data
+Date: Fri, 31 May 2013 13:40:24 +0200
+Message-Id: <1370000426-3324-1-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
-In-Reply-To: <1561290.MnyCnpJz5W@avalon>
-References: <1368709102-2854-1-git-send-email-prabhakar.csengg@gmail.com>
- <1368709102-2854-2-git-send-email-prabhakar.csengg@gmail.com> <1561290.MnyCnpJz5W@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 17 May 2013 10:40:24 +0530
-Message-ID: <CA+V-a8sCk2STGuEJnyp99yA218UzZFXp0aXAdQOVkZzZmG8msg@mail.gmail.com>
-Subject: Re: [PATCH 1/7] media: davinci: vpif: remove unwanted header includes
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LMML <linux-media@vger.kernel.org>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This patch set adds handling of the i2c_board_info struct to the saa7115 driver.
+The main goal of this patch is to give the different devices with the gm7113c
+chip an opportunity to configure the chip to their needs.
 
-Thanks for the review.
+I've only implemented the overrides I know are necessary to get the stk1160
+and the smi2021 drivers to work.
 
-On Thu, May 16, 2013 at 6:32 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> Thank you for the patch.
->
-> On Thursday 16 May 2013 18:28:16 Lad Prabhakar wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>  drivers/media/platform/davinci/vpif.c |    7 -------
->>  1 files changed, 0 insertions(+), 7 deletions(-)
->>
->> diff --git a/drivers/media/platform/davinci/vpif.c
->> b/drivers/media/platform/davinci/vpif.c index ea82a8b..d354d50 100644
->> --- a/drivers/media/platform/davinci/vpif.c
->> +++ b/drivers/media/platform/davinci/vpif.c
->> @@ -17,18 +17,11 @@
->>   * GNU General Public License for more details.
->>   */
->>
->> -#include <linux/init.h>
->>  #include <linux/module.h>
->>  #include <linux/platform_device.h>
->> -#include <linux/spinlock.h>
->> -#include <linux/kernel.h>
->> -#include <linux/io.h>
->> -#include <linux/err.h>
->>  #include <linux/pm_runtime.h>
->>  #include <linux/v4l2-dv-timings.h>
->
-> I think you should keep most of those includes. For instance this file uses
-> spinlock functions, so linux/spinlock.h should be included. It might work fine
-> now due to nested includes, but if someone reorganizes the kernel headers
-> internal includes then the driver might break. As a general rule of good
-> practice you should include headers for all the APIs you use.
->
-OK, do you want me too drop the similar patches from this series ?
+This is the second version of this patch series.
+The first version of the RFC can be found here:
+https://lkml.org/lkml/2013/5/29/558
 
-Regards,
---Prabhakar Lad
+In this version I've added a new init table for saa7113 chips.
+This new table is only used by drivers that set the i2c_board_info.platform data.
+I've also tried to give the different overrides some less obscure names.
+
+Jon Arne Jørgensen (2):
+  saa7115: Implement i2c_board_info.platform_data
+  saa7115: Remove gm7113c video_std register change
+
+ drivers/media/i2c/saa7115.c      | 127 ++++++++++++++++++++++++++++++---------
+ drivers/media/i2c/saa711x_regs.h |   8 +++
+ include/media/saa7115.h          |  39 ++++++++++++
+ 3 files changed, 145 insertions(+), 29 deletions(-)
+
+-- 
+1.8.2.3
+
