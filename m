@@ -1,71 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f179.google.com ([209.85.217.179]:58240 "EHLO
-	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753964Ab3F1RL2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 13:11:28 -0400
-Received: by mail-lb0-f179.google.com with SMTP id w20so1152053lbh.38
-        for <linux-media@vger.kernel.org>; Fri, 28 Jun 2013 10:11:26 -0700 (PDT)
-Message-ID: <51CDC3BE.1040603@cogentembedded.com>
-Date: Fri, 28 Jun 2013 21:11:26 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com, matsu@igel.co.jp
-Subject: Re: [PATCH v7] V4L2: soc_camera: Renesas R-Car VIN driver
-References: <201306220052.30572.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1306260925210.8856@axis700.grange> <51CCD1B7.3040009@cogentembedded.com>
-In-Reply-To: <51CCD1B7.3040009@cogentembedded.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Received: from www17.your-server.de ([213.133.104.17]:60706 "EHLO
+	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759043Ab3FAJ4b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jun 2013 05:56:31 -0400
+Message-ID: <1370080586.29224.30.camel@localhost.localdomain>
+Subject: [PATCH] [media] media: Cocci spatch "ptr_ret.spatch"
+From: Thomas Meyer <thomas@m3y3r.de>
+To: g.liakhovetski@gmx.de, mchehab@redhat.com,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org
+Date: Sat, 01 Jun 2013 11:56:26 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
 
-On 06/28/2013 03:58 AM, Vladimir Barinov wrote:
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
+---
 
->>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+diff -u -p a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -359,10 +359,7 @@ static int sh_veu_context_init(struct sh
+ 	veu->m2m_ctx = v4l2_m2m_ctx_init(veu->m2m_dev, veu,
+ 					 sh_veu_queue_init);
+ 
+-	if (IS_ERR(veu->m2m_ctx))
+-		return PTR_ERR(veu->m2m_ctx);
+-
+-	return 0;
++	return PTR_RET(veu->m2m_ctx);
+ }
+ 
+ static int sh_veu_querycap(struct file *file, void *priv,
 
->>> Add Renesas R-Car VIN (Video In) V4L2 driver.
-
->>> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
-
->>> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->>> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed
->>> 'enum chip_id'
->>> values, reordered rcar_vin_id_table[] entries,  removed senseless
->>> parens from
->>> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {}
->>> to the
->>> *if* statement  and used 'bool' values instead of 0/1 where
->>> necessary, removed
->>> unused macros, done some reformatting and clarified some comments.]
->>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
->> Reviewing this iteration of the patch is still on my todo, in the
->> meantime you might verify whether it works on top of the for-3.11-3
->> branch of my
-
->> http://git.linuxtv.org/gliakhovetski/v4l-dvb.git
-
->> git-tree, or "next" after it's been pulled by Mauro and pushed
->> upstream. With that branch you shouldn't need any additional patches
->> andy more.
-
-> Actually we need to apply/merge more patches here that enables VIN
-> support on separate platform (like pinctrl/clock/setup/) :)
-
-> Despite of above the rcar_vin driver works fine on Marzen board in
-> v4l-dvb.git after adding soc_camera_host_ops clock_start/clock_stop.
-
-    Guennadi, does that mean that we should rebase the driver to the 
-branch that you've named now?
-
-> Regards,
-> Vladimir
-
-WBR, Sergei
 
