@@ -1,57 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([195.168.3.45]:41993 "EHLO norkia.v3.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751140Ab3FQON5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 10:13:57 -0400
-Subject: Re: [PATCH] [media] usbtv: Add driver for Fushicai USBTV007 video
- frame grabber
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
+Received: from moutng.kundenserver.de ([212.227.126.187]:62569 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751915Ab3FAUEj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jun 2013 16:04:39 -0400
+From: Arnd Bergmann <arnd@arndb.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [PATCH 13/15] [media] omap3isp: include linux/mm_types.h
+Date: Sat, 1 Jun 2013 22:04:30 +0200
+Cc: linux-kernel@vger.kernel.org, patches@lists.linaro.org,
+	linux-arm-kernel@lists.infradead.org,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org
-In-Reply-To: <201306120949.44163.hverkuil@xs4all.nl>
-References: <1370857931-6586-1-git-send-email-lkundrak@v3.sk>
-	 <201306101305.05038.hverkuil@xs4all.nl>
-	 <1370885934.9757.11.camel@hobbes.kokotovo>
-	 <201306120949.44163.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 17 Jun 2013 16:13:49 +0200
-Message-ID: <1371478429.23946.1.camel@hobbes.kokotovo>
-Mime-Version: 1.0
+	linux-media@vger.kernel.org,
+	Konstantin Khlebnikov <khlebnikov@openvz.org>
+References: <1370038972-2318779-1-git-send-email-arnd@arndb.de> <1370038972-2318779-14-git-send-email-arnd@arndb.de> <3507557.BiLMFItQuE@avalon>
+In-Reply-To: <3507557.BiLMFItQuE@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306012204.30778.arnd@arndb.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2013-06-12 at 09:49 +0200, Hans Verkuil wrote:
-...
-> > > > +static int usbtv_queryctrl(struct file *file, void *priv,
-> > > > +				struct v4l2_queryctrl *ctrl)
-> > > > +{
-> > > > +	return -EINVAL;
-> > > > +}
-> > > 
-> > > Drop this ioctl. If it doesn't do anything, then don't specify it.
-> > 
-> > It actually does something; EINVAL here for any ctrl signals there's
-> > zero controls.
-> > 
-> > When undefined, ENOTTY that is returned is considered invalid by
-> > gstreamer source.
+On Saturday 01 June 2013, Laurent Pinchart wrote:
+> > diff --git a/drivers/media/platform/omap3isp/ispqueue.h
+> > b/drivers/media/platform/omap3isp/ispqueue.h index 908dfd7..e6e720c 100644
+> > --- a/drivers/media/platform/omap3isp/ispqueue.h
+> > +++ b/drivers/media/platform/omap3isp/ispqueue.h
+> > @@ -31,6 +31,7 @@
+> >  #include <linux/mutex.h>
+> >  #include <linux/videodev2.h>
+> >  #include <linux/wait.h>
+> > +#include <linux/mm_types.h>
 > 
-> What version of gstreamer are you using? Looking at the gstreamer code it
-> seems that it can handle ENOTTY at least since September last year. Not handling
-> ENOTTY is an application bug (there are other - rare - drivers that do not
-> have any controls) and as such I really don't like seeing a workaround like
-> this in a driver, especially since this seems like it should be working fine
-> with the latest gstreamer.
+> Could you please make sure the headers are sorted alphabetically ?
 
-I was using GStreamer from RHEL6. I retried with Fedora 17 and it worked
-fine.
+I normally do. Sorry for missing it this time.
 
-Regards,
-Lubo
+> Would you like me to take the patch in my tree ? If so I'll sort the headers 
+> myself.
 
--- 
-Lubomir Rintel <lkundrak@v3.sk>
+Yes, that would be nice, thanks!
 
+	Arnd
