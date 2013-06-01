@@ -1,71 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:50521 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753069Ab3FQPVp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:21:45 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 05/11] media: davinci: vpif_capture: use module_platform_driver()
-Date: Mon, 17 Jun 2013 20:50:45 +0530
-Message-Id: <1371482451-18314-6-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from www17.your-server.de ([213.133.104.17]:33699 "EHLO
+	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759283Ab3FAKBz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jun 2013 06:01:55 -0400
+Message-ID: <1370079510.29224.4.camel@localhost.localdomain>
+Subject: [PATCH] PVRUSB2: Cocci spatch "memdup.spatch"
+From: Thomas Meyer <thomas@m3y3r.de>
+To: isely@pobox.com, mchehab@redhat.com, linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org
+Date: Sat, 01 Jun 2013 11:38:30 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-This patch uses module_platform_driver() to simplify the code.
-
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
 ---
- drivers/media/platform/davinci/vpif_capture.c |   28 +------------------------
- 1 file changed, 1 insertion(+), 27 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 7d3c449..091c7a4 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -2270,30 +2270,4 @@ static __refdata struct platform_driver vpif_driver = {
- 	.remove = vpif_remove,
- };
- 
--/**
-- * vpif_init: initialize the vpif driver
-- *
-- * This function registers device and driver to the kernel, requests irq
-- * handler and allocates memory
-- * for channel objects
-- */
--static __init int vpif_init(void)
--{
--	return platform_driver_register(&vpif_driver);
--}
--
--/**
-- * vpif_cleanup : This function clean up the vpif capture resources
-- *
-- * This will un-registers device and driver to the kernel, frees
-- * requested irq handler and de-allocates memory allocated for channel
-- * objects.
-- */
--static void vpif_cleanup(void)
--{
--	platform_driver_unregister(&vpif_driver);
--}
--
--/* Function for module initialization and cleanup */
--module_init(vpif_init);
--module_exit(vpif_cleanup);
-+module_platform_driver(vpif_driver);
--- 
-1.7.9.5
+diff -u -p a/drivers/media/usb/pvrusb2/pvrusb2-io.c b/drivers/media/usb/pvrusb2/pvrusb2-io.c
+--- a/drivers/media/usb/pvrusb2/pvrusb2-io.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-io.c
+@@ -354,9 +354,9 @@ static int pvr2_stream_buffer_count(stru
+ 		if (scnt < sp->buffer_slot_count) {
+ 			struct pvr2_buffer **nb = NULL;
+ 			if (scnt) {
+-				nb = kmalloc(scnt * sizeof(*nb),GFP_KERNEL);
++				nb = kmemdup(sp->buffers, scnt * sizeof(*nb),
++					     GFP_KERNEL);
+ 				if (!nb) return -ENOMEM;
+-				memcpy(nb,sp->buffers,scnt * sizeof(*nb));
+ 			}
+ 			kfree(sp->buffers);
+ 			sp->buffers = nb;
+
 
