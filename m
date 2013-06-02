@@ -1,57 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:58279 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750919Ab3FIUOz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 16:14:55 -0400
-Received: by mail-bk0-f43.google.com with SMTP id jm2so1726348bkc.2
-        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 13:14:54 -0700 (PDT)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, hj210.choi@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com,
-	s.nawrocki@samsung.com
-Subject: [REVIEW PATCH v3 0/2] Media link_notify behaviour change and exynos4-is updates
-Date: Sun,  9 Jun 2013 22:14:36 +0200
-Message-Id: <1370808878-11379-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-yh0-f42.google.com ([209.85.213.42]:39973 "EHLO
+	mail-yh0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754893Ab3FBS0l convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 14:26:41 -0400
+Received: by mail-yh0-f42.google.com with SMTP id t59so113323yho.15
+        for <linux-media@vger.kernel.org>; Sun, 02 Jun 2013 11:26:40 -0700 (PDT)
+Date: Sun, 2 Jun 2013 14:19:18 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: [GIT PULL] git://linuxtv.org/mkrufky/dvb stb0899
+Message-ID: <20130602141918.3332a7dc@vujade>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+The following changes since commit
+7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
 
-This is an updated version of the patch set [1], I've dropped patches 
-01/11...09/11, which I've already queued for 3.11. This series sits on 
-top of my for-next branch [2].
+  [media] media: pci: remove duplicate checks for EPERM (2013-05-27
+  09:34:56 -0300)
 
-This iteration attempts to address issues pointed out by Sakari, 
-thanks! The changes since v2 were:
+are available in the git repository at:
 
- - link_notify callback 'flags' argument's type changed to u32,
- - in the omap3isp driver link->flags checked instead of the passed 
-   flags argument of the link_notify handler to see if the pipeline 
-   should be powered off,
- - in the exynos4-is driver link->flags checked instead of the flags 
-   argument of the fimc_md_link_notify() handler to see if the pipelines 
-   should be powered on.
+  git://linuxtv.org/mkrufky/dvb stb0899
 
-Thanks,
-Sylwester
+for you to fetch changes up to fda0cbcc4878079829b5e13101c1c5144c4db3d9:
 
-[1] http://www.spinics.net/lists/linux-media/msg64258.html
-[2] http://git.linuxtv.org/snawrocki/samsung.git/for-next
+  stb0899: sign of CRL_FREQ doesn't depend on inversion (2013-06-02
+  14:03:13 -0400)
 
-Sylwester Nawrocki (2):
-  media: Change media device link_notify behaviour
-  exynos4-is: Extend link_notify handler to support fimc-is/lite
-    pipelines
+----------------------------------------------------------------
+Reinhard Nißl (7):
+      stb0899: sign extend raw CRL_FREQ value
+      stb0899: enable auto inversion handling unconditionally
+      stb0899: fix inversion enum values to match usage with CFR
+      stb0899: store successful inversion for next run
+      stb0899: store autodetected inversion while tuning in non S2 mode
+      stb0899: use autodetected inversion instead of configured
+inversion stb0899: sign of CRL_FREQ doesn't depend on inversion
 
- drivers/media/media-entity.c                  |   18 +---
- drivers/media/platform/exynos4-is/media-dev.c |  101 ++++++++++++++++++++-----
- drivers/media/platform/omap3isp/isp.c         |   41 ++++++----
- include/media/media-device.h                  |    9 ++-
- 4 files changed, 118 insertions(+), 51 deletions(-)
+Zoran Turalija (2):
+      stb0899: allow minimum symbol rate of 1000000
+      stb0899: allow minimum symbol rate of 2000000
 
--- 
-1.7.4.1
-
+ drivers/media/dvb-frontends/stb0899_algo.c | 105
+ ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-----------------------------------------------
+ drivers/media/dvb-frontends/stb0899_drv.c  |   7 +++----
+ drivers/media/dvb-frontends/stb0899_drv.h  |   5 ++--- 3 files
+ changed, 63 insertions(+), 54 deletions(-)
