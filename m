@@ -1,77 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2737 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754735Ab3FVKHM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jun 2013 06:07:12 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3331 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754984Ab3FBS2v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 14:28:51 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r52ISdSn076867
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 2 Jun 2013 20:28:42 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id BE6BD35E004C
+	for <linux-media@vger.kernel.org>; Sun,  2 Jun 2013 20:28:39 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Manjunatha Halli <manjunatha_halli@ti.com>,
-	Fengguang Wu <fengguang.wu@intel.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 6/6] wl128x: enable control events.
-Date: Sat, 22 Jun 2013 12:06:55 +0200
-Message-Id: <1371895615-14162-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371895615-14162-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371895615-14162-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130602182839.BE6BD35E004C@alastor.dyndns.org>
+Date: Sun,  2 Jun 2013 20:28:39 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/radio/wl128x/fmdrv_v4l2.c | 10 +++++++---
- drivers/media/radio/wl128x/fmdrv_v4l2.h |  1 +
- 2 files changed, 8 insertions(+), 3 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-index 6566364..4955b88 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
-@@ -105,15 +105,16 @@ static u32 fm_v4l2_fops_poll(struct file *file, struct poll_table_struct *pts)
- {
- 	int ret;
- 	struct fmdev *fmdev;
-+	u32 rc = v4l2_ctrl_poll(file, pts);
- 
- 	fmdev = video_drvdata(file);
- 	mutex_lock(&fmdev->mutex);
- 	ret = fmc_is_rds_data_available(fmdev, file, pts);
- 	mutex_unlock(&fmdev->mutex);
- 	if (ret < 0)
--		return POLLIN | POLLRDNORM;
-+		return rc | POLLIN | POLLRDNORM;
- 
--	return 0;
-+	return rc;
- }
- 
- /*
-@@ -480,7 +481,10 @@ static const struct v4l2_ioctl_ops fm_drv_ioctl_ops = {
- 	.vidioc_s_frequency = fm_v4l2_vidioc_s_freq,
- 	.vidioc_s_hw_freq_seek = fm_v4l2_vidioc_s_hw_freq_seek,
- 	.vidioc_g_modulator = fm_v4l2_vidioc_g_modulator,
--	.vidioc_s_modulator = fm_v4l2_vidioc_s_modulator
-+	.vidioc_s_modulator = fm_v4l2_vidioc_s_modulator,
-+	.vidioc_log_status = v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event = v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- /* V4L2 RADIO device parent structure */
-diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.h b/drivers/media/radio/wl128x/fmdrv_v4l2.h
-index 66d6f3e..9874660 100644
---- a/drivers/media/radio/wl128x/fmdrv_v4l2.h
-+++ b/drivers/media/radio/wl128x/fmdrv_v4l2.h
-@@ -27,6 +27,7 @@
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
- #include <media/v4l2-fh.h>
-+#include <media/v4l2-event.h>
- 
- int fm_v4l2_init_video_device(struct fmdev *, int);
- void *fm_v4l2_deinit_video_device(void);
--- 
-1.8.3.1
+date:		Sun Jun  2 19:00:19 CEST 2013
+git branch:	test
+git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: OK
+linux-3.9.2-i686: OK
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: OK
+linux-3.9.2-x86_64: OK
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
