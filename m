@@ -1,38 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www17.your-server.de ([213.133.104.17]:33699 "EHLO
-	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759283Ab3FAKBz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jun 2013 06:01:55 -0400
-Message-ID: <1370079510.29224.4.camel@localhost.localdomain>
-Subject: [PATCH] PVRUSB2: Cocci spatch "memdup.spatch"
-From: Thomas Meyer <thomas@m3y3r.de>
-To: isely@pobox.com, mchehab@redhat.com, linux-media@vger.kernel.org,
-	linux-kernel@vger.kernel.org
-Date: Sat, 01 Jun 2013 11:38:30 +0200
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:2518 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750711Ab3FBK4V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 06:56:21 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r52Au95R048531
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 2 Jun 2013 12:56:12 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.lan (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 05C4135E004E
+	for <linux-media@vger.kernel.org>; Sun,  2 Jun 2013 12:56:08 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH 00/16] saa7134: cleanup
+Date: Sun,  2 Jun 2013 12:55:51 +0200
+Message-Id: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This patch series cleans up saa7134, updating it to the latest frameworks
+(except for vb2). Tested with a Beholder BeholdTV M6 empress card.
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
----
+There is also one small v4l2-ctrls fix in the patch series and the
+saa6752hs is moved to media/i2c, since it really has nothing to do with
+the saa7134 driver.
 
-diff -u -p a/drivers/media/usb/pvrusb2/pvrusb2-io.c b/drivers/media/usb/pvrusb2/pvrusb2-io.c
---- a/drivers/media/usb/pvrusb2/pvrusb2-io.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-io.c
-@@ -354,9 +354,9 @@ static int pvr2_stream_buffer_count(stru
- 		if (scnt < sp->buffer_slot_count) {
- 			struct pvr2_buffer **nb = NULL;
- 			if (scnt) {
--				nb = kmalloc(scnt * sizeof(*nb),GFP_KERNEL);
-+				nb = kmemdup(sp->buffers, scnt * sizeof(*nb),
-+					     GFP_KERNEL);
- 				if (!nb) return -ENOMEM;
--				memcpy(nb,sp->buffers,scnt * sizeof(*nb));
- 			}
- 			kfree(sp->buffers);
- 			sp->buffers = nb;
+This patch series sits on top of the "Control framework conversions"
+patch series since it requires the saa6752hs patch from that series:
 
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg62772.html
+
+Still to do: test the saa7134+saa6588 combo.
+
+Regards,
+
+	Hans
 
