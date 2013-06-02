@@ -1,71 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:38231 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754639Ab3FOXvL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jun 2013 19:51:11 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] media: i2c: ths7303: remove unused member driver_data
-Date: Sun, 16 Jun 2013 01:51:22 +0200
-Message-ID: <2064603.dg6NN5EgtL@avalon>
-In-Reply-To: <1371314050-25866-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371314050-25866-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2237 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751633Ab3FBK4d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 06:56:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 06/16] saa7134: fix format-related compliance issues.
+Date: Sun,  2 Jun 2013 12:55:57 +0200
+Message-Id: <1370170567-7004-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thanks for the patch.
+- map overlay format values to the supported ranges
+- set colorspace
+- zero priv field
+- fix cliplist handling
+- fix field handling
+- initialize ovbuf values
 
-On Saturday 15 June 2013 22:04:10 Prabhakar Lad wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> This patch removes the driver_data member from ths7303_state structure.
-> The driver_data member was intended to differentiate between ths7303 and
-> ths7353 chip and get the g_chip_ident, But as of now g_chip_ident is
-> obsolete, so there is no need of driver_data.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa7134-video.c |   74 ++++++++++++++++++++---------
+ 1 file changed, 52 insertions(+), 22 deletions(-)
 
-What tree it this based on ? linuxtv/master still uses driver_data in the 
-ths7303_g_chip_ident() function.
-
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  drivers/media/i2c/ths7303.c |    4 ----
->  1 file changed, 4 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
-> index 2e17abc..0a2dacb 100644
-> --- a/drivers/media/i2c/ths7303.c
-> +++ b/drivers/media/i2c/ths7303.c
-> @@ -38,7 +38,6 @@ struct ths7303_state {
->  	struct v4l2_bt_timings		bt;
->  	int std_id;
->  	int stream_on;
-> -	int driver_data;
->  };
-> 
->  enum ths7303_filter_mode {
-> @@ -355,9 +354,6 @@ static int ths7303_probe(struct i2c_client *client,
->  	sd = &state->sd;
->  	v4l2_i2c_subdev_init(sd, client, &ths7303_ops);
-> 
-> -	/* store the driver data to differntiate the chip */
-> -	state->driver_data = (int)id->driver_data;
-> -
->  	/* set to default 480I_576I filter mode */
->  	if (ths7303_setval(sd, THS7303_FILTER_MODE_480I_576I) < 0) {
->  		v4l_err(client, "Setting to 480I_576I filter mode failed!\n");
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 9465a1d..555e62c 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -825,20 +825,22 @@ static int setup_clipping(struct saa7134_dev *dev, struct v4l2_clip *clips,
+ 	return 0;
+ }
+ 
+-static int verify_preview(struct saa7134_dev *dev, struct v4l2_window *win)
++static int verify_preview(struct saa7134_dev *dev, struct v4l2_window *win, bool try)
+ {
+ 	enum v4l2_field field;
+ 	int maxw, maxh;
+ 
+-	if (NULL == dev->ovbuf.base)
++	if (!try && (dev->ovbuf.base == NULL || dev->ovfmt == NULL))
+ 		return -EINVAL;
+-	if (NULL == dev->ovfmt)
+-		return -EINVAL;
+-	if (win->w.width < 48 || win->w.height <  32)
+-		return -EINVAL;
+-	if (win->clipcount > 2048)
+-		return -EINVAL;
+-
++	if (win->w.width < 48)
++		win->w.width = 48;
++	if (win->w.height < 32)
++		win->w.height = 32;
++	if (win->clipcount > 8)
++		win->clipcount = 8;
++
++	win->chromakey = 0;
++	win->global_alpha = 0;
+ 	field = win->field;
+ 	maxw  = dev->crop_current.width;
+ 	maxh  = dev->crop_current.height;
+@@ -853,10 +855,9 @@ static int verify_preview(struct saa7134_dev *dev, struct v4l2_window *win)
+ 	case V4L2_FIELD_BOTTOM:
+ 		maxh = maxh / 2;
+ 		break;
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+ 	default:
+-		return -EINVAL;
++		field = V4L2_FIELD_INTERLACED;
++		break;
+ 	}
+ 
+ 	win->field = field;
+@@ -872,7 +873,7 @@ static int start_preview(struct saa7134_dev *dev, struct saa7134_fh *fh)
+ 	unsigned long base,control,bpl;
+ 	int err;
+ 
+-	err = verify_preview(dev, &dev->win);
++	err = verify_preview(dev, &dev->win, false);
+ 	if (0 != err)
+ 		return err;
+ 
+@@ -1546,6 +1547,8 @@ static int saa7134_g_fmt_vid_cap(struct file *file, void *priv,
+ 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage =
+ 		f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.priv = 0;
+ 	return 0;
+ }
+ 
+@@ -1554,14 +1557,32 @@ static int saa7134_g_fmt_vid_overlay(struct file *file, void *priv,
+ {
+ 	struct saa7134_fh *fh = priv;
+ 	struct saa7134_dev *dev = fh->dev;
++	struct v4l2_clip *clips = f->fmt.win.clips;
++	u32 clipcount = f->fmt.win.clipcount;
++	int err = 0;
++	int i;
+ 
+ 	if (saa7134_no_overlay > 0) {
+ 		printk(KERN_ERR "V4L2_BUF_TYPE_VIDEO_OVERLAY: no_overlay\n");
+ 		return -EINVAL;
+ 	}
++	mutex_lock(&dev->lock);
+ 	f->fmt.win = dev->win;
++	f->fmt.win.clips = clips;
++	if (clips == NULL)
++		clipcount = 0;
++	if (dev->nclips < clipcount)
++		clipcount = dev->nclips;
++	f->fmt.win.clipcount = clipcount;
++
++	for (i = 0; !err && i < clipcount; i++) {
++		if (copy_to_user(&f->fmt.win.clips[i].c, &dev->clips[i].c,
++					sizeof(struct v4l2_rect)))
++			err = -EFAULT;
++	}
++	mutex_unlock(&dev->lock);
+ 
+-	return 0;
++	return err;
+ }
+ 
+ static int saa7134_try_fmt_vid_cap(struct file *file, void *priv,
+@@ -1591,10 +1612,9 @@ static int saa7134_try_fmt_vid_cap(struct file *file, void *priv,
+ 	case V4L2_FIELD_BOTTOM:
+ 		maxh = maxh / 2;
+ 		break;
+-	case V4L2_FIELD_INTERLACED:
+-		break;
+ 	default:
+-		return -EINVAL;
++		field = V4L2_FIELD_INTERLACED;
++		break;
+ 	}
+ 
+ 	f->fmt.pix.field = field;
+@@ -1611,6 +1631,8 @@ static int saa7134_try_fmt_vid_cap(struct file *file, void *priv,
+ 		(f->fmt.pix.width * fmt->depth) >> 3;
+ 	f->fmt.pix.sizeimage =
+ 		f->fmt.pix.height * f->fmt.pix.bytesperline;
++	f->fmt.pix.colorspace   = V4L2_COLORSPACE_SMPTE170M;
++	f->fmt.pix.priv = 0;
+ 
+ 	return 0;
+ }
+@@ -1626,7 +1648,9 @@ static int saa7134_try_fmt_vid_overlay(struct file *file, void *priv,
+ 		return -EINVAL;
+ 	}
+ 
+-	return verify_preview(dev, &f->fmt.win);
++	if (f->fmt.win.clips == NULL)
++		f->fmt.win.clipcount = 0;
++	return verify_preview(dev, &f->fmt.win, true);
+ }
+ 
+ static int saa7134_s_fmt_vid_cap(struct file *file, void *priv,
+@@ -1659,7 +1683,9 @@ static int saa7134_s_fmt_vid_overlay(struct file *file, void *priv,
+ 		printk(KERN_ERR "V4L2_BUF_TYPE_VIDEO_OVERLAY: no_overlay\n");
+ 		return -EINVAL;
+ 	}
+-	err = verify_preview(dev, &f->fmt.win);
++	if (f->fmt.win.clips == NULL)
++		f->fmt.win.clipcount = 0;
++	err = verify_preview(dev, &f->fmt.win, true);
+ 	if (0 != err)
+ 		return err;
+ 
+@@ -1668,9 +1694,6 @@ static int saa7134_s_fmt_vid_overlay(struct file *file, void *priv,
+ 	dev->win    = f->fmt.win;
+ 	dev->nclips = f->fmt.win.clipcount;
+ 
+-	if (dev->nclips > 8)
+-		dev->nclips = 8;
+-
+ 	if (copy_from_user(dev->clips, f->fmt.win.clips,
+ 			   sizeof(struct v4l2_clip) * dev->nclips)) {
+ 		mutex_unlock(&dev->lock);
+@@ -2441,6 +2464,13 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+ 	dev->fmt = format_by_fourcc(V4L2_PIX_FMT_BGR24);
+ 	dev->width    = 720;
+ 	dev->height   = 576;
++	dev->win.w.width = dev->width;
++	dev->win.w.height = dev->height;
++	dev->win.field = V4L2_FIELD_INTERLACED;
++	dev->ovbuf.fmt.width = dev->width;
++	dev->ovbuf.fmt.height = dev->height;
++	dev->ovbuf.fmt.pixelformat = dev->fmt->fourcc;
++	dev->ovbuf.fmt.colorspace = V4L2_COLORSPACE_SMPTE170M;
+ 
+ 	if (saa7134_boards[dev->board].video_out)
+ 		saa7134_videoport_init(dev);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
