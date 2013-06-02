@@ -1,45 +1,23 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:60336 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423279Ab3FURCa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 13:02:30 -0400
-Date: Fri, 21 Jun 2013 11:02:24 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: <lbyang@marvell.com>
-Cc: <g.liakhovetski@gmx.de>, <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>
-Subject: Re: [PATCH 2/7] marvell-ccic: add clock tree support for
- marvell-ccic driver
-Message-ID: <20130621110224.6adf7492@lwn.net>
-In-Reply-To: <1370324564.26072.22.camel@younglee-desktop>
-References: <1370324564.26072.22.camel@younglee-desktop>
-Mime-Version: 1.0
+Received: from lycasmtp.lycamobile.co.uk ([217.118.119.180]:47281 "EHLO
+	lycasmtp.lycamobile.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751492Ab3FBM5Q convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 08:57:16 -0400
+Message-Id: <201306021211.r52AehOL002571@lycasmtp.lycamobile.co.uk>
 Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7BIT
+Content-Description: Mail message body
+Subject: =?utf-8?q?Your_Email_ID_has_won_=C2=A31=2C000=2C000=2E00_GBP_in_our_UK_NA?=
+ =?utf-8?q?TIONAL_Online_Promo=2C_For_claims_send_your_Names_and_Country_t?=
+ =?utf-8?q?o_Dr=2EJones_Greene_Email=3A_inf=2Ejonesgreene=2Ewinclaims=40ho?=
+ =?utf-8?q?tmail=2Eco=2Euk?=
+To: Recipients <ifo@uk.com>
+From: ifo@uk.com
+Date: Sun, 02 Jun 2013 17:50:39 +0530
+Reply-To: inf.jonesgreene.winclaims@hotmail.co.uk
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 4 Jun 2013 13:42:44 +0800
-lbyang <lbyang@marvell.com> wrote:
 
-> +static void mcam_clk_enable(struct mcam_camera *mcam)
-> +{
-> +	unsigned int i;
-> +
-> +	for (i = 0; i < NR_MCAM_CLK; i++) {
-> +		if (!IS_ERR_OR_NULL(mcam->clk[i]))
-> +			clk_prepare_enable(mcam->clk[i]);
-> +	}
-> +}
 
-It seems I already acked this patch, and I won't take that back.  I
-will point out, though, that IS_ERR_OR_NULL has become a sort of
-lightning rod and that its use is probably best avoided.
-
-	http://lists.infradead.org/pipermail/linux-arm-kernel/2013-January/140543.html
-
-This relates to the use of ERR_PTR with that particular pointer value;
-I still think just using NULL is better, but maybe I'm missing
-something.
-
-jon
