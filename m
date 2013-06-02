@@ -1,46 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail1.matrix-vision.com ([78.47.19.71]:51481 "EHLO
-	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752574Ab3FLQUR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 12:20:17 -0400
-Message-ID: <51B89EDA.90107@matrix-vision.de>
-Date: Wed, 12 Jun 2013 18:16:26 +0200
-From: Michael Jones <michael.jones@matrix-vision.de>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media ML <linux-media@vger.kernel.org>
-Subject: double-buffering with the omap3 parallel interface
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3520 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752008Ab3FBK4h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 06:56:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 08/16] v4l2-ctrls: V4L2_CTRL_CLASS_FM_RX controls are also valid radio controls.
+Date: Sun,  2 Jun 2013 12:55:59 +0200
+Message-Id: <1370170567-7004-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent & co.,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-I'd like to look at what the maximum possible frame rates are for a 
-sensor connected to the OMAP3 ISP CCDC via the parallel interface, 
-writing frames directly to memory.  I understand that there is some 
-minimum amount of time required between frames to pass on the finished 
-frame and set up the address to be written to for the next frame.  From 
-the manual it looks like a double buffering scheme would've been 
-available on a different sensor interface, but isn't on the parallel one.
+The radio filter function that filters controls that are valid for a radio
+device should also accept V4L2_CTRL_CLASS_FM_RX controls.
 
-Do I see that right?  Is it impossible to use double buffering of any 
-sort while using the parallel interface to memory?
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-ctrls.c |    2 ++
+ 1 file changed, 2 insertions(+)
 
-I'm still using an older version of the driver, but I've browsed the 
-current state of the code, too.  What behavior do you expect if the time 
-between frames is too short for the buffer management?  Can it be 
-recovered from?  Has this behavior changed in recent versions?
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index ebb8e48..fccd08b 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -1835,6 +1835,8 @@ bool v4l2_ctrl_radio_filter(const struct v4l2_ctrl *ctrl)
+ {
+ 	if (V4L2_CTRL_ID2CLASS(ctrl->id) == V4L2_CTRL_CLASS_FM_TX)
+ 		return true;
++	if (V4L2_CTRL_ID2CLASS(ctrl->id) == V4L2_CTRL_CLASS_FM_RX)
++		return true;
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_AUDIO_MUTE:
+ 	case V4L2_CID_AUDIO_VOLUME:
+-- 
+1.7.10.4
 
-I see from the ISP block diagram that the "circular buffer" is between 
-the SBL and the MMU.  Could this maybe be used to help the situation? 
-It seems to currently not be used at all along this path.
-
-thanks,
-Michael
-
-MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
-Registergericht: Amtsgericht Stuttgart, HRB 271090
-Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
