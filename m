@@ -1,151 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:29321 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751386Ab3GABIQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jun 2013 21:08:16 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Kishon Vijay Abraham I' <kishon@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>
-References: <001f01ce73cf$46d8c940$d48a5bc0$@samsung.com>
- <51CEA219.8030001@ti.com>
-In-reply-to: <51CEA219.8030001@ti.com>
-Subject: Re: [PATCH V2 1/3] phy: Add driver for Exynos DP PHY
-Date: Mon, 01 Jul 2013 10:08:14 +0900
-Message-id: <001501ce75f7$767034c0$63509e40$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:43614 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755493Ab3FBS41 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 14:56:27 -0400
+Received: by mail-lb0-f182.google.com with SMTP id q15so866625lbi.27
+        for <linux-media@vger.kernel.org>; Sun, 02 Jun 2013 11:56:25 -0700 (PDT)
+Message-ID: <51AB9556.2080900@cogentembedded.com>
+Date: Sun, 02 Jun 2013 22:56:22 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: g.liakhovetski@gmx.de, mchehab@redhat.com,
+	linux-media@vger.kernel.org
+CC: magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <201305240211.29665.sergei.shtylyov@cogentembedded.com>
+In-Reply-To: <201305240211.29665.sergei.shtylyov@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday, June 29, 2013 6:00 PM, Kishon Vijay Abraham I wrote:
-> 
-> Hi,
-> 
-> On Friday 28 June 2013 12:45 PM, Jingoo Han wrote:
-> > Add a PHY provider driver for the Samsung Exynos SoC DP PHY.
-> >
-> > Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> > ---
-> >   .../phy/samsung,exynos5250-dp-video-phy.txt        |    7 ++
-> >   drivers/phy/Kconfig                                |    8 ++
-> >   drivers/phy/Makefile                               |    3 +-
-> >   drivers/phy/phy-exynos-dp-video.c                  |  122 ++++++++++++++++++++
-> >   4 files changed, 139 insertions(+), 1 deletion(-)
-> >   create mode 100644 Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
-> >   create mode 100644 drivers/phy/phy-exynos-dp-video.c
-> >
-> > diff --git a/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
-> > b/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
-> > new file mode 100644
-> > index 0000000..d1771ef
-> > --- /dev/null
-> > +++ b/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
-> > @@ -0,0 +1,7 @@
-> > +Samsung EXYNOS SoC series DP PHY
-> > +-------------------------------------------------
-> > +
-> > +Required properties:
-> > +- compatible : should be "samsung,exynos5250-dp-video-phy";
-> > +- reg : offset and length of the DP PHY register set;
-> > +- #phy-cells : from the generic phy bindings, must be 0;
-> > diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-> > index 5f85909..6d10e3b 100644
-> > --- a/drivers/phy/Kconfig
-> > +++ b/drivers/phy/Kconfig
-> > @@ -11,3 +11,11 @@ menuconfig GENERIC_PHY
-> >   	  devices present in the kernel. This layer will have the generic
-> >   	  API by which phy drivers can create PHY using the phy framework and
-> >   	  phy users can obtain reference to the PHY.
-> > +
-> > +if GENERIC_PHY
-> > +
-> > +config PHY_EXYNOS_DP_VIDEO
-> > +	tristate "EXYNOS SoC series DP PHY driver"
-> > +	help
-> > +	  Support for DP PHY found on Samsung EXYNOS SoCs.
-> > +endif
-> > diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-> > index 9e9560f..d8d861c 100644
-> > --- a/drivers/phy/Makefile
-> > +++ b/drivers/phy/Makefile
-> > @@ -2,4 +2,5 @@
-> >   # Makefile for the phy drivers.
-> >   #
-> >
-> > -obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
-> > +obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
-> > +obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
-> > diff --git a/drivers/phy/phy-exynos-dp-video.c b/drivers/phy/phy-exynos-dp-video.c
-> > new file mode 100644
-> > index 0000000..9a3d6f1
-> > --- /dev/null
-> > +++ b/drivers/phy/phy-exynos-dp-video.c
-> > @@ -0,0 +1,122 @@
-> > +/*
-> > + * Samsung EXYNOS SoC series DP PHY driver
-> > + *
-> > + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-> > + * Author: Jingoo Han <jg1.han@samsung.com>
-> > + *
-> > + * This program is free software; you can redistribute it and/or modify
-> > + * it under the terms of the GNU General Public License version 2 as
-> > + * published by the Free Software Foundation.
-> > + */
-> > +
-> > +#include <linux/io.h>
-> > +#include <linux/kernel.h>
-> > +#include <linux/module.h>
-> > +#include <linux/of.h>
-> > +#include <linux/of_address.h>
-> > +#include <linux/phy/phy.h>
-> > +#include <linux/platform_device.h>
-> > +#include <linux/spinlock.h>
-> > +
-> > +/* DPTX_PHY_CONTROL register */
-> > +#define EXYNOS_DPTX_PHY_ENABLE		(1 << 0)
-> > +
-> > +struct exynos_dp_video_phy {
-> > +	spinlock_t slock;
-> 
-> I think spinlock is not needed at all since the PHY ops is already protected
-> by a mutex.
+Hello.
 
-Yes, you're right.
-Only one PHY object access the control register; thus,
-there is no need to add spinlock.
-I will remove it.
+On 05/24/2013 02:11 AM, Sergei Shtylyov wrote:
 
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>
+> Add Renesas R-Car VIN (Video In) V4L2 driver.
+>
+> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+>
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
+> values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
+> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
+> *if* statement  and  used 'bool' values instead of 0/1 where necessary, removed
+> unused macros, done some reformatting and clarified some comments.]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>
+> ---
+> This patch is against the 'media_tree.git' repo.
+> It requires two following patches from Guennadi Liakhovetski:
+>
+> https://patchwork.linuxtv.org/patch/18209/
+> https://patchwork.linuxtv.org/patch/18210/
+>
 
-> > +	struct phy *phys;
-> 
-> _phys_ no longer need to part of this structure.
+[...]
+> Index: media_tree/include/linux/platform_data/camera-rcar.h
+> ===================================================================
+> --- /dev/null
+> +++ media_tree/include/linux/platform_data/camera-rcar.h
+> @@ -0,0 +1,25 @@
+> +/*
+> + * Platform data for Renesas R-Car VIN soc-camera driver
+> + *
+> + * Copyright (C) 2011-2013 Renesas Solutions Corp.
+> + * Copyright (C) 2013 Cogent Embedded, Inc., <source@cogentembedded.com>
+> + *
+> + * This program is free software; you can redistribute  it and/or modify it
+> + * under  the terms of  the GNU General  Public License as published by the
+> + * Free Software Foundation;  either version 2 of the  License, or (at your
+> + * option) any later version.
+> + */
+> +
+> +#ifndef __CAMERA_RCAR_H_
+> +#define __CAMERA_RCAR_H_
+> +
+> +#define RCAR_VIN_HSYNC_ACTIVE_LOW	(1 << 0)
+> +#define RCAR_VIN_VSYNC_ACTIVE_LOW	(1 << 1)
+> +#define RCAR_VIN_BT601			(1 << 2)
+> +#define RCAR_VIN_BT656			(1 << 3)
+> +
+> +struct rcar_vin_platform_data {
+> +	unsigned int flags;
+> +};
+> +
+> +#endif /* __CAMERA_RCAR_H_ */
 
-OK, I see.
-'struct phy' is only used at exynos_dp_video_phy_probe().
-So, I will remove 'struct phy *phys' from 'struct exynos_dp_video_phy'.
+    I wonder how to deal with a cross tree dependency caused by this file.
+Perhaps the VIN platform code could be merged thru the media tree (or
+maybe vice versa, all patches merged thru the Renesas tree)?
 
-Thank you for your comment.
-
-Best regards,
-Jingoo Han
-
-> > +	void __iomem *regs;
-> > +};
-> 
-> Thanks
-> Kishon
+WBR, Sergei
 
