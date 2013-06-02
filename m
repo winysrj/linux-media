@@ -1,355 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2713 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751164Ab3FJNa6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 09:30:58 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Arun Kumar K <arun.kk@samsung.com>
-Subject: Re: [PATCH 5/6] [media] V4L: Add VP8 encoder controls
-Date: Mon, 10 Jun 2013 15:30:31 +0200
-Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
-	jtp.park@samsung.com, s.nawrocki@samsung.com,
-	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
-References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com> <1370870586-24141-6-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1370870586-24141-6-git-send-email-arun.kk@samsung.com>
+Received: from mail-we0-f181.google.com ([74.125.82.181]:39265 "EHLO
+	mail-we0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753779Ab3FBVWj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 17:22:39 -0400
+Received: by mail-we0-f181.google.com with SMTP id p58so1179084wes.12
+        for <linux-media@vger.kernel.org>; Sun, 02 Jun 2013 14:22:38 -0700 (PDT)
+Message-ID: <51ABB79B.60307@gmail.com>
+Date: Sun, 02 Jun 2013 23:22:35 +0200
+From: Gianluca Gennari <gennarone@gmail.com>
+Reply-To: gennarone@gmail.com
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Antti Palosaari <crope@iki.fi>
+CC: linux-media@vger.kernel.org, mchehab@redhat.com,
+	mkrufky@linuxtv.org
+Subject: Re: [PATCH] rtl28xxu: fix buffer overflow when probing Rafael Micro
+ r820t tuner
+References: <1370199364-30060-1-git-send-email-gennarone@gmail.com> <51AB9D3F.4030804@iki.fi> <51ABA23A.7070500@gmail.com> <51ABA555.8050808@iki.fi>
+In-Reply-To: <51ABA555.8050808@iki.fi>
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 7bit
-Message-Id: <201306101530.31252.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
-
-Some review comments below...
-
-On Mon June 10 2013 15:23:05 Arun Kumar K wrote:
-> This patch adds new V4L controls for VP8 encoding.
+Il 02/06/2013 22:04, Antti Palosaari ha scritto:
+> On 06/02/2013 10:51 PM, Gianluca Gennari wrote:
+>> Il 02/06/2013 21:30, Antti Palosaari ha scritto:
+>>> On 06/02/2013 09:56 PM, Gianluca Gennari wrote:
+>>>> req_r820t wants a buffer with a size of 5 bytes, but the buffer 'buf'
+>>>> has a size of 2 bytes.
+>>>>
+>>>> This patch fixes the kernel oops with the r820t driver on old kernels
+>>>> during the probe stage.
+>>>> Successfully tested on a 2.6.32 32 bit kernel (Ubuntu 10.04).
+>>>> Hopefully it will also help with the random stability issues reported
+>>>> by some user on the linux-media list.
+>>>>
+>>>> This patch and https://patchwork.kernel.org/patch/2524651/
+>>>> should go in the next 3.10-rc release, as they fix potential kernel
+>>>> crashes.
+>>>>
+>>>> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+>>>> ---
+>>>>    drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
+>>>>    1 file changed, 1 insertion(+), 1 deletion(-)
+>>>>
+>>>> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>>>> b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>>>> index 22015fe..48f2e6f 100644
+>>>> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>>>> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+>>>> @@ -360,7 +360,7 @@ static int rtl2832u_read_config(struct
+>>>> dvb_usb_device *d)
+>>>>    {
+>>>>        struct rtl28xxu_priv *priv = d_to_priv(d);
+>>>>        int ret;
+>>>> -    u8 buf[2];
+>>>> +    u8 buf[5];
+>>>>        /* open RTL2832U/RTL2832 I2C gate */
+>>>>        struct rtl28xxu_req req_gate_open = {0x0120, 0x0011, 0x0001,
+>>>> "\x18"};
+>>>>        /* close RTL2832U/RTL2832 I2C gate */
+>>>>
+>>>
+>>> Gianluca, could you make that probe to check chip id as usually. Read
+>>> register 0x00 and check value 0x69. Also, please test if writing to that
+>>> address different value will not change register value to see it is
+>>> really chip id.
+>>>
+>>> regards
+>>> Antti
+>>>
+>>
+>> Hi Antti,
+>> surely it makes sense. I will not have the time to check it until the
+>> end of the coming week, so if someone else wants to do it in advance I
+>> will not take offence ;-)
+>>
+>> Regards,
+>> Gianluca
+>>
 > 
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-> ---
->  Documentation/DocBook/media/v4l/controls.xml |  145 ++++++++++++++++++++++++++
->  drivers/media/v4l2-core/v4l2-ctrls.c         |   38 +++++++
->  include/uapi/linux/v4l2-controls.h           |   30 +++++-
->  3 files changed, 212 insertions(+), 1 deletion(-)
+> Yeah. I would not like to extend that buf to 5 as it is not "proper"
+> solution. Current check is more like just a check that there is some
+> chip on that I2C address. Reading one byte makes as much sense as
+> reading 5 bytes. Maybe Mauro has added that probe "lets implement it
+> later" and then forget...
+
+I found the time to do a quick test; this is the code:
+
+
+	struct rtl28xxu_req req_r820t = {0x0034, CMD_I2C_RD, 1, buf};
+	struct rtl28xxu_req req_r820t_write = {0x0034, CMD_I2C_WR, 1, buf};
+
+
+[snip]
+
+	/* check R820T ID register; reg=00 val=69 */
+	ret = rtl28xxu_ctrl_msg(d, &req_r820t);
+	if (ret == 0 && buf[0] == 0x69) {
+		priv->tuner = TUNER_RTL2832_R820T;
+		priv->tuner_name = "R820T";
+		//goto found;
+	}
+
+	dev_info(&d->udev->dev, "r820t tuner ID: %d\n", buf[0]);
+	buf[0] = 0;
+	ret = rtl28xxu_ctrl_msg(d, &req_r820t_write);
+	if (ret == 0) {
+		dev_info(&d->udev->dev, "successfully wrote newr820t tuner ID: %d\n",
+buf[0]);
+	}
+	
+	ret = rtl28xxu_ctrl_msg(d, &req_r820t);
+	if (ret == 0 && buf[0] == 0x69) {
+		dev_info(&d->udev->dev, "Confirmed r820t tuner ID: %d\n", buf[0]);
+	}
+	dev_info(&d->udev->dev, "r820t tuner ID: %d\n", buf[0]);
+
+
+and this is the result:
+
+[ 3416.403807] usb 2-1.1: dvb_usb_v2: found a 'Realtek RTL2832U
+reference design' in warm state
+[ 3416.403855] usbcore: registered new interface driver dvb_usb_rtl28xxu
+[ 3416.468531] usb 2-1.1: r820t tuner ID: 105
+[ 3416.470657] usb 2-1.1: successfully wrote newr820t tuner ID: 0
+[ 3416.472838] usb 2-1.1: Confirmed r820t tuner ID: 105
+[ 3416.472842] usb 2-1.1: r820t tuner ID: 105
+[ 3416.474934] usb 2-1.1: dvb_usb_v2: will pass the complete MPEG2
+transport stream to the software demuxer
+[ 3416.474953] DVB: registering new adapter (Realtek RTL2832U reference
+design)
+[ 3416.491121] usb 2-1.1: DVB: registering adapter 0 frontend 0 (Realtek
+RTL2832 (DVB-T))...
+[ 3416.505607] r820t 0-001a: creating new instance
+[ 3416.517646] r820t 0-001a: Rafael Micro r820t successfully identified
+[ 3416.524730] Registered IR keymap rc-empty
+[ 3416.524954] input: Realtek RTL2832U reference design as
+/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/rc/rc0/input20
+[ 3416.525133] rc0: Realtek RTL2832U reference design as
+/devices/pci0000:00/0000:00:1d.0/usb2/2-1/2-1.1/rc/rc0
+[ 3416.525141] usb 2-1.1: dvb_usb_v2: schedule remote query interval to
+400 msecs
+[ 3416.537261] usb 2-1.1: dvb_usb_v2: 'Realtek RTL2832U reference
+design' successfully initialized and connected
+
+
+so it looks OK. I will post a v2 patch.
+
+
+> Northern part of Finland has has very warm weather now in two weeks and
+> I haven't found any time to code now :D Crazy, 25-30 C degrees every
+> day, hottest place in whole Europe :] I really hope it will go back to
+> normal rainy and cold weather soon that I can jump back to coding...
+
+LOL, you should take a vacation here in Italy: you will find all the
+cold and rain you need to produce some nice code ;-)
+
+Just make sure your hotel has free wi-fi, or you'll end up spending more
+on Internet access than on food :P
+
 > 
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 8d7a779..db614c7 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -4772,4 +4772,149 @@ defines possible values for de-emphasis. Here they are:</entry>
->        </table>
->  
->        </section>
-> +
-> +    <section id="vpx-controls">
-> +      <title>VPX Control Reference</title>
-> +
-> +      <para>The VPX control class includes controls for encoding parameters
-> +      of VPx video codec.</para>
-
-Are these controls defined by the VPx standard, or are they specific to the
-Samsung hardware?
-
-I am not certain whether a separate class should be created for these. Adding
-it to the MPEG control class might be a better approach (yes, I know MPEG is
-a bit of a misnomer, but it already handles other compressions standards as
-well).
-
-> +
-> +      <table pgwide="1" frame="none" id="fm-rx-control-id">
-> +      <title>VPX Control IDs</title>
-> +
-> +      <tgroup cols="4">
-> +        <colspec colname="c1" colwidth="1*" />
-> +        <colspec colname="c2" colwidth="6*" />
-> +        <colspec colname="c3" colwidth="2*" />
-> +        <colspec colname="c4" colwidth="6*" />
-> +        <spanspec namest="c1" nameend="c2" spanname="id" />
-> +        <spanspec namest="c2" nameend="c4" spanname="descr" />
-> +        <thead>
-> +          <row>
-> +            <entry spanname="id" align="left">ID</entry>
-> +            <entry align="left">Type</entry>
-> +          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-> +          </row>
-> +        </thead>
-> +        <tbody valign="top">
-> +          <row><entry></entry></row>
-> +
-> +	      <row><entry></entry></row>
-> +	      <row id="v4l2-vpx-num-partitions">
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_NUM_PARTITIONS</constant>&nbsp;</entry>
-> +		<entry>enum&nbsp;v4l2_vp8_num_partitions</entry>
-> +	      </row>
-> +	      <row><entry spanname="descr">The number of token partitions to use in VP8 encoder.
-> +Possible values are:</entry>
-> +	      </row>
-> +	      <row>
-> +		<entrytbl spanname="descr" cols="2">
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry><constant>V4L2_VPX_1_PARTITION</constant>&nbsp;</entry>
-> +		      <entry>1 coefficient partition</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry><constant>V4L2_VPX_2_PARTITIONS</constant>&nbsp;</entry>
-> +		      <entry>2 partitions</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry><constant>V4L2_VPX_4_PARTITIONS</constant>&nbsp;</entry>
-> +		      <entry>4 partitions</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry><constant>V4L2_VPX_8_PARTITIONS</constant>&nbsp;</entry>
-> +		      <entry>8 partitions</entry>
-> +	            </row>
-> +                  </tbody>
-> +		</entrytbl>
-> +	      </row>
-> +
-> +	      <row><entry></entry></row>
-> +	      <row>
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_IMD_DISABLE_4X4</constant>&nbsp;</entry>
-> +		<entry>boolean</entry>
-> +	      </row>
-> +	      <row><entry spanname="descr">Setting this prevents intra 4x4 mode in the intra mode decision.</entry>
-> +	      </row>
-> +
-> +	      <row><entry></entry></row>
-> +	      <row id="v4l2-vpx-num-ref-frames">
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_NUM_REF_FRAMES</constant>&nbsp;</entry>
-> +		<entry>enum&nbsp;v4l2_vp8_num_ref_frames</entry>
-> +	      </row>
-> +	      <row><entry spanname="descr">The number of reference pictures for encoding P frames.
-> +Possible values are:</entry>
-> +	      </row>
-> +	      <row>
-> +		<entrytbl spanname="descr" cols="2">
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry><constant>V4L2_VPX_1_REF_FRAME</constant>&nbsp;</entry>
-> +		      <entry>Last encoded frame will be searched</entry>
-> +		    </row>
-> +		    <row>
-> +		      <entry><constant>V4L2_VPX_2_REF_FRAME</constant>&nbsp;</entry>
-> +		      <entry>Last encoded frame and the Golden frame will be searched</entry>
-> +		    </row>
-> +                  </tbody>
-> +		</entrytbl>
-> +	      </row>
-> +
-> +	      <row><entry></entry></row>
-> +	      <row>
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_FILTER_LEVEL</constant>&nbsp;</entry>
-> +		<entry>integer</entry>
-> +	      </row>
-> +	      <row><entry spanname="descr">Indicates the loop filter level. The adjustment of loop
-> +filter level is done via a delta value against a baseline loop filter value.</entry>
-> +	      </row>
-> +
-> +	      <row><entry></entry></row>
-> +	      <row>
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_FILTER_SHARPNESS</constant>&nbsp;</entry>
-> +		<entry>integer</entry>
-> +	      </row>
-> +	      <row><entry spanname="descr">This parameter affects the loop filter. Anything above
-> +zero weakens the deblocking effect on loop filter.</entry>
-> +	      </row>
-> +
-> +	      <row><entry></entry></row>
-> +	      <row>
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD</constant>&nbsp;</entry>
-> +		<entry>integer</entry>
-> +	      </row>
-> +	      <row><entry spanname="descr">Sets the refresh period for golden frame.</entry>
-
-The period is in number of frames I assume? And is the golden frame taken at
-the start or at the end of the period?
-
-> +	      </row>
-> +
-> +	      <row><entry></entry></row>
-> +	      <row id="v4l2-vpx-golden-frame-sel">
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_GOLDEN_FRAME_SEL</constant>&nbsp;</entry>
-> +		<entry>enum&nbsp;v4l2_vp8_golden_frame_sel</entry>
-> +	      </row>
-> +	      <row><entry spanname="descr">Selects the golden frame for encoding.
-> +Possible values are:</entry>
-> +	      </row>
-> +	      <row>
-> +		<entrytbl spanname="descr" cols="2">
-> +		  <tbody valign="top">
-> +		    <row>
-> +		      <entry><constant>V4L2_VPX_GOLDEN_FRAME_USE_PREV</constant>&nbsp;</entry>
-> +		      <entry>Use the previous second frame as a golden frame</entry>
-
-Second frame of what? It's not clear to me how I should interpret this.
-
-> +		    </row>
-> +		    <row>
-> +		      <entry><constant>V4L2_VPX_GOLDEN_FRAME_USE_REF_PERIOD</constant>&nbsp;</entry>
-> +		      <entry>Use the previous specific frame indicated by V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame</entry>
-> +		    </row>
-> +                  </tbody>
-> +		</entrytbl>
-> +	      </row>
-> +
-> +          <row><entry></entry></row>
-> +        </tbody>
-> +      </tgroup>
-> +      </table>
-> +
-> +      </section>
-> +
->  </section>
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index fccd08b..2cf17d4 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -456,6 +456,23 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"RGB full range (0-255)",
->  		NULL,
->  	};
-> +	static const char * const vpx_num_partitions[] = {
-> +		"1 partition",
-> +		"2 partitions",
-> +		"4 partitions",
-> +		"8 partitions",
-
-Please use a capital P for Partition.
-
-> +		NULL,
-> +	};
-> +	static const char * const vpx_num_ref_frames[] = {
-> +		"1 reference frame",
-> +		"2 reference frame",
-
-frame -> Frames
-
-Capitalize these strings. Same for all the others.
-
-> +		NULL,
-> +	};
-> +	static const char * const vpx_golden_frame_sel[] = {
-> +		"Use previous frame",
-> +		"Use frame indicated by GOLDEN_FRAME_REF_PERIOD",
-> +		NULL,
-> +	};
->  
->  
->  	switch (id) {
-> @@ -545,6 +562,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  	case V4L2_CID_DV_TX_RGB_RANGE:
->  	case V4L2_CID_DV_RX_RGB_RANGE:
->  		return dv_rgb_range;
-> +	case V4L2_CID_VPX_NUM_PARTITIONS:
-> +		return vpx_num_partitions;
-> +	case V4L2_CID_VPX_NUM_REF_FRAMES:
-> +		return vpx_num_ref_frames;
-> +	case V4L2_CID_VPX_GOLDEN_FRAME_SEL:
-> +		return vpx_golden_frame_sel;
->  
->  	default:
->  		return NULL;
-> @@ -806,6 +829,17 @@ const char *v4l2_ctrl_get_name(u32 id)
->  	case V4L2_CID_FM_RX_CLASS:		return "FM Radio Receiver Controls";
->  	case V4L2_CID_TUNE_DEEMPHASIS:		return "De-Emphasis";
->  	case V4L2_CID_RDS_RECEPTION:		return "RDS Reception";
-> +
-> +	/* VPX controls */
-> +	case V4L2_CID_VPX_CLASS:		return "VPX Encoder Controls";
-> +	case V4L2_CID_VPX_NUM_PARTITIONS:	return "VPX Number of partitions";
-> +	case V4L2_CID_VPX_IMD_DISABLE_4X4:	return "VPX Intra mode decision disable";
-> +	case V4L2_CID_VPX_NUM_REF_FRAMES:	return "VPX Number of reference pictures for P frames";
-
-This string is too long: only 31 characters (excluding the trailing \0) can
-be used.
-
-> +	case V4L2_CID_VPX_FILTER_LEVEL:		return "VPX Loop filter level range";
-> +	case V4L2_CID_VPX_FILTER_SHARPNESS:	return "VPX Deblocking effect control";
-> +	case V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD:	return "VPX Golden frame refresh period";
-> +	case V4L2_CID_VPX_GOLDEN_FRAME_SEL:	return "VPX Golden frame indicator";
-> +
->  	default:
->  		return NULL;
->  	}
-> @@ -914,6 +948,9 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_DV_RX_RGB_RANGE:
->  	case V4L2_CID_TEST_PATTERN:
->  	case V4L2_CID_TUNE_DEEMPHASIS:
-> +	case V4L2_CID_VPX_NUM_PARTITIONS:
-> +	case V4L2_CID_VPX_NUM_REF_FRAMES:
-> +	case V4L2_CID_VPX_GOLDEN_FRAME_SEL:
->  		*type = V4L2_CTRL_TYPE_MENU;
->  		break;
->  	case V4L2_CID_LINK_FREQ:
-> @@ -937,6 +974,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->  	case V4L2_CID_IMAGE_PROC_CLASS:
->  	case V4L2_CID_DV_CLASS:
->  	case V4L2_CID_FM_RX_CLASS:
-> +	case V4L2_CID_VPX_CLASS:
->  		*type = V4L2_CTRL_TYPE_CTRL_CLASS;
->  		/* You can neither read not write these */
->  		*flags |= V4L2_CTRL_FLAG_READ_ONLY | V4L2_CTRL_FLAG_WRITE_ONLY;
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 69bd5bb..3d6649c 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -60,6 +60,7 @@
->  #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
->  #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
->  #define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
-> +#define V4L2_CTRL_CLASS_VPX		0x00a20000	/* VPX-compression controls */
->  
->  /* User-class control IDs */
->  
-> @@ -818,7 +819,6 @@ enum v4l2_jpeg_chroma_subsampling {
->  #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
->  #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
->  
-> -
->  /*  DV-class control IDs defined by V4L2 */
->  #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
->  #define V4L2_CID_DV_CLASS			(V4L2_CTRL_CLASS_DV | 1)
-> @@ -853,4 +853,32 @@ enum v4l2_deemphasis {
->  
->  #define V4L2_CID_RDS_RECEPTION			(V4L2_CID_FM_RX_CLASS_BASE + 2)
->  
-> +/* VP-class control IDs */
-> +
-> +#define V4L2_CID_VPX_BASE			(V4L2_CTRL_CLASS_VPX | 0x900)
-> +#define V4L2_CID_VPX_CLASS			(V4L2_CTRL_CLASS_VPX | 1)
-> +
-> +/*  VPX streams, specific to multiplexed streams */
-> +#define V4L2_CID_VPX_NUM_PARTITIONS		(V4L2_CID_VPX_BASE+0)
-> +enum v4l2_vp8_num_partitions {
-> +	V4L2_VPX_1_PARTITION	= 0,
-> +	V4L2_VPX_2_PARTITIONS	= (1 << 1),
-> +	V4L2_VPX_4_PARTITIONS	= (1 << 2),
-> +	V4L2_VPX_8_PARTITIONS	= (1 << 3),
-> +};
-> +#define V4L2_CID_VPX_IMD_DISABLE_4X4		(V4L2_CID_VPX_BASE+1)
-> +#define V4L2_CID_VPX_NUM_REF_FRAMES		(V4L2_CID_VPX_BASE+2)
-> +enum v4l2_vp8_num_ref_frames {
-> +	V4L2_VPX_1_REF_FRAME	= 0,
-> +	V4L2_VPX_2_REF_FRAME	= 1,
-> +};
-> +#define V4L2_CID_VPX_FILTER_LEVEL		(V4L2_CID_VPX_BASE+3)
-> +#define V4L2_CID_VPX_FILTER_SHARPNESS		(V4L2_CID_VPX_BASE+4)
-> +#define V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD	(V4L2_CID_VPX_BASE+5)
-> +#define V4L2_CID_VPX_GOLDEN_FRAME_SEL		(V4L2_CID_VPX_BASE+6)
-> +enum v4l2_vp8_golden_frame_sel {
-> +	V4L2_VPX_GOLDEN_FRAME_USE_PREV		= 0,
-> +	V4L2_VPX_GOLDEN_FRAME_USE_REF_PERIOD	= 1,
-> +};
-> +
->  #endif
+> regards
+> Antti
 > 
 
 Regards,
+Gianluca
 
-	Hans
+
