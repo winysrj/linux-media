@@ -1,60 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44494 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:49620 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758856Ab3FCWzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Jun 2013 18:55:24 -0400
+	id S1753487Ab3FBVNd (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Jun 2013 17:13:33 -0400
+Message-ID: <51ABB553.702@iki.fi>
+Date: Mon, 03 Jun 2013 00:12:51 +0300
 From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/4] af9035: implement I2C adapter read operation
-Date: Tue,  4 Jun 2013 01:54:23 +0300
-Message-Id: <1370300066-13964-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1370300066-13964-1-git-send-email-crope@iki.fi>
-References: <1370300066-13964-1-git-send-email-crope@iki.fi>
+MIME-Version: 1.0
+To: Torsten Seyffarth <t.seyffarth@gmx.de>
+CC: poma <pomidorabelisima@gmail.com>, linux-media@vger.kernel.org
+Subject: Re: Cinergy TStick RC rev.3 (rtl2832u) only 4 programs
+References: <51A73A88.9000601@gmx.de> <51A76FCA.3010803@gmail.com> <51A78CA5.5040502@gmx.de> <51A7AD71.4010403@gmail.com> <51AA00DD.4020201@gmx.de>
+In-Reply-To: <51AA00DD.4020201@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 22 ++++++++++++++++++++--
- 1 file changed, 20 insertions(+), 2 deletions(-)
+On 06/01/2013 05:10 PM, Torsten Seyffarth wrote:
+>
+> Am 30.05.2013 21:50, schrieb poma:
+>> You've used the original driver provided by Realtek, 'dvb-usb-rtl2832'.
+>> You are currently using GPL'd, 'dvb_usb_v2', 'dvb_usb_rtl28xxu' and
+>> 'e4000' designed by Antti & Thomas.
+>>
+>
+> So I will try to find another useful option for this stick.
+> How do I prevent similar problems with the next stick I buy?
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index b638fc1..cfcf79b 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -268,11 +268,29 @@ static int af9035_i2c_master_xfer(struct i2c_adapter *adap,
- 			memcpy(&buf[5], msg[0].buf, msg[0].len);
- 			ret = af9035_ctrl_msg(d, &req);
- 		}
-+	} else if (num == 1 && (msg[0].flags & I2C_M_RD)) {
-+		if (msg[0].len > 40) {
-+			/* TODO: correct limits > 40 */
-+			ret = -EOPNOTSUPP;
-+		} else {
-+			/* I2C */
-+			u8 buf[5];
-+			struct usb_req req = { CMD_I2C_RD, 0, sizeof(buf),
-+					buf, msg[0].len, msg[0].buf };
-+			req.mbox |= ((msg[0].addr & 0x80)  >>  3);
-+			buf[0] = msg[0].len;
-+			buf[1] = msg[0].addr << 1;
-+			buf[2] = 0x00; /* reg addr len */
-+			buf[3] = 0x00; /* reg addr MSB */
-+			buf[4] = 0x00; /* reg addr LSB */
-+			ret = af9035_ctrl_msg(d, &req);
-+		}
- 	} else {
- 		/*
--		 * We support only two kind of I2C transactions:
--		 * 1) 1 x read + 1 x write
-+		 * We support only three kind of I2C transactions:
-+		 * 1) 1 x read + 1 x write (repeated start)
- 		 * 2) 1 x write
-+		 * 3) 1 x read
- 		 */
- 		ret = -EOPNOTSUPP;
- 	}
+It is most likely e4000 bug. Some corner case. It is surely very easy to 
+find out, will take only 1-2 hours or so when you could reproduce it and 
+you know what to do.
+
+Just take USB sniffs from working configuration, generate tuner register 
+write code and copy & paste that to the tuner driver until it starts 
+working. After that you could find out problematic registers quite seen 
+just trial and error method.
+
+Lastly someone sends me non-working rtl2832u + e4000 device. I put just 
+same transmission parameters, which was said non-working, to my 
+modulator and it worked! Likely signal got from modulator was so perfect 
+that I was unable to reproduce issue.
+
+Best thing what you could to is just to jump in and start fixing these 
+drivers yourself. There is only very few person who do these nowadays. 
+It is just lack of developers!
+
+regards
+Antti
+
 -- 
-1.7.11.7
-
+http://palosaari.fi/
