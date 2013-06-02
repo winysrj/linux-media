@@ -1,107 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1315 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753671Ab3F0S3b (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 14:29:31 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5RITRXp058393
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 27 Jun 2013 20:29:29 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 2383B35E00C2
-	for <linux-media@vger.kernel.org>; Thu, 27 Jun 2013 20:29:21 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130627182921.2383B35E00C2@alastor.dyndns.org>
-Date: Thu, 27 Jun 2013 20:29:21 +0200 (CEST)
+Received: from mail-yh0-f44.google.com ([209.85.213.44]:45732 "EHLO
+	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755057Ab3FBShL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 14:37:11 -0400
+Received: by mail-yh0-f44.google.com with SMTP id 29so992649yhl.31
+        for <linux-media@vger.kernel.org>; Sun, 02 Jun 2013 11:37:11 -0700 (PDT)
+Date: Sun, 2 Jun 2013 14:29:25 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: mchehab@redhat.com, linux-media@vger.kernel.org
+Subject: [GIT PULL] git://linuxtv.org/mkrufky/dvb stb0899
+Message-ID: <20130602142925.55d67d24@vujade>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The following changes since commit
+7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
 
-Results of the daily build of media_tree:
+  [media] media: pci: remove duplicate checks for EPERM (2013-05-27
+  09:34:56 -0300)
 
-date:		Thu Jun 27 19:00:19 CEST 2013
-git branch:	test
-git hash:	188af63c0af2d7ef395bc94e3efa173f34dae03d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+are available in the git repository at:
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-arm-omap1: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: OK
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: OK
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+  git://linuxtv.org/mkrufky/dvb stb0899
 
-Detailed results are available here:
+for you to fetch changes up to fda0cbcc4878079829b5e13101c1c5144c4db3d9:
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+  stb0899: sign of CRL_FREQ doesn't depend on inversion (2013-06-02
+  14:03:13 -0400)
 
-Full logs are available here:
+----------------------------------------------------------------
+Reinhard Nißl (7):
+      stb0899: sign extend raw CRL_FREQ value
+      stb0899: enable auto inversion handling unconditionally
+      stb0899: fix inversion enum values to match usage with CFR
+      stb0899: store successful inversion for next run
+      stb0899: store autodetected inversion while tuning in non S2 mode
+      stb0899: use autodetected inversion instead of configured
+      stb0899: sign of CRL_FREQ doesn't depend on inversion
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+Zoran Turalija (2):
+      stb0899: allow minimum symbol rate of 1000000
+      stb0899: allow minimum symbol rate of 2000000
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+ drivers/media/dvb-frontends/stb0899_algo.c | 105 +++++++++++++++-------------
+ drivers/media/dvb-frontends/stb0899_drv.c  |   7 +-
+ drivers/media/dvb-frontends/stb0899_drv.h  |   5 +-
+ 3 files changed, 63 insertions(+), 54 deletions(-)
