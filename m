@@ -1,73 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:52108 "EHLO 7of9.schinagl.nl"
+Received: from mail.kapsi.fi ([217.30.184.167]:55147 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752942Ab3FOJmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jun 2013 05:42:06 -0400
-Message-ID: <51BC36ED.3010405@schinagl.nl>
-Date: Sat, 15 Jun 2013 11:42:05 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+	id S1752949Ab3FBU5X (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Jun 2013 16:57:23 -0400
+Message-ID: <51ABB18A.1090602@iki.fi>
+Date: Sun, 02 Jun 2013 23:56:42 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Duval Mickael <duvalmickael@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: DVB Scan file for Cherbourg (FR)
-References: <CAMiis9aue=BJnGxhak9aKSXVtJPPB7df4WpKDdJL9Anw54en5Q@mail.gmail.com> <51B44BD5.2010208@schinagl.nl> <CAMiis9ZiLXwX+E2TmjsYkA1iCowArrP5jTT4VgWCeA6gCUDJDQ@mail.gmail.com> <CAMiis9bZtgfX_zha6vL1HVcxrNJb0RFvP=45Mp44Eb1cuUTSFA@mail.gmail.com> <51BB9033.50709@schinagl.nl> <CAMiis9ZgKKD3iiXchPcN=r9QCBjVvasmXjRn8rvmfzs33k-wPQ@mail.gmail.com> <CAMiis9a=nSvdueKfAJCU=JEuprQU_nSRtKx4u5-QKA2kUrEUZQ@mail.gmail.com>
-In-Reply-To: <CAMiis9a=nSvdueKfAJCU=JEuprQU_nSRtKx4u5-QKA2kUrEUZQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: marco caminati <marco.caminati@yahoo.it>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: rtl2832u+r820t working
+References: <1367840892.39557.YahooMailNeo@web28904.mail.ir2.yahoo.com> <5187D1BC.8030204@gmail.com> <1367880378.47575.YahooMailNeo@web28901.mail.ir2.yahoo.com> <1370189132.73195.YahooMailNeo@web28906.mail.ir2.yahoo.com>
+In-Reply-To: <1370189132.73195.YahooMailNeo@web28906.mail.ir2.yahoo.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/13 11:30, Duval Mickael wrote:
-> Ok I have cloned your repo with Git, and I've make two patch files.
+On 06/02/2013 07:05 PM, marco caminati wrote:
 >
-Can you explain to me why there are fr-All and fr-Cherbourg? (and 
-fr-Bordeaux)?
-
-Does fr-All not work for those two places? If fr-All does everything, 
-it's ok to merge the other two in. nl-All is all transponders for the 
-country as a lot of frequencies are shared. We could have 10 or so 
-nl-<area> but they'd be all really small.
-
-So is fr-All everything for the entire country, but has Cherbourg and 
-Bordeaux extra, very different freq's?
-
-Merged in c8050e8105b1b4b5364f57d8b3e658c80fb04a53 for now
-
-Thanks,
-oliver
+> This usb dongle (0bda:2838) now works for me.
+> Thanks to all people who worked on it, especially to Gianluca.
+> Built from git://linuxtv.org/media_build under Linux box 3.8.10-tinycore #3810 SMP Tue Apr 30 15:45:26 UTC 2013 i686 GNU/Linux.
 >
-> 2013/6/15 Duval Mickael <duvalmickael@gmail.com>:
->> In zip there is a little modification for city of cherbourg (add two
->> new muxes) and a fr_ALL for France all channels DVB-T initial
->> scan.
->>
->> What's the problem exactly with my files?
->>
->> Thanks
->> Duval Mickael
->>
->> 2013/6/14 Oliver Schinagl <oliver+list@schinagl.nl>:
->>> On 06/13/13 19:10, Duval Mickael wrote:
->>>>
->>>> Hello,
->>>
->>> Hi,
->>>
->>>>
->>>> I send this email to you for a DVB-T scan file for the city of Cherbourg
->>>> FRANCE, modified with the last channels.
->>>> I also enclose a package file that includes all channels available for
->>>> DVB-T in France.
->>>
->>> I've applied your patch (after manually working it over) last time.
->>>
->>> What is in this zip? Please send a patch file what still needs to be
->>> adjusted. Cherbourg is in the repo now, isn't it?
->>>
->>>>
->>>> Sorry for my poor English ;-)
->>>>
->>>> Thank you.
->>>
->>>
+> ---INFRARED REMOTE---
+>
+> I also ask if ir remote will be supported.
+> With some old version of v4l (not supporting r820t) I managed to have the infrared working as a hid (/dev/input/eventX) device.
+> So it should be possible to merge the code from that old version into the current one to have everything supported.
+> The problem is that I can't remember which version was that, can anybody help me?
+>
+> Alternatively, I patched as from  [1], and successfully built, current v4l: however, resulting .ko do not support ir remote, it seems (not even as an option to pass to modprobe).
+> Any indication, please?
+>
+> Cheers
+>
+> [1] https://patchwork.kernel.org/patch/2468671/
 
+That remote controller patch looks interesting. I will try to get some 
+time to review and test it...
+
+
+regards
+Antti
+
+-- 
+http://palosaari.fi/
