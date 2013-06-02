@@ -1,52 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog135.obsmtp.com ([74.125.149.84]:60175 "EHLO
-	na3sys009aog135.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753207Ab3FEJmw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 5 Jun 2013 05:42:52 -0400
-From: Wenbing Wang <wangwb@marvell.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, Wenbing Wang <wangwb@marvell.com>
-Subject: [PATCH] [media] soc_camera: error dev remove and v4l2 call
-Date: Wed, 5 Jun 2013 17:37:14 +0800
-Message-ID: <1370425034-3648-1-git-send-email-wangwb@marvell.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1419 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751446Ab3FBK4Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 06:56:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 04/16] saa7134: move qos_request from saa7134_fh to saa7134_dev.
+Date: Sun,  2 Jun 2013 12:55:55 +0200
+Message-Id: <1370170567-7004-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Wenbing Wang <wangwb@marvell.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-in soc_camera_close(), if ici->ops->remove() removes device firstly,
-and then call __soc_camera_power_off(), it has logic error. Since
-if remove device, it should disable subdev clk. but in __soc_camera_
-power_off(), it will callback v4l2 s_power function which will
-read/write subdev registers to control power by i2c. and then
-i2c read/write will fail because of clk disable.
-So suggest to re-sequence two functions call.
+This is a global field, not a per-filehandle field.
 
-Change-Id: Iee7a6d4fc7c7c1addb5d342621eb8dcd00fa2745
-Signed-off-by: Wenbing Wang <wangwb@marvell.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/soc_camera/soc_camera.c |    4 ++--
- 1 files changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/pci/saa7134/saa7134-video.c |    4 ++--
+ drivers/media/pci/saa7134/saa7134.h       |    2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index eea832c..3a4efbd 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -643,9 +643,9 @@ static int soc_camera_close(struct file *file)
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 9c45dd9..2f6ba71 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2205,7 +2205,7 @@ static int saa7134_streamon(struct file *file, void *priv,
+ 	 * Unfortunately, I lack register-level documentation to check the
+ 	 * Linux FIFO setup and confirm the perfect value.
+ 	 */
+-	pm_qos_add_request(&fh->qos_request,
++	pm_qos_add_request(&dev->qos_request,
+ 			   PM_QOS_CPU_DMA_LATENCY,
+ 			   20);
  
- 		if (ici->ops->init_videobuf2)
- 			vb2_queue_release(&icd->vb2_vidq);
--		ici->ops->remove(icd);
--
- 		__soc_camera_power_off(icd);
-+
-+		ici->ops->remove(icd);
- 	}
+@@ -2220,7 +2220,7 @@ static int saa7134_streamoff(struct file *file, void *priv,
+ 	struct saa7134_dev *dev = fh->dev;
+ 	int res = saa7134_resource(file);
  
- 	if (icd->streamer == file)
+-	pm_qos_remove_request(&fh->qos_request);
++	pm_qos_remove_request(&dev->qos_request);
+ 
+ 	err = videobuf_streamoff(saa7134_queue(file));
+ 	if (err < 0)
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index 8a62ff7..8d1453a 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -472,7 +472,6 @@ struct saa7134_fh {
+ 	struct v4l2_fh             fh;
+ 	struct saa7134_dev         *dev;
+ 	unsigned int               resources;
+-	struct pm_qos_request	   qos_request;
+ 
+ 	/* video capture */
+ 	struct videobuf_queue      cap;
+@@ -595,6 +594,7 @@ struct saa7134_dev {
+ 	unsigned int               vbi_fieldcount;
+ 	struct saa7134_format      *fmt;
+ 	unsigned int               width, height;
++	struct pm_qos_request	   qos_request;
+ 
+ 	/* various v4l controls */
+ 	struct saa7134_tvnorm      *tvnorm;              /* video */
 -- 
-1.7.5.4
+1.7.10.4
 
