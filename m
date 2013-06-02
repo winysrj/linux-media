@@ -1,101 +1,165 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:42753 "EHLO
-	relmlor3.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753974Ab3FCNcj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 09:32:39 -0400
-Received: from relmlir2.idc.renesas.com ([10.200.68.152])
- by relmlor3.idc.renesas.com ( SJSMS)
- with ESMTP id <0MNT00LTZKAER0B0@relmlor3.idc.renesas.com> for
- linux-media@vger.kernel.org; Mon, 03 Jun 2013 22:32:38 +0900 (JST)
-Received: from relmlac4.idc.renesas.com ([10.200.69.24])
- by relmlir2.idc.renesas.com ( SJSMS)
- with ESMTP id <0MNT00GLIKAEIL00@relmlir2.idc.renesas.com> for
- linux-media@vger.kernel.org; Mon, 03 Jun 2013 22:32:38 +0900 (JST)
-In-reply-to: <201306031149.45454.hverkuil@xs4all.nl>
-References: <1370252135-23261-1-git-send-email-phil.edworthy@renesas.com>
- <201306031149.45454.hverkuil@xs4all.nl>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-version: 1.0
-From: phil.edworthy@renesas.com
-Subject: Re: [PATCH] ov10635: Add OmniVision ov10635 SoC camera driver
-Message-id: <OF4BD2B449.93EBBD07-ON80257B7F.0049D5FC-80257B7F.004A56F1@eu.necel.com>
-Date: Mon, 03 Jun 2013 14:31:55 +0100
-Content-type: text/plain; charset=US-ASCII
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4423 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750985Ab3FBK4h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 06:56:37 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 10/16] saa7134: fix empress format compliance bugs.
+Date: Sun,  2 Jun 2013 12:56:01 +0200
+Message-Id: <1370170567-7004-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Subject: Re: [PATCH] ov10635: Add OmniVision ov10635 SoC camera driver
-<snip>
-> > +#include <media/v4l2-chip-ident.h>
-> 
-> Don't implement chip_ident or use this header: it's going to be 
-> removed in 3.11.
+Missing fields and a missing TRY_FMT implementation in saa6752hs.
 
-<snip>
-> > +/* Set status of additional camera capabilities */
-> > +static int ov10635_s_ctrl(struct v4l2_ctrl *ctrl)
-> > +{
-> > +   struct ov10635_priv *priv = container_of(ctrl->handler,
-> > +               struct ov10635_priv, hdl);
-> > +   struct i2c_client *client = v4l2_get_subdevdata(&priv->subdev);
-> > +
-> > +   switch (ctrl->id) {
-> > +   case V4L2_CID_VFLIP:
-> > +      if (ctrl->val)
-> > +         return ov10635_reg_rmw(client, OV10635_VFLIP,
-> > +            OV10635_VFLIP_ON, 0);
-> > +      else
-> 
-> No need for 'else'.
-Ok.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa6752hs.c       |   58 ++++++++++++++++-----------
+ drivers/media/pci/saa7134/saa7134-empress.c |   13 +++++-
+ 2 files changed, 47 insertions(+), 24 deletions(-)
 
-> > +         return ov10635_reg_rmw(client, OV10635_VFLIP,
-> > +            0, OV10635_VFLIP_ON);
-> > +      break;
-> 
-> No need for 'break'. Ditto for HFLIP.
-Ok.
+diff --git a/drivers/media/pci/saa7134/saa6752hs.c b/drivers/media/pci/saa7134/saa6752hs.c
+index 5813ce8..f29812e 100644
+--- a/drivers/media/pci/saa7134/saa6752hs.c
++++ b/drivers/media/pci/saa7134/saa6752hs.c
+@@ -570,10 +570,36 @@ static int saa6752hs_g_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefm
+ 	return 0;
+ }
+ 
++static int saa6752hs_try_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f)
++{
++	int dist_352, dist_480, dist_720;
++
++	f->code = V4L2_MBUS_FMT_FIXED;
++
++	dist_352 = abs(f->width - 352);
++	dist_480 = abs(f->width - 480);
++	dist_720 = abs(f->width - 720);
++	if (dist_720 < dist_480) {
++		f->width = 720;
++		f->height = 576;
++	} else if (dist_480 < dist_352) {
++		f->width = 480;
++		f->height = 576;
++	} else {
++		f->width = 352;
++		if (abs(f->height - 576) < abs(f->height - 288))
++			f->height = 576;
++		else
++			f->height = 288;
++	}
++	f->field = V4L2_FIELD_INTERLACED;
++	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	return 0;
++}
++
+ static int saa6752hs_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefmt *f)
+ {
+ 	struct saa6752hs_state *h = to_state(sd);
+-	int dist_352, dist_480, dist_720;
+ 
+ 	if (f->code != V4L2_MBUS_FMT_FIXED)
+ 		return -EINVAL;
+@@ -590,30 +616,15 @@ static int saa6752hs_s_mbus_fmt(struct v4l2_subdev *sd, struct v4l2_mbus_framefm
+ 	  D1     | 720x576 | 720x480
+ 	*/
+ 
+-	dist_352 = abs(f->width - 352);
+-	dist_480 = abs(f->width - 480);
+-	dist_720 = abs(f->width - 720);
+-	if (dist_720 < dist_480) {
+-		f->width = 720;
+-		f->height = 576;
++	saa6752hs_try_mbus_fmt(sd, f);
++	if (f->width == 720)
+ 		h->video_format = SAA6752HS_VF_D1;
+-	} else if (dist_480 < dist_352) {
+-		f->width = 480;
+-		f->height = 576;
++	else if (f->width == 480)
+ 		h->video_format = SAA6752HS_VF_2_3_D1;
+-	} else {
+-		f->width = 352;
+-		if (abs(f->height - 576) <
+-		    abs(f->height - 288)) {
+-			f->height = 576;
+-			h->video_format = SAA6752HS_VF_1_2_D1;
+-		} else {
+-			f->height = 288;
+-			h->video_format = SAA6752HS_VF_SIF;
+-		}
+-	}
+-	f->field = V4L2_FIELD_INTERLACED;
+-	f->colorspace = V4L2_COLORSPACE_SMPTE170M;
++	else if (f->height == 576)
++		h->video_format = SAA6752HS_VF_1_2_D1;
++	else
++		h->video_format = SAA6752HS_VF_SIF;
+ 	return 0;
+ }
+ 
+@@ -656,6 +667,7 @@ static const struct v4l2_subdev_core_ops saa6752hs_core_ops = {
+ 
+ static const struct v4l2_subdev_video_ops saa6752hs_video_ops = {
+ 	.s_mbus_fmt = saa6752hs_s_mbus_fmt,
++	.try_mbus_fmt = saa6752hs_try_mbus_fmt,
+ 	.g_mbus_fmt = saa6752hs_g_mbus_fmt,
+ };
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index 0bc1eec..62e03f2 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -165,7 +165,7 @@ static int empress_enum_fmt_vid_cap(struct file *file, void  *priv,
+ 
+ 	strlcpy(f->description, "MPEG TS", sizeof(f->description));
+ 	f->pixelformat = V4L2_PIX_FMT_MPEG;
+-
++	f->flags = V4L2_FMT_FLAG_COMPRESSED;
+ 	return 0;
+ }
+ 
+@@ -180,6 +180,8 @@ static int empress_g_fmt_vid_cap(struct file *file, void *priv,
+ 	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
+ 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
+ 	f->fmt.pix.sizeimage    = TS_PACKET_SIZE * dev->ts.nr_packets;
++	f->fmt.pix.bytesperline = 0;
++	f->fmt.pix.priv = 0;
+ 
+ 	return 0;
+ }
+@@ -196,6 +198,8 @@ static int empress_s_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
+ 	f->fmt.pix.sizeimage    = TS_PACKET_SIZE * dev->ts.nr_packets;
++	f->fmt.pix.bytesperline = 0;
++	f->fmt.pix.priv = 0;
+ 
+ 	return 0;
+ }
+@@ -204,9 +208,16 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
+ 				struct v4l2_format *f)
+ {
+ 	struct saa7134_dev *dev = file->private_data;
++	struct v4l2_mbus_framefmt mbus_fmt;
++
++	v4l2_fill_mbus_format(&mbus_fmt, &f->fmt.pix, V4L2_MBUS_FMT_FIXED);
++	saa_call_all(dev, video, try_mbus_fmt, &mbus_fmt);
++	v4l2_fill_pix_format(&f->fmt.pix, &mbus_fmt);
+ 
+ 	f->fmt.pix.pixelformat  = V4L2_PIX_FMT_MPEG;
+ 	f->fmt.pix.sizeimage    = TS_PACKET_SIZE * dev->ts.nr_packets;
++	f->fmt.pix.bytesperline = 0;
++	f->fmt.pix.priv = 0;
+ 
+ 	return 0;
+ }
+-- 
+1.7.10.4
 
-<snip>
-> > +/* Get chip identification */
-> > +static int ov10635_g_chip_ident(struct v4l2_subdev *sd,
-> > +            struct v4l2_dbg_chip_ident *id)
-> > +{
-> > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > +   struct ov10635_priv *priv = to_ov10635(client);
-> > +
-> > +   id->ident   = priv->model;
-> > +   id->revision   = priv->revision;
-> > +
-> > +   return 0;
-> > +}
-> 
-> Drop this function, no longer needed.
-
-<snip>
-> > diff --git a/include/media/v4l2-chip-ident.h b/include/media/v4l2-
-> chip-ident.h
-> > index 4ee125b..8fc3303 100644
-> > --- a/include/media/v4l2-chip-ident.h
-> > +++ b/include/media/v4l2-chip-ident.h
-> > @@ -77,6 +77,7 @@ enum {
-> >     V4L2_IDENT_OV2640 = 259,
-> >     V4L2_IDENT_OV9740 = 260,
-> >     V4L2_IDENT_OV5642 = 261,
-> > +   V4L2_IDENT_OV10635 = 262,
-> > 
-> >     /* module saa7146: reserved range 300-309 */
-> >     V4L2_IDENT_SAA7146 = 300,
-> > 
-> 
-> This can be dropped as well, because this header will go away.
-
-Thanks for the very quick review! I'll have a look at the media tree to 
-see what's changing wrt the chip ident.
-
-Phil
