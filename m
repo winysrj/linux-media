@@ -1,100 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:1213 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751593Ab3FAS2x (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jun 2013 14:28:53 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r51ISfM6095178
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 1 Jun 2013 20:28:44 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 9EBAF35E0034
-	for <linux-media@vger.kernel.org>; Sat,  1 Jun 2013 20:28:41 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130601182841.9EBAF35E0034@alastor.dyndns.org>
-Date: Sat,  1 Jun 2013 20:28:41 +0200 (CEST)
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:33733 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755880Ab3FCPV5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 11:21:57 -0400
+Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=endymion.delvare)
+	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1UjWa4-0006y9-5o
+	(TLSv1:AES128-SHA:128)
+	(envelope-from <khali@linux-fr.org>)
+	for linux-media@vger.kernel.org; Mon, 03 Jun 2013 17:21:56 +0200
+Date: Mon, 3 Jun 2013 17:21:50 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Linux Media <linux-media@vger.kernel.org>
+Subject: [PATCH 2/3] femon: Display SNR in dB
+Message-ID: <20130603172150.1aaf1904@endymion.delvare>
+In-Reply-To: <20130603171607.73d0b856@endymion.delvare>
+References: <20130603171607.73d0b856@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+SNR is supposed to be reported by the frontend drivers in dB, so print
+it that way for drivers which implement it properly.
+---
+ util/femon/femon.c |   19 ++++++++++++++-----
+ 1 file changed, 14 insertions(+), 5 deletions(-)
 
-Results of the daily build of media_tree:
+--- dvb-apps-3ee111da5b3a.orig/util/femon/femon.c	2013-06-02 14:05:00.988323437 +0200
++++ dvb-apps-3ee111da5b3a/util/femon/femon.c	2013-06-02 14:05:33.560792474 +0200
+@@ -102,11 +102,20 @@ int check_frontend (struct dvbfe_handle
+ 			fe_info.lock ? 'L' : ' ');
+ 
+ 		if (human_readable) {
+-			printf ("signal %3u%% | snr %3u%% | ber %d | unc %d | ",
+-				(fe_info.signal_strength * 100) / 0xffff,
+-				(fe_info.snr * 100) / 0xffff,
+-				fe_info.ber,
+-				fe_info.ucblocks);
++			// SNR should be in units of 0.1 dB but some drivers do
++			// not follow that rule, thus this heuristic.
++			if (fe_info.snr < 1000)
++				printf ("signal %3u%% | snr %4.1fdB | ber %d | unc %d | ",
++					(fe_info.signal_strength * 100) / 0xffff,
++					fe_info.snr / 10.,
++					fe_info.ber,
++					fe_info.ucblocks);
++			else
++				printf ("signal %3u%% | snr %3u%% | ber %d | unc %d | ",
++					(fe_info.signal_strength * 100) / 0xffff,
++					(fe_info.snr * 100) / 0xffff,
++					fe_info.ber,
++					fe_info.ucblocks);
+ 		} else {
+ 			printf ("signal %04x | snr %04x | ber %08x | unc %08x | ",
+ 				fe_info.signal_strength,
 
-date:		Sat Jun  1 19:00:18 CEST 2013
-git branch:	test
-git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
-
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Jean Delvare
