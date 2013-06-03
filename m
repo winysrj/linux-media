@@ -1,101 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4220 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756445Ab3FLPCQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 11:02:16 -0400
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2935 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753720Ab3FCMPD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 08:15:03 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr19.xs4all.nl (8.13.8/8.13.8) with ESMTP id r53CEo5t014015
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 3 Jun 2013 14:14:52 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 4765B35E003C
+	for <linux-media@vger.kernel.org>; Mon,  3 Jun 2013 14:14:50 +0200 (CEST)
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 07/12] pvrusb2: use v4l2_dev instead of the deprecated parent field.
-Date: Wed, 12 Jun 2013 17:00:57 +0200
-Message-Id: <1371049262-5799-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [RFC] Add query/get/set matrix ioctls
+Date: Mon, 3 Jun 2013 14:14:49 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306031414.49392.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi all,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c  |    4 ++++
- drivers/media/usb/pvrusb2/pvrusb2-hdw.h  |    4 ++++
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c |    7 ++++---
- 3 files changed, 12 insertions(+), 3 deletions(-)
+When working on the Motion Detection API, I realized that my proposal for
+two new G/S_MD_BLOCKS ioctls was too specific for the motion detection use
+case.
 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-index d329209..c4d51d7 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
-@@ -2704,6 +2704,10 @@ static void pvr2_hdw_remove_usb_stuff(struct pvr2_hdw *hdw)
- 	pvr2_hdw_render_useless(hdw);
- }
- 
-+void pvr2_hdw_set_v4l2_dev(struct pvr2_hdw *hdw, struct video_device *vdev)
-+{
-+	vdev->v4l2_dev = &hdw->v4l2_dev;
-+}
- 
- /* Destroy hardware interaction structure */
- void pvr2_hdw_destroy(struct pvr2_hdw *hdw)
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.h b/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
-index 1a135cf..4184707 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
-@@ -22,6 +22,7 @@
- 
- #include <linux/usb.h>
- #include <linux/videodev2.h>
-+#include <media/v4l2-dev.h>
- #include "pvrusb2-io.h"
- #include "pvrusb2-ctrl.h"
- 
-@@ -138,6 +139,9 @@ const char *pvr2_hdw_get_device_identifier(struct pvr2_hdw *);
- /* Called when hardware has been unplugged */
- void pvr2_hdw_disconnect(struct pvr2_hdw *);
- 
-+/* Sets v4l2_dev of a video_device struct */
-+void pvr2_hdw_set_v4l2_dev(struct pvr2_hdw *, struct video_device *);
-+
- /* Get the number of defined controls */
- unsigned int pvr2_hdw_get_ctrl_count(struct pvr2_hdw *);
- 
-diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-index 82f619b..d77069e 100644
---- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-+++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
-@@ -31,6 +31,7 @@
- #include <linux/videodev2.h>
- #include <linux/module.h>
- #include <media/v4l2-dev.h>
-+#include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
- 
-@@ -870,8 +871,8 @@ static void pvr2_v4l2_dev_destroy(struct pvr2_v4l2_dev *dip)
- static void pvr2_v4l2_dev_disassociate_parent(struct pvr2_v4l2_dev *dip)
- {
- 	if (!dip) return;
--	if (!dip->devbase.parent) return;
--	dip->devbase.parent = NULL;
-+	if (!dip->devbase.v4l2_dev->dev) return;
-+	dip->devbase.v4l2_dev->dev = NULL;
- 	device_move(&dip->devbase.dev, NULL, DPM_ORDER_NONE);
- }
- 
-@@ -1321,7 +1322,7 @@ static void pvr2_v4l2_dev_init(struct pvr2_v4l2_dev *dip,
- 	if (nr_ptr && (unit_number >= 0) && (unit_number < PVR_NUM)) {
- 		mindevnum = nr_ptr[unit_number];
- 	}
--	dip->devbase.parent = &usbdev->dev;
-+	pvr2_hdw_set_v4l2_dev(hdw, &dip->devbase);
- 	if ((video_register_device(&dip->devbase,
- 				   dip->v4l_type, mindevnum) < 0) &&
- 	    (video_register_device(&dip->devbase,
--- 
-1.7.10.4
+The Motion Detection RFC can be found here:
 
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg62085.html
+
+What I was really attempting to do was to create an API to pass a matrix
+to the hardware.
+
+This is also related to a long-standing request to add support for
+arrays to the control API. Adding such support to the control API is in my
+opinion a very bad idea since the control API is meant to provide all
+meta data necessary in order to create e.g. control panels. Adding array
+support to the control API would make that very difficult, particularly
+with respect to GUI design.
+
+So instead this proposal creates a new API to query, get and set matrices:
+
+
+/* Define to which motion detection region each element belongs.
+ * Each element is a __u8. */
+#define V4L2_MATRIX_TYPE_MD_REGION     (1)
+/* Define the motion detection threshold for each element.
+ * Each element is a __u16. */
+#define V4L2_MATRIX_TYPE_MD_THRESHOLD  (2)
+
+/**
+ * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
+ * @type:       matrix type
+ * @index:      matrix index of the given type
+ * @columns:    number of columns in the matrix
+ * @rows:       number of rows in the matrix
+ * @elem_min:   minimum matrix element value
+ * @elem_max:   maximum matrix element value
+ * @elem_size:  size in bytes each matrix element
+ * @reserved:   future extensions, applications and drivers must zero this.
+ */
+struct v4l2_query_matrix {
+        __u32 type;
+        __u32 index;
+        __u32 columns;
+        __u32 rows;
+        __s64 elem_min;
+        __s64 elem_max;
+        __u32 elem_size;
+        __u32 reserved[23];
+} __attribute__ ((packed));
+
+/**
+ * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
+ * @type:       matrix type
+ * @index:      matrix index of the given type
+ * @rect:       which part of the matrix to get/set
+ * @matrix:     pointer to the matrix of size (in bytes):
+ *              elem_size * rect.width * rect.height
+ * @reserved:   future extensions, applications and drivers must zero this.
+ */
+struct v4l2_matrix {
+        __u32 type;
+        __u32 index;
+        struct v4l2_rect rect;
+        void __user *matrix;
+        __u32 reserved[12];
+} __attribute__ ((packed));
+
+
+/* Experimental, these three ioctls may change over the next couple of kernel
+   versions. */
+#define VIDIOC_QUERY_MATRIX     _IORW('V', 103, struct v4l2_query_matrix)
+#define VIDIOC_G_MATRIX         _IORW('V', 104, struct v4l2_matrix)
+#define VIDIOC_S_MATRIX         _IORW('V', 105, struct v4l2_matrix)
+
+
+Each matrix has a type (which describes the meaning of the matrix) and an
+index (allowing for multiple matrices of the same type).
+
+QUERY_MATRIX will return the number of columns and rows in the full matrix,
+the size (in bytes) of each element and the minimum and maximum value of
+each element. Some matrix types may have non-integer elements, in which case
+the minimum and maximum values are ignored.
+
+With S_MATRIX and G_MATRIX you can get/set a (part of a) matrix. The rect
+struct will give the part of the matrix that you want to set or retrieve, and
+the matrix pointer points to the matrix data.
+
+Currently only two matrix types are defined, see the motion detection RFC for
+details.
+
+This approach is basically the same as proposed in the motion detection RFC,
+but it is much more general.
+
+Discussion points:
+
+1) I'm using elem_size to allow for any element size. An alternative would be to
+define specific element types (e.g. U8, S8, U16, S16, etc.), but I feel that
+that is overkill. It is easier to associate each matrix type with a specific
+element type in the documentation for each type. For allocation purposes it
+is more useful to know the element size than the element type. But perhaps
+elem_size can be dropped altogether, or, alternatively, both an elem_size and
+elem_type should be defined.
+
+2) Per-driver matrix types are probably necessary as well: for example while
+colorspace conversion matrices are in principle generic, in practice the
+precise format of the elements is hardware specific. This isn't a problem
+as long as it is a well-defined private matrix type.
+
+Comments? Questions?
+
+	Hans
