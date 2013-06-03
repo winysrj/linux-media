@@ -1,106 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:62973 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751219Ab3FYJXD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 05:23:03 -0400
-Date: Tue, 25 Jun 2013 11:22:22 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2] V4L2: add documentation for V4L2 clock helpers and
- asynchronous probing
-In-Reply-To: <51C8B2FC.8040200@gmail.com>
-Message-ID: <Pine.LNX.4.64.1306251121030.30321@axis700.grange>
-References: <Pine.LNX.4.64.1306241311420.19735@axis700.grange>
- <51C8B2FC.8040200@gmail.com>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4293 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100Ab3FCIzR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 04:55:17 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r538t5A4052179
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 3 Jun 2013 10:55:08 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 3E33235E004F
+	for <linux-media@vger.kernel.org>; Mon,  3 Jun 2013 10:55:05 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.11] Updates for 3.11
+Date: Mon, 3 Jun 2013 10:55:05 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306031055.05081.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester
+The following changes since commit 7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
 
-On Mon, 24 Jun 2013, Sylwester Nawrocki wrote:
+  [media] media: pci: remove duplicate checks for EPERM (2013-05-27 09:34:56 -0300)
 
-> Hi Guennadi,
-> 
-> On 06/24/2013 01:20 PM, Guennadi Liakhovetski wrote:
-> > Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
-> > to v4l2-framework.txt.
-> > 
-> > Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
-> > ---
-> > 
-> > v2: addressed comments by Hans and Laurent (thanks), including
-> > (a) language clean up
-> > (b) extended the V4L2 clock API section with an explanation, what special
-> > requirements V4L2 has and a mention of it being temporary until CCF is
-> > used by all
-> > (c) added an explanation of the use of -EPROBE_DEFER
-> 
-> Looks pretty good.
-> 
->  Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+are available in the git repository at:
 
-Thanks
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
 
-> 
-> Just one remark below...
-> 
-> >   Documentation/video4linux/v4l2-framework.txt |   73
-> > +++++++++++++++++++++++++-
-> >   1 files changed, 71 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/Documentation/video4linux/v4l2-framework.txt
-> > b/Documentation/video4linux/v4l2-framework.txt
-> > index b5e6347..00a9d21 100644
-> > --- a/Documentation/video4linux/v4l2-framework.txt
-> > +++ b/Documentation/video4linux/v4l2-framework.txt
-> > @@ -325,8 +325,27 @@ that width, height and the media bus pixel code are
-> > equal on both source and
-> >   sink of the link. Subdev drivers are also free to use this function to
-> >   perform the checks mentioned above in addition to their own checks.
-> > 
-> > -A device (bridge) driver needs to register the v4l2_subdev with the
-> > -v4l2_device:
-> > +There are currently two ways to register subdevices with the V4L2 core. The
-> > +first (traditional) possibility is to have subdevices registered by bridge
-> > +drivers. This can be done when the bridge driver has the complete
-> > information
-> > +about subdevices connected to it and knows exactly when to register them.
-> > This
-> > +is typically the case for internal subdevices, like video data processing
-> > units
-> > +within SoCs or complex PCI(e) boards, camera sensors in USB cameras or
-> > connected
-> > +to SoCs, which pass information about them to bridge drivers, usually in
-> > their
-> > +platform data.
-> > +
-> > +There are however also situations where subdevices have to be registered
-> > +asynchronously to bridge devices. An example of such a configuration is a
-> > Device
-> > +Tree based systems where information about subdevices is made available to
-> > the
-> 
-> I think you need to substitute "is a Device Tree based systems" with either:
-> "are Device Tree based systems" or
-> "is a Device Tree based system".
+for you to fetch changes up to 6ec4ad4a769a57931b9143ee294a2df2413bffad:
 
-Oops, sure, thanks for spotting, I'll s/systems/system/ when pushing this 
-up.
+  radio-keene: add delay in order to settle hardware (2013-06-03 09:45:18 +0200)
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+----------------------------------------------------------------
+Antti Palosaari (1):
+      radio-keene: add delay in order to settle hardware
+
+Hans Verkuil (6):
+      mxl111sf: don't redefine pr_err/info/debug
+      hdpvr: fix querystd 'unknown format' return.
+      hdpvr: code cleanup
+      hdpvr: improve error handling
+      ml86v7667: fix the querystd implementation
+      radio-keene: set initial frequency.
+
+Vladimir Barinov (2):
+      adv7180: add more subdev video ops
+      ML86V7667: new video decoder driver
+
+ drivers/media/i2c/Kconfig                     |    9 ++
+ drivers/media/i2c/Makefile                    |    1 +
+ drivers/media/i2c/adv7180.c                   |   46 ++++++++++
+ drivers/media/i2c/ml86v7667.c                 |  431 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/radio/radio-keene.c             |    7 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c |    8 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c       |   90 ++++++++++----------
+ drivers/media/usb/hdpvr/hdpvr-control.c       |   21 ++---
+ drivers/media/usb/hdpvr/hdpvr-video.c         |   72 ++++++++--------
+ drivers/media/usb/hdpvr/hdpvr.h               |    1 +
+ 10 files changed, 585 insertions(+), 101 deletions(-)
+ create mode 100644 drivers/media/i2c/ml86v7667.c
