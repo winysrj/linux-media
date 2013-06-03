@@ -1,53 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-out-190.synserver.de ([212.40.185.190]:1047 "EHLO
-	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423530Ab3FUROR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 13:14:17 -0400
-Message-ID: <51C489F7.6070105@metafoo.de>
-Date: Fri, 21 Jun 2013 19:14:31 +0200
-From: Lars-Peter Clausen <lars@metafoo.de>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1819 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100Ab3FCIrD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 04:47:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [PATCH 3/3] bttv: Convert to generic TEA575x interface
+Date: Mon, 3 Jun 2013 10:46:42 +0200
+Cc: linux-media@vger.kernel.org
+References: <1368564885-20940-1-git-send-email-linux@rainbow-software.org> <1368564885-20940-4-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1368564885-20940-4-git-send-email-linux@rainbow-software.org>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH] [media] tvp514x: Fix init seqeunce
-References: <1371306876-8596-1-git-send-email-lars@metafoo.de> <CA+V-a8uUEcoh2bbpUP=Oo8Pj-1yX8VWS7z9m_kOgyzxfMwQ-Ow@mail.gmail.com> <CA+V-a8tgrLgeuQ83eRQkW6OeyBvCYzRD5k4xjnPwdne7hbCuWQ@mail.gmail.com>
-In-Reply-To: <CA+V-a8tgrLgeuQ83eRQkW6OeyBvCYzRD5k4xjnPwdne7hbCuWQ@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306031046.42057.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/21/2013 02:27 PM, Prabhakar Lad wrote:
-> Hi Lars-Peter,
+On Tue May 14 2013 22:54:45 Ondrej Zary wrote:
+> Remove tea575x-specific code from bttv and use the common driver instead.
 > 
-> On Sun, Jun 16, 2013 at 3:41 PM, Prabhakar Lad
-> <prabhakar.csengg@gmail.com> wrote:
->> Hi Lars-Peter,
->>
->> Thanks for the patch.
->>
->> On Sat, Jun 15, 2013 at 8:04 PM, Lars-Peter Clausen <lars@metafoo.de> wrote:
->>> client->driver->id_table will always point to the first entry in the device id
->>> table. So all devices will use the same init sequence. Use the id table entry
->>> that gets passed to the driver's probe() function to get the right init
->>> sequence.
->>>
->> The patch looks OK, but it causes following two warnings,
->>
->> drivers/media/i2c/tvp514x.c: In function 'tvp514x_s_stream':
->> drivers/media/i2c/tvp514x.c:868: warning: unused variable 'client'
->> drivers/media/i2c/tvp514x.c: In function 'tvp514x_probe':
->> drivers/media/i2c/tvp514x.c:1092: warning: assignment makes pointer
->> from integer without a cast
->>
-> Do you plan to post a v2 ? or shall I take care of it ?
+> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+> ---
+>  drivers/media/pci/bt8xx/bttv-cards.c  |  317 ++++++++++++---------------------
+>  drivers/media/pci/bt8xx/bttv-driver.c |    6 +-
+>  drivers/media/pci/bt8xx/bttvp.h       |   14 +-
+>  sound/pci/Kconfig                     |    4 +-
+>  4 files changed, 124 insertions(+), 217 deletions(-)
 > 
-> Regards,
-> --Prabhakar Lad
 
-I'll send a v2 soon.
+...
 
-- Lars
+> diff --git a/sound/pci/Kconfig b/sound/pci/Kconfig
+> index fe6fa93..83e0df5 100644
+> --- a/sound/pci/Kconfig
+> +++ b/sound/pci/Kconfig
+> @@ -2,8 +2,8 @@
+>  
+>  config SND_TEA575X
+>  	tristate
+> -	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK
+> -	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK
+> +	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK || VIDEO_BT848
+> +	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK || VIDEO_BT848
+>  
+>  menuconfig SND_PCI
+>  	bool "PCI sound devices"
+> 
+
+In addition, bttv should also become dependent on SND.
+
+Frankly, isn't it time that tea575x-tuner moves to drivers/media/common or
+driver/media/radio? It's really weird to have such a fairly widely used v4l
+module in sound.
+
+Regards,
+
+	Hans
