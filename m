@@ -1,48 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61140 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752382Ab3FGOEU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 10:04:20 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id AC01140BB3
-	for <linux-media@vger.kernel.org>; Fri,  7 Jun 2013 16:04:16 +0200 (CEST)
-Date: Fri, 7 Jun 2013 16:04:16 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL] soc-camera: 3.10 fixes
-Message-ID: <Pine.LNX.4.64.1306071602280.11277@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:62618 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759300Ab3FCR12 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 13:27:28 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 2/2] media: i2c: ths8200: add support v4l-async
+Date: Mon,  3 Jun 2013 22:56:18 +0530
+Message-Id: <1370280378-2570-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1370280378-2570-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1370280378-2570-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Please push these to 3.10.
+This patch supports ths8200 driver for v4l-async subdevice
+probing.
 
-The following changes since commit 1612e111e4e565422242727efb59499cce8738e4:
-
-  Merge git://git.kernel.org/pub/scm/linux/kernel/git/davem/net (2013-06-06 18:09:05 -0700)
-
-are available in the git repository at:
-
-  git://linuxtv.org/gliakhovetski/v4l-dvb.git 3.10-rc4-fixes
-
-Katsuya Matsubara (3):
-      sh_veu: invoke v4l2_m2m_job_finish() even if a job has been aborted
-      sh_veu: keep power supply until the m2m context is released
-      sh_veu: fix the buffer size calculation
-
-Wenbing Wang (1):
-      soc_camera: error dev remove and v4l2 call
-
- drivers/media/platform/sh_veu.c                |   15 ++++++---------
- drivers/media/platform/soc_camera/soc_camera.c |    4 ++--
- 2 files changed, 8 insertions(+), 11 deletions(-)
-
-Thanks
-Guennadi
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/i2c/ths8200.c |   10 +++++++++-
+ 1 files changed, 9 insertions(+), 1 deletions(-)
+
+diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
+index 9396829..d1bddcc 100644
+--- a/drivers/media/i2c/ths8200.c
++++ b/drivers/media/i2c/ths8200.c
+@@ -21,6 +21,7 @@
+ #include <linux/module.h>
+ #include <linux/v4l2-dv-timings.h>
+ 
++#include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ 
+ #include "ths8200_regs.h"
+@@ -504,6 +505,7 @@ static int ths8200_probe(struct i2c_client *client,
+ {
+ 	struct ths8200_state *state;
+ 	struct v4l2_subdev *sd;
++	int error;
+ 
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+@@ -521,6 +523,11 @@ static int ths8200_probe(struct i2c_client *client,
+ 
+ 	ths8200_core_init(sd);
+ 
++	state->sd.dev = &client->dev;
++	error = v4l2_async_register_subdev(&state->sd);
++	if (error)
++		return error;
++
+ 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
+ 		  client->addr << 1, client->adapter->name);
+ 
+@@ -530,12 +537,13 @@ static int ths8200_probe(struct i2c_client *client,
+ static int ths8200_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ths8200_state *decoder = to_state(sd);
+ 
+ 	v4l2_dbg(1, debug, sd, "%s removed @ 0x%x (%s)\n", client->name,
+ 		 client->addr << 1, client->adapter->name);
+ 
+ 	ths8200_s_power(sd, false);
+-
++	v4l2_async_unregister_subdev(&decoder->sd);
+ 	v4l2_device_unregister_subdev(sd);
+ 
+ 	return 0;
+-- 
+1.7.0.4
+
