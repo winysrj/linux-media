@@ -1,275 +1,350 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:49794 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059Ab3FYOWG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 10:22:06 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: kishon@ti.com, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
-	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-Date: Tue, 25 Jun 2013 16:21:46 +0200
-Message-id: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:51240 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757072Ab3FCSKc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 14:10:32 -0400
+Received: by mail-ee0-f44.google.com with SMTP id c13so412206eek.31
+        for <linux-media@vger.kernel.org>; Mon, 03 Jun 2013 11:10:31 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 1/4] em28xx: extend GPIO register definitions for the em25xx, em276x/7x/8x, em2874/174/84
+Date: Mon,  3 Jun 2013 20:12:02 +0200
+Message-Id: <1370283125-2231-2-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1370283125-2231-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1370283125-2231-1-git-send-email-fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
-receiver and MIPI DSI transmitter DPHYs.
+The em25xx/em276x/7x/8x provides 4 GPIO register sets,
+each of them consisting of separate read and a write registers.
+The same registers are also used by the em2874/174/84.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 ---
-Changes since v1:
- - enabled build as module and with CONFIG_OF disabled
- - added phy_id enum,
- - of_address_to_resource() replaced with platform_get_resource(),
- - adapted to changes in the PHY API v7, v8 - added phy labels,
- - added MODULE_DEVICE_TABLE() entry,
- - driver file renamed to phy-exynos-mipi-video.c,
- - changed DT compatible string to "samsung,s5pv210-mipi-video-phy",
- - corrected the compatible property's description.
----
- .../phy/samsung,s5pv210-mipi-video-phy.txt         |   14 ++
- drivers/phy/Kconfig                                |    9 +
- drivers/phy/Makefile                               |    3 +-
- drivers/phy/phy-exynos-mipi-video.c                |  173 ++++++++++++++++++++
- 4 files changed, 198 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/phy/samsung,s5pv210-mipi-video-phy.txt
- create mode 100644 drivers/phy/phy-exynos-mipi-video.c
+ drivers/media/usb/em28xx/em28xx-cards.c |   88 +++++++++++++++----------------
+ drivers/media/usb/em28xx/em28xx-dvb.c   |   62 +++++++++++-----------
+ drivers/media/usb/em28xx/em28xx-reg.h   |   15 +++++-
+ 3 Dateien geändert, 89 Zeilen hinzugefügt(+), 76 Zeilen entfernt(-)
 
-diff --git a/Documentation/devicetree/bindings/phy/samsung,s5pv210-mipi-video-phy.txt b/Documentation/devicetree/bindings/phy/samsung,s5pv210-mipi-video-phy.txt
-new file mode 100644
-index 0000000..5ff208c
---- /dev/null
-+++ b/Documentation/devicetree/bindings/phy/samsung,s5pv210-mipi-video-phy.txt
-@@ -0,0 +1,14 @@
-+Samsung S5P/EXYNOS SoC series MIPI CSIS/DSIM DPHY
-+-------------------------------------------------
-+
-+Required properties:
-+- compatible : should be "samsung,s5pv210-mipi-video-phy";
-+- reg : offset and length of the MIPI DPHY register set;
-+- #phy-cells : from the generic phy bindings, must be 1;
-+
-+For "samsung,s5pv210-mipi-video-phy" compatible PHYs the second cell in
-+the PHY specifier identifies the PHY and its meaning is as follows:
-+  0 - MIPI CSIS 0,
-+  1 - MIPI DSIM 0,
-+  2 - MIPI CSIS 1,
-+  3 - MIPI DSIM 1.
-diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
-index 5f85909..6f446d0 100644
---- a/drivers/phy/Kconfig
-+++ b/drivers/phy/Kconfig
-@@ -11,3 +11,12 @@ menuconfig GENERIC_PHY
- 	  devices present in the kernel. This layer will have the generic
- 	  API by which phy drivers can create PHY using the phy framework and
- 	  phy users can obtain reference to the PHY.
-+
-+if GENERIC_PHY
-+
-+config PHY_EXYNOS_MIPI_VIDEO
-+	tristate "S5P/EXYNOS SoC series MIPI CSI-2/DSI PHY driver"
-+	help
-+	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung
-+	  S5P and EXYNOS SoCs.
-+endif
-diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
-index 9e9560f..71d8841 100644
---- a/drivers/phy/Makefile
-+++ b/drivers/phy/Makefile
-@@ -2,4 +2,5 @@
- # Makefile for the phy drivers.
- #
+diff --git a/drivers/media/usb/em28xx/em28xx-cards.c b/drivers/media/usb/em28xx/em28xx-cards.c
+index 927956b..a2230cc 100644
+--- a/drivers/media/usb/em28xx/em28xx-cards.c
++++ b/drivers/media/usb/em28xx/em28xx-cards.c
+@@ -286,14 +286,14 @@ static struct em28xx_reg_seq dikom_dk300_digital[] = {
  
--obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
-+obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
-+obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
-diff --git a/drivers/phy/phy-exynos-mipi-video.c b/drivers/phy/phy-exynos-mipi-video.c
-new file mode 100644
-index 0000000..074a623
---- /dev/null
-+++ b/drivers/phy/phy-exynos-mipi-video.c
-@@ -0,0 +1,173 @@
+ /* Reset for the most [digital] boards */
+ static struct em28xx_reg_seq leadership_digital[] = {
+-	{EM2874_R80_GPIO,	0x70,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0x70,	0xff,	10},
+ 	{	-1,		-1,	-1,	-1},
+ };
+ 
+ static struct em28xx_reg_seq leadership_reset[] = {
+-	{EM2874_R80_GPIO,	0xf0,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xb0,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xf0,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xf0,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xb0,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xf0,	0xff,	10},
+ 	{	-1,		-1,	-1,	-1},
+ };
+ 
+@@ -302,25 +302,25 @@ static struct em28xx_reg_seq leadership_reset[] = {
+  * GPIO_7 - LED
+  */
+ static struct em28xx_reg_seq pctv_290e[] = {
+-	{EM2874_R80_GPIO,	0x00,	0xff,		80},
+-	{EM2874_R80_GPIO,	0x40,	0xff,		80}, /* GPIO_6 = 1 */
+-	{EM2874_R80_GPIO,	0xc0,	0xff,		80}, /* GPIO_7 = 1 */
++	{EM2874_R80_GPIO_P0_CTRL,	0x00,	0xff,	80},
++	{EM2874_R80_GPIO_P0_CTRL,	0x40,	0xff,	80}, /* GPIO_6 = 1 */
++	{EM2874_R80_GPIO_P0_CTRL,	0xc0,	0xff,	80}, /* GPIO_7 = 1 */
+ 	{-1,			-1,	-1,		-1},
+ };
+ 
+ #if 0
+ static struct em28xx_reg_seq terratec_h5_gpio[] = {
+ 	{EM28XX_R08_GPIO,	0xff,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xf6,	0xff,	100},
+-	{EM2874_R80_GPIO,	0xf2,	0xff,	50},
+-	{EM2874_R80_GPIO,	0xf6,	0xff,	50},
++	{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	100},
++	{EM2874_R80_GPIO_P0_CTRL,	0xf2,	0xff,	50},
++	{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	50},
+ 	{ -1,			-1,	-1,	-1},
+ };
+ 
+ static struct em28xx_reg_seq terratec_h5_digital[] = {
+-	{EM2874_R80_GPIO,	0xf6,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xe6,	0xff,	100},
+-	{EM2874_R80_GPIO,	0xa6,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xe6,	0xff,	100},
++	{EM2874_R80_GPIO_P0_CTRL,	0xa6,	0xff,	10},
+ 	{ -1,			-1,	-1,	-1},
+ };
+ #endif
+@@ -336,39 +336,39 @@ static struct em28xx_reg_seq terratec_h5_digital[] = {
+  * GPIO_7 - LED (green LED)
+  */
+ static struct em28xx_reg_seq pctv_460e[] = {
+-	{EM2874_R80_GPIO, 0x01, 0xff,  50},
++	{EM2874_R80_GPIO_P0_CTRL, 0x01, 0xff,  50},
+ 	{0x0d,            0xff, 0xff,  50},
+-	{EM2874_R80_GPIO, 0x41, 0xff,  50}, /* GPIO_6=1 */
++	{EM2874_R80_GPIO_P0_CTRL, 0x41, 0xff,  50}, /* GPIO_6=1 */
+ 	{0x0d,            0x42, 0xff,  50},
+-	{EM2874_R80_GPIO, 0x61, 0xff,  50}, /* GPIO_5=1 */
++	{EM2874_R80_GPIO_P0_CTRL, 0x61, 0xff,  50}, /* GPIO_5=1 */
+ 	{             -1,   -1,   -1,  -1},
+ };
+ 
+ static struct em28xx_reg_seq c3tech_digital_duo_digital[] = {
+-	{EM2874_R80_GPIO,	0xff,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xfd,	0xff,	10}, /* xc5000 reset */
+-	{EM2874_R80_GPIO,	0xf9,	0xff,	35},
+-	{EM2874_R80_GPIO,	0xfd,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xff,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xfe,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xbe,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xfe,	0xff,	20},
++	{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	10}, /* xc5000 reset */
++	{EM2874_R80_GPIO_P0_CTRL,	0xf9,	0xff,	35},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfd,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfe,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xbe,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xfe,	0xff,	20},
+ 	{ -1,			-1,	-1,	-1},
+ };
+ 
+ #if 0
+ static struct em28xx_reg_seq hauppauge_930c_gpio[] = {
+-	{EM2874_R80_GPIO,	0x6f,	0xff,	10},
+-	{EM2874_R80_GPIO,	0x4f,	0xff,	10}, /* xc5000 reset */
+-	{EM2874_R80_GPIO,	0x6f,	0xff,	10},
+-	{EM2874_R80_GPIO,	0x4f,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0x6f,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0x4f,	0xff,	10}, /* xc5000 reset */
++	{EM2874_R80_GPIO_P0_CTRL,	0x6f,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0x4f,	0xff,	10},
+ 	{ -1,			-1,	-1,	-1},
+ };
+ 
+ static struct em28xx_reg_seq hauppauge_930c_digital[] = {
+-	{EM2874_R80_GPIO,	0xf6,	0xff,	10},
+-	{EM2874_R80_GPIO,	0xe6,	0xff,	100},
+-	{EM2874_R80_GPIO,	0xa6,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	10},
++	{EM2874_R80_GPIO_P0_CTRL,	0xe6,	0xff,	100},
++	{EM2874_R80_GPIO_P0_CTRL,	0xa6,	0xff,	10},
+ 	{ -1,			-1,	-1,	-1},
+ };
+ #endif
+@@ -379,9 +379,9 @@ static struct em28xx_reg_seq hauppauge_930c_digital[] = {
+  * GPIO_7 - LED, 0=active
+  */
+ static struct em28xx_reg_seq maxmedia_ub425_tc[] = {
+-	{EM2874_R80_GPIO,  0x83,  0xff,  100},
+-	{EM2874_R80_GPIO,  0xc3,  0xff,  100}, /* GPIO_6 = 1 */
+-	{EM2874_R80_GPIO,  0x43,  0xff,  000}, /* GPIO_7 = 0 */
++	{EM2874_R80_GPIO_P0_CTRL,  0x83,  0xff,  100},
++	{EM2874_R80_GPIO_P0_CTRL,  0xc3,  0xff,  100}, /* GPIO_6 = 1 */
++	{EM2874_R80_GPIO_P0_CTRL,  0x43,  0xff,  000}, /* GPIO_7 = 0 */
+ 	{-1,                 -1,    -1,   -1},
+ };
+ 
+@@ -392,9 +392,9 @@ static struct em28xx_reg_seq maxmedia_ub425_tc[] = {
+  * GPIO_7: LED, 1=active
+  */
+ static struct em28xx_reg_seq pctv_510e[] = {
+-	{EM2874_R80_GPIO, 0x10, 0xff, 100},
+-	{EM2874_R80_GPIO, 0x14, 0xff, 100}, /* GPIO_2 = 1 */
+-	{EM2874_R80_GPIO, 0x54, 0xff, 050}, /* GPIO_6 = 1 */
++	{EM2874_R80_GPIO_P0_CTRL, 0x10, 0xff, 100},
++	{EM2874_R80_GPIO_P0_CTRL, 0x14, 0xff, 100}, /* GPIO_2 = 1 */
++	{EM2874_R80_GPIO_P0_CTRL, 0x54, 0xff, 050}, /* GPIO_6 = 1 */
+ 	{             -1,   -1,   -1,  -1},
+ };
+ 
+@@ -405,10 +405,10 @@ static struct em28xx_reg_seq pctv_510e[] = {
+  * GPIO_7: LED, 1=active
+  */
+ static struct em28xx_reg_seq pctv_520e[] = {
+-	{EM2874_R80_GPIO, 0x10, 0xff, 100},
+-	{EM2874_R80_GPIO, 0x14, 0xff, 100}, /* GPIO_2 = 1 */
+-	{EM2874_R80_GPIO, 0x54, 0xff, 050}, /* GPIO_6 = 1 */
+-	{EM2874_R80_GPIO, 0xd4, 0xff, 000}, /* GPIO_7 = 1 */
++	{EM2874_R80_GPIO_P0_CTRL, 0x10, 0xff, 100},
++	{EM2874_R80_GPIO_P0_CTRL, 0x14, 0xff, 100}, /* GPIO_2 = 1 */
++	{EM2874_R80_GPIO_P0_CTRL, 0x54, 0xff, 050}, /* GPIO_6 = 1 */
++	{EM2874_R80_GPIO_P0_CTRL, 0xd4, 0xff, 000}, /* GPIO_7 = 1 */
+ 	{             -1,   -1,   -1,  -1},
+ };
+ 
+@@ -2948,13 +2948,13 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			break;
+ 		case CHIP_ID_EM2874:
+ 			chip_name = "em2874";
+-			dev->reg_gpio_num = EM2874_R80_GPIO;
++			dev->reg_gpio_num = EM2874_R80_GPIO_P0_CTRL;
+ 			dev->wait_after_write = 0;
+ 			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+ 		case CHIP_ID_EM28174:
+ 			chip_name = "em28174";
+-			dev->reg_gpio_num = EM2874_R80_GPIO;
++			dev->reg_gpio_num = EM2874_R80_GPIO_P0_CTRL;
+ 			dev->wait_after_write = 0;
+ 			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+@@ -2964,7 +2964,7 @@ static int em28xx_init_dev(struct em28xx *dev, struct usb_device *udev,
+ 			break;
+ 		case CHIP_ID_EM2884:
+ 			chip_name = "em2884";
+-			dev->reg_gpio_num = EM2874_R80_GPIO;
++			dev->reg_gpio_num = EM2874_R80_GPIO_P0_CTRL;
+ 			dev->wait_after_write = 0;
+ 			dev->eeprom_addrwidth_16bit = 1;
+ 			break;
+diff --git a/drivers/media/usb/em28xx/em28xx-dvb.c b/drivers/media/usb/em28xx/em28xx-dvb.c
+index 42ede68..69aed82 100644
+--- a/drivers/media/usb/em28xx/em28xx-dvb.c
++++ b/drivers/media/usb/em28xx/em28xx-dvb.c
+@@ -421,23 +421,23 @@ static void hauppauge_hvr930c_init(struct em28xx *dev)
+ 	int i;
+ 
+ 	struct em28xx_reg_seq hauppauge_hvr930c_init[] = {
+-		{EM2874_R80_GPIO,	0xff,	0xff,	0x65},
+-		{EM2874_R80_GPIO,	0xfb,	0xff,	0x32},
+-		{EM2874_R80_GPIO,	0xff,	0xff,	0xb8},
++		{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xff,	0x65},
++		{EM2874_R80_GPIO_P0_CTRL,	0xfb,	0xff,	0x32},
++		{EM2874_R80_GPIO_P0_CTRL,	0xff,	0xff,	0xb8},
+ 		{ -1,                   -1,     -1,     -1},
+ 	};
+ 	struct em28xx_reg_seq hauppauge_hvr930c_end[] = {
+-		{EM2874_R80_GPIO,	0xef,	0xff,	0x01},
+-		{EM2874_R80_GPIO,	0xaf,	0xff,	0x65},
+-		{EM2874_R80_GPIO,	0xef,	0xff,	0x76},
+-		{EM2874_R80_GPIO,	0xef,	0xff,	0x01},
+-		{EM2874_R80_GPIO,	0xcf,	0xff,	0x0b},
+-		{EM2874_R80_GPIO,	0xef,	0xff,	0x40},
+-
+-		{EM2874_R80_GPIO,	0xcf,	0xff,	0x65},
+-		{EM2874_R80_GPIO,	0xef,	0xff,	0x65},
+-		{EM2874_R80_GPIO,	0xcf,	0xff,	0x0b},
+-		{EM2874_R80_GPIO,	0xef,	0xff,	0x65},
++		{EM2874_R80_GPIO_P0_CTRL,	0xef,	0xff,	0x01},
++		{EM2874_R80_GPIO_P0_CTRL,	0xaf,	0xff,	0x65},
++		{EM2874_R80_GPIO_P0_CTRL,	0xef,	0xff,	0x76},
++		{EM2874_R80_GPIO_P0_CTRL,	0xef,	0xff,	0x01},
++		{EM2874_R80_GPIO_P0_CTRL,	0xcf,	0xff,	0x0b},
++		{EM2874_R80_GPIO_P0_CTRL,	0xef,	0xff,	0x40},
++
++		{EM2874_R80_GPIO_P0_CTRL,	0xcf,	0xff,	0x65},
++		{EM2874_R80_GPIO_P0_CTRL,	0xef,	0xff,	0x65},
++		{EM2874_R80_GPIO_P0_CTRL,	0xcf,	0xff,	0x0b},
++		{EM2874_R80_GPIO_P0_CTRL,	0xef,	0xff,	0x65},
+ 
+ 		{ -1,                   -1,     -1,     -1},
+ 	};
+@@ -488,15 +488,15 @@ static void terratec_h5_init(struct em28xx *dev)
+ 	int i;
+ 	struct em28xx_reg_seq terratec_h5_init[] = {
+ 		{EM28XX_R08_GPIO,	0xff,	0xff,	10},
+-		{EM2874_R80_GPIO,	0xf6,	0xff,	100},
+-		{EM2874_R80_GPIO,	0xf2,	0xff,	50},
+-		{EM2874_R80_GPIO,	0xf6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xf2,	0xff,	50},
++		{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	100},
+ 		{ -1,                   -1,     -1,     -1},
+ 	};
+ 	struct em28xx_reg_seq terratec_h5_end[] = {
+-		{EM2874_R80_GPIO,	0xe6,	0xff,	100},
+-		{EM2874_R80_GPIO,	0xa6,	0xff,	50},
+-		{EM2874_R80_GPIO,	0xe6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xe6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xa6,	0xff,	50},
++		{EM2874_R80_GPIO_P0_CTRL,	0xe6,	0xff,	100},
+ 		{ -1,                   -1,     -1,     -1},
+ 	};
+ 	struct {
+@@ -544,14 +544,14 @@ static void terratec_htc_stick_init(struct em28xx *dev)
+ 	 */
+ 	struct em28xx_reg_seq terratec_htc_stick_init[] = {
+ 		{EM28XX_R08_GPIO,	0xff,	0xff,	10},
+-		{EM2874_R80_GPIO,	0xf6,	0xff,	100},
+-		{EM2874_R80_GPIO,	0xe6,	0xff,	50},
+-		{EM2874_R80_GPIO,	0xf6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xe6,	0xff,	50},
++		{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	100},
+ 		{ -1,                   -1,     -1,     -1},
+ 	};
+ 	struct em28xx_reg_seq terratec_htc_stick_end[] = {
+-		{EM2874_R80_GPIO,	0xb6,	0xff,	100},
+-		{EM2874_R80_GPIO,	0xf6,	0xff,	50},
++		{EM2874_R80_GPIO_P0_CTRL,	0xb6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xf6,	0xff,	50},
+ 		{ -1,                   -1,     -1,     -1},
+ 	};
+ 
+@@ -591,15 +591,15 @@ static void terratec_htc_usb_xs_init(struct em28xx *dev)
+ 
+ 	struct em28xx_reg_seq terratec_htc_usb_xs_init[] = {
+ 		{EM28XX_R08_GPIO,	0xff,	0xff,	10},
+-		{EM2874_R80_GPIO,	0xb2,	0xff,	100},
+-		{EM2874_R80_GPIO,	0xb2,	0xff,	50},
+-		{EM2874_R80_GPIO,	0xb6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xb2,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xb2,	0xff,	50},
++		{EM2874_R80_GPIO_P0_CTRL,	0xb6,	0xff,	100},
+ 		{ -1,                   -1,     -1,     -1},
+ 	};
+ 	struct em28xx_reg_seq terratec_htc_usb_xs_end[] = {
+-		{EM2874_R80_GPIO,	0xa6,	0xff,	100},
+-		{EM2874_R80_GPIO,	0xa6,	0xff,	50},
+-		{EM2874_R80_GPIO,	0xe6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xa6,	0xff,	100},
++		{EM2874_R80_GPIO_P0_CTRL,	0xa6,	0xff,	50},
++		{EM2874_R80_GPIO_P0_CTRL,	0xe6,	0xff,	100},
+ 		{ -1,                   -1,     -1,     -1},
+ 	};
+ 
+diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
+index 622871d..0233c5b 100644
+--- a/drivers/media/usb/em28xx/em28xx-reg.h
++++ b/drivers/media/usb/em28xx/em28xx-reg.h
+@@ -193,7 +193,20 @@
+ #define EM2874_R50_IR_CONFIG    0x50
+ #define EM2874_R51_IR           0x51
+ #define EM2874_R5F_TS_ENABLE    0x5f
+-#define EM2874_R80_GPIO         0x80
++
++/* em2874/174/84, em25xx, em276x/7x/8x GPIO registers */
 +/*
-+ * Samsung S5P/EXYNOS SoC series MIPI CSIS/DSIM DPHY driver
-+ *
-+ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
++ * NOTE: not all ports are bonded out;
++ * Some ports are multiplexed with special function I/O
 + */
-+
-+#include <linux/delay.h>
-+#include <linux/io.h>
-+#include <linux/kernel.h>
-+#include <linux/module.h>
-+#include <linux/of.h>
-+#include <linux/of_address.h>
-+#include <linux/phy/phy.h>
-+#include <linux/platform_device.h>
-+#include <linux/spinlock.h>
-+
-+/* MIPI_PHYn_CONTROL register offset: n = 0..1 */
-+#define EXYNOS_MIPI_PHY_CONTROL(n)	((n) * 4)
-+#define EXYNOS_MIPI_PHY_ENABLE		(1 << 0)
-+#define EXYNOS_MIPI_PHY_SRESETN		(1 << 1)
-+#define EXYNOS_MIPI_PHY_MRESETN		(1 << 2)
-+#define EXYNOS_MIPI_PHY_RESET_MASK	(3 << 1)
-+
-+enum phy_id {
-+	PHY_CSIS0,
-+	PHY_DSIM0,
-+	PHY_CSIS1,
-+	PHY_DSIM1,
-+	NUM_PHYS
-+};
-+
-+struct exynos_video_phy {
-+	spinlock_t slock;
-+	struct phy *phys[NUM_PHYS];
-+	void __iomem *regs;
-+};
-+
-+static int __set_phy_state(struct exynos_video_phy *state,
-+				enum phy_id id, unsigned int on)
-+{
-+	void __iomem *addr;
-+	unsigned long flags;
-+	u32 reg, reset;
-+
-+	if (WARN_ON(id > NUM_PHYS))
-+		return -EINVAL;
-+
-+	addr = state->regs + EXYNOS_MIPI_PHY_CONTROL(id / 2);
-+
-+	if (id == PHY_DSIM0 || id == PHY_DSIM1)
-+		reset = EXYNOS_MIPI_PHY_MRESETN;
-+	else
-+		reset = EXYNOS_MIPI_PHY_SRESETN;
-+
-+	spin_lock_irqsave(&state->slock, flags);
-+	reg = readl(addr);
-+	if (on)
-+		reg |= reset;
-+	else
-+		reg &= ~reset;
-+	writel(reg, addr);
-+
-+	/* Clear ENABLE bit only if MRESETN, SRESETN bits are not set. */
-+	if (on)
-+		reg |= EXYNOS_MIPI_PHY_ENABLE;
-+	else if (!(reg & EXYNOS_MIPI_PHY_RESET_MASK))
-+		reg &= ~EXYNOS_MIPI_PHY_ENABLE;
-+
-+	writel(reg, addr);
-+	spin_unlock_irqrestore(&state->slock, flags);
-+
-+	pr_debug("%s(): id: %d, on: %d, addr: %#x, base: %#x\n",
-+		 __func__, id, on, (u32)addr, (u32)state->regs);
-+
-+	return 0;
-+}
-+
-+static int exynos_video_phy_power_on(struct phy *phy)
-+{
-+	struct exynos_video_phy *state = dev_get_drvdata(&phy->dev);
-+	return __set_phy_state(state, phy->id, 1);
-+}
-+
-+static int exynos_video_phy_power_off(struct phy *phy)
-+{
-+	struct exynos_video_phy *state = dev_get_drvdata(&phy->dev);
-+	return __set_phy_state(state, phy->id, 0);
-+}
-+
-+static struct phy *exynos_video_phy_xlate(struct device *dev,
-+					struct of_phandle_args *args)
-+{
-+	struct exynos_video_phy *state = dev_get_drvdata(dev);
-+
-+	if (WARN_ON(args->args[0] > NUM_PHYS))
-+		return NULL;
-+
-+	return state->phys[args->args[0]];
-+}
-+
-+static struct phy_ops exynos_video_phy_ops = {
-+	.power_on	= exynos_video_phy_power_on,
-+	.power_off	= exynos_video_phy_power_off,
-+	.owner		= THIS_MODULE,
-+};
-+
-+static int exynos_video_phy_probe(struct platform_device *pdev)
-+{
-+	struct exynos_video_phy *state;
-+	struct device *dev = &pdev->dev;
-+	struct resource *res;
-+	struct phy_provider *phy_provider;
-+	int i;
-+
-+	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
-+	if (!state)
-+		return -ENOMEM;
-+
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+
-+	state->regs = devm_ioremap_resource(dev, res);
-+	if (IS_ERR(state->regs))
-+		return PTR_ERR(state->regs);
-+
-+	dev_set_drvdata(dev, state);
-+
-+	phy_provider = devm_of_phy_provider_register(dev,
-+					exynos_video_phy_xlate);
-+	if (IS_ERR(phy_provider))
-+		return PTR_ERR(phy_provider);
-+
-+	for (i = 0; i < NUM_PHYS; i++) {
-+		char label[8];
-+
-+		snprintf(label, sizeof(label), "%s.%d",
-+				i == PHY_DSIM0 || i == PHY_DSIM1 ?
-+				"dsim" : "csis", i / 2);
-+
-+		state->phys[i] = devm_phy_create(dev, i, &exynos_video_phy_ops,
-+								label, state);
-+		if (IS_ERR(state->phys[i])) {
-+			dev_err(dev, "failed to create PHY %s\n", label);
-+			return PTR_ERR(state->phys[i]);
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static const struct of_device_id exynos_video_phy_of_match[] = {
-+	{ .compatible = "samsung,s5pv210-mipi-video-phy" },
-+	{ },
-+};
-+MODULE_DEVICE_TABLE(of, exynos_video_phy_of_match);
-+
-+static struct platform_driver exynos_video_phy_driver = {
-+	.probe	= exynos_video_phy_probe,
-+	.driver = {
-+		.of_match_table	= exynos_video_phy_of_match,
-+		.name  = "exynos-mipi-video-phy",
-+		.owner = THIS_MODULE,
-+	}
-+};
-+module_platform_driver(exynos_video_phy_driver);
-+
-+MODULE_DESCRIPTION("Samsung S5P/EXYNOS SoC MIPI CSI-2/DSI PHY driver");
-+MODULE_LICENSE("GPL");
-+MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
++#define EM2874_R80_GPIO_P0_CTRL    0x80
++#define EM2874_R81_GPIO_P1_CTRL    0x81
++#define EM2874_R82_GPIO_P2_CTRL    0x82
++#define EM2874_R83_GPIO_P3_CTRL    0x83
++#define EM2874_R84_GPIO_P0_STATE   0x84
++#define EM2874_R85_GPIO_P1_STATE   0x85
++#define EM2874_R86_GPIO_P2_STATE   0x86
++#define EM2874_R87_GPIO_P3_STATE   0x87
+ 
+ /* em2874 IR config register (0x50) */
+ #define EM2874_IR_NEC           0x00
 -- 
-1.7.9.5
+1.7.10.4
 
