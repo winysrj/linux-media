@@ -1,67 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:30402 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752205Ab3FJOy6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 10:54:58 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MO600EOHMRLH690@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Jun 2013 23:54:57 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	kyungmin.park@samsung.com, a.hajda@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC PATCH v3 0/2] Media entity links handling
-Date: Mon, 10 Jun 2013 16:54:27 +0200
-Message-id: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.ispras.ru ([83.149.199.45]:50625 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750775Ab3FCC7I (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 2 Jun 2013 22:59:08 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
+	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
+Subject: [PATCH] staging/media: lirc_imon: fix leaks in imon_probe()
+Date: Mon,  3 Jun 2013 06:58:49 +0400
+Message-Id: <1370228329-10439-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Error handling of usb_submit_urb() is not as all others in imon_probe().
+It just unlocks mutexes and returns nonzero leaving all already
+allocated resources unfreed.
 
-This is an updated version of the patch set
-http://www.spinics.net/lists/linux-media/msg64536.html
+The patch makes sure all the resources are deallocated.
 
-Comparing to v2 it includes improvements of the __media_entity_remove_links()
-function, thanks to Sakari. 
+Found by Linux Driver Verification project (linuxtesting.org).
 
-The cover letter of v2 is included below.
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+---
+ drivers/staging/media/lirc/lirc_imon.c | 7 ++++---
+ 1 file changed, 4 insertions(+), 3 deletions(-)
 
-This small patch set adds a function for removing all links at a media
-entity. I found out such a function is needed when media entites that
-belong to a single media device have drivers in different kernel modules.
-This means virtually all camera drivers, since sensors are separate
-modules from the host interface drivers.
-
-More details can be found at each patch's description.
-
-The links removal from a media entity is rather strightforward, but when
-and where links should be created/removed is not immediately clear to me.
-
-I assumed that links should normally be created/removed when an entity
-is registered to its media device, with the graph mutex held.
-
-I'm open to opinions whether it's good or not and possibly suggestions
-on how those issues could be handled differently.
-
-The changes since original version are listed in patch 1/2, in patch 2/2
-only the commit description has changed slightly.
-
-Thanks,
-Sylwester
-
-Sylwester Nawrocki (2):
-  media: Add a function removing all links of a media entity
-  V4L: Remove all links of a media entity when unregistering subdev
-
- drivers/media/media-entity.c          |   50 +++++++++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-device.c |    4 ++-
- include/media/media-entity.h          |    3 ++
- 3 files changed, 56 insertions(+), 1 deletion(-)
-
+diff --git a/drivers/staging/media/lirc/lirc_imon.c b/drivers/staging/media/lirc/lirc_imon.c
+index 0a2c45d..4afa7da 100644
+--- a/drivers/staging/media/lirc/lirc_imon.c
++++ b/drivers/staging/media/lirc/lirc_imon.c
+@@ -911,8 +911,8 @@ static int imon_probe(struct usb_interface *interface,
+ 	if (retval) {
+ 		dev_err(dev, "%s: usb_submit_urb failed for intf0 (%d)\n",
+ 			__func__, retval);
+-		mutex_unlock(&context->ctx_lock);
+-		goto exit;
++		alloc_status = 8;
++		goto unlock;
+ 	}
+ 
+ 	usb_set_intfdata(interface, context);
+@@ -937,6 +937,8 @@ unlock:
+ alloc_status_switch:
+ 
+ 	switch (alloc_status) {
++	case 8:
++		lirc_unregister_driver(driver->minor);
+ 	case 7:
+ 		usb_free_urb(tx_urb);
+ 	case 6:
+@@ -959,7 +961,6 @@ alloc_status_switch:
+ 		retval = 0;
+ 	}
+ 
+-exit:
+ 	mutex_unlock(&driver_lock);
+ 
+ 	return retval;
 -- 
-1.7.9.5
-
+1.8.1.2
