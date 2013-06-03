@@ -1,89 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:52171 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752775Ab3FVJrp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jun 2013 05:47:45 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 2/2] media: i2c: ths8200: add OF support
-Date: Sat, 22 Jun 2013 15:16:35 +0530
-Message-Id: <1371894395-14414-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371894395-14414-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371894395-14414-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-ea0-f173.google.com ([209.85.215.173]:61035 "EHLO
+	mail-ea0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758131Ab3FCSL4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 14:11:56 -0400
+Received: by mail-ea0-f173.google.com with SMTP id n15so3799584ead.4
+        for <linux-media@vger.kernel.org>; Mon, 03 Jun 2013 11:11:55 -0700 (PDT)
+Message-ID: <51ACDCD5.1030806@googlemail.com>
+Date: Mon, 03 Jun 2013 20:13:41 +0200
+From: =?UTF-8?B?RnJhbmsgU2Now6RmZXI=?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 0/4] em28xx: GPIO registers: extend definitions and remove
+ the caching
+References: <1370283125-2231-1-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1370283125-2231-1-git-send-email-fschaefer.oss@googlemail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Am 03.06.2013 20:12, schrieb Frank Schäfer:
+> The first two patches add some missing GPIO register definitions,
+> while the third patch is a minor code movement to clean up things.
+> The fourth patch finally removes the GPIO register caching.
+>
+> Frank Schäfer (4):
+>   em28xx: extend GPIO register definitions for the em25xx,
+>     em276x/7x/8x, em2874/174/84
+>   em28xx: improve em2820-em2873/83 GPIO port register definitions and
+>     descriptions
+>   em28xx: move snapshot button bit definition for reg 0x0C from
+>     em28xx-input.c to em28xx.h
+>   em28xx: remove GPIO register caching
+>
+>  drivers/media/usb/em28xx/em28xx-cards.c |  220 +++++++++++++++----------------
+>  drivers/media/usb/em28xx/em28xx-core.c  |   27 +---
+>  drivers/media/usb/em28xx/em28xx-dvb.c   |   68 +++++-----
+>  drivers/media/usb/em28xx/em28xx-input.c |    1 -
+>  drivers/media/usb/em28xx/em28xx-reg.h   |   23 +++-
+>  drivers/media/usb/em28xx/em28xx.h       |    6 -
+>  6 Dateien geändert, 159 Zeilen hinzugefügt(+), 186 Zeilen entfernt(-)
 
-add OF support for the ths8200 driver.
+...makes the following 2 patches obsolete:
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- .../devicetree/bindings/media/i2c/ths8200.txt      |   19 +++++++++++++++++++
- drivers/media/i2c/ths8200.c                        |    9 +++++++++
- 2 files changed, 28 insertions(+)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ths8200.txt
+https://patchwork.linuxtv.org/patch/18510/
+https://patchwork.linuxtv.org/patch/18511/
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/ths8200.txt b/Documentation/devicetree/bindings/media/i2c/ths8200.txt
-new file mode 100644
-index 0000000..285f6ae
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/ths8200.txt
-@@ -0,0 +1,19 @@
-+* Texas Instruments THS8200 video encoder
-+
-+The ths8200 device is a digital to analog converter used in DVD players, video
-+recorders, set-top boxes.
-+
-+Required Properties :
-+- compatible : value must be "ti,ths8200"
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		...
-+		ths8200@5c {
-+			compatible = "ti,ths8200";
-+			reg = <0x5c>;
-+		};
-+		...
-+	};
-diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
-index cc1339a..8a29810 100644
---- a/drivers/media/i2c/ths8200.c
-+++ b/drivers/media/i2c/ths8200.c
-@@ -550,10 +550,19 @@ static struct i2c_device_id ths8200_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, ths8200_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id ths8200_of_match[] = {
-+	{ .compatible = "ti,ths8200", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, ths8200_of_match);
-+#endif
-+
- static struct i2c_driver ths8200_driver = {
- 	.driver = {
- 		.owner = THIS_MODULE,
- 		.name = "ths8200",
-+		.of_match_table = of_match_ptr(ths8200_of_match),
- 	},
- 	.probe = ths8200_probe,
- 	.remove = ths8200_remove,
--- 
-1.7.9.5
-
+Regards,
+Frank
