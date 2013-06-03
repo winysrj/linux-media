@@ -1,72 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:24729 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752072Ab3F1HQr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 03:16:47 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
-Subject: [PATCH V2 2/3] ARM: dts: Add DP PHY node to exynos5250.dtsi
-Date: Fri, 28 Jun 2013 16:16:44 +0900
-Message-id: <002001ce73cf$721b9d80$5652d880$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from merlin.infradead.org ([205.233.59.134]:39907 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757089Ab3FCVHH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 17:07:07 -0400
+Message-ID: <51AD053B.1040403@infradead.org>
+Date: Mon, 03 Jun 2013 14:06:03 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Geert Uytterhoeven <geert@linux-m68k.org>
+CC: Stephen Rothwell <sfr@canb.auug.org.au>,
+	Linux-Next <linux-next@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>
+Subject: Re: linux-next: Tree for Jun 3 (fonts.c & vivi)
+References: <20130603163717.a6f78476e57d92fadd6f6a23@canb.auug.org.au> <51ACFDF2.4040600@infradead.org> <CAMuHMdUALrScFE895xRiBvgUpVa9Tvic5M7YxefrEgyeMaSjhw@mail.gmail.com>
+In-Reply-To: <CAMuHMdUALrScFE895xRiBvgUpVa9Tvic5M7YxefrEgyeMaSjhw@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PHY provider node for the DP PHY.
+On 06/03/13 13:54, Geert Uytterhoeven wrote:
+> On Mon, Jun 3, 2013 at 10:34 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
+>> On 06/02/13 23:37, Stephen Rothwell wrote:
+>>> Changes since 20130531:
+>> on x86_64:
+>>
+>> warning: (VIDEO_VIVI && USB_SISUSBVGA && SOLO6X10) selects FONT_SUPPORT which has unmet direct dependencies (HAS_IOMEM && VT)
+>> warning: (VIDEO_VIVI && FB_VGA16 && FB_S3 && FB_VT8623 && FB_ARK && USB_SISUSBVGA_CON && SOLO6X10) selects FONT_8x16 which has unmet direct dependencies (HAS_IOMEM && VT && FONT_SUPPORT)
+> 
+> I knew about thet warning. But I thought it was harmless, as none of the font
+> code really depends on console support...
+> 
+>> drivers/built-in.o: In function `vivi_init':
+>> vivi.c:(.init.text+0x1a3da): undefined reference to `find_font'
+>>
+>> when CONFIG_VT is not enabled.
+> 
+> ... but I missed that drivers/video/console is not used if CONFIG_VT=y.
+> Sorry for that.
+> 
+>> Just make CONFIG_VIDEO_VIVI depend on VT ?
+> 
+> Does this (whitespace-damaged copy-and-paste) help?
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
----
- arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+Yes, that works.  Thanks.
 
-diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
-index 41cd625..f7bac75 100644
---- a/arch/arm/boot/dts/exynos5250.dtsi
-+++ b/arch/arm/boot/dts/exynos5250.dtsi
-@@ -614,6 +614,12 @@
- 		interrupts = <0 94 0>;
- 	};
- 
-+	dp_phy: video-phy@10040720 {
-+		compatible = "samsung,exynos5250-dp-video-phy";
-+		reg = <0x10040720 4>;
-+		#phy-cells = <0>;
-+	};
-+
- 	dp-controller {
- 		compatible = "samsung,exynos5-dp";
- 		reg = <0x145b0000 0x1000>;
-@@ -623,11 +629,8 @@
- 		clock-names = "dp";
- 		#address-cells = <1>;
- 		#size-cells = <0>;
--
--		dptx-phy {
--			reg = <0x10040720>;
--			samsung,enable-mask = <1>;
--		};
-+		phys = <&dp_phy 0>;
-+		phy-names = "dp";
- 	};
- 
- 	fimd {
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+
+
+> --- a/drivers/video/Makefile
+> +++ b/drivers/video/Makefile
+> @@ -12,7 +12,7 @@ fb-y                              := fbmem.o fbmon.o fbcmap.o
+>                                       modedb.o fbcvt.o
+>  fb-objs                           := $(fb-y)
+> 
+> -obj-$(CONFIG_VT)                 += console/
+> +obj-y                            += console/
+>  obj-$(CONFIG_LOGO)               += logo/
+>  obj-y                            += backlight/
+> 
+> It shouldn't make a difference if nothing inside drivers/video/console
+> is enabled,
+> as all objects in drivers/video/console/Makefile are conditional.
+> 
+> BTW, my plan was to move the font code to lib/font, but I haven't done that yet.
+
+
 -- 
-1.7.10.4
-
-
+~Randy
