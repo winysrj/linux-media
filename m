@@ -1,54 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59740 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753398Ab3FNXbm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 19:31:42 -0400
-Received: from avalon.localnet (unknown [91.177.128.27])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id AF86D35A4D
-	for <linux-media@vger.kernel.org>; Sat, 15 Jun 2013 01:31:34 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.11] Sensor patches
-Date: Sat, 15 Jun 2013 01:31:53 +0200
-Message-ID: <1802886.BERXc0cPX4@avalon>
+Received: from mail.kapsi.fi ([217.30.184.167]:37655 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1757635Ab3FCW6h (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Jun 2013 18:58:37 -0400
+Received: from dyn3-82-128-191-187.psoas.suomi.net ([82.128.191.187] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1Ujdi0-0003KP-J2
+	for linux-media@vger.kernel.org; Tue, 04 Jun 2013 01:58:36 +0300
+Message-ID: <51AD1F76.8010406@iki.fi>
+Date: Tue, 04 Jun 2013 01:57:58 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR 3.11] minor af9035 changes
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The following changes since commit aa4f608478acb7ed69dfcff4f3c404100b78ac49:
 
-Please pull these two patches for the mt9p031 sensor.
-
-The following changes since commit ab5060cdb8829c0503b7be2b239b52e9a25063b4:
-
-  [media] drxk_hard: Remove most 80-cols checkpatch warnings (2013-06-08 
-22:11:39 -0300)
+   Merge branch 'for-linus' of 
+git://git.kernel.org/pub/scm/linux/kernel/git/geert/linux-m68k 
+(2013-06-03 18:09:42 +0900)
 
 are available in the git repository at:
 
-  git://linuxtv.org/pinchartl/media.git sensors/next
 
-for you to fetch changes up to 697dea9078ff4d495206082eb7d4941cf536a689:
+   git://linuxtv.org/anttip/media_tree.git af9035
 
-  mt9p031: Use bulk regulator API (2013-06-10 11:48:29 +0200)
+for you to fetch changes up to fa0dbea859c1e52f74264e465609e3a1a32a92f2:
+
+   af9035: correct TS mode handling (2013-06-04 01:39:51 +0300)
 
 ----------------------------------------------------------------
-Lad, Prabhakar (1):
-      media: i2c: mt9p031: add OF support
+Antti Palosaari (4):
+       af9035: implement I2C adapter read operation
+       af9035: make checkpatch.pl happy!
+       af9035: minor log writing changes
+       af9035: correct TS mode handling
 
-Laurent Pinchart (1):
-      mt9p031: Use bulk regulator API
-
- Documentation/devicetree/bindings/media/i2c/mt9p031.txt | 40 ++++++++++++++
- drivers/media/i2c/mt9p031.c                             | 72 ++++++++++++----
- 2 files changed, 95 insertions(+), 17 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9p031.txt
+  drivers/media/usb/dvb-usb-v2/af9035.c | 66 
+++++++++++++++++++++++++++++++++++++++++++++----------------------
+  drivers/media/usb/dvb-usb-v2/af9035.h | 11 ++++++++---
+  2 files changed, 52 insertions(+), 25 deletions(-)
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+http://palosaari.fi/
