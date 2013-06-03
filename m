@@ -1,69 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:33292 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751241Ab3F0HxF (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 03:53:05 -0400
-Date: Thu, 27 Jun 2013 10:52:23 +0300
-From: Felipe Balbi <balbi@ti.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <kishon@ti.com>,
-	<linux-media@vger.kernel.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <t.figa@samsung.com>,
-	<devicetree-discuss@lists.ozlabs.org>, <kgene.kim@samsung.com>,
-	<dh09.lee@samsung.com>, <jg1.han@samsung.com>,
-	<inki.dae@samsung.com>, <plagnioj@jcrosoft.com>,
-	<linux-fbdev@vger.kernel.org>
-Subject: Re: [PATCH v3 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-Message-ID: <20130627075223.GQ15455@arwen.pp.htv.fi>
-Reply-To: <balbi@ti.com>
-References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
- <1372258946-15607-2-git-send-email-s.nawrocki@samsung.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2927 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751100Ab3FCIux (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 04:50:53 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ondrej Zary <linux@rainbow-software.org>
+Subject: Re: [RFC PATCH 0/3] bttv: convert to generic TEA575x interface
+Date: Mon, 3 Jun 2013 10:50:25 +0200
+Cc: linux-media@vger.kernel.org
+References: <1368564885-20940-1-git-send-email-linux@rainbow-software.org>
+In-Reply-To: <1368564885-20940-1-git-send-email-linux@rainbow-software.org>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="qnK4RqISe3HuYx1/"
-Content-Disposition: inline
-In-Reply-To: <1372258946-15607-2-git-send-email-s.nawrocki@samsung.com>
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306031050.26000.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---qnK4RqISe3HuYx1/
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+On Tue May 14 2013 22:54:42 Ondrej Zary wrote:
+> 
+> Hello,
+> this patch series removes the tea575x code from bttv and uses the common
+> tea575x driver instead. Only set_frequency is implemented (signal/stereo
+> detection or seek would require more changes to bttv).
+> 
+> It works fine on Video Highway Xtreme but I don't have the Miro/Pinnacle or
+> Terratec Active Radio Upgrade to test.
+> 
+> Miro/Pinnacle seems to be simple and should work.
+> 
+> However, I don't understand the Terratec Active Radio Upgrade code. The HW
+> seems to need IOR, IOW and CSEL signals that were taken from ISA bus on
+> older cards (IOR and IOW directly and CSEL from some address decoder) and
+> are emulated here using GPIOs. But the code manipulating these signals in
+> bttv seems to be broken - it never asserts the IOR signal. If anyone has
+> this HW, please test if I got that right.
 
-On Wed, Jun 26, 2013 at 05:02:22PM +0200, Sylwester Nawrocki wrote:
-> Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
-> receiver and MIPI DSI transmitter DPHYs.
->=20
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+I wish I had this HW as well. There is a radio-terratec driver for this
+Radio Upgrade as well in drivers/media/radio.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+Anyway, I'm OK with the first two patches, but the last needs some more
+work w.r.t. the bttv Kconfig (see my comment to that patch).
 
---=20
-balbi
+Regards,
 
---qnK4RqISe3HuYx1/
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRy+83AAoJEIaOsuA1yqREx9kP/Rxgg8Ajq+fiVZN0cviNBeJt
-oyKEqiTAbdqXrC6ncK+akon4WpyIt+YcubExZI88MTOXXjFmqSpXboB/SqxoznRl
-ne8R9QM8oAa00tONvi3njeDzN07etC2X6VCc3hmpZScEmP2iKzD2sB/asZNLuE2n
-MAFGeWEeqlEN/2B93aNIZT7EGrHSoTjQI2K5jHmFsbcDmSV/N2UuSOgWBvjPmCab
-GY27fKv7fVCUvmp6GdYcJDIVq5XsMbuYKaegS6SEQ15eh/SepFhAO1bQFVTXi0C7
-RLBWvIlkj7SrW7KJLG1zWZHl7lIE1ShN9P7EgmTRiR7+o4wmSO1MQNYpcw4FYLZs
-UFJe+i2cGCrnBDJE6Se6xcCgXt9/bHjFor0fJ8QuqEAwTqzqeo/bnzM6HQQhqJe5
-sIOxIxeFMc564TgP2X1qd6Bayl7NcgF9R8IrDIoFD5GJ9P0HtBgHmu/PyA7WqNYs
-s+3IhbCq9wIwX05rTT5HNbWnA3P/5unQGs2tAv5KnItPoemQ7Fk+jH8qj16d+pSM
-vJdFx0ewlAyzw9FkHAlF9xjebb21Ljbuiv5DZ8PZxonwSMt1FG/akm2hdrdwTAPZ
-RYp8p87n6+nEMD+AOKXaYYVbHXmySe+fkCTsaVubDsjYXFzpFokOkveAoiYLPLAa
-ANHgUEeMLIqcrYrvNRoa
-=v/Vo
------END PGP SIGNATURE-----
-
---qnK4RqISe3HuYx1/--
+	Hans
