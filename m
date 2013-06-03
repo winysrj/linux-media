@@ -1,111 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:38225 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754643Ab3FGCcZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 22:32:25 -0400
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-Message-id: <51B14644.9070706@samsung.com>
-Date: Fri, 07 Jun 2013 11:32:36 +0900
-From: =?UTF-8?B?6rmA7Iq57Jqw?= <sw0312.kim@samsung.com>
-Reply-to: sw0312.kim@samsung.com
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
-	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
-	airlied@linux.ie, daniel.vetter@ffwll.ch,
-	kyungmin.park@samsung.com, linux-kernel@vger.kernel.org,
-	Seung-Woo Kim <sw0312.kim@samsung.com>
-Subject: Re: [RFC][PATCH 1/2] dma-buf: add importer private data to attachment
-References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
- <1369990487-23510-2-git-send-email-sw0312.kim@samsung.com>
- <51AF3BD7.5070001@canonical.com>
-In-reply-to: <51AF3BD7.5070001@canonical.com>
+Received: from mx1.redhat.com ([209.132.183.28]:61097 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752412Ab3FCRVO (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 3 Jun 2013 13:21:14 -0400
+Date: Mon, 3 Jun 2013 14:21:08 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: daily tarballs of dtv-scan-tables - was Re: [RFC] Initial scan
+ files troubles and brainstorming
+Message-ID: <20130603142108.1db775f9@redhat.com>
+In-Reply-To: <20130111103937.2cd0d5c8@redhat.com>
+References: <507FE752.6010409@schinagl.nl>
+	<50D0E7A7.90002@schinagl.nl>
+	<50EAA778.6000307@gmail.com>
+	<50EAC41D.4040403@schinagl.nl>
+	<20130108200149.GB408@linuxtv.org>
+	<50ED3BBB.4040405@schinagl.nl>
+	<20130109084143.5720a1d6@redhat.com>
+	<CAOcJUbyKv-b7mC3-W-Hp62O9CBaRLVP8c=AWGcddWNJOAdRt7Q@mail.gmail.com>
+	<20130109124158.50ddc834@redhat.com>
+	<CAHFNz9+=awiUjve3QPgHtu5Vs2rbGqcLUMzyOojguHnY4wvnOA@mail.gmail.com>
+	<50EF0A4F.1000604@gmail.com>
+	<CAHFNz9LrW4GCZb-BwJ8v7b8iT-+8pe-LAy8ZRN+mBDNLsssGPg@mail.gmail.com>
+	<50EF1034.7060100@gmail.com>
+	<CAHFNz9KWf=EtvpJ1kDGFPKSvqwd9S51O1=wVYcjNmZE-+_7Emg@mail.gmail.com>
+	<20130110180434.0681a7e1@redhat.com>
+	<CAHFNz9+Jon-YSjkX5gFOTXwX+Vsmi0Rq+X_N61-m2+AEX+8tGg@mail.gmail.com>
+	<50EF29D1.2080102@schinagl.nl>
+	<20130110201134.364d5bc6@redhat.com>
+	<50EF4766.2070100@schinagl.nl>
+	<20130111103937.2cd0d5c8@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Maarten,
+Hi Oliver,
 
-On 2013년 06월 05일 22:23, Maarten Lankhorst wrote:
-> Op 31-05-13 10:54, Seung-Woo Kim schreef:
->> dma-buf attachment has only exporter private data, but importer private data
->> can be useful for importer especially to re-import the same dma-buf.
->> To use importer private data in attachment of the device, the function to
->> search attachment in the attachment list of dma-buf is also added.
->>
->> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
->> ---
->>  drivers/base/dma-buf.c  |   31 +++++++++++++++++++++++++++++++
->>  include/linux/dma-buf.h |    4 ++++
->>  2 files changed, 35 insertions(+), 0 deletions(-)
->>
->> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
->> index 08fe897..a1eaaf2 100644
->> --- a/drivers/base/dma-buf.c
->> +++ b/drivers/base/dma-buf.c
->> @@ -259,6 +259,37 @@ err_attach:
->>  EXPORT_SYMBOL_GPL(dma_buf_attach);
->>  
->>  /**
->> + * dma_buf_get_attachment - Get attachment with the device from dma_buf's
->> + * attachments list
->> + * @dmabuf:	[in]	buffer to find device from.
->> + * @dev:	[in]	device to be found.
->> + *
->> + * Returns struct dma_buf_attachment * attaching the device; may return
->> + * negative error codes.
->> + *
->> + */
->> +struct dma_buf_attachment *dma_buf_get_attachment(struct dma_buf *dmabuf,
->> +						  struct device *dev)
->> +{
->> +	struct dma_buf_attachment *attach;
->> +
->> +	if (WARN_ON(!dmabuf || !dev))
->> +		return ERR_PTR(-EINVAL);
->> +
->> +	mutex_lock(&dmabuf->lock);
->> +	list_for_each_entry(attach, &dmabuf->attachments, node) {
->> +		if (attach->dev == dev) {
->> +			mutex_unlock(&dmabuf->lock);
->> +			return attach;
->> +		}
->> +	}
->> +	mutex_unlock(&dmabuf->lock);
->> +
->> +	return ERR_PTR(-ENODEV);
->> +}
->> +EXPORT_SYMBOL_GPL(dma_buf_get_attachment);
-> NAK in any form..
+Em Fri, 11 Jan 2013 10:39:37 -0200
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
+
+> Em Thu, 10 Jan 2013 23:57:42 +0100
+> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
 > 
-> Spot the race condition between dma_buf_get_attachment and dma_buf_attach....
-
-Both dma_buf_get_attachment and dma_buf_attach has mutet with
-dmabuf->lock, and dma_buf_get_attachment is used for get attachment from
-same device before calling dma_buf_attach.
-
-While, dma_buf_detach can removes attachment because it does not have
-ref count. So importer should check ref count in its importer private
-data before calling dma_buf_detach if the importer want to use
-dma_buf_get_attachment.
-
-And dma_buf_get_attachment is for the importer, so exporter attach and
-detach callback operation should not call it as like exporter detach
-callback operation should not call dma_buf_attach if you mean this kind
-of race.
-
-If you have other considerations here, please describe more specifically.
-
-Thanks and Best Regards,
-- Seung-Woo Kim
-
+...
+> > Personally, I'd say date based would be best. After each commit a new 
+> > tarball should be created. Since it's not 'code' that changes, but 
+> > factual data, any change warrants a release. So 
+> > dtv-scan-files-2013011.tar.bz2/xz and is common?
+> > 
+> > if for any reason a second release is needed on the same date ... too 
+> > bad :p it's extremly unlikly anyway and can be done the next day's date. 
+> > Or add an index after the date.
 > 
-> ~Maarten
+> To re-use the existing script, you'll need to create a Makefile target
+> to generate such tar. The script runs once during the night, comparing the
+> previous commit hash with the current one. If different, it creates a new
+> tarball.
 > 
+> The Makefile there could be as simple as:
 > 
+> tgz:
+> 	git archive --format tgz HEAD >dtv-scan-files-`date +"%Y%m%d.%H:%M"`.tar.gz
+> 
+> The above is for tar.gz - I don't object if you want to use a different
+> compression provided that there are just one format. You may need to play
+> a little bit with git config files, to add support for xz and bz2.
 
--- 
-Seung-Woo Kim
-Samsung Software R&D Center
---
+I found some time today to implement a script to generate the tarball 
+files for dtv-scan-tables at the LinuxTV server.
 
+The script runs daily, checking if there was any new changeset at the
+repository. If it finds a new changeset there, it will take the date
+and the changeset of the latest commit at the tree and them as part of
+the tarball name, adding them to the following directory:
+
+	http://linuxtv.org/downloads/dtv-scan-tables/
+
+The script will also create an hyperlink of the latest tarball at:
+	dtv-scan-tables-LATEST.tar.bz2
+
+Every time a new file is added there, it will also update the md5sum file,
+that could be used by someone to check the downloads.
+
+Regards,
+Mauro
