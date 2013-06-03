@@ -1,64 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ye0-f169.google.com ([209.85.213.169]:63277 "EHLO
-	mail-ye0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756247Ab3FFBpx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jun 2013 21:45:53 -0400
-Received: by mail-ye0-f169.google.com with SMTP id m9so545198yen.28
-        for <linux-media@vger.kernel.org>; Wed, 05 Jun 2013 18:45:50 -0700 (PDT)
-Message-ID: <51AFE7DC.9040801@gmail.com>
-Date: Wed, 05 Jun 2013 22:37:32 -0300
-From: =?ISO-8859-1?Q?=22Alejandro_A=2E_Vald=E9s=22?= <av2406@gmail.com>
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1888 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750818Ab3FCHkR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 03:40:17 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r537e58x064150
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 3 Jun 2013 09:40:07 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 09FC735E0049
+	for <linux-media@vger.kernel.org>; Mon,  3 Jun 2013 09:40:04 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.10] Four fixes
+Date: Mon, 3 Jun 2013 09:40:04 +0200
 MIME-Version: 1.0
-To: Ezequiel Garcia <elezegarcia@gmail.com>
-CC: =?ISO-8859-1?Q?Jon_Arne_J=F8rgensen?= <jonarne@jonarne.no>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Audio: no sound
-References: <519D6CFA.2000506@gmail.com> <CALF0-+UqJaNc7v86qakVTNEJx5npMFPqFp-=9rAByFV_+FEaww@mail.gmail.com> <519E41AC.3040707@gmail.com> <CALF0-+U5dFktwHwO5-h_7RJ1xyjc3JbHUWqG3g=WSPA=HcHnnw@mail.gmail.com> <519E6046.8050509@gmail.com> <CALF0-+UZnt9rfmQFSecqaf_9L29mwKeNV22w1XmMQQG0AE=jJw@mail.gmail.com> <519E76F3.4070006@gmail.com> <519EB8E6.5000503@gmail.com> <20130525070020.GA2122@dell.arpanet.local> <CALF0-+XS0urZ=G=jCLgKifs6NeC=rNqZB_ft2PXpcEVezuG=rw@mail.gmail.com>
-In-Reply-To: <CALF0-+XS0urZ=G=jCLgKifs6NeC=rNqZB_ft2PXpcEVezuG=rw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306030940.04468.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/2013 05:13 AM, Ezequiel Garcia wrote:
-> Hi Alejandro,
->
-> See below.
->
-> On Sat, May 25, 2013 at 4:00 AM, Jon Arne Jørgensen <jonarne@jonarne.no> wrote:
->> On Thu, May 23, 2013 at 09:48:38PM -0300, "Alejandro A. Valdés" wrote:
-> [...]
->>> [  187.472216] easycap::0adjust_contrast: adjusting contrast to  0x3F
->>> [  187.496207] easycap::0adjust_saturation: adjusting saturation to  0x2F
->>> [  187.520220] easycap::0adjust_hue: adjusting hue to  0x00
-> Kernel dmesg should say stk1160.
->
->> [...]
->>
->>> Module                  Size  Used by
-> [...]
->>> easycap              1213860  1
-> As Jon says lsmod and dmesg should say stk1160, and not easycap.
-> It's my bad: the first kernel version that includes stk1160 instead of the
-> old driver is v3.7.x.
->
-> You'll have to re-try with a newer kernel.
->
-> Notice that you probably own a device with no AC97-compliant
-> audio output. For those devices, the sound does not work.
-> It's on my TODO list, but I'm not sure when I will be able to do it.
->
-> AFAIK, some devices have AC97 sound (and thus work), and some doesn't.
->
-> Sorry for the confusion,
-Well, upgraded to kernel 3.7, but with the same results: no audio. Now 
-the lsmod output shows the stk1160 driver loaded instead of the former 
-EasyCAP, so that one got solved. Not quite sure about ac97 compliance, 
-but I already tested with 5 or 6 different machines, all of them running 
-the kernel 3.7 or up, and all of them also showing the ac97 bus being 
-used by the ac97 codec (from lsmod output too), and none did work so far.
+This superceeds my previous 3.10 pull request (https://patchwork.linuxtv.org/patch/18657/).
 
-Little bit frustrating. May be time now to toss the damn dongle away and 
-start looking for linux certified hardware.
+This pull request adds two core fixes: supporting V4L2_CTRL_CLASS_FM_RX as
+valid radio controls and a fix in the clips debug code in v4l2-ioctl.c which
+could cause an oops.
 
-Thanks anyway. Alex.
+Both bugs were discovered while working on the saa7134 overhaul.
+
+Regards,
+
+	Hans
+
+The following changes since commit 7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
+
+  [media] media: pci: remove duplicate checks for EPERM (2013-05-27 09:34:56 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.10d
+
+for you to fetch changes up to dd353805d7c5c4de4277f737043e187b1c260372:
+
+  v4l2-ioctl: don't print the clips list. (2013-06-03 09:35:22 +0200)
+
+----------------------------------------------------------------
+Hans Verkuil (4):
+      DocBook/media/v4l: update version number.
+      cx88: fix NULL pointer dereference
+      v4l2-ctrls: V4L2_CTRL_CLASS_FM_RX controls are also valid radio controls.
+      v4l2-ioctl: don't print the clips list.
+
+ Documentation/DocBook/media/v4l/v4l2.xml |    2 +-
+ drivers/media/pci/cx88/cx88-alsa.c       |    7 +++----
+ drivers/media/pci/cx88/cx88-video.c      |    8 +++-----
+ drivers/media/v4l2-core/v4l2-ctrls.c     |    2 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c     |   47 +++++++++++++++++++++--------------------------
+ 5 files changed, 30 insertions(+), 36 deletions(-)
