@@ -1,46 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback3.mail.ru ([94.100.176.58]:41540 "EHLO
-	fallback3.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161025Ab3FTQrW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 12:47:22 -0400
-Received: from smtp44.i.mail.ru (smtp44.i.mail.ru [94.100.177.104])
-	by fallback3.mail.ru (mPOP.Fallback_MX) with ESMTP id 6EB5FE8D6FF6
-	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 20:47:20 +0400 (MSK)
-From: Alexander Shiyan <shc_work@mail.ru>
-To: linux-media@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
+Received: from mail-pb0-f47.google.com ([209.85.160.47]:62905 "EHLO
+	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753795Ab3FCR0l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 13:26:41 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Hans Verkuil <hans.verkuil@cisco.com>,
 	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	Alexander Shiyan <shc_work@mail.ru>
-Subject: [PATCH RESEND] media: coda: Fix DT-driver data pointer for i.MX27
-Date: Thu, 20 Jun 2013 20:46:36 +0400
-Message-Id: <1371746796-16123-1-git-send-email-shc_work@mail.ru>
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/2] media: i2c: add suppport for ths8200 encoder.
+Date: Mon,  3 Jun 2013 22:56:16 +0530
+Message-Id: <1370280378-2570-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
----
- drivers/media/platform/coda.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+The first patch of the series adds support for the THS8200 encoder
+The full datasheets are available from TI website[1]. The second patch
+of the series adds supports for v4l-async subdevice probing.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 48b8d7a..1c77781 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1924,7 +1924,7 @@ MODULE_DEVICE_TABLE(platform, coda_platform_ids);
- 
- #ifdef CONFIG_OF
- static const struct of_device_id coda_dt_ids[] = {
--	{ .compatible = "fsl,imx27-vpu", .data = &coda_platform_ids[CODA_IMX27] },
-+	{ .compatible = "fsl,imx27-vpu", .data = &coda_devdata[CODA_IMX27] },
- 	{ .compatible = "fsl,imx53-vpu", .data = &coda_devdata[CODA_IMX53] },
- 	{ /* sentinel */ }
- };
--- 
-1.8.1.5
+[1] http://www.ti.com/product/ths8200
+
+Hans Verkuil (1):
+  media: i2c: ths8200: driver for TI video encoder.
+
+Lad, Prabhakar (1):
+  media: i2c: ths8200: add support v4l-async
+
+ drivers/media/i2c/Kconfig        |    9 +
+ drivers/media/i2c/Makefile       |    1 +
+ drivers/media/i2c/ths8200.c      |  568 ++++++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/ths8200_regs.h |  161 +++++++++++
+ 4 files changed, 739 insertions(+), 0 deletions(-)
+ create mode 100644 drivers/media/i2c/ths8200.c
+ create mode 100644 drivers/media/i2c/ths8200_regs.h
 
