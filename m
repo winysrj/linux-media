@@ -1,137 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f50.google.com ([209.85.214.50]:62449 "EHLO
-	mail-bk0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751191Ab3FYSFc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 14:05:32 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>, balbi@ti.com
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, kishon@ti.com,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	t.figa@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	inki.dae@samsung.com, plagnioj@jcrosoft.com,
-	linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-Date: Tue, 25 Jun 2013 20:05:31 +0200
-Message-ID: <3490805.zE8M3ZYxso@flatron>
-In-Reply-To: <51C9D714.4000703@samsung.com>
-References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com> <20130625150649.GA21334@arwen.pp.htv.fi> <51C9D714.4000703@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3528 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755574Ab3FCJh2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 05:37:28 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Steven Toth <stoth@kernellabs.com>
+Subject: [RFC PATCH 09/13] cx23885: remove use of deprecated current_norm
+Date: Mon,  3 Jun 2013 11:36:46 +0200
+Message-Id: <1370252210-4994-10-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester, Felipe,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Tuesday 25 of June 2013 19:44:52 Sylwester Nawrocki wrote:
-> Hi Felipe,
-> 
-> Thanks for the review.
-> 
-> On 06/25/2013 05:06 PM, Felipe Balbi wrote:
-> > On Tue, Jun 25, 2013 at 04:21:46PM +0200, Sylwester Nawrocki wrote:
-> >> +enum phy_id {
-> >> +	PHY_CSIS0,
-> >> +	PHY_DSIM0,
-> >> +	PHY_CSIS1,
-> >> +	PHY_DSIM1,
-> >> +	NUM_PHYS
-> > 
-> > please prepend these with EXYNOS_PHY_ or EXYNOS_MIPI_PHY_
-> 
-> OK, will fix that.
-> 
-> >> +struct exynos_video_phy {
-> >> +	spinlock_t slock;
-> >> +	struct phy *phys[NUM_PHYS];
-> > 
-> > more than one phy ? This means you should instantiate driver multiple
-> > drivers. Each phy id should call probe again.
-> 
-> Why ? This single PHY _provider_ can well handle multiple PHYs.
-> I don't see a good reason to further complicate this driver like
-> this. Please note that MIPI-CSIS 0 and MIPI DSIM 0 share MMIO
-> register, so does MIPI CSIS 1 and MIPI DSIM 1. There are only 2
-> registers for those 4 PHYs. I could have the involved object
-> multiplied, but it would have been just a waste of resources
-> with no difference to the PHY consumers.
+The use of current_norm can be dropped. The g_std ioctl was already
+implemented, so current_norm didn't do anything useful anyway.
 
-IMHO one driver instance should represent one instance of IP block. Since 
-this is a single IP block containing multiple PHYs with shared control 
-interface, I think Sylwester did the right thing.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Steven Toth <stoth@kernellabs.com>
+---
+ drivers/media/pci/cx23885/cx23885-417.c   |    5 +----
+ drivers/media/pci/cx23885/cx23885-video.c |    7 ++-----
+ 2 files changed, 3 insertions(+), 9 deletions(-)
 
-[snip]
-> >> +static struct phy *exynos_video_phy_xlate(struct device *dev,
-> >> +					struct of_phandle_args *args)
-> >> +{
-> >> +	struct exynos_video_phy *state = dev_get_drvdata(dev);
-> >> +
-> >> +	if (WARN_ON(args->args[0] > NUM_PHYS))
-> >> +		return NULL;
-> > 
-> > please remove this check.
-> 
-> args->args[0] comes from DT as the PHY id and there is nothing
-> preventing it from being greater or equal to the state->phys[]
-> array length, unless I'm missing something. Actually it should
-> have been 'if (args->args[0] >= NUM_PHYS)'.
-
-The xlate() callback gets directly whatever parsed from device tree, so it 
-is possible for an out of range value to get here and so this check is 
-valid. However I think it should rather return an ERR_PTR, not NULL. See 
-of_phy_get().
-
-> >> +	return state->phys[args->args[0]];
-> > 
-> > and your xlate is 'wrong'.
-> 
-> What exactly is wrong here ?
-
-Felipe, could you elaborate a bit more on this? I can't find any serious 
-problems with this code.
-
-[snip]
-> >> +	phy_provider = devm_of_phy_provider_register(dev,
-> >> +					exynos_video_phy_xlate);
-> >> +	if (IS_ERR(phy_provider))
-> >> +		return PTR_ERR(phy_provider);
-> >> +
-> >> +	for (i = 0; i < NUM_PHYS; i++) {
-> >> +		char label[8];
-> >> +
-> >> +		snprintf(label, sizeof(label), "%s.%d",
-> >> +				i == PHY_DSIM0 || i == PHY_DSIM1 ?
-> >> +				"dsim" : "csis", i / 2);
-> >> +
-> >> +		state->phys[i] = devm_phy_create(dev, i, 
-&exynos_video_phy_ops,
-> >> +								label, 
-state);
-> >> +		if (IS_ERR(state->phys[i])) {
-> >> +			dev_err(dev, "failed to create PHY %s\n", label);
-> >> +			return PTR_ERR(state->phys[i]);
-> >> +		}
-> >> +	}
-> > 
-> > this really doesn't look correct to me. It looks like you have
-> > multiple
-> > PHYs, one for each ID. So your probe should be called for each PHY ID
-> > and you have several phy_providers too.
-> 
-> Yes, multiple PHY objects, but a single provider. There is no need
-> whatsoever for multiple PHY providers.
-
-The whole concept of whatever-provider is to allow managing multiple 
-objects by one parent object, like one clock provider for the whole clock 
-controller, one interrupt controller object for all interrupts of an 
-interrupt controller block, etc.
-
-This is why a phandle has args, to allow addressing subobjects inside a 
-provider.
-
-Best regards,
-Tomasz
+diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
+index 6dea11a..87c07e5 100644
+--- a/drivers/media/pci/cx23885/cx23885-417.c
++++ b/drivers/media/pci/cx23885/cx23885-417.c
+@@ -1217,8 +1217,7 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
+ 	struct cx23885_fh  *fh  = file->private_data;
+ 	struct cx23885_dev *dev = fh->dev;
+ 
+-	call_all(dev, core, g_std, id);
+-
++	*id = dev->tvnorm;
+ 	return 0;
+ }
+ 
+@@ -1661,7 +1660,6 @@ static struct v4l2_file_operations mpeg_fops = {
+ };
+ 
+ static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
+-	.vidioc_querystd	 = vidioc_g_std,
+ 	.vidioc_g_std		 = vidioc_g_std,
+ 	.vidioc_s_std		 = vidioc_s_std,
+ 	.vidioc_enum_input	 = vidioc_enum_input,
+@@ -1702,7 +1700,6 @@ static struct video_device cx23885_mpeg_template = {
+ 	.fops          = &mpeg_fops,
+ 	.ioctl_ops     = &mpeg_ioctl_ops,
+ 	.tvnorms       = CX23885_NORMS,
+-	.current_norm  = V4L2_STD_NTSC_M,
+ };
+ 
+ void cx23885_417_unregister(struct cx23885_dev *dev)
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index ed08c89..34512cb 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -1254,8 +1254,7 @@ static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
+ 	struct cx23885_dev *dev = ((struct cx23885_fh *)priv)->dev;
+ 	dprintk(1, "%s()\n", __func__);
+ 
+-	call_all(dev, core, g_std, id);
+-
++	*id = dev->tvnorm;
+ 	return 0;
+ }
+ 
+@@ -1743,7 +1742,6 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
+ 	.vidioc_dqbuf         = vidioc_dqbuf,
+ 	.vidioc_s_std         = vidioc_s_std,
+ 	.vidioc_g_std         = vidioc_g_std,
+-	.vidioc_querystd      = vidioc_g_std,
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+ 	.vidioc_s_input       = vidioc_s_input,
+@@ -1773,7 +1771,6 @@ static struct video_device cx23885_video_template = {
+ 	.fops                 = &video_fops,
+ 	.ioctl_ops 	      = &video_ioctl_ops,
+ 	.tvnorms              = CX23885_NORMS,
+-	.current_norm         = V4L2_STD_NTSC_M,
+ };
+ 
+ static const struct v4l2_file_operations radio_fops = {
+@@ -1822,7 +1819,7 @@ int cx23885_video_register(struct cx23885_dev *dev)
+ 	cx23885_vbi_template = cx23885_video_template;
+ 	strcpy(cx23885_vbi_template.name, "cx23885-vbi");
+ 
+-	dev->tvnorm = cx23885_video_template.current_norm;
++	dev->tvnorm = V4L2_STD_NTSC_M;
+ 
+ 	/* init video dma queues */
+ 	INIT_LIST_HEAD(&dev->vidq.active);
+-- 
+1.7.10.4
 
