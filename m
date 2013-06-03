@@ -1,68 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f170.google.com ([209.85.128.170]:61485 "EHLO
-	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758748Ab3FUHOQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 03:14:16 -0400
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:48027 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757041Ab3FCSKg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 14:10:36 -0400
+Received: by mail-ea0-f169.google.com with SMTP id h15so1539277eak.14
+        for <linux-media@vger.kernel.org>; Mon, 03 Jun 2013 11:10:34 -0700 (PDT)
+From: =?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+To: mchehab@redhat.com
+Cc: linux-media@vger.kernel.org,
+	=?UTF-8?q?Frank=20Sch=C3=A4fer?= <fschaefer.oss@googlemail.com>
+Subject: [PATCH 3/4] em28xx: move snapshot button bit definition for reg 0x0C from em28xx-input.c to em28xx.h
+Date: Mon,  3 Jun 2013 20:12:04 +0200
+Message-Id: <1370283125-2231-4-git-send-email-fschaefer.oss@googlemail.com>
+In-Reply-To: <1370283125-2231-1-git-send-email-fschaefer.oss@googlemail.com>
+References: <1370283125-2231-1-git-send-email-fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-In-Reply-To: <51C3865A.4050701@gmail.com>
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
-	<1370005408-10853-4-git-send-email-arun.kk@samsung.com>
-	<51C3865A.4050701@gmail.com>
-Date: Fri, 21 Jun 2013 12:44:14 +0530
-Message-ID: <CALt3h7_r3QLQs1urkhQO+1fCv1J+RaWSQ511RJELxE91cgEUdA@mail.gmail.com>
-Subject: Re: [RFC v2 03/10] exynos5-fimc-is: Adds common driver header files
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
+---
+ drivers/media/usb/em28xx/em28xx-input.c |    1 -
+ drivers/media/usb/em28xx/em28xx-reg.h   |    3 ++-
+ 2 Dateien geändert, 2 Zeilen hinzugefügt(+), 2 Zeilen entfernt(-)
 
-On Fri, Jun 21, 2013 at 4:16 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Guys, I was wondering how difficult would be to make a common driver
-> for the Exynos4 and Exynos5 FIMC-IS ? My feeling is that it would allow
-> to save significant amount of code, since the hardware has many
-> similarities. I imagine it would be a lot of work, and testing would have
-> been a bit difficult. But would it really to troublesome to make a common
-> driver ? Could you list some arguments against it ? For the MFC we have
-> same driver, handling different firmware versions. Similarly for the other
-> media IPs. Only the FIMC-IS subsystems would have separate drivers.
-> My intentions is really only to reduce the amount of code we would have
-> to merge with this new driver, nothing else. But I'm not going to push
-> for the common driver if this is too much trouble.
+diff --git a/drivers/media/usb/em28xx/em28xx-input.c b/drivers/media/usb/em28xx/em28xx-input.c
+index 466b19d..ea181e4 100644
+--- a/drivers/media/usb/em28xx/em28xx-input.c
++++ b/drivers/media/usb/em28xx/em28xx-input.c
+@@ -32,7 +32,6 @@
+ 
+ #define EM28XX_SNAPSHOT_KEY KEY_CAMERA
+ #define EM28XX_SBUTTON_QUERY_INTERVAL 500
+-#define EM28XX_R0C_USBSUSP_SNAPSHOT 0x20
+ 
+ static unsigned int ir_debug;
+ module_param(ir_debug, int, 0644);
+diff --git a/drivers/media/usb/em28xx/em28xx-reg.h b/drivers/media/usb/em28xx/em28xx-reg.h
+index af39ddb..a88906c 100644
+--- a/drivers/media/usb/em28xx/em28xx-reg.h
++++ b/drivers/media/usb/em28xx/em28xx-reg.h
+@@ -68,7 +68,8 @@
+ 
+ 
+ #define EM28XX_R0A_CHIPID	0x0a
+-#define EM28XX_R0C_USBSUSP	0x0c	/* */
++#define EM28XX_R0C_USBSUSP	0x0c
++#define   EM28XX_R0C_USBSUSP_SNAPSHOT	0x20 /* 1=button pressed, needs reset */
+ 
+ #define EM28XX_R0E_AUDIOSRC	0x0e
+ #define EM28XX_R0F_XCLK	0x0f
+-- 
+1.7.10.4
 
-We have thought about it while starting the development and major
-arguments against common driver are :
-
-- FIMC-IS IP has significantly changed from Exynos4.
-In Exynos4, it has sub-components ISP, DRC and FD where as in exynos5,
-it has ISP, DRC, SCC, ODC, DIS. 3DNR, SCP and FD.
-
-- The FW design has changed considerably to make use of camera2 api
-interface. Most of the code in the new driver is for this FW interface
-which are done in fimc_is_pipeline.* and fimc_is_interface.*. This is the
-major reason against a common driver as the new FW expects each
-input frame to be passed along with the controls in a SHOT command.
-It is a request-response mode handled per-frame by the FW which is
-a major design philosophy change from exynos4.
-
-- Two scalers introduced in the pipeline capable of DMA out which
-again changes the pipeline design considerably compared to exynos4.
-
-- The only common part of code between exynos 4 and 5 now is in
-the fimc-isp.c and fimc-is-sensor.c and some control structures
-in header files. If re-used, only some user controls part can be
-re-used and most of the code will still be different.
->From the exynos5 driver, still the fimc-is-scaler.*, fimc-is-pipeline.*,
-fimc-is-interface.* has to be retained which constitutes majority of the LOC.
-
-Regards
-Arun
