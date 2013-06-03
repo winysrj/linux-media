@@ -1,123 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:64273 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750750Ab3FQGEo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 02:04:44 -0400
-Date: Mon, 17 Jun 2013 08:04:10 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] V4L2: add documentation for V4L2 clock helpers and asynchronous
- probing
-Message-ID: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4019 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755911Ab3FCJha (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 05:37:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 11/13] saa7134: drop deprecated current_norm.
+Date: Mon,  3 Jun 2013 11:36:48 +0200
+Message-Id: <1370252210-4994-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
-to v4l2-framework.txt.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Since this driver properly implements g_std, the current_norm field is
+actually unused anyway.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
+ drivers/media/pci/saa7134/saa7134-empress.c |    1 -
+ drivers/media/pci/saa7134/saa7134-video.c   |    1 -
+ 2 files changed, 2 deletions(-)
 
-Hopefully we can commit the actual patches now, while we refine the 
-documentation.
-
- Documentation/video4linux/v4l2-framework.txt |   62 +++++++++++++++++++++++++-
- 1 files changed, 60 insertions(+), 2 deletions(-)
-
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index a300b28..159a83a 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -326,8 +326,27 @@ that width, height and the media bus pixel code are equal on both source and
- sink of the link. Subdev drivers are also free to use this function to
- perform the checks mentioned above in addition to their own checks.
+diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
+index 66a7081..826524b 100644
+--- a/drivers/media/pci/saa7134/saa7134-empress.c
++++ b/drivers/media/pci/saa7134/saa7134-empress.c
+@@ -488,7 +488,6 @@ static struct video_device saa7134_empress_template = {
+ 	.ioctl_ops     = &ts_ioctl_ops,
  
--A device (bridge) driver needs to register the v4l2_subdev with the
--v4l2_device:
-+There are currently two ways to register subdevices with the V4L2 core. The
-+first (traditional) possibility is to have subdevices registered by bridge
-+drivers. This can be done, when the bridge driver has the complete information
-+about subdevices, connected to it and knows exactly when to register them. This
-+is typically the case for internal subdevices, like video data processing units
-+within SoCs or complex pluggable boards, camera sensors in USB cameras or
-+connected to SoCs, which pass information about them to bridge drivers, usually
-+in their platform data.
-+
-+There are however also situations, where subdevices have to be registered
-+asynchronously to bridge devices. An example of such a configuration is Device
-+Tree based systems, on which information about subdevices is made available to
-+the system indpendently from the bridge devices, e.g. when subdevices are
-+defined in DT as I2C device nodes. The API, used in this second case is
-+described further below.
-+
-+Using one or the other registration method only affects the probing process, the
-+run-time bridge-subdevice interaction is in both cases the same.
-+
-+In the synchronous case a device (bridge) driver needs to register the
-+v4l2_subdev with the v4l2_device:
+ 	.tvnorms			= SAA7134_NORMS,
+-	.current_norm			= V4L2_STD_PAL,
+ };
  
- 	int err = v4l2_device_register_subdev(v4l2_dev, sd);
+ static void empress_signal_update(struct work_struct *work)
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index cc40938..4dae794 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -2443,7 +2443,6 @@ struct video_device saa7134_video_template = {
+ 	.fops				= &video_fops,
+ 	.ioctl_ops 			= &video_ioctl_ops,
+ 	.tvnorms			= SAA7134_NORMS,
+-	.current_norm			= V4L2_STD_PAL,
+ };
  
-@@ -394,6 +413,25 @@ controlled through GPIO pins. This distinction is only relevant when setting
- up the device, but once the subdev is registered it is completely transparent.
- 
- 
-+In the asynchronous case subdevices register themselves using the
-+v4l2_async_register_subdev() function. Unregistration is performed, using the
-+v4l2_async_unregister_subdev() call. Subdevices registered this way are stored
-+on a global list of subdevices, ready to be picked up by bridge drivers.
-+
-+Bridge drivers in turn have to register a notifier object with an array of
-+subdevice descriptors, that the bridge device needs for its operation. This is
-+performed using the v4l2_async_notifier_register() call. To unregister the
-+notifier the driver has to call v4l2_async_notifier_unregister(). The former of
-+the two functions takes two arguments: a pointer to struct v4l2_device and a
-+pointer to struct v4l2_async_notifier. The latter contains a pointer to an array
-+of pointers to subdevice descriptors of type struct v4l2_async_subdev type. The
-+V4L2 core will then use these descriptors to match asynchronously registered
-+subdevices to them. If a match is detected the .bound() notifier callback is
-+called. After all subdevices have been located the .complete() callback is
-+called. When a subdevice is removed from the system the .unbind() method is
-+called. All three callbacks are optional.
-+
-+
- V4L2 sub-device userspace API
- -----------------------------
- 
-@@ -1061,3 +1099,23 @@ available event type is 'class base + 1'.
- 
- An example on how the V4L2 events may be used can be found in the OMAP
- 3 ISP driver (drivers/media/platform/omap3isp).
-+
-+
-+V4L2 clocks
-+-----------
-+
-+Many subdevices, like camera sensors, TV decoders and encoders, need a clock
-+signal to be supplied by the system. Often this clock is supplied by the
-+respective bridge device. The Linux kernel provides a Common Clock Framework for
-+this purpose, however, it is not (yet) available on all architectures. Besides,
-+the nature of the multi-functional (clock, data + synchronisation, I2C control)
-+connection of subdevices to the system might impose special requirements on the
-+clock API usage. For these reasons a V4L2 clock helper API has been developed
-+and is provided to bridge and subdevice drivers.
-+
-+The API consists of two parts: two functions to register and unregister a V4L2
-+clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls to control
-+a clock object, similar to respective generic clock API calls: v4l2_clk_get(),
-+v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(), v4l2_clk_get_rate(), and
-+v4l2_clk_set_rate(). Clock suppliers have to provide clock operations, that will
-+be called when clock users invoke respective API methods.
+ struct video_device saa7134_radio_template = {
 -- 
-1.7.2.5
+1.7.10.4
 
