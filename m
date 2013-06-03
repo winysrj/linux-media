@@ -1,55 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lycasmtp.lycamobile.co.uk ([217.118.119.180]:60765 "EHLO
-	lycasmtp.lycamobile.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751457Ab3FIHHk convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 03:07:40 -0400
-Message-Id: <201306090641.r595UWtL002110@lycasmtp.lycamobile.co.uk>
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Confirmed Reciept.....
-To: Recipients <info@uk.net>
-From: info@uk.net
-Date: Sun, 09 Jun 2013 12:20:39 +0530
-Reply-To: claimjonesgreene@hotmail.co.uk
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:2819 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755622Ab3FCJh0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 05:37:26 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 10/13] usbvision: replace current_norm by g_std.
+Date: Mon,  3 Jun 2013 11:36:47 +0200
+Message-Id: <1370252210-4994-11-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Uk National Lottery
-Ref: L/200-26937
-Batch: 2007MJL-01
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+current_norm use is deprecated because it is per-devicenode and if you
+have more device nodes all dependent on the same video source, then this
+no longer works. Just implement g_std instead.
 
-                     FINAL NOTIFICATION
-We are pleased to inform you today 6th  June, 2013 of the result 
-of the winners of the  UK NATIONAL LOTTERY ONLINE PROMO PROGRAMME, held 
-on the 30th of May, 2013.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/usbvision/usbvision-video.c |   13 +++++++++----
+ 1 file changed, 9 insertions(+), 4 deletions(-)
 
-You have therefore been approved for a lump sum pay out of £1,000 000 
-(One Million Pounds Sterling) in cash credited to file XYL/26510460037/06.To file for your claim, 
-please contact our claims agent;
-
-Agents Name: Dr.Jones Greene
-Emai: claimjonesgreene@yahoo.co.uk 
-
-
-Provide him with the information below:
-
-1.Full Name:
-2.Full Address:
-3.Marital Status:
-4.Occupation:
-5.Age:
-6.Sex:
-7.Nationality:
-8.Country Of Residence:
-9.Telephone Number:
-
-Congratulations once more from all members and staff of this program.
-
-Sincerely, 
-Dr.Jones Greene
-UK NATIONAL LOTTERY
-
+diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
+index d34c2af..7ad872a 100644
+--- a/drivers/media/usb/usbvision/usbvision-video.c
++++ b/drivers/media/usb/usbvision/usbvision-video.c
+@@ -608,6 +608,14 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
+ 	return 0;
+ }
+ 
++static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
++{
++	struct usb_usbvision *usbvision = video_drvdata(file);
++
++	*id = usbvision->tvnorm_id;
++	return 0;
++}
++
+ static int vidioc_g_tuner(struct file *file, void *priv,
+ 				struct v4l2_tuner *vt)
+ {
+@@ -1248,6 +1256,7 @@ static const struct v4l2_ioctl_ops usbvision_ioctl_ops = {
+ 	.vidioc_qbuf          = vidioc_qbuf,
+ 	.vidioc_dqbuf         = vidioc_dqbuf,
+ 	.vidioc_s_std         = vidioc_s_std,
++	.vidioc_g_std         = vidioc_g_std,
+ 	.vidioc_enum_input    = vidioc_enum_input,
+ 	.vidioc_g_input       = vidioc_g_input,
+ 	.vidioc_s_input       = vidioc_s_input,
+@@ -1274,7 +1283,6 @@ static struct video_device usbvision_video_template = {
+ 	.name           = "usbvision-video",
+ 	.release	= video_device_release,
+ 	.tvnorms        = USBVISION_NORMS,
+-	.current_norm   = V4L2_STD_PAL
+ };
+ 
+ 
+@@ -1307,9 +1315,6 @@ static struct video_device usbvision_radio_template = {
+ 	.name		= "usbvision-radio",
+ 	.release	= video_device_release,
+ 	.ioctl_ops	= &usbvision_radio_ioctl_ops,
+-
+-	.tvnorms              = USBVISION_NORMS,
+-	.current_norm         = V4L2_STD_PAL
+ };
+ 
+ 
+-- 
+1.7.10.4
 
