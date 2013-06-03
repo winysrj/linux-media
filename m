@@ -1,104 +1,129 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4023 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab3FJMtr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 08:49:47 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 5/9] saa7164: use v4l2_dev instead of the deprecated parent field.
-Date: Mon, 10 Jun 2013 14:48:34 +0200
-Message-Id: <1370868518-19831-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
+Received: from zoneX.GCU-Squad.org ([194.213.125.0]:44267 "EHLO
+	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752112Ab3FCPYG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 11:24:06 -0400
+Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=endymion.delvare)
+	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1UjWc9-0000Xw-8Z
+	(TLSv1:AES128-SHA:128)
+	(envelope-from <khali@linux-fr.org>)
+	for linux-media@vger.kernel.org; Mon, 03 Jun 2013 17:24:05 +0200
+Date: Mon, 3 Jun 2013 17:23:59 +0200
+From: Jean Delvare <khali@linux-fr.org>
+To: Linux Media <linux-media@vger.kernel.org>
+Subject: [PATCH 3/3] femon: Handle -EOPNOTSUPP
+Message-ID: <20130603172359.442a8ee6@endymion.delvare>
+In-Reply-To: <20130603171607.73d0b856@endymion.delvare>
+References: <20130603171607.73d0b856@endymion.delvare>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Frontend drivers don't have to implement all monitoring callbacks. So
+expect -EOPNOTSUPP and handle it properly.
 ---
- drivers/media/pci/saa7164/saa7164-core.c    |    6 ++++++
- drivers/media/pci/saa7164/saa7164-encoder.c |    2 +-
- drivers/media/pci/saa7164/saa7164-vbi.c     |    2 +-
- drivers/media/pci/saa7164/saa7164.h         |    3 +++
- 4 files changed, 11 insertions(+), 2 deletions(-)
+ util/femon/femon.c |   75 +++++++++++++++++++++++++++++++++--------------------
+ 1 file changed, 48 insertions(+), 27 deletions(-)
 
-diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
-index 7618fda..8fa5ba7 100644
---- a/drivers/media/pci/saa7164/saa7164-core.c
-+++ b/drivers/media/pci/saa7164/saa7164-core.c
-@@ -1196,6 +1196,11 @@ static int saa7164_initdev(struct pci_dev *pci_dev,
- 	if (NULL == dev)
- 		return -ENOMEM;
+--- dvb-apps-3ee111da5b3a.orig/util/femon/femon.c	2013-06-03 17:22:56.923398598 +0200
++++ dvb-apps-3ee111da5b3a/util/femon/femon.c	2013-06-03 17:23:16.946398895 +0200
+@@ -67,6 +67,7 @@ int check_frontend (struct dvbfe_handle
+ 	struct dvbfe_info fe_info;
+ 	unsigned int samples = 0;
+ 	FILE *ttyFile=NULL;
++	int got_info;
+ 	
+ 	// We dont write the "beep"-codes to stdout but to /dev/tty1.
+ 	// This is neccessary for Thin-Client-Systems or Streaming-Boxes
+@@ -89,39 +90,59 @@ int check_frontend (struct dvbfe_handle
+ 	}
  
-+	if (v4l2_device_register(&pci_dev->dev, &dev->v4l2_dev)) {
-+		dev_err(&pci_dev->dev, "v4l2_device_register failed\n");
-+		goto fail_free;
-+	}
-+
- 	/* pci init */
- 	dev->pci = pci_dev;
- 	if (pci_enable_device(pci_dev)) {
-@@ -1439,6 +1444,7 @@ static void saa7164_finidev(struct pci_dev *pci_dev)
- 	mutex_unlock(&devlist);
+ 	do {
+-		if (dvbfe_get_info(fe, FE_STATUS_PARAMS, &fe_info, DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0) != FE_STATUS_PARAMS) {
++		got_info = dvbfe_get_info(fe, FE_STATUS_PARAMS, &fe_info, DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0);
++		if (got_info & DVBFE_INFO_LOCKSTATUS) {
++			printf ("status %c%c%c%c%c | ",
++				fe_info.signal ? 'S' : ' ',
++				fe_info.carrier ? 'C' : ' ',
++				fe_info.viterbi ? 'V' : ' ',
++				fe_info.sync ? 'Y' : ' ',
++				fe_info.lock ? 'L' : ' ');
++		} else {
+ 			fprintf(stderr, "Problem retrieving frontend information: %m\n");
++			printf ("status ----- | ");
+ 		}
  
- 	saa7164_dev_unregister(dev);
-+	v4l2_device_unregister(&dev->v4l2_dev);
- 	kfree(dev);
- }
  
-diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
-index 7b7ed97..9266965 100644
---- a/drivers/media/pci/saa7164/saa7164-encoder.c
-+++ b/drivers/media/pci/saa7164/saa7164-encoder.c
-@@ -1348,7 +1348,7 @@ static struct video_device *saa7164_encoder_alloc(
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)", dev->name,
- 		type, saa7164_boards[dev->board].name);
+-		printf ("status %c%c%c%c%c | ",
+-			fe_info.signal ? 'S' : ' ',
+-			fe_info.carrier ? 'C' : ' ',
+-			fe_info.viterbi ? 'V' : ' ',
+-			fe_info.sync ? 'Y' : ' ',
+-			fe_info.lock ? 'L' : ' ');
+-
+ 		if (human_readable) {
+-			// SNR should be in units of 0.1 dB but some drivers do
+-			// not follow that rule, thus this heuristic.
+-			if (fe_info.snr < 1000)
+-				printf ("signal %3u%% | snr %4.1fdB | ber %d | unc %d | ",
+-					(fe_info.signal_strength * 100) / 0xffff,
+-					fe_info.snr / 10.,
+-					fe_info.ber,
+-					fe_info.ucblocks);
+-			else
+-				printf ("signal %3u%% | snr %3u%% | ber %d | unc %d | ",
+-					(fe_info.signal_strength * 100) / 0xffff,
+-					(fe_info.snr * 100) / 0xffff,
+-					fe_info.ber,
+-					fe_info.ucblocks);
++			if (got_info & DVBFE_INFO_SIGNAL_STRENGTH)
++				printf ("signal %3u%% | ", (fe_info.signal_strength * 100) / 0xffff);
++			else
++				printf ("signal ---%% | ");
++			if (got_info & DVBFE_INFO_SNR) {
++				// SNR should be in units of 0.1 dB but some drivers do
++				// not follow that rule, thus this heuristic.
++				if (fe_info.snr < 1000)
++					printf ("snr %4.1fdB | ", fe_info.snr / 10.);
++				else
++					printf ("snr %3u%% | ", (fe_info.snr * 100) / 0xffff);
++			} else
++				printf ("snr ---- | ");
++			if (got_info & DVBFE_INFO_BER)
++				printf ("ber %d | ", fe_info.ber);
++			else
++				printf ("ber - | ");
++			if (got_info & DVBFE_INFO_UNCORRECTED_BLOCKS)
++				printf ("unc %d | ", fe_info.ucblocks);
++			else
++				printf ("unc - | ");
+ 		} else {
+-			printf ("signal %04x | snr %04x | ber %08x | unc %08x | ",
+-				fe_info.signal_strength,
+-				fe_info.snr,
+-				fe_info.ber,
+-				fe_info.ucblocks);
++			if (got_info & DVBFE_INFO_SIGNAL_STRENGTH)
++				printf ("signal %04x | ", fe_info.signal_strength);
++			else
++				printf ("signal ---- | ");
++			if (got_info & DVBFE_INFO_SNR)
++				printf ("snr %04x | ", fe_info.snr);
++			else
++				printf ("snr ---- | ");
++			if (got_info & DVBFE_INFO_BER)
++				printf ("ber %08x | ", fe_info.ber);
++			else
++				printf ("ber -------- | ");
++			if (got_info & DVBFE_INFO_UNCORRECTED_BLOCKS)
++				printf ("unc %08x | ", fe_info.ucblocks);
++			else
++				printf ("unc -------- | ");
+ 		}
  
--	vfd->parent  = &pci->dev;
-+	vfd->v4l2_dev  = &dev->v4l2_dev;
- 	vfd->release = video_device_release;
- 	return vfd;
- }
-diff --git a/drivers/media/pci/saa7164/saa7164-vbi.c b/drivers/media/pci/saa7164/saa7164-vbi.c
-index 552c01a..6e025fe 100644
---- a/drivers/media/pci/saa7164/saa7164-vbi.c
-+++ b/drivers/media/pci/saa7164/saa7164-vbi.c
-@@ -1297,7 +1297,7 @@ static struct video_device *saa7164_vbi_alloc(
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)", dev->name,
- 		type, saa7164_boards[dev->board].name);
- 
--	vfd->parent  = &pci->dev;
-+	vfd->v4l2_dev  = &dev->v4l2_dev;
- 	vfd->release = video_device_release;
- 	return vfd;
- }
-diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-index 2df47ea..8b29e89 100644
---- a/drivers/media/pci/saa7164/saa7164.h
-+++ b/drivers/media/pci/saa7164/saa7164.h
-@@ -63,6 +63,7 @@
- #include <dmxdev.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-device.h>
- 
- #include "saa7164-reg.h"
- #include "saa7164-types.h"
-@@ -427,6 +428,8 @@ struct saa7164_dev {
- 	struct list_head	devlist;
- 	atomic_t		refcount;
- 
-+	struct v4l2_device v4l2_dev;
-+
- 	/* pci stuff */
- 	struct pci_dev	*pci;
- 	unsigned char	pci_rev, pci_lat;
+ 		if (fe_info.lock)
+
 -- 
-1.7.10.4
-
+Jean Delvare
