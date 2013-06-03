@@ -1,88 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:61686 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753941Ab3FFGST (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 02:18:19 -0400
-Received: by mail-oa0-f48.google.com with SMTP id i4so1866436oah.21
-        for <linux-media@vger.kernel.org>; Wed, 05 Jun 2013 23:18:18 -0700 (PDT)
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4401 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755520Ab3FCNsV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 09:48:21 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: phil.edworthy@renesas.com
+Subject: Re: [PATCH] ov10635: Add OmniVision ov10635 SoC camera driver
+Date: Mon, 3 Jun 2013 15:47:52 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+References: <1370252135-23261-1-git-send-email-phil.edworthy@renesas.com> <201306031149.45454.hverkuil@xs4all.nl> <OF4BD2B449.93EBBD07-ON80257B7F.0049D5FC-80257B7F.004A56F1@eu.necel.com>
+In-Reply-To: <OF4BD2B449.93EBBD07-ON80257B7F.0049D5FC-80257B7F.004A56F1@eu.necel.com>
 MIME-Version: 1.0
-In-Reply-To: <1370005408-10853-7-git-send-email-arun.kk@samsung.com>
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
-	<1370005408-10853-7-git-send-email-arun.kk@samsung.com>
-Date: Thu, 6 Jun 2013 11:48:18 +0530
-Message-ID: <CAK9yfHzi4Jdi9xO0eNuWe8U2303Qr+5erhN26P5ahfP0JvqTcw@mail.gmail.com>
-Subject: Re: [RFC v2 06/10] exynos5-fimc-is: Adds isp subdev
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Arun Kumar K <arun.kk@samsung.com>
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com,
-	arunkk.samsung@gmail.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306031547.52124.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 31 May 2013 18:33, Arun Kumar K <arun.kk@samsung.com> wrote:
-> fimc-is driver takes video data input from the ISP video node
-> which is added in this patch. This node accepts Bayer input
-> buffers which is given from the IS sensors.
->
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
-> ---
-[snip]
+On Mon June 3 2013 15:31:55 phil.edworthy@renesas.com wrote:
+> Hi Hans,
+> 
+> > Subject: Re: [PATCH] ov10635: Add OmniVision ov10635 SoC camera driver
+> <snip>
+> > > +#include <media/v4l2-chip-ident.h>
+> > 
+> > Don't implement chip_ident or use this header: it's going to be 
+> > removed in 3.11.
+> 
+> <snip>
 
+> > This can be dropped as well, because this header will go away.
+> 
+> Thanks for the very quick review! I'll have a look at the media tree to 
+> see what's changing wrt the chip ident.
 
-> +static int isp_video_output_open(struct file *file)
-> +{
-> +       struct fimc_is_isp *isp = video_drvdata(file);
-> +       int ret = 0;
-> +
-> +       /* Check if opened before */
-> +       if (isp->refcount >= FIMC_IS_MAX_INSTANCES) {
-> +               pr_err("All instances are in use.\n");
-> +               return -EBUSY;
-> +       }
-> +
-> +       INIT_LIST_HEAD(&isp->wait_queue);
-> +       isp->wait_queue_cnt = 0;
-> +       INIT_LIST_HEAD(&isp->run_queue);
-> +       isp->run_queue_cnt = 0;
-> +
-> +       isp->refcount++;
-> +       return ret;
+The chip ident removal isn't in yet. The patch series removing it was posted
+on Wednesday:
 
-You can directly return 0 here instead of creating a local variable
-'ret' which is not used anywhere else.
+http://www.mail-archive.com/linux-media@vger.kernel.org/
 
-> +}
-> +
-> +static int isp_video_output_close(struct file *file)
-> +{
-> +       struct fimc_is_isp *isp = video_drvdata(file);
-> +       int ret = 0;
-> +
-> +       isp->refcount--;
-> +       isp->output_state = 0;
-> +       vb2_fop_release(file);
-> +       return ret;
+VIDIOC_DBG_G_CHIP_IDENT is replaced by VIDIOC_DBG_G_CHIP_INFO:
 
-ditto
+http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-dbg-g-chip-info
 
-> +}
-> +
-> +static const struct v4l2_file_operations isp_video_output_fops = {
-> +       .owner          = THIS_MODULE,
-> +       .open           = isp_video_output_open,
-> +       .release        = isp_video_output_close,
-> +       .poll           = vb2_fop_poll,
-> +       .unlocked_ioctl = video_ioctl2,
-> +       .mmap           = vb2_fop_mmap,
-> +};
-> +
+If I don't get any comments, then I'm going to make a pull request for the
+chip ident removal on Friday or the Monday after that. It's a substantial
+cleanup, so it will be nice to have that merged.
 
-nit: Please consider changing "Adds" to "Add" in the patch titles of
-this series during the next spin.
+Regards,
 
--- 
-With warm regards,
-Sachin
+	Hans
