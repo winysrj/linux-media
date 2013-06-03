@@ -1,55 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2244 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751370Ab3FGIlI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 04:41:08 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH v2 0/4] media: i2c: ths7303 cleanup
-Date: Fri, 7 Jun 2013 10:40:35 +0200
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com> <2855590.yx9zfYZLis@avalon> <CA+V-a8vh-ttz1QQmV59fP5c3vK=1zC5QfmkHc9Du0ZAcY712Dg@mail.gmail.com>
-In-Reply-To: <CA+V-a8vh-ttz1QQmV59fP5c3vK=1zC5QfmkHc9Du0ZAcY712Dg@mail.gmail.com>
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:41201 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756753Ab3FCUyU (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 16:54:20 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306071040.35174.hverkuil@xs4all.nl>
+In-Reply-To: <51ACFDF2.4040600@infradead.org>
+References: <20130603163717.a6f78476e57d92fadd6f6a23@canb.auug.org.au>
+	<51ACFDF2.4040600@infradead.org>
+Date: Mon, 3 Jun 2013 22:54:19 +0200
+Message-ID: <CAMuHMdUALrScFE895xRiBvgUpVa9Tvic5M7YxefrEgyeMaSjhw@mail.gmail.com>
+Subject: Re: linux-next: Tree for Jun 3 (fonts.c & vivi)
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Randy Dunlap <rdunlap@infradead.org>
+Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
+	Linux-Next <linux-next@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
+	linux-media <linux-media@vger.kernel.org>,
+	Linux Fbdev development list <linux-fbdev@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu June 6 2013 12:05:38 Prabhakar Lad wrote:
-> Hi Hans,
-> 
-> On Sun, May 26, 2013 at 6:50 AM, Laurent Pinchart
-> <laurent.pinchart@ideasonboard.com> wrote:
-> > On Saturday 25 May 2013 23:09:32 Prabhakar Lad wrote:
-> >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> >>
-> >> Trivial cleanup of the driver.
-> >>
-> >> Changes for v2:
-> >> 1: Dropped the asynchronous probing and, OF
-> >>    support patches will be handling them independently because of
-> >> dependencies. 2: Arranged the patches logically so that git bisect
-> >>    succeeds.
-> >>
-> >> Lad, Prabhakar (4):
-> >>   ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
-> >>   media: i2c: ths7303: remove init_enable option from pdata
-> >>   media: i2c: ths7303: remove unnecessary function ths7303_setup()
-> >>   media: i2c: ths7303: make the pdata as a constant pointer
-> >>
-> Can you pick up this series or do you want me to issue a pull for it ?
+On Mon, Jun 3, 2013 at 10:34 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
+> On 06/02/13 23:37, Stephen Rothwell wrote:
+>> Changes since 20130531:
+> on x86_64:
+>
+> warning: (VIDEO_VIVI && USB_SISUSBVGA && SOLO6X10) selects FONT_SUPPORT which has unmet direct dependencies (HAS_IOMEM && VT)
+> warning: (VIDEO_VIVI && FB_VGA16 && FB_S3 && FB_VT8623 && FB_ARK && USB_SISUSBVGA_CON && SOLO6X10) selects FONT_8x16 which has unmet direct dependencies (HAS_IOMEM && VT && FONT_SUPPORT)
 
-I've picked it up. I kept the dm365 patch separate, but I did improve the
-commit log a bit.
+I knew about thet warning. But I thought it was harmless, as none of the font
+code really depends on console support...
 
-Regards,
+> drivers/built-in.o: In function `vivi_init':
+> vivi.c:(.init.text+0x1a3da): undefined reference to `find_font'
+>
+> when CONFIG_VT is not enabled.
 
-	Hans
+... but I missed that drivers/video/console is not used if CONFIG_VT=y.
+Sorry for that.
+
+> Just make CONFIG_VIDEO_VIVI depend on VT ?
+
+Does this (whitespace-damaged copy-and-paste) help?
+
+--- a/drivers/video/Makefile
++++ b/drivers/video/Makefile
+@@ -12,7 +12,7 @@ fb-y                              := fbmem.o fbmon.o fbcmap.o
+                                      modedb.o fbcvt.o
+ fb-objs                           := $(fb-y)
+
+-obj-$(CONFIG_VT)                 += console/
++obj-y                            += console/
+ obj-$(CONFIG_LOGO)               += logo/
+ obj-y                            += backlight/
+
+It shouldn't make a difference if nothing inside drivers/video/console
+is enabled,
+as all objects in drivers/video/console/Makefile are conditional.
+
+BTW, my plan was to move the font code to lib/font, but I haven't done that yet.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
