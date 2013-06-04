@@ -1,59 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f173.google.com ([209.85.212.173]:56018 "EHLO
-	mail-wi0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423471Ab3FVDqv convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 23:46:51 -0400
-Received: by mail-wi0-f173.google.com with SMTP id hq4so1172965wib.0
-        for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 20:46:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201306212208.43086.hverkuil@xs4all.nl>
-References: <201306212208.43086.hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sat, 22 Jun 2013 09:16:30 +0530
-Message-ID: <CA+V-a8tVWW8J8rd1tUWc7Nv0+QRkfkk=2CQWFaj02AhdBn-QEQ@mail.gmail.com>
-Subject: Re: [GIT PULL FOR v3.11] Conversions to v4l-async
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Received: from relmlor4.renesas.com ([210.160.252.174]:49884 "EHLO
+	relmlor4.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461Ab3FDRXj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jun 2013 13:23:39 -0400
+Received: from relmlir1.idc.renesas.com ([10.200.68.151])
+ by relmlor4.idc.renesas.com ( SJSMS)
+ with ESMTP id <0MNV00HBLPND50B0@relmlor4.idc.renesas.com> for
+ linux-media@vger.kernel.org; Wed, 05 Jun 2013 02:23:37 +0900 (JST)
+Received: from relmlac2.idc.renesas.com ([10.200.69.22])
+ by relmlir1.idc.renesas.com (SJSMS)
+ with ESMTP id <0MNV00IJ1PNDEPC0@relmlir1.idc.renesas.com> for
+ linux-media@vger.kernel.org; Wed, 05 Jun 2013 02:23:37 +0900 (JST)
+In-reply-to: <CAGGh5h1btafaMoaB89RBND2L8+Zg767HW3+hKG7Xcq2fsEN6Ew@mail.gmail.com>
+References: <201306031547.52124.hverkuil@xs4all.nl>
+ <1370276302-7295-1-git-send-email-phil.edworthy@renesas.com>
+ <CAGGh5h1btafaMoaB89RBND2L8+Zg767HW3+hKG7Xcq2fsEN6Ew@mail.gmail.com>
+To: jean-philippe francois <jp.francois@cynove.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	jphilippe.francois@gmail.com,
+	linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-version: 1.0
+From: phil.edworthy@renesas.com
+Subject: Re: [PATCH v2] ov10635: Add OmniVision ov10635 SoC camera driver
+Message-id: <OFE9AF5116.6C737633-ON80257B80.005E56FF-80257B80.005F7B22@eu.necel.com>
+Date: Tue, 04 Jun 2013 18:22:53 +0100
+Content-type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Jean-Philippe,
 
-On Sat, Jun 22, 2013 at 1:38 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Now that the v4l-async patches have been merged, these patches can be merged
-> as well.
->
->         Hans
->
-> The following changes since commit ee17608d6aa04a86e253a9130d6c6d00892f132b:
->
->   [media] imx074: support asynchronous probing (2013-06-21 16:36:15 -0300)
->
-> are available in the git repository at:
->
->   git://linuxtv.org/hverkuil/media_tree.git for-v3.11
->
-> for you to fetch changes up to a6277614fa957a3c26a3160e2fc662838d185c70:
->
->   media: i2c: ths8200: add support v4l-async (2013-06-21 22:00:47 +0200)
->
-> ----------------------------------------------------------------
-> Lad, Prabhakar (3):
->       media: i2c: tvp7002: add support for asynchronous probing
->       media: i2c: tvp7002: add OF support
->       media: i2c: ths8200: add support v4l-async
->
-These patches needs to be reworked on.These patches were based on
-earlier version
-of v4l-async, the v4l-async got changed in last version due to which
-there is a little
-bit of rework which I'll work on them today and repost.
+Thanks for the review.
 
-Mauro, please don’t pull these patches.
+<snip>
+> > +static const struct ov10635_reg ov10635_regs_enable[] = {
+> > +       { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 
+> 0x3042, 0xf0 },
+> > +       { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 
+> 0x3042, 0xf0 },
+> > +       { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 
+> 0x3042, 0xf0 },
+> > +       { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 
+> 0x3042, 0xf0 },
+> > +       { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 
+> 0x3042, 0xf0 },
+> > +       { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 
+> 0x3042, 0xf0 },
+> > +       { 0x3042, 0xf0 }, { 0x3042, 0xf0 }, { 0x301b, 0xf0 }, { 
+> 0x301c, 0xf0 },
+> > +       { 0x301a, 0xf0 },
+> > +};
+> 
+> Register 0x3042 is only touched by the enable part, not by the "change
+> mode" part
+> I think you could move the {0x3042, 0xf0} sequence in the
+> standard_regs array, and keep
+> only the 0x301b, 0x301c, 0x301a registers.
+I tried this, but it doesn't work. You have to write to the 0x3042 
+register after other setup writes.
 
-Regards,
---Prabhakar Lad
+> By the way, did you test with a single write ? There is the same
+> sequence in ov5642
+> init, so I believe it is copy pasted in every omnivision init. Is it
+> actually useful ?
+I tried this & a single write works so I'll change this. iirc, it was 
+taken from a reference set of writes from OmniVision. 
+
+<snip>
+> > +static int ov10635_video_probe(struct i2c_client *client)
+> > +{
+> > +       struct ov10635_priv *priv = to_ov10635(client);
+> > +       u8 pid, ver;
+> > +       int ret;
+> > +
+> > +       /* Program all the 'standard' registers */
+> > +       ret = ov10635_set_regs(client, ov10635_regs_default,
+> > +               ARRAY_SIZE(ov10635_regs_default));
+> > +       if (ret)
+> > +               return ret;
+> > +
+> > +       /* check and show product ID and manufacturer ID */
+> > +       ret = ov10635_reg_read(client, OV10635_PID, &pid);
+> > +       if (ret)
+> > +               return ret;
+> > +       ret = ov10635_reg_read(client, OV10635_VER, &ver);
+> > +       if (ret)
+> > +               return ret;
+> > +
+> > +       if (OV10635_VERSION(pid, ver) != OV10635_VERSION_REG) {
+> > +               dev_err(&client->dev, "Product ID error %x:%x\n", pid, 
+ver);
+> > +               return -ENODEV;
+> > +       }
+> 
+> Shouldn't the order be reversed here ?
+> iow, first chek chip id register, then proceed with the register init ?
+Good point! I'll fix this.
+
+Thanks
+Phil
