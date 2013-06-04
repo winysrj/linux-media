@@ -1,227 +1,506 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:61930 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751984Ab3FKJ1R (ORCPT
+Received: from na3sys009aog113.obsmtp.com ([74.125.149.209]:37989 "EHLO
+	na3sys009aog113.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751256Ab3FDFmI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 05:27:17 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 21/21] ARM: shmobile: convert ap4evb to asynchronously register camera subdevices
-Date: Tue, 11 Jun 2013 10:23:48 +0200
-Message-Id: <1370939028-8352-22-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+	Tue, 4 Jun 2013 01:42:08 -0400
+Message-ID: <1370324380.26072.19.camel@younglee-desktop>
+Subject: [PATCH 1/7] marvell-ccic: add MIPI support for marvell-ccic driver
+From: lbyang <lbyang@marvell.com>
+Reply-To: <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>, <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <lbyang@marvell.com>,
+	<albert.v.wang@gmail.com>
+Date: Tue, 4 Jun 2013 13:39:40 +0800
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Register the imx074 camera I2C and the CSI-2 platform devices directly
-in board platform data instead of letting the sh_mobile_ceu_camera driver
-and the soc-camera framework register them at their run-time. This uses
-the V4L2 asynchronous subdevice probing capability.
+From: Libin Yang <lbyang@marvell.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+This patch adds the MIPI support for marvell-ccic.
+Board driver should determine whether using MIPI or not.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
 ---
- arch/arm/mach-shmobile/board-ap4evb.c |  103 +++++++++++++++++++-------------
- arch/arm/mach-shmobile/clock-sh7372.c |    1 +
- 2 files changed, 62 insertions(+), 42 deletions(-)
+ drivers/media/platform/marvell-ccic/cafe-driver.c |    4 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c   |   75 +++++++++++-
+ drivers/media/platform/marvell-ccic/mcam-core.h   |   32 +++++-
+ drivers/media/platform/marvell-ccic/mmp-driver.c  |  126 ++++++++++++++++++++-
+ include/media/mmp-camera.h                        |   19 ++++
+ 5 files changed, 245 insertions(+), 11 deletions(-)
 
-diff --git a/arch/arm/mach-shmobile/board-ap4evb.c b/arch/arm/mach-shmobile/board-ap4evb.c
-index 45f78ca..f0beec0 100644
---- a/arch/arm/mach-shmobile/board-ap4evb.c
-+++ b/arch/arm/mach-shmobile/board-ap4evb.c
-@@ -51,6 +51,7 @@
- #include <media/sh_mobile_ceu.h>
- #include <media/sh_mobile_csi2.h>
- #include <media/soc_camera.h>
-+#include <media/v4l2-async.h>
- 
- #include <sound/sh_fsi.h>
- #include <sound/simple_card.h>
-@@ -872,22 +873,32 @@ static struct platform_device leds_device = {
- 	},
- };
- 
--static struct i2c_board_info imx074_info = {
--	I2C_BOARD_INFO("imx074", 0x1a),
-+/* I2C */
-+static struct soc_camera_subdev_desc imx074_desc;
-+static struct i2c_board_info i2c0_devices[] = {
-+	{
-+		I2C_BOARD_INFO("ak4643", 0x13),
-+	}, {
-+		I2C_BOARD_INFO("imx074", 0x1a),
-+		.platform_data = &imx074_desc,
-+	},
- };
- 
--static struct soc_camera_link imx074_link = {
--	.bus_id		= 0,
--	.board_info	= &imx074_info,
--	.i2c_adapter_id	= 0,
--	.module_name	= "imx074",
-+static struct i2c_board_info i2c1_devices[] = {
-+	{
-+		I2C_BOARD_INFO("r2025sd", 0x32),
-+	},
- };
- 
--static struct platform_device ap4evb_camera = {
--	.name   = "soc-camera-pdrv",
--	.id     = 0,
--	.dev    = {
--		.platform_data = &imx074_link,
-+static struct resource csi2_resources[] = {
-+	{
-+		.name	= "CSI2",
-+		.start	= 0xffc90000,
-+		.end	= 0xffc90fff,
-+		.flags	= IORESOURCE_MEM,
-+	}, {
-+		.start	= intcs_evt2irq(0x17a0),
-+		.flags  = IORESOURCE_IRQ,
- 	},
- };
- 
-@@ -896,7 +907,7 @@ static struct sh_csi2_client_config csi2_clients[] = {
- 		.phy		= SH_CSI2_PHY_MAIN,
- 		.lanes		= 0,		/* default: 2 lanes */
- 		.channel	= 0,
--		.pdev		= &ap4evb_camera,
-+		.name		= "imx074",
- 	},
- };
- 
-@@ -907,31 +918,50 @@ static struct sh_csi2_pdata csi2_info = {
- 	.flags		= SH_CSI2_ECC | SH_CSI2_CRC,
- };
- 
--static struct resource csi2_resources[] = {
--	[0] = {
--		.name	= "CSI2",
--		.start	= 0xffc90000,
--		.end	= 0xffc90fff,
--		.flags	= IORESOURCE_MEM,
-+static struct platform_device csi2_device = {
-+	.name		= "sh-mobile-csi2",
-+	.id		= 0,
-+	.num_resources	= ARRAY_SIZE(csi2_resources),
-+	.resource	= csi2_resources,
-+	.dev		= {
-+		.platform_data = &csi2_info,
- 	},
--	[1] = {
--		.start	= intcs_evt2irq(0x17a0),
--		.flags  = IORESOURCE_IRQ,
-+};
-+
-+static struct soc_camera_async_subdev csi2_sd = {
-+	.asd = {
-+		.bus_type = V4L2_ASYNC_BUS_PLATFORM,
-+		.match.platform.name = "sh-mobile-csi2.0",
- 	},
-+	.role = SOCAM_SUBDEV_DATA_PROCESSOR,
- };
- 
--static struct sh_mobile_ceu_companion csi2 = {
--	.id		= 0,
--	.num_resources	= ARRAY_SIZE(csi2_resources),
--	.resource	= csi2_resources,
--	.platform_data	= &csi2_info,
-+static struct soc_camera_async_subdev imx074_sd = {
-+	.asd = {
-+		.bus_type = V4L2_ASYNC_BUS_I2C,
-+		.match.i2c = {
-+			.adapter_id = 0,
-+			.address = 0x1a,
-+		},
-+	},
-+	.role = SOCAM_SUBDEV_DATA_SOURCE,
- };
- 
-+static struct v4l2_async_subdev *ceu_subdevs[] = {
-+	/* Single 2-element group */
-+	&csi2_sd.asd,
-+	&imx074_sd.asd,
-+};
-+
-+/* 0-terminated array of group-sizes */
-+static int ceu_subdev_sizes[] = {ARRAY_SIZE(ceu_subdevs), 0};
-+
- static struct sh_mobile_ceu_info sh_mobile_ceu_info = {
- 	.flags = SH_CEU_FLAG_USE_8BIT_BUS,
- 	.max_width = 8188,
- 	.max_height = 8188,
--	.csi2 = &csi2,
-+	.asd = ceu_subdevs,
-+	.asd_sizes = ceu_subdev_sizes,
- };
- 
- static struct resource ceu_resources[] = {
-@@ -976,7 +1006,7 @@ static struct platform_device *ap4evb_devices[] __initdata = {
- 	&lcdc_device,
- 	&lcdc1_device,
- 	&ceu_device,
--	&ap4evb_camera,
-+	&csi2_device,
- 	&meram_device,
- };
- 
-@@ -1071,19 +1101,6 @@ static struct i2c_board_info tsc_device = {
- 	/*.irq is selected on ap4evb_init */
- };
- 
--/* I2C */
--static struct i2c_board_info i2c0_devices[] = {
--	{
--		I2C_BOARD_INFO("ak4643", 0x13),
--	},
--};
--
--static struct i2c_board_info i2c1_devices[] = {
--	{
--		I2C_BOARD_INFO("r2025sd", 0x32),
--	},
--};
--
- 
- static const struct pinctrl_map ap4evb_pinctrl_map[] = {
- 	/* MMCIF */
-@@ -1120,6 +1137,7 @@ static void __init ap4evb_init(void)
- 		{ "A3SP", &sdhi0_device, },
- 		{ "A3SP", &sdhi1_device, },
- 		{ "A4R", &ceu_device, },
-+		{ "A4R", &csi2_device, },
- 	};
- 	u32 srcr4;
- 	struct clk *clk;
-@@ -1319,6 +1337,7 @@ static void __init ap4evb_init(void)
- 	sh7372_pm_init();
- 	pm_clk_add(&fsi_device.dev, "spu2");
- 	pm_clk_add(&lcdc1_device.dev, "hdmi");
-+	pm_clk_add(&csi2_device.dev, "csir");
+diff --git a/drivers/media/platform/marvell-ccic/cafe-driver.c b/drivers/media/platform/marvell-ccic/cafe-driver.c
+index d030f9b..68e82fb 100644
+--- a/drivers/media/platform/marvell-ccic/cafe-driver.c
++++ b/drivers/media/platform/marvell-ccic/cafe-driver.c
+@@ -400,7 +400,7 @@ static void cafe_ctlr_init(struct mcam_camera *mcam)
  }
  
- MACHINE_START(AP4EVB, "ap4evb")
-diff --git a/arch/arm/mach-shmobile/clock-sh7372.c b/arch/arm/mach-shmobile/clock-sh7372.c
-index 7e10593..0d6dcd3 100644
---- a/arch/arm/mach-shmobile/clock-sh7372.c
-+++ b/arch/arm/mach-shmobile/clock-sh7372.c
-@@ -584,6 +584,7 @@ static struct clk_lookup lookups[] = {
- 	CLKDEV_ICK_ID("divb", "sh_fsi2", &fsidivs[FSIDIV_B]),
- 	CLKDEV_ICK_ID("xcka", "sh_fsi2", &fsiack_clk),
- 	CLKDEV_ICK_ID("xckb", "sh_fsi2", &fsibck_clk),
-+	CLKDEV_ICK_ID("csir", "sh-mobile-csi2.0", &div4_clks[DIV4_CSIR]),
+ 
+-static void cafe_ctlr_power_up(struct mcam_camera *mcam)
++static int cafe_ctlr_power_up(struct mcam_camera *mcam)
+ {
+ 	/*
+ 	 * Part one of the sensor dance: turn the global
+@@ -415,6 +415,8 @@ static void cafe_ctlr_power_up(struct mcam_camera *mcam)
+ 	 */
+ 	mcam_reg_write(mcam, REG_GPR, GPR_C1EN|GPR_C0EN); /* pwr up, reset */
+ 	mcam_reg_write(mcam, REG_GPR, GPR_C1EN|GPR_C0EN|GPR_C0);
++
++	return 0;
+ }
+ 
+ static void cafe_ctlr_power_down(struct mcam_camera *mcam)
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 64ab91e..bb3de1f 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -19,6 +19,7 @@
+ #include <linux/delay.h>
+ #include <linux/vmalloc.h>
+ #include <linux/io.h>
++#include <linux/clk.h>
+ #include <linux/videodev2.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+@@ -254,6 +255,45 @@ static void mcam_ctlr_stop(struct mcam_camera *cam)
+ 	mcam_reg_clear_bit(cam, REG_CTRL0, C0_ENABLE);
+ }
+ 
++static int mcam_config_mipi(struct mcam_camera *mcam, bool enable)
++{
++	if (enable) {
++		/* Using MIPI mode and enable MIPI */
++		cam_dbg(mcam, "camera: DPHY3=0x%x, DPHY5=0x%x, DPHY6=0x%x\n",
++			mcam->dphy[0], mcam->dphy[1], mcam->dphy[2]);
++		mcam_reg_write(mcam, REG_CSI2_DPHY3, mcam->dphy[0]);
++		mcam_reg_write(mcam, REG_CSI2_DPHY5, mcam->dphy[1]);
++		mcam_reg_write(mcam, REG_CSI2_DPHY6, mcam->dphy[2]);
++
++		if (!mcam->mipi_enabled) {
++			if (mcam->lane > 4 || mcam->lane <= 0) {
++				cam_warn(mcam, "lane number error\n");
++				mcam->lane = 1;	/* set the default value */
++			}
++			/*
++			 * 0x41 actives 1 lane
++			 * 0x43 actives 2 lanes
++			 * 0x45 actives 3 lanes (never happen)
++			 * 0x47 actives 4 lanes
++			 */
++			mcam_reg_write(mcam, REG_CSI2_CTRL0,
++				CSI2_C0_MIPI_EN | CSI2_C0_ACT_LANE(mcam->lane));
++			mcam_reg_write(mcam, REG_CLKCTRL,
++				(mcam->mclk_src << 29) | mcam->mclk_div);
++
++			mcam->mipi_enabled = true;
++		}
++	} else {
++		/* Using Parallel mode or disable MIPI */
++		mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x0);
++		mcam_reg_write(mcam, REG_CSI2_DPHY3, 0x0);
++		mcam_reg_write(mcam, REG_CSI2_DPHY5, 0x0);
++		mcam_reg_write(mcam, REG_CSI2_DPHY6, 0x0);
++		mcam->mipi_enabled = false;
++	}
++	return 0;
++}
++
+ /* ------------------------------------------------------------------- */
+ 
+ #ifdef MCAM_MODE_VMALLOC
+@@ -657,6 +697,13 @@ static void mcam_ctlr_image(struct mcam_camera *cam)
+ 	 */
+ 	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
+ 			C0_SIFM_MASK);
++
++	/*
++	 * This field controls the generation of EOF(DVP only)
++	 */
++	if (cam->bus_type != V4L2_MBUS_CSI2)
++		mcam_reg_set_bit(cam, REG_CTRL0,
++				C0_EOF_VSYNC | C0_VEDGE_CTRL);
+ }
+ 
+ 
+@@ -754,15 +801,19 @@ static void mcam_ctlr_stop_dma(struct mcam_camera *cam)
+ /*
+  * Power up and down.
+  */
+-static void mcam_ctlr_power_up(struct mcam_camera *cam)
++static int mcam_ctlr_power_up(struct mcam_camera *cam)
+ {
+ 	unsigned long flags;
++	int ret;
+ 
+ 	spin_lock_irqsave(&cam->dev_lock, flags);
+-	cam->plat_power_up(cam);
++	ret = cam->plat_power_up(cam);
++	if (ret)
++		return ret;
+ 	mcam_reg_clear_bit(cam, REG_CTRL1, C1_PWRDWN);
+ 	spin_unlock_irqrestore(&cam->dev_lock, flags);
+ 	msleep(5); /* Just to be sure */
++	return 0;
+ }
+ 
+ static void mcam_ctlr_power_down(struct mcam_camera *cam)
+@@ -887,6 +938,16 @@ static int mcam_read_setup(struct mcam_camera *cam)
+ 	spin_lock_irqsave(&cam->dev_lock, flags);
+ 	clear_bit(CF_DMA_ACTIVE, &cam->flags);
+ 	mcam_reset_buffers(cam);
++	/*
++	 * Update CSI2_DPHY value
++	 */
++	if (cam->calc_dphy)
++		cam->calc_dphy(cam);
++	cam_dbg(cam, "camera: DPHY sets: dphy3=0x%x, dphy5=0x%x, dphy6=0x%x\n",
++			cam->dphy[0], cam->dphy[1], cam->dphy[2]);
++	ret = mcam_config_mipi(cam, cam->bus_type == V4L2_MBUS_CSI2);
++	if (ret < 0)
++		return ret;
+ 	mcam_ctlr_irq_enable(cam);
+ 	cam->state = S_STREAMING;
+ 	if (!test_bit(CF_SG_RESTART, &cam->flags))
+@@ -1503,7 +1564,9 @@ static int mcam_v4l_open(struct file *filp)
+ 		ret = mcam_setup_vb2(cam);
+ 		if (ret)
+ 			goto out;
+-		mcam_ctlr_power_up(cam);
++		ret = mcam_ctlr_power_up(cam);
++		if (ret)
++			return ret;
+ 		__mcam_cam_reset(cam);
+ 		mcam_set_config_needed(cam, 1);
+ 	}
+@@ -1526,10 +1589,12 @@ static int mcam_v4l_release(struct file *filp)
+ 	if (cam->users == 0) {
+ 		mcam_ctlr_stop_dma(cam);
+ 		mcam_cleanup_vb2(cam);
++		mcam_config_mipi(cam, false);
+ 		mcam_ctlr_power_down(cam);
+ 		if (cam->buffer_mode == B_vmalloc && alloc_bufs_at_read)
+ 			mcam_free_dma_bufs(cam);
+ 	}
++
+ 	mutex_unlock(&cam->s_mutex);
+ 	return 0;
+ }
+@@ -1816,7 +1881,9 @@ int mccic_resume(struct mcam_camera *cam)
+ 
+ 	mutex_lock(&cam->s_mutex);
+ 	if (cam->users > 0) {
+-		mcam_ctlr_power_up(cam);
++		ret = mcam_ctlr_power_up(cam);
++		if (ret)
++			return ret;
+ 		__mcam_cam_reset(cam);
+ 	} else {
+ 		mcam_ctlr_power_down(cam);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 01dec9e..be271b3 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -102,11 +102,23 @@ struct mcam_camera {
+ 	short int clock_speed;	/* Sensor clock speed, default 30 */
+ 	short int use_smbus;	/* SMBUS or straight I2c? */
+ 	enum mcam_buffer_mode buffer_mode;
++
++	int mclk_min;
++	int mclk_src;
++	int mclk_div;
++
++	enum v4l2_mbus_type bus_type;
++	/* MIPI support */
++	int *dphy;
++	bool mipi_enabled;
++	int lane;			/* lane number */
++
+ 	/*
+ 	 * Callbacks from the core to the platform code.
+ 	 */
+-	void (*plat_power_up) (struct mcam_camera *cam);
++	int (*plat_power_up) (struct mcam_camera *cam);
+ 	void (*plat_power_down) (struct mcam_camera *cam);
++	void (*calc_dphy) (struct mcam_camera *cam);
+ 
+ 	/*
+ 	 * Everything below here is private to the mcam core and
+@@ -220,6 +232,17 @@ int mccic_resume(struct mcam_camera *cam);
+ #define REG_Y0BAR	0x00
+ #define REG_Y1BAR	0x04
+ #define REG_Y2BAR	0x08
++
++/*
++ * register definitions for MIPI support
++ */
++#define REG_CSI2_CTRL0	0x100
++#define   CSI2_C0_MIPI_EN (0x1 << 0)
++#define   CSI2_C0_ACT_LANE(n) ((n-1) << 1)
++#define REG_CSI2_DPHY3	0x12c
++#define REG_CSI2_DPHY5	0x134
++#define REG_CSI2_DPHY6	0x138
++
+ /* ... */
+ 
+ #define REG_IMGPITCH	0x24	/* Image pitch register */
+@@ -288,13 +311,16 @@ int mccic_resume(struct mcam_camera *cam);
+ #define	  C0_YUVE_XUVY	  0x00020000	/* 420: .UVY		*/
+ #define	  C0_YUVE_XVUY	  0x00030000	/* 420: .VUY		*/
+ /* Bayer bits 18,19 if needed */
++#define	  C0_EOF_VSYNC	  0x00400000	/* Generate EOF by VSYNC */
++#define	  C0_VEDGE_CTRL   0x00800000	/* Detect falling edge of VSYNC */
+ #define	  C0_HPOL_LOW	  0x01000000	/* HSYNC polarity active low */
+ #define	  C0_VPOL_LOW	  0x02000000	/* VSYNC polarity active low */
+ #define	  C0_VCLK_LOW	  0x04000000	/* VCLK on falling edge */
+ #define	  C0_DOWNSCALE	  0x08000000	/* Enable downscaler */
+-#define	  C0_SIFM_MASK	  0xc0000000	/* SIF mode bits */
++/* SIFMODE */
+ #define	  C0_SIF_HVSYNC	  0x00000000	/* Use H/VSYNC */
+-#define	  CO_SOF_NOSYNC	  0x40000000	/* Use inband active signaling */
++#define	  C0_SOF_NOSYNC	  0x40000000	/* Use inband active signaling */
++#define	  C0_SIFM_MASK	  0xc0000000	/* SIF mode bits */
+ 
+ /* Bits below C1_444ALPHA are not present in Cafe */
+ #define REG_CTRL1	0x40	/* Control 1 */
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index c4c17fe..3dad182 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -27,6 +27,7 @@
+ #include <linux/delay.h>
+ #include <linux/list.h>
+ #include <linux/pm.h>
++#include <linux/clk.h>
+ 
+ #include "mcam-core.h"
+ 
+@@ -39,6 +40,7 @@ struct mmp_camera {
+ 	struct platform_device *pdev;
+ 	struct mcam_camera mcam;
+ 	struct list_head devlist;
++	struct clk *mipi_clk;
+ 	int irq;
  };
  
- void __init sh7372_clock_init(void)
+@@ -113,7 +115,7 @@ static void mmpcam_power_up_ctlr(struct mmp_camera *cam)
+ 	mdelay(1);
+ }
+ 
+-static void mmpcam_power_up(struct mcam_camera *mcam)
++static int mmpcam_power_up(struct mcam_camera *mcam)
+ {
+ 	struct mmp_camera *cam = mcam_to_cam(mcam);
+ 	struct mmp_camera_platform_data *pdata;
+@@ -133,6 +135,12 @@ static void mmpcam_power_up(struct mcam_camera *mcam)
+ 	mdelay(5);
+ 	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
+ 	mdelay(5);
++	if (mcam->bus_type == V4L2_MBUS_CSI2 && IS_ERR(cam->mipi_clk)) {
++		cam->mipi_clk = devm_clk_get(mcam->dev, "mipi");
++		if ((IS_ERR(cam->mipi_clk) && mcam->dphy[2] == 0))
++			return PTR_ERR(cam->mipi_clk);
++	}
++	return 0;
+ }
+ 
+ static void mmpcam_power_down(struct mcam_camera *mcam)
+@@ -150,8 +158,106 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+ 	pdata = cam->pdev->dev.platform_data;
+ 	gpio_set_value(pdata->sensor_power_gpio, 0);
+ 	gpio_set_value(pdata->sensor_reset_gpio, 0);
++
++	if (mcam->bus_type == V4L2_MBUS_CSI2 && !IS_ERR(cam->mipi_clk)) {
++		devm_clk_put(mcam->dev, cam->mipi_clk);
++		cam->mipi_clk = ERR_PTR(-EINVAL);
++	}
+ }
+ 
++/*
++ * calc the dphy register values
++ * There are three dphy registers being used.
++ * dphy[0] - CSI2_DPHY3
++ * dphy[1] - CSI2_DPHY5
++ * dphy[2] - CSI2_DPHY6
++ * CSI2_DPHY3 and CSI2_DPHY6 can be set with a default value
++ * or be calculated dynamically
++ */
++void mmpcam_calc_dphy(struct mcam_camera *mcam)
++{
++	struct mmp_camera *cam = mcam_to_cam(mcam);
++	struct mmp_camera_platform_data *pdata = cam->pdev->dev.platform_data;
++	struct device *dev = &cam->pdev->dev;
++	unsigned long tx_clk_esc;
++
++	/*
++	 * If CSI2_DPHY3 is calculated dynamically,
++	 * pdata->lane_clk should be already set
++	 * either in the board driver statically
++	 * or in the sensor driver dynamically.
++	 */
++	/*
++	 * dphy[0] - CSI2_DPHY3:
++	 *  bit 0 ~ bit 7: HS Term Enable.
++	 *   defines the time that the DPHY
++	 *   wait before enabling the data
++	 *   lane termination after detecting
++	 *   that the sensor has driven the data
++	 *   lanes to the LP00 bridge state.
++	 *   The value is calculated by:
++	 *   (Max T(D_TERM_EN)/Period(DDR)) - 1
++	 *  bit 8 ~ bit 15: HS_SETTLE
++	 *   Time interval during which the HS
++	 *   receiver shall ignore any Data Lane
++	 *   HS transistions.
++	 *   The vaule has been calibrated on
++	 *   different boards. It seems to work well.
++	 *
++	 *  More detail please refer
++	 *  MIPI Alliance Spectification for D-PHY
++	 *  document for explanation of HS-SETTLE
++	 *  and D-TERM-EN.
++	 */
++	switch (pdata->dphy3_algo) {
++	case DPHY3_ALGO_PXA910:
++		/*
++		 * Calculate CSI2_DPHY3 algo for PXA910
++		 */
++		pdata->dphy[0] = ((1 + pdata->lane_clk * 80 / 1000) & 0xff) << 8
++			| (1 + pdata->lane_clk * 35 / 1000);
++		break;
++	case DPHY3_ALGO_PXA2128:
++		/*
++		 * Calculate CSI2_DPHY3 algo for PXA2128
++		 */
++		pdata->dphy[0] =
++			((2 + pdata->lane_clk * 110 / 1000) & 0xff) << 8
++			| (1 + pdata->lane_clk * 35 / 1000);
++		break;
++	default:
++		/*
++		 * Use default CSI2_DPHY3 value for PXA688/PXA988
++		 */
++		dev_dbg(dev, "camera: use the default CSI2_DPHY3 value\n");
++	}
++
++	/*
++	 * mipi_clk will never be changed, it is a fixed value on MMP
++	 */
++	if (IS_ERR(cam->mipi_clk))
++		return;
++
++	/* get the escape clk, this is hard coded */
++	tx_clk_esc = (clk_get_rate(cam->mipi_clk) / 1000000) / 12;
++
++	/*
++	 * dphy[2] - CSI2_DPHY6:
++	 * bit 0 ~ bit 7: CK Term Enable
++	 *  Time for the Clock Lane receiver to enable the HS line
++	 *  termination. The value is calculated similarly with
++	 *  HS Term Enable
++	 * bit 8 ~ bit 15: CK Settle
++	 *  Time interval during which the HS receiver shall ignore
++	 *  any Clock Lane HS transitions.
++	 *  The value is calibrated on the boards.
++	 */
++	pdata->dphy[2] = ((534 * tx_clk_esc / 2000 - 1) & 0xff) << 8
++			| ((38 * tx_clk_esc / 1000 - 1) & 0xff);
++
++	dev_dbg(dev, "camera: DPHY sets: dphy3=0x%x, dphy5=0x%x, dphy6=0x%x\n",
++		pdata->dphy[0], pdata->dphy[1], pdata->dphy[2]);
++}
+ 
+ static irqreturn_t mmpcam_irq(int irq, void *data)
+ {
+@@ -174,17 +280,30 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	struct mmp_camera_platform_data *pdata;
+ 	int ret;
+ 
++	pdata = pdev->dev.platform_data;
++	if (!pdata)
++		return -ENODEV;
++
+ 	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
+ 	if (cam == NULL)
+ 		return -ENOMEM;
+ 	cam->pdev = pdev;
++	cam->mipi_clk = ERR_PTR(-EINVAL);
+ 	INIT_LIST_HEAD(&cam->devlist);
+ 
+ 	mcam = &cam->mcam;
+ 	mcam->plat_power_up = mmpcam_power_up;
+ 	mcam->plat_power_down = mmpcam_power_down;
++	mcam->calc_dphy = mmpcam_calc_dphy;
+ 	mcam->dev = &pdev->dev;
+ 	mcam->use_smbus = 0;
++	mcam->mclk_min = pdata->mclk_min;
++	mcam->mclk_src = pdata->mclk_src;
++	mcam->mclk_div = pdata->mclk_div;
++	mcam->bus_type = pdata->bus_type;
++	mcam->dphy = pdata->dphy;
++	mcam->mipi_enabled = false;
++	mcam->lane = pdata->lane;
+ 	mcam->chip_id = V4L2_IDENT_ARMADA610;
+ 	mcam->buffer_mode = B_DMA_sg;
+ 	spin_lock_init(&mcam->dev_lock);
+@@ -223,7 +342,6 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	 * Find the i2c adapter.  This assumes, of course, that the
+ 	 * i2c bus is already up and functioning.
+ 	 */
+-	pdata = pdev->dev.platform_data;
+ 	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
+ 	if (mcam->i2c_adapter == NULL) {
+ 		ret = -ENODEV;
+@@ -250,7 +368,9 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	/*
+ 	 * Power the device up and hand it off to the core.
+ 	 */
+-	mmpcam_power_up(mcam);
++	ret = mmpcam_power_up(mcam);
++	if (ret)
++		goto out_gpio2;
+ 	ret = mccic_register(mcam);
+ 	if (ret)
+ 		goto out_gpio2;
+diff --git a/include/media/mmp-camera.h b/include/media/mmp-camera.h
+index 7611963..b099d4b 100644
+--- a/include/media/mmp-camera.h
++++ b/include/media/mmp-camera.h
+@@ -1,9 +1,28 @@
++#include <media/v4l2-mediabus.h>
+ /*
+  * Information for the Marvell Armada MMP camera
+  */
+ 
++enum dphy3_algo {
++	DPHY3_ALGO_DEFAULT = 0,
++	DPHY3_ALGO_PXA910,
++	DPHY3_ALGO_PXA2128
++};
++
+ struct mmp_camera_platform_data {
+ 	struct platform_device *i2c_device;
+ 	int sensor_power_gpio;
+ 	int sensor_reset_gpio;
++	enum v4l2_mbus_type bus_type;
++	int mclk_min;
++	int mclk_src;
++	int mclk_div;
++	/*
++	 * MIPI support
++	 */
++	int dphy[3];		/* DPHY: CSI2_DPHY3, CSI2_DPHY5, CSI2_DPHY6 */
++	enum dphy3_algo dphy3_algo;	/* algos for calculate CSI2_DPHY3 */
++	int mipi_enabled;	/* MIPI enabled flag */
++	int lane;		/* ccic used lane number; 0 means DVP mode */
++	int lane_clk;
+ };
 -- 
-1.7.2.5
+1.7.9.5
+
+
 
