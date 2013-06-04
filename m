@@ -1,82 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:46223 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752392Ab3F3Uzj (ORCPT
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:47396 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751359Ab3FDFpC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jun 2013 16:55:39 -0400
-Date: Sun, 30 Jun 2013 17:55:24 -0300
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES
- and S_FMT?
-Message-ID: <20130630175524.0b3fda91@infradead.org>
-In-Reply-To: <51D09507.80501@gmail.com>
-References: <201306241448.15187.hverkuil@xs4all.nl>
-	<51D09507.80501@gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+	Tue, 4 Jun 2013 01:45:02 -0400
+Message-ID: <1370324564.26072.22.camel@younglee-desktop>
+Subject: [PATCH 2/7] marvell-ccic: add clock tree support for marvell-ccic
+ driver
+From: lbyang <lbyang@marvell.com>
+Reply-To: <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>, <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <lbyang@marvell.com>,
+	<albert.v.wang@gmail.com>
+Date: Tue, 4 Jun 2013 13:42:44 +0800
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Sun, 30 Jun 2013 22:28:55 +0200
-Sylwester Nawrocki <sylvester.nawrocki@gmail.com> escreveu:
+From: Libin Yang <lbyang@marvell.com>
 
-> Hi Hans,
-> 
-> On 06/24/2013 02:48 PM, Hans Verkuil wrote:
-> > Hi all,
-> >
-> > While working on extending v4l2-compliance with cropping/selection test cases
-> > I decided to add support for that to vivi as well (this would give applications
-> > a good test driver to work with).
-> >
-> > However, I ran into problems how this should be implemented for V4L2 devices
-> > (we are not talking about complex media controller devices where the video
-> > pipelines are setup manually).
-> >
-> > There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
-> >
-> > The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
-> > possible frame sizes, and that can crop, compose and/or scale, then you need
-> > to be able to set the frame size. Currently this is decided by S_FMT which
-> > maps the format size to the closest valid frame size. This however makes
-> > it impossible to e.g. scale up a frame, or compose the image into a larger
-> > buffer.
-> >
-> > For video receivers this issue doesn't exist: there the size of the incoming
-> > video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for sensors.
-> >
-> > I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
-> 
-> V4L2_SEL_TGT_FRAMESIZE seems a bit imprecise to me, perhaps:
-> V4L2_SEL_TGT_SENSOR(_SIZE) or V4L2_SEL_TGT_SOURCE(_SIZE) ? The latter might
-> be a bit weird when referred to the subdev API though, not sure if defining
-> it as valid only on V4L2 device nodes makes any difference.
+This patch adds the clock tree support for marvell-ccic.
 
-Both name proposals seem weird and confuse.
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.h  |    5 +++
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   48 ++++++++++++++++++++++
+ 2 files changed, 53 insertions(+)
 
-If the issue is only to do scale up, then why not create a VIDIOC_S_SCALEUP
-ioctl (or something similar), when we start having any real case where this
-is needed. Please, let's not overbloat the API just due to vivi driver issues.
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index be271b3..c506cd3 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -83,6 +83,8 @@ struct mcam_frame_state {
+ 	unsigned int delivered;
+ };
+ 
++#define NR_MCAM_CLK 3
++
+ /*
+  * A description of one of our devices.
+  * Locking: controlled by s_mutex.  Certain fields, however, require
+@@ -113,6 +115,9 @@ struct mcam_camera {
+ 	bool mipi_enabled;
+ 	int lane;			/* lane number */
+ 
++	/* clock tree support */
++	struct clk *clk[NR_MCAM_CLK];
++
+ 	/*
+ 	 * Callbacks from the core to the platform code.
+ 	 */
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 3dad182..233d0ff 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -35,6 +35,8 @@ MODULE_ALIAS("platform:mmp-camera");
+ MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
+ MODULE_LICENSE("GPL");
+ 
++static char *mcam_clks[] = {"CCICAXICLK", "CCICFUNCLK", "CCICPHYCLK"};
++
+ struct mmp_camera {
+ 	void *power_regs;
+ 	struct platform_device *pdev;
+@@ -105,6 +107,26 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
+ #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
+ #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
+ 
++static void mcam_clk_enable(struct mcam_camera *mcam)
++{
++	unsigned int i;
++
++	for (i = 0; i < NR_MCAM_CLK; i++) {
++		if (!IS_ERR_OR_NULL(mcam->clk[i]))
++			clk_prepare_enable(mcam->clk[i]);
++	}
++}
++
++static void mcam_clk_disable(struct mcam_camera *mcam)
++{
++	int i;
++
++	for (i = NR_MCAM_CLK - 1; i >= 0; i--) {
++		if (!IS_ERR_OR_NULL(mcam->clk[i]))
++			clk_disable_unprepare(mcam->clk[i]);
++	}
++}
++
+ /*
+  * Power control.
+  */
+@@ -135,11 +157,15 @@ static int mmpcam_power_up(struct mcam_camera *mcam)
+ 	mdelay(5);
+ 	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
+ 	mdelay(5);
++
++	mcam_clk_enable(mcam);
++
+ 	if (mcam->bus_type == V4L2_MBUS_CSI2 && IS_ERR(cam->mipi_clk)) {
+ 		cam->mipi_clk = devm_clk_get(mcam->dev, "mipi");
+ 		if ((IS_ERR(cam->mipi_clk) && mcam->dphy[2] == 0))
+ 			return PTR_ERR(cam->mipi_clk);
+ 	}
++
+ 	return 0;
+ }
+ 
+@@ -163,6 +189,8 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+ 		devm_clk_put(mcam->dev, cam->mipi_clk);
+ 		cam->mipi_clk = ERR_PTR(-EINVAL);
+ 	}
++
++	mcam_clk_disable(mcam);
+ }
+ 
+ /*
+@@ -271,6 +299,23 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
+ 	return IRQ_RETVAL(handled);
+ }
+ 
++static int mcam_init_clk(struct mcam_camera *mcam,
++			struct mmp_camera_platform_data *pdata)
++{
++	unsigned int i;
++
++	for (i = 0; i < NR_MCAM_CLK; i++) {
++		if (mcam_clks[i] != NULL) {
++			mcam->clk[i] = devm_clk_get(mcam->dev, mcam_clks[i]);
++			if (IS_ERR(mcam->clk[i])) {
++				dev_err(mcam->dev, "Could not get clk: %s\n",
++						mcam_clks[i]);
++				return PTR_ERR(mcam->clk[i]);
++			}
++		}
++	}
++	return 0;
++}
+ 
+ static int mmpcam_probe(struct platform_device *pdev)
+ {
+@@ -338,6 +383,9 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 		ret = -ENODEV;
+ 		goto out_unmap1;
+ 	}
++
++	mcam_init_clk(mcam, pdata);
++
+ 	/*
+ 	 * Find the i2c adapter.  This assumes, of course, that the
+ 	 * i2c bus is already up and functioning.
+-- 
+1.7.9.5
 
-In the specific case of vivi, I can't see why you would need something like
-that for crop/selection: it should just assume that the S_FMT represents the
-full frame, and crop/selection will apply on it.
 
-Btw, I can't remember a single (non-embedded) capture device that can do
-scaleup. On embedded devices, this is probably already solved by a mem2mem
-driver or via the media controller API.
 
-Ok, for output devices this could be more common.
-
-Do you have any real case where this feature is needed?
-
-Regards,
-Mauro
