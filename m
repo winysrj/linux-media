@@ -1,67 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:47458 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755458Ab3FPXpZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jun 2013 19:45:25 -0400
-Date: Mon, 17 Jun 2013 02:44:50 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Michael Jones <michael.jones@matrix-vision.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media ML <linux-media@vger.kernel.org>
-Subject: Re: double-buffering with the omap3 parallel interface
-Message-ID: <20130616234449.GB2064@valkosipuli.retiisi.org.uk>
-References: <51B89EDA.90107@matrix-vision.de>
+Received: from mail.kapsi.fi ([217.30.184.167]:51877 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751129Ab3FDV4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Jun 2013 17:56:13 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: =?UTF-8?q?Miroslav=20=C5=A0ustek?= <sustmidown@centrum.cz>,
+	Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 4/7] rtl28xxu: Add USB ID for Leadtek WinFast DTV Dongle mini
+Date: Wed,  5 Jun 2013 00:55:00 +0300
+Message-Id: <1370382903-21332-5-git-send-email-crope@iki.fi>
+In-Reply-To: <1370382903-21332-1-git-send-email-crope@iki.fi>
+References: <1370382903-21332-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <51B89EDA.90107@matrix-vision.de>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+From: Miroslav Šustek <sustmidown@centrum.cz>
 
-On Wed, Jun 12, 2013 at 06:16:26PM +0200, Michael Jones wrote:
-> Hi Laurent & co.,
-> 
-> I'd like to look at what the maximum possible frame rates are for a
-> sensor connected to the OMAP3 ISP CCDC via the parallel interface,
-> writing frames directly to memory.  I understand that there is some
-> minimum amount of time required between frames to pass on the
-> finished frame and set up the address to be written to for the next
-> frame.  From the manual it looks like a double buffering scheme
-> would've been available on a different sensor interface, but isn't
-> on the parallel one.
-> 
-> Do I see that right?  Is it impossible to use double buffering of
-> any sort while using the parallel interface to memory?
-> 
-> I'm still using an older version of the driver, but I've browsed the
-> current state of the code, too.  What behavior do you expect if the
-> time between frames is too short for the buffer management?  Can it
-> be recovered from?  Has this behavior changed in recent versions?
-> 
-> I see from the ISP block diagram that the "circular buffer" is
-> between the SBL and the MMU.  Could this maybe be used to help the
-> situation? It seems to currently not be used at all along this path.
+USB ID 0413:6a03 is Leadtek WinFast DTV Dongle mini.
+Decoder Realtek RTL2832U and tuner Infineon TUA9001.
 
-The way the hardware is controlled has stayed the same for a very long time.
-My recollection matches with your findings --- even if double buffering of
-the buffer pointers would be available in some situations, it isn't used by
-the driver. You might ask why, and the reason for that is that there are
-tonds of other things that typically need to be configured (as a result of
-the configuration given by the user using the private IOCTLs) at that very
-time. If a block becomes busy while you're configuring it you can say good
-bye to your frame in any case; whether yousd set up writing it to system
-memory using DMA or not...
+Signed-off-by: Miroslav Šustek <sustmidown@centrum.cz>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 ++
+ 1 file changed, 2 insertions(+)
 
-What comes to the minimum time per frames, I could give you a guesstimate of
-1 ms. It depends a lot on how well other drivers in the system behave, but
-in general that should be enough. Something must be very wrong if you need
-significantly more than that.
-
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 8bbc6ab..0045b19 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1424,6 +1424,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
+ 		&rtl2832u_props, "Compro VideoMate U620F", NULL) },
+ 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd394,
+ 		&rtl2832u_props, "MaxMedia HU394-T", NULL) },
++	{ DVB_USB_DEVICE(USB_VID_LEADTEK, 0x6a03,
++		&rtl2832u_props, "WinFast DTV Dongle mini", NULL) },
+ 	{ }
+ };
+ MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
 -- 
-Kind regards,
+1.7.11.7
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
