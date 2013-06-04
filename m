@@ -1,39 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ye0-f182.google.com ([209.85.213.182]:54373 "EHLO
-	mail-ye0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755281Ab3FBSPz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 14:15:55 -0400
-Received: by mail-ye0-f182.google.com with SMTP id m12so238370yen.27
-        for <linux-media@vger.kernel.org>; Sun, 02 Jun 2013 11:15:54 -0700 (PDT)
-Date: Sun, 2 Jun 2013 14:15:44 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: [GIT PULL] git://linuxtv.org/mkrufky/dvb dib8000
-Message-ID: <20130602141544.41ebdab3@vujade>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from mail.kapsi.fi ([217.30.184.167]:50738 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751210Ab3FDKS3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Jun 2013 06:18:29 -0400
+Message-ID: <51ADBECD.1070102@iki.fi>
+Date: Tue, 04 Jun 2013 13:17:49 +0300
+From: Antti Palosaari <crope@iki.fi>
+MIME-Version: 1.0
+To: Luca Olivetti <luca@ventoso.org>
+CC: linux-media@vger.kernel.org
+Subject: Re: Diversity support?
+References: <507EE702.2010103@ventoso.org> <5091691A.4070903@ventoso.org> <51ACB2CA.6060503@ventoso.org> <51AD23F1.1050903@iki.fi> <51AD9758.2050009@ventoso.org>
+In-Reply-To: <51AD9758.2050009@ventoso.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
+On 06/04/2013 10:29 AM, Luca Olivetti wrote:
+> Al 04/06/13 01:17, En/na Antti Palosaari ha escrit:
+>
+>>> I'm not easily discouraged :-) so here's the question again: is there
+>>> some dvb-t usb stick (possibly available on the EU market) with
+>>> diversity support under Linux?
+>>
+>> I have feeling AF9035/IT9135 dual devices could do that.
+>
+> Looking at the wiki, most devices based on those demodulators are either
+> unsupported or have a dual tuner but not diversity.
 
-  [media] media: pci: remove duplicate checks for EPERM (2013-05-27
-  09:34:56 -0300)
+Because diversity is not interesting feature at all in normal use case. 
+Whole DVB-T standard fits poorly for mobile usage and you cannot make 
+situation that much better using diversity.
 
-are available in the git repository at:
+Dual hardware could support diversity, but it is not usually enabled by 
+software.
 
-  git://linuxtv.org/mkrufky/dvb dib8000
 
-for you to fetch changes up to 441939932b4968cd24a1dd190629600250eea992:
+regards
+Antti
 
-  dib8000: Fix dib8000_set_frontend() never setting ret (2013-06-02
-  12:53:14 -0400)
-
-----------------------------------------------------------------
-Geert Uytterhoeven (1):
-      dib8000: Fix dib8000_set_frontend() never setting ret
-
- drivers/media/dvb-frontends/dib8000.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+-- 
+http://palosaari.fi/
