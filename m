@@ -1,70 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:64387 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752874Ab3FQQnK (ORCPT
+Received: from na3sys009aog120.obsmtp.com ([74.125.149.140]:47528 "EHLO
+	na3sys009aog120.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751359Ab3FDFyx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 12:43:10 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOJ00BBHQFXAK20@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 18 Jun 2013 01:43:09 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] MAINTAINERS: Update S5P/Exynos FIMC driver entry
-Date: Mon, 17 Jun 2013 18:42:51 +0200
-Message-id: <1371487371-31143-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 4 Jun 2013 01:54:53 -0400
+Message-ID: <1370325279.26072.28.camel@younglee-desktop>
+Subject: [PATCH 4/7] marvell-ccic: refine mcam_set_contig_buffer function
+From: lbyang <lbyang@marvell.com>
+Reply-To: <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>, <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <lbyang@marvell.com>,
+	<albert.v.wang@gmail.com>
+Date: Tue, 4 Jun 2013 13:54:39 +0800
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This change is mainly to update the driver's path changed from
-drivers/media/platform/s5p-fimc to drivers/media/platform/exynos4-is/.
-While at it, remove non-existent files rule, move the whole entry to
-the Samsung drivers section and add the patch tracking system URL.
+From: Libin Yang <lbyang@marvell.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+This patch refines mcam_set_contig_buffer() in mcam core.
+It can remove redundant code line and enhance readability.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
 ---
- MAINTAINERS |   17 ++++++++---------
- 1 file changed, 8 insertions(+), 9 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
-diff --git a/MAINTAINERS b/MAINTAINERS
-index 3d7782b..d2c5618 100644
---- a/MAINTAINERS
-+++ b/MAINTAINERS
-@@ -1153,15 +1153,6 @@ L:	linux-media@vger.kernel.org
- S:	Maintained
- F:	drivers/media/platform/s5p-g2d/
- 
--ARM/SAMSUNG S5P SERIES FIMC SUPPORT
--M:	Kyungmin Park <kyungmin.park@samsung.com>
--M:	Sylwester Nawrocki <s.nawrocki@samsung.com>
--L:	linux-arm-kernel@lists.infradead.org
--L:	linux-media@vger.kernel.org
--S:	Maintained
--F:	arch/arm/plat-samsung/include/plat/*fimc*
--F:	drivers/media/platform/s5p-fimc/
--
- ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
- M:	Kyungmin Park <kyungmin.park@samsung.com>
- M:	Kamil Debski <k.debski@samsung.com>
-@@ -6930,6 +6921,14 @@ F:	drivers/regulator/s5m*.c
- F:	drivers/rtc/rtc-sec.c
- F:	include/linux/mfd/samsung/
- 
-+SAMSUNG S5P/EXYNOS4 SOC SERIES CAMERA SUBSYSTEM DRIVERS
-+M:	Kyungmin Park <kyungmin.park@samsung.com>
-+M:	Sylwester Nawrocki <s.nawrocki@samsung.com>
-+L:	linux-media@vger.kernel.org
-+Q:	https://patchwork.linuxtv.org/project/linux-media/list/
-+S:	Supported
-+F:	drivers/media/platform/exynos4-is/
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index f9b8641..19404ff 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -482,22 +482,21 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ 	 */
+ 	if (list_empty(&cam->buffers)) {
+ 		buf = cam->vb_bufs[frame ^ 0x1];
+-		cam->vb_bufs[frame] = buf;
+-		mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+-				vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+ 		set_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 		cam->frame_state.singles++;
+-		return;
++	} else {
++		/*
++		 * OK, we have a buffer we can use.
++		 */
++		buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer,
++					queue);
++		list_del_init(&buf->queue);
++		clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 	}
+-	/*
+-	 * OK, we have a buffer we can use.
+-	 */
+-	buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer, queue);
+-	list_del_init(&buf->queue);
 +
- SAMSUNG S3C24XX/S3C64XX SOC SERIES CAMIF DRIVER
- M:	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
- L:	linux-media@vger.kernel.org
++	cam->vb_bufs[frame] = buf;
+ 	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+ 			vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+-	cam->vb_bufs[frame] = buf;
+-	clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ }
+ 
+ /*
 -- 
 1.7.9.5
+
+
 
