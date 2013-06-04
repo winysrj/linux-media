@@ -1,40 +1,21 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:54184 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab3FNIvJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 04:51:09 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Hans de Goede <hdegoede@redhat.com>
-Subject: Re: Doing a v4l-utils-1.0.0 release
-Date: Fri, 14 Jun 2013 10:51:00 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
-References: <51BAC2F6.40708@redhat.com>
-In-Reply-To: <51BAC2F6.40708@redhat.com>
+Received: from lycasmtp.lycamobile.co.uk ([217.118.119.180]:32993 "EHLO
+	lycasmtp.lycamobile.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750811Ab3FDTPn convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jun 2013 15:15:43 -0400
+Message-Id: <201306040959.r545gH1W022098@lycasmtp.lycamobile.co.uk>
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306141051.00736.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: **Short Note**
+To: Recipients <info@uk.net>
+From: info@uk.net
+Date: Tue, 04 Jun 2013 15:37:30 +0530
+Reply-To: inf.green@itbox.ro
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri 14 June 2013 09:15:02 Hans de Goede wrote:
-> Hi All,
-> 
-> IIRC the 0.9.x series were meant as development releases leading up to a new
-> stable 1.0.0 release. Lately there have been no maintenance 0.8.x releases
-> and a lot of interesting development going on in the 0.9.x, while at the
-> same time there have been no issues reported against 0.9.x (iow it seems
-> stable).
-> 
-> So how about taking current master and releasing that as a 1.0.0 release ?
+Your Email-ID has been Granted £1,000,000.00 Pounds in Uk National  Lottery, To Receive, Send Your Name: Address: Telephone: Country to email: claims.jonesgreene@hotmail.co.uk
 
-Fine by me!
 
-Note that the libv4l2rds code is now finalized, so that can be released as
-well.
-
-Regards,
-
-	Hans
