@@ -1,107 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3050 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751459Ab3F1S3U (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 14:29:20 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5SITGX0016484
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 28 Jun 2013 20:29:19 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 2997035E018B
-	for <linux-media@vger.kernel.org>; Fri, 28 Jun 2013 20:29:15 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mail.kapsi.fi ([217.30.184.167]:33228 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751243Ab3FDV4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Jun 2013 17:56:13 -0400
+From: Antti Palosaari <crope@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130628182915.2997035E018B@alastor.dyndns.org>
-Date: Fri, 28 Jun 2013 20:29:15 +0200 (CEST)
+Cc: Antti Palosaari <crope@iki.fi>
+Subject: [PATCH 7/7] rtl28xxu: use masked reg write where possible
+Date: Wed,  5 Jun 2013 00:55:03 +0300
+Message-Id: <1370382903-21332-8-git-send-email-crope@iki.fi>
+In-Reply-To: <1370382903-21332-1-git-send-email-crope@iki.fi>
+References: <1370382903-21332-1-git-send-email-crope@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Use masked register write inside rtl2832u_power_ctrl().
 
-Results of the daily build of media_tree:
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 72 ++++++++-------------------------
+ 1 file changed, 16 insertions(+), 56 deletions(-)
 
-date:		Fri Jun 28 19:00:18 CEST 2013
-git branch:	test
-git hash:	188af63c0af2d7ef395bc94e3efa173f34dae03d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index 04da6be..6f5a3d0 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1041,67 +1041,34 @@ err:
+ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ {
+ 	int ret;
+-	u8 val;
+ 
+ 	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
+ 
+ 	if (onoff) {
+-		/* set output values */
+-		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
+-		if (ret)
+-			goto err;
+-
+-		val |= 0x08;
+-		val &= 0xef;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
+-		if (ret)
+-			goto err;
+-
+-		/* demod_ctl_1 */
+-		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
+-		if (ret)
+-			goto err;
+-
+-		val &= 0xef;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL1, val);
+-		if (ret)
+-			goto err;
+-
+-		/* demod control */
+-		/* PLL enable */
+-		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
++		/* GPIO3=1, GPIO4=0 */
++		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x08, 0x18);
+ 		if (ret)
+ 			goto err;
+ 
+-		/* bit 7 to 1 */
+-		val |= 0x80;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
++		/* suspend? */
++		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL1, 0x00, 0x10);
+ 		if (ret)
+ 			goto err;
+ 
+-		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
++		/* enable PLL */
++		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x80, 0x80);
+ 		if (ret)
+ 			goto err;
+ 
+-		val |= 0x20;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
++		/* disable reset */
++		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x20, 0x20);
+ 		if (ret)
+ 			goto err;
+ 
+ 		mdelay(5);
+ 
+-		/*enable ADC_Q and ADC_I */
+-		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
+-		if (ret)
+-			goto err;
+-
+-		val |= 0x48;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
++		/* enable ADC */
++		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x48, 0x48);
+ 		if (ret)
+ 			goto err;
+ 
+@@ -1114,25 +1081,18 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 		if (ret)
+ 			goto err;
+ 	} else {
+-		/* set output values */
+-		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
+-		if (ret)
+-				goto err;
+-
+-		val |= 0x10;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
++		/* GPIO4=1 */
++		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x10, 0x10);
+ 		if (ret)
+ 			goto err;
+ 
+-		/* demod control */
+-		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
++		/* disable ADC */
++		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x00, 0x48);
+ 		if (ret)
+ 			goto err;
+ 
+-		val &= 0x37;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
++		/* disable PLL */
++		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x00, 0x80);
+ 		if (ret)
+ 			goto err;
+ 
+-- 
+1.7.11.7
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-arm-omap1: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: OK
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: OK
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
