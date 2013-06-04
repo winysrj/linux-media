@@ -1,95 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:14458 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754325Ab3FRJEq (ORCPT
+Received: from na3sys009aog109.obsmtp.com ([74.125.149.201]:34961 "EHLO
+	na3sys009aog109.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751359Ab3FDGEh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 05:04:46 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>
-Cc: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	'Rob Clark' <robdclark@gmail.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	'Daniel Vetter' <daniel@ffwll.ch>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
- <1371467722-665-1-git-send-email-inki.dae@samsung.com>
- <51BEF458.4090606@canonical.com>
- <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
- <20130617133109.GG2718@n2100.arm.linux.org.uk>
- <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
- <20130617154237.GJ2718@n2100.arm.linux.org.uk>
- <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com>
- <20130617182127.GM2718@n2100.arm.linux.org.uk>
- <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
- <20130618084308.GU2718@n2100.arm.linux.org.uk>
-In-reply-to: <20130618084308.GU2718@n2100.arm.linux.org.uk>
-Subject: RE: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-	framework
-Date: Tue, 18 Jun 2013 18:04:44 +0900
-Message-id: <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Tue, 4 Jun 2013 02:04:37 -0400
+Message-ID: <1370325740.26072.36.camel@younglee-desktop>
+Subject: [PATCH 7/7] marvell-ccic: switch to resource managed allocation and
+ request
+From: lbyang <lbyang@marvell.com>
+Reply-To: <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>, <mchehab@redhat.com>
+CC: <linux-media@vger.kernel.org>, <lbyang@marvell.com>,
+	<albert.v.wang@gmail.com>
+Date: Tue, 4 Jun 2013 14:02:20 +0800
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Libin Yang <lbyang@marvell.com>
+
+This patch switchs to resource managed allocation and request in mmp-driver.
+It can remove free resource operations.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   60 ++++++++--------------
+ 1 file changed, 21 insertions(+), 39 deletions(-)
+
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 2998477..6e4e682 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -352,7 +352,7 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	if (!pdata)
+ 		return -ENODEV;
+ 
+-	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
++	cam = devm_kzalloc(&pdev->dev, sizeof(*cam), GFP_KERNEL);
+ 	if (cam == NULL)
+ 		return -ENOMEM;
+ 	cam->pdev = pdev;
+@@ -383,14 +383,12 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	if (res == NULL) {
+ 		dev_err(&pdev->dev, "no iomem resource!\n");
+-		ret = -ENODEV;
+-		goto out_free;
++		return -ENODEV;
+ 	}
+-	mcam->regs = ioremap(res->start, resource_size(res));
++	mcam->regs = devm_request_and_ioremap(&pdev->dev, res);
+ 	if (mcam->regs == NULL) {
+ 		dev_err(&pdev->dev, "MMIO ioremap fail\n");
+-		ret = -ENODEV;
+-		goto out_free;
++		return -ENODEV;
+ 	}
+ 	/*
+ 	 * Power/clock memory is elsewhere; get it too.  Perhaps this
+@@ -399,14 +397,12 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
+ 	if (res == NULL) {
+ 		dev_err(&pdev->dev, "no power resource!\n");
+-		ret = -ENODEV;
+-		goto out_unmap1;
++		return -ENODEV;
+ 	}
+-	cam->power_regs = ioremap(res->start, resource_size(res));
++	cam->power_regs = devm_request_and_ioremap(&pdev->dev, res);
+ 	if (cam->power_regs == NULL) {
+ 		dev_err(&pdev->dev, "power MMIO ioremap fail\n");
+-		ret = -ENODEV;
+-		goto out_unmap1;
++		return -ENODEV;
+ 	}
+ 
+ 	mcam_init_clk(mcam, pdata);
+@@ -417,25 +413,28 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	 */
+ 	mcam->i2c_adapter = platform_get_drvdata(pdata->i2c_device);
+ 	if (mcam->i2c_adapter == NULL) {
+-		ret = -ENODEV;
+ 		dev_err(&pdev->dev, "No i2c adapter\n");
+-		goto out_unmap2;
++		return -ENODEV;
+ 	}
+ 	/*
+ 	 * Sensor GPIO pins.
+ 	 */
+-	ret = gpio_request(pdata->sensor_power_gpio, "cam-power");
++	ret = devm_gpio_request(&pdev->dev, pdata->sensor_power_gpio,
++							"cam-power");
++
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Can't get sensor power gpio %d",
+ 				pdata->sensor_power_gpio);
+-		goto out_unmap2;
++		return ret;
+ 	}
+ 	gpio_direction_output(pdata->sensor_power_gpio, 0);
+-	ret = gpio_request(pdata->sensor_reset_gpio, "cam-reset");
++	ret = devm_gpio_request(&pdev->dev, pdata->sensor_reset_gpio,
++							"cam-reset");
++
+ 	if (ret) {
+ 		dev_err(&pdev->dev, "Can't get sensor reset gpio %d",
+ 				pdata->sensor_reset_gpio);
+-		goto out_gpio;
++		return ret;
+ 	}
+ 	gpio_direction_output(pdata->sensor_reset_gpio, 0);
+ 	/*
+@@ -443,10 +442,10 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	 */
+ 	ret = mmpcam_power_up(mcam);
+ 	if (ret)
+-		goto out_gpio2;
++		goto out_power_down;
+ 	ret = mccic_register(mcam);
+ 	if (ret)
+-		goto out_gpio2;
++		goto out_power_down;
+ 	/*
+ 	 * Finally, set up our IRQ now that the core is ready to
+ 	 * deal with it.
+@@ -457,8 +456,8 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 		goto out_unregister;
+ 	}
+ 	cam->irq = res->start;
+-	ret = request_irq(cam->irq, mmpcam_irq, IRQF_SHARED,
+-			"mmp-camera", mcam);
++	ret = devm_request_irq(&pdev->dev, cam->irq, mmpcam_irq, IRQF_SHARED,
++					"mmp-camera", mcam);
+ 	if (ret == 0) {
+ 		mmpcam_add_device(cam);
+ 		return 0;
+@@ -466,17 +465,8 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 
+ out_unregister:
+ 	mccic_shutdown(mcam);
+-out_gpio2:
++out_power_down:
+ 	mmpcam_power_down(mcam);
+-	gpio_free(pdata->sensor_reset_gpio);
+-out_gpio:
+-	gpio_free(pdata->sensor_power_gpio);
+-out_unmap2:
+-	iounmap(cam->power_regs);
+-out_unmap1:
+-	iounmap(mcam->regs);
+-out_free:
+-	kfree(cam);
+ 	return ret;
+ }
+ 
+@@ -484,18 +474,10 @@ out_free:
+ static int mmpcam_remove(struct mmp_camera *cam)
+ {
+ 	struct mcam_camera *mcam = &cam->mcam;
+-	struct mmp_camera_platform_data *pdata;
+ 
+ 	mmpcam_remove_device(cam);
+-	free_irq(cam->irq, mcam);
+ 	mccic_shutdown(mcam);
+ 	mmpcam_power_down(mcam);
+-	pdata = cam->pdev->dev.platform_data;
+-	gpio_free(pdata->sensor_reset_gpio);
+-	gpio_free(pdata->sensor_power_gpio);
+-	iounmap(cam->power_regs);
+-	iounmap(mcam->regs);
+-	kfree(cam);
+ 	return 0;
+ }
+ 
+-- 
+1.7.9.5
 
 
-> -----Original Message-----
-> From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> Sent: Tuesday, June 18, 2013 5:43 PM
-> To: Inki Dae
-> Cc: 'Maarten Lankhorst'; 'linux-fbdev'; 'Kyungmin Park'; 'DRI mailing
-> list'; 'Rob Clark'; 'myungjoo.ham'; 'YoungJun Cho'; 'Daniel Vetter';
-> linux-arm-kernel@lists.infradead.org; linux-media@vger.kernel.org
-> Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-> framework
-> 
-> On Tue, Jun 18, 2013 at 02:27:40PM +0900, Inki Dae wrote:
-> > So I'd like to ask for other DRM maintainers. How do you think about it?
-> it
-> > seems like that Intel DRM (maintained by Daniel), OMAP DRM (maintained
-> by
-> > Rob) and GEM CMA helper also have same issue Russell pointed out. I
-> think
-> > not only the above approach but also the performance is very important.
-> 
-> CMA uses coherent memory to back their buffers, though that might not be
-> true of memory obtained from other drivers via dma_buf.  Plus, there is
-> no support in the CMA helper for exporting or importng these buffers.
-> 
-
-It's not so. Please see Dave's drm next. recently dmabuf support for the CMA
-helper has been merged to there.
-
-> I guess Intel i915 is only used on x86, which is a coherent platform and
-> requires no cache maintanence for DMA.
-> 
-> OMAP DRM does not support importing non-DRM buffers buffers back into
-
-Correct. TODO yet.
-
-> DRM.  Moreover, it will suffer from the problems I described if any
-> attempt is made to write to the buffer after it has been re-imported.
-> 
-> Lastly, I should point out that the dma_buf stuff is really only useful
-> when you need to export a dma buffer from one driver and import it into
-> another driver - for example to pass data from a camera device driver to
-
-Most people know that.
-
-> a display device driver.  It shouldn't be used within a single driver
-> as a means of passing buffers between userspace and kernel space.
-
-What I try to do is not really such ugly thing. What I try to do is to
-notify that, when CPU tries to access a buffer , to kernel side through
-dmabuf interface. So it's not really to send the buffer to kernel.
-
-Thanks,
-Inki Dae
 
