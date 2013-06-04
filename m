@@ -1,182 +1,261 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3859 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751628Ab3F1OQO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 10:16:14 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH] usbtv: fix dependency
-Date: Fri, 28 Jun 2013 16:15:29 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	"linux-media" <linux-media@vger.kernel.org>,
-	Randy Dunlap <rdunlap@infradead.org>
-References: <201306281024.15428.hverkuil@xs4all.nl> <Pine.LNX.4.64.1306281521460.29767@axis700.grange> <20130628105515.0f2a3571.mchehab@redhat.com>
-In-Reply-To: <20130628105515.0f2a3571.mchehab@redhat.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:58481 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750811Ab3FDV4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Jun 2013 17:56:13 -0400
+From: Antti Palosaari <crope@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: Antti Palosaari <crope@iki.fi>, Rodrigo Tartajo <rtarty@gmail.com>
+Subject: =?yes?q?=5BPATCH=202/7=5D=20rtl28xxu=3A=20reimplement=20rtl2832u=20remote=20controller?=
+Date: Wed,  5 Jun 2013 00:54:58 +0300
+Message-Id: <1370382903-21332-3-git-send-email-crope@iki.fi>
+In-Reply-To: <1370382903-21332-1-git-send-email-crope@iki.fi>
+References: <1370382903-21332-1-git-send-email-crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306281615.29926.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=yes
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri June 28 2013 15:55:15 Mauro Carvalho Chehab wrote:
-> Em Fri, 28 Jun 2013 15:24:20 +0200 (CEST)
-> Guennadi Liakhovetski <g.liakhovetski@gmx.de> escreveu:
-> 
-> > Hi Hans, Mauro
-> > 
-> > On Fri, 28 Jun 2013, Hans Verkuil wrote:
-> > 
-> > > On Fri June 28 2013 14:42:46 Mauro Carvalho Chehab wrote:
-> > > > Em Fri, 28 Jun 2013 13:18:44 +0200
-> > > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > > > 
-> > > > > On Fri June 28 2013 13:00:43 Mauro Carvalho Chehab wrote:
-> > > > > > Em Fri, 28 Jun 2013 10:24:15 +0200
-> > > > > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > > > > > 
-> > > > > > > This fixes a dependency problem as found by Randy Dunlap:
-> > > > > > > 
-> > > > > > > https://lkml.org/lkml/2013/6/27/501
-> > > > > > > 
-> > > > > > > Mauro, is there any reason for any V4L2 driver to depend on VIDEO_DEV instead of
-> > > > > > > just VIDEO_V4L2?
-> > > > > > > 
-> > > > > > > Some drivers depend on VIDEO_DEV, some on VIDEO_V4L2, some on both. It's all
-> > > > > > > pretty chaotic.
-> > > > > > 
-> > > > > > It should be noticed that, despite its name, this config is actually a
-> > > > > > joint dependency of VIDEO_DEV and I2C that will compile drivers as module
-> > > > > > if either I2C or VIDEO_DEV is a module:
-> > > > > > 
-> > > > > > 	config VIDEO_V4L2
-> > > > > > 		tristate
-> > > > > > 		depends on (I2C || I2C=n) && VIDEO_DEV
-> > > > > > 		default (I2C || I2C=n) && VIDEO_DEV
-> > > > > > 
-> > > > > > So, a V4L2 device that doesn't have any I2C device doesn't need to depend
-> > > > > > on VIDEO_V4L2. That includes, for example, reversed-engineered webcam
-> > > > > > drivers where the sensor code is inside the driver and a few capture-only
-> > > > > > device drivers.
-> > > > > 
-> > > > > Yes, it does have to depend on it. That's exactly why usbtv is failing: like
-> > > > > any other v4l2 driver usbtv needs the videodev.ko module. That is dependent
-> > > > > on VIDEO_V4L2. What is happening here is that the dependency of usbtv on
-> > > > > VIDEO_DEV allows it to be built as part of the kernel, but VIDEO_V4L2 is built
-> > > > > as a module due to its I2C dependency with the result that usbtv can't link to
-> > > > > the videodev functions.
-> > > > > 
-> > > > > The way things are today I do not believe any v4l2 driver should depend on
-> > > > > VIDEO_DEV, instead they should all depend on VIDEO_V4L2. That would make a
-> > > > > lot more sense.
-> > > > 
-> > > > Hmm...
-> > > > 
-> > > > $ git grep -l i2c drivers/media/v4l2-core/
-> > > > drivers/media/v4l2-core/tuner-core.c		(not part of videodev.ko module)
-> > > > drivers/media/v4l2-core/v4l2-async.c
-> > > > drivers/media/v4l2-core/v4l2-common.c
-> > > > drivers/media/v4l2-core/v4l2-ctrls.c		(actually, there's just a comment there)
-> > > > drivers/media/v4l2-core/v4l2-device.c
-> > > > 
-> > > > $ git grep  CONFIG_I2C drivers/media/v4l2-core/
-> > > > drivers/media/v4l2-core/v4l2-common.c:#if IS_ENABLED(CONFIG_I2C)
-> > > > drivers/media/v4l2-core/v4l2-common.c:#endif /* defined(CONFIG_I2C) */
-> > > > drivers/media/v4l2-core/v4l2-device.c:#if IS_ENABLED(CONFIG_I2C)
-> > > > 
-> > > > yes, there are some parts of videodev that are dependent on I2C.
-> > > > 
-> > > > That's basically why all V4L2 drivers should depend on VIDEO_V4L2.
-> > > > 
-> > > > That's said, before the addition of v4l2-async, it was safe to compile
-> > > > the core without I2C, as the parts of the code that are I2C specific are
-> > > > protected by a:
-> > > > 	#if defined(CONFIG_I2C)
-> > > > 
-> > > > With its addition, I suspect that we'll still have Kbuild issues, if I2C
-> > > > is disabled and a driver that doesn't depends on I2C is compiled.
-> > > > 
-> > > > So, 2 patches seem to be needed:
-> > > > 
-> > > > 1) a patch that replaces all driver dependencies from CONFIG_DEV to
-> > > >    CONFIG_V4L2;
-> > > > 
-> > > > 2) a patch that fixes the issues with v4l2-async.
-> > > > 
-> > > > With regards to the last one, I can see 3 ways to fix it:
-> > > > 	1) don't add v4l2-async at videodev.ko if I2C is not selected;
-> > > > 	2) protect the I2C specific parts of v4l2-async with
-> > > > 		#if defined(CONFIG_I2C)
-> > > > 	3) put v4l2-async on a separate module.
-> > > > 
-> > > > (or some combination of the above)
-> > > > 
-> > > > As only very few drivers use v4l2-async, as this is more focused to
-> > > > fix troubles with OT, I think that the better would be to do (3) and
-> > > > to add an specific Kconfig entry for it.
-> > > 
-> > > No, #2 is the right choice here. That's necessary anyway since it is a valid
-> > > use-case that I2C is disabled and you use it for platform devices only.
-> 
-> True, if are there any case where a platform kernel would be compiled without
-> I2C. I can't figure out any of such cases where such a weird config would
-> make sense.
-> 
-> > > 
-> > > Guennadi, can you look at this? The only thing that is probably needed is
-> > > that match_i2c returns false if CONFIG_I2C is undefined.
-> > > 
-> > > I prefer to keep this part of videodev, at least for now: I think there will
-> > > be a fairly quick uptake of this API internally, certainly for subdevs. Note
-> > > BTW that even x86 kernels come with CONFIG_OF enabled these days.
-> 
-> Fedora 18 (and even Fedora 19 beta) Kernels don't enable it for x86. It
-> is enabled there only for arm:
-> 	config-armv7-generic:CONFIG_OF=y
-> 	config-armv7-generic:CONFIG_OF_DEVICE=y
-> 
-> I don't doubt that this would be enabled on x86 there some day, but
-> this is not the current status, and I fail to see why one would enable
-> it on x86, except if some specific distro have some specific issues
-> at their boot loaders that would be easier to solve if OF is enabled
-> on all of their kernels.
+Thanks to Rodrigo for original implementation!
 
-Debian sid turns it on, I think it is for some intel-based embedded systems.
+Cc: Rodrigo Tartajo <rtarty@gmail.com>
+Signed-off-by: Antti Palosaari <crope@iki.fi>
+---
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 152 ++++++++++++--------------------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.h |   9 +-
+ 2 files changed, 58 insertions(+), 103 deletions(-)
 
-> From my side, I don't see much sense of overbloating the videodev core
-> with platform-specific code.
-
-About half of this source is necessary anyway for subdevs that need to
-be async-aware. Note that v4l2-async is by itself unrelated to CONFIG_OF.
-It can be used by any driver that wants to asynchronously load i2c drivers.
-
-> 
-> > 
-> > This patch
-> > 
-> > http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/commitdiff/a92d0222c693db29a5d00eaedcdebf748789c38e
-> > 
-> > has been pushed 3 days ago:
-> > 
-> > https://patchwork.linuxtv.org/patch/19090/
-> 
-> As, according with:
-> 	https://lwn.net/Articles/556034/rss
-> 
-> -rc7 is likely the last one before 3.10, that means that the media merge
-> window for 3.11 is closed already (as we close it one week before, in order
-> to give more time for reviewing the patches better at -next).
-
-To make it easier for us submaintainers (and others as well, for that matter),
-can you post a message next time when you close the media merge window?
-
-I realized that because of this I need to split up my pull request as well :-(
-
-Regards,
-
-	Hans
-
-> So, please split the fix patches from it on a separate pull request.
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+index e592662..4167011 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
+@@ -1114,17 +1114,6 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
+ 		if (ret)
+ 			goto err;
+ 	} else {
+-		/* demod_ctl_1 */
+-		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
+-		if (ret)
+-			goto err;
+-
+-		val |= 0x0c;
+-
+-		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL1, val);
+-		if (ret)
+-			goto err;
+-
+ 		/* set output values */
+ 		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
+ 		if (ret)
+@@ -1249,72 +1238,44 @@ static int rtl2831u_get_rc_config(struct dvb_usb_device *d,
+ #if IS_ENABLED(CONFIG_RC_CORE)
+ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+ {
+-#define TICSAT38KHZTONS(x) ((x) * (1000000000/38000))
+-	int ret, i;
++	int ret, i, len;
+ 	struct rtl28xxu_priv *priv = d->priv;
++	struct ir_raw_event ev;
+ 	u8 buf[128];
+-	int len;
+-	struct ir_raw_event ev; //encode single ir event (pulse or space)
+-	struct rtl28xxu_xreg_val rc_sys_init_tab[] = {
+-		{ SYS_DEMOD_CTL1,   OP_AND, 0xfb },
+-		{ SYS_DEMOD_CTL1,   OP_AND, 0xf7 },
+-		{ USB_CTRL,         OP_OR , 0x20 },
+-		{ SYS_SYS1,         OP_AND, 0xf7 },
+-		{ SYS_GPIO_OUT_EN,  OP_OR , 0x08 },
+-		{ SYS_GPIO_OUT_VAL, OP_OR , 0x08 },
+-	}; // system hard init
+-	struct rtl28xxu_reg_val rc_init_tab[] = {
+-		{ IR_RX_CTRL,             0x20 },
+-		{ IR_RX_BUF_CTRL,         0x80 },
+-		{ IR_RX_IF,               0xff },
+-		{ IR_RX_IE,               0xff },
+-		{ IR_MAX_DURATION0,       0xd0 },
+-		{ IR_MAX_DURATION1,       0x07 },
+-		{ IR_IDLE_LEN0,           0xc0 },
+-		{ IR_IDLE_LEN1,           0x00 },
+-		{ IR_GLITCH_LEN,          0x03 },
+-		{ IR_RX_CLK,              0x09 },
+-		{ IR_RX_CFG,              0x1c },
+-		{ IR_MAX_H_TOL_LEN,       0x1e },
+-		{ IR_MAX_L_TOL_LEN,       0x1e },
+-		{ IR_RX_CTRL,             0x80 },
+-	}; // hard init
+-	struct rtl28xxu_reg_val rc_reinit_tab[] = {
+-		{ IR_RX_CTRL,     0x20 },
+-		{ IR_RX_BUF_CTRL, 0x80 },
+-		{ IR_RX_IF,       0xff },
+-		{ IR_RX_IE,       0xff },
+-		{ IR_RX_CTRL,     0x80 },
+-	}; // reinit IR
+-	struct rtl28xxu_reg_val rc_clear_tab[] = {
+-		{ IR_RX_IF,       0x03 },
+-		{ IR_RX_BUF_CTRL, 0x80 },
+-		{ IR_RX_CTRL,     0x80 },
+-	}; // clear reception
++	static const struct rtl28xxu_reg_val_mask refresh_tab[] = {
++		{IR_RX_IF,               0x03, 0xff},
++		{IR_RX_BUF_CTRL,         0x80, 0xff},
++		{IR_RX_CTRL,             0x80, 0xff},
++	};
+ 
+ 	/* init remote controller */
+ 	if (!priv->rc_active) {
+-		for (i = 0; i < ARRAY_SIZE(rc_sys_init_tab); i++) {
+-			ret = rtl28xx_rd_reg(d, rc_sys_init_tab[i].reg, &buf[0]);
+-			if (ret)
+-				goto err;
+-			if (rc_sys_init_tab[i].op == OP_AND) {
+-				buf[0] &= rc_sys_init_tab[i].mask;
+-			}
+-			else {//OP_OR
+-				buf[0] |= rc_sys_init_tab[i].mask;
+-			}
+-			ret = rtl28xx_wr_reg(d, rc_sys_init_tab[i].reg,
+-					buf[0]);
+-			if (ret)
+-				goto err;
+-		}
+-		for (i = 0; i < ARRAY_SIZE(rc_init_tab); i++) {
+-			ret = rtl28xx_wr_reg(d, rc_init_tab[i].reg,
+-					rc_init_tab[i].val);
++		static const struct rtl28xxu_reg_val_mask init_tab[] = {
++			{SYS_DEMOD_CTL1,         0x00, 0x04},
++			{SYS_DEMOD_CTL1,         0x00, 0x08},
++			{USB_CTRL,               0x20, 0x20},
++			{SYS_GPIO_DIR,           0x00, 0x08},
++			{SYS_GPIO_OUT_EN,        0x08, 0x08},
++			{SYS_GPIO_OUT_VAL,       0x08, 0x08},
++			{IR_MAX_DURATION0,       0xd0, 0xff},
++			{IR_MAX_DURATION1,       0x07, 0xff},
++			{IR_IDLE_LEN0,           0xc0, 0xff},
++			{IR_IDLE_LEN1,           0x00, 0xff},
++			{IR_GLITCH_LEN,          0x03, 0xff},
++			{IR_RX_CLK,              0x09, 0xff},
++			{IR_RX_CFG,              0x1c, 0xff},
++			{IR_MAX_H_TOL_LEN,       0x1e, 0xff},
++			{IR_MAX_L_TOL_LEN,       0x1e, 0xff},
++			{IR_RX_CTRL,             0x80, 0xff},
++		};
++
++		for (i = 0; i < ARRAY_SIZE(init_tab); i++) {
++			ret = rtl28xx_wr_reg_mask(d, init_tab[i].reg,
++					init_tab[i].val, init_tab[i].mask);
+ 			if (ret)
+ 				goto err;
+ 		}
++
+ 		priv->rc_active = true;
+ 	}
+ 
+@@ -1323,57 +1284,56 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
+ 		goto err;
+ 
+ 	if (buf[0] != 0x83)
+-		goto err;
++		goto exit;
+ 
+ 	ret = rtl28xx_rd_reg(d, IR_RX_BC, &buf[0]);
+ 	if (ret)
+ 		goto err;
+ 
+ 	len = buf[0];
+-	ret = rtl2831_rd_regs(d, IR_RX_BUF, buf, len);
+ 
+-	/* pass raw IR to Kernel IR decoder */
+-	init_ir_raw_event(&ev);
+-	ir_raw_event_reset(d->rc_dev);
+-	ev.pulse=1;
+-	for(i=0; true; ++i) { // conver count to time
+-		if (i >= len || !(buf[i] & 0x80) != !(ev.pulse)) {//end or transition pulse/space: flush
+-			ir_raw_event_store(d->rc_dev, &ev);
+-			ev.duration = 0;
+-		}
+-		if (i >= len)
+-			break;
+-		ev.pulse = buf[i] >> 7;
+-		ev.duration += TICSAT38KHZTONS(((u32)(buf[i] & 0x7F)) << 1);
+-	}
+-	ir_raw_event_handle(d->rc_dev);
++	/* read raw code from hw */
++	ret = rtl2831_rd_regs(d, IR_RX_BUF, buf, len);
++	if (ret)
++		goto err;
+ 
+-	for (i = 0; i < ARRAY_SIZE(rc_clear_tab); i++) {
+-		ret = rtl28xx_wr_reg(d, rc_clear_tab[i].reg,
+-				rc_clear_tab[i].val);
++	/* let hw receive new code */
++	for (i = 0; i < ARRAY_SIZE(refresh_tab); i++) {
++		ret = rtl28xx_wr_reg_mask(d, refresh_tab[i].reg,
++				refresh_tab[i].val, refresh_tab[i].mask);
+ 		if (ret)
+ 			goto err;
+ 	}
+ 
++	/* pass data to Kernel IR decoder */
++	init_ir_raw_event(&ev);
++
++	for (i = 0; i < len; i++) {
++		ev.pulse = buf[i] >> 7;
++		ev.duration = 50800 * (buf[i] & 0x7f);
++		ir_raw_event_store_with_filter(d->rc_dev, &ev);
++	}
++
++	/* 'flush' ir_raw_event_store_with_filter() */
++	ir_raw_event_set_idle(d->rc_dev, true);
++	ir_raw_event_handle(d->rc_dev);
++exit:
+ 	return ret;
+ err:
+-	for (i = 0; i < ARRAY_SIZE(rc_reinit_tab); i++) {
+-		ret = rtl28xx_wr_reg(d, rc_reinit_tab[i].reg,
+-				rc_reinit_tab[i].val);
+-	}
+ 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
+ 	return ret;
+-#undef TICSAT38KHZTONS
+ }
+ 
+ static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
+ 		struct dvb_usb_rc *rc)
+ {
+-	rc->map_name = RC_MAP_EMPTY;
++	/* load empty to enable rc */
++	if (!rc->map_name)
++		rc->map_name = RC_MAP_EMPTY;
+ 	rc->allowed_protos = RC_BIT_ALL;
++	rc->driver_type = RC_DRIVER_IR_RAW;
+ 	rc->query = rtl2832u_rc_query;
+ 	rc->interval = 400;
+-	rc->driver_type = RC_DRIVER_IR_RAW;
+ 
+ 	return 0;
+ }
+diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+index 0177b38..729b354 100644
+--- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
++++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
+@@ -97,14 +97,9 @@ struct rtl28xxu_reg_val {
+ 	u8 val;
+ };
+ 
+-enum OP{
+-	OP_AND	=0,
+-	OP_OR
+-};
+-
+-struct rtl28xxu_xreg_val {
++struct rtl28xxu_reg_val_mask {
+ 	u16 reg;
+-	u8 op;
++	u8 val;
+ 	u8 mask;
+ };
+ 
+-- 
+1.7.11.7
 
