@@ -1,140 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:33228 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751243Ab3FDV4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jun 2013 17:56:13 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 7/7] rtl28xxu: use masked reg write where possible
-Date: Wed,  5 Jun 2013 00:55:03 +0300
-Message-Id: <1370382903-21332-8-git-send-email-crope@iki.fi>
-In-Reply-To: <1370382903-21332-1-git-send-email-crope@iki.fi>
-References: <1370382903-21332-1-git-send-email-crope@iki.fi>
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:40841 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753035Ab3FEIik (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jun 2013 04:38:40 -0400
+Received: by mail-ea0-f180.google.com with SMTP id k10so942588eaj.11
+        for <linux-media@vger.kernel.org>; Wed, 05 Jun 2013 01:38:38 -0700 (PDT)
+Date: Wed, 5 Jun 2013 10:38:33 +0200
+From: Daniel Vetter <daniel@ffwll.ch>
+To: =?utf-8?B?6rmA7Iq57Jqw?= <sw0312.kim@samsung.com>
+Cc: dri-devel <dri-devel@lists.freedesktop.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
+	Sumit Semwal <sumit.semwal@linaro.org>,
+	Dave Airlie <airlied@linux.ie>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Inki Dae <inki.dae@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC][PATCH 0/2] dma-buf: add importer private data for
+ reimporting
+Message-ID: <20130605083833.GG15743@phenom.ffwll.local>
+References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
+ <CAKMK7uHYLG3iNphE+g4BBB-LuUM67NRvbQPBvCHE2FN71-GLnA@mail.gmail.com>
+ <51A879E0.3080106@samsung.com>
+ <20130531152956.GX15743@phenom.ffwll.local>
+ <51ADC48E.80907@samsung.com>
+ <20130604125558.GB15743@phenom.ffwll.local>
+ <51AEA80B.8030008@samsung.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <51AEA80B.8030008@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use masked register write inside rtl2832u_power_ctrl().
+On Wed, Jun 05, 2013 at 11:52:59AM +0900, 김승우 wrote:
+> 
+> 
+> On 2013년 06월 04일 21:55, Daniel Vetter wrote:
+> > On Tue, Jun 04, 2013 at 07:42:22PM +0900, 김승우 wrote:
+> >>
+> >>
+> >> On 2013년 06월 01일 00:29, Daniel Vetter wrote:
+> >>> On Fri, May 31, 2013 at 07:22:24PM +0900, 김승우 wrote:
+> >>>> Hello Daniel,
+> >>>>
+> >>>> Thanks for your comment.
+> >>>>
+> >>>> On 2013년 05월 31일 18:14, Daniel Vetter wrote:
+> >>>>> On Fri, May 31, 2013 at 10:54 AM, Seung-Woo Kim <sw0312.kim@samsung.com> wrote:
+> >>>>>> importer private data in dma-buf attachment can be used by importer to
+> >>>>>> reimport same dma-buf.
+> >>>>>>
+> >>>>>> Seung-Woo Kim (2):
+> >>>>>>   dma-buf: add importer private data to attachment
+> >>>>>>   drm/prime: find gem object from the reimported dma-buf
+> >>>>>
+> >>>>> Self-import should already work (at least with the latest refcount
+> >>>>> fixes merged). At least the tests to check both re-import on the same
+> >>>>> drm fd and on a different all work as expected now.
+> >>>>
+> >>>> Currently, prime works well for all case including self-importing,
+> >>>> importing, and reimporting as you describe. Just, importing dma-buf from
+> >>>> other driver twice with different drm_fd, each import create its own gem
+> >>>> object even two import is done for same buffer because prime_priv is in
+> >>>> struct drm_file. This means mapping to the device is done also twice.
+> >>>> IMHO, these duplicated creations and maps are not necessary if drm can
+> >>>> find previous import in different prime_priv.
+> >>>
+> >>> Well, that's imo a bug with the other driver. If it doesn't export
+> >>> something really simple (e.g. contiguous memory which doesn't require any
+> >>> mmio resources at all) it should have a cache of exported dma_buf fds so
+> >>> that it hands out the same dma_buf every time.
+> >>
+> >> Hm, all existing dma-buf exporter including i915 driver implements its
+> >> map_dma_buf callback as allocating scatter-gather table with pages in
+> >> its buffer and calling dma_map_sg() with the sgt. With different
+> >> drm_fds, importing one dma-buf *twice*, then importer calls
+> >> dma_buf_attach() and dma_buf_map_attachment() twice at least in drm
+> >> importer because re-importing case can only checked with prime_priv in
+> >> drm_file as I described.
+> > 
+> > Well, but thanks to all the self-import and re-import checks, it's
+> > _impossible_ to import the same dma_buf twice without noticing (presuming
+> > both importer and exporter are drm devices).
+> 
+> No, it is possible. Prime function, drm_gem_prime_fd_to_handle(), checks
+> re-import with following code.
+> 
+> ret = drm_prime_lookup_buf_handle(&file_priv->prime,
+> 		dma_buf, handle);
+> 
+> Unfortunately, file_priv is allocated per each open of drm node so this
+> code can only find re-import within same drm open context.
+> 
+> And driver specific import functions, like drm_gem_prime_import(), only
+> check self-import like following code.
+> 
+> if (dma_buf->ops == &drm_gem_prime_dmabuf_ops) {
+> 	obj = dma_buf->priv;
+> 	if (obj->dev == dev) {
+> 		/* ... */
+> 	}
+> }
+> 
+> This means some application like following can make re-import to
+> different gem objects.
+> 
+> int drm_fd1, drm_fd2, ret;
+> int dma_buf_fd;
+> struct drm_prime_handle prime1, prime2;
+> 
+> drm_fd1 = open(DRM_NODE, O_RDWR, 0);
+> drm_fd2 = open(DRM_NODE, O_RDWR, 0);
+> 
+> /* get some dma-buf_fd from other dma-buf exporter */
+> prime1.fd = dma_buf_fd;
+> prime2.fd = dma_buf_fd;
+> 
+> ret = ioctl(drm_fd1, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime1);
+> ret = ioctl(drm_fd2, DRM_IOCTL_PRIME_FD_TO_HANDLE, &prime2);
+> 
+> This will import same dma-buf twice as different GEM object because
+> above checking codes can not check already imported gem object from the
+> dma-buf.
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 72 ++++++++-------------------------
- 1 file changed, 16 insertions(+), 56 deletions(-)
+Oh right, now I understand. Somehow I've always thought we already take
+care of this case, since I remember discussing it.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 04da6be..6f5a3d0 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1041,67 +1041,34 @@ err:
- static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
- {
- 	int ret;
--	u8 val;
- 
- 	dev_dbg(&d->udev->dev, "%s: onoff=%d\n", __func__, onoff);
- 
- 	if (onoff) {
--		/* set output values */
--		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
--		if (ret)
--			goto err;
--
--		val |= 0x08;
--		val &= 0xef;
--
--		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
--		if (ret)
--			goto err;
--
--		/* demod_ctl_1 */
--		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL1, &val);
--		if (ret)
--			goto err;
--
--		val &= 0xef;
--
--		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL1, val);
--		if (ret)
--			goto err;
--
--		/* demod control */
--		/* PLL enable */
--		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
-+		/* GPIO3=1, GPIO4=0 */
-+		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x08, 0x18);
- 		if (ret)
- 			goto err;
- 
--		/* bit 7 to 1 */
--		val |= 0x80;
--
--		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
-+		/* suspend? */
-+		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL1, 0x00, 0x10);
- 		if (ret)
- 			goto err;
- 
--		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
-+		/* enable PLL */
-+		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x80, 0x80);
- 		if (ret)
- 			goto err;
- 
--		val |= 0x20;
--
--		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
-+		/* disable reset */
-+		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x20, 0x20);
- 		if (ret)
- 			goto err;
- 
- 		mdelay(5);
- 
--		/*enable ADC_Q and ADC_I */
--		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
--		if (ret)
--			goto err;
--
--		val |= 0x48;
--
--		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
-+		/* enable ADC */
-+		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x48, 0x48);
- 		if (ret)
- 			goto err;
- 
-@@ -1114,25 +1081,18 @@ static int rtl2832u_power_ctrl(struct dvb_usb_device *d, int onoff)
- 		if (ret)
- 			goto err;
- 	} else {
--		/* set output values */
--		ret = rtl28xx_rd_reg(d, SYS_GPIO_OUT_VAL, &val);
--		if (ret)
--				goto err;
--
--		val |= 0x10;
--
--		ret = rtl28xx_wr_reg(d, SYS_GPIO_OUT_VAL, val);
-+		/* GPIO4=1 */
-+		ret = rtl28xx_wr_reg_mask(d, SYS_GPIO_OUT_VAL, 0x10, 0x10);
- 		if (ret)
- 			goto err;
- 
--		/* demod control */
--		ret = rtl28xx_rd_reg(d, SYS_DEMOD_CTL, &val);
-+		/* disable ADC */
-+		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x00, 0x48);
- 		if (ret)
- 			goto err;
- 
--		val &= 0x37;
--
--		ret = rtl28xx_wr_reg(d, SYS_DEMOD_CTL, val);
-+		/* disable PLL */
-+		ret = rtl28xx_wr_reg_mask(d, SYS_DEMOD_CTL, 0x00, 0x80);
- 		if (ret)
- 			goto err;
- 
+To fix that we need a device-global import cache similar to how we already
+have one for each file_priv. I think we can reuse the same locking and
+refcounting scheme, but I haven't checked. The commit messages of the past
+few prime changes have fairly good explanations of the tricky stuff going
+on there.
+
+Sorry for being dense for so long, I should have checked my idea of what
+the drm prime code does with reality sooner ;-)
+
+Cheers, Daniel
 -- 
-1.7.11.7
-
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
