@@ -1,52 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f177.google.com ([209.85.212.177]:62163 "EHLO
-	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932104Ab3FFKDJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 06:03:09 -0400
+Received: from youngberry.canonical.com ([91.189.89.112]:54392 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754599Ab3FENXj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jun 2013 09:23:39 -0400
+Message-ID: <51AF3BD7.5070001@canonical.com>
+Date: Wed, 05 Jun 2013 15:23:35 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-In-Reply-To: <51B011C5.3070105@ti.com>
-References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
- <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com> <51B011C5.3070105@ti.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 6 Jun 2013 15:32:46 +0530
-Message-ID: <CA+V-a8sz_Yz0oUB4s==uob4HxkW_6ShtsTx+Jut2LopmeErC1w@mail.gmail.com>
-Subject: Re: [PATCH v2 1/4] ARM: davinci: dm365 evm: remove init_enable from
- ths7303 pdata
-To: Sekhar Nori <nsekhar@ti.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
+To: Seung-Woo Kim <sw0312.kim@samsung.com>
+CC: dri-devel@lists.freedesktop.org, linux-media@vger.kernel.org,
+	linaro-mm-sig@lists.linaro.org, sumit.semwal@linaro.org,
+	airlied@linux.ie, daniel.vetter@ffwll.ch,
+	kyungmin.park@samsung.com, linux-kernel@vger.kernel.org
+Subject: Re: [RFC][PATCH 1/2] dma-buf: add importer private data to attachment
+References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com> <1369990487-23510-2-git-send-email-sw0312.kim@samsung.com>
+In-Reply-To: <1369990487-23510-2-git-send-email-sw0312.kim@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sekhar,
-
-On Thu, Jun 6, 2013 at 10:06 AM, Sekhar Nori <nsekhar@ti.com> wrote:
-> On 5/25/2013 11:09 PM, Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> remove init_enable from ths7303 pdata as it is being dropped
->> from ths7303_platform_data.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Cc: Sekhar Nori <nsekhar@ti.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
->> Cc: linux-kernel@vger.kernel.org
->> Cc: davinci-linux-open-source@linux.davincidsp.com
+Op 31-05-13 10:54, Seung-Woo Kim schreef:
+> dma-buf attachment has only exporter private data, but importer private data
+> can be useful for importer especially to re-import the same dma-buf.
+> To use importer private data in attachment of the device, the function to
+> search attachment in the attachment list of dma-buf is also added.
 >
-> Acked-by: Sekhar Nori <nsekhar@ti.com>
+> Signed-off-by: Seung-Woo Kim <sw0312.kim@samsung.com>
+> ---
+>  drivers/base/dma-buf.c  |   31 +++++++++++++++++++++++++++++++
+>  include/linux/dma-buf.h |    4 ++++
+>  2 files changed, 35 insertions(+), 0 deletions(-)
 >
-Thanks for the ack.
+> diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+> index 08fe897..a1eaaf2 100644
+> --- a/drivers/base/dma-buf.c
+> +++ b/drivers/base/dma-buf.c
+> @@ -259,6 +259,37 @@ err_attach:
+>  EXPORT_SYMBOL_GPL(dma_buf_attach);
+>  
+>  /**
+> + * dma_buf_get_attachment - Get attachment with the device from dma_buf's
+> + * attachments list
+> + * @dmabuf:	[in]	buffer to find device from.
+> + * @dev:	[in]	device to be found.
+> + *
+> + * Returns struct dma_buf_attachment * attaching the device; may return
+> + * negative error codes.
+> + *
+> + */
+> +struct dma_buf_attachment *dma_buf_get_attachment(struct dma_buf *dmabuf,
+> +						  struct device *dev)
+> +{
+> +	struct dma_buf_attachment *attach;
+> +
+> +	if (WARN_ON(!dmabuf || !dev))
+> +		return ERR_PTR(-EINVAL);
+> +
+> +	mutex_lock(&dmabuf->lock);
+> +	list_for_each_entry(attach, &dmabuf->attachments, node) {
+> +		if (attach->dev == dev) {
+> +			mutex_unlock(&dmabuf->lock);
+> +			return attach;
+> +		}
+> +	}
+> +	mutex_unlock(&dmabuf->lock);
+> +
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +EXPORT_SYMBOL_GPL(dma_buf_get_attachment);
+NAK in any form..
 
-> I would prefer this be squashed into 2/4 but I leave it to you.
->
-I would like to go as is :)
+Spot the race condition between dma_buf_get_attachment and dma_buf_attach....
 
-Regards,
---Prabhakar Lad
+~Maarten
+
