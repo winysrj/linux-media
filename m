@@ -1,38 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33092 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753628Ab3FKLnS (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 07:43:18 -0400
-Date: Tue, 11 Jun 2013 14:42:43 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 6/9] omap24xxcam: use v4l2_dev instead of the
- deprecated parent field.
-Message-ID: <20130611114243.GK3103@valkosipuli.retiisi.org.uk>
-References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
- <1370868518-19831-7-git-send-email-hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.187]:61738 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752198Ab3FEKCp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jun 2013 06:02:45 -0400
+Date: Wed, 5 Jun 2013 12:02:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+cc: linux-media@vger.kernel.org,
+	Kuninori Morimoto <morimoto.kuninori@renesas.com>
+Subject: Re: [PATCH 1/2] [media] soc_camera: mt9t112: Remove empty function
+In-Reply-To: <CAK9yfHyUqpF4d_cuwPo-fA5UuCQzfG4-ktyOA716CfN3QgtHLg@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1306051201340.19739@axis700.grange>
+References: <1369394707-13049-1-git-send-email-sachin.kamat@linaro.org>
+ <CAK9yfHyUqpF4d_cuwPo-fA5UuCQzfG4-ktyOA716CfN3QgtHLg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1370868518-19831-7-git-send-email-hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 10, 2013 at 02:48:35PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sachin
 
-Thanks!
+On Tue, 4 Jun 2013, Sachin Kamat wrote:
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> On 24 May 2013 16:55, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> > After the switch to devm_* functions, the 'remove' function does
+> > not do anything. Delete it.
+> >
+> > Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+> > Cc: Kuninori Morimoto <morimoto.kuninori@renesas.com>
+> > ---
+> >  drivers/media/i2c/soc_camera/mt9t112.c |    6 ------
+> >  1 file changed, 6 deletions(-)
 
--- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+[snip]
+
+> Gentle ping on this series  :)
+
+Both these patches are in my queue for 3.11.
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
