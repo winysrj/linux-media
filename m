@@ -1,137 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51754 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754112Ab3FFTl3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jun 2013 15:41:29 -0400
-Date: Thu, 6 Jun 2013 22:41:24 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC PATCH v2 1/2] media: Add function removing all media entity
- links
-Message-ID: <20130606194124.GB3103@valkosipuli.retiisi.org.uk>
-References: <1368102573-16183-2-git-send-email-s.nawrocki@samsung.com>
- <1368180037-24091-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:34417 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750929Ab3FEBfH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 4 Jun 2013 21:35:07 -0400
+Message-ID: <51AE95A1.1090100@iki.fi>
+Date: Wed, 05 Jun 2013 04:34:25 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1368180037-24091-1-git-send-email-s.nawrocki@samsung.com>
+To: Hans Petter Selasky <hps@bitfrost.no>
+CC: unlisted-recipients:; linux-media@vger.kernel.org,
+	Juergen Lock <nox@jelal.kn-bremen.de>
+Subject: Re: TT-USB2.0 and high bitrate packet loss (DVB-C/T)
+References: <51A70713.6030802@bitfrost.no> <51AB385A.4040701@bitfrost.no> <51ABB2D1.6080908@iki.fi>
+In-Reply-To: <51ABB2D1.6080908@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On 06/03/2013 12:02 AM, Antti Palosaari wrote:
+> On 06/02/2013 03:19 PM, Hans Petter Selasky wrote:
 
-Thanks for the patch.
+>> I think I will have to get another USB based receiver with CI slot. Any
+>> recommendations for DVB-T ?
+>
+> There is no many alternatives available. I suspect Anysee E7 serie is
+> the only one. And I am not even sure if its CI works anymore. Lastly
+> when I tested it I didn't get scrambled channels working - but it could
+> be due to card entitlements were not upgraded. Anyhow, if there is bug
+> then it should be easy to fix.
 
-On Fri, May 10, 2013 at 12:00:37PM +0200, Sylwester Nawrocki wrote:
-> This function allows to remove all media entity's links to other
-> entities, leaving no references to a media entity's links array
-> at its remote entities.
-> 
-> Currently when a driver of some entity is removed it will free its
-> media entities links[] array, leaving dangling pointers at other
-> entities that are part of same media graph. This is troublesome when
-> drivers of a media device entities are in separate kernel modules,
-> removing only some modules will leave others in incorrect state.
-> 
-> This function is intended to be used when an entity is being
-> unregistered from a media device.
-> 
-> With an assumption that media links should be created only after
-> they are registered to a media device and with the graph mutex held.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-> [locking error in the initial patch version]
-> Reported-by: Dan Carpenter <dan.carpenter@oracle.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
-> Changes since the initial version:
->  - fixed erroneous double mutex lock in media_entity_links_remove() 
->    function.
-> 
->  drivers/media/media-entity.c |   51 ++++++++++++++++++++++++++++++++++++++++++
->  include/media/media-entity.h |    3 +++
->  2 files changed, 54 insertions(+)
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index e1cd132..bd85dc3 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -429,6 +429,57 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
->  }
->  EXPORT_SYMBOL_GPL(media_entity_create_link);
->  
-> +void __media_entity_remove_links(struct media_entity *entity)
-> +{
-> +	int i, r;
+I just tested, actually first bisecting back to Kernel 3.3 and VLC2 and 
+it didn't work... That makes me suspect it was VLC which has gone 
+broken. So I tried gnutv & mplayer and surprise CI was working! Both 
+Anysee E7 TC and Anysee E7 T2C. Tested only DVB-C as I don't have DVB-T 
+subscription card. CI/CAM worked earlier for VLC somehow too.
 
-u16? r can be defined inside the loop.
+Start tuning on terminal:
+gnutv -channels /path/to/channels.conf "scrambled channel"
+Start mplayer on the another terminal:
+mplayer /dev/dvb/adapter0/dvr0
 
-> +	for (i = 0; i < entity->num_links; i++) {
-> +		struct media_link *link = &entity->links[i];
-> +		struct media_entity *remote;
-> +		int num_links;
+It is a little bit boring situation as there is no very good Gnome 
+Desktop TV application. Have never been...
 
-num_links is u16 in struct media_entity. I'd use the same type.
-
-> +		if (link->source->entity == entity)
-> +			remote = link->sink->entity;
-> +		else
-> +			remote = link->source->entity;
-> +
-> +		num_links = remote->num_links;
-> +
-> +		for (r = 0; r < num_links; r++) {
-
-Is caching remote->num_links needed, or do I miss something?
-
-> +			struct media_link *rlink = &remote->links[r];
-> +
-> +			if (rlink != link->reverse)
-> +				continue;
-> +
-> +			if (link->source->entity == entity)
-> +				remote->num_backlinks--;
-> +
-> +			remote->num_links--;
-> +
-> +			if (remote->num_links < 1)
-
-How about: if (!remote->num_links) ?
-
-> +				break;
-> +
-> +			/* Insert last entry in place of the dropped link. */
-> +			remote->links[r--] = remote->links[remote->num_links];
-> +		}
-> +	}
-> +
-> +	entity->num_links = 0;
-> +	entity->num_backlinks = 0;
-> +}
-> +EXPORT_SYMBOL_GPL(__media_entity_remove_links);
-> +
-> +void media_entity_remove_links(struct media_entity *entity)
-> +{
-> +	if (WARN_ON_ONCE(entity->parent == NULL))
-> +		return;
-> +
-> +	mutex_lock(&entity->parent->graph_mutex);
-> +	__media_entity_remove_links(entity);
-> +	mutex_unlock(&entity->parent->graph_mutex);
-> +}
-> +EXPORT_SYMBOL_GPL(media_entity_remove_links);
-> +
->  static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
->  {
->  	int ret;
+regards
+Antti
 
 -- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+http://palosaari.fi/
