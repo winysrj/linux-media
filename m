@@ -1,102 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:44592 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752233Ab3FYKdr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 06:33:47 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MOY008OL2O1QT30@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Jun 2013 19:33:46 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v3 3/8] [media] s5p-mfc: Add register definition file for MFC v7
-Date: Tue, 25 Jun 2013 16:27:10 +0530
-Message-id: <1372157835-27663-4-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
-References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.17.8]:60696 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752875Ab3FEJ7B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 5 Jun 2013 05:59:01 -0400
+Date: Wed, 5 Jun 2013 11:58:59 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Wenbing Wang <wangwb@marvell.com>
+cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] soc_camera: error dev remove and v4l2 call
+In-Reply-To: <1370425034-3648-1-git-send-email-wangwb@marvell.com>
+Message-ID: <Pine.LNX.4.64.1306051152540.19739@axis700.grange>
+References: <1370425034-3648-1-git-send-email-wangwb@marvell.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch adds the register definition file for new firmware
-version v7 for MFC. New firmware supports VP8 encoding along with
-many other features.
+Hi
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+On Wed, 5 Jun 2013, Wenbing Wang wrote:
+
+> From: Wenbing Wang <wangwb@marvell.com>
+> 
+> in soc_camera_close(), if ici->ops->remove() removes device firstly,
+> and then call __soc_camera_power_off(), it has logic error. Since
+> if remove device, it should disable subdev clk. but in __soc_camera_
+> power_off(), it will callback v4l2 s_power function which will
+> read/write subdev registers to control power by i2c. and then
+> i2c read/write will fail because of clk disable.
+> So suggest to re-sequence two functions call.
+
+Thanks for the patch. I agree, that the clock should be switched off after 
+powering off the client. And this is also how it's done in the latest 
+version of my v4l2-clk / v4l2-async patches: there in 
+soc_camera_power_off() first power-off is performed and only then 
+v4l2_clk_disable() is called to detach the client from the host and stop 
+the master clock. So, if you need this fix for 3.10, we could push it 
+upstream. Otherwise hopefully we'll manage to get v4l2-clk and -async in 
+3.11 and thus have this fixed there. Then this patch won't be needed.
+
+Thanks
+Guennadi
+
+> Change-Id: Iee7a6d4fc7c7c1addb5d342621eb8dcd00fa2745
+> Signed-off-by: Wenbing Wang <wangwb@marvell.com>
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c |    4 ++--
+>  1 files changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index eea832c..3a4efbd 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -643,9 +643,9 @@ static int soc_camera_close(struct file *file)
+>  
+>  		if (ici->ops->init_videobuf2)
+>  			vb2_queue_release(&icd->vb2_vidq);
+> -		ici->ops->remove(icd);
+> -
+>  		__soc_camera_power_off(icd);
+> +
+> +		ici->ops->remove(icd);
+>  	}
+>  
+>  	if (icd->streamer == file)
+> -- 
+> 1.7.5.4
+> 
+
 ---
- drivers/media/platform/s5p-mfc/regs-mfc-v7.h |   58 ++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-new file mode 100644
-index 0000000..24dba69
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-@@ -0,0 +1,58 @@
-+/*
-+ * Register definition file for Samsung MFC V7.x Interface (FIMV) driver
-+ *
-+ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
-+ *		http://www.samsung.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _REGS_MFC_V7_H
-+#define _REGS_MFC_V7_H
-+
-+#include "regs-mfc-v6.h"
-+
-+/* Additional features of v7 */
-+#define S5P_FIMV_CODEC_VP8_ENC_V7	25
-+
-+/* Additional registers for v7 */
-+#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
-+
-+#define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
-+#define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
-+#define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
-+#define S5P_FIMV_E_SOURCE_FIRST_STRIDE_V7		0xf9ec
-+#define S5P_FIMV_E_SOURCE_SECOND_STRIDE_V7		0xf9f0
-+#define S5P_FIMV_E_SOURCE_THIRD_STRIDE_V7		0xf9f4
-+
-+#define S5P_FIMV_E_ENCODED_SOURCE_FIRST_ADDR_V7		0xfa70
-+#define S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7	0xfa74
-+
-+#define S5P_FIMV_E_VP8_OPTIONS_V7			0xfdb0
-+#define S5P_FIMV_E_VP8_FILTER_OPTIONS_V7		0xfdb4
-+#define S5P_FIMV_E_VP8_GOLDEN_FRAME_OPTION_V7		0xfdb8
-+#define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
-+
-+/* MFCv7 variant defines */
-+#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
-+#define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
-+#define MFC_VERSION_V7			0x72
-+#define MFC_NUM_PORTS_V7		1
-+
-+/* MFCv7 Context buffer sizes */
-+#define MFC_CTX_BUF_SIZE_V7		(30 * SZ_1K)	/*  30KB */
-+#define MFC_H264_DEC_CTX_BUF_SIZE_V7	(2 * SZ_1M)	/*  2MB */
-+#define MFC_OTHER_DEC_CTX_BUF_SIZE_V7	(20 * SZ_1K)	/*  20KB */
-+#define MFC_H264_ENC_CTX_BUF_SIZE_V7	(100 * SZ_1K)	/* 100KB */
-+#define MFC_OTHER_ENC_CTX_BUF_SIZE_V7	(10 * SZ_1K)	/*  10KB */
-+
-+/* Buffer size defines */
-+#define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(w, h) \
-+			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
-+
-+#define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
-+			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
-+
-+#endif /*_REGS_MFC_V7_H*/
--- 
-1.7.9.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
