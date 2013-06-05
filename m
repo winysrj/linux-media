@@ -1,73 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34189 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751958Ab3FGKfm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:35:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: sakari.ailus@iki.fi, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH] omap3isp: ccp2: Don't ignore the regulator_enable() return value
-Date: Fri,  7 Jun 2013 12:35:41 +0200
-Message-Id: <1370601341-5597-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49409 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753756Ab3FEX5l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Jun 2013 19:57:41 -0400
+Date: Thu, 6 Jun 2013 02:57:07 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Roberto =?iso-8859-1?Q?Alc=E2ntara?= <roberto@eletronica.org>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] smscoreapi: memory leak fix
+Message-ID: <20130605235707.GB2675@valkosipuli.retiisi.org.uk>
+References: <CAEt6MX=6BHTufFgNpo1cRRxGGkzaLYDZQtkuX4WWxHT7arkZ0w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=iso-8859-1
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <CAEt6MX=6BHTufFgNpo1cRRxGGkzaLYDZQtkuX4WWxHT7arkZ0w@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Check the return value and catch errors correctly.
+Hi Roberto,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/omap3isp/ispccp2.c | 18 ++++++++++++++----
- 1 file changed, 14 insertions(+), 4 deletions(-)
+Thanks for the patch.
 
-diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
-index c5d84c9..fc074dd 100644
---- a/drivers/media/platform/omap3isp/ispccp2.c
-+++ b/drivers/media/platform/omap3isp/ispccp2.c
-@@ -158,13 +158,17 @@ static void ccp2_pwr_cfg(struct isp_ccp2_device *ccp2)
-  * @ccp2: pointer to ISP CCP2 device
-  * @enable: enable/disable flag
-  */
--static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
-+static int ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
- {
- 	struct isp_device *isp = to_isp_device(ccp2);
-+	int ret;
- 	int i;
- 
--	if (enable && ccp2->vdds_csib)
--		regulator_enable(ccp2->vdds_csib);
-+	if (enable && ccp2->vdds_csib) {
-+		ret = regulator_enable(ccp2->vdds_csib);
-+		if (ret < 0)
-+			return ret;
-+	}
- 
- 	/* Enable/Disable all the LCx channels */
- 	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
-@@ -179,6 +183,8 @@ static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
- 
- 	if (!enable && ccp2->vdds_csib)
- 		regulator_disable(ccp2->vdds_csib);
-+
-+	return 0;
- }
- 
- /*
-@@ -851,7 +857,11 @@ static int ccp2_s_stream(struct v4l2_subdev *sd, int enable)
- 		ccp2_print_status(ccp2);
- 
- 		/* Enable CSI1/CCP2 interface */
--		ccp2_if_enable(ccp2, 1);
-+		ret = ccp2_if_enable(ccp2, 1);
-+		if (ret < 0) {
-+			omap3isp_csiphy_release(ccp2->phy);
-+			return ret;
-+		}
- 		break;
- 
- 	case ISP_PIPELINE_STREAM_SINGLESHOT:
+On Tue, May 21, 2013 at 05:32:30PM -0300, Roberto Alcântara wrote:
+> Ensure release_firmware is called if kmalloc fails.
+> 
+> Signed-off-by:Roberto Alcantara <roberto@eletronica.org>
+> diff --git a/linux/drivers/media/common/siano/smscoreapi.c
+> b/linux/drivers/media/common/siano/smscoreapi.c
+> index dbe9b4d..f65b4e3 100644
+> --- a/linux/drivers/media/common/siano/smscoreapi.c
+> +++ b/linux/drivers/media/common/siano/smscoreapi.c
+> @@ -1173,16 +1173,16 @@ static int
+> smscore_load_firmware_from_file(struct smscore_device_t *coredev,
+>               GFP_KERNEL | GFP_DMA);
+>      if (!fw_buf) {
+>          sms_err("failed to allocate firmware buffer");
+> -        return -ENOMEM;
+
+How about instead adding a label before release_firmware() for error
+handling? I think that'd be cleaner than this.
+
+Could you also use git send-email to send the patch, please?
+
 -- 
-Regards,
+Kind regards,
 
-Laurent Pinchart
-
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
