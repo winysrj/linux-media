@@ -1,63 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f45.google.com ([209.85.214.45]:62131 "EHLO
-	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754497Ab3FRV5a (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 17:57:30 -0400
-Received: by mail-bk0-f45.google.com with SMTP id je9so2036997bkc.32
-        for <linux-media@vger.kernel.org>; Tue, 18 Jun 2013 14:57:28 -0700 (PDT)
-Message-ID: <51C0D7C5.6030707@gmail.com>
-Date: Tue, 18 Jun 2013 23:57:25 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:42415 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932529Ab3FFKHg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 06:07:36 -0400
+Message-ID: <51B05F57.1070107@ti.com>
+Date: Thu, 6 Jun 2013 15:37:19 +0530
+From: Sekhar Nori <nsekhar@ti.com>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] Documentation: Update driver's directory in video4linux/fimc.txt
-References: <1371486876-30421-1-git-send-email-s.nawrocki@samsung.com> <CAK9yfHxpUPaKzrjCAX44rAB6pqOW2A2KD23A5SbwAWK+vJCbww@mail.gmail.com>
-In-Reply-To: <CAK9yfHxpUPaKzrjCAX44rAB6pqOW2A2KD23A5SbwAWK+vJCbww@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v2 1/4] ARM: davinci: dm365 evm: remove init_enable from
+ ths7303 pdata
+References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com> <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com> <51B011C5.3070105@ti.com> <CA+V-a8sz_Yz0oUB4s==uob4HxkW_6ShtsTx+Jut2LopmeErC1w@mail.gmail.com>
+In-Reply-To: <CA+V-a8sz_Yz0oUB4s==uob4HxkW_6ShtsTx+Jut2LopmeErC1w@mail.gmail.com>
+Content-Type: text/plain; charset="UTF-8"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+On 6/6/2013 3:32 PM, Prabhakar Lad wrote:
+> Hi Sekhar,
+> 
+> On Thu, Jun 6, 2013 at 10:06 AM, Sekhar Nori <nsekhar@ti.com> wrote:
+>> On 5/25/2013 11:09 PM, Prabhakar Lad wrote:
+>>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>>
+>>> remove init_enable from ths7303 pdata as it is being dropped
+>>> from ths7303_platform_data.
+>>>
+>>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>> Cc: Sekhar Nori <nsekhar@ti.com>
+>>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>>> Cc: linux-kernel@vger.kernel.org
+>>> Cc: davinci-linux-open-source@linux.davincidsp.com
+>>
+>> Acked-by: Sekhar Nori <nsekhar@ti.com>
+>>
+> Thanks for the ack.
+> 
+>> I would prefer this be squashed into 2/4 but I leave it to you.
+>>
+> I would like to go as is :)
 
-On 06/18/2013 05:45 AM, Sachin Kamat wrote:
-> Hi Sylwester,
->
->> -The machine code (plat-s5p and arch/arm/mach-*) must select following options
->> +The machine code (arch/arm/plat-samsung and arch/arm/mach-*) must select
->> +following options:
->
-> After the recent platform code cleanup the below entries are not found
-> in arch/arm/mach-* (checked in linux-next).
->
->>   CONFIG_S5P_DEV_FIMC0       mandatory
->>   CONFIG_S5P_DEV_FIMC1  \
+If you go this path, then may be repeat some of the explanation of why
+init_enable is not needed from 2/4 here as well. Without that the
+description above makes little sense.
 
-AFAICS some are still there:
-
-$ git grep S5P_DEV_FIMC0
-Documentation/video4linux/fimc.txt:CONFIG_S5P_DEV_FIMC0       mandatory
-arch/arm/mach-s5pc100/Kconfig:  select S5P_DEV_FIMC0
-arch/arm/mach-s5pv210/Kconfig:  select S5P_DEV_FIMC0
-arch/arm/mach-s5pv210/Kconfig:  select S5P_DEV_FIMC0
-arch/arm/mach-s5pv210/Kconfig:  select S5P_DEV_FIMC0
-arch/arm/mach-s5pv210/Kconfig:  select S5P_DEV_FIMC0
-arch/arm/plat-samsung/Kconfig:config S5P_DEV_FIMC0
-arch/arm/plat-samsung/devs.c:#ifdef CONFIG_S5P_DEV_FIMC0
-arch/arm/plat-samsung/devs.c:#endif /* CONFIG_S5P_DEV_FIMC0 */
-arch/arm/plat-samsung/include/plat/fimc-core.h:#ifdef CONFIG_S5P_DEV_FIMC0
-
-Those symbols have been removed only for Exynos. The above can be dropped
-once we convert S5PV210 and S5PC100 (or drop support for this platform)
-to Device Tree.
-
-Anyway, I'm planning to update this FIMC documentation in a separate patch
-to account for all the recent changes, especially addition of the FIMC-IS
-support. But that will likely be only for 3.12.
-
-Regards,
-Sylwester
+Thanks,
+Sekhar
