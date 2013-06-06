@@ -1,40 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:64385 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751439Ab3FPUwy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jun 2013 16:52:54 -0400
-Message-ID: <51BE25A0.6050202@samsung.com>
-Date: Mon, 17 Jun 2013 05:52:48 +0900
-From: Kukjin Kim <kgene.kim@samsung.com>
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:61686 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753941Ab3FFGST (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 02:18:19 -0400
+Received: by mail-oa0-f48.google.com with SMTP id i4so1866436oah.21
+        for <linux-media@vger.kernel.org>; Wed, 05 Jun 2013 23:18:18 -0700 (PDT)
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: kishon@ti.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	dh09.lee@samsung.com, jg1.han@samsung.com,
-	linux-fbdev@vger.kernel.org
-Subject: Re: [RFC PATCH 5/5] ARM: Samsung: Remove MIPI PHY setup code
-References: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com> <1371231951-1969-6-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1371231951-1969-6-git-send-email-s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1370005408-10853-7-git-send-email-arun.kk@samsung.com>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-7-git-send-email-arun.kk@samsung.com>
+Date: Thu, 6 Jun 2013 11:48:18 +0530
+Message-ID: <CAK9yfHzi4Jdi9xO0eNuWe8U2303Qr+5erhN26P5ahfP0JvqTcw@mail.gmail.com>
+Subject: Re: [RFC v2 06/10] exynos5-fimc-is: Adds isp subdev
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Arun Kumar K <arun.kk@samsung.com>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com,
+	arunkk.samsung@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/15/13 02:45, Sylwester Nawrocki wrote:
-> Generic PHY drivers are used to handle the MIPI CSIS and MIPI DSIM
-> DPHYs so we can remove now unused code at arch/arm/plat-samsung.
+On 31 May 2013 18:33, Arun Kumar K <arun.kk@samsung.com> wrote:
+> fimc-is driver takes video data input from the ISP video node
+> which is added in this patch. This node accepts Bayer input
+> buffers which is given from the IS sensors.
+>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+> ---
+[snip]
 
-If so, sounds good :)
 
-> In case there is any board file for S5PV210 platforms using MIPI
-> CSIS/DSIM (not any upstream currently) it should use the generic
-> PHY API to bind the PHYs to respective PHY consumer drivers.
+> +static int isp_video_output_open(struct file *file)
+> +{
+> +       struct fimc_is_isp *isp = video_drvdata(file);
+> +       int ret = 0;
+> +
+> +       /* Check if opened before */
+> +       if (isp->refcount >= FIMC_IS_MAX_INSTANCES) {
+> +               pr_err("All instances are in use.\n");
+> +               return -EBUSY;
+> +       }
+> +
+> +       INIT_LIST_HEAD(&isp->wait_queue);
+> +       isp->wait_queue_cnt = 0;
+> +       INIT_LIST_HEAD(&isp->run_queue);
+> +       isp->run_queue_cnt = 0;
+> +
+> +       isp->refcount++;
+> +       return ret;
 
-To be honest, I didn't test this on boards but if the working is fine, 
-please go ahead without RFC.
+You can directly return 0 here instead of creating a local variable
+'ret' which is not used anywhere else.
 
-Thanks,
-- Kukjin
+> +}
+> +
+> +static int isp_video_output_close(struct file *file)
+> +{
+> +       struct fimc_is_isp *isp = video_drvdata(file);
+> +       int ret = 0;
+> +
+> +       isp->refcount--;
+> +       isp->output_state = 0;
+> +       vb2_fop_release(file);
+> +       return ret;
+
+ditto
+
+> +}
+> +
+> +static const struct v4l2_file_operations isp_video_output_fops = {
+> +       .owner          = THIS_MODULE,
+> +       .open           = isp_video_output_open,
+> +       .release        = isp_video_output_close,
+> +       .poll           = vb2_fop_poll,
+> +       .unlocked_ioctl = video_ioctl2,
+> +       .mmap           = vb2_fop_mmap,
+> +};
+> +
+
+nit: Please consider changing "Adds" to "Add" in the patch titles of
+this series during the next spin.
+
+-- 
+With warm regards,
+Sachin
