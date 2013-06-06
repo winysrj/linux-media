@@ -1,51 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f44.google.com ([209.85.213.44]:45732 "EHLO
-	mail-yh0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755057Ab3FBShL convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 14:37:11 -0400
-Received: by mail-yh0-f44.google.com with SMTP id 29so992649yhl.31
-        for <linux-media@vger.kernel.org>; Sun, 02 Jun 2013 11:37:11 -0700 (PDT)
-Date: Sun, 2 Jun 2013 14:29:25 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: mchehab@redhat.com, linux-media@vger.kernel.org
-Subject: [GIT PULL] git://linuxtv.org/mkrufky/dvb stb0899
-Message-ID: <20130602142925.55d67d24@vujade>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:45609 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753972Ab3FFGpk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 02:45:40 -0400
+Received: by mail-ob0-f171.google.com with SMTP id dn14so4105189obc.16
+        for <linux-media@vger.kernel.org>; Wed, 05 Jun 2013 23:45:39 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1370005408-10853-8-git-send-email-arun.kk@samsung.com>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-8-git-send-email-arun.kk@samsung.com>
+Date: Thu, 6 Jun 2013 12:15:39 +0530
+Message-ID: <CAK9yfHyu3rh-pRB5G2E2-WLxbEiZ=DZN5HCgYgCA7XTTG1AwSQ@mail.gmail.com>
+Subject: Re: [RFC v2 07/10] exynos5-fimc-is: Adds scaler subdev
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Arun Kumar K <arun.kk@samsung.com>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com,
+	arunkk.samsung@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit
-7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
+On 31 May 2013 18:33, Arun Kumar K <arun.kk@samsung.com> wrote:
+> FIMC-IS has two hardware scalers named as scaler-codec and
+> scaler-preview. This patch adds the common code handling the
+> video nodes and subdevs of both the scalers.
+>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+> ---
 
-  [media] media: pci: remove duplicate checks for EPERM (2013-05-27
-  09:34:56 -0300)
+[snip]
 
-are available in the git repository at:
+> +static int scaler_video_capture_open(struct file *file)
+> +{
+> +       struct fimc_is_scaler *ctx = video_drvdata(file);
+> +       int ret = 0;
+> +
+> +       /* Check if opened before */
+> +       if (ctx->refcount >= FIMC_IS_MAX_INSTANCES) {
+> +               pr_err("All instances are in use.\n");
+> +               return -EBUSY;
+> +       }
+> +
+> +       INIT_LIST_HEAD(&ctx->wait_queue);
+> +       ctx->wait_queue_cnt = 0;
+> +       INIT_LIST_HEAD(&ctx->run_queue);
+> +       ctx->run_queue_cnt = 0;
+> +
+> +       ctx->fmt = NULL;
+> +       ctx->refcount++;
+> +
+> +       return ret;
 
-  git://linuxtv.org/mkrufky/dvb stb0899
+Directly return 0.
 
-for you to fetch changes up to fda0cbcc4878079829b5e13101c1c5144c4db3d9:
+> +}
+> +
+> +static int scaler_video_capture_close(struct file *file)
+> +{
+> +       struct fimc_is_scaler *ctx = video_drvdata(file);
+> +       int ret = 0;
+> +
+> +       ctx->refcount--;
+> +       ctx->capture_state = 0;
+> +       vb2_fop_release(file);
+> +
+> +       return ret;
 
-  stb0899: sign of CRL_FREQ doesn't depend on inversion (2013-06-02
-  14:03:13 -0400)
+ditto
 
-----------------------------------------------------------------
-Reinhard Nißl (7):
-      stb0899: sign extend raw CRL_FREQ value
-      stb0899: enable auto inversion handling unconditionally
-      stb0899: fix inversion enum values to match usage with CFR
-      stb0899: store successful inversion for next run
-      stb0899: store autodetected inversion while tuning in non S2 mode
-      stb0899: use autodetected inversion instead of configured
-      stb0899: sign of CRL_FREQ doesn't depend on inversion
-
-Zoran Turalija (2):
-      stb0899: allow minimum symbol rate of 1000000
-      stb0899: allow minimum symbol rate of 2000000
-
- drivers/media/dvb-frontends/stb0899_algo.c | 105 +++++++++++++++-------------
- drivers/media/dvb-frontends/stb0899_drv.c  |   7 +-
- drivers/media/dvb-frontends/stb0899_drv.h  |   5 +-
- 3 files changed, 63 insertions(+), 54 deletions(-)
+-- 
+With warm regards,
+Sachin
