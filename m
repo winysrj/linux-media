@@ -1,71 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f181.google.com ([209.85.220.181]:61957 "EHLO
-	mail-vc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752168Ab3FKJOv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 05:14:51 -0400
-Received: by mail-vc0-f181.google.com with SMTP id lf11so4417704vcb.12
-        for <linux-media@vger.kernel.org>; Tue, 11 Jun 2013 02:14:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <51B5D876.2000704@samsung.com>
-References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
-	<1370870586-24141-6-git-send-email-arun.kk@samsung.com>
-	<51B5D876.2000704@samsung.com>
-Date: Tue, 11 Jun 2013 14:44:50 +0530
-Message-ID: <CALt3h7_Riq2i7nRsxb9aBWyOVkmW6TFr7aMiomrHNv+kJN7TOw@mail.gmail.com>
-Subject: Re: [PATCH 5/6] [media] V4L: Add VP8 encoder controls
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
-	avnd.kiran@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mail-ea0-f180.google.com ([209.85.215.180]:47916 "EHLO
+	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751340Ab3FFPqP (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 11:46:15 -0400
+Received: by mail-ea0-f180.google.com with SMTP id k10so2868954eaj.11
+        for <linux-media@vger.kernel.org>; Thu, 06 Jun 2013 08:46:14 -0700 (PDT)
+From: Gianluca Gennari <gennarone@gmail.com>
+To: linux-media@vger.kernel.org, mchehab@redhat.com, crope@iki.fi
+Cc: mkrufky@linuxtv.org, Gianluca Gennari <gennarone@gmail.com>
+Subject: [PATCH] r820t: fix imr calibration
+Date: Thu,  6 Jun 2013 17:45:42 +0200
+Message-Id: <1370533542-4432-1-git-send-email-gennarone@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+The r820t_imr() calibration function of the Rafael Micro R820T tuner
+generates this error at every tune attempt:
 
-Thank you for the review.
+r820t 0-001a: No valid PLL values for 2252021 kHz!
 
->> +     static const char * const vpx_num_partitions[] = {
->> +             "1 partition",
->> +             "2 partitions",
->> +             "4 partitions",
->> +             "8 partitions",
->> +             NULL,
->> +     };
->> +     static const char * const vpx_num_ref_frames[] = {
->> +             "1 reference frame",
->> +             "2 reference frame",
->> +             NULL,
->> +     };
->
-> Have you considered using V4L2_CTRL_TYPE_INTEGER_MENU control type for this ?
-> One example is V4L2_CID_ISO_SENSITIVITY control.
+The function was inspired by the original Realtek driver for rtl2832 devices
+with the r820t tuner; anyway, in the original code the XTAL frequency of
+the tuner was expressed in KHz, while in the kernel driver it is expressed
+in Hz; so the calibration failed because of an out-of-range initial value.
 
-Ok will change it to V4L2_CTRL_TYPE_INTEGER_MENU.
+The final result of the computation is then passed to the r820t_set_mux()
+and r820t_set_pll() functions, but the conversion from KHz to Hz is already
+correctly implemented. 
 
->
->> +/*  VPX streams, specific to multiplexed streams */
->> +#define V4L2_CID_VPX_NUM_PARTITIONS          (V4L2_CID_VPX_BASE+0)
->> +enum v4l2_vp8_num_partitions {
->> +     V4L2_VPX_1_PARTITION    = 0,
->> +     V4L2_VPX_2_PARTITIONS   = (1 << 1),
->> +     V4L2_VPX_4_PARTITIONS   = (1 << 2),
->> +     V4L2_VPX_8_PARTITIONS   = (1 << 3),
->> +};
->
-> I think we could still have such standard value definitions if needed,
-> but rather in form of:
->
-> #define V4L2_VPX_1_PARTITION    1
-> #define V4L2_VPX_2_PARTITIONS   2
-> #define V4L2_VPX_4_PARTITIONS   4
-> #define V4L2_VPX_8_PARTITIONS   8
->
+Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
+---
+ drivers/media/tuners/r820t.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-Ok will change.
+diff --git a/drivers/media/tuners/r820t.c b/drivers/media/tuners/r820t.c
+index 4835021..b817110 100644
+--- a/drivers/media/tuners/r820t.c
++++ b/drivers/media/tuners/r820t.c
+@@ -1857,9 +1857,9 @@ static int r820t_imr(struct r820t_priv *priv, unsigned imr_mem, bool im_flag)
+ 	int reg18, reg19, reg1f;
+ 
+ 	if (priv->cfg->xtal > 24000000)
+-		ring_ref = priv->cfg->xtal / 2;
++		ring_ref = priv->cfg->xtal / 2000;
+ 	else
+-		ring_ref = priv->cfg->xtal;
++		ring_ref = priv->cfg->xtal / 1000;
+ 
+ 	n_ring = 15;
+ 	for (n = 0; n < 16; n++) {
+-- 
+1.8.3
 
-Regards
-Arun
