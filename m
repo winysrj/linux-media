@@ -1,97 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54049 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753253Ab3FKJ1e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 05:27:34 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 10/21] soc-camera: make .clock_{start,stop} compulsory, .add / .remove optional
-Date: Tue, 11 Jun 2013 10:23:37 +0200
-Message-Id: <1370939028-8352-11-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:62163 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932104Ab3FFKDJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 06:03:09 -0400
+MIME-Version: 1.0
+In-Reply-To: <51B011C5.3070105@ti.com>
+References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com> <51B011C5.3070105@ti.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 6 Jun 2013 15:32:46 +0530
+Message-ID: <CA+V-a8sz_Yz0oUB4s==uob4HxkW_6ShtsTx+Jut2LopmeErC1w@mail.gmail.com>
+Subject: Re: [PATCH v2 1/4] ARM: davinci: dm365 evm: remove init_enable from
+ ths7303 pdata
+To: Sekhar Nori <nsekhar@ti.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All existing soc-camera host drivers use .clock_start() and .clock_stop()
-callbacks to activate and deactivate their camera interfaces, whereas
-.add() and .remove() callbacks are usually dummy. Make the former two
-compulsory and the latter two optional.
+Hi Sekhar,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/soc_camera.c |   27 +++++++++++------------
- 1 files changed, 13 insertions(+), 14 deletions(-)
+On Thu, Jun 6, 2013 at 10:06 AM, Sekhar Nori <nsekhar@ti.com> wrote:
+> On 5/25/2013 11:09 PM, Prabhakar Lad wrote:
+>> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>>
+>> remove init_enable from ths7303 pdata as it is being dropped
+>> from ths7303_platform_data.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Cc: Sekhar Nori <nsekhar@ti.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: davinci-linux-open-source@linux.davincidsp.com
+>
+> Acked-by: Sekhar Nori <nsekhar@ti.com>
+>
+Thanks for the ack.
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index df90565..e503f03 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -513,23 +513,22 @@ static int soc_camera_add_device(struct soc_camera_device *icd)
- 	if (ici->icd)
- 		return -EBUSY;
- 
--	if (ici->ops->clock_start) {
--		ret = ici->ops->clock_start(ici);
-+	ret = ici->ops->clock_start(ici);
-+	if (ret < 0)
-+		return ret;
-+
-+	if (ici->ops->add) {
-+		ret = ici->ops->add(icd);
- 		if (ret < 0)
--			return ret;
-+			goto eadd;
- 	}
- 
--	ret = ici->ops->add(icd);
--	if (ret < 0)
--		goto eadd;
--
- 	ici->icd = icd;
- 
- 	return 0;
- 
- eadd:
--	if (ici->ops->clock_stop)
--		ici->ops->clock_stop(ici);
-+	ici->ops->clock_stop(ici);
- 	return ret;
- }
- 
-@@ -540,9 +539,9 @@ static void soc_camera_remove_device(struct soc_camera_device *icd)
- 	if (WARN_ON(icd != ici->icd))
- 		return;
- 
--	ici->ops->remove(icd);
--	if (ici->ops->clock_stop)
--		ici->ops->clock_stop(ici);
-+	if (ici->ops->remove)
-+		ici->ops->remove(icd);
-+	ici->ops->clock_stop(ici);
- 	ici->icd = NULL;
- }
- 
-@@ -1413,8 +1412,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
- 	    ((!ici->ops->init_videobuf ||
- 	      !ici->ops->reqbufs) &&
- 	     !ici->ops->init_videobuf2) ||
--	    !ici->ops->add ||
--	    !ici->ops->remove ||
-+	    !ici->ops->clock_start ||
-+	    !ici->ops->clock_stop ||
- 	    !ici->ops->poll ||
- 	    !ici->v4l2_dev.dev)
- 		return -EINVAL;
--- 
-1.7.2.5
+> I would prefer this be squashed into 2/4 but I leave it to you.
+>
+I would like to go as is :)
 
+Regards,
+--Prabhakar Lad
