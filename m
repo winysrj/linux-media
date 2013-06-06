@@ -1,136 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from shell.v3.sk ([195.168.3.45]:33965 "EHLO norkia.v3.sk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754314Ab3FJRjB (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 13:39:01 -0400
-Subject: Re: [PATCH] [media] usbtv: Add driver for Fushicai USBTV007 video
- frame grabber
-From: Lubomir Rintel <lkundrak@v3.sk>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org
-In-Reply-To: <201306101305.05038.hverkuil@xs4all.nl>
-References: <1370857931-6586-1-git-send-email-lkundrak@v3.sk>
-	 <201306101305.05038.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset="UTF-8"
-Date: Mon, 10 Jun 2013 19:38:54 +0200
-Message-ID: <1370885934.9757.11.camel@hobbes.kokotovo>
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49533 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755561Ab3FFB07 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 5 Jun 2013 21:26:59 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Cc: smoch@web.de, <stable@vger.kernel.org>
+Subject: [RESEND PATCH 1/1] media: dmxdev: remove dvb_ringbuffer_flush() on writer side
+Date: Thu,  6 Jun 2013 04:26:23 +0300
+Message-Id: <1370481983-8336-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2013-06-10 at 13:05 +0200, Hans Verkuil wrote:
-> > Also, I the hardware uses V4L2_FIELD_ALTERNATE interlacing, but I couldn't make
-> > it work,
-> 
-> What didn't work exactly?
+From: Soeren Moch <smoch@web.de>
 
-Both mplayer and gstream v4l2src displayed only half of an image. Not
-sure which combinations of flags did I use anymore.
+In dvb_ringbuffer lock-less synchronizationof reader and writer threads is done
+with separateread and write pointers. Sincedvb_ringbuffer_flush() modifies the
+read pointer, this function must not be called from the writer thread.
 
-> > +static int usbtv_queryctrl(struct file *file, void *priv,
-> > +				struct v4l2_queryctrl *ctrl)
-> > +{
-> > +	return -EINVAL;
-> > +}
-> 
-> Drop this ioctl. If it doesn't do anything, then don't specify it.
+This patch removes the dvb_ringbuffer_flush() calls in the dmxdev ringbuffer
+write functions, this fixes Oopses "Unable to handle kernel paging request"
+I could observe for the call chaindvb_demux_read ->dvb_dmxdev_buffer_read ->
+dvb_ringbuffer_read_user -> __copy_to_user (the reader side of the ringbuffer).
 
-It actually does something; EINVAL here for any ctrl signals there's
-zero controls.
+The flush calls at the write side are not necessary anyway since ringbuffer_flush
+is also called in dvb_dmxdev_buffer_read() when an error condition is set in the
+ringbuffer.
 
-When undefined, ENOTTY that is returned is considered invalid by
-gstreamer source.
+This patch should also be applied to stable kernels.
 
-> It doesn't look too bad :-) You're using all the latest frameworks which is
-> excellent.
+Signed-off-by: Soeren Moch <smoch@web.de>
+CC: <stable@vger.kernel.org>
+Reviewed-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+Same as Soeren's original; just resolved conflicts likely caused by non-git
+send-email MUA.
 
-Thanks for your time. I'll follow up with a new version that aims to
-address all the concerns above (apart for the queryctl change, which
-would break with gstreamer).
+ drivers/media/dvb-core/dmxdev.c |    8 ++------
+ 1 file changed, 2 insertions(+), 6 deletions(-)
 
-> Can you run the v4l2-compliance tool and post the output of that tool?
-
-Driver Info:
-	Driver name   : usbtv
-	Card type     : usbtv
-	Bus info      : usb-0000:00:1d.7-5
-	Driver version: 3.10.0
-	Capabilities  : 0x85000001
-		Video Capture
-		Read/Write
-		Streaming
-		Device Capabilities
-	Device Caps   : 0x05000001
-		Video Capture
-		Read/Write
-		Streaming
-
-Compliance test for device /dev/video1 (not using libv4l2):
-
-Required ioctls:
-	test VIDIOC_QUERYCAP: OK
-
-Allow for multiple opens:
-	test second video open: OK
-	test VIDIOC_QUERYCAP: OK
-	test VIDIOC_G/S_PRIORITY: OK
-
-Debug ioctls:
-	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-	test VIDIOC_LOG_STATUS: OK (Not Supported)
-
-Input ioctls:
-	test VIDIOC_G/S_TUNER: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-	test VIDIOC_G/S/ENUMINPUT: OK
-	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-	Inputs: 1 Audio Inputs: 0 Tuners: 0
-
-Output ioctls:
-	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-	Outputs: 0 Audio Outputs: 0 Modulators: 0
-
-Control ioctls:
-	test VIDIOC_QUERYCTRL/MENU: OK
-	test VIDIOC_G/S_CTRL: OK (Not Supported)
-	test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-	Standard Controls: 0 Private Controls: 0
-
-Input/Output configuration ioctls:
-	test VIDIOC_ENUM/G/S/QUERY_STD: OK
-	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-
-Format ioctls:
-	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-	test VIDIOC_G/S_PARM: OK
-	test VIDIOC_G_FBUF: OK (Not Supported)
-	test VIDIOC_G_FMT: OK
-	test VIDIOC_TRY_FMT: OK
-	test VIDIOC_S_FMT: OK
-	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-
-Codec ioctls:
-	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-
-Buffer ioctls:
-	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-
-Total: 36, Succeeded: 36, Failed: 0, Warnings: 0
-
+diff --git a/drivers/media/dvb-core/dmxdev.c b/drivers/media/dvb-core/dmxdev.c
+index a1a3a51..0b4616b 100644
+--- a/drivers/media/dvb-core/dmxdev.c
++++ b/drivers/media/dvb-core/dmxdev.c
+@@ -377,10 +377,8 @@ static int dvb_dmxdev_section_callback(const u8 *buffer1, size_t buffer1_len,
+ 		ret = dvb_dmxdev_buffer_write(&dmxdevfilter->buffer, buffer2,
+ 					      buffer2_len);
+ 	}
+-	if (ret < 0) {
+-		dvb_ringbuffer_flush(&dmxdevfilter->buffer);
++	if (ret < 0)
+ 		dmxdevfilter->buffer.error = ret;
+-	}
+ 	if (dmxdevfilter->params.sec.flags & DMX_ONESHOT)
+ 		dmxdevfilter->state = DMXDEV_STATE_DONE;
+ 	spin_unlock(&dmxdevfilter->dev->lock);
+@@ -416,10 +414,8 @@ static int dvb_dmxdev_ts_callback(const u8 *buffer1, size_t buffer1_len,
+ 	ret = dvb_dmxdev_buffer_write(buffer, buffer1, buffer1_len);
+ 	if (ret == buffer1_len)
+ 		ret = dvb_dmxdev_buffer_write(buffer, buffer2, buffer2_len);
+-	if (ret < 0) {
+-		dvb_ringbuffer_flush(buffer);
++	if (ret < 0)
+ 		buffer->error = ret;
+-	}
+ 	spin_unlock(&dmxdevfilter->dev->lock);
+ 	wake_up(&buffer->queue);
+ 	return 0;
 -- 
-Lubomir Rintel <lkundrak@v3.sk>
+1.7.10.4
 
