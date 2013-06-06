@@ -1,46 +1,144 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2738 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754183Ab3F1M2H (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 08:28:07 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pete Eberlein <pete@sensoray.com>
-Subject: [RFC PATCH 0/5] Matrix and Motion Detection support
-Date: Fri, 28 Jun 2013 14:27:29 +0200
-Message-Id: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-oa0-f54.google.com ([209.85.219.54]:52348 "EHLO
+	mail-oa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751244Ab3FFFUi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 01:20:38 -0400
+Received: by mail-oa0-f54.google.com with SMTP id o17so1857767oag.13
+        for <linux-media@vger.kernel.org>; Wed, 05 Jun 2013 22:20:38 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1370005408-10853-3-git-send-email-arun.kk@samsung.com>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-3-git-send-email-arun.kk@samsung.com>
+Date: Thu, 6 Jun 2013 10:50:38 +0530
+Message-ID: <CAK9yfHzwtkrpVVK6DZPN1xjanc+bNeHb5yX+Dy9rfHh50nACxg@mail.gmail.com>
+Subject: Re: [RFC v2 02/10] exynos5-fimc-is: Adds fimc-is driver core files
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Arun Kumar K <arun.kk@samsung.com>
+Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com,
+	arunkk.samsung@gmail.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds support for matrices and motion detection and
-converts the solo6x10 driver to use these new APIs.
+Hi Arun,
 
-See the RFCv2 for details on the motion detection API:
+On 31 May 2013 18:33, Arun Kumar K <arun.kk@samsung.com> wrote:
+> This driver is for the FIMC-IS IP available in Samsung Exynos5
+> SoC onwards. This patch adds the core files for the new driver.
+>
+> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+> ---
+[snip]
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg62085.html
+> +
+> +static void fimc_is_clk_put(struct fimc_is *is)
+> +{
+> +       int i;
+> +
+> +       for (i = 0; i < IS_CLK_MAX_NUM; i++) {
+> +               if (IS_ERR_OR_NULL(is->clock[i]))
 
-And this RFC for details on the matrix API (which superseeds the v4l2_md_blocks
-in the RFC above):
+You should not check for NULL here. Instead initialize the clocks to
+some error value (like  "is->clock[i] =  ERR_PTR(-EINVAL);" )
+and use IS_ERR only.
 
-http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
+> +                       continue;
+> +               clk_unprepare(is->clock[i]);
+> +               clk_put(is->clock[i]);
+> +               is->clock[i] = NULL;
+> +       }
+> +}
+> +
+> +static int fimc_is_clk_get(struct fimc_is *is)
+> +{
+> +       struct device *dev = &is->pdev->dev;
+> +       int i, ret;
+> +
+> +       for (i = 0; i < IS_CLK_MAX_NUM; i++) {
+> +               is->clock[i] = clk_get(dev, fimc_is_clock_name[i]);
+> +               if (IS_ERR(is->clock[i]))
+> +                       goto err;
+> +               ret = clk_prepare(is->clock[i]);
+> +               if (ret < 0) {
+> +                       clk_put(is->clock[i]);
+> +                       is->clock[i] = NULL;
 
-I have tested this with the solo card, both global motion detection and
-regional motion detection, and it works well.
+is->clock[i] =  ERR_PTR(-EINVAL);
 
-There is no documentation for the new APIs yet (other than the RFCs). I would
-like to know what others think of this proposal before I start work on the
-DocBook documentation.
+> +                       goto err;
+> +               }
+> +       }
+> +       return 0;
+> +err:
+> +       fimc_is_clk_put(is);
+> +       pr_err("Failed to get clock: %s\n", fimc_is_clock_name[i]);
+> +       return -ENXIO;
+> +}
+> +
+> +static int fimc_is_clk_cfg(struct fimc_is *is)
+> +{
+> +       int ret;
+> +
+> +       ret = fimc_is_clk_get(is);
+> +       if (ret)
+> +               return ret;
+> +
+> +       /* Set rates */
+> +       ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV0], 200 * 1000000);
+> +       ret |= clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV1], 100 * 1000000);
+> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIV0], 134 * 1000000);
+> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIV1], 68 * 1000000);
+> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIVMPWM], 34 * 1000000);
+> +
+> +       if (ret)
+> +               return -EINVAL;
+> +
+> +       return 0;
+> +}
+> +
+> +static int fimc_is_probe(struct platform_device *pdev)
+> +{
+> +       struct device *dev = &pdev->dev;
+> +       struct resource res;
+> +       struct fimc_is *is;
+> +       struct pinctrl *pctrl;
+> +       void __iomem *regs;
+> +       struct device_node *node;
+> +       int irq, ret;
+> +
+> +       pr_debug("FIMC-IS Probe Enter\n");
+> +
+> +       if (!pdev->dev.of_node)
+> +               return -ENODEV;
+> +
+> +       is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
+> +       if (!is)
+> +               return -ENOMEM;
+> +
+> +       is->pdev = pdev;
+> +
+> +       ret = of_address_to_resource(dev->of_node, 0, &res);
+> +       if (ret < 0)
+> +               return ret;
+> +
+> +       regs = devm_ioremap_resource(dev, &res);
+> +       if (regs == NULL) {
 
-My tentative goal is to get this in for 3.12. Once this is in place the solo
-and go7007 drivers can be moved out of staging into the mainline since this is
-the only thing holding them back.
+Please use if(IS_ERR(regs))
 
-Regards,
+> +               dev_err(dev, "Failed to obtain io memory\n");
 
-	Hans
+This is not needed as devm_ioremap_resource prints the appropriate
+error messages.
 
+> +               return -ENOENT;
+
+return PTR_ERR(regs);
+
+Don't forget to include <linux/err.h> for using PTR_ERR() .
+
+-- 
+With warm regards,
+Sachin
