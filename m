@@ -1,157 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:40984 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751706Ab3FISiK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 14:38:10 -0400
-Received: by mail-bk0-f44.google.com with SMTP id r7so2987671bkg.17
-        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 11:38:08 -0700 (PDT)
-Message-ID: <51B4CB8D.1010507@gmail.com>
-Date: Sun, 09 Jun 2013 20:38:05 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51803 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751326Ab3FFVij (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 6 Jun 2013 17:38:39 -0400
+Date: Fri, 7 Jun 2013 00:38:04 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Support for events with a large payload
+Message-ID: <20130606213803.GC3103@valkosipuli.retiisi.org.uk>
+References: <201305131414.43685.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC PATCH v2 1/2] media: Add function removing all media entity
- links
-References: <1368102573-16183-2-git-send-email-s.nawrocki@samsung.com> <1368180037-24091-1-git-send-email-s.nawrocki@samsung.com> <20130606194124.GB3103@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130606194124.GB3103@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201305131414.43685.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Hans,
 
-Thanks a lot for the review.
+Thanks for the RFC! :-)
 
-On 06/06/2013 09:41 PM, Sakari Ailus wrote:
-> Hi Sylwester,
->
-> Thanks for the patch.
->
-> On Fri, May 10, 2013 at 12:00:37PM +0200, Sylwester Nawrocki wrote:
->> This function allows to remove all media entity's links to other
->> entities, leaving no references to a media entity's links array
->> at its remote entities.
->>
->> Currently when a driver of some entity is removed it will free its
->> media entities links[] array, leaving dangling pointers at other
->> entities that are part of same media graph. This is troublesome when
->> drivers of a media device entities are in separate kernel modules,
->> removing only some modules will leave others in incorrect state.
->>
->> This function is intended to be used when an entity is being
->> unregistered from a media device.
->>
->> With an assumption that media links should be created only after
->> they are registered to a media device and with the graph mutex held.
->>
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Reviewed-by: Andrzej Hajda<a.hajda@samsung.com>
->> [locking error in the initial patch version]
->> Reported-by: Dan Carpenter<dan.carpenter@oracle.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> ---
->> Changes since the initial version:
->>   - fixed erroneous double mutex lock in media_entity_links_remove()
->>     function.
->>
->>   drivers/media/media-entity.c |   51 ++++++++++++++++++++++++++++++++++++++++++
->>   include/media/media-entity.h |    3 +++
->>   2 files changed, 54 insertions(+)
->>
->> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
->> index e1cd132..bd85dc3 100644
->> --- a/drivers/media/media-entity.c
->> +++ b/drivers/media/media-entity.c
->> @@ -429,6 +429,57 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
->>   }
->>   EXPORT_SYMBOL_GPL(media_entity_create_link);
->>
->> +void __media_entity_remove_links(struct media_entity *entity)
->> +{
->> +	int i, r;
->
-> u16? r can be defined inside the loop.
+On Mon, May 13, 2013 at 02:14:43PM +0200, Hans Verkuil wrote:
+> Currently the event API allows for a payload of up to 64 bytes. Sometimes we
+> would like to pass larger payloads to userspace such as metadata associated
+> with a particular video stream.
+> 
+> A typical example of that would be object detection events.
+> 
+> This RFC describes one approach for doing this.
+> 
+> The event framework has the nice property of being able to use from within
+> interrupts. Copying large payloads does not fit into that framework, so
+> such payloads should be adminstrated separately.
+> 
+> In addition, I wouldn't allow large payloads to be filled in from interrupt
+> context: a worker queue would be much more appropriate.
 
-I would argue 'unsigned int' would be more optimal type for i in most
-cases. Will move r inside the loop.
+How large really is "large"? 65 bytes? 64 kiB?
 
->> +	for (i = 0; i<  entity->num_links; i++) {
->> +		struct media_link *link =&entity->links[i];
->> +		struct media_entity *remote;
->> +		int num_links;
->
-> num_links is u16 in struct media_entity. I'd use the same type.
+The newer CPUs tend to be faster and faster and the same applies to memory.
+I guess threaded interrupt handlers are still nice. But using a mutex in
+order to serialise access to the struct will force drivers to use threaded
+interrupt handlers should they want to generate large events.
 
-I would go with 'unsigned int', as a more natural type for the CPU in
-most cases. It's a minor issue, but I can't see how u16 would have been
-more optimal than unsigned int for a local variable like this, while
-this code is mostly used on 32-bit systems at least.
+> Note that the event API is only useful for relatively low-bandwidth data
+> since the data is always copied. When dealing with high-bandwidth data the
+> data should either be a separate plane or become a special stream I/O buffer
+> type.
+> 
+> The userspace API enhancements in order to achieve this would be the
+> following:
+> 
+> - Any event that has a large payload would specify a payload_sequence counter
+>   and a payload size value (in bytes).
+> 
+> - A new VIDIOC_DQEVENT_PAYLOAD ioctl would be added which passes the event type,
+>   the payload_sequence counter and a pointer to a buffer to the kernel, and the
+>   payload is returned, or an error is returned if the payload data is no longer
+>   available.
 
->> +		if (link->source->entity == entity)
->> +			remote = link->sink->entity;
->> +		else
->> +			remote = link->source->entity;
->> +
->> +		num_links = remote->num_links;
->> +
->> +		for (r = 0; r<  num_links; r++) {
->
-> Is caching remote->num_links needed, or do I miss something?
+Do you think we should have a separate IOCTL for this? The downside is that
+to dequeue events, the application would need to try both in the worst case
+just to obtain an event.
 
-Yes, it is needed, remote->num_links is decremented inside the loop.
+I think it'd be nicer to be able to fit that into the same IOCTL. There are
+plenty of reserved fields and, actually, the event data as well: we could
+consider the large-payload event a meta-event which would contain the
+required information to pass the event data to the user space. The type of
+such an event could be V4L2_EVENT_LARGE, for instance.
 
->> +			struct media_link *rlink =&remote->links[r];
->> +
->> +			if (rlink != link->reverse)
->> +				continue;
->> +
->> +			if (link->source->entity == entity)
->> +				remote->num_backlinks--;
->> +
->> +			remote->num_links--;
->> +
->> +			if (remote->num_links<  1)
->
-> How about: if (!remote->num_links) ?
+> Optional enhancements:
+> 
+> - Have VIDIOC_SUBSCRIBE_EVENT return the maximum payload size (lets apps
+>   preallocate payload memory, but it might be overkill).
 
-Hmm, perhaps squashing the above two lines to:
+Why so? We could use a reserved field as well. The size would be zero if the
+maximum would be less than 64.
 
-			if (--remote->num_links == 0)
+> - Add functionality to VIDIOC_SUBSCRIBE_EVENT to define the number of
+>   events in the event queue for the filehandle. If the payload is large,
+>   you may want to limit the number of allocated payload buffers. For
+>   example: when dealing with metadata associated with frame you might want
+>   to limit the number of payload buffers to the number of allocated frames.
 
-?
->> +				break;
->> +
->> +			/* Insert last entry in place of the dropped link. */
->> +			remote->links[r--] = remote->links[remote->num_links];
->> +		}
->> +	}
->> +
->> +	entity->num_links = 0;
->> +	entity->num_backlinks = 0;
->> +}
->> +EXPORT_SYMBOL_GPL(__media_entity_remove_links);
->> +
->> +void media_entity_remove_links(struct media_entity *entity)
->> +{
->> +	if (WARN_ON_ONCE(entity->parent == NULL))
->> +		return;
+Are we talking now about high level metadata which is typically obtained by
+the driver by other means than hardware writing it into a memory buffer?
 
-This WARN_ON_ONCE() is a bit problematic, I'm going to remove it in the 
-next
-iteration. I found that tracking entity->parent without races is not so
-straightforward in drivers currently, and this needs to be taken care of
-before we can have something like asynchronous subdevice registration.
+-- 
+Kind regards,
 
->> +	mutex_lock(&entity->parent->graph_mutex);
->> +	__media_entity_remove_links(entity);
->> +	mutex_unlock(&entity->parent->graph_mutex);
->> +}
->> +EXPORT_SYMBOL_GPL(media_entity_remove_links);
-
-Regards,
-Sylwester
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
