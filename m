@@ -1,49 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f49.google.com ([209.85.160.49]:63768 "EHLO
-	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751205Ab3FXPsD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 11:48:03 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 1/2] media: i2c: tvp7002: remove manual setting of subdev name
-Date: Mon, 24 Jun 2013 21:17:25 +0530
-Message-Id: <1372088846-26263-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1372088846-26263-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1372088846-26263-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1817 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752157Ab3FGI1a (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 04:27:30 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Konke Radlow <koradlow@gmail.com>
+Subject: Re: [RFC PATCHv2 0/3] libv4l2rds: add support for RDS-EON and TMC-tuning decoding
+Date: Fri, 7 Jun 2013 10:27:12 +0200
+Cc: linux-media@vger.kernel.org, hdegoede@redhat.com
+References: <1370373303-6605-1-git-send-email-koradlow@gmail.com>
+In-Reply-To: <1370373303-6605-1-git-send-email-koradlow@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306071027.12652.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Konke,
 
-This patch removes manual setting of subdev name in the
-probe, ideally subdev names must be unique.
+On Tue June 4 2013 21:15:00 Konke Radlow wrote:
+> This patch series is based on the commments to:
+> 
+> [RFC PATCH 0/4] libv4l2rds: support for decoding RDS tuning information
+> [RFC PATCH 1/4] libv4l2rds: added support to decode RDS-EON information
+> [RFC PATCH 2/4] rds-ctl.cpp: added functionality to print RDS-EON information
+> [RFC PATCH 3/4] libv4l2rds: added support to decode RDS-TMC tuning information
+> [RFC PATCH 4/4] rds-ctl.cpp: added functionality to print RDS-TMC tuning information
+> 
+> The proposed changes have been integrated and the patches (1, 3) and (2, 4) have been merged
+> into one unit.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/i2c/tvp7002.c |    1 -
- 1 file changed, 1 deletion(-)
+Thank you for working on this. I've committed these patches. It's really nice
+to have full support for this.
 
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index 4896024..ba8a7b5 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -1065,7 +1065,6 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- 	error = tvp7002_s_dv_timings(sd, &timings);
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	strlcpy(sd->name, TVP7002_MODULE_NAME, sizeof(sd->name));
- 	device->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
--- 
-1.7.9.5
+Regards,
 
+	Hans
