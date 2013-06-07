@@ -1,41 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2954 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030251Ab3FTNpL (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 09:45:11 -0400
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3855 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751671Ab3FGKb0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:31:26 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r57AVEkE002060
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 7 Jun 2013 12:31:17 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 97CA435C0003
+	for <linux-media@vger.kernel.org>; Fri,  7 Jun 2013 12:31:13 +0200 (CEST)
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 15/15] saa7134: don't set vfd->debug.
-Date: Thu, 20 Jun 2013 15:44:31 +0200
-Message-Id: <1371735871-2658-16-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.11] Updates for 3.11
+Date: Fri, 7 Jun 2013 12:31:14 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306071231.14136.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit 7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
 
-You can set this through sysfs, so don't mix the two.
+  [media] media: pci: remove duplicate checks for EPERM (2013-05-27 09:34:56 -0300)
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-core.c | 1 -
- 1 file changed, 1 deletion(-)
-
-diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
-index c4bdf45..bfed348 100644
---- a/drivers/media/pci/saa7134/saa7134-core.c
-+++ b/drivers/media/pci/saa7134/saa7134-core.c
-@@ -803,7 +803,6 @@ static struct video_device *vdev_init(struct saa7134_dev *dev,
- 	*vfd = *template;
- 	vfd->v4l2_dev  = &dev->v4l2_dev;
- 	vfd->release = video_device_release;
--	vfd->debug   = video_debug;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)",
- 		 dev->name, type, saa7134_boards[dev->board].name);
- 	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
--- 
-1.8.3.1
-
+are available in the git repository at:                                                                                                              
+                                                                                                                                                     
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.11                                                                                                
+                                                                                                                                                     
+for you to fetch changes up to 219cb7fa5f127e423ef178a17bfe409b5b522d91:                                                                             
+                                                                                                                                                     
+  media: i2c: ths7303: make the pdata as a constant pointer (2013-06-07 10:34:59 +0200)                                                              
+                                                                                                                                                     
+----------------------------------------------------------------                                                                                     
+Antti Palosaari (1):                                                                                                                                 
+      radio-keene: add delay in order to settle hardware                                                                                             
+                                                                                                                                                     
+Hans Verkuil (6):                                                                                                                                    
+      mxl111sf: don't redefine pr_err/info/debug                                                                                                     
+      hdpvr: fix querystd 'unknown format' return.                                                                                                   
+      hdpvr: code cleanup                                                                                                                            
+      hdpvr: improve error handling                                                                                                                  
+      ml86v7667: fix the querystd implementation                                                                                                     
+      radio-keene: set initial frequency.                                                                                                            
+                                                                                                                                                     
+Lad, Prabhakar (4):                                                                                                                                  
+      ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata                                                                                 
+      media: i2c: ths7303: remove init_enable option from pdata                                                                                      
+      media: i2c: ths7303: remove unnecessary function ths7303_setup()                                                                               
+      media: i2c: ths7303: make the pdata as a constant pointer                                                                                      
+                                                                                                                                                     
+Vladimir Barinov (2):                                                                                                                                
+      adv7180: add more subdev video ops                                                                                                             
+      ML86V7667: new video decoder driver                                                                                                            
+                                                                                                                                                     
+ arch/arm/mach-davinci/board-dm365-evm.c       |    1 -                                                                                              
+ drivers/media/i2c/Kconfig                     |    9 ++                                                                                             
+ drivers/media/i2c/Makefile                    |    1 +                                                                                              
+ drivers/media/i2c/adv7180.c                   |   46 ++++++++++                                                                                     
+ drivers/media/i2c/ml86v7667.c                 |  431 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
+ drivers/media/i2c/ths7303.c                   |   48 +++--------                                                                                    
+ drivers/media/radio/radio-keene.c             |    7 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c |    8 +-
+ drivers/media/usb/dvb-usb-v2/mxl111sf.c       |   90 ++++++++++----------
+ drivers/media/usb/hdpvr/hdpvr-control.c       |   21 ++---
+ drivers/media/usb/hdpvr/hdpvr-video.c         |   72 ++++++++--------
+ drivers/media/usb/hdpvr/hdpvr.h               |    1 +
+ include/media/ths7303.h                       |    2 -
+ 13 files changed, 597 insertions(+), 140 deletions(-)
+ create mode 100644 drivers/media/i2c/ml86v7667.c
