@@ -1,51 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34417 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750929Ab3FEBfH (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jun 2013 21:35:07 -0400
-Message-ID: <51AE95A1.1090100@iki.fi>
-Date: Wed, 05 Jun 2013 04:34:25 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Hans Petter Selasky <hps@bitfrost.no>
-CC: unlisted-recipients:; linux-media@vger.kernel.org,
-	Juergen Lock <nox@jelal.kn-bremen.de>
-Subject: Re: TT-USB2.0 and high bitrate packet loss (DVB-C/T)
-References: <51A70713.6030802@bitfrost.no> <51AB385A.4040701@bitfrost.no> <51ABB2D1.6080908@iki.fi>
-In-Reply-To: <51ABB2D1.6080908@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:44325 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754711Ab3FGLZp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 07:25:45 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MO000JGPT2W81A0@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 07 Jun 2013 12:25:44 +0100 (BST)
+From: Andrzej Hajda <a.hajda@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Andrzej Hajda <a.hajda@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Seung-Woo Kim <sw0312.kim@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	HyungJun Choi <hj210.choi@samsung.com>
+Subject: [PATCH 0/2] V4L: Add auto focus area control and selection
+Date: Fri, 07 Jun 2013 13:25:20 +0200
+Message-id: <1370604322-15476-1-git-send-email-a.hajda@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/03/2013 12:02 AM, Antti Palosaari wrote:
-> On 06/02/2013 03:19 PM, Hans Petter Selasky wrote:
+Hi,
 
->> I think I will have to get another USB based receiver with CI slot. Any
->> recommendations for DVB-T ?
->
-> There is no many alternatives available. I suspect Anysee E7 serie is
-> the only one. And I am not even sure if its CI works anymore. Lastly
-> when I tested it I didn't get scrambled channels working - but it could
-> be due to card entitlements were not upgraded. Anyhow, if there is bug
-> then it should be easy to fix.
+This set of patches is created by Sylwester Nawrocki, with my adjustments.
 
-I just tested, actually first bisecting back to Kernel 3.3 and VLC2 and 
-it didn't work... That makes me suspect it was VLC which has gone 
-broken. So I tried gnutv & mplayer and surprise CI was working! Both 
-Anysee E7 TC and Anysee E7 T2C. Tested only DVB-C as I don't have DVB-T 
-subscription card. CI/CAM worked earlier for VLC somehow too.
+This set of patches extends the camera class with control
+V4L2_CID_AUTO_FOCUS_AREA for determining the area of the frame that
+camera uses for auto-focus.
+The control takes care of three cases:
+- V4L2_AUTO_FOCUS_AREA_AUTO:		the camera automatically selects the
+    focus area.
+- V4L2_AUTO_FOCUS_AREA_RECTANGLE:	user provides rectangle or spot
+    as an area of interest,
+- V4L2_AUTO_FOCUS_AREA_OBJECT_DETECTION: object/face detection engine
+    of the camera should be used for auto-focus.
 
-Start tuning on terminal:
-gnutv -channels /path/to/channels.conf "scrambled channel"
-Start mplayer on the another terminal:
-mplayer /dev/dvb/adapter0/dvr0
+In case of the rectangle or the spot its coordinates shall be passed
+to the driver using selection API (VIDIOC_SUBDEV_S_SELECTION) with
+V4L2_SEL_TGT_AUTO_FOCUS as a target name. In case of spot width and
+height of the rectangle shall be set to 0.
 
-It is a little bit boring situation as there is no very good Gnome 
-Desktop TV application. Have never been...
+This is the second version of AF area patches.
+It was modified according to comments by Sakari and Sylwester, thanks.
+Change details are described in patch comments.
 
-regards
-Antti
+The most significant change I propose is to extend
+V4L2_CID_AUTO_FOCUS_START to apply AF changes in case continuous
+auto-focus is active. As a consequence V4L2_AUTO_FOCUS_(AREA|RANGE) controls
+do not trigger HW changes immediately.
+
+I have also replaced V4L2_AUTO_FOCUS_AREA_ALL with V4L2_AUTO_FOCUS_AREA_AUTO
+with better description.
+
+Regards
+Andrzej
+
+Andrzej Hajda (1):
+  V4L: Add V4L2_CID_AUTO_FOCUS_AREA control
+
+Sylwester Nawrocki (1):
+  V4L: Add auto focus selection targets
+
+ Documentation/DocBook/media/v4l/compat.xml         |  9 +++-
+ Documentation/DocBook/media/v4l/controls.xml       | 62 +++++++++++++++++++---
+ Documentation/DocBook/media/v4l/selection-api.xml  | 31 ++++++++++-
+ .../DocBook/media/v4l/selections-common.xml        | 37 +++++++++++++
+ Documentation/DocBook/media/v4l/v4l2.xml           |  7 +++
+ .../media/v4l/vidioc-subdev-g-selection.xml        |  9 ++--
+ drivers/media/v4l2-core/v4l2-ctrls.c               | 10 ++++
+ include/uapi/linux/v4l2-common.h                   |  5 ++
+ include/uapi/linux/v4l2-controls.h                 |  4 ++
+ 9 files changed, 160 insertions(+), 14 deletions(-)
 
 -- 
-http://palosaari.fi/
+1.8.1.2
+
