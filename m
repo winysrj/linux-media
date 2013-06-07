@@ -1,38 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56907 "EHLO
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34142 "EHLO
 	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754402Ab3FVOZr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jun 2013 10:25:47 -0400
+	with ESMTP id S1753177Ab3FGK0d (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:26:33 -0400
+Received: from avalon.localnet (unknown [91.178.217.139])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 87E8435A4D
+	for <linux-media@vger.kernel.org>; Fri,  7 Jun 2013 12:26:27 +0200 (CEST)
 From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Jim Davis <jim.epost@gmail.com>,
-	Randy Dunlap <rdunlap@infradead.org>
-Subject: [PATCH] uvc: Depend on VIDEO_V4L2
-Date: Sat, 22 Jun 2013 16:25:57 +0200
-Message-Id: <1371911157-11955-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Subject: [GIT PULL FOR v3.11] Media controller patch
+Date: Fri, 07 Jun 2013 12:26:37 +0200
+Message-ID: <3227348.nlhECq6VuT@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The uvcvideo driver lost its dependency on VIDEO_V4L2 during the big
-media directory reorganization. Add it back.
+Hi Mauro,
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/usb/uvc/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
+The following changes since commit 7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
 
-diff --git a/drivers/media/usb/uvc/Kconfig b/drivers/media/usb/uvc/Kconfig
-index 541c9f1..6ed85ef 100644
---- a/drivers/media/usb/uvc/Kconfig
-+++ b/drivers/media/usb/uvc/Kconfig
-@@ -1,5 +1,6 @@
- config USB_VIDEO_CLASS
- 	tristate "USB Video Class (UVC)"
-+	depends on VIDEO_V4L2
- 	select VIDEOBUF2_VMALLOC
- 	---help---
- 	  Support for the USB Video Class (UVC).  Currently only video
+  [media] media: pci: remove duplicate checks for EPERM (2013-05-27 09:34:56 
+-0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git v4l2/media
+
+for you to fetch changes up to b2c4bdde53e6a842f51deca4ffe96a4c1b011c93:
+
+  media: Rename media_entity_remote_source to media_entity_remote_pad 
+(2013-06-04 04:57:27 +0200)
+
+----------------------------------------------------------------
+Andrzej Hajda (1):
+      media: Rename media_entity_remote_source to media_entity_remote_pad
+
+ Documentation/media-framework.txt                |  2 +-
+ drivers/media/media-entity.c                     | 13 ++++++-------
+ drivers/media/platform/exynos4-is/fimc-capture.c |  6 +++---
+ drivers/media/platform/exynos4-is/fimc-lite.c    |  4 ++--
+ drivers/media/platform/exynos4-is/media-dev.c    |  2 +-
+ drivers/media/platform/omap3isp/isp.c            |  6 +++---
+ drivers/media/platform/omap3isp/ispccdc.c        |  2 +-
+ drivers/media/platform/omap3isp/ispccp2.c        |  2 +-
+ drivers/media/platform/omap3isp/ispcsi2.c        |  2 +-
+ drivers/media/platform/omap3isp/ispvideo.c       |  6 +++---
+ drivers/media/platform/s3c-camif/camif-capture.c |  2 +-
+ drivers/staging/media/davinci_vpfe/vpfe_video.c  | 12 ++++++------
+ include/media/media-entity.h                     |  2 +-
+ 13 files changed, 30 insertions(+), 31 deletions(-)
+
 -- 
 Regards,
 
