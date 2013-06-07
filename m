@@ -1,56 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:56916 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754402Ab3FVO0R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jun 2013 10:26:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Jim Davis <jim.epost@gmail.com>, sfr@canb.auug.org.au,
-	linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	pawel@osciak.com, m.szyprowski@samsung.com,
-	kyungmin.park@samsung.com,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: randconfig build errors with next-20130620, in several drivers/media
-Date: Sat, 22 Jun 2013 16:26:36 +0200
-Message-ID: <2349088.sJtDCiEhsm@avalon>
-In-Reply-To: <51C50101.1000300@infradead.org>
-References: <20130620185244.GA14176@krebstar.arl.arizona.edu> <5790855.fto4zA3B21@avalon> <51C50101.1000300@infradead.org>
+Received: from mail-ve0-f182.google.com ([209.85.128.182]:45605 "EHLO
+	mail-ve0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752202Ab3FGBiv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 21:38:51 -0400
+Received: by mail-ve0-f182.google.com with SMTP id ox1so2660177veb.41
+        for <linux-media@vger.kernel.org>; Thu, 06 Jun 2013 18:38:51 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <Pine.LNX.4.64.1306051152540.19739@axis700.grange>
+References: <1370425034-3648-1-git-send-email-wangwb@marvell.com>
+	<Pine.LNX.4.64.1306051152540.19739@axis700.grange>
+Date: Fri, 7 Jun 2013 09:38:50 +0800
+Message-ID: <CAJZPFvFns5KSVjBHHNYk4_mzkTcnOWC8fnBXS_3B-RdDYMgdUw@mail.gmail.com>
+Subject: Re: [PATCH] [media] soc_camera: error dev remove and v4l2 call
+From: wenson <wenbing4375@gmail.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Wenbing Wang <wangwb@marvell.com>, linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Randy,
+Hi Guennadi, Thanks very much for quick reply.
+but I would like to push this patch early for 3.10 and even 3.8 since
+we suppose to do s_power v4l2 callback for enable subdev self sepcial
+power handle. in fact, we will have this requirement.
+So if the uncorrect two functions callback order exists, we fail to do
+it now. Thanks(sorry for reply again since previous email seems to be
+rejected by vger.kernel.org)
 
-On Friday 21 June 2013 18:42:25 Randy Dunlap wrote:
-> On 06/21/13 17:27, Laurent Pinchart wrote:
-> > On Thursday 20 June 2013 11:52:44 Jim Davis wrote:
-> >> Building with the attached random configuration file generates errors in
-> >> both
-> > 
-> > [snip]
-> > 
-> > The issue seem to be caused by USB_VIDEO_CLASS=y and VIDEO_V4L2=m &&
-> > USB=m.
-> > I'm not sure what made that combination possible, but I haven't been able
-> > to reproduce it locally on next-20130620. Running make with the attached
-> > config turns USB_VIDEO_CLASS=y into USB_VIDEO_CLASS=m.
-> 
-> Yes, same for me:  USB_VIDEO_CLASS=m instead of =y.
-> 
-> However, please check the attached config file (as reported on June 17).
-> 
-> On linux-next of 20130621 it still produces:
-> 
-> CONFIG_USB_VIDEO_CLASS=y
-> CONFIG_VIDEO_V4L2=m
-> CONFIG_USB=m
-
-I've just sent a patch to linux-media (you've been CC'ed) to fix this.
-
--- 
-Regards,
-
-Laurent Pinchart
+2013/6/5 Guennadi Liakhovetski <g.liakhovetski@gmx.de>:
+> Hi
+>
+> On Wed, 5 Jun 2013, Wenbing Wang wrote:
+>
+>> From: Wenbing Wang <wangwb@marvell.com>
+>>
+>> in soc_camera_close(), if ici->ops->remove() removes device firstly,
+>> and then call __soc_camera_power_off(), it has logic error. Since
+>> if remove device, it should disable subdev clk. but in __soc_camera_
+>> power_off(), it will callback v4l2 s_power function which will
+>> read/write subdev registers to control power by i2c. and then
+>> i2c read/write will fail because of clk disable.
+>> So suggest to re-sequence two functions call.
+>
+> Thanks for the patch. I agree, that the clock should be switched off after
+> powering off the client. And this is also how it's done in the latest
+> version of my v4l2-clk / v4l2-async patches: there in
+> soc_camera_power_off() first power-off is performed and only then
+> v4l2_clk_disable() is called to detach the client from the host and stop
+> the master clock. So, if you need this fix for 3.10, we could push it
+> upstream. Otherwise hopefully we'll manage to get v4l2-clk and -async in
+> 3.11 and thus have this fixed there. Then this patch won't be needed.
+>
+> Thanks
+> Guennadi
+>
+>> Change-Id: Iee7a6d4fc7c7c1addb5d342621eb8dcd00fa2745
+>> Signed-off-by: Wenbing Wang <wangwb@marvell.com>
+>> ---
+>>  drivers/media/platform/soc_camera/soc_camera.c |    4 ++--
+>>  1 files changed, 2 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+>> index eea832c..3a4efbd 100644
+>> --- a/drivers/media/platform/soc_camera/soc_camera.c
+>> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+>> @@ -643,9 +643,9 @@ static int soc_camera_close(struct file *file)
+>>
+>>               if (ici->ops->init_videobuf2)
+>>                       vb2_queue_release(&icd->vb2_vidq);
+>> -             ici->ops->remove(icd);
+>> -
+>>               __soc_camera_power_off(icd);
+>> +
+>> +             ici->ops->remove(icd);
+>>       }
+>>
+>>       if (icd->streamer == file)
+>> --
+>> 1.7.5.4
+>>
+>
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
