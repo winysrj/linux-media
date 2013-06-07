@@ -1,68 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from gateway14.websitewelcome.com ([67.18.82.11]:51060 "EHLO
-	gateway14.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933453Ab3FSBe6 convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 21:34:58 -0400
-Received: from gator886.hostgator.com (gator886.hostgator.com [174.120.40.226])
-	by gateway14.websitewelcome.com (Postfix) with ESMTP id 9B16462170B15
-	for <linux-media@vger.kernel.org>; Tue, 18 Jun 2013 19:38:00 -0500 (CDT)
-From: "Charlie X. Liu" <charlie@sensoray.com>
-To: =?iso-8859-1?Q?'Daniel_Gl=F6ckner'?= <daniel-gl@gmx.net>,
-	"'Steve Cookson'" <it@sca-uk.com>
-Cc: "'James Board'" <jpboard2@yahoo.com>, <linux-media@vger.kernel.org>
-References: <1371393161.46485.YahooMailNeo@web163903.mail.gq1.yahoo.com> <8B18C28300FE4A6595829F526C5BA94A@SACWS001> <1371572315.65617.YahooMailNeo@web163901.mail.gq1.yahoo.com> <8737EBB72A154800A3A695B49F355F07@SACWS001> <1371587831.30761.YahooMailNeo@web163905.mail.gq1.yahoo.com> <7ED70E19F5604D7CA44DC92735A6BDE0@SACWS001> <20130618230655.GA23989@minime.bse>
-In-Reply-To: <20130618230655.GA23989@minime.bse>
-Subject: RE: HD Capture Card (HDMI and Component) output raw pixels
-Date: Tue, 18 Jun 2013 17:38:00 -0700
-Message-ID: <012601ce6c85$40930470$c1b90d50$@com>
-MIME-Version: 1.0
-Content-Type: text/plain;
-	charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
-Content-Language: en-us
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55301 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1757461Ab3FGXI5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Jun 2013 19:08:57 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: hverkuil@xs4all.nl
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	k.debski@samsung.com
+Subject: [PATCH v3 1/1] v4l: Document timestamp behaviour to correspond to reality
+Date: Sat,  8 Jun 2013 02:08:22 +0300
+Message-Id: <1370646503-12932-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Right -- not practical, since you need 1920*1080*3*50 = 311.04MB/s bandwidth
-to transfer from PCIe and save the raw date onto a SSD, at which the PCIe
-1.x link x1 (max 250MB/s) can not really meet such requirement. 
+Document that monotonic timestamps are taken after the corresponding frame
+has been received, not when the reception has begun. This corresponds to the
+reality of current drivers: the timestamp is naturally taken when the
+hardware triggers an interrupt to tell the driver to handle the received
+frame.
 
-Well, PCIe 2.x link x1 can meet since its max is 500MB/s. Or, using YUYV, a
-more common format, would be fine, since it requires 207.36MB/s and reduces
-the storage requirement from 1.119744GB (1920*1080*3*50*60*60, with RGB
-format) to 0.746496GB (1920*1080*2*50*60*60, with YUYV format).
+Remove the note on timestamp accurary as it is fairly subjective what is
+actually an unstable timestamp.
 
-Best,
+Also remove explanation that output buffer timestamps can be used to delay
+outputting a frame.
 
-Charlie X. Liu
+Remove the footnote saying we always use realtime clock.
 
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+Since v2:
 
------Original Message-----
-From: linux-media-owner@vger.kernel.org
-[mailto:linux-media-owner@vger.kernel.org] On Behalf Of Daniel Glöckner
-Sent: Tuesday, June 18, 2013 4:07 PM
-To: Steve Cookson
-Cc: 'James Board'; linux-media@vger.kernel.org
-Subject: Re: HD Capture Card (HDMI and Component) output raw pixels
+- Corrected based on comments from Hans Verkuil:
+  - Spelling corrections
+  - Consistently document buffer timestamps AFTER the capture / output
 
-On Tue, Jun 18, 2013 at 05:55:15PM -0300, Steve Cookson wrote:
-> > I don't want to configure a RAID either, but if I purchase one SSD 
-> > with
-> 400 MB/sec write speeds, that might be good.
-> 
-> Hmm... nice idea.  Did you have any particular model in mind?  If you 
-> had a link, I might be interested. I wouldn't know about sizing.  I 
-> don't know how much space HD raw video takes up per hour, say.
+- A note on "monitoring drift between video and system clok" removed
 
-That's easy. My current video mode is 24 bit 1920x1080 at 50 fps.
-So there are 3*1920*1080*50 bytes per second or about 1.1TB per hour.
-But you won't be able to capture all frames with that card. The single lane
-PCIe 1.x bus will max out at 200~250MB/s.
+ Documentation/DocBook/media/v4l/io.xml |   51 ++++++--------------------------
+ 1 file changed, 9 insertions(+), 42 deletions(-)
 
-  Daniel
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org More majordomo info at
-http://vger.kernel.org/majordomo-info.html
+diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
+index 2c4c068..48f32c5 100644
+--- a/Documentation/DocBook/media/v4l/io.xml
++++ b/Documentation/DocBook/media/v4l/io.xml
+@@ -654,38 +654,11 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
+ In that case, struct <structname>v4l2_buffer</structname> contains an array of
+ plane structures.</para>
+ 
+-      <para>Nominally timestamps refer to the first data byte transmitted.
+-In practice however the wide range of hardware covered by the V4L2 API
+-limits timestamp accuracy. Often an interrupt routine will
+-sample the system clock shortly after the field or frame was stored
+-completely in memory. So applications must expect a constant
+-difference up to one field or frame period plus a small (few scan
+-lines) random error. The delay and error can be much
+-larger due to compression or transmission over an external bus when
+-the frames are not properly stamped by the sender. This is frequently
+-the case with USB cameras. Here timestamps refer to the instant the
+-field or frame was received by the driver, not the capture time. These
+-devices identify by not enumerating any video standards, see <xref
+-linkend="standard" />.</para>
+-
+-      <para>Similar limitations apply to output timestamps. Typically
+-the video hardware locks to a clock controlling the video timing, the
+-horizontal and vertical synchronization pulses. At some point in the
+-line sequence, possibly the vertical blanking, an interrupt routine
+-samples the system clock, compares against the timestamp and programs
+-the hardware to repeat the previous field or frame, or to display the
+-buffer contents.</para>
+-
+-      <para>Apart of limitations of the video device and natural
+-inaccuracies of all clocks, it should be noted system time itself is
+-not perfectly stable. It can be affected by power saving cycles,
+-warped to insert leap seconds, or even turned back or forth by the
+-system administrator affecting long term measurements. <footnote>
+-	  <para>Since no other Linux multimedia
+-API supports unadjusted time it would be foolish to introduce here. We
+-must use a universally supported clock to synchronize different media,
+-hence time of day.</para>
+-	</footnote></para>
++      <para>For timestamp types that are sampled from the system clock
++(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
++taken after the complete frame has been received (or transmitted in
++case of video output devices). For other kinds of
++timestamps this may vary depending on the driver.</para>
+ 
+     <table frame="none" pgwide="1" id="v4l2-buffer">
+       <title>struct <structname>v4l2_buffer</structname></title>
+@@ -741,19 +714,13 @@ applications when an output stream.</entry>
+ 	    <entry>struct timeval</entry>
+ 	    <entry><structfield>timestamp</structfield></entry>
+ 	    <entry></entry>
+-	    <entry><para>For input streams this is time when the first data
++	    <entry><para>For input streams this is time right after the last data
+ 	    byte was captured, as returned by the
+ 	    <function>clock_gettime()</function> function for the relevant
+ 	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
+-	    <xref linkend="buffer-flags" />. For output streams the data
+-	    will not be displayed before this time, secondary to the nominal
+-	    frame rate determined by the current video standard in enqueued
+-	    order. Applications can for example zero this field to display
+-	    frames as soon as possible. The driver stores the time at which
+-	    the first data byte was actually sent out in the
+-	    <structfield>timestamp</structfield> field. This permits
+-	    applications to monitor the drift between the video and system
+-	    clock.</para></entry>
++	    <xref linkend="buffer-flags" />. For output streams the driver
++	    stores the time at which the first data byte was actually sent out
++	    in the <structfield>timestamp</structfield> field.</para></entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>&v4l2-timecode;</entry>
+-- 
+1.7.10.4
 
