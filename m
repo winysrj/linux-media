@@ -1,51 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:51222 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755207Ab3FPPRx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jun 2013 11:17:53 -0400
+Received: from mail.kapsi.fi ([217.30.184.167]:42583 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753453Ab3FGO4S (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 7 Jun 2013 10:56:18 -0400
+Received: from dyn3-82-128-191-187.psoas.suomi.net ([82.128.191.187] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1Uky5P-0005q8-Tr
+	for linux-media@vger.kernel.org; Fri, 07 Jun 2013 17:56:15 +0300
+Message-ID: <51B1F469.90808@iki.fi>
+Date: Fri, 07 Jun 2013 17:55:37 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <1371236911-15131-17-git-send-email-g.liakhovetski@gmx.de>
-References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de> <1371236911-15131-17-git-send-email-g.liakhovetski@gmx.de>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Sun, 16 Jun 2013 20:47:31 +0530
-Message-ID: <CA+V-a8uhHq0=533NsPd=+d-6cV2_XbukxP1OFCOZTGOfEaHp3A@mail.gmail.com>
-Subject: Re: [PATCH v11 16/21] V4L2: support asynchronous subdevice registration
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Content-Type: text/plain; charset=ISO-8859-1
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.11] rtl28xxu changes
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+The following changes since commit aa4f608478acb7ed69dfcff4f3c404100b78ac49:
 
-Thanks for the patch, works fine as expected.
+   Merge branch 'for-linus' of 
+git://git.kernel.org/pub/scm/linux/kernel/git/geert/linux-m68k 
+(2013-06-03 18:09:42 +0900)
 
-On Sat, Jun 15, 2013 at 12:38 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Currently bridge device drivers register devices for all subdevices
-> synchronously, typically, during their probing. E.g. if an I2C CMOS sensor
-> is attached to a video bridge device, the bridge driver will create an I2C
-> device and wait for the respective I2C driver to probe. This makes linking
-> of devices straight forward, but this approach cannot be used with
-> intrinsically asynchronous and unordered device registration systems like
-> the Flattened Device Tree. To support such systems this patch adds an
-> asynchronous subdevice registration framework to V4L2. To use it respective
-> (e.g. I2C) subdevice drivers must register themselves with the framework.
-> A bridge driver on the other hand must register notification callbacks,
-> that will be called upon various related events.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+are available in the git repository at:
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Regards,
---Prabhakar Lad
+   git://linuxtv.org/anttip/media_tree.git rtl28xxu
+
+for you to fetch changes up to 3087c364fc03a6a1f2b7d44a79ad6db39840ce35:
+
+   rtl28xxu: correct latest device name (2013-06-05 01:43:30 +0300)
+
+----------------------------------------------------------------
+Alessandro Miceli (1):
+       Add support for Crypto Redi PC50A device (rtl2832u + FC0012 tuner)
+
+Antti Palosaari (6):
+       rtl28xxu: reimplement rtl2832u remote controller
+       rtl28xxu: remove redundant IS_ENABLED macro
+       rtl28xxu: correct some device names
+       rtl28xxu: map remote for TerraTec Cinergy T Stick Black
+       rtl28xxu: use masked reg write where possible
+       rtl28xxu: correct latest device name
+
+Miroslav Šustek (1):
+       rtl28xxu: Add USB ID for Leadtek WinFast DTV Dongle mini
+
+Rodrigo Tartajo (1):
+       rtl2832u: restore ir remote control support.
+
+  drivers/media/dvb-core/dvb-usb-ids.h    |   1 +
+  drivers/media/usb/dvb-usb-v2/dvb_usb.h  |   2 +-
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 180 
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++----------------------------------------------------------------------------
+  drivers/media/usb/dvb-usb-v2/rtl28xxu.h |   6 +++++
+  4 files changed, 88 insertions(+), 101 deletions(-)
+
+
+-- 
+http://palosaari.fi/
