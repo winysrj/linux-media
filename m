@@ -1,64 +1,155 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1888 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750818Ab3FCHkR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 03:40:17 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r537e58x064150
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 3 Jun 2013 09:40:07 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 09FC735E0049
-	for <linux-media@vger.kernel.org>; Mon,  3 Jun 2013 09:40:04 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.10] Four fixes
-Date: Mon, 3 Jun 2013 09:40:04 +0200
+Received: from mail-ve0-f169.google.com ([209.85.128.169]:34927 "EHLO
+	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753177Ab3FGK0f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:26:35 -0400
+Received: by mail-ve0-f169.google.com with SMTP id m1so2890242ves.14
+        for <linux-media@vger.kernel.org>; Fri, 07 Jun 2013 03:26:35 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306030940.04468.hverkuil@xs4all.nl>
+In-Reply-To: <CAK9yfHzwtkrpVVK6DZPN1xjanc+bNeHb5yX+Dy9rfHh50nACxg@mail.gmail.com>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-3-git-send-email-arun.kk@samsung.com>
+	<CAK9yfHzwtkrpVVK6DZPN1xjanc+bNeHb5yX+Dy9rfHh50nACxg@mail.gmail.com>
+Date: Fri, 7 Jun 2013 15:56:34 +0530
+Message-ID: <CALt3h7_ky1xkpt9nMpJDNK9uakfXwf3etnKrtaYHSAi12D1Ejg@mail.gmail.com>
+Subject: Re: [RFC v2 02/10] exynos5-fimc-is: Adds fimc-is driver core files
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This superceeds my previous 3.10 pull request (https://patchwork.linuxtv.org/patch/18657/).
+Hi Sachin,
 
-This pull request adds two core fixes: supporting V4L2_CTRL_CLASS_FM_RX as
-valid radio controls and a fix in the clips debug code in v4l2-ioctl.c which
-could cause an oops.
+Thank you for the review.
+Will address your comments in next iteration.
 
-Both bugs were discovered while working on the saa7134 overhaul.
+Regards
+Arun
 
-Regards,
-
-	Hans
-
-The following changes since commit 7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
-
-  [media] media: pci: remove duplicate checks for EPERM (2013-05-27 09:34:56 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.10d
-
-for you to fetch changes up to dd353805d7c5c4de4277f737043e187b1c260372:
-
-  v4l2-ioctl: don't print the clips list. (2013-06-03 09:35:22 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (4):
-      DocBook/media/v4l: update version number.
-      cx88: fix NULL pointer dereference
-      v4l2-ctrls: V4L2_CTRL_CLASS_FM_RX controls are also valid radio controls.
-      v4l2-ioctl: don't print the clips list.
-
- Documentation/DocBook/media/v4l/v4l2.xml |    2 +-
- drivers/media/pci/cx88/cx88-alsa.c       |    7 +++----
- drivers/media/pci/cx88/cx88-video.c      |    8 +++-----
- drivers/media/v4l2-core/v4l2-ctrls.c     |    2 ++
- drivers/media/v4l2-core/v4l2-ioctl.c     |   47 +++++++++++++++++++++--------------------------
- 5 files changed, 30 insertions(+), 36 deletions(-)
+On Thu, Jun 6, 2013 at 10:50 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> Hi Arun,
+>
+> On 31 May 2013 18:33, Arun Kumar K <arun.kk@samsung.com> wrote:
+>> This driver is for the FIMC-IS IP available in Samsung Exynos5
+>> SoC onwards. This patch adds the core files for the new driver.
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+>> ---
+> [snip]
+>
+>> +
+>> +static void fimc_is_clk_put(struct fimc_is *is)
+>> +{
+>> +       int i;
+>> +
+>> +       for (i = 0; i < IS_CLK_MAX_NUM; i++) {
+>> +               if (IS_ERR_OR_NULL(is->clock[i]))
+>
+> You should not check for NULL here. Instead initialize the clocks to
+> some error value (like  "is->clock[i] =  ERR_PTR(-EINVAL);" )
+> and use IS_ERR only.
+>
+>> +                       continue;
+>> +               clk_unprepare(is->clock[i]);
+>> +               clk_put(is->clock[i]);
+>> +               is->clock[i] = NULL;
+>> +       }
+>> +}
+>> +
+>> +static int fimc_is_clk_get(struct fimc_is *is)
+>> +{
+>> +       struct device *dev = &is->pdev->dev;
+>> +       int i, ret;
+>> +
+>> +       for (i = 0; i < IS_CLK_MAX_NUM; i++) {
+>> +               is->clock[i] = clk_get(dev, fimc_is_clock_name[i]);
+>> +               if (IS_ERR(is->clock[i]))
+>> +                       goto err;
+>> +               ret = clk_prepare(is->clock[i]);
+>> +               if (ret < 0) {
+>> +                       clk_put(is->clock[i]);
+>> +                       is->clock[i] = NULL;
+>
+> is->clock[i] =  ERR_PTR(-EINVAL);
+>
+>> +                       goto err;
+>> +               }
+>> +       }
+>> +       return 0;
+>> +err:
+>> +       fimc_is_clk_put(is);
+>> +       pr_err("Failed to get clock: %s\n", fimc_is_clock_name[i]);
+>> +       return -ENXIO;
+>> +}
+>> +
+>> +static int fimc_is_clk_cfg(struct fimc_is *is)
+>> +{
+>> +       int ret;
+>> +
+>> +       ret = fimc_is_clk_get(is);
+>> +       if (ret)
+>> +               return ret;
+>> +
+>> +       /* Set rates */
+>> +       ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV0], 200 * 1000000);
+>> +       ret |= clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV1], 100 * 1000000);
+>> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIV0], 134 * 1000000);
+>> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIV1], 68 * 1000000);
+>> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIVMPWM], 34 * 1000000);
+>> +
+>> +       if (ret)
+>> +               return -EINVAL;
+>> +
+>> +       return 0;
+>> +}
+>> +
+>> +static int fimc_is_probe(struct platform_device *pdev)
+>> +{
+>> +       struct device *dev = &pdev->dev;
+>> +       struct resource res;
+>> +       struct fimc_is *is;
+>> +       struct pinctrl *pctrl;
+>> +       void __iomem *regs;
+>> +       struct device_node *node;
+>> +       int irq, ret;
+>> +
+>> +       pr_debug("FIMC-IS Probe Enter\n");
+>> +
+>> +       if (!pdev->dev.of_node)
+>> +               return -ENODEV;
+>> +
+>> +       is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
+>> +       if (!is)
+>> +               return -ENOMEM;
+>> +
+>> +       is->pdev = pdev;
+>> +
+>> +       ret = of_address_to_resource(dev->of_node, 0, &res);
+>> +       if (ret < 0)
+>> +               return ret;
+>> +
+>> +       regs = devm_ioremap_resource(dev, &res);
+>> +       if (regs == NULL) {
+>
+> Please use if(IS_ERR(regs))
+>
+>> +               dev_err(dev, "Failed to obtain io memory\n");
+>
+> This is not needed as devm_ioremap_resource prints the appropriate
+> error messages.
+>
+>> +               return -ENOENT;
+>
+> return PTR_ERR(regs);
+>
+> Don't forget to include <linux/err.h> for using PTR_ERR() .
+>
+> --
+> With warm regards,
+> Sachin
