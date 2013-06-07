@@ -1,34 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.15.15]:63357 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754131Ab3FAOKk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Jun 2013 10:10:40 -0400
-Received: from mailout-de.gmx.net ([10.1.76.10]) by mrigmx.server.lan
- (mrigmx001) with ESMTP (Nemesis) id 0MeNJB-1V3VU81TrT-00QDAt for
- <linux-media@vger.kernel.org>; Sat, 01 Jun 2013 16:10:39 +0200
-Message-ID: <51AA00DD.4020201@gmx.de>
-Date: Sat, 01 Jun 2013 16:10:37 +0200
-From: Torsten Seyffarth <t.seyffarth@gmx.de>
-MIME-Version: 1.0
-To: poma <pomidorabelisima@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: Cinergy TStick RC rev.3 (rtl2832u) only 4 programs
-References: <51A73A88.9000601@gmx.de> <51A76FCA.3010803@gmail.com> <51A78CA5.5040502@gmx.de> <51A7AD71.4010403@gmail.com>
-In-Reply-To: <51A7AD71.4010403@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34189 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751958Ab3FGKfm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:35:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Cc: sakari.ailus@iki.fi, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] omap3isp: ccp2: Don't ignore the regulator_enable() return value
+Date: Fri,  7 Jun 2013 12:35:41 +0200
+Message-Id: <1370601341-5597-1-git-send-email-laurent.pinchart@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Check the return value and catch errors correctly.
 
-Am 30.05.2013 21:50, schrieb poma:
-> You've used the original driver provided by Realtek, 'dvb-usb-rtl2832'.
-> You are currently using GPL'd, 'dvb_usb_v2', 'dvb_usb_rtl28xxu' and
-> 'e4000' designed by Antti & Thomas.
->
+Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/omap3isp/ispccp2.c | 18 ++++++++++++++----
+ 1 file changed, 14 insertions(+), 4 deletions(-)
 
-So I will try to find another useful option for this stick.
-How do I prevent similar problems with the next stick I buy?
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index c5d84c9..fc074dd 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -158,13 +158,17 @@ static void ccp2_pwr_cfg(struct isp_ccp2_device *ccp2)
+  * @ccp2: pointer to ISP CCP2 device
+  * @enable: enable/disable flag
+  */
+-static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
++static int ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
+ {
+ 	struct isp_device *isp = to_isp_device(ccp2);
++	int ret;
+ 	int i;
+ 
+-	if (enable && ccp2->vdds_csib)
+-		regulator_enable(ccp2->vdds_csib);
++	if (enable && ccp2->vdds_csib) {
++		ret = regulator_enable(ccp2->vdds_csib);
++		if (ret < 0)
++			return ret;
++	}
+ 
+ 	/* Enable/Disable all the LCx channels */
+ 	for (i = 0; i < CCP2_LCx_CHANS_NUM; i++)
+@@ -179,6 +183,8 @@ static void ccp2_if_enable(struct isp_ccp2_device *ccp2, u8 enable)
+ 
+ 	if (!enable && ccp2->vdds_csib)
+ 		regulator_disable(ccp2->vdds_csib);
++
++	return 0;
+ }
+ 
+ /*
+@@ -851,7 +857,11 @@ static int ccp2_s_stream(struct v4l2_subdev *sd, int enable)
+ 		ccp2_print_status(ccp2);
+ 
+ 		/* Enable CSI1/CCP2 interface */
+-		ccp2_if_enable(ccp2, 1);
++		ret = ccp2_if_enable(ccp2, 1);
++		if (ret < 0) {
++			omap3isp_csiphy_release(ccp2->phy);
++			return ret;
++		}
+ 		break;
+ 
+ 	case ISP_PIPELINE_STREAM_SINGLESHOT:
+-- 
+Regards,
 
-Best
-Torsten
+Laurent Pinchart
+
