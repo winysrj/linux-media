@@ -1,172 +1,202 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:37863 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830Ab3FXWF5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 18:05:57 -0400
-Received: by mail-bk0-f41.google.com with SMTP id jc3so4473416bkc.28
-        for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 15:05:55 -0700 (PDT)
-Message-ID: <51C8C2C0.4070904@gmail.com>
-Date: Tue, 25 Jun 2013 00:05:52 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1936 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750878Ab3FGJYp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 05:24:45 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] v4l2: remove g_chip_ident where it is easy to do so.
+Date: Fri, 7 Jun 2013 11:24:18 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Hans de Goede <hdegoede@redhat.com>,
+	Andy Walls <awalls@md.metrocast.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Steven Toth <stoth@kernellabs.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>,
+	Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	Jonathan Corbet <corbet@lwn.net>
+References: <201305231336.10889.hverkuil@xs4all.nl> <Pine.LNX.4.64.1306071100080.11277@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1306071100080.11277@axis700.grange>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC] Support for events with a large payload
-References: <201305131414.43685.hverkuil@xs4all.nl> <201306190832.36016.hverkuil@xs4all.nl> <20130622224657.GI2064@valkosipuli.retiisi.org.uk> <201306241457.34274.hverkuil@xs4all.nl>
-In-Reply-To: <201306241457.34274.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306071124.18581.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+On Fri June 7 2013 11:06:50 Guennadi Liakhovetski wrote:
+> Hi Hans
+> 
+> On Thu, 23 May 2013, Hans Verkuil wrote:
+> 
+> > With the introduction in 3.10 of the new superior VIDIOC_DBG_G_CHIP_INFO
+> > ioctl there is no longer any need for the DBG_G_CHIP_IDENT ioctl or the
+> > v4l2-chip-ident.h header.
+> > 
+> > Remove it in those bridge drivers where it is easy to do so.
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> 
+> [snip]
+> 
+> >  drivers/media/platform/sh_vou.c                  |   31 ----------
+> >  drivers/media/platform/soc_camera/soc_camera.c   |   34 -----------
+> 
+> Ok, I'll bite :) First, obviously, I don't think it's good to do two 
+> things in one patch with only one of them mentioned in the patch 
+> description. I'm talking about removal of .vidioc_g_register() / 
+> .vidioc_s_register() in _some_ of the drivers, that are touched here, 
+> notably in sh_vou.c and soc_camera.c. I think I read we want to remove 
+> those too, but I'm not sure what the exact status of that work is? 
+> Besides, to do that I'd rather accompany that change with the removal of 
+> the respective subdev operations from, say, soc-camera subdevice drivers.
 
-On 06/24/2013 02:57 PM, Hans Verkuil wrote:
-> On Sun June 23 2013 00:46:57 Sakari Ailus wrote:
->> On Wed, Jun 19, 2013 at 08:32:35AM +0200, Hans Verkuil wrote:
->>> On Tue June 18 2013 23:22:33 Laurent Pinchart wrote:
->>>> On Friday 07 June 2013 00:38:04 Sakari Ailus wrote:
->>>>> On Mon, May 13, 2013 at 02:14:43PM +0200, Hans Verkuil wrote:
->>>>>> Currently the event API allows for a payload of up to 64 bytes. Sometimes
->>>>>> we would like to pass larger payloads to userspace such as metadata
->>>>>> associated with a particular video stream.
->>>>>>
->>>>>> A typical example of that would be object detection events.
->>>>>>
->>>>>> This RFC describes one approach for doing this.
->>>>>>
->>>>>> The event framework has the nice property of being able to use from within
->>>>>> interrupts. Copying large payloads does not fit into that framework, so
->>>>>> such payloads should be adminstrated separately.
+I'm not removing any functionality. Starting with 3.10 the v4l2 core handles
+g/s_register calls to subdevices directly: by using V4L2_CHIP_MATCH_SUBDEV
+you can call those ops for the given subdev.
 
-But does it really need to be reflected in user space that much, i.e. by
-introducing a separate ioctl for de-queueing the payload ?
+In the past this was not possible: the bridge driver had to have support for
+g/s_register and forward it to the subdevs. The reason was historical: when
+this API was added subdevices didn't exist yet, so this was the only way to
+implement it.
 
->>>>>> In addition, I wouldn't allow large payloads to be filled in from
->>>>>> interrupt context: a worker queue would be much more appropriate.
->>>>>
->>>>> How large really is "large"? 65 bytes? 64 kiB?
->>>
->>> More than 64 bytes, which is what v4l2_event supports today.
+In the case of soc-camera and sh_vou the g/s_register ioctls only forward
+it to their subdevs, without handling g/s_register for the bridge driver
+itself. So there is no reason anymore to keep them as they literally no
+longer do anything useful.
 
-This seems some artificial distinction which is likely inaccurate across
-various systems. For many of them there is not much difference whether
-we copy 64 B or 1 kB. Of course it have to be dealt in the kernel from
-what context events of what size are passed from a device driver to the
-v4l2-core. But once the event object has been queued in the core it
-is not really relevant from what context it has been queued, is it ?
+I will extend the commit message though:
 
->>> In general events have no or small payloads. So for the majority 64 bytes
->>> is enough.
->>>
->>>>>
->>>>> The newer CPUs tend to be faster and faster and the same applies to memory.
->>>>> I guess threaded interrupt handlers are still nice. But using a mutex in
->>>>> order to serialise access to the struct will force drivers to use threaded
->>>>> interrupt handlers should they want to generate large events.
->>>
->>> But there are still lots of embedded systems out there that are not fast. Or
->>> that run at reduced frequency to preserve power, etc., etc.
+"With the introduction in 3.10 of the new superior VIDIOC_DBG_G_CHIP_INFO
+ioctl there is no longer any need for the DBG_G_CHIP_IDENT ioctl or the
+v4l2-chip-ident.h header.
 
-Again, IMHO it's not the API design that should make the border, rather
-a driver for a particular device/system, provided with a non-blocking API
-for small/fast events and with a blocking one for the larger payload events.
+Remove it in those bridge drivers where it is easy to do so.
 
->>> Interrupts should be fast, and 64 bytes seems a reasonable limit to me.
-
->>>>>> Note that the event API is only useful for relatively low-bandwidth data
->>>>>> since the data is always copied. When dealing with high-bandwidth data the
->>>>>> data should either be a separate plane or become a special stream I/O
->>>>>> buffer type.
->>>>>>
->>>>>> The userspace API enhancements in order to achieve this would be the
->>>>>> following:
->>>>>>
->>>>>> - Any event that has a large payload would specify a payload_sequence
->>>>>>    counter and a payload size value (in bytes).
->>>>>>
->>>>>> - A new VIDIOC_DQEVENT_PAYLOAD ioctl would be added which passes the event
->>>>>>    type, the payload_sequence counter and a pointer to a buffer to the
->>>>>>    kernel, and the payload is returned, or an error is returned if the
->>>>>>    payload data is no longer available.
->>>>>
->>>>> Do you think we should have a separate IOCTL for this? The downside is that
->>>>> to dequeue events, the application would need to try both in the worst case
->>>>> just to obtain an event.
-
-Yes, I'm also not convinced doubling the number of ioctls and adding all
-complexity related with matching an event and the payload is a good 
-approach.
-The system has more data to deal with and we're complicating the API and 
-adding
-more overhead for this case ?
-
->>>>> I think it'd be nicer to be able to fit that into the same IOCTL. There are
->>>>> plenty of reserved fields and, actually, the event data as well: we could
->>>>> consider the large-payload event a meta-event which would contain the
->>>>> required information to pass the event data to the user space. The type of
->>>>> such an event could be V4L2_EVENT_LARGE, for instance.
->>>>
->>>> The problem is that userspace doesn't know in advance how much memory it would
->>>> need to allocate to store the event payload. Using two ioctls allow retrieving
->>>> the size first, and then the payload. We could work around the problem by
->>>> passing the maximum size to userspace and forcing preallocation of large
->>>> enough buffers.
->>>
->>> The problem is also that you don't know what event you will get when calling
->>> DQEVENT. So you would have to figure out the maximum of the payload sizes of all
->>> subscribed events which is rather awkward.
->>
->> Is it? The application knows which events it has subscribed, and the maximum
->> event size is the maximum of that of maximum of different event types.
-
-I side Sakari here. Since we cannot pass the information about a payload 
-buffer
-size to the kernel in same ioctl it looks acceptable to me to have user 
-space
-provided with an API to retrieve the maximum event's payload size, 
-preallocating
-the buffers and using them when de-queueing any event.
-
-Also, couldn't an application subscribe to "large payload" event(s) on 
-one file
-handle and to any other events, like currently supported, on a separate 
-file
-handle ?
-
->>>>>> Optional enhancements:
->>>>>>
->>>>>> - Have VIDIOC_SUBSCRIBE_EVENT return the maximum payload size (lets apps
->>>>>>    preallocate payload memory, but it might be overkill).
->>>>>
->>>>> Why so? We could use a reserved field as well. The size would be zero if the
->>>>> maximum would be less than 64.
->>>
->>> I'm undecided here. Implementing support for this in an application is probably
->>> the best way to discover whether or not it is useful to supply the maximum
->>> payload size to the user. I suspect that this is actually useful.
->>
->> I agree. Otherwise the application would have to figure it out through other
->> ways which are less generic and also more difficult. On the other hand, the
->> maximum event size could be dependent on unrelated parameters, such as image
->> size. If the user changes the image size without changing the event
->> subscription this could be a problem. (Well, there's an obvious solution,
->> too, if we run into this: provide an event on it, just as on control
->> parameters. :-))
-
-Oops, that might be indeed a bit of a problem. But first someone needs 
-to come
-up with such a flexible payload event... Just poking to see if there is 
-anyone
-already waiting with such one out there... :)
-
-> A meta-event. You're evil :-)
->
-> I do think that in practice there is always an upper worst case bound. Although
-> it a probably a good idea to allow for a case where no such bound can be given.
+Any g/s_register ioctls that just forward the ioctl to their subdevs are
+removed as well, since that functionality is now handled by the v4l2 core.
+It only makes sense to implement g/s_register ioctls in a bridge driver if
+it can actually get/set its own registers."
 
 Regards,
-Sylwester
+
+	Hans
+
+> 
+> [snip]
+> 
+> > diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+> > index 7d02350..fa8ae72 100644
+> > --- a/drivers/media/platform/sh_vou.c
+> > +++ b/drivers/media/platform/sh_vou.c
+> > @@ -1248,32 +1248,6 @@ static unsigned int sh_vou_poll(struct file *file, poll_table *wait)
+> >  	return res;
+> >  }
+> >  
+> > -static int sh_vou_g_chip_ident(struct file *file, void *fh,
+> > -				   struct v4l2_dbg_chip_ident *id)
+> > -{
+> > -	struct sh_vou_device *vou_dev = video_drvdata(file);
+> > -
+> > -	return v4l2_device_call_until_err(&vou_dev->v4l2_dev, 0, core, g_chip_ident, id);
+> > -}
+> > -
+> > -#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > -static int sh_vou_g_register(struct file *file, void *fh,
+> > -				 struct v4l2_dbg_register *reg)
+> > -{
+> > -	struct sh_vou_device *vou_dev = video_drvdata(file);
+> > -
+> > -	return v4l2_device_call_until_err(&vou_dev->v4l2_dev, 0, core, g_register, reg);
+> > -}
+> > -
+> > -static int sh_vou_s_register(struct file *file, void *fh,
+> > -				 const struct v4l2_dbg_register *reg)
+> > -{
+> > -	struct sh_vou_device *vou_dev = video_drvdata(file);
+> > -
+> > -	return v4l2_device_call_until_err(&vou_dev->v4l2_dev, 0, core, s_register, reg);
+> > -}
+> > -#endif
+> > -
+> >  /* sh_vou display ioctl operations */
+> >  static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
+> >  	.vidioc_querycap        	= sh_vou_querycap,
+> > @@ -1292,11 +1266,6 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
+> >  	.vidioc_cropcap			= sh_vou_cropcap,
+> >  	.vidioc_g_crop			= sh_vou_g_crop,
+> >  	.vidioc_s_crop			= sh_vou_s_crop,
+> > -	.vidioc_g_chip_ident		= sh_vou_g_chip_ident,
+> > -#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > -	.vidioc_g_register		= sh_vou_g_register,
+> > -	.vidioc_s_register		= sh_vou_s_register,
+> > -#endif
+> >  };
+> >  
+> >  static const struct v4l2_file_operations sh_vou_fops = {
+> > diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> > index eea832c..68efade 100644
+> > --- a/drivers/media/platform/soc_camera/soc_camera.c
+> > +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> > @@ -1036,35 +1036,6 @@ static int soc_camera_s_parm(struct file *file, void *fh,
+> >  	return -ENOIOCTLCMD;
+> >  }
+> >  
+> > -static int soc_camera_g_chip_ident(struct file *file, void *fh,
+> > -				   struct v4l2_dbg_chip_ident *id)
+> > -{
+> > -	struct soc_camera_device *icd = file->private_data;
+> > -	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> > -
+> > -	return v4l2_subdev_call(sd, core, g_chip_ident, id);
+> > -}
+> > -
+> > -#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > -static int soc_camera_g_register(struct file *file, void *fh,
+> > -				 struct v4l2_dbg_register *reg)
+> > -{
+> > -	struct soc_camera_device *icd = file->private_data;
+> > -	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> > -
+> > -	return v4l2_subdev_call(sd, core, g_register, reg);
+> > -}
+> > -
+> > -static int soc_camera_s_register(struct file *file, void *fh,
+> > -				 const struct v4l2_dbg_register *reg)
+> > -{
+> > -	struct soc_camera_device *icd = file->private_data;
+> > -	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+> > -
+> > -	return v4l2_subdev_call(sd, core, s_register, reg);
+> > -}
+> > -#endif
+> > -
+> >  static int soc_camera_probe(struct soc_camera_device *icd);
+> >  
+> >  /* So far this function cannot fail */
+> > @@ -1495,11 +1466,6 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
+> >  	.vidioc_s_selection	 = soc_camera_s_selection,
+> >  	.vidioc_g_parm		 = soc_camera_g_parm,
+> >  	.vidioc_s_parm		 = soc_camera_s_parm,
+> > -	.vidioc_g_chip_ident     = soc_camera_g_chip_ident,
+> > -#ifdef CONFIG_VIDEO_ADV_DEBUG
+> > -	.vidioc_g_register	 = soc_camera_g_register,
+> > -	.vidioc_s_register	 = soc_camera_s_register,
+> > -#endif
+> >  };
+> >  
+> >  static int video_dev_create(struct soc_camera_device *icd)
+> 
+> Thanks
+> Guennadi
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
