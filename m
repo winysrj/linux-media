@@ -1,58 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43601 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756776Ab3FSSdV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jun 2013 14:33:21 -0400
-Date: Wed, 19 Jun 2013 19:29:25 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Inki Dae <daeinki@gmail.com>
-Cc: Lucas Stach <l.stach@pengutronix.de>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	YoungJun Cho <yj44.cho@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"myungjoo.ham" <myungjoo.ham@samsung.com>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-	framework
-Message-ID: <20130619182925.GL2718@n2100.arm.linux.org.uk>
-References: <20130617182127.GM2718@n2100.arm.linux.org.uk> <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com> <20130618084308.GU2718@n2100.arm.linux.org.uk> <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com> <1371548849.4276.6.camel@weser.hi.pengutronix.de> <008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com> <1371637326.4230.24.camel@weser.hi.pengutronix.de> <00ae01ce6cd9$f4834630$dd89d290$%dae@samsung.com> <1371645247.4230.41.camel@weser.hi.pengutronix.de> <CAAQKjZNJD4HpnJQ7iE+Gez36066M6U0YQeUEdA0+UcSOKqeghg@mail.gmail.com>
+Received: from moutng.kundenserver.de ([212.227.126.187]:63428 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752540Ab3FGJgQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 05:36:16 -0400
+Date: Fri, 7 Jun 2013 11:36:00 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 03/13] sh_vou: remove current_norm
+In-Reply-To: <1370252210-4994-4-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1306071134590.11277@axis700.grange>
+References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+ <1370252210-4994-4-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAQKjZNJD4HpnJQ7iE+Gez36066M6U0YQeUEdA0+UcSOKqeghg@mail.gmail.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 20, 2013 at 12:10:04AM +0900, Inki Dae wrote:
-> On the other hand, the below shows how we could enhance the conventional
-> way with my approach (just example):
-> 
-> CPU -> DMA,
->         ioctl(qbuf command)              ioctl(streamon)
->               |                                               |
->               |                                               |
->         qbuf  <- dma_buf_sync_get   start streaming <- syncpoint
-> 
-> dma_buf_sync_get just registers a sync buffer(dmabuf) to sync object. And
-> the syncpoint is performed by calling dma_buf_sync_lock(), and then DMA
-> accesses the sync buffer.
-> 
-> And DMA -> CPU,
->         ioctl(dqbuf command)
->               |
->               |
->         dqbuf <- nothing to do
-> 
-> Actual syncpoint is when DMA operation is completed (in interrupt handler):
-> the syncpoint is performed by calling dma_buf_sync_unlock().
-> Hence,  my approach is to move the syncpoints into just before dma access
-> as long as possible.
+Hi Hans
 
-What you've just described does *not* work on architectures such as
-ARMv7 which do speculative cache fetches from memory at any time that
-that memory is mapped with a cacheable status, and will lead to data
-corruption.
+On Mon, 3 Jun 2013, Hans Verkuil wrote:
+
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The current_norm field is deprecated and is replaced by g_std. This driver
+> already implements g_std, so just remove current_norm.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Would you like to pull this via your tree? In that case
+
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Otherwise I can easily take it via mine.
+
+Thanks
+Guennadi
+
+> ---
+>  drivers/media/platform/sh_vou.c |    3 +--
+>  1 file changed, 1 insertion(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
+> index 7d02350..84625fa 100644
+> --- a/drivers/media/platform/sh_vou.c
+> +++ b/drivers/media/platform/sh_vou.c
+> @@ -1313,7 +1313,6 @@ static const struct video_device sh_vou_video_template = {
+>  	.fops		= &sh_vou_fops,
+>  	.ioctl_ops	= &sh_vou_ioctl_ops,
+>  	.tvnorms	= V4L2_STD_525_60, /* PAL only supported in 8-bit non-bt656 mode */
+> -	.current_norm	= V4L2_STD_NTSC_M,
+>  	.vfl_dir	= VFL_DIR_TX,
+>  };
+>  
+> @@ -1352,7 +1351,7 @@ static int sh_vou_probe(struct platform_device *pdev)
+>  	pix = &vou_dev->pix;
+>  
+>  	/* Fill in defaults */
+> -	vou_dev->std		= sh_vou_video_template.current_norm;
+> +	vou_dev->std		= V4L2_STD_NTSC_M;
+>  	rect->left		= 0;
+>  	rect->top		= 0;
+>  	rect->width		= VOU_MAX_IMAGE_WIDTH;
+> -- 
+> 1.7.10.4
+> 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
