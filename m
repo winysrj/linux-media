@@ -1,72 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:48870 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030215Ab3FTLzh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 07:55:37 -0400
-Date: Thu, 20 Jun 2013 13:55:32 +0200
-From: Ingo Molnar <mingo@kernel.org>
-To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
-	peterz@infradead.org, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
-	tglx@linutronix.de, linux-media@vger.kernel.org
-Subject: Re: [PATCH v5 2/7] mutex: add support for wound/wait style locks, v5
-Message-ID: <20130620115532.GA12479@gmail.com>
-References: <20130620112811.4001.86934.stgit@patser>
- <20130620113111.4001.47384.stgit@patser>
+Received: from moutng.kundenserver.de ([212.227.126.186]:56609 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753350Ab3FGOFe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 10:05:34 -0400
+Received: from localhost (localhost [127.0.0.1])
+	by axis700.grange (Postfix) with ESMTP id E4D4140BB6
+	for <linux-media@vger.kernel.org>; Fri,  7 Jun 2013 16:05:32 +0200 (CEST)
+Date: Fri, 7 Jun 2013 16:05:32 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [GIT PULL] soc-camera: 3.11 minor updates
+Message-ID: <Pine.LNX.4.64.1306071604180.11277@axis700.grange>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130620113111.4001.47384.stgit@patser>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Mauro
 
-* Maarten Lankhorst <maarten.lankhorst@canonical.com> wrote:
+These are just a couple of minor updates for 3.11:
 
-> Changes since RFC patch v1:
->  - Updated to use atomic_long instead of atomic, since the reservation_id was a long.
->  - added mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow
->  - removed mutex_locked_set_reservation_id (or w/e it was called)
-> Changes since RFC patch v2:
->  - remove use of __mutex_lock_retval_arg, add warnings when using wrong combination of
->    mutex_(,reserve_)lock/unlock.
-> Changes since v1:
->  - Add __always_inline to __mutex_lock_common, otherwise reservation paths can be
->    triggered from normal locks, because __builtin_constant_p might evaluate to false
->    for the constant 0 in that case. Tests for this have been added in the next patch.
->  - Updated documentation slightly.
-> Changes since v2:
->  - Renamed everything to ww_mutex. (mlankhorst)
->  - Added ww_acquire_ctx and ww_class. (mlankhorst)
->  - Added a lot of checks for wrong api usage. (mlankhorst)
->  - Documentation updates. (danvet)
-> Changes since v3:
->  - Small documentation fixes (robclark)
->  - Memory barrier fix (danvet)
-> Changes since v4:
->  - Remove ww_mutex_unlock_single and ww_mutex_lock_single.
->  - Rename ww_mutex_trylock_single to ww_mutex_trylock.
->  - Remove separate implementations of ww_mutex_lock_slow*, normal
->    functions can be used. Inline versions still exist for extra
->    debugging.
->  - Cleanup unneeded memory barriers, add comment to the remaining
->    smp_mb().
+The following changes since commit 7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
 
-That's not a proper changelog. It should be a short description of what it 
-does, possibly referring to the new Documentation/ww-mutex-design.txt file 
-for more details.
+  [media] media: pci: remove duplicate checks for EPERM (2013-05-27 09:34:56 -0300)
 
-> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
-> Signed-off-by: Rob Clark <robdclark@gmail.com>
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.11-1
 
-That's not a valid signoff chain: the last signoff in the chain is the 
-person sending me the patch. The first signoff is the person who wrote the 
-patch. The other two gents should be Acked-by I suspect?
+Guennadi Liakhovetski (1):
+      V4L2: soc-camera: remove unneeded include path
 
-Thanks,
+Paul Bolle (1):
+      soc-camera: remove two unused configs
 
-	Ingo
+Sachin Kamat (6):
+      soc_camera: Constify dev_pm_ops in mt9t031.c
+      soc_camera: Fix checkpatch warning in ov9640.c
+      soc_camera/sh_mobile_csi2: Remove redundant platform_set_drvdata()
+      soc_camera_platform: Remove redundant platform_set_drvdata()
+      soc_camera: mt9t112: Remove empty function
+      soc_camera: tw9910: Remove empty function
+
+Thomas Meyer (1):
+      media: Cocci spatch "ptr_ret.spatch"
+
+ drivers/media/i2c/soc_camera/mt9t031.c             |    2 +-
+ drivers/media/i2c/soc_camera/mt9t112.c             |    6 ------
+ drivers/media/i2c/soc_camera/ov9640.c              |    2 +-
+ drivers/media/i2c/soc_camera/tw9910.c              |    6 ------
+ drivers/media/platform/sh_veu.c                    |    5 +----
+ drivers/media/platform/soc_camera/Kconfig          |    8 --------
+ drivers/media/platform/soc_camera/Makefile         |    2 --
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |    8 +-------
+ .../platform/soc_camera/soc_camera_platform.c      |   11 +----------
+ 9 files changed, 5 insertions(+), 45 deletions(-)
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
