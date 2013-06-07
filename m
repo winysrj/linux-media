@@ -1,96 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:6318 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755632Ab3F1LBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 07:01:10 -0400
-Date: Fri, 28 Jun 2013 08:00:43 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Randy Dunlap <rdunlap@infradead.org>
-Subject: Re: [PATCH] usbtv: fix dependency
-Message-ID: <20130628080043.46dd09c0.mchehab@redhat.com>
-In-Reply-To: <201306281024.15428.hverkuil@xs4all.nl>
-References: <201306281024.15428.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:39849 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202Ab3FGK1g (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:27:36 -0400
+Received: by mail-vc0-f175.google.com with SMTP id hr11so2665406vcb.34
+        for <linux-media@vger.kernel.org>; Fri, 07 Jun 2013 03:27:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAK9yfHxRtY=s42TpiPrWeb-+gbtoY9tp30x-u3TvdwXwyQu31g@mail.gmail.com>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-5-git-send-email-arun.kk@samsung.com>
+	<CAK9yfHxRtY=s42TpiPrWeb-+gbtoY9tp30x-u3TvdwXwyQu31g@mail.gmail.com>
+Date: Fri, 7 Jun 2013 15:57:35 +0530
+Message-ID: <CALt3h79HXcHgX3B4mOpdo9+LK8vzp2M+f5oE5BAxtKsEQV4yGw@mail.gmail.com>
+Subject: Re: [RFC v2 04/10] exynos5-fimc-is: Adds the register definition and
+ context header
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sachin Kamat <sachin.kamat@linaro.org>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 28 Jun 2013 10:24:15 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Hi Sachin,
 
-> This fixes a dependency problem as found by Randy Dunlap:
-> 
-> https://lkml.org/lkml/2013/6/27/501
-> 
-> Mauro, is there any reason for any V4L2 driver to depend on VIDEO_DEV instead of
-> just VIDEO_V4L2?
-> 
-> Some drivers depend on VIDEO_DEV, some on VIDEO_V4L2, some on both. It's all
-> pretty chaotic.
+Its a leftover from old PMU register access which is now modified
+to be DT based. Will remove it.
 
-It should be noticed that, despite its name, this config is actually a
-joint dependency of VIDEO_DEV and I2C that will compile drivers as module
-if either I2C or VIDEO_DEV is a module:
+Thanks & Regards
+Arun
 
-	config VIDEO_V4L2
-		tristate
-		depends on (I2C || I2C=n) && VIDEO_DEV
-		default (I2C || I2C=n) && VIDEO_DEV
-
-So, a V4L2 device that doesn't have any I2C device doesn't need to depend
-on VIDEO_V4L2. That includes, for example, reversed-engineered webcam
-drivers where the sensor code is inside the driver and a few capture-only
-device drivers.
-
-It should be noticed, however, that, on several places, the need of adding
-a "depends on VIDEO_V4L2" is not needed, as, on some places, the syntax
-is:
-
-	if VIDEO_V4L2
-
-	config "driver foo"
-	...
-
-	endif
-
-Btw, it could make sense to rename it to something clearer, like
-VIDEO_DEV_AND_I2C and define it as:
-
-	config VIDEO_DEV_AND_I2C
-		tristate
-		depends on I2C && VIDEO_DEV
-		default y
-
-Or, even better, to just get rid of it and explicitly add I2C on all
-places where it is used.
-
-
-Regards,
-Mauro
-
-> 
-> Regards,
-> 
-> 	Hans
-> 
-> diff --git a/drivers/media/usb/usbtv/Kconfig b/drivers/media/usb/usbtv/Kconfig
-> index 8864436..7c5b860 100644
-> --- a/drivers/media/usb/usbtv/Kconfig
-> +++ b/drivers/media/usb/usbtv/Kconfig
-> @@ -1,6 +1,6 @@
->  config VIDEO_USBTV
->          tristate "USBTV007 video capture support"
-> -        depends on VIDEO_DEV
-> +        depends on VIDEO_V4L2
->          select VIDEOBUF2_VMALLOC
->  
->          ---help---
-
-
--- 
-
-Cheers,
-Mauro
+On Thu, Jun 6, 2013 at 11:54 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+> On 31 May 2013 18:33, Arun Kumar K <arun.kk@samsung.com> wrote:
+>> This patch adds the register definition file for the fimc-is driver
+>> and also the header file containing the main context for the driver.
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+>> ---
+>>  drivers/media/platform/exynos5-is/fimc-is-regs.h |  107 +++++++++++++++
+>>  drivers/media/platform/exynos5-is/fimc-is.h      |  151 ++++++++++++++++++++++
+>>  2 files changed, 258 insertions(+)
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-regs.h
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is.h
+>>
+>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-regs.h b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+>> new file mode 100644
+>> index 0000000..d00df7b
+>> --- /dev/null
+>> +++ b/drivers/media/platform/exynos5-is/fimc-is-regs.h
+>> @@ -0,0 +1,107 @@
+>> +/*
+>> + * Samsung Exynos5 SoC series FIMC-IS driver
+>> + *
+>> + * Copyright (c) 2013 Samsung Electronics Co., Ltd
+>> + * Arun Kumar K <arun.kk@samsung.com>
+>> + * Kil-yeon Lim <kilyeon.im@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#ifndef FIMC_IS_REGS_H
+>> +#define FIMC_IS_REGS_H
+>> +
+>> +#include <mach/map.h>
+>
+> Why do you need this?
+>
+>
+> --
+> With warm regards,
+> Sachin
