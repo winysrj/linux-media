@@ -1,51 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43312 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754939Ab3FRIqF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 04:46:05 -0400
-Date: Tue, 18 Jun 2013 09:43:08 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	'Rob Clark' <robdclark@gmail.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	'Daniel Vetter' <daniel@ffwll.ch>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-	framework
-Message-ID: <20130618084308.GU2718@n2100.arm.linux.org.uk>
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com> <1371467722-665-1-git-send-email-inki.dae@samsung.com> <51BEF458.4090606@canonical.com> <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com> <20130617133109.GG2718@n2100.arm.linux.org.uk> <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com> <20130617154237.GJ2718@n2100.arm.linux.org.uk> <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com> <20130617182127.GM2718@n2100.arm.linux.org.uk> <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3790 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752105Ab3FGJBc convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 05:01:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Jon Arne =?utf-8?q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+Subject: Re: [RFC v2 2/2] saa7115: Remove gm7113c video_std register change
+Date: Fri, 7 Jun 2013 11:01:06 +0200
+Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	mchehab@redhat.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, g.liakhovetski@gmx.de,
+	ezequiel.garcia@free-electrons.com, timo.teras@iki.fi
+References: <1370000426-3324-1-git-send-email-jonarne@jonarne.no> <1370000426-3324-3-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1370000426-3324-3-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 8BIT
+Message-Id: <201306071101.06774.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 18, 2013 at 02:27:40PM +0900, Inki Dae wrote:
-> So I'd like to ask for other DRM maintainers. How do you think about it? it
-> seems like that Intel DRM (maintained by Daniel), OMAP DRM (maintained by
-> Rob) and GEM CMA helper also have same issue Russell pointed out. I think
-> not only the above approach but also the performance is very important.
+On Fri May 31 2013 13:40:26 Jon Arne Jørgensen wrote:
+> On video std change, the driver would disable the automatic field
+> detection on the gm7113c chip, and force either 50Hz or 60Hz.
+> Don't do this any more.
 
-CMA uses coherent memory to back their buffers, though that might not be
-true of memory obtained from other drivers via dma_buf.  Plus, there is
-no support in the CMA helper for exporting or importng these buffers.
+Sorry, I'm not entirely sure what is happening here. Why would the gm7113c
+behave different in this respect compared to the saa7113?
 
-I guess Intel i915 is only used on x86, which is a coherent platform and
-requires no cache maintanence for DMA.
+One thing to remember is that the chip should never get in a mode where
+switching from e.g. NTSC to PAL on the input would change the output timings
+to the bridge chip as well to PAL. Because that might cause DMA buffer
+overruns. So if the user calls S_STD, then the bridge should always be
+certain it gets whatever std was specified.
 
-OMAP DRM does not support importing non-DRM buffers buffers back into
-DRM.  Moreover, it will suffer from the problems I described if any
-attempt is made to write to the buffer after it has been re-imported.
+I'm not sure whether this patch puts the gm7113c in such a mode, but if it
+does, then it should be redone.
 
-Lastly, I should point out that the dma_buf stuff is really only useful
-when you need to export a dma buffer from one driver and import it into
-another driver - for example to pass data from a camera device driver to
-a display device driver.  It shouldn't be used within a single driver
-as a means of passing buffers between userspace and kernel space.
+Regards,
+
+	Hans
+
+> 
+> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> ---
+>  drivers/media/i2c/saa7115.c | 26 ++------------------------
+>  1 file changed, 2 insertions(+), 24 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+> index 4a52b4d..ba18e57 100644
+> --- a/drivers/media/i2c/saa7115.c
+> +++ b/drivers/media/i2c/saa7115.c
+> @@ -479,24 +479,6 @@ static const unsigned char saa7115_cfg_50hz_video[] = {
+>  
+>  /* ============== SAA7715 VIDEO templates (end) =======  */
+>  
+> -/* ============== GM7113C VIDEO templates =============  */
+> -static const unsigned char gm7113c_cfg_60hz_video[] = {
+> -	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto detection, 0x68 = NTSC */
+> -	R_0E_CHROMA_CNTL_1, 0x07,		/* video autodetection is on */
+> -
+> -	0x00, 0x00
+> -};
+> -
+> -static const unsigned char gm7113c_cfg_50hz_video[] = {
+> -	R_08_SYNC_CNTL, 0x28,			/* 0x28 = PAL */
+> -	R_0E_CHROMA_CNTL_1, 0x07,
+> -
+> -	0x00, 0x00
+> -};
+> -
+> -/* ============== GM7113C VIDEO templates (end) =======  */
+> -
+> -
+>  static const unsigned char saa7115_cfg_vbi_on[] = {
+>  	R_80_GLOBAL_CNTL_1, 0x00,			/* reset tasks */
+>  	R_88_POWER_SAVE_ADC_PORT_CNTL, 0xd0,		/* reset scaler */
+> @@ -981,16 +963,12 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
+>  	// This works for NTSC-M, SECAM-L and the 50Hz PAL variants.
+>  	if (std & V4L2_STD_525_60) {
+>  		v4l2_dbg(1, debug, sd, "decoder set standard 60 Hz\n");
+> -		if (state->ident == V4L2_IDENT_GM7113C)
+> -			saa711x_writeregs(sd, gm7113c_cfg_60hz_video);
+> -		else
+> +		if (state->ident != V4L2_IDENT_GM7113C)
+>  			saa711x_writeregs(sd, saa7115_cfg_60hz_video);
+>  		saa711x_set_size(sd, 720, 480);
+>  	} else {
+>  		v4l2_dbg(1, debug, sd, "decoder set standard 50 Hz\n");
+> -		if (state->ident == V4L2_IDENT_GM7113C)
+> -			saa711x_writeregs(sd, gm7113c_cfg_50hz_video);
+> -		else
+> +		if (state->ident != V4L2_IDENT_GM7113C)
+>  			saa711x_writeregs(sd, saa7115_cfg_50hz_video);
+>  		saa711x_set_size(sd, 720, 576);
+>  	}
+> 
