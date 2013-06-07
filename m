@@ -1,99 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3790 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752105Ab3FGJBc convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 05:01:32 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Jon Arne =?utf-8?q?J=C3=B8rgensen?= <jonarne@jonarne.no>
-Subject: Re: [RFC v2 2/2] saa7115: Remove gm7113c video_std register change
-Date: Fri, 7 Jun 2013 11:01:06 +0200
-Cc: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	mchehab@redhat.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, g.liakhovetski@gmx.de,
-	ezequiel.garcia@free-electrons.com, timo.teras@iki.fi
-References: <1370000426-3324-1-git-send-email-jonarne@jonarne.no> <1370000426-3324-3-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1370000426-3324-3-git-send-email-jonarne@jonarne.no>
+Received: from moutng.kundenserver.de ([212.227.126.187]:49487 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751202Ab3FGJhB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 05:37:01 -0400
+Date: Fri, 7 Jun 2013 11:36:57 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 04/13] soc_camera: remove use of current_norm.
+In-Reply-To: <1370252210-4994-5-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1306071136100.11277@axis700.grange>
+References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+ <1370252210-4994-5-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 8BIT
-Message-Id: <201306071101.06774.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri May 31 2013 13:40:26 Jon Arne Jørgensen wrote:
-> On video std change, the driver would disable the automatic field
-> detection on the gm7113c chip, and force either 50Hz or 60Hz.
-> Don't do this any more.
+Hi Hans
 
-Sorry, I'm not entirely sure what is happening here. Why would the gm7113c
-behave different in this respect compared to the saa7113?
+On Mon, 3 Jun 2013, Hans Verkuil wrote:
 
-One thing to remember is that the chip should never get in a mode where
-switching from e.g. NTSC to PAL on the input would change the output timings
-to the bridge chip as well to PAL. Because that might cause DMA buffer
-overruns. So if the user calls S_STD, then the bridge should always be
-certain it gets whatever std was specified.
-
-I'm not sure whether this patch puts the gm7113c in such a mode, but if it
-does, then it should be redone.
-
-Regards,
-
-	Hans
-
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> The current_norm field is deprecated, so don't set it. Since it is set to
+> V4L2_STD_UNKNOWN which is 0 it didn't do anything anyway.
+> 
+> Also remove a few other unnecessary uses of V4L2_STD_UNKNOWN.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+I'd rather take this via my tree to avoid any conflicts, is this ok with 
+you?
+
+Thanks
+Guennadi
+
 > ---
->  drivers/media/i2c/saa7115.c | 26 ++------------------------
->  1 file changed, 2 insertions(+), 24 deletions(-)
+>  drivers/media/platform/soc_camera/soc_camera.c |    3 ---
+>  1 file changed, 3 deletions(-)
 > 
-> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-> index 4a52b4d..ba18e57 100644
-> --- a/drivers/media/i2c/saa7115.c
-> +++ b/drivers/media/i2c/saa7115.c
-> @@ -479,24 +479,6 @@ static const unsigned char saa7115_cfg_50hz_video[] = {
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index eea832c..96645e9 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -235,7 +235,6 @@ static int soc_camera_enum_input(struct file *file, void *priv,
 >  
->  /* ============== SAA7715 VIDEO templates (end) =======  */
+>  	/* default is camera */
+>  	inp->type = V4L2_INPUT_TYPE_CAMERA;
+> -	inp->std  = V4L2_STD_UNKNOWN;
+>  	strcpy(inp->name, "Camera");
 >  
-> -/* ============== GM7113C VIDEO templates =============  */
-> -static const unsigned char gm7113c_cfg_60hz_video[] = {
-> -	R_08_SYNC_CNTL, 0x68,			/* 0xBO: auto detection, 0x68 = NTSC */
-> -	R_0E_CHROMA_CNTL_1, 0x07,		/* video autodetection is on */
-> -
-> -	0x00, 0x00
-> -};
-> -
-> -static const unsigned char gm7113c_cfg_50hz_video[] = {
-> -	R_08_SYNC_CNTL, 0x28,			/* 0x28 = PAL */
-> -	R_0E_CHROMA_CNTL_1, 0x07,
-> -
-> -	0x00, 0x00
-> -};
-> -
-> -/* ============== GM7113C VIDEO templates (end) =======  */
-> -
-> -
->  static const unsigned char saa7115_cfg_vbi_on[] = {
->  	R_80_GLOBAL_CNTL_1, 0x00,			/* reset tasks */
->  	R_88_POWER_SAVE_ADC_PORT_CNTL, 0xd0,		/* reset scaler */
-> @@ -981,16 +963,12 @@ static void saa711x_set_v4lstd(struct v4l2_subdev *sd, v4l2_std_id std)
->  	// This works for NTSC-M, SECAM-L and the 50Hz PAL variants.
->  	if (std & V4L2_STD_525_60) {
->  		v4l2_dbg(1, debug, sd, "decoder set standard 60 Hz\n");
-> -		if (state->ident == V4L2_IDENT_GM7113C)
-> -			saa711x_writeregs(sd, gm7113c_cfg_60hz_video);
-> -		else
-> +		if (state->ident != V4L2_IDENT_GM7113C)
->  			saa711x_writeregs(sd, saa7115_cfg_60hz_video);
->  		saa711x_set_size(sd, 720, 480);
->  	} else {
->  		v4l2_dbg(1, debug, sd, "decoder set standard 50 Hz\n");
-> -		if (state->ident == V4L2_IDENT_GM7113C)
-> -			saa711x_writeregs(sd, gm7113c_cfg_50hz_video);
-> -		else
-> +		if (state->ident != V4L2_IDENT_GM7113C)
->  			saa711x_writeregs(sd, saa7115_cfg_50hz_video);
->  		saa711x_set_size(sd, 720, 576);
->  	}
+>  	return 0;
+> @@ -1513,11 +1512,9 @@ static int video_dev_create(struct soc_camera_device *icd)
+>  	strlcpy(vdev->name, ici->drv_name, sizeof(vdev->name));
+>  
+>  	vdev->parent		= icd->pdev;
+> -	vdev->current_norm	= V4L2_STD_UNKNOWN;
+>  	vdev->fops		= &soc_camera_fops;
+>  	vdev->ioctl_ops		= &soc_camera_ioctl_ops;
+>  	vdev->release		= video_device_release;
+> -	vdev->tvnorms		= V4L2_STD_UNKNOWN;
+>  	vdev->ctrl_handler	= &icd->ctrl_handler;
+>  	vdev->lock		= &ici->host_lock;
+>  
+> -- 
+> 1.7.10.4
 > 
+
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
