@@ -1,140 +1,30 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:64548 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752453Ab3FYKdw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 06:33:52 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MOY00KNW2OD2V40@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Jun 2013 19:33:50 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v3 6/8] [media] V4L: Add support for integer menu controls with
- standard menu items
-Date: Tue, 25 Jun 2013 16:27:13 +0530
-Message-id: <1372157835-27663-7-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
-References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-vb0-f41.google.com ([209.85.212.41]:56220 "EHLO
+	mail-vb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab3FHNY7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jun 2013 09:24:59 -0400
+Received: by mail-vb0-f41.google.com with SMTP id p13so2040405vbe.14
+        for <linux-media@vger.kernel.org>; Sat, 08 Jun 2013 06:24:59 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAOMZO5DQyeUYVdK0X0OsG51MkGjbN8d_51DW_zhVBZOHLptOQw@mail.gmail.com>
+References: <1370678120-24278-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	<CAOMZO5DQyeUYVdK0X0OsG51MkGjbN8d_51DW_zhVBZOHLptOQw@mail.gmail.com>
+Date: Sat, 8 Jun 2013 10:24:58 -0300
+Message-ID: <CAOMZO5DPkcJpHfKGUBA7uq1qjqPmz-dgBJPWG9EvkBxQG9wQvQ@mail.gmail.com>
+Subject: Re: [PATCH] mt9p031: Use bulk regulator API
+From: Fabio Estevam <festevam@gmail.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+On Sat, Jun 8, 2013 at 10:20 AM, Fabio Estevam <festevam@gmail.com> wrote:
+> On Sat, Jun 8, 2013 at 4:55 AM, Laurent Pinchart
+> <laurent.pinchart@ideasonboard.com> wrote:
+>
+>> -       if (IS_ERR(mt9p031->vaa) || IS_ERR(mt9p031->vdd) ||
+>> -           IS_ERR(mt9p031->vdd_io)) {
+>> +       ret = devm_regulator_bulk_get(&client->dev, 3, mt9p031->regulators);
 
-The patch modifies the helper function v4l2_ctrl_new_std_menu
-to accept integer menu controls with standard menu items.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- Documentation/video4linux/v4l2-controls.txt |   21 ++++++++++----------
- drivers/media/v4l2-core/v4l2-ctrls.c        |   28 ++++++++++++++++++++++++---
- 2 files changed, 36 insertions(+), 13 deletions(-)
-
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 676f873..e06e768 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -124,26 +124,27 @@ You add non-menu controls by calling v4l2_ctrl_new_std:
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 min, s32 max, u32 step, s32 def);
- 
--Menu controls are added by calling v4l2_ctrl_new_std_menu:
-+Menu and integer menu controls are added by calling v4l2_ctrl_new_std_menu:
- 
- 	struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 skip_mask, s32 def);
- 
--Or alternatively for integer menu controls, by calling v4l2_ctrl_new_int_menu:
-+Menu controls with a driver specific menu are added by calling
-+v4l2_ctrl_new_std_menu_items:
-+
-+       struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
-+                       struct v4l2_ctrl_handler *hdl,
-+                       const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
-+                       s32 skip_mask, s32 def, const char * const *qmenu);
-+
-+Integer menu controls with driver specific menu can be added by calling
-+v4l2_ctrl_new_int_menu:
- 
- 	struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 def, const s64 *qmenu_int);
- 
--Standard menu controls with a driver specific menu are added by calling
--v4l2_ctrl_new_std_menu_items:
--
--	struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
--		struct v4l2_ctrl_handler *hdl,
--		const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
--		s32 skip_mask, s32 def, const char * const *qmenu);
--
- These functions are typically called right after the v4l2_ctrl_handler_init:
- 
- 	static const s64 exp_bias_qmenu[] = {
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index fccd08b..e03a2e8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -552,6 +552,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- }
- EXPORT_SYMBOL(v4l2_ctrl_get_menu);
- 
-+/*
-+ * Returns NULL or an s64 type array containing the menu for given
-+ * control ID. The total number of the menu items is returned in @len.
-+ */
-+const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
-+{
-+	switch (id) {
-+	default:
-+		*len = 0;
-+		return NULL;
-+	};
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_get_int_menu);
-+
- /* Return the control name. */
- const char *v4l2_ctrl_get_name(u32 id)
- {
-@@ -1712,20 +1726,28 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 mask, s32 def)
- {
--	const char * const *qmenu = v4l2_ctrl_get_menu(id);
-+	const char * const *qmenu = NULL;
-+	const s64 *qmenu_int = NULL;
- 	const char *name;
- 	enum v4l2_ctrl_type type;
-+	unsigned int qmenu_int_len;
- 	s32 min;
- 	s32 step;
- 	u32 flags;
- 
- 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
--	if (type != V4L2_CTRL_TYPE_MENU) {
-+
-+	if (type == V4L2_CTRL_TYPE_MENU)
-+		qmenu = v4l2_ctrl_get_menu(id);
-+	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
-+		qmenu_int = v4l2_ctrl_get_int_menu(id, &qmenu_int_len);
-+
-+	if ((!qmenu && !qmenu_int) || (qmenu_int && max > qmenu_int_len)) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--			     0, max, mask, def, flags, qmenu, NULL, NULL);
-+			     0, max, mask, def, flags, qmenu, qmenu_int, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
- 
--- 
-1.7.9.5
-
+and you could use ARRAY_SIZE(mt9p031->regulators) instead of the hardcoded '3'.
