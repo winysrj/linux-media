@@ -1,100 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:54023 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756845Ab3FUErm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 00:47:42 -0400
-Received: by mail-pb0-f53.google.com with SMTP id xb12so7129722pbc.26
-        for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 21:47:42 -0700 (PDT)
-Date: Fri, 21 Jun 2013 13:46:59 +0900 (JST)
-Message-Id: <20130621.134659.460987965.matsu@igel.co.jp>
-To: sergei.shtylyov@cogentembedded.com
-Cc: g.liakhovetski@gmx.de, mchehab@redhat.com,
-	linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	linux-sh@vger.kernel.org, phil.edworthy@renesas.com,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
-From: Katsuya MATSUBARA <matsu@igel.co.jp>
-In-Reply-To: <201305240211.29665.sergei.shtylyov@cogentembedded.com>
-References: <201305240211.29665.sergei.shtylyov@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+Received: from mail-ve0-f178.google.com ([209.85.128.178]:42023 "EHLO
+	mail-ve0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751447Ab3FHIEb (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jun 2013 04:04:31 -0400
+MIME-Version: 1.0
+In-Reply-To: <201306071040.35174.hverkuil@xs4all.nl>
+References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com>
+ <2855590.yx9zfYZLis@avalon> <CA+V-a8vh-ttz1QQmV59fP5c3vK=1zC5QfmkHc9Du0ZAcY712Dg@mail.gmail.com>
+ <201306071040.35174.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sat, 8 Jun 2013 13:34:10 +0530
+Message-ID: <CA+V-a8vhnri3Wusk7ZrDq6M9JAKHi+hs1qJ8ru8Mdgt7bTPD0w@mail.gmail.com>
+Subject: Re: [PATCH v2 0/4] media: i2c: ths7303 cleanup
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
-Hi Sergei and Valadmir,
+On Fri, Jun 7, 2013 at 2:10 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Thu June 6 2013 12:05:38 Prabhakar Lad wrote:
+>> Hi Hans,
+>>
+>> On Sun, May 26, 2013 at 6:50 AM, Laurent Pinchart
+>> <laurent.pinchart@ideasonboard.com> wrote:
+>> > On Saturday 25 May 2013 23:09:32 Prabhakar Lad wrote:
+>> >> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> >>
+>> >> Trivial cleanup of the driver.
+>> >>
+>> >> Changes for v2:
+>> >> 1: Dropped the asynchronous probing and, OF
+>> >>    support patches will be handling them independently because of
+>> >> dependencies. 2: Arranged the patches logically so that git bisect
+>> >>    succeeds.
+>> >>
+>> >> Lad, Prabhakar (4):
+>> >>   ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
+>> >>   media: i2c: ths7303: remove init_enable option from pdata
+>> >>   media: i2c: ths7303: remove unnecessary function ths7303_setup()
+>> >>   media: i2c: ths7303: make the pdata as a constant pointer
+>> >>
+>> Can you pick up this series or do you want me to issue a pull for it ?
+>
+> I've picked it up. I kept the dm365 patch separate, but I did improve the
+> commit log a bit.
+>
+Thanks for fixing it.
 
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Date: Fri, 24 May 2013 02:11:28 +0400
-
-(snip)
-> +/* Similar to set_crop multistage iterative algorithm */
-> +static int rcar_vin_set_fmt(struct soc_camera_device *icd,
-> +			    struct v4l2_format *f)
-> +{
-> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-> +	struct rcar_vin_priv *priv = ici->priv;
-> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> +	struct rcar_vin_cam *cam = icd->host_priv;
-> +	struct v4l2_pix_format *pix = &f->fmt.pix;
-> +	struct v4l2_mbus_framefmt mf;
-> +	struct device *dev = icd->parent;
-> +	__u32 pixfmt = pix->pixelformat;
-> +	const struct soc_camera_format_xlate *xlate;
-> +	unsigned int vin_sub_width = 0, vin_sub_height = 0;
-> +	int ret;
-> +	bool can_scale;
-> +	enum v4l2_field field;
-> +	v4l2_std_id std;
-> +
-> +	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
-> +		pixfmt, pix->width, pix->height);
-> +
-> +	switch (pix->field) {
-> +	default:
-> +		pix->field = V4L2_FIELD_NONE;
-> +		/* fall-through */
-> +	case V4L2_FIELD_NONE:
-> +	case V4L2_FIELD_TOP:
-> +	case V4L2_FIELD_BOTTOM:
-> +	case V4L2_FIELD_INTERLACED_TB:
-> +	case V4L2_FIELD_INTERLACED_BT:
-> +		field = pix->field;
-> +		break;
-> +	case V4L2_FIELD_INTERLACED:
-> +		/* Query for standard if not explicitly mentioned _TB/_BT */
-> +		ret = v4l2_subdev_call(sd, video, querystd, &std);
-> +		if (ret < 0)
-> +			std = V4L2_STD_625_50;
-> +
-> +		field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
-> +						V4L2_FIELD_INTERLACED_BT;
-> +		break;
-> +	}
-
-I have tested your VIN driver with NTSC video input
-with the following two boards;
-
-1. Marzen (R-CarH1 SoC and ADV7180 video decoder)
-2. BOCK-W (R-CarM1A SoC and ML86V7667 video decoder)
-
-As a result, I have got strange captured images in the BOCK-W
-environment. The image looks that the top and bottom fields
-have been combined in wrong order.
-However, in case of Marzen, it works fine with correct images
-captured. I made sure that the driver chose the
-V4L2_FIELD_INTERLACED_BT flag for the NTSC standard video
-in the both environments.
-
-Have you seen such an iusse with the ML86V7667 driver?
-I think there may be some mismatch between the VIN
-and the ML86V7667 settings.
-
-Thanks,
----
-Katsuya Matsubara / IGEL Co., Ltd
-matsu@igel.co.jp
-
-
+Regards,
+--Prabhakar Lad
