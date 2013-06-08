@@ -1,43 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f174.google.com ([209.85.128.174]:36303 "EHLO
-	mail-ve0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757822Ab3FLRqo (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:56051 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751875Ab3FHQbs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 13:46:44 -0400
-Received: by mail-ve0-f174.google.com with SMTP id oz10so7007764veb.33
-        for <linux-media@vger.kernel.org>; Wed, 12 Jun 2013 10:46:43 -0700 (PDT)
+	Sat, 8 Jun 2013 12:31:48 -0400
+Date: Sat, 8 Jun 2013 19:31:43 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
+	k.debski@samsung.com
+Subject: Re: [PATCH v2 1/1] v4l: Document timestamp behaviour to correspond
+ to reality
+Message-ID: <20130608163142.GI3103@valkosipuli.retiisi.org.uk>
+References: <1364076274-726-1-git-send-email-sakari.ailus@iki.fi>
+ <201306071721.52331.hverkuil@xs4all.nl>
+ <21759159.gaVOrBXtYV@avalon>
 MIME-Version: 1.0
-In-Reply-To: <1371049262-5799-2-git-send-email-hverkuil@xs4all.nl>
-References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl> <1371049262-5799-2-git-send-email-hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 12 Jun 2013 23:16:23 +0530
-Message-ID: <CA+V-a8sC29FLoP1r5ZW1SvANcfrjFNS4zwHbA4Ug0xcduC2r3g@mail.gmail.com>
-Subject: Re: [REVIEWv2 PATCH 01/12] v4l2-device: check if already unregistered.
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <21759159.gaVOrBXtYV@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
 
-Thanks for the patch.  The patch looks OK expect for the small typo below in
-the commit message.
+Hi Laurent,
 
-On Wed, Jun 12, 2013 at 8:30 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
->
-> It was possible to unregister an already unregistered v4l2_device struct.
-> Add a check whether that already happened and just return if that was
-> the case.
->
-> Also refure to register a v4l2_device if both the dev and name fields are
+On Sat, Jun 08, 2013 at 08:59:43AM +0200, Laurent Pinchart wrote:
+> On Friday 07 June 2013 17:21:52 Hans Verkuil wrote:
+> > On Sat March 23 2013 23:04:34 Sakari Ailus wrote:
+> > > Document that monotonic timestamps are taken after the corresponding frame
+> > > has been received, not when the reception has begun. This corresponds to
+> > > the reality of current drivers: the timestamp is naturally taken when the
+> > > hardware triggers an interrupt to tell the driver to handle the received
+> > > frame.
+> > > 
+> > > Remove the note on timestamp accurary as it is fairly subjective what is
+> > > actually an unstable timestamp.
+> > > 
+> > > Also remove explanation that output buffer timestamps can be used to delay
+> > > outputting a frame.
+> > > 
+> > > Remove the footnote saying we always use realtime clock.
+> > > 
+> > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+> > 
+> > Sorry for the delay, for some reason this patch wasn't picked up by
+> > patchwork.
+> > > ---
+> > > Hi all,
+> > > 
+> > > This is the second version of the patch fixing timestamp behaviour
+> > > documentation. I've tried to address the comments I've received albeit I
+> > > don't think there was a definitive conclusion on all the trails of
+> > > discussion. What has changed since v1 is:
+> > > 
+> > > - Removed discussion on timestamp stability.
+> > > 
+> > > - Removed notes that timestamps on output buffers define when frames will
+> > >   be displayed. It appears no driver has ever implemented this, or at
+> > >   least does not implement this now.
+> > > 
+> > > - Monotonic time is not affected by harms that the wall clock time is
+> > > 
+> > >   subjected to. Remove notes on that.
+> > >  
+> > >  Documentation/DocBook/media/v4l/io.xml |   47 +++++----------------------
+> > >  1 file changed, 8 insertions(+), 39 deletions(-)
+> > > 
+> > > diff --git a/Documentation/DocBook/media/v4l/io.xml
+> > > b/Documentation/DocBook/media/v4l/io.xml index e6c5855..46d5a41 100644
+> > > --- a/Documentation/DocBook/media/v4l/io.xml
+> > > +++ b/Documentation/DocBook/media/v4l/io.xml
+> 
+> [snip]
+> 
+> > > @@ -745,13 +718,9 @@ applications when an output stream.</entry>
+> > > 
+> > >  	    byte was captured, as returned by the
+> > >  	    <function>clock_gettime()</function> function for the relevant
+> > >  	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
+> > > 
+> > > -	    <xref linkend="buffer-flags" />. For output streams the data
+> > > -	    will not be displayed before this time, secondary to the nominal
+> > > -	    frame rate determined by the current video standard in enqueued
+> > > -	    order. Applications can for example zero this field to display
+> > > -	    frames as soon as possible. The driver stores the time at which
+> > > -	    the first data byte was actually sent out in the
+> > > -	    <structfield>timestamp</structfield> field. This permits
+> > > +	    <xref linkend="buffer-flags" />. For output streams he driver
+> > 
+> > 'he' -> 'the'
+> > 
+> > > +	   stores the time at which the first data byte was actually sent out
+> > > +	   in the  <structfield>timestamp</structfield> field. This permits
+> > 
+> > Not true: the timestamp is taken after the whole frame was transmitted.
+> > 
+> > Note that the 'timestamp' field documentation still says that it is the
+> > timestamp of the first data byte for capture as well, that's also wrong.
+> 
+> I know we've already discussed this, but what about devices, such as uvcvideo, 
+> that can provide the time stamp at which the image has been captured ? I don't 
+> think it would be worth it making this configurable, or even reporting the 
+> information to userspace, but shouldn't we give some degree of freedom to 
+> drivers here ?
 
-s/refure/refuse
+Hmm. That's a good question --- if we allow variation then we preferrably
+should also provide a way for applications to know which case is which.
 
-Regards,
---Prabhakar Lad
+Could the uvcvideo timestamps be meaningfully converted to the frame end
+time instead? I'd suppose that a frame rate dependent constant would
+suffice. However, how to calculate this I don't know.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
