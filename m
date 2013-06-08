@@ -1,93 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:19794 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751568Ab3FZIU7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jun 2013 04:20:59 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOZ008Q3R202DB0@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 26 Jun 2013 09:20:57 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
-	'Arun Kumar K' <arunkk.samsung@gmail.com>
-Cc: 'Arun Kumar K' <arun.kk@samsung.com>,
-	'LMML' <linux-media@vger.kernel.org>, jtp.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	'Hans Verkuil' <hverkuil@xs4all.nl>, avnd.kiran@samsung.com
-References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
- <1372157835-27663-5-git-send-email-arun.kk@samsung.com>
- <CAK9yfHy3uzCn0GhU6d5CcFLw=VXeHVZukJAK_cmgFkJG6iiGeA@mail.gmail.com>
- <CALt3h79G-rKqBXGwgbxKVXSt2ASQ0H603zkEZQekZSUPEs8D1A@mail.gmail.com>
- <CAK9yfHzno9FRM8vrX1OnLCLvbnB0MXeGo53duo1E6KJQ_DC+Pw@mail.gmail.com>
-In-reply-to: <CAK9yfHzno9FRM8vrX1OnLCLvbnB0MXeGo53duo1E6KJQ_DC+Pw@mail.gmail.com>
-Subject: RE: [PATCH v3 4/8] [media] s5p-mfc: Core support for MFC v7
-Date: Wed, 26 Jun 2013 10:20:50 +0200
-Message-id: <00ce01ce7246$12a7ff40$37f7fdc0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39993 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751212Ab3FHHKF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jun 2013 03:10:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] omap3isp: ccp2: Don't ignore the regulator_enable() return value
+Date: Sat, 08 Jun 2013 09:10:06 +0200
+Message-ID: <2313842.KY3Bh8lkJk@avalon>
+In-Reply-To: <20130607105117.GE3103@valkosipuli.retiisi.org.uk>
+References: <1370601341-5597-1-git-send-email-laurent.pinchart@ideasonboard.com> <20130607105117.GE3103@valkosipuli.retiisi.org.uk>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Sakari,
 
-> -----Original Message-----
-> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
-> Sent: Wednesday, June 26, 2013 9:05 AM
-> To: Arun Kumar K
-> Cc: Arun Kumar K; LMML; Kamil Debski; jtp.park@samsung.com; Sylwester
-> Nawrocki; Hans Verkuil; avnd.kiran@samsung.com
-> Subject: Re: [PATCH v3 4/8] [media] s5p-mfc: Core support for MFC v7
-> 
-> Hi Arun,
-> 
-> On 26 June 2013 12:18, Arun Kumar K <arunkk.samsung@gmail.com> wrote:
-> > Hi Sachin,
-> >
-> > On Tue, Jun 25, 2013 at 4:54 PM, Sachin Kamat
-> <sachin.kamat@linaro.org> wrote:
-> >> Hi Arun,
-> >>
-> >>> @@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx
-> *ctx);
-> >>>                                 (dev->variant->port_num ? 1 : 0) :
-> 0) : 0)
-> >>>  #define IS_TWOPORT(dev)                (dev->variant->port_num ==
-> 2 ? 1 : 0)
-> >>>  #define IS_MFCV6_PLUS(dev)     (dev->variant->version >= 0x60 ? 1 :
-> 0)
-> >>> +#define IS_MFCV7(dev)          (dev->variant->version >= 0x70 ? 1 :
-> 0)
-> >>
-> >> Considering the definition and pattern, wouldn't it be appropriate
-> to
-> >> call this  IS_MFCV7_PLUS?
-> >>
-> >
-> > We are still not sure about MFCv8 if it can re-use v7 stuff or not.
-> >
-> 
-> OK. In that case probably we can restrict the definition to (dev-
-> >variant->version == 0x70 ? 1 : 0).
-> 
-> 
+Thanks for the review.
 
-Guys, I think that simple ((dev->variant->version & 0xF0) == 0x70) would
-cover
-every 7.x version. Same could apply to versions 6.x and 5.x. 
-Then instead of using IS_MFCV6_PLUS(dev) one would use IS_MFCV6(dev) ||
-IS_MFCV7(dev).
-This is a bit longer, but if version 8 will be totally different from v7
-then it is
-much better to use v6||v7 instead of v6_plus.
+On Friday 07 June 2013 13:51:18 Sakari Ailus wrote:
+> On Fri, Jun 07, 2013 at 12:35:41PM +0200, Laurent Pinchart wrote:
+> > @@ -851,7 +857,11 @@ static int ccp2_s_stream(struct v4l2_subdev *sd, int
+> > enable)> 
+> >  		ccp2_print_status(ccp2);
+> >  		
+> >  		/* Enable CSI1/CCP2 interface */
+> > 
+> > -		ccp2_if_enable(ccp2, 1);
+> > +		ret = ccp2_if_enable(ccp2, 1);
+> > +		if (ret < 0) {
+> > +			omap3isp_csiphy_release(ccp2->phy);
+> 
+> if (ccp2->phy)
+> 	omap3isp_csiphy_release(ccp2->phy);
+> 
+> ?
+> 
+> I don't think 3430 has a separate phy, so it's NULL.
 
-Best wishes,
+Oops, my bad. Fixed in v2.
+
+> > +			return ret;
+> > +		}
+> > 
+> >  		break;
+> >  	
+> >  	case ISP_PIPELINE_STREAM_SINGLESHOT:
+
 -- 
-Kamil Debski
-Linux Kernel Developer
-Samsung R&D Institute Poland
+Regards,
 
+Laurent Pinchart
 
