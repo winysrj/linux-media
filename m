@@ -1,48 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 13.mo3.mail-out.ovh.net ([188.165.33.202]:54742 "EHLO
-	mo3.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1758113Ab3FCUh5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 16:37:57 -0400
-Received: from mail402.ha.ovh.net (b6.ovh.net [213.186.33.56])
-	by mo3.mail-out.ovh.net (Postfix) with SMTP id 1994BFF92FF
-	for <linux-media@vger.kernel.org>; Mon,  3 Jun 2013 17:14:37 +0200 (CEST)
-Received: from po57.wetron.local (unknown [192.168.10.30])
-	by ventoso.org (Postfix) with ESMTP id C0724C26C7B
-	for <linux-media@vger.kernel.org>; Mon,  3 Jun 2013 17:13:58 +0200 (CEST)
-Message-ID: <51ACB2CA.6060503@ventoso.org>
-Date: Mon, 03 Jun 2013 17:14:18 +0200
-From: Luca Olivetti <luca@ventoso.org>
+Received: from mail.kapsi.fi ([217.30.184.167]:38828 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751373Ab3FHMDL (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 8 Jun 2013 08:03:11 -0400
+Message-ID: <51B31D57.8000605@iki.fi>
+Date: Sat, 08 Jun 2013 15:02:31 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: Diversity support?
-References: <507EE702.2010103@ventoso.org> <5091691A.4070903@ventoso.org>
-In-Reply-To: <5091691A.4070903@ventoso.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Rodrigo Tartajo <rtarty@gmail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: rtl28xxu IR remote
+References: <51B26B2C.7090406@gmail.com> <51B31628.2090702@iki.fi>
+In-Reply-To: <51B31628.2090702@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Al 31/10/12 19:08, En/na Luca Olivetti ha escrit:
-> Al 17/10/12 19:12, En/na Luca Olivetti ha escrit:
->> Hello,
+On 06/08/2013 02:31 PM, Antti Palosaari wrote:
+> On 06/08/2013 02:22 AM, Rodrigo Tartajo wrote:
+>> Hi, I just compiled and tested Antti Palosaari branch and can confirm
+>> the remote works for my RTL2832U. I have updated the wiki[1] entry
+>> with the steps necessary to configure the remote control. Please
+>> confirm if these fixes your problem.
 >>
->> if I look at the vl4-dvb wiki, it says that diversity isn't currently supported
+>> Rodrigo.
 >>
->> http://www.linuxtv.org/wiki/index.php?title=Special%3ASearch&search=diversity&go=Go
->>
->> however grepping the git tree there are various mentions of diversity at least for some dibcom based devices:
->>
->> http://git.linuxtv.org/linux-2.6.git?a=search&h=HEAD&st=grep&s=diversity
->>
->> So, what's the real status of diversity support?
-> 
-> Nobody knows?
+>> [1] http://www.linuxtv.org/wiki/index.php/RealTek_RTL2832U
+>
+>
+> Good. I tested it quite limited set of remote controllers and even found
+> one NEC remote which didn't worked - RC_MAP_MSI_DIGIVOX_II. Maybe
+> timings should be adjusted or there is some other factor. I didn't cared
+> to look it more as I am not very familiar with these raw remote
+> protocols and real life variations.
+>
+> I also had no reference to adjust remote timings. I just used one RC5
+> remote and calibrated timings according to that. If there is someone
+> having better reference signals, then feel free to change that timing
+> value to more correct.
 
-I'm not easily discouraged :-) so here's the question again: is there
-some dvb-t usb stick (possibly available on the EU market) with
-diversity support under Linux?
+Rodrigo,
+as it was you who has defined that factor as a:
+1000000000 / 38000 * 2 = 52631
 
-Bye
+I found 50800 most suitable by error and trial testing against one RC5 
+remote. I see 38000 is coming from IR frequency, but what is 1GHz clock 
+derived? And why multiply by 2? Reference clock feed to chip is 28.800 
+MHz and most likely these timings should be derived somehow from it. I 
+tried to make different calculations but didn't find any suitable...
+
+Also what I remember, these IR leds will not return receiver carrier at 
+given frequency (38kHz in that case) but instead longer pulses. If there 
+is 0.5 sec 38 kHz modulated IR wave then IR-led will return 0.5 sec 
+continuous pulse. So that frequency should not matter too.
+
+I did learning IR remote controller, which has both receiver and IR 
+sender, as a school project:
+http://palosaari.fi/img_1305.jpg
+
+Unfortunately that was returned to the uni and was thrown to the trash 
+can :S I have thought many times that board could be handy tool for 
+hacking support for these remote controllers...
+
+
+regards
+Antti
+
 -- 
-Luca
-
+http://palosaari.fi/
