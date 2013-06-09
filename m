@@ -1,85 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53313 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752902Ab3F2K5e (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Jun 2013 06:57:34 -0400
-Date: Sat, 29 Jun 2013 12:57:22 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-cc: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com, matsu@igel.co.jp
-Subject: Re: [PATCH v7] V4L2: soc_camera: Renesas R-Car VIN driver
-In-Reply-To: <51CDC3BE.1040603@cogentembedded.com>
-Message-ID: <Pine.LNX.4.64.1306291247440.8358@axis700.grange>
-References: <201306220052.30572.sergei.shtylyov@cogentembedded.com>
- <Pine.LNX.4.64.1306260925210.8856@axis700.grange> <51CCD1B7.3040009@cogentembedded.com>
- <51CDC3BE.1040603@cogentembedded.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:32817 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260Ab3FITmF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 15:42:05 -0400
+Received: by mail-bk0-f53.google.com with SMTP id e11so2393413bkh.12
+        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 12:42:03 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, hj210.choi@samsung.com, s.nawrocki@samsung.com
+Subject: [RFC PATCH v2 1/2] media: Add a function removing all links of a media entity
+Date: Sun,  9 Jun 2013 21:41:38 +0200
+Message-Id: <1370806899-17709-2-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1370806899-17709-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370806899-17709-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergei
+This function allows to remove all media entity's links to other
+entities, leaving no references to a media entity's links array
+at its remote entities.
 
-On Fri, 28 Jun 2013, Sergei Shtylyov wrote:
+Currently, when a driver of some entity is removed it will free its
+media entities links[] array, leaving dangling pointers at other
+entities that are part of same media graph. This is troublesome when
+drivers of a media device entities are in separate kernel modules,
+removing only some modules will leave others in an incorrect state.
 
-> Hello.
-> 
-> On 06/28/2013 03:58 AM, Vladimir Barinov wrote:
-> 
-> > > > From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> 
-> > > > Add Renesas R-Car VIN (Video In) V4L2 driver.
-> 
-> > > > Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
-> 
-> > > > Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> > > > [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed
-> > > > 'enum chip_id'
-> > > > values, reordered rcar_vin_id_table[] entries,  removed senseless
-> > > > parens from
-> > > > to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {}
-> > > > to the
-> > > > *if* statement  and used 'bool' values instead of 0/1 where
-> > > > necessary, removed
-> > > > unused macros, done some reformatting and clarified some comments.]
-> > > > Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-> 
-> > > Reviewing this iteration of the patch is still on my todo, in the
-> > > meantime you might verify whether it works on top of the for-3.11-3
-> > > branch of my
-> 
-> > > http://git.linuxtv.org/gliakhovetski/v4l-dvb.git
-> 
-> > > git-tree, or "next" after it's been pulled by Mauro and pushed
-> > > upstream. With that branch you shouldn't need any additional patches
-> > > andy more.
-> 
-> > Actually we need to apply/merge more patches here that enables VIN
-> > support on separate platform (like pinctrl/clock/setup/) :)
-> 
-> > Despite of above the rcar_vin driver works fine on Marzen board in
-> > v4l-dvb.git after adding soc_camera_host_ops clock_start/clock_stop.
-> 
->    Guennadi, does that mean that we should rebase the driver to the branch
-> that you've named now?
+This function is intended to be used when an entity is being
+unregistered from a media device.
 
-IIUC, your last couple of versions were already developed on top of 
-v4l2-clk + v4l2-asybc + soc_scale_crop patches, right? But those patches 
-were out of tree, and thus unstable. Whereas now they've hit Mauro's tree 
-at git.linuxtv.org and are about to be pulled into "next." So, you don't 
-need anymore to apply any external patches, you will be able to just 
-develop on top of "next." I presume, this should make your work easier, 
-not harder. Just please make sure to double-check your stack on top of 
-"next" to make sure it still works. And let's try to get your driver ready 
-for 3.12.
+With an assumption that normally the media links should be created
+between media entities registered to a media device and with the
+graph mutex held.
 
-Thanks
-Guennadi
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+
+Changes since v1:
+ - couple code improvements like variable localization, type change, etc.
+ - removed WARN_ON_ONCE() to avoid warnings when the media_entity_remove_links()
+   function is called from within remove() callback of a driver of subdev
+   which has not yet been registered to the media device, e.g. due to
+   deferred probing, with a call stack like
+      -> remove()
+         -> v4l2_device_unregister_subdev()
+            -> media_entity_remove_links()
+---
+ drivers/media/media-entity.c |   48 ++++++++++++++++++++++++++++++++++++++++++
+ include/media/media-entity.h |    3 ++
+ 2 files changed, 51 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index e1cd132..f5ea82e 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -429,6 +429,54 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
+ }
+ EXPORT_SYMBOL_GPL(media_entity_create_link);
+ 
++void __media_entity_remove_links(struct media_entity *entity)
++{
++	unsigned int i;
++
++	for (i = 0; i < entity->num_links; i++) {
++		struct media_link *link = &entity->links[i];
++		struct media_entity *remote;
++		unsigned int r, num_links;
++
++		if (link->source->entity == entity)
++			remote = link->sink->entity;
++		else
++			remote = link->source->entity;
++
++		num_links = remote->num_links;
++
++		for (r = 0; r < num_links; r++) {
++			if (remote->links[r] != link->reverse)
++				continue;
++
++			if (link->source->entity == entity)
++				remote->num_backlinks--;
++
++			if (--remote->num_links == 0)
++				break;
++
++			/* Insert last entry in place of the dropped link. */
++			remote->links[r--] = remote->links[remote->num_links];
++		}
++	}
++
++	entity->num_links = 0;
++	entity->num_backlinks = 0;
++}
++EXPORT_SYMBOL_GPL(__media_entity_remove_links);
++
++void media_entity_remove_links(struct media_entity *entity)
++{
++	/* Do nothing if the entity is not registered. */
++	if (entity->parent == NULL)
++		return;
++
++	mutex_lock(&entity->parent->graph_mutex);
++	__media_entity_remove_links(entity);
++	mutex_lock(&entity->parent->graph_mutex);
++}
++EXPORT_SYMBOL_GPL(media_entity_remove_links);
++
+ static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
+ {
+ 	int ret;
+diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+index 0c16f51..0d941d2 100644
+--- a/include/media/media-entity.h
++++ b/include/media/media-entity.h
+@@ -128,6 +128,9 @@ void media_entity_cleanup(struct media_entity *entity);
+ 
+ int media_entity_create_link(struct media_entity *source, u16 source_pad,
+ 		struct media_entity *sink, u16 sink_pad, u32 flags);
++void __media_entity_remove_links(struct media_entity *entity);
++void media_entity_remove_links(struct media_entity *entity);
++
+ int __media_entity_setup_link(struct media_link *link, u32 flags);
+ int media_entity_setup_link(struct media_link *link, u32 flags);
+ struct media_link *media_entity_find_link(struct media_pad *source,
+-- 
+1.7.4.1
+
