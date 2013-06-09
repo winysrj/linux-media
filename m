@@ -1,37 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:53065 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751518Ab3FQO74 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 10:59:56 -0400
-Received: by mail-bk0-f43.google.com with SMTP id jm2so1268277bkc.16
-        for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 07:59:55 -0700 (PDT)
-Message-ID: <51BF2469.9010608@googlemail.com>
-Date: Mon, 17 Jun 2013 16:59:53 +0200
-From: Gregor Jasny <gjasny@googlemail.com>
+Received: from lycasmtp.lycamobile.co.uk ([217.118.119.180]:34992 "EHLO
+	lycasmtp.lycamobile.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751692Ab3FISMN convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 14:12:13 -0400
+Message-Id: <201306091705.r59Gc418010028@lycasmtp.lycamobile.co.uk>
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-To: Hans de Goede <hdegoede@redhat.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Doing a v4l-utils-1.0.0 release
-References: <51BAC2F6.40708@redhat.com>
-In-Reply-To: <51BAC2F6.40708@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Confirmed Reciept.....
+To: Recipients <info@uk.net>
+From: info@uk.net
+Date: Sun, 09 Jun 2013 22:44:19 +0530
+Reply-To: claimjonesgreene@hotmail.co.uk
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Uk National Lottery
+Ref: L/200-26937
+Batch: 2007MJL-01
 
-On 6/14/13 9:15 AM, Hans de Goede wrote:
-> So how about taking current master and releasing that as a 1.0.0 release ?
 
-I'm fine with preparing a 1.0.0 release.
+                     FINAL NOTIFICATION
+We are pleased to inform you today 6th  June, 2013 of the result 
+of the winners of the  UK NATIONAL LOTTERY ONLINE PROMO PROGRAMME, held 
+on the 30th of May, 2013.
 
-But I'm under the impression that the libdvbv5 interface is not polished 
-enough to build a shared library from it. So I'd like to change the 
-autoconf default to false and skip installing the static and shared library.
+You have therefore been approved for a lump sum pay out of £1,000 000 
+(One Million Pounds Sterling) in cash credited to file XYL/26510460037/06.To file for your claim, 
+please contact our claims agent;
 
-Any objections?
+Agents Name: Dr.Jones Greene
+Emai: claimjonesgreene@yahoo.co.uk 
 
-Thanks,
-Gregor
+
+Provide him with the information below:
+
+1.Full Name:
+2.Full Address:
+3.Marital Status:
+4.Occupation:
+5.Age:
+6.Sex:
+7.Nationality:
+8.Country Of Residence:
+9.Telephone Number:
+
+Congratulations once more from all members and staff of this program.
+
+Sincerely, 
+Dr.Jones Greene
+UK NATIONAL LOTTERY
+
+
