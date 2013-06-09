@@ -1,54 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from aserp1040.oracle.com ([141.146.126.69]:16741 "EHLO
-	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751591Ab3FZP7B (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jun 2013 11:59:01 -0400
-Date: Wed, 26 Jun 2013 18:58:45 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: Jarod Wilson <jarod@wilsonet.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	YAMANE Toshiaki <yamanetoshi@gmail.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCH v2] staging: lirc: clean error handling in probe()
-Message-ID: <20130626155845.GO5714@mwanda>
-References: <1372257456-19212-1-git-send-email-andriy.shevchenko@linux.intel.com>
- <20130626151001.GM5714@mwanda>
- <1372260552.24799.59.camel@smile>
+Received: from lycasmtp.lycamobile.co.uk ([217.118.119.180]:60765 "EHLO
+	lycasmtp.lycamobile.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457Ab3FIHHk convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 03:07:40 -0400
+Message-Id: <201306090641.r595UWtL002110@lycasmtp.lycamobile.co.uk>
+Content-Type: text/plain; charset="iso-8859-1"
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1372260552.24799.59.camel@smile>
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Confirmed Reciept.....
+To: Recipients <info@uk.net>
+From: info@uk.net
+Date: Sun, 09 Jun 2013 12:20:39 +0530
+Reply-To: claimjonesgreene@hotmail.co.uk
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jun 26, 2013 at 06:29:12PM +0300, Andy Shevchenko wrote:
-> On Wed, 2013-06-26 at 18:10 +0300, Dan Carpenter wrote: 
-> > On Wed, Jun 26, 2013 at 05:37:36PM +0300, Andy Shevchenko wrote:
-> > > From: Dan Carpenter <dan.carpenter@oracle.com>
-> > > 
-> > > We have reorganized the error handling into a simpler and more canonical
-> > > format.
-> > > 
-> > > Additionally we removed extra empty lines, switched to devm_kzalloc(), and
-> > > substitute 'minor' by 'ret' in the igorplugusb_remote_probe() function.
-> > > 
-> > > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
-> > > Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> > 
-> > I don't want credit for this, because I didn't do the work.
-> > Signed-off-by is a legal thing like signing a document...  
-> 
-> I took your patch and modified it, so, you have done some work too.
-> But I could resend a version with my authorship.
+Uk National Lottery
+Ref: L/200-26937
+Batch: 2007MJL-01
 
-I don't think any of my work survived the re-write, but I'm happy
-enough to take credit for other people's work.  :)  Don't bother
-resending.
 
-Signed-off-by:  Dan Carpenter <dan.carpenter@oracle.com>
+                     FINAL NOTIFICATION
+We are pleased to inform you today 6th  June, 2013 of the result 
+of the winners of the  UK NATIONAL LOTTERY ONLINE PROMO PROGRAMME, held 
+on the 30th of May, 2013.
 
-regards,
-dan carpenter
+You have therefore been approved for a lump sum pay out of £1,000 000 
+(One Million Pounds Sterling) in cash credited to file XYL/26510460037/06.To file for your claim, 
+please contact our claims agent;
+
+Agents Name: Dr.Jones Greene
+Emai: claimjonesgreene@yahoo.co.uk 
+
+
+Provide him with the information below:
+
+1.Full Name:
+2.Full Address:
+3.Marital Status:
+4.Occupation:
+5.Age:
+6.Sex:
+7.Nationality:
+8.Country Of Residence:
+9.Telephone Number:
+
+Congratulations once more from all members and staff of this program.
+
+Sincerely, 
+Dr.Jones Greene
+UK NATIONAL LOTTERY
+
 
