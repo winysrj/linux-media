@@ -1,87 +1,104 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:38558 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753517Ab3FSFpc convert rfc822-to-8bit (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57198 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751763Ab3FIWP6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jun 2013 01:45:32 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Lucas Stach' <l.stach@pengutronix.de>
-Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
- <1371467722-665-1-git-send-email-inki.dae@samsung.com>
- <51BEF458.4090606@canonical.com>
- <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
- <20130617133109.GG2718@n2100.arm.linux.org.uk>
- <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
- <20130617154237.GJ2718@n2100.arm.linux.org.uk>
- <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com>
- <20130617182127.GM2718@n2100.arm.linux.org.uk>
- <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
- <20130618084308.GU2718@n2100.arm.linux.org.uk>
- <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
- <1371548849.4276.6.camel@weser.hi.pengutronix.de>
-In-reply-to: <1371548849.4276.6.camel@weser.hi.pengutronix.de>
-Subject: RE: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
- framework
-Date: Wed, 19 Jun 2013 14:45:15 +0900
-Message-id: <008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-Content-language: ko
+	Sun, 9 Jun 2013 18:15:58 -0400
+Message-ID: <51B4FE9C.9020300@iki.fi>
+Date: Mon, 10 Jun 2013 01:15:56 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+MIME-Version: 1.0
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC PATCH v2 1/2] media: Add function removing all media entity
+ links
+References: <1368102573-16183-2-git-send-email-s.nawrocki@samsung.com> <1368180037-24091-1-git-send-email-s.nawrocki@samsung.com> <20130606194124.GB3103@valkosipuli.retiisi.org.uk> <51B4CB8D.1010507@gmail.com>
+In-Reply-To: <51B4CB8D.1010507@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Sylwester,
 
+Sylwester Nawrocki wrote:
+...
+>>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>>> index e1cd132..bd85dc3 100644
+>>> --- a/drivers/media/media-entity.c
+>>> +++ b/drivers/media/media-entity.c
+>>> @@ -429,6 +429,57 @@ media_entity_create_link(struct media_entity
+>>> *source, u16 source_pad,
+>>>   }
+>>>   EXPORT_SYMBOL_GPL(media_entity_create_link);
+>>>
+>>> +void __media_entity_remove_links(struct media_entity *entity)
+>>> +{
+>>> +    int i, r;
+>>
+>> u16? r can be defined inside the loop.
+>
+> I would argue 'unsigned int' would be more optimal type for i in most
+> cases. Will move r inside the loop.
+>
+>>> +    for (i = 0; i<  entity->num_links; i++) {
+>>> +        struct media_link *link =&entity->links[i];
+>>> +        struct media_entity *remote;
+>>> +        int num_links;
+>>
+>> num_links is u16 in struct media_entity. I'd use the same type.
+>
+> I would go with 'unsigned int', as a more natural type for the CPU in
+> most cases. It's a minor issue, but I can't see how u16 would have been
+> more optimal than unsigned int for a local variable like this, while
+> this code is mostly used on 32-bit systems at least.
+>
+>>> +        if (link->source->entity == entity)
+>>> +            remote = link->sink->entity;
+>>> +        else
+>>> +            remote = link->source->entity;
+>>> +
+>>> +        num_links = remote->num_links;
+>>> +
+>>> +        for (r = 0; r<  num_links; r++) {
+>>
+>> Is caching remote->num_links needed, or do I miss something?
+>
+> Yes, it is needed, remote->num_links is decremented inside the loop.
 
-> -----Original Message-----
-> From: Lucas Stach [mailto:l.stach@pengutronix.de]
-> Sent: Tuesday, June 18, 2013 6:47 PM
-> To: Inki Dae
-> Cc: 'Russell King - ARM Linux'; 'linux-fbdev'; 'Kyungmin Park'; 'DRI
-> mailing list'; 'myungjoo.ham'; 'YoungJun Cho'; linux-arm-
-> kernel@lists.infradead.org; linux-media@vger.kernel.org
-> Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-> framework
-> 
-> Am Dienstag, den 18.06.2013, 18:04 +0900 schrieb Inki Dae:
-> [...]
-> >
-> > > a display device driver.  It shouldn't be used within a single driver
-> > > as a means of passing buffers between userspace and kernel space.
-> >
-> > What I try to do is not really such ugly thing. What I try to do is to
-> > notify that, when CPU tries to access a buffer , to kernel side through
-> > dmabuf interface. So it's not really to send the buffer to kernel.
-> >
-> > Thanks,
-> > Inki Dae
-> >
-> The most basic question about why you are trying to implement this sort
-> of thing in the dma_buf framework still stands.
-> 
-> Once you imported a dma_buf into your DRM driver it's a GEM object and
-> you can and should use the native DRM ioctls to prepare/end a CPU access
-> to this BO. Then internally to your driver you can use the dma_buf
-> reservation/fence stuff to provide the necessary cross-device sync.
-> 
+Oh, forgot this one... yes, remote->num_links is decremented, but so is 
+r it's compared to. So I don't think it's necessary to cache it, but 
+it's neither an error to do so.
 
-I don't really want that is used only for DRM drivers. We really need it for all other DMA devices; i.e., v4l2 based drivers. That is what I try to do. And my approach uses reservation to use dma-buf resources but not dma fence stuff anymore. However, I'm looking into Radeon DRM driver for why we need dma fence stuff, and how we can use it if needed.
+>>> +            struct media_link *rlink =&remote->links[r];
+>>> +
+>>> +            if (rlink != link->reverse)
+>>> +                continue;
+>>> +
+>>> +            if (link->source->entity == entity)
+>>> +                remote->num_backlinks--;
+>>> +
+>>> +            remote->num_links--;
+>>> +
+>>> +            if (remote->num_links<  1)
+>>
+>> How about: if (!remote->num_links) ?
+>
+> Hmm, perhaps squashing the above two lines to:
+>
+>              if (--remote->num_links == 0)
+>
+> ?
 
-Thanks,
-Inki Dae
+I'm not too fond of --/++ operators as part of more complex structures 
+so I'd keep it separate. Fewer lines doesn't always equate to more 
+readable code. :-)
 
-> Regards,
-> Lucas
-> --
-> Pengutronix e.K.                           | Lucas Stach                 |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5076 |
-> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+-- 
+Kind regards,
 
+Sakari Ailus
+sakari.ailus@iki.fi
