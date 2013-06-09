@@ -1,72 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:16757 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751200Ab3F1FXf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 01:23:35 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>
-Subject: [PATCH 2/3] ARM: dts: Add DP PHY node to exynos5250.dtsi
-Date: Fri, 28 Jun 2013 14:23:28 +0900
-Message-id: <001601ce73bf$9f2e9120$dd8bb360$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from lycasmtp.lycamobile.co.uk ([217.118.119.180]:59152 "EHLO
+	lycasmtp.lycamobile.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752477Ab3FIIiq convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 04:38:46 -0400
+Message-Id: <201306090820.r597JPQ5019122@lycasmtp.lycamobile.co.uk>
+Content-Type: text/plain; charset="iso-8859-1"
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Description: Mail message body
+Subject: Confirmed Reciept.....
+To: Recipients <info@uk.net>
+From: info@uk.net
+Date: Sun, 09 Jun 2013 13:58:59 +0530
+Reply-To: claimjonesgreene@hotmail.co.uk
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PHY provider node for the DP PHY.
+Uk National Lottery
+Ref: L/200-26937
+Batch: 2007MJL-01
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
----
- arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
 
-diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
-index 41cd625..d1d6e14 100644
---- a/arch/arm/boot/dts/exynos5250.dtsi
-+++ b/arch/arm/boot/dts/exynos5250.dtsi
-@@ -614,6 +614,12 @@
- 		interrupts = <0 94 0>;
- 	};
- 
-+	dp_phy: video-phy@10040720 {
-+		compatible = "samsung,exynos5250-dp-video-phy";
-+		reg = <0x10040720 4>;
-+		#phy-cells = <1>;
-+	};
-+
- 	dp-controller {
- 		compatible = "samsung,exynos5-dp";
- 		reg = <0x145b0000 0x1000>;
-@@ -623,11 +629,8 @@
- 		clock-names = "dp";
- 		#address-cells = <1>;
- 		#size-cells = <0>;
--
--		dptx-phy {
--			reg = <0x10040720>;
--			samsung,enable-mask = <1>;
--		};
-+		phys = <&dp_phy 0>;
-+		phy-names = "dp";
- 	};
- 
- 	fimd {
--- 
-1.7.10.4
+                     FINAL NOTIFICATION
+We are pleased to inform you today 6th  June, 2013 of the result 
+of the winners of the  UK NATIONAL LOTTERY ONLINE PROMO PROGRAMME, held 
+on the 30th of May, 2013.
+
+You have therefore been approved for a lump sum pay out of £1,000 000 
+(One Million Pounds Sterling) in cash credited to file XYL/26510460037/06.To file for your claim, 
+please contact our claims agent;
+
+Agents Name: Dr.Jones Greene
+Emai: claimjonesgreene@yahoo.co.uk 
+
+
+Provide him with the information below:
+
+1.Full Name:
+2.Full Address:
+3.Marital Status:
+4.Occupation:
+5.Age:
+6.Sex:
+7.Nationality:
+8.Country Of Residence:
+9.Telephone Number:
+
+Congratulations once more from all members and staff of this program.
+
+Sincerely, 
+Dr.Jones Greene
+UK NATIONAL LOTTERY
 
 
