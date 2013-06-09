@@ -1,368 +1,259 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2310 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965093Ab3FTNpB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 09:45:01 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 05/15] saa7134: share resource management between normal and empress nodes.
-Date: Thu, 20 Jun 2013 15:44:21 +0200
-Message-Id: <1371735871-2658-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51211 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991Ab3FIUc7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 16:32:59 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, sakari.ailus@iki.fi,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, hj210.choi@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com,
+	s.nawrocki@samsung.com
+Subject: Re: [REVIEW PATCH v3 1/2] media: Change media device link_notify behaviour
+Date: Sun, 09 Jun 2013 22:33:03 +0200
+Message-ID: <2445998.O136kaKixm@avalon>
+In-Reply-To: <1370808878-11379-2-git-send-email-s.nawrocki@samsung.com>
+References: <1370808878-11379-1-git-send-email-s.nawrocki@samsung.com> <1370808878-11379-2-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sylwester,
 
-The empress video node can share resource management with the normal
-video nodes, thus allowing for code sharing and making the empress node
-non-exclusive.
+Thanks for the patch.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-empress.c | 98 ++++++-----------------------
- drivers/media/pci/saa7134/saa7134-video.c   | 43 +++++++------
- drivers/media/pci/saa7134/saa7134.h         | 22 ++++++-
- 3 files changed, 62 insertions(+), 101 deletions(-)
+On Sunday 09 June 2013 22:14:37 Sylwester Nawrocki wrote:
+> Currently the media device link_notify callback is invoked before the
+> actual change of state of a link when the link is being enabled, and
+> after the actual change of state when the link is being disabled.
+> 
+> This doesn't allow a media device driver to perform any operations
+> on a full graph before a link is disabled, as well as performing
+> any tasks on a modified graph right after a link's state is changed.
+> 
+> This patch modifies signature of the link_notify callback. This
+> callback is now called always before and after a link's state change.
+> To distinguish the notifications a 'notification' argument is added
+> to the link_notify callback: MEDIA_DEV_NOTIFY_PRE_LINK_CH indicates
+> notification before link's state change and
+> MEDIA_DEV_NOTIFY_POST_LINK_CH corresponds to a notification after
+> link flags change.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index 17e5fcd..2ef670d 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -86,20 +86,11 @@ static int ts_open(struct file *file)
- 	struct video_device *vdev = video_devdata(file);
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct saa7134_fh *fh;
--	int err;
--
--	dprintk("open dev=%s\n", video_device_node_name(vdev));
--	err = -EBUSY;
--	if (!mutex_trylock(&dev->empress_tsq.vb_lock))
--		return err;
--	if (atomic_read(&dev->empress_users))
--		goto done;
- 
- 	/* allocate + initialize per filehandle data */
- 	fh = kzalloc(sizeof(*fh), GFP_KERNEL);
--	err = -ENOMEM;
- 	if (NULL == fh)
--		goto done;
-+		return -ENOMEM;
- 
- 	v4l2_fh_init(&fh->fh, vdev);
- 	file->private_data = fh;
-@@ -110,12 +101,7 @@ static int ts_open(struct file *file)
- 	saa_writeb(SAA7134_AUDIO_MUTE_CTRL,
- 		saa_readb(SAA7134_AUDIO_MUTE_CTRL) & ~(1 << 6));
- 
--	atomic_inc(&dev->empress_users);
--	err = 0;
--
--done:
--	mutex_unlock(&dev->empress_tsq.vb_lock);
--	return err;
-+	return 0;
- }
- 
- static int ts_release(struct file *file)
-@@ -123,17 +109,17 @@ static int ts_release(struct file *file)
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct saa7134_fh *fh = file->private_data;
- 
--	videobuf_stop(&dev->empress_tsq);
--	videobuf_mmap_free(&dev->empress_tsq);
-+	if (res_check(fh, RESOURCE_EMPRESS)) {
-+		videobuf_stop(&dev->empress_tsq);
-+		videobuf_mmap_free(&dev->empress_tsq);
- 
--	/* stop the encoder */
--	ts_reset_encoder(dev);
-+		/* stop the encoder */
-+		ts_reset_encoder(dev);
- 
--	/* Mute audio */
--	saa_writeb(SAA7134_AUDIO_MUTE_CTRL,
--		saa_readb(SAA7134_AUDIO_MUTE_CTRL) | (1 << 6));
--
--	atomic_dec(&dev->empress_users);
-+		/* Mute audio */
-+		saa_writeb(SAA7134_AUDIO_MUTE_CTRL,
-+				saa_readb(SAA7134_AUDIO_MUTE_CTRL) | (1 << 6));
-+	}
- 
- 	v4l2_fh_del(&fh->fh);
- 	v4l2_fh_exit(&fh->fh);
-@@ -145,6 +131,8 @@ ts_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
- {
- 	struct saa7134_dev *dev = video_drvdata(file);
- 
-+	if (res_locked(dev, RESOURCE_EMPRESS))
-+		return -EBUSY;
- 	if (!dev->empress_started)
- 		ts_init_encoder(dev);
- 
-@@ -235,53 +223,6 @@ static int empress_try_fmt_vid_cap(struct file *file, void *priv,
- 	return 0;
- }
- 
--static int empress_reqbufs(struct file *file, void *priv,
--					struct v4l2_requestbuffers *p)
--{
--	struct saa7134_dev *dev = video_drvdata(file);
--
--	return videobuf_reqbufs(&dev->empress_tsq, p);
--}
--
--static int empress_querybuf(struct file *file, void *priv,
--					struct v4l2_buffer *b)
--{
--	struct saa7134_dev *dev = video_drvdata(file);
--
--	return videobuf_querybuf(&dev->empress_tsq, b);
--}
--
--static int empress_qbuf(struct file *file, void *priv, struct v4l2_buffer *b)
--{
--	struct saa7134_dev *dev = video_drvdata(file);
--
--	return videobuf_qbuf(&dev->empress_tsq, b);
--}
--
--static int empress_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
--{
--	struct saa7134_dev *dev = video_drvdata(file);
--
--	return videobuf_dqbuf(&dev->empress_tsq, b,
--				file->f_flags & O_NONBLOCK);
--}
--
--static int empress_streamon(struct file *file, void *priv,
--					enum v4l2_buf_type type)
--{
--	struct saa7134_dev *dev = video_drvdata(file);
--
--	return videobuf_streamon(&dev->empress_tsq);
--}
--
--static int empress_streamoff(struct file *file, void *priv,
--					enum v4l2_buf_type type)
--{
--	struct saa7134_dev *dev = video_drvdata(file);
--
--	return videobuf_streamoff(&dev->empress_tsq);
--}
--
- static const struct v4l2_file_operations ts_fops =
- {
- 	.owner	  = THIS_MODULE,
-@@ -299,12 +240,12 @@ static const struct v4l2_ioctl_ops ts_ioctl_ops = {
- 	.vidioc_try_fmt_vid_cap		= empress_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap		= empress_s_fmt_vid_cap,
- 	.vidioc_g_fmt_vid_cap		= empress_g_fmt_vid_cap,
--	.vidioc_reqbufs			= empress_reqbufs,
--	.vidioc_querybuf		= empress_querybuf,
--	.vidioc_qbuf			= empress_qbuf,
--	.vidioc_dqbuf			= empress_dqbuf,
--	.vidioc_streamon		= empress_streamon,
--	.vidioc_streamoff		= empress_streamoff,
-+	.vidioc_reqbufs			= saa7134_reqbufs,
-+	.vidioc_querybuf		= saa7134_querybuf,
-+	.vidioc_qbuf			= saa7134_qbuf,
-+	.vidioc_dqbuf			= saa7134_dqbuf,
-+	.vidioc_streamon		= saa7134_streamon,
-+	.vidioc_streamoff		= saa7134_streamoff,
- 	.vidioc_g_frequency		= saa7134_g_frequency,
- 	.vidioc_s_frequency		= saa7134_s_frequency,
- 	.vidioc_g_tuner			= saa7134_g_tuner,
-@@ -375,6 +316,7 @@ static int empress_init(struct saa7134_dev *dev)
- 	snprintf(dev->empress_dev->name, sizeof(dev->empress_dev->name),
- 		 "%s empress (%s)", dev->name,
- 		 saa7134_boards[dev->board].name);
-+	set_bit(V4L2_FL_USE_FH_PRIO, &dev->empress_dev->flags);
- 	v4l2_ctrl_handler_init(hdl, 21);
- 	v4l2_ctrl_add_handler(hdl, &dev->ctrl_handler, empress_ctrl_filter);
- 	if (dev->empress_sd)
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index f8d97b9..12996df 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -403,16 +403,6 @@ static int res_get(struct saa7134_dev *dev, struct saa7134_fh *fh, unsigned int
- 	return 1;
- }
- 
--static int res_check(struct saa7134_fh *fh, unsigned int bit)
--{
--	return (fh->resources & bit);
--}
--
--static int res_locked(struct saa7134_dev *dev, unsigned int bit)
--{
--	return (dev->resources & bit);
--}
--
- static
- void res_free(struct saa7134_dev *dev, struct saa7134_fh *fh, unsigned int bits)
- {
-@@ -1091,11 +1081,12 @@ static struct videobuf_queue *saa7134_queue(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
- 	struct saa7134_dev *dev = video_drvdata(file);
-+	struct saa7134_fh *fh = file->private_data;
- 	struct videobuf_queue *q = NULL;
- 
- 	switch (vdev->vfl_type) {
- 	case VFL_TYPE_GRABBER:
--		q = &dev->cap;
-+		q = fh->is_empress ? &dev->empress_tsq : &dev->cap;
- 		break;
- 	case VFL_TYPE_VBI:
- 		q = &dev->vbi;
-@@ -1109,9 +1100,10 @@ static struct videobuf_queue *saa7134_queue(struct file *file)
- static int saa7134_resource(struct file *file)
- {
- 	struct video_device *vdev = video_devdata(file);
-+	struct saa7134_fh *fh = file->private_data;
- 
- 	if (vdev->vfl_type == VFL_TYPE_GRABBER)
--		return RESOURCE_VIDEO;
-+		return fh->is_empress ? RESOURCE_EMPRESS : RESOURCE_VIDEO;
- 
- 	if (vdev->vfl_type == VFL_TYPE_VBI)
- 		return RESOURCE_VBI;
-@@ -1934,30 +1926,34 @@ static int saa7134_overlay(struct file *file, void *priv, unsigned int on)
- 	return 0;
- }
- 
--static int saa7134_reqbufs(struct file *file, void *priv,
-+int saa7134_reqbufs(struct file *file, void *priv,
- 					struct v4l2_requestbuffers *p)
- {
- 	return videobuf_reqbufs(saa7134_queue(file), p);
- }
-+EXPORT_SYMBOL_GPL(saa7134_reqbufs);
- 
--static int saa7134_querybuf(struct file *file, void *priv,
-+int saa7134_querybuf(struct file *file, void *priv,
- 					struct v4l2_buffer *b)
- {
- 	return videobuf_querybuf(saa7134_queue(file), b);
- }
-+EXPORT_SYMBOL_GPL(saa7134_querybuf);
- 
--static int saa7134_qbuf(struct file *file, void *priv, struct v4l2_buffer *b)
-+int saa7134_qbuf(struct file *file, void *priv, struct v4l2_buffer *b)
- {
- 	return videobuf_qbuf(saa7134_queue(file), b);
- }
-+EXPORT_SYMBOL_GPL(saa7134_qbuf);
- 
--static int saa7134_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
-+int saa7134_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b)
- {
- 	return videobuf_dqbuf(saa7134_queue(file), b,
- 				file->f_flags & O_NONBLOCK);
- }
-+EXPORT_SYMBOL_GPL(saa7134_dqbuf);
- 
--static int saa7134_streamon(struct file *file, void *priv,
-+int saa7134_streamon(struct file *file, void *priv,
- 					enum v4l2_buf_type type)
- {
- 	struct saa7134_dev *dev = video_drvdata(file);
-@@ -1973,21 +1969,23 @@ static int saa7134_streamon(struct file *file, void *priv,
- 	 * Unfortunately, I lack register-level documentation to check the
- 	 * Linux FIFO setup and confirm the perfect value.
- 	 */
--	pm_qos_add_request(&dev->qos_request,
--			   PM_QOS_CPU_DMA_LATENCY,
--			   20);
-+	if (res != RESOURCE_EMPRESS)
-+		pm_qos_add_request(&dev->qos_request,
-+			   PM_QOS_CPU_DMA_LATENCY, 20);
- 
- 	return videobuf_streamon(saa7134_queue(file));
- }
-+EXPORT_SYMBOL_GPL(saa7134_streamon);
- 
--static int saa7134_streamoff(struct file *file, void *priv,
-+int saa7134_streamoff(struct file *file, void *priv,
- 					enum v4l2_buf_type type)
- {
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	int err;
- 	int res = saa7134_resource(file);
- 
--	pm_qos_remove_request(&dev->qos_request);
-+	if (res != RESOURCE_EMPRESS)
-+		pm_qos_remove_request(&dev->qos_request);
- 
- 	err = videobuf_streamoff(saa7134_queue(file));
- 	if (err < 0)
-@@ -1995,6 +1993,7 @@ static int saa7134_streamoff(struct file *file, void *priv,
- 	res_free(dev, priv, res);
- 	return 0;
- }
-+EXPORT_SYMBOL_GPL(saa7134_streamoff);
- 
- #ifdef CONFIG_VIDEO_ADV_DEBUG
- static int vidioc_g_register (struct file *file, void *priv,
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index d7bef5e..2474e84 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -422,6 +422,7 @@ struct saa7134_board {
- #define RESOURCE_OVERLAY       1
- #define RESOURCE_VIDEO         2
- #define RESOURCE_VBI           4
-+#define RESOURCE_EMPRESS       8
- 
- #define INTERLACE_AUTO         0
- #define INTERLACE_ON           1
-@@ -644,7 +645,6 @@ struct saa7134_dev {
- 	struct video_device        *empress_dev;
- 	struct v4l2_subdev	   *empress_sd;
- 	struct videobuf_queue      empress_tsq;
--	atomic_t 		   empress_users;
- 	struct work_struct         empress_workqueue;
- 	int                        empress_started;
- 	struct v4l2_ctrl_handler   empress_ctrl_handler;
-@@ -705,6 +705,16 @@ struct saa7134_dev {
- 	_rc;								\
- })
- 
-+static inline int res_check(struct saa7134_fh *fh, unsigned int bit)
-+{
-+	return fh->resources & bit;
-+}
-+
-+static inline int res_locked(struct saa7134_dev *dev, unsigned int bit)
-+{
-+	return dev->resources & bit;
-+}
-+
- /* ----------------------------------------------------------- */
- /* saa7134-core.c                                              */
- 
-@@ -782,6 +792,16 @@ int saa7134_g_frequency(struct file *file, void *priv,
- 					struct v4l2_frequency *f);
- int saa7134_s_frequency(struct file *file, void *priv,
- 					const struct v4l2_frequency *f);
-+int saa7134_reqbufs(struct file *file, void *priv,
-+					struct v4l2_requestbuffers *p);
-+int saa7134_querybuf(struct file *file, void *priv,
-+					struct v4l2_buffer *b);
-+int saa7134_qbuf(struct file *file, void *priv, struct v4l2_buffer *b);
-+int saa7134_dqbuf(struct file *file, void *priv, struct v4l2_buffer *b);
-+int saa7134_streamon(struct file *file, void *priv,
-+					enum v4l2_buf_type type);
-+int saa7134_streamoff(struct file *file, void *priv,
-+					enum v4l2_buf_type type);
- 
- int saa7134_videoport_init(struct saa7134_dev *dev);
- void saa7134_set_tvnorm_hw(struct saa7134_dev *dev);
+This looks good to me. For the media controller core and omap3isp driver,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I'd like to have Sakari's ack as well.
+
+> ---
+> Changes since v1:
+>  - link_notify callback 'flags' argument's type changed to u32,
+>  - in the omap3isp driver check link->flags instead of the passed flags
+>    argument of the link_notify handler to see if pipeline should be
+>    powered off,
+> -  use link->flags to check link's state in the fimc_md_link_notify()
+>    handler instead of link_notify 'flags' argument.
+> ---
+>  drivers/media/media-entity.c                  |   18 +++--------
+>  drivers/media/platform/exynos4-is/media-dev.c |   18 ++++++-----
+>  drivers/media/platform/omap3isp/isp.c         |   41 ++++++++++++----------
+>  include/media/media-device.h                  |    9 ++++-
+>  4 files changed, 47 insertions(+), 39 deletions(-)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index e1cd132..7004cb0 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -496,25 +496,17 @@ int __media_entity_setup_link(struct media_link *link,
+> u32 flags)
+> 
+>  	mdev = source->parent;
+> 
+> -	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify) {
+> -		ret = mdev->link_notify(link->source, link->sink,
+> -					MEDIA_LNK_FL_ENABLED);
+> +	if (mdev->link_notify) {
+> +		ret = mdev->link_notify(link, flags,
+> +					MEDIA_DEV_NOTIFY_PRE_LINK_CH);
+>  		if (ret < 0)
+>  			return ret;
+>  	}
+> 
+>  	ret = __media_entity_setup_link_notify(link, flags);
+> -	if (ret < 0)
+> -		goto err;
+> 
+> -	if (!(flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
+> -		mdev->link_notify(link->source, link->sink, 0);
+> -
+> -	return 0;
+> -
+> -err:
+> -	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
+> -		mdev->link_notify(link->source, link->sink, 0);
+> +	if (mdev->link_notify)
+> +		mdev->link_notify(link, flags, MEDIA_DEV_NOTIFY_POST_LINK_CH);
+> 
+>  	return ret;
+>  }
+> diff --git a/drivers/media/platform/exynos4-is/media-dev.c
+> b/drivers/media/platform/exynos4-is/media-dev.c index 424ff92..045a6ae
+> 100644
+> --- a/drivers/media/platform/exynos4-is/media-dev.c
+> +++ b/drivers/media/platform/exynos4-is/media-dev.c
+> @@ -1287,34 +1287,36 @@ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool
+> on) return __fimc_md_set_camclk(fmd, si, on);
+>  }
+> 
+> -static int fimc_md_link_notify(struct media_pad *source,
+> -			       struct media_pad *sink, u32 flags)
+> +static int fimc_md_link_notify(struct media_link *link, u32 flags,
+> +						unsigned int notification)
+>  {
+> +	struct media_entity *sink = link->sink->entity;
+>  	struct exynos_video_entity *ve;
+>  	struct video_device *vdev;
+>  	struct fimc_pipeline *pipeline;
+>  	int i, ret = 0;
+> 
+> -	if (media_entity_type(sink->entity) != MEDIA_ENT_T_DEVNODE_V4L)
+> +	if (media_entity_type(sink) != MEDIA_ENT_T_DEVNODE_V4L ||
+> +	    notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH)
+>  		return 0;
+> 
+> -	vdev = media_entity_to_video_device(sink->entity);
+> +	vdev = media_entity_to_video_device(sink);
+>  	ve = vdev_to_exynos_video_entity(vdev);
+>  	pipeline = to_fimc_pipeline(ve->pipe);
+> 
+> -	if (!(flags & MEDIA_LNK_FL_ENABLED) && pipeline->subdevs[IDX_SENSOR]) {
+> -		if (sink->entity->use_count > 0)
+> +	if (!(link->flags & MEDIA_LNK_FL_ENABLED) &&
+> pipeline->subdevs[IDX_SENSOR]) { +		if (sink->use_count > 0)
+>  			ret = __fimc_pipeline_close(ve->pipe);
+> 
+>  		for (i = 0; i < IDX_MAX; i++)
+>  			pipeline->subdevs[i] = NULL;
+> -	} else if (sink->entity->use_count > 0) {
+> +	} else if (sink->use_count > 0) {
+>  		/*
+>  		 * Link activation. Enable power of pipeline elements only if
+>  		 * the pipeline is already in use, i.e. its video node is open.
+>  		 * Recreate the controls destroyed during the link deactivation.
+>  		 */
+> -		ret = __fimc_pipeline_open(ve->pipe, sink->entity, true);
+> +		ret = __fimc_pipeline_open(ve->pipe, sink, true);
+>  	}
+> 
+>  	return ret ? -EPIPE : ret;
+> diff --git a/drivers/media/platform/omap3isp/isp.c
+> b/drivers/media/platform/omap3isp/isp.c index 1d7dbd5..1a2d25c 100644
+> --- a/drivers/media/platform/omap3isp/isp.c
+> +++ b/drivers/media/platform/omap3isp/isp.c
+> @@ -792,9 +792,9 @@ int omap3isp_pipeline_pm_use(struct media_entity
+> *entity, int use)
+> 
+>  /*
+>   * isp_pipeline_link_notify - Link management notification callback
+> - * @source: Pad at the start of the link
+> - * @sink: Pad at the end of the link
+> + * @link: The link
+>   * @flags: New link flags that will be applied
+> + * @notification: The link's state change notification type
+> (MEDIA_DEV_NOTIFY_*) *
+>   * React to link management on powered pipelines by updating the use count
+> of * all entities in the source and sink sides of the link. Entities are
+> powered @@ -804,29 +804,38 @@ int omap3isp_pipeline_pm_use(struct
+> media_entity *entity, int use) * off is assumed to never fail. This
+> function will not fail for disconnection * events.
+>   */
+> -static int isp_pipeline_link_notify(struct media_pad *source,
+> -				    struct media_pad *sink, u32 flags)
+> +static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
+> +				    unsigned int notification)
+>  {
+> -	int source_use = isp_pipeline_pm_use_count(source->entity);
+> -	int sink_use = isp_pipeline_pm_use_count(sink->entity);
+> +	struct media_entity *source = link->source->entity;
+> +	struct media_entity *sink = link->sink->entity;
+> +	int source_use = isp_pipeline_pm_use_count(source);
+> +	int sink_use = isp_pipeline_pm_use_count(sink);
+>  	int ret;
+> 
+> -	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
+> +	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
+> +	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
+>  		/* Powering off entities is assumed to never fail. */
+> -		isp_pipeline_pm_power(source->entity, -sink_use);
+> -		isp_pipeline_pm_power(sink->entity, -source_use);
+> +		isp_pipeline_pm_power(source, -sink_use);
+> +		isp_pipeline_pm_power(sink, -source_use);
+>  		return 0;
+>  	}
+> 
+> -	ret = isp_pipeline_pm_power(source->entity, sink_use);
+> -	if (ret < 0)
+> -		return ret;
+> +	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
+> +		(flags & MEDIA_LNK_FL_ENABLED)) {
+> 
+> -	ret = isp_pipeline_pm_power(sink->entity, source_use);
+> -	if (ret < 0)
+> -		isp_pipeline_pm_power(source->entity, -sink_use);
+> +		ret = isp_pipeline_pm_power(source, sink_use);
+> +		if (ret < 0)
+> +			return ret;
+> 
+> -	return ret;
+> +		ret = isp_pipeline_pm_power(sink, source_use);
+> +		if (ret < 0)
+> +			isp_pipeline_pm_power(source, -sink_use);
+> +
+> +		return ret;
+> +	}
+> +
+> +	return 0;
+>  }
+> 
+>  /*
+> ---------------------------------------------------------------------------
+> -- diff --git a/include/media/media-device.h b/include/media/media-device.h
+> index eaade98..12155a9 100644
+> --- a/include/media/media-device.h
+> +++ b/include/media/media-device.h
+> @@ -45,6 +45,7 @@ struct device;
+>   * @entities:	List of registered entities
+>   * @lock:	Entities list lock
+>   * @graph_mutex: Entities graph operation lock
+> + * @link_notify: Link state change notification callback
+>   *
+>   * This structure represents an abstract high-level media device. It allows
+> easy * access to entities and provides basic media device-level support.
+> The @@ -75,10 +76,14 @@ struct media_device {
+>  	/* Serializes graph operations. */
+>  	struct mutex graph_mutex;
+> 
+> -	int (*link_notify)(struct media_pad *source,
+> -			   struct media_pad *sink, u32 flags);
+> +	int (*link_notify)(struct media_link *link, u32 flags,
+> +			   unsigned int notification);
+>  };
+> 
+> +/* Supported link_notify @notification values. */
+> +#define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
+> +#define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
+> +
+>  /* media_devnode to media_device */
+>  #define to_media_device(node) container_of(node, struct media_device,
+> devnode)
 -- 
-1.8.3.1
+Regards,
+
+Laurent Pinchart
 
