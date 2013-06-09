@@ -1,85 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:50920 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534Ab3FVJrg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jun 2013 05:47:36 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 1/2] media: i2c: ths8200: support asynchronous probing
-Date: Sat, 22 Jun 2013 15:16:34 +0530
-Message-Id: <1371894395-14414-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371894395-14414-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371894395-14414-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail-bk0-f43.google.com ([209.85.214.43]:58279 "EHLO
+	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750919Ab3FIUOz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 16:14:55 -0400
+Received: by mail-bk0-f43.google.com with SMTP id jm2so1726348bkc.2
+        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 13:14:54 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, hj210.choi@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com,
+	s.nawrocki@samsung.com
+Subject: [REVIEW PATCH v3 0/2] Media link_notify behaviour change and exynos4-is updates
+Date: Sun,  9 Jun 2013 22:14:36 +0200
+Message-Id: <1370808878-11379-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi All,
 
-This patch supports both synchronous and asynchronous
-ths8200 subdevice probing.
+This is an updated version of the patch set [1], I've dropped patches 
+01/11...09/11, which I've already queued for 3.11. This series sits on 
+top of my for-next branch [2].
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/i2c/ths8200.c |    9 ++++++++-
- 1 file changed, 8 insertions(+), 1 deletion(-)
+This iteration attempts to address issues pointed out by Sakari, 
+thanks! The changes since v2 were:
 
-diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
-index a24f90c..cc1339a 100644
---- a/drivers/media/i2c/ths8200.c
-+++ b/drivers/media/i2c/ths8200.c
-@@ -21,6 +21,7 @@
- #include <linux/module.h>
- #include <linux/v4l2-dv-timings.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- 
- #include "ths8200_regs.h"
-@@ -500,6 +501,7 @@ static int ths8200_probe(struct i2c_client *client,
- {
- 	struct ths8200_state *state;
- 	struct v4l2_subdev *sd;
-+	int error;
- 
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
-@@ -517,6 +519,10 @@ static int ths8200_probe(struct i2c_client *client,
- 
- 	ths8200_core_init(sd);
- 
-+	error = v4l2_async_register_subdev(&state->sd);
-+	if (error)
-+		return error;
-+
- 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
- 		  client->addr << 1, client->adapter->name);
- 
-@@ -526,12 +532,13 @@ static int ths8200_probe(struct i2c_client *client,
- static int ths8200_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	struct ths8200_state *decoder = to_state(sd);
- 
- 	v4l2_dbg(1, debug, sd, "%s removed @ 0x%x (%s)\n", client->name,
- 		 client->addr << 1, client->adapter->name);
- 
- 	ths8200_s_power(sd, false);
--
-+	v4l2_async_unregister_subdev(&decoder->sd);
- 	v4l2_device_unregister_subdev(sd);
- 
- 	return 0;
+ - link_notify callback 'flags' argument's type changed to u32,
+ - in the omap3isp driver link->flags checked instead of the passed 
+   flags argument of the link_notify handler to see if the pipeline 
+   should be powered off,
+ - in the exynos4-is driver link->flags checked instead of the flags 
+   argument of the fimc_md_link_notify() handler to see if the pipelines 
+   should be powered on.
+
+Thanks,
+Sylwester
+
+[1] http://www.spinics.net/lists/linux-media/msg64258.html
+[2] http://git.linuxtv.org/snawrocki/samsung.git/for-next
+
+Sylwester Nawrocki (2):
+  media: Change media device link_notify behaviour
+  exynos4-is: Extend link_notify handler to support fimc-is/lite
+    pipelines
+
+ drivers/media/media-entity.c                  |   18 +---
+ drivers/media/platform/exynos4-is/media-dev.c |  101 ++++++++++++++++++++-----
+ drivers/media/platform/omap3isp/isp.c         |   41 ++++++----
+ include/media/media-device.h                  |    9 ++-
+ 4 files changed, 118 insertions(+), 51 deletions(-)
+
 -- 
-1.7.9.5
+1.7.4.1
 
