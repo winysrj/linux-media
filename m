@@ -1,95 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51803 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751326Ab3FFVij (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jun 2013 17:38:39 -0400
-Date: Fri, 7 Jun 2013 00:38:04 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC] Support for events with a large payload
-Message-ID: <20130606213803.GC3103@valkosipuli.retiisi.org.uk>
-References: <201305131414.43685.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201305131414.43685.hverkuil@xs4all.nl>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:57350 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751116Ab3FIUPj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 16:15:39 -0400
+Received: by mail-bk0-f49.google.com with SMTP id mz10so838516bkb.22
+        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 13:15:38 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, hj210.choi@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com,
+	s.nawrocki@samsung.com
+Subject: [REVIEW PATCH v3 1/2] media: Change media device link_notify behaviour
+Date: Sun,  9 Jun 2013 22:14:37 +0200
+Message-Id: <1370808878-11379-2-git-send-email-s.nawrocki@samsung.com>
+In-Reply-To: <1370808878-11379-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370808878-11379-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Currently the media device link_notify callback is invoked before the
+actual change of state of a link when the link is being enabled, and
+after the actual change of state when the link is being disabled.
 
-Thanks for the RFC! :-)
+This doesn't allow a media device driver to perform any operations
+on a full graph before a link is disabled, as well as performing
+any tasks on a modified graph right after a link's state is changed.
 
-On Mon, May 13, 2013 at 02:14:43PM +0200, Hans Verkuil wrote:
-> Currently the event API allows for a payload of up to 64 bytes. Sometimes we
-> would like to pass larger payloads to userspace such as metadata associated
-> with a particular video stream.
-> 
-> A typical example of that would be object detection events.
-> 
-> This RFC describes one approach for doing this.
-> 
-> The event framework has the nice property of being able to use from within
-> interrupts. Copying large payloads does not fit into that framework, so
-> such payloads should be adminstrated separately.
-> 
-> In addition, I wouldn't allow large payloads to be filled in from interrupt
-> context: a worker queue would be much more appropriate.
+This patch modifies signature of the link_notify callback. This
+callback is now called always before and after a link's state change.
+To distinguish the notifications a 'notification' argument is added
+to the link_notify callback: MEDIA_DEV_NOTIFY_PRE_LINK_CH indicates
+notification before link's state change and
+MEDIA_DEV_NOTIFY_POST_LINK_CH corresponds to a notification after
+link flags change.
 
-How large really is "large"? 65 bytes? 64 kiB?
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+Changes since v1:
+ - link_notify callback 'flags' argument's type changed to u32,
+ - in the omap3isp driver check link->flags instead of the passed flags
+   argument of the link_notify handler to see if pipeline should be
+   powered off,
+-  use link->flags to check link's state in the fimc_md_link_notify()
+   handler instead of link_notify 'flags' argument.
+---
+ drivers/media/media-entity.c                  |   18 +++--------
+ drivers/media/platform/exynos4-is/media-dev.c |   18 ++++++-----
+ drivers/media/platform/omap3isp/isp.c         |   41 +++++++++++++++----------
+ include/media/media-device.h                  |    9 ++++-
+ 4 files changed, 47 insertions(+), 39 deletions(-)
 
-The newer CPUs tend to be faster and faster and the same applies to memory.
-I guess threaded interrupt handlers are still nice. But using a mutex in
-order to serialise access to the struct will force drivers to use threaded
-interrupt handlers should they want to generate large events.
-
-> Note that the event API is only useful for relatively low-bandwidth data
-> since the data is always copied. When dealing with high-bandwidth data the
-> data should either be a separate plane or become a special stream I/O buffer
-> type.
-> 
-> The userspace API enhancements in order to achieve this would be the
-> following:
-> 
-> - Any event that has a large payload would specify a payload_sequence counter
->   and a payload size value (in bytes).
-> 
-> - A new VIDIOC_DQEVENT_PAYLOAD ioctl would be added which passes the event type,
->   the payload_sequence counter and a pointer to a buffer to the kernel, and the
->   payload is returned, or an error is returned if the payload data is no longer
->   available.
-
-Do you think we should have a separate IOCTL for this? The downside is that
-to dequeue events, the application would need to try both in the worst case
-just to obtain an event.
-
-I think it'd be nicer to be able to fit that into the same IOCTL. There are
-plenty of reserved fields and, actually, the event data as well: we could
-consider the large-payload event a meta-event which would contain the
-required information to pass the event data to the user space. The type of
-such an event could be V4L2_EVENT_LARGE, for instance.
-
-> Optional enhancements:
-> 
-> - Have VIDIOC_SUBSCRIBE_EVENT return the maximum payload size (lets apps
->   preallocate payload memory, but it might be overkill).
-
-Why so? We could use a reserved field as well. The size would be zero if the
-maximum would be less than 64.
-
-> - Add functionality to VIDIOC_SUBSCRIBE_EVENT to define the number of
->   events in the event queue for the filehandle. If the payload is large,
->   you may want to limit the number of allocated payload buffers. For
->   example: when dealing with metadata associated with frame you might want
->   to limit the number of payload buffers to the number of allocated frames.
-
-Are we talking now about high level metadata which is typically obtained by
-the driver by other means than hardware writing it into a memory buffer?
-
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index e1cd132..7004cb0 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -496,25 +496,17 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
+ 
+ 	mdev = source->parent;
+ 
+-	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify) {
+-		ret = mdev->link_notify(link->source, link->sink,
+-					MEDIA_LNK_FL_ENABLED);
++	if (mdev->link_notify) {
++		ret = mdev->link_notify(link, flags,
++					MEDIA_DEV_NOTIFY_PRE_LINK_CH);
+ 		if (ret < 0)
+ 			return ret;
+ 	}
+ 
+ 	ret = __media_entity_setup_link_notify(link, flags);
+-	if (ret < 0)
+-		goto err;
+ 
+-	if (!(flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
+-		mdev->link_notify(link->source, link->sink, 0);
+-
+-	return 0;
+-
+-err:
+-	if ((flags & MEDIA_LNK_FL_ENABLED) && mdev->link_notify)
+-		mdev->link_notify(link->source, link->sink, 0);
++	if (mdev->link_notify)
++		mdev->link_notify(link, flags, MEDIA_DEV_NOTIFY_POST_LINK_CH);
+ 
+ 	return ret;
+ }
+diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
+index 424ff92..045a6ae 100644
+--- a/drivers/media/platform/exynos4-is/media-dev.c
++++ b/drivers/media/platform/exynos4-is/media-dev.c
+@@ -1287,34 +1287,36 @@ int fimc_md_set_camclk(struct v4l2_subdev *sd, bool on)
+ 	return __fimc_md_set_camclk(fmd, si, on);
+ }
+ 
+-static int fimc_md_link_notify(struct media_pad *source,
+-			       struct media_pad *sink, u32 flags)
++static int fimc_md_link_notify(struct media_link *link, u32 flags,
++						unsigned int notification)
+ {
++	struct media_entity *sink = link->sink->entity;
+ 	struct exynos_video_entity *ve;
+ 	struct video_device *vdev;
+ 	struct fimc_pipeline *pipeline;
+ 	int i, ret = 0;
+ 
+-	if (media_entity_type(sink->entity) != MEDIA_ENT_T_DEVNODE_V4L)
++	if (media_entity_type(sink) != MEDIA_ENT_T_DEVNODE_V4L ||
++	    notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH)
+ 		return 0;
+ 
+-	vdev = media_entity_to_video_device(sink->entity);
++	vdev = media_entity_to_video_device(sink);
+ 	ve = vdev_to_exynos_video_entity(vdev);
+ 	pipeline = to_fimc_pipeline(ve->pipe);
+ 
+-	if (!(flags & MEDIA_LNK_FL_ENABLED) && pipeline->subdevs[IDX_SENSOR]) {
+-		if (sink->entity->use_count > 0)
++	if (!(link->flags & MEDIA_LNK_FL_ENABLED) && pipeline->subdevs[IDX_SENSOR]) {
++		if (sink->use_count > 0)
+ 			ret = __fimc_pipeline_close(ve->pipe);
+ 
+ 		for (i = 0; i < IDX_MAX; i++)
+ 			pipeline->subdevs[i] = NULL;
+-	} else if (sink->entity->use_count > 0) {
++	} else if (sink->use_count > 0) {
+ 		/*
+ 		 * Link activation. Enable power of pipeline elements only if
+ 		 * the pipeline is already in use, i.e. its video node is open.
+ 		 * Recreate the controls destroyed during the link deactivation.
+ 		 */
+-		ret = __fimc_pipeline_open(ve->pipe, sink->entity, true);
++		ret = __fimc_pipeline_open(ve->pipe, sink, true);
+ 	}
+ 
+ 	return ret ? -EPIPE : ret;
+diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
+index 1d7dbd5..1a2d25c 100644
+--- a/drivers/media/platform/omap3isp/isp.c
++++ b/drivers/media/platform/omap3isp/isp.c
+@@ -792,9 +792,9 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
+ 
+ /*
+  * isp_pipeline_link_notify - Link management notification callback
+- * @source: Pad at the start of the link
+- * @sink: Pad at the end of the link
++ * @link: The link
+  * @flags: New link flags that will be applied
++ * @notification: The link's state change notification type (MEDIA_DEV_NOTIFY_*)
+  *
+  * React to link management on powered pipelines by updating the use count of
+  * all entities in the source and sink sides of the link. Entities are powered
+@@ -804,29 +804,38 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
+  * off is assumed to never fail. This function will not fail for disconnection
+  * events.
+  */
+-static int isp_pipeline_link_notify(struct media_pad *source,
+-				    struct media_pad *sink, u32 flags)
++static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
++				    unsigned int notification)
+ {
+-	int source_use = isp_pipeline_pm_use_count(source->entity);
+-	int sink_use = isp_pipeline_pm_use_count(sink->entity);
++	struct media_entity *source = link->source->entity;
++	struct media_entity *sink = link->sink->entity;
++	int source_use = isp_pipeline_pm_use_count(source);
++	int sink_use = isp_pipeline_pm_use_count(sink);
+ 	int ret;
+ 
+-	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
++	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
++	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
+ 		/* Powering off entities is assumed to never fail. */
+-		isp_pipeline_pm_power(source->entity, -sink_use);
+-		isp_pipeline_pm_power(sink->entity, -source_use);
++		isp_pipeline_pm_power(source, -sink_use);
++		isp_pipeline_pm_power(sink, -source_use);
+ 		return 0;
+ 	}
+ 
+-	ret = isp_pipeline_pm_power(source->entity, sink_use);
+-	if (ret < 0)
+-		return ret;
++	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
++		(flags & MEDIA_LNK_FL_ENABLED)) {
+ 
+-	ret = isp_pipeline_pm_power(sink->entity, source_use);
+-	if (ret < 0)
+-		isp_pipeline_pm_power(source->entity, -sink_use);
++		ret = isp_pipeline_pm_power(source, sink_use);
++		if (ret < 0)
++			return ret;
+ 
+-	return ret;
++		ret = isp_pipeline_pm_power(sink, source_use);
++		if (ret < 0)
++			isp_pipeline_pm_power(source, -sink_use);
++
++		return ret;
++	}
++
++	return 0;
+ }
+ 
+ /* -----------------------------------------------------------------------------
+diff --git a/include/media/media-device.h b/include/media/media-device.h
+index eaade98..12155a9 100644
+--- a/include/media/media-device.h
++++ b/include/media/media-device.h
+@@ -45,6 +45,7 @@ struct device;
+  * @entities:	List of registered entities
+  * @lock:	Entities list lock
+  * @graph_mutex: Entities graph operation lock
++ * @link_notify: Link state change notification callback
+  *
+  * This structure represents an abstract high-level media device. It allows easy
+  * access to entities and provides basic media device-level support. The
+@@ -75,10 +76,14 @@ struct media_device {
+ 	/* Serializes graph operations. */
+ 	struct mutex graph_mutex;
+ 
+-	int (*link_notify)(struct media_pad *source,
+-			   struct media_pad *sink, u32 flags);
++	int (*link_notify)(struct media_link *link, u32 flags,
++			   unsigned int notification);
+ };
+ 
++/* Supported link_notify @notification values. */
++#define MEDIA_DEV_NOTIFY_PRE_LINK_CH	0
++#define MEDIA_DEV_NOTIFY_POST_LINK_CH	1
++
+ /* media_devnode to media_device */
+ #define to_media_device(node) container_of(node, struct media_device, devnode)
+ 
 -- 
-Kind regards,
+1.7.4.1
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
