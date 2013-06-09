@@ -1,56 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:13112 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030360Ab3FTOLi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 10:11:38 -0400
-Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r5KEBb43017042
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 10:11:37 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 1/2] [media] s5p makefiles: don't override other selections on obj-[ym]
-Date: Thu, 20 Jun 2013 11:11:27 -0300
-Message-Id: <1371737488-14395-2-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1371737488-14395-1-git-send-email-mchehab@redhat.com>
-References: <1371737488-14395-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-bk0-f44.google.com ([209.85.214.44]:34495 "EHLO
+	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751260Ab3FITl7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 15:41:59 -0400
+Received: by mail-bk0-f44.google.com with SMTP id r7so2988368bkg.3
+        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 12:41:57 -0700 (PDT)
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, hj210.choi@samsung.com, s.nawrocki@samsung.com
+Subject: [RFC PATCH v2 0/2] Media entity links handling
+Date: Sun,  9 Jun 2013 21:41:37 +0200
+Message-Id: <1370806899-17709-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The $obj-m/$obj-y vars should be adding new modules to build, not
-overriding it. So, it should never use
-	$obj-y := foo.o
-instead, it should use:
-	$obj-y += foo.o
+Hi All,
 
-Failing to do that is very bad, as it will suppress needed modules.
+This small patch set adds a function for removing all links at a media
+entity. I found out such a function is needed when media entites that
+belong to a single media device have drivers in different kernel modules.
+This means virtually all camera drivers, since sensors are separate
+modules from the host interface drivers.
 
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/platform/s5p-jpeg/Makefile | 2 +-
- drivers/media/platform/s5p-mfc/Makefile  | 2 +-
- 2 files changed, 2 insertions(+), 2 deletions(-)
+More details can be found at each patch's description.
 
-diff --git a/drivers/media/platform/s5p-jpeg/Makefile b/drivers/media/platform/s5p-jpeg/Makefile
-index ddc2900..d18cb5e 100644
---- a/drivers/media/platform/s5p-jpeg/Makefile
-+++ b/drivers/media/platform/s5p-jpeg/Makefile
-@@ -1,2 +1,2 @@
- s5p-jpeg-objs := jpeg-core.o
--obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG) := s5p-jpeg.o
-+obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG) += s5p-jpeg.o
-diff --git a/drivers/media/platform/s5p-mfc/Makefile b/drivers/media/platform/s5p-mfc/Makefile
-index 379008c..15f59b3 100644
---- a/drivers/media/platform/s5p-mfc/Makefile
-+++ b/drivers/media/platform/s5p-mfc/Makefile
-@@ -1,4 +1,4 @@
--obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC) := s5p-mfc.o
-+obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC) += s5p-mfc.o
- s5p-mfc-y += s5p_mfc.o s5p_mfc_intr.o
- s5p-mfc-y += s5p_mfc_dec.o s5p_mfc_enc.o
- s5p-mfc-y += s5p_mfc_ctrl.o s5p_mfc_pm.o
+The links removal from a media entity is rather strightforward, but when
+and where links should be created/removed is not immediately clear to me.
+
+I assumed that links should normally be created/removed when an entity
+is registered to its media device, with the graph mutex held.
+
+I'm open to opinions whether it's good or not and possibly suggestions
+on how those issues could be handled differently.
+
+The changes since original version are listed in patch 1/2, in patch 2/2
+only the commit description has changed slightly.
+
+Thanks,
+Sylwester
+
+Sylwester Nawrocki (2):
+  media: Add a function removing all links of a media entity
+  V4L: Remove all links of a media entity when unregistering subdev
+
+ drivers/media/media-entity.c          |   48 +++++++++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-device.c |    4 ++-
+ include/media/media-entity.h          |    3 ++
+ 3 files changed, 54 insertions(+), 1 deletions(-)
+
 -- 
-1.8.1.4
+1.7.4.1
 
