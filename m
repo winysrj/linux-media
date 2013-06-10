@@ -1,61 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43325 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755820Ab3FRJjM (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:55531 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257Ab3FJKBP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 05:39:12 -0400
-Date: Tue, 18 Jun 2013 10:38:23 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	'Rob Clark' <robdclark@gmail.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	'Daniel Vetter' <daniel@ffwll.ch>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-	framework
-Message-ID: <20130618093823.GV2718@n2100.arm.linux.org.uk>
-References: <51BEF458.4090606@canonical.com> <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com> <20130617133109.GG2718@n2100.arm.linux.org.uk> <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com> <20130617154237.GJ2718@n2100.arm.linux.org.uk> <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com> <20130617182127.GM2718@n2100.arm.linux.org.uk> <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com> <20130618084308.GU2718@n2100.arm.linux.org.uk> <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
+	Mon, 10 Jun 2013 06:01:15 -0400
+Received: from avalon.localnet (unknown [91.178.194.8])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 2A40835A4D
+	for <linux-media@vger.kernel.org>; Mon, 10 Jun 2013 12:01:09 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: linux-media@vger.kernel.org
+Subject: [GIT PULL FOR v3.11] OMAP3 ISP patches
+Date: Mon, 10 Jun 2013 12:01:20 +0200
+Message-ID: <2454788.qpgNgYd26s@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 18, 2013 at 06:04:44PM +0900, Inki Dae wrote:
-> 
-> 
-> > -----Original Message-----
-> > From: Russell King - ARM Linux [mailto:linux@arm.linux.org.uk]
-> > Sent: Tuesday, June 18, 2013 5:43 PM
-> > To: Inki Dae
-> > Cc: 'Maarten Lankhorst'; 'linux-fbdev'; 'Kyungmin Park'; 'DRI mailing
-> > list'; 'Rob Clark'; 'myungjoo.ham'; 'YoungJun Cho'; 'Daniel Vetter';
-> > linux-arm-kernel@lists.infradead.org; linux-media@vger.kernel.org
-> > Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-> > framework
-> > 
-> > On Tue, Jun 18, 2013 at 02:27:40PM +0900, Inki Dae wrote:
-> > > So I'd like to ask for other DRM maintainers. How do you think about it?
-> > it
-> > > seems like that Intel DRM (maintained by Daniel), OMAP DRM (maintained
-> > by
-> > > Rob) and GEM CMA helper also have same issue Russell pointed out. I
-> > think
-> > > not only the above approach but also the performance is very important.
-> > 
-> > CMA uses coherent memory to back their buffers, though that might not be
-> > true of memory obtained from other drivers via dma_buf.  Plus, there is
-> > no support in the CMA helper for exporting or importng these buffers.
-> > 
-> 
-> It's not so. Please see Dave's drm next. recently dmabuf support for the CMA
-> helper has been merged to there.
+Hi Mauro,
 
-The point stands: CMA is DMA coherent memory.  It doesn't need and must
-never be dma-map-sg'd or dma-sync'd or dma-unmap'd.
+This should be the last set of OMAP3 ISP patches for v3.11.
+
+The following changes since commit ab5060cdb8829c0503b7be2b239b52e9a25063b4:
+
+  [media] drxk_hard: Remove most 80-cols checkpatch warnings (2013-06-08 
+22:11:39 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git omap3isp/next
+
+for you to fetch changes up to f25d34ca08fa4401f228d9b70e751fcadec5c577:
+
+  omap3isp: ccp2: Don't ignore the regulator_enable() return value (2013-06-10 
+11:53:49 +0200)
+
+----------------------------------------------------------------
+Arnd Bergmann (1):
+      omap3isp: include linux/mm_types.h
+
+Laurent Pinchart (2):
+      omap3isp: Defer probe when the IOMMU is not available
+      omap3isp: ccp2: Don't ignore the regulator_enable() return value
+
+Sachin Kamat (1):
+      omap3isp: Remove redundant platform_set_drvdata()
+
+ drivers/media/platform/omap3isp/isp.c      |  4 ++--
+ drivers/media/platform/omap3isp/ispccp2.c  | 19 +++++++++++++++----
+ drivers/media/platform/omap3isp/ispqueue.h |  1 +
+ 3 files changed, 18 insertions(+), 6 deletions(-)
+
+-- 
+Regards,
+
+Laurent Pinchart
+
