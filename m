@@ -1,55 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta.bitpro.no ([92.42.64.202]:47244 "EHLO mta.bitpro.no"
+Received: from mail.kapsi.fi ([217.30.184.167]:58180 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751192Ab3FBMSS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Jun 2013 08:18:18 -0400
-Message-ID: <51AB385A.4040701@bitfrost.no>
-Date: Sun, 02 Jun 2013 14:19:38 +0200
-From: Hans Petter Selasky <hps@bitfrost.no>
+	id S1754363Ab3FJRsa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jun 2013 13:48:30 -0400
+Message-ID: <51B61143.3080307@iki.fi>
+Date: Mon, 10 Jun 2013 20:47:47 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-CC: linux-media@vger.kernel.org, Juergen Lock <nox@jelal.kn-bremen.de>
-Subject: Re: TT-USB2.0 and high bitrate packet loss (DVB-C/T)
-References: <51A70713.6030802@bitfrost.no>
-In-Reply-To: <51A70713.6030802@bitfrost.no>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: marco caminati <marco.caminati@yahoo.it>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: rtl28xxu IR remote
+References: <51B26AF1.2000005@gmail.com> <1370876006.1569.YahooMailNeo@web28901.mail.ir2.yahoo.com> <1370876948.45967.YahooMailNeo@web28904.mail.ir2.yahoo.com>
+In-Reply-To: <1370876948.45967.YahooMailNeo@web28904.mail.ir2.yahoo.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 05/30/13 10:00, Hans Petter Selasky wrote:
-> Hi there,
+On 06/10/2013 06:09 PM, marco caminati wrote:
 >
-> I need to get in concat with someone that can handle, test and review a
-> patch for TT-USB2.0. I've found that for certain high-bitrate streams,
-> the TT-USB2.0 sends more ISOCHRONOUS MPEG data than is specified in the
-> wMaxPacketSize fields. I have a USB analyzer capture which shows this
-> clearly. This of course won't be received at the USB host and packet
-> drops appear inside the stream. The solution is to use another alternate
-> setting. The technotrend chip has many of these. I've now tested using
-> alternate setting 7 instead of 3.
 >
-> Alternate setting 7 allows transferring a maximum of 3 * 1024 bytes.
-> Alternate setting 3 allows transferring a maximum of 1 * 940 bytes.
+>> Hi, I just compiled and tested Antti Palosaari branch and can confirm the remote works for my RTL2832U.
+>> I have updated the wiki[1] entry with the steps necessary to configure the remote control.
+>> Please confirm if these fixes your problem.
 >
-> --HPS
+>
+> Thanks, but I can't confirm if this fixes my problem, because the modules I obtain building Antti's branch are not compatible with my existing kernel, so I can't test them (modprobe --force fails, and using a brand new kernel would be too much work on Tinycore at the moment).
+> On the other hand, I tried the sources fromgit://linuxtv.org/media_build.git, first with manual patches and then (when the latter got accepted) without them. But the ir remote does not work.
+>
+> I think Antti's repo and patching linuxtv repo should lead to the same results, right?
 
-Hi,
+I think the most easiest way could be compile & install whole Kernel 
+from my tree. It is 3.10-rc4 + some fixes.
 
-It turns out that this device, at least the version I bought, does not 
-work with the XHCI at all when using multi-packet transfers, alternate 
-setting 7, because DATA2 PID is used when transfer is less than 1024 
-bytes. It should be DATA0 PID first, then 1 and 2 in the end. Probably a 
-firmware update can fix this, but I'm not aware about if such exists. 
-The PID issue was found using a USB analyzer.
+media_build.git has also option to fetch developer git tree from 
+linuxtv.org. Something like ./build --git 
+git://linuxtv.org/anttip/media_tree.git rtl28xxu . That approach seem to 
+be not documented on wiki:
+http://linuxtv.org/wiki/index.php/How_to_Obtain,_Build_and_Install_V4L-DVB_Device_Drivers
 
-Apparently this bug has gone undetected, because at least the EHCI high 
-speed only controller I've got silently ignores this kind of errors and 
-receives the data whilst the XHCI not. Conclusion:
-Existing alternate setting must be used.
 
-I think I will have to get another USB based receiver with CI slot. Any 
-recommendations for DVB-T ?
+regards
+Antti
 
---HPS
-
+-- 
+http://palosaari.fi/
