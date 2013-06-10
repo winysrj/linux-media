@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f48.google.com ([74.125.82.48]:52498 "EHLO
-	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751275Ab3FQPad (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:49794 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab3FJOzy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:30:33 -0400
-Received: by mail-wg0-f48.google.com with SMTP id f11so2473009wgh.3
-        for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 08:30:32 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
-References: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 17 Jun 2013 21:00:12 +0530
-Message-ID: <CA+V-a8t-kG9dVaLzNXcqPaXehJoD+qoiRnxbQPx8qrLDhUwYqw@mail.gmail.com>
-Subject: Re: [PATCH] V4L2: add documentation for V4L2 clock helpers and
- asynchronous probing
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1
+	Mon, 10 Jun 2013 10:55:54 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MO600I81MT3P7E0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Jun 2013 23:55:53 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
+	kyungmin.park@samsung.com, a.hajda@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC PATCH v3 0/2] Media entity links handling
+Date: Mon, 10 Jun 2013 16:54:28 +0200
+Message-id: <1370876070-23699-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
+References: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+This is an updated version of the patch set
+http://www.spinics.net/lists/linux-media/msg64536.html
 
-Thanks for the patch.
+Comparing to v2 it includes improvements of the __media_entity_remove_links()
+function, thanks to Sakari. 
 
-On Mon, Jun 17, 2013 at 11:34 AM, Guennadi Liakhovetski
-<g.liakhovetski@gmx.de> wrote:
-> Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
-> to v4l2-framework.txt.
->
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+The cover letter of v2 is included below.
 
-Reviewed-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+This small patch set adds a function for removing all links at a media
+entity. I found out such a function is needed when media entites that
+belong to a single media device have drivers in different kernel modules.
+This means virtually all camera drivers, since sensors are separate
+modules from the host interface drivers.
 
-Regards,
---Prabhakar Lad
+More details can be found at each patch's description.
+
+The links removal from a media entity is rather strightforward, but when
+and where links should be created/removed is not immediately clear to me.
+
+I assumed that links should normally be created/removed when an entity
+is registered to its media device, with the graph mutex held.
+
+I'm open to opinions whether it's good or not and possibly suggestions
+on how those issues could be handled differently.
+
+The changes since original version are listed in patch 1/2, in patch 2/2
+only the commit description has changed slightly.
+
+Thanks,
+Sylwester
+
+Sylwester Nawrocki (2):
+  media: Add a function removing all links of a media entity
+  V4L: Remove all links of a media entity when unregistering subdev
+
+ drivers/media/media-entity.c          |   50 +++++++++++++++++++++++++++++++++
+ drivers/media/v4l2-core/v4l2-device.c |    4 ++-
+ include/media/media-entity.h          |    3 ++
+ 3 files changed, 56 insertions(+), 1 deletion(-)
+
+-- 
+1.7.9.5
+
