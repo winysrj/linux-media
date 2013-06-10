@@ -1,37 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35542 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161313Ab3FUHzi (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:23102 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751903Ab3FJNAh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 03:55:38 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
+	Mon, 10 Jun 2013 09:00:37 -0400
+Received: from epcpsbgr4.samsung.com
+ (u144.gpu120.samsung.co.kr [203.254.230.144])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MO600EHDHGVH670@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Jun 2013 22:00:35 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?q?Ga=C3=ABtan=20Carlier?= <gcembed@gmail.com>,
-	Wei Yongjun <weiyj.lk@gmail.com>
-Subject: [PATCH v2 0/8] CODA7541 decoding support
-Date: Fri, 21 Jun 2013 09:55:26 +0200
-Message-Id: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH 1/6] [media] s5p-mfc: Update v6 encoder buffer sizes
+Date: Mon, 10 Jun 2013 18:53:01 +0530
+Message-id: <1370870586-24141-2-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following patch series depends on the CODA patches queued in Kamil's branch
-and on the "mem2mem: add support for hardware buffered queue" patch I've posted
-earlier. It should allow decoding h.264 high profile 1080p streams on i.MX53
-with the current CODA7541 firmware version 1.4.50.
+The patch updates few encoder buffer sizes for MFC v6.5
+as per the udpdated user manual. The same buffer sizes
+holds good for v7 firmware also.
 
-Changes since v1:
- - Only the last patch "coda: add CODA7541 decoding support" is changed, including 
-   a coda_stop_streaming() locking fix by Wei Yongjun, and a fixed coda_job_ready()
-   for the encoder case.
-
-regards
-Philipp
-
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/platform/coda.c | 1469 +++++++++++++++++++++++++++++++++++------
- drivers/media/platform/coda.h |  107 ++-
- 2 files changed, 1389 insertions(+), 187 deletions(-)
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index 363a97c..2398cdf 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -374,9 +374,9 @@
+ #define S5P_FIMV_NUM_PIXELS_IN_MB_COL_V6	16
+ 
+ /* Buffer size requirements defined by hardware */
+-#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 1) * 8)
++#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 3) * 8)
+ #define S5P_FIMV_ME_BUFFER_SIZE_V6(imw, imh, mbw, mbh) \
+-	((DIV_ROUND_UP(imw, 64) *  DIV_ROUND_UP(imh, 64) * 256) + \
++	(((((imw + 127) / 64) * 16) *  DIV_ROUND_UP(imh, 64) * 256) + \
+ 	 (DIV_ROUND_UP((mbw) * (mbh), 32) * 16))
+ #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V6(w, h)	(((w) * 192) + 64)
+ #define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V6(w, h) \
+-- 
+1.7.9.5
 
