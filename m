@@ -1,84 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:37447 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756141Ab3FMKcm (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4606 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008Ab3FJMte (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jun 2013 06:32:42 -0400
+	Mon, 10 Jun 2013 08:49:34 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v10 15/21] V4L2: add a device pointer to struct v4l2_subdev
-Date: Thu, 13 Jun 2013 12:32:34 +0200
-Cc: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de> <1370939028-8352-16-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-16-git-send-email-g.liakhovetski@gmx.de>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306131232.34552.hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 1/9] soc_camera: replace vdev->parent by vdev->v4l2_dev.
+Date: Mon, 10 Jun 2013 14:48:30 +0200
+Message-Id: <1370868518-19831-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 11 June 2013 10:23:42 Guennadi Liakhovetski wrote:
-> It is often useful to have simple means to get from a subdevice to the
-> underlying physical device. This patch adds such a pointer to struct
-> v4l2_subdev and sets it accordingly in the I2C and SPI cases.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
->  drivers/media/v4l2-core/v4l2-common.c |    2 ++
->  include/media/v4l2-subdev.h           |    2 ++
->  2 files changed, 4 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-> index 3fed63f..accfec6 100644
-> --- a/drivers/media/v4l2-core/v4l2-common.c
-> +++ b/drivers/media/v4l2-core/v4l2-common.c
-> @@ -291,6 +291,7 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
->  	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
->  	/* the owner is the same as the i2c_client's driver owner */
->  	sd->owner = client->driver->driver.owner;
-> +	sd->dev = &client->dev;
->  	/* i2c_client and v4l2_subdev point to one another */
->  	v4l2_set_subdevdata(sd, client);
->  	i2c_set_clientdata(client, sd);
-> @@ -426,6 +427,7 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
->  	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
->  	/* the owner is the same as the spi_device's driver owner */
->  	sd->owner = spi->dev.driver->owner;
-> +	sd->dev = &spi->dev;
->  	/* spi_device and v4l2_subdev point to one another */
->  	v4l2_set_subdevdata(sd, spi);
->  	spi_set_drvdata(spi, sd);
-> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-> index 5298d67..d8756fa 100644
-> --- a/include/media/v4l2-subdev.h
-> +++ b/include/media/v4l2-subdev.h
-> @@ -585,6 +585,8 @@ struct v4l2_subdev {
->  	void *host_priv;
->  	/* subdev device node */
->  	struct video_device *devnode;
-> +	/* pointer to the physical device */
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Can you change this comment to:
+The parent field will eventually disappear to be replaced by v4l2_dev.
+soc_camera does provide a v4l2_device struct but did not point to it in
+struct video_device. This is now fixed.
 
-	/* pointer to the physical device, if any */
+Now the video nodes can be found under the correct platform bus, and
+the advanced debug ioctls work correctly as well (the core implementation
+of those ioctls requires that v4l2_dev is set correctly).
 
-It's a small change, but this makes it clear that it's OK to leave it to
-NULL for subdevs that don't have an underlying device struct.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |    5 +++--
+ include/media/soc_camera.h                     |    4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-Thanks!
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 0252fbb..9a43560 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -524,7 +524,7 @@ static int soc_camera_open(struct file *file)
+ 		return -ENODEV;
+ 	}
+ 
+-	icd = dev_get_drvdata(vdev->parent);
++	icd = video_get_drvdata(vdev);
+ 	ici = to_soc_camera_host(icd->parent);
+ 
+ 	ret = try_module_get(ici->ops->owner) ? 0 : -ENODEV;
+@@ -1477,7 +1477,7 @@ static int video_dev_create(struct soc_camera_device *icd)
+ 
+ 	strlcpy(vdev->name, ici->drv_name, sizeof(vdev->name));
+ 
+-	vdev->parent		= icd->pdev;
++	vdev->v4l2_dev		= &ici->v4l2_dev;
+ 	vdev->fops		= &soc_camera_fops;
+ 	vdev->ioctl_ops		= &soc_camera_ioctl_ops;
+ 	vdev->release		= video_device_release;
+@@ -1500,6 +1500,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
+ 	if (!icd->parent)
+ 		return -ENODEV;
+ 
++	video_set_drvdata(icd->vdev, icd);
+ 	ret = video_register_device(icd->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret < 0) {
+ 		dev_err(icd->pdev, "video_register_device failed: %d\n", ret);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index ff77d08..31a4bfe 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -346,9 +346,9 @@ static inline struct soc_camera_subdev_desc *soc_camera_i2c_to_desc(const struct
+ 	return client->dev.platform_data;
+ }
+ 
+-static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(const struct video_device *vdev)
++static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(struct video_device *vdev)
+ {
+-	struct soc_camera_device *icd = dev_get_drvdata(vdev->parent);
++	struct soc_camera_device *icd = video_get_drvdata(vdev);
+ 	return soc_camera_to_subdev(icd);
+ }
+ 
+-- 
+1.7.10.4
 
-	Hans
-
-> +	struct device *dev;
->  };
->  
->  #define media_entity_to_v4l2_subdev(ent) \
-> 
