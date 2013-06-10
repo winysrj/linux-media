@@ -1,167 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:46653 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756457Ab3FSM5J (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:22285 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034Ab3FJNBy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jun 2013 08:57:09 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MON002O85B3HME0@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Wed, 19 Jun 2013 21:57:07 +0900 (KST)
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-To: linux-media@vger.kernel.org, linaro-mm-sig@lists.linaro.org
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kamil Debski <k.debski@samsung.com>, lonsn2005@gmail.com,
-	sachin.kamat@linaro.org
-Subject: [PATCH] v4l2: videobuf2-dc: fix support for mappings without struct
- page in userptr mode
-Date: Wed, 19 Jun 2013 14:56:46 +0200
-Message-id: <1371646607-23321-1-git-send-email-m.szyprowski@samsung.com>
+	Mon, 10 Jun 2013 09:01:54 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MO6008V0HJ443P0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Jun 2013 22:01:52 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH 3/6] [media] s5p-mfc: Core support for MFC v7
+Date: Mon, 10 Jun 2013 18:53:03 +0530
+Message-id: <1370870586-24141-4-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Earlier version of dma-contig allocator in user ptr mode assumed that in
-all cases DMA address equals physical address. This was just a special case.
-Commit e15dab752d4c588544ccabdbe020a7cc092e23c8 introduced correct support
-for converting userpage to dma address, but unfortunately it broke the
-support for simple dma address = physical address for the case, when given
-physical frame has no struct page associated with it (this happens if one
-use for example dma_declare_coherent api or other reserved memory approach).
-This commit restores support for such cases.
+Adds variant data and core support for the MFC v7 firmware
 
-Signed-off-by: Marek Szyprowski <m.szyprowski@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/v4l2-core/videobuf2-dma-contig.c |   87 ++++++++++++++++++++++--
- 1 file changed, 82 insertions(+), 5 deletions(-)
+ drivers/media/platform/s5p-mfc/s5p_mfc.c        |   32 +++++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
+ 2 files changed, 34 insertions(+)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-contig.c b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-index fd56f25..1382749 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-contig.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-contig.c
-@@ -423,6 +423,39 @@ static inline int vma_is_io(struct vm_area_struct *vma)
- 	return !!(vma->vm_flags & (VM_IO | VM_PFNMAP));
- }
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index d12faa6..d6be52f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1391,6 +1391,32 @@ static struct s5p_mfc_variant mfc_drvdata_v6 = {
+ 	.fw_name        = "s5p-mfc-v6.fw",
+ };
  
-+static int vb2_dc_get_user_pfn(unsigned long start, int n_pages,
-+	struct vm_area_struct *vma, unsigned long *res)
-+{
-+	unsigned long pfn, start_pfn, prev_pfn;
-+	unsigned int i;
-+	int ret;
++struct s5p_mfc_buf_size_v6 mfc_buf_size_v7 = {
++	.dev_ctx	= MFC_CTX_BUF_SIZE_V7,
++	.h264_dec_ctx	= MFC_H264_DEC_CTX_BUF_SIZE_V7,
++	.other_dec_ctx	= MFC_OTHER_DEC_CTX_BUF_SIZE_V7,
++	.h264_enc_ctx	= MFC_H264_ENC_CTX_BUF_SIZE_V7,
++	.other_enc_ctx	= MFC_OTHER_ENC_CTX_BUF_SIZE_V7,
++};
 +
-+	if (!vma_is_io(vma))
-+		return -EFAULT;
++struct s5p_mfc_buf_size buf_size_v7 = {
++	.fw	= MAX_FW_SIZE_V7,
++	.cpb	= MAX_CPB_SIZE_V7,
++	.priv	= &mfc_buf_size_v7,
++};
 +
-+	ret = follow_pfn(vma, start, &pfn);
-+	if (ret)
-+		return ret;
++struct s5p_mfc_buf_align mfc_buf_align_v7 = {
++	.base = 0,
++};
 +
-+	start_pfn = pfn;
-+	start += PAGE_SIZE;
++static struct s5p_mfc_variant mfc_drvdata_v7 = {
++	.version	= MFC_VERSION_V7,
++	.port_num	= MFC_NUM_PORTS_V7,
++	.buf_size	= &buf_size_v7,
++	.buf_align	= &mfc_buf_align_v7,
++	.fw_name        = "s5p-mfc-v7.fw",
++};
 +
-+	for (i = 1; i < n_pages; ++i, start += PAGE_SIZE) {
-+		prev_pfn = pfn;
-+		ret = follow_pfn(vma, start, &pfn);
-+
-+		if (ret) {
-+			pr_err("no page for address %lu\n", start);
-+			return ret;
-+		}
-+		if (pfn != prev_pfn + 1)
-+			return -EINVAL;
-+	}
-+
-+	*res = start_pfn;
-+	return 0;
-+}
-+
- static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
- 	int n_pages, struct vm_area_struct *vma, int write)
- {
-@@ -433,6 +466,9 @@ static int vb2_dc_get_user_pages(unsigned long start, struct page **pages,
- 			unsigned long pfn;
- 			int ret = follow_pfn(vma, start, &pfn);
+ static struct platform_device_id mfc_driver_ids[] = {
+ 	{
+ 		.name = "s5p-mfc",
+@@ -1401,6 +1427,9 @@ static struct platform_device_id mfc_driver_ids[] = {
+ 	}, {
+ 		.name = "s5p-mfc-v6",
+ 		.driver_data = (unsigned long)&mfc_drvdata_v6,
++	}, {
++		.name = "s5p-mfc-v7",
++		.driver_data = (unsigned long)&mfc_drvdata_v7,
+ 	},
+ 	{},
+ };
+@@ -1413,6 +1442,9 @@ static const struct of_device_id exynos_mfc_match[] = {
+ 	}, {
+ 		.compatible = "samsung,mfc-v6",
+ 		.data = &mfc_drvdata_v6,
++	}, {
++		.compatible = "samsung,mfc-v7",
++		.data = &mfc_drvdata_v7,
+ 	},
+ 	{},
+ };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index ef4074c..7281de2 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -24,6 +24,7 @@
+ #include <media/videobuf2-core.h>
+ #include "regs-mfc.h"
+ #include "regs-mfc-v6.h"
++#include "regs-mfc-v7.h"
  
-+			if (!pfn_valid(pfn))
-+				return -EINVAL;
-+
- 			if (ret) {
- 				pr_err("no page for address %lu\n", start);
- 				return ret;
-@@ -468,16 +504,49 @@ static void vb2_dc_put_userptr(void *buf_priv)
- 	struct vb2_dc_buf *buf = buf_priv;
- 	struct sg_table *sgt = buf->dma_sgt;
+ /* Definitions related to MFC memory */
  
--	dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
--	if (!vma_is_io(buf->vma))
--		vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
-+	if (sgt) {
-+		dma_unmap_sg(buf->dev, sgt->sgl, sgt->orig_nents, buf->dma_dir);
-+		if (!vma_is_io(buf->vma))
-+			vb2_dc_sgt_foreach_page(sgt, vb2_dc_put_dirty_page);
+@@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+ 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
+ #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
+ #define IS_MFCV6(dev)		(dev->variant->version >= 0x60 ? 1 : 0)
++#define IS_MFCV7(dev)		(dev->variant->version >= 0x70 ? 1 : 0)
  
--	sg_free_table(sgt);
--	kfree(sgt);
-+		sg_free_table(sgt);
-+		kfree(sgt);
-+	}
- 	vb2_put_vma(buf->vma);
- 	kfree(buf);
- }
- 
-+/*
-+ * For some kind of reserved memory there might be no struct page available,
-+ * so all that can be done to support such 'pages' is to try to convert
-+ * pfn to dma address or at the last resort just assume that
-+ * dma address == physical address (like it has been assumed in earlier version
-+ * of videobuf2-dma-contig
-+ */
-+
-+#ifdef __arch_pfn_to_dma
-+static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-+{
-+	return (dma_addr_t)__arch_pfn_to_dma(dev, pfn);
-+}
-+#elsif defined(__pfn_to_bus)
-+static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-+{
-+	return (dma_addr_t)__pfn_to_bus(pfn);
-+}
-+#elsif defined(__pfn_to_phys)
-+static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-+{
-+	return (dma_addr_t)__pfn_to_phys(pfn);
-+}
-+#else
-+static inline dma_addr_t vb2_dc_pfn_to_dma(struct device *dev, unsigned long pfn)
-+{
-+	/* really, we cannot do anything better at this point */
-+	return (dma_addr_t)(pfn) << PAGE_SHIFT;
-+}
-+#endif
-+
- static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	unsigned long size, int write)
- {
-@@ -548,6 +617,14 @@ static void *vb2_dc_get_userptr(void *alloc_ctx, unsigned long vaddr,
- 	/* extract page list from userspace mapping */
- 	ret = vb2_dc_get_user_pages(start, pages, n_pages, vma, write);
- 	if (ret) {
-+		unsigned long pfn;
-+		if (vb2_dc_get_user_pfn(start, n_pages, vma, &pfn) == 0) {
-+			buf->dma_addr = vb2_dc_pfn_to_dma(buf->dev, pfn);
-+			buf->size = size;
-+			kfree(pages);
-+			return buf;
-+		}
-+
- 		pr_err("failed to get user pages\n");
- 		goto fail_vma;
- 	}
+ #endif /* S5P_MFC_COMMON_H_ */
 -- 
 1.7.9.5
 
