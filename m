@@ -1,48 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:2927 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100Ab3FCIux (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 04:50:53 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [RFC PATCH 0/3] bttv: convert to generic TEA575x interface
-Date: Mon, 3 Jun 2013 10:50:25 +0200
-Cc: linux-media@vger.kernel.org
-References: <1368564885-20940-1-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1368564885-20940-1-git-send-email-linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306031050.26000.hverkuil@xs4all.nl>
+Received: from mailout4.samsung.com ([203.254.224.34]:23157 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752250Ab3FJNBR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jun 2013 09:01:17 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MO6005LDHI1UMS0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Jun 2013 22:01:16 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH 2/6] [media] s5p-mfc: Add register definition file for MFC v7
+Date: Mon, 10 Jun 2013 18:53:02 +0530
+Message-id: <1370870586-24141-3-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue May 14 2013 22:54:42 Ondrej Zary wrote:
-> 
-> Hello,
-> this patch series removes the tea575x code from bttv and uses the common
-> tea575x driver instead. Only set_frequency is implemented (signal/stereo
-> detection or seek would require more changes to bttv).
-> 
-> It works fine on Video Highway Xtreme but I don't have the Miro/Pinnacle or
-> Terratec Active Radio Upgrade to test.
-> 
-> Miro/Pinnacle seems to be simple and should work.
-> 
-> However, I don't understand the Terratec Active Radio Upgrade code. The HW
-> seems to need IOR, IOW and CSEL signals that were taken from ISA bus on
-> older cards (IOR and IOW directly and CSEL from some address decoder) and
-> are emulated here using GPIOs. But the code manipulating these signals in
-> bttv seems to be broken - it never asserts the IOR signal. If anyone has
-> this HW, please test if I got that right.
+The patch adds the register definition file for new firmware
+version v7 for MFC. New firmware supports VP8 encoding along with
+many other features.
 
-I wish I had this HW as well. There is a radio-terratec driver for this
-Radio Upgrade as well in drivers/media/radio.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h |   58 ++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
 
-Anyway, I'm OK with the first two patches, but the last needs some more
-work w.r.t. the bttv Kconfig (see my comment to that patch).
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+new file mode 100644
+index 0000000..24dba69
+--- /dev/null
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -0,0 +1,58 @@
++/*
++ * Register definition file for Samsung MFC V7.x Interface (FIMV) driver
++ *
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _REGS_MFC_V7_H
++#define _REGS_MFC_V7_H
++
++#include "regs-mfc-v6.h"
++
++/* Additional features of v7 */
++#define S5P_FIMV_CODEC_VP8_ENC_V7	25
++
++/* Additional registers for v7 */
++#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
++
++#define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
++#define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
++#define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
++#define S5P_FIMV_E_SOURCE_FIRST_STRIDE_V7		0xf9ec
++#define S5P_FIMV_E_SOURCE_SECOND_STRIDE_V7		0xf9f0
++#define S5P_FIMV_E_SOURCE_THIRD_STRIDE_V7		0xf9f4
++
++#define S5P_FIMV_E_ENCODED_SOURCE_FIRST_ADDR_V7		0xfa70
++#define S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7	0xfa74
++
++#define S5P_FIMV_E_VP8_OPTIONS_V7			0xfdb0
++#define S5P_FIMV_E_VP8_FILTER_OPTIONS_V7		0xfdb4
++#define S5P_FIMV_E_VP8_GOLDEN_FRAME_OPTION_V7		0xfdb8
++#define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
++
++/* MFCv7 variant defines */
++#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
++#define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
++#define MFC_VERSION_V7			0x72
++#define MFC_NUM_PORTS_V7		1
++
++/* MFCv7 Context buffer sizes */
++#define MFC_CTX_BUF_SIZE_V7		(30 * SZ_1K)	/*  30KB */
++#define MFC_H264_DEC_CTX_BUF_SIZE_V7	(2 * SZ_1M)	/*  2MB */
++#define MFC_OTHER_DEC_CTX_BUF_SIZE_V7	(20 * SZ_1K)	/*  20KB */
++#define MFC_H264_ENC_CTX_BUF_SIZE_V7	(100 * SZ_1K)	/* 100KB */
++#define MFC_OTHER_ENC_CTX_BUF_SIZE_V7	(10 * SZ_1K)	/*  10KB */
++
++/* Buffer size defines */
++#define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(w, h) \
++			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
++
++#define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
++			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
++
++#endif /*_REGS_MFC_V7_H*/
+-- 
+1.7.9.5
 
-Regards,
-
-	Hans
