@@ -1,71 +1,37 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38828 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751373Ab3FHMDL (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 8 Jun 2013 08:03:11 -0400
-Message-ID: <51B31D57.8000605@iki.fi>
-Date: Sat, 08 Jun 2013 15:02:31 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Rodrigo Tartajo <rtarty@gmail.com>
-CC: linux-media@vger.kernel.org
-Subject: Re: rtl28xxu IR remote
-References: <51B26B2C.7090406@gmail.com> <51B31628.2090702@iki.fi>
-In-Reply-To: <51B31628.2090702@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1896 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751008Ab3FJMtd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jun 2013 08:49:33 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mike Isely <isely@isely.net>
+Subject: [REVIEW PATCH 0/9] Use v4l2_dev instead of parent.
+Date: Mon, 10 Jun 2013 14:48:29 +0200
+Message-Id: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/08/2013 02:31 PM, Antti Palosaari wrote:
-> On 06/08/2013 02:22 AM, Rodrigo Tartajo wrote:
->> Hi, I just compiled and tested Antti Palosaari branch and can confirm
->> the remote works for my RTL2832U. I have updated the wiki[1] entry
->> with the steps necessary to configure the remote control. Please
->> confirm if these fixes your problem.
->>
->> Rodrigo.
->>
->> [1] http://www.linuxtv.org/wiki/index.php/RealTek_RTL2832U
->
->
-> Good. I tested it quite limited set of remote controllers and even found
-> one NEC remote which didn't worked - RC_MAP_MSI_DIGIVOX_II. Maybe
-> timings should be adjusted or there is some other factor. I didn't cared
-> to look it more as I am not very familiar with these raw remote
-> protocols and real life variations.
->
-> I also had no reference to adjust remote timings. I just used one RC5
-> remote and calibrated timings according to that. If there is someone
-> having better reference signals, then feel free to change that timing
-> value to more correct.
+This patch series converts the last set of drivers still using the parent
+field of video_device to using v4l2_dev instead and at the end the parent
+field is removed altogether.
 
-Rodrigo,
-as it was you who has defined that factor as a:
-1000000000 / 38000 * 2 = 52631
+A proper pointer to v4l2_dev is necessary otherwise the advanced debugging
+ioctls will not work when addressing sub-devices.
 
-I found 50800 most suitable by error and trial testing against one RC5 
-remote. I see 38000 is coming from IR frequency, but what is 1GHz clock 
-derived? And why multiply by 2? Reference clock feed to chip is 28.800 
-MHz and most likely these timings should be derived somehow from it. I 
-tried to make different calculations but didn't find any suitable...
+I have been steadily converting drivers to set the v4l2_dev pointer correctly,
+and this patch series finishes that work.
 
-Also what I remember, these IR leds will not return receiver carrier at 
-given frequency (38kHz in that case) but instead longer pulses. If there 
-is 0.5 sec 38 kHz modulated IR wave then IR-led will return 0.5 sec 
-continuous pulse. So that frequency should not matter too.
+Guennadi, the first patch replaces the broken version I posted earlier as part
+of the 'current_norm' removal patch series. I've tested it with my renesas
+board.
 
-I did learning IR remote controller, which has both receiver and IR 
-sender, as a school project:
-http://palosaari.fi/img_1305.jpg
+Note that this patch series sits on top of my for_v3.11 branch.
 
-Unfortunately that was returned to the uni and was thrown to the trash 
-can :S I have thought many times that board could be handy tool for 
-hacking support for these remote controllers...
+Regards,
 
+	Hans
 
-regards
-Antti
-
--- 
-http://palosaari.fi/
