@@ -1,73 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:33166 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753827Ab3F1GHD (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:9702 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751910Ab3FJK0w (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 02:07:03 -0400
-Message-ID: <51CD27FF.1060706@gmail.com>
-Date: Fri, 28 Jun 2013 14:06:55 +0800
-From: Hui Wang <jason77.wang@gmail.com>
-MIME-Version: 1.0
-To: Jingoo Han <jg1.han@samsung.com>
-CC: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH 2/3] ARM: dts: Add DP PHY node to exynos5250.dtsi
-References: <001601ce73bf$9f2e9120$dd8bb360$@samsung.com> <51CD2214.10506@ti.com> <001b01ce73c4$88f45020$9adcf060$@samsung.com>
-In-Reply-To: <001b01ce73c4$88f45020$9adcf060$@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 10 Jun 2013 06:26:52 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout3.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MO600IARAC6EP50@mailout3.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Jun 2013 11:26:49 +0100 (BST)
+Message-id: <51B5A9E6.20903@samsung.com>
+Date: Mon, 10 Jun 2013 12:26:46 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [RFC PATCH v2 1/2] media: Add function removing all media entity
+ links
+References: <1368102573-16183-2-git-send-email-s.nawrocki@samsung.com>
+ <1368180037-24091-1-git-send-email-s.nawrocki@samsung.com>
+ <20130606194124.GB3103@valkosipuli.retiisi.org.uk>
+ <51B4CB8D.1010507@gmail.com> <51B4FE9C.9020300@iki.fi>
+In-reply-to: <51B4FE9C.9020300@iki.fi>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/28/2013 01:58 PM, Jingoo Han wrote:
-> On Friday, June 28, 2013 2:42 PM, Kishon Vijay Abraham I wrote:
->> Hi,
+Hi Sakari,
+
+On 06/10/2013 12:15 AM, Sakari Ailus wrote:
+> Sylwester Nawrocki wrote:
+> ...
+>>>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>>>> index e1cd132..bd85dc3 100644
+>>>> --- a/drivers/media/media-entity.c
+>>>> +++ b/drivers/media/media-entity.c
+>>>> @@ -429,6 +429,57 @@ media_entity_create_link(struct media_entity
+>>>> *source, u16 source_pad,
+>>>>   }
+>>>>   EXPORT_SYMBOL_GPL(media_entity_create_link);
+>>>>
+>>>> +void __media_entity_remove_links(struct media_entity *entity)
+>>>> +{
+>>>> +    int i, r;
+>>>
+>>> u16? r can be defined inside the loop.
 >>
->> On Friday 28 June 2013 10:53 AM, Jingoo Han wrote:
->>> Add PHY provider node for the DP PHY.
+>> I would argue 'unsigned int' would be more optimal type for i in most
+>> cases. Will move r inside the loop.
+>>
+>>>> +    for (i = 0; i<  entity->num_links; i++) {
+>>>> +        struct media_link *link =&entity->links[i];
+>>>> +        struct media_entity *remote;
+>>>> +        int num_links;
 >>>
->>> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
->>> ---
->>>    arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
->>>    1 file changed, 8 insertions(+), 5 deletions(-)
+>>> num_links is u16 in struct media_entity. I'd use the same type.
+>>
+>> I would go with 'unsigned int', as a more natural type for the CPU in
+>> most cases. It's a minor issue, but I can't see how u16 would have been
+>> more optimal than unsigned int for a local variable like this, while
+>> this code is mostly used on 32-bit systems at least.
+>>
+>>>> +        if (link->source->entity == entity)
+>>>> +            remote = link->sink->entity;
+>>>> +        else
+>>>> +            remote = link->source->entity;
+>>>> +
+>>>> +        num_links = remote->num_links;
+>>>> +
+>>>> +        for (r = 0; r<  num_links; r++) {
 >>>
->>> diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
->>> index 41cd625..d1d6e14 100644
->>> --- a/arch/arm/boot/dts/exynos5250.dtsi
->>> +++ b/arch/arm/boot/dts/exynos5250.dtsi
->>> @@ -614,6 +614,12 @@
->>>    		interrupts = <0 94 0>;
->>>    	};
+>>> Is caching remote->num_links needed, or do I miss something?
+>>
+>> Yes, it is needed, remote->num_links is decremented inside the loop.
+> 
+> Oh, forgot this one... yes, remote->num_links is decremented, but so is 
+> r it's compared to. So I don't think it's necessary to cache it, but 
+> it's neither an error to do so.
+
+Indeed, it seems more correct to not cache it, thanks.
+
+>>>> +            struct media_link *rlink =&remote->links[r];
+>>>> +
+>>>> +            if (rlink != link->reverse)
+>>>> +                continue;
+>>>> +
+>>>> +            if (link->source->entity == entity)
+>>>> +                remote->num_backlinks--;
+>>>> +
+>>>> +            remote->num_links--;
+>>>> +
+>>>> +            if (remote->num_links<  1)
 >>>
->>> +	dp_phy: video-phy@10040720 {
->>> +		compatible = "samsung,exynos5250-dp-video-phy";
->>> +		reg = <0x10040720 4>;
->>> +		#phy-cells = <1>;
->> phy-cells can be '0' here since this phy_provider implements only one PHY.
-> Oh, thank you.
-> I will fix it.
-Don't forget to fix the corresponding description in the 
-samsung,exynos5250-dp-video-phy.txt as well. :-)
-> Best regards,
-> Jingoo Han
->
->> Thanks
->> Kishon
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
+>>> How about: if (!remote->num_links) ?
+>>
+>> Hmm, perhaps squashing the above two lines to:
+>>
+>>              if (--remote->num_links == 0)
+>>
+>> ?
+> 
+> I'm not too fond of --/++ operators as part of more complex structures 
+> so I'd keep it separate. Fewer lines doesn't always equate to more 
+> readable code. :-)
+
+In general I agree, however it's quite simple statement in this case -
+only decrement and test, it's often only one instruction even in the
+assembly language...
+
+I'm going to squash following to this patch:
+
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index f5ea82e..1fb619d 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -436,18 +436,18 @@ void __media_entity_remove_links(struct media_entity *entity)
+        for (i = 0; i < entity->num_links; i++) {
+                struct media_link *link = &entity->links[i];
+                struct media_entity *remote;
+-               unsigned int r, num_links;
++               unsigned int r;
+
+                if (link->source->entity == entity)
+                        remote = link->sink->entity;
+                else
+                        remote = link->source->entity;
+
+-               num_links = remote->num_links;
+-
+-               for (r = 0; r < num_links; r++) {
+-                       if (remote->links[r] != link->reverse)
++               while (r < remote->num_links; r++) {
++                       if (remote->links[r] != link->reverse) {
++                               r++;
+                                continue;
++                       }
+
+                        if (link->source->entity == entity)
+                                remote->num_backlinks--;
+@@ -456,7 +456,7 @@ void __media_entity_remove_links(struct media_entity *entity)
+                                break;
+
+                        /* Insert last entry in place of the dropped link. */
+-                       remote->links[r--] = remote->links[remote->num_links];
++                       remote->links[r] = remote->links[remote->num_links];
+                }
+        }
+
+So the loop looks something like:
+
+
+		while (r < remote->num_links) {
+			if (remote->links[r] != link->reverse) {
+				r++;
+				continue;
+			}
+
+			if (link->source->entity == entity)
+				remote->num_backlinks--;
+
+			if (--remote->num_links == 0)
+				break;
+
+			/* Insert last entry in place of the dropped link. */
+			remote->links[r] = remote->links[remote->num_links];
+		}
+
+Does it sound OK ?
+
+Regards,
+Sylwester
 
