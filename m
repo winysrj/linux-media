@@ -1,142 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:29125 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753208Ab3FJO4J (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1519 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753048Ab3FJNgc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 10:56:09 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MO6007Y0MTK9YR0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Jun 2013 23:56:08 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	kyungmin.park@samsung.com, a.hajda@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC PATCH v3 1/2] media: Add a function removing all links of a media
- entity
-Date: Mon, 10 Jun 2013 16:54:29 +0200
-Message-id: <1370876070-23699-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
-References: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 10 Jun 2013 09:36:32 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [PATCH RFC v3 2/3] media: added managed v4l2 control initialization
+Date: Mon, 10 Jun 2013 15:36:09 +0200
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Andrzej Hajda <a.hajda@samsung.com>,
+	linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+References: <1368692074-483-1-git-send-email-a.hajda@samsung.com> <20130606214107.GD3103@valkosipuli.retiisi.org.uk> <51B4C3ED.40006@gmail.com>
+In-Reply-To: <51B4C3ED.40006@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306101536.09629.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This function allows to remove all media entity's links to other
-entities, leaving no references to a media entity's links array
-at its remote entities.
+On Sun June 9 2013 20:05:33 Sylwester Nawrocki wrote:
+> Hi Sakari,
+> 
+> On 06/06/2013 11:41 PM, Sakari Ailus wrote:
+> ...
+> >>>>>> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>>>>> index ebb8e48..f47ccfa 100644
+> >>>>>> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>>>>> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> >>>>>> @@ -1421,6 +1421,38 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl)
+> >>>>>>    }
+> >>>>>>    EXPORT_SYMBOL(v4l2_ctrl_handler_free);
+> >>>>>>
+> >>>>>> +static void devm_v4l2_ctrl_handler_release(struct device *dev, void *res)
+> >>>>>> +{
+> >>>>>> +	struct v4l2_ctrl_handler **hdl = res;
+> >>>>>> +
+> >>>>>> +	v4l2_ctrl_handler_free(*hdl);
+> >>>>>
+> >>>>> v4l2_ctrl_handler_free() acquires hdl->mutex which is independent of the
+> >>>>> existence of hdl. By default hdl->lock is in the handler, but it may also be
+> >>>>> elsewhere, e.g. in a driver-specific device struct such as struct
+> >>>>> smiapp_sensor defined in drivers/media/i2c/smiapp/smiapp.h. I wonder if
+> >>>>> anything guarantees that hdl->mutex still exists at the time the device is
+> >>>>> removed.
+> >>>>
+> >>>> If it is a driver-managed lock, then the driver should also be responsible for
+> >>>> that lock during the life-time of the control handler. I think that is a fair
+> >>>> assumption.
+> >>>
+> >>> Agreed.
+> >>>
+> >>>>> I have to say I don't think it's neither meaningful to acquire that mutex in
+> >>>>> v4l2_ctrl_handler_free(), though, since the whole going to be freed next
+> >>>>> anyway: reference counting would be needed to prevent bad things from
+> >>>>> happening, in case the drivers wouldn't take care of that.
+> >>>>
+> >>>> It's probably not meaningful today, but it might become meaningful in the
+> >>>> future. And in any case, not taking the lock when manipulating internal
+> >>>> lists is very unexpected even though it might work with today's use cases.
+> >>>
+> >>> I simply don't think it's meaningful to acquire a lock related to an
+> >>> object when that object is being destroyed. If something else was
+> >>> holding that lock, you should not have begun destroying that object in
+> >>> the first place. This could be solved by reference counting the handler
+> >>> which I don't think is needed.
+> >>
+> >> Right now the way controls are set up is very static, but in the future I
+> >> expect to see more dynamical behavior (I'm thinking of FPGAs supporting
+> >> partial reconfiguration). In cases like that it you do want to take the
+> >> lock preventing others from making modifications while the handler is
+> >> freed. I am well aware that much more work will have to be done if we want
+> >> to support such scenarios, but it is one reason why I would like to keep
+> >> the lock there.
+> >
+> > I'm ok with that.
+> >
+> > How about adding a note to the comment above devm_v4l2_ctrl_handler_init()
+> > that the function cannot be used with drivers that wish to use their own
+> > lock?
+> 
+> But wouldn't it be a false statement ? The driver can still control the
+> cleanup sequence by properly ordering the initialization sequence. So as
+> long as it is ensured the mutex is destroyed after the controls handler
+> (IOW, the mutex is created before the controls handler using the devm_*
+> API) everything should be fine, shouldn't it ?
 
-Currently, when a driver of some entity is removed it will free its
-media entities links[] array, leaving dangling pointers at other
-entities that are part of same media graph. This is troublesome when
-drivers of a media device entities are in separate kernel modules,
-removing only some modules will leave others in an incorrect state.
+It should indeed. I really don't see the problem here.
 
-This function is intended to be used when an entity is being
-unregistered from a media device.
+Regards,
 
-With an assumption that normally the media links should be created
-between media entities registered to a media device, with the graph
-mutex held.
-
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-Changes since v2:
- - removed caching of remote->num_links, re-added rlink local variable,
- - refactored the loop iterating the remote entity links array.
-
-Changes since v1:
- - couple code improvements like variable localization, type change, etc.
- - removed WARN_ON_ONCE() to avoid warnings when the media_entity_remove_links()
-   function is called from within remove() callback of a driver of subdev
-   which has not yet been registered to the media device, e.g. due to
-   deferred probing, with a call stack like
-      -> remove()
-         -> v4l2_device_unregister_subdev()
-            -> media_entity_remove_links()
----
- drivers/media/media-entity.c |   50 ++++++++++++++++++++++++++++++++++++++++++
- include/media/media-entity.h |    3 +++
- 2 files changed, 53 insertions(+)
-
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index 0438209..4f436f1 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -429,6 +429,56 @@ media_entity_create_link(struct media_entity *source, u16 source_pad,
- }
- EXPORT_SYMBOL_GPL(media_entity_create_link);
- 
-+void __media_entity_remove_links(struct media_entity *entity)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < entity->num_links; i++) {
-+		struct media_link *link = &entity->links[i];
-+		struct media_entity *remote;
-+		unsigned int r = 0;
-+
-+		if (link->source->entity == entity)
-+			remote = link->sink->entity;
-+		else
-+			remote = link->source->entity;
-+
-+		while (r < remote->num_links) {
-+			struct media_link *rlink = &remote->links[r];
-+
-+			if (rlink != link->reverse) {
-+				r++;
-+				continue;
-+			}
-+
-+			if (link->source->entity == entity)
-+				remote->num_backlinks--;
-+
-+			if (--remote->num_links == 0)
-+				break;
-+
-+			/* Insert last entry in place of the dropped link. */
-+			*rlink = remote->links[remote->num_links];
-+		}
-+	}
-+
-+	entity->num_links = 0;
-+	entity->num_backlinks = 0;
-+}
-+EXPORT_SYMBOL_GPL(__media_entity_remove_links);
-+
-+void media_entity_remove_links(struct media_entity *entity)
-+{
-+	/* Do nothing if the entity is not registered. */
-+	if (entity->parent == NULL)
-+		return;
-+
-+	mutex_lock(&entity->parent->graph_mutex);
-+	__media_entity_remove_links(entity);
-+	mutex_lock(&entity->parent->graph_mutex);
-+}
-+EXPORT_SYMBOL_GPL(media_entity_remove_links);
-+
- static int __media_entity_setup_link_notify(struct media_link *link, u32 flags)
- {
- 	int ret;
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 4eefedc..06bacf9 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -128,6 +128,9 @@ void media_entity_cleanup(struct media_entity *entity);
- 
- int media_entity_create_link(struct media_entity *source, u16 source_pad,
- 		struct media_entity *sink, u16 sink_pad, u32 flags);
-+void __media_entity_remove_links(struct media_entity *entity);
-+void media_entity_remove_links(struct media_entity *entity);
-+
- int __media_entity_setup_link(struct media_link *link, u32 flags);
- int media_entity_setup_link(struct media_link *link, u32 flags);
- struct media_link *media_entity_find_link(struct media_pad *source,
--- 
-1.7.9.5
-
+	Hans
