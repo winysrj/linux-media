@@ -1,64 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35376 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755864Ab3FBTat (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Jun 2013 15:30:49 -0400
-Message-ID: <51AB9D3F.4030804@iki.fi>
-Date: Sun, 02 Jun 2013 22:30:07 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Gianluca Gennari <gennarone@gmail.com>
-CC: linux-media@vger.kernel.org, mchehab@redhat.com,
-	mkrufky@linuxtv.org
-Subject: Re: [PATCH] rtl28xxu: fix buffer overflow when probing Rafael Micro
- r820t tuner
-References: <1370199364-30060-1-git-send-email-gennarone@gmail.com>
-In-Reply-To: <1370199364-30060-1-git-send-email-gennarone@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:1506 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751558Ab3FJMts (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 10 Jun 2013 08:49:48 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 7/9] pvrusb2: use v4l2_dev instead of the deprecated parent field.
+Date: Mon, 10 Jun 2013 14:48:36 +0200
+Message-Id: <1370868518-19831-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/02/2013 09:56 PM, Gianluca Gennari wrote:
-> req_r820t wants a buffer with a size of 5 bytes, but the buffer 'buf'
-> has a size of 2 bytes.
->
-> This patch fixes the kernel oops with the r820t driver on old kernels
-> during the probe stage.
-> Successfully tested on a 2.6.32 32 bit kernel (Ubuntu 10.04).
-> Hopefully it will also help with the random stability issues reported
-> by some user on the linux-media list.
->
-> This patch and https://patchwork.kernel.org/patch/2524651/
-> should go in the next 3.10-rc release, as they fix potential kernel crashes.
->
-> Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
-> ---
->   drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> index 22015fe..48f2e6f 100644
-> --- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> +++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-> @@ -360,7 +360,7 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
->   {
->   	struct rtl28xxu_priv *priv = d_to_priv(d);
->   	int ret;
-> -	u8 buf[2];
-> +	u8 buf[5];
->   	/* open RTL2832U/RTL2832 I2C gate */
->   	struct rtl28xxu_req req_gate_open = {0x0120, 0x0011, 0x0001, "\x18"};
->   	/* close RTL2832U/RTL2832 I2C gate */
->
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Gianluca, could you make that probe to check chip id as usually. Read 
-register 0x00 and check value 0x69. Also, please test if writing to that 
-address different value will not change register value to see it is 
-really chip id.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.c  |    4 ++++
+ drivers/media/usb/pvrusb2/pvrusb2-hdw.h  |    4 ++++
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c |    7 ++++---
+ 3 files changed, 12 insertions(+), 3 deletions(-)
 
-regards
-Antti
-
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+index d329209..c4d51d7 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.c
+@@ -2704,6 +2704,10 @@ static void pvr2_hdw_remove_usb_stuff(struct pvr2_hdw *hdw)
+ 	pvr2_hdw_render_useless(hdw);
+ }
+ 
++void pvr2_hdw_set_v4l2_dev(struct pvr2_hdw *hdw, struct video_device *vdev)
++{
++	vdev->v4l2_dev = &hdw->v4l2_dev;
++}
+ 
+ /* Destroy hardware interaction structure */
+ void pvr2_hdw_destroy(struct pvr2_hdw *hdw)
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-hdw.h b/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
+index 1a135cf..4184707 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
++++ b/drivers/media/usb/pvrusb2/pvrusb2-hdw.h
+@@ -22,6 +22,7 @@
+ 
+ #include <linux/usb.h>
+ #include <linux/videodev2.h>
++#include <media/v4l2-dev.h>
+ #include "pvrusb2-io.h"
+ #include "pvrusb2-ctrl.h"
+ 
+@@ -138,6 +139,9 @@ const char *pvr2_hdw_get_device_identifier(struct pvr2_hdw *);
+ /* Called when hardware has been unplugged */
+ void pvr2_hdw_disconnect(struct pvr2_hdw *);
+ 
++/* Sets v4l2_dev of a video_device struct */
++void pvr2_hdw_set_v4l2_dev(struct pvr2_hdw *, struct video_device *);
++
+ /* Get the number of defined controls */
+ unsigned int pvr2_hdw_get_ctrl_count(struct pvr2_hdw *);
+ 
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index 82f619b..d77069e 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -31,6 +31,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/module.h>
+ #include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
+ 
+@@ -870,8 +871,8 @@ static void pvr2_v4l2_dev_destroy(struct pvr2_v4l2_dev *dip)
+ static void pvr2_v4l2_dev_disassociate_parent(struct pvr2_v4l2_dev *dip)
+ {
+ 	if (!dip) return;
+-	if (!dip->devbase.parent) return;
+-	dip->devbase.parent = NULL;
++	if (!dip->devbase.v4l2_dev->dev) return;
++	dip->devbase.v4l2_dev->dev = NULL;
+ 	device_move(&dip->devbase.dev, NULL, DPM_ORDER_NONE);
+ }
+ 
+@@ -1321,7 +1322,7 @@ static void pvr2_v4l2_dev_init(struct pvr2_v4l2_dev *dip,
+ 	if (nr_ptr && (unit_number >= 0) && (unit_number < PVR_NUM)) {
+ 		mindevnum = nr_ptr[unit_number];
+ 	}
+-	dip->devbase.parent = &usbdev->dev;
++	pvr2_hdw_set_v4l2_dev(hdw, &dip->devbase);
+ 	if ((video_register_device(&dip->devbase,
+ 				   dip->v4l_type, mindevnum) < 0) &&
+ 	    (video_register_device(&dip->devbase,
 -- 
-http://palosaari.fi/
+1.7.10.4
+
