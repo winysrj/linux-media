@@ -1,110 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:40977 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236Ab3FNRss (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4305 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751757Ab3FJMtt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 13:48:48 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: kishon@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	linux-fbdev@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC PATCH 4/5] exynos4-is: Use generic MIPI CSIS PHY driver
-Date: Fri, 14 Jun 2013 19:45:50 +0200
-Message-id: <1371231951-1969-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com>
-References: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com>
+	Mon, 10 Jun 2013 08:49:49 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEW PATCH 6/9] omap24xxcam: use v4l2_dev instead of the deprecated parent field.
+Date: Mon, 10 Jun 2013 14:48:35 +0200
+Message-Id: <1370868518-19831-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
+References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the generic PHY API instead of the platform callback to control
-the MIPI CSIS DPHY.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/exynos4-is/mipi-csis.c |   11 +++++++++--
- include/linux/platform_data/mipi-csis.h       |    9 ---------
- 2 files changed, 9 insertions(+), 11 deletions(-)
+ drivers/media/platform/omap24xxcam.c |    9 ++++++++-
+ drivers/media/platform/omap24xxcam.h |    3 +++
+ 2 files changed, 11 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index 0fe80e3..88d0d61 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -20,6 +20,7 @@
- #include <linux/memory.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/phy/phy.h>
- #include <linux/platform_data/mipi-csis.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-@@ -184,6 +185,7 @@ struct csis_drvdata {
-  * @sd: v4l2_subdev associated with CSIS device instance
-  * @index: the hardware instance index
-  * @pdev: CSIS platform device
-+ * @phy: pointer to the CSIS generic PHY
-  * @regs: mmaped I/O registers memory
-  * @supplies: CSIS regulator supplies
-  * @clock: CSIS clocks
-@@ -207,6 +209,7 @@ struct csis_state {
- 	struct v4l2_subdev sd;
- 	u8 index;
- 	struct platform_device *pdev;
-+	struct phy *phy;
- 	void __iomem *regs;
- 	struct regulator_bulk_data supplies[CSIS_NUM_SUPPLIES];
- 	struct clk *clock[NUM_CSIS_CLOCKS];
-@@ -861,6 +864,10 @@ static int s5pcsis_probe(struct platform_device *pdev)
- 		return -EINVAL;
+diff --git a/drivers/media/platform/omap24xxcam.c b/drivers/media/platform/omap24xxcam.c
+index debb44c..d2b440c 100644
+--- a/drivers/media/platform/omap24xxcam.c
++++ b/drivers/media/platform/omap24xxcam.c
+@@ -1656,7 +1656,7 @@ static int omap24xxcam_device_register(struct v4l2_int_device *s)
+ 	}
+ 	vfd->release = video_device_release;
+ 
+-	vfd->parent = cam->dev;
++	vfd->v4l2_dev = &cam->v4l2_dev;
+ 
+ 	strlcpy(vfd->name, CAM_NAME, sizeof(vfd->name));
+ 	vfd->fops		 = &omap24xxcam_fops;
+@@ -1752,6 +1752,11 @@ static int omap24xxcam_probe(struct platform_device *pdev)
+ 
+ 	cam->dev = &pdev->dev;
+ 
++	if (v4l2_device_register(&pdev->dev, &cam->v4l2_dev)) {
++		dev_err(&pdev->dev, "v4l2_device_register failed\n");
++		goto err;
++	}
++
+ 	/*
+ 	 * Impose a lower limit on the amount of memory allocated for
+ 	 * capture. We require at least enough memory to double-buffer
+@@ -1849,6 +1854,8 @@ static int omap24xxcam_remove(struct platform_device *pdev)
+ 		cam->mmio_base_phys = 0;
  	}
  
-+	state->phy = devm_phy_get(dev, "csis");
-+	if (IS_ERR(state->phy))
-+		return PTR_ERR(state->phy);
++	v4l2_device_unregister(&cam->v4l2_dev);
 +
- 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	state->regs = devm_ioremap_resource(dev, mem_res);
- 	if (IS_ERR(state->regs))
-@@ -946,7 +953,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
- 	mutex_lock(&state->lock);
- 	if (state->flags & ST_POWERED) {
- 		s5pcsis_stop_stream(state);
--		ret = s5p_csis_phy_enable(state->index, false);
-+		ret = phy_power_off(state->phy);
- 		if (ret)
- 			goto unlock;
- 		ret = regulator_bulk_disable(CSIS_NUM_SUPPLIES,
-@@ -982,7 +989,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
- 					    state->supplies);
- 		if (ret)
- 			goto unlock;
--		ret = s5p_csis_phy_enable(state->index, true);
-+		ret = phy_power_on(state->phy);
- 		if (!ret) {
- 			state->flags |= ST_POWERED;
- 		} else {
-diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
-index bf34e17..c2fd902 100644
---- a/include/linux/platform_data/mipi-csis.h
-+++ b/include/linux/platform_data/mipi-csis.h
-@@ -25,13 +25,4 @@ struct s5p_platform_mipi_csis {
- 	u8 hs_settle;
- };
+ 	kfree(cam);
  
--/**
-- * s5p_csis_phy_enable - global MIPI-CSI receiver D-PHY control
-- * @id:     MIPI-CSIS harware instance index (0...1)
-- * @on:     true to enable D-PHY and deassert its reset
-- *          false to disable D-PHY
-- * @return: 0 on success, or negative error code on failure
-- */
--int s5p_csis_phy_enable(int id, bool on);
--
- #endif /* __PLAT_SAMSUNG_MIPI_CSIS_H_ */
+ 	return 0;
+diff --git a/drivers/media/platform/omap24xxcam.h b/drivers/media/platform/omap24xxcam.h
+index c439595..7f6f791 100644
+--- a/drivers/media/platform/omap24xxcam.h
++++ b/drivers/media/platform/omap24xxcam.h
+@@ -29,6 +29,7 @@
+ 
+ #include <media/videobuf-dma-sg.h>
+ #include <media/v4l2-int-device.h>
++#include <media/v4l2-device.h>
+ 
+ /*
+  *
+@@ -462,6 +463,8 @@ struct omap24xxcam_device {
+ 	 */
+ 	struct mutex mutex;
+ 
++	struct v4l2_device v4l2_dev;
++
+ 	/*** general driver state information ***/
+ 	atomic_t users;
+ 	/*
 -- 
-1.7.9.5
+1.7.10.4
 
