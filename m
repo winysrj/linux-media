@@ -1,69 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:8758 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059Ab3FYOWf (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:28885 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751845Ab3FJKUV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 10:22:35 -0400
+	Mon, 10 Jun 2013 06:20:21 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MO600ECT9YPPU40@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 10 Jun 2013 11:20:18 +0100 (BST)
+Message-id: <51B5A85F.4050601@samsung.com>
+Date: Mon, 10 Jun 2013 12:20:15 +0200
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: kishon@ti.com, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
-	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 2/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
-Date: Tue, 25 Jun 2013 16:21:47 +0200
-Message-id: <1372170110-12993-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
-References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	a.hajda@samsung.com, hj210.choi@samsung.com,
+	shaik.ameer@samsung.com, arun.kk@samsung.com
+Subject: Re: [REVIEW PATCH v3 1/2] media: Change media device link_notify
+ behaviour
+References: <1370808878-11379-1-git-send-email-s.nawrocki@samsung.com>
+ <1370808878-11379-2-git-send-email-s.nawrocki@samsung.com>
+ <51B4FD56.6020307@iki.fi> <4863645.7uvCWtXOjj@avalon>
+In-reply-to: <4863645.7uvCWtXOjj@avalon>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
+Hi Laurent,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+On 06/10/2013 11:46 AM, Laurent Pinchart wrote:
+> Hi Sylwester,
+> 
+> Should I take the series in my tree, or would you like to push it yourself to 
+> avoid conflicts with other Exynos patches ?
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 4d61120..9542088 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -98,6 +98,12 @@
- 		reg = <0x10010000 0x400>;
- 	};
- 
-+	mipi_phy: video-phy@10020710 {
-+		compatible = "samsung,s5pv210-mipi-video-phy";
-+		reg = <0x10020710 8>;
-+		#phy-cells = <1>;
-+	};
-+
- 	camera {
- 		compatible = "samsung,fimc", "simple-bus";
- 		status = "disabled";
-@@ -147,6 +153,8 @@
- 			interrupts = <0 78 0>;
- 			bus-width = <4>;
- 			samsung,power-domain = <&pd_cam>;
-+			phys = <&mipi_phy 0>;
-+			phy-names = "csis";
- 			status = "disabled";
- 		};
- 
-@@ -156,6 +164,8 @@
- 			interrupts = <0 80 0>;
- 			bus-width = <2>;
- 			samsung,power-domain = <&pd_cam>;
-+			phys = <&mipi_phy 2>;
-+			phy-names = "csis";
- 			status = "disabled";
- 		};
- 	};
--- 
-1.7.9.5
+My plan was to handle this series together with the other Exynos patches
+it depends on. I would send a pull request today. I guess there would be
+the least conflicts this way. Sorry about embedding this core patch in my
+series.
 
+Regards,
+Sylwester
