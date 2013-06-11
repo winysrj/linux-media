@@ -1,64 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:45766 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932727Ab3FQMMW (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:49947 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753962Ab3FKKBL (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 08:12:22 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOJ00JP9DRXKQ10@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Jun 2013 13:12:21 +0100 (BST)
-Message-id: <51BEFD22.30708@samsung.com>
-Date: Mon, 17 Jun 2013 14:12:18 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [GIT PULL FOR 3.11] Media entity link handling fixes
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Tue, 11 Jun 2013 06:01:11 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v10 09/21] sh-mobile-ceu-camera: move interface activation and deactivation to clock callbacks
+Date: Tue, 11 Jun 2013 10:23:36 +0200
+Message-Id: <1370939028-8352-10-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+When adding and removing a client, the sh-mobile-ceu-camera driver activates
+and, respectively, deactivates its camera interface and, if necessary, the
+CSI2 controller. Only handling of the CSI2 interface is client-specific and
+is only needed, when a data-exchange with the client is taking place. Move
+the rest to .clock_start() and .clock_stop() callbacks.
 
-This includes corrections of the media entity links handling and resolves
-potential issues when media entity drivers are in different kernel modules. 
-It allows to keep all entities that belong to same media graph in correct
-state, when one of an entity's driver module gets unloaded.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |   58 ++++++++++++--------
+ 1 files changed, 35 insertions(+), 23 deletions(-)
 
-The following changes since commit dd8c393b3c39f7ebd9ad69ce50cc836773d512b6:
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+index 5b7d8e1..9037472 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+@@ -162,7 +162,6 @@ static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
+ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
+ {
+ 	int i, success = 0;
+-	struct soc_camera_device *icd = pcdev->ici.icd;
+ 
+ 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
+ 
+@@ -186,7 +185,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
+ 
+ 
+ 	if (2 != success) {
+-		dev_warn(icd->pdev, "soft reset time out\n");
++		dev_warn(pcdev->ici.v4l2_dev.dev, "soft reset time out\n");
+ 		return -EIO;
+ 	}
+ 
+@@ -543,35 +542,21 @@ static struct v4l2_subdev *find_csi2(struct sh_mobile_ceu_dev *pcdev)
+ 	return NULL;
+ }
+ 
+-/* Called with .host_lock held */
+ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+-	struct v4l2_subdev *csi2_sd;
++	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
+ 	int ret;
+ 
+-	dev_info(icd->parent,
+-		 "SuperH Mobile CEU driver attached to camera %d\n",
+-		 icd->devnum);
+-
+-	pm_runtime_get_sync(ici->v4l2_dev.dev);
+-
+-	pcdev->buf_total = 0;
+-
+-	ret = sh_mobile_ceu_soft_reset(pcdev);
+-
+-	csi2_sd = find_csi2(pcdev);
+ 	if (csi2_sd) {
+ 		csi2_sd->grp_id = soc_camera_grp_id(icd);
+ 		v4l2_set_subdev_hostdata(csi2_sd, icd);
+ 	}
+ 
+ 	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
+-	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+-		pm_runtime_put(ici->v4l2_dev.dev);
++	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+ 		return ret;
+-	}
+ 
+ 	/*
+ 	 * -ENODEV is special: either csi2_sd == NULL or the CSI-2 driver
+@@ -580,19 +565,48 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ 	if (ret == -ENODEV && csi2_sd)
+ 		csi2_sd->grp_id = 0;
+ 
++	dev_info(icd->parent,
++		 "SuperH Mobile CEU driver attached to camera %d\n",
++		 icd->devnum);
++
+ 	return 0;
+ }
+ 
+-/* Called with .host_lock held */
+ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+ 	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
+ 
++	dev_info(icd->parent,
++		 "SuperH Mobile CEU driver detached from camera %d\n",
++		 icd->devnum);
++
+ 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
+ 	if (csi2_sd)
+ 		csi2_sd->grp_id = 0;
++}
++
++/* Called with .host_lock held */
++static int sh_mobile_ceu_clock_start(struct soc_camera_host *ici)
++{
++	struct sh_mobile_ceu_dev *pcdev = ici->priv;
++	int ret;
++
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
++	pcdev->buf_total = 0;
++
++	ret = sh_mobile_ceu_soft_reset(pcdev);
++
++	return 0;
++}
++
++/* Called with .host_lock held */
++static void sh_mobile_ceu_clock_stop(struct soc_camera_host *ici)
++{
++	struct sh_mobile_ceu_dev *pcdev = ici->priv;
++
+ 	/* disable capture, disable interrupts */
+ 	ceu_write(pcdev, CEIER, 0);
+ 	sh_mobile_ceu_soft_reset(pcdev);
+@@ -607,10 +621,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
+ 	spin_unlock_irq(&pcdev->lock);
+ 
+ 	pm_runtime_put(ici->v4l2_dev.dev);
+-
+-	dev_info(icd->parent,
+-		 "SuperH Mobile CEU driver detached from camera %d\n",
+-		 icd->devnum);
+ }
+ 
+ /*
+@@ -2027,6 +2037,8 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= sh_mobile_ceu_add_device,
+ 	.remove		= sh_mobile_ceu_remove_device,
++	.clock_start	= sh_mobile_ceu_clock_start,
++	.clock_stop	= sh_mobile_ceu_clock_stop,
+ 	.get_formats	= sh_mobile_ceu_get_formats,
+ 	.put_formats	= sh_mobile_ceu_put_formats,
+ 	.get_crop	= sh_mobile_ceu_get_crop,
+-- 
+1.7.2.5
 
-  [media] media: i2c: ths7303: make the pdata as a constant pointer (2013-06-13 11:42:17 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/snawrocki/samsung.git for-v3.11-2
-
-for you to fetch changes up to 28521e45c4478b7bc083e445573aacb7d174dd35:
-
-  V4L: Remove all links of the media entity when unregistering subdev (2013-06-17 13:42:22 +0200)
-
-----------------------------------------------------------------
-Sakari Ailus (2):
-      davinci_vpfe: Clean up media entity after unregistering subdev
-      smiapp: Clean up media entity after unregistering subdev
-
-Sylwester Nawrocki (2):
-      media: Add a function removing all links of a media entity
-      V4L: Remove all links of the media entity when unregistering subdev
-
- drivers/media/i2c/smiapp/smiapp-core.c             |    2 +-
- drivers/media/media-entity.c                       |   50 ++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-device.c              |    4 +-
- drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |    4 +-
- drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |    4 +-
- drivers/staging/media/davinci_vpfe/dm365_isif.c    |    4 +-
- drivers/staging/media/davinci_vpfe/dm365_resizer.c |   14 +++---
- drivers/staging/media/davinci_vpfe/vpfe_video.c    |    2 +-
- include/media/media-entity.h                       |    3 ++
- 9 files changed, 71 insertions(+), 16 deletions(-)
-
-Thanks,
-Sylwester
