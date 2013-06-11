@@ -1,98 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4474 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S935370Ab3FTO0Z (ORCPT
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:36120 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751890Ab3FKKNr convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 10:26:25 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5KEQEIv084897
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 16:26:16 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 6579C35E00D8
-	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 16:26:13 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.11] Use v4l2_dev instead of the deprecated parent field
-Date: Thu, 20 Jun 2013 16:26:13 +0200
+	Tue, 11 Jun 2013 06:13:47 -0400
+Received: by mail-ie0-f180.google.com with SMTP id f4so14540400iea.11
+        for <linux-media@vger.kernel.org>; Tue, 11 Jun 2013 03:13:47 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306201626.13583.hverkuil@xs4all.nl>
+In-Reply-To: <1370945293.8544.YahooMailNeo@web125205.mail.ne1.yahoo.com>
+References: <1370938465.85106.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+ <CAPueXH4+MyXszcfwSMB2rS+WdrJ5z0=98puS1WwyEQzb_E87bQ@mail.gmail.com> <1370945293.8544.YahooMailNeo@web125205.mail.ne1.yahoo.com>
+From: Paulo Assis <pj.assis@gmail.com>
+Date: Tue, 11 Jun 2013 11:13:26 +0100
+Message-ID: <CAPueXH4xBtVtUmpq1HkwG-3O7bC4dr6-LEenWf9_HvB8arzvow@mail.gmail.com>
+Subject: Re: Corrupt Raw webcam data
+To: phil rosenberg <philip_rosenberg@yahoo.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This pull request makes sure all drivers set v4l2_dev, which is needed for
-correct behavior of the debug ioctls if sub-devices are present.
+Hi,
+You should select YUYV before disabling the video processing.
 
-It also fixes a bug in cx88 where the wrong parent was used, causing an
-incorrect sysfs hierarchy.
+So with video processing still enabled:
 
-This pull request is identical to the earlier posted series:
+set YUYV format
+set the desired fps and resolution
+set exposure
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/msg63227.html
+now disable video processing and set the bayer order
 
-except for correcting a typo in a commit and in v4l2-framework.txt.
+every time you need to change exposure or resolution you need to
+enable video processing first.
 
 Regards,
+Paulo
 
-	Hans
-
-The following changes since commit 37c1d2e4098e48d9107858246027510efcfd7774:
-
-  Merge branch 'linus' into patchwork (2013-06-20 05:19:09 -0300)
-
-are available in the git repository at:
-
-
-  git://linuxtv.org/hverkuil/media_tree.git parent
-
-for you to fetch changes up to 655772893f595334b0d20a44c3d973aa7577436e:
-
-  v4l2-framework: update documentation (2013-06-20 15:58:07 +0200)
-
-----------------------------------------------------------------
-Hans Verkuil (13):
-      v4l2-device: check if already unregistered.
-      soc_camera: replace vdev->parent by vdev->v4l2_dev.
-      cx23885-417: use v4l2_dev instead of the deprecated parent field.
-      zoran: use v4l2_dev instead of the deprecated parent field.
-      sn9c102_core: add v4l2_device and replace parent with v4l2_dev
-      saa7164: add v4l2_device and replace parent with v4l2_dev
-      pvrusb2: use v4l2_dev instead of the deprecated parent field.
-      f_uvc: add v4l2_device and replace parent with v4l2_dev
-      omap24xxcam: add v4l2_device and replace parent with v4l2_dev
-      saa7134: use v4l2_dev instead of the deprecated parent field
-      v4l2: always require v4l2_dev, rename parent to dev_parent
-      cx88: set dev_parent to the correct parent PCI bus.
-      v4l2-framework: update documentation
-
- Documentation/video4linux/v4l2-framework.txt   | 17 +++++++++++------
- drivers/media/pci/cx23885/cx23885-417.c        |  2 +-
- drivers/media/pci/cx88/cx88-core.c             |  7 +++++++
- drivers/media/pci/saa7134/saa7134-empress.c    |  2 +-
- drivers/media/pci/saa7164/saa7164-core.c       |  7 +++++++
- drivers/media/pci/saa7164/saa7164-encoder.c    |  2 +-
- drivers/media/pci/saa7164/saa7164-vbi.c        |  2 +-
- drivers/media/pci/saa7164/saa7164.h            |  3 +++
- drivers/media/pci/zoran/zoran_card.c           |  2 +-
- drivers/media/platform/omap24xxcam.c           |  9 ++++++++-
- drivers/media/platform/omap24xxcam.h           |  3 +++
- drivers/media/platform/soc_camera/soc_camera.c |  5 +++--
- drivers/media/usb/pvrusb2/pvrusb2-hdw.c        |  4 ++++
- drivers/media/usb/pvrusb2/pvrusb2-hdw.h        |  4 ++++
- drivers/media/usb/pvrusb2/pvrusb2-v4l2.c       |  7 ++++---
- drivers/media/usb/sn9c102/sn9c102.h            |  3 +++
- drivers/media/usb/sn9c102/sn9c102_core.c       | 13 ++++++++++++-
- drivers/media/v4l2-core/v4l2-dev.c             | 34 +++++++++++++++-------------------
- drivers/media/v4l2-core/v4l2-device.c          |  9 +++++++--
- drivers/media/v4l2-core/v4l2-ioctl.c           |  7 +------
- drivers/usb/gadget/f_uvc.c                     |  9 ++++++++-
- drivers/usb/gadget/uvc.h                       |  2 ++
- include/media/soc_camera.h                     |  4 ++--
- include/media/v4l2-dev.h                       |  4 ++--
- 24 files changed, 111 insertions(+), 50 deletions(-)
+2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>:
+> Hello Paulo
+> Thank you for your quick response.
+> Unfortunately if I select YUYV or any other format that is not MJPG data flow stops and I see timeouts appear in the console.
+>
+> Does this represent a bug in either the webcam's UVC support or the UVC driver? If so I presume there is no likely quick workaround.
+>
+> Phil
+>
+> ________________________________
+> From: Paulo Assis <pj.assis@gmail.com>
+> To: phil rosenberg <philip_rosenberg@yahoo.com>
+> Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+> Sent: Tuesday, 11 June 2013, 10:11
+> Subject: Re:
+>
+>
+>
+> Hi,
+> make sure you are streaming in YUYV format and not in MJPG or any of the libv4l formats since these are decoded from MJPG.
+>
+> If you are using guvcview for the stream preview you should also set the bayer pattern accordindly since it will depend on whathever resolution you are using.
+>
+> Regards,
+> Paulo
+>
+>
+>
+>
+> 2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>
+>
+> Hi this is my first email to the list, I'm hoping someone can help
+>>I have a logitech C300 webcam with the option of raw/bayer output. This works fine on windows where the RGB output consists of zeros in the r and b bytes and pixel intensitey in the g byte. However on linux when I activate the webcam using uvcdynctrl and/or the options in guvcview the out put seems to be corrupted. I get something that looks like multiple images interlaces and displaced horizontally, generally pink. I've put an example of an extracted avi frame at http://homepages.see.leeds.ac.uk/~earpros/test0.png, which is a close up of one of my daughters hair clips and shows an (upside down) picture of a disney character.
+>>I'm wondering if the UVC/V4L2 driver is interpretting the data as mjpeg and incorrectly decoding it giving the corruption. When I use guvcview I can choose the input format, but the only one that works in mjpeg, all others cause timeouts and no data. The image also has the tell-tale 8x8 jpeg block effect. Is there any way I can stop this decoding happening and get to the raw data? Presumably if my theory is correct then the decompression is lossy so cannot be undone.
+>>Any help or suggestions welcome.
+>>
+>>Phil
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>
