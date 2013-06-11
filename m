@@ -1,68 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp.lightlink.com ([64.57.176.21]:39142 "EHLO
-	vm0.lightlink.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752463Ab3FNNta (ORCPT
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:40296 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753717Ab3FKKDm convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 09:49:30 -0400
-Received: from [172.16.10.72] (cpe-24-58-232-40.twcny.res.rr.com [24.58.232.40])
-	by vm0.lightlink.com (Postfix) with ESMTP id 9EFC93F03CE
-	for <linux-media@vger.kernel.org>; Fri, 14 Jun 2013 09:43:22 -0400 (EDT)
-Message-ID: <51BB1DAF.2000801@lightlink.com>
-Date: Fri, 14 Jun 2013 09:42:07 -0400
-From: Bob McConnell <rmcconne@lightlink.com>
+	Tue, 11 Jun 2013 06:03:42 -0400
+Received: by mail-ie0-f177.google.com with SMTP id aq17so1499905iec.8
+        for <linux-media@vger.kernel.org>; Tue, 11 Jun 2013 03:03:42 -0700 (PDT)
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Ion Video 2 PC converter
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAPueXH4+MyXszcfwSMB2rS+WdrJ5z0=98puS1WwyEQzb_E87bQ@mail.gmail.com>
+References: <1370938465.85106.YahooMailNeo@web125204.mail.ne1.yahoo.com> <CAPueXH4+MyXszcfwSMB2rS+WdrJ5z0=98puS1WwyEQzb_E87bQ@mail.gmail.com>
+From: Paulo Assis <pj.assis@gmail.com>
+Date: Tue, 11 Jun 2013 11:03:22 +0100
+Message-ID: <CAPueXH4es+ddf+EW3_NXTV3Q63TqW_WYd2RjUT+e-7xDi4Wp6g@mail.gmail.com>
+Subject: Fwd:
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Has anyone here tried the Ion "Video 2 PC" converter? I picked one up 
-from the clearance shelf at Staples yesterday, but don't see any way to 
-use it on my Slackware workstations. I did plug it in and got the 
-following data.
+For the list (again)
 
------8< --------------------------------------------------
-tail /var/log/messages
-Jun 14 06:59:54 widedesk -- MARK --
-Jun 14 07:04:53 widedesk kernel: [1104320.179041] usb 1-6: new 
-high-speed USB device number 6 using ehci_hcd
-Jun 14 07:04:54 widedesk kernel: [1104320.300452] usb 1-6: New USB 
-device found, idVendor=eb1a, idProduct=5051
-Jun 14 07:04:54 widedesk kernel: [1104320.300462] usb 1-6: New USB 
-device strings: Mfr=3, Product=1, SerialNumber=2
-Jun 14 07:04:54 widedesk kernel: [1104320.300468] usb 1-6: Product: ION 
-Audio USB 2861 Device
-Jun 14 07:04:54 widedesk kernel: [1104320.300474] usb 1-6: Manufacturer: 
-ION Audio
-Jun 14 07:04:54 widedesk kernel: [1104320.300479] usb 1-6: SerialNumber: 0
-Jun 14 07:04:54 widedesk mtp-probe: checking bus 1, device 6: 
-"/sys/devices/pci0000:00/0000:00:1d.7/usb1/1-6"
-Jun 14 07:04:54 widedesk mtp-probe: bus: 1, device: 6 was not an MTP device
-Jun 14 07:04:54 widedesk kernel: [1104321.105329] usbcore: registered 
-new interface driver snd-usb-audio
+---------- Forwarded message ----------
+From: Paulo Assis <pj.assis@gmail.com>
+Date: 2013/6/11
+Subject: Re:
+To: phil rosenberg <philip_rosenberg@yahoo.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
 
-<Nothing in syslog>
 
-lsusb
-Bus 001 Device 006: ID eb1a:5051 eMPIA Technology, Inc.
+Hi,
+make sure you are streaming in YUYV format and not in MJPG or any of
+the libv4l formats since these are decoded from MJPG.
 
-<unplugged>
-Jun 14 07:09:09 widedesk kernel: [1104575.751244] usb 1-6: USB 
-disconnect, device number 6
------8< --------------------------------------------------
+If you are using guvcview for the stream preview you should also set
+the bayer pattern accordindly since it will depend on whathever
+resolution you are using.
 
- From this I am guessing that it might be usable for audio capture, but 
-nothing about the video.
+Regards,
+Paulo
 
-This is on a Slackware 14.0 system.
 
-My wife can still use it on her MS-Windows 7 laptop, but I was hoping to 
-play with it as well.
-
-Thank you,
-
-Bob McConnell
-N2SPP
-
+2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>
+>
+> Hi this is my first email to the list, I'm hoping someone can help
+> I have a logitech C300 webcam with the option of raw/bayer output. This works fine on windows where the RGB output consists of zeros in the r and b bytes and pixel intensitey in the g byte. However on linux when I activate the webcam using uvcdynctrl and/or the options in guvcview the out put seems to be corrupted. I get something that looks like multiple images interlaces and displaced horizontally, generally pink. I've put an example of an extracted avi frame at http://homepages.see.leeds.ac.uk/~earpros/test0.png, which is a close up of one of my daughters hair clips and shows an (upside down) picture of a disney character.
+> I'm wondering if the UVC/V4L2 driver is interpretting the data as mjpeg and incorrectly decoding it giving the corruption. When I use guvcview I can choose the input format, but the only one that works in mjpeg, all others cause timeouts and no data. The image also has the tell-tale 8x8 jpeg block effect. Is there any way I can stop this decoding happening and get to the raw data? Presumably if my theory is correct then the decompression is lossy so cannot be undone.
+> Any help or suggestions welcome.
+>
+> Phil
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
