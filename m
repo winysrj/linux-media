@@ -1,174 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:1101 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965093Ab3FTNo7 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:34933 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754099Ab3FKMZF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 09:44:59 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 06/15] saa7134: add support for control events.
-Date: Thu, 20 Jun 2013 15:44:22 +0200
-Message-Id: <1371735871-2658-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+	Tue, 11 Jun 2013 08:25:05 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH 8/9] f_uvc: use v4l2_dev instead of the deprecated parent field.
+Date: Tue, 11 Jun 2013 14:25:12 +0200
+Message-ID: <6690009.papTS4CFX7@avalon>
+In-Reply-To: <201306111413.34031.hverkuil@xs4all.nl>
+References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl> <2686318.IXVlVQf2B1@avalon> <201306111413.34031.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-empress.c | 19 +++++++++++++----
- drivers/media/pci/saa7134/saa7134-video.c   | 32 +++++++++++++++++++++--------
- 2 files changed, 38 insertions(+), 13 deletions(-)
+On Tuesday 11 June 2013 14:13:33 Hans Verkuil wrote:
+> On Mon 10 June 2013 20:50:42 Laurent Pinchart wrote:
+> > On Monday 10 June 2013 14:48:37 Hans Verkuil wrote:
+> > > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > > 
+> > > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > > ---
+> > > 
+> > >  drivers/usb/gadget/f_uvc.c |    8 +++++++-
+> > >  drivers/usb/gadget/uvc.h   |    2 ++
+> > >  2 files changed, 9 insertions(+), 1 deletion(-)
+> > > 
+> > > diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
+> > > index 38dcedd..762e82f 100644
+> > > --- a/drivers/usb/gadget/f_uvc.c
+> > > +++ b/drivers/usb/gadget/f_uvc.c
+> > > @@ -413,7 +413,7 @@ uvc_register_video(struct uvc_device *uvc)
+> > > 
+> > >  	if (video == NULL)
+> > >  	
+> > >  		return -ENOMEM;
+> > > 
+> > > -	video->parent = &cdev->gadget->dev;
+> > > +	video->v4l2_dev = &uvc->v4l2_dev;
+> > > 
+> > >  	video->fops = &uvc_v4l2_fops;
+> > >  	video->release = video_device_release;
+> > >  	strlcpy(video->name, cdev->gadget->name, sizeof(video->name));
+> > > 
+> > > @@ -570,6 +570,7 @@ uvc_function_unbind(struct usb_configuration *c,
+> > > struct
+> > > usb_function *f) INFO(cdev, "uvc_function_unbind\n");
+> > > 
+> > >  	video_unregister_device(uvc->vdev);
+> > > 
+> > > +	v4l2_device_unregister(&uvc->v4l2_dev);
+> > > 
+> > >  	uvc->control_ep->driver_data = NULL;
+> > >  	uvc->video.ep->driver_data = NULL;
+> > > 
+> > > @@ -697,6 +698,11 @@ uvc_function_bind(struct usb_configuration *c,
+> > > struct
+> > > usb_function *f) if ((ret = usb_function_deactivate(f)) < 0)
+> > > 
+> > >  		goto error;
+> > > 
+> > > +	if (v4l2_device_register(&cdev->gadget->dev, &uvc->v4l2_dev)) {
+> > > +		printk(KERN_INFO "v4l2_device_register failed\n");
+> > > +		goto error;
+> > > +	}
+> > > +
+> > > 
+> > >  	/* Initialise video. */
+> > >  	ret = uvc_video_init(&uvc->video);
+> > >  	if (ret < 0)
+> > 
+> > Shouldn't you add the corresponding cleanup code in the error path at the
+> > end of the function ?
+> 
+> Not really necessary as long as there are no subdevices registered. Still,
+> it is probably safer to do it anyway.
 
-diff --git a/drivers/media/pci/saa7134/saa7134-empress.c b/drivers/media/pci/saa7134/saa7134-empress.c
-index 2ef670d..a0af5c7 100644
---- a/drivers/media/pci/saa7134/saa7134-empress.c
-+++ b/drivers/media/pci/saa7134/saa7134-empress.c
-@@ -23,11 +23,12 @@
- #include <linux/kernel.h>
- #include <linux/delay.h>
- 
--#include "saa7134-reg.h"
--#include "saa7134.h"
--
- #include <media/saa6752hs.h>
- #include <media/v4l2-common.h>
-+#include <media/v4l2-event.h>
-+
-+#include "saa7134-reg.h"
-+#include "saa7134.h"
- 
- /* ------------------------------------------------------------------ */
- 
-@@ -144,9 +145,16 @@ ts_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
- static unsigned int
- ts_poll(struct file *file, struct poll_table_struct *wait)
- {
-+	unsigned long req_events = poll_requested_events(wait);
- 	struct saa7134_dev *dev = video_drvdata(file);
-+	struct saa7134_fh *fh = file->private_data;
-+	unsigned int rc = 0;
- 
--	return videobuf_poll_stream(file, &dev->empress_tsq, wait);
-+	if (v4l2_event_pending(&fh->fh))
-+		rc = POLLPRI;
-+	else if (req_events & POLLPRI)
-+		poll_wait(file, &fh->fh.wait, wait);
-+	return rc | videobuf_poll_stream(file, &dev->empress_tsq, wait);
- }
- 
- 
-@@ -255,6 +263,9 @@ static const struct v4l2_ioctl_ops ts_ioctl_ops = {
- 	.vidioc_s_input			= saa7134_s_input,
- 	.vidioc_s_std			= saa7134_s_std,
- 	.vidioc_g_std			= saa7134_g_std,
-+	.vidioc_log_status		= v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
- 
- /* ----------------------------------------------------------- */
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 12996df..9dc6c0d 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -27,11 +27,13 @@
- #include <linux/slab.h>
- #include <linux/sort.h>
- 
--#include "saa7134-reg.h"
--#include "saa7134.h"
- #include <media/v4l2-common.h>
-+#include <media/v4l2-event.h>
- #include <media/saa6588.h>
- 
-+#include "saa7134-reg.h"
-+#include "saa7134.h"
-+
- /* ------------------------------------------------------------------ */
- 
- unsigned int video_debug;
-@@ -1169,14 +1171,20 @@ video_read(struct file *file, char __user *data, size_t count, loff_t *ppos)
- static unsigned int
- video_poll(struct file *file, struct poll_table_struct *wait)
- {
-+	unsigned long req_events = poll_requested_events(wait);
- 	struct video_device *vdev = video_devdata(file);
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct saa7134_fh *fh = file->private_data;
- 	struct videobuf_buffer *buf = NULL;
- 	unsigned int rc = 0;
- 
-+	if (v4l2_event_pending(&fh->fh))
-+		rc = POLLPRI;
-+	else if (req_events & POLLPRI)
-+		poll_wait(file, &fh->fh.wait, wait);
-+
- 	if (vdev->vfl_type == VFL_TYPE_VBI)
--		return videobuf_poll_stream(file, &dev->vbi, wait);
-+		return rc | videobuf_poll_stream(file, &dev->vbi, wait);
- 
- 	if (res_check(fh, RESOURCE_VIDEO)) {
- 		mutex_lock(&dev->cap.vb_lock);
-@@ -1201,15 +1209,14 @@ video_poll(struct file *file, struct poll_table_struct *wait)
- 		goto err;
- 
- 	poll_wait(file, &buf->done, wait);
--	if (buf->state == VIDEOBUF_DONE ||
--	    buf->state == VIDEOBUF_ERROR)
--		rc = POLLIN|POLLRDNORM;
-+	if (buf->state == VIDEOBUF_DONE || buf->state == VIDEOBUF_ERROR)
-+		rc |= POLLIN | POLLRDNORM;
- 	mutex_unlock(&dev->cap.vb_lock);
- 	return rc;
- 
- err:
- 	mutex_unlock(&dev->cap.vb_lock);
--	return POLLERR;
-+	return rc | POLLERR;
- }
- 
- static int video_release(struct file *file)
-@@ -1290,13 +1297,14 @@ static unsigned int radio_poll(struct file *file, poll_table *wait)
- {
- 	struct saa7134_dev *dev = video_drvdata(file);
- 	struct saa6588_command cmd;
-+	unsigned int rc = v4l2_ctrl_poll(file, wait);
- 
- 	cmd.instance = file;
- 	cmd.event_list = wait;
--	cmd.result = -ENODEV;
-+	cmd.result = 0;
- 	saa_call_all(dev, core, ioctl, SAA6588_CMD_POLL, &cmd);
- 
--	return cmd.result;
-+	return rc | cmd.result;
- }
- 
- /* ------------------------------------------------------------------ */
-@@ -2096,6 +2104,9 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_g_register              = vidioc_g_register,
- 	.vidioc_s_register              = vidioc_s_register,
- #endif
-+	.vidioc_log_status		= v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
- };
- 
- static const struct v4l2_file_operations radio_fops = {
-@@ -2113,6 +2124,9 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_s_tuner		= radio_s_tuner,
- 	.vidioc_g_frequency	= saa7134_g_frequency,
- 	.vidioc_s_frequency	= saa7134_s_frequency,
-+	.vidioc_log_status	= v4l2_ctrl_log_status,
-+	.vidioc_subscribe_event	= v4l2_ctrl_subscribe_event,
-+	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
- 
- /* ----------------------------------------------------------- */
+v4l2_device_unregister() calls v4l2_device_disconnect(), which in turn calls 
+put_device() on the underlying device. Even if no subdev is registered I think 
+that's required.
+
+> > > diff --git a/drivers/usb/gadget/uvc.h b/drivers/usb/gadget/uvc.h
+> > > index 817e9e1..7a9111d 100644
+> > > --- a/drivers/usb/gadget/uvc.h
+> > > +++ b/drivers/usb/gadget/uvc.h
+> > > @@ -57,6 +57,7 @@ struct uvc_event
+> > > 
+> > >  #include <linux/videodev2.h>
+> > >  #include <linux/version.h>
+> > >  #include <media/v4l2-fh.h>
+> > > 
+> > > +#include <media/v4l2-device.h>
+> > > 
+> > >  #include "uvc_queue.h"
+> > > 
+> > > @@ -145,6 +146,7 @@ enum uvc_state
+> > > 
+> > >  struct uvc_device
+> > >  {
+> > >  
+> > >  	struct video_device *vdev;
+> > > 
+> > > +	struct v4l2_device v4l2_dev;
+> > > 
+> > >  	enum uvc_state state;
+> > >  	struct usb_function func;
+> > >  	struct uvc_video video;
 -- 
-1.8.3.1
+Regards,
+
+Laurent Pinchart
 
