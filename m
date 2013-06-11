@@ -1,59 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.20]:62131 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752333Ab3F3SeK (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jun 2013 14:34:10 -0400
-Received: from mailout-de.gmx.net ([10.1.76.34]) by mrigmx.server.lan
- (mrigmx002) with ESMTP (Nemesis) id 0M7WSv-1U094Q19FP-00xO5M for
- <linux-media@vger.kernel.org>; Sun, 30 Jun 2013 20:34:09 +0200
-Message-ID: <51D07A27.80509@gmx.net>
-Date: Sun, 30 Jun 2013 20:34:15 +0200
-From: "P. van Gaans" <w3ird_n3rd@gmx.net>
-MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: A few wiki ideas (please comment!)
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32826 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752380Ab3FKKuz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jun 2013 06:50:55 -0400
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: s.nawrocki@samsung.com
+Cc: prabhakar.csengg@gmail.com, linux-media@vger.kernel.org,
+	laurent.pinchart@ideasonboard.com, kyungmin.park@samsung.com,
+	a.hajda@samsung.com
+Subject: [RFC PATCH 2/2] davinci_vpfe: Clean up media entity after unregistering subdev
+Date: Tue, 11 Jun 2013 13:50:49 +0300
+Message-Id: <1370947849-24314-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1370947849-24314-1-git-send-email-sakari.ailus@iki.fi>
+References: <20130611105032.GJ3103@valkosipuli.retiisi.org.uk>
+ <1370947849-24314-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+media_entity_cleanup() frees the links array which will be accessed by
+media_entity_remove_links() called by v4l2_device_unregister_subdev().
 
-I have a few ideas for the wiki. They go a bit further than fixing a 
-typo, so I'd first like to discuss the ideas before messing up wiki 
-pages and doing lots of unwanted work.
-
-The first is to add a ==Users== section to each device, just above the 
-external links section. For this I already made the following template 
-to use (may need some tweaking, but it's a start):
-
-http://www.linuxtv.org/wiki/index.php/Template:Users_who_own_this_device
-
-The idea is primarily that whenever a patch is written for the device or 
-another patch that might influence this device it's easier to find 
-contact details for a few users who are willing to test the patch so 
-they can be contacted directly. Most people don't read every message on 
-the mailing list.
-
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
 ---
+ drivers/staging/media/davinci_vpfe/dm365_ipipe.c   |    4 ++--
+ drivers/staging/media/davinci_vpfe/dm365_ipipeif.c |    4 ++--
+ drivers/staging/media/davinci_vpfe/dm365_isif.c    |    4 ++--
+ drivers/staging/media/davinci_vpfe/dm365_resizer.c |   14 +++++++-------
+ drivers/staging/media/davinci_vpfe/vpfe_video.c    |    2 +-
+ 5 files changed, 14 insertions(+), 14 deletions(-)
 
-The second idea is a bit more complicated and I'm not even sure the wiki 
-is the right place to do it. While searching for support information for 
-various devices, I noticed that I kept stumbling upon abandoned patches, 
-mostly on the mailing list, for devices that are currently unsupported 
-in v4l-dvb. If I really start to dig in, I'm afraid I'll find at least 
-tens of them. Some of those devices are really attractive.
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+index 05673ed..766a071 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipe.c
+@@ -1751,10 +1751,10 @@ static const struct media_entity_operations ipipe_media_ops = {
+  */
+ void vpfe_ipipe_unregister_entities(struct vpfe_ipipe_device *vpfe_ipipe)
+ {
+-	/* cleanup entity */
+-	media_entity_cleanup(&vpfe_ipipe->subdev.entity);
+ 	/* unregister subdev */
+ 	v4l2_device_unregister_subdev(&vpfe_ipipe->subdev);
++	/* cleanup entity */
++	media_entity_cleanup(&vpfe_ipipe->subdev.entity);
+ }
+ 
+ /*
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+index b2f4ef8..59540cd 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_ipipeif.c
+@@ -947,10 +947,10 @@ void vpfe_ipipeif_unregister_entities(struct vpfe_ipipeif_device *ipipeif)
+ 	/* unregister video device */
+ 	vpfe_video_unregister(&ipipeif->video_in);
+ 
+-	/* cleanup entity */
+-	media_entity_cleanup(&ipipeif->subdev.entity);
+ 	/* unregister subdev */
+ 	v4l2_device_unregister_subdev(&ipipeif->subdev);
++	/* cleanup entity */
++	media_entity_cleanup(&ipipeif->subdev.entity);
+ }
+ 
+ int
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_isif.c b/drivers/staging/media/davinci_vpfe/dm365_isif.c
+index 5829360..ff48fce 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_isif.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_isif.c
+@@ -1750,10 +1750,10 @@ static const struct media_entity_operations isif_media_ops = {
+ void vpfe_isif_unregister_entities(struct vpfe_isif_device *isif)
+ {
+ 	vpfe_video_unregister(&isif->video_out);
+-	/* cleanup entity */
+-	media_entity_cleanup(&isif->subdev.entity);
+ 	/* unregister subdev */
+ 	v4l2_device_unregister_subdev(&isif->subdev);
++	/* cleanup entity */
++	media_entity_cleanup(&isif->subdev.entity);
+ }
+ 
+ static void isif_restore_defaults(struct vpfe_isif_device *isif)
+diff --git a/drivers/staging/media/davinci_vpfe/dm365_resizer.c b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+index 126f84c..8e13bd4 100644
+--- a/drivers/staging/media/davinci_vpfe/dm365_resizer.c
++++ b/drivers/staging/media/davinci_vpfe/dm365_resizer.c
+@@ -1777,14 +1777,14 @@ void vpfe_resizer_unregister_entities(struct vpfe_resizer_device *vpfe_rsz)
+ 	vpfe_video_unregister(&vpfe_rsz->resizer_a.video_out);
+ 	vpfe_video_unregister(&vpfe_rsz->resizer_b.video_out);
+ 
+-	/* cleanup entity */
+-	media_entity_cleanup(&vpfe_rsz->crop_resizer.subdev.entity);
+-	media_entity_cleanup(&vpfe_rsz->resizer_a.subdev.entity);
+-	media_entity_cleanup(&vpfe_rsz->resizer_b.subdev.entity);
+ 	/* unregister subdev */
+ 	v4l2_device_unregister_subdev(&vpfe_rsz->crop_resizer.subdev);
+ 	v4l2_device_unregister_subdev(&vpfe_rsz->resizer_a.subdev);
+ 	v4l2_device_unregister_subdev(&vpfe_rsz->resizer_b.subdev);
++	/* cleanup entity */
++	media_entity_cleanup(&vpfe_rsz->crop_resizer.subdev.entity);
++	media_entity_cleanup(&vpfe_rsz->resizer_a.subdev.entity);
++	media_entity_cleanup(&vpfe_rsz->resizer_b.subdev.entity);
+ }
+ 
+ /*
+@@ -1865,12 +1865,12 @@ out_create_link:
+ 	vpfe_video_unregister(&resizer->resizer_b.video_out);
+ out_video_out2_register:
+ 	vpfe_video_unregister(&resizer->resizer_a.video_out);
+-	media_entity_cleanup(&resizer->crop_resizer.subdev.entity);
+-	media_entity_cleanup(&resizer->resizer_a.subdev.entity);
+-	media_entity_cleanup(&resizer->resizer_b.subdev.entity);
+ 	v4l2_device_unregister_subdev(&resizer->crop_resizer.subdev);
+ 	v4l2_device_unregister_subdev(&resizer->resizer_a.subdev);
+ 	v4l2_device_unregister_subdev(&resizer->resizer_b.subdev);
++	media_entity_cleanup(&resizer->crop_resizer.subdev.entity);
++	media_entity_cleanup(&resizer->resizer_a.subdev.entity);
++	media_entity_cleanup(&resizer->resizer_b.subdev.entity);
+ 	return ret;
+ }
+ 
+diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+index cb5410b..24d98a6 100644
+--- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
++++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
+@@ -1614,7 +1614,7 @@ int vpfe_video_register(struct vpfe_video_device *video,
+ void vpfe_video_unregister(struct vpfe_video_device *video)
+ {
+ 	if (video_is_registered(&video->video_dev)) {
+-		media_entity_cleanup(&video->video_dev.entity);
+ 		video_unregister_device(&video->video_dev);
++		media_entity_cleanup(&video->video_dev.entity);
+ 	}
+ }
+-- 
+1.7.10.4
 
-That seems like a waste: we know how the device works, we actually have 
-working code.. But for one reason or another, it's not getting pulled. 
-Maybe the code needs a cleanup. Maybe somebody just forgot to file a 
-pull request. Maybe the code wasn't signed off. AFAIK we currently have 
-no overview of these patches.
-
-The idea is to make a wiki page (suggestions for a page title?) that 
-lists the device, links to the available patch(es) or code and lists the 
-reason why the patch hasn't been pulled yet.
-
-Best regards,
-
-P. van Gaans
