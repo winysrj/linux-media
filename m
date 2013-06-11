@@ -1,100 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2859 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751367Ab3FFS3E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 14:29:04 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r56ISpO6066990
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 6 Jun 2013 20:28:54 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 2907F35C0003
-	for <linux-media@vger.kernel.org>; Thu,  6 Jun 2013 20:28:52 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.17.9]:51674 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753250Ab3FKJ1e (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jun 2013 05:27:34 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130606182852.2907F35C0003@alastor.dyndns.org>
-Date: Thu,  6 Jun 2013 20:28:52 +0200 (CEST)
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v10 08/21] mx1-camera: move interface activation and deactivation to clock callbacks
+Date: Tue, 11 Jun 2013 10:23:35 +0200
+Message-Id: <1370939028-8352-9-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+When adding and removing a client, the mx1-camera driver only activates
+and deactivates its camera interface respectively, which doesn't include
+any client-specific actions. Move this functionality into .clock_start()
+and .clock_stop() callbacks.
 
-Results of the daily build of media_tree:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/mx1_camera.c |   32 +++++++++++++++---------
+ 1 files changed, 20 insertions(+), 12 deletions(-)
 
-date:		Thu Jun  6 19:00:20 CEST 2013
-git branch:	test
-git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+diff --git a/drivers/media/platform/soc_camera/mx1_camera.c b/drivers/media/platform/soc_camera/mx1_camera.c
+index 5f9ec8e..fea3e61 100644
+--- a/drivers/media/platform/soc_camera/mx1_camera.c
++++ b/drivers/media/platform/soc_camera/mx1_camera.c
+@@ -399,7 +399,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
+ {
+ 	unsigned int csicr1 = CSICR1_EN;
+ 
+-	dev_dbg(pcdev->soc_host.icd->parent, "Activate device\n");
++	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "Activate device\n");
+ 
+ 	clk_prepare_enable(pcdev->clk);
+ 
+@@ -415,7 +415,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
+ 
+ static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
+ {
+-	dev_dbg(pcdev->soc_host.icd->parent, "Deactivate device\n");
++	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "Deactivate device\n");
+ 
+ 	/* Disable all CSI interface */
+ 	__raw_writel(0x00, pcdev->base + CSICR1);
+@@ -423,26 +423,35 @@ static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
+ 	clk_disable_unprepare(pcdev->clk);
+ }
+ 
++static int mx1_camera_add_device(struct soc_camera_device *icd)
++{
++	dev_info(icd->parent, "MX1 Camera driver attached to camera %d\n",
++		 icd->devnum);
++
++	return 0;
++}
++
++static void mx1_camera_remove_device(struct soc_camera_device *icd)
++{
++	dev_info(icd->parent, "MX1 Camera driver detached from camera %d\n",
++		 icd->devnum);
++}
++
+ /*
+  * The following two functions absolutely depend on the fact, that
+  * there can be only one camera on i.MX1/i.MXL camera sensor interface
+  */
+-static int mx1_camera_add_device(struct soc_camera_device *icd)
++static int mx1_camera_clock_start(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx1_camera_dev *pcdev = ici->priv;
+ 
+-	dev_info(icd->parent, "MX1 Camera driver attached to camera %d\n",
+-		 icd->devnum);
+-
+ 	mx1_camera_activate(pcdev);
+ 
+ 	return 0;
+ }
+ 
+-static void mx1_camera_remove_device(struct soc_camera_device *icd)
++static void mx1_camera_clock_stop(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx1_camera_dev *pcdev = ici->priv;
+ 	unsigned int csicr1;
+ 
+@@ -453,9 +462,6 @@ static void mx1_camera_remove_device(struct soc_camera_device *icd)
+ 	/* Stop DMA engine */
+ 	imx_dma_disable(pcdev->dma_chan);
+ 
+-	dev_info(icd->parent, "MX1 Camera driver detached from camera %d\n",
+-		 icd->devnum);
+-
+ 	mx1_camera_deactivate(pcdev);
+ }
+ 
+@@ -669,6 +675,8 @@ static struct soc_camera_host_ops mx1_soc_camera_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= mx1_camera_add_device,
+ 	.remove		= mx1_camera_remove_device,
++	.clock_start	= mx1_camera_clock_start,
++	.clock_stop	= mx1_camera_clock_stop,
+ 	.set_bus_param	= mx1_camera_set_bus_param,
+ 	.set_fmt	= mx1_camera_set_fmt,
+ 	.try_fmt	= mx1_camera_try_fmt,
+-- 
+1.7.2.5
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
