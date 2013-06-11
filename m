@@ -1,180 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3990 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751017Ab3FBK4Y (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 06:56:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 03/16] saa7134: move fmt/width/height from saa7134_fh to saa7134_dev
-Date: Sun,  2 Jun 2013 12:55:54 +0200
-Message-Id: <1370170567-7004-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ie0-f178.google.com ([209.85.223.178]:43144 "EHLO
+	mail-ie0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754551Ab3FKXEe convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jun 2013 19:04:34 -0400
+Received: by mail-ie0-f178.google.com with SMTP id at1so17048846iec.23
+        for <linux-media@vger.kernel.org>; Tue, 11 Jun 2013 16:04:33 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <51B660FE.4010605@gmail.com>
+References: <519D6CFA.2000506@gmail.com>
+	<CALF0-+UqJaNc7v86qakVTNEJx5npMFPqFp-=9rAByFV_+FEaww@mail.gmail.com>
+	<519E41AC.3040707@gmail.com>
+	<CALF0-+U5dFktwHwO5-h_7RJ1xyjc3JbHUWqG3g=WSPA=HcHnnw@mail.gmail.com>
+	<519E6046.8050509@gmail.com>
+	<CALF0-+UZnt9rfmQFSecqaf_9L29mwKeNV22w1XmMQQG0AE=jJw@mail.gmail.com>
+	<519E76F3.4070006@gmail.com>
+	<519EB8E6.5000503@gmail.com>
+	<20130525070020.GA2122@dell.arpanet.local>
+	<CALF0-+XS0urZ=G=jCLgKifs6NeC=rNqZB_ft2PXpcEVezuG=rw@mail.gmail.com>
+	<51AFE7DC.9040801@gmail.com>
+	<CALF0-+Use=xFe5XmoDMCTCw-CM11FZXTGoOnYwRSS9OL7Dk7Aw@mail.gmail.com>
+	<51B076A2.9000903@gmail.com>
+	<CALF0-+UBKXVeMxDob2NZWi5hervieRf48LoiTP80+_ZD58iw0g@mail.gmail.com>
+	<51B660FE.4010605@gmail.com>
+Date: Tue, 11 Jun 2013 20:04:33 -0300
+Message-ID: <CALF0-+XMXzjo=TOkkfjAZHw3REJVz7EHa=J83cjMZ-LaCaR20w@mail.gmail.com>
+Subject: Re: Audio: no sound
+From: Ezequiel Garcia <elezegarcia@gmail.com>
+To: =?ISO-8859-1?Q?Alejandro_A=2E_Vald=E9s?= <av2406@gmail.com>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Ale,
 
-These fields are global, not per-filehandle.
+On Mon, Jun 10, 2013 at 8:27 PM, "Alejandro A. Valdés" <av2406@gmail.com> wrote:
+[...]
+>
+>
+> Besides, please find the kernel configuration file attached t this note.
+> Seems that the STK1160_AC97 is already there (Ln 4151 AND SS).
+>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-video.c |   57 +++++++++++++++--------------
- drivers/media/pci/saa7134/saa7134.h       |    4 +-
- 2 files changed, 32 insertions(+), 29 deletions(-)
+Yes, it seems your configuration is correct.
+I have a device here that behaves in a similar way. When I plug it I
+get this output:
 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index f7662a5..9c45dd9 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1024,38 +1024,38 @@ static int buffer_prepare(struct videobuf_queue *q,
- 	int err;
- 
- 	/* sanity checks */
--	if (NULL == fh->fmt)
-+	if (NULL == dev->fmt)
- 		return -EINVAL;
--	if (fh->width    < 48 ||
--	    fh->height   < 32 ||
--	    fh->width/4  > dev->crop_current.width  ||
--	    fh->height/4 > dev->crop_current.height ||
--	    fh->width    > dev->crop_bounds.width  ||
--	    fh->height   > dev->crop_bounds.height)
-+	if (dev->width    < 48 ||
-+	    dev->height   < 32 ||
-+	    dev->width/4  > dev->crop_current.width  ||
-+	    dev->height/4 > dev->crop_current.height ||
-+	    dev->width    > dev->crop_bounds.width  ||
-+	    dev->height   > dev->crop_bounds.height)
- 		return -EINVAL;
--	size = (fh->width * fh->height * fh->fmt->depth) >> 3;
-+	size = (dev->width * dev->height * dev->fmt->depth) >> 3;
- 	if (0 != buf->vb.baddr  &&  buf->vb.bsize < size)
- 		return -EINVAL;
- 
- 	dprintk("buffer_prepare [%d,size=%dx%d,bytes=%d,fields=%s,%s]\n",
--		vb->i,fh->width,fh->height,size,v4l2_field_names[field],
--		fh->fmt->name);
--	if (buf->vb.width  != fh->width  ||
--	    buf->vb.height != fh->height ||
-+		vb->i, dev->width, dev->height, size, v4l2_field_names[field],
-+		dev->fmt->name);
-+	if (buf->vb.width  != dev->width  ||
-+	    buf->vb.height != dev->height ||
- 	    buf->vb.size   != size       ||
- 	    buf->vb.field  != field      ||
--	    buf->fmt       != fh->fmt) {
-+	    buf->fmt       != dev->fmt) {
- 		saa7134_dma_free(q,buf);
- 	}
- 
- 	if (VIDEOBUF_NEEDS_INIT == buf->vb.state) {
- 		struct videobuf_dmabuf *dma=videobuf_to_dma(&buf->vb);
- 
--		buf->vb.width  = fh->width;
--		buf->vb.height = fh->height;
-+		buf->vb.width  = dev->width;
-+		buf->vb.height = dev->height;
- 		buf->vb.size   = size;
- 		buf->vb.field  = field;
--		buf->fmt       = fh->fmt;
-+		buf->fmt       = dev->fmt;
- 		buf->pt        = &fh->pt_cap;
- 		dev->video_q.curr = NULL;
- 
-@@ -1082,8 +1082,9 @@ static int
- buffer_setup(struct videobuf_queue *q, unsigned int *count, unsigned int *size)
- {
- 	struct saa7134_fh *fh = q->priv_data;
-+	struct saa7134_dev *dev = fh->dev;
- 
--	*size = fh->fmt->depth * fh->width * fh->height >> 3;
-+	*size = dev->fmt->depth * dev->width * dev->height >> 3;
- 	if (0 == *count)
- 		*count = gbuffers;
- 	*count = saa7134_buffer_count(*size,*count);
-@@ -1334,9 +1335,6 @@ static int video_open(struct file *file)
- 	v4l2_fh_init(&fh->fh, vdev);
- 	file->private_data = fh;
- 	fh->dev      = dev;
--	fh->fmt      = format_by_fourcc(V4L2_PIX_FMT_BGR24);
--	fh->width    = 720;
--	fh->height   = 576;
- 
- 	videobuf_queue_sg_init(&fh->cap, &video_qops,
- 			    &dev->pci->dev, &dev->slock,
-@@ -1556,13 +1554,14 @@ static int saa7134_g_fmt_vid_cap(struct file *file, void *priv,
- 				struct v4l2_format *f)
- {
- 	struct saa7134_fh *fh = priv;
-+	struct saa7134_dev *dev = fh->dev;
- 
--	f->fmt.pix.width        = fh->width;
--	f->fmt.pix.height       = fh->height;
-+	f->fmt.pix.width        = dev->width;
-+	f->fmt.pix.height       = dev->height;
- 	f->fmt.pix.field        = fh->cap.field;
--	f->fmt.pix.pixelformat  = fh->fmt->fourcc;
-+	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
- 	f->fmt.pix.bytesperline =
--		(f->fmt.pix.width * fh->fmt->depth) >> 3;
-+		(f->fmt.pix.width * dev->fmt->depth) >> 3;
- 	f->fmt.pix.sizeimage =
- 		f->fmt.pix.height * f->fmt.pix.bytesperline;
- 	return 0;
-@@ -1652,15 +1651,16 @@ static int saa7134_s_fmt_vid_cap(struct file *file, void *priv,
- 					struct v4l2_format *f)
- {
- 	struct saa7134_fh *fh = priv;
-+	struct saa7134_dev *dev = fh->dev;
- 	int err;
- 
- 	err = saa7134_try_fmt_vid_cap(file, priv, f);
- 	if (0 != err)
- 		return err;
- 
--	fh->fmt       = format_by_fourcc(f->fmt.pix.pixelformat);
--	fh->width     = f->fmt.pix.width;
--	fh->height    = f->fmt.pix.height;
-+	dev->fmt       = format_by_fourcc(f->fmt.pix.pixelformat);
-+	dev->width     = f->fmt.pix.width;
-+	dev->height    = f->fmt.pix.height;
- 	fh->cap.field = f->fmt.pix.field;
- 	return 0;
- }
-@@ -2456,6 +2456,9 @@ int saa7134_video_init1(struct saa7134_dev *dev)
- 	dev->video_q.timeout.function = saa7134_buffer_timeout;
- 	dev->video_q.timeout.data     = (unsigned long)(&dev->video_q);
- 	dev->video_q.dev              = dev;
-+	dev->fmt = format_by_fourcc(V4L2_PIX_FMT_BGR24);
-+	dev->width    = 720;
-+	dev->height   = 576;
- 
- 	if (saa7134_boards[dev->board].video_out)
- 		saa7134_videoport_init(dev);
-diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
-index fa21d14..8a62ff7 100644
---- a/drivers/media/pci/saa7134/saa7134.h
-+++ b/drivers/media/pci/saa7134/saa7134.h
-@@ -475,8 +475,6 @@ struct saa7134_fh {
- 	struct pm_qos_request	   qos_request;
- 
- 	/* video capture */
--	struct saa7134_format      *fmt;
--	unsigned int               width,height;
- 	struct videobuf_queue      cap;
- 	struct saa7134_pgtable     pt_cap;
- 
-@@ -595,6 +593,8 @@ struct saa7134_dev {
- 	struct saa7134_dmaqueue    vbi_q;
- 	unsigned int               video_fieldcount;
- 	unsigned int               vbi_fieldcount;
-+	struct saa7134_format      *fmt;
-+	unsigned int               width, height;
- 
- 	/* various v4l controls */
- 	struct saa7134_tvnorm      *tvnorm;              /* video */
+[12677.625434] usb 2-2: new high-speed USB device number 8 using ehci-pci
+[12677.740513] usb 2-2: New device Syntek Semiconductor USB 2.0 Video
+Capture Controller @ 480 Mbps (05e1:0408, interface 0, class 0)
+[12677.740517] usb 2-2: video interface 0 found
+[12678.217418] stk1160: driver ver 0.9.5 successfully loaded
+[12678.220618] AC'97 0 access is not valid [0x0], removing mixer.
+[12678.220623] stk1160: registers to NTSC like standard
+[12678.221681] stk1160 2-2:1.0: V4L2 device registered as video1
+
+Notice the "...removing mixer" line? It's reporting there's no AC97
+decoder on the device.
+
+The STK1160 chip has a built-in audio 8-bit ADC block, which is not
+yet implemented
+by the current driver. If you crack-open your device you should find
+it has only two chips:
+one should be stk1160, and the other should be saa711x compatible
+(such as gm7113).
+They are the USB bridge and the video decoder chip, respectively.
+
+Some devices also have a third chip, which should be the AC97 decoder.
+
+Currently, we only support this last family of devices. Namely the
+ones with an AC97 decoder chip. The built-in sound ADC is not
+supported.
+
+If you want, feel free to check the above on your device. You should
+check there's only
+two chips and that the kernel says "AC'97 0 access is not valid [0x0],
+removing mixer.".
+
+I'll see if I can add support for the built-in sound ADC soon. With
+some luck we might
+have it this month!
 -- 
-1.7.10.4
-
+    Ezequiel
