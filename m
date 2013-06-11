@@ -1,50 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:45067 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752421Ab3FYAB2 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:59527 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753250Ab3FKJ1h (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 20:01:28 -0400
-Received: from avalon.localnet (unknown [91.178.213.225])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id B086B35A4D
-	for <linux-media@vger.kernel.org>; Tue, 25 Jun 2013 02:01:19 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+	Tue, 11 Jun 2013 05:27:37 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Subject: [GIT PULL FOR v3.11] uvcvideo Kconfig dependency fix
-Date: Tue, 25 Jun 2013 02:01:49 +0200
-Message-ID: <3613317.mCisrll7GG@avalon>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v10 04/21] omap1-camera: move interface activation and deactivation to clock callbacks
+Date: Tue, 11 Jun 2013 10:23:31 +0200
+Message-Id: <1370939028-8352-5-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+When adding and removing a client, the omap1-camera driver only activates
+and deactivates its camera interface respectively, which doesn't include
+any client-specific actions. Move this functionality into .clock_start()
+and .clock_stop() callbacks.
 
-Sorry for the late pull request. This small patch fixes a Kconfig dependency 
-that can prevent the kernel from building. Is it still possible to get it to 
-v3.11 ?
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/omap1_camera.c |   27 ++++++++++++++-------
+ 1 files changed, 18 insertions(+), 9 deletions(-)
 
-The following changes since commit ee17608d6aa04a86e253a9130d6c6d00892f132b:
-
-  [media] imx074: support asynchronous probing (2013-06-21 16:36:15 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/pinchartl/uvcvideo.git uvcvideo-next
-
-for you to fetch changes up to e0bfc7456ea282bc8532d8f5747d44033ba104ae:
-
-  uvc: Depend on VIDEO_V4L2 (2013-06-25 01:58:36 +0200)
-
-----------------------------------------------------------------
-Laurent Pinchart (1):
-      uvc: Depend on VIDEO_V4L2
-
- drivers/media/usb/uvc/Kconfig | 1 +
- 1 file changed, 1 insertion(+)
-
+diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
+index c42c23e..6769193 100644
+--- a/drivers/media/platform/soc_camera/omap1_camera.c
++++ b/drivers/media/platform/soc_camera/omap1_camera.c
+@@ -893,13 +893,26 @@ static void sensor_reset(struct omap1_cam_dev *pcdev, bool reset)
+ 		CAM_WRITE(pcdev, GPIO, !reset);
+ }
+ 
++static int omap1_cam_add_device(struct soc_camera_device *icd)
++{
++	dev_dbg(icd->parent, "OMAP1 Camera driver attached to camera %d\n",
++			icd->devnum);
++
++	return 0;
++}
++
++static void omap1_cam_remove_device(struct soc_camera_device *icd)
++{
++	dev_dbg(icd->parent,
++		"OMAP1 Camera driver detached from camera %d\n", icd->devnum);
++}
++
+ /*
+  * The following two functions absolutely depend on the fact, that
+  * there can be only one camera on OMAP1 camera sensor interface
+  */
+-static int omap1_cam_add_device(struct soc_camera_device *icd)
++static int omap1_cam_clock_start(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct omap1_cam_dev *pcdev = ici->priv;
+ 	u32 ctrlclock;
+ 
+@@ -937,14 +950,11 @@ static int omap1_cam_add_device(struct soc_camera_device *icd)
+ 
+ 	sensor_reset(pcdev, false);
+ 
+-	dev_dbg(icd->parent, "OMAP1 Camera driver attached to camera %d\n",
+-			icd->devnum);
+ 	return 0;
+ }
+ 
+-static void omap1_cam_remove_device(struct soc_camera_device *icd)
++static void omap1_cam_clock_stop(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct omap1_cam_dev *pcdev = ici->priv;
+ 	u32 ctrlclock;
+ 
+@@ -965,9 +975,6 @@ static void omap1_cam_remove_device(struct soc_camera_device *icd)
+ 	CAM_WRITE(pcdev, CTRLCLOCK, ctrlclock & ~MCLK_EN);
+ 
+ 	clk_disable(pcdev->clk);
+-
+-	dev_dbg(icd->parent,
+-		"OMAP1 Camera driver detached from camera %d\n", icd->devnum);
+ }
+ 
+ /* Duplicate standard formats based on host capability of byte swapping */
+@@ -1525,6 +1532,8 @@ static struct soc_camera_host_ops omap1_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= omap1_cam_add_device,
+ 	.remove		= omap1_cam_remove_device,
++	.clock_start	= omap1_cam_clock_start,
++	.clock_stop	= omap1_cam_clock_stop,
+ 	.get_formats	= omap1_cam_get_formats,
+ 	.set_crop	= omap1_cam_set_crop,
+ 	.set_fmt	= omap1_cam_set_fmt,
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.2.5
 
