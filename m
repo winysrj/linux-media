@@ -1,107 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4643 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752642Ab3FZS3c (ORCPT
+Received: from mail-vc0-f181.google.com ([209.85.220.181]:61957 "EHLO
+	mail-vc0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752168Ab3FKJOv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jun 2013 14:29:32 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5QITSAE033908
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 26 Jun 2013 20:29:30 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 14B7435E0073
-	for <linux-media@vger.kernel.org>; Wed, 26 Jun 2013 20:29:25 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130626182926.14B7435E0073@alastor.dyndns.org>
-Date: Wed, 26 Jun 2013 20:29:25 +0200 (CEST)
+	Tue, 11 Jun 2013 05:14:51 -0400
+Received: by mail-vc0-f181.google.com with SMTP id lf11so4417704vcb.12
+        for <linux-media@vger.kernel.org>; Tue, 11 Jun 2013 02:14:50 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <51B5D876.2000704@samsung.com>
+References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+	<1370870586-24141-6-git-send-email-arun.kk@samsung.com>
+	<51B5D876.2000704@samsung.com>
+Date: Tue, 11 Jun 2013 14:44:50 +0530
+Message-ID: <CALt3h7_Riq2i7nRsxb9aBWyOVkmW6TFr7aMiomrHNv+kJN7TOw@mail.gmail.com>
+Subject: Re: [PATCH 5/6] [media] V4L: Add VP8 encoder controls
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
+	avnd.kiran@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sylwester,
 
-Results of the daily build of media_tree:
+Thank you for the review.
 
-date:		Wed Jun 26 19:00:16 CEST 2013
-git branch:	test
-git hash:	188af63c0af2d7ef395bc94e3efa173f34dae03d
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+>> +     static const char * const vpx_num_partitions[] = {
+>> +             "1 partition",
+>> +             "2 partitions",
+>> +             "4 partitions",
+>> +             "8 partitions",
+>> +             NULL,
+>> +     };
+>> +     static const char * const vpx_num_ref_frames[] = {
+>> +             "1 reference frame",
+>> +             "2 reference frame",
+>> +             NULL,
+>> +     };
+>
+> Have you considered using V4L2_CTRL_TYPE_INTEGER_MENU control type for this ?
+> One example is V4L2_CID_ISO_SENSITIVITY control.
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-arm-omap1: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: OK
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: OK
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+Ok will change it to V4L2_CTRL_TYPE_INTEGER_MENU.
 
-Detailed results are available here:
+>
+>> +/*  VPX streams, specific to multiplexed streams */
+>> +#define V4L2_CID_VPX_NUM_PARTITIONS          (V4L2_CID_VPX_BASE+0)
+>> +enum v4l2_vp8_num_partitions {
+>> +     V4L2_VPX_1_PARTITION    = 0,
+>> +     V4L2_VPX_2_PARTITIONS   = (1 << 1),
+>> +     V4L2_VPX_4_PARTITIONS   = (1 << 2),
+>> +     V4L2_VPX_8_PARTITIONS   = (1 << 3),
+>> +};
+>
+> I think we could still have such standard value definitions if needed,
+> but rather in form of:
+>
+> #define V4L2_VPX_1_PARTITION    1
+> #define V4L2_VPX_2_PARTITIONS   2
+> #define V4L2_VPX_4_PARTITIONS   4
+> #define V4L2_VPX_8_PARTITIONS   8
+>
 
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
+Ok will change.
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards
+Arun
