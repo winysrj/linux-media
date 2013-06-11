@@ -1,32 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([74.208.4.200]:50032 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423180Ab3FUQf7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 12:35:59 -0400
-Received: from mailout-us.gmx.com ([172.19.198.46]) by mrigmx.server.lan
- (mrigmxus002) with ESMTP (Nemesis) id 0Lkxsn-1UFugN2Hkj-00amGP for
- <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 18:35:58 +0200
-Content-Type: text/plain; charset="utf-8"
-Date: Fri, 21 Jun 2013 12:35:57 -0400
-From: kewlcat@gmx.com
-Message-ID: <20130621163558.128500@gmx.com>
-MIME-Version: 1.0
-Subject: gspca_sq930x: Creative WebCam Live! Pro recognized, kinda initialised
- but unusable
-To: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8bit
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:17112 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753926Ab3FKLgt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 11 Jun 2013 07:36:49 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MO80050D893XLD0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 11 Jun 2013 12:36:47 +0100 (BST)
+Message-id: <51B70BCE.6010709@samsung.com>
+Date: Tue, 11 Jun 2013 13:36:46 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	kyungmin.park@samsung.com, a.hajda@samsung.com
+Subject: Re: [RFC PATCH v3 0/2] Media entity links handling
+References: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
+ <1370876070-23699-2-git-send-email-s.nawrocki@samsung.com>
+ <20130611105032.GJ3103@valkosipuli.retiisi.org.uk>
+In-reply-to: <20130611105032.GJ3103@valkosipuli.retiisi.org.uk>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again
+Hi Sakari,
 
-I've just compiled a new 3.9.7 kernel and applied a patch suggested by hverkuil on #v4l : I removed the comments around reg_w(gspca_dev, SQ930_CTRL_RESET, 0x0000); in ./drivers/media/usb/gspca/sq930x.c at line 839
-This is what I get now :
-Jun 21 18:19:31 elnath kernel: [    6.587245] gspca_sq930x: reg_w 001e 0000 failed -110
+On 06/11/2013 12:50 PM, Sakari Ailus wrote:
+> On Mon, Jun 10, 2013 at 04:54:28PM +0200, Sylwester Nawrocki wrote:
+>> This is an updated version of the patch set
+>> http://www.spinics.net/lists/linux-media/msg64536.html
+>>
+>> Comparing to v2 it includes improvements of the __media_entity_remove_links()
+>> function, thanks to Sakari. 
+>>
+>> The cover letter of v2 is included below.
+>>
+>> This small patch set adds a function for removing all links at a media
+>> entity. I found out such a function is needed when media entites that
+>> belong to a single media device have drivers in different kernel modules.
+>> This means virtually all camera drivers, since sensors are separate
+>> modules from the host interface drivers.
+>>
+>> More details can be found at each patch's description.
+>>
+>> The links removal from a media entity is rather strightforward, but when
+>> and where links should be created/removed is not immediately clear to me.
+>>
+>> I assumed that links should normally be created/removed when an entity
+>> is registered to its media device, with the graph mutex held.
+>>
+>> I'm open to opinions whether it's good or not and possibly suggestions
+>> on how those issues could be handled differently.
+>>
+>> The changes since original version are listed in patch 1/2, in patch 2/2
+>> only the commit description has changed slightly.
+> 
+> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+> 
+> That said, I'd wish they won't be merged before the two patches I'm sending
+> shortly. The thing is that the media entity links array is freed by
+> media_entity_cleanup(), and there are two drivers that call
+> media_entity_cleanup() first. The patches fix the issue, so could you
+> prepend them to your set (after review, naturally)?
 
-Log extract : http://pastebin.com/ay74d5YB
+Your patches look good, thanks a lot for inspecting those drivers! I'm going
+to put all those patches on a separate branch and will hold on with sending
+a pull request for a couple days.
 
-If reg_r() and reg_w fail, it means that usb_control_msg() returns those -32 and -110. How do I debug that ?
-
-
- =^.^=
+Regards,
+Sylwester
