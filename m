@@ -1,60 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2312 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752920Ab3FOIw1 (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32831 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1752151Ab3FKKvF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jun 2013 04:52:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH v11 00/21] V4L2 clock and asynchronous probing
-Date: Sat, 15 Jun 2013 10:51:33 +0200
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de> <2342425.VllfyDroN8@avalon> <Pine.LNX.4.64.1306142244310.11221@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1306142244310.11221@axis700.grange>
+	Tue, 11 Jun 2013 06:51:05 -0400
+Date: Tue, 11 Jun 2013 13:50:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
+	kyungmin.park@samsung.com, a.hajda@samsung.com
+Subject: Re: [RFC PATCH v3 0/2] Media entity links handling
+Message-ID: <20130611105032.GJ3103@valkosipuli.retiisi.org.uk>
+References: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
+ <1370876070-23699-2-git-send-email-s.nawrocki@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306151051.33440.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1370876070-23699-2-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri June 14 2013 22:45:15 Guennadi Liakhovetski wrote:
-> Hi Laurent
-> 
-> On Fri, 14 Jun 2013, Laurent Pinchart wrote:
-> 
-> > Hi Guennadi,
-> > 
-> > Thank you for the patches.
-> > 
-> > On Friday 14 June 2013 21:08:10 Guennadi Liakhovetski wrote:
-> > > v11 of the V4L2 clock helper and asynchronous probing patch set.
-> > > Functionally identical to v10, only differences are a couple of comment
-> > > lines and one renamed struct field - as requested by respectable
-> > > reviewers :)
-> > > 
-> > > Only patches #15, 16 and 18 changed.
-> > 
-> > [snip]
-> > 
-> > >  .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
-> > 
-> >    Documentation/video4linux/v4l2-framework.txt is missing :-)
-> 
-> I know. I will add it as soon as these patches are in.
+Hi Sylwester,
 
-Can you please post a first version earlier? I am hesitant to Ack the series
-without knowing that there is at least a first version of the documentation
-posted. We have had bad experiences in the past with code being committed and
-no documentation.
+On Mon, Jun 10, 2013 at 04:54:28PM +0200, Sylwester Nawrocki wrote:
+> This is an updated version of the patch set
+> http://www.spinics.net/lists/linux-media/msg64536.html
+> 
+> Comparing to v2 it includes improvements of the __media_entity_remove_links()
+> function, thanks to Sakari. 
+> 
+> The cover letter of v2 is included below.
+> 
+> This small patch set adds a function for removing all links at a media
+> entity. I found out such a function is needed when media entites that
+> belong to a single media device have drivers in different kernel modules.
+> This means virtually all camera drivers, since sensors are separate
+> modules from the host interface drivers.
+> 
+> More details can be found at each patch's description.
+> 
+> The links removal from a media entity is rather strightforward, but when
+> and where links should be created/removed is not immediately clear to me.
+> 
+> I assumed that links should normally be created/removed when an entity
+> is registered to its media device, with the graph mutex held.
+> 
+> I'm open to opinions whether it's good or not and possibly suggestions
+> on how those issues could be handled differently.
+> 
+> The changes since original version are listed in patch 1/2, in patch 2/2
+> only the commit description has changed slightly.
 
-Regards,
+Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
 
-	Hans
+That said, I'd wish they won't be merged before the two patches I'm sending
+shortly. The thing is that the media entity links array is freed by
+media_entity_cleanup(), and there are two drivers that call
+media_entity_cleanup() first. The patches fix the issue, so could you
+prepend them to your set (after review, naturally)?
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
