@@ -1,61 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:4317 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752678Ab3FLPBx (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3903 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754081Ab3FLPB5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 11:01:53 -0400
+	Wed, 12 Jun 2013 11:01:57 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>
-Subject: [REVIEWv2 PATCH 00/11] Use v4l2_dev instead of parent
-Date: Wed, 12 Jun 2013 17:00:50 +0200
-Message-Id: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 02/12] soc_camera: replace vdev->parent by vdev->v4l2_dev.
+Date: Wed, 12 Jun 2013 17:00:52 +0200
+Message-Id: <1371049262-5799-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series converts the last set of drivers still using the parent
-field of video_device to using v4l2_dev instead and at the end the parent
-field is renamed to dev_parent and used again in cx88.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-A proper pointer to v4l2_dev is necessary otherwise the advanced debugging
-ioctls will not work when addressing sub-devices.
+The parent field will eventually disappear to be replaced by v4l2_dev.
+soc_camera does provide a v4l2_device struct but did not point to it in
+struct video_device. This is now fixed.
 
-I have been steadily converting drivers to set the v4l2_dev pointer correctly,
-and this patch series finishes that work.
+Now the video nodes can be found under the correct platform bus, and
+the advanced debug ioctls work correctly as well (the core implementation
+of those ioctls requires that v4l2_dev is set correctly).
 
-Guennadi, the first patch replaces the broken version I posted earlier as part
-of the 'current_norm' removal patch series. I've tested it with my renesas
-board.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |    5 +++--
+ include/media/soc_camera.h                     |    4 ++--
+ 2 files changed, 5 insertions(+), 4 deletions(-)
 
-Note that this patch series sits on top of my for_v3.11 branch.
-
-Regarding the cx88 change: I discovered after posting the first version of
-this patch series that there is one real use case of the parent pointer: that
-is if there is one v4l2_device, but there are multiple parent PCI busses.
-In the case of cx88 the video1 node has a different PCI bus parent than the
-other nodes. This is the only driver that behaves like that to my knowledge.
-
-The parent pointer used to be set correctly, but it was accidentally removed
-in kernel 3.6. This patch series corrects that, and now the sysfs hierarchy of
-cx88 is OK again (tested with my cx88 blackbird card).
-
-So this patch series no longer removed the parent field, it just renames it
-so I can be sure the compiler catches any remaining usages of the parent field,
-both for in and out-of-kernel drivers.
-
-Regards,
-
-        Hans
-
-Changes since v1:
-
-- Add check so v4l2_device_unregister will just return if it was already
-  unregistered or was never registered in the first place.
-- Call unregister as well in the error path of sn9c102, saa7164, f_uvc and
-  omap24xxcam.
-- Rename parent to dev_parent instead of removing it altogether.
-- Set correct dev_parent in cx88.
-- Update v4l2-framework.txt.
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 0252fbb..9a43560 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -524,7 +524,7 @@ static int soc_camera_open(struct file *file)
+ 		return -ENODEV;
+ 	}
+ 
+-	icd = dev_get_drvdata(vdev->parent);
++	icd = video_get_drvdata(vdev);
+ 	ici = to_soc_camera_host(icd->parent);
+ 
+ 	ret = try_module_get(ici->ops->owner) ? 0 : -ENODEV;
+@@ -1477,7 +1477,7 @@ static int video_dev_create(struct soc_camera_device *icd)
+ 
+ 	strlcpy(vdev->name, ici->drv_name, sizeof(vdev->name));
+ 
+-	vdev->parent		= icd->pdev;
++	vdev->v4l2_dev		= &ici->v4l2_dev;
+ 	vdev->fops		= &soc_camera_fops;
+ 	vdev->ioctl_ops		= &soc_camera_ioctl_ops;
+ 	vdev->release		= video_device_release;
+@@ -1500,6 +1500,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
+ 	if (!icd->parent)
+ 		return -ENODEV;
+ 
++	video_set_drvdata(icd->vdev, icd);
+ 	ret = video_register_device(icd->vdev, VFL_TYPE_GRABBER, -1);
+ 	if (ret < 0) {
+ 		dev_err(icd->pdev, "video_register_device failed: %d\n", ret);
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index ff77d08..31a4bfe 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -346,9 +346,9 @@ static inline struct soc_camera_subdev_desc *soc_camera_i2c_to_desc(const struct
+ 	return client->dev.platform_data;
+ }
+ 
+-static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(const struct video_device *vdev)
++static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(struct video_device *vdev)
+ {
+-	struct soc_camera_device *icd = dev_get_drvdata(vdev->parent);
++	struct soc_camera_device *icd = video_get_drvdata(vdev);
+ 	return soc_camera_to_subdev(icd);
+ }
+ 
+-- 
+1.7.10.4
 
