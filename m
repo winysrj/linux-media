@@ -1,111 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:59525 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751268Ab3FNJot (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:42514 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755974Ab3FLHnt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 05:44:49 -0400
-Date: Fri, 14 Jun 2013 11:44:20 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH v10 16/21] V4L2: support asynchronous subdevice registration
-In-Reply-To: <51BAE4FC.4080400@samsung.com>
-Message-ID: <Pine.LNX.4.64.1306141143570.6920@axis700.grange>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
- <51BA3B9A.5090206@gmail.com> <Pine.LNX.4.64.1306140902170.6920@axis700.grange>
- <201306141107.42905.hverkuil@xs4all.nl> <Pine.LNX.4.64.1306141113050.6920@axis700.grange>
- <51BAE4FC.4080400@samsung.com>
+	Wed, 12 Jun 2013 03:43:49 -0400
+Message-ID: <51B826B2.5000508@canonical.com>
+Date: Wed, 12 Jun 2013 09:43:46 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: linux-kernel@vger.kernel.org
+CC: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, tglx@linutronix.de,
+	mingo@elte.hu, linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 0/4] add mutex wait/wound/style style locks
+References: <20130528144420.4538.70725.stgit@patser>
+In-Reply-To: <20130528144420.4538.70725.stgit@patser>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 14 Jun 2013, Sylwester Nawrocki wrote:
-
-> Hi,
-> 
-> On 06/14/2013 11:14 AM, Guennadi Liakhovetski wrote:
-> > On Fri, 14 Jun 2013, Hans Verkuil wrote:
-> >> On Fri 14 June 2013 09:14:48 Guennadi Liakhovetski wrote:
-> >>> On Thu, 13 Jun 2013, Sylwester Nawrocki wrote:
-> >>>> On 06/11/2013 10:23 AM, Guennadi Liakhovetski wrote:
-> [...]
-> >>>>> + * @v4l2_dev:	pointer to struct v4l2_device
-> >>>>> + * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-> >>>>> + * @done:	list of struct v4l2_async_subdev_list, already probed
-> >>>>> + * @list:	member in a global list of notifiers
-> >>>>> + * @bound:	a subdevice driver has successfully probed one of subdevices
-> >>>>> + * @complete:	all subdevices have been probed successfully
-> >>>>> + * @unbind:	a subdevice is leaving
-> >>>>> + */
-> >>>>> +struct v4l2_async_notifier {
-> >>>>> +	unsigned int subdev_num;
-> >>>>> +	struct v4l2_async_subdev **subdev;
-> >>>>> +	struct v4l2_device *v4l2_dev;
-> >>>>> +	struct list_head waiting;
-> >>>>> +	struct list_head done;
-> >>>>> +	struct list_head list;
-> >>>>> +	int (*bound)(struct v4l2_async_notifier *notifier,
-> >>>>> +		     struct v4l2_subdev *subdev,
-> >>>>> +		     struct v4l2_async_subdev *asd);
-> >>>>> +	int (*complete)(struct v4l2_async_notifier *notifier);
-> >>>>> +	void (*unbind)(struct v4l2_async_notifier *notifier,
-> >>>>> +		       struct v4l2_subdev *subdev,
-> >>>>> +		       struct v4l2_async_subdev *asd);
-> >>>>> +};
-> >>>>> +
-> >>>>> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> >>>>> +				 struct v4l2_async_notifier *notifier);
-> >>>>> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
-> >>>>> +int v4l2_async_register_subdev(struct v4l2_subdev *sd);
-> >>>>> +void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
-> >>>>
-> >>>> I still think "async_" in this public API is unnecessary, since we register/
-> >>>> unregister a subdev with the core and notifiers are intrinsically
-> >>>> asynchronous.
-> >>>> But your preference seems be otherwise, what could I do... :) At most it just
-> >>>> means one less happy user of this interface.
-> >>
-> >> I think v4l2_register_subdev looks awfully similar to v4l2_device_register_subdev.
-> >> It becomes very confusing naming it like that. I prefer v4l2_async where 'async'
-> >> refers to the v4l2-async module.
-> 
-> Ok, let's leave v4l2_async then.
-> 
-> > And v4l2(_async)_notifier_(un)register()?
-> 
-> I guess it would be better to have all or none of the functions
-> with that prefix. So either:
-
-Exactly.
-
-Thanks
-Guennadi
-
-> v4l2_async_notifier_register
-> v4l2_async_notifier_unregister
-> v4l2_async_register_subdev
-> v4l2_async_unregister_subdev
-> 
-> or
-> 
-> v4l2_subdev_notifier_register
-> v4l2_subdev_notifier_unregister
-> v4l2_subdev_register
-> v4l2_subdev_unregister
-> 
-> Thanks,
-> Sylwester
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Op 28-05-13 16:48, Maarten Lankhorst schreef:
+> Version 4 already?
+>
+> Small api changes since v3:
+> - Remove ww_mutex_unlock_single and ww_mutex_lock_single.
+> - Rename ww_mutex_trylock_single to ww_mutex_trylock.
+> - Remove separate implementations of ww_mutex_lock_slow*, normal
+>   functions can be used. Inline versions still exist for extra
+>   debugging, and to annotate.
+> - Cleanup unneeded memory barriers, add comment to the remaining
+>   smp_mb().
+>
+> Thanks to Daniel Vetter, Rob Clark and Peter Zijlstra for their feedback.
+> ---
+>
+> Daniel Vetter (1):
+>       mutex: w/w mutex slowpath debugging
+>
+> Maarten Lankhorst (3):
+>       arch: make __mutex_fastpath_lock_retval return whether fastpath succeeded or not.
+>       mutex: add support for wound/wait style locks, v5
+>       mutex: Add ww tests to lib/locking-selftest.c. v4
+>
+>
+>  Documentation/ww-mutex-design.txt |  344 +++++++++++++++++++++++++++++++
+>  arch/ia64/include/asm/mutex.h     |   10 -
+>  arch/powerpc/include/asm/mutex.h  |   10 -
+>  arch/sh/include/asm/mutex-llsc.h  |    4 
+>  arch/x86/include/asm/mutex_32.h   |   11 -
+>  arch/x86/include/asm/mutex_64.h   |   11 -
+>  include/asm-generic/mutex-dec.h   |   10 -
+>  include/asm-generic/mutex-null.h  |    2 
+>  include/asm-generic/mutex-xchg.h  |   10 -
+>  include/linux/mutex-debug.h       |    1 
+>  include/linux/mutex.h             |  363 +++++++++++++++++++++++++++++++++
+>  kernel/mutex.c                    |  384 ++++++++++++++++++++++++++++++++---
+>  lib/Kconfig.debug                 |   13 +
+>  lib/debug_locks.c                 |    2 
+>  lib/locking-selftest.c            |  410 +++++++++++++++++++++++++++++++++++--
+>  15 files changed, 1492 insertions(+), 93 deletions(-)
+>  create mode 100644 Documentation/ww-mutex-design.txt
+>
+Bump, do you have any feedback peterz?
