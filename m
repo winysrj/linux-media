@@ -1,114 +1,108 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:23089 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753209Ab3FJKrH (ORCPT
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2073 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755601Ab3FLPCK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 06:47:07 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MO600MCBB8NGG70@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Jun 2013 11:47:05 +0100 (BST)
-Message-id: <51B5AEA6.1080509@samsung.com>
-Date: Mon, 10 Jun 2013 12:47:02 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, hj210.choi@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com,
-	s.nawrocki@samsung.com
-Subject: Re: [REVIEW PATCH v3 1/2] media: Change media device link_notify
- behaviour
-References: <1370808878-11379-1-git-send-email-s.nawrocki@samsung.com>
- <1370808878-11379-2-git-send-email-s.nawrocki@samsung.com>
- <51B4FD56.6020307@iki.fi>
-In-reply-to: <51B4FD56.6020307@iki.fi>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 12 Jun 2013 11:02:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 05/12] sn9c102_core: add v4l2_device and replace parent with v4l2_dev
+Date: Wed, 12 Jun 2013 17:00:55 +0200
+Message-Id: <1371049262-5799-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 06/10/2013 12:10 AM, Sakari Ailus wrote:
-> Sylwester Nawrocki wrote:
-> ...
->> diff --git a/drivers/media/platform/omap3isp/isp.c b/drivers/media/platform/omap3isp/isp.c
->> index 1d7dbd5..1a2d25c 100644
->> --- a/drivers/media/platform/omap3isp/isp.c
->> +++ b/drivers/media/platform/omap3isp/isp.c
->> @@ -792,9 +792,9 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
->>
->>   /*
->>    * isp_pipeline_link_notify - Link management notification callback
->> - * @source: Pad at the start of the link
->> - * @sink: Pad at the end of the link
->> + * @link: The link
->>    * @flags: New link flags that will be applied
->> + * @notification: The link's state change notification type (MEDIA_DEV_NOTIFY_*)
->>    *
->>    * React to link management on powered pipelines by updating the use count of
->>    * all entities in the source and sink sides of the link. Entities are powered
->> @@ -804,29 +804,38 @@ int omap3isp_pipeline_pm_use(struct media_entity *entity, int use)
->>    * off is assumed to never fail. This function will not fail for disconnection
->>    * events.
->>    */
->> -static int isp_pipeline_link_notify(struct media_pad *source,
->> -				    struct media_pad *sink, u32 flags)
->> +static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
->> +				    unsigned int notification)
->>   {
->> -	int source_use = isp_pipeline_pm_use_count(source->entity);
->> -	int sink_use = isp_pipeline_pm_use_count(sink->entity);
->> +	struct media_entity *source = link->source->entity;
->> +	struct media_entity *sink = link->sink->entity;
->> +	int source_use = isp_pipeline_pm_use_count(source);
->> +	int sink_use = isp_pipeline_pm_use_count(sink);
->>   	int ret;
->>
->> -	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
->> +	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
->> +	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
->>   		/* Powering off entities is assumed to never fail. */
->> -		isp_pipeline_pm_power(source->entity, -sink_use);
->> -		isp_pipeline_pm_power(sink->entity, -source_use);
->> +		isp_pipeline_pm_power(source, -sink_use);
->> +		isp_pipeline_pm_power(sink, -source_use);
->>   		return 0;
->>   	}
->>
->> -	ret = isp_pipeline_pm_power(source->entity, sink_use);
->> -	if (ret < 0)
->> -		return ret;
->> +	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
->> +		(flags & MEDIA_LNK_FL_ENABLED)) {
-> 
-> You could return zero here if the opposite was true, and unindent the 
-> rest. Up to you --- the patch is fine.
+This driver did not yet support struct v4l2_device, so add it. This
+make it possible to replace the deprecated parent field with the
+v4l2_dev field, allowing the eventual removal of the parent field.
 
-All right, thanks for the Ack. An updated patch to follow.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/usb/sn9c102/sn9c102.h      |    3 +++
+ drivers/media/usb/sn9c102/sn9c102_core.c |   13 ++++++++++++-
+ 2 files changed, 15 insertions(+), 1 deletion(-)
 
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> 
->> -	ret = isp_pipeline_pm_power(sink->entity, source_use);
->> -	if (ret < 0)
->> -		isp_pipeline_pm_power(source->entity, -sink_use);
->> +		ret = isp_pipeline_pm_power(source, sink_use);
->> +		if (ret < 0)
->> +			return ret;
->>
->> -	return ret;
->> +		ret = isp_pipeline_pm_power(sink, source_use);
->> +		if (ret < 0)
->> +			isp_pipeline_pm_power(source, -sink_use);
->> +
->> +		return ret;
->> +	}
->> +
->> +	return 0;
->>   }
+diff --git a/drivers/media/usb/sn9c102/sn9c102.h b/drivers/media/usb/sn9c102/sn9c102.h
+index 2bc153e..8a917f06 100644
+--- a/drivers/media/usb/sn9c102/sn9c102.h
++++ b/drivers/media/usb/sn9c102/sn9c102.h
+@@ -25,6 +25,7 @@
+ #include <linux/videodev2.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
+ #include <linux/device.h>
+ #include <linux/list.h>
+ #include <linux/spinlock.h>
+@@ -100,6 +101,8 @@ static DECLARE_RWSEM(sn9c102_dev_lock);
+ struct sn9c102_device {
+ 	struct video_device* v4ldev;
+ 
++	struct v4l2_device v4l2_dev;
++
+ 	enum sn9c102_bridge bridge;
+ 	struct sn9c102_sensor sensor;
+ 
+diff --git a/drivers/media/usb/sn9c102/sn9c102_core.c b/drivers/media/usb/sn9c102/sn9c102_core.c
+index c957e9a..2cb44de 100644
+--- a/drivers/media/usb/sn9c102/sn9c102_core.c
++++ b/drivers/media/usb/sn9c102/sn9c102_core.c
+@@ -1737,6 +1737,7 @@ static void sn9c102_release_resources(struct kref *kref)
+ 	    video_device_node_name(cam->v4ldev));
+ 	video_set_drvdata(cam->v4ldev, NULL);
+ 	video_unregister_device(cam->v4ldev);
++	v4l2_device_unregister(&cam->v4l2_dev);
+ 	usb_put_dev(cam->usbdev);
+ 	kfree(cam->control_buffer);
+ 	kfree(cam);
+@@ -3254,6 +3255,13 @@ sn9c102_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
+ 
+ 	cam->usbdev = udev;
+ 
++	/* register v4l2_device early so it can be used for printks */
++	if (v4l2_device_register(&intf->dev, &cam->v4l2_dev)) {
++		dev_err(&intf->dev, "v4l2_device_register failed\n");
++		err = -ENOMEM;
++		goto fail;
++	}
++
+ 	if (!(cam->control_buffer = kzalloc(8, GFP_KERNEL))) {
+ 		DBG(1, "kzalloc() failed");
+ 		err = -ENOMEM;
+@@ -3325,7 +3333,7 @@ sn9c102_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
+ 	strcpy(cam->v4ldev->name, "SN9C1xx PC Camera");
+ 	cam->v4ldev->fops = &sn9c102_fops;
+ 	cam->v4ldev->release = video_device_release;
+-	cam->v4ldev->parent = &udev->dev;
++	cam->v4ldev->v4l2_dev = &cam->v4l2_dev;
+ 
+ 	init_completion(&cam->probe);
+ 
+@@ -3377,6 +3385,7 @@ fail:
+ 		kfree(cam->control_buffer);
+ 		if (cam->v4ldev)
+ 			video_device_release(cam->v4ldev);
++		v4l2_device_unregister(&cam->v4l2_dev);
+ 		kfree(cam);
+ 	}
+ 	return err;
+@@ -3407,6 +3416,8 @@ static void sn9c102_usb_disconnect(struct usb_interface* intf)
+ 
+ 	wake_up_interruptible_all(&cam->wait_open);
+ 
++	v4l2_device_disconnect(&cam->v4l2_dev);
++
+ 	kref_put(&cam->kref, sn9c102_release_resources);
+ 
+ 	up_write(&sn9c102_dev_lock);
+-- 
+1.7.10.4
 
-Regards,
-Sylwester
