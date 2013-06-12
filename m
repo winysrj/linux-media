@@ -1,116 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62704 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751126Ab3FNTlo (ORCPT
+Received: from mail-ie0-f175.google.com ([209.85.223.175]:34241 "EHLO
+	mail-ie0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752443Ab3FLIpF convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 15:41:44 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v11 00/21] V4L2 clock and asynchronous probing
-Date: Fri, 14 Jun 2013 21:08:10 +0200
-Message-Id: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+	Wed, 12 Jun 2013 04:45:05 -0400
+Received: by mail-ie0-f175.google.com with SMTP id a13so9390127iee.20
+        for <linux-media@vger.kernel.org>; Wed, 12 Jun 2013 01:45:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1370988950.32187.YahooMailNeo@web125203.mail.ne1.yahoo.com>
+References: <1370938465.85106.YahooMailNeo@web125204.mail.ne1.yahoo.com>
+ <CAPueXH4+MyXszcfwSMB2rS+WdrJ5z0=98puS1WwyEQzb_E87bQ@mail.gmail.com>
+ <1370945293.8544.YahooMailNeo@web125205.mail.ne1.yahoo.com>
+ <CAPueXH4xBtVtUmpq1HkwG-3O7bC4dr6-LEenWf9_HvB8arzvow@mail.gmail.com> <1370988950.32187.YahooMailNeo@web125203.mail.ne1.yahoo.com>
+From: Paulo Assis <pj.assis@gmail.com>
+Date: Wed, 12 Jun 2013 09:44:44 +0100
+Message-ID: <CAPueXH4t2yWprSk2+sQshjGoCq8urns8AA_o-G1gzZTiZm7Oew@mail.gmail.com>
+Subject: Re: Corrupt Raw webcam data
+To: phil rosenberg <philip_rosenberg@yahoo.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-v11 of the V4L2 clock helper and asynchronous probing patch set. 
-Functionally identical to v10, only differences are a couple of comment 
-lines and one renamed struct field - as requested by respectable 
-reviewers :)
+Hi,
+You must add the nodrop option to the uvc driver (nodrop=1), otherwise
+bayer frames (smaller than yuyv frames) will get droped, since the
+driver mistakens these with incomplete yuyv frames.
 
-Only patches #15, 16 and 18 changed.
+If you are using guvcview make sure you use the latest version
+(1.7.0), then I would try different resolutions and frame rates, I
+woul first try the sensor full resolution at the lowest fps.
+If the image has a blue or yellow tone try chaging the bayer order.
 
-Guennadi Liakhovetski (21):
-  soc-camera: move common code to soc_camera.c
-  soc-camera: add host clock callbacks to start and stop the master
-    clock
-  pxa-camera: move interface activation and deactivation to clock
-    callbacks
-  omap1-camera: move interface activation and deactivation to clock
-    callbacks
-  atmel-isi: move interface activation and deactivation to clock
-    callbacks
-  mx3-camera: move interface activation and deactivation to clock
-    callbacks
-  mx2-camera: move interface activation and deactivation to clock
-    callbacks
-  mx1-camera: move interface activation and deactivation to clock
-    callbacks
-  sh-mobile-ceu-camera: move interface activation and deactivation to
-    clock callbacks
-  soc-camera: make .clock_{start,stop} compulsory, .add / .remove
-    optional
-  soc-camera: don't attach the client to the host during probing
-  sh-mobile-ceu-camera: add primitive OF support
-  sh-mobile-ceu-driver: support max width and height in DT
-  V4L2: add temporary clock helpers
-  V4L2: add a device pointer to struct v4l2_subdev
-  V4L2: support asynchronous subdevice registration
-  soc-camera: switch I2C subdevice drivers to use v4l2-clk
-  soc-camera: add V4L2-async support
-  sh_mobile_ceu_camera: add asynchronous subdevice probing support
-  imx074: support asynchronous probing
-  ARM: shmobile: convert ap4evb to asynchronously register camera
-    subdevices
+Regards,
+Paulo
 
- .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
- arch/arm/mach-shmobile/board-ap4evb.c              |  103 ++--
- arch/arm/mach-shmobile/clock-sh7372.c              |    1 +
- drivers/media/i2c/soc_camera/imx074.c              |   32 +-
- drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
- drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
- drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
- drivers/media/i2c/soc_camera/mt9t112.c             |   25 +-
- drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
- drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
- drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
- drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
- drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
- drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
- drivers/media/i2c/soc_camera/ov9640.h              |    1 +
- drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
- drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
- drivers/media/i2c/soc_camera/tw9910.c              |   24 +-
- drivers/media/platform/soc_camera/atmel-isi.c      |   38 +-
- drivers/media/platform/soc_camera/mx1_camera.c     |   48 +-
- drivers/media/platform/soc_camera/mx2_camera.c     |   41 +-
- drivers/media/platform/soc_camera/mx3_camera.c     |   44 +-
- drivers/media/platform/soc_camera/omap1_camera.c   |   41 +-
- drivers/media/platform/soc_camera/pxa_camera.c     |   46 +-
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |  243 +++++--
- drivers/media/platform/soc_camera/sh_mobile_csi2.c |  153 +++--
- drivers/media/platform/soc_camera/soc_camera.c     |  707 +++++++++++++++++---
- .../platform/soc_camera/soc_camera_platform.c      |    2 +-
- drivers/media/v4l2-core/Makefile                   |    3 +-
- drivers/media/v4l2-core/v4l2-async.c               |  280 ++++++++
- drivers/media/v4l2-core/v4l2-clk.c                 |  242 +++++++
- drivers/media/v4l2-core/v4l2-common.c              |    2 +
- include/media/sh_mobile_ceu.h                      |    2 +
- include/media/sh_mobile_csi2.h                     |    2 +-
- include/media/soc_camera.h                         |   39 +-
- include/media/v4l2-async.h                         |  105 +++
- include/media/v4l2-clk.h                           |   54 ++
- include/media/v4l2-subdev.h                        |   10 +
- 38 files changed, 2035 insertions(+), 467 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
- create mode 100644 drivers/media/v4l2-core/v4l2-async.c
- create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
- create mode 100644 include/media/v4l2-async.h
- create mode 100644 include/media/v4l2-clk.h
-
--- 
-1.7.2.5
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>:
+> Hi Paulo
+> Unfortunately I tried setting things up in the order you suggested, but as soon as I select 'Disable video processing I get only a single frame of something that looks a bit like a bayer grid, coloured deep blue. I think the image might be in this data but shifted horizontally and then an error "Could not grab image (select timeout): Resource temporariliy unavailable which is repeated until I unselect 'Disable video processing' and change to any other input type.
+>
+> I've tested this on Ubuntu 12.04 and Raspian Wheezy with the same results.
+>
+> If you have any other ideas I'd be happy to hear them
+>
+> All the best
+>
+> Phil
+>
+>
+> ----- Original Message -----
+> From: Paulo Assis <pj.assis@gmail.com>
+> To: phil rosenberg <philip_rosenberg@yahoo.com>
+> Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+> Sent: Tuesday, 11 June 2013, 11:13
+> Subject: Re: Corrupt Raw webcam data
+>
+> Hi,
+> You should select YUYV before disabling the video processing.
+>
+> So with video processing still enabled:
+>
+> set YUYV format
+> set the desired fps and resolution
+> set exposure
+>
+> now disable video processing and set the bayer order
+>
+> every time you need to change exposure or resolution you need to
+> enable video processing first.
+>
+> Regards,
+> Paulo
+>
+> 2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>:
+>> Hello Paulo
+>> Thank you for your quick response.
+>> Unfortunately if I select YUYV or any other format that is not MJPG data flow stops and I see timeouts appear in the console.
+>>
+>> Does this represent a bug in either the webcam's UVC support or the UVC driver? If so I presume there is no likely quick workaround.
+>>
+>> Phil
+>>
+>> ________________________________
+>> From: Paulo Assis <pj.assis@gmail.com>
+>> To: phil rosenberg <philip_rosenberg@yahoo.com>
+>> Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+>> Sent: Tuesday, 11 June 2013, 10:11
+>> Subject: Re:
+>>
+>>
+>>
+>> Hi,
+>> make sure you are streaming in YUYV format and not in MJPG or any of the libv4l formats since these are decoded from MJPG.
+>>
+>> If you are using guvcview for the stream preview you should also set the bayer pattern accordindly since it will depend on whathever resolution you are using.
+>>
+>> Regards,
+>> Paulo
+>>
+>>
+>>
+>>
+>> 2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>
+>>
+>> Hi this is my first email to the list, I'm hoping someone can help
+>>>I have a logitech C300 webcam with the option of raw/bayer output. This works fine on windows where the RGB output consists of zeros in the r and b bytes and pixel intensitey in the g byte. However on linux when I activate the webcam using uvcdynctrl and/or the options in guvcview the out put seems to be corrupted. I get something that looks like multiple images interlaces and displaced horizontally, generally pink. I've put an example of an extracted avi frame at http://homepages.see.leeds.ac.uk/~earpros/test0.png,which is a close up of one of my daughters hair clips and shows an (upside down) picture of a disney character.
+>>>I'm wondering if the UVC/V4L2 driver is interpretting the data as mjpeg and incorrectly decoding it giving the corruption. When I use guvcview I can choose the input format, but the only one that works in mjpeg, all others cause timeouts and no data. The image also has the tell-tale 8x8 jpeg block effect. Is there any way I can stop this decoding happening and get to the raw data? Presumably if my theory is correct then the decompression is lossy so cannot be undone.
+>>>Any help or suggestions welcome.
+>>>
+>>>Phil
+>>>--
+>>>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>>the body of a message to majordomo@vger.kernel.org
+>>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>>>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
