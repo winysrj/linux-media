@@ -1,90 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57124 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932076Ab3FRPSU (ORCPT
+Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3267 "EHLO
+	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755248Ab3FLPCG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 11:18:20 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Michael Jones <michael.jones@matrix-vision.de>,
-	linux-media ML <linux-media@vger.kernel.org>
-Subject: Re: double-buffering with the omap3 parallel interface
-Date: Tue, 18 Jun 2013 17:18:34 +0200
-Message-ID: <2509851.dYUFSdVPB5@avalon>
-In-Reply-To: <20130616234449.GB2064@valkosipuli.retiisi.org.uk>
-References: <51B89EDA.90107@matrix-vision.de> <20130616234449.GB2064@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Wed, 12 Jun 2013 11:02:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 06/12] saa7164: add v4l2_device and replace parent with v4l2_dev
+Date: Wed, 12 Jun 2013 17:00:56 +0200
+Message-Id: <1371049262-5799-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Michael,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Monday 17 June 2013 02:44:50 Sakari Ailus wrote:
-> On Wed, Jun 12, 2013 at 06:16:26PM +0200, Michael Jones wrote:
-> > Hi Laurent & co.,
-> > 
-> > I'd like to look at what the maximum possible frame rates are for a sensor
-> > connected to the OMAP3 ISP CCDC via the parallel interface, writing frames
-> > directly to memory. I understand that there is some minimum amount of time
-> > required between frames to pass on the finished frame and set up the
-> > address to be written to for the next frame. From the manual it looks like
-> > a double buffering scheme would've been available on a different sensor
-> > interface, but isn't on the parallel one.
-> > 
-> > Do I see that right? Is it impossible to use double buffering of any sort
-> > while using the parallel interface to memory?
+This driver did not yet support struct v4l2_device, so add it. This
+make it possible to replace the deprecated parent field with the
+v4l2_dev field, allowing the eventual removal of the parent field.
 
-That's correct. The CCDC has a single destination memory address register, so 
-you can only queue a single buffer to the hardware.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7164/saa7164-core.c    |    7 +++++++
+ drivers/media/pci/saa7164/saa7164-encoder.c |    2 +-
+ drivers/media/pci/saa7164/saa7164-vbi.c     |    2 +-
+ drivers/media/pci/saa7164/saa7164.h         |    3 +++
+ 4 files changed, 12 insertions(+), 2 deletions(-)
 
-> > I'm still using an older version of the driver, but I've browsed the
-> > current state of the code, too. What behavior do you expect if the time
-> > between frames is too short for the buffer management? Can it be recovered
-> > from?
-
-The CCDC is stopped after each frame, reconfigured, and then restarted. If a 
-new frame arrives before the CCDC is restarted the frame will be dropped, but 
-the CCDC might lose synchronization as well (this would need to be verified, 
-the OMAP3 ISP hardware is pretty sensitive to such issues, but I don't 
-remember from the top of my head the details of what synchronization problems 
-affect each block).
-
-> > Has this behavior changed in recent versions?
-
-The overall behaviour shouldn't have changed, no.
-
-> > I see from the ISP block diagram that the "circular buffer" is between the
-> > SBL and the MMU. Could this maybe be used to help the situation? It seems
-> > to currently not be used at all along this path.
-
-Not that I know of. The circular buffer allows allocating less physical memory 
-than what would be required to store a full frame, if the consumer can process 
-image data as it gets written to memory. The memory buffer then essentially 
-acts as a FIFO.
-
-> The way the hardware is controlled has stayed the same for a very long time.
-> My recollection matches with your findings --- even if double buffering of
-> the buffer pointers would be available in some situations, it isn't used by
-> the driver. You might ask why, and the reason for that is that there are
-> tonds of other things that typically need to be configured (as a result of
-> the configuration given by the user using the private IOCTLs) at that very
-> time. If a block becomes busy while you're configuring it you can say good
-> bye to your frame in any case; whether yousd set up writing it to system
-> memory using DMA or not...
-
-Several CCDC registers are latched by the VS sync pulse. It might thus be 
-possible to reconfigure the CCDC right after frame start instead of right 
-after frame end.
-
-> What comes to the minimum time per frames, I could give you a guesstimate of
-> 1 ms. It depends a lot on how well other drivers in the system behave, but
-> in general that should be enough. Something must be very wrong if you need
-> significantly more than that.
-
+diff --git a/drivers/media/pci/saa7164/saa7164-core.c b/drivers/media/pci/saa7164/saa7164-core.c
+index 7618fda..5d27865 100644
+--- a/drivers/media/pci/saa7164/saa7164-core.c
++++ b/drivers/media/pci/saa7164/saa7164-core.c
+@@ -1196,6 +1196,11 @@ static int saa7164_initdev(struct pci_dev *pci_dev,
+ 	if (NULL == dev)
+ 		return -ENOMEM;
+ 
++	if (v4l2_device_register(&pci_dev->dev, &dev->v4l2_dev)) {
++		dev_err(&pci_dev->dev, "v4l2_device_register failed\n");
++		goto fail_free;
++	}
++
+ 	/* pci init */
+ 	dev->pci = pci_dev;
+ 	if (pci_enable_device(pci_dev)) {
+@@ -1367,6 +1372,7 @@ fail_fw:
+ fail_irq:
+ 	saa7164_dev_unregister(dev);
+ fail_free:
++	v4l2_device_unregister(&dev->v4l2_dev);
+ 	kfree(dev);
+ 	return err;
+ }
+@@ -1439,6 +1445,7 @@ static void saa7164_finidev(struct pci_dev *pci_dev)
+ 	mutex_unlock(&devlist);
+ 
+ 	saa7164_dev_unregister(dev);
++	v4l2_device_unregister(&dev->v4l2_dev);
+ 	kfree(dev);
+ }
+ 
+diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
+index 7b7ed97..9266965 100644
+--- a/drivers/media/pci/saa7164/saa7164-encoder.c
++++ b/drivers/media/pci/saa7164/saa7164-encoder.c
+@@ -1348,7 +1348,7 @@ static struct video_device *saa7164_encoder_alloc(
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)", dev->name,
+ 		type, saa7164_boards[dev->board].name);
+ 
+-	vfd->parent  = &pci->dev;
++	vfd->v4l2_dev  = &dev->v4l2_dev;
+ 	vfd->release = video_device_release;
+ 	return vfd;
+ }
+diff --git a/drivers/media/pci/saa7164/saa7164-vbi.c b/drivers/media/pci/saa7164/saa7164-vbi.c
+index 552c01a..6e025fe 100644
+--- a/drivers/media/pci/saa7164/saa7164-vbi.c
++++ b/drivers/media/pci/saa7164/saa7164-vbi.c
+@@ -1297,7 +1297,7 @@ static struct video_device *saa7164_vbi_alloc(
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)", dev->name,
+ 		type, saa7164_boards[dev->board].name);
+ 
+-	vfd->parent  = &pci->dev;
++	vfd->v4l2_dev  = &dev->v4l2_dev;
+ 	vfd->release = video_device_release;
+ 	return vfd;
+ }
+diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
+index 2df47ea..8b29e89 100644
+--- a/drivers/media/pci/saa7164/saa7164.h
++++ b/drivers/media/pci/saa7164/saa7164.h
+@@ -63,6 +63,7 @@
+ #include <dmxdev.h>
+ #include <media/v4l2-common.h>
+ #include <media/v4l2-ioctl.h>
++#include <media/v4l2-device.h>
+ 
+ #include "saa7164-reg.h"
+ #include "saa7164-types.h"
+@@ -427,6 +428,8 @@ struct saa7164_dev {
+ 	struct list_head	devlist;
+ 	atomic_t		refcount;
+ 
++	struct v4l2_device v4l2_dev;
++
+ 	/* pci stuff */
+ 	struct pci_dev	*pci;
+ 	unsigned char	pci_rev, pci_lat;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
