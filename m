@@ -1,59 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f51.google.com ([74.125.83.51]:63278 "EHLO
-	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752942Ab3FNWnZ (ORCPT
+Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2407 "EHLO
+	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755618Ab3FLPCK (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 18:43:25 -0400
-Message-ID: <51BB9C88.1040606@gmail.com>
-Date: Sat, 15 Jun 2013 00:43:20 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH v11 00/21] V4L2 clock and asynchronous probing
-References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de> <2342425.VllfyDroN8@avalon> <Pine.LNX.4.64.1306142244310.11221@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1306142244310.11221@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Wed, 12 Jun 2013 11:02:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [REVIEWv2 PATCH 11/12] cx88: set dev_parent to the correct parent PCI bus.
+Date: Wed, 12 Jun 2013 17:01:01 +0200
+Message-Id: <1371049262-5799-12-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 06/14/2013 10:45 PM, Guennadi Liakhovetski wrote:
-> On Fri, 14 Jun 2013, Laurent Pinchart wrote:
->> >  On Friday 14 June 2013 21:08:10 Guennadi Liakhovetski wrote:
->>> >  >  v11 of the V4L2 clock helper and asynchronous probing patch set.
->>> >  >  Functionally identical to v10, only differences are a couple of comment
->>> >  >  lines and one renamed struct field - as requested by respectable
->>> >  >  reviewers:)
->>> >  >
->>> >  >  Only patches #15, 16 and 18 changed.
->> >
->> >  [snip]
->> >
->>> >  >    .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
->> >
->> >      Documentation/video4linux/v4l2-framework.txt is missing:-)
->
-> I know. I will add it as soon as these patches are in.
+The cx88 driver has one v4l2_device, but the video nodes are owned by two
+different PCI busses. So the dev_parent pointer should be set to the correct
+parent bus, otherwise sysfs won't show the correct device hierarchy.
 
-Actually it would be nice to see some documentation, before this patch set
-is merged. I don't think the whole concept is going to be changed or 
-rejected
-by Mauro at this point :) And we always have been pushing back on 
-merging any
-code without some corresponding documentation. The v4l2 API seems 
-relatively
-well documented, and I would prefer to keep it that way. :-)
+This broke starting in 3.6 after a driver change, so this patch resurrects
+the correct behavior.
 
-Regards,
-Sylwester
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/cx88/cx88-core.c |    7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
+index c8f3dcc..ad59dc9 100644
+--- a/drivers/media/pci/cx88/cx88-core.c
++++ b/drivers/media/pci/cx88/cx88-core.c
+@@ -1034,7 +1034,14 @@ struct video_device *cx88_vdev_init(struct cx88_core *core,
+ 	if (NULL == vfd)
+ 		return NULL;
+ 	*vfd = *template_;
++	/*
++	 * The dev pointer of v4l2_device is NULL, instead we set the
++	 * video_device dev_parent pointer to the correct PCI bus device.
++	 * This driver is a rare example where there is one v4l2_device,
++	 * but the video nodes have different parent (PCI) devices.
++	 */
+ 	vfd->v4l2_dev = &core->v4l2_dev;
++	vfd->dev_parent = &pci->dev;
+ 	vfd->release = video_device_release;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)",
+ 		 core->name, type, core->board.name);
+-- 
+1.7.10.4
 
