@@ -1,48 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:57352 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752747Ab3F0IhR (ORCPT
+Received: from mail1.matrix-vision.com ([78.47.19.71]:51481 "EHLO
+	mail1.matrix-vision.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752574Ab3FLQUR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 04:37:17 -0400
-Message-id: <51CBF9B8.70103@samsung.com>
-Date: Thu, 27 Jun 2013 10:37:12 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: balbi@ti.com
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, kishon@ti.com,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	t.figa@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	inki.dae@samsung.com, plagnioj@jcrosoft.com,
-	linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH v3 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
- <1372258946-15607-2-git-send-email-s.nawrocki@samsung.com>
- <20130627075223.GQ15455@arwen.pp.htv.fi>
-In-reply-to: <20130627075223.GQ15455@arwen.pp.htv.fi>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 12 Jun 2013 12:20:17 -0400
+Message-ID: <51B89EDA.90107@matrix-vision.de>
+Date: Wed, 12 Jun 2013 18:16:26 +0200
+From: Michael Jones <michael.jones@matrix-vision.de>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: linux-media ML <linux-media@vger.kernel.org>
+Subject: double-buffering with the omap3 parallel interface
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/27/2013 09:52 AM, Felipe Balbi wrote:
-> On Wed, Jun 26, 2013 at 05:02:22PM +0200, Sylwester Nawrocki wrote:
->> Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
->> receiver and MIPI DSI transmitter DPHYs.
->>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> 
-> Acked-by: Felipe Balbi <balbi@ti.com>
+Hi Laurent & co.,
 
-Thank you for your review and ack!
+I'd like to look at what the maximum possible frame rates are for a 
+sensor connected to the OMAP3 ISP CCDC via the parallel interface, 
+writing frames directly to memory.  I understand that there is some 
+minimum amount of time required between frames to pass on the finished 
+frame and set up the address to be written to for the next frame.  From 
+the manual it looks like a double buffering scheme would've been 
+available on a different sensor interface, but isn't on the parallel one.
 
-Just for the record, I have tested this driver as a loadable
-module on Exynos4412 TRATS2 board and it all worked fine for
-both the camera and display side.
+Do I see that right?  Is it impossible to use double buffering of any 
+sort while using the parallel interface to memory?
 
---
-Regards,
-Sylwester
+I'm still using an older version of the driver, but I've browsed the 
+current state of the code, too.  What behavior do you expect if the time 
+between frames is too short for the buffer management?  Can it be 
+recovered from?  Has this behavior changed in recent versions?
 
+I see from the ISP block diagram that the "circular buffer" is between 
+the SBL and the MMU.  Could this maybe be used to help the situation? 
+It seems to currently not be used at all along this path.
+
+thanks,
+Michael
+
+MATRIX VISION GmbH, Talstrasse 16, DE-71570 Oppenweiler
+Registergericht: Amtsgericht Stuttgart, HRB 271090
+Geschaeftsfuehrer: Gerhard Thullner, Werner Armingeon, Uwe Furtner, Erhard Meier
