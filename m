@@ -1,90 +1,257 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:24501 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422804Ab3FUNBp (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:22511 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751402Ab3FMLm7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 09:01:45 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
+	Thu, 13 Jun 2013 07:42:59 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOQ0022TUUHPVH0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 21 Jun 2013 22:01:44 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, j.anaszewski@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 5/6] exynos4-is: Set valid initial format on FIMC.n subdevs
-Date: Fri, 21 Jun 2013 15:00:34 +0200
-Message-id: <1371819636-13499-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1371819636-13499-1-git-send-email-s.nawrocki@samsung.com>
-References: <1371819636-13499-1-git-send-email-s.nawrocki@samsung.com>
+ 17 2011)) with ESMTP id <0MOB00H2GXT56N80@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 13 Jun 2013 12:42:57 +0100 (BST)
+Message-id: <51B9B040.90707@samsung.com>
+Date: Thu, 13 Jun 2013 13:42:56 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Add query/get/set matrix ioctls
+References: <201306031414.49392.hverkuil@xs4all.nl>
+ <201306121035.07587.hverkuil@xs4all.nl> <51B880B4.8090806@samsung.com>
+ <201306121647.31253.hverkuil@xs4all.nl>
+In-reply-to: <201306121647.31253.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-capture.c |   19 +++++++++++++++++--
- drivers/media/platform/exynos4-is/fimc-core.h    |    2 ++
- 2 files changed, 19 insertions(+), 2 deletions(-)
+On 06/12/2013 04:47 PM, Hans Verkuil wrote:
+> On Wed June 12 2013 16:07:48 Andrzej Hajda wrote:
+>> Hi Hans and Sylwester,
+>>
+>> I would like to add my two cents.
+>>
+>> On 06/12/2013 10:35 AM, Hans Verkuil wrote:
+>>> On Tue 11 June 2013 23:33:42 Sylwester Nawrocki wrote:
+>>>> Hi Hans,
+>>>>
+>>>> On 06/03/2013 02:14 PM, Hans Verkuil wrote:
+>>>>> Hi all,
+>>>>>
+>>>>> When working on the Motion Detection API, I realized that my proposal for
+>>>>> two new G/S_MD_BLOCKS ioctls was too specific for the motion detection use
+>>>>> case.
+>>>>>
+>>>>> The Motion Detection RFC can be found here:
+>>>>>
+>>>>> http://www.mail-archive.com/linux-media@vger.kernel.org/msg62085.html
+>>>>>
+>>>>> What I was really attempting to do was to create an API to pass a matrix
+>>>>> to the hardware.
+>>>>>
+>>>>> This is also related to a long-standing request to add support for
+>>>>> arrays to the control API. Adding such support to the control API is in my
+>>>>> opinion a very bad idea since the control API is meant to provide all
+>>>>> meta data necessary in order to create e.g. control panels. Adding array
+>>>>> support to the control API would make that very difficult, particularly
+>>>>> with respect to GUI design.
+>>>>>
+>>>>> So instead this proposal creates a new API to query, get and set matrices:
+>>>> This looks very interesting, one use case that comes immediately to mind is
+>>>> configuring the quantization/Huffman tables in a hardware JPEG codec. 
+>>>> The only
+>>>> thing left would have probably been setting up the comment segments, 
+>>>> consisting
+>>>> of arbitrary byte strings.
+>>> Actually, I realized that that can be handled as well since those segments
+>>> are 1-dimensional matrices of unsigned chars.
+>> Treating array of chars as matrix seems for me to be an abuse. Why not
+>> treat any blob of data as a matrix of chars with one row?
+>> Additionally passing string from/to driver via VIDIOC_G/S_MATRIX seems
+>> awkward.
+> It's not a string. If it was a string, then we could use a control. It is
+> literally a blob of data that can be inserted into a comment segment.
+>
+> The alternative is to create a new ioctl to do just this, but that's a lot
+> of work and it can be just as well by this ioctl. Since we assign this a
+> specific type ('JPEG_COMMENT' or something) we can prevent it from being
+> abused.
+But claiming that blob of data/jpeg comment is a matrix seems
+to be an abuse itself.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
-index 2b045b6..fb27ff7 100644
---- a/drivers/media/platform/exynos4-is/fimc-capture.c
-+++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-@@ -1722,8 +1722,8 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc)
- 	struct v4l2_format fmt = {
- 		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
- 		.fmt.pix_mp = {
--			.width		= 640,
--			.height		= 480,
-+			.width		= FIMC_DEFAULT_WIDTH,
-+			.height		= FIMC_DEFAULT_HEIGHT,
- 			.pixelformat	= V4L2_PIX_FMT_YUYV,
- 			.field		= V4L2_FIELD_NONE,
- 			.colorspace	= V4L2_COLORSPACE_JPEG,
-@@ -1741,6 +1741,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	struct vb2_queue *q = &fimc->vid_cap.vbq;
- 	struct fimc_ctx *ctx;
- 	struct fimc_vid_cap *vid_cap;
-+	struct fimc_fmt *fmt;
- 	int ret = -ENOMEM;
- 
- 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
-@@ -1788,6 +1789,20 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
- 	if (ret)
- 		goto err_free_ctx;
- 
-+	/* Default format configuration */
-+	fmt = fimc_find_format(NULL, NULL, FMT_FLAGS_CAM, 0);
-+	vid_cap->ci_fmt.width = FIMC_DEFAULT_WIDTH;
-+	vid_cap->ci_fmt.height = FIMC_DEFAULT_HEIGHT;
-+	vid_cap->ci_fmt.code = fmt->mbus_code;
-+
-+	ctx->s_frame.width = FIMC_DEFAULT_WIDTH;
-+	ctx->s_frame.height = FIMC_DEFAULT_HEIGHT;
-+	ctx->s_frame.fmt = fmt;
-+
-+	fmt = fimc_find_format(NULL, NULL, FMT_FLAGS_WRITEBACK, 0);
-+	vid_cap->wb_fmt = vid_cap->ci_fmt;
-+	vid_cap->wb_fmt.code = fmt->mbus_code;
-+
- 	vid_cap->vd_pad.flags = MEDIA_PAD_FL_SINK;
- 	ret = media_entity_init(&vfd->entity, 1, &vid_cap->vd_pad, 0);
- 	if (ret)
-diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
-index 0f25ce0..65c8ce7 100644
---- a/drivers/media/platform/exynos4-is/fimc-core.h
-+++ b/drivers/media/platform/exynos4-is/fimc-core.h
-@@ -47,6 +47,8 @@
- #define FIMC_DEF_MIN_SIZE	16
- #define FIMC_DEF_HEIGHT_ALIGN	2
- #define FIMC_DEF_HOR_OFFS_ALIGN	1
-+#define FIMC_DEFAULT_WIDTH	640
-+#define FIMC_DEFAULT_HEIGHT	480
- 
- /* indices to the clocks array */
- enum {
--- 
-1.7.9.5
+I try to show here that instead of encapsulating different entities into
+a matrix maybe better is to create little more general ioctls.
+
+>
+>>>> This is even more nice than your previous proposal ;) Quite generic - but
+>>>> I was wondering, what if we went one step further and defined QUERY/GET/
+>>>> SET_PROPERTY ioctls, where the type (matrix or anything else) would be
+>>>> also configurable ? :-) Just brainstorming, if memory serves me well few
+>>>> people suggested something like this in the past.
+>>> The problem with that is that you basically create a meta-ioctl. Why not
+>>> just create an ioctl for whatever you want to do? After all, an ioctl is
+>>> basically a type (the command number) and a pointer. And with a property
+>>> ioctl you really just wrap that into another ioctl.
+>> Those ioctls would share similar scheme (QUERY/SET/GET) and similar
+>> purpose - passing some properties between user space and kernel, I think
+>> this could be a good reason to use three ioctls instead of 3xN.
+> On the outside it looks like you have just three ioctls, but in the kernel
+> you promptly have a switch on the type that effectively acts as an ioctl
+> command. So you gain nothing, it's just an obfuscation layer.
+>
+> Say you have two ioctls:
+>
+> S_FOO(struct v4l2_foo *p)
+> S_BAR(struct v4l2_bar *p)
+>
+> With properties you would implement it like this:
+>
+> struct v4l2_prop {
+> 	__u32 type;
+> 	union {
+> 		struct v4l2_foo foo;
+> 		struct v4l2_bar bar;
+> 	};
+> };
+>
+> S_PROP(struct v4l2_prop)
+>
+> What does that gain you? It looks shorter, but in the kernel you have to
+> do a switch (type) everywhere you deal with properties. That's no different
+> than using switch (cmd) when dealing with an ioctl.
+The same is with v4l2_query_matrix - you should also use switch(type)
+or similar constructs on the kernel side.
+I see there would be more common code in matrices of different types
+but I guess properly designed properties could also allow to optimize
+code for similar types.
+>>>> So for the starters we could have matrix type and carefully be adding in
+>>>> the future anything what's needed ?
+>>>>
+>>>>> /* Define to which motion detection region each element belongs.
+>>>>>   * Each element is a __u8. */
+>>>>> #define V4L2_MATRIX_TYPE_MD_REGION     (1)
+>>>>> /* Define the motion detection threshold for each element.
+>>>>>   * Each element is a __u16. */
+>>>>> #define V4L2_MATRIX_TYPE_MD_THRESHOLD  (2)
+>>>>>
+>>>>> /**
+>>>>>   * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
+>>>>>   * @type:       matrix type
+>>>>>   * @index:      matrix index of the given type
+>>>>>   * @columns:    number of columns in the matrix
+>>>>>   * @rows:       number of rows in the matrix
+>>>>>   * @elem_min:   minimum matrix element value
+>>>>>   * @elem_max:   maximum matrix element value
+>>>>>   * @elem_size:  size in bytes each matrix element
+>>>>>   * @reserved:   future extensions, applications and drivers must zero this.
+>>>>>   */
+>>>>> struct v4l2_query_matrix {
+>>>>>          __u32 type;
+>>>>>          __u32 index;
+>>>>>          __u32 columns;
+>>>>>          __u32 rows;
+>>>>>          __s64 elem_min;
+>>>>>          __s64 elem_max;
+>>>>>          __u32 elem_size;
+>>>>>          __u32 reserved[23];
+>>>>> } __attribute__ ((packed));
+>>>>>
+>>>>> /**
+>>>>>   * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
+>>>>>   * @type:       matrix type
+>>>>>   * @index:      matrix index of the given type
+>>>>>   * @rect:       which part of the matrix to get/set
+>>>>>   * @matrix:     pointer to the matrix of size (in bytes):
+>>>>>   *              elem_size * rect.width * rect.height
+>>>>>   * @reserved:   future extensions, applications and drivers must zero this.
+>>>>>   */
+>>>>> struct v4l2_matrix {
+>>>>>          __u32 type;
+>>>>>          __u32 index;
+>>>>>          struct v4l2_rect rect;
+>>>>>          void __user *matrix;
+>>>>>          __u32 reserved[12];
+>>>>> } __attribute__ ((packed));
+>>>>>
+>>>>>
+>>>>> /* Experimental, these three ioctls may change over the next couple of kernel
+>>>>>     versions. */
+>>>>> #define VIDIOC_QUERY_MATRIX     _IORW('V', 103, struct v4l2_query_matrix)
+>>>>> #define VIDIOC_G_MATRIX         _IORW('V', 104, struct v4l2_matrix)
+>>>>> #define VIDIOC_S_MATRIX         _IORW('V', 105, struct v4l2_matrix)
+>>>>>
+>>>>>
+>>>>> Each matrix has a type (which describes the meaning of the matrix) and an
+>>>>> index (allowing for multiple matrices of the same type).
+>>>> I'm just wondering how this could be used to specify coefficients 
+>>>> associated with
+>>>> selection rectangles for auto focus ?
+>>> I've been thinking about this. The problem is that sometimes you want to
+>>> associate a matrix with some other object (a selection rectangle, a video
+>>> input, perhaps a video buffer, etc.). A simple index may not be enough. So
+>>> how about replacing the index field with a union:
+>>>
+>>> 	union {
+>>> 		__u32 reserved[4];
+>>> 	} ref;
+>>>
+>>> The precise contents of the union will be defined by the matrix type. Apps
+>>> should probably zero ref to allow adding additional 'reference' fields in
+>>> the future. So to refer to a selection rectangle you would add:
+>>>
+>>> 	struct {
+>>> 		__u32 type;
+>>> 		__u32 target;
+>>> 	};
+>>>
+>>> to the union.
+>>>
+>>>> This API would be used only for 
+>>>> passing a
+>>>> set of coefficients, assuming the individual rectangles are passed 
+>>>> somehow else ?
+>>> Yes.
+>>>
+>> It will make AF setting dispersed across three APIs:
+>>
+>> 1. Set V4L2_CID_AUTO_FOCUS_AREA to rectangle.
+>> 2. Set rectangles via selection API.
+>> 3. Set coefficients via matrix API.
+>> 4. Trigger V4L2_CID_AUTO_FOCUS_START.
+>>
+>> Passing coefficients via selection API (I hope u32 would be enough for
+>> now) or passing rectangles together with coefficients via matrix API
+>> could make it little shorter and we could avoid to create object references.
+> The problem is always how to find a balance between generic API components
+> and specific API components. Adding coefficients to the selection API makes
+> a generic API suddenly specific to one particular type of driver, something
+> that most other drivers implementing the selection API do not need.
+Android API has defined 'weight' coefficient for 'areas' passed to the
+camera:
+http://developer.android.com/reference/android/hardware/Camera.Area.html
+Such rectangles are used for focus and metering.
+It is a part of generic API for cameras.
+
+>
+> Ditto for passing rectangles via the matrix API.
+>
+> So you have two alternatives: either create a custom ioctl for you driver
+> that sets both the rectangle and coefficients in one go, or have two smaller
+> building blocks that you combine to achieve the result you want. The latter
+> is much more the Unix philisophy.
+>
+> BTW, can you give (or point to) some background information regarding these
+> autofocus coefficients? What are they and how are they used?
+The main source of my informations is Android API mentioned above,
+plus my findings from analysis of user manuals of different cameras.
+
+Regards
+Andrzej
+
+>
+> Regards,
+>
+> 	Hans
+>
 
