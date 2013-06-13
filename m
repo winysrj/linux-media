@@ -1,174 +1,285 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:53768 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751558Ab3FJNCY (ORCPT
+Received: from mail-1.atlantis.sk ([80.94.52.57]:50853 "EHLO
+	mail-1.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759315Ab3FMVk0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 09:02:24 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MO6008YPHJD1PP0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Jun 2013 22:02:23 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
+	Thu, 13 Jun 2013 17:40:26 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
-Subject: [PATCH 4/6] [media] s5p-mfc: Update driver for v7 firmware
-Date: Mon, 10 Jun 2013 18:53:04 +0530
-Message-id: <1370870586-24141-5-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
-References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+Subject: [RFC PATCH 1/2] tea575x: Move header from sound to media
+Date: Thu, 13 Jun 2013 23:39:49 +0200
+Cc: alsa-devel@alsa-project.org
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline
+Message-Id: <201306132339.50554.linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Firmware version v7 is mostly similar to v6 in terms
-of hardware specific controls and commands. So the hardware
-specific opr_v6 and cmd_v6 are re-used for v7 also. This patch
-updates the v6 files to handle v7 version also.
+Move include/sound/tea575x-tuner.h to include/media/tea575x.h and update files that include it.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   12 ++++-
- drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   53 +++++++++++++++++++----
- 2 files changed, 54 insertions(+), 11 deletions(-)
+ drivers/media/radio/radio-maxiradio.c |    2 +-
+ drivers/media/radio/radio-sf16fmr2.c  |    2 +-
+ drivers/media/radio/radio-shark.c     |    2 +-
+ include/media/tea575x.h               |   78 +++++++++++++++++++++++++++++++++
+ include/sound/tea575x-tuner.h         |   78 ---------------------------------
+ sound/i2c/other/tea575x-tuner.c       |    2 +-
+ sound/pci/es1968.c                    |    2 +-
+ sound/pci/fm801.c                     |    2 +-
+ 8 files changed, 84 insertions(+), 84 deletions(-)
+ create mode 100644 include/media/tea575x.h
+ delete mode 100644 include/sound/tea575x-tuner.h
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 2549967..13799a8 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -1662,8 +1662,16 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 			*buf_count = 1;
- 		if (*buf_count > MFC_MAX_BUFFERS)
- 			*buf_count = MFC_MAX_BUFFERS;
--		psize[0] = ctx->luma_size;
--		psize[1] = ctx->chroma_size;
+diff --git a/drivers/media/radio/radio-maxiradio.c b/drivers/media/radio/radio-maxiradio.c
+index bd4d3a7..a76712a 100644
+--- a/drivers/media/radio/radio-maxiradio.c
++++ b/drivers/media/radio/radio-maxiradio.c
+@@ -42,7 +42,7 @@
+ #include <linux/videodev2.h>
+ #include <linux/io.h>
+ #include <linux/slab.h>
+-#include <sound/tea575x-tuner.h>
++#include <media/tea575x.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-fh.h>
+diff --git a/drivers/media/radio/radio-sf16fmr2.c b/drivers/media/radio/radio-sf16fmr2.c
+index 9c09904..f1e3714 100644
+--- a/drivers/media/radio/radio-sf16fmr2.c
++++ b/drivers/media/radio/radio-sf16fmr2.c
+@@ -14,7 +14,7 @@
+ #include <linux/io.h>		/* outb, outb_p			*/
+ #include <linux/isa.h>
+ #include <linux/pnp.h>
+-#include <sound/tea575x-tuner.h>
++#include <media/tea575x.h>
+ 
+ MODULE_AUTHOR("Ondrej Zary");
+ MODULE_DESCRIPTION("MediaForte SF16-FMR2 and SF16-FMD2 FM radio card driver");
+diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
+index 8fa18ab..b914772 100644
+--- a/drivers/media/radio/radio-shark.c
++++ b/drivers/media/radio/radio-shark.c
+@@ -33,7 +33,7 @@
+ #include <linux/usb.h>
+ #include <linux/workqueue.h>
+ #include <media/v4l2-device.h>
+-#include <sound/tea575x-tuner.h>
++#include <media/tea575x.h>
+ 
+ #if defined(CONFIG_LEDS_CLASS) || \
+     (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
+diff --git a/include/media/tea575x.h b/include/media/tea575x.h
+new file mode 100644
+index 0000000..098c4de
+--- /dev/null
++++ b/include/media/tea575x.h
+@@ -0,0 +1,78 @@
++#ifndef __SOUND_TEA575X_TUNER_H
++#define __SOUND_TEA575X_TUNER_H
 +
-+		if (IS_MFCV7(dev)) {
-+			/* MFCv7 needs pad bytes for input YUV */
-+			psize[0] = ctx->luma_size + 256;
-+			psize[1] = ctx->chroma_size + 128;
-+		} else {
-+			psize[0] = ctx->luma_size;
-+			psize[1] = ctx->chroma_size;
-+		}
++/*
++ *   ALSA driver for TEA5757/5759 Philips AM/FM tuner chips
++ *
++ *	Copyright (c) 2004 Jaroslav Kysela <perex@perex.cz>
++ *
++ *   This program is free software; you can redistribute it and/or modify
++ *   it under the terms of the GNU General Public License as published by
++ *   the Free Software Foundation; either version 2 of the License, or
++ *   (at your option) any later version.
++ *
++ *   This program is distributed in the hope that it will be useful,
++ *   but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *   GNU General Public License for more details.
++ *
++ *   You should have received a copy of the GNU General Public License
++ *   along with this program; if not, write to the Free Software
++ *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
++ *
++ */
 +
- 		if (IS_MFCV6(dev)) {
- 			allocators[0] =
- 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-index 7d4c5e1..7145ae5 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
-@@ -80,6 +80,7 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 		ctx->tmv_buffer_size = S5P_FIMV_NUM_TMV_BUFFERS_V6 *
- 			ALIGN(S5P_FIMV_TMV_BUFFER_SIZE_V6(mb_width, mb_height),
- 			S5P_FIMV_TMV_BUFFER_ALIGN_V6);
++#include <linux/videodev2.h>
++#include <media/v4l2-ctrls.h>
++#include <media/v4l2-dev.h>
++#include <media/v4l2-device.h>
 +
- 		ctx->luma_dpb_size = ALIGN((mb_width * mb_height) *
- 				S5P_FIMV_LUMA_MB_TO_PIXEL_V6,
- 				S5P_FIMV_LUMA_DPB_BUFFER_ALIGN_V6);
-@@ -112,10 +113,18 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
- 			(ctx->mv_count * ctx->mv_size);
- 		break;
- 	case S5P_MFC_CODEC_MPEG4_DEC:
--		ctx->scratch_buf_size =
--			S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V6(
--					mb_width,
--					mb_height);
-+		if (IS_MFCV7(dev)) {
-+			ctx->scratch_buf_size =
-+				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(
-+						mb_width,
-+						mb_height);
-+		} else {
-+			ctx->scratch_buf_size =
-+				S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V6(
-+						mb_width,
-+						mb_height);
-+		}
++#define TEA575X_FMIF	10700
++#define TEA575X_AMIF	  450
 +
- 		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
- 				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
- 		ctx->bank1.size = ctx->scratch_buf_size;
-@@ -453,8 +462,13 @@ static void s5p_mfc_set_enc_frame_buffer_v6(struct s5p_mfc_ctx *ctx,
- {
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 
--	WRITEL(y_addr, S5P_FIMV_E_SOURCE_LUMA_ADDR_V6); /* 256B align */
--	WRITEL(c_addr, S5P_FIMV_E_SOURCE_CHROMA_ADDR_V6);
-+	if (IS_MFCV7(dev)) {
-+		WRITEL(y_addr, S5P_FIMV_E_SOURCE_FIRST_ADDR_V7);
-+		WRITEL(c_addr, S5P_FIMV_E_SOURCE_SECOND_ADDR_V7);
-+	} else {
-+		WRITEL(y_addr, S5P_FIMV_E_SOURCE_LUMA_ADDR_V6);
-+		WRITEL(c_addr, S5P_FIMV_E_SOURCE_CHROMA_ADDR_V6);
-+	}
- 
- 	mfc_debug(2, "enc src y buf addr: 0x%08lx\n", y_addr);
- 	mfc_debug(2, "enc src c buf addr: 0x%08lx\n", c_addr);
-@@ -466,8 +480,13 @@ static void s5p_mfc_get_enc_frame_buffer_v6(struct s5p_mfc_ctx *ctx,
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 	unsigned long enc_recon_y_addr, enc_recon_c_addr;
- 
--	*y_addr = READL(S5P_FIMV_E_ENCODED_SOURCE_LUMA_ADDR_V6);
--	*c_addr = READL(S5P_FIMV_E_ENCODED_SOURCE_CHROMA_ADDR_V6);
-+	if (IS_MFCV7(dev)) {
-+		*y_addr = READL(S5P_FIMV_E_ENCODED_SOURCE_FIRST_ADDR_V7);
-+		*c_addr = READL(S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7);
-+	} else {
-+		*y_addr = READL(S5P_FIMV_E_ENCODED_SOURCE_LUMA_ADDR_V6);
-+		*c_addr = READL(S5P_FIMV_E_ENCODED_SOURCE_CHROMA_ADDR_V6);
-+	}
- 
- 	enc_recon_y_addr = READL(S5P_FIMV_E_RECON_LUMA_DPB_ADDR_V6);
- 	enc_recon_c_addr = READL(S5P_FIMV_E_RECON_CHROMA_DPB_ADDR_V6);
-@@ -1166,6 +1185,12 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
- 		reg |= (0x1 << S5P_FIMV_D_OPT_DDELAY_EN_SHIFT_V6);
- 		WRITEL(ctx->display_delay, S5P_FIMV_D_DISPLAY_DELAY_V6);
- 	}
++#define TEA575X_DATA	(1 << 0)
++#define TEA575X_CLK	(1 << 1)
++#define TEA575X_WREN	(1 << 2)
++#define TEA575X_MOST	(1 << 3)
 +
-+	if (IS_MFCV7(dev)) {
-+		WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
-+		reg = 0;
-+	}
++struct snd_tea575x;
 +
- 	/* Setup loop filter, for decoding this is only valid for MPEG4 */
- 	if (ctx->codec_mode == S5P_MFC_CODEC_MPEG4_DEC) {
- 		mfc_debug(2, "Set loop filter to: %d\n",
-@@ -1176,7 +1201,10 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
- 	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)
- 		reg |= (0x1 << S5P_FIMV_D_OPT_TILE_MODE_SHIFT_V6);
- 
--	WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
-+	if (IS_MFCV7(dev))
-+		WRITEL(reg, S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7);
-+	else
-+		WRITEL(reg, S5P_FIMV_D_DEC_OPTIONS_V6);
- 
- 	/* 0: NV12(CbCr), 1: NV21(CrCb) */
- 	if (ctx->dst_fmt->fourcc == V4L2_PIX_FMT_NV21M)
-@@ -1184,6 +1212,7 @@ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
- 	else
- 		WRITEL(0x0, S5P_FIMV_PIXEL_FORMAT_V6);
- 
++struct snd_tea575x_ops {
++	/* Drivers using snd_tea575x must either define read_ and write_val */
++	void (*write_val)(struct snd_tea575x *tea, u32 val);
++	u32 (*read_val)(struct snd_tea575x *tea);
++	/* Or define the 3 pin functions */
++	void (*set_pins)(struct snd_tea575x *tea, u8 pins);
++	u8 (*get_pins)(struct snd_tea575x *tea);
++	void (*set_direction)(struct snd_tea575x *tea, bool output);
++};
 +
- 	/* sei parse */
- 	WRITEL(ctx->sei_fp_parse & 0x1, S5P_FIMV_D_SEI_ENABLE_V6);
- 
-@@ -1254,6 +1283,12 @@ static int s5p_mfc_init_encode_v6(struct s5p_mfc_ctx *ctx)
- 		return -EINVAL;
- 	}
- 
-+	/* Set stride lengths */
-+	if (IS_MFCV7(dev)) {
-+		WRITEL(ctx->img_width, S5P_FIMV_E_SOURCE_FIRST_STRIDE_V7);
-+		WRITEL(ctx->img_width, S5P_FIMV_E_SOURCE_SECOND_STRIDE_V7);
-+	}
++struct snd_tea575x {
++	struct v4l2_device *v4l2_dev;
++	struct v4l2_file_operations fops;
++	struct video_device vd;		/* video device */
++	int radio_nr;			/* radio_nr */
++	bool tea5759;			/* 5759 chip is present */
++	bool has_am;			/* Device can tune to AM freqs */
++	bool cannot_read_data;		/* Device cannot read the data pin */
++	bool cannot_mute;		/* Device cannot mute */
++	bool mute;			/* Device is muted? */
++	bool stereo;			/* receiving stereo */
++	bool tuned;			/* tuned to a station */
++	unsigned int val;		/* hw value */
++	u32 band;			/* 0: FM, 1: FM-Japan, 2: AM */
++	u32 freq;			/* frequency */
++	struct mutex mutex;
++	struct snd_tea575x_ops *ops;
++	void *private_data;
++	u8 card[32];
++	u8 bus_info[32];
++	struct v4l2_ctrl_handler ctrl_handler;
++	int (*ext_init)(struct snd_tea575x *tea);
++};
 +
- 	WRITEL(ctx->inst_no, S5P_FIMV_INSTANCE_ID_V6);
- 	s5p_mfc_hw_call(dev->mfc_cmds, cmd_host2risc, dev,
- 			S5P_FIMV_CH_SEQ_HEADER_V6, NULL);
++int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
++void snd_tea575x_exit(struct snd_tea575x *tea);
++void snd_tea575x_set_freq(struct snd_tea575x *tea);
++
++#endif /* __SOUND_TEA575X_TUNER_H */
+diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
+deleted file mode 100644
+index 098c4de..0000000
+--- a/include/sound/tea575x-tuner.h
++++ /dev/null
+@@ -1,78 +0,0 @@
+-#ifndef __SOUND_TEA575X_TUNER_H
+-#define __SOUND_TEA575X_TUNER_H
+-
+-/*
+- *   ALSA driver for TEA5757/5759 Philips AM/FM tuner chips
+- *
+- *	Copyright (c) 2004 Jaroslav Kysela <perex@perex.cz>
+- *
+- *   This program is free software; you can redistribute it and/or modify
+- *   it under the terms of the GNU General Public License as published by
+- *   the Free Software Foundation; either version 2 of the License, or
+- *   (at your option) any later version.
+- *
+- *   This program is distributed in the hope that it will be useful,
+- *   but WITHOUT ANY WARRANTY; without even the implied warranty of
+- *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+- *   GNU General Public License for more details.
+- *
+- *   You should have received a copy of the GNU General Public License
+- *   along with this program; if not, write to the Free Software
+- *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
+- *
+- */
+-
+-#include <linux/videodev2.h>
+-#include <media/v4l2-ctrls.h>
+-#include <media/v4l2-dev.h>
+-#include <media/v4l2-device.h>
+-
+-#define TEA575X_FMIF	10700
+-#define TEA575X_AMIF	  450
+-
+-#define TEA575X_DATA	(1 << 0)
+-#define TEA575X_CLK	(1 << 1)
+-#define TEA575X_WREN	(1 << 2)
+-#define TEA575X_MOST	(1 << 3)
+-
+-struct snd_tea575x;
+-
+-struct snd_tea575x_ops {
+-	/* Drivers using snd_tea575x must either define read_ and write_val */
+-	void (*write_val)(struct snd_tea575x *tea, u32 val);
+-	u32 (*read_val)(struct snd_tea575x *tea);
+-	/* Or define the 3 pin functions */
+-	void (*set_pins)(struct snd_tea575x *tea, u8 pins);
+-	u8 (*get_pins)(struct snd_tea575x *tea);
+-	void (*set_direction)(struct snd_tea575x *tea, bool output);
+-};
+-
+-struct snd_tea575x {
+-	struct v4l2_device *v4l2_dev;
+-	struct v4l2_file_operations fops;
+-	struct video_device vd;		/* video device */
+-	int radio_nr;			/* radio_nr */
+-	bool tea5759;			/* 5759 chip is present */
+-	bool has_am;			/* Device can tune to AM freqs */
+-	bool cannot_read_data;		/* Device cannot read the data pin */
+-	bool cannot_mute;		/* Device cannot mute */
+-	bool mute;			/* Device is muted? */
+-	bool stereo;			/* receiving stereo */
+-	bool tuned;			/* tuned to a station */
+-	unsigned int val;		/* hw value */
+-	u32 band;			/* 0: FM, 1: FM-Japan, 2: AM */
+-	u32 freq;			/* frequency */
+-	struct mutex mutex;
+-	struct snd_tea575x_ops *ops;
+-	void *private_data;
+-	u8 card[32];
+-	u8 bus_info[32];
+-	struct v4l2_ctrl_handler ctrl_handler;
+-	int (*ext_init)(struct snd_tea575x *tea);
+-};
+-
+-int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
+-void snd_tea575x_exit(struct snd_tea575x *tea);
+-void snd_tea575x_set_freq(struct snd_tea575x *tea);
+-
+-#endif /* __SOUND_TEA575X_TUNER_H */
+diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
+index 8a36a1d..a1cb208 100644
+--- a/sound/i2c/other/tea575x-tuner.c
++++ b/sound/i2c/other/tea575x-tuner.c
+@@ -31,7 +31,7 @@
+ #include <media/v4l2-fh.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-event.h>
+-#include <sound/tea575x-tuner.h>
++#include <media/tea575x.h>
+ 
+ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
+ MODULE_DESCRIPTION("Routines for control of TEA5757/5759 Philips AM/FM radio tuner chips");
+diff --git a/sound/pci/es1968.c b/sound/pci/es1968.c
+index a1f32b5..c7c23b3 100644
+--- a/sound/pci/es1968.c
++++ b/sound/pci/es1968.c
+@@ -113,7 +113,7 @@
+ #include <sound/initval.h>
+ 
+ #ifdef CONFIG_SND_ES1968_RADIO
+-#include <sound/tea575x-tuner.h>
++#include <media/tea575x.h>
+ #endif
+ 
+ #define CARD_NAME "ESS Maestro1/2"
+diff --git a/sound/pci/fm801.c b/sound/pci/fm801.c
+index 4f07fda..b1c8ce2 100644
+--- a/sound/pci/fm801.c
++++ b/sound/pci/fm801.c
+@@ -37,7 +37,7 @@
+ #include <asm/io.h>
+ 
+ #ifdef CONFIG_SND_FM801_TEA575X_BOOL
+-#include <sound/tea575x-tuner.h>
++#include <media/tea575x.h>
+ #endif
+ 
+ MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
+
 -- 
-1.7.9.5
-
+Ondrej Zary
