@@ -1,62 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f170.google.com ([209.85.214.170]:34383 "EHLO
-	mail-ob0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750856Ab3FAQ0w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jun 2013 12:26:52 -0400
-Received: by mail-ob0-f170.google.com with SMTP id ef5so5005425obb.29
-        for <linux-media@vger.kernel.org>; Sat, 01 Jun 2013 09:26:51 -0700 (PDT)
+Received: from mail-ea0-f181.google.com ([209.85.215.181]:49515 "EHLO
+	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758757Ab3FMVhf (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Jun 2013 17:37:35 -0400
+Message-ID: <51BA3B9A.5090206@gmail.com>
+Date: Thu, 13 Jun 2013 23:37:30 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Date: Sat, 1 Jun 2013 12:26:51 -0400
-Message-ID: <CAHd=XUxC0jf8FPCKOXc4uuE74-7tqR3+MYii_FjDWsOEiy723g@mail.gmail.com>
-Subject: Hauppauge WinTV-HVR-950q Ubuntu 13.04
-From: Anthony Calabro <anthony.calabro@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH v10 16/21] V4L2: support asynchronous subdevice registration
+References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de> <1370939028-8352-17-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1370939028-8352-17-git-send-email-g.liakhovetski@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All,
+Hi Guennadi,
 
-I just bought a Hauppauge WinTV-HVR-950q USB Tuner and I cant get it
-to work in Ubuntu.  I started with Mythbuntu 12.04.2 with no luck,
-moved backwards and forwards in kernel versions and right now I'm
-using Ubuntu 13.04 with the 3.8.0-23-generic (x86_64).
+Overall it looks quite neat at this v10. :)
 
-Below is the error messages I'm seeing (dmesg):
+On 06/11/2013 10:23 AM, Guennadi Liakhovetski wrote:
+> Currently bridge device drivers register devices for all subdevices
+> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
 
-[  123.516077] usb 1-2: new high-speed USB device number 4 using ehci-pci
-[  123.670562] usb 1-2: New USB device found, idVendor=2040, idProduct=7200
-[  123.670574] usb 1-2: New USB device strings: Mfr=1, Product=2,
-SerialNumber=10
-[  123.670583] usb 1-2: Product: WinTV HVR-950
-[  123.670590] usb 1-2: Manufacturer: Hauppauge
-[  123.670596] usb 1-2: SerialNumber: 4035521349
-[  124.028265] au0828: i2c bus registered
-[  124.224269] tveeprom 6-0050: Hauppauge model 72001, rev E1H3, serial# 8989509
-[  124.224283] tveeprom 6-0050: MAC address is 00:0d:fe:89:2b:45
-[  124.224290] tveeprom 6-0050: tuner model is Xceive XC5000C (idx 173, type 88)
-[  124.224298] tveeprom 6-0050: TV standards NTSC(M) ATSC/DVB Digital
-(eeprom 0x88)
-[  124.224304] tveeprom 6-0050: audio processor is AU8522 (idx 44)
-[  124.224309] tveeprom 6-0050: decoder processor is AU8522 (idx 42)
-[  124.224315] tveeprom 6-0050: has no radio, has IR receiver, has no
-IR transmitter
-[  124.224320] hauppauge_eeprom: hauppauge eeprom: model=72001
-[  124.248596] au8522 6-0047: creating new instance
-[  124.248608] au8522_decoder creating new instance...
-[  124.285066] tuner 6-0061: Tuner -1 found with type(s) Radio TV.
-[  124.285125] xc5000 6-0061: creating new instance
-[  124.290005] xc5000: Device not found at addr 0x61 (0x1000)
-[  124.290016] xc5000 6-0061: destroying instance
-[  124.290530] au8522 6-0047: attaching existing instance
-[  124.299170] xc5000 6-0061: creating new instance
-[  124.304004] xc5000: Device not found at addr 0x61 (0x1000)
-[  124.304048] xc5000 6-0061: destroying instance
-[  124.304081] DVB: registering new adapter (au0828)
-[  124.304099] usb 1-2: DVB: registering adapter 0 frontend 0 (Auvitek
-AU8522 QAM/8VSB Frontend)...
-[  124.305332] Registered device AU0828 [Hauppauge HVR950Q]
+s/tupically/typically
 
-Any help, thoughts, or advice?
+> is attached to a video bridge device, the bridge driver will create an I2C
 
-Thanks in advance!
+> +/**
+> + * v4l2_async_subdev_list - provided by subdevices
+> + * @list:	links struct v4l2_async_subdev_list objects to a global list
+> + *		before probing, and onto notifier->done after probing
+> + * @asd:	pointer to respective struct v4l2_async_subdev
+> + * @notifier:	pointer to managing notifier
+> + */
+> +struct v4l2_async_subdev_list {
+> +	struct list_head list;
+> +	struct v4l2_async_subdev *asd;
+> +	struct v4l2_async_notifier *notifier;
+> +};
+
+I have a patch for this patch, which embeds members of this struct directly
+into struct v4l2_subdev. My felling is that the code is simpler and easier
+to follow this way, I might be missing some important details though.
+
+> +/**
+> + * v4l2_async_notifier - v4l2_device notifier data
+> + * @subdev_num:	number of subdevices
+> + * @subdev:	array of pointers to subdevices
+
+How about changing this to:
+
+       @subdevs: array of pointers to the subdevice descriptors
+
+I think it would be more immediately clear this is the actual subdevs array
+pointer, and perhaps we could have subdev_num renamed to num_subdevs ?
+
+> + * @v4l2_dev:	pointer to struct v4l2_device
+> + * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+> + * @done:	list of struct v4l2_async_subdev_list, already probed
+> + * @list:	member in a global list of notifiers
+> + * @bound:	a subdevice driver has successfully probed one of subdevices
+> + * @complete:	all subdevices have been probed successfully
+> + * @unbind:	a subdevice is leaving
+> + */
+> +struct v4l2_async_notifier {
+> +	unsigned int subdev_num;
+> +	struct v4l2_async_subdev **subdev;
+> +	struct v4l2_device *v4l2_dev;
+> +	struct list_head waiting;
+> +	struct list_head done;
+> +	struct list_head list;
+> +	int (*bound)(struct v4l2_async_notifier *notifier,
+> +		     struct v4l2_subdev *subdev,
+> +		     struct v4l2_async_subdev *asd);
+> +	int (*complete)(struct v4l2_async_notifier *notifier);
+> +	void (*unbind)(struct v4l2_async_notifier *notifier,
+> +		       struct v4l2_subdev *subdev,
+> +		       struct v4l2_async_subdev *asd);
+> +};
+> +
+> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> +				 struct v4l2_async_notifier *notifier);
+> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+> +int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+> +void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
+
+I still think "async_" in this public API is unnecessary, since we register/
+unregister a subdev with the core and notifiers are intrinsically 
+asynchronous.
+But your preference seems be otherwise, what could I do... :) At most it 
+just
+means one less happy user of this interface.
+
+So except this bikeshedding I don't really have other comments, I'm 
+going to
+test this series with the s3c-camif/ov9650 drivers and will report back 
+soon.
+
+It would have been a shame to not have this series in 3.11. I guess three
+kernel cycles, since the initial implementation, time frame is sufficient
+for having finally working camera devices on a device tree enabled system
+in mainline.
+
+Thanks for the idea and patience during reviews! :)
+
+
+Regards,
+Sylwester
