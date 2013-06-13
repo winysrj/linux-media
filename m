@@ -1,129 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:44267 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752112Ab3FCPYG (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 11:24:06 -0400
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=endymion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1UjWc9-0000Xw-8Z
-	(TLSv1:AES128-SHA:128)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Mon, 03 Jun 2013 17:24:05 +0200
-Date: Mon, 3 Jun 2013 17:23:59 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: [PATCH 3/3] femon: Handle -EOPNOTSUPP
-Message-ID: <20130603172359.442a8ee6@endymion.delvare>
-In-Reply-To: <20130603171607.73d0b856@endymion.delvare>
-References: <20130603171607.73d0b856@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:37447 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756141Ab3FMKcm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Jun 2013 06:32:42 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v10 15/21] V4L2: add a device pointer to struct v4l2_subdev
+Date: Thu, 13 Jun 2013 12:32:34 +0200
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de> <1370939028-8352-16-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1370939028-8352-16-git-send-email-g.liakhovetski@gmx.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306131232.34552.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Frontend drivers don't have to implement all monitoring callbacks. So
-expect -EOPNOTSUPP and handle it properly.
----
- util/femon/femon.c |   75 +++++++++++++++++++++++++++++++++--------------------
- 1 file changed, 48 insertions(+), 27 deletions(-)
+On Tue 11 June 2013 10:23:42 Guennadi Liakhovetski wrote:
+> It is often useful to have simple means to get from a subdevice to the
+> underlying physical device. This patch adds such a pointer to struct
+> v4l2_subdev and sets it accordingly in the I2C and SPI cases.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+>  drivers/media/v4l2-core/v4l2-common.c |    2 ++
+>  include/media/v4l2-subdev.h           |    2 ++
+>  2 files changed, 4 insertions(+), 0 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+> index 3fed63f..accfec6 100644
+> --- a/drivers/media/v4l2-core/v4l2-common.c
+> +++ b/drivers/media/v4l2-core/v4l2-common.c
+> @@ -291,6 +291,7 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+>  	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
+>  	/* the owner is the same as the i2c_client's driver owner */
+>  	sd->owner = client->driver->driver.owner;
+> +	sd->dev = &client->dev;
+>  	/* i2c_client and v4l2_subdev point to one another */
+>  	v4l2_set_subdevdata(sd, client);
+>  	i2c_set_clientdata(client, sd);
+> @@ -426,6 +427,7 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
+>  	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
+>  	/* the owner is the same as the spi_device's driver owner */
+>  	sd->owner = spi->dev.driver->owner;
+> +	sd->dev = &spi->dev;
+>  	/* spi_device and v4l2_subdev point to one another */
+>  	v4l2_set_subdevdata(sd, spi);
+>  	spi_set_drvdata(spi, sd);
+> diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+> index 5298d67..d8756fa 100644
+> --- a/include/media/v4l2-subdev.h
+> +++ b/include/media/v4l2-subdev.h
+> @@ -585,6 +585,8 @@ struct v4l2_subdev {
+>  	void *host_priv;
+>  	/* subdev device node */
+>  	struct video_device *devnode;
+> +	/* pointer to the physical device */
 
---- dvb-apps-3ee111da5b3a.orig/util/femon/femon.c	2013-06-03 17:22:56.923398598 +0200
-+++ dvb-apps-3ee111da5b3a/util/femon/femon.c	2013-06-03 17:23:16.946398895 +0200
-@@ -67,6 +67,7 @@ int check_frontend (struct dvbfe_handle
- 	struct dvbfe_info fe_info;
- 	unsigned int samples = 0;
- 	FILE *ttyFile=NULL;
-+	int got_info;
- 	
- 	// We dont write the "beep"-codes to stdout but to /dev/tty1.
- 	// This is neccessary for Thin-Client-Systems or Streaming-Boxes
-@@ -89,39 +90,59 @@ int check_frontend (struct dvbfe_handle
- 	}
- 
- 	do {
--		if (dvbfe_get_info(fe, FE_STATUS_PARAMS, &fe_info, DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0) != FE_STATUS_PARAMS) {
-+		got_info = dvbfe_get_info(fe, FE_STATUS_PARAMS, &fe_info, DVBFE_INFO_QUERYTYPE_IMMEDIATE, 0);
-+		if (got_info & DVBFE_INFO_LOCKSTATUS) {
-+			printf ("status %c%c%c%c%c | ",
-+				fe_info.signal ? 'S' : ' ',
-+				fe_info.carrier ? 'C' : ' ',
-+				fe_info.viterbi ? 'V' : ' ',
-+				fe_info.sync ? 'Y' : ' ',
-+				fe_info.lock ? 'L' : ' ');
-+		} else {
- 			fprintf(stderr, "Problem retrieving frontend information: %m\n");
-+			printf ("status ----- | ");
- 		}
- 
- 
--		printf ("status %c%c%c%c%c | ",
--			fe_info.signal ? 'S' : ' ',
--			fe_info.carrier ? 'C' : ' ',
--			fe_info.viterbi ? 'V' : ' ',
--			fe_info.sync ? 'Y' : ' ',
--			fe_info.lock ? 'L' : ' ');
--
- 		if (human_readable) {
--			// SNR should be in units of 0.1 dB but some drivers do
--			// not follow that rule, thus this heuristic.
--			if (fe_info.snr < 1000)
--				printf ("signal %3u%% | snr %4.1fdB | ber %d | unc %d | ",
--					(fe_info.signal_strength * 100) / 0xffff,
--					fe_info.snr / 10.,
--					fe_info.ber,
--					fe_info.ucblocks);
--			else
--				printf ("signal %3u%% | snr %3u%% | ber %d | unc %d | ",
--					(fe_info.signal_strength * 100) / 0xffff,
--					(fe_info.snr * 100) / 0xffff,
--					fe_info.ber,
--					fe_info.ucblocks);
-+			if (got_info & DVBFE_INFO_SIGNAL_STRENGTH)
-+				printf ("signal %3u%% | ", (fe_info.signal_strength * 100) / 0xffff);
-+			else
-+				printf ("signal ---%% | ");
-+			if (got_info & DVBFE_INFO_SNR) {
-+				// SNR should be in units of 0.1 dB but some drivers do
-+				// not follow that rule, thus this heuristic.
-+				if (fe_info.snr < 1000)
-+					printf ("snr %4.1fdB | ", fe_info.snr / 10.);
-+				else
-+					printf ("snr %3u%% | ", (fe_info.snr * 100) / 0xffff);
-+			} else
-+				printf ("snr ---- | ");
-+			if (got_info & DVBFE_INFO_BER)
-+				printf ("ber %d | ", fe_info.ber);
-+			else
-+				printf ("ber - | ");
-+			if (got_info & DVBFE_INFO_UNCORRECTED_BLOCKS)
-+				printf ("unc %d | ", fe_info.ucblocks);
-+			else
-+				printf ("unc - | ");
- 		} else {
--			printf ("signal %04x | snr %04x | ber %08x | unc %08x | ",
--				fe_info.signal_strength,
--				fe_info.snr,
--				fe_info.ber,
--				fe_info.ucblocks);
-+			if (got_info & DVBFE_INFO_SIGNAL_STRENGTH)
-+				printf ("signal %04x | ", fe_info.signal_strength);
-+			else
-+				printf ("signal ---- | ");
-+			if (got_info & DVBFE_INFO_SNR)
-+				printf ("snr %04x | ", fe_info.snr);
-+			else
-+				printf ("snr ---- | ");
-+			if (got_info & DVBFE_INFO_BER)
-+				printf ("ber %08x | ", fe_info.ber);
-+			else
-+				printf ("ber -------- | ");
-+			if (got_info & DVBFE_INFO_UNCORRECTED_BLOCKS)
-+				printf ("unc %08x | ", fe_info.ucblocks);
-+			else
-+				printf ("unc -------- | ");
- 		}
- 
- 		if (fe_info.lock)
+Can you change this comment to:
 
--- 
-Jean Delvare
+	/* pointer to the physical device, if any */
+
+It's a small change, but this makes it clear that it's OK to leave it to
+NULL for subdevs that don't have an underlying device struct.
+
+Thanks!
+
+	Hans
+
+> +	struct device *dev;
+>  };
+>  
+>  #define media_entity_to_v4l2_subdev(ent) \
+> 
