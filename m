@@ -1,99 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f48.google.com ([209.85.214.48]:54055 "EHLO
-	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933061Ab3FRViP (ORCPT
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:62987 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932522Ab3FMJ4m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 17:38:15 -0400
-Message-ID: <51C0D342.6090801@gmail.com>
-Date: Tue, 18 Jun 2013 23:38:10 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Thu, 13 Jun 2013 05:56:42 -0400
+Received: by mail-pd0-f172.google.com with SMTP id z10so7557753pdj.17
+        for <linux-media@vger.kernel.org>; Thu, 13 Jun 2013 02:56:41 -0700 (PDT)
+Date: Thu, 13 Jun 2013 17:56:47 +0800
+From: Adam Lee <adam.lee@canonical.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	"open list:USB VIDEO CLASS" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] Revert "V4L/DVB: uvc: Enable USB autosuspend by default
+ on uvcvideo"
+Message-ID: <20130613095647.GC21583@adam-laptop>
+References: <1366790239-838-1-git-send-email-adam.lee@canonical.com>
+ <6159110.qEtHHiJYtm@avalon>
+ <20130425063306.GA20928@adam-laptop>
 MIME-Version: 1.0
-To: Sachin Kamat <sachin.kamat@linaro.org>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [PATCH] MAINTAINERS: Update S5P/Exynos FIMC driver entry
-References: <1371487371-31143-1-git-send-email-s.nawrocki@samsung.com> <CAK9yfHxsNED-6Q8Kv=sO+D27q7LAfpfOn1y9Nutn9k-3YhUL-A@mail.gmail.com>
-In-Reply-To: <CAK9yfHxsNED-6Q8Kv=sO+D27q7LAfpfOn1y9Nutn9k-3YhUL-A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130425063306.GA20928@adam-laptop>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+On Thu, Apr 25, 2013 at 02:33:06PM +0800, Adam Lee wrote:
+> On Wed, Apr 24, 2013 at 11:17:52AM +0200, Laurent Pinchart wrote:
+> > Hi Adam,
+> > 
+> > Thanks for the patch.
+> > 
+> > On Wednesday 24 April 2013 15:57:19 adam.lee@canonical.com wrote:
+> > > From: Adam Lee <adam.lee@canonical.com>
+> > > 
+> > > This reverts commit 3dae8b41dc5651f8eb22cf310e8b116480ba25b7.
+> > > 
+> > > 1, I do have a Chicony webcam, implements autosuspend in a broken way,
+> > > make `poweroff` performs rebooting when its autosuspend enabled.
+> > > 
+> > > 2, There are other webcams which don't support autosuspend too, like
+> > > https://patchwork.kernel.org/patch/2356141/
+> > > 
+> > > 3, kernel removed USB_QUIRK_NO_AUTOSUSPEND in
+> > > a691efa9888e71232dfb4088fb8a8304ffc7b0f9, because autosuspend is
+> > > disabled by default.
+> > > 
+> > > So, we need to disable autosuspend in uvcvideo, maintaining a quirk list
+> > > only for uvcvideo is not a good idea.
+> > 
+> > I've received very few bug reports about broken auto-suspend support in UVC 
+> > devices. Most of them could be solved by setting the RESET_RESUME quirk in USB 
+> > core, only the Creative Live! Cam Optia AF required a quirk in the uvcvideo 
+> > driver. I would thus rather use the available quirks (USB_QUIRK_RESET_RESUME 
+> > if possible, UVC_QUIRK_DISABLE_AUTOSUSPEND otherwise) than killing power 
+> > management for the vast majority of webcams that behave correctly.
+> 
+> Here comes another one, integrated Chicony webcam 04f2:b39f, its
+> autosuspend makes `poweroff` performs rebooting at the laptop I'm
+> working on. I tried USB_QUIRK_RESET_RESUME, not helping.
+> 
+> The quirks list will go longer and longer absolutely, do uvcvideo wanna
+> maintain that? And why only uvcvideo do this in kernel space which
+> against general USB module?
+> 
+> I still suggest we disable it by default, people can enable it in udev
+> just like almost all distroes do for udisks. Please consider about it.
 
-Thanks for your review.
+Hi, Laurent
 
-On 06/18/2013 05:39 AM, Sachin Kamat wrote:
-> Hi Sylwester,
->
-> Just a couple of nits inline.
->
-> On 17 June 2013 22:12, Sylwester Nawrocki<s.nawrocki@samsung.com>  wrote:
->> This change is mainly to update the driver's path changed from
->> drivers/media/platform/s5p-fimc to drivers/media/platform/exynos4-is/.
->> While at it, remove non-existent files rule, move the whole entry to
->> the Samsung drivers section and add the patch tracking system URL.
->
-> How about adding git URL too (of your repo)?
+Any comment of this? I still think it's a risk to enable autosuspend in
+uvcvideo by default, there must be users meeting weird issues but didn't
+report to you becaue they didn't figured out the cause.
 
-Yes, I guess I should add it.
-
->> Signed-off-by: Sylwester Nawrocki<s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park<kyungmin.park@samsung.com>
->> ---
->>   MAINTAINERS |   17 ++++++++---------
->>   1 file changed, 8 insertions(+), 9 deletions(-)
->>
->> diff --git a/MAINTAINERS b/MAINTAINERS
->> index 3d7782b..d2c5618 100644
->> --- a/MAINTAINERS
->> +++ b/MAINTAINERS
->> @@ -1153,15 +1153,6 @@ L:       linux-media@vger.kernel.org
->>   S:     Maintained
->>   F:     drivers/media/platform/s5p-g2d/
->>
->> -ARM/SAMSUNG S5P SERIES FIMC SUPPORT
->> -M:     Kyungmin Park<kyungmin.park@samsung.com>
->> -M:     Sylwester Nawrocki<s.nawrocki@samsung.com>
->> -L:     linux-arm-kernel@lists.infradead.org
->> -L:     linux-media@vger.kernel.org
->> -S:     Maintained
->> -F:     arch/arm/plat-samsung/include/plat/*fimc*
->> -F:     drivers/media/platform/s5p-fimc/
->> -
->>   ARM/SAMSUNG S5P SERIES Multi Format Codec (MFC) SUPPORT
->
-> Probably ARM could be removed from here too and may be other places if
-> they exist just like below entry.
-
-Yes, IMHO those driver entries are misplaced now. I guess the better
-place would be at the Samsung entries section.
-
->>   M:     Kyungmin Park<kyungmin.park@samsung.com>
->>   M:     Kamil Debski<k.debski@samsung.com>
->> @@ -6930,6 +6921,14 @@ F:       drivers/regulator/s5m*.c
->>   F:     drivers/rtc/rtc-sec.c
->>   F:     include/linux/mfd/samsung/
->>
->> +SAMSUNG S5P/EXYNOS4 SOC SERIES CAMERA SUBSYSTEM DRIVERS
->> +M:     Kyungmin Park<kyungmin.park@samsung.com>
->> +M:     Sylwester Nawrocki<s.nawrocki@samsung.com>
->> +L:     linux-media@vger.kernel.org
->> +Q:     https://patchwork.linuxtv.org/project/linux-media/list/
->> +S:     Supported
->> +F:     drivers/media/platform/exynos4-is/
->> +
->
-> Considering alphabetical order (now that ARM is removed), this block
-> should come after SAMSUNG S3C24XX/S3C64XX...
-
-Oops, right, thanks for spotting this.
-
->>   SAMSUNG S3C24XX/S3C64XX SOC SERIES CAMIF DRIVER
->>   M:     Sylwester Nawrocki<sylvester.nawrocki@gmail.com>
->>   L:     linux-media@vger.kernel.org
-
+-- 
 Regards,
-Sylwester
+Adam Lee
+Hardware Enablement
