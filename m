@@ -1,96 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2146 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755610Ab3FLPCK (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2735 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752476Ab3FMG13 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 11:02:10 -0400
+	Thu, 13 Jun 2013 02:27:29 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5D6RH2w074015
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 13 Jun 2013 08:27:20 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id A1A8C35E0047
+	for <linux-media@vger.kernel.org>; Thu, 13 Jun 2013 08:27:15 +0200 (CEST)
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 08/12] f_uvc: add v4l2_device and replace parent with v4l2_dev
-Date: Wed, 12 Jun 2013 17:00:58 +0200
-Message-Id: <1371049262-5799-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.11] Updates Part 1
+Date: Thu, 13 Jun 2013 08:27:16 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306130827.16668.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Mauro prefers to have the original large pull request split up in smaller pieces.
 
-This driver did not yet support struct v4l2_device, so add it. This
-make it possible to replace the deprecated parent field with the
-v4l2_dev field, allowing the eventual removal of the parent field.
+So this is the first patch set.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/usb/gadget/f_uvc.c |    9 ++++++++-
- drivers/usb/gadget/uvc.h   |    2 ++
- 2 files changed, 10 insertions(+), 1 deletion(-)
+Note that the pull requests need to be done in order since there are dependencies
+between them.
 
-diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
-index 38dcedd..1d06567 100644
---- a/drivers/usb/gadget/f_uvc.c
-+++ b/drivers/usb/gadget/f_uvc.c
-@@ -413,7 +413,7 @@ uvc_register_video(struct uvc_device *uvc)
- 	if (video == NULL)
- 		return -ENOMEM;
- 
--	video->parent = &cdev->gadget->dev;
-+	video->v4l2_dev = &uvc->v4l2_dev;
- 	video->fops = &uvc_v4l2_fops;
- 	video->release = video_device_release;
- 	strlcpy(video->name, cdev->gadget->name, sizeof(video->name));
-@@ -570,6 +570,7 @@ uvc_function_unbind(struct usb_configuration *c, struct usb_function *f)
- 	INFO(cdev, "uvc_function_unbind\n");
- 
- 	video_unregister_device(uvc->vdev);
-+	v4l2_device_unregister(&uvc->v4l2_dev);
- 	uvc->control_ep->driver_data = NULL;
- 	uvc->video.ep->driver_data = NULL;
- 
-@@ -697,6 +698,11 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
- 	if ((ret = usb_function_deactivate(f)) < 0)
- 		goto error;
- 
-+	if (v4l2_device_register(&cdev->gadget->dev, &uvc->v4l2_dev)) {
-+		printk(KERN_INFO "v4l2_device_register failed\n");
-+		goto error;
-+	}
-+
- 	/* Initialise video. */
- 	ret = uvc_video_init(&uvc->video);
- 	if (ret < 0)
-@@ -712,6 +718,7 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
- 	return 0;
- 
- error:
-+	v4l2_device_unregister(&uvc->v4l2_dev);
- 	if (uvc->vdev)
- 		video_device_release(uvc->vdev);
- 
-diff --git a/drivers/usb/gadget/uvc.h b/drivers/usb/gadget/uvc.h
-index 817e9e1..7a9111d 100644
---- a/drivers/usb/gadget/uvc.h
-+++ b/drivers/usb/gadget/uvc.h
-@@ -57,6 +57,7 @@ struct uvc_event
- #include <linux/videodev2.h>
- #include <linux/version.h>
- #include <media/v4l2-fh.h>
-+#include <media/v4l2-device.h>
- 
- #include "uvc_queue.h"
- 
-@@ -145,6 +146,7 @@ enum uvc_state
- struct uvc_device
- {
- 	struct video_device *vdev;
-+	struct v4l2_device v4l2_dev;
- 	enum uvc_state state;
- 	struct usb_function func;
- 	struct uvc_video video;
--- 
-1.7.10.4
+Regards,
 
+	Hans
+
+The following changes since commit 62d54876c511628daed2246753e2fe348da022f1:
+
+  [media] s5p-tv: Don't ignore return value of regulator_bulk_enable() in hdmi_drv.c (2013-06-12 22:17:59 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.11a
+
+for you to fetch changes up to 59834c3c791a01d9b7e460bf90d7ec4b47aaeab8:
+
+  media: i2c: ths7303: make the pdata as a constant pointer (2013-06-13 08:14:07 +0200)
+
+----------------------------------------------------------------
+Antti Palosaari (1):
+      radio-keene: add delay in order to settle hardware
+
+Hans Verkuil (5):
+      hdpvr: fix querystd 'unknown format' return.
+      hdpvr: code cleanup
+      hdpvr: improve error handling
+      ml86v7667: fix the querystd implementation
+      radio-keene: set initial frequency.
+
+Lad, Prabhakar (4):
+      ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
+      media: i2c: ths7303: remove init_enable option from pdata
+      media: i2c: ths7303: remove unnecessary function ths7303_setup()
+      media: i2c: ths7303: make the pdata as a constant pointer
+
+Vladimir Barinov (2):
+      adv7180: add more subdev video ops
+      ML86V7667: new video decoder driver
+
+ arch/arm/mach-davinci/board-dm365-evm.c |    1 -
+ drivers/media/i2c/Kconfig               |    9 +++
+ drivers/media/i2c/Makefile              |    1 +
+ drivers/media/i2c/adv7180.c             |   46 +++++++++++
+ drivers/media/i2c/ml86v7667.c           |  431 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+ drivers/media/i2c/ths7303.c             |   48 +++---------
+ drivers/media/radio/radio-keene.c       |    7 +-
+ drivers/media/usb/hdpvr/hdpvr-control.c |   21 +++--
+ drivers/media/usb/hdpvr/hdpvr-video.c   |   72 +++++++++--------
+ drivers/media/usb/hdpvr/hdpvr.h         |    1 +
+ include/media/ths7303.h                 |    2 -
+ 11 files changed, 552 insertions(+), 87 deletions(-)
+ create mode 100644 drivers/media/i2c/ml86v7667.c
