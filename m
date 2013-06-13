@@ -1,175 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:59104 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1030361Ab3FTOLd (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 10:11:33 -0400
-Received: from int-mx12.intmail.prod.int.phx2.redhat.com (int-mx12.intmail.prod.int.phx2.redhat.com [10.5.11.25])
-	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r5KEBXqP016272
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
-	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 10:11:33 -0400
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH 2/2] [media] Fix build when drivers are builtin and frontend modules
-Date: Thu, 20 Jun 2013 11:11:28 -0300
-Message-Id: <1371737488-14395-3-git-send-email-mchehab@redhat.com>
-In-Reply-To: <1371737488-14395-1-git-send-email-mchehab@redhat.com>
-References: <1371737488-14395-1-git-send-email-mchehab@redhat.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:55831 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758514Ab3FMJpO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 13 Jun 2013 05:45:14 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOB009HUSF6AF60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 13 Jun 2013 10:45:12 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
+	linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Pawel Osciak' <pawel@osciak.com>,
+	'John Sheu' <sheu@google.com>,
+	'Hans Verkuil' <hans.verkuil@cisco.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+References: <1370247828-7219-1-git-send-email-p.zabel@pengutronix.de>
+In-reply-to: <1370247828-7219-1-git-send-email-p.zabel@pengutronix.de>
+Subject: RE: [PATCH v4] [media] mem2mem: add support for hardware buffered queue
+Date: Thu, 13 Jun 2013 11:45:05 +0200
+Message-id: <002201ce681a$afaa1200$0efe3600$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-There are a large number of reports that the media build is
-not compiling when some drivers are compiled as builtin, while
-the needed frontends are compiled as module.
+Hi,
 
-On the last one of such reports:
-	From: kbuild test robot <fengguang.wu@intel.com>
-	Subject: saa7134-dvb.c:undefined reference to `zl10039_attach'
+Pawel and Marek, I would really like to hear your opinions on this patch.
+I remember that the assumption of the mem2mem framework (not to be confused
+with
+mem2mem type of devices) was that it was for simple devices where one output
+buffer
+was equivalent to one capture buffer. More complicated devices were supposed
+to use
+videobuf2 directly.
 
-The .config file has:
+Please state your opinions.
 
-	CONFIG_VIDEO_SAA7134=y
-	CONFIG_VIDEO_SAA7134_DVB=y
-	# CONFIG_MEDIA_ATTACH is not set
-	CONFIG_DVB_ZL10039=m
-
-And it produces all those errors:
-
-   drivers/built-in.o: In function `set_type':
-   tuner-core.c:(.text+0x2f263e): undefined reference to `tea5767_attach'
-   tuner-core.c:(.text+0x2f273e): undefined reference to `tda9887_attach'
-   drivers/built-in.o: In function `tuner_probe':
-   tuner-core.c:(.text+0x2f2d20): undefined reference to `tea5767_autodetection'
-   drivers/built-in.o: In function `av7110_attach':
-   av7110.c:(.text+0x330bda): undefined reference to `ves1x93_attach'
-   av7110.c:(.text+0x330bf7): undefined reference to `stv0299_attach'
-   av7110.c:(.text+0x330c63): undefined reference to `tda8083_attach'
-   av7110.c:(.text+0x330d09): undefined reference to `ves1x93_attach'
-   av7110.c:(.text+0x330d33): undefined reference to `tda8083_attach'
-   av7110.c:(.text+0x330d5d): undefined reference to `stv0297_attach'
-   av7110.c:(.text+0x330dbe): undefined reference to `stv0299_attach'
-   drivers/built-in.o: In function `tuner_attach_dtt7520x':
-   ngene-cards.c:(.text+0x3381cb): undefined reference to `dvb_pll_attach'
-   drivers/built-in.o: In function `demod_attach_lg330x':
-   ngene-cards.c:(.text+0x33828a): undefined reference to `lgdt330x_attach'
-   drivers/built-in.o: In function `demod_attach_stv0900':
-   ngene-cards.c:(.text+0x3383d5): undefined reference to `stv090x_attach'
-   drivers/built-in.o: In function `cineS2_probe':
-   ngene-cards.c:(.text+0x338b7f): undefined reference to `drxk_attach'
-   drivers/built-in.o: In function `configure_tda827x_fe':
-   saa7134-dvb.c:(.text+0x346ae7): undefined reference to `tda10046_attach'
-   drivers/built-in.o: In function `dvb_init':
-   saa7134-dvb.c:(.text+0x347283): undefined reference to `mt352_attach'
-   saa7134-dvb.c:(.text+0x3472cd): undefined reference to `mt352_attach'
-   saa7134-dvb.c:(.text+0x34731c): undefined reference to `tda10046_attach'
-   saa7134-dvb.c:(.text+0x34733c): undefined reference to `tda10046_attach'
-   saa7134-dvb.c:(.text+0x34735c): undefined reference to `tda10046_attach'
-   saa7134-dvb.c:(.text+0x347378): undefined reference to `tda10046_attach'
-   saa7134-dvb.c:(.text+0x3473db): undefined reference to `tda10046_attach'
-   drivers/built-in.o:saa7134-dvb.c:(.text+0x347502): more undefined references to `tda10046_attach' follow
-   drivers/built-in.o: In function `dvb_init':
-   saa7134-dvb.c:(.text+0x347812): undefined reference to `mt352_attach'
-   saa7134-dvb.c:(.text+0x347951): undefined reference to `mt312_attach'
-   saa7134-dvb.c:(.text+0x3479a9): undefined reference to `mt312_attach'
->> saa7134-dvb.c:(.text+0x3479c1): undefined reference to `zl10039_attach'
-
-This is happening because a builtin module can't use directly a symbol
-found on a module. By enabling CONFIG_MEDIA_ATTACH, the configuration
-becomes valid, as dvb_attach() macro loads the module if needed, making
-the symbol available to the builtin module.
-
-While this bug started to appear after the patches that use IS_DEFINED
-macro (like changeset 7b34be71db533f3e0cf93d53cf62d036cdb5418a), this
-bug is a way ancient than that.
-
-The thing is that, before the IS_DEFINED() patches, the logic used to be:
-
-       && defined(MODULE))
-struct dvb_frontend *zl10039_attach(struct dvb_frontend *fe,
-					u8 i2c_addr,
-					struct i2c_adapter *i2c);
-static inline struct dvb_frontend *zl10039_attach(struct dvb_frontend *fe,
-					u8 i2c_addr,
-					struct i2c_adapter *i2c)
-{
-	printk(KERN_WARNING "%s: driver disabled by Kconfig\n", __func__);
-	return NULL;
-}
-
-The above code, with the .config file used, was evoluting to FALSE
-(instead of TRUE as it should be, as CONFIG_DVB_ZL10039 is 'm'),
-and were adding the static inline code at saa7134-dvb, instead
-of the external call. So, while it weren't producing any compilation
-error, the code weren't working either.
-
-So, as the overhead for using CONFIG_MEDIA_ATTACH is minimal, just
-enable it, if MODULES is defined.
-
-Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/Kconfig        | 12 +++++++++---
- drivers/media/tuners/Kconfig | 20 --------------------
- 2 files changed, 9 insertions(+), 23 deletions(-)
-
-diff --git a/drivers/media/Kconfig b/drivers/media/Kconfig
-index 7f5a7ca..8270388 100644
---- a/drivers/media/Kconfig
-+++ b/drivers/media/Kconfig
-@@ -136,9 +136,9 @@ config DVB_NET
- 
- # This Kconfig option is used by both PCI and USB drivers
- config TTPCI_EEPROM
--        tristate
--        depends on I2C
--        default n
-+	tristate
-+	depends on I2C
-+	default n
- 
- source "drivers/media/dvb-core/Kconfig"
- 
-@@ -189,6 +189,12 @@ config MEDIA_SUBDRV_AUTOSELECT
- 
- 	  If unsure say Y.
- 
-+config MEDIA_ATTACH
-+	bool
-+	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT
-+	depends on MODULES
-+	default MODULES
-+
- source "drivers/media/i2c/Kconfig"
- source "drivers/media/tuners/Kconfig"
- source "drivers/media/dvb-frontends/Kconfig"
-diff --git a/drivers/media/tuners/Kconfig b/drivers/media/tuners/Kconfig
-index f6768ca..15665de 100644
---- a/drivers/media/tuners/Kconfig
-+++ b/drivers/media/tuners/Kconfig
-@@ -1,23 +1,3 @@
--config MEDIA_ATTACH
--	bool "Load and attach frontend and tuner driver modules as needed"
--	depends on MEDIA_ANALOG_TV_SUPPORT || MEDIA_DIGITAL_TV_SUPPORT || MEDIA_RADIO_SUPPORT
--	depends on MODULES
--	default y if !EXPERT
--	help
--	  Remove the static dependency of DVB card drivers on all
--	  frontend modules for all possible card variants. Instead,
--	  allow the card drivers to only load the frontend modules
--	  they require.
--
--	  Also, tuner module will automatically load a tuner driver
--	  when needed, for analog mode.
--
--	  This saves several KBytes of memory.
--
--	  Note: You will need module-init-tools v3.2 or later for this feature.
--
--	  If unsure say Y.
--
- # Analog TV tuners, auto-loaded via tuner.ko
- config MEDIA_TUNER
- 	tristate
+Best wishes,
 -- 
-1.8.1.4
+Kamil Debski
+Linux Kernel Developer
+Samsung R&D Institute Poland
+
+> -----Original Message-----
+> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
+> Sent: Monday, June 03, 2013 10:24 AM
+> To: linux-media@vger.kernel.org
+> Cc: Sylwester Nawrocki; Mauro Carvalho Chehab; Pawel Osciak; John Sheu;
+> Hans Verkuil; Kamil Debski; Andrzej Hajda; Philipp Zabel
+> Subject: [PATCH v4] [media] mem2mem: add support for hardware buffered
+> queue
+> 
+> On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
+> buffer at the end of the stream, remaining frames might need to be
+> decoded from the bitstream buffer without additional input buffers
+> being provided.
+> To achieve this, allow a queue to be marked as buffered by the driver,
+> and allow scheduling of device_runs when buffered ready queues are
+> empty.
+> 
+> This also allows a driver to copy input buffers into their bitstream
+> ringbuffer and immediately mark them as done to be dequeued.
+> 
+> The motivation for this patch is hardware assisted h.264 reordering
+> support in the coda driver. For high profile streams, the coda can hold
+> back out-of-order frames, causing a few mem2mem device runs in the
+> beginning, that don't produce any decompressed buffer at the v4l2
+> capture side. At the same time, the last few frames can be decoded from
+> the bitstream with mem2mem device runs that don't need a new input
+> buffer at the v4l2 output side. The decoder command ioctl can be used
+> to put the decoder into the ringbuffer draining end-of-stream mode.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> ---
+> Changes since v3:
+>  - Split queue_set_buffered into set_src_buffered and set_dst_buffered,
+> which
+>    take a v4l2_m2m_ctx pointer instead of a vb2_queue (which isn't
+> guaranteed
+>    to be embedded in a v4l2_m2m_queue_ctx).
+>  - Make them static inline.
+> ---
+>  drivers/media/v4l2-core/v4l2-mem2mem.c | 10 ++++++++--
+>  include/media/v4l2-mem2mem.h           | 13 +++++++++++++
+>  2 files changed, 21 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> index 66f599f..1007e60 100644
+> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
+> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
+> @@ -196,6 +196,10 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev
+> *m2m_dev)
+>   * 2) at least one destination buffer has to be queued,
+>   * 3) streaming has to be on.
+>   *
+> + * If a queue is buffered (for example a decoder hardware ringbuffer
+> + that has
+> + * to be drained before doing streamoff), allow scheduling without
+> v4l2
+> + buffers
+> + * on that queue.
+> + *
+>   * There may also be additional, custom requirements. In such case the
+> driver
+>   * should supply a custom callback (job_ready in v4l2_m2m_ops) that
+> should
+>   * return 1 if the instance is ready.
+> @@ -224,14 +228,16 @@ static void v4l2_m2m_try_schedule(struct
+> v4l2_m2m_ctx *m2m_ctx)
+>  	}
+> 
+>  	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
+> -	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)) {
+> +	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)
+> +	    && !m2m_ctx->out_q_ctx.buffered) {
+>  		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
+> flags);
+>  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+>  		dprintk("No input buffers available\n");
+>  		return;
+>  	}
+>  	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
+> -	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)) {
+> +	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)
+> +	    && !m2m_ctx->cap_q_ctx.buffered) {
+>  		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock,
+> flags);
+>  		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
+> flags);
+>  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
+> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-
+> mem2mem.h index d3eef01..a8e1bb3 100644
+> --- a/include/media/v4l2-mem2mem.h
+> +++ b/include/media/v4l2-mem2mem.h
+> @@ -60,6 +60,7 @@ struct v4l2_m2m_queue_ctx {
+>  	struct list_head	rdy_queue;
+>  	spinlock_t		rdy_spinlock;
+>  	u8			num_rdy;
+> +	bool			buffered;
+>  };
+> 
+>  struct v4l2_m2m_ctx {
+> @@ -132,6 +133,18 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct
+> v4l2_m2m_dev *m2m_dev,
+>  		void *drv_priv,
+>  		int (*queue_init)(void *priv, struct vb2_queue *src_vq,
+> struct vb2_queue *dst_vq));
+> 
+> +static inline void v4l2_m2m_set_src_buffered(struct v4l2_m2m_ctx
+> *m2m_ctx,
+> +					     bool buffered)
+> +{
+> +	m2m_ctx->out_q_ctx.buffered = buffered; }
+> +
+> +static inline void v4l2_m2m_set_dst_buffered(struct v4l2_m2m_ctx
+> *m2m_ctx,
+> +					     bool buffered)
+> +{
+> +	m2m_ctx->cap_q_ctx.buffered = buffered; }
+> +
+>  void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx);
+> 
+>  void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct
+> vb2_buffer *vb);
+> --
+> 1.8.2.rc2
+
 
