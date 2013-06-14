@@ -1,42 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3520 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752008Ab3FBK4h (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 06:56:37 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.126.171]:59909 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931Ab3FNTJQ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jun 2013 15:09:16 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 08/16] v4l2-ctrls: V4L2_CTRL_CLASS_FM_RX controls are also valid radio controls.
-Date: Sun,  2 Jun 2013 12:55:59 +0200
-Message-Id: <1370170567-7004-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370170567-7004-1-git-send-email-hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v11 02/21] soc-camera: add host clock callbacks to start and stop the master clock
+Date: Fri, 14 Jun 2013 21:08:12 +0200
+Message-Id: <1371236911-15131-3-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Currently soc-camera uses a single camera host callback to activate the
+interface master clock and to configure the interface for a specific
+client. However, during probing we might not have the information about
+a client, we just need to activate the clock. Add new camera host driver
+callbacks to only start and stop the clock without and client-specific
+configuration.
 
-The radio filter function that filters controls that are valid for a radio
-device should also accept V4L2_CTRL_CLASS_FM_RX controls.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/v4l2-core/v4l2-ctrls.c |    2 ++
- 1 file changed, 2 insertions(+)
+ drivers/media/platform/soc_camera/soc_camera.c |   19 +++++++++++++++++--
+ include/media/soc_camera.h                     |    2 ++
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index ebb8e48..fccd08b 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -1835,6 +1835,8 @@ bool v4l2_ctrl_radio_filter(const struct v4l2_ctrl *ctrl)
- {
- 	if (V4L2_CTRL_ID2CLASS(ctrl->id) == V4L2_CTRL_CLASS_FM_TX)
- 		return true;
-+	if (V4L2_CTRL_ID2CLASS(ctrl->id) == V4L2_CTRL_CLASS_FM_RX)
-+		return true;
- 	switch (ctrl->id) {
- 	case V4L2_CID_AUDIO_MUTE:
- 	case V4L2_CID_AUDIO_VOLUME:
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 832f059..df90565 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -513,10 +513,23 @@ static int soc_camera_add_device(struct soc_camera_device *icd)
+ 	if (ici->icd)
+ 		return -EBUSY;
+ 
++	if (ici->ops->clock_start) {
++		ret = ici->ops->clock_start(ici);
++		if (ret < 0)
++			return ret;
++	}
++
+ 	ret = ici->ops->add(icd);
+-	if (!ret)
+-		ici->icd = icd;
++	if (ret < 0)
++		goto eadd;
++
++	ici->icd = icd;
+ 
++	return 0;
++
++eadd:
++	if (ici->ops->clock_stop)
++		ici->ops->clock_stop(ici);
+ 	return ret;
+ }
+ 
+@@ -528,6 +541,8 @@ static void soc_camera_remove_device(struct soc_camera_device *icd)
+ 		return;
+ 
+ 	ici->ops->remove(icd);
++	if (ici->ops->clock_stop)
++		ici->ops->clock_stop(ici);
+ 	ici->icd = NULL;
+ }
+ 
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 5a46ce2..64415ee 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -74,6 +74,8 @@ struct soc_camera_host_ops {
+ 	struct module *owner;
+ 	int (*add)(struct soc_camera_device *);
+ 	void (*remove)(struct soc_camera_device *);
++	int (*clock_start)(struct soc_camera_host *);
++	void (*clock_stop)(struct soc_camera_host *);
+ 	/*
+ 	 * .get_formats() is called for each client device format, but
+ 	 * .put_formats() is only called once. Further, if any of the calls to
 -- 
-1.7.10.4
+1.7.2.5
 
