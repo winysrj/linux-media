@@ -1,105 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:59527 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753250Ab3FKJ1h (ORCPT
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:38129 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751224Ab3FNJ0F (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 05:27:37 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 04/21] omap1-camera: move interface activation and deactivation to clock callbacks
-Date: Tue, 11 Jun 2013 10:23:31 +0200
-Message-Id: <1370939028-8352-5-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+	Fri, 14 Jun 2013 05:26:05 -0400
+Received: by mail-ve0-f171.google.com with SMTP id b10so276961vea.2
+        for <linux-media@vger.kernel.org>; Fri, 14 Jun 2013 02:26:04 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <51B5D876.2000704@samsung.com>
+References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+	<1370870586-24141-6-git-send-email-arun.kk@samsung.com>
+	<51B5D876.2000704@samsung.com>
+Date: Fri, 14 Jun 2013 14:56:04 +0530
+Message-ID: <CALt3h7_BhORpmJUNZD1G-2eEZZ72YKus6wrfRiwRL4eLfViZHA@mail.gmail.com>
+Subject: Re: [PATCH 5/6] [media] V4L: Add VP8 encoder controls
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
+	avnd.kiran@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the omap1-camera driver only activates
-and deactivates its camera interface respectively, which doesn't include
-any client-specific actions. Move this functionality into .clock_start()
-and .clock_stop() callbacks.
+Hi Sylwester,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/omap1_camera.c |   27 ++++++++++++++-------
- 1 files changed, 18 insertions(+), 9 deletions(-)
+>> +     static const char * const vpx_num_partitions[] = {
+>> +             "1 partition",
+>> +             "2 partitions",
+>> +             "4 partitions",
+>> +             "8 partitions",
+>> +             NULL,
+>> +     };
+>> +     static const char * const vpx_num_ref_frames[] = {
+>> +             "1 reference frame",
+>> +             "2 reference frame",
+>> +             NULL,
+>> +     };
+>
+> Have you considered using V4L2_CTRL_TYPE_INTEGER_MENU control type for this ?
+> One example is V4L2_CID_ISO_SENSITIVITY control.
+>
 
-diff --git a/drivers/media/platform/soc_camera/omap1_camera.c b/drivers/media/platform/soc_camera/omap1_camera.c
-index c42c23e..6769193 100644
---- a/drivers/media/platform/soc_camera/omap1_camera.c
-+++ b/drivers/media/platform/soc_camera/omap1_camera.c
-@@ -893,13 +893,26 @@ static void sensor_reset(struct omap1_cam_dev *pcdev, bool reset)
- 		CAM_WRITE(pcdev, GPIO, !reset);
- }
- 
-+static int omap1_cam_add_device(struct soc_camera_device *icd)
-+{
-+	dev_dbg(icd->parent, "OMAP1 Camera driver attached to camera %d\n",
-+			icd->devnum);
-+
-+	return 0;
-+}
-+
-+static void omap1_cam_remove_device(struct soc_camera_device *icd)
-+{
-+	dev_dbg(icd->parent,
-+		"OMAP1 Camera driver detached from camera %d\n", icd->devnum);
-+}
-+
- /*
-  * The following two functions absolutely depend on the fact, that
-  * there can be only one camera on OMAP1 camera sensor interface
-  */
--static int omap1_cam_add_device(struct soc_camera_device *icd)
-+static int omap1_cam_clock_start(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct omap1_cam_dev *pcdev = ici->priv;
- 	u32 ctrlclock;
- 
-@@ -937,14 +950,11 @@ static int omap1_cam_add_device(struct soc_camera_device *icd)
- 
- 	sensor_reset(pcdev, false);
- 
--	dev_dbg(icd->parent, "OMAP1 Camera driver attached to camera %d\n",
--			icd->devnum);
- 	return 0;
- }
- 
--static void omap1_cam_remove_device(struct soc_camera_device *icd)
-+static void omap1_cam_clock_stop(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct omap1_cam_dev *pcdev = ici->priv;
- 	u32 ctrlclock;
- 
-@@ -965,9 +975,6 @@ static void omap1_cam_remove_device(struct soc_camera_device *icd)
- 	CAM_WRITE(pcdev, CTRLCLOCK, ctrlclock & ~MCLK_EN);
- 
- 	clk_disable(pcdev->clk);
--
--	dev_dbg(icd->parent,
--		"OMAP1 Camera driver detached from camera %d\n", icd->devnum);
- }
- 
- /* Duplicate standard formats based on host capability of byte swapping */
-@@ -1525,6 +1532,8 @@ static struct soc_camera_host_ops omap1_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= omap1_cam_add_device,
- 	.remove		= omap1_cam_remove_device,
-+	.clock_start	= omap1_cam_clock_start,
-+	.clock_stop	= omap1_cam_clock_stop,
- 	.get_formats	= omap1_cam_get_formats,
- 	.set_crop	= omap1_cam_set_crop,
- 	.set_fmt	= omap1_cam_set_fmt,
--- 
-1.7.2.5
+If I understand correctly, V4L2_CTRL_TYPE_INTEGER_MENU is used for
+controls where
+the driver / IP can support different values depending on its capabilities.
+But here VP8 standard supports only 4 options for no. of partitions
+that is 1, 2, 4 and 8.
+Also for number of ref frames, the standard allows only the options 1,
+2 and 3 which
+cannot be extended more. So is it correct to use INTEGER_MENU control here and
+let the driver define the values?
 
+Regards
+Arun
