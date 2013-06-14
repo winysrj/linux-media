@@ -1,64 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46681 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752959Ab3F0It4 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:61027 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931Ab3FNTI6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 04:49:56 -0400
-Date: Thu, 27 Jun 2013 09:49:02 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Felipe Balbi <balbi@ti.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	t.figa@samsung.com, jg1.han@samsung.com, dh09.lee@samsung.com,
-	kishon@ti.com, inki.dae@samsung.com, kyungmin.park@samsung.com,
-	kgene.kim@samsung.com, plagnioj@jcrosoft.com,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-Message-ID: <20130627084902.GB4283@n2100.arm.linux.org.uk>
-References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com> <20130625150649.GA21334@arwen.pp.htv.fi> <51CB0212.3050103@samsung.com> <20130627061713.GF15455@arwen.pp.htv.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130627061713.GF15455@arwen.pp.htv.fi>
+	Fri, 14 Jun 2013 15:08:58 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v11 05/21] atmel-isi: move interface activation and deactivation to clock callbacks
+Date: Fri, 14 Jun 2013 21:08:15 +0200
+Message-Id: <1371236911-15131-6-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jun 27, 2013 at 09:17:13AM +0300, Felipe Balbi wrote:
-> On Wed, Jun 26, 2013 at 05:00:34PM +0200, Sylwester Nawrocki wrote:
-> > Hi,
-> > 
-> > On 06/25/2013 05:06 PM, Felipe Balbi wrote:
-> > >> +static struct platform_driver exynos_video_phy_driver = {
-> > >> > +	.probe	= exynos_video_phy_probe,
-> > >
-> > > you *must* provide a remove method. drivers with NULL remove are
-> > > non-removable :-)
-> > 
-> > Actually the remove() callback can be NULL, it's just missing module_exit
-> > function that makes a module not unloadable.
-> 
-> look at the implementation of platform_drv_remove():
-> 
->  499 static int platform_drv_remove(struct device *_dev)
->  500 {
->  501         struct platform_driver *drv = to_platform_driver(_dev->driver);
->  502         struct platform_device *dev = to_platform_device(_dev);
->  503         int ret;
->  504 
->  505         ret = drv->remove(dev);
->  506         if (ACPI_HANDLE(_dev))
->  507                 acpi_dev_pm_detach(_dev, true);
->  508 
->  509         return ret;
->  510 }
-> 
-> that's not a conditional call right :-)
+When adding and removing a client, the atmel-isi camera host driver only
+activates and deactivates its camera interface respectively, which doesn't
+include any client-specific actions. Move this functionality into
+.clock_start() and .clock_stop() callbacks.
 
-Wrong.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/atmel-isi.c |   28 +++++++++++++++++--------
+ 1 files changed, 19 insertions(+), 9 deletions(-)
 
-        if (drv->remove)
-                drv->driver.remove = platform_drv_remove;
+diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
+index c9e080a..1044856 100644
+--- a/drivers/media/platform/soc_camera/atmel-isi.c
++++ b/drivers/media/platform/soc_camera/atmel-isi.c
+@@ -745,10 +745,23 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
+ 	return formats;
+ }
+ 
+-/* Called with .host_lock held */
+ static int isi_camera_add_device(struct soc_camera_device *icd)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
++	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
++		 icd->devnum);
++
++	return 0;
++}
++
++static void isi_camera_remove_device(struct soc_camera_device *icd)
++{
++	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
++		 icd->devnum);
++}
++
++/* Called with .host_lock held */
++static int isi_camera_clock_start(struct soc_camera_host *ici)
++{
+ 	struct atmel_isi *isi = ici->priv;
+ 	int ret;
+ 
+@@ -762,21 +775,16 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
+ 		return ret;
+ 	}
+ 
+-	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
+-		 icd->devnum);
+ 	return 0;
+ }
++
+ /* Called with .host_lock held */
+-static void isi_camera_remove_device(struct soc_camera_device *icd)
++static void isi_camera_clock_stop(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct atmel_isi *isi = ici->priv;
+ 
+ 	clk_disable(isi->mck);
+ 	clk_disable(isi->pclk);
+-
+-	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
+-		 icd->devnum);
+ }
+ 
+ static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
+@@ -880,6 +888,8 @@ static struct soc_camera_host_ops isi_soc_camera_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= isi_camera_add_device,
+ 	.remove		= isi_camera_remove_device,
++	.clock_start	= isi_camera_clock_start,
++	.clock_stop	= isi_camera_clock_stop,
+ 	.set_fmt	= isi_camera_set_fmt,
+ 	.try_fmt	= isi_camera_try_fmt,
+ 	.get_formats	= isi_camera_get_formats,
+-- 
+1.7.2.5
 
-The function you quote will only be used if drv->remove is non-NULL.
-You do not need to provide a remove method.
