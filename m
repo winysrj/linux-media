@@ -1,135 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:56854 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752201Ab3F0Jgv (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:50909 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752871Ab3FNTlF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 05:36:51 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES and S_FMT?
-Date: Thu, 27 Jun 2013 11:36:43 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-References: <201306241448.15187.hverkuil@xs4all.nl> <Pine.LNX.4.64.1306271045450.19503@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1306271045450.19503@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306271136.43554.hverkuil@xs4all.nl>
+	Fri, 14 Jun 2013 15:41:05 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v11 15/21] V4L2: add a device pointer to struct v4l2_subdev
+Date: Fri, 14 Jun 2013 21:08:25 +0200
+Message-Id: <1371236911-15131-16-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 27 June 2013 10:59:20 Guennadi Liakhovetski wrote:
-> Hi Hans
-> 
-> On Mon, 24 Jun 2013, Hans Verkuil wrote:
-> 
-> > Hi all,
-> > 
-> > While working on extending v4l2-compliance with cropping/selection test cases
-> > I decided to add support for that to vivi as well (this would give applications
-> > a good test driver to work with).
-> > 
-> > However, I ran into problems how this should be implemented for V4L2 devices
-> > (we are not talking about complex media controller devices where the video
-> > pipelines are setup manually).
-> > 
-> > There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
-> > 
-> > The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
-> > possible frame sizes, and that can crop, compose and/or scale, then you need
-> > to be able to set the frame size. Currently this is decided by S_FMT which
-> > maps the format size to the closest valid frame size. This however makes
-> > it impossible to e.g. scale up a frame, or compose the image into a larger
-> > buffer.
-> > 
-> > For video receivers this issue doesn't exist: there the size of the incoming
-> > video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for sensors.
-> 
-> Isn't it a part of the current uncertainty of the type "who should scale?" 
-> Or what output format should be set on the sensor for any specific final 
-> user-facing output frame? I thought we decided not to try to become much 
-> smarter here with the classical V4L2 API, instead, those for whom this is 
-> really important should support subdevice- or even pad-level 
-> configuration?
+It is often useful to have simple means to get from a subdevice to the
+underlying physical device. This patch adds such a pointer to struct
+v4l2_subdev and sets it accordingly in the I2C and SPI cases.
 
-I'm actually not trying to do anything complex. And remember that this is not
-scaler specific: even if there is no scaler but you just want to crop and/or
-compose you end up with the same problem: you can't define which framesize
-should be used. You need to be able to do that in order to know how to interpret
-the crop/compose rectangles.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-The reason I found all these problems is by the simple experiment of adding
-crop/compose support to vivi. Hardly a complex driver. But it is impossible
-to do this today.
+v11: extended a comment
 
-> 
-> > I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
-> > 
-> > However, this leads to another problem: the current S_FMT behavior is that
-> > it implicitly sets the framesize. That behavior we will have to keep, otherwise
-> > applications will start to behave differently.
-> > 
-> > I have an idea on how to solve that, but the solution is related to the second
-> > problem I found:
-> > 
-> > When you set a new format size, then the compose rectangle must be set to the
-> > new format size as well since that has always been the behavior in the past
-> > that applications have come to expect.
-> > 
-> > But this makes certain operations impossible to execute: if a driver can't
-> > scale, then you can never select a new format size larger than the current
-> > (possibly cropped) frame size, even though you would want to compose the
-> > unscaled image into such a larger buffer.
-> > 
-> > So what is the behavior that I would expect from drivers?
-> > 
-> > 1) After calling S_STD, S_DV_TIMINGS or S_SELECTION(V4L2_SEL_TGT_FRAMESIZE)
-> > the cropping, composing and format parameters are all adjusted to support the
-> > new input video size (typically they are all set to the new size).
-> > 
-> > 2) After calling S_CROP/S_SELECTION(CROP) the compose and format parameters are all
-> > adjusted to support the new crop rectangle.
-> > 
-> > 3) After calling S_SEL(COMPOSE) the format parameters are adjusted.
-> > 
-> > 4) Calling S_FMT validates the format parameters to support the compose
-> > rectangle.
-> > 
-> > However, today step 4 does something different: the compose rectangle will be
-> > adjusted to the format size (and in the case of a sensor supporting different
-> > framesizes the whole pipeline will be adjusted).
-> > 
-> > The only way I see that would solve this (although it isn't perfect) is to
-> > change the behavior of S_FMT only if the selection API was used before by the
-> > filehandle. The core can keep easily keep track of that. When the application
-> > calls S_FMT and no selection API was used in the past by that filehandle, then
-> > the core will call first S_SELECTION(V4L2_SEL_TGT_FRAMESIZE). If that returns
-> > -EINVAL, then it will call S_SELECTION(V4L2_SEL_TGT_COMPOSE). Finally it will
-> > call S_FMT. Note that a similar sequence is needed for the display case.
-> > 
-> > This means that a driver supporting the selection API can implement the logical
-> > behavior and the core will implement the historically-required illogical part.
-> > 
-> > So the fix for this would be to add a new selection target and add compatibility
-> > code to the v4l2-core.
-> > 
-> > With that in place I can easily add crop/compose support to vivi.
-> > 
-> > One area of uncertainty is how drivers currently implement S_FMT: do they reset
-> > any cropping done before? They should keep the crop rectangle according to the
-> > spec (well, it is implied there). Guennadi, what does soc_camera do?
-> 
-> No, soc-camera core doesn't touch cropping parameters in s_fmt. Similarly 
-> host drivers aren't expected to do that.
+ drivers/media/v4l2-core/v4l2-common.c |    2 ++
+ include/media/v4l2-subdev.h           |    2 ++
+ 2 files changed, 4 insertions(+), 0 deletions(-)
 
-OK, good to know.
+diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
+index 3fed63f..accfec6 100644
+--- a/drivers/media/v4l2-core/v4l2-common.c
++++ b/drivers/media/v4l2-core/v4l2-common.c
+@@ -291,6 +291,7 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
+ 	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
+ 	/* the owner is the same as the i2c_client's driver owner */
+ 	sd->owner = client->driver->driver.owner;
++	sd->dev = &client->dev;
+ 	/* i2c_client and v4l2_subdev point to one another */
+ 	v4l2_set_subdevdata(sd, client);
+ 	i2c_set_clientdata(client, sd);
+@@ -426,6 +427,7 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
+ 	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
+ 	/* the owner is the same as the spi_device's driver owner */
+ 	sd->owner = spi->dev.driver->owner;
++	sd->dev = &spi->dev;
+ 	/* spi_device and v4l2_subdev point to one another */
+ 	v4l2_set_subdevdata(sd, spi);
+ 	spi_set_drvdata(spi, sd);
+diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
+index 5298d67..39a37f5 100644
+--- a/include/media/v4l2-subdev.h
++++ b/include/media/v4l2-subdev.h
+@@ -585,6 +585,8 @@ struct v4l2_subdev {
+ 	void *host_priv;
+ 	/* subdev device node */
+ 	struct video_device *devnode;
++	/* pointer to the physical device, if any */
++	struct device *dev;
+ };
+ 
+ #define media_entity_to_v4l2_subdev(ent) \
+-- 
+1.7.2.5
 
-Thanks,
-
-	Hans
