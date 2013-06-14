@@ -1,72 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f43.google.com ([209.85.160.43]:37861 "EHLO
-	mail-pb0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161438Ab3FUNFG (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:56031 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931Ab3FNTIt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 09:05:06 -0400
-Received: by mail-pb0-f43.google.com with SMTP id md12so7769803pbc.2
-        for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 06:05:05 -0700 (PDT)
-Date: Fri, 21 Jun 2013 22:04:44 +0900 (JST)
-Message-Id: <20130621.220444.280357674.matsu@igel.co.jp>
-To: vladimir.barinov@cogentembedded.com
-Cc: sergei.shtylyov@cogentembedded.com, g.liakhovetski@gmx.de,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com
-Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
-From: Katsuya MATSUBARA <matsu@igel.co.jp>
-In-Reply-To: <51C42BA5.9050105@cogentembedded.com>
-References: <51C41F66.1060300@cogentembedded.com>
-	<20130621.190157.27985389.matsu@igel.co.jp>
-	<51C42BA5.9050105@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Fri, 14 Jun 2013 15:08:49 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v11 07/21] mx2-camera: move interface activation and deactivation to clock callbacks
+Date: Fri, 14 Jun 2013 21:08:17 +0200
+Message-Id: <1371236911-15131-8-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When adding and removing a client, the mx2-camera driver only activates
+and deactivates its camera interface respectively, which doesn't include
+any client-specific actions. Move this functionality into .clock_start()
+and .clock_stop() callbacks.
 
-Hi Vladimir,
-
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Date: Fri, 21 Jun 2013 14:32:05 +0400
-
-> Katsuya MATSUBARA wrote:
->> Hi Vladimir,
->>
->> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->> Date: Fri, 21 Jun 2013 13:39:50 +0400
->>
->> (snip)
->>   
->>>> I have not seen such i2c errors during capturing and booting.
->>>> But I have seen that querystd() in the ml86v7667 driver often
->>>> returns V4L2_STD_UNKNOWN, although the corresponding function
->>>>         
->>> could you try Hans's fix:
->>> https://patchwork.kernel.org/patch/2640701/
->>>     
->>
->> The fix has been already applied in my environment.
->>   
-> I've found that after some iteration of submission we disabled the
-> input signal in autodetection in ml86v7667_init(). per
-> recommendations.
-> That could be the case why the input signal is not locked.
-> 
-> On adv7180 it still has optional autodetection but Hans recommended to
-> get rid from runtime autodetection.
-> So I've added input signal detection only during boot time.
-> 
-> Could you please try the attached patch?
-
-With the patch, V4L2_STD_UNKNOWN often returned by querystd()
-in the ml86v7667 driver has been gone.
-But, captured images are still incorrect that means wrong
-order of fields desite '_BT' chosen for V4L2_STD_525_60.
-
-Thanks,
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
-Katsuya Matsubara / IGEL Co., Ltd
-matsu@igel.co.jp
+ drivers/media/platform/soc_camera/mx2_camera.c |   28 +++++++++++++++--------
+ 1 files changed, 18 insertions(+), 10 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/mx2_camera.c b/drivers/media/platform/soc_camera/mx2_camera.c
+index 772e071..45a0276 100644
+--- a/drivers/media/platform/soc_camera/mx2_camera.c
++++ b/drivers/media/platform/soc_camera/mx2_camera.c
+@@ -412,13 +412,26 @@ static void mx2_camera_deactivate(struct mx2_camera_dev *pcdev)
+ 	writel(0, pcdev->base_emma + PRP_CNTL);
+ }
+ 
++static int mx2_camera_add_device(struct soc_camera_device *icd)
++{
++	dev_info(icd->parent, "Camera driver attached to camera %d\n",
++		 icd->devnum);
++
++	return 0;
++}
++
++static void mx2_camera_remove_device(struct soc_camera_device *icd)
++{
++	dev_info(icd->parent, "Camera driver detached from camera %d\n",
++		 icd->devnum);
++}
++
+ /*
+  * The following two functions absolutely depend on the fact, that
+  * there can be only one camera on mx2 camera sensor interface
+  */
+-static int mx2_camera_add_device(struct soc_camera_device *icd)
++static int mx2_camera_clock_start(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 	int ret;
+ 	u32 csicr1;
+@@ -439,9 +452,6 @@ static int mx2_camera_add_device(struct soc_camera_device *icd)
+ 
+ 	pcdev->frame_count = 0;
+ 
+-	dev_info(icd->parent, "Camera driver attached to camera %d\n",
+-		 icd->devnum);
+-
+ 	return 0;
+ 
+ exit_csi_ahb:
+@@ -450,14 +460,10 @@ exit_csi_ahb:
+ 	return ret;
+ }
+ 
+-static void mx2_camera_remove_device(struct soc_camera_device *icd)
++static void mx2_camera_clock_stop(struct soc_camera_host *ici)
+ {
+-	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct mx2_camera_dev *pcdev = ici->priv;
+ 
+-	dev_info(icd->parent, "Camera driver detached from camera %d\n",
+-		 icd->devnum);
+-
+ 	mx2_camera_deactivate(pcdev);
+ }
+ 
+@@ -1271,6 +1277,8 @@ static struct soc_camera_host_ops mx2_soc_camera_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= mx2_camera_add_device,
+ 	.remove		= mx2_camera_remove_device,
++	.clock_start	= mx2_camera_clock_start,
++	.clock_stop	= mx2_camera_clock_stop,
+ 	.set_fmt	= mx2_camera_set_fmt,
+ 	.set_crop	= mx2_camera_set_crop,
+ 	.get_formats	= mx2_camera_get_formats,
+-- 
+1.7.2.5
 
