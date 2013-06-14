@@ -1,61 +1,36 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43073 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756209Ab3FQNb7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 09:31:59 -0400
-Date: Mon, 17 Jun 2013 14:31:10 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>,
-	linux-fbdev@vger.kernel.org, kyungmin.park@samsung.com,
-	dri-devel@lists.freedesktop.org, robdclark@gmail.com,
-	myungjoo.ham@samsung.com, yj44.cho@samsung.com, daniel@ffwll.ch,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-	framework
-Message-ID: <20130617133109.GG2718@n2100.arm.linux.org.uk>
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com> <1371467722-665-1-git-send-email-inki.dae@samsung.com> <51BEF458.4090606@canonical.com> <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:46089 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753020Ab3FNVus (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jun 2013 17:50:48 -0400
+Message-ID: <51BB9033.50709@schinagl.nl>
+Date: Fri, 14 Jun 2013 23:50:43 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
+To: Duval Mickael <duvalmickael@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: DVB Scan file for Cherbourg (FR)
+References: <CAMiis9aue=BJnGxhak9aKSXVtJPPB7df4WpKDdJL9Anw54en5Q@mail.gmail.com> <51B44BD5.2010208@schinagl.nl> <CAMiis9ZiLXwX+E2TmjsYkA1iCowArrP5jTT4VgWCeA6gCUDJDQ@mail.gmail.com> <CAMiis9bZtgfX_zha6vL1HVcxrNJb0RFvP=45Mp44Eb1cuUTSFA@mail.gmail.com>
+In-Reply-To: <CAMiis9bZtgfX_zha6vL1HVcxrNJb0RFvP=45Mp44Eb1cuUTSFA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 17, 2013 at 10:04:45PM +0900, Inki Dae wrote:
-> It's just to implement a thin sync framework coupling cache operation. This
-> approach is based on dma-buf for more generic implementation against android
-> sync driver or KDS.
-> 
-> The described steps may be summarized as:
-> 	lock -> cache operation -> CPU or DMA access to a buffer/s -> unlock
-> 
-> I think that there is no need to get complicated for such approach at least
-> for most devices sharing system memory. Simple is best.
+On 06/13/13 19:10, Duval Mickael wrote:
+> Hello,
+Hi,
+>
+> I send this email to you for a DVB-T scan file for the city of Cherbourg
+> FRANCE, modified with the last channels.
+> I also enclose a package file that includes all channels available for
+> DVB-T in France.
+I've applied your patch (after manually working it over) last time.
 
-But hang on, doesn't the dmabuf API already provide that?
+What is in this zip? Please send a patch file what still needs to be 
+adjusted. Cherbourg is in the repo now, isn't it?
+>
+> Sorry for my poor English ;-)
+>
+> Thank you.
 
-The dmabuf API already uses dma_map_sg() and dma_unmap_sg() by providers,
-and the rules around the DMA API are that:
-
-	dma_map_sg()
-	/* DMA _ONLY_ has access, CPU should not access */
-	dma_unmap_sg()
-	/* DMA may not access, CPU can access */
-
-It's a little more than that if you include the sync_sg_for_cpu and
-sync_sg_for_device APIs too - but the above is the general idea.  What
-this means from the dmabuf API point of view is that once you attach to
-a dma_buf, and call dma_buf_map_attachment() to get the SG list, the CPU
-doesn't have ownership of the buffer and _must_ _not_ access it via any
-other means - including using the other dma_buf methods, until either
-the appropriate dma_sync_sg_for_cpu() call has been made or the DMA
-mapping has been removed via dma_buf_unmap_attachment().
-
-So, the sequence should be:
-
-	dma_buf_map_attachment()
-	/* do DMA */
-	dma_buf_unmap_attachment()
-	/* CPU can now access the buffer */
