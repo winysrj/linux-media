@@ -1,86 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f51.google.com ([209.85.219.51]:48841 "EHLO
-	mail-oa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087Ab3FRF0u (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:65019 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751176Ab3FNUpw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 01:26:50 -0400
-Received: by mail-oa0-f51.google.com with SMTP id i4so4507842oah.10
-        for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 22:26:50 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CALt3h7-mNkOJoGbyNsBR0Z2mYKXD58EwqOezeY+7xpx7G0-vHQ@mail.gmail.com>
-References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
-	<1370870586-24141-4-git-send-email-arun.kk@samsung.com>
-	<002a01ce6b69$512943c0$f37bcb40$%debski@samsung.com>
-	<CALt3h7-mNkOJoGbyNsBR0Z2mYKXD58EwqOezeY+7xpx7G0-vHQ@mail.gmail.com>
-Date: Tue, 18 Jun 2013 10:56:50 +0530
-Message-ID: <CAK9yfHy-dEx98YXLdJB0rW5yZ_HeKsy5aLSjH0XL07U=5HNgKg@mail.gmail.com>
-Subject: Re: [PATCH 3/6] [media] s5p-mfc: Core support for MFC v7
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Arun Kumar K <arunkk.samsung@gmail.com>
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>, jtp.park@samsung.com,
+	Fri, 14 Jun 2013 16:45:52 -0400
+Date: Fri, 14 Jun 2013 22:45:15 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: linux-media@vger.kernel.org,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	avnd.kiran@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH v11 00/21] V4L2 clock and asynchronous probing
+In-Reply-To: <2342425.VllfyDroN8@avalon>
+Message-ID: <Pine.LNX.4.64.1306142244310.11221@axis700.grange>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+ <2342425.VllfyDroN8@avalon>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 18 June 2013 10:21, Arun Kumar K <arunkk.samsung@gmail.com> wrote:
-> Hi Kamil,
->
-> Thank you for the review.
->
->
->>>  #define IS_MFCV6(dev)                (dev->variant->version >= 0x60 ? 1 :
->> 0)
->>> +#define IS_MFCV7(dev)                (dev->variant->version >= 0x70 ? 1 :
->> 0)
->>
->> According to this, MFC v7 is also detected as MFC v6. Was this intended?
->
-> Yes this was intentional as most of v7 will be reusing the v6 code and
-> only minor
-> changes are there w.r.t firmware interface.
->
->
->> I think that it would be much better to use this in code:
->>         if (IS_MFCV6(dev) || IS_MFCV7(dev))
->> And change the define to detect only single MFC revision:
->>         #define IS_MFCV6(dev)           (dev->variant->version >= 0x60 &&
->> dev->variant->version < 0x70)
->>
->
-> I kept it like that since the macro IS_MFCV6() is used quite frequently
-> in the driver. Also if MFCv8 comes which is again similar to v6 (not
-> sure about this),
-> then it will add another OR condition to this check.
->
->> Other possibility I see is to change the name of the check. Although
->> IS_MFCV6_OR_NEWER(dev) seems too long :)
->>
->
-> How about making it IS_MFCV6_PLUS()?
+Hi Laurent
 
-Technically
-#define IS_MFCV6(dev)                (dev->variant->version >= 0x60...)
-means all lower versions are also higher versions.
-This may not cause much of a problem (other than the macro being a
-misnomer) as all current higher versions are supersets of lower
-versions.
-But this is not guaranteed(?).
+On Fri, 14 Jun 2013, Laurent Pinchart wrote:
 
-Hence changing the definition of the macro to (dev->variant->version
->= 0x60 && dev->variant->version < 0x70) as Kamil suggested or
-renaming it to
-IS_MFCV6_PLUS() makes sense.
+> Hi Guennadi,
+> 
+> Thank you for the patches.
+> 
+> On Friday 14 June 2013 21:08:10 Guennadi Liakhovetski wrote:
+> > v11 of the V4L2 clock helper and asynchronous probing patch set.
+> > Functionally identical to v10, only differences are a couple of comment
+> > lines and one renamed struct field - as requested by respectable
+> > reviewers :)
+> > 
+> > Only patches #15, 16 and 18 changed.
+> 
+> [snip]
+> 
+> >  .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
+> 
+>    Documentation/video4linux/v4l2-framework.txt is missing :-)
 
-OTOH, do we really have intermediate version numbers? For e.g. 0x61, 0x72, etc?
+I know. I will add it as soon as these patches are in.
 
-If not we can make it just:
-#define IS_MFCV6(dev)                (dev->variant->version == 0x60 ? 1 : 0)
+Thanks
+Guennadi
 
+> >  arch/arm/mach-shmobile/board-ap4evb.c              |  103 ++--
+> >  arch/arm/mach-shmobile/clock-sh7372.c              |    1 +
+> >  drivers/media/i2c/soc_camera/imx074.c              |   32 +-
+> >  drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
+> >  drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
+> >  drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
+> >  drivers/media/i2c/soc_camera/mt9t112.c             |   25 +-
+> >  drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
+> >  drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
+> >  drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
+> >  drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
+> >  drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
+> >  drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
+> >  drivers/media/i2c/soc_camera/ov9640.h              |    1 +
+> >  drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
+> >  drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
+> >  drivers/media/i2c/soc_camera/tw9910.c              |   24 +-
+> >  drivers/media/platform/soc_camera/atmel-isi.c      |   38 +-
+> >  drivers/media/platform/soc_camera/mx1_camera.c     |   48 +-
+> >  drivers/media/platform/soc_camera/mx2_camera.c     |   41 +-
+> >  drivers/media/platform/soc_camera/mx3_camera.c     |   44 +-
+> >  drivers/media/platform/soc_camera/omap1_camera.c   |   41 +-
+> >  drivers/media/platform/soc_camera/pxa_camera.c     |   46 +-
+> >  .../platform/soc_camera/sh_mobile_ceu_camera.c     |  243 +++++--
+> >  drivers/media/platform/soc_camera/sh_mobile_csi2.c |  153 +++--
+> >  drivers/media/platform/soc_camera/soc_camera.c     |  707 ++++++++++++++---
+> >  .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+> >  drivers/media/v4l2-core/Makefile                   |    3 +-
+> >  drivers/media/v4l2-core/v4l2-async.c               |  280 ++++++++
+> >  drivers/media/v4l2-core/v4l2-clk.c                 |  242 +++++++
+> >  drivers/media/v4l2-core/v4l2-common.c              |    2 +
+> >  include/media/sh_mobile_ceu.h                      |    2 +
+> >  include/media/sh_mobile_csi2.h                     |    2 +-
+> >  include/media/soc_camera.h                         |   39 +-
+> >  include/media/v4l2-async.h                         |  105 +++
+> >  include/media/v4l2-clk.h                           |   54 ++
+> >  include/media/v4l2-subdev.h                        |   10 +
+> >  38 files changed, 2035 insertions(+), 467 deletions(-)
+> >  create mode 100644
+> > Documentation/devicetree/bindings/media/sh_mobile_ceu.txt create mode
+> > 100644 drivers/media/v4l2-core/v4l2-async.c
+> >  create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+> >  create mode 100644 include/media/v4l2-async.h
+> >  create mode 100644 include/media/v4l2-clk.h
+> -- 
+> Regards,
+> 
+> Laurent Pinchart
+> 
 
--- 
-With warm regards,
-Sachin
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
