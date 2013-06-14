@@ -1,84 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:3918 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab3FJMtu (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:50529 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931Ab3FNTJS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 08:49:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 14 Jun 2013 15:09:18 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 8/9] f_uvc: use v4l2_dev instead of the deprecated parent field.
-Date: Mon, 10 Jun 2013 14:48:37 +0200
-Message-Id: <1370868518-19831-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v11 11/21] soc-camera: don't attach the client to the host during probing
+Date: Fri, 14 Jun 2013 21:08:21 +0200
+Message-Id: <1371236911-15131-12-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+During client probing we only have to turn on the host's clock, no need to
+actually attach the client to the host.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/usb/gadget/f_uvc.c |    8 +++++++-
- drivers/usb/gadget/uvc.h   |    2 ++
- 2 files changed, 9 insertions(+), 1 deletion(-)
+ drivers/media/platform/soc_camera/soc_camera.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
-index 38dcedd..762e82f 100644
---- a/drivers/usb/gadget/f_uvc.c
-+++ b/drivers/usb/gadget/f_uvc.c
-@@ -413,7 +413,7 @@ uvc_register_video(struct uvc_device *uvc)
- 	if (video == NULL)
- 		return -ENOMEM;
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index e503f03..ac98bcb 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1207,7 +1207,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 		ssdd->reset(icd->pdev);
  
--	video->parent = &cdev->gadget->dev;
-+	video->v4l2_dev = &uvc->v4l2_dev;
- 	video->fops = &uvc_v4l2_fops;
- 	video->release = video_device_release;
- 	strlcpy(video->name, cdev->gadget->name, sizeof(video->name));
-@@ -570,6 +570,7 @@ uvc_function_unbind(struct usb_configuration *c, struct usb_function *f)
- 	INFO(cdev, "uvc_function_unbind\n");
- 
- 	video_unregister_device(uvc->vdev);
-+	v4l2_device_unregister(&uvc->v4l2_dev);
- 	uvc->control_ep->driver_data = NULL;
- 	uvc->video.ep->driver_data = NULL;
- 
-@@ -697,6 +698,11 @@ uvc_function_bind(struct usb_configuration *c, struct usb_function *f)
- 	if ((ret = usb_function_deactivate(f)) < 0)
- 		goto error;
- 
-+	if (v4l2_device_register(&cdev->gadget->dev, &uvc->v4l2_dev)) {
-+		printk(KERN_INFO "v4l2_device_register failed\n");
-+		goto error;
-+	}
-+
- 	/* Initialise video. */
- 	ret = uvc_video_init(&uvc->video);
+ 	mutex_lock(&ici->host_lock);
+-	ret = soc_camera_add_device(icd);
++	ret = ici->ops->clock_start(ici);
+ 	mutex_unlock(&ici->host_lock);
  	if (ret < 0)
-diff --git a/drivers/usb/gadget/uvc.h b/drivers/usb/gadget/uvc.h
-index 817e9e1..7a9111d 100644
---- a/drivers/usb/gadget/uvc.h
-+++ b/drivers/usb/gadget/uvc.h
-@@ -57,6 +57,7 @@ struct uvc_event
- #include <linux/videodev2.h>
- #include <linux/version.h>
- #include <media/v4l2-fh.h>
-+#include <media/v4l2-device.h>
+ 		goto eadd;
+@@ -1280,7 +1280,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
+ 		icd->field		= mf.field;
+ 	}
  
- #include "uvc_queue.h"
+-	soc_camera_remove_device(icd);
++	ici->ops->clock_stop(ici);
  
-@@ -145,6 +146,7 @@ enum uvc_state
- struct uvc_device
- {
- 	struct video_device *vdev;
-+	struct v4l2_device v4l2_dev;
- 	enum uvc_state state;
- 	struct usb_function func;
- 	struct uvc_video video;
+ 	mutex_unlock(&ici->host_lock);
+ 
+@@ -1303,7 +1303,7 @@ eadddev:
+ 	icd->vdev = NULL;
+ evdc:
+ 	mutex_lock(&ici->host_lock);
+-	soc_camera_remove_device(icd);
++	ici->ops->clock_stop(ici);
+ 	mutex_unlock(&ici->host_lock);
+ eadd:
+ 	v4l2_ctrl_handler_free(&icd->ctrl_handler);
 -- 
-1.7.10.4
+1.7.2.5
 
