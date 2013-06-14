@@ -1,109 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51309 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751524Ab3FQULu (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2468 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753628Ab3FNS3v (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 16:11:50 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEWv2 PATCH 08/12] f_uvc: add v4l2_device and replace parent with v4l2_dev
-Date: Mon, 17 Jun 2013 22:12:02 +0200
-Message-ID: <2193306.FIqlzJFcP5@avalon>
-In-Reply-To: <1371049262-5799-9-git-send-email-hverkuil@xs4all.nl>
-References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl> <1371049262-5799-9-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 14 Jun 2013 14:29:51 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5EITdll034701
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 14 Jun 2013 20:29:41 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 6FA8835E0051
+	for <linux-media@vger.kernel.org>; Fri, 14 Jun 2013 20:29:38 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130614182938.6FA8835E0051@alastor.dyndns.org>
+Date: Fri, 14 Jun 2013 20:29:38 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for the patch.
+Results of the daily build of media_tree:
 
-On Wednesday 12 June 2013 17:00:58 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> This driver did not yet support struct v4l2_device, so add it. This
-> make it possible to replace the deprecated parent field with the
-> v4l2_dev field, allowing the eventual removal of the parent field.
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+date:		Fri Jun 14 19:00:22 CEST 2013
+git branch:	test
+git hash:	dd8c393b3c39f7ebd9ad69ce50cc836773d512b6
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-> ---
->  drivers/usb/gadget/f_uvc.c |    9 ++++++++-
->  drivers/usb/gadget/uvc.h   |    2 ++
->  2 files changed, 10 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/usb/gadget/f_uvc.c b/drivers/usb/gadget/f_uvc.c
-> index 38dcedd..1d06567 100644
-> --- a/drivers/usb/gadget/f_uvc.c
-> +++ b/drivers/usb/gadget/f_uvc.c
-> @@ -413,7 +413,7 @@ uvc_register_video(struct uvc_device *uvc)
->  	if (video == NULL)
->  		return -ENOMEM;
-> 
-> -	video->parent = &cdev->gadget->dev;
-> +	video->v4l2_dev = &uvc->v4l2_dev;
->  	video->fops = &uvc_v4l2_fops;
->  	video->release = video_device_release;
->  	strlcpy(video->name, cdev->gadget->name, sizeof(video->name));
-> @@ -570,6 +570,7 @@ uvc_function_unbind(struct usb_configuration *c, struct
-> usb_function *f) INFO(cdev, "uvc_function_unbind\n");
-> 
->  	video_unregister_device(uvc->vdev);
-> +	v4l2_device_unregister(&uvc->v4l2_dev);
->  	uvc->control_ep->driver_data = NULL;
->  	uvc->video.ep->driver_data = NULL;
-> 
-> @@ -697,6 +698,11 @@ uvc_function_bind(struct usb_configuration *c, struct
-> usb_function *f) if ((ret = usb_function_deactivate(f)) < 0)
->  		goto error;
-> 
-> +	if (v4l2_device_register(&cdev->gadget->dev, &uvc->v4l2_dev)) {
-> +		printk(KERN_INFO "v4l2_device_register failed\n");
-> +		goto error;
-> +	}
-> +
->  	/* Initialise video. */
->  	ret = uvc_video_init(&uvc->video);
->  	if (ret < 0)
-> @@ -712,6 +718,7 @@ uvc_function_bind(struct usb_configuration *c, struct
-> usb_function *f) return 0;
-> 
->  error:
-> +	v4l2_device_unregister(&uvc->v4l2_dev);
->  	if (uvc->vdev)
->  		video_device_release(uvc->vdev);
-> 
-> diff --git a/drivers/usb/gadget/uvc.h b/drivers/usb/gadget/uvc.h
-> index 817e9e1..7a9111d 100644
-> --- a/drivers/usb/gadget/uvc.h
-> +++ b/drivers/usb/gadget/uvc.h
-> @@ -57,6 +57,7 @@ struct uvc_event
->  #include <linux/videodev2.h>
->  #include <linux/version.h>
->  #include <media/v4l2-fh.h>
-> +#include <media/v4l2-device.h>
-> 
->  #include "uvc_queue.h"
-> 
-> @@ -145,6 +146,7 @@ enum uvc_state
->  struct uvc_device
->  {
->  	struct video_device *vdev;
-> +	struct v4l2_device v4l2_dev;
->  	enum uvc_state state;
->  	struct usb_function func;
->  	struct uvc_video video;
--- 
-Regards,
+Detailed results are available here:
 
-Laurent Pinchart
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
 
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
