@@ -1,101 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4681 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752088Ab3FMS2h (ORCPT
+Received: from smtp.lightlink.com ([64.57.176.21]:39142 "EHLO
+	vm0.lightlink.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752463Ab3FNNta (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jun 2013 14:28:37 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr14.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5DISPQX003618
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 13 Jun 2013 20:28:28 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 66FCA35E0170
-	for <linux-media@vger.kernel.org>; Thu, 13 Jun 2013 20:28:24 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+	Fri, 14 Jun 2013 09:49:30 -0400
+Received: from [172.16.10.72] (cpe-24-58-232-40.twcny.res.rr.com [24.58.232.40])
+	by vm0.lightlink.com (Postfix) with ESMTP id 9EFC93F03CE
+	for <linux-media@vger.kernel.org>; Fri, 14 Jun 2013 09:43:22 -0400 (EDT)
+Message-ID: <51BB1DAF.2000801@lightlink.com>
+Date: Fri, 14 Jun 2013 09:42:07 -0400
+From: Bob McConnell <rmcconne@lightlink.com>
+MIME-Version: 1.0
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130613182824.66FCA35E0170@alastor.dyndns.org>
-Date: Thu, 13 Jun 2013 20:28:24 +0200 (CEST)
+Subject: Ion Video 2 PC converter
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Has anyone here tried the Ion "Video 2 PC" converter? I picked one up 
+from the clearance shelf at Staples yesterday, but don't see any way to 
+use it on my Slackware workstations. I did plug it in and got the 
+following data.
 
-Results of the daily build of media_tree:
+-----8< --------------------------------------------------
+tail /var/log/messages
+Jun 14 06:59:54 widedesk -- MARK --
+Jun 14 07:04:53 widedesk kernel: [1104320.179041] usb 1-6: new 
+high-speed USB device number 6 using ehci_hcd
+Jun 14 07:04:54 widedesk kernel: [1104320.300452] usb 1-6: New USB 
+device found, idVendor=eb1a, idProduct=5051
+Jun 14 07:04:54 widedesk kernel: [1104320.300462] usb 1-6: New USB 
+device strings: Mfr=3, Product=1, SerialNumber=2
+Jun 14 07:04:54 widedesk kernel: [1104320.300468] usb 1-6: Product: ION 
+Audio USB 2861 Device
+Jun 14 07:04:54 widedesk kernel: [1104320.300474] usb 1-6: Manufacturer: 
+ION Audio
+Jun 14 07:04:54 widedesk kernel: [1104320.300479] usb 1-6: SerialNumber: 0
+Jun 14 07:04:54 widedesk mtp-probe: checking bus 1, device 6: 
+"/sys/devices/pci0000:00/0000:00:1d.7/usb1/1-6"
+Jun 14 07:04:54 widedesk mtp-probe: bus: 1, device: 6 was not an MTP device
+Jun 14 07:04:54 widedesk kernel: [1104321.105329] usbcore: registered 
+new interface driver snd-usb-audio
 
-date:		Thu Jun 13 19:00:23 CEST 2013
-git branch:	test
-git hash:	dd8c393b3c39f7ebd9ad69ce50cc836773d512b6
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+<Nothing in syslog>
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: ERRORS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+lsusb
+Bus 001 Device 006: ID eb1a:5051 eMPIA Technology, Inc.
 
-Detailed results are available here:
+<unplugged>
+Jun 14 07:09:09 widedesk kernel: [1104575.751244] usb 1-6: USB 
+disconnect, device number 6
+-----8< --------------------------------------------------
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+ From this I am guessing that it might be usable for audio capture, but 
+nothing about the video.
 
-Full logs are available here:
+This is on a Slackware 14.0 system.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+My wife can still use it on her MS-Windows 7 laptop, but I was hoping to 
+play with it as well.
 
-The Media Infrastructure API from this daily build is here:
+Thank you,
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Bob McConnell
+N2SPP
+
