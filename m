@@ -1,47 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f169.google.com ([209.85.217.169]:45063 "EHLO
-	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750978Ab3F0LXB (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:54184 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751034Ab3FNIvJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 07:23:01 -0400
-Received: by mail-lb0-f169.google.com with SMTP id d10so346456lbj.28
-        for <linux-media@vger.kernel.org>; Thu, 27 Jun 2013 04:22:57 -0700 (PDT)
-Message-ID: <51CC2091.1040408@cogentembedded.com>
-Date: Thu, 27 Jun 2013 15:22:57 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Fri, 14 Jun 2013 04:51:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Hans de Goede <hdegoede@redhat.com>
+Subject: Re: Doing a v4l-utils-1.0.0 release
+Date: Fri, 14 Jun 2013 10:51:00 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <51BAC2F6.40708@redhat.com>
+In-Reply-To: <51BAC2F6.40708@redhat.com>
 MIME-Version: 1.0
-To: Simon Horman <horms@verge.net.au>
-CC: linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	magnus.damm@gmail.com, linux@arm.linux.org.uk, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com, linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 0/3] R8A7779/Marzen R-Car VIN driver support
-References: <201305160153.29827.sergei.shtylyov@cogentembedded.com> <20130627074129.GB13927@verge.net.au>
-In-Reply-To: <20130627074129.GB13927@verge.net.au>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306141051.00736.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On Fri 14 June 2013 09:15:02 Hans de Goede wrote:
+> Hi All,
+> 
+> IIRC the 0.9.x series were meant as development releases leading up to a new
+> stable 1.0.0 release. Lately there have been no maintenance 0.8.x releases
+> and a lot of interesting development going on in the 0.9.x, while at the
+> same time there have been no issues reported against 0.9.x (iow it seems
+> stable).
+> 
+> So how about taking current master and releasing that as a 1.0.0 release ?
 
-On 27-06-2013 11:41, Simon Horman wrote:
+Fine by me!
 
->>     Here's the set of 3 patches against the Simon Horman's 'renesas.git' repo,
->> 'renesas-next-20130515v2' tag and my recent yet unapplied USB/I2C patches.
->> Here we add the VIN driver platform code for the R8A7779/Marzen with ADV7180
->> I2C video decoder.
+Note that the libv4l2rds code is now finalized, so that can be released as
+well.
 
->> [1/3] ARM: shmobile: r8a7779: add VIN support
->> [2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
->> [3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
+Regards,
 
->>     The VIN driver itself has been excluded from the series as it will be developed
->> against Mauro's 'media_tree.git' plus some yet unapplied patches in the future...
-
-> Sergei, is this patch-set still needing review?
-
-    Probably. Note that it depends on the VIN driver too.
-
-WBR, Sergei
-
-
+	Hans
