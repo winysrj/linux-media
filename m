@@ -1,96 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fpasia.hk ([202.130.89.98]:60520 "EHLO fpa01n0.fpasia.hk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S965317Ab3FUHin (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 03:38:43 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by fpa01n0.fpasia.hk (Postfix) with ESMTP id 6F5A7CE9F38
-	for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 15:38:41 +0800 (HKT)
-Received: from fpa01n0.fpasia.hk ([127.0.0.1])
-	by localhost (fpa01n0.office.fpa.com.hk [127.0.0.1]) (amavisd-new, port 10024)
-	with ESMTP id OnOxtL-eixXe for <linux-media@vger.kernel.org>;
-	Fri, 21 Jun 2013 15:38:40 +0800 (HKT)
-Received: from s01.gtsys.com.hk (gtsnode.office.fpasia.hk [10.10.37.40])
-	by fpa01n0.fpasia.hk (Postfix) with ESMTP id 832C0CE9F37
-	for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 15:38:40 +0800 (HKT)
-Received: from [10.128.2.32] (n219077172016.netvigator.com [219.77.172.16])
-	by s01.gtsys.com.hk (Postfix) with ESMTPSA id 51AF0C019E5
-	for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 15:38:38 +0800 (HKT)
-Message-ID: <51C402FF.7010909@gtsys.com.hk>
-Date: Fri, 21 Jun 2013 15:38:39 +0800
-From: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:56535 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752549Ab3FNM6h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jun 2013 08:58:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH v10 16/21] V4L2: support asynchronous subdevice registration
+Date: Fri, 14 Jun 2013 14:58:48 +0200
+Message-ID: <1401621.8faXML07Vy@avalon>
+In-Reply-To: <51BAE4FC.4080400@samsung.com>
+References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de> <Pine.LNX.4.64.1306141113050.6920@axis700.grange> <51BAE4FC.4080400@samsung.com>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: imx27 coda interface no capture output
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Hi Sylwester,
 
-After Freescale was so kind and forward the v4l-codadx6-imx27.bin
-the firmware loaded properly and I see a /dev/video1 the v4l_ctrl looks promising
+On Friday 14 June 2013 11:40:12 Sylwester Nawrocki wrote:
+> On 06/14/2013 11:14 AM, Guennadi Liakhovetski wrote:
+> > On Fri, 14 Jun 2013, Hans Verkuil wrote:
+> >> On Fri 14 June 2013 09:14:48 Guennadi Liakhovetski wrote:
+> >>> On Thu, 13 Jun 2013, Sylwester Nawrocki wrote:
+> >>>> On 06/11/2013 10:23 AM, Guennadi Liakhovetski wrote:
+> [...]
+> 
+> >>>>> + * @v4l2_dev:	pointer to struct v4l2_device
+> >>>>> + * @waiting:	list of struct v4l2_async_subdev, waiting for their
+> >>>>> drivers
+> >>>>> + * @done:	list of struct v4l2_async_subdev_list, already probed
+> >>>>> + * @list:	member in a global list of notifiers
+> >>>>> + * @bound:	a subdevice driver has successfully probed one of
+> >>>>> subdevices
+> >>>>> + * @complete:	all subdevices have been probed successfully
+> >>>>> + * @unbind:	a subdevice is leaving
+> >>>>> + */
+> >>>>> +struct v4l2_async_notifier {
+> >>>>> +	unsigned int subdev_num;
+> >>>>> +	struct v4l2_async_subdev **subdev;
+> >>>>> +	struct v4l2_device *v4l2_dev;
+> >>>>> +	struct list_head waiting;
+> >>>>> +	struct list_head done;
+> >>>>> +	struct list_head list;
+> >>>>> +	int (*bound)(struct v4l2_async_notifier *notifier,
+> >>>>> +		     struct v4l2_subdev *subdev,
+> >>>>> +		     struct v4l2_async_subdev *asd);
+> >>>>> +	int (*complete)(struct v4l2_async_notifier *notifier);
+> >>>>> +	void (*unbind)(struct v4l2_async_notifier *notifier,
+> >>>>> +		       struct v4l2_subdev *subdev,
+> >>>>> +		       struct v4l2_async_subdev *asd);
+> >>>>> +};
+> >>>>> +
+> >>>>> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+> >>>>> +				 struct v4l2_async_notifier *notifier);
+> >>>>> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier
+> >>>>> *notifier);
+> >>>>> +int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+> >>>>> +void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
+> >>>> 
+> >>>> I still think "async_" in this public API is unnecessary, since we
+> >>>> register/ unregister a subdev with the core and notifiers are
+> >>>> intrinsically
+> >>>> asynchronous.
+> >>>> But your preference seems be otherwise, what could I do... :) At most
+> >>>> it just means one less happy user of this interface.
+> >> 
+> >> I think v4l2_register_subdev looks awfully similar to
+> >> v4l2_device_register_subdev. It becomes very confusing naming it like
+> >> that. I prefer v4l2_async where 'async' refers to the v4l2-async module.
+> 
+> Ok, let's leave v4l2_async then.
+> 
+> > And v4l2(_async)_notifier_(un)register()?
+> 
+> I guess it would be better to have all or none of the functions
+> with that prefix. So either:
+> 
+> v4l2_async_notifier_register
+> v4l2_async_notifier_unregister
+> v4l2_async_register_subdev
+> v4l2_async_unregister_subdev
+> 
+> or
+> 
+> v4l2_subdev_notifier_register
+> v4l2_subdev_notifier_unregister
+> v4l2_subdev_register
+> v4l2_subdev_unregister
 
-root@gtsir-nand:~# v4l2-ctl --list-formats -d /dev/video1
-ioctl: VIDIOC_ENUM_FMT
-         Index       : 0
-         Type        : Video Capture
-         Pixel Format: 'H264'
-         Name        : H264 Encoded Stream
+I prefer the section option, but I'm fine with the first one for now. As Hans 
+pointed out, it would be pretty easy to confuse v4l2_subdev_register with 
+v4l2_device_register_subdev. In the long term we want to move all drivers to 
+asynchronous registration. When that happens it won't be difficult to revisit 
+the API to remove unused functions and rename v4l2_aysnc_* to just v4l2_*.
 
-         Index       : 1
-         Type        : Video Capture
-         Pixel Format: 'MPG4'
-         Name        : MPEG4 Encoded Stream
+-- 
+Regards,
 
-root@gtsir-nand:~# v4l2-ctl -d /dev/video1 -l
-
-User Controls
-
-                 horizontal_flip (bool)   : default=0 value=0
-                   vertical_flip (bool)   : default=0 value=0
-
-MPEG Encoder Controls
-
-                  video_gop_size (int)    : min=1 max=60 step=1 default=16 value=16
-                   video_bitrate (int)    : min=0 max=32767000 step=1 default=0 
-value=0
-            sequence_header_mode (menu)   : min=0 max=1 default=1 value=1
-        maximum_bytes_in_a_slice (int)    : min=1 max=1073741823 step=1 
-default=500 value=500
-        number_of_mbs_in_a_slice (int)    : min=1 max=1073741823 step=1 
-default=1 value=1
-       slice_partitioning_method (menu)   : min=0 max=2 default=0 value=0
-           h264_i_frame_qp_value (int)    : min=1 max=51 step=1 default=25 value=25
-           h264_p_frame_qp_value (int)    : min=1 max=51 step=1 default=25 value=25
-          mpeg4_i_frame_qp_value (int)    : min=1 max=31 step=1 default=2 value=2
-          mpeg4_p_frame_qp_value (int)    : min=1 max=31 step=1 default=2 value=2
-
-
-But the capture is not working :-(
-
-root@gtsir-nand:~# ./video1.x -f MPG4  -w 320 -h 240 a.mpg4
-g_width = 320, g_height = 240
---------------------------------------------------------------------------------------------
-	 Width = 320	 Height = 240	 Image size = 589824
-	 pixelformat = 875967048	 colorspace = 3
---------------------------------------------------------------------------------------------
-^C
-
-and the kernel spit this
-[ 3043.981600] coda coda-imx27.0: coda_stop_streaming: timeout, sending SEQ_END 
-anyway
-[ 3044.998085] coda coda-imx27.0: CODA_COMMAND_SEQ_END failed
-
-did I miss something ??  just enlighten me please
-
-Thanks
-Chris
-
-
-
-
-
-
+Laurent Pinchart
 
