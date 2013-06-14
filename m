@@ -1,55 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 12.mo1.mail-out.ovh.net ([87.98.162.229]:42990 "EHLO
-	mo1.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1751317Ab3FDPuf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jun 2013 11:50:35 -0400
-Received: from mail405.ha.ovh.net (b6.ovh.net [213.186.33.56])
-	by mo1.mail-out.ovh.net (Postfix) with SMTP id 85817FF9952
-	for <linux-media@vger.kernel.org>; Tue,  4 Jun 2013 16:34:15 +0200 (CEST)
-Message-ID: <51ADFACB.9080504@ventoso.org>
-Date: Tue, 04 Jun 2013 16:33:47 +0200
-From: Luca Olivetti <luca@ventoso.org>
+Received: from mail-ie0-f180.google.com ([209.85.223.180]:42654 "EHLO
+	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752298Ab3FNMTG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jun 2013 08:19:06 -0400
+Received: by mail-ie0-f180.google.com with SMTP id f4so1185788iea.25
+        for <linux-media@vger.kernel.org>; Fri, 14 Jun 2013 05:19:05 -0700 (PDT)
 MIME-Version: 1.0
-To: Patrick Boettcher <pboettcher@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Diversity support?
-References: <507EE702.2010103@ventoso.org> <5091691A.4070903@ventoso.org> <51ACB2CA.6060503@ventoso.org> <4964507.arsPbG4Yym@dibcom294>
-In-Reply-To: <4964507.arsPbG4Yym@dibcom294>
+In-Reply-To: <201306141051.00736.hverkuil@xs4all.nl>
+References: <51BAC2F6.40708@redhat.com>
+	<201306141051.00736.hverkuil@xs4all.nl>
+Date: Fri, 14 Jun 2013 08:19:05 -0400
+Message-ID: <CAGoCfiwSnCGRMeiBSAUiQQ4AAfO95TR5ECq_HS_+a2q+=ZhRKw@mail.gmail.com>
+Subject: Re: Doing a v4l-utils-1.0.0 release
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Hans de Goede <hdegoede@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
 Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Al 04/06/13 13:23, En/na Patrick Boettcher ha escrit:
-> On Monday 03 June 2013 17:14:18 Luca Olivetti wrote:
->>>> So, what's the real status of diversity support?
->>>
->>> Nobody knows?
+I've got a fix for a really bad performance bug, so if you can hold
+off on doing a release a couple of hours until I can get in front of
+my Linux box and submit a patch, I would appreciate it.
+
+Thanks,
+
+Devin
+
+On Fri, Jun 14, 2013 at 4:51 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Fri 14 June 2013 09:15:02 Hans de Goede wrote:
+>> Hi All,
 >>
->> I'm not easily discouraged :-) so here's the question again: is there
->> some dvb-t usb stick (possibly available on the EU market) with
->> diversity support under Linux?
-> 
-> There is some diversity support hidden in the dib8000-driver and in some 
-> board-drivers which use it. Basically it creates several instances of the 
-> dib8000-driver (one for each demod) but it exposes only one dvb-frontend to 
-> userspace via the API. When the user is tuning the frontend he is, in fact, 
-> tuning all of them in diversity.
-
-Mmmh, but, according to the comment, the dib8000 is isdb-t, I'm looking
-for a dvb-t device.
-My idea is to do something like this
-
-http://www.youtube.com/watch?v=STjQBE3BIYM
-
-but using a raspberry pi instead of a windows pc.
-Unfortunately, the terratec uses the dib0070 (as do most other usb
-sticks with diversity), I see some fields for diversity in dib0070.[hc],
-but every report I see it says that it just exposes two frontends and it
-doesn't support diversity.
-Of course I can buy a ready-made car tuner, but what's the fun in that? ;-)
+>> IIRC the 0.9.x series were meant as development releases leading up to a new
+>> stable 1.0.0 release. Lately there have been no maintenance 0.8.x releases
+>> and a lot of interesting development going on in the 0.9.x, while at the
+>> same time there have been no issues reported against 0.9.x (iow it seems
+>> stable).
+>>
+>> So how about taking current master and releasing that as a 1.0.0 release ?
+>
+> Fine by me!
+>
+> Note that the libv4l2rds code is now finalized, so that can be released as
+> well.
+>
+> Regards,
+>
+>         Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
 
-Bye
+
 -- 
-Luca
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
