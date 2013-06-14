@@ -1,95 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:49039 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752457Ab3F3VSC (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:56062 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751398Ab3FNJkR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jun 2013 17:18:02 -0400
-Received: by mail-bk0-f41.google.com with SMTP id jc3so1405793bkc.0
-        for <linux-media@vger.kernel.org>; Sun, 30 Jun 2013 14:18:00 -0700 (PDT)
-Message-ID: <51D0A085.7020500@gmail.com>
-Date: Sun, 30 Jun 2013 23:17:57 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Mauro Carvalho Chehab <mchehab@infradead.org>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	linux-media <linux-media@vger.kernel.org>,
+	Fri, 14 Jun 2013 05:40:17 -0400
+Message-id: <51BAE4FC.4080400@samsung.com>
+Date: Fri, 14 Jun 2013 11:40:12 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES
- and S_FMT?
-References: <201306241448.15187.hverkuil@xs4all.nl> <51D09507.80501@gmail.com> <20130630175524.0b3fda91@infradead.org>
-In-Reply-To: <20130630175524.0b3fda91@infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Subject: Re: [PATCH v10 16/21] V4L2: support asynchronous subdevice registration
+References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+ <51BA3B9A.5090206@gmail.com> <Pine.LNX.4.64.1306140902170.6920@axis700.grange>
+ <201306141107.42905.hverkuil@xs4all.nl>
+ <Pine.LNX.4.64.1306141113050.6920@axis700.grange>
+In-reply-to: <Pine.LNX.4.64.1306141113050.6920@axis700.grange>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/30/2013 10:55 PM, Mauro Carvalho Chehab wrote:
-> Em Sun, 30 Jun 2013 22:28:55 +0200
-> Sylwester Nawrocki<sylvester.nawrocki@gmail.com>  escreveu:
->
->> Hi Hans,
+Hi,
+
+On 06/14/2013 11:14 AM, Guennadi Liakhovetski wrote:
+> On Fri, 14 Jun 2013, Hans Verkuil wrote:
+>> On Fri 14 June 2013 09:14:48 Guennadi Liakhovetski wrote:
+>>> On Thu, 13 Jun 2013, Sylwester Nawrocki wrote:
+>>>> On 06/11/2013 10:23 AM, Guennadi Liakhovetski wrote:
+[...]
+>>>>> + * @v4l2_dev:	pointer to struct v4l2_device
+>>>>> + * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
+>>>>> + * @done:	list of struct v4l2_async_subdev_list, already probed
+>>>>> + * @list:	member in a global list of notifiers
+>>>>> + * @bound:	a subdevice driver has successfully probed one of subdevices
+>>>>> + * @complete:	all subdevices have been probed successfully
+>>>>> + * @unbind:	a subdevice is leaving
+>>>>> + */
+>>>>> +struct v4l2_async_notifier {
+>>>>> +	unsigned int subdev_num;
+>>>>> +	struct v4l2_async_subdev **subdev;
+>>>>> +	struct v4l2_device *v4l2_dev;
+>>>>> +	struct list_head waiting;
+>>>>> +	struct list_head done;
+>>>>> +	struct list_head list;
+>>>>> +	int (*bound)(struct v4l2_async_notifier *notifier,
+>>>>> +		     struct v4l2_subdev *subdev,
+>>>>> +		     struct v4l2_async_subdev *asd);
+>>>>> +	int (*complete)(struct v4l2_async_notifier *notifier);
+>>>>> +	void (*unbind)(struct v4l2_async_notifier *notifier,
+>>>>> +		       struct v4l2_subdev *subdev,
+>>>>> +		       struct v4l2_async_subdev *asd);
+>>>>> +};
+>>>>> +
+>>>>> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>>>>> +				 struct v4l2_async_notifier *notifier);
+>>>>> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
+>>>>> +int v4l2_async_register_subdev(struct v4l2_subdev *sd);
+>>>>> +void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
+>>>>
+>>>> I still think "async_" in this public API is unnecessary, since we register/
+>>>> unregister a subdev with the core and notifiers are intrinsically
+>>>> asynchronous.
+>>>> But your preference seems be otherwise, what could I do... :) At most it just
+>>>> means one less happy user of this interface.
 >>
->> On 06/24/2013 02:48 PM, Hans Verkuil wrote:
->>> Hi all,
->>>
->>> While working on extending v4l2-compliance with cropping/selection test cases
->>> I decided to add support for that to vivi as well (this would give applications
->>> a good test driver to work with).
->>>
->>> However, I ran into problems how this should be implemented for V4L2 devices
->>> (we are not talking about complex media controller devices where the video
->>> pipelines are setup manually).
->>>
->>> There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
->>>
->>> The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
->>> possible frame sizes, and that can crop, compose and/or scale, then you need
->>> to be able to set the frame size. Currently this is decided by S_FMT which
->>> maps the format size to the closest valid frame size. This however makes
->>> it impossible to e.g. scale up a frame, or compose the image into a larger
->>> buffer.
->>>
->>> For video receivers this issue doesn't exist: there the size of the incoming
->>> video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for sensors.
->>>
->>> I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
->>
->> V4L2_SEL_TGT_FRAMESIZE seems a bit imprecise to me, perhaps:
->> V4L2_SEL_TGT_SENSOR(_SIZE) or V4L2_SEL_TGT_SOURCE(_SIZE) ? The latter might
->> be a bit weird when referred to the subdev API though, not sure if defining
->> it as valid only on V4L2 device nodes makes any difference.
->
-> Both name proposals seem weird and confuse.
->
-> If the issue is only to do scale up, then why not create a VIDIOC_S_SCALEUP
-> ioctl (or something similar), when we start having any real case where this
-> is needed. Please, let's not overbloat the API just due to vivi driver issues.
->
-> In the specific case of vivi, I can't see why you would need something like
-> that for crop/selection: it should just assume that the S_FMT represents the
-> full frame, and crop/selection will apply on it.
->
-> Btw, I can't remember a single (non-embedded) capture device that can do
-> scaleup. On embedded devices, this is probably already solved by a mem2mem
-> driver or via the media controller API.
+>> I think v4l2_register_subdev looks awfully similar to v4l2_device_register_subdev.
+>> It becomes very confusing naming it like that. I prefer v4l2_async where 'async'
+>> refers to the v4l2-async module.
 
-Yes, for example in case of the Samsung SoCs most, if not all, the 
-camera host
-interfaces can't do scaling up themselves, only scaling down. But the 
-DMA can
-compose the source image onto a buffer, which could be larger that the frame
-size set on the camera interface input. When the camera interface input 
-(sensor)
-resolution and the capture buffer resolution are both set by S_FMT, this 
-feature
-cannot be used. Anyway, this is now handled there by the MC/subdev API.
+Ok, let's leave v4l2_async then.
 
-> Ok, for output devices this could be more common.
->
-> Do you have any real case where this feature is needed?
+> And v4l2(_async)_notifier_(un)register()?
 
-Regards,
+I guess it would be better to have all or none of the functions
+with that prefix. So either:
+
+v4l2_async_notifier_register
+v4l2_async_notifier_unregister
+v4l2_async_register_subdev
+v4l2_async_unregister_subdev
+
+or
+
+v4l2_subdev_notifier_register
+v4l2_subdev_notifier_unregister
+v4l2_subdev_register
+v4l2_subdev_unregister
+
+Thanks,
 Sylwester
