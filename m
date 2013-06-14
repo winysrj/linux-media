@@ -1,34 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:43617 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753849Ab3F0VLm (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59740 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753398Ab3FNXbm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 17:11:42 -0400
-Received: by mail-ea0-f172.google.com with SMTP id q10so657772eaj.17
-        for <linux-media@vger.kernel.org>; Thu, 27 Jun 2013 14:11:41 -0700 (PDT)
-From: Gregor Jasny <gjasny@googlemail.com>
+	Fri, 14 Jun 2013 19:31:42 -0400
+Received: from avalon.localnet (unknown [91.177.128.27])
+	by perceval.ideasonboard.com (Postfix) with ESMTPSA id AF86D35A4D
+	for <linux-media@vger.kernel.org>; Sat, 15 Jun 2013 01:31:34 +0200 (CEST)
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: Gregor Jasny <gjasny@googlemail.com>
-Subject: [PATCH 0/2] v4l-utils: Fix crashes found by Mayhem
-Date: Thu, 27 Jun 2013 23:11:29 +0200
-Message-Id: <1372367491-13187-1-git-send-email-gjasny@googlemail.com>
+Subject: [GIT PULL FOR v3.11] Sensor patches
+Date: Sat, 15 Jun 2013 01:31:53 +0200
+Message-ID: <1802886.BERXc0cPX4@avalon>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The Mayhem Team ran their code checker over the Debian archive and
-also found two crashes in v4l-utils.
+Hi Mauro,
 
-See http://lists.debian.org/debian-devel/2013/06/msg00720.html
+Please pull these two patches for the mt9p031 sensor.
 
-Gregor Jasny (2):
-  libv4lconvert: Prevent integer overflow by checking width and height
-  keytable: Always check if strtok return value is null
+The following changes since commit ab5060cdb8829c0503b7be2b239b52e9a25063b4:
 
- lib/libv4lconvert/ov511-decomp.c |  7 ++++++-
- lib/libv4lconvert/ov518-decomp.c |  7 ++++++-
- utils/keytable/keytable.c        | 19 ++++++++++++++++---
- 3 files changed, 28 insertions(+), 5 deletions(-)
+  [media] drxk_hard: Remove most 80-cols checkpatch warnings (2013-06-08 
+22:11:39 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/pinchartl/media.git sensors/next
+
+for you to fetch changes up to 697dea9078ff4d495206082eb7d4941cf536a689:
+
+  mt9p031: Use bulk regulator API (2013-06-10 11:48:29 +0200)
+
+----------------------------------------------------------------
+Lad, Prabhakar (1):
+      media: i2c: mt9p031: add OF support
+
+Laurent Pinchart (1):
+      mt9p031: Use bulk regulator API
+
+ Documentation/devicetree/bindings/media/i2c/mt9p031.txt | 40 ++++++++++++++
+ drivers/media/i2c/mt9p031.c                             | 72 ++++++++++++----
+ 2 files changed, 95 insertions(+), 17 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/mt9p031.txt
 
 -- 
-1.8.3.1
+Regards,
+
+Laurent Pinchart
 
