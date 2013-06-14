@@ -1,67 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:37635 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559Ab3FYVrT (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:29698 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753009Ab3FNRq1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 17:47:19 -0400
-Message-ID: <51CA0FE1.9090107@gmail.com>
-Date: Tue, 25 Jun 2013 23:47:13 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: balbi@ti.com
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, kishon@ti.com,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	t.figa@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	Fri, 14 Jun 2013 13:46:27 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: kishon@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
 	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	inki.dae@samsung.com, plagnioj@jcrosoft.com,
-	linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com> <20130625150649.GA21334@arwen.pp.htv.fi> <51C9D714.4000703@samsung.com> <20130625205452.GC9748@arwen.pp.htv.fi>
-In-Reply-To: <20130625205452.GC9748@arwen.pp.htv.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC PATCH 0/5] Generic PHY driver for Exynos SoCs MIPI CSI-2/DSIM
+ DPHYs
+Date: Fri, 14 Jun 2013 19:45:46 +0200
+Message-id: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On 06/25/2013 10:54 PM, Felipe Balbi wrote:
->>>> +static int exynos_video_phy_probe(struct platform_device *pdev)
->>>> >  >>  +{
->>>> >  >>  +	struct exynos_video_phy *state;
->>>> >  >>  +	struct device *dev =&pdev->dev;
->>>> >  >>  +	struct resource *res;
->>>> >  >>  +	struct phy_provider *phy_provider;
->>>> >  >>  +	int i;
->>>> >  >>  +
->>>> >  >>  +	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
->>>> >  >>  +	if (!state)
->>>> >  >>  +		return -ENOMEM;
->>>> >  >>  +
->>>> >  >>  +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->>>> >  >>  +
->>>> >  >>  +	state->regs = devm_ioremap_resource(dev, res);
->>>> >  >>  +	if (IS_ERR(state->regs))
->>>> >  >>  +		return PTR_ERR(state->regs);
->>>> >  >>  +
->>>> >  >>  +	dev_set_drvdata(dev, state);
->>> >  >
->>> >  >  you can use platform_set_drvdata(pdev, state);
->> >
->> >  I had it in the previous version, but changed for symmetry with
->> >  dev_set_drvdata(). I guess those could be replaced with
->> >  phy_{get, set}_drvdata as you suggested.
->
-> hmm, you do need to set the drvdata() to the phy object, but also to the
-> pdev object (should you need it on a suspend/resume callback, for
-> instance). Those are separate struct device instances.
+The following is a simple driver for the Samsung S5P/Exynos SoCs MIPI CSI-2
+receiver and MIPI DSI transmitter DPHYs, using the generic PHY framework [1].
+Previously the MIPI CSIS and MIPI DSIM used a platform callback to control
+the PHY power enable and reset bits. The callback can be dropped now and
+those drivers don't depend any more on any platform code.
 
-Indeed, I somehow confused phy->dev with with phy->dev.parent. I'm going
-to just drop the above call, since the pdev drvdata is currently not
-referenced anywhere.
-
+Any comments are welcome.
 
 Thanks,
 Sylwester
+
+[1] https://lkml.org/lkml/2013/6/13/97
+
+Sylwester Nawrocki (5):
+  phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+  ARM: dts: Add MIPI PHY node to exynos4.dtsi
+  video: exynos_dsi: Use generic PHY driver
+  exynos4-is: Use generic MIPI CSIS PHY driver
+  ARM: Samsung: Remove MIPI PHY setup code
+
+ .../bindings/phy/exynos-video-mipi-phy.txt         |   16 ++
+ arch/arm/boot/dts/exynos4.dtsi                     |   12 ++
+ arch/arm/mach-exynos/include/mach/regs-pmu.h       |    5 -
+ arch/arm/mach-s5pv210/include/mach/regs-clock.h    |    4 -
+ arch/arm/plat-samsung/Makefile                     |    1 -
+ arch/arm/plat-samsung/setup-mipiphy.c              |   60 -------
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   11 +-
+ drivers/phy/Kconfig                                |   10 ++
+ drivers/phy/Makefile                               |    3 +-
+ drivers/phy/exynos_video_mipi_phy.c                |  166 ++++++++++++++++++++
+ drivers/video/display/source-exynos_dsi.c          |   36 ++---
+ include/linux/platform_data/mipi-csis.h            |    9 --
+ include/video/exynos_dsi.h                         |    5 -
+ 13 files changed, 226 insertions(+), 112 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/exynos-video-mipi-phy.txt
+ delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
+ create mode 100644 drivers/phy/exynos_video_mipi_phy.c
+
+--
+1.7.9.5
+
