@@ -1,93 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:35523 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755422Ab3FTIVP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 04:21:15 -0400
-Message-ID: <51C2BB53.6080205@iki.fi>
-Date: Thu, 20 Jun 2013 11:20:35 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: "P. van Gaans" <w3ird_n3rd@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: EM28xx - MSI Digivox Trio - almost working.
-References: <51C28FA2.70004@gmx.net> <51C2B1E7.9040408@iki.fi> <51C2B91F.3000305@gmx.net>
-In-Reply-To: <51C2B91F.3000305@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.171]:62704 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751126Ab3FNTlo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jun 2013 15:41:44 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v11 00/21] V4L2 clock and asynchronous probing
+Date: Fri, 14 Jun 2013 21:08:10 +0200
+Message-Id: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/2013 11:11 AM, P. van Gaans wrote:
-> On 20-06-13 09:40, Antti Palosaari wrote:
->> On 06/20/2013 08:14 AM, P. van Gaans wrote:
->>> Hi all,
->>>
->>> (device: http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio)
->>>
->>> Thanks to the message from Philip Pemberton I was able to try loading
->>> the em28xx driver myself using:
->>>
->>> sudo modprobe em28xx card=NUMBER
->>> echo eb1a 2885 | sudo tee /sys/bus/usb/drivers/em28xx/new_id
->>>
->>> Here are the results for NUMBER:
->>>
->>> Card=79 (Terratec Cinergy H5): works, less corruption than card=87, just
->>> some blocks every few seconds. Attenuators didn't help.
->>> Card=81 (Hauppauge WinTV HVR 930C): doesn't work, no /dev/dvb adapter
->>> Card=82 (Terratec Cinergy HTC Stick): similar to card=87
->>> Card=85 (PCTV QuatroStick (510e)): constantly producing i2c read errors,
->>> doesn't work
->>> Card=86 (PCTV QuatroStick nano (520e): same
->>> Card=87 (Terratec Cinergy HTC USB XS): stick works and scans channels,
->>> but reception is bugged with corruption. It's like having a DVB-T
->>> antenna that's just not good enough, except this is DVB-C and my signal
->>> is excellent. Attenuators didn't help.
->>> Card=88 (C3 Tech Digital Duo HDTV/SDTV USB): doesn't work, no /dev/dvb
->>> adapter
->>>
->>> So with card=79 it's really close to working. What else can I do?
->>
->> Take USB sniffs, generate code, copy & paste that to the driver until it
->> starts working. After it start working start reducing generated code.
->> That way with trial and error you will find out problematic register(s)
->> very quickly.
->>
->> There is suitable scripts to generate em28xx drx-k code from the sniffs,
->> maybe in dvb-utils package. Mauro has done that script. I used it when I
->> added PCTV 520e support (problem was bug in DRX-K GPIO code).
->>
->> regards
->> Antti
->>
->
-> Hi Antti,
->
-> Thanks for your answer. Do you mean I sniff on Windows or Linux? Would
-> you happen to remember the name of the script you are referring to?
->
-> Also in em28xx-new (https://bitbucket.org/mdonoughe/em28xx-new/overview)
-> the device was supported. Wouldn't it be easier to try and find the
-> differences between the Cinergy H5 and the Digivox in that code, or
-> should I not even think of going there?
->
-> Best regards,
->
-> P. van Gaans
+v11 of the V4L2 clock helper and asynchronous probing patch set. 
+Functionally identical to v10, only differences are a couple of comment 
+lines and one renamed struct field - as requested by respectable 
+reviewers :)
 
-Download codes and look yourself. Also, I have added MaxMedia UB425-TC 
-to that driver. You should test it too.
+Only patches #15, 16 and 18 changed.
 
-Basically there is not much critical that differs between those devices. 
-GPIO is the most important. Also some dummy analog decoder init could be 
-needed.
+Guennadi Liakhovetski (21):
+  soc-camera: move common code to soc_camera.c
+  soc-camera: add host clock callbacks to start and stop the master
+    clock
+  pxa-camera: move interface activation and deactivation to clock
+    callbacks
+  omap1-camera: move interface activation and deactivation to clock
+    callbacks
+  atmel-isi: move interface activation and deactivation to clock
+    callbacks
+  mx3-camera: move interface activation and deactivation to clock
+    callbacks
+  mx2-camera: move interface activation and deactivation to clock
+    callbacks
+  mx1-camera: move interface activation and deactivation to clock
+    callbacks
+  sh-mobile-ceu-camera: move interface activation and deactivation to
+    clock callbacks
+  soc-camera: make .clock_{start,stop} compulsory, .add / .remove
+    optional
+  soc-camera: don't attach the client to the host during probing
+  sh-mobile-ceu-camera: add primitive OF support
+  sh-mobile-ceu-driver: support max width and height in DT
+  V4L2: add temporary clock helpers
+  V4L2: add a device pointer to struct v4l2_subdev
+  V4L2: support asynchronous subdevice registration
+  soc-camera: switch I2C subdevice drivers to use v4l2-clk
+  soc-camera: add V4L2-async support
+  sh_mobile_ceu_camera: add asynchronous subdevice probing support
+  imx074: support asynchronous probing
+  ARM: shmobile: convert ap4evb to asynchronously register camera
+    subdevices
 
-You have to take sniffs and compare those against drivers. There is not 
-much I could do for you.
-
-regards
-Antti
-
+ .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
+ arch/arm/mach-shmobile/board-ap4evb.c              |  103 ++--
+ arch/arm/mach-shmobile/clock-sh7372.c              |    1 +
+ drivers/media/i2c/soc_camera/imx074.c              |   32 +-
+ drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
+ drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
+ drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
+ drivers/media/i2c/soc_camera/mt9t112.c             |   25 +-
+ drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
+ drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
+ drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
+ drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
+ drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
+ drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
+ drivers/media/i2c/soc_camera/ov9640.h              |    1 +
+ drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
+ drivers/media/i2c/soc_camera/tw9910.c              |   24 +-
+ drivers/media/platform/soc_camera/atmel-isi.c      |   38 +-
+ drivers/media/platform/soc_camera/mx1_camera.c     |   48 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |   41 +-
+ drivers/media/platform/soc_camera/mx3_camera.c     |   44 +-
+ drivers/media/platform/soc_camera/omap1_camera.c   |   41 +-
+ drivers/media/platform/soc_camera/pxa_camera.c     |   46 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  243 +++++--
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |  153 +++--
+ drivers/media/platform/soc_camera/soc_camera.c     |  707 +++++++++++++++++---
+ .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+ drivers/media/v4l2-core/Makefile                   |    3 +-
+ drivers/media/v4l2-core/v4l2-async.c               |  280 ++++++++
+ drivers/media/v4l2-core/v4l2-clk.c                 |  242 +++++++
+ drivers/media/v4l2-core/v4l2-common.c              |    2 +
+ include/media/sh_mobile_ceu.h                      |    2 +
+ include/media/sh_mobile_csi2.h                     |    2 +-
+ include/media/soc_camera.h                         |   39 +-
+ include/media/v4l2-async.h                         |  105 +++
+ include/media/v4l2-clk.h                           |   54 ++
+ include/media/v4l2-subdev.h                        |   10 +
+ 38 files changed, 2035 insertions(+), 467 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
+ create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+ create mode 100644 include/media/v4l2-async.h
+ create mode 100644 include/media/v4l2-clk.h
 
 -- 
-http://palosaari.fi/
+1.7.2.5
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
