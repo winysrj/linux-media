@@ -1,108 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2073 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755601Ab3FLPCK (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:58676 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752931Ab3FNTJD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 11:02:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Fri, 14 Jun 2013 15:09:03 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
 Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 05/12] sn9c102_core: add v4l2_device and replace parent with v4l2_dev
-Date: Wed, 12 Jun 2013 17:00:55 +0200
-Message-Id: <1371049262-5799-6-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v11 10/21] soc-camera: make .clock_{start,stop} compulsory, .add / .remove optional
+Date: Fri, 14 Jun 2013 21:08:20 +0200
+Message-Id: <1371236911-15131-11-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+All existing soc-camera host drivers use .clock_start() and .clock_stop()
+callbacks to activate and deactivate their camera interfaces, whereas
+.add() and .remove() callbacks are usually dummy. Make the former two
+compulsory and the latter two optional.
 
-This driver did not yet support struct v4l2_device, so add it. This
-make it possible to replace the deprecated parent field with the
-v4l2_dev field, allowing the eventual removal of the parent field.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- drivers/media/usb/sn9c102/sn9c102.h      |    3 +++
- drivers/media/usb/sn9c102/sn9c102_core.c |   13 ++++++++++++-
- 2 files changed, 15 insertions(+), 1 deletion(-)
+ drivers/media/platform/soc_camera/soc_camera.c |   27 +++++++++++------------
+ 1 files changed, 13 insertions(+), 14 deletions(-)
 
-diff --git a/drivers/media/usb/sn9c102/sn9c102.h b/drivers/media/usb/sn9c102/sn9c102.h
-index 2bc153e..8a917f06 100644
---- a/drivers/media/usb/sn9c102/sn9c102.h
-+++ b/drivers/media/usb/sn9c102/sn9c102.h
-@@ -25,6 +25,7 @@
- #include <linux/videodev2.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ioctl.h>
-+#include <media/v4l2-device.h>
- #include <linux/device.h>
- #include <linux/list.h>
- #include <linux/spinlock.h>
-@@ -100,6 +101,8 @@ static DECLARE_RWSEM(sn9c102_dev_lock);
- struct sn9c102_device {
- 	struct video_device* v4ldev;
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index df90565..e503f03 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -513,23 +513,22 @@ static int soc_camera_add_device(struct soc_camera_device *icd)
+ 	if (ici->icd)
+ 		return -EBUSY;
  
-+	struct v4l2_device v4l2_dev;
+-	if (ici->ops->clock_start) {
+-		ret = ici->ops->clock_start(ici);
++	ret = ici->ops->clock_start(ici);
++	if (ret < 0)
++		return ret;
 +
- 	enum sn9c102_bridge bridge;
- 	struct sn9c102_sensor sensor;
- 
-diff --git a/drivers/media/usb/sn9c102/sn9c102_core.c b/drivers/media/usb/sn9c102/sn9c102_core.c
-index c957e9a..2cb44de 100644
---- a/drivers/media/usb/sn9c102/sn9c102_core.c
-+++ b/drivers/media/usb/sn9c102/sn9c102_core.c
-@@ -1737,6 +1737,7 @@ static void sn9c102_release_resources(struct kref *kref)
- 	    video_device_node_name(cam->v4ldev));
- 	video_set_drvdata(cam->v4ldev, NULL);
- 	video_unregister_device(cam->v4ldev);
-+	v4l2_device_unregister(&cam->v4l2_dev);
- 	usb_put_dev(cam->usbdev);
- 	kfree(cam->control_buffer);
- 	kfree(cam);
-@@ -3254,6 +3255,13 @@ sn9c102_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
- 
- 	cam->usbdev = udev;
- 
-+	/* register v4l2_device early so it can be used for printks */
-+	if (v4l2_device_register(&intf->dev, &cam->v4l2_dev)) {
-+		dev_err(&intf->dev, "v4l2_device_register failed\n");
-+		err = -ENOMEM;
-+		goto fail;
-+	}
-+
- 	if (!(cam->control_buffer = kzalloc(8, GFP_KERNEL))) {
- 		DBG(1, "kzalloc() failed");
- 		err = -ENOMEM;
-@@ -3325,7 +3333,7 @@ sn9c102_usb_probe(struct usb_interface* intf, const struct usb_device_id* id)
- 	strcpy(cam->v4ldev->name, "SN9C1xx PC Camera");
- 	cam->v4ldev->fops = &sn9c102_fops;
- 	cam->v4ldev->release = video_device_release;
--	cam->v4ldev->parent = &udev->dev;
-+	cam->v4ldev->v4l2_dev = &cam->v4l2_dev;
- 
- 	init_completion(&cam->probe);
- 
-@@ -3377,6 +3385,7 @@ fail:
- 		kfree(cam->control_buffer);
- 		if (cam->v4ldev)
- 			video_device_release(cam->v4ldev);
-+		v4l2_device_unregister(&cam->v4l2_dev);
- 		kfree(cam);
++	if (ici->ops->add) {
++		ret = ici->ops->add(icd);
+ 		if (ret < 0)
+-			return ret;
++			goto eadd;
  	}
- 	return err;
-@@ -3407,6 +3416,8 @@ static void sn9c102_usb_disconnect(struct usb_interface* intf)
  
- 	wake_up_interruptible_all(&cam->wait_open);
+-	ret = ici->ops->add(icd);
+-	if (ret < 0)
+-		goto eadd;
+-
+ 	ici->icd = icd;
  
-+	v4l2_device_disconnect(&cam->v4l2_dev);
-+
- 	kref_put(&cam->kref, sn9c102_release_resources);
+ 	return 0;
  
- 	up_write(&sn9c102_dev_lock);
+ eadd:
+-	if (ici->ops->clock_stop)
+-		ici->ops->clock_stop(ici);
++	ici->ops->clock_stop(ici);
+ 	return ret;
+ }
+ 
+@@ -540,9 +539,9 @@ static void soc_camera_remove_device(struct soc_camera_device *icd)
+ 	if (WARN_ON(icd != ici->icd))
+ 		return;
+ 
+-	ici->ops->remove(icd);
+-	if (ici->ops->clock_stop)
+-		ici->ops->clock_stop(ici);
++	if (ici->ops->remove)
++		ici->ops->remove(icd);
++	ici->ops->clock_stop(ici);
+ 	ici->icd = NULL;
+ }
+ 
+@@ -1413,8 +1412,8 @@ int soc_camera_host_register(struct soc_camera_host *ici)
+ 	    ((!ici->ops->init_videobuf ||
+ 	      !ici->ops->reqbufs) &&
+ 	     !ici->ops->init_videobuf2) ||
+-	    !ici->ops->add ||
+-	    !ici->ops->remove ||
++	    !ici->ops->clock_start ||
++	    !ici->ops->clock_stop ||
+ 	    !ici->ops->poll ||
+ 	    !ici->v4l2_dev.dev)
+ 		return -EINVAL;
 -- 
-1.7.10.4
+1.7.2.5
 
