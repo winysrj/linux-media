@@ -1,100 +1,167 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:3331 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754984Ab3FBS2v (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 14:28:51 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r52ISdSn076867
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sun, 2 Jun 2013 20:28:42 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id BE6BD35E004C
-	for <linux-media@vger.kernel.org>; Sun,  2 Jun 2013 20:28:39 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from moutng.kundenserver.de ([212.227.17.9]:56148 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753716Ab3FNTJa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 14 Jun 2013 15:09:30 -0400
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130602182839.BE6BD35E004C@alastor.dyndns.org>
-Date: Sun,  2 Jun 2013 20:28:39 +0200 (CEST)
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: [PATCH v11 09/21] sh-mobile-ceu-camera: move interface activation and deactivation to clock callbacks
+Date: Fri, 14 Jun 2013 21:08:19 +0200
+Message-Id: <1371236911-15131-10-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+When adding and removing a client, the sh-mobile-ceu-camera driver activates
+and, respectively, deactivates its camera interface and, if necessary, the
+CSI2 controller. Only handling of the CSI2 interface is client-specific and
+is only needed, when a data-exchange with the client is taking place. Move
+the rest to .clock_start() and .clock_stop() callbacks.
 
-Results of the daily build of media_tree:
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |   58 ++++++++++++--------
+ 1 files changed, 35 insertions(+), 23 deletions(-)
 
-date:		Sun Jun  2 19:00:19 CEST 2013
-git branch:	test
-git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+index 5b7d8e1..9037472 100644
+--- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
++++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
+@@ -162,7 +162,6 @@ static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
+ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
+ {
+ 	int i, success = 0;
+-	struct soc_camera_device *icd = pcdev->ici.icd;
+ 
+ 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
+ 
+@@ -186,7 +185,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
+ 
+ 
+ 	if (2 != success) {
+-		dev_warn(icd->pdev, "soft reset time out\n");
++		dev_warn(pcdev->ici.v4l2_dev.dev, "soft reset time out\n");
+ 		return -EIO;
+ 	}
+ 
+@@ -543,35 +542,21 @@ static struct v4l2_subdev *find_csi2(struct sh_mobile_ceu_dev *pcdev)
+ 	return NULL;
+ }
+ 
+-/* Called with .host_lock held */
+ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+-	struct v4l2_subdev *csi2_sd;
++	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
+ 	int ret;
+ 
+-	dev_info(icd->parent,
+-		 "SuperH Mobile CEU driver attached to camera %d\n",
+-		 icd->devnum);
+-
+-	pm_runtime_get_sync(ici->v4l2_dev.dev);
+-
+-	pcdev->buf_total = 0;
+-
+-	ret = sh_mobile_ceu_soft_reset(pcdev);
+-
+-	csi2_sd = find_csi2(pcdev);
+ 	if (csi2_sd) {
+ 		csi2_sd->grp_id = soc_camera_grp_id(icd);
+ 		v4l2_set_subdev_hostdata(csi2_sd, icd);
+ 	}
+ 
+ 	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
+-	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
+-		pm_runtime_put(ici->v4l2_dev.dev);
++	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
+ 		return ret;
+-	}
+ 
+ 	/*
+ 	 * -ENODEV is special: either csi2_sd == NULL or the CSI-2 driver
+@@ -580,19 +565,48 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
+ 	if (ret == -ENODEV && csi2_sd)
+ 		csi2_sd->grp_id = 0;
+ 
++	dev_info(icd->parent,
++		 "SuperH Mobile CEU driver attached to camera %d\n",
++		 icd->devnum);
++
+ 	return 0;
+ }
+ 
+-/* Called with .host_lock held */
+ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
+ {
+ 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+ 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
+ 	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
+ 
++	dev_info(icd->parent,
++		 "SuperH Mobile CEU driver detached from camera %d\n",
++		 icd->devnum);
++
+ 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
+ 	if (csi2_sd)
+ 		csi2_sd->grp_id = 0;
++}
++
++/* Called with .host_lock held */
++static int sh_mobile_ceu_clock_start(struct soc_camera_host *ici)
++{
++	struct sh_mobile_ceu_dev *pcdev = ici->priv;
++	int ret;
++
++	pm_runtime_get_sync(ici->v4l2_dev.dev);
++
++	pcdev->buf_total = 0;
++
++	ret = sh_mobile_ceu_soft_reset(pcdev);
++
++	return 0;
++}
++
++/* Called with .host_lock held */
++static void sh_mobile_ceu_clock_stop(struct soc_camera_host *ici)
++{
++	struct sh_mobile_ceu_dev *pcdev = ici->priv;
++
+ 	/* disable capture, disable interrupts */
+ 	ceu_write(pcdev, CEIER, 0);
+ 	sh_mobile_ceu_soft_reset(pcdev);
+@@ -607,10 +621,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
+ 	spin_unlock_irq(&pcdev->lock);
+ 
+ 	pm_runtime_put(ici->v4l2_dev.dev);
+-
+-	dev_info(icd->parent,
+-		 "SuperH Mobile CEU driver detached from camera %d\n",
+-		 icd->devnum);
+ }
+ 
+ /*
+@@ -2027,6 +2037,8 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
+ 	.owner		= THIS_MODULE,
+ 	.add		= sh_mobile_ceu_add_device,
+ 	.remove		= sh_mobile_ceu_remove_device,
++	.clock_start	= sh_mobile_ceu_clock_start,
++	.clock_stop	= sh_mobile_ceu_clock_stop,
+ 	.get_formats	= sh_mobile_ceu_get_formats,
+ 	.put_formats	= sh_mobile_ceu_put_formats,
+ 	.get_crop	= sh_mobile_ceu_get_crop,
+-- 
+1.7.2.5
 
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
