@@ -1,82 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:24542 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751254Ab3FYJCz (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:40977 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753236Ab3FNRss (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 05:02:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES and S_FMT?
-Date: Tue, 25 Jun 2013 11:02:51 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <201306241448.15187.hverkuil@xs4all.nl> <20130625082119.GJ2064@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130625082119.GJ2064@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306251102.51514.hverkuil@xs4all.nl>
+	Fri, 14 Jun 2013 13:48:48 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: kishon@ti.com
+Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
+	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
+	linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [RFC PATCH 4/5] exynos4-is: Use generic MIPI CSIS PHY driver
+Date: Fri, 14 Jun 2013 19:45:50 +0200
+Message-id: <1371231951-1969-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com>
+References: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 25 June 2013 10:21:19 Sakari Ailus wrote:
-> Hi Hans,
-> 
-> On Mon, Jun 24, 2013 at 02:48:15PM +0200, Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > While working on extending v4l2-compliance with cropping/selection test cases
-> > I decided to add support for that to vivi as well (this would give applications
-> > a good test driver to work with).
-> > 
-> > However, I ran into problems how this should be implemented for V4L2 devices
-> > (we are not talking about complex media controller devices where the video
-> > pipelines are setup manually).
-> > 
-> > There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
-> > 
-> > The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
-> > possible frame sizes, and that can crop, compose and/or scale, then you need
-> > to be able to set the frame size. Currently this is decided by S_FMT which
-> 
-> Sensors have a single "frame size". Other sizes are achieved by using
-> cropping and scaling (or binning) from the native pixel array size. The
-> drivers should probably also expose these properties rather than advertise
-> multiple frame sizes.
+Use the generic PHY API instead of the platform callback to control
+the MIPI CSIS DPHY.
 
-The problem is that from the point of view of a generic application you really
-don't want to know about that. You have a number of possible framesizes and you
-just want to pick one.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/mipi-csis.c |   11 +++++++++--
+ include/linux/platform_data/mipi-csis.h       |    9 ---------
+ 2 files changed, 9 insertions(+), 11 deletions(-)
 
-Also, the hardware may hide how each framesize was achieved and in the case of
-vivi or mem2mem devices things are even murkier.
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index 0fe80e3..88d0d61 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -20,6 +20,7 @@
+ #include <linux/memory.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/phy/phy.h>
+ #include <linux/platform_data/mipi-csis.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -184,6 +185,7 @@ struct csis_drvdata {
+  * @sd: v4l2_subdev associated with CSIS device instance
+  * @index: the hardware instance index
+  * @pdev: CSIS platform device
++ * @phy: pointer to the CSIS generic PHY
+  * @regs: mmaped I/O registers memory
+  * @supplies: CSIS regulator supplies
+  * @clock: CSIS clocks
+@@ -207,6 +209,7 @@ struct csis_state {
+ 	struct v4l2_subdev sd;
+ 	u8 index;
+ 	struct platform_device *pdev;
++	struct phy *phy;
+ 	void __iomem *regs;
+ 	struct regulator_bulk_data supplies[CSIS_NUM_SUPPLIES];
+ 	struct clk *clock[NUM_CSIS_CLOCKS];
+@@ -861,6 +864,10 @@ static int s5pcsis_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
++	state->phy = devm_phy_get(dev, "csis");
++	if (IS_ERR(state->phy))
++		return PTR_ERR(state->phy);
++
+ 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	state->regs = devm_ioremap_resource(dev, mem_res);
+ 	if (IS_ERR(state->regs))
+@@ -946,7 +953,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
+ 	mutex_lock(&state->lock);
+ 	if (state->flags & ST_POWERED) {
+ 		s5pcsis_stop_stream(state);
+-		ret = s5p_csis_phy_enable(state->index, false);
++		ret = phy_power_off(state->phy);
+ 		if (ret)
+ 			goto unlock;
+ 		ret = regulator_bulk_disable(CSIS_NUM_SUPPLIES,
+@@ -982,7 +989,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
+ 					    state->supplies);
+ 		if (ret)
+ 			goto unlock;
+-		ret = s5p_csis_phy_enable(state->index, true);
++		ret = phy_power_on(state->phy);
+ 		if (!ret) {
+ 			state->flags |= ST_POWERED;
+ 		} else {
+diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
+index bf34e17..c2fd902 100644
+--- a/include/linux/platform_data/mipi-csis.h
++++ b/include/linux/platform_data/mipi-csis.h
+@@ -25,13 +25,4 @@ struct s5p_platform_mipi_csis {
+ 	u8 hs_settle;
+ };
+ 
+-/**
+- * s5p_csis_phy_enable - global MIPI-CSI receiver D-PHY control
+- * @id:     MIPI-CSIS harware instance index (0...1)
+- * @on:     true to enable D-PHY and deassert its reset
+- *          false to disable D-PHY
+- * @return: 0 on success, or negative error code on failure
+- */
+-int s5p_csis_phy_enable(int id, bool on);
+-
+ #endif /* __PLAT_SAMSUNG_MIPI_CSIS_H_ */
+-- 
+1.7.9.5
 
-> > maps the format size to the closest valid frame size. This however makes
-> > it impossible to e.g. scale up a frame, or compose the image into a larger
-> > buffer.
-> > 
-> > For video receivers this issue doesn't exist: there the size of the incoming
-> > video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for sensors.
-> > 
-> > I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
-> 
-> The smiapp (well, subdev) driver uses V4L2_SEL_TGT_CROP_BOUNDS rectangle for
-> this purpose. It was agreed to use that instead of creating a separate
-> "pixel array size" rectangle back then. Could it be used for the same
-> purpose on video nodes, too? If not, then smiapp should also be switched to
-> use the new "frame size" rectangle.
-
-The problem with CROP_BOUNDS is that it may be larger than the actual framesize,
-as it can include blanking (for video) or the additional border pixels in a
-sensor.
-
-I would prefer a new selection target for this.
-
-Regards,
-
-	Hans
