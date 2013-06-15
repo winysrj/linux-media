@@ -1,148 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4753 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755574Ab3FCJhZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 05:37:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Steven Toth <stoth@kernellabs.com>
-Subject: [RFC PATCH 08/13] saa7164: replace current_norm by g_std
-Date: Mon,  3 Jun 2013 11:36:45 +0200
-Message-Id: <1370252210-4994-9-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:57372 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754351Ab3FOUoJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jun 2013 16:44:09 -0400
+Message-ID: <51BCD217.8060608@schinagl.nl>
+Date: Sat, 15 Jun 2013 22:44:07 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Duval Mickael <duvalmickael@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: DVB Scan file for Cherbourg (FR)
+References: <CAMiis9aue=BJnGxhak9aKSXVtJPPB7df4WpKDdJL9Anw54en5Q@mail.gmail.com> <51B44BD5.2010208@schinagl.nl> <CAMiis9ZiLXwX+E2TmjsYkA1iCowArrP5jTT4VgWCeA6gCUDJDQ@mail.gmail.com> <CAMiis9bZtgfX_zha6vL1HVcxrNJb0RFvP=45Mp44Eb1cuUTSFA@mail.gmail.com> <51BB9033.50709@schinagl.nl> <CAMiis9ZgKKD3iiXchPcN=r9QCBjVvasmXjRn8rvmfzs33k-wPQ@mail.gmail.com> <CAMiis9a=nSvdueKfAJCU=JEuprQU_nSRtKx4u5-QKA2kUrEUZQ@mail.gmail.com> <51BC36ED.3010405@schinagl.nl> <CAMiis9aDuu7xArvg7QOvbXmzVpwKUhETr+m=WEKnbSHbhPuLpA@mail.gmail.com>
+In-Reply-To: <CAMiis9aDuu7xArvg7QOvbXmzVpwKUhETr+m=WEKnbSHbhPuLpA@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-current_norm is deprecated. Replace it by g_std.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Steven Toth <stoth@kernellabs.com>
----
- drivers/media/pci/saa7164/saa7164-encoder.c |   13 ++++++++++++-
- drivers/media/pci/saa7164/saa7164-vbi.c     |   13 ++++++++++++-
- drivers/media/pci/saa7164/saa7164.h         |    1 +
- 3 files changed, 25 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/pci/saa7164/saa7164-encoder.c b/drivers/media/pci/saa7164/saa7164-encoder.c
-index 63a72fb..ffa2965 100644
---- a/drivers/media/pci/saa7164/saa7164-encoder.c
-+++ b/drivers/media/pci/saa7164/saa7164-encoder.c
-@@ -228,6 +228,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- 		return -EINVAL;
- 
- 	port->encodernorm = saa7164_tvnorms[i];
-+	port->std = id;
- 
- 	/* Update the audio decoder while is not running in
- 	 * auto detect mode.
-@@ -239,6 +240,15 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- 	return 0;
- }
- 
-+static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
-+{
-+	struct saa7164_encoder_fh *fh = file->private_data;
-+	struct saa7164_port *port = fh->port;
-+
-+	*id = port->std;
-+	return 0;
-+}
-+
- static int vidioc_enum_input(struct file *file, void *priv,
- 	struct v4l2_input *i)
- {
-@@ -1322,6 +1332,7 @@ static int saa7164_s_register(struct file *file, void *fh,
- 
- static const struct v4l2_ioctl_ops mpeg_ioctl_ops = {
- 	.vidioc_s_std		 = vidioc_s_std,
-+	.vidioc_g_std		 = vidioc_g_std,
- 	.vidioc_enum_input	 = vidioc_enum_input,
- 	.vidioc_g_input		 = vidioc_g_input,
- 	.vidioc_s_input		 = vidioc_s_input,
-@@ -1353,7 +1364,6 @@ static struct video_device saa7164_mpeg_template = {
- 	.ioctl_ops     = &mpeg_ioctl_ops,
- 	.minor         = -1,
- 	.tvnorms       = SAA7164_NORMS,
--	.current_norm  = V4L2_STD_NTSC_M,
- };
- 
- static struct video_device *saa7164_encoder_alloc(
-@@ -1420,6 +1430,7 @@ int saa7164_encoder_register(struct saa7164_port *port)
- 	port->encoder_params.ctl_aspect = V4L2_MPEG_VIDEO_ASPECT_4x3;
- 	port->encoder_params.refdist = 1;
- 	port->encoder_params.gop_size = SAA7164_ENCODER_DEFAULT_GOP_SIZE;
-+	port->std = V4L2_STD_NTSC_M;
- 
- 	if (port->encodernorm.id & V4L2_STD_525_60)
- 		port->height = 480;
-diff --git a/drivers/media/pci/saa7164/saa7164-vbi.c b/drivers/media/pci/saa7164/saa7164-vbi.c
-index da224eb..07c361e 100644
---- a/drivers/media/pci/saa7164/saa7164-vbi.c
-+++ b/drivers/media/pci/saa7164/saa7164-vbi.c
-@@ -200,6 +200,7 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- 		return -EINVAL;
- 
- 	port->encodernorm = saa7164_tvnorms[i];
-+	port->std = id;
- 
- 	/* Update the audio decoder while is not running in
- 	 * auto detect mode.
-@@ -211,6 +212,15 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id id)
- 	return 0;
- }
- 
-+static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *id)
-+{
-+	struct saa7164_encoder_fh *fh = file->private_data;
-+	struct saa7164_port *port = fh->port;
-+
-+	*id = port->std;
-+	return 0;
-+}
-+
- static int vidioc_enum_input(struct file *file, void *priv,
- 	struct v4l2_input *i)
- {
-@@ -1236,6 +1246,7 @@ static const struct v4l2_file_operations vbi_fops = {
- 
- static const struct v4l2_ioctl_ops vbi_ioctl_ops = {
- 	.vidioc_s_std		 = vidioc_s_std,
-+	.vidioc_g_std		 = vidioc_g_std,
- 	.vidioc_enum_input	 = vidioc_enum_input,
- 	.vidioc_g_input		 = vidioc_g_input,
- 	.vidioc_s_input		 = vidioc_s_input,
-@@ -1274,7 +1285,6 @@ static struct video_device saa7164_vbi_template = {
- 	.ioctl_ops     = &vbi_ioctl_ops,
- 	.minor         = -1,
- 	.tvnorms       = SAA7164_NORMS,
--	.current_norm  = V4L2_STD_NTSC_M,
- };
- 
- static struct video_device *saa7164_vbi_alloc(
-@@ -1333,6 +1343,7 @@ int saa7164_vbi_register(struct saa7164_port *port)
- 		goto failed;
- 	}
- 
-+	port->std = V4L2_STD_NTSC_M;
- 	video_set_drvdata(port->v4l_device, port);
- 	result = video_register_device(port->v4l_device,
- 		VFL_TYPE_VBI, -1);
-diff --git a/drivers/media/pci/saa7164/saa7164.h b/drivers/media/pci/saa7164/saa7164.h
-index 437284e..a23e7fe 100644
---- a/drivers/media/pci/saa7164/saa7164.h
-+++ b/drivers/media/pci/saa7164/saa7164.h
-@@ -376,6 +376,7 @@ struct saa7164_port {
- 	/* Encoder */
- 	/* Defaults established in saa7164-encoder.c */
- 	struct saa7164_tvnorm encodernorm;
-+	v4l2_std_id std;
- 	u32 height;
- 	u32 width;
- 	u32 freq;
--- 
-1.7.10.4
+On 15-06-13 12:08, Duval Mickael wrote:
+> Indeed frequencies fr_Cherbourg and fr_Bordeaux are contained in fr_All.
+> But I was thinking of doing a fr_All file and a specific file for all
+> city as uk.
+>
+> With a file with only the useful frequency, detection will be much faster right?
+Yes, if you only have to scan 5 frequencies instead of 20 of course it 
+will be faster. But how often do you tune and how many frequencies are 
+there to consider? If you have look at fr-All, that looks pretty small 
+to me. Having 20 files covering those same frequencies will just add 
+clutter to the db if you ask me. So I would keep with one fr-All if it 
+works 'for everybody'.
+>
+> 2013/6/15 Oliver Schinagl <oliver+list@schinagl.nl>:
+>> On 06/15/13 11:30, Duval Mickael wrote:
+>>> Ok I have cloned your repo with Git, and I've make two patch files.
+>>>
+>> Can you explain to me why there are fr-All and fr-Cherbourg? (and
+>> fr-Bordeaux)?
+>>
+>> Does fr-All not work for those two places? If fr-All does everything, it's
+>> ok to merge the other two in. nl-All is all transponders for the country as
+>> a lot of frequencies are shared. We could have 10 or so nl-<area> but they'd
+>> be all really small.
+>>
+>> So is fr-All everything for the entire country, but has Cherbourg and
+>> Bordeaux extra, very different freq's?
+>>
+>> Merged in c8050e8105b1b4b5364f57d8b3e658c80fb04a53 for now
+>>
+>> Thanks,
+>> oliver
+>>
+>>> 2013/6/15 Duval Mickael <duvalmickael@gmail.com>:
+>>>> In zip there is a little modification for city of cherbourg (add two
+>>>> new muxes) and a fr_ALL for France all channels DVB-T initial
+>>>> scan.
+>>>>
+>>>> What's the problem exactly with my files?
+>>>>
+>>>> Thanks
+>>>> Duval Mickael
+>>>>
+>>>> 2013/6/14 Oliver Schinagl <oliver+list@schinagl.nl>:
+>>>>> On 06/13/13 19:10, Duval Mickael wrote:
+>>>>>>
+>>>>>> Hello,
+>>>>>
+>>>>> Hi,
+>>>>>
+>>>>>> I send this email to you for a DVB-T scan file for the city of
+>>>>>> Cherbourg
+>>>>>> FRANCE, modified with the last channels.
+>>>>>> I also enclose a package file that includes all channels available for
+>>>>>> DVB-T in France.
+>>>>>
+>>>>> I've applied your patch (after manually working it over) last time.
+>>>>>
+>>>>> What is in this zip? Please send a patch file what still needs to be
+>>>>> adjusted. Cherbourg is in the repo now, isn't it?
+>>>>>
+>>>>>> Sorry for my poor English ;-)
+>>>>>>
+>>>>>> Thank you.
+>>>>>
+>>>>>
 
