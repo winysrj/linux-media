@@ -1,95 +1,216 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f173.google.com ([209.85.128.173]:34288 "EHLO
-	mail-ve0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751884Ab3FNNVQ (ORCPT
+Received: from mail-bk0-f43.google.com ([209.85.214.43]:49137 "EHLO
+	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754096Ab3FOOji (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 09:21:16 -0400
-Received: by mail-ve0-f173.google.com with SMTP id jw11so463604veb.32
-        for <linux-media@vger.kernel.org>; Fri, 14 Jun 2013 06:21:15 -0700 (PDT)
+	Sat, 15 Jun 2013 10:39:38 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Eduardo Valentin <eduardo.valentin@ti.com>
+Cc: Tomasz Figa <t.figa@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	Kukjin Kim <kgene.kim@samsung.com>,
+	Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Thomas Abraham <thomas.abraham@linaro.org>,
+	"Rafael J. Wysocki" <rjw@sisk.pl>,
+	Viresh Kumar <viresh.kumar@linaro.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Zhang Rui <rui.zhang@intel.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	cpufreq@vger.kernel.org, linux-pm@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-serial@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 27/28] ARM: EXYNOS: Remove CONFIG_SOC_EXYNOS4412
+Date: Sat, 15 Jun 2013 16:39:35 +0200
+Message-ID: <1510187.NDxPHFLl0d@flatron>
+In-Reply-To: <51BC74E1.5090504@ti.com>
+References: <1371238384-1504-1-git-send-email-t.figa@samsung.com> <1371238384-1504-28-git-send-email-t.figa@samsung.com> <51BC74E1.5090504@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <51BAE81B.4050008@samsung.com>
-References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
-	<1370870586-24141-6-git-send-email-arun.kk@samsung.com>
-	<51B5D876.2000704@samsung.com>
-	<CALt3h7_BhORpmJUNZD1G-2eEZZ72YKus6wrfRiwRL4eLfViZHA@mail.gmail.com>
-	<51BAE81B.4050008@samsung.com>
-Date: Fri, 14 Jun 2013 18:51:15 +0530
-Message-ID: <CALt3h78de0geS3+HdD3AE2OvTL3Zz10N5J7GUgHXjBUpz-tXow@mail.gmail.com>
-Subject: Re: [PATCH 5/6] [media] V4L: Add VP8 encoder controls
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
-	avnd.kiran@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Saturday 15 of June 2013 10:06:25 Eduardo Valentin wrote:
+> Tomasz,
+> 
+> On 14-06-2013 15:33, Tomasz Figa wrote:
+> > Exynos4212 and Exynos4412 SoCs differ only in number of ARM cores and
+> > there is no need to have separate Kconfig options for them, since they
+> > use the same code.
+> > 
+> > This patch removes CONFIG_SOC_EXYNOS4412, leaving
+> > CONFIG_SOC_EXYNOS4212
+> > as the one supporting both SoCs from this series.
+> > 
+> > Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> > Cc: Viresh Kumar <viresh.kumar@linaro.org>
+> > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > Cc: Zhang Rui <rui.zhang@intel.com>
+> > Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > Cc: cpufreq@vger.kernel.org
+> > Cc: linux-pm@vger.kernel.org
+> > Cc: linux-media@vger.kernel.org
+> > Cc: linux-serial@vger.kernel.org
+> > Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> > 
+> >  arch/arm/mach-exynos/Kconfig              | 11 +----------
+> >  arch/arm/plat-samsung/include/plat/cpu.h  |  6 +-----
+> >  drivers/cpufreq/Kconfig.arm               |  2 +-
+> >  drivers/media/platform/exynos4-is/Kconfig |  2 +-
+> >  drivers/thermal/exynos_thermal.c          |  2 +-
+> >  drivers/tty/serial/samsung.c              |  3 +--
+> >  6 files changed, 6 insertions(+), 20 deletions(-)
+> 
+> Not for the matter of the change itself, but just for simplicity while
+> merging when the change is agreed to be good, it is recommended that you
+> split your changes in different smaller patches, specially because you
+> are touching several parts of the kernel that belong to different
+> trees. If one merges your change the way it is, it is likely to create
+> merge conflicts.
 
-On Fri, Jun 14, 2013 at 3:23 PM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> Hi Arun,
->
-> On 06/14/2013 11:26 AM, Arun Kumar K wrote:
->> Hi Sylwester,
->>
->>>> +     static const char * const vpx_num_partitions[] = {
->>>> +             "1 partition",
->>>> +             "2 partitions",
->>>> +             "4 partitions",
->>>> +             "8 partitions",
->>>> +             NULL,
->>>> +     };
->>>> +     static const char * const vpx_num_ref_frames[] = {
->>>> +             "1 reference frame",
->>>> +             "2 reference frame",
->>>> +             NULL,
->>>> +     };
->>>
->>> Have you considered using V4L2_CTRL_TYPE_INTEGER_MENU control type for this ?
->>> One example is V4L2_CID_ISO_SENSITIVITY control.
->>>
->>
->> If I understand correctly, V4L2_CTRL_TYPE_INTEGER_MENU is used for
->> controls where
->> the driver / IP can support different values depending on its capabilities.
->
-> No, not really, it just happens there is no INTEGER_MENU control with standard
-> values yet. I think there are some (minor) changes needed in the v4l2-ctrls
-> code to support INTEGER_MENU control with standard menu items.
->
->> But here VP8 standard supports only 4 options for no. of partitions
->> that is 1, 2, 4 and 8.
->
-> I think such a standard menu list should be defined in v4l2-ctrls.c then.
+Right. Let me split this patch.
 
-One more concern here is these integer values 1, 2, 4 and 8 may not hold
-much significance while setting to the registers. Some IPs may need these
-values to be set as 0, 1, 2 and 3. So unlike other settings like ISO, the
-values that are given by the user may not be directly applicable to the
-register setting.
+Best regards,
+Tomasz
 
->
->> Also for number of ref frames, the standard allows only the options 1,
->> 2 and 3 which
->> cannot be extended more. So is it correct to use INTEGER_MENU control here and
->> let the driver define the values?
->
-> If this is standard then the core should define available menu items. But
-> it seems more appropriate for me to use INTEGER_MENU. I'd like to hear other
-> opinions though.
-
-
-Here even though 1,2 and 3 are standard, the interpretation is
-1 - 1 reference frame (previous frame)
-2 - previous frame + golden frame
-3 - previous frame + golden frame + altref frame.
-
-Again the driver may need to set different registers based on these and the
-integer values as such may not be used.
-
-
-Regards
-Arun
+> > diff --git a/arch/arm/mach-exynos/Kconfig
+> > b/arch/arm/mach-exynos/Kconfig index 47d8d9e..fe75a65 100644
+> > --- a/arch/arm/mach-exynos/Kconfig
+> > +++ b/arch/arm/mach-exynos/Kconfig
+> > @@ -46,7 +46,7 @@ config CPU_EXYNOS4210
+> > 
+> >  	  Enable EXYNOS4210 CPU support
+> >  
+> >  config SOC_EXYNOS4212
+> > 
+> > -	bool "SAMSUNG EXYNOS4212"
+> > +	bool "SAMSUNG EXYNOS4212/4412"
+> > 
+> >  	default y
+> >  	depends on ARCH_EXYNOS4
+> >  	select PINCTRL_EXYNOS
+> > 
+> > @@ -56,15 +56,6 @@ config SOC_EXYNOS4212
+> > 
+> >  	help
+> >  	
+> >  	  Enable EXYNOS4212 SoC support
+> > 
+> > -config SOC_EXYNOS4412
+> > -	bool "SAMSUNG EXYNOS4412"
+> > -	default y
+> > -	depends on ARCH_EXYNOS4
+> > -	select PINCTRL_EXYNOS
+> > -	select SAMSUNG_DMADEV
+> > -	help
+> > -	  Enable EXYNOS4412 SoC support
+> > -
+> > 
+> >  config SOC_EXYNOS5250
+> >  
+> >  	bool "SAMSUNG EXYNOS5250"
+> >  	default y
+> > 
+> > diff --git a/arch/arm/plat-samsung/include/plat/cpu.h
+> > b/arch/arm/plat-samsung/include/plat/cpu.h index 989fefe..87b03bb
+> > 100644
+> > --- a/arch/arm/plat-samsung/include/plat/cpu.h
+> > +++ b/arch/arm/plat-samsung/include/plat/cpu.h
+> > @@ -122,13 +122,9 @@ IS_SAMSUNG_CPU(exynos5440, EXYNOS5440_SOC_ID,
+> > EXYNOS5_SOC_MASK)> 
+> >  #if defined(CONFIG_SOC_EXYNOS4212)
+> >  # define soc_is_exynos4212()	is_samsung_exynos4212()
+> > 
+> > -#else
+> > -# define soc_is_exynos4212()	0
+> > -#endif
+> > -
+> > -#if defined(CONFIG_SOC_EXYNOS4412)
+> > 
+> >  # define soc_is_exynos4412()	is_samsung_exynos4412()
+> >  #else
+> > 
+> > +# define soc_is_exynos4212()	0
+> > 
+> >  # define soc_is_exynos4412()	0
+> >  #endif
+> > 
+> > diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+> > index a924408..b214ad6 100644
+> > --- a/drivers/cpufreq/Kconfig.arm
+> > +++ b/drivers/cpufreq/Kconfig.arm
+> > @@ -32,7 +32,7 @@ config ARM_EXYNOS4210_CPUFREQ
+> > 
+> >  	  SoC (S5PV310 or S5PC210).
+> >  
+> >  config ARM_EXYNOS4X12_CPUFREQ
+> > 
+> > -	def_bool (SOC_EXYNOS4212 || SOC_EXYNOS4412)
+> > +	def_bool SOC_EXYNOS4212
+> > 
+> >  	help
+> >  	
+> >  	  This adds the CPUFreq driver for Samsung EXYNOS4X12
+> >  	  SoC (EXYNOS4212 or EXYNOS4412).
+> > 
+> > diff --git a/drivers/media/platform/exynos4-is/Kconfig
+> > b/drivers/media/platform/exynos4-is/Kconfig index 6ff99b5..f483e11
+> > 100644
+> > --- a/drivers/media/platform/exynos4-is/Kconfig
+> > +++ b/drivers/media/platform/exynos4-is/Kconfig
+> > @@ -32,7 +32,7 @@ config VIDEO_S5P_MIPI_CSIS
+> > 
+> >  	  To compile this driver as a module, choose M here: the
+> >  	  module will be called s5p-csis.
+> > 
+> > -if SOC_EXYNOS4212 || SOC_EXYNOS4412 || SOC_EXYNOS5250
+> > +if SOC_EXYNOS4212 || SOC_EXYNOS5250
+> > 
+> >  config VIDEO_EXYNOS_FIMC_LITE
+> >  
+> >  	tristate "EXYNOS FIMC-LITE camera interface driver"
+> > 
+> > diff --git a/drivers/thermal/exynos_thermal.c
+> > b/drivers/thermal/exynos_thermal.c index 788b1dd..f88a2ad 100644
+> > --- a/drivers/thermal/exynos_thermal.c
+> > +++ b/drivers/thermal/exynos_thermal.c
+> > @@ -817,7 +817,7 @@ static struct exynos_tmu_platform_data const
+> > exynos4210_default_tmu_data = {> 
+> >  #define EXYNOS4210_TMU_DRV_DATA (NULL)
+> >  #endif
+> > 
+> > -#if defined(CONFIG_SOC_EXYNOS5250) || defined(CONFIG_SOC_EXYNOS4412)
+> > +#if defined(CONFIG_SOC_EXYNOS5250) || defined(CONFIG_SOC_EXYNOS4212)
+> > 
+> >  static struct exynos_tmu_platform_data const exynos_default_tmu_data
+> >  = {>  
+> >  	.threshold_falling = 10,
+> >  	.trigger_levels[0] = 85,
+> > 
+> > diff --git a/drivers/tty/serial/samsung.c
+> > b/drivers/tty/serial/samsung.c index 0c8a9fa..eeb8ecb 100644
+> > --- a/drivers/tty/serial/samsung.c
+> > +++ b/drivers/tty/serial/samsung.c
+> > @@ -1714,8 +1714,7 @@ static struct s3c24xx_serial_drv_data
+> > s5pv210_serial_drv_data = {> 
+> >  #endif
+> >  
+> >  #if defined(CONFIG_CPU_EXYNOS4210) || defined(CONFIG_SOC_EXYNOS4212)
+> >  || \> 
+> > -	defined(CONFIG_SOC_EXYNOS4412) || defined(CONFIG_SOC_EXYNOS5250) 
+||
+> > \
+> > -	defined(CONFIG_SOC_EXYNOS5440)
+> > +	defined(CONFIG_SOC_EXYNOS5250) || defined(CONFIG_SOC_EXYNOS5440)
+> > 
+> >  static struct s3c24xx_serial_drv_data exynos4210_serial_drv_data = {
+> >  
+> >  	.info = &(struct s3c24xx_uart_info) {
+> >  	
+> >  		.name		= "Samsung Exynos4 UART",
