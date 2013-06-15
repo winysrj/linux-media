@@ -1,90 +1,240 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2587 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755811Ab3FCJh3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 05:37:29 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [RFC PATCH 07/13] tm6000: remove deprecated current_norm
-Date: Mon,  3 Jun 2013 11:36:44 +0200
-Message-Id: <1370252210-4994-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:40904 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753697Ab3FOMLn (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jun 2013 08:11:43 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Kukjin Kim <kgene.kim@samsung.com>
+Cc: 'Tomasz Figa' <t.figa@samsung.com>,
+	linux-samsung-soc@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Olof Johansson' <olof@lixom.net>,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Thomas Abraham' <thomas.abraham@linaro.org>,
+	"'Rafael J. Wysocki'" <rjw@sisk.pl>,
+	'Viresh Kumar' <viresh.kumar@linaro.org>,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Zhang Rui' <rui.zhang@intel.com>,
+	'Eduardo Valentin' <eduardo.valentin@ti.com>,
+	'Greg Kroah-Hartman' <gregkh@linuxfoundation.org>,
+	cpufreq@vger.kernel.org, linux-pm@vger.kernel.org,
+	linux-media@vger.kernel.org, linux-serial@vger.kernel.org,
+	'Kyungmin Park' <kyungmin.park@samsung.com>
+Subject: Re: [PATCH 27/28] ARM: EXYNOS: Remove CONFIG_SOC_EXYNOS4412
+Date: Sat, 15 Jun 2013 14:11:41 +0200
+Message-ID: <3875939.5j09crQku4@flatron>
+In-Reply-To: <172201ce696e$4200f0c0$c602d240$%kim@samsung.com>
+References: <1371238384-1504-1-git-send-email-t.figa@samsung.com> <1371238384-1504-28-git-send-email-t.figa@samsung.com> <172201ce696e$4200f0c0$c602d240$%kim@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Saturday 15 of June 2013 11:15:51 Kukjin Kim wrote:
+> Tomasz Figa wrote:
+> > Exynos4212 and Exynos4412 SoCs differ only in number of ARM cores and
+> > there is no need to have separate Kconfig options for them, since they
+> > use the same code.
+> > 
+> > This patch removes CONFIG_SOC_EXYNOS4412, leaving
+> > CONFIG_SOC_EXYNOS4212
+> > as the one supporting both SoCs from this series.
+> > 
+> > Cc: "Rafael J. Wysocki" <rjw@sisk.pl>
+> > Cc: Viresh Kumar <viresh.kumar@linaro.org>
+> > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> > Cc: Zhang Rui <rui.zhang@intel.com>
+> > Cc: Eduardo Valentin <eduardo.valentin@ti.com>
+> > Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> > Cc: cpufreq@vger.kernel.org
+> > Cc: linux-pm@vger.kernel.org
+> > Cc: linux-media@vger.kernel.org
+> > Cc: linux-serial@vger.kernel.org
+> > Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> > ---
+> > 
+> >  arch/arm/mach-exynos/Kconfig              | 11 +----------
+> >  arch/arm/plat-samsung/include/plat/cpu.h  |  6 +-----
+> >  drivers/cpufreq/Kconfig.arm               |  2 +-
+> >  drivers/media/platform/exynos4-is/Kconfig |  2 +-
+> >  drivers/thermal/exynos_thermal.c          |  2 +-
+> >  drivers/tty/serial/samsung.c              |  3 +--
+> >  6 files changed, 6 insertions(+), 20 deletions(-)
+> > 
+> > diff --git a/arch/arm/mach-exynos/Kconfig
+> > b/arch/arm/mach-exynos/Kconfig index 47d8d9e..fe75a65 100644
+> > --- a/arch/arm/mach-exynos/Kconfig
+> > +++ b/arch/arm/mach-exynos/Kconfig
+> > @@ -46,7 +46,7 @@ config CPU_EXYNOS4210
+> > 
+> >  	  Enable EXYNOS4210 CPU support
+> >  
+> >  config SOC_EXYNOS4212
+> > 
+> > -	bool "SAMSUNG EXYNOS4212"
+> > +	bool "SAMSUNG EXYNOS4212/4412"
+> > 
+> >  	default y
+> >  	depends on ARCH_EXYNOS4
+> >  	select PINCTRL_EXYNOS
+> > 
+> > @@ -56,15 +56,6 @@ config SOC_EXYNOS4212
+> > 
+> >  	help
+> >  	
+> >  	  Enable EXYNOS4212 SoC support
+> > 
+> > -config SOC_EXYNOS4412
+> > -	bool "SAMSUNG EXYNOS4412"
+> > -	default y
+> > -	depends on ARCH_EXYNOS4
+> > -	select PINCTRL_EXYNOS
+> > -	select SAMSUNG_DMADEV
+> > -	help
+> > -	  Enable EXYNOS4412 SoC support
+> > -
+> > 
+> >  config SOC_EXYNOS5250
+> >  
+> >  	bool "SAMSUNG EXYNOS5250"
+> >  	default y
+> > 
+> > diff --git a/arch/arm/plat-samsung/include/plat/cpu.h b/arch/arm/plat-
+> > samsung/include/plat/cpu.h
+> > index 989fefe..87b03bb 100644
+> > --- a/arch/arm/plat-samsung/include/plat/cpu.h
+> > +++ b/arch/arm/plat-samsung/include/plat/cpu.h
+> > @@ -122,13 +122,9 @@ IS_SAMSUNG_CPU(exynos5440, EXYNOS5440_SOC_ID,
+> > EXYNOS5_SOC_MASK)
+> > 
+> >  #if defined(CONFIG_SOC_EXYNOS4212)
+> >  # define soc_is_exynos4212()	is_samsung_exynos4212()
+> > 
+> > -#else
+> > -# define soc_is_exynos4212()	0
+> > -#endif
+> > -
+> > -#if defined(CONFIG_SOC_EXYNOS4412)
+> > 
+> >  # define soc_is_exynos4412()	is_samsung_exynos4412()
+> >  #else
+> > 
+> > +# define soc_is_exynos4212()	0
+> > 
+> >  # define soc_is_exynos4412()	0
+> >  #endif
+> > 
+> > diff --git a/drivers/cpufreq/Kconfig.arm b/drivers/cpufreq/Kconfig.arm
+> > index a924408..b214ad6 100644
+> > --- a/drivers/cpufreq/Kconfig.arm
+> > +++ b/drivers/cpufreq/Kconfig.arm
+> > @@ -32,7 +32,7 @@ config ARM_EXYNOS4210_CPUFREQ
+> > 
+> >  	  SoC (S5PV310 or S5PC210).
+> >  
+> >  config ARM_EXYNOS4X12_CPUFREQ
+> > 
+> > -	def_bool (SOC_EXYNOS4212 || SOC_EXYNOS4412)
+> > +	def_bool SOC_EXYNOS4212
+> > 
+> >  	help
+> >  	
+> >  	  This adds the CPUFreq driver for Samsung EXYNOS4X12
+> >  	  SoC (EXYNOS4212 or EXYNOS4412).
+> > 
+> > diff --git a/drivers/media/platform/exynos4-is/Kconfig
+> > b/drivers/media/platform/exynos4-is/Kconfig
+> > index 6ff99b5..f483e11 100644
+> > --- a/drivers/media/platform/exynos4-is/Kconfig
+> > +++ b/drivers/media/platform/exynos4-is/Kconfig
+> > @@ -32,7 +32,7 @@ config VIDEO_S5P_MIPI_CSIS
+> > 
+> >  	  To compile this driver as a module, choose M here: the
+> >  	  module will be called s5p-csis.
+> > 
+> > -if SOC_EXYNOS4212 || SOC_EXYNOS4412 || SOC_EXYNOS5250
+> > +if SOC_EXYNOS4212 || SOC_EXYNOS5250
+> > 
+> >  config VIDEO_EXYNOS_FIMC_LITE
+> >  
+> >  	tristate "EXYNOS FIMC-LITE camera interface driver"
+> > 
+> > diff --git a/drivers/thermal/exynos_thermal.c
+> > b/drivers/thermal/exynos_thermal.c
+> > index 788b1dd..f88a2ad 100644
+> > --- a/drivers/thermal/exynos_thermal.c
+> > +++ b/drivers/thermal/exynos_thermal.c
+> > @@ -817,7 +817,7 @@ static struct exynos_tmu_platform_data const
+> > exynos4210_default_tmu_data = {
+> > 
+> >  #define EXYNOS4210_TMU_DRV_DATA (NULL)
+> >  #endif
+> > 
+> > -#if defined(CONFIG_SOC_EXYNOS5250) || defined(CONFIG_SOC_EXYNOS4412)
+> > +#if defined(CONFIG_SOC_EXYNOS5250) || defined(CONFIG_SOC_EXYNOS4212)
+> > 
+> >  static struct exynos_tmu_platform_data const exynos_default_tmu_data
+> >  = {>  
+> >  	.threshold_falling = 10,
+> >  	.trigger_levels[0] = 85,
+> > 
+> > diff --git a/drivers/tty/serial/samsung.c
+> > b/drivers/tty/serial/samsung.c index 0c8a9fa..eeb8ecb 100644
+> > --- a/drivers/tty/serial/samsung.c
+> > +++ b/drivers/tty/serial/samsung.c
+> > @@ -1714,8 +1714,7 @@ static struct s3c24xx_serial_drv_data
+> > s5pv210_serial_drv_data = {
+> > 
+> >  #endif
+> >  
+> >  #if defined(CONFIG_CPU_EXYNOS4210) || defined(CONFIG_SOC_EXYNOS4212)
+> >  || \> 
+> > -	defined(CONFIG_SOC_EXYNOS4412) || defined(CONFIG_SOC_EXYNOS5250) 
+||
+> > \
+> > -	defined(CONFIG_SOC_EXYNOS5440)
+> > +	defined(CONFIG_SOC_EXYNOS5250) || defined(CONFIG_SOC_EXYNOS5440)
+> > 
+> >  static struct s3c24xx_serial_drv_data exynos4210_serial_drv_data = {
+> >  
+> >  	.info = &(struct s3c24xx_uart_info) {
+> >  	
+> >  		.name		= "Samsung Exynos4 UART",
+> > 
+> > --
+> > 1.8.2.1
+> 
+> Hmm, how about SOC_EXYNOS4X12 for exynos4212 and exynos4412?
 
-Replace current_norm by g_std. Also initialize the standard to the more
-common NTSC-M format (which is also what current_norm used).
+I was thinking about it and finally decided to leave SOC_EXYNOS4212 for 
+compatibility reasons - you don't need to change SOC_EXYNOS4212 to 
+SOC_EXYNOS4X12 wherever it's used, making it possible to apply some older 
+out of tree patches without modification.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/usb/tm6000/tm6000-cards.c |    2 +-
- drivers/media/usb/tm6000/tm6000-video.c |   13 +++++++++++--
- 2 files changed, 12 insertions(+), 3 deletions(-)
+> BTW, AFAIK, we need to leave both to support something...I need to check
+> :)
 
-diff --git a/drivers/media/usb/tm6000/tm6000-cards.c b/drivers/media/usb/tm6000/tm6000-cards.c
-index 307d8c5..1ccaadd 100644
---- a/drivers/media/usb/tm6000/tm6000-cards.c
-+++ b/drivers/media/usb/tm6000/tm6000-cards.c
-@@ -1114,7 +1114,7 @@ static int tm6000_init_dev(struct tm6000_core *dev)
- 	/* Default values for STD and resolutions */
- 	dev->width = 720;
- 	dev->height = 480;
--	dev->norm = V4L2_STD_PAL_M;
-+	dev->norm = V4L2_STD_NTSC_M;
- 
- 	/* Configure tuner */
- 	tm6000_config_tuner(dev);
-diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
-index a78de1d..cc1aa14 100644
---- a/drivers/media/usb/tm6000/tm6000-video.c
-+++ b/drivers/media/usb/tm6000/tm6000-video.c
-@@ -1076,6 +1076,15 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	return 0;
- }
- 
-+static int vidioc_g_std(struct file *file, void *priv, v4l2_std_id *norm)
-+{
-+	struct tm6000_fh *fh = priv;
-+	struct tm6000_core *dev = fh->dev;
-+
-+	*norm = dev->norm;
-+	return 0;
-+}
-+
- static const char *iname[] = {
- 	[TM6000_INPUT_TV] = "Television",
- 	[TM6000_INPUT_COMPOSITE1] = "Composite 1",
-@@ -1134,7 +1143,7 @@ static int vidioc_s_input(struct file *file, void *priv, unsigned int i)
- 
- 	dev->input = i;
- 
--	rc = vidioc_s_std(file, priv, dev->vfd->current_norm);
-+	rc = vidioc_s_std(file, priv, dev->norm);
- 
- 	return rc;
- }
-@@ -1547,6 +1556,7 @@ static const struct v4l2_ioctl_ops video_ioctl_ops = {
- 	.vidioc_try_fmt_vid_cap   = vidioc_try_fmt_vid_cap,
- 	.vidioc_s_fmt_vid_cap     = vidioc_s_fmt_vid_cap,
- 	.vidioc_s_std             = vidioc_s_std,
-+	.vidioc_g_std             = vidioc_g_std,
- 	.vidioc_enum_input        = vidioc_enum_input,
- 	.vidioc_g_input           = vidioc_g_input,
- 	.vidioc_s_input           = vidioc_s_input,
-@@ -1570,7 +1580,6 @@ static struct video_device tm6000_template = {
- 	.ioctl_ops      = &video_ioctl_ops,
- 	.release	= video_device_release,
- 	.tvnorms        = TM6000_STD,
--	.current_norm   = V4L2_STD_NTSC_M,
- };
- 
- static const struct v4l2_file_operations radio_fops = {
--- 
-1.7.10.4
+OK.
 
+But IMHO, now with DeviceTree, there is usually no need for such level of 
+differentiation on config level.
+
+For example we might be even able reduce CPU_EXYNOS4210 and SOC_EXYNOS4212 
+to just ARCH_EXYNOS4, because they share almost all the code and all the 
+differencies are specified in device tree.
+
+Best regards,
+Tomasz
+
+> - Kukjin
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe
+> linux-samsung-soc" in the body of a message to
+> majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
