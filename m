@@ -1,53 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35551 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161500Ab3FUHzk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 03:55:40 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?q?Ga=C3=ABtan=20Carlier?= <gcembed@gmail.com>,
-	Wei Yongjun <weiyj.lk@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 3/8] [media] coda: do not allocate maximum number of framebuffers for encoder
-Date: Fri, 21 Jun 2013 09:55:29 +0200
-Message-Id: <1371801334-22324-4-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
-References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:52108 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752942Ab3FOJmG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 15 Jun 2013 05:42:06 -0400
+Message-ID: <51BC36ED.3010405@schinagl.nl>
+Date: Sat, 15 Jun 2013 11:42:05 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Duval Mickael <duvalmickael@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: DVB Scan file for Cherbourg (FR)
+References: <CAMiis9aue=BJnGxhak9aKSXVtJPPB7df4WpKDdJL9Anw54en5Q@mail.gmail.com> <51B44BD5.2010208@schinagl.nl> <CAMiis9ZiLXwX+E2TmjsYkA1iCowArrP5jTT4VgWCeA6gCUDJDQ@mail.gmail.com> <CAMiis9bZtgfX_zha6vL1HVcxrNJb0RFvP=45Mp44Eb1cuUTSFA@mail.gmail.com> <51BB9033.50709@schinagl.nl> <CAMiis9ZgKKD3iiXchPcN=r9QCBjVvasmXjRn8rvmfzs33k-wPQ@mail.gmail.com> <CAMiis9a=nSvdueKfAJCU=JEuprQU_nSRtKx4u5-QKA2kUrEUZQ@mail.gmail.com>
+In-Reply-To: <CAMiis9a=nSvdueKfAJCU=JEuprQU_nSRtKx4u5-QKA2kUrEUZQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The encoder only ever needs two buffers, but we'll have to increase
-CODA_MAX_FRAMEBUFFERS for the decoder.
+On 06/15/13 11:30, Duval Mickael wrote:
+> Ok I have cloned your repo with Git, and I've make two patch files.
+>
+Can you explain to me why there are fr-All and fr-Cherbourg? (and 
+fr-Bordeaux)?
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Does fr-All not work for those two places? If fr-All does everything, 
+it's ok to merge the other two in. nl-All is all transponders for the 
+country as a lot of frequencies are shared. We could have 10 or so 
+nl-<area> but they'd be all really small.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index baf0ce8..6d76f1d 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -997,7 +997,6 @@ static int coda_alloc_framebuffers(struct coda_ctx *ctx, struct coda_q_data *q_d
- 	ysize = round_up(q_data->width, 8) * height;
- 
- 	/* Allocate frame buffers */
--	ctx->num_internal_frames = CODA_MAX_FRAMEBUFFERS;
- 	for (i = 0; i < ctx->num_internal_frames; i++) {
- 		ctx->internal_frames[i].size = q_data->sizeimage;
- 		if (fourcc == V4L2_PIX_FMT_H264 && dev->devtype->product != CODA_DX6)
-@@ -1347,6 +1346,7 @@ static int coda_start_streaming(struct vb2_queue *q, unsigned int count)
- 		goto out;
- 	}
- 
-+	ctx->num_internal_frames = 2;
- 	ret = coda_alloc_framebuffers(ctx, q_data_src, dst_fourcc);
- 	if (ret < 0) {
- 		v4l2_err(v4l2_dev, "failed to allocate framebuffers\n");
--- 
-1.8.3.1
+So is fr-All everything for the entire country, but has Cherbourg and 
+Bordeaux extra, very different freq's?
+
+Merged in c8050e8105b1b4b5364f57d8b3e658c80fb04a53 for now
+
+Thanks,
+oliver
+>
+> 2013/6/15 Duval Mickael <duvalmickael@gmail.com>:
+>> In zip there is a little modification for city of cherbourg (add two
+>> new muxes) and a fr_ALL for France all channels DVB-T initial
+>> scan.
+>>
+>> What's the problem exactly with my files?
+>>
+>> Thanks
+>> Duval Mickael
+>>
+>> 2013/6/14 Oliver Schinagl <oliver+list@schinagl.nl>:
+>>> On 06/13/13 19:10, Duval Mickael wrote:
+>>>>
+>>>> Hello,
+>>>
+>>> Hi,
+>>>
+>>>>
+>>>> I send this email to you for a DVB-T scan file for the city of Cherbourg
+>>>> FRANCE, modified with the last channels.
+>>>> I also enclose a package file that includes all channels available for
+>>>> DVB-T in France.
+>>>
+>>> I've applied your patch (after manually working it over) last time.
+>>>
+>>> What is in this zip? Please send a patch file what still needs to be
+>>> adjusted. Cherbourg is in the repo now, isn't it?
+>>>
+>>>>
+>>>> Sorry for my poor English ;-)
+>>>>
+>>>> Thank you.
+>>>
+>>>
 
