@@ -1,47 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f53.google.com ([74.125.82.53]:39222 "EHLO
-	mail-wg0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932079Ab3FFKF7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 6 Jun 2013 06:05:59 -0400
+Received: from outmail149098.authsmtp.com ([62.13.149.98]:50959 "EHLO
+	outmail149098.authsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755434Ab3FPTrM convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 16 Jun 2013 15:47:12 -0400
+From: "Steve Cookson" <it@sca-uk.com>
+To: "'James Board'" <jpboard2@yahoo.com>, <linux-media@vger.kernel.org>
+References: <1371393161.46485.YahooMailNeo@web163903.mail.gq1.yahoo.com>
+Subject: RE: HD Capture Card (HDMI and Component) output raw pixels
+Date: Sun, 16 Jun 2013 16:15:10 -0300
+Message-ID: <8B18C28300FE4A6595829F526C5BA94A@SACWS001>
 MIME-Version: 1.0
-In-Reply-To: <2855590.yx9zfYZLis@avalon>
-References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com> <2855590.yx9zfYZLis@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 6 Jun 2013 15:35:38 +0530
-Message-ID: <CA+V-a8vh-ttz1QQmV59fP5c3vK=1zC5QfmkHc9Du0ZAcY712Dg@mail.gmail.com>
-Subject: Re: [PATCH v2 0/4] media: i2c: ths7303 cleanup
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain;
+	charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+In-Reply-To: <1371393161.46485.YahooMailNeo@web163903.mail.gq1.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Guys,
 
-On Sun, May 26, 2013 at 6:50 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> On Saturday 25 May 2013 23:09:32 Prabhakar Lad wrote:
->> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->>
->> Trivial cleanup of the driver.
->>
->> Changes for v2:
->> 1: Dropped the asynchronous probing and, OF
->>    support patches will be handling them independently because of
->> dependencies. 2: Arranged the patches logically so that git bisect
->>    succeeds.
->>
->> Lad, Prabhakar (4):
->>   ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata
->>   media: i2c: ths7303: remove init_enable option from pdata
->>   media: i2c: ths7303: remove unnecessary function ths7303_setup()
->>   media: i2c: ths7303: make the pdata as a constant pointer
->>
-Can you pick up this series or do you want me to issue a pull for it ?
+> I'm looking for a capture card for a Linux 
+> system.  I'd like to be able to capture Component 
+> as well as HDMI (from non-encrypted non-HDCP) 
+> sources.  I'd also like to capture the raw pixels, 
+> and not use real-time MPEG encoding.  A lossless 
+> output format like huffyuv is okay too.  Are any 
+> such cards available for Linux systems?
 
-Regards,
---Prabhakar Lad
+I have the same question.  I'm about to try the Blackmagic 
+Design Intensity Pro for a bit under $200.  
+
+http://www.amazon.com/dp/B001CN9GEA
+
+Any othe hints welcomed.
+
+> Also, if this isn't the best place to ask for this 
+> kind of thing, can someone then point me to a better place/website?
+
+Ditto,
+
+Regards
+
+Steve
+
