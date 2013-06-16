@@ -1,56 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58847 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756314Ab3FRU6d (ORCPT
+Received: from mail-wg0-f48.google.com ([74.125.82.48]:48342 "EHLO
+	mail-wg0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754849Ab3FPB6m (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 16:58:33 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Wouter Thielen <wouter@morannon.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Mistake on the colorspace page in the API doc
-Date: Tue, 18 Jun 2013 22:58:47 +0200
-Message-ID: <19880516.7ZPIjvT6Bx@avalon>
-In-Reply-To: <CACySJQX-GUYax5MPounyFCUczgncPx=SV=8O6ORd_zwfn31jkQ@mail.gmail.com>
-References: <CACySJQX-GUYax5MPounyFCUczgncPx=SV=8O6ORd_zwfn31jkQ@mail.gmail.com>
+	Sat, 15 Jun 2013 21:58:42 -0400
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <2064603.dg6NN5EgtL@avalon>
+References: <1371314050-25866-1-git-send-email-prabhakar.csengg@gmail.com> <2064603.dg6NN5EgtL@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 16 Jun 2013 07:28:21 +0530
+Message-ID: <CA+V-a8vByuGkGaZSYwWTUSoQenbryTnDVayZK5F9SsS+Z_GGSQ@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: ths7303: remove unused member driver_data
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Wouter,
+Hi Laurent,
 
-On Sunday 26 May 2013 15:34:26 Wouter Thielen wrote:
-> Hi all,
-> 
-> I have been trying to get the colors right in the images grabbed from my
-> webcam, and I tried the color conversion code on
-> http://linuxtv.org/downloads/v4l-dvb-apis/colorspaces.html.
-> 
-> It turned out to be very white, so I checked out the intermediate steps,
-> and thought the part:
-> 
-> ER = clamp (r * 255); /* [ok? one should prob. limit y1,pb,pr] */
-> EG = clamp (g * 255);
-> EB = clamp (b * 255);
-> 
-> 
-> should be without the * 255. I tried removing *255 and that worked.
+On Sun, Jun 16, 2013 at 5:21 AM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> Thanks for the patch.
+>
+> On Saturday 15 June 2013 22:04:10 Prabhakar Lad wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> This patch removes the driver_data member from ths7303_state structure.
+>> The driver_data member was intended to differentiate between ths7303 and
+>> ths7353 chip and get the g_chip_ident, But as of now g_chip_ident is
+>> obsolete, so there is no need of driver_data.
+>
+> What tree it this based on ? linuxtv/master still uses driver_data in the
+> ths7303_g_chip_ident() function.
+>
+Ah forgot to mention this is based on Hans's branch
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.11
 
-Good catch. I would instead do
-
-y1 = (Y1 - 16) / 219.0;
-pb = (Cb - 128) / 224.0;
-pr = (Cr - 128) / 224.0;
-
-and keep the E[RGB] lines unmodified to keep lower-case variables in the [0.0 
-1.0] or [-0.5 0.5] range.
-
-Would you like to post a patch for the documentation ? If not I can take care 
-of it.
-
--- 
 Regards,
-
-Laurent Pinchart
-
+--Prabhakar Lad
