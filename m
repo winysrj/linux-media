@@ -1,51 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:53030 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752620Ab3FGKvW (ORCPT
+Received: from mail-wi0-f169.google.com ([209.85.212.169]:51222 "EHLO
+	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755207Ab3FPPRx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Jun 2013 06:51:22 -0400
-Date: Fri, 7 Jun 2013 13:51:18 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] omap3isp: ccp2: Don't ignore the regulator_enable()
- return value
-Message-ID: <20130607105117.GE3103@valkosipuli.retiisi.org.uk>
-References: <1370601341-5597-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Sun, 16 Jun 2013 11:17:53 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1370601341-5597-1-git-send-email-laurent.pinchart@ideasonboard.com>
+In-Reply-To: <1371236911-15131-17-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de> <1371236911-15131-17-git-send-email-g.liakhovetski@gmx.de>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 16 Jun 2013 20:47:31 +0530
+Message-ID: <CA+V-a8uhHq0=533NsPd=+d-6cV2_XbukxP1OFCOZTGOfEaHp3A@mail.gmail.com>
+Subject: Re: [PATCH v11 16/21] V4L2: support asynchronous subdevice registration
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Thanks for the patch, Laurent!
+Hi Guennadi,
 
-On Fri, Jun 07, 2013 at 12:35:41PM +0200, Laurent Pinchart wrote:
-> @@ -851,7 +857,11 @@ static int ccp2_s_stream(struct v4l2_subdev *sd, int enable)
->  		ccp2_print_status(ccp2);
->  
->  		/* Enable CSI1/CCP2 interface */
-> -		ccp2_if_enable(ccp2, 1);
-> +		ret = ccp2_if_enable(ccp2, 1);
-> +		if (ret < 0) {
-> +			omap3isp_csiphy_release(ccp2->phy);
+Thanks for the patch, works fine as expected.
 
-if (ccp2->phy)
-	omap3isp_csiphy_release(ccp2->phy);
+On Sat, Jun 15, 2013 at 12:38 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Currently bridge device drivers register devices for all subdevices
+> synchronously, typically, during their probing. E.g. if an I2C CMOS sensor
+> is attached to a video bridge device, the bridge driver will create an I2C
+> device and wait for the respective I2C driver to probe. This makes linking
+> of devices straight forward, but this approach cannot be used with
+> intrinsically asynchronous and unordered device registration systems like
+> the Flattened Device Tree. To support such systems this patch adds an
+> asynchronous subdevice registration framework to V4L2. To use it respective
+> (e.g. I2C) subdevice drivers must register themselves with the framework.
+> A bridge driver on the other hand must register notification callbacks,
+> that will be called upon various related events.
+>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-?
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-I don't think 3430 has a separate phy, so it's NULL.
-
-> +			return ret;
-> +		}
->  		break;
->  
->  	case ISP_PIPELINE_STREAM_SINGLESHOT:
-
--- 
 Regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+--Prabhakar Lad
