@@ -1,66 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:54951 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752042Ab3FKJ1z (ORCPT
+Received: from mail-bk0-f49.google.com ([209.85.214.49]:47608 "EHLO
+	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754207Ab3FPVQt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 05:27:55 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
+	Sun, 16 Jun 2013 17:16:49 -0400
+Received: by mail-bk0-f49.google.com with SMTP id mz10so885029bkb.22
+        for <linux-media@vger.kernel.org>; Sun, 16 Jun 2013 14:16:47 -0700 (PDT)
+Message-ID: <51BE2B3C.30102@gmail.com>
+Date: Sun, 16 Jun 2013 23:16:44 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 11/21] soc-camera: don't attach the client to the host during probing
-Date: Tue, 11 Jun 2013 10:23:38 +0200
-Message-Id: <1370939028-8352-12-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+	laurent.pinchart@ideasonboard.com
+CC: s.nawrocki@samsung.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, a.hajda@samsung.com
+Subject: Re: [RFC PATCH 2/2] davinci_vpfe: Clean up media entity after unregistering
+ subdev
+References: <20130611105032.GJ3103@valkosipuli.retiisi.org.uk> <1370947849-24314-1-git-send-email-sakari.ailus@iki.fi> <1370947849-24314-2-git-send-email-sakari.ailus@iki.fi> <CA+V-a8t2MUwEHZMvbb0mN+dy6bH6yt_mwirH6cgoTfZfh83cew@mail.gmail.com>
+In-Reply-To: <CA+V-a8t2MUwEHZMvbb0mN+dy6bH6yt_mwirH6cgoTfZfh83cew@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-During client probing we only have to turn on the host's clock, no need to
-actually attach the client to the host.
+Hi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/soc_camera.c |    6 +++---
- 1 files changed, 3 insertions(+), 3 deletions(-)
+On 06/12/2013 06:44 AM, Prabhakar Lad wrote:
+> On Tue, Jun 11, 2013 at 4:20 PM, Sakari Ailus<sakari.ailus@iki.fi>  wrote:
+>> media_entity_cleanup() frees the links array which will be accessed by
+>> media_entity_remove_links() called by v4l2_device_unregister_subdev().
+>>
+>> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+>
+> Acked-by: Lad, Prabhakar<prabhakar.csengg@gmail.com>
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index e503f03..ac98bcb 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1207,7 +1207,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 		ssdd->reset(icd->pdev);
- 
- 	mutex_lock(&ici->host_lock);
--	ret = soc_camera_add_device(icd);
-+	ret = ici->ops->clock_start(ici);
- 	mutex_unlock(&ici->host_lock);
- 	if (ret < 0)
- 		goto eadd;
-@@ -1280,7 +1280,7 @@ static int soc_camera_probe(struct soc_camera_device *icd)
- 		icd->field		= mf.field;
- 	}
- 
--	soc_camera_remove_device(icd);
-+	ici->ops->clock_stop(ici);
- 
- 	mutex_unlock(&ici->host_lock);
- 
-@@ -1303,7 +1303,7 @@ eadddev:
- 	icd->vdev = NULL;
- evdc:
- 	mutex_lock(&ici->host_lock);
--	soc_camera_remove_device(icd);
-+	ici->ops->clock_stop(ici);
- 	mutex_unlock(&ici->host_lock);
- eadd:
- 	v4l2_ctrl_handler_free(&icd->ctrl_handler);
--- 
-1.7.2.5
+I have added these two patches to my tree for 3.11 (in branch for-v3.11-2).
+Please let me know if you would like it to be handled differently.
 
+Regards,
+Sylwester
