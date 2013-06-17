@@ -1,55 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lycasmtp.lycamobile.co.uk ([217.118.119.180]:59152 "EHLO
-	lycasmtp.lycamobile.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752477Ab3FIIiq convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 04:38:46 -0400
-Message-Id: <201306090820.r597JPQ5019122@lycasmtp.lycamobile.co.uk>
-Content-Type: text/plain; charset="iso-8859-1"
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43073 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756209Ab3FQNb7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jun 2013 09:31:59 -0400
+Date: Mon, 17 Jun 2013 14:31:10 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Inki Dae <inki.dae@samsung.com>
+Cc: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>,
+	linux-fbdev@vger.kernel.org, kyungmin.park@samsung.com,
+	dri-devel@lists.freedesktop.org, robdclark@gmail.com,
+	myungjoo.ham@samsung.com, yj44.cho@samsung.com, daniel@ffwll.ch,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
+	framework
+Message-ID: <20130617133109.GG2718@n2100.arm.linux.org.uk>
+References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com> <1371467722-665-1-git-send-email-inki.dae@samsung.com> <51BEF458.4090606@canonical.com> <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Confirmed Reciept.....
-To: Recipients <info@uk.net>
-From: info@uk.net
-Date: Sun, 09 Jun 2013 13:58:59 +0530
-Reply-To: claimjonesgreene@hotmail.co.uk
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Uk National Lottery
-Ref: L/200-26937
-Batch: 2007MJL-01
+On Mon, Jun 17, 2013 at 10:04:45PM +0900, Inki Dae wrote:
+> It's just to implement a thin sync framework coupling cache operation. This
+> approach is based on dma-buf for more generic implementation against android
+> sync driver or KDS.
+> 
+> The described steps may be summarized as:
+> 	lock -> cache operation -> CPU or DMA access to a buffer/s -> unlock
+> 
+> I think that there is no need to get complicated for such approach at least
+> for most devices sharing system memory. Simple is best.
 
+But hang on, doesn't the dmabuf API already provide that?
 
-                     FINAL NOTIFICATION
-We are pleased to inform you today 6th  June, 2013 of the result 
-of the winners of the  UK NATIONAL LOTTERY ONLINE PROMO PROGRAMME, held 
-on the 30th of May, 2013.
+The dmabuf API already uses dma_map_sg() and dma_unmap_sg() by providers,
+and the rules around the DMA API are that:
 
-You have therefore been approved for a lump sum pay out of £1,000 000 
-(One Million Pounds Sterling) in cash credited to file XYL/26510460037/06.To file for your claim, 
-please contact our claims agent;
+	dma_map_sg()
+	/* DMA _ONLY_ has access, CPU should not access */
+	dma_unmap_sg()
+	/* DMA may not access, CPU can access */
 
-Agents Name: Dr.Jones Greene
-Emai: claimjonesgreene@yahoo.co.uk 
+It's a little more than that if you include the sync_sg_for_cpu and
+sync_sg_for_device APIs too - but the above is the general idea.  What
+this means from the dmabuf API point of view is that once you attach to
+a dma_buf, and call dma_buf_map_attachment() to get the SG list, the CPU
+doesn't have ownership of the buffer and _must_ _not_ access it via any
+other means - including using the other dma_buf methods, until either
+the appropriate dma_sync_sg_for_cpu() call has been made or the DMA
+mapping has been removed via dma_buf_unmap_attachment().
 
+So, the sequence should be:
 
-Provide him with the information below:
-
-1.Full Name:
-2.Full Address:
-3.Marital Status:
-4.Occupation:
-5.Age:
-6.Sex:
-7.Nationality:
-8.Country Of Residence:
-9.Telephone Number:
-
-Congratulations once more from all members and staff of this program.
-
-Sincerely, 
-Dr.Jones Greene
-UK NATIONAL LOTTERY
-
-
+	dma_buf_map_attachment()
+	/* do DMA */
+	dma_buf_unmap_attachment()
+	/* CPU can now access the buffer */
