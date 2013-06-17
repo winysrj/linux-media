@@ -1,232 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:42663 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab3F3P5d (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:52780 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756164Ab3FQLOG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jun 2013 11:57:33 -0400
-Message-ID: <51D05568.3090009@gmail.com>
-Date: Sun, 30 Jun 2013 17:57:28 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mon, 17 Jun 2013 07:14:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH v11 00/21] V4L2 clock and asynchronous probing
+Date: Mon, 17 Jun 2013 13:13:51 +0200
+Cc: linux-media@vger.kernel.org,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] media: i2c: tvp7002: add OF support
-References: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com> <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306171313.51196.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Fri 14 June 2013 21:08:10 Guennadi Liakhovetski wrote:
+> v11 of the V4L2 clock helper and asynchronous probing patch set. 
+> Functionally identical to v10, only differences are a couple of comment 
+> lines and one renamed struct field - as requested by respectable 
+> reviewers :)
+> 
+> Only patches #15, 16 and 18 changed.
 
-On 06/22/2013 07:44 PM, Prabhakar Lad wrote:
-> From: "Lad, Prabhakar"<prabhakar.csengg@gmail.com>
->
-> add OF support for the tvp7002 driver.
->
-> Signed-off-by: Lad, Prabhakar<prabhakar.csengg@gmail.com>
-> Cc: Hans Verkuil<hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab<mchehab@redhat.com>
-> Cc: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki<s.nawrocki@samsung.com>
-> Cc: Sakari Ailus<sakari.ailus@iki.fi>
-> Cc: Grant Likely<grant.likely@secretlab.ca>
-> Cc: Rob Herring<rob.herring@calxeda.com>
-> Cc: Rob Landley<rob@landley.net>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
-> ---
->   Depends on patch https://patchwork.kernel.org/patch/2765851/
->
->   .../devicetree/bindings/media/i2c/tvp7002.txt      |   43 +++++++++++++
->   drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
->   2 files changed, 103 insertions(+), 7 deletions(-)
->   create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-> new file mode 100644
-> index 0000000..9daebe1
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-> @@ -0,0 +1,43 @@
-> +* Texas Instruments TV7002 video decoder
-> +
-> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
-> +YPbPr color space.
-> +
-> +Required Properties :
-> +- compatible : Must be "ti,tvp7002"
-> +
-> +- hsync-active: HSYNC Polarity configuration for endpoint.
-> +
-> +- vsync-active: VSYNC Polarity configuration for endpoint.
-> +
-> +- pclk-sample: Clock polarity of the endpoint.
-> +
-> +- video-sync: Video sync property of the endpoint.
-> +
-> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
+Thanks for posting the patch adding documentation! Much appreciated.
 
-I thought it was agreed 'field-even-active' would be used instead of
-this device specific property. Did you run into any issues with that ?
+As a result I give my ack for this patch series:
 
-> +
-> +For further reading of port node refer Documentation/devicetree/bindings/media/
-> +video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c0@1c22000 {
-> +		...
-> +		...
-> +		tvp7002@5c {
-> +			compatible = "ti,tvp7002";
-> +			reg =<0x5c>;
-> +
-> +			port {
-> +				tvp7002_1: endpoint {
-> +					hsync-active =<1>;
-> +					vsync-active =<1>;
-> +					pclk-sample =<0>;
-> +					video-sync =<V4L2_MBUS_VIDEO_SYNC_ON_GREEN>;
-> +					ti,tvp7002-fid-polarity;
-> +				};
-> +			};
-> +		};
-> +		...
-> +	};
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index b577548..4896024 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -35,6 +35,8 @@
->   #include<media/v4l2-device.h>
->   #include<media/v4l2-common.h>
->   #include<media/v4l2-ctrls.h>
-> +#include<media/v4l2-of.h>
-> +
->   #include "tvp7002_reg.h"
->
->   MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
-> @@ -943,6 +945,48 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
->   	.pad =&tvp7002_pad_ops,
->   };
->
-> +static struct tvp7002_config *
-> +tvp7002_get_pdata(struct i2c_client *client)
-
-nit: unnecessary line break
-
-> +{
-> +	struct v4l2_of_endpoint bus_cfg;
-> +	struct tvp7002_config *pdata;
-> +	struct device_node *endpoint;
-> +	unsigned int flags;
-> +
-> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-> +		return client->dev.platform_data;
-> +
-> +	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-> +	if (!endpoint)
-> +		return NULL;
-> +
-> +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		goto done;
-> +
-> +	v4l2_of_parse_endpoint(endpoint,&bus_cfg);
-> +	flags = bus_cfg.bus.parallel.flags;
-> +
-> +	if (flags&  V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> +		pdata->hs_polarity = 1;
-> +
-> +	if (flags&  V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> +		pdata->vs_polarity = 1;
-> +
-> +	if (flags&  V4L2_MBUS_PCLK_SAMPLE_RISING)
-> +		pdata->clk_polarity = 1;
-> +
-> +	if (flags&  V4L2_MBUS_VIDEO_SYNC_ON_GREEN)
-> +		pdata->sog_polarity = 1;
-
-This clearly shows that you're using this property for something different
-you have defined it for. I asked previously if what you really needed for
-this TVP7002 chip is a DT property indicating sync-on-green _polarity_ or
-the sync-on-green _usage_. And you clearly need the polarity information.
-
-So I would just define a standard "sync-on-green-active" property and
-V4L2_MBUS_VIDEO_SOG_ACTIVE_{HIGH,LOW} flags. Presumably you don't need
-anything else, and the extra sync polarity flags would need eventually
-to be defined anyway, independently of any video sync selection property,
-should something like this ever need to be specified by firmware.
-
-> +	pdata->fid_polarity = of_property_read_bool(endpoint,
-> +						    "ti,tvp7002-fid-polarity");
-
-This could be just:
-
-	if (flags & V4L2_MBUS_FIELD_EVEN_HIGH)
-		pdata->fid_polarity = 1;
-
-if you used standard 'field-even-active' property.
-
-And this is what we find in the TVP7002 datasheet, in the section describing
-MISC Control 3 (18h) register's FID POL bit (pdata->fid_polarity is written
-directly to FID POL):
-
-"FID POL: Active-high Field ID output polarity control. Under normal
-operation,  the field ID output is set to logic 1 for an odd field (field 1)
-and set to logic 0 for an even field (field 0).
-0 = Normal operation (default)
-1 = FID output polarity inverted
-NOTE: This control bit also affects the polarity of the data enable output
-when selected (see Test output control [2:0] at subaddress 17h)."
-
-
-And include/media/tvp70002.h:
-
-  * fid_polarity:
-  *			0 -> the field ID output is set to logic 1 for an odd
-  *			     field (field 1) and set to logic 0 for an even
-  *			     field (field 0).
-  *			1 -> operation with polarity inverted.
-
-
-Do you know if the chip automatically selects video sync source 
-(sync-on-green
-vs. VSYNC/HSYNC) and there is no need to configure this on the analogue 
-input
-side ? At least the driver seems to always select the default SOGIN_1 input
-(TVP7002_IN_MUX_SEL_1 register is set only at initialization time).
-
-Or perhaps it just outputs on SOGOUT, VSOUT, HSOUT lines whatever is fed to
-its analogue inputs, and any further processing unit need to determine what
-synchronization signal is present and should be used ?
-
-I suspect that we don't need, e.g. another endpoint node to specify the
-configuration of the TVP7002 analogue input interface, that would contain
-a property like video-sync.
-
-> +done:
-> +	of_node_put(endpoint);
-> +	return pdata;
-> +}
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
 Regards,
-Sylwester
+
+	Hans
+
+> 
+> Guennadi Liakhovetski (21):
+>   soc-camera: move common code to soc_camera.c
+>   soc-camera: add host clock callbacks to start and stop the master
+>     clock
+>   pxa-camera: move interface activation and deactivation to clock
+>     callbacks
+>   omap1-camera: move interface activation and deactivation to clock
+>     callbacks
+>   atmel-isi: move interface activation and deactivation to clock
+>     callbacks
+>   mx3-camera: move interface activation and deactivation to clock
+>     callbacks
+>   mx2-camera: move interface activation and deactivation to clock
+>     callbacks
+>   mx1-camera: move interface activation and deactivation to clock
+>     callbacks
+>   sh-mobile-ceu-camera: move interface activation and deactivation to
+>     clock callbacks
+>   soc-camera: make .clock_{start,stop} compulsory, .add / .remove
+>     optional
+>   soc-camera: don't attach the client to the host during probing
+>   sh-mobile-ceu-camera: add primitive OF support
+>   sh-mobile-ceu-driver: support max width and height in DT
+>   V4L2: add temporary clock helpers
+>   V4L2: add a device pointer to struct v4l2_subdev
+>   V4L2: support asynchronous subdevice registration
+>   soc-camera: switch I2C subdevice drivers to use v4l2-clk
+>   soc-camera: add V4L2-async support
+>   sh_mobile_ceu_camera: add asynchronous subdevice probing support
+>   imx074: support asynchronous probing
+>   ARM: shmobile: convert ap4evb to asynchronously register camera
+>     subdevices
+> 
+>  .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
+>  arch/arm/mach-shmobile/board-ap4evb.c              |  103 ++--
+>  arch/arm/mach-shmobile/clock-sh7372.c              |    1 +
+>  drivers/media/i2c/soc_camera/imx074.c              |   32 +-
+>  drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
+>  drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
+>  drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
+>  drivers/media/i2c/soc_camera/mt9t112.c             |   25 +-
+>  drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
+>  drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
+>  drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
+>  drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
+>  drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
+>  drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
+>  drivers/media/i2c/soc_camera/ov9640.h              |    1 +
+>  drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
+>  drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
+>  drivers/media/i2c/soc_camera/tw9910.c              |   24 +-
+>  drivers/media/platform/soc_camera/atmel-isi.c      |   38 +-
+>  drivers/media/platform/soc_camera/mx1_camera.c     |   48 +-
+>  drivers/media/platform/soc_camera/mx2_camera.c     |   41 +-
+>  drivers/media/platform/soc_camera/mx3_camera.c     |   44 +-
+>  drivers/media/platform/soc_camera/omap1_camera.c   |   41 +-
+>  drivers/media/platform/soc_camera/pxa_camera.c     |   46 +-
+>  .../platform/soc_camera/sh_mobile_ceu_camera.c     |  243 +++++--
+>  drivers/media/platform/soc_camera/sh_mobile_csi2.c |  153 +++--
+>  drivers/media/platform/soc_camera/soc_camera.c     |  707 +++++++++++++++++---
+>  .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+>  drivers/media/v4l2-core/Makefile                   |    3 +-
+>  drivers/media/v4l2-core/v4l2-async.c               |  280 ++++++++
+>  drivers/media/v4l2-core/v4l2-clk.c                 |  242 +++++++
+>  drivers/media/v4l2-core/v4l2-common.c              |    2 +
+>  include/media/sh_mobile_ceu.h                      |    2 +
+>  include/media/sh_mobile_csi2.h                     |    2 +-
+>  include/media/soc_camera.h                         |   39 +-
+>  include/media/v4l2-async.h                         |  105 +++
+>  include/media/v4l2-clk.h                           |   54 ++
+>  include/media/v4l2-subdev.h                        |   10 +
+>  38 files changed, 2035 insertions(+), 467 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
+>  create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+>  create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+>  create mode 100644 include/media/v4l2-async.h
+>  create mode 100644 include/media/v4l2-clk.h
+> 
+> 
