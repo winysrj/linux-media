@@ -1,74 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:59583 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755214Ab3F1JdX (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 05:33:23 -0400
-Date: Fri, 28 Jun 2013 12:32:47 +0300
-From: Felipe Balbi <balbi@ti.com>
-To: Jingoo Han <jg1.han@samsung.com>
-CC: <linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>,
-	"'Kishon Vijay Abraham I'" <kishon@ti.com>,
-	<linux-media@vger.kernel.org>,
-	"'Kukjin Kim'" <kgene.kim@samsung.com>,
-	"'Sylwester Nawrocki'" <s.nawrocki@samsung.com>,
-	"'Felipe Balbi'" <balbi@ti.com>,
-	"'Tomasz Figa'" <t.figa@samsung.com>,
-	<devicetree-discuss@lists.ozlabs.org>,
-	"'Inki Dae'" <inki.dae@samsung.com>,
-	"'Donghwa Lee'" <dh09.lee@samsung.com>,
-	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
-	"'Jean-Christophe PLAGNIOL-VILLARD'" <plagnioj@jcrosoft.com>,
-	<linux-fbdev@vger.kernel.org>
-Subject: Re: [PATCH V2 1/3] phy: Add driver for Exynos DP PHY
-Message-ID: <20130628093247.GB11297@arwen.pp.htv.fi>
-Reply-To: <balbi@ti.com>
-References: <001f01ce73cf$46d8c940$d48a5bc0$@samsung.com>
+Received: from moutng.kundenserver.de ([212.227.17.10]:64273 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750750Ab3FQGEo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jun 2013 02:04:44 -0400
+Date: Mon, 17 Jun 2013 08:04:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] V4L2: add documentation for V4L2 clock helpers and asynchronous
+ probing
+Message-ID: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="kXdP64Ggrk/fb43R"
-Content-Disposition: inline
-In-Reply-To: <001f01ce73cf$46d8c940$d48a5bc0$@samsung.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---kXdP64Ggrk/fb43R
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
+to v4l2-framework.txt.
 
-On Fri, Jun 28, 2013 at 04:15:32PM +0900, Jingoo Han wrote:
-> Add a PHY provider driver for the Samsung Exynos SoC DP PHY.
->=20
-> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
 
-Now that you fixed Kishon's concerns, this looks pretty good:
+Hopefully we can commit the actual patches now, while we refine the 
+documentation.
 
-Acked-by: Felipe Balbi <balbi@ti.com>
+ Documentation/video4linux/v4l2-framework.txt |   62 +++++++++++++++++++++++++-
+ 1 files changed, 60 insertions(+), 2 deletions(-)
 
---=20
-balbi
+diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+index a300b28..159a83a 100644
+--- a/Documentation/video4linux/v4l2-framework.txt
++++ b/Documentation/video4linux/v4l2-framework.txt
+@@ -326,8 +326,27 @@ that width, height and the media bus pixel code are equal on both source and
+ sink of the link. Subdev drivers are also free to use this function to
+ perform the checks mentioned above in addition to their own checks.
+ 
+-A device (bridge) driver needs to register the v4l2_subdev with the
+-v4l2_device:
++There are currently two ways to register subdevices with the V4L2 core. The
++first (traditional) possibility is to have subdevices registered by bridge
++drivers. This can be done, when the bridge driver has the complete information
++about subdevices, connected to it and knows exactly when to register them. This
++is typically the case for internal subdevices, like video data processing units
++within SoCs or complex pluggable boards, camera sensors in USB cameras or
++connected to SoCs, which pass information about them to bridge drivers, usually
++in their platform data.
++
++There are however also situations, where subdevices have to be registered
++asynchronously to bridge devices. An example of such a configuration is Device
++Tree based systems, on which information about subdevices is made available to
++the system indpendently from the bridge devices, e.g. when subdevices are
++defined in DT as I2C device nodes. The API, used in this second case is
++described further below.
++
++Using one or the other registration method only affects the probing process, the
++run-time bridge-subdevice interaction is in both cases the same.
++
++In the synchronous case a device (bridge) driver needs to register the
++v4l2_subdev with the v4l2_device:
+ 
+ 	int err = v4l2_device_register_subdev(v4l2_dev, sd);
+ 
+@@ -394,6 +413,25 @@ controlled through GPIO pins. This distinction is only relevant when setting
+ up the device, but once the subdev is registered it is completely transparent.
+ 
+ 
++In the asynchronous case subdevices register themselves using the
++v4l2_async_register_subdev() function. Unregistration is performed, using the
++v4l2_async_unregister_subdev() call. Subdevices registered this way are stored
++on a global list of subdevices, ready to be picked up by bridge drivers.
++
++Bridge drivers in turn have to register a notifier object with an array of
++subdevice descriptors, that the bridge device needs for its operation. This is
++performed using the v4l2_async_notifier_register() call. To unregister the
++notifier the driver has to call v4l2_async_notifier_unregister(). The former of
++the two functions takes two arguments: a pointer to struct v4l2_device and a
++pointer to struct v4l2_async_notifier. The latter contains a pointer to an array
++of pointers to subdevice descriptors of type struct v4l2_async_subdev type. The
++V4L2 core will then use these descriptors to match asynchronously registered
++subdevices to them. If a match is detected the .bound() notifier callback is
++called. After all subdevices have been located the .complete() callback is
++called. When a subdevice is removed from the system the .unbind() method is
++called. All three callbacks are optional.
++
++
+ V4L2 sub-device userspace API
+ -----------------------------
+ 
+@@ -1061,3 +1099,23 @@ available event type is 'class base + 1'.
+ 
+ An example on how the V4L2 events may be used can be found in the OMAP
+ 3 ISP driver (drivers/media/platform/omap3isp).
++
++
++V4L2 clocks
++-----------
++
++Many subdevices, like camera sensors, TV decoders and encoders, need a clock
++signal to be supplied by the system. Often this clock is supplied by the
++respective bridge device. The Linux kernel provides a Common Clock Framework for
++this purpose, however, it is not (yet) available on all architectures. Besides,
++the nature of the multi-functional (clock, data + synchronisation, I2C control)
++connection of subdevices to the system might impose special requirements on the
++clock API usage. For these reasons a V4L2 clock helper API has been developed
++and is provided to bridge and subdevice drivers.
++
++The API consists of two parts: two functions to register and unregister a V4L2
++clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls to control
++a clock object, similar to respective generic clock API calls: v4l2_clk_get(),
++v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(), v4l2_clk_get_rate(), and
++v4l2_clk_set_rate(). Clock suppliers have to provide clock operations, that will
++be called when clock users invoke respective API methods.
+-- 
+1.7.2.5
 
---kXdP64Ggrk/fb43R
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJRzVg/AAoJEIaOsuA1yqREwDYP/AsIqxzypV1GV5FsilYgeiYv
-lFFb/+n+AlgOFkoe4JJOJMlxkukMBgu2pTXB4dg+QAbF6Nhb+bJ/3XVeUFERQeae
-nzrifhvuFZn9rnqkQ3vhiYucnn7jN2cgbnzIcGogAGGd4KtA+m6JdGsi9tLM/fLS
-kZEHv++owa63Cud6EY6eXfMDk5hk+Ym6Yk5e5RLX0+Ox2mhSzjzo4rmvI+vXq7Of
-lQh8/+GfE75GUs9giYE6bWmrTjGddVZjKD6euv1AfZE4jq8RLdosfnLn4y2ZIagk
-KUSC3vBR2Jk540nUy4ObGxhaG9yT3uR+TU7lXX/AwcL5HwDUDo3gtUUOPOU32wkJ
-vu4207RUwd+IPUZeW2nVtv5b4y8HTjKgOW9JFNrcSSb87s5Eez1GABK98CfszCF9
-MBuIKhYpNYPnLZoxNzjiizBjY50DUzpVrWZvHqfCl9+knoWJEKu5mLfEvqW1JGtq
-7UkCT8jFaKtbHQO+Bdz5JAa1K0+yM3MALWMiFjty2JrNrcckBehFRqGBi/tJZc/U
-ZpDKKS11/twI3D7nELf9WFxt/7L96SaduZtLBKwoZVYmKBbx9U0567H6EwR+GCPY
-OwGUQ2a0QqYV3JQw5oGVeK5hy8ZIgZ6IvFiIxCwmxIiU8ra1AkoMHVOdzLG4PcOi
-N2431qH8bh6agDl78tZh
-=BnXT
------END PGP SIGNATURE-----
-
---kXdP64Ggrk/fb43R--
