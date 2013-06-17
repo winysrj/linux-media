@@ -1,154 +1,115 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:58220 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752484Ab3FJSvA (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43121 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752256Ab3FQPn1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 14:51:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [REVIEW PATCH 9/9] v4l2: remove parent from v4l2 core.
-Date: Mon, 10 Jun 2013 20:51:06 +0200
-Message-ID: <4543607.skPvUKalgT@avalon>
-In-Reply-To: <1370868518-19831-10-git-send-email-hverkuil@xs4all.nl>
-References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl> <1370868518-19831-10-git-send-email-hverkuil@xs4all.nl>
+	Mon, 17 Jun 2013 11:43:27 -0400
+Date: Mon, 17 Jun 2013 16:42:37 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Inki Dae <daeinki@gmail.com>
+Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Rob Clark <robdclark@gmail.com>,
+	"myungjoo.ham" <myungjoo.ham@samsung.com>,
+	YoungJun Cho <yj44.cho@samsung.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
+	framework
+Message-ID: <20130617154237.GJ2718@n2100.arm.linux.org.uk>
+References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com> <1371467722-665-1-git-send-email-inki.dae@samsung.com> <51BEF458.4090606@canonical.com> <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com> <20130617133109.GG2718@n2100.arm.linux.org.uk> <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+On Tue, Jun 18, 2013 at 12:03:31AM +0900, Inki Dae wrote:
+> 2013/6/17 Russell King - ARM Linux <linux@arm.linux.org.uk>
+> Exactly right. But that is not definitely my point. Could you please see
+> the below simple example?:
+> (Presume that CPU and DMA share a buffer and the buffer is mapped with user
+> space as cachable)
+> 
+>         handle1 = drm_gem_fd_to_handle(a dmabuf fd);  ----> 1
+>                  ...
+>         va1 = drm_gem_mmap(handle1);
+>         va2 = drm_gem_mmap(handle2);
+>         va3 = malloc(size);
+>                  ...
+> 
+>         while (conditions) {
+>                  memcpy(va1, some data, size);
 
-Thanks for the patch.
+Nooooooooooooooooooooooooooooooooooooooooooooo!
 
-On Monday 10 June 2013 14:48:38 Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Well, the first thing to say here is that under the requirements of the
+DMA API, the above is immediately invalid, because you're writing to a
+buffer which under the terms of the DMA API is currently owned by the
+DMA agent, *not* by the CPU.  You're supposed to call dma_sync_sg_for_cpu()
+before you do that - but how is userspace supposed to know that requirement?
+Why should userspace even _have_ to know these requirements of the DMA
+API?
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+It's also entirely possible that drm_gem_fd_to_handle() (which indirectly
+causes dma_map_sg() on the buffers scatterlist) followed by mmap'ing it
+into userspace is a bug too, as it has the potential to touch caches or
+stuff in ways that maybe the DMA or IOMMU may not expect - but I'm not
+going to make too big a deal about that, because I don't think we have
+anything that picky.
 
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c   |   34  ++++++++++++++----------------
->  drivers/media/v4l2-core/v4l2-ioctl.c |    7 +------
->  include/media/v4l2-dev.h             |    2 --
->  3 files changed, 16 insertions(+), 27 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c
-> b/drivers/media/v4l2-core/v4l2-dev.c index 2f3fac5..61e82f8 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -495,8 +495,8 @@ static const struct file_operations v4l2_fops = {
->  };
-> 
->  /**
-> - * get_index - assign stream index number based on parent device
-> - * @vdev: video_device to assign index number to, vdev->parent should be
-> assigned + * get_index - assign stream index number based on v4l2_dev
-> + * @vdev: video_device to assign index number to, vdev->v4l2_dev should be
-> assigned *
->   * Note that when this is called the new device has not yet been registered
-> * in the video_device array, but it was able to obtain a minor number. @@
-> -514,15 +514,11 @@ static int get_index(struct video_device *vdev) static
-> DECLARE_BITMAP(used, VIDEO_NUM_DEVICES);
->  	int i;
-> 
-> -	/* Some drivers do not set the parent. In that case always return 0. */
-> -	if (vdev->parent == NULL)
-> -		return 0;
-> -
->  	bitmap_zero(used, VIDEO_NUM_DEVICES);
-> 
->  	for (i = 0; i < VIDEO_NUM_DEVICES; i++) {
->  		if (video_device[i] != NULL &&
-> -		    video_device[i]->parent == vdev->parent) {
-> +		    video_device[i]->v4l2_dev == vdev->v4l2_dev) {
->  			set_bit(video_device[i]->index, used);
->  		}
->  	}
-> @@ -776,6 +772,9 @@ int __video_register_device(struct video_device *vdev,
-> int type, int nr, /* the release callback MUST be present */
->  	if (WARN_ON(!vdev->release))
->  		return -EINVAL;
-> +	/* the v4l2_dev pointer MUST be present */
-> +	if (WARN_ON(!vdev->v4l2_dev))
-> +		return -EINVAL;
-> 
->  	/* v4l2_fh support */
->  	spin_lock_init(&vdev->fh_lock);
-> @@ -803,16 +802,13 @@ int __video_register_device(struct video_device *vdev,
-> int type, int nr,
-> 
->  	vdev->vfl_type = type;
->  	vdev->cdev = NULL;
-> -	if (vdev->v4l2_dev) {
-> -		if (vdev->v4l2_dev->dev)
-> -			vdev->parent = vdev->v4l2_dev->dev;
-> -		if (vdev->ctrl_handler == NULL)
-> -			vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
-> -		/* If the prio state pointer is NULL, then use the v4l2_device
-> -		   prio state. */
-> -		if (vdev->prio == NULL)
-> -			vdev->prio = &vdev->v4l2_dev->prio;
-> -	}
-> +
-> +	if (vdev->ctrl_handler == NULL)
-> +		vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
-> +	/* If the prio state pointer is NULL, then use the v4l2_device
-> +	   prio state. */
-> +	if (vdev->prio == NULL)
-> +		vdev->prio = &vdev->v4l2_dev->prio;
-> 
->  	/* Part 2: find a free minor, device node number and device index. */
->  #ifdef CONFIG_VIDEO_FIXED_MINOR_RANGES
-> @@ -897,8 +893,8 @@ int __video_register_device(struct video_device *vdev,
-> int type, int nr, /* Part 4: register the device with sysfs */
->  	vdev->dev.class = &video_class;
->  	vdev->dev.devt = MKDEV(VIDEO_MAJOR, vdev->minor);
-> -	if (vdev->parent)
-> -		vdev->dev.parent = vdev->parent;
-> +	if (vdev->v4l2_dev->dev)
-> +		vdev->dev.parent = vdev->v4l2_dev->dev;
->  	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
->  	ret = device_register(&vdev->dev);
->  	if (ret < 0) {
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c
-> b/drivers/media/v4l2-core/v4l2-ioctl.c index 19e2988..3dcdaa3 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -1845,12 +1845,7 @@ static int v4l_dbg_g_chip_info(const struct
-> v4l2_ioctl_ops *ops, p->flags |= V4L2_CHIP_FL_WRITABLE;
->  		if (ops->vidioc_g_register)
->  			p->flags |= V4L2_CHIP_FL_READABLE;
-> -		if (vfd->v4l2_dev)
-> -			strlcpy(p->name, vfd->v4l2_dev->name, sizeof(p->name));
-> -		else if (vfd->parent)
-> -			strlcpy(p->name, vfd->parent->driver->name, sizeof(p->name));
-> -		else
-> -			strlcpy(p->name, "bridge", sizeof(p->name));
-> +		strlcpy(p->name, vfd->v4l2_dev->name, sizeof(p->name));
->  		if (ops->vidioc_g_chip_info)
->  			return ops->vidioc_g_chip_info(file, fh, arg);
->  		if (p->match.addr)
-> diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-> index b2c3776..4d10e66 100644
-> --- a/include/media/v4l2-dev.h
-> +++ b/include/media/v4l2-dev.h
-> @@ -96,8 +96,6 @@ struct video_device
->  	struct device dev;		/* v4l device */
->  	struct cdev *cdev;		/* character device */
-> 
-> -	/* Set either parent or v4l2_dev if your driver uses v4l2_device */
-> -	struct device *parent;		/* device parent */
->  	struct v4l2_device *v4l2_dev;	/* v4l2_device parent */
-> 
->  	/* Control handler associated with this device node. May be NULL. */
--- 
-Regards,
+However, the first point above is the most important one, and exposing
+the quirks of the DMA API to userland is certainly not a nice thing to be
+doing.  This needs to be fixed - we can't go and enforce an API which is
+deeply embedded within the kernel all the way out to userland.
 
-Laurent Pinchart
+What we need is something along the lines of:
+(a) dma_buf_map_attachment() _not_ to map the scatterlist for DMA.
+or
+(b) drm_gem_prime_import() not to call dma_buf_map_attachment() at all.
 
+and for the scatterlist to be mapped for DMA at the point where the DMA
+operation is initiated, and unmapped at the point where the DMA operation
+is complete.
+
+So no, the problem is not that we need more APIs and code - we need the
+existing kernel API fixed so that we don't go exposing userspace to the
+requirements of the DMA API.  Unless we do that, we're going to end
+up with a huge world of pain, where kernel architecture people need to
+audit every damned DRM userspace implementation that happens to be run
+on their platform, and that's not something arch people really can
+afford to do.
+
+Basically, I think the dma_buf stuff needs to be rewritten with the
+requirements of the DMA API in the forefront of whosever mind is doing
+the rewriting.
+
+Note: the existing stuff does have the nice side effect of being able
+to pass buffers which do not have a struct page * associated with them
+through the dma_buf API - I think we can still preserve that by having
+dma_buf provide a couple of new APIs to do the SG list map/sync/unmap,
+but in any case we need to fix the existing API so that:
+
+	dma_buf_map_attachment() becomes dma_buf_get_sg()
+	dma_buf_unmap_attachment() becomes dma_buf_put_sg()
+
+both getting rid of the DMA direction argument, and then we have four
+new dma_buf calls:
+
+	dma_buf_map_sg()
+	dma_buf_unmap_sg()
+	dma_buf_sync_sg_for_cpu()
+	dma_buf_sync_sg_for_device()
+
+which do the actual sg map/unmap via the DMA API *at the appropriate
+time for DMA*.
+
+So, the summary of this is - at the moment, I regard DRM Prime and dmabuf
+to be utterly broken in design for architectures such as ARM where the
+requirements of the DMA API have to be followed if you're going to have
+a happy life.
