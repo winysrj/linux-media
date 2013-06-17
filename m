@@ -1,140 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:24030 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756427Ab3FSOLN (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2763 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751174Ab3FQRu6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jun 2013 10:11:13 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout3.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MON0071O8QDFEE0@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 19 Jun 2013 15:11:10 +0100 (BST)
-From: Andrzej Hajda <a.hajda@samsung.com>
-To: laurent.pinchart@ideasonboard.com
-Cc: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com
-Subject: [PATCH RFC v4] media: added managed v4l2/i2c subdevice initialization
-Date: Wed, 19 Jun 2013 16:10:54 +0200
-Message-id: <1371651054-28684-1-git-send-email-a.hajda@samsung.com>
-In-reply-to: <4084534.7DE24ipEqE@avalon>
-References: <4084534.7DE24ipEqE@avalon>
+	Mon, 17 Jun 2013 13:50:58 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5HHokt7045223
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 19:50:48 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 875FA35E00C9
+	for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 19:50:40 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: ERRORS
+Message-Id: <20130617175040.875FA35E00C9@alastor.dyndns.org>
+Date: Mon, 17 Jun 2013 19:50:40 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds managed version of initialization
-function for v4l2 i2c subdevices.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-v4:
-	- added description to devm_v4l2_subdev_bind
-v3:
-	- removed devm_v4l2_subdev_(init|free),
-v2:
-	- changes of v4l2-ctrls.h moved to proper patch
----
- drivers/media/v4l2-core/v4l2-common.c | 10 ++++++++++
- drivers/media/v4l2-core/v4l2-subdev.c | 35 +++++++++++++++++++++++++++++++++++
- include/media/v4l2-common.h           |  2 ++
- include/media/v4l2-subdev.h           |  2 ++
- 4 files changed, 49 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 3fed63f..96aac931 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -301,7 +301,17 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- }
- EXPORT_SYMBOL_GPL(v4l2_i2c_subdev_init);
- 
-+int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-+			      const struct v4l2_subdev_ops *ops)
-+{
-+	int ret;
- 
-+	ret = devm_v4l2_subdev_bind(&client->dev, sd);
-+	if (!ret)
-+		v4l2_i2c_subdev_init(sd, client, ops);
-+	return ret;
-+}
-+EXPORT_SYMBOL_GPL(devm_v4l2_i2c_subdev_init);
- 
- /* Load an i2c sub-device. */
- struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
-diff --git a/drivers/media/v4l2-core/v4l2-subdev.c b/drivers/media/v4l2-core/v4l2-subdev.c
-index 996c248..2242962 100644
---- a/drivers/media/v4l2-core/v4l2-subdev.c
-+++ b/drivers/media/v4l2-core/v4l2-subdev.c
-@@ -474,3 +474,38 @@ void v4l2_subdev_init(struct v4l2_subdev *sd, const struct v4l2_subdev_ops *ops)
- #endif
- }
- EXPORT_SYMBOL(v4l2_subdev_init);
-+
-+static void devm_v4l2_subdev_release(struct device *dev, void *res)
-+{
-+	struct v4l2_subdev **sd = res;
-+
-+	v4l2_device_unregister_subdev(*sd);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+	media_entity_cleanup(&(*sd)->entity);
-+#endif
-+}
-+
-+/**
-+ * devm_v4l2_subdev_bind - Add subdevice to device managed resource list
-+ * @dev: Device to bind subdev to
-+ * @sd:  Subdevice to bind
-+ *
-+ * Function adds device managed release code to the subdev.
-+ * If the function succeedes then on driver detach subdev will be automatically
-+ * unregistered and the media entity will be cleaned up. Function can be used
-+ * with subdevs not initialized by devm_v4l2_i2c_subdev_init.
-+ */
-+int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd)
-+{
-+	struct v4l2_subdev **dr;
-+
-+	dr = devres_alloc(devm_v4l2_subdev_release, sizeof(*dr), GFP_KERNEL);
-+	if (!dr)
-+		return -ENOMEM;
-+
-+	*dr = sd;
-+	devres_add(dev, dr);
-+
-+	return 0;
-+}
-+EXPORT_SYMBOL(devm_v4l2_subdev_bind);
-diff --git a/include/media/v4l2-common.h b/include/media/v4l2-common.h
-index 1d93c48..da62e2b 100644
---- a/include/media/v4l2-common.h
-+++ b/include/media/v4l2-common.h
-@@ -136,6 +136,8 @@ struct v4l2_subdev *v4l2_i2c_new_subdev_board(struct v4l2_device *v4l2_dev,
- /* Initialize a v4l2_subdev with data from an i2c_client struct */
- void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- 		const struct v4l2_subdev_ops *ops);
-+int devm_v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
-+		const struct v4l2_subdev_ops *ops);
- /* Return i2c client address of v4l2_subdev. */
- unsigned short v4l2_i2c_subdev_addr(struct v4l2_subdev *sd);
- 
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 5298d67..e086cfe 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -657,6 +657,8 @@ int v4l2_subdev_link_validate(struct media_link *link);
- void v4l2_subdev_init(struct v4l2_subdev *sd,
- 		      const struct v4l2_subdev_ops *ops);
- 
-+int devm_v4l2_subdev_bind(struct device *dev, struct v4l2_subdev *sd);
-+
- /* Call an ops of a v4l2_subdev, doing the right checks against
-    NULL pointers.
- 
--- 
-1.8.1.2
+date:		Mon Jun 17 19:00:22 CEST 2013
+git branch:	test
+git hash:	3080f8c77f277eb87397d639581ebea859f9ea41
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
+linux-git-arm-at91: ERRORS
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: ERRORS
+linux-git-arm-mx: ERRORS
+linux-git-arm-omap: ERRORS
+linux-git-arm-omap1: ERRORS
+linux-git-arm-pxa: ERRORS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: ERRORS
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: ERRORS
+linux-2.6.32.27-i686: ERRORS
+linux-2.6.33.7-i686: ERRORS
+linux-2.6.34.7-i686: ERRORS
+linux-2.6.35.9-i686: ERRORS
+linux-2.6.36.4-i686: ERRORS
+linux-2.6.37.6-i686: ERRORS
+linux-2.6.38.8-i686: ERRORS
+linux-2.6.39.4-i686: ERRORS
+linux-3.0.60-i686: ERRORS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: ERRORS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: ERRORS
+linux-2.6.32.27-x86_64: ERRORS
+linux-2.6.33.7-x86_64: ERRORS
+linux-2.6.34.7-x86_64: ERRORS
+linux-2.6.35.9-x86_64: ERRORS
+linux-2.6.36.4-x86_64: ERRORS
+linux-2.6.37.6-x86_64: ERRORS
+linux-2.6.38.8-x86_64: ERRORS
+linux-2.6.39.4-x86_64: ERRORS
+linux-3.0.60-x86_64: ERRORS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: ERRORS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
