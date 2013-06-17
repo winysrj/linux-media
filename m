@@ -1,53 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail3.hostmaster.sk ([93.184.77.232]:35900 "EHLO
-	mail3.hostmaster.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752053Ab3F0K5p (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 06:57:45 -0400
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Thu, 27 Jun 2013 11:25:51 +0100
-From: Bristol Credit Services <info@Subscriber.net>
-To: undisclosed-recipients:;
-Subject: Bewerben Sie sich =?UTF-8?Q?f=C3=BCr=20Darlehen?=
-Reply-To: <bistolcreditservices@yahoo.ca>
-Message-ID: <caaf5eded7545276106014d8c3cf7a40@zdiar.sk>
+Received: from shell.v3.sk ([195.168.3.45]:41993 "EHLO norkia.v3.sk"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751140Ab3FQON5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jun 2013 10:13:57 -0400
+Subject: Re: [PATCH] [media] usbtv: Add driver for Fushicai USBTV007 video
+ frame grabber
+From: Lubomir Rintel <lkundrak@v3.sk>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org
+In-Reply-To: <201306120949.44163.hverkuil@xs4all.nl>
+References: <1370857931-6586-1-git-send-email-lkundrak@v3.sk>
+	 <201306101305.05038.hverkuil@xs4all.nl>
+	 <1370885934.9757.11.camel@hobbes.kokotovo>
+	 <201306120949.44163.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset="UTF-8"
+Date: Mon, 17 Jun 2013 16:13:49 +0200
+Message-ID: <1371478429.23946.1.camel@hobbes.kokotovo>
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On Wed, 2013-06-12 at 09:49 +0200, Hans Verkuil wrote:
+...
+> > > > +static int usbtv_queryctrl(struct file *file, void *priv,
+> > > > +				struct v4l2_queryctrl *ctrl)
+> > > > +{
+> > > > +	return -EINVAL;
+> > > > +}
+> > > 
+> > > Drop this ioctl. If it doesn't do anything, then don't specify it.
+> > 
+> > It actually does something; EINVAL here for any ctrl signals there's
+> > zero controls.
+> > 
+> > When undefined, ENOTTY that is returned is considered invalid by
+> > gstreamer source.
+> 
+> What version of gstreamer are you using? Looking at the gstreamer code it
+> seems that it can handle ENOTTY at least since September last year. Not handling
+> ENOTTY is an application bug (there are other - rare - drivers that do not
+> have any controls) and as such I really don't like seeing a workaround like
+> this in a driver, especially since this seems like it should be working fine
+> with the latest gstreamer.
 
+I was using GStreamer from RHEL6. I retried with Fedora 17 and it worked
+fine.
+
+Regards,
+Lubo
 
 -- 
-Haben Sie schon unten durch Banken oder finanzielle Kreditgeber
-eingeschaltet? Sind Sie in
-Schulden? Sie benötigen einen schnellen Kredit für Unternehmen?
+Lubomir Rintel <lkundrak@v3.sk>
 
-Dann ist hier die Chance, Ihr Unternehmen bieten persönliche und
-geschäftliche Darlehen an
-Individuen, ist unser Zinssatz bei 3% Zinsen per annum festgelegt, in
-die ein Kreditnehmer zurückzahlen kann in einem bestimmten Zeitraum. 
-Wenn
-Sie interessiert sind,
-kontaktieren Sie uns jetzt an bistolcreditservices@yahoo.ca
-
-Hier sind die Informationen ist erforderlich:
-* Vollständiger Name
-* Darlehensbetrag benötigt:
-* Zweck des Darlehens:
-* Dauer der Ausleihe:
-* Land:
-* Telefon:
-Durch unsere unbesicherten und Secured Loan Programs, können wir jede 
-Art
-der Finanzierung, dass ein Unternehmen benötigen. Wir gestalten unser
-Programm passen Ihre
-Bedürfnisse, nicht unsere. In den meisten Fällen werden Sie 
-feststellen,
-dass wir haben Optionen aus
-die nicht von Banken angeboten.
-
-Zur weiteren besprechen Sie Ihre Situation, bitte kontaktieren Sie uns
-jetzt
-bistolcreditservices@yahoo.ca für die Anwendung
