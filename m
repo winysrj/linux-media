@@ -1,56 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from lycasmtp.lycamobile.co.uk ([217.118.119.180]:36884 "EHLO
-	lycasmtp.lycamobile.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751549Ab3FKMlM convert rfc822-to-8bit (ORCPT
+Received: from mail-pd0-f182.google.com ([209.85.192.182]:39019 "EHLO
+	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751922Ab3FQPVe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 08:41:12 -0400
-Message-Id: <201306071716.r578GUaD019256@lycasmtp.lycamobile.co.uk>
-Content-Type: text/plain; charset="iso-8859-1"
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Description: Mail message body
-Subject: Confirmed Reciept.....
-To: Recipients <info@uk.net>
-From: info@uk.net
-Date: Fri, 07 Jun 2013 22:54:24 +0530
-Reply-To: claim.jonesgreene@hotmail.co.uk
+	Mon, 17 Jun 2013 11:21:34 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 03/11] media: davinci: vpif: remove unnecessary braces around defines
+Date: Mon, 17 Jun 2013 20:50:43 +0530
+Message-Id: <1371482451-18314-4-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Uk National Lottery
-Ref: L/200-26937
-Batch: 2007MJL-01
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
+This patch removes unnecessary braces around defines.
 
-                     FINAL NOTIFICATION
-We are pleased to inform you today 6th  June, 2013 of the result 
-of the winners of the  UK NATIONAL LOTTERY ONLINE PROMO PROGRAMME, held 
-on the 30th of May, 2013.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+---
+ drivers/media/platform/davinci/vpif.c |    8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
 
-You have therefore been approved for a lump sum pay out of £1,000 000 
-(One Million Pounds Sterling) in cash credited to file XYL/26510460037/06.To file for your claim, 
-please contact our claims agent;
-
-Agents Name: Dr.Jones Greene
-Emai: claim.jonesgreene@hotmail.co.uk
-
-
-Provide him with the information below:
-
-1.Full Name:
-2.Full Address:
-3.Marital Status:
-4.Occupation:
-5.Age:
-6.Sex:
-7.Nationality:
-8.Country Of Residence:
-9.Telephone Number:
-
-Congratulations once more from all members and staff of this program.
-
-Sincerely, 
-Dr.Jones Greene
-UK NATIONAL LOTTERY
-
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index 164c1b7..cd08e52 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -32,10 +32,10 @@
+ MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
+ MODULE_LICENSE("GPL");
+ 
+-#define VPIF_CH0_MAX_MODES	(22)
+-#define VPIF_CH1_MAX_MODES	(02)
+-#define VPIF_CH2_MAX_MODES	(15)
+-#define VPIF_CH3_MAX_MODES	(02)
++#define VPIF_CH0_MAX_MODES	22
++#define VPIF_CH1_MAX_MODES	2
++#define VPIF_CH2_MAX_MODES	15
++#define VPIF_CH3_MAX_MODES	2
+ 
+ spinlock_t vpif_lock;
+ 
+-- 
+1.7.9.5
 
