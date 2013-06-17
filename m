@@ -1,238 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:64121 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751332Ab3FYRoz (ORCPT
+Received: from youngberry.canonical.com ([91.189.89.112]:48328 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932390Ab3FQLey (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 13:44:55 -0400
-Message-id: <51C9D714.4000703@samsung.com>
-Date: Tue, 25 Jun 2013 19:44:52 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: balbi@ti.com
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, kishon@ti.com,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	t.figa@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	inki.dae@samsung.com, plagnioj@jcrosoft.com,
-	linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
- <20130625150649.GA21334@arwen.pp.htv.fi>
-In-reply-to: <20130625150649.GA21334@arwen.pp.htv.fi>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Mon, 17 Jun 2013 07:34:54 -0400
+Message-ID: <51BEF458.4090606@canonical.com>
+Date: Mon, 17 Jun 2013 13:34:48 +0200
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+MIME-Version: 1.0
+To: Inki Dae <inki.dae@samsung.com>
+CC: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
+	daniel@ffwll.ch, robdclark@gmail.com, kyungmin.park@samsung.com,
+	myungjoo.ham@samsung.com, yj44.cho@samsung.com
+Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
+ framework
+References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com> <1371467722-665-1-git-send-email-inki.dae@samsung.com>
+In-Reply-To: <1371467722-665-1-git-send-email-inki.dae@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Felipe,
-
-Thanks for the review.
-
-On 06/25/2013 05:06 PM, Felipe Balbi wrote:
-> On Tue, Jun 25, 2013 at 04:21:46PM +0200, Sylwester Nawrocki wrote:
->> +enum phy_id {
->> +	PHY_CSIS0,
->> +	PHY_DSIM0,
->> +	PHY_CSIS1,
->> +	PHY_DSIM1,
->> +	NUM_PHYS
-> 
-> please prepend these with EXYNOS_PHY_ or EXYNOS_MIPI_PHY_
-
-OK, will fix that.
-
->> +struct exynos_video_phy {
->> +	spinlock_t slock;
->> +	struct phy *phys[NUM_PHYS];
-> 
-> more than one phy ? This means you should instantiate driver multiple
-> drivers. Each phy id should call probe again.
-
-Why ? This single PHY _provider_ can well handle multiple PHYs.
-I don't see a good reason to further complicate this driver like
-this. Please note that MIPI-CSIS 0 and MIPI DSIM 0 share MMIO
-register, so does MIPI CSIS 1 and MIPI DSIM 1. There are only 2
-registers for those 4 PHYs. I could have the involved object
-multiplied, but it would have been just a waste of resources
-with no difference to the PHY consumers.
-
->> +static int __set_phy_state(struct exynos_video_phy *state,
->> +				enum phy_id id, unsigned int on)
->> +{
->> +	void __iomem *addr;
->> +	unsigned long flags;
->> +	u32 reg, reset;
->> +
->> +	if (WARN_ON(id > NUM_PHYS))
->> +		return -EINVAL;
-> 
-> you don't want to do this, actually. It'll bug you everytime you want to
-> add another phy ID :-)
-
-If there is an SoC with more PHYs enum phy_id would be extended, and this
-part would not need to be touched. OTOH @id cannot be normally greater
-than NUM_PHYS. I think I'll drop that then.
-
->> +	addr = state->regs + EXYNOS_MIPI_PHY_CONTROL(id / 2);
->> +
->> +	if (id == PHY_DSIM0 || id == PHY_DSIM1)
->> +		reset = EXYNOS_MIPI_PHY_MRESETN;
->> +	else
->> +		reset = EXYNOS_MIPI_PHY_SRESETN;
->> +
->> +	spin_lock_irqsave(&state->slock, flags);
->> +	reg = readl(addr);
->> +	if (on)
->> +		reg |= reset;
->> +	else
->> +		reg &= ~reset;
->> +	writel(reg, addr);
->> +
->> +	/* Clear ENABLE bit only if MRESETN, SRESETN bits are not set. */
->> +	if (on)
->> +		reg |= EXYNOS_MIPI_PHY_ENABLE;
->> +	else if (!(reg & EXYNOS_MIPI_PHY_RESET_MASK))
->> +		reg &= ~EXYNOS_MIPI_PHY_ENABLE;
->> +
->> +	writel(reg, addr);
->> +	spin_unlock_irqrestore(&state->slock, flags);
->> +
->> +	pr_debug("%s(): id: %d, on: %d, addr: %#x, base: %#x\n",
->> +		 __func__, id, on, (u32)addr, (u32)state->regs);
-> 
-> use dev_dbg() instead.
-> 
->> +
->> +	return 0;
->> +}
->> +
->> +static int exynos_video_phy_power_on(struct phy *phy)
->> +{
->> +	struct exynos_video_phy *state = dev_get_drvdata(&phy->dev);
-> 
-> looks like we should have phy_get_drvdata() helper :-) Kishon ?
-
-Indeed, that might be useful.
-
->> +static struct phy *exynos_video_phy_xlate(struct device *dev,
->> +					struct of_phandle_args *args)
->> +{
->> +	struct exynos_video_phy *state = dev_get_drvdata(dev);
->> +
->> +	if (WARN_ON(args->args[0] > NUM_PHYS))
->> +		return NULL;
-> 
-> please remove this check.
-
-args->args[0] comes from DT as the PHY id and there is nothing
-preventing it from being greater or equal to the state->phys[]
-array length, unless I'm missing something. Actually it should
-have been 'if (args->args[0] >= NUM_PHYS)'.
-
->> +	return state->phys[args->args[0]];
-> 
-> and your xlate is 'wrong'.
-
-What exactly is wrong here ?
-
->> +}
->> +
->> +static struct phy_ops exynos_video_phy_ops = {
->> +	.power_on	= exynos_video_phy_power_on,
->> +	.power_off	= exynos_video_phy_power_off,
->> +	.owner		= THIS_MODULE,
->> +};
->> +
->> +static int exynos_video_phy_probe(struct platform_device *pdev)
->> +{
->> +	struct exynos_video_phy *state;
->> +	struct device *dev = &pdev->dev;
->> +	struct resource *res;
->> +	struct phy_provider *phy_provider;
->> +	int i;
->> +
->> +	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
->> +	if (!state)
->> +		return -ENOMEM;
->> +
->> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
->> +
->> +	state->regs = devm_ioremap_resource(dev, res);
->> +	if (IS_ERR(state->regs))
->> +		return PTR_ERR(state->regs);
->> +
->> +	dev_set_drvdata(dev, state);
-> 
-> you can use platform_set_drvdata(pdev, state);
-
-I had it in the previous version, but changed for symmetry with
-dev_set_drvdata(). I guess those could be replaced with
-phy_{get, set}_drvdata as you suggested.
-
-> same thing though, no strong feelings.
-> 
->> +	phy_provider = devm_of_phy_provider_register(dev,
->> +					exynos_video_phy_xlate);
->> +	if (IS_ERR(phy_provider))
->> +		return PTR_ERR(phy_provider);
->> +
->> +	for (i = 0; i < NUM_PHYS; i++) {
->> +		char label[8];
->> +
->> +		snprintf(label, sizeof(label), "%s.%d",
->> +				i == PHY_DSIM0 || i == PHY_DSIM1 ?
->> +				"dsim" : "csis", i / 2);
->> +
->> +		state->phys[i] = devm_phy_create(dev, i, &exynos_video_phy_ops,
->> +								label, state);
->> +		if (IS_ERR(state->phys[i])) {
->> +			dev_err(dev, "failed to create PHY %s\n", label);
->> +			return PTR_ERR(state->phys[i]);
->> +		}
->> +	}
-> 
-> this really doesn't look correct to me. It looks like you have multiple
-> PHYs, one for each ID. So your probe should be called for each PHY ID
-> and you have several phy_providers too.
-
-Yes, multiple PHY objects, but a single provider. There is no need
-whatsoever for multiple PHY providers.
-
->> +static const struct of_device_id exynos_video_phy_of_match[] = {
->> +	{ .compatible = "samsung,s5pv210-mipi-video-phy" },
-> 
-> and this should contain all PHY IDs:
-> 
-> 	{ .compatible = "samsung,s5pv210-mipi-video-dsim0-phy",
-> 		.data = (const void *) DSIM0, },
-> 	{ .compatible = "samsung,s5pv210-mipi-video-dsim1-phy",
-> 		.data = (const void *) DSIM1, },
-> 	{ .compatible = "samsung,s5pv210-mipi-video-csi0-phy"
-> 		.data = (const void *) CSI0, },
-> 	{ .compatible = "samsung,s5pv210-mipi-video-csi1-phy"
-> 		.data = (const void *) CSI1, },
-> 
-> then on your probe you can fetch that data field and use it as phy->id.
-
-This looks wrong to me, it doesn't look like a right usage of 'compatible'
-property. MIPI-CSIS0/MIPI-DSIM0, MIPI-CSIS1/MIPI-DSIM1 are identical pairs,
-so one compatible property would need to be used for them. We don't use
-different compatible strings for different instances of same device.
-And MIPI DSIM and MIPI CSIS share one MMIO register, so they need to be
-handled by one provider, to synchronize accesses. That's one of the main
-reasons I turned to the generic PHY framework for those devices.
-
->> +static struct platform_driver exynos_video_phy_driver = {
->> +	.probe	= exynos_video_phy_probe,
-> 
-> you *must* provide a remove method. drivers with NULL remove are
-> non-removable :-)
-
-Oops, my bad. I've forgotten to update this, after enabling build
-as module. Will update and test that. It will be an empty callback
-though.
+Op 17-06-13 13:15, Inki Dae schreef:
+> This patch adds a buffer synchronization framework based on DMA BUF[1]
+> and reservation[2] to use dma-buf resource, and based on ww-mutexes[3]
+> for lock mechanism.
+>
+> The purpose of this framework is not only to couple cache operations,
+> and buffer access control to CPU and DMA but also to provide easy-to-use
+> interfaces for device drivers and potentially user application
+> (not implemented for user applications, yet). And this framework can be
+> used for all dma devices using system memory as dma buffer, especially
+> for most ARM based SoCs.
+>
+> Changelog v2:
+> - use atomic_add_unless to avoid potential bug.
+> - add a macro for checking valid access type.
+> - code clean.
+>
+> The mechanism of this framework has the following steps,
+>     1. Register dmabufs to a sync object - A task gets a new sync object and
+>     can add one or more dmabufs that the task wants to access.
+>     This registering should be performed when a device context or an event
+>     context such as a page flip event is created or before CPU accesses a shared
+>     buffer.
+>
+> 	dma_buf_sync_get(a sync object, a dmabuf);
+>
+>     2. Lock a sync object - A task tries to lock all dmabufs added in its own
+>     sync object. Basically, the lock mechanism uses ww-mutex[1] to avoid dead
+>     lock issue and for race condition between CPU and CPU, CPU and DMA, and DMA
+>     and DMA. Taking a lock means that others cannot access all locked dmabufs
+>     until the task that locked the corresponding dmabufs, unlocks all the locked
+>     dmabufs.
+>     This locking should be performed before DMA or CPU accesses these dmabufs.
+>
+> 	dma_buf_sync_lock(a sync object);
+>
+>     3. Unlock a sync object - The task unlocks all dmabufs added in its own sync
+>     object. The unlock means that the DMA or CPU accesses to the dmabufs have
+>     been completed so that others may access them.
+>     This unlocking should be performed after DMA or CPU has completed accesses
+>     to the dmabufs.
+>
+> 	dma_buf_sync_unlock(a sync object);
+>
+>     4. Unregister one or all dmabufs from a sync object - A task unregisters
+>     the given dmabufs from the sync object. This means that the task dosen't
+>     want to lock the dmabufs.
+>     The unregistering should be performed after DMA or CPU has completed
+>     accesses to the dmabufs or when dma_buf_sync_lock() is failed.
+>
+> 	dma_buf_sync_put(a sync object, a dmabuf);
+> 	dma_buf_sync_put_all(a sync object);
+>
+>     The described steps may be summarized as:
+> 	get -> lock -> CPU or DMA access to a buffer/s -> unlock -> put
+>
+> This framework includes the following two features.
+>     1. read (shared) and write (exclusive) locks - A task is required to declare
+>     the access type when the task tries to register a dmabuf;
+>     READ, WRITE, READ DMA, or WRITE DMA.
+>
+>     The below is example codes,
+> 	struct dmabuf_sync *sync;
+>
+> 	sync = dmabuf_sync_init(NULL, "test sync");
+>
+> 	dmabuf_sync_get(sync, dmabuf, DMA_BUF_ACCESS_READ);
+> 	...
+>
+> 	And the below can be used as access types:
+> 		DMA_BUF_ACCESS_READ,
+> 		- CPU will access a buffer for read.
+> 		DMA_BUF_ACCESS_WRITE,
+> 		- CPU will access a buffer for read or write.
+> 		DMA_BUF_ACCESS_READ | DMA_BUF_ACCESS_DMA,
+> 		- DMA will access a buffer for read
+> 		DMA_BUF_ACCESS_WRITE | DMA_BUF_ACCESS_DMA,
+> 		- DMA will access a buffer for read or write.
+>
+>     2. Mandatory resource releasing - a task cannot hold a lock indefinitely.
+>     A task may never try to unlock a buffer after taking a lock to the buffer.
+>     In this case, a timer handler to the corresponding sync object is called
+>     in five (default) seconds and then the timed-out buffer is unlocked by work
+>     queue handler to avoid lockups and to enforce resources of the buffer.
+>
+> The below is how to use:
+> 	1. Allocate and Initialize a sync object:
+> 		struct dmabuf_sync *sync;
+>
+> 		sync = dmabuf_sync_init(NULL, "test sync");
+> 		...
+>
+> 	2. Add a dmabuf to the sync object when setting up dma buffer relevant
+> 	   registers:
+> 		dmabuf_sync_get(sync, dmabuf, DMA_BUF_ACCESS_READ);
+> 		...
+>
+> 	3. Lock all dmabufs of the sync object before DMA or CPU accesses
+> 	   the dmabufs:
+> 		dmabuf_sync_lock(sync);
+> 		...
+>
+> 	4. Now CPU or DMA can access all dmabufs locked in step 3.
+>
+> 	5. Unlock all dmabufs added in a sync object after DMA or CPU access
+> 	   to these dmabufs is completed:
+> 		dmabuf_sync_unlock(sync);
+>
+> 	   And call the following functions to release all resources,
+> 		dmabuf_sync_put_all(sync);
+> 		dmabuf_sync_fini(sync);
+>
+> 	You can refer to actual example codes:
+> 		https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-exynos.git/
+> 		commit/?h=dmabuf-sync&id=4030bdee9bab5841ad32faade528d04cc0c5fc94
+>
+> 		https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-exynos.git/
+> 		commit/?h=dmabuf-sync&id=6ca548e9ea9e865592719ef6b1cde58366af9f5c
+>
+> The framework performs cache operation based on the previous and current access
+> types to the dmabufs after the locks to all dmabufs are taken:
+> 	Call dma_buf_begin_cpu_access() to invalidate cache if,
+> 		previous access type is DMA_BUF_ACCESS_WRITE | DMA and
+> 		current access type is DMA_BUF_ACCESS_READ
+>
+> 	Call dma_buf_end_cpu_access() to clean cache if,
+> 		previous access type is DMA_BUF_ACCESS_WRITE and
+> 		current access type is DMA_BUF_ACCESS_READ | DMA
+>
+> Such cache operations are invoked via dma-buf interfaces so the dma buf exporter
+> should implement dmabuf->ops->begin_cpu_access/end_cpu_access callbacks.
+>
+> [1] http://lwn.net/Articles/470339/
+> [2] http://lwn.net/Articles/532616/
+> [3] https://patchwork-mail1.kernel.org/patch/2625321/
+>
+Looks to me like you're just writing an api similar to the android syncpoint for this.
+Is there any reason you had to reimplement the android syncpoint api?
+I'm not going into a full review, you may wish to rethink the design first.
+All the criticisms I had with the original design approach still apply.
 
 
-Thanks,
-Sylwester
+
+A few things that stand out from a casual glance:
+
+bool is_dmabuf_sync_supported(void)
+-> any code that needs CONFIG_DMABUF_SYNC should select it in their kconfig
+runtime enabling/disabling of synchronization is a recipe for disaster, remove the !CONFIG_DMABUF_SYNC fallbacks.
+NEVER add a runtime way to influence locking behavior.
+
+Considering you're also holding dmaobj->lock for the entire duration, is there any point to not simply call begin_cpu_access/end_cpu_access, and forget this ugly code ever existed?
+I still don't see the problem you're trying to solve..
+
+~Maarten
+
