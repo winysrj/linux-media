@@ -1,52 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.net.t-labs.tu-berlin.de ([130.149.220.252]:48577 "EHLO
-	mail.net.t-labs.tu-berlin.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751606Ab3FWWdT convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jun 2013 18:33:19 -0400
-Received: from fls-nb.lan.streibelt.net (91-64-122-25-dynip.superkabel.de [91.64.122.25])
-	by mail.net.t-labs.tu-berlin.de (Postfix) with ESMTPSA id B30934C607B
-	for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 00:25:58 +0200 (CEST)
-Date: Mon, 24 Jun 2013 00:25:56 +0200
-From: Florian Streibelt <florian@inet.tu-berlin.de>
-To: linux-media@vger.kernel.org
-Subject: "patch" to support CX23103  Video Grabber - USB_DEVICE(0x1D19,
- 0x6109)
-Message-ID: <20130624002556.06c7a224@fls-nb.lan.streibelt.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8BIT
+Received: from moutng.kundenserver.de ([212.227.126.186]:51694 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754310Ab3FQGM3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jun 2013 02:12:29 -0400
+Date: Mon, 17 Jun 2013 08:12:22 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Magnus Damm <magnus.damm@gmail.com>
+cc: Simon Horman <horms+renesas@verge.net.au>,
+	Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
+	SH-Linux <linux-sh@vger.kernel.org>,
+	"arm@kernel.org" <arm@kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	Magnus Damm <damm@opensource.se>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 14/15] ARM: shmobile: Remove AP4EVB board support
+In-Reply-To: <CANqRtoRXBupbbU_cq257p5usu8F5975NFDenkOx1qTvYZaxF2w@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1306170805390.22409@axis700.grange>
+References: <1371106793-25071-1-git-send-email-horms+renesas@verge.net.au>
+ <1371106793-25071-15-git-send-email-horms+renesas@verge.net.au>
+ <Pine.LNX.4.64.1306132128370.3777@axis700.grange>
+ <CANqRtoSx4Jf_EfG3LvkpoOED4-SuOdWjRedz-RbwGCOcOeP-Xg@mail.gmail.com>
+ <Pine.LNX.4.64.1306141123380.6920@axis700.grange>
+ <CANqRtoRXBupbbU_cq257p5usu8F5975NFDenkOx1qTvYZaxF2w@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Mon, 17 Jun 2013, Magnus Damm wrote:
 
-the chip CX23103 that is used in various devices sold e.g. in germany works with the cx231xx stock driver.
+[snip]
 
-The author of that driver is not reachable via the email adress stated in the source file: srinivasa.deevi@conexant.com
-[ host cnxtsmtp1.conexant.com [198.62.9.252]: 550 5.1.1 <srinivasa.deevi@conexant.com>:  Recipient address rejected: User unknown in relay recipient table]
+> So Guennadi, if you want to keep this board then you have to step up
+> and fix things. If not then there is no point in keeping it.
 
-In drivers/media/video/cx231xx/cx231xx-cards.c the struct usb_device_id cx231xx_id_table[] needs these lines added:
+Ok, after a private discussion we agreed to remove the board, which will 
+also make the drivers for the Renesas sh-/r-mobile CSI2 interface and for 
+the Sony IMX074 sensor untestable and susceptible to removal. Also 
+multi-subdevice support in soc-camera now will lose its only use and can 
+become broken. I will also drop CSI2 and AP4EVB patches from my V4L2 clock 
+/ async probing series.
 
-   {USB_DEVICE(0x1D19, 0x6109),
-   .driver_info = CX231XX_BOARD_PV_XCAPTURE_USB},
-
-While the change is minimal due to the fact that no real technical documentation is available on the chip the support was guessed - but worked for video.
-
-The videostream can pe played using mplayer tv:///0  - proof: http://streibelt.de/blog/2013/06/23/kernel-patch-for-cx23103-video-grabber-linux-support/
-
-However when trying to capture audio using audacity while playing the video stream in mplayer my system locked (no message in syslog, complete freeze). 
-
-
-regards,
-
-   Florian
-
-
--- 
-Florian Streibelt
-Chair "Intelligent Networks" (INET)
-TEL 16
-Technische Universität Berlin
-Ernst-Reuter-Platz 7
-10587 Berlin
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
