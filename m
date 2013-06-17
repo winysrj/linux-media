@@ -1,49 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:38710 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752034Ab3FXPsH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 11:48:07 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH 2/2] media: i2c: tvp514x: remove manual setting of subdev name
-Date: Mon, 24 Jun 2013 21:17:26 +0530
-Message-Id: <1372088846-26263-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1372088846-26263-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1372088846-26263-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:40743 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750750Ab3FQGe7 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jun 2013 02:34:59 -0400
+Message-ID: <51BEAE0A.7060706@redhat.com>
+Date: Mon, 17 Jun 2013 08:34:50 +0200
+From: Hans de Goede <hdegoede@redhat.com>
+MIME-Version: 1.0
+To: Guy Martin <gmsoft@tuxicoman.be>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Doing a v4l-utils-1.0.0 release
+References: <51BAC2F6.40708@redhat.com> <20130614103404.3dc2c4bf@redhat.com> <20130615123337.1ba83c63@borg.bxl.tuxicoman.be>
+In-Reply-To: <20130615123337.1ba83c63@borg.bxl.tuxicoman.be>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi,
 
-This patch removes manual setting of subdev name in the
-probe, ideally subdev names must be unique.
+On 06/15/2013 12:33 PM, Guy Martin wrote:
+>
+> On Fri, 14 Jun 2013 10:34:04 -0300
+> Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+>
+>> Em Fri, 14 Jun 2013 09:15:02 +0200
+>> Hans de Goede <hdegoede@redhat.com> escreveu:
+>>
+>>> Hi All,
+>>>
+>>> IIRC the 0.9.x series were meant as development releases leading up
+>>> to a new stable 1.0.0 release. Lately there have been no
+>>> maintenance 0.8.x releases and a lot of interesting development
+>>> going on in the 0.9.x, while at the same time there have been no
+>>> issues reported against 0.9.x (iow it seems stable).
+>>>
+>>> So how about taking current master and releasing that as a 1.0.0
+>>> release ?
+>>
+>> Fine for me.
+>>
+>> There are 5 patches floating at patchwork to improve the DVB-S
+>> support with different types of DiSEqC, but applying them would break
+>> library support for tvd. So, they won't be applied as-is, and Guy
+>> needs to take some other approach. As he is also planning to add
+>> support there for rotors, it looks ok to postpone such changes to a
+>> latter version.
+>
+> Can we wait a little bit more like a week max ?
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
----
- drivers/media/i2c/tvp514x.c |    1 -
- 1 file changed, 1 deletion(-)
+Sure, I was just trying to see what people think about doing a 1.0.0
+release. I see no reason to rush it.
 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 864eb14..6578976 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -1148,7 +1148,6 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* Register with V4L2 layer as slave device */
- 	sd = &decoder->sd;
- 	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
--	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
--- 
-1.7.9.5
+Regards,
 
+Hans
