@@ -1,63 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3787 "EHLO
-	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1422788Ab3FTU21 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50380 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753344Ab3FQRUm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 16:28:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Prabhakar Lad <prabhakar.lad@ti.com>
-Subject: [REVIEW PATCH 3/3] omap_vout: fix compiler warning
-Date: Thu, 20 Jun 2013 22:28:16 +0200
-Message-Id: <1371760096-19256-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 17 Jun 2013 13:20:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH v4 00/11] media: davinci: vpif driver cleanup
+Date: Mon, 17 Jun 2013 19:20:54 +0200
+Message-ID: <2109154.PkSYdnQTas@avalon>
+In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Prabhakar,
 
-media-git/drivers/media/platform/omap/omap_vout.c: In function ‘omapvid_init’:
-media-git/drivers/media/platform/omap/omap_vout.c:382:17: warning: ‘mode’ may be used uninitialized in this function [-Wmaybe-uninitialized]
-  vout->dss_mode = video_mode_to_dss_mode(vout);
-                 ^
-media-git/drivers/media/platform/omap/omap_vout.c:332:23: note: ‘mode’ was declared here
-  enum omap_color_mode mode;
-                       ^
+Thank you for the patches.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Prabhakar Lad <prabhakar.lad@ti.com>
----
- drivers/media/platform/omap/omap_vout.c | 3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
+On Monday 17 June 2013 20:50:40 Prabhakar Lad wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> This patch series cleans the VPIF driver, uses devm_* api wherever
+> required and uses module_platform_driver() to simplify the code.
+> 
+> This patch series applies on http://git.linuxtv.org/hverkuil/media_tree.git/
+> shortlog/refs/heads/for-v3.11 and is tested on OMAP-L138 EVM.
+> 
+> Changes for v2:
+> 1: Rebased on v3.11 branch of Hans.
+> 2: Dropped the patches which removed headers as mentioned by Laurent.
+> 
+> Changes for v3:
+> 1: Splitted the patches logically as mentioned by Laurent.
+> 2: Fixed review comments pointed by Laurent.
+> 3: Included Ack's.
+> 
+> Changes for v4:
+> 1: Rebased on v3.11 branch of Hans.
+> 2: Fixed review comments pointed by Laurent and Sergei.
+> 3: Included Ack's.
+> 4: Removed unnecessary loop for IRQ resource.
 
-diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
-index d338b19..dfd0a21 100644
---- a/drivers/media/platform/omap/omap_vout.c
-+++ b/drivers/media/platform/omap/omap_vout.c
-@@ -335,8 +335,6 @@ static int video_mode_to_dss_mode(struct omap_vout_device *vout)
- 	ovl = ovid->overlays[0];
- 
- 	switch (pix->pixelformat) {
--	case 0:
--		break;
- 	case V4L2_PIX_FMT_YUYV:
- 		mode = OMAP_DSS_COLOR_YUV2;
- 		break;
-@@ -358,6 +356,7 @@ static int video_mode_to_dss_mode(struct omap_vout_device *vout)
- 		break;
- 	default:
- 		mode = -EINVAL;
-+		break;
- 	}
- 	return mode;
- }
+For the whole series,
+
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+> Lad, Prabhakar (11):
+>   media: davinci: vpif: remove unwanted header mach/hardware.h and sort
+>     the includes alphabetically
+>   media: davinci: vpif: Convert to devm_* api
+>   media: davinci: vpif: remove unnecessary braces around defines
+>   media: davinci: vpif_capture: move the freeing of irq and global
+>     variables to remove()
+>   media: davinci: vpif_capture: use module_platform_driver()
+>   media: davinci: vpif_capture: Convert to devm_* api
+>   media: davinci: vpif_capture: remove unnecessary loop for IRQ
+>     resource
+>   media: davinci: vpif_display: move the freeing of irq and global
+>     variables to remove()
+>   media: davinci: vpif_display: use module_platform_driver()
+>   media: davinci: vpif_display: Convert to devm_* api
+>   media: davinci: vpif_display: remove unnecessary loop for IRQ
+>     resource
+> 
+>  drivers/media/platform/davinci/vpif.c         |   45 ++++-----------
+>  drivers/media/platform/davinci/vpif_capture.c |   76 +++++-----------------
+>  drivers/media/platform/davinci/vpif_display.c |   65 +++++----------------
+>  3 files changed, 39 insertions(+), 147 deletions(-)
+
 -- 
-1.8.3.1
+Regards,
+
+Laurent Pinchart
 
