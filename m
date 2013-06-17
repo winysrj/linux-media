@@ -1,80 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:41285 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755323Ab3FCB0G (ORCPT
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:50619 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751331Ab3FQPWC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 2 Jun 2013 21:26:06 -0400
-Date: Mon, 3 Jun 2013 04:25:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Volokh Konstantin <volokh84@gmail.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [RFC] Motion Detection API
-Message-ID: <20130603012559.GA2075@valkosipuli.retiisi.org.uk>
-References: <201304121736.16542.hverkuil@xs4all.nl>
- <201305061541.41204.hverkuil@xs4all.nl>
- <2428502.07isB1rKTR@avalon>
- <201305071435.30062.hverkuil@xs4all.nl>
- <518909DA.8000407@samsung.com>
- <20130508162648.GG1075@valkosipuli.retiisi.org.uk>
- <518ACDDA.3080908@gmail.com>
- <20130521173037.GD2041@valkosipuli.retiisi.org.uk>
- <519D3B9E.4090800@gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <519D3B9E.4090800@gmail.com>
+	Mon, 17 Jun 2013 11:22:02 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 08/11] media: davinci: vpif_display: move the freeing of irq and global variables to remove()
+Date: Mon, 17 Jun 2013 20:50:48 +0530
+Message-Id: <1371482451-18314-9-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-On Wed, May 22, 2013 at 11:41:50PM +0200, Sylwester Nawrocki wrote:
-> [...]
-> >>>I'm in favour of using a separate video buffer queue for passing
-> >>>low-level
-> >>>metadata to user space.
-> >>
-> >>Sure. I certainly see a need for such an interface. I wouldn't like to
-> >>see it
-> >>as the only option, however. One of the main reasons of introducing
-> >>MPLANE
-> >>API was to allow capture of meta-data. We are going to finally prepare
-> >>some
-> >>RFC regarding usage of a separate plane for meta-data capture. I'm not
-> >>sure
-> >>yet how it would look exactly in detail, we've just discussed this topic
-> >>roughly with Andrzej.
-> >
-> >I'm fine that being not the only option; however it's unbeatable when it
-> >comes to latencies. So perhaps we should allow using multi-plane buffers
-> >for the same purpose as well.
-> >
-> >But how to choose between the two?
-> 
-> I think we need some example implementation for metadata capture over
-> multi-plane interface and with a separate video node. Without such
-> implementation/API draft it is a bit difficult to discuss this further.
+Ideally the freeing of irq's and the global variables needs to be
+done in the remove() rather than module_exit(), this patch moves
+the freeing up of irq's and freeing the memory allocated to channel
+objects to remove() callback of struct platform_driver.
 
-Yes, that'd be quite nice.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_display.c |   30 ++++++++++---------------
+ 1 file changed, 12 insertions(+), 18 deletions(-)
 
-There are actually a number of things that I think would be needed to
-support what's discussed above. Extended frame descriptors (I'm preparing
-RFC v2 --- yes, really!) are one.
-
-Also creating video nodes based on how many different content streams there
-are doesn't make much sense to me. A quick and dirty solution would be to
-create a low level metadata queue type to avoid having to create more video
-nodes. I think I'd prefer a more generic solution though.
-
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index 6c521f2..371af34 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1829,10 +1829,20 @@ vpif_int_err:
+ static int vpif_remove(struct platform_device *device)
+ {
+ 	struct channel_obj *ch;
+-	int i;
++	struct resource *res;
++	int irq_num;
++	int i = 0;
++
++	while ((res = platform_get_resource(device, IORESOURCE_IRQ, i))) {
++		for (irq_num = res->start; irq_num <= res->end; irq_num++)
++			free_irq(irq_num,
++				 (void *)(&vpif_obj.dev[i]->channel_id));
++		i++;
++	}
+ 
+ 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+ 
++	kfree(vpif_obj.sd);
+ 	/* un-register device */
+ 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
+ 		/* Get the pointer to the channel object */
+@@ -1841,6 +1851,7 @@ static int vpif_remove(struct platform_device *device)
+ 		video_unregister_device(ch->video_dev);
+ 
+ 		ch->video_dev = NULL;
++		kfree(vpif_obj.dev[i]);
+ 	}
+ 
+ 	return 0;
+@@ -1938,24 +1949,7 @@ static __init int vpif_init(void)
+  */
+ static void vpif_cleanup(void)
+ {
+-	struct platform_device *pdev;
+-	struct resource *res;
+-	int irq_num;
+-	int i = 0;
+-
+-	pdev = container_of(vpif_dev, struct platform_device, dev);
+-
+-	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
+-		for (irq_num = res->start; irq_num <= res->end; irq_num++)
+-			free_irq(irq_num,
+-				 (void *)(&vpif_obj.dev[i]->channel_id));
+-		i++;
+-	}
+-
+ 	platform_driver_unregister(&vpif_driver);
+-	kfree(vpif_obj.sd);
+-	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)
+-		kfree(vpif_obj.dev[i]);
+ }
+ 
+ module_init(vpif_init);
 -- 
-Kind regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
