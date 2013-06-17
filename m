@@ -1,100 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53322 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753646Ab3FKKBB (ORCPT
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:63135 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752901Ab3FQPV1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 06:01:01 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 05/21] atmel-isi: move interface activation and deactivation to clock callbacks
-Date: Tue, 11 Jun 2013 10:23:32 +0200
-Message-Id: <1370939028-8352-6-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 17 Jun 2013 11:21:27 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v4 02/11] media: davinci: vpif: Convert to devm_* api
+Date: Mon, 17 Jun 2013 20:50:42 +0530
+Message-Id: <1371482451-18314-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the atmel-isi camera host driver only
-activates and deactivates its camera interface respectively, which doesn't
-include any client-specific actions. Move this functionality into
-.clock_start() and .clock_stop() callbacks.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Use devm_ioremap_resource instead of reques_mem_region()/ioremap().
+This ensures more consistent error values and simplifies error paths.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 ---
- drivers/media/platform/soc_camera/atmel-isi.c |   28 +++++++++++++++++--------
- 1 files changed, 19 insertions(+), 9 deletions(-)
+ drivers/media/platform/davinci/vpif.c |   27 ++++-----------------------
+ 1 file changed, 4 insertions(+), 23 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index c9e080a..1044856 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -745,10 +745,23 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
- 	return formats;
+diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
+index 761c825..164c1b7 100644
+--- a/drivers/media/platform/davinci/vpif.c
++++ b/drivers/media/platform/davinci/vpif.c
+@@ -37,8 +37,6 @@ MODULE_LICENSE("GPL");
+ #define VPIF_CH2_MAX_MODES	(15)
+ #define VPIF_CH3_MAX_MODES	(02)
+ 
+-static resource_size_t	res_len;
+-static struct resource	*res;
+ spinlock_t vpif_lock;
+ 
+ void __iomem *vpif_base;
+@@ -421,23 +419,12 @@ EXPORT_SYMBOL(vpif_channel_getfid);
+ 
+ static int vpif_probe(struct platform_device *pdev)
+ {
+-	int status = 0;
++	static struct resource	*res;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res)
+-		return -ENOENT;
+-
+-	res_len = resource_size(res);
+-
+-	res = request_mem_region(res->start, res_len, res->name);
+-	if (!res)
+-		return -EBUSY;
+-
+-	vpif_base = ioremap(res->start, res_len);
+-	if (!vpif_base) {
+-		status = -EBUSY;
+-		goto fail;
+-	}
++	vpif_base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(vpif_base))
++		return PTR_ERR(vpif_base);
+ 
+ 	pm_runtime_enable(&pdev->dev);
+ 	pm_runtime_get(&pdev->dev);
+@@ -445,17 +432,11 @@ static int vpif_probe(struct platform_device *pdev)
+ 	spin_lock_init(&vpif_lock);
+ 	dev_info(&pdev->dev, "vpif probe success\n");
+ 	return 0;
+-
+-fail:
+-	release_mem_region(res->start, res_len);
+-	return status;
  }
  
--/* Called with .host_lock held */
- static int isi_camera_add_device(struct soc_camera_device *icd)
+ static int vpif_remove(struct platform_device *pdev)
  {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
-+		 icd->devnum);
-+
-+	return 0;
-+}
-+
-+static void isi_camera_remove_device(struct soc_camera_device *icd)
-+{
-+	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
-+		 icd->devnum);
-+}
-+
-+/* Called with .host_lock held */
-+static int isi_camera_clock_start(struct soc_camera_host *ici)
-+{
- 	struct atmel_isi *isi = ici->priv;
- 	int ret;
- 
-@@ -762,21 +775,16 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
- 		return ret;
- 	}
- 
--	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
--		 icd->devnum);
+ 	pm_runtime_disable(&pdev->dev);
+-	iounmap(vpif_base);
+-	release_mem_region(res->start, res_len);
  	return 0;
  }
-+
- /* Called with .host_lock held */
--static void isi_camera_remove_device(struct soc_camera_device *icd)
-+static void isi_camera_clock_stop(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
  
- 	clk_disable(isi->mck);
- 	clk_disable(isi->pclk);
--
--	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
--		 icd->devnum);
- }
- 
- static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
-@@ -880,6 +888,8 @@ static struct soc_camera_host_ops isi_soc_camera_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= isi_camera_add_device,
- 	.remove		= isi_camera_remove_device,
-+	.clock_start	= isi_camera_clock_start,
-+	.clock_stop	= isi_camera_clock_stop,
- 	.set_fmt	= isi_camera_set_fmt,
- 	.try_fmt	= isi_camera_try_fmt,
- 	.get_formats	= isi_camera_get_formats,
 -- 
-1.7.2.5
+1.7.9.5
 
