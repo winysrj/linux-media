@@ -1,59 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:62947 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260Ab3FITmI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 15:42:08 -0400
-Received: by mail-bk0-f46.google.com with SMTP id na10so2964123bkb.5
-        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 12:42:07 -0700 (PDT)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, hj210.choi@samsung.com, s.nawrocki@samsung.com
-Subject: [RFC PATCH v2 2/2] V4L: Remove all links of a media entity when unregistering subdev
-Date: Sun,  9 Jun 2013 21:41:39 +0200
-Message-Id: <1370806899-17709-3-git-send-email-s.nawrocki@samsung.com>
-In-Reply-To: <1370806899-17709-1-git-send-email-s.nawrocki@samsung.com>
-References: <1370806899-17709-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:57926 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750903Ab3FQP1h (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jun 2013 11:27:37 -0400
+MIME-Version: 1.0
+In-Reply-To: <1371236911-15131-15-git-send-email-g.liakhovetski@gmx.de>
+References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de> <1371236911-15131-15-git-send-email-g.liakhovetski@gmx.de>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 17 Jun 2013 20:57:16 +0530
+Message-ID: <CA+V-a8u67RqLeQWs4iNHs7S9UXTBOFFw0wu+9hwndUBiwbHaMw@mail.gmail.com>
+Subject: Re: [PATCH v11 14/21] V4L2: add temporary clock helpers
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Remove all links of the subdev's media entity after internal_ops
-'unregistered' call and right before unregistering the entity from
-a media device.
+Hi Guennadi,
 
-It is assumed here that an unregistered (orphan) media entity cannot
-have links to other entities registered to a media device.
+Thanks for the patch.
 
-It is also assumed the media links should be created/removed with
-the media graph's mutex held.
+On Sat, Jun 15, 2013 at 12:38 AM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> Typical video devices like camera sensors require an external clock source.
+> Many such devices cannot even access their hardware registers without a
+> running clock. These clock sources should be controlled by their consumers.
+> This should be performed, using the generic clock framework. Unfortunately
+> so far only very few systems have been ported to that framework. This patch
+> adds a set of temporary helpers, mimicking the generic clock API, to V4L2.
+> Platforms, adopting the clock API, should switch to using it. Eventually
+> this temporary API should be removed.
+>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 
-The above implies that the caller of v4l2_device_unregister_subdev()
-must not hold the graph's mutex.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Reviewed-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/v4l2-core/v4l2-device.c |    4 +++-
- 1 files changed, 3 insertions(+), 1 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-device.c b/drivers/media/v4l2-core/v4l2-device.c
-index 8ed5da2..2dbfebc 100644
---- a/drivers/media/v4l2-core/v4l2-device.c
-+++ b/drivers/media/v4l2-core/v4l2-device.c
-@@ -269,8 +269,10 @@ void v4l2_device_unregister_subdev(struct v4l2_subdev *sd)
- 	sd->v4l2_dev = NULL;
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
--	if (v4l2_dev->mdev)
-+	if (v4l2_dev->mdev) {
-+		media_entity_remove_links(&sd->entity);
- 		media_device_unregister_entity(&sd->entity);
-+	}
- #endif
- 	video_unregister_device(sd->devnode);
- 	module_put(sd->owner);
--- 
-1.7.4.1
-
+Regards,
+--Prabhakar Lad
