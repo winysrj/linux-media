@@ -1,67 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:14225 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755657Ab3FRJSk (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:51970 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1753244Ab3FQUnh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 05:18:40 -0400
-From: Kukjin Kim <kgene.kim@samsung.com>
-To: 'Tomasz Figa' <t.figa@samsung.com>,
-	linux-samsung-soc@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	'Arnd Bergmann' <arnd@arndb.de>,
-	'Olof Johansson' <olof@lixom.net>,
-	'Marek Szyprowski' <m.szyprowski@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Thomas Abraham' <thomas.abraham@linaro.org>,
-	linux-media@vger.kernel.org,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>
-References: <1371486863-12398-1-git-send-email-t.figa@samsung.com>
- <1371486863-12398-33-git-send-email-t.figa@samsung.com>
-In-reply-to: <1371486863-12398-33-git-send-email-t.figa@samsung.com>
-Subject: RE: [PATCH v2 32/38] [media] exynos4-is: Remove check for
- SOC_EXYNOS4412
-Date: Tue, 18 Jun 2013 18:18:38 +0900
-Message-id: <1b9b01ce6c04$d0f37c10$72da7430$%kim@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Mon, 17 Jun 2013 16:43:37 -0400
+Date: Mon, 17 Jun 2013 23:43:32 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
+	laurent.pinchart@ideasonboard.com, s.nawrocki@samsung.com,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	a.hajda@samsung.com
+Subject: Re: [RFC PATCH 2/2] davinci_vpfe: Clean up media entity after
+ unregistering subdev
+Message-ID: <20130617204332.GC2064@valkosipuli.retiisi.org.uk>
+References: <20130611105032.GJ3103@valkosipuli.retiisi.org.uk>
+ <1370947849-24314-1-git-send-email-sakari.ailus@iki.fi>
+ <1370947849-24314-2-git-send-email-sakari.ailus@iki.fi>
+ <CA+V-a8t2MUwEHZMvbb0mN+dy6bH6yt_mwirH6cgoTfZfh83cew@mail.gmail.com>
+ <51BE2B3C.30102@gmail.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <51BE2B3C.30102@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Tomasz Figa wrote:
-> 
-> Since SOC_EXYNOS4412 Kconfig symbol has been removed, it is enough to
-> check for SOC_EXYNOS4212 for both SoCs from Exynos4x12 series.
-> 
-> Cc: linux-media@vger.kernel.org
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/platform/exynos4-is/Kconfig | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/exynos4-is/Kconfig
-> b/drivers/media/platform/exynos4-is/Kconfig
-> index 004fd0b..0d4fd5c 100644
-> --- a/drivers/media/platform/exynos4-is/Kconfig
-> +++ b/drivers/media/platform/exynos4-is/Kconfig
-> @@ -33,7 +33,7 @@ config VIDEO_S5P_MIPI_CSIS
->  	  To compile this driver as a module, choose M here: the
->  	  module will be called s5p-csis.
-> 
-> -if SOC_EXYNOS4212 || SOC_EXYNOS4412 || SOC_EXYNOS5250
-> +if SOC_EXYNOS4212 || SOC_EXYNOS5250
-> 
->  config VIDEO_EXYNOS_FIMC_LITE
->  	tristate "EXYNOS FIMC-LITE camera interface driver"
-> --
-> 1.8.2.1
+Hi Sylwester,
 
-NAK, the reason is same with my comments on 30th patch.
+On Sun, Jun 16, 2013 at 11:16:44PM +0200, Sylwester Nawrocki wrote:
+> Hi,
+> 
+> On 06/12/2013 06:44 AM, Prabhakar Lad wrote:
+> >On Tue, Jun 11, 2013 at 4:20 PM, Sakari Ailus<sakari.ailus@iki.fi>  wrote:
+> >>media_entity_cleanup() frees the links array which will be accessed by
+> >>media_entity_remove_links() called by v4l2_device_unregister_subdev().
+> >>
+> >>Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+> >
+> >Acked-by: Lad, Prabhakar<prabhakar.csengg@gmail.com>
+> 
+> I have added these two patches to my tree for 3.11 (in branch for-v3.11-2).
+> Please let me know if you would like it to be handled differently.
 
-- Kukjin
+This was what I was looking forward to. Thanks!
 
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
