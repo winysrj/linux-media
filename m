@@ -1,120 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f181.google.com ([209.85.215.181]:49515 "EHLO
-	mail-ea0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758757Ab3FMVhf (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:44967 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753129Ab3FQQe7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jun 2013 17:37:35 -0400
-Message-ID: <51BA3B9A.5090206@gmail.com>
-Date: Thu, 13 Jun 2013 23:37:30 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH v10 16/21] V4L2: support asynchronous subdevice registration
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de> <1370939028-8352-17-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-17-git-send-email-g.liakhovetski@gmx.de>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 17 Jun 2013 12:34:59 -0400
+Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOJ00JMMQ2ASS50@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 18 Jun 2013 01:34:58 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] Documentation: Update driver's directory in
+ video4linux/fimc.txt
+Date: Mon, 17 Jun 2013 18:34:36 +0200
+Message-id: <1371486876-30421-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Update the documentation with the driver's path changed in
+commit 56fa1a6a6a7da91e7ece8b01b0ae8adb2926e434
+[media] s5p-fimc: Change the driver directory to exynos4-is
 
-Overall it looks quite neat at this v10. :)
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/video4linux/fimc.txt |   21 +++++++++++----------
+ 1 file changed, 11 insertions(+), 10 deletions(-)
 
-On 06/11/2013 10:23 AM, Guennadi Liakhovetski wrote:
-> Currently bridge device drivers register devices for all subdevices
-> synchronously, tupically, during their probing. E.g. if an I2C CMOS sensor
+diff --git a/Documentation/video4linux/fimc.txt b/Documentation/video4linux/fimc.txt
+index 25f4d34..e51f1b5 100644
+--- a/Documentation/video4linux/fimc.txt
++++ b/Documentation/video4linux/fimc.txt
+@@ -1,6 +1,6 @@
+ Samsung S5P/EXYNOS4 FIMC driver
+ 
+-Copyright (C) 2012 Samsung Electronics Co., Ltd.
++Copyright (C) 2012 - 2013 Samsung Electronics Co., Ltd.
+ ---------------------------------------------------------------------------
+ 
+ The FIMC (Fully Interactive Mobile Camera) device available in Samsung
+@@ -10,7 +10,7 @@ data from LCD controller (FIMD) through the SoC internal writeback data
+ path.  There are multiple FIMC instances in the SoCs (up to 4), having
+ slightly different capabilities, like pixel alignment constraints, rotator
+ availability, LCD writeback support, etc. The driver is located at
+-drivers/media/platform/s5p-fimc directory.
++drivers/media/platform/exynos4-is directory.
+ 
+ 1. Supported SoCs
+ =================
+@@ -36,21 +36,21 @@ Not currently supported:
+ =====================
+ 
+ - media device driver
+-  drivers/media/platform/s5p-fimc/fimc-mdevice.[ch]
++  drivers/media/platform/exynos4-is/media-dev.[ch]
+ 
+  - camera capture video device driver
+-  drivers/media/platform/s5p-fimc/fimc-capture.c
++  drivers/media/platform/exynos4-is/fimc-capture.c
+ 
+  - MIPI-CSI2 receiver subdev
+-  drivers/media/platform/s5p-fimc/mipi-csis.[ch]
++  drivers/media/platform/exynos4-is/mipi-csis.[ch]
+ 
+  - video post-processor (mem-to-mem)
+-  drivers/media/platform/s5p-fimc/fimc-core.c
++  drivers/media/platform/exynos4-is/fimc-core.c
+ 
+  - common files
+-  drivers/media/platform/s5p-fimc/fimc-core.h
+-  drivers/media/platform/s5p-fimc/fimc-reg.h
+-  drivers/media/platform/s5p-fimc/regs-fimc.h
++  drivers/media/platform/exynos4-is/fimc-core.h
++  drivers/media/platform/exynos4-is/fimc-reg.h
++  drivers/media/platform/exynos4-is/regs-fimc.h
+ 
+ 4. User space interfaces
+ ========================
+@@ -143,7 +143,8 @@ or retrieve the information from /dev/media? with help of the media-ctl tool:
+ 6. Platform support
+ ===================
+ 
+-The machine code (plat-s5p and arch/arm/mach-*) must select following options
++The machine code (arch/arm/plat-samsung and arch/arm/mach-*) must select
++following options:
+ 
+ CONFIG_S5P_DEV_FIMC0       mandatory
+ CONFIG_S5P_DEV_FIMC1  \
+-- 
+1.7.9.5
 
-s/tupically/typically
-
-> is attached to a video bridge device, the bridge driver will create an I2C
-
-> +/**
-> + * v4l2_async_subdev_list - provided by subdevices
-> + * @list:	links struct v4l2_async_subdev_list objects to a global list
-> + *		before probing, and onto notifier->done after probing
-> + * @asd:	pointer to respective struct v4l2_async_subdev
-> + * @notifier:	pointer to managing notifier
-> + */
-> +struct v4l2_async_subdev_list {
-> +	struct list_head list;
-> +	struct v4l2_async_subdev *asd;
-> +	struct v4l2_async_notifier *notifier;
-> +};
-
-I have a patch for this patch, which embeds members of this struct directly
-into struct v4l2_subdev. My felling is that the code is simpler and easier
-to follow this way, I might be missing some important details though.
-
-> +/**
-> + * v4l2_async_notifier - v4l2_device notifier data
-> + * @subdev_num:	number of subdevices
-> + * @subdev:	array of pointers to subdevices
-
-How about changing this to:
-
-       @subdevs: array of pointers to the subdevice descriptors
-
-I think it would be more immediately clear this is the actual subdevs array
-pointer, and perhaps we could have subdev_num renamed to num_subdevs ?
-
-> + * @v4l2_dev:	pointer to struct v4l2_device
-> + * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-> + * @done:	list of struct v4l2_async_subdev_list, already probed
-> + * @list:	member in a global list of notifiers
-> + * @bound:	a subdevice driver has successfully probed one of subdevices
-> + * @complete:	all subdevices have been probed successfully
-> + * @unbind:	a subdevice is leaving
-> + */
-> +struct v4l2_async_notifier {
-> +	unsigned int subdev_num;
-> +	struct v4l2_async_subdev **subdev;
-> +	struct v4l2_device *v4l2_dev;
-> +	struct list_head waiting;
-> +	struct list_head done;
-> +	struct list_head list;
-> +	int (*bound)(struct v4l2_async_notifier *notifier,
-> +		     struct v4l2_subdev *subdev,
-> +		     struct v4l2_async_subdev *asd);
-> +	int (*complete)(struct v4l2_async_notifier *notifier);
-> +	void (*unbind)(struct v4l2_async_notifier *notifier,
-> +		       struct v4l2_subdev *subdev,
-> +		       struct v4l2_async_subdev *asd);
-> +};
-> +
-> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
-> +				 struct v4l2_async_notifier *notifier);
-> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
-> +int v4l2_async_register_subdev(struct v4l2_subdev *sd);
-> +void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
-
-I still think "async_" in this public API is unnecessary, since we register/
-unregister a subdev with the core and notifiers are intrinsically 
-asynchronous.
-But your preference seems be otherwise, what could I do... :) At most it 
-just
-means one less happy user of this interface.
-
-So except this bikeshedding I don't really have other comments, I'm 
-going to
-test this series with the s3c-camif/ov9650 drivers and will report back 
-soon.
-
-It would have been a shame to not have this series in 3.11. I guess three
-kernel cycles, since the initial implementation, time frame is sufficient
-for having finally working camera devices on a device tree enabled system
-in mainline.
-
-Thanks for the idea and patience during reviews! :)
-
-
-Regards,
-Sylwester
