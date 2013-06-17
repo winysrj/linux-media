@@ -1,79 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:43165 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750775Ab3FXT5z (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 15:57:55 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Huang Shijie <shijie8@gmail.com>, Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: [PATCH 1/2] [media] tlg2300: implement error handling in poseidon_probe()
-Date: Mon, 24 Jun 2013 23:57:36 +0400
-Message-Id: <1372103857-29451-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mail-qc0-f178.google.com ([209.85.216.178]:52893 "EHLO
+	mail-qc0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751885Ab3FQXgl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 17 Jun 2013 19:36:41 -0400
+Received: by mail-qc0-f178.google.com with SMTP id c11so1945786qcv.37
+        for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 16:36:41 -0700 (PDT)
+Date: Mon, 17 Jun 2013 19:36:55 -0400
+From: Michael Krufky <mkrufky@linuxtv.org>
+To: linux-media@vger.kernel.org
+Cc: mchehab@redhat.com
+Subject: [GIT PULL] git://linuxtv.org/mkrufky/tuners r820t
+Message-ID: <20130617193655.76af2d32@vujade>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-All poseidon init functions properly return error codes,
-but they are ignored by poseidon_probe(). The patch implements
-handling of error cases.
+The following changes since commit
+e049ca5e854263c821a15c0e25fe2ae202c365e1:
 
-Found by Linux Driver Verification project (linuxtesting.org).
+  [media] staging/media: lirc_imon: fix leaks in imon_probe()
+  (2013-06-17 15:52:20 -0300)
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/usb/tlg2300/pd-main.c | 27 ++++++++++++++++++++++++---
- 1 file changed, 24 insertions(+), 3 deletions(-)
+are available in the git repository at:
 
-diff --git a/drivers/media/usb/tlg2300/pd-main.c b/drivers/media/usb/tlg2300/pd-main.c
-index e07e4c6..ca5e1bc 100644
---- a/drivers/media/usb/tlg2300/pd-main.c
-+++ b/drivers/media/usb/tlg2300/pd-main.c
-@@ -436,12 +436,22 @@ static int poseidon_probe(struct usb_interface *interface,
- 
- 		/* register v4l2 device */
- 		ret = v4l2_device_register(&interface->dev, &pd->v4l2_dev);
-+		if (ret)
-+			goto err_v4l2;
- 
- 		/* register devices in directory /dev */
- 		ret = pd_video_init(pd);
--		poseidon_audio_init(pd);
--		poseidon_fm_init(pd);
--		pd_dvb_usb_device_init(pd);
-+		if (ret)
-+			goto err_video;
-+		ret = poseidon_audio_init(pd);
-+		if (ret)
-+			goto err_audio;
-+		ret = poseidon_fm_init(pd);
-+		if (ret)
-+			goto err_fm;
-+		ret = pd_dvb_usb_device_init(pd);
-+		if (ret)
-+			goto err_dvb;
- 
- 		INIT_LIST_HEAD(&pd->device_list);
- 		list_add_tail(&pd->device_list, &pd_device_list);
-@@ -459,6 +469,17 @@ static int poseidon_probe(struct usb_interface *interface,
- 	}
- #endif
- 	return 0;
-+err_dvb:
-+	poseidon_fm_exit(pd);
-+err_fm:
-+	poseidon_audio_free(pd);
-+err_audio:
-+	pd_video_exit(pd);
-+err_video:
-+	v4l2_device_unregister(&pd->v4l2_dev);
-+err_v4l2:
-+	kfree(pd);
-+	return ret;
- }
- 
- static void poseidon_disconnect(struct usb_interface *interface)
--- 
-1.8.1.2
+  git://linuxtv.org/mkrufky/tuners r820t
 
+for you to fetch changes up to a02dfce109f6dcddf1bfd973f9b3000cd74c3590:
+
+  r820t: fix imr calibration (2013-06-17 19:32:45 -0400)
+
+----------------------------------------------------------------
+Gianluca Gennari (3):
+      r820t: remove redundant initializations in r820t_attach()
+      r820t: avoid potential memcpy buffer overflow in shadow_store()
+      r820t: fix imr calibration
+
+ drivers/media/tuners/r820t.c | 17 +++++++----------
+ 1 file changed, 7 insertions(+), 10 deletions(-)
