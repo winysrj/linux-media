@@ -1,78 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3519 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752647Ab3FXHza (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:51509 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932124Ab3FRMdp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 03:55:30 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5O7tQDU094863
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 09:55:28 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 5F8EA35E0027
-	for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 09:55:25 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.11] Updates for 3.11
-Date: Mon, 24 Jun 2013 09:55:25 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306240955.25603.hverkuil@xs4all.nl>
+	Tue, 18 Jun 2013 08:33:45 -0400
+Received: from epcpsbgr4.samsung.com
+ (u144.gpu120.samsung.co.kr [203.254.230.144])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MOL007B09JV13S0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 18 Jun 2013 21:33:44 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v2 3/8] [media] s5p-mfc: Add register definition file for MFC v7
+Date: Tue, 18 Jun 2013 18:26:18 +0530
+Message-id: <1371560183-23244-4-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
+References: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some async/OF work from Prabhakar (the correct version this time) and
-assorted improvements and fixes for compiler warnings.
+The patch adds the register definition file for new firmware
+version v7 for MFC. New firmware supports VP8 encoding along with
+many other features.
 
-Regards,
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h |   58 ++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
 
-	Hans
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+new file mode 100644
+index 0000000..24dba69
+--- /dev/null
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -0,0 +1,58 @@
++/*
++ * Register definition file for Samsung MFC V7.x Interface (FIMV) driver
++ *
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
++
++#ifndef _REGS_MFC_V7_H
++#define _REGS_MFC_V7_H
++
++#include "regs-mfc-v6.h"
++
++/* Additional features of v7 */
++#define S5P_FIMV_CODEC_VP8_ENC_V7	25
++
++/* Additional registers for v7 */
++#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
++
++#define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
++#define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
++#define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
++#define S5P_FIMV_E_SOURCE_FIRST_STRIDE_V7		0xf9ec
++#define S5P_FIMV_E_SOURCE_SECOND_STRIDE_V7		0xf9f0
++#define S5P_FIMV_E_SOURCE_THIRD_STRIDE_V7		0xf9f4
++
++#define S5P_FIMV_E_ENCODED_SOURCE_FIRST_ADDR_V7		0xfa70
++#define S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7	0xfa74
++
++#define S5P_FIMV_E_VP8_OPTIONS_V7			0xfdb0
++#define S5P_FIMV_E_VP8_FILTER_OPTIONS_V7		0xfdb4
++#define S5P_FIMV_E_VP8_GOLDEN_FRAME_OPTION_V7		0xfdb8
++#define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
++
++/* MFCv7 variant defines */
++#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
++#define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
++#define MFC_VERSION_V7			0x72
++#define MFC_NUM_PORTS_V7		1
++
++/* MFCv7 Context buffer sizes */
++#define MFC_CTX_BUF_SIZE_V7		(30 * SZ_1K)	/*  30KB */
++#define MFC_H264_DEC_CTX_BUF_SIZE_V7	(2 * SZ_1M)	/*  2MB */
++#define MFC_OTHER_DEC_CTX_BUF_SIZE_V7	(20 * SZ_1K)	/*  20KB */
++#define MFC_H264_ENC_CTX_BUF_SIZE_V7	(100 * SZ_1K)	/* 100KB */
++#define MFC_OTHER_ENC_CTX_BUF_SIZE_V7	(10 * SZ_1K)	/*  10KB */
++
++/* Buffer size defines */
++#define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(w, h) \
++			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
++
++#define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
++			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
++
++#endif /*_REGS_MFC_V7_H*/
+-- 
+1.7.9.5
 
-The following changes since commit ee17608d6aa04a86e253a9130d6c6d00892f132b:
-
-  [media] imx074: support asynchronous probing (2013-06-21 16:36:15 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
-
-for you to fetch changes up to d7050c8a004829e412cb2cc5694107c6a0998db7:
-
-  tvp514x: Fix init seqeunce (2013-06-24 09:15:45 +0200)
-
-----------------------------------------------------------------
-Emil Goode (1):
-      saa7134: Fix sparse warnings by adding __user annotation
-
-Hans Verkuil (5):
-      ml86v7667: fix compiler warning
-      bfin_capture: fix compiler warning
-      omap_vout: fix compiler warning
-      v4l2-controls.h: fix copy-and-paste error in comment
-      saa7164: fix compiler warning
-
-Lad, Prabhakar (3):
-      media: i2c: ths8200: support asynchronous probing
-      media: i2c: ths8200: add OF support
-      media: i2c: adv7343: add support for asynchronous probing
-
-Lars-Peter Clausen (1):
-      tvp514x: Fix init seqeunce
-
- Documentation/devicetree/bindings/media/i2c/ths8200.txt | 19 +++++++++++++++++++
- drivers/media/i2c/adv7343.c                             | 15 +++++++++++----
- drivers/media/i2c/ml86v7667.c                           |  2 +-
- drivers/media/i2c/ths8200.c                             | 18 +++++++++++++++++-
- drivers/media/i2c/tvp514x.c                             | 10 +++++-----
- drivers/media/pci/saa7134/saa7134-video.c               |  2 +-
- drivers/media/pci/saa7164/saa7164-core.c                |  3 ++-
- drivers/media/platform/blackfin/bfin_capture.c          |  4 +++-
- drivers/media/platform/omap/omap_vout.c                 |  3 +--
- include/uapi/linux/v4l2-controls.h                      |  4 ++--
- 10 files changed, 62 insertions(+), 18 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ths8200.txt
