@@ -1,100 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:56062 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751398Ab3FNJkR (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59173 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932336Ab3FRWDr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 05:40:17 -0400
-Message-id: <51BAE4FC.4080400@samsung.com>
-Date: Fri, 14 Jun 2013 11:40:12 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	linux-media@vger.kernel.org,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tue, 18 Jun 2013 18:03:47 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-sh@vger.kernel.org, Magnus Damm <magnus.damm@gmail.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-Subject: Re: [PATCH v10 16/21] V4L2: support asynchronous subdevice registration
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
- <51BA3B9A.5090206@gmail.com> <Pine.LNX.4.64.1306140902170.6920@axis700.grange>
- <201306141107.42905.hverkuil@xs4all.nl>
- <Pine.LNX.4.64.1306141113050.6920@axis700.grange>
-In-reply-to: <Pine.LNX.4.64.1306141113050.6920@axis700.grange>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC v3 2/3] media: added managed v4l2 control initialization
+Date: Wed, 19 Jun 2013 00:04:02 +0200
+Message-ID: <3339622.dj4dDjTUyh@avalon>
+In-Reply-To: <1368692074-483-3-git-send-email-a.hajda@samsung.com>
+References: <1368692074-483-1-git-send-email-a.hajda@samsung.com> <1368692074-483-3-git-send-email-a.hajda@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Andrzej,
 
-On 06/14/2013 11:14 AM, Guennadi Liakhovetski wrote:
-> On Fri, 14 Jun 2013, Hans Verkuil wrote:
->> On Fri 14 June 2013 09:14:48 Guennadi Liakhovetski wrote:
->>> On Thu, 13 Jun 2013, Sylwester Nawrocki wrote:
->>>> On 06/11/2013 10:23 AM, Guennadi Liakhovetski wrote:
-[...]
->>>>> + * @v4l2_dev:	pointer to struct v4l2_device
->>>>> + * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
->>>>> + * @done:	list of struct v4l2_async_subdev_list, already probed
->>>>> + * @list:	member in a global list of notifiers
->>>>> + * @bound:	a subdevice driver has successfully probed one of subdevices
->>>>> + * @complete:	all subdevices have been probed successfully
->>>>> + * @unbind:	a subdevice is leaving
->>>>> + */
->>>>> +struct v4l2_async_notifier {
->>>>> +	unsigned int subdev_num;
->>>>> +	struct v4l2_async_subdev **subdev;
->>>>> +	struct v4l2_device *v4l2_dev;
->>>>> +	struct list_head waiting;
->>>>> +	struct list_head done;
->>>>> +	struct list_head list;
->>>>> +	int (*bound)(struct v4l2_async_notifier *notifier,
->>>>> +		     struct v4l2_subdev *subdev,
->>>>> +		     struct v4l2_async_subdev *asd);
->>>>> +	int (*complete)(struct v4l2_async_notifier *notifier);
->>>>> +	void (*unbind)(struct v4l2_async_notifier *notifier,
->>>>> +		       struct v4l2_subdev *subdev,
->>>>> +		       struct v4l2_async_subdev *asd);
->>>>> +};
->>>>> +
->>>>> +int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->>>>> +				 struct v4l2_async_notifier *notifier);
->>>>> +void v4l2_async_notifier_unregister(struct v4l2_async_notifier *notifier);
->>>>> +int v4l2_async_register_subdev(struct v4l2_subdev *sd);
->>>>> +void v4l2_async_unregister_subdev(struct v4l2_subdev *sd);
->>>>
->>>> I still think "async_" in this public API is unnecessary, since we register/
->>>> unregister a subdev with the core and notifiers are intrinsically
->>>> asynchronous.
->>>> But your preference seems be otherwise, what could I do... :) At most it just
->>>> means one less happy user of this interface.
->>
->> I think v4l2_register_subdev looks awfully similar to v4l2_device_register_subdev.
->> It becomes very confusing naming it like that. I prefer v4l2_async where 'async'
->> refers to the v4l2-async module.
+Thank you for the patch.
 
-Ok, let's leave v4l2_async then.
+On Thursday 16 May 2013 10:14:33 Andrzej Hajda wrote:
+> This patch adds managed version of initialization
+> function for v4l2 control handler.
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-> And v4l2(_async)_notifier_(un)register()?
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-I guess it would be better to have all or none of the functions
-with that prefix. So either:
+> ---
+> v3:
+> 	- removed managed cleanup
+> v2:
+> 	- added missing struct device forward declaration,
+> 	- corrected few comments
+> ---
+>  drivers/media/v4l2-core/v4l2-ctrls.c |   32 +++++++++++++++++++++++++++++++
+>  include/media/v4l2-ctrls.h           |   16 ++++++++++++++++
+>  2 files changed, 48 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
+> b/drivers/media/v4l2-core/v4l2-ctrls.c index ebb8e48..f47ccfa 100644
+> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
+> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+> @@ -1421,6 +1421,38 @@ void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler
+> *hdl) }
+>  EXPORT_SYMBOL(v4l2_ctrl_handler_free);
+> 
+> +static void devm_v4l2_ctrl_handler_release(struct device *dev, void *res)
+> +{
+> +	struct v4l2_ctrl_handler **hdl = res;
+> +
+> +	v4l2_ctrl_handler_free(*hdl);
+> +}
+> +
+> +int devm_v4l2_ctrl_handler_init(struct device *dev,
+> +				struct v4l2_ctrl_handler *hdl,
+> +				unsigned nr_of_controls_hint)
+> +{
+> +	struct v4l2_ctrl_handler **dr;
+> +	int rc;
+> +
+> +	dr = devres_alloc(devm_v4l2_ctrl_handler_release, sizeof(*dr),
+> +			  GFP_KERNEL);
+> +	if (!dr)
+> +		return -ENOMEM;
+> +
+> +	rc = v4l2_ctrl_handler_init(hdl, nr_of_controls_hint);
+> +	if (rc) {
+> +		devres_free(dr);
+> +		return rc;
+> +	}
+> +
+> +	*dr = hdl;
+> +	devres_add(dev, dr);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_v4l2_ctrl_handler_init);
+> +
+>  /* For backwards compatibility: V4L2_CID_PRIVATE_BASE should no longer
+>     be used except in G_CTRL, S_CTRL, QUERYCTRL and QUERYMENU when dealing
+>     with applications that do not use the NEXT_CTRL flag.
+> diff --git a/include/media/v4l2-ctrls.h b/include/media/v4l2-ctrls.h
+> index 7343a27..169443f 100644
+> --- a/include/media/v4l2-ctrls.h
+> +++ b/include/media/v4l2-ctrls.h
+> @@ -25,6 +25,7 @@
+>  #include <linux/videodev2.h>
+> 
+>  /* forward references */
+> +struct device;
+>  struct file;
+>  struct v4l2_ctrl_handler;
+>  struct v4l2_ctrl_helper;
+> @@ -306,6 +307,21 @@ int v4l2_ctrl_handler_init_class(struct
+> v4l2_ctrl_handler *hdl, */
+>  void v4l2_ctrl_handler_free(struct v4l2_ctrl_handler *hdl);
+> 
+> +/*
+> + * devm_v4l2_ctrl_handler_init - managed control handler initialization
+> + *
+> + * @dev: Device the @hdl belongs to.
+> + * @hdl:	The control handler.
+> + * @nr_of_controls_hint: A hint of how many controls this handler is
+> + *		expected to refer to.
+> + *
+> + * This is a managed version of v4l2_ctrl_handler_init. Handler initialized
+> with + * this function will be automatically cleaned up on driver detach. +
+> */
+> +int devm_v4l2_ctrl_handler_init(struct device *dev,
+> +				struct v4l2_ctrl_handler *hdl,
+> +				unsigned nr_of_controls_hint);
+> +
+>  /** v4l2_ctrl_handler_setup() - Call the s_ctrl op for all controls
+> belonging * to the handler to initialize the hardware to the current
+> control values. * @hdl:	The control handler.
+-- 
+Regards,
 
-v4l2_async_notifier_register
-v4l2_async_notifier_unregister
-v4l2_async_register_subdev
-v4l2_async_unregister_subdev
+Laurent Pinchart
 
-or
-
-v4l2_subdev_notifier_register
-v4l2_subdev_notifier_unregister
-v4l2_subdev_register
-v4l2_subdev_unregister
-
-Thanks,
-Sylwester
