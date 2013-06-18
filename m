@@ -1,105 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4670 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423319Ab3FUSGd (ORCPT
+Received: from mail-ob0-f174.google.com ([209.85.214.174]:58886 "EHLO
+	mail-ob0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752523Ab3FRGME (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 14:06:33 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr8.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5LI6Tp9066787
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 20:06:32 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 6591535E0147
-	for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 20:06:28 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130621180628.6591535E0147@alastor.dyndns.org>
-Date: Fri, 21 Jun 2013 20:06:28 +0200 (CEST)
+	Tue, 18 Jun 2013 02:12:04 -0400
+Received: by mail-ob0-f174.google.com with SMTP id wd20so4149796obb.19
+        for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 23:12:03 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALt3h78MFePzkhqP4iUrBmB8BQkGHeqDKhrWr8-M7ozmxnTZ3w@mail.gmail.com>
+References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+	<1370870586-24141-4-git-send-email-arun.kk@samsung.com>
+	<002a01ce6b69$512943c0$f37bcb40$%debski@samsung.com>
+	<CALt3h7-mNkOJoGbyNsBR0Z2mYKXD58EwqOezeY+7xpx7G0-vHQ@mail.gmail.com>
+	<CAK9yfHy-dEx98YXLdJB0rW5yZ_HeKsy5aLSjH0XL07U=5HNgKg@mail.gmail.com>
+	<CALt3h78MFePzkhqP4iUrBmB8BQkGHeqDKhrWr8-M7ozmxnTZ3w@mail.gmail.com>
+Date: Tue, 18 Jun 2013 11:42:03 +0530
+Message-ID: <CAK9yfHzkYEuQ_D81wS55cAJc6qmGNQzWdX-YQwnU2H57pxbQpw@mail.gmail.com>
+Subject: Re: [PATCH 3/6] [media] s5p-mfc: Core support for MFC v7
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Arun Kumar K <arunkk.samsung@gmail.com>
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>, jtp.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	avnd.kiran@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Arun,
 
-Results of the daily build of media_tree:
+On 18 June 2013 11:25, Arun Kumar K <arunkk.samsung@gmail.com> wrote:
+> Hi Sachin,
+>
+>
+> On Tue, Jun 18, 2013 at 10:56 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+>> On 18 June 2013 10:21, Arun Kumar K <arunkk.samsung@gmail.com> wrote:
+>>> Hi Kamil,
+>>>
+>>> Thank you for the review.
+>>>
+>>>
+>>>>>  #define IS_MFCV6(dev)                (dev->variant->version >= 0x60 ? 1 :
+>>>> 0)
+>>>>> +#define IS_MFCV7(dev)                (dev->variant->version >= 0x70 ? 1 :
+>>>> 0)
+>>>>
+>>>> According to this, MFC v7 is also detected as MFC v6. Was this intended?
+>>>
+>>> Yes this was intentional as most of v7 will be reusing the v6 code and
+>>> only minor
+>>> changes are there w.r.t firmware interface.
+>>>
+>>>
+>>>> I think that it would be much better to use this in code:
+>>>>         if (IS_MFCV6(dev) || IS_MFCV7(dev))
+>>>> And change the define to detect only single MFC revision:
+>>>>         #define IS_MFCV6(dev)           (dev->variant->version >= 0x60 &&
+>>>> dev->variant->version < 0x70)
+>>>>
+>>>
+>>> I kept it like that since the macro IS_MFCV6() is used quite frequently
+>>> in the driver. Also if MFCv8 comes which is again similar to v6 (not
+>>> sure about this),
+>>> then it will add another OR condition to this check.
+>>>
+>>>> Other possibility I see is to change the name of the check. Although
+>>>> IS_MFCV6_OR_NEWER(dev) seems too long :)
+>>>>
+>>>
+>>> How about making it IS_MFCV6_PLUS()?
+>>
+>> Technically
+>> #define IS_MFCV6(dev)                (dev->variant->version >= 0x60...)
+>> means all lower versions are also higher versions.
+>> This may not cause much of a problem (other than the macro being a
+>> misnomer) as all current higher versions are supersets of lower
+>> versions.
+>> But this is not guaranteed(?).
+>>
+>
+> Till now we havent encountered otherwise and we can only hope that
+> it remains like this :)
+>
+>
+>> Hence changing the definition of the macro to (dev->variant->version
+>>>= 0x60 && dev->variant->version < 0x70) as Kamil suggested or
+>> renaming it to
+>> IS_MFCV6_PLUS() makes sense.
+>>
+>> OTOH, do we really have intermediate version numbers? For e.g. 0x61, 0x72, etc?
+>>
+>> If not we can make it just:
+>> #define IS_MFCV6(dev)                (dev->variant->version == 0x60 ? 1 : 0)
+>>
+>
+> The v6 version we use is actually v6.5 and v7 is v7.2.
+> In mainline we havent used any FW sub-versions yet.
 
-date:		Fri Jun 21 19:00:21 CEST 2013
-git branch:	test
-git hash:	4ef72e347112a834fbd6944565b1f63d4af19c8a
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+OK. Do they co-exist or is there a possibility for that (to have v6.5
+and say v6.7 or v7.2 and v7.4, etc). Just asking.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: WARNINGS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: ERRORS
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.10-rc1-i686: OK
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.10-rc1-x86_64: OK
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+With warm regards,
+Sachin
