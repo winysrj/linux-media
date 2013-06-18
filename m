@@ -1,70 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:39116 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750903Ab3FQPVL (ORCPT
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:55141 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755385Ab3FRMXV (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:21:11 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 00/11] media: davinci: vpif driver cleanup
-Date: Mon, 17 Jun 2013 20:50:40 +0530
-Message-Id: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 18 Jun 2013 08:23:21 -0400
+Received: by mail-bk0-f53.google.com with SMTP id e11so1710011bkh.26
+        for <linux-media@vger.kernel.org>; Tue, 18 Jun 2013 05:23:19 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1371549806.4275.6.camel@pizza.hi.pengutronix.de>
+References: <CAPgLHd9hFGfuQ2Esm-7C1YdSgWojDJRADwv8_m5DnJ6UAFJtpQ@mail.gmail.com>
+	<1371549806.4275.6.camel@pizza.hi.pengutronix.de>
+Date: Tue, 18 Jun 2013 20:23:19 +0800
+Message-ID: <CAPgLHd-NoSghhz6TnsppzTK3nP-+jFpF2eQ94z113dsigjDxSA@mail.gmail.com>
+Subject: Re: [PATCH -next] [media] coda: fix missing unlock on error in coda_stop_streaming()
+From: Wei Yongjun <weiyj.lk@gmail.com>
+To: p.zabel@pengutronix.de
+Cc: mchehab@redhat.com, grant.likely@linaro.org,
+	rob.herring@calxeda.com, javier.martin@vista-silicon.com,
+	k.debski@samsung.com, hans.verkuil@cisco.com,
+	yongjun_wei@trendmicro.com.cn, linux-media@vger.kernel.org,
+	devicetree-discuss@lists.ozlabs.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On 06/18/2013 06:03 PM, Philipp Zabel wrote:
+> Am Dienstag, den 18.06.2013, 13:00 +0800 schrieb Wei Yongjun:
+>> From: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>>
+>> Add the missing unlock before return from function coda_stop_streaming()
+>> in the error handling case.
+>>
+>> Signed-off-by: Wei Yongjun <yongjun_wei@trendmicro.com.cn>
+>> ---
+>>  drivers/media/platform/coda.c | 1 +
+>>  1 file changed, 1 insertion(+)
+>>
+>> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+>> index df4ada88..2c3cd17 100644
+>> --- a/drivers/media/platform/coda.c
+>> +++ b/drivers/media/platform/coda.c
+>> @@ -1347,6 +1347,7 @@ static int coda_stop_streaming(struct vb2_queue *q)
+>>  	if (coda_command_sync(ctx, CODA_COMMAND_SEQ_END)) {
+>>  		v4l2_err(&dev->v4l2_dev,
+>>  			 "CODA_COMMAND_SEQ_END failed\n");
+>> +		mutex_unlock(&dev->coda_mutex);
+>>  		return -ETIMEDOUT;
+>>  	}
+>>  	mutex_unlock(&dev->coda_mutex);
+>>
+>>
+> Thanks! If you don't mind, I'll integrate this change into the "[media]
+> coda: add CODA7541 decoding support" for v2.
 
-This patch series cleans the VPIF driver, uses devm_* api wherever
-required and uses module_platform_driver() to simplify the code.
+No problem. Thanks.
 
-This patch series applies on http://git.linuxtv.org/hverkuil/media_tree.git/
-shortlog/refs/heads/for-v3.11 and is tested on OMAP-L138 EVM.
-
-Changes for v2:
-1: Rebased on v3.11 branch of Hans.
-2: Dropped the patches which removed headers as mentioned by Laurent.
-
-Changes for v3:
-1: Splitted the patches logically as mentioned by Laurent.
-2: Fixed review comments pointed by Laurent.
-3: Included Ack's.
-
-Changes for v4:
-1: Rebased on v3.11 branch of Hans.
-2: Fixed review comments pointed by Laurent and Sergei.
-3: Included Ack's.
-4: Removed unnecessary loop for IRQ resource.
-
-
-Lad, Prabhakar (11):
-  media: davinci: vpif: remove unwanted header mach/hardware.h and sort
-    the includes alphabetically
-  media: davinci: vpif: Convert to devm_* api
-  media: davinci: vpif: remove unnecessary braces around defines
-  media: davinci: vpif_capture: move the freeing of irq and global
-    variables to remove()
-  media: davinci: vpif_capture: use module_platform_driver()
-  media: davinci: vpif_capture: Convert to devm_* api
-  media: davinci: vpif_capture: remove unnecessary loop for IRQ
-    resource
-  media: davinci: vpif_display: move the freeing of irq and global
-    variables to remove()
-  media: davinci: vpif_display: use module_platform_driver()
-  media: davinci: vpif_display: Convert to devm_* api
-  media: davinci: vpif_display: remove unnecessary loop for IRQ
-    resource
-
- drivers/media/platform/davinci/vpif.c         |   45 ++++-----------
- drivers/media/platform/davinci/vpif_capture.c |   76 +++++--------------------
- drivers/media/platform/davinci/vpif_display.c |   65 +++++----------------
- 3 files changed, 39 insertions(+), 147 deletions(-)
-
--- 
-1.7.9.5
+Yongjun Wei
 
