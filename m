@@ -1,49 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:63302 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754893Ab3FBS4t (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 2 Jun 2013 14:56:49 -0400
-Received: by mail-we0-f170.google.com with SMTP id w57so1075712wes.15
-        for <linux-media@vger.kernel.org>; Sun, 02 Jun 2013 11:56:48 -0700 (PDT)
-From: Gianluca Gennari <gennarone@gmail.com>
-To: linux-media@vger.kernel.org, mchehab@redhat.com, crope@iki.fi
-Cc: mkrufky@linuxtv.org, Gianluca Gennari <gennarone@gmail.com>
-Subject: [PATCH] rtl28xxu: fix buffer overflow when probing Rafael Micro r820t tuner
-Date: Sun,  2 Jun 2013 20:56:04 +0200
-Message-Id: <1370199364-30060-1-git-send-email-gennarone@gmail.com>
+Received: from outmail148145.authsmtp.co.uk ([62.13.148.145]:64814 "EHLO
+	outmail148145.authsmtp.co.uk" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S932993Ab3FRV3M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jun 2013 17:29:12 -0400
+From: "Steve Cookson" <it@sca-uk.com>
+To: "'James Board'" <jpboard2@yahoo.com>
+Cc: <linux-media@vger.kernel.org>
+References: <1371393161.46485.YahooMailNeo@web163903.mail.gq1.yahoo.com> <8B18C28300FE4A6595829F526C5BA94A@SACWS001> <1371572315.65617.YahooMailNeo@web163901.mail.gq1.yahoo.com> <8737EBB72A154800A3A695B49F355F07@SACWS001> <1371587831.30761.YahooMailNeo@web163905.mail.gq1.yahoo.com>
+Subject: RE: HD Capture Card (HDMI and Component) output raw pixels
+Date: Tue, 18 Jun 2013 17:55:15 -0300
+Message-ID: <7ED70E19F5604D7CA44DC92735A6BDE0@SACWS001>
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+In-Reply-To: <1371587831.30761.YahooMailNeo@web163905.mail.gq1.yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-req_r820t wants a buffer with a size of 5 bytes, but the buffer 'buf'
-has a size of 2 bytes.
+Hi Jim,
 
-This patch fixes the kernel oops with the r820t driver on old kernels
-during the probe stage.
-Successfully tested on a 2.6.32 32 bit kernel (Ubuntu 10.04).
-Hopefully it will also help with the random stability issues reported
-by some user on the linux-media list.
+> I don't want to configure a RAID either, but if I purchase one SSD with
+400 MB/sec write speeds, that might be good.
 
-This patch and https://patchwork.kernel.org/patch/2524651/
-should go in the next 3.10-rc release, as they fix potential kernel crashes.
+Hmm... nice idea.  Did you have any particular model in mind?  If you had a
+link, I might be interested. I wouldn't know about sizing.  I don't know how
+much space HD raw video takes up per hour, say.
 
-Signed-off-by: Gianluca Gennari <gennarone@gmail.com>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On the other hand, maybe I could configure it to use the SSD for temporary
+files while GStreamer did software compression.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 22015fe..48f2e6f 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -360,7 +360,7 @@ static int rtl2832u_read_config(struct dvb_usb_device *d)
- {
- 	struct rtl28xxu_priv *priv = d_to_priv(d);
- 	int ret;
--	u8 buf[2];
-+	u8 buf[5];
- 	/* open RTL2832U/RTL2832 I2C gate */
- 	struct rtl28xxu_req req_gate_open = {0x0120, 0x0011, 0x0001, "\x18"};
- 	/* close RTL2832U/RTL2832 I2C gate */
--- 
-1.8.3
+Let me know what you think.
+
+Regards
+
+Steve
 
