@@ -1,42 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:53636 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751365Ab3FVJqt (ORCPT
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:56132 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753803Ab3FRDpr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jun 2013 05:46:49 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Grant Likely <grant.likely@linaro.org>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 0/2] media: i2c: ths8200: Feature enhancement
-Date: Sat, 22 Jun 2013 15:16:33 +0530
-Message-Id: <1371894395-14414-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 17 Jun 2013 23:45:47 -0400
+Received: by mail-oa0-f43.google.com with SMTP id i7so4416362oag.2
+        for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 20:45:46 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1371486876-30421-1-git-send-email-s.nawrocki@samsung.com>
+References: <1371486876-30421-1-git-send-email-s.nawrocki@samsung.com>
+Date: Tue, 18 Jun 2013 09:15:46 +0530
+Message-ID: <CAK9yfHxpUPaKzrjCAX44rAB6pqOW2A2KD23A5SbwAWK+vJCbww@mail.gmail.com>
+Subject: Re: [PATCH] Documentation: Update driver's directory in video4linux/fimc.txt
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Sylwester,
 
-The first patch of the series adds supports for asynchronous subdev
-registration for ths8200 driver, and the second patch of the series
-adds OF support the driver.
+>
+> -The machine code (plat-s5p and arch/arm/mach-*) must select following options
+> +The machine code (arch/arm/plat-samsung and arch/arm/mach-*) must select
+> +following options:
 
-Lad, Prabhakar (2):
-  media: i2c: ths8200: support asynchronous probing
-  media: i2c: ths8200: add OF support
+After the recent platform code cleanup the below entries are not found
+in arch/arm/mach-* (checked in linux-next).
 
- .../devicetree/bindings/media/i2c/ths8200.txt      |   19 +++++++++++++++++++
- drivers/media/i2c/ths8200.c                        |   18 +++++++++++++++++-
- 2 files changed, 36 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/ths8200.txt
+>
+>  CONFIG_S5P_DEV_FIMC0       mandatory
+>  CONFIG_S5P_DEV_FIMC1  \
 
 -- 
-1.7.9.5
-
+With warm regards,
+Sachin
