@@ -1,71 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f50.google.com ([209.85.219.50]:58099 "EHLO
-	mail-oa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934131Ab3FSDLv (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2837 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933030Ab3FRS3I (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 23:11:51 -0400
-Received: by mail-oa0-f50.google.com with SMTP id k7so6034391oag.9
-        for <linux-media@vger.kernel.org>; Tue, 18 Jun 2013 20:11:51 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <51C0D7C5.6030707@gmail.com>
-References: <1371486876-30421-1-git-send-email-s.nawrocki@samsung.com>
-	<CAK9yfHxpUPaKzrjCAX44rAB6pqOW2A2KD23A5SbwAWK+vJCbww@mail.gmail.com>
-	<51C0D7C5.6030707@gmail.com>
-Date: Wed, 19 Jun 2013 08:41:50 +0530
-Message-ID: <CAK9yfHzCZJnLHfBTwWN+kbRtrXNCsrhZGQB1=0LHSy_YtSNMWA@mail.gmail.com>
-Subject: Re: [PATCH] Documentation: Update driver's directory in video4linux/fimc.txt
-From: Sachin Kamat <sachin.kamat@linaro.org>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+	Tue, 18 Jun 2013 14:29:08 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5IISt2h086391
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 18 Jun 2013 20:28:58 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C72F135E0104
+	for <linux-media@vger.kernel.org>; Tue, 18 Jun 2013 20:28:55 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130618182855.C72F135E0104@alastor.dyndns.org>
+Date: Tue, 18 Jun 2013 20:28:55 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 19 June 2013 03:27, Sylwester Nawrocki <sylvester.nawrocki@gmail.com> wrote:
-> Hi Sachin,
->
->
-> On 06/18/2013 05:45 AM, Sachin Kamat wrote:
->>
->> Hi Sylwester,
->>
->>> -The machine code (plat-s5p and arch/arm/mach-*) must select following
->>> options
->>> +The machine code (arch/arm/plat-samsung and arch/arm/mach-*) must select
->>> +following options:
->>
->>
->> After the recent platform code cleanup the below entries are not found
->> in arch/arm/mach-* (checked in linux-next).
->>
->>>   CONFIG_S5P_DEV_FIMC0       mandatory
->>>   CONFIG_S5P_DEV_FIMC1  \
->
->
-> AFAICS some are still there:
->
-> $ git grep S5P_DEV_FIMC0
-> Documentation/video4linux/fimc.txt:CONFIG_S5P_DEV_FIMC0       mandatory
-> arch/arm/mach-s5pc100/Kconfig:  select S5P_DEV_FIMC0
-> arch/arm/mach-s5pv210/Kconfig:  select S5P_DEV_FIMC0
-> arch/arm/mach-s5pv210/Kconfig:  select S5P_DEV_FIMC0
-> arch/arm/mach-s5pv210/Kconfig:  select S5P_DEV_FIMC0
-> arch/arm/mach-s5pv210/Kconfig:  select S5P_DEV_FIMC0
-> arch/arm/plat-samsung/Kconfig:config S5P_DEV_FIMC0
-> arch/arm/plat-samsung/devs.c:#ifdef CONFIG_S5P_DEV_FIMC0
-> arch/arm/plat-samsung/devs.c:#endif /* CONFIG_S5P_DEV_FIMC0 */
-> arch/arm/plat-samsung/include/plat/fimc-core.h:#ifdef CONFIG_S5P_DEV_FIMC0
->
-> Those symbols have been removed only for Exynos. The above can be dropped
-> once we convert S5PV210 and S5PC100 (or drop support for this platform)
-> to Device Tree.
+Results of the daily build of media_tree:
 
-Yes you are right. Probably I mis-grepped it.
+date:		Tue Jun 18 19:00:19 CEST 2013
+git branch:	test
+git hash:	e049ca5e854263c821a15c0e25fe2ae202c365e1
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
--- 
-With warm regards,
-Sachin
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
