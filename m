@@ -1,210 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:34574 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750971Ab3FDV4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jun 2013 17:56:13 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1724 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750704Ab3FRGNk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jun 2013 02:13:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Rodrigo Tartajo <rtarty@gmail.com>, Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 1/7] rtl2832u: restore ir remote control support.
-Date: Wed,  5 Jun 2013 00:54:57 +0300
-Message-Id: <1370382903-21332-2-git-send-email-crope@iki.fi>
-In-Reply-To: <1370382903-21332-1-git-send-email-crope@iki.fi>
-References: <1370382903-21332-1-git-send-email-crope@iki.fi>
+Subject: Re: [REVIEWv2 PATCH 02/12] soc_camera: replace vdev->parent by vdev->v4l2_dev.
+Date: Tue, 18 Jun 2013 08:13:14 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl> <1371049262-5799-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371049262-5799-3-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306180813.14937.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Rodrigo Tartajo <rtarty@gmail.com>
+Guennadi,
 
-Hi,
-This patch uses the driver from openpli[1] as a template to restore the remote control support.
-I had to divert from the original to use the in kernel rc protocol decoder. The key repetition does,
-not seem to work but I cant find the problem in the driver. As a raw rc provider, no key table is
-hardcoded.
+Can you review/ack this? This patch series really should be merged for 3.11
+to prevent problems with the debug ioctls being unable to discover and access
+subdevices in the v4l2-core code.
 
-Rodrigo.
+I've tested this on my renesas board.
 
-[1]: https://aur.archlinux.org/packages/dvb-usb-rtl2832u-openpli/?comments=all
+If you prefer, you can also take care of this patch yourself.
 
-Signed-off-by: Rodrigo Tartajo <rtarty@gmail.com>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/dvb_usb.h  |  2 +-
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 83 ++++++++++++++++++++++++++++-----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.h | 11 +++++
- 3 files changed, 83 insertions(+), 13 deletions(-)
+Regards,
 
-diff --git a/drivers/media/usb/dvb-usb-v2/dvb_usb.h b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-index 658c6d4..399916b 100644
---- a/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-+++ b/drivers/media/usb/dvb-usb-v2/dvb_usb.h
-@@ -140,7 +140,7 @@ struct dvb_usb_rc {
- 	int (*change_protocol)(struct rc_dev *dev, u64 *rc_type);
- 	int (*query) (struct dvb_usb_device *d);
- 	unsigned int interval;
--	const enum rc_driver_type driver_type;
-+	enum rc_driver_type driver_type;
- 	bool bulk_mode;
- };
- 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 22015fe..e592662 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1249,11 +1249,21 @@ static int rtl2831u_get_rc_config(struct dvb_usb_device *d,
- #if IS_ENABLED(CONFIG_RC_CORE)
- static int rtl2832u_rc_query(struct dvb_usb_device *d)
- {
-+#define TICSAT38KHZTONS(x) ((x) * (1000000000/38000))
- 	int ret, i;
- 	struct rtl28xxu_priv *priv = d->priv;
- 	u8 buf[128];
- 	int len;
--	struct rtl28xxu_reg_val rc_nec_tab[] = {
-+	struct ir_raw_event ev; //encode single ir event (pulse or space)
-+	struct rtl28xxu_xreg_val rc_sys_init_tab[] = {
-+		{ SYS_DEMOD_CTL1,   OP_AND, 0xfb },
-+		{ SYS_DEMOD_CTL1,   OP_AND, 0xf7 },
-+		{ USB_CTRL,         OP_OR , 0x20 },
-+		{ SYS_SYS1,         OP_AND, 0xf7 },
-+		{ SYS_GPIO_OUT_EN,  OP_OR , 0x08 },
-+		{ SYS_GPIO_OUT_VAL, OP_OR , 0x08 },
-+	}; // system hard init
-+	struct rtl28xxu_reg_val rc_init_tab[] = {
- 		{ IR_RX_CTRL,             0x20 },
- 		{ IR_RX_BUF_CTRL,         0x80 },
- 		{ IR_RX_IF,               0xff },
-@@ -1268,13 +1278,40 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
- 		{ IR_MAX_H_TOL_LEN,       0x1e },
- 		{ IR_MAX_L_TOL_LEN,       0x1e },
- 		{ IR_RX_CTRL,             0x80 },
--	};
-+	}; // hard init
-+	struct rtl28xxu_reg_val rc_reinit_tab[] = {
-+		{ IR_RX_CTRL,     0x20 },
-+		{ IR_RX_BUF_CTRL, 0x80 },
-+		{ IR_RX_IF,       0xff },
-+		{ IR_RX_IE,       0xff },
-+		{ IR_RX_CTRL,     0x80 },
-+	}; // reinit IR
-+	struct rtl28xxu_reg_val rc_clear_tab[] = {
-+		{ IR_RX_IF,       0x03 },
-+		{ IR_RX_BUF_CTRL, 0x80 },
-+		{ IR_RX_CTRL,     0x80 },
-+	}; // clear reception
- 
- 	/* init remote controller */
- 	if (!priv->rc_active) {
--		for (i = 0; i < ARRAY_SIZE(rc_nec_tab); i++) {
--			ret = rtl28xx_wr_reg(d, rc_nec_tab[i].reg,
--					rc_nec_tab[i].val);
-+		for (i = 0; i < ARRAY_SIZE(rc_sys_init_tab); i++) {
-+			ret = rtl28xx_rd_reg(d, rc_sys_init_tab[i].reg, &buf[0]);
-+			if (ret)
-+				goto err;
-+			if (rc_sys_init_tab[i].op == OP_AND) {
-+				buf[0] &= rc_sys_init_tab[i].mask;
-+			}
-+			else {//OP_OR
-+				buf[0] |= rc_sys_init_tab[i].mask;
-+			}
-+			ret = rtl28xx_wr_reg(d, rc_sys_init_tab[i].reg,
-+					buf[0]);
-+			if (ret)
-+				goto err;
-+		}
-+		for (i = 0; i < ARRAY_SIZE(rc_init_tab); i++) {
-+			ret = rtl28xx_wr_reg(d, rc_init_tab[i].reg,
-+					rc_init_tab[i].val);
- 			if (ret)
- 				goto err;
- 		}
-@@ -1286,7 +1323,7 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
- 		goto err;
- 
- 	if (buf[0] != 0x83)
--		goto exit;
-+		goto err;
- 
- 	ret = rtl28xx_rd_reg(d, IR_RX_BC, &buf[0]);
- 	if (ret)
-@@ -1295,26 +1332,48 @@ static int rtl2832u_rc_query(struct dvb_usb_device *d)
- 	len = buf[0];
- 	ret = rtl2831_rd_regs(d, IR_RX_BUF, buf, len);
- 
--	/* TODO: pass raw IR to Kernel IR decoder */
-+	/* pass raw IR to Kernel IR decoder */
-+	init_ir_raw_event(&ev);
-+	ir_raw_event_reset(d->rc_dev);
-+	ev.pulse=1;
-+	for(i=0; true; ++i) { // conver count to time
-+		if (i >= len || !(buf[i] & 0x80) != !(ev.pulse)) {//end or transition pulse/space: flush
-+			ir_raw_event_store(d->rc_dev, &ev);
-+			ev.duration = 0;
-+		}
-+		if (i >= len)
-+			break;
-+		ev.pulse = buf[i] >> 7;
-+		ev.duration += TICSAT38KHZTONS(((u32)(buf[i] & 0x7F)) << 1);
-+	}
-+	ir_raw_event_handle(d->rc_dev);
- 
--	ret = rtl28xx_wr_reg(d, IR_RX_IF, 0x03);
--	ret = rtl28xx_wr_reg(d, IR_RX_BUF_CTRL, 0x80);
--	ret = rtl28xx_wr_reg(d, IR_RX_CTRL, 0x80);
-+	for (i = 0; i < ARRAY_SIZE(rc_clear_tab); i++) {
-+		ret = rtl28xx_wr_reg(d, rc_clear_tab[i].reg,
-+				rc_clear_tab[i].val);
-+		if (ret)
-+			goto err;
-+	}
- 
--exit:
- 	return ret;
- err:
-+	for (i = 0; i < ARRAY_SIZE(rc_reinit_tab); i++) {
-+		ret = rtl28xx_wr_reg(d, rc_reinit_tab[i].reg,
-+				rc_reinit_tab[i].val);
-+	}
- 	dev_dbg(&d->udev->dev, "%s: failed=%d\n", __func__, ret);
- 	return ret;
-+#undef TICSAT38KHZTONS
- }
- 
- static int rtl2832u_get_rc_config(struct dvb_usb_device *d,
- 		struct dvb_usb_rc *rc)
- {
- 	rc->map_name = RC_MAP_EMPTY;
--	rc->allowed_protos = RC_BIT_NEC;
-+	rc->allowed_protos = RC_BIT_ALL;
- 	rc->query = rtl2832u_rc_query;
- 	rc->interval = 400;
-+	rc->driver_type = RC_DRIVER_IR_RAW;
- 
- 	return 0;
- }
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-index 533a331..0177b38 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.h
-@@ -97,6 +97,17 @@ struct rtl28xxu_reg_val {
- 	u8 val;
- };
- 
-+enum OP{
-+	OP_AND	=0,
-+	OP_OR
-+};
-+
-+struct rtl28xxu_xreg_val {
-+	u16 reg;
-+	u8 op;
-+	u8 mask;
-+};
-+
- /*
-  * memory map
-  *
--- 
-1.7.11.7
+	Hans
 
+On Wed June 12 2013 17:00:52 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The parent field will eventually disappear to be replaced by v4l2_dev.
+> soc_camera does provide a v4l2_device struct but did not point to it in
+> struct video_device. This is now fixed.
+> 
+> Now the video nodes can be found under the correct platform bus, and
+> the advanced debug ioctls work correctly as well (the core implementation
+> of those ioctls requires that v4l2_dev is set correctly).
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c |    5 +++--
+>  include/media/soc_camera.h                     |    4 ++--
+>  2 files changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index 0252fbb..9a43560 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -524,7 +524,7 @@ static int soc_camera_open(struct file *file)
+>  		return -ENODEV;
+>  	}
+>  
+> -	icd = dev_get_drvdata(vdev->parent);
+> +	icd = video_get_drvdata(vdev);
+>  	ici = to_soc_camera_host(icd->parent);
+>  
+>  	ret = try_module_get(ici->ops->owner) ? 0 : -ENODEV;
+> @@ -1477,7 +1477,7 @@ static int video_dev_create(struct soc_camera_device *icd)
+>  
+>  	strlcpy(vdev->name, ici->drv_name, sizeof(vdev->name));
+>  
+> -	vdev->parent		= icd->pdev;
+> +	vdev->v4l2_dev		= &ici->v4l2_dev;
+>  	vdev->fops		= &soc_camera_fops;
+>  	vdev->ioctl_ops		= &soc_camera_ioctl_ops;
+>  	vdev->release		= video_device_release;
+> @@ -1500,6 +1500,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
+>  	if (!icd->parent)
+>  		return -ENODEV;
+>  
+> +	video_set_drvdata(icd->vdev, icd);
+>  	ret = video_register_device(icd->vdev, VFL_TYPE_GRABBER, -1);
+>  	if (ret < 0) {
+>  		dev_err(icd->pdev, "video_register_device failed: %d\n", ret);
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index ff77d08..31a4bfe 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -346,9 +346,9 @@ static inline struct soc_camera_subdev_desc *soc_camera_i2c_to_desc(const struct
+>  	return client->dev.platform_data;
+>  }
+>  
+> -static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(const struct video_device *vdev)
+> +static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(struct video_device *vdev)
+>  {
+> -	struct soc_camera_device *icd = dev_get_drvdata(vdev->parent);
+> +	struct soc_camera_device *icd = video_get_drvdata(vdev);
+>  	return soc_camera_to_subdev(icd);
+>  }
+>  
+> 
