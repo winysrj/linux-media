@@ -1,105 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:44481 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934147Ab3FSKYg (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:58666 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751923Ab3FRHff (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jun 2013 06:24:36 -0400
-Message-ID: <1371637326.4230.24.camel@weser.hi.pengutronix.de>
-Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
- framework
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Date: Wed, 19 Jun 2013 12:22:06 +0200
-In-Reply-To: <008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
-	 <1371467722-665-1-git-send-email-inki.dae@samsung.com>
-	 <51BEF458.4090606@canonical.com>
-	 <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
-	 <20130617133109.GG2718@n2100.arm.linux.org.uk>
-	 <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
-	 <20130617154237.GJ2718@n2100.arm.linux.org.uk>
-	 <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com>
-	 <20130617182127.GM2718@n2100.arm.linux.org.uk>
-	 <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
-	 <20130618084308.GU2718@n2100.arm.linux.org.uk>
-	 <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
-	 <1371548849.4276.6.camel@weser.hi.pengutronix.de>
-	 <008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Tue, 18 Jun 2013 03:35:35 -0400
+Date: Tue, 18 Jun 2013 09:34:43 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: linux-media@vger.kernel.org,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mike Isely <isely@isely.net>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEWv2 PATCH 02/12] soc_camera: replace vdev->parent by
+ vdev->v4l2_dev.
+In-Reply-To: <1371049262-5799-3-git-send-email-hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1306180926340.30844@axis700.grange>
+References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+ <1371049262-5799-3-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Mittwoch, den 19.06.2013, 14:45 +0900 schrieb Inki Dae:
+Hi Hans
+
+Thanks for the patch.
+
+On Wed, 12 Jun 2013, Hans Verkuil wrote:
+
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> > -----Original Message-----
-> > From: Lucas Stach [mailto:l.stach@pengutronix.de]
-> > Sent: Tuesday, June 18, 2013 6:47 PM
-> > To: Inki Dae
-> > Cc: 'Russell King - ARM Linux'; 'linux-fbdev'; 'Kyungmin Park'; 'DRI
-> > mailing list'; 'myungjoo.ham'; 'YoungJun Cho'; linux-arm-
-> > kernel@lists.infradead.org; linux-media@vger.kernel.org
-> > Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-> > framework
-> > 
-> > Am Dienstag, den 18.06.2013, 18:04 +0900 schrieb Inki Dae:
-> > [...]
-> > >
-> > > > a display device driver.  It shouldn't be used within a single driver
-> > > > as a means of passing buffers between userspace and kernel space.
-> > >
-> > > What I try to do is not really such ugly thing. What I try to do is to
-> > > notify that, when CPU tries to access a buffer , to kernel side through
-> > > dmabuf interface. So it's not really to send the buffer to kernel.
-> > >
-> > > Thanks,
-> > > Inki Dae
-> > >
-> > The most basic question about why you are trying to implement this sort
-> > of thing in the dma_buf framework still stands.
-> > 
-> > Once you imported a dma_buf into your DRM driver it's a GEM object and
-> > you can and should use the native DRM ioctls to prepare/end a CPU access
-> > to this BO. Then internally to your driver you can use the dma_buf
-> > reservation/fence stuff to provide the necessary cross-device sync.
-> > 
+> The parent field will eventually disappear to be replaced by v4l2_dev.
+> soc_camera does provide a v4l2_device struct but did not point to it in
+> struct video_device. This is now fixed.
 > 
-> I don't really want that is used only for DRM drivers. We really need
-> it for all other DMA devices; i.e., v4l2 based drivers. That is what I
-> try to do. And my approach uses reservation to use dma-buf resources
-> but not dma fence stuff anymore. However, I'm looking into Radeon DRM
-> driver for why we need dma fence stuff, and how we can use it if
-> needed.
+> Now the video nodes can be found under the correct platform bus, and
+> the advanced debug ioctls work correctly as well (the core implementation
+> of those ioctls requires that v4l2_dev is set correctly).
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+
+I'm not quite sure about this patch, because where before only one 
+dev_drvdata pointer was used to store a pointed to the icd context, now 
+two pointers are used and your vdev_set_drvdata() is now called much later 
+than platform_set_drvdata() in soc_camera_pdrv_probe(). So, I had to 
+verify no calls to vdev_get_drvdata() are made between those two moments. 
+I think it should be ok, specifically, an uncertain place is 
+soc_camera_vdev_to_subdev(), used by the mt9t031 driver from its runtime 
+PM. But I don't have access to that sensor, so, it hasn't been tested in 
+ages. In fact, I think, I should remove its runtime PM and just call the 
+resume from s_power(1). If anything breaks and onyone notices it - they 
+will complain. Anyway, for now here's my
+
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+Thanks
+Guennadi
+
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c |    5 +++--
+>  include/media/soc_camera.h                     |    4 ++--
+>  2 files changed, 5 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index 0252fbb..9a43560 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -524,7 +524,7 @@ static int soc_camera_open(struct file *file)
+>  		return -ENODEV;
+>  	}
+>  
+> -	icd = dev_get_drvdata(vdev->parent);
+> +	icd = video_get_drvdata(vdev);
+>  	ici = to_soc_camera_host(icd->parent);
+>  
+>  	ret = try_module_get(ici->ops->owner) ? 0 : -ENODEV;
+> @@ -1477,7 +1477,7 @@ static int video_dev_create(struct soc_camera_device *icd)
+>  
+>  	strlcpy(vdev->name, ici->drv_name, sizeof(vdev->name));
+>  
+> -	vdev->parent		= icd->pdev;
+> +	vdev->v4l2_dev		= &ici->v4l2_dev;
+>  	vdev->fops		= &soc_camera_fops;
+>  	vdev->ioctl_ops		= &soc_camera_ioctl_ops;
+>  	vdev->release		= video_device_release;
+> @@ -1500,6 +1500,7 @@ static int soc_camera_video_start(struct soc_camera_device *icd)
+>  	if (!icd->parent)
+>  		return -ENODEV;
+>  
+> +	video_set_drvdata(icd->vdev, icd);
+>  	ret = video_register_device(icd->vdev, VFL_TYPE_GRABBER, -1);
+>  	if (ret < 0) {
+>  		dev_err(icd->pdev, "video_register_device failed: %d\n", ret);
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index ff77d08..31a4bfe 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -346,9 +346,9 @@ static inline struct soc_camera_subdev_desc *soc_camera_i2c_to_desc(const struct
+>  	return client->dev.platform_data;
+>  }
+>  
+> -static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(const struct video_device *vdev)
+> +static inline struct v4l2_subdev *soc_camera_vdev_to_subdev(struct video_device *vdev)
+>  {
+> -	struct soc_camera_device *icd = dev_get_drvdata(vdev->parent);
+> +	struct soc_camera_device *icd = video_get_drvdata(vdev);
+>  	return soc_camera_to_subdev(icd);
+>  }
+>  
+> -- 
+> 1.7.10.4
 > 
 
-Still I don't see the point why you need syncpoints above dma-buf. In
-both the DRM and the V4L2 world we have defined points in the API where
-a buffer is allowed to change domain from device to CPU and vice versa.
-
-In DRM if you want to access a buffer with the CPU you do a cpu_prepare.
-The buffer changes back to GPU domain once you do the execbuf
-validation, queue a pageflip to the buffer or similar things.
-
-In V4L2 the syncpoints for cache operations are the queue/dequeue API
-entry points. Those are also the exact points to synchronize with other
-hardware thus using dma-buf reserve/fence.
-
-In all this I can't see any need for a new syncpoint primitive slapped
-on top of dma-buf.
-
-Regards,
-Lucas
--- 
-Pengutronix e.K.                           | Lucas Stach                 |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5076 |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
