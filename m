@@ -1,109 +1,156 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:48881 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932201Ab3FQJTb (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 05:19:31 -0400
-Message-ID: <51BED36D.5050403@schinagl.nl>
-Date: Mon, 17 Jun 2013 11:14:21 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from mail-ie0-f169.google.com ([209.85.223.169]:35549 "EHLO
+	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750704Ab3FRHAR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jun 2013 03:00:17 -0400
+Received: by mail-ie0-f169.google.com with SMTP id 10so9307960ied.0
+        for <linux-media@vger.kernel.org>; Tue, 18 Jun 2013 00:00:16 -0700 (PDT)
 MIME-Version: 1.0
-To: Duval Mickael <duvalmickael@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: DVB Scan file for Cherbourg (FR)
-References: <CAMiis9aue=BJnGxhak9aKSXVtJPPB7df4WpKDdJL9Anw54en5Q@mail.gmail.com> <51B44BD5.2010208@schinagl.nl> <CAMiis9ZiLXwX+E2TmjsYkA1iCowArrP5jTT4VgWCeA6gCUDJDQ@mail.gmail.com> <CAMiis9bZtgfX_zha6vL1HVcxrNJb0RFvP=45Mp44Eb1cuUTSFA@mail.gmail.com> <51BB9033.50709@schinagl.nl> <CAMiis9ZgKKD3iiXchPcN=r9QCBjVvasmXjRn8rvmfzs33k-wPQ@mail.gmail.com> <CAMiis9a=nSvdueKfAJCU=JEuprQU_nSRtKx4u5-QKA2kUrEUZQ@mail.gmail.com> <51BC36ED.3010405@schinagl.nl> <CAMiis9aDuu7xArvg7QOvbXmzVpwKUhETr+m=WEKnbSHbhPuLpA@mail.gmail.com> <51BCD217.8060608@schinagl.nl> <CAMiis9bLv0TBuU_KBNFoDpjKzSBSy9JjaAYDicDRjtgf-6P7eA@mail.gmail.com>
-In-Reply-To: <CAMiis9bLv0TBuU_KBNFoDpjKzSBSy9JjaAYDicDRjtgf-6P7eA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <20130617154237.GJ2718@n2100.arm.linux.org.uk>
+References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
+	<1371467722-665-1-git-send-email-inki.dae@samsung.com>
+	<51BEF458.4090606@canonical.com>
+	<012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
+	<20130617133109.GG2718@n2100.arm.linux.org.uk>
+	<CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
+	<20130617154237.GJ2718@n2100.arm.linux.org.uk>
+Date: Tue, 18 Jun 2013 09:00:16 +0200
+Message-ID: <CAKMK7uECS=eqNB-Ud6s=NvdYMPfxgJaGPbUx9hANfP6kb02j_w@mail.gmail.com>
+Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization framework
+From: Daniel Vetter <daniel@ffwll.ch>
+To: Russell King - ARM Linux <linux@arm.linux.org.uk>
+Cc: Inki Dae <daeinki@gmail.com>,
+	Maarten Lankhorst <maarten.lankhorst@canonical.com>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Rob Clark <robdclark@gmail.com>,
+	"myungjoo.ham" <myungjoo.ham@samsung.com>,
+	YoungJun Cho <yj44.cho@samsung.com>,
+	Daniel Vetter <daniel@ffwll.ch>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 16-06-13 10:15, Duval Mickael wrote:
-> It is true that only scans once! It can therefore be quite limited at
-> this fr_All file and remove fr_Cherbourg and fr_Bordeaux.
-Allright, per your request I will merge Cherbourg and Bordeaux into 
-fr-All (if there are missing frequencies) and I'll use your fr-All
+On Mon, Jun 17, 2013 at 04:42:37PM +0100, Russell King - ARM Linux wrote:
+> On Tue, Jun 18, 2013 at 12:03:31AM +0900, Inki Dae wrote:
+> > 2013/6/17 Russell King - ARM Linux <linux@arm.linux.org.uk>
+> > Exactly right. But that is not definitely my point. Could you please see
+> > the below simple example?:
+> > (Presume that CPU and DMA share a buffer and the buffer is mapped with user
+> > space as cachable)
+> >
+> >         handle1 = drm_gem_fd_to_handle(a dmabuf fd);  ----> 1
+> >                  ...
+> >         va1 = drm_gem_mmap(handle1);
+> >         va2 = drm_gem_mmap(handle2);
+> >         va3 = malloc(size);
+> >                  ...
+> >
+> >         while (conditions) {
+> >                  memcpy(va1, some data, size);
 >
-> 2013/6/15 Oliver Schinagl <oliver+list@schinagl.nl>:
->> On 15-06-13 12:08, Duval Mickael wrote:
->>>
->>> Indeed frequencies fr_Cherbourg and fr_Bordeaux are contained in fr_All.
->>> But I was thinking of doing a fr_All file and a specific file for all
->>> city as uk.
->>>
->>> With a file with only the useful frequency, detection will be much faster
->>> right?
->>
->> Yes, if you only have to scan 5 frequencies instead of 20 of course it will
->> be faster. But how often do you tune and how many frequencies are there to
->> consider? If you have look at fr-All, that looks pretty small to me. Having
->> 20 files covering those same frequencies will just add clutter to the db if
->> you ask me. So I would keep with one fr-All if it works 'for everybody'.
->>
->>>
->>> 2013/6/15 Oliver Schinagl <oliver+list@schinagl.nl>:
->>>>
->>>> On 06/15/13 11:30, Duval Mickael wrote:
->>>>>
->>>>> Ok I have cloned your repo with Git, and I've make two patch files.
->>>>>
->>>> Can you explain to me why there are fr-All and fr-Cherbourg? (and
->>>> fr-Bordeaux)?
->>>>
->>>> Does fr-All not work for those two places? If fr-All does everything,
->>>> it's
->>>> ok to merge the other two in. nl-All is all transponders for the country
->>>> as
->>>> a lot of frequencies are shared. We could have 10 or so nl-<area> but
->>>> they'd
->>>> be all really small.
->>>>
->>>> So is fr-All everything for the entire country, but has Cherbourg and
->>>> Bordeaux extra, very different freq's?
->>>>
->>>> Merged in c8050e8105b1b4b5364f57d8b3e658c80fb04a53 for now
->>>>
->>>> Thanks,
->>>> oliver
->>>>
->>>>> 2013/6/15 Duval Mickael <duvalmickael@gmail.com>:
->>>>>>
->>>>>> In zip there is a little modification for city of cherbourg (add two
->>>>>> new muxes) and a fr_ALL for France all channels DVB-T initial
->>>>>> scan.
->>>>>>
->>>>>> What's the problem exactly with my files?
->>>>>>
->>>>>> Thanks
->>>>>> Duval Mickael
->>>>>>
->>>>>> 2013/6/14 Oliver Schinagl <oliver+list@schinagl.nl>:
->>>>>>>
->>>>>>> On 06/13/13 19:10, Duval Mickael wrote:
->>>>>>>>
->>>>>>>>
->>>>>>>> Hello,
->>>>>>>
->>>>>>>
->>>>>>> Hi,
->>>>>>>
->>>>>>>> I send this email to you for a DVB-T scan file for the city of
->>>>>>>> Cherbourg
->>>>>>>> FRANCE, modified with the last channels.
->>>>>>>> I also enclose a package file that includes all channels available
->>>>>>>> for
->>>>>>>> DVB-T in France.
->>>>>>>
->>>>>>>
->>>>>>> I've applied your patch (after manually working it over) last time.
->>>>>>>
->>>>>>> What is in this zip? Please send a patch file what still needs to be
->>>>>>> adjusted. Cherbourg is in the repo now, isn't it?
->>>>>>>
->>>>>>>> Sorry for my poor English ;-)
->>>>>>>>
->>>>>>>> Thank you.
->>>>>>>
->>>>>>>
->>>>>>>
->>
+> Nooooooooooooooooooooooooooooooooooooooooooooo!
+>
+> Well, the first thing to say here is that under the requirements of the
+> DMA API, the above is immediately invalid, because you're writing to a
+> buffer which under the terms of the DMA API is currently owned by the
+> DMA agent, *not* by the CPU.  You're supposed to call dma_sync_sg_for_cpu()
+> before you do that - but how is userspace supposed to know that requirement?
+> Why should userspace even _have_ to know these requirements of the DMA
+> API?
+>
+> It's also entirely possible that drm_gem_fd_to_handle() (which indirectly
+> causes dma_map_sg() on the buffers scatterlist) followed by mmap'ing it
+> into userspace is a bug too, as it has the potential to touch caches or
+> stuff in ways that maybe the DMA or IOMMU may not expect - but I'm not
+> going to make too big a deal about that, because I don't think we have
+> anything that picky.
+>
+> However, the first point above is the most important one, and exposing
+> the quirks of the DMA API to userland is certainly not a nice thing to be
+> doing.  This needs to be fixed - we can't go and enforce an API which is
+> deeply embedded within the kernel all the way out to userland.
+>
+> What we need is something along the lines of:
+> (a) dma_buf_map_attachment() _not_ to map the scatterlist for DMA.
+> or
+> (b) drm_gem_prime_import() not to call dma_buf_map_attachment() at all.
 
+I strongly vote for (b) (plus adding a dma_buf_map_sync interface to allow
+syncing to other devices/cpu whithout dropping the dma mappings). At least
+that's been the idea behind things, but currently all (x86-based) drm
+drivers cut corners here massively.
+
+Aside: The entire reason behind hiding the dma map step in the dma-buf
+attachment is to allow drivers to expose crazy iommus (e.g. the tiler unit
+on omap) to other devices. So imo (a) isn't the right choice.
+>
+> and for the scatterlist to be mapped for DMA at the point where the DMA
+> operation is initiated, and unmapped at the point where the DMA operation
+> is complete.
+>
+> So no, the problem is not that we need more APIs and code - we need the
+> existing kernel API fixed so that we don't go exposing userspace to the
+> requirements of the DMA API.  Unless we do that, we're going to end
+> up with a huge world of pain, where kernel architecture people need to
+> audit every damned DRM userspace implementation that happens to be run
+> on their platform, and that's not something arch people really can
+> afford to do.
+>
+> Basically, I think the dma_buf stuff needs to be rewritten with the
+> requirements of the DMA API in the forefront of whosever mind is doing
+> the rewriting.
+>
+> Note: the existing stuff does have the nice side effect of being able
+> to pass buffers which do not have a struct page * associated with them
+> through the dma_buf API - I think we can still preserve that by having
+> dma_buf provide a couple of new APIs to do the SG list map/sync/unmap,
+> but in any case we need to fix the existing API so that:
+>
+> dma_buf_map_attachment() becomes dma_buf_get_sg()
+> dma_buf_unmap_attachment() becomes dma_buf_put_sg()
+>
+> both getting rid of the DMA direction argument, and then we have four
+> new dma_buf calls:
+>
+> dma_buf_map_sg()
+> dma_buf_unmap_sg()
+> dma_buf_sync_sg_for_cpu()
+> dma_buf_sync_sg_for_device()
+>
+> which do the actual sg map/unmap via the DMA API *at the appropriate
+> time for DMA*.
+
+Hm, my idea was to just add a dma_buf_sync_attchment for the device side
+syncing, since the cpu access stuff is already bracketed with the
+begin/end cpu access stuff. We might need a sync_for_cpu or so for mmap,
+but imo mmap support for dma_buf is a bit insane anyway, so I don't care
+too much about it.
+
+Since such dma mappings would be really longstanding in most cases anyway
+drivers could just map with BIDIRECTIONAL and do all the real flushing
+with the new sync stuff.
+
+Another piece of fun will be integration with the fencing stuff Maarten is
+doing. I'm not sure whether we should integrate that into the dma-buf
+interface (for simple users who don't want to deal with the full
+complexity at least).
+
+>
+> So, the summary of this is - at the moment, I regard DRM Prime and dmabuf
+> to be utterly broken in design for architectures such as ARM where the
+> requirements of the DMA API have to be followed if you're going to have
+> a happy life.
+
+Agreed. Unfortunately there are not many real drivers shipping in
+upstream, and x86 is _very_ forgiving about all this stuff.
+-Daniel
+--
+Daniel Vetter
+Software Engineer, Intel Corporation
++41 (0) 79 365 57 48 - http://blog.ffwll.ch
