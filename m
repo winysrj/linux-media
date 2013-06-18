@@ -1,62 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:43190 "EHLO
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:35649 "EHLO
 	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754779Ab3F1KLe (ORCPT
+	with ESMTP id S1752186Ab3FRIUH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 06:11:34 -0400
-Message-id: <51CD6153.5050406@samsung.com>
-Date: Fri, 28 Jun 2013 12:11:31 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+	Tue, 18 Jun 2013 04:20:07 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOK00J2JXNT7830@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 18 Jun 2013 09:20:05 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
+To: 'Sachin Kamat' <sachin.kamat@linaro.org>,
+	'Arun Kumar K' <arunkk.samsung@gmail.com>
+Cc: 'Arun Kumar K' <arun.kk@samsung.com>,
+	'LMML' <linux-media@vger.kernel.org>, jtp.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	avnd.kiran@samsung.com
+References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+ <1370870586-24141-4-git-send-email-arun.kk@samsung.com>
+ <002a01ce6b69$512943c0$f37bcb40$%debski@samsung.com>
+ <CALt3h7-mNkOJoGbyNsBR0Z2mYKXD58EwqOezeY+7xpx7G0-vHQ@mail.gmail.com>
+ <CAK9yfHy-dEx98YXLdJB0rW5yZ_HeKsy5aLSjH0XL07U=5HNgKg@mail.gmail.com>
+In-reply-to: <CAK9yfHy-dEx98YXLdJB0rW5yZ_HeKsy5aLSjH0XL07U=5HNgKg@mail.gmail.com>
+Subject: RE: [PATCH 3/6] [media] s5p-mfc: Core support for MFC v7
+Date: Tue, 18 Jun 2013 10:19:58 +0200
+Message-id: <008501ce6bfc$a0d2c020$e2784060$%debski@samsung.com>
 MIME-version: 1.0
-To: Hui Wang <jason77.wang@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, kishon@ti.com,
-	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
-	balbi@ti.com, t.figa@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
-	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH v3 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
- <1372258946-15607-2-git-send-email-s.nawrocki@samsung.com>
- <51CD4698.3070409@gmail.com>
-In-reply-to: <51CD4698.3070409@gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
+Content-type: text/plain; charset=us-ascii
 Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/28/2013 10:17 AM, Hui Wang wrote:
-> On 06/26/2013 11:02 PM, Sylwester Nawrocki wrote:
->> Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
->> receiver and MIPI DSI transmitter DPHYs.
->>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->> Changes since v2:
->>   - adapted to the generic PHY API v9: use phy_set/get_drvdata(),
->>   - fixed of_xlate callback to return ERR_PTR() instead of NULL,
->>   - namespace cleanup, put "GPL v2" as MODULE_LICENSE, removed pr_debug,
->>   - removed phy id check in __set_phy_state().
->> ---
-> [...]
->> +
->> +	if (IS_EXYNOS_MIPI_DSIM_PHY_ID(id))
->> +		reset = EXYNOS_MIPI_PHY_MRESETN;
->> +	else
->> +		reset = EXYNOS_MIPI_PHY_SRESETN;
->> +
->> +	spin_lock_irqsave(&state->slock, flags);
->
-> Sorry for one stupid question here, why do you use spin_lock_irqsave() 
-> rather than spin_lock(),
-> I don't see the irq handler will use this spinlock anywhere in this c file.
+Hi Arun, Sachin,
 
-Yes, there is no chance the PHY users could call the phy ops from within
-an interrupt context. Especially now when there is a per phy object 
-mutex used in the PHY operation helpers. So I'll replace it with plain 
-spin_lock/unlock. Thank you for the review.
+> -----Original Message-----
+> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
+> Sent: Tuesday, June 18, 2013 7:27 AM
+> To: Arun Kumar K
+> Cc: Kamil Debski; Arun Kumar K; LMML; jtp.park@samsung.com; Sylwester
+> Nawrocki; avnd.kiran@samsung.com
+> Subject: Re: [PATCH 3/6] [media] s5p-mfc: Core support for MFC v7
+> 
+> On 18 June 2013 10:21, Arun Kumar K <arunkk.samsung@gmail.com> wrote:
+> > Hi Kamil,
+> >
+> > Thank you for the review.
+> >
+> >
+> >>>  #define IS_MFCV6(dev)                (dev->variant->version >=
+> 0x60 ? 1 :
+> >> 0)
+> >>> +#define IS_MFCV7(dev)                (dev->variant->version >=
+> 0x70 ? 1 :
+> >> 0)
+> >>
+> >> According to this, MFC v7 is also detected as MFC v6. Was this
+> intended?
+> >
+> > Yes this was intentional as most of v7 will be reusing the v6 code
+> and
+> > only minor changes are there w.r.t firmware interface.
+> >
+> >
+> >> I think that it would be much better to use this in code:
+> >>         if (IS_MFCV6(dev) || IS_MFCV7(dev)) And change the define to
+> >> detect only single MFC revision:
+> >>         #define IS_MFCV6(dev)           (dev->variant->version >=
+> 0x60 &&
+> >> dev->variant->version < 0x70)
+> >>
+> >
+> > I kept it like that since the macro IS_MFCV6() is used quite
+> > frequently in the driver. Also if MFCv8 comes which is again similar
+> > to v6 (not sure about this), then it will add another OR condition to
+> > this check.
+> >
+> >> Other possibility I see is to change the name of the check. Although
+> >> IS_MFCV6_OR_NEWER(dev) seems too long :)
+> >>
+> >
+> > How about making it IS_MFCV6_PLUS()?
+> 
+> Technically
+> #define IS_MFCV6(dev)                (dev->variant->version >= 0x60...)
+> means all lower versions are also higher versions.
+> This may not cause much of a problem (other than the macro being a
+> misnomer) as all current higher versions are supersets of lower
+> versions.
+> But this is not guaranteed(?).
 
-Regards,
-Sylwester
+MFC versions 5+ have very much in common. However there are two previous
+MFC versions - 4 (s5pc100?) and 1 (s3c6410). These versions are much 
+different if I remember correctly. Drivers for these version are not
+present in mainline, but I know that there are community members that
+provide support and keep adding new drivers for older SoCs. Maybe
+some day they will be added.
+
+> 
+> Hence changing the definition of the macro to (dev->variant->version
+> >= 0x60 && dev->variant->version < 0x70) as Kamil suggested or
+> renaming it to
+> IS_MFCV6_PLUS() makes sense.
+
+I agree, this name will be easier to understand.
+
+> 
+> OTOH, do we really have intermediate version numbers? For e.g. 0x61,
+> 0x72, etc?
+> 
+> If not we can make it just:
+> #define IS_MFCV6(dev)                (dev->variant->version == 0x60 ?
+> 1 : 0)
+> 
+> 
+
+Best wishes,
+-- 
+Kamil Debski
+Linux Kernel Developer
+Samsung R&D Institute Poland
+
+
