@@ -1,56 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4948 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1945946Ab3FUUIr (ORCPT
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:43225 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752489Ab3FREvW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 16:08:47 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5LK8hAf085686
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 22:08:45 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id B892635E0143
-	for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 22:08:42 +0200 (CEST)
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.11] Conversions to v4l-async
-Date: Fri, 21 Jun 2013 22:08:43 +0200
+	Tue, 18 Jun 2013 00:51:22 -0400
+Received: by mail-vc0-f175.google.com with SMTP id hr11so2619252vcb.34
+        for <linux-media@vger.kernel.org>; Mon, 17 Jun 2013 21:51:21 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306212208.43086.hverkuil@xs4all.nl>
+In-Reply-To: <002a01ce6b69$512943c0$f37bcb40$%debski@samsung.com>
+References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
+	<1370870586-24141-4-git-send-email-arun.kk@samsung.com>
+	<002a01ce6b69$512943c0$f37bcb40$%debski@samsung.com>
+Date: Tue, 18 Jun 2013 10:21:21 +0530
+Message-ID: <CALt3h7-mNkOJoGbyNsBR0Z2mYKXD58EwqOezeY+7xpx7G0-vHQ@mail.gmail.com>
+Subject: Re: [PATCH 3/6] [media] s5p-mfc: Core support for MFC v7
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>, jtp.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	avnd.kiran@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that the v4l-async patches have been merged, these patches can be merged
-as well.
+Hi Kamil,
 
-	Hans
+Thank you for the review.
 
-The following changes since commit ee17608d6aa04a86e253a9130d6c6d00892f132b:
 
-  [media] imx074: support asynchronous probing (2013-06-21 16:36:15 -0300)
+>>  #define IS_MFCV6(dev)                (dev->variant->version >= 0x60 ? 1 :
+> 0)
+>> +#define IS_MFCV7(dev)                (dev->variant->version >= 0x70 ? 1 :
+> 0)
+>
+> According to this, MFC v7 is also detected as MFC v6. Was this intended?
 
-are available in the git repository at:
+Yes this was intentional as most of v7 will be reusing the v6 code and
+only minor
+changes are there w.r.t firmware interface.
 
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
 
-for you to fetch changes up to a6277614fa957a3c26a3160e2fc662838d185c70:
+> I think that it would be much better to use this in code:
+>         if (IS_MFCV6(dev) || IS_MFCV7(dev))
+> And change the define to detect only single MFC revision:
+>         #define IS_MFCV6(dev)           (dev->variant->version >= 0x60 &&
+> dev->variant->version < 0x70)
+>
 
-  media: i2c: ths8200: add support v4l-async (2013-06-21 22:00:47 +0200)
+I kept it like that since the macro IS_MFCV6() is used quite frequently
+in the driver. Also if MFCv8 comes which is again similar to v6 (not
+sure about this),
+then it will add another OR condition to this check.
 
-----------------------------------------------------------------
-Lad, Prabhakar (3):
-      media: i2c: tvp7002: add support for asynchronous probing
-      media: i2c: tvp7002: add OF support
-      media: i2c: ths8200: add support v4l-async
+> Other possibility I see is to change the name of the check. Although
+> IS_MFCV6_OR_NEWER(dev) seems too long :)
+>
 
- Documentation/devicetree/bindings/media/i2c/tvp7002.txt | 42 ++++++++++++++++++++++++++++++++++++++++++
- drivers/media/i2c/ths8200.c                             | 10 +++++++++-
- drivers/media/i2c/tvp7002.c                             | 71 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++-------
- 3 files changed, 115 insertions(+), 8 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+How about making it IS_MFCV6_PLUS()?
+
+Regards
+Arun
