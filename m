@@ -1,121 +1,136 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:51674 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753250Ab3FKJ1e (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59168 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754497Ab3FRWDU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 05:27:34 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Tue, 18 Jun 2013 18:03:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: linux-media@vger.kernel.org,
 	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 08/21] mx1-camera: move interface activation and deactivation to clock callbacks
-Date: Tue, 11 Jun 2013 10:23:35 +0200
-Message-Id: <1370939028-8352-9-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC v3 1/3] media: added managed media entity initialization
+Date: Wed, 19 Jun 2013 00:03:35 +0200
+Message-ID: <2229025.9VJ8P9QgzO@avalon>
+In-Reply-To: <1368692074-483-2-git-send-email-a.hajda@samsung.com>
+References: <1368692074-483-1-git-send-email-a.hajda@samsung.com> <1368692074-483-2-git-send-email-a.hajda@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the mx1-camera driver only activates
-and deactivates its camera interface respectively, which doesn't include
-any client-specific actions. Move this functionality into .clock_start()
-and .clock_stop() callbacks.
+Hi Andrzej,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/mx1_camera.c |   32 +++++++++++++++---------
- 1 files changed, 20 insertions(+), 12 deletions(-)
+Thank you for the patch.
 
-diff --git a/drivers/media/platform/soc_camera/mx1_camera.c b/drivers/media/platform/soc_camera/mx1_camera.c
-index 5f9ec8e..fea3e61 100644
---- a/drivers/media/platform/soc_camera/mx1_camera.c
-+++ b/drivers/media/platform/soc_camera/mx1_camera.c
-@@ -399,7 +399,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
- {
- 	unsigned int csicr1 = CSICR1_EN;
- 
--	dev_dbg(pcdev->soc_host.icd->parent, "Activate device\n");
-+	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "Activate device\n");
- 
- 	clk_prepare_enable(pcdev->clk);
- 
-@@ -415,7 +415,7 @@ static void mx1_camera_activate(struct mx1_camera_dev *pcdev)
- 
- static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
- {
--	dev_dbg(pcdev->soc_host.icd->parent, "Deactivate device\n");
-+	dev_dbg(pcdev->soc_host.v4l2_dev.dev, "Deactivate device\n");
- 
- 	/* Disable all CSI interface */
- 	__raw_writel(0x00, pcdev->base + CSICR1);
-@@ -423,26 +423,35 @@ static void mx1_camera_deactivate(struct mx1_camera_dev *pcdev)
- 	clk_disable_unprepare(pcdev->clk);
- }
- 
-+static int mx1_camera_add_device(struct soc_camera_device *icd)
-+{
-+	dev_info(icd->parent, "MX1 Camera driver attached to camera %d\n",
-+		 icd->devnum);
-+
-+	return 0;
-+}
-+
-+static void mx1_camera_remove_device(struct soc_camera_device *icd)
-+{
-+	dev_info(icd->parent, "MX1 Camera driver detached from camera %d\n",
-+		 icd->devnum);
-+}
-+
- /*
-  * The following two functions absolutely depend on the fact, that
-  * there can be only one camera on i.MX1/i.MXL camera sensor interface
-  */
--static int mx1_camera_add_device(struct soc_camera_device *icd)
-+static int mx1_camera_clock_start(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx1_camera_dev *pcdev = ici->priv;
- 
--	dev_info(icd->parent, "MX1 Camera driver attached to camera %d\n",
--		 icd->devnum);
--
- 	mx1_camera_activate(pcdev);
- 
- 	return 0;
- }
- 
--static void mx1_camera_remove_device(struct soc_camera_device *icd)
-+static void mx1_camera_clock_stop(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx1_camera_dev *pcdev = ici->priv;
- 	unsigned int csicr1;
- 
-@@ -453,9 +462,6 @@ static void mx1_camera_remove_device(struct soc_camera_device *icd)
- 	/* Stop DMA engine */
- 	imx_dma_disable(pcdev->dma_chan);
- 
--	dev_info(icd->parent, "MX1 Camera driver detached from camera %d\n",
--		 icd->devnum);
--
- 	mx1_camera_deactivate(pcdev);
- }
- 
-@@ -669,6 +675,8 @@ static struct soc_camera_host_ops mx1_soc_camera_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= mx1_camera_add_device,
- 	.remove		= mx1_camera_remove_device,
-+	.clock_start	= mx1_camera_clock_start,
-+	.clock_stop	= mx1_camera_clock_stop,
- 	.set_bus_param	= mx1_camera_set_bus_param,
- 	.set_fmt	= mx1_camera_set_fmt,
- 	.try_fmt	= mx1_camera_try_fmt,
+On Thursday 16 May 2013 10:14:32 Andrzej Hajda wrote:
+> This patch adds managed versions of initialization
+> function for media entity.
+> 
+> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+> v3:
+> 	- removed managed cleanup
+> ---
+>  drivers/media/media-entity.c |   44 +++++++++++++++++++++++++++++++++++++++
+>  include/media/media-entity.h |    5 +++++
+>  2 files changed, 49 insertions(+)
+> 
+> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> index e1cd132..b1e29a7 100644
+> --- a/drivers/media/media-entity.c
+> +++ b/drivers/media/media-entity.c
+> @@ -82,9 +82,53 @@ void
+>  media_entity_cleanup(struct media_entity *entity)
+>  {
+>  	kfree(entity->links);
+> +	entity->links = NULL;
+>  }
+>  EXPORT_SYMBOL_GPL(media_entity_cleanup);
+> 
+> +static void devm_media_entity_release(struct device *dev, void *res)
+> +{
+> +	struct media_entity **entity = res;
+> +
+> +	media_entity_cleanup(*entity);
+> +}
+> +
+> +/**
+> + * devm_media_entity_init - managed media entity initialization
+> + *
+> + * @dev: Device for which @entity belongs to.
+> + * @entity: Entity to be initialized.
+> + * @num_pads: Total number of sink and source pads.
+> + * @pads: Array of 'num_pads' pads.
+> + * @extra_links: Initial estimate of the number of extra links.
+> + *
+> + * This is a managed version of media_entity_init. Entity initialized with
+> + * this function will be automatically cleaned up on driver detach.
+> + */
+> +int
+> +devm_media_entity_init(struct device *dev, struct media_entity *entity,
+> +		       u16 num_pads, struct media_pad *pads, u16 extra_links)
+
+What kind of users do you see for this function ? Aren't subdev drivers 
+supposed to use the devm_* functions from patch 3/3 instead ? We should at 
+least make it clear in the documentation that drivers must not use both 
+devm_media_entity_init() and devm_v4l2_subdev_i2c_init().
+
+> +{
+> +	struct media_entity **dr;
+> +	int rc;
+> +
+> +	dr = devres_alloc(devm_media_entity_release, sizeof(*dr), GFP_KERNEL);
+> +	if (!dr)
+> +		return -ENOMEM;
+> +
+> +	rc = media_entity_init(entity, num_pads, pads, extra_links);
+> +	if (rc) {
+> +		devres_free(dr);
+> +		return rc;
+> +	}
+> +
+> +	*dr = entity;
+> +	devres_add(dev, dr);
+> +
+> +	return 0;
+> +}
+> +EXPORT_SYMBOL_GPL(devm_media_entity_init);
+> +
+>  /*
+> ---------------------------------------------------------------------------
+> -- * Graph traversal
+>   */
+> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+> index 0c16f51..e25730e 100644
+> --- a/include/media/media-entity.h
+> +++ b/include/media/media-entity.h
+> @@ -26,6 +26,8 @@
+>  #include <linux/list.h>
+>  #include <linux/media.h>
+> 
+> +struct device;
+> +
+>  struct media_pipeline {
+>  };
+> 
+> @@ -126,6 +128,9 @@ int media_entity_init(struct media_entity *entity, u16
+> num_pads, struct media_pad *pads, u16 extra_links);
+>  void media_entity_cleanup(struct media_entity *entity);
+> 
+> +int devm_media_entity_init(struct device *dev, struct media_entity *entity,
+> +		u16 num_pads, struct media_pad *pads, u16 extra_links);
+> +
+>  int media_entity_create_link(struct media_entity *source, u16 source_pad,
+>  		struct media_entity *sink, u16 sink_pad, u32 flags);
+>  int __media_entity_setup_link(struct media_link *link, u32 flags);
 -- 
-1.7.2.5
+Regards,
+
+Laurent Pinchart
 
