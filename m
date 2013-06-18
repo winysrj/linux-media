@@ -1,68 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:15630 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945935Ab3FUTtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 15:49:45 -0400
-Date: Fri, 21 Jun 2013 16:49:41 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Linus Torvalds <torvalds@linux-foundation.org>
-Cc: Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
-Subject: [GIT PULL for 3.10-rc7] media fixes
-Message-ID: <20130621164941.0fe3f4f1@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.samsung.com ([203.254.224.24]:14225 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755657Ab3FRJSk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 18 Jun 2013 05:18:40 -0400
+From: Kukjin Kim <kgene.kim@samsung.com>
+To: 'Tomasz Figa' <t.figa@samsung.com>,
+	linux-samsung-soc@vger.kernel.org
+Cc: linux-arm-kernel@lists.infradead.org,
+	'Arnd Bergmann' <arnd@arndb.de>,
+	'Olof Johansson' <olof@lixom.net>,
+	'Marek Szyprowski' <m.szyprowski@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Thomas Abraham' <thomas.abraham@linaro.org>,
+	linux-media@vger.kernel.org,
+	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>
+References: <1371486863-12398-1-git-send-email-t.figa@samsung.com>
+ <1371486863-12398-33-git-send-email-t.figa@samsung.com>
+In-reply-to: <1371486863-12398-33-git-send-email-t.figa@samsung.com>
+Subject: RE: [PATCH v2 32/38] [media] exynos4-is: Remove check for
+ SOC_EXYNOS4412
+Date: Tue, 18 Jun 2013 18:18:38 +0900
+Message-id: <1b9b01ce6c04$d0f37c10$72da7430$%kim@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Linus,
+Tomasz Figa wrote:
+> 
+> Since SOC_EXYNOS4412 Kconfig symbol has been removed, it is enough to
+> check for SOC_EXYNOS4212 for both SoCs from Exynos4x12 series.
+> 
+> Cc: linux-media@vger.kernel.org
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Tomasz Figa <t.figa@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/platform/exynos4-is/Kconfig | 2 +-
+>  1 file changed, 1 insertion(+), 1 deletion(-)
+> 
+> diff --git a/drivers/media/platform/exynos4-is/Kconfig
+> b/drivers/media/platform/exynos4-is/Kconfig
+> index 004fd0b..0d4fd5c 100644
+> --- a/drivers/media/platform/exynos4-is/Kconfig
+> +++ b/drivers/media/platform/exynos4-is/Kconfig
+> @@ -33,7 +33,7 @@ config VIDEO_S5P_MIPI_CSIS
+>  	  To compile this driver as a module, choose M here: the
+>  	  module will be called s5p-csis.
+> 
+> -if SOC_EXYNOS4212 || SOC_EXYNOS4412 || SOC_EXYNOS5250
+> +if SOC_EXYNOS4212 || SOC_EXYNOS5250
+> 
+>  config VIDEO_EXYNOS_FIMC_LITE
+>  	tristate "EXYNOS FIMC-LITE camera interface driver"
+> --
+> 1.8.2.1
 
-Please pull from:
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+NAK, the reason is same with my comments on 30th patch.
 
-For another set of fixes for Kernel 3.10.
-
-This series contain:
-	- two Kbuild fixes for randconfig;
-	- a buffer overflow when using rtl28xuu with r820t tuner;
-	- one clk fixup on exynos4-is driver.
-
-Thank you!
-Mauro
-
--
-
-The following changes since commit af44ad5edd1eb6ca92ed5be48e0004e1f04bf219:
-
-  [media] soc_camera: error dev remove and v4l2 call (2013-06-08 21:51:06 -0300)
-
-are available in the git repository at:
-
-  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-
-for you to fetch changes up to bb69ee27b96110c509d5b92c9ee541d81a821706:
-
-  [media] Fix build when drivers are builtin and frontend modules (2013-06-20 10:35:53 -0300)
-
-----------------------------------------------------------------
-Gianluca Gennari (1):
-      [media] rtl28xxu: fix buffer overflow when probing Rafael Micro r820t tuner
-
-Mauro Carvalho Chehab (2):
-      [media] s5p makefiles: don't override other selections on obj-[ym]
-      [media] Fix build when drivers are builtin and frontend modules
-
-Sylwester Nawrocki (1):
-      [media] exynos4-is: Fix FIMC-IS clocks initialization
-
- drivers/media/Kconfig                       | 12 +++++++++---
- drivers/media/platform/exynos4-is/fimc-is.c | 26 ++++++++------------------
- drivers/media/platform/exynos4-is/fimc-is.h |  1 -
- drivers/media/platform/s5p-jpeg/Makefile    |  2 +-
- drivers/media/platform/s5p-mfc/Makefile     |  2 +-
- drivers/media/tuners/Kconfig                | 20 --------------------
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c     |  6 +++---
- 7 files changed, 22 insertions(+), 47 deletions(-)
+- Kukjin
 
