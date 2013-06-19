@@ -1,80 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from merlin.infradead.org ([205.233.59.134]:33408 "EHLO
-	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753707Ab3F0REZ (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:37062 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933830Ab3FSKoW convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 27 Jun 2013 13:04:25 -0400
-Message-ID: <51CC707E.6030204@infradead.org>
-Date: Thu, 27 Jun 2013 10:03:58 -0700
-From: Randy Dunlap <rdunlap@infradead.org>
-MIME-Version: 1.0
-To: Stephen Rothwell <sfr@canb.auug.org.au>
-CC: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-media <linux-media@vger.kernel.org>,
-	Lubomir Rintel <lkundrak@v3.sk>
-Subject: Re: linux-next: Tree for Jun 27 (v4l2 & usbtv)
-References: <20130627192416.d37a51646a5317892298609e@canb.auug.org.au>
-In-Reply-To: <20130627192416.d37a51646a5317892298609e@canb.auug.org.au>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Wed, 19 Jun 2013 06:44:22 -0400
+From: Inki Dae <inki.dae@samsung.com>
+To: 'Lucas Stach' <l.stach@pengutronix.de>
+Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
+	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
+	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
+	'YoungJun Cho' <yj44.cho@samsung.com>,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
+ <1371467722-665-1-git-send-email-inki.dae@samsung.com>
+ <51BEF458.4090606@canonical.com>
+ <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
+ <20130617133109.GG2718@n2100.arm.linux.org.uk>
+ <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
+ <20130617154237.GJ2718@n2100.arm.linux.org.uk>
+ <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com>
+ <20130617182127.GM2718@n2100.arm.linux.org.uk>
+ <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
+ <20130618084308.GU2718@n2100.arm.linux.org.uk>
+ <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
+ <1371548849.4276.6.camel@weser.hi.pengutronix.de>
+ <008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
+ <1371637326.4230.24.camel@weser.hi.pengutronix.de>
+In-reply-to: <1371637326.4230.24.camel@weser.hi.pengutronix.de>
+Subject: RE: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
+ framework
+Date: Wed, 19 Jun 2013 19:44:20 +0900
+Message-id: <00ae01ce6cd9$f4834630$dd89d290$%dae@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=UTF-8
+Content-transfer-encoding: 8BIT
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/27/13 02:24, Stephen Rothwell wrote:
-> Hi all,
+
+
+> -----Original Message-----
+> From: Lucas Stach [mailto:l.stach@pengutronix.de]
+> Sent: Wednesday, June 19, 2013 7:22 PM
+> To: Inki Dae
+> Cc: 'Russell King - ARM Linux'; 'linux-fbdev'; 'Kyungmin Park'; 'DRI
+> mailing list'; 'myungjoo.ham'; 'YoungJun Cho'; linux-arm-
+> kernel@lists.infradead.org; linux-media@vger.kernel.org
+> Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
+> framework
 > 
-> Changes since 20130626:
+> Am Mittwoch, den 19.06.2013, 14:45 +0900 schrieb Inki Dae:
+> >
+> > > -----Original Message-----
+> > > From: Lucas Stach [mailto:l.stach@pengutronix.de]
+> > > Sent: Tuesday, June 18, 2013 6:47 PM
+> > > To: Inki Dae
+> > > Cc: 'Russell King - ARM Linux'; 'linux-fbdev'; 'Kyungmin Park'; 'DRI
+> > > mailing list'; 'myungjoo.ham'; 'YoungJun Cho'; linux-arm-
+> > > kernel@lists.infradead.org; linux-media@vger.kernel.org
+> > > Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer
+> synchronization
+> > > framework
+> > >
+> > > Am Dienstag, den 18.06.2013, 18:04 +0900 schrieb Inki Dae:
+> > > [...]
+> > > >
+> > > > > a display device driver.  It shouldn't be used within a single
+> driver
+> > > > > as a means of passing buffers between userspace and kernel space.
+> > > >
+> > > > What I try to do is not really such ugly thing. What I try to do is
+> to
+> > > > notify that, when CPU tries to access a buffer , to kernel side
+> through
+> > > > dmabuf interface. So it's not really to send the buffer to kernel.
+> > > >
+> > > > Thanks,
+> > > > Inki Dae
+> > > >
+> > > The most basic question about why you are trying to implement this
+> sort
+> > > of thing in the dma_buf framework still stands.
+> > >
+> > > Once you imported a dma_buf into your DRM driver it's a GEM object and
+> > > you can and should use the native DRM ioctls to prepare/end a CPU
+> access
+> > > to this BO. Then internally to your driver you can use the dma_buf
+> > > reservation/fence stuff to provide the necessary cross-device sync.
+> > >
+> >
+> > I don't really want that is used only for DRM drivers. We really need
+> > it for all other DMA devices; i.e., v4l2 based drivers. That is what I
+> > try to do. And my approach uses reservation to use dma-buf resources
+> > but not dma fence stuff anymore. However, I'm looking into Radeon DRM
+> > driver for why we need dma fence stuff, and how we can use it if
+> > needed.
+> >
 > 
-
-on i386:
-
-CONFIG_VIDEO_USBTV=y
-CONFIG_I2C=m
-CONFIG_VIDEO_V4L2=m
-
-
-Looks like VIDEO_USBTV should depend on VIDEO_V4L2.
-
-
-drivers/built-in.o: In function `vb2_fop_mmap':
-(.text+0x199b4e): undefined reference to `video_devdata'
-drivers/built-in.o: In function `vb2_ioctl_streamoff':
-(.text+0x19a00b): undefined reference to `video_devdata'
-drivers/built-in.o: In function `vb2_ioctl_streamon':
-(.text+0x19a134): undefined reference to `video_devdata'
-drivers/built-in.o: In function `vb2_ioctl_expbuf':
-(.text+0x19a2cb): undefined reference to `video_devdata'
-drivers/built-in.o: In function `vb2_ioctl_querybuf':
-(.text+0x19a3fe): undefined reference to `video_devdata'
-drivers/built-in.o:(.text+0x19ad7d): more undefined references to `video_devdata' follow
-drivers/built-in.o: In function `vb2_poll':
-(.text+0x19bef0): undefined reference to `v4l2_event_pending'
-drivers/built-in.o: In function `vb2_fop_poll':
-(.text+0x19c0ce): undefined reference to `video_devdata'
-drivers/built-in.o: In function `vb2_fop_release':
-(.text+0x19c21c): undefined reference to `video_devdata'
-drivers/built-in.o: In function `vb2_fop_release':
-(.text+0x19c24a): undefined reference to `v4l2_fh_release'
-drivers/built-in.o: In function `usbtv_release':
-usbtv.c:(.text+0x1a9411): undefined reference to `v4l2_device_unregister'
-drivers/built-in.o: In function `usbtv_querycap':
-usbtv.c:(.text+0x1a942e): undefined reference to `video_devdata'
-drivers/built-in.o: In function `usbtv_probe':
-usbtv.c:(.text+0x1a95da): undefined reference to `v4l2_device_register'
-usbtv.c:(.text+0x1a961e): undefined reference to `video_device_release_empty'
-usbtv.c:(.text+0x1a9689): undefined reference to `__video_register_device'
-usbtv.c:(.text+0x1a96a3): undefined reference to `v4l2_device_unregister'
-drivers/built-in.o: In function `usbtv_disconnect':
-usbtv.c:(.text+0x1a9937): undefined reference to `video_unregister_device'
-usbtv.c:(.text+0x1a993e): undefined reference to `v4l2_device_disconnect'
-drivers/built-in.o: In function `usbtv_iso_cb':
-usbtv.c:(.text+0x1a9b5c): undefined reference to `v4l2_get_timestamp'
-drivers/built-in.o: In function `usbtv_disconnect':
-usbtv.c:(.text+0x1a9966): undefined reference to `v4l2_device_put'
-drivers/built-in.o:(.data+0x22918): undefined reference to `video_ioctl2'
-drivers/built-in.o:(.data+0x22924): undefined reference to `v4l2_fh_open'
+> Still I don't see the point why you need syncpoints above dma-buf. In
+> both the DRM and the V4L2 world we have defined points in the API where
+> a buffer is allowed to change domain from device to CPU and vice versa.
+> 
+> In DRM if you want to access a buffer with the CPU you do a cpu_prepare.
+> The buffer changes back to GPU domain once you do the execbuf
+> validation, queue a pageflip to the buffer or similar things.
+> 
+> In V4L2 the syncpoints for cache operations are the queue/dequeue API
+> entry points. Those are also the exact points to synchronize with other
+> hardware thus using dma-buf reserve/fence.
 
 
+If so, what if we want to access a buffer with the CPU _in V4L2_? We should open a drm device node, and then do a cpu_prepare? 
 
--- 
-~Randy
+Thanks,
+Inki Dae
+
+> 
+> In all this I can't see any need for a new syncpoint primitive slapped
+> on top of dma-buf.
+> 
+> Regards,
+> Lucas
+> --
+> Pengutronix e.K.                           | Lucas Stach                 |
+> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5076 |
+> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+
