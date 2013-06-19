@@ -1,96 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:44202 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1945926Ab3FUTk3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 15:40:29 -0400
-Date: Fri, 21 Jun 2013 16:40:22 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Jim Davis <jim.epost@gmail.com>
-Cc: sfr@canb.auug.org.au, linux-next@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
-Subject: Re: randconfig build error with next-20130620, in
- drivers/media/pci/ngene
-Message-ID: <20130621164022.6b9ffd7f@redhat.com>
-In-Reply-To: <20130620212318.GA5648@krebstar.arl.arizona.edu>
-References: <20130620212318.GA5648@krebstar.arl.arizona.edu>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:1233 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756776Ab3FSS32 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 19 Jun 2013 14:29:28 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5JITGqj022424
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 19 Jun 2013 20:29:19 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id F412335E0027
+	for <linux-media@vger.kernel.org>; Wed, 19 Jun 2013 20:29:15 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130619182915.F412335E0027@alastor.dyndns.org>
+Date: Wed, 19 Jun 2013 20:29:15 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jim,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thanks for reporting it.
+Results of the daily build of media_tree:
 
-Em Thu, 20 Jun 2013 14:23:18 -0700
-Jim Davis <jim.epost@gmail.com> escreveu:
+date:		Wed Jun 19 19:00:20 CEST 2013
+git branch:	test
+git hash:	414abbd2cd4c2618895f02ed3a76ec6647281436
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-> Building with the attached random configuration file, 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: WARNINGS
+linux-git-arm-mx: OK
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-There was a hard to track issue there that started to appear after
-changeset 7b34be71db53 (and a few similar ones), but was actually
-caused by a much older issue. In summary: while before that changeset
-the tree builds with random configs, the compiled media drivers won't
-work under certain conditions[1].
+Detailed results are available here:
 
-This got fixed on this changeset:
-	http://git.linuxtv.org/media_tree.git/commit/bb69ee27b96110c509d5b92c9ee541d81a821706
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-[1] This is not as serious as it seems, because those random configs
-don't make much sense by a normal user, and no distro uses those weird
-configs. The error happens when:
-	- the main driver is builtin;
-	- the tuner and/or driver is module;
-	- CONFIG_MEDIA_ATTACH is not set
+Full logs are available here:
 
-When CONFIG_MEDIA_ATTACH is enabled, the main driver will load the needed
-modules before calling the needed module attach functions.
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
-I'm sending a pull request with this patch (plus a few other fixes) in a few.
+The Media Infrastructure API from this daily build is here:
 
-> 
->   LD      init/built-in.o
-> drivers/built-in.o: In function `demod_attach_lg330x':
-> ngene-cards.c:(.text+0x49dd70): undefined reference to `lgdt330x_attach'
-> drivers/built-in.o: In function `cineS2_probe':
-> ngene-cards.c:(.text+0x49e48e): undefined reference to `drxk_attach'
-> drivers/built-in.o: In function `dibusb_dib3000mc_tuner_attach':
-> (.text+0x4a2b92): undefined reference to `mt2060_attach'
-> drivers/built-in.o: In function `digitv_frontend_attach':
-> digitv.c:(.text+0x4a3055): undefined reference to `nxt6000_attach'
-> drivers/built-in.o: In function `opera1_frontend_attach':
-> opera1.c:(.text+0x4a3c9d): undefined reference to `stv0299_attach'
-> drivers/built-in.o: In function `af9005_fe_init':
-> af9005-fe.c:(.text+0x4a69e5): undefined reference to `mt2060_attach'
-> drivers/built-in.o: In function `pctv452e_tuner_attach':
-> pctv452e.c:(.text+0x4a7c1c): undefined reference to `stb6100_attach'
-> drivers/built-in.o: In function `dw2104_frontend_attach':
-> dw2102.c:(.text+0x4a9ee7): undefined reference to `stb6100_attach'
-> dw2102.c:(.text+0x4a9fab): undefined reference to `cx24116_attach'
-> drivers/built-in.o: In function `dw2102_frontend_attach':
-> dw2102.c:(.text+0x4aa41e): undefined reference to `stv0299_attach'
-> drivers/built-in.o: In function `m88rs2000_frontend_attach':
-> dw2102.c:(.text+0x4aaa89): undefined reference to `m88rs2000_attach'
-> drivers/built-in.o: In function `af9035_tuner_attach':
-> af9035.c:(.text+0x4aed42): undefined reference to `tda18218_attach'
-> af9035.c:(.text+0x4aedd4): undefined reference to `fc2580_attach'
-> drivers/built-in.o: In function `anysee_tuner_attach':
-> anysee.c:(.text+0x4b0bd1): undefined reference to `isl6423_attach'
-> drivers/built-in.o: In function `anysee_frontend_attach':
-> anysee.c:(.text+0x4b0d97): undefined reference to `zl10353_attach'
-> anysee.c:(.text+0x4b0df2): undefined reference to `zl10353_attach'
-> anysee.c:(.text+0x4b0e75): undefined reference to `cx24116_attach'
-> anysee.c:(.text+0x4b1000): undefined reference to `zl10353_attach'
-> anysee.c:(.text+0x4b1033): undefined reference to `zl10353_attach'
-> anysee.c:(.text+0x4b1110): undefined reference to `zl10353_attach'
-> drivers/built-in.o: In function `az6007_frontend_attach':
-> az6007.c:(.text+0x4b1d58): undefined reference to `drxk_attach'
-> make: *** [vmlinux] Error 1
-
-
-Regard
--- 
-
-Cheers,
-Mauro
+http://www.xs4all.nl/~hverkuil/spec/media.html
