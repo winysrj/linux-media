@@ -1,83 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:49041 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752255Ab3FPVMg (ORCPT
+Received: from canardo.mork.no ([148.122.252.1]:34828 "EHLO canardo.mork.no"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S933833Ab3FSOKa convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jun 2013 17:12:36 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: kishon@ti.com, linux-arm-kernel@lists.infradead.org,
-	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	dh09.lee@samsung.com, jg1.han@samsung.com,
-	linux-fbdev@vger.kernel.org
-Subject: Re: [RFC PATCH 2/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
-Date: Sun, 16 Jun 2013 23:12:35 +0200
-Message-ID: <1479883.i06oAuDEkn@flatron>
-In-Reply-To: <1371231951-1969-3-git-send-email-s.nawrocki@samsung.com>
-References: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com> <1371231951-1969-3-git-send-email-s.nawrocki@samsung.com>
+	Wed, 19 Jun 2013 10:10:30 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: James Board <jpboard2@yahoo.com>
+Cc: Daniel =?utf-8?B?77u/R2zDtmNrbmVy?= <daniel-gl@gmx.net>,
+	Steve Cookson <it@sca-uk.com>,
+	"linux-media\@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: HD Capture Card (HDMI and Component) output raw pixels
+References: <1371393161.46485.YahooMailNeo@web163903.mail.gq1.yahoo.com>
+	<8B18C28300FE4A6595829F526C5BA94A@SACWS001>
+	<1371572315.65617.YahooMailNeo@web163901.mail.gq1.yahoo.com>
+	<8737EBB72A154800A3A695B49F355F07@SACWS001>
+	<1371587831.30761.YahooMailNeo@web163905.mail.gq1.yahoo.com>
+	<7ED70E19F5604D7CA44DC92735A6BDE0@SACWS001>
+	<20130618230655.GA23989@minime.bse>
+	<1371648937.52293.YahooMailNeo@web163906.mail.gq1.yahoo.com>
+Date: Wed, 19 Jun 2013 16:10:01 +0200
+In-Reply-To: <1371648937.52293.YahooMailNeo@web163906.mail.gq1.yahoo.com>
+	(James Board's message of "Wed, 19 Jun 2013 06:35:37 -0700 (PDT)")
+Message-ID: <87ip1a42fa.fsf@nemi.mork.no>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday 14 of June 2013 19:45:48 Sylwester Nawrocki wrote:
-> Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  arch/arm/boot/dts/exynos4.dtsi |   12 ++++++++++++
->  1 file changed, 12 insertions(+)
-> 
-> diff --git a/arch/arm/boot/dts/exynos4.dtsi
-> b/arch/arm/boot/dts/exynos4.dtsi index d505ece..4b7ce52 100644
-> --- a/arch/arm/boot/dts/exynos4.dtsi
-> +++ b/arch/arm/boot/dts/exynos4.dtsi
-> @@ -120,12 +120,20 @@
->  		reg = <0x10010000 0x400>;
->  	};
-> 
-> +	mipi_phy: video-phy {
+James Board <jpboard2@yahoo.com> writes:
 
-nit: video-phy@10020710
+> You are right.  According to your numbers, this card can't work.  So
+> why would BlackMagic design an HDMI capture card with only one PCIe
+> lane if it can't possibly work?   It must work somehow.  I must be
+> missing some crucial piece of information.
+>
+> The card doesn't support hardware encoding, right?  If so, raw pixels
+> are the only output.  Maybe the card uses more than one PCIe lane? 
+> What makes you think the card only uses a single lane?
 
-Best regards,
-Tomasz
+http://www.blackmagicdesign.com/products/intensity/techspecs/ says so.
+It also says
 
-> +		compatible = "samsung,s5pv210-video-phy";
-> +		reg = <0x10020710 8>;
-> +		#phy-cells = <1>;
-> +	};
-> +
->  	dsi_0: dsi@11C80000 {
->  		compatible = "samsung,exynos4210-mipi-dsi";
->  		reg = <0x11C80000 0x10000>;
->  		interrupts = <0 79 0>;
->  		samsung,phy-type = <0>;
->  		samsung,power-domain = <&pd_lcd0>;
-> +		phys = <&mipi_phy 1>;
-> +		phy-names = "dsim";
->  		clocks = <&clock 286>, <&clock 143>;
->  		clock-names = "bus_clk", "pll_clk";
->  		status = "disabled";
-> @@ -181,6 +189,8 @@
->  			interrupts = <0 78 0>;
->  			bus-width = <4>;
->  			samsung,power-domain = <&pd_cam>;
-> +			phys = <&mipi_phy 0>;
-> +			phy-names = "csis";
->  			status = "disabled";
->  		};
-> 
-> @@ -190,6 +200,8 @@
->  			interrupts = <0 80 0>;
->  			bus-width = <2>;
->  			samsung,power-domain = <&pd_cam>;
-> +			phys = <&mipi_phy 2>;
-> +			phy-names = "csis";
->  			status = "disabled";
->  		};
->  	};
+ HD Format Support: 1080i50, 1080i59.94, 1080i60, 1080p23.98, 1080p24,
+                    1080p25, 1080p29.97, 1080p30, 720p50, 720p59.94 and
+                    720p60.
+
+which makes the 1080p50 calculation a bit irrelevant.
+
+> Are they using lossless compression to get the raw pixels data rate
+> under 200-250 MB/sec, which is the PCIe speed?
+
+None of the supported formats need more than ~180 MB/sec.
+
+
+Bjørn
