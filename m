@@ -1,69 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:10288 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751383Ab3FZPF1 (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:31028 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756997Ab3FSRYr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jun 2013 11:05:27 -0400
+	Wed, 19 Jun 2013 13:24:47 -0400
+Message-id: <51C1E95C.5040607@samsung.com>
+Date: Wed, 19 Jun 2013 19:24:44 +0200
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: kishon@ti.com, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
-	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 2/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
-Date: Wed, 26 Jun 2013 17:02:23 +0200
-Message-id: <1372258946-15607-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
-References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Kukjin Kim <kgene.kim@samsung.com>
+Cc: kishon@ti.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, dh09.lee@samsung.com,
+	jg1.han@samsung.com, linux-fbdev@vger.kernel.org
+Subject: Re: [RFC PATCH 5/5] ARM: Samsung: Remove MIPI PHY setup code
+References: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com>
+ <1371231951-1969-6-git-send-email-s.nawrocki@samsung.com>
+ <51BE25A0.6050202@samsung.com>
+In-reply-to: <51BE25A0.6050202@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
+On 06/16/2013 10:52 PM, Kukjin Kim wrote:
+> On 06/15/13 02:45, Sylwester Nawrocki wrote:
+>> > Generic PHY drivers are used to handle the MIPI CSIS and MIPI DSIM
+>> > DPHYs so we can remove now unused code at arch/arm/plat-samsung.
+>
+> If so, sounds good :)
+> 
+>> > In case there is any board file for S5PV210 platforms using MIPI
+>> > CSIS/DSIM (not any upstream currently) it should use the generic
+>> > PHY API to bind the PHYs to respective PHY consumer drivers.
+>
+> To be honest, I didn't test this on boards but if the working is fine, 
+> please go ahead without RFC.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi |   10 ++++++++++
- 1 file changed, 10 insertions(+)
+Thanks for review. I've tested it on Exynos4412 based board, and will
+check also on Exynos4210 TRATS before posting the final version.
+It seems to work fine, I just won't be able to test on any non-dt
+platform (s5pv210), and there is currently no users of MIPI CSIS/DSIM
+on s5pv210. Moreover this series depends on the generic PHY API,
+perhaps it can be merged for 3.11.
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index 4d61120..9542088 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -98,6 +98,12 @@
- 		reg = <0x10010000 0x400>;
- 	};
- 
-+	mipi_phy: video-phy@10020710 {
-+		compatible = "samsung,s5pv210-mipi-video-phy";
-+		reg = <0x10020710 8>;
-+		#phy-cells = <1>;
-+	};
-+
- 	camera {
- 		compatible = "samsung,fimc", "simple-bus";
- 		status = "disabled";
-@@ -147,6 +153,8 @@
- 			interrupts = <0 78 0>;
- 			bus-width = <4>;
- 			samsung,power-domain = <&pd_cam>;
-+			phys = <&mipi_phy 0>;
-+			phy-names = "csis";
- 			status = "disabled";
- 		};
- 
-@@ -156,6 +164,8 @@
- 			interrupts = <0 80 0>;
- 			bus-width = <2>;
- 			samsung,power-domain = <&pd_cam>;
-+			phys = <&mipi_phy 2>;
-+			phy-names = "csis";
- 			status = "disabled";
- 		};
- 	};
--- 
-1.7.9.5
+[1] http://www.spinics.net/lists/arm-kernel/msg251232.html
 
+Regards,
+Sylwester
