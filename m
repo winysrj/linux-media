@@ -1,189 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w1.samsung.com ([210.118.77.13]:45827 "EHLO
-	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755774Ab3FMKHV (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:37360 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934495Ab3FSKdb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jun 2013 06:07:21 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout3.w1.samsung.com
+	Wed, 19 Jun 2013 06:33:31 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOB005MLTAZHX70@mailout3.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 13 Jun 2013 11:07:19 +0100 (BST)
-Message-id: <51B999D5.1070206@samsung.com>
-Date: Thu, 13 Jun 2013 12:07:17 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+ 17 2011)) with ESMTP id <0MOM002F3YMMDLC0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 19 Jun 2013 11:33:19 +0100 (BST)
+Message-id: <51C188E7.4020208@samsung.com>
+Date: Wed, 19 Jun 2013 12:33:11 +0200
+From: Andrzej Hajda <a.hajda@samsung.com>
 MIME-version: 1.0
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	'Philipp Zabel' <p.zabel@pengutronix.de>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'John Sheu' <sheu@google.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: [PATCH v4] [media] mem2mem: add support for hardware buffered queue
-References: <1370247828-7219-1-git-send-email-p.zabel@pengutronix.de>
- <002201ce681a$afaa1200$0efe3600$%debski@samsung.com>
-In-reply-to: <002201ce681a$afaa1200$0efe3600$%debski@samsung.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	hj210.choi@samsung.com, sw0312.kim@samsung.com
+Subject: Re: [PATCH RFC v3 1/3] media: added managed media entity initialization
+References: <1368692074-483-1-git-send-email-a.hajda@samsung.com>
+ <1368692074-483-2-git-send-email-a.hajda@samsung.com>
+ <2229025.9VJ8P9QgzO@avalon>
+In-reply-to: <2229025.9VJ8P9QgzO@avalon>
 Content-type: text/plain; charset=ISO-8859-1
 Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/13/2013 11:45 AM, Kamil Debski wrote:
-> Pawel and Marek, I would really like to hear your opinions on this patch.
-> I remember that the assumption of the mem2mem framework (not to be confused
-> with
-> mem2mem type of devices) was that it was for simple devices where one output
-> buffer
-> was equivalent to one capture buffer. More complicated devices were supposed
-> to use videobuf2 directly.
-> 
-> Please state your opinions.
-> 
-> Best wishes,
-> -- 
-> Kamil Debski
-> Linux Kernel Developer
-> Samsung R&D Institute Poland
+On 06/19/2013 12:03 AM, Laurent Pinchart wrote:
+> Hi Andrzej,
 >
->> > -----Original Message-----
->> > From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
->> > Sent: Monday, June 03, 2013 10:24 AM
->> > To: linux-media@vger.kernel.org
->> > Cc: Sylwester Nawrocki; Mauro Carvalho Chehab; Pawel Osciak; John Sheu;
->> > Hans Verkuil; Kamil Debski; Andrzej Hajda; Philipp Zabel
->> > Subject: [PATCH v4] [media] mem2mem: add support for hardware buffered
->> > queue
->> > 
->> > On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
->> > buffer at the end of the stream, remaining frames might need to be
->> > decoded from the bitstream buffer without additional input buffers
->> > being provided.
->> > To achieve this, allow a queue to be marked as buffered by the driver,
->> > and allow scheduling of device_runs when buffered ready queues are
->> > empty.
->> > 
->> > This also allows a driver to copy input buffers into their bitstream
->> > ringbuffer and immediately mark them as done to be dequeued.
->> > 
->> > The motivation for this patch is hardware assisted h.264 reordering
->> > support in the coda driver. For high profile streams, the coda can hold
->> > back out-of-order frames, causing a few mem2mem device runs in the
->> > beginning, that don't produce any decompressed buffer at the v4l2
->> > capture side. At the same time, the last few frames can be decoded from
->> > the bitstream with mem2mem device runs that don't need a new input
->> > buffer at the v4l2 output side. The decoder command ioctl can be used
->> > to put the decoder into the ringbuffer draining end-of-stream mode.
->> > 
->> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> Thank you for the patch.
+>
+> On Thursday 16 May 2013 10:14:32 Andrzej Hajda wrote:
+>> This patch adds managed versions of initialization
+>> function for media entity.
+>>
+>> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
+>> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>> ---
+>> v3:
+>> 	- removed managed cleanup
+>> ---
+>>  drivers/media/media-entity.c |   44 +++++++++++++++++++++++++++++++++++++++
+>>  include/media/media-entity.h |    5 +++++
+>>  2 files changed, 49 insertions(+)
+>>
+>> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+>> index e1cd132..b1e29a7 100644
+>> --- a/drivers/media/media-entity.c
+>> +++ b/drivers/media/media-entity.c
+>> @@ -82,9 +82,53 @@ void
+>>  media_entity_cleanup(struct media_entity *entity)
+>>  {
+>>  	kfree(entity->links);
+>> +	entity->links = NULL;
+>>  }
+>>  EXPORT_SYMBOL_GPL(media_entity_cleanup);
+>>
+>> +static void devm_media_entity_release(struct device *dev, void *res)
+>> +{
+>> +	struct media_entity **entity = res;
+>> +
+>> +	media_entity_cleanup(*entity);
+>> +}
+>> +
+>> +/**
+>> + * devm_media_entity_init - managed media entity initialization
+>> + *
+>> + * @dev: Device for which @entity belongs to.
+>> + * @entity: Entity to be initialized.
+>> + * @num_pads: Total number of sink and source pads.
+>> + * @pads: Array of 'num_pads' pads.
+>> + * @extra_links: Initial estimate of the number of extra links.
+>> + *
+>> + * This is a managed version of media_entity_init. Entity initialized with
+>> + * this function will be automatically cleaned up on driver detach.
+>> + */
+>> +int
+>> +devm_media_entity_init(struct device *dev, struct media_entity *entity,
+>> +		       u16 num_pads, struct media_pad *pads, u16 extra_links)
+> What kind of users do you see for this function ? Aren't subdev drivers 
+> supposed to use the devm_* functions from patch 3/3 instead ? We should at 
+> least make it clear in the documentation that drivers must not use both 
+> devm_media_entity_init() and devm_v4l2_subdev_i2c_init().
+It can be used for media entities which are not part of subdev.
+I will add statement about it.
+Besides subdev, for now only video_device uses media entity.
+I am not 100% sure about advantages of adding devm_media_entity_init -
+currently only 7 drivers in kernel uses video_device and
+media_entity_cleanup in those drivers is called not as straightforward
+as in subdevs.
+Replacing it with managed version would require deeper analysis :)
+>
+>> +{
+>> +	struct media_entity **dr;
+>> +	int rc;
+>> +
+>> +	dr = devres_alloc(devm_media_entity_release, sizeof(*dr), GFP_KERNEL);
+>> +	if (!dr)
+>> +		return -ENOMEM;
+>> +
+>> +	rc = media_entity_init(entity, num_pads, pads, extra_links);
+>> +	if (rc) {
+>> +		devres_free(dr);
+>> +		return rc;
+>> +	}
+>> +
+>> +	*dr = entity;
+>> +	devres_add(dev, dr);
+>> +
+>> +	return 0;
+>> +}
+>> +EXPORT_SYMBOL_GPL(devm_media_entity_init);
+>> +
+>>  /*
+>> ---------------------------------------------------------------------------
+>> -- * Graph traversal
+>>   */
+>> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
+>> index 0c16f51..e25730e 100644
+>> --- a/include/media/media-entity.h
+>> +++ b/include/media/media-entity.h
+>> @@ -26,6 +26,8 @@
+>>  #include <linux/list.h>
+>>  #include <linux/media.h>
+>>
+>> +struct device;
+>> +
+>>  struct media_pipeline {
+>>  };
+>>
+>> @@ -126,6 +128,9 @@ int media_entity_init(struct media_entity *entity, u16
+>> num_pads, struct media_pad *pads, u16 extra_links);
+>>  void media_entity_cleanup(struct media_entity *entity);
+>>
+>> +int devm_media_entity_init(struct device *dev, struct media_entity *entity,
+>> +		u16 num_pads, struct media_pad *pads, u16 extra_links);
+>> +
+>>  int media_entity_create_link(struct media_entity *source, u16 source_pad,
+>>  		struct media_entity *sink, u16 sink_pad, u32 flags);
+>>  int __media_entity_setup_link(struct media_link *link, u32 flags);
 
-As far as I'm concerned this change looks like something useful upstream,
-it's really a simple modification and it makes the in-kernel m2m framework
-more universal and useful for more drivers. But that's just my personal
-opinion.
-
-:-)
-
-Thanks,
-Sylwester
-
->> > ---
->> > Changes since v3:
->> >  - Split queue_set_buffered into set_src_buffered and set_dst_buffered,
->> > which
->> >    take a v4l2_m2m_ctx pointer instead of a vb2_queue (which isn't
->> > guaranteed
->> >    to be embedded in a v4l2_m2m_queue_ctx).
->> >  - Make them static inline.
->> > ---
->> >  drivers/media/v4l2-core/v4l2-mem2mem.c | 10 ++++++++--
->> >  include/media/v4l2-mem2mem.h           | 13 +++++++++++++
->> >  2 files changed, 21 insertions(+), 2 deletions(-)
->> > 
->> > diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c
->> > b/drivers/media/v4l2-core/v4l2-mem2mem.c
->> > index 66f599f..1007e60 100644
->> > --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
->> > +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
->> > @@ -196,6 +196,10 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev
->> > *m2m_dev)
->> >   * 2) at least one destination buffer has to be queued,
->> >   * 3) streaming has to be on.
->> >   *
->> > + * If a queue is buffered (for example a decoder hardware ringbuffer
->> > + that has
->> > + * to be drained before doing streamoff), allow scheduling without
->> > v4l2
->> > + buffers
->> > + * on that queue.
->> > + *
->> >   * There may also be additional, custom requirements. In such case the
->> > driver
->> >   * should supply a custom callback (job_ready in v4l2_m2m_ops) that
->> > should
->> >   * return 1 if the instance is ready.
->> > @@ -224,14 +228,16 @@ static void v4l2_m2m_try_schedule(struct
->> > v4l2_m2m_ctx *m2m_ctx)
->> >  	}
->> > 
->> >  	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
->> > -	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)) {
->> > +	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)
->> > +	    && !m2m_ctx->out_q_ctx.buffered) {
->> >  		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
->> > flags);
->> >  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
->> >  		dprintk("No input buffers available\n");
->> >  		return;
->> >  	}
->> >  	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
->> > -	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)) {
->> > +	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)
->> > +	    && !m2m_ctx->cap_q_ctx.buffered) {
->> >  		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock,
->> > flags);
->> >  		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
->> > flags);
->> >  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
->> > diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-
->> > mem2mem.h index d3eef01..a8e1bb3 100644
->> > --- a/include/media/v4l2-mem2mem.h
->> > +++ b/include/media/v4l2-mem2mem.h
->> > @@ -60,6 +60,7 @@ struct v4l2_m2m_queue_ctx {
->> >  	struct list_head	rdy_queue;
->> >  	spinlock_t		rdy_spinlock;
->> >  	u8			num_rdy;
->> > +	bool			buffered;
->> >  };
->> > 
->> >  struct v4l2_m2m_ctx {
->> > @@ -132,6 +133,18 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct
->> > v4l2_m2m_dev *m2m_dev,
->> >  		void *drv_priv,
->> >  		int (*queue_init)(void *priv, struct vb2_queue *src_vq,
->> > struct vb2_queue *dst_vq));
->> > 
->> > +static inline void v4l2_m2m_set_src_buffered(struct v4l2_m2m_ctx
->> > *m2m_ctx,
->> > +					     bool buffered)
->> > +{
->> > +	m2m_ctx->out_q_ctx.buffered = buffered; }
->> > +
->> > +static inline void v4l2_m2m_set_dst_buffered(struct v4l2_m2m_ctx
->> > *m2m_ctx,
->> > +					     bool buffered)
->> > +{
->> > +	m2m_ctx->cap_q_ctx.buffered = buffered; }
->> > +
->> >  void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx);
->> > 
->> >  void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct
->> > vb2_buffer *vb);
->> > --
->> > 1.8.2.rc2
-
--- 
-Sylwester Nawrocki
-Samsung R&D Institute Poland
-Samsung Electronics
