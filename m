@@ -1,125 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:44592 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751559Ab3FYKdt (ORCPT
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:63979 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934108Ab3FSRUX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 06:33:49 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MOY008OL2O1QT30@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Jun 2013 19:33:47 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v3 4/8] [media] s5p-mfc: Core support for MFC v7
-Date: Tue, 25 Jun 2013 16:27:11 +0530
-Message-id: <1372157835-27663-5-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
-References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
+	Wed, 19 Jun 2013 13:20:23 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Alexandre Courbot <acourbot@nvidia.com>
+Cc: kishon@ti.com, linux-arm-kernel@lists.infradead.org,
+	linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com,
+	linux-fbdev@vger.kernel.org
+Subject: Re: [RFC PATCH 3/5] video: exynos_dsi: Use generic PHY driver
+Date: Wed, 19 Jun 2013 19:20:19 +0200
+Message-ID: <1584349.5UScq5Ic6l@flatron>
+In-Reply-To: <51C1E61C.8030808@samsung.com>
+References: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com> <1502179.yCdHZgQgqV@flatron> <51C1E61C.8030808@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds variant data and core support for the MFC v7 firmware
+On Wednesday 19 of June 2013 19:10:52 Sylwester Nawrocki wrote:
+> On 06/16/2013 11:15 PM, Tomasz Figa wrote:
+> > On Friday 14 of June 2013 19:45:49 Sylwester Nawrocki wrote:
+> >> > Use the generic PHY API instead of the platform callback to control
+> >> > the MIPI DSIM DPHY.
+> >> > 
+> >> > Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> >> > Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> >> > ---
+> >> > 
+> >> >  drivers/video/display/source-exynos_dsi.c |   36
+> >> > 
+> >> > +++++++++-------------------- include/video/exynos_dsi.h
+> >> > 
+> >> > |    5 ----
+> >> >  
+> >> >  2 files changed, 11 insertions(+), 30 deletions(-)
+> > 
+> > Yes, this is what I was really missing a lot while developing this
+> > driver.
+> > 
+> > Definitely looks good! It's a shame we don't have this driver in
+> > mainline yet ;)
+> 
+> Yes, I should have mentioned in the cover letter this patch depends
+> on modified version of this [1] patch set of yours. I'll drop this
+> patch and will update the driver staying in mainline now, but I won't
+> be able to test it, on a non-dt platform.
+> 
+> I guess even some pre-eliminary display (panel) API would be helpful.
+> The CDF development seems to have been stalled for some time. I wonder
+> if we could first have something that works for limited set of devices
+> and be extending it gradually, rather than living with zero support
+> for displays on DT based ARM platforms.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   32 ++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    2 ++
- 3 files changed, 35 insertions(+)
+Well, the problem is that once we define a binding for displays, we will 
+have to keep support for this binding even if we decide to change 
+something.
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-index 67ec3d4..cb9c5bc 100644
---- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-@@ -10,6 +10,7 @@ Required properties:
-   - compatible : value should be either one among the following
- 	(a) "samsung,mfc-v5" for MFC v5 present in Exynos4 SoCs
- 	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
-+	(b) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
- 
-   - reg : Physical base address of the IP registers and length of memory
- 	  mapped region.
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index d12faa6..d6be52f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1391,6 +1391,32 @@ static struct s5p_mfc_variant mfc_drvdata_v6 = {
- 	.fw_name        = "s5p-mfc-v6.fw",
- };
- 
-+struct s5p_mfc_buf_size_v6 mfc_buf_size_v7 = {
-+	.dev_ctx	= MFC_CTX_BUF_SIZE_V7,
-+	.h264_dec_ctx	= MFC_H264_DEC_CTX_BUF_SIZE_V7,
-+	.other_dec_ctx	= MFC_OTHER_DEC_CTX_BUF_SIZE_V7,
-+	.h264_enc_ctx	= MFC_H264_ENC_CTX_BUF_SIZE_V7,
-+	.other_enc_ctx	= MFC_OTHER_ENC_CTX_BUF_SIZE_V7,
-+};
-+
-+struct s5p_mfc_buf_size buf_size_v7 = {
-+	.fw	= MAX_FW_SIZE_V7,
-+	.cpb	= MAX_CPB_SIZE_V7,
-+	.priv	= &mfc_buf_size_v7,
-+};
-+
-+struct s5p_mfc_buf_align mfc_buf_align_v7 = {
-+	.base = 0,
-+};
-+
-+static struct s5p_mfc_variant mfc_drvdata_v7 = {
-+	.version	= MFC_VERSION_V7,
-+	.port_num	= MFC_NUM_PORTS_V7,
-+	.buf_size	= &buf_size_v7,
-+	.buf_align	= &mfc_buf_align_v7,
-+	.fw_name        = "s5p-mfc-v7.fw",
-+};
-+
- static struct platform_device_id mfc_driver_ids[] = {
- 	{
- 		.name = "s5p-mfc",
-@@ -1401,6 +1427,9 @@ static struct platform_device_id mfc_driver_ids[] = {
- 	}, {
- 		.name = "s5p-mfc-v6",
- 		.driver_data = (unsigned long)&mfc_drvdata_v6,
-+	}, {
-+		.name = "s5p-mfc-v7",
-+		.driver_data = (unsigned long)&mfc_drvdata_v7,
- 	},
- 	{},
- };
-@@ -1413,6 +1442,9 @@ static const struct of_device_id exynos_mfc_match[] = {
- 	}, {
- 		.compatible = "samsung,mfc-v6",
- 		.data = &mfc_drvdata_v6,
-+	}, {
-+		.compatible = "samsung,mfc-v7",
-+		.data = &mfc_drvdata_v7,
- 	},
- 	{},
- };
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index d47016d..17545d7 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -24,6 +24,7 @@
- #include <media/videobuf2-core.h>
- #include "regs-mfc.h"
- #include "regs-mfc-v6.h"
-+#include "regs-mfc-v7.h"
- 
- /* Definitions related to MFC memory */
- 
-@@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
- 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
- #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
- #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
-+#define IS_MFCV7(dev)		(dev->variant->version >= 0x70 ? 1 : 0)
- 
- #endif /* S5P_MFC_COMMON_H_ */
--- 
-1.7.9.5
+But as I discussed with Laurent and Alexandre at LinuxCon Japan, we should 
+be able to reuse V4L2 bindings for our purposes, so someone just needs to 
+code a proof of concept implementation that doesn't necessarily provide 
+full functionality yet, but allows to make something work. Probably based 
+on already posted RFC versions of CDF.
 
+CCed Laurent and Alexandre, as they might be able to shed even more light 
+on this.
+
+Best regards,
+Tomasz
+
+> 
+> [1] http://www.spinics.net/lists/linux-fbdev/msg09689.html
+> 
+> Regards,
+> Sylwester
