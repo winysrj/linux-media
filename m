@@ -1,78 +1,329 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f178.google.com ([209.85.212.178]:39333 "EHLO
-	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751115Ab3FXFrb (ORCPT
+Received: from adelie.canonical.com ([91.189.90.139]:35006 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965378Ab3FTLcx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 01:47:31 -0400
-Received: by mail-wi0-f178.google.com with SMTP id k10so2117787wiv.5
-        for <linux-media@vger.kernel.org>; Sun, 23 Jun 2013 22:47:30 -0700 (PDT)
+	Thu, 20 Jun 2013 07:32:53 -0400
+Subject: [PATCH v5 6/7] mutex: add more ww tests to test EDEADLK path handling
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
+	tglx@linutronix.de, mingo@kernel.org, linux-media@vger.kernel.org
+Date: Thu, 20 Jun 2013 13:31:42 +0200
+Message-ID: <20130620113141.4001.54331.stgit@patser>
+In-Reply-To: <20130620112811.4001.86934.stgit@patser>
+References: <20130620112811.4001.86934.stgit@patser>
 MIME-Version: 1.0
-In-Reply-To: <19880516.7ZPIjvT6Bx@avalon>
-References: <CACySJQX-GUYax5MPounyFCUczgncPx=SV=8O6ORd_zwfn31jkQ@mail.gmail.com>
-	<19880516.7ZPIjvT6Bx@avalon>
-Date: Mon, 24 Jun 2013 14:47:30 +0900
-Message-ID: <CACySJQUvkv4+x5UborCRHs=V20bzx5r7A2zgvecEkvcb8kQhUA@mail.gmail.com>
-Subject: Re: Mistake on the colorspace page in the API doc
-From: Wouter Thielen <wouter@morannon.org>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+---
+ lib/locking-selftest.c |  264 +++++++++++++++++++++++++++++++++++++++++++++++-
+ 1 file changed, 261 insertions(+), 3 deletions(-)
 
-Sorry for the late reply. I'll post a patch of your revised version,
-but I don't see the documentation anywhere in your git repositories. I
-guess I'll download the file (preserving directory structure), update
-it, and send you a diff -run. If this is not how it is done, please
-let me know.
+diff --git a/lib/locking-selftest.c b/lib/locking-selftest.c
+index 37faefd..d554f3f 100644
+--- a/lib/locking-selftest.c
++++ b/lib/locking-selftest.c
+@@ -47,7 +47,7 @@ __setup("debug_locks_verbose=", setup_debug_locks_verbose);
+ #define LOCKTYPE_WW	0x10
+ 
+ static struct ww_acquire_ctx t, t2;
+-static struct ww_mutex o, o2;
++static struct ww_mutex o, o2, o3;
+ 
+ /*
+  * Normal standalone locks, for the circular and irq-context
+@@ -947,12 +947,12 @@ static void reset_locks(void)
+ 
+ 	I1(A); I1(B); I1(C); I1(D);
+ 	I1(X1); I1(X2); I1(Y1); I1(Y2); I1(Z1); I1(Z2);
+-	I_WW(t); I_WW(t2); I_WW(o.base); I_WW(o2.base);
++	I_WW(t); I_WW(t2); I_WW(o.base); I_WW(o2.base); I_WW(o3.base);
+ 	lockdep_reset();
+ 	I2(A); I2(B); I2(C); I2(D);
+ 	init_shared_classes();
+ 
+-	ww_mutex_init(&o, &ww_lockdep); ww_mutex_init(&o2, &ww_lockdep);
++	ww_mutex_init(&o, &ww_lockdep); ww_mutex_init(&o2, &ww_lockdep); ww_mutex_init(&o3, &ww_lockdep);
+ 	memset(&t, 0, sizeof(t)); memset(&t2, 0, sizeof(t2));
+ 	memset(&ww_lockdep.acquire_key, 0, sizeof(ww_lockdep.acquire_key));
+ 	memset(&ww_lockdep.mutex_key, 0, sizeof(ww_lockdep.mutex_key));
+@@ -1292,6 +1292,251 @@ static void ww_test_object_lock_stale_context(void)
+ 	WWL(&o, &t);
+ }
+ 
++static void ww_test_edeadlk_normal(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	o2.ctx = &t2;
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++
++	o2.ctx = NULL;
++	mutex_acquire(&o2.base.dep_map, 0, 1, _THIS_IP_);
++	mutex_unlock(&o2.base);
++	WWU(&o);
++
++	WWL(&o2, &t);
++}
++
++static void ww_test_edeadlk_normal_slow(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++	o2.ctx = &t2;
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++
++	o2.ctx = NULL;
++	mutex_acquire(&o2.base.dep_map, 0, 1, _THIS_IP_);
++	mutex_unlock(&o2.base);
++	WWU(&o);
++
++	ww_mutex_lock_slow(&o2, &t);
++}
++
++static void ww_test_edeadlk_no_unlock(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	o2.ctx = &t2;
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++
++	o2.ctx = NULL;
++	mutex_acquire(&o2.base.dep_map, 0, 1, _THIS_IP_);
++	mutex_unlock(&o2.base);
++
++	WWL(&o2, &t);
++}
++
++static void ww_test_edeadlk_no_unlock_slow(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++	o2.ctx = &t2;
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++
++	o2.ctx = NULL;
++	mutex_acquire(&o2.base.dep_map, 0, 1, _THIS_IP_);
++	mutex_unlock(&o2.base);
++
++	ww_mutex_lock_slow(&o2, &t);
++}
++
++static void ww_test_edeadlk_acquire_more(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++	o2.ctx = &t2;
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++
++	ret = WWL(&o3, &t);
++}
++
++static void ww_test_edeadlk_acquire_more_slow(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++	o2.ctx = &t2;
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++
++	ww_mutex_lock_slow(&o3, &t);
++}
++
++static void ww_test_edeadlk_acquire_more_edeadlk(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++	o2.ctx = &t2;
++
++	mutex_lock(&o3.base);
++	mutex_release(&o3.base.dep_map, 1, _THIS_IP_);
++	o3.ctx = &t2;
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++
++	ret = WWL(&o3, &t);
++	WARN_ON(ret != -EDEADLK);
++}
++
++static void ww_test_edeadlk_acquire_more_edeadlk_slow(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++	o2.ctx = &t2;
++
++	mutex_lock(&o3.base);
++	mutex_release(&o3.base.dep_map, 1, _THIS_IP_);
++	o3.ctx = &t2;
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++
++	ww_mutex_lock_slow(&o3, &t);
++}
++
++static void ww_test_edeadlk_acquire_wrong(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++	o2.ctx = &t2;
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++	if (!ret)
++		WWU(&o2);
++
++	WWU(&o);
++
++	ret = WWL(&o3, &t);
++}
++
++static void ww_test_edeadlk_acquire_wrong_slow(void)
++{
++	int ret;
++
++	mutex_lock(&o2.base);
++	mutex_release(&o2.base.dep_map, 1, _THIS_IP_);
++	o2.ctx = &t2;
++
++	WWAI(&t);
++	t2 = t;
++	t2.stamp--;
++
++	ret = WWL(&o, &t);
++	WARN_ON(ret);
++
++	ret = WWL(&o2, &t);
++	WARN_ON(ret != -EDEADLK);
++	if (!ret)
++		WWU(&o2);
++
++	WWU(&o);
++
++	ww_mutex_lock_slow(&o3, &t);
++}
++
+ static void ww_test_spin_nest_unlocked(void)
+ {
+ 	raw_spin_lock_nest_lock(&lock_A, &o.base);
+@@ -1498,6 +1743,19 @@ static void ww_tests(void)
+ 	dotest(ww_test_object_lock_stale_context, FAILURE, LOCKTYPE_WW);
+ 	printk("\n");
+ 
++	print_testname("EDEADLK handling");
++	dotest(ww_test_edeadlk_normal, SUCCESS, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_normal_slow, SUCCESS, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_no_unlock, FAILURE, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_no_unlock_slow, FAILURE, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_acquire_more, FAILURE, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_acquire_more_slow, FAILURE, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_acquire_more_edeadlk, FAILURE, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_acquire_more_edeadlk_slow, FAILURE, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_acquire_wrong, FAILURE, LOCKTYPE_WW);
++	dotest(ww_test_edeadlk_acquire_wrong_slow, FAILURE, LOCKTYPE_WW);
++	printk("\n");
++
+ 	print_testname("spinlock nest unlocked");
+ 	dotest(ww_test_spin_nest_unlocked, FAILURE, LOCKTYPE_WW);
+ 	printk("\n");
 
-Regards,
-
-Wouter
-
-
-On Wed, Jun 19, 2013 at 5:58 AM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Wouter,
->
-> On Sunday 26 May 2013 15:34:26 Wouter Thielen wrote:
->> Hi all,
->>
->> I have been trying to get the colors right in the images grabbed from my
->> webcam, and I tried the color conversion code on
->> http://linuxtv.org/downloads/v4l-dvb-apis/colorspaces.html.
->>
->> It turned out to be very white, so I checked out the intermediate steps,
->> and thought the part:
->>
->> ER = clamp (r * 255); /* [ok? one should prob. limit y1,pb,pr] */
->> EG = clamp (g * 255);
->> EB = clamp (b * 255);
->>
->>
->> should be without the * 255. I tried removing *255 and that worked.
->
-> Good catch. I would instead do
->
-> y1 = (Y1 - 16) / 219.0;
-> pb = (Cb - 128) / 224.0;
-> pr = (Cr - 128) / 224.0;
->
-> and keep the E[RGB] lines unmodified to keep lower-case variables in the [0.0
-> 1.0] or [-0.5 0.5] range.
->
-> Would you like to post a patch for the documentation ? If not I can take care
-> of it.
->
-> --
-> Regards,
->
-> Laurent Pinchart
->
-
-
-
--- 
-Wouter Thielen
