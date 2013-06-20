@@ -1,68 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from zoneX.GCU-Squad.org ([194.213.125.0]:15573 "EHLO
-	services.gcu-squad.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755880Ab3FCPRg (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 11:17:36 -0400
-Received: from jdelvare.pck.nerim.net ([62.212.121.182] helo=endymion.delvare)
-	by services.gcu-squad.org (GCU Mailer Daemon) with esmtpsa id 1UjWVr-0006QX-23
-	(TLSv1:AES128-SHA:128)
-	(envelope-from <khali@linux-fr.org>)
-	for linux-media@vger.kernel.org; Mon, 03 Jun 2013 17:17:35 +0200
-Date: Mon, 3 Jun 2013 17:17:29 +0200
-From: Jean Delvare <khali@linux-fr.org>
-To: Linux Media <linux-media@vger.kernel.org>
-Subject: [PATCH 1/3] femon: Share common code
-Message-ID: <20130603171729.6c857ab5@endymion.delvare>
-In-Reply-To: <20130603171607.73d0b856@endymion.delvare>
-References: <20130603171607.73d0b856@endymion.delvare>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3787 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422788Ab3FTU21 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 16:28:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Prabhakar Lad <prabhakar.lad@ti.com>
+Subject: [REVIEW PATCH 3/3] omap_vout: fix compiler warning
+Date: Thu, 20 Jun 2013 22:28:16 +0200
+Message-Id: <1371760096-19256-3-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The status flags are printed the same in standard output mode and
-human readable output mode, so use common code.
+From: Hans Verkuil <hans.verkuil@cisco.com>
+
+media-git/drivers/media/platform/omap/omap_vout.c: In function ‘omapvid_init’:
+media-git/drivers/media/platform/omap/omap_vout.c:382:17: warning: ‘mode’ may be used uninitialized in this function [-Wmaybe-uninitialized]
+  vout->dss_mode = video_mode_to_dss_mode(vout);
+                 ^
+media-git/drivers/media/platform/omap/omap_vout.c:332:23: note: ‘mode’ was declared here
+  enum omap_color_mode mode;
+                       ^
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Prabhakar Lad <prabhakar.lad@ti.com>
 ---
- util/femon/femon.c |   20 ++++++++------------
- 1 file changed, 8 insertions(+), 12 deletions(-)
+ drivers/media/platform/omap/omap_vout.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
 
---- dvb-apps-3ee111da5b3a.orig/util/femon/femon.c	2013-06-02 13:56:18.936297146 +0200
-+++ dvb-apps-3ee111da5b3a/util/femon/femon.c	2013-06-02 13:59:03.383299584 +0200
-@@ -94,25 +94,21 @@ int check_frontend (struct dvbfe_handle
- 		}
+diff --git a/drivers/media/platform/omap/omap_vout.c b/drivers/media/platform/omap/omap_vout.c
+index d338b19..dfd0a21 100644
+--- a/drivers/media/platform/omap/omap_vout.c
++++ b/drivers/media/platform/omap/omap_vout.c
+@@ -335,8 +335,6 @@ static int video_mode_to_dss_mode(struct omap_vout_device *vout)
+ 	ovl = ovid->overlays[0];
  
- 
-+		printf ("status %c%c%c%c%c | ",
-+			fe_info.signal ? 'S' : ' ',
-+			fe_info.carrier ? 'C' : ' ',
-+			fe_info.viterbi ? 'V' : ' ',
-+			fe_info.sync ? 'Y' : ' ',
-+			fe_info.lock ? 'L' : ' ');
- 
- 		if (human_readable) {
--                       printf ("status %c%c%c%c%c | signal %3u%% | snr %3u%% | ber %d | unc %d | ",
--				fe_info.signal ? 'S' : ' ',
--				fe_info.carrier ? 'C' : ' ',
--				fe_info.viterbi ? 'V' : ' ',
--				fe_info.sync ? 'Y' : ' ',
--				fe_info.lock ? 'L' : ' ',
-+			printf ("signal %3u%% | snr %3u%% | ber %d | unc %d | ",
- 				(fe_info.signal_strength * 100) / 0xffff,
- 				(fe_info.snr * 100) / 0xffff,
- 				fe_info.ber,
- 				fe_info.ucblocks);
- 		} else {
--			printf ("status %c%c%c%c%c | signal %04x | snr %04x | ber %08x | unc %08x | ",
--				fe_info.signal ? 'S' : ' ',
--				fe_info.carrier ? 'C' : ' ',
--				fe_info.viterbi ? 'V' : ' ',
--				fe_info.sync ? 'Y' : ' ',
--				fe_info.lock ? 'L' : ' ',
-+			printf ("signal %04x | snr %04x | ber %08x | unc %08x | ",
- 				fe_info.signal_strength,
- 				fe_info.snr,
- 				fe_info.ber,
-
+ 	switch (pix->pixelformat) {
+-	case 0:
+-		break;
+ 	case V4L2_PIX_FMT_YUYV:
+ 		mode = OMAP_DSS_COLOR_YUV2;
+ 		break;
+@@ -358,6 +356,7 @@ static int video_mode_to_dss_mode(struct omap_vout_device *vout)
+ 		break;
+ 	default:
+ 		mode = -EINVAL;
++		break;
+ 	}
+ 	return mode;
+ }
 -- 
-Jean Delvare
+1.8.3.1
+
