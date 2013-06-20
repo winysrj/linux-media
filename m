@@ -1,39 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from www17.your-server.de ([213.133.104.17]:60276 "EHLO
-	www17.your-server.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758562Ab3FAJxP (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 1 Jun 2013 05:53:15 -0400
-Message-ID: <1370080390.29224.25.camel@localhost.localdomain>
-Subject: [PATCH] dma-buf: Cocci spatch "ptr_ret.spatch"
-From: Thomas Meyer <thomas@m3y3r.de>
-To: sumit.semwal@linaro.org, linux-media@vger.kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	linux-kernel@vger.kernel.org
-Date: Sat, 01 Jun 2013 11:53:10 +0200
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4835 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756035Ab3FTPYE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 11:24:04 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: lbyang@marvell.com
+Subject: Re: [PATCH 0/7] marvell-ccic: update ccic driver to support some features
+Date: Thu, 20 Jun 2013 17:23:46 +0200
+Cc: corbet@lwn.net, g.liakhovetski@gmx.de, mchehab@redhat.com,
+	linux-media@vger.kernel.org, albert.v.wang@gmail.com
+References: <1370324144.26072.17.camel@younglee-desktop>
+In-Reply-To: <1370324144.26072.17.camel@younglee-desktop>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306201723.46138.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Jon,
 
-Signed-off-by: Thomas Meyer <thomas@m3y3r.de>
----
+Can you ack this series? I don't see anything wrong with it, but neither am
+I a marvell-ccic expert.
 
-diff -u -p a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -680,10 +680,7 @@ int dma_buf_debugfs_create_file(const ch
- 	d = debugfs_create_file(name, S_IRUGO, dma_buf_debugfs_dir,
- 			write, &dma_buf_debug_fops);
- 
--	if (IS_ERR(d))
--		return PTR_ERR(d);
--
--	return 0;
-+	return PTR_RET(d);
- }
- #else
- static inline int dma_buf_init_debugfs(void)
+I'd like to have your input before I merge this.
 
+Regards,
 
+	Hans
+
+On Tue June 4 2013 07:35:44 lbyang wrote:
+> The patch set adds some feature into the marvell ccic driver
+> 
+> Patch 1: Support MIPI sensor
+> Patch 2: Support clock tree
+> Patch 3: reset ccic when stop streaming, which makes CCIC more stable
+> Patch 4: refine the mcam_set_contig_buffer function
+> Patch 5: add some new fmts to support
+> Patch 6: add SOF-EOF pair check to make the CCIC more stable
+> Patch 7: use resource managed allocation
+> 
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
