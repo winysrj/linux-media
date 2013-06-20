@@ -1,37 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38856 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751067Ab3FDV4M (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jun 2013 17:56:12 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:2954 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030251Ab3FTNpL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 09:45:11 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 6/7] rtl28xxu: map remote for TerraTec Cinergy T Stick Black
-Date: Wed,  5 Jun 2013 00:55:02 +0300
-Message-Id: <1370382903-21332-7-git-send-email-crope@iki.fi>
-In-Reply-To: <1370382903-21332-1-git-send-email-crope@iki.fi>
-References: <1370382903-21332-1-git-send-email-crope@iki.fi>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 15/15] saa7134: don't set vfd->debug.
+Date: Thu, 20 Jun 2013 15:44:31 +0200
+Message-Id: <1371735871-2658-16-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 93313f70..04da6be 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1395,7 +1395,7 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 	{ DVB_USB_DEVICE(USB_VID_REALTEK, 0x2838,
- 		&rtl2832u_props, "Realtek RTL2832U reference design", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_TERRATEC_CINERGY_T_STICK_BLACK_REV1,
--		&rtl2832u_props, "TerraTec Cinergy T Stick Black", NULL) },
-+		&rtl2832u_props, "TerraTec Cinergy T Stick Black", RC_MAP_TERRATEC_SLIM) },
- 	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_DELOCK_USB2_DVBT,
- 		&rtl2832u_props, "G-Tek Electronics Group Lifeview LV5TDLX DVB-T", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_TERRATEC, USB_PID_NOXON_DAB_STICK,
+You can set this through sysfs, so don't mix the two.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa7134-core.c | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index c4bdf45..bfed348 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -803,7 +803,6 @@ static struct video_device *vdev_init(struct saa7134_dev *dev,
+ 	*vfd = *template;
+ 	vfd->v4l2_dev  = &dev->v4l2_dev;
+ 	vfd->release = video_device_release;
+-	vfd->debug   = video_debug;
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)",
+ 		 dev->name, type, saa7134_boards[dev->board].name);
+ 	set_bit(V4L2_FL_USE_FH_PRIO, &vfd->flags);
 -- 
-1.7.11.7
+1.8.3.1
 
