@@ -1,104 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:38309 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161077Ab3FTWpQ (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2728 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030277Ab3FTS3T (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 18:45:16 -0400
-Message-ID: <51C385F0.6000402@gmail.com>
-Date: Fri, 21 Jun 2013 00:45:04 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
-CC: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com,
-	arunkk.samsung@gmail.com,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [RFC v2 01/10] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree
- bindings documentation
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com> <1370005408-10853-2-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1370005408-10853-2-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 20 Jun 2013 14:29:19 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5KITGcE094556
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 20:29:18 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id E95CB35E0155
+	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 20:29:14 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130620182914.E95CB35E0155@alastor.dyndns.org>
+Date: Thu, 20 Jun 2013 20:29:14 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 05/31/2013 03:03 PM, Arun Kumar K wrote:
+Results of the daily build of media_tree:
 
-Please add at least one sentence here. All in all this patch
-adds DT binding documentation for a fairly complex subsystem.
+date:		Thu Jun 20 19:00:18 CEST 2013
+git branch:	test
+git hash:	37c1d2e4098e48d9107858246027510efcfd7774
+gcc version:	i686-linux-gcc (GCC) 4.8.0
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
-And please Cc devicetree-discuss@lists.ozlabs.org next time.
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: WARNINGS
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: WARNINGS
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
-> ---
->   .../devicetree/bindings/media/exynos5-fimc-is.txt  |   41 ++++++++++++++++++++
->   1 file changed, 41 insertions(+)
->   create mode 100644 Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
->
-> diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-> new file mode 100644
-> index 0000000..9fd4646
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
-> @@ -0,0 +1,41 @@
-> +Samsung EXYNOS SoC Camera Subsystem
+Detailed results are available here:
 
-Shouldn't it be, e.g.:
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
 
-Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
+Full logs are available here:
 
-Or do you intend this file to be describing also the other sub-devices,
-like GScaler ?
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
 
-> +-----------------------------------
-> +
-> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
-> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
-> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
-> +handle sensor controls and camera post-processing operations. The
-> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
-> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
-> +dedicated scalers (SCC and SCP).
-> +
-> +fimc-is node
-> +------------
-> +
-> +Required properties:
-> +
-> +- compatible        : must be "samsung,exynos5250-fimc-is"
-> +- reg               : physical base address and size of the memory mapped
-> +                      registers
-> +- interrupt-parent  : Parent interrupt controller
-> +- interrupts        : fimc-is interrupt to the parent combiner
-> +- clocks            : list of clock specifiers, corresponding to entries in
-> +                      clock-names property;
-> +- clock-names       : must contain "isp", "mcu_isp", "isp_div0", "isp_div1",
-> +                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1" entries,
-> +                      matching entries in the clocks property.
-> +
-> +
-> +Board specific properties:
-> +
-> +- pinctrl-names    : pinctrl names for camera port pinmux control, at least
-> +		     "default" needs to be specified.
-> +- pinctrl-0...N	   : pinctrl properties corresponding to pinctrl-names
+The Media Infrastructure API from this daily build is here:
 
-What pins exactly are supposed to be covered by these properties ? For what
-devices ? Aren't the camera port pins supposed to be specified at the common
-'camera' node ? I believe the camera ports are not specific to the FIMC-IS.
-
-> +pmu subnode
-> +-----------
-> +
-> +Required properties:
-> + - reg : should contain PMU physical base address and size of the memory
-> +         mapped registers.
-
-What about other devices, like ISP I2C, SPI ? Don't you want to list at 
-least
-the ones currently used (I2C bus controllers) ?
-
-Regards,
-Sylwester
+http://www.xs4all.nl/~hverkuil/spec/media.html
