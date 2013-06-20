@@ -1,23 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm7-vm4.bullet.mail.ne1.yahoo.com ([98.138.91.167]:32836 "EHLO
-	nm7-vm4.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1751464Ab3FKIVZ convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 04:21:25 -0400
-Message-ID: <1370938465.85106.YahooMailNeo@web125204.mail.ne1.yahoo.com>
-Date: Tue, 11 Jun 2013 01:14:25 -0700 (PDT)
-From: phil rosenberg <philip_rosenberg@yahoo.com>
-Reply-To: phil rosenberg <philip_rosenberg@yahoo.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
+Received: from mx1.redhat.com ([209.132.183.28]:13112 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030360Ab3FTOLi (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 10:11:38 -0400
+Received: from int-mx02.intmail.prod.int.phx2.redhat.com (int-mx02.intmail.prod.int.phx2.redhat.com [10.5.11.12])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r5KEBb43017042
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 10:11:37 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 1/2] [media] s5p makefiles: don't override other selections on obj-[ym]
+Date: Thu, 20 Jun 2013 11:11:27 -0300
+Message-Id: <1371737488-14395-2-git-send-email-mchehab@redhat.com>
+In-Reply-To: <1371737488-14395-1-git-send-email-mchehab@redhat.com>
+References: <1371737488-14395-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi this is my first email to the list, I'm hoping someone can help
-I have a logitech C300 webcam with the option of raw/bayer output. This works fine on windows where the RGB output consists of zeros in the r and b bytes and pixel intensitey in the g byte. However on linux when I activate the webcam using uvcdynctrl and/or the options in guvcview the out put seems to be corrupted. I get something that looks like multiple images interlaces and displaced horizontally, generally pink. I've put an example of an extracted avi frame at http://homepages.see.leeds.ac.uk/~earpros/test0.png, which is a close up of one of my daughters hair clips and shows an (upside down) picture of a disney character.
-I'm wondering if the UVC/V4L2 driver is interpretting the data as mjpeg and incorrectly decoding it giving the corruption. When I use guvcview I can choose the input format, but the only one that works in mjpeg, all others cause timeouts and no data. The image also has the tell-tale 8x8 jpeg block effect. Is there any way I can stop this decoding happening and get to the raw data? Presumably if my theory is correct then the decompression is lossy so cannot be undone.
-Any help or suggestions welcome.
+The $obj-m/$obj-y vars should be adding new modules to build, not
+overriding it. So, it should never use
+	$obj-y := foo.o
+instead, it should use:
+	$obj-y += foo.o
 
-Phil
+Failing to do that is very bad, as it will suppress needed modules.
+
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/platform/s5p-jpeg/Makefile | 2 +-
+ drivers/media/platform/s5p-mfc/Makefile  | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/media/platform/s5p-jpeg/Makefile b/drivers/media/platform/s5p-jpeg/Makefile
+index ddc2900..d18cb5e 100644
+--- a/drivers/media/platform/s5p-jpeg/Makefile
++++ b/drivers/media/platform/s5p-jpeg/Makefile
+@@ -1,2 +1,2 @@
+ s5p-jpeg-objs := jpeg-core.o
+-obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG) := s5p-jpeg.o
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_JPEG) += s5p-jpeg.o
+diff --git a/drivers/media/platform/s5p-mfc/Makefile b/drivers/media/platform/s5p-mfc/Makefile
+index 379008c..15f59b3 100644
+--- a/drivers/media/platform/s5p-mfc/Makefile
++++ b/drivers/media/platform/s5p-mfc/Makefile
+@@ -1,4 +1,4 @@
+-obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC) := s5p-mfc.o
++obj-$(CONFIG_VIDEO_SAMSUNG_S5P_MFC) += s5p-mfc.o
+ s5p-mfc-y += s5p_mfc.o s5p_mfc_intr.o
+ s5p-mfc-y += s5p_mfc_dec.o s5p_mfc_enc.o
+ s5p-mfc-y += s5p_mfc_ctrl.o s5p_mfc_pm.o
+-- 
+1.8.1.4
+
