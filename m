@@ -1,181 +1,356 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51221 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751436Ab3FQTyA (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2217 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757841Ab3FTNov (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 15:54:00 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH] V4L2: add documentation for V4L2 clock helpers and asynchronous probing
-Date: Mon, 17 Jun 2013 21:54:13 +0200
-Message-ID: <3036701.8xleOKapCa@avalon>
-In-Reply-To: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
-References: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 20 Jun 2013 09:44:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 01/15] saa7134: move the queue data from saa7134_fh to saa7134_dev.
+Date: Thu, 20 Jun 2013 15:44:17 +0200
+Message-Id: <1371735871-2658-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Thank you for the patch. Overall it looks pretty good, please see below for 
-some small comments. If you've been wondering why your stock of comas is so 
-low, wonder no more: I've found them :-D
+These fields are global, not per-filehandle.
 
-On Monday 17 June 2013 08:04:10 Guennadi Liakhovetski wrote:
-> Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
-> to v4l2-framework.txt.
-> 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
->
-> ---
-> 
-> Hopefully we can commit the actual patches now, while we refine the
-> documentation.
-> 
->  Documentation/video4linux/v4l2-framework.txt |   62 ++++++++++++++++++++++-
->  1 files changed, 60 insertions(+), 2 deletions(-)
-> 
-> diff --git a/Documentation/video4linux/v4l2-framework.txt
-> b/Documentation/video4linux/v4l2-framework.txt index a300b28..159a83a
-> 100644
-> --- a/Documentation/video4linux/v4l2-framework.txt
-> +++ b/Documentation/video4linux/v4l2-framework.txt
-> @@ -326,8 +326,27 @@ that width, height and the media bus pixel code are
-> equal on both source and sink of the link. Subdev drivers are also free to
-> use this function to perform the checks mentioned above in addition to
-> their own checks.
-> 
-> -A device (bridge) driver needs to register the v4l2_subdev with the
-> -v4l2_device:
-> +There are currently two ways to register subdevices with the V4L2 core. The
-> +first (traditional) possibility is to have subdevices registered by bridge
-> +drivers. This can be done, when the bridge driver has the complete
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/pci/saa7134/saa7134-core.c  |   1 +
+ drivers/media/pci/saa7134/saa7134-vbi.c   |  11 ++--
+ drivers/media/pci/saa7134/saa7134-video.c | 102 ++++++++++++++++--------------
+ drivers/media/pci/saa7134/saa7134.h       |  13 ++--
+ 4 files changed, 63 insertions(+), 64 deletions(-)
 
-s/done, /done/
-
-> +information about subdevices, connected to it and knows exactly when to
-
-s/subdevices,/subdevices/
-
-> +register them. This is typically the case for internal subdevices, like
-> +video data processing units within SoCs or complex pluggable boards,
-> +camera sensors in USB cameras or connected to SoCs, which pass information
-> +about them to bridge drivers, usually in their platform data.
-> +
-> +There are however also situations, where subdevices have to be registered
-
-s/situations,/situations/
-
-> +asynchronously to bridge devices. An example of such a configuration is
-> +Device Tree based systems, on which information about subdevices is made
-
-s/systems,/systems/
-
-> +available to the system indpendently from the bridge devices, e.g. when
-
-s/indpendently/independently/
-
-> +subdevices are defined in DT as I2C device nodes. The API, used in this
-
-s/API,/API/
-
-> +second case is described further below.
-> +
-> +Using one or the other registration method only affects the probing
-> +process, the run-time bridge-subdevice interaction is in both cases the
-> same.
-> +
-> +In the synchronous case a device (bridge) driver needs to register the
-> +v4l2_subdev with the v4l2_device:
-> 
->  	int err = v4l2_device_register_subdev(v4l2_dev, sd);
-> 
-> @@ -394,6 +413,25 @@ controlled through GPIO pins. This distinction is only
-> relevant when setting up the device, but once the subdev is registered it
-> is completely transparent.
-> 
-> 
-> +In the asynchronous case subdevices register themselves using the
-> +v4l2_async_register_subdev() function. Unregistration is performed, using
-
-s/performed,/performed/
-
-> +the v4l2_async_unregister_subdev() call. Subdevices registered this way
-> +are stored on a global list of subdevices, ready to be picked up by bridge
-
-s/on/in/
-
-> +drivers.
-> +
-> +Bridge drivers in turn have to register a notifier object with an array of
-> +subdevice descriptors, that the bridge device needs for its operation. This
-
-s/descriptors,/descriptors/
-
-> +is performed using the v4l2_async_notifier_register() call. To unregister
-> +the notifier the driver has to call v4l2_async_notifier_unregister(). The
-> +former of the two functions takes two arguments: a pointer to struct
-> +v4l2_device and a pointer to struct v4l2_async_notifier. The latter
-> +contains a pointer to an array of pointers to subdevice descriptors of
-> +type struct v4l2_async_subdev type.
-
-Isn't it the other way around ?
-
-> +The V4L2 core will then use these descriptors to match asynchronously
-> +registered subdevices to them. If a match is detected the .bound() notifier
-> +callback is called. After all subdevices have been located the .complete()
-> +callback is called. When a subdevice is removed from the system the
-> +.unbind() method is called. All three callbacks are optional.
-> +
-> +
->  V4L2 sub-device userspace API
->  -----------------------------
-> 
-> @@ -1061,3 +1099,23 @@ available event type is 'class base + 1'.
-> 
->  An example on how the V4L2 events may be used can be found in the OMAP
->  3 ISP driver (drivers/media/platform/omap3isp).
-> +
-> +
-> +V4L2 clocks
-> +-----------
-> +
-> +Many subdevices, like camera sensors, TV decoders and encoders, need a
-> +clock signal to be supplied by the system. Often this clock is supplied by
-> +the respective bridge device. The Linux kernel provides a Common Clock
-> +Framework for this purpose, however, it is not (yet) available on all
-> +architectures. Besides, the nature of the multi-functional (clock, data +
-> +synchronisation, I2C control) connection of subdevices to the system might
-> +impose special requirements on the clock API usage. For these reasons a
-> +V4L2 clock helper API has been developed and is provided to bridge and
-> +subdevice drivers.
-
-What special requirements are those ? I've always thought that the purpose of 
-the V4L2 clock API was to provide an API on platforms where CCF wasn't 
-available yet, and that it should then be removed.
-
-> +The API consists of two parts: two functions to register and unregister a
-> +V4L2 clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls
-> +to control a clock object, similar to respective generic clock API calls:
-> +v4l2_clk_get(), v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(),
-> +v4l2_clk_get_rate(), and v4l2_clk_set_rate(). Clock suppliers have to
-> +provide clock operations, that will be called when clock users invoke
-
-s/operations,/operations/
-
-> respective API methods.
-
+diff --git a/drivers/media/pci/saa7134/saa7134-core.c b/drivers/media/pci/saa7134/saa7134-core.c
+index 45f0aca..e256f4a 100644
+--- a/drivers/media/pci/saa7134/saa7134-core.c
++++ b/drivers/media/pci/saa7134/saa7134-core.c
+@@ -751,6 +751,7 @@ static int saa7134_hwfini(struct saa7134_dev *dev)
+ 	saa7134_input_fini(dev);
+ 	saa7134_vbi_fini(dev);
+ 	saa7134_tvaudio_fini(dev);
++	saa7134_video_fini(dev);
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/pci/saa7134/saa7134-vbi.c b/drivers/media/pci/saa7134/saa7134-vbi.c
+index e9aa94b..d4da18d 100644
+--- a/drivers/media/pci/saa7134/saa7134-vbi.c
++++ b/drivers/media/pci/saa7134/saa7134-vbi.c
+@@ -117,8 +117,7 @@ static int buffer_prepare(struct videobuf_queue *q,
+ 			  struct videobuf_buffer *vb,
+ 			  enum v4l2_field field)
+ {
+-	struct saa7134_fh *fh   = q->priv_data;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = q->priv_data;
+ 	struct saa7134_buf *buf = container_of(vb,struct saa7134_buf,vb);
+ 	struct saa7134_tvnorm *norm = dev->tvnorm;
+ 	unsigned int lines, llength, size;
+@@ -141,7 +140,7 @@ static int buffer_prepare(struct videobuf_queue *q,
+ 		buf->vb.width  = llength;
+ 		buf->vb.height = lines;
+ 		buf->vb.size   = size;
+-		buf->pt        = &fh->pt_vbi;
++		buf->pt        = &dev->pt_vbi;
+ 
+ 		err = videobuf_iolock(q,&buf->vb,NULL);
+ 		if (err)
+@@ -166,8 +165,7 @@ static int buffer_prepare(struct videobuf_queue *q,
+ static int
+ buffer_setup(struct videobuf_queue *q, unsigned int *count, unsigned int *size)
+ {
+-	struct saa7134_fh *fh   = q->priv_data;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = q->priv_data;
+ 	int llength,lines;
+ 
+ 	lines   = dev->tvnorm->vbi_v_stop_0 - dev->tvnorm->vbi_v_start_0 +1;
+@@ -181,8 +179,7 @@ buffer_setup(struct videobuf_queue *q, unsigned int *count, unsigned int *size)
+ 
+ static void buffer_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
+ {
+-	struct saa7134_fh *fh = q->priv_data;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = q->priv_data;
+ 	struct saa7134_buf *buf = container_of(vb,struct saa7134_buf,vb);
+ 
+ 	saa7134_buffer_queue(dev,&dev->vbi_q,buf);
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index e3457ae..1d67d2a 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1018,8 +1018,7 @@ static int buffer_prepare(struct videobuf_queue *q,
+ 			  struct videobuf_buffer *vb,
+ 			  enum v4l2_field field)
+ {
+-	struct saa7134_fh *fh = q->priv_data;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = q->priv_data;
+ 	struct saa7134_buf *buf = container_of(vb,struct saa7134_buf,vb);
+ 	unsigned int size;
+ 	int err;
+@@ -1057,7 +1056,7 @@ static int buffer_prepare(struct videobuf_queue *q,
+ 		buf->vb.size   = size;
+ 		buf->vb.field  = field;
+ 		buf->fmt       = dev->fmt;
+-		buf->pt        = &fh->pt_cap;
++		buf->pt        = &dev->pt_cap;
+ 		dev->video_q.curr = NULL;
+ 
+ 		err = videobuf_iolock(q,&buf->vb,&dev->ovbuf);
+@@ -1082,8 +1081,7 @@ static int buffer_prepare(struct videobuf_queue *q,
+ static int
+ buffer_setup(struct videobuf_queue *q, unsigned int *count, unsigned int *size)
+ {
+-	struct saa7134_fh *fh = q->priv_data;
+-	struct saa7134_dev *dev = fh->dev;
++	struct saa7134_dev *dev = q->priv_data;
+ 
+ 	*size = dev->fmt->depth * dev->width * dev->height >> 3;
+ 	if (0 == *count)
+@@ -1094,10 +1092,10 @@ buffer_setup(struct videobuf_queue *q, unsigned int *count, unsigned int *size)
+ 
+ static void buffer_queue(struct videobuf_queue *q, struct videobuf_buffer *vb)
+ {
+-	struct saa7134_fh *fh = q->priv_data;
++	struct saa7134_dev *dev = q->priv_data;
+ 	struct saa7134_buf *buf = container_of(vb,struct saa7134_buf,vb);
+ 
+-	saa7134_buffer_queue(fh->dev,&fh->dev->video_q,buf);
++	saa7134_buffer_queue(dev, &dev->video_q, buf);
+ }
+ 
+ static void buffer_release(struct videobuf_queue *q, struct videobuf_buffer *vb)
+@@ -1293,14 +1291,15 @@ static struct videobuf_queue *saa7134_queue(struct file *file)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct saa7134_fh *fh = file->private_data;
++	struct saa7134_dev *dev = fh->dev;
+ 	struct videobuf_queue *q = NULL;
+ 
+ 	switch (vdev->vfl_type) {
+ 	case VFL_TYPE_GRABBER:
+-		q = &fh->cap;
++		q = &dev->cap;
+ 		break;
+ 	case VFL_TYPE_VBI:
+-		q = &fh->vbi;
++		q = &dev->vbi;
+ 		break;
+ 	default:
+ 		BUG();
+@@ -1337,21 +1336,6 @@ static int video_open(struct file *file)
+ 	file->private_data = fh;
+ 	fh->dev      = dev;
+ 
+-	videobuf_queue_sg_init(&fh->cap, &video_qops,
+-			    &dev->pci->dev, &dev->slock,
+-			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
+-			    V4L2_FIELD_INTERLACED,
+-			    sizeof(struct saa7134_buf),
+-			    fh, NULL);
+-	videobuf_queue_sg_init(&fh->vbi, &saa7134_vbi_qops,
+-			    &dev->pci->dev, &dev->slock,
+-			    V4L2_BUF_TYPE_VBI_CAPTURE,
+-			    V4L2_FIELD_SEQ_TB,
+-			    sizeof(struct saa7134_buf),
+-			    fh, NULL);
+-	saa7134_pgtable_alloc(dev->pci,&fh->pt_cap);
+-	saa7134_pgtable_alloc(dev->pci,&fh->pt_vbi);
+-
+ 	if (vdev->vfl_type == VFL_TYPE_RADIO) {
+ 		/* switch to radio mode */
+ 		saa7134_tvaudio_setinput(dev,&card(dev).radio);
+@@ -1396,28 +1380,30 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ {
+ 	struct video_device *vdev = video_devdata(file);
+ 	struct saa7134_fh *fh = file->private_data;
++	struct saa7134_dev *dev = fh->dev;
+ 	struct videobuf_buffer *buf = NULL;
+ 	unsigned int rc = 0;
+ 
+ 	if (vdev->vfl_type == VFL_TYPE_VBI)
+-		return videobuf_poll_stream(file, &fh->vbi, wait);
++		return videobuf_poll_stream(file, &dev->vbi, wait);
+ 
+ 	if (res_check(fh,RESOURCE_VIDEO)) {
+-		mutex_lock(&fh->cap.vb_lock);
+-		if (!list_empty(&fh->cap.stream))
+-			buf = list_entry(fh->cap.stream.next, struct videobuf_buffer, stream);
++		mutex_lock(&dev->cap.vb_lock);
++		if (!list_empty(&dev->cap.stream))
++			buf = list_entry(dev->cap.stream.next, struct videobuf_buffer, stream);
+ 	} else {
+-		mutex_lock(&fh->cap.vb_lock);
+-		if (UNSET == fh->cap.read_off) {
++		mutex_lock(&dev->cap.vb_lock);
++		if (UNSET == dev->cap.read_off) {
+ 			/* need to capture a new frame */
+ 			if (res_locked(fh->dev,RESOURCE_VIDEO))
+ 				goto err;
+-			if (0 != fh->cap.ops->buf_prepare(&fh->cap,fh->cap.read_buf,fh->cap.field))
++			if (0 != dev->cap.ops->buf_prepare(&dev->cap,
++					dev->cap.read_buf, dev->cap.field))
+ 				goto err;
+-			fh->cap.ops->buf_queue(&fh->cap,fh->cap.read_buf);
+-			fh->cap.read_off = 0;
++			dev->cap.ops->buf_queue(&dev->cap, dev->cap.read_buf);
++			dev->cap.read_off = 0;
+ 		}
+-		buf = fh->cap.read_buf;
++		buf = dev->cap.read_buf;
+ 	}
+ 
+ 	if (!buf)
+@@ -1427,11 +1413,11 @@ video_poll(struct file *file, struct poll_table_struct *wait)
+ 	if (buf->state == VIDEOBUF_DONE ||
+ 	    buf->state == VIDEOBUF_ERROR)
+ 		rc = POLLIN|POLLRDNORM;
+-	mutex_unlock(&fh->cap.vb_lock);
++	mutex_unlock(&dev->cap.vb_lock);
+ 	return rc;
+ 
+ err:
+-	mutex_unlock(&fh->cap.vb_lock);
++	mutex_unlock(&dev->cap.vb_lock);
+ 	return POLLERR;
+ }
+ 
+@@ -1455,18 +1441,20 @@ static int video_release(struct file *file)
+ 
+ 	/* stop video capture */
+ 	if (res_check(fh, RESOURCE_VIDEO)) {
+-		videobuf_streamoff(&fh->cap);
++		videobuf_streamoff(&dev->cap);
+ 		res_free(dev,fh,RESOURCE_VIDEO);
++		videobuf_mmap_free(&dev->cap);
+ 	}
+-	if (fh->cap.read_buf) {
+-		buffer_release(&fh->cap,fh->cap.read_buf);
+-		kfree(fh->cap.read_buf);
++	if (dev->cap.read_buf) {
++		buffer_release(&dev->cap, dev->cap.read_buf);
++		kfree(dev->cap.read_buf);
+ 	}
+ 
+ 	/* stop vbi capture */
+ 	if (res_check(fh, RESOURCE_VBI)) {
+-		videobuf_stop(&fh->vbi);
++		videobuf_stop(&dev->vbi);
+ 		res_free(dev,fh,RESOURCE_VBI);
++		videobuf_mmap_free(&dev->vbi);
+ 	}
+ 
+ 	/* ts-capture will not work in planar mode, so turn it off Hac: 04.05*/
+@@ -1479,12 +1467,6 @@ static int video_release(struct file *file)
+ 	if (vdev->vfl_type == VFL_TYPE_RADIO)
+ 		saa_call_all(dev, core, ioctl, SAA6588_CMD_CLOSE, &cmd);
+ 
+-	/* free stuff */
+-	videobuf_mmap_free(&fh->cap);
+-	videobuf_mmap_free(&fh->vbi);
+-	saa7134_pgtable_free(dev->pci,&fh->pt_cap);
+-	saa7134_pgtable_free(dev->pci,&fh->pt_vbi);
+-
+ 	v4l2_fh_del(&fh->fh);
+ 	v4l2_fh_exit(&fh->fh);
+ 	file->private_data = NULL;
+@@ -1559,7 +1541,7 @@ static int saa7134_g_fmt_vid_cap(struct file *file, void *priv,
+ 
+ 	f->fmt.pix.width        = dev->width;
+ 	f->fmt.pix.height       = dev->height;
+-	f->fmt.pix.field        = fh->cap.field;
++	f->fmt.pix.field        = dev->cap.field;
+ 	f->fmt.pix.pixelformat  = dev->fmt->fourcc;
+ 	f->fmt.pix.bytesperline =
+ 		(f->fmt.pix.width * dev->fmt->depth) >> 3;
+@@ -1685,7 +1667,7 @@ static int saa7134_s_fmt_vid_cap(struct file *file, void *priv,
+ 	dev->fmt       = format_by_fourcc(f->fmt.pix.pixelformat);
+ 	dev->width     = f->fmt.pix.width;
+ 	dev->height    = f->fmt.pix.height;
+-	fh->cap.field = f->fmt.pix.field;
++	dev->cap.field = f->fmt.pix.field;
+ 	return 0;
+ }
+ 
+@@ -2488,9 +2470,31 @@ int saa7134_video_init1(struct saa7134_dev *dev)
+ 	if (saa7134_boards[dev->board].video_out)
+ 		saa7134_videoport_init(dev);
+ 
++	videobuf_queue_sg_init(&dev->cap, &video_qops,
++			    &dev->pci->dev, &dev->slock,
++			    V4L2_BUF_TYPE_VIDEO_CAPTURE,
++			    V4L2_FIELD_INTERLACED,
++			    sizeof(struct saa7134_buf),
++			    dev, NULL);
++	videobuf_queue_sg_init(&dev->vbi, &saa7134_vbi_qops,
++			    &dev->pci->dev, &dev->slock,
++			    V4L2_BUF_TYPE_VBI_CAPTURE,
++			    V4L2_FIELD_SEQ_TB,
++			    sizeof(struct saa7134_buf),
++			    dev, NULL);
++	saa7134_pgtable_alloc(dev->pci, &dev->pt_cap);
++	saa7134_pgtable_alloc(dev->pci, &dev->pt_vbi);
++
+ 	return 0;
+ }
+ 
++void saa7134_video_fini(struct saa7134_dev *dev)
++{
++	/* free stuff */
++	saa7134_pgtable_free(dev->pci, &dev->pt_cap);
++	saa7134_pgtable_free(dev->pci, &dev->pt_vbi);
++}
++
+ int saa7134_videoport_init(struct saa7134_dev *dev)
+ {
+ 	/* enable video output */
+diff --git a/drivers/media/pci/saa7134/saa7134.h b/drivers/media/pci/saa7134/saa7134.h
+index 8d1453a..96b7ccf 100644
+--- a/drivers/media/pci/saa7134/saa7134.h
++++ b/drivers/media/pci/saa7134/saa7134.h
+@@ -472,14 +472,6 @@ struct saa7134_fh {
+ 	struct v4l2_fh             fh;
+ 	struct saa7134_dev         *dev;
+ 	unsigned int               resources;
+-
+-	/* video capture */
+-	struct videobuf_queue      cap;
+-	struct saa7134_pgtable     pt_cap;
+-
+-	/* vbi capture */
+-	struct videobuf_queue      vbi;
+-	struct saa7134_pgtable     pt_vbi;
+ };
+ 
+ /* dmasound dsp status */
+@@ -589,7 +581,11 @@ struct saa7134_dev {
+ 
+ 	/* video+ts+vbi capture */
+ 	struct saa7134_dmaqueue    video_q;
++	struct videobuf_queue      cap;
++	struct saa7134_pgtable     pt_cap;
+ 	struct saa7134_dmaqueue    vbi_q;
++	struct videobuf_queue      vbi;
++	struct saa7134_pgtable     pt_vbi;
+ 	unsigned int               video_fieldcount;
+ 	unsigned int               vbi_fieldcount;
+ 	struct saa7134_format      *fmt;
+@@ -773,6 +769,7 @@ int saa7134_video_init1(struct saa7134_dev *dev);
+ int saa7134_video_init2(struct saa7134_dev *dev);
+ void saa7134_irq_video_signalchange(struct saa7134_dev *dev);
+ void saa7134_irq_video_done(struct saa7134_dev *dev, unsigned long status);
++void saa7134_video_fini(struct saa7134_dev *dev);
+ 
+ 
+ /* ----------------------------------------------------------- */
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.1
 
