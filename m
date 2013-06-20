@@ -1,22 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f170.google.com ([209.85.223.170]:36235 "EHLO
-	mail-ie0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753982Ab3FGOvX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 10:51:23 -0400
-Received: by mail-ie0-f170.google.com with SMTP id e14so11071847iej.29
-        for <linux-media@vger.kernel.org>; Fri, 07 Jun 2013 07:51:23 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 7 Jun 2013 16:51:23 +0200
-Message-ID: <CA+MoWDrBp3Myqf1MDLwkqbUcE3eSeMbNkj8-hu7O9qsM5a2r0Q@mail.gmail.com>
-Subject: Are there any high fps camera available?
-From: Peter Senna Tschudin <peter.senna@gmail.com>
-To: linux-media <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2005 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030362Ab3FTU2Y (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 16:28:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Vladimir Barinov <source@cogentembedded.com>
+Subject: [REVIEW PATCH 1/3] ml86v7667: fix compiler warning
+Date: Thu, 20 Jun 2013 22:28:14 +0200
+Message-Id: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Any one know any linux-media compatible camera capable of recording at
-480 fps or more?
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
---
-Peter
+build/media_build/v4l/ml86v7667.c: In function 'ml86v7667_s_ctrl':
+build/media_build/v4l/ml86v7667.c:120:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
+  int ret = 0;
+        ^
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Vladimir Barinov <source@cogentembedded.com>
+---
+ drivers/media/i2c/ml86v7667.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/i2c/ml86v7667.c b/drivers/media/i2c/ml86v7667.c
+index cd9f86e..efdc873 100644
+--- a/drivers/media/i2c/ml86v7667.c
++++ b/drivers/media/i2c/ml86v7667.c
+@@ -117,7 +117,7 @@ static int ml86v7667_s_ctrl(struct v4l2_ctrl *ctrl)
+ {
+ 	struct v4l2_subdev *sd = to_sd(ctrl);
+ 	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	int ret = 0;
++	int ret;
+ 
+ 	switch (ctrl->id) {
+ 	case V4L2_CID_BRIGHTNESS:
+-- 
+1.8.3.1
+
