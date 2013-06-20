@@ -1,38 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vc0-f173.google.com ([209.85.220.173]:53046 "EHLO
-	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753225Ab3FGKaw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:30:52 -0400
-Received: by mail-vc0-f173.google.com with SMTP id ht11so2650360vcb.4
-        for <linux-media@vger.kernel.org>; Fri, 07 Jun 2013 03:30:51 -0700 (PDT)
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2687 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030381Ab3FTU2Z (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 16:28:25 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [REVIEW PATCH 2/3] bfin_capture: fix compiler warning
+Date: Thu, 20 Jun 2013 22:28:15 +0200
+Message-Id: <1371760096-19256-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAK9yfHyaAAxg7b0HocGCAQEGSF0iH8JJhMp4mbw=Rx1_z8fchQ@mail.gmail.com>
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
-	<1370005408-10853-6-git-send-email-arun.kk@samsung.com>
-	<CAK9yfHyaAAxg7b0HocGCAQEGSF0iH8JJhMp4mbw=Rx1_z8fchQ@mail.gmail.com>
-Date: Fri, 7 Jun 2013 16:00:51 +0530
-Message-ID: <CALt3h7-Ejyii1_-ym9UwFRjAFEBb=Nu=2bmbemHAaRnfOqpaPw@mail.gmail.com>
-Subject: Re: [RFC v2 05/10] exynos5-fimc-is: Adds the sensor subdev
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->> +               if (ret < 0) {
->> +                       pr_err("Pipeline already opened.\n");
->> +                       return -EBUSY;
->
-> why not propogate 'ret'? Same for other instances below.
->
+media-git/drivers/media/platform/blackfin/bfin_capture.c: In function ‘bcap_probe’:
+media-git/drivers/media/platform/blackfin/bfin_capture.c:1007:16: warning: ignoring return value of ‘vb2_queue_init’, declared with attribute warn_unused_result [-Wunused-result]
+  vb2_queue_init(q);
+                  ^
 
-Yes it can be done. Will change it.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/platform/blackfin/bfin_capture.c | 4 +++-
+ 1 file changed, 3 insertions(+), 1 deletion(-)
 
-Regards
-Arun
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 6652e71..7f838c6 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -1004,7 +1004,9 @@ static int bcap_probe(struct platform_device *pdev)
+ 	q->mem_ops = &vb2_dma_contig_memops;
+ 	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
+ 
+-	vb2_queue_init(q);
++	ret = vb2_queue_init(q);
++	if (ret)
++		goto err_free_handler;
+ 
+ 	mutex_init(&bcap_dev->mutex);
+ 	init_completion(&bcap_dev->comp);
+-- 
+1.8.3.1
+
