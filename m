@@ -1,263 +1,183 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f179.google.com ([209.85.192.179]:40371 "EHLO
-	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752277Ab3FYPSC (ORCPT
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3837 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965511Ab3FTNpF (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 11:18:02 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH 1/2] media: davinci: vpif: capture: add V4L2-async support
-Date: Tue, 25 Jun 2013 20:47:34 +0530
-Message-Id: <1372173455-509-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1372173455-509-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1372173455-509-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 20 Jun 2013 09:45:05 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 14/15] saa6588: add support for non-blocking mode.
+Date: Thu, 20 Jun 2013 15:44:30 +0200
+Message-Id: <1371735871-2658-15-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Add support for asynchronous subdevice probing, using the v4l2-async API.
-The legacy synchronous mode is still supported too, which allows to
-gradually update drivers and platforms.
+saa6588 always blocked while waiting for data, even if the filehandle
+was in non-blocking mode.
 
-Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/davinci/vpif_capture.c |  151 +++++++++++++++++--------
- drivers/media/platform/davinci/vpif_capture.h |    2 +
- include/media/davinci/vpif_types.h            |    2 +
- 3 files changed, 107 insertions(+), 48 deletions(-)
+ drivers/media/i2c/saa6588.c               | 45 +++++++++++++++++--------------
+ drivers/media/pci/bt8xx/bttv-driver.c     |  4 ++-
+ drivers/media/pci/saa7134/saa7134-video.c |  1 +
+ include/media/saa6588.h                   |  1 +
+ 4 files changed, 30 insertions(+), 21 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index 5514175..b11d7a7 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1979,6 +1979,76 @@ vpif_init_free_channel_objects:
- 	return err;
+diff --git a/drivers/media/i2c/saa6588.c b/drivers/media/i2c/saa6588.c
+index 21cf940..2960b5a 100644
+--- a/drivers/media/i2c/saa6588.c
++++ b/drivers/media/i2c/saa6588.c
+@@ -150,14 +150,14 @@ static inline struct saa6588 *to_saa6588(struct v4l2_subdev *sd)
+ 
+ /* ---------------------------------------------------------------------- */
+ 
+-static int block_to_user_buf(struct saa6588 *s, unsigned char __user *user_buf)
++static bool block_from_buf(struct saa6588 *s, unsigned char *buf)
+ {
+ 	int i;
+ 
+ 	if (s->rd_index == s->wr_index) {
+ 		if (debug > 2)
+ 			dprintk(PREFIX "Read: buffer empty.\n");
+-		return 0;
++		return false;
+ 	}
+ 
+ 	if (debug > 2) {
+@@ -166,8 +166,7 @@ static int block_to_user_buf(struct saa6588 *s, unsigned char __user *user_buf)
+ 			dprintk("0x%02x ", s->buffer[i]);
+ 	}
+ 
+-	if (copy_to_user(user_buf, &s->buffer[s->rd_index], 3))
+-		return -EFAULT;
++	memcpy(buf, &s->buffer[s->rd_index], 3);
+ 
+ 	s->rd_index += 3;
+ 	if (s->rd_index >= s->buf_size)
+@@ -177,22 +176,22 @@ static int block_to_user_buf(struct saa6588 *s, unsigned char __user *user_buf)
+ 	if (debug > 2)
+ 		dprintk("%d blocks total.\n", s->block_count);
+ 
+-	return 1;
++	return true;
  }
  
-+static int vpif_async_bound(struct v4l2_async_notifier *notifier,
-+			    struct v4l2_subdev *subdev,
-+			    struct v4l2_async_subdev *asd)
-+{
-+	int i;
-+
-+	for (i = 0; i < vpif_obj.config->subdev_count; i++)
-+		if (!strcmp(vpif_obj.config->subdev_info[i].name,
-+			    subdev->name)) {
-+			vpif_obj.sd[i] = subdev;
-+			return 0;
-+		}
-+
-+	return -EINVAL;
-+}
-+
-+static int vpif_probe_complete(void)
-+{
-+	struct common_obj *common;
-+	struct channel_obj *ch;
-+	int i, j, err, k;
-+
-+	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
-+		ch = vpif_obj.dev[j];
-+		ch->channel_id = j;
-+		common = &(ch->common[VPIF_VIDEO_INDEX]);
-+		spin_lock_init(&common->irqlock);
-+		mutex_init(&common->lock);
-+		ch->video_dev->lock = &common->lock;
-+		/* Initialize prio member of channel object */
-+		v4l2_prio_init(&ch->prio);
-+		video_set_drvdata(ch->video_dev, ch);
-+
-+		/* select input 0 */
-+		err = vpif_set_input(vpif_obj.config, ch, 0);
-+		if (err)
-+			goto probe_out;
-+
-+		err = video_register_device(ch->video_dev,
-+					    VFL_TYPE_GRABBER, (j ? 1 : 0));
-+		if (err)
-+			goto probe_out;
-+	}
-+
-+	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
-+	return 0;
-+
-+probe_out:
-+	for (k = 0; k < j; k++) {
-+		/* Get the pointer to the channel object */
-+		ch = vpif_obj.dev[k];
-+		/* Unregister video device */
-+		video_unregister_device(ch->video_dev);
-+	}
-+	kfree(vpif_obj.sd);
-+	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
-+		ch = vpif_obj.dev[i];
-+		/* Note: does nothing if ch->video_dev == NULL */
-+		video_device_release(ch->video_dev);
-+	}
-+	v4l2_device_unregister(&vpif_obj.v4l2_dev);
-+
-+	return err;
-+}
-+
-+static int vpif_async_complete(struct v4l2_async_notifier *notifier)
-+{
-+	return vpif_probe_complete();
-+}
-+
- /**
-  * vpif_probe : This function probes the vpif capture driver
-  * @pdev: platform device pointer
-@@ -1989,12 +2059,10 @@ vpif_init_free_channel_objects:
- static __init int vpif_probe(struct platform_device *pdev)
+ static void read_from_buf(struct saa6588 *s, struct saa6588_command *a)
  {
- 	struct vpif_subdev_info *subdevdata;
--	struct vpif_capture_config *config;
--	int i, j, k, err;
-+	int i, j, err;
- 	int res_idx = 0;
- 	struct i2c_adapter *i2c_adap;
- 	struct channel_obj *ch;
--	struct common_obj *common;
- 	struct video_device *vfd;
- 	struct resource *res;
- 	int subdev_count;
-@@ -2068,10 +2136,9 @@ static __init int vpif_probe(struct platform_device *pdev)
+-	unsigned long flags;
+-
+ 	unsigned char __user *buf_ptr = a->buffer;
+-	unsigned int i;
++	unsigned char buf[3];
++	unsigned long flags;
+ 	unsigned int rd_blocks;
++	unsigned int i;
+ 
+ 	a->result = 0;
+ 	if (!a->buffer)
+ 		return;
+ 
+-	while (!s->data_available_for_read) {
++	while (!a->nonblocking && !s->data_available_for_read) {
+ 		int ret = wait_event_interruptible(s->read_queue,
+ 					     s->data_available_for_read);
+ 		if (ret == -ERESTARTSYS) {
+@@ -201,24 +200,31 @@ static void read_from_buf(struct saa6588 *s, struct saa6588_command *a)
  		}
  	}
  
--	i2c_adap = i2c_get_adapter(1);
--	config = pdev->dev.platform_data;
-+	vpif_obj.config = pdev->dev.platform_data;
+-	spin_lock_irqsave(&s->lock, flags);
+ 	rd_blocks = a->block_count;
++	spin_lock_irqsave(&s->lock, flags);
+ 	if (rd_blocks > s->block_count)
+ 		rd_blocks = s->block_count;
++	spin_unlock_irqrestore(&s->lock, flags);
  
--	subdev_count = config->subdev_count;
-+	subdev_count = vpif_obj.config->subdev_count;
- 	vpif_obj.sd = kzalloc(sizeof(struct v4l2_subdev *) * subdev_count,
- 				GFP_KERNEL);
- 	if (vpif_obj.sd == NULL) {
-@@ -2080,54 +2147,42 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		goto vpif_sd_error;
- 	}
+-	if (!rd_blocks) {
+-		spin_unlock_irqrestore(&s->lock, flags);
++	if (!rd_blocks)
+ 		return;
+-	}
  
--	for (i = 0; i < subdev_count; i++) {
--		subdevdata = &config->subdev_info[i];
--		vpif_obj.sd[i] =
--			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
--						  i2c_adap,
--						  &subdevdata->board_info,
--						  NULL);
--
--		if (!vpif_obj.sd[i]) {
--			vpif_err("Error registering v4l2 subdevice\n");
--			err = -ENODEV;
-+	if (!vpif_obj.config->asd_sizes) {
-+		i2c_adap = i2c_get_adapter(1);
-+		for (i = 0; i < subdev_count; i++) {
-+			subdevdata = &vpif_obj.config->subdev_info[i];
-+			vpif_obj.sd[i] =
-+				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
-+							  i2c_adap,
-+							  &subdevdata->
-+							  board_info,
-+							  NULL);
+ 	for (i = 0; i < rd_blocks; i++) {
+-		if (block_to_user_buf(s, buf_ptr)) {
+-			buf_ptr += 3;
+-			a->result++;
+-		} else
++		bool got_block;
 +
-+			if (!vpif_obj.sd[i]) {
-+				vpif_err("Error registering v4l2 subdevice\n");
-+				goto probe_subdev_out;
-+			}
-+			v4l2_info(&vpif_obj.v4l2_dev,
-+				  "registered sub device %s\n",
-+				   subdevdata->name);
++		spin_lock_irqsave(&s->lock, flags);
++		got_block = block_from_buf(s, buf);
++		spin_unlock_irqrestore(&s->lock, flags);
++		if (!got_block)
+ 			break;
++		if (copy_to_user(buf_ptr, buf, 3)) {
++			a->result = -EFAULT;
++			return;
 +		}
-+		vpif_probe_complete();
-+	} else {
-+		vpif_obj.notifier.subdev = vpif_obj.config->asd;
-+		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
-+		vpif_obj.notifier.bound = vpif_async_bound;
-+		vpif_obj.notifier.complete = vpif_async_complete;
-+		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
-+						   &vpif_obj.notifier);
-+		if (err) {
-+			vpif_err("Error registering async notifier\n");
-+			err = -EINVAL;
- 			goto probe_subdev_out;
- 		}
--		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
--			  subdevdata->name);
++		buf_ptr += 3;
++		a->result += 3;
  	}
+-	a->result *= 3;
++	spin_lock_irqsave(&s->lock, flags);
+ 	s->data_available_for_read = (s->block_count > 0);
+ 	spin_unlock_irqrestore(&s->lock, flags);
+ }
+@@ -408,9 +414,8 @@ static long saa6588_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
+ 		/* --- poll() for /dev/radio --- */
+ 	case SAA6588_CMD_POLL:
+ 		a->result = 0;
+-		if (s->data_available_for_read) {
++		if (s->data_available_for_read)
+ 			a->result |= POLLIN | POLLRDNORM;
+-		}
+ 		poll_wait(a->instance, &s->read_queue, a->event_list);
+ 		break;
  
--	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
--		ch = vpif_obj.dev[j];
--		ch->channel_id = j;
--		common = &(ch->common[VPIF_VIDEO_INDEX]);
--		spin_lock_init(&common->irqlock);
--		mutex_init(&common->lock);
--		ch->video_dev->lock = &common->lock;
--		/* Initialize prio member of channel object */
--		v4l2_prio_init(&ch->prio);
--		video_set_drvdata(ch->video_dev, ch);
--
--		/* select input 0 */
--		err = vpif_set_input(config, ch, 0);
--		if (err)
--			goto probe_out;
--
--		err = video_register_device(ch->video_dev,
--					    VFL_TYPE_GRABBER, (j ? 1 : 0));
--		if (err)
--			goto probe_out;
--	}
--	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
- 	return 0;
+diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
+index c6532de..b8cae71 100644
+--- a/drivers/media/pci/bt8xx/bttv-driver.c
++++ b/drivers/media/pci/bt8xx/bttv-driver.c
+@@ -3266,7 +3266,9 @@ static ssize_t radio_read(struct file *file, char __user *data,
+ 	struct bttv_fh *fh = file->private_data;
+ 	struct bttv *btv = fh->btv;
+ 	struct saa6588_command cmd;
+-	cmd.block_count = count/3;
++
++	cmd.block_count = count / 3;
++	cmd.nonblocking = file->f_flags & O_NONBLOCK;
+ 	cmd.buffer = data;
+ 	cmd.instance = file;
+ 	cmd.result = -ENODEV;
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index 485f67d..b7ebde9 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1284,6 +1284,7 @@ static ssize_t radio_read(struct file *file, char __user *data,
+ 	struct saa6588_command cmd;
  
--probe_out:
--	for (k = 0; k < j; k++) {
--		/* Get the pointer to the channel object */
--		ch = vpif_obj.dev[k];
--		/* Unregister video device */
--		video_unregister_device(ch->video_dev);
--	}
- probe_subdev_out:
- 	/* free sub devices memory */
- 	kfree(vpif_obj.sd);
-diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
-index 0ebb312..5a29d9a 100644
---- a/drivers/media/platform/davinci/vpif_capture.h
-+++ b/drivers/media/platform/davinci/vpif_capture.h
-@@ -142,6 +142,8 @@ struct vpif_device {
- 	struct v4l2_device v4l2_dev;
- 	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
- 	struct v4l2_subdev **sd;
-+	struct v4l2_async_notifier notifier;
-+	struct vpif_capture_config *config;
- };
+ 	cmd.block_count = count/3;
++	cmd.nonblocking = file->f_flags & O_NONBLOCK;
+ 	cmd.buffer = data;
+ 	cmd.instance = file;
+ 	cmd.result = -ENODEV;
+diff --git a/include/media/saa6588.h b/include/media/saa6588.h
+index 1489a52..b5ec1aa 100644
+--- a/include/media/saa6588.h
++++ b/include/media/saa6588.h
+@@ -27,6 +27,7 @@
  
- struct vpif_config_params {
-diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
-index 3882e06..e08bcde 100644
---- a/include/media/davinci/vpif_types.h
-+++ b/include/media/davinci/vpif_types.h
-@@ -81,5 +81,7 @@ struct vpif_capture_config {
- 	struct vpif_subdev_info *subdev_info;
- 	int subdev_count;
- 	const char *card_name;
-+	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
-+	int *asd_sizes;		/* 0-terminated array of asd group sizes */
- };
- #endif /* _VPIF_TYPES_H */
+ struct saa6588_command {
+ 	unsigned int  block_count;
++	bool          nonblocking;
+ 	int           result;
+ 	unsigned char __user *buffer;
+ 	struct file   *instance;
 -- 
-1.7.9.5
+1.8.3.1
 
