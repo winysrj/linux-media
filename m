@@ -1,73 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f173.google.com ([209.85.192.173]:41201 "EHLO
-	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756753Ab3FCUyU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 16:54:20 -0400
+Received: from adelie.canonical.com ([91.189.90.139]:35034 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965378Ab3FTLdC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 07:33:02 -0400
+Subject: [PATCH v5 7/7] locking-selftests: handle unexpected failures more
+ strictly
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
+	tglx@linutronix.de, mingo@kernel.org, linux-media@vger.kernel.org
+Date: Thu, 20 Jun 2013 13:31:51 +0200
+Message-ID: <20130620113151.4001.77963.stgit@patser>
+In-Reply-To: <20130620112811.4001.86934.stgit@patser>
+References: <20130620112811.4001.86934.stgit@patser>
 MIME-Version: 1.0
-In-Reply-To: <51ACFDF2.4040600@infradead.org>
-References: <20130603163717.a6f78476e57d92fadd6f6a23@canb.auug.org.au>
-	<51ACFDF2.4040600@infradead.org>
-Date: Mon, 3 Jun 2013 22:54:19 +0200
-Message-ID: <CAMuHMdUALrScFE895xRiBvgUpVa9Tvic5M7YxefrEgyeMaSjhw@mail.gmail.com>
-Subject: Re: linux-next: Tree for Jun 3 (fonts.c & vivi)
-From: Geert Uytterhoeven <geert@linux-m68k.org>
-To: Randy Dunlap <rdunlap@infradead.org>
-Cc: Stephen Rothwell <sfr@canb.auug.org.au>,
-	Linux-Next <linux-next@vger.kernel.org>,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>,
-	linux-media <linux-media@vger.kernel.org>,
-	Linux Fbdev development list <linux-fbdev@vger.kernel.org>
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 3, 2013 at 10:34 PM, Randy Dunlap <rdunlap@infradead.org> wrote:
-> On 06/02/13 23:37, Stephen Rothwell wrote:
->> Changes since 20130531:
-> on x86_64:
->
-> warning: (VIDEO_VIVI && USB_SISUSBVGA && SOLO6X10) selects FONT_SUPPORT which has unmet direct dependencies (HAS_IOMEM && VT)
-> warning: (VIDEO_VIVI && FB_VGA16 && FB_S3 && FB_VT8623 && FB_ARK && USB_SISUSBVGA_CON && SOLO6X10) selects FONT_8x16 which has unmet direct dependencies (HAS_IOMEM && VT && FONT_SUPPORT)
+When CONFIG_PROVE_LOCKING is not enabled, more tests are expected to
+pass unexpectedly, but there no tests that should start to fail that
+pass with CONFIG_PROVE_LOCKING enabled.
 
-I knew about thet warning. But I thought it was harmless, as none of the font
-code really depends on console support...
+Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+---
+ lib/locking-selftest.c |    8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
 
-> drivers/built-in.o: In function `vivi_init':
-> vivi.c:(.init.text+0x1a3da): undefined reference to `find_font'
->
-> when CONFIG_VT is not enabled.
+diff --git a/lib/locking-selftest.c b/lib/locking-selftest.c
+index d554f3f..aad024d 100644
+--- a/lib/locking-selftest.c
++++ b/lib/locking-selftest.c
+@@ -976,16 +976,18 @@ static void dotest(void (*testcase_fn)(void), int expected, int lockclass_mask)
+ 	/*
+ 	 * Filter out expected failures:
+ 	 */
+-	if (debug_locks != expected) {
+ #ifndef CONFIG_PROVE_LOCKING
++	if (expected == FAILURE && debug_locks) {
+ 		expected_testcase_failures++;
+ 		printk("failed|");
+-#else
++	}
++	else
++#endif
++	if (debug_locks != expected) {
+ 		unexpected_testcase_failures++;
+ 		printk("FAILED|");
+ 
+ 		dump_stack();
+-#endif
+ 	} else {
+ 		testcase_successes++;
+ 		printk("  ok  |");
 
-... but I missed that drivers/video/console is not used if CONFIG_VT=y.
-Sorry for that.
-
-> Just make CONFIG_VIDEO_VIVI depend on VT ?
-
-Does this (whitespace-damaged copy-and-paste) help?
-
---- a/drivers/video/Makefile
-+++ b/drivers/video/Makefile
-@@ -12,7 +12,7 @@ fb-y                              := fbmem.o fbmon.o fbcmap.o
-                                      modedb.o fbcvt.o
- fb-objs                           := $(fb-y)
-
--obj-$(CONFIG_VT)                 += console/
-+obj-y                            += console/
- obj-$(CONFIG_LOGO)               += logo/
- obj-y                            += backlight/
-
-It shouldn't make a difference if nothing inside drivers/video/console
-is enabled,
-as all objects in drivers/video/console/Makefile are conditional.
-
-BTW, my plan was to move the font code to lib/font, but I haven't done that yet.
-
-Gr{oetje,eeting}s,
-
-                        Geert
-
---
-Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
-
-In personal conversations with technical people, I call myself a hacker. But
-when I'm talking to journalists I just say "programmer" or something like that.
-                                -- Linus Torvalds
