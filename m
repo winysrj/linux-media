@@ -1,66 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:32831 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752151Ab3FKKvF (ORCPT
+Received: from adelie.canonical.com ([91.189.90.139]:34875 "EHLO
+	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965276Ab3FTLcS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 06:51:05 -0400
-Date: Tue, 11 Jun 2013 13:50:32 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	kyungmin.park@samsung.com, a.hajda@samsung.com
-Subject: Re: [RFC PATCH v3 0/2] Media entity links handling
-Message-ID: <20130611105032.GJ3103@valkosipuli.retiisi.org.uk>
-References: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
- <1370876070-23699-2-git-send-email-s.nawrocki@samsung.com>
+	Thu, 20 Jun 2013 07:32:18 -0400
+Subject: [PATCH v5 0/7] add mutex wait/wound/style style locks
+To: linux-kernel@vger.kernel.org
+From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
+	tglx@linutronix.de, mingo@kernel.org, linux-media@vger.kernel.org
+Date: Thu, 20 Jun 2013 13:30:55 +0200
+Message-ID: <20130620112811.4001.86934.stgit@patser>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1370876070-23699-2-git-send-email-s.nawrocki@samsung.com>
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Changes since v4:
+- Some documentation cleanups.
+- Added a lot more tests to cover all the DEBUG_LOCKS_WARN_ON cases.
+- Added EDEADLK tests.
+- Split off the normal mutex tests to a separate patch.
+- Added a patch to not allow tests to fail that succeed with PROVE_LOCKING enabled.
 
-On Mon, Jun 10, 2013 at 04:54:28PM +0200, Sylwester Nawrocki wrote:
-> This is an updated version of the patch set
-> http://www.spinics.net/lists/linux-media/msg64536.html
-> 
-> Comparing to v2 it includes improvements of the __media_entity_remove_links()
-> function, thanks to Sakari. 
-> 
-> The cover letter of v2 is included below.
-> 
-> This small patch set adds a function for removing all links at a media
-> entity. I found out such a function is needed when media entites that
-> belong to a single media device have drivers in different kernel modules.
-> This means virtually all camera drivers, since sensors are separate
-> modules from the host interface drivers.
-> 
-> More details can be found at each patch's description.
-> 
-> The links removal from a media entity is rather strightforward, but when
-> and where links should be created/removed is not immediately clear to me.
-> 
-> I assumed that links should normally be created/removed when an entity
-> is registered to its media device, with the graph mutex held.
-> 
-> I'm open to opinions whether it's good or not and possibly suggestions
-> on how those issues could be handled differently.
-> 
-> The changes since original version are listed in patch 1/2, in patch 2/2
-> only the commit description has changed slightly.
+---
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Daniel Vetter (1):
+      mutex: w/w mutex slowpath debugging
 
-That said, I'd wish they won't be merged before the two patches I'm sending
-shortly. The thing is that the media entity links array is freed by
-media_entity_cleanup(), and there are two drivers that call
-media_entity_cleanup() first. The patches fix the issue, so could you
-prepend them to your set (after review, naturally)?
+Maarten Lankhorst (6):
+      arch: make __mutex_fastpath_lock_retval return whether fastpath succeeded or not.
+      mutex: add support for wound/wait style locks, v5
+      mutex: Add ww tests to lib/locking-selftest.c. v5
+      mutex: add more tests to lib/locking-selftest.c
+      mutex: add more ww tests to test EDEADLK path handling
+      locking-selftests: handle unexpected failures more strictly
+
+
+ Documentation/ww-mutex-design.txt |  343 ++++++++++++++++++
+ arch/ia64/include/asm/mutex.h     |   10 -
+ arch/powerpc/include/asm/mutex.h  |   10 -
+ arch/sh/include/asm/mutex-llsc.h  |    4 
+ arch/x86/include/asm/mutex_32.h   |   11 -
+ arch/x86/include/asm/mutex_64.h   |   11 -
+ include/asm-generic/mutex-dec.h   |   10 -
+ include/asm-generic/mutex-null.h  |    2 
+ include/asm-generic/mutex-xchg.h  |   10 -
+ include/linux/mutex-debug.h       |    1 
+ include/linux/mutex.h             |  363 +++++++++++++++++++
+ kernel/mutex.c                    |  384 ++++++++++++++++++--
+ lib/Kconfig.debug                 |   13 +
+ lib/debug_locks.c                 |    2 
+ lib/locking-selftest.c            |  720 ++++++++++++++++++++++++++++++++++++-
+ 15 files changed, 1802 insertions(+), 92 deletions(-)
+ create mode 100644 Documentation/ww-mutex-design.txt
 
 -- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Signature
