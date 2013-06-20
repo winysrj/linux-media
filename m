@@ -1,63 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f42.google.com ([209.85.160.42]:61258 "EHLO
-	mail-pb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752565Ab3FQPVU (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:4091 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965457Ab3FTNpD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:21:20 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 01/11] media: davinci: vpif: remove unwanted header mach/hardware.h and sort the includes alphabetically
-Date: Mon, 17 Jun 2013 20:50:41 +0530
-Message-Id: <1371482451-18314-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 20 Jun 2013 09:45:03 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFCv2 PATCH 08/15] saa6752hs: drop compat control code.
+Date: Thu, 20 Jun 2013 15:44:24 +0200
+Message-Id: <1371735871-2658-9-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-This patch removes unwanted header include of mach/hardware.h
-and along side sorts the header inclusion alphabetically.
+The saa7134 driver is now converted to the control framework, so drop the
+control compat code in saa6752hs.c.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Also add 'const' to several static arrays.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/platform/davinci/vpif.c |   10 ++++------
- 1 file changed, 4 insertions(+), 6 deletions(-)
+ drivers/media/pci/saa7134/saa6752hs.c | 19 ++++++-------------
+ 1 file changed, 6 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpif.c b/drivers/media/platform/davinci/vpif.c
-index ea82a8b..761c825 100644
---- a/drivers/media/platform/davinci/vpif.c
-+++ b/drivers/media/platform/davinci/vpif.c
-@@ -17,18 +17,16 @@
-  * GNU General Public License for more details.
-  */
+diff --git a/drivers/media/pci/saa7134/saa6752hs.c b/drivers/media/pci/saa7134/saa6752hs.c
+index 8ac4b1f..8272c0b 100644
+--- a/drivers/media/pci/saa7134/saa6752hs.c
++++ b/drivers/media/pci/saa7134/saa6752hs.c
+@@ -33,11 +33,11 @@
+ #include <linux/i2c.h>
+ #include <linux/types.h>
+ #include <linux/videodev2.h>
++#include <linux/init.h>
++#include <linux/crc32.h>
+ #include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-common.h>
+-#include <linux/init.h>
+-#include <linux/crc32.h>
  
-+#include <linux/err.h>
- #include <linux/init.h>
-+#include <linux/io.h>
-+#include <linux/kernel.h>
- #include <linux/module.h>
- #include <linux/platform_device.h>
--#include <linux/spinlock.h>
--#include <linux/kernel.h>
--#include <linux/io.h>
--#include <linux/err.h>
- #include <linux/pm_runtime.h>
-+#include <linux/spinlock.h>
- #include <linux/v4l2-dv-timings.h>
+ #define MPEG_VIDEO_TARGET_BITRATE_MAX  27000
+ #define MPEG_VIDEO_MAX_BITRATE_MAX     27000
+@@ -124,7 +124,7 @@ static inline struct saa6752hs_state *to_state(struct v4l2_subdev *sd)
  
--#include <mach/hardware.h>
--
- #include "vpif.h"
+ /* ---------------------------------------------------------------------- */
  
- MODULE_DESCRIPTION("TI DaVinci Video Port Interface driver");
+-static u8 PAT[] = {
++static const u8 PAT[] = {
+ 	0xc2, /* i2c register */
+ 	0x00, /* table number for encoder */
+ 
+@@ -150,7 +150,7 @@ static u8 PAT[] = {
+ 	0x00, 0x00, 0x00, 0x00 /* CRC32 */
+ };
+ 
+-static u8 PMT[] = {
++static const u8 PMT[] = {
+ 	0xc2, /* i2c register */
+ 	0x01, /* table number for encoder */
+ 
+@@ -179,7 +179,7 @@ static u8 PMT[] = {
+ 	0x00, 0x00, 0x00, 0x00 /* CRC32 */
+ };
+ 
+-static u8 PMT_AC3[] = {
++static const u8 PMT_AC3[] = {
+ 	0xc2, /* i2c register */
+ 	0x01, /* table number for encoder(1) */
+ 	0x47, /* sync */
+@@ -212,7 +212,7 @@ static u8 PMT_AC3[] = {
+ 	0xED, 0xDE, 0x2D, 0xF3 /* CRC32 BE */
+ };
+ 
+-static struct saa6752hs_mpeg_params param_defaults =
++static const struct saa6752hs_mpeg_params param_defaults =
+ {
+ 	.ts_pid_pmt      = 16,
+ 	.ts_pid_video    = 260,
+@@ -643,13 +643,6 @@ static const struct v4l2_ctrl_ops saa6752hs_ctrl_ops = {
+ 
+ static const struct v4l2_subdev_core_ops saa6752hs_core_ops = {
+ 	.init = saa6752hs_init,
+-	.g_ext_ctrls = v4l2_subdev_g_ext_ctrls,
+-	.try_ext_ctrls = v4l2_subdev_try_ext_ctrls,
+-	.s_ext_ctrls = v4l2_subdev_s_ext_ctrls,
+-	.g_ctrl = v4l2_subdev_g_ctrl,
+-	.s_ctrl = v4l2_subdev_s_ctrl,
+-	.queryctrl = v4l2_subdev_queryctrl,
+-	.querymenu = v4l2_subdev_querymenu,
+ 	.s_std = saa6752hs_s_std,
+ };
+ 
 -- 
-1.7.9.5
+1.8.3.1
 
