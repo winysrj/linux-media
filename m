@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4401 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755520Ab3FCNsV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 09:48:21 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: phil.edworthy@renesas.com
-Subject: Re: [PATCH] ov10635: Add OmniVision ov10635 SoC camera driver
-Date: Mon, 3 Jun 2013 15:47:52 +0200
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-References: <1370252135-23261-1-git-send-email-phil.edworthy@renesas.com> <201306031149.45454.hverkuil@xs4all.nl> <OF4BD2B449.93EBBD07-ON80257B7F.0049D5FC-80257B7F.004A56F1@eu.necel.com>
-In-Reply-To: <OF4BD2B449.93EBBD07-ON80257B7F.0049D5FC-80257B7F.004A56F1@eu.necel.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306031547.52124.hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:57282 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1030307Ab3FTOLc (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 10:11:32 -0400
+Received: from int-mx11.intmail.prod.int.phx2.redhat.com (int-mx11.intmail.prod.int.phx2.redhat.com [10.5.11.24])
+	by mx1.redhat.com (8.14.4/8.14.4) with ESMTP id r5KEBW0w004471
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=OK)
+	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 10:11:32 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: [PATCH 0/2] Fix a few troubles with the media subsystem
+Date: Thu, 20 Jun 2013 11:11:26 -0300
+Message-Id: <1371737488-14395-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon June 3 2013 15:31:55 phil.edworthy@renesas.com wrote:
-> Hi Hans,
-> 
-> > Subject: Re: [PATCH] ov10635: Add OmniVision ov10635 SoC camera driver
-> <snip>
-> > > +#include <media/v4l2-chip-ident.h>
-> > 
-> > Don't implement chip_ident or use this header: it's going to be 
-> > removed in 3.11.
-> 
-> <snip>
+After the change to use IS_ENABLED() everywhere, we started to notice
+some troubles with randconfigs, that weren't that trivial to discover
+what actually caused them.
 
-> > This can be dropped as well, because this header will go away.
-> 
-> Thanks for the very quick review! I'll have a look at the media tree to 
-> see what's changing wrt the chip ident.
+Today, I finally found some time to dig into it. I found actually
+two problems.
 
-The chip ident removal isn't in yet. The patch series removing it was posted
-on Wednesday:
+This small patch series should fix them. Those patches should go
+to Kernel 3.10, as they solve some issues there.
 
-http://www.mail-archive.com/linux-media@vger.kernel.org/
+Mauro Carvalho Chehab (2):
+  [media] s5p makefiles: don't override other selections on obj-[ym]
+  [media] Fix build when drivers are builtin and frontend modules
 
-VIDIOC_DBG_G_CHIP_IDENT is replaced by VIDIOC_DBG_G_CHIP_INFO:
+ drivers/media/Kconfig                    | 12 +++++++++---
+ drivers/media/platform/s5p-jpeg/Makefile |  2 +-
+ drivers/media/platform/s5p-mfc/Makefile  |  2 +-
+ drivers/media/tuners/Kconfig             | 20 --------------------
+ 4 files changed, 11 insertions(+), 25 deletions(-)
 
-http://hverkuil.home.xs4all.nl/spec/media.html#vidioc-dbg-g-chip-info
+-- 
+1.8.1.4
 
-If I don't get any comments, then I'm going to make a pull request for the
-chip ident removal on Friday or the Monday after that. It's a substantial
-cleanup, so it will be nice to have that merged.
-
-Regards,
-
-	Hans
