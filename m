@@ -1,57 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:42569 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753558Ab3FJVcn (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 17:32:43 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	ldv-project@linuxtesting.org
-Subject: [PATCH] [media] usbvision-video: fix memory leak of alt_max_pkt_size
-Date: Tue, 11 Jun 2013 01:32:29 +0400
-Message-Id: <1370899949-16987-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:48870 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030215Ab3FTLzh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 20 Jun 2013 07:55:37 -0400
+Date: Thu, 20 Jun 2013 13:55:32 +0200
+From: Ingo Molnar <mingo@kernel.org>
+To: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+Cc: linux-kernel@vger.kernel.org, linux-arch@vger.kernel.org,
+	peterz@infradead.org, x86@kernel.org,
+	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
+	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
+	tglx@linutronix.de, linux-media@vger.kernel.org
+Subject: Re: [PATCH v5 2/7] mutex: add support for wound/wait style locks, v5
+Message-ID: <20130620115532.GA12479@gmail.com>
+References: <20130620112811.4001.86934.stgit@patser>
+ <20130620113111.4001.47384.stgit@patser>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130620113111.4001.47384.stgit@patser>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-1. usbvision->alt_max_pkt_size is not deallocated anywhere.
-2. if allocation of usbvision->alt_max_pkt_size fails,
-there is no proper deallocation of already acquired resources.
 
-The patch adds kfree(usbvision->alt_max_pkt_size) to
-usbvision_release() as soon as other deallocations happen there.
-It calls usbvision_release() if allocation of
-usbvision->alt_max_pkt_size fails as soon as usbvision_release()
-is safe to work with incompletely initialized usbvision structure.
+* Maarten Lankhorst <maarten.lankhorst@canonical.com> wrote:
 
-Found by Linux Driver Verification project (linuxtesting.org).
+> Changes since RFC patch v1:
+>  - Updated to use atomic_long instead of atomic, since the reservation_id was a long.
+>  - added mutex_reserve_lock_slow and mutex_reserve_lock_intr_slow
+>  - removed mutex_locked_set_reservation_id (or w/e it was called)
+> Changes since RFC patch v2:
+>  - remove use of __mutex_lock_retval_arg, add warnings when using wrong combination of
+>    mutex_(,reserve_)lock/unlock.
+> Changes since v1:
+>  - Add __always_inline to __mutex_lock_common, otherwise reservation paths can be
+>    triggered from normal locks, because __builtin_constant_p might evaluate to false
+>    for the constant 0 in that case. Tests for this have been added in the next patch.
+>  - Updated documentation slightly.
+> Changes since v2:
+>  - Renamed everything to ww_mutex. (mlankhorst)
+>  - Added ww_acquire_ctx and ww_class. (mlankhorst)
+>  - Added a lot of checks for wrong api usage. (mlankhorst)
+>  - Documentation updates. (danvet)
+> Changes since v3:
+>  - Small documentation fixes (robclark)
+>  - Memory barrier fix (danvet)
+> Changes since v4:
+>  - Remove ww_mutex_unlock_single and ww_mutex_lock_single.
+>  - Rename ww_mutex_trylock_single to ww_mutex_trylock.
+>  - Remove separate implementations of ww_mutex_lock_slow*, normal
+>    functions can be used. Inline versions still exist for extra
+>    debugging.
+>  - Cleanup unneeded memory barriers, add comment to the remaining
+>    smp_mb().
 
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
----
- drivers/media/usb/usbvision/usbvision-video.c | 2 ++
- 1 file changed, 2 insertions(+)
+That's not a proper changelog. It should be a short description of what it 
+does, possibly referring to the new Documentation/ww-mutex-design.txt file 
+for more details.
 
-diff --git a/drivers/media/usb/usbvision/usbvision-video.c b/drivers/media/usb/usbvision/usbvision-video.c
-index d34c2af..443e783 100644
---- a/drivers/media/usb/usbvision/usbvision-video.c
-+++ b/drivers/media/usb/usbvision/usbvision-video.c
-@@ -1459,6 +1459,7 @@ static void usbvision_release(struct usb_usbvision *usbvision)
- 
- 	usbvision_remove_sysfs(usbvision->vdev);
- 	usbvision_unregister_video(usbvision);
-+	kfree(usbvision->alt_max_pkt_size);
- 
- 	usb_free_urb(usbvision->ctrl_urb);
- 
-@@ -1574,6 +1575,7 @@ static int usbvision_probe(struct usb_interface *intf,
- 	usbvision->alt_max_pkt_size = kmalloc(32 * usbvision->num_alt, GFP_KERNEL);
- 	if (usbvision->alt_max_pkt_size == NULL) {
- 		dev_err(&intf->dev, "usbvision: out of memory!\n");
-+		usbvision_release(usbvision);
- 		return -ENOMEM;
- 	}
- 
--- 
-1.8.1.2
+> Signed-off-by: Maarten Lankhorst <maarten.lankhorst@canonical.com>
+> Signed-off-by: Daniel Vetter <daniel.vetter@ffwll.ch>
+> Signed-off-by: Rob Clark <robdclark@gmail.com>
 
+That's not a valid signoff chain: the last signoff in the chain is the 
+person sending me the patch. The first signoff is the person who wrote the 
+patch. The other two gents should be Acked-by I suspect?
+
+Thanks,
+
+	Ingo
