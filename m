@@ -1,44 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:23891 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756683Ab3FUM4Q (ORCPT
+Received: from mail-vb0-f49.google.com ([209.85.212.49]:42707 "EHLO
+	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423360Ab3FUXI1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 08:56:16 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOQ003PEULMNPE0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Fri, 21 Jun 2013 21:56:15 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, j.anaszewski@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 0/6] exynos4-is: TRY format propagation fixes
-Date: Fri, 21 Jun 2013 14:55:52 +0200
-Message-id: <1371819358-13106-1-git-send-email-s.nawrocki@samsung.com>
+	Fri, 21 Jun 2013 19:08:27 -0400
+Received: by mail-vb0-f49.google.com with SMTP id 12so6339505vbf.8
+        for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 16:08:26 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <51C402FF.7010909@gtsys.com.hk>
+References: <51C402FF.7010909@gtsys.com.hk>
+Date: Fri, 21 Jun 2013 20:08:26 -0300
+Message-ID: <CAOMZO5COJgYNW1EY_gRcjwYUw6ySiLm5ahkmT+44VBr63dsnKQ@mail.gmail.com>
+Subject: Re: imx27 coda interface no capture output
+From: Fabio Estevam <festevam@gmail.com>
+To: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Cc: linux-media@vger.kernel.org,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This series includes fixes of TRY format propagation, colospace
-handling and intial format setting on some exynos4-is subdevs.
+Hi Chris,
 
-Sylwester Nawrocki (6):
-  exynos4-is: Fix format propagation on FIMC-LITE.n subdevs
-  exynos4-is: Set valid initial format at FIMC-LITE
-  exynos4-is: Fix format propagation on FIMC-IS-ISP subdev
-  exynos4-is: Set valid initial format on FIMC-IS-ISP subdev pads
-  exynos4-is: Set valid initial format on FIMC.n subdevs
-  exynos4-is: Correct colorspace handling at FIMC-LITE
+On Fri, Jun 21, 2013 at 4:38 AM, Chris Ruehl <chris.ruehl@gtsys.com.hk> wrote:
+> Hi All,
+>
+> After Freescale was so kind and forward the v4l-codadx6-imx27.bin
+> the firmware loaded properly and I see a /dev/video1 the v4l_ctrl looks
+> promising
+>
+> root@gtsir-nand:~# v4l2-ctl --list-formats -d /dev/video1
+> ioctl: VIDIOC_ENUM_FMT
+>         Index       : 0
+>         Type        : Video Capture
+>         Pixel Format: 'H264'
+>         Name        : H264 Encoded Stream
+>
+>         Index       : 1
+>         Type        : Video Capture
+>         Pixel Format: 'MPG4'
+>         Name        : MPEG4 Encoded Stream
+>
+> root@gtsir-nand:~# v4l2-ctl -d /dev/video1 -l
+>
+> User Controls
+>
+>                 horizontal_flip (bool)   : default=0 value=0
+>                   vertical_flip (bool)   : default=0 value=0
+>
+> MPEG Encoder Controls
+>
+>                  video_gop_size (int)    : min=1 max=60 step=1 default=16
+> value=16
+>                   video_bitrate (int)    : min=0 max=32767000 step=1
+> default=0 value=0
+>            sequence_header_mode (menu)   : min=0 max=1 default=1 value=1
+>        maximum_bytes_in_a_slice (int)    : min=1 max=1073741823 step=1
+> default=500 value=500
+>        number_of_mbs_in_a_slice (int)    : min=1 max=1073741823 step=1
+> default=1 value=1
+>       slice_partitioning_method (menu)   : min=0 max=2 default=0 value=0
+>           h264_i_frame_qp_value (int)    : min=1 max=51 step=1 default=25
+> value=25
+>           h264_p_frame_qp_value (int)    : min=1 max=51 step=1 default=25
+> value=25
+>          mpeg4_i_frame_qp_value (int)    : min=1 max=31 step=1 default=2
+> value=2
+>          mpeg4_p_frame_qp_value (int)    : min=1 max=31 step=1 default=2
+> value=2
+>
+>
+> But the capture is not working :-(
+>
+> root@gtsir-nand:~# ./video1.x -f MPG4  -w 320 -h 240 a.mpg4
+> g_width = 320, g_height = 240
+> --------------------------------------------------------------------------------------------
+>          Width = 320     Height = 240    Image size = 589824
+>          pixelformat = 875967048         colorspace = 3
+> --------------------------------------------------------------------------------------------
+> ^C
+>
+> and the kernel spit this
+> [ 3043.981600] coda coda-imx27.0: coda_stop_streaming: timeout, sending
+> SEQ_END anyway
+> [ 3044.998085] coda coda-imx27.0: CODA_COMMAND_SEQ_END failed
+>
+> did I miss something ??  just enlighten me please
 
- drivers/media/platform/exynos4-is/fimc-capture.c |   19 +++-
- drivers/media/platform/exynos4-is/fimc-core.h    |    2 +
- drivers/media/platform/exynos4-is/fimc-isp.c     |  108 ++++++++++++++++------
- drivers/media/platform/exynos4-is/fimc-isp.h     |    3 +-
- drivers/media/platform/exynos4-is/fimc-lite.c    |   95 +++++++++++++------
- drivers/media/platform/exynos4-is/fimc-lite.h    |    2 +
- include/media/s5p_fimc.h                         |    2 +
- 7 files changed, 171 insertions(+), 60 deletions(-)
-
---
-1.7.9.5
-
+Adding Javier and Philipp in case they have some suggestions.
