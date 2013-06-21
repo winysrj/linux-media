@@ -1,104 +1,217 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nm24.bullet.mail.ne1.yahoo.com ([98.138.90.87]:42169 "EHLO
-	nm24.bullet.mail.ne1.yahoo.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756396Ab3FKWVa convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 18:21:30 -0400
-References: <1370938465.85106.YahooMailNeo@web125204.mail.ne1.yahoo.com>
- <CAPueXH4+MyXszcfwSMB2rS+WdrJ5z0=98puS1WwyEQzb_E87bQ@mail.gmail.com> <1370945293.8544.YahooMailNeo@web125205.mail.ne1.yahoo.com> <CAPueXH4xBtVtUmpq1HkwG-3O7bC4dr6-LEenWf9_HvB8arzvow@mail.gmail.com>
-Message-ID: <1370988950.32187.YahooMailNeo@web125203.mail.ne1.yahoo.com>
-Date: Tue, 11 Jun 2013 15:15:50 -0700 (PDT)
-From: phil rosenberg <philip_rosenberg@yahoo.com>
-Reply-To: phil rosenberg <philip_rosenberg@yahoo.com>
-Subject: Re: Corrupt Raw webcam data
-To: Paulo Assis <pj.assis@gmail.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-In-Reply-To: <CAPueXH4xBtVtUmpq1HkwG-3O7bC4dr6-LEenWf9_HvB8arzvow@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 8BIT
+Received: from mailout2.samsung.com ([203.254.224.25]:36258 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422678Ab3FUNB5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 09:01:57 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOQ006OCUV8WF90@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Jun 2013 22:01:56 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, j.anaszewski@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 6/6] exynos4-is: Correct colorspace handling at FIMC-LITE
+Date: Fri, 21 Jun 2013 15:00:35 +0200
+Message-id: <1371819636-13499-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1371819636-13499-1-git-send-email-s.nawrocki@samsung.com>
+References: <1371819636-13499-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Paulo
-Unfortunately I tried setting things up in the order you suggested, but as soon as I select 'Disable video processing I get only a single frame of something that looks a bit like a bayer grid, coloured deep blue. I think the image might be in this data but shifted horizontally and then an error "Could not grab image (select timeout): Resource temporariliy unavailable which is repeated until I unselect 'Disable video processing' and change to any other input type.
- 
-I've tested this on Ubuntu 12.04 and Raspian Wheezy with the same results.
- 
-If you have any other ideas I'd be happy to hear them
- 
-All the best
- 
-Phil
+Ensure the colorspace is properly adjusted by the driver for YUV
+and Bayer image formats. The subdev try_fmt helper is simplified.
 
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-lite.c |   50 +++++++++++++------------
+ include/media/s5p_fimc.h                      |    2 +
+ 2 files changed, 28 insertions(+), 24 deletions(-)
 
------ Original Message -----
-From: Paulo Assis <pj.assis@gmail.com>
-To: phil rosenberg <philip_rosenberg@yahoo.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Sent: Tuesday, 11 June 2013, 11:13
-Subject: Re: Corrupt Raw webcam data
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index b4a0785..d1e869e 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -44,6 +44,7 @@ static const struct fimc_fmt fimc_lite_formats[] = {
+ 	{
+ 		.name		= "YUV 4:2:2 packed, YCbYCr",
+ 		.fourcc		= V4L2_PIX_FMT_YUYV,
++		.colorspace	= V4L2_COLORSPACE_JPEG,
+ 		.depth		= { 16 },
+ 		.color		= FIMC_FMT_YCBYCR422,
+ 		.memplanes	= 1,
+@@ -52,6 +53,7 @@ static const struct fimc_fmt fimc_lite_formats[] = {
+ 	}, {
+ 		.name		= "YUV 4:2:2 packed, CbYCrY",
+ 		.fourcc		= V4L2_PIX_FMT_UYVY,
++		.colorspace	= V4L2_COLORSPACE_JPEG,
+ 		.depth		= { 16 },
+ 		.color		= FIMC_FMT_CBYCRY422,
+ 		.memplanes	= 1,
+@@ -60,6 +62,7 @@ static const struct fimc_fmt fimc_lite_formats[] = {
+ 	}, {
+ 		.name		= "YUV 4:2:2 packed, CrYCbY",
+ 		.fourcc		= V4L2_PIX_FMT_VYUY,
++		.colorspace	= V4L2_COLORSPACE_JPEG,
+ 		.depth		= { 16 },
+ 		.color		= FIMC_FMT_CRYCBY422,
+ 		.memplanes	= 1,
+@@ -68,6 +71,7 @@ static const struct fimc_fmt fimc_lite_formats[] = {
+ 	}, {
+ 		.name		= "YUV 4:2:2 packed, YCrYCb",
+ 		.fourcc		= V4L2_PIX_FMT_YVYU,
++		.colorspace	= V4L2_COLORSPACE_JPEG,
+ 		.depth		= { 16 },
+ 		.color		= FIMC_FMT_YCRYCB422,
+ 		.memplanes	= 1,
+@@ -76,6 +80,7 @@ static const struct fimc_fmt fimc_lite_formats[] = {
+ 	}, {
+ 		.name		= "RAW8 (GRBG)",
+ 		.fourcc		= V4L2_PIX_FMT_SGRBG8,
++		.colorspace	= V4L2_COLORSPACE_SRGB,
+ 		.depth		= { 8 },
+ 		.color		= FIMC_FMT_RAW8,
+ 		.memplanes	= 1,
+@@ -84,6 +89,7 @@ static const struct fimc_fmt fimc_lite_formats[] = {
+ 	}, {
+ 		.name		= "RAW10 (GRBG)",
+ 		.fourcc		= V4L2_PIX_FMT_SGRBG10,
++		.colorspace	= V4L2_COLORSPACE_SRGB,
+ 		.depth		= { 10 },
+ 		.color		= FIMC_FMT_RAW10,
+ 		.memplanes	= 1,
+@@ -92,6 +98,7 @@ static const struct fimc_fmt fimc_lite_formats[] = {
+ 	}, {
+ 		.name		= "RAW12 (GRBG)",
+ 		.fourcc		= V4L2_PIX_FMT_SGRBG12,
++		.colorspace	= V4L2_COLORSPACE_SRGB,
+ 		.depth		= { 12 },
+ 		.color		= FIMC_FMT_RAW12,
+ 		.memplanes	= 1,
+@@ -560,38 +567,35 @@ static const struct v4l2_file_operations fimc_lite_fops = {
+  * Format and crop negotiation helpers
+  */
+ 
+-static const struct fimc_fmt *fimc_lite_try_format(struct fimc_lite *fimc,
+-					u32 *width, u32 *height,
+-					u32 *code, u32 *fourcc, int pad)
++static const struct fimc_fmt *fimc_lite_subdev_try_fmt(struct fimc_lite *fimc,
++					struct v4l2_subdev_format *format)
+ {
+ 	struct flite_drvdata *dd = fimc->dd;
++	struct v4l2_mbus_framefmt *mf = &format->format;
+ 	const struct fimc_fmt *fmt;
+ 	unsigned int flags = 0;
+ 
+-	if (pad == FLITE_SD_PAD_SINK) {
+-		v4l_bound_align_image(width, 8, dd->max_width,
+-				      ffs(dd->out_width_align) - 1,
+-				      height, 0, dd->max_height, 0, 0);
++	if (format->pad == FLITE_SD_PAD_SINK) {
++		v4l_bound_align_image(&mf->width, 8, dd->max_width,
++				ffs(dd->out_width_align) - 1,
++				&mf->height, 0, dd->max_height, 0, 0);
+ 	} else {
+-		v4l_bound_align_image(width, 8, fimc->inp_frame.rect.width,
+-				      ffs(dd->out_width_align) - 1,
+-				      height, 0, fimc->inp_frame.rect.height,
+-				      0, 0);
++		v4l_bound_align_image(&mf->width, 8, fimc->inp_frame.rect.width,
++				ffs(dd->out_width_align) - 1,
++				&mf->height, 0, fimc->inp_frame.rect.height,
++				0, 0);
+ 		flags = fimc->inp_frame.fmt->flags;
+ 	}
+ 
+-	fmt = fimc_lite_find_format(fourcc, code, flags, 0);
++	fmt = fimc_lite_find_format(NULL, &mf->code, flags, 0);
+ 	if (WARN_ON(!fmt))
+ 		return NULL;
+ 
+-	if (code)
+-		*code = fmt->mbus_code;
+-	if (fourcc)
+-		*fourcc = fmt->fourcc;
++	mf->colorspace = fmt->colorspace;
++	mf->code = fmt->mbus_code;
+ 
+ 	v4l2_dbg(1, debug, &fimc->subdev, "code: 0x%x, %dx%d\n",
+-		 code ? *code : 0, *width, *height);
+-
++				mf->code, mf->width, mf->height);
+ 	return fmt;
+ }
+ 
+@@ -682,7 +686,7 @@ static int fimc_lite_g_fmt_mplane(struct file *file, void *fh,
+ 	pixm->width = frame->f_width;
+ 	pixm->height = frame->f_height;
+ 	pixm->field = V4L2_FIELD_NONE;
+-	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	pixm->colorspace = fmt->colorspace;
+ 	return 0;
+ }
+ 
+@@ -725,7 +729,7 @@ static int fimc_lite_try_fmt(struct fimc_lite *fimc,
+ 						fmt->depth[0]) / 8;
+ 	pixm->num_planes = fmt->memplanes;
+ 	pixm->pixelformat = fmt->fourcc;
+-	pixm->colorspace = V4L2_COLORSPACE_JPEG;
++	pixm->colorspace = fmt->colorspace;
+ 	pixm->field = V4L2_FIELD_NONE;
+ 	return 0;
+ }
+@@ -1057,9 +1061,9 @@ static int fimc_lite_subdev_get_fmt(struct v4l2_subdev *sd,
+ 		fmt->format = *mf;
+ 		return 0;
+ 	}
+-	mf->colorspace = V4L2_COLORSPACE_JPEG;
+ 
+ 	mutex_lock(&fimc->lock);
++	mf->colorspace = f->fmt->colorspace;
+ 	mf->code = f->fmt->mbus_code;
+ 
+ 	if (fmt->pad == FLITE_SD_PAD_SINK) {
+@@ -1088,7 +1092,6 @@ static int fimc_lite_subdev_set_fmt(struct v4l2_subdev *sd,
+ 	v4l2_dbg(1, debug, sd, "pad%d: code: 0x%x, %dx%d\n",
+ 		 fmt->pad, mf->code, mf->width, mf->height);
+ 
+-	mf->colorspace = V4L2_COLORSPACE_JPEG;
+ 	mutex_lock(&fimc->lock);
+ 
+ 	if ((atomic_read(&fimc->out_path) == FIMC_IO_ISP &&
+@@ -1099,8 +1102,7 @@ static int fimc_lite_subdev_set_fmt(struct v4l2_subdev *sd,
+ 		return -EBUSY;
+ 	}
+ 
+-	ffmt = fimc_lite_try_format(fimc, &mf->width, &mf->height,
+-				    &mf->code, NULL, fmt->pad);
++	ffmt = fimc_lite_subdev_try_fmt(fimc, fmt);
+ 
+ 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
+ 		struct v4l2_mbus_framefmt *src_fmt;
+diff --git a/include/media/s5p_fimc.h b/include/media/s5p_fimc.h
+index 0afadb6..b975c28 100644
+--- a/include/media/s5p_fimc.h
++++ b/include/media/s5p_fimc.h
+@@ -116,6 +116,7 @@ struct s5p_platform_fimc {
+  * @color: the driver's private color format id
+  * @memplanes: number of physically non-contiguous data planes
+  * @colplanes: number of physically contiguous data planes
++ * @colorspace: v4l2 colorspace (V4L2_COLORSPACE_*)
+  * @depth: per plane driver's private 'number of bits per pixel'
+  * @mdataplanes: bitmask indicating meta data plane(s), (1 << plane_no)
+  * @flags: flags indicating which operation mode format applies to
+@@ -127,6 +128,7 @@ struct fimc_fmt {
+ 	u32	color;
+ 	u16	memplanes;
+ 	u16	colplanes;
++	u8	colorspace;
+ 	u8	depth[FIMC_MAX_PLANES];
+ 	u16	mdataplanes;
+ 	u16	flags;
+-- 
+1.7.9.5
 
-Hi,
-You should select YUYV before disabling the video processing.
-
-So with video processing still enabled:
-
-set YUYV format
-set the desired fps and resolution
-set exposure
-
-now disable video processing and set the bayer order
-
-every time you need to change exposure or resolution you need to
-enable video processing first.
-
-Regards,
-Paulo
-
-2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>:
-> Hello Paulo
-> Thank you for your quick response.
-> Unfortunately if I select YUYV or any other format that is not MJPG data flow stops and I see timeouts appear in the console.
->
-> Does this represent a bug in either the webcam's UVC support or the UVC driver? If so I presume there is no likely quick workaround.
->
-> Phil
->
-> ________________________________
-> From: Paulo Assis <pj.assis@gmail.com>
-> To: phil rosenberg <philip_rosenberg@yahoo.com>
-> Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-> Sent: Tuesday, 11 June 2013, 10:11
-> Subject: Re:
->
->
->
-> Hi,
-> make sure you are streaming in YUYV format and not in MJPG or any of the libv4l formats since these are decoded from MJPG.
->
-> If you are using guvcview for the stream preview you should also set the bayer pattern accordindly since it will depend on whathever resolution you are using.
->
-> Regards,
-> Paulo
->
->
->
->
-> 2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>
->
-> Hi this is my first email to the list, I'm hoping someone can help
->>I have a logitech C300 webcam with the option of raw/bayer output. This works fine on windows where the RGB output consists of zeros in the r and b bytes and pixel intensitey in the g byte. However on linux when I activate the webcam using uvcdynctrl and/or the options in guvcview the out put seems to be corrupted. I get something that looks like multiple images interlaces and displaced horizontally, generally pink. I've put an example of an extracted avi frame at http://homepages.see.leeds.ac.uk/~earpros/test0.png,which is a close up of one of my daughters hair clips and shows an (upside down) picture of a disney character.
->>I'm wondering if the UVC/V4L2 driver is interpretting the data as mjpeg and incorrectly decoding it giving the corruption. When I use guvcview I can choose the input format, but the only one that works in mjpeg, all others cause timeouts and no data. The image also has the tell-tale 8x8 jpeg block effect. Is there any way I can stop this decoding happening and get to the raw data? Presumably if my theory is correct then the decompression is lossy so cannot be undone.
->>Any help or suggestions welcome.
->>
->>Phil
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
---
-To unsubscribe from this list: send the line "unsubscribe linux-media" in
-the body of a message to majordomo@vger.kernel.org
-More majordomo info at  http://vger.kernel.org/majordomo-info.html
