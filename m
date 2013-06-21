@@ -1,65 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:39280 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750760Ab3F2I6k (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 29 Jun 2013 04:58:40 -0400
-Message-ID: <51CEA197.8070207@ti.com>
-Date: Sat, 29 Jun 2013 14:27:59 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:50590 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161523Ab3FUQTE (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 12:19:04 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [REVIEW PATCH] v4l2-controls.h: fix copy-and-paste error in comment
+Date: Fri, 21 Jun 2013 18:19:22 +0200
+Message-ID: <1518252.jVldMt7J07@avalon>
+In-Reply-To: <1371794734-10078-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371794734-10078-1-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-CC: Hui Wang <jason77.wang@gmail.com>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<kyungmin.park@samsung.com>, <balbi@ti.com>, <t.figa@samsung.com>,
-	<devicetree-discuss@lists.ozlabs.org>, <kgene.kim@samsung.com>,
-	<dh09.lee@samsung.com>, <jg1.han@samsung.com>,
-	<inki.dae@samsung.com>, <plagnioj@jcrosoft.com>,
-	<linux-fbdev@vger.kernel.org>
-Subject: Re: [PATCH v3 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com> <1372258946-15607-2-git-send-email-s.nawrocki@samsung.com> <51CD4698.3070409@gmail.com> <51CD6153.5050406@samsung.com>
-In-Reply-To: <51CD6153.5050406@samsung.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Friday 21 June 2013 08:05:34 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> The comment for the FM_RX class was copied from the DV class unchanged.
+> Fixed.
+> 
+> Also made the FM_TX comment consistent with the others.
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Friday 28 June 2013 03:41 PM, Sylwester Nawrocki wrote:
-> On 06/28/2013 10:17 AM, Hui Wang wrote:
->> On 06/26/2013 11:02 PM, Sylwester Nawrocki wrote:
->>> Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
->>> receiver and MIPI DSI transmitter DPHYs.
->>>
->>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->>> ---
->>> Changes since v2:
->>>    - adapted to the generic PHY API v9: use phy_set/get_drvdata(),
->>>    - fixed of_xlate callback to return ERR_PTR() instead of NULL,
->>>    - namespace cleanup, put "GPL v2" as MODULE_LICENSE, removed pr_debug,
->>>    - removed phy id check in __set_phy_state().
->>> ---
->> [...]
->>> +
->>> +	if (IS_EXYNOS_MIPI_DSIM_PHY_ID(id))
->>> +		reset = EXYNOS_MIPI_PHY_MRESETN;
->>> +	else
->>> +		reset = EXYNOS_MIPI_PHY_SRESETN;
->>> +
->>> +	spin_lock_irqsave(&state->slock, flags);
->>
->> Sorry for one stupid question here, why do you use spin_lock_irqsave()
->> rather than spin_lock(),
->> I don't see the irq handler will use this spinlock anywhere in this c file.
->
-> Yes, there is no chance the PHY users could call the phy ops from within
-> an interrupt context. Especially now when there is a per phy object
-> mutex used in the PHY operation helpers. So I'll replace it with plain
-> spin_lock/unlock. Thank you for the review.
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
 
-Now that PHY ops is already protected, do you really need a spin_lock here?
+> ---
+>  include/uapi/linux/v4l2-controls.h | 4 ++--
+>  1 file changed, 2 insertions(+), 2 deletions(-)
+> 
+> diff --git a/include/uapi/linux/v4l2-controls.h
+> b/include/uapi/linux/v4l2-controls.h index 69bd5bb..e90a88a 100644
+> --- a/include/uapi/linux/v4l2-controls.h
+> +++ b/include/uapi/linux/v4l2-controls.h
+> @@ -53,13 +53,13 @@
+>  #define V4L2_CTRL_CLASS_USER		0x00980000	/* Old-style 'user' controls 
+*/
+>  #define V4L2_CTRL_CLASS_MPEG		0x00990000	/* MPEG-compression controls 
+*/
+>  #define V4L2_CTRL_CLASS_CAMERA		0x009a0000	/* Camera class controls 
+*/
+> -#define V4L2_CTRL_CLASS_FM_TX		0x009b0000	/* FM Modulator control 
+class */
+> +#define V4L2_CTRL_CLASS_FM_TX		0x009b0000	/* FM Modulator controls 
+*/
+>  #define V4L2_CTRL_CLASS_FLASH		0x009c0000	/* Camera flash controls 
+*/
+>  #define V4L2_CTRL_CLASS_JPEG		0x009d0000	/* JPEG-compression controls 
+*/
+>  #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source 
+controls */
+> #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing 
+controls
+> */ #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
+> -#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video 
+controls */
+> +#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls 
+*/
+> 
+>  /* User-class control IDs */
+-- 
+Regards,
 
-Thanks
-Kishon
+Laurent Pinchart
+
