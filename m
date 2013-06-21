@@ -1,160 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4544 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754331Ab3FCJhd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 05:37:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 13/13] v4l2: remove deprecated current_norm support completely.
-Date: Mon,  3 Jun 2013 11:36:50 +0200
-Message-Id: <1370252210-4994-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-la0-f41.google.com ([209.85.215.41]:52388 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751138Ab3FUJkO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 05:40:14 -0400
+Received: by mail-la0-f41.google.com with SMTP id fn20so6920694lab.0
+        for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 02:40:12 -0700 (PDT)
+Message-ID: <51C41F66.1060300@cogentembedded.com>
+Date: Fri, 21 Jun 2013 13:39:50 +0400
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+MIME-Version: 1.0
+To: Katsuya MATSUBARA <matsu@igel.co.jp>
+CC: sergei.shtylyov@cogentembedded.com, g.liakhovetski@gmx.de,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com
+Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <201305240211.29665.sergei.shtylyov@cogentembedded.com>	<20130621.134659.460987965.matsu@igel.co.jp>	<51C40974.600@cogentembedded.com> <20130621.180932.452518378.matsu@igel.co.jp>
+In-Reply-To: <20130621.180932.452518378.matsu@igel.co.jp>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi  Matsubara-san,
 
-The use of current_norm to keep track of the current standard has been
-deprecated for quite some time. Now that all drivers that were using it
-have been converted to use g_std we can drop it from the core.
-
-It was a bad idea to introduce this at the time: since it is a per-device
-node field it didn't work for drivers that create multiple nodes, all sharing
-the same tuner (e.g. video and vbi nodes, or a raw video node and a compressed
-video node). In addition it was very surprising behavior that g_std was
-implemented in the core. Often drivers implemented both g_std and current_norm,
-because they didn't understand how it should be used.
-
-Since the benefits were very limited (if they were there at all), it is better
-to just drop it and require that drivers just implement g_std.
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dev.c   |    5 ++---
- drivers/media/v4l2-core/v4l2-ioctl.c |   34 ++++------------------------------
- include/media/v4l2-dev.h             |    1 -
- 3 files changed, 6 insertions(+), 34 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 5923c5d..2f3fac5 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -675,9 +675,8 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 		SET_VALID_IOCTL(ops, VIDIOC_PREPARE_BUF, vidioc_prepare_buf);
- 		if (ops->vidioc_s_std)
- 			set_bit(_IOC_NR(VIDIOC_ENUMSTD), valid_ioctls);
--		if (ops->vidioc_g_std || vdev->current_norm)
--			set_bit(_IOC_NR(VIDIOC_G_STD), valid_ioctls);
- 		SET_VALID_IOCTL(ops, VIDIOC_S_STD, vidioc_s_std);
-+		SET_VALID_IOCTL(ops, VIDIOC_G_STD, vidioc_g_std);
- 		if (is_rx) {
- 			SET_VALID_IOCTL(ops, VIDIOC_QUERYSTD, vidioc_querystd);
- 			SET_VALID_IOCTL(ops, VIDIOC_ENUMINPUT, vidioc_enum_input);
-@@ -705,7 +704,7 @@ static void determine_valid_ioctls(struct video_device *vdev)
- 		if (ops->vidioc_cropcap || ops->vidioc_g_selection)
- 			set_bit(_IOC_NR(VIDIOC_CROPCAP), valid_ioctls);
- 		if (ops->vidioc_g_parm || (vdev->vfl_type == VFL_TYPE_GRABBER &&
--					(ops->vidioc_g_std || vdev->current_norm)))
-+					ops->vidioc_g_std))
- 			set_bit(_IOC_NR(VIDIOC_G_PARM), valid_ioctls);
- 		SET_VALID_IOCTL(ops, VIDIOC_S_PARM, vidioc_s_parm);
- 		SET_VALID_IOCTL(ops, VIDIOC_S_DV_TIMINGS, vidioc_s_dv_timings);
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index f81bda1..fd0f112 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1364,40 +1364,18 @@ static int v4l_enumstd(const struct v4l2_ioctl_ops *ops,
- 	return 0;
- }
- 
--static int v4l_g_std(const struct v4l2_ioctl_ops *ops,
--				struct file *file, void *fh, void *arg)
--{
--	struct video_device *vfd = video_devdata(file);
--	v4l2_std_id *id = arg;
--
--	/* Calls the specific handler */
--	if (ops->vidioc_g_std)
--		return ops->vidioc_g_std(file, fh, arg);
--	if (vfd->current_norm) {
--		*id = vfd->current_norm;
--		return 0;
--	}
--	return -ENOTTY;
--}
--
- static int v4l_s_std(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
- 	struct video_device *vfd = video_devdata(file);
- 	v4l2_std_id id = *(v4l2_std_id *)arg, norm;
--	int ret;
- 
- 	norm = id & vfd->tvnorms;
- 	if (vfd->tvnorms && !norm)	/* Check if std is supported */
- 		return -EINVAL;
- 
- 	/* Calls the specific handler */
--	ret = ops->vidioc_s_std(file, fh, norm);
--
--	/* Updates standard information */
--	if (ret >= 0)
--		vfd->current_norm = norm;
--	return ret;
-+	return ops->vidioc_s_std(file, fh, norm);
- }
- 
- static int v4l_querystd(const struct v4l2_ioctl_ops *ops,
-@@ -1500,7 +1478,6 @@ static int v4l_prepare_buf(const struct v4l2_ioctl_ops *ops,
- static int v4l_g_parm(const struct v4l2_ioctl_ops *ops,
- 				struct file *file, void *fh, void *arg)
- {
--	struct video_device *vfd = video_devdata(file);
- 	struct v4l2_streamparm *p = arg;
- 	v4l2_std_id std;
- 	int ret = check_fmt(file, p->type);
-@@ -1509,16 +1486,13 @@ static int v4l_g_parm(const struct v4l2_ioctl_ops *ops,
- 		return ret;
- 	if (ops->vidioc_g_parm)
- 		return ops->vidioc_g_parm(file, fh, p);
--	std = vfd->current_norm;
- 	if (p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE &&
- 	    p->type != V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
- 		return -EINVAL;
- 	p->parm.capture.readbuffers = 2;
--	if (is_valid_ioctl(vfd, VIDIOC_G_STD) && ops->vidioc_g_std)
--		ret = ops->vidioc_g_std(file, fh, &std);
-+	ret = ops->vidioc_g_std(file, fh, &std);
- 	if (ret == 0)
--		v4l2_video_std_frame_period(std,
--			    &p->parm.capture.timeperframe);
-+		v4l2_video_std_frame_period(std, &p->parm.capture.timeperframe);
- 	return ret;
- }
- 
-@@ -2053,7 +2027,7 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
- 	IOCTL_INFO_FNC(VIDIOC_STREAMOFF, v4l_streamoff, v4l_print_buftype, INFO_FL_PRIO | INFO_FL_QUEUE),
- 	IOCTL_INFO_FNC(VIDIOC_G_PARM, v4l_g_parm, v4l_print_streamparm, INFO_FL_CLEAR(v4l2_streamparm, type)),
- 	IOCTL_INFO_FNC(VIDIOC_S_PARM, v4l_s_parm, v4l_print_streamparm, INFO_FL_PRIO),
--	IOCTL_INFO_FNC(VIDIOC_G_STD, v4l_g_std, v4l_print_std, 0),
-+	IOCTL_INFO_STD(VIDIOC_G_STD, vidioc_g_std, v4l_print_std, 0),
- 	IOCTL_INFO_FNC(VIDIOC_S_STD, v4l_s_std, v4l_print_std, INFO_FL_PRIO),
- 	IOCTL_INFO_FNC(VIDIOC_ENUMSTD, v4l_enumstd, v4l_print_standard, INFO_FL_CLEAR(v4l2_standard, index)),
- 	IOCTL_INFO_FNC(VIDIOC_ENUMINPUT, v4l_enuminput, v4l_print_enuminput, INFO_FL_CLEAR(v4l2_input, index)),
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index 95d1c91..b2c3776 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -129,7 +129,6 @@ struct video_device
- 
- 	/* Video standard vars */
- 	v4l2_std_id tvnorms;		/* Supported tv norms */
--	v4l2_std_id current_norm;	/* Current tvnorm */
- 
- 	/* callbacks */
- 	void (*release)(struct video_device *vdev);
--- 
-1.7.10.4
+Katsuya MATSUBARA wrote:
+> Hi Vladimir,
+>
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> Date: Fri, 21 Jun 2013 12:06:12 +0400
+>
+>   
+>> Hi  Matsubara-san,
+>>
+>> Katsuya MATSUBARA wrote:
+>>     
+>>> Hi Sergei and Valadmir,
+>>>
+>>> From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>>> Date: Fri, 24 May 2013 02:11:28 +0400
+>>>
+>>> (snip)
+>>>   
+>>>       
+>>>> +/* Similar to set_crop multistage iterative algorithm */
+>>>> +static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+>>>> +			    struct v4l2_format *f)
+>>>> +{
+>>>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>>>> +	struct rcar_vin_priv *priv = ici->priv;
+>>>> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>>>> +	struct rcar_vin_cam *cam = icd->host_priv;
+>>>> +	struct v4l2_pix_format *pix = &f->fmt.pix;
+>>>> +	struct v4l2_mbus_framefmt mf;
+>>>> +	struct device *dev = icd->parent;
+>>>> +	__u32 pixfmt = pix->pixelformat;
+>>>> +	const struct soc_camera_format_xlate *xlate;
+>>>> +	unsigned int vin_sub_width = 0, vin_sub_height = 0;
+>>>> +	int ret;
+>>>> +	bool can_scale;
+>>>> +	enum v4l2_field field;
+>>>> +	v4l2_std_id std;
+>>>> +
+>>>> +	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
+>>>> +		pixfmt, pix->width, pix->height);
+>>>> +
+>>>> +	switch (pix->field) {
+>>>> +	default:
+>>>> +		pix->field = V4L2_FIELD_NONE;
+>>>> +		/* fall-through */
+>>>> +	case V4L2_FIELD_NONE:
+>>>> +	case V4L2_FIELD_TOP:
+>>>> +	case V4L2_FIELD_BOTTOM:
+>>>> +	case V4L2_FIELD_INTERLACED_TB:
+>>>> +	case V4L2_FIELD_INTERLACED_BT:
+>>>> +		field = pix->field;
+>>>> +		break;
+>>>> +	case V4L2_FIELD_INTERLACED:
+>>>> + /* Query for standard if not explicitly mentioned _TB/_BT */
+>>>> +		ret = v4l2_subdev_call(sd, video, querystd, &std);
+>>>> +		if (ret < 0)
+>>>> +			std = V4L2_STD_625_50;
+>>>> +
+>>>> + field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
+>>>> +						V4L2_FIELD_INTERLACED_BT;
+>>>> +		break;
+>>>> +	}
+>>>>     
+>>>>         
+>>> I have tested your VIN driver with NTSC video input
+>>> with the following two boards;
+>>>
+>>> 1. Marzen (R-CarH1 SoC and ADV7180 video decoder)
+>>> 2. BOCK-W (R-CarM1A SoC and ML86V7667 video decoder)
+>>>
+>>> As a result, I have got strange captured images in the BOCK-W
+>>> environment. The image looks that the top and bottom fields
+>>> have been combined in wrong order.
+>>> However, in case of Marzen, it works fine with correct images
+>>> captured. I made sure that the driver chose the
+>>> V4L2_FIELD_INTERLACED_BT flag for the NTSC standard video
+>>> in the both environments.
+>>>
+>>> Have you seen such an iusse with the ML86V7667 driver?
+>>> I think there may be some mismatch between the VIN
+>>> and the ML86V7667 settings.
+>>>   
+>>>       
+>> Unfortunately, I had ability to test decoder only with PAL camera. And
+>> I've made the fake tests for NTSC standard reported by video decoders
+>> to validate the difference on captured image.
+>> The interlace on bock-w was correct for PAL standard in accordance to
+>> above tests.
+>>
+>> I have been able to see incorrect mix up of _TB/_BT only in case of
+>> i2c transaction fails during subdevice V4L2_STD runtime query.
+>>     
+>
+> I have slightly investigated the issue on bock-w.
+>
+> I have not seen such i2c errors during capturing and booting.
+> But I have seen that querystd() in the ml86v7667 driver often
+> returns V4L2_STD_UNKNOWN, although the corresponding function
+>   
+could you try Hans's fix:
+https://patchwork.kernel.org/patch/2640701/
+> in the adv7180 driver always returns V4L2_STD_525_60 for NTSC video.
+> The driver also chose '_BT' for V4L2_STD_UNKNOWN, so even in this
+> case the display should be fine for NTSC video.
+> I have confirmed that the driver always selects '_BT' for NTSC
+> video even if I repeat it several times in my environment.
+>
+> Thanks,
+> ---
+>  Katsuya Matsubara / IGEL Co., Ltd
+>  matsu@igel.co.jp
+>
+>   
 
