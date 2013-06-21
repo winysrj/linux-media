@@ -1,126 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43147 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751043Ab3FQSWY (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35560 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161506Ab3FUHzk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 14:22:24 -0400
-Date: Mon, 17 Jun 2013 19:21:27 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Rob Clark <robdclark@gmail.com>,
-	"myungjoo.ham" <myungjoo.ham@samsung.com>,
-	YoungJun Cho <yj44.cho@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-	framework
-Message-ID: <20130617182127.GM2718@n2100.arm.linux.org.uk>
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com> <1371467722-665-1-git-send-email-inki.dae@samsung.com> <51BEF458.4090606@canonical.com> <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com> <20130617133109.GG2718@n2100.arm.linux.org.uk> <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com> <20130617154237.GJ2718@n2100.arm.linux.org.uk> <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com>
+	Fri, 21 Jun 2013 03:55:40 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?q?Ga=C3=ABtan=20Carlier?= <gcembed@gmail.com>,
+	Wei Yongjun <weiyj.lk@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 7/8] [media] coda: split encoder specific parts out of device_run and irq_handler
+Date: Fri, 21 Jun 2013 09:55:33 +0200
+Message-Id: <1371801334-22324-8-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
+References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 18, 2013 at 02:19:04AM +0900, Inki Dae wrote:
-> It seems like that all pages of the scatterlist should be mapped with
-> DMA every time DMA operation  is started (or drm_xxx_set_src_dma_buffer
-> function call), and the pages should be unmapped from DMA again every
-> time DMA operation is completed: internally, including each cache
-> operation.
+Add coda_prepare_encode() and coda_finish_encode() functions. They are called
+from coda_device_run() and coda_irq_handler(), respectively, before and after
+the hardware picture run. This should make the following decoder support patch
+easier to read, which will add the coda_prepare/finish_decode() equivalents.
 
-Correct.
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 82 +++++++++++++++++++++++++------------------
+ 1 file changed, 48 insertions(+), 34 deletions(-)
 
-> Isn't that big overhead?
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 856a93e..e8b3708 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -793,9 +793,8 @@ static void coda_fill_bitstream(struct coda_ctx *ctx)
+ /*
+  * Mem-to-mem operations.
+  */
+-static void coda_device_run(void *m2m_priv)
++static void coda_prepare_encode(struct coda_ctx *ctx)
+ {
+-	struct coda_ctx *ctx = m2m_priv;
+ 	struct coda_q_data *q_data_src, *q_data_dst;
+ 	struct vb2_buffer *src_buf, *dst_buf;
+ 	struct coda_dev *dev = ctx->dev;
+@@ -805,8 +804,6 @@ static void coda_device_run(void *m2m_priv)
+ 	u32 pic_stream_buffer_addr, pic_stream_buffer_size;
+ 	u32 dst_fourcc;
+ 
+-	mutex_lock(&dev->coda_mutex);
+-
+ 	src_buf = v4l2_m2m_next_src_buf(ctx->m2m_ctx);
+ 	dst_buf = v4l2_m2m_next_dst_buf(ctx->m2m_ctx);
+ 	q_data_src = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_OUTPUT);
+@@ -917,6 +914,16 @@ static void coda_device_run(void *m2m_priv)
+ 	coda_write(dev, pic_stream_buffer_addr, CODA_CMD_ENC_PIC_BB_START);
+ 	coda_write(dev, pic_stream_buffer_size / 1024,
+ 		   CODA_CMD_ENC_PIC_BB_SIZE);
++}
++
++static void coda_device_run(void *m2m_priv)
++{
++	struct coda_ctx *ctx = m2m_priv;
++	struct coda_dev *dev = ctx->dev;
++
++	mutex_lock(&dev->coda_mutex);
++
++	coda_prepare_encode(ctx);
+ 
+ 	if (dev->devtype->product == CODA_7541) {
+ 		coda_write(dev, CODA7_USE_BIT_ENABLE | CODA7_USE_HOST_BIT_ENABLE |
+@@ -2025,39 +2032,11 @@ static const struct v4l2_file_operations coda_fops = {
+ 	.mmap		= coda_mmap,
+ };
+ 
+-static irqreturn_t coda_irq_handler(int irq, void *data)
++static void coda_encode_finish(struct coda_ctx *ctx)
+ {
+ 	struct vb2_buffer *src_buf, *dst_buf;
+-	struct coda_dev *dev = data;
++	struct coda_dev *dev = ctx->dev;
+ 	u32 wr_ptr, start_ptr;
+-	struct coda_ctx *ctx;
+-
+-	cancel_delayed_work(&dev->timeout);
+-
+-	/* read status register to attend the IRQ */
+-	coda_read(dev, CODA_REG_BIT_INT_STATUS);
+-	coda_write(dev, CODA_REG_BIT_INT_CLEAR_SET,
+-		      CODA_REG_BIT_INT_CLEAR);
+-
+-	ctx = v4l2_m2m_get_curr_priv(dev->m2m_dev);
+-	if (ctx == NULL) {
+-		v4l2_err(&dev->v4l2_dev, "Instance released before the end of transaction\n");
+-		mutex_unlock(&dev->coda_mutex);
+-		return IRQ_HANDLED;
+-	}
+-
+-	if (ctx->aborting) {
+-		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+-			 "task has been aborted\n");
+-		mutex_unlock(&dev->coda_mutex);
+-		return IRQ_HANDLED;
+-	}
+-
+-	if (coda_isbusy(ctx->dev)) {
+-		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
+-			 "coda is still busy!!!!\n");
+-		return IRQ_NONE;
+-	}
+ 
+ 	src_buf = v4l2_m2m_src_buf_remove(ctx->m2m_ctx);
+ 	dst_buf = v4l2_m2m_dst_buf_remove(ctx->m2m_ctx);
+@@ -2106,6 +2085,41 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+ 		dst_buf->v4l2_buf.sequence,
+ 		(dst_buf->v4l2_buf.flags & V4L2_BUF_FLAG_KEYFRAME) ?
+ 		"KEYFRAME" : "PFRAME");
++}
++
++static irqreturn_t coda_irq_handler(int irq, void *data)
++{
++	struct coda_dev *dev = data;
++	struct coda_ctx *ctx;
++
++	cancel_delayed_work(&dev->timeout);
++
++	/* read status register to attend the IRQ */
++	coda_read(dev, CODA_REG_BIT_INT_STATUS);
++	coda_write(dev, CODA_REG_BIT_INT_CLEAR_SET,
++		      CODA_REG_BIT_INT_CLEAR);
++
++	ctx = v4l2_m2m_get_curr_priv(dev->m2m_dev);
++	if (ctx == NULL) {
++		v4l2_err(&dev->v4l2_dev, "Instance released before the end of transaction\n");
++		mutex_unlock(&dev->coda_mutex);
++		return IRQ_HANDLED;
++	}
++
++	if (ctx->aborting) {
++		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
++			 "task has been aborted\n");
++		mutex_unlock(&dev->coda_mutex);
++		return IRQ_HANDLED;
++	}
++
++	if (coda_isbusy(ctx->dev)) {
++		v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev,
++			 "coda is still busy!!!!\n");
++		return IRQ_NONE;
++	}
++
++	coda_encode_finish(ctx);
+ 
+ 	mutex_unlock(&dev->coda_mutex);
+ 
+-- 
+1.8.3.1
 
-Yes, if you _have_ to do a cache operation to ensure that the DMA agent
-can see the data the CPU has written.
-
-> And If there is no problem, we should accept such overhead?
-
-If there is no problem then why are we discussing this and why do we need
-this API extension? :)
-
-> Actually, drm_gem_fd_to_handle() includes to map a
-> given dmabuf with iommu table (just logical data) of the DMA. And then, the
-> device address (or iova) already mapped will be set to buffer register of
-> the DMA with drm_xxx_set_src/dst_dma_buffer(handle1, ...) call.
-
-Consider this with a PIPT cache:
-
-	dma_map_sg()	- at this point, the kernel addresses of these
-			buffers are cleaned and invalidated for the DMA
-
-	userspace writes to the buffer, the data sits in the CPU cache
-	Because the cache is PIPT, this data becomes visible to the
-	kernel as well.
-
-	DMA is started, and it writes to the buffer
-
-Now, at this point, which is the correct data?  The data physically in the
-RAM which the DMA has written, or the data in the CPU cache.  It may
-the answer is - they both are, and the loss of either can be a potential
-data corruption issue - there is no way to tell which data should be
-kept but the system is in an inconsistent state and _one_ of them will
-have to be discarded.
-
-	dma_unmap_sg()	- at this point, the kernel addresses of the
-			buffers are _invalidated_ and any data in those
-			cache lines is discarded
-
-Which also means that the data in userspace will also be discarded with
-PIPT caches.
-
-This is precisely why we have buffer rules associated with the DMA API,
-which are these:
-
-	dma_map_sg()
-	- the buffer transfers ownership from the CPU to the DMA agent.
-	- the CPU may not alter the buffer in any way.
-	while (cpu_wants_access) {
-		dma_sync_sg_for_cpu()
-		- the buffer transfers ownership from the DMA to the CPU.
-		- the DMA may not alter the buffer in any way.
-		dma_sync_sg_for_device()
-		- the buffer transfers ownership from the CPU to the DMA
-		- the CPU may not alter the buffer in any way.
-	}
-	dma_unmap_sg()
-	- the buffer transfers ownership from the DMA to the CPU.
-	- the DMA may not alter the buffer in any way.
-
-Any violation of that is likely to lead to data corruption.  Now, some
-may say that the DMA API is only about the kernel mapping.  Yes it is,
-because it takes no regard what so ever about what happens with the
-userspace mappings.  This is absolutely true when you have VIVT or
-aliasing VIPT caches.
-
-Now consider that with a PIPT cache, or a non-aliasing VIPT cache (which
-is exactly the same behaviourally from this aspect) any modification of
-a userspace mapping is precisely the same as modifying the kernel space
-mapping - and what you find is that the above rules end up _inherently_
-applying to the userspace mappings as well.
-
-In other words, userspace applications which have mapped the buffers
-must _also_ respect these rules.
-
-And there's no way in hell that I'd ever trust userspace to get this
-anywhere near right, and I *really* do not like these kinds of internal
-kernel API rules being exposed to userspace.
-
-And so the idea that userspace should be allowed to setup DMA transfers
-via "set source buffer", "set destination buffer" calls into an API is
-just plain rediculous.  No, userspace should be allowed to ask for
-"please copy from buffer X to buffer Y using this transform".
-
-Also remember that drm_xxx_set_src/dst_dma_buffer() would have to
-deal with the DRM object IDs for the buffer, and not the actual buffer
-information themselves - that is kept within the kernel, so the kernel
-knows what's happening.
