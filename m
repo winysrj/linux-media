@@ -1,81 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:42500 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750949Ab3FJNp3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 09:45:29 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MO600ER7JHBPU80@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Jun 2013 14:45:27 +0100 (BST)
-Message-id: <51B5D876.2000704@samsung.com>
-Date: Mon, 10 Jun 2013 15:45:26 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
-Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
-	jtp.park@samsung.com, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: Re: [PATCH 5/6] [media] V4L: Add VP8 encoder controls
-References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
- <1370870586-24141-6-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1370870586-24141-6-git-send-email-arun.kk@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from co9ehsobe002.messaging.microsoft.com ([207.46.163.25]:12934
+	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1423210Ab3FUPX7 convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 11:23:59 -0400
+From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "a.andreyanau@sam-solutions.com" <a.andreyanau@sam-solutions.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: AW: mt9p031 shows purple coloured capture
+Date: Fri, 21 Jun 2013 15:23:53 +0000
+Message-ID: <6EE9CD707FBED24483D4CB0162E8546745F4216D@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+References: <6EE9CD707FBED24483D4CB0162E8546745F30330@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+ <3299481.jsSH8LsWuG@avalon>
+In-Reply-To: <3299481.jsSH8LsWuG@avalon>
+Content-Language: de-DE
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Hi Laurent,
 
-On 06/10/2013 03:23 PM, Arun Kumar K wrote:
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index fccd08b..2cf17d4 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -456,6 +456,23 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  		"RGB full range (0-255)",
->  		NULL,
->  	};
-> +	static const char * const vpx_num_partitions[] = {
-> +		"1 partition",
-> +		"2 partitions",
-> +		"4 partitions",
-> +		"8 partitions",
-> +		NULL,
-> +	};
-> +	static const char * const vpx_num_ref_frames[] = {
-> +		"1 reference frame",
-> +		"2 reference frame",
-> +		NULL,
-> +	};
+Laurent Pinchart wrote on 2013-06-18:
 
-Have you considered using V4L2_CTRL_TYPE_INTEGER_MENU control type for this ?
-One example is V4L2_CID_ISO_SENSITIVITY control.
+>> If I use omap3isp-live to capture a stream on my beagleboard, the first
+>> time I start the app, the picture has always a green taint. The second
+>> time I start the app, the picture is good. As the camera is reset by a
+>> gpio upon device open, probably the CCDC or previewer is not
+>> initialized correctly? @Laurent: As I am unable to test it with another
+>> cam, does this also happen with your hardware or is it a problem
+>> specific to the mt9p031?
+> 
+> Last time I've tested my MT9P031 sensor with the Beagleboard-xM there
+> was no such issue.
+If I test it with yavta, it works also from the very first start. So there
+must be an issue in my (adapted) omap3-isp-live.
 
-> +/*  VPX streams, specific to multiplexed streams */
-> +#define V4L2_CID_VPX_NUM_PARTITIONS		(V4L2_CID_VPX_BASE+0)
-> +enum v4l2_vp8_num_partitions {
-> +	V4L2_VPX_1_PARTITION	= 0,
-> +	V4L2_VPX_2_PARTITIONS	= (1 << 1),
-> +	V4L2_VPX_4_PARTITIONS	= (1 << 2),
-> +	V4L2_VPX_8_PARTITIONS	= (1 << 3),
-> +};
-
-I think we could still have such standard value definitions if needed,
-but rather in form of:
-
-#define V4L2_VPX_1_PARTITION	1
-#define V4L2_VPX_2_PARTITIONS	2
-#define V4L2_VPX_4_PARTITIONS	4
-#define V4L2_VPX_8_PARTITIONS	8
-
-> +#define V4L2_CID_VPX_IMD_DISABLE_4X4		(V4L2_CID_VPX_BASE+1)
-> +#define V4L2_CID_VPX_NUM_REF_FRAMES		(V4L2_CID_VPX_BASE+2)
-> +enum v4l2_vp8_num_ref_frames {
-> +	V4L2_VPX_1_REF_FRAME	= 0,
-> +	V4L2_VPX_2_REF_FRAME	= 1,
-> +};
+> 
+>> The second problem is similiar to your problem:
+>> omap3isp-live has (thanks to Laurent) a built in snapshot-mode. So I
+>> am doing the following:
+>> 1. Streaming video, picture looks good on the second start 2. Taking a
+>> snapshot: The video stream will turn off, the isp-pipe reconfigured.
+>> Then the stream will be turned back on and the captured image will be
+>> written to memory.
+>> 3. The captured image will now be displayed, but the image is corrupted:
+>> Wrong colors and cut in half:
+>> https://www.dropbox.com/s/ijk1nq8nrhlobfd/bad-snapshot.jpg
+>> 4. It doesn't help to skip a few buffers, also the 3rd buffer looks bad.
+>> 5. Additional problem: The CCDC can't be stopped properly (omap3isp
+>> omap3isp: Unable to stop OMAP3 ISP CCDC) and sometimes the isp locks
+>> up completely.
+>> 
+>>> So I used the register 0x0B (Restart), bit 0 (abandon the current
+>>> frame and restart from the first row) set to 1 each time the
+>>> function s_stream is called.
+>> 
+>> The finding so far: If I do a frame-restart (the register 0x0b on
+>> mt9p031) upon stream-on, the CCDC can be stopped properly and the
+>> snapshot looks pretty good. BUT the colors are still messed up. If I
+>> then switch to streaming again, the colors sometimes turn to good but
+>> sometimes the picture is purple tainted. @Andrei: What have you done to
+>> get good colors?
+The color problem goes away nearly completely, if I do a power-off and 
+on in the mt9p031_s_stream function. It then happens only 
+1 out of 10 times. At least an improvement ;)
+I have the feeling, that the CCDC doesn't get all data on a stream restart
+and that causes a buffer corruption. Probably the sensor doesn't
+start outputting from the beginning (even with a frame restart).
+Any ideas on this?
 
 Regards,
-Sylwester
+Florian
+
+
