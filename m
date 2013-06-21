@@ -1,54 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f47.google.com ([74.125.83.47]:39898 "EHLO
-	mail-ee0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838Ab3FDLXF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jun 2013 07:23:05 -0400
-Received: by mail-ee0-f47.google.com with SMTP id e49so25921eek.20
-        for <linux-media@vger.kernel.org>; Tue, 04 Jun 2013 04:23:03 -0700 (PDT)
-From: Patrick Boettcher <pboettcher@kernellabs.com>
-To: Luca Olivetti <luca@ventoso.org>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Diversity support?
-Date: Tue, 04 Jun 2013 13:23:01 +0200
-Message-ID: <4964507.arsPbG4Yym@dibcom294>
-In-Reply-To: <51ACB2CA.6060503@ventoso.org>
-References: <507EE702.2010103@ventoso.org> <5091691A.4070903@ventoso.org> <51ACB2CA.6060503@ventoso.org>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mailout1.samsung.com ([203.254.224.24]:23891 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756683Ab3FUM4Q (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 08:56:16 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOQ003PEULMNPE0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Jun 2013 21:56:15 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, j.anaszewski@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 0/6] exynos4-is: TRY format propagation fixes
+Date: Fri, 21 Jun 2013 14:55:52 +0200
+Message-id: <1371819358-13106-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 03 June 2013 17:14:18 Luca Olivetti wrote:
-> >> So, what's the real status of diversity support?
-> > 
-> > Nobody knows?
-> 
-> I'm not easily discouraged :-) so here's the question again: is there
-> some dvb-t usb stick (possibly available on the EU market) with
-> diversity support under Linux?
+This series includes fixes of TRY format propagation, colospace
+handling and intial format setting on some exynos4-is subdevs.
 
-There is some diversity support hidden in the dib8000-driver and in some 
-board-drivers which use it. Basically it creates several instances of the 
-dib8000-driver (one for each demod) but it exposes only one dvb-frontend to 
-userspace via the API. When the user is tuning the frontend he is, in fact, 
-tuning all of them in diversity.
+Sylwester Nawrocki (6):
+  exynos4-is: Fix format propagation on FIMC-LITE.n subdevs
+  exynos4-is: Set valid initial format at FIMC-LITE
+  exynos4-is: Fix format propagation on FIMC-IS-ISP subdev
+  exynos4-is: Set valid initial format on FIMC-IS-ISP subdev pads
+  exynos4-is: Set valid initial format on FIMC.n subdevs
+  exynos4-is: Correct colorspace handling at FIMC-LITE
 
-IMO, the question which needs to be discussed is for diversity-support is an 
-"how to change the API"-question and how does userspace can control it?
-
-In my experience with multi-frontend-hardware, which can do diversity or 
-dual/triple-reception or both at the same time, is that the question is the 
-routing and the grouping of frontend and assigning them to their sinks 
-(stream-interfaces).
-
-Right now DVB-API can expose several frontends and dvrs and demuxes for one 
-device, but there is no way to userspace telling the hardware to combine 
-frontend0 and frontend1 to do diversity.
-
-When looking at diversity/multi-frontend problems, IMHO, we should not limit 
-ourselves to USB-devices. The real usage of those MFE-devices is in an 
-embedded hardware (STB in a car or at home).
+ drivers/media/platform/exynos4-is/fimc-capture.c |   19 +++-
+ drivers/media/platform/exynos4-is/fimc-core.h    |    2 +
+ drivers/media/platform/exynos4-is/fimc-isp.c     |  108 ++++++++++++++++------
+ drivers/media/platform/exynos4-is/fimc-isp.h     |    3 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c    |   95 +++++++++++++------
+ drivers/media/platform/exynos4-is/fimc-lite.h    |    2 +
+ include/media/s5p_fimc.h                         |    2 +
+ 7 files changed, 171 insertions(+), 60 deletions(-)
 
 --
-Patrick
+1.7.9.5
+
