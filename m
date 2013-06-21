@@ -1,118 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:55301 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1757461Ab3FGXI5 (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:49463 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1030216Ab3FUKc3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 7 Jun 2013 19:08:57 -0400
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: hverkuil@xs4all.nl
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	k.debski@samsung.com
-Subject: [PATCH v3 1/1] v4l: Document timestamp behaviour to correspond to reality
-Date: Sat,  8 Jun 2013 02:08:22 +0300
-Message-Id: <1370646503-12932-1-git-send-email-sakari.ailus@iki.fi>
+	Fri, 21 Jun 2013 06:32:29 -0400
+Received: by mail-la0-f45.google.com with SMTP id fr10so6997715lab.18
+        for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 03:32:28 -0700 (PDT)
+Message-ID: <51C42BA5.9050105@cogentembedded.com>
+Date: Fri, 21 Jun 2013 14:32:05 +0400
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+MIME-Version: 1.0
+To: Katsuya MATSUBARA <matsu@igel.co.jp>
+CC: sergei.shtylyov@cogentembedded.com, g.liakhovetski@gmx.de,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com
+Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <51C40974.600@cogentembedded.com>	<20130621.180932.452518378.matsu@igel.co.jp>	<51C41F66.1060300@cogentembedded.com> <20130621.190157.27985389.matsu@igel.co.jp>
+In-Reply-To: <20130621.190157.27985389.matsu@igel.co.jp>
+Content-Type: multipart/mixed;
+ boundary="------------000007070703010801000704"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Document that monotonic timestamps are taken after the corresponding frame
-has been received, not when the reception has begun. This corresponds to the
-reality of current drivers: the timestamp is naturally taken when the
-hardware triggers an interrupt to tell the driver to handle the received
-frame.
+This is a multi-part message in MIME format.
+--------------000007070703010801000704
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 
-Remove the note on timestamp accurary as it is fairly subjective what is
-actually an unstable timestamp.
+Katsuya MATSUBARA wrote:
+> Hi Vladimir,
+>
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> Date: Fri, 21 Jun 2013 13:39:50 +0400
+>
+> (snip)
+>   
+>>> I have not seen such i2c errors during capturing and booting.
+>>> But I have seen that querystd() in the ml86v7667 driver often
+>>> returns V4L2_STD_UNKNOWN, although the corresponding function
+>>>   
+>>>       
+>> could you try Hans's fix:
+>> https://patchwork.kernel.org/patch/2640701/
+>>     
+>
+> The fix has been already applied in my environment.
+>   
+I've found that after some iteration of submission we disabled the input 
+signal in autodetection in ml86v7667_init(). per recommendations.
+That could be the case why the input signal is not locked.
 
-Also remove explanation that output buffer timestamps can be used to delay
-outputting a frame.
+On adv7180 it still has optional autodetection but Hans recommended to 
+get rid from runtime autodetection.
+So I've added input signal detection only during boot time.
 
-Remove the footnote saying we always use realtime clock.
+Could you please try the attached patch?
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Regards,
+Vladimir
+
+--------------000007070703010801000704
+Content-Type: text/x-patch;
+ name="0054-ml86v7667_query_std_fix.patch"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: inline;
+ filename="0054-ml86v7667_query_std_fix.patch"
+
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+
+Subject: V4L2: decoder: ml86v7667: fix querystd
+
+Input signal autodetection is disabled, hence the cached V4L2_STD must be used
+
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+
 ---
-Since v2:
+ drivers/media/i2c/ml86v7667.c |   12 ++----------
+ 1 file changed, 2 insertions(+), 10 deletions(-)
 
-- Corrected based on comments from Hans Verkuil:
-  - Spelling corrections
-  - Consistently document buffer timestamps AFTER the capture / output
-
-- A note on "monitoring drift between video and system clok" removed
-
- Documentation/DocBook/media/v4l/io.xml |   51 ++++++--------------------------
- 1 file changed, 9 insertions(+), 42 deletions(-)
-
-diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-index 2c4c068..48f32c5 100644
---- a/Documentation/DocBook/media/v4l/io.xml
-+++ b/Documentation/DocBook/media/v4l/io.xml
-@@ -654,38 +654,11 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
- In that case, struct <structname>v4l2_buffer</structname> contains an array of
- plane structures.</para>
+Index: build/drivers/media/i2c/ml86v7667.c
+===================================================================
+--- build.orig/drivers/media/i2c/ml86v7667.c	2013-06-21 13:24:13.000000000 +0300
++++ build/drivers/media/i2c/ml86v7667.c	2013-06-21 13:26:07.308872980 +0300
+@@ -162,17 +162,9 @@
  
--      <para>Nominally timestamps refer to the first data byte transmitted.
--In practice however the wide range of hardware covered by the V4L2 API
--limits timestamp accuracy. Often an interrupt routine will
--sample the system clock shortly after the field or frame was stored
--completely in memory. So applications must expect a constant
--difference up to one field or frame period plus a small (few scan
--lines) random error. The delay and error can be much
--larger due to compression or transmission over an external bus when
--the frames are not properly stamped by the sender. This is frequently
--the case with USB cameras. Here timestamps refer to the instant the
--field or frame was received by the driver, not the capture time. These
--devices identify by not enumerating any video standards, see <xref
--linkend="standard" />.</para>
--
--      <para>Similar limitations apply to output timestamps. Typically
--the video hardware locks to a clock controlling the video timing, the
--horizontal and vertical synchronization pulses. At some point in the
--line sequence, possibly the vertical blanking, an interrupt routine
--samples the system clock, compares against the timestamp and programs
--the hardware to repeat the previous field or frame, or to display the
--buffer contents.</para>
--
--      <para>Apart of limitations of the video device and natural
--inaccuracies of all clocks, it should be noted system time itself is
--not perfectly stable. It can be affected by power saving cycles,
--warped to insert leap seconds, or even turned back or forth by the
--system administrator affecting long term measurements. <footnote>
--	  <para>Since no other Linux multimedia
--API supports unadjusted time it would be foolish to introduce here. We
--must use a universally supported clock to synchronize different media,
--hence time of day.</para>
--	</footnote></para>
-+      <para>For timestamp types that are sampled from the system clock
-+(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
-+taken after the complete frame has been received (or transmitted in
-+case of video output devices). For other kinds of
-+timestamps this may vary depending on the driver.</para>
+ static int ml86v7667_querystd(struct v4l2_subdev *sd, v4l2_std_id *std)
+ {
+-	struct i2c_client *client = v4l2_get_subdevdata(sd);
+-	int status;
++	struct ml86v7667_priv *priv = to_ml86v7667(sd);
  
-     <table frame="none" pgwide="1" id="v4l2-buffer">
-       <title>struct <structname>v4l2_buffer</structname></title>
-@@ -741,19 +714,13 @@ applications when an output stream.</entry>
- 	    <entry>struct timeval</entry>
- 	    <entry><structfield>timestamp</structfield></entry>
- 	    <entry></entry>
--	    <entry><para>For input streams this is time when the first data
-+	    <entry><para>For input streams this is time right after the last data
- 	    byte was captured, as returned by the
- 	    <function>clock_gettime()</function> function for the relevant
- 	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
--	    <xref linkend="buffer-flags" />. For output streams the data
--	    will not be displayed before this time, secondary to the nominal
--	    frame rate determined by the current video standard in enqueued
--	    order. Applications can for example zero this field to display
--	    frames as soon as possible. The driver stores the time at which
--	    the first data byte was actually sent out in the
--	    <structfield>timestamp</structfield> field. This permits
--	    applications to monitor the drift between the video and system
--	    clock.</para></entry>
-+	    <xref linkend="buffer-flags" />. For output streams the driver
-+	    stores the time at which the first data byte was actually sent out
-+	    in the <structfield>timestamp</structfield> field.</para></entry>
- 	  </row>
- 	  <row>
- 	    <entry>&v4l2-timecode;</entry>
--- 
-1.7.10.4
+-	status = i2c_smbus_read_byte_data(client, STATUS_REG);
+-	if (status < 0)
+-		return status;
+-
+-	if (status & STATUS_HLOCK_DETECT)
+-		*std &= status & STATUS_NTSCPAL ? V4L2_STD_625_50 : V4L2_STD_525_60;
+-	else
+-		*std = V4L2_STD_UNKNOWN;
++	*std = priv->std;
+ 
+ 	return 0;
+ }
 
+--------------000007070703010801000704--
