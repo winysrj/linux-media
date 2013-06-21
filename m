@@ -1,49 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from plane.gmane.org ([80.91.229.3]:34893 "EHLO plane.gmane.org"
+Received: from mx1.redhat.com ([209.132.183.28]:44202 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751478Ab3FAQT1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 1 Jun 2013 12:19:27 -0400
-Received: from list by plane.gmane.org with local (Exim 4.69)
-	(envelope-from <gldv-linux-media@m.gmane.org>)
-	id 1UioWb-0006Jp-Fe
-	for linux-media@vger.kernel.org; Sat, 01 Jun 2013 18:19:25 +0200
-Received: from 0278aee8.bb.sky.com ([0278aee8.bb.sky.com])
-        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 01 Jun 2013 18:19:25 +0200
-Received: from alxgomz by 0278aee8.bb.sky.com with local (Gmexim 0.1 (Debian))
-        id 1AlnuQ-0007hv-00
-        for <linux-media@vger.kernel.org>; Sat, 01 Jun 2013 18:19:25 +0200
-To: linux-media@vger.kernel.org
-From: alxgomz <alxgomz@gmail.com>
-Subject: Re: EM28xx - new device ID - Ion "Video Forever" USB capture dongle
-Date: Sat, 1 Jun 2013 16:19:09 +0000 (UTC)
-Message-ID: <loom.20130601T174621-733@post.gmane.org>
-References: <51A1D475.5000106@philpem.me.uk>
+	id S1945926Ab3FUTk3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 15:40:29 -0400
+Date: Fri, 21 Jun 2013 16:40:22 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Jim Davis <jim.epost@gmail.com>
+Cc: sfr@canb.auug.org.au, linux-next@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-media@vger.kernel.org
+Subject: Re: randconfig build error with next-20130620, in
+ drivers/media/pci/ngene
+Message-ID: <20130621164022.6b9ffd7f@redhat.com>
+In-Reply-To: <20130620212318.GA5648@krebstar.arl.arizona.edu>
+References: <20130620212318.GA5648@krebstar.arl.arizona.edu>
 Mime-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
+Content-Type: text/plain; charset=US-ASCII
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-So latest news... It seems this USB dongle actually has an EM202 audio
-processor instead of the Sigmatel reported in the logs.
-I edited em28xx_audio_setup in em28xx-core.c accordingly and I can now
-capture audio using the composite interfaces.
-However joy didn't last really long as I soon realised audio capture didn't
-worked as soon as I did open the video device at the same time.
+Hi Jim,
 
-To summarize:
+Thanks for reporting it.
 
-ffmpeg -f v4l2 -i /dev/video1 /tmp/test.avi --> Works
-ffmpeg -f alsa -i hw:1 /tmp/test/wav --> Works
-ffmpeg -f v4l2 -i /dev/video1 -f alsa -i hw:1 /tmp/test.avi --> video OK but
-no Audio
+Em Thu, 20 Jun 2013 14:23:18 -0700
+Jim Davis <jim.epost@gmail.com> escreveu:
 
-Regarding the S-Video that doesn't work I think it's just a matter of card
-definition in em28xx-cards.c.... I will give a try several combination, nad
-possibly update the wiki in case I end up to a satisfactory result.
+> Building with the attached random configuration file, 
 
-In any case I'd be happy to have any insight regarding the problem when
-audio doesn't work if video device is accessed at the same time.
+There was a hard to track issue there that started to appear after
+changeset 7b34be71db53 (and a few similar ones), but was actually
+caused by a much older issue. In summary: while before that changeset
+the tree builds with random configs, the compiled media drivers won't
+work under certain conditions[1].
 
+This got fixed on this changeset:
+	http://git.linuxtv.org/media_tree.git/commit/bb69ee27b96110c509d5b92c9ee541d81a821706
+
+[1] This is not as serious as it seems, because those random configs
+don't make much sense by a normal user, and no distro uses those weird
+configs. The error happens when:
+	- the main driver is builtin;
+	- the tuner and/or driver is module;
+	- CONFIG_MEDIA_ATTACH is not set
+
+When CONFIG_MEDIA_ATTACH is enabled, the main driver will load the needed
+modules before calling the needed module attach functions.
+
+I'm sending a pull request with this patch (plus a few other fixes) in a few.
+
+> 
+>   LD      init/built-in.o
+> drivers/built-in.o: In function `demod_attach_lg330x':
+> ngene-cards.c:(.text+0x49dd70): undefined reference to `lgdt330x_attach'
+> drivers/built-in.o: In function `cineS2_probe':
+> ngene-cards.c:(.text+0x49e48e): undefined reference to `drxk_attach'
+> drivers/built-in.o: In function `dibusb_dib3000mc_tuner_attach':
+> (.text+0x4a2b92): undefined reference to `mt2060_attach'
+> drivers/built-in.o: In function `digitv_frontend_attach':
+> digitv.c:(.text+0x4a3055): undefined reference to `nxt6000_attach'
+> drivers/built-in.o: In function `opera1_frontend_attach':
+> opera1.c:(.text+0x4a3c9d): undefined reference to `stv0299_attach'
+> drivers/built-in.o: In function `af9005_fe_init':
+> af9005-fe.c:(.text+0x4a69e5): undefined reference to `mt2060_attach'
+> drivers/built-in.o: In function `pctv452e_tuner_attach':
+> pctv452e.c:(.text+0x4a7c1c): undefined reference to `stb6100_attach'
+> drivers/built-in.o: In function `dw2104_frontend_attach':
+> dw2102.c:(.text+0x4a9ee7): undefined reference to `stb6100_attach'
+> dw2102.c:(.text+0x4a9fab): undefined reference to `cx24116_attach'
+> drivers/built-in.o: In function `dw2102_frontend_attach':
+> dw2102.c:(.text+0x4aa41e): undefined reference to `stv0299_attach'
+> drivers/built-in.o: In function `m88rs2000_frontend_attach':
+> dw2102.c:(.text+0x4aaa89): undefined reference to `m88rs2000_attach'
+> drivers/built-in.o: In function `af9035_tuner_attach':
+> af9035.c:(.text+0x4aed42): undefined reference to `tda18218_attach'
+> af9035.c:(.text+0x4aedd4): undefined reference to `fc2580_attach'
+> drivers/built-in.o: In function `anysee_tuner_attach':
+> anysee.c:(.text+0x4b0bd1): undefined reference to `isl6423_attach'
+> drivers/built-in.o: In function `anysee_frontend_attach':
+> anysee.c:(.text+0x4b0d97): undefined reference to `zl10353_attach'
+> anysee.c:(.text+0x4b0df2): undefined reference to `zl10353_attach'
+> anysee.c:(.text+0x4b0e75): undefined reference to `cx24116_attach'
+> anysee.c:(.text+0x4b1000): undefined reference to `zl10353_attach'
+> anysee.c:(.text+0x4b1033): undefined reference to `zl10353_attach'
+> anysee.c:(.text+0x4b1110): undefined reference to `zl10353_attach'
+> drivers/built-in.o: In function `az6007_frontend_attach':
+> az6007.c:(.text+0x4b1d58): undefined reference to `drxk_attach'
+> make: *** [vmlinux] Error 1
+
+
+Regard
+-- 
+
+Cheers,
+Mauro
