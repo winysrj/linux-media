@@ -1,60 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1819 "EHLO
-	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751100Ab3FCIrD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 04:47:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ondrej Zary <linux@rainbow-software.org>
-Subject: Re: [PATCH 3/3] bttv: Convert to generic TEA575x interface
-Date: Mon, 3 Jun 2013 10:46:42 +0200
-Cc: linux-media@vger.kernel.org
-References: <1368564885-20940-1-git-send-email-linux@rainbow-software.org> <1368564885-20940-4-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1368564885-20940-4-git-send-email-linux@rainbow-software.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306031046.42057.hverkuil@xs4all.nl>
+Received: from bombadil.infradead.org ([198.137.202.9]:32863 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161491Ab3FUOVw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 10:21:52 -0400
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Mike Isely <isely@pobox.com>
+Subject: [PATCH] [media] pvrusb2: Remove unused variable
+Date: Fri, 21 Jun 2013 11:21:41 -0300
+Message-Id: <1371824501-20742-1-git-send-email-mchehab@redhat.com>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue May 14 2013 22:54:45 Ondrej Zary wrote:
-> Remove tea575x-specific code from bttv and use the common driver instead.
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
-> ---
->  drivers/media/pci/bt8xx/bttv-cards.c  |  317 ++++++++++++---------------------
->  drivers/media/pci/bt8xx/bttv-driver.c |    6 +-
->  drivers/media/pci/bt8xx/bttvp.h       |   14 +-
->  sound/pci/Kconfig                     |    4 +-
->  4 files changed, 124 insertions(+), 217 deletions(-)
-> 
+drivers/media/usb/pvrusb2/pvrusb2-v4l2.c: In function 'pvr2_v4l2_dev_init':
+drivers/media/usb/pvrusb2/pvrusb2-v4l2.c:1268:21: warning: variable 'usbdev' set but not used [-Wunused-but-set-variable]
 
-...
+This warning is due to changeset a28fbd04facb, with removed the
+usage of usbdev inside pvr2_v4l2_dev_init().
 
-> diff --git a/sound/pci/Kconfig b/sound/pci/Kconfig
-> index fe6fa93..83e0df5 100644
-> --- a/sound/pci/Kconfig
-> +++ b/sound/pci/Kconfig
-> @@ -2,8 +2,8 @@
->  
->  config SND_TEA575X
->  	tristate
-> -	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK
-> -	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK
-> +	depends on SND_FM801_TEA575X_BOOL || SND_ES1968_RADIO || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK || VIDEO_BT848
-> +	default SND_FM801 || SND_ES1968 || RADIO_SF16FMR2 || RADIO_MAXIRADIO || RADIO_SHARK || VIDEO_BT848
->  
->  menuconfig SND_PCI
->  	bool "PCI sound devices"
-> 
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Mike Isely <isely@pobox.com>
+---
+ drivers/media/usb/pvrusb2/pvrusb2-v4l2.c | 2 --
+ 1 file changed, 2 deletions(-)
 
-In addition, bttv should also become dependent on SND.
+diff --git a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+index d77069e..7c280f3 100644
+--- a/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
++++ b/drivers/media/usb/pvrusb2/pvrusb2-v4l2.c
+@@ -1265,7 +1265,6 @@ static void pvr2_v4l2_dev_init(struct pvr2_v4l2_dev *dip,
+ 			       struct pvr2_v4l2 *vp,
+ 			       int v4l_type)
+ {
+-	struct usb_device *usbdev;
+ 	int mindevnum;
+ 	int unit_number;
+ 	struct pvr2_hdw *hdw;
+@@ -1273,7 +1272,6 @@ static void pvr2_v4l2_dev_init(struct pvr2_v4l2_dev *dip,
+ 	dip->v4lp = vp;
+ 
+ 	hdw = vp->channel.mc_head->hdw;
+-	usbdev = pvr2_hdw_get_dev(hdw);
+ 	dip->v4l_type = v4l_type;
+ 	switch (v4l_type) {
+ 	case VFL_TYPE_GRABBER:
+-- 
+1.8.1.4
 
-Frankly, isn't it time that tea575x-tuner moves to drivers/media/common or
-driver/media/radio? It's really weird to have such a fairly widely used v4l
-module in sound.
-
-Regards,
-
-	Hans
