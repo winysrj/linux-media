@@ -1,79 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f172.google.com ([209.85.192.172]:62987 "EHLO
-	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932522Ab3FMJ4m (ORCPT
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:33054 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751239Ab3FUJJr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jun 2013 05:56:42 -0400
-Received: by mail-pd0-f172.google.com with SMTP id z10so7557753pdj.17
-        for <linux-media@vger.kernel.org>; Thu, 13 Jun 2013 02:56:41 -0700 (PDT)
-Date: Thu, 13 Jun 2013 17:56:47 +0800
-From: Adam Lee <adam.lee@canonical.com>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-kernel@vger.kernel.org, Matthew Garrett <mjg@redhat.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	"open list:USB VIDEO CLASS" <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] Revert "V4L/DVB: uvc: Enable USB autosuspend by default
- on uvcvideo"
-Message-ID: <20130613095647.GC21583@adam-laptop>
-References: <1366790239-838-1-git-send-email-adam.lee@canonical.com>
- <6159110.qEtHHiJYtm@avalon>
- <20130425063306.GA20928@adam-laptop>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130425063306.GA20928@adam-laptop>
+	Fri, 21 Jun 2013 05:09:47 -0400
+Received: by mail-pb0-f54.google.com with SMTP id ro2so7480528pbb.27
+        for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 02:09:47 -0700 (PDT)
+Date: Fri, 21 Jun 2013 18:09:32 +0900 (JST)
+Message-Id: <20130621.180932.452518378.matsu@igel.co.jp>
+To: vladimir.barinov@cogentembedded.com
+Cc: sergei.shtylyov@cogentembedded.com, g.liakhovetski@gmx.de,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com
+Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
+From: Katsuya MATSUBARA <matsu@igel.co.jp>
+In-Reply-To: <51C40974.600@cogentembedded.com>
+References: <201305240211.29665.sergei.shtylyov@cogentembedded.com>
+	<20130621.134659.460987965.matsu@igel.co.jp>
+	<51C40974.600@cogentembedded.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Apr 25, 2013 at 02:33:06PM +0800, Adam Lee wrote:
-> On Wed, Apr 24, 2013 at 11:17:52AM +0200, Laurent Pinchart wrote:
-> > Hi Adam,
-> > 
-> > Thanks for the patch.
-> > 
-> > On Wednesday 24 April 2013 15:57:19 adam.lee@canonical.com wrote:
-> > > From: Adam Lee <adam.lee@canonical.com>
-> > > 
-> > > This reverts commit 3dae8b41dc5651f8eb22cf310e8b116480ba25b7.
-> > > 
-> > > 1, I do have a Chicony webcam, implements autosuspend in a broken way,
-> > > make `poweroff` performs rebooting when its autosuspend enabled.
-> > > 
-> > > 2, There are other webcams which don't support autosuspend too, like
-> > > https://patchwork.kernel.org/patch/2356141/
-> > > 
-> > > 3, kernel removed USB_QUIRK_NO_AUTOSUSPEND in
-> > > a691efa9888e71232dfb4088fb8a8304ffc7b0f9, because autosuspend is
-> > > disabled by default.
-> > > 
-> > > So, we need to disable autosuspend in uvcvideo, maintaining a quirk list
-> > > only for uvcvideo is not a good idea.
-> > 
-> > I've received very few bug reports about broken auto-suspend support in UVC 
-> > devices. Most of them could be solved by setting the RESET_RESUME quirk in USB 
-> > core, only the Creative Live! Cam Optia AF required a quirk in the uvcvideo 
-> > driver. I would thus rather use the available quirks (USB_QUIRK_RESET_RESUME 
-> > if possible, UVC_QUIRK_DISABLE_AUTOSUSPEND otherwise) than killing power 
-> > management for the vast majority of webcams that behave correctly.
-> 
-> Here comes another one, integrated Chicony webcam 04f2:b39f, its
-> autosuspend makes `poweroff` performs rebooting at the laptop I'm
-> working on. I tried USB_QUIRK_RESET_RESUME, not helping.
-> 
-> The quirks list will go longer and longer absolutely, do uvcvideo wanna
-> maintain that? And why only uvcvideo do this in kernel space which
-> against general USB module?
-> 
-> I still suggest we disable it by default, people can enable it in udev
-> just like almost all distroes do for udisks. Please consider about it.
 
-Hi, Laurent
+Hi Vladimir,
 
-Any comment of this? I still think it's a risk to enable autosuspend in
-uvcvideo by default, there must be users meeting weird issues but didn't
-report to you becaue they didn't figured out the cause.
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Date: Fri, 21 Jun 2013 12:06:12 +0400
 
--- 
-Regards,
-Adam Lee
-Hardware Enablement
+> Hi  Matsubara-san,
+> 
+> Katsuya MATSUBARA wrote:
+>> Hi Sergei and Valadmir,
+>>
+>> From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+>> Date: Fri, 24 May 2013 02:11:28 +0400
+>>
+>> (snip)
+>>   
+>>> +/* Similar to set_crop multistage iterative algorithm */
+>>> +static int rcar_vin_set_fmt(struct soc_camera_device *icd,
+>>> +			    struct v4l2_format *f)
+>>> +{
+>>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
+>>> +	struct rcar_vin_priv *priv = ici->priv;
+>>> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
+>>> +	struct rcar_vin_cam *cam = icd->host_priv;
+>>> +	struct v4l2_pix_format *pix = &f->fmt.pix;
+>>> +	struct v4l2_mbus_framefmt mf;
+>>> +	struct device *dev = icd->parent;
+>>> +	__u32 pixfmt = pix->pixelformat;
+>>> +	const struct soc_camera_format_xlate *xlate;
+>>> +	unsigned int vin_sub_width = 0, vin_sub_height = 0;
+>>> +	int ret;
+>>> +	bool can_scale;
+>>> +	enum v4l2_field field;
+>>> +	v4l2_std_id std;
+>>> +
+>>> +	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
+>>> +		pixfmt, pix->width, pix->height);
+>>> +
+>>> +	switch (pix->field) {
+>>> +	default:
+>>> +		pix->field = V4L2_FIELD_NONE;
+>>> +		/* fall-through */
+>>> +	case V4L2_FIELD_NONE:
+>>> +	case V4L2_FIELD_TOP:
+>>> +	case V4L2_FIELD_BOTTOM:
+>>> +	case V4L2_FIELD_INTERLACED_TB:
+>>> +	case V4L2_FIELD_INTERLACED_BT:
+>>> +		field = pix->field;
+>>> +		break;
+>>> +	case V4L2_FIELD_INTERLACED:
+>>> + /* Query for standard if not explicitly mentioned _TB/_BT */
+>>> +		ret = v4l2_subdev_call(sd, video, querystd, &std);
+>>> +		if (ret < 0)
+>>> +			std = V4L2_STD_625_50;
+>>> +
+>>> + field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
+>>> +						V4L2_FIELD_INTERLACED_BT;
+>>> +		break;
+>>> +	}
+>>>     
+>>
+>> I have tested your VIN driver with NTSC video input
+>> with the following two boards;
+>>
+>> 1. Marzen (R-CarH1 SoC and ADV7180 video decoder)
+>> 2. BOCK-W (R-CarM1A SoC and ML86V7667 video decoder)
+>>
+>> As a result, I have got strange captured images in the BOCK-W
+>> environment. The image looks that the top and bottom fields
+>> have been combined in wrong order.
+>> However, in case of Marzen, it works fine with correct images
+>> captured. I made sure that the driver chose the
+>> V4L2_FIELD_INTERLACED_BT flag for the NTSC standard video
+>> in the both environments.
+>>
+>> Have you seen such an iusse with the ML86V7667 driver?
+>> I think there may be some mismatch between the VIN
+>> and the ML86V7667 settings.
+>>   
+> Unfortunately, I had ability to test decoder only with PAL camera. And
+> I've made the fake tests for NTSC standard reported by video decoders
+> to validate the difference on captured image.
+> The interlace on bock-w was correct for PAL standard in accordance to
+> above tests.
+> 
+> I have been able to see incorrect mix up of _TB/_BT only in case of
+> i2c transaction fails during subdevice V4L2_STD runtime query.
+
+I have slightly investigated the issue on bock-w.
+
+I have not seen such i2c errors during capturing and booting.
+But I have seen that querystd() in the ml86v7667 driver often
+returns V4L2_STD_UNKNOWN, although the corresponding function
+in the adv7180 driver always returns V4L2_STD_525_60 for NTSC video.
+The driver also chose '_BT' for V4L2_STD_UNKNOWN, so even in this
+case the display should be fine for NTSC video.
+I have confirmed that the driver always selects '_BT' for NTSC
+video even if I repeat it several times in my environment.
+
+Thanks,
+---
+ Katsuya Matsubara / IGEL Co., Ltd
+ matsu@igel.co.jp
