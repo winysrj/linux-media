@@ -1,73 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:50909 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752871Ab3FNTlF (ORCPT
+Received: from smtp-out-190.synserver.de ([212.40.185.190]:1047 "EHLO
+	smtp-out-190.synserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423530Ab3FUROR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 15:41:05 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
+	Fri, 21 Jun 2013 13:14:17 -0400
+Message-ID: <51C489F7.6070105@metafoo.de>
+Date: Fri, 21 Jun 2013 19:14:31 +0200
+From: Lars-Peter Clausen <lars@metafoo.de>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v11 15/21] V4L2: add a device pointer to struct v4l2_subdev
-Date: Fri, 14 Jun 2013 21:08:25 +0200
-Message-Id: <1371236911-15131-16-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] [media] tvp514x: Fix init seqeunce
+References: <1371306876-8596-1-git-send-email-lars@metafoo.de> <CA+V-a8uUEcoh2bbpUP=Oo8Pj-1yX8VWS7z9m_kOgyzxfMwQ-Ow@mail.gmail.com> <CA+V-a8tgrLgeuQ83eRQkW6OeyBvCYzRD5k4xjnPwdne7hbCuWQ@mail.gmail.com>
+In-Reply-To: <CA+V-a8tgrLgeuQ83eRQkW6OeyBvCYzRD5k4xjnPwdne7hbCuWQ@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It is often useful to have simple means to get from a subdevice to the
-underlying physical device. This patch adds such a pointer to struct
-v4l2_subdev and sets it accordingly in the I2C and SPI cases.
+On 06/21/2013 02:27 PM, Prabhakar Lad wrote:
+> Hi Lars-Peter,
+> 
+> On Sun, Jun 16, 2013 at 3:41 PM, Prabhakar Lad
+> <prabhakar.csengg@gmail.com> wrote:
+>> Hi Lars-Peter,
+>>
+>> Thanks for the patch.
+>>
+>> On Sat, Jun 15, 2013 at 8:04 PM, Lars-Peter Clausen <lars@metafoo.de> wrote:
+>>> client->driver->id_table will always point to the first entry in the device id
+>>> table. So all devices will use the same init sequence. Use the id table entry
+>>> that gets passed to the driver's probe() function to get the right init
+>>> sequence.
+>>>
+>> The patch looks OK, but it causes following two warnings,
+>>
+>> drivers/media/i2c/tvp514x.c: In function 'tvp514x_s_stream':
+>> drivers/media/i2c/tvp514x.c:868: warning: unused variable 'client'
+>> drivers/media/i2c/tvp514x.c: In function 'tvp514x_probe':
+>> drivers/media/i2c/tvp514x.c:1092: warning: assignment makes pointer
+>> from integer without a cast
+>>
+> Do you plan to post a v2 ? or shall I take care of it ?
+> 
+> Regards,
+> --Prabhakar Lad
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+I'll send a v2 soon.
 
-v11: extended a comment
-
- drivers/media/v4l2-core/v4l2-common.c |    2 ++
- include/media/v4l2-subdev.h           |    2 ++
- 2 files changed, 4 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/media/v4l2-core/v4l2-common.c b/drivers/media/v4l2-core/v4l2-common.c
-index 3fed63f..accfec6 100644
---- a/drivers/media/v4l2-core/v4l2-common.c
-+++ b/drivers/media/v4l2-core/v4l2-common.c
-@@ -291,6 +291,7 @@ void v4l2_i2c_subdev_init(struct v4l2_subdev *sd, struct i2c_client *client,
- 	sd->flags |= V4L2_SUBDEV_FL_IS_I2C;
- 	/* the owner is the same as the i2c_client's driver owner */
- 	sd->owner = client->driver->driver.owner;
-+	sd->dev = &client->dev;
- 	/* i2c_client and v4l2_subdev point to one another */
- 	v4l2_set_subdevdata(sd, client);
- 	i2c_set_clientdata(client, sd);
-@@ -426,6 +427,7 @@ void v4l2_spi_subdev_init(struct v4l2_subdev *sd, struct spi_device *spi,
- 	sd->flags |= V4L2_SUBDEV_FL_IS_SPI;
- 	/* the owner is the same as the spi_device's driver owner */
- 	sd->owner = spi->dev.driver->owner;
-+	sd->dev = &spi->dev;
- 	/* spi_device and v4l2_subdev point to one another */
- 	v4l2_set_subdevdata(sd, spi);
- 	spi_set_drvdata(spi, sd);
-diff --git a/include/media/v4l2-subdev.h b/include/media/v4l2-subdev.h
-index 5298d67..39a37f5 100644
---- a/include/media/v4l2-subdev.h
-+++ b/include/media/v4l2-subdev.h
-@@ -585,6 +585,8 @@ struct v4l2_subdev {
- 	void *host_priv;
- 	/* subdev device node */
- 	struct video_device *devnode;
-+	/* pointer to the physical device, if any */
-+	struct device *dev;
- };
- 
- #define media_entity_to_v4l2_subdev(ent) \
--- 
-1.7.2.5
-
+- Lars
