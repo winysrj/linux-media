@@ -1,148 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2288 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132Ab3F1NYX (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:59747 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423404Ab3FURFh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 09:24:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Arun Kumar K <arun.kk@samsung.com>
-Subject: Re: [PATCH v3 6/8] [media] V4L: Add support for integer menu controls with standard menu items
-Date: Fri, 28 Jun 2013 15:24:05 +0200
-Cc: linux-media@vger.kernel.org, k.debski@samsung.com,
-	jtp.park@samsung.com, s.nawrocki@samsung.com,
-	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
-References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com> <1372157835-27663-7-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1372157835-27663-7-git-send-email-arun.kk@samsung.com>
+	Fri, 21 Jun 2013 13:05:37 -0400
+Date: Fri, 21 Jun 2013 19:04:53 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: [GIT PULL] V4L2: clock and async probing APIs, soc-camera example
+ implementation
+Message-ID: <Pine.LNX.4.64.1306211851540.27277@axis700.grange>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306281524.05773.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue June 25 2013 12:57:13 Arun Kumar K wrote:
-> From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> 
-> The patch modifies the helper function v4l2_ctrl_new_std_menu
-> to accept integer menu controls with standard menu items.
-> 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Hi Mauro
 
-After fixing the very minor correction below you have my ack:
+With acks from Hans and Laurent I'd like to ask you to pull my V4L2 clock 
+and asynchronous probing APIs together with respective soc-camera changes. 
+I included an ack from Laurent, even though he requested me to include the 
+documentation update into this pull request, which I haven't done yet. But 
+we agreed privately, that it's also ok, if I submit a v2 of the patch 
+first to the list next Monday and then send an additional pull request for 
+it some time next week. The last patch from the patch series, as I posted 
+it to the list last time is also omitted, because (1) it's for arch/arm, 
+(2) the board, which I used as an example to develop and test these 
+patches will be removed from the kernel, so, I'll need to pick up a 
+different platform for testing, also a different camera host driver, 
+perhaps.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+The following changes since commit 4ef72e347112a834fbd6944565b1f63d4af19c8a:
 
-Regards,
+  [media] V4L2: soc-camera: remove unneeded include path (2013-06-21 13:11:59 -0300)
 
-	Hans
+are available in the git repository at:
+  git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.11-2
 
-> ---
->  Documentation/video4linux/v4l2-controls.txt |   21 ++++++++++----------
->  drivers/media/v4l2-core/v4l2-ctrls.c        |   28 ++++++++++++++++++++++++---
->  2 files changed, 36 insertions(+), 13 deletions(-)
-> 
-> diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-> index 676f873..e06e768 100644
-> --- a/Documentation/video4linux/v4l2-controls.txt
-> +++ b/Documentation/video4linux/v4l2-controls.txt
-> @@ -124,26 +124,27 @@ You add non-menu controls by calling v4l2_ctrl_new_std:
->  			const struct v4l2_ctrl_ops *ops,
->  			u32 id, s32 min, s32 max, u32 step, s32 def);
->  
-> -Menu controls are added by calling v4l2_ctrl_new_std_menu:
-> +Menu and integer menu controls are added by calling v4l2_ctrl_new_std_menu:
->  
->  	struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
->  			const struct v4l2_ctrl_ops *ops,
->  			u32 id, s32 max, s32 skip_mask, s32 def);
->  
-> -Or alternatively for integer menu controls, by calling v4l2_ctrl_new_int_menu:
-> +Menu controls with a driver specific menu are added by calling
-> +v4l2_ctrl_new_std_menu_items:
-> +
-> +       struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
-> +                       struct v4l2_ctrl_handler *hdl,
-> +                       const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
-> +                       s32 skip_mask, s32 def, const char * const *qmenu);
-> +
-> +Integer menu controls with driver specific menu can be added by calling
+Guennadi Liakhovetski (20):
+      soc-camera: move common code to soc_camera.c
+      soc-camera: add host clock callbacks to start and stop the master clock
+      pxa-camera: move interface activation and deactivation to clock callbacks
+      omap1-camera: move interface activation and deactivation to clock callbacks
+      atmel-isi: move interface activation and deactivation to clock callbacks
+      mx3-camera: move interface activation and deactivation to clock callbacks
+      mx2-camera: move interface activation and deactivation to clock callbacks
+      mx1-camera: move interface activation and deactivation to clock callbacks
+      sh-mobile-ceu-camera: move interface activation and deactivation to clock callbacks
+      soc-camera: make .clock_{start,stop} compulsory, .add / .remove optional
+      soc-camera: don't attach the client to the host during probing
+      sh-mobile-ceu-camera: add primitive OF support
+      sh-mobile-ceu-driver: support max width and height in DT
+      V4L2: add temporary clock helpers
+      V4L2: add a device pointer to struct v4l2_subdev
+      V4L2: support asynchronous subdevice registration
+      soc-camera: switch I2C subdevice drivers to use v4l2-clk
+      soc-camera: add V4L2-async support
+      sh_mobile_ceu_camera: add asynchronous subdevice probing support
+      imx074: support asynchronous probing
 
-s/with driver/with a driver/
+ .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
+ drivers/media/i2c/soc_camera/imx074.c              |   32 +-
+ drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
+ drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
+ drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
+ drivers/media/i2c/soc_camera/mt9t112.c             |   25 +-
+ drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
+ drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
+ drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
+ drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
+ drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
+ drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
+ drivers/media/i2c/soc_camera/ov9640.h              |    1 +
+ drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
+ drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
+ drivers/media/i2c/soc_camera/tw9910.c              |   24 +-
+ drivers/media/platform/soc_camera/atmel-isi.c      |   38 +-
+ drivers/media/platform/soc_camera/mx1_camera.c     |   48 +-
+ drivers/media/platform/soc_camera/mx2_camera.c     |   41 +-
+ drivers/media/platform/soc_camera/mx3_camera.c     |   44 +-
+ drivers/media/platform/soc_camera/omap1_camera.c   |   41 +-
+ drivers/media/platform/soc_camera/pxa_camera.c     |   46 +-
+ .../platform/soc_camera/sh_mobile_ceu_camera.c     |  243 +++++--
+ drivers/media/platform/soc_camera/sh_mobile_csi2.c |  153 +++--
+ drivers/media/platform/soc_camera/soc_camera.c     |  707 +++++++++++++++++---
+ .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+ drivers/media/v4l2-core/Makefile                   |    3 +-
+ drivers/media/v4l2-core/v4l2-async.c               |  280 ++++++++
+ drivers/media/v4l2-core/v4l2-clk.c                 |  242 +++++++
+ drivers/media/v4l2-core/v4l2-common.c              |    2 +
+ include/media/sh_mobile_ceu.h                      |    2 +
+ include/media/sh_mobile_csi2.h                     |    2 +-
+ include/media/soc_camera.h                         |   39 +-
+ include/media/v4l2-async.h                         |  105 +++
+ include/media/v4l2-clk.h                           |   54 ++
+ include/media/v4l2-subdev.h                        |   10 +
+ 36 files changed, 1973 insertions(+), 425 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
+ create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+ create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+ create mode 100644 include/media/v4l2-async.h
+ create mode 100644 include/media/v4l2-clk.h
 
-> +v4l2_ctrl_new_int_menu:
->  
->  	struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
->  			const struct v4l2_ctrl_ops *ops,
->  			u32 id, s32 max, s32 def, const s64 *qmenu_int);
->  
-> -Standard menu controls with a driver specific menu are added by calling
-> -v4l2_ctrl_new_std_menu_items:
-> -
-> -	struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
-> -		struct v4l2_ctrl_handler *hdl,
-> -		const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
-> -		s32 skip_mask, s32 def, const char * const *qmenu);
-> -
->  These functions are typically called right after the v4l2_ctrl_handler_init:
->  
->  	static const s64 exp_bias_qmenu[] = {
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index fccd08b..e03a2e8 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -552,6 +552,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_get_menu);
->  
-> +/*
-> + * Returns NULL or an s64 type array containing the menu for given
-> + * control ID. The total number of the menu items is returned in @len.
-> + */
-> +const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
-> +{
-> +	switch (id) {
-> +	default:
-> +		*len = 0;
-> +		return NULL;
-> +	};
-> +}
-> +EXPORT_SYMBOL(v4l2_ctrl_get_int_menu);
-> +
->  /* Return the control name. */
->  const char *v4l2_ctrl_get_name(u32 id)
->  {
-> @@ -1712,20 +1726,28 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
->  			const struct v4l2_ctrl_ops *ops,
->  			u32 id, s32 max, s32 mask, s32 def)
->  {
-> -	const char * const *qmenu = v4l2_ctrl_get_menu(id);
-> +	const char * const *qmenu = NULL;
-> +	const s64 *qmenu_int = NULL;
->  	const char *name;
->  	enum v4l2_ctrl_type type;
-> +	unsigned int qmenu_int_len;
->  	s32 min;
->  	s32 step;
->  	u32 flags;
->  
->  	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
-> -	if (type != V4L2_CTRL_TYPE_MENU) {
-> +
-> +	if (type == V4L2_CTRL_TYPE_MENU)
-> +		qmenu = v4l2_ctrl_get_menu(id);
-> +	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
-> +		qmenu_int = v4l2_ctrl_get_int_menu(id, &qmenu_int_len);
-> +
-> +	if ((!qmenu && !qmenu_int) || (qmenu_int && max > qmenu_int_len)) {
->  		handler_set_err(hdl, -EINVAL);
->  		return NULL;
->  	}
->  	return v4l2_ctrl_new(hdl, ops, id, name, type,
-> -			     0, max, mask, def, flags, qmenu, NULL, NULL);
-> +			     0, max, mask, def, flags, qmenu, qmenu_int, NULL);
->  }
->  EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
->  
-> 
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
