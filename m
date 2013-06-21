@@ -1,167 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:56148 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753716Ab3FNTJa (ORCPT
+Received: from mail-la0-f45.google.com ([209.85.215.45]:42544 "EHLO
+	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1945946Ab3FUUIm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 15:09:30 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v11 09/21] sh-mobile-ceu-camera: move interface activation and deactivation to clock callbacks
-Date: Fri, 14 Jun 2013 21:08:19 +0200
-Message-Id: <1371236911-15131-10-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+	Fri, 21 Jun 2013 16:08:42 -0400
+Received: by mail-la0-f45.google.com with SMTP id fr10so7878963lab.18
+        for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 13:08:40 -0700 (PDT)
+Message-ID: <51C4B2CD.2030302@cogentembedded.com>
+Date: Sat, 22 Jun 2013 00:08:45 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <201305240211.29665.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1306131245420.31976@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1306131245420.31976@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the sh-mobile-ceu-camera driver activates
-and, respectively, deactivates its camera interface and, if necessary, the
-CSI2 controller. Only handling of the CSI2 interface is client-specific and
-is only needed, when a data-exchange with the client is taking place. Move
-the rest to .clock_start() and .clock_stop() callbacks.
+Hello.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   58 ++++++++++++--------
- 1 files changed, 35 insertions(+), 23 deletions(-)
+On 06/13/2013 05:12 PM, Guennadi Liakhovetski wrote:
 
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 5b7d8e1..9037472 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -162,7 +162,6 @@ static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
- static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
- {
- 	int i, success = 0;
--	struct soc_camera_device *icd = pcdev->ici.icd;
- 
- 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
- 
-@@ -186,7 +185,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
- 
- 
- 	if (2 != success) {
--		dev_warn(icd->pdev, "soft reset time out\n");
-+		dev_warn(pcdev->ici.v4l2_dev.dev, "soft reset time out\n");
- 		return -EIO;
- 	}
- 
-@@ -543,35 +542,21 @@ static struct v4l2_subdev *find_csi2(struct sh_mobile_ceu_dev *pcdev)
- 	return NULL;
- }
- 
--/* Called with .host_lock held */
- static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
--	struct v4l2_subdev *csi2_sd;
-+	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
- 	int ret;
- 
--	dev_info(icd->parent,
--		 "SuperH Mobile CEU driver attached to camera %d\n",
--		 icd->devnum);
--
--	pm_runtime_get_sync(ici->v4l2_dev.dev);
--
--	pcdev->buf_total = 0;
--
--	ret = sh_mobile_ceu_soft_reset(pcdev);
--
--	csi2_sd = find_csi2(pcdev);
- 	if (csi2_sd) {
- 		csi2_sd->grp_id = soc_camera_grp_id(icd);
- 		v4l2_set_subdev_hostdata(csi2_sd, icd);
- 	}
- 
- 	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
--	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
--		pm_runtime_put(ici->v4l2_dev.dev);
-+	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
- 		return ret;
--	}
- 
- 	/*
- 	 * -ENODEV is special: either csi2_sd == NULL or the CSI-2 driver
-@@ -580,19 +565,48 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- 	if (ret == -ENODEV && csi2_sd)
- 		csi2_sd->grp_id = 0;
- 
-+	dev_info(icd->parent,
-+		 "SuperH Mobile CEU driver attached to camera %d\n",
-+		 icd->devnum);
-+
- 	return 0;
- }
- 
--/* Called with .host_lock held */
- static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
- 
-+	dev_info(icd->parent,
-+		 "SuperH Mobile CEU driver detached from camera %d\n",
-+		 icd->devnum);
-+
- 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
- 	if (csi2_sd)
- 		csi2_sd->grp_id = 0;
-+}
-+
-+/* Called with .host_lock held */
-+static int sh_mobile_ceu_clock_start(struct soc_camera_host *ici)
-+{
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+	int ret;
-+
-+	pm_runtime_get_sync(ici->v4l2_dev.dev);
-+
-+	pcdev->buf_total = 0;
-+
-+	ret = sh_mobile_ceu_soft_reset(pcdev);
-+
-+	return 0;
-+}
-+
-+/* Called with .host_lock held */
-+static void sh_mobile_ceu_clock_stop(struct soc_camera_host *ici)
-+{
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+
- 	/* disable capture, disable interrupts */
- 	ceu_write(pcdev, CEIER, 0);
- 	sh_mobile_ceu_soft_reset(pcdev);
-@@ -607,10 +621,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- 	spin_unlock_irq(&pcdev->lock);
- 
- 	pm_runtime_put(ici->v4l2_dev.dev);
--
--	dev_info(icd->parent,
--		 "SuperH Mobile CEU driver detached from camera %d\n",
--		 icd->devnum);
- }
- 
- /*
-@@ -2027,6 +2037,8 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= sh_mobile_ceu_add_device,
- 	.remove		= sh_mobile_ceu_remove_device,
-+	.clock_start	= sh_mobile_ceu_clock_start,
-+	.clock_stop	= sh_mobile_ceu_clock_stop,
- 	.get_formats	= sh_mobile_ceu_get_formats,
- 	.put_formats	= sh_mobile_ceu_put_formats,
- 	.get_crop	= sh_mobile_ceu_get_crop,
--- 
-1.7.2.5
+> Hi Sergei
+
+> Patches, that this commit is based upon are hopefully moving towards the
+> mainline, but it's still possible, that some more changes will be
+> required. In any case, I wanted to comment to this version to let you
+> prepare for a new version in advance.
+
+> In general - looks better!
+
+>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+
+>> Add Renesas R-Car VIN (Video In) V4L2 driver.
+
+>> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+
+>> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
+>> values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
+>> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
+>> *if* statement  and  used 'bool' values instead of 0/1 where necessary, removed
+>> unused macros, done some reformatting and clarified some comments.]
+>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
+>> ---
+
+> [snip]
+
+>> Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+>> ===================================================================
+>> --- /dev/null
+>> +++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+[...]
+>> +static irqreturn_t rcar_vin_irq(int irq, void *data)
+>> +{
+[...]
+>> +		if (hw_stopped || !can_run) {
+>> +			priv->state = STOPPED;
+>> +		} else if (is_continuous_transfer(priv) &&
+>> +			   list_empty(&priv->capture) &&
+>> +			   priv->state == RUNNING) {
+>> +			/*
+>> +			 * The continuous capturing requires an explicit stop
+>> +			 * operation when there is no buffer to be set into
+>> +			 * the VnMBm registers.
+>> +			 */
+>> +			rcar_vin_request_capture_stop(priv);
+>> +		} else {
+>> +			rcar_vin_capture(priv);
+>> +		}
+
+> You don't need braces here
+
+    Did you mean only *else* branch or the whole *if statement? In both 
+cases, I disagree. Removing {} only from *else* contradicts do 
+Documenation/CodingStyle, removing them from the *if* branch too also 
+don't appeal to me as due to the comment inside the *if* branch. Sorry, 
+I'm leaving this as is.
+
+WBR, Sergei
 
