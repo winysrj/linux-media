@@ -1,127 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:55766 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751740Ab3FJKs5 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3843 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423527Ab3FUWTn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 06:48:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, hj210.choi@samsung.com,
-	shaik.ameer@samsung.com, arun.kk@samsung.com
-Subject: Re: [REVIEW PATCH v3 1/2] media: Change media device link_notify behaviour
-Date: Mon, 10 Jun 2013 12:49:01 +0200
-Message-ID: <17805842.6Cz4b94dag@avalon>
-In-Reply-To: <51B5AEA6.1080509@samsung.com>
-References: <1370808878-11379-1-git-send-email-s.nawrocki@samsung.com> <51B4FD56.6020307@iki.fi> <51B5AEA6.1080509@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 21 Jun 2013 18:19:43 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5LMJdpY040590
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 22 Jun 2013 00:19:42 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id E506435E00C2
+	for <linux-media@vger.kernel.org>; Sat, 22 Jun 2013 00:19:38 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130621221938.E506435E00C2@alastor.dyndns.org>
+Date: Sat, 22 Jun 2013 00:19:38 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday 10 June 2013 12:47:02 Sylwester Nawrocki wrote:
-> On 06/10/2013 12:10 AM, Sakari Ailus wrote:
-> > Sylwester Nawrocki wrote:
-> > ...
-> > 
-> >> diff --git a/drivers/media/platform/omap3isp/isp.c
-> >> b/drivers/media/platform/omap3isp/isp.c index 1d7dbd5..1a2d25c 100644
-> >> --- a/drivers/media/platform/omap3isp/isp.c
-> >> +++ b/drivers/media/platform/omap3isp/isp.c
-> >> @@ -792,9 +792,9 @@ int omap3isp_pipeline_pm_use(struct media_entity
-> >> *entity, int use)>> 
-> >>   /*
-> >>   
-> >>    * isp_pipeline_link_notify - Link management notification callback
-> >> 
-> >> - * @source: Pad at the start of the link
-> >> - * @sink: Pad at the end of the link
-> >> + * @link: The link
-> >> 
-> >>    * @flags: New link flags that will be applied
-> >> 
-> >> + * @notification: The link's state change notification type
-> >> (MEDIA_DEV_NOTIFY_*)>> 
-> >>    *
-> >>    * React to link management on powered pipelines by updating the use
-> >>    count of * all entities in the source and sink sides of the link.
-> >>    Entities are powered>> 
-> >> @@ -804,29 +804,38 @@ int omap3isp_pipeline_pm_use(struct media_entity
-> >> *entity, int use)>> 
-> >>    * off is assumed to never fail. This function will not fail for
-> >>    disconnection * events.
-> >>    */
-> >> 
-> >> -static int isp_pipeline_link_notify(struct media_pad *source,
-> >> -				    struct media_pad *sink, u32 flags)
-> >> +static int isp_pipeline_link_notify(struct media_link *link, u32 flags,
-> >> +				    unsigned int notification)
-> >> 
-> >>   {
-> >> 
-> >> -	int source_use = isp_pipeline_pm_use_count(source->entity);
-> >> -	int sink_use = isp_pipeline_pm_use_count(sink->entity);
-> >> +	struct media_entity *source = link->source->entity;
-> >> +	struct media_entity *sink = link->sink->entity;
-> >> +	int source_use = isp_pipeline_pm_use_count(source);
-> >> +	int sink_use = isp_pipeline_pm_use_count(sink);
-> >> 
-> >>   	int ret;
-> >> 
-> >> -	if (!(flags & MEDIA_LNK_FL_ENABLED)) {
-> >> +	if (notification == MEDIA_DEV_NOTIFY_POST_LINK_CH &&
-> >> +	    !(link->flags & MEDIA_LNK_FL_ENABLED)) {
-> >> 
-> >>   		/* Powering off entities is assumed to never fail. */
-> >> 
-> >> -		isp_pipeline_pm_power(source->entity, -sink_use);
-> >> -		isp_pipeline_pm_power(sink->entity, -source_use);
-> >> +		isp_pipeline_pm_power(source, -sink_use);
-> >> +		isp_pipeline_pm_power(sink, -source_use);
-> >> 
-> >>   		return 0;
-> >>   	
-> >>   	}
-> >> 
-> >> -	ret = isp_pipeline_pm_power(source->entity, sink_use);
-> >> -	if (ret < 0)
-> >> -		return ret;
-> >> +	if (notification == MEDIA_DEV_NOTIFY_PRE_LINK_CH &&
-> >> +		(flags & MEDIA_LNK_FL_ENABLED)) {
-> > 
-> > You could return zero here if the opposite was true, and unindent the
-> > rest. Up to you --- the patch is fine.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-I would personally keep the code as-is, to keep the symmetry, but I'm fine 
-with both :-)
+Results of the daily build of media_tree:
 
-> All right, thanks for the Ack. An updated patch to follow.
-> 
-> > Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > 
-> >> -	ret = isp_pipeline_pm_power(sink->entity, source_use);
-> >> -	if (ret < 0)
-> >> -		isp_pipeline_pm_power(source->entity, -sink_use);
-> >> +		ret = isp_pipeline_pm_power(source, sink_use);
-> >> +		if (ret < 0)
-> >> +			return ret;
-> >> 
-> >> -	return ret;
-> >> +		ret = isp_pipeline_pm_power(sink, source_use);
-> >> +		if (ret < 0)
-> >> +			isp_pipeline_pm_power(source, -sink_use);
-> >> +
-> >> +		return ret;
-> >> +	}
-> >> +
-> >> +	return 0;
-> >> 
-> >>   }
+date:		Fri Jun 21 22:49:03 CEST 2013
+git branch:	test
+git hash:	ee17608d6aa04a86e253a9130d6c6d00892f132b
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+host hardware:	x86_64
+host os:	3.8-3.slh.2-amd64
 
--- 
-Regards,
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: OK
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: OK
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse: ERRORS
 
-Laurent Pinchart
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
