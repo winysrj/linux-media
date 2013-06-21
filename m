@@ -1,55 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:4047 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965093Ab3FTNvW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 09:51:22 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 13/15] saa6588: remove unused CMD_OPEN.
-Date: Thu, 20 Jun 2013 15:44:29 +0200
-Message-Id: <1371735871-2658-14-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-db9lp0250.outbound.messaging.microsoft.com ([213.199.154.250]:26339
+	"EHLO db9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1422713Ab3FUPsm convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 11:48:42 -0400
+From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: media: i2c: mt9p031: HFLIP/VFLIP changes format
+Date: Fri, 21 Jun 2013 15:48:25 +0000
+Message-ID: <6EE9CD707FBED24483D4CB0162E8546745F4218E@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+Content-Language: de-DE
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Laurent
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/i2c/saa6588.c | 4 ----
- include/media/saa6588.h     | 1 -
- 2 files changed, 5 deletions(-)
+In the mt9p031 driver, the picture can be flipped either horizontally
+or vertically by using the according V4L2 controls. This can be done
+at runtime.
+I have noticed, that flipping the picture will change the bayer-pattern.
+So if I flip horizontally and vertically to get a 180 degree rotation
+the bayer pattern changes from
+V4L2_MBUS_FMT_SGRBG12_1X12
+to
+V4L2_MBUS_FMT_SGBRG12_1X12
+I'm not sure how the patch should look like...
+The format code could be adapted accordingly to the flipping, but
+how does the userspace notices this change? The user could issue
+another get_format. But what about the omap3isp-pipe?
+Concrete:
+What should I do to configure a streaming pipe with a flipped image?
+Flip the image on the v4l-subdev and then build the pipe?
+Is there a chance to propagate the format change through the pipe
+during streaming?
 
-diff --git a/drivers/media/i2c/saa6588.c b/drivers/media/i2c/saa6588.c
-index 54dd7a0..21cf940 100644
---- a/drivers/media/i2c/saa6588.c
-+++ b/drivers/media/i2c/saa6588.c
-@@ -394,10 +394,6 @@ static long saa6588_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- 	struct saa6588_command *a = arg;
- 
- 	switch (cmd) {
--		/* --- open() for /dev/radio --- */
--	case SAA6588_CMD_OPEN:
--		a->result = 0;	/* return error if chip doesn't work ??? */
--		break;
- 		/* --- close() for /dev/radio --- */
- 	case SAA6588_CMD_CLOSE:
- 		s->data_available_for_read = 1;
-diff --git a/include/media/saa6588.h b/include/media/saa6588.h
-index 2c3c442..1489a52 100644
---- a/include/media/saa6588.h
-+++ b/include/media/saa6588.h
-@@ -34,7 +34,6 @@ struct saa6588_command {
- };
- 
- /* These ioctls are internal to the kernel */
--#define SAA6588_CMD_OPEN	_IOW('R', 1, int)
- #define SAA6588_CMD_CLOSE	_IOW('R', 2, int)
- #define SAA6588_CMD_READ	_IOR('R', 3, int)
- #define SAA6588_CMD_POLL	_IOR('R', 4, int)
--- 
-1.8.3.1
+Thanks for your clarification!
+
+Regards,
+Florian
 
