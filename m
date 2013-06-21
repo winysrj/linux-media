@@ -1,124 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:42834 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751780Ab3FHQnI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 8 Jun 2013 12:43:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	k.debski@samsung.com
-Subject: Re: [PATCH v2 1/1] v4l: Document timestamp behaviour to correspond to reality
-Date: Sat, 08 Jun 2013 18:43:10 +0200
-Message-ID: <1732074.vUfkmKHbt9@avalon>
-In-Reply-To: <20130608163142.GI3103@valkosipuli.retiisi.org.uk>
-References: <1364076274-726-1-git-send-email-sakari.ailus@iki.fi> <21759159.gaVOrBXtYV@avalon> <20130608163142.GI3103@valkosipuli.retiisi.org.uk>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:35558 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1161505Ab3FUHzk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 03:55:40 -0400
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: linux-media@vger.kernel.org
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?q?Ga=C3=ABtan=20Carlier?= <gcembed@gmail.com>,
+	Wei Yongjun <weiyj.lk@gmail.com>,
+	Philipp Zabel <p.zabel@pengutronix.de>
+Subject: [PATCH v2 6/8] [media] coda: dynamic IRAM setup for decoder
+Date: Fri, 21 Jun 2013 09:55:32 +0200
+Message-Id: <1371801334-22324-7-git-send-email-p.zabel@pengutronix.de>
+In-Reply-To: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
+References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+ drivers/media/platform/coda.c | 50 +++++++++++++++++++++++++++++++++++++++++--
+ 1 file changed, 48 insertions(+), 2 deletions(-)
 
-On Saturday 08 June 2013 19:31:43 Sakari Ailus wrote:
-> On Sat, Jun 08, 2013 at 08:59:43AM +0200, Laurent Pinchart wrote:
-> > On Friday 07 June 2013 17:21:52 Hans Verkuil wrote:
-> > > On Sat March 23 2013 23:04:34 Sakari Ailus wrote:
-> > > > Document that monotonic timestamps are taken after the corresponding
-> > > > frame has been received, not when the reception has begun. This
-> > > > corresponds to the reality of current drivers: the timestamp is
-> > > > naturally taken when the hardware triggers an interrupt to tell the
-> > > > driver to handle the received frame.
-> > > > 
-> > > > Remove the note on timestamp accurary as it is fairly subjective what
-> > > > is actually an unstable timestamp.
-> > > > 
-> > > > Also remove explanation that output buffer timestamps can be used to
-> > > > delay outputting a frame.
-> > > > 
-> > > > Remove the footnote saying we always use realtime clock.
-> > > > 
-> > > > Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
-> > > 
-> > > Sorry for the delay, for some reason this patch wasn't picked up by
-> > > patchwork.
-> > > 
-> > > > ---
-> > > > Hi all,
-> > > > 
-> > > > This is the second version of the patch fixing timestamp behaviour
-> > > > documentation. I've tried to address the comments I've received albeit
-> > > > I don't think there was a definitive conclusion on all the trails of
-> > > > discussion. What has changed since v1 is:
-> > > > 
-> > > > - Removed discussion on timestamp stability.
-> > > > 
-> > > > - Removed notes that timestamps on output buffers define when frames
-> > > >   will be displayed. It appears no driver has ever implemented this,
-> > > >   or at least does not implement this now.
-> > > > 
-> > > > - Monotonic time is not affected by harms that the wall clock time is
-> > > > 
-> > > >   subjected to. Remove notes on that.
-> > > >  
-> > > >  Documentation/DocBook/media/v4l/io.xml |   47 ++++-------------------
-> > > >  1 file changed, 8 insertions(+), 39 deletions(-)
-> > > > 
-> > > > diff --git a/Documentation/DocBook/media/v4l/io.xml
-> > > > b/Documentation/DocBook/media/v4l/io.xml index e6c5855..46d5a41 100644
-> > > > --- a/Documentation/DocBook/media/v4l/io.xml
-> > > > +++ b/Documentation/DocBook/media/v4l/io.xml
-> > 
-> > [snip]
-> > 
-> > > > @@ -745,13 +718,9 @@ applications when an output stream.</entry>
-> > > > 
-> > > >  	    byte was captured, as returned by the
-> > > >  	    <function>clock_gettime()</function> function for the relevant
-> > > >  	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
-> > > > 
-> > > > -	    <xref linkend="buffer-flags" />. For output streams the data
-> > > > -	    will not be displayed before this time, secondary to the nominal
-> > > > -	    frame rate determined by the current video standard in enqueued
-> > > > -	    order. Applications can for example zero this field to display
-> > > > -	    frames as soon as possible. The driver stores the time at which
-> > > > -	    the first data byte was actually sent out in the
-> > > > -	    <structfield>timestamp</structfield> field. This permits
-> > > > +	    <xref linkend="buffer-flags" />. For output streams he driver
-> > > 
-> > > 'he' -> 'the'
-> > > 
-> > > > +	   stores the time at which the first data byte was actually sent
-> > > > out
-> > > > +	   in the  <structfield>timestamp</structfield> field. This permits
-> > > 
-> > > Not true: the timestamp is taken after the whole frame was transmitted.
-> > > 
-> > > Note that the 'timestamp' field documentation still says that it is the
-> > > timestamp of the first data byte for capture as well, that's also wrong.
-> > 
-> > I know we've already discussed this, but what about devices, such as
-> > uvcvideo, that can provide the time stamp at which the image has been
-> > captured ? I don't think it would be worth it making this configurable,
-> > or even reporting the information to userspace, but shouldn't we give
-> > some degree of freedom to drivers here ?
-> 
-> Hmm. That's a good question --- if we allow variation then we preferrably
-> should also provide a way for applications to know which case is which.
-> 
-> Could the uvcvideo timestamps be meaningfully converted to the frame end
-> time instead? I'd suppose that a frame rate dependent constant would
-> suffice. However, how to calculate this I don't know.
-
-I don't think that's a good idea. The time at which the last byte of the image 
-is received is meaningless to applications. What they care about, for 
-synchronization purpose, is the time at which the image has been captured.
-
-I'm wondering if we really need to care for now. I would be enclined to leave 
-it as-is until an application runs into a real issue related to timestamps.
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 1f3bd43..856a93e 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1212,6 +1212,7 @@ static void coda_setup_iram(struct coda_ctx *ctx)
+ 	int ipacdc_size;
+ 	int bitram_size;
+ 	int dbk_size;
++	int ovl_size;
+ 	int mb_width;
+ 	int me_size;
+ 	int size;
+@@ -1273,7 +1274,47 @@ static void coda_setup_iram(struct coda_ctx *ctx)
+ 			size -= ipacdc_size;
+ 		}
+ 
+-		/* OVL disabled for encoder */
++		/* OVL and BTP disabled for encoder */
++	} else if (ctx->inst_type == CODA_INST_DECODER) {
++		struct coda_q_data *q_data_dst;
++		int mb_height;
++
++		q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
++		mb_width = DIV_ROUND_UP(q_data_dst->width, 16);
++		mb_height = DIV_ROUND_UP(q_data_dst->height, 16);
++
++		dbk_size = round_up(256 * mb_width, 1024);
++		if (size >= dbk_size) {
++			iram_info->axi_sram_use |= CODA7_USE_HOST_DBK_ENABLE;
++			iram_info->buf_dbk_y_use = dev->iram_paddr;
++			iram_info->buf_dbk_c_use = dev->iram_paddr +
++						   dbk_size / 2;
++			size -= dbk_size;
++		} else {
++			goto out;
++		}
++
++		bitram_size = round_up(128 * mb_width, 1024);
++		if (size >= bitram_size) {
++			iram_info->axi_sram_use |= CODA7_USE_HOST_BIT_ENABLE;
++			iram_info->buf_bit_use = iram_info->buf_dbk_c_use +
++						 dbk_size / 2;
++			size -= bitram_size;
++		} else {
++			goto out;
++		}
++
++		ipacdc_size = round_up(128 * mb_width, 1024);
++		if (size >= ipacdc_size) {
++			iram_info->axi_sram_use |= CODA7_USE_HOST_IP_ENABLE;
++			iram_info->buf_ip_ac_dc_use = iram_info->buf_bit_use +
++						      bitram_size;
++			size -= ipacdc_size;
++		} else {
++			goto out;
++		}
++
++		ovl_size = round_up(80 * mb_width, 1024);
+ 	}
+ 
+ out:
+@@ -1300,7 +1341,12 @@ out:
+ 
+ 	if (dev->devtype->product == CODA_7541) {
+ 		/* TODO - Enabling these causes picture errors on CODA7541 */
+-		if (ctx->inst_type == CODA_INST_ENCODER) {
++		if (ctx->inst_type == CODA_INST_DECODER) {
++			/* fw 1.4.50 */
++			iram_info->axi_sram_use &= ~(CODA7_USE_HOST_IP_ENABLE |
++						     CODA7_USE_IP_ENABLE);
++		} else {
++			/* fw 13.4.29 */
+ 			iram_info->axi_sram_use &= ~(CODA7_USE_HOST_IP_ENABLE |
+ 						     CODA7_USE_HOST_DBK_ENABLE |
+ 						     CODA7_USE_IP_ENABLE |
 -- 
-Regards,
-
-Laurent Pinchart
+1.8.3.1
 
