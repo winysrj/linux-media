@@ -1,82 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f180.google.com ([209.85.223.180]:36120 "EHLO
-	mail-ie0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751890Ab3FKKNr convert rfc822-to-8bit (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:24501 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1422804Ab3FUNBp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 06:13:47 -0400
-Received: by mail-ie0-f180.google.com with SMTP id f4so14540400iea.11
-        for <linux-media@vger.kernel.org>; Tue, 11 Jun 2013 03:13:47 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1370945293.8544.YahooMailNeo@web125205.mail.ne1.yahoo.com>
-References: <1370938465.85106.YahooMailNeo@web125204.mail.ne1.yahoo.com>
- <CAPueXH4+MyXszcfwSMB2rS+WdrJ5z0=98puS1WwyEQzb_E87bQ@mail.gmail.com> <1370945293.8544.YahooMailNeo@web125205.mail.ne1.yahoo.com>
-From: Paulo Assis <pj.assis@gmail.com>
-Date: Tue, 11 Jun 2013 11:13:26 +0100
-Message-ID: <CAPueXH4xBtVtUmpq1HkwG-3O7bC4dr6-LEenWf9_HvB8arzvow@mail.gmail.com>
-Subject: Re: Corrupt Raw webcam data
-To: phil rosenberg <philip_rosenberg@yahoo.com>
-Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
+	Fri, 21 Jun 2013 09:01:45 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOQ0022TUUHPVH0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 21 Jun 2013 22:01:44 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, j.anaszewski@samsung.com,
+	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH 5/6] exynos4-is: Set valid initial format on FIMC.n subdevs
+Date: Fri, 21 Jun 2013 15:00:34 +0200
+Message-id: <1371819636-13499-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1371819636-13499-1-git-send-email-s.nawrocki@samsung.com>
+References: <1371819636-13499-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-You should select YUYV before disabling the video processing.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ drivers/media/platform/exynos4-is/fimc-capture.c |   19 +++++++++++++++++--
+ drivers/media/platform/exynos4-is/fimc-core.h    |    2 ++
+ 2 files changed, 19 insertions(+), 2 deletions(-)
 
-So with video processing still enabled:
+diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c b/drivers/media/platform/exynos4-is/fimc-capture.c
+index 2b045b6..fb27ff7 100644
+--- a/drivers/media/platform/exynos4-is/fimc-capture.c
++++ b/drivers/media/platform/exynos4-is/fimc-capture.c
+@@ -1722,8 +1722,8 @@ static int fimc_capture_set_default_format(struct fimc_dev *fimc)
+ 	struct v4l2_format fmt = {
+ 		.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE,
+ 		.fmt.pix_mp = {
+-			.width		= 640,
+-			.height		= 480,
++			.width		= FIMC_DEFAULT_WIDTH,
++			.height		= FIMC_DEFAULT_HEIGHT,
+ 			.pixelformat	= V4L2_PIX_FMT_YUYV,
+ 			.field		= V4L2_FIELD_NONE,
+ 			.colorspace	= V4L2_COLORSPACE_JPEG,
+@@ -1741,6 +1741,7 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	struct vb2_queue *q = &fimc->vid_cap.vbq;
+ 	struct fimc_ctx *ctx;
+ 	struct fimc_vid_cap *vid_cap;
++	struct fimc_fmt *fmt;
+ 	int ret = -ENOMEM;
+ 
+ 	ctx = kzalloc(sizeof(*ctx), GFP_KERNEL);
+@@ -1788,6 +1789,20 @@ static int fimc_register_capture_device(struct fimc_dev *fimc,
+ 	if (ret)
+ 		goto err_free_ctx;
+ 
++	/* Default format configuration */
++	fmt = fimc_find_format(NULL, NULL, FMT_FLAGS_CAM, 0);
++	vid_cap->ci_fmt.width = FIMC_DEFAULT_WIDTH;
++	vid_cap->ci_fmt.height = FIMC_DEFAULT_HEIGHT;
++	vid_cap->ci_fmt.code = fmt->mbus_code;
++
++	ctx->s_frame.width = FIMC_DEFAULT_WIDTH;
++	ctx->s_frame.height = FIMC_DEFAULT_HEIGHT;
++	ctx->s_frame.fmt = fmt;
++
++	fmt = fimc_find_format(NULL, NULL, FMT_FLAGS_WRITEBACK, 0);
++	vid_cap->wb_fmt = vid_cap->ci_fmt;
++	vid_cap->wb_fmt.code = fmt->mbus_code;
++
+ 	vid_cap->vd_pad.flags = MEDIA_PAD_FL_SINK;
+ 	ret = media_entity_init(&vfd->entity, 1, &vid_cap->vd_pad, 0);
+ 	if (ret)
+diff --git a/drivers/media/platform/exynos4-is/fimc-core.h b/drivers/media/platform/exynos4-is/fimc-core.h
+index 0f25ce0..65c8ce7 100644
+--- a/drivers/media/platform/exynos4-is/fimc-core.h
++++ b/drivers/media/platform/exynos4-is/fimc-core.h
+@@ -47,6 +47,8 @@
+ #define FIMC_DEF_MIN_SIZE	16
+ #define FIMC_DEF_HEIGHT_ALIGN	2
+ #define FIMC_DEF_HOR_OFFS_ALIGN	1
++#define FIMC_DEFAULT_WIDTH	640
++#define FIMC_DEFAULT_HEIGHT	480
+ 
+ /* indices to the clocks array */
+ enum {
+-- 
+1.7.9.5
 
-set YUYV format
-set the desired fps and resolution
-set exposure
-
-now disable video processing and set the bayer order
-
-every time you need to change exposure or resolution you need to
-enable video processing first.
-
-Regards,
-Paulo
-
-2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>:
-> Hello Paulo
-> Thank you for your quick response.
-> Unfortunately if I select YUYV or any other format that is not MJPG data flow stops and I see timeouts appear in the console.
->
-> Does this represent a bug in either the webcam's UVC support or the UVC driver? If so I presume there is no likely quick workaround.
->
-> Phil
->
-> ________________________________
-> From: Paulo Assis <pj.assis@gmail.com>
-> To: phil rosenberg <philip_rosenberg@yahoo.com>
-> Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-> Sent: Tuesday, 11 June 2013, 10:11
-> Subject: Re:
->
->
->
-> Hi,
-> make sure you are streaming in YUYV format and not in MJPG or any of the libv4l formats since these are decoded from MJPG.
->
-> If you are using guvcview for the stream preview you should also set the bayer pattern accordindly since it will depend on whathever resolution you are using.
->
-> Regards,
-> Paulo
->
->
->
->
-> 2013/6/11 phil rosenberg <philip_rosenberg@yahoo.com>
->
-> Hi this is my first email to the list, I'm hoping someone can help
->>I have a logitech C300 webcam with the option of raw/bayer output. This works fine on windows where the RGB output consists of zeros in the r and b bytes and pixel intensitey in the g byte. However on linux when I activate the webcam using uvcdynctrl and/or the options in guvcview the out put seems to be corrupted. I get something that looks like multiple images interlaces and displaced horizontally, generally pink. I've put an example of an extracted avi frame at http://homepages.see.leeds.ac.uk/~earpros/test0.png, which is a close up of one of my daughters hair clips and shows an (upside down) picture of a disney character.
->>I'm wondering if the UVC/V4L2 driver is interpretting the data as mjpeg and incorrectly decoding it giving the corruption. When I use guvcview I can choose the input format, but the only one that works in mjpeg, all others cause timeouts and no data. The image also has the tell-tale 8x8 jpeg block effect. Is there any way I can stop this decoding happening and get to the raw data? Presumably if my theory is correct then the decompression is lossy so cannot be undone.
->>Any help or suggestions welcome.
->>
->>Phil
->>--
->>To unsubscribe from this list: send the line "unsubscribe linux-media" in
->>the body of a message to majordomo@vger.kernel.org
->>More majordomo info at  http://vger.kernel.org/majordomo-info.html
->>
