@@ -1,76 +1,166 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:3855 "EHLO
-	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751671Ab3FGKb0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:31:26 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr1.xs4all.nl (8.13.8/8.13.8) with ESMTP id r57AVEkE002060
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 7 Jun 2013 12:31:17 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from tschai.localnet (tschai.lan [192.168.1.10])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 97CA435C0003
-	for <linux-media@vger.kernel.org>; Fri,  7 Jun 2013 12:31:13 +0200 (CEST)
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3292 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1945923Ab3FUSZ5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 14:25:57 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.11] Updates for 3.11
-Date: Fri, 7 Jun 2013 12:31:14 +0200
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] V4L2: add documentation for V4L2 clock helpers and asynchronous probing
+Date: Fri, 21 Jun 2013 20:25:38 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>
+References: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
 MIME-Version: 1.0
 Content-Type: Text/Plain;
-  charset="us-ascii"
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
-Message-Id: <201306071231.14136.hverkuil@xs4all.nl>
+Message-Id: <201306212025.38448.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e:
+Hi Guennadi,
 
-  [media] media: pci: remove duplicate checks for EPERM (2013-05-27 09:34:56 -0300)
+I had hoped to review this earlier this week, but I didn't get around it. But
+better late than never...
 
-are available in the git repository at:                                                                                                              
-                                                                                                                                                     
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.11                                                                                                
-                                                                                                                                                     
-for you to fetch changes up to 219cb7fa5f127e423ef178a17bfe409b5b522d91:                                                                             
-                                                                                                                                                     
-  media: i2c: ths7303: make the pdata as a constant pointer (2013-06-07 10:34:59 +0200)                                                              
-                                                                                                                                                     
-----------------------------------------------------------------                                                                                     
-Antti Palosaari (1):                                                                                                                                 
-      radio-keene: add delay in order to settle hardware                                                                                             
-                                                                                                                                                     
-Hans Verkuil (6):                                                                                                                                    
-      mxl111sf: don't redefine pr_err/info/debug                                                                                                     
-      hdpvr: fix querystd 'unknown format' return.                                                                                                   
-      hdpvr: code cleanup                                                                                                                            
-      hdpvr: improve error handling                                                                                                                  
-      ml86v7667: fix the querystd implementation                                                                                                     
-      radio-keene: set initial frequency.                                                                                                            
-                                                                                                                                                     
-Lad, Prabhakar (4):                                                                                                                                  
-      ARM: davinci: dm365 evm: remove init_enable from ths7303 pdata                                                                                 
-      media: i2c: ths7303: remove init_enable option from pdata                                                                                      
-      media: i2c: ths7303: remove unnecessary function ths7303_setup()                                                                               
-      media: i2c: ths7303: make the pdata as a constant pointer                                                                                      
-                                                                                                                                                     
-Vladimir Barinov (2):                                                                                                                                
-      adv7180: add more subdev video ops                                                                                                             
-      ML86V7667: new video decoder driver                                                                                                            
-                                                                                                                                                     
- arch/arm/mach-davinci/board-dm365-evm.c       |    1 -                                                                                              
- drivers/media/i2c/Kconfig                     |    9 ++                                                                                             
- drivers/media/i2c/Makefile                    |    1 +                                                                                              
- drivers/media/i2c/adv7180.c                   |   46 ++++++++++                                                                                     
- drivers/media/i2c/ml86v7667.c                 |  431 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++ 
- drivers/media/i2c/ths7303.c                   |   48 +++--------                                                                                    
- drivers/media/radio/radio-keene.c             |    7 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf-tuner.c |    8 +-
- drivers/media/usb/dvb-usb-v2/mxl111sf.c       |   90 ++++++++++----------
- drivers/media/usb/hdpvr/hdpvr-control.c       |   21 ++---
- drivers/media/usb/hdpvr/hdpvr-video.c         |   72 ++++++++--------
- drivers/media/usb/hdpvr/hdpvr.h               |    1 +
- include/media/ths7303.h                       |    2 -
- 13 files changed, 597 insertions(+), 140 deletions(-)
- create mode 100644 drivers/media/i2c/ml86v7667.c
+Comments below.
+
+On Mon June 17 2013 08:04:10 Guennadi Liakhovetski wrote:
+> Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
+> to v4l2-framework.txt.
+> 
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> Hopefully we can commit the actual patches now, while we refine the 
+> documentation.
+> 
+>  Documentation/video4linux/v4l2-framework.txt |   62 +++++++++++++++++++++++++-
+>  1 files changed, 60 insertions(+), 2 deletions(-)
+> 
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index a300b28..159a83a 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -326,8 +326,27 @@ that width, height and the media bus pixel code are equal on both source and
+>  sink of the link. Subdev drivers are also free to use this function to
+>  perform the checks mentioned above in addition to their own checks.
+>  
+> -A device (bridge) driver needs to register the v4l2_subdev with the
+> -v4l2_device:
+> +There are currently two ways to register subdevices with the V4L2 core. The
+> +first (traditional) possibility is to have subdevices registered by bridge
+> +drivers. This can be done, when the bridge driver has the complete information
+> +about subdevices, connected to it and knows exactly when to register them. This
+> +is typically the case for internal subdevices, like video data processing units
+> +within SoCs or complex pluggable boards, camera sensors in USB cameras or
+
+s/pluggable boards/PCI(e) boards/
+
+That's more concrete than 'pluggable boards' IMHO.
+
+> +connected to SoCs, which pass information about them to bridge drivers, usually
+> +in their platform data.
+> +
+> +There are however also situations, where subdevices have to be registered
+> +asynchronously to bridge devices. An example of such a configuration is Device
+> +Tree based systems, on which information
+
+"a Device Tree based system where information"
+
+> about subdevices is made available to
+> +the system indpendently from the bridge devices, e.g. when subdevices are
+> +defined in DT as I2C device nodes. The API, used in this second case is
+> +described further below.
+> +
+> +Using one or the other registration method only affects the probing process, the
+> +run-time bridge-subdevice interaction is in both cases the same.
+> +
+> +In the synchronous case a device (bridge) driver needs to register the
+> +v4l2_subdev with the v4l2_device:
+>  
+>  	int err = v4l2_device_register_subdev(v4l2_dev, sd);
+>  
+> @@ -394,6 +413,25 @@ controlled through GPIO pins. This distinction is only relevant when setting
+>  up the device, but once the subdev is registered it is completely transparent.
+>  
+>  
+> +In the asynchronous case subdevices register themselves using the
+> +v4l2_async_register_subdev() function. Unregistration is performed, using the
+> +v4l2_async_unregister_subdev() call. Subdevices registered this way are stored
+> +on a global list of subdevices, ready to be picked up by bridge drivers.
+> +
+> +Bridge drivers in turn have to register a notifier object with an array of
+> +subdevice descriptors, that the bridge device needs for its operation. This is
+> +performed using the v4l2_async_notifier_register() call. To unregister the
+> +notifier the driver has to call v4l2_async_notifier_unregister(). The former of
+> +the two functions takes two arguments: a pointer to struct v4l2_device and a
+> +pointer to struct v4l2_async_notifier. The latter contains a pointer to an array
+> +of pointers to subdevice descriptors of type struct v4l2_async_subdev type. The
+> +V4L2 core will then use these descriptors to match asynchronously registered
+> +subdevices to them. If a match is detected the .bound() notifier callback is
+> +called. After all subdevices have been located the .complete() callback is
+> +called. When a subdevice is removed from the system the .unbind() method is
+> +called. All three callbacks are optional.
+
+Is that true? Don't you need at least a bound or a complete callback?
+
+Something probable needs to be said about when to return -EPROBE_DEFER in a
+subdevice, and that any code that depends on the presence of subdevices in
+a probe() function will be moved to the complete callback.
+
+Also, what happens if one or more subdevices aren't found.
+
+Ideally a simple example would be helpful.
+
+> +
+> +
+>  V4L2 sub-device userspace API
+>  -----------------------------
+>  
+> @@ -1061,3 +1099,23 @@ available event type is 'class base + 1'.
+>  
+>  An example on how the V4L2 events may be used can be found in the OMAP
+>  3 ISP driver (drivers/media/platform/omap3isp).
+> +
+> +
+> +V4L2 clocks
+> +-----------
+> +
+> +Many subdevices, like camera sensors, TV decoders and encoders, need a clock
+> +signal to be supplied by the system. Often this clock is supplied by the
+> +respective bridge device. The Linux kernel provides a Common Clock Framework for
+> +this purpose, however, it is not (yet) available on all architectures. Besides,
+
+s/purpose, however,/purpose. However,/
+
+> +the nature of the multi-functional (clock, data + synchronisation, I2C control)
+> +connection of subdevices to the system might impose special requirements on the
+> +clock API usage. For these reasons a V4L2 clock helper API has been developed
+> +and is provided to bridge and subdevice drivers.
+> +
+> +The API consists of two parts: two functions to register and unregister a V4L2
+> +clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls to control
+> +a clock object, similar to respective generic clock API calls: v4l2_clk_get(),
+
+s/to/to the/
+
+> +v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(), v4l2_clk_get_rate(), and
+> +v4l2_clk_set_rate(). Clock suppliers have to provide clock operations, that will
+> +be called when clock users invoke respective API methods.
+> 
+
+It might be a good idea to mention that these v4l2 clocks will be replaced by the
+regular common clock framework once it is widespread enough. At least, that's my
+understanding.
+
+Regards,
+
+	Hans
