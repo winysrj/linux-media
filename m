@@ -1,228 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:37566 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752561Ab3FVRpM (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jun 2013 13:45:12 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: [PATCH v2 2/2] media: i2c: tvp7002: add OF support
-Date: Sat, 22 Jun 2013 23:14:15 +0530
-Message-Id: <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mx1.redhat.com ([209.132.183.28]:15630 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1945935Ab3FUTtp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 21 Jun 2013 15:49:45 -0400
+Date: Fri, 21 Jun 2013 16:49:41 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Linus Torvalds <torvalds@linux-foundation.org>
+Cc: Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: [GIT PULL for 3.10-rc7] media fixes
+Message-ID: <20130621164941.0fe3f4f1@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Linus,
 
-add OF support for the tvp7002 driver.
+Please pull from:
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Grant Likely <grant.likely@secretlab.ca>
-Cc: Rob Herring <rob.herring@calxeda.com>
-Cc: Rob Landley <rob@landley.net>
-Cc: devicetree-discuss@lists.ozlabs.org
-Cc: linux-doc@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org
-Cc: davinci-linux-open-source@linux.davincidsp.com
----
- Depends on patch https://patchwork.kernel.org/patch/2765851/
- 
- .../devicetree/bindings/media/i2c/tvp7002.txt      |   43 +++++++++++++
- drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
- 2 files changed, 103 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+For another set of fixes for Kernel 3.10.
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-new file mode 100644
-index 0000000..9daebe1
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-@@ -0,0 +1,43 @@
-+* Texas Instruments TV7002 video decoder
-+
-+The TVP7002 device supports digitizing of video and graphics signal in RGB and
-+YPbPr color space.
-+
-+Required Properties :
-+- compatible : Must be "ti,tvp7002"
-+
-+- hsync-active: HSYNC Polarity configuration for endpoint.
-+
-+- vsync-active: VSYNC Polarity configuration for endpoint.
-+
-+- pclk-sample: Clock polarity of the endpoint.
-+
-+- video-sync: Video sync property of the endpoint.
-+
-+- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
-+
-+
-+For further reading of port node refer Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		...
-+		tvp7002@5c {
-+			compatible = "ti,tvp7002";
-+			reg = <0x5c>;
-+
-+			port {
-+				tvp7002_1: endpoint {
-+					hsync-active = <1>;
-+					vsync-active = <1>;
-+					pclk-sample = <0>;
-+					video-sync = <V4L2_MBUS_VIDEO_SYNC_ON_GREEN>;
-+					ti,tvp7002-fid-polarity;
-+				};
-+			};
-+		};
-+		...
-+	};
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index b577548..4896024 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -35,6 +35,8 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
-+
- #include "tvp7002_reg.h"
- 
- MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
-@@ -943,6 +945,48 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
- 	.pad = &tvp7002_pad_ops,
- };
- 
-+static struct tvp7002_config *
-+tvp7002_get_pdata(struct i2c_client *client)
-+{
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct tvp7002_config *pdata;
-+	struct device_node *endpoint;
-+	unsigned int flags;
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-+		return client->dev.platform_data;
-+
-+	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-+	if (!endpoint)
-+		return NULL;
-+
-+	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		goto done;
-+
-+	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	flags = bus_cfg.bus.parallel.flags;
-+
-+	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+		pdata->hs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+		pdata->vs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		pdata->clk_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_VIDEO_SYNC_ON_GREEN)
-+		pdata->sog_polarity = 1;
-+
-+	pdata->fid_polarity = of_property_read_bool(endpoint,
-+						    "ti,tvp7002-fid-polarity");
-+
-+done:
-+	of_node_put(endpoint);
-+	return pdata;
-+}
-+
- /*
-  * tvp7002_probe - Probe a TVP7002 device
-  * @c: ptr to i2c_client struct
-@@ -954,32 +998,32 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
-  */
- static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- {
-+	struct tvp7002_config *pdata = tvp7002_get_pdata(c);
- 	struct v4l2_subdev *sd;
- 	struct tvp7002 *device;
- 	struct v4l2_dv_timings timings;
- 	int polarity_a;
- 	int polarity_b;
- 	u8 revision;
+This series contain:
+	- two Kbuild fixes for randconfig;
+	- a buffer overflow when using rtl28xuu with r820t tuner;
+	- one clk fixup on exynos4-is driver.
+
+Thank you!
+Mauro
+
 -
- 	int error;
- 
-+	if (pdata == NULL) {
-+		dev_err(&c->dev, "No platform data\n");
-+		return -EINVAL;
-+	}
-+
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(c->adapter,
- 		I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
- 		return -EIO;
- 
--	if (!c->dev.platform_data) {
--		v4l_err(c, "No platform data!!\n");
--		return -ENODEV;
--	}
--
- 	device = devm_kzalloc(&c->dev, sizeof(struct tvp7002), GFP_KERNEL);
- 
- 	if (!device)
- 		return -ENOMEM;
- 
- 	sd = &device->sd;
--	device->pdata = c->dev.platform_data;
-+	device->pdata = pdata;
- 	device->current_timings = tvp7002_timings;
- 
- 	/* Tell v4l2 the device is ready */
-@@ -1085,9 +1129,18 @@ static const struct i2c_device_id tvp7002_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, tvp7002_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id tvp7002_of_match[] = {
-+	{ .compatible = "ti,tvp7002", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, tvp7002_of_match);
-+#endif
-+
- /* I2C driver data */
- static struct i2c_driver tvp7002_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(tvp7002_of_match),
- 		.owner = THIS_MODULE,
- 		.name = TVP7002_MODULE_NAME,
- 	},
--- 
-1.7.9.5
+
+The following changes since commit af44ad5edd1eb6ca92ed5be48e0004e1f04bf219:
+
+  [media] soc_camera: error dev remove and v4l2 call (2013-06-08 21:51:06 -0300)
+
+are available in the git repository at:
+
+  git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+
+for you to fetch changes up to bb69ee27b96110c509d5b92c9ee541d81a821706:
+
+  [media] Fix build when drivers are builtin and frontend modules (2013-06-20 10:35:53 -0300)
+
+----------------------------------------------------------------
+Gianluca Gennari (1):
+      [media] rtl28xxu: fix buffer overflow when probing Rafael Micro r820t tuner
+
+Mauro Carvalho Chehab (2):
+      [media] s5p makefiles: don't override other selections on obj-[ym]
+      [media] Fix build when drivers are builtin and frontend modules
+
+Sylwester Nawrocki (1):
+      [media] exynos4-is: Fix FIMC-IS clocks initialization
+
+ drivers/media/Kconfig                       | 12 +++++++++---
+ drivers/media/platform/exynos4-is/fimc-is.c | 26 ++++++++------------------
+ drivers/media/platform/exynos4-is/fimc-is.h |  1 -
+ drivers/media/platform/s5p-jpeg/Makefile    |  2 +-
+ drivers/media/platform/s5p-mfc/Makefile     |  2 +-
+ drivers/media/tuners/Kconfig                | 20 --------------------
+ drivers/media/usb/dvb-usb-v2/rtl28xxu.c     |  6 +++---
+ 7 files changed, 22 insertions(+), 47 deletions(-)
 
