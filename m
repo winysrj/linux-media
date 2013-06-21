@@ -1,176 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:32851 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757843Ab3FUAvH (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:57713 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1423122Ab3FUR1R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 20:51:07 -0400
-Received: by mail-la0-f42.google.com with SMTP id eb20so6319570lab.29
-        for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 17:51:04 -0700 (PDT)
-Message-ID: <51C3A363.5090206@cogentembedded.com>
-Date: Fri, 21 Jun 2013 04:50:43 +0400
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+	Fri, 21 Jun 2013 13:27:17 -0400
+Date: Fri, 21 Jun 2013 19:27:14 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [GIT PULL] V4L2: clock and async probing APIs, soc-camera example
+ implementation
+In-Reply-To: <Pine.LNX.4.64.1306211851540.27277@axis700.grange>
+Message-ID: <Pine.LNX.4.64.1306211925030.27277@axis700.grange>
+References: <Pine.LNX.4.64.1306211851540.27277@axis700.grange>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com, matsu@igel.co.jp
-Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
-References: <201305240211.29665.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1306131245420.31976@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1306131245420.31976@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+On Fri, 21 Jun 2013, Guennadi Liakhovetski wrote:
 
-Sorry for the response delay and thank you for new review.
+> Hi Mauro
 
-Guennadi Liakhovetski wrote:
->> +	/* output format */
->> +	switch (icd->current_fmt->host_fmt->fourcc) {
->> +	case V4L2_PIX_FMT_NV16:
->> +		iowrite32(ALIGN(cam->width * cam->height, 0x80),
->> +			  priv->base + VNUVAOF_REG);
->> +		dmr = VNDMR_DTMD_YCSEP;
->> +		output_is_yuv = true;
->> +		break;
->> +	case V4L2_PIX_FMT_YUYV:
->> +		dmr = VNDMR_BPSM;
->> +		output_is_yuv = true;
->> +		break;
->> +	case V4L2_PIX_FMT_UYVY:
->> +		dmr = 0;
->> +		output_is_yuv = true;
->> +		break;
->> +	case V4L2_PIX_FMT_RGB555X:
->> +		dmr = VNDMR_DTMD_ARGB1555;
->> +		break;
->> +	case V4L2_PIX_FMT_RGB565:
->> +		dmr = 0;
->> +		break;
->> +	case V4L2_PIX_FMT_RGB32:
->> +		if (priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
->> +			dmr = VNDMR_EXRGB;
->> +			break;
->> +		}
->> +	default:
->> +		dev_warn(icd->parent, "Invalid fourcc format (0x%x)\n",
->> +			 icd->current_fmt->host_fmt->fourcc);
->>     
->
-> I'll put a marker here for now: I don't understand the logic - either you 
-> don't support this case, then you should either fail somehow or switch to 
-> a supported case, or you do support it, then you don't need a warning
->   
-Yes, the default case is not supported.
-Don't you think the current logic should be replaced with BUG() callback?
+Sorry, I did forget a couple more acks: for patch "V4L2: add a device 
+pointer to struct v4l2_subdev"
 
-> [snip]
->
->   
->> +static void rcar_vin_videobuf_queue(struct vb2_buffer *vb)
->> +{
->> +	struct soc_camera_device *icd = soc_camera_from_vb2q(vb->vb2_queue);
->> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->> +	struct rcar_vin_priv *priv = ici->priv;
->> +	unsigned long size;
->> +	int bytes_per_line;
->> +
->> +	bytes_per_line = soc_mbus_bytes_per_line(icd->user_width,
->> +						 icd->current_fmt->host_fmt);
->> +	if (bytes_per_line < 0)
->> +		goto error;
->> +
->> +	size = icd->user_height * bytes_per_line;
->>     
->
-> You haven't fixed this
->   
-Sorry for the miss. Will replace with icd->sizeimage.
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
->> +static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
->> +	{
->> +		.fourcc			= V4L2_PIX_FMT_NV16,
->> +		.name			= "NV16",
->> +		.bits_per_sample	= 16,
->> +		.packing		= SOC_MBUS_PACKING_NONE,
->> +		.order			= SOC_MBUS_ORDER_LE,
->> +		.layout			= SOC_MBUS_LAYOUT_PACKED,
->>     
->
-> This should be SOC_MBUS_LAYOUT_PLANAR_Y_C
->   
-Shouldn't the ".packing"  be changed here to SOC_MBUS_PACKING_2X8_PADHI ?
+and for patch "V4L2: support asynchronous subdevice registration"
 
->> +	if (!icd->host_priv) {
->> +		struct v4l2_mbus_framefmt mf;
->> +		struct v4l2_rect rect;
->> +		struct device *dev = icd->parent;
->> +		int shift;
->> +
->> +		ret = v4l2_subdev_call(sd, video, g_mbus_fmt, &mf);
->> +		if (ret < 0)
->> +			return ret;
->> +
->> +		/* Cache current client geometry */
->> +		ret = soc_camera_client_g_rect(sd, &rect);
->> +		if (ret < 0) {
->> +			/* Sensor driver doesn't support cropping */
->>     
->
-> I don't think it's right. soc_camera_client_g_rect() should only return an 
-> error, if the subdevice driver implements g_crop or cropcap and returns an 
-> error from them. If those methods are just unimplemented, you get a 0 
-> back. Do you see anything different?
->   
-No.
-In case the subdevice drivers does not implement cropping (i.e there is 
-no both methods g_crop and cropcap) then the return value is -ENOIOCTLCMD.
-Don't you suggest to continue for (ret == -ENOIOCTLCMD) and return for 
-other (ret < 0) ?
+Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
->> +	switch (pixfmt) {
->> +	case V4L2_PIX_FMT_NV16:
->> +		can_scale = false;
->> +		break;
->> +	case V4L2_PIX_FMT_RGB32:
->> +		can_scale = priv->chip != RCAR_E1;
->> +		break;
->> +	default:
->> +		can_scale = true;
->>     
->
-> You also get here in the pass-through mode, right? I don't think you can 
-> scale then.
->   
-Yes, thank you for pointing to this. I will add only supported formats 
-for scaling capability.
+Mauro, maybe it would be possible for you to modify only these two 
+patches.
 
->   
->> +		break;
->> +	}
->> +
->> +	dev_dbg(dev, "request camera output %ux%u\n", mf.width, mf.height);
->> +
->> +	ret = soc_camera_client_scale(icd, &cam->rect, &cam->subrect,
->> +				      &mf, &vin_sub_width, &vin_sub_height,
->> +				      can_scale, 12);
->> +
->> +	/* Done with the camera. Now see if we can improve the result */
->> +	dev_dbg(dev, "Camera %d fmt %ux%u, requested %ux%u\n",
->> +		ret, mf.width, mf.height, pix->width, pix->height);
->> +
->> +	if (ret < 0)
->> +		dev_dbg(dev, "Sensor doesn't support cropping\n");
->>     
->
-> Are you sure this print is correct?
->   
-Probably it should be the same like above for the case if subdevice 
-driver does not support cropping (see soc_scale_crop.c -> client_s_fmt() ).
+Thanks
+Guennadi
 
-Regards,
-Vladimir
+> With acks from Hans and Laurent I'd like to ask you to pull my V4L2 clock 
+> and asynchronous probing APIs together with respective soc-camera changes. 
+> I included an ack from Laurent, even though he requested me to include the 
+> documentation update into this pull request, which I haven't done yet. But 
+> we agreed privately, that it's also ok, if I submit a v2 of the patch 
+> first to the list next Monday and then send an additional pull request for 
+> it some time next week. The last patch from the patch series, as I posted 
+> it to the list last time is also omitted, because (1) it's for arch/arm, 
+> (2) the board, which I used as an example to develop and test these 
+> patches will be removed from the kernel, so, I'll need to pick up a 
+> different platform for testing, also a different camera host driver, 
+> perhaps.
+> 
+> The following changes since commit 4ef72e347112a834fbd6944565b1f63d4af19c8a:
+> 
+>   [media] V4L2: soc-camera: remove unneeded include path (2013-06-21 13:11:59 -0300)
+> 
+> are available in the git repository at:
+>   git://linuxtv.org/gliakhovetski/v4l-dvb.git for-3.11-2
+> 
+> Guennadi Liakhovetski (20):
+>       soc-camera: move common code to soc_camera.c
+>       soc-camera: add host clock callbacks to start and stop the master clock
+>       pxa-camera: move interface activation and deactivation to clock callbacks
+>       omap1-camera: move interface activation and deactivation to clock callbacks
+>       atmel-isi: move interface activation and deactivation to clock callbacks
+>       mx3-camera: move interface activation and deactivation to clock callbacks
+>       mx2-camera: move interface activation and deactivation to clock callbacks
+>       mx1-camera: move interface activation and deactivation to clock callbacks
+>       sh-mobile-ceu-camera: move interface activation and deactivation to clock callbacks
+>       soc-camera: make .clock_{start,stop} compulsory, .add / .remove optional
+>       soc-camera: don't attach the client to the host during probing
+>       sh-mobile-ceu-camera: add primitive OF support
+>       sh-mobile-ceu-driver: support max width and height in DT
+>       V4L2: add temporary clock helpers
+>       V4L2: add a device pointer to struct v4l2_subdev
+>       V4L2: support asynchronous subdevice registration
+>       soc-camera: switch I2C subdevice drivers to use v4l2-clk
+>       soc-camera: add V4L2-async support
+>       sh_mobile_ceu_camera: add asynchronous subdevice probing support
+>       imx074: support asynchronous probing
+> 
+>  .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +
+>  drivers/media/i2c/soc_camera/imx074.c              |   32 +-
+>  drivers/media/i2c/soc_camera/mt9m001.c             |   17 +-
+>  drivers/media/i2c/soc_camera/mt9m111.c             |   20 +-
+>  drivers/media/i2c/soc_camera/mt9t031.c             |   19 +-
+>  drivers/media/i2c/soc_camera/mt9t112.c             |   25 +-
+>  drivers/media/i2c/soc_camera/mt9v022.c             |   17 +-
+>  drivers/media/i2c/soc_camera/ov2640.c              |   19 +-
+>  drivers/media/i2c/soc_camera/ov5642.c              |   20 +-
+>  drivers/media/i2c/soc_camera/ov6650.c              |   17 +-
+>  drivers/media/i2c/soc_camera/ov772x.c              |   15 +-
+>  drivers/media/i2c/soc_camera/ov9640.c              |   17 +-
+>  drivers/media/i2c/soc_camera/ov9640.h              |    1 +
+>  drivers/media/i2c/soc_camera/ov9740.c              |   18 +-
+>  drivers/media/i2c/soc_camera/rj54n1cb0c.c          |   17 +-
+>  drivers/media/i2c/soc_camera/tw9910.c              |   24 +-
+>  drivers/media/platform/soc_camera/atmel-isi.c      |   38 +-
+>  drivers/media/platform/soc_camera/mx1_camera.c     |   48 +-
+>  drivers/media/platform/soc_camera/mx2_camera.c     |   41 +-
+>  drivers/media/platform/soc_camera/mx3_camera.c     |   44 +-
+>  drivers/media/platform/soc_camera/omap1_camera.c   |   41 +-
+>  drivers/media/platform/soc_camera/pxa_camera.c     |   46 +-
+>  .../platform/soc_camera/sh_mobile_ceu_camera.c     |  243 +++++--
+>  drivers/media/platform/soc_camera/sh_mobile_csi2.c |  153 +++--
+>  drivers/media/platform/soc_camera/soc_camera.c     |  707 +++++++++++++++++---
+>  .../platform/soc_camera/soc_camera_platform.c      |    2 +-
+>  drivers/media/v4l2-core/Makefile                   |    3 +-
+>  drivers/media/v4l2-core/v4l2-async.c               |  280 ++++++++
+>  drivers/media/v4l2-core/v4l2-clk.c                 |  242 +++++++
+>  drivers/media/v4l2-core/v4l2-common.c              |    2 +
+>  include/media/sh_mobile_ceu.h                      |    2 +
+>  include/media/sh_mobile_csi2.h                     |    2 +-
+>  include/media/soc_camera.h                         |   39 +-
+>  include/media/v4l2-async.h                         |  105 +++
+>  include/media/v4l2-clk.h                           |   54 ++
+>  include/media/v4l2-subdev.h                        |   10 +
+>  36 files changed, 1973 insertions(+), 425 deletions(-)
+>  create mode 100644 Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
+>  create mode 100644 drivers/media/v4l2-core/v4l2-async.c
+>  create mode 100644 drivers/media/v4l2-core/v4l2-clk.c
+>  create mode 100644 include/media/v4l2-async.h
+>  create mode 100644 include/media/v4l2-clk.h
 
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
