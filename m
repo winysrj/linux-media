@@ -1,51 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:37655 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757635Ab3FCW6h (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Jun 2013 18:58:37 -0400
-Received: from dyn3-82-128-191-187.psoas.suomi.net ([82.128.191.187] helo=localhost.localdomain)
-	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
-	(Exim 4.72)
-	(envelope-from <crope@iki.fi>)
-	id 1Ujdi0-0003KP-J2
-	for linux-media@vger.kernel.org; Tue, 04 Jun 2013 01:58:36 +0300
-Message-ID: <51AD1F76.8010406@iki.fi>
-Date: Tue, 04 Jun 2013 01:57:58 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: LMML <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR 3.11] minor af9035 changes
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4657 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754735Ab3FVKHJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Jun 2013 06:07:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Manjunatha Halli <manjunatha_halli@ti.com>,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 3/6] wl128x: remove illegal g/s_audio
+Date: Sat, 22 Jun 2013 12:06:52 +0200
+Message-Id: <1371895615-14162-4-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371895615-14162-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371895615-14162-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit aa4f608478acb7ed69dfcff4f3c404100b78ac49:
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-   Merge branch 'for-linus' of 
-git://git.kernel.org/pub/scm/linux/kernel/git/geert/linux-m68k 
-(2013-06-03 18:09:42 +0900)
+These ioctls are for video devices, not for radio devices.
 
-are available in the git repository at:
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/wl128x/fmdrv_v4l2.c | 21 ---------------------
+ 1 file changed, 21 deletions(-)
 
-
-   git://linuxtv.org/anttip/media_tree.git af9035
-
-for you to fetch changes up to fa0dbea859c1e52f74264e465609e3a1a32a92f2:
-
-   af9035: correct TS mode handling (2013-06-04 01:39:51 +0300)
-
-----------------------------------------------------------------
-Antti Palosaari (4):
-       af9035: implement I2C adapter read operation
-       af9035: make checkpatch.pl happy!
-       af9035: minor log writing changes
-       af9035: correct TS mode handling
-
-  drivers/media/usb/dvb-usb-v2/af9035.c | 66 
-++++++++++++++++++++++++++++++++++++++++++++----------------------
-  drivers/media/usb/dvb-usb-v2/af9035.h | 11 ++++++++---
-  2 files changed, 52 insertions(+), 25 deletions(-)
-
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index 1d8fa30..22becae 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -249,25 +249,6 @@ static int fm_v4l2_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	}
+ }
+ 
+-static int fm_v4l2_vidioc_g_audio(struct file *file, void *priv,
+-		struct v4l2_audio *audio)
+-{
+-	memset(audio, 0, sizeof(*audio));
+-	strcpy(audio->name, "Radio");
+-	audio->capability = V4L2_AUDCAP_STEREO;
+-
+-	return 0;
+-}
+-
+-static int fm_v4l2_vidioc_s_audio(struct file *file, void *priv,
+-		const struct v4l2_audio *audio)
+-{
+-	if (audio->index != 0)
+-		return -EINVAL;
+-
+-	return 0;
+-}
+-
+ /* Get tuner attributes. If current mode is NOT RX, return error */
+ static int fm_v4l2_vidioc_g_tuner(struct file *file, void *priv,
+ 		struct v4l2_tuner *tuner)
+@@ -501,8 +482,6 @@ static const struct v4l2_ctrl_ops fm_ctrl_ops = {
+ };
+ static const struct v4l2_ioctl_ops fm_drv_ioctl_ops = {
+ 	.vidioc_querycap = fm_v4l2_vidioc_querycap,
+-	.vidioc_g_audio = fm_v4l2_vidioc_g_audio,
+-	.vidioc_s_audio = fm_v4l2_vidioc_s_audio,
+ 	.vidioc_g_tuner = fm_v4l2_vidioc_g_tuner,
+ 	.vidioc_s_tuner = fm_v4l2_vidioc_s_tuner,
+ 	.vidioc_g_frequency = fm_v4l2_vidioc_g_freq,
 -- 
-http://palosaari.fi/
+1.8.3.1
+
