@@ -1,85 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 20.mo4.mail-out.ovh.net ([46.105.33.73]:48077 "EHLO
-	mo4.mail-out.ovh.net" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S1755107Ab3F1OJw (ORCPT
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4681 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932251Ab3FVKPH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 10:09:52 -0400
-Received: from mail187.ha.ovh.net (b9.ovh.net [213.186.33.59])
-	by mo4.mail-out.ovh.net (Postfix) with SMTP id 326881050CEB
-	for <linux-media@vger.kernel.org>; Fri, 28 Jun 2013 12:31:53 +0200 (CEST)
-Date: Fri, 28 Jun 2013 12:27:02 +0200
-From: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-To: Felipe Balbi <balbi@ti.com>,
-	Grant Likely <grant.likely@secretlab.ca>
-Cc: Jingoo Han <jg1.han@samsung.com>,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	linux-fbdev@vger.kernel.org
-Subject: Re: [PATCH V2 3/3] video: exynos_dp: Use the generic PHY driver
-Message-ID: <20130628102702.GK305@game.jcrosoft.org>
-References: <002101ce73cf$ac989b70$05c9d250$@samsung.com>
- <20130628093459.GD11297@arwen.pp.htv.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130628093459.GD11297@arwen.pp.htv.fi>
+	Sat, 22 Jun 2013 06:15:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Manjunatha Halli <manjunatha_halli@ti.com>,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 5/6] wl128x: call video_register_device last, enable prio handling
+Date: Sat, 22 Jun 2013 12:06:54 +0200
+Message-Id: <1371895615-14162-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371895615-14162-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371895615-14162-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 12:35 Fri 28 Jun     , Felipe Balbi wrote:
-> On Fri, Jun 28, 2013 at 04:18:23PM +0900, Jingoo Han wrote:
-> > Use the generic PHY API instead of the platform callback to control
-> > the DP PHY. The 'phy_label' field is added to the platform data
-> > structure to allow PHY lookup on non-dt platforms.
-> > 
-> > Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> > ---
-> >  .../devicetree/bindings/video/exynos_dp.txt        |   17 ---
-> >  drivers/video/exynos/exynos_dp_core.c              |  118 ++------------------
-> >  drivers/video/exynos/exynos_dp_core.h              |    2 +
-> >  include/video/exynos_dp.h                          |    6 +-
-> >  4 files changed, 15 insertions(+), 128 deletions(-)
-> > 
-> > diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > index 84f10c1..a8320e3 100644
-> > --- a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > +++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > @@ -1,17 +1,6 @@
-> >  The Exynos display port interface should be configured based on
-> >  the type of panel connected to it.
-> >  
-> > -We use two nodes:
-> > -	-dp-controller node
-> > -	-dptx-phy node(defined inside dp-controller node)
-> > -
-> > -For the DP-PHY initialization, we use the dptx-phy node.
-> > -Required properties for dptx-phy:
-> > -	-reg:
-> > -		Base address of DP PHY register.
-> > -	-samsung,enable-mask:
-> > -		The bit-mask used to enable/disable DP PHY.
-> > -
-> >  For the Panel initialization, we read data from dp-controller node.
-> >  Required properties for dp-controller:
-> >  	-compatible:
-> > @@ -67,12 +56,6 @@ SOC specific portion:
-> >  		interrupt-parent = <&combiner>;
-> >  		clocks = <&clock 342>;
-> >  		clock-names = "dp";
-> > -
-> > -		dptx-phy {
-> > -			reg = <0x10040720>;
-> > -			samsung,enable-mask = <1>;
-> > -		};
-I've an issue here you break dt compatibilty
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Best Regards,
-J.
+video_register_device must be called last.
+
+This patch also sets the prio flag, allowing the core to handle priorities.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/wl128x/fmdrv_v4l2.c | 39 +++++++++++++++++++--------------
+ 1 file changed, 23 insertions(+), 16 deletions(-)
+
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index 337068d..6566364 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -518,35 +518,25 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
+ 	gradio_dev = video_device_alloc();
+ 	if (NULL == gradio_dev) {
+ 		fmerr("Can't allocate video device\n");
+-		return -ENOMEM;
++		ret = -ENOMEM;
++		goto unreg_v4l2;
+ 	}
+ 
+ 	/* Setup FM driver's V4L2 properties */
+-	memcpy(gradio_dev, &fm_viddev_template, sizeof(fm_viddev_template));
++	*gradio_dev = fm_viddev_template;
+ 
+ 	video_set_drvdata(gradio_dev, fmdev);
+ 
+ 	gradio_dev->lock = &fmdev->mutex;
+ 	gradio_dev->v4l2_dev = &fmdev->v4l2_dev;
+-
+-	/* Register with V4L2 subsystem as RADIO device */
+-	if (video_register_device(gradio_dev, VFL_TYPE_RADIO, radio_nr)) {
+-		video_device_release(gradio_dev);
+-		fmerr("Could not register video device\n");
+-		return -ENOMEM;
+-	}
++	set_bit(V4L2_FL_USE_FH_PRIO, &gradio_dev->flags);
+ 
+ 	fmdev->radio_dev = gradio_dev;
+ 
+ 	/* Register to v4l2 ctrl handler framework */
+ 	fmdev->radio_dev->ctrl_handler = &fmdev->ctrl_handler;
+ 
+-	ret = v4l2_ctrl_handler_init(&fmdev->ctrl_handler, 5);
+-	if (ret < 0) {
+-		fmerr("(fmdev): Can't init ctrl handler\n");
+-		v4l2_ctrl_handler_free(&fmdev->ctrl_handler);
+-		return -EBUSY;
+-	}
++	v4l2_ctrl_handler_init(&fmdev->ctrl_handler, 5);
+ 
+ 	/*
+ 	 * Following controls are handled by V4L2 control framework.
+@@ -573,15 +563,32 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
+ 
+ 	if (ctrl)
+ 		ctrl->flags |= V4L2_CTRL_FLAG_VOLATILE;
++	ret = fmdev->ctrl_handler.error;
++	if (ret < 0) {
++		fmerr("(fmdev): Can't init ctrl handler\n");
++		goto free_hdl;
++	}
+ 
++	/* Register with V4L2 subsystem as RADIO device */
++	ret = video_register_device(gradio_dev, VFL_TYPE_RADIO, radio_nr);
++	if (ret < 0) {
++		fmerr("Could not register video device\n");
++		goto free_hdl;
++	}
+ 	return 0;
++
++free_hdl:
++	v4l2_ctrl_handler_free(&fmdev->ctrl_handler);
++	video_device_release(gradio_dev);
++unreg_v4l2:
++	v4l2_device_unregister(&fmdev->v4l2_dev);
++	return ret;
+ }
+ 
+ void *fm_v4l2_deinit_video_device(void)
+ {
+ 	struct fmdev *fmdev;
+ 
+-
+ 	fmdev = video_get_drvdata(gradio_dev);
+ 
+ 	/* Unregister to v4l2 ctrl handler framework*/
+-- 
+1.8.3.1
+
