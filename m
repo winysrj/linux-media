@@ -1,81 +1,26 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.rosario-conicet.gov.ar ([168.96.15.28]:52193 "EHLO
-	mail.rosario-conicet.gov.ar" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752345Ab3FQWPe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 18:15:34 -0400
-Message-ID: <bf2bd1c7747c2b14e57da8b2a5c50f0c.squirrel@ifir-conicet.gov.ar>
-Date: Mon, 17 Jun 2013 16:28:00 -0300 (ART)
-Subject: 
-From: "AFG GTBANK LOAN" <turnos-escuelas@ifir-conicet.gov.ar>
-Reply-To: bar.stevenlee@yahoo.com
+Received: from nm3-vm0.bullet.mail.ird.yahoo.com ([77.238.189.213]:22189 "EHLO
+	nm3-vm0.bullet.mail.ird.yahoo.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1755835Ab3FVOIR convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Jun 2013 10:08:17 -0400
+Message-ID: <1371910047.2617.YahooMailNeo@web171902.mail.ir2.yahoo.com>
+Date: Sat, 22 Jun 2013 15:07:27 +0100 (BST)
+From: Franz Schrober <franzschrober@yahoo.de>
+Reply-To: Franz Schrober <franzschrober@yahoo.de>
+Subject: de-Primacom initial tuning data doesn't work anymore
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kaffeine-user@lists.sourceforge.net"
+	<kaffeine-user@lists.sourceforge.net>,
+	"pkg-kde-extras@lists.alioth.debian.org"
+	<pkg-kde-extras@lists.alioth.debian.org>
 MIME-Version: 1.0
-Content-Type: text/plain;charset=iso-8859-1
-Content-Transfer-Encoding: 8bit
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-
-
-Loan Syndicacion
-
-Am AFG Guaranty Trust Bank, zu strukturieren wir Kreditlinien treffen Sie
-unsere
-Kunden spezifischen geschäftlichen Anforderungen und einen deutlichen
-Mehrwert für unsere
-Kunden Unternehmen.
-eine Division der AFG Finance und Private Bank plc.
-
-Wenn Sie erwägen, eine große Akquisition oder ein Großprojekt sind, können
-Sie
-brauchen eine erhebliche Menge an Kredit. AFG Guaranty Trust Bank setzen
-können
-zusammen das Syndikat, das die gesamte Kredit schnürt für
-Sie.
-
-
-Als Bank mit internationaler Reichweite, sind wir gekommen, um Darlehen zu
-identifizieren
-Syndizierungen als Teil unseres Kerngeschäfts und durch spitzte diese Zeile
-aggressiv sind wir an einem Punkt, wo wir kommen, um als erkannt haben
-Hauptakteur in diesem Bereich.
-
-
-öffnen Sie ein Girokonto heute mit einem Minimum Bankguthaben von 500 £ und
-Getup zu £ 10.000 als Darlehen und auch den Hauch einer Chance und gewann
-die Sterne
-Preis von £ 500.000 in die sparen und gewinnen promo in may.aply jetzt.
-
-
-mit dem Folowing Informationen über Rechtsanwalt steven lee das Konto
-Offizier.
-
-
-FULL NAME;
-
-
-Wohnadresse;
-
-
-E-MAIL-ADRESSE;
-
-Telefonnummer;
-
-Nächsten KINS;
-
-MUTTER MAIDEN NAME;
-
-
-Familienstand;
-
-
-BÜROADRESSE;
-
-ALTERNATIVE Telefonnummer;
-
-TO @ yahoo.com bar.stevenlee
-NOTE; ALLE Darlehen sind für 10JAHRE RATE VALID
-ANGEBOT ENDET BALD SO JETZT HURRY
+I wanted to watch TV today with kaffeine 1.2.2-2 from debian and noticed that it didn't work anymore. Also scans even after the update of the initial tuning data didn't show all tv stations. Just replacing the entry for dvb-c/de-Primacom in ~/.kde/share/apps/kaffeine/scanfile.dvb with the one from http://narfation.org/misc/dvbc/de-Primacom fixed the problem for me after the next scan for tv stations.
 
