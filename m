@@ -1,60 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from venus.vo.lu ([80.90.45.96]:53744 "EHLO venus.vo.lu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752506Ab3FOKdw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jun 2013 06:33:52 -0400
-Date: Sat, 15 Jun 2013 12:33:37 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Doing a v4l-utils-1.0.0 release
-Message-ID: <20130615123337.1ba83c63@borg.bxl.tuxicoman.be>
-In-Reply-To: <20130614103404.3dc2c4bf@redhat.com>
-References: <51BAC2F6.40708@redhat.com>
-	<20130614103404.3dc2c4bf@redhat.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4228 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754586Ab3FVKHJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Jun 2013 06:07:09 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Manjunatha Halli <manjunatha_halli@ti.com>,
+	Fengguang Wu <fengguang.wu@intel.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/6] wl128x: add missing struct v4l2_device.
+Date: Sat, 22 Jun 2013 12:06:50 +0200
+Message-Id: <1371895615-14162-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1371895615-14162-1-git-send-email-hverkuil@xs4all.nl>
+References: <1371895615-14162-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On Fri, 14 Jun 2013 10:34:04 -0300
-Mauro Carvalho Chehab <mchehab@redhat.com> wrote:
+This struct is now required for all video device nodes, but it was missing
+in this driver.
 
-> Em Fri, 14 Jun 2013 09:15:02 +0200
-> Hans de Goede <hdegoede@redhat.com> escreveu:
-> 
-> > Hi All,
-> > 
-> > IIRC the 0.9.x series were meant as development releases leading up
-> > to a new stable 1.0.0 release. Lately there have been no
-> > maintenance 0.8.x releases and a lot of interesting development
-> > going on in the 0.9.x, while at the same time there have been no
-> > issues reported against 0.9.x (iow it seems stable).
-> > 
-> > So how about taking current master and releasing that as a 1.0.0
-> > release ?
-> 
-> Fine for me. 
-> 
-> There are 5 patches floating at patchwork to improve the DVB-S
-> support with different types of DiSEqC, but applying them would break
-> library support for tvd. So, they won't be applied as-is, and Guy
-> needs to take some other approach. As he is also planning to add
-> support there for rotors, it looks ok to postpone such changes to a
-> latter version.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/radio/wl128x/fmdrv.h      | 2 ++
+ drivers/media/radio/wl128x/fmdrv_v4l2.c | 8 ++++++++
+ 2 files changed, 10 insertions(+)
 
-Can we wait a little bit more like a week max ?
-I'd like to see the polarization stuff fixed because otherwise you
-can't use sat at all with libdvbv5.
-
-I'll work on the new patches this weekend. I'll hopefully have
-something today.
-I'll see what I can do wrt DiSEqC stuff but that can definitely wait a
-latter release.
-
-  Guy
-
+diff --git a/drivers/media/radio/wl128x/fmdrv.h b/drivers/media/radio/wl128x/fmdrv.h
+index aac0f02..a587c9b 100644
+--- a/drivers/media/radio/wl128x/fmdrv.h
++++ b/drivers/media/radio/wl128x/fmdrv.h
+@@ -30,6 +30,7 @@
+ #include <linux/timer.h>
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-common.h>
++#include <media/v4l2-device.h>
+ #include <media/v4l2-ctrls.h>
+ 
+ #define FM_DRV_VERSION            "0.1.1"
+@@ -202,6 +203,7 @@ struct fmtx_data {
+ /* FM driver operation structure */
+ struct fmdev {
+ 	struct video_device *radio_dev;	/* V4L2 video device pointer */
++	struct v4l2_device v4l2_dev;	/* V4L2 top level struct */
+ 	struct snd_card *card;	/* Card which holds FM mixer controls */
+ 	u16 asci_id;
+ 	spinlock_t rds_buff_lock; /* To protect access to RDS buffer */
+diff --git a/drivers/media/radio/wl128x/fmdrv_v4l2.c b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+index 5dec323..b55012c 100644
+--- a/drivers/media/radio/wl128x/fmdrv_v4l2.c
++++ b/drivers/media/radio/wl128x/fmdrv_v4l2.c
+@@ -533,6 +533,11 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
+ 	struct v4l2_ctrl *ctrl;
+ 	int ret;
+ 
++	strlcpy(fmdev->v4l2_dev.name, FM_DRV_NAME, sizeof(fmdev->v4l2_dev.name));
++	ret = v4l2_device_register(NULL, &fmdev->v4l2_dev);
++	if (ret < 0)
++		return ret;
++
+ 	/* Init mutex for core locking */
+ 	mutex_init(&fmdev->mutex);
+ 
+@@ -549,6 +554,7 @@ int fm_v4l2_init_video_device(struct fmdev *fmdev, int radio_nr)
+ 	video_set_drvdata(gradio_dev, fmdev);
+ 
+ 	gradio_dev->lock = &fmdev->mutex;
++	gradio_dev->v4l2_dev = &fmdev->v4l2_dev;
+ 
+ 	/* Register with V4L2 subsystem as RADIO device */
+ 	if (video_register_device(gradio_dev, VFL_TYPE_RADIO, radio_nr)) {
+@@ -611,5 +617,7 @@ void *fm_v4l2_deinit_video_device(void)
+ 	/* Unregister RADIO device from V4L2 subsystem */
+ 	video_unregister_device(gradio_dev);
+ 
++	v4l2_device_unregister(&fmdev->v4l2_dev);
++
+ 	return fmdev;
+ }
+-- 
+1.8.3.1
 
