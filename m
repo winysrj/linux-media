@@ -1,66 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:42514 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755974Ab3FLHnt (ORCPT
+Received: from mail-la0-f41.google.com ([209.85.215.41]:38208 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754586Ab3FVMDT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 03:43:49 -0400
-Message-ID: <51B826B2.5000508@canonical.com>
-Date: Wed, 12 Jun 2013 09:43:46 +0200
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-MIME-Version: 1.0
-To: linux-kernel@vger.kernel.org
-CC: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, rostedt@goodmis.org, tglx@linutronix.de,
-	mingo@elte.hu, linux-media@vger.kernel.org
-Subject: Re: [PATCH v4 0/4] add mutex wait/wound/style style locks
-References: <20130528144420.4538.70725.stgit@patser>
-In-Reply-To: <20130528144420.4538.70725.stgit@patser>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Sat, 22 Jun 2013 08:03:19 -0400
+From: Emil Goode <emilgoode@gmail.com>
+To: mchehab@redhat.com, hans.verkuil@cisco.com,
+	linux@rainbow-software.org, prabhakar.csengg@gmail.com,
+	crope@iki.fi
+Cc: linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org,
+	Emil Goode <emilgoode@gmail.com>
+Subject: [PATCH] [media] saa7134: Fix sparse warnings by adding __user annotation
+Date: Sat, 22 Jun 2013 14:02:52 +0200
+Message-Id: <1371902572-7925-1-git-send-email-emilgoode@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Op 28-05-13 16:48, Maarten Lankhorst schreef:
-> Version 4 already?
->
-> Small api changes since v3:
-> - Remove ww_mutex_unlock_single and ww_mutex_lock_single.
-> - Rename ww_mutex_trylock_single to ww_mutex_trylock.
-> - Remove separate implementations of ww_mutex_lock_slow*, normal
->   functions can be used. Inline versions still exist for extra
->   debugging, and to annotate.
-> - Cleanup unneeded memory barriers, add comment to the remaining
->   smp_mb().
->
-> Thanks to Daniel Vetter, Rob Clark and Peter Zijlstra for their feedback.
-> ---
->
-> Daniel Vetter (1):
->       mutex: w/w mutex slowpath debugging
->
-> Maarten Lankhorst (3):
->       arch: make __mutex_fastpath_lock_retval return whether fastpath succeeded or not.
->       mutex: add support for wound/wait style locks, v5
->       mutex: Add ww tests to lib/locking-selftest.c. v4
->
->
->  Documentation/ww-mutex-design.txt |  344 +++++++++++++++++++++++++++++++
->  arch/ia64/include/asm/mutex.h     |   10 -
->  arch/powerpc/include/asm/mutex.h  |   10 -
->  arch/sh/include/asm/mutex-llsc.h  |    4 
->  arch/x86/include/asm/mutex_32.h   |   11 -
->  arch/x86/include/asm/mutex_64.h   |   11 -
->  include/asm-generic/mutex-dec.h   |   10 -
->  include/asm-generic/mutex-null.h  |    2 
->  include/asm-generic/mutex-xchg.h  |   10 -
->  include/linux/mutex-debug.h       |    1 
->  include/linux/mutex.h             |  363 +++++++++++++++++++++++++++++++++
->  kernel/mutex.c                    |  384 ++++++++++++++++++++++++++++++++---
->  lib/Kconfig.debug                 |   13 +
->  lib/debug_locks.c                 |    2 
->  lib/locking-selftest.c            |  410 +++++++++++++++++++++++++++++++++++--
->  15 files changed, 1492 insertions(+), 93 deletions(-)
->  create mode 100644 Documentation/ww-mutex-design.txt
->
-Bump, do you have any feedback peterz?
+Adding a __user annotation fixes the following sparse warnings.
+
+drivers/media/pci/saa7134/saa7134-video.c:1578:45: warning:
+        incorrect type in initializer (different address spaces)
+        drivers/media/pci/saa7134/saa7134-video.c:1578:45:
+        expected struct v4l2_clip *clips
+        drivers/media/pci/saa7134/saa7134-video.c:1578:45:
+        got struct v4l2_clip [noderef] <asn:1>*clips
+
+drivers/media/pci/saa7134/saa7134-video.c:1589:26: warning:
+        incorrect type in assignment (different address spaces)
+        drivers/media/pci/saa7134/saa7134-video.c:1589:26:
+        expected struct v4l2_clip [noderef] <asn:1>*clips
+        drivers/media/pci/saa7134/saa7134-video.c:1589:26:
+        got struct v4l2_clip *clips
+
+Signed-off-by: Emil Goode <emilgoode@gmail.com>
+---
+ drivers/media/pci/saa7134/saa7134-video.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
+index e3457ae..e12bbd8 100644
+--- a/drivers/media/pci/saa7134/saa7134-video.c
++++ b/drivers/media/pci/saa7134/saa7134-video.c
+@@ -1575,7 +1575,7 @@ static int saa7134_g_fmt_vid_overlay(struct file *file, void *priv,
+ {
+ 	struct saa7134_fh *fh = priv;
+ 	struct saa7134_dev *dev = fh->dev;
+-	struct v4l2_clip *clips = f->fmt.win.clips;
++	struct v4l2_clip __user *clips = f->fmt.win.clips;
+ 	u32 clipcount = f->fmt.win.clipcount;
+ 	int err = 0;
+ 	int i;
+-- 
+1.7.10.4
+
