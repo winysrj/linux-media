@@ -1,105 +1,193 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f174.google.com ([209.85.192.174]:32999 "EHLO
-	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751331Ab3FQPWS (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45585 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1750860Ab3FVU6g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:22:18 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 10/11] media: davinci: vpif_display: Convert to devm_* api
-Date: Mon, 17 Jun 2013 20:50:50 +0530
-Message-Id: <1371482451-18314-11-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+	Sat, 22 Jun 2013 16:58:36 -0400
+Date: Sat, 22 Jun 2013 23:58:01 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Support for events with a large payload
+Message-ID: <20130622205800.GH2064@valkosipuli.retiisi.org.uk>
+References: <201305131414.43685.hverkuil@xs4all.nl>
+ <20130606213803.GC3103@valkosipuli.retiisi.org.uk>
+ <1721198.ELRHSeN8Of@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1721198.ELRHSeN8Of@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Laurent,
 
-use devm_request_irq() instead of request_irq(). This ensures
-more consistent error values and simplifies error paths.
+On Tue, Jun 18, 2013 at 11:22:33PM +0200, Laurent Pinchart wrote:
+> On Friday 07 June 2013 00:38:04 Sakari Ailus wrote:
+> > On Mon, May 13, 2013 at 02:14:43PM +0200, Hans Verkuil wrote:
+> > > Currently the event API allows for a payload of up to 64 bytes. Sometimes
+> > > we would like to pass larger payloads to userspace such as metadata
+> > > associated with a particular video stream.
+> > > 
+> > > A typical example of that would be object detection events.
+> > > 
+> > > This RFC describes one approach for doing this.
+> > > 
+> > > The event framework has the nice property of being able to use from within
+> > > interrupts. Copying large payloads does not fit into that framework, so
+> > > such payloads should be adminstrated separately.
+> > > 
+> > > In addition, I wouldn't allow large payloads to be filled in from
+> > > interrupt context: a worker queue would be much more appropriate.
+> > 
+> > How large really is "large"? 65 bytes? 64 kiB?
+> > 
+> > The newer CPUs tend to be faster and faster and the same applies to memory.
+> > I guess threaded interrupt handlers are still nice. But using a mutex in
+> > order to serialise access to the struct will force drivers to use threaded
+> > interrupt handlers should they want to generate large events.
+> > 
+> > > Note that the event API is only useful for relatively low-bandwidth data
+> > > since the data is always copied. When dealing with high-bandwidth data the
+> > > data should either be a separate plane or become a special stream I/O
+> > > buffer type.
+> > > 
+> > > The userspace API enhancements in order to achieve this would be the
+> > > following:
+> > > 
+> > > - Any event that has a large payload would specify a payload_sequence
+> > >   counter and a payload size value (in bytes).
+> > > 
+> > > - A new VIDIOC_DQEVENT_PAYLOAD ioctl would be added which passes the event
+> > >   type, the payload_sequence counter and a pointer to a buffer to the
+> > >   kernel, and the payload is returned, or an error is returned if the
+> > >   payload data is no longer available.
+> > 
+> > Do you think we should have a separate IOCTL for this? The downside is that
+> > to dequeue events, the application would need to try both in the worst case
+> > just to obtain an event.
+> > 
+> > I think it'd be nicer to be able to fit that into the same IOCTL. There are
+> > plenty of reserved fields and, actually, the event data as well: we could
+> > consider the large-payload event a meta-event which would contain the
+> > required information to pass the event data to the user space. The type of
+> > such an event could be V4L2_EVENT_LARGE, for instance.
+> 
+> The problem is that userspace doesn't know in advance how much memory it would 
+> need to allocate to store the event payload. Using two ioctls allow retrieving 
+> the size first, and then the payload. We could work around the problem by 
+> passing the maximum size to userspace and forcing preallocation of large 
+> enough buffers.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/davinci/vpif_display.c |   35 +++++++------------------
- 1 file changed, 10 insertions(+), 25 deletions(-)
+That would also force using double the number of IOCTLs to do essentially
+the same. I don't like the idea, even if IOCTLs are relatively cheap.
+Maximun size should be defined, at least per event type, so that the user
+knows maximum what to expect.
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 473d1a9..1bf289d 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1652,15 +1652,14 @@ static __init int vpif_probe(struct platform_device *pdev)
- 
- 	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, res_idx))) {
- 		for (i = res->start; i <= res->end; i++) {
--			if (request_irq(i, vpif_channel_isr, IRQF_SHARED,
--					"VPIF_Display", (void *)
--					(&vpif_obj.dev[res_idx]->channel_id))) {
--				err = -EBUSY;
--				for (j = 0; j < i; j++)
--					free_irq(j, (void *)
--					(&vpif_obj.dev[res_idx]->channel_id));
-+			err = devm_request_irq(&pdev->dev, i, vpif_channel_isr,
-+					     IRQF_SHARED, "VPIF_Display",
-+					     (void *)(&vpif_obj.dev[res_idx]->
-+					     channel_id));
-+			if (err) {
-+				err = -EINVAL;
- 				vpif_err("VPIF IRQ request failed\n");
--				goto vpif_int_err;
-+				goto vpif_unregister;
- 			}
- 		}
- 		res_idx++;
-@@ -1678,7 +1677,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 				video_device_release(ch->video_dev);
- 			}
- 			err = -ENOMEM;
--			goto vpif_int_err;
-+			goto vpif_unregister;
- 		}
- 
- 		/* Initialize field of video device */
-@@ -1812,13 +1811,8 @@ vpif_sd_error:
- 		/* Note: does nothing if ch->video_dev == NULL */
- 		video_device_release(ch->video_dev);
- 	}
--vpif_int_err:
-+vpif_unregister:
- 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
--	for (i = 0; i < res_idx; i++) {
--		res = platform_get_resource(pdev, IORESOURCE_IRQ, i);
--		for (j = res->start; j <= res->end; j++)
--			free_irq(j, (void *)(&vpif_obj.dev[i]->channel_id));
--	}
- 
- 	return err;
- }
-@@ -1829,16 +1823,7 @@ vpif_int_err:
- static int vpif_remove(struct platform_device *device)
- {
- 	struct channel_obj *ch;
--	struct resource *res;
--	int irq_num;
--	int i = 0;
--
--	while ((res = platform_get_resource(device, IORESOURCE_IRQ, i))) {
--		for (irq_num = res->start; irq_num <= res->end; irq_num++)
--			free_irq(irq_num,
--				 (void *)(&vpif_obj.dev[i]->channel_id));
--		i++;
--	}
-+	int i;
- 
- 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
- 
+> > > Optional enhancements:
+> > > 
+> > > - Have VIDIOC_SUBSCRIBE_EVENT return the maximum payload size (lets apps
+> > >   preallocate payload memory, but it might be overkill).
+> > 
+> > Why so? We could use a reserved field as well. The size would be zero if the
+> > maximum would be less than 64.
+> > 
+> > > - Add functionality to VIDIOC_SUBSCRIBE_EVENT to define the number of
+> > >   events in the event queue for the filehandle. If the payload is large,
+> > >   you may want to limit the number of allocated payload buffers. For
+> > >   example: when dealing with metadata associated with frame you might want
+> > >   to limit the number of payload buffers to the number of allocated
+> > >   frames.
+> > 
+> > Are we talking now about high level metadata which is typically obtained by
+> > the driver by other means than hardware writing it into a memory buffer?
+> > 
+> > > I feel that this can always be added later if we decide it is really
+> > > needed, and leave it out for now.
+> > > 
+> > > So the userspace API would be quite simple.
+> > > 
+> > > The internal implementation would look like this:
+> > > 
+> > > struct v4l2_event_payload {
+> > > 	u32 payload_size;
+> > > 	u32 payload_sequence;
+> > > 	void *payload;
+> > > };
+> > > 
+> > > struct v4l2_event_payloads {
+> > > 	// lock serializing access to this struct
+> > > 	struct mutex lock;
+> > > 	// global payload sequence number counter
+> > > 	u32 payload_sequence;
+> > > 	// size of the payload array
+> > > 	unsigned payloads;
+> > > 	// index of the oldest payload
+> > > 	unsigned first;
+> > > 	// number of payloads available
+> > > 	unsigned in_use;
+> > > 	struct v4l2_event_payload payloads[];
+> > > };
+> > > 
+> > > and a pointer to struct v4l2_event_payloads would be added to struct
+> > > v4l2_subscribed_event.
+> > > 
+> > > It is up to the driver to decide whether there is one v4l2_event_payloads
+> > > struct per filehandle or whether there is a global struct shared by any
+> > > filehandle subscribed to this event. This will depend on the event and the
+> > > size of the payload. Most likely it will be the latter option (a global
+> > > queue of payloads).
+> > > 
+> > > Internal functions would look like this:
+> > > 
+> > > // Initialize the structs.
+> > > void v4l2_event_payloads_init(struct v4l2_event_payloads *p, unsigned
+> > > payloads);
+> > > // Get the first available payload (the mutex must be locked). If no
+> > > // payloads are available then the oldest payload will be reused. A new
+> > > // sequence number will be generated as well.
+> > > struct v4l2_event_payload *
+> > > v4l2_event_payloads_new(struct v4l2_event_payloads *p);
+> > > // Find the payload with the given sequence number. The mutex must be
+> > > // locked.
+> > > struct v4l2_event_payload
+> > > *v4l2_event_payloads_find(struct v4l2_event_payloads *p, unsigned seqnr);
+> > > 
+> > > So when a new payload arrives the driver would take the mutex, call
+> > > v4l2_event_payloads_new(), set payload_size and fill the payload data,
+> > > remember the payload_size and payload_sequence values, release the mutex
+> > > and queue the event with the remembered size and sequence values. Setting
+> > > up the payload part cannot be done from interrupt context.
+> > > 
+> > > When calling DQEVENT_PAYLOAD the core will use the pointer to struct
+> > > v4l2_event_payloads from struct v4l2_subscribed_event, take the mutex,
+> > > find the payload, copy it to userspace and release the mutex.
+> 
+> Do we want to allow dequeuing payloads out-of-order ? If we store payload in a 
+> global location that would be unavoidable, but if we store them in the file 
+> handle then we could force in-order dequeuing. It might make sense to forbit 
+> out-of-order dequeuing in the API to leave some flexibility to the in-kernel 
+> implementation.
+
+The events must be always delivered to the user in the same order they
+arrive, it's important. Speaking of that --- there's a slight issue in
+timestamping and queueing them, i.e. timestamps are made before queueing the
+event, so it's theoretically possible that event a that precedes event b in
+the queue actually is older than b.
+
+One memory copy could also be avoided by starting to reference count payload
+buffers. This way delivering the same event to multiple file handles would
+avoid almost half of the memory copies --- currently per-handle copy is done
+at the time of event queueing and there's another at dequeueing time.
+
+Events that fit to regular 64 bytes will be delivered using that, and the
+user-provided pointer will only be used in the case a large event is
+delivered to the user. So in order to be able to receive large events, the
+user must always provide the pointer even if it's not always used.
+
 -- 
-1.7.9.5
+Cheers,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
