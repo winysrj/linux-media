@@ -1,54 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:40341 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755996Ab3FRMdQ (ORCPT
+Received: from mail-pa0-f42.google.com ([209.85.220.42]:50920 "EHLO
+	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752534Ab3FVJrg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 08:33:16 -0400
-Received: from epcpsbgr2.samsung.com
- (u142.gpu120.samsung.co.kr [203.254.230.142])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MOL006K29J2AQQ0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 18 Jun 2013 21:33:15 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v2 1/8] [media] s5p-mfc: Update v6 encoder buffer sizes
-Date: Tue, 18 Jun 2013 18:26:16 +0530
-Message-id: <1371560183-23244-2-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
-References: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
+	Sat, 22 Jun 2013 05:47:36 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 1/2] media: i2c: ths8200: support asynchronous probing
+Date: Sat, 22 Jun 2013 15:16:34 +0530
+Message-Id: <1371894395-14414-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1371894395-14414-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1371894395-14414-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch updates few encoder buffer sizes for MFC v6.5
-as per the udpdated user manual. The same buffer sizes
-holds good for v7 firmware also.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+This patch supports both synchronous and asynchronous
+ths8200 subdevice probing.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ drivers/media/i2c/ths8200.c |    9 ++++++++-
+ 1 file changed, 8 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-index 363a97c..2398cdf 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-@@ -374,9 +374,9 @@
- #define S5P_FIMV_NUM_PIXELS_IN_MB_COL_V6	16
+diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
+index a24f90c..cc1339a 100644
+--- a/drivers/media/i2c/ths8200.c
++++ b/drivers/media/i2c/ths8200.c
+@@ -21,6 +21,7 @@
+ #include <linux/module.h>
+ #include <linux/v4l2-dv-timings.h>
  
- /* Buffer size requirements defined by hardware */
--#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 1) * 8)
-+#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 3) * 8)
- #define S5P_FIMV_ME_BUFFER_SIZE_V6(imw, imh, mbw, mbh) \
--	((DIV_ROUND_UP(imw, 64) *  DIV_ROUND_UP(imh, 64) * 256) + \
-+	(((((imw + 127) / 64) * 16) *  DIV_ROUND_UP(imh, 64) * 256) + \
- 	 (DIV_ROUND_UP((mbw) * (mbh), 32) * 16))
- #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V6(w, h)	(((w) * 192) + 64)
- #define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V6(w, h) \
++#include <media/v4l2-async.h>
+ #include <media/v4l2-device.h>
+ 
+ #include "ths8200_regs.h"
+@@ -500,6 +501,7 @@ static int ths8200_probe(struct i2c_client *client,
+ {
+ 	struct ths8200_state *state;
+ 	struct v4l2_subdev *sd;
++	int error;
+ 
+ 	/* Check if the adapter supports the needed features */
+ 	if (!i2c_check_functionality(client->adapter, I2C_FUNC_SMBUS_BYTE_DATA))
+@@ -517,6 +519,10 @@ static int ths8200_probe(struct i2c_client *client,
+ 
+ 	ths8200_core_init(sd);
+ 
++	error = v4l2_async_register_subdev(&state->sd);
++	if (error)
++		return error;
++
+ 	v4l2_info(sd, "%s found @ 0x%x (%s)\n", client->name,
+ 		  client->addr << 1, client->adapter->name);
+ 
+@@ -526,12 +532,13 @@ static int ths8200_probe(struct i2c_client *client,
+ static int ths8200_remove(struct i2c_client *client)
+ {
+ 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
++	struct ths8200_state *decoder = to_state(sd);
+ 
+ 	v4l2_dbg(1, debug, sd, "%s removed @ 0x%x (%s)\n", client->name,
+ 		 client->addr << 1, client->adapter->name);
+ 
+ 	ths8200_s_power(sd, false);
+-
++	v4l2_async_unregister_subdev(&decoder->sd);
+ 	v4l2_device_unregister_subdev(sd);
+ 
+ 	return 0;
 -- 
 1.7.9.5
 
