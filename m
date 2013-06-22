@@ -1,97 +1,175 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f47.google.com ([209.85.216.47]:57388 "EHLO
-	mail-qa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751737Ab3F3P5X (ORCPT
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:34455 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751435Ab3FVPDX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jun 2013 11:57:23 -0400
-Received: by mail-qa0-f47.google.com with SMTP id i13so1573337qae.20
-        for <linux-media@vger.kernel.org>; Sun, 30 Jun 2013 08:57:23 -0700 (PDT)
-Received: from vujade (207-38-182-96.c3-0.wsd-ubr1.qens-wsd.ny.cable.rcn.com. [207.38.182.96])
-        by mx.google.com with ESMTPSA id y4sm24633184qai.5.2013.06.30.08.57.22
-        for <linux-media@vger.kernel.org>
-        (version=SSLv3 cipher=RC4-SHA bits=128/128);
-        Sun, 30 Jun 2013 08:57:22 -0700 (PDT)
-Date: Sun, 30 Jun 2013 11:57:54 -0400
-From: Michael Krufky <mkrufky@linuxtv.org>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] dib0700: add support for PCTV 2002e & PCTV 2002e SE
-Message-ID: <20130630115754.5f0e8a8f@vujade>
-Mime-Version: 1.0
-Content-Type: multipart/mixed; boundary="MP_/XlCFCAw5YuJ=QkhVyzlW2xP"
+	Sat, 22 Jun 2013 11:03:23 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH RFC v3] media: OF: add video sync endpoint property
+Date: Sat, 22 Jun 2013 20:33:03 +0530
+Message-Id: <1371913383-25088-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---MP_/XlCFCAw5YuJ=QkhVyzlW2xP
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
-Content-Disposition: inline
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
+This patch adds video sync properties as part of endpoint
+properties and also support to parse them in the parser.
 
---MP_/XlCFCAw5YuJ=QkhVyzlW2xP
-Content-Type: text/x-patch
-Content-Transfer-Encoding: 7bit
-Content-Disposition: attachment;
- filename=0001-dib0700-add-support-for-PCTV-2002e-PCTV-2002e-SE.patch
-
->From b5a7481571163fc1c83a12987be8a6ebd88bc91a Mon Sep 17 00:00:00 2001
-From: Michael Krufky <mkrufky@linuxtv.org>
-Date: Sun, 30 Jun 2013 11:43:58 -0400
-Subject: [PATCH] dib0700: add support for PCTV 2002e & PCTV 2002e SE
-
-Signed-off-by: Michael Krufky <mkrufky@linuxtv.org>
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Grant Likely <grant.likely@secretlab.ca>
+Cc: Rob Herring <rob.herring@calxeda.com>
+Cc: Rob Landley <rob@landley.net>
+Cc: devicetree-discuss@lists.ozlabs.org
+Cc: linux-doc@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org
+Cc: davinci-linux-open-source@linux.davincidsp.com
+Cc: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/dvb-core/dvb-usb-ids.h        |  2 ++
- drivers/media/usb/dvb-usb/dib0700_devices.c | 12 +++++++++++-
- 2 files changed, 13 insertions(+), 1 deletion(-)
+ This patch has 10 warnings for line over 80 characters
+ for which I think can be ignored.
+ 
+ RFC v2 https://patchwork.kernel.org/patch/2578091/
+ RFC V1 https://patchwork.kernel.org/patch/2572341/
+ Changes for v3:
+ 1: Fixed review comments pointed by Laurent and Sylwester.
+ 
+ .../devicetree/bindings/media/video-interfaces.txt |    1 +
+ drivers/media/v4l2-core/v4l2-of.c                  |   20 ++++++++++++++++++
+ include/dt-bindings/media/video-interfaces.h       |   17 +++++++++++++++
+ include/media/v4l2-mediabus.h                      |   22 +++++++++++---------
+ 4 files changed, 50 insertions(+), 10 deletions(-)
+ create mode 100644 include/dt-bindings/media/video-interfaces.h
 
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 886da16..419a2d6 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -369,4 +369,6 @@
- #define USB_PID_TECHNISAT_USB2_DVB_S2			0x0500
- #define USB_PID_CPYTO_REDI_PC50A			0xa803
- #define USB_PID_CTVDIGDUAL_V2				0xe410
-+#define USB_PID_PCTV_2002E                              0x025c
-+#define USB_PID_PCTV_2002E_SE                           0x025d
- #endif
-diff --git a/drivers/media/usb/dvb-usb/dib0700_devices.c b/drivers/media/usb/dvb-usb/dib0700_devices.c
-index f081360..829323e 100644
---- a/drivers/media/usb/dvb-usb/dib0700_devices.c
-+++ b/drivers/media/usb/dvb-usb/dib0700_devices.c
-@@ -3589,6 +3589,8 @@ struct usb_device_id dib0700_usb_id_table[] = {
- 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE7790P) },
- 	{ USB_DEVICE(USB_VID_DIBCOM,    USB_PID_DIBCOM_TFE8096P) },
- /* 80 */{ USB_DEVICE(USB_VID_ELGATO,	USB_PID_ELGATO_EYETV_DTT_2) },
-+	{ USB_DEVICE(USB_VID_PCTV,      USB_PID_PCTV_2002E) },
-+	{ USB_DEVICE(USB_VID_PCTV,      USB_PID_PCTV_2002E_SE) },
- 	{ 0 }		/* Terminating entry */
- };
- MODULE_DEVICE_TABLE(usb, dib0700_usb_id_table);
-@@ -3993,12 +3995,20 @@ struct dvb_usb_device_properties dib0700_devices[] = {
- 			}
- 		},
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index e022d2d..2081278 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -101,6 +101,7 @@ Optional endpoint properties
+   array contains only one entry.
+ - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
+   clock mode.
++- video-sync: property indicating to sync the video on a signal in RGB.
  
--		.num_device_descs = 1,
-+		.num_device_descs = 3,
- 		.devices = {
- 			{   "Hauppauge Nova-TD Stick (52009)",
- 				{ &dib0700_usb_id_table[35], NULL },
- 				{ NULL },
- 			},
-+			{   "PCTV 2002e",
-+				{ &dib0700_usb_id_table[81], NULL },
-+				{ NULL },
-+			},
-+			{   "PCTV 2002e SE",
-+				{ &dib0700_usb_id_table[82], NULL },
-+				{ NULL },
-+			},
- 		},
  
- 		.rc.core = {
+ Example
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index aa59639..1a54530 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -100,6 +100,26 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+ 	if (!of_property_read_u32(node, "data-shift", &v))
+ 		bus->data_shift = v;
+ 
++	if (!of_property_read_u32(node, "video-sync", &v)) {
++		switch (v) {
++		case V4L2_MBUS_VIDEO_SEPARATE_SYNC:
++			flags |= V4L2_MBUS_VIDEO_SEPARATE_SYNC;
++			break;
++		case V4L2_MBUS_VIDEO_COMPOSITE_SYNC:
++			flags |= V4L2_MBUS_VIDEO_COMPOSITE_SYNC;
++			break;
++		case V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE:
++			flags |= V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE;
++			break;
++		case V4L2_MBUS_VIDEO_SYNC_ON_GREEN:
++			flags |= V4L2_MBUS_VIDEO_SYNC_ON_GREEN;
++			break;
++		case V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE:
++			flags |= V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE;
++			break;
++		}
++	}
++
+ 	bus->flags = flags;
+ 
+ }
+diff --git a/include/dt-bindings/media/video-interfaces.h b/include/dt-bindings/media/video-interfaces.h
+new file mode 100644
+index 0000000..1a083dd
+--- /dev/null
++++ b/include/dt-bindings/media/video-interfaces.h
+@@ -0,0 +1,17 @@
++/*
++ * This header provides constants for video interface.
++ *
++ */
++
++#ifndef _DT_BINDINGS_VIDEO_INTERFACES_H
++#define _DT_BINDINGS_VIDEO_INTERFACES_H
++
++#define V4L2_MBUS_VIDEO_SEPARATE_SYNC		(1 << 2)
++#define V4L2_MBUS_VIDEO_COMPOSITE_SYNC		(1 << 3)
++#define V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE	(1 << 4)
++#define V4L2_MBUS_VIDEO_SYNC_ON_GREEN		(1 << 5)
++#define V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE	(1 << 6)
++
++#define V4L2_MBUS_VIDEO_INTERFACES_END		6
++
++#endif
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 83ae07e..a4676dd 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -11,6 +11,8 @@
+ #ifndef V4L2_MEDIABUS_H
+ #define V4L2_MEDIABUS_H
+ 
++#include <dt-bindings/media/video-interfaces.h>
++
+ #include <linux/v4l2-mediabus.h>
+ 
+ /* Parallel flags */
+@@ -28,18 +30,18 @@
+  * V4L2_MBUS_[HV]SYNC* flags should be also used for specifying
+  * configuration of hardware that uses [HV]REF signals
+  */
+-#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
+-#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
+-#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
+-#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
+-#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
+-#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
+-#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
+-#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
++#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 1))
++#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 2))
++#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 3))
++#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 4))
++#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 5))
++#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 6))
++#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 7))
++#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 8))
+ /* FIELD = 0/1 - Field1 (odd)/Field2 (even) */
+-#define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
++#define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 9))
+ /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
+-#define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
++#define V4L2_MBUS_FIELD_EVEN_LOW		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 10))
+ 
+ /* Serial flags */
+ /* How many lanes the client can use */
 -- 
-1.8.1.2
+1.7.9.5
 
-
---MP_/XlCFCAw5YuJ=QkhVyzlW2xP--
