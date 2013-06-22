@@ -1,52 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:2687 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030381Ab3FTU2Z (ORCPT
+Received: from mail-pb0-f53.google.com ([209.85.160.53]:53636 "EHLO
+	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751365Ab3FVJqt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 16:28:25 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>
-Subject: [REVIEW PATCH 2/3] bfin_capture: fix compiler warning
-Date: Thu, 20 Jun 2013 22:28:15 +0200
-Message-Id: <1371760096-19256-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	Sat, 22 Jun 2013 05:46:49 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Grant Likely <grant.likely@linaro.org>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/2] media: i2c: ths8200: Feature enhancement
+Date: Sat, 22 Jun 2013 15:16:33 +0530
+Message-Id: <1371894395-14414-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-media-git/drivers/media/platform/blackfin/bfin_capture.c: In function ‘bcap_probe’:
-media-git/drivers/media/platform/blackfin/bfin_capture.c:1007:16: warning: ignoring return value of ‘vb2_queue_init’, declared with attribute warn_unused_result [-Wunused-result]
-  vb2_queue_init(q);
-                  ^
+The first patch of the series adds supports for asynchronous subdev
+registration for ths8200 driver, and the second patch of the series
+adds OF support the driver.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Scott Jiang <scott.jiang.linux@gmail.com>
----
- drivers/media/platform/blackfin/bfin_capture.c | 4 +++-
- 1 file changed, 3 insertions(+), 1 deletion(-)
+Lad, Prabhakar (2):
+  media: i2c: ths8200: support asynchronous probing
+  media: i2c: ths8200: add OF support
 
-diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
-index 6652e71..7f838c6 100644
---- a/drivers/media/platform/blackfin/bfin_capture.c
-+++ b/drivers/media/platform/blackfin/bfin_capture.c
-@@ -1004,7 +1004,9 @@ static int bcap_probe(struct platform_device *pdev)
- 	q->mem_ops = &vb2_dma_contig_memops;
- 	q->timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC;
- 
--	vb2_queue_init(q);
-+	ret = vb2_queue_init(q);
-+	if (ret)
-+		goto err_free_handler;
- 
- 	mutex_init(&bcap_dev->mutex);
- 	init_completion(&bcap_dev->comp);
+ .../devicetree/bindings/media/i2c/ths8200.txt      |   19 +++++++++++++++++++
+ drivers/media/i2c/ths8200.c                        |   18 +++++++++++++++++-
+ 2 files changed, 36 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ths8200.txt
+
 -- 
-1.8.3.1
+1.7.9.5
 
