@@ -1,61 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f180.google.com ([209.85.212.180]:53225 "EHLO
-	mail-wi0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750808Ab3FDULr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jun 2013 16:11:47 -0400
-Received: by mail-wi0-f180.google.com with SMTP id hn14so600934wib.7
-        for <linux-media@vger.kernel.org>; Tue, 04 Jun 2013 13:11:46 -0700 (PDT)
-From: Alessandro Miceli <angelofsky1980@gmail.com>
-Cc: Alessandro Miceli <angelofsky1980@gmail.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] [rtl28xxu] Add support for Crypto Redi PC50A device (rtl2832u + FC0012 tuner)
-Date: Tue,  4 Jun 2013 22:10:34 +0200
-Message-Id: <1370376634-3033-1-git-send-email-angelofsky1980@gmail.com>
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-la0-f47.google.com ([209.85.215.47]:38391 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756024Ab3FVLpe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Jun 2013 07:45:34 -0400
+Received: by mail-la0-f47.google.com with SMTP id fe20so8487610lab.34
+        for <linux-media@vger.kernel.org>; Sat, 22 Jun 2013 04:45:33 -0700 (PDT)
+Message-ID: <51C58E46.6000801@cogentembedded.com>
+Date: Sat, 22 Jun 2013 15:45:10 +0400
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+MIME-Version: 1.0
+To: Katsuya MATSUBARA <matsu@igel.co.jp>
+CC: sergei.shtylyov@cogentembedded.com, g.liakhovetski@gmx.de,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com
+Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <51C41F66.1060300@cogentembedded.com>	<20130621.190157.27985389.matsu@igel.co.jp>	<51C42BA5.9050105@cogentembedded.com> <20130621.220444.280357674.matsu@igel.co.jp>
+In-Reply-To: <20130621.220444.280357674.matsu@igel.co.jp>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The device has been tested on a MIPSel box with kernel 3.1.1 and backported media_tree drivers
+Hi Matsubara-san,
 
-The kernel detects the device with the following output:
+Katsuya MATSUBARA wrote:
+> Hi Vladimir,
+>
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> Date: Fri, 21 Jun 2013 14:32:05 +0400
+>
+>   
+>> Katsuya MATSUBARA wrote:
+>>     
+>>> Hi Vladimir,
+>>>
+>>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>>> Date: Fri, 21 Jun 2013 13:39:50 +0400
+>>>
+>>> (snip)
+>>>   
+>>>       
+>>>>> I have not seen such i2c errors during capturing and booting.
+>>>>> But I have seen that querystd() in the ml86v7667 driver often
+>>>>> returns V4L2_STD_UNKNOWN, although the corresponding function
+>>>>>         
+>>>>>           
+>>>> could you try Hans's fix:
+>>>> https://patchwork.kernel.org/patch/2640701/
+>>>>     
+>>>>         
+>>> The fix has been already applied in my environment.
+>>>   
+>>>       
+>> I've found that after some iteration of submission we disabled the
+>> input signal in autodetection in ml86v7667_init(). per
+>> recommendations.
+>> That could be the case why the input signal is not locked.
+>>
+>> On adv7180 it still has optional autodetection but Hans recommended to
+>> get rid from runtime autodetection.
+>> So I've added input signal detection only during boot time.
+>>
+>> Could you please try the attached patch?
+>>     
+>
+> With the patch, V4L2_STD_UNKNOWN often returned by querystd()
+> in the ml86v7667 driver has been gone.
+> But, captured images are still incorrect that means wrong
+> order of fields desite '_BT' chosen for V4L2_STD_525_60.
+>   
+I've ordered the NTSC camera.
+I will return once I get it.
 
-usbcore: registered new interface driver dvb_usb_rtl28xxu
-usb 1-2: dvb_usb_v2: found a 'Crypto Redi PC50A' in warm state
-usb 1-2: dvb_usb_v2: will pass the complete MPEG2 transport stream to the software demuxer
-DVB: registering new adapter (Crypto Redi PC50A)
-usb 1-2: DVB: registering adapter 1 frontend 0 (Realtek RTL2832 (DVB-T))...
-i2c i2c-4: fc0012: Fitipower FC0012 successfully identified
-usb 1-2: dvb_usb_v2: 'Crypto Redi PC50A' successfully initialized and connected
-
-Signed-off-by: Alessandro Miceli <angelofsky1980@gmail.com>
----
- drivers/media/dvb-core/dvb-usb-ids.h    |    1 +
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c |    2 ++
- 2 files changed, 3 insertions(+)
-
-diff --git a/drivers/media/dvb-core/dvb-usb-ids.h b/drivers/media/dvb-core/dvb-usb-ids.h
-index 2e0709a..87bf2eb 100644
---- a/drivers/media/dvb-core/dvb-usb-ids.h
-+++ b/drivers/media/dvb-core/dvb-usb-ids.h
-@@ -368,4 +368,5 @@
- #define USB_PID_TECHNISAT_AIRSTAR_TELESTICK_2		0x0004
- #define USB_PID_TECHNISAT_USB2_DVB_S2			0x0500
- #define USB_PID_CTVDIGDUAL_V2				0xe410
-+#define USB_PID_CPYTO_REDI_PC50A			0xa803
- #endif
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 22015fe..9a0ad1e 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1408,6 +1408,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl2832u_props, "Compro VideoMate U620F", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd394,
- 		&rtl2832u_props, "MaxMedia HU394-T", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_GTEK, USB_PID_CPYTO_REDI_PC50A,
-+		&rtl2832u_props, "Crypto Redi PC50A", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
--- 
-1.7.9.5
+Regards,
+Vladimir
 
