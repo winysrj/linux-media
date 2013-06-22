@@ -1,52 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2432 "EHLO
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3084 "EHLO
 	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755626Ab3FCJh2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 05:37:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	with ESMTP id S1751066Ab3FVS3j (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 22 Jun 2013 14:29:39 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5MITZsE008485
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sat, 22 Jun 2013 20:29:38 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 99F2335E00D2
+	for <linux-media@vger.kernel.org>; Sat, 22 Jun 2013 20:29:33 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Anatolij Gustschin <agust@denx.de>
-Subject: [RFC PATCH 06/13] fsl-viu: remove current_norm.
-Date: Mon,  3 Jun 2013 11:36:43 +0200
-Message-Id: <1370252210-4994-7-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130622182933.99F2335E00D2@alastor.dyndns.org>
+Date: Sat, 22 Jun 2013 20:29:33 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-The use of current_norm is deprecated, so remove it. This driver actually
-already implements g_std, which overrides current_norm, but the 'std' field
-was never initialized correctly. This has been fixed as well.
+Results of the daily build of media_tree:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Anatolij Gustschin <agust@denx.de>
----
- drivers/media/platform/fsl-viu.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+date:		Sat Jun 22 19:00:19 CEST 2013
+git branch:	test
+git hash:	ee17608d6aa04a86e253a9130d6c6d00892f132b
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
-diff --git a/drivers/media/platform/fsl-viu.c b/drivers/media/platform/fsl-viu.c
-index 3a6a0dc..221ec42 100644
---- a/drivers/media/platform/fsl-viu.c
-+++ b/drivers/media/platform/fsl-viu.c
-@@ -1475,7 +1475,6 @@ static struct video_device viu_template = {
- 	.release	= video_device_release,
- 
- 	.tvnorms        = V4L2_STD_NTSC_M | V4L2_STD_PAL,
--	.current_norm   = V4L2_STD_NTSC_M,
- };
- 
- static int viu_of_probe(struct platform_device *op)
-@@ -1546,6 +1545,7 @@ static int viu_of_probe(struct platform_device *op)
- 	viu_dev->vidq.timeout.function = viu_vid_timeout;
- 	viu_dev->vidq.timeout.data     = (unsigned long)viu_dev;
- 	init_timer(&viu_dev->vidq.timeout);
-+	viu_dev->std = V4L2_STD_NTSC_M;
- 	viu_dev->first = 1;
- 
- 	/* Allocate memory for video device */
--- 
-1.7.10.4
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: OK
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: OK
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
 
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
