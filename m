@@ -1,73 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4683 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754183Ab3F1M2K (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3147 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750819Ab3FWS3g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 08:28:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Sun, 23 Jun 2013 14:29:36 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr15.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5NITW3R055836
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 23 Jun 2013 20:29:34 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 92A1435E00DD
+	for <linux-media@vger.kernel.org>; Sun, 23 Jun 2013 20:29:32 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFC PATCH 4/5] v4l2: add a motion detection event.
-Date: Fri, 28 Jun 2013 14:27:33 +0200
-Message-Id: <1372422454-13752-5-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
-References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130623182932.92A1435E00DD@alastor.dyndns.org>
+Date: Sun, 23 Jun 2013 20:29:32 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/videodev2.h | 17 +++++++++++++++++
- 1 file changed, 17 insertions(+)
+Results of the daily build of media_tree:
 
-diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-index 5cbe815..f926209 100644
---- a/include/uapi/linux/videodev2.h
-+++ b/include/uapi/linux/videodev2.h
-@@ -1721,6 +1721,7 @@ struct v4l2_streamparm {
- #define V4L2_EVENT_EOS				2
- #define V4L2_EVENT_CTRL				3
- #define V4L2_EVENT_FRAME_SYNC			4
-+#define V4L2_EVENT_MOTION_DET			5
- #define V4L2_EVENT_PRIVATE_START		0x08000000
- 
- /* Payload for V4L2_EVENT_VSYNC */
-@@ -1752,12 +1753,28 @@ struct v4l2_event_frame_sync {
- 	__u32 frame_sequence;
- };
- 
-+#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
-+
-+/**
-+ * struct v4l2_event_motion_det - motion detection event
-+ * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
-+ *                     frame_sequence field is valid.
-+ * @frame_sequence:    the frame sequence number associated with this event.
-+ * @region_mask:       which regions detected motion.
-+ */
-+struct v4l2_event_motion_det {
-+	__u32 flags;
-+	__u32 frame_sequence;
-+	__u32 region_mask;
-+};
-+
- struct v4l2_event {
- 	__u32				type;
- 	union {
- 		struct v4l2_event_vsync		vsync;
- 		struct v4l2_event_ctrl		ctrl;
- 		struct v4l2_event_frame_sync	frame_sync;
-+		struct v4l2_event_motion_det	motion_det;
- 		__u8				data[64];
- 	} u;
- 	__u32				pending;
--- 
-1.8.3.1
+date:		Sun Jun 23 19:00:20 CEST 2013
+git branch:	test
+git hash:	ee17608d6aa04a86e253a9130d6c6d00892f132b
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: OK
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: OK
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
