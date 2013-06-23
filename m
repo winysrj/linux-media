@@ -1,86 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4123 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752310Ab3FXHOj (ORCPT
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:35126 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751354Ab3FWPst (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 03:14:39 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH v2 1/2] media: i2c: tvp7002: add support for asynchronous probing
-Date: Mon, 24 Jun 2013 09:14:22 +0200
+	Sun, 23 Jun 2013 11:48:49 -0400
+MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.64.1306231716050.13783@axis700.grange>
+References: <1371896189-5475-1-git-send-email-prabhakar.csengg@gmail.com> <Pine.LNX.4.64.1306231716050.13783@axis700.grange>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 23 Jun 2013 21:18:20 +0530
+Message-ID: <CA+V-a8sFzDndeCBc=bgcvpqtvzQWVLngNc_mtXCebQcarM+w+Q@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: tvp514x: add support for asynchronous probing
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
 	LMML <linux-media@vger.kernel.org>,
 	Hans Verkuil <hans.verkuil@cisco.com>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
 	Sakari Ailus <sakari.ailus@iki.fi>
-References: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com> <1371923055-29623-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371923055-29623-2-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306240914.22490.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat June 22 2013 19:44:14 Prabhakar Lad wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> Both synchronous and asynchronous tvp7002 subdevice probing
-> is supported by this patch.
+Hi Guennadi,
 
-Can I merge this patch without patch 2/2? Or should I wait with both until
-the video sync properties have been approved?
+Thanks for the review.
 
-	Hans
+On Sun, Jun 23, 2013 at 8:49 PM, Guennadi Liakhovetski
+<g.liakhovetski@gmx.de> wrote:
+> On Sat, 22 Jun 2013, Prabhakar Lad wrote:
+>
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> Both synchronous and asynchronous tvp514x subdevice probing is supported by
+>> this patch.
+>>
+>> Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>  drivers/media/i2c/tvp514x.c |   22 +++++++++++++++-------
+>>  1 file changed, 15 insertions(+), 7 deletions(-)
+>>
+>> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+>> index 864eb14..d090caf 100644
+>> --- a/drivers/media/i2c/tvp514x.c
+>> +++ b/drivers/media/i2c/tvp514x.c
+>> @@ -36,6 +36,7 @@
+>>  #include <linux/module.h>
+>>  #include <linux/v4l2-mediabus.h>
+>>
+>> +#include <media/v4l2-async.h>
+>>  #include <media/v4l2-device.h>
+>>  #include <media/v4l2-common.h>
+>>  #include <media/v4l2-mediabus.h>
+>
+> Ok, but this one really does too many things in one patch:
+>
+>> @@ -1148,9 +1149,9 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>>       /* Register with V4L2 layer as slave device */
+>>       sd = &decoder->sd;
+>>       v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
+>> -     strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+>>
+>>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>> +     strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+>
+> This is unrelated
+>
+OK I'll split the patch or may be a line in a commit message can do ?
 
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: linux-kernel@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
-> ---
->  drivers/media/i2c/tvp7002.c |    6 ++++++
->  1 file changed, 6 insertions(+)
-> 
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index 36ad565..b577548 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -31,6 +31,7 @@
->  #include <linux/module.h>
->  #include <linux/v4l2-dv-timings.h>
->  #include <media/tvp7002.h>
-> +#include <media/v4l2-async.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-ctrls.h>
-> @@ -1040,6 +1041,10 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
->  	}
->  	v4l2_ctrl_handler_setup(&device->hdl);
->  
-> +	error = v4l2_async_register_subdev(&device->sd);
-> +	if (error)
-> +		goto error;
-> +
->  	return 0;
->  
->  error:
-> @@ -1064,6 +1069,7 @@ static int tvp7002_remove(struct i2c_client *c)
->  
->  	v4l2_dbg(1, debug, sd, "Removing tvp7002 adapter"
->  				"on address 0x%x\n", c->addr);
-> +	v4l2_async_unregister_subdev(&device->sd);
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	media_entity_cleanup(&device->sd.entity);
->  #endif
-> 
+>>       decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
+>>       decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+>>       decoder->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
+>> @@ -1176,16 +1177,22 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>>       sd->ctrl_handler = &decoder->hdl;
+>>       if (decoder->hdl.error) {
+>>               ret = decoder->hdl.error;
+>> -
+>> -             v4l2_ctrl_handler_free(&decoder->hdl);
+>> -             return ret;
+>> +             goto done;
+>>       }
+>>       v4l2_ctrl_handler_setup(&decoder->hdl);
+>>
+>> -     v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
+>> -
+>> -     return 0;
+>> +     ret = v4l2_async_register_subdev(&decoder->sd);
+>> +     if (!ret)
+>> +             v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
+>>
+>> +done:
+>> +     if (ret < 0) {
+>> +             v4l2_ctrl_handler_free(&decoder->hdl);
+>> +#if defined(CONFIG_MEDIA_CONTROLLER)
+>> +             media_entity_cleanup(&decoder->sd.entity);
+>
+> So is this - it wasn't called before in the "if (decoder->hdl.error)" case
+> above.
+>
+Yes so fixed it up here.
+
+Regards,
+--Prabhakar Lad
