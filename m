@@ -1,148 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:35307 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752280Ab3FLHuD (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:57878 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750944Ab3FWN0l (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 03:50:03 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Lubomir Rintel <lkundrak@v3.sk>
-Subject: Re: [PATCH] [media] usbtv: Add driver for Fushicai USBTV007 video frame grabber
-Date: Wed, 12 Jun 2013 09:49:44 +0200
-Cc: linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org
-References: <1370857931-6586-1-git-send-email-lkundrak@v3.sk> <201306101305.05038.hverkuil@xs4all.nl> <1370885934.9757.11.camel@hobbes.kokotovo>
-In-Reply-To: <1370885934.9757.11.camel@hobbes.kokotovo>
+	Sun, 23 Jun 2013 09:26:41 -0400
+Date: Sun, 23 Jun 2013 15:26:10 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH] media: i2c: adv7343: add support for asynchronous probing
+In-Reply-To: <1371895657-2898-1-git-send-email-prabhakar.csengg@gmail.com>
+Message-ID: <Pine.LNX.4.64.1306231525060.13783@axis700.grange>
+References: <1371895657-2898-1-git-send-email-prabhakar.csengg@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306120949.44163.hverkuil@xs4all.nl>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 10 June 2013 19:38:54 Lubomir Rintel wrote:
-> On Mon, 2013-06-10 at 13:05 +0200, Hans Verkuil wrote:
-> > > Also, I the hardware uses V4L2_FIELD_ALTERNATE interlacing, but I couldn't make
-> > > it work,
-> > 
-> > What didn't work exactly?
-> 
-> Both mplayer and gstream v4l2src displayed only half of an image. Not
-> sure which combinations of flags did I use anymore.
+On Sat, 22 Jun 2013, Prabhakar Lad wrote:
 
-That makes sense since few if any apps can handle FIELD_ALTERNATE.
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> Both synchronous and asynchronous adv7343 subdevice probing is supported by
+> this patch.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/i2c/adv7343.c |   15 +++++++++++----
+>  1 file changed, 11 insertions(+), 4 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+> index 7606218..8080c2c 100644
+> --- a/drivers/media/i2c/adv7343.c
+> +++ b/drivers/media/i2c/adv7343.c
+> @@ -27,6 +27,7 @@
+>  #include <linux/uaccess.h>
+>  
+>  #include <media/adv7343.h>
+> +#include <media/v4l2-async.h>
+>  #include <media/v4l2-device.h>
+>  #include <media/v4l2-ctrls.h>
+>  
+> @@ -445,16 +446,21 @@ static int adv7343_probe(struct i2c_client *client,
+>  				       ADV7343_GAIN_DEF);
+>  	state->sd.ctrl_handler = &state->hdl;
+>  	if (state->hdl.error) {
+> -		int err = state->hdl.error;
+> -
+> -		v4l2_ctrl_handler_free(&state->hdl);
+> -		return err;
+> +		err = state->hdl.error;
+> +		goto done;
 
-> > > +static int usbtv_queryctrl(struct file *file, void *priv,
-> > > +				struct v4l2_queryctrl *ctrl)
-> > > +{
-> > > +	return -EINVAL;
-> > > +}
-> > 
-> > Drop this ioctl. If it doesn't do anything, then don't specify it.
-> 
-> It actually does something; EINVAL here for any ctrl signals there's
-> zero controls.
-> 
-> When undefined, ENOTTY that is returned is considered invalid by
-> gstreamer source.
+What does this have to do with asynchronous probing? Please, remove.
 
-What version of gstreamer are you using? Looking at the gstreamer code it
-seems that it can handle ENOTTY at least since September last year. Not handling
-ENOTTY is an application bug (there are other - rare - drivers that do not
-have any controls) and as such I really don't like seeing a workaround like
-this in a driver, especially since this seems like it should be working fine
-with the latest gstreamer.
+>  	}
+>  	v4l2_ctrl_handler_setup(&state->hdl);
+>  
+>  	err = adv7343_initialize(&state->sd);
+>  	if (err)
+> +		goto done;
+> +
+> +	err = v4l2_async_register_subdev(&state->sd);
+> +
+> +done:
 
-> > It doesn't look too bad :-) You're using all the latest frameworks which is
-> > excellent.
-> 
-> Thanks for your time. I'll follow up with a new version that aims to
-> address all the concerns above (apart for the queryctl change, which
-> would break with gstreamer).
-> 
-> > Can you run the v4l2-compliance tool and post the output of that tool?
-> 
-> Driver Info:
-> 	Driver name   : usbtv
-> 	Card type     : usbtv
-> 	Bus info      : usb-0000:00:1d.7-5
-> 	Driver version: 3.10.0
-> 	Capabilities  : 0x85000001
-> 		Video Capture
-> 		Read/Write
-> 		Streaming
-> 		Device Capabilities
-> 	Device Caps   : 0x05000001
-> 		Video Capture
-> 		Read/Write
-> 		Streaming
-> 
-> Compliance test for device /dev/video1 (not using libv4l2):
-> 
-> Required ioctls:
-> 	test VIDIOC_QUERYCAP: OK
-> 
-> Allow for multiple opens:
-> 	test second video open: OK
-> 	test VIDIOC_QUERYCAP: OK
-> 	test VIDIOC_G/S_PRIORITY: OK
-> 
-> Debug ioctls:
-> 	test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
-> 	test VIDIOC_LOG_STATUS: OK (Not Supported)
-> 
-> Input ioctls:
-> 	test VIDIOC_G/S_TUNER: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDIO: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMINPUT: OK
-> 	test VIDIOC_G/S_AUDIO: OK (Not Supported)
-> 	Inputs: 1 Audio Inputs: 0 Tuners: 0
-> 
-> Output ioctls:
-> 	test VIDIOC_G/S_MODULATOR: OK (Not Supported)
-> 	test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
-> 	test VIDIOC_ENUMAUDOUT: OK (Not Supported)
-> 	test VIDIOC_G/S/ENUMOUTPUT: OK (Not Supported)
-> 	test VIDIOC_G/S_AUDOUT: OK (Not Supported)
-> 	Outputs: 0 Audio Outputs: 0 Modulators: 0
-> 
-> Control ioctls:
-> 	test VIDIOC_QUERYCTRL/MENU: OK
-> 	test VIDIOC_G/S_CTRL: OK (Not Supported)
-> 	test VIDIOC_G/S/TRY_EXT_CTRLS: OK (Not Supported)
-> 	test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
-> 	test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
-> 	Standard Controls: 0 Private Controls: 0
-> 
-> Input/Output configuration ioctls:
-> 	test VIDIOC_ENUM/G/S/QUERY_STD: OK
-> 	test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: OK (Not Supported)
-> 	test VIDIOC_DV_TIMINGS_CAP: OK (Not Supported)
-> 
-> Format ioctls:
-> 	test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
-> 	test VIDIOC_G/S_PARM: OK
-> 	test VIDIOC_G_FBUF: OK (Not Supported)
-> 	test VIDIOC_G_FMT: OK
-> 	test VIDIOC_TRY_FMT: OK
-> 	test VIDIOC_S_FMT: OK
-> 	test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
-> 
-> Codec ioctls:
-> 	test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
-> 	test VIDIOC_G_ENC_INDEX: OK (Not Supported)
-> 	test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
-> 
-> Buffer ioctls:
-> 	test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
-> 
-> Total: 36, Succeeded: 36, Failed: 0, Warnings: 0
-> 
+This label won't be needed then either.
+
+Thanks
+Guennadi
+
+> +	if (err < 0)
+>  		v4l2_ctrl_handler_free(&state->hdl);
+> +
+>  	return err;
+>  }
+>  
+> @@ -463,6 +469,7 @@ static int adv7343_remove(struct i2c_client *client)
+>  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
+>  	struct adv7343_state *state = to_state(sd);
+>  
+> +	v4l2_async_unregister_subdev(&state->sd);
+>  	v4l2_device_unregister_subdev(sd);
+>  	v4l2_ctrl_handler_free(&state->hdl);
+>  
+> -- 
+> 1.7.9.5
 > 
 
-Nice!
-
-	Hans
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
