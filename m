@@ -1,143 +1,158 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1083 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754298Ab3FGPWU (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 11:22:20 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 1/1] v4l: Document timestamp behaviour to correspond to reality
-Date: Fri, 7 Jun 2013 17:21:52 +0200
-Cc: linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	k.debski@samsung.com
-References: <1364076274-726-1-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1364076274-726-1-git-send-email-sakari.ailus@iki.fi>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:62465 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751251Ab3FXU6l (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jun 2013 16:58:41 -0400
+Received: by mail-bk0-f48.google.com with SMTP id jf17so4444135bkc.35
+        for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 13:58:39 -0700 (PDT)
+Message-ID: <51C8B2FC.8040200@gmail.com>
+Date: Mon, 24 Jun 2013 22:58:36 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2] V4L2: add documentation for V4L2 clock helpers and
+ asynchronous probing
+References: <Pine.LNX.4.64.1306241311420.19735@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1306241311420.19735@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201306071721.52331.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat March 23 2013 23:04:34 Sakari Ailus wrote:
-> Document that monotonic timestamps are taken after the corresponding frame
-> has been received, not when the reception has begun. This corresponds to the
-> reality of current drivers: the timestamp is naturally taken when the
-> hardware triggers an interrupt to tell the driver to handle the received
-> frame.
-> 
-> Remove the note on timestamp accurary as it is fairly subjective what is
-> actually an unstable timestamp.
-> 
-> Also remove explanation that output buffer timestamps can be used to delay
-> outputting a frame.
-> 
-> Remove the footnote saying we always use realtime clock.
-> 
-> Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+Hi Guennadi,
 
-Sorry for the delay, for some reason this patch wasn't picked up by patchwork.
-
+On 06/24/2013 01:20 PM, Guennadi Liakhovetski wrote:
+> Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
+> to v4l2-framework.txt.
+>
+> Signed-off-by: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
 > ---
-> Hi all,
-> 
-> This is the second version of the patch fixing timestamp behaviour
-> documentation. I've tried to address the comments I've received albeit I
-> don't think there was a definitive conclusion on all the trails of
-> discussion. What has changed since v1 is:
-> 
-> - Removed discussion on timestamp stability.
-> 
-> - Removed notes that timestamps on output buffers define when frames will be
->   displayed. It appears no driver has ever implemented this, or at least
->   does not implement this now.
-> 
-> - Monotonic time is not affected by harms that the wall clock time is
->   subjected to. Remove notes on that.
-> 
->  Documentation/DocBook/media/v4l/io.xml |   47 ++++++--------------------------
->  1 file changed, 8 insertions(+), 39 deletions(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/io.xml b/Documentation/DocBook/media/v4l/io.xml
-> index e6c5855..46d5a41 100644
-> --- a/Documentation/DocBook/media/v4l/io.xml
-> +++ b/Documentation/DocBook/media/v4l/io.xml
-> @@ -654,38 +654,11 @@ plane, are stored in struct <structname>v4l2_plane</structname> instead.
->  In that case, struct <structname>v4l2_buffer</structname> contains an array of
->  plane structures.</para>
->  
-> -      <para>Nominally timestamps refer to the first data byte transmitted.
-> -In practice however the wide range of hardware covered by the V4L2 API
-> -limits timestamp accuracy. Often an interrupt routine will
-> -sample the system clock shortly after the field or frame was stored
-> -completely in memory. So applications must expect a constant
-> -difference up to one field or frame period plus a small (few scan
-> -lines) random error. The delay and error can be much
-> -larger due to compression or transmission over an external bus when
-> -the frames are not properly stamped by the sender. This is frequently
-> -the case with USB cameras. Here timestamps refer to the instant the
-> -field or frame was received by the driver, not the capture time. These
-> -devices identify by not enumerating any video standards, see <xref
-> -linkend="standard" />.</para>
-> -
-> -      <para>Similar limitations apply to output timestamps. Typically
-> -the video hardware locks to a clock controlling the video timing, the
-> -horizontal and vertical synchronization pulses. At some point in the
-> -line sequence, possibly the vertical blanking, an interrupt routine
-> -samples the system clock, compares against the timestamp and programs
-> -the hardware to repeat the previous field or frame, or to display the
-> -buffer contents.</para>
-> -
-> -      <para>Apart of limitations of the video device and natural
-> -inaccuracies of all clocks, it should be noted system time itself is
-> -not perfectly stable. It can be affected by power saving cycles,
-> -warped to insert leap seconds, or even turned back or forth by the
-> -system administrator affecting long term measurements. <footnote>
-> -	  <para>Since no other Linux multimedia
-> -API supports unadjusted time it would be foolish to introduce here. We
-> -must use a universally supported clock to synchronize different media,
-> -hence time of day.</para>
-> -	</footnote></para>
-> +      <para>On timestamp types that are sampled from the system clock
+>
+> v2: addressed comments by Hans and Laurent (thanks), including
+> (a) language clean up
+> (b) extended the V4L2 clock API section with an explanation, what special
+> requirements V4L2 has and a mention of it being temporary until CCF is
+> used by all
+> (c) added an explanation of the use of -EPROBE_DEFER
 
-'On' -> 'For'
+Looks pretty good.
 
-> +(V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC) it is guaranteed that the timestamp is
-> +taken after the complete frame has been received (or transmitted in
-> +case of video output devices). For other kinds of
-> +timestamps this may vary depending on the driver.</para>
->  
->      <table frame="none" pgwide="1" id="v4l2-buffer">
->        <title>struct <structname>v4l2_buffer</structname></title>
-> @@ -745,13 +718,9 @@ applications when an output stream.</entry>
->  	    byte was captured, as returned by the
->  	    <function>clock_gettime()</function> function for the relevant
->  	    clock id; see <constant>V4L2_BUF_FLAG_TIMESTAMP_*</constant> in
-> -	    <xref linkend="buffer-flags" />. For output streams the data
-> -	    will not be displayed before this time, secondary to the nominal
-> -	    frame rate determined by the current video standard in enqueued
-> -	    order. Applications can for example zero this field to display
-> -	    frames as soon as possible. The driver stores the time at which
-> -	    the first data byte was actually sent out in the
-> -	    <structfield>timestamp</structfield> field. This permits
-> +	    <xref linkend="buffer-flags" />. For output streams he driver
+  Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-'he' -> 'the'
+Just one remark below...
 
-> +	    stores the time at which the first data byte was actually sent out
-> +	    in the  <structfield>timestamp</structfield> field. This permits
+>   Documentation/video4linux/v4l2-framework.txt |   73 +++++++++++++++++++++++++-
+>   1 files changed, 71 insertions(+), 2 deletions(-)
+>
+> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
+> index b5e6347..00a9d21 100644
+> --- a/Documentation/video4linux/v4l2-framework.txt
+> +++ b/Documentation/video4linux/v4l2-framework.txt
+> @@ -325,8 +325,27 @@ that width, height and the media bus pixel code are equal on both source and
+>   sink of the link. Subdev drivers are also free to use this function to
+>   perform the checks mentioned above in addition to their own checks.
+>
+> -A device (bridge) driver needs to register the v4l2_subdev with the
+> -v4l2_device:
+> +There are currently two ways to register subdevices with the V4L2 core. The
+> +first (traditional) possibility is to have subdevices registered by bridge
+> +drivers. This can be done when the bridge driver has the complete information
+> +about subdevices connected to it and knows exactly when to register them. This
+> +is typically the case for internal subdevices, like video data processing units
+> +within SoCs or complex PCI(e) boards, camera sensors in USB cameras or connected
+> +to SoCs, which pass information about them to bridge drivers, usually in their
+> +platform data.
+> +
+> +There are however also situations where subdevices have to be registered
+> +asynchronously to bridge devices. An example of such a configuration is a Device
+> +Tree based systems where information about subdevices is made available to the
 
-Not true: the timestamp is taken after the whole frame was transmitted.
+I think you need to substitute "is a Device Tree based systems" with either:
+"are Device Tree based systems" or
+"is a Device Tree based system".
 
-Note that the 'timestamp' field documentation still says that it is the
-timestamp of the first data byte for capture as well, that's also wrong.
+> +system independently from the bridge devices, e.g. when subdevices are defined
+> +in DT as I2C device nodes. The API used in this second case is described further
+> +below.
+> +
+> +Using one or the other registration method only affects the probing process, the
+> +run-time bridge-subdevice interaction is in both cases the same.
+> +
+> +In the synchronous case a device (bridge) driver needs to register the
+> +v4l2_subdev with the v4l2_device:
+>
+>   	int err = v4l2_device_register_subdev(v4l2_dev, sd);
+>
+> @@ -393,6 +412,30 @@ controlled through GPIO pins. This distinction is only relevant when setting
+>   up the device, but once the subdev is registered it is completely transparent.
+>
+>
+> +In the asynchronous case subdevice probing can be invoked independently of the
+> +bridge driver availability. The subdevice driver then has to verify whether all
+> +the requirements for a successful probing are satisfied. This can include a
+> +check for a master clock availability. If any of the conditions aren't satisfied
+> +the driver might decide to return -EPROBE_DEFER to request further reprobing
+> +attempts. Once all conditions are met the subdevice shall be registered using
+> +the v4l2_async_register_subdev() function. Unregistration is performed using
+> +the v4l2_async_unregister_subdev() call. Subdevices registered this way are
+> +stored in a global list of subdevices, ready to be picked up by bridge drivers.
+> +
+> +Bridge drivers in turn have to register a notifier object with an array of
+> +subdevice descriptors that the bridge device needs for its operation. This is
+> +performed using the v4l2_async_notifier_register() call. To unregister the
+> +notifier the driver has to call v4l2_async_notifier_unregister(). The former of
+> +the two functions takes two arguments: a pointer to struct v4l2_device and a
+> +pointer to struct v4l2_async_notifier. The latter contains a pointer to an array
+> +of pointers to subdevice descriptors of type struct v4l2_async_subdev type. The
+> +V4L2 core will then use these descriptors to match asynchronously registered
+> +subdevices to them. If a match is detected the .bound() notifier callback is
+> +called. After all subdevices have been located the .complete() callback is
+> +called. When a subdevice is removed from the system the .unbind() method is
+> +called. All three callbacks are optional.
+> +
+> +
+>   V4L2 sub-device userspace API
+>   -----------------------------
+>
+> @@ -1065,3 +1108,29 @@ available event type is 'class base + 1'.
+>
+>   An example on how the V4L2 events may be used can be found in the OMAP
+>   3 ISP driver (drivers/media/platform/omap3isp).
+> +
+> +
+> +V4L2 clocks
+> +-----------
+> +
+> +Many subdevices, like camera sensors, TV decoders and encoders, need a clock
+> +signal to be supplied by the system. Often this clock is supplied by the
+> +respective bridge device. The Linux kernel provides a Common Clock Framework for
+> +this purpose. However, it is not (yet) available on all architectures. Besides,
+> +the nature of the multi-functional (clock, data + synchronisation, I2C control)
+> +connection of subdevices to the system might impose special requirements on the
+> +clock API usage. E.g. V4L2 has to support clock provider driver unregistration
+> +while a subdevice driver is holding a reference to the clock. For these reasons
+> +a V4L2 clock helper API has been developed and is provided to bridge and
+> +subdevice drivers.
+> +
+> +The API consists of two parts: two functions to register and unregister a V4L2
+> +clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls to control
+> +a clock object, similar to the respective generic clock API calls:
+> +v4l2_clk_get(), v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(),
+> +v4l2_clk_get_rate(), and v4l2_clk_set_rate(). Clock suppliers have to provide
+> +clock operations that will be called when clock users invoke respective API
+> +methods.
+> +
+> +It is expected that once the CCF becomes available on all relevant
+> +architectures this API will be removed.
 
-
->  	    applications to monitor the drift between the video and system
->  	    clock.</para></entry>
->  	  </row>
-> 
-
-Regards,
-
-	Hans
+Thanks,
+Sylwester
