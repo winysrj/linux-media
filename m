@@ -1,44 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:50738 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751210Ab3FDKS3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jun 2013 06:18:29 -0400
-Message-ID: <51ADBECD.1070102@iki.fi>
-Date: Tue, 04 Jun 2013 13:17:49 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4427 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750866Ab3FXMsk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jun 2013 08:48:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Question: interaction between selection API, ENUM_FRAMESIZES and S_FMT?
+Date: Mon, 24 Jun 2013 14:48:15 +0200
 MIME-Version: 1.0
-To: Luca Olivetti <luca@ventoso.org>
-CC: linux-media@vger.kernel.org
-Subject: Re: Diversity support?
-References: <507EE702.2010103@ventoso.org> <5091691A.4070903@ventoso.org> <51ACB2CA.6060503@ventoso.org> <51AD23F1.1050903@iki.fi> <51AD9758.2050009@ventoso.org>
-In-Reply-To: <51AD9758.2050009@ventoso.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306241448.15187.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/04/2013 10:29 AM, Luca Olivetti wrote:
-> Al 04/06/13 01:17, En/na Antti Palosaari ha escrit:
->
->>> I'm not easily discouraged :-) so here's the question again: is there
->>> some dvb-t usb stick (possibly available on the EU market) with
->>> diversity support under Linux?
->>
->> I have feeling AF9035/IT9135 dual devices could do that.
->
-> Looking at the wiki, most devices based on those demodulators are either
-> unsupported or have a dual tuner but not diversity.
+Hi all,
 
-Because diversity is not interesting feature at all in normal use case. 
-Whole DVB-T standard fits poorly for mobile usage and you cannot make 
-situation that much better using diversity.
+While working on extending v4l2-compliance with cropping/selection test cases
+I decided to add support for that to vivi as well (this would give applications
+a good test driver to work with).
 
-Dual hardware could support diversity, but it is not usually enabled by 
-software.
+However, I ran into problems how this should be implemented for V4L2 devices
+(we are not talking about complex media controller devices where the video
+pipelines are setup manually).
 
+There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
 
-regards
-Antti
+The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
+possible frame sizes, and that can crop, compose and/or scale, then you need
+to be able to set the frame size. Currently this is decided by S_FMT which
+maps the format size to the closest valid frame size. This however makes
+it impossible to e.g. scale up a frame, or compose the image into a larger
+buffer.
 
--- 
-http://palosaari.fi/
+For video receivers this issue doesn't exist: there the size of the incoming
+video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for sensors.
+
+I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
+
+However, this leads to another problem: the current S_FMT behavior is that
+it implicitly sets the framesize. That behavior we will have to keep, otherwise
+applications will start to behave differently.
+
+I have an idea on how to solve that, but the solution is related to the second
+problem I found:
+
+When you set a new format size, then the compose rectangle must be set to the
+new format size as well since that has always been the behavior in the past
+that applications have come to expect.
+
+But this makes certain operations impossible to execute: if a driver can't
+scale, then you can never select a new format size larger than the current
+(possibly cropped) frame size, even though you would want to compose the
+unscaled image into such a larger buffer.
+
+So what is the behavior that I would expect from drivers?
+
+1) After calling S_STD, S_DV_TIMINGS or S_SELECTION(V4L2_SEL_TGT_FRAMESIZE)
+the cropping, composing and format parameters are all adjusted to support the
+new input video size (typically they are all set to the new size).
+
+2) After calling S_CROP/S_SELECTION(CROP) the compose and format parameters are all
+adjusted to support the new crop rectangle.
+
+3) After calling S_SEL(COMPOSE) the format parameters are adjusted.
+
+4) Calling S_FMT validates the format parameters to support the compose
+rectangle.
+
+However, today step 4 does something different: the compose rectangle will be
+adjusted to the format size (and in the case of a sensor supporting different
+framesizes the whole pipeline will be adjusted).
+
+The only way I see that would solve this (although it isn't perfect) is to
+change the behavior of S_FMT only if the selection API was used before by the
+filehandle. The core can keep easily keep track of that. When the application
+calls S_FMT and no selection API was used in the past by that filehandle, then
+the core will call first S_SELECTION(V4L2_SEL_TGT_FRAMESIZE). If that returns
+-EINVAL, then it will call S_SELECTION(V4L2_SEL_TGT_COMPOSE). Finally it will
+call S_FMT. Note that a similar sequence is needed for the display case.
+
+This means that a driver supporting the selection API can implement the logical
+behavior and the core will implement the historically-required illogical part.
+
+So the fix for this would be to add a new selection target and add compatibility
+code to the v4l2-core.
+
+With that in place I can easily add crop/compose support to vivi.
+
+One area of uncertainty is how drivers currently implement S_FMT: do they reset
+any cropping done before? They should keep the crop rectangle according to the
+spec (well, it is implied there). Guennadi, what does soc_camera do?
+
+Sylwester, I am also looking at exynos4-is/fimc-lite.c. I do see that setting
+the compose rectangle will adjust it to the format size instead of the other
+way around, but I can't tell if setting the format size will also adjust the
+compose rectangle if that is now out-of-bounds of the new format size.
+
+Comments? Questions?
+
+Regards,
+
+	Hans
