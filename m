@@ -1,187 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:22217 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751088Ab3GAAfS (ORCPT
+Received: from mail-wg0-f43.google.com ([74.125.82.43]:47506 "EHLO
+	mail-wg0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752548Ab3FXIYX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jun 2013 20:35:18 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Kishon Vijay Abraham I' <kishon@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>
-References: <001701ce73bf$bebf9f20$3c3edd60$@samsung.com>
- <51CD25F2.5010206@ti.com> <001c01ce73c5$552e1cc0$ff8a5640$@samsung.com>
- <51CD56FE.4020302@ti.com>
-In-reply-to: <51CD56FE.4020302@ti.com>
-Subject: Re: [PATCH 3/3] video: exynos_dp: Use the generic PHY driver
-Date: Mon, 01 Jul 2013 09:35:15 +0900
-Message-id: <000001ce75f2$db156170$91402450$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Mon, 24 Jun 2013 04:24:23 -0400
+MIME-Version: 1.0
+In-Reply-To: <201306240911.14288.hverkuil@xs4all.nl>
+References: <1371896189-5475-1-git-send-email-prabhakar.csengg@gmail.com>
+ <Pine.LNX.4.64.1306231716050.13783@axis700.grange> <CA+V-a8sFzDndeCBc=bgcvpqtvzQWVLngNc_mtXCebQcarM+w+Q@mail.gmail.com>
+ <201306240911.14288.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 24 Jun 2013 13:54:02 +0530
+Message-ID: <CA+V-a8tziXOAU6NNUy6rp-Fdz2sVk8+KYHdzDsVSaFuRADUjig@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: tvp514x: add support for asynchronous probing
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, June 28, 2013 6:27 PM, Kishon Vijay Abraham I wrote:
-> 
-> Hi,
-> 
-> On Friday 28 June 2013 11:34 AM, Jingoo Han wrote:
-> > On Friday, June 28, 2013 2:58 PM, Kishon Vijay Abraham I wrote:
-> >>
-> >> Hi,
-> >>
-> >> On Friday 28 June 2013 10:54 AM, Jingoo Han wrote:
-> >>> Use the generic PHY API instead of the platform callback to control
-> >>> the DP PHY. The 'phy_label' field is added to the platform data
-> >>> structure to allow PHY lookup on non-dt platforms.
-> >>>
-> >>> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> >>> ---
-> >>>    .../devicetree/bindings/video/exynos_dp.txt        |   17 ---
-> >>>    drivers/video/exynos/exynos_dp_core.c              |  118 ++------------------
-> >>>    drivers/video/exynos/exynos_dp_core.h              |    2 +
-> >>>    include/video/exynos_dp.h                          |    6 +-
-> >>>    4 files changed, 15 insertions(+), 128 deletions(-)
-> >>>
-> >>> diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> >> b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> >>> index 84f10c1..a8320e3 100644
-> >>> --- a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> >>> +++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> >>> @@ -1,17 +1,6 @@
-> >>>    The Exynos display port interface should be configured based on
-> >>>    the type of panel connected to it.
-> >>>
-> >>> -We use two nodes:
-> >>> -	-dp-controller node
-> >>> -	-dptx-phy node(defined inside dp-controller node)
-> >>> -
-> >>> -For the DP-PHY initialization, we use the dptx-phy node.
-> >>> -Required properties for dptx-phy:
-> >>> -	-reg:
-> >>> -		Base address of DP PHY register.
-> >>> -	-samsung,enable-mask:
-> >>> -		The bit-mask used to enable/disable DP PHY.
-> >>> -
-> >>>    For the Panel initialization, we read data from dp-controller node.
-> >>>    Required properties for dp-controller:
-> >>>    	-compatible:
-> >>> @@ -67,12 +56,6 @@ SOC specific portion:
-> >>>    		interrupt-parent = <&combiner>;
-> >>>    		clocks = <&clock 342>;
-> >>>    		clock-names = "dp";
-> >>> -
-> >>> -		dptx-phy {
-> >>> -			reg = <0x10040720>;
-> >>> -			samsung,enable-mask = <1>;
-> >>> -		};
-> >>> -
-> >>>    	};
-> >>>
-> >>>    Board Specific portion:
-> >>> diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
-> >>> index 12bbede..bac515b 100644
-> >>> --- a/drivers/video/exynos/exynos_dp_core.c
-> >>> +++ b/drivers/video/exynos/exynos_dp_core.c
-> >>> @@ -19,6 +19,7 @@
-> >>>    #include <linux/interrupt.h>
-> >>>    #include <linux/delay.h>
-> >>>    #include <linux/of.h>
-> >>> +#include <linux/phy/phy.h>
-> >>>
-> >>>    #include <video/exynos_dp.h>
-> >>>
-> >>> @@ -960,84 +961,15 @@ static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device
-> *dev)
-> >>>    		return ERR_PTR(-EINVAL);
-> >>>    	}
-> >>>
-> >>> -	return pd;
-> >>> -}
-> >>> -
-> >>> -static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
-> >>> -{
-> >>> -	struct device_node *dp_phy_node = of_node_get(dp->dev->of_node);
-> >>> -	u32 phy_base;
-> >>> -	int ret = 0;
-> >>> -
-> >>> -	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
-> >>> -	if (!dp_phy_node) {
-> >>> -		dev_err(dp->dev, "could not find dptx-phy node\n");
-> >>> -		return -ENODEV;
-> >>> -	}
-> >>> -
-> >>> -	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
-> >>> -		dev_err(dp->dev, "failed to get reg for dptx-phy\n");
-> >>> -		ret = -EINVAL;
-> >>> -		goto err;
-> >>> -	}
-> >>> -
-> >>> -	if (of_property_read_u32(dp_phy_node, "samsung,enable-mask",
-> >>> -				&dp->enable_mask)) {
-> >>> -		dev_err(dp->dev, "failed to get enable-mask for dptx-phy\n");
-> >>> -		ret = -EINVAL;
-> >>> -		goto err;
-> >>> -	}
-> >>> -
-> >>> -	dp->phy_addr = ioremap(phy_base, SZ_4);
-> >>> -	if (!dp->phy_addr) {
-> >>> -		dev_err(dp->dev, "failed to ioremap dp-phy\n");
-> >>> -		ret = -ENOMEM;
-> >>> -		goto err;
-> >>> -	}
-> >>> -
-> >>> -err:
-> >>> -	of_node_put(dp_phy_node);
-> >>> -
-> >>> -	return ret;
-> >>> -}
-> >>> -
-> >>> -static void exynos_dp_phy_init(struct exynos_dp_device *dp)
-> >>> -{
-> >>> -	u32 reg;
-> >>> -
-> >>> -	reg = __raw_readl(dp->phy_addr);
-> >>> -	reg |= dp->enable_mask;
-> >>> -	__raw_writel(reg, dp->phy_addr);
-> >>> -}
-> >>> -
-> >>> -static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
-> >>> -{
-> >>> -	u32 reg;
-> >>> +	pd->phy_label = "dp";
-> >>
-> >> In the case of non-dt boot, this phy_label should have ideally come from
-> >> platform code.
-> >
-> > No, this is NOT the case of non-dt.
-> >
-> > 'pd->phy_label = "dp";' is included in exynos_dp_dt_parse_pdata(),
-> > not exynos_dp_phy_exit().
-> > Also, exynos_dp_dt_parse_pdata() is called in the case of dt.
-> 
-> ah.. right. Do you support non-dt boot. I dont see any modifications in
-> the platform code?
+Hi Hans,
 
-Platform code for non-DT has not been added; thus, there is no modification
-in the platform code.
+On Mon, Jun 24, 2013 at 12:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Sun June 23 2013 17:48:20 Prabhakar Lad wrote:
+>> Hi Guennadi,
+>>
+>> Thanks for the review.
+>>
+>> On Sun, Jun 23, 2013 at 8:49 PM, Guennadi Liakhovetski
+>> <g.liakhovetski@gmx.de> wrote:
+>> > On Sat, 22 Jun 2013, Prabhakar Lad wrote:
+>> >
+>> >> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>> >>
+>> >> Both synchronous and asynchronous tvp514x subdevice probing is supported by
+>> >> this patch.
+>> >>
+>> >> Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+>> >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> >> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> >> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> >> ---
+>> >>  drivers/media/i2c/tvp514x.c |   22 +++++++++++++++-------
+>> >>  1 file changed, 15 insertions(+), 7 deletions(-)
+>> >>
+>> >> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+>> >> index 864eb14..d090caf 100644
+>> >> --- a/drivers/media/i2c/tvp514x.c
+>> >> +++ b/drivers/media/i2c/tvp514x.c
+>> >> @@ -36,6 +36,7 @@
+>> >>  #include <linux/module.h>
+>> >>  #include <linux/v4l2-mediabus.h>
+>> >>
+>> >> +#include <media/v4l2-async.h>
+>> >>  #include <media/v4l2-device.h>
+>> >>  #include <media/v4l2-common.h>
+>> >>  #include <media/v4l2-mediabus.h>
+>> >
+>> > Ok, but this one really does too many things in one patch:
+>> >
+>> >> @@ -1148,9 +1149,9 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>> >>       /* Register with V4L2 layer as slave device */
+>> >>       sd = &decoder->sd;
+>> >>       v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
+>> >> -     strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+>> >>
+>> >>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>> >> +     strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+>> >
+>> > This is unrelated
+>> >
+>> OK I'll split the patch or may be a line in a commit message can do ?
+>
+> Please split it up in two patches.
+>
+> Why is sd->name set anyway? And why is it moved under CONFIG_MEDIA_CONTROLLER?
+> It's not obvious to me.
+>
+while using tvp514x subdev with media controller based drivers, when we
+enumerate entities (MEDIA_IOC_ENUM_ENTITIES) to get the index id
+of the entity we compare the entity name with "tvp514x", So I moved it
+under CONFIG_MEDIA_CONTROLLER config. I hope you are OK with
+moving this in a separate patch.
 
-
-Best regards,
-Jingoo Han
-
-> 
-> Thanks
-> Kishon
-
+Regards,
+--Prabhakar Lad
