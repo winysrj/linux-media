@@ -1,132 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:37062 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933830Ab3FSKoW convert rfc822-to-8bit (ORCPT
+Received: from mail-we0-f173.google.com ([74.125.82.173]:56794 "EHLO
+	mail-we0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049Ab3FXIx6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jun 2013 06:44:22 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Lucas Stach' <l.stach@pengutronix.de>
-Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
- <1371467722-665-1-git-send-email-inki.dae@samsung.com>
- <51BEF458.4090606@canonical.com>
- <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
- <20130617133109.GG2718@n2100.arm.linux.org.uk>
- <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
- <20130617154237.GJ2718@n2100.arm.linux.org.uk>
- <CAAQKjZOokFKN85pygVnm7ShSa+O0ZzwxvQ0rFssgNLp+RO5pGg@mail.gmail.com>
- <20130617182127.GM2718@n2100.arm.linux.org.uk>
- <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
- <20130618084308.GU2718@n2100.arm.linux.org.uk>
- <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
- <1371548849.4276.6.camel@weser.hi.pengutronix.de>
- <008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
- <1371637326.4230.24.camel@weser.hi.pengutronix.de>
-In-reply-to: <1371637326.4230.24.camel@weser.hi.pengutronix.de>
-Subject: RE: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
- framework
-Date: Wed, 19 Jun 2013 19:44:20 +0900
-Message-id: <00ae01ce6cd9$f4834630$dd89d290$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 8BIT
-Content-language: ko
+	Mon, 24 Jun 2013 04:53:58 -0400
+MIME-Version: 1.0
+In-Reply-To: <201306241039.17147.hverkuil@xs4all.nl>
+References: <1371896189-5475-1-git-send-email-prabhakar.csengg@gmail.com>
+ <201306240911.14288.hverkuil@xs4all.nl> <CA+V-a8tziXOAU6NNUy6rp-Fdz2sVk8+KYHdzDsVSaFuRADUjig@mail.gmail.com>
+ <201306241039.17147.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 24 Jun 2013 14:23:37 +0530
+Message-ID: <CA+V-a8vaOPcxxEqoXtia1O=bCpyWAWOrc_xj80O+LmmeLXigEw@mail.gmail.com>
+Subject: Re: [PATCH] media: i2c: tvp514x: add support for asynchronous probing
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
+On Mon, Jun 24, 2013 at 2:09 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Mon June 24 2013 10:24:02 Prabhakar Lad wrote:
+>> Hi Hans,
+>>
+>> On Mon, Jun 24, 2013 at 12:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> > On Sun June 23 2013 17:48:20 Prabhakar Lad wrote:
+>> >> Hi Guennadi,
+>> >>
+>> >> Thanks for the review.
+>> >>
+>> >> On Sun, Jun 23, 2013 at 8:49 PM, Guennadi Liakhovetski
+>> >> <g.liakhovetski@gmx.de> wrote:
+>> >> > On Sat, 22 Jun 2013, Prabhakar Lad wrote:
+>> >> >
+>> >> >> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>> >> >>
+>> >> >> Both synchronous and asynchronous tvp514x subdevice probing is supported by
+>> >> >> this patch.
+>> >> >>
+>> >> >> Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+>> >> >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> >> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> >> >> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+>> >> >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> >> >> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> >> >> ---
+>> >> >>  drivers/media/i2c/tvp514x.c |   22 +++++++++++++++-------
+>> >> >>  1 file changed, 15 insertions(+), 7 deletions(-)
+>> >> >>
+>> >> >> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+>> >> >> index 864eb14..d090caf 100644
+>> >> >> --- a/drivers/media/i2c/tvp514x.c
+>> >> >> +++ b/drivers/media/i2c/tvp514x.c
+>> >> >> @@ -36,6 +36,7 @@
+>> >> >>  #include <linux/module.h>
+>> >> >>  #include <linux/v4l2-mediabus.h>
+>> >> >>
+>> >> >> +#include <media/v4l2-async.h>
+>> >> >>  #include <media/v4l2-device.h>
+>> >> >>  #include <media/v4l2-common.h>
+>> >> >>  #include <media/v4l2-mediabus.h>
+>> >> >
+>> >> > Ok, but this one really does too many things in one patch:
+>> >> >
+>> >> >> @@ -1148,9 +1149,9 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+>> >> >>       /* Register with V4L2 layer as slave device */
+>> >> >>       sd = &decoder->sd;
+>> >> >>       v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
+>> >> >> -     strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+>> >> >>
+>> >> >>  #if defined(CONFIG_MEDIA_CONTROLLER)
+>> >> >> +     strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+>> >> >
+>> >> > This is unrelated
+>> >> >
+>> >> OK I'll split the patch or may be a line in a commit message can do ?
+>> >
+>> > Please split it up in two patches.
+>> >
+>> > Why is sd->name set anyway? And why is it moved under CONFIG_MEDIA_CONTROLLER?
+>> > It's not obvious to me.
+>> >
+>> while using tvp514x subdev with media controller based drivers, when we
+>> enumerate entities (MEDIA_IOC_ENUM_ENTITIES) to get the index id
+>> of the entity we compare the entity name with "tvp514x", So I moved it
+>> under CONFIG_MEDIA_CONTROLLER config. I hope you are OK with
+>> moving this in a separate patch.
+>
+> Sorry, but this approach is wrong. sd->name must be a unique name, so manually
+> setting sd->name will fail if you have two tvp514x devices.
+>
+> There is no reason to override sd->name here, and it is actually a bug. I see
+> that tvp7002 has the same problem (and a bunch of others as well).
+>
+> When trying to find a tvp514x you can just use strstr() in your application.
+> That will work all the time as long as there is only one tvp514x.
 
-> -----Original Message-----
-> From: Lucas Stach [mailto:l.stach@pengutronix.de]
-> Sent: Wednesday, June 19, 2013 7:22 PM
-> To: Inki Dae
-> Cc: 'Russell King - ARM Linux'; 'linux-fbdev'; 'Kyungmin Park'; 'DRI
-> mailing list'; 'myungjoo.ham'; 'YoungJun Cho'; linux-arm-
-> kernel@lists.infradead.org; linux-media@vger.kernel.org
-> Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-> framework
-> 
-> Am Mittwoch, den 19.06.2013, 14:45 +0900 schrieb Inki Dae:
-> >
-> > > -----Original Message-----
-> > > From: Lucas Stach [mailto:l.stach@pengutronix.de]
-> > > Sent: Tuesday, June 18, 2013 6:47 PM
-> > > To: Inki Dae
-> > > Cc: 'Russell King - ARM Linux'; 'linux-fbdev'; 'Kyungmin Park'; 'DRI
-> > > mailing list'; 'myungjoo.ham'; 'YoungJun Cho'; linux-arm-
-> > > kernel@lists.infradead.org; linux-media@vger.kernel.org
-> > > Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer
-> synchronization
-> > > framework
-> > >
-> > > Am Dienstag, den 18.06.2013, 18:04 +0900 schrieb Inki Dae:
-> > > [...]
-> > > >
-> > > > > a display device driver.  It shouldn't be used within a single
-> driver
-> > > > > as a means of passing buffers between userspace and kernel space.
-> > > >
-> > > > What I try to do is not really such ugly thing. What I try to do is
-> to
-> > > > notify that, when CPU tries to access a buffer , to kernel side
-> through
-> > > > dmabuf interface. So it's not really to send the buffer to kernel.
-> > > >
-> > > > Thanks,
-> > > > Inki Dae
-> > > >
-> > > The most basic question about why you are trying to implement this
-> sort
-> > > of thing in the dma_buf framework still stands.
-> > >
-> > > Once you imported a dma_buf into your DRM driver it's a GEM object and
-> > > you can and should use the native DRM ioctls to prepare/end a CPU
-> access
-> > > to this BO. Then internally to your driver you can use the dma_buf
-> > > reservation/fence stuff to provide the necessary cross-device sync.
-> > >
-> >
-> > I don't really want that is used only for DRM drivers. We really need
-> > it for all other DMA devices; i.e., v4l2 based drivers. That is what I
-> > try to do. And my approach uses reservation to use dma-buf resources
-> > but not dma fence stuff anymore. However, I'm looking into Radeon DRM
-> > driver for why we need dma fence stuff, and how we can use it if
-> > needed.
-> >
-> 
-> Still I don't see the point why you need syncpoints above dma-buf. In
-> both the DRM and the V4L2 world we have defined points in the API where
-> a buffer is allowed to change domain from device to CPU and vice versa.
-> 
-> In DRM if you want to access a buffer with the CPU you do a cpu_prepare.
-> The buffer changes back to GPU domain once you do the execbuf
-> validation, queue a pageflip to the buffer or similar things.
-> 
-> In V4L2 the syncpoints for cache operations are the queue/dequeue API
-> entry points. Those are also the exact points to synchronize with other
-> hardware thus using dma-buf reserve/fence.
+OK, then I will send out a cleanup patch removing sd->name from this driver
+and others too.
 
-
-If so, what if we want to access a buffer with the CPU _in V4L2_? We should open a drm device node, and then do a cpu_prepare? 
-
-Thanks,
-Inki Dae
-
-> 
-> In all this I can't see any need for a new syncpoint primitive slapped
-> on top of dma-buf.
-> 
-> Regards,
-> Lucas
-> --
-> Pengutronix e.K.                           | Lucas Stach                 |
-> Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-> Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5076 |
-> Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
-
+Regards,
+--Prabhakar Lad
