@@ -1,43 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:4932 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab3FJMtl (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:63768 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751205Ab3FXPsD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 08:49:41 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 3/9] zoran: use v4l2_dev instead of the deprecated parent field.
-Date: Mon, 10 Jun 2013 14:48:32 +0200
-Message-Id: <1370868518-19831-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
+	Mon, 24 Jun 2013 11:48:03 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH 1/2] media: i2c: tvp7002: remove manual setting of subdev name
+Date: Mon, 24 Jun 2013 21:17:25 +0530
+Message-Id: <1372088846-26263-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1372088846-26263-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1372088846-26263-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+This patch removes manual setting of subdev name in the
+probe, ideally subdev names must be unique.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>
 ---
- drivers/media/pci/zoran/zoran_card.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/i2c/tvp7002.c |    1 -
+ 1 file changed, 1 deletion(-)
 
-diff --git a/drivers/media/pci/zoran/zoran_card.c b/drivers/media/pci/zoran/zoran_card.c
-index bb53d24..923d59a 100644
---- a/drivers/media/pci/zoran/zoran_card.c
-+++ b/drivers/media/pci/zoran/zoran_card.c
-@@ -1050,7 +1050,7 @@ static int zr36057_init (struct zoran *zr)
- 	 *   Now add the template and register the device unit.
- 	 */
- 	memcpy(zr->video_dev, &zoran_template, sizeof(zoran_template));
--	zr->video_dev->parent = &zr->pci_dev->dev;
-+	zr->video_dev->v4l2_dev = &zr->v4l2_dev;
- 	strcpy(zr->video_dev->name, ZR_DEVNAME(zr));
- 	/* It's not a mem2mem device, but you can both capture and output from
- 	   one and the same device. This should really be split up into two
+diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+index 4896024..ba8a7b5 100644
+--- a/drivers/media/i2c/tvp7002.c
++++ b/drivers/media/i2c/tvp7002.c
+@@ -1065,7 +1065,6 @@ static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
+ 	error = tvp7002_s_dv_timings(sd, &timings);
+ 
+ #if defined(CONFIG_MEDIA_CONTROLLER)
+-	strlcpy(sd->name, TVP7002_MODULE_NAME, sizeof(sd->name));
+ 	device->pad.flags = MEDIA_PAD_FL_SOURCE;
+ 	device->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	device->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
 -- 
-1.7.10.4
+1.7.9.5
 
