@@ -1,86 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:59748 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751142Ab3F1ME7 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2414 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751817Ab3FXS3i (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 08:04:59 -0400
-Message-id: <51CD7BE7.90204@samsung.com>
-Date: Fri, 28 Jun 2013 14:04:55 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Jean-Christophe PLAGNIOL-VILLARD <plagnioj@jcrosoft.com>
-Cc: Felipe Balbi <balbi@ti.com>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	linux-fbdev@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	Jingoo Han <jg1.han@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kishon Vijay Abraham I' <kishon@ti.com>,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	linux-samsung-soc@vger.kernel.org,
-	devicetree-discuss@lists.ozlabs.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH V2 3/3] video: exynos_dp: Use the generic PHY driver
-References: <002101ce73cf$ac989b70$05c9d250$@samsung.com>
- <20130628093459.GD11297@arwen.pp.htv.fi>
- <20130628102702.GK305@game.jcrosoft.org>
-In-reply-to: <20130628102702.GK305@game.jcrosoft.org>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Mon, 24 Jun 2013 14:29:38 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5OITYHC023686
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 20:29:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id A436F35E00D8
+	for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 20:29:34 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130624182934.A436F35E00D8@alastor.dyndns.org>
+Date: Mon, 24 Jun 2013 20:29:34 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-On 06/28/2013 12:27 PM, Jean-Christophe PLAGNIOL-VILLARD wrote:
-> On 12:35 Fri 28 Jun     , Felipe Balbi wrote:
->> > On Fri, Jun 28, 2013 at 04:18:23PM +0900, Jingoo Han wrote:
->>> > > Use the generic PHY API instead of the platform callback to control
->>> > > the DP PHY. The 'phy_label' field is added to the platform data
->>> > > structure to allow PHY lookup on non-dt platforms.
->>> > > 
->>> > > Signed-off-by: Jingoo Han <jg1.han@samsung.com>
->>> > > ---
-[...]
->>> > > diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt b/Documentation/devicetree/bindings/video/exynos_dp.txt
->>> > > index 84f10c1..a8320e3 100644
->>> > > --- a/Documentation/devicetree/bindings/video/exynos_dp.txt
->>> > > +++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
->>> > > @@ -1,17 +1,6 @@
->>> > >  The Exynos display port interface should be configured based on
->>> > >  the type of panel connected to it.
->>> > >  
->>> > > -We use two nodes:
->>> > > -	-dp-controller node
->>> > > -	-dptx-phy node(defined inside dp-controller node)
->>> > > -
->>> > > -For the DP-PHY initialization, we use the dptx-phy node.
->>> > > -Required properties for dptx-phy:
->>> > > -	-reg:
->>> > > -		Base address of DP PHY register.
->>> > > -	-samsung,enable-mask:
->>> > > -		The bit-mask used to enable/disable DP PHY.
->>> > > -
->>> > >  For the Panel initialization, we read data from dp-controller node.
->>> > >  Required properties for dp-controller:
->>> > >  	-compatible:
->>> > > @@ -67,12 +56,6 @@ SOC specific portion:
->>> > >  		interrupt-parent = <&combiner>;
->>> > >  		clocks = <&clock 342>;
->>> > >  		clock-names = "dp";
->>> > > -
->>> > > -		dptx-phy {
->>> > > -			reg = <0x10040720>;
->>> > > -			samsung,enable-mask = <1>;
->>> > > -		};
->
-> I've an issue here you break dt compatibilty
+Results of the daily build of media_tree:
 
-Indeed. Ideally the PHYs should be detachable from the controllers.
-I'd assume such a change could be acceptable, given that the driver
-still supports the original binding.
+date:		Mon Jun 24 19:00:22 CEST 2013
+git branch:	test
+git hash:	ee17608d6aa04a86e253a9130d6c6d00892f132b
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
---
-Thanks,
-Sylwester
+linux-git-arm-at91: WARNINGS
+linux-git-arm-davinci: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: WARNINGS
+linux-git-arm-omap: WARNINGS
+linux-git-arm-omap1: WARNINGS
+linux-git-arm-pxa: WARNINGS
+linux-git-blackfin: WARNINGS
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: WARNINGS
+linux-git-sh: WARNINGS
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: WARNINGS
+linux-3.10-rc1-i686: OK
+linux-3.1.10-i686: WARNINGS
+linux-3.2.37-i686: WARNINGS
+linux-3.3.8-i686: WARNINGS
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: WARNINGS
+linux-3.10-rc1-x86_64: OK
+linux-3.1.10-x86_64: WARNINGS
+linux-3.2.37-x86_64: WARNINGS
+linux-3.3.8-x86_64: WARNINGS
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
