@@ -1,124 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:50088 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751148Ab3FWPTn (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1177 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751049Ab3FXIoa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jun 2013 11:19:43 -0400
-Date: Sun, 23 Jun 2013 17:19:09 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] media: i2c: tvp514x: add support for asynchronous probing
-In-Reply-To: <1371896189-5475-1-git-send-email-prabhakar.csengg@gmail.com>
-Message-ID: <Pine.LNX.4.64.1306231716050.13783@axis700.grange>
-References: <1371896189-5475-1-git-send-email-prabhakar.csengg@gmail.com>
+	Mon, 24 Jun 2013 04:44:30 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5O8iQ0D011803
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 10:44:28 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 5AE4235E0027
+	for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 10:44:25 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.11] Updates for 3.11
+Date: Mon, 24 Jun 2013 10:44:25 +0200
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306241044.25541.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 22 Jun 2013, Prabhakar Lad wrote:
+(Same as my previous git pull message, but with an additional patch from
+Prabhakar.)
 
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> Both synchronous and asynchronous tvp514x subdevice probing is supported by
-> this patch.
-> 
-> Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/i2c/tvp514x.c |   22 +++++++++++++++-------
->  1 file changed, 15 insertions(+), 7 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-> index 864eb14..d090caf 100644
-> --- a/drivers/media/i2c/tvp514x.c
-> +++ b/drivers/media/i2c/tvp514x.c
-> @@ -36,6 +36,7 @@
->  #include <linux/module.h>
->  #include <linux/v4l2-mediabus.h>
->  
-> +#include <media/v4l2-async.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-mediabus.h>
+Some async/OF work from Prabhakar (the correct version this time) and
+assorted improvements and fixes for compiler warnings.
 
-Ok, but this one really does too many things in one patch:
+Regards,
 
-> @@ -1148,9 +1149,9 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  	/* Register with V4L2 layer as slave device */
->  	sd = &decoder->sd;
->  	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
-> -	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
->  
->  #if defined(CONFIG_MEDIA_CONTROLLER)
-> +	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+        Hans
 
-This is unrelated
+The following changes since commit ee17608d6aa04a86e253a9130d6c6d00892f132b:
 
->  	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
->  	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->  	decoder->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-> @@ -1176,16 +1177,22 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
->  	sd->ctrl_handler = &decoder->hdl;
->  	if (decoder->hdl.error) {
->  		ret = decoder->hdl.error;
-> -
-> -		v4l2_ctrl_handler_free(&decoder->hdl);
-> -		return ret;
-> +		goto done;
->  	}
->  	v4l2_ctrl_handler_setup(&decoder->hdl);
->  
-> -	v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
-> -
-> -	return 0;
-> +	ret = v4l2_async_register_subdev(&decoder->sd);
-> +	if (!ret)
-> +		v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
->  
-> +done:
-> +	if (ret < 0) {
-> +		v4l2_ctrl_handler_free(&decoder->hdl);
-> +#if defined(CONFIG_MEDIA_CONTROLLER)
-> +		media_entity_cleanup(&decoder->sd.entity);
+  [media] imx074: support asynchronous probing (2013-06-21 16:36:15 -0300)
 
-So is this - it wasn't called before in the "if (decoder->hdl.error)" case 
-above.
+are available in the git repository at:
 
-Thanks
-Guennadi
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
 
-> +#endif
-> +	}
-> +	return ret;
->  }
->  
->  /**
-> @@ -1200,6 +1207,7 @@ static int tvp514x_remove(struct i2c_client *client)
->  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->  	struct tvp514x_decoder *decoder = to_decoder(sd);
->  
-> +	v4l2_async_unregister_subdev(&decoder->sd);
->  	v4l2_device_unregister_subdev(sd);
->  #if defined(CONFIG_MEDIA_CONTROLLER)
->  	media_entity_cleanup(&decoder->sd.entity);
-> -- 
-> 1.7.9.5
-> 
+for you to fetch changes up to a0d1da533b6b5dd76644364ad0e000a77275c88d:
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+  media: i2c: tvp7002: add support for asynchronous probing (2013-06-24 10:40:04 +0200)
+
+----------------------------------------------------------------
+Emil Goode (1):
+      saa7134: Fix sparse warnings by adding __user annotation
+
+Hans Verkuil (5):
+      ml86v7667: fix compiler warning
+      bfin_capture: fix compiler warning
+      omap_vout: fix compiler warning
+      v4l2-controls.h: fix copy-and-paste error in comment
+      saa7164: fix compiler warning
+
+Lad, Prabhakar (4):
+      media: i2c: ths8200: support asynchronous probing
+      media: i2c: ths8200: add OF support
+      media: i2c: adv7343: add support for asynchronous probing
+      media: i2c: tvp7002: add support for asynchronous probing
+
+Lars-Peter Clausen (1):
+      tvp514x: Fix init seqeunce
+
+ Documentation/devicetree/bindings/media/i2c/ths8200.txt | 19 +++++++++++++++++++
+ drivers/media/i2c/adv7343.c                             | 15 +++++++++++----
+ drivers/media/i2c/ml86v7667.c                           |  2 +-
+ drivers/media/i2c/ths8200.c                             | 18 +++++++++++++++++-
+ drivers/media/i2c/tvp514x.c                             | 10 +++++-----
+ drivers/media/i2c/tvp7002.c                             |  6 ++++++
+ drivers/media/pci/saa7134/saa7134-video.c               |  2 +-
+ drivers/media/pci/saa7164/saa7164-core.c                |  3 ++-
+ drivers/media/platform/blackfin/bfin_capture.c          |  4 +++-
+ drivers/media/platform/omap/omap_vout.c                 |  3 +--
+ include/uapi/linux/v4l2-controls.h                      |  4 ++--
+ 11 files changed, 68 insertions(+), 18 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ths8200.txt
