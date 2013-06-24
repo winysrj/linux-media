@@ -1,55 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f44.google.com ([209.85.214.44]:34495 "EHLO
-	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751260Ab3FITl7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 15:41:59 -0400
-Received: by mail-bk0-f44.google.com with SMTP id r7so2988368bkg.3
-        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 12:41:57 -0700 (PDT)
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	kyungmin.park@samsung.com, sw0312.kim@samsung.com,
-	a.hajda@samsung.com, hj210.choi@samsung.com, s.nawrocki@samsung.com
-Subject: [RFC PATCH v2 0/2] Media entity links handling
-Date: Sun,  9 Jun 2013 21:41:37 +0200
-Message-Id: <1370806899-17709-1-git-send-email-s.nawrocki@samsung.com>
+Received: from ch1ehsobe002.messaging.microsoft.com ([216.32.181.182]:1912
+	"EHLO ch1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751161Ab3FXPfp convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jun 2013 11:35:45 -0400
+From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "a.andreyanau@sam-solutions.com" <a.andreyanau@sam-solutions.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: AW: AW: mt9p031 shows purple coloured capture
+Date: Mon, 24 Jun 2013 15:35:40 +0000
+Message-ID: <6EE9CD707FBED24483D4CB0162E8546745F43748@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+References: <6EE9CD707FBED24483D4CB0162E8546745F30330@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+ <3299481.jsSH8LsWuG@avalon>
+ <6EE9CD707FBED24483D4CB0162E8546745F4216D@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+ <1843832.zr84IyNLqN@avalon>
+In-Reply-To: <1843832.zr84IyNLqN@avalon>
+Content-Language: de-DE
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi All,
+Hi Laurent,
 
-This small patch set adds a function for removing all links at a media
-entity. I found out such a function is needed when media entites that
-belong to a single media device have drivers in different kernel modules.
-This means virtually all camera drivers, since sensors are separate
-modules from the host interface drivers.
+Laurent Pinchart wrote on 2013-06-22:
 
-More details can be found at each patch's description.
+>>>> If I use omap3isp-live to capture a stream on my beagleboard, the
+>>>> first time I start the app, the picture has always a green taint.
+>>>> The second time I start the app, the picture is good. As the camera
+>>>> is reset by a gpio upon device open, probably the CCDC or previewer
+>>>> is not initialized correctly? @Laurent: As I am unable to test it
+>>>> with another cam, does this also happen with your hardware or is it
+>>>> a problem specific to the mt9p031?
+>>> 
+>>> Last time I've tested my MT9P031 sensor with the Beagleboard-xM
+>>> there was no such issue.
+>> 
+>> If I test it with yavta, it works also from the very first start. So
+>> there must be an issue in my (adapted) omap3-isp-live.
+> 
+> Have you tested the unmodified omap3-is-live ?
+I did today and indeed, with the unmodified app there is no
+green taint on the first start. I have now tracked down the issue
+to my implemented rotation on the video-out:
 
-The links removal from a media entity is rather strightforward, but when
-and where links should be created/removed is not immediately clear to me.
+diff --git a/videoout.c b/videoout.c
+index 51bed8b..627363a 100644
+--- a/videoout.c
++++ b/videoout.c
+@@ -76,6 +76,14 @@ struct videoout *vo_init(const char *devname,
+ 		goto error;
+ 	}
+ 
++	/* setup the rotation here, we have to do it BEFORE
++	 * setting the format. */
++	ret = v4l2_set_control(vo->dev, V4L2_CID_ROTATE, &rotation);
++	if (ret < 0){
++		perror("Failed to setup rotation\n");
++		goto error;
++	}
++
+ 	pixfmt.pixelformat = format->pixelformat;
+ 	pixfmt.width = format->width;
+ 	pixfmt.height = format->height;
 
-I assumed that links should normally be created/removed when an entity
-is registered to its media device, with the graph mutex held.
+I do a rotation by 90 or 270 degrees. So there seems to be an issue with
+the vrfb-rotation in omap_vout?
+I am already rotating the omapfb - is this a problem?
+omapfb.rotate=1 omapfb.vrfb=y
+Another possibility to rotate the captured stream?
 
-I'm open to opinions whether it's good or not and possibly suggestions
-on how those issues could be handled differently.
+>> The color problem goes away nearly completely, if I do a power-off and
+>> on in the mt9p031_s_stream function. It then happens only 1 out of 10
+>> times. At least an improvement ;) I have the feeling, that the CCDC
+>> doesn't get all data on a stream restart and that causes a buffer
+>> corruption. Probably the sensor doesn't start outputting from the
+>> beginning (even with a frame restart).
+>> Any ideas on this?
 
-The changes since original version are listed in patch 1/2, in patch 2/2
-only the commit description has changed slightly.
+Probably this issue is in relation with omap_vout as well.
+I will do more tests.
 
-Thanks,
-Sylwester
+Regards,
+Florian
 
-Sylwester Nawrocki (2):
-  media: Add a function removing all links of a media entity
-  V4L: Remove all links of a media entity when unregistering subdev
-
- drivers/media/media-entity.c          |   48 +++++++++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-device.c |    4 ++-
- include/media/media-entity.h          |    3 ++
- 3 files changed, 54 insertions(+), 1 deletions(-)
-
--- 
-1.7.4.1
 
