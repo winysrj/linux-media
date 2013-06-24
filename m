@@ -1,98 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:58138 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751699Ab3FNTj6 (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3926 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751360Ab3FXJov (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 15:39:58 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v11 13/21] sh-mobile-ceu-driver: support max width and height in DT
-Date: Fri, 14 Jun 2013 21:08:23 +0200
-Message-Id: <1371236911-15131-14-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 24 Jun 2013 05:44:51 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] V4L2: soc-camera: fix uninitialised use compiler warning
+Date: Mon, 24 Jun 2013 11:44:44 +0200
+Cc: Linux Media Mailing List <linux-media@vger.kernel.org>
+References: <Pine.LNX.4.64.1306241130310.19735@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1306241130310.19735@axis700.grange>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306241144.44951.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Some CEU implementations have non-standard (larger) maximum supported
-width and height values. Add two OF properties to specify them.
+On Mon June 24 2013 11:32:32 Guennadi Liakhovetski wrote:
+> In scan_async_group() if the size parameter is negative, the sasd pointer
+> will be used uninitialised:
+> 
+> drivers/media/platform/soc_camera/soc_camera.c: In function "soc_camera_host_register":
+> drivers/media/platform/soc_camera/soc_camera.c:1514:55: warning: "sasd" may
+> be used uninitialized in this function [-Wmaybe-uninitialized]
+>     sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
+>                                                        ^
+> drivers/media/platform/soc_camera/soc_camera.c:1464:34: note: "sasd" was
+> declared here
+>   struct soc_camera_async_subdev *sasd;
+> 
+> Fix this by making "size" and the array, from which it is assigned unsigned.
+> 
+> Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> ---
+> 
+> Hi Hans. None of my 2 cross-compilers produce the above warning. Could you 
+> verify, that this fixes the warning, that you've seen?
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- .../devicetree/bindings/media/sh_mobile_ceu.txt    |   18 +++++++++++++++
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   23 ++++++++++++++++++-
- 2 files changed, 39 insertions(+), 2 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-diff --git a/Documentation/devicetree/bindings/media/sh_mobile_ceu.txt b/Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
-new file mode 100644
-index 0000000..1ce4e46
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/sh_mobile_ceu.txt
-@@ -0,0 +1,18 @@
-+Bindings, specific for the sh_mobile_ceu_camera.c driver:
-+ - compatible: Should be "renesas,sh-mobile-ceu"
-+ - reg: register base and size
-+ - interrupts: the interrupt number
-+ - interrupt-parent: the interrupt controller
-+ - renesas,max-width: maximum image width, supported on this SoC
-+ - renesas,max-height: maximum image height, supported on this SoC
-+
-+Example:
-+
-+ceu0: ceu@0xfe910000 {
-+	compatible = "renesas,sh-mobile-ceu";
-+	reg = <0xfe910000 0xa0>;
-+	interrupt-parent = <&intcs>;
-+	interrupts = <0x880>;
-+	renesas,max-width = <8188>;
-+	renesas,max-height = <8188>;
-+};
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index fcc13d8..b0f0995 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -2116,11 +2116,30 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
- 
- 	/* TODO: implement per-device bus flags */
- 	if (pcdev->pdata) {
--		pcdev->max_width = pcdev->pdata->max_width ? : 2560;
--		pcdev->max_height = pcdev->pdata->max_height ? : 1920;
-+		pcdev->max_width = pcdev->pdata->max_width;
-+		pcdev->max_height = pcdev->pdata->max_height;
- 		pcdev->flags = pcdev->pdata->flags;
- 	}
- 
-+	if (!pcdev->max_width) {
-+		unsigned int v;
-+		err = of_property_read_u32(pdev->dev.of_node, "renesas,max-width", &v);
-+		if (!err)
-+			pcdev->max_width = v;
-+
-+		if (!pcdev->max_width)
-+			pcdev->max_width = 2560;
-+	}
-+	if (!pcdev->max_height) {
-+		unsigned int v;
-+		err = of_property_read_u32(pdev->dev.of_node, "renesas,max-height", &v);
-+		if (!err)
-+			pcdev->max_height = v;
-+
-+		if (!pcdev->max_height)
-+			pcdev->max_height = 1920;
-+	}
-+
- 	base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(base))
- 		return PTR_ERR(base);
--- 
-1.7.2.5
+That fixes it. I've updated my cross-compilers to 4.8.1, it might be related to that.
+For some reason the daily build always sees more warnings than I get when I compile
+'normally'. I've never understood why, but since the warnings are valid, I'm not
+complaining :-)
 
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> 
+>  drivers/media/platform/soc_camera/soc_camera.c |    2 +-
+>  include/media/sh_mobile_ceu.h                  |    2 +-
+>  include/media/soc_camera.h                     |    2 +-
+>  3 files changed, 3 insertions(+), 3 deletions(-)
+> 
+> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+> index 2e47b51..2dd0e52 100644
+> --- a/drivers/media/platform/soc_camera/soc_camera.c
+> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+> @@ -1459,7 +1459,7 @@ static int soc_camera_async_complete(struct v4l2_async_notifier *notifier)
+>  }
+>  
+>  static int scan_async_group(struct soc_camera_host *ici,
+> -			    struct v4l2_async_subdev **asd, int size)
+> +			    struct v4l2_async_subdev **asd, unsigned int size)
+>  {
+>  	struct soc_camera_async_subdev *sasd;
+>  	struct soc_camera_async_client *sasc;
+> diff --git a/include/media/sh_mobile_ceu.h b/include/media/sh_mobile_ceu.h
+> index 8937241..7f57056 100644
+> --- a/include/media/sh_mobile_ceu.h
+> +++ b/include/media/sh_mobile_ceu.h
+> @@ -23,7 +23,7 @@ struct sh_mobile_ceu_info {
+>  	int max_height;
+>  	struct sh_mobile_ceu_companion *csi2;
+>  	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+> -	int *asd_sizes;			/* 0-terminated array pf asd group sizes */
+> +	unsigned int *asd_sizes;	/* 0-terminated array pf asd group sizes */
+>  };
+>  
+>  #endif /* __ASM_SH_MOBILE_CEU_H__ */
+> diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+> index 906ed98..34d2414 100644
+> --- a/include/media/soc_camera.h
+> +++ b/include/media/soc_camera.h
+> @@ -87,7 +87,7 @@ struct soc_camera_host {
+>  	const char *drv_name;
+>  	struct soc_camera_host_ops *ops;
+>  	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+> -	int *asd_sizes;			/* 0-terminated array of asd group sizes */
+> +	unsigned int *asd_sizes;	/* 0-terminated array of asd group sizes */
+>  };
+>  
+>  struct soc_camera_host_ops {
+> 
