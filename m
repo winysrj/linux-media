@@ -1,62 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54355 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754108Ab3FTHlG (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 03:41:06 -0400
-Message-ID: <51C2B1E7.9040408@iki.fi>
-Date: Thu, 20 Jun 2013 10:40:23 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2087 "EHLO
+	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751542Ab3FXIyS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jun 2013 04:54:18 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Samsung i2c subdev drivers that set sd->name
+Date: Mon, 24 Jun 2013 10:54:11 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>
 MIME-Version: 1.0
-To: "P. van Gaans" <w3ird_n3rd@gmx.net>
-CC: linux-media@vger.kernel.org
-Subject: Re: EM28xx - MSI Digivox Trio - almost working.
-References: <51C28FA2.70004@gmx.net>
-In-Reply-To: <51C28FA2.70004@gmx.net>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="us-ascii"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201306241054.11604.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/20/2013 08:14 AM, P. van Gaans wrote:
-> Hi all,
->
-> (device: http://linuxtv.org/wiki/index.php/MSI_DigiVox_Trio)
->
-> Thanks to the message from Philip Pemberton I was able to try loading
-> the em28xx driver myself using:
->
-> sudo modprobe em28xx card=NUMBER
-> echo eb1a 2885 | sudo tee /sys/bus/usb/drivers/em28xx/new_id
->
-> Here are the results for NUMBER:
->
-> Card=79 (Terratec Cinergy H5): works, less corruption than card=87, just
-> some blocks every few seconds. Attenuators didn't help.
-> Card=81 (Hauppauge WinTV HVR 930C): doesn't work, no /dev/dvb adapter
-> Card=82 (Terratec Cinergy HTC Stick): similar to card=87
-> Card=85 (PCTV QuatroStick (510e)): constantly producing i2c read errors,
-> doesn't work
-> Card=86 (PCTV QuatroStick nano (520e): same
-> Card=87 (Terratec Cinergy HTC USB XS): stick works and scans channels,
-> but reception is bugged with corruption. It's like having a DVB-T
-> antenna that's just not good enough, except this is DVB-C and my signal
-> is excellent. Attenuators didn't help.
-> Card=88 (C3 Tech Digital Duo HDTV/SDTV USB): doesn't work, no /dev/dvb
-> adapter
->
-> So with card=79 it's really close to working. What else can I do?
+Hi Sylwester,
 
-Take USB sniffs, generate code, copy & paste that to the driver until it 
-starts working. After it start working start reducing generated code. 
-That way with trial and error you will find out problematic register(s) 
-very quickly.
+It came to my attention that several i2c subdev drivers overwrite the sd->name
+as set by v4l2_i2c_subdev_init with a custom name.
 
-There is suitable scripts to generate em28xx drx-k code from the sniffs, 
-maybe in dvb-utils package. Mauro has done that script. I used it when I 
-added PCTV 520e support (problem was bug in DRX-K GPIO code).
+This is wrong if it is possible that there are multiple identical sensors in
+the system. The sd->name must be unique since it is used to prefix kernel
+messages etc, so you have to be able to tell the sensor devices apart.
 
-regards
-Antti
+It concerns the following Samsung-contributed drivers:
 
--- 
-http://palosaari.fi/
+drivers/media/i2c/s5k4ecgx.c:   strlcpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
+drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strlcpy(sd->name, "S5C73M3", sizeof(sd->name));
+drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strcpy(oif_sd->name, "S5C73M3-OIF");
+drivers/media/i2c/sr030pc30.c:  strcpy(sd->name, MODULE_NAME);
+drivers/media/i2c/noon010pc30.c:        strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+drivers/media/i2c/m5mols/m5mols_core.c: strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+drivers/media/i2c/s5k6aa.c:     strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+
+If there can be only one sensor (because it is integrated in the SoC),
+then there is no problem with doing this. But it is not obvious to me
+which of these drivers are for integrated systems, and which aren't.
+
+I can make patches for those that need to be fixed if you can tell me
+which drivers are affected.
+
+Regards,
+
+	Hans
