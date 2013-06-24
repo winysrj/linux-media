@@ -1,107 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from venus.vo.lu ([80.90.45.96]:57462 "EHLO venus.vo.lu"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932941Ab3FROUl (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 10:20:41 -0400
-Received: from [2001:7e8:2221:300:230:5ff:fec0:2d3b] (helo=devbox)
-	by ibiza.bxl.tuxicoman.be with smtp (Exim 4.80.1)
-	(envelope-from <gmsoft@tuxicoman.be>)
-	id 1Uowln-0006xS-1M
-	for linux-media@vger.kernel.org; Tue, 18 Jun 2013 16:20:28 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: linux-media@vger.kernel.org
-Subject: [PATCH 3/6] libdvbv5: Export dvb_fe_is_satellite()
-Date: Tue, 18 Jun 2013 16:19:06 +0200
-Message-Id: <8745561db2ff7870ad9feb1ee0c7a32537dee18d.1371561676.git.gmsoft@tuxicoman.be>
-In-Reply-To: <cover.1371561676.git.gmsoft@tuxicoman.be>
-References: <cover.1371561676.git.gmsoft@tuxicoman.be>
-In-Reply-To: <cover.1371561676.git.gmsoft@tuxicoman.be>
-References: <cover.1371561676.git.gmsoft@tuxicoman.be>
+Received: from moutng.kundenserver.de ([212.227.17.9]:61175 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751157Ab3FXJce (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jun 2013 05:32:34 -0400
+Date: Mon, 24 Jun 2013 11:32:32 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+cc: Hans Verkuil <hverkuil@xs4all.nl>
+Subject: [PATCH] V4L2: soc-camera: fix uninitialised use compiler warning
+Message-ID: <Pine.LNX.4.64.1306241130310.19735@axis700.grange>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch makes the function dvb_fe_is_satellite() availble from libdvbv5. This function is simple
-but yet very handful to have around.
+In scan_async_group() if the size parameter is negative, the sasd pointer
+will be used uninitialised:
 
-Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
+drivers/media/platform/soc_camera/soc_camera.c: In function "soc_camera_host_register":
+drivers/media/platform/soc_camera/soc_camera.c:1514:55: warning: "sasd" may
+be used uninitialized in this function [-Wmaybe-uninitialized]
+    sasd->asd.match.i2c.adapter_id, sasd->asd.match.i2c.address);
+                                                       ^
+drivers/media/platform/soc_camera/soc_camera.c:1464:34: note: "sasd" was
+declared here
+  struct soc_camera_async_subdev *sasd;
+
+Fix this by making "size" and the array, from which it is assigned unsigned.
+
+Reported-by: Hans Verkuil <hverkuil@xs4all.nl>
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- lib/include/dvb-fe.h  |  1 +
- lib/libdvbv5/dvb-fe.c | 14 +++++++-------
- 2 files changed, 8 insertions(+), 7 deletions(-)
 
-diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
-index d725a42..7352218 100644
---- a/lib/include/dvb-fe.h
-+++ b/lib/include/dvb-fe.h
-@@ -203,6 +203,7 @@ int dvb_fe_diseqc_cmd(struct dvb_v5_fe_parms *parms, const unsigned len,
- 		      const unsigned char *buf);
- int dvb_fe_diseqc_reply(struct dvb_v5_fe_parms *parms, unsigned *len, char *buf,
- 		       int timeout);
-+int dvb_fe_is_satellite(uint32_t delivery_system);
- 
- #ifdef __cplusplus
+Hi Hans. None of my 2 cross-compilers produce the above warning. Could you 
+verify, that this fixes the warning, that you've seen?
+
+Thanks
+Guennadi
+
+ drivers/media/platform/soc_camera/soc_camera.c |    2 +-
+ include/media/sh_mobile_ceu.h                  |    2 +-
+ include/media/soc_camera.h                     |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 2e47b51..2dd0e52 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -1459,7 +1459,7 @@ static int soc_camera_async_complete(struct v4l2_async_notifier *notifier)
  }
-diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
-index 550b6e2..b786a85 100644
---- a/lib/libdvbv5/dvb-fe.c
-+++ b/lib/libdvbv5/dvb-fe.c
-@@ -230,7 +230,7 @@ struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend, unsigned verbose
- }
  
- 
--static int is_satellite(uint32_t delivery_system)
-+int dvb_fe_is_satellite(uint32_t delivery_system)
+ static int scan_async_group(struct soc_camera_host *ici,
+-			    struct v4l2_async_subdev **asd, int size)
++			    struct v4l2_async_subdev **asd, unsigned int size)
  {
- 	switch (delivery_system) {
- 	case SYS_DVBS:
-@@ -254,7 +254,7 @@ void dvb_fe_close(struct dvb_v5_fe_parms *parms)
- 		return;
+ 	struct soc_camera_async_subdev *sasd;
+ 	struct soc_camera_async_client *sasc;
+diff --git a/include/media/sh_mobile_ceu.h b/include/media/sh_mobile_ceu.h
+index 8937241..7f57056 100644
+--- a/include/media/sh_mobile_ceu.h
++++ b/include/media/sh_mobile_ceu.h
+@@ -23,7 +23,7 @@ struct sh_mobile_ceu_info {
+ 	int max_height;
+ 	struct sh_mobile_ceu_companion *csi2;
+ 	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+-	int *asd_sizes;			/* 0-terminated array pf asd group sizes */
++	unsigned int *asd_sizes;	/* 0-terminated array pf asd group sizes */
+ };
  
- 	/* Disable LNBf power */
--	if (is_satellite(parms->current_sys))
-+	if (dvb_fe_is_satellite(parms->current_sys))
- 		dvb_fe_sec_voltage(parms, 0, 0);
+ #endif /* __ASM_SH_MOBILE_CEU_H__ */
+diff --git a/include/media/soc_camera.h b/include/media/soc_camera.h
+index 906ed98..34d2414 100644
+--- a/include/media/soc_camera.h
++++ b/include/media/soc_camera.h
+@@ -87,7 +87,7 @@ struct soc_camera_host {
+ 	const char *drv_name;
+ 	struct soc_camera_host_ops *ops;
+ 	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+-	int *asd_sizes;			/* 0-terminated array of asd group sizes */
++	unsigned int *asd_sizes;	/* 0-terminated array of asd group sizes */
+ };
  
- 	close(parms->fd);
-@@ -298,8 +298,8 @@ int dvb_set_sys(struct dvb_v5_fe_parms *parms,
- 
- 	if (sys != parms->current_sys) {
- 		/* Disable LNBf power */
--		if (is_satellite(parms->current_sys) &&
--		    !is_satellite(sys))
-+		if (dvb_fe_is_satellite(parms->current_sys) &&
-+		    !dvb_fe_is_satellite(sys))
- 			dvb_fe_sec_voltage(parms, 0, 0);
- 
- 		/* Can't change standard with the legacy FE support */
-@@ -594,7 +594,7 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
- 
- ret:
- 	/* For satellite, need to recover from LNBf IF frequency */
--	if (is_satellite(parms->current_sys))
-+	if (dvb_fe_is_satellite(parms->current_sys))
- 		return dvb_sat_get_parms(parms);
- 
- 	return 0;
-@@ -609,7 +609,7 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
- 
- 	struct dtv_property fe_prop[DTV_MAX_COMMAND];
- 
--	if (is_satellite(parms->current_sys)) {
-+	if (dvb_fe_is_satellite(parms->current_sys)) {
- 		dvb_fe_retrieve_parm(parms, DTV_FREQUENCY, &freq);
- 		dvb_sat_set_parms(parms);
- 	}
-@@ -673,7 +673,7 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
- 	}
- ret:
- 	/* For satellite, need to recover from LNBf IF frequency */
--	if (is_satellite(parms->current_sys))
-+	if (dvb_fe_is_satellite(parms->current_sys))
- 		dvb_fe_store_parm(parms, DTV_FREQUENCY, freq);
- 
- 	return 0;
+ struct soc_camera_host_ops {
 -- 
-1.8.1.5
-
+1.7.2.5
 
