@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from adelie.canonical.com ([91.189.90.139]:34875 "EHLO
-	adelie.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965276Ab3FTLcS (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:50896 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751198Ab3FXIxi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 07:32:18 -0400
-Subject: [PATCH v5 0/7] add mutex wait/wound/style style locks
-To: linux-kernel@vger.kernel.org
-From: Maarten Lankhorst <maarten.lankhorst@canonical.com>
-Cc: linux-arch@vger.kernel.org, peterz@infradead.org, x86@kernel.org,
-	dri-devel@lists.freedesktop.org, linaro-mm-sig@lists.linaro.org,
-	robclark@gmail.com, rostedt@goodmis.org, daniel@ffwll.ch,
-	tglx@linutronix.de, mingo@kernel.org, linux-media@vger.kernel.org
-Date: Thu, 20 Jun 2013 13:30:55 +0200
-Message-ID: <20130620112811.4001.86934.stgit@patser>
+	Mon, 24 Jun 2013 04:53:38 -0400
+Date: Mon, 24 Jun 2013 10:53:35 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Magnus Damm <magnus.damm@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Prabhakar Lad <prabhakar.lad@ti.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH] V4L2: add documentation for V4L2 clock helpers and
+ asynchronous probing
+In-Reply-To: <3036701.8xleOKapCa@avalon>
+Message-ID: <Pine.LNX.4.64.1306241051060.19735@axis700.grange>
+References: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
+ <3036701.8xleOKapCa@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset="utf-8"
-Content-Transfer-Encoding: 7bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Changes since v4:
-- Some documentation cleanups.
-- Added a lot more tests to cover all the DEBUG_LOCKS_WARN_ON cases.
-- Added EDEADLK tests.
-- Split off the normal mutex tests to a separate patch.
-- Added a patch to not allow tests to fail that succeed with PROVE_LOCKING enabled.
+Hi Laurent
 
+Thanks for the review.
+
+On Mon, 17 Jun 2013, Laurent Pinchart wrote:
+
+[snip]
+
+> > +drivers.
+> > +
+> > +Bridge drivers in turn have to register a notifier object with an array of
+> > +subdevice descriptors, that the bridge device needs for its operation. This
+> 
+> s/descriptors,/descriptors/
+> 
+> > +is performed using the v4l2_async_notifier_register() call. To unregister
+> > +the notifier the driver has to call v4l2_async_notifier_unregister(). The
+> > +former of the two functions takes two arguments: a pointer to struct
+> > +v4l2_device and a pointer to struct v4l2_async_notifier. The latter
+> > +contains a pointer to an array of pointers to subdevice descriptors of
+> > +type struct v4l2_async_subdev type.
+> 
+> Isn't it the other way around ?
+
+I don't think I see anything above, that needs to be swapped. What exactly 
+do you mean?
+
+Thanks
+Guennadi
 ---
-
-Daniel Vetter (1):
-      mutex: w/w mutex slowpath debugging
-
-Maarten Lankhorst (6):
-      arch: make __mutex_fastpath_lock_retval return whether fastpath succeeded or not.
-      mutex: add support for wound/wait style locks, v5
-      mutex: Add ww tests to lib/locking-selftest.c. v5
-      mutex: add more tests to lib/locking-selftest.c
-      mutex: add more ww tests to test EDEADLK path handling
-      locking-selftests: handle unexpected failures more strictly
-
-
- Documentation/ww-mutex-design.txt |  343 ++++++++++++++++++
- arch/ia64/include/asm/mutex.h     |   10 -
- arch/powerpc/include/asm/mutex.h  |   10 -
- arch/sh/include/asm/mutex-llsc.h  |    4 
- arch/x86/include/asm/mutex_32.h   |   11 -
- arch/x86/include/asm/mutex_64.h   |   11 -
- include/asm-generic/mutex-dec.h   |   10 -
- include/asm-generic/mutex-null.h  |    2 
- include/asm-generic/mutex-xchg.h  |   10 -
- include/linux/mutex-debug.h       |    1 
- include/linux/mutex.h             |  363 +++++++++++++++++++
- kernel/mutex.c                    |  384 ++++++++++++++++++--
- lib/Kconfig.debug                 |   13 +
- lib/debug_locks.c                 |    2 
- lib/locking-selftest.c            |  720 ++++++++++++++++++++++++++++++++++++-
- 15 files changed, 1802 insertions(+), 92 deletions(-)
- create mode 100644 Documentation/ww-mutex-design.txt
-
--- 
-Signature
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
