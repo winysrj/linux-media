@@ -1,121 +1,189 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([212.227.17.21]:54582 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751862Ab3FJKWO (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 06:22:14 -0400
-Received: from mailout-de.gmx.net ([10.1.76.24]) by mrigmx.server.lan
- (mrigmx002) with ESMTP (Nemesis) id 0MPKAQ-1UhbQ220wK-004OrI for
- <linux-media@vger.kernel.org>; Mon, 10 Jun 2013 12:15:54 +0200
-Date: Mon, 10 Jun 2013 12:15:53 +0200
-From: Daniel =?iso-8859-1?Q?Gl=F6ckner?= <daniel-gl@gmx.net>
-To: Fontana <shade@bredband.net>
-Cc: linux-media@vger.kernel.org
-Subject: Re: stv0297 signal issues on QAM256
-Message-ID: <20130610101552.GA6804@minime.bse>
-References: <NIEIIOCBEBNKDBNEFBEBOEDACBAA.shade@bredband.net>
- <NIEIIOCBEBNKDBNEFBEBCEDHCBAA.shade@bredband.net>
+Received: from mail-wi0-f170.google.com ([209.85.212.170]:34058 "EHLO
+	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751678Ab3FXQJs (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 24 Jun 2013 12:09:48 -0400
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <NIEIIOCBEBNKDBNEFBEBCEDHCBAA.shade@bredband.net>
+In-Reply-To: <201306240951.07426.hverkuil@xs4all.nl>
+References: <1371913383-25088-1-git-send-email-prabhakar.csengg@gmail.com> <201306240951.07426.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Mon, 24 Jun 2013 21:39:26 +0530
+Message-ID: <CA+V-a8uqo+YyRb8GFqftEka=KZf72WsS_hv36_0ShZOXvTv_Yg@mail.gmail.com>
+Subject: Re: [PATCH RFC v3] media: OF: add video sync endpoint property
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
-sorry for resurrecting this thread after a year and for my lengthy mail.
+Thanks for the review.
 
-On Sun, Jun 10, 2012 at 02:25:09PM +0200, Fredrik wrote:
-> Unfortunatly my cable provider "Comhem" moved almost all channels to
-> QAM256.
-> The results are terrible on my two cards. Blocky picture and skipping
-> audio.
+On Mon, Jun 24, 2013 at 1:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Prabhakar,
+>
+> On Sat June 22 2013 17:03:03 Prabhakar Lad wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> This patch adds video sync properties as part of endpoint
+>> properties and also support to parse them in the parser.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> FYI: using my private email when CC-ing me generally works better.
+> I often skip v4l2-related emails to my work address since I assume those
+> have either been CC-ed to my private email and/or linux-media.
+>
+OK hence forth I'll take care of it.
 
-On Wed, Jun 13, 2012 at 10:46:00AM +0200, Fontana wrote:
-> After some further digging i found a post with attached patch.
-> 
-> http://www.linuxtv.org/pipermail/linux-dvb/attachments/20080731/de8768ed/att
-> achment.diff
-> 
-> Dunno why there were no followup on this one?
-> 
-> http://linuxtv.org/pipermail/linux-dvb/2008-July/027517.html
-> 
-> Applied cleanly to kernel 3.4.0 with the following change.
-> 
-> - (p->u.qam.modulation == QAM_256) ? 6718 : 7250);
-> + (p->modulation == QAM_256) ? 6718 : 7250);
+> I wondered why I never saw RFC v1/2, now I know :-)
+[Snip]
+>>    clock mode.
+>> +- video-sync: property indicating to sync the video on a signal in RGB.
+>
+> Please document what the various syncs actually mean.
+>
+OK
 
-As I recently bought a TT premium C2300 suffering from the same
-problem, I spent Saturday night analyzing in detail what causes
-it.
+>>
+>>
+>>  Example
+>> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+>> index aa59639..1a54530 100644
+>> --- a/drivers/media/v4l2-core/v4l2-of.c
+>> +++ b/drivers/media/v4l2-core/v4l2-of.c
+>> @@ -100,6 +100,26 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+>>       if (!of_property_read_u32(node, "data-shift", &v))
+>>               bus->data_shift = v;
+>>
+>> +     if (!of_property_read_u32(node, "video-sync", &v)) {
+>> +             switch (v) {
+>> +             case V4L2_MBUS_VIDEO_SEPARATE_SYNC:
+>> +                     flags |= V4L2_MBUS_VIDEO_SEPARATE_SYNC;
+>> +                     break;
+>> +             case V4L2_MBUS_VIDEO_COMPOSITE_SYNC:
+>> +                     flags |= V4L2_MBUS_VIDEO_COMPOSITE_SYNC;
+>> +                     break;
+>> +             case V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE:
+>> +                     flags |= V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE;
+>> +                     break;
+>> +             case V4L2_MBUS_VIDEO_SYNC_ON_GREEN:
+>> +                     flags |= V4L2_MBUS_VIDEO_SYNC_ON_GREEN;
+>> +                     break;
+>> +             case V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE:
+>> +                     flags |= V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE;
+>> +                     break;
+>> +             }
+>> +     }
+>> +
+>>       bus->flags = flags;
+>>
+>>  }
+>> diff --git a/include/dt-bindings/media/video-interfaces.h b/include/dt-bindings/media/video-interfaces.h
+>> new file mode 100644
+>> index 0000000..1a083dd
+>> --- /dev/null
+>> +++ b/include/dt-bindings/media/video-interfaces.h
+>> @@ -0,0 +1,17 @@
+>> +/*
+>> + * This header provides constants for video interface.
+>> + *
+>> + */
+>> +
+>> +#ifndef _DT_BINDINGS_VIDEO_INTERFACES_H
+>> +#define _DT_BINDINGS_VIDEO_INTERFACES_H
+>> +
+>> +#define V4L2_MBUS_VIDEO_SEPARATE_SYNC                (1 << 2)
+>> +#define V4L2_MBUS_VIDEO_COMPOSITE_SYNC               (1 << 3)
+>> +#define V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE    (1 << 4)
+>
+> What on earth is the difference between "COMPOSITE_SYNC" and "SYNC_ON_COMPOSITE"?!
+>
+Ahh my bad.
 
-To make sure there are no offsets introduces by my cable provider,
-I mapped the complete spectrum with cxadc (and XC3028 switched to
-DVB-T). Both QAM64 and QAM256 channels are centered exactly at the
-frequencies mentioned in the NIT.
+>> +#define V4L2_MBUS_VIDEO_SYNC_ON_GREEN                (1 << 5)
+>> +#define V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE    (1 << 6)
+>> +
+>> +#define V4L2_MBUS_VIDEO_INTERFACES_END               6
+>> +
+>> +#endif
+>
+> Why would this be here? It isn't Device Tree specific, the same defines can
+> be used without DT as well.
+>
+This is in here because we cannot include header files from other folder in
+device tree files.
 
-I then tried to measure the output of the tuner with my cheap
-oscilloscope but failed, probably due to the low signal level.
-I did succeed however at the output of the TDA9819 (pin 18).
-There I could see that the center frequency is about 6.6MHz,
-in contrast to the 7.25MHz configured in the STV0297. From
-both adjacent channels there are remnants visible, attenuated
-to about the same level, so the 36.15MHz IF is correct.
+>> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+>> index 83ae07e..a4676dd 100644
+>> --- a/include/media/v4l2-mediabus.h
+>> +++ b/include/media/v4l2-mediabus.h
+>> @@ -11,6 +11,8 @@
+>>  #ifndef V4L2_MEDIABUS_H
+>>  #define V4L2_MEDIABUS_H
+>>
+>> +#include <dt-bindings/media/video-interfaces.h>
+>> +
+>>  #include <linux/v4l2-mediabus.h>
+>>
+>>  /* Parallel flags */
+>> @@ -28,18 +30,18 @@
+>>   * V4L2_MBUS_[HV]SYNC* flags should be also used for specifying
+>>   * configuration of hardware that uses [HV]REF signals
+>>   */
+>> -#define V4L2_MBUS_HSYNC_ACTIVE_HIGH          (1 << 2)
+>> -#define V4L2_MBUS_HSYNC_ACTIVE_LOW           (1 << 3)
+>> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH          (1 << 4)
+>> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW           (1 << 5)
+>> -#define V4L2_MBUS_PCLK_SAMPLE_RISING         (1 << 6)
+>> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING                (1 << 7)
+>> -#define V4L2_MBUS_DATA_ACTIVE_HIGH           (1 << 8)
+>> -#define V4L2_MBUS_DATA_ACTIVE_LOW            (1 << 9)
+>> +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH          (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 1))
+>> +#define V4L2_MBUS_HSYNC_ACTIVE_LOW           (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 2))
+>> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH          (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 3))
+>> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW           (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 4))
+>> +#define V4L2_MBUS_PCLK_SAMPLE_RISING         (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 5))
+>> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING                (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 6))
+>> +#define V4L2_MBUS_DATA_ACTIVE_HIGH           (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 7))
+>> +#define V4L2_MBUS_DATA_ACTIVE_LOW            (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 8))
+>>  /* FIELD = 0/1 - Field1 (odd)/Field2 (even) */
+>> -#define V4L2_MBUS_FIELD_EVEN_HIGH            (1 << 10)
+>> +#define V4L2_MBUS_FIELD_EVEN_HIGH            (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 9))
+>>  /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
+>> -#define V4L2_MBUS_FIELD_EVEN_LOW             (1 << 11)
+>> +#define V4L2_MBUS_FIELD_EVEN_LOW             (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 10))
+>
+> And that would also do away with the ugly V4L2_MBUS_VIDEO_INTERFACES_END
+> define. It's just asking for problems when some of the flags are defined
+> in one header, and some in another header.
+>
+> I know it was discussed before, but I am uncomfortable with adding all these
+> different sync types when the only one used in tvp7002 is SYNC_ON_GREEN.
+>
+> The only sync types I see in practice are Separate Sync (using separate H and V
+> sync signals), Embedded Sync (using SAV/EAV codes) and in very rare cases
+> Sync-on-Green. Sync-on-Luminance is I expect really identical to Sync-on-Green,
+> only instead of using RGB it uses YUV where Y maps to the Green pin.
+>
+Laurent, Sylwester  what do you suggest ?
 
-But why is it not centered around 7.25MHz? That second IF is
-generated by a VCO that is controlled by pin 16 of the TDA9819.
-If you look closely, you can see that pin 16 is directly connected
-to pin 15, which controlls the DVB AGC. This only makes sense if
-these pins are tied to a fixed voltage. My multimeter says 2.47V,
-which is close to the typical input voltage mentioned in the
-data sheet for pin 15. The diagram for the VCO frequency tells
-us this should make the VCO run at about 86.3MHz, which is
-halved before it is multiplied with the signal from the tuner.
-If we lived in a perfect world, we would get a 2nd IF of
-86.3/2-36.15=7MHz. If the VCO is off by 1%, we arrive at 6.6MHz.
-What counts is that there is no calibrated quartz controlling
-the frequency of the 2nd IF, so it may vary with each device
-(and probably temperature, supply voltage, etc.).
-
-But why does QAM64 work? The STV0297 contains two stages
-that can compensate for IF offsets. The first one is controlled
-by stv0297_set_initialdemodfreq the second one by
-stv0297_set_carrieroffset. Both stages can automatically try
-different frequencies during locking, but we only allow this
-for the second stage. The first one we fix at 7.25MHz
-or rather 7.266MHz due to rounding while calculating the
-register value. On a tuned QAM64 channel stv0297_get_carrieroffset
-reports an offset of about 680kHz.
-
-By why does QAM256 not work? I also get a lock on QAM256 channels
-and there stv0297_get_carrieroffset also reports the same offset
-give or take 5 kHz. The STV0297 data sheet says:
-
-"It is possible to optimize chip performance by
-optimizing the respective uses of CRL and initial
-derotator (for example if the CRL locks for a given
-offset value, it is possible to transfer this offset
-cancellation from CRL to initial derotator before
-Nyquist filtering, the latter being then better
-matched to the signal actually received)."
-
-So while at QAM64 we get away with doing the correction in the CRL
-(second stage), QAM256 requires this to be done in the first stage.
-
-
-We once had code in the driver trying to move the offset from the
-second stage to the first stage, but it didn't work correctly and
-was removed in 2005 without trying to fix it:
-http://linuxtv.org/mailinglists/linux-dvb/2005/01-2005/msg00165.html
-
-I found an error in stv0297_get_carrieroffset for negative offsets.
-Maybe that was the cause back then. Maybe we should not reuse
-the offset for different channels. A module parameter for the IF
-probably does not work for people wanting to use more than one card.
-I am not sure what is the best way to solve the problem but I do
-know that the 7.25MHz don't work for everyone and it does not
-depend on the modulation as suggested by the patch above.
-
-  Daniel
-
+Regards,
+--Prabhakar Lad
