@@ -1,167 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:49947 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753962Ab3FKKBL (ORCPT
+Received: from smtp-vbr1.xs4all.nl ([194.109.24.21]:1235 "EHLO
+	smtp-vbr1.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752175Ab3FXIjb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 06:01:11 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 09/21] sh-mobile-ceu-camera: move interface activation and deactivation to clock callbacks
-Date: Tue, 11 Jun 2013 10:23:36 +0200
-Message-Id: <1370939028-8352-10-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+	Mon, 24 Jun 2013 04:39:31 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH] media: i2c: tvp514x: add support for asynchronous probing
+Date: Mon, 24 Jun 2013 10:39:17 +0200
+Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <1371896189-5475-1-git-send-email-prabhakar.csengg@gmail.com> <201306240911.14288.hverkuil@xs4all.nl> <CA+V-a8tziXOAU6NNUy6rp-Fdz2sVk8+KYHdzDsVSaFuRADUjig@mail.gmail.com>
+In-Reply-To: <CA+V-a8tziXOAU6NNUy6rp-Fdz2sVk8+KYHdzDsVSaFuRADUjig@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306241039.17147.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the sh-mobile-ceu-camera driver activates
-and, respectively, deactivates its camera interface and, if necessary, the
-CSI2 controller. Only handling of the CSI2 interface is client-specific and
-is only needed, when a data-exchange with the client is taking place. Move
-the rest to .clock_start() and .clock_stop() callbacks.
+On Mon June 24 2013 10:24:02 Prabhakar Lad wrote:
+> Hi Hans,
+> 
+> On Mon, Jun 24, 2013 at 12:41 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > On Sun June 23 2013 17:48:20 Prabhakar Lad wrote:
+> >> Hi Guennadi,
+> >>
+> >> Thanks for the review.
+> >>
+> >> On Sun, Jun 23, 2013 at 8:49 PM, Guennadi Liakhovetski
+> >> <g.liakhovetski@gmx.de> wrote:
+> >> > On Sat, 22 Jun 2013, Prabhakar Lad wrote:
+> >> >
+> >> >> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> >> >>
+> >> >> Both synchronous and asynchronous tvp514x subdevice probing is supported by
+> >> >> this patch.
+> >> >>
+> >> >> Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> >> >> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> >> >> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> >> >> Cc: Hans Verkuil <hverkuil@xs4all.nl>
+> >> >> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> >> >> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> >> >> ---
+> >> >>  drivers/media/i2c/tvp514x.c |   22 +++++++++++++++-------
+> >> >>  1 file changed, 15 insertions(+), 7 deletions(-)
+> >> >>
+> >> >> diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
+> >> >> index 864eb14..d090caf 100644
+> >> >> --- a/drivers/media/i2c/tvp514x.c
+> >> >> +++ b/drivers/media/i2c/tvp514x.c
+> >> >> @@ -36,6 +36,7 @@
+> >> >>  #include <linux/module.h>
+> >> >>  #include <linux/v4l2-mediabus.h>
+> >> >>
+> >> >> +#include <media/v4l2-async.h>
+> >> >>  #include <media/v4l2-device.h>
+> >> >>  #include <media/v4l2-common.h>
+> >> >>  #include <media/v4l2-mediabus.h>
+> >> >
+> >> > Ok, but this one really does too many things in one patch:
+> >> >
+> >> >> @@ -1148,9 +1149,9 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
+> >> >>       /* Register with V4L2 layer as slave device */
+> >> >>       sd = &decoder->sd;
+> >> >>       v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
+> >> >> -     strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+> >> >>
+> >> >>  #if defined(CONFIG_MEDIA_CONTROLLER)
+> >> >> +     strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+> >> >
+> >> > This is unrelated
+> >> >
+> >> OK I'll split the patch or may be a line in a commit message can do ?
+> >
+> > Please split it up in two patches.
+> >
+> > Why is sd->name set anyway? And why is it moved under CONFIG_MEDIA_CONTROLLER?
+> > It's not obvious to me.
+> >
+> while using tvp514x subdev with media controller based drivers, when we
+> enumerate entities (MEDIA_IOC_ENUM_ENTITIES) to get the index id
+> of the entity we compare the entity name with "tvp514x", So I moved it
+> under CONFIG_MEDIA_CONTROLLER config. I hope you are OK with
+> moving this in a separate patch.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   58 ++++++++++++--------
- 1 files changed, 35 insertions(+), 23 deletions(-)
+Sorry, but this approach is wrong. sd->name must be a unique name, so manually
+setting sd->name will fail if you have two tvp514x devices.
 
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 5b7d8e1..9037472 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -162,7 +162,6 @@ static u32 ceu_read(struct sh_mobile_ceu_dev *priv, unsigned long reg_offs)
- static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
- {
- 	int i, success = 0;
--	struct soc_camera_device *icd = pcdev->ici.icd;
- 
- 	ceu_write(pcdev, CAPSR, 1 << 16); /* reset */
- 
-@@ -186,7 +185,7 @@ static int sh_mobile_ceu_soft_reset(struct sh_mobile_ceu_dev *pcdev)
- 
- 
- 	if (2 != success) {
--		dev_warn(icd->pdev, "soft reset time out\n");
-+		dev_warn(pcdev->ici.v4l2_dev.dev, "soft reset time out\n");
- 		return -EIO;
- 	}
- 
-@@ -543,35 +542,21 @@ static struct v4l2_subdev *find_csi2(struct sh_mobile_ceu_dev *pcdev)
- 	return NULL;
- }
- 
--/* Called with .host_lock held */
- static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
--	struct v4l2_subdev *csi2_sd;
-+	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
- 	int ret;
- 
--	dev_info(icd->parent,
--		 "SuperH Mobile CEU driver attached to camera %d\n",
--		 icd->devnum);
--
--	pm_runtime_get_sync(ici->v4l2_dev.dev);
--
--	pcdev->buf_total = 0;
--
--	ret = sh_mobile_ceu_soft_reset(pcdev);
--
--	csi2_sd = find_csi2(pcdev);
- 	if (csi2_sd) {
- 		csi2_sd->grp_id = soc_camera_grp_id(icd);
- 		v4l2_set_subdev_hostdata(csi2_sd, icd);
- 	}
- 
- 	ret = v4l2_subdev_call(csi2_sd, core, s_power, 1);
--	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV) {
--		pm_runtime_put(ici->v4l2_dev.dev);
-+	if (ret < 0 && ret != -ENOIOCTLCMD && ret != -ENODEV)
- 		return ret;
--	}
- 
- 	/*
- 	 * -ENODEV is special: either csi2_sd == NULL or the CSI-2 driver
-@@ -580,19 +565,48 @@ static int sh_mobile_ceu_add_device(struct soc_camera_device *icd)
- 	if (ret == -ENODEV && csi2_sd)
- 		csi2_sd->grp_id = 0;
- 
-+	dev_info(icd->parent,
-+		 "SuperH Mobile CEU driver attached to camera %d\n",
-+		 icd->devnum);
-+
- 	return 0;
- }
- 
--/* Called with .host_lock held */
- static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- {
- 	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct sh_mobile_ceu_dev *pcdev = ici->priv;
- 	struct v4l2_subdev *csi2_sd = find_csi2(pcdev);
- 
-+	dev_info(icd->parent,
-+		 "SuperH Mobile CEU driver detached from camera %d\n",
-+		 icd->devnum);
-+
- 	v4l2_subdev_call(csi2_sd, core, s_power, 0);
- 	if (csi2_sd)
- 		csi2_sd->grp_id = 0;
-+}
-+
-+/* Called with .host_lock held */
-+static int sh_mobile_ceu_clock_start(struct soc_camera_host *ici)
-+{
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+	int ret;
-+
-+	pm_runtime_get_sync(ici->v4l2_dev.dev);
-+
-+	pcdev->buf_total = 0;
-+
-+	ret = sh_mobile_ceu_soft_reset(pcdev);
-+
-+	return 0;
-+}
-+
-+/* Called with .host_lock held */
-+static void sh_mobile_ceu_clock_stop(struct soc_camera_host *ici)
-+{
-+	struct sh_mobile_ceu_dev *pcdev = ici->priv;
-+
- 	/* disable capture, disable interrupts */
- 	ceu_write(pcdev, CEIER, 0);
- 	sh_mobile_ceu_soft_reset(pcdev);
-@@ -607,10 +621,6 @@ static void sh_mobile_ceu_remove_device(struct soc_camera_device *icd)
- 	spin_unlock_irq(&pcdev->lock);
- 
- 	pm_runtime_put(ici->v4l2_dev.dev);
--
--	dev_info(icd->parent,
--		 "SuperH Mobile CEU driver detached from camera %d\n",
--		 icd->devnum);
- }
- 
- /*
-@@ -2027,6 +2037,8 @@ static struct soc_camera_host_ops sh_mobile_ceu_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= sh_mobile_ceu_add_device,
- 	.remove		= sh_mobile_ceu_remove_device,
-+	.clock_start	= sh_mobile_ceu_clock_start,
-+	.clock_stop	= sh_mobile_ceu_clock_stop,
- 	.get_formats	= sh_mobile_ceu_get_formats,
- 	.put_formats	= sh_mobile_ceu_put_formats,
- 	.get_crop	= sh_mobile_ceu_get_crop,
--- 
-1.7.2.5
+There is no reason to override sd->name here, and it is actually a bug. I see
+that tvp7002 has the same problem (and a bunch of others as well).
 
+When trying to find a tvp514x you can just use strstr() in your application.
+That will work all the time as long as there is only one tvp514x.
+
+Regards,
+
+	Hans
