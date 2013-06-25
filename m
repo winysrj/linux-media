@@ -1,118 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:50565 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751857Ab3FCIYD (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 04:24:03 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>, John Sheu <sheu@google.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v4] [media] mem2mem: add support for hardware buffered queue
-Date: Mon,  3 Jun 2013 10:23:48 +0200
-Message-Id: <1370247828-7219-1-git-send-email-p.zabel@pengutronix.de>
+Received: from mail-qc0-f179.google.com ([209.85.216.179]:60909 "EHLO
+	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751182Ab3FYOtp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jun 2013 10:49:45 -0400
+MIME-Version: 1.0
+In-Reply-To: <CAAQKjZNjjgG3hoKU2RLsG7w+B-2v7CpTT5hfnnTTJ2DgTEk0vA@mail.gmail.com>
+References: <20130617182127.GM2718@n2100.arm.linux.org.uk>
+	<007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
+	<20130618084308.GU2718@n2100.arm.linux.org.uk>
+	<008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
+	<1371548849.4276.6.camel@weser.hi.pengutronix.de>
+	<008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
+	<1371637326.4230.24.camel@weser.hi.pengutronix.de>
+	<00ae01ce6cd9$f4834630$dd89d290$%dae@samsung.com>
+	<1371645247.4230.41.camel@weser.hi.pengutronix.de>
+	<CAAQKjZNJD4HpnJQ7iE+Gez36066M6U0YQeUEdA0+UcSOKqeghg@mail.gmail.com>
+	<20130619182925.GL2718@n2100.arm.linux.org.uk>
+	<00da01ce6d81$76eb3d60$64c1b820$%dae@samsung.com>
+	<1371714427.4230.64.camel@weser.hi.pengutronix.de>
+	<00db01ce6d8f$a3c23dd0$eb46b970$%dae@samsung.com>
+	<1371723063.4114.12.camel@weser.hi.pengutronix.de>
+	<010801ce6da7$896affe0$9c40ffa0$%dae@samsung.com>
+	<1371804843.4114.49.camel@weser.hi.pengutronix.de>
+	<CAAQKjZOxOMuL3zh_yV7tU2LBcZ7oVryiKa+LgjTM5HLY+va8zQ@mail.gmail.com>
+	<1371817628.5882.13.camel@weser.hi.pengutronix.de>
+	<CAAQKjZOeskLB7n6FM+bnB8n7ecuQM5k6uANXJXo=xk979f9s9Q@mail.gmail.com>
+	<CAH3drwZVhs=odjFdB_Mf+K0JLT5NSSbz5mP9aOS=5fx-PVdzSg@mail.gmail.com>
+	<CAAQKjZNnJRddACHzD+VF=A8vJpt9SEy2ttnS3Kw0y3hexu8dnw@mail.gmail.com>
+	<CAF6AEGsBvZbcWDbX3FFtyDxFO1NqYNRLqHEUyP4qUD9wK+ARbA@mail.gmail.com>
+	<CAAQKjZNjjgG3hoKU2RLsG7w+B-2v7CpTT5hfnnTTJ2DgTEk0vA@mail.gmail.com>
+Date: Tue, 25 Jun 2013 10:49:43 -0400
+Message-ID: <CAH3drwYqwddVuFRjDbYyvs+2hVWxsQDC1X8OCXMJURRty2087Q@mail.gmail.com>
+Subject: Re: [RFC PATCH] dmabuf-sync: Introduce buffer synchronization framework
+From: Jerome Glisse <j.glisse@gmail.com>
+To: Inki Dae <daeinki@gmail.com>
+Cc: Rob Clark <robdclark@gmail.com>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"myungjoo.ham" <myungjoo.ham@samsung.com>,
+	YoungJun Cho <yj44.cho@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
-buffer at the end of the stream, remaining frames might need to be decoded
-from the bitstream buffer without additional input buffers being provided.
-To achieve this, allow a queue to be marked as buffered by the driver, and
-allow scheduling of device_runs when buffered ready queues are empty.
+On Tue, Jun 25, 2013 at 10:17 AM, Inki Dae <daeinki@gmail.com> wrote:
+> 2013/6/25 Rob Clark <robdclark@gmail.com>:
+>> On Tue, Jun 25, 2013 at 5:09 AM, Inki Dae <daeinki@gmail.com> wrote:
+>>>> that
+>>>> should be the role of kernel memory management which of course needs
+>>>> synchronization btw A and B. But in no case this should be done using
+>>>> dma-buf. dma-buf is for sharing content btw different devices not
+>>>> sharing resources.
+>>>>
+>>>
+>>> hmm, is that true? And are you sure? Then how do you think about
+>>> reservation? the reservation also uses dma-buf with same reason as long as I
+>>> know: actually, we use reservation to use dma-buf. As you may know, a
+>>> reservation object is allocated and initialized when a buffer object is
+>>> exported to a dma buf.
+>>
+>> no, this is why the reservation object can be passed in when you
+>> construction the dmabuf.
+>
+> Right, that way, we could use dma buf for buffer synchronization. I
+> just wanted to ask for why Jerome said that "dma-buf is for sharing
+> content btw different devices not sharing resources".
 
-This also allows a driver to copy input buffers into their bitstream
-ringbuffer and immediately mark them as done to be dequeued.
+>From memory, the motivation of dma-buf was to done for few use case,
+among them webcam capturing frame into a buffer and having gpu using
+it directly without memcpy, or one big gpu rendering a scene into a
+buffer that is then use by low power gpu for display ie it was done to
+allow different device to operate on same data using same backing
+memory.
 
-The motivation for this patch is hardware assisted h.264 reordering support
-in the coda driver. For high profile streams, the coda can hold back
-out-of-order frames, causing a few mem2mem device runs in the beginning, that
-don't produce any decompressed buffer at the v4l2 capture side. At the same
-time, the last few frames can be decoded from the bitstream with mem2mem device
-runs that don't need a new input buffer at the v4l2 output side. The decoder
-command ioctl can be used to put the decoder into the ringbuffer draining
-end-of-stream mode.
+AFAICT you seem to want to use dma-buf to create scratch buffer, ie a
+process needs to use X amount of memory for an operation, it can
+release|free this memory once its done and a process B can the use
+this X memory for its own operation discarding content of process A. I
+presume that next frame would have the sequence repeat, process A do
+something, then process B does its thing. So to me it sounds like you
+want to implement global scratch buffer using the dmabuf API and that
+sounds bad to me.
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v3:
- - Split queue_set_buffered into set_src_buffered and set_dst_buffered, which
-   take a v4l2_m2m_ctx pointer instead of a vb2_queue (which isn't guaranteed
-   to be embedded in a v4l2_m2m_queue_ctx).
- - Make them static inline.
----
- drivers/media/v4l2-core/v4l2-mem2mem.c | 10 ++++++++--
- include/media/v4l2-mem2mem.h           | 13 +++++++++++++
- 2 files changed, 21 insertions(+), 2 deletions(-)
+I know most closed driver have several pool of memory, long lived
+object, short lived object and scratch space, then user space allocate
+from one of this pool and there is synchronization done by driver
+using driver specific API to reclaim memory. Of course this work
+nicely if you only talking about one logic block or at very least hw
+that have one memory controller.
 
-diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c b/drivers/media/v4l2-core/v4l2-mem2mem.c
-index 66f599f..1007e60 100644
---- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-+++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-@@ -196,6 +196,10 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev *m2m_dev)
-  * 2) at least one destination buffer has to be queued,
-  * 3) streaming has to be on.
-  *
-+ * If a queue is buffered (for example a decoder hardware ringbuffer that has
-+ * to be drained before doing streamoff), allow scheduling without v4l2 buffers
-+ * on that queue.
-+ *
-  * There may also be additional, custom requirements. In such case the driver
-  * should supply a custom callback (job_ready in v4l2_m2m_ops) that should
-  * return 1 if the instance is ready.
-@@ -224,14 +228,16 @@ static void v4l2_m2m_try_schedule(struct v4l2_m2m_ctx *m2m_ctx)
- 	}
- 
- 	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
--	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)) {
-+	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)
-+	    && !m2m_ctx->out_q_ctx.buffered) {
- 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
- 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
- 		dprintk("No input buffers available\n");
- 		return;
- 	}
- 	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
--	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)) {
-+	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)
-+	    && !m2m_ctx->cap_q_ctx.buffered) {
- 		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
- 		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
- 		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
-diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-mem2mem.h
-index d3eef01..a8e1bb3 100644
---- a/include/media/v4l2-mem2mem.h
-+++ b/include/media/v4l2-mem2mem.h
-@@ -60,6 +60,7 @@ struct v4l2_m2m_queue_ctx {
- 	struct list_head	rdy_queue;
- 	spinlock_t		rdy_spinlock;
- 	u8			num_rdy;
-+	bool			buffered;
- };
- 
- struct v4l2_m2m_ctx {
-@@ -132,6 +133,18 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct v4l2_m2m_dev *m2m_dev,
- 		void *drv_priv,
- 		int (*queue_init)(void *priv, struct vb2_queue *src_vq, struct vb2_queue *dst_vq));
- 
-+static inline void v4l2_m2m_set_src_buffered(struct v4l2_m2m_ctx *m2m_ctx,
-+					     bool buffered)
-+{
-+	m2m_ctx->out_q_ctx.buffered = buffered;
-+}
-+
-+static inline void v4l2_m2m_set_dst_buffered(struct v4l2_m2m_ctx *m2m_ctx,
-+					     bool buffered)
-+{
-+	m2m_ctx->cap_q_ctx.buffered = buffered;
-+}
-+
- void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx);
- 
- void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct vb2_buffer *vb);
--- 
-1.8.2.rc2
+Now if you are thinking of doing scratch buffer for several different
+device and share the memory among then you need to be aware of
+security implication, most obvious being that you don't want process B
+being able to read process A scratch memory. I know the argument about
+it being graphic but one day this might become gpu code and it might
+be able to insert jump to malicious gpu code.
 
+Cheers,
+Jerome
