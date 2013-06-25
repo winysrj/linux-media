@@ -1,45 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:57429 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751917Ab3FFEgi (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 6 Jun 2013 00:36:38 -0400
-Message-ID: <51B011C5.3070105@ti.com>
-Date: Thu, 6 Jun 2013 10:06:21 +0530
-From: Sekhar Nori <nsekhar@ti.com>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Hans Verkuil <hans.verkuil@cisco.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v2 1/4] ARM: davinci: dm365 evm: remove init_enable from
- ths7303 pdata
-References: <1369503576-22271-1-git-send-email-prabhakar.csengg@gmail.com> <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1369503576-22271-2-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:31115 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751161Ab3FYKsa (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jun 2013 06:48:30 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOY009453CM3O50@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Jun 2013 19:48:29 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: kyungmin.park@samsung.com, a.hajda@samsung.com,
+	j.anaszewski@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 0/6] exynos4-is: TRY format propagation fixes
+Date: Tue, 25 Jun 2013 12:48:11 +0200
+Message-id: <1372157297-29195-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 5/25/2013 11:09 PM, Prabhakar Lad wrote:
-> From: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> 
-> remove init_enable from ths7303 pdata as it is being dropped
-> from ths7303_platform_data.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Sekhar Nori <nsekhar@ti.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: linux-kernel@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
+This series includes fixes for issues found while working on a libv4l
+plugin for the exynos4-is driver, i.e. TRY format propagation, colorspace
+handling and initial format setting on some exynos4-is subdevs.
 
-Acked-by: Sekhar Nori <nsekhar@ti.com>
+Sylwester Nawrocki (6):
+  exynos4-is: Fix format propagation on FIMC-LITE.n subdevs
+  exynos4-is: Set valid initial format at FIMC-LITE
+  exynos4-is: Fix format propagation on FIMC-IS-ISP subdev
+  exynos4-is: Set valid initial format on FIMC-IS-ISP subdev pads
+  exynos4-is: Set valid initial format on FIMC.n subdevs
+  exynos4-is: Correct colorspace handling at FIMC-LITE
 
-I would prefer this be squashed into 2/4 but I leave it to you.
+ drivers/media/platform/exynos4-is/fimc-capture.c |   19 +++-
+ drivers/media/platform/exynos4-is/fimc-core.h    |    2 +
+ drivers/media/platform/exynos4-is/fimc-isp.c     |  112 +++++++++++++-----
+ drivers/media/platform/exynos4-is/fimc-isp.h     |    3 +-
+ drivers/media/platform/exynos4-is/fimc-lite.c    |  132 +++++++++++++++-------
+ drivers/media/platform/exynos4-is/fimc-lite.h    |    2 +
+ include/media/s5p_fimc.h                         |    2 +
+ 7 files changed, 200 insertions(+), 72 deletions(-)
 
-Thanks,
-Sekhar
+--
+1.7.9.5
+
