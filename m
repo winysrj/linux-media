@@ -1,13 +1,13 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f169.google.com ([209.85.223.169]:35549 "EHLO
-	mail-ie0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750704Ab3FRHAR (ORCPT
+Received: from mail-ie0-f181.google.com ([209.85.223.181]:35885 "EHLO
+	mail-ie0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751423Ab3FYJXW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 03:00:17 -0400
-Received: by mail-ie0-f169.google.com with SMTP id 10so9307960ied.0
-        for <linux-media@vger.kernel.org>; Tue, 18 Jun 2013 00:00:16 -0700 (PDT)
+	Tue, 25 Jun 2013 05:23:22 -0400
+Received: by mail-ie0-f181.google.com with SMTP id x12so27521616ief.12
+        for <linux-media@vger.kernel.org>; Tue, 25 Jun 2013 02:23:21 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <20130617154237.GJ2718@n2100.arm.linux.org.uk>
+In-Reply-To: <20130618104613.GX2718@n2100.arm.linux.org.uk>
 References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
 	<1371467722-665-1-git-send-email-inki.dae@samsung.com>
 	<51BEF458.4090606@canonical.com>
@@ -15,8 +15,10 @@ References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
 	<20130617133109.GG2718@n2100.arm.linux.org.uk>
 	<CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
 	<20130617154237.GJ2718@n2100.arm.linux.org.uk>
-Date: Tue, 18 Jun 2013 09:00:16 +0200
-Message-ID: <CAKMK7uECS=eqNB-Ud6s=NvdYMPfxgJaGPbUx9hANfP6kb02j_w@mail.gmail.com>
+	<CAKMK7uECS=eqNB-Ud6s=NvdYMPfxgJaGPbUx9hANfP6kb02j_w@mail.gmail.com>
+	<20130618104613.GX2718@n2100.arm.linux.org.uk>
+Date: Tue, 25 Jun 2013 11:23:21 +0200
+Message-ID: <CAKMK7uEbkKWFcxu6zs+0P26S9aJrE5v2+b6Jzg7AhORsAg4+9w@mail.gmail.com>
 Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization framework
 From: Daniel Vetter <daniel@ffwll.ch>
 To: Russell King - ARM Linux <linux@arm.linux.org.uk>
@@ -28,7 +30,6 @@ Cc: Inki Dae <daeinki@gmail.com>,
 	Rob Clark <robdclark@gmail.com>,
 	"myungjoo.ham" <myungjoo.ham@samsung.com>,
 	YoungJun Cho <yj44.cho@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
 	"linux-arm-kernel@lists.infradead.org"
 	<linux-arm-kernel@lists.infradead.org>,
 	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
@@ -36,119 +37,60 @@ Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 17, 2013 at 04:42:37PM +0100, Russell King - ARM Linux wrote:
-> On Tue, Jun 18, 2013 at 12:03:31AM +0900, Inki Dae wrote:
-> > 2013/6/17 Russell King - ARM Linux <linux@arm.linux.org.uk>
-> > Exactly right. But that is not definitely my point. Could you please see
-> > the below simple example?:
-> > (Presume that CPU and DMA share a buffer and the buffer is mapped with user
-> > space as cachable)
-> >
-> >         handle1 = drm_gem_fd_to_handle(a dmabuf fd);  ----> 1
-> >                  ...
-> >         va1 = drm_gem_mmap(handle1);
-> >         va2 = drm_gem_mmap(handle2);
-> >         va3 = malloc(size);
-> >                  ...
-> >
-> >         while (conditions) {
-> >                  memcpy(va1, some data, size);
+On Tue, Jun 18, 2013 at 12:46 PM, Russell King - ARM Linux
+<linux@arm.linux.org.uk> wrote:
+>> > Note: the existing stuff does have the nice side effect of being able
+>> > to pass buffers which do not have a struct page * associated with them
+>> > through the dma_buf API - I think we can still preserve that by having
+>> > dma_buf provide a couple of new APIs to do the SG list map/sync/unmap,
+>> > but in any case we need to fix the existing API so that:
+>> >
+>> > dma_buf_map_attachment() becomes dma_buf_get_sg()
+>> > dma_buf_unmap_attachment() becomes dma_buf_put_sg()
+>> >
+>> > both getting rid of the DMA direction argument, and then we have four
+>> > new dma_buf calls:
+>> >
+>> > dma_buf_map_sg()
+>> > dma_buf_unmap_sg()
+>> > dma_buf_sync_sg_for_cpu()
+>> > dma_buf_sync_sg_for_device()
+>> >
+>> > which do the actual sg map/unmap via the DMA API *at the appropriate
+>> > time for DMA*.
+>>
+>> Hm, my idea was to just add a dma_buf_sync_attchment for the device side
+>> syncing, since the cpu access stuff is already bracketed with the
+>> begin/end cpu access stuff. We might need a sync_for_cpu or so for mmap,
+>> but imo mmap support for dma_buf is a bit insane anyway, so I don't care
+>> too much about it.
+>>
+>> Since such dma mappings would be really longstanding in most cases anyway
+>> drivers could just map with BIDIRECTIONAL and do all the real flushing
+>> with the new sync stuff.
 >
-> Nooooooooooooooooooooooooooooooooooooooooooooo!
->
-> Well, the first thing to say here is that under the requirements of the
-> DMA API, the above is immediately invalid, because you're writing to a
-> buffer which under the terms of the DMA API is currently owned by the
-> DMA agent, *not* by the CPU.  You're supposed to call dma_sync_sg_for_cpu()
-> before you do that - but how is userspace supposed to know that requirement?
-> Why should userspace even _have_ to know these requirements of the DMA
-> API?
->
-> It's also entirely possible that drm_gem_fd_to_handle() (which indirectly
-> causes dma_map_sg() on the buffers scatterlist) followed by mmap'ing it
-> into userspace is a bug too, as it has the potential to touch caches or
-> stuff in ways that maybe the DMA or IOMMU may not expect - but I'm not
-> going to make too big a deal about that, because I don't think we have
-> anything that picky.
->
-> However, the first point above is the most important one, and exposing
-> the quirks of the DMA API to userland is certainly not a nice thing to be
-> doing.  This needs to be fixed - we can't go and enforce an API which is
-> deeply embedded within the kernel all the way out to userland.
->
-> What we need is something along the lines of:
-> (a) dma_buf_map_attachment() _not_ to map the scatterlist for DMA.
-> or
-> (b) drm_gem_prime_import() not to call dma_buf_map_attachment() at all.
+> Note that the DMA API debug doesn't allow you to change the direction
+> argument on an existing mapping (neither should it, again this is
+> documented in the DMA API stuff in Documentation/).  This is where you
+> would need the complete set of four functions I mention above which
+> reflect the functionality of the DMA API.
 
-I strongly vote for (b) (plus adding a dma_buf_map_sync interface to allow
-syncing to other devices/cpu whithout dropping the dma mappings). At least
-that's been the idea behind things, but currently all (x86-based) drm
-drivers cut corners here massively.
+[Been travelling a bit, hence the delay.]
 
-Aside: The entire reason behind hiding the dma map step in the dma-buf
-attachment is to allow drivers to expose crazy iommus (e.g. the tiler unit
-on omap) to other devices. So imo (a) isn't the right choice.
->
-> and for the scatterlist to be mapped for DMA at the point where the DMA
-> operation is initiated, and unmapped at the point where the DMA operation
-> is complete.
->
-> So no, the problem is not that we need more APIs and code - we need the
-> existing kernel API fixed so that we don't go exposing userspace to the
-> requirements of the DMA API.  Unless we do that, we're going to end
-> up with a huge world of pain, where kernel architecture people need to
-> audit every damned DRM userspace implementation that happens to be run
-> on their platform, and that's not something arch people really can
-> afford to do.
->
-> Basically, I think the dma_buf stuff needs to be rewritten with the
-> requirements of the DMA API in the forefront of whosever mind is doing
-> the rewriting.
->
-> Note: the existing stuff does have the nice side effect of being able
-> to pass buffers which do not have a struct page * associated with them
-> through the dma_buf API - I think we can still preserve that by having
-> dma_buf provide a couple of new APIs to do the SG list map/sync/unmap,
-> but in any case we need to fix the existing API so that:
->
-> dma_buf_map_attachment() becomes dma_buf_get_sg()
-> dma_buf_unmap_attachment() becomes dma_buf_put_sg()
->
-> both getting rid of the DMA direction argument, and then we have four
-> new dma_buf calls:
->
-> dma_buf_map_sg()
-> dma_buf_unmap_sg()
-> dma_buf_sync_sg_for_cpu()
-> dma_buf_sync_sg_for_device()
->
-> which do the actual sg map/unmap via the DMA API *at the appropriate
-> time for DMA*.
+Just a quick question on your assertion that we need all four
+functions: Since we already have begin/end_cpu_access functions
+(intention here was to allow the dma_buf exporter to ensure the memory
+is pinned, e.g. for swapable gem objects, but also allow cpu cache
+flushing if required) do we still need the sync_sg_for_cpu? At least
+with i915 as the exporter we currently hide the cflushing behind our
+begin_cpu_access callback. For device dma we currently punt on it due
+to lack of the dma_buf_sync_sg_for_device interface.
 
-Hm, my idea was to just add a dma_buf_sync_attchment for the device side
-syncing, since the cpu access stuff is already bracketed with the
-begin/end cpu access stuff. We might need a sync_for_cpu or so for mmap,
-but imo mmap support for dma_buf is a bit insane anyway, so I don't care
-too much about it.
-
-Since such dma mappings would be really longstanding in most cases anyway
-drivers could just map with BIDIRECTIONAL and do all the real flushing
-with the new sync stuff.
-
-Another piece of fun will be integration with the fencing stuff Maarten is
-doing. I'm not sure whether we should integrate that into the dma-buf
-interface (for simple users who don't want to deal with the full
-complexity at least).
-
->
-> So, the summary of this is - at the moment, I regard DRM Prime and dmabuf
-> to be utterly broken in design for architectures such as ARM where the
-> requirements of the DMA API have to be followed if you're going to have
-> a happy life.
-
-Agreed. Unfortunately there are not many real drivers shipping in
-upstream, and x86 is _very_ forgiving about all this stuff.
+Aside: I know that i915 doing the clflushing dance itself is a bit
+ugly, but thus far we've been the only guys on the x86 block with
+non-coherent dma. But it sounds like a bunch of other blocks on Atom
+SoCs have similar needs, so I guess it would make sense to move that
+into the dma layer.
 -Daniel
 --
 Daniel Vetter
