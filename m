@@ -1,166 +1,238 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3292 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1945923Ab3FUSZ5 (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:64121 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751332Ab3FYRoz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 14:25:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] V4L2: add documentation for V4L2 clock helpers and asynchronous probing
-Date: Fri, 21 Jun 2013 20:25:38 +0200
-Cc: Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>
-References: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1306170801590.22409@axis700.grange>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306212025.38448.hverkuil@xs4all.nl>
+	Tue, 25 Jun 2013 13:44:55 -0400
+Message-id: <51C9D714.4000703@samsung.com>
+Date: Tue, 25 Jun 2013 19:44:52 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: balbi@ti.com
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, kishon@ti.com,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	t.figa@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
+	inki.dae@samsung.com, plagnioj@jcrosoft.com,
+	linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
+ <20130625150649.GA21334@arwen.pp.htv.fi>
+In-reply-to: <20130625150649.GA21334@arwen.pp.htv.fi>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi Felipe,
 
-I had hoped to review this earlier this week, but I didn't get around it. But
-better late than never...
+Thanks for the review.
 
-Comments below.
-
-On Mon June 17 2013 08:04:10 Guennadi Liakhovetski wrote:
-> Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
-> to v4l2-framework.txt.
+On 06/25/2013 05:06 PM, Felipe Balbi wrote:
+> On Tue, Jun 25, 2013 at 04:21:46PM +0200, Sylwester Nawrocki wrote:
+>> +enum phy_id {
+>> +	PHY_CSIS0,
+>> +	PHY_DSIM0,
+>> +	PHY_CSIS1,
+>> +	PHY_DSIM1,
+>> +	NUM_PHYS
 > 
-> Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> ---
+> please prepend these with EXYNOS_PHY_ or EXYNOS_MIPI_PHY_
+
+OK, will fix that.
+
+>> +struct exynos_video_phy {
+>> +	spinlock_t slock;
+>> +	struct phy *phys[NUM_PHYS];
 > 
-> Hopefully we can commit the actual patches now, while we refine the 
-> documentation.
+> more than one phy ? This means you should instantiate driver multiple
+> drivers. Each phy id should call probe again.
+
+Why ? This single PHY _provider_ can well handle multiple PHYs.
+I don't see a good reason to further complicate this driver like
+this. Please note that MIPI-CSIS 0 and MIPI DSIM 0 share MMIO
+register, so does MIPI CSIS 1 and MIPI DSIM 1. There are only 2
+registers for those 4 PHYs. I could have the involved object
+multiplied, but it would have been just a waste of resources
+with no difference to the PHY consumers.
+
+>> +static int __set_phy_state(struct exynos_video_phy *state,
+>> +				enum phy_id id, unsigned int on)
+>> +{
+>> +	void __iomem *addr;
+>> +	unsigned long flags;
+>> +	u32 reg, reset;
+>> +
+>> +	if (WARN_ON(id > NUM_PHYS))
+>> +		return -EINVAL;
 > 
->  Documentation/video4linux/v4l2-framework.txt |   62 +++++++++++++++++++++++++-
->  1 files changed, 60 insertions(+), 2 deletions(-)
+> you don't want to do this, actually. It'll bug you everytime you want to
+> add another phy ID :-)
+
+If there is an SoC with more PHYs enum phy_id would be extended, and this
+part would not need to be touched. OTOH @id cannot be normally greater
+than NUM_PHYS. I think I'll drop that then.
+
+>> +	addr = state->regs + EXYNOS_MIPI_PHY_CONTROL(id / 2);
+>> +
+>> +	if (id == PHY_DSIM0 || id == PHY_DSIM1)
+>> +		reset = EXYNOS_MIPI_PHY_MRESETN;
+>> +	else
+>> +		reset = EXYNOS_MIPI_PHY_SRESETN;
+>> +
+>> +	spin_lock_irqsave(&state->slock, flags);
+>> +	reg = readl(addr);
+>> +	if (on)
+>> +		reg |= reset;
+>> +	else
+>> +		reg &= ~reset;
+>> +	writel(reg, addr);
+>> +
+>> +	/* Clear ENABLE bit only if MRESETN, SRESETN bits are not set. */
+>> +	if (on)
+>> +		reg |= EXYNOS_MIPI_PHY_ENABLE;
+>> +	else if (!(reg & EXYNOS_MIPI_PHY_RESET_MASK))
+>> +		reg &= ~EXYNOS_MIPI_PHY_ENABLE;
+>> +
+>> +	writel(reg, addr);
+>> +	spin_unlock_irqrestore(&state->slock, flags);
+>> +
+>> +	pr_debug("%s(): id: %d, on: %d, addr: %#x, base: %#x\n",
+>> +		 __func__, id, on, (u32)addr, (u32)state->regs);
 > 
-> diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-> index a300b28..159a83a 100644
-> --- a/Documentation/video4linux/v4l2-framework.txt
-> +++ b/Documentation/video4linux/v4l2-framework.txt
-> @@ -326,8 +326,27 @@ that width, height and the media bus pixel code are equal on both source and
->  sink of the link. Subdev drivers are also free to use this function to
->  perform the checks mentioned above in addition to their own checks.
->  
-> -A device (bridge) driver needs to register the v4l2_subdev with the
-> -v4l2_device:
-> +There are currently two ways to register subdevices with the V4L2 core. The
-> +first (traditional) possibility is to have subdevices registered by bridge
-> +drivers. This can be done, when the bridge driver has the complete information
-> +about subdevices, connected to it and knows exactly when to register them. This
-> +is typically the case for internal subdevices, like video data processing units
-> +within SoCs or complex pluggable boards, camera sensors in USB cameras or
-
-s/pluggable boards/PCI(e) boards/
-
-That's more concrete than 'pluggable boards' IMHO.
-
-> +connected to SoCs, which pass information about them to bridge drivers, usually
-> +in their platform data.
-> +
-> +There are however also situations, where subdevices have to be registered
-> +asynchronously to bridge devices. An example of such a configuration is Device
-> +Tree based systems, on which information
-
-"a Device Tree based system where information"
-
-> about subdevices is made available to
-> +the system indpendently from the bridge devices, e.g. when subdevices are
-> +defined in DT as I2C device nodes. The API, used in this second case is
-> +described further below.
-> +
-> +Using one or the other registration method only affects the probing process, the
-> +run-time bridge-subdevice interaction is in both cases the same.
-> +
-> +In the synchronous case a device (bridge) driver needs to register the
-> +v4l2_subdev with the v4l2_device:
->  
->  	int err = v4l2_device_register_subdev(v4l2_dev, sd);
->  
-> @@ -394,6 +413,25 @@ controlled through GPIO pins. This distinction is only relevant when setting
->  up the device, but once the subdev is registered it is completely transparent.
->  
->  
-> +In the asynchronous case subdevices register themselves using the
-> +v4l2_async_register_subdev() function. Unregistration is performed, using the
-> +v4l2_async_unregister_subdev() call. Subdevices registered this way are stored
-> +on a global list of subdevices, ready to be picked up by bridge drivers.
-> +
-> +Bridge drivers in turn have to register a notifier object with an array of
-> +subdevice descriptors, that the bridge device needs for its operation. This is
-> +performed using the v4l2_async_notifier_register() call. To unregister the
-> +notifier the driver has to call v4l2_async_notifier_unregister(). The former of
-> +the two functions takes two arguments: a pointer to struct v4l2_device and a
-> +pointer to struct v4l2_async_notifier. The latter contains a pointer to an array
-> +of pointers to subdevice descriptors of type struct v4l2_async_subdev type. The
-> +V4L2 core will then use these descriptors to match asynchronously registered
-> +subdevices to them. If a match is detected the .bound() notifier callback is
-> +called. After all subdevices have been located the .complete() callback is
-> +called. When a subdevice is removed from the system the .unbind() method is
-> +called. All three callbacks are optional.
-
-Is that true? Don't you need at least a bound or a complete callback?
-
-Something probable needs to be said about when to return -EPROBE_DEFER in a
-subdevice, and that any code that depends on the presence of subdevices in
-a probe() function will be moved to the complete callback.
-
-Also, what happens if one or more subdevices aren't found.
-
-Ideally a simple example would be helpful.
-
-> +
-> +
->  V4L2 sub-device userspace API
->  -----------------------------
->  
-> @@ -1061,3 +1099,23 @@ available event type is 'class base + 1'.
->  
->  An example on how the V4L2 events may be used can be found in the OMAP
->  3 ISP driver (drivers/media/platform/omap3isp).
-> +
-> +
-> +V4L2 clocks
-> +-----------
-> +
-> +Many subdevices, like camera sensors, TV decoders and encoders, need a clock
-> +signal to be supplied by the system. Often this clock is supplied by the
-> +respective bridge device. The Linux kernel provides a Common Clock Framework for
-> +this purpose, however, it is not (yet) available on all architectures. Besides,
-
-s/purpose, however,/purpose. However,/
-
-> +the nature of the multi-functional (clock, data + synchronisation, I2C control)
-> +connection of subdevices to the system might impose special requirements on the
-> +clock API usage. For these reasons a V4L2 clock helper API has been developed
-> +and is provided to bridge and subdevice drivers.
-> +
-> +The API consists of two parts: two functions to register and unregister a V4L2
-> +clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls to control
-> +a clock object, similar to respective generic clock API calls: v4l2_clk_get(),
-
-s/to/to the/
-
-> +v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(), v4l2_clk_get_rate(), and
-> +v4l2_clk_set_rate(). Clock suppliers have to provide clock operations, that will
-> +be called when clock users invoke respective API methods.
+> use dev_dbg() instead.
 > 
+>> +
+>> +	return 0;
+>> +}
+>> +
+>> +static int exynos_video_phy_power_on(struct phy *phy)
+>> +{
+>> +	struct exynos_video_phy *state = dev_get_drvdata(&phy->dev);
+> 
+> looks like we should have phy_get_drvdata() helper :-) Kishon ?
 
-It might be a good idea to mention that these v4l2 clocks will be replaced by the
-regular common clock framework once it is widespread enough. At least, that's my
-understanding.
+Indeed, that might be useful.
 
-Regards,
+>> +static struct phy *exynos_video_phy_xlate(struct device *dev,
+>> +					struct of_phandle_args *args)
+>> +{
+>> +	struct exynos_video_phy *state = dev_get_drvdata(dev);
+>> +
+>> +	if (WARN_ON(args->args[0] > NUM_PHYS))
+>> +		return NULL;
+> 
+> please remove this check.
 
-	Hans
+args->args[0] comes from DT as the PHY id and there is nothing
+preventing it from being greater or equal to the state->phys[]
+array length, unless I'm missing something. Actually it should
+have been 'if (args->args[0] >= NUM_PHYS)'.
+
+>> +	return state->phys[args->args[0]];
+> 
+> and your xlate is 'wrong'.
+
+What exactly is wrong here ?
+
+>> +}
+>> +
+>> +static struct phy_ops exynos_video_phy_ops = {
+>> +	.power_on	= exynos_video_phy_power_on,
+>> +	.power_off	= exynos_video_phy_power_off,
+>> +	.owner		= THIS_MODULE,
+>> +};
+>> +
+>> +static int exynos_video_phy_probe(struct platform_device *pdev)
+>> +{
+>> +	struct exynos_video_phy *state;
+>> +	struct device *dev = &pdev->dev;
+>> +	struct resource *res;
+>> +	struct phy_provider *phy_provider;
+>> +	int i;
+>> +
+>> +	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+>> +	if (!state)
+>> +		return -ENOMEM;
+>> +
+>> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>> +
+>> +	state->regs = devm_ioremap_resource(dev, res);
+>> +	if (IS_ERR(state->regs))
+>> +		return PTR_ERR(state->regs);
+>> +
+>> +	dev_set_drvdata(dev, state);
+> 
+> you can use platform_set_drvdata(pdev, state);
+
+I had it in the previous version, but changed for symmetry with
+dev_set_drvdata(). I guess those could be replaced with
+phy_{get, set}_drvdata as you suggested.
+
+> same thing though, no strong feelings.
+> 
+>> +	phy_provider = devm_of_phy_provider_register(dev,
+>> +					exynos_video_phy_xlate);
+>> +	if (IS_ERR(phy_provider))
+>> +		return PTR_ERR(phy_provider);
+>> +
+>> +	for (i = 0; i < NUM_PHYS; i++) {
+>> +		char label[8];
+>> +
+>> +		snprintf(label, sizeof(label), "%s.%d",
+>> +				i == PHY_DSIM0 || i == PHY_DSIM1 ?
+>> +				"dsim" : "csis", i / 2);
+>> +
+>> +		state->phys[i] = devm_phy_create(dev, i, &exynos_video_phy_ops,
+>> +								label, state);
+>> +		if (IS_ERR(state->phys[i])) {
+>> +			dev_err(dev, "failed to create PHY %s\n", label);
+>> +			return PTR_ERR(state->phys[i]);
+>> +		}
+>> +	}
+> 
+> this really doesn't look correct to me. It looks like you have multiple
+> PHYs, one for each ID. So your probe should be called for each PHY ID
+> and you have several phy_providers too.
+
+Yes, multiple PHY objects, but a single provider. There is no need
+whatsoever for multiple PHY providers.
+
+>> +static const struct of_device_id exynos_video_phy_of_match[] = {
+>> +	{ .compatible = "samsung,s5pv210-mipi-video-phy" },
+> 
+> and this should contain all PHY IDs:
+> 
+> 	{ .compatible = "samsung,s5pv210-mipi-video-dsim0-phy",
+> 		.data = (const void *) DSIM0, },
+> 	{ .compatible = "samsung,s5pv210-mipi-video-dsim1-phy",
+> 		.data = (const void *) DSIM1, },
+> 	{ .compatible = "samsung,s5pv210-mipi-video-csi0-phy"
+> 		.data = (const void *) CSI0, },
+> 	{ .compatible = "samsung,s5pv210-mipi-video-csi1-phy"
+> 		.data = (const void *) CSI1, },
+> 
+> then on your probe you can fetch that data field and use it as phy->id.
+
+This looks wrong to me, it doesn't look like a right usage of 'compatible'
+property. MIPI-CSIS0/MIPI-DSIM0, MIPI-CSIS1/MIPI-DSIM1 are identical pairs,
+so one compatible property would need to be used for them. We don't use
+different compatible strings for different instances of same device.
+And MIPI DSIM and MIPI CSIS share one MMIO register, so they need to be
+handled by one provider, to synchronize accesses. That's one of the main
+reasons I turned to the generic PHY framework for those devices.
+
+>> +static struct platform_driver exynos_video_phy_driver = {
+>> +	.probe	= exynos_video_phy_probe,
+> 
+> you *must* provide a remove method. drivers with NULL remove are
+> non-removable :-)
+
+Oops, my bad. I've forgotten to update this, after enabling build
+as module. Will update and test that. It will be an empty callback
+though.
+
+
+Thanks,
+Sylwester
