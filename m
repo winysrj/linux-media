@@ -1,106 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:57878 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944Ab3FWN0l (ORCPT
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:54842 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751806Ab3FYPR4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jun 2013 09:26:41 -0400
-Date: Sun, 23 Jun 2013 15:26:10 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
+	Tue, 25 Jun 2013 11:17:56 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>
+Cc: LKML <linux-kernel@vger.kernel.org>,
 	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] media: i2c: adv7343: add support for asynchronous probing
-In-Reply-To: <1371895657-2898-1-git-send-email-prabhakar.csengg@gmail.com>
-Message-ID: <Pine.LNX.4.64.1306231525060.13783@axis700.grange>
-References: <1371895657-2898-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/2] media: davinci: vpif: capture/display support for async subdevice probing
+Date: Tue, 25 Jun 2013 20:47:33 +0530
+Message-Id: <1372173455-509-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, 22 Jun 2013, Prabhakar Lad wrote:
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> Both synchronous and asynchronous adv7343 subdevice probing is supported by
-> this patch.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> ---
->  drivers/media/i2c/adv7343.c |   15 +++++++++++----
->  1 file changed, 11 insertions(+), 4 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-> index 7606218..8080c2c 100644
-> --- a/drivers/media/i2c/adv7343.c
-> +++ b/drivers/media/i2c/adv7343.c
-> @@ -27,6 +27,7 @@
->  #include <linux/uaccess.h>
->  
->  #include <media/adv7343.h>
-> +#include <media/v4l2-async.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ctrls.h>
->  
-> @@ -445,16 +446,21 @@ static int adv7343_probe(struct i2c_client *client,
->  				       ADV7343_GAIN_DEF);
->  	state->sd.ctrl_handler = &state->hdl;
->  	if (state->hdl.error) {
-> -		int err = state->hdl.error;
-> -
-> -		v4l2_ctrl_handler_free(&state->hdl);
-> -		return err;
-> +		err = state->hdl.error;
-> +		goto done;
+This patch series adds support for vpif capture and display
+driver to support asynchronously register subdevices.
 
-What does this have to do with asynchronous probing? Please, remove.
+Need for this support:
+Currently bridge device drivers register devices for all subdevices
+synchronously, typically, during their probing. E.g. if an I2C CMOS sensor
+is attached to a video bridge device, the bridge driver will create an I2C
+device and wait for the respective I2C driver to probe. This makes linking
+of devices straight forward, but this approach cannot be used with
+intrinsically asynchronous and unordered device registration systems like
+the Flattened Device Tree.
 
->  	}
->  	v4l2_ctrl_handler_setup(&state->hdl);
->  
->  	err = adv7343_initialize(&state->sd);
->  	if (err)
-> +		goto done;
-> +
-> +	err = v4l2_async_register_subdev(&state->sd);
-> +
-> +done:
+This is the NON RFC version, following are previous RFC versions,
+RFC V1: http://us.generation-nt.com/answer/patch-rfc-0-3-vpif-capture-support-async-subdevice-probing-help-210037922.html
+RFC V2: https://lkml.org/lkml/2013/4/22/159
+RFC V3: http://lkml.indiana.edu/hypermail/linux/kernel/1305.1/03180.html
 
-This label won't be needed then either.
+Lad, Prabhakar (2):
+  media: davinci: vpif: capture: add V4L2-async support
+  media: davinci: vpif: display: add V4L2-async support
 
-Thanks
-Guennadi
+ drivers/media/platform/davinci/vpif_capture.c |  151 ++++++++++++------
+ drivers/media/platform/davinci/vpif_capture.h |    2 +
+ drivers/media/platform/davinci/vpif_display.c |  210 +++++++++++++++----------
+ drivers/media/platform/davinci/vpif_display.h |    3 +-
+ include/media/davinci/vpif_types.h            |    4 +
+ 5 files changed, 239 insertions(+), 131 deletions(-)
 
-> +	if (err < 0)
->  		v4l2_ctrl_handler_free(&state->hdl);
-> +
->  	return err;
->  }
->  
-> @@ -463,6 +469,7 @@ static int adv7343_remove(struct i2c_client *client)
->  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
->  	struct adv7343_state *state = to_state(sd);
->  
-> +	v4l2_async_unregister_subdev(&state->sd);
->  	v4l2_device_unregister_subdev(sd);
->  	v4l2_ctrl_handler_free(&state->hdl);
->  
-> -- 
-> 1.7.9.5
-> 
+-- 
+1.7.9.5
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
