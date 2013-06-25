@@ -1,52 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4140 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754523Ab3FCJhN (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 3 Jun 2013 05:37:13 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [RFC PATCH 03/13] sh_vou: remove current_norm
-Date: Mon,  3 Jun 2013 11:36:40 +0200
-Message-Id: <1370252210-4994-4-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370252210-4994-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:57209 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751461Ab3FYJRV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jun 2013 05:17:21 -0400
+MIME-Version: 1.0
+In-Reply-To: <201306240951.07426.hverkuil@xs4all.nl>
+References: <1371913383-25088-1-git-send-email-prabhakar.csengg@gmail.com> <201306240951.07426.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 25 Jun 2013 14:46:59 +0530
+Message-ID: <CA+V-a8v7Lryu1VQ5Qygugr23FfNvrktz_CAm=ZPyrgEX63u1zw@mail.gmail.com>
+Subject: Re: [PATCH RFC v3] media: OF: add video sync endpoint property
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Hans,
 
-The current_norm field is deprecated and is replaced by g_std. This driver
-already implements g_std, so just remove current_norm.
+On Mon, Jun 24, 2013 at 1:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Prabhakar,
+>
+> On Sat June 22 2013 17:03:03 Prabhakar Lad wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+[snip]
+>> +#ifndef _DT_BINDINGS_VIDEO_INTERFACES_H
+>> +#define _DT_BINDINGS_VIDEO_INTERFACES_H
+>> +
+>> +#define V4L2_MBUS_VIDEO_SEPARATE_SYNC                (1 << 2)
+>> +#define V4L2_MBUS_VIDEO_COMPOSITE_SYNC               (1 << 3)
+>> +#define V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE    (1 << 4)
+>
+> What on earth is the difference between "COMPOSITE_SYNC" and "SYNC_ON_COMPOSITE"?!
+>
+This link http://en.wikipedia.org/wiki/Component_video_sync
+would give a better explanation about it.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/sh_vou.c |    3 +--
- 1 file changed, 1 insertion(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-index 7d02350..84625fa 100644
---- a/drivers/media/platform/sh_vou.c
-+++ b/drivers/media/platform/sh_vou.c
-@@ -1313,7 +1313,6 @@ static const struct video_device sh_vou_video_template = {
- 	.fops		= &sh_vou_fops,
- 	.ioctl_ops	= &sh_vou_ioctl_ops,
- 	.tvnorms	= V4L2_STD_525_60, /* PAL only supported in 8-bit non-bt656 mode */
--	.current_norm	= V4L2_STD_NTSC_M,
- 	.vfl_dir	= VFL_DIR_TX,
- };
- 
-@@ -1352,7 +1351,7 @@ static int sh_vou_probe(struct platform_device *pdev)
- 	pix = &vou_dev->pix;
- 
- 	/* Fill in defaults */
--	vou_dev->std		= sh_vou_video_template.current_norm;
-+	vou_dev->std		= V4L2_STD_NTSC_M;
- 	rect->left		= 0;
- 	rect->top		= 0;
- 	rect->width		= VOU_MAX_IMAGE_WIDTH;
--- 
-1.7.10.4
-
+Regards,
+--Prabhakar Lad
