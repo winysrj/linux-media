@@ -1,67 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:49794 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751132Ab3FJOzy (ORCPT
+Received: from sun01.kosice2013.sk ([88.212.11.22]:51268 "EHLO
+	sun01.kosice2013.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750794Ab3FYMu7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 10:55:54 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MO600I81MT3P7E0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 10 Jun 2013 23:55:53 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: laurent.pinchart@ideasonboard.com, sakari.ailus@iki.fi,
-	kyungmin.park@samsung.com, a.hajda@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC PATCH v3 0/2] Media entity links handling
-Date: Mon, 10 Jun 2013 16:54:28 +0200
-Message-id: <1370876070-23699-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
-References: <1370876070-23699-1-git-send-email-s.nawrocki@samsung.com>
+	Tue, 25 Jun 2013 08:50:59 -0400
+Date: Tue, 25 Jun 2013 12:18:54 +0200 (CEST)
+From: "UBS AG" <info@ubs.com>
+MIME-Version: 1.0
+To: undisclosed-recipients:;
+Message-ID: <1707.41.138.177.157.1372155534.squirrel@webmail.kosice2013.sk>
+Content-Type: text/plain;charset=utf-8
+Content-Transfer-Encoding: 8bit
+Subject: =?utf-8?B?VUJTIEJlbmFjaHJpY2h0aWd1bmcgLSBJaHJlIEludGVybmV0LUJhbmtpbmcg?=
+ =?utf-8?B?Z2VzcGVycnTigI/igI/igI/igI8=?=
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is an updated version of the patch set
-http://www.spinics.net/lists/linux-media/msg64536.html
 
-Comparing to v2 it includes improvements of the __media_entity_remove_links()
-function, thanks to Sakari. 
 
-The cover letter of v2 is included below.
 
-This small patch set adds a function for removing all links at a media
-entity. I found out such a function is needed when media entites that
-belong to a single media device have drivers in different kernel modules.
-This means virtually all camera drivers, since sensors are separate
-modules from the host interface drivers.
 
-More details can be found at each patch's description.
+Sehr geehrter Kunde,
 
-The links removal from a media entity is rather strightforward, but when
-and where links should be created/removed is not immediately clear to me.
+Kürzlich zeigen unsere Aufzeichnungen, dass Ihr UBS-Konto möglich durch
+einen Dritten unbefugten Zutritt.
 
-I assumed that links should normally be created/removed when an entity
-is registered to its media device, with the graph mutex held.
+Die Sicherheit Ihres Kontos ist unser wichtigstes Anliegen, deshalb haben
+wir beschlossen,
+den Zugang zu Ihrem Konto vorübergehend zu begrenzen. Für den vollen
+Zugang zu Ihrem
+Konto, Sie müssen Ihre Daten wiederherstellen und bestätigen Sie Ihr Konto
+über diesen Link:
+http://carolsproductsonline.org/kch/deu.html?login&locale=de-CH
 
-I'm open to opinions whether it's good or not and possibly suggestions
-on how those issues could be handled differently.
+Sobald Ihre Angaben überprüft und bestätigt, erhalten Sie eine Nachricht
+von uns erhalten und wird Ihr Konto komplett zugreifen wiederhergestellt.
+Wir danken Ihnen für Ihre Kooperation.
 
-The changes since original version are listed in patch 1/2, in patch 2/2
-only the commit description has changed slightly.
+Mit freundlichen Grüßen,
+UBS AG
+Bahnhofstrasse 45 8001 Zurich
 
-Thanks,
-Sylwester
-
-Sylwester Nawrocki (2):
-  media: Add a function removing all links of a media entity
-  V4L: Remove all links of a media entity when unregistering subdev
-
- drivers/media/media-entity.c          |   50 +++++++++++++++++++++++++++++++++
- drivers/media/v4l2-core/v4l2-device.c |    4 ++-
- include/media/media-entity.h          |    3 ++
- 3 files changed, 56 insertions(+), 1 deletion(-)
-
--- 
-1.7.9.5
+UBS AG    CH-8098 Zurich
+SWIFT (BIC):    UBSWCHZH
+BIC: UBSWCHZH80A
 
