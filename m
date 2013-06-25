@@ -1,45 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:2005 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030362Ab3FTU2Y (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:31307 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752163Ab3FYKu3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 16:28:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 25 Jun 2013 06:50:29 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOY00BC53FYLH40@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Jun 2013 19:50:29 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	Vladimir Barinov <source@cogentembedded.com>
-Subject: [REVIEW PATCH 1/3] ml86v7667: fix compiler warning
-Date: Thu, 20 Jun 2013 22:28:14 +0200
-Message-Id: <1371760096-19256-1-git-send-email-hverkuil@xs4all.nl>
+Cc: kyungmin.park@samsung.com, a.hajda@samsung.com,
+	j.anaszewski@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v2 2/6] exynos4-is: Set valid initial format at FIMC-LITE
+Date: Tue, 25 Jun 2013 12:48:13 +0200
+Message-id: <1372157297-29195-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1372157297-29195-1-git-send-email-s.nawrocki@samsung.com>
+References: <1372157297-29195-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Ensure the image resolution and crop rectangle on the FIMC-LITE.n
+subdevs and fimc-lite.n.capture video nodes is properly configured
+upon the driver's initialization.
 
-build/media_build/v4l/ml86v7667.c: In function 'ml86v7667_s_ctrl':
-build/media_build/v4l/ml86v7667.c:120:6: warning: variable 'ret' set but not used [-Wunused-but-set-variable]
-  int ret = 0;
-        ^
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Vladimir Barinov <source@cogentembedded.com>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/i2c/ml86v7667.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/media/platform/exynos4-is/fimc-lite.c |   23 ++++++++++++++++++++---
+ drivers/media/platform/exynos4-is/fimc-lite.h |    2 ++
+ 2 files changed, 22 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/ml86v7667.c b/drivers/media/i2c/ml86v7667.c
-index cd9f86e..efdc873 100644
---- a/drivers/media/i2c/ml86v7667.c
-+++ b/drivers/media/i2c/ml86v7667.c
-@@ -117,7 +117,7 @@ static int ml86v7667_s_ctrl(struct v4l2_ctrl *ctrl)
- {
- 	struct v4l2_subdev *sd = to_sd(ctrl);
- 	struct i2c_client *client = v4l2_get_subdevdata(sd);
--	int ret = 0;
-+	int ret;
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
+index 993bd79..4fa2e05 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.c
++++ b/drivers/media/platform/exynos4-is/fimc-lite.c
+@@ -1281,9 +1281,6 @@ static int fimc_lite_subdev_registered(struct v4l2_subdev *sd)
+ 	int ret;
  
- 	switch (ctrl->id) {
- 	case V4L2_CID_BRIGHTNESS:
+ 	memset(vfd, 0, sizeof(*vfd));
+-
+-	fimc->inp_frame.fmt = &fimc_lite_formats[0];
+-	fimc->out_frame.fmt = &fimc_lite_formats[0];
+ 	atomic_set(&fimc->out_path, FIMC_IO_DMA);
+ 
+ 	snprintf(vfd->name, sizeof(vfd->name), "fimc-lite.%d.capture",
+@@ -1399,6 +1396,23 @@ static const struct v4l2_ctrl_config fimc_lite_ctrl = {
+ 	.step	= 1,
+ };
+ 
++static void fimc_lite_set_default_config(struct fimc_lite *fimc)
++{
++	struct flite_frame *sink = &fimc->inp_frame;
++	struct flite_frame *source = &fimc->out_frame;
++
++	sink->fmt = &fimc_lite_formats[0];
++	sink->f_width = FLITE_DEFAULT_WIDTH;
++	sink->f_height = FLITE_DEFAULT_HEIGHT;
++
++	sink->rect.width = FLITE_DEFAULT_WIDTH;
++	sink->rect.height = FLITE_DEFAULT_HEIGHT;
++	sink->rect.left = 0;
++	sink->rect.top = 0;
++
++	*source = *sink;
++}
++
+ static int fimc_lite_create_capture_subdev(struct fimc_lite *fimc)
+ {
+ 	struct v4l2_ctrl_handler *handler = &fimc->ctrl_handler;
+@@ -1544,8 +1558,11 @@ static int fimc_lite_probe(struct platform_device *pdev)
+ 		ret = PTR_ERR(fimc->alloc_ctx);
+ 		goto err_pm;
+ 	}
++
+ 	pm_runtime_put(dev);
+ 
++	fimc_lite_set_default_config(fimc);
++
+ 	dev_dbg(dev, "FIMC-LITE.%d registered successfully\n",
+ 		fimc->index);
+ 	return 0;
+diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
+index c98f3da..7428b2d 100644
+--- a/drivers/media/platform/exynos4-is/fimc-lite.h
++++ b/drivers/media/platform/exynos4-is/fimc-lite.h
+@@ -29,6 +29,8 @@
+ #define FLITE_CLK_NAME		"flite"
+ #define FIMC_LITE_MAX_DEVS	3
+ #define FLITE_REQ_BUFS_MIN	2
++#define FLITE_DEFAULT_WIDTH	640
++#define FLITE_DEFAULT_HEIGHT	480
+ 
+ /* Bit index definitions for struct fimc_lite::state */
+ enum {
 -- 
-1.8.3.1
+1.7.9.5
 
