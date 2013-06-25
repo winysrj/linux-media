@@ -1,126 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f48.google.com ([209.85.214.48]:57456 "EHLO
-	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751562Ab3FITM1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 9 Jun 2013 15:12:27 -0400
-Received: by mail-bk0-f48.google.com with SMTP id jf17so2931917bkc.7
-        for <linux-media@vger.kernel.org>; Sun, 09 Jun 2013 12:12:26 -0700 (PDT)
-Message-ID: <51B4D396.3010808@gmail.com>
-Date: Sun, 09 Jun 2013 21:12:22 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail-ie0-f177.google.com ([209.85.223.177]:51846 "EHLO
+	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750830Ab3FYLcF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jun 2013 07:32:05 -0400
 MIME-Version: 1.0
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media@vger.kernel.org, laurent.pinchart@ideasonboard.com,
-	hj210.choi@samsung.com, arun.kk@samsung.com,
-	shaik.ameer@samsung.com, kyungmin.park@samsung.com
-Subject: Re: [REVIEW PATCH v2 10/11] media: Change media device link_notify
- behaviour
-References: <1370011047-11488-1-git-send-email-s.nawrocki@samsung.com> <1370011047-11488-11-git-send-email-s.nawrocki@samsung.com> <20130606001114.GA3103@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130606001114.GA3103@valkosipuli.retiisi.org.uk>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAAQKjZNnJRddACHzD+VF=A8vJpt9SEy2ttnS3Kw0y3hexu8dnw@mail.gmail.com>
+References: <20130617182127.GM2718@n2100.arm.linux.org.uk>
+	<007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
+	<20130618084308.GU2718@n2100.arm.linux.org.uk>
+	<008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
+	<1371548849.4276.6.camel@weser.hi.pengutronix.de>
+	<008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
+	<1371637326.4230.24.camel@weser.hi.pengutronix.de>
+	<00ae01ce6cd9$f4834630$dd89d290$%dae@samsung.com>
+	<1371645247.4230.41.camel@weser.hi.pengutronix.de>
+	<CAAQKjZNJD4HpnJQ7iE+Gez36066M6U0YQeUEdA0+UcSOKqeghg@mail.gmail.com>
+	<20130619182925.GL2718@n2100.arm.linux.org.uk>
+	<00da01ce6d81$76eb3d60$64c1b820$%dae@samsung.com>
+	<1371714427.4230.64.camel@weser.hi.pengutronix.de>
+	<00db01ce6d8f$a3c23dd0$eb46b970$%dae@samsung.com>
+	<1371723063.4114.12.camel@weser.hi.pengutronix.de>
+	<010801ce6da7$896affe0$9c40ffa0$%dae@samsung.com>
+	<1371804843.4114.49.camel@weser.hi.pengutronix.de>
+	<CAAQKjZOxOMuL3zh_yV7tU2LBcZ7oVryiKa+LgjTM5HLY+va8zQ@mail.gmail.com>
+	<1371817628.5882.13.camel@weser.hi.pengutronix.de>
+	<CAAQKjZOeskLB7n6FM+bnB8n7ecuQM5k6uANXJXo=xk979f9s9Q@mail.gmail.com>
+	<CAH3drwZVhs=odjFdB_Mf+K0JLT5NSSbz5mP9aOS=5fx-PVdzSg@mail.gmail.com>
+	<CAAQKjZNnJRddACHzD+VF=A8vJpt9SEy2ttnS3Kw0y3hexu8dnw@mail.gmail.com>
+Date: Tue, 25 Jun 2013 07:32:03 -0400
+Message-ID: <CAF6AEGsBvZbcWDbX3FFtyDxFO1NqYNRLqHEUyP4qUD9wK+ARbA@mail.gmail.com>
+Subject: Re: [RFC PATCH] dmabuf-sync: Introduce buffer synchronization framework
+From: Rob Clark <robdclark@gmail.com>
+To: Inki Dae <daeinki@gmail.com>
+Cc: Jerome Glisse <j.glisse@gmail.com>,
+	linux-fbdev <linux-fbdev@vger.kernel.org>,
+	Russell King - ARM Linux <linux@arm.linux.org.uk>,
+	DRI mailing list <dri-devel@lists.freedesktop.org>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	"myungjoo.ham" <myungjoo.ham@samsung.com>,
+	YoungJun Cho <yj44.cho@samsung.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"linux-arm-kernel@lists.infradead.org"
+	<linux-arm-kernel@lists.infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On 06/06/2013 02:11 AM, Sakari Ailus wrote:
-> Hi Sylwester,
->
-> Thanks for the patch!
-
-And thanks for taking time to review!
-
-> On Fri, May 31, 2013 at 04:37:26PM +0200, Sylwester Nawrocki wrote:
-> ...
->> @@ -547,25 +547,17 @@ int __media_entity_setup_link(struct media_link *link, u32 flags)
+On Tue, Jun 25, 2013 at 5:09 AM, Inki Dae <daeinki@gmail.com> wrote:
+>> that
+>> should be the role of kernel memory management which of course needs
+>> synchronization btw A and B. But in no case this should be done using
+>> dma-buf. dma-buf is for sharing content btw different devices not
+>> sharing resources.
 >>
->>   	mdev = source->parent;
->>
->> -	if ((flags&  MEDIA_LNK_FL_ENABLED)&&  mdev->link_notify) {
->> -		ret = mdev->link_notify(link->source, link->sink,
->> -					MEDIA_LNK_FL_ENABLED);
->> +	if (mdev->link_notify) {
->> +		ret = mdev->link_notify(link, flags,
->> +					MEDIA_DEV_NOTIFY_PRE_LINK_CH);
->>   		if (ret<  0)
->>   			return ret;
->>   	}
->>
->>   	ret = __media_entity_setup_link_notify(link, flags);
->> -	if (ret<  0)
->> -		goto err;
->>
->> -	if (!(flags&  MEDIA_LNK_FL_ENABLED)&&  mdev->link_notify)
->> -		mdev->link_notify(link->source, link->sink, 0);
->> -
->> -	return 0;
->> -
->> -err:
->> -	if ((flags&  MEDIA_LNK_FL_ENABLED)&&  mdev->link_notify)
->> -		mdev->link_notify(link->source, link->sink, 0);
->> +	if (mdev->link_notify)
->> +		mdev->link_notify(link, flags, MEDIA_DEV_NOTIFY_POST_LINK_CH);
 >
-> This changes the behaviour of link_notify() so that the flags will be the
-> same independently of whether there was an error. I wonder if that's
-> intentional.
+> hmm, is that true? And are you sure? Then how do you think about
+> reservation? the reservation also uses dma-buf with same reason as long as I
+> know: actually, we use reservation to use dma-buf. As you may know, a
+> reservation object is allocated and initialized when a buffer object is
+> exported to a dma buf.
 
-Yes, that's intentional. However I failed to update the omap3isp driver
-link_notify handler properly to handle the link set up error case. I'll
-correct that in next iteration.
+no, this is why the reservation object can be passed in when you
+construction the dmabuf.  The fallback is for dmabuf to create it's
+own, for compatibility and to make life easier for simple devices with
+few buffers... but I think pretty much all drm drivers would embed the
+reservation object in the gem buffer and pass it in when the dmabuf is
+created.
 
-> I'd think that in the case of error the flags wouldn't change from what they
-> were, i.e. the flags argument would be "link->flags" instead of "flags".
+It is pretty much imperative that synchronization works independently
+of dmabuf, you really don't want to have two different cases to deal
+with in your driver, one for synchronizing non-exported objects, and
+one for synchronizing dmabuf objects.
 
-The idea was to allow the link_notify handler to determine when link state
-change succeeded, and when not. So the 'flags' link_notify() argument
-indicates what was the intended state, while the actual state can be
-determined by checking link->flags.
-
-I considered not introducing the 'notification' argument and just comparing
-'flags' and 'link->flags', but those look same before and after a call to
-__media_entity_setup_link_notify() in error case.
-
->>   	return ret;
->>   }
->
-> ...
->
->> diff --git a/include/media/media-device.h b/include/media/media-device.h
->> index eaade98..353c4ee 100644
->> --- a/include/media/media-device.h
->> +++ b/include/media/media-device.h
->> @@ -45,6 +45,7 @@ struct device;
->>    * @entities:	List of registered entities
->>    * @lock:	Entities list lock
->>    * @graph_mutex: Entities graph operation lock
->> + * @link_notify: Link state change notification callback
->>    *
->>    * This structure represents an abstract high-level media device. It allows easy
->>    * access to entities and provides basic media device-level support. The
->> @@ -75,10 +76,14 @@ struct media_device {
->>   	/* Serializes graph operations. */
->>   	struct mutex graph_mutex;
->>
->> -	int (*link_notify)(struct media_pad *source,
->> -			   struct media_pad *sink, u32 flags);
->> +	int (*link_notify)(struct media_link *link, unsigned int flags,
->> +			   unsigned int notification);
->
-> media_link->flags is unsigned long. The patch doesn't break anything, but it
-> switches from u32/unsigned long to unsigned int/unsigned long for the field.
->
-> How about making media_link->flags unsigned int (or unsigned long) at the
-> same time, or not changing it? This could be fixed in a separate patch as
-> well (which I'm not necessarily expect from you now). There are probably a
-> number of places that would need to be changed.
-
-Hmm, OK, I'll revert this 'flags' type change. I guess it's best to use
-'unsigned int' all over, but I'll leave it out for a separate patch, for
-someone to write. :)
-
-
-Thanks,
-Sylwester
+BR,
+-R
