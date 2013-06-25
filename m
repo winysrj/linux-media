@@ -1,396 +1,355 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f45.google.com ([209.85.214.45]:43366 "EHLO
-	mail-bk0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752287Ab3FWUxQ (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:44621 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752471Ab3FYKdy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jun 2013 16:53:16 -0400
-Received: by mail-bk0-f45.google.com with SMTP id je9so3953688bkc.32
-        for <linux-media@vger.kernel.org>; Sun, 23 Jun 2013 13:53:15 -0700 (PDT)
-Message-ID: <51C76037.8050106@gmail.com>
-Date: Sun, 23 Jun 2013 22:53:11 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
-CC: linux-media@vger.kernel.org, k.debski@samsung.com,
-	jtp.park@samsung.com, s.nawrocki@samsung.com, hverkuil@xs4all.nl,
-	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
-Subject: Re: [PATCH v2 7/8] [media] V4L: Add VP8 encoder controls
-References: <1371560183-23244-1-git-send-email-arun.kk@samsung.com> <1371560183-23244-8-git-send-email-arun.kk@samsung.com>
-In-Reply-To: <1371560183-23244-8-git-send-email-arun.kk@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Tue, 25 Jun 2013 06:33:54 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MOY008OL2O1QT30@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Jun 2013 19:33:52 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v3 8/8] [media] s5p-mfc: Add support for VP8 encoder
+Date: Tue, 25 Jun 2013 16:27:15 +0530
+Message-id: <1372157835-27663-9-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
+References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+MFC v7 supports VP8 encoding and this patch adds support
+for it in the driver.
 
-On 06/18/2013 02:56 PM, Arun Kumar K wrote:
-> This patch adds new V4L controls for VP8 encoding.
->
-> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
-> Signed-off-by: Kiran AVND<avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c |    3 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |   19 ++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   90 ++++++++++++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c |   90 +++++++++++++++++++++++
+ 4 files changed, 200 insertions(+), 2 deletions(-)
 
-I think your signed-off-by should be last one, since you're submitting
-the patch.
-
-> ---
->   Documentation/DocBook/media/v4l/controls.xml |  151 ++++++++++++++++++++++++++
->   drivers/media/v4l2-core/v4l2-ctrls.c         |   36 ++++++
->   include/uapi/linux/v4l2-controls.h           |   28 ++++-
->   3 files changed, 213 insertions(+), 2 deletions(-)
->
-> diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-> index 8d7a779..cd87000 100644
-> --- a/Documentation/DocBook/media/v4l/controls.xml
-> +++ b/Documentation/DocBook/media/v4l/controls.xml
-> @@ -3009,6 +3009,156 @@ in by the application. 0 = do not insert, 1 = insert packets.</entry>
->   	</tgroup>
->   	</table>
->         </section>
-> +
-> +<section>
-> +<title>VPX Control Reference</title>
-> +
-> +<para>The VPX controls include controls for encoding parameters
-> +      of VPx video codec.</para>
-> +
-> +<table pgwide="1" frame="none" id="vpx-control-id">
-> +<title>VPX Control IDs</title>
-> +
-> +<tgroup cols="4">
-> +<colspec colname="c1" colwidth="1*" />
-> +<colspec colname="c2" colwidth="6*" />
-> +<colspec colname="c3" colwidth="2*" />
-> +<colspec colname="c4" colwidth="6*" />
-> +<spanspec namest="c1" nameend="c2" spanname="id" />
-> +<spanspec namest="c2" nameend="c4" spanname="descr" />
-> +<thead>
-> +<row>
-> +<entry spanname="id" align="left">ID</entry>
-> +<entry align="left">Type</entry>
-> +</row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-> +</row>
-> +</thead>
-> +<tbody valign="top">
-> +<row><entry></entry></row>
-> +
-> +	<row><entry></entry></row>
-> +	<row id="v4l2-vpx-num-partitions">
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_NUM_PARTITIONS</constant>&nbsp;</entry>
-
-What is this '&nbsp;' at the end of an entry needed for ? I can see lots
-of similar ones elsewhere in this patch.
-
-> +		<entry>enum&nbsp;v4l2_vp8_num_partitions</entry>
-> +	</row>
-> +	<row><entry spanname="descr">The number of token partitions to use in VP8 encoder.
-> +Possible values are:</entry>
-> +	</row>
-> +	<row>
-> +		<entrytbl spanname="descr" cols="2">
-> +		<tbody valign="top">
-> +		<row>
-> +		<entry><constant>V4L2_VPX_1_PARTITION</constant>&nbsp;</entry>
-> +		<entry>1 coefficient partition</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_VPX_2_PARTITIONS</constant>&nbsp;</entry>
-> +		<entry>2 partitions</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_VPX_4_PARTITIONS</constant>&nbsp;</entry>
-> +		<entry>4 partitions</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_VPX_8_PARTITIONS</constant>&nbsp;</entry>
-> +		<entry>8 partitions</entry>
-> +	</row>
-> +</tbody>
-> +		</entrytbl>
-> +	</row>
-> +
-> +	<row><entry></entry></row>
-> +	<row>
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_IMD_DISABLE_4X4</constant>&nbsp;</entry>
-> +		<entry>boolean</entry>
-> +	</row>
-> +	<row><entry spanname="descr">Setting this prevents intra 4x4 mode in the intra mode decision.</entry>
-> +	</row>
-> +
-> +	<row><entry></entry></row>
-> +	<row id="v4l2-vpx-num-ref-frames">
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_NUM_REF_FRAMES</constant>&nbsp;</entry>
-> +		<entry>enum&nbsp;v4l2_vp8_num_ref_frames</entry>
-> +	</row>
-> +	<row><entry spanname="descr">The number of reference pictures for encoding P frames.
-> +Possible values are:</entry>
-> +	</row>
-> +	<row>
-> +		<entrytbl spanname="descr" cols="2">
-> +		<tbody valign="top">
-> +		<row>
-> +		<entry><constant>V4L2_VPX_1_REF_FRAME</constant>&nbsp;</entry>
-> +		<entry>Last encoded frame will be searched</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_VPX_2_REF_FRAME</constant>&nbsp;</entry>
-> +		<entry>Two frames would be searched among last encoded frame, golden frame
-> +and altref frame. Encoder implementation can decide which two are chosen.</entry>
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_VPX_3_REF_FRAME</constant>&nbsp;</entry>
-> +		<entry>The last encoded frame, golden frame and altref frame will be searched.</entry>
-> +		</row>
-> +</tbody>
-> +		</entrytbl>
-> +	</row>
-> +
-> +	<row><entry></entry></row>
-> +	<row>
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_FILTER_LEVEL</constant>&nbsp;</entry>
-> +		<entry>integer</entry>
-> +	</row>
-> +	<row><entry spanname="descr">Indicates the loop filter level. The adjustment of loop
-> +filter level is done via a delta value against a baseline loop filter value.</entry>
-> +	</row>
-> +
-> +	<row><entry></entry></row>
-> +	<row>
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_FILTER_SHARPNESS</constant>&nbsp;</entry>
-> +		<entry>integer</entry>
-> +	</row>
-> +	<row><entry spanname="descr">This parameter affects the loop filter. Anything above
-> +zero weakens the deblocking effect on loop filter.</entry>
-> +	</row>
-> +
-> +	<row><entry></entry></row>
-> +	<row>
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD</constant>&nbsp;</entry>
-> +		<entry>integer</entry>
-> +	</row>
-> +	<row><entry spanname="descr">Sets the refresh period for golden frame. Period is defined
-> +in number of frames. For a value of 'n', every nth frame will be taken as golden frame.</entry>
-> +	</row>
-> +
-> +	<row><entry></entry></row>
-> +	<row id="v4l2-vpx-golden-frame-sel">
-> +		<entry spanname="id"><constant>V4L2_CID_VPX_GOLDEN_FRAME_SEL</constant>&nbsp;</entry>
-> +		<entry>enum&nbsp;v4l2_vp8_golden_frame_sel</entry>
-> +	</row>
-> +	<row><entry spanname="descr">Selects the golden frame for encoding.
-> +Possible values are:</entry>
-> +	</row>
-> +	<row>
-> +		<entrytbl spanname="descr" cols="2">
-> +		<tbody valign="top">
-> +		<row>
-> +		<entry><constant>V4L2_VPX_GOLDEN_FRAME_USE_PREV</constant>&nbsp;</entry>
-> +		<entry>Use the previous second frame (last to last frame) as a golden frame</entry>
-
-I can't understand what this means exactly. But this could be just my bad
-English skills... ;)
-
-> +		</row>
-> +		<row>
-> +		<entry><constant>V4L2_VPX_GOLDEN_FRAME_USE_REF_PERIOD</constant>&nbsp;</entry>
-> +		<entry>Use the previous specific frame indicated by V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame</entry>
-> +		</row>
-> +</tbody>
-> +		</entrytbl>
-> +	</row>
-> +
-> +<row><entry></entry></row>
-> +</tbody>
-> +</tgroup>
-> +</table>
-> +
-> +</section>
->       </section>
->
->       <section id="camera-controls">
-> @@ -4772,4 +4922,5 @@ defines possible values for de-emphasis. Here they are:</entry>
->         </table>
->
->         </section>
-> +
-
-Unnecessary change ?
-
->   </section>
-> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-> index 3cb1cff..2a4413b 100644
-> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
-> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-> @@ -424,6 +424,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->   		NULL,
->   	};
->
-> +	static const char * const vpx_golden_frame_sel[] = {
-> +		"Use Previous Frame",
-> +		"Use Frame Indicated By GOLDEN_FRAME_REF_PERIOD",
-
-That name is too long, look at VIDIOC_QUERYMENU ioctl specification [1] what
-a capacity of the menu item name storage is.
-
-[1] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-queryctrl.html
-
-> +		NULL,
-> +	};
-> +
->   	static const char * const flash_led_mode[] = {
->   		"Off",
->   		"Flash",
-> @@ -538,6 +544,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->   		return mpeg_mpeg4_level;
->   	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
->   		return mpeg4_profile;
-> +	case V4L2_CID_VPX_GOLDEN_FRAME_SEL:
-> +		return vpx_golden_frame_sel;
->   	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
->   		return jpeg_chroma_subsampling;
->   	case V4L2_CID_DV_TX_MODE:
-> @@ -558,7 +566,23 @@ EXPORT_SYMBOL(v4l2_ctrl_get_menu);
->    */
->   const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
->   {
-> +#define V4L2_INT_MENU_RETURN(qmenu) \
-> +	do { *len = ARRAY_SIZE(qmenu); return qmenu; } while (0)
-
-How about using something along the lines of:
-
-#define __v4l2_qmenu_int_len(arr, len) ({ *(len) = ARRAY_SIZE(arr); arr; })
-
-? And also moving it out of the function, above ?
-
-The main problem with your macro is that contains a return statement. But
-also relies on a specific variable name.
-
-In Documentation/CodingStyle we read:
-
-" ...
-Things to avoid when using macros:
-
-1) macros that affect control flow:
-
-#define FOO(x)                                  \
-         do {                                    \
-                 if (blah(x) < 0)                \
-                         return -EBUGGERED;      \
-         } while(0)
-
-is a _very_ bad idea.  It looks like a function call but exits the "calling"
-function; don't break the internal parsers of those who will read the code.
-
-2) macros that depend on having a local variable with a magic name:
-
-#define FOO(val) bar(index, val)
-
-might look like a good thing, but it's confusing as hell when one reads the
-code and it's prone to breakage from seemingly innocent changes.
-...
-"
-
-> +	static const s64 const qmenu_int_vpx_num_partitions[] = {
-> +		1, 2, 4, 8,
-> +	};
-> +
-> +	static const s64 const qmenu_int_vpx_num_ref_frames[] = {
-> +		1, 2, 3,
-> +	};
-> +
->   	switch (id) {
-> +	case V4L2_CID_VPX_NUM_PARTITIONS:
-> +		V4L2_INT_MENU_RETURN(qmenu_int_vpx_num_partitions);
-
-Then this would became:
-
-	return __v4l2_qmenu_int_len(qmenu_int_vpx_num_partitions, &len);
-
-> +	case V4L2_CID_VPX_NUM_REF_FRAMES:
-> +		V4L2_INT_MENU_RETURN(qmenu_int_vpx_num_ref_frames);
-
-Ditto.
-
->   	default:
->   		*len = 0;
->   		return NULL;
-> @@ -714,6 +738,15 @@ const char *v4l2_ctrl_get_name(u32 id)
->   	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "Initial Delay for VBV Control";
->   	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
->
-> +	/* VPX controls */
-> +	case V4L2_CID_VPX_NUM_PARTITIONS:			return "VPX Number of partitions";
-> +	case V4L2_CID_VPX_IMD_DISABLE_4X4:			return "VPX Intra mode decision disable";
-> +	case V4L2_CID_VPX_NUM_REF_FRAMES:			return "VPX No. of refs for P frame";
-> +	case V4L2_CID_VPX_FILTER_LEVEL:				return "VPX Loop filter level range";
-> +	case V4L2_CID_VPX_FILTER_SHARPNESS:			return "VPX Deblocking effect control";
-> +	case V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD:		return "VPX Golden frame refresh period";
-> +	case V4L2_CID_VPX_GOLDEN_FRAME_SEL:			return "VPX Golden frame indicator";
-> +
->   	/* CAMERA controls */
->   	/* Keep the order of the 'case's the same as in videodev2.h! */
->   	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-> @@ -929,6 +962,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->   	case V4L2_CID_DV_RX_RGB_RANGE:
->   	case V4L2_CID_TEST_PATTERN:
->   	case V4L2_CID_TUNE_DEEMPHASIS:
-> +	case V4L2_CID_VPX_GOLDEN_FRAME_SEL:
->   		*type = V4L2_CTRL_TYPE_MENU;
->   		break;
->   	case V4L2_CID_LINK_FREQ:
-> @@ -940,6 +974,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
->   		break;
->   	case V4L2_CID_ISO_SENSITIVITY:
->   	case V4L2_CID_AUTO_EXPOSURE_BIAS:
-> +	case V4L2_CID_VPX_NUM_PARTITIONS:
-> +	case V4L2_CID_VPX_NUM_REF_FRAMES:
->   		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
->   		break;
->   	case V4L2_CID_USER_CLASS:
-> diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-> index 69bd5bb..a1f6036 100644
-> --- a/include/uapi/linux/v4l2-controls.h
-> +++ b/include/uapi/linux/v4l2-controls.h
-> @@ -522,6 +522,32 @@ enum v4l2_mpeg_video_mpeg4_profile {
->   };
->   #define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
->
-> +/*  Control IDs for VP8 streams
-> + *  Though VP8 is not part of MPEG, adding it here as MPEG class is
-> + *  already handling other video compression standards */
-
-Please use proper comment style, i.e.
-
-/*
-  * Control IDs for VP8 streams.
-  * ...
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+index 5708fc3..db796c8 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c
+@@ -108,6 +108,9 @@ static int s5p_mfc_open_inst_cmd_v6(struct s5p_mfc_ctx *ctx)
+ 	case S5P_MFC_CODEC_H263_ENC:
+ 		codec_type = S5P_FIMV_CODEC_H263_ENC_V6;
+ 		break;
++	case S5P_MFC_CODEC_VP8_ENC:
++		codec_type = S5P_FIMV_CODEC_VP8_ENC_V7;
++		break;
+ 	default:
+ 		codec_type = S5P_FIMV_CODEC_NONE_V6;
+ 	};
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index 17545d7..6920b54 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -65,7 +65,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
+ #define MFC_ENC_CAP_PLANE_COUNT	1
+ #define MFC_ENC_OUT_PLANE_COUNT	2
+ #define STUFF_BYTE		4
+-#define MFC_MAX_CTRLS		70
++#define MFC_MAX_CTRLS		77
+ 
+ #define S5P_MFC_CODEC_NONE		-1
+ #define S5P_MFC_CODEC_H264_DEC		0
+@@ -81,6 +81,7 @@ static inline dma_addr_t s5p_mfc_mem_cookie(void *a, void *b)
+ #define S5P_MFC_CODEC_H264_MVC_ENC	21
+ #define S5P_MFC_CODEC_MPEG4_ENC		22
+ #define S5P_MFC_CODEC_H263_ENC		23
++#define S5P_MFC_CODEC_VP8_ENC		24
+ 
+ #define S5P_MFC_R2H_CMD_EMPTY			0
+ #define S5P_MFC_R2H_CMD_SYS_INIT_RET		1
+@@ -409,6 +410,21 @@ struct s5p_mfc_mpeg4_enc_params {
+ };
+ 
+ /**
++ * struct s5p_mfc_vp8_enc_params - encoding parameters for vp8
++ */
++struct s5p_mfc_vp8_enc_params {
++	u8 imd_4x4;
++	enum v4l2_vp8_num_partitions num_partitions;
++	enum v4l2_vp8_num_ref_frames num_ref;
++	u8 filter_level;
++	u8 filter_sharpness;
++	u32 golden_frame_ref_period;
++	enum v4l2_vp8_golden_frame_sel golden_frame_sel;
++	u8 hier_layer;
++	u8 hier_layer_qp[3];
++};
++
++/**
+  * struct s5p_mfc_enc_params - general encoding parameters
   */
+ struct s5p_mfc_enc_params {
+@@ -442,6 +458,7 @@ struct s5p_mfc_enc_params {
+ 	struct {
+ 		struct s5p_mfc_h264_enc_params h264;
+ 		struct s5p_mfc_mpeg4_enc_params mpeg4;
++		struct s5p_mfc_vp8_enc_params vp8;
+ 	} codec;
+ 
+ };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index dd57b06..f07c39f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -84,6 +84,13 @@ static struct s5p_mfc_fmt formats[] = {
+ 		.type		= MFC_FMT_ENC,
+ 		.num_planes	= 1,
+ 	},
++	{
++		.name		= "VP8 Encoded Stream",
++		.fourcc		= V4L2_PIX_FMT_VP8,
++		.codec_mode	= S5P_MFC_CODEC_VP8_ENC,
++		.type		= MFC_FMT_ENC,
++		.num_planes	= 1,
++	},
+ };
+ 
+ #define NUM_FORMATS ARRAY_SIZE(formats)
+@@ -557,6 +564,60 @@ static struct mfc_control controls[] = {
+ 		.step = 1,
+ 		.default_value = 0,
+ 	},
++	{
++		.id = V4L2_CID_VPX_NUM_PARTITIONS,
++		.type = V4L2_CTRL_TYPE_INTEGER_MENU,
++		.maximum = V4L2_VPX_8_PARTITIONS,
++		.default_value = V4L2_VPX_1_PARTITION,
++		.menu_skip_mask = 0,
++	},
++	{
++		.id = V4L2_CID_VPX_IMD_DISABLE_4X4,
++		.type = V4L2_CTRL_TYPE_BOOLEAN,
++		.minimum = 0,
++		.maximum = 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_VPX_NUM_REF_FRAMES,
++		.type = V4L2_CTRL_TYPE_INTEGER_MENU,
++		.maximum = V4L2_VPX_2_REF_FRAME,
++		.default_value = V4L2_VPX_1_REF_FRAME,
++		.menu_skip_mask = 0,
++	},
++	{
++		.id = V4L2_CID_VPX_FILTER_LEVEL,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 63,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_VPX_FILTER_SHARPNESS,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = 7,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD,
++		.type = V4L2_CTRL_TYPE_INTEGER,
++		.minimum = 0,
++		.maximum = (1 << 16) - 1,
++		.step = 1,
++		.default_value = 0,
++	},
++	{
++		.id = V4L2_CID_VPX_GOLDEN_FRAME_SEL,
++		.type = V4L2_CTRL_TYPE_MENU,
++		.minimum = V4L2_VPX_GOLDEN_FRAME_USE_PREV,
++		.maximum = V4L2_VPX_GOLDEN_FRAME_USE_REF_PERIOD,
++		.default_value = V4L2_VPX_GOLDEN_FRAME_USE_PREV,
++		.menu_skip_mask = 0,
++	},
+ };
+ 
+ #define NUM_CTRLS ARRAY_SIZE(controls)
+@@ -965,6 +1026,10 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("failed to set capture format\n");
+ 			return -EINVAL;
+ 		}
++		if (!IS_MFCV7(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
++			mfc_err("VP8 is supported only in MFC v7\n");
++			return -EINVAL;
++		}
+ 		ctx->state = MFCINST_INIT;
+ 		ctx->dst_fmt = fmt;
+ 		ctx->codec_mode = ctx->dst_fmt->codec_mode;
+@@ -1482,6 +1547,27 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_MPEG4_QPEL:
+ 		p->codec.mpeg4.quarter_pixel = ctrl->val;
+ 		break;
++	case V4L2_CID_VPX_NUM_PARTITIONS:
++		p->codec.vp8.num_partitions = ctrl->val;
++		break;
++	case V4L2_CID_VPX_IMD_DISABLE_4X4:
++		p->codec.vp8.imd_4x4 = ctrl->val;
++		break;
++	case V4L2_CID_VPX_NUM_REF_FRAMES:
++		p->codec.vp8.num_ref = ctrl->val;
++		break;
++	case V4L2_CID_VPX_FILTER_LEVEL:
++		p->codec.vp8.filter_level = ctrl->val;
++		break;
++	case V4L2_CID_VPX_FILTER_SHARPNESS:
++		p->codec.vp8.filter_sharpness = ctrl->val;
++		break;
++	case V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD:
++		p->codec.vp8.golden_frame_ref_period = ctrl->val;
++		break;
++	case V4L2_CID_VPX_GOLDEN_FRAME_SEL:
++		p->codec.vp8.golden_frame_sel = ctrl->val;
++		break;
+ 	default:
+ 		v4l2_err(&dev->v4l2_dev, "Invalid control, id=%d, val=%d\n",
+ 							ctrl->id, ctrl->val);
+@@ -1936,7 +2022,9 @@ int s5p_mfc_enc_ctrls_setup(struct s5p_mfc_ctx *ctx)
+ 			ctx->ctrls[i] = v4l2_ctrl_new_custom(&ctx->ctrl_handler,
+ 					&cfg, NULL);
+ 		} else {
+-			if (controls[i].type == V4L2_CTRL_TYPE_MENU) {
++			if ((controls[i].type == V4L2_CTRL_TYPE_MENU) ||
++				(controls[i].type ==
++					V4L2_CTRL_TYPE_INTEGER_MENU)) {
+ 				ctx->ctrls[i] = v4l2_ctrl_new_std_menu(
+ 					&ctx->ctrl_handler,
+ 					&s5p_mfc_enc_ctrl_ops, controls[i].id,
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+index 7145ae5..e75c3bb 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c
+@@ -188,6 +188,19 @@ static int s5p_mfc_alloc_codec_buffers_v6(struct s5p_mfc_ctx *ctx)
+ 			ctx->chroma_dpb_size + ctx->me_buffer_size));
+ 		ctx->bank2.size = 0;
+ 		break;
++	case S5P_MFC_CODEC_VP8_ENC:
++		ctx->scratch_buf_size =
++			S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(
++					mb_width,
++					mb_height);
++		ctx->scratch_buf_size = ALIGN(ctx->scratch_buf_size,
++				S5P_FIMV_SCRATCH_BUFFER_ALIGN_V6);
++		ctx->bank1.size =
++			ctx->scratch_buf_size + ctx->tmv_buffer_size +
++			(ctx->pb_count * (ctx->luma_dpb_size +
++			ctx->chroma_dpb_size + ctx->me_buffer_size));
++		ctx->bank2.size = 0;
++		break;
+ 	default:
+ 		break;
+ 	}
+@@ -237,6 +250,7 @@ static int s5p_mfc_alloc_instance_buffer_v6(struct s5p_mfc_ctx *ctx)
+ 		break;
+ 	case S5P_MFC_CODEC_MPEG4_ENC:
+ 	case S5P_MFC_CODEC_H263_ENC:
++	case S5P_MFC_CODEC_VP8_ENC:
+ 		ctx->ctx.size = buf_size->other_enc_ctx;
+ 		break;
+ 	default:
+@@ -1159,6 +1173,80 @@ static int s5p_mfc_set_enc_params_h263(struct s5p_mfc_ctx *ctx)
+ 	return 0;
+ }
+ 
++static int s5p_mfc_set_enc_params_vp8(struct s5p_mfc_ctx *ctx)
++{
++	struct s5p_mfc_dev *dev = ctx->dev;
++	struct s5p_mfc_enc_params *p = &ctx->enc_params;
++	struct s5p_mfc_vp8_enc_params *p_vp8 = &p->codec.vp8;
++	unsigned int reg = 0;
++	unsigned int val = 0;
++
++	mfc_debug_enter();
++
++	s5p_mfc_set_enc_params(ctx);
++
++	/* pictype : number of B */
++	reg = READL(S5P_FIMV_E_GOP_CONFIG_V6);
++	reg &= ~(0x3 << 16);
++	reg |= ((p->num_b_frame & 0x3) << 16);
++	WRITEL(reg, S5P_FIMV_E_GOP_CONFIG_V6);
++
++	/* profile & level */
++	reg = 0;
++	/** profile */
++	reg |= (0x1 << 4);
++	WRITEL(reg, S5P_FIMV_E_PICTURE_PROFILE_V6);
++
++	/* rate control config. */
++	reg = READL(S5P_FIMV_E_RC_CONFIG_V6);
++	/** macroblock level rate control */
++	reg &= ~(0x1 << 8);
++	reg |= ((p->rc_mb & 0x1) << 8);
++	WRITEL(reg, S5P_FIMV_E_RC_CONFIG_V6);
++
++	/* frame rate */
++	if (p->rc_frame && p->rc_framerate_num && p->rc_framerate_denom) {
++		reg = 0;
++		reg |= ((p->rc_framerate_num & 0xFFFF) << 16);
++		reg |= p->rc_framerate_denom & 0xFFFF;
++		WRITEL(reg, S5P_FIMV_E_RC_FRAME_RATE_V6);
++	}
++
++	/* vbv buffer size */
++	if (p->frame_skip_mode ==
++			V4L2_MPEG_MFC51_VIDEO_FRAME_SKIP_MODE_BUF_LIMIT) {
++		WRITEL(p->vbv_size & 0xFFFF, S5P_FIMV_E_VBV_BUFFER_SIZE_V6);
++
++		if (p->rc_frame)
++			WRITEL(p->vbv_delay, S5P_FIMV_E_VBV_INIT_DELAY_V6);
++	}
++
++	/* VP8 specific params */
++	reg = 0;
++	reg |= (p_vp8->imd_4x4 & 0x1) << 10;
++	switch (p_vp8->num_partitions) {
++	case V4L2_VPX_1_PARTITION:
++		val = 0;
++		break;
++	case V4L2_VPX_2_PARTITIONS:
++		val = 2;
++		break;
++	case V4L2_VPX_4_PARTITIONS:
++		val = 4;
++		break;
++	case V4L2_VPX_8_PARTITIONS:
++		val = 8;
++		break;
++	}
++	reg |= (val & 0xF) << 3;
++	reg |= (p_vp8->num_ref & 0x2);
++	WRITEL(reg, S5P_FIMV_E_VP8_OPTIONS_V7);
++
++	mfc_debug_leave();
++
++	return 0;
++}
++
+ /* Initialize decoding */
+ static int s5p_mfc_init_decode_v6(struct s5p_mfc_ctx *ctx)
+ {
+@@ -1277,6 +1365,8 @@ static int s5p_mfc_init_encode_v6(struct s5p_mfc_ctx *ctx)
+ 		s5p_mfc_set_enc_params_mpeg4(ctx);
+ 	else if (ctx->codec_mode == S5P_MFC_CODEC_H263_ENC)
+ 		s5p_mfc_set_enc_params_h263(ctx);
++	else if (ctx->codec_mode == S5P_MFC_CODEC_VP8_ENC)
++		s5p_mfc_set_enc_params_vp8(ctx);
+ 	else {
+ 		mfc_err("Unknown codec for encoding (%x).\n",
+ 			ctx->codec_mode);
+-- 
+1.7.9.5
 
-> +#define V4L2_CID_VPX_NUM_PARTITIONS		(V4L2_CID_MPEG_BASE+500)
-> +enum v4l2_vp8_num_partitions {
-> +	V4L2_VPX_1_PARTITION	= 0,
-> +	V4L2_VPX_2_PARTITIONS	= 1,
-> +	V4L2_VPX_4_PARTITIONS	= 2,
-> +	V4L2_VPX_8_PARTITIONS	= 3,
-> +};
-> +#define V4L2_CID_VPX_IMD_DISABLE_4X4		(V4L2_CID_MPEG_BASE+501)
-> +#define V4L2_CID_VPX_NUM_REF_FRAMES		(V4L2_CID_MPEG_BASE+502)
-> +enum v4l2_vp8_num_ref_frames {
-> +	V4L2_VPX_1_REF_FRAME	= 0,
-> +	V4L2_VPX_2_REF_FRAME	= 1,
-> +	V4L2_VPX_3_REF_FRAME	= 2,
-> +};
-> +#define V4L2_CID_VPX_FILTER_LEVEL		(V4L2_CID_MPEG_BASE+503)
-> +#define V4L2_CID_VPX_FILTER_SHARPNESS		(V4L2_CID_MPEG_BASE+504)
-> +#define V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD	(V4L2_CID_MPEG_BASE+505)
-> +#define V4L2_CID_VPX_GOLDEN_FRAME_SEL		(V4L2_CID_MPEG_BASE+506)
-> +enum v4l2_vp8_golden_frame_sel {
-> +	V4L2_VPX_GOLDEN_FRAME_USE_PREV		= 0,
-> +	V4L2_VPX_GOLDEN_FRAME_USE_REF_PERIOD	= 1,
-> +};
-
-Otherwise looks good to me.
-
-
-Thanks,
-Sylwester
