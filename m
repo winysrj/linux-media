@@ -1,106 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:10306 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752907Ab3FQQeu (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:44592 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751559Ab3FYKdt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 12:34:50 -0400
-From: Tomasz Figa <t.figa@samsung.com>
-To: linux-samsung-soc@vger.kernel.org
-Cc: linux-arm-kernel@lists.infradead.org,
-	Kukjin Kim <kgene.kim@samsung.com>,
-	Arnd Bergmann <arnd@arndb.de>, Olof Johansson <olof@lixom.net>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Thomas Abraham <thomas.abraham@linaro.org>,
-	Tomasz Figa <t.figa@samsung.com>, linux-media@vger.kernel.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Kamil Debski <k.debski@samsung.com>,
-	Tomasz Stanislawski <t.stanislaws@samsung.com>,
-	Jeongtae Park <jtp.park@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH v2 17/38] [media] platform: Check for ARCH_EXYNOS separately
-Date: Mon, 17 Jun 2013 18:34:02 +0200
-Message-id: <1371486863-12398-18-git-send-email-t.figa@samsung.com>
-In-reply-to: <1371486863-12398-1-git-send-email-t.figa@samsung.com>
-References: <1371486863-12398-1-git-send-email-t.figa@samsung.com>
+	Tue, 25 Jun 2013 06:33:49 -0400
+Received: from epcpsbgr2.samsung.com
+ (u142.gpu120.samsung.co.kr [203.254.230.142])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MOY008OL2O1QT30@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Jun 2013 19:33:47 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v3 4/8] [media] s5p-mfc: Core support for MFC v7
+Date: Tue, 25 Jun 2013 16:27:11 +0530
+Message-id: <1372157835-27663-5-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
+References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-ARCH_EXYNOS is going to be excluded from PLAT_S5P, so it must be checked
-separately in Exynos-related Kconfig entries.
+Adds variant data and core support for the MFC v7 firmware
 
-Cc: linux-media@vger.kernel.org
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Kamil Debski <k.debski@samsung.com>
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.com>
-Cc: Jeongtae Park <jtp.park@samsung.com>
-Signed-off-by: Tomasz Figa <t.figa@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/platform/Kconfig            | 6 +++---
- drivers/media/platform/exynos4-is/Kconfig | 3 ++-
- drivers/media/platform/s5p-tv/Kconfig     | 2 +-
- 3 files changed, 6 insertions(+), 5 deletions(-)
+ .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |   32 ++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    2 ++
+ 3 files changed, 35 insertions(+)
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 0494d27..bce695d 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -159,7 +159,7 @@ config VIDEO_MEM2MEM_DEINTERLACE
+diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+index 67ec3d4..cb9c5bc 100644
+--- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
++++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+@@ -10,6 +10,7 @@ Required properties:
+   - compatible : value should be either one among the following
+ 	(a) "samsung,mfc-v5" for MFC v5 present in Exynos4 SoCs
+ 	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
++	(b) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
  
- config VIDEO_SAMSUNG_S5P_G2D
- 	tristate "Samsung S5P and EXYNOS4 G2D 2d graphics accelerator driver"
--	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
-+	depends on VIDEO_DEV && VIDEO_V4L2 && (PLAT_S5P || ARCH_EXYNOS)
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	default n
-@@ -169,7 +169,7 @@ config VIDEO_SAMSUNG_S5P_G2D
+   - reg : Physical base address of the IP registers and length of memory
+ 	  mapped region.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index d12faa6..d6be52f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1391,6 +1391,32 @@ static struct s5p_mfc_variant mfc_drvdata_v6 = {
+ 	.fw_name        = "s5p-mfc-v6.fw",
+ };
  
- config VIDEO_SAMSUNG_S5P_JPEG
- 	tristate "Samsung S5P/Exynos4 JPEG codec driver"
--	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
-+	depends on VIDEO_DEV && VIDEO_V4L2 && (PLAT_S5P || ARCH_EXYNOS)
- 	select VIDEOBUF2_DMA_CONTIG
- 	select V4L2_MEM2MEM_DEV
- 	---help---
-@@ -177,7 +177,7 @@ config VIDEO_SAMSUNG_S5P_JPEG
++struct s5p_mfc_buf_size_v6 mfc_buf_size_v7 = {
++	.dev_ctx	= MFC_CTX_BUF_SIZE_V7,
++	.h264_dec_ctx	= MFC_H264_DEC_CTX_BUF_SIZE_V7,
++	.other_dec_ctx	= MFC_OTHER_DEC_CTX_BUF_SIZE_V7,
++	.h264_enc_ctx	= MFC_H264_ENC_CTX_BUF_SIZE_V7,
++	.other_enc_ctx	= MFC_OTHER_ENC_CTX_BUF_SIZE_V7,
++};
++
++struct s5p_mfc_buf_size buf_size_v7 = {
++	.fw	= MAX_FW_SIZE_V7,
++	.cpb	= MAX_CPB_SIZE_V7,
++	.priv	= &mfc_buf_size_v7,
++};
++
++struct s5p_mfc_buf_align mfc_buf_align_v7 = {
++	.base = 0,
++};
++
++static struct s5p_mfc_variant mfc_drvdata_v7 = {
++	.version	= MFC_VERSION_V7,
++	.port_num	= MFC_NUM_PORTS_V7,
++	.buf_size	= &buf_size_v7,
++	.buf_align	= &mfc_buf_align_v7,
++	.fw_name        = "s5p-mfc-v7.fw",
++};
++
+ static struct platform_device_id mfc_driver_ids[] = {
+ 	{
+ 		.name = "s5p-mfc",
+@@ -1401,6 +1427,9 @@ static struct platform_device_id mfc_driver_ids[] = {
+ 	}, {
+ 		.name = "s5p-mfc-v6",
+ 		.driver_data = (unsigned long)&mfc_drvdata_v6,
++	}, {
++		.name = "s5p-mfc-v7",
++		.driver_data = (unsigned long)&mfc_drvdata_v7,
+ 	},
+ 	{},
+ };
+@@ -1413,6 +1442,9 @@ static const struct of_device_id exynos_mfc_match[] = {
+ 	}, {
+ 		.compatible = "samsung,mfc-v6",
+ 		.data = &mfc_drvdata_v6,
++	}, {
++		.compatible = "samsung,mfc-v7",
++		.data = &mfc_drvdata_v7,
+ 	},
+ 	{},
+ };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index d47016d..17545d7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -24,6 +24,7 @@
+ #include <media/videobuf2-core.h>
+ #include "regs-mfc.h"
+ #include "regs-mfc-v6.h"
++#include "regs-mfc-v7.h"
  
- config VIDEO_SAMSUNG_S5P_MFC
- 	tristate "Samsung S5P MFC Video Codec"
--	depends on VIDEO_DEV && VIDEO_V4L2 && PLAT_S5P
-+	depends on VIDEO_DEV && VIDEO_V4L2 && (PLAT_S5P || ARCH_EXYNOS)
- 	select VIDEOBUF2_DMA_CONTIG
- 	default n
- 	help
-diff --git a/drivers/media/platform/exynos4-is/Kconfig b/drivers/media/platform/exynos4-is/Kconfig
-index 6ff99b5..004fd0b 100644
---- a/drivers/media/platform/exynos4-is/Kconfig
-+++ b/drivers/media/platform/exynos4-is/Kconfig
-@@ -1,7 +1,8 @@
+ /* Definitions related to MFC memory */
  
- config VIDEO_SAMSUNG_EXYNOS4_IS
- 	bool "Samsung S5P/EXYNOS4 SoC series Camera Subsystem driver"
--	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PLAT_S5P && PM_RUNTIME
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && PM_RUNTIME
-+	depends on (PLAT_S5P || ARCH_EXYNOS)
- 	help
- 	  Say Y here to enable camera host interface devices for
- 	  Samsung S5P and EXYNOS SoC series.
-diff --git a/drivers/media/platform/s5p-tv/Kconfig b/drivers/media/platform/s5p-tv/Kconfig
-index 7b659bd..369a4c1 100644
---- a/drivers/media/platform/s5p-tv/Kconfig
-+++ b/drivers/media/platform/s5p-tv/Kconfig
-@@ -8,7 +8,7 @@
+@@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+ 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
+ #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
+ #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
++#define IS_MFCV7(dev)		(dev->variant->version >= 0x70 ? 1 : 0)
  
- config VIDEO_SAMSUNG_S5P_TV
- 	bool "Samsung TV driver for S5P platform"
--	depends on PLAT_S5P && PM_RUNTIME
-+	depends on (PLAT_S5P || ARCH_EXYNOS) && PM_RUNTIME
- 	default n
- 	---help---
- 	  Say Y here to enable selecting the TV output devices for
+ #endif /* S5P_MFC_COMMON_H_ */
 -- 
-1.8.2.1
+1.7.9.5
 
