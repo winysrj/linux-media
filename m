@@ -1,101 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f53.google.com ([209.85.220.53]:51364 "EHLO
-	mail-pa0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752534Ab3FVKQs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 22 Jun 2013 06:16:48 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH] media: i2c: tvp514x: add support for asynchronous probing
-Date: Sat, 22 Jun 2013 15:46:29 +0530
-Message-Id: <1371896189-5475-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:42736 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751250Ab3FYPJl (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jun 2013 11:09:41 -0400
+Date: Tue, 25 Jun 2013 18:09:08 +0300
+From: Felipe Balbi <balbi@ti.com>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <kishon@ti.com>,
+	<linux-media@vger.kernel.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <t.figa@samsung.com>,
+	<devicetree-discuss@lists.ozlabs.org>, <kgene.kim@samsung.com>,
+	<dh09.lee@samsung.com>, <jg1.han@samsung.com>,
+	<inki.dae@samsung.com>, <plagnioj@jcrosoft.com>,
+	<linux-fbdev@vger.kernel.org>
+Subject: Re: [PATCH v2 4/5] exynos4-is: Use generic MIPI CSIS PHY driver
+Message-ID: <20130625150908.GC21334@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
+References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
+ <1372170110-12993-4-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="VywGB/WGlW4DM4P8"
+Content-Disposition: inline
+In-Reply-To: <1372170110-12993-4-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+--VywGB/WGlW4DM4P8
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-Both synchronous and asynchronous tvp514x subdevice probing is supported by
-this patch.
+On Tue, Jun 25, 2013 at 04:21:49PM +0200, Sylwester Nawrocki wrote:
+> Use the generic PHY API instead of the platform callback to control
+> the MIPI CSIS DPHY. The 'phy_label' field is added to the platform
+> data structure to allow PHY lookup on non-dt platforms
+>=20
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 
-Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
----
- drivers/media/i2c/tvp514x.c |   22 +++++++++++++++-------
- 1 file changed, 15 insertions(+), 7 deletions(-)
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-diff --git a/drivers/media/i2c/tvp514x.c b/drivers/media/i2c/tvp514x.c
-index 864eb14..d090caf 100644
---- a/drivers/media/i2c/tvp514x.c
-+++ b/drivers/media/i2c/tvp514x.c
-@@ -36,6 +36,7 @@
- #include <linux/module.h>
- #include <linux/v4l2-mediabus.h>
- 
-+#include <media/v4l2-async.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-mediabus.h>
-@@ -1148,9 +1149,9 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	/* Register with V4L2 layer as slave device */
- 	sd = &decoder->sd;
- 	v4l2_i2c_subdev_init(sd, client, &tvp514x_ops);
--	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
- 
- #if defined(CONFIG_MEDIA_CONTROLLER)
-+	strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
- 	decoder->pad.flags = MEDIA_PAD_FL_SOURCE;
- 	decoder->sd.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
- 	decoder->sd.entity.flags |= MEDIA_ENT_T_V4L2_SUBDEV_DECODER;
-@@ -1176,16 +1177,22 @@ tvp514x_probe(struct i2c_client *client, const struct i2c_device_id *id)
- 	sd->ctrl_handler = &decoder->hdl;
- 	if (decoder->hdl.error) {
- 		ret = decoder->hdl.error;
--
--		v4l2_ctrl_handler_free(&decoder->hdl);
--		return ret;
-+		goto done;
- 	}
- 	v4l2_ctrl_handler_setup(&decoder->hdl);
- 
--	v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
--
--	return 0;
-+	ret = v4l2_async_register_subdev(&decoder->sd);
-+	if (!ret)
-+		v4l2_info(sd, "%s decoder driver registered !!\n", sd->name);
- 
-+done:
-+	if (ret < 0) {
-+		v4l2_ctrl_handler_free(&decoder->hdl);
-+#if defined(CONFIG_MEDIA_CONTROLLER)
-+		media_entity_cleanup(&decoder->sd.entity);
-+#endif
-+	}
-+	return ret;
- }
- 
- /**
-@@ -1200,6 +1207,7 @@ static int tvp514x_remove(struct i2c_client *client)
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
- 	struct tvp514x_decoder *decoder = to_decoder(sd);
- 
-+	v4l2_async_unregister_subdev(&decoder->sd);
- 	v4l2_device_unregister_subdev(sd);
- #if defined(CONFIG_MEDIA_CONTROLLER)
- 	media_entity_cleanup(&decoder->sd.entity);
--- 
-1.7.9.5
+--=20
+balbi
 
+--VywGB/WGlW4DM4P8
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+
+iQIcBAEBAgAGBQJRybKUAAoJEIaOsuA1yqREJ/AP+wVZAqcv5RW7YN7jEYIdeToa
+DVGR4J/QUAG4mdvLT0UNBbOg85dMXVhq/uWcgj9JliWhEtG/yBek98foL1RJweZN
+gEvKRv41uzzrY9TWQI3Q4uYcCWCWLMEzqqBcbB1629wyUOQbrByfxQyhhQ1l9Te/
+yELVyYyGofctYqAYkSMM3zUwhWOWV8WaYVopBbV8nG47bujE0noSlU7EqsGJChKE
+B4gYXgp/L/f06EEySWY2Agssr5oqm2NuK5M5tRLCohEihl/MdYsZHYwxBLMB4cKL
+ODMy3tn6QRofyRtWLYnutJ7D7TwQ9c1B1T8459OZ0tZYkd/zuGmlJycyW9Q4FxD2
+lql7V8Qpryg/9snmkMtBicR9hPVqITWzyYaoikichLP2YV7gpD3yAY4XnsXmq2ca
+s+kuzu54I52Yw5pff8xJF+PZ4F3g2nsf2QvCSSABuReeIxgfVEgjF2mQI1lBuRQN
+PVCkZ+hwFGIt7zypCQg+jF3rC/Gvq83gdLLkVkg5Ny04KT34GoGCiWwG/MGh+Rss
+cDPSOxaC7mPBkiKU/iSBHQ2ehZ/8T1Pq3P5DLRaMQbFiqFp1mxkUWnqTvZVI/5qK
+2L9eKEChTZ7RK1bDkIj32/2G+DVTiZv3l7j3V0DJkUzikzzYU32lj4UC9j/LLOVL
+YeWJUeIme8SU5htkUVsv
+=NPCH
+-----END PGP SIGNATURE-----
+
+--VywGB/WGlW4DM4P8--
