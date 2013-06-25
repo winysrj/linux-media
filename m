@@ -1,459 +1,404 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f172.google.com ([209.85.128.172]:45753 "EHLO
-	mail-ve0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750735Ab3FYEge (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 00:36:34 -0400
-Received: by mail-ve0-f172.google.com with SMTP id jz10so9718091veb.3
-        for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 21:36:33 -0700 (PDT)
+Received: from na3sys009aog123.obsmtp.com ([74.125.149.149]:39501 "EHLO
+	na3sys009aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751391Ab3FYHVH convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 25 Jun 2013 03:21:07 -0400
+From: Libin Yang <lbyang@marvell.com>
+To: Jonathan Corbet <corbet@lwn.net>
+CC: "g.liakhovetski@gmx.de" <g.liakhovetski@gmx.de>,
+	"mchehab@redhat.com" <mchehab@redhat.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"albert.v.wang@gmail.com" <albert.v.wang@gmail.com>
+Date: Tue, 25 Jun 2013 00:21:00 -0700
+Subject: RE: [PATCH 1/7] marvell-ccic: add MIPI support for marvell-ccic
+ driver
+Message-ID: <A63A0DC671D719488CD1A6CD8BDC16CF4498FF5C80@SC-VEXCH4.marvell.com>
+References: <1370324380.26072.19.camel@younglee-desktop>
+ <20130621105941.44086d1b@lwn.net>
+In-Reply-To: <20130621105941.44086d1b@lwn.net>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <51C76037.8050106@gmail.com>
-References: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
-	<1371560183-23244-8-git-send-email-arun.kk@samsung.com>
-	<51C76037.8050106@gmail.com>
-Date: Tue, 25 Jun 2013 10:06:33 +0530
-Message-ID: <CALt3h7_Pf=DR9EkbVq=6mT14Nk357uRRNDKguEUco2PEte+CYQ@mail.gmail.com>
-Subject: Re: [PATCH v2 7/8] [media] V4L: Add VP8 encoder controls
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, avnd.kiran@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Jonathan,
 
-Thank you for the review.
+Sorry for delay reply. Please see the below comments.
 
-On Mon, Jun 24, 2013 at 2:23 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Arun,
+Regards,
+Libin  
+
+>-----Original Message-----
+>From: Jonathan Corbet [mailto:corbet@lwn.net] 
+>Sent: Saturday, June 22, 2013 1:00 AM
+>To: Libin Yang
+>Cc: g.liakhovetski@gmx.de; mchehab@redhat.com; 
+>linux-media@vger.kernel.org; albert.v.wang@gmail.com
+>Subject: Re: [PATCH 1/7] marvell-ccic: add MIPI support for 
+>marvell-ccic driver
 >
+>Better late than never, I hope...in response to Hans's poke, 
+>I'm going to try to do a quick review.  I am allegedly in 
+>vacation, so this may not be as thorough as we might like...
 >
-> On 06/18/2013 02:56 PM, Arun Kumar K wrote:
->>
->> This patch adds new V4L controls for VP8 encoding.
->>
->> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
->> Signed-off-by: Kiran AVND<avnd.kiran@samsung.com>
+>On Tue, 4 Jun 2013 13:39:40 +0800
+>lbyang <lbyang@marvell.com> wrote:
 >
->
-> I think your signed-off-by should be last one, since you're submitting
-> the patch.
->
->
+>> From: Libin Yang <lbyang@marvell.com>
+>> 
+>> This patch adds the MIPI support for marvell-ccic.
+>> Board driver should determine whether using MIPI or not.
+>> 
+>> Signed-off-by: Albert Wang <twang13@marvell.com>
+>> Signed-off-by: Libin Yang <lbyang@marvell.com>
 >> ---
->>   Documentation/DocBook/media/v4l/controls.xml |  151
->> ++++++++++++++++++++++++++
->>   drivers/media/v4l2-core/v4l2-ctrls.c         |   36 ++++++
->>   include/uapi/linux/v4l2-controls.h           |   28 ++++-
->>   3 files changed, 213 insertions(+), 2 deletions(-)
->>
->> diff --git a/Documentation/DocBook/media/v4l/controls.xml
->> b/Documentation/DocBook/media/v4l/controls.xml
->> index 8d7a779..cd87000 100644
->> --- a/Documentation/DocBook/media/v4l/controls.xml
->> +++ b/Documentation/DocBook/media/v4l/controls.xml
->> @@ -3009,6 +3009,156 @@ in by the application. 0 = do not insert, 1 =
->> insert packets.</entry>
->>         </tgroup>
->>         </table>
->>         </section>
+>>  drivers/media/platform/marvell-ccic/cafe-driver.c |    4 +-
+>>  drivers/media/platform/marvell-ccic/mcam-core.c   |   75 
+>+++++++++++-
+>>  drivers/media/platform/marvell-ccic/mcam-core.h   |   32 +++++-
+>>  drivers/media/platform/marvell-ccic/mmp-driver.c  |  126 
+>++++++++++++++++++++-
+>>  include/media/mmp-camera.h                        |   19 ++++
+>>  5 files changed, 245 insertions(+), 11 deletions(-)
+>> 
+>> diff --git a/drivers/media/platform/marvell-ccic/cafe-driver.c 
+>> b/drivers/media/platform/marvell-ccic/cafe-driver.c
+>> index d030f9b..68e82fb 100644
+>> --- a/drivers/media/platform/marvell-ccic/cafe-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/cafe-driver.c
+>> @@ -400,7 +400,7 @@ static void cafe_ctlr_init(struct mcam_camera 
+>> *mcam)  }
+>>  
+>>  
+>> -static void cafe_ctlr_power_up(struct mcam_camera *mcam)
+>> +static int cafe_ctlr_power_up(struct mcam_camera *mcam)
+>>  {
+>>  	/*
+>>  	 * Part one of the sensor dance: turn the global @@ 
+>-415,6 +415,8 @@ 
+>> static void cafe_ctlr_power_up(struct mcam_camera *mcam)
+>>  	 */
+>>  	mcam_reg_write(mcam, REG_GPR, GPR_C1EN|GPR_C0EN); /* 
+>pwr up, reset */
+>>  	mcam_reg_write(mcam, REG_GPR, GPR_C1EN|GPR_C0EN|GPR_C0);
 >> +
->> +<section>
->> +<title>VPX Control Reference</title>
->> +
->> +<para>The VPX controls include controls for encoding parameters
->> +      of VPx video codec.</para>
->> +
->> +<table pgwide="1" frame="none" id="vpx-control-id">
->> +<title>VPX Control IDs</title>
->> +
->> +<tgroup cols="4">
->> +<colspec colname="c1" colwidth="1*" />
->> +<colspec colname="c2" colwidth="6*" />
->> +<colspec colname="c3" colwidth="2*" />
->> +<colspec colname="c4" colwidth="6*" />
->> +<spanspec namest="c1" nameend="c2" spanname="id" />
->> +<spanspec namest="c2" nameend="c4" spanname="descr" />
->> +<thead>
->> +<row>
->> +<entry spanname="id" align="left">ID</entry>
->> +<entry align="left">Type</entry>
->> +</row><row rowsep="1"><entry spanname="descr"
->> align="left">Description</entry>
->> +</row>
->> +</thead>
->> +<tbody valign="top">
->> +<row><entry></entry></row>
->> +
->> +       <row><entry></entry></row>
->> +       <row id="v4l2-vpx-num-partitions">
->> +               <entry
->> spanname="id"><constant>V4L2_CID_VPX_NUM_PARTITIONS</constant>&nbsp;</entry>
+>> +	return 0;
+>>  }
 >
->
-> What is this '&nbsp;' at the end of an entry needed for ? I can see lots
-> of similar ones elsewhere in this patch.
->
->
->> +               <entry>enum&nbsp;v4l2_vp8_num_partitions</entry>
->> +       </row>
->> +       <row><entry spanname="descr">The number of token partitions to use
->> in VP8 encoder.
->> +Possible values are:</entry>
->> +       </row>
->> +       <row>
->> +               <entrytbl spanname="descr" cols="2">
->> +               <tbody valign="top">
->> +               <row>
->> +
->> <entry><constant>V4L2_VPX_1_PARTITION</constant>&nbsp;</entry>
->> +               <entry>1 coefficient partition</entry>
->> +               </row>
->> +               <row>
->> +
->> <entry><constant>V4L2_VPX_2_PARTITIONS</constant>&nbsp;</entry>
->> +               <entry>2 partitions</entry>
->> +               </row>
->> +               <row>
->> +
->> <entry><constant>V4L2_VPX_4_PARTITIONS</constant>&nbsp;</entry>
->> +               <entry>4 partitions</entry>
->> +               </row>
->> +               <row>
->> +
->> <entry><constant>V4L2_VPX_8_PARTITIONS</constant>&nbsp;</entry>
->> +               <entry>8 partitions</entry>
->> +       </row>
->> +</tbody>
->> +               </entrytbl>
->> +       </row>
->> +
->> +       <row><entry></entry></row>
->> +       <row>
->> +               <entry
->> spanname="id"><constant>V4L2_CID_VPX_IMD_DISABLE_4X4</constant>&nbsp;</entry>
->> +               <entry>boolean</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Setting this prevents intra 4x4 mode
->> in the intra mode decision.</entry>
->> +       </row>
->> +
->> +       <row><entry></entry></row>
->> +       <row id="v4l2-vpx-num-ref-frames">
->> +               <entry
->> spanname="id"><constant>V4L2_CID_VPX_NUM_REF_FRAMES</constant>&nbsp;</entry>
->> +               <entry>enum&nbsp;v4l2_vp8_num_ref_frames</entry>
->> +       </row>
->> +       <row><entry spanname="descr">The number of reference pictures for
->> encoding P frames.
->> +Possible values are:</entry>
->> +       </row>
->> +       <row>
->> +               <entrytbl spanname="descr" cols="2">
->> +               <tbody valign="top">
->> +               <row>
->> +
->> <entry><constant>V4L2_VPX_1_REF_FRAME</constant>&nbsp;</entry>
->> +               <entry>Last encoded frame will be searched</entry>
->> +               </row>
->> +               <row>
->> +
->> <entry><constant>V4L2_VPX_2_REF_FRAME</constant>&nbsp;</entry>
->> +               <entry>Two frames would be searched among last encoded
->> frame, golden frame
->> +and altref frame. Encoder implementation can decide which two are
->> chosen.</entry>
->> +               </row>
->> +               <row>
->> +
->> <entry><constant>V4L2_VPX_3_REF_FRAME</constant>&nbsp;</entry>
->> +               <entry>The last encoded frame, golden frame and altref
->> frame will be searched.</entry>
->> +               </row>
->> +</tbody>
->> +               </entrytbl>
->> +       </row>
->> +
->> +       <row><entry></entry></row>
->> +       <row>
->> +               <entry
->> spanname="id"><constant>V4L2_CID_VPX_FILTER_LEVEL</constant>&nbsp;</entry>
->> +               <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Indicates the loop filter level. The
->> adjustment of loop
->> +filter level is done via a delta value against a baseline loop filter
->> value.</entry>
->> +       </row>
->> +
->> +       <row><entry></entry></row>
->> +       <row>
->> +               <entry
->> spanname="id"><constant>V4L2_CID_VPX_FILTER_SHARPNESS</constant>&nbsp;</entry>
->> +               <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">This parameter affects the loop
->> filter. Anything above
->> +zero weakens the deblocking effect on loop filter.</entry>
->> +       </row>
->> +
->> +       <row><entry></entry></row>
->> +       <row>
->> +               <entry
->> spanname="id"><constant>V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD</constant>&nbsp;</entry>
->> +               <entry>integer</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Sets the refresh period for golden
->> frame. Period is defined
->> +in number of frames. For a value of 'n', every nth frame will be taken as
->> golden frame.</entry>
->> +       </row>
->> +
->> +       <row><entry></entry></row>
->> +       <row id="v4l2-vpx-golden-frame-sel">
->> +               <entry
->> spanname="id"><constant>V4L2_CID_VPX_GOLDEN_FRAME_SEL</constant>&nbsp;</entry>
->> +               <entry>enum&nbsp;v4l2_vp8_golden_frame_sel</entry>
->> +       </row>
->> +       <row><entry spanname="descr">Selects the golden frame for
->> encoding.
->> +Possible values are:</entry>
->> +       </row>
->> +       <row>
->> +               <entrytbl spanname="descr" cols="2">
->> +               <tbody valign="top">
->> +               <row>
->> +
->> <entry><constant>V4L2_VPX_GOLDEN_FRAME_USE_PREV</constant>&nbsp;</entry>
->> +               <entry>Use the previous second frame (last to last frame)
->> as a golden frame</entry>
->
->
-> I can't understand what this means exactly. But this could be just my bad
-> English skills... ;)
->
+>Curious: why add the return value when it never changes?  Do I 
+>assume that some future patch adds some complexity here?  Not 
+>opposed to this, but it seems like the wrong time.
 
-I thought mentioning last to last made it more clear :)
-Its the (n-2)th frame where current frame index is 'n'.
-Will update it to make it more clear.
+[Libin] This function will be set to mcam->plat_power_up eventually. The callback plat_power_up is changed to return int type because of mmp-driver.c
 
 >
->> +               </row>
->> +               <row>
+>>  static void cafe_ctlr_power_down(struct mcam_camera *mcam) 
+>diff --git 
+>> a/drivers/media/platform/marvell-ccic/mcam-core.c 
+>> b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> index 64ab91e..bb3de1f 100644
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.c
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+>> @@ -19,6 +19,7 @@
+>>  #include <linux/delay.h>
+>>  #include <linux/vmalloc.h>
+>>  #include <linux/io.h>
+>> +#include <linux/clk.h>
+>>  #include <linux/videodev2.h>
+>>  #include <media/v4l2-device.h>
+>>  #include <media/v4l2-ioctl.h>
+>> @@ -254,6 +255,45 @@ static void mcam_ctlr_stop(struct 
+>mcam_camera *cam)
+>>  	mcam_reg_clear_bit(cam, REG_CTRL0, C0_ENABLE);  }
+>>  
+>> +static int mcam_config_mipi(struct mcam_camera *mcam, bool enable) {
+>> +	if (enable) {
+>> +		/* Using MIPI mode and enable MIPI */
+>> +		cam_dbg(mcam, "camera: DPHY3=0x%x, DPHY5=0x%x, 
+>DPHY6=0x%x\n",
+>> +			mcam->dphy[0], mcam->dphy[1], mcam->dphy[2]);
+>> +		mcam_reg_write(mcam, REG_CSI2_DPHY3, mcam->dphy[0]);
+>> +		mcam_reg_write(mcam, REG_CSI2_DPHY5, mcam->dphy[1]);
+>> +		mcam_reg_write(mcam, REG_CSI2_DPHY6, mcam->dphy[2]);
 >> +
->> <entry><constant>V4L2_VPX_GOLDEN_FRAME_USE_REF_PERIOD</constant>&nbsp;</entry>
->> +               <entry>Use the previous specific frame indicated by
->> V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame</entry>
->> +               </row>
->> +</tbody>
->> +               </entrytbl>
->> +       </row>
+>> +		if (!mcam->mipi_enabled) {
+>> +			if (mcam->lane > 4 || mcam->lane <= 0) {
+>> +				cam_warn(mcam, "lane number error\n");
+>> +				mcam->lane = 1;	/* set the 
+>default value */
+>> +			}
+>> +			/*
+>> +			 * 0x41 actives 1 lane
+>> +			 * 0x43 actives 2 lanes
+>> +			 * 0x45 actives 3 lanes (never happen)
+>> +			 * 0x47 actives 4 lanes
+>> +			 */
+>> +			mcam_reg_write(mcam, REG_CSI2_CTRL0,
+>> +				CSI2_C0_MIPI_EN | 
+>CSI2_C0_ACT_LANE(mcam->lane));
+>> +			mcam_reg_write(mcam, REG_CLKCTRL,
+>> +				(mcam->mclk_src << 29) | 
+>mcam->mclk_div);
 >> +
->> +<row><entry></entry></row>
->> +</tbody>
->> +</tgroup>
->> +</table>
->> +
->> +</section>
->>       </section>
->>
->>       <section id="camera-controls">
->> @@ -4772,4 +4922,5 @@ defines possible values for de-emphasis. Here they
->> are:</entry>
->>         </table>
->>
->>         </section>
->> +
+>> +			mcam->mipi_enabled = true;
+>> +		}
+>> +	} else {
+>> +		/* Using Parallel mode or disable MIPI */
+>> +		mcam_reg_write(mcam, REG_CSI2_CTRL0, 0x0);
+>> +		mcam_reg_write(mcam, REG_CSI2_DPHY3, 0x0);
+>> +		mcam_reg_write(mcam, REG_CSI2_DPHY5, 0x0);
+>> +		mcam_reg_write(mcam, REG_CSI2_DPHY6, 0x0);
+>> +		mcam->mipi_enabled = false;
+>> +	}
+>> +	return 0;
+>> +}
 >
+>I think I said this before...having separate enable/disable 
+>functions seems better to me than a multiplexed function with 
+>an overall flag.  Is there a reason it's done this way?
+
+[LIbin] OK, I will split it into 2 functions.
+
 >
-> Unnecessary change ?
+>[...]
+>>  /*
+>>   * Power up and down.
+>>   */
+>> -static void mcam_ctlr_power_up(struct mcam_camera *cam)
+>> +static int mcam_ctlr_power_up(struct mcam_camera *cam)
+>>  {
+>>  	unsigned long flags;
+>> +	int ret;
+>>  
+>>  	spin_lock_irqsave(&cam->dev_lock, flags);
+>> -	cam->plat_power_up(cam);
+>> +	ret = cam->plat_power_up(cam);
+>> +	if (ret)
+>> +		return ret;
+>
+>You just returned with the lock held - that's a big mistake.
+
+[LIbin] Yes. I will correct it. Thanks for point it out.
+
+>
+>>  	mcam_reg_clear_bit(cam, REG_CTRL1, C1_PWRDWN);
+>>  	spin_unlock_irqrestore(&cam->dev_lock, flags);
+>>  	msleep(5); /* Just to be sure */
+>> +	return 0;
+>>  }
+>>  
+>>  static void mcam_ctlr_power_down(struct mcam_camera *cam) @@ -887,6 
+>> +938,16 @@ static int mcam_read_setup(struct mcam_camera *cam)
+>>  	spin_lock_irqsave(&cam->dev_lock, flags);
+>>  	clear_bit(CF_DMA_ACTIVE, &cam->flags);
+>>  	mcam_reset_buffers(cam);
+>> +	/*
+>> +	 * Update CSI2_DPHY value
+>> +	 */
+>> +	if (cam->calc_dphy)
+>> +		cam->calc_dphy(cam);
+>> +	cam_dbg(cam, "camera: DPHY sets: dphy3=0x%x, 
+>dphy5=0x%x, dphy6=0x%x\n",
+>> +			cam->dphy[0], cam->dphy[1], cam->dphy[2]);
+>> +	ret = mcam_config_mipi(cam, cam->bus_type == V4L2_MBUS_CSI2);
+>> +	if (ret < 0)
+>> +		return ret;
+>
+>Once again - you're holding a spinlock here.
+
+[Libin] Yes.
+
+>
+>[...]
+>
+>> @@ -1816,7 +1881,9 @@ int mccic_resume(struct mcam_camera *cam)
+>>  
+>>  	mutex_lock(&cam->s_mutex);
+>>  	if (cam->users > 0) {
+>> -		mcam_ctlr_power_up(cam);
+>> +		ret = mcam_ctlr_power_up(cam);
+>> +		if (ret)
+>> +			return ret;
+>
+>...and here you're holding a mutex.  There's a reason so much 
+>kernel code uses the "goto out" pattern; you really have to be 
+>careful about returning from the middle of a function.
+
+[Libin] Yes. I will correct it.
+
+>
+>>  		__mcam_cam_reset(cam);
+>>  	} else {
+>>  		mcam_ctlr_power_down(cam);
+>> diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h 
+>> b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> index 01dec9e..be271b3 100644
+>> --- a/drivers/media/platform/marvell-ccic/mcam-core.h
+>> +++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+>> @@ -102,11 +102,23 @@ struct mcam_camera {
+>>  	short int clock_speed;	/* Sensor clock speed, default 30 */
+>>  	short int use_smbus;	/* SMBUS or straight I2c? */
+>>  	enum mcam_buffer_mode buffer_mode;
+>> +
+>> +	int mclk_min;
+>> +	int mclk_src;
+>> +	int mclk_div;
+>> +
+>> +	enum v4l2_mbus_type bus_type;
+>> +	/* MIPI support */
+>> +	int *dphy;
+>> +	bool mipi_enabled;
+>> +	int lane;			/* lane number */
+>
+>Can we document these new fields a bit better?
+
+[Libin] OK.
+
+>
+>>  	/*
+>>  	 * Callbacks from the core to the platform code.
+>>  	 */
+>> -	void (*plat_power_up) (struct mcam_camera *cam);
+>> +	int (*plat_power_up) (struct mcam_camera *cam);
+>>  	void (*plat_power_down) (struct mcam_camera *cam);
+>> +	void (*calc_dphy) (struct mcam_camera *cam);
+>>  
+>>  	/*
+>>  	 * Everything below here is private to the mcam core 
+>and @@ -220,6 
+>> +232,17 @@ int mccic_resume(struct mcam_camera *cam);
+>>  #define REG_Y0BAR	0x00
+>>  #define REG_Y1BAR	0x04
+>>  #define REG_Y2BAR	0x08
+>> +
+>> +/*
+>> + * register definitions for MIPI support  */
+>> +#define REG_CSI2_CTRL0	0x100
+>> +#define   CSI2_C0_MIPI_EN (0x1 << 0)
+>> +#define   CSI2_C0_ACT_LANE(n) ((n-1) << 1)
+>> +#define REG_CSI2_DPHY3	0x12c
+>> +#define REG_CSI2_DPHY5	0x134
+>> +#define REG_CSI2_DPHY6	0x138
+>> +
+>>  /* ... */
+>>  
+>>  #define REG_IMGPITCH	0x24	/* Image pitch register */
+>> @@ -288,13 +311,16 @@ int mccic_resume(struct mcam_camera *cam);
+>>  #define	  C0_YUVE_XUVY	  0x00020000	/* 420: .UVY	
+>	*/
+>>  #define	  C0_YUVE_XVUY	  0x00030000	/* 420: .VUY	
+>	*/
+>>  /* Bayer bits 18,19 if needed */
+>> +#define	  C0_EOF_VSYNC	  0x00400000	/* Generate EOF 
+>by VSYNC */
+>> +#define	  C0_VEDGE_CTRL   0x00800000	/* Detect 
+>falling edge of VSYNC */
+>>  #define	  C0_HPOL_LOW	  0x01000000	/* HSYNC 
+>polarity active low */
+>>  #define	  C0_VPOL_LOW	  0x02000000	/* VSYNC 
+>polarity active low */
+>>  #define	  C0_VCLK_LOW	  0x04000000	/* VCLK on 
+>falling edge */
+>>  #define	  C0_DOWNSCALE	  0x08000000	/* Enable downscaler */
+>> -#define	  C0_SIFM_MASK	  0xc0000000	/* SIF mode bits */
+>> +/* SIFMODE */
+>
+>What's this change for?
 >
 
-Yes. Will remove.
+[LIbin] Mostly, the code is to fix the typo: CO_SOF_NOSYNC -> C0_SOF_NOSYNC.
+And it also re-sorts the code by the value to improve the readability.
 
->
->>   </section>
->> diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c
->> b/drivers/media/v4l2-core/v4l2-ctrls.c
->> index 3cb1cff..2a4413b 100644
->> --- a/drivers/media/v4l2-core/v4l2-ctrls.c
->> +++ b/drivers/media/v4l2-core/v4l2-ctrls.c
->> @@ -424,6 +424,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->>                 NULL,
->>         };
->>
->> +       static const char * const vpx_golden_frame_sel[] = {
->> +               "Use Previous Frame",
->> +               "Use Frame Indicated By GOLDEN_FRAME_REF_PERIOD",
->
->
-> That name is too long, look at VIDIOC_QUERYMENU ioctl specification [1] what
-> a capacity of the menu item name storage is.
->
-> [1] http://linuxtv.org/downloads/v4l-dvb-apis/vidioc-queryctrl.html
->
-
-Ok.
-
->
->> +               NULL,
->> +       };
+>> diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c 
+>> b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> index c4c17fe..3dad182 100644
+>> --- a/drivers/media/platform/marvell-ccic/mmp-driver.c
+>> +++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+>[...]
+>> +void mmpcam_calc_dphy(struct mcam_camera *mcam) {
+>> +	struct mmp_camera *cam = mcam_to_cam(mcam);
+>> +	struct mmp_camera_platform_data *pdata = 
+>cam->pdev->dev.platform_data;
+>> +	struct device *dev = &cam->pdev->dev;
+>> +	unsigned long tx_clk_esc;
 >> +
->>         static const char * const flash_led_mode[] = {
->>                 "Off",
->>                 "Flash",
->> @@ -538,6 +544,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
->>                 return mpeg_mpeg4_level;
->>         case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
->>                 return mpeg4_profile;
->> +       case V4L2_CID_VPX_GOLDEN_FRAME_SEL:
->> +               return vpx_golden_frame_sel;
->>         case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
->>                 return jpeg_chroma_subsampling;
->>         case V4L2_CID_DV_TX_MODE:
->> @@ -558,7 +566,23 @@ EXPORT_SYMBOL(v4l2_ctrl_get_menu);
->>    */
->>   const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
->>   {
->> +#define V4L2_INT_MENU_RETURN(qmenu) \
->> +       do { *len = ARRAY_SIZE(qmenu); return qmenu; } while (0)
+>> +	/*
+>> +	 * If CSI2_DPHY3 is calculated dynamically,
+>> +	 * pdata->lane_clk should be already set
+>> +	 * either in the board driver statically
+>> +	 * or in the sensor driver dynamically.
+>> +	 */
+>> +	/*
+>> +	 * dphy[0] - CSI2_DPHY3:
+>> +	 *  bit 0 ~ bit 7: HS Term Enable.
+>> +	 *   defines the time that the DPHY
+>> +	 *   wait before enabling the data
+>> +	 *   lane termination after detecting
+>> +	 *   that the sensor has driven the data
+>> +	 *   lanes to the LP00 bridge state.
+>> +	 *   The value is calculated by:
+>> +	 *   (Max T(D_TERM_EN)/Period(DDR)) - 1
+>> +	 *  bit 8 ~ bit 15: HS_SETTLE
+>> +	 *   Time interval during which the HS
+>> +	 *   receiver shall ignore any Data Lane
+>> +	 *   HS transistions.
+>> +	 *   The vaule has been calibrated on
+>> +	 *   different boards. It seems to work well.
+>> +	 *
+>> +	 *  More detail please refer
+>> +	 *  MIPI Alliance Spectification for D-PHY
+>> +	 *  document for explanation of HS-SETTLE
+>> +	 *  and D-TERM-EN.
+>> +	 */
+>> +	switch (pdata->dphy3_algo) {
+>> +	case DPHY3_ALGO_PXA910:
+>> +		/*
+>> +		 * Calculate CSI2_DPHY3 algo for PXA910
+>> +		 */
+>> +		pdata->dphy[0] = ((1 + pdata->lane_clk * 80 / 
+>1000) & 0xff) << 8
+>> +			| (1 + pdata->lane_clk * 35 / 1000);
 >
->
-> How about using something along the lines of:
->
-> #define __v4l2_qmenu_int_len(arr, len) ({ *(len) = ARRAY_SIZE(arr); arr; })
->
-> ? And also moving it out of the function, above ?
->
+>There's enough operators here that some parentheses would 
+>really help to make the code more readable.  Lots of places in 
+>this file.
 
-Ok will make this change.
+[Libin] OK. I will add some parentheses to help it readable.
 
-> The main problem with your macro is that contains a return statement. But
-> also relies on a specific variable name.
 >
-> In Documentation/CodingStyle we read:
->
-> " ...
-> Things to avoid when using macros:
->
-> 1) macros that affect control flow:
->
-> #define FOO(x)                                  \
->         do {                                    \
->                 if (blah(x) < 0)                \
->                         return -EBUGGERED;      \
->         } while(0)
->
-> is a _very_ bad idea.  It looks like a function call but exits the "calling"
-> function; don't break the internal parsers of those who will read the code.
->
-> 2) macros that depend on having a local variable with a magic name:
->
-> #define FOO(val) bar(index, val)
->
-> might look like a good thing, but it's confusing as hell when one reads the
-> code and it's prone to breakage from seemingly innocent changes.
-> ...
->
-> "
->
->> +       static const s64 const qmenu_int_vpx_num_partitions[] = {
->> +               1, 2, 4, 8,
->> +       };
+>[...]
+>>  static irqreturn_t mmpcam_irq(int irq, void *data)  { @@ -174,17 
+>> +280,30 @@ static int mmpcam_probe(struct platform_device *pdev)
+>>  	struct mmp_camera_platform_data *pdata;
+>>  	int ret;
+>>  
+>> +	pdata = pdev->dev.platform_data;
+>> +	if (!pdata)
+>> +		return -ENODEV;
 >> +
->> +       static const s64 const qmenu_int_vpx_num_ref_frames[] = {
->> +               1, 2, 3,
->> +       };
->> +
->>         switch (id) {
->> +       case V4L2_CID_VPX_NUM_PARTITIONS:
->> +               V4L2_INT_MENU_RETURN(qmenu_int_vpx_num_partitions);
+>>  	cam = kzalloc(sizeof(*cam), GFP_KERNEL);
+>>  	if (cam == NULL)
+>>  		return -ENOMEM;
+>>  	cam->pdev = pdev;
+>> +	cam->mipi_clk = ERR_PTR(-EINVAL);
 >
->
-> Then this would became:
->
->         return __v4l2_qmenu_int_len(qmenu_int_vpx_num_partitions, &len);
->
->
->> +       case V4L2_CID_VPX_NUM_REF_FRAMES:
->> +               V4L2_INT_MENU_RETURN(qmenu_int_vpx_num_ref_frames);
->
->
-> Ditto.
->
->
->>         default:
->>                 *len = 0;
->>                 return NULL;
->> @@ -714,6 +738,15 @@ const char *v4l2_ctrl_get_name(u32 id)
->>         case V4L2_CID_MPEG_VIDEO_VBV_DELAY:                     return
->> "Initial Delay for VBV Control";
->>         case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:             return
->> "Repeat Sequence Header";
->>
->> +       /* VPX controls */
->> +       case V4L2_CID_VPX_NUM_PARTITIONS:                       return
->> "VPX Number of partitions";
->> +       case V4L2_CID_VPX_IMD_DISABLE_4X4:                      return
->> "VPX Intra mode decision disable";
->> +       case V4L2_CID_VPX_NUM_REF_FRAMES:                       return
->> "VPX No. of refs for P frame";
->> +       case V4L2_CID_VPX_FILTER_LEVEL:                         return
->> "VPX Loop filter level range";
->> +       case V4L2_CID_VPX_FILTER_SHARPNESS:                     return
->> "VPX Deblocking effect control";
->> +       case V4L2_CID_VPX_GOLDEN_FRAME_REF_PERIOD:              return
->> "VPX Golden frame refresh period";
->> +       case V4L2_CID_VPX_GOLDEN_FRAME_SEL:                     return
->> "VPX Golden frame indicator";
->> +
->>         /* CAMERA controls */
->>         /* Keep the order of the 'case's the same as in videodev2.h! */
->>         case V4L2_CID_CAMERA_CLASS:             return "Camera Controls";
->> @@ -929,6 +962,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
->> v4l2_ctrl_type *type,
->>         case V4L2_CID_DV_RX_RGB_RANGE:
->>         case V4L2_CID_TEST_PATTERN:
->>         case V4L2_CID_TUNE_DEEMPHASIS:
->> +       case V4L2_CID_VPX_GOLDEN_FRAME_SEL:
->>                 *type = V4L2_CTRL_TYPE_MENU;
->>                 break;
->>         case V4L2_CID_LINK_FREQ:
->> @@ -940,6 +974,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum
->> v4l2_ctrl_type *type,
->>                 break;
->>         case V4L2_CID_ISO_SENSITIVITY:
->>         case V4L2_CID_AUTO_EXPOSURE_BIAS:
->> +       case V4L2_CID_VPX_NUM_PARTITIONS:
->> +       case V4L2_CID_VPX_NUM_REF_FRAMES:
->>                 *type = V4L2_CTRL_TYPE_INTEGER_MENU;
->>                 break;
->>         case V4L2_CID_USER_CLASS:
->> diff --git a/include/uapi/linux/v4l2-controls.h
->> b/include/uapi/linux/v4l2-controls.h
->> index 69bd5bb..a1f6036 100644
->> --- a/include/uapi/linux/v4l2-controls.h
->> +++ b/include/uapi/linux/v4l2-controls.h
->> @@ -522,6 +522,32 @@ enum v4l2_mpeg_video_mpeg4_profile {
->>   };
->>   #define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL
->> (V4L2_CID_MPEG_BASE+407)
->>
->> +/*  Control IDs for VP8 streams
->> + *  Though VP8 is not part of MPEG, adding it here as MPEG class is
->> + *  already handling other video compression standards */
->
->
-> Please use proper comment style, i.e.
->
+>The use of ERR_PTR here (and in related places) seems a bit 
+>weird; is there a reason you can't just use NULL?
 
-Ok will change.
+[Libin] OK, I will use NULL in next version.
 
-Regards
-Arun
+>
+>In summary, I'm not really familiar with the MIPI interface, 
+>and I don't have any hardware with it, so I'll have to take 
+>your word that the code works.  I've pointed out a bunch of 
+>nits that are worth fixing.  The locking mistakes are fatal, 
+>though, and need attention.  They should be quick to fix, 
+>though; this code should be ready to merge in short order.
+>
+>Thanks,
+>
+>jon
+>
