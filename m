@@ -1,153 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:50060 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753855Ab3FKJ1t (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:29517 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751358Ab3FYQzw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 05:27:49 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
+	Tue, 25 Jun 2013 12:55:52 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MOY00MWLKCRPG10@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 25 Jun 2013 17:55:50 +0100 (BST)
+Message-id: <51C9CB95.2040006@samsung.com>
+Date: Tue, 25 Jun 2013 18:55:49 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Andrzej Hajda <a.hajda@samsung.com>,
 	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 12/21] sh-mobile-ceu-camera: add primitive OF support
-Date: Tue, 11 Jun 2013 10:23:39 +0200
-Message-Id: <1370939028-8352-13-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: Samsung i2c subdev drivers that set sd->name
+References: <201306241054.11604.hverkuil@xs4all.nl>
+In-reply-to: <201306241054.11604.hverkuil@xs4all.nl>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add an OF hook to sh_mobile_ceu_camera.c, no properties so far. Booting
-with DT also requires platform data to be optional.
+Hi Hans,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- .../platform/soc_camera/sh_mobile_ceu_camera.c     |   33 ++++++++++++++------
- 1 files changed, 23 insertions(+), 10 deletions(-)
+Cc: Laurent and Sakari
 
-diff --git a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-index 9037472..fcc13d8 100644
---- a/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-+++ b/drivers/media/platform/soc_camera/sh_mobile_ceu_camera.c
-@@ -27,6 +27,7 @@
- #include <linux/kernel.h>
- #include <linux/mm.h>
- #include <linux/moduleparam.h>
-+#include <linux/of.h>
- #include <linux/time.h>
- #include <linux/slab.h>
- #include <linux/device.h>
-@@ -118,6 +119,7 @@ struct sh_mobile_ceu_dev {
- 
- 	enum v4l2_field field;
- 	int sequence;
-+	unsigned long flags;
- 
- 	unsigned int image_mode:1;
- 	unsigned int is_16bit:1;
-@@ -706,7 +708,7 @@ static void sh_mobile_ceu_set_rect(struct soc_camera_device *icd)
- 	}
- 
- 	/* CSI2 special configuration */
--	if (pcdev->pdata->csi2) {
-+	if (pcdev->csi2_pdev) {
- 		in_width = ((in_width - 2) * 2);
- 		left_offset *= 2;
- 	}
-@@ -810,7 +812,7 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd)
- 	/* Make choises, based on platform preferences */
- 	if ((common_flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH) &&
- 	    (common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW)) {
--		if (pcdev->pdata->flags & SH_CEU_FLAG_HSYNC_LOW)
-+		if (pcdev->flags & SH_CEU_FLAG_HSYNC_LOW)
- 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_HIGH;
- 		else
- 			common_flags &= ~V4L2_MBUS_HSYNC_ACTIVE_LOW;
-@@ -818,7 +820,7 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd)
- 
- 	if ((common_flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH) &&
- 	    (common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW)) {
--		if (pcdev->pdata->flags & SH_CEU_FLAG_VSYNC_LOW)
-+		if (pcdev->flags & SH_CEU_FLAG_VSYNC_LOW)
- 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_HIGH;
- 		else
- 			common_flags &= ~V4L2_MBUS_VSYNC_ACTIVE_LOW;
-@@ -873,11 +875,11 @@ static int sh_mobile_ceu_set_bus_param(struct soc_camera_device *icd)
- 	value |= common_flags & V4L2_MBUS_VSYNC_ACTIVE_LOW ? 1 << 1 : 0;
- 	value |= common_flags & V4L2_MBUS_HSYNC_ACTIVE_LOW ? 1 << 0 : 0;
- 
--	if (pcdev->pdata->csi2) /* CSI2 mode */
-+	if (pcdev->csi2_pdev) /* CSI2 mode */
- 		value |= 3 << 12;
- 	else if (pcdev->is_16bit)
- 		value |= 1 << 12;
--	else if (pcdev->pdata->flags & SH_CEU_FLAG_LOWER_8BIT)
-+	else if (pcdev->flags & SH_CEU_FLAG_LOWER_8BIT)
- 		value |= 2 << 12;
- 
- 	ceu_write(pcdev, CAMCR, value);
-@@ -1052,7 +1054,7 @@ static int sh_mobile_ceu_get_formats(struct soc_camera_device *icd, unsigned int
- 		return 0;
- 	}
- 
--	if (!pcdev->pdata->csi2) {
-+	if (!pcdev->pdata || !pcdev->pdata->csi2) {
- 		/* Are there any restrictions in the CSI-2 case? */
- 		ret = sh_mobile_ceu_try_bus_param(icd, fmt->bits_per_sample);
- 		if (ret < 0)
-@@ -2107,13 +2109,17 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
- 	init_completion(&pcdev->complete);
- 
- 	pcdev->pdata = pdev->dev.platform_data;
--	if (!pcdev->pdata) {
-+	if (!pcdev->pdata && !pdev->dev.of_node) {
- 		dev_err(&pdev->dev, "CEU platform data not set.\n");
- 		return -EINVAL;
- 	}
- 
--	pcdev->max_width = pcdev->pdata->max_width ? : 2560;
--	pcdev->max_height = pcdev->pdata->max_height ? : 1920;
-+	/* TODO: implement per-device bus flags */
-+	if (pcdev->pdata) {
-+		pcdev->max_width = pcdev->pdata->max_width ? : 2560;
-+		pcdev->max_height = pcdev->pdata->max_height ? : 1920;
-+		pcdev->flags = pcdev->pdata->flags;
-+	}
- 
- 	base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(base))
-@@ -2168,7 +2174,7 @@ static int sh_mobile_ceu_probe(struct platform_device *pdev)
- 		goto exit_free_ctx;
- 
- 	/* CSI2 interfacing */
--	csi2 = pcdev->pdata->csi2;
-+	csi2 = pcdev->pdata ? pcdev->pdata->csi2 : NULL;
- 	if (csi2) {
- 		struct platform_device *csi2_pdev =
- 			platform_device_alloc("sh-mobile-csi2", csi2->id);
-@@ -2290,10 +2296,17 @@ static const struct dev_pm_ops sh_mobile_ceu_dev_pm_ops = {
- 	.runtime_resume = sh_mobile_ceu_runtime_nop,
- };
- 
-+static const struct of_device_id sh_mobile_ceu_of_match[] = {
-+	{ .compatible = "renesas,sh-mobile-ceu" },
-+	{ }
-+};
-+MODULE_DEVICE_TABLE(of, sh_mobile_ceu_of_match);
-+
- static struct platform_driver sh_mobile_ceu_driver = {
- 	.driver		= {
- 		.name	= "sh_mobile_ceu",
- 		.pm	= &sh_mobile_ceu_dev_pm_ops,
-+		.of_match_table = sh_mobile_ceu_of_match,
- 	},
- 	.probe		= sh_mobile_ceu_probe,
- 	.remove		= sh_mobile_ceu_remove,
--- 
-1.7.2.5
+On 06/24/2013 10:54 AM, Hans Verkuil wrote:
+> Hi Sylwester,
+> 
+> It came to my attention that several i2c subdev drivers overwrite the sd->name
+> as set by v4l2_i2c_subdev_init with a custom name.
+> 
+> This is wrong if it is possible that there are multiple identical sensors in
+> the system. The sd->name must be unique since it is used to prefix kernel
+> messages etc, so you have to be able to tell the sensor devices apart.
 
+This has been discussed in the past, please see thread [1]. 
+
+> It concerns the following Samsung-contributed drivers:
+> 
+> drivers/media/i2c/s5k4ecgx.c:   strlcpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
+> drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strlcpy(sd->name, "S5C73M3", sizeof(sd->name));
+> drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strcpy(oif_sd->name, "S5C73M3-OIF");
+> drivers/media/i2c/sr030pc30.c:  strcpy(sd->name, MODULE_NAME);
+> drivers/media/i2c/noon010pc30.c:        strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+> drivers/media/i2c/m5mols/m5mols_core.c: strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+> drivers/media/i2c/s5k6aa.c:     strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+
+It seems ov9650 is missing on this list,
+
+$ git grep ".*cpy.*(.*sd\|subdev.*name" -- drivers/media/i2c
+drivers/media/i2c/m5mols/m5mols_core.c: strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+drivers/media/i2c/noon010pc30.c:        strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
+drivers/media/i2c/ov9650.c:     strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strlcpy(sd->name, "S5C73M3", sizeof(sd->name));
+drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strcpy(oif_sd->name, "S5C73M3-OIF");
+drivers/media/i2c/s5k4ecgx.c:   strlcpy(sd->name, S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
+drivers/media/i2c/s5k6aa.c:     strlcpy(sd->name, DRIVER_NAME, sizeof(sd->name));
+drivers/media/i2c/smiapp/smiapp-core.c:         subdev->name, code->pad, code->index);
+drivers/media/i2c/smiapp/smiapp-core.c: strlcpy(subdev->name, sensor->minfo.name, sizeof(subdev->name));
+drivers/media/i2c/sr030pc30.c:  strcpy(sd->name, MODULE_NAME);
+drivers/media/i2c/tvp514x.c:    strlcpy(sd->name, TVP514X_MODULE_NAME, sizeof(sd->name));
+
+> If there can be only one sensor (because it is integrated in the SoC),
+> then there is no problem with doing this. But it is not obvious to me
+> which of these drivers are for integrated systems, and which aren't.
+
+Those sensors are standalone devices, I'm not aware of any of them to be 
+integrated with an Application Processor SoC. I've never seen something 
+like that. However some of those devices are hybrid modules with a raw 
+image sensor and an ISP SoC.
+So in theory there could be multiple such devices in a single system, 
+although personally I've never seen something like that.
+
+> I can make patches for those that need to be fixed if you can tell me
+> which drivers are affected.
+
+You may want to have a look at the commits listed below, and the comments 
+I received to that [2] patch series...
+
+commit 2138d73b69be1cfa4982c9949f2445ec77ea9edc
+[media] noon010pc30: Make subdev name independent of the I2C slave address
+
+commit 14b702dd71d38b6d0662251b3f8cd60da98602ce
+[media] s5k6aa: Make subdev name independent of the I2C slave address
+
+commit c5024a70bb60b678f08586ed786340ec162d250f
+[media] m5mols: Make subdev name independent of the I2C slave address
+
+Before we start messing with those drivers it would be nice to have 
+defined rules of the media entity naming. I2C bus number and address
+is not something that's useful in the media entity name. And multiple
+sensors (smiapp, s5c73m3, upcoming s5k6bafx) have "logical" subdevs 
+that are not initialized with the i2c specific v4l2 functions.
+
+I guess there are other means to ensure the subdev's name is unique,
+rather than appending I2C bus info to it that changes from board to
+board and is totally irrelevant in user space.
+
+Presumably we could have subdev name postfixed with I2C bus id/slave
+address as it is done currently and the media core would be using only
+a part of subdev's name up to ' ' character to initialize the entity
+name ? The media entities have unique ID, hence it would have probably
+been OK to have entities with same name, should it happen there are 
+multiple identical devices in a single system.
+
+To summarize, I would prefer to avoid modifying those drivers in a
+backward incompatible way, for a sake of pure API correctness and
+due to vague reasons. There is currently no board in mainline for
+which the subdev names wouldn't have been unique. Usually there 
+are different types of image sensors used for the front and the 
+rear facing camera. But for stereoscopy there most likely would
+be two identical image sensors on a board. 
+
+Regards,
+Sylwester
+
+[1] http://www.spinics.net/lists/linux-media/msg58437.html
+[2] http://www.spinics.net/lists/linux-media/msg44445.html
