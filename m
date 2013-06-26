@@ -1,43 +1,27 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1749 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751034Ab3FJMtd (ORCPT
+Received: from eastrmfepi202.cox.net ([68.230.241.206]:35163 "EHLO
+	eastrmfepi202.cox.net" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752512Ab3FZUN7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 08:49:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 2/9] cx23885-417: use v4l2_dev instead of the deprecated parent field.
-Date: Mon, 10 Jun 2013 14:48:31 +0200
-Message-Id: <1370868518-19831-3-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 26 Jun 2013 16:13:59 -0400
+Received: from eastrmimpo306 ([68.230.241.238]) by eastrmfepo102.cox.net
+          (InterMail vM.8.01.05.09 201-2260-151-124-20120717) with ESMTP
+          id <20130626200209.MREY3897.eastrmfepo102.cox.net@eastrmimpo306>
+          for <linux-media@vger.kernel.org>;
+          Wed, 26 Jun 2013 16:02:09 -0400
+Reply-To: <latidesk@mail2Judge.com>
+From: "JMW SOLICITORS LLP" <court@cox.net>
+Subject: PRIVATE MESSAGE
+Date: Wed, 26 Jun 2013 21:02:08 +0100
+MIME-Version: 1.0
+Content-Type: text/plain;
+	charset="Windows-1251"
+Content-Transfer-Encoding: 7bit
+Message-Id: <20130626200209.MREY3897.eastrmfepo102.cox.net@eastrmimpo306>
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
-
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx23885/cx23885-417.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
-
-diff --git a/drivers/media/pci/cx23885/cx23885-417.c b/drivers/media/pci/cx23885/cx23885-417.c
-index f4f9ef0..e3fc2c7 100644
---- a/drivers/media/pci/cx23885/cx23885-417.c
-+++ b/drivers/media/pci/cx23885/cx23885-417.c
-@@ -1732,7 +1732,7 @@ static struct video_device *cx23885_video_dev_alloc(
- 	*vfd = *template;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s (%s)",
- 		cx23885_boards[tsport->dev->board].name, type);
--	vfd->parent  = &pci->dev;
-+	vfd->v4l2_dev = &dev->v4l2_dev;
- 	vfd->release = video_device_release;
- 	return vfd;
- }
--- 
-1.7.10.4
-
+LEGAL NOTICE;
+I once again try to notify you that my late client Mr James Campbell made his inheritance of 3.8 million pounds in your favour.
+Barr Colin Lee
