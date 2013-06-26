@@ -1,104 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34578 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933981Ab3FSKf4 (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:25971 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751195Ab3FZHyM (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jun 2013 06:35:56 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	hj210.choi@samsung.com, sw0312.kim@samsung.com
-Subject: Re: [PATCH RFC v3 1/3] media: added managed media entity initialization
-Date: Wed, 19 Jun 2013 12:36:09 +0200
-Message-ID: <3699560.VO8nIerPms@avalon>
-In-Reply-To: <51C188E7.4020208@samsung.com>
-References: <1368692074-483-1-git-send-email-a.hajda@samsung.com> <2229025.9VJ8P9QgzO@avalon> <51C188E7.4020208@samsung.com>
+	Wed, 26 Jun 2013 03:54:12 -0400
+Date: Wed, 26 Jun 2013 10:53:58 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Jarod Wilson <jarod@wilsonet.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: [patch] [media] staging: lirc: clean error handling in probe()
+Message-ID: <20130626075358.GC1895@elgon.mountain>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+I have reorganized the error handling into a simpler and more canonical
+format.
 
-On Wednesday 19 June 2013 12:33:11 Andrzej Hajda wrote:
-> On 06/19/2013 12:03 AM, Laurent Pinchart wrote:
-> > On Thursday 16 May 2013 10:14:32 Andrzej Hajda wrote:
-> >> This patch adds managed versions of initialization
-> >> function for media entity.
-> >> 
-> >> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> >> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> >> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> >> ---
-> >> 
-> >> v3:
-> >> 	- removed managed cleanup
-> >> 
-> >> ---
-> >> 
-> >>  drivers/media/media-entity.c |   44 ++++++++++++++++++++++++++++++++++++
-> >>  include/media/media-entity.h |    5 +++++
-> >>  2 files changed, 49 insertions(+)
-> >> 
-> >> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> >> index e1cd132..b1e29a7 100644
-> >> --- a/drivers/media/media-entity.c
-> >> +++ b/drivers/media/media-entity.c
-> >> @@ -82,9 +82,53 @@ void
-> >>  media_entity_cleanup(struct media_entity *entity)
-> >>  {
-> >>  	kfree(entity->links);
-> >> +	entity->links = NULL;
-> >>  }
-> >>  EXPORT_SYMBOL_GPL(media_entity_cleanup);
-> >> 
-> >> +static void devm_media_entity_release(struct device *dev, void *res)
-> >> +{
-> >> +	struct media_entity **entity = res;
-> >> +
-> >> +	media_entity_cleanup(*entity);
-> >> +}
-> >> +
-> >> +/**
-> >> + * devm_media_entity_init - managed media entity initialization
-> >> + *
-> >> + * @dev: Device for which @entity belongs to.
-> >> + * @entity: Entity to be initialized.
-> >> + * @num_pads: Total number of sink and source pads.
-> >> + * @pads: Array of 'num_pads' pads.
-> >> + * @extra_links: Initial estimate of the number of extra links.
-> >> + *
-> >> + * This is a managed version of media_entity_init. Entity initialized
-> >> with
-> >> + * this function will be automatically cleaned up on driver detach.
-> >> + */
-> >> +int
-> >> +devm_media_entity_init(struct device *dev, struct media_entity *entity,
-> >> +		       u16 num_pads, struct media_pad *pads, u16 extra_links)
-> > 
-> > What kind of users do you see for this function ? Aren't subdev drivers
-> > supposed to use the devm_* functions from patch 3/3 instead ? We should at
-> > least make it clear in the documentation that drivers must not use both
-> > devm_media_entity_init() and devm_v4l2_subdev_i2c_init().
-> 
-> It can be used for media entities which are not part of subdev.
-> I will add statement about it.
-> Besides subdev, for now only video_device uses media entity.
-> I am not 100% sure about advantages of adding devm_media_entity_init -
-> currently only 7 drivers in kernel uses video_device and
-> media_entity_cleanup in those drivers is called not as straightforward
-> as in subdevs.
-> Replacing it with managed version would require deeper analysis :)
+Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
 
-Thank you fhr the explanation. Maybe we should then delay introducing 
-devm_media_entity_init until needed ?
-
--- 
-Regards,
-
-Laurent Pinchart
-
+diff --git a/drivers/staging/media/lirc/lirc_igorplugusb.c b/drivers/staging/media/lirc/lirc_igorplugusb.c
+index 2faa391..4cf3933 100644
+--- a/drivers/staging/media/lirc/lirc_igorplugusb.c
++++ b/drivers/staging/media/lirc/lirc_igorplugusb.c
+@@ -390,7 +390,6 @@ static int igorplugusb_remote_probe(struct usb_interface *intf,
+ 	int devnum, pipe, maxp;
+ 	int minor = 0;
+ 	char buf[63], name[128] = "";
+-	int mem_failure = 0;
+ 	int ret;
+ 
+ 	dprintk(DRIVER_NAME ": usb probe called.\n");
+@@ -416,24 +415,17 @@ static int igorplugusb_remote_probe(struct usb_interface *intf,
+ 	dprintk(DRIVER_NAME "[%d]: bytes_in_key=%zu maxp=%d\n",
+ 		devnum, CODE_LENGTH, maxp);
+ 
+-	mem_failure = 0;
+ 	ir = kzalloc(sizeof(struct igorplug), GFP_KERNEL);
+-	if (!ir) {
+-		mem_failure = 1;
+-		goto mem_failure_switch;
+-	}
++	if (!ir)
++		return -ENOMEM;
+ 	driver = kzalloc(sizeof(struct lirc_driver), GFP_KERNEL);
+-	if (!driver) {
+-		mem_failure = 2;
+-		goto mem_failure_switch;
+-	}
++	if (!driver)
++		goto err_free_ir;
+ 
+ 	ir->buf_in = usb_alloc_coherent(dev, DEVICE_BUFLEN + DEVICE_HEADERLEN,
+ 					GFP_ATOMIC, &ir->dma_in);
+-	if (!ir->buf_in) {
+-		mem_failure = 3;
+-		goto mem_failure_switch;
+-	}
++	if (!ir->buf_in)
++		goto err_free_driver;
+ 
+ 	strcpy(driver->name, DRIVER_NAME " ");
+ 	driver->minor = -1;
+@@ -451,23 +443,7 @@ static int igorplugusb_remote_probe(struct usb_interface *intf,
+ 
+ 	minor = lirc_register_driver(driver);
+ 	if (minor < 0)
+-		mem_failure = 9;
+-
+-mem_failure_switch:
+-
+-	switch (mem_failure) {
+-	case 9:
+-		usb_free_coherent(dev, DEVICE_BUFLEN + DEVICE_HEADERLEN,
+-			ir->buf_in, ir->dma_in);
+-	case 3:
+-		kfree(driver);
+-	case 2:
+-		kfree(ir);
+-	case 1:
+-		printk(DRIVER_NAME "[%d]: out of memory (code=%d)\n",
+-			devnum, mem_failure);
+-		return -ENOMEM;
+-	}
++		goto err_free_usb;
+ 
+ 	driver->minor = minor;
+ 	ir->d = driver;
+@@ -500,6 +476,16 @@ mem_failure_switch:
+ 
+ 	usb_set_intfdata(intf, ir);
+ 	return 0;
++
++err_free_usb:
++	usb_free_coherent(dev, DEVICE_BUFLEN + DEVICE_HEADERLEN, ir->buf_in,
++			  ir->dma_in);
++err_free_driver:
++	kfree(driver);
++err_free_ir:
++	kfree(ir);
++
++	return -ENOMEM;
+ }
+ 
+ 
