@@ -1,172 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:37404 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751059Ab3FYOW4 (ORCPT
+Received: from userp1040.oracle.com ([156.151.31.81]:28937 "EHLO
+	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729Ab3FZPKS (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 10:22:56 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: kishon@ti.com, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
-	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 5/5] ARM: Samsung: Remove MIPI PHY setup code
-Date: Tue, 25 Jun 2013 16:21:50 +0200
-Message-id: <1372170110-12993-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
-References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
+	Wed, 26 Jun 2013 11:10:18 -0400
+Date: Wed, 26 Jun 2013 18:10:01 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
+Cc: Jarod Wilson <jarod@wilsonet.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	YAMANE Toshiaki <yamanetoshi@gmail.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH v2] staging: lirc: clean error handling in probe()
+Message-ID: <20130626151001.GM5714@mwanda>
+References: <1372257456-19212-1-git-send-email-andriy.shevchenko@linux.intel.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1372257456-19212-1-git-send-email-andriy.shevchenko@linux.intel.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Generic PHY drivers are used to handle the MIPI CSIS and MIPI DSIM
-DPHYs so we can remove now unused code at arch/arm/plat-samsung.
-In case there is any board file for S5PV210 platforms using MIPI
-CSIS/DSIM (not any upstream currently) it should use the generic
-PHY API to bind the PHYs to respective PHY consumer drivers.
+On Wed, Jun 26, 2013 at 05:37:36PM +0300, Andy Shevchenko wrote:
+> From: Dan Carpenter <dan.carpenter@oracle.com>
+> 
+> We have reorganized the error handling into a simpler and more canonical
+> format.
+> 
+> Additionally we removed extra empty lines, switched to devm_kzalloc(), and
+> substitute 'minor' by 'ret' in the igorplugusb_remote_probe() function.
+> 
+> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
-Changes since v1:
- - removed S5P_SETUP_MIPIPHY symbol completely from
-   arch/arm/plat-samsung/Kconfig
----
- arch/arm/mach-exynos/include/mach/regs-pmu.h    |    5 --
- arch/arm/mach-s5pv210/include/mach/regs-clock.h |    4 --
- arch/arm/plat-samsung/Kconfig                   |    5 --
- arch/arm/plat-samsung/Makefile                  |    1 -
- arch/arm/plat-samsung/setup-mipiphy.c           |   60 -----------------------
- 5 files changed, 75 deletions(-)
- delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
+I don't want credit for this, because I didn't do the work.
+Signed-off-by is a legal thing like signing a document...  But I
+have reviewed it and it looks good.
 
-diff --git a/arch/arm/mach-exynos/include/mach/regs-pmu.h b/arch/arm/mach-exynos/include/mach/regs-pmu.h
-index 57344b7..2cdb63e 100644
---- a/arch/arm/mach-exynos/include/mach/regs-pmu.h
-+++ b/arch/arm/mach-exynos/include/mach/regs-pmu.h
-@@ -44,11 +44,6 @@
- #define S5P_DAC_PHY_CONTROL			S5P_PMUREG(0x070C)
- #define S5P_DAC_PHY_ENABLE			(1 << 0)
- 
--#define S5P_MIPI_DPHY_CONTROL(n)		S5P_PMUREG(0x0710 + (n) * 4)
--#define S5P_MIPI_DPHY_ENABLE			(1 << 0)
--#define S5P_MIPI_DPHY_SRESETN			(1 << 1)
--#define S5P_MIPI_DPHY_MRESETN			(1 << 2)
--
- #define S5P_INFORM0				S5P_PMUREG(0x0800)
- #define S5P_INFORM1				S5P_PMUREG(0x0804)
- #define S5P_INFORM2				S5P_PMUREG(0x0808)
-diff --git a/arch/arm/mach-s5pv210/include/mach/regs-clock.h b/arch/arm/mach-s5pv210/include/mach/regs-clock.h
-index 032de66..e345584 100644
---- a/arch/arm/mach-s5pv210/include/mach/regs-clock.h
-+++ b/arch/arm/mach-s5pv210/include/mach/regs-clock.h
-@@ -147,10 +147,6 @@
- #define S5P_HDMI_PHY_CONTROL	S5P_CLKREG(0xE804)
- #define S5P_USB_PHY_CONTROL	S5P_CLKREG(0xE80C)
- #define S5P_DAC_PHY_CONTROL	S5P_CLKREG(0xE810)
--#define S5P_MIPI_DPHY_CONTROL(x) S5P_CLKREG(0xE814)
--#define S5P_MIPI_DPHY_ENABLE	(1 << 0)
--#define S5P_MIPI_DPHY_SRESETN	(1 << 1)
--#define S5P_MIPI_DPHY_MRESETN	(1 << 2)
- 
- #define S5P_INFORM0		S5P_CLKREG(0xF000)
- #define S5P_INFORM1		S5P_CLKREG(0xF004)
-diff --git a/arch/arm/plat-samsung/Kconfig b/arch/arm/plat-samsung/Kconfig
-index b21d9d5..60f6337 100644
---- a/arch/arm/plat-samsung/Kconfig
-+++ b/arch/arm/plat-samsung/Kconfig
-@@ -388,11 +388,6 @@ config S3C24XX_PWM
- 	  Support for exporting the PWM timer blocks via the pwm device
- 	  system
- 
--config S5P_SETUP_MIPIPHY
--	bool
--	help
--	  Compile in common setup code for MIPI-CSIS and MIPI-DSIM devices
--
- config S3C_SETUP_CAMIF
- 	bool
- 	help
-diff --git a/arch/arm/plat-samsung/Makefile b/arch/arm/plat-samsung/Makefile
-index 5d7f839..0db786e 100644
---- a/arch/arm/plat-samsung/Makefile
-+++ b/arch/arm/plat-samsung/Makefile
-@@ -38,7 +38,6 @@ obj-$(CONFIG_S5P_DEV_UART)	+= s5p-dev-uart.o
- obj-$(CONFIG_SAMSUNG_DEV_BACKLIGHT)	+= dev-backlight.o
- 
- obj-$(CONFIG_S3C_SETUP_CAMIF)	+= setup-camif.o
--obj-$(CONFIG_S5P_SETUP_MIPIPHY)	+= setup-mipiphy.o
- 
- # DMA support
- 
-diff --git a/arch/arm/plat-samsung/setup-mipiphy.c b/arch/arm/plat-samsung/setup-mipiphy.c
-deleted file mode 100644
-index 66df315..0000000
---- a/arch/arm/plat-samsung/setup-mipiphy.c
-+++ /dev/null
-@@ -1,60 +0,0 @@
--/*
-- * Copyright (C) 2011 Samsung Electronics Co., Ltd.
-- *
-- * S5P - Helper functions for MIPI-CSIS and MIPI-DSIM D-PHY control
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#include <linux/export.h>
--#include <linux/kernel.h>
--#include <linux/platform_device.h>
--#include <linux/io.h>
--#include <linux/spinlock.h>
--#include <mach/regs-clock.h>
--
--static int __s5p_mipi_phy_control(int id, bool on, u32 reset)
--{
--	static DEFINE_SPINLOCK(lock);
--	void __iomem *addr;
--	unsigned long flags;
--	u32 cfg;
--
--	id = max(0, id);
--	if (id > 1)
--		return -EINVAL;
--
--	addr = S5P_MIPI_DPHY_CONTROL(id);
--
--	spin_lock_irqsave(&lock, flags);
--
--	cfg = __raw_readl(addr);
--	cfg = on ? (cfg | reset) : (cfg & ~reset);
--	__raw_writel(cfg, addr);
--
--	if (on) {
--		cfg |= S5P_MIPI_DPHY_ENABLE;
--	} else if (!(cfg & (S5P_MIPI_DPHY_SRESETN |
--			    S5P_MIPI_DPHY_MRESETN) & ~reset)) {
--		cfg &= ~S5P_MIPI_DPHY_ENABLE;
--	}
--
--	__raw_writel(cfg, addr);
--	spin_unlock_irqrestore(&lock, flags);
--
--	return 0;
--}
--
--int s5p_csis_phy_enable(int id, bool on)
--{
--	return __s5p_mipi_phy_control(id, on, S5P_MIPI_DPHY_SRESETN);
--}
--EXPORT_SYMBOL(s5p_csis_phy_enable);
--
--int s5p_dsim_phy_enable(struct platform_device *pdev, bool on)
--{
--	return __s5p_mipi_phy_control(pdev->id, on, S5P_MIPI_DPHY_MRESETN);
--}
--EXPORT_SYMBOL(s5p_dsim_phy_enable);
--- 
-1.7.9.5
+Acked-by: Dan Carpenter <dan.carpenter@oracle.com>
+
+regards,
+dan carpenter
 
