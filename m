@@ -1,34 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from tex.lwn.net ([70.33.254.29]:60353 "EHLO vena.lwn.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1423404Ab3FURFY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 13:05:24 -0400
-Date: Fri, 21 Jun 2013 11:05:18 -0600
-From: Jonathan Corbet <corbet@lwn.net>
-To: <lbyang@marvell.com>
-Cc: <g.liakhovetski@gmx.de>, <mchehab@redhat.com>,
-	<linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>
-Subject: Re: [PATCH 5/7] marvell-ccic: add new formats support for
- marvell-ccic driver
-Message-ID: <20130621110518.2171f9ee@lwn.net>
-In-Reply-To: <1370325463.26072.31.camel@younglee-desktop>
-References: <1370325463.26072.31.camel@younglee-desktop>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8bit
+Received: from mail-ob0-f178.google.com ([209.85.214.178]:33480 "EHLO
+	mail-ob0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751059Ab3FZHFT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jun 2013 03:05:19 -0400
+Received: by mail-ob0-f178.google.com with SMTP id fb19so13170056obc.9
+        for <linux-media@vger.kernel.org>; Wed, 26 Jun 2013 00:05:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CALt3h79G-rKqBXGwgbxKVXSt2ASQ0H603zkEZQekZSUPEs8D1A@mail.gmail.com>
+References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
+	<1372157835-27663-5-git-send-email-arun.kk@samsung.com>
+	<CAK9yfHy3uzCn0GhU6d5CcFLw=VXeHVZukJAK_cmgFkJG6iiGeA@mail.gmail.com>
+	<CALt3h79G-rKqBXGwgbxKVXSt2ASQ0H603zkEZQekZSUPEs8D1A@mail.gmail.com>
+Date: Wed, 26 Jun 2013 12:35:18 +0530
+Message-ID: <CAK9yfHzno9FRM8vrX1OnLCLvbnB0MXeGo53duo1E6KJQ_DC+Pw@mail.gmail.com>
+Subject: Re: [PATCH v3 4/8] [media] s5p-mfc: Core support for MFC v7
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: Arun Kumar K <arunkk.samsung@gmail.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, avnd.kiran@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 4 Jun 2013 13:57:43 +0800
-lbyang <lbyang@marvell.com> wrote:
+Hi Arun,
 
-> This patch adds the new formats support for marvell-ccic.
+On 26 June 2013 12:18, Arun Kumar K <arunkk.samsung@gmail.com> wrote:
+> Hi Sachin,
+>
+> On Tue, Jun 25, 2013 at 4:54 PM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
+>> Hi Arun,
+>>
+>>> @@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+>>>                                 (dev->variant->port_num ? 1 : 0) : 0) : 0)
+>>>  #define IS_TWOPORT(dev)                (dev->variant->port_num == 2 ? 1 : 0)
+>>>  #define IS_MFCV6_PLUS(dev)     (dev->variant->version >= 0x60 ? 1 : 0)
+>>> +#define IS_MFCV7(dev)          (dev->variant->version >= 0x70 ? 1 : 0)
+>>
+>> Considering the definition and pattern, wouldn't it be appropriate to
+>> call this  IS_MFCV7_PLUS?
+>>
+>
+> We are still not sure about MFCv8 if it can re-use v7 stuff or not.
+>
 
-More to the point, it adds *planar* format support.  That's something I
-always meant to do, and it deserves mentioning in the changelog.
+OK. In that case probably we can restrict the definition to
+(dev->variant->version == 0x70 ? 1 : 0).
 
-My look-over has been quick, but:
 
-Acked-by: Jonathan Corbet <corbet@lwn.net>
-
-jon
+-- 
+With warm regards,
+Sachin
