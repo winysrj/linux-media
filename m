@@ -1,50 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1659 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754159Ab3FUGFk (ORCPT
+Received: from mail-vc0-f182.google.com ([209.85.220.182]:64433 "EHLO
+	mail-vc0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349Ab3FZMwW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 02:05:40 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH] v4l2-controls.h: fix copy-and-paste error in comment
-Date: Fri, 21 Jun 2013 08:05:34 +0200
-Message-Id: <1371794734-10078-1-git-send-email-hverkuil@xs4all.nl>
+	Wed, 26 Jun 2013 08:52:22 -0400
+Received: by mail-vc0-f182.google.com with SMTP id id13so1113453vcb.41
+        for <linux-media@vger.kernel.org>; Wed, 26 Jun 2013 05:52:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <00ce01ce7246$12a7ff40$37f7fdc0$%debski@samsung.com>
+References: <1372157835-27663-1-git-send-email-arun.kk@samsung.com>
+	<1372157835-27663-5-git-send-email-arun.kk@samsung.com>
+	<CAK9yfHy3uzCn0GhU6d5CcFLw=VXeHVZukJAK_cmgFkJG6iiGeA@mail.gmail.com>
+	<CALt3h79G-rKqBXGwgbxKVXSt2ASQ0H603zkEZQekZSUPEs8D1A@mail.gmail.com>
+	<CAK9yfHzno9FRM8vrX1OnLCLvbnB0MXeGo53duo1E6KJQ_DC+Pw@mail.gmail.com>
+	<00ce01ce7246$12a7ff40$37f7fdc0$%debski@samsung.com>
+Date: Wed, 26 Jun 2013 18:22:21 +0530
+Message-ID: <CALt3h7_K6dgsUTLnN40ow2CsnvVkSHCQOm6RWYiuo2fF+WdxBg@mail.gmail.com>
+Subject: Re: [PATCH v3 4/8] [media] s5p-mfc: Core support for MFC v7
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Kamil Debski <k.debski@samsung.com>
+Cc: Sachin Kamat <sachin.kamat@linaro.org>,
+	Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>, jtp.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>, avnd.kiran@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Kamil,
 
-The comment for the FM_RX class was copied from the DV class unchanged.
-Fixed.
+On Wed, Jun 26, 2013 at 1:50 PM, Kamil Debski <k.debski@samsung.com> wrote:
+> Hi,
+>
+>> -----Original Message-----
+>> From: Sachin Kamat [mailto:sachin.kamat@linaro.org]
+>> Sent: Wednesday, June 26, 2013 9:05 AM
+>> To: Arun Kumar K
+>> Cc: Arun Kumar K; LMML; Kamil Debski; jtp.park@samsung.com; Sylwester
+>> Nawrocki; Hans Verkuil; avnd.kiran@samsung.com
+>> Subject: Re: [PATCH v3 4/8] [media] s5p-mfc: Core support for MFC v7
+>>
+>> Hi Arun,
+>>
+>> On 26 June 2013 12:18, Arun Kumar K <arunkk.samsung@gmail.com> wrote:
+>> > Hi Sachin,
+>> >
+>> > On Tue, Jun 25, 2013 at 4:54 PM, Sachin Kamat
+>> <sachin.kamat@linaro.org> wrote:
+>> >> Hi Arun,
+>> >>
+>> >>> @@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx
+>> *ctx);
+>> >>>                                 (dev->variant->port_num ? 1 : 0) :
+>> 0) : 0)
+>> >>>  #define IS_TWOPORT(dev)                (dev->variant->port_num ==
+>> 2 ? 1 : 0)
+>> >>>  #define IS_MFCV6_PLUS(dev)     (dev->variant->version >= 0x60 ? 1 :
+>> 0)
+>> >>> +#define IS_MFCV7(dev)          (dev->variant->version >= 0x70 ? 1 :
+>> 0)
+>> >>
+>> >> Considering the definition and pattern, wouldn't it be appropriate
+>> to
+>> >> call this  IS_MFCV7_PLUS?
+>> >>
+>> >
+>> > We are still not sure about MFCv8 if it can re-use v7 stuff or not.
+>> >
+>>
+>> OK. In that case probably we can restrict the definition to (dev-
+>> >variant->version == 0x70 ? 1 : 0).
+>>
+>>
+>
+> Guys, I think that simple ((dev->variant->version & 0xF0) == 0x70) would
+> cover
+> every 7.x version. Same could apply to versions 6.x and 5.x.
+> Then instead of using IS_MFCV6_PLUS(dev) one would use IS_MFCV6(dev) ||
+> IS_MFCV7(dev).
+> This is a bit longer, but if version 8 will be totally different from v7
+> then it is
+> much better to use v6||v7 instead of v6_plus.
+>
 
-Also made the FM_TX comment consistent with the others.
+If v8 was known to be different from v7, then we can go without second
+thoughts about v6 || v7 check. But we cannot confirm that until v8 is
+released. There is a good possibility of v6_plus macro holding good
+for v8 also.
+So as per current understanding, we can restrict v7 macro to only v7.x FW.
+When v8 is released, we will change the name and usage of this macro if needed.
+Is that ok?
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- include/uapi/linux/v4l2-controls.h | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
-
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 69bd5bb..e90a88a 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -53,13 +53,13 @@
- #define V4L2_CTRL_CLASS_USER		0x00980000	/* Old-style 'user' controls */
- #define V4L2_CTRL_CLASS_MPEG		0x00990000	/* MPEG-compression controls */
- #define V4L2_CTRL_CLASS_CAMERA		0x009a0000	/* Camera class controls */
--#define V4L2_CTRL_CLASS_FM_TX		0x009b0000	/* FM Modulator control class */
-+#define V4L2_CTRL_CLASS_FM_TX		0x009b0000	/* FM Modulator controls */
- #define V4L2_CTRL_CLASS_FLASH		0x009c0000	/* Camera flash controls */
- #define V4L2_CTRL_CLASS_JPEG		0x009d0000	/* JPEG-compression controls */
- #define V4L2_CTRL_CLASS_IMAGE_SOURCE	0x009e0000	/* Image source controls */
- #define V4L2_CTRL_CLASS_IMAGE_PROC	0x009f0000	/* Image processing controls */
- #define V4L2_CTRL_CLASS_DV		0x00a00000	/* Digital Video controls */
--#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* Digital Video controls */
-+#define V4L2_CTRL_CLASS_FM_RX		0x00a10000	/* FM Receiver controls */
- 
- /* User-class control IDs */
- 
--- 
-1.8.3.1
-
+Regards
+Arun
