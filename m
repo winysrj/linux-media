@@ -1,53 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ispras.ru ([83.149.199.45]:45529 "EHLO mail.ispras.ru"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S935151Ab3FSU54 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 19 Jun 2013 16:57:56 -0400
-From: Alexey Khoroshilov <khoroshilov@ispras.ru>
-To: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org,
-	linux-kernel@vger.kernel.org, ldv-project@linuxtesting.org
-Subject: [PATCH] [media] go7007: fix return 0 for unsupported devices in go7007_usb_probe()
-Date: Thu, 20 Jun 2013 00:57:40 +0400
-Message-Id: <1371675460-14850-1-git-send-email-khoroshilov@ispras.ru>
+Received: from mailout2.samsung.com ([203.254.224.25]:10288 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751383Ab3FZPF1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jun 2013 11:05:27 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: kishon@ti.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
+	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 2/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
+Date: Wed, 26 Jun 2013 17:02:23 +0200
+Message-id: <1372258946-15607-3-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
+References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-probe() should not return 0 for unsupported devices, but go7007_usb_probe() does.
-The patch fixes it to return -ENODEV.
+Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
 
-Found by Linux Driver Verification project (linuxtesting.org).
-
-Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/staging/media/go7007/go7007-usb.c | 4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+ arch/arm/boot/dts/exynos4.dtsi |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/staging/media/go7007/go7007-usb.c b/drivers/staging/media/go7007/go7007-usb.c
-index 50066e0..46ed832 100644
---- a/drivers/staging/media/go7007/go7007-usb.c
-+++ b/drivers/staging/media/go7007/go7007-usb.c
-@@ -1124,7 +1124,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 	case GO7007_BOARDID_LIFEVIEW_LR192:
- 		printk(KERN_ERR "go7007-usb: The Lifeview TV Walker Ultra "
- 				"is not supported.  Sorry!\n");
--		return 0;
-+		return -ENODEV;
- 		name = "Lifeview TV Walker Ultra";
- 		board = &board_lifeview_lr192;
- 		break;
-@@ -1140,7 +1140,7 @@ static int go7007_usb_probe(struct usb_interface *intf,
- 	default:
- 		printk(KERN_ERR "go7007-usb: unknown board ID %d!\n",
- 				(unsigned int)id->driver_info);
--		return 0;
-+		return -ENODEV;
- 	}
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 4d61120..9542088 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -98,6 +98,12 @@
+ 		reg = <0x10010000 0x400>;
+ 	};
  
- 	go = go7007_alloc(&board->main_info, &intf->dev);
++	mipi_phy: video-phy@10020710 {
++		compatible = "samsung,s5pv210-mipi-video-phy";
++		reg = <0x10020710 8>;
++		#phy-cells = <1>;
++	};
++
+ 	camera {
+ 		compatible = "samsung,fimc", "simple-bus";
+ 		status = "disabled";
+@@ -147,6 +153,8 @@
+ 			interrupts = <0 78 0>;
+ 			bus-width = <4>;
+ 			samsung,power-domain = <&pd_cam>;
++			phys = <&mipi_phy 0>;
++			phy-names = "csis";
+ 			status = "disabled";
+ 		};
+ 
+@@ -156,6 +164,8 @@
+ 			interrupts = <0 80 0>;
+ 			bus-width = <2>;
+ 			samsung,power-domain = <&pd_cam>;
++			phys = <&mipi_phy 2>;
++			phy-names = "csis";
+ 			status = "disabled";
+ 		};
+ 	};
 -- 
-1.8.1.2
+1.7.9.5
 
