@@ -1,55 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f177.google.com ([209.85.128.177]:53618 "EHLO
-	mail-ve0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750741Ab3FYEdu (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:48454 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750729Ab3FZPAh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 00:33:50 -0400
-Received: by mail-ve0-f177.google.com with SMTP id cz10so9480688veb.22
-        for <linux-media@vger.kernel.org>; Mon, 24 Jun 2013 21:33:49 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <51C75FA4.2010303@gmail.com>
-References: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
-	<1371560183-23244-7-git-send-email-arun.kk@samsung.com>
-	<51C75FA4.2010303@gmail.com>
-Date: Tue, 25 Jun 2013 10:03:49 +0530
-Message-ID: <CALt3h7_LA-mUr_LtXtGeSqc_mVudtNA05-iL3xNho=zu1ibGjw@mail.gmail.com>
-Subject: Re: [PATCH v2 6/8] [media] V4L: Add support for integer menu controls
- with standard menu items
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, avnd.kiran@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 26 Jun 2013 11:00:37 -0400
+Message-id: <51CB0212.3050103@samsung.com>
+Date: Wed, 26 Jun 2013 17:00:34 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: balbi@ti.com
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, kishon@ti.com,
+	linux-media@vger.kernel.org, kyungmin.park@samsung.com,
+	t.figa@samsung.com, devicetree-discuss@lists.ozlabs.org,
+	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
+	inki.dae@samsung.com, plagnioj@jcrosoft.com,
+	linux-fbdev@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com>
+ <20130625150649.GA21334@arwen.pp.htv.fi>
+In-reply-to: <20130625150649.GA21334@arwen.pp.htv.fi>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi,
 
-On Mon, Jun 24, 2013 at 2:20 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> Hi Arun,
+On 06/25/2013 05:06 PM, Felipe Balbi wrote:
+>> +static struct platform_driver exynos_video_phy_driver = {
+>> > +	.probe	= exynos_video_phy_probe,
 >
->
-> On 06/18/2013 02:56 PM, Arun Kumar K wrote:
->>
->> @@ -806,6 +820,7 @@ const char *v4l2_ctrl_get_name(u32 id)
->>         case V4L2_CID_FM_RX_CLASS:              return "FM Radio Receiver
->> Controls";
->>         case V4L2_CID_TUNE_DEEMPHASIS:          return "De-Emphasis";
->>         case V4L2_CID_RDS_RECEPTION:            return "RDS Reception";
->> +
->>         default:
->>                 return NULL;
->>         }
->
->
-> This change would need to be moved to patch 7/8.
->
+> you *must* provide a remove method. drivers with NULL remove are
+> non-removable :-)
 
-Yes. Even better I will discard this change.
+Actually the remove() callback can be NULL, it's just missing module_exit
+function that makes a module not unloadable.
 
-Regards
-Arun
+--
+Regards,
+Sylwester
