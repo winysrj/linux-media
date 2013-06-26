@@ -1,112 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:22470 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751324Ab3F1MnS (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 08:43:18 -0400
-Date: Fri, 28 Jun 2013 09:42:46 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Randy Dunlap <rdunlap@infradead.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] usbtv: fix dependency
-Message-ID: <20130628094246.555bb203.mchehab@redhat.com>
-In-Reply-To: <201306281318.44880.hverkuil@xs4all.nl>
-References: <201306281024.15428.hverkuil@xs4all.nl>
-	<20130628080043.46dd09c0.mchehab@redhat.com>
-	<201306281318.44880.hverkuil@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:26790 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751729Ab3FZPFc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jun 2013 11:05:32 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: kishon@ti.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
+	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 3/5] video: exynos_mipi_dsim: Use the generic PHY driver
+Date: Wed, 26 Jun 2013 17:02:24 +0200
+Message-id: <1372258946-15607-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
+References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Fri, 28 Jun 2013 13:18:44 +0200
-Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+Use the generic PHY API instead of the platform callback to control
+the MIPI DSIM DPHY. The 'phy_label' field is added to the platform
+data structure to allow PHY lookup on non-dt platforms.
 
-> On Fri June 28 2013 13:00:43 Mauro Carvalho Chehab wrote:
-> > Em Fri, 28 Jun 2013 10:24:15 +0200
-> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
-> > 
-> > > This fixes a dependency problem as found by Randy Dunlap:
-> > > 
-> > > https://lkml.org/lkml/2013/6/27/501
-> > > 
-> > > Mauro, is there any reason for any V4L2 driver to depend on VIDEO_DEV instead of
-> > > just VIDEO_V4L2?
-> > > 
-> > > Some drivers depend on VIDEO_DEV, some on VIDEO_V4L2, some on both. It's all
-> > > pretty chaotic.
-> > 
-> > It should be noticed that, despite its name, this config is actually a
-> > joint dependency of VIDEO_DEV and I2C that will compile drivers as module
-> > if either I2C or VIDEO_DEV is a module:
-> > 
-> > 	config VIDEO_V4L2
-> > 		tristate
-> > 		depends on (I2C || I2C=n) && VIDEO_DEV
-> > 		default (I2C || I2C=n) && VIDEO_DEV
-> > 
-> > So, a V4L2 device that doesn't have any I2C device doesn't need to depend
-> > on VIDEO_V4L2. That includes, for example, reversed-engineered webcam
-> > drivers where the sensor code is inside the driver and a few capture-only
-> > device drivers.
-> 
-> Yes, it does have to depend on it. That's exactly why usbtv is failing: like
-> any other v4l2 driver usbtv needs the videodev.ko module. That is dependent
-> on VIDEO_V4L2. What is happening here is that the dependency of usbtv on
-> VIDEO_DEV allows it to be built as part of the kernel, but VIDEO_V4L2 is built
-> as a module due to its I2C dependency with the result that usbtv can't link to
-> the videodev functions.
-> 
-> The way things are today I do not believe any v4l2 driver should depend on
-> VIDEO_DEV, instead they should all depend on VIDEO_V4L2. That would make a
-> lot more sense.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/video/exynos/exynos_mipi_dsi.c |   18 +++++++++---------
+ include/video/exynos_mipi_dsim.h       |    6 ++++--
+ 2 files changed, 13 insertions(+), 11 deletions(-)
 
-Hmm...
+diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
+index 32e5406..1f96004 100644
+--- a/drivers/video/exynos/exynos_mipi_dsi.c
++++ b/drivers/video/exynos/exynos_mipi_dsi.c
+@@ -156,8 +156,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
+ 		exynos_mipi_regulator_enable(dsim);
+ 
+ 		/* enable MIPI-DSI PHY. */
+-		if (dsim->pd->phy_enable)
+-			dsim->pd->phy_enable(pdev, true);
++		phy_power_on(dsim->phy);
+ 
+ 		clk_enable(dsim->clock);
+ 
+@@ -373,6 +372,10 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	dsim->phy = devm_phy_get(&pdev->dev, dsim_pd->phy_label);
++	if (IS_ERR(dsim->phy))
++		return PTR_ERR(dsim->phy);
++
+ 	dsim->clock = devm_clk_get(&pdev->dev, "dsim0");
+ 	if (IS_ERR(dsim->clock)) {
+ 		dev_err(&pdev->dev, "failed to get dsim clock source\n");
+@@ -439,8 +442,7 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
+ 	exynos_mipi_regulator_enable(dsim);
+ 
+ 	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, true);
++	phy_power_on(dsim->phy);
+ 
+ 	exynos_mipi_update_cfg(dsim);
+ 
+@@ -504,9 +506,8 @@ static int exynos_mipi_dsi_suspend(struct device *dev)
+ 	if (client_drv && client_drv->suspend)
+ 		client_drv->suspend(client_dev);
+ 
+-	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, false);
++	/* disable MIPI-DSI PHY. */
++	phy_power_off(dsim->phy);
+ 
+ 	clk_disable(dsim->clock);
+ 
+@@ -536,8 +537,7 @@ static int exynos_mipi_dsi_resume(struct device *dev)
+ 	exynos_mipi_regulator_enable(dsim);
+ 
+ 	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, true);
++	phy_power_on(dsim->phy);
+ 
+ 	clk_enable(dsim->clock);
+ 
+diff --git a/include/video/exynos_mipi_dsim.h b/include/video/exynos_mipi_dsim.h
+index 89dc88a..fd69beb 100644
+--- a/include/video/exynos_mipi_dsim.h
++++ b/include/video/exynos_mipi_dsim.h
+@@ -216,6 +216,7 @@ struct mipi_dsim_config {
+  *	automatically.
+  * @e_clk_src: select byte clock source.
+  * @pd: pointer to MIPI-DSI driver platform data.
++ * @phy: pointer to the generic PHY
+  */
+ struct mipi_dsim_device {
+ 	struct device			*dev;
+@@ -236,6 +237,7 @@ struct mipi_dsim_device {
+ 	bool				suspended;
+ 
+ 	struct mipi_dsim_platform_data	*pd;
++	struct phy			*phy;
+ };
+ 
+ /*
+@@ -248,7 +250,7 @@ struct mipi_dsim_device {
+  * @enabled: indicate whether mipi controller got enabled or not.
+  * @lcd_panel_info: pointer for lcd panel specific structure.
+  *	this structure specifies width, height, timing and polarity and so on.
+- * @phy_enable: pointer to a callback controlling D-PHY enable/reset
++ * @phy_label: the generic PHY label
+  */
+ struct mipi_dsim_platform_data {
+ 	char				lcd_panel_name[PANEL_NAME_SIZE];
+@@ -257,7 +259,7 @@ struct mipi_dsim_platform_data {
+ 	unsigned int			enabled;
+ 	void				*lcd_panel_info;
+ 
+-	int (*phy_enable)(struct platform_device *pdev, bool on);
++	const char 			*phy_label;
+ };
+ 
+ /*
+-- 
+1.7.9.5
 
-$ git grep -l i2c drivers/media/v4l2-core/
-drivers/media/v4l2-core/tuner-core.c		(not part of videodev.ko module)
-drivers/media/v4l2-core/v4l2-async.c
-drivers/media/v4l2-core/v4l2-common.c
-drivers/media/v4l2-core/v4l2-ctrls.c		(actually, there's just a comment there)
-drivers/media/v4l2-core/v4l2-device.c
-
-$ git grep  CONFIG_I2C drivers/media/v4l2-core/
-drivers/media/v4l2-core/v4l2-common.c:#if IS_ENABLED(CONFIG_I2C)
-drivers/media/v4l2-core/v4l2-common.c:#endif /* defined(CONFIG_I2C) */
-drivers/media/v4l2-core/v4l2-device.c:#if IS_ENABLED(CONFIG_I2C)
-
-yes, there are some parts of videodev that are dependent on I2C.
-
-That's basically why all V4L2 drivers should depend on VIDEO_V4L2.
-
-That's said, before the addition of v4l2-async, it was safe to compile
-the core without I2C, as the parts of the code that are I2C specific are
-protected by a:
-	#if defined(CONFIG_I2C)
-
-With its addition, I suspect that we'll still have Kbuild issues, if I2C
-is disabled and a driver that doesn't depends on I2C is compiled.
-
-So, 2 patches seem to be needed:
-
-1) a patch that replaces all driver dependencies from CONFIG_DEV to
-   CONFIG_V4L2;
-
-2) a patch that fixes the issues with v4l2-async.
-
-With regards to the last one, I can see 3 ways to fix it:
-	1) don't add v4l2-async at videodev.ko if I2C is not selected;
-	2) protect the I2C specific parts of v4l2-async with
-		#if defined(CONFIG_I2C)
-	3) put v4l2-async on a separate module.
-
-(or some combination of the above)
-
-As only very few drivers use v4l2-async, as this is more focused to
-fix troubles with OT, I think that the better would be to do (3) and
-to add an specific Kconfig entry for it.
-
-Regards,
-Mauro.
