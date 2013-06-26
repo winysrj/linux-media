@@ -1,122 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.10]:53691 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750944Ab3FWNa2 (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:26637 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751574Ab3FZPCp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 23 Jun 2013 09:30:28 -0400
-Date: Sun, 23 Jun 2013 15:30:00 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH] media: i2c: adv7343: add support for asynchronous probing
-In-Reply-To: <Pine.LNX.4.64.1306231525060.13783@axis700.grange>
-Message-ID: <Pine.LNX.4.64.1306231527050.13783@axis700.grange>
-References: <1371895657-2898-1-git-send-email-prabhakar.csengg@gmail.com>
- <Pine.LNX.4.64.1306231525060.13783@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 26 Jun 2013 11:02:45 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: kishon@ti.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
+	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 0/5] Generic PHY driver for the Exynos SoC MIPI CSI-2/DSI
+ DPHYs
+Date: Wed, 26 Jun 2013 17:02:21 +0200
+Message-id: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 23 Jun 2013, Guennadi Liakhovetski wrote:
+This patch series adds a simple driver for the Samsung S5P/Exynos SoC
+series MIPI CSI-2 receiver (MIPI CSIS) and MIPI DSI transmitter (MIPI
+DSIM) DPHYs, using the generic PHY framework [1]. Previously the MIPI
+CSIS and MIPI DSIM used a platform callback to control the PHY power
+enable and reset bits. The platform callback can now be dropped and
+those drivers don't need any calls back to the platform code, which
+makes migration to the device tree complete for MIPI CSIS.
 
-> On Sat, 22 Jun 2013, Prabhakar Lad wrote:
-> 
-> > From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> > 
-> > Both synchronous and asynchronous adv7343 subdevice probing is supported by
-> > this patch.
-> > 
-> > Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> > Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> > Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> > Cc: Hans Verkuil <hverkuil@xs4all.nl>
-> > Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> > Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> > ---
-> >  drivers/media/i2c/adv7343.c |   15 +++++++++++----
-> >  1 file changed, 11 insertions(+), 4 deletions(-)
-> > 
-> > diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-> > index 7606218..8080c2c 100644
-> > --- a/drivers/media/i2c/adv7343.c
-> > +++ b/drivers/media/i2c/adv7343.c
-> > @@ -27,6 +27,7 @@
-> >  #include <linux/uaccess.h>
-> >  
-> >  #include <media/adv7343.h>
-> > +#include <media/v4l2-async.h>
-> >  #include <media/v4l2-device.h>
-> >  #include <media/v4l2-ctrls.h>
-> >  
-> > @@ -445,16 +446,21 @@ static int adv7343_probe(struct i2c_client *client,
-> >  				       ADV7343_GAIN_DEF);
-> >  	state->sd.ctrl_handler = &state->hdl;
-> >  	if (state->hdl.error) {
-> > -		int err = state->hdl.error;
-> > -
-> > -		v4l2_ctrl_handler_free(&state->hdl);
-> > -		return err;
-> > +		err = state->hdl.error;
-> > +		goto done;
-> 
-> What does this have to do with asynchronous probing? Please, remove.
+Changes since v2:
+ - adapted to the generic PHY API v9: use phy_set/get_drvdata(),
+ - fixed of_xlate callback to return ERR_PTR() instead of NULL,
+ - namespace cleanup, put "GPL v2" as MODULE_LICENSE, removed pr_debug,
+ - removed phy id check in __set_phy_state().
 
-Uhm, sorry, shouldn't review patches after that kind of a weekend :)
+Patches 2...3/5 are unchanged, description of patch 5/5 has been
+updated.
 
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Changes since v1:
+ - enabled build as module and with CONFIG_OF disabled,
+ - added phy_id enum,
+ - of_address_to_resource() replaced with platform_get_resource(),
+ - adapted to changes in the PHY API v7, v8 - added phy labels,
+ - added MODULE_DEVICE_TABLE() entry,
+ - the driver file renamed to phy-exynos-mipi-video.c,
+ - changed DT compatible string to "samsung,s5pv210-mipi-video-phy",
+ - corrected the compatible property's description.
+ - patch 3/5 "video: exynos_dsi: Use generic PHY driver" replaced
+   with a patch modifying the MIPI DSIM driver which is currently
+   in mainline.
 
-Guennadi
+This series depends on the generic PHY framework [1]. It can be browsed at:
+ http://git.linuxtv.org/snawrocki/samsung.git/exynos-mipi-phy
+This branch is based on the 'for-next' branch from:
+ git://git.kernel.org/pub/scm/linux/kernel/git/kgene/linux-samsung.git
+and the patch series:
+ http://www.spinics.net/lists/arm-kernel/msg254667.html
 
-> 
-> >  	}
-> >  	v4l2_ctrl_handler_setup(&state->hdl);
-> >  
-> >  	err = adv7343_initialize(&state->sd);
-> >  	if (err)
-> > +		goto done;
-> > +
-> > +	err = v4l2_async_register_subdev(&state->sd);
-> > +
-> > +done:
-> 
-> This label won't be needed then either.
-> 
-> Thanks
-> Guennadi
-> 
-> > +	if (err < 0)
-> >  		v4l2_ctrl_handler_free(&state->hdl);
-> > +
-> >  	return err;
-> >  }
-> >  
-> > @@ -463,6 +469,7 @@ static int adv7343_remove(struct i2c_client *client)
-> >  	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-> >  	struct adv7343_state *state = to_state(sd);
-> >  
-> > +	v4l2_async_unregister_subdev(&state->sd);
-> >  	v4l2_device_unregister_subdev(sd);
-> >  	v4l2_ctrl_handler_free(&state->hdl);
-> >  
-> > -- 
-> > 1.7.9.5
-> > 
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
+[1] https://lkml.org/lkml/2013/6/26/259
 
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+Sylwester Nawrocki (5):
+  phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+  ARM: dts: Add MIPI PHY node to exynos4.dtsi
+  video: exynos_mipi_dsim: Use the generic PHY driver
+  exynos4-is: Use the generic MIPI CSIS PHY driver
+  ARM: Samsung: Remove the MIPI PHY setup code
+
+ .../phy/samsung,s5pv210-mipi-video-phy.txt         |   14 ++
+ arch/arm/boot/dts/exynos4.dtsi                     |   10 ++
+ arch/arm/mach-exynos/include/mach/regs-pmu.h       |    5 -
+ arch/arm/mach-s5pv210/include/mach/regs-clock.h    |    4 -
+ arch/arm/plat-samsung/Kconfig                      |    5 -
+ arch/arm/plat-samsung/Makefile                     |    1 -
+ arch/arm/plat-samsung/setup-mipiphy.c              |   60 -------
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   16 +-
+ drivers/phy/Kconfig                                |    9 ++
+ drivers/phy/Makefile                               |    3 +-
+ drivers/phy/phy-exynos-mipi-video.c                |  170 ++++++++++++++++++++
+ drivers/video/exynos/exynos_mipi_dsi.c             |   18 +--
+ include/linux/platform_data/mipi-csis.h            |   11 +-
+ include/video/exynos_mipi_dsim.h                   |    6 +-
+ 14 files changed, 233 insertions(+), 99 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/samsung,s5pv210-mipi-video-phy.txt
+ delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
+ create mode 100644 drivers/phy/phy-exynos-mipi-video.c
+
+--
+1.7.9.5
+
