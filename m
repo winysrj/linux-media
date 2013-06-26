@@ -1,41 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4204 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965093Ab3FTNpE (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:2858 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751349Ab3FZGkv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 09:45:04 -0400
+	Wed, 26 Jun 2013 02:40:51 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 11/15] saa7134: drop log_status for radio.
-Date: Thu, 20 Jun 2013 15:44:27 +0200
-Message-Id: <1371735871-2658-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] mem2mem_testdev: fix missing v4l2_dev assignment
+Date: Wed, 26 Jun 2013 08:40:37 +0200
+Cc: Kamil Debski <k.debski@samsung.com>,
+	Fengguang Wu <fengguang.wu@intel.com>
+References: <201306260831.14370.hverkuil@xs4all.nl>
+In-Reply-To: <201306260831.14370.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306260840.37988.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Wed June 26 2013 08:31:14 Hans Verkuil wrote:
+> Hi Kamil,
+> 
+> This patch adds the missing v4l2_dev assignment as reported by Fengguang.
+> 
+> It also fixes a poorly formatted message:
+> 
+> m2m-testdev m2m-testdev.0: mem2mem-testdevDevice registered as /dev/video0
+> 
+> Is it OK if I take this through my tree? I have similar fix as well in another
+> driver.
 
-There are no controls for the radio node, so just drop support for this ioctl.
+Urgh, two more that make exactly the same mistake (copied-and-pasted from the
+mem2mem driver, actually).
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/saa7134/saa7134-video.c | 1 -
- 1 file changed, 1 deletion(-)
+	Hans
 
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index a3b4fad..485f67d 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -2124,7 +2124,6 @@ static const struct v4l2_ioctl_ops radio_ioctl_ops = {
- 	.vidioc_s_tuner		= radio_s_tuner,
- 	.vidioc_g_frequency	= saa7134_g_frequency,
- 	.vidioc_s_frequency	= saa7134_s_frequency,
--	.vidioc_log_status	= v4l2_ctrl_log_status,
- 	.vidioc_subscribe_event	= v4l2_ctrl_subscribe_event,
- 	.vidioc_unsubscribe_event = v4l2_event_unsubscribe,
- };
--- 
-1.8.3.1
+diff --git a/drivers/media/platform/m2m-deinterlace.c b/drivers/media/platform/m2m-deinterlace.c
+index 7585646..540516c 100644
+--- a/drivers/media/platform/m2m-deinterlace.c
++++ b/drivers/media/platform/m2m-deinterlace.c
+@@ -1033,6 +1033,7 @@ static int deinterlace_probe(struct platform_device *pdev)
+ 
+ 	*vfd = deinterlace_videodev;
+ 	vfd->lock = &pcdev->dev_mutex;
++	vfd->v4l2_dev = &pcdev->v4l2_dev;
+ 
+ 	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+ 	if (ret) {
+diff --git a/drivers/media/platform/mx2_emmaprp.c b/drivers/media/platform/mx2_emmaprp.c
+index f7440e5..c690435 100644
+--- a/drivers/media/platform/mx2_emmaprp.c
++++ b/drivers/media/platform/mx2_emmaprp.c
+@@ -937,6 +937,7 @@ static int emmaprp_probe(struct platform_device *pdev)
+ 
+ 	*vfd = emmaprp_videodev;
+ 	vfd->lock = &pcdev->dev_mutex;
++	vfd->v4l2_dev = &pcdev->v4l2_dev;
+ 
+ 	video_set_drvdata(vfd, pcdev);
+ 	snprintf(vfd->name, sizeof(vfd->name), "%s", emmaprp_videodev.name);
 
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> diff --git a/drivers/media/platform/mem2mem_testdev.c b/drivers/media/platform/mem2mem_testdev.c
+> index 4cc7f65d..6a17676 100644
+> --- a/drivers/media/platform/mem2mem_testdev.c
+> +++ b/drivers/media/platform/mem2mem_testdev.c
+> @@ -1051,6 +1051,7 @@ static int m2mtest_probe(struct platform_device *pdev)
+>  
+>  	*vfd = m2mtest_videodev;
+>  	vfd->lock = &dev->dev_mutex;
+> +	vfd->v4l2_dev = &dev->v4l2_dev;
+>  
+>  	ret = video_register_device(vfd, VFL_TYPE_GRABBER, 0);
+>  	if (ret) {
+> @@ -1061,7 +1062,7 @@ static int m2mtest_probe(struct platform_device *pdev)
+>  	video_set_drvdata(vfd, dev);
+>  	snprintf(vfd->name, sizeof(vfd->name), "%s", m2mtest_videodev.name);
+>  	dev->vfd = vfd;
+> -	v4l2_info(&dev->v4l2_dev, MEM2MEM_TEST_MODULE_NAME
+> +	v4l2_info(&dev->v4l2_dev,
+>  			"Device registered as /dev/video%d\n", vfd->num);
+>  
+>  	setup_timer(&dev->timer, device_isr, (long)dev);
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> 
