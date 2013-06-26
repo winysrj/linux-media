@@ -1,105 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:57311 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751985Ab3FYJMx (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:26793 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751795Ab3FZPFi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 05:12:53 -0400
-Received: from localhost (localhost [127.0.0.1])
-	by axis700.grange (Postfix) with ESMTP id B45D140BB3
-	for <linux-media@vger.kernel.org>; Tue, 25 Jun 2013 11:12:50 +0200 (CEST)
-Date: Tue, 25 Jun 2013 11:12:50 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [PATCH] V4L2: soc-camera: remove several CEU references in the
- generic scaler
-Message-ID: <Pine.LNX.4.64.1306251109480.30321@axis700.grange>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Wed, 26 Jun 2013 11:05:38 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: kishon@ti.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
+	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v3 4/5] exynos4-is: Use the generic MIPI CSIS PHY driver
+Date: Wed, 26 Jun 2013 17:02:25 +0200
+Message-id: <1372258946-15607-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
+References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The scaling / cropping library, that has been extracted from the CEU
-driver still contained a couple of references to the original hardware.
-Clean them up.
+Use the generic PHY API instead of the platform callback to control
+the MIPI CSIS DPHY. The 'phy_label' field is added to the platform
+data structure to allow PHY lookup on non-dt platforms
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
+ drivers/media/platform/exynos4-is/mipi-csis.c |   16 +++++++++++++---
+ include/linux/platform_data/mipi-csis.h       |   11 ++---------
+ 2 files changed, 15 insertions(+), 12 deletions(-)
 
-A cosmetic fix, goes on top of
-
-https://patchwork.linuxtv.org/patch/18209/
-https://patchwork.linuxtv.org/patch/18210/
-
-I'll be pushing them together with other V4L2 asynchronous probing hick up 
-fixes later today.
-
- drivers/media/platform/soc_camera/soc_scale_crop.c |   15 ++++++++-------
- 1 files changed, 8 insertions(+), 7 deletions(-)
-
-diff --git a/drivers/media/platform/soc_camera/soc_scale_crop.c b/drivers/media/platform/soc_camera/soc_scale_crop.c
-index be7067f..cbd3a34 100644
---- a/drivers/media/platform/soc_camera/soc_scale_crop.c
-+++ b/drivers/media/platform/soc_camera/soc_scale_crop.c
-@@ -221,7 +221,7 @@ static int client_s_fmt(struct soc_camera_device *icd,
- 	struct device *dev = icd->parent;
- 	unsigned int width = mf->width, height = mf->height, tmp_w, tmp_h;
- 	struct v4l2_cropcap cap;
--	bool ceu_1to1;
-+	bool host_1to1;
- 	int ret;
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index a2eda9d..8436254 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -20,6 +20,7 @@
+ #include <linux/memory.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/phy/phy.h>
+ #include <linux/platform_data/mipi-csis.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -167,6 +168,7 @@ struct csis_pktbuf {
+  * @sd: v4l2_subdev associated with CSIS device instance
+  * @index: the hardware instance index
+  * @pdev: CSIS platform device
++ * @phy: pointer to the CSIS generic PHY
+  * @regs: mmaped I/O registers memory
+  * @supplies: CSIS regulator supplies
+  * @clock: CSIS clocks
+@@ -189,6 +191,8 @@ struct csis_state {
+ 	struct v4l2_subdev sd;
+ 	u8 index;
+ 	struct platform_device *pdev;
++	struct phy *phy;
++	const char *phy_label;
+ 	void __iomem *regs;
+ 	struct regulator_bulk_data supplies[CSIS_NUM_SUPPLIES];
+ 	struct clk *clock[NUM_CSIS_CLOCKS];
+@@ -726,6 +730,7 @@ static int s5pcsis_get_platform_data(struct platform_device *pdev,
+ 	state->index = max(0, pdev->id);
+ 	state->max_num_lanes = state->index ? CSIS1_MAX_LANES :
+ 					      CSIS0_MAX_LANES;
++	state->phy_label = pdata->phy_label;
+ 	return 0;
+ }
  
- 	ret = v4l2_device_call_until_err(sd->v4l2_dev,
-@@ -234,11 +234,11 @@ static int client_s_fmt(struct soc_camera_device *icd,
+@@ -763,8 +768,9 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 					"samsung,csis-wclk");
  
- 	if (width == mf->width && height == mf->height) {
- 		/* Perfect! The client has done it all. */
--		ceu_1to1 = true;
-+		host_1to1 = true;
- 		goto update_cache;
+ 	state->num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
+-
+ 	of_node_put(node);
++
++	state->phy_label = "csis";
+ 	return 0;
+ }
+ #else
+@@ -800,6 +806,10 @@ static int s5pcsis_probe(struct platform_device *pdev)
+ 		return -EINVAL;
  	}
  
--	ceu_1to1 = false;
-+	host_1to1 = false;
- 	if (!host_can_scale)
- 		goto update_cache;
- 
-@@ -282,7 +282,7 @@ update_cache:
- 	if (ret < 0)
- 		return ret;
- 
--	if (ceu_1to1)
-+	if (host_1to1)
- 		*subrect = *rect;
- 	else
- 		update_subrect(rect, subrect);
-@@ -338,7 +338,7 @@ int soc_camera_client_scale(struct soc_camera_device *icd,
- 	mf->colorspace	= mf_tmp.colorspace;
- 
- 	/*
--	 * 8. Calculate new CEU crop - apply camera scales to previously
-+	 * 8. Calculate new host crop - apply camera scales to previously
- 	 *    updated "effective" crop.
- 	 */
- 	*width = soc_camera_shift_scale(subrect->width, shift, scale_h);
-@@ -353,7 +353,7 @@ EXPORT_SYMBOL(soc_camera_client_scale);
- /*
-  * Calculate real client output window by applying new scales to the current
-  * client crop. New scales are calculated from the requested output format and
-- * CEU crop, mapped backed onto the client input (subrect).
-+ * host crop, mapped backed onto the client input (subrect).
++	state->phy = devm_phy_get(dev, state->phy_label);
++	if (IS_ERR(state->phy))
++		return PTR_ERR(state->phy);
++
+ 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	state->regs = devm_ioremap_resource(dev, mem_res);
+ 	if (IS_ERR(state->regs))
+@@ -893,7 +903,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
+ 	mutex_lock(&state->lock);
+ 	if (state->flags & ST_POWERED) {
+ 		s5pcsis_stop_stream(state);
+-		ret = s5p_csis_phy_enable(state->index, false);
++		ret = phy_power_off(state->phy);
+ 		if (ret)
+ 			goto unlock;
+ 		ret = regulator_bulk_disable(CSIS_NUM_SUPPLIES,
+@@ -929,7 +939,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
+ 					    state->supplies);
+ 		if (ret)
+ 			goto unlock;
+-		ret = s5p_csis_phy_enable(state->index, true);
++		ret = phy_power_on(state->phy);
+ 		if (!ret) {
+ 			state->flags |= ST_POWERED;
+ 		} else {
+diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
+index bf34e17..9214317 100644
+--- a/include/linux/platform_data/mipi-csis.h
++++ b/include/linux/platform_data/mipi-csis.h
+@@ -17,21 +17,14 @@
+  * @wclk_source: CSI wrapper clock selection: 0 - bus clock, 1 - ext. SCLK_CAM
+  * @lanes:       number of data lanes used
+  * @hs_settle:   HS-RX settle time
++ * @phy_label:	 the generic PHY label
   */
- void soc_camera_calc_client_output(struct soc_camera_device *icd,
- 		struct v4l2_rect *rect, struct v4l2_rect *subrect,
-@@ -384,7 +384,8 @@ void soc_camera_calc_client_output(struct soc_camera_device *icd,
+ struct s5p_platform_mipi_csis {
+ 	unsigned long clk_rate;
+ 	u8 wclk_source;
+ 	u8 lanes;
+ 	u8 hs_settle;
++	const char *phy_label;
+ };
  
- 	/*
- 	 * TODO: CEU cannot scale images larger than VGA to smaller than SubQCIF
--	 * (128x96) or larger than VGA
-+	 * (128x96) or larger than VGA. This and similar limitations have to be
-+	 * taken into account here.
- 	 */
- 	scale_h = soc_camera_calc_scale(subrect->width, shift, pix->width);
- 	scale_v = soc_camera_calc_scale(subrect->height, shift, pix->height);
+-/**
+- * s5p_csis_phy_enable - global MIPI-CSI receiver D-PHY control
+- * @id:     MIPI-CSIS harware instance index (0...1)
+- * @on:     true to enable D-PHY and deassert its reset
+- *          false to disable D-PHY
+- * @return: 0 on success, or negative error code on failure
+- */
+-int s5p_csis_phy_enable(int id, bool on);
+-
+ #endif /* __PLAT_SAMSUNG_MIPI_CSIS_H_ */
 -- 
-1.7.2.5
+1.7.9.5
 
