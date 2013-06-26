@@ -1,130 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f54.google.com ([209.85.160.54]:33054 "EHLO
-	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751239Ab3FUJJr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 05:09:47 -0400
-Received: by mail-pb0-f54.google.com with SMTP id ro2so7480528pbb.27
-        for <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 02:09:47 -0700 (PDT)
-Date: Fri, 21 Jun 2013 18:09:32 +0900 (JST)
-Message-Id: <20130621.180932.452518378.matsu@igel.co.jp>
-To: vladimir.barinov@cogentembedded.com
-Cc: sergei.shtylyov@cogentembedded.com, g.liakhovetski@gmx.de,
-	mchehab@redhat.com, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com
-Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
-From: Katsuya MATSUBARA <matsu@igel.co.jp>
-In-Reply-To: <51C40974.600@cogentembedded.com>
-References: <201305240211.29665.sergei.shtylyov@cogentembedded.com>
-	<20130621.134659.460987965.matsu@igel.co.jp>
-	<51C40974.600@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
+Received: from arroyo.ext.ti.com ([192.94.94.40]:46826 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751865Ab3FZLWS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jun 2013 07:22:18 -0400
+Message-ID: <51CACEBE.9000505@ti.com>
+Date: Wed, 26 Jun 2013 16:51:34 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
+MIME-Version: 1.0
+To: <balbi@ti.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<kyungmin.park@samsung.com>, <t.figa@samsung.com>,
+	<devicetree-discuss@lists.ozlabs.org>, <kgene.kim@samsung.com>,
+	<dh09.lee@samsung.com>, <jg1.han@samsung.com>,
+	<inki.dae@samsung.com>, <plagnioj@jcrosoft.com>,
+	<linux-fbdev@vger.kernel.org>
+Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com> <20130625150649.GA21334@arwen.pp.htv.fi> <51C9D714.4000703@samsung.com> <20130625205452.GC9748@arwen.pp.htv.fi>
+In-Reply-To: <20130625205452.GC9748@arwen.pp.htv.fi>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi,
 
-Hi Vladimir,
+On Wednesday 26 June 2013 02:24 AM, Felipe Balbi wrote:
+> Hi,
+>
+> On Tue, Jun 25, 2013 at 07:44:52PM +0200, Sylwester Nawrocki wrote:
+>>>> +struct exynos_video_phy {
+>>>> +	spinlock_t slock;
+>>>> +	struct phy *phys[NUM_PHYS];
+>>>
+>>> more than one phy ? This means you should instantiate driver multiple
+>>> drivers. Each phy id should call probe again.
+>>
+>> Why ? This single PHY _provider_ can well handle multiple PHYs.
+>> I don't see a good reason to further complicate this driver like
+>> this. Please note that MIPI-CSIS 0 and MIPI DSIM 0 share MMIO
+>> register, so does MIPI CSIS 1 and MIPI DSIM 1. There are only 2
+>> registers for those 4 PHYs. I could have the involved object
+>> multiplied, but it would have been just a waste of resources
+>> with no difference to the PHY consumers.
+>
+> alright, I misunderstood your code then. When I looked over your id
+> usage I missed the "/2" part and assumed that you would have separate
+> EXYNOS_MIPI_PHY_CONTROL() register for each ;-)
+>
+> My bad, you can disregard the other comments.
+>
+>>>> +static int exynos_video_phy_probe(struct platform_device *pdev)
+>>>> +{
+>>>> +	struct exynos_video_phy *state;
+>>>> +	struct device *dev = &pdev->dev;
+>>>> +	struct resource *res;
+>>>> +	struct phy_provider *phy_provider;
+>>>> +	int i;
+>>>> +
+>>>> +	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+>>>> +	if (!state)
+>>>> +		return -ENOMEM;
+>>>> +
+>>>> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>>> +
+>>>> +	state->regs = devm_ioremap_resource(dev, res);
+>>>> +	if (IS_ERR(state->regs))
+>>>> +		return PTR_ERR(state->regs);
+>>>> +
+>>>> +	dev_set_drvdata(dev, state);
+>>>
+>>> you can use platform_set_drvdata(pdev, state);
+>>
+>> I had it in the previous version, but changed for symmetry with
+>> dev_set_drvdata(). I guess those could be replaced with
+>> phy_{get, set}_drvdata as you suggested.
 
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Date: Fri, 21 Jun 2013 12:06:12 +0400
+right. currently I was setting dev_set_drvdata of phy (core) device
+in phy-core.c and the corresponding dev_get_drvdata in phy provider driver
+which is little confusing.
+So I'll add phy_set_drvdata and phy_get_drvdata in phy.h (as suggested by
+Felipe) to be used by phy provider drivers. So after creating the PHY, the
+phy provider should use phy_set_drvdata and in phy_ops, it can use
+phy_get_drvdata. (I'll remove the dev_set_drvdata in phy_create).
 
-> Hi  Matsubara-san,
-> 
-> Katsuya MATSUBARA wrote:
->> Hi Sergei and Valadmir,
->>
->> From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
->> Date: Fri, 24 May 2013 02:11:28 +0400
->>
->> (snip)
->>   
->>> +/* Similar to set_crop multistage iterative algorithm */
->>> +static int rcar_vin_set_fmt(struct soc_camera_device *icd,
->>> +			    struct v4l2_format *f)
->>> +{
->>> +	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
->>> +	struct rcar_vin_priv *priv = ici->priv;
->>> +	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
->>> +	struct rcar_vin_cam *cam = icd->host_priv;
->>> +	struct v4l2_pix_format *pix = &f->fmt.pix;
->>> +	struct v4l2_mbus_framefmt mf;
->>> +	struct device *dev = icd->parent;
->>> +	__u32 pixfmt = pix->pixelformat;
->>> +	const struct soc_camera_format_xlate *xlate;
->>> +	unsigned int vin_sub_width = 0, vin_sub_height = 0;
->>> +	int ret;
->>> +	bool can_scale;
->>> +	enum v4l2_field field;
->>> +	v4l2_std_id std;
->>> +
->>> +	dev_dbg(dev, "S_FMT(pix=0x%x, %ux%u)\n",
->>> +		pixfmt, pix->width, pix->height);
->>> +
->>> +	switch (pix->field) {
->>> +	default:
->>> +		pix->field = V4L2_FIELD_NONE;
->>> +		/* fall-through */
->>> +	case V4L2_FIELD_NONE:
->>> +	case V4L2_FIELD_TOP:
->>> +	case V4L2_FIELD_BOTTOM:
->>> +	case V4L2_FIELD_INTERLACED_TB:
->>> +	case V4L2_FIELD_INTERLACED_BT:
->>> +		field = pix->field;
->>> +		break;
->>> +	case V4L2_FIELD_INTERLACED:
->>> + /* Query for standard if not explicitly mentioned _TB/_BT */
->>> +		ret = v4l2_subdev_call(sd, video, querystd, &std);
->>> +		if (ret < 0)
->>> +			std = V4L2_STD_625_50;
->>> +
->>> + field = std & V4L2_STD_625_50 ? V4L2_FIELD_INTERLACED_TB :
->>> +						V4L2_FIELD_INTERLACED_BT;
->>> +		break;
->>> +	}
->>>     
->>
->> I have tested your VIN driver with NTSC video input
->> with the following two boards;
->>
->> 1. Marzen (R-CarH1 SoC and ADV7180 video decoder)
->> 2. BOCK-W (R-CarM1A SoC and ML86V7667 video decoder)
->>
->> As a result, I have got strange captured images in the BOCK-W
->> environment. The image looks that the top and bottom fields
->> have been combined in wrong order.
->> However, in case of Marzen, it works fine with correct images
->> captured. I made sure that the driver chose the
->> V4L2_FIELD_INTERLACED_BT flag for the NTSC standard video
->> in the both environments.
->>
->> Have you seen such an iusse with the ML86V7667 driver?
->> I think there may be some mismatch between the VIN
->> and the ML86V7667 settings.
->>   
-> Unfortunately, I had ability to test decoder only with PAL camera. And
-> I've made the fake tests for NTSC standard reported by video decoders
-> to validate the difference on captured image.
-> The interlace on bock-w was correct for PAL standard in accordance to
-> above tests.
-> 
-> I have been able to see incorrect mix up of _TB/_BT only in case of
-> i2c transaction fails during subdevice V4L2_STD runtime query.
+This also means _void *priv_ in phy_create is useless. So I'll be removing
+_priv_ from phy_create.
 
-I have slightly investigated the issue on bock-w.
+Thanks
+Kishon
 
-I have not seen such i2c errors during capturing and booting.
-But I have seen that querystd() in the ml86v7667 driver often
-returns V4L2_STD_UNKNOWN, although the corresponding function
-in the adv7180 driver always returns V4L2_STD_525_60 for NTSC video.
-The driver also chose '_BT' for V4L2_STD_UNKNOWN, so even in this
-case the display should be fine for NTSC video.
-I have confirmed that the driver always selects '_BT' for NTSC
-video even if I repeat it several times in my environment.
+>
+> hmm, you do need to set the drvdata() to the phy object, but also to the
+> pdev object (should you need it on a suspend/resume callback, for
+> instance). Those are separate struct device instances.
 
-Thanks,
----
- Katsuya Matsubara / IGEL Co., Ltd
- matsu@igel.co.jp
