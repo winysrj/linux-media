@@ -1,102 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:51509 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932124Ab3FRMdp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 08:33:45 -0400
-Received: from epcpsbgr4.samsung.com
- (u144.gpu120.samsung.co.kr [203.254.230.144])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MOL007B09JV13S0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 18 Jun 2013 21:33:44 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v2 3/8] [media] s5p-mfc: Add register definition file for MFC v7
-Date: Tue, 18 Jun 2013 18:26:18 +0530
-Message-id: <1371560183-23244-4-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
-References: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:51153 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751276Ab3FZMti (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 26 Jun 2013 08:49:38 -0400
+Message-ID: <51CAE337.3010508@ti.com>
+Date: Wed, 26 Jun 2013 18:18:55 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
+MIME-Version: 1.0
+To: <balbi@ti.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<kyungmin.park@samsung.com>, <t.figa@samsung.com>,
+	<devicetree-discuss@lists.ozlabs.org>, <kgene.kim@samsung.com>,
+	<dh09.lee@samsung.com>, <jg1.han@samsung.com>,
+	<inki.dae@samsung.com>, <plagnioj@jcrosoft.com>,
+	<linux-fbdev@vger.kernel.org>
+Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com> <20130625150649.GA21334@arwen.pp.htv.fi> <51C9D714.4000703@samsung.com> <20130625205452.GC9748@arwen.pp.htv.fi> <51CACEBE.9000505@ti.com> <51CAD89E.3060800@samsung.com> <20130626122238.GD12640@arwen.pp.htv.fi>
+In-Reply-To: <20130626122238.GD12640@arwen.pp.htv.fi>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch adds the register definition file for new firmware
-version v7 for MFC. New firmware supports VP8 encoding along with
-many other features.
+On Wednesday 26 June 2013 05:52 PM, Felipe Balbi wrote:
+> On Wed, Jun 26, 2013 at 02:03:42PM +0200, Sylwester Nawrocki wrote:
+>> On 06/26/2013 01:21 PM, Kishon Vijay Abraham I wrote:
+>>>>>>> +static int exynos_video_phy_probe(struct platform_device *pdev)
+>>>>>>>>>>> +{
+>>>>>>>>>>> +	struct exynos_video_phy *state;
+>>>>>>>>>>> +	struct device *dev = &pdev->dev;
+>>>>>>>>>>> +	struct resource *res;
+>>>>>>>>>>> +	struct phy_provider *phy_provider;
+>>>>>>>>>>> +	int i;
+>>>>>>>>>>> +
+>>>>>>>>>>> +	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+>>>>>>>>>>> +	if (!state)
+>>>>>>>>>>> +		return -ENOMEM;
+>>>>>>>>>>> +
+>>>>>>>>>>> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+>>>>>>>>>>> +
+>>>>>>>>>>> +	state->regs = devm_ioremap_resource(dev, res);
+>>>>>>>>>>> +	if (IS_ERR(state->regs))
+>>>>>>>>>>> +		return PTR_ERR(state->regs);
+>>>>>>>>>>> +
+>>>>>>>>>>> +	dev_set_drvdata(dev, state);
+>>>>>>>>>
+>>>>>>>>> you can use platform_set_drvdata(pdev, state);
+>>>>>>>
+>>>>>>> I had it in the previous version, but changed for symmetry with
+>>>>>>> dev_set_drvdata(). I guess those could be replaced with
+>>>>>>> phy_{get, set}_drvdata as you suggested.
+>>>
+>>> right. currently I was setting dev_set_drvdata of phy (core) device
+>>> in phy-core.c and the corresponding dev_get_drvdata in phy provider driver
+>>> which is little confusing.
+>>> So I'll add phy_set_drvdata and phy_get_drvdata in phy.h (as suggested by
+>>> Felipe) to be used by phy provider drivers. So after creating the PHY, the
+>>> phy provider should use phy_set_drvdata and in phy_ops, it can use
+>>> phy_get_drvdata. (I'll remove the dev_set_drvdata in phy_create).
+>>>
+>>> This also means _void *priv_ in phy_create is useless. So I'll be removing
+>>> _priv_ from phy_create.
+>>
+>> Yeah, sounds good. Then in the phy ops phy_get_drvdata(&phy->dev) would
+>
+> phy_get_drvdata(phy);
+>
+> accessing the dev pointer will be done inside the helper :-)
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v7.h |   58 ++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+right :-)
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-new file mode 100644
-index 0000000..24dba69
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-@@ -0,0 +1,58 @@
-+/*
-+ * Register definition file for Samsung MFC V7.x Interface (FIMV) driver
-+ *
-+ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
-+ *		http://www.samsung.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
-+
-+#ifndef _REGS_MFC_V7_H
-+#define _REGS_MFC_V7_H
-+
-+#include "regs-mfc-v6.h"
-+
-+/* Additional features of v7 */
-+#define S5P_FIMV_CODEC_VP8_ENC_V7	25
-+
-+/* Additional registers for v7 */
-+#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
-+
-+#define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
-+#define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
-+#define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
-+#define S5P_FIMV_E_SOURCE_FIRST_STRIDE_V7		0xf9ec
-+#define S5P_FIMV_E_SOURCE_SECOND_STRIDE_V7		0xf9f0
-+#define S5P_FIMV_E_SOURCE_THIRD_STRIDE_V7		0xf9f4
-+
-+#define S5P_FIMV_E_ENCODED_SOURCE_FIRST_ADDR_V7		0xfa70
-+#define S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7	0xfa74
-+
-+#define S5P_FIMV_E_VP8_OPTIONS_V7			0xfdb0
-+#define S5P_FIMV_E_VP8_FILTER_OPTIONS_V7		0xfdb4
-+#define S5P_FIMV_E_VP8_GOLDEN_FRAME_OPTION_V7		0xfdb8
-+#define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
-+
-+/* MFCv7 variant defines */
-+#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
-+#define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
-+#define MFC_VERSION_V7			0x72
-+#define MFC_NUM_PORTS_V7		1
-+
-+/* MFCv7 Context buffer sizes */
-+#define MFC_CTX_BUF_SIZE_V7		(30 * SZ_1K)	/*  30KB */
-+#define MFC_H264_DEC_CTX_BUF_SIZE_V7	(2 * SZ_1M)	/*  2MB */
-+#define MFC_OTHER_DEC_CTX_BUF_SIZE_V7	(20 * SZ_1K)	/*  20KB */
-+#define MFC_H264_ENC_CTX_BUF_SIZE_V7	(100 * SZ_1K)	/* 100KB */
-+#define MFC_OTHER_ENC_CTX_BUF_SIZE_V7	(10 * SZ_1K)	/*  10KB */
-+
-+/* Buffer size defines */
-+#define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(w, h) \
-+			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
-+
-+#define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
-+			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
-+
-+#endif /*_REGS_MFC_V7_H*/
--- 
-1.7.9.5
-
+-Kishon
