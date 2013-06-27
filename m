@@ -1,371 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36765 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751608Ab3FGT0F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 15:26:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: linux-media@vger.kernel.org, s.nawrocki@samsung.com,
-	sakari.ailus@iki.fi, Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] media: Rename media_entity_remote_source to media_entity_remote_pad
-Date: Fri, 07 Jun 2013 21:26:07 +0200
-Message-ID: <13734855.DDPb8qUVDm@avalon>
-In-Reply-To: <1370247373-11402-1-git-send-email-a.hajda@samsung.com>
-References: <1370247373-11402-1-git-send-email-a.hajda@samsung.com>
+Received: from mail-lb0-f169.google.com ([209.85.217.169]:45063 "EHLO
+	mail-lb0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750978Ab3F0LXB (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Jun 2013 07:23:01 -0400
+Received: by mail-lb0-f169.google.com with SMTP id d10so346456lbj.28
+        for <linux-media@vger.kernel.org>; Thu, 27 Jun 2013 04:22:57 -0700 (PDT)
+Message-ID: <51CC2091.1040408@cogentembedded.com>
+Date: Thu, 27 Jun 2013 15:22:57 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Simon Horman <horms@verge.net.au>
+CC: linux-sh@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	magnus.damm@gmail.com, linux@arm.linux.org.uk, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com, linux-media@vger.kernel.org
+Subject: Re: [PATCH v4 0/3] R8A7779/Marzen R-Car VIN driver support
+References: <201305160153.29827.sergei.shtylyov@cogentembedded.com> <20130627074129.GB13927@verge.net.au>
+In-Reply-To: <20130627074129.GB13927@verge.net.au>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+Hello.
 
-Thanks for the patch. I've applied it to my tree and have sent a pull request 
-for v3.11.
+On 27-06-2013 11:41, Simon Horman wrote:
 
-On Monday 03 June 2013 10:16:13 Andrzej Hajda wrote:
-> Function media_entity_remote_source actually returns the remote pad to
-> the given one, regardless if this is the source or the sink pad.
-> Name media_entity_remote_pad is more adequate for this function.
-> 
-> Signed-off-by: Andrzej Hajda <a.hajda@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-> Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> ---
-> Hi,
-> 
-> Thanks for the reviews.
-> This is the patch adjusted to the latest linuxtv/master branch.
-> 
-> Regards
-> Andrzej Hajda
-> 
->  Documentation/media-framework.txt                |  2 +-
->  drivers/media/media-entity.c                     | 13 ++++++-------
->  drivers/media/platform/exynos4-is/fimc-capture.c |  6 +++---
->  drivers/media/platform/exynos4-is/fimc-lite.c    |  4 ++--
->  drivers/media/platform/exynos4-is/media-dev.c    |  2 +-
->  drivers/media/platform/omap3isp/isp.c            |  6 +++---
->  drivers/media/platform/omap3isp/ispccdc.c        |  2 +-
->  drivers/media/platform/omap3isp/ispccp2.c        |  2 +-
->  drivers/media/platform/omap3isp/ispcsi2.c        |  2 +-
->  drivers/media/platform/omap3isp/ispvideo.c       |  6 +++---
->  drivers/media/platform/s3c-camif/camif-capture.c |  2 +-
->  drivers/staging/media/davinci_vpfe/vpfe_video.c  | 12 ++++++------
->  include/media/media-entity.h                     |  2 +-
->  13 files changed, 30 insertions(+), 31 deletions(-)
-> 
-> diff --git a/Documentation/media-framework.txt
-> b/Documentation/media-framework.txt index 77bd0a4..3702eff 100644
-> --- a/Documentation/media-framework.txt
-> +++ b/Documentation/media-framework.txt
-> @@ -265,7 +265,7 @@ connected to another pad through an enabled link
->  	media_entity_find_link(struct media_pad *source,
->  			       struct media_pad *sink);
-> 
-> -	media_entity_remote_source(struct media_pad *pad);
-> +	media_entity_remote_pad(struct media_pad *pad);
-> 
->  Refer to the kerneldoc documentation for more information.
-> 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index e1cd132..0438209 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -560,17 +560,16 @@ media_entity_find_link(struct media_pad *source,
-> struct media_pad *sink) EXPORT_SYMBOL_GPL(media_entity_find_link);
-> 
->  /**
-> - * media_entity_remote_source - Find the source pad at the remote end of a
-> link - * @pad: Sink pad at the local end of the link
-> + * media_entity_remote_pad - Find the pad at the remote end of a link
-> + * @pad: Pad at the local end of the link
->   *
-> - * Search for a remote source pad connected to the given sink pad by
-> iterating - * over all links originating or terminating at that pad until
-> an enabled link - * is found.
-> + * Search for a remote pad connected to the given pad by iterating over all
-> + * links originating or terminating at that pad until an enabled link is
-> found. *
->   * Return a pointer to the pad at the remote end of the first found enabled
-> * link, or NULL if no enabled link has been found.
->   */
-> -struct media_pad *media_entity_remote_source(struct media_pad *pad)
-> +struct media_pad *media_entity_remote_pad(struct media_pad *pad)
->  {
->  	unsigned int i;
-> 
-> @@ -590,4 +589,4 @@ struct media_pad *media_entity_remote_source(struct
-> media_pad *pad) return NULL;
-> 
->  }
-> -EXPORT_SYMBOL_GPL(media_entity_remote_source);
-> +EXPORT_SYMBOL_GPL(media_entity_remote_pad);
-> diff --git a/drivers/media/platform/exynos4-is/fimc-capture.c
-> b/drivers/media/platform/exynos4-is/fimc-capture.c index 528f413..a8b9b06
-> 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-capture.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-capture.c
-> @@ -773,7 +773,7 @@ static struct media_entity
-> *fimc_pipeline_get_head(struct media_entity *me) struct media_pad *pad =
-> &me->pads[0];
-> 
->  	while (!(pad->flags & MEDIA_PAD_FL_SOURCE)) {
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (!pad)
->  			break;
->  		me = pad->entity;
-> @@ -845,7 +845,7 @@ static int fimc_pipeline_try_format(struct fimc_ctx
-> *ctx, return ret;
->  			}
-> 
-> -			pad = media_entity_remote_source(&me->pads[sfmt.pad]);
-> +			pad = media_entity_remote_pad(&me->pads[sfmt.pad]);
->  			if (!pad)
->  				return -EINVAL;
->  			me = pad->entity;
-> @@ -1146,7 +1146,7 @@ static int fimc_pipeline_validate(struct fimc_dev
-> *fimc)
-> 
->  			if (p->flags & MEDIA_PAD_FL_SINK) {
->  				sink_pad = p;
-> -				src_pad = media_entity_remote_source(sink_pad);
-> +				src_pad = media_entity_remote_pad(sink_pad);
->  				if (src_pad)
->  					break;
->  			}
-> diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c
-> b/drivers/media/platform/exynos4-is/fimc-lite.c index 14bb7bc..2f11ae4
-> 100644
-> --- a/drivers/media/platform/exynos4-is/fimc-lite.c
-> +++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-> @@ -139,7 +139,7 @@ static struct v4l2_subdev *__find_remote_sensor(struct
-> media_entity *me)
-> 
->  	while (pad->flags & MEDIA_PAD_FL_SINK) {
->  		/* source pad */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> @@ -786,7 +786,7 @@ static int fimc_pipeline_validate(struct fimc_lite
-> *fimc) return -EPIPE;
->  		}
->  		/* Retrieve format at the source pad */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> diff --git a/drivers/media/platform/exynos4-is/media-dev.c
-> b/drivers/media/platform/exynos4-is/media-dev.c index 15ef8f2..396e06e
-> 100644
-> --- a/drivers/media/platform/exynos4-is/media-dev.c
-> +++ b/drivers/media/platform/exynos4-is/media-dev.c
-> @@ -62,7 +62,7 @@ static void fimc_pipeline_prepare(struct fimc_pipeline *p,
-> struct media_pad *spad = &me->pads[i];
->  			if (!(spad->flags & MEDIA_PAD_FL_SINK))
->  				continue;
-> -			pad = media_entity_remote_source(spad);
-> +			pad = media_entity_remote_pad(spad);
->  			if (pad)
->  				break;
->  		}
-> diff --git a/drivers/media/platform/omap3isp/isp.c
-> b/drivers/media/platform/omap3isp/isp.c index 1d7dbd5..4c4bd3d 100644
-> --- a/drivers/media/platform/omap3isp/isp.c
-> +++ b/drivers/media/platform/omap3isp/isp.c
-> @@ -877,7 +877,7 @@ static int isp_pipeline_enable(struct isp_pipeline
-> *pipe, if (!(pad->flags & MEDIA_PAD_FL_SINK))
->  			break;
-> 
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> @@ -967,7 +967,7 @@ static int isp_pipeline_disable(struct isp_pipeline
-> *pipe) if (!(pad->flags & MEDIA_PAD_FL_SINK))
->  			break;
-> 
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  		    media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> @@ -1083,7 +1083,7 @@ static int isp_pipeline_is_last(struct media_entity
-> *me) pipe = to_isp_pipeline(me);
->  	if (pipe->stream_state == ISP_PIPELINE_STREAM_STOPPED)
->  		return 0;
-> -	pad = media_entity_remote_source(&pipe->output->pad);
-> +	pad = media_entity_remote_pad(&pipe->output->pad);
->  	return pad->entity == me;
->  }
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispccdc.c
-> b/drivers/media/platform/omap3isp/ispccdc.c index 60e60aa..907a205 100644
-> --- a/drivers/media/platform/omap3isp/ispccdc.c
-> +++ b/drivers/media/platform/omap3isp/ispccdc.c
-> @@ -1120,7 +1120,7 @@ static void ccdc_configure(struct isp_ccdc_device
-> *ccdc) u32 syn_mode;
->  	u32 ccdc_pattern;
-> 
-> -	pad = media_entity_remote_source(&ccdc->pads[CCDC_PAD_SINK]);
-> +	pad = media_entity_remote_pad(&ccdc->pads[CCDC_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
->  	if (ccdc->input == CCDC_INPUT_PARALLEL)
->  		pdata = &((struct isp_v4l2_subdevs_group *)sensor->host_priv)
-> diff --git a/drivers/media/platform/omap3isp/ispccp2.c
-> b/drivers/media/platform/omap3isp/ispccp2.c index c5d84c9..13982b0 100644
-> --- a/drivers/media/platform/omap3isp/ispccp2.c
-> +++ b/drivers/media/platform/omap3isp/ispccp2.c
-> @@ -360,7 +360,7 @@ static int ccp2_if_configure(struct isp_ccp2_device
-> *ccp2)
-> 
->  	ccp2_pwr_cfg(ccp2);
-> 
-> -	pad = media_entity_remote_source(&ccp2->pads[CCP2_PAD_SINK]);
-> +	pad = media_entity_remote_pad(&ccp2->pads[CCP2_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
->  	pdata = sensor->host_priv;
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispcsi2.c
-> b/drivers/media/platform/omap3isp/ispcsi2.c index 783f4b0..6db245d 100644
-> --- a/drivers/media/platform/omap3isp/ispcsi2.c
-> +++ b/drivers/media/platform/omap3isp/ispcsi2.c
-> @@ -573,7 +573,7 @@ static int csi2_configure(struct isp_csi2_device *csi2)
->  	if (csi2->contexts[0].enabled || csi2->ctrl.if_enable)
->  		return -EBUSY;
-> 
-> -	pad = media_entity_remote_source(&csi2->pads[CSI2_PAD_SINK]);
-> +	pad = media_entity_remote_pad(&csi2->pads[CSI2_PAD_SINK]);
->  	sensor = media_entity_to_v4l2_subdev(pad->entity);
->  	pdata = sensor->host_priv;
-> 
-> diff --git a/drivers/media/platform/omap3isp/ispvideo.c
-> b/drivers/media/platform/omap3isp/ispvideo.c index 8dac175..a908d00 100644
-> --- a/drivers/media/platform/omap3isp/ispvideo.c
-> +++ b/drivers/media/platform/omap3isp/ispvideo.c
-> @@ -219,7 +219,7 @@ isp_video_remote_subdev(struct isp_video *video, u32
-> *pad) {
->  	struct media_pad *remote;
-> 
-> -	remote = media_entity_remote_source(&video->pad);
-> +	remote = media_entity_remote_pad(&video->pad);
-> 
->  	if (remote == NULL ||
->  	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-> @@ -314,7 +314,7 @@ static int isp_video_validate_pipeline(struct
-> isp_pipeline *pipe) * entity can be found, and stop checking the pipeline
-> if the
->  		 * source entity isn't a subdev.
->  		 */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL)
->  			return -EPIPE;
-> 
-> @@ -901,7 +901,7 @@ static int isp_video_check_external_subdevs(struct
-> isp_video *video, continue;
-> 
->  		/* ISP entities have always sink pad == 0. Find source. */
-> -		source_pad = media_entity_remote_source(&ents[i]->pads[0]);
-> +		source_pad = media_entity_remote_pad(&ents[i]->pads[0]);
->  		if (source_pad == NULL)
->  			continue;
-> 
-> diff --git a/drivers/media/platform/s3c-camif/camif-capture.c
-> b/drivers/media/platform/s3c-camif/camif-capture.c index 70438a0..40b298a
-> 100644
-> --- a/drivers/media/platform/s3c-camif/camif-capture.c
-> +++ b/drivers/media/platform/s3c-camif/camif-capture.c
-> @@ -845,7 +845,7 @@ static int camif_pipeline_validate(struct camif_dev
-> *camif) int ret;
-> 
->  	/* Retrieve format at the sensor subdev source pad */
-> -	pad = media_entity_remote_source(&camif->pads[0]);
-> +	pad = media_entity_remote_pad(&camif->pads[0]);
->  	if (!pad || media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
->  		return -EPIPE;
-> 
-> diff --git a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> b/drivers/staging/media/davinci_vpfe/vpfe_video.c index ba913f1..cb5410b
-> 100644
-> --- a/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> +++ b/drivers/staging/media/davinci_vpfe/vpfe_video.c
-> @@ -39,7 +39,7 @@ static struct media_entity *vpfe_get_input_entity
->  	struct vpfe_device *vpfe_dev = video->vpfe_dev;
->  	struct media_pad *remote;
-> 
-> -	remote = media_entity_remote_source(&vpfe_dev->vpfe_isif.pads[0]);
-> +	remote = media_entity_remote_pad(&vpfe_dev->vpfe_isif.pads[0]);
->  	if (remote == NULL) {
->  		pr_err("Invalid media connection to isif/ccdc\n");
->  		return NULL;
-> @@ -56,7 +56,7 @@ static int vpfe_update_current_ext_subdev(struct
-> vpfe_video_device *video) struct media_pad *remote;
->  	int i;
-> 
-> -	remote = media_entity_remote_source(&vpfe_dev->vpfe_isif.pads[0]);
-> +	remote = media_entity_remote_pad(&vpfe_dev->vpfe_isif.pads[0]);
->  	if (remote == NULL) {
->  		pr_err("Invalid media connection to isif/ccdc\n");
->  		return -EINVAL;
-> @@ -89,7 +89,7 @@ static int vpfe_update_current_ext_subdev(struct
-> vpfe_video_device *video) static struct v4l2_subdev *
->  vpfe_video_remote_subdev(struct vpfe_video_device *video, u32 *pad)
->  {
-> -	struct media_pad *remote = media_entity_remote_source(&video->pad);
-> +	struct media_pad *remote = media_entity_remote_pad(&video->pad);
-> 
->  	if (remote == NULL || remote->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
->  		return NULL;
-> @@ -114,7 +114,7 @@ __vpfe_video_get_format(struct vpfe_video_device *video,
-> return -EINVAL;
-> 
->  	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-> -	remote = media_entity_remote_source(&video->pad);
-> +	remote = media_entity_remote_pad(&video->pad);
->  	fmt.pad = remote->index;
-> 
->  	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
-> @@ -245,7 +245,7 @@ static int vpfe_video_validate_pipeline(struct
-> vpfe_pipeline *pipe) return -EPIPE;
-> 
->  		/* Retrieve the source format */
-> -		pad = media_entity_remote_source(pad);
-> +		pad = media_entity_remote_pad(pad);
->  		if (pad == NULL ||
->  			pad->entity->type != MEDIA_ENT_T_V4L2_SUBDEV)
->  			break;
-> @@ -667,7 +667,7 @@ static int vpfe_enum_fmt(struct file *file, void  *priv,
-> return -EINVAL;
->  	}
->  	/* get the remote pad */
-> -	remote = media_entity_remote_source(&video->pad);
-> +	remote = media_entity_remote_pad(&video->pad);
->  	if (remote == NULL) {
->  		v4l2_err(&vpfe_dev->v4l2_dev,
->  			 "invalid remote pad for video node\n");
-> diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-> index 0c16f51..4eefedc 100644
-> --- a/include/media/media-entity.h
-> +++ b/include/media/media-entity.h
-> @@ -132,7 +132,7 @@ int __media_entity_setup_link(struct media_link *link,
-> u32 flags); int media_entity_setup_link(struct media_link *link, u32
-> flags);
->  struct media_link *media_entity_find_link(struct media_pad *source,
->  		struct media_pad *sink);
-> -struct media_pad *media_entity_remote_source(struct media_pad *pad);
-> +struct media_pad *media_entity_remote_pad(struct media_pad *pad);
-> 
->  struct media_entity *media_entity_get(struct media_entity *entity);
->  void media_entity_put(struct media_entity *entity);
--- 
-Regards,
+>>     Here's the set of 3 patches against the Simon Horman's 'renesas.git' repo,
+>> 'renesas-next-20130515v2' tag and my recent yet unapplied USB/I2C patches.
+>> Here we add the VIN driver platform code for the R8A7779/Marzen with ADV7180
+>> I2C video decoder.
 
-Laurent Pinchart
+>> [1/3] ARM: shmobile: r8a7779: add VIN support
+>> [2/3] ARM: shmobile: Marzen: add VIN and ADV7180 support
+>> [3/3] ARM: shmobile: Marzen: enable VIN and ADV7180 in defconfig
+
+>>     The VIN driver itself has been excluded from the series as it will be developed
+>> against Mauro's 'media_tree.git' plus some yet unapplied patches in the future...
+
+> Sergei, is this patch-set still needing review?
+
+    Probably. Note that it depends on the VIN driver too.
+
+WBR, Sergei
+
+
