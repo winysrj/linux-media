@@ -1,143 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:26793 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751795Ab3FZPFi (ORCPT
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:60054 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751003Ab3F0JZ7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 26 Jun 2013 11:05:38 -0400
+	Thu, 27 Jun 2013 05:25:59 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MP100M6JOTA0000@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 27 Jun 2013 10:25:57 +0100 (BST)
+Message-id: <51CC0524.6020703@samsung.com>
+Date: Thu, 27 Jun 2013 11:25:56 +0200
 From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: kishon@ti.com, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
-	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
-	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
-	plagnioj@jcrosoft.com, linux-fbdev@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v3 4/5] exynos4-is: Use the generic MIPI CSIS PHY driver
-Date: Wed, 26 Jun 2013 17:02:25 +0200
-Message-id: <1372258946-15607-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
-References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>, John Sheu <sheu@google.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Kamil Debski <k.debski@samsung.com>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: [PATCH v4] [media] mem2mem: add support for hardware buffered queue
+References: <1370247828-7219-1-git-send-email-p.zabel@pengutronix.de>
+In-reply-to: <1370247828-7219-1-git-send-email-p.zabel@pengutronix.de>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the generic PHY API instead of the platform callback to control
-the MIPI CSIS DPHY. The 'phy_label' field is added to the platform
-data structure to allow PHY lookup on non-dt platforms
+On 06/03/2013 10:23 AM, Philipp Zabel wrote:
+> On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
+> buffer at the end of the stream, remaining frames might need to be decoded
+> from the bitstream buffer without additional input buffers being provided.
+> To achieve this, allow a queue to be marked as buffered by the driver, and
+> allow scheduling of device_runs when buffered ready queues are empty.
+> 
+> This also allows a driver to copy input buffers into their bitstream
+> ringbuffer and immediately mark them as done to be dequeued.
+> 
+> The motivation for this patch is hardware assisted h.264 reordering support
+> in the coda driver. For high profile streams, the coda can hold back
+> out-of-order frames, causing a few mem2mem device runs in the beginning, that
+> don't produce any decompressed buffer at the v4l2 capture side. At the same
+> time, the last few frames can be decoded from the bitstream with mem2mem device
+> runs that don't need a new input buffer at the v4l2 output side. The decoder
+> command ioctl can be used to put the decoder into the ringbuffer draining
+> end-of-stream mode.
+> 
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- drivers/media/platform/exynos4-is/mipi-csis.c |   16 +++++++++++++---
- include/linux/platform_data/mipi-csis.h       |   11 ++---------
- 2 files changed, 15 insertions(+), 12 deletions(-)
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
-index a2eda9d..8436254 100644
---- a/drivers/media/platform/exynos4-is/mipi-csis.c
-+++ b/drivers/media/platform/exynos4-is/mipi-csis.c
-@@ -20,6 +20,7 @@
- #include <linux/memory.h>
- #include <linux/module.h>
- #include <linux/of.h>
-+#include <linux/phy/phy.h>
- #include <linux/platform_data/mipi-csis.h>
- #include <linux/platform_device.h>
- #include <linux/pm_runtime.h>
-@@ -167,6 +168,7 @@ struct csis_pktbuf {
-  * @sd: v4l2_subdev associated with CSIS device instance
-  * @index: the hardware instance index
-  * @pdev: CSIS platform device
-+ * @phy: pointer to the CSIS generic PHY
-  * @regs: mmaped I/O registers memory
-  * @supplies: CSIS regulator supplies
-  * @clock: CSIS clocks
-@@ -189,6 +191,8 @@ struct csis_state {
- 	struct v4l2_subdev sd;
- 	u8 index;
- 	struct platform_device *pdev;
-+	struct phy *phy;
-+	const char *phy_label;
- 	void __iomem *regs;
- 	struct regulator_bulk_data supplies[CSIS_NUM_SUPPLIES];
- 	struct clk *clock[NUM_CSIS_CLOCKS];
-@@ -726,6 +730,7 @@ static int s5pcsis_get_platform_data(struct platform_device *pdev,
- 	state->index = max(0, pdev->id);
- 	state->max_num_lanes = state->index ? CSIS1_MAX_LANES :
- 					      CSIS0_MAX_LANES;
-+	state->phy_label = pdata->phy_label;
- 	return 0;
- }
- 
-@@ -763,8 +768,9 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
- 					"samsung,csis-wclk");
- 
- 	state->num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
--
- 	of_node_put(node);
-+
-+	state->phy_label = "csis";
- 	return 0;
- }
- #else
-@@ -800,6 +806,10 @@ static int s5pcsis_probe(struct platform_device *pdev)
- 		return -EINVAL;
- 	}
- 
-+	state->phy = devm_phy_get(dev, state->phy_label);
-+	if (IS_ERR(state->phy))
-+		return PTR_ERR(state->phy);
-+
- 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 	state->regs = devm_ioremap_resource(dev, mem_res);
- 	if (IS_ERR(state->regs))
-@@ -893,7 +903,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
- 	mutex_lock(&state->lock);
- 	if (state->flags & ST_POWERED) {
- 		s5pcsis_stop_stream(state);
--		ret = s5p_csis_phy_enable(state->index, false);
-+		ret = phy_power_off(state->phy);
- 		if (ret)
- 			goto unlock;
- 		ret = regulator_bulk_disable(CSIS_NUM_SUPPLIES,
-@@ -929,7 +939,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
- 					    state->supplies);
- 		if (ret)
- 			goto unlock;
--		ret = s5p_csis_phy_enable(state->index, true);
-+		ret = phy_power_on(state->phy);
- 		if (!ret) {
- 			state->flags |= ST_POWERED;
- 		} else {
-diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
-index bf34e17..9214317 100644
---- a/include/linux/platform_data/mipi-csis.h
-+++ b/include/linux/platform_data/mipi-csis.h
-@@ -17,21 +17,14 @@
-  * @wclk_source: CSI wrapper clock selection: 0 - bus clock, 1 - ext. SCLK_CAM
-  * @lanes:       number of data lanes used
-  * @hs_settle:   HS-RX settle time
-+ * @phy_label:	 the generic PHY label
-  */
- struct s5p_platform_mipi_csis {
- 	unsigned long clk_rate;
- 	u8 wclk_source;
- 	u8 lanes;
- 	u8 hs_settle;
-+	const char *phy_label;
- };
- 
--/**
-- * s5p_csis_phy_enable - global MIPI-CSI receiver D-PHY control
-- * @id:     MIPI-CSIS harware instance index (0...1)
-- * @on:     true to enable D-PHY and deassert its reset
-- *          false to disable D-PHY
-- * @return: 0 on success, or negative error code on failure
-- */
--int s5p_csis_phy_enable(int id, bool on);
--
- #endif /* __PLAT_SAMSUNG_MIPI_CSIS_H_ */
--- 
-1.7.9.5
-
+--
+Regards,
+Sylwester
