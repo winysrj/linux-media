@@ -1,41 +1,82 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mout.gmx.net ([74.208.4.201]:65271 "EHLO mout.gmx.net"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1161061Ab3FUNTm (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 09:19:42 -0400
-Received: from mailout-us.gmx.com ([172.19.198.48]) by mrigmx.server.lan
- (mrigmxus002) with ESMTP (Nemesis) id 0Mgf8V-1UcSiL3B9L-00O1lD for
- <linux-media@vger.kernel.org>; Fri, 21 Jun 2013 15:19:38 +0200
-Content-Type: text/plain; charset="utf-8"
-Date: Fri, 21 Jun 2013 09:19:35 -0400
-From: kewlcat@gmx.com
-Message-ID: <20130621131936.128540@gmx.com>
-MIME-Version: 1.0
-Subject: gspca_sq930x: Creative WebCam Live! Pro recognized, kinda initialised
- but unusable
+Received: from mail-ee0-f41.google.com ([74.125.83.41]:43282 "EHLO
+	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753849Ab3F0VLo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 27 Jun 2013 17:11:44 -0400
+Received: by mail-ee0-f41.google.com with SMTP id d17so663428eek.28
+        for <linux-media@vger.kernel.org>; Thu, 27 Jun 2013 14:11:43 -0700 (PDT)
+From: Gregor Jasny <gjasny@googlemail.com>
 To: linux-media@vger.kernel.org
-Content-Transfer-Encoding: 8bit
+Cc: Gregor Jasny <gjasny@googlemail.com>
+Subject: [PATCH 1/2] libv4lconvert: Prevent integer overflow by checking width and height
+Date: Thu, 27 Jun 2013 23:11:30 +0200
+Message-Id: <1372367491-13187-2-git-send-email-gjasny@googlemail.com>
+In-Reply-To: <1372367491-13187-1-git-send-email-gjasny@googlemail.com>
+References: <1372367491-13187-1-git-send-email-gjasny@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-(Repost from 2013-05-27 14:40:02 GMT, with a better subject line and a new pastebin)
+The Mayhem Team found a crash caused by an integer overflow.
+Details are here:
+http://www.forallsecure.com/bug-reports/8aae67d864bce76993f3f9812b4a2aeea0eb38da/
 
-Hello 
+Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
+---
+ lib/libv4lconvert/ov511-decomp.c | 7 ++++++-
+ lib/libv4lconvert/ov518-decomp.c | 7 ++++++-
+ 2 files changed, 12 insertions(+), 2 deletions(-)
 
-I'm having trouble with a Creative WebCam Live! Pro, usb id 041e:4038 "Creative Technology, Ltd ORITE CCD 
-Webcam [PC370R]" 
-This device is supposed to be "supported" but is marked as "untested" at http://gkall.hobby.nl/sq930x.html
-Apparently it works up to the point where sq930x fails with this message : gspca_sq930x: reg_r 001f failed -32 
+diff --git a/lib/libv4lconvert/ov511-decomp.c b/lib/libv4lconvert/ov511-decomp.c
+index 90fc4b1..971d497 100644
+--- a/lib/libv4lconvert/ov511-decomp.c
++++ b/lib/libv4lconvert/ov511-decomp.c
+@@ -14,6 +14,7 @@
+  * Free Software Foundation; version 2 of the License.
+  */
+ 
++#include <limits.h>
+ #include <string.h>
+ #include <unistd.h>
+ #include "helper-funcs.h"
+@@ -640,7 +641,11 @@ int main(int argc, char *argv[])
+ 
+ 
+ 		dest_size = width * height * 3 / 2;
+-		if (dest_size > sizeof(dest_buf)) {
++		if (width <= 0 || width > SHRT_MAX || height <= 0 || height > SHRT_MAX) {
++			fprintf(stderr, "%s: error: width or height out of bounds\n",
++					argv[0]);
++			dest_size = -1;
++		} else if (dest_size > sizeof(dest_buf)) {
+ 			fprintf(stderr, "%s: error: dest_buf too small, need: %d\n",
+ 					argv[0], dest_size);
+ 			dest_size = -1;
+diff --git a/lib/libv4lconvert/ov518-decomp.c b/lib/libv4lconvert/ov518-decomp.c
+index 47b5cbb..91d908c 100644
+--- a/lib/libv4lconvert/ov518-decomp.c
++++ b/lib/libv4lconvert/ov518-decomp.c
+@@ -15,6 +15,7 @@
+  * Free Software Foundation; version 2 of the License.
+  */
+ 
++#include <limits.h>
+ #include <string.h>
+ #include <unistd.h>
+ #include "helper-funcs.h"
+@@ -1454,7 +1455,11 @@ int main(int argc, char *argv[])
+ 
+ 
+ 		dest_size = width * height * 3 / 2;
+-		if (dest_size > sizeof(dest_buf)) {
++		if (width <= 0 || width > SHRT_MAX || height <= 0 || height > SHRT_MAX) {
++			fprintf(stderr, "%s: error: width or height out of bounds\n",
++					argv[0]);
++			dest_size = -1;
++		} else if (dest_size > sizeof(dest_buf)) {
+ 			fprintf(stderr, "%s: error: dest_buf too small, need: %d\n",
+ 					argv[0], dest_size);
+ 			dest_size = -1;
+-- 
+1.8.3.1
 
-See a more complete log here : http://pastebin.com/yY4THaFN 
-
-The kernel I'm using is a custom made 3.9.3. 
-What other information do you need to debug this issue ? What options must I activate in the kernel in order to 
-get a more verbose syslog regarding this component ? 
-Is there any hope at all for this device, as there seems to be no information available at all from Creative or 
-any other source ? 
-
-Sincerely, 
-  =^.^= 
-
- 
