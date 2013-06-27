@@ -1,61 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:48121 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751331Ab3FQPWH (ORCPT
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4833 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750739Ab3F0Gzv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:22:07 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 09/11] media: davinci: vpif_display: use module_platform_driver()
-Date: Mon, 17 Jun 2013 20:50:49 +0530
-Message-Id: <1371482451-18314-10-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 27 Jun 2013 02:55:51 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5R6tmaH077059
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 27 Jun 2013 08:55:50 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.localnet (tschai.lan [192.168.1.10])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 8D53335E019D
+	for <linux-media@vger.kernel.org>; Thu, 27 Jun 2013 08:55:46 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.11]
+Date: Thu, 27 Jun 2013 08:55:49 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306270855.49444.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+(Same as my previous git pull message, but with more cleanup patches and
+fixes from Prabhakar.)
 
-This patch uses module_platform_driver() to simplify the code.
+Some async/OF work from Prabhakar (the correct version this time) and
+assorted improvements and fixes for compiler warnings.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
----
- drivers/media/platform/davinci/vpif_display.c |   18 +-----------------
- 1 file changed, 1 insertion(+), 17 deletions(-)
+Also some fixes for some fallout from the new requirement that v4l2_dev
+must be set when registering a device node. I missed two cases: the wl128x
+never had a v4l2_device and it never set the old parent pointer, and the case
+where a v4l2_device was created, but it was never set in video_device (and
+neither was the old parent pointer).
 
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 371af34..473d1a9 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1937,20 +1937,4 @@ static __refdata struct platform_driver vpif_driver = {
- 	.remove	= vpif_remove,
- };
- 
--static __init int vpif_init(void)
--{
--	return platform_driver_register(&vpif_driver);
--}
--
--/*
-- * vpif_cleanup: This function un-registers device and driver to the kernel,
-- * frees requested irq handler and de-allocates memory allocated for channel
-- * objects.
-- */
--static void vpif_cleanup(void)
--{
--	platform_driver_unregister(&vpif_driver);
--}
--
--module_init(vpif_init);
--module_exit(vpif_cleanup);
-+module_platform_driver(vpif_driver);
--- 
-1.7.9.5
+I've tested the wl128x since it turns out that it tries to load itself on a
+regular PC that does not have this chipset. Dubious behavior in any case, but
+useful now because it made it easy to test this patch.
 
+Regards,
+
+        Hans
+
+The following changes since commit ee17608d6aa04a86e253a9130d6c6d00892f132b:
+
+  [media] imx074: support asynchronous probing (2013-06-21 16:36:15 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
+
+for you to fetch changes up to 7a95f9fbecf8eb65678cb945f0bc3564018e1950:
+
+  media: davinci: vpif: display: add V4L2-async support (2013-06-27 08:48:38 +0200)
+
+----------------------------------------------------------------
+Emil Goode (1):
+      saa7134: Fix sparse warnings by adding __user annotation
+
+Hans Verkuil (7):
+      ml86v7667: fix compiler warning
+      bfin_capture: fix compiler warning
+      omap_vout: fix compiler warning
+      v4l2-controls.h: fix copy-and-paste error in comment
+      saa7164: fix compiler warning
+      wl128x: add missing struct v4l2_device.
+      mem2mem: set missing v4l2_dev pointer
+
+Lad, Prabhakar (9):
+      media: i2c: ths8200: support asynchronous probing
+      media: i2c: ths8200: add OF support
+      media: i2c: adv7343: add support for asynchronous probing
+      media: i2c: tvp7002: add support for asynchronous probing
+      media: i2c: tvp7002: remove manual setting of subdev name
+      media: i2c: tvp514x: remove manual setting of subdev name
+      media: i2c: tvp514x: add support for asynchronous probing
+      media: davinci: vpif: capture: add V4L2-async support
+      media: davinci: vpif: display: add V4L2-async support
+
+Lars-Peter Clausen (1):
+      tvp514x: Fix init seqeunce
+
+ Documentation/devicetree/bindings/media/i2c/ths8200.txt |  19 +++++++
+ drivers/media/i2c/adv7343.c                             |  15 ++++--
+ drivers/media/i2c/ml86v7667.c                           |   2 +-
+ drivers/media/i2c/ths8200.c                             |  18 ++++++-
+ drivers/media/i2c/tvp514x.c                             |  31 ++++++-----
+ drivers/media/i2c/tvp7002.c                             |   7 ++-
+ drivers/media/pci/saa7134/saa7134-video.c               |   2 +-
+ drivers/media/pci/saa7164/saa7164-core.c                |   3 +-
+ drivers/media/platform/blackfin/bfin_capture.c          |   4 +-
+ drivers/media/platform/davinci/vpif_capture.c           | 151 +++++++++++++++++++++++++++++++++++-----------------
+ drivers/media/platform/davinci/vpif_capture.h           |   2 +
+ drivers/media/platform/davinci/vpif_display.c           | 210 ++++++++++++++++++++++++++++++++++++++++++++-----------------------------
+ drivers/media/platform/davinci/vpif_display.h           |   3 +-
+ drivers/media/platform/m2m-deinterlace.c                |   1 +
+ drivers/media/platform/mem2mem_testdev.c                |   3 +-
+ drivers/media/platform/mx2_emmaprp.c                    |   1 +
+ drivers/media/platform/omap/omap_vout.c                 |   3 +-
+ drivers/media/radio/wl128x/fmdrv.h                      |   2 +
+ drivers/media/radio/wl128x/fmdrv_v4l2.c                 |   8 +++
+ include/media/davinci/vpif_types.h                      |   4 ++
+ include/uapi/linux/v4l2-controls.h                      |   4 +-
+ 21 files changed, 335 insertions(+), 158 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/media/i2c/ths8200.txt
