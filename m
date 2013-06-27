@@ -1,96 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:50619 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751331Ab3FQPWC (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:21562 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751457Ab3F0JpX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:22:02 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4 08/11] media: davinci: vpif_display: move the freeing of irq and global variables to remove()
-Date: Mon, 17 Jun 2013 20:50:48 +0530
-Message-Id: <1371482451-18314-9-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
+	Thu, 27 Jun 2013 05:45:23 -0400
+From: Kukjin Kim <kgene.kim@samsung.com>
+To: 'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: kishon@ti.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, dh09.lee@samsung.com,
+	jg1.han@samsung.com, inki.dae@samsung.com, plagnioj@jcrosoft.com,
+	linux-fbdev@vger.kernel.org
+References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com>
+ <1372258946-15607-6-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1372258946-15607-6-git-send-email-s.nawrocki@samsung.com>
+Subject: RE: [PATCH v3 5/5] ARM: Samsung: Remove the MIPI PHY setup code
+Date: Thu, 27 Jun 2013 18:34:09 +0900
+Message-id: <085701ce7319$79b191a0$6d14b4e0$%kim@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Sylwester Nawrocki wrote:
+> 
+> Generic PHY drivers are used to handle the MIPI CSIS and MIPI DSIM
+> DPHYs so we can remove now unused code at arch/arm/plat-samsung.
+> In case there is any board file for S5PV210 platforms using MIPI
+> CSIS/DSIM (not any upstream currently) it should use the generic
+> PHY API to bind the PHYs to respective PHY consumer drivers and
+> a platform device for the PHY provider should be defined.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  arch/arm/mach-exynos/include/mach/regs-pmu.h    |    5 --
+>  arch/arm/mach-s5pv210/include/mach/regs-clock.h |    4 --
+>  arch/arm/plat-samsung/Kconfig                   |    5 --
+>  arch/arm/plat-samsung/Makefile                  |    1 -
+>  arch/arm/plat-samsung/setup-mipiphy.c           |   60
+---------------------
+> --
+>  5 files changed, 75 deletions(-)
+>  delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
+> 
+Looks good, please feel free to add my ack on this,
 
-Ideally the freeing of irq's and the global variables needs to be
-done in the remove() rather than module_exit(), this patch moves
-the freeing up of irq's and freeing the memory allocated to channel
-objects to remove() callback of struct platform_driver.
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_display.c |   30 ++++++++++---------------
- 1 file changed, 12 insertions(+), 18 deletions(-)
-
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index 6c521f2..371af34 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1829,10 +1829,20 @@ vpif_int_err:
- static int vpif_remove(struct platform_device *device)
- {
- 	struct channel_obj *ch;
--	int i;
-+	struct resource *res;
-+	int irq_num;
-+	int i = 0;
-+
-+	while ((res = platform_get_resource(device, IORESOURCE_IRQ, i))) {
-+		for (irq_num = res->start; irq_num <= res->end; irq_num++)
-+			free_irq(irq_num,
-+				 (void *)(&vpif_obj.dev[i]->channel_id));
-+		i++;
-+	}
- 
- 	v4l2_device_unregister(&vpif_obj.v4l2_dev);
- 
-+	kfree(vpif_obj.sd);
- 	/* un-register device */
- 	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++) {
- 		/* Get the pointer to the channel object */
-@@ -1841,6 +1851,7 @@ static int vpif_remove(struct platform_device *device)
- 		video_unregister_device(ch->video_dev);
- 
- 		ch->video_dev = NULL;
-+		kfree(vpif_obj.dev[i]);
- 	}
- 
- 	return 0;
-@@ -1938,24 +1949,7 @@ static __init int vpif_init(void)
-  */
- static void vpif_cleanup(void)
- {
--	struct platform_device *pdev;
--	struct resource *res;
--	int irq_num;
--	int i = 0;
--
--	pdev = container_of(vpif_dev, struct platform_device, dev);
--
--	while ((res = platform_get_resource(pdev, IORESOURCE_IRQ, i))) {
--		for (irq_num = res->start; irq_num <= res->end; irq_num++)
--			free_irq(irq_num,
--				 (void *)(&vpif_obj.dev[i]->channel_id));
--		i++;
--	}
--
- 	platform_driver_unregister(&vpif_driver);
--	kfree(vpif_obj.sd);
--	for (i = 0; i < VPIF_DISPLAY_MAX_DEVICES; i++)
--		kfree(vpif_obj.dev[i]);
- }
- 
- module_init(vpif_init);
--- 
-1.7.9.5
+Thanks,
+- Kukjin
 
