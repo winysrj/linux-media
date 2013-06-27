@@ -1,140 +1,276 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1564 "EHLO
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:3721 "EHLO
 	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751404Ab3FJMtr (ORCPT
+	with ESMTP id S1750871Ab3F0F5b (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 10 Jun 2013 08:49:47 -0400
+	Thu, 27 Jun 2013 01:57:31 -0400
 From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [PATCH 1/2] media: davinci: vpif: capture: add V4L2-async support
+Date: Thu, 27 Jun 2013 07:57:18 +0200
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
 	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEW PATCH 9/9] v4l2: remove parent from v4l2 core.
-Date: Mon, 10 Jun 2013 14:48:38 +0200
-Message-Id: <1370868518-19831-10-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
-References: <1370868518-19831-1-git-send-email-hverkuil@xs4all.nl>
+	Sakari Ailus <sakari.ailus@iki.fi>
+References: <1372173455-509-1-git-send-email-prabhakar.csengg@gmail.com> <1372173455-509-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1372173455-509-2-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-15"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306270757.18109.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+On Tue June 25 2013 17:17:34 Prabhakar Lad wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> Add support for asynchronous subdevice probing, using the v4l2-async API.
+> The legacy synchronous mode is still supported too, which allows to
+> gradually update drivers and platforms.
+> 
+> Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+> ---
+>  drivers/media/platform/davinci/vpif_capture.c |  151 +++++++++++++++++--------
+>  drivers/media/platform/davinci/vpif_capture.h |    2 +
+>  include/media/davinci/vpif_types.h            |    2 +
+>  3 files changed, 107 insertions(+), 48 deletions(-)
+> 
+> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+> index 5514175..b11d7a7 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.c
+> +++ b/drivers/media/platform/davinci/vpif_capture.c
+> @@ -1979,6 +1979,76 @@ vpif_init_free_channel_objects:
+>  	return err;
+>  }
+>  
+> +static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+> +			    struct v4l2_subdev *subdev,
+> +			    struct v4l2_async_subdev *asd)
+> +{
+> +	int i;
+> +
+> +	for (i = 0; i < vpif_obj.config->subdev_count; i++)
+> +		if (!strcmp(vpif_obj.config->subdev_info[i].name,
+> +			    subdev->name)) {
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/v4l2-core/v4l2-dev.c   |   34 +++++++++++++++-------------------
- drivers/media/v4l2-core/v4l2-ioctl.c |    7 +------
- include/media/v4l2-dev.h             |    2 --
- 3 files changed, 16 insertions(+), 27 deletions(-)
+Since the subdev name is now prefixed with the i2c bus identifier instead of
+just the chip name, does this code still work? Shouldn't it be 'strstr' instead
+of strcmp? Ditto for vpif_display and possibly others where the same
+mechanism might be used.
 
-diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-index 2f3fac5..61e82f8 100644
---- a/drivers/media/v4l2-core/v4l2-dev.c
-+++ b/drivers/media/v4l2-core/v4l2-dev.c
-@@ -495,8 +495,8 @@ static const struct file_operations v4l2_fops = {
- };
- 
- /**
-- * get_index - assign stream index number based on parent device
-- * @vdev: video_device to assign index number to, vdev->parent should be assigned
-+ * get_index - assign stream index number based on v4l2_dev
-+ * @vdev: video_device to assign index number to, vdev->v4l2_dev should be assigned
-  *
-  * Note that when this is called the new device has not yet been registered
-  * in the video_device array, but it was able to obtain a minor number.
-@@ -514,15 +514,11 @@ static int get_index(struct video_device *vdev)
- 	static DECLARE_BITMAP(used, VIDEO_NUM_DEVICES);
- 	int i;
- 
--	/* Some drivers do not set the parent. In that case always return 0. */
--	if (vdev->parent == NULL)
--		return 0;
--
- 	bitmap_zero(used, VIDEO_NUM_DEVICES);
- 
- 	for (i = 0; i < VIDEO_NUM_DEVICES; i++) {
- 		if (video_device[i] != NULL &&
--		    video_device[i]->parent == vdev->parent) {
-+		    video_device[i]->v4l2_dev == vdev->v4l2_dev) {
- 			set_bit(video_device[i]->index, used);
- 		}
- 	}
-@@ -776,6 +772,9 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	/* the release callback MUST be present */
- 	if (WARN_ON(!vdev->release))
- 		return -EINVAL;
-+	/* the v4l2_dev pointer MUST be present */
-+	if (WARN_ON(!vdev->v4l2_dev))
-+		return -EINVAL;
- 
- 	/* v4l2_fh support */
- 	spin_lock_init(&vdev->fh_lock);
-@@ -803,16 +802,13 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 
- 	vdev->vfl_type = type;
- 	vdev->cdev = NULL;
--	if (vdev->v4l2_dev) {
--		if (vdev->v4l2_dev->dev)
--			vdev->parent = vdev->v4l2_dev->dev;
--		if (vdev->ctrl_handler == NULL)
--			vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
--		/* If the prio state pointer is NULL, then use the v4l2_device
--		   prio state. */
--		if (vdev->prio == NULL)
--			vdev->prio = &vdev->v4l2_dev->prio;
--	}
-+
-+	if (vdev->ctrl_handler == NULL)
-+		vdev->ctrl_handler = vdev->v4l2_dev->ctrl_handler;
-+	/* If the prio state pointer is NULL, then use the v4l2_device
-+	   prio state. */
-+	if (vdev->prio == NULL)
-+		vdev->prio = &vdev->v4l2_dev->prio;
- 
- 	/* Part 2: find a free minor, device node number and device index. */
- #ifdef CONFIG_VIDEO_FIXED_MINOR_RANGES
-@@ -897,8 +893,8 @@ int __video_register_device(struct video_device *vdev, int type, int nr,
- 	/* Part 4: register the device with sysfs */
- 	vdev->dev.class = &video_class;
- 	vdev->dev.devt = MKDEV(VIDEO_MAJOR, vdev->minor);
--	if (vdev->parent)
--		vdev->dev.parent = vdev->parent;
-+	if (vdev->v4l2_dev->dev)
-+		vdev->dev.parent = vdev->v4l2_dev->dev;
- 	dev_set_name(&vdev->dev, "%s%d", name_base, vdev->num);
- 	ret = device_register(&vdev->dev);
- 	if (ret < 0) {
-diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-index 19e2988..3dcdaa3 100644
---- a/drivers/media/v4l2-core/v4l2-ioctl.c
-+++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-@@ -1845,12 +1845,7 @@ static int v4l_dbg_g_chip_info(const struct v4l2_ioctl_ops *ops,
- 			p->flags |= V4L2_CHIP_FL_WRITABLE;
- 		if (ops->vidioc_g_register)
- 			p->flags |= V4L2_CHIP_FL_READABLE;
--		if (vfd->v4l2_dev)
--			strlcpy(p->name, vfd->v4l2_dev->name, sizeof(p->name));
--		else if (vfd->parent)
--			strlcpy(p->name, vfd->parent->driver->name, sizeof(p->name));
--		else
--			strlcpy(p->name, "bridge", sizeof(p->name));
-+		strlcpy(p->name, vfd->v4l2_dev->name, sizeof(p->name));
- 		if (ops->vidioc_g_chip_info)
- 			return ops->vidioc_g_chip_info(file, fh, arg);
- 		if (p->match.addr)
-diff --git a/include/media/v4l2-dev.h b/include/media/v4l2-dev.h
-index b2c3776..4d10e66 100644
---- a/include/media/v4l2-dev.h
-+++ b/include/media/v4l2-dev.h
-@@ -96,8 +96,6 @@ struct video_device
- 	struct device dev;		/* v4l device */
- 	struct cdev *cdev;		/* character device */
- 
--	/* Set either parent or v4l2_dev if your driver uses v4l2_device */
--	struct device *parent;		/* device parent */
- 	struct v4l2_device *v4l2_dev;	/* v4l2_device parent */
- 
- 	/* Control handler associated with this device node. May be NULL. */
--- 
-1.7.10.4
+Regards,
 
+	Hans
+
+> +			vpif_obj.sd[i] = subdev;
+> +			return 0;
+> +		}
+> +
+> +	return -EINVAL;
+> +}
+> +
+> +static int vpif_probe_complete(void)
+> +{
+> +	struct common_obj *common;
+> +	struct channel_obj *ch;
+> +	int i, j, err, k;
+> +
+> +	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+> +		ch = vpif_obj.dev[j];
+> +		ch->channel_id = j;
+> +		common = &(ch->common[VPIF_VIDEO_INDEX]);
+> +		spin_lock_init(&common->irqlock);
+> +		mutex_init(&common->lock);
+> +		ch->video_dev->lock = &common->lock;
+> +		/* Initialize prio member of channel object */
+> +		v4l2_prio_init(&ch->prio);
+> +		video_set_drvdata(ch->video_dev, ch);
+> +
+> +		/* select input 0 */
+> +		err = vpif_set_input(vpif_obj.config, ch, 0);
+> +		if (err)
+> +			goto probe_out;
+> +
+> +		err = video_register_device(ch->video_dev,
+> +					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+> +		if (err)
+> +			goto probe_out;
+> +	}
+> +
+> +	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
+> +	return 0;
+> +
+> +probe_out:
+> +	for (k = 0; k < j; k++) {
+> +		/* Get the pointer to the channel object */
+> +		ch = vpif_obj.dev[k];
+> +		/* Unregister video device */
+> +		video_unregister_device(ch->video_dev);
+> +	}
+> +	kfree(vpif_obj.sd);
+> +	for (i = 0; i < VPIF_CAPTURE_MAX_DEVICES; i++) {
+> +		ch = vpif_obj.dev[i];
+> +		/* Note: does nothing if ch->video_dev == NULL */
+> +		video_device_release(ch->video_dev);
+> +	}
+> +	v4l2_device_unregister(&vpif_obj.v4l2_dev);
+> +
+> +	return err;
+> +}
+> +
+> +static int vpif_async_complete(struct v4l2_async_notifier *notifier)
+> +{
+> +	return vpif_probe_complete();
+> +}
+> +
+>  /**
+>   * vpif_probe : This function probes the vpif capture driver
+>   * @pdev: platform device pointer
+> @@ -1989,12 +2059,10 @@ vpif_init_free_channel_objects:
+>  static __init int vpif_probe(struct platform_device *pdev)
+>  {
+>  	struct vpif_subdev_info *subdevdata;
+> -	struct vpif_capture_config *config;
+> -	int i, j, k, err;
+> +	int i, j, err;
+>  	int res_idx = 0;
+>  	struct i2c_adapter *i2c_adap;
+>  	struct channel_obj *ch;
+> -	struct common_obj *common;
+>  	struct video_device *vfd;
+>  	struct resource *res;
+>  	int subdev_count;
+> @@ -2068,10 +2136,9 @@ static __init int vpif_probe(struct platform_device *pdev)
+>  		}
+>  	}
+>  
+> -	i2c_adap = i2c_get_adapter(1);
+> -	config = pdev->dev.platform_data;
+> +	vpif_obj.config = pdev->dev.platform_data;
+>  
+> -	subdev_count = config->subdev_count;
+> +	subdev_count = vpif_obj.config->subdev_count;
+>  	vpif_obj.sd = kzalloc(sizeof(struct v4l2_subdev *) * subdev_count,
+>  				GFP_KERNEL);
+>  	if (vpif_obj.sd == NULL) {
+> @@ -2080,54 +2147,42 @@ static __init int vpif_probe(struct platform_device *pdev)
+>  		goto vpif_sd_error;
+>  	}
+>  
+> -	for (i = 0; i < subdev_count; i++) {
+> -		subdevdata = &config->subdev_info[i];
+> -		vpif_obj.sd[i] =
+> -			v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+> -						  i2c_adap,
+> -						  &subdevdata->board_info,
+> -						  NULL);
+> -
+> -		if (!vpif_obj.sd[i]) {
+> -			vpif_err("Error registering v4l2 subdevice\n");
+> -			err = -ENODEV;
+> +	if (!vpif_obj.config->asd_sizes) {
+> +		i2c_adap = i2c_get_adapter(1);
+> +		for (i = 0; i < subdev_count; i++) {
+> +			subdevdata = &vpif_obj.config->subdev_info[i];
+> +			vpif_obj.sd[i] =
+> +				v4l2_i2c_new_subdev_board(&vpif_obj.v4l2_dev,
+> +							  i2c_adap,
+> +							  &subdevdata->
+> +							  board_info,
+> +							  NULL);
+> +
+> +			if (!vpif_obj.sd[i]) {
+> +				vpif_err("Error registering v4l2 subdevice\n");
+> +				goto probe_subdev_out;
+> +			}
+> +			v4l2_info(&vpif_obj.v4l2_dev,
+> +				  "registered sub device %s\n",
+> +				   subdevdata->name);
+> +		}
+> +		vpif_probe_complete();
+> +	} else {
+> +		vpif_obj.notifier.subdev = vpif_obj.config->asd;
+> +		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
+> +		vpif_obj.notifier.bound = vpif_async_bound;
+> +		vpif_obj.notifier.complete = vpif_async_complete;
+> +		err = v4l2_async_notifier_register(&vpif_obj.v4l2_dev,
+> +						   &vpif_obj.notifier);
+> +		if (err) {
+> +			vpif_err("Error registering async notifier\n");
+> +			err = -EINVAL;
+>  			goto probe_subdev_out;
+>  		}
+> -		v4l2_info(&vpif_obj.v4l2_dev, "registered sub device %s\n",
+> -			  subdevdata->name);
+>  	}
+>  
+> -	for (j = 0; j < VPIF_CAPTURE_MAX_DEVICES; j++) {
+> -		ch = vpif_obj.dev[j];
+> -		ch->channel_id = j;
+> -		common = &(ch->common[VPIF_VIDEO_INDEX]);
+> -		spin_lock_init(&common->irqlock);
+> -		mutex_init(&common->lock);
+> -		ch->video_dev->lock = &common->lock;
+> -		/* Initialize prio member of channel object */
+> -		v4l2_prio_init(&ch->prio);
+> -		video_set_drvdata(ch->video_dev, ch);
+> -
+> -		/* select input 0 */
+> -		err = vpif_set_input(config, ch, 0);
+> -		if (err)
+> -			goto probe_out;
+> -
+> -		err = video_register_device(ch->video_dev,
+> -					    VFL_TYPE_GRABBER, (j ? 1 : 0));
+> -		if (err)
+> -			goto probe_out;
+> -	}
+> -	v4l2_info(&vpif_obj.v4l2_dev, "VPIF capture driver initialized\n");
+>  	return 0;
+>  
+> -probe_out:
+> -	for (k = 0; k < j; k++) {
+> -		/* Get the pointer to the channel object */
+> -		ch = vpif_obj.dev[k];
+> -		/* Unregister video device */
+> -		video_unregister_device(ch->video_dev);
+> -	}
+>  probe_subdev_out:
+>  	/* free sub devices memory */
+>  	kfree(vpif_obj.sd);
+> diff --git a/drivers/media/platform/davinci/vpif_capture.h b/drivers/media/platform/davinci/vpif_capture.h
+> index 0ebb312..5a29d9a 100644
+> --- a/drivers/media/platform/davinci/vpif_capture.h
+> +++ b/drivers/media/platform/davinci/vpif_capture.h
+> @@ -142,6 +142,8 @@ struct vpif_device {
+>  	struct v4l2_device v4l2_dev;
+>  	struct channel_obj *dev[VPIF_CAPTURE_NUM_CHANNELS];
+>  	struct v4l2_subdev **sd;
+> +	struct v4l2_async_notifier notifier;
+> +	struct vpif_capture_config *config;
+>  };
+>  
+>  struct vpif_config_params {
+> diff --git a/include/media/davinci/vpif_types.h b/include/media/davinci/vpif_types.h
+> index 3882e06..e08bcde 100644
+> --- a/include/media/davinci/vpif_types.h
+> +++ b/include/media/davinci/vpif_types.h
+> @@ -81,5 +81,7 @@ struct vpif_capture_config {
+>  	struct vpif_subdev_info *subdev_info;
+>  	int subdev_count;
+>  	const char *card_name;
+> +	struct v4l2_async_subdev **asd;	/* Flat array, arranged in groups */
+> +	int *asd_sizes;		/* 0-terminated array of asd group sizes */
+>  };
+>  #endif /* _VPIF_TYPES_H */
+> 
