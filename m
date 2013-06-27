@@ -1,105 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2728 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1030277Ab3FTS3T (ORCPT
+Received: from mail-we0-f170.google.com ([74.125.82.170]:64602 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750991Ab3F0GOD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 14:29:19 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5KITGcE094556
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 20:29:18 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id E95CB35E0155
-	for <linux-media@vger.kernel.org>; Thu, 20 Jun 2013 20:29:14 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130620182914.E95CB35E0155@alastor.dyndns.org>
-Date: Thu, 20 Jun 2013 20:29:14 +0200 (CEST)
+	Thu, 27 Jun 2013 02:14:03 -0400
+MIME-Version: 1.0
+In-Reply-To: <201306270757.18109.hverkuil@xs4all.nl>
+References: <1372173455-509-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1372173455-509-2-git-send-email-prabhakar.csengg@gmail.com> <201306270757.18109.hverkuil@xs4all.nl>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 27 Jun 2013 11:43:40 +0530
+Message-ID: <CA+V-a8s88k6XyjAZhKNNH5bG7BODyZqw=mA+__BTku5gmF8HEw@mail.gmail.com>
+Subject: Re: [PATCH 1/2] media: davinci: vpif: capture: add V4L2-async support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Hans,
 
-Results of the daily build of media_tree:
+Thanks for the review.
 
-date:		Thu Jun 20 19:00:18 CEST 2013
-git branch:	test
-git hash:	37c1d2e4098e48d9107858246027510efcfd7774
-gcc version:	i686-linux-gcc (GCC) 4.8.0
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+On Thu, Jun 27, 2013 at 11:27 AM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tue June 25 2013 17:17:34 Prabhakar Lad wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> Add support for asynchronous subdevice probing, using the v4l2-async API.
+>> The legacy synchronous mode is still supported too, which allows to
+>> gradually update drivers and platforms.
+>>
+>> Signed-off-by: Prabhakar Lad <prabhakar.csengg@gmail.com>
+>> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+>> Cc: Hans Verkuil <hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>> Cc: Sakari Ailus <sakari.ailus@iki.fi>
+>> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+>> ---
+>>  drivers/media/platform/davinci/vpif_capture.c |  151 +++++++++++++++++--------
+>>  drivers/media/platform/davinci/vpif_capture.h |    2 +
+>>  include/media/davinci/vpif_types.h            |    2 +
+>>  3 files changed, 107 insertions(+), 48 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+>> index 5514175..b11d7a7 100644
+>> --- a/drivers/media/platform/davinci/vpif_capture.c
+>> +++ b/drivers/media/platform/davinci/vpif_capture.c
+>> @@ -1979,6 +1979,76 @@ vpif_init_free_channel_objects:
+>>       return err;
+>>  }
+>>
+>> +static int vpif_async_bound(struct v4l2_async_notifier *notifier,
+>> +                         struct v4l2_subdev *subdev,
+>> +                         struct v4l2_async_subdev *asd)
+>> +{
+>> +     int i;
+>> +
+>> +     for (i = 0; i < vpif_obj.config->subdev_count; i++)
+>> +             if (!strcmp(vpif_obj.config->subdev_info[i].name,
+>> +                         subdev->name)) {
+>
+> Since the subdev name is now prefixed with the i2c bus identifier instead of
+> just the chip name, does this code still work? Shouldn't it be 'strstr' instead
+> of strcmp? Ditto for vpif_display and possibly others where the same
+> mechanism might be used.
+>
+This is because the DA850-EVM has two tvp514x devices and assigning
+the tvp514x device to appropriate channel is important, In this case strstr()
+wont work so I used strcmp instead to match it appropriately.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: WARNINGS
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
+Yes the code still works tested on DA850-EVM, with this patch [1].
 
-Detailed results are available here:
+[1] http://git.linuxtv.org/mhadli/v4l-dvb-davinci_devices.git/commitdiff/c906a89762541361158cf73e9494fa2f1ff8ba02
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Regards,
+--Prabhakar Lad
