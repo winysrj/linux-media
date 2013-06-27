@@ -1,100 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:13299 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965758Ab3FUM4b (ORCPT
+Received: from caramon.arm.linux.org.uk ([78.32.30.218]:46681 "EHLO
+	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752959Ab3F0It4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 08:56:31 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout4.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOQ002WIULV6I40@mailout4.samsung.com> for
- linux-media@vger.kernel.org; Fri, 21 Jun 2013 21:56:30 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, j.anaszewski@samsung.com,
-	a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 2/6] exynos4-is: Set valid initial format at FIMC-LITE
-Date: Fri, 21 Jun 2013 14:55:54 +0200
-Message-id: <1371819358-13106-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1371819358-13106-1-git-send-email-s.nawrocki@samsung.com>
-References: <1371819358-13106-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 27 Jun 2013 04:49:56 -0400
+Date: Thu, 27 Jun 2013 09:49:02 +0100
+From: Russell King - ARM Linux <linux@arm.linux.org.uk>
+To: Felipe Balbi <balbi@ti.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	t.figa@samsung.com, jg1.han@samsung.com, dh09.lee@samsung.com,
+	kishon@ti.com, inki.dae@samsung.com, kyungmin.park@samsung.com,
+	kgene.kim@samsung.com, plagnioj@jcrosoft.com,
+	devicetree-discuss@lists.ozlabs.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH v2 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+Message-ID: <20130627084902.GB4283@n2100.arm.linux.org.uk>
+References: <1372170110-12993-1-git-send-email-s.nawrocki@samsung.com> <20130625150649.GA21334@arwen.pp.htv.fi> <51CB0212.3050103@samsung.com> <20130627061713.GF15455@arwen.pp.htv.fi>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130627061713.GF15455@arwen.pp.htv.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure the image resolution and crop rectangle on the FIMC-LITE.n
-subdevs and fimc-lite.n.capture video nodes is properly configured
-upon the driver's initialization.
+On Thu, Jun 27, 2013 at 09:17:13AM +0300, Felipe Balbi wrote:
+> On Wed, Jun 26, 2013 at 05:00:34PM +0200, Sylwester Nawrocki wrote:
+> > Hi,
+> > 
+> > On 06/25/2013 05:06 PM, Felipe Balbi wrote:
+> > >> +static struct platform_driver exynos_video_phy_driver = {
+> > >> > +	.probe	= exynos_video_phy_probe,
+> > >
+> > > you *must* provide a remove method. drivers with NULL remove are
+> > > non-removable :-)
+> > 
+> > Actually the remove() callback can be NULL, it's just missing module_exit
+> > function that makes a module not unloadable.
+> 
+> look at the implementation of platform_drv_remove():
+> 
+>  499 static int platform_drv_remove(struct device *_dev)
+>  500 {
+>  501         struct platform_driver *drv = to_platform_driver(_dev->driver);
+>  502         struct platform_device *dev = to_platform_device(_dev);
+>  503         int ret;
+>  504 
+>  505         ret = drv->remove(dev);
+>  506         if (ACPI_HANDLE(_dev))
+>  507                 acpi_dev_pm_detach(_dev, true);
+>  508 
+>  509         return ret;
+>  510 }
+> 
+> that's not a conditional call right :-)
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-lite.c |   23 ++++++++++++++++++++---
- drivers/media/platform/exynos4-is/fimc-lite.h |    2 ++
- 2 files changed, 22 insertions(+), 3 deletions(-)
+Wrong.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.c b/drivers/media/platform/exynos4-is/fimc-lite.c
-index e51ef75..b4a0785 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.c
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.c
-@@ -1273,9 +1273,6 @@ static int fimc_lite_subdev_registered(struct v4l2_subdev *sd)
- 	int ret;
- 
- 	memset(vfd, 0, sizeof(*vfd));
--
--	fimc->inp_frame.fmt = &fimc_lite_formats[0];
--	fimc->out_frame.fmt = &fimc_lite_formats[0];
- 	atomic_set(&fimc->out_path, FIMC_IO_DMA);
- 
- 	snprintf(vfd->name, sizeof(vfd->name), "fimc-lite.%d.capture",
-@@ -1391,6 +1388,23 @@ static const struct v4l2_ctrl_config fimc_lite_ctrl = {
- 	.step	= 1,
- };
- 
-+static void fimc_lite_set_default_config(struct fimc_lite *fimc)
-+{
-+	struct flite_frame *sink = &fimc->inp_frame;
-+	struct flite_frame *source = &fimc->out_frame;
-+
-+	sink->fmt = &fimc_lite_formats[0];
-+	sink->f_width = FLITE_DEFAULT_WIDTH;
-+	sink->f_height = FLITE_DEFAULT_HEIGHT;
-+
-+	sink->rect.width = FLITE_DEFAULT_WIDTH;
-+	sink->rect.height = FLITE_DEFAULT_HEIGHT;
-+	sink->rect.left = 0;
-+	sink->rect.top = 0;
-+
-+	*source = *sink;
-+}
-+
- static int fimc_lite_create_capture_subdev(struct fimc_lite *fimc)
- {
- 	struct v4l2_ctrl_handler *handler = &fimc->ctrl_handler;
-@@ -1536,8 +1550,11 @@ static int fimc_lite_probe(struct platform_device *pdev)
- 		ret = PTR_ERR(fimc->alloc_ctx);
- 		goto err_pm;
- 	}
-+
- 	pm_runtime_put(dev);
- 
-+	fimc_lite_set_default_config(fimc);
-+
- 	dev_dbg(dev, "FIMC-LITE.%d registered successfully\n",
- 		fimc->index);
- 	return 0;
-diff --git a/drivers/media/platform/exynos4-is/fimc-lite.h b/drivers/media/platform/exynos4-is/fimc-lite.h
-index c98f3da..7428b2d 100644
---- a/drivers/media/platform/exynos4-is/fimc-lite.h
-+++ b/drivers/media/platform/exynos4-is/fimc-lite.h
-@@ -29,6 +29,8 @@
- #define FLITE_CLK_NAME		"flite"
- #define FIMC_LITE_MAX_DEVS	3
- #define FLITE_REQ_BUFS_MIN	2
-+#define FLITE_DEFAULT_WIDTH	640
-+#define FLITE_DEFAULT_HEIGHT	480
- 
- /* Bit index definitions for struct fimc_lite::state */
- enum {
--- 
-1.7.9.5
+        if (drv->remove)
+                drv->driver.remove = platform_drv_remove;
 
+The function you quote will only be used if drv->remove is non-NULL.
+You do not need to provide a remove method.
