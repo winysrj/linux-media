@@ -1,76 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:40960 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753236Ab3FNRsi (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:33408 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753707Ab3F0REZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 13:48:38 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: kishon@ti.com
-Cc: linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	linux-samsung-soc@vger.kernel.org, kyungmin.park@samsung.com,
-	sw0312.kim@samsung.com, devicetree-discuss@lists.ozlabs.org,
-	kgene.kim@samsung.com, dh09.lee@samsung.com, jg1.han@samsung.com,
-	linux-fbdev@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [RFC PATCH 2/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
-Date: Fri, 14 Jun 2013 19:45:48 +0200
-Message-id: <1371231951-1969-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com>
-References: <1371231951-1969-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 27 Jun 2013 13:04:25 -0400
+Message-ID: <51CC707E.6030204@infradead.org>
+Date: Thu, 27 Jun 2013 10:03:58 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Lubomir Rintel <lkundrak@v3.sk>
+Subject: Re: linux-next: Tree for Jun 27 (v4l2 & usbtv)
+References: <20130627192416.d37a51646a5317892298609e@canb.auug.org.au>
+In-Reply-To: <20130627192416.d37a51646a5317892298609e@canb.auug.org.au>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
+On 06/27/13 02:24, Stephen Rothwell wrote:
+> Hi all,
+> 
+> Changes since 20130626:
+> 
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- arch/arm/boot/dts/exynos4.dtsi |   12 ++++++++++++
- 1 file changed, 12 insertions(+)
+on i386:
 
-diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
-index d505ece..4b7ce52 100644
---- a/arch/arm/boot/dts/exynos4.dtsi
-+++ b/arch/arm/boot/dts/exynos4.dtsi
-@@ -120,12 +120,20 @@
- 		reg = <0x10010000 0x400>;
- 	};
- 
-+	mipi_phy: video-phy {
-+		compatible = "samsung,s5pv210-video-phy";
-+		reg = <0x10020710 8>;
-+		#phy-cells = <1>;
-+	};
-+
- 	dsi_0: dsi@11C80000 {
- 		compatible = "samsung,exynos4210-mipi-dsi";
- 		reg = <0x11C80000 0x10000>;
- 		interrupts = <0 79 0>;
- 		samsung,phy-type = <0>;
- 		samsung,power-domain = <&pd_lcd0>;
-+		phys = <&mipi_phy 1>;
-+		phy-names = "dsim";
- 		clocks = <&clock 286>, <&clock 143>;
- 		clock-names = "bus_clk", "pll_clk";
- 		status = "disabled";
-@@ -181,6 +189,8 @@
- 			interrupts = <0 78 0>;
- 			bus-width = <4>;
- 			samsung,power-domain = <&pd_cam>;
-+			phys = <&mipi_phy 0>;
-+			phy-names = "csis";
- 			status = "disabled";
- 		};
- 
-@@ -190,6 +200,8 @@
- 			interrupts = <0 80 0>;
- 			bus-width = <2>;
- 			samsung,power-domain = <&pd_cam>;
-+			phys = <&mipi_phy 2>;
-+			phy-names = "csis";
- 			status = "disabled";
- 		};
- 	};
+CONFIG_VIDEO_USBTV=y
+CONFIG_I2C=m
+CONFIG_VIDEO_V4L2=m
+
+
+Looks like VIDEO_USBTV should depend on VIDEO_V4L2.
+
+
+drivers/built-in.o: In function `vb2_fop_mmap':
+(.text+0x199b4e): undefined reference to `video_devdata'
+drivers/built-in.o: In function `vb2_ioctl_streamoff':
+(.text+0x19a00b): undefined reference to `video_devdata'
+drivers/built-in.o: In function `vb2_ioctl_streamon':
+(.text+0x19a134): undefined reference to `video_devdata'
+drivers/built-in.o: In function `vb2_ioctl_expbuf':
+(.text+0x19a2cb): undefined reference to `video_devdata'
+drivers/built-in.o: In function `vb2_ioctl_querybuf':
+(.text+0x19a3fe): undefined reference to `video_devdata'
+drivers/built-in.o:(.text+0x19ad7d): more undefined references to `video_devdata' follow
+drivers/built-in.o: In function `vb2_poll':
+(.text+0x19bef0): undefined reference to `v4l2_event_pending'
+drivers/built-in.o: In function `vb2_fop_poll':
+(.text+0x19c0ce): undefined reference to `video_devdata'
+drivers/built-in.o: In function `vb2_fop_release':
+(.text+0x19c21c): undefined reference to `video_devdata'
+drivers/built-in.o: In function `vb2_fop_release':
+(.text+0x19c24a): undefined reference to `v4l2_fh_release'
+drivers/built-in.o: In function `usbtv_release':
+usbtv.c:(.text+0x1a9411): undefined reference to `v4l2_device_unregister'
+drivers/built-in.o: In function `usbtv_querycap':
+usbtv.c:(.text+0x1a942e): undefined reference to `video_devdata'
+drivers/built-in.o: In function `usbtv_probe':
+usbtv.c:(.text+0x1a95da): undefined reference to `v4l2_device_register'
+usbtv.c:(.text+0x1a961e): undefined reference to `video_device_release_empty'
+usbtv.c:(.text+0x1a9689): undefined reference to `__video_register_device'
+usbtv.c:(.text+0x1a96a3): undefined reference to `v4l2_device_unregister'
+drivers/built-in.o: In function `usbtv_disconnect':
+usbtv.c:(.text+0x1a9937): undefined reference to `video_unregister_device'
+usbtv.c:(.text+0x1a993e): undefined reference to `v4l2_device_disconnect'
+drivers/built-in.o: In function `usbtv_iso_cb':
+usbtv.c:(.text+0x1a9b5c): undefined reference to `v4l2_get_timestamp'
+drivers/built-in.o: In function `usbtv_disconnect':
+usbtv.c:(.text+0x1a9966): undefined reference to `v4l2_device_put'
+drivers/built-in.o:(.data+0x22918): undefined reference to `video_ioctl2'
+drivers/built-in.o:(.data+0x22924): undefined reference to `v4l2_fh_open'
+
+
+
 -- 
-1.7.9.5
-
+~Randy
