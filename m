@@ -1,189 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f170.google.com ([209.85.212.170]:34058 "EHLO
-	mail-wi0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751678Ab3FXQJs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 12:09:48 -0400
-MIME-Version: 1.0
-In-Reply-To: <201306240951.07426.hverkuil@xs4all.nl>
-References: <1371913383-25088-1-git-send-email-prabhakar.csengg@gmail.com> <201306240951.07426.hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Mon, 24 Jun 2013 21:39:26 +0530
-Message-ID: <CA+V-a8uqo+YyRb8GFqftEka=KZf72WsS_hv36_0ShZOXvTv_Yg@mail.gmail.com>
-Subject: Re: [PATCH RFC v3] media: OF: add video sync endpoint property
-To: Hans Verkuil <hverkuil@xs4all.nl>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mx1.redhat.com ([209.132.183.28]:22470 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751324Ab3F1MnS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jun 2013 08:43:18 -0400
+Date: Fri, 28 Jun 2013 09:42:46 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: [PATCH] usbtv: fix dependency
+Message-ID: <20130628094246.555bb203.mchehab@redhat.com>
+In-Reply-To: <201306281318.44880.hverkuil@xs4all.nl>
+References: <201306281024.15428.hverkuil@xs4all.nl>
+	<20130628080043.46dd09c0.mchehab@redhat.com>
+	<201306281318.44880.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Em Fri, 28 Jun 2013 13:18:44 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-Thanks for the review.
+> On Fri June 28 2013 13:00:43 Mauro Carvalho Chehab wrote:
+> > Em Fri, 28 Jun 2013 10:24:15 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > This fixes a dependency problem as found by Randy Dunlap:
+> > > 
+> > > https://lkml.org/lkml/2013/6/27/501
+> > > 
+> > > Mauro, is there any reason for any V4L2 driver to depend on VIDEO_DEV instead of
+> > > just VIDEO_V4L2?
+> > > 
+> > > Some drivers depend on VIDEO_DEV, some on VIDEO_V4L2, some on both. It's all
+> > > pretty chaotic.
+> > 
+> > It should be noticed that, despite its name, this config is actually a
+> > joint dependency of VIDEO_DEV and I2C that will compile drivers as module
+> > if either I2C or VIDEO_DEV is a module:
+> > 
+> > 	config VIDEO_V4L2
+> > 		tristate
+> > 		depends on (I2C || I2C=n) && VIDEO_DEV
+> > 		default (I2C || I2C=n) && VIDEO_DEV
+> > 
+> > So, a V4L2 device that doesn't have any I2C device doesn't need to depend
+> > on VIDEO_V4L2. That includes, for example, reversed-engineered webcam
+> > drivers where the sensor code is inside the driver and a few capture-only
+> > device drivers.
+> 
+> Yes, it does have to depend on it. That's exactly why usbtv is failing: like
+> any other v4l2 driver usbtv needs the videodev.ko module. That is dependent
+> on VIDEO_V4L2. What is happening here is that the dependency of usbtv on
+> VIDEO_DEV allows it to be built as part of the kernel, but VIDEO_V4L2 is built
+> as a module due to its I2C dependency with the result that usbtv can't link to
+> the videodev functions.
+> 
+> The way things are today I do not believe any v4l2 driver should depend on
+> VIDEO_DEV, instead they should all depend on VIDEO_V4L2. That would make a
+> lot more sense.
 
-On Mon, Jun 24, 2013 at 1:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Prabhakar,
->
-> On Sat June 22 2013 17:03:03 Prabhakar Lad wrote:
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> This patch adds video sync properties as part of endpoint
->> properties and also support to parse them in the parser.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> Cc: Hans Verkuil <hans.verkuil@cisco.com>
->
-> FYI: using my private email when CC-ing me generally works better.
-> I often skip v4l2-related emails to my work address since I assume those
-> have either been CC-ed to my private email and/or linux-media.
->
-OK hence forth I'll take care of it.
+Hmm...
 
-> I wondered why I never saw RFC v1/2, now I know :-)
-[Snip]
->>    clock mode.
->> +- video-sync: property indicating to sync the video on a signal in RGB.
->
-> Please document what the various syncs actually mean.
->
-OK
+$ git grep -l i2c drivers/media/v4l2-core/
+drivers/media/v4l2-core/tuner-core.c		(not part of videodev.ko module)
+drivers/media/v4l2-core/v4l2-async.c
+drivers/media/v4l2-core/v4l2-common.c
+drivers/media/v4l2-core/v4l2-ctrls.c		(actually, there's just a comment there)
+drivers/media/v4l2-core/v4l2-device.c
 
->>
->>
->>  Example
->> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
->> index aa59639..1a54530 100644
->> --- a/drivers/media/v4l2-core/v4l2-of.c
->> +++ b/drivers/media/v4l2-core/v4l2-of.c
->> @@ -100,6 +100,26 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
->>       if (!of_property_read_u32(node, "data-shift", &v))
->>               bus->data_shift = v;
->>
->> +     if (!of_property_read_u32(node, "video-sync", &v)) {
->> +             switch (v) {
->> +             case V4L2_MBUS_VIDEO_SEPARATE_SYNC:
->> +                     flags |= V4L2_MBUS_VIDEO_SEPARATE_SYNC;
->> +                     break;
->> +             case V4L2_MBUS_VIDEO_COMPOSITE_SYNC:
->> +                     flags |= V4L2_MBUS_VIDEO_COMPOSITE_SYNC;
->> +                     break;
->> +             case V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE:
->> +                     flags |= V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE;
->> +                     break;
->> +             case V4L2_MBUS_VIDEO_SYNC_ON_GREEN:
->> +                     flags |= V4L2_MBUS_VIDEO_SYNC_ON_GREEN;
->> +                     break;
->> +             case V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE:
->> +                     flags |= V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE;
->> +                     break;
->> +             }
->> +     }
->> +
->>       bus->flags = flags;
->>
->>  }
->> diff --git a/include/dt-bindings/media/video-interfaces.h b/include/dt-bindings/media/video-interfaces.h
->> new file mode 100644
->> index 0000000..1a083dd
->> --- /dev/null
->> +++ b/include/dt-bindings/media/video-interfaces.h
->> @@ -0,0 +1,17 @@
->> +/*
->> + * This header provides constants for video interface.
->> + *
->> + */
->> +
->> +#ifndef _DT_BINDINGS_VIDEO_INTERFACES_H
->> +#define _DT_BINDINGS_VIDEO_INTERFACES_H
->> +
->> +#define V4L2_MBUS_VIDEO_SEPARATE_SYNC                (1 << 2)
->> +#define V4L2_MBUS_VIDEO_COMPOSITE_SYNC               (1 << 3)
->> +#define V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE    (1 << 4)
->
-> What on earth is the difference between "COMPOSITE_SYNC" and "SYNC_ON_COMPOSITE"?!
->
-Ahh my bad.
+$ git grep  CONFIG_I2C drivers/media/v4l2-core/
+drivers/media/v4l2-core/v4l2-common.c:#if IS_ENABLED(CONFIG_I2C)
+drivers/media/v4l2-core/v4l2-common.c:#endif /* defined(CONFIG_I2C) */
+drivers/media/v4l2-core/v4l2-device.c:#if IS_ENABLED(CONFIG_I2C)
 
->> +#define V4L2_MBUS_VIDEO_SYNC_ON_GREEN                (1 << 5)
->> +#define V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE    (1 << 6)
->> +
->> +#define V4L2_MBUS_VIDEO_INTERFACES_END               6
->> +
->> +#endif
->
-> Why would this be here? It isn't Device Tree specific, the same defines can
-> be used without DT as well.
->
-This is in here because we cannot include header files from other folder in
-device tree files.
+yes, there are some parts of videodev that are dependent on I2C.
 
->> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
->> index 83ae07e..a4676dd 100644
->> --- a/include/media/v4l2-mediabus.h
->> +++ b/include/media/v4l2-mediabus.h
->> @@ -11,6 +11,8 @@
->>  #ifndef V4L2_MEDIABUS_H
->>  #define V4L2_MEDIABUS_H
->>
->> +#include <dt-bindings/media/video-interfaces.h>
->> +
->>  #include <linux/v4l2-mediabus.h>
->>
->>  /* Parallel flags */
->> @@ -28,18 +30,18 @@
->>   * V4L2_MBUS_[HV]SYNC* flags should be also used for specifying
->>   * configuration of hardware that uses [HV]REF signals
->>   */
->> -#define V4L2_MBUS_HSYNC_ACTIVE_HIGH          (1 << 2)
->> -#define V4L2_MBUS_HSYNC_ACTIVE_LOW           (1 << 3)
->> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH          (1 << 4)
->> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW           (1 << 5)
->> -#define V4L2_MBUS_PCLK_SAMPLE_RISING         (1 << 6)
->> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING                (1 << 7)
->> -#define V4L2_MBUS_DATA_ACTIVE_HIGH           (1 << 8)
->> -#define V4L2_MBUS_DATA_ACTIVE_LOW            (1 << 9)
->> +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH          (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 1))
->> +#define V4L2_MBUS_HSYNC_ACTIVE_LOW           (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 2))
->> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH          (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 3))
->> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW           (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 4))
->> +#define V4L2_MBUS_PCLK_SAMPLE_RISING         (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 5))
->> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING                (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 6))
->> +#define V4L2_MBUS_DATA_ACTIVE_HIGH           (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 7))
->> +#define V4L2_MBUS_DATA_ACTIVE_LOW            (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 8))
->>  /* FIELD = 0/1 - Field1 (odd)/Field2 (even) */
->> -#define V4L2_MBUS_FIELD_EVEN_HIGH            (1 << 10)
->> +#define V4L2_MBUS_FIELD_EVEN_HIGH            (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 9))
->>  /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
->> -#define V4L2_MBUS_FIELD_EVEN_LOW             (1 << 11)
->> +#define V4L2_MBUS_FIELD_EVEN_LOW             (1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 10))
->
-> And that would also do away with the ugly V4L2_MBUS_VIDEO_INTERFACES_END
-> define. It's just asking for problems when some of the flags are defined
-> in one header, and some in another header.
->
-> I know it was discussed before, but I am uncomfortable with adding all these
-> different sync types when the only one used in tvp7002 is SYNC_ON_GREEN.
->
-> The only sync types I see in practice are Separate Sync (using separate H and V
-> sync signals), Embedded Sync (using SAV/EAV codes) and in very rare cases
-> Sync-on-Green. Sync-on-Luminance is I expect really identical to Sync-on-Green,
-> only instead of using RGB it uses YUV where Y maps to the Green pin.
->
-Laurent, Sylwester  what do you suggest ?
+That's basically why all V4L2 drivers should depend on VIDEO_V4L2.
+
+That's said, before the addition of v4l2-async, it was safe to compile
+the core without I2C, as the parts of the code that are I2C specific are
+protected by a:
+	#if defined(CONFIG_I2C)
+
+With its addition, I suspect that we'll still have Kbuild issues, if I2C
+is disabled and a driver that doesn't depends on I2C is compiled.
+
+So, 2 patches seem to be needed:
+
+1) a patch that replaces all driver dependencies from CONFIG_DEV to
+   CONFIG_V4L2;
+
+2) a patch that fixes the issues with v4l2-async.
+
+With regards to the last one, I can see 3 ways to fix it:
+	1) don't add v4l2-async at videodev.ko if I2C is not selected;
+	2) protect the I2C specific parts of v4l2-async with
+		#if defined(CONFIG_I2C)
+	3) put v4l2-async on a separate module.
+
+(or some combination of the above)
+
+As only very few drivers use v4l2-async, as this is more focused to
+fix troubles with OT, I think that the better would be to do (3) and
+to add an specific Kconfig entry for it.
 
 Regards,
---Prabhakar Lad
+Mauro.
