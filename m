@@ -1,179 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:41857 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932074Ab3FQJE0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 05:04:26 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOJ00KKV57BVF90@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Jun 2013 10:04:23 +0100 (BST)
-Message-id: <51BED113.90908@samsung.com>
-Date: Mon, 17 Jun 2013 11:04:19 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arun Kumar K <arunkk.samsung@gmail.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
-	avnd.kiran@samsung.com
-Subject: Re: [PATCH 5/6] [media] V4L: Add VP8 encoder controls
-References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
- <1370870586-24141-6-git-send-email-arun.kk@samsung.com>
- <51B5D876.2000704@samsung.com>
- <CALt3h7_BhORpmJUNZD1G-2eEZZ72YKus6wrfRiwRL4eLfViZHA@mail.gmail.com>
- <51BAE81B.4050008@samsung.com>
- <CALt3h78de0geS3+HdD3AE2OvTL3Zz10N5J7GUgHXjBUpz-tXow@mail.gmail.com>
- <51BB6F85.1030708@samsung.com>
- <CALt3h7-N=9+GHEzSdBG-wTu4yJoeiiCrNJMhwLWb4GjSMo=o-g@mail.gmail.com>
-In-reply-to: <CALt3h7-N=9+GHEzSdBG-wTu4yJoeiiCrNJMhwLWb4GjSMo=o-g@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from comal.ext.ti.com ([198.47.26.152]:59182 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754882Ab3F1J2D (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jun 2013 05:28:03 -0400
+Message-ID: <51CD56FE.4020302@ti.com>
+Date: Fri, 28 Jun 2013 14:57:26 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
+MIME-Version: 1.0
+To: Jingoo Han <jg1.han@samsung.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	"'Kukjin Kim'" <kgene.kim@samsung.com>,
+	"'Sylwester Nawrocki'" <s.nawrocki@samsung.com>,
+	"'Felipe Balbi'" <balbi@ti.com>,
+	"'Tomasz Figa'" <t.figa@samsung.com>,
+	<devicetree-discuss@lists.ozlabs.org>,
+	"'Inki Dae'" <inki.dae@samsung.com>,
+	"'Donghwa Lee'" <dh09.lee@samsung.com>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Jean-Christophe PLAGNIOL-VILLARD'" <plagnioj@jcrosoft.com>,
+	<linux-fbdev@vger.kernel.org>
+Subject: Re: [PATCH 3/3] video: exynos_dp: Use the generic PHY driver
+References: <001701ce73bf$bebf9f20$3c3edd60$@samsung.com> <51CD25F2.5010206@ti.com> <001c01ce73c5$552e1cc0$ff8a5640$@samsung.com>
+In-Reply-To: <001c01ce73c5$552e1cc0$ff8a5640$@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Hi,
 
-On 06/17/2013 06:25 AM, Arun Kumar K wrote:
-> On Sat, Jun 15, 2013 at 1:01 AM, Sylwester Nawrocki
-> <s.nawrocki@samsung.com> wrote:
->> On 06/14/2013 03:21 PM, Arun Kumar K wrote:
->>> On Fri, Jun 14, 2013 at 3:23 PM, Sylwester Nawrocki
->>> <s.nawrocki@samsung.com> wrote:
->>>> On 06/14/2013 11:26 AM, Arun Kumar K wrote:
->>>>>>> +     static const char * const vpx_num_partitions[] = {
->>>>>>> +             "1 partition",
->>>>>>> +             "2 partitions",
->>>>>>> +             "4 partitions",
->>>>>>> +             "8 partitions",
->>>>>>> +             NULL,
->>>>>>> +     };
->>>>>>> +     static const char * const vpx_num_ref_frames[] = {
->>>>>>> +             "1 reference frame",
->>>>>>> +             "2 reference frame",
->>>>>>> +             NULL,
->>>>>>> +     };
->>>>>>
->>>>>> Have you considered using V4L2_CTRL_TYPE_INTEGER_MENU control type for this ?
->>>>>> One example is V4L2_CID_ISO_SENSITIVITY control.
->>>>>>
->>>>>
->>>>> If I understand correctly, V4L2_CTRL_TYPE_INTEGER_MENU is used for
->>>>> controls where
->>>>> the driver / IP can support different values depending on its capabilities.
->>>>
->>>> No, not really, it just happens there is no INTEGER_MENU control with standard
->>>> values yet. I think there are some (minor) changes needed in the v4l2-ctrls
->>>> code to support INTEGER_MENU control with standard menu items.
->>>>
->>>>> But here VP8 standard supports only 4 options for no. of partitions
->>>>> that is 1, 2, 4 and 8.
->>>>
->>>> I think such a standard menu list should be defined in v4l2-ctrls.c then.
+On Friday 28 June 2013 11:34 AM, Jingoo Han wrote:
+> On Friday, June 28, 2013 2:58 PM, Kishon Vijay Abraham I wrote:
+>>
+>> Hi,
+>>
+>> On Friday 28 June 2013 10:54 AM, Jingoo Han wrote:
+>>> Use the generic PHY API instead of the platform callback to control
+>>> the DP PHY. The 'phy_label' field is added to the platform data
+>>> structure to allow PHY lookup on non-dt platforms.
 >>>
->>> One more concern here is these integer values 1, 2, 4 and 8 may not hold
->>> much significance while setting to the registers. Some IPs may need these
->>> values to be set as 0, 1, 2 and 3. So unlike other settings like ISO, the
->>> values that are given by the user may not be directly applicable to the
->>> register setting.
->>
->> The INTEGER_MENU control is not much different than MENU control from
->> driver POV. s_ctrl() op is called with similarly with the an index to
->> the menu option. In addition to standard menu applications can query
->> real value corresponding to a menu option, rather than a character
->> string only.
->>
->> With each new control a nw strings are added, that cumulate in the
->> videodev module and make it bigger. Actually __s64 is not much smaller
->> than "1 partition" in your case. But it's a bit smaller. :)
-> 
-> Yes that makes sense. But there will be a few extra functions that
-> would be needed in the v4l2-ctrls.c like may be
-> v4l2_ctrl_new_int_menu_fixed() which doesnt take qmenu arg from driver.
-> Will try to make this change.
-
-I wouldn't be adding another helper like this, IMHO v4l2_ctrl_new_menu()
-could well handle such entirely standard control type. I looked into that
-over the weekend, let me send you my work-in-progress patch. Maybe you find
-it useful.
-
->> That said I'm not either a codec expert or the v4l2 controls maintainer.
->> I think last words belongs to Hans. I just express my suggestions of
->> what I though we be more optimal (but not necessarily less work!). :)
->>
->>>>> Also for number of ref frames, the standard allows only the options 1,
->>>>> 2 and 3 which
->>>>> cannot be extended more. So is it correct to use INTEGER_MENU control here and
->>>>> let the driver define the values?
->>>>
->>>> If this is standard then the core should define available menu items. But
->>>> it seems more appropriate for me to use INTEGER_MENU. I'd like to hear other
->>>> opinions though.
+>>> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+>>> ---
+>>>    .../devicetree/bindings/video/exynos_dp.txt        |   17 ---
+>>>    drivers/video/exynos/exynos_dp_core.c              |  118 ++------------------
+>>>    drivers/video/exynos/exynos_dp_core.h              |    2 +
+>>>    include/video/exynos_dp.h                          |    6 +-
+>>>    4 files changed, 15 insertions(+), 128 deletions(-)
 >>>
->>> Here even though 1,2 and 3 are standard, the interpretation is
->>> 1 - 1 reference frame (previous frame)
->>> 2 - previous frame + golden frame
->>> 3 - previous frame + golden frame + altref frame.
+>>> diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt
+>> b/Documentation/devicetree/bindings/video/exynos_dp.txt
+>>> index 84f10c1..a8320e3 100644
+>>> --- a/Documentation/devicetree/bindings/video/exynos_dp.txt
+>>> +++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
+>>> @@ -1,17 +1,6 @@
+>>>    The Exynos display port interface should be configured based on
+>>>    the type of panel connected to it.
+>>>
+>>> -We use two nodes:
+>>> -	-dp-controller node
+>>> -	-dptx-phy node(defined inside dp-controller node)
+>>> -
+>>> -For the DP-PHY initialization, we use the dptx-phy node.
+>>> -Required properties for dptx-phy:
+>>> -	-reg:
+>>> -		Base address of DP PHY register.
+>>> -	-samsung,enable-mask:
+>>> -		The bit-mask used to enable/disable DP PHY.
+>>> -
+>>>    For the Panel initialization, we read data from dp-controller node.
+>>>    Required properties for dp-controller:
+>>>    	-compatible:
+>>> @@ -67,12 +56,6 @@ SOC specific portion:
+>>>    		interrupt-parent = <&combiner>;
+>>>    		clocks = <&clock 342>;
+>>>    		clock-names = "dp";
+>>> -
+>>> -		dptx-phy {
+>>> -			reg = <0x10040720>;
+>>> -			samsung,enable-mask = <1>;
+>>> -		};
+>>> -
+>>>    	};
+>>>
+>>>    Board Specific portion:
+>>> diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+>>> index 12bbede..bac515b 100644
+>>> --- a/drivers/video/exynos/exynos_dp_core.c
+>>> +++ b/drivers/video/exynos/exynos_dp_core.c
+>>> @@ -19,6 +19,7 @@
+>>>    #include <linux/interrupt.h>
+>>>    #include <linux/delay.h>
+>>>    #include <linux/of.h>
+>>> +#include <linux/phy/phy.h>
+>>>
+>>>    #include <video/exynos_dp.h>
+>>>
+>>> @@ -960,84 +961,15 @@ static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
+>>>    		return ERR_PTR(-EINVAL);
+>>>    	}
+>>>
+>>> -	return pd;
+>>> -}
+>>> -
+>>> -static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+>>> -{
+>>> -	struct device_node *dp_phy_node = of_node_get(dp->dev->of_node);
+>>> -	u32 phy_base;
+>>> -	int ret = 0;
+>>> -
+>>> -	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
+>>> -	if (!dp_phy_node) {
+>>> -		dev_err(dp->dev, "could not find dptx-phy node\n");
+>>> -		return -ENODEV;
+>>> -	}
+>>> -
+>>> -	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
+>>> -		dev_err(dp->dev, "failed to get reg for dptx-phy\n");
+>>> -		ret = -EINVAL;
+>>> -		goto err;
+>>> -	}
+>>> -
+>>> -	if (of_property_read_u32(dp_phy_node, "samsung,enable-mask",
+>>> -				&dp->enable_mask)) {
+>>> -		dev_err(dp->dev, "failed to get enable-mask for dptx-phy\n");
+>>> -		ret = -EINVAL;
+>>> -		goto err;
+>>> -	}
+>>> -
+>>> -	dp->phy_addr = ioremap(phy_base, SZ_4);
+>>> -	if (!dp->phy_addr) {
+>>> -		dev_err(dp->dev, "failed to ioremap dp-phy\n");
+>>> -		ret = -ENOMEM;
+>>> -		goto err;
+>>> -	}
+>>> -
+>>> -err:
+>>> -	of_node_put(dp_phy_node);
+>>> -
+>>> -	return ret;
+>>> -}
+>>> -
+>>> -static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+>>> -{
+>>> -	u32 reg;
+>>> -
+>>> -	reg = __raw_readl(dp->phy_addr);
+>>> -	reg |= dp->enable_mask;
+>>> -	__raw_writel(reg, dp->phy_addr);
+>>> -}
+>>> -
+>>> -static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+>>> -{
+>>> -	u32 reg;
+>>> +	pd->phy_label = "dp";
 >>
->> OK, then perhaps for this parameter a standard menu control would be better.
->> However, why there are only 2 options in vpx_num_ref_frames[] arrays ?
-> 
-> Thats because MFCv7 doesnt support the 3rd option yet. But still I would
-> add this in the control to make it generic.
+>> In the case of non-dt boot, this phy_label should have ideally come from
+>> platform code.
+>
+> No, this is NOT the case of non-dt.
+>
+> 'pd->phy_label = "dp";' is included in exynos_dp_dt_parse_pdata(),
+> not exynos_dp_phy_exit().
+> Also, exynos_dp_dt_parse_pdata() is called in the case of dt.
 
-I see. Yes, I think it makes more sense to specify the control fully,
-according to the standard.
+ah.. right. Do you support non-dt boot. I dont see any modifications in
+the platform code?
 
->> You probably want to change the menu strings to reflect this more precisely,
->> but there might be not enough room for any creative names anyway. Maybe
->> something like:
->>
->> static const char * const vpx_num_ref_frames[] = {
->>         "Previous Frame",
->>         "Previous + Golden Frame",
->>         "Prev + Golden + Altref Frame",
->>         NULL,
->> };
->>
->> Anyway raw numbers might be better for the control and details could be
->> described in the documentation.
-> 
-> Ok will do like this.
-
-Just one more note, I think I might have confused you with my comment
-on the enum v4l2_vp8_num_partitions. Presumably we just need to define
-contiguous enumeration for all options of V4L2_CID_VPX_NUM_PARTITIONS
-control. And the actual values would be defined only on the integer
-menu values array, e.g.
-
-copnst s64 qmenu_int_vpx_num_partitions[] [
-	1, 2, 4, 8
-};
-
-and
-
-#define V4L2_CID_VPX_NUM_PARTITIONS	(V4L2_CID_MPEG_BASE + ?)
-enum v4l2_vp8_num_partitions {
-	V4L2_VPX_1_PARTITION	= 0,
-	V4L2_VPX_2_PARTITIONS	= 1,
-	V4L2_VPX_4_PARTITIONS	= 2,
-	V4L2_VPX_8_PARTITIONS	= 3,
-};
-
-or
-
-#define V4L2_CID_VPX_NUM_PARTITIONS	(V4L2_CID_MPEG_BASE + ?)
-#define V4L2_VPX_1_PARTITION	0
-#define V4L2_VPX_2_PARTITIONS	1
-#define V4L2_VPX_4_PARTITIONS	2
-#define V4L2_VPX_8_PARTITIONS	3
-
-Each driver could then map enum v4l2_vp8_num_partitions onto its
-required H/W register values, without having to translate from
-the MFC specific values. :)
-
-Regards,
-Sylwester
-
-
+Thanks
+Kishon
