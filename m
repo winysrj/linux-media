@@ -1,100 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:61027 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752931Ab3FNTI6 (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:21067 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751257Ab3F1Noc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 14 Jun 2013 15:08:58 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v11 05/21] atmel-isi: move interface activation and deactivation to clock callbacks
-Date: Fri, 14 Jun 2013 21:08:15 +0200
-Message-Id: <1371236911-15131-6-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1371236911-15131-1-git-send-email-g.liakhovetski@gmx.de>
+	Fri, 28 Jun 2013 09:44:32 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: kishon@ti.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
+	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
+	jason77.wang@gmail.com, linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 1/5] ARM: dts: Add MIPI PHY node to exynos4.dtsi
+Date: Fri, 28 Jun 2013 15:43:07 +0200
+Message-id: <1372426991-2482-2-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1372426991-2482-1-git-send-email-s.nawrocki@samsung.com>
+References: <1372426991-2482-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the atmel-isi camera host driver only
-activates and deactivates its camera interface respectively, which doesn't
-include any client-specific actions. Move this functionality into
-.clock_start() and .clock_stop() callbacks.
+Add PHY provider node for the MIPI CSIS and MIPI DSIM PHYs.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/media/platform/soc_camera/atmel-isi.c |   28 +++++++++++++++++--------
- 1 files changed, 19 insertions(+), 9 deletions(-)
+ arch/arm/boot/dts/exynos4.dtsi |   10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-diff --git a/drivers/media/platform/soc_camera/atmel-isi.c b/drivers/media/platform/soc_camera/atmel-isi.c
-index c9e080a..1044856 100644
---- a/drivers/media/platform/soc_camera/atmel-isi.c
-+++ b/drivers/media/platform/soc_camera/atmel-isi.c
-@@ -745,10 +745,23 @@ static int isi_camera_get_formats(struct soc_camera_device *icd,
- 	return formats;
- }
+diff --git a/arch/arm/boot/dts/exynos4.dtsi b/arch/arm/boot/dts/exynos4.dtsi
+index 4d61120..1750511 100644
+--- a/arch/arm/boot/dts/exynos4.dtsi
++++ b/arch/arm/boot/dts/exynos4.dtsi
+@@ -49,6 +49,12 @@
+ 		reg = <0x10000000 0x100>;
+ 	};
  
--/* Called with .host_lock held */
- static int isi_camera_add_device(struct soc_camera_device *icd)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
-+		 icd->devnum);
++	mipi_phy: video-phy@10020710 {
++		compatible = "samsung,s5pv210-mipi-video-phy";
++		reg = <0x10020710 8>;
++		#phy-cells = <1>;
++	};
 +
-+	return 0;
-+}
-+
-+static void isi_camera_remove_device(struct soc_camera_device *icd)
-+{
-+	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
-+		 icd->devnum);
-+}
-+
-+/* Called with .host_lock held */
-+static int isi_camera_clock_start(struct soc_camera_host *ici)
-+{
- 	struct atmel_isi *isi = ici->priv;
- 	int ret;
+ 	pd_mfc: mfc-power-domain@10023C40 {
+ 		compatible = "samsung,exynos4210-pd";
+ 		reg = <0x10023C40 0x20>;
+@@ -147,6 +153,8 @@
+ 			interrupts = <0 78 0>;
+ 			bus-width = <4>;
+ 			samsung,power-domain = <&pd_cam>;
++			phys = <&mipi_phy 0>;
++			phy-names = "csis";
+ 			status = "disabled";
+ 		};
  
-@@ -762,21 +775,16 @@ static int isi_camera_add_device(struct soc_camera_device *icd)
- 		return ret;
- 	}
- 
--	dev_dbg(icd->parent, "Atmel ISI Camera driver attached to camera %d\n",
--		 icd->devnum);
- 	return 0;
- }
-+
- /* Called with .host_lock held */
--static void isi_camera_remove_device(struct soc_camera_device *icd)
-+static void isi_camera_clock_stop(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct atmel_isi *isi = ici->priv;
- 
- 	clk_disable(isi->mck);
- 	clk_disable(isi->pclk);
--
--	dev_dbg(icd->parent, "Atmel ISI Camera driver detached from camera %d\n",
--		 icd->devnum);
- }
- 
- static unsigned int isi_camera_poll(struct file *file, poll_table *pt)
-@@ -880,6 +888,8 @@ static struct soc_camera_host_ops isi_soc_camera_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= isi_camera_add_device,
- 	.remove		= isi_camera_remove_device,
-+	.clock_start	= isi_camera_clock_start,
-+	.clock_stop	= isi_camera_clock_stop,
- 	.set_fmt	= isi_camera_set_fmt,
- 	.try_fmt	= isi_camera_try_fmt,
- 	.get_formats	= isi_camera_get_formats,
+@@ -156,6 +164,8 @@
+ 			interrupts = <0 80 0>;
+ 			bus-width = <2>;
+ 			samsung,power-domain = <&pd_cam>;
++			phys = <&mipi_phy 2>;
++			phy-names = "csis";
+ 			status = "disabled";
+ 		};
+ 	};
 -- 
-1.7.2.5
+1.7.9.5
 
