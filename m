@@ -1,106 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f179.google.com ([209.85.216.179]:60909 "EHLO
-	mail-qc0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751182Ab3FYOtp (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2000 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753916Ab3F1M2H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 10:49:45 -0400
-MIME-Version: 1.0
-In-Reply-To: <CAAQKjZNjjgG3hoKU2RLsG7w+B-2v7CpTT5hfnnTTJ2DgTEk0vA@mail.gmail.com>
-References: <20130617182127.GM2718@n2100.arm.linux.org.uk>
-	<007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
-	<20130618084308.GU2718@n2100.arm.linux.org.uk>
-	<008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
-	<1371548849.4276.6.camel@weser.hi.pengutronix.de>
-	<008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
-	<1371637326.4230.24.camel@weser.hi.pengutronix.de>
-	<00ae01ce6cd9$f4834630$dd89d290$%dae@samsung.com>
-	<1371645247.4230.41.camel@weser.hi.pengutronix.de>
-	<CAAQKjZNJD4HpnJQ7iE+Gez36066M6U0YQeUEdA0+UcSOKqeghg@mail.gmail.com>
-	<20130619182925.GL2718@n2100.arm.linux.org.uk>
-	<00da01ce6d81$76eb3d60$64c1b820$%dae@samsung.com>
-	<1371714427.4230.64.camel@weser.hi.pengutronix.de>
-	<00db01ce6d8f$a3c23dd0$eb46b970$%dae@samsung.com>
-	<1371723063.4114.12.camel@weser.hi.pengutronix.de>
-	<010801ce6da7$896affe0$9c40ffa0$%dae@samsung.com>
-	<1371804843.4114.49.camel@weser.hi.pengutronix.de>
-	<CAAQKjZOxOMuL3zh_yV7tU2LBcZ7oVryiKa+LgjTM5HLY+va8zQ@mail.gmail.com>
-	<1371817628.5882.13.camel@weser.hi.pengutronix.de>
-	<CAAQKjZOeskLB7n6FM+bnB8n7ecuQM5k6uANXJXo=xk979f9s9Q@mail.gmail.com>
-	<CAH3drwZVhs=odjFdB_Mf+K0JLT5NSSbz5mP9aOS=5fx-PVdzSg@mail.gmail.com>
-	<CAAQKjZNnJRddACHzD+VF=A8vJpt9SEy2ttnS3Kw0y3hexu8dnw@mail.gmail.com>
-	<CAF6AEGsBvZbcWDbX3FFtyDxFO1NqYNRLqHEUyP4qUD9wK+ARbA@mail.gmail.com>
-	<CAAQKjZNjjgG3hoKU2RLsG7w+B-2v7CpTT5hfnnTTJ2DgTEk0vA@mail.gmail.com>
-Date: Tue, 25 Jun 2013 10:49:43 -0400
-Message-ID: <CAH3drwYqwddVuFRjDbYyvs+2hVWxsQDC1X8OCXMJURRty2087Q@mail.gmail.com>
-Subject: Re: [RFC PATCH] dmabuf-sync: Introduce buffer synchronization framework
-From: Jerome Glisse <j.glisse@gmail.com>
-To: Inki Dae <daeinki@gmail.com>
-Cc: Rob Clark <robdclark@gmail.com>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"myungjoo.ham" <myungjoo.ham@samsung.com>,
-	YoungJun Cho <yj44.cho@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 28 Jun 2013 08:28:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 1/5] v4l2: add matrix support.
+Date: Fri, 28 Jun 2013 14:27:30 +0200
+Message-Id: <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
+References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 25, 2013 at 10:17 AM, Inki Dae <daeinki@gmail.com> wrote:
-> 2013/6/25 Rob Clark <robdclark@gmail.com>:
->> On Tue, Jun 25, 2013 at 5:09 AM, Inki Dae <daeinki@gmail.com> wrote:
->>>> that
->>>> should be the role of kernel memory management which of course needs
->>>> synchronization btw A and B. But in no case this should be done using
->>>> dma-buf. dma-buf is for sharing content btw different devices not
->>>> sharing resources.
->>>>
->>>
->>> hmm, is that true? And are you sure? Then how do you think about
->>> reservation? the reservation also uses dma-buf with same reason as long as I
->>> know: actually, we use reservation to use dma-buf. As you may know, a
->>> reservation object is allocated and initialized when a buffer object is
->>> exported to a dma buf.
->>
->> no, this is why the reservation object can be passed in when you
->> construction the dmabuf.
->
-> Right, that way, we could use dma buf for buffer synchronization. I
-> just wanted to ask for why Jerome said that "dma-buf is for sharing
-> content btw different devices not sharing resources".
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
->From memory, the motivation of dma-buf was to done for few use case,
-among them webcam capturing frame into a buffer and having gpu using
-it directly without memcpy, or one big gpu rendering a scene into a
-buffer that is then use by low power gpu for display ie it was done to
-allow different device to operate on same data using same backing
-memory.
+This patch adds core support for matrices: querying, getting and setting.
 
-AFAICT you seem to want to use dma-buf to create scratch buffer, ie a
-process needs to use X amount of memory for an operation, it can
-release|free this memory once its done and a process B can the use
-this X memory for its own operation discarding content of process A. I
-presume that next frame would have the sequence repeat, process A do
-something, then process B does its thing. So to me it sounds like you
-want to implement global scratch buffer using the dmabuf API and that
-sounds bad to me.
+Two initial matrix types are defined for motion detection (defining regions
+and thresholds).
 
-I know most closed driver have several pool of memory, long lived
-object, short lived object and scratch space, then user space allocate
-from one of this pool and there is synchronization done by driver
-using driver specific API to reclaim memory. Of course this work
-nicely if you only talking about one logic block or at very least hw
-that have one memory controller.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
+ drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
+ include/media/v4l2-ioctl.h           |  8 +++++
+ include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
+ 4 files changed, 97 insertions(+), 1 deletion(-)
 
-Now if you are thinking of doing scratch buffer for several different
-device and share the memory among then you need to be aware of
-security implication, most obvious being that you don't want process B
-being able to read process A scratch memory. I know the argument about
-it being graphic but one day this might become gpu code and it might
-be able to insert jump to malicious gpu code.
+diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+index c8859d6..5e58df6 100644
+--- a/drivers/media/v4l2-core/v4l2-dev.c
++++ b/drivers/media/v4l2-core/v4l2-dev.c
+@@ -598,6 +598,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
+ 	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
+ 	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+ 		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
++	SET_VALID_IOCTL(ops, VIDIOC_QUERY_MATRIX, vidioc_query_matrix);
++	SET_VALID_IOCTL(ops, VIDIOC_G_MATRIX, vidioc_g_matrix);
++	SET_VALID_IOCTL(ops, VIDIOC_S_MATRIX, vidioc_s_matrix);
+ 
+ 	if (is_vid) {
+ 		/* video specific ioctls */
+diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+index 68e6b5e..47debfc 100644
+--- a/drivers/media/v4l2-core/v4l2-ioctl.c
++++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+@@ -549,7 +549,7 @@ static void v4l_print_cropcap(const void *arg, bool write_only)
+ 	const struct v4l2_cropcap *p = arg;
+ 
+ 	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
+-		"defrect wxh=%dx%d, x,y=%d,%d\n, "
++		"defrect wxh=%dx%d, x,y=%d,%d, "
+ 		"pixelaspect %d/%d\n",
+ 		prt_names(p->type, v4l2_type_names),
+ 		p->bounds.width, p->bounds.height,
+@@ -831,6 +831,24 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
+ 			p->rangehigh, p->modulation);
+ }
+ 
++static void v4l_print_query_matrix(const void *arg, bool write_only)
++{
++	const struct v4l2_query_matrix *p = arg;
++
++	pr_cont("type=0x%x, columns=%u, rows=%u, elem_min=%lld, elem_max=%lld, elem_size=%u\n",
++			p->type, p->columns, p->rows,
++			p->elem_min.val, p->elem_max.val, p->elem_size);
++}
++
++static void v4l_print_matrix(const void *arg, bool write_only)
++{
++	const struct v4l2_matrix *p = arg;
++
++	pr_cont("type=0x%x, wxh=%dx%d, x,y=%d,%d, matrix=%p\n",
++			p->type, p->rect.width, p->rect.height,
++			p->rect.top, p->rect.left, p->matrix);
++}
++
+ static void v4l_print_u32(const void *arg, bool write_only)
+ {
+ 	pr_cont("value=%u\n", *(const u32 *)arg);
+@@ -2055,6 +2073,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+ 	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
+ 	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
+ 	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
++	IOCTL_INFO_STD(VIDIOC_QUERY_MATRIX, vidioc_query_matrix, v4l_print_query_matrix, INFO_FL_CLEAR(v4l2_query_matrix, ref)),
++	IOCTL_INFO_STD(VIDIOC_G_MATRIX, vidioc_g_matrix, v4l_print_matrix, INFO_FL_CLEAR(v4l2_matrix, matrix)),
++	IOCTL_INFO_STD(VIDIOC_S_MATRIX, vidioc_s_matrix, v4l_print_matrix, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_matrix, matrix)),
+ };
+ #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
+ 
+diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+index e0b74a4..7e4538e 100644
+--- a/include/media/v4l2-ioctl.h
++++ b/include/media/v4l2-ioctl.h
+@@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
+ 	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
+ 					const struct v4l2_event_subscription *sub);
+ 
++	/* Matrix ioctls */
++	int (*vidioc_query_matrix) (struct file *file, void *fh,
++				    struct v4l2_query_matrix *qmatrix);
++	int (*vidioc_g_matrix) (struct file *file, void *fh,
++				    struct v4l2_matrix *matrix);
++	int (*vidioc_s_matrix) (struct file *file, void *fh,
++				    struct v4l2_matrix *matrix);
++
+ 	/* For other private ioctls */
+ 	long (*vidioc_default)	       (struct file *file, void *fh,
+ 					bool valid_prio, unsigned int cmd, void *arg);
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 95ef455..5cbe815 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
+ 	__u32			reserved[8];
+ };
+ 
++/* Define to which motion detection region each element belongs.
++ * Each element is a __u8. */
++#define V4L2_MATRIX_TYPE_MD_REGION     (1)
++/* Define the motion detection threshold for each element.
++ * Each element is a __u16. */
++#define V4L2_MATRIX_TYPE_MD_THRESHOLD  (2)
++
++/**
++ * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
++ * @type:	matrix type
++ * @ref:	reference to some object (if any) owning the matrix
++ * @columns:	number of columns in the matrix
++ * @rows:	number of rows in the matrix
++ * @elem_min:	minimum matrix element value
++ * @elem_max:	maximum matrix element value
++ * @elem_size:	size in bytes each matrix element
++ * @reserved:	future extensions, applications and drivers must zero this.
++ */
++struct v4l2_query_matrix {
++	__u32 type;
++	union {
++		__u32 reserved[4];
++	} ref;
++	__u32 columns;
++	__u32 rows;
++	union {
++		__s64 val;
++		__u64 uval;
++		__u32 reserved[4];
++	} elem_min;
++	union {
++		__s64 val;
++		__u64 uval;
++		__u32 reserved[4];
++	} elem_max;
++	__u32 elem_size;
++	__u32 reserved[12];
++} __attribute__ ((packed));
++
++/**
++ * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
++ * @type:	matrix type
++ * @ref:	reference to some object (if any) owning the matrix
++ * @rect:	which part of the matrix to get/set
++ * @matrix:	pointer to the matrix of size (in bytes):
++ *		elem_size * rect.width * rect.height
++ * @reserved:	future extensions, applications and drivers must zero this.
++ */
++struct v4l2_matrix {
++	__u32 type;
++	union {
++		__u32 reserved[4];
++	} ref;
++	struct v4l2_rect rect;
++	void __user *matrix;
++	__u32 reserved[12];
++} __attribute__ ((packed));
++
+ /*
+  *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+  *
+@@ -1946,6 +2004,12 @@ struct v4l2_create_buffers {
+    Never use these in applications! */
+ #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+ 
++/* Experimental, these three ioctls may change over the next couple of kernel
++   versions. */
++#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
++#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
++#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
++
+ /* Reminder: when adding new ioctls please add support for them to
+    drivers/media/video/v4l2-compat-ioctl32.c as well! */
+ 
+-- 
+1.8.3.1
 
-Cheers,
-Jerome
