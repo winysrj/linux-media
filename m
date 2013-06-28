@@ -1,177 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:55831 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758514Ab3FMJpO (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:56997 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751132Ab3F1NYY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 13 Jun 2013 05:45:14 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout4.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOB009HUSF6AF60@mailout4.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 13 Jun 2013 10:45:12 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Philipp Zabel' <p.zabel@pengutronix.de>,
-	linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	'Mauro Carvalho Chehab' <mchehab@redhat.com>,
-	'Pawel Osciak' <pawel@osciak.com>,
-	'John Sheu' <sheu@google.com>,
-	'Hans Verkuil' <hans.verkuil@cisco.com>,
-	Andrzej Hajda <a.hajda@samsung.com>
-References: <1370247828-7219-1-git-send-email-p.zabel@pengutronix.de>
-In-reply-to: <1370247828-7219-1-git-send-email-p.zabel@pengutronix.de>
-Subject: RE: [PATCH v4] [media] mem2mem: add support for hardware buffered queue
-Date: Thu, 13 Jun 2013 11:45:05 +0200
-Message-id: <002201ce681a$afaa1200$0efe3600$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Fri, 28 Jun 2013 09:24:24 -0400
+Date: Fri, 28 Jun 2013 15:24:20 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH] usbtv: fix dependency
+In-Reply-To: <201306281459.10398.hverkuil@xs4all.nl>
+Message-ID: <Pine.LNX.4.64.1306281521460.29767@axis700.grange>
+References: <201306281024.15428.hverkuil@xs4all.nl> <201306281318.44880.hverkuil@xs4all.nl>
+ <20130628094246.555bb203.mchehab@redhat.com> <201306281459.10398.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans, Mauro
 
-Pawel and Marek, I would really like to hear your opinions on this patch.
-I remember that the assumption of the mem2mem framework (not to be confused
-with
-mem2mem type of devices) was that it was for simple devices where one output
-buffer
-was equivalent to one capture buffer. More complicated devices were supposed
-to use
-videobuf2 directly.
+On Fri, 28 Jun 2013, Hans Verkuil wrote:
 
-Please state your opinions.
+> On Fri June 28 2013 14:42:46 Mauro Carvalho Chehab wrote:
+> > Em Fri, 28 Jun 2013 13:18:44 +0200
+> > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > 
+> > > On Fri June 28 2013 13:00:43 Mauro Carvalho Chehab wrote:
+> > > > Em Fri, 28 Jun 2013 10:24:15 +0200
+> > > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > > 
+> > > > > This fixes a dependency problem as found by Randy Dunlap:
+> > > > > 
+> > > > > https://lkml.org/lkml/2013/6/27/501
+> > > > > 
+> > > > > Mauro, is there any reason for any V4L2 driver to depend on VIDEO_DEV instead of
+> > > > > just VIDEO_V4L2?
+> > > > > 
+> > > > > Some drivers depend on VIDEO_DEV, some on VIDEO_V4L2, some on both. It's all
+> > > > > pretty chaotic.
+> > > > 
+> > > > It should be noticed that, despite its name, this config is actually a
+> > > > joint dependency of VIDEO_DEV and I2C that will compile drivers as module
+> > > > if either I2C or VIDEO_DEV is a module:
+> > > > 
+> > > > 	config VIDEO_V4L2
+> > > > 		tristate
+> > > > 		depends on (I2C || I2C=n) && VIDEO_DEV
+> > > > 		default (I2C || I2C=n) && VIDEO_DEV
+> > > > 
+> > > > So, a V4L2 device that doesn't have any I2C device doesn't need to depend
+> > > > on VIDEO_V4L2. That includes, for example, reversed-engineered webcam
+> > > > drivers where the sensor code is inside the driver and a few capture-only
+> > > > device drivers.
+> > > 
+> > > Yes, it does have to depend on it. That's exactly why usbtv is failing: like
+> > > any other v4l2 driver usbtv needs the videodev.ko module. That is dependent
+> > > on VIDEO_V4L2. What is happening here is that the dependency of usbtv on
+> > > VIDEO_DEV allows it to be built as part of the kernel, but VIDEO_V4L2 is built
+> > > as a module due to its I2C dependency with the result that usbtv can't link to
+> > > the videodev functions.
+> > > 
+> > > The way things are today I do not believe any v4l2 driver should depend on
+> > > VIDEO_DEV, instead they should all depend on VIDEO_V4L2. That would make a
+> > > lot more sense.
+> > 
+> > Hmm...
+> > 
+> > $ git grep -l i2c drivers/media/v4l2-core/
+> > drivers/media/v4l2-core/tuner-core.c		(not part of videodev.ko module)
+> > drivers/media/v4l2-core/v4l2-async.c
+> > drivers/media/v4l2-core/v4l2-common.c
+> > drivers/media/v4l2-core/v4l2-ctrls.c		(actually, there's just a comment there)
+> > drivers/media/v4l2-core/v4l2-device.c
+> > 
+> > $ git grep  CONFIG_I2C drivers/media/v4l2-core/
+> > drivers/media/v4l2-core/v4l2-common.c:#if IS_ENABLED(CONFIG_I2C)
+> > drivers/media/v4l2-core/v4l2-common.c:#endif /* defined(CONFIG_I2C) */
+> > drivers/media/v4l2-core/v4l2-device.c:#if IS_ENABLED(CONFIG_I2C)
+> > 
+> > yes, there are some parts of videodev that are dependent on I2C.
+> > 
+> > That's basically why all V4L2 drivers should depend on VIDEO_V4L2.
+> > 
+> > That's said, before the addition of v4l2-async, it was safe to compile
+> > the core without I2C, as the parts of the code that are I2C specific are
+> > protected by a:
+> > 	#if defined(CONFIG_I2C)
+> > 
+> > With its addition, I suspect that we'll still have Kbuild issues, if I2C
+> > is disabled and a driver that doesn't depends on I2C is compiled.
+> > 
+> > So, 2 patches seem to be needed:
+> > 
+> > 1) a patch that replaces all driver dependencies from CONFIG_DEV to
+> >    CONFIG_V4L2;
+> > 
+> > 2) a patch that fixes the issues with v4l2-async.
+> > 
+> > With regards to the last one, I can see 3 ways to fix it:
+> > 	1) don't add v4l2-async at videodev.ko if I2C is not selected;
+> > 	2) protect the I2C specific parts of v4l2-async with
+> > 		#if defined(CONFIG_I2C)
+> > 	3) put v4l2-async on a separate module.
+> > 
+> > (or some combination of the above)
+> > 
+> > As only very few drivers use v4l2-async, as this is more focused to
+> > fix troubles with OT, I think that the better would be to do (3) and
+> > to add an specific Kconfig entry for it.
+> 
+> No, #2 is the right choice here. That's necessary anyway since it is a valid
+> use-case that I2C is disabled and you use it for platform devices only.
+> 
+> Guennadi, can you look at this? The only thing that is probably needed is
+> that match_i2c returns false if CONFIG_I2C is undefined.
+> 
+> I prefer to keep this part of videodev, at least for now: I think there will
+> be a fairly quick uptake of this API internally, certainly for subdevs. Note
+> BTW that even x86 kernels come with CONFIG_OF enabled these days.
 
-Best wishes,
--- 
-Kamil Debski
-Linux Kernel Developer
-Samsung R&D Institute Poland
+This patch
 
-> -----Original Message-----
-> From: Philipp Zabel [mailto:p.zabel@pengutronix.de]
-> Sent: Monday, June 03, 2013 10:24 AM
-> To: linux-media@vger.kernel.org
-> Cc: Sylwester Nawrocki; Mauro Carvalho Chehab; Pawel Osciak; John Sheu;
-> Hans Verkuil; Kamil Debski; Andrzej Hajda; Philipp Zabel
-> Subject: [PATCH v4] [media] mem2mem: add support for hardware buffered
-> queue
-> 
-> On mem2mem decoders with a hardware bitstream ringbuffer, to drain the
-> buffer at the end of the stream, remaining frames might need to be
-> decoded from the bitstream buffer without additional input buffers
-> being provided.
-> To achieve this, allow a queue to be marked as buffered by the driver,
-> and allow scheduling of device_runs when buffered ready queues are
-> empty.
-> 
-> This also allows a driver to copy input buffers into their bitstream
-> ringbuffer and immediately mark them as done to be dequeued.
-> 
-> The motivation for this patch is hardware assisted h.264 reordering
-> support in the coda driver. For high profile streams, the coda can hold
-> back out-of-order frames, causing a few mem2mem device runs in the
-> beginning, that don't produce any decompressed buffer at the v4l2
-> capture side. At the same time, the last few frames can be decoded from
-> the bitstream with mem2mem device runs that don't need a new input
-> buffer at the v4l2 output side. The decoder command ioctl can be used
-> to put the decoder into the ringbuffer draining end-of-stream mode.
-> 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> ---
-> Changes since v3:
->  - Split queue_set_buffered into set_src_buffered and set_dst_buffered,
-> which
->    take a v4l2_m2m_ctx pointer instead of a vb2_queue (which isn't
-> guaranteed
->    to be embedded in a v4l2_m2m_queue_ctx).
->  - Make them static inline.
-> ---
->  drivers/media/v4l2-core/v4l2-mem2mem.c | 10 ++++++++--
->  include/media/v4l2-mem2mem.h           | 13 +++++++++++++
->  2 files changed, 21 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> index 66f599f..1007e60 100644
-> --- a/drivers/media/v4l2-core/v4l2-mem2mem.c
-> +++ b/drivers/media/v4l2-core/v4l2-mem2mem.c
-> @@ -196,6 +196,10 @@ static void v4l2_m2m_try_run(struct v4l2_m2m_dev
-> *m2m_dev)
->   * 2) at least one destination buffer has to be queued,
->   * 3) streaming has to be on.
->   *
-> + * If a queue is buffered (for example a decoder hardware ringbuffer
-> + that has
-> + * to be drained before doing streamoff), allow scheduling without
-> v4l2
-> + buffers
-> + * on that queue.
-> + *
->   * There may also be additional, custom requirements. In such case the
-> driver
->   * should supply a custom callback (job_ready in v4l2_m2m_ops) that
-> should
->   * return 1 if the instance is ready.
-> @@ -224,14 +228,16 @@ static void v4l2_m2m_try_schedule(struct
-> v4l2_m2m_ctx *m2m_ctx)
->  	}
-> 
->  	spin_lock_irqsave(&m2m_ctx->out_q_ctx.rdy_spinlock, flags);
-> -	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)) {
-> +	if (list_empty(&m2m_ctx->out_q_ctx.rdy_queue)
-> +	    && !m2m_ctx->out_q_ctx.buffered) {
->  		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
-> flags);
->  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
->  		dprintk("No input buffers available\n");
->  		return;
->  	}
->  	spin_lock_irqsave(&m2m_ctx->cap_q_ctx.rdy_spinlock, flags);
-> -	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)) {
-> +	if (list_empty(&m2m_ctx->cap_q_ctx.rdy_queue)
-> +	    && !m2m_ctx->cap_q_ctx.buffered) {
->  		spin_unlock_irqrestore(&m2m_ctx->cap_q_ctx.rdy_spinlock,
-> flags);
->  		spin_unlock_irqrestore(&m2m_ctx->out_q_ctx.rdy_spinlock,
-> flags);
->  		spin_unlock_irqrestore(&m2m_dev->job_spinlock, flags_job);
-> diff --git a/include/media/v4l2-mem2mem.h b/include/media/v4l2-
-> mem2mem.h index d3eef01..a8e1bb3 100644
-> --- a/include/media/v4l2-mem2mem.h
-> +++ b/include/media/v4l2-mem2mem.h
-> @@ -60,6 +60,7 @@ struct v4l2_m2m_queue_ctx {
->  	struct list_head	rdy_queue;
->  	spinlock_t		rdy_spinlock;
->  	u8			num_rdy;
-> +	bool			buffered;
->  };
-> 
->  struct v4l2_m2m_ctx {
-> @@ -132,6 +133,18 @@ struct v4l2_m2m_ctx *v4l2_m2m_ctx_init(struct
-> v4l2_m2m_dev *m2m_dev,
->  		void *drv_priv,
->  		int (*queue_init)(void *priv, struct vb2_queue *src_vq,
-> struct vb2_queue *dst_vq));
-> 
-> +static inline void v4l2_m2m_set_src_buffered(struct v4l2_m2m_ctx
-> *m2m_ctx,
-> +					     bool buffered)
-> +{
-> +	m2m_ctx->out_q_ctx.buffered = buffered; }
-> +
-> +static inline void v4l2_m2m_set_dst_buffered(struct v4l2_m2m_ctx
-> *m2m_ctx,
-> +					     bool buffered)
-> +{
-> +	m2m_ctx->cap_q_ctx.buffered = buffered; }
-> +
->  void v4l2_m2m_ctx_release(struct v4l2_m2m_ctx *m2m_ctx);
-> 
->  void v4l2_m2m_buf_queue(struct v4l2_m2m_ctx *m2m_ctx, struct
-> vb2_buffer *vb);
-> --
-> 1.8.2.rc2
+http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/commitdiff/a92d0222c693db29a5d00eaedcdebf748789c38e
 
+has been pushed 3 days ago:
 
+https://patchwork.linuxtv.org/patch/19090/
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
