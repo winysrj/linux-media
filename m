@@ -1,47 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:51877 "EHLO mail.kapsi.fi"
+Received: from mx1.redhat.com ([209.132.183.28]:39353 "EHLO mx1.redhat.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751129Ab3FDV4N (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 4 Jun 2013 17:56:13 -0400
-From: Antti Palosaari <crope@iki.fi>
-To: linux-media@vger.kernel.org
-Cc: =?UTF-8?q?Miroslav=20=C5=A0ustek?= <sustmidown@centrum.cz>,
-	Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 4/7] rtl28xxu: Add USB ID for Leadtek WinFast DTV Dongle mini
-Date: Wed,  5 Jun 2013 00:55:00 +0300
-Message-Id: <1370382903-21332-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1370382903-21332-1-git-send-email-crope@iki.fi>
-References: <1370382903-21332-1-git-send-email-crope@iki.fi>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+	id S1751276Ab3F1Rz2 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jun 2013 13:55:28 -0400
+Date: Fri, 28 Jun 2013 14:54:58 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH] usbtv: fix dependency
+Message-ID: <20130628145458.271fd9d8.mchehab@redhat.com>
+In-Reply-To: <20130628105515.0f2a3571.mchehab@redhat.com>
+References: <201306281024.15428.hverkuil@xs4all.nl>
+	<201306281318.44880.hverkuil@xs4all.nl>
+	<20130628094246.555bb203.mchehab@redhat.com>
+	<201306281459.10398.hverkuil@xs4all.nl>
+	<Pine.LNX.4.64.1306281521460.29767@axis700.grange>
+	<20130628105515.0f2a3571.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Miroslav Šustek <sustmidown@centrum.cz>
+Em Fri, 28 Jun 2013 10:55:15 -0300
+Mauro Carvalho Chehab <mchehab@redhat.com> escreveu:
 
-USB ID 0413:6a03 is Leadtek WinFast DTV Dongle mini.
-Decoder Realtek RTL2832U and tuner Infineon TUA9001.
+> > This patch
+> > 
+> > http://git.linuxtv.org/gliakhovetski/v4l-dvb.git/commitdiff/a92d0222c693db29a5d00eaedcdebf748789c38e
+> > 
+> > has been pushed 3 days ago:
+> > 
+> > https://patchwork.linuxtv.org/patch/19090/
+> 
+> As, according with:
+> 	https://lwn.net/Articles/556034/rss
+> 
+> -rc7 is likely the last one before 3.10, that means that the media merge
+> window for 3.11 is closed already (as we close it one week before, in order
+> to give more time for reviewing the patches better at -next).
+> 
+> So, please split the fix patches from it on a separate pull request.
 
-Signed-off-by: Miroslav Šustek <sustmidown@centrum.cz>
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/rtl28xxu.c | 2 ++
- 1 file changed, 2 insertions(+)
+Hmm... just took a look at the actual pull request... from the description,
+it seems to contain just fixes/documentation, so, I'll be handling it
+in a few.
 
-diff --git a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-index 8bbc6ab..0045b19 100644
---- a/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-+++ b/drivers/media/usb/dvb-usb-v2/rtl28xxu.c
-@@ -1424,6 +1424,8 @@ static const struct usb_device_id rtl28xxu_id_table[] = {
- 		&rtl2832u_props, "Compro VideoMate U620F", NULL) },
- 	{ DVB_USB_DEVICE(USB_VID_KWORLD_2, 0xd394,
- 		&rtl2832u_props, "MaxMedia HU394-T", NULL) },
-+	{ DVB_USB_DEVICE(USB_VID_LEADTEK, 0x6a03,
-+		&rtl2832u_props, "WinFast DTV Dongle mini", NULL) },
- 	{ }
- };
- MODULE_DEVICE_TABLE(usb, rtl28xxu_id_table);
+Regards,
+Mauro
 -- 
-1.7.11.7
 
+Cheers,
+Mauro
