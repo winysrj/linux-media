@@ -1,115 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from caramon.arm.linux.org.uk ([78.32.30.218]:43121 "EHLO
-	caramon.arm.linux.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752256Ab3FQPn1 (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:61811 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751262Ab3F1Nox (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 11:43:27 -0400
-Date: Mon, 17 Jun 2013 16:42:37 +0100
-From: Russell King - ARM Linux <linux@arm.linux.org.uk>
-To: Inki Dae <daeinki@gmail.com>
-Cc: Maarten Lankhorst <maarten.lankhorst@canonical.com>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Rob Clark <robdclark@gmail.com>,
-	"myungjoo.ham" <myungjoo.ham@samsung.com>,
-	YoungJun Cho <yj44.cho@samsung.com>,
-	Daniel Vetter <daniel@ffwll.ch>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-	framework
-Message-ID: <20130617154237.GJ2718@n2100.arm.linux.org.uk>
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com> <1371467722-665-1-git-send-email-inki.dae@samsung.com> <51BEF458.4090606@canonical.com> <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com> <20130617133109.GG2718@n2100.arm.linux.org.uk> <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <CAAQKjZO_t_kZkU46bUPTpoJs_oE1KkEqS2OTrTYjjJYZzBf+XA@mail.gmail.com>
+	Fri, 28 Jun 2013 09:44:53 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: kishon@ti.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
+	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
+	jason77.wang@gmail.com, linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 4/5] [media] exynos4-is: Use the generic MIPI CSIS PHY driver
+Date: Fri, 28 Jun 2013 15:43:10 +0200
+Message-id: <1372426991-2482-5-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1372426991-2482-1-git-send-email-s.nawrocki@samsung.com>
+References: <1372426991-2482-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 18, 2013 at 12:03:31AM +0900, Inki Dae wrote:
-> 2013/6/17 Russell King - ARM Linux <linux@arm.linux.org.uk>
-> Exactly right. But that is not definitely my point. Could you please see
-> the below simple example?:
-> (Presume that CPU and DMA share a buffer and the buffer is mapped with user
-> space as cachable)
-> 
->         handle1 = drm_gem_fd_to_handle(a dmabuf fd);  ----> 1
->                  ...
->         va1 = drm_gem_mmap(handle1);
->         va2 = drm_gem_mmap(handle2);
->         va3 = malloc(size);
->                  ...
-> 
->         while (conditions) {
->                  memcpy(va1, some data, size);
+Use the generic PHY API instead of the platform callback to control
+the MIPI CSIS DPHY. The 'phy_label' field is added to the platform
+data structure to allow PHY lookup on non-dt platforms
 
-Nooooooooooooooooooooooooooooooooooooooooooooo!
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+---
+ drivers/media/platform/exynos4-is/mipi-csis.c |   16 +++++++++++++---
+ include/linux/platform_data/mipi-csis.h       |   11 ++---------
+ 2 files changed, 15 insertions(+), 12 deletions(-)
 
-Well, the first thing to say here is that under the requirements of the
-DMA API, the above is immediately invalid, because you're writing to a
-buffer which under the terms of the DMA API is currently owned by the
-DMA agent, *not* by the CPU.  You're supposed to call dma_sync_sg_for_cpu()
-before you do that - but how is userspace supposed to know that requirement?
-Why should userspace even _have_ to know these requirements of the DMA
-API?
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index a2eda9d..8436254 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -20,6 +20,7 @@
+ #include <linux/memory.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/phy/phy.h>
+ #include <linux/platform_data/mipi-csis.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -167,6 +168,7 @@ struct csis_pktbuf {
+  * @sd: v4l2_subdev associated with CSIS device instance
+  * @index: the hardware instance index
+  * @pdev: CSIS platform device
++ * @phy: pointer to the CSIS generic PHY
+  * @regs: mmaped I/O registers memory
+  * @supplies: CSIS regulator supplies
+  * @clock: CSIS clocks
+@@ -189,6 +191,8 @@ struct csis_state {
+ 	struct v4l2_subdev sd;
+ 	u8 index;
+ 	struct platform_device *pdev;
++	struct phy *phy;
++	const char *phy_label;
+ 	void __iomem *regs;
+ 	struct regulator_bulk_data supplies[CSIS_NUM_SUPPLIES];
+ 	struct clk *clock[NUM_CSIS_CLOCKS];
+@@ -726,6 +730,7 @@ static int s5pcsis_get_platform_data(struct platform_device *pdev,
+ 	state->index = max(0, pdev->id);
+ 	state->max_num_lanes = state->index ? CSIS1_MAX_LANES :
+ 					      CSIS0_MAX_LANES;
++	state->phy_label = pdata->phy_label;
+ 	return 0;
+ }
+ 
+@@ -763,8 +768,9 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 					"samsung,csis-wclk");
+ 
+ 	state->num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
+-
+ 	of_node_put(node);
++
++	state->phy_label = "csis";
+ 	return 0;
+ }
+ #else
+@@ -800,6 +806,10 @@ static int s5pcsis_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
+ 
++	state->phy = devm_phy_get(dev, state->phy_label);
++	if (IS_ERR(state->phy))
++		return PTR_ERR(state->phy);
++
+ 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	state->regs = devm_ioremap_resource(dev, mem_res);
+ 	if (IS_ERR(state->regs))
+@@ -893,7 +903,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
+ 	mutex_lock(&state->lock);
+ 	if (state->flags & ST_POWERED) {
+ 		s5pcsis_stop_stream(state);
+-		ret = s5p_csis_phy_enable(state->index, false);
++		ret = phy_power_off(state->phy);
+ 		if (ret)
+ 			goto unlock;
+ 		ret = regulator_bulk_disable(CSIS_NUM_SUPPLIES,
+@@ -929,7 +939,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
+ 					    state->supplies);
+ 		if (ret)
+ 			goto unlock;
+-		ret = s5p_csis_phy_enable(state->index, true);
++		ret = phy_power_on(state->phy);
+ 		if (!ret) {
+ 			state->flags |= ST_POWERED;
+ 		} else {
+diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
+index bf34e17..9214317 100644
+--- a/include/linux/platform_data/mipi-csis.h
++++ b/include/linux/platform_data/mipi-csis.h
+@@ -17,21 +17,14 @@
+  * @wclk_source: CSI wrapper clock selection: 0 - bus clock, 1 - ext. SCLK_CAM
+  * @lanes:       number of data lanes used
+  * @hs_settle:   HS-RX settle time
++ * @phy_label:	 the generic PHY label
+  */
+ struct s5p_platform_mipi_csis {
+ 	unsigned long clk_rate;
+ 	u8 wclk_source;
+ 	u8 lanes;
+ 	u8 hs_settle;
++	const char *phy_label;
+ };
+ 
+-/**
+- * s5p_csis_phy_enable - global MIPI-CSI receiver D-PHY control
+- * @id:     MIPI-CSIS harware instance index (0...1)
+- * @on:     true to enable D-PHY and deassert its reset
+- *          false to disable D-PHY
+- * @return: 0 on success, or negative error code on failure
+- */
+-int s5p_csis_phy_enable(int id, bool on);
+-
+ #endif /* __PLAT_SAMSUNG_MIPI_CSIS_H_ */
+-- 
+1.7.9.5
 
-It's also entirely possible that drm_gem_fd_to_handle() (which indirectly
-causes dma_map_sg() on the buffers scatterlist) followed by mmap'ing it
-into userspace is a bug too, as it has the potential to touch caches or
-stuff in ways that maybe the DMA or IOMMU may not expect - but I'm not
-going to make too big a deal about that, because I don't think we have
-anything that picky.
-
-However, the first point above is the most important one, and exposing
-the quirks of the DMA API to userland is certainly not a nice thing to be
-doing.  This needs to be fixed - we can't go and enforce an API which is
-deeply embedded within the kernel all the way out to userland.
-
-What we need is something along the lines of:
-(a) dma_buf_map_attachment() _not_ to map the scatterlist for DMA.
-or
-(b) drm_gem_prime_import() not to call dma_buf_map_attachment() at all.
-
-and for the scatterlist to be mapped for DMA at the point where the DMA
-operation is initiated, and unmapped at the point where the DMA operation
-is complete.
-
-So no, the problem is not that we need more APIs and code - we need the
-existing kernel API fixed so that we don't go exposing userspace to the
-requirements of the DMA API.  Unless we do that, we're going to end
-up with a huge world of pain, where kernel architecture people need to
-audit every damned DRM userspace implementation that happens to be run
-on their platform, and that's not something arch people really can
-afford to do.
-
-Basically, I think the dma_buf stuff needs to be rewritten with the
-requirements of the DMA API in the forefront of whosever mind is doing
-the rewriting.
-
-Note: the existing stuff does have the nice side effect of being able
-to pass buffers which do not have a struct page * associated with them
-through the dma_buf API - I think we can still preserve that by having
-dma_buf provide a couple of new APIs to do the SG list map/sync/unmap,
-but in any case we need to fix the existing API so that:
-
-	dma_buf_map_attachment() becomes dma_buf_get_sg()
-	dma_buf_unmap_attachment() becomes dma_buf_put_sg()
-
-both getting rid of the DMA direction argument, and then we have four
-new dma_buf calls:
-
-	dma_buf_map_sg()
-	dma_buf_unmap_sg()
-	dma_buf_sync_sg_for_cpu()
-	dma_buf_sync_sg_for_device()
-
-which do the actual sg map/unmap via the DMA API *at the appropriate
-time for DMA*.
-
-So, the summary of this is - at the moment, I regard DRM Prime and dmabuf
-to be utterly broken in design for architectures such as ARM where the
-requirements of the DMA API have to be followed if you're going to have
-a happy life.
