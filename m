@@ -1,56 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:2407 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755618Ab3FLPCK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 12 Jun 2013 11:02:10 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Mike Isely <isely@isely.net>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [REVIEWv2 PATCH 11/12] cx88: set dev_parent to the correct parent PCI bus.
-Date: Wed, 12 Jun 2013 17:01:01 +0200
-Message-Id: <1371049262-5799-12-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371049262-5799-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mx1.redhat.com ([209.132.183.28]:6318 "EHLO mx1.redhat.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755632Ab3F1LBK (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jun 2013 07:01:10 -0400
+Date: Fri, 28 Jun 2013 08:00:43 -0300
+From: Mauro Carvalho Chehab <mchehab@redhat.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Randy Dunlap <rdunlap@infradead.org>
+Subject: Re: [PATCH] usbtv: fix dependency
+Message-ID: <20130628080043.46dd09c0.mchehab@redhat.com>
+In-Reply-To: <201306281024.15428.hverkuil@xs4all.nl>
+References: <201306281024.15428.hverkuil@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Em Fri, 28 Jun 2013 10:24:15 +0200
+Hans Verkuil <hverkuil@xs4all.nl> escreveu:
 
-The cx88 driver has one v4l2_device, but the video nodes are owned by two
-different PCI busses. So the dev_parent pointer should be set to the correct
-parent bus, otherwise sysfs won't show the correct device hierarchy.
+> This fixes a dependency problem as found by Randy Dunlap:
+> 
+> https://lkml.org/lkml/2013/6/27/501
+> 
+> Mauro, is there any reason for any V4L2 driver to depend on VIDEO_DEV instead of
+> just VIDEO_V4L2?
+> 
+> Some drivers depend on VIDEO_DEV, some on VIDEO_V4L2, some on both. It's all
+> pretty chaotic.
 
-This broke starting in 3.6 after a driver change, so this patch resurrects
-the correct behavior.
+It should be noticed that, despite its name, this config is actually a
+joint dependency of VIDEO_DEV and I2C that will compile drivers as module
+if either I2C or VIDEO_DEV is a module:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- drivers/media/pci/cx88/cx88-core.c |    7 +++++++
- 1 file changed, 7 insertions(+)
+	config VIDEO_V4L2
+		tristate
+		depends on (I2C || I2C=n) && VIDEO_DEV
+		default (I2C || I2C=n) && VIDEO_DEV
 
-diff --git a/drivers/media/pci/cx88/cx88-core.c b/drivers/media/pci/cx88/cx88-core.c
-index c8f3dcc..ad59dc9 100644
---- a/drivers/media/pci/cx88/cx88-core.c
-+++ b/drivers/media/pci/cx88/cx88-core.c
-@@ -1034,7 +1034,14 @@ struct video_device *cx88_vdev_init(struct cx88_core *core,
- 	if (NULL == vfd)
- 		return NULL;
- 	*vfd = *template_;
-+	/*
-+	 * The dev pointer of v4l2_device is NULL, instead we set the
-+	 * video_device dev_parent pointer to the correct PCI bus device.
-+	 * This driver is a rare example where there is one v4l2_device,
-+	 * but the video nodes have different parent (PCI) devices.
-+	 */
- 	vfd->v4l2_dev = &core->v4l2_dev;
-+	vfd->dev_parent = &pci->dev;
- 	vfd->release = video_device_release;
- 	snprintf(vfd->name, sizeof(vfd->name), "%s %s (%s)",
- 		 core->name, type, core->board.name);
+So, a V4L2 device that doesn't have any I2C device doesn't need to depend
+on VIDEO_V4L2. That includes, for example, reversed-engineered webcam
+drivers where the sensor code is inside the driver and a few capture-only
+device drivers.
+
+It should be noticed, however, that, on several places, the need of adding
+a "depends on VIDEO_V4L2" is not needed, as, on some places, the syntax
+is:
+
+	if VIDEO_V4L2
+
+	config "driver foo"
+	...
+
+	endif
+
+Btw, it could make sense to rename it to something clearer, like
+VIDEO_DEV_AND_I2C and define it as:
+
+	config VIDEO_DEV_AND_I2C
+		tristate
+		depends on I2C && VIDEO_DEV
+		default y
+
+Or, even better, to just get rid of it and explicitly add I2C on all
+places where it is used.
+
+
+Regards,
+Mauro
+
+> 
+> Regards,
+> 
+> 	Hans
+> 
+> diff --git a/drivers/media/usb/usbtv/Kconfig b/drivers/media/usb/usbtv/Kconfig
+> index 8864436..7c5b860 100644
+> --- a/drivers/media/usb/usbtv/Kconfig
+> +++ b/drivers/media/usb/usbtv/Kconfig
+> @@ -1,6 +1,6 @@
+>  config VIDEO_USBTV
+>          tristate "USBTV007 video capture support"
+> -        depends on VIDEO_DEV
+> +        depends on VIDEO_V4L2
+>          select VIDEOBUF2_VMALLOC
+>  
+>          ---help---
+
+
 -- 
-1.7.10.4
 
+Cheers,
+Mauro
