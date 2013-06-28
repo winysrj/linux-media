@@ -1,154 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:62366 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751021Ab3FQOpw (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:41711 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751124Ab3F1GJu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 10:45:52 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOJ00094KZJ7P20@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 17 Jun 2013 15:45:50 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Arun Kumar K' <arun.kk@samsung.com>, linux-media@vger.kernel.org
-Cc: jtp.park@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	avnd.kiran@samsung.com, arunkk.samsung@gmail.com
-References: <1370870586-24141-1-git-send-email-arun.kk@samsung.com>
- <1370870586-24141-4-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1370870586-24141-4-git-send-email-arun.kk@samsung.com>
-Subject: RE: [PATCH 3/6] [media] s5p-mfc: Core support for MFC v7
-Date: Mon, 17 Jun 2013 16:45:29 +0200
-Message-id: <002a01ce6b69$512943c0$f37bcb40$%debski@samsung.com>
+	Fri, 28 Jun 2013 02:09:50 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: 'Hui Wang' <jason77.wang@gmail.com>
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>
+References: <001601ce73bf$9f2e9120$dd8bb360$@samsung.com>
+ <51CD2214.10506@ti.com> <001b01ce73c4$88f45020$9adcf060$@samsung.com>
+ <51CD27FF.1060706@gmail.com>
+In-reply-to: <51CD27FF.1060706@gmail.com>
+Subject: Re: [PATCH 2/3] ARM: dts: Add DP PHY node to exynos5250.dtsi
+Date: Fri, 28 Jun 2013 15:09:43 +0900
+Message-id: <001d01ce73c6$155eb450$401c1cf0$@samsung.com>
 MIME-version: 1.0
 Content-type: text/plain; charset=us-ascii
 Content-transfer-encoding: 7bit
-Content-language: pl
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+On Friday, June 28, 2013 3:07 PM, Hui Wang wrote:
+> On 06/28/2013 01:58 PM, Jingoo Han wrote:
+> > On Friday, June 28, 2013 2:42 PM, Kishon Vijay Abraham I wrote:
+> >> Hi,
+> >>
+> >> On Friday 28 June 2013 10:53 AM, Jingoo Han wrote:
+> >>> Add PHY provider node for the DP PHY.
+> >>>
+> >>> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+> >>> ---
+> >>>    arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
+> >>>    1 file changed, 8 insertions(+), 5 deletions(-)
+> >>>
+> >>> diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+> >>> index 41cd625..d1d6e14 100644
+> >>> --- a/arch/arm/boot/dts/exynos5250.dtsi
+> >>> +++ b/arch/arm/boot/dts/exynos5250.dtsi
+> >>> @@ -614,6 +614,12 @@
+> >>>    		interrupts = <0 94 0>;
+> >>>    	};
+> >>>
+> >>> +	dp_phy: video-phy@10040720 {
+> >>> +		compatible = "samsung,exynos5250-dp-video-phy";
+> >>> +		reg = <0x10040720 4>;
+> >>> +		#phy-cells = <1>;
+> >> phy-cells can be '0' here since this phy_provider implements only one PHY.
+> > Oh, thank you.
+> > I will fix it.
+> Don't forget to fix the corresponding description in the
+> samsung,exynos5250-dp-video-phy.txt as well. :-)
 
-I have read your patches. They seem alright, I back comments made by Hans
-and Sylwester. I have one question, which follows inline.
+Hi 
 
-Best wishes,
--- 
-Kamil Debski
-Linux Kernel Developer
-Samsung R&D Institute Poland
+OK, I already fixed it. :)
+Thank you for reminding me.
 
-> -----Original Message-----
-> From: Arun Kumar K [mailto:arun.kk@samsung.com]
-> Sent: Monday, June 10, 2013 3:23 PM
-> To: linux-media@vger.kernel.org
-> Cc: k.debski@samsung.com; jtp.park@samsung.com; s.nawrocki@samsung.com;
-> avnd.kiran@samsung.com; arunkk.samsung@gmail.com
-> Subject: [PATCH 3/6] [media] s5p-mfc: Core support for MFC v7
-> 
-> Adds variant data and core support for the MFC v7 firmware
-> 
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-> ---
->  drivers/media/platform/s5p-mfc/s5p_mfc.c        |   32
-> +++++++++++++++++++++++
->  drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 ++
->  2 files changed, 34 insertions(+)
-> 
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> index d12faa6..d6be52f 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-> @@ -1391,6 +1391,32 @@ static struct s5p_mfc_variant mfc_drvdata_v6 = {
->  	.fw_name        = "s5p-mfc-v6.fw",
->  };
-> 
-> +struct s5p_mfc_buf_size_v6 mfc_buf_size_v7 = {
-> +	.dev_ctx	= MFC_CTX_BUF_SIZE_V7,
-> +	.h264_dec_ctx	= MFC_H264_DEC_CTX_BUF_SIZE_V7,
-> +	.other_dec_ctx	= MFC_OTHER_DEC_CTX_BUF_SIZE_V7,
-> +	.h264_enc_ctx	= MFC_H264_ENC_CTX_BUF_SIZE_V7,
-> +	.other_enc_ctx	= MFC_OTHER_ENC_CTX_BUF_SIZE_V7,
-> +};
-> +
-> +struct s5p_mfc_buf_size buf_size_v7 = {
-> +	.fw	= MAX_FW_SIZE_V7,
-> +	.cpb	= MAX_CPB_SIZE_V7,
-> +	.priv	= &mfc_buf_size_v7,
-> +};
-> +
-> +struct s5p_mfc_buf_align mfc_buf_align_v7 = {
-> +	.base = 0,
-> +};
-> +
-> +static struct s5p_mfc_variant mfc_drvdata_v7 = {
-> +	.version	= MFC_VERSION_V7,
-> +	.port_num	= MFC_NUM_PORTS_V7,
-> +	.buf_size	= &buf_size_v7,
-> +	.buf_align	= &mfc_buf_align_v7,
-> +	.fw_name        = "s5p-mfc-v7.fw",
-> +};
-> +
->  static struct platform_device_id mfc_driver_ids[] = {
->  	{
->  		.name = "s5p-mfc",
-> @@ -1401,6 +1427,9 @@ static struct platform_device_id mfc_driver_ids[]
-> = {
->  	}, {
->  		.name = "s5p-mfc-v6",
->  		.driver_data = (unsigned long)&mfc_drvdata_v6,
-> +	}, {
-> +		.name = "s5p-mfc-v7",
-> +		.driver_data = (unsigned long)&mfc_drvdata_v7,
->  	},
->  	{},
->  };
-> @@ -1413,6 +1442,9 @@ static const struct of_device_id
-> exynos_mfc_match[] = {
->  	}, {
->  		.compatible = "samsung,mfc-v6",
->  		.data = &mfc_drvdata_v6,
-> +	}, {
-> +		.compatible = "samsung,mfc-v7",
-> +		.data = &mfc_drvdata_v7,
->  	},
->  	{},
->  };
-> diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> index ef4074c..7281de2 100644
-> --- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> +++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-> @@ -24,6 +24,7 @@
->  #include <media/videobuf2-core.h>
->  #include "regs-mfc.h"
->  #include "regs-mfc-v6.h"
-> +#include "regs-mfc-v7.h"
-> 
->  /* Definitions related to MFC memory */
-> 
-> @@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
->  				(dev->variant->port_num ? 1 : 0) : 0) : 0)
->  #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 :
-0)
->  #define IS_MFCV6(dev)		(dev->variant->version >= 0x60 ? 1 :
-0)
-> +#define IS_MFCV7(dev)		(dev->variant->version >= 0x70 ? 1 :
-0)
+Best regards,
+Jignoo Han
 
-According to this, MFC v7 is also detected as MFC v6. Was this intended?
-I think that it would be much better to use this in code:
-	if (IS_MFCV6(dev) || IS_MFCV7(dev))
-And change the define to detect only single MFC revision:
-	#define IS_MFCV6(dev)		(dev->variant->version >= 0x60 &&
-dev->variant->version < 0x70)
-
-Other possibility I see is to change the name of the check. Although
-IS_MFCV6_OR_NEWER(dev) seems too long :)
-
-> 
->  #endif /* S5P_MFC_COMMON_H_ */
-> --
-> 1.7.9.5
-
+> > Best regards,
+> > Jingoo Han
+> >
+> >> Thanks
+> >> Kishon
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
 
