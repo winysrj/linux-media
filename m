@@ -1,105 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3843 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1423527Ab3FUWTn (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:16757 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751200Ab3F1FXf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 18:19:43 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5LMJdpY040590
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 22 Jun 2013 00:19:42 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id E506435E00C2
-	for <linux-media@vger.kernel.org>; Sat, 22 Jun 2013 00:19:38 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130621221938.E506435E00C2@alastor.dyndns.org>
-Date: Sat, 22 Jun 2013 00:19:38 +0200 (CEST)
+	Fri, 28 Jun 2013 01:23:35 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>
+Subject: [PATCH 2/3] ARM: dts: Add DP PHY node to exynos5250.dtsi
+Date: Fri, 28 Jun 2013 14:23:28 +0900
+Message-id: <001601ce73bf$9f2e9120$dd8bb360$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Add PHY provider node for the DP PHY.
 
-Results of the daily build of media_tree:
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
-date:		Fri Jun 21 22:49:03 CEST 2013
-git branch:	test
-git hash:	ee17608d6aa04a86e253a9130d6c6d00892f132b
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+index 41cd625..d1d6e14 100644
+--- a/arch/arm/boot/dts/exynos5250.dtsi
++++ b/arch/arm/boot/dts/exynos5250.dtsi
+@@ -614,6 +614,12 @@
+ 		interrupts = <0 94 0>;
+ 	};
+ 
++	dp_phy: video-phy@10040720 {
++		compatible = "samsung,exynos5250-dp-video-phy";
++		reg = <0x10040720 4>;
++		#phy-cells = <1>;
++	};
++
+ 	dp-controller {
+ 		compatible = "samsung,exynos5-dp";
+ 		reg = <0x145b0000 0x1000>;
+@@ -623,11 +629,8 @@
+ 		clock-names = "dp";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-
+-		dptx-phy {
+-			reg = <0x10040720>;
+-			samsung,enable-mask = <1>;
+-		};
++		phys = <&dp_phy 0>;
++		phy-names = "dp";
+ 	};
+ 
+ 	fimd {
+-- 
+1.7.10.4
 
-linux-git-arm-at91: WARNINGS
-linux-git-arm-davinci: WARNINGS
-linux-git-arm-exynos: OK
-linux-git-arm-mx: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-arm-omap1: WARNINGS
-linux-git-arm-pxa: WARNINGS
-linux-git-blackfin: WARNINGS
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: WARNINGS
-linux-git-sh: WARNINGS
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: OK
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: OK
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
