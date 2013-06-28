@@ -1,105 +1,215 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35558 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1161505Ab3FUHzk (ORCPT
+Received: from mailout1.samsung.com ([203.254.224.24]:13502 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752072Ab3F1HPj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 21 Jun 2013 03:55:40 -0400
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: linux-media@vger.kernel.org
-Cc: Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?q?Ga=C3=ABtan=20Carlier?= <gcembed@gmail.com>,
-	Wei Yongjun <weiyj.lk@gmail.com>,
-	Philipp Zabel <p.zabel@pengutronix.de>
-Subject: [PATCH v2 6/8] [media] coda: dynamic IRAM setup for decoder
-Date: Fri, 21 Jun 2013 09:55:32 +0200
-Message-Id: <1371801334-22324-7-git-send-email-p.zabel@pengutronix.de>
-In-Reply-To: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
-References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
+	Fri, 28 Jun 2013 03:15:39 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	linux-fbdev@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
+Subject: [PATCH V2 1/3] phy: Add driver for Exynos DP PHY
+Date: Fri, 28 Jun 2013 16:15:32 +0900
+Message-id: <001f01ce73cf$46d8c940$d48a5bc0$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
----
- drivers/media/platform/coda.c | 50 +++++++++++++++++++++++++++++++++++++++++--
- 1 file changed, 48 insertions(+), 2 deletions(-)
+Add a PHY provider driver for the Samsung Exynos SoC DP PHY.
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 1f3bd43..856a93e 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1212,6 +1212,7 @@ static void coda_setup_iram(struct coda_ctx *ctx)
- 	int ipacdc_size;
- 	int bitram_size;
- 	int dbk_size;
-+	int ovl_size;
- 	int mb_width;
- 	int me_size;
- 	int size;
-@@ -1273,7 +1274,47 @@ static void coda_setup_iram(struct coda_ctx *ctx)
- 			size -= ipacdc_size;
- 		}
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ .../phy/samsung,exynos5250-dp-video-phy.txt        |    7 ++
+ drivers/phy/Kconfig                                |    8 ++
+ drivers/phy/Makefile                               |    3 +-
+ drivers/phy/phy-exynos-dp-video.c                  |  122 ++++++++++++++++++++
+ 4 files changed, 139 insertions(+), 1 deletion(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
+ create mode 100644 drivers/phy/phy-exynos-dp-video.c
+
+diff --git a/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
+b/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
+new file mode 100644
+index 0000000..d1771ef
+--- /dev/null
++++ b/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
+@@ -0,0 +1,7 @@
++Samsung EXYNOS SoC series DP PHY
++-------------------------------------------------
++
++Required properties:
++- compatible : should be "samsung,exynos5250-dp-video-phy";
++- reg : offset and length of the DP PHY register set;
++- #phy-cells : from the generic phy bindings, must be 0;
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index 5f85909..6d10e3b 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -11,3 +11,11 @@ menuconfig GENERIC_PHY
+ 	  devices present in the kernel. This layer will have the generic
+ 	  API by which phy drivers can create PHY using the phy framework and
+ 	  phy users can obtain reference to the PHY.
++
++if GENERIC_PHY
++
++config PHY_EXYNOS_DP_VIDEO
++	tristate "EXYNOS SoC series DP PHY driver"
++	help
++	  Support for DP PHY found on Samsung EXYNOS SoCs.
++endif
+diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+index 9e9560f..d8d861c 100644
+--- a/drivers/phy/Makefile
++++ b/drivers/phy/Makefile
+@@ -2,4 +2,5 @@
+ # Makefile for the phy drivers.
+ #
  
--		/* OVL disabled for encoder */
-+		/* OVL and BTP disabled for encoder */
-+	} else if (ctx->inst_type == CODA_INST_DECODER) {
-+		struct coda_q_data *q_data_dst;
-+		int mb_height;
+-obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
++obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
++obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
+diff --git a/drivers/phy/phy-exynos-dp-video.c b/drivers/phy/phy-exynos-dp-video.c
+new file mode 100644
+index 0000000..9a3d6f1
+--- /dev/null
++++ b/drivers/phy/phy-exynos-dp-video.c
+@@ -0,0 +1,122 @@
++/*
++ * Samsung EXYNOS SoC series DP PHY driver
++ *
++ * Copyright (C) 2013 Samsung Electronics Co., Ltd.
++ * Author: Jingoo Han <jg1.han@samsung.com>
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+		q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-+		mb_width = DIV_ROUND_UP(q_data_dst->width, 16);
-+		mb_height = DIV_ROUND_UP(q_data_dst->height, 16);
++#include <linux/io.h>
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/phy/phy.h>
++#include <linux/platform_device.h>
++#include <linux/spinlock.h>
 +
-+		dbk_size = round_up(256 * mb_width, 1024);
-+		if (size >= dbk_size) {
-+			iram_info->axi_sram_use |= CODA7_USE_HOST_DBK_ENABLE;
-+			iram_info->buf_dbk_y_use = dev->iram_paddr;
-+			iram_info->buf_dbk_c_use = dev->iram_paddr +
-+						   dbk_size / 2;
-+			size -= dbk_size;
-+		} else {
-+			goto out;
-+		}
++/* DPTX_PHY_CONTROL register */
++#define EXYNOS_DPTX_PHY_ENABLE		(1 << 0)
 +
-+		bitram_size = round_up(128 * mb_width, 1024);
-+		if (size >= bitram_size) {
-+			iram_info->axi_sram_use |= CODA7_USE_HOST_BIT_ENABLE;
-+			iram_info->buf_bit_use = iram_info->buf_dbk_c_use +
-+						 dbk_size / 2;
-+			size -= bitram_size;
-+		} else {
-+			goto out;
-+		}
++struct exynos_dp_video_phy {
++	spinlock_t slock;
++	struct phy *phys;
++	void __iomem *regs;
++};
 +
-+		ipacdc_size = round_up(128 * mb_width, 1024);
-+		if (size >= ipacdc_size) {
-+			iram_info->axi_sram_use |= CODA7_USE_HOST_IP_ENABLE;
-+			iram_info->buf_ip_ac_dc_use = iram_info->buf_bit_use +
-+						      bitram_size;
-+			size -= ipacdc_size;
-+		} else {
-+			goto out;
-+		}
++static int __set_phy_state(struct exynos_dp_video_phy *state, unsigned int on)
++{
++	void __iomem *addr;
++	unsigned long flags;
++	u32 reg;
 +
-+		ovl_size = round_up(80 * mb_width, 1024);
- 	}
- 
- out:
-@@ -1300,7 +1341,12 @@ out:
- 
- 	if (dev->devtype->product == CODA_7541) {
- 		/* TODO - Enabling these causes picture errors on CODA7541 */
--		if (ctx->inst_type == CODA_INST_ENCODER) {
-+		if (ctx->inst_type == CODA_INST_DECODER) {
-+			/* fw 1.4.50 */
-+			iram_info->axi_sram_use &= ~(CODA7_USE_HOST_IP_ENABLE |
-+						     CODA7_USE_IP_ENABLE);
-+		} else {
-+			/* fw 13.4.29 */
- 			iram_info->axi_sram_use &= ~(CODA7_USE_HOST_IP_ENABLE |
- 						     CODA7_USE_HOST_DBK_ENABLE |
- 						     CODA7_USE_IP_ENABLE |
++	addr = state->regs;
++
++	spin_lock_irqsave(&state->slock, flags);
++	reg = readl(addr);
++	if (on)
++		reg |= EXYNOS_DPTX_PHY_ENABLE;
++	else
++		reg &= ~EXYNOS_DPTX_PHY_ENABLE;
++	writel(reg, addr);
++	spin_unlock_irqrestore(&state->slock, flags);
++	return 0;
++}
++
++static int exynos_dp_video_phy_power_on(struct phy *phy)
++{
++	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
++
++	return __set_phy_state(state, 1);
++}
++
++static int exynos_dp_video_phy_power_off(struct phy *phy)
++{
++	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
++
++	return __set_phy_state(state, 0);
++}
++
++static struct phy_ops exynos_dp_video_phy_ops = {
++	.power_on	= exynos_dp_video_phy_power_on,
++	.power_off	= exynos_dp_video_phy_power_off,
++	.owner		= THIS_MODULE,
++};
++
++static int exynos_dp_video_phy_probe(struct platform_device *pdev)
++{
++	struct exynos_dp_video_phy *state;
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	struct phy_provider *phy_provider;
++
++	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
++	if (!state)
++		return -ENOMEM;
++
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
++
++	state->regs = devm_ioremap_resource(dev, res);
++	if (IS_ERR(state->regs))
++		return PTR_ERR(state->regs);
++
++	dev_set_drvdata(dev, state);
++
++	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
++	if (IS_ERR(phy_provider))
++		return PTR_ERR(phy_provider);
++
++	state->phys = devm_phy_create(dev, 0, &exynos_dp_video_phy_ops, "dp");
++	if (IS_ERR(state->phys)) {
++		dev_err(dev, "failed to create DP PHY\n");
++		return PTR_ERR(state->phys);
++	}
++	phy_set_drvdata(state->phys, state);
++
++	return 0;
++}
++
++#ifdef CONFIG_OF
++static const struct of_device_id exynos_dp_video_phy_of_match[] = {
++	{ .compatible = "samsung,exynos5250-dp-video-phy" },
++	{ },
++};
++MODULE_DEVICE_TABLE(of, exynos_dp_video_phy_of_match);
++#endif
++
++static struct platform_driver exynos_dp_video_phy_driver = {
++	.probe	= exynos_dp_video_phy_probe,
++	.driver = {
++		.name	= "exynos-dp-video-phy",
++		.owner	= THIS_MODULE,
++		.of_match_table	= exynos_dp_video_phy_of_match,
++	}
++};
++module_platform_driver(exynos_dp_video_phy_driver);
++
++MODULE_DESCRIPTION("Samsung EXYNOS SoC DP PHY driver");
++MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
++MODULE_LICENSE("GPL v2");
 -- 
-1.8.3.1
+1.7.10.4
+
 
