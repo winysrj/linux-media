@@ -1,218 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4172 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752769Ab3FXHvd (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:57648 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755352Ab3F1Jeo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 03:51:33 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Subject: Re: [PATCH RFC v3] media: OF: add video sync endpoint property
-Date: Mon, 24 Jun 2013 09:51:07 +0200
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-References: <1371913383-25088-1-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1371913383-25088-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 28 Jun 2013 05:34:44 -0400
+Date: Fri, 28 Jun 2013 12:34:06 +0300
+From: Felipe Balbi <balbi@ti.com>
+To: Jingoo Han <jg1.han@samsung.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>,
+	"'Kishon Vijay Abraham I'" <kishon@ti.com>,
+	<linux-media@vger.kernel.org>,
+	"'Kukjin Kim'" <kgene.kim@samsung.com>,
+	"'Sylwester Nawrocki'" <s.nawrocki@samsung.com>,
+	"'Felipe Balbi'" <balbi@ti.com>,
+	"'Tomasz Figa'" <t.figa@samsung.com>,
+	<devicetree-discuss@lists.ozlabs.org>,
+	"'Inki Dae'" <inki.dae@samsung.com>,
+	"'Donghwa Lee'" <dh09.lee@samsung.com>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Jean-Christophe PLAGNIOL-VILLARD'" <plagnioj@jcrosoft.com>,
+	<linux-fbdev@vger.kernel.org>
+Subject: Re: [PATCH V2 2/3] ARM: dts: Add DP PHY node to exynos5250.dtsi
+Message-ID: <20130628093406.GC11297@arwen.pp.htv.fi>
+Reply-To: <balbi@ti.com>
+References: <002001ce73cf$721b9d80$5652d880$@samsung.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-15"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201306240951.07426.hverkuil@xs4all.nl>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="8X7/QrJGcKSMr1RN"
+Content-Disposition: inline
+In-Reply-To: <002001ce73cf$721b9d80$5652d880$@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+--8X7/QrJGcKSMr1RN
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On Sat June 22 2013 17:03:03 Prabhakar Lad wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> This patch adds video sync properties as part of endpoint
-> properties and also support to parse them in the parser.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Hans Verkuil <hans.verkuil@cisco.com>
-
-FYI: using my private email when CC-ing me generally works better.
-I often skip v4l2-related emails to my work address since I assume those
-have either been CC-ed to my private email and/or linux-media.
-
-I wondered why I never saw RFC v1/2, now I know :-)
-
-> Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Cc: Sakari Ailus <sakari.ailus@iki.fi>
-> Cc: Grant Likely <grant.likely@secretlab.ca>
-> Cc: Rob Herring <rob.herring@calxeda.com>
-> Cc: Rob Landley <rob@landley.net>
-> Cc: devicetree-discuss@lists.ozlabs.org
-> Cc: linux-doc@vger.kernel.org
-> Cc: linux-kernel@vger.kernel.org
-> Cc: davinci-linux-open-source@linux.davincidsp.com
-> Cc: Kyungmin Park <kyungmin.park@samsung.com>
+On Fri, Jun 28, 2013 at 04:16:44PM +0900, Jingoo Han wrote:
+> Add PHY provider node for the DP PHY.
+>=20
+> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
 > ---
->  This patch has 10 warnings for line over 80 characters
->  for which I think can be ignored.
->  
->  RFC v2 https://patchwork.kernel.org/patch/2578091/
->  RFC V1 https://patchwork.kernel.org/patch/2572341/
->  Changes for v3:
->  1: Fixed review comments pointed by Laurent and Sylwester.
->  
->  .../devicetree/bindings/media/video-interfaces.txt |    1 +
->  drivers/media/v4l2-core/v4l2-of.c                  |   20 ++++++++++++++++++
->  include/dt-bindings/media/video-interfaces.h       |   17 +++++++++++++++
->  include/media/v4l2-mediabus.h                      |   22 +++++++++++---------
->  4 files changed, 50 insertions(+), 10 deletions(-)
->  create mode 100644 include/dt-bindings/media/video-interfaces.h
-> 
-> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> index e022d2d..2081278 100644
-> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-> @@ -101,6 +101,7 @@ Optional endpoint properties
->    array contains only one entry.
->  - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
->    clock mode.
-> +- video-sync: property indicating to sync the video on a signal in RGB.
-
-Please document what the various syncs actually mean.
-
->  
->  
->  Example
-> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-> index aa59639..1a54530 100644
-> --- a/drivers/media/v4l2-core/v4l2-of.c
-> +++ b/drivers/media/v4l2-core/v4l2-of.c
-> @@ -100,6 +100,26 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
->  	if (!of_property_read_u32(node, "data-shift", &v))
->  		bus->data_shift = v;
->  
-> +	if (!of_property_read_u32(node, "video-sync", &v)) {
-> +		switch (v) {
-> +		case V4L2_MBUS_VIDEO_SEPARATE_SYNC:
-> +			flags |= V4L2_MBUS_VIDEO_SEPARATE_SYNC;
-> +			break;
-> +		case V4L2_MBUS_VIDEO_COMPOSITE_SYNC:
-> +			flags |= V4L2_MBUS_VIDEO_COMPOSITE_SYNC;
-> +			break;
-> +		case V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE:
-> +			flags |= V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE;
-> +			break;
-> +		case V4L2_MBUS_VIDEO_SYNC_ON_GREEN:
-> +			flags |= V4L2_MBUS_VIDEO_SYNC_ON_GREEN;
-> +			break;
-> +		case V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE:
-> +			flags |= V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE;
-> +			break;
-> +		}
-> +	}
+>  arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
+>  1 file changed, 8 insertions(+), 5 deletions(-)
+>=20
+> diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos=
+5250.dtsi
+> index 41cd625..f7bac75 100644
+> --- a/arch/arm/boot/dts/exynos5250.dtsi
+> +++ b/arch/arm/boot/dts/exynos5250.dtsi
+> @@ -614,6 +614,12 @@
+>  		interrupts =3D <0 94 0>;
+>  	};
+> =20
+> +	dp_phy: video-phy@10040720 {
+> +		compatible =3D "samsung,exynos5250-dp-video-phy";
+> +		reg =3D <0x10040720 4>;
+> +		#phy-cells =3D <0>;
+> +	};
 > +
->  	bus->flags = flags;
->  
->  }
-> diff --git a/include/dt-bindings/media/video-interfaces.h b/include/dt-bindings/media/video-interfaces.h
-> new file mode 100644
-> index 0000000..1a083dd
-> --- /dev/null
-> +++ b/include/dt-bindings/media/video-interfaces.h
-> @@ -0,0 +1,17 @@
-> +/*
-> + * This header provides constants for video interface.
-> + *
-> + */
-> +
-> +#ifndef _DT_BINDINGS_VIDEO_INTERFACES_H
-> +#define _DT_BINDINGS_VIDEO_INTERFACES_H
-> +
-> +#define V4L2_MBUS_VIDEO_SEPARATE_SYNC		(1 << 2)
-> +#define V4L2_MBUS_VIDEO_COMPOSITE_SYNC		(1 << 3)
-> +#define V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE	(1 << 4)
+>  	dp-controller {
+>  		compatible =3D "samsung,exynos5-dp";
+>  		reg =3D <0x145b0000 0x1000>;
+> @@ -623,11 +629,8 @@
+>  		clock-names =3D "dp";
+>  		#address-cells =3D <1>;
+>  		#size-cells =3D <0>;
+> -
+> -		dptx-phy {
+> -			reg =3D <0x10040720>;
+> -			samsung,enable-mask =3D <1>;
+> -		};
+> +		phys =3D <&dp_phy 0>;
 
-What on earth is the difference between "COMPOSITE_SYNC" and "SYNC_ON_COMPOSITE"?!
+phy-cells being 0, means that this would become:
 
-> +#define V4L2_MBUS_VIDEO_SYNC_ON_GREEN		(1 << 5)
-> +#define V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE	(1 << 6)
-> +
-> +#define V4L2_MBUS_VIDEO_INTERFACES_END		6
-> +
-> +#endif
+		phys =3D <&dp_phy>;
 
-Why would this be here? It isn't Device Tree specific, the same defines can
-be used without DT as well.
+> +		phy-names =3D "dp";
 
-> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-> index 83ae07e..a4676dd 100644
-> --- a/include/media/v4l2-mediabus.h
-> +++ b/include/media/v4l2-mediabus.h
-> @@ -11,6 +11,8 @@
->  #ifndef V4L2_MEDIABUS_H
->  #define V4L2_MEDIABUS_H
->  
-> +#include <dt-bindings/media/video-interfaces.h>
-> +
->  #include <linux/v4l2-mediabus.h>
->  
->  /* Parallel flags */
-> @@ -28,18 +30,18 @@
->   * V4L2_MBUS_[HV]SYNC* flags should be also used for specifying
->   * configuration of hardware that uses [HV]REF signals
->   */
-> -#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << 2)
-> -#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << 3)
-> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << 4)
-> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << 5)
-> -#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << 6)
-> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << 7)
-> -#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << 8)
-> -#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << 9)
-> +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 1))
-> +#define V4L2_MBUS_HSYNC_ACTIVE_LOW		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 2))
-> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 3))
-> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 4))
-> +#define V4L2_MBUS_PCLK_SAMPLE_RISING		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 5))
-> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 6))
-> +#define V4L2_MBUS_DATA_ACTIVE_HIGH		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 7))
-> +#define V4L2_MBUS_DATA_ACTIVE_LOW		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 8))
->  /* FIELD = 0/1 - Field1 (odd)/Field2 (even) */
-> -#define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
-> +#define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 9))
->  /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
-> -#define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
-> +#define V4L2_MBUS_FIELD_EVEN_LOW		(1 << (V4L2_MBUS_VIDEO_INTERFACES_END + 10))
+for the label, I would use something more descriptive such as
+'display-port'.
 
-And that would also do away with the ugly V4L2_MBUS_VIDEO_INTERFACES_END
-define. It's just asking for problems when some of the flags are defined
-in one header, and some in another header.
+other than that:
 
-I know it was discussed before, but I am uncomfortable with adding all these
-different sync types when the only one used in tvp7002 is SYNC_ON_GREEN.
+Acked-by: Felipe Balbi <balbi@ti.com>
 
-The only sync types I see in practice are Separate Sync (using separate H and V
-sync signals), Embedded Sync (using SAV/EAV codes) and in very rare cases
-Sync-on-Green. Sync-on-Luminance is I expect really identical to Sync-on-Green,
-only instead of using RGB it uses YUV where Y maps to the Green pin.
+--=20
+balbi
 
-Anyway, this needs more work I'm afraid.
+--8X7/QrJGcKSMr1RN
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
 
-Regards,
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
 
-	Hans
+iQIcBAEBAgAGBQJRzViOAAoJEIaOsuA1yqREhG4P/3wTpZ6Xk9AcXdJkBPgKJEFK
+l4BxatBXxHE9CRcYEfOuuvHiT30zwEWIfAtGsJ9iKhLJ3MlFihHMnDU/SWKQopPJ
+l3pyPYnI7dYAbvlbzDtjyFQetyDPJFvTjoN0tqNzuR1nosaKlZsMvomt2XdczVnb
+pSSkTIIbZXXW7TR/k8Q6eyIWbkSuxJ54uY1J4pgFaenouDs1/03VmuMYziNYc/lf
+5BaPUdoEP7Qb4TkEaG9wV0eFVZkmjV9/Xkkv1J3paUHAakRkRPlKxFndSkIeqvCn
+vhPFauLsG0WRBeaTMdm/S5qln/VNHnOzqs9+o6siwY4g84fWg53OhHsu2zo/5AkM
+04PuIcRMx45wjfZK9imuxO9tPjpLQp92Fdk0E+ZjQ7qdTkciAnsApoPdb6OhyzQ8
+4zymiY8rkU+s8d/CyUETa/vmFetVvHYjPKCxLwA8IB8g/Z24yN5krxE2OLP5ksH/
+yboRFCtX6ijGEh0AR0GKVlnsaALOb0sKDS2QCQXIPG1ElPFBMpRhmeQiSW4X2My/
+c8XWjhK5bUjibds5Waybira+2FzKjhyw96yAo5Wvvcg1XnQcAYc+pR8SkGjXJnTB
+L6muIBM2p27rO/1z4Li2NsVhCtVXbSa9pvV/PU3gwVXmJJqrHNfTi6R+VdqYXRNK
+sfXOGObR7+OaNR3ES/uJ
+=8+yS
+-----END PGP SIGNATURE-----
 
->  
->  /* Serial flags */
->  /* How many lanes the client can use */
-> 
+--8X7/QrJGcKSMr1RN--
