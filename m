@@ -1,202 +1,172 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:35693 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755118Ab3FTHtc (ORCPT
+Received: from mailout3.samsung.com ([203.254.224.33]:49925 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751743Ab3F1NpJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 03:49:32 -0400
-Message-ID: <1371714427.4230.64.camel@weser.hi.pengutronix.de>
-Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
- framework
-From: Lucas Stach <l.stach@pengutronix.de>
-To: Inki Dae <inki.dae@samsung.com>
-Cc: 'Russell King - ARM Linux' <linux@arm.linux.org.uk>,
-	'Inki Dae' <daeinki@gmail.com>,
-	'linux-fbdev' <linux-fbdev@vger.kernel.org>,
-	'YoungJun Cho' <yj44.cho@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	"'myungjoo.ham'" <myungjoo.ham@samsung.com>,
-	'DRI mailing list' <dri-devel@lists.freedesktop.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Date: Thu, 20 Jun 2013 09:47:07 +0200
-In-Reply-To: <00da01ce6d81$76eb3d60$64c1b820$%dae@samsung.com>
-References: <20130617182127.GM2718@n2100.arm.linux.org.uk>
-	 <007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
-	 <20130618084308.GU2718@n2100.arm.linux.org.uk>
-	 <008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
-	 <1371548849.4276.6.camel@weser.hi.pengutronix.de>
-	 <008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
-	 <1371637326.4230.24.camel@weser.hi.pengutronix.de>
-	 <00ae01ce6cd9$f4834630$dd89d290$%dae@samsung.com>
-	 <1371645247.4230.41.camel@weser.hi.pengutronix.de>
-	 <CAAQKjZNJD4HpnJQ7iE+Gez36066M6U0YQeUEdA0+UcSOKqeghg@mail.gmail.com>
-	 <20130619182925.GL2718@n2100.arm.linux.org.uk>
-	 <00da01ce6d81$76eb3d60$64c1b820$%dae@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+	Fri, 28 Jun 2013 09:45:09 -0400
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: kishon@ti.com, linux-media@vger.kernel.org,
+	kyungmin.park@samsung.com, balbi@ti.com, t.figa@samsung.com,
+	devicetree-discuss@lists.ozlabs.org, kgene.kim@samsung.com,
+	dh09.lee@samsung.com, jg1.han@samsung.com, inki.dae@samsung.com,
+	tomi.valkeinen@ti.com, plagnioj@jcrosoft.com,
+	jason77.wang@gmail.com, linux-fbdev@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH v4 5/5] ARM: Samsung: Remove the MIPI PHY setup code
+Date: Fri, 28 Jun 2013 15:43:11 +0200
+Message-id: <1372426991-2482-6-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1372426991-2482-1-git-send-email-s.nawrocki@samsung.com>
+References: <1372426991-2482-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am Donnerstag, den 20.06.2013, 15:43 +0900 schrieb Inki Dae:
-> 
-> > -----Original Message-----
-> > From: dri-devel-bounces+inki.dae=samsung.com@lists.freedesktop.org
-> > [mailto:dri-devel-bounces+inki.dae=samsung.com@lists.freedesktop.org] On
-> > Behalf Of Russell King - ARM Linux
-> > Sent: Thursday, June 20, 2013 3:29 AM
-> > To: Inki Dae
-> > Cc: linux-fbdev; DRI mailing list; Kyungmin Park; myungjoo.ham; YoungJun
-> > Cho; linux-media@vger.kernel.org; linux-arm-kernel@lists.infradead.org
-> > Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-> > framework
-> > 
-> > On Thu, Jun 20, 2013 at 12:10:04AM +0900, Inki Dae wrote:
-> > > On the other hand, the below shows how we could enhance the conventional
-> > > way with my approach (just example):
-> > >
-> > > CPU -> DMA,
-> > >         ioctl(qbuf command)              ioctl(streamon)
-> > >               |                                               |
-> > >               |                                               |
-> > >         qbuf  <- dma_buf_sync_get   start streaming <- syncpoint
-> > >
-> > > dma_buf_sync_get just registers a sync buffer(dmabuf) to sync object.
-> > And
-> > > the syncpoint is performed by calling dma_buf_sync_lock(), and then DMA
-> > > accesses the sync buffer.
-> > >
-> > > And DMA -> CPU,
-> > >         ioctl(dqbuf command)
-> > >               |
-> > >               |
-> > >         dqbuf <- nothing to do
-> > >
-> > > Actual syncpoint is when DMA operation is completed (in interrupt
-> > handler):
-> > > the syncpoint is performed by calling dma_buf_sync_unlock().
-> > > Hence,  my approach is to move the syncpoints into just before dma
-> > access
-> > > as long as possible.
-> > 
-> > What you've just described does *not* work on architectures such as
-> > ARMv7 which do speculative cache fetches from memory at any time that
-> > that memory is mapped with a cacheable status, and will lead to data
-> > corruption.
-> 
-> I didn't explain that enough. Sorry about that. 'nothing to do' means that a
-> dmabuf sync interface isn't called but existing functions are called. So
-> this may be explained again:
->         ioctl(dqbuf command)
->             |
->             |
->         dqbuf <- 1. dma_unmap_sg
->                     2. dma_buf_sync_unlock (syncpoint)
-> 
-> The syncpoint I mentioned means lock mechanism; not doing cache operation.
-> 
-> In addition, please see the below more detail examples.
-> 
-> The conventional way (without dmabuf-sync) is:
-> Task A                             
-> ----------------------------
->  1. CPU accesses buf          
->  2. Send the buf to Task B  
->  3. Wait for the buf from Task B
->  4. go to 1
-> 
-> Task B
-> ---------------------------
-> 1. Wait for the buf from Task A
-> 2. qbuf the buf                 
->     2.1 insert the buf to incoming queue
-> 3. stream on
->     3.1 dma_map_sg if ready, and move the buf to ready queue
->     3.2 get the buf from ready queue, and dma start.
-> 4. dqbuf
->     4.1 dma_unmap_sg after dma operation completion
->     4.2 move the buf to outgoing queue
-> 5. back the buf to Task A
-> 6. go to 1
-> 
-> In case that two tasks share buffers, and data flow goes from Task A to Task
-> B, we would need IPC operation to send and receive buffers properly between
-> those two tasks every time CPU or DMA access to buffers is started or
-> completed.
-> 
-> 
-> With dmabuf-sync:
-> 
-> Task A                             
-> ----------------------------
->  1. dma_buf_sync_lock <- synpoint (call by user side)
->  2. CPU accesses buf          
->  3. dma_buf_sync_unlock <- syncpoint (call by user side)
->  4. Send the buf to Task B (just one time)
->  5. go to 1
-> 
-> 
-> Task B
-> ---------------------------
-> 1. Wait for the buf from Task A (just one time)
-> 2. qbuf the buf                 
->     1.1 insert the buf to incoming queue
-> 3. stream on
->     3.1 dma_buf_sync_lock <- syncpoint (call by kernel side)
->     3.2 dma_map_sg if ready, and move the buf to ready queue
->     3.3 get the buf from ready queue, and dma start.
-> 4. dqbuf
->     4.1 dma_buf_sync_unlock <- syncpoint (call by kernel side)
->     4.2 dma_unmap_sg after dma operation completion
->     4.3 move the buf to outgoing queue
-> 5. go to 1
-> 
-> On the other hand, in case of using dmabuf-sync, as you can see the above
-> example, we would need IPC operation just one time. That way, I think we
-> could not only reduce performance overhead but also make user application
-> simplified. Of course, this approach can be used for all DMA device drivers
-> such as DRM. I'm not a specialist in v4l2 world so there may be missing
-> point.
-> 
+Generic PHY drivers are used to handle the MIPI CSIS and MIPI DSIM
+DPHYs so we can remove now unused code at arch/arm/plat-samsung.
+In case there is any board file for S5PV210 platforms using MIPI
+CSIS/DSIM (not any upstream currently) it should use the generic
+PHY API to bind the PHYs to respective PHY consumer drivers and
+a platform device for the PHY provider should be defined.
 
-You already need some kind of IPC between the two tasks, as I suspect
-even in your example it wouldn't make much sense to queue the buffer
-over and over again in task B without task A writing anything to it. So
-task A has to signal task B there is new data in the buffer to be
-processed.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
+---
+ arch/arm/mach-exynos/include/mach/regs-pmu.h    |    5 --
+ arch/arm/mach-s5pv210/include/mach/regs-clock.h |    4 --
+ arch/arm/plat-samsung/Kconfig                   |    5 --
+ arch/arm/plat-samsung/Makefile                  |    1 -
+ arch/arm/plat-samsung/setup-mipiphy.c           |   60 -----------------------
+ 5 files changed, 75 deletions(-)
+ delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
 
-There is no need to share the buffer over and over again just to get the
-two processes to work together on the same thing. Just share the fd
-between both and then do out-of-band completion signaling, as you need
-this anyway. Without this you'll end up with unpredictable behavior.
-Just because sync allows you to access the buffer doesn't mean it's
-valid for your use-case. Without completion signaling you could easily
-end up overwriting your data from task A multiple times before task B
-even tries to lock the buffer for processing.
-
-So the valid flow is (and this already works with the current APIs):
-Task A                                    Task B
-------                                    ------
-CPU access buffer
-         ----------completion signal--------->
-                                          qbuf (dragging buffer into 
-                                          device domain, flush caches,
-                                          reserve buffer etc.)
-                                                    |
-                                          wait for device operation to
-                                          complete
-                                                    |
-                                          dqbuf (dragging buffer back
-                                          into CPU domain, invalidate
-                                          caches, unreserve)
-        <---------completion signal------------
-CPU access buffer
-
-
-Regards,
-Lucas
+diff --git a/arch/arm/mach-exynos/include/mach/regs-pmu.h b/arch/arm/mach-exynos/include/mach/regs-pmu.h
+index 57344b7..2cdb63e 100644
+--- a/arch/arm/mach-exynos/include/mach/regs-pmu.h
++++ b/arch/arm/mach-exynos/include/mach/regs-pmu.h
+@@ -44,11 +44,6 @@
+ #define S5P_DAC_PHY_CONTROL			S5P_PMUREG(0x070C)
+ #define S5P_DAC_PHY_ENABLE			(1 << 0)
+ 
+-#define S5P_MIPI_DPHY_CONTROL(n)		S5P_PMUREG(0x0710 + (n) * 4)
+-#define S5P_MIPI_DPHY_ENABLE			(1 << 0)
+-#define S5P_MIPI_DPHY_SRESETN			(1 << 1)
+-#define S5P_MIPI_DPHY_MRESETN			(1 << 2)
+-
+ #define S5P_INFORM0				S5P_PMUREG(0x0800)
+ #define S5P_INFORM1				S5P_PMUREG(0x0804)
+ #define S5P_INFORM2				S5P_PMUREG(0x0808)
+diff --git a/arch/arm/mach-s5pv210/include/mach/regs-clock.h b/arch/arm/mach-s5pv210/include/mach/regs-clock.h
+index 032de66..e345584 100644
+--- a/arch/arm/mach-s5pv210/include/mach/regs-clock.h
++++ b/arch/arm/mach-s5pv210/include/mach/regs-clock.h
+@@ -147,10 +147,6 @@
+ #define S5P_HDMI_PHY_CONTROL	S5P_CLKREG(0xE804)
+ #define S5P_USB_PHY_CONTROL	S5P_CLKREG(0xE80C)
+ #define S5P_DAC_PHY_CONTROL	S5P_CLKREG(0xE810)
+-#define S5P_MIPI_DPHY_CONTROL(x) S5P_CLKREG(0xE814)
+-#define S5P_MIPI_DPHY_ENABLE	(1 << 0)
+-#define S5P_MIPI_DPHY_SRESETN	(1 << 1)
+-#define S5P_MIPI_DPHY_MRESETN	(1 << 2)
+ 
+ #define S5P_INFORM0		S5P_CLKREG(0xF000)
+ #define S5P_INFORM1		S5P_CLKREG(0xF004)
+diff --git a/arch/arm/plat-samsung/Kconfig b/arch/arm/plat-samsung/Kconfig
+index b21d9d5..60f6337 100644
+--- a/arch/arm/plat-samsung/Kconfig
++++ b/arch/arm/plat-samsung/Kconfig
+@@ -388,11 +388,6 @@ config S3C24XX_PWM
+ 	  Support for exporting the PWM timer blocks via the pwm device
+ 	  system
+ 
+-config S5P_SETUP_MIPIPHY
+-	bool
+-	help
+-	  Compile in common setup code for MIPI-CSIS and MIPI-DSIM devices
+-
+ config S3C_SETUP_CAMIF
+ 	bool
+ 	help
+diff --git a/arch/arm/plat-samsung/Makefile b/arch/arm/plat-samsung/Makefile
+index 5d7f839..0db786e 100644
+--- a/arch/arm/plat-samsung/Makefile
++++ b/arch/arm/plat-samsung/Makefile
+@@ -38,7 +38,6 @@ obj-$(CONFIG_S5P_DEV_UART)	+= s5p-dev-uart.o
+ obj-$(CONFIG_SAMSUNG_DEV_BACKLIGHT)	+= dev-backlight.o
+ 
+ obj-$(CONFIG_S3C_SETUP_CAMIF)	+= setup-camif.o
+-obj-$(CONFIG_S5P_SETUP_MIPIPHY)	+= setup-mipiphy.o
+ 
+ # DMA support
+ 
+diff --git a/arch/arm/plat-samsung/setup-mipiphy.c b/arch/arm/plat-samsung/setup-mipiphy.c
+deleted file mode 100644
+index 66df315..0000000
+--- a/arch/arm/plat-samsung/setup-mipiphy.c
++++ /dev/null
+@@ -1,60 +0,0 @@
+-/*
+- * Copyright (C) 2011 Samsung Electronics Co., Ltd.
+- *
+- * S5P - Helper functions for MIPI-CSIS and MIPI-DSIM D-PHY control
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/export.h>
+-#include <linux/kernel.h>
+-#include <linux/platform_device.h>
+-#include <linux/io.h>
+-#include <linux/spinlock.h>
+-#include <mach/regs-clock.h>
+-
+-static int __s5p_mipi_phy_control(int id, bool on, u32 reset)
+-{
+-	static DEFINE_SPINLOCK(lock);
+-	void __iomem *addr;
+-	unsigned long flags;
+-	u32 cfg;
+-
+-	id = max(0, id);
+-	if (id > 1)
+-		return -EINVAL;
+-
+-	addr = S5P_MIPI_DPHY_CONTROL(id);
+-
+-	spin_lock_irqsave(&lock, flags);
+-
+-	cfg = __raw_readl(addr);
+-	cfg = on ? (cfg | reset) : (cfg & ~reset);
+-	__raw_writel(cfg, addr);
+-
+-	if (on) {
+-		cfg |= S5P_MIPI_DPHY_ENABLE;
+-	} else if (!(cfg & (S5P_MIPI_DPHY_SRESETN |
+-			    S5P_MIPI_DPHY_MRESETN) & ~reset)) {
+-		cfg &= ~S5P_MIPI_DPHY_ENABLE;
+-	}
+-
+-	__raw_writel(cfg, addr);
+-	spin_unlock_irqrestore(&lock, flags);
+-
+-	return 0;
+-}
+-
+-int s5p_csis_phy_enable(int id, bool on)
+-{
+-	return __s5p_mipi_phy_control(id, on, S5P_MIPI_DPHY_SRESETN);
+-}
+-EXPORT_SYMBOL(s5p_csis_phy_enable);
+-
+-int s5p_dsim_phy_enable(struct platform_device *pdev, bool on)
+-{
+-	return __s5p_mipi_phy_control(pdev->id, on, S5P_MIPI_DPHY_MRESETN);
+-}
+-EXPORT_SYMBOL(s5p_dsim_phy_enable);
 -- 
-Pengutronix e.K.                           | Lucas Stach                 |
-Industrial Linux Solutions                 | http://www.pengutronix.de/  |
-Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-5076 |
-Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
+1.7.9.5
 
