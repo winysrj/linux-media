@@ -1,92 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44012 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1758739Ab3FCWzY (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 3 Jun 2013 18:55:24 -0400
-From: Antti Palosaari <crope@iki.fi>
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:21556 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754585Ab3F1OYh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jun 2013 10:24:37 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout4.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MP300177XC7RV60@mailout4.w1.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 28 Jun 2013 15:24:35 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync4.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTPA id <0MP300576XCS4VB0@eusync4.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 28 Jun 2013 15:24:35 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: Antti Palosaari <crope@iki.fi>
-Subject: [PATCH 4/4] af9035: correct TS mode handling
-Date: Tue,  4 Jun 2013 01:54:26 +0300
-Message-Id: <1370300066-13964-5-git-send-email-crope@iki.fi>
-In-Reply-To: <1370300066-13964-1-git-send-email-crope@iki.fi>
-References: <1370300066-13964-1-git-send-email-crope@iki.fi>
+Subject: [GIT PULL] mem2mem driver changes
+Date: Fri, 28 Jun 2013 16:24:26 +0200
+Message-id: <01ca01ce740b$32bcf670$9836e350$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Antti Palosaari <crope@iki.fi>
----
- drivers/media/usb/dvb-usb-v2/af9035.c | 14 ++++++++------
- drivers/media/usb/dvb-usb-v2/af9035.h | 11 ++++++++---
- 2 files changed, 16 insertions(+), 9 deletions(-)
+The following changes since commit 53f501a96b81cedb8449153fd2afd533eeac3172:
 
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.c b/drivers/media/usb/dvb-usb-v2/af9035.c
-index e855ee6..1ea17dc 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.c
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.c
-@@ -518,11 +518,11 @@ static int af9035_download_firmware(struct dvb_usb_device *d,
- 	 * which is done by master demod.
- 	 * Master feeds also clock and controls power via GPIO.
- 	 */
--	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_DUAL_MODE, &tmp);
-+	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
- 	if (ret < 0)
- 		goto err;
- 
--	if (tmp) {
-+	if (tmp == 1 || tmp == 3) {
- 		/* configure gpioh1, reset & power slave demod */
- 		ret = af9035_wr_reg_mask(d, 0x00d8b0, 0x01, 0x01);
- 		if (ret < 0)
-@@ -640,13 +640,15 @@ static int af9035_read_config(struct dvb_usb_device *d)
- 	}
- 
- 	/* check if there is dual tuners */
--	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_DUAL_MODE, &tmp);
-+	ret = af9035_rd_reg(d, state->eeprom_addr + EEPROM_TS_MODE, &tmp);
- 	if (ret < 0)
- 		goto err;
- 
--	state->dual_mode = tmp;
--	dev_dbg(&d->udev->dev, "%s: dual mode=%d\n", __func__,
--			state->dual_mode);
-+	if (tmp == 1 || tmp == 3)
-+		state->dual_mode = true;
-+
-+	dev_dbg(&d->udev->dev, "%s: ts mode=%d dual mode=%d\n", __func__,
-+			tmp, state->dual_mode);
- 
- 	if (state->dual_mode) {
- 		/* read 2nd demodulator I2C address */
-diff --git a/drivers/media/usb/dvb-usb-v2/af9035.h b/drivers/media/usb/dvb-usb-v2/af9035.h
-index b5827ca..a1c68d8 100644
---- a/drivers/media/usb/dvb-usb-v2/af9035.h
-+++ b/drivers/media/usb/dvb-usb-v2/af9035.h
-@@ -100,8 +100,13 @@ static const u32 clock_lut_it9135[] = {
-  * eeprom is memory mapped as read only. Writing that memory mapped address
-  * will not corrupt eeprom.
-  *
-- * eeprom has value 0x00 single mode and 0x03 for dual mode as far as I have
-- * seen to this day.
-+ * TS mode:
-+ * 0  TS
-+ * 1  DCA + PIP
-+ * 3  PIP
-+ * n  DCA
-+ *
-+ * Values 0 and 3 are seen to this day. 0 for single TS and 3 for dual TS.
-  */
- 
- #define EEPROM_BASE_AF9035        0x42fd
-@@ -109,7 +114,7 @@ static const u32 clock_lut_it9135[] = {
- #define EEPROM_SHIFT                0x10
- 
- #define EEPROM_IR_MODE              0x10
--#define EEPROM_DUAL_MODE            0x29
-+#define EEPROM_TS_MODE              0x29
- #define EEPROM_2ND_DEMOD_ADDR       0x2a
- #define EEPROM_IR_TYPE              0x2c
- #define EEPROM_1_IF_L               0x30
--- 
-1.7.11.7
+  Merge branch 'v4l_for_linus' into patchwork (2013-06-25 15:30:23 +0200)
+
+are available in the git repository at:
+
+
+  git://git.linuxtv.org/kdebski/media.git master
+
+for you to fetch changes up to f4603fe949a1e4ec61f4900bffb4e1d2f11c27ac:
+
+  coda: add CODA7541 decoding support (2013-06-28 16:18:14 +0200)
+
+----------------------------------------------------------------
+Alexander Shiyan (1):
+      media: coda: Fix DT driver data pointer for i.MX27
+
+John Sheu (1):
+      s5p-mfc: Fix input/output format reporting
+
+Philipp Zabel (9):
+      mem2mem: add support for hardware buffered queue
+      coda: use vb2_set_plane_payload instead of setting
+v4l2_planes[0].bytesused directly
+      coda: dynamic IRAM setup for encoder
+      coda: do not allocate maximum number of framebuffers for encoder
+      coda: update CODA7541 to firmware 1.4.50
+      coda: add bitstream ringbuffer handling for decoder
+      coda: dynamic IRAM setup for decoder
+      coda: split encoder specific parts out of device_run and irq_handler
+      coda: add CODA7541 decoding support
+
+ drivers/media/platform/coda.c                | 1471
+++++++++++++++++++++++----
+ drivers/media/platform/coda.h                |  107 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |   79 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   46 +-
+ drivers/media/v4l2-core/v4l2-mem2mem.c       |   10 +-
+ include/media/v4l2-mem2mem.h                 |   13 +
+ 6 files changed, 1459 insertions(+), 267 deletions(-)
+
 
