@@ -1,84 +1,46 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:50380 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753344Ab3FQRUm (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:2738 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754183Ab3F1M2H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 13:20:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH v4 00/11] media: davinci: vpif driver cleanup
-Date: Mon, 17 Jun 2013 19:20:54 +0200
-Message-ID: <2109154.PkSYdnQTas@avalon>
-In-Reply-To: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1371482451-18314-1-git-send-email-prabhakar.csengg@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Fri, 28 Jun 2013 08:28:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pete Eberlein <pete@sensoray.com>
+Subject: [RFC PATCH 0/5] Matrix and Motion Detection support
+Date: Fri, 28 Jun 2013 14:27:29 +0200
+Message-Id: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+This patch series adds support for matrices and motion detection and
+converts the solo6x10 driver to use these new APIs.
 
-Thank you for the patches.
+See the RFCv2 for details on the motion detection API:
 
-On Monday 17 June 2013 20:50:40 Prabhakar Lad wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> This patch series cleans the VPIF driver, uses devm_* api wherever
-> required and uses module_platform_driver() to simplify the code.
-> 
-> This patch series applies on http://git.linuxtv.org/hverkuil/media_tree.git/
-> shortlog/refs/heads/for-v3.11 and is tested on OMAP-L138 EVM.
-> 
-> Changes for v2:
-> 1: Rebased on v3.11 branch of Hans.
-> 2: Dropped the patches which removed headers as mentioned by Laurent.
-> 
-> Changes for v3:
-> 1: Splitted the patches logically as mentioned by Laurent.
-> 2: Fixed review comments pointed by Laurent.
-> 3: Included Ack's.
-> 
-> Changes for v4:
-> 1: Rebased on v3.11 branch of Hans.
-> 2: Fixed review comments pointed by Laurent and Sergei.
-> 3: Included Ack's.
-> 4: Removed unnecessary loop for IRQ resource.
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg62085.html
 
-For the whole series,
+And this RFC for details on the matrix API (which superseeds the v4l2_md_blocks
+in the RFC above):
 
-Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
 
-> Lad, Prabhakar (11):
->   media: davinci: vpif: remove unwanted header mach/hardware.h and sort
->     the includes alphabetically
->   media: davinci: vpif: Convert to devm_* api
->   media: davinci: vpif: remove unnecessary braces around defines
->   media: davinci: vpif_capture: move the freeing of irq and global
->     variables to remove()
->   media: davinci: vpif_capture: use module_platform_driver()
->   media: davinci: vpif_capture: Convert to devm_* api
->   media: davinci: vpif_capture: remove unnecessary loop for IRQ
->     resource
->   media: davinci: vpif_display: move the freeing of irq and global
->     variables to remove()
->   media: davinci: vpif_display: use module_platform_driver()
->   media: davinci: vpif_display: Convert to devm_* api
->   media: davinci: vpif_display: remove unnecessary loop for IRQ
->     resource
-> 
->  drivers/media/platform/davinci/vpif.c         |   45 ++++-----------
->  drivers/media/platform/davinci/vpif_capture.c |   76 +++++-----------------
->  drivers/media/platform/davinci/vpif_display.c |   65 +++++----------------
->  3 files changed, 39 insertions(+), 147 deletions(-)
+I have tested this with the solo card, both global motion detection and
+regional motion detection, and it works well.
 
--- 
+There is no documentation for the new APIs yet (other than the RFCs). I would
+like to know what others think of this proposal before I start work on the
+DocBook documentation.
+
+My tentative goal is to get this in for 3.12. Once this is in place the solo
+and go7007 drivers can be moved out of staging into the mainline since this is
+the only thing holding them back.
+
 Regards,
 
-Laurent Pinchart
+	Hans
 
