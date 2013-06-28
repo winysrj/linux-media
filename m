@@ -1,266 +1,243 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:35857 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932797Ab3FQNEr (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:3490 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754386Ab3F1M2W (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 17 Jun 2013 09:04:47 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: 'Maarten Lankhorst' <maarten.lankhorst@canonical.com>
-Cc: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org,
-	daniel@ffwll.ch, robdclark@gmail.com, kyungmin.park@samsung.com,
-	myungjoo.ham@samsung.com, yj44.cho@samsung.com
-References: <1371112088-15310-1-git-send-email-inki.dae@samsung.com>
- <1371467722-665-1-git-send-email-inki.dae@samsung.com>
- <51BEF458.4090606@canonical.com>
-In-reply-to: <51BEF458.4090606@canonical.com>
-Subject: RE: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
- framework
-Date: Mon, 17 Jun 2013 22:04:45 +0900
-Message-id: <012501ce6b5b$3d39b0b0$b7ad1210$%dae@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Fri, 28 Jun 2013 08:28:22 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 5/5] solo6x10: implement motion detection events and controls.
+Date: Fri, 28 Jun 2013 14:27:34 +0200
+Message-Id: <1372422454-13752-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
+References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c | 117 +++++++++++++--------
+ drivers/staging/media/solo6x10/solo6x10.h          |   9 +-
+ 2 files changed, 74 insertions(+), 52 deletions(-)
 
-> -----Original Message-----
-> From: Maarten Lankhorst [mailto:maarten.lankhorst@canonical.com]
-> Sent: Monday, June 17, 2013 8:35 PM
-> To: Inki Dae
-> Cc: dri-devel@lists.freedesktop.org; linux-fbdev@vger.kernel.org; linux-
-> arm-kernel@lists.infradead.org; linux-media@vger.kernel.org;
-> daniel@ffwll.ch; robdclark@gmail.com; kyungmin.park@samsung.com;
-> myungjoo.ham@samsung.com; yj44.cho@samsung.com
-> Subject: Re: [RFC PATCH v2] dmabuf-sync: Introduce buffer synchronization
-> framework
-> 
-> Op 17-06-13 13:15, Inki Dae schreef:
-> > This patch adds a buffer synchronization framework based on DMA BUF[1]
-> > and reservation[2] to use dma-buf resource, and based on ww-mutexes[3]
-> > for lock mechanism.
-> >
-> > The purpose of this framework is not only to couple cache operations,
-> > and buffer access control to CPU and DMA but also to provide easy-to-use
-> > interfaces for device drivers and potentially user application
-> > (not implemented for user applications, yet). And this framework can be
-> > used for all dma devices using system memory as dma buffer, especially
-> > for most ARM based SoCs.
-> >
-> > Changelog v2:
-> > - use atomic_add_unless to avoid potential bug.
-> > - add a macro for checking valid access type.
-> > - code clean.
-> >
-> > The mechanism of this framework has the following steps,
-> >     1. Register dmabufs to a sync object - A task gets a new sync object
-> and
-> >     can add one or more dmabufs that the task wants to access.
-> >     This registering should be performed when a device context or an
-> event
-> >     context such as a page flip event is created or before CPU accesses
-a
-> shared
-> >     buffer.
-> >
-> > 	dma_buf_sync_get(a sync object, a dmabuf);
-> >
-> >     2. Lock a sync object - A task tries to lock all dmabufs added in
-its
-> own
-> >     sync object. Basically, the lock mechanism uses ww-mutex[1] to avoid
-> dead
-> >     lock issue and for race condition between CPU and CPU, CPU and DMA,
-> and DMA
-> >     and DMA. Taking a lock means that others cannot access all locked
-> dmabufs
-> >     until the task that locked the corresponding dmabufs, unlocks all
-the
-> locked
-> >     dmabufs.
-> >     This locking should be performed before DMA or CPU accesses these
-> dmabufs.
-> >
-> > 	dma_buf_sync_lock(a sync object);
-> >
-> >     3. Unlock a sync object - The task unlocks all dmabufs added in its
-> own sync
-> >     object. The unlock means that the DMA or CPU accesses to the dmabufs
-> have
-> >     been completed so that others may access them.
-> >     This unlocking should be performed after DMA or CPU has completed
-> accesses
-> >     to the dmabufs.
-> >
-> > 	dma_buf_sync_unlock(a sync object);
-> >
-> >     4. Unregister one or all dmabufs from a sync object - A task
-> unregisters
-> >     the given dmabufs from the sync object. This means that the task
-> dosen't
-> >     want to lock the dmabufs.
-> >     The unregistering should be performed after DMA or CPU has completed
-> >     accesses to the dmabufs or when dma_buf_sync_lock() is failed.
-> >
-> > 	dma_buf_sync_put(a sync object, a dmabuf);
-> > 	dma_buf_sync_put_all(a sync object);
-> >
-> >     The described steps may be summarized as:
-> > 	get -> lock -> CPU or DMA access to a buffer/s -> unlock -> put
-> >
-> > This framework includes the following two features.
-> >     1. read (shared) and write (exclusive) locks - A task is required to
-> declare
-> >     the access type when the task tries to register a dmabuf;
-> >     READ, WRITE, READ DMA, or WRITE DMA.
-> >
-> >     The below is example codes,
-> > 	struct dmabuf_sync *sync;
-> >
-> > 	sync = dmabuf_sync_init(NULL, "test sync");
-> >
-> > 	dmabuf_sync_get(sync, dmabuf, DMA_BUF_ACCESS_READ);
-> > 	...
-> >
-> > 	And the below can be used as access types:
-> > 		DMA_BUF_ACCESS_READ,
-> > 		- CPU will access a buffer for read.
-> > 		DMA_BUF_ACCESS_WRITE,
-> > 		- CPU will access a buffer for read or write.
-> > 		DMA_BUF_ACCESS_READ | DMA_BUF_ACCESS_DMA,
-> > 		- DMA will access a buffer for read
-> > 		DMA_BUF_ACCESS_WRITE | DMA_BUF_ACCESS_DMA,
-> > 		- DMA will access a buffer for read or write.
-> >
-> >     2. Mandatory resource releasing - a task cannot hold a lock
-> indefinitely.
-> >     A task may never try to unlock a buffer after taking a lock to the
-> buffer.
-> >     In this case, a timer handler to the corresponding sync object is
-> called
-> >     in five (default) seconds and then the timed-out buffer is unlocked
-> by work
-> >     queue handler to avoid lockups and to enforce resources of the
-buffer.
-> >
-> > The below is how to use:
-> > 	1. Allocate and Initialize a sync object:
-> > 		struct dmabuf_sync *sync;
-> >
-> > 		sync = dmabuf_sync_init(NULL, "test sync");
-> > 		...
-> >
-> > 	2. Add a dmabuf to the sync object when setting up dma buffer
-> relevant
-> > 	   registers:
-> > 		dmabuf_sync_get(sync, dmabuf, DMA_BUF_ACCESS_READ);
-> > 		...
-> >
-> > 	3. Lock all dmabufs of the sync object before DMA or CPU accesses
-> > 	   the dmabufs:
-> > 		dmabuf_sync_lock(sync);
-> > 		...
-> >
-> > 	4. Now CPU or DMA can access all dmabufs locked in step 3.
-> >
-> > 	5. Unlock all dmabufs added in a sync object after DMA or CPU
-> access
-> > 	   to these dmabufs is completed:
-> > 		dmabuf_sync_unlock(sync);
-> >
-> > 	   And call the following functions to release all resources,
-> > 		dmabuf_sync_put_all(sync);
-> > 		dmabuf_sync_fini(sync);
-> >
-> > 	You can refer to actual example codes:
-> > 		https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
-> exynos.git/
-> > 		commit/?h=dmabuf-
-> sync&id=4030bdee9bab5841ad32faade528d04cc0c5fc94
-> >
-> > 		https://git.kernel.org/cgit/linux/kernel/git/daeinki/drm-
-> exynos.git/
-> > 		commit/?h=dmabuf-
-> sync&id=6ca548e9ea9e865592719ef6b1cde58366af9f5c
-> >
-> > The framework performs cache operation based on the previous and current
-> access
-> > types to the dmabufs after the locks to all dmabufs are taken:
-> > 	Call dma_buf_begin_cpu_access() to invalidate cache if,
-> > 		previous access type is DMA_BUF_ACCESS_WRITE | DMA and
-> > 		current access type is DMA_BUF_ACCESS_READ
-> >
-> > 	Call dma_buf_end_cpu_access() to clean cache if,
-> > 		previous access type is DMA_BUF_ACCESS_WRITE and
-> > 		current access type is DMA_BUF_ACCESS_READ | DMA
-> >
-> > Such cache operations are invoked via dma-buf interfaces so the dma buf
-> exporter
-> > should implement dmabuf->ops->begin_cpu_access/end_cpu_access callbacks.
-> >
-> > [1] http://lwn.net/Articles/470339/
-> > [2] http://lwn.net/Articles/532616/
-> > [3] https://patchwork-mail1.kernel.org/patch/2625321/
-> >
-> Looks to me like you're just writing an api similar to the android
-> syncpoint for this.
-> Is there any reason you had to reimplement the android syncpoint api?
-
-Right, only difference is that maybe android sync driver, you mentioned as
-syncpoint, doesn't use dma-buf resource. What I try to do is familiar to
-android's one and also ARM's KDS (Kernel Dependency System). I think I
-already mentioned enough through a document file about why I try to
-implement this approach based on dma-buf; coupling cache operation and
-buffer synchronization between CPU and DMA.
-
-> I'm not going into a full review, you may wish to rethink the design
-first.
-> All the criticisms I had with the original design approach still apply.
-> 
-
-Isn't that enough if what I try to do is similar to android sync driver?
-It's very simple and that's all I try to do.:)
-
-> 
-> 
-> A few things that stand out from a casual glance:
-> 
-> bool is_dmabuf_sync_supported(void)
-> -> any code that needs CONFIG_DMABUF_SYNC should select it in their
-> kconfig
-> runtime enabling/disabling of synchronization is a recipe for disaster,
-> remove the !CONFIG_DMABUF_SYNC fallbacks.
-> NEVER add a runtime way to influence locking behavior.
-> 
-
-Not enabling/disabling synchronization feature in runtime. That is
-determined at build time.
-
-> Considering you're also holding dmaobj->lock for the entire duration, is
-> there any point to not simply call begin_cpu_access/end_cpu_access, and
-> forget this ugly code ever existed?
-
-You mean mutex_lock(&sync->lock)? Yeah, it seems unnecessary in that case.
-
-> I still don't see the problem you're trying to solve..
-> 
-
-It's just to implement a thin sync framework coupling cache operation. This
-approach is based on dma-buf for more generic implementation against android
-sync driver or KDS.
-
-The described steps may be summarized as:
-	lock -> cache operation -> CPU or DMA access to a buffer/s -> unlock
-
-I think that there is no need to get complicated for such approach at least
-for most devices sharing system memory. Simple is best.
-
-
-Thanks,
-Inki Dae
-
-> ~Maarten
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index 2058f4d..6e8025c 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -270,6 +270,8 @@ static int solo_enc_on(struct solo_enc_dev *solo_enc)
+ 	if (solo_enc->bw_weight > solo_dev->enc_bw_remain)
+ 		return -EBUSY;
+ 	solo_enc->sequence = 0;
++	solo_enc->motion_last_state = false;
++	solo_enc->frames_since_last_motion = 0;
+ 	solo_dev->enc_bw_remain -= solo_enc->bw_weight;
+ 
+ 	if (solo_enc->type == SOLO_ENC_TYPE_EXT)
+@@ -510,15 +512,6 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
+ 	struct vop_header *vh = enc_buf->vh;
+ 	int ret;
+ 
+-	/* Check for motion flags */
+-	vb->v4l2_buf.flags &= ~(V4L2_BUF_FLAG_MOTION_ON |
+-				V4L2_BUF_FLAG_MOTION_DETECTED);
+-	if (solo_is_motion_on(solo_enc)) {
+-		vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_ON;
+-		if (enc_buf->motion)
+-			vb->v4l2_buf.flags |= V4L2_BUF_FLAG_MOTION_DETECTED;
+-	}
+-
+ 	switch (solo_enc->fmt) {
+ 	case V4L2_PIX_FMT_MPEG4:
+ 	case V4L2_PIX_FMT_H264:
+@@ -530,9 +523,49 @@ static int solo_enc_fillbuf(struct solo_enc_dev *solo_enc,
+ 	}
+ 
+ 	if (!ret) {
++		bool send_event = false;
++
+ 		vb->v4l2_buf.sequence = solo_enc->sequence++;
+ 		vb->v4l2_buf.timestamp.tv_sec = vh->sec;
+ 		vb->v4l2_buf.timestamp.tv_usec = vh->usec;
++
++		/* Check for motion flags */
++		if (solo_is_motion_on(solo_enc)) {
++			/* It takes a few frames for the hardware to detect
++			 * motion. Once it does it clears the motion detection
++			 * register and it takes again a few frames before
++			 * motion is seen. This means in practice that when the
++			 * motion field is 1, it will go back to 0 for the next
++			 * frame. This leads to motion detection event being
++			 * sent all the time, which is not what we want.
++			 * Instead wait a few frames before deciding that the
++			 * motion has halted. After some experimentation it
++			 * turns out that waiting for 5 frames works well.
++			 */
++			if (enc_buf->motion == 0 &&
++			    solo_enc->motion_last_state &&
++			    solo_enc->frames_since_last_motion++ > 5)
++				send_event = true;
++			else if (enc_buf->motion) {
++				solo_enc->frames_since_last_motion = 0;
++				send_event = !solo_enc->motion_last_state;
++			}
++		}
++
++		if (send_event) {
++			struct v4l2_event ev = {
++				.type = V4L2_EVENT_MOTION_DET,
++				.u.motion_det = {
++					.flags = V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ,
++					.frame_sequence = vb->v4l2_buf.sequence,
++					.region_mask = enc_buf->motion ? 1 : 0,
++				},
++			};
++
++			solo_enc->motion_last_state = enc_buf->motion;
++			solo_enc->frames_since_last_motion = 0;
++			v4l2_event_queue(solo_enc->vfd, &ev);
++		}
+ 	}
+ 
+ 	vb2_buffer_done(vb, ret ? VB2_BUF_STATE_ERROR : VB2_BUF_STATE_DONE);
+@@ -1145,14 +1178,15 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	case V4L2_CID_MPEG_VIDEO_GOP_SIZE:
+ 		solo_enc->gop = ctrl->val;
+ 		return 0;
+-	case V4L2_CID_MOTION_THRESHOLD:
+-		solo_enc->motion_thresh = ctrl->val;
++	case V4L2_CID_DETECT_MOTION_THRESHOLD:
++		solo_enc->motion_thresh = ctrl->val << 8;
+ 		if (!solo_enc->motion_global || !solo_enc->motion_enabled)
+ 			return 0;
+-		return solo_set_motion_threshold(solo_dev, solo_enc->ch, ctrl->val);
+-	case V4L2_CID_MOTION_MODE:
+-		solo_enc->motion_global = ctrl->val == 1;
+-		solo_enc->motion_enabled = ctrl->val > 0;
++		return solo_set_motion_threshold(solo_dev, solo_enc->ch,
++				solo_enc->motion_thresh);
++	case V4L2_CID_DETECT_MOTION_MODE:
++		solo_enc->motion_global = ctrl->val == V4L2_DETECT_MOTION_GLOBAL;
++		solo_enc->motion_enabled = ctrl->val > V4L2_DETECT_MOTION_DISABLED;
+ 		if (ctrl->val) {
+ 			if (solo_enc->motion_global)
+ 				solo_set_motion_threshold(solo_dev, solo_enc->ch,
+@@ -1174,6 +1208,21 @@ static int solo_s_ctrl(struct v4l2_ctrl *ctrl)
+ 	return 0;
+ }
+ 
++static int solo_subscribe_event(struct v4l2_fh *fh,
++				const struct v4l2_event_subscription *sub)
++{
++
++	switch (sub->type) {
++	case V4L2_EVENT_CTRL:
++		return v4l2_ctrl_subscribe_event(fh, sub);
++	case V4L2_EVENT_MOTION_DET:
++		/* Allow for up to 30 events (1 second for NTSC) to be
++		 * stored. */
++		return v4l2_event_subscribe(fh, sub, 30, NULL);
++	}
++	return -EINVAL;
++}
++
+ static const struct v4l2_file_operations solo_enc_fops = {
+ 	.owner			= THIS_MODULE,
+ 	.open			= v4l2_fh_open,
+@@ -1216,7 +1265,7 @@ static const struct v4l2_ioctl_ops solo_enc_ioctl_ops = {
+ 	.vidioc_s_matrix		= solo_s_matrix,
+ 	/* Logging and events */
+ 	.vidioc_log_status		= v4l2_ctrl_log_status,
+-	.vidioc_subscribe_event		= v4l2_ctrl_subscribe_event,
++	.vidioc_subscribe_event		= solo_subscribe_event,
+ 	.vidioc_unsubscribe_event	= v4l2_event_unsubscribe,
+ };
+ 
+@@ -1233,33 +1282,6 @@ static const struct v4l2_ctrl_ops solo_ctrl_ops = {
+ 	.s_ctrl = solo_s_ctrl,
+ };
+ 
+-static const struct v4l2_ctrl_config solo_motion_threshold_ctrl = {
+-	.ops = &solo_ctrl_ops,
+-	.id = V4L2_CID_MOTION_THRESHOLD,
+-	.name = "Motion Detection Threshold",
+-	.type = V4L2_CTRL_TYPE_INTEGER,
+-	.max = 0xffff,
+-	.def = SOLO_DEF_MOT_THRESH,
+-	.step = 1,
+-	.flags = V4L2_CTRL_FLAG_SLIDER,
+-};
+-
+-static const char * const solo_motion_mode_menu[] = {
+-	"Disabled",
+-	"Global Threshold",
+-	"Regional Threshold",
+-	NULL
+-};
+-
+-static const struct v4l2_ctrl_config solo_motion_enable_ctrl = {
+-	.ops = &solo_ctrl_ops,
+-	.id = V4L2_CID_MOTION_MODE,
+-	.name = "Motion Detection Mode",
+-	.type = V4L2_CTRL_TYPE_MENU,
+-	.qmenu = solo_motion_mode_menu,
+-	.max = 2,
+-};
+-
+ static const struct v4l2_ctrl_config solo_osd_text_ctrl = {
+ 	.ops = &solo_ctrl_ops,
+ 	.id = V4L2_CID_OSD_TEXT,
+@@ -1296,8 +1318,13 @@ static struct solo_enc_dev *solo_enc_alloc(struct solo_dev *solo_dev,
+ 			V4L2_CID_SHARPNESS, 0, 15, 1, 0);
+ 	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
+ 			V4L2_CID_MPEG_VIDEO_GOP_SIZE, 1, 255, 1, solo_dev->fps);
+-	v4l2_ctrl_new_custom(hdl, &solo_motion_threshold_ctrl, NULL);
+-	v4l2_ctrl_new_custom(hdl, &solo_motion_enable_ctrl, NULL);
++	v4l2_ctrl_new_std_menu(hdl, &solo_ctrl_ops,
++			V4L2_CID_DETECT_MOTION_MODE,
++			V4L2_DETECT_MOTION_REGIONAL, 0,
++			V4L2_DETECT_MOTION_DISABLED);
++	v4l2_ctrl_new_std(hdl, &solo_ctrl_ops,
++			V4L2_CID_DETECT_MOTION_THRESHOLD, 0, 0xff, 1,
++			SOLO_DEF_MOT_THRESH >> 8);
+ 	v4l2_ctrl_new_custom(hdl, &solo_osd_text_ctrl, NULL);
+ 	if (hdl->error) {
+ 		ret = hdl->error;
+diff --git a/drivers/staging/media/solo6x10/solo6x10.h b/drivers/staging/media/solo6x10/solo6x10.h
+index 01c8655..df34a31 100644
+--- a/drivers/staging/media/solo6x10/solo6x10.h
++++ b/drivers/staging/media/solo6x10/solo6x10.h
+@@ -97,14 +97,7 @@
+ #define SOLO_DEFAULT_GOP		30
+ #define SOLO_DEFAULT_QP			3
+ 
+-#ifndef V4L2_BUF_FLAG_MOTION_ON
+-#define V4L2_BUF_FLAG_MOTION_ON		0x10000
+-#define V4L2_BUF_FLAG_MOTION_DETECTED	0x20000
+-#endif
+-
+ #define SOLO_CID_CUSTOM_BASE		(V4L2_CID_USER_BASE | 0xf000)
+-#define V4L2_CID_MOTION_MODE		(SOLO_CID_CUSTOM_BASE+0)
+-#define V4L2_CID_MOTION_THRESHOLD	(SOLO_CID_CUSTOM_BASE+1)
+ #define V4L2_CID_MOTION_TRACE		(SOLO_CID_CUSTOM_BASE+2)
+ #define V4L2_CID_OSD_TEXT		(SOLO_CID_CUSTOM_BASE+3)
+ 
+@@ -174,6 +167,8 @@ struct solo_enc_dev {
+ 	struct solo_motion_thresholds motion_thresholds;
+ 	bool			motion_global;
+ 	bool			motion_enabled;
++	bool			motion_last_state;
++	u8			frames_since_last_motion;
+ 	u16			width;
+ 	u16			height;
+ 
+-- 
+1.8.3.1
 
