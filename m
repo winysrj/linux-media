@@ -1,148 +1,176 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f174.google.com ([209.85.215.174]:45874 "EHLO
-	mail-ea0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754008Ab3FDM4F (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 4 Jun 2013 08:56:05 -0400
-Received: by mail-ea0-f174.google.com with SMTP id z7so164299eaf.5
-        for <linux-media@vger.kernel.org>; Tue, 04 Jun 2013 05:56:03 -0700 (PDT)
-Date: Tue, 4 Jun 2013 14:55:58 +0200
-From: Daniel Vetter <daniel@ffwll.ch>
-To: =?utf-8?B?6rmA7Iq57Jqw?= <sw0312.kim@samsung.com>
-Cc: dri-devel <dri-devel@lists.freedesktop.org>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linaro-mm-sig@lists.linaro.org" <linaro-mm-sig@lists.linaro.org>,
-	Sumit Semwal <sumit.semwal@linaro.org>,
-	Dave Airlie <airlied@linux.ie>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Inki Dae <inki.dae@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [RFC][PATCH 0/2] dma-buf: add importer private data for
- reimporting
-Message-ID: <20130604125558.GB15743@phenom.ffwll.local>
-References: <1369990487-23510-1-git-send-email-sw0312.kim@samsung.com>
- <CAKMK7uHYLG3iNphE+g4BBB-LuUM67NRvbQPBvCHE2FN71-GLnA@mail.gmail.com>
- <51A879E0.3080106@samsung.com>
- <20130531152956.GX15743@phenom.ffwll.local>
- <51ADC48E.80907@samsung.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <51ADC48E.80907@samsung.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:64292 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753827Ab3F1GEX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jun 2013 02:04:23 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: 'Kishon Vijay Abraham I' <kishon@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>
+References: <001701ce73bf$bebf9f20$3c3edd60$@samsung.com>
+ <51CD25F2.5010206@ti.com>
+In-reply-to: <51CD25F2.5010206@ti.com>
+Subject: Re: [PATCH 3/3] video: exynos_dp: Use the generic PHY driver
+Date: Fri, 28 Jun 2013 15:04:21 +0900
+Message-id: <001c01ce73c5$552e1cc0$ff8a5640$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 04, 2013 at 07:42:22PM +0900, 김승우 wrote:
+On Friday, June 28, 2013 2:58 PM, Kishon Vijay Abraham I wrote:
 > 
+> Hi,
 > 
-> On 2013년 06월 01일 00:29, Daniel Vetter wrote:
-> > On Fri, May 31, 2013 at 07:22:24PM +0900, 김승우 wrote:
-> >> Hello Daniel,
-> >>
-> >> Thanks for your comment.
-> >>
-> >> On 2013년 05월 31일 18:14, Daniel Vetter wrote:
-> >>> On Fri, May 31, 2013 at 10:54 AM, Seung-Woo Kim <sw0312.kim@samsung.com> wrote:
-> >>>> importer private data in dma-buf attachment can be used by importer to
-> >>>> reimport same dma-buf.
-> >>>>
-> >>>> Seung-Woo Kim (2):
-> >>>>   dma-buf: add importer private data to attachment
-> >>>>   drm/prime: find gem object from the reimported dma-buf
-> >>>
-> >>> Self-import should already work (at least with the latest refcount
-> >>> fixes merged). At least the tests to check both re-import on the same
-> >>> drm fd and on a different all work as expected now.
-> >>
-> >> Currently, prime works well for all case including self-importing,
-> >> importing, and reimporting as you describe. Just, importing dma-buf from
-> >> other driver twice with different drm_fd, each import create its own gem
-> >> object even two import is done for same buffer because prime_priv is in
-> >> struct drm_file. This means mapping to the device is done also twice.
-> >> IMHO, these duplicated creations and maps are not necessary if drm can
-> >> find previous import in different prime_priv.
-> > 
-> > Well, that's imo a bug with the other driver. If it doesn't export
-> > something really simple (e.g. contiguous memory which doesn't require any
-> > mmio resources at all) it should have a cache of exported dma_buf fds so
-> > that it hands out the same dma_buf every time.
+> On Friday 28 June 2013 10:54 AM, Jingoo Han wrote:
+> > Use the generic PHY API instead of the platform callback to control
+> > the DP PHY. The 'phy_label' field is added to the platform data
+> > structure to allow PHY lookup on non-dt platforms.
+> >
+> > Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+> > ---
+> >   .../devicetree/bindings/video/exynos_dp.txt        |   17 ---
+> >   drivers/video/exynos/exynos_dp_core.c              |  118 ++------------------
+> >   drivers/video/exynos/exynos_dp_core.h              |    2 +
+> >   include/video/exynos_dp.h                          |    6 +-
+> >   4 files changed, 15 insertions(+), 128 deletions(-)
+> >
+> > diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt
+> b/Documentation/devicetree/bindings/video/exynos_dp.txt
+> > index 84f10c1..a8320e3 100644
+> > --- a/Documentation/devicetree/bindings/video/exynos_dp.txt
+> > +++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
+> > @@ -1,17 +1,6 @@
+> >   The Exynos display port interface should be configured based on
+> >   the type of panel connected to it.
+> >
+> > -We use two nodes:
+> > -	-dp-controller node
+> > -	-dptx-phy node(defined inside dp-controller node)
+> > -
+> > -For the DP-PHY initialization, we use the dptx-phy node.
+> > -Required properties for dptx-phy:
+> > -	-reg:
+> > -		Base address of DP PHY register.
+> > -	-samsung,enable-mask:
+> > -		The bit-mask used to enable/disable DP PHY.
+> > -
+> >   For the Panel initialization, we read data from dp-controller node.
+> >   Required properties for dp-controller:
+> >   	-compatible:
+> > @@ -67,12 +56,6 @@ SOC specific portion:
+> >   		interrupt-parent = <&combiner>;
+> >   		clocks = <&clock 342>;
+> >   		clock-names = "dp";
+> > -
+> > -		dptx-phy {
+> > -			reg = <0x10040720>;
+> > -			samsung,enable-mask = <1>;
+> > -		};
+> > -
+> >   	};
+> >
+> >   Board Specific portion:
+> > diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+> > index 12bbede..bac515b 100644
+> > --- a/drivers/video/exynos/exynos_dp_core.c
+> > +++ b/drivers/video/exynos/exynos_dp_core.c
+> > @@ -19,6 +19,7 @@
+> >   #include <linux/interrupt.h>
+> >   #include <linux/delay.h>
+> >   #include <linux/of.h>
+> > +#include <linux/phy/phy.h>
+> >
+> >   #include <video/exynos_dp.h>
+> >
+> > @@ -960,84 +961,15 @@ static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
+> >   		return ERR_PTR(-EINVAL);
+> >   	}
+> >
+> > -	return pd;
+> > -}
+> > -
+> > -static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+> > -{
+> > -	struct device_node *dp_phy_node = of_node_get(dp->dev->of_node);
+> > -	u32 phy_base;
+> > -	int ret = 0;
+> > -
+> > -	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
+> > -	if (!dp_phy_node) {
+> > -		dev_err(dp->dev, "could not find dptx-phy node\n");
+> > -		return -ENODEV;
+> > -	}
+> > -
+> > -	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
+> > -		dev_err(dp->dev, "failed to get reg for dptx-phy\n");
+> > -		ret = -EINVAL;
+> > -		goto err;
+> > -	}
+> > -
+> > -	if (of_property_read_u32(dp_phy_node, "samsung,enable-mask",
+> > -				&dp->enable_mask)) {
+> > -		dev_err(dp->dev, "failed to get enable-mask for dptx-phy\n");
+> > -		ret = -EINVAL;
+> > -		goto err;
+> > -	}
+> > -
+> > -	dp->phy_addr = ioremap(phy_base, SZ_4);
+> > -	if (!dp->phy_addr) {
+> > -		dev_err(dp->dev, "failed to ioremap dp-phy\n");
+> > -		ret = -ENOMEM;
+> > -		goto err;
+> > -	}
+> > -
+> > -err:
+> > -	of_node_put(dp_phy_node);
+> > -
+> > -	return ret;
+> > -}
+> > -
+> > -static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+> > -{
+> > -	u32 reg;
+> > -
+> > -	reg = __raw_readl(dp->phy_addr);
+> > -	reg |= dp->enable_mask;
+> > -	__raw_writel(reg, dp->phy_addr);
+> > -}
+> > -
+> > -static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+> > -{
+> > -	u32 reg;
+> > +	pd->phy_label = "dp";
 > 
-> Hm, all existing dma-buf exporter including i915 driver implements its
-> map_dma_buf callback as allocating scatter-gather table with pages in
-> its buffer and calling dma_map_sg() with the sgt. With different
-> drm_fds, importing one dma-buf *twice*, then importer calls
-> dma_buf_attach() and dma_buf_map_attachment() twice at least in drm
-> importer because re-importing case can only checked with prime_priv in
-> drm_file as I described.
+> In the case of non-dt boot, this phy_label should have ideally come from
+> platform code.
 
-Well, but thanks to all the self-import and re-import checks, it's
-_impossible_ to import the same dma_buf twice without noticing (presuming
-both importer and exporter are drm devices).
+No, this is NOT the case of non-dt.
+
+'pd->phy_label = "dp";' is included in exynos_dp_dt_parse_pdata(),
+not exynos_dp_phy_exit().
+Also, exynos_dp_dt_parse_pdata() is called in the case of dt.
+
+But, diff is a little bit confusing. :(
+
+
+Best regards,
+Jingoo Han
+
 > 
-> > 
-> > Or it needs to be more clever in it's dma_buf_attachment_map functions and
-> > lookup up a pre-existing iommu mapping.
-> > 
-> > But dealing with this in the importer is just broken.
-> > 
-> >>> Second, the dma_buf_attachment is _definitely_ the wrong place to do
-> >>> this. If you need iommu mapping caching, that should happen at a lower
-> >>> level (i.e. in the map_attachment callback somewhere of the exporter,
-> >>> that's what the priv field in the attachment is for). Snatching away
-> >>> the attachement from some random other import is certainly not the way
-> >>> to go - attachements are _not_ refcounted!
-> >>
-> >> Yes, attachments do not have refcount, so importer should handle and drm
-> >> case in my patch, importer private data is gem object and it has, of
-> >> course, refcount.
-> >>
-> >> And at current, exporter can not classify map_dma_buf requests of same
-> >> importer to same buffer with different attachment because dma_buf_attach
-> >> always makes new attachments. To resolve this exporter should search all
-> >> different attachment from same importer of dma-buf and it seems more
-> >> complex than importer private data to me.
-> >>
-> >> If I misunderstood something, please let me know.
-> > 
-> > Like I've said above, just fix this in the exporter. If an importer sees
-> > two different dma_bufs it can very well presume that it those two indeed
-> > point to different backing storage.
-> 
-> Yes, my patch does not break this concept. I just fixed case importing
-> _one_ dma-buf twice with different drm_fds.
+> Thanks
+> Kishon
 
-See above, if you have two different struct file * for the same underlying
-buffer object something is wrong already.
-
-> > This will be even more important if we attach fences two dma_bufs. If your
-> > broken exporter creates multiple dma_bufs each one of them will have their
-> > own fences attached, leading to a complete disasters. Ok, strictly
-> > speaking if you keep the same reservation pointer for each dma_buf it'll
-> > work, but that's just a detail of how you solve this in the exporter.
-> 
-> I can not understand about broken exporter you addressed. I don't mean
-> exporter makes dma-bufs from one backing storage.
-> While, my patch prevents not to create drm gem objects from one back
-> storage by importing one dma-buf with different drm-fds.
-
-Well, we also have code in drm prime for that case - if the same dma_buf
-object shows up multiple times, we'll only import it once. For the second
-import we'll return the already created drm_gem object from the first
-import, but with the refcount incremented.
-
-> I do not believe the fix of importer is the best way, but at this
-> moment, I have no idea how I can fix the exporter for this issue.
-
-I think if you have drm prime drivers both as importers and exporters, it
-is already fixed. It is correct though that both importer and exporter
-need a bit of code to take care and not accidentally duplicate a shared
-object somehow.
-
-But since you've proposed your rfc as part of the drm subsystem I've
-figured that we don't need to discuss the duplicate import handling code.
-
-Yours, Daniel
--- 
-Daniel Vetter
-Software Engineer, Intel Corporation
-+41 (0) 79 365 57 48 - http://blog.ffwll.ch
