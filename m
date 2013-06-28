@@ -1,155 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f169.google.com ([209.85.128.169]:34927 "EHLO
-	mail-ve0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753177Ab3FGK0f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 06:26:35 -0400
-Received: by mail-ve0-f169.google.com with SMTP id m1so2890242ves.14
-        for <linux-media@vger.kernel.org>; Fri, 07 Jun 2013 03:26:35 -0700 (PDT)
+Received: from mail-lb0-f179.google.com ([209.85.217.179]:58240 "EHLO
+	mail-lb0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753964Ab3F1RL2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jun 2013 13:11:28 -0400
+Received: by mail-lb0-f179.google.com with SMTP id w20so1152053lbh.38
+        for <linux-media@vger.kernel.org>; Fri, 28 Jun 2013 10:11:26 -0700 (PDT)
+Message-ID: <51CDC3BE.1040603@cogentembedded.com>
+Date: Fri, 28 Jun 2013 21:11:26 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-In-Reply-To: <CAK9yfHzwtkrpVVK6DZPN1xjanc+bNeHb5yX+Dy9rfHh50nACxg@mail.gmail.com>
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
-	<1370005408-10853-3-git-send-email-arun.kk@samsung.com>
-	<CAK9yfHzwtkrpVVK6DZPN1xjanc+bNeHb5yX+Dy9rfHh50nACxg@mail.gmail.com>
-Date: Fri, 7 Jun 2013 15:56:34 +0530
-Message-ID: <CALt3h7_ky1xkpt9nMpJDNK9uakfXwf3etnKrtaYHSAi12D1Ejg@mail.gmail.com>
-Subject: Re: [RFC v2 02/10] exynos5-fimc-is: Adds fimc-is driver core files
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sachin Kamat <sachin.kamat@linaro.org>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp
+Subject: Re: [PATCH v7] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <201306220052.30572.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1306260925210.8856@axis700.grange> <51CCD1B7.3040009@cogentembedded.com>
+In-Reply-To: <51CCD1B7.3040009@cogentembedded.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sachin,
+Hello.
 
-Thank you for the review.
-Will address your comments in next iteration.
+On 06/28/2013 03:58 AM, Vladimir Barinov wrote:
 
-Regards
-Arun
+>>> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-On Thu, Jun 6, 2013 at 10:50 AM, Sachin Kamat <sachin.kamat@linaro.org> wrote:
-> Hi Arun,
->
-> On 31 May 2013 18:33, Arun Kumar K <arun.kk@samsung.com> wrote:
->> This driver is for the FIMC-IS IP available in Samsung Exynos5
->> SoC onwards. This patch adds the core files for the new driver.
->>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
->> ---
-> [snip]
->
->> +
->> +static void fimc_is_clk_put(struct fimc_is *is)
->> +{
->> +       int i;
->> +
->> +       for (i = 0; i < IS_CLK_MAX_NUM; i++) {
->> +               if (IS_ERR_OR_NULL(is->clock[i]))
->
-> You should not check for NULL here. Instead initialize the clocks to
-> some error value (like  "is->clock[i] =  ERR_PTR(-EINVAL);" )
-> and use IS_ERR only.
->
->> +                       continue;
->> +               clk_unprepare(is->clock[i]);
->> +               clk_put(is->clock[i]);
->> +               is->clock[i] = NULL;
->> +       }
->> +}
->> +
->> +static int fimc_is_clk_get(struct fimc_is *is)
->> +{
->> +       struct device *dev = &is->pdev->dev;
->> +       int i, ret;
->> +
->> +       for (i = 0; i < IS_CLK_MAX_NUM; i++) {
->> +               is->clock[i] = clk_get(dev, fimc_is_clock_name[i]);
->> +               if (IS_ERR(is->clock[i]))
->> +                       goto err;
->> +               ret = clk_prepare(is->clock[i]);
->> +               if (ret < 0) {
->> +                       clk_put(is->clock[i]);
->> +                       is->clock[i] = NULL;
->
-> is->clock[i] =  ERR_PTR(-EINVAL);
->
->> +                       goto err;
->> +               }
->> +       }
->> +       return 0;
->> +err:
->> +       fimc_is_clk_put(is);
->> +       pr_err("Failed to get clock: %s\n", fimc_is_clock_name[i]);
->> +       return -ENXIO;
->> +}
->> +
->> +static int fimc_is_clk_cfg(struct fimc_is *is)
->> +{
->> +       int ret;
->> +
->> +       ret = fimc_is_clk_get(is);
->> +       if (ret)
->> +               return ret;
->> +
->> +       /* Set rates */
->> +       ret = clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV0], 200 * 1000000);
->> +       ret |= clk_set_rate(is->clock[IS_CLK_MCU_ISP_DIV1], 100 * 1000000);
->> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIV0], 134 * 1000000);
->> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIV1], 68 * 1000000);
->> +       ret |= clk_set_rate(is->clock[IS_CLK_ISP_DIVMPWM], 34 * 1000000);
->> +
->> +       if (ret)
->> +               return -EINVAL;
->> +
->> +       return 0;
->> +}
->> +
->> +static int fimc_is_probe(struct platform_device *pdev)
->> +{
->> +       struct device *dev = &pdev->dev;
->> +       struct resource res;
->> +       struct fimc_is *is;
->> +       struct pinctrl *pctrl;
->> +       void __iomem *regs;
->> +       struct device_node *node;
->> +       int irq, ret;
->> +
->> +       pr_debug("FIMC-IS Probe Enter\n");
->> +
->> +       if (!pdev->dev.of_node)
->> +               return -ENODEV;
->> +
->> +       is = devm_kzalloc(&pdev->dev, sizeof(*is), GFP_KERNEL);
->> +       if (!is)
->> +               return -ENOMEM;
->> +
->> +       is->pdev = pdev;
->> +
->> +       ret = of_address_to_resource(dev->of_node, 0, &res);
->> +       if (ret < 0)
->> +               return ret;
->> +
->> +       regs = devm_ioremap_resource(dev, &res);
->> +       if (regs == NULL) {
->
-> Please use if(IS_ERR(regs))
->
->> +               dev_err(dev, "Failed to obtain io memory\n");
->
-> This is not needed as devm_ioremap_resource prints the appropriate
-> error messages.
->
->> +               return -ENOENT;
->
-> return PTR_ERR(regs);
->
-> Don't forget to include <linux/err.h> for using PTR_ERR() .
->
-> --
-> With warm regards,
-> Sachin
+>>> Add Renesas R-Car VIN (Video In) V4L2 driver.
+
+>>> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+
+>>> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+>>> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed
+>>> 'enum chip_id'
+>>> values, reordered rcar_vin_id_table[] entries,  removed senseless
+>>> parens from
+>>> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {}
+>>> to the
+>>> *if* statement  and used 'bool' values instead of 0/1 where
+>>> necessary, removed
+>>> unused macros, done some reformatting and clarified some comments.]
+>>> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+
+>> Reviewing this iteration of the patch is still on my todo, in the
+>> meantime you might verify whether it works on top of the for-3.11-3
+>> branch of my
+
+>> http://git.linuxtv.org/gliakhovetski/v4l-dvb.git
+
+>> git-tree, or "next" after it's been pulled by Mauro and pushed
+>> upstream. With that branch you shouldn't need any additional patches
+>> andy more.
+
+> Actually we need to apply/merge more patches here that enables VIN
+> support on separate platform (like pinctrl/clock/setup/) :)
+
+> Despite of above the rcar_vin driver works fine on Marzen board in
+> v4l-dvb.git after adding soc_camera_host_ops clock_start/clock_stop.
+
+    Guennadi, does that mean that we should rebase the driver to the 
+branch that you've named now?
+
+> Regards,
+> Vladimir
+
+WBR, Sergei
+
