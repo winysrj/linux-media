@@ -1,86 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:57372 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754351Ab3FOUoJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 15 Jun 2013 16:44:09 -0400
-Message-ID: <51BCD217.8060608@schinagl.nl>
-Date: Sat, 15 Jun 2013 22:44:07 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Duval Mickael <duvalmickael@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: DVB Scan file for Cherbourg (FR)
-References: <CAMiis9aue=BJnGxhak9aKSXVtJPPB7df4WpKDdJL9Anw54en5Q@mail.gmail.com> <51B44BD5.2010208@schinagl.nl> <CAMiis9ZiLXwX+E2TmjsYkA1iCowArrP5jTT4VgWCeA6gCUDJDQ@mail.gmail.com> <CAMiis9bZtgfX_zha6vL1HVcxrNJb0RFvP=45Mp44Eb1cuUTSFA@mail.gmail.com> <51BB9033.50709@schinagl.nl> <CAMiis9ZgKKD3iiXchPcN=r9QCBjVvasmXjRn8rvmfzs33k-wPQ@mail.gmail.com> <CAMiis9a=nSvdueKfAJCU=JEuprQU_nSRtKx4u5-QKA2kUrEUZQ@mail.gmail.com> <51BC36ED.3010405@schinagl.nl> <CAMiis9aDuu7xArvg7QOvbXmzVpwKUhETr+m=WEKnbSHbhPuLpA@mail.gmail.com>
-In-Reply-To: <CAMiis9aDuu7xArvg7QOvbXmzVpwKUhETr+m=WEKnbSHbhPuLpA@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:24729 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752072Ab3F1HQr (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 28 Jun 2013 03:16:47 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	linux-fbdev@vger.kernel.org, 'Jingoo Han' <jg1.han@samsung.com>
+Subject: [PATCH V2 2/3] ARM: dts: Add DP PHY node to exynos5250.dtsi
+Date: Fri, 28 Jun 2013 16:16:44 +0900
+Message-id: <002001ce73cf$721b9d80$5652d880$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 15-06-13 12:08, Duval Mickael wrote:
-> Indeed frequencies fr_Cherbourg and fr_Bordeaux are contained in fr_All.
-> But I was thinking of doing a fr_All file and a specific file for all
-> city as uk.
->
-> With a file with only the useful frequency, detection will be much faster right?
-Yes, if you only have to scan 5 frequencies instead of 20 of course it 
-will be faster. But how often do you tune and how many frequencies are 
-there to consider? If you have look at fr-All, that looks pretty small 
-to me. Having 20 files covering those same frequencies will just add 
-clutter to the db if you ask me. So I would keep with one fr-All if it 
-works 'for everybody'.
->
-> 2013/6/15 Oliver Schinagl <oliver+list@schinagl.nl>:
->> On 06/15/13 11:30, Duval Mickael wrote:
->>> Ok I have cloned your repo with Git, and I've make two patch files.
->>>
->> Can you explain to me why there are fr-All and fr-Cherbourg? (and
->> fr-Bordeaux)?
->>
->> Does fr-All not work for those two places? If fr-All does everything, it's
->> ok to merge the other two in. nl-All is all transponders for the country as
->> a lot of frequencies are shared. We could have 10 or so nl-<area> but they'd
->> be all really small.
->>
->> So is fr-All everything for the entire country, but has Cherbourg and
->> Bordeaux extra, very different freq's?
->>
->> Merged in c8050e8105b1b4b5364f57d8b3e658c80fb04a53 for now
->>
->> Thanks,
->> oliver
->>
->>> 2013/6/15 Duval Mickael <duvalmickael@gmail.com>:
->>>> In zip there is a little modification for city of cherbourg (add two
->>>> new muxes) and a fr_ALL for France all channels DVB-T initial
->>>> scan.
->>>>
->>>> What's the problem exactly with my files?
->>>>
->>>> Thanks
->>>> Duval Mickael
->>>>
->>>> 2013/6/14 Oliver Schinagl <oliver+list@schinagl.nl>:
->>>>> On 06/13/13 19:10, Duval Mickael wrote:
->>>>>>
->>>>>> Hello,
->>>>>
->>>>> Hi,
->>>>>
->>>>>> I send this email to you for a DVB-T scan file for the city of
->>>>>> Cherbourg
->>>>>> FRANCE, modified with the last channels.
->>>>>> I also enclose a package file that includes all channels available for
->>>>>> DVB-T in France.
->>>>>
->>>>> I've applied your patch (after manually working it over) last time.
->>>>>
->>>>> What is in this zip? Please send a patch file what still needs to be
->>>>> adjusted. Cherbourg is in the repo now, isn't it?
->>>>>
->>>>>> Sorry for my poor English ;-)
->>>>>>
->>>>>> Thank you.
->>>>>
->>>>>
+Add PHY provider node for the DP PHY.
+
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
+
+diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+index 41cd625..f7bac75 100644
+--- a/arch/arm/boot/dts/exynos5250.dtsi
++++ b/arch/arm/boot/dts/exynos5250.dtsi
+@@ -614,6 +614,12 @@
+ 		interrupts = <0 94 0>;
+ 	};
+ 
++	dp_phy: video-phy@10040720 {
++		compatible = "samsung,exynos5250-dp-video-phy";
++		reg = <0x10040720 4>;
++		#phy-cells = <0>;
++	};
++
+ 	dp-controller {
+ 		compatible = "samsung,exynos5-dp";
+ 		reg = <0x145b0000 0x1000>;
+@@ -623,11 +629,8 @@
+ 		clock-names = "dp";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-
+-		dptx-phy {
+-			reg = <0x10040720>;
+-			samsung,enable-mask = <1>;
+-		};
++		phys = <&dp_phy 0>;
++		phy-names = "dp";
+ 	};
+ 
+ 	fimd {
+-- 
+1.7.10.4
+
 
