@@ -1,120 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:62872 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753341Ab3FKKAn (ORCPT
+Received: from mail-qa0-f49.google.com ([209.85.216.49]:35365 "EHLO
+	mail-qa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754518Ab3F1PXX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 11 Jun 2013 06:00:43 -0400
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: linux-media@vger.kernel.org
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>, linux-sh@vger.kernel.org,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: [PATCH v10 06/21] mx3-camera: move interface activation and deactivation to clock callbacks
-Date: Tue, 11 Jun 2013 10:23:33 +0200
-Message-Id: <1370939028-8352-7-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1370939028-8352-1-git-send-email-g.liakhovetski@gmx.de>
+	Fri, 28 Jun 2013 11:23:23 -0400
+Received: by mail-qa0-f49.google.com with SMTP id hu16so658569qab.1
+        for <linux-media@vger.kernel.org>; Fri, 28 Jun 2013 08:23:22 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <011901ce73ab$9b81cce0$d28566a0$@blueflowamericas.com>
+References: <010c01ce7365$9181ff30$b485fd90$@blueflowamericas.com>
+	<CAGoCfiyjeqxVV8A_MM-iV58=s48FEhNPA=5MPg3WAOAKs8d2iA@mail.gmail.com>
+	<011901ce73ab$9b81cce0$d28566a0$@blueflowamericas.com>
+Date: Fri, 28 Jun 2013 11:23:22 -0400
+Message-ID: <CALzAhNV7Cv9SR1C2mpgtLTwxD_grCZeOWc6O-2XpJEAKg1mX6w@mail.gmail.com>
+Subject: Re: lgdt3304
+From: Steven Toth <stoth@kernellabs.com>
+To: Carl-Fredrik Sundstrom <cf@blueflowamericas.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-When adding and removing a client, the mx3-camera driver only activates
-and deactivates its camera interface respectively, which doesn't include
-any client-specific actions. Move this functionality into .clock_start()
-and .clock_stop() callbacks.
+On Thu, Jun 27, 2013 at 11:00 PM, Carl-Fredrik Sundstrom
+<cf@blueflowamericas.com> wrote:
+>
+> I am able to detect two lgdt3304 one on each i2c bus now. As you suspected I
+> had to set GPIO pin 17 for them to come alive.
+>
+> Now to my next question, how do I attach two front ends I have two lgdt3304
+> and two TDA18271HD/C2
+> Is there a good driver I can look at where they do that ?
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/soc_camera/mx3_camera.c |   35 ++++++++++++++---------
- 1 files changed, 21 insertions(+), 14 deletions(-)
+The SAA7164 driver (amongst others) demonstrates how to expose
+multiple tuners on a single card via multiple adapters,
+/dev/dvb/adapterX.
 
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 71b9b19..1047e3e 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -460,8 +460,7 @@ static int mx3_camera_init_videobuf(struct vb2_queue *q,
- }
- 
- /* First part of ipu_csi_init_interface() */
--static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam,
--				struct soc_camera_device *icd)
-+static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam)
- {
- 	u32 conf;
- 	long rate;
-@@ -505,31 +504,40 @@ static void mx3_camera_activate(struct mx3_camera_dev *mx3_cam,
- 
- 	clk_prepare_enable(mx3_cam->clk);
- 	rate = clk_round_rate(mx3_cam->clk, mx3_cam->mclk);
--	dev_dbg(icd->parent, "Set SENS_CONF to %x, rate %ld\n", conf, rate);
-+	dev_dbg(mx3_cam->soc_host.v4l2_dev.dev, "Set SENS_CONF to %x, rate %ld\n", conf, rate);
- 	if (rate)
- 		clk_set_rate(mx3_cam->clk, rate);
- }
- 
--/* Called with .host_lock held */
- static int mx3_camera_add_device(struct soc_camera_device *icd)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
-+	dev_info(icd->parent, "MX3 Camera driver attached to camera %d\n",
-+		 icd->devnum);
-+
-+	return 0;
-+}
-+
-+static void mx3_camera_remove_device(struct soc_camera_device *icd)
-+{
-+	dev_info(icd->parent, "MX3 Camera driver detached from camera %d\n",
-+		 icd->devnum);
-+}
-+
-+/* Called with .host_lock held */
-+static int mx3_camera_clock_start(struct soc_camera_host *ici)
-+{
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
- 
--	mx3_camera_activate(mx3_cam, icd);
-+	mx3_camera_activate(mx3_cam);
- 
- 	mx3_cam->buf_total = 0;
- 
--	dev_info(icd->parent, "MX3 Camera driver attached to camera %d\n",
--		 icd->devnum);
--
- 	return 0;
- }
- 
- /* Called with .host_lock held */
--static void mx3_camera_remove_device(struct soc_camera_device *icd)
-+static void mx3_camera_clock_stop(struct soc_camera_host *ici)
- {
--	struct soc_camera_host *ici = to_soc_camera_host(icd->parent);
- 	struct mx3_camera_dev *mx3_cam = ici->priv;
- 	struct idmac_channel **ichan = &mx3_cam->idmac_channel[0];
- 
-@@ -539,9 +547,6 @@ static void mx3_camera_remove_device(struct soc_camera_device *icd)
- 	}
- 
- 	clk_disable_unprepare(mx3_cam->clk);
--
--	dev_info(icd->parent, "MX3 Camera driver detached from camera %d\n",
--		 icd->devnum);
- }
- 
- static int test_platform_param(struct mx3_camera_dev *mx3_cam,
-@@ -1124,6 +1129,8 @@ static struct soc_camera_host_ops mx3_soc_camera_host_ops = {
- 	.owner		= THIS_MODULE,
- 	.add		= mx3_camera_add_device,
- 	.remove		= mx3_camera_remove_device,
-+	.clock_start	= mx3_camera_clock_start,
-+	.clock_stop	= mx3_camera_clock_stop,
- 	.set_crop	= mx3_camera_set_crop,
- 	.set_fmt	= mx3_camera_set_fmt,
- 	.try_fmt	= mx3_camera_try_fmt,
+The cx88 driver demonstrates how to expose multiple tuners/demods via
+a single transport bus, via a single dvb adapter.
+/dev/dvb/adapter0/frontendX
+
+- Steve
+
 -- 
-1.7.2.5
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
