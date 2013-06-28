@@ -1,275 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:43386 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755970Ab3FRMdd (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:1594 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754772Ab3F1M7q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 18 Jun 2013 08:33:33 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MOL00FSQ9JWT500@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 18 Jun 2013 21:33:32 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v2 2/8] [media] s5p-mfc: Rename IS_MFCV6 macro
-Date: Tue, 18 Jun 2013 18:26:17 +0530
-Message-id: <1371560183-23244-3-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
-References: <1371560183-23244-1-git-send-email-arun.kk@samsung.com>
+	Fri, 28 Jun 2013 08:59:46 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [PATCH] usbtv: fix dependency
+Date: Fri, 28 Jun 2013 14:59:10 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Randy Dunlap <rdunlap@infradead.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <201306281024.15428.hverkuil@xs4all.nl> <201306281318.44880.hverkuil@xs4all.nl> <20130628094246.555bb203.mchehab@redhat.com>
+In-Reply-To: <20130628094246.555bb203.mchehab@redhat.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201306281459.10398.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFC v6 specific code holds good for MFC v7 also as
-the v7 version is a superset of v6 and the HW interface
-remains more or less similar. This patch renames the macro
-IS_MFCV6() to IS_MFCV6_PLUS() so that it can be used
-for v7 also.
+On Fri June 28 2013 14:42:46 Mauro Carvalho Chehab wrote:
+> Em Fri, 28 Jun 2013 13:18:44 +0200
+> Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> 
+> > On Fri June 28 2013 13:00:43 Mauro Carvalho Chehab wrote:
+> > > Em Fri, 28 Jun 2013 10:24:15 +0200
+> > > Hans Verkuil <hverkuil@xs4all.nl> escreveu:
+> > > 
+> > > > This fixes a dependency problem as found by Randy Dunlap:
+> > > > 
+> > > > https://lkml.org/lkml/2013/6/27/501
+> > > > 
+> > > > Mauro, is there any reason for any V4L2 driver to depend on VIDEO_DEV instead of
+> > > > just VIDEO_V4L2?
+> > > > 
+> > > > Some drivers depend on VIDEO_DEV, some on VIDEO_V4L2, some on both. It's all
+> > > > pretty chaotic.
+> > > 
+> > > It should be noticed that, despite its name, this config is actually a
+> > > joint dependency of VIDEO_DEV and I2C that will compile drivers as module
+> > > if either I2C or VIDEO_DEV is a module:
+> > > 
+> > > 	config VIDEO_V4L2
+> > > 		tristate
+> > > 		depends on (I2C || I2C=n) && VIDEO_DEV
+> > > 		default (I2C || I2C=n) && VIDEO_DEV
+> > > 
+> > > So, a V4L2 device that doesn't have any I2C device doesn't need to depend
+> > > on VIDEO_V4L2. That includes, for example, reversed-engineered webcam
+> > > drivers where the sensor code is inside the driver and a few capture-only
+> > > device drivers.
+> > 
+> > Yes, it does have to depend on it. That's exactly why usbtv is failing: like
+> > any other v4l2 driver usbtv needs the videodev.ko module. That is dependent
+> > on VIDEO_V4L2. What is happening here is that the dependency of usbtv on
+> > VIDEO_DEV allows it to be built as part of the kernel, but VIDEO_V4L2 is built
+> > as a module due to its I2C dependency with the result that usbtv can't link to
+> > the videodev functions.
+> > 
+> > The way things are today I do not believe any v4l2 driver should depend on
+> > VIDEO_DEV, instead they should all depend on VIDEO_V4L2. That would make a
+> > lot more sense.
+> 
+> Hmm...
+> 
+> $ git grep -l i2c drivers/media/v4l2-core/
+> drivers/media/v4l2-core/tuner-core.c		(not part of videodev.ko module)
+> drivers/media/v4l2-core/v4l2-async.c
+> drivers/media/v4l2-core/v4l2-common.c
+> drivers/media/v4l2-core/v4l2-ctrls.c		(actually, there's just a comment there)
+> drivers/media/v4l2-core/v4l2-device.c
+> 
+> $ git grep  CONFIG_I2C drivers/media/v4l2-core/
+> drivers/media/v4l2-core/v4l2-common.c:#if IS_ENABLED(CONFIG_I2C)
+> drivers/media/v4l2-core/v4l2-common.c:#endif /* defined(CONFIG_I2C) */
+> drivers/media/v4l2-core/v4l2-device.c:#if IS_ENABLED(CONFIG_I2C)
+> 
+> yes, there are some parts of videodev that are dependent on I2C.
+> 
+> That's basically why all V4L2 drivers should depend on VIDEO_V4L2.
+> 
+> That's said, before the addition of v4l2-async, it was safe to compile
+> the core without I2C, as the parts of the code that are I2C specific are
+> protected by a:
+> 	#if defined(CONFIG_I2C)
+> 
+> With its addition, I suspect that we'll still have Kbuild issues, if I2C
+> is disabled and a driver that doesn't depends on I2C is compiled.
+> 
+> So, 2 patches seem to be needed:
+> 
+> 1) a patch that replaces all driver dependencies from CONFIG_DEV to
+>    CONFIG_V4L2;
+> 
+> 2) a patch that fixes the issues with v4l2-async.
+> 
+> With regards to the last one, I can see 3 ways to fix it:
+> 	1) don't add v4l2-async at videodev.ko if I2C is not selected;
+> 	2) protect the I2C specific parts of v4l2-async with
+> 		#if defined(CONFIG_I2C)
+> 	3) put v4l2-async on a separate module.
+> 
+> (or some combination of the above)
+> 
+> As only very few drivers use v4l2-async, as this is more focused to
+> fix troubles with OT, I think that the better would be to do (3) and
+> to add an specific Kconfig entry for it.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c    |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   12 ++++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   18 ++++++++++--------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   16 +++++++++-------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |    2 +-
- 6 files changed, 28 insertions(+), 24 deletions(-)
+No, #2 is the right choice here. That's necessary anyway since it is a valid
+use-case that I2C is disabled and you use it for platform devices only.
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-index f0a41c9..242c033 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-@@ -20,7 +20,7 @@ static struct s5p_mfc_hw_cmds *s5p_mfc_cmds;
- 
- void s5p_mfc_init_hw_cmds(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v6();
- 	else
- 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v5();
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index ef4074c..d47016d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -683,6 +683,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
- #define HAS_PORTNUM(dev)	(dev ? (dev->variant ? \
- 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
- #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
--#define IS_MFCV6(dev)		(dev->variant->version >= 0x60 ? 1 : 0)
-+#define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
- 
- #endif /* S5P_MFC_COMMON_H_ */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index dc1fc94..7cab684 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -164,7 +164,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
- 
- 	mfc_debug_enter();
- 
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		/* Reset IP */
- 		/*  except RISC, reset */
- 		mfc_write(dev, 0xFEE, S5P_FIMV_MFC_RESET_V6);
-@@ -213,7 +213,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
- 
- static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		mfc_write(dev, dev->bank1, S5P_FIMV_RISC_BASE_ADDRESS_V6);
- 		mfc_debug(2, "Base Address : %08x\n", dev->bank1);
- 	} else {
-@@ -226,7 +226,7 @@ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
- 
- static inline void s5p_mfc_clear_cmds(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		/* Zero initialization should be done before RESET.
- 		 * Nothing to do here. */
- 	} else {
-@@ -264,7 +264,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 	s5p_mfc_clear_cmds(dev);
- 	/* 3. Release reset signal to the RISC */
- 	s5p_mfc_clean_dev_int_flags(dev);
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
- 	else
- 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-@@ -301,7 +301,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 		s5p_mfc_clock_off();
- 		return -EIO;
- 	}
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
- 	else
- 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
-@@ -380,7 +380,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 		return ret;
- 	}
- 	/* 4. Release reset signal to the RISC */
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
- 	else
- 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 00b0703..56a1d3b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -382,7 +382,7 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for source.\n");
- 			return -EINVAL;
- 		}
--		if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
-+		if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
- 		}
-@@ -392,10 +392,11 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for destination.\n");
- 			return -EINVAL;
- 		}
--		if (IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
-+		if (IS_MFCV6_PLUS(dev) &&
-+				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (!IS_MFCV6(dev) &&
-+		} else if (!IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -430,10 +431,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for source.\n");
- 			return -EINVAL;
- 		}
--		if (!IS_MFCV6(dev) && (fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
-+		if (!IS_MFCV6_PLUS(dev) &&
-+				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (IS_MFCV6(dev) &&
-+		} else if (IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -457,7 +459,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		ret = -EINVAL;
- 		goto out;
- 	}
--	if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
-+	if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
- 		mfc_err("Not supported format.\n");
- 		return -EINVAL;
- 	}
-@@ -942,7 +944,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		psize[0] = ctx->luma_size;
- 		psize[1] = ctx->chroma_size;
- 
--		if (IS_MFCV6(dev))
-+		if (IS_MFCV6_PLUS(dev))
- 			allocators[0] =
- 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
- 		else
-@@ -1067,7 +1069,7 @@ static int s5p_mfc_stop_streaming(struct vb2_queue *q)
- 		ctx->dpb_flush_flag = 1;
- 		ctx->dec_dst_flag = 0;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
--		if (IS_MFCV6(dev) && (ctx->state == MFCINST_RUNNING)) {
-+		if (IS_MFCV6_PLUS(dev) && (ctx->state == MFCINST_RUNNING)) {
- 			ctx->state = MFCINST_FLUSH;
- 			set_work_bit_irqsave(ctx);
- 			s5p_mfc_clean_ctx_int_flags(ctx);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 2549967..f734ccc 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -663,7 +663,7 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	}
- 
--	if (!IS_MFCV6(dev)) {
-+	if (!IS_MFCV6_PLUS(dev)) {
- 		ctx->state = MFCINST_RUNNING;
- 		if (s5p_mfc_ctx_ready(ctx))
- 			set_work_bit_irqsave(ctx);
-@@ -993,11 +993,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			return -EINVAL;
- 		}
- 
--		if (!IS_MFCV6(dev) &&
-+		if (!IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (IS_MFCV6(dev) &&
-+		} else if (IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -1072,7 +1072,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			return -EINVAL;
- 		}
- 
--		if (IS_MFCV6(dev)) {
-+		if (IS_MFCV6_PLUS(dev)) {
- 			/* Check for min encoder buffers */
- 			if (ctx->pb_count &&
- 				(reqbufs->count < ctx->pb_count)) {
-@@ -1353,7 +1353,7 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 				S5P_FIMV_ENC_PROFILE_H264_BASELINE;
- 			break;
- 		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
--			if (IS_MFCV6(dev))
-+			if (IS_MFCV6_PLUS(dev))
- 				p->codec.h264.profile =
- 				S5P_FIMV_ENC_PROFILE_H264_CONSTRAINED_BASELINE;
- 			else
-@@ -1662,9 +1662,10 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 			*buf_count = 1;
- 		if (*buf_count > MFC_MAX_BUFFERS)
- 			*buf_count = MFC_MAX_BUFFERS;
-+
- 		psize[0] = ctx->luma_size;
- 		psize[1] = ctx->chroma_size;
--		if (IS_MFCV6(dev)) {
-+		if (IS_MFCV6_PLUS(dev)) {
- 			allocators[0] =
- 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
- 			allocators[1] =
-@@ -1773,7 +1774,8 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 
--	if (IS_MFCV6(dev) && (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
-+	if (IS_MFCV6_PLUS(dev) &&
-+			(q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
- 
- 		if ((ctx->state == MFCINST_GOT_INST) &&
- 			(dev->curr_ctx == ctx->num) && dev->hw_lock) {
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-index 10f8ac3..3c01c33 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-@@ -21,7 +21,7 @@ static struct s5p_mfc_hw_ops *s5p_mfc_ops;
- 
- void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		s5p_mfc_ops = s5p_mfc_init_hw_ops_v6();
- 		dev->warn_start = S5P_FIMV_ERR_WARNINGS_START_V6;
- 	} else {
--- 
-1.7.9.5
+Guennadi, can you look at this? The only thing that is probably needed is
+that match_i2c returns false if CONFIG_I2C is undefined.
 
+I prefer to keep this part of videodev, at least for now: I think there will
+be a fairly quick uptake of this API internally, certainly for subdevs. Note
+BTW that even x86 kernels come with CONFIG_OF enabled these days.
+
+Regards,
+
+	Hans
