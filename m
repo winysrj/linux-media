@@ -1,77 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f177.google.com ([209.85.223.177]:51846 "EHLO
-	mail-ie0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750830Ab3FYLcF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 07:32:05 -0400
+Received: from bear.ext.ti.com ([192.94.94.41]:35710 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752586Ab3F2JAp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Jun 2013 05:00:45 -0400
+Message-ID: <51CEA219.8030001@ti.com>
+Date: Sat, 29 Jun 2013 14:30:09 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <CAAQKjZNnJRddACHzD+VF=A8vJpt9SEy2ttnS3Kw0y3hexu8dnw@mail.gmail.com>
-References: <20130617182127.GM2718@n2100.arm.linux.org.uk>
-	<007301ce6be4$8d5c6040$a81520c0$%dae@samsung.com>
-	<20130618084308.GU2718@n2100.arm.linux.org.uk>
-	<008a01ce6c02$e00a9f50$a01fddf0$%dae@samsung.com>
-	<1371548849.4276.6.camel@weser.hi.pengutronix.de>
-	<008601ce6cb0$2c8cec40$85a6c4c0$%dae@samsung.com>
-	<1371637326.4230.24.camel@weser.hi.pengutronix.de>
-	<00ae01ce6cd9$f4834630$dd89d290$%dae@samsung.com>
-	<1371645247.4230.41.camel@weser.hi.pengutronix.de>
-	<CAAQKjZNJD4HpnJQ7iE+Gez36066M6U0YQeUEdA0+UcSOKqeghg@mail.gmail.com>
-	<20130619182925.GL2718@n2100.arm.linux.org.uk>
-	<00da01ce6d81$76eb3d60$64c1b820$%dae@samsung.com>
-	<1371714427.4230.64.camel@weser.hi.pengutronix.de>
-	<00db01ce6d8f$a3c23dd0$eb46b970$%dae@samsung.com>
-	<1371723063.4114.12.camel@weser.hi.pengutronix.de>
-	<010801ce6da7$896affe0$9c40ffa0$%dae@samsung.com>
-	<1371804843.4114.49.camel@weser.hi.pengutronix.de>
-	<CAAQKjZOxOMuL3zh_yV7tU2LBcZ7oVryiKa+LgjTM5HLY+va8zQ@mail.gmail.com>
-	<1371817628.5882.13.camel@weser.hi.pengutronix.de>
-	<CAAQKjZOeskLB7n6FM+bnB8n7ecuQM5k6uANXJXo=xk979f9s9Q@mail.gmail.com>
-	<CAH3drwZVhs=odjFdB_Mf+K0JLT5NSSbz5mP9aOS=5fx-PVdzSg@mail.gmail.com>
-	<CAAQKjZNnJRddACHzD+VF=A8vJpt9SEy2ttnS3Kw0y3hexu8dnw@mail.gmail.com>
-Date: Tue, 25 Jun 2013 07:32:03 -0400
-Message-ID: <CAF6AEGsBvZbcWDbX3FFtyDxFO1NqYNRLqHEUyP4qUD9wK+ARbA@mail.gmail.com>
-Subject: Re: [RFC PATCH] dmabuf-sync: Introduce buffer synchronization framework
-From: Rob Clark <robdclark@gmail.com>
-To: Inki Dae <daeinki@gmail.com>
-Cc: Jerome Glisse <j.glisse@gmail.com>,
-	linux-fbdev <linux-fbdev@vger.kernel.org>,
-	Russell King - ARM Linux <linux@arm.linux.org.uk>,
-	DRI mailing list <dri-devel@lists.freedesktop.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	"myungjoo.ham" <myungjoo.ham@samsung.com>,
-	YoungJun Cho <yj44.cho@samsung.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"linux-arm-kernel@lists.infradead.org"
-	<linux-arm-kernel@lists.infradead.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Jingoo Han <jg1.han@samsung.com>
+CC: <linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	"'Kukjin Kim'" <kgene.kim@samsung.com>,
+	"'Sylwester Nawrocki'" <s.nawrocki@samsung.com>,
+	"'Felipe Balbi'" <balbi@ti.com>,
+	"'Tomasz Figa'" <t.figa@samsung.com>,
+	<devicetree-discuss@lists.ozlabs.org>,
+	"'Inki Dae'" <inki.dae@samsung.com>,
+	"'Donghwa Lee'" <dh09.lee@samsung.com>,
+	"'Kyungmin Park'" <kyungmin.park@samsung.com>,
+	"'Jean-Christophe PLAGNIOL-VILLARD'" <plagnioj@jcrosoft.com>,
+	<linux-fbdev@vger.kernel.org>
+Subject: Re: [PATCH V2 1/3] phy: Add driver for Exynos DP PHY
+References: <001f01ce73cf$46d8c940$d48a5bc0$@samsung.com>
+In-Reply-To: <001f01ce73cf$46d8c940$d48a5bc0$@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jun 25, 2013 at 5:09 AM, Inki Dae <daeinki@gmail.com> wrote:
->> that
->> should be the role of kernel memory management which of course needs
->> synchronization btw A and B. But in no case this should be done using
->> dma-buf. dma-buf is for sharing content btw different devices not
->> sharing resources.
->>
+Hi,
+
+On Friday 28 June 2013 12:45 PM, Jingoo Han wrote:
+> Add a PHY provider driver for the Samsung Exynos SoC DP PHY.
 >
-> hmm, is that true? And are you sure? Then how do you think about
-> reservation? the reservation also uses dma-buf with same reason as long as I
-> know: actually, we use reservation to use dma-buf. As you may know, a
-> reservation object is allocated and initialized when a buffer object is
-> exported to a dma buf.
+> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+> ---
+>   .../phy/samsung,exynos5250-dp-video-phy.txt        |    7 ++
+>   drivers/phy/Kconfig                                |    8 ++
+>   drivers/phy/Makefile                               |    3 +-
+>   drivers/phy/phy-exynos-dp-video.c                  |  122 ++++++++++++++++++++
+>   4 files changed, 139 insertions(+), 1 deletion(-)
+>   create mode 100644 Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
+>   create mode 100644 drivers/phy/phy-exynos-dp-video.c
+>
+> diff --git a/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
+> b/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
+> new file mode 100644
+> index 0000000..d1771ef
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/phy/samsung,exynos5250-dp-video-phy.txt
+> @@ -0,0 +1,7 @@
+> +Samsung EXYNOS SoC series DP PHY
+> +-------------------------------------------------
+> +
+> +Required properties:
+> +- compatible : should be "samsung,exynos5250-dp-video-phy";
+> +- reg : offset and length of the DP PHY register set;
+> +- #phy-cells : from the generic phy bindings, must be 0;
+> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+> index 5f85909..6d10e3b 100644
+> --- a/drivers/phy/Kconfig
+> +++ b/drivers/phy/Kconfig
+> @@ -11,3 +11,11 @@ menuconfig GENERIC_PHY
+>   	  devices present in the kernel. This layer will have the generic
+>   	  API by which phy drivers can create PHY using the phy framework and
+>   	  phy users can obtain reference to the PHY.
+> +
+> +if GENERIC_PHY
+> +
+> +config PHY_EXYNOS_DP_VIDEO
+> +	tristate "EXYNOS SoC series DP PHY driver"
+> +	help
+> +	  Support for DP PHY found on Samsung EXYNOS SoCs.
+> +endif
+> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+> index 9e9560f..d8d861c 100644
+> --- a/drivers/phy/Makefile
+> +++ b/drivers/phy/Makefile
+> @@ -2,4 +2,5 @@
+>   # Makefile for the phy drivers.
+>   #
+>
+> -obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
+> +obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
+> +obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
+> diff --git a/drivers/phy/phy-exynos-dp-video.c b/drivers/phy/phy-exynos-dp-video.c
+> new file mode 100644
+> index 0000000..9a3d6f1
+> --- /dev/null
+> +++ b/drivers/phy/phy-exynos-dp-video.c
+> @@ -0,0 +1,122 @@
+> +/*
+> + * Samsung EXYNOS SoC series DP PHY driver
+> + *
+> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
+> + * Author: Jingoo Han <jg1.han@samsung.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include <linux/io.h>
+> +#include <linux/kernel.h>
+> +#include <linux/module.h>
+> +#include <linux/of.h>
+> +#include <linux/of_address.h>
+> +#include <linux/phy/phy.h>
+> +#include <linux/platform_device.h>
+> +#include <linux/spinlock.h>
+> +
+> +/* DPTX_PHY_CONTROL register */
+> +#define EXYNOS_DPTX_PHY_ENABLE		(1 << 0)
+> +
+> +struct exynos_dp_video_phy {
+> +	spinlock_t slock;
 
-no, this is why the reservation object can be passed in when you
-construction the dmabuf.  The fallback is for dmabuf to create it's
-own, for compatibility and to make life easier for simple devices with
-few buffers... but I think pretty much all drm drivers would embed the
-reservation object in the gem buffer and pass it in when the dmabuf is
-created.
+I think spinlock is not needed at all since the PHY ops is already protected
+by a mutex.
+> +	struct phy *phys;
 
-It is pretty much imperative that synchronization works independently
-of dmabuf, you really don't want to have two different cases to deal
-with in your driver, one for synchronizing non-exported objects, and
-one for synchronizing dmabuf objects.
+_phys_ no longer need to part of this structure.
+> +	void __iomem *regs;
+> +};
 
-BR,
--R
+Thanks
+Kishon
