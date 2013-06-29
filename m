@@ -1,42 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f49.google.com ([209.85.214.49]:47608 "EHLO
-	mail-bk0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754207Ab3FPVQt (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 16 Jun 2013 17:16:49 -0400
-Received: by mail-bk0-f49.google.com with SMTP id mz10so885029bkb.22
-        for <linux-media@vger.kernel.org>; Sun, 16 Jun 2013 14:16:47 -0700 (PDT)
-Message-ID: <51BE2B3C.30102@gmail.com>
-Date: Sun, 16 Jun 2013 23:16:44 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:39280 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750760Ab3F2I6k (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 29 Jun 2013 04:58:40 -0400
+Message-ID: <51CEA197.8070207@ti.com>
+Date: Sat, 29 Jun 2013 14:27:59 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	laurent.pinchart@ideasonboard.com
-CC: s.nawrocki@samsung.com, linux-media@vger.kernel.org,
-	kyungmin.park@samsung.com, a.hajda@samsung.com
-Subject: Re: [RFC PATCH 2/2] davinci_vpfe: Clean up media entity after unregistering
- subdev
-References: <20130611105032.GJ3103@valkosipuli.retiisi.org.uk> <1370947849-24314-1-git-send-email-sakari.ailus@iki.fi> <1370947849-24314-2-git-send-email-sakari.ailus@iki.fi> <CA+V-a8t2MUwEHZMvbb0mN+dy6bH6yt_mwirH6cgoTfZfh83cew@mail.gmail.com>
-In-Reply-To: <CA+V-a8t2MUwEHZMvbb0mN+dy6bH6yt_mwirH6cgoTfZfh83cew@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: Hui Wang <jason77.wang@gmail.com>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<kyungmin.park@samsung.com>, <balbi@ti.com>, <t.figa@samsung.com>,
+	<devicetree-discuss@lists.ozlabs.org>, <kgene.kim@samsung.com>,
+	<dh09.lee@samsung.com>, <jg1.han@samsung.com>,
+	<inki.dae@samsung.com>, <plagnioj@jcrosoft.com>,
+	<linux-fbdev@vger.kernel.org>
+Subject: Re: [PATCH v3 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com> <1372258946-15607-2-git-send-email-s.nawrocki@samsung.com> <51CD4698.3070409@gmail.com> <51CD6153.5050406@samsung.com>
+In-Reply-To: <51CD6153.5050406@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi,
 
-On 06/12/2013 06:44 AM, Prabhakar Lad wrote:
-> On Tue, Jun 11, 2013 at 4:20 PM, Sakari Ailus<sakari.ailus@iki.fi>  wrote:
->> media_entity_cleanup() frees the links array which will be accessed by
->> media_entity_remove_links() called by v4l2_device_unregister_subdev().
+On Friday 28 June 2013 03:41 PM, Sylwester Nawrocki wrote:
+> On 06/28/2013 10:17 AM, Hui Wang wrote:
+>> On 06/26/2013 11:02 PM, Sylwester Nawrocki wrote:
+>>> Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
+>>> receiver and MIPI DSI transmitter DPHYs.
+>>>
+>>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>> ---
+>>> Changes since v2:
+>>>    - adapted to the generic PHY API v9: use phy_set/get_drvdata(),
+>>>    - fixed of_xlate callback to return ERR_PTR() instead of NULL,
+>>>    - namespace cleanup, put "GPL v2" as MODULE_LICENSE, removed pr_debug,
+>>>    - removed phy id check in __set_phy_state().
+>>> ---
+>> [...]
+>>> +
+>>> +	if (IS_EXYNOS_MIPI_DSIM_PHY_ID(id))
+>>> +		reset = EXYNOS_MIPI_PHY_MRESETN;
+>>> +	else
+>>> +		reset = EXYNOS_MIPI_PHY_SRESETN;
+>>> +
+>>> +	spin_lock_irqsave(&state->slock, flags);
 >>
->> Signed-off-by: Sakari Ailus<sakari.ailus@iki.fi>
+>> Sorry for one stupid question here, why do you use spin_lock_irqsave()
+>> rather than spin_lock(),
+>> I don't see the irq handler will use this spinlock anywhere in this c file.
 >
-> Acked-by: Lad, Prabhakar<prabhakar.csengg@gmail.com>
+> Yes, there is no chance the PHY users could call the phy ops from within
+> an interrupt context. Especially now when there is a per phy object
+> mutex used in the PHY operation helpers. So I'll replace it with plain
+> spin_lock/unlock. Thank you for the review.
 
-I have added these two patches to my tree for 3.11 (in branch for-v3.11-2).
-Please let me know if you would like it to be handled differently.
+Now that PHY ops is already protected, do you really need a spin_lock here?
 
-Regards,
-Sylwester
+Thanks
+Kishon
