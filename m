@@ -1,183 +1,85 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:3837 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965511Ab3FTNpF (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.186]:53313 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752902Ab3F2K5e (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 20 Jun 2013 09:45:05 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [RFCv2 PATCH 14/15] saa6588: add support for non-blocking mode.
-Date: Thu, 20 Jun 2013 15:44:30 +0200
-Message-Id: <1371735871-2658-15-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
-References: <1371735871-2658-1-git-send-email-hverkuil@xs4all.nl>
+	Sat, 29 Jun 2013 06:57:34 -0400
+Date: Sat, 29 Jun 2013 12:57:22 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+cc: Vladimir Barinov <vladimir.barinov@cogentembedded.com>,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp
+Subject: Re: [PATCH v7] V4L2: soc_camera: Renesas R-Car VIN driver
+In-Reply-To: <51CDC3BE.1040603@cogentembedded.com>
+Message-ID: <Pine.LNX.4.64.1306291247440.8358@axis700.grange>
+References: <201306220052.30572.sergei.shtylyov@cogentembedded.com>
+ <Pine.LNX.4.64.1306260925210.8856@axis700.grange> <51CCD1B7.3040009@cogentembedded.com>
+ <51CDC3BE.1040603@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi Sergei
 
-saa6588 always blocked while waiting for data, even if the filehandle
-was in non-blocking mode.
+On Fri, 28 Jun 2013, Sergei Shtylyov wrote:
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> Hello.
+> 
+> On 06/28/2013 03:58 AM, Vladimir Barinov wrote:
+> 
+> > > > From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> 
+> > > > Add Renesas R-Car VIN (Video In) V4L2 driver.
+> 
+> > > > Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> 
+> > > > Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> > > > [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed
+> > > > 'enum chip_id'
+> > > > values, reordered rcar_vin_id_table[] entries,  removed senseless
+> > > > parens from
+> > > > to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {}
+> > > > to the
+> > > > *if* statement  and used 'bool' values instead of 0/1 where
+> > > > necessary, removed
+> > > > unused macros, done some reformatting and clarified some comments.]
+> > > > Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> > > Reviewing this iteration of the patch is still on my todo, in the
+> > > meantime you might verify whether it works on top of the for-3.11-3
+> > > branch of my
+> 
+> > > http://git.linuxtv.org/gliakhovetski/v4l-dvb.git
+> 
+> > > git-tree, or "next" after it's been pulled by Mauro and pushed
+> > > upstream. With that branch you shouldn't need any additional patches
+> > > andy more.
+> 
+> > Actually we need to apply/merge more patches here that enables VIN
+> > support on separate platform (like pinctrl/clock/setup/) :)
+> 
+> > Despite of above the rcar_vin driver works fine on Marzen board in
+> > v4l-dvb.git after adding soc_camera_host_ops clock_start/clock_stop.
+> 
+>    Guennadi, does that mean that we should rebase the driver to the branch
+> that you've named now?
+
+IIUC, your last couple of versions were already developed on top of 
+v4l2-clk + v4l2-asybc + soc_scale_crop patches, right? But those patches 
+were out of tree, and thus unstable. Whereas now they've hit Mauro's tree 
+at git.linuxtv.org and are about to be pulled into "next." So, you don't 
+need anymore to apply any external patches, you will be able to just 
+develop on top of "next." I presume, this should make your work easier, 
+not harder. Just please make sure to double-check your stack on top of 
+"next" to make sure it still works. And let's try to get your driver ready 
+for 3.12.
+
+Thanks
+Guennadi
 ---
- drivers/media/i2c/saa6588.c               | 45 +++++++++++++++++--------------
- drivers/media/pci/bt8xx/bttv-driver.c     |  4 ++-
- drivers/media/pci/saa7134/saa7134-video.c |  1 +
- include/media/saa6588.h                   |  1 +
- 4 files changed, 30 insertions(+), 21 deletions(-)
-
-diff --git a/drivers/media/i2c/saa6588.c b/drivers/media/i2c/saa6588.c
-index 21cf940..2960b5a 100644
---- a/drivers/media/i2c/saa6588.c
-+++ b/drivers/media/i2c/saa6588.c
-@@ -150,14 +150,14 @@ static inline struct saa6588 *to_saa6588(struct v4l2_subdev *sd)
- 
- /* ---------------------------------------------------------------------- */
- 
--static int block_to_user_buf(struct saa6588 *s, unsigned char __user *user_buf)
-+static bool block_from_buf(struct saa6588 *s, unsigned char *buf)
- {
- 	int i;
- 
- 	if (s->rd_index == s->wr_index) {
- 		if (debug > 2)
- 			dprintk(PREFIX "Read: buffer empty.\n");
--		return 0;
-+		return false;
- 	}
- 
- 	if (debug > 2) {
-@@ -166,8 +166,7 @@ static int block_to_user_buf(struct saa6588 *s, unsigned char __user *user_buf)
- 			dprintk("0x%02x ", s->buffer[i]);
- 	}
- 
--	if (copy_to_user(user_buf, &s->buffer[s->rd_index], 3))
--		return -EFAULT;
-+	memcpy(buf, &s->buffer[s->rd_index], 3);
- 
- 	s->rd_index += 3;
- 	if (s->rd_index >= s->buf_size)
-@@ -177,22 +176,22 @@ static int block_to_user_buf(struct saa6588 *s, unsigned char __user *user_buf)
- 	if (debug > 2)
- 		dprintk("%d blocks total.\n", s->block_count);
- 
--	return 1;
-+	return true;
- }
- 
- static void read_from_buf(struct saa6588 *s, struct saa6588_command *a)
- {
--	unsigned long flags;
--
- 	unsigned char __user *buf_ptr = a->buffer;
--	unsigned int i;
-+	unsigned char buf[3];
-+	unsigned long flags;
- 	unsigned int rd_blocks;
-+	unsigned int i;
- 
- 	a->result = 0;
- 	if (!a->buffer)
- 		return;
- 
--	while (!s->data_available_for_read) {
-+	while (!a->nonblocking && !s->data_available_for_read) {
- 		int ret = wait_event_interruptible(s->read_queue,
- 					     s->data_available_for_read);
- 		if (ret == -ERESTARTSYS) {
-@@ -201,24 +200,31 @@ static void read_from_buf(struct saa6588 *s, struct saa6588_command *a)
- 		}
- 	}
- 
--	spin_lock_irqsave(&s->lock, flags);
- 	rd_blocks = a->block_count;
-+	spin_lock_irqsave(&s->lock, flags);
- 	if (rd_blocks > s->block_count)
- 		rd_blocks = s->block_count;
-+	spin_unlock_irqrestore(&s->lock, flags);
- 
--	if (!rd_blocks) {
--		spin_unlock_irqrestore(&s->lock, flags);
-+	if (!rd_blocks)
- 		return;
--	}
- 
- 	for (i = 0; i < rd_blocks; i++) {
--		if (block_to_user_buf(s, buf_ptr)) {
--			buf_ptr += 3;
--			a->result++;
--		} else
-+		bool got_block;
-+
-+		spin_lock_irqsave(&s->lock, flags);
-+		got_block = block_from_buf(s, buf);
-+		spin_unlock_irqrestore(&s->lock, flags);
-+		if (!got_block)
- 			break;
-+		if (copy_to_user(buf_ptr, buf, 3)) {
-+			a->result = -EFAULT;
-+			return;
-+		}
-+		buf_ptr += 3;
-+		a->result += 3;
- 	}
--	a->result *= 3;
-+	spin_lock_irqsave(&s->lock, flags);
- 	s->data_available_for_read = (s->block_count > 0);
- 	spin_unlock_irqrestore(&s->lock, flags);
- }
-@@ -408,9 +414,8 @@ static long saa6588_ioctl(struct v4l2_subdev *sd, unsigned int cmd, void *arg)
- 		/* --- poll() for /dev/radio --- */
- 	case SAA6588_CMD_POLL:
- 		a->result = 0;
--		if (s->data_available_for_read) {
-+		if (s->data_available_for_read)
- 			a->result |= POLLIN | POLLRDNORM;
--		}
- 		poll_wait(a->instance, &s->read_queue, a->event_list);
- 		break;
- 
-diff --git a/drivers/media/pci/bt8xx/bttv-driver.c b/drivers/media/pci/bt8xx/bttv-driver.c
-index c6532de..b8cae71 100644
---- a/drivers/media/pci/bt8xx/bttv-driver.c
-+++ b/drivers/media/pci/bt8xx/bttv-driver.c
-@@ -3266,7 +3266,9 @@ static ssize_t radio_read(struct file *file, char __user *data,
- 	struct bttv_fh *fh = file->private_data;
- 	struct bttv *btv = fh->btv;
- 	struct saa6588_command cmd;
--	cmd.block_count = count/3;
-+
-+	cmd.block_count = count / 3;
-+	cmd.nonblocking = file->f_flags & O_NONBLOCK;
- 	cmd.buffer = data;
- 	cmd.instance = file;
- 	cmd.result = -ENODEV;
-diff --git a/drivers/media/pci/saa7134/saa7134-video.c b/drivers/media/pci/saa7134/saa7134-video.c
-index 485f67d..b7ebde9 100644
---- a/drivers/media/pci/saa7134/saa7134-video.c
-+++ b/drivers/media/pci/saa7134/saa7134-video.c
-@@ -1284,6 +1284,7 @@ static ssize_t radio_read(struct file *file, char __user *data,
- 	struct saa6588_command cmd;
- 
- 	cmd.block_count = count/3;
-+	cmd.nonblocking = file->f_flags & O_NONBLOCK;
- 	cmd.buffer = data;
- 	cmd.instance = file;
- 	cmd.result = -ENODEV;
-diff --git a/include/media/saa6588.h b/include/media/saa6588.h
-index 1489a52..b5ec1aa 100644
---- a/include/media/saa6588.h
-+++ b/include/media/saa6588.h
-@@ -27,6 +27,7 @@
- 
- struct saa6588_command {
- 	unsigned int  block_count;
-+	bool          nonblocking;
- 	int           result;
- 	unsigned char __user *buffer;
- 	struct file   *instance;
--- 
-1.8.3.1
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
