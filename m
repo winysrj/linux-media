@@ -1,197 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:31523 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751691Ab3FYKw4 (ORCPT
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:49039 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752457Ab3F3VSC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 25 Jun 2013 06:52:56 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MOY00BED3K5LH40@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 25 Jun 2013 19:52:55 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, a.hajda@samsung.com,
-	j.anaszewski@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH v2 3/6] exynos4-is: Fix format propagation on FIMC-IS-ISP subdev
-Date: Tue, 25 Jun 2013 12:52:32 +0200
-Message-id: <1372157555-29557-1-git-send-email-s.nawrocki@samsung.com>
+	Sun, 30 Jun 2013 17:18:02 -0400
+Received: by mail-bk0-f41.google.com with SMTP id jc3so1405793bkc.0
+        for <linux-media@vger.kernel.org>; Sun, 30 Jun 2013 14:18:00 -0700 (PDT)
+Message-ID: <51D0A085.7020500@gmail.com>
+Date: Sun, 30 Jun 2013 23:17:57 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES
+ and S_FMT?
+References: <201306241448.15187.hverkuil@xs4all.nl> <51D09507.80501@gmail.com> <20130630175524.0b3fda91@infradead.org>
+In-Reply-To: <20130630175524.0b3fda91@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ensure TRY formats are propagated from the sink pad to the source pads
-of the FIMC-IS-ISP subdev and the TRY and ACTIVE formats are separated.
+On 06/30/2013 10:55 PM, Mauro Carvalho Chehab wrote:
+> Em Sun, 30 Jun 2013 22:28:55 +0200
+> Sylwester Nawrocki<sylvester.nawrocki@gmail.com>  escreveu:
+>
+>> Hi Hans,
+>>
+>> On 06/24/2013 02:48 PM, Hans Verkuil wrote:
+>>> Hi all,
+>>>
+>>> While working on extending v4l2-compliance with cropping/selection test cases
+>>> I decided to add support for that to vivi as well (this would give applications
+>>> a good test driver to work with).
+>>>
+>>> However, I ran into problems how this should be implemented for V4L2 devices
+>>> (we are not talking about complex media controller devices where the video
+>>> pipelines are setup manually).
+>>>
+>>> There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
+>>>
+>>> The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
+>>> possible frame sizes, and that can crop, compose and/or scale, then you need
+>>> to be able to set the frame size. Currently this is decided by S_FMT which
+>>> maps the format size to the closest valid frame size. This however makes
+>>> it impossible to e.g. scale up a frame, or compose the image into a larger
+>>> buffer.
+>>>
+>>> For video receivers this issue doesn't exist: there the size of the incoming
+>>> video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for sensors.
+>>>
+>>> I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
+>>
+>> V4L2_SEL_TGT_FRAMESIZE seems a bit imprecise to me, perhaps:
+>> V4L2_SEL_TGT_SENSOR(_SIZE) or V4L2_SEL_TGT_SOURCE(_SIZE) ? The latter might
+>> be a bit weird when referred to the subdev API though, not sure if defining
+>> it as valid only on V4L2 device nodes makes any difference.
+>
+> Both name proposals seem weird and confuse.
+>
+> If the issue is only to do scale up, then why not create a VIDIOC_S_SCALEUP
+> ioctl (or something similar), when we start having any real case where this
+> is needed. Please, let's not overbloat the API just due to vivi driver issues.
+>
+> In the specific case of vivi, I can't see why you would need something like
+> that for crop/selection: it should just assume that the S_FMT represents the
+> full frame, and crop/selection will apply on it.
+>
+> Btw, I can't remember a single (non-embedded) capture device that can do
+> scaleup. On embedded devices, this is probably already solved by a mem2mem
+> driver or via the media controller API.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/fimc-isp.c |   94 ++++++++++++++++++--------
- drivers/media/platform/exynos4-is/fimc-isp.h |    3 +-
- 2 files changed, 67 insertions(+), 30 deletions(-)
+Yes, for example in case of the Samsung SoCs most, if not all, the 
+camera host
+interfaces can't do scaling up themselves, only scaling down. But the 
+DMA can
+compose the source image onto a buffer, which could be larger that the frame
+size set on the camera interface input. When the camera interface input 
+(sensor)
+resolution and the capture buffer resolution are both set by S_FMT, this 
+feature
+cannot be used. Anyway, this is now handled there by the MC/subdev API.
 
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp.c b/drivers/media/platform/exynos4-is/fimc-isp.c
-index eda8134..30aa46f 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp.c
-+++ b/drivers/media/platform/exynos4-is/fimc-isp.c
-@@ -129,31 +129,28 @@ static int fimc_isp_subdev_get_fmt(struct v4l2_subdev *sd,
- 				   struct v4l2_subdev_format *fmt)
- {
- 	struct fimc_isp *isp = v4l2_get_subdevdata(sd);
--	struct fimc_is *is = fimc_isp_to_is(isp);
- 	struct v4l2_mbus_framefmt *mf = &fmt->format;
--	struct v4l2_mbus_framefmt cur_fmt;
+> Ok, for output devices this could be more common.
+>
+> Do you have any real case where this feature is needed?
 
- 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
--		mf = v4l2_subdev_get_try_format(fh, fmt->pad);
--		fmt->format = *mf;
--		return 0;
-+		 *mf = *v4l2_subdev_get_try_format(fh, fmt->pad);
-+		 return 0;
- 	}
-
- 	mf->colorspace = V4L2_COLORSPACE_SRGB;
-
- 	mutex_lock(&isp->subdev_lock);
--	__is_get_frame_size(is, &cur_fmt);
-
- 	if (fmt->pad == FIMC_ISP_SD_PAD_SINK) {
--		/* full camera input frame size */
--		mf->width = cur_fmt.width + FIMC_ISP_CAC_MARGIN_WIDTH;
--		mf->height = cur_fmt.height + FIMC_ISP_CAC_MARGIN_HEIGHT;
--		mf->code = V4L2_MBUS_FMT_SGRBG10_1X10;
-+		/* ISP OTF input image format */
-+		*mf = isp->sink_fmt;
- 	} else {
--		/* crop size */
--		mf->width = cur_fmt.width;
--		mf->height = cur_fmt.height;
--		mf->code = V4L2_MBUS_FMT_YUV10_1X30;
-+		/* ISP OTF output image format */
-+		*mf = isp->src_fmt;
-+
-+		if (fmt->pad == FIMC_ISP_SD_PAD_SRC_FIFO) {
-+			mf->colorspace = V4L2_COLORSPACE_JPEG;
-+			mf->code = V4L2_MBUS_FMT_YUV10_1X30;
-+		}
- 	}
-
- 	mutex_unlock(&isp->subdev_lock);
-@@ -165,21 +162,37 @@ static int fimc_isp_subdev_get_fmt(struct v4l2_subdev *sd,
- }
-
- static void __isp_subdev_try_format(struct fimc_isp *isp,
--				   struct v4l2_subdev_format *fmt)
-+				    struct v4l2_subdev_fh *fh,
-+				    struct v4l2_subdev_format *fmt)
- {
- 	struct v4l2_mbus_framefmt *mf = &fmt->format;
-+	struct v4l2_mbus_framefmt *format;
-+
-+	mf->colorspace = V4L2_COLORSPACE_SRGB;
-
- 	if (fmt->pad == FIMC_ISP_SD_PAD_SINK) {
- 		v4l_bound_align_image(&mf->width, FIMC_ISP_SINK_WIDTH_MIN,
- 				FIMC_ISP_SINK_WIDTH_MAX, 0,
- 				&mf->height, FIMC_ISP_SINK_HEIGHT_MIN,
- 				FIMC_ISP_SINK_HEIGHT_MAX, 0, 0);
--		isp->subdev_fmt = *mf;
-+		mf->code = V4L2_MBUS_FMT_SGRBG10_1X10;
- 	} else {
-+		if (fmt->which == V4L2_SUBDEV_FORMAT_TRY)
-+			format = v4l2_subdev_get_try_format(fh,
-+						FIMC_ISP_SD_PAD_SINK);
-+		else
-+			format = &isp->sink_fmt;
-+
- 		/* Allow changing format only on sink pad */
--		mf->width = isp->subdev_fmt.width - FIMC_ISP_CAC_MARGIN_WIDTH;
--		mf->height = isp->subdev_fmt.height - FIMC_ISP_CAC_MARGIN_HEIGHT;
--		mf->code = isp->subdev_fmt.code;
-+		mf->width = format->width - FIMC_ISP_CAC_MARGIN_WIDTH;
-+		mf->height = format->height - FIMC_ISP_CAC_MARGIN_HEIGHT;
-+
-+		if (fmt->pad == FIMC_ISP_SD_PAD_SRC_FIFO) {
-+			mf->code = V4L2_MBUS_FMT_YUV10_1X30;
-+			mf->colorspace = V4L2_COLORSPACE_JPEG;
-+		} else {
-+			mf->code = format->code;
-+		}
- 	}
- }
-
-@@ -195,24 +208,47 @@ static int fimc_isp_subdev_set_fmt(struct v4l2_subdev *sd,
- 	isp_dbg(1, sd, "%s: pad%d: code: 0x%x, %dx%d\n",
- 		 __func__, fmt->pad, mf->code, mf->width, mf->height);
-
--	mf->colorspace = V4L2_COLORSPACE_SRGB;
--
- 	mutex_lock(&isp->subdev_lock);
--	__isp_subdev_try_format(isp, fmt);
-+	__isp_subdev_try_format(isp, fh, fmt);
-
- 	if (fmt->which == V4L2_SUBDEV_FORMAT_TRY) {
- 		mf = v4l2_subdev_get_try_format(fh, fmt->pad);
- 		*mf = fmt->format;
--		mutex_unlock(&isp->subdev_lock);
--		return 0;
-+
-+		/* Propagate format to the source pads */
-+		if (fmt->pad == FIMC_ISP_SD_PAD_SINK) {
-+			struct v4l2_subdev_format format = *fmt;
-+			unsigned int pad;
-+
-+			for (pad = FIMC_ISP_SD_PAD_SRC_FIFO;
-+					pad < FIMC_ISP_SD_PADS_NUM; pad++) {
-+				format.pad = pad;
-+				__isp_subdev_try_format(isp, fh, &format);
-+				mf = v4l2_subdev_get_try_format(fh, pad);
-+				*mf = format.format;
-+			}
-+		}
-+	} else {
-+		if (sd->entity.stream_count == 0) {
-+			if (fmt->pad == FIMC_ISP_SD_PAD_SINK) {
-+				struct v4l2_subdev_format format = *fmt;
-+
-+				isp->sink_fmt = *mf;
-+
-+				format.pad = FIMC_ISP_SD_PAD_SRC_DMA;
-+				__isp_subdev_try_format(isp, fh, &format);
-+
-+				isp->src_fmt = format.format;
-+				__is_set_frame_size(is, &isp->src_fmt);
-+			} else {
-+				isp->src_fmt = *mf;
-+			}
-+		} else {
-+			ret = -EBUSY;
-+		}
- 	}
-
--	if (sd->entity.stream_count == 0)
--		__is_set_frame_size(is, mf);
--	else
--		ret = -EBUSY;
- 	mutex_unlock(&isp->subdev_lock);
--
- 	return ret;
- }
-
-diff --git a/drivers/media/platform/exynos4-is/fimc-isp.h b/drivers/media/platform/exynos4-is/fimc-isp.h
-index 0aa2a54..4dc55a1 100644
---- a/drivers/media/platform/exynos4-is/fimc-isp.h
-+++ b/drivers/media/platform/exynos4-is/fimc-isp.h
-@@ -164,7 +164,8 @@ struct fimc_isp {
- 	struct vb2_alloc_ctx		*alloc_ctx;
- 	struct v4l2_subdev		subdev;
- 	struct media_pad		subdev_pads[FIMC_ISP_SD_PADS_NUM];
--	struct v4l2_mbus_framefmt	subdev_fmt;
-+	struct v4l2_mbus_framefmt	src_fmt;
-+	struct v4l2_mbus_framefmt	sink_fmt;
- 	struct v4l2_ctrl		*test_pattern;
- 	struct fimc_isp_ctrls		ctrls;
-
---
-1.7.9.5
-
+Regards,
+Sylwester
