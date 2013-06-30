@@ -1,202 +1,168 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr19.xs4all.nl ([194.109.24.39]:1936 "EHLO
-	smtp-vbr19.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750878Ab3FGJYp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 05:24:45 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: [PATCH] v4l2: remove g_chip_ident where it is easy to do so.
-Date: Fri, 7 Jun 2013 11:24:18 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Andy Walls <awalls@md.metrocast.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Steven Toth <stoth@kernellabs.com>,
-	Scott Jiang <scott.jiang.linux@gmail.com>,
-	Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	Jonathan Corbet <corbet@lwn.net>
-References: <201305231336.10889.hverkuil@xs4all.nl> <Pine.LNX.4.64.1306071100080.11277@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1306071100080.11277@axis700.grange>
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:36282 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752284Ab3F3U3A (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Jun 2013 16:29:00 -0400
+Received: by mail-bk0-f48.google.com with SMTP id jf17so1386337bkc.7
+        for <linux-media@vger.kernel.org>; Sun, 30 Jun 2013 13:28:59 -0700 (PDT)
+Message-ID: <51D09507.80501@gmail.com>
+Date: Sun, 30 Jun 2013 22:28:55 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES
+ and S_FMT?
+References: <201306241448.15187.hverkuil@xs4all.nl>
+In-Reply-To: <201306241448.15187.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Message-Id: <201306071124.18581.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri June 7 2013 11:06:50 Guennadi Liakhovetski wrote:
-> Hi Hans
-> 
-> On Thu, 23 May 2013, Hans Verkuil wrote:
-> 
-> > With the introduction in 3.10 of the new superior VIDIOC_DBG_G_CHIP_INFO
-> > ioctl there is no longer any need for the DBG_G_CHIP_IDENT ioctl or the
-> > v4l2-chip-ident.h header.
-> > 
-> > Remove it in those bridge drivers where it is easy to do so.
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> 
-> [snip]
-> 
-> >  drivers/media/platform/sh_vou.c                  |   31 ----------
-> >  drivers/media/platform/soc_camera/soc_camera.c   |   34 -----------
-> 
-> Ok, I'll bite :) First, obviously, I don't think it's good to do two 
-> things in one patch with only one of them mentioned in the patch 
-> description. I'm talking about removal of .vidioc_g_register() / 
-> .vidioc_s_register() in _some_ of the drivers, that are touched here, 
-> notably in sh_vou.c and soc_camera.c. I think I read we want to remove 
-> those too, but I'm not sure what the exact status of that work is? 
-> Besides, to do that I'd rather accompany that change with the removal of 
-> the respective subdev operations from, say, soc-camera subdevice drivers.
+Hi Hans,
 
-I'm not removing any functionality. Starting with 3.10 the v4l2 core handles
-g/s_register calls to subdevices directly: by using V4L2_CHIP_MATCH_SUBDEV
-you can call those ops for the given subdev.
+On 06/24/2013 02:48 PM, Hans Verkuil wrote:
+> Hi all,
+>
+> While working on extending v4l2-compliance with cropping/selection test cases
+> I decided to add support for that to vivi as well (this would give applications
+> a good test driver to work with).
+>
+> However, I ran into problems how this should be implemented for V4L2 devices
+> (we are not talking about complex media controller devices where the video
+> pipelines are setup manually).
+>
+> There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
+>
+> The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
+> possible frame sizes, and that can crop, compose and/or scale, then you need
+> to be able to set the frame size. Currently this is decided by S_FMT which
+> maps the format size to the closest valid frame size. This however makes
+> it impossible to e.g. scale up a frame, or compose the image into a larger
+> buffer.
+>
+> For video receivers this issue doesn't exist: there the size of the incoming
+> video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for sensors.
+>
+> I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
 
-In the past this was not possible: the bridge driver had to have support for
-g/s_register and forward it to the subdevs. The reason was historical: when
-this API was added subdevices didn't exist yet, so this was the only way to
-implement it.
+V4L2_SEL_TGT_FRAMESIZE seems a bit imprecise to me, perhaps:
+V4L2_SEL_TGT_SENSOR(_SIZE) or V4L2_SEL_TGT_SOURCE(_SIZE) ? The latter might
+be a bit weird when referred to the subdev API though, not sure if defining
+it as valid only on V4L2 device nodes makes any difference.
 
-In the case of soc-camera and sh_vou the g/s_register ioctls only forward
-it to their subdevs, without handling g/s_register for the bridge driver
-itself. So there is no reason anymore to keep them as they literally no
-longer do anything useful.
+> However, this leads to another problem: the current S_FMT behavior is that
+> it implicitly sets the framesize. That behavior we will have to keep, otherwise
+> applications will start to behave differently.
+>
+> I have an idea on how to solve that, but the solution is related to the second
+> problem I found:
+>
+> When you set a new format size, then the compose rectangle must be set to the
+> new format size as well since that has always been the behavior in the past
+> that applications have come to expect.
+>
+> But this makes certain operations impossible to execute: if a driver can't
+> scale, then you can never select a new format size larger than the current
+> (possibly cropped) frame size, even though you would want to compose the
+> unscaled image into such a larger buffer.
+>
+> So what is the behavior that I would expect from drivers?
+>
+> 1) After calling S_STD, S_DV_TIMINGS or S_SELECTION(V4L2_SEL_TGT_FRAMESIZE)
+> the cropping, composing and format parameters are all adjusted to support the
+> new input video size (typically they are all set to the new size).
+>
+> 2) After calling S_CROP/S_SELECTION(CROP) the compose and format parameters are all
+> adjusted to support the new crop rectangle.
+>
+> 3) After calling S_SEL(COMPOSE) the format parameters are adjusted.
+>
+> 4) Calling S_FMT validates the format parameters to support the compose
+> rectangle.
 
-I will extend the commit message though:
+Then, if one wants to change the COMPOSE rectangle while streaming, step 3)
+would limit possible COMPOSE rectangle to the current format only ?
 
-"With the introduction in 3.10 of the new superior VIDIOC_DBG_G_CHIP_INFO
-ioctl there is no longer any need for the DBG_G_CHIP_IDENT ioctl or the
-v4l2-chip-ident.h header.
+> However, today step 4 does something different: the compose rectangle will be
+> adjusted to the format size (and in the case of a sensor supporting different
+> framesizes the whole pipeline will be adjusted).
+>
+> The only way I see that would solve this (although it isn't perfect) is to
+> change the behavior of S_FMT only if the selection API was used before by the
+> filehandle. The core can keep easily keep track of that. When the application
+> calls S_FMT and no selection API was used in the past by that filehandle, then
+> the core will call first S_SELECTION(V4L2_SEL_TGT_FRAMESIZE). If that returns
+> -EINVAL, then it will call S_SELECTION(V4L2_SEL_TGT_COMPOSE). Finally it will
+> call S_FMT. Note that a similar sequence is needed for the display case.
 
-Remove it in those bridge drivers where it is easy to do so.
+Sounds sane to me.
 
-Any g/s_register ioctls that just forward the ioctl to their subdevs are
-removed as well, since that functionality is now handled by the v4l2 core.
-It only makes sense to implement g/s_register ioctls in a bridge driver if
-it can actually get/set its own registers."
+> This means that a driver supporting the selection API can implement the logical
+> behavior and the core will implement the historically-required illogical part.
+>
+> So the fix for this would be to add a new selection target and add compatibility
+> code to the v4l2-core.
+>
+> With that in place I can easily add crop/compose support to vivi.
+>
+> One area of uncertainty is how drivers currently implement S_FMT: do they reset
+> any cropping done before? They should keep the crop rectangle according to the
+> spec (well, it is implied there). Guennadi, what does soc_camera do?
+>
+> Sylwester, I am also looking at exynos4-is/fimc-lite.c. I do see that setting
+> the compose rectangle will adjust it to the format size instead of the other
+> way around, but I can't tell if setting the format size will also adjust the
+> compose rectangle if that is now out-of-bounds of the new format size.
 
-Regards,
+Hmm, yes, adjusting compose rectangle to the format size should be fixed in
+this driver, especially given that this video device can't be used 
+standalone,
+only as a part of a pipeline including at least the FIMC-LITE and an image
+sensor subdev. And no, currently S_FMT doesn't adjust the compose 
+rectangle's
+size, as it is always equal to the size of the crop rectangle on the camera
+interface input (FIMC-LITE.n subdev's sink pad crop rectangle size or 
+source
+pad format of this subdev). This is a bug, because the driver can be in an
+incorrect state for certain configuration sequence in user space. But
+I don't want to be setting any FRAMESIZE on FIMC-LITE video node, it 
+belongs
+to the subdev API (the subdev sink pad format). This would mean the rule of
+configuring the video pipeline from data source to video node is not
+conformed to. All that is needed in this case is just to compose the image
+rectangle, of which size is determined by the FIMC-LITE.n subdev source pad
+format, onto whatever location in the memory buffer set up with 
+VIDIOC_S_FMT.
+I guess this is not a problem WRT your approach as long as this driver
+doesn't implement V4L2_SEL_TGT_FRAMESIZE/SENSOR selection target.
 
-	Hans
+The selection API documentation currently says that the
+V4L2_SEL_TGT_COMPOSE_BOUNDS rectangle is set by VIDIOC_S_FMT:
 
-> 
-> [snip]
-> 
-> > diff --git a/drivers/media/platform/sh_vou.c b/drivers/media/platform/sh_vou.c
-> > index 7d02350..fa8ae72 100644
-> > --- a/drivers/media/platform/sh_vou.c
-> > +++ b/drivers/media/platform/sh_vou.c
-> > @@ -1248,32 +1248,6 @@ static unsigned int sh_vou_poll(struct file *file, poll_table *wait)
-> >  	return res;
-> >  }
-> >  
-> > -static int sh_vou_g_chip_ident(struct file *file, void *fh,
-> > -				   struct v4l2_dbg_chip_ident *id)
-> > -{
-> > -	struct sh_vou_device *vou_dev = video_drvdata(file);
-> > -
-> > -	return v4l2_device_call_until_err(&vou_dev->v4l2_dev, 0, core, g_chip_ident, id);
-> > -}
-> > -
-> > -#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > -static int sh_vou_g_register(struct file *file, void *fh,
-> > -				 struct v4l2_dbg_register *reg)
-> > -{
-> > -	struct sh_vou_device *vou_dev = video_drvdata(file);
-> > -
-> > -	return v4l2_device_call_until_err(&vou_dev->v4l2_dev, 0, core, g_register, reg);
-> > -}
-> > -
-> > -static int sh_vou_s_register(struct file *file, void *fh,
-> > -				 const struct v4l2_dbg_register *reg)
-> > -{
-> > -	struct sh_vou_device *vou_dev = video_drvdata(file);
-> > -
-> > -	return v4l2_device_call_until_err(&vou_dev->v4l2_dev, 0, core, s_register, reg);
-> > -}
-> > -#endif
-> > -
-> >  /* sh_vou display ioctl operations */
-> >  static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
-> >  	.vidioc_querycap        	= sh_vou_querycap,
-> > @@ -1292,11 +1266,6 @@ static const struct v4l2_ioctl_ops sh_vou_ioctl_ops = {
-> >  	.vidioc_cropcap			= sh_vou_cropcap,
-> >  	.vidioc_g_crop			= sh_vou_g_crop,
-> >  	.vidioc_s_crop			= sh_vou_s_crop,
-> > -	.vidioc_g_chip_ident		= sh_vou_g_chip_ident,
-> > -#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > -	.vidioc_g_register		= sh_vou_g_register,
-> > -	.vidioc_s_register		= sh_vou_s_register,
-> > -#endif
-> >  };
-> >  
-> >  static const struct v4l2_file_operations sh_vou_fops = {
-> > diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-> > index eea832c..68efade 100644
-> > --- a/drivers/media/platform/soc_camera/soc_camera.c
-> > +++ b/drivers/media/platform/soc_camera/soc_camera.c
-> > @@ -1036,35 +1036,6 @@ static int soc_camera_s_parm(struct file *file, void *fh,
-> >  	return -ENOIOCTLCMD;
-> >  }
-> >  
-> > -static int soc_camera_g_chip_ident(struct file *file, void *fh,
-> > -				   struct v4l2_dbg_chip_ident *id)
-> > -{
-> > -	struct soc_camera_device *icd = file->private_data;
-> > -	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > -
-> > -	return v4l2_subdev_call(sd, core, g_chip_ident, id);
-> > -}
-> > -
-> > -#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > -static int soc_camera_g_register(struct file *file, void *fh,
-> > -				 struct v4l2_dbg_register *reg)
-> > -{
-> > -	struct soc_camera_device *icd = file->private_data;
-> > -	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > -
-> > -	return v4l2_subdev_call(sd, core, g_register, reg);
-> > -}
-> > -
-> > -static int soc_camera_s_register(struct file *file, void *fh,
-> > -				 const struct v4l2_dbg_register *reg)
-> > -{
-> > -	struct soc_camera_device *icd = file->private_data;
-> > -	struct v4l2_subdev *sd = soc_camera_to_subdev(icd);
-> > -
-> > -	return v4l2_subdev_call(sd, core, s_register, reg);
-> > -}
-> > -#endif
-> > -
-> >  static int soc_camera_probe(struct soc_camera_device *icd);
-> >  
-> >  /* So far this function cannot fail */
-> > @@ -1495,11 +1466,6 @@ static const struct v4l2_ioctl_ops soc_camera_ioctl_ops = {
-> >  	.vidioc_s_selection	 = soc_camera_s_selection,
-> >  	.vidioc_g_parm		 = soc_camera_g_parm,
-> >  	.vidioc_s_parm		 = soc_camera_s_parm,
-> > -	.vidioc_g_chip_ident     = soc_camera_g_chip_ident,
-> > -#ifdef CONFIG_VIDEO_ADV_DEBUG
-> > -	.vidioc_g_register	 = soc_camera_g_register,
-> > -	.vidioc_s_register	 = soc_camera_s_register,
-> > -#endif
-> >  };
-> >  
-> >  static int video_dev_create(struct soc_camera_device *icd)
-> 
-> Thanks
-> Guennadi
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+"The composing targets refer to a memory buffer. The limits of composing
+coordinates are obtained using V4L2_SEL_TGT_COMPOSE_BOUNDS. All coordinates
+are expressed in pixels. The rectangle's top/left corner must be located at
+position (0,0) . The width and height are equal to the image size set by
+VIDIOC_S_FMT."
+
+So I understand it as one first must do S_FMT to define COMPOSE rectangle's
+bounds and then COMPOSE rectangle should be set, however it's not said
+explicitly.
+
+Additionally, when a device is streaming and compose rectangle is adjusted
+the format size cannot be changed. I guess the solution is simply to adjust
+COMPOSE rectangle to the current format in such case.
+
+Thanks,
+Sylwester
+
+[1] http://linuxtv.org/downloads/v4l-dvb-apis/selection-api.html
