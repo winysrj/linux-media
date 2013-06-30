@@ -1,138 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.186]:53953 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750979Ab3FXLVW (ORCPT
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:42663 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751737Ab3F3P5d (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 24 Jun 2013 07:21:22 -0400
-Date: Mon, 24 Jun 2013 13:20:34 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Magnus Damm <magnus.damm@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Prabhakar Lad <prabhakar.lad@ti.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: [PATCH v2] V4L2: add documentation for V4L2 clock helpers and
- asynchronous probing
-Message-ID: <Pine.LNX.4.64.1306241311420.19735@axis700.grange>
+	Sun, 30 Jun 2013 11:57:33 -0400
+Message-ID: <51D05568.3090009@gmail.com>
+Date: Sun, 30 Jun 2013 17:57:28 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] media: i2c: tvp7002: add OF support
+References: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com> <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add documentation for the V4L2 clock and V4L2 asynchronous probing APIs
-to v4l2-framework.txt.
+Hi,
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
+On 06/22/2013 07:44 PM, Prabhakar Lad wrote:
+> From: "Lad, Prabhakar"<prabhakar.csengg@gmail.com>
+>
+> add OF support for the tvp7002 driver.
+>
+> Signed-off-by: Lad, Prabhakar<prabhakar.csengg@gmail.com>
+> Cc: Hans Verkuil<hans.verkuil@cisco.com>
+> Cc: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+> Cc: Mauro Carvalho Chehab<mchehab@redhat.com>
+> Cc: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+> Cc: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> Cc: Sakari Ailus<sakari.ailus@iki.fi>
+> Cc: Grant Likely<grant.likely@secretlab.ca>
+> Cc: Rob Herring<rob.herring@calxeda.com>
+> Cc: Rob Landley<rob@landley.net>
+> Cc: devicetree-discuss@lists.ozlabs.org
+> Cc: linux-doc@vger.kernel.org
+> Cc: linux-kernel@vger.kernel.org
+> Cc: davinci-linux-open-source@linux.davincidsp.com
+> ---
+>   Depends on patch https://patchwork.kernel.org/patch/2765851/
+>
+>   .../devicetree/bindings/media/i2c/tvp7002.txt      |   43 +++++++++++++
+>   drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
+>   2 files changed, 103 insertions(+), 7 deletions(-)
+>   create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>
+> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+> new file mode 100644
+> index 0000000..9daebe1
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+> @@ -0,0 +1,43 @@
+> +* Texas Instruments TV7002 video decoder
+> +
+> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
+> +YPbPr color space.
+> +
+> +Required Properties :
+> +- compatible : Must be "ti,tvp7002"
+> +
+> +- hsync-active: HSYNC Polarity configuration for endpoint.
+> +
+> +- vsync-active: VSYNC Polarity configuration for endpoint.
+> +
+> +- pclk-sample: Clock polarity of the endpoint.
+> +
+> +- video-sync: Video sync property of the endpoint.
+> +
+> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
 
-v2: addressed comments by Hans and Laurent (thanks), including
-(a) language clean up
-(b) extended the V4L2 clock API section with an explanation, what special 
-requirements V4L2 has and a mention of it being temporary until CCF is 
-used by all
-(c) added an explanation of the use of -EPROBE_DEFER
+I thought it was agreed 'field-even-active' would be used instead of
+this device specific property. Did you run into any issues with that ?
 
- Documentation/video4linux/v4l2-framework.txt |   73 +++++++++++++++++++++++++-
- 1 files changed, 71 insertions(+), 2 deletions(-)
+> +
+> +For further reading of port node refer Documentation/devicetree/bindings/media/
+> +video-interfaces.txt.
+> +
+> +Example:
+> +
+> +	i2c0@1c22000 {
+> +		...
+> +		...
+> +		tvp7002@5c {
+> +			compatible = "ti,tvp7002";
+> +			reg =<0x5c>;
+> +
+> +			port {
+> +				tvp7002_1: endpoint {
+> +					hsync-active =<1>;
+> +					vsync-active =<1>;
+> +					pclk-sample =<0>;
+> +					video-sync =<V4L2_MBUS_VIDEO_SYNC_ON_GREEN>;
+> +					ti,tvp7002-fid-polarity;
+> +				};
+> +			};
+> +		};
+> +		...
+> +	};
+> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+> index b577548..4896024 100644
+> --- a/drivers/media/i2c/tvp7002.c
+> +++ b/drivers/media/i2c/tvp7002.c
+> @@ -35,6 +35,8 @@
+>   #include<media/v4l2-device.h>
+>   #include<media/v4l2-common.h>
+>   #include<media/v4l2-ctrls.h>
+> +#include<media/v4l2-of.h>
+> +
+>   #include "tvp7002_reg.h"
+>
+>   MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
+> @@ -943,6 +945,48 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
+>   	.pad =&tvp7002_pad_ops,
+>   };
+>
+> +static struct tvp7002_config *
+> +tvp7002_get_pdata(struct i2c_client *client)
 
-diff --git a/Documentation/video4linux/v4l2-framework.txt b/Documentation/video4linux/v4l2-framework.txt
-index b5e6347..00a9d21 100644
---- a/Documentation/video4linux/v4l2-framework.txt
-+++ b/Documentation/video4linux/v4l2-framework.txt
-@@ -325,8 +325,27 @@ that width, height and the media bus pixel code are equal on both source and
- sink of the link. Subdev drivers are also free to use this function to
- perform the checks mentioned above in addition to their own checks.
- 
--A device (bridge) driver needs to register the v4l2_subdev with the
--v4l2_device:
-+There are currently two ways to register subdevices with the V4L2 core. The
-+first (traditional) possibility is to have subdevices registered by bridge
-+drivers. This can be done when the bridge driver has the complete information
-+about subdevices connected to it and knows exactly when to register them. This
-+is typically the case for internal subdevices, like video data processing units
-+within SoCs or complex PCI(e) boards, camera sensors in USB cameras or connected
-+to SoCs, which pass information about them to bridge drivers, usually in their
-+platform data.
-+
-+There are however also situations where subdevices have to be registered
-+asynchronously to bridge devices. An example of such a configuration is a Device
-+Tree based systems where information about subdevices is made available to the
-+system independently from the bridge devices, e.g. when subdevices are defined
-+in DT as I2C device nodes. The API used in this second case is described further
-+below.
-+
-+Using one or the other registration method only affects the probing process, the
-+run-time bridge-subdevice interaction is in both cases the same.
-+
-+In the synchronous case a device (bridge) driver needs to register the
-+v4l2_subdev with the v4l2_device:
- 
- 	int err = v4l2_device_register_subdev(v4l2_dev, sd);
- 
-@@ -393,6 +412,30 @@ controlled through GPIO pins. This distinction is only relevant when setting
- up the device, but once the subdev is registered it is completely transparent.
- 
- 
-+In the asynchronous case subdevice probing can be invoked independently of the
-+bridge driver availability. The subdevice driver then has to verify whether all
-+the requirements for a successful probing are satisfied. This can include a
-+check for a master clock availability. If any of the conditions aren't satisfied
-+the driver might decide to return -EPROBE_DEFER to request further reprobing
-+attempts. Once all conditions are met the subdevice shall be registered using
-+the v4l2_async_register_subdev() function. Unregistration is performed using
-+the v4l2_async_unregister_subdev() call. Subdevices registered this way are
-+stored in a global list of subdevices, ready to be picked up by bridge drivers.
-+
-+Bridge drivers in turn have to register a notifier object with an array of
-+subdevice descriptors that the bridge device needs for its operation. This is
-+performed using the v4l2_async_notifier_register() call. To unregister the
-+notifier the driver has to call v4l2_async_notifier_unregister(). The former of
-+the two functions takes two arguments: a pointer to struct v4l2_device and a
-+pointer to struct v4l2_async_notifier. The latter contains a pointer to an array
-+of pointers to subdevice descriptors of type struct v4l2_async_subdev type. The
-+V4L2 core will then use these descriptors to match asynchronously registered
-+subdevices to them. If a match is detected the .bound() notifier callback is
-+called. After all subdevices have been located the .complete() callback is
-+called. When a subdevice is removed from the system the .unbind() method is
-+called. All three callbacks are optional.
-+
-+
- V4L2 sub-device userspace API
- -----------------------------
- 
-@@ -1065,3 +1108,29 @@ available event type is 'class base + 1'.
- 
- An example on how the V4L2 events may be used can be found in the OMAP
- 3 ISP driver (drivers/media/platform/omap3isp).
-+
-+
-+V4L2 clocks
-+-----------
-+
-+Many subdevices, like camera sensors, TV decoders and encoders, need a clock
-+signal to be supplied by the system. Often this clock is supplied by the
-+respective bridge device. The Linux kernel provides a Common Clock Framework for
-+this purpose. However, it is not (yet) available on all architectures. Besides,
-+the nature of the multi-functional (clock, data + synchronisation, I2C control)
-+connection of subdevices to the system might impose special requirements on the
-+clock API usage. E.g. V4L2 has to support clock provider driver unregistration
-+while a subdevice driver is holding a reference to the clock. For these reasons
-+a V4L2 clock helper API has been developed and is provided to bridge and
-+subdevice drivers.
-+
-+The API consists of two parts: two functions to register and unregister a V4L2
-+clock source: v4l2_clk_register() and v4l2_clk_unregister() and calls to control
-+a clock object, similar to the respective generic clock API calls:
-+v4l2_clk_get(), v4l2_clk_put(), v4l2_clk_enable(), v4l2_clk_disable(),
-+v4l2_clk_get_rate(), and v4l2_clk_set_rate(). Clock suppliers have to provide
-+clock operations that will be called when clock users invoke respective API
-+methods.
-+
-+It is expected that once the CCF becomes available on all relevant
-+architectures this API will be removed.
--- 
-1.7.2.5
+nit: unnecessary line break
 
+> +{
+> +	struct v4l2_of_endpoint bus_cfg;
+> +	struct tvp7002_config *pdata;
+> +	struct device_node *endpoint;
+> +	unsigned int flags;
+> +
+> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+> +		return client->dev.platform_data;
+> +
+> +	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
+> +	if (!endpoint)
+> +		return NULL;
+> +
+> +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+> +	if (!pdata)
+> +		goto done;
+> +
+> +	v4l2_of_parse_endpoint(endpoint,&bus_cfg);
+> +	flags = bus_cfg.bus.parallel.flags;
+> +
+> +	if (flags&  V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+> +		pdata->hs_polarity = 1;
+> +
+> +	if (flags&  V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+> +		pdata->vs_polarity = 1;
+> +
+> +	if (flags&  V4L2_MBUS_PCLK_SAMPLE_RISING)
+> +		pdata->clk_polarity = 1;
+> +
+> +	if (flags&  V4L2_MBUS_VIDEO_SYNC_ON_GREEN)
+> +		pdata->sog_polarity = 1;
+
+This clearly shows that you're using this property for something different
+you have defined it for. I asked previously if what you really needed for
+this TVP7002 chip is a DT property indicating sync-on-green _polarity_ or
+the sync-on-green _usage_. And you clearly need the polarity information.
+
+So I would just define a standard "sync-on-green-active" property and
+V4L2_MBUS_VIDEO_SOG_ACTIVE_{HIGH,LOW} flags. Presumably you don't need
+anything else, and the extra sync polarity flags would need eventually
+to be defined anyway, independently of any video sync selection property,
+should something like this ever need to be specified by firmware.
+
+> +	pdata->fid_polarity = of_property_read_bool(endpoint,
+> +						    "ti,tvp7002-fid-polarity");
+
+This could be just:
+
+	if (flags & V4L2_MBUS_FIELD_EVEN_HIGH)
+		pdata->fid_polarity = 1;
+
+if you used standard 'field-even-active' property.
+
+And this is what we find in the TVP7002 datasheet, in the section describing
+MISC Control 3 (18h) register's FID POL bit (pdata->fid_polarity is written
+directly to FID POL):
+
+"FID POL: Active-high Field ID output polarity control. Under normal
+operation,  the field ID output is set to logic 1 for an odd field (field 1)
+and set to logic 0 for an even field (field 0).
+0 = Normal operation (default)
+1 = FID output polarity inverted
+NOTE: This control bit also affects the polarity of the data enable output
+when selected (see Test output control [2:0] at subaddress 17h)."
+
+
+And include/media/tvp70002.h:
+
+  * fid_polarity:
+  *			0 -> the field ID output is set to logic 1 for an odd
+  *			     field (field 1) and set to logic 0 for an even
+  *			     field (field 0).
+  *			1 -> operation with polarity inverted.
+
+
+Do you know if the chip automatically selects video sync source 
+(sync-on-green
+vs. VSYNC/HSYNC) and there is no need to configure this on the analogue 
+input
+side ? At least the driver seems to always select the default SOGIN_1 input
+(TVP7002_IN_MUX_SEL_1 register is set only at initialization time).
+
+Or perhaps it just outputs on SOGOUT, VSOUT, HSOUT lines whatever is fed to
+its analogue inputs, and any further processing unit need to determine what
+synchronization signal is present and should be used ?
+
+I suspect that we don't need, e.g. another endpoint node to specify the
+configuration of the TVP7002 analogue input interface, that would contain
+a property like video-sync.
+
+> +done:
+> +	of_node_put(endpoint);
+> +	return pdata;
+> +}
+
+Regards,
+Sylwester
