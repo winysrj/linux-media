@@ -1,176 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:64292 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753827Ab3F1GEX (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:46242 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752398Ab3F3VCD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 28 Jun 2013 02:04:23 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Kishon Vijay Abraham I' <kishon@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org, Jingoo Han <jg1.han@samsung.com>
-References: <001701ce73bf$bebf9f20$3c3edd60$@samsung.com>
- <51CD25F2.5010206@ti.com>
-In-reply-to: <51CD25F2.5010206@ti.com>
-Subject: Re: [PATCH 3/3] video: exynos_dp: Use the generic PHY driver
-Date: Fri, 28 Jun 2013 15:04:21 +0900
-Message-id: <001c01ce73c5$552e1cc0$ff8a5640$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+	Sun, 30 Jun 2013 17:02:03 -0400
+Date: Sun, 30 Jun 2013 18:01:59 -0300
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: "P. van Gaans" <w3ird_n3rd@gmx.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: A few wiki ideas (please comment!)
+Message-ID: <20130630180159.14d0c7dd@infradead.org>
+In-Reply-To: <51D07A27.80509@gmx.net>
+References: <51D07A27.80509@gmx.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Friday, June 28, 2013 2:58 PM, Kishon Vijay Abraham I wrote:
-> 
+Em Sun, 30 Jun 2013 20:34:15 +0200
+"P. van Gaans" <w3ird_n3rd@gmx.net> escreveu:
+
 > Hi,
 > 
-> On Friday 28 June 2013 10:54 AM, Jingoo Han wrote:
-> > Use the generic PHY API instead of the platform callback to control
-> > the DP PHY. The 'phy_label' field is added to the platform data
-> > structure to allow PHY lookup on non-dt platforms.
-> >
-> > Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> > ---
-> >   .../devicetree/bindings/video/exynos_dp.txt        |   17 ---
-> >   drivers/video/exynos/exynos_dp_core.c              |  118 ++------------------
-> >   drivers/video/exynos/exynos_dp_core.h              |    2 +
-> >   include/video/exynos_dp.h                          |    6 +-
-> >   4 files changed, 15 insertions(+), 128 deletions(-)
-> >
-> > diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > index 84f10c1..a8320e3 100644
-> > --- a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > +++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > @@ -1,17 +1,6 @@
-> >   The Exynos display port interface should be configured based on
-> >   the type of panel connected to it.
-> >
-> > -We use two nodes:
-> > -	-dp-controller node
-> > -	-dptx-phy node(defined inside dp-controller node)
-> > -
-> > -For the DP-PHY initialization, we use the dptx-phy node.
-> > -Required properties for dptx-phy:
-> > -	-reg:
-> > -		Base address of DP PHY register.
-> > -	-samsung,enable-mask:
-> > -		The bit-mask used to enable/disable DP PHY.
-> > -
-> >   For the Panel initialization, we read data from dp-controller node.
-> >   Required properties for dp-controller:
-> >   	-compatible:
-> > @@ -67,12 +56,6 @@ SOC specific portion:
-> >   		interrupt-parent = <&combiner>;
-> >   		clocks = <&clock 342>;
-> >   		clock-names = "dp";
-> > -
-> > -		dptx-phy {
-> > -			reg = <0x10040720>;
-> > -			samsung,enable-mask = <1>;
-> > -		};
-> > -
-> >   	};
-> >
-> >   Board Specific portion:
-> > diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
-> > index 12bbede..bac515b 100644
-> > --- a/drivers/video/exynos/exynos_dp_core.c
-> > +++ b/drivers/video/exynos/exynos_dp_core.c
-> > @@ -19,6 +19,7 @@
-> >   #include <linux/interrupt.h>
-> >   #include <linux/delay.h>
-> >   #include <linux/of.h>
-> > +#include <linux/phy/phy.h>
-> >
-> >   #include <video/exynos_dp.h>
-> >
-> > @@ -960,84 +961,15 @@ static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
-> >   		return ERR_PTR(-EINVAL);
-> >   	}
-> >
-> > -	return pd;
-> > -}
-> > -
-> > -static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
-> > -{
-> > -	struct device_node *dp_phy_node = of_node_get(dp->dev->of_node);
-> > -	u32 phy_base;
-> > -	int ret = 0;
-> > -
-> > -	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
-> > -	if (!dp_phy_node) {
-> > -		dev_err(dp->dev, "could not find dptx-phy node\n");
-> > -		return -ENODEV;
-> > -	}
-> > -
-> > -	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
-> > -		dev_err(dp->dev, "failed to get reg for dptx-phy\n");
-> > -		ret = -EINVAL;
-> > -		goto err;
-> > -	}
-> > -
-> > -	if (of_property_read_u32(dp_phy_node, "samsung,enable-mask",
-> > -				&dp->enable_mask)) {
-> > -		dev_err(dp->dev, "failed to get enable-mask for dptx-phy\n");
-> > -		ret = -EINVAL;
-> > -		goto err;
-> > -	}
-> > -
-> > -	dp->phy_addr = ioremap(phy_base, SZ_4);
-> > -	if (!dp->phy_addr) {
-> > -		dev_err(dp->dev, "failed to ioremap dp-phy\n");
-> > -		ret = -ENOMEM;
-> > -		goto err;
-> > -	}
-> > -
-> > -err:
-> > -	of_node_put(dp_phy_node);
-> > -
-> > -	return ret;
-> > -}
-> > -
-> > -static void exynos_dp_phy_init(struct exynos_dp_device *dp)
-> > -{
-> > -	u32 reg;
-> > -
-> > -	reg = __raw_readl(dp->phy_addr);
-> > -	reg |= dp->enable_mask;
-> > -	__raw_writel(reg, dp->phy_addr);
-> > -}
-> > -
-> > -static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
-> > -{
-> > -	u32 reg;
-> > +	pd->phy_label = "dp";
+> I have a few ideas for the wiki. They go a bit further than fixing a 
+> typo, so I'd first like to discuss the ideas before messing up wiki 
+> pages and doing lots of unwanted work.
 > 
-> In the case of non-dt boot, this phy_label should have ideally come from
-> platform code.
-
-No, this is NOT the case of non-dt.
-
-'pd->phy_label = "dp";' is included in exynos_dp_dt_parse_pdata(),
-not exynos_dp_phy_exit().
-Also, exynos_dp_dt_parse_pdata() is called in the case of dt.
-
-But, diff is a little bit confusing. :(
-
-
-Best regards,
-Jingoo Han
-
+> The first is to add a ==Users== section to each device, just above the 
+> external links section. For this I already made the following template 
+> to use (may need some tweaking, but it's a start):
 > 
-> Thanks
-> Kishon
+> http://www.linuxtv.org/wiki/index.php/Template:Users_who_own_this_device
+> 
+> The idea is primarily that whenever a patch is written for the device or 
+> another patch that might influence this device it's easier to find 
+> contact details for a few users who are willing to test the patch so 
+> they can be contacted directly. Most people don't read every message on 
+> the mailing list.
+> 
+> ---
+> 
+> The second idea is a bit more complicated and I'm not even sure the wiki 
+> is the right place to do it. While searching for support information for 
+> various devices, I noticed that I kept stumbling upon abandoned patches, 
+> mostly on the mailing list, for devices that are currently unsupported 
+> in v4l-dvb. If I really start to dig in, I'm afraid I'll find at least 
+> tens of them. Some of those devices are really attractive.
+> 
+> That seems like a waste: we know how the device works, we actually have 
+> working code.. But for one reason or another, it's not getting pulled. 
+> Maybe the code needs a cleanup. Maybe somebody just forgot to file a 
+> pull request. Maybe the code wasn't signed off. AFAIK we currently have 
+> no overview of these patches.
+> 
+> The idea is to make a wiki page (suggestions for a page title?) that 
+> lists the device, links to the available patch(es) or code and lists the 
+> reason why the patch hasn't been pulled yet.
 
+Well, if the patches exist and were not damaged by the emailer, they'll
+be stored forever at patchwork:
+	https://patchwork.linuxtv.org/project/linux-media/list/?state=*
+
+If you're willing to dig into it, I suggest you to see if it was just
+forgot to be applied and contact the corresponding sub-maintainer,
+asking him to review it. If the patch is broken, then it makes sense
+to ping the author for him to fix the patch and send a new version.
+
+Ok, it may have there some things that are in so bad state that can't
+be merged, but, on most cases, it is possible to merge them at
+drivers/staging/media, if someone is willing to take some care on it
+and fix the pending issues.
+
+Regards,
+Mauro
+
+
+Cheers,
+Mauro
