@@ -1,23 +1,24 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1114 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754298Ab3FGS3S (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 7 Jun 2013 14:29:18 -0400
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:4054 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751859Ab3F3S3f (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 30 Jun 2013 14:29:35 -0400
 Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
 	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r57IT1nN050892
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r5UITVXP004069
 	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 7 Jun 2013 20:29:09 +0200 (CEST)
+	for <linux-media@vger.kernel.org>; Sun, 30 Jun 2013 20:29:34 +0200 (CEST)
 	(envelope-from hverkuil@xs4all.nl)
 Received: from localhost (marune.xs4all.nl [80.101.105.217])
 	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 9B93E35C0003
-	for <linux-media@vger.kernel.org>; Fri,  7 Jun 2013 20:29:00 +0200 (CEST)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 55D3135E004C
+	for <linux-media@vger.kernel.org>; Sun, 30 Jun 2013 20:29:31 +0200 (CEST)
 From: "Hans Verkuil" <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
 Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130607182900.9B93E35C0003@alastor.dyndns.org>
-Date: Fri,  7 Jun 2013 20:29:00 +0200 (CEST)
+Message-Id: <20130630182931.55D3135E004C@alastor.dyndns.org>
+Date: Sun, 30 Jun 2013 20:29:31 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
@@ -26,17 +27,22 @@ the kernels and architectures in the list below.
 
 Results of the daily build of media_tree:
 
-date:		Fri Jun  7 19:00:18 CEST 2013
+date:		Sun Jun 30 19:00:20 CEST 2013
 git branch:	test
-git hash:	7eac97d7e714429f7ef1ba5d35f94c07f4c34f8e
-gcc version:	i686-linux-gcc (GCC) 4.8.0
+git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
 host hardware:	x86_64
-host os:	3.8-3.slh.2-amd64
+host os:	3.9-7.slh.1-amd64
 
+linux-git-arm-at91: OK
 linux-git-arm-davinci: OK
-linux-git-arm-exynos: WARNINGS
-linux-git-arm-omap: WARNINGS
-linux-git-blackfin: WARNINGS
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
 linux-git-i686: OK
 linux-git-m32r: OK
 linux-git-mips: OK
@@ -52,17 +58,17 @@ linux-2.6.36.4-i686: WARNINGS
 linux-2.6.37.6-i686: WARNINGS
 linux-2.6.38.8-i686: WARNINGS
 linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: WARNINGS
-linux-3.10-rc1-i686: WARNINGS
-linux-3.1.10-i686: WARNINGS
-linux-3.2.37-i686: WARNINGS
-linux-3.3.8-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-rc1-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
 linux-3.4.27-i686: WARNINGS
 linux-3.5.7-i686: WARNINGS
 linux-3.6.11-i686: WARNINGS
 linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: OK
-linux-3.9.2-i686: OK
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
 linux-2.6.31.14-x86_64: WARNINGS
 linux-2.6.32.27-x86_64: WARNINGS
 linux-2.6.33.7-x86_64: WARNINGS
@@ -72,28 +78,29 @@ linux-2.6.36.4-x86_64: WARNINGS
 linux-2.6.37.6-x86_64: WARNINGS
 linux-2.6.38.8-x86_64: WARNINGS
 linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: WARNINGS
-linux-3.10-rc1-x86_64: WARNINGS
-linux-3.1.10-x86_64: WARNINGS
-linux-3.2.37-x86_64: WARNINGS
-linux-3.3.8-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-rc1-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
 linux-3.4.27-x86_64: WARNINGS
 linux-3.5.7-x86_64: WARNINGS
 linux-3.6.11-x86_64: WARNINGS
 linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: OK
-linux-3.9.2-x86_64: OK
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
 apps: WARNINGS
 spec-git: OK
+sparse version:	v0.4.5-rc1
 sparse: ERRORS
 
 Detailed results are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
 
 Full logs are available here:
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
 
 The Media Infrastructure API from this daily build is here:
 
