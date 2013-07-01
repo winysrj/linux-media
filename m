@@ -1,78 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:52231 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755797Ab3GYLGK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 07:06:10 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Thu, 25 Jul 2013 13:00:49 +0200
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>, broonie@kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com,
-	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org> <201307242032.03597.arnd@arndb.de> <2174304.5JlzJ583hP@avalon>
-In-Reply-To: <2174304.5JlzJ583hP@avalon>
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:61034 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751908Ab3GALH7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 07:07:59 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307251300.49282.arnd@arndb.de>
+In-Reply-To: <20130701075856.6e8daa98.mchehab@redhat.com>
+References: <20130701075856.6e8daa98.mchehab@redhat.com>
+Date: Mon, 1 Jul 2013 16:37:58 +0530
+Message-ID: <CAHFNz9J_FJP4YcCd3-_3x6d5iNDoqpYMMtX1Xd+OFJX4H7so0A@mail.gmail.com>
+Subject: Re: [GIT PULL for v3.11] media patches for v3.11
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 25 July 2013, Laurent Pinchart wrote:
-> On Wednesday 24 July 2013 20:32:03 Arnd Bergmann wrote:
-> > On Tuesday 23 July 2013, Tomasz Figa wrote:
-> > > On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
-> > > > On Tue, 23 Jul 2013, Tomasz Figa wrote:
-> > > > > Where would you want to have those phy_address arrays stored? There
-> > > > > are no board files when booting with DT. Not even saying that you
-> > > > > don't need to use any hacky schemes like this when you have DT that
-> > > > > nicely specifies relations between devices.
-> > > > 
-> > > > If everybody agrees DT has a nice scheme for specifying relations
-> > > > between devices, why not use that same scheme in the PHY core?
-> > > 
-> > > It is already used, for cases when consumer device has a DT node attached.
-> > > In non-DT case this kind lookup translates loosely to something that is
-> > > being done in regulator framework - you can't bind devices by pointers,
-> > > because you don't have those pointers, so you need to use device names.
-> > 
-> > Sorry for jumping in to the middle of the discussion, but why does a new
-> > framework even bother defining an interface for board files?
-> > 
-> > Can't we just drop any interfaces for platform data passing in the phy
-> > framework and put the burden of adding those to anyone who actually needs
-> > them? All the platforms we are concerned with here (exynos and omap, plus
-> > new platforms) can be booted using DT anyway.
-> 
-> What about non-DT architectures such as MIPS (still widely used in consumer 
-> networking equipments from what I've heard) ?
+Mauro,
 
-* Vendors of such equipment have started moving on to ARM (e.g. Broadcom bcm47xx)
-* Some of the modern MIPS platforms are now using DT
-* Legacy platforms probably won't migrate to either DT or the generic PHY framework
+On Mon, Jul 1, 2013 at 4:28 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Hi Linus,
+>
+> Please pull from:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+>
+> For the media patches for Kernel v3.11.
+>
 
-I'm not saying that we can't support legacy board files with the common
-PHY framework, but I'd expect things to be much easier if we focus on those
-platforms that are actively being worked on for now, to bring an end to the
-pointless API discussion.
+>
+> Zoran Turalija (2):
+>       [media] stb0899: allow minimum symbol rate of 1000000
+>       [media] stb0899: allow minimum symbol rate of 2000000
 
-	Arnd
+
+Somehow, I missed these patches; These are incorrect. Please revert
+these changes.
+Simply changing the advertized minima values don't change the search algorithm
+behaviour, it simply leads to broken behaviour.
+
+NACK for these changes.
+
+
+Regards,
+
+Manu
