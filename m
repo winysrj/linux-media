@@ -1,57 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:46841 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1751410Ab3G2TeZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 15:34:25 -0400
-Message-ID: <1375126464.2075.46.camel@joe-AO722>
-Subject: Re: [PATCH 2/3] include: Convert ethernet mac address declarations
- to use ETH_ALEN
-From: Joe Perches <joe@perches.com>
-To: "Rafael J. Wysocki" <rjw@sisk.pl>
-Cc: netdev@vger.kernel.org, Len Brown <lenb@kernel.org>,
-	Pantelis Antoniou <pantelis.antoniou@gmail.com>,
-	Vitaly Bordug <vbordug@ru.mvista.com>,
-	Steve Glendinning <steve.glendinning@shawell.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Samuel Ortiz <samuel@sortiz.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
-	linux-media@vger.kernel.org
-Date: Mon, 29 Jul 2013 12:34:24 -0700
-In-Reply-To: <2929374.frUlkyTFNL@vostro.rjw.lan>
-References: <cover.1375075325.git.joe@perches.com>
-	 <a769aba61c43967257854413f16d2b935cc54972.1375075325.git.joe@perches.com>
-	 <2929374.frUlkyTFNL@vostro.rjw.lan>
-Content-Type: text/plain; charset="ISO-8859-1"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from mail-vb0-f49.google.com ([209.85.212.49]:64963 "EHLO
+	mail-vb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751665Ab3GAPr7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 11:47:59 -0400
+MIME-Version: 1.0
+In-Reply-To: <20130701123512.04e0ab62.mchehab@redhat.com>
+References: <20130701075856.6e8daa98.mchehab@redhat.com>
+	<CAHFNz9J_FJP4YcCd3-_3x6d5iNDoqpYMMtX1Xd+OFJX4H7so0A@mail.gmail.com>
+	<20130701123512.04e0ab62.mchehab@redhat.com>
+Date: Mon, 1 Jul 2013 21:17:58 +0530
+Message-ID: <CAHFNz9JJ1kOehY+3R6=c3MNvs0WN+hOXUDbKpG7yD6m=7mwkgw@mail.gmail.com>
+Subject: Re: [GIT PULL for v3.11] media patches for v3.11
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Zoran Turalija <zoran.turalija@gmail.com>,
+	Srinivas KANDAGATLA <srinivas.kandagatla@st.com>,
+	Nicolas THERY <nicolas.thery@st.com>,
+	Divneil Rai WADHAWAN <divneil.wadhawan@st.com>,
+	Vincent ABRIOU <vincent.abriou@st.com>,
+	Alain VOLMAT <alain.volmat@st.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, 2013-07-29 at 13:59 +0200, Rafael J. Wysocki wrote:
-> On Sunday, July 28, 2013 10:29:04 PM Joe Perches wrote:
-> > It's convenient to have ethernet mac addresses use
-> > ETH_ALEN to be able to grep for them a bit easier and
-> > also to ensure that the addresses are __aligned(2).
-[]
-> > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-[]
-> > @@ -44,6 +44,8 @@
-[]
-> > +#include <linux/if_ether.h>
-> > +
-[]
-> > @@ -605,7 +607,7 @@ struct acpi_ibft_nic {
-[]
-> > -	u8 mac_address[6];
-> > +	u8 mac_address[ETH_ALEN];
+On Mon, Jul 1, 2013 at 9:05 PM, Mauro Carvalho Chehab
+<mchehab@redhat.com> wrote:
+> Em Mon, 1 Jul 2013 16:37:58 +0530
+> Manu Abraham <abraham.manu@gmail.com> escreveu:
+>
+>> Mauro,
+>>
+>> On Mon, Jul 1, 2013 at 4:28 PM, Mauro Carvalho Chehab
+>> <mchehab@redhat.com> wrote:
+>> > Hi Linus,
+>> >
+>> > Please pull from:
+>> >   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
+>> >
+>> > For the media patches for Kernel v3.11.
+>> >
+>>
+>> >
+>> > Zoran Turalija (2):
+>> >       [media] stb0899: allow minimum symbol rate of 1000000
+>> >       [media] stb0899: allow minimum symbol rate of 2000000
+>>
+>>
+>> Somehow, I missed these patches; These are incorrect. Please revert
+>> these changes.
+>> Simply changing the advertized minima values don't change the search algorithm
+>> behaviour, it simply leads to broken behaviour.
+>>
+>> NACK for these changes.
+>
+> While this patch came from a sub-maintainer's tree, looking at its
+> history, the patch was proposed here:
+>         https://linuxtv.org/patch/18341/
+>
 
-> Please don't touch this file.
-> 
-> It comes from a code base outside of the kernel and should be kept in sync with
-> the upstream.
 
-Which files in include/acpi have this characteristic?
-Perhaps an include/acpi/README is appropriate.
+Wherever it came from, the patch is incorrect. Anyone can throw in
+any patch as they want.
 
+
+> From what it is said there, with this patch, 6 additional channels
+> were discovered when using with Eutelsat 16A, that uses a symbol
+> rate between 2MS/s to 5 MS/s. Without this patch, those channels won't
+> be discovered, as the core won't try to use a symbol rate outside
+> the range.
+
+What you are stating is a hit and miss scenario, sometimes it might lock
+and sometimes it wouldn't.
+
+The scanning algorithm that I implemented for the demodulator works
+with a symbol rate as low as 5 MSPS alone. Anything lower than that
+is hit and miss.
+
+
+> Of course, transponders with a symbol rate equal or upper than 5MS/s
+> won't be affected by this patch.
+>
+
+
+How can you be sure ? I myself am not very sure. While we worked on
+the demodulator in the early days, we had different situations where a
+previous failed state could cause lockup of the demodulator, eventually
+resulting tuning failures.
+
+
+> Even if this is not a perfect patch and some changes would be
+> needed to improve tuning for those low symbol rate transponders,
+> it seems better than before, as at least now some channels are tuned.
+>
+> The only reason I can see to reverse this patch is that if setting
+> the frontend to low bit ranges could damage the frontend or could
+> hit some bug on the hardware (or internal firmware).
+>
+> Yet, from the datasheet pointed by the patch author, it seems that
+> this frontend allows such low symbol rates:
+>         http://comtech.sg1002.myweb.hinet.net/pdf/dvbs2-6899.pdf
+
+
+The frontend allows a different lower symbol rate with a different
+scanning algorithm, not with this existing current one.
+
+I am pretty sure, that author saw some specifications written some
+place and simply copied those numbers in here. Also sure that he
+has no idea about the algorithm in use.
+
+According to ST itself, a 2MSPS algorithm was created for a very
+specific customer requirement, which is not applicable to the existing
+algorithm in use with the Linux STB0899 demodulator driver.
+
+
+Regards,
+Manu
