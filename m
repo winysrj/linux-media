@@ -1,87 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f48.google.com ([209.85.214.48]:48257 "EHLO
-	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752433Ab3GXV0g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 17:26:36 -0400
-Message-ID: <51F04688.6090900@gmail.com>
-Date: Wed, 24 Jul 2013 23:26:32 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:55633 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752555Ab3GAFZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jul 2013 01:25:08 -0400
+Message-ID: <51D1128C.90009@ti.com>
+Date: Mon, 1 Jul 2013 10:54:28 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: Re: [PATCH v2 3/5] v4l: Add media format codes for ARGB8888 and AYUV8888
- on 32-bit busses
-References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1374072882-14598-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1374072882-14598-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	<linux-fbdev@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
+	<t.figa@samsung.com>, <jg1.han@samsung.com>,
+	<dh09.lee@samsung.com>, <balbi@ti.com>, <inki.dae@samsung.com>,
+	<kyungmin.park@samsung.com>, Hui Wang <jason77.wang@gmail.com>,
+	<kgene.kim@samsung.com>, <plagnioj@jcrosoft.com>,
+	<devicetree-discuss@lists.ozlabs.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [PATCH v3 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com> <1372258946-15607-2-git-send-email-s.nawrocki@samsung.com> <51CD4698.3070409@gmail.com> <51CD6153.5050406@samsung.com> <51CEA197.8070207@ti.com> <51CF36AB.4010300@gmail.com>
+In-Reply-To: <51CF36AB.4010300@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi,
 
-On 07/17/2013 04:54 PM, Laurent Pinchart wrote:
-> Signed-off-by: Laurent Pinchart<laurent.pinchart+renesas@ideasonboard.com>
+On Sunday 30 June 2013 01:04 AM, Sylwester Nawrocki wrote:
+> Hi,
 >
-> ---
->   Documentation/DocBook/media/v4l/subdev-formats.xml | 609 +++++++++------------
->   Documentation/DocBook/media_api.tmpl               |   6 +
->   include/uapi/linux/v4l2-mediabus.h                 |   6 +-
->   3 files changed, 254 insertions(+), 367 deletions(-)
+> On 06/29/2013 10:57 AM, Kishon Vijay Abraham I wrote:
+>> On Friday 28 June 2013 03:41 PM, Sylwester Nawrocki wrote:
+>>> On 06/28/2013 10:17 AM, Hui Wang wrote:
+>>>> On 06/26/2013 11:02 PM, Sylwester Nawrocki wrote:
+>>>>> Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
+>>>>> receiver and MIPI DSI transmitter DPHYs.
+>>>>>
+>>>>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>>>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+>>>>> ---
+>>>>> Changes since v2:
+>>>>> - adapted to the generic PHY API v9: use phy_set/get_drvdata(),
+>>>>> - fixed of_xlate callback to return ERR_PTR() instead of NULL,
+>>>>> - namespace cleanup, put "GPL v2" as MODULE_LICENSE, removed pr_debug,
+>>>>> - removed phy id check in __set_phy_state().
+>>>>> ---
+>>>> [...]
+>>>>> +
+>>>>> + if (IS_EXYNOS_MIPI_DSIM_PHY_ID(id))
+>>>>> + reset = EXYNOS_MIPI_PHY_MRESETN;
+>>>>> + else
+>>>>> + reset = EXYNOS_MIPI_PHY_SRESETN;
+>>>>> +
+>>>>> + spin_lock_irqsave(&state->slock, flags);
+>>>>
+>>>> Sorry for one stupid question here, why do you use spin_lock_irqsave()
+>>>> rather than spin_lock(),
+>>>> I don't see the irq handler will use this spinlock anywhere in this c
+>>>> file.
+>>>
+>>> Yes, there is no chance the PHY users could call the phy ops from within
+>>> an interrupt context. Especially now when there is a per phy object
+>>> mutex used in the PHY operation helpers. So I'll replace it with plain
+>>> spin_lock/unlock. Thank you for the review.
+>>
+>> Now that PHY ops is already protected, do you really need a spin_lock here?
 >
-> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> index 0c2b1f2..9100674 100644
-> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> @@ -97,31 +97,39 @@
-[...]
-> +	<row id="V4L2-MBUS-FMT-ARGB888-1X24">
-> +	<entry>V4L2_MBUS_FMT_ARGB888_1X24</entry>
+> It is still needed, to synchronize access to the control register from
+> two separate PHY objects. The mutex is per PHY object, while the spinlock
+> is per PHY provider.
 
-This should be V4L2_MBUS_FMT_ARGB888_1X32, right ?
+Ok. Makes sense.
 
-Fix this correction feel free to add:
-
-  Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>	
-
-> +	<entry>0x100d</entry>
-> +	<entry></entry>
-[...]
-> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
-> index 6ee63d0..a960125 100644
-> --- a/include/uapi/linux/v4l2-mediabus.h
-> +++ b/include/uapi/linux/v4l2-mediabus.h
-> @@ -37,7 +37,7 @@
->   enum v4l2_mbus_pixelcode {
->   	V4L2_MBUS_FMT_FIXED = 0x0001,
->
-> -	/* RGB - next is 0x100d */
-> +	/* RGB - next is 0x100e */
->   	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
->   	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
->   	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
-> @@ -50,8 +50,9 @@ enum v4l2_mbus_pixelcode {
->   	V4L2_MBUS_FMT_RGB888_1X24 = 0x100a,
->   	V4L2_MBUS_FMT_RGB888_2X12_BE = 0x100b,
->   	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
-> +	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
->
-> -	/* YUV (including grey) - next is 0x2017 */
-> +	/* YUV (including grey) - next is 0x2018 */
->   	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
->   	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
->   	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
-> @@ -74,6 +75,7 @@ enum v4l2_mbus_pixelcode {
->   	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
->   	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
->   	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
-> +	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
->
->   	/* Bayer - next is 0x3019 */
->   	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
-
-Thanks,
-Sylwester
+Thanks
+Kishon
