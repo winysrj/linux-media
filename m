@@ -1,44 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:57913 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933178Ab3GWQvK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 12:51:10 -0400
-Received: by mail-ob0-f182.google.com with SMTP id va7so10721173obc.13
-        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 09:51:09 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:53401 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752695Ab3GANWJ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jul 2013 09:22:09 -0400
+Message-ID: <51D18256.8020407@iki.fi>
+Date: Mon, 01 Jul 2013 16:21:26 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <CAA7C2qgkBCW9TjjeeB+rEEMJvCRAiUicqCYxkZ5N+BdDE-232g@mail.gmail.com>
-References: <1374594649-6061-1-git-send-email-updatelee@gmail.com>
-	<CAA7C2qi1ZMGwB7C6bacU6W-jHRO_taKtng1ugb9DLzvTT3zHrQ@mail.gmail.com>
-	<CAA9z4LZ0jAWFfi=OpqD0iNGOFC-N_vBr6U4e_-85Yv4EK60arg@mail.gmail.com>
-	<CAA7C2qgkBCW9TjjeeB+rEEMJvCRAiUicqCYxkZ5N+BdDE-232g@mail.gmail.com>
-Date: Tue, 23 Jul 2013 10:51:09 -0600
-Message-ID: <CAA9z4LY6zyPm8dfwxsU1jeXpRV2QwcF_-j5w2v_V4YifUJAoGg@mail.gmail.com>
-Subject: Re: [PATCH] gp8psk: add systems supported by genpix devices to .delsys
-From: Chris Lee <updatelee@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Bogdan Oprea <bogdaninedit@yahoo.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
+ while loading driver (-19)
+References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com>
+In-Reply-To: <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ive got no problem pulling it out, doesnt affect anything on my end.
-Do I need to resubmit the patch ?
-
-Chris Lee
-
-On Tue, Jul 23, 2013 at 10:22 AM, VDR User <user.vdr@gmail.com> wrote:
->> Correct, but many older userland applications used SYS_DVBS2 to tune
->> before SYS_TURBO was added. I have no problem removing it but others
->> might.
+On 07/01/2013 09:53 AM, Bogdan Oprea wrote:
+> this is a fix for this type of error
 >
-> I think the best solution here would be not to put false info in the
-> driver and notify the author(s) of any apps still not updated to use
-> SYS_TURBO, that they need to do so or let the communities for those
-> apps fix it. Having the Genpix say it's dvb-s2 capable when it isn't
-> can be a problem in systems with actual dvb-s2 sources which is why,
-> iirc, SYS_TURBO was added in the first place. If nobody wants to
-> bother fixing those apps (to my knowledge its only mythtv that has
-> this problem) correctly and still wants to rely on the driver
-> misrepresenting the devices capabilities then it seems appropriate
-> that should be done in an external patch since SYS_TURBO already
-> exists to prevent this.
+> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error while loading driver (-19)
+> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' successfully deinitialized and disconnected
+>
+
+--- a/drivers/media/tuners/fc2580.c
++++ b/drivers/media/tuners/fc2580.c
+@@ -506,6 +506,7 @@
+         switch (chip_id) {
+         case 0x56:
+         case 0x5a:
++       case 0xff:
+                 break;
+         default:
+                 goto err;
+
+
+That does not look correct. If chip id reading is returning 0x00 or 0xff 
+it is about 100% sure there is I2C communication failure.
+
+Could you make some test and tweak it a little bit more to see what is 
+problem. Does I2C read work after that or is it failing all the time?
+
+regards
+Antti
+
+
+-- 
+http://palosaari.fi/
