@@ -1,142 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47347 "EHLO
-	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752014Ab3G0OsW (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Jul 2013 10:48:22 -0400
-Message-ID: <1374936520.3405.5.camel@palomino.walls.org>
-Subject: Re: [PATCH] cx23885[v4]: Fix interrupt storm when enabling IR
- receiver.
-From: Andy Walls <awalls@md.metrocast.net>
-To: Luis Alves <ljalvs@gmail.com>
-Cc: linux-media@vger.kernel.org, mchehab@infradead.org, crope@iki.fi
-Date: Sat, 27 Jul 2013 10:48:40 -0400
-In-Reply-To: <1374671161-3144-1-git-send-email-ljalvs@gmail.com>
-References: <1374671161-3144-1-git-send-email-ljalvs@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33828 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752611Ab3GAMDW (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 08:03:22 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES and S_FMT?
+Date: Mon, 01 Jul 2013 14:03:47 +0200
+Message-ID: <1914227.BoSses4FPR@avalon>
+In-Reply-To: <201306251102.51514.hverkuil@xs4all.nl>
+References: <201306241448.15187.hverkuil@xs4all.nl> <20130625082119.GJ2064@valkosipuli.retiisi.org.uk> <201306251102.51514.hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 2013-07-24 at 14:06 +0100, Luis Alves wrote:
-> Hi,
-> Removed wrong description in the header file. Sorry about that...
+Hi Hans,
+
+On Tuesday 25 June 2013 11:02:51 Hans Verkuil wrote:
+> On Tue 25 June 2013 10:21:19 Sakari Ailus wrote:
+> > On Mon, Jun 24, 2013 at 02:48:15PM +0200, Hans Verkuil wrote:
+> > > Hi all,
+> > > 
+> > > While working on extending v4l2-compliance with cropping/selection test
+> > > cases I decided to add support for that to vivi as well (this would
+> > > give applications a good test driver to work with).
+> > > 
+> > > However, I ran into problems how this should be implemented for V4L2
+> > > devices (we are not talking about complex media controller devices
+> > > where the video pipelines are setup manually).
+> > > 
+> > > There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
+> > > 
+> > > The ENUM_FRAMESIZES issue is simple: if you have a sensor that has
+> > > several possible frame sizes, and that can crop, compose and/or scale,
+> > > then you need to be able to set the frame size. Currently this is
+> > > decided by S_FMT which
+> >
+> > Sensors have a single "frame size". Other sizes are achieved by using
+> > cropping and scaling (or binning) from the native pixel array size. The
+> > drivers should probably also expose these properties rather than advertise
+> > multiple frame sizes.
 > 
-> New patch for this issue. Changes:
->  - Added flatiron readreg and writereg functions prototypes (new header file).
->  - Modified the av work handler to preserve all other register bits when dealing
->    with the interrupt flag.
+> The problem is that from the point of view of a generic application you
+> really don't want to know about that. You have a number of possible
+> framesizes and you just want to pick one.
 > 
-> Regards,
-> Luis
+> Also, the hardware may hide how each framesize was achieved and in the case
+> of vivi or mem2mem devices things are even murkier.
+
+ENUM_FRAMESIZES has been introduced for the uvcvideo driver. UVC devices 
+expose a list of possible frame sizes, without telling anything about how the 
+frame size is achieved (depending on the devices various combinations of 
+cropping and scaling have been seen in practice). This is a shortcoming of the 
+UVC specification in my opinion, but we need to live with it.
+
+On the other hand, the fact that some hardware tries and fails to be clever 
+shouldn't force us to implement bad APIs for sane devices. Sure, making the 
+complete pipeline configurable by userspace in simple cases is overkill, but I 
+don't think it would be expecting too much of userspace to support the format 
+and selection APIs properly and compute the possible frame sizes (especially 
+if we perform that computation in libv4l).
+
+> > > maps the format size to the closest valid frame size. This however makes
+> > > it impossible to e.g. scale up a frame, or compose the image into a
+> > > larger buffer.
+> > > 
+> > > For video receivers this issue doesn't exist: there the size of the
+> > > incoming video is decided by S_STD or S_DV_TIMINGS, but no equivalent
+> > > exists for sensors.
+> > > 
+> > > I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
+> > 
+> > The smiapp (well, subdev) driver uses V4L2_SEL_TGT_CROP_BOUNDS rectangle
+> > for this purpose. It was agreed to use that instead of creating a
+> > separate "pixel array size" rectangle back then. Could it be used for the
+> > same purpose on video nodes, too? If not, then smiapp should also be
+> > switched to use the new "frame size" rectangle.
 > 
-> 
-> Signed-off-by: Luis Alves <ljalvs@gmail.com>
+> The problem with CROP_BOUNDS is that it may be larger than the actual
+> framesize, as it can include blanking (for video) or the additional border
+> pixels in a sensor.
 
-Looks OK to me.
-Theoretically you did'nt need to bitwise-OR in the 0x80, e.g.
+*can* it include blanking and borders, or *does* it include it ? It's time to 
+write those rules down in the documentation.
 
-	cx23885_flatiron_write(dev, 0x1f,
-				cx23885_flatiron_read(dev, 0x1f));
+> I would prefer a new selection target for this.
 
-should work as well, since the set interrupt status bit will clear that
-bit on the write back of the bit.
+-- 
+Regards,
 
-But this patch is good enough. :)
-
-Acked-by: Andy Walls <awalls@md.metrocast.net>
-
-> ---
->  drivers/media/pci/cx23885/cx23885-av.c    |   13 +++++++++++++
->  drivers/media/pci/cx23885/cx23885-video.c |    4 ++--
->  drivers/media/pci/cx23885/cx23885-video.h |   26 ++++++++++++++++++++++++++
->  3 files changed, 41 insertions(+), 2 deletions(-)
->  create mode 100644 drivers/media/pci/cx23885/cx23885-video.h
-> 
-> diff --git a/drivers/media/pci/cx23885/cx23885-av.c b/drivers/media/pci/cx23885/cx23885-av.c
-> index e958a01..c443b7a 100644
-> --- a/drivers/media/pci/cx23885/cx23885-av.c
-> +++ b/drivers/media/pci/cx23885/cx23885-av.c
-> @@ -23,6 +23,7 @@
->  
->  #include "cx23885.h"
->  #include "cx23885-av.h"
-> +#include "cx23885-video.h"
->  
->  void cx23885_av_work_handler(struct work_struct *work)
->  {
-> @@ -32,5 +33,17 @@ void cx23885_av_work_handler(struct work_struct *work)
->  
->  	v4l2_subdev_call(dev->sd_cx25840, core, interrupt_service_routine,
->  			 PCI_MSK_AV_CORE, &handled);
-> +
-> +	/* Getting here with the interrupt not handled
-> +	   then probbaly flatiron does have pending interrupts.
-> +	*/
-> +	if (!handled) {
-> +		/* clear left and right adc channel interrupt request flag */
-> +		cx23885_flatiron_write(dev, 0x1f,
-> +			cx23885_flatiron_read(dev, 0x1f) | 0x80);
-> +		cx23885_flatiron_write(dev, 0x23,
-> +			cx23885_flatiron_read(dev, 0x23) | 0x80);
-> +	}
-> +
->  	cx23885_irq_enable(dev, PCI_MSK_AV_CORE);
->  }
-> diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-> index e33d1a7..f4e7cef 100644
-> --- a/drivers/media/pci/cx23885/cx23885-video.c
-> +++ b/drivers/media/pci/cx23885/cx23885-video.c
-> @@ -417,7 +417,7 @@ static void res_free(struct cx23885_dev *dev, struct cx23885_fh *fh,
->  	mutex_unlock(&dev->lock);
->  }
->  
-> -static int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
-> +int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
->  {
->  	/* 8 bit registers, 8 bit values */
->  	u8 buf[] = { reg, data };
-> @@ -428,7 +428,7 @@ static int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
->  	return i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
->  }
->  
-> -static u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
-> +u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
->  {
->  	/* 8 bit registers, 8 bit values */
->  	int ret;
-> diff --git a/drivers/media/pci/cx23885/cx23885-video.h b/drivers/media/pci/cx23885/cx23885-video.h
-> new file mode 100644
-> index 0000000..c961a2b
-> --- /dev/null
-> +++ b/drivers/media/pci/cx23885/cx23885-video.h
-> @@ -0,0 +1,26 @@
-> +/*
-> + *  Driver for the Conexant CX23885/7/8 PCIe bridge
-> + *
-> + *  Copyright (C) 2010  Andy Walls <awalls@md.metrocast.net>
-> + *
-> + *  This program is free software; you can redistribute it and/or
-> + *  modify it under the terms of the GNU General Public License
-> + *  as published by the Free Software Foundation; either version 2
-> + *  of the License, or (at your option) any later version.
-> + *
-> + *  This program is distributed in the hope that it will be useful,
-> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *  GNU General Public License for more details.
-> + *
-> + *  You should have received a copy of the GNU General Public License
-> + *  along with this program; if not, write to the Free Software
-> + *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-> + *  02110-1301, USA.
-> + */
-> +
-> +#ifndef _CX23885_VIDEO_H_
-> +#define _CX23885_VIDEO_H_
-> +int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data);
-> +u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg);
-> +#endif
-
+Laurent Pinchart
 
