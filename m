@@ -1,141 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog123.obsmtp.com ([207.126.144.155]:46773 "EHLO
-	eu1sys200aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753959Ab3GVIcl (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 04:32:41 -0400
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-To: linux-media@vger.kernel.org
-Cc: alipowski@interia.pl, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, srinivas.kandagatla@gmail.com,
-	srinivas.kandagatla@st.com, sean@mess.org
-Subject: [PATCH v2 1/2] media: rc: Add rc_open/close and use count to rc_dev.
-Date: Mon, 22 Jul 2013 09:22:57 +0100
-Message-Id: <1374481377-3365-1-git-send-email-srinivas.kandagatla@st.com>
-In-Reply-To: <1374481319-3293-1-git-send-email-srinivas.kandagatla@st.com>
-References: <1374481319-3293-1-git-send-email-srinivas.kandagatla@st.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:40138 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754901Ab3GAVDW (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jul 2013 17:03:22 -0400
+Message-ID: <51D1EE98.2060905@schinagl.nl>
+Date: Mon, 01 Jul 2013 23:03:20 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Antti Palosaari <crope@iki.fi>
+CC: Bogdan Oprea <bogdaninedit@yahoo.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
+ while loading driver (-19)
+References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com> <51D1352A.2080107@schinagl.nl> <51D182CD.2040502@iki.fi> <51D1839B.1010007@schinagl.nl> <51D1E8F8.9030402@schinagl.nl> <51D1EBCF.60708@iki.fi>
+In-Reply-To: <51D1EBCF.60708@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+On 07/01/13 22:51, Antti Palosaari wrote:
+> On 07/01/2013 11:39 PM, Oliver Schinagl wrote:
+>> On 07/01/13 15:26, Oliver Schinagl wrote:
+>>> On 01-07-13 15:23, Antti Palosaari wrote:
+>>>> On 07/01/2013 10:52 AM, Oliver Schinagl wrote:
+>>>>> On 01-07-13 08:53, Bogdan Oprea wrote:
+>>>>>> this is a fix for this type of error
+>>>>>>
+>>>>>> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error while
+>>>>>> loading driver (-19)
+>>>>>> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' successfully
+>>>>>> deinitialized and disconnected
+>>>>>>
+>>>>> This isn't really a fix, I think i mentioned this on the ML ages ago,
+>>>>
+>>>> Argh, I just replied that same. Oliver, do you has that same device? Is
+>>>> it working? Could you tweak to see if I2C readings are working at all?
+>>> I have the same device, but mine works normally (though I haven't
+>>> checked for ages), I will try it tonight when I'm at home and don't
+>>> forget what happens with my current kernel.
+>>
+>> Hard to test when it 'just works (tm)' :)
+>
+>> The bad firmware wories me, no clue where that error is from, using:
+>> 862604ab3fec0c94f4bf22b4cffd0d89  /lib/firmware/dvb-usb-af9035-02.fw
+>
+> It means firmware is too short or long what is calculated. I added that
+> printing to notify users firmware is broken and could cause problems.
+Ah, good call, it did get me to re-download it. no clue why it was 
+broken all of a sudden.
+>
+>
+> I suspect it is same issue what is with MxL5007t tuners too.
+> Maybe that kind of fix is needed:
+> https://patchwork.kernel.org/patch/2418471/
+>
+> Someone should really find out whether or not these are coming with
+> register read operation with REPEATED START of STOP condition. Attach
+> hardware sniffer to device tuner I2C bus and look what kind of messages
+> there is actually.
+Well mine works fine, so hard to say. IF you have a buspirate you should 
+be able to intercept the i2c bus ON the device though :) Good luck 
+Bogdan, I wish I could help here, but lack the broken hardware.
 
-This patch adds user count to rc_dev structure, the reason to add this
-new member is to allow other code like lirc to open rc device directly.
-In the existing code, rc device is only opened by input subsystem which
-works ok if we have any input drivers to match. But in case like lirc
-where there will be no input driver, rc device will be never opened.
-
-Having this user count variable will be usefull to allow rc device to be
-opened from code other than rc-main.
-
-This patch also adds rc_open and rc_close functions for other drivers
-like lirc to open and close rc devices. This functions safely increment
-and decrement the user count. Other driver wanting to open rc device
-should call rc_open and rc_close, rather than directly modifying the
-rc_dev structure.
-
-Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
----
- drivers/media/rc/rc-main.c |   46 ++++++++++++++++++++++++++++++++++++++++---
- include/media/rc-core.h    |    4 +++
- 2 files changed, 46 insertions(+), 4 deletions(-)
-
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 1cf382a..1dedebd 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -699,19 +699,50 @@ void rc_keydown_notimeout(struct rc_dev *dev, int scancode, u8 toggle)
- }
- EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
- 
-+int rc_open(struct rc_dev *rdev)
-+{
-+	int rval = 0;
-+
-+	if (!rdev)
-+		return -EINVAL;
-+
-+	mutex_lock(&rdev->lock);
-+	if (!rdev->users++)
-+		rval = rdev->open(rdev);
-+
-+	if (rval)
-+		rdev->users--;
-+
-+	mutex_unlock(&rdev->lock);
-+
-+	return rval;
-+}
-+EXPORT_SYMBOL_GPL(rc_open);
-+
- static int ir_open(struct input_dev *idev)
- {
- 	struct rc_dev *rdev = input_get_drvdata(idev);
- 
--	return rdev->open(rdev);
-+	return rc_open(rdev);
-+}
-+
-+void rc_close(struct rc_dev *rdev)
-+{
-+	if (rdev) {
-+		mutex_lock(&rdev->lock);
-+
-+		 if (!--rdev->users)
-+			rdev->close(rdev);
-+
-+		mutex_unlock(&rdev->lock);
-+	}
- }
-+EXPORT_SYMBOL_GPL(rc_close);
- 
- static void ir_close(struct input_dev *idev)
- {
- 	struct rc_dev *rdev = input_get_drvdata(idev);
--
--	 if (rdev)
--		rdev->close(rdev);
-+	rc_close(rdev);
- }
- 
- /* class for /sys/class/rc */
-@@ -1076,7 +1107,14 @@ int rc_register_device(struct rc_dev *dev)
- 	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
- 	dev->input_dev->phys = dev->input_phys;
- 	dev->input_dev->name = dev->input_name;
-+
-+	/* input_register_device can call ir_open, so unlock mutex here */
-+	mutex_unlock(&dev->lock);
-+
- 	rc = input_register_device(dev->input_dev);
-+
-+	mutex_lock(&dev->lock);
-+
- 	if (rc)
- 		goto out_table;
- 
-diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-index 06a75de..2f6f1f7 100644
---- a/include/media/rc-core.h
-+++ b/include/media/rc-core.h
-@@ -101,6 +101,7 @@ struct rc_dev {
- 	bool				idle;
- 	u64				allowed_protos;
- 	u64				enabled_protocols;
-+	u32				users;
- 	u32				scanmask;
- 	void				*priv;
- 	spinlock_t			keylock;
-@@ -142,6 +143,9 @@ void rc_free_device(struct rc_dev *dev);
- int rc_register_device(struct rc_dev *dev);
- void rc_unregister_device(struct rc_dev *dev);
- 
-+int rc_open(struct rc_dev *rdev);
-+void rc_close(struct rc_dev *rdev);
-+
- void rc_repeat(struct rc_dev *dev);
- void rc_keydown(struct rc_dev *dev, int scancode, u8 toggle);
- void rc_keydown_notimeout(struct rc_dev *dev, int scancode, u8 toggle);
--- 
-1.7.6.5
+>
+> regards
+> Antti
+>
 
