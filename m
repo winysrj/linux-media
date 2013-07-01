@@ -1,248 +1,245 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:53074 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750840Ab3GXMUU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 08:20:20 -0400
-Message-ID: <51EFC5D4.6000407@schinagl.nl>
-Date: Wed, 24 Jul 2013 14:17:24 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:47442 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754776Ab3GATsH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 15:48:07 -0400
+Message-ID: <51D1DCF0.50803@gmail.com>
+Date: Mon, 01 Jul 2013 21:48:00 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-To: Krishna Kishore <krishna.kishore@sasken.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Prof DVB-S2 USB device
-References: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>,<51EEEFCA.9040107@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com> <51EF853E.2040108@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F535@exgmbxfz01.sasken.com> <51EFB4A8.2080202@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F859@exgmbxfz01.sasken.com>
-In-Reply-To: <7CC27E99F1636344B0AC7B73D5BB86DE1485F859@exgmbxfz01.sasken.com>
+To: Jingoo Han <jg1.han@samsung.com>
+CC: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>
+Subject: Re: [PATCH V3 2/3] phy: Add driver for Exynos DP PHY
+References: <005301ce761b$32adf960$9809ec20$@samsung.com>
+In-Reply-To: <005301ce761b$32adf960$9809ec20$@samsung.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24-07-13 13:20, Krishna Kishore wrote:
+On 07/01/2013 07:24 AM, Jingoo Han wrote:
+> Add a PHY provider driver for the Samsung Exynos SoC DP PHY.
 >
-> On Desktop PC (Ubuntu 12.04 which has 3.2.0 Kernel) also, I am not getting the list of channels when I scan. I am using Kaffeine.
-While I understand you prefer to run a LTS distro, 3.2.0 is old!
+> Signed-off-by: Jingoo Han<jg1.han@samsung.com>
+> Cc: Sylwester Nawrocki<s.nawrocki@samsung.com>
+> Acked-by: Felipe Balbi<balbi@ti.com>
+> ---
+>   .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
+>   drivers/phy/Kconfig                                |    5 +
+>   drivers/phy/Makefile                               |    1 +
+>   drivers/phy/phy-exynos-dp-video.c                  |  118 ++++++++++++++++++++
+>   4 files changed, 132 insertions(+)
+>   create mode 100644 drivers/phy/phy-exynos-dp-video.c
+>
+> diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> index 5ff208c..3fb656a 100644
+> --- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> +++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+> @@ -12,3 +12,11 @@ the PHY specifier identifies the PHY and its meaning is as follows:
+>     1 - MIPI DSIM 0,
+>     2 - MIPI CSIS 1,
+>     3 - MIPI DSIM 1.
+> +
+> +Samsung EXYNOS SoC series DP PHY
 
-The reason why I keep bringing this up, media drivers are almost updated 
-daily. So if you want to see if your issue is fixed, the most ideal 
-start for this investigation is the media git kernel tree. While I 
-understand building your own kernel might be a little too much, try an 
-Ubuntu 13.04 Live cd, it should come with a 3.9 kernel, not extremly 
-old, but should have most of the recent media changes. Now if it doesn't 
-work right on that, well, then you'd have to build your own media 
-drivers from the git tree. If those don't work, then we can start 
-talking to developers. Otherwise, you are trying to troubleshoot 
-something, that has long been fixed.
+I would make it "Samsung EXYNOS SoC series Display Port PHY"
 
-oliver
->
->
->
->
-> -----Original Message-----
-> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
-> Sent: Wednesday, July 24, 2013 4:34 PM
-> To: Krishna Kishore
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: Prof DVB-S2 USB device
->
-> On 24-07-13 10:59, Krishna Kishore wrote:
->> Dear Oliver,
->>
->>          Thanks for your response. I tried with 3.10.1. As you rightly pointed out, it does not seem to work on my board (pandaboard). It gets stuck at "Starting kernel...".
->>
->>           Now, I am trying with 3.4.47 version now. Let me see if it works. The delay of creating /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 seems to exists. I am waiting for it to get created.
->>
->>         I am downloading 3.4.54 and 3.10.2 now.
-> What do you get when using on a regular PC? Your beagle board may (or may not) yet be supported by mainline 3.10.1 kernel.
->
-> Try it in a regular PC and see what happens there with 3.10.2
->>
->> Regards,
->> Kishore.
->>
->> -----Original Message-----
->> From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
->> Sent: Wednesday, July 24, 2013 1:12 PM
->> To: Krishna Kishore
->> Cc: linux-media@vger.kernel.org
->> Subject: Re: Prof DVB-S2 USB device
->>
->> On 24-07-13 08:56, Krishna Kishore wrote:
->>> Dear Oliver,
->>>
->>>       Thanks for your response. Here are more details. Please help me in making this work.
->>>
->>>       Linux version:
->>>
->>> -sh-4.1# uname -a
->>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
->>> armv7l GNU/Linux
->> Your kernel is ancient. The latest kernel with the latest media fluff is 3.10.2; Since you are on arm, chances are your platform isn't that well supported with later kernels, but even in the 3.4 world your kernel is ancient. Latest stable is 3.4.54.
->>
->> So you are asking for help, with something that could have been fixed 3 times over (or not, I don't know). So my first suggestion is to upgrade your kernel. If that's not possible on your arm platform, contact the supplier of your kernel.
->>
->> Meanwhile, since this is an USB device, you could try it on a desktop.
->> Get a recent Ubuntu live CD and see if it works there. At least then you can quickly and easily see if your problem hasn't been fixed in the last year.
->>>
->>> [dotconfig is attached to this email]
->>>
->>> lsusb -t:
->>> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
->>>        |__ Port 1: Dev 2, If 0, Class=, Driver=hub/5p, 480M
->>>            |__ Port 1: Dev 3, If 0, Class=, Driver=smsc95xx, 480M
->>>            |__ Port 2: Dev 5, If 0, Class=, Driver=dw2102, 480M
->>>
->>> dmesg:
->>> [  126.824951] usb 1-1.2: new high-speed USB device number 5 using
->>> ehci-omap [  126.950347] usb 1-1.2: New USB device found,
->>> idVendor=3034, idProduct=7500 [  126.957794] usb 1-1.2: New USB
->>> device
->>> strings: Mfr=0, Product=0, SerialNumber=0 [  126.983184] dvb-usb:
->>> found a 'Prof 7500 USB DVB-S2' in cold state, will try to load a firmware [  127.033477] dvb-usb: downloading firmware from file 'dvb-usb-p7500.fw'
->>> [  127.051177] dw2102: start downloading DW210X firmware [
->>> 127.238739] dvb-usb: found a 'Prof 7500 USB DVB-S2' in warm state.
->>> [  127.255828] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
->>> [  127.271270] DVB: registering new adapter (Prof 7500 USB DVB-S2) [
->>> 1159.277740] dvb-usb: MAC address: 40:40:40:40:40:40 [ 1159.325531]
->>> dw2102: Kishore: prof_7500_frontend_attach [ 1159.325561] [
->>> 1159.340332] Kishore stv0900_attach:
->>> [ 1159.340362] stv0900_init_internal
->>> [ 1159.340393] stv0900_init_internal: Create New Internal Structure!
->>> [ 1159.340423] stv0900_read_reg
->>> [ 1179.527770] stv0900_read_reg
->>> [ 1550.418365] stv0900_read_reg
->>> [ 1637.090240] stv0900_st_dvbs2_single [ 1637.090270]
->>> stv0900_stop_all_s2_modcod [ 1669.340270]
->>> stv0900_activate_s2_modcod_single [ 1703.605865] stv0900_read_reg [
->>> 1709.652740] stv0900_read_reg [ 1715.699584] stv0900_read_reg [
->>> 1721.746490] stv0900_read_reg [ 1727.793365] stv0900_read_reg [
->>> 1733.840209] stv0900_read_reg [ 1739.887115] stv0900_read_reg [
->>> 1743.918395] stv0900_read_reg [ 1749.965240] stv0900_read_reg [
->>> 1756.012115] stv0900_set_ts_parallel_serial path1 3 path2 0 [
->>> 1758.027740] stv0900_read_reg [ 1764.074615] stv0900_read_reg [
->>> 1770.121490] stv0900_read_reg [ 1776.168334] stv0900_read_reg [
->>> 1782.215209] stv0900_read_reg [ 1788.262115] stv0900_read_reg [
->>> 1810.433990] stv0900_read_reg [ 1816.480865] stv0900_read_reg [
->>> 1824.543365] stv0900_read_reg [ 1830.590240] stv0900_read_reg [
->>> 1838.652740] stv0900_read_reg [ 1844.699615] stv0900_read_reg [
->>> 1850.746490] stv0900_set_mclk: Mclk set to 135000000, Quartz =
->>> 27000000 [ 1850.746520] stv0900_read_reg [ 1854.777740]
->>> stv0900_read_reg [ 1860.824615] stv0900_read_reg [ 1864.855865]
->>> stv0900_read_reg [ 1868.887115] stv0900_get_mclk_freq: Calculated
->>> Mclk = 152672117 [ 1876.965209] stv0900_read_reg [ 1883.027709]
->>> stv0900_read_reg [ 1887.058990] stv0900_read_reg [ 1891.090240]
->>> stv0900_get_mclk_freq: Calculated Mclk = 152672117 [ 1891.090270]
->>> Kishore stv0900_attach: Attaching STV0900 demodulator(0) [
->>> 1891.090301] dw2102: Kishore: dvb_attach stb6100_attach [
->>> 1891.090332] [ 1891.097442] Kishore stb6100_attach:
->>> [ 1891.101409] Kishore stb6100_attach: Attaching STB6100 [
->>> 1893.105957] dw2102: Attached STV0900+STB6100A!
->>> [ 1893.105957]
->>> [ 1893.112335] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
->>> [ 1893.137878] input: IR-receiver inside an USB DVB receiver as
->>> /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input2
->>> [ 1893.177368] dvb-usb: schedule remote query interval to 150 msecs.
->>> [ 1893.184143] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
->>>
->>>
->>>
->>> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013
->>> armv7l GNU/Linux -sh-4.1# /stbref/w_scan-20120112/w_scan -fs -s S93E5
->>> -c IN -G >> ch.conf w_scan version 20120112 (compiled for DVB API
->>> 5.4) using settings for 93.5 east Insat 3A/4B scan type SATELLITE,
->>> channellist 42 output format gstreamer
->>> WARNING: could not guess your codepage. Falling back to 'UTF-8'
->>> output charset 'UTF-8', use -C <charset> to override
->>> Info: using DVB adapter auto detection.
->>>
->>>            /dev/dvb/adapter0/frontend0 -> SATELLITE "STV0900 frontend":
->>> very good :-))
->>>
->>> Using SATELLITE frontend (adapter /dev/dvb/adapter0/frontend0)
->>> -_-_-_-_ Getting frontend capabilities-_-_-_-_ Using DVB API 5.5
->>> frontend 'STV0900 frontend' supports INVERSION_AUTO DVB-S
->>> DVB-S2
->>> FREQ (0.95GHz ... 2.15GHz)
->>> SRATE (1.000MBd ... 45.000MBd)
->>> using LNB "UNIVERSAL"
->>> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
->>> (time: 00:40)
->>>
->>> dmesg logs:
->>>
->>> [1716261.743961] stv0900_init
->>> [1716287.004365] stv0900_set_tone: Off [1716307.004132]
->>> stv0900_read_status:
->>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
->>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
->>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
->>> [1716345.004236] stv0900_search:
->>> [1716345.004242] stv0900_read_status:
->>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
->>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
->>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
->>> [1716261.743961] stv0900_init [1716287.004365] stv0900_set_tone: Off
->>> [1716307.004132] stv0900_read_status:
->>> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
->>> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251]
->>> TS bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
->>> [1716345.004236] stv0900_search:
->>> [1716345.004242] stv0900_read_status:
->>> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
->>> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260]
->>> TS bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
->>> [1716455.004184] stv0900_search:
->>> [1716455.004190] stv0900_read_status:
->>> [1716461.004239] stv0900_status: locked = 0 [1716477.004310]
->>> stv0900_get_mclk_freq: Calculated Mclk = 175008176 [1716477.004315]
->>> TS bitrate = 503 Mbit/sec [1716479.004220] DEMOD LOCK FAIL
->>>
->>> Regards,
->>> Kishore.
->>> ________________________________________
->>> From: Oliver Schinagl [oliver+list@schinagl.nl]
->>> Sent: Wednesday, July 24, 2013 2:34 AM
->>> To: Krishna Kishore
->>> Cc: linux-media@vger.kernel.org
->>> Subject: Re: Prof DVB-S2 USB device
->>>
->>> On 23-07-13 18:52, Krishna Kishore wrote:
->>>> #Sorry for sending to individual email ids
->>>>
->>>> Hi,
->>>>
->>>>          I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
->>> You will need to provide much more information then that. What does
->>> dmesg say? lsusb? what driver are you using, what kernel version? Are
->>> you using it as a module? Have you enabled debugging in your kernel?
->>>
->>> Those questions come to my mind.
->>>
->>>>
->>>> 1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
->>>> 2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
->>>> a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
->>> Paste your logs (or if its too much, only copy/paste the relevant parts.
->>> You ask for a limb, yet offer nothing.
->>>
->>> oliver
->>>>
->>>>           Can you please help me?
->>>>
->>>>
->>>> Regards,
->>>> Kishore.
->>>>
->>>>
->>>>
->>>
->>>
->>>
->>> ________________________________
->>>
->>> SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
->>> Read Disclaimer at http://www.sasken.com/extras/mail_disclaimer.html
->>>
->>
->
+> +-------------------------------------------------
+> +
+> +Required properties:
+> +- compatible : should be "samsung,exynos5250-dp-video-phy";
+> +- reg : offset and length of the DP PHY register set;
+> +- #phy-cells : from the generic phy bindings, must be 0;
 
+s/phy/PHY ?
+
+> \ No newline at end of file
+
+Missing new line character.
+
+> diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+> index 6f446d0..760f55a 100644
+> --- a/drivers/phy/Kconfig
+> +++ b/drivers/phy/Kconfig
+> @@ -19,4 +19,9 @@ config PHY_EXYNOS_MIPI_VIDEO
+>   	help
+>   	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung
+>   	  S5P and EXYNOS SoCs.
+> +
+> +config PHY_EXYNOS_DP_VIDEO
+> +	tristate "EXYNOS SoC series DP PHY driver"
+
+"EXYNOS SoC series Display Port PHY driver" ?
+
+> +	help
+> +	  Support for DP PHY found on Samsung EXYNOS SoCs.
+
+s/DP/Display Port ?
+
+>   endif
+> diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+> index 71d8841..0fd1340 100644
+> --- a/drivers/phy/Makefile
+> +++ b/drivers/phy/Makefile
+> @@ -4,3 +4,4 @@
+>
+>   obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
+>   obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
+> +obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
+> diff --git a/drivers/phy/phy-exynos-dp-video.c b/drivers/phy/phy-exynos-dp-video.c
+> new file mode 100644
+> index 0000000..75e1d11
+> --- /dev/null
+> +++ b/drivers/phy/phy-exynos-dp-video.c
+> @@ -0,0 +1,118 @@
+> +/*
+> + * Samsung EXYNOS SoC series DP PHY driver
+
+s/DP/Display Port ?
+
+> + *
+> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
+> + * Author: Jingoo Han<jg1.han@samsung.com>
+> + *
+> + * This program is free software; you can redistribute it and/or modify
+> + * it under the terms of the GNU General Public License version 2 as
+> + * published by the Free Software Foundation.
+> + */
+> +
+> +#include<linux/io.h>
+> +#include<linux/kernel.h>
+> +#include<linux/module.h>
+> +#include<linux/of.h>
+> +#include<linux/of_address.h>
+> +#include<linux/phy/phy.h>
+> +#include<linux/platform_device.h>
+> +
+> +/* DPTX_PHY_CONTROL register */
+> +#define EXYNOS_DPTX_PHY_ENABLE		(1<<  0)
+> +
+> +struct exynos_dp_video_phy {
+> +	void __iomem *regs;
+> +};
+> +
+> +static int __set_phy_state(struct exynos_dp_video_phy *state, unsigned int on)
+> +{
+> +	void __iomem *addr;
+
+How about just dropping this local variable ?
+
+> +	u32 reg;
+> +
+> +	addr = state->regs;
+> +
+> +	reg = readl(addr);
+> +	if (on)
+> +		reg |= EXYNOS_DPTX_PHY_ENABLE;
+> +	else
+> +		reg&= ~EXYNOS_DPTX_PHY_ENABLE;
+> +	writel(reg, addr);
+> +
+> +	return 0;
+> +}
+> +
+> +static int exynos_dp_video_phy_power_on(struct phy *phy)
+> +{
+> +	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
+> +
+> +	return __set_phy_state(state, 1);
+> +}
+> +
+> +static int exynos_dp_video_phy_power_off(struct phy *phy)
+> +{
+> +	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
+> +
+> +	return __set_phy_state(state, 0);
+> +}
+> +
+> +static struct phy_ops exynos_dp_video_phy_ops = {
+> +	.power_on	= exynos_dp_video_phy_power_on,
+> +	.power_off	= exynos_dp_video_phy_power_off,
+> +	.owner		= THIS_MODULE,
+> +};
+> +
+> +static int exynos_dp_video_phy_probe(struct platform_device *pdev)
+> +{
+> +	struct exynos_dp_video_phy *state;
+> +	struct device *dev =&pdev->dev;
+> +	struct resource *res;
+> +	struct phy_provider *phy_provider;
+> +	struct phy *phy;
+> +
+> +	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
+> +	if (!state)
+> +		return -ENOMEM;
+> +
+> +	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+> +
+> +	state->regs = devm_ioremap_resource(dev, res);
+> +	if (IS_ERR(state->regs))
+> +		return PTR_ERR(state->regs);
+> +
+> +	dev_set_drvdata(dev, state);
+
+I can't see any corresponding dev_get_drvdata(), it should be safe
+to remove this assignment.
+
+> +	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
+> +	if (IS_ERR(phy_provider))
+> +		return PTR_ERR(phy_provider);
+> +
+> +	phy = devm_phy_create(dev, 0,&exynos_dp_video_phy_ops, "dp");
+
+The label could be NULL, since there is no need to support non-dt config.
+
+> +	if (IS_ERR(phy)) {
+> +		dev_err(dev, "failed to create DP PHY\n");
+> +		return PTR_ERR(phy);
+> +	}
+> +	phy_set_drvdata(phy, state);
+> +
+> +	return 0;
+> +}
+> +
+> +#ifdef CONFIG_OF
+
+You don't use of_match_ptr() macro to assign of_match_table to the driver
+structure below. This means build with CONFIG_OF disabled is broken now.
+I would just remove that #ifdef and would make the driver depends on
+CONFIG_OF.
+
+> +static const struct of_device_id exynos_dp_video_phy_of_match[] = {
+> +	{ .compatible = "samsung,exynos5250-dp-video-phy" },
+> +	{ },
+> +};
+> +MODULE_DEVICE_TABLE(of, exynos_dp_video_phy_of_match);
+> +#endif
+> +
+> +static struct platform_driver exynos_dp_video_phy_driver = {
+> +	.probe	= exynos_dp_video_phy_probe,
+> +	.driver = {
+> +		.name	= "exynos-dp-video-phy",
+> +		.owner	= THIS_MODULE,
+> +		.of_match_table	= exynos_dp_video_phy_of_match,
+> +	}
+> +};
+> +module_platform_driver(exynos_dp_video_phy_driver);
+> +
+> +MODULE_AUTHOR("Jingoo Han<jg1.han@samsung.com>");
+> +MODULE_DESCRIPTION("Samsung EXYNOS SoC DP PHY driver");
+> +MODULE_LICENSE("GPL v2");
+
+Thanks,
+Sylwester
