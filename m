@@ -1,38 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from venus.vo.lu ([80.90.45.96]:63232 "EHLO venus.vo.lu"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:34522 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1755526Ab3GYMz1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 08:55:27 -0400
+	id S1752695Ab3GAN1y (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jul 2013 09:27:54 -0400
+Message-ID: <51D1839B.1010007@schinagl.nl>
+Date: Mon, 01 Jul 2013 15:26:51 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
+To: Antti Palosaari <crope@iki.fi>
+CC: Bogdan Oprea <bogdaninedit@yahoo.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
+ while loading driver (-19)
+References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com> <51D1352A.2080107@schinagl.nl> <51D182CD.2040502@iki.fi>
+In-Reply-To: <51D182CD.2040502@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
-Date: Thu, 25 Jul 2013 14:40:07 +0200
-From: Guy Martin <gmsoft@tuxicoman.be>
-To: Gregor Jasny <gjasny@googlemail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans de Goede <hdegoede@redhat.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Doing a v4l-utils-1.0.0 release
-In-Reply-To: <51F11BD2.4080409@googlemail.com>
-References: <51BAC2F6.40708@redhat.com> <20130614103404.3dc2c4bf@redhat.com>
- <20130615123337.1ba83c63@borg.bxl.tuxicoman.be>
- <51F11BD2.4080409@googlemail.com>
-Message-ID: <f8618fcfb2197a0de87af694aa775c49@tuxicoman.be>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Gregor,
-
-On 2013-07-25 14:36, Gregor Jasny wrote:
-> I saw your patches were merged to v4l-utils. Is there anything else
-> you'd like to have included in a v4l-utils 1.0.0 release?
-
-Nope, that's all I wanted to have for this release.
-
-Next thing will be to work on better diseqc support but it can wait for 
-another release.
-
-   Guy
-
+On 01-07-13 15:23, Antti Palosaari wrote:
+> On 07/01/2013 10:52 AM, Oliver Schinagl wrote:
+>> On 01-07-13 08:53, Bogdan Oprea wrote:
+>>> this is a fix for this type of error
+>>>
+>>> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error while
+>>> loading driver (-19)
+>>> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' successfully
+>>> deinitialized and disconnected
+>>>
+>> This isn't really a fix, I think i mentioned this on the ML ages ago,
+>
+> Argh, I just replied that same. Oliver, do you has that same device? Is
+> it working? Could you tweak to see if I2C readings are working at all?
+I have the same device, but mine works normally (though I haven't 
+checked for ages), I will try it tonight when I'm at home and don't 
+forget what happens with my current kernel.
+>
+>
+> regards
+> Antti
+>
+>
 
