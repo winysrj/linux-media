@@ -1,391 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:38395 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933577Ab3GWSlV (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 14:41:21 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, linux-samsung-soc@vger.kernel.org,
-	arun.kk@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [REVIEW PATCH 1/6] V4L: Add driver for s5k6a3 image sensor
-Date: Tue, 23 Jul 2013 20:39:32 +0200
-Message-id: <1374604777-15523-2-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1374604777-15523-1-git-send-email-s.nawrocki@samsung.com>
-References: <1374604777-15523-1-git-send-email-s.nawrocki@samsung.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:43617 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752499Ab3GAFYF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 01:24:05 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
+	Jingoo Han <jg1.han@samsung.com>
+Subject: [PATCH V3 2/3] phy: Add driver for Exynos DP PHY
+Date: Mon, 01 Jul 2013 14:24:02 +0900
+Message-id: <005301ce761b$32adf960$9809ec20$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds subdev driver for Samsung S5K6A3 raw image sensor.
-As it is intended at the moment to be used only with the Exynos
-FIMC-IS (camera ISP) subsystem it is pretty minimal subdev driver.
-It doesn't do any I2C communication since the sensor is controlled
-by the ISP and its own firmware.
-This driver can be updated in future, should anyone need it to be
-a regular subdev driver where the main CPU communicates with the
-sensor directly.
+Add a PHY provider driver for the Samsung Exynos SoC DP PHY.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- drivers/media/i2c/Kconfig  |    8 ++
- drivers/media/i2c/Makefile |    1 +
- drivers/media/i2c/s5k6a3.c |  315 ++++++++++++++++++++++++++++++++++++++++++++
- 3 files changed, 324 insertions(+)
- create mode 100644 drivers/media/i2c/s5k6a3.c
+ .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
+ drivers/phy/Kconfig                                |    5 +
+ drivers/phy/Makefile                               |    1 +
+ drivers/phy/phy-exynos-dp-video.c                  |  118 ++++++++++++++++++++
+ 4 files changed, 132 insertions(+)
+ create mode 100644 drivers/phy/phy-exynos-dp-video.c
 
-diff --git a/drivers/media/i2c/Kconfig b/drivers/media/i2c/Kconfig
-index 3367ec2..dbd9cbb 100644
---- a/drivers/media/i2c/Kconfig
-+++ b/drivers/media/i2c/Kconfig
-@@ -564,6 +564,14 @@ config VIDEO_S5K6AA
- 	  This is a V4L2 sensor-level driver for Samsung S5K6AA(FX) 1.3M
- 	  camera sensor with an embedded SoC image signal processor.
- 
-+config VIDEO_S5K6A3
-+	tristate "Samsung S5K6A3 sensor support"
-+	depends on MEDIA_CAMERA_SUPPORT
-+	depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API && OF
-+	---help---
-+	  This is a V4L2 sensor-level driver for Samsung S5K6A3 raw
-+	  camera sensor.
+diff --git a/Documentation/devicetree/bindings/phy/samsung-phy.txt b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+index 5ff208c..3fb656a 100644
+--- a/Documentation/devicetree/bindings/phy/samsung-phy.txt
++++ b/Documentation/devicetree/bindings/phy/samsung-phy.txt
+@@ -12,3 +12,11 @@ the PHY specifier identifies the PHY and its meaning is as follows:
+   1 - MIPI DSIM 0,
+   2 - MIPI CSIS 1,
+   3 - MIPI DSIM 1.
 +
- config VIDEO_S5K4ECGX
-         tristate "Samsung S5K4ECGX sensor support"
-         depends on I2C && VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-diff --git a/drivers/media/i2c/Makefile b/drivers/media/i2c/Makefile
-index d590925..44998a2 100644
---- a/drivers/media/i2c/Makefile
-+++ b/drivers/media/i2c/Makefile
-@@ -64,6 +64,7 @@ obj-$(CONFIG_VIDEO_MT9V032) += mt9v032.o
- obj-$(CONFIG_VIDEO_SR030PC30)	+= sr030pc30.o
- obj-$(CONFIG_VIDEO_NOON010PC30)	+= noon010pc30.o
- obj-$(CONFIG_VIDEO_S5K6AA)	+= s5k6aa.o
-+obj-$(CONFIG_VIDEO_S5K6A3)	+= s5k6a3.o
- obj-$(CONFIG_VIDEO_S5K4ECGX)	+= s5k4ecgx.o
- obj-$(CONFIG_VIDEO_S5K5BAF)	+= s5k5baf.o
- obj-$(CONFIG_VIDEO_S5C73M3)	+= s5c73m3/
-diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
++Samsung EXYNOS SoC series DP PHY
++-------------------------------------------------
++
++Required properties:
++- compatible : should be "samsung,exynos5250-dp-video-phy";
++- reg : offset and length of the DP PHY register set;
++- #phy-cells : from the generic phy bindings, must be 0;
+\ No newline at end of file
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index 6f446d0..760f55a 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -19,4 +19,9 @@ config PHY_EXYNOS_MIPI_VIDEO
+ 	help
+ 	  Support for MIPI CSI-2 and MIPI DSI DPHY found on Samsung
+ 	  S5P and EXYNOS SoCs.
++
++config PHY_EXYNOS_DP_VIDEO
++	tristate "EXYNOS SoC series DP PHY driver"
++	help
++	  Support for DP PHY found on Samsung EXYNOS SoCs.
+ endif
+diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+index 71d8841..0fd1340 100644
+--- a/drivers/phy/Makefile
++++ b/drivers/phy/Makefile
+@@ -4,3 +4,4 @@
+ 
+ obj-$(CONFIG_GENERIC_PHY)		+= phy-core.o
+ obj-$(CONFIG_PHY_EXYNOS_MIPI_VIDEO)	+= phy-exynos-mipi-video.o
++obj-$(CONFIG_PHY_EXYNOS_DP_VIDEO)	+= phy-exynos-dp-video.o
+diff --git a/drivers/phy/phy-exynos-dp-video.c b/drivers/phy/phy-exynos-dp-video.c
 new file mode 100644
-index 0000000..21680fa
+index 0000000..75e1d11
 --- /dev/null
-+++ b/drivers/media/i2c/s5k6a3.c
-@@ -0,0 +1,315 @@
++++ b/drivers/phy/phy-exynos-dp-video.c
+@@ -0,0 +1,118 @@
 +/*
-+ * Samsung S5K6A3 image sensor driver
++ * Samsung EXYNOS SoC series DP PHY driver
 + *
 + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
-+ * Author: Sylwester Nawrocki <s.nawrocki@samsung.com>
++ * Author: Jingoo Han <jg1.han@samsung.com>
 + *
 + * This program is free software; you can redistribute it and/or modify
 + * it under the terms of the GNU General Public License version 2 as
 + * published by the Free Software Foundation.
 + */
 +
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/errno.h>
-+#include <linux/gpio.h>
-+#include <linux/i2c.h>
++#include <linux/io.h>
 +#include <linux/kernel.h>
 +#include <linux/module.h>
-+#include <linux/of_gpio.h>
-+#include <linux/pm_runtime.h>
-+#include <linux/regulator/consumer.h>
-+#include <linux/slab.h>
-+#include <linux/videodev2.h>
-+#include <media/v4l2-async.h>
-+#include <media/v4l2-subdev.h>
++#include <linux/of.h>
++#include <linux/of_address.h>
++#include <linux/phy/phy.h>
++#include <linux/platform_device.h>
 +
-+#define S5K6A3_SENSOR_MAX_WIDTH		1392
-+#define S5K6A3_SENSOR_MAX_HEIGHT	1392
-+#define S5K6A3_SENSOR_MIN_WIDTH		32
-+#define S5K6A3_SENSOR_MIN_HEIGHT	32
++/* DPTX_PHY_CONTROL register */
++#define EXYNOS_DPTX_PHY_ENABLE		(1 << 0)
 +
-+#define S5K6A3_DEF_PIX_WIDTH		1296
-+#define S5K6A3_DEF_PIX_HEIGHT		732
-+
-+#define S5K6A3_DRV_NAME			"S5K6A3"
-+
-+#define S5K6A3_NUM_SUPPLIES		2
-+
-+/**
-+ * struct s5k6a3 - fimc-is sensor data structure
-+ * @dev: pointer to this I2C client device structure
-+ * @subdev: the image sensor's v4l2 subdev
-+ * @pad: subdev media source pad
-+ * @supplies: image sensor's voltage regulator supplies
-+ * @gpio_reset: GPIO connected to the sensor's reset pin
-+ * @lock: mutex protecting the structure's members below
-+ * @format: media bus format at the sensor's source pad
-+ */
-+struct s5k6a3 {
-+	struct device *dev;
-+	struct v4l2_subdev subdev;
-+	struct media_pad pad;
-+	struct regulator_bulk_data supplies[S5K6A3_NUM_SUPPLIES];
-+	int gpio_reset;
-+	struct mutex lock;
-+	struct v4l2_mbus_framefmt format;
-+	u32 clock_frequency;
++struct exynos_dp_video_phy {
++	void __iomem *regs;
 +};
 +
-+static const char * const s5k6a3_supply_names[] = {
-+	"svdda",
-+	"svddio"
-+};
-+
-+static inline struct s5k6a3 *sd_to_s5k6a3(struct v4l2_subdev *sd)
++static int __set_phy_state(struct exynos_dp_video_phy *state, unsigned int on)
 +{
-+	return container_of(sd, struct s5k6a3, subdev);
-+}
++	void __iomem *addr;
++	u32 reg;
 +
-+static const struct v4l2_mbus_framefmt s5k6a3_formats[] = {
-+	{
-+		.code = V4L2_MBUS_FMT_SGRBG10_1X10,
-+		.colorspace = V4L2_COLORSPACE_SRGB,
-+		.field = V4L2_FIELD_NONE,
-+	}
-+};
++	addr = state->regs;
 +
-+static const struct v4l2_mbus_framefmt *find_sensor_format(
-+	struct v4l2_mbus_framefmt *mf)
-+{
-+	int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(s5k6a3_formats); i++)
-+		if (mf->code == s5k6a3_formats[i].code)
-+			return &s5k6a3_formats[i];
-+
-+	return &s5k6a3_formats[0];
-+}
-+
-+static int s5k6a3_enum_mbus_code(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	if (code->index >= ARRAY_SIZE(s5k6a3_formats))
-+		return -EINVAL;
-+
-+	code->code = s5k6a3_formats[code->index].code;
-+	return 0;
-+}
-+
-+static void s5k6a3_try_format(struct v4l2_mbus_framefmt *mf)
-+{
-+	const struct v4l2_mbus_framefmt *fmt;
-+
-+	fmt = find_sensor_format(mf);
-+	mf->code = fmt->code;
-+	v4l_bound_align_image(&mf->width, S5K6A3_SENSOR_MIN_WIDTH,
-+			      S5K6A3_SENSOR_MAX_WIDTH, 0,
-+			      &mf->height, S5K6A3_SENSOR_MIN_HEIGHT,
-+			      S5K6A3_SENSOR_MAX_HEIGHT, 0, 0);
-+}
-+
-+static struct v4l2_mbus_framefmt *__s5k6a3_get_format(
-+		struct s5k6a3 *sensor, struct v4l2_subdev_fh *fh,
-+		u32 pad, enum v4l2_subdev_format_whence which)
-+{
-+	if (which == V4L2_SUBDEV_FORMAT_TRY)
-+		return fh ? v4l2_subdev_get_try_format(fh, pad) : NULL;
-+
-+	return &sensor->format;
-+}
-+
-+static int s5k6a3_set_fmt(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct s5k6a3 *sensor = sd_to_s5k6a3(sd);
-+	struct v4l2_mbus_framefmt *mf;
-+
-+	s5k6a3_try_format(&fmt->format);
-+
-+	mf = __s5k6a3_get_format(sensor, fh, fmt->pad, fmt->which);
-+	if (mf) {
-+		mutex_lock(&sensor->lock);
-+		if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+			*mf = fmt->format;
-+		mutex_unlock(&sensor->lock);
-+	}
-+	return 0;
-+}
-+
-+static int s5k6a3_get_fmt(struct v4l2_subdev *sd,
-+				  struct v4l2_subdev_fh *fh,
-+				  struct v4l2_subdev_format *fmt)
-+{
-+	struct s5k6a3 *sensor = sd_to_s5k6a3(sd);
-+	struct v4l2_mbus_framefmt *mf;
-+
-+	mf = __s5k6a3_get_format(sensor, fh, fmt->pad, fmt->which);
-+
-+	mutex_lock(&sensor->lock);
-+	fmt->format = *mf;
-+	mutex_unlock(&sensor->lock);
-+	return 0;
-+}
-+
-+static struct v4l2_subdev_pad_ops s5k6a3_pad_ops = {
-+	.enum_mbus_code	= s5k6a3_enum_mbus_code,
-+	.get_fmt	= s5k6a3_get_fmt,
-+	.set_fmt	= s5k6a3_set_fmt,
-+};
-+
-+static int s5k6a3_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh, 0);
-+
-+	*format		= s5k6a3_formats[0];
-+	format->width	= S5K6A3_DEF_PIX_WIDTH;
-+	format->height	= S5K6A3_DEF_PIX_HEIGHT;
++	reg = readl(addr);
++	if (on)
++		reg |= EXYNOS_DPTX_PHY_ENABLE;
++	else
++		reg &= ~EXYNOS_DPTX_PHY_ENABLE;
++	writel(reg, addr);
 +
 +	return 0;
 +}
 +
-+static const struct v4l2_subdev_internal_ops s5k6a3_sd_internal_ops = {
-+	.open = s5k6a3_open,
-+};
-+
-+static int s5k6a3_s_power(struct v4l2_subdev *sd, int on)
++static int exynos_dp_video_phy_power_on(struct phy *phy)
 +{
-+	struct s5k6a3 *sensor = sd_to_s5k6a3(sd);
-+	int gpio = sensor->gpio_reset;
-+	int ret;
++	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
 +
-+	if (on) {
-+		ret = pm_runtime_get(sensor->dev);
-+		if (ret < 0)
-+			return ret;
-+
-+		ret = regulator_bulk_enable(S5K6A3_NUM_SUPPLIES,
-+					    sensor->supplies);
-+		if (ret < 0) {
-+			pm_runtime_put(sensor->dev);
-+			return ret;
-+		}
-+
-+		if (gpio_is_valid(gpio)) {
-+			gpio_set_value(gpio, 1);
-+			usleep_range(600, 800);
-+			gpio_set_value(gpio, 0);
-+			usleep_range(10000, 11000);
-+			gpio_set_value(gpio, 1);
-+		}
-+
-+		/* Delay needed for the sensor initialization */
-+		msleep(20);
-+	} else {
-+		if (gpio_is_valid(gpio))
-+			gpio_set_value(gpio, 0);
-+
-+		ret = regulator_bulk_disable(S5K6A3_NUM_SUPPLIES,
-+					     sensor->supplies);
-+		if (!ret)
-+			pm_runtime_put(sensor->dev);
-+	}
-+	return ret;
++	return __set_phy_state(state, 1);
 +}
 +
-+static struct v4l2_subdev_core_ops s5k6a3_core_ops = {
-+	.s_power = s5k6a3_s_power,
-+};
-+
-+static struct v4l2_subdev_ops s5k6a3_subdev_ops = {
-+	.core = &s5k6a3_core_ops,
-+	.pad = &s5k6a3_pad_ops,
-+};
-+
-+static int s5k6a3_probe(struct i2c_client *client,
-+				const struct i2c_device_id *id)
++static int exynos_dp_video_phy_power_off(struct phy *phy)
 +{
-+	struct device *dev = &client->dev;
-+	struct s5k6a3 *sensor;
-+	struct v4l2_subdev *sd;
-+	int gpio, i, ret;
++	struct exynos_dp_video_phy *state = phy_get_drvdata(phy);
 +
-+	sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
-+	if (!sensor)
++	return __set_phy_state(state, 0);
++}
++
++static struct phy_ops exynos_dp_video_phy_ops = {
++	.power_on	= exynos_dp_video_phy_power_on,
++	.power_off	= exynos_dp_video_phy_power_off,
++	.owner		= THIS_MODULE,
++};
++
++static int exynos_dp_video_phy_probe(struct platform_device *pdev)
++{
++	struct exynos_dp_video_phy *state;
++	struct device *dev = &pdev->dev;
++	struct resource *res;
++	struct phy_provider *phy_provider;
++	struct phy *phy;
++
++	state = devm_kzalloc(dev, sizeof(*state), GFP_KERNEL);
++	if (!state)
 +		return -ENOMEM;
 +
-+	mutex_init(&sensor->lock);
-+	sensor->gpio_reset = -EINVAL;
-+	sensor->dev = dev;
++	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
 +
-+	gpio = of_get_gpio_flags(dev->of_node, 0, NULL);
-+	if (gpio_is_valid(gpio)) {
-+		ret = devm_gpio_request_one(dev, gpio, GPIOF_OUT_INIT_LOW,
-+							S5K6A3_DRV_NAME);
-+		if (ret < 0)
-+			return ret;
++	state->regs = devm_ioremap_resource(dev, res);
++	if (IS_ERR(state->regs))
++		return PTR_ERR(state->regs);
++
++	dev_set_drvdata(dev, state);
++
++	phy_provider = devm_of_phy_provider_register(dev, of_phy_simple_xlate);
++	if (IS_ERR(phy_provider))
++		return PTR_ERR(phy_provider);
++
++	phy = devm_phy_create(dev, 0, &exynos_dp_video_phy_ops, "dp");
++	if (IS_ERR(phy)) {
++		dev_err(dev, "failed to create DP PHY\n");
++		return PTR_ERR(phy);
 +	}
-+	sensor->gpio_reset = gpio;
-+
-+	for (i = 0; i < S5K6A3_NUM_SUPPLIES; i++)
-+		sensor->supplies[i].supply = s5k6a3_supply_names[i];
-+
-+	ret = devm_regulator_bulk_get(&client->dev, S5K6A3_NUM_SUPPLIES,
-+				      sensor->supplies);
-+	if (ret < 0)
-+		return ret;
-+
-+	sd = &sensor->subdev;
-+	v4l2_i2c_subdev_init(sd, client, &s5k6a3_subdev_ops);
-+	snprintf(sd->name, sizeof(sd->name), S5K6A3_DRV_NAME);
-+	sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	sensor->format.code = s5k6a3_formats[0].code;
-+	sensor->format.width = S5K6A3_DEF_PIX_WIDTH;
-+	sensor->format.height = S5K6A3_DEF_PIX_HEIGHT;
-+
-+	sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
-+	ret = media_entity_init(&sd->entity, 1, &sensor->pad, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	pm_runtime_no_callbacks(dev);
-+	pm_runtime_enable(dev);
++	phy_set_drvdata(phy, state);
 +
 +	return 0;
 +}
-+
-+static int s5k6a3_remove(struct i2c_client *client)
-+{
-+	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+	media_entity_cleanup(&sd->entity);
-+	return 0;
-+}
-+
-+static const struct i2c_device_id s5k6a3_ids[] = {
-+	{ }
-+};
 +
 +#ifdef CONFIG_OF
-+static const struct of_device_id s5k6a3_of_match[] = {
-+	{ .compatible = "samsung,s5k6a3" },
-+	{ /* sentinel */ }
++static const struct of_device_id exynos_dp_video_phy_of_match[] = {
++	{ .compatible = "samsung,exynos5250-dp-video-phy" },
++	{ },
 +};
-+MODULE_DEVICE_TABLE(of, s5k6a3_of_match);
++MODULE_DEVICE_TABLE(of, exynos_dp_video_phy_of_match);
 +#endif
 +
-+static struct i2c_driver s5k6a3_driver = {
++static struct platform_driver exynos_dp_video_phy_driver = {
++	.probe	= exynos_dp_video_phy_probe,
 +	.driver = {
-+		.of_match_table	= of_match_ptr(s5k6a3_of_match),
-+		.name		= S5K6A3_DRV_NAME,
-+		.owner		= THIS_MODULE,
-+	},
-+	.probe		= s5k6a3_probe,
-+	.remove		= s5k6a3_remove,
-+	.id_table	= s5k6a3_ids,
++		.name	= "exynos-dp-video-phy",
++		.owner	= THIS_MODULE,
++		.of_match_table	= exynos_dp_video_phy_of_match,
++	}
 +};
++module_platform_driver(exynos_dp_video_phy_driver);
 +
-+module_i2c_driver(s5k6a3_driver);
-+
-+MODULE_DESCRIPTION("S5K6A3 image sensor subdev driver");
-+MODULE_AUTHOR("Sylwester Nawrocki <s.nawrocki@samsung.com>");
++MODULE_AUTHOR("Jingoo Han <jg1.han@samsung.com>");
++MODULE_DESCRIPTION("Samsung EXYNOS SoC DP PHY driver");
 +MODULE_LICENSE("GPL v2");
 -- 
-1.7.9.5
+1.7.10.4
+
 
