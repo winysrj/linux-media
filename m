@@ -1,96 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.net.t-labs.tu-berlin.de ([130.149.220.252]:46589 "EHLO
-	mail.net.t-labs.tu-berlin.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752211Ab3GNNXY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jul 2013 09:23:24 -0400
-Date: Sun, 14 Jul 2013 15:23:21 +0200
-From: Florian Streibelt <florian@inet.tu-berlin.de>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Subject: Re: CX23103  Video Grabber seems to be supported by cx231xx  driver
-Message-ID: <20130714152321.2a9e1eb2@fls-nb.lan.streibelt.net>
-In-Reply-To: <51E26E22.8050005@xs4all.nl>
-References: <20130712182632.667842dc@fls-nb.lan.streibelt.net>
-	<51E26E22.8050005@xs4all.nl>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:15530 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753309Ab3GBIiZ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jul 2013 04:38:25 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, Hui Wang <jason77.wang@gmail.com>,
+	'Jingoo Han' <jg1.han@samsung.com>
+Subject: [PATCH V4 0/4] Generic PHY driver for the Exynos SoC DP PHY
+Date: Tue, 02 Jul 2013 17:38:23 +0900
+Message-id: <000901ce76ff$83d697e0$8b83c7a0$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 14 Jul 2013 11:23:46 +0200
- Hans Verkuil <hverkuil@xs4all.nl> wrote:
+This patch series adds a simple driver for the Samsung Exynos SoC
+series DP transmitter PHY, using the generic PHY framework [1].
+Previously the DP PHY used an internal DT node to control the PHY
+power enable bit.
 
-> Hi Florian,
-> 
-> On 07/12/2013 06:26 PM, Florian Streibelt wrote:
-> > Hi,
-> > 
-> > the chip CX23103 that is used in various devices sold e.g. in germany works with the cx231xx stock driver.
-> > 
-> > The author of that driver is not reachable via the email adress stated in the source file: srinivasa.deevi@conexant.com
-> > [ host cnxtsmtp1.conexant.com [198.62.9.252]: 550 5.1.1 <srinivasa.deevi@conexant.com>:  Recipient address rejected: User unknown in relay recipient table]
-> 
-> Yeah, I suspect he left Conexant. For all practical purposes that leaves me as
-> the maintainer for my sins.
+These patches was tested on Exynos5250.
 
-heh - also means a patch should remove the wrong email adress/change the maintainers in the source?
+This PATCH v4 follows:
+ * PATCH v3, sent on July, 1st 2013
+ * PATCH v2, sent on June, 28th 2013
+ * PATCH v1, sent on June, 28th 2013
 
+Changes between v3 and v4:
+  * Added OF dependancy.
+  * Removed redundant local variable 'void __iomem *addr'.
+  * Removed unnecessary dev_set_drvdata().
+  * Added a patch that remove non-DT support for Exynos
+    Display Port driver.
+  * Removed unnecessary 'struct exynos_dp_platdata'.
+  * Kept supporting the original bindings for DT compatibility.
 
-> 
-> > 
-> > In drivers/media/video/cx231xx/cx231xx-cards.c the struct usb_device_id cx231xx_id_table[] needs these lines added:
-> > 
-> >    {USB_DEVICE(0x1D19, 0x6109),
-> >    .driver_info = CX231XX_BOARD_PV_XCAPTURE_USB},
-> 
-> That looks OK.
+Changes between v2 and v3:
+  * Removed redundant spinlock
+  * Removed 'struct phy' from 'struct exynos_dp_video_phy'
+  * Updated 'samsung-phy.txt', instead of creating
+    'samsung,exynos5250-dp-video-phy.txt'.
+  * Removed unnecessary additional specifier from 'phys'
+    DT property.
+  * Added 'phys', 'phy-names' properties to 'exynos_dp.txt' file.
+  * Added Felipe Balbi's Acked-by.
 
-Only if the board layout is different :/ 
-There is no information from the vendor, they don't even reply to messages via the contact form, of course.
+Changes between v1 and v2:
+  * Replaced exynos_dp_video_phy_xlate() with of_phy_simple_xlate(),
+    as Kishon Vijay Abraham I guided.
+  * Set the value of phy-cells as 0, because the phy_provider implements
+    only one PHY.
+  * Removed unnecessary header include.
+  * Added '#ifdef CONFIG_OF' and of_match_ptr macro.
 
+This series depends on the generic PHY framework [1]. These patches
+refer to Sylwester Nawrocki's patches about Exynos MIPI [2].
 
+[1] https://lkml.org/lkml/2013/6/26/259
+[2] http://www.spinics.net/lists/linux-samsung-soc/msg20098.html
 
-> 
-> > While the change is minimal due to the fact that no real technical documentation is available on the chip the support was guessed - but worked for video.
-> > 
-> > The videostream can pe played using mplayer tv:///0  - proof: http://streibelt.de/blog/2013/06/23/kernel-patch-for-cx23103-video-grabber-linux-support/
-> > 
-> > However when trying to capture audio using audacity while playing the video stream in mplayer my system locked (no message in syslog, complete freeze). 
-> 
-> I've no idea what is happening here. It has probably to do with the board setup,
-> although there isn't all that much that you can change there that relates to audio.
+Jingoo Han (4):
+  ARM: dts: Add DP PHY node to exynos5250.dtsi
+  phy: Add driver for Exynos DP PHY
+  video: exynos_dp: remove non-DT support for Exynos Display Port
+  video: exynos_dp: Use the generic PHY driver
 
-hm. maybe disable it - currently my time budget is "negative" - so  I cannot really work on this.
+ .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
+ .../devicetree/bindings/video/exynos_dp.txt        |   23 +++++---------------
+ arch/arm/boot/dts/exynos5250.dtsi                  |   13 ++++++++-----
+ drivers/phy/Kconfig                                |    6 ++
+ drivers/phy/Makefile                               |    1 +
+ drivers/phy/phy-exynos-dp-video.c                  |  111 ++++++++++++++++++++
+ drivers/video/exynos/Kconfig                       |    2 +-
+ drivers/video/exynos/exynos_dp_core.c              |  132 +++++++----------------------
+ drivers/video/exynos/exynos_dp_core.h              |  111 +++++++++++++++++++++++++++
+ drivers/video/exynos/exynos_dp_reg.c               |    2 -
+ include/video/exynos_dp.h                          |  131 ---------------------------------
+ 11 files changed, 289 insertions(+), 251 deletions(-)
+ create mode 100644 drivers/phy/phy-exynos-dp-video.c
+ delete mode 100644 include/video/exynos_dp.h
+ 
+--
+1.7.10.4
 
-> 
-> Try using 'arecord' instead of audicity. The arecord tool is more low-level, so
-> it will be interesting to know if it behaves differently.
-
-I'll try - the problem is the complete system freeze - I'll see if I can setup a system with serial console for the kernel log
-
-> 
-> Besides that the only thing I can think of is just to try and add printk's to
-> cx231xx-audio.c and see where things go boom.
-
-yup. If I had the time.
-
-> 
-> A useful trick there is to add a mdelay(5) or so after the printk to give the
-> system time to write to the kernel log.
-
-ok
-
-> 
-> Be aware that I consider this driver to be flaky, so I would not at all be
-> surprised if there are bugs lurking in the code.
-
-
-Hum. Because of code quality or due to the missing documentation from the vendor?
-
-
-If you have any documents on the chip I would be happy.
-
-
-/Florian
