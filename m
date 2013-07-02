@@ -1,50 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:56951 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758179Ab3GRNBZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 09:01:25 -0400
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: <linux-media@vger.kernel.org>
-Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
-	Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH] media: stk1160: Ignore unchanged standard set
-Date: Thu, 18 Jul 2013 10:01:23 -0300
-Message-Id: <1374152483-3106-1-git-send-email-ezequiel.garcia@free-electrons.com>
+Received: from mailout2.samsung.com ([203.254.224.25]:15655 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932466Ab3GBIjN (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jul 2013 04:39:13 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
+	Jingoo Han <jg1.han@samsung.com>
+Subject: [PATCH V4 1/4] ARM: dts: Add DP PHY node to exynos5250.dtsi
+Date: Tue, 02 Jul 2013 17:39:11 +0900
+Message-id: <000a01ce76ff$a02a7c40$e07f74c0$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This commit adds an early check to vidioc_s_std() to detect if the
-new and current standards are equal, and exit with success in that
-case.
+Add PHY provider node for the DP PHY.
 
-This is needed to prevent userspace applications that might attempt
-to re-set the same standard from failing if that's done when streaming
-has started.
-
-Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
-Cc: Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
+ arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
+ 1 file changed, 8 insertions(+), 5 deletions(-)
 
- drivers/media/usb/stk1160/stk1160-v4l.c | 3 +++
- 1 file changed, 3 insertions(+)
-
-diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
-index ee46d82..c45c988 100644
---- a/drivers/media/usb/stk1160/stk1160-v4l.c
-+++ b/drivers/media/usb/stk1160/stk1160-v4l.c
-@@ -379,6 +379,9 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
- 	struct stk1160 *dev = video_drvdata(file);
- 	struct vb2_queue *q = &dev->vb_vidq;
+diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
+index 41cd625..7e397c6 100644
+--- a/arch/arm/boot/dts/exynos5250.dtsi
++++ b/arch/arm/boot/dts/exynos5250.dtsi
+@@ -614,6 +614,12 @@
+ 		interrupts = <0 94 0>;
+ 	};
  
-+	if (dev->norm == norm)
-+		return 0;
++	dp_phy: video-phy@10040720 {
++		compatible = "samsung,exynos5250-dp-video-phy";
++		reg = <0x10040720 4>;
++		#phy-cells = <0>;
++	};
 +
- 	if (vb2_is_busy(q))
- 		return -EBUSY;
+ 	dp-controller {
+ 		compatible = "samsung,exynos5-dp";
+ 		reg = <0x145b0000 0x1000>;
+@@ -623,11 +629,8 @@
+ 		clock-names = "dp";
+ 		#address-cells = <1>;
+ 		#size-cells = <0>;
+-
+-		dptx-phy {
+-			reg = <0x10040720>;
+-			samsung,enable-mask = <1>;
+-		};
++		phys = <&dp_phy>;
++		phy-names = "dp";
+ 	};
  
+ 	fimd {
 -- 
-1.8.1.5
+1.7.10.4
+
 
