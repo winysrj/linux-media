@@ -1,76 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:24763 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751974Ab3GRHP3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 03:15:29 -0400
-Message-id: <51E7960C.8050707@samsung.com>
-Date: Thu, 18 Jul 2013 09:15:24 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] videobuf2-dma-sg: Minimize the number of dma segments
-References: <1373880874-9270-1-git-send-email-ricardo.ribalda@gmail.com>
- <51E65577.7010403@samsung.com>
- <CAPybu_3Je7+0Qh2OdptncnxC12G15Scad+A3yUeF898sVWKo8w@mail.gmail.com>
- <51E69F49.10500@samsung.com>
- <CAPybu_0b9ADaUFFHuw=tKkVR4fiu9bGNJVgy4MGbuE-zAA9sZQ@mail.gmail.com>
-In-reply-to: <CAPybu_0b9ADaUFFHuw=tKkVR4fiu9bGNJVgy4MGbuE-zAA9sZQ@mail.gmail.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+Received: from haggis.pcug.org.au ([203.10.76.10]:43416 "EHLO
+	members.tip.net.au" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756077Ab3GBCfM (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 22:35:12 -0400
+Date: Tue, 2 Jul 2013 12:34:58 +1000
+From: Stephen Rothwell <sfr@canb.auug.org.au>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>
+Subject: Re: [GIT PULL for v3.11] media patches for v3.11
+Message-Id: <20130702123458.6dfcac62824eb0f7862b144d@canb.auug.org.au>
+In-Reply-To: <20130701075856.6e8daa98.mchehab@redhat.com>
+References: <20130701075856.6e8daa98.mchehab@redhat.com>
+Mime-Version: 1.0
+Content-Type: multipart/signed; protocol="application/pgp-signature";
+ micalg="PGP-SHA256";
+ boundary="Signature=_Tue__2_Jul_2013_12_34_58_+1000_TGiD0dEHFrP4I9cx"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+--Signature=_Tue__2_Jul_2013_12_34_58_+1000_TGiD0dEHFrP4I9cx
+Content-Type: text/plain; charset=US-ASCII
+Content-Disposition: inline
+Content-Transfer-Encoding: quoted-printable
 
-On 7/17/2013 4:20 PM, Ricardo Ribalda Delgado wrote:
-> Hello again Marek
+Hi Mauro,
+
+On Mon, 1 Jul 2013 07:58:56 -0300 Mauro Carvalho Chehab <mchehab@redhat.com=
+> wrote:
 >
-> In my system I am doing the scatter gather compaction on device
-> driver... But I agree that it would be better done on the vb2 layer.
->
-> For the oversize sglist we could do one of this two things.
->
-> If we want to have a simple pass processing we have to allocate an
-> structure A for the worts case, work on that structure. then allocate
-> a structure B for the exact size that we need, memcpy A to B, and
-> free(A).
->
-> Otherwise we need two passes. One to allocate the pages, and another
-> one to allocate the pages and find out the amount of sg, and another
-> to greate the sg structure.
->
-> What do you prefer?
+> Please pull from:
+>   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_f=
+or_linus
+>=20
+> For the media patches for Kernel v3.11.
 
-I would prefer two passes approach. In the first pass you just fill the
-buf->pages array with order 0 entries and count the total number of memory
-chunks (adding support for max dma segment size at this point should be
-quite easy). In the second pass you just allocate the scatter list and
-fill it with previously allocated pages.
+I am not sure why you added a back merge of v3.10 before sending this to
+Linus?
 
-I have also the following changes on my TODO list for vb2-dma-sg:
-- remove custom vb2_dma_sg_desc structure and replace it with common
-sg_table structure
-- move mapping of the scatter list from device driver to vb2-dma-sg module
-to simplify driver code and unify memory management across devices (so the
-driver just gets correctly mapped scatter list and only reads dma addresses
-of each memory chunk, no longer needs to track buffer state/ownership).
-The correct flow is to call dma_map_sg() at buffer allocation,
-dma_unmap_sg() at free and dma_sync_for_{device,cpu} in prepare/finish
-callbacks. The only problem here is the need to convert all existing users
-of vb2-dma-sg (marvell-ccic and solo6x10) to the new interface.
+--=20
+Cheers,
+Stephen Rothwell                    sfr@canb.auug.org.au
 
-However I have completely no time atm to do any of the above changes. Would
-You like to take any of the above tasks while playing with vb2-dma-sg?
+--Signature=_Tue__2_Jul_2013_12_34_58_+1000_TGiD0dEHFrP4I9cx
+Content-Type: application/pgp-signature
 
-Best regards
--- 
-Marek Szyprowski
-Samsung R&D Institute Poland
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
 
+iQIcBAEBCAAGBQJR0jxXAAoJEECxmPOUX5FEmucP/2irTuThyDAtPEx/3dhfINy7
+PhkOEC+FdV5SQ+eu59dvMM9AYojnwIdLvX+d4mo0HS72XYNF4aoL2EVkIqMI8vOn
+LRG9t1WyLHxuMYBY7HAHMhdPCbzlAjHftCTGX2HkuUfc7aILHT7d8eINssQ44Bqd
+n9AwsI4AI3EbSRxUvGg49g7lE6rM5bUnxC+bOdvS4elhrYNHhdGjWRYjwAgm9eBI
+vOe96M/UkHOwIcU6XeGt0Mf4ZvDuMZlkeWaoTOJEMiJOvwg1omQiX2JP79x629Yu
+rWMBmdUoF0L1CKCRLAAEFpylep8bfN7cOT++oN0/bINbJEiGgP51oex0iD3VeoK9
++K2xDsm/q8rxsJGb4dPxymyaJNWrknYugrPhbqEzM68/en83Ksc2+40pO37Ub+wh
+DFvBBMCKdTWiZesdET35b56si2B84OnlXNSWT4x5HUW4GtTGzjQqX1EBe4vAZbTn
+hb5YvHCRMlEh1qC/U0Yv4D6IyGx720E5utPS66Uh2Rz42y9YkDBZ/xSot/OQTEjL
+eqOXutAzcsGICfxvJrI45txPGglQQhA008RH7v1BPX3rkkmiUPriq95TxuDKwN6Q
+qUSk0BPtEFodoxsuMFvb/ay/TWDNMs+LDRvmAOHRuNY0TbJO0/czgHiM5Q0QEL2r
+VxYw0Esc/UFH0h5PdtsN
+=zhTC
+-----END PGP SIGNATURE-----
 
+--Signature=_Tue__2_Jul_2013_12_34_58_+1000_TGiD0dEHFrP4I9cx--
