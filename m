@@ -1,70 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-db8lp0186.outbound.messaging.microsoft.com ([213.199.154.186]:57349
-	"EHLO db8outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S933808Ab3GWSFG (ORCPT
+Received: from na3sys009aog122.obsmtp.com ([74.125.149.147]:52267 "EHLO
+	na3sys009aog122.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752701Ab3GBDfd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 14:05:06 -0400
-From: Fabio Estevam <fabio.estevam@freescale.com>
-To: <k.debski@samsung.com>
-CC: <m.chehab@samsung.com>, <kernel@pengutronix.de>,
-	<linux-media@vger.kernel.org>,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH v4 2/3] [media] coda: Check the return value from clk_prepare_enable()
-Date: Tue, 23 Jul 2013 15:04:49 -0300
-Message-ID: <1374602690-12842-2-git-send-email-fabio.estevam@freescale.com>
-In-Reply-To: <1374602690-12842-1-git-send-email-fabio.estevam@freescale.com>
-References: <1374602690-12842-1-git-send-email-fabio.estevam@freescale.com>
+	Mon, 1 Jul 2013 23:35:33 -0400
+From: Libin Yang <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>
+CC: <linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>,
+	Libin Yang <lbyang@marvell.com>
+Subject: [PATCH v2 0/7] marvell-ccic: update ccic driver to support some features
+Date: Tue, 2 Jul 2013 11:31:01 +0800
+Message-ID: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
 MIME-Version: 1.0
 Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-clk_prepare_enable() may fail, so let's check its return value and propagate it
-in the case of error.
+The patch set adds some feature into the marvell ccic driver
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
----
-Changes since v3:
-- Adapt it to make error handling easier
-Changes since v2:
-- Release the previously acquired resources
-Changes since v1:
-- Add missing 'if'
+Patch 1: Support MIPI sensor
+Patch 2: Support clock tree
+Patch 3: reset ccic when stop streaming, which makes CCIC more stable
+Patch 4: refine the mcam_set_contig_buffer function
+Patch 5: add some new fmts to support
+Patch 6: add SOF-EOF pair check to make the CCIC more stable
+Patch 7: use resource managed allocation
 
- drivers/media/platform/coda.c | 11 +++++++++--
- 1 file changed, 9 insertions(+), 2 deletions(-)
+Libin Yang (7):
+  marvell-ccic: add MIPI support for marvell-ccic driver
+  marvell-ccic: add clock tree support for marvell-ccic driver
+  marvell-ccic: reset ccic phy when stop streaming for stability
+  marvell-ccic: refine mcam_set_contig_buffer function
+  marvell-ccic: add new formats support for marvell-ccic driver
+  marvell-ccic: add SOF / EOF pair check for marvell-ccic driver
+  marvell-ccic: switch to resource managed allocation and request
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 9384f02..2d1576b 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1531,8 +1531,13 @@ static int coda_open(struct file *file)
- 	ctx->dev = dev;
- 	ctx->idx = idx;
- 
--	clk_prepare_enable(dev->clk_per);
--	clk_prepare_enable(dev->clk_ahb);
-+	ret = clk_prepare_enable(dev->clk_per);
-+	if (ret)
-+		goto err_clk_per;
-+
-+	ret = clk_prepare_enable(dev->clk_ahb);
-+	if (ret)
-+		goto err_clk_ahb;
- 
- 	set_default_params(ctx);
- 	ctx->m2m_ctx = v4l2_m2m_ctx_init(dev->m2m_dev, ctx,
-@@ -1575,7 +1580,9 @@ err_ctrls_setup:
- 	v4l2_m2m_ctx_release(ctx->m2m_ctx);
- err_ctx_init:
- 	clk_disable_unprepare(dev->clk_ahb);
-+err_clk_ahb:
- 	clk_disable_unprepare(dev->clk_per);
-+err_clk_per:
- 	v4l2_fh_del(&ctx->fh);
- 	v4l2_fh_exit(&ctx->fh);
- 	clear_bit(ctx->idx, &dev->instance_mask);
+ drivers/media/platform/marvell-ccic/cafe-driver.c |    4 +-
+ drivers/media/platform/marvell-ccic/mcam-core.c   |  323 +++++++++++++++++----
+ drivers/media/platform/marvell-ccic/mcam-core.h   |   51 +++-
+ drivers/media/platform/marvell-ccic/mmp-driver.c  |  267 ++++++++++++++---
+ include/media/mmp-camera.h                        |   19 ++
+ 5 files changed, 563 insertions(+), 101 deletions(-)
+
 -- 
-1.8.1.2
-
+1.7.9.5
 
