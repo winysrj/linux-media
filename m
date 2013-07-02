@@ -1,68 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f51.google.com ([209.85.214.51]:57874 "EHLO
-	mail-bk0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753790Ab3GKVPc (ORCPT
+Received: from na3sys009aog111.obsmtp.com ([74.125.149.205]:38854 "EHLO
+	na3sys009aog111.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752701Ab3GBDfh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 17:15:32 -0400
-Message-ID: <51DF206E.9010301@gmail.com>
-Date: Thu, 11 Jul 2013 23:15:26 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Mon, 1 Jul 2013 23:35:37 -0400
+From: Libin Yang <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>
+CC: <linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>,
+	Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH v2 4/7] marvell-ccic: refine mcam_set_contig_buffer function
+Date: Tue, 2 Jul 2013 11:31:05 +0800
+Message-ID: <1372735868-15880-5-git-send-email-lbyang@marvell.com>
+In-Reply-To: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
+References: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH RFC v3] media: OF: add video sync endpoint property
-References: <1371913383-25088-1-git-send-email-prabhakar.csengg@gmail.com> <51D0548D.7020004@gmail.com> <CA+V-a8uG1KLY-Vjj+0ix2=wV4r=k+tkJ4aDBCN+iN+JZ6my30w@mail.gmail.com>
-In-Reply-To: <CA+V-a8uG1KLY-Vjj+0ix2=wV4r=k+tkJ4aDBCN+iN+JZ6my30w@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/11/2013 01:41 PM, Prabhakar Lad wrote:
-[...]
->>> diff --git a/drivers/media/v4l2-core/v4l2-of.c
->>> b/drivers/media/v4l2-core/v4l2-of.c
->>> index aa59639..1a54530 100644
->>> --- a/drivers/media/v4l2-core/v4l2-of.c
->>> +++ b/drivers/media/v4l2-core/v4l2-of.c
->>> @@ -100,6 +100,26 @@ static void v4l2_of_parse_parallel_bus(const struct
->>> device_node *node,
->>>          if (!of_property_read_u32(node, "data-shift",&v))
->>>                  bus->data_shift = v;
->>>
->>> +       if (!of_property_read_u32(node, "video-sync",&v)) {
->>> +               switch (v) {
->>> +               case V4L2_MBUS_VIDEO_SEPARATE_SYNC:
->>> +                       flags |= V4L2_MBUS_VIDEO_SEPARATE_SYNC;
->>
->>
->> I'm not convinced all those video sync types is something that really
->> belongs
->> to the flags field. In my understanding this field is supposed to hold only
->> the _signal polarity_ information.
->>
->>
-> Ok, so there should be a function say v4l2_of_parse_signal_polarity()
-> to get the polarity alone then.
+This patch refines mcam_set_contig_buffer() in mcam core.
+It can remove redundant code line and enhance readability.
 
-I don't think this is required, I would just extend 
-v4l2_of_parse_parallel_bus()
-function to also handle sync-on-green-active property.
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c |   21 ++++++++++-----------
+ 1 file changed, 10 insertions(+), 11 deletions(-)
 
---
-Thanks,
-Sylwester
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 61dd5be..160969d 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -482,22 +482,21 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
+ 	 */
+ 	if (list_empty(&cam->buffers)) {
+ 		buf = cam->vb_bufs[frame ^ 0x1];
+-		cam->vb_bufs[frame] = buf;
+-		mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+-				vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+ 		set_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 		cam->frame_state.singles++;
+-		return;
++	} else {
++		/*
++		 * OK, we have a buffer we can use.
++		 */
++		buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer,
++					queue);
++		list_del_init(&buf->queue);
++		clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ 	}
+-	/*
+-	 * OK, we have a buffer we can use.
+-	 */
+-	buf = list_first_entry(&cam->buffers, struct mcam_vb_buffer, queue);
+-	list_del_init(&buf->queue);
++
++	cam->vb_bufs[frame] = buf;
+ 	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
+ 			vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
+-	cam->vb_bufs[frame] = buf;
+-	clear_bit(CF_SINGLE_BUFFER, &cam->flags);
+ }
+ 
+ /*
+-- 
+1.7.9.5
+
