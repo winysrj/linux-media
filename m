@@ -1,252 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:54974 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756929Ab3GRJAf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 05:00:35 -0400
-Message-ID: <51E7AE88.3050007@ti.com>
-Date: Thu, 18 Jul 2013 14:29:52 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:38249 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754126Ab3GBTzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 2 Jul 2013 15:55:54 -0400
+Message-ID: <51D3301D.5070007@iki.fi>
+Date: Tue, 02 Jul 2013 22:55:09 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-CC: <kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-References: <1374129984-765-1-git-send-email-kishon@ti.com> <1374129984-765-2-git-send-email-kishon@ti.com> <20130718072004.GA16720@kroah.com>
-In-Reply-To: <20130718072004.GA16720@kroah.com>
-Content-Type: text/plain; charset="ISO-8859-1"
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: Bogdan Oprea <bogdaninedit@yahoo.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
+ while loading driver (-19)
+References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com> <51D1352A.2080107@schinagl.nl> <51D182CD.2040502@iki.fi> <51D1839B.1010007@schinagl.nl> <51D1E8F8.9030402@schinagl.nl> <51D1EBCF.60708@iki.fi> <51D1EE98.2060905@schinagl.nl> <51D204B0.9090809@iki.fi> <51D27B6C.5030607@schinagl.nl>
+In-Reply-To: <51D27B6C.5030607@schinagl.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On 07/02/2013 10:04 AM, Oliver Schinagl wrote:
+> On 02-07-13 00:37, Antti Palosaari wrote:
+>> On 07/02/2013 12:03 AM, Oliver Schinagl wrote:
+>>> On 07/01/13 22:51, Antti Palosaari wrote:
+>>>> On 07/01/2013 11:39 PM, Oliver Schinagl wrote:
+>>>>> On 07/01/13 15:26, Oliver Schinagl wrote:
+>>>>>> On 01-07-13 15:23, Antti Palosaari wrote:
+>>>>>>> On 07/01/2013 10:52 AM, Oliver Schinagl wrote:
+>>>>>>>> On 01-07-13 08:53, Bogdan Oprea wrote:
+>>>>>>>>> this is a fix for this type of error
+>>>>>>>>>
+>>>>>>>>> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error
+>>>>>>>>> while
+>>>>>>>>> loading driver (-19)
+>>>>>>>>> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus'
+>>>>>>>>> successfully
+>>>>>>>>> deinitialized and disconnected
+>>>>>>>>>
+>>>>>>>> This isn't really a fix, I think i mentioned this on the ML ages
+>>>>>>>> ago,
+>>>>>>>
+>>>>>>> Argh, I just replied that same. Oliver, do you has that same
+>>>>>>> device? Is
+>>>>>>> it working? Could you tweak to see if I2C readings are working at
+>>>>>>> all?
+>>>>>> I have the same device, but mine works normally (though I haven't
+>>>>>> checked for ages), I will try it tonight when I'm at home and don't
+>>>>>> forget what happens with my current kernel.
+>>>>>
+>>>>> Hard to test when it 'just works (tm)' :)
+>>>>
+>>>>> The bad firmware wories me, no clue where that error is from, using:
+>>>>> 862604ab3fec0c94f4bf22b4cffd0d89  /lib/firmware/dvb-usb-af9035-02.fw
+>>>>
+>>>> It means firmware is too short or long what is calculated. I added that
+>>>> printing to notify users firmware is broken and could cause problems.
+>>> Ah, good call, it did get me to re-download it. no clue why it was
+>>> broken all of a sudden.
+>>>>
+>>>>
+>>>> I suspect it is same issue what is with MxL5007t tuners too.
+>>>> Maybe that kind of fix is needed:
+>>>> https://patchwork.kernel.org/patch/2418471/
+>>>>
+>>>> Someone should really find out whether or not these are coming with
+>>>> register read operation with REPEATED START of STOP condition. Attach
+>>>> hardware sniffer to device tuner I2C bus and look what kind of messages
+>>>> there is actually.
+>>> Well mine works fine, so hard to say. IF you have a buspirate you should
+>>> be able to intercept the i2c bus ON the device though :) Good luck
+>>> Bogdan, I wish I could help here, but lack the broken hardware.
+>>
+>> I have one AF9035 + FC0012 device having similar problems. Unfortunately
+>> I wasn't able to detect I2C bus to take capture using Bus Pirate.
+> Actually, I have the af9035b (see the picture i uploaded to the wiki)
+>>
+>> There seems to be two revisions of AF9035 chips, AF9035A and AF9035B. I
+>> suspect it is newer B version which has these problems. I also visually
+>> compared to A and B versions and I suspect pinout is different.
+>>
+>> Could you take USB sniffs from that device? Just install sniffer (like
+>> SniffUSB), tune to channel and stop immediately when there is picture.
+>> FC2580 driver does some register reads, so it should be possible to see
+>> what is correct I2C access format by looking sniffs.
 
-On Thursday 18 July 2013 12:50 PM, Greg KH wrote:
-> On Thu, Jul 18, 2013 at 12:16:10PM +0530, Kishon Vijay Abraham I wrote:
->> +struct phy_provider *__of_phy_provider_register(struct device *dev,
->> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
->> +	struct of_phandle_args *args));
->> +struct phy_provider *__devm_of_phy_provider_register(struct device *dev,
->> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
->> +	struct of_phandle_args *args))
->> +
->> +__of_phy_provider_register and __devm_of_phy_provider_register can be used to
->> +register the phy_provider and it takes device, owner and of_xlate as
->> +arguments. For the dt boot case, all PHY providers should use one of the above
->> +2 APIs to register the PHY provider.
-> 
-> Why do you have __ for the prefix of a public function?  Is that really
-> the way that OF handles this type of thing?
+> Of my working version? I can try, i'll see if I have time to work with
+> sniffusb, but if I load the driver from linux, won't we already know
+> whats on the USB bus? If you speak of windows, I don't have that.
 
-I have a macro of_phy_provider_register/devm_of_phy_provider_register that
-calls these functions and should be used by the PHY drivers. Probably I should
-make a mention of it in the Documentation.
-> 
->> --- /dev/null
->> +++ b/drivers/phy/Kconfig
->> @@ -0,0 +1,13 @@
->> +#
->> +# PHY
->> +#
->> +
->> +menuconfig GENERIC_PHY
->> +	tristate "PHY Subsystem"
->> +	help
->> +	  Generic PHY support.
->> +
->> +	  This framework is designed to provide a generic interface for PHY
->> +	  devices present in the kernel. This layer will have the generic
->> +	  API by which phy drivers can create PHY using the phy framework and
->> +	  phy users can obtain reference to the PHY.
-> 
-> Again, please reverse this.  The drivers that use it should select it,
-> not depend on it, which will then enable this option.  I will never know
-> if I need to enable it, and based on your follow-on patches, if I don't,
-> drivers that were working just fine, now disappeared from my build,
-> which isn't nice, and a pain to notice and fix up.
+I wonder if Bogdan could took the sniffs as his device has the problems.
 
-ok.
-> 
->> +/**
->> + * phy_create() - create a new phy
->> + * @dev: device that is creating the new phy
->> + * @id: id of the phy
->> + * @ops: function pointers for performing phy operations
->> + * @label: label given to the phy
->> + *
->> + * Called to create a phy using phy framework.
->> + */
->> +struct phy *phy_create(struct device *dev, u8 id, const struct phy_ops *ops,
->> +	const char *label)
->> +{
->> +	int ret;
->> +	struct phy *phy;
->> +
->> +	if (!dev) {
->> +		dev_WARN(dev, "no device provided for PHY\n");
->> +		ret = -EINVAL;
->> +		goto err0;
->> +	}
->> +
->> +	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
->> +	if (!phy) {
->> +		ret = -ENOMEM;
->> +		goto err0;
->> +	}
->> +
->> +	device_initialize(&phy->dev);
->> +	mutex_init(&phy->mutex);
->> +
->> +	phy->dev.class = phy_class;
->> +	phy->dev.parent = dev;
->> +	phy->dev.of_node = dev->of_node;
->> +	phy->id = id;
->> +	phy->ops = ops;
->> +	phy->label = kstrdup(label, GFP_KERNEL);
->> +
->> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
-> 
-> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
-> never send a duplicate name.id pair?  Why not create your own ids based
-> on the number of phys in the system, like almost all other classes and
-> subsystems do?
+My FC0012 sniffs are useless as FC0012 windows does not any register reads.
 
-hmm.. some PHY drivers use the id they provide to perform some of their
-internal operation as in [1] (This is used only if a single PHY provider
-implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
-to give the PHY drivers an option to use auto id.
+Your sniffs could be also handy, better than nothing, even likely 
+produce just same logs as Bogdan (I suspect it is issue AF9035A vs AF9035B).
 
-[1] ->
-http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
-> 
->> +static inline int phy_pm_runtime_get(struct phy *phy)
->> +{
->> +	if (WARN(IS_ERR(phy), "Invalid PHY reference\n"))
->> +		return -EINVAL;
-> 
-> Why would phy ever not be valid and a error pointer?  And why dump the
-> stack if that happens, that seems really extreme.
+>> Here is few good pictures from my problematic AF9035B + FC0012 device.
+>> If someone could say which are FC0012 I2C pins, I could use Pirate to
+>> check (as that device has same problem).
+>> http://blog.palosaari.fi/2013/05/naked-hardware-8-cabletech-urz0185.html
+>>
+>> regards
+>> Antti
+>>
+>
 
-hmm.. there might be cases where the same controller in one soc needs PHY
-control and in some other soc does not need PHY control. In such cases, we
-might get error pointer here.
-I'll change WARN to dev_err.
-> 
->> +
->> +	if (!pm_runtime_enabled(&phy->dev))
->> +		return -ENOTSUPP;
->> +
->> +	return pm_runtime_get(&phy->dev);
->> +}
-> 
-> This, and the other inline functions in this .h file seem huge, why are
-> they inline and not in the .c file?  There's no speed issues, and it
-> should save space overall in the .c file.  Please move them.
+Antti
 
-ok
-> 
-> 
->> +static inline int phy_init(struct phy *phy)
->> +{
->> +	int ret;
->> +
->> +	ret = phy_pm_runtime_get_sync(phy);
->> +	if (ret < 0 && ret != -ENOTSUPP)
->> +		return ret;
->> +
->> +	mutex_lock(&phy->mutex);
->> +	if (phy->init_count++ == 0 && phy->ops->init) {
->> +		ret = phy->ops->init(phy);
->> +		if (ret < 0) {
->> +			dev_err(&phy->dev, "phy init failed --> %d\n", ret);
->> +			goto out;
->> +		}
->> +	}
->> +
->> +out:
->> +	mutex_unlock(&phy->mutex);
->> +	phy_pm_runtime_put(phy);
->> +	return ret;
->> +}
->> +
->> +static inline int phy_exit(struct phy *phy)
->> +{
->> +	int ret;
->> +
->> +	ret = phy_pm_runtime_get_sync(phy);
->> +	if (ret < 0 && ret != -ENOTSUPP)
->> +		return ret;
->> +
->> +	mutex_lock(&phy->mutex);
->> +	if (--phy->init_count == 0 && phy->ops->exit) {
->> +		ret = phy->ops->exit(phy);
->> +		if (ret < 0) {
->> +			dev_err(&phy->dev, "phy exit failed --> %d\n", ret);
->> +			goto out;
->> +		}
->> +	}
->> +
->> +out:
->> +	mutex_unlock(&phy->mutex);
->> +	phy_pm_runtime_put(phy);
->> +	return ret;
->> +}
->> +
->> +static inline int phy_power_on(struct phy *phy)
->> +{
->> +	int ret = -ENOTSUPP;
->> +
->> +	ret = phy_pm_runtime_get_sync(phy);
->> +	if (ret < 0 && ret != -ENOTSUPP)
->> +		return ret;
->> +
->> +	mutex_lock(&phy->mutex);
->> +	if (phy->power_count++ == 0 && phy->ops->power_on) {
->> +		ret = phy->ops->power_on(phy);
->> +		if (ret < 0) {
->> +			dev_err(&phy->dev, "phy poweron failed --> %d\n", ret);
->> +			goto out;
->> +		}
->> +	}
->> +
->> +out:
->> +	mutex_unlock(&phy->mutex);
->> +
->> +	return ret;
->> +}
->> +
->> +static inline int phy_power_off(struct phy *phy)
->> +{
->> +	int ret = -ENOTSUPP;
->> +
->> +	mutex_lock(&phy->mutex);
->> +	if (--phy->power_count == 0 && phy->ops->power_off) {
->> +		ret =  phy->ops->power_off(phy);
->> +		if (ret < 0) {
->> +			dev_err(&phy->dev, "phy poweroff failed --> %d\n", ret);
->> +			goto out;
->> +		}
->> +	}
->> +
->> +out:
->> +	mutex_unlock(&phy->mutex);
->> +	phy_pm_runtime_put(phy);
->> +
->> +	return ret;
->> +}
-> 
-> Look at those 3 functions, they are all "real" and not an inline
-> function at all, please move them.
-
-Alright.
-
-Thanks
-Kishon
+-- 
+http://palosaari.fi/
