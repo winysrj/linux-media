@@ -1,56 +1,154 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:54374 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932501Ab3GVVRh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 17:17:37 -0400
-Message-ID: <51EDA143.5050309@iki.fi>
-Date: Tue, 23 Jul 2013 00:16:51 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Joe Perches <joe@perches.com>
-CC: Andrew Morton <akpm@linux-foundation.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, LMML <linux-media@vger.kernel.org>
-Subject: Re: [PATCH 12/18] MAINTAINERS: Update it913x patterns
-References: <cover.1374451988.git.joe@perches.com> <170209027bb96e454ee499671598aaca0f414df5.1374451989.git.joe@perches.com>
-In-Reply-To: <170209027bb96e454ee499671598aaca0f414df5.1374451989.git.joe@perches.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout2.samsung.com ([203.254.224.25]:16445 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932141Ab3GBImv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jul 2013 04:42:51 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
+	Jingoo Han <jg1.han@samsung.com>
+Subject: [PATCH V4 4/4] video: exynos_dp: Use the generic PHY driver
+Date: Tue, 02 Jul 2013 17:42:49 +0900
+Message-id: <000d01ce7700$222a35a0$667ea0e0$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/22/2013 03:15 AM, Joe Perches wrote:
-> commit d7104bffcfb ("[media] MAINTAINERS: add drivers/media/tuners/it913x*")
-> used the incorrect file patterns.  Fix it.
->
-> Signed-off-by: Joe Perches <joe@perches.com>
-> cc: Antti Palosaari <crope@iki.fi>
-> cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Use the generic PHY API instead of the platform callback to control
+the DP PHY.
 
-Acked-by: Antti Palosaari <crope@iki.fi>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+---
+ .../devicetree/bindings/video/exynos_dp.txt        |   23 +++++---------------
+ drivers/video/exynos/exynos_dp_core.c              |   16 ++++++++++----
+ drivers/video/exynos/exynos_dp_core.h              |    2 ++
+ 3 files changed, 20 insertions(+), 21 deletions(-)
 
-PS. It wasn't that commit, but some later where driver was renamed, as 
-it caused filename collision on media out-tree build.
-
-> ---
->   MAINTAINERS | 2 +-
->   1 file changed, 1 insertion(+), 1 deletion(-)
->
-> diff --git a/MAINTAINERS b/MAINTAINERS
-> index aa5ccd0..7622b04 100644
-> --- a/MAINTAINERS
-> +++ b/MAINTAINERS
-> @@ -4566,7 +4566,7 @@ W:	http://palosaari.fi/linux/
->   Q:	http://patchwork.linuxtv.org/project/linux-media/list/
->   T:	git git://linuxtv.org/anttip/media_tree.git
->   S:	Maintained
-> -F:	drivers/media/tuners/it913x*
-> +F:	drivers/media/tuners/tuner_it913x*
->
->   IVTV VIDEO4LINUX DRIVER
->   M:	Andy Walls <awalls@md.metrocast.net>
->
-
-
+diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt b/Documentation/devicetree/bindings/video/exynos_dp.txt
+index 84f10c1..022f4b6 100644
+--- a/Documentation/devicetree/bindings/video/exynos_dp.txt
++++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
+@@ -1,17 +1,6 @@
+ The Exynos display port interface should be configured based on
+ the type of panel connected to it.
+ 
+-We use two nodes:
+-	-dp-controller node
+-	-dptx-phy node(defined inside dp-controller node)
+-
+-For the DP-PHY initialization, we use the dptx-phy node.
+-Required properties for dptx-phy:
+-	-reg:
+-		Base address of DP PHY register.
+-	-samsung,enable-mask:
+-		The bit-mask used to enable/disable DP PHY.
+-
+ For the Panel initialization, we read data from dp-controller node.
+ Required properties for dp-controller:
+ 	-compatible:
+@@ -25,6 +14,10 @@ Required properties for dp-controller:
+ 		from common clock binding: handle to dp clock.
+ 	-clock-names:
+ 		from common clock binding: Shall be "dp".
++	-phys:
++		from general PHY binding: the phandle for the PHY device.
++	-phy-names:
++		from general PHY binding: Should be "dp".
+ 	-interrupt-parent:
+ 		phandle to Interrupt combiner node.
+ 	-samsung,color-space:
+@@ -67,12 +60,8 @@ SOC specific portion:
+ 		interrupt-parent = <&combiner>;
+ 		clocks = <&clock 342>;
+ 		clock-names = "dp";
+-
+-		dptx-phy {
+-			reg = <0x10040720>;
+-			samsung,enable-mask = <1>;
+-		};
+-
++		phys = <&dp_phy>;
++		phy-names = "dp";
+ 	};
+ 
+ Board Specific portion:
+diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+index 05fed7d..5e1a715 100644
+--- a/drivers/video/exynos/exynos_dp_core.c
++++ b/drivers/video/exynos/exynos_dp_core.c
+@@ -19,6 +19,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/of.h>
++#include <linux/phy/phy.h>
+ 
+ #include "exynos_dp_core.h"
+ 
+@@ -960,8 +961,11 @@ static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+ 
+ 	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
+ 	if (!dp_phy_node) {
+-		dev_err(dp->dev, "could not find dptx-phy node\n");
+-		return -ENODEV;
++		dp->phy = devm_phy_get(dp->dev, "dp");
++		if (IS_ERR(dp->phy))
++			return PTR_ERR(dp->phy);
++		else
++			return 0;
+ 	}
+ 
+ 	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
+@@ -992,7 +996,9 @@ err:
+ 
+ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+ {
+-	if (dp->phy_addr) {
++	if (dp->phy) {
++		phy_power_on(dp->phy);
++	} else if (dp->phy_addr) {
+ 		u32 reg;
+ 
+ 		reg = __raw_readl(dp->phy_addr);
+@@ -1003,7 +1009,9 @@ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+ 
+ static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+ {
+-	if (dp->phy_addr) {
++	if (dp->phy) {
++		phy_power_off(dp->phy);
++	} else if (dp->phy_addr) {
+ 		u32 reg;
+ 
+ 		reg = __raw_readl(dp->phy_addr);
+diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
+index 56cfec8..87804b6 100644
+--- a/drivers/video/exynos/exynos_dp_core.h
++++ b/drivers/video/exynos/exynos_dp_core.h
+@@ -151,6 +151,8 @@ struct exynos_dp_device {
+ 	struct video_info	*video_info;
+ 	struct link_train	link_train;
+ 	struct work_struct	hotplug_work;
++
++	struct phy		*phy;
+ };
+ 
+ /* exynos_dp_reg.c */
 -- 
-http://palosaari.fi/
+1.7.10.4
+
+
