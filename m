@@ -1,102 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:43476 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932536Ab3GKOxC (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49721 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755620Ab3GBXCd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 10:53:02 -0400
+	Tue, 2 Jul 2013 19:02:33 -0400
+Date: Wed, 3 Jul 2013 02:01:59 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Support for events with a large payload
+Message-ID: <20130702230159.GO2064@valkosipuli.retiisi.org.uk>
+References: <201305131414.43685.hverkuil@xs4all.nl>
+ <1721198.ELRHSeN8Of@avalon>
+ <20130622205800.GH2064@valkosipuli.retiisi.org.uk>
+ <201306241540.14469.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <s5h7ggx413u.wl%tiwai@suse.de>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-	<1373533573-12272-46-git-send-email-ming.lei@canonical.com>
-	<51DEAE4E.90204@cogentembedded.com>
-	<s5hip0hb3y6.wl%tiwai@suse.de>
-	<CACVXFVPuv4VD_xCocP2QVOqUqAXm9gjwgwcRn6y=3qXPntOxCQ@mail.gmail.com>
-	<s5h7ggx413u.wl%tiwai@suse.de>
-Date: Thu, 11 Jul 2013 22:52:59 +0800
-Message-ID: <CACVXFVNsOAeLZ1zCHmBNsdAWRnqBrDYziK6XDh7G0QEFiw4G5Q@mail.gmail.com>
-Subject: Re: [PATCH 45/50] sound: usb: usx2y: spin_lock in complete() cleanup
-From: Ming Lei <ming.lei@canonical.com>
-To: Takashi Iwai <tiwai@suse.de>
-Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Jaroslav Kysela <perex@perex.cz>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201306241540.14469.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 11, 2013 at 10:34 PM, Takashi Iwai <tiwai@suse.de> wrote:
-> At Thu, 11 Jul 2013 22:13:35 +0800,
-> Ming Lei wrote:
->>
->> On Thu, Jul 11, 2013 at 9:50 PM, Takashi Iwai <tiwai@suse.de> wrote:
->> > At Thu, 11 Jul 2013 17:08:30 +0400,
->> > Sergei Shtylyov wrote:
->> >>
->> >> On 11-07-2013 13:06, Ming Lei wrote:
->> >>
->> >> > Complete() will be run with interrupt enabled, so change to
->> >> > spin_lock_irqsave().
->> >>
->> >>     Changelog doesn't match the patch.
->> >
->> > Yep, but moreover...
->> >
->> >> > Cc: Jaroslav Kysela <perex@perex.cz>
->> >> > Cc: Takashi Iwai <tiwai@suse.de>
->> >> > Cc: alsa-devel@alsa-project.org
->> >> > Signed-off-by: Ming Lei <ming.lei@canonical.com>
->> >> > ---
->> >> >   sound/usb/usx2y/usbusx2yaudio.c |    4 ++++
->> >> >   1 file changed, 4 insertions(+)
->> >>
->> >> > diff --git a/sound/usb/usx2y/usbusx2yaudio.c b/sound/usb/usx2y/usbusx2yaudio.c
->> >> > index 4967fe9..e2ee893 100644
->> >> > --- a/sound/usb/usx2y/usbusx2yaudio.c
->> >> > +++ b/sound/usb/usx2y/usbusx2yaudio.c
->> >> > @@ -273,7 +273,11 @@ static void usX2Y_clients_stop(struct usX2Ydev *usX2Y)
->> >> >             struct snd_usX2Y_substream *subs = usX2Y->subs[s];
->> >> >             if (subs) {
->> >> >                     if (atomic_read(&subs->state) >= state_PRERUNNING) {
->> >> > +                           unsigned long flags;
->> >> > +
->> >> > +                           local_irq_save(flags);
->> >> >                             snd_pcm_stop(subs->pcm_substream, SNDRV_PCM_STATE_XRUN);
->> >> > +                           local_irq_restore(flags);
->> >> >                     }
->> >
->> > ... actually this snd_pcm_stop() call should have been covered by
->> > snd_pcm_stream_lock().  Maybe it'd be enough to have a single patch
->> > together with the change, i.e. wrapping with
->> > snd_pcm_stream_lock_irqsave().
->>
->> Please use snd_pcm_stream_lock_irqsave() so that I can avoid sending
->> out similar patch later, :-)
->>
->> >
->> > I'll prepare the patch for 3.11 independently from your patch series,
->> > so please drop this one.
->>
->> OK, thanks for dealing with that.
->>
->> >
->> >
->> > BTW, the word "cleanup" in the subject is inappropriate.  This is
->> > rather a fix together with the core change.
->>
->> It is a cleanup since the patchset only addresses lock problem which
->> is caused by the tasklet conversion.
->
-> Well, the conversion to irqsave() is needed for the future drop of
-> irq_save() in the caller, right?  Then this isn't a cleanup but a
-> preparation for movement ahead.
+On Mon, Jun 24, 2013 at 03:40:14PM +0200, Hans Verkuil wrote:
+...
+> Since the payloads are larger I am less concerned about speed. There is one
+> problem, though: if you dequeue the event and the buffer that should receive
+> the payload is too small, then you have lost that payload. You can't allocate
+> a new, larger, buffer and retry. So this approach can only work if you really
+> know the maximum payload size.
+> 
+> The advantage is also that you won't lose payloads.
 
-Sounds more accurate, and I will change the title in next round, :-)
+Forgot to answer this one --- I think it's fair to assume the user knows the
+maximum size of the payload. What we also could do in such a case is to
+return the error (e.g. ENOSPC) and put the required size to the large event
+size field. But first someone must come up with a variable size event
+without well defined maximum size for this to make much sense.
 
-Thanks,
---
-Ming Lei
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
