@@ -1,85 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36456 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757686Ab3GRAMF (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 20:12:05 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Pete Eberlein <pete@sensoray.com>
-Subject: Re: [RFC PATCH 0/5] Matrix and Motion Detection support
-Date: Thu, 18 Jul 2013 02:12:49 +0200
-Message-ID: <2376197.fRlMlWruRn@avalon>
-In-Reply-To: <51D9E2A6.2070002@gmail.com>
-References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <51D9E2A6.2070002@gmail.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-ea0-f172.google.com ([209.85.215.172]:37146 "EHLO
+	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753371Ab3GBS3x convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jul 2013 14:29:53 -0400
+Received: by mail-ea0-f172.google.com with SMTP id q10so2980632eaj.3
+        for <linux-media@vger.kernel.org>; Tue, 02 Jul 2013 11:29:52 -0700 (PDT)
+Date: Tue, 2 Jul 2013 20:29:45 +0200
+From: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+To: Guy Martin <gmsoft@tuxicoman.be>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 3/6] libdvbv5: Export dvb_fe_is_satellite()
+Message-ID: <20130702202945.4591f98d@myon.exnihilo>
+In-Reply-To: <8745561db2ff7870ad9feb1ee0c7a32537dee18d.1371561676.git.gmsoft@tuxicoman.be>
+References: <cover.1371561676.git.gmsoft@tuxicoman.be>
+	<8745561db2ff7870ad9feb1ee0c7a32537dee18d.1371561676.git.gmsoft@tuxicoman.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
 
-On Sunday 07 July 2013 23:50:30 Sylwester Nawrocki wrote:
-> On 06/28/2013 02:27 PM, Hans Verkuil wrote:
-> > This patch series adds support for matrices and motion detection and
-> > converts the solo6x10 driver to use these new APIs.
-> > 
-> > See the RFCv2 for details on the motion detection API:
-> > 
-> > http://www.mail-archive.com/linux-media@vger.kernel.org/msg62085.html
-> > 
-> > And this RFC for details on the matrix API (which superseeds the
-> > v4l2_md_blocks in the RFC above):
-> > 
-> > http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/
-> > 65195
-> > 
-> > I have tested this with the solo card, both global motion detection and
-> > regional motion detection, and it works well.
-> > 
-> > There is no documentation for the new APIs yet (other than the RFCs). I
-> > would like to know what others think of this proposal before I start work
-> > on the DocBook documentation.
+Acked-by: André Roth <neolynx@gmail.com>
+
+
+On Tue, 18 Jun 2013 16:19:06 +0200
+Guy Martin <gmsoft@tuxicoman.be> wrote:
+
+> This patch makes the function dvb_fe_is_satellite() availble from libdvbv5. This function is simple
+> but yet very handful to have around.
 > 
-> These 3 ioctls look pretty generic and will likely allow us to handle wide
-> range of functionalities, similarly to what the controls framework does
-> today.
+> Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
+> ---
+>  lib/include/dvb-fe.h  |  1 +
+>  lib/libdvbv5/dvb-fe.c | 14 +++++++-------
+>  2 files changed, 8 insertions(+), 7 deletions(-)
 > 
-> What I don't like in the current trend of the V4L2 API development
-> though is that we have seemingly separate APIs for configuring integers,
-> rectangles, matrices, etc. And interactions between those APIs sometimes
-> happen to be not well defined.
-> 
-> I'm not opposed to having this matrix API, but I would _much_ more like to
-> see it as a starting point of a more powerful API, that would allow to
-> model dependencies between parameters being configured and the objects more
-> explicitly and freely (e.g. case of the per buffer controls), that would
-> allow to pass a list of commands to the hardware for atomic re-
-> configurations, that would allow to create hardware configuration contexts,
-> etc., etc.
-> 
-> But it's all song of future, requires lots of effort, founding and takes
-> engineers with significant experience.
-> 
-> As it likely won't happen soon I guess we can proceed with the matrix API
-> for now.
-
-Just for the record, I second that point of view. A matrix API, even as an 
-interim solution for the problems at hand, would be welcome. I would use it to 
-configure various kinds of LUTs (such as gamma tables). I'm all for going to a 
-property-based model (or at least seriously brainstorming it), but we're 
-looking at a too long time frame.
-
-> > My tentative goal is to get this in for 3.12. Once this is in place the
-> > solo and go7007 drivers can be moved out of staging into the mainline
-> > since this is the only thing holding them back.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+> diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+> index d725a42..7352218 100644
+> --- a/lib/include/dvb-fe.h
+> +++ b/lib/include/dvb-fe.h
+> @@ -203,6 +203,7 @@ int dvb_fe_diseqc_cmd(struct dvb_v5_fe_parms *parms, const unsigned len,
+>  		      const unsigned char *buf);
+>  int dvb_fe_diseqc_reply(struct dvb_v5_fe_parms *parms, unsigned *len, char *buf,
+>  		       int timeout);
+> +int dvb_fe_is_satellite(uint32_t delivery_system);
+>  
+>  #ifdef __cplusplus
+>  }
+> diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+> index 550b6e2..b786a85 100644
+> --- a/lib/libdvbv5/dvb-fe.c
+> +++ b/lib/libdvbv5/dvb-fe.c
+> @@ -230,7 +230,7 @@ struct dvb_v5_fe_parms *dvb_fe_open2(int adapter, int frontend, unsigned verbose
+>  }
+>  
+>  
+> -static int is_satellite(uint32_t delivery_system)
+> +int dvb_fe_is_satellite(uint32_t delivery_system)
+>  {
+>  	switch (delivery_system) {
+>  	case SYS_DVBS:
+> @@ -254,7 +254,7 @@ void dvb_fe_close(struct dvb_v5_fe_parms *parms)
+>  		return;
+>  
+>  	/* Disable LNBf power */
+> -	if (is_satellite(parms->current_sys))
+> +	if (dvb_fe_is_satellite(parms->current_sys))
+>  		dvb_fe_sec_voltage(parms, 0, 0);
+>  
+>  	close(parms->fd);
+> @@ -298,8 +298,8 @@ int dvb_set_sys(struct dvb_v5_fe_parms *parms,
+>  
+>  	if (sys != parms->current_sys) {
+>  		/* Disable LNBf power */
+> -		if (is_satellite(parms->current_sys) &&
+> -		    !is_satellite(sys))
+> +		if (dvb_fe_is_satellite(parms->current_sys) &&
+> +		    !dvb_fe_is_satellite(sys))
+>  			dvb_fe_sec_voltage(parms, 0, 0);
+>  
+>  		/* Can't change standard with the legacy FE support */
+> @@ -594,7 +594,7 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
+>  
+>  ret:
+>  	/* For satellite, need to recover from LNBf IF frequency */
+> -	if (is_satellite(parms->current_sys))
+> +	if (dvb_fe_is_satellite(parms->current_sys))
+>  		return dvb_sat_get_parms(parms);
+>  
+>  	return 0;
+> @@ -609,7 +609,7 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
+>  
+>  	struct dtv_property fe_prop[DTV_MAX_COMMAND];
+>  
+> -	if (is_satellite(parms->current_sys)) {
+> +	if (dvb_fe_is_satellite(parms->current_sys)) {
+>  		dvb_fe_retrieve_parm(parms, DTV_FREQUENCY, &freq);
+>  		dvb_sat_set_parms(parms);
+>  	}
+> @@ -673,7 +673,7 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
+>  	}
+>  ret:
+>  	/* For satellite, need to recover from LNBf IF frequency */
+> -	if (is_satellite(parms->current_sys))
+> +	if (dvb_fe_is_satellite(parms->current_sys))
+>  		dvb_fe_store_parm(parms, DTV_FREQUENCY, freq);
+>  
+>  	return 0;
