@@ -1,39 +1,209 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f52.google.com ([209.85.220.52]:54931 "EHLO
-	mail-pa0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757724Ab3GWPMQ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 11:12:16 -0400
-Received: by mail-pa0-f52.google.com with SMTP id kq13so2936591pab.39
-        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 08:12:15 -0700 (PDT)
-From: Chris Lee <updatelee@gmail.com>
+Received: from mail-ee0-f51.google.com ([74.125.83.51]:64162 "EHLO
+	mail-ee0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754155Ab3GBSbY convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jul 2013 14:31:24 -0400
+Received: by mail-ee0-f51.google.com with SMTP id e52so2952621eek.10
+        for <linux-media@vger.kernel.org>; Tue, 02 Jul 2013 11:31:22 -0700 (PDT)
+Received: from myon.exnihilo (51-213.60-188.cust.bluewin.ch. [188.60.213.51])
+        by mx.google.com with ESMTPSA id p49sm38154706eeu.2.2013.07.02.11.31.21
+        for <linux-media@vger.kernel.org>
+        (version=SSLv3 cipher=RC4-SHA bits=128/128);
+        Tue, 02 Jul 2013 11:31:22 -0700 (PDT)
+Date: Tue, 2 Jul 2013 20:31:19 +0200
+From: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: Chris Lee <updatelee@gmail.com>
-Subject: [PATCH] This brings the genpix line of devices snr reporting in line with other drivers
-Date: Tue, 23 Jul 2013 09:12:06 -0600
-Message-Id: <1374592326-13427-1-git-send-email-updatelee@gmail.com>
+Subject: Re: [PATCH 5/6] libdvbv5: Use a temporary copy of the dvb
+ parameters when tuning
+Message-ID: <20130702203119.6985d8d1@myon.exnihilo>
+In-Reply-To: <42ac663a85e646b5594c57ce1c61ee492c9a0a1f.1371561676.git.gmsoft@tuxicoman.be>
+References: <cover.1371561676.git.gmsoft@tuxicoman.be>
+	<42ac663a85e646b5594c57ce1c61ee492c9a0a1f.1371561676.git.gmsoft@tuxicoman.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Chris Lee <updatelee@gmail.com>
 
----
- drivers/media/usb/dvb-usb/gp8psk-fe.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Acked-by: André Roth <neolynx@gmail.com>
 
-diff --git a/drivers/media/usb/dvb-usb/gp8psk-fe.c b/drivers/media/usb/dvb-usb/gp8psk-fe.c
-index 67957dd..5864f37 100644
---- a/drivers/media/usb/dvb-usb/gp8psk-fe.c
-+++ b/drivers/media/usb/dvb-usb/gp8psk-fe.c
-@@ -45,7 +45,7 @@ static int gp8psk_fe_update_status(struct gp8psk_fe_state *st)
- 	if (time_after(jiffies,st->next_status_check)) {
- 		gp8psk_usb_in_op(st->d, GET_SIGNAL_LOCK, 0,0,&st->lock,1);
- 		gp8psk_usb_in_op(st->d, GET_SIGNAL_STRENGTH, 0,0,buf,6);
--		st->snr = (buf[1]) << 8 | buf[0];
-+		st->snr = ((buf[1]) << 8 | buf[0]) << 4;
- 		st->next_status_check = jiffies + (st->status_check_interval*HZ)/1000;
- 	}
- 	return 0;
--- 
-1.8.1.2
-
+On Tue, 18 Jun 2013 16:19:08 +0200
+Guy Martin <gmsoft@tuxicoman.be> wrote:
+> This patch copies the parms provided into a temporary buffer. This buffer will then
+> be used for any modification that needs to be performed. It makes the function
+> dvb_fe_set_parms() thread-safe. Also, since the DTV_FREQUENCY is not modified, it fixes
+> a bug where dvbv5-scan retrieves the frequency from the parms and write it to the
+> channel file.
+> 
+> Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
+> ---
+>  lib/include/dvb-sat.h  |  1 -
+>  lib/libdvbv5/dvb-fe.c  | 71 ++++++++++++++++++++++----------------------------
+>  lib/libdvbv5/dvb-sat.c | 11 --------
+>  3 files changed, 31 insertions(+), 52 deletions(-)
+> 
+> diff --git a/lib/include/dvb-sat.h b/lib/include/dvb-sat.h
+> index 23df228..8b20c9e 100644
+> --- a/lib/include/dvb-sat.h
+> +++ b/lib/include/dvb-sat.h
+> @@ -49,7 +49,6 @@ int print_lnb(int i);
+>  void print_all_lnb(void);
+>  const struct dvb_sat_lnb *dvb_sat_get_lnb(int i);
+>  int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms);
+> -int dvb_sat_get_parms(struct dvb_v5_fe_parms *parms);
+>  
+>  #ifdef __cplusplus
+>  }
+> diff --git a/lib/libdvbv5/dvb-fe.c b/lib/libdvbv5/dvb-fe.c
+> index b786a85..408423f 100644
+> --- a/lib/libdvbv5/dvb-fe.c
+> +++ b/lib/libdvbv5/dvb-fe.c
+> @@ -551,7 +551,7 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
+>  			       delivery_system_name[parms->current_sys]);
+>  			dvb_fe_prt_parms(parms);
+>  		}
+> -		goto ret;
+> +		return 0;
+>  	}
+>  	/* DVBv3 call */
+>  	if (ioctl(parms->fd, FE_GET_FRONTEND, &v3_parms) == -1) {
+> @@ -592,32 +592,27 @@ int dvb_fe_get_parms(struct dvb_v5_fe_parms *parms)
+>  		return -EINVAL;
+>  	}
+>  
+> -ret:
+> -	/* For satellite, need to recover from LNBf IF frequency */
+> -	if (dvb_fe_is_satellite(parms->current_sys))
+> -		return dvb_sat_get_parms(parms);
+> -
+>  	return 0;
+>  }
+>  
+>  int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
+>  {
+> +	/* Use a temporary copy of the parameters so we can safely perform
+> +	 * adjustments for satellite */
+> +	struct dvb_v5_fe_parms tmp_parms = *parms;
+> +
+>  	struct dtv_properties prop;
+>  	struct dvb_frontend_parameters v3_parms;
+> -	uint32_t freq;
+>  	uint32_t bw;
+>  
+> -	struct dtv_property fe_prop[DTV_MAX_COMMAND];
+> -
+> -	if (dvb_fe_is_satellite(parms->current_sys)) {
+> -		dvb_fe_retrieve_parm(parms, DTV_FREQUENCY, &freq);
+> -		dvb_sat_set_parms(parms);
+> -	}
+> +	if (dvb_fe_is_satellite(tmp_parms.current_sys))
+> +		dvb_sat_set_parms(&tmp_parms);
+>  
+> -	int n = dvb_copy_fe_props(parms->dvb_prop, parms->n_props, fe_prop);
+> +	/* Filter out any user DTV_foo property such as DTV_POLARIZATION */
+> +	tmp_parms.n_props = dvb_copy_fe_props(tmp_parms.dvb_prop, tmp_parms.n_props, tmp_parms.dvb_prop);
+>  
+> -	prop.props = fe_prop;
+> -	prop.num = n;
+> +	prop.props = tmp_parms.dvb_prop;
+> +	prop.num = tmp_parms.n_props;
+>  	prop.props[prop.num].cmd = DTV_TUNE;
+>  	prop.num++;
+>  
+> @@ -628,53 +623,49 @@ int dvb_fe_set_parms(struct dvb_v5_fe_parms *parms)
+>  				dvb_fe_prt_parms(parms);
+>  			return -1;
+>  		}
+> -		goto ret;
+> +		return 0;
+>  	}
+>  	/* DVBv3 call */
+>  
+> -	dvb_fe_retrieve_parm(parms, DTV_FREQUENCY, &v3_parms.frequency);
+> -	dvb_fe_retrieve_parm(parms, DTV_INVERSION, &v3_parms.inversion);
+> -	switch (parms->current_sys) {
+> +	dvb_fe_retrieve_parm(&tmp_parms, DTV_FREQUENCY, &v3_parms.frequency);
+> +	dvb_fe_retrieve_parm(&tmp_parms, DTV_INVERSION, &v3_parms.inversion);
+> +	switch (tmp_parms.current_sys) {
+>  	case SYS_DVBS:
+> -		dvb_fe_retrieve_parm(parms, DTV_SYMBOL_RATE, &v3_parms.u.qpsk.symbol_rate);
+> -		dvb_fe_retrieve_parm(parms, DTV_INNER_FEC, &v3_parms.u.qpsk.fec_inner);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_SYMBOL_RATE, &v3_parms.u.qpsk.symbol_rate);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_INNER_FEC, &v3_parms.u.qpsk.fec_inner);
+>  		break;
+>  	case SYS_DVBC_ANNEX_AC:
+> -		dvb_fe_retrieve_parm(parms, DTV_SYMBOL_RATE, &v3_parms.u.qam.symbol_rate);
+> -		dvb_fe_retrieve_parm(parms, DTV_INNER_FEC, &v3_parms.u.qam.fec_inner);
+> -		dvb_fe_retrieve_parm(parms, DTV_MODULATION, &v3_parms.u.qam.modulation);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_SYMBOL_RATE, &v3_parms.u.qam.symbol_rate);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_INNER_FEC, &v3_parms.u.qam.fec_inner);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_MODULATION, &v3_parms.u.qam.modulation);
+>  		break;
+>  	case SYS_ATSC:
+>  	case SYS_ATSCMH:
+>  	case SYS_DVBC_ANNEX_B:
+> -		dvb_fe_retrieve_parm(parms, DTV_MODULATION, &v3_parms.u.vsb.modulation);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_MODULATION, &v3_parms.u.vsb.modulation);
+>  		break;
+>  	case SYS_DVBT:
+>  		for (bw = 0; fe_bandwidth_name[bw] != 0; bw++) {
+>  			if (fe_bandwidth_name[bw] == v3_parms.u.ofdm.bandwidth)
+>  				break;
+>  		}
+> -		dvb_fe_retrieve_parm(parms, DTV_BANDWIDTH_HZ, &bw);
+> -		dvb_fe_retrieve_parm(parms, DTV_CODE_RATE_HP, &v3_parms.u.ofdm.code_rate_HP);
+> -		dvb_fe_retrieve_parm(parms, DTV_CODE_RATE_LP, &v3_parms.u.ofdm.code_rate_LP);
+> -		dvb_fe_retrieve_parm(parms, DTV_MODULATION, &v3_parms.u.ofdm.constellation);
+> -		dvb_fe_retrieve_parm(parms, DTV_TRANSMISSION_MODE, &v3_parms.u.ofdm.transmission_mode);
+> -		dvb_fe_retrieve_parm(parms, DTV_GUARD_INTERVAL, &v3_parms.u.ofdm.guard_interval);
+> -		dvb_fe_retrieve_parm(parms, DTV_HIERARCHY, &v3_parms.u.ofdm.hierarchy_information);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_BANDWIDTH_HZ, &bw);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_CODE_RATE_HP, &v3_parms.u.ofdm.code_rate_HP);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_CODE_RATE_LP, &v3_parms.u.ofdm.code_rate_LP);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_MODULATION, &v3_parms.u.ofdm.constellation);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_TRANSMISSION_MODE, &v3_parms.u.ofdm.transmission_mode);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_GUARD_INTERVAL, &v3_parms.u.ofdm.guard_interval);
+> +		dvb_fe_retrieve_parm(&tmp_parms, DTV_HIERARCHY, &v3_parms.u.ofdm.hierarchy_information);
+>  		break;
+>  	default:
+>  		return -EINVAL;
+>  	}
+> -	if (ioctl(parms->fd, FE_SET_FRONTEND, &v3_parms) == -1) {
+> +	if (ioctl(tmp_parms.fd, FE_SET_FRONTEND, &v3_parms) == -1) {
+>  		dvb_perror("FE_SET_FRONTEND");
+> -		if (parms->verbose)
+> -			dvb_fe_prt_parms(parms);
+> +		if (tmp_parms.verbose)
+> +			dvb_fe_prt_parms(&tmp_parms);
+>  		return -1;
+>  	}
+> -ret:
+> -	/* For satellite, need to recover from LNBf IF frequency */
+> -	if (dvb_fe_is_satellite(parms->current_sys))
+> -		dvb_fe_store_parm(parms, DTV_FREQUENCY, freq);
+>  
+>  	return 0;
+>  }
+> diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+> index f84b5a4..3cbcf03 100644
+> --- a/lib/libdvbv5/dvb-sat.c
+> +++ b/lib/libdvbv5/dvb-sat.c
+> @@ -394,17 +394,6 @@ ret:
+>  	return rc;
+>  }
+>  
+> -int dvb_sat_get_parms(struct dvb_v5_fe_parms *parms)
+> -{
+> -	uint32_t freq = 0;
+> -
+> -	dvb_fe_retrieve_parm(parms, DTV_FREQUENCY, &freq);
+> -	freq = abs(freq + parms->freq_offset);
+> -	dvb_fe_store_parm(parms, DTV_FREQUENCY, freq);
+> -
+> -	return 0;
+> -}
+> -
+>  const char *dvbsat_polarization_name[5] = {
+>  	"OFF",
+>  	"H",
