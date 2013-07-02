@@ -1,107 +1,196 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr10.xs4all.nl ([194.109.24.30]:2001 "EHLO
-	smtp-vbr10.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758064Ab3GMS3l (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jul 2013 14:29:41 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr10.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6DITb0F018367
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 13 Jul 2013 20:29:40 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C2F7135E01B6
-	for <linux-media@vger.kernel.org>; Sat, 13 Jul 2013 20:29:36 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130713182936.C2F7135E01B6@alastor.dyndns.org>
-Date: Sat, 13 Jul 2013 20:29:36 +0200 (CEST)
+Received: from mail-ea0-f177.google.com ([209.85.215.177]:58404 "EHLO
+	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753794Ab3GBSag convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 2 Jul 2013 14:30:36 -0400
+Received: by mail-ea0-f177.google.com with SMTP id j14so2904632eak.8
+        for <linux-media@vger.kernel.org>; Tue, 02 Jul 2013 11:30:35 -0700 (PDT)
+Date: Tue, 2 Jul 2013 20:30:32 +0200
+From: =?UTF-8?B?QW5kcsOp?= Roth <neolynx@gmail.com>
+To: Guy Martin <gmsoft@tuxicoman.be>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH 4/6] libdvbv5: Fix satellite handling and apply
+ polarization parameter to the frontend
+Message-ID: <20130702203032.7b402b45@myon.exnihilo>
+In-Reply-To: <499f1b86398f711babf414c69d43c69b1fc95129.1371561676.git.gmsoft@tuxicoman.be>
+References: <cover.1371561676.git.gmsoft@tuxicoman.be>
+	<499f1b86398f711babf414c69d43c69b1fc95129.1371561676.git.gmsoft@tuxicoman.be>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Acked-by: André Roth <neolynx@gmail.com>
 
-Results of the daily build of media_tree:
 
-date:		Sat Jul 13 19:00:17 CEST 2013
-git branch:	test
-git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+On Tue, 18 Jun 2013 16:19:07 +0200
+Guy Martin <gmsoft@tuxicoman.be> wrote:
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> Apply polarization parameters even if a satellite number is not provided. This allow
+> proper setup of the tone and voltage.
+> 
+> Signed-off-by: Guy Martin <gmsoft@tuxicoman.be>
+> ---
+>  lib/include/dvb-fe.h      |  1 -
+>  lib/libdvbv5/dvb-sat.c    | 57 ++++++++++++++++++++---------------------------
+>  lib/libdvbv5/dvb-v5-std.c |  9 ++------
+>  3 files changed, 26 insertions(+), 41 deletions(-)
+> 
+> diff --git a/lib/include/dvb-fe.h b/lib/include/dvb-fe.h
+> index 7352218..b0e2bf9 100644
+> --- a/lib/include/dvb-fe.h
+> +++ b/lib/include/dvb-fe.h
+> @@ -104,7 +104,6 @@ struct dvb_v5_fe_parms {
+>  	unsigned			freq_bpf;
+>  
+>  	/* Satellite specific stuff, used internally */
+> -	//enum dvb_sat_polarization       pol;
+>  	int				high_band;
+>  	unsigned			diseqc_wait;
+>  	unsigned			freq_offset;
+> diff --git a/lib/libdvbv5/dvb-sat.c b/lib/libdvbv5/dvb-sat.c
+> index d00a09e..f84b5a4 100644
+> --- a/lib/libdvbv5/dvb-sat.c
+> +++ b/lib/libdvbv5/dvb-sat.c
+> @@ -273,7 +273,7 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+>  {
+>  	int rc;
+>  	enum dvb_sat_polarization pol;
+> -	dvb_fe_retrieve_parm(parms, DTV_POLARIZATION,& pol);
+> +	dvb_fe_retrieve_parm(parms, DTV_POLARIZATION, &pol);
+>  	int pol_v = (pol == POLARIZATION_V) || (pol == POLARIZATION_R);
+>  	int high_band = parms->high_band;
+>  	int sat_number = parms->sat_number;
+> @@ -284,12 +284,6 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+>  
+>  	if (!lnb->rangeswitch) {
+>  		/*
+> -		 * Bandstacking and single LO may not be using DISEqC
+> -		 */
+> -		if (sat_number < 0)
+> -			return 0;
+> -
+> -		/*
+>  		 * Bandstacking switches don't use 2 bands nor use
+>  		 * DISEqC for setting the polarization. It also doesn't
+>  		 * use any tone/tone burst
+> @@ -297,11 +291,6 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+>  		pol_v = 0;
+>  		high_band = 1;
+>  	} else {
+> -		if (sat_number < 0) {
+> -			dvb_logerr("Need a satellite number for DISEqC");
+> -			return -EINVAL;
+> -		}
+> -
+>  		/* Adjust voltage/tone accordingly */
+>  		if (parms->sat_number < 2) {
+>  			vol_high = pol_v ? 0 : 1;
+> @@ -310,32 +299,35 @@ static int dvbsat_diseqc_set_input(struct dvb_v5_fe_parms *parms, uint16_t t)
+>  		}
+>  	}
+>  
+> -	rc = dvb_fe_sec_tone(parms, SEC_TONE_OFF);
+> -	if (rc)
+> -		return rc;
+> -
+>  	rc = dvb_fe_sec_voltage(parms, 1, vol_high);
+>  	if (rc)
+>  		return rc;
+> -	usleep(15 * 1000);
+> +	
+> +	if (parms->sat_number > 0) {
+> +		rc = dvb_fe_sec_tone(parms, SEC_TONE_OFF);
+> +		if (rc)
+> +			return rc;
+>  
+> -	if (!t)
+> -		rc = dvbsat_diseqc_write_to_port_group(parms, &cmd, high_band,
+> -						       pol_v, sat_number);
+> -	else
+> -		rc = dvbsat_scr_odu_channel_change(parms, &cmd, high_band,
+> -						   pol_v, sat_number, t);
+> +		usleep(15 * 1000);
+>  
+> -	if (rc) {
+> -		dvb_logerr("sending diseq failed");
+> -		return rc;
+> -	}
+> -	usleep((15 + parms->diseqc_wait) * 1000);
+> +		if (!t)
+> +			rc = dvbsat_diseqc_write_to_port_group(parms, &cmd, high_band,
+> +							       pol_v, sat_number);
+> +		else
+> +			rc = dvbsat_scr_odu_channel_change(parms, &cmd, high_band,
+> +							   pol_v, sat_number, t);
+>  
+> -	rc = dvb_fe_diseqc_burst(parms, mini_b);
+> -	if (rc)
+> -		return rc;
+> -	usleep(15 * 1000);
+> +		if (rc) {
+> +			dvb_logerr("sending diseq failed");
+> +			return rc;
+> +		}
+> +		usleep((15 + parms->diseqc_wait) * 1000);
+> +
+> +		rc = dvb_fe_diseqc_burst(parms, mini_b);
+> +		if (rc)
+> +			return rc;
+> +		usleep(15 * 1000);
+> +	}
+>  
+>  	rc = dvb_fe_sec_tone(parms, tone_on ? SEC_TONE_ON : SEC_TONE_OFF);
+>  
+> @@ -354,7 +346,6 @@ int dvb_sat_set_parms(struct dvb_v5_fe_parms *parms)
+>  	dvb_fe_retrieve_parm(parms, DTV_POLARIZATION, &pol);
+>  	uint32_t freq;
+>  	uint16_t t = 0;
+> -	/*uint32_t voltage = SEC_VOLTAGE_18;*/
+>  	int rc;
+>  
+>  	dvb_fe_retrieve_parm(parms, DTV_FREQUENCY, &freq);
+> diff --git a/lib/libdvbv5/dvb-v5-std.c b/lib/libdvbv5/dvb-v5-std.c
+> index 5a1854b..574ae1e 100644
+> --- a/lib/libdvbv5/dvb-v5-std.c
+> +++ b/lib/libdvbv5/dvb-v5-std.c
+> @@ -125,8 +125,6 @@ const unsigned int sys_dvbs_props[] = {
+>  	DTV_INVERSION,
+>  	DTV_SYMBOL_RATE,
+>  	DTV_INNER_FEC,
+> -	/*DTV_VOLTAGE,*/
+> -	/*DTV_TONE,*/
+>  	DTV_POLARIZATION,
+>  	0
+>  };
+> @@ -136,8 +134,6 @@ const unsigned int sys_dvbs2_props[] = {
+>  	DTV_INVERSION,
+>  	DTV_SYMBOL_RATE,
+>  	DTV_INNER_FEC,
+> -	/*DTV_VOLTAGE,*/
+> -	/*DTV_TONE,*/
+>  	DTV_MODULATION,
+>  	DTV_PILOT,
+>  	DTV_ROLLOFF,
+> @@ -150,9 +146,8 @@ const unsigned int sys_turbo_props[] = {
+>  	DTV_INVERSION,
+>  	DTV_SYMBOL_RATE,
+>  	DTV_INNER_FEC,
+> -	DTV_VOLTAGE,
+> -	DTV_TONE,
+>  	DTV_MODULATION,
+> +	DTV_POLARIZATION,
+>  	0
+>  };
+>  
+> @@ -161,8 +156,8 @@ const unsigned int sys_isdbs_props[] = {
+>  	DTV_INVERSION,
+>  	DTV_SYMBOL_RATE,
+>  	DTV_INNER_FEC,
+> -	DTV_VOLTAGE,
+>  	DTV_ISDBS_TS_ID_LEGACY,
+> +	DTV_POLARIZATION,
+>  	0
+>  };
+>  
