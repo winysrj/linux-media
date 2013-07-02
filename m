@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:41942 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750989Ab3GWFgM (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49708 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754047Ab3GBW5H (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 01:36:12 -0400
-Message-ID: <51EE15FD.2010205@ti.com>
-Date: Tue, 23 Jul 2013 11:04:53 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+	Tue, 2 Jul 2013 18:57:07 -0400
+Date: Wed, 3 Jul 2013 01:57:02 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Support for events with a large payload
+Message-ID: <20130702225701.GN2064@valkosipuli.retiisi.org.uk>
+References: <201305131414.43685.hverkuil@xs4all.nl>
+ <1721198.ELRHSeN8Of@avalon>
+ <20130622205800.GH2064@valkosipuli.retiisi.org.uk>
+ <201306241540.14469.hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-CC: Alan Stern <stern@rowland.harvard.edu>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-References: <Pine.LNX.4.44L0.1307211453450.19133-100000@netrider.rowland.org> <51ECDE5E.3050104@ti.com> <20130722150458.GA18181@kroah.com>
-In-Reply-To: <20130722150458.GA18181@kroah.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <201306241540.14469.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
-On Monday 22 July 2013 08:34 PM, Greg KH wrote:
-> On Mon, Jul 22, 2013 at 12:55:18PM +0530, Kishon Vijay Abraham I wrote:
->>> 	The issue (or one of the issues) in this discussion is that 
->>> 	Greg does not like the idea of using names or IDs to associate
->>> 	PHYs with controllers, because they are too prone to
->>> 	duplications or other errors.  Pointers are more reliable.
->>>
->>> 	But pointers to what?  Since the only data known to be 
->>> 	available to both the PHY driver and controller driver is the
->>> 	platform data, the obvious answer is a pointer to platform data
->>> 	(either for the PHY or for the controller, or maybe both).
->>
->> hmm.. it's not going to be simple though as the platform device for the PHY and
->> controller can be created in entirely different places. e.g., in some cases the
->> PHY device is a child of some mfd core device (the device will be created in
->> drivers/mfd) and the controller driver (usually) is created in board file. I
->> guess then we have to come up with something to share a pointer in two
->> different files.
+On Mon, Jun 24, 2013 at 03:40:14PM +0200, Hans Verkuil wrote:
+...
+> > Events that fit to regular 64 bytes will be delivered using that, and the
+> > user-provided pointer will only be used in the case a large event is
+> > delivered to the user. So in order to be able to receive large events, the
+> > user must always provide the pointer even if it's not always used.
 > 
-> What's wrong with using the platform_data structure that is unique to
-> all boards (see include/platform_data/ for examples)?  Isn't that what
-> this structure is there for?
+> This is an option. The easiest approach would be to extend v4l2_kevent with
+> a pointer to a struct v4l2_event_payload, which would be refcounted (it's
+> basically a struct kref + size + payload). Since this would have to be allocated
+> you can't use this in interrupt context.
 
-Alright. I got some ideas from Alan Stern. I'll use it with platform_data and
-repost the series.
+Well, one can use GFP_NOWAIT. I would allow this. But surely better done
+outside interrupt context.
 
-Thanks
-Kishon
+> Since the payloads are larger I am less concerned about speed. There is one
+> problem, though: if you dequeue the event and the buffer that should receive
+> the payload is too small, then you have lost that payload. You can't allocate
+> a new, larger, buffer and retry. So this approach can only work if you really
+> know the maximum payload size.
+> 
+> The advantage is also that you won't lose payloads.
+> 
+> You are starting to convince me :-) Just don't change the current implementation
+> for small payloads, that's one that really works very well.
+
+I meant only large payload buffers above but failed to write it down.
+Smaller ones could stay as they are.
+
+-- 
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
