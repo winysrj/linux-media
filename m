@@ -1,103 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f169.google.com ([209.85.212.169]:51386 "EHLO
-	mail-wi0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755806Ab3GZO0L (ORCPT
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:35704 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752701Ab3GBDbY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 10:26:11 -0400
+	Mon, 1 Jul 2013 23:31:24 -0400
+From: Libin Yang <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>
+CC: <linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>,
+	Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH v2 3/7] marvell-ccic: reset ccic phy when stop streaming for stability
+Date: Tue, 2 Jul 2013 11:31:04 +0800
+Message-ID: <1372735868-15880-4-git-send-email-lbyang@marvell.com>
+In-Reply-To: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
+References: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
 MIME-Version: 1.0
-In-Reply-To: <51F24809.2080401@xs4all.nl>
-References: <1374076022-10960-1-git-send-email-prabhakar.csengg@gmail.com> <51F24809.2080401@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 26 Jul 2013 19:55:49 +0530
-Message-ID: <CA+V-a8v3HvFzG3JDuTP-NtjhUMs6-bR9GKcLze3tdO4_YKvXEQ@mail.gmail.com>
-Subject: Re: [PATCH RFC FINAL v5] media: OF: add "sync-on-green-active" property
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: LMML <linux-media@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This patch adds the reset ccic phy operation when stop streaming.
 
-Thanks for the review.
+Stop streaming without reset ccic phy, the next start streaming
+may be unstable.
+Also need add CCIC2 definition when PXA688/PXA2128 support dual ccics.
 
-On Fri, Jul 26, 2013 at 3:27 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Prabhakar,
->
-> On 07/17/2013 05:47 PM, Prabhakar Lad wrote:
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> This patch adds 'sync-on-green-active' property as part
->> of endpoint property.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>   Changes for v5:
->>   1: Changed description for sync-on-green-active property in
->>      documentation file as suggested by Sylwester.
->>
->>   Changes for v4:
->>   1: Fixed review comments pointed by Sylwester.
->>
->>   Changes for v3:
->>   1: Fixed review comments pointed by Laurent and Sylwester.
->>
->>   RFC v2 https://patchwork.kernel.org/patch/2578091/
->>
->>   RFC V1 https://patchwork.kernel.org/patch/2572341/
->>
->>  .../devicetree/bindings/media/video-interfaces.txt |    2 ++
->>  drivers/media/v4l2-core/v4l2-of.c                  |    4 ++++
->>  include/media/v4l2-mediabus.h                      |    2 ++
->>  3 files changed, 8 insertions(+)
->>
->> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
->> index e022d2d..ce719f8 100644
->> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
->> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
->> @@ -88,6 +88,8 @@ Optional endpoint properties
->>  - field-even-active: field signal level during the even field data transmission.
->>  - pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
->>    signal.
->> +- sync-on-green-active: active state of Sync-on-green (SoG) signal, 0/1 for
->> +  LOW/HIGH respectively.
->>  - data-lanes: an array of physical data lane indexes. Position of an entry
->>    determines the logical lane number, while the value of an entry indicates
->>    physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
->> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
->> index aa59639..5c4c9f0 100644
->> --- a/drivers/media/v4l2-core/v4l2-of.c
->> +++ b/drivers/media/v4l2-core/v4l2-of.c
->> @@ -100,6 +100,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
->>       if (!of_property_read_u32(node, "data-shift", &v))
->>               bus->data_shift = v;
->>
->> +     if (!of_property_read_u32(node, "sync-on-green-active", &v))
->> +             flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
->> +                     V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
->> +
->>       bus->flags = flags;
->>
->>  }
->> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
->> index 83ae07e..d47eb81 100644
->> --- a/include/media/v4l2-mediabus.h
->> +++ b/include/media/v4l2-mediabus.h
->> @@ -40,6 +40,8 @@
->>  #define V4L2_MBUS_FIELD_EVEN_HIGH            (1 << 10)
->>  /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
->>  #define V4L2_MBUS_FIELD_EVEN_LOW             (1 << 11)
->> +#define V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH      (1 << 12)
->> +#define V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW               (1 << 13)
->
-> Can you add a short comment for these new flags? Similar to what you added in
-> video-interfaces.txt?
->
-OK will fix it and repost.
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.c  |    6 ++++++
+ drivers/media/platform/marvell-ccic/mcam-core.h  |    2 ++
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   25 ++++++++++++++++++++++
+ 3 files changed, 33 insertions(+)
 
-Regards,
---Prabhakar Lad
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 1e8b3d3..61dd5be 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -1059,6 +1059,12 @@ static int mcam_vb_stop_streaming(struct vb2_queue *vq)
+ 		return -EINVAL;
+ 	mcam_ctlr_stop_dma(cam);
+ 	/*
++	 * Reset the CCIC PHY after stopping streaming,
++	 * otherwise, the CCIC may be unstable.
++	 */
++	if (cam->ctlr_reset)
++		cam->ctlr_reset(cam);
++	/*
+ 	 * VB2 reclaims the buffers, so we need to forget
+ 	 * about them.
+ 	 */
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 6a68aa4..75de293 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -109,6 +109,7 @@ struct mcam_camera {
+ 	int mclk_src;	/* which clock source the mclk derives from */
+ 	int mclk_div;	/* Clock Divider Value for MCLK */
+ 
++	int ccic_id;
+ 	enum v4l2_mbus_type bus_type;
+ 	/* MIPI support */
+ 	/* The dphy config value, allocated in board file
+@@ -130,6 +131,7 @@ struct mcam_camera {
+ 	int (*plat_power_up) (struct mcam_camera *cam);
+ 	void (*plat_power_down) (struct mcam_camera *cam);
+ 	void (*calc_dphy) (struct mcam_camera *cam);
++	void (*ctlr_reset) (struct mcam_camera *cam);
+ 
+ 	/*
+ 	 * Everything below here is private to the mcam core and
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 3830c44..55fd47b 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -106,6 +106,7 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
+ #define CPU_SUBSYS_PMU_BASE	0xd4282800
+ #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
+ #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
++#define REG_CCIC2_CRCR		0xf4	/* CCIC2 clk reset ctrl reg	*/
+ 
+ static void mcam_clk_enable(struct mcam_camera *mcam)
+ {
+@@ -193,6 +194,28 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+ 	mcam_clk_disable(mcam);
+ }
+ 
++void mcam_ctlr_reset(struct mcam_camera *mcam)
++{
++	unsigned long val;
++	struct mmp_camera *cam = mcam_to_cam(mcam);
++
++	if (mcam->ccic_id) {
++		/*
++		 * Using CCIC2
++		 */
++		val = ioread32(cam->power_regs + REG_CCIC2_CRCR);
++		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC2_CRCR);
++		iowrite32(val | 0x2, cam->power_regs + REG_CCIC2_CRCR);
++	} else {
++		/*
++		 * Using CCIC1
++		 */
++		val = ioread32(cam->power_regs + REG_CCIC_CRCR);
++		iowrite32(val & ~0x2, cam->power_regs + REG_CCIC_CRCR);
++		iowrite32(val | 0x2, cam->power_regs + REG_CCIC_CRCR);
++	}
++}
++
+ /*
+  * calc the dphy register values
+  * There are three dphy registers being used.
+@@ -341,9 +364,11 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 	mcam = &cam->mcam;
+ 	mcam->plat_power_up = mmpcam_power_up;
+ 	mcam->plat_power_down = mmpcam_power_down;
++	mcam->ctlr_reset = mcam_ctlr_reset;
+ 	mcam->calc_dphy = mmpcam_calc_dphy;
+ 	mcam->dev = &pdev->dev;
+ 	mcam->use_smbus = 0;
++	mcam->ccic_id = pdev->id;
+ 	mcam->mclk_min = pdata->mclk_min;
+ 	mcam->mclk_src = pdata->mclk_src;
+ 	mcam->mclk_div = pdata->mclk_div;
+-- 
+1.7.9.5
+
