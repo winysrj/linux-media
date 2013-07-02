@@ -1,140 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:51758 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751185Ab3GIFBr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 01:01:47 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPN00INOKM46AI0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Jul 2013 14:01:39 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v5 6/8] [media] V4L: Add support for integer menu controls with
- standard menu items
-Date: Tue, 09 Jul 2013 10:54:40 +0530
-Message-id: <1373347482-9264-7-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
-References: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
+Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:53644 "EHLO
+	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752701Ab3GBDba (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 1 Jul 2013 23:31:30 -0400
+From: Libin Yang <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>
+CC: <linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>,
+	Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH v2 6/7] marvell-ccic: add SOF / EOF pair check for marvell-ccic driver
+Date: Tue, 2 Jul 2013 11:31:07 +0800
+Message-ID: <1372735868-15880-7-git-send-email-lbyang@marvell.com>
+In-Reply-To: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
+References: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+This patch adds the SOFx/EOFx pair check for marvell-ccic.
 
-The patch modifies the helper function v4l2_ctrl_new_std_menu
-to accept integer menu controls with standard menu items.
+When switching format, the last EOF may not arrive when stop streamning.
+And the EOF will be detected in the next start streaming.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Must ensure clear the left over frame flags before every really start streaming.
+
+Signed-off-by: Albert Wang <twang13@marvell.com>
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Acked-by: Jonathan Corbet <corbet@lwn.net>
+Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
 ---
- Documentation/video4linux/v4l2-controls.txt |   21 ++++++++++----------
- drivers/media/v4l2-core/v4l2-ctrls.c        |   28 ++++++++++++++++++++++++---
- 2 files changed, 36 insertions(+), 13 deletions(-)
+ drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++++++++++++---
+ 1 file changed, 26 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 676f873..06cf3ac 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -124,26 +124,27 @@ You add non-menu controls by calling v4l2_ctrl_new_std:
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 min, s32 max, u32 step, s32 def);
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
+index 7a2855f..a22d17f 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.c
++++ b/drivers/media/platform/marvell-ccic/mcam-core.c
+@@ -95,6 +95,9 @@ MODULE_PARM_DESC(buffer_mode,
+ #define CF_CONFIG_NEEDED 4	/* Must configure hardware */
+ #define CF_SINGLE_BUFFER 5	/* Running with a single buffer */
+ #define CF_SG_RESTART	 6	/* SG restart needed */
++#define CF_FRAME_SOF0	 7	/* Frame 0 started */
++#define CF_FRAME_SOF1	 8
++#define CF_FRAME_SOF2	 9
  
--Menu controls are added by calling v4l2_ctrl_new_std_menu:
-+Menu and integer menu controls are added by calling v4l2_ctrl_new_std_menu:
+ #define sensor_call(cam, o, f, args...) \
+ 	v4l2_subdev_call(cam->sensor, o, f, ##args)
+@@ -261,8 +264,10 @@ static void mcam_reset_buffers(struct mcam_camera *cam)
+ 	int i;
  
- 	struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 skip_mask, s32 def);
- 
--Or alternatively for integer menu controls, by calling v4l2_ctrl_new_int_menu:
-+Menu controls with a driver specific menu are added by calling
-+v4l2_ctrl_new_std_menu_items:
-+
-+       struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
-+                       struct v4l2_ctrl_handler *hdl,
-+                       const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
-+                       s32 skip_mask, s32 def, const char * const *qmenu);
-+
-+Integer menu controls with a driver specific menu can be added by calling
-+v4l2_ctrl_new_int_menu:
- 
- 	struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 def, const s64 *qmenu_int);
- 
--Standard menu controls with a driver specific menu are added by calling
--v4l2_ctrl_new_std_menu_items:
--
--	struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
--		struct v4l2_ctrl_handler *hdl,
--		const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
--		s32 skip_mask, s32 def, const char * const *qmenu);
--
- These functions are typically called right after the v4l2_ctrl_handler_init:
- 
- 	static const s64 exp_bias_qmenu[] = {
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index fccd08b..e03a2e8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -552,6 +552,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ 	cam->next_buf = -1;
+-	for (i = 0; i < cam->nbufs; i++)
++	for (i = 0; i < cam->nbufs; i++) {
+ 		clear_bit(i, &cam->flags);
++		clear_bit(CF_FRAME_SOF0 + i, &cam->flags);
++	}
  }
- EXPORT_SYMBOL(v4l2_ctrl_get_menu);
  
-+/*
-+ * Returns NULL or an s64 type array containing the menu for given
-+ * control ID. The total number of the menu items is returned in @len.
-+ */
-+const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
-+{
-+	switch (id) {
-+	default:
-+		*len = 0;
-+		return NULL;
-+	};
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_get_int_menu);
-+
- /* Return the control name. */
- const char *v4l2_ctrl_get_name(u32 id)
+ static inline int mcam_needs_config(struct mcam_camera *cam)
+@@ -1140,6 +1145,7 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
+ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
  {
-@@ -1712,20 +1726,28 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 mask, s32 def)
- {
--	const char * const *qmenu = v4l2_ctrl_get_menu(id);
-+	const char * const *qmenu = NULL;
-+	const s64 *qmenu_int = NULL;
- 	const char *name;
- 	enum v4l2_ctrl_type type;
-+	unsigned int qmenu_int_len;
- 	s32 min;
- 	s32 step;
- 	u32 flags;
+ 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
++	unsigned int frame;
  
- 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
--	if (type != V4L2_CTRL_TYPE_MENU) {
-+
-+	if (type == V4L2_CTRL_TYPE_MENU)
-+		qmenu = v4l2_ctrl_get_menu(id);
-+	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
-+		qmenu_int = v4l2_ctrl_get_int_menu(id, &qmenu_int_len);
-+
-+	if ((!qmenu && !qmenu_int) || (qmenu_int && max > qmenu_int_len)) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
+ 	if (cam->state != S_IDLE) {
+ 		INIT_LIST_HEAD(&cam->buffers);
+@@ -1157,6 +1163,14 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 		cam->state = S_BUFWAIT;
+ 		return 0;
  	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--			     0, max, mask, def, flags, qmenu, NULL, NULL);
-+			     0, max, mask, def, flags, qmenu, qmenu_int, NULL);
++
++	/*
++	 * Ensure clear the left over frame flags
++	 * before every really start streaming
++	 */
++	for (frame = 0; frame < cam->nbufs; frame++)
++		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
++
+ 	return mcam_read_setup(cam);
  }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
  
+@@ -1845,9 +1859,11 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
+ 	 * each time.
+ 	 */
+ 	for (frame = 0; frame < cam->nbufs; frame++)
+-		if (irqs & (IRQ_EOF0 << frame)) {
++		if (irqs & (IRQ_EOF0 << frame) &&
++			test_bit(CF_FRAME_SOF0 + frame, &cam->flags)) {
+ 			mcam_frame_complete(cam, frame);
+ 			handled = 1;
++			clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
+ 			if (cam->buffer_mode == B_DMA_sg)
+ 				break;
+ 		}
+@@ -1856,9 +1872,15 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
+ 	 * code assumes that we won't get multiple frame interrupts
+ 	 * at once; may want to rethink that.
+ 	 */
+-	if (irqs & (IRQ_SOF0 | IRQ_SOF1 | IRQ_SOF2)) {
++	for (frame = 0; frame < cam->nbufs; frame++) {
++		if (irqs & (IRQ_SOF0 << frame)) {
++			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
++			handled = IRQ_HANDLED;
++		}
++	}
++
++	if (handled == IRQ_HANDLED) {
+ 		set_bit(CF_DMA_ACTIVE, &cam->flags);
+-		handled = 1;
+ 		if (cam->buffer_mode == B_DMA_sg)
+ 			mcam_ctlr_stop(cam);
+ 	}
 -- 
 1.7.9.5
 
