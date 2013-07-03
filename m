@@ -1,66 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f45.google.com ([209.85.215.45]:51012 "EHLO
-	mail-la0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752116Ab3GXTk5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 15:40:57 -0400
-Received: by mail-la0-f45.google.com with SMTP id ev20so667087lab.18
-        for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 12:40:56 -0700 (PDT)
-Message-ID: <51F02DC3.4050204@cogentembedded.com>
-Date: Wed, 24 Jul 2013 23:40:51 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:49960 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932065Ab3GCRyS (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jul 2013 13:54:18 -0400
+Message-ID: <51D46548.8050904@schinagl.nl>
+Date: Wed, 03 Jul 2013 19:54:16 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: mchehab@redhat.com, linux-media@vger.kernel.org,
-	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
-	phil.edworthy@renesas.com, matsu@igel.co.jp,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH v8] V4L2: soc_camera: Renesas R-Car VIN driver
-References: <201307200314.35345.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1307241731560.2179@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1307241731560.2179@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: =?ISO-8859-15?Q?Hermann_Ulrichsk=F6tter?= <ulrichsk@gmx.de>,
+	dirk@GNUmatic.de
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: [DTV Update] Re: =?ISO-8859-15?Q?=C4nderung_der_Sendefrequen?=
+ =?ISO-8859-15?Q?zen_bei_KabelBW?=
+References: <51D452EC.5090008@gmx.de>
+In-Reply-To: <51D452EC.5090008@gmx.de>
+Content-Type: text/plain; charset=ISO-8859-15; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On 07/03/13 18:35, Hermann Ulrichskötter wrote:
+> Hallo Oliver,
+Hi Hermann,
+>
+> ich bin am Wochenende bei der TVHeadend-Installation auf meiner Synology über
+> das Problem gestolpert, dass die Kanäle von Kabel-BW nicht mehr gescannt wurden.
+>
+> Kabel-BW hatte am Donnerstag hier in Freiburg einige Sendefrequenzen geändert,
+> so dass die Datei tvheadend/share/tvheadend/data/dvb-scan/dvb-c/de-Kabel_BW
+> nicht mehr korrekt ist.
+>
+> Ich habe in der Datei in dieser Datei die einzig relevante Zeile von "C
+> 113000000 6900000 NONE QAM64" auf "C 114000000 6900000 NONE QAM256" korrigieren
+> müssen, so dass der Scan wieder geklappt hat.
+It looks like they changed frequencies. Their site confirms that a big 
+changeover happened in June. I have staged this commit and will push it 
+tomorrow unless anybody objects, Dirk, can you confirm/deny this being 
+correct?
 
-On 07/24/2013 08:14 PM, Guennadi Liakhovetski wrote:
+I already have it in my private repo [0]
+>
+> Vielleicht sollte die Datei in dtv-scan-tables/dvb-c entsprechend angepasst werden?
+>
+> Die neue Frequenzbelegung findet sich hier:
+> https://www.kabelbw.de/kabelbw/cms/downloads/kabel-bw-programmuebersicht.pdf
+>
+> Schönen Gruß,
+> Hermann
+Thank you for the information,
 
->> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-
->> Add Renesas R-Car VIN (Video In) V4L2 driver.
-
->> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
-
->> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
->> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
->> values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
->> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
->> *if* statement  and used 'bool' values instead of 0/1 where necessary, removed
->> unused macros, done some reformatting and clarified some comments.]
->> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-
->> ---
->> This patch is against the 'media_tree.git' repo.
-
->> Changes since version 7:
->> - remove 'icd' field from 'struct rcar_vin_priv' in accordance with the commit
->>    f7f6ce2d09c86bd80ee11bd654a1ac1e8f5dfe13 ([media] soc-camera: move common code
->>    to soc_camera.c);
->> - added mandatory clock_{start|stop}() methods in accordance with the commit
->>    a78fcc11264b824d9651b55abfeedd16d5cd8415 ([media] soc-camera: make .clock_
->>    {start,stop} compulsory, .add / .remove optional).
-
->> Changes since version 6:
->> - sorted #include's alphabetically once again;
->> - BUG() on invalid format in rcar_vin_setup();
-
-> No, please don't. I think I commented on the use of BUG() in this driver
-> already. It shall only be used if the machine cannot continue to run. I
-> don't think this is the sace here.
-
-    Note that sh_mobile_ceu_camera.c has BUG() in almost the same case.
-
-WBR, Sergei
-
+Oliver
+[0] 
+http://git.schinagl.nl/cgi-bin/cgit.cgi/dtv-scan-tables.git/commit/?id=d913405dec10c60e852c55e77dc115ca94a2b74c
