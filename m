@@ -1,43 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33696 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755737Ab3GQOyE (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 10:54:04 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>
-Subject: [PATCH v2 2/5] v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
-Date: Wed, 17 Jul 2013 16:54:39 +0200
-Message-Id: <1374072882-14598-3-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:51025 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753118Ab3GCTqZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jul 2013 15:46:25 -0400
+Message-ID: <51D47F8F.10906@schinagl.nl>
+Date: Wed, 03 Jul 2013 21:46:23 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: dirk@GNUmatic.de
+CC: =?UTF-8?B?SGVybWFubiBVbHJpY2hza8O2dHRlcg==?= <ulrichsk@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [DTV Update] Re: =?UTF-8?B?w4RuZGVydW5nIGRlciBTZW5kZWZyZXF1ZQ==?=
+ =?UTF-8?B?bnplbiBiZWkgS2FiZWxCVw==?=
+References: <51D452EC.5090008@gmx.de> <51D46548.8050904@schinagl.nl> <1372876350.31609.19.camel@twin.GNUmatic.de>
+In-Reply-To: <1372876350.31609.19.camel@twin.GNUmatic.de>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The V4L2_MBUS_FMT_YUV10_1X30 code is documented as being equal to
-0x2014, while the v4l2-mediabus.h header defines it as 0x2016. Fix the
-documentation.
+Pushed to the dtv-scan-tables tree. A package should be generated thanks 
+to mauro soon, so if packagers download tomorrow, or pull from git now, 
+they have the new version.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- Documentation/DocBook/media/v4l/subdev-formats.xml | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+On 07/03/13 20:32, Dirk Ritter wrote:
+> Hello Oliver! :-)
+>
+> Am Mittwoch, den 03.07.2013, 19:54 +0200 schrieb Oliver Schinagl:
+>
+>>> Ich habe in der Datei in dieser Datei die einzig relevante Zeile von "C
+>>> 113000000 6900000 NONE QAM64" auf "C 114000000 6900000 NONE QAM256" korrigieren
+>>> müssen, so dass der Scan wieder geklappt hat.
+>> It looks like they changed frequencies.
+>
+> Yes.
+>
+>>   Their site confirms that a big
+>> changeover happened in June. I have staged this commit and will push it
+>> tomorrow unless anybody objects, Dirk, can you confirm/deny this being
+>> correct?
+>
+> It is correct. I got an e-mail from Martin Klar who lives
+> in a KabelBW area that got the change earlier than mine.
+> I did wait for the change and can positively confirm it.
+> Based on data available (I did try to make sense of his
+> change beforehand) and based on testing done using Kaffeine
+> just after KabelBW changed it in Stuttgart.
+>
+>> I already have it in my private repo [0]
+>
+> Life took it's toll, so I didn't manage to forward this.
+> Martin already tried without any luck and that's why he
+> contacted me so that I could try. It was a rather difficult
+> story back then I first cooked it up since there was
+> disagreement between documents floating around and actual
+> frequencies used and as a result of further difficulties
+> with different tables for different service levels we
+> concluded it would be best to just have one frequency,
+> especially since that worked across both levels, i.e. for
+> both fully and partly populated network areas within KabelBW.
+>
+> I guess Martin would love to see the file changed as he
+> did, see attachment... ;-)
+>
+> BTW - what about Kaffeeine? How do they handle it? I
+> just changed it locally and it works, but I don't think
+> they did update it either.
+They probably maintain their own (bad).
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index adc6198..0c2b1f2 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2574,7 +2574,7 @@
- 	    </row>
- 	    <row id="V4L2-MBUS-FMT-YUV10-1X30">
- 	      <entry>V4L2_MBUS_FMT_YUV10_1X30</entry>
--	      <entry>0x2014</entry>
-+	      <entry>0x2016</entry>
- 	      <entry></entry>
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
--- 
-1.8.1.5
-
+>
+> Hopefully, this will propagate fast...
+>
+> Cheers!
+> Dirk
+>
+oliver
