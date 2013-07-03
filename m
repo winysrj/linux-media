@@ -1,62 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:50615 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758172Ab3GMIvv (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jul 2013 04:51:51 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 5/5] media: davinci: vpbe: Replace printk with dev_*
-Date: Sat, 13 Jul 2013 14:20:31 +0530
-Message-Id: <1373705431-11500-6-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from mail.ispras.ru ([83.149.199.45]:34471 "EHLO mail.ispras.ru"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932355Ab3GCURu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jul 2013 16:17:50 -0400
+From: Alexey Khoroshilov <khoroshilov@ispras.ru>
+To: Hans Verkuil <hverkuil@xs4all.nl>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Alexey Khoroshilov <khoroshilov@ispras.ru>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	ldv-project@linuxtesting.org
+Subject: [PATCH] [media] hdpvr: fix iteration over uninitialized lists in hdpvr_probe()
+Date: Thu,  4 Jul 2013 00:17:34 +0400
+Message-Id: <1372882654-22234-1-git-send-email-khoroshilov@ispras.ru>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+free_buff_list and rec_buff_list are initialized in the middle of hdpvr_probe(),
+but if something bad happens before that, error handling code calls hdpvr_delete(),
+which contains iteration over the lists (via hdpvr_free_buffers()).
 
-Use the dev_* message logging API instead of raw printk.
+The patch moves the lists initialization to the beginning and by the way fixes
+goto label in error handling of registering videodev.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Found by Linux Driver Verification project (linuxtesting.org).
+
+Signed-off-by: Alexey Khoroshilov <khoroshilov@ispras.ru>
 ---
- drivers/media/platform/davinci/vpbe.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+ drivers/media/usb/hdpvr/hdpvr-core.c | 11 ++++++-----
+ 1 file changed, 6 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 33b9660..3f32184 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -595,7 +595,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 	 * matching with device name
- 	 */
- 	if (NULL == vpbe_dev || NULL == dev) {
--		printk(KERN_ERR "Null device pointers.\n");
-+		dev_err(dev, "Null device pointers.\n");
- 		return -ENODEV;
+diff --git a/drivers/media/usb/hdpvr/hdpvr-core.c b/drivers/media/usb/hdpvr/hdpvr-core.c
+index 8247c19..77d7b7f 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-core.c
++++ b/drivers/media/usb/hdpvr/hdpvr-core.c
+@@ -311,6 +311,11 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 
+ 	dev->workqueue = 0;
+ 
++	/* init video transfer queues first of all */
++	/* to prevent oops in hdpvr_delete() on error paths */
++	INIT_LIST_HEAD(&dev->free_buff_list);
++	INIT_LIST_HEAD(&dev->rec_buff_list);
++
+ 	/* register v4l2_device early so it can be used for printks */
+ 	if (v4l2_device_register(&interface->dev, &dev->v4l2_dev)) {
+ 		dev_err(&interface->dev, "v4l2_device_register failed\n");
+@@ -333,10 +338,6 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 	if (!dev->workqueue)
+ 		goto error;
+ 
+-	/* init video transfer queues */
+-	INIT_LIST_HEAD(&dev->free_buff_list);
+-	INIT_LIST_HEAD(&dev->rec_buff_list);
+-
+ 	dev->options = hdpvr_default_options;
+ 
+ 	if (default_video_input < HDPVR_VIDEO_INPUTS)
+@@ -413,7 +414,7 @@ static int hdpvr_probe(struct usb_interface *interface,
+ 				    video_nr[atomic_inc_return(&dev_nr)]);
+ 	if (retval < 0) {
+ 		v4l2_err(&dev->v4l2_dev, "registering videodev failed\n");
+-		goto error;
++		goto reg_fail;
  	}
  
-@@ -735,7 +735,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 
- 	mutex_unlock(&vpbe_dev->lock);
- 
--	printk(KERN_NOTICE "Setting default output to %s\n", def_output);
-+	dev_info(dev, "Setting default output to %s\n", def_output);
- 	ret = vpbe_set_default_output(vpbe_dev);
- 	if (ret) {
- 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default output %s",
-@@ -743,7 +743,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 		return ret;
- 	}
- 
--	printk(KERN_NOTICE "Setting default mode to %s\n", def_mode);
-+	dev_info(dev, "Setting default mode to %s\n", def_mode);
- 	ret = vpbe_set_default_mode(vpbe_dev);
- 	if (ret) {
- 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default mode %s",
+ 	/* let the user know what node this device is now attached to */
 -- 
-1.7.9.5
+1.8.1.2
 
