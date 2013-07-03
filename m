@@ -1,43 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f177.google.com ([209.85.215.177]:39613 "EHLO
-	mail-ea0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752838Ab3GDWgx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jul 2013 18:36:53 -0400
-Received: by mail-ea0-f177.google.com with SMTP id j14so1088858eak.36
-        for <linux-media@vger.kernel.org>; Thu, 04 Jul 2013 15:36:52 -0700 (PDT)
-Message-ID: <51D5F8FC.4040504@zenburn.net>
-Date: Fri, 05 Jul 2013 00:36:44 +0200
-From: =?UTF-8?B?SmFrdWIgUGlvdHIgQ8WCYXBh?= <jpc-ml@zenburn.net>
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:54223 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S933113Ab3GCXYm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jul 2013 19:24:42 -0400
+From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: linux-media@vger.kernel.org
+Cc: jonarne@jonarne.no, linux-kernel@vger.kernel.org,
+	mchehab@redhat.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
+	andriy.shevchenko@linux.intel.com
+Subject: [RFC v3 0/3] saa7115: Implement i2c_board_info.platform_data
+Date: Thu,  4 Jul 2013 01:27:17 +0200
+Message-Id: <1372894040-23922-1-git-send-email-jonarne@jonarne.no>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp] xclk deadlock
-References: <51D37796.2000601@zenburn.net> <51D5D967.1030306@zenburn.net> <2398527.WgqgO0AkRo@avalon>
-In-Reply-To: <2398527.WgqgO0AkRo@avalon>
-Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+This patch set adds handling of the i2c_board_info struct to the saa7115 driver.
+The main goal of this patch is to give the different devices with the gm7113c
+chip an opportunity to configure the chip to their needs.
 
-On 04.07.13 23:11, Laurent Pinchart wrote:
-> The omap3isp/xclk clock branch was used only to push patches to the media
-> tree, I should have deleted it afterwards. Mike's reentrancy patches were
-> already merged (or scheduled for merge) in mainline at that time, and for
-> technical reasons they were not present in the omap3isp/xclk branch.
+I've only implemented the overrides I know are necessary to get the stk1160
+and the smi2021 drivers to work.
 
-Thanks for the explanation. It would be great if you could update your 
-board/beagle/mt9p031 branch and include the discussed changes. I belive 
-your branch is the only authoritative source of magic required to get 
-the Aptina+Beagle combination going.
+This is the third version of this patch series.
+The second version of the RFC was posted on 2013/5/31 and can be found here:
+http://lkml.indiana.edu/hypermail/linux/kernel/1305.3/03747.html
 
-> I've now deleted the branch from the public tree, sorry for the confusion.
+The first version of the RFC can be found here:
+https://lkml.org/lkml/2013/5/29/558
 
-Not a problem at all. The confusion was worse when I was trying to apply 
-random patch files found via Google. ;)
+Jon Arne Jørgensen (3):
+  saa7115: Fix saa711x_set_v4lstd for gm7113c
+  saa7115: Do not load saa7115_init_misc for gm7113c
+  saa7115: Implement i2c_board_info.platform_data
+
+ drivers/media/i2c/saa7115.c      | 183 +++++++++++++++++++++++++++++++--------
+ drivers/media/i2c/saa711x_regs.h |  19 ++++
+ include/media/saa7115.h          |  65 ++++++++++++++
+ 3 files changed, 233 insertions(+), 34 deletions(-)
 
 -- 
-regards,
-Jakub Piotr Cłapa
-LoEE.pl
+1.8.3.1
+
