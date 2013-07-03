@@ -1,50 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f46.google.com ([74.125.82.46]:64584 "EHLO
-	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933323Ab3GPXGj (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 19:06:39 -0400
-From: Alban Browaeys <alban.browaeys@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Alban Browaeys <prahal@yahoo.com>
-Subject: [PATCH 3/4] [media] em28xx: usb power config is in the low byte.
-Date: Wed, 17 Jul 2013 01:06:23 +0200
-Message-Id: <1374015983-27615-1-git-send-email-prahal@yahoo.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:51600 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933022Ab3GCXzG (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jul 2013 19:55:06 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 0/2] V4L2 OF fixes
+Date: Thu, 04 Jul 2013 01:55:36 +0200
+Message-ID: <1555542.WtcKWfQS8o@avalon>
+In-Reply-To: <51D48B4C.3070809@gmail.com>
+References: <1372848769-6390-1-git-send-email-laurent.pinchart@ideasonboard.com> <51D48B4C.3070809@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-According to the em2860 datasheet, eeprom byte 08H is Chip
-Configuration Low Byte and 09H is High Byte.
-Usb power configuration is in the Low byte (same as the usb audio
- class config).
+Hi Sylwester,
 
-Signed-off-by: Alban Browaeys <prahal@yahoo.com>
----
- drivers/media/usb/em28xx/em28xx-i2c.c | 6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+On Wednesday 03 July 2013 22:36:28 Sylwester Nawrocki wrote:
+> On 07/03/2013 12:52 PM, Laurent Pinchart wrote:
+> > Hello,
+> > 
+> > Here are two small fixes for the V4L2 OF parsing code. The patches should
+> > be self-explanatory.
+> 
+> Hi Laurent,
+> 
+> Thank you for fixing what I've messed up in the Guennadi's original patch.
+> For both patches:
+> 
+>   Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-index c4ff973..6ff7415 100644
---- a/drivers/media/usb/em28xx/em28xx-i2c.c
-+++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-@@ -743,13 +743,13 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
- 		break;
- 	}
- 
--	if (le16_to_cpu(dev_config->chip_conf) & 1 << 3)
-+	if (le16_to_cpu(dev_config->chip_conf) >> 4 & 1 << 3)
- 		em28xx_info("\tUSB Remote wakeup capable\n");
- 
--	if (le16_to_cpu(dev_config->chip_conf) & 1 << 2)
-+	if (le16_to_cpu(dev_config->chip_conf) >> 4 & 1 << 2)
- 		em28xx_info("\tUSB Self power capable\n");
- 
--	switch (le16_to_cpu(dev_config->chip_conf) & 0x3) {
-+	switch (le16_to_cpu(dev_config->chip_conf) >> 4 & 0x3) {
- 	case 0:
- 		em28xx_info("\t500mA max power\n");
- 		break;
+No worries :-) Thanks for your ack.
+
+> 
+> > Laurent Pinchart (2):
+> >    v4l: of: Use of_get_child_by_name()
+> >    v4l: of: Drop acquired reference to node when getting next endpoint
+> >   
+> >   drivers/media/v4l2-core/v4l2-of.c | 9 +++------
+> >   1 file changed, 3 insertions(+), 6 deletions(-)
+
 -- 
-1.8.3.2
+Regards,
+
+Laurent Pinchart
 
