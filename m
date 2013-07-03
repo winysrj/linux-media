@@ -1,106 +1,177 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:10664 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753360Ab3GHCy4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 22:54:56 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, Hui Wang <jason77.wang@gmail.com>,
-	'Jingoo Han' <jg1.han@samsung.com>
-Subject: [PATCH V5 0/4] Generic PHY driver for the Exynos SoC DP PHY
-Date: Mon, 08 Jul 2013 11:54:48 +0900
-Message-id: <001b01ce7b86$828743e0$8795cba0$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from na3sys009aog108.obsmtp.com ([74.125.149.199]:60537 "EHLO
+	na3sys009aog108.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1751512Ab3GCF4T (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 3 Jul 2013 01:56:19 -0400
+From: Libin Yang <lbyang@marvell.com>
+To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>
+CC: <linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>,
+	Libin Yang <lbyang@marvell.com>,
+	Albert Wang <twang13@marvell.com>
+Subject: [PATCH v3 2/7] marvell-ccic: add clock tree support for marvell-ccic driver
+Date: Wed, 3 Jul 2013 13:55:59 +0800
+Message-ID: <1372830964-22323-3-git-send-email-lbyang@marvell.com>
+In-Reply-To: <1372830964-22323-1-git-send-email-lbyang@marvell.com>
+References: <1372830964-22323-1-git-send-email-lbyang@marvell.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds a simple driver for the Samsung Exynos SoC
-series DP transmitter PHY, using the generic PHY framework [1].
-Previously the DP PHY used an internal DT node to control the PHY
-power enable bit.
+This patch adds the clock tree support for marvell-ccic.
 
-These patches was tested on Exynos5250.
+Signed-off-by: Libin Yang <lbyang@marvell.com>
+Signed-off-by: Albert Wang <twang13@marvell.com>
+---
+ drivers/media/platform/marvell-ccic/mcam-core.h  |    5 ++
+ drivers/media/platform/marvell-ccic/mmp-driver.c |   61 ++++++++++++++++++++++
+ 2 files changed, 66 insertions(+)
 
-This PATCH v5 follows:
- * PATCH v4, sent on July, 2nd 2013
- * PATCH v3, sent on July, 1st 2013
- * PATCH v2, sent on June, 28th 2013
- * PATCH v1, sent on June, 28th 2013
-
-Changes between v4 and v5:
-  * Marked original bindings as deprecated in 'exynos_dp.txt'
-  * Fixed typo of commit message.
-  * Added Tomasz Figa's Reviewed-by.
-
-Changes between v3 and v4:
-  * Added OF dependancy.
-  * Removed redundant local variable 'void __iomem *addr'.
-  * Removed unnecessary dev_set_drvdata().
-  * Added a patch that remove non-DT support for Exynos
-    Display Port driver.
-  * Removed unnecessary 'struct exynos_dp_platdata'.
-  * Kept supporting the original bindings for DT compatibility.
-
-Changes between v2 and v3:
-  * Removed redundant spinlock
-  * Removed 'struct phy' from 'struct exynos_dp_video_phy'
-  * Updated 'samsung-phy.txt', instead of creating
-    'samsung,exynos5250-dp-video-phy.txt'.
-  * Removed unnecessary additional specifier from 'phys'
-    DT property.
-  * Added 'phys', 'phy-names' properties to 'exynos_dp.txt' file.
-  * Added Felipe Balbi's Acked-by.
-
-Changes between v1 and v2:
-  * Replaced exynos_dp_video_phy_xlate() with of_phy_simple_xlate(),
-    as Kishon Vijay Abraham I guided.
-  * Set the value of phy-cells as 0, because the phy_provider implements
-    only one PHY.
-  * Removed unnecessary header include.
-  * Added '#ifdef CONFIG_OF' and of_match_ptr macro.
-
-This series depends on the generic PHY framework [1]. These patches
-refer to Sylwester Nawrocki's patches about Exynos MIPI [2].
-
-[1] https://lkml.org/lkml/2013/6/26/259
-[2] http://www.spinics.net/lists/linux-samsung-soc/msg20098.html
-
-Jingoo Han (4):
-  ARM: dts: Add DP PHY node to exynos5250.dtsi
-  phy: Add driver for Exynos DP PHY
-  video: exynos_dp: remove non-DT support for Exynos Display Port
-  video: exynos_dp: Use the generic PHY driver
-
- .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
- .../devicetree/bindings/video/exynos_dp.txt        |   18 +++++++++---------
- arch/arm/boot/dts/exynos5250.dtsi                  |   13 ++++++++-----
- drivers/phy/Kconfig                                |    6 ++
- drivers/phy/Makefile                               |    1 +
- drivers/phy/phy-exynos-dp-video.c                  |  111 ++++++++++++++++++++
- drivers/video/exynos/Kconfig                       |    2 +-
- drivers/video/exynos/exynos_dp_core.c              |  132 +++++++----------------------
- drivers/video/exynos/exynos_dp_core.h              |  110 +++++++++++++++++++++++++++
- drivers/video/exynos/exynos_dp_reg.c               |    2 -
- include/video/exynos_dp.h                          |  131 ---------------------------------
- 11 files changed, 291 insertions(+), 243 deletions(-) 
- create mode 100644 drivers/phy/phy-exynos-dp-video.c
- delete mode 100644 include/video/exynos_dp.h
-
---
-1.7.10.4
+diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
+index 26fb154..07fdf68 100644
+--- a/drivers/media/platform/marvell-ccic/mcam-core.h
++++ b/drivers/media/platform/marvell-ccic/mcam-core.h
+@@ -83,6 +83,8 @@ struct mcam_frame_state {
+ 	unsigned int delivered;
+ };
+ 
++#define NR_MCAM_CLK 3
++
+ /*
+  * A description of one of our devices.
+  * Locking: controlled by s_mutex.  Certain fields, however, require
+@@ -118,6 +120,9 @@ struct mcam_camera {
+ 	bool mipi_enabled;	/* flag whether mipi is enabled already */
+ 	int lane;			/* lane number */
+ 
++	/* clock tree support */
++	struct clk *clk[NR_MCAM_CLK];
++
+ 	/*
+ 	 * Callbacks from the core to the platform code.
+ 	 */
+diff --git a/drivers/media/platform/marvell-ccic/mmp-driver.c b/drivers/media/platform/marvell-ccic/mmp-driver.c
+index 2b28802..64dacc5 100644
+--- a/drivers/media/platform/marvell-ccic/mmp-driver.c
++++ b/drivers/media/platform/marvell-ccic/mmp-driver.c
+@@ -35,6 +35,8 @@ MODULE_ALIAS("platform:mmp-camera");
+ MODULE_AUTHOR("Jonathan Corbet <corbet@lwn.net>");
+ MODULE_LICENSE("GPL");
+ 
++static char *mcam_clks[] = {"CCICAXICLK", "CCICFUNCLK", "CCICPHYCLK"};
++
+ struct mmp_camera {
+ 	void *power_regs;
+ 	struct platform_device *pdev;
+@@ -105,6 +107,26 @@ static struct mmp_camera *mmpcam_find_device(struct platform_device *pdev)
+ #define REG_CCIC_DCGCR		0x28	/* CCIC dyn clock gate ctrl reg */
+ #define REG_CCIC_CRCR		0x50	/* CCIC clk reset ctrl reg	*/
+ 
++static void mcam_clk_enable(struct mcam_camera *mcam)
++{
++	unsigned int i;
++
++	for (i = 0; i < NR_MCAM_CLK; i++) {
++		if (!IS_ERR(mcam->clk[i]))
++			clk_prepare_enable(mcam->clk[i]);
++	}
++}
++
++static void mcam_clk_disable(struct mcam_camera *mcam)
++{
++	int i;
++
++	for (i = NR_MCAM_CLK - 1; i >= 0; i--) {
++		if (!IS_ERR(mcam->clk[i]))
++			clk_disable_unprepare(mcam->clk[i]);
++	}
++}
++
+ /*
+  * Power control.
+  */
+@@ -142,6 +164,9 @@ static int mmpcam_power_up(struct mcam_camera *mcam)
+ 	mdelay(5);
+ 	gpio_set_value(pdata->sensor_reset_gpio, 1); /* reset is active low */
+ 	mdelay(5);
++
++	mcam_clk_enable(mcam);
++
+ 	return 0;
+ }
+ 
+@@ -166,6 +191,8 @@ static void mmpcam_power_down(struct mcam_camera *mcam)
+ 			devm_clk_put(mcam->dev, cam->mipi_clk);
+ 		cam->mipi_clk = NULL;
+ 	}
++
++	mcam_clk_disable(mcam);
+ }
+ 
+ /*
+@@ -276,6 +303,35 @@ static irqreturn_t mmpcam_irq(int irq, void *data)
+ 	return IRQ_RETVAL(handled);
+ }
+ 
++static void mcam_deinit_clk(struct mcam_camera *mcam)
++{
++	unsigned int i;
++
++	for (i = 0; i < NR_MCAM_CLK; i++) {
++		if (!IS_ERR(mcam->clk[i])) {
++			if (mcam->clk[i])
++				devm_clk_put(mcam->dev, mcam->clk[i]);
++		}
++		mcam->clk[i] = NULL;
++	}
++}
++
++static void mcam_init_clk(struct mcam_camera *mcam)
++{
++	unsigned int i;
++
++	for (i = 0; i < NR_MCAM_CLK; i++) {
++		if (mcam_clks[i] != NULL) {
++			/* Some clks are not necessary on some boards
++			 * We still try to run even it fails getting clk
++			 */
++			mcam->clk[i] = devm_clk_get(mcam->dev, mcam_clks[i]);
++			if (IS_ERR(mcam->clk[i]))
++				dev_warn(mcam->dev, "Could not get clk: %s\n",
++						mcam_clks[i]);
++		}
++	}
++}
+ 
+ static int mmpcam_probe(struct platform_device *pdev)
+ {
+@@ -370,6 +426,9 @@ static int mmpcam_probe(struct platform_device *pdev)
+ 		goto out_gpio;
+ 	}
+ 	gpio_direction_output(pdata->sensor_reset_gpio, 0);
++
++	mcam_init_clk(mcam);
++
+ 	/*
+ 	 * Power the device up and hand it off to the core.
+ 	 */
+@@ -401,6 +460,7 @@ out_unregister:
+ out_pwdn:
+ 	mmpcam_power_down(mcam);
+ out_gpio2:
++	mcam_deinit_clk(mcam);
+ 	gpio_free(pdata->sensor_reset_gpio);
+ out_gpio:
+ 	gpio_free(pdata->sensor_power_gpio);
+@@ -426,6 +486,7 @@ static int mmpcam_remove(struct mmp_camera *cam)
+ 	pdata = cam->pdev->dev.platform_data;
+ 	gpio_free(pdata->sensor_reset_gpio);
+ 	gpio_free(pdata->sensor_power_gpio);
++	mcam_deinit_clk(mcam);
+ 	iounmap(cam->power_regs);
+ 	iounmap(mcam->regs);
+ 	kfree(cam);
+-- 
+1.7.9.5
 
