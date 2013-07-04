@@ -1,105 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3667 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751484Ab3G2Ml1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 08:41:27 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Cc: Hans Verkuil <hans.verkuil@cisco.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [RFC PATCH 7/8] v4l2: use new V4L2_DV_BT_BLANKING/FRAME defines
-Date: Mon, 29 Jul 2013 14:41:00 +0200
-Message-Id: <1375101661-6493-8-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
-References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
+Received: from mail-ea0-f169.google.com ([209.85.215.169]:65397 "EHLO
+	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756879Ab3GDUWH (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jul 2013 16:22:07 -0400
+Received: by mail-ea0-f169.google.com with SMTP id h15so1041159eak.14
+        for <linux-media@vger.kernel.org>; Thu, 04 Jul 2013 13:22:05 -0700 (PDT)
+Message-ID: <51D5D967.1030306@zenburn.net>
+Date: Thu, 04 Jul 2013 22:21:59 +0200
+From: =?UTF-8?B?SmFrdWIgUGlvdHIgQ8WCYXBh?= <jpc-ml@zenburn.net>
+MIME-Version: 1.0
+To: linux-media <linux-media@vger.kernel.org>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [omap3isp] xclk deadlock
+References: <51D37796.2000601@zenburn.net>
+In-Reply-To: <51D37796.2000601@zenburn.net>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Hans Verkuil <hans.verkuil@cisco.com>
+Hi again,
 
-Use the new blanking and frame size defines. This also fixed a bug in
-these drivers: they assumed that the height for interlaced formats was
-the field height, however height is the frame height. So the height
-for a field is actually bt->height / 2.
+Sorry for the noise, but I believe the information below may be useful 
+until everything is merged into mainline.
 
-Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpif_capture.c | 10 ++--------
- drivers/media/platform/davinci/vpif_display.c | 10 ++--------
- 2 files changed, 4 insertions(+), 16 deletions(-)
+I write to say that I managed to find a fix for the ISP clock deadlock. 
+  My branch can be found at:
+https://github.com/LoEE/linux/tree/omap3isp/xclk
+(SHA: 36286390193922d148e7a3db0676747a20f2ed66 at the time of writing)
 
-diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
-index b11d7a7..e1b6a3b 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -1799,19 +1799,15 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
- 
- 	/* Configure video port timings */
- 
--	std_info->eav2sav = bt->hbackporch + bt->hfrontporch +
--		bt->hsync - 8;
-+	std_info->eav2sav = V4L2_DV_BT_BLANKING_WIDTH(bt) - 8;
- 	std_info->sav2eav = bt->width;
- 
- 	std_info->l1 = 1;
- 	std_info->l3 = bt->vsync + bt->vbackporch + 1;
- 
-+	std_info->vsize = V4L2_DV_BT_FRAME_HEIGHT(bt);
- 	if (bt->interlaced) {
- 		if (bt->il_vbackporch || bt->il_vfrontporch || bt->il_vsync) {
--			std_info->vsize = bt->height * 2 +
--				bt->vfrontporch + bt->vsync + bt->vbackporch +
--				bt->il_vfrontporch + bt->il_vsync +
--				bt->il_vbackporch;
- 			std_info->l5 = std_info->vsize/2 -
- 				(bt->vfrontporch - 1);
- 			std_info->l7 = std_info->vsize/2 + 1;
-@@ -1825,8 +1821,6 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
- 			return -EINVAL;
- 		}
- 	} else {
--		std_info->vsize = bt->height + bt->vfrontporch +
--			bt->vsync + bt->vbackporch;
- 		std_info->l5 = std_info->vsize - (bt->vfrontporch - 1);
- 	}
- 	strncpy(std_info->name, "Custom timings BT656/1120", VPIF_MAX_NAME);
-diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
-index c2ff067..a42e43c 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1436,19 +1436,15 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
- 
- 	/* Configure video port timings */
- 
--	std_info->eav2sav = bt->hbackporch + bt->hfrontporch +
--		bt->hsync - 8;
-+	std_info->eav2sav = V4L2_DV_BT_BLANKING_WIDTH(bt) - 8;
- 	std_info->sav2eav = bt->width;
- 
- 	std_info->l1 = 1;
- 	std_info->l3 = bt->vsync + bt->vbackporch + 1;
- 
-+	std_info->vsize = V4L2_DV_BT_FRAME_HEIGHT(bt);
- 	if (bt->interlaced) {
- 		if (bt->il_vbackporch || bt->il_vfrontporch || bt->il_vsync) {
--			std_info->vsize = bt->height * 2 +
--				bt->vfrontporch + bt->vsync + bt->vbackporch +
--				bt->il_vfrontporch + bt->il_vsync +
--				bt->il_vbackporch;
- 			std_info->l5 = std_info->vsize/2 -
- 				(bt->vfrontporch - 1);
- 			std_info->l7 = std_info->vsize/2 + 1;
-@@ -1462,8 +1458,6 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
- 			return -EINVAL;
- 		}
- 	} else {
--		std_info->vsize = bt->height + bt->vfrontporch +
--			bt->vsync + bt->vbackporch;
- 		std_info->l5 = std_info->vsize - (bt->vfrontporch - 1);
- 	}
- 	strncpy(std_info->name, "Custom timings BT656/1120",
+For reference:
+1. This was a known problem since early January [1] (reported by Laurent).
+2. Mike Turquette had submitted patches that made the clock framework 
+(partially) reentrant. [2][3][4]
+3. My code is just a rebase of the Laurent's omap3isp/xclk branch on the 
+Mike's clk-next (so it's based on 3.10-rc3).
+
+[1]: https://lkml.org/lkml/2013/1/6/169
+[2]: http://thread.gmane.org/gmane.linux.kernel/1448446/focus=1448448
+[3]: http://thread.gmane.org/gmane.linux.ports.arm.kernel/182198
+[4]: http://patches.linaro.org/15676/
+
 -- 
-1.8.3.2
-
+regards,
+Jakub Piotr Cłapa
+LoEE.pl
