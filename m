@@ -1,127 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:54537 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751655Ab3GWFsw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 01:48:52 -0400
-Message-ID: <51EE18FC.2070505@ti.com>
-Date: Tue, 23 Jul 2013 11:17:40 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+Received: from rcdn-iport-2.cisco.com ([173.37.86.73]:21028 "EHLO
+	rcdn-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752996Ab3GDLhk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jul 2013 07:37:40 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES and S_FMT?
+Date: Thu, 4 Jul 2013 13:27:58 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <201306241448.15187.hverkuil@xs4all.nl> <201306251102.51514.hverkuil@xs4all.nl> <20130703223746.GP2064@valkosipuli.retiisi.org.uk>
+In-Reply-To: <20130703223746.GP2064@valkosipuli.retiisi.org.uk>
 MIME-Version: 1.0
-To: Alan Stern <stern@rowland.harvard.edu>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-References: <Pine.LNX.4.44L0.1307221028440.1495-100000@iolanthe.rowland.org>
-In-Reply-To: <Pine.LNX.4.44L0.1307221028440.1495-100000@iolanthe.rowland.org>
-Content-Type: text/plain; charset="ISO-8859-1"
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201307041327.58820.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Thu 4 July 2013 00:37:46 Sakari Ailus wrote:
+> Hi Hans,
+> 
+> On Tue, Jun 25, 2013 at 11:02:51AM +0200, Hans Verkuil wrote:
+> > On Tue 25 June 2013 10:21:19 Sakari Ailus wrote:
+> > > Hi Hans,
+> > > 
+> > > On Mon, Jun 24, 2013 at 02:48:15PM +0200, Hans Verkuil wrote:
+> > > > Hi all,
+> > > > 
+> > > > While working on extending v4l2-compliance with cropping/selection test cases
+> > > > I decided to add support for that to vivi as well (this would give applications
+> > > > a good test driver to work with).
+> > > > 
+> > > > However, I ran into problems how this should be implemented for V4L2 devices
+> > > > (we are not talking about complex media controller devices where the video
+> > > > pipelines are setup manually).
+> > > > 
+> > > > There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
+> > > > 
+> > > > The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
+> > > > possible frame sizes, and that can crop, compose and/or scale, then you need
+> > > > to be able to set the frame size. Currently this is decided by S_FMT which
+> > > 
+> > > Sensors have a single "frame size". Other sizes are achieved by using
+> > > cropping and scaling (or binning) from the native pixel array size. The
+> > > drivers should probably also expose these properties rather than advertise
+> > > multiple frame sizes.
+> > 
+> > The problem is that from the point of view of a generic application you really
+> > don't want to know about that. You have a number of possible framesizes and you
+> > just want to pick one.
+> > 
+> > Also, the hardware may hide how each framesize was achieved and in the case of
+> > vivi or mem2mem devices things are even murkier.
+> > 
+> > > > maps the format size to the closest valid frame size. This however makes
+> > > > it impossible to e.g. scale up a frame, or compose the image into a larger
+> > > > buffer.
+> > > > 
+> > > > For video receivers this issue doesn't exist: there the size of the incoming
+> > > > video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for sensors.
+> > > > 
+> > > > I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
+> > > 
+> > > The smiapp (well, subdev) driver uses V4L2_SEL_TGT_CROP_BOUNDS rectangle for
+> > > this purpose. It was agreed to use that instead of creating a separate
+> > > "pixel array size" rectangle back then. Could it be used for the same
+> > > purpose on video nodes, too? If not, then smiapp should also be switched to
+> > > use the new "frame size" rectangle.
+> > 
+> > The problem with CROP_BOUNDS is that it may be larger than the actual framesize,
+> > as it can include blanking (for video) or the additional border pixels in a
+> > sensor.
+> 
+> I don't think it should include anything else than just the image.
+> 
+> Blanking isn't valid image data, and I'd also leave any possible borders
+> out: this is hardly interesting to the user, nor is really part of the image.
+> That's what the user expects, right? The rest can't be meaningfully
+> processed in anyway by hardware blocks, which would mix badly with
+> configuring the pipeline from the user space.
 
-On Monday 22 July 2013 08:14 PM, Alan Stern wrote:
-> On Mon, 22 Jul 2013, Kishon Vijay Abraham I wrote:
-> 
->>> 	The PHY and the controller it is attached to are both physical
->>> 	devices.
->>>
->>> 	The connection between them is hardwired by the system
->>> 	manufacturer and cannot be changed by software.
->>>
->>> 	PHYs are generally described by fixed system-specific board
->>> 	files or by Device Tree information.  Are they ever discovered
->>> 	dynamically?
->>
->> No. They are created just like any other platform devices are created.
-> 
-> Okay.  Are PHYs _always_ platform devices?
+It's not so easy: I'm pretty sure bttv allows messing with the blanking area,
+and in the case of analog it can be useful in case of misalignment of syncs.
 
-Not always. It can be any other device also.
-> 
->>> 	Is the same true for the controllers attached to the PHYs?
->>> 	If not -- if both a PHY and a controller are discovered 
->>> 	dynamically -- how does the kernel know whether they are 
->>> 	connected to each other?
->>
->> No differences here. Both PHY and controller will have dt information or hwmod
->> data using which platform devices will be created.
->>>
->>> 	The kernel needs to know which controller is attached to which
->>> 	PHY.  Currently this information is represented by name or ID
->>> 	strings embedded in platform data.
->>
->> right. It's embedded in the platform data of the controller.
-> 
-> It must also be embedded in the PHY's platform data somehow.  
-> Otherwise, how would the kernel know which PHY to use?
-> 
->>> 	The PHY's driver (the supplier) uses the platform data to 
->>> 	construct a platform_device structure that represents the PHY.  
->>
->> Currently the driver assigns static labels (corresponding to the label used in
->> the platform data of the controller).
->>> 	Until this is done, the controller's driver (the client) cannot 
->>> 	use the PHY.
->>
->> right.
->>>
->>> 	Since there is no parent-child relation between the PHY and the 
->>> 	controller, there is no guarantee that the PHY's driver will be
->>> 	ready when the controller's driver wants to use it.  A deferred
->>> 	probe may be needed.
->>
->> right.
->>>
->>> 	The issue (or one of the issues) in this discussion is that 
->>> 	Greg does not like the idea of using names or IDs to associate
->>> 	PHYs with controllers, because they are too prone to
->>> 	duplications or other errors.  Pointers are more reliable.
->>>
->>> 	But pointers to what?  Since the only data known to be 
->>> 	available to both the PHY driver and controller driver is the
->>> 	platform data, the obvious answer is a pointer to platform data
->>> 	(either for the PHY or for the controller, or maybe both).
->>
->> hmm.. it's not going to be simple though as the platform device for the PHY and
->> controller can be created in entirely different places. e.g., in some cases the
->> PHY device is a child of some mfd core device (the device will be created in
->> drivers/mfd) and the controller driver (usually) is created in board file. I
->> guess then we have to come up with something to share a pointer in two
->> different files.
-> 
-> The ability for two different source files to share a pointer to a data 
-> item defined in a third source file has been around since long before 
-> the C language was invented.  :-)
-> 
-> In this case, it doesn't matter where the platform_device structures 
-> are created or where the driver source code is.  Let's take a simple 
-> example.  Suppose the system design includes a PHY named "foo".  Then 
-> the board file could contain:
-> 
-> struct phy_info { ... } phy_foo;
-> EXPORT_SYMBOL_GPL(phy_foo);
-> 
-> and a header file would contain:
-> 
-> extern struct phy_info phy_foo;
-> 
-> The PHY supplier could then call phy_create(&phy_foo), and the PHY 
-> client could call phy_find(&phy_foo).  Or something like that; make up 
-> your own structure tags and function names.
+The question is: does anyone actually still use it like that?
 
-Alright. Thanks for the hint :-)
+> A lower level mechanism is needed: frame descriptors.
+> 
+> > I would prefer a new selection target for this.
+> 
+> It was decided to use the crop bounds for the purpose a few years back, and
+> I don't see a need to change it. (I actually was for having such a rectangle
+> back then, but the rough concensus was different. :))
+> 
+> 
 
-Thanks
-Kishon
+Regards,
+
+	Hans
