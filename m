@@ -1,66 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f41.google.com ([209.85.215.41]:53725 "EHLO
-	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932357Ab3GKNNh (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 09:13:37 -0400
-Received: by mail-la0-f41.google.com with SMTP id fn20so6788393lab.14
-        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 06:13:36 -0700 (PDT)
-Message-ID: <51DEAF7D.4010609@cogentembedded.com>
-Date: Thu, 11 Jul 2013 17:13:33 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:57938 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752932Ab3GDVKm convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jul 2013 17:10:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jakub Piotr =?utf-8?B?Q8WCYXBh?= <jpc-ml@zenburn.net>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [omap3isp] xclk deadlock
+Date: Thu, 04 Jul 2013 23:11:13 +0200
+Message-ID: <2398527.WgqgO0AkRo@avalon>
+In-Reply-To: <51D5D967.1030306@zenburn.net>
+References: <51D37796.2000601@zenburn.net> <51D5D967.1030306@zenburn.net>
 MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH 42/50] media: usb: tlg2300: spin_lock in complete() cleanup
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-43-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-43-git-send-email-ming.lei@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11-07-2013 13:06, Ming Lei wrote:
+Hi Jakub,
 
-     Subject doesn't match the patch.
+On Thursday 04 July 2013 22:21:59 Jakub Piotr Cłapa wrote:
+> Hi again,
+> 
+> Sorry for the noise, but I believe the information below may be useful
+> until everything is merged into mainline.
+> 
+> I write to say that I managed to find a fix for the ISP clock deadlock.
+>   My branch can be found at:
+> https://github.com/LoEE/linux/tree/omap3isp/xclk
+> (SHA: 36286390193922d148e7a3db0676747a20f2ed66 at the time of writing)
+> 
+> For reference:
+> 1. This was a known problem since early January [1] (reported by Laurent).
+> 2. Mike Turquette had submitted patches that made the clock framework
+> (partially) reentrant. [2][3][4]
+> 3. My code is just a rebase of the Laurent's omap3isp/xclk branch on the
+> Mike's clk-next (so it's based on 3.10-rc3).
 
-> Complete() will be run with interrupt enabled, so disable local
-> interrupt before holding a global lock which is held without
-> irqsave.
->
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->   drivers/media/usb/tlg2300/pd-alsa.c |    3 +++
->   1 file changed, 3 insertions(+)
+The omap3isp/xclk clock branch was used only to push patches to the media 
+tree, I should have deleted it afterwards. Mike's reentrancy patches were 
+already merged (or scheduled for merge) in mainline at that time, and for 
+technical reasons they were not present in the omap3isp/xclk branch.
 
-> diff --git a/drivers/media/usb/tlg2300/pd-alsa.c b/drivers/media/usb/tlg2300/pd-alsa.c
-> index 3f3e141..cbccc96 100644
-> --- a/drivers/media/usb/tlg2300/pd-alsa.c
-> +++ b/drivers/media/usb/tlg2300/pd-alsa.c
-[...]
-> @@ -156,6 +157,7 @@ static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
->   		memcpy(runtime->dma_area + oldptr * stride, cp, len * stride);
->
->   	/* update the statas */
-> +	local_irq_save(flags);
->   	snd_pcm_stream_lock(pa->capture_pcm_substream);
->   	pa->rcv_position	+= len;
->   	if (pa->rcv_position >= runtime->buffer_size)
-> @@ -167,6 +169,7 @@ static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
->   		*period_elapsed = 1;
->   	}
->   	snd_pcm_stream_unlock(pa->capture_pcm_substream);
-> +	local_irq_restore(flags);
->   }
+I've now deleted the branch from the public tree, sorry for the confusion.
 
-WBR, Sergei
+> [1]: https://lkml.org/lkml/2013/1/6/169
+> [2]: http://thread.gmane.org/gmane.linux.kernel/1448446/focus=1448448
+> [3]: http://thread.gmane.org/gmane.linux.ports.arm.kernel/182198
+> [4]: http://patches.linaro.org/15676/
 
+-- 
+Regards,
+
+Laurent Pinchart
 
