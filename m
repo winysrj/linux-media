@@ -1,57 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:57916 "EHLO 7of9.schinagl.nl"
+Received: from canardo.mork.no ([148.122.252.1]:42439 "EHLO canardo.mork.no"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751605Ab3GXV4d (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 17:56:33 -0400
-Message-ID: <51F04D8E.5050208@schinagl.nl>
-Date: Wed, 24 Jul 2013 23:56:30 +0200
-From: Oliver Schinagl <oliver@schinagl.nl>
-Reply-To: oliver+list@schinagl.nl
+	id S1757481Ab3GEUfL convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 16:35:11 -0400
+From: =?utf-8?Q?Bj=C3=B8rn_Mork?= <bjorn@mork.no>
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Linus Torvalds <torvalds@linux-foundation.org>,
+	Andrew Morton <akpm@linux-foundation.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Stephen Rothwell <sfr@canb.auug.org.au>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [GIT PULL for v3.11-rc1] media patches for v3.11
+References: <20130705114028.7b431587@infradead.org>
+Date: Fri, 05 Jul 2013 22:34:16 +0200
+In-Reply-To: <20130705114028.7b431587@infradead.org> (Mauro Carvalho Chehab's
+	message of "Fri, 5 Jul 2013 11:40:28 -0300")
+Message-ID: <878v1kiw53.fsf@nemi.mork.no>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Krishna Kishore <krishna.kishore@sasken.com>,
-	Chris Lee <updatelee@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: stv090x vs stv0900 support
-References: <CAA9z4Lbd5wm0=T=CGHbxga5wOdj+TZQO2BA+spxV_keWS5OmcQ@mail.gmail.com> <7CC27E99F1636344B0AC7B73D5BB86DE1485FEE5@exgmbxfz01.sasken.com> <51F01477.7050202@iki.fi>
-In-Reply-To: <51F01477.7050202@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/24/13 19:52, Antti Palosaari wrote:
-> On 07/24/2013 08:21 PM, Krishna Kishore wrote:
->> My opinion is that, it is better to have only stv090x. Apart from minimizing the number of patches and ease of maintenance, it will avoid the confusion that I had When I started using prof 7500. I had to enable stv0900 and stb6100. I got confused on whether to enable stv0900 or to enable stv090x.
->>
->>
->>
->> -----Original Message-----
->> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Chris Lee
->> Sent: Wednesday, July 24, 2013 10:09 PM
->> To: linux-media@vger.kernel.org
->> Subject: stv090x vs stv0900 support
->>
->> Im looking for comments on these two modules, they overlap support for the same demods. stv0900 supporting stv0900 and stv090x supporting
->> stv0900 and stv0903. Ive flipped a few cards from one to the other and they function fine. In some ways stv090x is better suited. Its a pain supporting two modules that are written differently but do the same thing, a fix in one almost always means it has to be implemented in the other as well.
->>
->> Im not necessarily suggesting dumping stv0900, but Id like to flip a few cards that I own over to stv090x just to standardize it. The Prof
->> 7301 and Prof 7500.
->>
->> Whats everyones thoughts on this? It will cut the number of patch''s in half when it comes to these demods. Ive got alot more coming lol :)
->>
->> Chris
->
->
-> stv0900 is better separated from the tuner whilst stv090x has weird
-> stv6110x_devctl structure. That's why I used stv0900 for anysee driver.
-> I wonder is there something special supported by stv090x because normal
-> tuner/demod callbacks are not enough.
-That's probably for the ddbridge driver, while ours is pretty old (0.5) 
-Ralph/oliver is working on 0.9 atm. 0.8.6 still uses the same structure 
-i think.
->
-> regards
-> Antti
->
+Mauro Carvalho Chehab <mchehab@infradead.org> writes:
 
+>  mode change 100755 => 100644 lib/build_OID_registry
+>  mode change 100755 => 100644 scripts/Lindent
+>  mode change 100755 => 100644 scripts/bloat-o-meter
+>  mode change 100755 => 100644 scripts/checkincludes.pl
+>  mode change 100755 => 100644 scripts/checkkconfigsymbols.sh
+>  mode change 100755 => 100644 scripts/checkpatch.pl
+>  mode change 100755 => 100644 scripts/checkstack.pl
+>  mode change 100755 => 100644 scripts/checksyscalls.sh
+>  mode change 100755 => 100644 scripts/checkversion.pl
+>  mode change 100755 => 100644 scripts/cleanfile
+>  mode change 100755 => 100644 scripts/cleanpatch
+>  mode change 100755 => 100644 scripts/coccicheck
+>  mode change 100755 => 100644 scripts/config
+>  mode change 100755 => 100644 scripts/decodecode
+>  mode change 100755 => 100644 scripts/depmod.sh
+>  mode change 100755 => 100644 scripts/diffconfig
+>  mode change 100755 => 100644 scripts/extract-ikconfig
+>  mode change 100755 => 100644 scripts/extract-vmlinux
+>  mode change 100755 => 100644 scripts/get_maintainer.pl
+>  mode change 100755 => 100644 scripts/gfp-translate
+>  mode change 100755 => 100644 scripts/headerdep.pl
+>  mode change 100755 => 100644 scripts/headers.sh
+>  mode change 100755 => 100644 scripts/kconfig/check.sh
+>  mode change 100755 => 100644 scripts/kconfig/merge_config.sh
+>  mode change 100755 => 100644 scripts/kernel-doc
+>  mode change 100755 => 100644 scripts/makelst
+>  mode change 100755 => 100644 scripts/mkcompile_h
+>  mode change 100755 => 100644 scripts/mkuboot.sh
+>  mode change 100755 => 100644 scripts/namespace.pl
+>  mode change 100755 => 100644 scripts/package/mkspec
+>  mode change 100755 => 100644 scripts/patch-kernel
+>  mode change 100755 => 100644 scripts/recordmcount.pl
+>  mode change 100755 => 100644 scripts/setlocalversion
+>  mode change 100755 => 100644 scripts/show_delta
+>  mode change 100755 => 100644 scripts/sign-file
+>  mode change 100755 => 100644 scripts/tags.sh
+>  mode change 100755 => 100644 scripts/ver_linux
+>  mode change 100755 => 100644 tools/hv/hv_get_dhcp_info.sh
+>  mode change 100755 => 100644 tools/hv/hv_get_dns_info.sh
+>  mode change 100755 => 100644 tools/hv/hv_set_ifconfig.sh
+>  mode change 100755 => 100644 tools/nfsd/inject_fault.sh
+>  mode change 100755 => 100644 tools/perf/python/twatch.py
+>  mode change 100755 => 100644 tools/perf/scripts/python/Perf-Trace-Util/lib/Perf/Trace/EventClass.py
+>  mode change 100755 => 100644 tools/perf/scripts/python/bin/net_dropmonitor-record
+>  mode change 100755 => 100644 tools/perf/scripts/python/bin/net_dropmonitor-report
+>  mode change 100755 => 100644 tools/perf/scripts/python/net_dropmonitor.py
+>  mode change 100755 => 100644 tools/perf/util/PERF-VERSION-GEN
+>  mode change 100755 => 100644 tools/perf/util/generate-cmdlist.sh
+>  mode change 100755 => 100644 tools/power/cpupower/utils/version-gen.sh
+>  mode change 100755 => 100644 tools/testing/ktest/compare-ktest-sample.pl
+>  mode change 100755 => 100644 tools/testing/ktest/ktest.pl
+
+
+You didn't really mean to do that, did you?
+
+
+
+Bjørn
