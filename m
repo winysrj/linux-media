@@ -1,131 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:33839 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753642Ab3G2MbZ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 08:31:25 -0400
-Message-ID: <1375101048.4223.11.camel@pizza.hi.pengutronix.de>
-Subject: Re: [PATCH v2 6/8] [media] coda: dynamic IRAM setup for decoder
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?ISO-8859-1?Q?Ga=EBtan?= Carlier <gcembed@gmail.com>,
-	Wei Yongjun <weiyj.lk@gmail.com>
-Date: Mon, 29 Jul 2013 14:30:48 +0200
-In-Reply-To: <20130726121841.10f9fe17@samsung.com>
-References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
-	 <1371801334-22324-7-git-send-email-p.zabel@pengutronix.de>
-	 <20130726121841.10f9fe17@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3543 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757245Ab3GEJw5 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 05:52:57 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Subject: Re: cron job: media_tree daily build: WARNINGS
+Date: Fri, 5 Jul 2013 11:52:32 +0200
+Cc: linux-media@vger.kernel.org,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+References: <20130704182937.9B56D35E010B@alastor.dyndns.org> <51D67F78.3010702@gtsys.com.hk>
+In-Reply-To: <51D67F78.3010702@gtsys.com.hk>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201307051152.32504.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
-
-Am Freitag, den 26.07.2013, 12:18 -0300 schrieb Mauro Carvalho Chehab:
-> Em Fri, 21 Jun 2013 09:55:32 +0200
-> Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+On Fri July 5 2013 10:10:32 Chris Ruehl wrote:
+> Hans,
 > 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> I like to work with the linux-git-arm-mx but cannot find any repository. 
+> Can you give me a hint?
+
+I'm just cross-compiling the kernel from the media_tree.git repository,
+nothing else. You probably want a complete rootfs as well to work with.
+Guennadi may know where to find something like that.
+
+But if you indeed just want to cross-compile the kernel, then let me know
+and I can give you pointers.
+
+	Hans
+
 > 
-> Please add a description for the patch.
-
-Sorry I missed this, description is the same as for the encoder IRAM
-setup:
-
-"This sets up IRAM areas used as temporary memory for the different
- hardware units depending on the frame size."
-
-regards
-Philipp
-
-> Thanks!
-> Mauro
+> Thanks.
+> Chris
 > 
-> > ---
-> >  drivers/media/platform/coda.c | 50 +++++++++++++++++++++++++++++++++++++++++--
-> >  1 file changed, 48 insertions(+), 2 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> > index 1f3bd43..856a93e 100644
-> > --- a/drivers/media/platform/coda.c
-> > +++ b/drivers/media/platform/coda.c
-> > @@ -1212,6 +1212,7 @@ static void coda_setup_iram(struct coda_ctx *ctx)
-> >  	int ipacdc_size;
-> >  	int bitram_size;
-> >  	int dbk_size;
-> > +	int ovl_size;
-> >  	int mb_width;
-> >  	int me_size;
-> >  	int size;
-> > @@ -1273,7 +1274,47 @@ static void coda_setup_iram(struct coda_ctx *ctx)
-> >  			size -= ipacdc_size;
-> >  		}
-> >  
-> > -		/* OVL disabled for encoder */
-> > +		/* OVL and BTP disabled for encoder */
-> > +	} else if (ctx->inst_type == CODA_INST_DECODER) {
-> > +		struct coda_q_data *q_data_dst;
-> > +		int mb_height;
-> > +
-> > +		q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
-> > +		mb_width = DIV_ROUND_UP(q_data_dst->width, 16);
-> > +		mb_height = DIV_ROUND_UP(q_data_dst->height, 16);
-> > +
-> > +		dbk_size = round_up(256 * mb_width, 1024);
-> > +		if (size >= dbk_size) {
-> > +			iram_info->axi_sram_use |= CODA7_USE_HOST_DBK_ENABLE;
-> > +			iram_info->buf_dbk_y_use = dev->iram_paddr;
-> > +			iram_info->buf_dbk_c_use = dev->iram_paddr +
-> > +						   dbk_size / 2;
-> > +			size -= dbk_size;
-> > +		} else {
-> > +			goto out;
-> > +		}
-> > +
-> > +		bitram_size = round_up(128 * mb_width, 1024);
-> > +		if (size >= bitram_size) {
-> > +			iram_info->axi_sram_use |= CODA7_USE_HOST_BIT_ENABLE;
-> > +			iram_info->buf_bit_use = iram_info->buf_dbk_c_use +
-> > +						 dbk_size / 2;
-> > +			size -= bitram_size;
-> > +		} else {
-> > +			goto out;
-> > +		}
-> > +
-> > +		ipacdc_size = round_up(128 * mb_width, 1024);
-> > +		if (size >= ipacdc_size) {
-> > +			iram_info->axi_sram_use |= CODA7_USE_HOST_IP_ENABLE;
-> > +			iram_info->buf_ip_ac_dc_use = iram_info->buf_bit_use +
-> > +						      bitram_size;
-> > +			size -= ipacdc_size;
-> > +		} else {
-> > +			goto out;
-> > +		}
-> > +
-> > +		ovl_size = round_up(80 * mb_width, 1024);
-> >  	}
-> >  
-> >  out:
-> > @@ -1300,7 +1341,12 @@ out:
-> >  
-> >  	if (dev->devtype->product == CODA_7541) {
-> >  		/* TODO - Enabling these causes picture errors on CODA7541 */
-> > -		if (ctx->inst_type == CODA_INST_ENCODER) {
-> > +		if (ctx->inst_type == CODA_INST_DECODER) {
-> > +			/* fw 1.4.50 */
-> > +			iram_info->axi_sram_use &= ~(CODA7_USE_HOST_IP_ENABLE |
-> > +						     CODA7_USE_IP_ENABLE);
-> > +		} else {
-> > +			/* fw 13.4.29 */
-> >  			iram_info->axi_sram_use &= ~(CODA7_USE_HOST_IP_ENABLE |
-> >  						     CODA7_USE_HOST_DBK_ENABLE |
-> >  						     CODA7_USE_IP_ENABLE |
+> On Friday, July 05, 2013 02:29 AM, Hans Verkuil wrote:
+> > This message is generated daily by a cron job that builds media_tree for
+> > the kernels and architectures in the list below.
+> >
+> > Results of the daily build of media_tree:
+> >
+> > date:		Thu Jul  4 19:00:26 CEST 2013
+> > git branch:	test
+> > git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
+> > gcc version:	i686-linux-gcc (GCC) 4.8.1
+> > sparse version:	v0.4.5-rc1
+> > host hardware:	x86_64
+> > host os:	3.9-7.slh.1-amd64
+> >
+> > linux-git-arm-at91: OK
+> > linux-git-arm-davinci: OK
+> > linux-git-arm-exynos: OK
+> > linux-git-arm-mx: OK
+> > linux-git-arm-omap: OK
+> > linux-git-arm-omap1: OK
+> > linux-git-arm-pxa: OK
+> > linux-git-blackfin: OK
+> > linux-git-i686: OK
+> > linux-git-m32r: OK
+> > linux-git-mips: OK
+> > linux-git-powerpc64: OK
+> > linux-git-sh: OK
+> > linux-git-x86_64: OK
+> > linux-2.6.31.14-i686: WARNINGS
+> > linux-2.6.32.27-i686: WARNINGS
+> > linux-2.6.33.7-i686: WARNINGS
+> > linux-2.6.34.7-i686: WARNINGS
+> > linux-2.6.35.9-i686: WARNINGS
+> > linux-2.6.36.4-i686: WARNINGS
+> > linux-2.6.37.6-i686: WARNINGS
+> > linux-2.6.38.8-i686: WARNINGS
+> > linux-2.6.39.4-i686: WARNINGS
+> > linux-3.0.60-i686: OK
+> > linux-3.10-i686: OK
+> > linux-3.1.10-i686: OK
+> > linux-3.2.37-i686: OK
+> > linux-3.3.8-i686: OK
+> > linux-3.4.27-i686: WARNINGS
+> > linux-3.5.7-i686: WARNINGS
+> > linux-3.6.11-i686: WARNINGS
+> > linux-3.7.4-i686: WARNINGS
+> > linux-3.8-i686: WARNINGS
+> > linux-3.9.2-i686: WARNINGS
+> > linux-2.6.31.14-x86_64: WARNINGS
+> > linux-2.6.32.27-x86_64: WARNINGS
+> > linux-2.6.33.7-x86_64: WARNINGS
+> > linux-2.6.34.7-x86_64: WARNINGS
+> > linux-2.6.35.9-x86_64: WARNINGS
+> > linux-2.6.36.4-x86_64: WARNINGS
+> > linux-2.6.37.6-x86_64: WARNINGS
+> > linux-2.6.38.8-x86_64: WARNINGS
+> > linux-2.6.39.4-x86_64: WARNINGS
+> > linux-3.0.60-x86_64: OK
+> > linux-3.10-x86_64: OK
+> > linux-3.1.10-x86_64: OK
+> > linux-3.2.37-x86_64: OK
+> > linux-3.3.8-x86_64: OK
+> > linux-3.4.27-x86_64: WARNINGS
+> > linux-3.5.7-x86_64: WARNINGS
+> > linux-3.6.11-x86_64: WARNINGS
+> > linux-3.7.4-x86_64: WARNINGS
+> > linux-3.8-x86_64: WARNINGS
+> > linux-3.9.2-x86_64: WARNINGS
+> > apps: WARNINGS
+> > spec-git: OK
+> > sparse version:	v0.4.5-rc1
+> > sparse: ERRORS
+> >
+> > Detailed results are available here:
+> >
+> > http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> >
+> > Full logs are available here:
+> >
+> > http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+> >
+> > The Media Infrastructure API from this daily build is here:
+> >
+> > http://www.xs4all.nl/~hverkuil/spec/media.html
+> > --
+> > To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> > the body of a message to majordomo@vger.kernel.org
+> > More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 > 
-> 
-
-
