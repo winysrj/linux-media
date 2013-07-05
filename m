@@ -1,80 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:58716 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932325Ab3GKMmu (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 08:42:50 -0400
-Received: by mail-wg0-f50.google.com with SMTP id k14so7062945wgh.29
-        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 05:42:49 -0700 (PDT)
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33610 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751222Ab3GEKrp convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 06:47:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jakub Piotr =?utf-8?B?Q8WCYXBh?= <jpc-ml@zenburn.net>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [omap3isp] xclk deadlock
+Date: Fri, 05 Jul 2013 12:48:16 +0200
+Message-ID: <1604535.2Z0SUEyxcF@avalon>
+In-Reply-To: <51D5F8FC.4040504@zenburn.net>
+References: <51D37796.2000601@zenburn.net> <2398527.WgqgO0AkRo@avalon> <51D5F8FC.4040504@zenburn.net>
 MIME-Version: 1.0
-In-Reply-To: <1373533573-12272-37-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-	<1373533573-12272-37-git-send-email-ming.lei@canonical.com>
-Date: Thu, 11 Jul 2013 08:42:49 -0400
-Message-ID: <CAGoCfizP6ZKeK1Kw+pjZ+mqxE6J2fM_JBhME=3Q6qRP0NfPX5A@mail.gmail.com>
-Subject: Re: [PATCH 36/50] media: usb: em28xx: spin_lock in complete() cleanup
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Ming Lei <ming.lei@canonical.com>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 11, 2013 at 5:05 AM, Ming Lei <ming.lei@canonical.com> wrote:
-> Complete() will be run with interrupt enabled, so change to
-> spin_lock_irqsave().
->
-> Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-> Cc: linux-media@vger.kernel.org
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-core.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
->
-> diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-> index fc157af..0d698f9 100644
-> --- a/drivers/media/usb/em28xx/em28xx-core.c
-> +++ b/drivers/media/usb/em28xx/em28xx-core.c
-> @@ -941,6 +941,7 @@ static void em28xx_irq_callback(struct urb *urb)
->  {
->         struct em28xx *dev = urb->context;
->         int i;
-> +       unsigned long flags;
->
->         switch (urb->status) {
->         case 0:             /* success */
-> @@ -956,9 +957,9 @@ static void em28xx_irq_callback(struct urb *urb)
->         }
->
->         /* Copy data from URB */
-> -       spin_lock(&dev->slock);
-> +       spin_lock_irqsave(&dev->slock, flags);
->         dev->usb_ctl.urb_data_copy(dev, urb);
-> -       spin_unlock(&dev->slock);
-> +       spin_unlock_irqrestore(&dev->slock, flags);
->
->         /* Reset urb buffers */
->         for (i = 0; i < urb->number_of_packets; i++) {
-> --
-> 1.7.9.5
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Hi Jakub,
 
-I actually stumbled across this a couple of weeks ago, and have had an
-identical patch running in a local dev tree.
+On Friday 05 July 2013 00:36:44 Jakub Piotr Cłapa wrote:
+> Hi Laurent,
+> 
+> On 04.07.13 23:11, Laurent Pinchart wrote:
+> > The omap3isp/xclk clock branch was used only to push patches to the media
+> > tree, I should have deleted it afterwards. Mike's reentrancy patches were
+> > already merged (or scheduled for merge) in mainline at that time, and for
+> > technical reasons they were not present in the omap3isp/xclk branch.
+> 
+> Thanks for the explanation. It would be great if you could update your
+> board/beagle/mt9p031 branch and include the discussed changes.
 
-Reviewed-by: Devin Heitmueller <dheitmueller@kernellabs.com>
-Tested-by: Devin Heitmueller <dheitmueller@kernellabs.com>
+Done. Could you please test it ?
+
+> I belive your branch is the only authoritative source of magic required to
+> get the Aptina+Beagle combination going.
+
+I need to add DT bindings to the OMAP3 ISP driver. Once done everything could 
+be merged upstream.
+
+> > I've now deleted the branch from the public tree, sorry for the confusion.
+> 
+> Not a problem at all. The confusion was worse when I was trying to apply
+> random patch files found via Google. ;)
+
+:-)
 
 -- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+Regards,
+
+Laurent Pinchart
+
