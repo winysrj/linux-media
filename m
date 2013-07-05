@@ -1,297 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:4312 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750877Ab3G2H5V (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 03:57:21 -0400
-Message-ID: <51F62048.8020303@xs4all.nl>
-Date: Mon, 29 Jul 2013 09:56:56 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from mail.irisys.co.uk ([195.12.16.217]:57445 "EHLO
+	mail.irisys.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753344Ab3GEIgQ convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 04:36:16 -0400
+Received: from mail.irisys.co.uk (localhost.localdomain [127.0.0.1])
+	by localhost (Email Security Appliance) with SMTP id 3749B11DB71_1D6824DB
+	for <linux-media@vger.kernel.org>; Fri,  5 Jul 2013 08:22:37 +0000 (GMT)
+Received: from server10.irisys.local (unknown [192.168.100.72])
+	by mail.irisys.co.uk (Sophos Email Appliance) with ESMTP id 0E34211DACC_1D6824DF
+	for <linux-media@vger.kernel.org>; Fri,  5 Jul 2013 08:22:37 +0000 (GMT)
+From: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
+To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: width and height of JPEG compressed images
+Date: Fri, 5 Jul 2013 08:22:35 +0000
+Message-ID: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Ondrej Zary <linux@rainbow-software.org>
-CC: linux-media@vger.kernel.org, alsa-devel@alsa-project.org
-Subject: Re: [PATCH 1/2] tea575x: Move header from sound to media
-References: <1375041704-17928-1-git-send-email-linux@rainbow-software.org> <1375041704-17928-2-git-send-email-linux@rainbow-software.org>
-In-Reply-To: <1375041704-17928-2-git-send-email-linux@rainbow-software.org>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Ondrej!
+Hello,
 
-On 07/28/2013 10:01 PM, Ondrej Zary wrote:
-> Move include/sound/tea575x-tuner.h to include/media/tea575x.h and update files that include it.
-> 
-> Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+I am writing a driver for the sensor MT9D131.  This device supports digital zoom and JPEG compression.
 
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+Although I am writing it for my company's internal purposes, it will be made open-source, so I would like to keep the API as portable as possible.
 
-If this can be acked by an alsa maintainer, then I can merge it into the media tree.
+The hardware reads AxB sensor pixels from its array, resamples them to CxD image pixels, and then compresses them to ExF bytes.
+
+The subdevice driver sets size AxB to the value it receives from v4l2_subdev_video_ops.s_crop().
+
+To enable compression then v4l2_subdev_video_ops.s_mbus_fmt() is called with fmt->code=V4L2_MBUS_FMT_JPEG_1X8.
+
+fmt->width and fmt->height then ought to specify the size of the compressed image ExF, that is, the size specified is the size in the format specified (the number of JPEG_1X8), not the size it would be in a raw format.
+
+This allows the bridge driver to be compression agnostic.  It gets told how many bytes to allocate per buffer and it reads that many bytes.  It doesn't have to understand that the number of bytes isn't directly related to the number of pixels.
+
+So how does the user tell the driver what size image to capture before compression, CxD?
+
+(or alternatively, if you disagree and think CxD should be specified by s_fmt(), then how does the user specify ExF?)
 
 Regards,
+Tom
 
-	Hans
-
-> ---
->  drivers/media/radio/radio-maxiradio.c |    2 +-
->  drivers/media/radio/radio-sf16fmr2.c  |    2 +-
->  drivers/media/radio/radio-shark.c     |    2 +-
->  include/media/tea575x.h               |   79 +++++++++++++++++++++++++++++++++
->  include/sound/tea575x-tuner.h         |   79 ---------------------------------
->  sound/i2c/other/tea575x-tuner.c       |    2 +-
->  sound/pci/es1968.c                    |    2 +-
->  sound/pci/fm801.c                     |    2 +-
->  8 files changed, 85 insertions(+), 85 deletions(-)
->  create mode 100644 include/media/tea575x.h
->  delete mode 100644 include/sound/tea575x-tuner.h
-> 
-> diff --git a/drivers/media/radio/radio-maxiradio.c b/drivers/media/radio/radio-maxiradio.c
-> index 1d1c9e1..5236035 100644
-> --- a/drivers/media/radio/radio-maxiradio.c
-> +++ b/drivers/media/radio/radio-maxiradio.c
-> @@ -42,7 +42,7 @@
->  #include <linux/videodev2.h>
->  #include <linux/io.h>
->  #include <linux/slab.h>
-> -#include <sound/tea575x-tuner.h>
-> +#include <media/tea575x.h>
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-fh.h>
-> diff --git a/drivers/media/radio/radio-sf16fmr2.c b/drivers/media/radio/radio-sf16fmr2.c
-> index 9c09904..f1e3714 100644
-> --- a/drivers/media/radio/radio-sf16fmr2.c
-> +++ b/drivers/media/radio/radio-sf16fmr2.c
-> @@ -14,7 +14,7 @@
->  #include <linux/io.h>		/* outb, outb_p			*/
->  #include <linux/isa.h>
->  #include <linux/pnp.h>
-> -#include <sound/tea575x-tuner.h>
-> +#include <media/tea575x.h>
->  
->  MODULE_AUTHOR("Ondrej Zary");
->  MODULE_DESCRIPTION("MediaForte SF16-FMR2 and SF16-FMD2 FM radio card driver");
-> diff --git a/drivers/media/radio/radio-shark.c b/drivers/media/radio/radio-shark.c
-> index 8fa18ab..b914772 100644
-> --- a/drivers/media/radio/radio-shark.c
-> +++ b/drivers/media/radio/radio-shark.c
-> @@ -33,7 +33,7 @@
->  #include <linux/usb.h>
->  #include <linux/workqueue.h>
->  #include <media/v4l2-device.h>
-> -#include <sound/tea575x-tuner.h>
-> +#include <media/tea575x.h>
->  
->  #if defined(CONFIG_LEDS_CLASS) || \
->      (defined(CONFIG_LEDS_CLASS_MODULE) && defined(CONFIG_RADIO_SHARK_MODULE))
-> diff --git a/include/media/tea575x.h b/include/media/tea575x.h
-> new file mode 100644
-> index 0000000..2d4fa59
-> --- /dev/null
-> +++ b/include/media/tea575x.h
-> @@ -0,0 +1,79 @@
-> +#ifndef __SOUND_TEA575X_TUNER_H
-> +#define __SOUND_TEA575X_TUNER_H
-> +
-> +/*
-> + *   ALSA driver for TEA5757/5759 Philips AM/FM tuner chips
-> + *
-> + *	Copyright (c) 2004 Jaroslav Kysela <perex@perex.cz>
-> + *
-> + *   This program is free software; you can redistribute it and/or modify
-> + *   it under the terms of the GNU General Public License as published by
-> + *   the Free Software Foundation; either version 2 of the License, or
-> + *   (at your option) any later version.
-> + *
-> + *   This program is distributed in the hope that it will be useful,
-> + *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-> + *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> + *   GNU General Public License for more details.
-> + *
-> + *   You should have received a copy of the GNU General Public License
-> + *   along with this program; if not, write to the Free Software
-> + *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-> + *
-> + */
-> +
-> +#include <linux/videodev2.h>
-> +#include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-dev.h>
-> +#include <media/v4l2-device.h>
-> +
-> +#define TEA575X_FMIF	10700
-> +#define TEA575X_AMIF	  450
-> +
-> +#define TEA575X_DATA	(1 << 0)
-> +#define TEA575X_CLK	(1 << 1)
-> +#define TEA575X_WREN	(1 << 2)
-> +#define TEA575X_MOST	(1 << 3)
-> +
-> +struct snd_tea575x;
-> +
-> +struct snd_tea575x_ops {
-> +	/* Drivers using snd_tea575x must either define read_ and write_val */
-> +	void (*write_val)(struct snd_tea575x *tea, u32 val);
-> +	u32 (*read_val)(struct snd_tea575x *tea);
-> +	/* Or define the 3 pin functions */
-> +	void (*set_pins)(struct snd_tea575x *tea, u8 pins);
-> +	u8 (*get_pins)(struct snd_tea575x *tea);
-> +	void (*set_direction)(struct snd_tea575x *tea, bool output);
-> +};
-> +
-> +struct snd_tea575x {
-> +	struct v4l2_device *v4l2_dev;
-> +	struct v4l2_file_operations fops;
-> +	struct video_device vd;		/* video device */
-> +	int radio_nr;			/* radio_nr */
-> +	bool tea5759;			/* 5759 chip is present */
-> +	bool has_am;			/* Device can tune to AM freqs */
-> +	bool cannot_read_data;		/* Device cannot read the data pin */
-> +	bool cannot_mute;		/* Device cannot mute */
-> +	bool mute;			/* Device is muted? */
-> +	bool stereo;			/* receiving stereo */
-> +	bool tuned;			/* tuned to a station */
-> +	unsigned int val;		/* hw value */
-> +	u32 band;			/* 0: FM, 1: FM-Japan, 2: AM */
-> +	u32 freq;			/* frequency */
-> +	struct mutex mutex;
-> +	struct snd_tea575x_ops *ops;
-> +	void *private_data;
-> +	u8 card[32];
-> +	u8 bus_info[32];
-> +	struct v4l2_ctrl_handler ctrl_handler;
-> +	int (*ext_init)(struct snd_tea575x *tea);
-> +};
-> +
-> +int snd_tea575x_hw_init(struct snd_tea575x *tea);
-> +int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
-> +void snd_tea575x_exit(struct snd_tea575x *tea);
-> +void snd_tea575x_set_freq(struct snd_tea575x *tea);
-> +
-> +#endif /* __SOUND_TEA575X_TUNER_H */
-> diff --git a/include/sound/tea575x-tuner.h b/include/sound/tea575x-tuner.h
-> deleted file mode 100644
-> index 2d4fa59..0000000
-> --- a/include/sound/tea575x-tuner.h
-> +++ /dev/null
-> @@ -1,79 +0,0 @@
-> -#ifndef __SOUND_TEA575X_TUNER_H
-> -#define __SOUND_TEA575X_TUNER_H
-> -
-> -/*
-> - *   ALSA driver for TEA5757/5759 Philips AM/FM tuner chips
-> - *
-> - *	Copyright (c) 2004 Jaroslav Kysela <perex@perex.cz>
-> - *
-> - *   This program is free software; you can redistribute it and/or modify
-> - *   it under the terms of the GNU General Public License as published by
-> - *   the Free Software Foundation; either version 2 of the License, or
-> - *   (at your option) any later version.
-> - *
-> - *   This program is distributed in the hope that it will be useful,
-> - *   but WITHOUT ANY WARRANTY; without even the implied warranty of
-> - *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-> - *   GNU General Public License for more details.
-> - *
-> - *   You should have received a copy of the GNU General Public License
-> - *   along with this program; if not, write to the Free Software
-> - *   Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307 USA
-> - *
-> - */
-> -
-> -#include <linux/videodev2.h>
-> -#include <media/v4l2-ctrls.h>
-> -#include <media/v4l2-dev.h>
-> -#include <media/v4l2-device.h>
-> -
-> -#define TEA575X_FMIF	10700
-> -#define TEA575X_AMIF	  450
-> -
-> -#define TEA575X_DATA	(1 << 0)
-> -#define TEA575X_CLK	(1 << 1)
-> -#define TEA575X_WREN	(1 << 2)
-> -#define TEA575X_MOST	(1 << 3)
-> -
-> -struct snd_tea575x;
-> -
-> -struct snd_tea575x_ops {
-> -	/* Drivers using snd_tea575x must either define read_ and write_val */
-> -	void (*write_val)(struct snd_tea575x *tea, u32 val);
-> -	u32 (*read_val)(struct snd_tea575x *tea);
-> -	/* Or define the 3 pin functions */
-> -	void (*set_pins)(struct snd_tea575x *tea, u8 pins);
-> -	u8 (*get_pins)(struct snd_tea575x *tea);
-> -	void (*set_direction)(struct snd_tea575x *tea, bool output);
-> -};
-> -
-> -struct snd_tea575x {
-> -	struct v4l2_device *v4l2_dev;
-> -	struct v4l2_file_operations fops;
-> -	struct video_device vd;		/* video device */
-> -	int radio_nr;			/* radio_nr */
-> -	bool tea5759;			/* 5759 chip is present */
-> -	bool has_am;			/* Device can tune to AM freqs */
-> -	bool cannot_read_data;		/* Device cannot read the data pin */
-> -	bool cannot_mute;		/* Device cannot mute */
-> -	bool mute;			/* Device is muted? */
-> -	bool stereo;			/* receiving stereo */
-> -	bool tuned;			/* tuned to a station */
-> -	unsigned int val;		/* hw value */
-> -	u32 band;			/* 0: FM, 1: FM-Japan, 2: AM */
-> -	u32 freq;			/* frequency */
-> -	struct mutex mutex;
-> -	struct snd_tea575x_ops *ops;
-> -	void *private_data;
-> -	u8 card[32];
-> -	u8 bus_info[32];
-> -	struct v4l2_ctrl_handler ctrl_handler;
-> -	int (*ext_init)(struct snd_tea575x *tea);
-> -};
-> -
-> -int snd_tea575x_hw_init(struct snd_tea575x *tea);
-> -int snd_tea575x_init(struct snd_tea575x *tea, struct module *owner);
-> -void snd_tea575x_exit(struct snd_tea575x *tea);
-> -void snd_tea575x_set_freq(struct snd_tea575x *tea);
-> -
-> -#endif /* __SOUND_TEA575X_TUNER_H */
-> diff --git a/sound/i2c/other/tea575x-tuner.c b/sound/i2c/other/tea575x-tuner.c
-> index 46ec4dff..cef0698 100644
-> --- a/sound/i2c/other/tea575x-tuner.c
-> +++ b/sound/i2c/other/tea575x-tuner.c
-> @@ -31,7 +31,7 @@
->  #include <media/v4l2-fh.h>
->  #include <media/v4l2-ioctl.h>
->  #include <media/v4l2-event.h>
-> -#include <sound/tea575x-tuner.h>
-> +#include <media/tea575x.h>
->  
->  MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
->  MODULE_DESCRIPTION("Routines for control of TEA5757/5759 Philips AM/FM radio tuner chips");
-> diff --git a/sound/pci/es1968.c b/sound/pci/es1968.c
-> index 5e2ec96..b0e3d92 100644
-> --- a/sound/pci/es1968.c
-> +++ b/sound/pci/es1968.c
-> @@ -113,7 +113,7 @@
->  #include <sound/initval.h>
->  
->  #ifdef CONFIG_SND_ES1968_RADIO
-> -#include <sound/tea575x-tuner.h>
-> +#include <media/tea575x.h>
->  #endif
->  
->  #define CARD_NAME "ESS Maestro1/2"
-> diff --git a/sound/pci/fm801.c b/sound/pci/fm801.c
-> index 706c5b6..45bc8a9 100644
-> --- a/sound/pci/fm801.c
-> +++ b/sound/pci/fm801.c
-> @@ -37,7 +37,7 @@
->  #include <asm/io.h>
->  
->  #ifdef CONFIG_SND_FM801_TEA575X_BOOL
-> -#include <sound/tea575x-tuner.h>
-> +#include <media/tea575x.h>
->  #endif
->  
->  MODULE_AUTHOR("Jaroslav Kysela <perex@perex.cz>");
-> 
+--
+Mr T. Vajzovic
+Software Engineer
+Infrared Integrated Systems Ltd
+Visit us at www.irisys.co.uk
+Disclaimer: This e-mail message is confidential and for use by the addressee only. If the message is received by anyone other than the addressee, please return the message to the sender by replying to it and then delete the original message and the sent message from your computer. Infrared Integrated Systems Limited Park Circle Tithe Barn Way Swan Valley Northampton NN4 9BG Registration Number: 3186364.
