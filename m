@@ -1,47 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:23404 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752375Ab3G3P3z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 11:29:55 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: Re: Question about v4l2-compliance: cap->readbuffers
-Date: Tue, 30 Jul 2013 17:29:26 +0200
-Cc: linux-media@vger.kernel.org
-References: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com> <201307301545.51529.hverkuil@xs4all.nl> <CAPybu_13HCY1i=tH1krdKGOSbJNgek-X4gt1cGmo_oB=AqTxKg@mail.gmail.com>
-In-Reply-To: <CAPybu_13HCY1i=tH1krdKGOSbJNgek-X4gt1cGmo_oB=AqTxKg@mail.gmail.com>
+Received: from cluster03.natrohost.com ([89.19.17.246]:52420 "EHLO
+	cluster03.natrohost.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751224Ab3GEXjc (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 19:39:32 -0400
+To: undisclosed-recipients@vger.kernel.org
+From: "ADRIAN AND GILLAIN BAYFORD" <suat@sastur.com.tr>
+Subject: =?windows-1254?Q?Va=9Aa_po=9Atov=E1?=
+Date: Fri, 5 Jul 2013 16:41:38 -0700
+Message-ID: <CEBEA1B4457D414BBAED7AB0D88A4CDB.MAI@natrohost.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307301729.26053.hverkuil@xs4all.nl>
+Content-Type: multipart/mixed;
+	boundary="--=_Part_EE1653CD216D4DB2A7540AD0F694F915"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 30 July 2013 17:18:58 Ricardo Ribalda Delgado wrote:
-> Thanks for the explanation Hans!
-> 
-> I finaly manage to pass that one ;)
-> 
-> Just one more question. Why the compliance test checks if the DISABLED
-> flag is on on for qctrls?
-> 
-> http://git.linuxtv.org/v4l-utils.git/blob/3ae390e54a0ba627c9e74953081560192b996df4:/utils/v4l2-compliance/v4l2-test-controls.cpp#l137
-> 
->  137         if (fl & V4L2_CTRL_FLAG_DISABLED)
->  138                 return fail("DISABLED flag set\n");
-> 
-> Apparently that has been added on:
-> http://git.linuxtv.org/v4l-utils.git/commit/0a4d4accea7266d7b5f54dea7ddf46cce8421fbb
-> 
-> But I have failed to find a reason
+This is a multi-part message in MIME format.
 
-It shouldn't be used anymore in drivers. With the control framework there is
-no longer any reason to use the DISABLED flag.
+----=_Part_EE1653CD216D4DB2A7540AD0F694F915
+Content-Type: text/plain; charset="windows-1254"
+Content-Transfer-Encoding: quoted-printable
 
-If something has a valid use case for it, then I'd like to know what it is.
+Va=9Aa po=9Atov=E1 schr=E1nka prekrocila limit, kliknite pros=EDm na odkaz niz=9Aie pre kontrolu e-m=
+ailu Dakujem
 
-Regards,
+http://webmailupdate12eee.jimdo.com/
 
-	Hans
+System Administrator
+
+
+----=_Part_EE1653CD216D4DB2A7540AD0F694F915--
+
