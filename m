@@ -1,110 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59953 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755770Ab3GYM7X (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 08:59:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v3 1/5] media: Add support for circular graph traversal
-Date: Thu, 25 Jul 2013 15:00:09 +0200
-Message-Id: <1374757213-20194-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1374757213-20194-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1374757213-20194-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-ee0-f49.google.com ([74.125.83.49]:52161 "EHLO
+	mail-ee0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752530Ab3GEXLF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 19:11:05 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Jingoo Han <jg1.han@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>
+Subject: Re: [PATCH V4 3/4] video: exynos_dp: remove non-DT support for Exynos Display Port
+Date: Fri, 05 Jul 2013 16:11:02 -0700 (PDT)
+Message-ID: <2149220.dCp7esoXHa@flatron>
+In-Reply-To: <000c01ce76ff$fffa39d0$ffeead70$@samsung.com>
+References: <000c01ce76ff$fffa39d0$ffeead70$@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Hi Jingoo,
 
-The graph traversal API (media_entity_graph_walk_*) doesn't support
-cyclic graphs and will fail to correctly walk a graph when circular
-links exist. Support circular graph traversal by checking whether an
-entity has already been visited before pushing it to the stack.
+On Tuesday 02 of July 2013 17:41:52 Jingoo Han wrote:
+> Exynos Display Port can be used only for Exynos SoCs. In addition,
+> non-DT for EXYNOS SoCs is be supported from v3.11; thus, there is
+> no need to support non-DT for Exynos Display Port.
+> 
+> The 'include/video/exynos_dp.h' file has been used for non-DT
+> support and the content of file include/video/exynos_dp.h is moved
+> to drivers/video/exynos/exynos_dp_core.h. Thus, the 'exynos_dp.h'
+> file is removed. Also, 'struct exynos_dp_platdata' is removed,
+> because it is not used any more.
+> 
+> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+> ---
+>  drivers/video/exynos/Kconfig          |    2 +-
+>  drivers/video/exynos/exynos_dp_core.c |  116
+> +++++++---------------------- drivers/video/exynos/exynos_dp_core.h | 
+> 109 +++++++++++++++++++++++++++ drivers/video/exynos/exynos_dp_reg.c  |
+>    2 -
+>  include/video/exynos_dp.h             |  131
+> --------------------------------- 5 files changed, 135 insertions(+),
+> 225 deletions(-)
+>  delete mode 100644 include/video/exynos_dp.h
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/media-entity.c | 14 +++++++++++---
- include/media/media-entity.h |  3 +++
- 2 files changed, 14 insertions(+), 3 deletions(-)
+Reviewed-by: Tomasz Figa <t.figa@samsung.com>
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index cb30ffb..2c286c3 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -20,6 +20,7 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
-+#include <linux/bitmap.h>
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <media/media-entity.h>
-@@ -121,7 +122,6 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
- 	return entity;
- }
- 
--#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
- #define link_top(en)	((en)->stack[(en)->top].link)
- #define stack_top(en)	((en)->stack[(en)->top].entity)
- 
-@@ -140,6 +140,12 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- {
- 	graph->top = 0;
- 	graph->stack[graph->top].entity = NULL;
-+	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
-+
-+	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+		return;
-+
-+	__set_bit(entity->id, graph->entities);
- 	stack_push(graph, entity);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-@@ -180,9 +186,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
-+		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+			return NULL;
- 
--		/* Was it the entity we came here from? */
--		if (next == stack_peek(graph)) {
-+		/* Has the entity already been visited? */
-+		if (__test_and_set_bit(next->id, graph->entities)) {
- 			link_top(graph)++;
- 			continue;
- 		}
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 06bacf9..0b39662 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -23,6 +23,7 @@
- #ifndef _MEDIA_ENTITY_H
- #define _MEDIA_ENTITY_H
- 
-+#include <linux/bitops.h>
- #include <linux/list.h>
- #include <linux/media.h>
- 
-@@ -113,12 +114,14 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
- }
- 
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+#define MEDIA_ENTITY_ENUM_MAX_ID	64
- 
- struct media_entity_graph {
- 	struct {
- 		struct media_entity *entity;
- 		int link;
- 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+	unsigned long entities[BITS_TO_LONGS(MEDIA_ENTITY_ENUM_MAX_ID)];
- 	int top;
- };
- 
--- 
-1.8.1.5
+Best regards,
+Tomasz
 
