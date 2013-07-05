@@ -1,91 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:42519 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754427Ab3GJL67 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 07:58:59 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: maarten.lankhorst@canonical.com, daniel@ffwll.ch,
-	robdclark@gmail.com, kyungmin.park@samsung.com,
-	myungjoo.ham@samsung.com, yj44.cho@samsung.com,
-	Inki Dae <inki.dae@samsung.com>
-Subject: [RFC PATCH v1 2/2] dma-buf: add lock callback for fcntl system call.
-Date: Wed, 10 Jul 2013 20:58:47 +0900
-Message-id: <1373457527-28263-3-git-send-email-inki.dae@samsung.com>
-In-reply-to: <1373457527-28263-1-git-send-email-inki.dae@samsung.com>
-References: <1373457527-28263-1-git-send-email-inki.dae@samsung.com>
+Received: from mail-ee0-f48.google.com ([74.125.83.48]:39075 "EHLO
+	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752100Ab3GEXMJ (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 19:12:09 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: linux-arm-kernel@lists.infradead.org
+Cc: Jingoo Han <jg1.han@samsung.com>,
+	linux-samsung-soc@vger.kernel.org, linux-fbdev@vger.kernel.org,
+	'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Hui Wang' <jason77.wang@gmail.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Kishon Vijay Abraham I' <kishon@ti.com>,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	devicetree-discuss@lists.ozlabs.org, linux-media@vger.kernel.org
+Subject: Re: [PATCH V4 2/4] phy: Add driver for Exynos DP PHY
+Date: Sat, 06 Jul 2013 01:12:05 +0200
+Message-ID: <1543218.1F6S8MDx2p@flatron>
+In-Reply-To: <000b01ce76ff$cf9fd6a0$6edf83e0$@samsung.com>
+References: <000b01ce76ff$cf9fd6a0$6edf83e0$@samsung.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds lock callback to dma buf file operations,
-and this callback will be called by fcntl system call.
+On Tuesday 02 of July 2013 17:40:31 Jingoo Han wrote:
+> Add a PHY provider driver for the Samsung Exynos SoC DP PHY.
+> 
+> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+> Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
+>  drivers/phy/Kconfig                                |    6 ++
+>  drivers/phy/Makefile                               |    1 +
+>  drivers/phy/phy-exynos-dp-video.c                  |  111
+> ++++++++++++++++++++ 4 files changed, 126 insertions(+)
+>  create mode 100644 drivers/phy/phy-exynos-dp-video.c
 
-With this patch, fcntl system call can be used for buffer
-synchronization between CPU and CPU, and CPU and DMA in user mode.
+Reviewed-by: Tomasz Figa <t.figa@samsung.com>
 
-Signed-off-by: Inki Dae <inki.dae@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/base/dma-buf.c |   34 ++++++++++++++++++++++++++++++++++
- 1 files changed, 34 insertions(+), 0 deletions(-)
-
-diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
-index fe39120..cd71447 100644
---- a/drivers/base/dma-buf.c
-+++ b/drivers/base/dma-buf.c
-@@ -31,6 +31,7 @@
- #include <linux/debugfs.h>
- #include <linux/seq_file.h>
- #include <linux/reservation.h>
-+#include <linux/dmabuf-sync.h>
- 
- static inline int is_dma_buf_file(struct file *);
- 
-@@ -82,9 +83,42 @@ static int dma_buf_mmap_internal(struct file *file, struct vm_area_struct *vma)
- 	return dmabuf->ops->mmap(dmabuf, vma);
- }
- 
-+static int dma_buf_lock(struct file *file, int cmd, struct file_lock *fl)
-+{
-+	struct dma_buf *dmabuf;
-+	unsigned int type;
-+	bool wait = false;
-+
-+	if (!is_dma_buf_file(file))
-+		return -EINVAL;
-+
-+	dmabuf = file->private_data;
-+
-+	if ((fl->fl_type & F_UNLCK) == F_UNLCK) {
-+		dmabuf_sync_single_unlock(dmabuf);
-+		return 0;
-+	}
-+
-+	/* convert flock type to dmabuf sync type. */
-+	if ((fl->fl_type & F_WRLCK) == F_WRLCK)
-+		type = DMA_BUF_ACCESS_W;
-+	else if ((fl->fl_type & F_RDLCK) == F_RDLCK)
-+		type = DMA_BUF_ACCESS_R;
-+	else
-+		return -EINVAL;
-+
-+	if (fl->fl_flags & FL_SLEEP)
-+		wait = true;
-+
-+	/* TODO. the locking to certain region should also be considered. */
-+
-+	return dmabuf_sync_single_lock(dmabuf, type, wait);
-+}
-+
- static const struct file_operations dma_buf_fops = {
- 	.release	= dma_buf_release,
- 	.mmap		= dma_buf_mmap_internal,
-+	.lock		= dma_buf_lock,
- };
- 
- /*
--- 
-1.7.5.4
+Best regards,
+Tomasz
 
