@@ -1,84 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:20091 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753326Ab3GHCEK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 22:04:10 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Tomasz Figa' <tomasz.figa@gmail.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
-	Jingoo Han <jg1.han@samsung.com>
-References: <000d01ce7700$222a35a0$667ea0e0$@samsung.com>
- <1441230.DzaqAQ9HHT@flatron>
-In-reply-to: <1441230.DzaqAQ9HHT@flatron>
-Subject: Re: [PATCH V4 4/4] video: exynos_dp: Use the generic PHY driver
-Date: Mon, 08 Jul 2013 11:04:06 +0900
-Message-id: <001a01ce7b7f$6d7bdc60$48739520$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-bk0-f53.google.com ([209.85.214.53]:64595 "EHLO
+	mail-bk0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959Ab3GFVyY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jul 2013 17:54:24 -0400
+Received: by mail-bk0-f53.google.com with SMTP id e11so1400172bkh.12
+        for <linux-media@vger.kernel.org>; Sat, 06 Jul 2013 14:54:23 -0700 (PDT)
+Message-ID: <51D8920C.8020306@gmail.com>
+Date: Sat, 06 Jul 2013 23:54:20 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sakari Ailus <sakari.ailus@iki.fi>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [RFC] Support for events with a large payload
+References: <201305131414.43685.hverkuil@xs4all.nl> <201306241540.14469.hverkuil@xs4all.nl> <20130702230159.GO2064@valkosipuli.retiisi.org.uk> <3981855.thaXQaXO7C@avalon>
+In-Reply-To: <3981855.thaXQaXO7C@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday, July 06, 2013 8:04 AM, Tomasz Figa wrote:
-> 
-> Hi Jingoo,
-> 
-> On Tuesday 02 of July 2013 17:42:49 Jingoo Han wrote:
-> > Use the generic PHY API instead of the platform callback to control
-> > the DP PHY.
-> >
-> > Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> > ---
-> >  .../devicetree/bindings/video/exynos_dp.txt        |   23
-> > +++++--------------- drivers/video/exynos/exynos_dp_core.c
-> > |   16 ++++++++++---- drivers/video/exynos/exynos_dp_core.h
-> >  |    2 ++
-> >  3 files changed, 20 insertions(+), 21 deletions(-)
-> >
-> > diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > b/Documentation/devicetree/bindings/video/exynos_dp.txt index
-> > 84f10c1..022f4b6 100644
-> > --- a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > +++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > @@ -1,17 +1,6 @@
-> >  The Exynos display port interface should be configured based on
-> >  the type of panel connected to it.
-> >
-> > -We use two nodes:
-> > -	-dp-controller node
-> > -	-dptx-phy node(defined inside dp-controller node)
-> > -
-> > -For the DP-PHY initialization, we use the dptx-phy node.
-> > -Required properties for dptx-phy:
-> > -	-reg:
-> > -		Base address of DP PHY register.
-> > -	-samsung,enable-mask:
-> > -		The bit-mask used to enable/disable DP PHY.
-> > -
-> 
-> I wonder if this part shouldn't stay here, just marked as deprecated,
-> because compatibility with old dtbs must be preserved (and rest of the
-> patch looks like it is).
+On 07/03/2013 09:34 PM, Laurent Pinchart wrote:
+> On Wednesday 03 July 2013 02:01:59 Sakari Ailus wrote:
+>> On Mon, Jun 24, 2013 at 03:40:14PM +0200, Hans Verkuil wrote:
+>> ...
+>>
+>>> Since the payloads are larger I am less concerned about speed. There is
+>>> one problem, though: if you dequeue the event and the buffer that should
+>>> receive the payload is too small, then you have lost that payload. You
+>>> can't allocate a new, larger, buffer and retry. So this approach can only
+>>> work if you really know the maximum payload size.
+>>>
+>>> The advantage is also that you won't lose payloads.
+>>
+>> Forgot to answer this one --- I think it's fair to assume the user knows the
+>> maximum size of the payload. What we also could do in such a case is to
+>> return the error (e.g. ENOSPC) and put the required size to the large event
+>> size field. But first someone must come up with a variable size event
+>> without well defined maximum size for this to make much sense.
+>
+> And while we're discussing use cases, Hans, what are you current use cases for
+> 64 bytes event payloads ?
 
-I would like to remove these properties from Documentation.
-But, I will mark it as deprecated as you suggested..
+One of the use cases could be face detection events. A face marker would
+contain at least 4 rectangle data structures (face, left/right eye, 
+mouth,...),
+which is itself 64 bytes. Plus Euler angle information, confidence, 
+smile/blink
+level etc. We could add an object detection specific ioctl(s) (I'm not sure
+if such won't be needed anyway), but the event API looks like a good
+infrastructure to handle this kind of data.
 
-
-Best regards,
-Jingoo Han
-
-
+--
+Regards,
+Sylwester
