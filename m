@@ -1,60 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:54503 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932170Ab3GKJIi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:08:38 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Johan Hovold <jhovold@gmail.com>
-Subject: [PATCH 15/50] USB: serial: mos77840: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:38 +0800
-Message-Id: <1373533573-12272-16-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+Received: from mail-wg0-f46.google.com ([74.125.82.46]:60072 "EHLO
+	mail-wg0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750857Ab3GFMvz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jul 2013 08:51:55 -0400
+Received: by mail-wg0-f46.google.com with SMTP id c11so2594934wgh.25
+        for <linux-media@vger.kernel.org>; Sat, 06 Jul 2013 05:51:54 -0700 (PDT)
+MIME-Version: 1.0
+Date: Sat, 6 Jul 2013 14:51:54 +0200
+Message-ID: <CABueNTxnL2zKREfcOQJxPQigqC-yxFhnnnE9J+BKJMDkktn_Xw@mail.gmail.com>
+Subject: DVBSKY T680C (USB DVB-C / DVB-T/T2 box) confirmed working, added Wiki-Page
+From: Martin <cymaphore@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+Hi,
 
-Cc: Johan Hovold <jhovold@gmail.com>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/usb/serial/mos7840.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+I recently purchased a DVBSKY T680C from Amazon to replace mc
+Technotrend CT-3650 (overheated).
 
-diff --git a/drivers/usb/serial/mos7840.c b/drivers/usb/serial/mos7840.c
-index 0a818b2..f21dcd0 100644
---- a/drivers/usb/serial/mos7840.c
-+++ b/drivers/usb/serial/mos7840.c
-@@ -788,17 +788,18 @@ static void mos7840_bulk_out_data_callback(struct urb *urb)
- 	struct usb_serial_port *port;
- 	int status = urb->status;
- 	int i;
-+	unsigned long flags;
- 
- 	mos7840_port = urb->context;
- 	port = mos7840_port->port;
--	spin_lock(&mos7840_port->pool_lock);
-+	spin_lock_irqsave(&mos7840_port->pool_lock, flags);
- 	for (i = 0; i < NUM_URBS; i++) {
- 		if (urb == mos7840_port->write_urb_pool[i]) {
- 			mos7840_port->busy[i] = 0;
- 			break;
- 		}
- 	}
--	spin_unlock(&mos7840_port->pool_lock);
-+	spin_unlock_irqrestore(&mos7840_port->pool_lock, flags);
- 
- 	if (status) {
- 		dev_dbg(&port->dev, "nonzero write bulk status received:%d\n", status);
--- 
-1.7.9.5
+The device works pretty well. I added a linuxtv.org wiki page for it
+including installation steps and comparison with my old CT-3650 and a
+GRUNDIG television.
 
+FyI.
+
+http://www.linuxtv.org/wiki/index.php/DVBSKY_T680C
+
+Best regards,
+Martin
