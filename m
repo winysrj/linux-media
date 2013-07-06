@@ -1,184 +1,218 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45221 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751505Ab3GSUkf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 16:40:35 -0400
-Date: Fri, 19 Jul 2013 23:40:00 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: width and height of JPEG compressed images
-Message-ID: <20130719203959.GD11823@valkosipuli.retiisi.org.uk>
-References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
- <51D876DF.90507@gmail.com>
- <A683633ABCE53E43AFB0344442BF0F0536167CCB@server10.irisys.local>
- <51DDB97C.7060505@gmail.com>
- <A683633ABCE53E43AFB0344442BF0F05361689C0@server10.irisys.local>
+Received: from mail-bk0-f42.google.com ([209.85.214.42]:39216 "EHLO
+	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751381Ab3GFUug (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jul 2013 16:50:36 -0400
+Received: by mail-bk0-f42.google.com with SMTP id jk13so1405047bkc.1
+        for <linux-media@vger.kernel.org>; Sat, 06 Jul 2013 13:50:35 -0700 (PDT)
+Message-ID: <51D88318.70904@gmail.com>
+Date: Sat, 06 Jul 2013 22:50:32 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <A683633ABCE53E43AFB0344442BF0F05361689C0@server10.irisys.local>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	linux-media <linux-media@vger.kernel.org>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: Samsung i2c subdev drivers that set sd->name
+References: <201306241054.11604.hverkuil@xs4all.nl> <201307041313.25318.hverkuil@xs4all.nl> <51D5D8C8.2030400@gmail.com> <27462886.lEP1apMFVe@avalon>
+In-Reply-To: <27462886.lEP1apMFVe@avalon>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas and Sylwester,
+Hi Laurent,
 
-On Mon, Jul 15, 2013 at 09:18:36AM +0000, Thomas Vajzovic wrote:
-> On 10 July 2013 20:44 Sylwester Nawrocki wrote:
-> >On 07/07/2013 10:18 AM, Thomas Vajzovic wrote:
-> >> On 06 July 2013 20:58 Sylwester Nawrocki wrote:
-> >>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
-> >>>>
-> >>>> I am writing a driver for the sensor MT9D131.  This device supports
-> >>>> digital zoom and JPEG compression.
-> >>>>
-> >>>> The hardware reads AxB sensor pixels from its array, resamples them
-> >>>> to CxD image pixels, and then compresses them to ExF bytes.
-> >>
-> >> Yes you are correct that the sensor zero pads the compressed data to a
-> >> fixed size.  That size must be specified in two separate registers,
-> >> called spoof width and spoof height.  Above CxD is the image size
-> >> after binning/skipping and resizing, ExF is the spoof size.
-> >>
-> >> The reason for two numbers for the number of bytes is that as the
-> >> sensor outputs the JPEG bytes the VSYNC and HSYNC lines behave as
-> >> though they were still outputting a 2D image with 8bpp.  This means
-> >> that no changes are required in the bridge hardware.  I am trying to
-> >> make it so very few changes are required in the bridge driver too.
-> >> As far as the bridge driver is concerned the only size is ExF, it is
-> >> unconcerned with CxD.
-> >>
-> >> v4l2_pix_format.width        = C;
-> >> v4l2_pix_format.height       = D;
-> >> v4l2_pix_format.bytesperline = E;
-> >> v4l2_pix_format.sizeimage    = (E * F);
-> >>
-> >> bytesperline < width
-> >> (sizeimage % bytesperline) == 0
-> >> (sizeimage / bytesperline) < height
-> >
-> > bytesperline has not much meaning for compressed formats at the video
-> > device (DMA) driver side.
-> 
-> This is not true for the platform I am using.
-> 
-> The Blackfin has a 2D DMA peripheral, meaning that it does need to
-> separately know bytesperline and (sizeimage / bytesperline).
-> 
-> These values have a physical hardware meaning in terms of the signals
-> on the sync lines even though they do not have a logical meaning
-> because the data is compressed.
+On 07/05/2013 01:30 PM, Laurent Pinchart wrote:
+> On Thursday 04 July 2013 22:19:20 Sylwester Nawrocki wrote:
+>> On 07/04/2013 01:13 PM, Hans Verkuil wrote:
+>>> On Thu 4 July 2013 00:49:36 Laurent Pinchart wrote:
+>>>> On Thursday 27 June 2013 11:53:15 Sylwester Nawrocki wrote:
+>>>>> On 06/27/2013 08:43 AM, Hans Verkuil wrote:
+>>>>>> On Wed June 26 2013 11:00:51 Sakari Ailus wrote:
+>>>>>>> On Tue, Jun 25, 2013 at 06:55:49PM +0200, Sylwester Nawrocki wrote:
+>>>>>>>> On 06/24/2013 10:54 AM, Hans Verkuil wrote:
+>
+> [snip]
+>
+>>>>>>>> Before we start messing with those drivers it would be nice to have
+>>>>>>>> defined rules of the media entity naming. I2C bus number and address
+>>>>>>>> is not something that's useful in the media entity name. And multiple
+>>>>>>>
+>>>>>>> Isn't it?
+>>>>>>
+>>>>>> Why not? As long as the format is strictly adhered to then I see no
+>>>>>> reason not to use it. Not only does it make the name unique, it also
+>>>>>> tells you where the device is in the hardware topology.
+>>>>
+>>>> It's a shame that entities don't have a bus info field in addition to
+>>>> their name, but we have to live with that.
+>>>>
+>>>> Userspace needs a way to distinguish between multiple identical subdevs.
+>>>> We can't rely on IDs only, as they're not guaranteed to be stable. We
+>>>> thus need to use names and possibly connection information.
+>>>>
+>>>> Two identical sensors connected to separate receivers could be
+>>>> distinguished by checking which receiver they're connected to.
+>>>> Unfortunately this breaks when the two sensors are connected to the same
+>>>> receiver, in which case we can only rely on the name. Media entity names
+>>>> thus need to be unique when connection information can't help
+>>>> distinguishing otherwise identical subdevs, which implies that subdev
+>>>> names must be unique.
+>>>>
+>>>>>> We could make the simple rule that the driver name is the first word of
+>>>>>> the name. So it would be easy to provide a function that matches just
+>>>>>> the first word and ignores the bus info (if there is any).
+>>>>>
+>>>>> Yes, and that's basically all I needed before "fixing" those affected
+>>>>> drivers. No matter what exact rules, if there are any, user space could
+>>>>> handle various hardware configurations without issues.
+>>>>>
+>>>>> Besides, the drivers would need to strip/replace with something else any
+>>>>> spaces when initializing subddev name, as that character would be used
+>>>>> as the bus info delimiter ?
+>>>>
+>>>> Or we could decide that the bus info can't contain any space, in which
+>>>> case the last space would be the delimiter.
+>>
+>> Sounds reasonable as well.
+>>
+>>> Frankly, I don't think either should contain a space :-) Today nobody is
+>>> using spaces anywhere to the best of my knowledge.
+>>
+>> OK, then there would be spaces neither in<name>  nor in<bus-info>. From
+>> a quick grep I can't see any driver currently using spaces in its subdev
+>> name.
+>
+> In case of multi-subdev sensors (when the sensor includes a scaler for
+> instance) the subdev names will likely be made of the sensor name (or driver
+> name) and a subdev description. Something like "xxxxx pixel array" and "xxxxxx
+> scaler". We could use a dash or underscore to replace spaces though.
 
-Parallel receivers typically do have such configuration but it's new to me
-that a DMA controller also does.
+Yes, I guess dash or underscore could be well used instead of spaces.
+But my feeling is that 32 characters might be often not enough to hold
+longer names and bus info. Also it would be good to denote what sort of
+bus we refer to, i2c, spi, usb, platform, etc. I doesn't look like we
+can always fit that information in 32 characters.
 
-In terms of the original RFC, just setting width, height and bpp accordingly
-should do the trick. These are the parameters of the physical, not the
-image. Choosing the line width wouldn't be possible, but would it be an
-issue to use a constant line width?
+[...]
+>>>> How should bus info be retrieved if it's not part of the media entity
+>>>> name ?
+>>>
+>>> If that subdev name is also going to be used in the MC, then yes, it
+>>> should contain the i2c bus info. At the moment the v4l2 core makes no
+>>> assumptions on the subdev name, other than that it must be unique. which
+>>> is generally achieved by appending the i2c bus info. But some platform
+>>> subdevs (non-i2c) may not have any bus info since that doesn't apply in
+>>> all cases.
+>>>
+>>> I would propose a guideline for the subdev naming like this:
+>>> 	<name>   <bus-info>
+>>>
+>>> where<bus-info>  is optional and neither string contains spaces.
+>>
+>> Hmm, it might be inconvenient for platform subdevs. E.g. it could mean
+>> something like:
+>>
+>> currently             |<name>  <bus-info>
+>> ----------------------+------------------------------------------
+>> s5p-mipi-csis.0       | s5p-mipi-csis 11800000.csis
+>> s5p-mipi-csis.1       | s5p-mipi-csis 11810000.csis
+>> FIMC-LITE.0           | FIMC-LITE 12040000.fimc-lite
+>> FIMC-LITE.0           | FIMC-LITE 12050000.fimc-lite
+>>
+>>
+>> The register window addresses can vary across various SoCs and it doesn't
+>> sound very clever to expose that to user space, when a device is exactly
+>> same from the user point of view.
+>>
+>> Presumably the ".<index>" part in the names in the above cases should be
+>> kept, and user space could just ignore bus-info, e.g.
+>>
+>> s5p-mipi-csis.0       | s5p-mipi-csis.0 11800000.csis
+>> FIMC-LITE.0           | FIMC-LITE.0 12050000.fimc-lite
+>>
+>> If the bus info is too long it would get truncated.
+>
+> We're limited to 32 characters, which isn't much to store both the name and
+> bus info.
 
-> > For compressed streams like JPEG size of the memory buffer to
-> > allocate is normally determined by sizeimage.
-> 
-> It is two numbers in my use case.
-> 
-> > 'bytesperline' could be less than 'width', that means a "virtual"
-> > bits-per-pixel factor is less than 8. But this factor could (should?)
-> > be configurable e.g. indirectly through V4L2_CID_JPEG_QUALITY control,
-> 
-> This is absolutely not a "virtual" width, it is a real physical property
-> of the hardware signal.  The hardware signal always has exactly 8 bits
-> per sample, but its height and width (ExF) are not related to the image
-> height and width (CxD).
-> 
-> It is not appropriate to group the hardware data size together with
-> compression controls for two reasons:
-> 
-> Firstly, the bridge driver would need to intercept the control and then
-> pass it on to the bridge driver because they both need to know E and F.
-> 
-> Secondly, the pair of numbers (E,F) in my case have exaclty the same
-> meaning and are used in exactly the same way as the single number
-> (sizeimage) which is used in the cameras that use the current API.
-> Logically the two numbers should be passed around and set and modified
-> in all the same places that sizeimage currently is, but as a tuple.
-> The two cannot be separated with one set using one API and the other
-> a different API.
-> 
-> > and the bridge can query it from the sensor through g_frame_desc subdev
-> > op.  The bridge has normally no clue what the compression ratio at the
-> > sensor side is.  It could hard code some default "bpp", but then it
-> > needs to be ensured the sensor doesn't transmit more data than the size
-> > of allocated buffer.
-> 
-> It has no idea what the true compression ratio size is, but it does have
-> to know the padded size.  The sensor will always send exactly that size.
-> 
-> >> But the question now is how does the bridge device communicate this to
-> >> the I2C subdevice?  v4l2_mbus_framefmt doesn't have bytesperline or
-> >> sizeimage, and v4l2_mbus_frame_desc_entry has only length (which I
-> >> presume is sizeimage) but not both dimensions.
-> >
-> > That's a good question. The frame descriptors really need more discussion
-> > and improvement, to also cover use cases as your JPEG sensor.
-> > Currently it is pretty pre-eliminary stuff, used by just a few drivers.
-> > Here is the original RFC from Sakari [1].
-> 
-> The version that has made it to kernel.org is much watered down from this
-> proposal.  It could be suitable for doing what I need if an extra member
-> were added, or preferably there should be something like:
-> 
-> enum
-> {
->   DMA_1D,
->   DMA_2D,
-> };
-> 
-> union {
->   struct {  // Valid if DMA_1D
->     u32 size;
->   };
->   struct {  // Valid if DMA_2D
->     u32 width;
->     u32 height;
->   };
-> };
-> 
-> > Since we can't add bytesperline/sizeimage to struct v4l2_mbus_framefmt
-> 
-> Isn't this a sensible case for using some of those reserved bytes?
+Indeed, it's a pretty serious limitation IMHO.
 
-struct v4l2_mbus_framefmt is part of the user space interface and adding
-information to it should be done with care. I'm not sure the end user would
-be even interested to know (let alone to configure) how the image is
-transferred over the bus since this configuration does not affect the
-resulting image.
+>>>>> While we are at it, how about v4l2_i2c_subdev_init() ? It initializes
+>>>>> sd->name with SPI driver name. It doesn't look like it could be unique
+>>>>> then ?
+>>>>>
+>>>>>>>> Presumably we could have subdev name postfixed with I2C bus id/slave
+>>>>>>>> address as it is done currently and the media core would be using
+>>>>>>>> only a part of subdev's name up to ' ' character to initialize the
+>>>>>>>> entity name ?
+>>>>>>
+>>>>>> Yes, that's an option. But I would like Laurent's opinion on this. The
+>>>>>> problem I see with that is that it would actually make it hard to map
+>>>>>> an entity name to a subdev since there is no bus_info information
+>>>>>> associated with the entity, just an ID.
+>>>>>
+>>>>> Yes, without bus info in the entity structure this would likely not be a
+>>>>> good idea.
+>>>>
+>>>> As explained above, userspace needs to know which entity corresponds to
+>>>> which piece of hardware, so non-unique (in the context of a media
+>>>> device, and when connection information doesn't provide the required
+>>>> information) entity names are a bad idea in the general case.
+>>>>
+>>>>>> So if you have two identical subdevs, e.g. "saa7115 6-0021" and
+>>>>>> "saa7115 7-0021", and you name the corresponding entities "saa7115",
+>>>>>> but with different IDs, then how do you know which ID maps to which
+>>>>>> subdev? If you keep the i2c postfix, then that's unambiguous.
+>>>>>
+>>>>> The I2C bus info in the subdev's name can be a completely random string.
+>>>>> Please note that I2C bus id can be assigned dynamically. So there is no
+>>>>> guarantee you get reproducible bus IDs assigned to each sensor in all
+>>>>> cases. That's said I2C bus info is not reliable means to identify
+>>>>> physical
+>>>>> device.
+>>>>
+>>>> I'm afraid you're right :-) (I don't know whether I2C bus IDs will be
+>>>> assigned dynamically in practice on systems where the information is
+>>>> important though).
+>>>
+>>> i2c devices on an embedded system (i.e. hooked up to the SoC i2c bus) will
+>>> always get the same bus number. Obviously, if the i2c device is on a
+>>> PCI(e) or USB board,
+>>
+>> That has not always been true, before patch [1] most drivers used to
+>> register I2C adapters with dynamically assigned IDs. Now there is a standard
+>> way to specify the adapter's id in DT.
+>>
+>>> then it becomes dynamic (but still unique, and still it specifies exactly
+>>> where the device can be found in the hardware topology).
+>>
+>> Presumably it allows to locate exactly a specific hardware device
+>> indirectly, by e.g. parsing some additional data from sysfs. But it is not
+>> very useful as an absolute identifier of a device.
+>>
+>> Perhaps a sysfs link would have been a better way to expose the media
+>> entity's underlying device, its placement in the hardware topology, etc. But
+>> not all subdevs have struct device associated with them, not all have /dev
+>> entry. Perhaps the entities could be listed in sysfs under corresponding
+>> media device, with relevant bus information associated with them.
+>
+> I'd rather not get started with the whole "media controller should have been
+> implemented in sysfs" discussion again :-)
 
-> If not, why are they there?
-> 
-> > I think struct v4l2_mbus_frame_desc_entry needs to be extended and
-> > interaction between subdev ops like video.{s,g}_mbus_fmt,
-> > pad.{set,get}_fmt needs to be specified.
-> 
-> Failing adding to v4l2_mbus_framefmt, I agree.
-> 
-> I notice also that there is only set_frame_desc and get_frame_desc, and
-> no try_frame_desc.
-> 
-> In the only bridge driver that currently uses this interface,
-> fimc-capture, when the user calls VIDIOC_TRY_FMT, then this is
-> translated to a call to subdev.set_frame_desc.  Isn't this wrong?  I
-> thought that TRY_* was never meant to modify the actual hardware, but
-> only fill out the passed structure with what the device would be able
-> to do, so don't we need also try_frame_desc?
+Ok, I just wanted to point out some alternatives. ;-)
 
-I got the very same impression. Sylwester? :-)
+> We need an ioctl to report additional information about media entities (it's
+> been on my to-do list for wayyyyyyyyy too long). It could be used to report
+> bus information as well.
 
--- 
-Kind regards,
+Yes, that sounds much more interesting than using just subdev name to sqeeze
+all the information in. Why we don't have such an ioctl yet anyway ? Were
+there some arguments against it, or its been just a low priority issue ?
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Regards,
+Sylwester
