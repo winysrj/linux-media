@@ -1,355 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog116.obsmtp.com ([74.125.149.240]:36548 "EHLO
-	na3sys009aog116.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753721Ab3GCF5k (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 3 Jul 2013 01:57:40 -0400
-From: Libin Yang <lbyang@marvell.com>
-To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>,
-	Libin Yang <lbyang@marvell.com>,
-	Albert Wang <twang13@marvell.com>
-Subject: [PATCH v3 5/7] marvell-ccic: add new formats support for marvell-ccic driver
-Date: Wed, 3 Jul 2013 13:56:02 +0800
-Message-ID: <1372830964-22323-6-git-send-email-lbyang@marvell.com>
-In-Reply-To: <1372830964-22323-1-git-send-email-lbyang@marvell.com>
-References: <1372830964-22323-1-git-send-email-lbyang@marvell.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:1607 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753112Ab3GGS3b (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 14:29:31 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr11.xs4all.nl (8.13.8/8.13.8) with ESMTP id r67ITPf4083425
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Sun, 7 Jul 2013 20:29:28 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 3FDED35E010B
+	for <linux-media@vger.kernel.org>; Sun,  7 Jul 2013 20:29:24 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130707182924.3FDED35E010B@alastor.dyndns.org>
+Date: Sun,  7 Jul 2013 20:29:24 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds some planar formats support for marvell-ccic.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Signed-off-by: Albert Wang <twang13@marvell.com>
-Signed-off-by: Libin Yang <lbyang@marvell.com>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
----
- drivers/media/platform/marvell-ccic/mcam-core.c |  192 +++++++++++++++++++----
- drivers/media/platform/marvell-ccic/mcam-core.h |    6 +
- 2 files changed, 165 insertions(+), 33 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index dbd0c6b..5b838c0 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -103,6 +103,7 @@ static struct mcam_format_struct {
- 	__u8 *desc;
- 	__u32 pixelformat;
- 	int bpp;   /* Bytes per pixel */
-+	bool planar;
- 	enum v4l2_mbus_pixelcode mbus_code;
- } mcam_formats[] = {
- 	{
-@@ -110,24 +111,56 @@ static struct mcam_format_struct {
- 		.pixelformat	= V4L2_PIX_FMT_YUYV,
- 		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,
- 		.bpp		= 2,
-+		.planar		= false,
-+	},
-+	{
-+		.desc		= "UYVY 4:2:2",
-+		.pixelformat	= V4L2_PIX_FMT_UYVY,
-+		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,
-+		.bpp		= 2,
-+		.planar		= false,
-+	},
-+	{
-+		.desc		= "YUV 4:2:2 PLANAR",
-+		.pixelformat	= V4L2_PIX_FMT_YUV422P,
-+		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,
-+		.bpp		= 2,
-+		.planar		= true,
-+	},
-+	{
-+		.desc		= "YUV 4:2:0 PLANAR",
-+		.pixelformat	= V4L2_PIX_FMT_YUV420,
-+		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,
-+		.bpp		= 2,
-+		.planar		= true,
-+	},
-+	{
-+		.desc		= "YVU 4:2:0 PLANAR",
-+		.pixelformat	= V4L2_PIX_FMT_YVU420,
-+		.mbus_code	= V4L2_MBUS_FMT_YUYV8_2X8,
-+		.bpp		= 2,
-+		.planar		= true,
- 	},
- 	{
- 		.desc		= "RGB 444",
- 		.pixelformat	= V4L2_PIX_FMT_RGB444,
- 		.mbus_code	= V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE,
- 		.bpp		= 2,
-+		.planar		= false,
- 	},
- 	{
- 		.desc		= "RGB 565",
- 		.pixelformat	= V4L2_PIX_FMT_RGB565,
- 		.mbus_code	= V4L2_MBUS_FMT_RGB565_2X8_LE,
- 		.bpp		= 2,
-+		.planar		= false,
- 	},
- 	{
- 		.desc		= "Raw RGB Bayer",
- 		.pixelformat	= V4L2_PIX_FMT_SBGGR8,
- 		.mbus_code	= V4L2_MBUS_FMT_SBGGR8_1X8,
--		.bpp		= 1
-+		.bpp		= 1,
-+		.planar		= false,
- 	},
- };
- #define N_MCAM_FMTS ARRAY_SIZE(mcam_formats)
-@@ -170,6 +203,12 @@ struct mcam_dma_desc {
- 	u32 segment_len;
- };
- 
-+struct yuv_pointer_t {
-+	dma_addr_t y;
-+	dma_addr_t u;
-+	dma_addr_t v;
-+};
-+
- /*
-  * Our buffer type for working with videobuf2.  Note that the vb2
-  * developers have decreed that struct vb2_buffer must be at the
-@@ -181,6 +220,7 @@ struct mcam_vb_buffer {
- 	struct mcam_dma_desc *dma_desc;	/* Descriptor virtual address */
- 	dma_addr_t dma_desc_pa;		/* Descriptor physical address */
- 	int dma_desc_nent;		/* Number of mapped descriptors */
-+	struct yuv_pointer_t yuv_p;
- };
- 
- static inline struct mcam_vb_buffer *vb_to_mvb(struct vb2_buffer *vb)
-@@ -466,6 +506,15 @@ static inline int mcam_check_dma_buffers(struct mcam_camera *cam)
- /*
-  * DMA-contiguous code.
-  */
-+
-+static bool mcam_fmt_is_planar(__u32 pfmt)
-+{
-+	struct mcam_format_struct *f;
-+
-+	f = mcam_find_format(pfmt);
-+	return f->planar;
-+}
-+
- /*
-  * Set up a contiguous buffer for the given frame.  Here also is where
-  * the underrun strategy is set: if there is no buffer available, reuse
-@@ -477,6 +526,11 @@ static inline int mcam_check_dma_buffers(struct mcam_camera *cam)
- static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
- {
- 	struct mcam_vb_buffer *buf;
-+	struct v4l2_pix_format *fmt = &cam->pix_format;
-+	dma_addr_t dma_handle;
-+	u32 pixel_count = fmt->width * fmt->height;
-+	struct vb2_buffer *vb;
-+
- 	/*
- 	 * If there are no available buffers, go into single mode
- 	 */
-@@ -495,8 +549,35 @@ static void mcam_set_contig_buffer(struct mcam_camera *cam, int frame)
- 	}
- 
- 	cam->vb_bufs[frame] = buf;
--	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR,
--			vb2_dma_contig_plane_dma_addr(&buf->vb_buf, 0));
-+	vb = &buf->vb_buf;
-+
-+	dma_handle = vb2_dma_contig_plane_dma_addr(vb, 0);
-+	buf->yuv_p.y = dma_handle;
-+
-+	switch (cam->pix_format.pixelformat) {
-+	case V4L2_PIX_FMT_YUV422P:
-+		buf->yuv_p.u = buf->yuv_p.y + pixel_count;
-+		buf->yuv_p.v = buf->yuv_p.u + pixel_count / 2;
-+		break;
-+	case V4L2_PIX_FMT_YUV420:
-+		buf->yuv_p.u = buf->yuv_p.y + pixel_count;
-+		buf->yuv_p.v = buf->yuv_p.u + pixel_count / 4;
-+		break;
-+	case V4L2_PIX_FMT_YVU420:
-+		buf->yuv_p.v = buf->yuv_p.y + pixel_count;
-+		buf->yuv_p.u = buf->yuv_p.v + pixel_count / 4;
-+		break;
-+	default:
-+		break;
-+	}
-+
-+	mcam_reg_write(cam, frame == 0 ? REG_Y0BAR : REG_Y1BAR, buf->yuv_p.y);
-+	if (mcam_fmt_is_planar(fmt->pixelformat)) {
-+		mcam_reg_write(cam, frame == 0 ?
-+					REG_U0BAR : REG_U1BAR, buf->yuv_p.u);
-+		mcam_reg_write(cam, frame == 0 ?
-+					REG_V0BAR : REG_V1BAR, buf->yuv_p.v);
-+	}
- }
- 
- /*
-@@ -654,49 +735,84 @@ static inline void mcam_sg_restart(struct mcam_camera *cam)
-  */
- static void mcam_ctlr_image(struct mcam_camera *cam)
- {
--	int imgsz;
- 	struct v4l2_pix_format *fmt = &cam->pix_format;
-+	u32 widthy = 0, widthuv = 0, imgsz_h, imgsz_w;
-+
-+	cam_dbg(cam, "camera: bytesperline = %d; height = %d\n",
-+		fmt->bytesperline, fmt->sizeimage / fmt->bytesperline);
-+	imgsz_h = (fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK;
-+	imgsz_w = (fmt->width * 2) & IMGSZ_H_MASK;
-+
-+	switch (fmt->pixelformat) {
-+	case V4L2_PIX_FMT_YUYV:
-+	case V4L2_PIX_FMT_UYVY:
-+		widthy = fmt->width * 2;
-+		widthuv = 0;
-+		break;
-+	case V4L2_PIX_FMT_JPEG:
-+		imgsz_h = (fmt->sizeimage / fmt->bytesperline) << IMGSZ_V_SHIFT;
-+		widthy = fmt->bytesperline;
-+		widthuv = 0;
-+		break;
-+	case V4L2_PIX_FMT_YUV422P:
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		widthy = fmt->width;
-+		widthuv = fmt->width / 2;
-+		break;
-+	default:
-+		widthy = fmt->bytesperline;
-+		widthuv = 0;
-+	}
-+
-+	mcam_reg_write_mask(cam, REG_IMGPITCH, widthuv << 16 | widthy,
-+			IMGP_YP_MASK | IMGP_UVP_MASK);
-+	mcam_reg_write(cam, REG_IMGSIZE, imgsz_h | imgsz_w);
-+	mcam_reg_write(cam, REG_IMGOFFSET, 0x0);
- 
--	imgsz = ((fmt->height << IMGSZ_V_SHIFT) & IMGSZ_V_MASK) |
--		(fmt->bytesperline & IMGSZ_H_MASK);
--	mcam_reg_write(cam, REG_IMGSIZE, imgsz);
--	mcam_reg_write(cam, REG_IMGOFFSET, 0);
--	/* YPITCH just drops the last two bits */
--	mcam_reg_write_mask(cam, REG_IMGPITCH, fmt->bytesperline,
--			IMGP_YP_MASK);
- 	/*
- 	 * Tell the controller about the image format we are using.
- 	 */
--	switch (cam->pix_format.pixelformat) {
-+	switch (fmt->pixelformat) {
-+	case V4L2_PIX_FMT_YUV422P:
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_PLANAR | C0_YUVE_YVYU, C0_DF_MASK);
-+		break;
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_420PL | C0_YUVE_YVYU, C0_DF_MASK);
-+		break;
- 	case V4L2_PIX_FMT_YUYV:
--	    mcam_reg_write_mask(cam, REG_CTRL0,
--			    C0_DF_YUV|C0_YUV_PACKED|C0_YUVE_YUYV,
--			    C0_DF_MASK);
--	    break;
--
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_UYVY, C0_DF_MASK);
-+		break;
-+	case V4L2_PIX_FMT_UYVY:
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
-+		break;
-+	case V4L2_PIX_FMT_JPEG:
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_YUV | C0_YUV_PACKED | C0_YUVE_YUYV, C0_DF_MASK);
-+		break;
- 	case V4L2_PIX_FMT_RGB444:
--	    mcam_reg_write_mask(cam, REG_CTRL0,
--			    C0_DF_RGB|C0_RGBF_444|C0_RGB4_XRGB,
--			    C0_DF_MASK);
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_RGB | C0_RGBF_444 | C0_RGB4_XRGB, C0_DF_MASK);
- 		/* Alpha value? */
--	    break;
--
-+		break;
- 	case V4L2_PIX_FMT_RGB565:
--	    mcam_reg_write_mask(cam, REG_CTRL0,
--			    C0_DF_RGB|C0_RGBF_565|C0_RGB5_BGGR,
--			    C0_DF_MASK);
--	    break;
--
-+		mcam_reg_write_mask(cam, REG_CTRL0,
-+			C0_DF_RGB | C0_RGBF_565 | C0_RGB5_BGGR, C0_DF_MASK);
-+		break;
- 	default:
--	    cam_err(cam, "Unknown format %x\n", cam->pix_format.pixelformat);
--	    break;
-+		cam_err(cam, "camera: unknown format: %#x\n", fmt->pixelformat);
-+		break;
- 	}
-+
- 	/*
- 	 * Make sure it knows we want to use hsync/vsync.
- 	 */
--	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC,
--			C0_SIFM_MASK);
--
-+	mcam_reg_write_mask(cam, REG_CTRL0, C0_SIF_HVSYNC, C0_SIFM_MASK);
- 	/*
- 	 * This field controls the generation of EOF(DVP only)
- 	 */
-@@ -1174,6 +1290,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- #ifdef MCAM_MODE_DMA_CONTIG
- 		vq->ops = &mcam_vb2_ops;
- 		vq->mem_ops = &vb2_dma_contig_memops;
-+		vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
- 		cam->vb_alloc_ctx = vb2_dma_contig_init_ctx(cam->dev);
- 		vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 		cam->dma_setup = mcam_ctlr_dma_contig;
-@@ -1184,6 +1301,7 @@ static int mcam_setup_vb2(struct mcam_camera *cam)
- #ifdef MCAM_MODE_DMA_SG
- 		vq->ops = &mcam_vb2_sg_ops;
- 		vq->mem_ops = &vb2_dma_sg_memops;
-+		vq->buf_struct_size = sizeof(struct mcam_vb_buffer);
- 		vq->io_modes = VB2_MMAP | VB2_USERPTR;
- 		cam->dma_setup = mcam_ctlr_dma_sg;
- 		cam->frame_complete = mcam_dma_sg_done;
-@@ -1334,7 +1452,15 @@ static int mcam_vidioc_try_fmt_vid_cap(struct file *filp, void *priv,
- 	ret = sensor_call(cam, video, try_mbus_fmt, &mbus_fmt);
- 	mutex_unlock(&cam->s_mutex);
- 	v4l2_fill_pix_format(pix, &mbus_fmt);
--	pix->bytesperline = pix->width * f->bpp;
-+	switch (f->pixelformat) {
-+	case V4L2_PIX_FMT_YUV420:
-+	case V4L2_PIX_FMT_YVU420:
-+		pix->bytesperline = pix->width * 3 / 2;
-+		break;
-+	default:
-+		pix->bytesperline = pix->width * f->bpp;
-+		break;
-+	}
- 	pix->sizeimage = pix->height * pix->bytesperline;
- 	return ret;
- }
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.h b/drivers/media/platform/marvell-ccic/mcam-core.h
-index 4d4db6b..0dd5869 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.h
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.h
-@@ -244,6 +244,12 @@ int mccic_resume(struct mcam_camera *cam);
- #define REG_Y0BAR	0x00
- #define REG_Y1BAR	0x04
- #define REG_Y2BAR	0x08
-+#define REG_U0BAR	0x0c
-+#define REG_U1BAR	0x10
-+#define REG_U2BAR	0x14
-+#define REG_V0BAR	0x18
-+#define REG_V1BAR	0x1C
-+#define REG_V2BAR	0x20
- 
- /*
-  * register definitions for MIPI support
--- 
-1.7.9.5
+date:		Sun Jul  7 19:00:19 CEST 2013
+git branch:	test
+git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Sunday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
