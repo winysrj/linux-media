@@ -1,149 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36267 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755756Ab3GUPql (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jul 2013 11:46:41 -0400
-Date: Sun, 21 Jul 2013 08:46:53 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Tomasz Figa <tomasz.figa@gmail.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Message-ID: <20130721154653.GG16598@kroah.com>
-References: <20130720220006.GA7977@kroah.com>
- <3839600.WiC1OLF35o@flatron>
- <51EBC0F5.70601@ti.com>
- <9748041.Qq1fWJBg6D@flatron>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <9748041.Qq1fWJBg6D@flatron>
+Received: from mailout2.samsung.com ([203.254.224.25]:44779 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752119Ab3GHMH2 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:28 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPM00LU49OANZR0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:26 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v4 2/8] [media] s5p-mfc: Rename IS_MFCV6 macro
+Date: Mon, 08 Jul 2013 18:00:30 +0530
+Message-id: <1373286637-30154-3-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 21, 2013 at 01:12:07PM +0200, Tomasz Figa wrote:
-> On Sunday 21 of July 2013 16:37:33 Kishon Vijay Abraham I wrote:
-> > Hi,
-> > 
-> > On Sunday 21 July 2013 04:01 PM, Tomasz Figa wrote:
-> > > Hi,
-> > > 
-> > > On Saturday 20 of July 2013 19:59:10 Greg KH wrote:
-> > >> On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
-> > >>> On Sat, 20 Jul 2013, Greg KH wrote:
-> > >>>>>>> That should be passed using platform data.
-> > >>>>>> 
-> > >>>>>> Ick, don't pass strings around, pass pointers.  If you have
-> > >>>>>> platform
-> > >>>>>> data you can get to, then put the pointer there, don't use a
-> > >>>>>> "name".
-> > >>>>> 
-> > >>>>> I don't think I understood you here :-s We wont have phy pointer
-> > >>>>> when we create the device for the controller no?(it'll be done in
-> > >>>>> board file). Probably I'm missing something.
-> > >>>> 
-> > >>>> Why will you not have that pointer?  You can't rely on the "name"
-> > >>>> as
-> > >>>> the device id will not match up, so you should be able to rely on
-> > >>>> the pointer being in the structure that the board sets up, right?
-> > >>>> 
-> > >>>> Don't use names, especially as ids can, and will, change, that is
-> > >>>> going
-> > >>>> to cause big problems.  Use pointers, this is C, we are supposed to
-> > >>>> be
-> > >>>> doing that :)
-> > >>> 
-> > >>> Kishon, I think what Greg means is this:  The name you are using
-> > >>> must
-> > >>> be stored somewhere in a data structure constructed by the board
-> > >>> file,
-> > >>> right?  Or at least, associated with some data structure somehow.
-> > >>> Otherwise the platform code wouldn't know which PHY hardware
-> > >>> corresponded to a particular name.
-> > >>> 
-> > >>> Greg's suggestion is that you store the address of that data
-> > >>> structure
-> > >>> in the platform data instead of storing the name string.  Have the
-> > >>> consumer pass the data structure's address when it calls phy_create,
-> > >>> instead of passing the name.  Then you don't have to worry about two
-> > >>> PHYs accidentally ending up with the same name or any other similar
-> > >>> problems.
-> > >> 
-> > >> Close, but the issue is that whatever returns from phy_create()
-> > >> should
-> > >> then be used, no need to call any "find" functions, as you can just
-> > >> use
-> > >> the pointer that phy_create() returns.  Much like all other class api
-> > >> functions in the kernel work.
-> > > 
-> > > I think there is a confusion here about who registers the PHYs.
-> > > 
-> > > All platform code does is registering a platform/i2c/whatever device,
-> > > which causes a driver (located in drivers/phy/) to be instantiated.
-> > > Such drivers call phy_create(), usually in their probe() callbacks,
-> > > so platform_code has no way (and should have no way, for the sake of
-> > > layering) to get what phy_create() returns.
+The MFC v6 specific code holds good for MFC v7 also as
+the v7 version is a superset of v6 and the HW interface
+remains more or less similar. This patch renames the macro
+IS_MFCV6() to IS_MFCV6_PLUS() so that it can be used
+for v7 also.
 
-Why not put pointers in the platform data structure that can hold these
-pointers?  I thought that is why we created those structures in the
-first place.  If not, what are they there for?
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c    |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   12 ++++++------
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   18 ++++++++++--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   16 +++++++++-------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |    2 +-
+ 6 files changed, 28 insertions(+), 24 deletions(-)
 
-> > > IMHO we need a lookup method for PHYs, just like for clocks,
-> > > regulators, PWMs or even i2c busses because there are complex cases
-> > > when passing just a name using platform data will not work. I would
-> > > second what Stephen said [1] and define a structure doing things in a
-> > > DT-like way.
-> > > 
-> > > Example;
-> > > 
-> > > [platform code]
-> > > 
-> > > static const struct phy_lookup my_phy_lookup[] = {
-> > > 
-> > > 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
-> > 
-> > The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
-> > creating the device, the ids in the device name would change and
-> > PHY_LOOKUP wont be useful.
-> 
-> I don't think this is a problem. All the existing lookup methods already 
-> use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). You 
-> can simply add a requirement that the ID must be assigned manually, 
-> without using PLATFORM_DEVID_AUTO to use PHY lookup.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
+index f0a41c9..242c033 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
+@@ -20,7 +20,7 @@ static struct s5p_mfc_hw_cmds *s5p_mfc_cmds;
+ 
+ void s5p_mfc_init_hw_cmds(struct s5p_mfc_dev *dev)
+ {
+-	if (IS_MFCV6(dev))
++	if (IS_MFCV6_PLUS(dev))
+ 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v6();
+ 	else
+ 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v5();
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index ef4074c..d47016d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -683,6 +683,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+ #define HAS_PORTNUM(dev)	(dev ? (dev->variant ? \
+ 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
+ #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
+-#define IS_MFCV6(dev)		(dev->variant->version >= 0x60 ? 1 : 0)
++#define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
+ 
+ #endif /* S5P_MFC_COMMON_H_ */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index dc1fc94..7cab684 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -164,7 +164,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ 
+ 	mfc_debug_enter();
+ 
+-	if (IS_MFCV6(dev)) {
++	if (IS_MFCV6_PLUS(dev)) {
+ 		/* Reset IP */
+ 		/*  except RISC, reset */
+ 		mfc_write(dev, 0xFEE, S5P_FIMV_MFC_RESET_V6);
+@@ -213,7 +213,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ 
+ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
+ {
+-	if (IS_MFCV6(dev)) {
++	if (IS_MFCV6_PLUS(dev)) {
+ 		mfc_write(dev, dev->bank1, S5P_FIMV_RISC_BASE_ADDRESS_V6);
+ 		mfc_debug(2, "Base Address : %08x\n", dev->bank1);
+ 	} else {
+@@ -226,7 +226,7 @@ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
+ 
+ static inline void s5p_mfc_clear_cmds(struct s5p_mfc_dev *dev)
+ {
+-	if (IS_MFCV6(dev)) {
++	if (IS_MFCV6_PLUS(dev)) {
+ 		/* Zero initialization should be done before RESET.
+ 		 * Nothing to do here. */
+ 	} else {
+@@ -264,7 +264,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	s5p_mfc_clear_cmds(dev);
+ 	/* 3. Release reset signal to the RISC */
+ 	s5p_mfc_clean_dev_int_flags(dev);
+-	if (IS_MFCV6(dev))
++	if (IS_MFCV6_PLUS(dev))
+ 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
+ 	else
+ 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+@@ -301,7 +301,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 		s5p_mfc_clock_off();
+ 		return -EIO;
+ 	}
+-	if (IS_MFCV6(dev))
++	if (IS_MFCV6_PLUS(dev))
+ 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
+ 	else
+ 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
+@@ -380,7 +380,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ 		return ret;
+ 	}
+ 	/* 4. Release reset signal to the RISC */
+-	if (IS_MFCV6(dev))
++	if (IS_MFCV6_PLUS(dev))
+ 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
+ 	else
+ 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 00b0703..56a1d3b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -382,7 +382,7 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("Unsupported format for source.\n");
+ 			return -EINVAL;
+ 		}
+-		if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
++		if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+ 		}
+@@ -392,10 +392,11 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("Unsupported format for destination.\n");
+ 			return -EINVAL;
+ 		}
+-		if (IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
++		if (IS_MFCV6_PLUS(dev) &&
++				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+-		} else if (!IS_MFCV6(dev) &&
++		} else if (!IS_MFCV6_PLUS(dev) &&
+ 				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+@@ -430,10 +431,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("Unsupported format for source.\n");
+ 			return -EINVAL;
+ 		}
+-		if (!IS_MFCV6(dev) && (fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
++		if (!IS_MFCV6_PLUS(dev) &&
++				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+-		} else if (IS_MFCV6(dev) &&
++		} else if (IS_MFCV6_PLUS(dev) &&
+ 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+@@ -457,7 +459,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+-	if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
++	if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
+ 		mfc_err("Not supported format.\n");
+ 		return -EINVAL;
+ 	}
+@@ -942,7 +944,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 		psize[0] = ctx->luma_size;
+ 		psize[1] = ctx->chroma_size;
+ 
+-		if (IS_MFCV6(dev))
++		if (IS_MFCV6_PLUS(dev))
+ 			allocators[0] =
+ 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
+ 		else
+@@ -1067,7 +1069,7 @@ static int s5p_mfc_stop_streaming(struct vb2_queue *q)
+ 		ctx->dpb_flush_flag = 1;
+ 		ctx->dec_dst_flag = 0;
+ 		spin_unlock_irqrestore(&dev->irqlock, flags);
+-		if (IS_MFCV6(dev) && (ctx->state == MFCINST_RUNNING)) {
++		if (IS_MFCV6_PLUS(dev) && (ctx->state == MFCINST_RUNNING)) {
+ 			ctx->state = MFCINST_FLUSH;
+ 			set_work_bit_irqsave(ctx);
+ 			s5p_mfc_clean_ctx_int_flags(ctx);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2549967..f734ccc 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -663,7 +663,7 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
+ 		spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	}
+ 
+-	if (!IS_MFCV6(dev)) {
++	if (!IS_MFCV6_PLUS(dev)) {
+ 		ctx->state = MFCINST_RUNNING;
+ 		if (s5p_mfc_ctx_ready(ctx))
+ 			set_work_bit_irqsave(ctx);
+@@ -993,11 +993,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			return -EINVAL;
+ 		}
+ 
+-		if (!IS_MFCV6(dev) &&
++		if (!IS_MFCV6_PLUS(dev) &&
+ 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+-		} else if (IS_MFCV6(dev) &&
++		} else if (IS_MFCV6_PLUS(dev) &&
+ 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+@@ -1072,7 +1072,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 			return -EINVAL;
+ 		}
+ 
+-		if (IS_MFCV6(dev)) {
++		if (IS_MFCV6_PLUS(dev)) {
+ 			/* Check for min encoder buffers */
+ 			if (ctx->pb_count &&
+ 				(reqbufs->count < ctx->pb_count)) {
+@@ -1353,7 +1353,7 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 				S5P_FIMV_ENC_PROFILE_H264_BASELINE;
+ 			break;
+ 		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
+-			if (IS_MFCV6(dev))
++			if (IS_MFCV6_PLUS(dev))
+ 				p->codec.h264.profile =
+ 				S5P_FIMV_ENC_PROFILE_H264_CONSTRAINED_BASELINE;
+ 			else
+@@ -1662,9 +1662,10 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 			*buf_count = 1;
+ 		if (*buf_count > MFC_MAX_BUFFERS)
+ 			*buf_count = MFC_MAX_BUFFERS;
++
+ 		psize[0] = ctx->luma_size;
+ 		psize[1] = ctx->chroma_size;
+-		if (IS_MFCV6(dev)) {
++		if (IS_MFCV6_PLUS(dev)) {
+ 			allocators[0] =
+ 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
+ 			allocators[1] =
+@@ -1773,7 +1774,8 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 
+-	if (IS_MFCV6(dev) && (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
++	if (IS_MFCV6_PLUS(dev) &&
++			(q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
+ 
+ 		if ((ctx->state == MFCINST_GOT_INST) &&
+ 			(dev->curr_ctx == ctx->num) && dev->hw_lock) {
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+index 10f8ac3..3c01c33 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+@@ -21,7 +21,7 @@ static struct s5p_mfc_hw_ops *s5p_mfc_ops;
+ 
+ void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev)
+ {
+-	if (IS_MFCV6(dev)) {
++	if (IS_MFCV6_PLUS(dev)) {
+ 		s5p_mfc_ops = s5p_mfc_init_hw_ops_v6();
+ 		dev->warn_start = S5P_FIMV_ERR_WARNINGS_START_V6;
+ 	} else {
+-- 
+1.7.9.5
 
-And I'm saying that this idea, of using a specific name and id, is
-frought with fragility and will break in the future in various ways when
-devices get added to systems, making these strings constantly have to be
-kept up to date with different board configurations.
-
-People, NEVER, hardcode something like an id.  The fact that this
-happens today with the clock code, doesn't make it right, it makes the
-clock code wrong.  Others have already said that this is wrong there as
-well, as systems change and dynamic ids get used more and more.
-
-Let's not repeat the same mistakes of the past just because we refuse to
-learn from them...
-
-So again, the "find a phy by a string" functions should be removed, the
-device id should be automatically created by the phy core just to make
-things unique in sysfs, and no driver code should _ever_ be reliant on
-the number that is being created, and the pointer to the phy structure
-should be used everywhere instead.
-
-With those types of changes, I will consider merging this subsystem, but
-without them, sorry, I will not.
-
-thanks,
-
-greg k-h
