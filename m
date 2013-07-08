@@ -1,61 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from youngberry.canonical.com ([91.189.89.112]:33655 "EHLO
-	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752521Ab3GNOdr (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jul 2013 10:33:47 -0400
-MIME-Version: 1.0
-In-Reply-To: <1373807844.4998.10.camel@palomino.walls.org>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-	<1373807844.4998.10.camel@palomino.walls.org>
-Date: Sun, 14 Jul 2013 22:33:44 +0800
-Message-ID: <CACVXFVPjkUwpnDCeC+y_eczGuen=qu+g74V__SXFCidPp+QYMw@mail.gmail.com>
-Subject: Re: [PATCH 00/50] USB: cleanup spin_lock in URB->complete()
-From: Ming Lei <ming.lei@canonical.com>
-To: Andy Walls <awalls@md.metrocast.net>
-Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	linux-kernel@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from pequod.mess.org ([46.65.169.142]:38231 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753100Ab3GHVlP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jul 2013 17:41:15 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] rc: allowed_protos now is a bit field
+Date: Mon,  8 Jul 2013 22:33:10 +0100
+Message-Id: <1373319192-26816-3-git-send-email-sean@mess.org>
+In-Reply-To: <1373319192-26816-1-git-send-email-sean@mess.org>
+References: <1373319192-26816-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 14, 2013 at 9:17 PM, Andy Walls <awalls@md.metrocast.net> wrote:
-> On Thu, 2013-07-11 at 17:05 +0800, Ming Lei wrote:
->> Hi,
->>
->> As we are going to run URB->complete() in tasklet context[1][2],
->
-> Hi,
->
-> Please pardon my naivete, but why was it decided to use tasklets to
-> defer work, as opposed to some other deferred work mechanism?
->
-> It seems to me that getting rid of tasklets has been an objective for
-> years:
->
-> http://lwn.net/Articles/239633/
-> http://lwn.net/Articles/520076/
-> http://lwn.net/Articles/240054/
+This one must have missed the conversion "c003ab1b [media] rc-core:
+add separate defines for protocol bitmaps and numbers".
 
-We discussed the problem in the below link previously[1], Steven
-and Thomas suggested to use threaded irq handler, but which
-may degrade USB mass storage performance, so we have to
-take tasklet now until we rewrite transport part of USB mass storage
-driver.
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/usb/dvb-usb/m920x.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Also the conversion[2] has avoided the tasklet spin lock problem
-already.
+diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
+index c2b635d..0306cb7 100644
+--- a/drivers/media/usb/dvb-usb/m920x.c
++++ b/drivers/media/usb/dvb-usb/m920x.c
+@@ -1212,7 +1212,7 @@ static struct dvb_usb_device_properties vp7049_properties = {
+ 		.rc_interval    = 150,
+ 		.rc_codes       = RC_MAP_TWINHAN_VP1027_DVBS,
+ 		.rc_query       = m920x_rc_core_query,
+-		.allowed_protos = RC_TYPE_UNKNOWN,
++		.allowed_protos = RC_BIT_UNKNOWN,
+ 	},
+ 
+ 	.size_of_priv     = sizeof(struct m920x_state),
+-- 
+1.8.3.1
 
-
-[1], http://marc.info/?t=137079119200001&r=1&w=2
-[2], http://marc.info/?l=linux-usb&m=137286326726326&w=2
-
-
-Thanks,
---
-Ming Lei
