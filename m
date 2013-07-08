@@ -1,157 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51971 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932291Ab3GZMuw (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 08:50:52 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
-	<tomasz.figa@gmail.com>, <arnd@arndb.de>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
-	<linux@arm.linux.org.uk>
-Subject: [RESEND PATCH v10 6/8] usb: musb: omap2430: use the new generic PHY framework
-Date: Fri, 26 Jul 2013 18:19:21 +0530
-Message-ID: <1374842963-13545-7-git-send-email-kishon@ti.com>
-In-Reply-To: <1374842963-13545-1-git-send-email-kishon@ti.com>
-References: <1374842963-13545-1-git-send-email-kishon@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout2.samsung.com ([203.254.224.25]:44779 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672Ab3GHMH3 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:29 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPM00LU49OANZR0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:27 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v4 3/8] [media] s5p-mfc: Add register definition file for MFC v7
+Date: Mon, 08 Jul 2013 18:00:31 +0530
+Message-id: <1373286637-30154-4-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use the generic PHY framework API to get the PHY. The usb_phy_set_resume
-and usb_phy_set_suspend is replaced with power_on and
-power_off to align with the new PHY framework.
+The patch adds the register definition file for new firmware
+version v7 for MFC. New firmware supports VP8 encoding along with
+many other features.
 
-musb->xceiv can't be removed as of now because musb core uses xceiv.state and
-xceiv.otg. Once there is a separate state machine to handle otg, these can be
-moved out of xceiv and then we can start using the generic PHY framework.
-
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/usb/musb/Kconfig     |    1 +
- drivers/usb/musb/musb_core.h |    2 ++
- drivers/usb/musb/omap2430.c  |   26 ++++++++++++++++++++------
- 3 files changed, 23 insertions(+), 6 deletions(-)
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h |   58 ++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
 
-diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
-index 797e3fd..25e2e57 100644
---- a/drivers/usb/musb/Kconfig
-+++ b/drivers/usb/musb/Kconfig
-@@ -76,6 +76,7 @@ config USB_MUSB_TUSB6010
- config USB_MUSB_OMAP2PLUS
- 	tristate "OMAP2430 and onwards"
- 	depends on ARCH_OMAP2PLUS
-+	select GENERIC_PHY
- 
- config USB_MUSB_AM35X
- 	tristate "AM35x"
-diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
-index 7d341c3..6e567bd 100644
---- a/drivers/usb/musb/musb_core.h
-+++ b/drivers/usb/musb/musb_core.h
-@@ -46,6 +46,7 @@
- #include <linux/usb.h>
- #include <linux/usb/otg.h>
- #include <linux/usb/musb.h>
-+#include <linux/phy/phy.h>
- 
- struct musb;
- struct musb_hw_ep;
-@@ -346,6 +347,7 @@ struct musb {
- 	u16			int_tx;
- 
- 	struct usb_phy		*xceiv;
-+	struct phy		*phy;
- 
- 	int nIrq;
- 	unsigned		irq_wake:1;
-diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
-index 6708a3b..f7b33f4 100644
---- a/drivers/usb/musb/omap2430.c
-+++ b/drivers/usb/musb/omap2430.c
-@@ -348,11 +348,21 @@ static int omap2430_musb_init(struct musb *musb)
- 	 * up through ULPI.  TWL4030-family PMICs include one,
- 	 * which needs a driver, drivers aren't always needed.
- 	 */
--	if (dev->parent->of_node)
-+	if (dev->parent->of_node) {
-+		musb->phy = devm_phy_get(dev->parent, "usb2-phy");
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+new file mode 100644
+index 0000000..24dba69
+--- /dev/null
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -0,0 +1,58 @@
++/*
++ * Register definition file for Samsung MFC V7.x Interface (FIMV) driver
++ *
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+		/* We can't totally remove musb->xceiv as of now because
-+		 * musb core uses xceiv.state and xceiv.otg. Once we have
-+		 * a separate state machine to handle otg, these can be moved
-+		 * out of xceiv and then we can start using the generic PHY
-+		 * framework
-+		 */
- 		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
- 		    "usb-phy", 0);
--	else
-+	} else {
- 		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
-+		musb->phy = devm_phy_get(dev, "usb");
-+	}
- 
- 	if (IS_ERR(musb->xceiv)) {
- 		status = PTR_ERR(musb->xceiv);
-@@ -364,6 +374,10 @@ static int omap2430_musb_init(struct musb *musb)
- 		return -EPROBE_DEFER;
- 	}
- 
-+	if (IS_ERR(musb->phy)) {
-+		pr_err("HS USB OTG: no PHY configured\n");
-+		return PTR_ERR(musb->phy);
-+	}
- 	musb->isr = omap2430_musb_interrupt;
- 
- 	status = pm_runtime_get_sync(dev);
-@@ -397,7 +411,7 @@ static int omap2430_musb_init(struct musb *musb)
- 	if (glue->status != OMAP_MUSB_UNKNOWN)
- 		omap_musb_set_mailbox(glue);
- 
--	usb_phy_init(musb->xceiv);
-+	phy_init(musb->phy);
- 
- 	pm_runtime_put_noidle(musb->controller);
- 	return 0;
-@@ -460,6 +474,7 @@ static int omap2430_musb_exit(struct musb *musb)
- 	del_timer_sync(&musb_idle_timer);
- 
- 	omap2430_low_level_exit(musb);
-+	phy_exit(musb->phy);
- 
- 	return 0;
- }
-@@ -633,7 +648,7 @@ static int omap2430_runtime_suspend(struct device *dev)
- 				OTG_INTERFSEL);
- 
- 		omap2430_low_level_exit(musb);
--		usb_phy_set_suspend(musb->xceiv, 1);
-+		phy_power_off(musb->phy);
- 	}
- 
- 	return 0;
-@@ -648,8 +663,7 @@ static int omap2430_runtime_resume(struct device *dev)
- 		omap2430_low_level_init(musb);
- 		musb_writel(musb->mregs, OTG_INTERFSEL,
- 				musb->context.otg_interfsel);
--
--		usb_phy_set_suspend(musb->xceiv, 0);
-+		phy_power_on(musb->phy);
- 	}
- 
- 	return 0;
++#ifndef _REGS_MFC_V7_H
++#define _REGS_MFC_V7_H
++
++#include "regs-mfc-v6.h"
++
++/* Additional features of v7 */
++#define S5P_FIMV_CODEC_VP8_ENC_V7	25
++
++/* Additional registers for v7 */
++#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
++
++#define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
++#define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
++#define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
++#define S5P_FIMV_E_SOURCE_FIRST_STRIDE_V7		0xf9ec
++#define S5P_FIMV_E_SOURCE_SECOND_STRIDE_V7		0xf9f0
++#define S5P_FIMV_E_SOURCE_THIRD_STRIDE_V7		0xf9f4
++
++#define S5P_FIMV_E_ENCODED_SOURCE_FIRST_ADDR_V7		0xfa70
++#define S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7	0xfa74
++
++#define S5P_FIMV_E_VP8_OPTIONS_V7			0xfdb0
++#define S5P_FIMV_E_VP8_FILTER_OPTIONS_V7		0xfdb4
++#define S5P_FIMV_E_VP8_GOLDEN_FRAME_OPTION_V7		0xfdb8
++#define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
++
++/* MFCv7 variant defines */
++#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
++#define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
++#define MFC_VERSION_V7			0x72
++#define MFC_NUM_PORTS_V7		1
++
++/* MFCv7 Context buffer sizes */
++#define MFC_CTX_BUF_SIZE_V7		(30 * SZ_1K)	/*  30KB */
++#define MFC_H264_DEC_CTX_BUF_SIZE_V7	(2 * SZ_1M)	/*  2MB */
++#define MFC_OTHER_DEC_CTX_BUF_SIZE_V7	(20 * SZ_1K)	/*  20KB */
++#define MFC_H264_ENC_CTX_BUF_SIZE_V7	(100 * SZ_1K)	/* 100KB */
++#define MFC_OTHER_ENC_CTX_BUF_SIZE_V7	(10 * SZ_1K)	/*  10KB */
++
++/* Buffer size defines */
++#define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(w, h) \
++			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
++
++#define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
++			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
++
++#endif /*_REGS_MFC_V7_H*/
 -- 
-1.7.10.4
+1.7.9.5
 
