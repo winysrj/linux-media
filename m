@@ -1,45 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.net.t-labs.tu-berlin.de ([130.149.220.252]:44686 "EHLO
-	mail.net.t-labs.tu-berlin.de" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S932612Ab3GLQ0f (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jul 2013 12:26:35 -0400
-Received: from fls-nb.lan.streibelt.net (91-64-122-25-dynip.superkabel.de [91.64.122.25])
-	by mail.net.t-labs.tu-berlin.de (Postfix) with ESMTPSA id CD9CD4C63E0
-	for <linux-media@vger.kernel.org>; Fri, 12 Jul 2013 18:26:33 +0200 (CEST)
-Date: Fri, 12 Jul 2013 18:26:32 +0200
-From: Florian Streibelt <florian@inet.tu-berlin.de>
+Received: from mailout2.samsung.com ([203.254.224.25]:44779 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752102Ab3GHMH1 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:27 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPM00LU49OANZR0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:25 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: CX23103  Video Grabber seems to be supported by cx231xx  driver
-Message-ID: <20130712182632.667842dc@fls-nb.lan.streibelt.net>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v4 1/8] [media] s5p-mfc: Update v6 encoder buffer sizes
+Date: Mon, 08 Jul 2013 18:00:29 +0530
+Message-id: <1373286637-30154-2-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The patch updates few encoder buffer sizes for MFC v6.5
+as per the udpdated user manual. The same buffer sizes
+holds good for v7 firmware also.
 
-the chip CX23103 that is used in various devices sold e.g. in germany works with the cx231xx stock driver.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-The author of that driver is not reachable via the email adress stated in the source file: srinivasa.deevi@conexant.com
-[ host cnxtsmtp1.conexant.com [198.62.9.252]: 550 5.1.1 <srinivasa.deevi@conexant.com>:  Recipient address rejected: User unknown in relay recipient table]
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index 363a97c..2398cdf 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -374,9 +374,9 @@
+ #define S5P_FIMV_NUM_PIXELS_IN_MB_COL_V6	16
+ 
+ /* Buffer size requirements defined by hardware */
+-#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 1) * 8)
++#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 3) * 8)
+ #define S5P_FIMV_ME_BUFFER_SIZE_V6(imw, imh, mbw, mbh) \
+-	((DIV_ROUND_UP(imw, 64) *  DIV_ROUND_UP(imh, 64) * 256) + \
++	(((((imw + 127) / 64) * 16) *  DIV_ROUND_UP(imh, 64) * 256) + \
+ 	 (DIV_ROUND_UP((mbw) * (mbh), 32) * 16))
+ #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V6(w, h)	(((w) * 192) + 64)
+ #define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V6(w, h) \
+-- 
+1.7.9.5
 
-In drivers/media/video/cx231xx/cx231xx-cards.c the struct usb_device_id cx231xx_id_table[] needs these lines added:
-
-   {USB_DEVICE(0x1D19, 0x6109),
-   .driver_info = CX231XX_BOARD_PV_XCAPTURE_USB},
-
-While the change is minimal due to the fact that no real technical documentation is available on the chip the support was guessed - but worked for video.
-
-The videostream can pe played using mplayer tv:///0  - proof: http://streibelt.de/blog/2013/06/23/kernel-patch-for-cx23103-video-grabber-linux-support/
-
-However when trying to capture audio using audacity while playing the video stream in mplayer my system locked (no message in syslog, complete freeze). 
-
-
-I posted this one month ago to this list without any reaction so I ask if this is the correct way to get that grabber really supported.
-
-I am willing to do any tests neccessary and try out patches.
-
-
-/Florian
