@@ -1,106 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:3147 "EHLO
-	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757419Ab3GES3g (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 14:29:36 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r65ITW6g080244
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 5 Jul 2013 20:29:35 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 11DBA35E010B
-	for <linux-media@vger.kernel.org>; Fri,  5 Jul 2013 20:29:31 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from mailout2.samsung.com ([203.254.224.25]:44779 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672Ab3GHMH0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:26 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPM00LU49OANZR0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:24 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130705182932.11DBA35E010B@alastor.dyndns.org>
-Date: Fri,  5 Jul 2013 20:29:31 +0200 (CEST)
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v4 0/8] Add support for MFC v7 firmware
+Date: Mon, 08 Jul 2013 18:00:28 +0530
+Message-id: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+This patch series adds MFC v7 firmware support to the Exynos
+MFC driver. MFC v7 is present in 5420 SoC which has support
+for VP8 encoding and many other features.
 
-Results of the daily build of media_tree:
+Changes from v3:
+- Addressed review comments from Hans
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63893.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63905.html
+- Addressed comments from Kamil
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63747.html
 
-date:		Fri Jul  5 19:00:25 CEST 2013
-git branch:	test
-git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+Changes from v2:
+- Addressed review comments from Sylwester
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63676.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63677.html
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+Changes from v1:
+- Addressed review comments from Hans and Sylwester
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63148.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63311.html
+- Modified IS_MFCV6 macro to IS_MFCV6_PLUS to include v7 also
 
-Detailed results are available here:
+Arun Kumar K (7):
+  [media] s5p-mfc: Update v6 encoder buffer sizes
+  [media] s5p-mfc: Rename IS_MFCV6 macro
+  [media] s5p-mfc: Add register definition file for MFC v7
+  [media] s5p-mfc: Core support for MFC v7
+  [media] s5p-mfc: Update driver for v7 firmware
+  [media] V4L: Add VP8 encoder controls
+  [media] s5p-mfc: Add support for VP8 encoder
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Sylwester Nawrocki (1):
+  [media] V4L: Add support for integer menu controls with standard menu
+    items
 
-Full logs are available here:
+ Documentation/DocBook/media/v4l/controls.xml       |  168 +++++++++++++++++++-
+ .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
+ Documentation/video4linux/v4l2-controls.txt        |   21 +--
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h       |    4 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h       |   61 +++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |   32 ++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |    3 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   23 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   12 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   18 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  107 ++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  149 +++++++++++++++--
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   67 +++++++-
+ include/uapi/linux/v4l2-controls.h                 |   33 +++-
+ 16 files changed, 643 insertions(+), 60 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+-- 
+1.7.9.5
 
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
