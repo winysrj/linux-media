@@ -1,53 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44189 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754733Ab3GJWNy (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 18:13:54 -0400
-Message-ID: <51DDDDF7.1010005@iki.fi>
-Date: Thu, 11 Jul 2013 01:19:35 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: Samsung i2c subdev drivers that set sd->name
-References: <201306241054.11604.hverkuil@xs4all.nl> <201307041313.25318.hverkuil@xs4all.nl> <51D5D8C8.2030400@gmail.com> <27462886.lEP1apMFVe@avalon> <51D88318.70904@gmail.com>
-In-Reply-To: <51D88318.70904@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-ee0-f44.google.com ([74.125.83.44]:52831 "EHLO
+	mail-ee0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753312Ab3GHAXL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 20:23:11 -0400
+Received: by mail-ee0-f44.google.com with SMTP id c13so2461721eek.17
+        for <linux-media@vger.kernel.org>; Sun, 07 Jul 2013 17:23:10 -0700 (PDT)
+From: Maxim Levitsky <maximlevitsky@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: Maxim Levitsky <maximlevitsky@gmail.com>
+Subject: [PATCH 3/3] ene_ir: don't use pr_debug after all
+Date: Mon,  8 Jul 2013 03:22:47 +0300
+Message-Id: <1373242968-16055-4-git-send-email-maximlevitsky@gmail.com>
+In-Reply-To: <1373242968-16055-1-git-send-email-maximlevitsky@gmail.com>
+References: <1373242968-16055-1-git-send-email-maximlevitsky@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester and Laurent,
+This way to only way to get debug info is to use dynamic debug, but I left debugging
+prints to debug hardware issues, and so I want this to be enabled by module param
 
-Sylwester Nawrocki wrote:
-> Hi Laurent,
-...
->> We need an ioctl to report additional information about media entities
->> (it's
->> been on my to-do list for wayyyyyyyyy too long). It could be used to
->> report
->> bus information as well.
->
-> Yes, that sounds much more interesting than using just subdev name to
-> sqeeze
-> all the information in. Why we don't have such an ioctl yet anyway ? Were
-> there some arguments against it, or its been just a low priority issue ?
+Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
+---
+ drivers/media/rc/ene_ir.h |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-I think it's just been left unaddressed until now since there have been 
-even more important things to work on. :-) I'm all for that, btw.; 
-associating bus information to the media device instead of entities was 
-always a little odd (feel free to blame me, too...).
-
-Perhaps we could steal some bytes from the union in struct 
-media_entity_desc? :-)
-
+diff --git a/drivers/media/rc/ene_ir.h b/drivers/media/rc/ene_ir.h
+index 6f978e8..a7911e3 100644
+--- a/drivers/media/rc/ene_ir.h
++++ b/drivers/media/rc/ene_ir.h
+@@ -185,7 +185,7 @@
+ #define __dbg(level, format, ...)				\
+ do {								\
+ 	if (debug >= level)					\
+-		pr_debug(format "\n", ## __VA_ARGS__);		\
++		pr_info(format "\n", ## __VA_ARGS__);		\
+ } while (0)
+ 
+ #define dbg(format, ...)		__dbg(1, format, ## __VA_ARGS__)
 -- 
-Cheers,
+1.7.9.5
 
-Sakari Ailus
-sakari.ailus@iki.fi
