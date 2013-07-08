@@ -1,96 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:20693 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755930Ab3GYN0E (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 09:26:04 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6PDPtGQ025835
-	for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 13:26:02 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 3/5] qv4l2: fix minimum size in capture win to frame size
-Date: Thu, 25 Jul 2013 15:25:22 +0200
-Message-Id: <cfb296d4dcb6ccabea64936949bb50bd1bf7a19d.1374758669.git.bwinther@cisco.com>
-In-Reply-To: <1374758724-3058-1-git-send-email-bwinther@cisco.com>
-References: <1374758724-3058-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <0fd43d1af7343792f570f32251ad150735066f71.1374758669.git.bwinther@cisco.com>
-References: <0fd43d1af7343792f570f32251ad150735066f71.1374758669.git.bwinther@cisco.com>
+Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2579 "EHLO
+	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753440Ab3GHHQX (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 03:16:23 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Subject: Re: [RFC PATCH 1/5] v4l2: add matrix support.
+Date: Mon, 8 Jul 2013 09:15:56 +0200
+Cc: linux-media@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl> <51D9E2BB.2080308@gmail.com>
+In-Reply-To: <51D9E2BB.2080308@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201307080915.56953.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CaptureWin's setMinimumSize() sets the minimum size for the video frame viewport
-and not for the window itself. If the minimum size is larger than the monitor resolution,
-it will reduce the minimum size to match this.
+On Sun July 7 2013 23:50:51 Sylwester Nawrocki wrote:
+> On 06/28/2013 02:27 PM, Hans Verkuil wrote:
+> > From: Hans Verkuil<hans.verkuil@cisco.com>
+> >
+> > This patch adds core support for matrices: querying, getting and setting.
+> >
+> > Two initial matrix types are defined for motion detection (defining regions
+> > and thresholds).
+> >
+> > Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
+> > ---
+> >   drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
+> >   drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
+> >   include/media/v4l2-ioctl.h           |  8 +++++
+> >   include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
+> >   4 files changed, 97 insertions(+), 1 deletion(-)
+> 
+> [...]
+> 
+> > diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> > index e0b74a4..7e4538e 100644
+> > --- a/include/media/v4l2-ioctl.h
+> > +++ b/include/media/v4l2-ioctl.h
+> > @@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
+> >   	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
+> >   					const struct v4l2_event_subscription *sub);
+> >
+> > +	/* Matrix ioctls */
+> > +	int (*vidioc_query_matrix) (struct file *file, void *fh,
+> > +				    struct v4l2_query_matrix *qmatrix);
+> > +	int (*vidioc_g_matrix) (struct file *file, void *fh,
+> > +				    struct v4l2_matrix *matrix);
+> > +	int (*vidioc_s_matrix) (struct file *file, void *fh,
+> > +				    struct v4l2_matrix *matrix);
+> > +
+> >   	/* For other private ioctls */
+> >   	long (*vidioc_default)	       (struct file *file, void *fh,
+> >   					bool valid_prio, unsigned int cmd, void *arg);
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 95ef455..5cbe815 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
+> >   	__u32			reserved[8];
+> >   };
+> >
+> > +/* Define to which motion detection region each element belongs.
+> > + * Each element is a __u8. */
+> > +#define V4L2_MATRIX_TYPE_MD_REGION     (1)
+> > +/* Define the motion detection threshold for each element.
+> > + * Each element is a __u16. */
+> > +#define V4L2_MATRIX_TYPE_MD_THRESHOLD  (2)
+> > +
+> > +/**
+> > + * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
+> > + * @type:	matrix type
+> > + * @ref:	reference to some object (if any) owning the matrix
+> > + * @columns:	number of columns in the matrix
+> > + * @rows:	number of rows in the matrix
+> > + * @elem_min:	minimum matrix element value
+> > + * @elem_max:	maximum matrix element value
+> > + * @elem_size:	size in bytes each matrix element
+> > + * @reserved:	future extensions, applications and drivers must zero this.
+> > + */
+> > +struct v4l2_query_matrix {
+> > +	__u32 type;
+> > +	union {
+> > +		__u32 reserved[4];
+> > +	} ref;
+> > +	__u32 columns;
+> > +	__u32 rows;
+> > +	union {
+> > +		__s64 val;
+> > +		__u64 uval;
+> > +		__u32 reserved[4];
+> > +	} elem_min;
+> > +	union {
+> > +		__s64 val;
+> > +		__u64 uval;
+> > +		__u32 reserved[4];
+> > +	} elem_max;
+> > +	__u32 elem_size;
+> 
+> How about reordering it to something like:
+> 
+> 	struct {
+> 		union {
+> 			__s64 val;
+> 			__u64 uval;
+> 			__u32 reserved[4];
+> 		} min;
+> 		union {
+> 			__s64 val;
+> 			__u64 uval;
+> 			__u32 reserved[4];
+> 		} max;
+> 		__u32 size;
+> 	} element;
+> 
+> ?
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 29 +++++++++++++++++++++++++++++
- utils/qv4l2/capture-win.h   |  1 +
- 2 files changed, 30 insertions(+)
+Makes sense, although I prefer 'elem' over the longer 'element'. Would that
+be OK with you?
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index a94c73d..68dc9ed 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -21,6 +21,8 @@
- #include <QImage>
- #include <QVBoxLayout>
- #include <QCloseEvent>
-+#include <QApplication>
-+#include <QDesktopWidget>
- 
- #include "qv4l2.h"
- #include "capture-win.h"
-@@ -45,6 +47,33 @@ CaptureWin::~CaptureWin()
- 	delete hotkeyClose;
- }
- 
-+void CaptureWin::setMinimumSize(int minw, int minh)
-+{
-+	QDesktopWidget *screen = QApplication::desktop();
-+	QRect resolution = screen->screenGeometry();
-+	QSize maxSize = maximumSize();
-+
-+	int l, t, r, b;
-+	layout()->getContentsMargins(&l, &t, &r, &b);
-+	minw += l + r;
-+	minh += t + b + m_msg->minimumSizeHint().height() + layout()->spacing();
-+
-+	if (minw > resolution.width())
-+		minw = resolution.width();
-+	if (minw < 150)
-+		minw = 150;
-+
-+	if (minh > resolution.height())
-+		minh = resolution.height();
-+	if (minh < 100)
-+		minh = 100;
-+
-+	QWidget::setMinimumSize(minw, minh);
-+	QWidget::setMaximumSize(minw, minh);
-+	updateGeometry();
-+	QWidget::setMaximumSize(maxSize.width(), maxSize.height());
-+}
-+
- void CaptureWin::setImage(const QImage &image, const QString &status)
- {
- 	m_label->setPixmap(QPixmap::fromImage(image));
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index 4115d56..3925757 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -35,6 +35,7 @@ public:
- 	CaptureWin();
- 	~CaptureWin();
- 
-+	void setMinimumSize(int minw, int minh);
- 	void setImage(const QImage &image, const QString &status);
- 
- protected:
--- 
-1.8.3.2
+Regards,
 
+	Hans
