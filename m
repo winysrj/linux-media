@@ -1,183 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51964 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932457Ab3GZMus (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 08:50:48 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
-	<tomasz.figa@gmail.com>, <arnd@arndb.de>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
-	<linux@arm.linux.org.uk>
-Subject: [RESEND PATCH v10 5/8] ARM: dts: omap: update usb_otg_hs data
-Date: Fri, 26 Jul 2013 18:19:20 +0530
-Message-ID: <1374842963-13545-6-git-send-email-kishon@ti.com>
-In-Reply-To: <1374842963-13545-1-git-send-email-kishon@ti.com>
-References: <1374842963-13545-1-git-send-email-kishon@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from mailout2.samsung.com ([203.254.224.25]:10664 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753360Ab3GHCy4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 22:54:56 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, Hui Wang <jason77.wang@gmail.com>,
+	'Jingoo Han' <jg1.han@samsung.com>
+Subject: [PATCH V5 0/4] Generic PHY driver for the Exynos SoC DP PHY
+Date: Mon, 08 Jul 2013 11:54:48 +0900
+Message-id: <001b01ce7b86$828743e0$8795cba0$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated the usb_otg_hs dt data to include the *phy* and *phy-names*
-binding in order for the driver to use the new generic PHY framework.
-Also updated the Documentation to include the binding information.
-The PHY binding information can be found at
-Documentation/devicetree/bindings/phy/phy-bindings.txt
+This patch series adds a simple driver for the Samsung Exynos SoC
+series DP transmitter PHY, using the generic PHY framework [1].
+Previously the DP PHY used an internal DT node to control the PHY
+power enable bit.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +++++
- Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 ++++++
- arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 ++
- arch/arm/boot/dts/omap3-evm.dts                    |    2 ++
- arch/arm/boot/dts/omap3-overo.dtsi                 |    2 ++
- arch/arm/boot/dts/omap4.dtsi                       |    3 +++
- arch/arm/boot/dts/twl4030.dtsi                     |    1 +
- 7 files changed, 21 insertions(+)
+These patches was tested on Exynos5250.
 
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index 57e71f6..825790d 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -19,6 +19,9 @@ OMAP MUSB GLUE
-  - power : Should be "50". This signifies the controller can supply up to
-    100mA when operating in host mode.
-  - usb-phy : the phandle for the PHY device
-+ - phys : the phandle for the PHY device (used by generic PHY framework)
-+ - phy-names : the names of the PHY corresponding to the PHYs present in the
-+   *phy* phandle.
- 
- Optional properties:
-  - ctrl-module : phandle of the control module this glue uses to write to
-@@ -33,6 +36,8 @@ usb_otg_hs: usb_otg_hs@4a0ab000 {
- 	num-eps = <16>;
- 	ram-bits = <12>;
- 	ctrl-module = <&omap_control_usb>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- };
- 
- Board specific device node entry
-diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
-index 61496f5..c0245c8 100644
---- a/Documentation/devicetree/bindings/usb/usb-phy.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
-@@ -5,6 +5,8 @@ OMAP USB2 PHY
- Required properties:
-  - compatible: Should be "ti,omap-usb2"
-  - reg : Address and length of the register set for the device.
-+ - #phy-cells: determine the number of cells that should be given in the
-+   phandle while referencing this phy.
- 
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -16,6 +18,7 @@ usb2phy@4a0ad080 {
- 	compatible = "ti,omap-usb2";
- 	reg = <0x4a0ad080 0x58>;
- 	ctrl-module = <&omap_control_usb>;
-+	#phy-cells = <0>;
- };
- 
- OMAP USB3 PHY
-@@ -25,6 +28,8 @@ Required properties:
-  - reg : Address and length of the register set for the device.
-  - reg-names: The names of the register addresses corresponding to the registers
-    filled in "reg".
-+ - #phy-cells: determine the number of cells that should be given in the
-+   phandle while referencing this phy.
- 
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -39,4 +44,5 @@ usb3phy@4a084400 {
- 	      <0x4a084c00 0x40>;
- 	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
- 	ctrl-module = <&omap_control_usb>;
-+	#phy-cells = <0>;
- };
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index afdb164..533b2da 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -144,6 +144,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index 7d4329d..4134dd0 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -70,6 +70,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-index 8f1abec..a461d2f 100644
---- a/arch/arm/boot/dts/omap3-overo.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo.dtsi
-@@ -76,6 +76,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 22d9f2b..1e8e2fe 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -520,6 +520,7 @@
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a0ad080 0x58>;
- 				ctrl-module = <&omap_control_usb>;
-+				#phy-cells = <0>;
- 			};
- 		};
- 
-@@ -658,6 +659,8 @@
- 			interrupt-names = "mc", "dma";
- 			ti,hwmods = "usb_otg_hs";
- 			usb-phy = <&usb2_phy>;
-+			phys = <&usb2_phy>;
-+			phy-names = "usb2-phy";
- 			multipoint = <1>;
- 			num-eps = <16>;
- 			ram-bits = <12>;
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-index b3034da..ce4cd6f 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -80,6 +80,7 @@
- 		usb1v8-supply = <&vusb1v8>;
- 		usb3v1-supply = <&vusb3v1>;
- 		usb_mode = <1>;
-+		#phy-cells = <0>;
- 	};
- 
- 	twl_pwm: pwm {
--- 
+This PATCH v5 follows:
+ * PATCH v4, sent on July, 2nd 2013
+ * PATCH v3, sent on July, 1st 2013
+ * PATCH v2, sent on June, 28th 2013
+ * PATCH v1, sent on June, 28th 2013
+
+Changes between v4 and v5:
+  * Marked original bindings as deprecated in 'exynos_dp.txt'
+  * Fixed typo of commit message.
+  * Added Tomasz Figa's Reviewed-by.
+
+Changes between v3 and v4:
+  * Added OF dependancy.
+  * Removed redundant local variable 'void __iomem *addr'.
+  * Removed unnecessary dev_set_drvdata().
+  * Added a patch that remove non-DT support for Exynos
+    Display Port driver.
+  * Removed unnecessary 'struct exynos_dp_platdata'.
+  * Kept supporting the original bindings for DT compatibility.
+
+Changes between v2 and v3:
+  * Removed redundant spinlock
+  * Removed 'struct phy' from 'struct exynos_dp_video_phy'
+  * Updated 'samsung-phy.txt', instead of creating
+    'samsung,exynos5250-dp-video-phy.txt'.
+  * Removed unnecessary additional specifier from 'phys'
+    DT property.
+  * Added 'phys', 'phy-names' properties to 'exynos_dp.txt' file.
+  * Added Felipe Balbi's Acked-by.
+
+Changes between v1 and v2:
+  * Replaced exynos_dp_video_phy_xlate() with of_phy_simple_xlate(),
+    as Kishon Vijay Abraham I guided.
+  * Set the value of phy-cells as 0, because the phy_provider implements
+    only one PHY.
+  * Removed unnecessary header include.
+  * Added '#ifdef CONFIG_OF' and of_match_ptr macro.
+
+This series depends on the generic PHY framework [1]. These patches
+refer to Sylwester Nawrocki's patches about Exynos MIPI [2].
+
+[1] https://lkml.org/lkml/2013/6/26/259
+[2] http://www.spinics.net/lists/linux-samsung-soc/msg20098.html
+
+Jingoo Han (4):
+  ARM: dts: Add DP PHY node to exynos5250.dtsi
+  phy: Add driver for Exynos DP PHY
+  video: exynos_dp: remove non-DT support for Exynos Display Port
+  video: exynos_dp: Use the generic PHY driver
+
+ .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
+ .../devicetree/bindings/video/exynos_dp.txt        |   18 +++++++++---------
+ arch/arm/boot/dts/exynos5250.dtsi                  |   13 ++++++++-----
+ drivers/phy/Kconfig                                |    6 ++
+ drivers/phy/Makefile                               |    1 +
+ drivers/phy/phy-exynos-dp-video.c                  |  111 ++++++++++++++++++++
+ drivers/video/exynos/Kconfig                       |    2 +-
+ drivers/video/exynos/exynos_dp_core.c              |  132 +++++++----------------------
+ drivers/video/exynos/exynos_dp_core.h              |  110 +++++++++++++++++++++++++++
+ drivers/video/exynos/exynos_dp_reg.c               |    2 -
+ include/video/exynos_dp.h                          |  131 ---------------------------------
+ 11 files changed, 291 insertions(+), 243 deletions(-) 
+ create mode 100644 drivers/phy/phy-exynos-dp-video.c
+ delete mode 100644 include/video/exynos_dp.h
+
+--
 1.7.10.4
 
