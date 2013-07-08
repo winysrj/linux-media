@@ -1,135 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f171.google.com ([209.85.217.171]:35471 "EHLO
-	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965599Ab3GSH7w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 03:59:52 -0400
-Received: by mail-lb0-f171.google.com with SMTP id 13so3282861lba.30
-        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 00:59:51 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	=?UTF-8?q?=C2=A0Mauro=20Carvalho=20Chehab?= <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	=?UTF-8?q?=C2=A0Ismael=20Luceno?=
-	<ismael.luceno@corp.bluecherry.net>,
-	=?UTF-8?q?=C2=A0Greg=20Kroah-Hartman?= <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 1/4] videobuf2-dma-sg: Allocate pages as contiguous as possible
-Date: Fri, 19 Jul 2013 09:58:46 +0200
-Message-Id: <1374220729-8304-2-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from pequod.mess.org ([46.65.169.142]:40214 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753279Ab3GHVlQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jul 2013 17:41:16 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] lirc: make transmit interface consistent
+Date: Mon,  8 Jul 2013 22:33:09 +0100
+Message-Id: <1373319192-26816-2-git-send-email-sean@mess.org>
+In-Reply-To: <1373319192-26816-1-git-send-email-sean@mess.org>
+References: <1373319192-26816-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most DMA engines have limitations regarding the number of DMA segments
-(sg-buffers) that they can handle. Videobuffers can easily spread
-through houndreds of pages.
+All lirc drivers that can transmit, return EINVAL when they are passed
+more than IR data than they can send. That is, except for two drivers
+which I touched.
 
-In the previous aproach, the pages were allocated individually, this
-could led to the creation houndreds of dma segments (sg-buffers) that
-could not be handled by some DMA engines.
-
-This patch tries to minimize the number of DMA segments by using
-alloc_pages. In the worst case it will behave as before, but most
-of the times it will reduce the number fo dma segments
-
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Signed-off-by: Sean Young <sean@mess.org>
 ---
- drivers/media/v4l2-core/videobuf2-dma-sg.c |   60 +++++++++++++++++++++++-----
- 1 file changed, 49 insertions(+), 11 deletions(-)
+ Documentation/DocBook/media/v4l/lirc_device_interface.xml | 4 +++-
+ drivers/media/rc/iguanair.c                               | 4 ++--
+ drivers/media/rc/redrat3.c                                | 7 ++++---
+ 3 files changed, 9 insertions(+), 6 deletions(-)
 
-diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-index 16ae3dc..9bf02c3 100644
---- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-+++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-@@ -42,10 +42,55 @@ struct vb2_dma_sg_buf {
+diff --git a/Documentation/DocBook/media/v4l/lirc_device_interface.xml b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
+index 8d7eb6b..34cada2 100644
+--- a/Documentation/DocBook/media/v4l/lirc_device_interface.xml
++++ b/Documentation/DocBook/media/v4l/lirc_device_interface.xml
+@@ -46,7 +46,9 @@ describing an IR signal are read from the chardev.</para>
+ values. Pulses and spaces are only marked implicitly by their position. The
+ data must start and end with a pulse, therefore, the data must always include
+ an uneven number of samples. The write function must block until the data has
+-been transmitted by the hardware.</para>
++been transmitted by the hardware. If more data is provided than the hardware
++can send, the driver returns EINVAL.</para>
++
+ </section>
  
- static void vb2_dma_sg_put(void *buf_priv);
+ <section id="lirc_ioctl">
+diff --git a/drivers/media/rc/iguanair.c b/drivers/media/rc/iguanair.c
+index a4ab2e6..19632b1 100644
+--- a/drivers/media/rc/iguanair.c
++++ b/drivers/media/rc/iguanair.c
+@@ -364,8 +364,8 @@ static int iguanair_tx(struct rc_dev *dev, unsigned *txbuf, unsigned count)
+ 		periods = DIV_ROUND_CLOSEST(txbuf[i] * ir->carrier, 1000000);
+ 		bytes = DIV_ROUND_UP(periods, 127);
+ 		if (size + bytes > ir->bufsize) {
+-			count = i;
+-			break;
++			rc = -EINVAL;
++			goto out;
+ 		}
+ 		while (periods > 127) {
+ 			ir->packet->payload[size++] = 127 | space;
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 3749443..0042367 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -762,7 +762,8 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 		return -EAGAIN;
+ 	}
  
-+static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
-+		gfp_t gfp_flags)
-+{
-+	unsigned int last_page = 0;
-+	int size = buf->sg_desc.size;
-+
-+	while (size > 0) {
-+		struct page *pages;
-+		int order;
-+		int i;
-+
-+		order = get_order(size);
-+		/* Dont over allocate*/
-+		if ((PAGE_SIZE << order) > size)
-+			order--;
-+
-+		pages = NULL;
-+		while (!pages) {
-+			pages = alloc_pages(GFP_KERNEL | __GFP_ZERO |
-+					__GFP_NOWARN | gfp_flags, order);
-+			if (pages)
-+				break;
-+
-+			if (order == 0)
-+				while (--last_page >= 0) {
-+					__free_page(buf->pages[last_page]);
-+					return -ENOMEM;
-+				}
-+			order--;
-+		}
-+
-+		split_page(pages, order);
-+		for (i = 0; i < (1<<order); i++) {
-+			buf->pages[last_page] = pages + i;
-+			sg_set_page(&buf->sg_desc.sglist[last_page],
-+					buf->pages[last_page], PAGE_SIZE, 0);
-+			last_page++;
-+		}
-+
-+		size -= PAGE_SIZE << order;
-+	}
-+
-+	return 0;
-+}
-+
- static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
- {
- 	struct vb2_dma_sg_buf *buf;
--	int i;
-+	int ret;
+-	count = min_t(unsigned, count, RR3_MAX_SIG_SIZE - RR3_TX_TRAILER_LEN);
++	if (count > RR3_MAX_SIG_SIZE - RR3_TX_TRAILER_LEN)
++		return -EINVAL;
  
- 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
- 	if (!buf)
-@@ -69,14 +114,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 	if (!buf->pages)
- 		goto fail_pages_array_alloc;
- 
--	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
--		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
--					   __GFP_NOWARN | gfp_flags);
--		if (NULL == buf->pages[i])
--			goto fail_pages_alloc;
--		sg_set_page(&buf->sg_desc.sglist[i],
--			    buf->pages[i], PAGE_SIZE, 0);
--	}
-+	ret = vb2_dma_sg_alloc_compacted(buf, gfp_flags);
-+	if (ret)
-+		goto fail_pages_alloc;
- 
- 	buf->handler.refcount = &buf->refcount;
- 	buf->handler.put = vb2_dma_sg_put;
-@@ -89,8 +129,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
- 	return buf;
- 
- fail_pages_alloc:
--	while (--i >= 0)
--		__free_page(buf->pages[i]);
- 	kfree(buf->pages);
- 
- fail_pages_array_alloc:
+ 	/* rr3 will disable rc detector on transmit */
+ 	rr3->transmitting = true;
+@@ -801,8 +802,8 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 						&irdata->lens[curlencheck]);
+ 				curlencheck++;
+ 			} else {
+-				count = i - 1;
+-				break;
++				ret = -EINVAL;
++				goto out;
+ 			}
+ 		}
+ 		irdata->sigdata[i] = lencheck;
 -- 
-1.7.10.4
+1.8.3.1
 
