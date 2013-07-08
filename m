@@ -1,45 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f42.google.com ([209.85.212.42]:41342 "EHLO
-	mail-vb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932791Ab3GWNfC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 09:35:02 -0400
-Received: by mail-vb0-f42.google.com with SMTP id i3so5532591vbh.1
-        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 06:35:01 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
-References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
-Date: Tue, 23 Jul 2013 19:05:01 +0530
-Message-ID: <CAHFNz9JCf6SUWhjErWYBRnwbaFL3WvZuag0_1pZ0Nqt3pG24Hg@mail.gmail.com>
-Subject: Re: Proposed modifications to dvb_frontend_ops
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Chris Lee <updatelee@gmail.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from pequod.mess.org ([46.65.169.142]:36243 "EHLO pequod.mess.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753087Ab3GHVlP (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 8 Jul 2013 17:41:15 -0400
+From: Sean Young <sean@mess.org>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
+	linux-media@vger.kernel.org
+Subject: [PATCH] [media] redrat3: errors on unplug
+Date: Mon,  8 Jul 2013 22:33:08 +0100
+Message-Id: <1373319192-26816-1-git-send-email-sean@mess.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 20, 2013 at 1:57 AM, Chris Lee <updatelee@gmail.com> wrote:
-> In frontend.h we have a struct called dvb_frontend_ops, in there we
-> have an element called delsys to show the delivery systems supported
-> by the tuner, Id like to propose we add onto that with delmod and
-> delfec.
->
-> Its not a perfect solution as sometimes a specific modulation or fec
-> is only availible on specific systems. But its better then what we
-> have now. The struct fe_caps isnt really suited for this, its missing
-> many systems, modulations, and fec's. Its just not expandable enough
-> to get all the supported sys/mod/fec a tuner supports in there.
+In an usb disconnect handler, the urbs have already been cancelled so the
+attempt to disable the IR receiver just results in errors:
 
-Question > Why should an application know all the modulations and
-FEC's supported by a demodulator ?
+[  899.638862] redrat3 7-2:1.0: redrat3_send_cmd: Error sending rr3 cmd res -110, data 0
+[  899.638870] redrat3 7-2:1.0: redrat3_disable_detector: detector status: 251, should be 0
 
-Aren't demodulators compliant to their respective delivery systems ?
+Signed-off-by: Sean Young <sean@mess.org>
+---
+ drivers/media/rc/redrat3.c | 27 ---------------------------
+ 1 file changed, 27 deletions(-)
 
-Or do you mean to state that, you are trying to work around some
-demodulator quirks ?
+diff --git a/drivers/media/rc/redrat3.c b/drivers/media/rc/redrat3.c
+index 12167a6..3749443 100644
+--- a/drivers/media/rc/redrat3.c
++++ b/drivers/media/rc/redrat3.c
+@@ -206,8 +206,6 @@ struct redrat3_dev {
+ 	struct timer_list rx_timeout;
+ 	u32 hw_timeout;
+ 
+-	/* is the detector enabled*/
+-	bool det_enabled;
+ 	/* Is the device currently transmitting?*/
+ 	bool transmitting;
+ 
+@@ -472,32 +470,11 @@ static int redrat3_enable_detector(struct redrat3_dev *rr3)
+ 		return -EIO;
+ 	}
+ 
+-	rr3->det_enabled = true;
+ 	redrat3_issue_async(rr3);
+ 
+ 	return 0;
+ }
+ 
+-/* Disables the rr3 long range detector */
+-static void redrat3_disable_detector(struct redrat3_dev *rr3)
+-{
+-	struct device *dev = rr3->dev;
+-	u8 ret;
+-
+-	rr3_ftr(dev, "Entering %s\n", __func__);
+-
+-	ret = redrat3_send_cmd(RR3_RC_DET_DISABLE, rr3);
+-	if (ret != 0)
+-		dev_err(dev, "%s: failure!\n", __func__);
+-
+-	ret = redrat3_send_cmd(RR3_RC_DET_STATUS, rr3);
+-	if (ret != 0)
+-		dev_warn(dev, "%s: detector status: %d, should be 0\n",
+-			 __func__, ret);
+-
+-	rr3->det_enabled = false;
+-}
+-
+ static inline void redrat3_delete(struct redrat3_dev *rr3,
+ 				  struct usb_device *udev)
+ {
+@@ -788,7 +765,6 @@ static int redrat3_transmit_ir(struct rc_dev *rcdev, unsigned *txbuf,
+ 	count = min_t(unsigned, count, RR3_MAX_SIG_SIZE - RR3_TX_TRAILER_LEN);
+ 
+ 	/* rr3 will disable rc detector on transmit */
+-	rr3->det_enabled = false;
+ 	rr3->transmitting = true;
+ 
+ 	sample_lens = kzalloc(sizeof(int) * RR3_DRIVER_MAXLENS, GFP_KERNEL);
+@@ -868,7 +844,6 @@ out:
+ 
+ 	rr3->transmitting = false;
+ 	/* rr3 re-enables rc detector because it was enabled before */
+-	rr3->det_enabled = true;
+ 
+ 	return ret;
+ }
+@@ -1048,8 +1023,6 @@ static void redrat3_dev_disconnect(struct usb_interface *intf)
+ 	if (!rr3)
+ 		return;
+ 
+-	redrat3_disable_detector(rr3);
+-
+ 	usb_set_intfdata(intf, NULL);
+ 	rc_unregister_device(rr3->rc);
+ 	del_timer_sync(&rr3->rx_timeout);
+-- 
+1.8.3.1
 
-
-Regards,
-
-Manu
