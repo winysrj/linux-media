@@ -1,73 +1,140 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:54054 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752087Ab3GRARw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 20:17:52 -0400
-Date: Wed, 17 Jul 2013 21:17:53 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-Cc: linux-media@vger.kernel.org
-Subject: Re: Possible problem with stk1160 driver
-Message-ID: <20130718001752.GA2318@localhost>
-References: <20130716220418.GC10973@deadlock.dhs.org>
- <20130717084428.GA2334@localhost>
- <20130717213139.GA14370@deadlock.dhs.org>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <20130717213139.GA14370@deadlock.dhs.org>
+Received: from mailout1.samsung.com ([203.254.224.24]:63368 "EHLO
+	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672Ab3GHMHd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:33 -0400
+Received: from epcpsbgr5.samsung.com
+ (u145.gpu120.samsung.co.kr [203.254.230.145])
+ by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPM00MEQ9O933P0@mailout1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:31 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v4 6/8] [media] V4L: Add support for integer menu controls with
+ standard menu items
+Date: Mon, 08 Jul 2013 18:00:34 +0530
+Message-id: <1373286637-30154-7-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sergey,
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-On Wed, Jul 17, 2013 at 11:31:39PM +0200, Sergey 'Jin' Bostandzhyan wrote:
-> On Wed, Jul 17, 2013 at 05:44:29AM -0300, Ezequiel Garcia wrote:
-> > On Wed, Jul 17, 2013 at 12:04:18AM +0200, Sergey 'Jin' Bostandzhyan wrote:
-> > > 
-> > > It generally works fine, I can, for example, open the video device using VLC,
-> > > select one of the inputs and get the picture.
-> > > 
-> > > However, programs like motion or zoneminder fail, I am not quite sure if it
-> > > is something that they might be doing or if it is a problem in the driver.
-> > > 
-> > > Basically, for both of the above, the problem is that VIDIOC_S_INPUT fails
-> > > with EBUSY.
-> > > 
-> > 
-> > I've just sent a patch to fix this issue.
-> > 
-> > Could you try it and let me know if it solves your issue?
-> 
-> thanks a lot! Just tried it, same fix is needed for vidioc_s_std(), then
-> the errors in motion and zoneminder are gone!
-> 
+The patch modifies the helper function v4l2_ctrl_new_std_menu
+to accept integer menu controls with standard menu items.
 
-Ah... forgot to mention about that. I haven't included the fix for standard
-setting, because either the stk1160 chip or the userspace application didn't
-seem to behave properly: I got wrongly coloured frames when trying to
-change the standard while streaming.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ Documentation/video4linux/v4l2-controls.txt |   21 ++++++++++----------
+ drivers/media/v4l2-core/v4l2-ctrls.c        |   28 ++++++++++++++++++++++++---
+ 2 files changed, 36 insertions(+), 13 deletions(-)
 
-Can't your problem get fixed by setting an initial standard (e.g. at
-/etc/motion configuration file)?
-
-> Motion seems to work now, with zoneminder I get a lot of these messages:
-> Jul 17 23:28:27 localhost kernel: [20641.931990] stk1160_copy_video: 5563 callbacks suppressed
-> Jul 17 23:28:27 localhost kernel: [20641.931998] stk1160: buffer overflow detected
-> Jul 17 23:28:27 localhost kernel: [20641.932000] stk1160: buffer overflow detected
-> 
-> Anything to worry about?
-> 
-
-Not sure. If you're changing the standard while streaming then maybe some component
-is not doing things right.
-
-I can take a look at the std thing later, but for now the input
-fix looks definitely correct.
-
+diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
+index 676f873..06cf3ac 100644
+--- a/Documentation/video4linux/v4l2-controls.txt
++++ b/Documentation/video4linux/v4l2-controls.txt
+@@ -124,26 +124,27 @@ You add non-menu controls by calling v4l2_ctrl_new_std:
+ 			const struct v4l2_ctrl_ops *ops,
+ 			u32 id, s32 min, s32 max, u32 step, s32 def);
+ 
+-Menu controls are added by calling v4l2_ctrl_new_std_menu:
++Menu and integer menu controls are added by calling v4l2_ctrl_new_std_menu:
+ 
+ 	struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
+ 			u32 id, s32 max, s32 skip_mask, s32 def);
+ 
+-Or alternatively for integer menu controls, by calling v4l2_ctrl_new_int_menu:
++Menu controls with a driver specific menu are added by calling
++v4l2_ctrl_new_std_menu_items:
++
++       struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
++                       struct v4l2_ctrl_handler *hdl,
++                       const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
++                       s32 skip_mask, s32 def, const char * const *qmenu);
++
++Integer menu controls with a driver specific menu can be added by calling
++v4l2_ctrl_new_int_menu:
+ 
+ 	struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
+ 			u32 id, s32 max, s32 def, const s64 *qmenu_int);
+ 
+-Standard menu controls with a driver specific menu are added by calling
+-v4l2_ctrl_new_std_menu_items:
+-
+-	struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
+-		struct v4l2_ctrl_handler *hdl,
+-		const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
+-		s32 skip_mask, s32 def, const char * const *qmenu);
+-
+ These functions are typically called right after the v4l2_ctrl_handler_init:
+ 
+ 	static const s64 exp_bias_qmenu[] = {
+diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
+index fccd08b..e03a2e8 100644
+--- a/drivers/media/v4l2-core/v4l2-ctrls.c
++++ b/drivers/media/v4l2-core/v4l2-ctrls.c
+@@ -552,6 +552,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_get_menu);
+ 
++/*
++ * Returns NULL or an s64 type array containing the menu for given
++ * control ID. The total number of the menu items is returned in @len.
++ */
++const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
++{
++	switch (id) {
++	default:
++		*len = 0;
++		return NULL;
++	};
++}
++EXPORT_SYMBOL(v4l2_ctrl_get_int_menu);
++
+ /* Return the control name. */
+ const char *v4l2_ctrl_get_name(u32 id)
+ {
+@@ -1712,20 +1726,28 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
+ 			const struct v4l2_ctrl_ops *ops,
+ 			u32 id, s32 max, s32 mask, s32 def)
+ {
+-	const char * const *qmenu = v4l2_ctrl_get_menu(id);
++	const char * const *qmenu = NULL;
++	const s64 *qmenu_int = NULL;
+ 	const char *name;
+ 	enum v4l2_ctrl_type type;
++	unsigned int qmenu_int_len;
+ 	s32 min;
+ 	s32 step;
+ 	u32 flags;
+ 
+ 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
+-	if (type != V4L2_CTRL_TYPE_MENU) {
++
++	if (type == V4L2_CTRL_TYPE_MENU)
++		qmenu = v4l2_ctrl_get_menu(id);
++	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
++		qmenu_int = v4l2_ctrl_get_int_menu(id, &qmenu_int_len);
++
++	if ((!qmenu && !qmenu_int) || (qmenu_int && max > qmenu_int_len)) {
+ 		handler_set_err(hdl, -EINVAL);
+ 		return NULL;
+ 	}
+ 	return v4l2_ctrl_new(hdl, ops, id, name, type,
+-			     0, max, mask, def, flags, qmenu, NULL, NULL);
++			     0, max, mask, def, flags, qmenu, qmenu_int, NULL);
+ }
+ EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
+ 
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+1.7.9.5
+
