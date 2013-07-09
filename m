@@ -1,118 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4155 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755400Ab3GZMBw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 08:01:52 -0400
-Message-ID: <51F26529.9050808@xs4all.nl>
-Date: Fri, 26 Jul 2013 14:01:45 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [PATCH] soc_camera: fix compiler warning
-References: <201307251440.34496.hverkuil@xs4all.nl> <Pine.LNX.4.64.1307261320280.22137@axis700.grange>
-In-Reply-To: <Pine.LNX.4.64.1307261320280.22137@axis700.grange>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout3.samsung.com ([203.254.224.33]:51758 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab3GIFBi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 01:01:38 -0400
+Received: from epcpsbgr1.samsung.com
+ (u141.gpu120.samsung.co.kr [203.254.230.141])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPN00HAEKLEDNI0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Jul 2013 14:01:31 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v5 1/8] [media] s5p-mfc: Update v6 encoder buffer sizes
+Date: Tue, 09 Jul 2013 10:54:35 +0530
+Message-id: <1373347482-9264-2-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
+References: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+The patch updates few encoder buffer sizes for MFC v6.5
+as per the udpdated user manual. The same buffer sizes
+holds good for v7 firmware also.
 
-On 07/26/2013 01:26 PM, Guennadi Liakhovetski wrote:
-> Hi Hans
-> 
-> Thanks for the patch.
-> 
-> On Thu, 25 Jul 2013, Hans Verkuil wrote:
-> 
->>
->> media_build/v4l/soc_camera.c: In function 'soc_camera_host_register':
->> media_build/v4l/soc_camera.c:1513:10: warning: 'sasd' may be used uninitialized in this function [-Wmaybe-uninitialized]
->>   snprintf(clk_name, sizeof(clk_name), "%d-%04x",
->>           ^
->> media_build/v4l/soc_camera.c:1464:34: note: 'sasd' was declared here
->>   struct soc_camera_async_subdev *sasd;
->>                                   ^
-> 
-> Heh, cool... You did report a similar warning earlier, for which I cooked 
-> up a patch "[media] V4L2: soc-camera: fix uninitialised use compiler 
-> warning" and IIRC you reported that with that patch the warning 
-> disappeared... How come we've got another one now? Have you updated your 
-> compiler again or what can be the reason?
+Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-It worked, but only for i686. The x86_64 compiler (exactly the same gcc version
-BTW) still couldn't understand that it really was initialized. See the build
-logs from the past few weeks.
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+index 363a97c..2398cdf 100644
+--- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
+@@ -374,9 +374,9 @@
+ #define S5P_FIMV_NUM_PIXELS_IN_MB_COL_V6	16
+ 
+ /* Buffer size requirements defined by hardware */
+-#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 1) * 8)
++#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 3) * 8)
+ #define S5P_FIMV_ME_BUFFER_SIZE_V6(imw, imh, mbw, mbh) \
+-	((DIV_ROUND_UP(imw, 64) *  DIV_ROUND_UP(imh, 64) * 256) + \
++	(((((imw + 127) / 64) * 16) *  DIV_ROUND_UP(imh, 64) * 256) + \
+ 	 (DIV_ROUND_UP((mbw) * (mbh), 32) * 16))
+ #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V6(w, h)	(((w) * 192) + 64)
+ #define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V6(w, h) \
+-- 
+1.7.9.5
 
-> In principle I have nothing against this patch, just wondering where 
-> you're getting your compilers from ;-)
-
-Well, the compiler is just downloaded from gnu.org and regularly updated when
-a new version is released.
-
-The problem is not with the current git build, but with the compatibility builds.
-As far as I can tell different kernel versions may turn on or off different
-compiler warnings, so compiling for different kernels gives different results.
-
->> By changing the type of 'i' to unsigned and changing a condition we finally
->> convince the compiler that sasd is really initialized.
->>
->> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> 
-> I haven't got any more 3.11 fixed in my queue and we have to push this 
-> before -rc3 / rc4 ;) So, if you prefer, feel free to take it via your tree 
-> with my
-> 
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-
-This is just for 3.12, there is no need to go to 3.11 for this since the warning
-doesn't appear when compiling 3.11.
-
-Do you still want me to take it, or do you prefer to queue it for 3.12 yourself?
-For the record, I expect to post a pull request for 3.12 today or Monday at the
-latest, so it's no problem for me.
-
-	Hans
-
-> 
-> Thanks
-> Guennadi
-> 
->> ---
->>  drivers/media/platform/soc_camera/soc_camera.c | 5 +++--
->>  1 file changed, 3 insertions(+), 2 deletions(-)
->>
->> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
->> index 2dd0e52..ed7a99f 100644
->> --- a/drivers/media/platform/soc_camera/soc_camera.c
->> +++ b/drivers/media/platform/soc_camera/soc_camera.c
->> @@ -1466,7 +1466,8 @@ static int scan_async_group(struct soc_camera_host *ici,
->>  	struct soc_camera_device *icd;
->>  	struct soc_camera_desc sdesc = {.host_desc.bus_id = ici->nr,};
->>  	char clk_name[V4L2_SUBDEV_NAME_SIZE];
->> -	int ret, i;
->> +	unsigned int i;
->> +	int ret;
->>  
->>  	/* First look for a sensor */
->>  	for (i = 0; i < size; i++) {
->> @@ -1475,7 +1476,7 @@ static int scan_async_group(struct soc_camera_host *ici,
->>  			break;
->>  	}
->>  
->> -	if (i == size || asd[i]->bus_type != V4L2_ASYNC_BUS_I2C) {
->> +	if (i >= size || asd[i]->bus_type != V4L2_ASYNC_BUS_I2C) {
->>  		/* All useless */
->>  		dev_err(ici->v4l2_dev.dev, "No I2C data source found!\n");
->>  		return -ENODEV;
->> -- 
->> 1.8.3.2
->>
-> 
-> ---
-> Guennadi Liakhovetski, Ph.D.
-> Freelance Open-Source Software Developer
-> http://www.open-technology.de/
-> 
