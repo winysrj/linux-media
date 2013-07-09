@@ -1,73 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f47.google.com ([209.85.213.47]:43534 "EHLO
-	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751226Ab3GWBoR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 21:44:17 -0400
-Received: by mail-yh0-f47.google.com with SMTP id z20so936258yhz.6
-        for <linux-media@vger.kernel.org>; Mon, 22 Jul 2013 18:44:16 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: k.debski@samsung.com
-Cc: m.chehab@samsung.com, kernel@pengutronix.de,
-	linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH v3 2/3] [media] coda: Check the return value from clk_prepare_enable()
-Date: Mon, 22 Jul 2013 22:38:21 -0300
-Message-Id: <1374543502-22678-2-git-send-email-festevam@gmail.com>
-In-Reply-To: <1374543502-22678-1-git-send-email-festevam@gmail.com>
-References: <1374543502-22678-1-git-send-email-festevam@gmail.com>
+Received: from mailout3.samsung.com ([203.254.224.33]:51758 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751185Ab3GIFBl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 01:01:41 -0400
+Received: from epcpsbgr3.samsung.com
+ (u143.gpu120.samsung.co.kr [203.254.230.143])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPN00INOKM46AI0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Jul 2013 14:01:35 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v5 3/8] [media] s5p-mfc: Add register definition file for MFC v7
+Date: Tue, 09 Jul 2013 10:54:37 +0530
+Message-id: <1373347482-9264-4-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
+References: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+The patch adds the register definition file for new firmware
+version v7 for MFC. New firmware supports VP8 encoding along with
+many other features.
 
-clk_prepare_enable() may fail, so let's check its return value and propagate it
-in the case of error.
-
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
-- Changes since v2:
-- Release the previously acquired resources
-Changes since v1:
-- Add missing 'if'
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h |   58 ++++++++++++++++++++++++++
+ 1 file changed, 58 insertions(+)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
 
- drivers/media/platform/coda.c | 17 +++++++++++++++--
- 1 file changed, 15 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index ea16c20..5f15aaa 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -1561,14 +1561,27 @@ static int coda_open(struct file *file)
- 	list_add(&ctx->list, &dev->instances);
- 	coda_unlock(ctx);
- 
--	clk_prepare_enable(dev->clk_per);
--	clk_prepare_enable(dev->clk_ahb);
-+	ret = clk_prepare_enable(dev->clk_per);
-+	if (ret)
-+		goto err_clk_per;
+diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+new file mode 100644
+index 0000000..24dba69
+--- /dev/null
++++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+@@ -0,0 +1,58 @@
++/*
++ * Register definition file for Samsung MFC V7.x Interface (FIMV) driver
++ *
++ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
++ *		http://www.samsung.com/
++ *
++ * This program is free software; you can redistribute it and/or modify
++ * it under the terms of the GNU General Public License version 2 as
++ * published by the Free Software Foundation.
++ */
 +
-+	ret = clk_prepare_enable(dev->clk_ahb);
-+	if (ret)
-+		goto err_clk_ahb;
- 
- 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d (%p)\n",
- 		 ctx->idx, ctx);
- 
- 	return 0;
- 
-+err_clk_ahb:
-+	clk_disable_unprepare(dev->clk_per);
-+err_clk_per:
-+	coda_lock(ctx);
-+	list_del(&ctx->list);
-+	coda_unlock(ctx);
-+	dma_free_coherent(&dev->plat_dev->dev, CODA_PARA_BUF_SIZE,
-+			  ctx->parabuf.vaddr, ctx->parabuf.paddr);
- err_dma_alloc:
- 	v4l2_ctrl_handler_free(&ctx->ctrls);
- err_ctrls_setup:
++#ifndef _REGS_MFC_V7_H
++#define _REGS_MFC_V7_H
++
++#include "regs-mfc-v6.h"
++
++/* Additional features of v7 */
++#define S5P_FIMV_CODEC_VP8_ENC_V7	25
++
++/* Additional registers for v7 */
++#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
++
++#define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
++#define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
++#define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
++#define S5P_FIMV_E_SOURCE_FIRST_STRIDE_V7		0xf9ec
++#define S5P_FIMV_E_SOURCE_SECOND_STRIDE_V7		0xf9f0
++#define S5P_FIMV_E_SOURCE_THIRD_STRIDE_V7		0xf9f4
++
++#define S5P_FIMV_E_ENCODED_SOURCE_FIRST_ADDR_V7		0xfa70
++#define S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7	0xfa74
++
++#define S5P_FIMV_E_VP8_OPTIONS_V7			0xfdb0
++#define S5P_FIMV_E_VP8_FILTER_OPTIONS_V7		0xfdb4
++#define S5P_FIMV_E_VP8_GOLDEN_FRAME_OPTION_V7		0xfdb8
++#define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
++
++/* MFCv7 variant defines */
++#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
++#define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
++#define MFC_VERSION_V7			0x72
++#define MFC_NUM_PORTS_V7		1
++
++/* MFCv7 Context buffer sizes */
++#define MFC_CTX_BUF_SIZE_V7		(30 * SZ_1K)	/*  30KB */
++#define MFC_H264_DEC_CTX_BUF_SIZE_V7	(2 * SZ_1M)	/*  2MB */
++#define MFC_OTHER_DEC_CTX_BUF_SIZE_V7	(20 * SZ_1K)	/*  20KB */
++#define MFC_H264_ENC_CTX_BUF_SIZE_V7	(100 * SZ_1K)	/* 100KB */
++#define MFC_OTHER_ENC_CTX_BUF_SIZE_V7	(10 * SZ_1K)	/*  10KB */
++
++/* Buffer size defines */
++#define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(w, h) \
++			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
++
++#define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
++			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
++
++#endif /*_REGS_MFC_V7_H*/
 -- 
-1.8.1.2
+1.7.9.5
 
