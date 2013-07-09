@@ -1,175 +1,274 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:52083 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932255Ab3GWOu7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 10:50:59 -0400
-From: Tomasz Figa <t.figa@samsung.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	broonie@kernel.org, Kishon Vijay Abraham I <kishon@ti.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 16:50:52 +0200
-Message-id: <2147402.ggVzZLIPLp@amdc1227>
-In-reply-to: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=us-ascii
+Received: from mailout3.samsung.com ([203.254.224.33]:51758 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672Ab3GIFBk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 01:01:40 -0400
+Received: from epcpsbgr1.samsung.com
+ (u141.gpu120.samsung.co.kr [203.254.230.141])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPN00HAEKLEDNI0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Jul 2013 14:01:33 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v5 2/8] [media] s5p-mfc: Rename IS_MFCV6 macro
+Date: Tue, 09 Jul 2013 10:54:36 +0530
+Message-id: <1373347482-9264-3-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
+References: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 23 of July 2013 10:37:05 Alan Stern wrote:
-> On Tue, 23 Jul 2013, Tomasz Figa wrote:
-> > On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
-> > > Hi Alan,
-> 
-> Thanks for helping to clarify the issues here.
-> 
-> > > > Okay.  Are PHYs _always_ platform devices?
-> > > 
-> > > They can be i2c, spi or any other device types as well.
-> 
-> In those other cases, presumably there is no platform data associated
-> with the PHY since it isn't a platform device.  Then how does the
-> kernel know which controller is attached to the PHY?  Is this spelled
-> out in platform data associated with the PHY's i2c/spi/whatever parent?
-> 
-> > > > > > 	PHY.  Currently this information is represented by name or
-> > 
-> > ID
-> > 
-> > > > > > 	strings embedded in platform data.
-> > > > > 
-> > > > > right. It's embedded in the platform data of the controller.
-> > > > 
-> > > > It must also be embedded in the PHY's platform data somehow.
-> > > > Otherwise, how would the kernel know which PHY to use?
-> > > 
-> > > By using a PHY lookup as Stephen and I suggested in our previous
-> > > replies. Without any extra data in platform data. (I have even posted
-> > > a
-> > > code example.)
-> 
-> I don't understand, because I don't know what "a PHY lookup" does.
+The MFC v6 specific code holds good for MFC v7 also as
+the v7 version is a superset of v6 and the HW interface
+remains more or less similar. This patch renames the macro
+IS_MFCV6() to IS_MFCV6_PLUS() so that it can be used
+for v7 also.
 
-I have provided a code example in [1]. Feel free to ask questions about 
-those code snippets.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c    |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   12 ++++++------
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   18 ++++++++++--------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   16 +++++++++-------
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |    2 +-
+ 6 files changed, 28 insertions(+), 24 deletions(-)
 
-[1] http://thread.gmane.org/gmane.linux.ports.arm.kernel/252813/focus=20889
-
-> > > > In this case, it doesn't matter where the platform_device
-> > > > structures
-> > > > are created or where the driver source code is.  Let's take a
-> > > > simple
-> > > > example.  Suppose the system design includes a PHY named "foo". 
-> > > > Then
-> > > > the board file could contain:
-> > > > 
-> > > > struct phy_info { ... } phy_foo;
-> > > > EXPORT_SYMBOL_GPL(phy_foo);
-> > > > 
-> > > > and a header file would contain:
-> > > > 
-> > > > extern struct phy_info phy_foo;
-> > > > 
-> > > > The PHY supplier could then call phy_create(&phy_foo), and the PHY
-> > > > client could call phy_find(&phy_foo).  Or something like that; make
-> > > > up
-> > > > your own structure tags and function names.
-> > > > 
-> > > > It's still possible to have conflicts, but now two PHYs with the
-> > > > same
-> > > > name (or a misspelled name somewhere) will cause an error at link
-> > > > time.
-> > > 
-> > > This is incorrect, sorry. First of all it's a layering violation -
-> > > you
-> > > export random driver-specific symbols from one driver to another.
-> > > Then
-> 
-> No, that's not what I said.  Neither the PHY driver nor the controller
-> driver exports anything to the other.  Instead, both drivers use data
-> exported by the board file.
-
-It's still a random, driver-specific global symbol exported from board file 
-to drivers.
-
-> > > imagine 4 SoCs - A, B, C, D. There are two PHY types PHY1 and PHY2
-> > > and
-> > > there are two types of consumer drivers (e.g. USB host controllers).
-> > > Now
-> > > consider following mapping:
-> > > 
-> > > SoC	PHY	consumer
-> > > A	PHY1	HOST1
-> > > B	PHY1	HOST2
-> > > C	PHY2	HOST1
-> > > D	PHY2	HOST2
-> > > 
-> > > So we have to be able to use any of the PHYs with any of the host
-> > > drivers. This means you would have to export symbol with the same
-> > > name
-> > > from both PHY drivers, which obviously would not work in this case,
-> > > because having both drivers enabled (in a multiplatform aware
-> > > configuration) would lead to linking conflict.
-> 
-> You're right; the scheme was too simple.  Instead, the board file must
-> export two types of data structures, one for PHYs and one for
-> controllers.  Like this:
-> 
-> struct phy_info {
-> 	/* Info for the controller attached to this PHY */
-> 	struct controller_info	*hinfo;
-> };
-> 
-> struct controller_info {
-> 	/* Info for the PHY which this controller is attached to */
-> 	struct phy_info		*pinfo;
-> };
-> 
-> The board file for SoC A would contain:
-> 
-> struct phy_info phy1 = {&host1);
-> EXPORT_SYMBOL(phy1);
-> struct controller_info host1 = {&phy1};
-> EXPORT_SYMBOL(host1);
-> 
-> The board file for SoC B would contain:
-> 
-> struct phy_info phy1 = {&host2);
-> EXPORT_SYMBOL(phy1);
-> struct controller_info host2 = {&phy1};
-> EXPORT_SYMBOL(host2);
-> 
-> And so on.  This explicitly gives the connection between PHYs and
-> controllers.  The PHY providers would use &phy1 or &phy2, and the PHY
-> consumers would use &host1 or &host2.
-
-This could work assuming that only one SoC and one board is supported in 
-single kernel image. However it's not the case.
-
-We've used to support multiple boards since a long time already and now for 
-selected platforms we even support multiplatform, i.e. multiple SoCs in 
-single zImage. Such solution will not work.
-
-Best regards,
-Tomasz
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
+index f0a41c9..242c033 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
+@@ -20,7 +20,7 @@ static struct s5p_mfc_hw_cmds *s5p_mfc_cmds;
+ 
+ void s5p_mfc_init_hw_cmds(struct s5p_mfc_dev *dev)
+ {
+-	if (IS_MFCV6(dev))
++	if (IS_MFCV6_PLUS(dev))
+ 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v6();
+ 	else
+ 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v5();
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index ef4074c..d47016d 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -683,6 +683,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+ #define HAS_PORTNUM(dev)	(dev ? (dev->variant ? \
+ 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
+ #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
+-#define IS_MFCV6(dev)		(dev->variant->version >= 0x60 ? 1 : 0)
++#define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
+ 
+ #endif /* S5P_MFC_COMMON_H_ */
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+index dc1fc94..7cab684 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
+@@ -164,7 +164,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ 
+ 	mfc_debug_enter();
+ 
+-	if (IS_MFCV6(dev)) {
++	if (IS_MFCV6_PLUS(dev)) {
+ 		/* Reset IP */
+ 		/*  except RISC, reset */
+ 		mfc_write(dev, 0xFEE, S5P_FIMV_MFC_RESET_V6);
+@@ -213,7 +213,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ 
+ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
+ {
+-	if (IS_MFCV6(dev)) {
++	if (IS_MFCV6_PLUS(dev)) {
+ 		mfc_write(dev, dev->bank1, S5P_FIMV_RISC_BASE_ADDRESS_V6);
+ 		mfc_debug(2, "Base Address : %08x\n", dev->bank1);
+ 	} else {
+@@ -226,7 +226,7 @@ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
+ 
+ static inline void s5p_mfc_clear_cmds(struct s5p_mfc_dev *dev)
+ {
+-	if (IS_MFCV6(dev)) {
++	if (IS_MFCV6_PLUS(dev)) {
+ 		/* Zero initialization should be done before RESET.
+ 		 * Nothing to do here. */
+ 	} else {
+@@ -264,7 +264,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 	s5p_mfc_clear_cmds(dev);
+ 	/* 3. Release reset signal to the RISC */
+ 	s5p_mfc_clean_dev_int_flags(dev);
+-	if (IS_MFCV6(dev))
++	if (IS_MFCV6_PLUS(dev))
+ 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
+ 	else
+ 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+@@ -301,7 +301,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
+ 		s5p_mfc_clock_off();
+ 		return -EIO;
+ 	}
+-	if (IS_MFCV6(dev))
++	if (IS_MFCV6_PLUS(dev))
+ 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
+ 	else
+ 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
+@@ -380,7 +380,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
+ 		return ret;
+ 	}
+ 	/* 4. Release reset signal to the RISC */
+-	if (IS_MFCV6(dev))
++	if (IS_MFCV6_PLUS(dev))
+ 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
+ 	else
+ 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+index 00b0703..56a1d3b 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
+@@ -382,7 +382,7 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("Unsupported format for source.\n");
+ 			return -EINVAL;
+ 		}
+-		if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
++		if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+ 		}
+@@ -392,10 +392,11 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("Unsupported format for destination.\n");
+ 			return -EINVAL;
+ 		}
+-		if (IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
++		if (IS_MFCV6_PLUS(dev) &&
++				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+-		} else if (!IS_MFCV6(dev) &&
++		} else if (!IS_MFCV6_PLUS(dev) &&
+ 				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+@@ -430,10 +431,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			mfc_err("Unsupported format for source.\n");
+ 			return -EINVAL;
+ 		}
+-		if (!IS_MFCV6(dev) && (fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
++		if (!IS_MFCV6_PLUS(dev) &&
++				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+-		} else if (IS_MFCV6(dev) &&
++		} else if (IS_MFCV6_PLUS(dev) &&
+ 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+@@ -457,7 +459,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 		ret = -EINVAL;
+ 		goto out;
+ 	}
+-	if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
++	if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
+ 		mfc_err("Not supported format.\n");
+ 		return -EINVAL;
+ 	}
+@@ -942,7 +944,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 		psize[0] = ctx->luma_size;
+ 		psize[1] = ctx->chroma_size;
+ 
+-		if (IS_MFCV6(dev))
++		if (IS_MFCV6_PLUS(dev))
+ 			allocators[0] =
+ 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
+ 		else
+@@ -1067,7 +1069,7 @@ static int s5p_mfc_stop_streaming(struct vb2_queue *q)
+ 		ctx->dpb_flush_flag = 1;
+ 		ctx->dec_dst_flag = 0;
+ 		spin_unlock_irqrestore(&dev->irqlock, flags);
+-		if (IS_MFCV6(dev) && (ctx->state == MFCINST_RUNNING)) {
++		if (IS_MFCV6_PLUS(dev) && (ctx->state == MFCINST_RUNNING)) {
+ 			ctx->state = MFCINST_FLUSH;
+ 			set_work_bit_irqsave(ctx);
+ 			s5p_mfc_clean_ctx_int_flags(ctx);
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+index 2549967..f734ccc 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
+@@ -663,7 +663,7 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
+ 		spin_unlock_irqrestore(&dev->irqlock, flags);
+ 	}
+ 
+-	if (!IS_MFCV6(dev)) {
++	if (!IS_MFCV6_PLUS(dev)) {
+ 		ctx->state = MFCINST_RUNNING;
+ 		if (s5p_mfc_ctx_ready(ctx))
+ 			set_work_bit_irqsave(ctx);
+@@ -993,11 +993,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
+ 			return -EINVAL;
+ 		}
+ 
+-		if (!IS_MFCV6(dev) &&
++		if (!IS_MFCV6_PLUS(dev) &&
+ 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+-		} else if (IS_MFCV6(dev) &&
++		} else if (IS_MFCV6_PLUS(dev) &&
+ 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
+ 			mfc_err("Not supported format.\n");
+ 			return -EINVAL;
+@@ -1072,7 +1072,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
+ 			return -EINVAL;
+ 		}
+ 
+-		if (IS_MFCV6(dev)) {
++		if (IS_MFCV6_PLUS(dev)) {
+ 			/* Check for min encoder buffers */
+ 			if (ctx->pb_count &&
+ 				(reqbufs->count < ctx->pb_count)) {
+@@ -1353,7 +1353,7 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
+ 				S5P_FIMV_ENC_PROFILE_H264_BASELINE;
+ 			break;
+ 		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
+-			if (IS_MFCV6(dev))
++			if (IS_MFCV6_PLUS(dev))
+ 				p->codec.h264.profile =
+ 				S5P_FIMV_ENC_PROFILE_H264_CONSTRAINED_BASELINE;
+ 			else
+@@ -1662,9 +1662,10 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
+ 			*buf_count = 1;
+ 		if (*buf_count > MFC_MAX_BUFFERS)
+ 			*buf_count = MFC_MAX_BUFFERS;
++
+ 		psize[0] = ctx->luma_size;
+ 		psize[1] = ctx->chroma_size;
+-		if (IS_MFCV6(dev)) {
++		if (IS_MFCV6_PLUS(dev)) {
+ 			allocators[0] =
+ 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
+ 			allocators[1] =
+@@ -1773,7 +1774,8 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
+ 	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
+ 	struct s5p_mfc_dev *dev = ctx->dev;
+ 
+-	if (IS_MFCV6(dev) && (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
++	if (IS_MFCV6_PLUS(dev) &&
++			(q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
+ 
+ 		if ((ctx->state == MFCINST_GOT_INST) &&
+ 			(dev->curr_ctx == ctx->num) && dev->hw_lock) {
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+index 10f8ac3..3c01c33 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
+@@ -21,7 +21,7 @@ static struct s5p_mfc_hw_ops *s5p_mfc_ops;
+ 
+ void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev)
+ {
+-	if (IS_MFCV6(dev)) {
++	if (IS_MFCV6_PLUS(dev)) {
+ 		s5p_mfc_ops = s5p_mfc_init_hw_ops_v6();
+ 		dev->warn_start = S5P_FIMV_ERR_WARNINGS_START_V6;
+ 	} else {
+-- 
+1.7.9.5
 
