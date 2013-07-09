@@ -1,53 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f50.google.com ([209.85.220.50]:62742 "EHLO
-	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758403Ab3GZJc4 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 05:32:56 -0400
-Received: by mail-pa0-f50.google.com with SMTP id fb10so2552350pad.37
-        for <linux-media@vger.kernel.org>; Fri, 26 Jul 2013 02:32:55 -0700 (PDT)
-From: Katsuya Matsubara <matsu@igel.co.jp>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Katsuya Matsubara <matsu@igel.co.jp>
-Subject: [PATCH 1/7] [media] vsp1: Fix lack of the sink entity registration for enabled links
-Date: Fri, 26 Jul 2013 18:32:11 +0900
-Message-Id: <1374831137-9219-2-git-send-email-matsu@igel.co.jp>
-In-Reply-To: <1374831137-9219-1-git-send-email-matsu@igel.co.jp>
-References: <1374831137-9219-1-git-send-email-matsu@igel.co.jp>
+Received: from mailout4.samsung.com ([203.254.224.34]:53350 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753846Ab3GIIFu (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 04:05:50 -0400
+From: Jingoo Han <jg1.han@samsung.com>
+To: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org
+Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
+	Jingoo Han <jg1.han@samsung.com>
+Subject: [PATCH V6 4/4] video: exynos_dp: Use the generic PHY driver
+Date: Tue, 09 Jul 2013 17:05:48 +0900
+Message-id: <004101ce7c7b$1f306510$5d912f30$@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: ko
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Each source entity maintains a pointer to the counterpart sink
-entity while an enabled link connects them. It should be managed by
-the setup_link callback in the media controller framework at runtime.
-However, enabled links which connect RPFs and WPFs that have an
-equivalent index number are created during initialization.
-This registers the pointer to a sink entity from the source entity
-when an enabled link is created.
+Use the generic PHY API to control the DP PHY.
 
-Signed-off-by: Katsuya Matsubara <matsu@igel.co.jp>
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Reviewed-by: Tomasz Figa <t.figa@samsung.com>
 ---
- drivers/media/platform/vsp1/vsp1_drv.c |    3 +++
- 1 file changed, 3 insertions(+)
+ .../devicetree/bindings/video/exynos_dp.txt          |   18 +++++++++---------
+ drivers/video/exynos/exynos_dp_core.c                |   16 ++++++++++++----
+ drivers/video/exynos/exynos_dp_core.h                |    1 +
+ 3 files changed, 22 insertions(+), 13 deletions(-)
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index 756929e..0ead308 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -101,6 +101,9 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
- 						       entity, pad, flags);
- 			if (ret < 0)
- 				return ret;
-+
-+			if (flags & MEDIA_LNK_FL_ENABLED)
-+				source->sink = entity;
- 		}
+diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt b/Documentation/devicetree/bindings/video/exynos_dp.txt
+index c60da67..e2874ae 100644
+--- a/Documentation/devicetree/bindings/video/exynos_dp.txt
++++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
+@@ -6,10 +6,10 @@ We use two nodes:
+ 	-dptx-phy node(defined inside dp-controller node)
+ 
+ For the DP-PHY initialization, we use the dptx-phy node.
+-Required properties for dptx-phy:
+-	-reg:
++Required properties for dptx-phy: deprecated, use phys and phy-names
++	-reg: deprecated
+ 		Base address of DP PHY register.
+-	-samsung,enable-mask:
++	-samsung,enable-mask: deprecated
+ 		The bit-mask used to enable/disable DP PHY.
+ 
+ For the Panel initialization, we read data from dp-controller node.
+@@ -21,6 +21,10 @@ Required properties for dp-controller:
+ 		of memory mapped region.
+ 	-interrupts:
+ 		interrupt combiner values.
++	-phys:
++		from general PHY binding: the phandle for the PHY device.
++	-phy-names:
++		from general PHY binding: Should be "dp".
+ 	-interrupt-parent:
+ 		phandle to Interrupt combiner node.
+ 	-samsung,color-space:
+@@ -61,12 +65,8 @@ SOC specific portion:
+ 		reg = <0x145b0000 0x10000>;
+ 		interrupts = <10 3>;
+ 		interrupt-parent = <&combiner>;
+-
+-		dptx-phy {
+-			reg = <0x10040720>;
+-			samsung,enable-mask = <1>;
+-		};
+-
++		phys = <&dp_phy>;
++		phy-names = "dp";
+ 	};
+ 
+ Board Specific portion:
+diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+index 05fed7d..5e1a715 100644
+--- a/drivers/video/exynos/exynos_dp_core.c
++++ b/drivers/video/exynos/exynos_dp_core.c
+@@ -19,6 +19,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/delay.h>
+ #include <linux/of.h>
++#include <linux/phy/phy.h>
+ 
+ #include "exynos_dp_core.h"
+ 
+@@ -960,8 +961,11 @@ static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+ 
+ 	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
+ 	if (!dp_phy_node) {
+-		dev_err(dp->dev, "could not find dptx-phy node\n");
+-		return -ENODEV;
++		dp->phy = devm_phy_get(dp->dev, "dp");
++		if (IS_ERR(dp->phy))
++			return PTR_ERR(dp->phy);
++		else
++			return 0;
  	}
  
+ 	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
+@@ -992,7 +996,9 @@ err:
+ 
+ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+ {
+-	if (dp->phy_addr) {
++	if (dp->phy) {
++		phy_power_on(dp->phy);
++	} else if (dp->phy_addr) {
+ 		u32 reg;
+ 
+ 		reg = __raw_readl(dp->phy_addr);
+@@ -1003,7 +1009,9 @@ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+ 
+ static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+ {
+-	if (dp->phy_addr) {
++	if (dp->phy) {
++		phy_power_off(dp->phy);
++	} else if (dp->phy_addr) {
+ 		u32 reg;
+ 
+ 		reg = __raw_readl(dp->phy_addr);
+diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
+index 56cfec8..607e36d 100644
+--- a/drivers/video/exynos/exynos_dp_core.h
++++ b/drivers/video/exynos/exynos_dp_core.h
+@@ -151,6 +151,7 @@ struct exynos_dp_device {
+ 	struct video_info	*video_info;
+ 	struct link_train	link_train;
+ 	struct work_struct	hotplug_work;
++	struct phy		*phy;
+ };
+ 
+ /* exynos_dp_reg.c */
 -- 
-1.7.9.5
+1.7.10.4
+
 
