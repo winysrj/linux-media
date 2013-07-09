@@ -1,142 +1,54 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:37029 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933423Ab3GWRf7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 13:35:59 -0400
-Date: Tue, 23 Jul 2013 10:37:11 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Tomasz Figa <t.figa@samsung.com>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	broonie@kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Message-ID: <20130723173710.GB28284@kroah.com>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
- <51EE9EC0.6060905@ti.com>
- <20130723161846.GD2486@kroah.com>
- <1446965.6APW5ZgLBW@amdc1227>
+Received: from mail-ve0-f171.google.com ([209.85.128.171]:53638 "EHLO
+	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753570Ab3GILm7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 07:42:59 -0400
+Received: by mail-ve0-f171.google.com with SMTP id b10so4549947vea.16
+        for <linux-media@vger.kernel.org>; Tue, 09 Jul 2013 04:42:58 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1446965.6APW5ZgLBW@amdc1227>
+In-Reply-To: <201306260915.54258.hverkuil@xs4all.nl>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-7-git-send-email-arun.kk@samsung.com>
+	<201306260915.54258.hverkuil@xs4all.nl>
+Date: Tue, 9 Jul 2013 17:12:58 +0530
+Message-ID: <CALt3h7-9cuBZGQVGs24Xq58Mrw5M8ecFVrmYM3Csz+k6V5DX2A@mail.gmail.com>
+Subject: Re: [RFC v2 06/10] exynos5-fimc-is: Adds isp subdev
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 23, 2013 at 06:50:29PM +0200, Tomasz Figa wrote:
-> > Ick, no.  Why can't you just pass the pointer to the phy itself?  If you
-> > had a "priv" pointer to search from, then you could have just passed the
-> > original phy pointer in the first place, right?
-> 
-> IMHO it would be better if you provided some code example, but let's try to 
-> check if I understood you correctly.
+Hi Hans,
 
-It's not my code that I want to have added, so I don't have to write
-examples, I just get to complain about the existing stuff :)
+On Wed, Jun 26, 2013 at 12:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Fri May 31 2013 15:03:24 Arun Kumar K wrote:
+>> fimc-is driver takes video data input from the ISP video node
+>> which is added in this patch. This node accepts Bayer input
+>> buffers which is given from the IS sensors.
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+>> ---
+>>  drivers/media/platform/exynos5-is/fimc-is-isp.c |  438 +++++++++++++++++++++++
+>>  drivers/media/platform/exynos5-is/fimc-is-isp.h |   89 +++++
+>>  2 files changed, 527 insertions(+)
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
+>>
+>
+> The same comments I made for the scaler subdev apply here as well.
+>
+> Regards,
+>
+>         Hans
 
-> 8><------------------------------------------------------------------------
-> 
-> [Board file]
-> 
-> static struct phy my_phy;
-> 
-> static struct platform_device phy_pdev = {
-> 	/* ... */
-> 	.platform_data = &my_phy;
-> 	/* ... */
-> };
-> 
-> static struct platform_device phy_pdev = {
-> 	/* ... */
-> 	.platform_data = &my_phy;
-> 	/* ... */
-> };
-> 
-> [Provider driver]
-> 
-> struct phy *phy = pdev->dev.platform_data;
-> 
-> ret = phy_create(phy);
-> 
-> [Consumer driver]
-> 
-> struct phy *phy = pdev->dev.platform_data;
-> 
-> ret = phy_get(&pdev->dev, phy);
-> 
-> ------------------------------------------------------------------------><8
-> 
-> Is this what you mean?
 
-No.  Well, kind of.  What's wrong with using the platform data structure
-unique to the board to have the pointer?
+Yes will take care of it in next patchset.
 
-For example (just randomly picking one), the ata-pxa driver would change
-include/linux/platform_data/ata-pxa.h to have a phy pointer in it:
-
-struct phy;
-
-struct  pata_pxa_pdata {
-	/* PXA DMA DREQ<0:2> pin */
-	uint32_t	dma_dreq;
-	/* Register shift */
-	uint32_t	reg_shift;
-	/* IRQ flags */
-	uint32_t	irq_flags;
-	/* PHY */
-	struct phy	*phy;
-};
-
-Then, when you create the platform, set the phy* pointer with a call to
-phy_create().  Then you can use that pointer wherever that plaform data
-is available (i.e. whereever platform_data is at).
-
-> > The issue is that a string "name" is not going to scale at all, as it
-> > requires hard-coded information that will change over time (as the
-> > existing clock interface is already showing.)
-> 
-> I fully agree that a simple, single string will not scale even in some, not 
-> so uncommon cases, but there is already a lot of existing lookup solutions 
-> over the kernel and so there is no point in introducing another one.
-
-I'm trying to get _rid_ of lookup "solutions" and just use a real
-pointer, as you should.  I'll go tackle those other ones after this one
-is taken care of, to show how the others should be handled as well.
-
-> > Please just pass the real "phy" pointer around, that's what it is there
-> > for.  Your "board binding" logic/code should be able to handle this, as
-> > it somehow was going to do the same thing with a "name".
-> 
-> It's technically correct, but quality of this solution isn't really nice, 
-> because it's a layering violation (at least if I understood what you mean). 
-> This is because you need to have full definition of struct phy in board file 
-> and a structure that is used as private data in PHY core comes from 
-> platform code.
-
-No, just a pointer, you don't need the "full" structure until you get to
-some .c code that actually manipulates the phy itself, for all other
-places, you are just dealing with a pointer and a structure you never
-reference.
-
-Does that make more sense?
-
-thanks,
-
-greg k-h
+Thanks & Regards
+Arun
