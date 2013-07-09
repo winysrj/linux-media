@@ -1,124 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:63362 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752165Ab3GHMHb (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:31 -0400
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPM00MEQ9O933P0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:29 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v4 4/8] [media] s5p-mfc: Core support for MFC v7
-Date: Mon, 08 Jul 2013 18:00:32 +0530
-Message-id: <1373286637-30154-5-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
-References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-vc0-f173.google.com ([209.85.220.173]:43275 "EHLO
+	mail-vc0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752553Ab3GIMET (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 08:04:19 -0400
+Received: by mail-vc0-f173.google.com with SMTP id ht10so4199543vcb.4
+        for <linux-media@vger.kernel.org>; Tue, 09 Jul 2013 05:04:18 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <201306260927.17210.hverkuil@xs4all.nl>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-6-git-send-email-arun.kk@samsung.com>
+	<201306260927.17210.hverkuil@xs4all.nl>
+Date: Tue, 9 Jul 2013 17:34:18 +0530
+Message-ID: <CALt3h79RD2cejJBDStMqcuhi9BUo5EAn+5trNzJHHo_s_zYr7g@mail.gmail.com>
+Subject: Re: [RFC v2 05/10] exynos5-fimc-is: Adds the sensor subdev
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Adds variant data and core support for the MFC v7 firmware
+Hi Hans,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
- drivers/media/platform/s5p-mfc/s5p_mfc.c           |   32 ++++++++++++++++++++
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    2 ++
- 3 files changed, 35 insertions(+)
+Thanks for the review.
 
-diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-index 67ec3d4..cb9c5bc 100644
---- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
-+++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
-@@ -10,6 +10,7 @@ Required properties:
-   - compatible : value should be either one among the following
- 	(a) "samsung,mfc-v5" for MFC v5 present in Exynos4 SoCs
- 	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
-+	(b) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
- 
-   - reg : Physical base address of the IP registers and length of memory
- 	  mapped region.
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-index d12faa6..d6be52f 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
-@@ -1391,6 +1391,32 @@ static struct s5p_mfc_variant mfc_drvdata_v6 = {
- 	.fw_name        = "s5p-mfc-v6.fw",
- };
- 
-+struct s5p_mfc_buf_size_v6 mfc_buf_size_v7 = {
-+	.dev_ctx	= MFC_CTX_BUF_SIZE_V7,
-+	.h264_dec_ctx	= MFC_H264_DEC_CTX_BUF_SIZE_V7,
-+	.other_dec_ctx	= MFC_OTHER_DEC_CTX_BUF_SIZE_V7,
-+	.h264_enc_ctx	= MFC_H264_ENC_CTX_BUF_SIZE_V7,
-+	.other_enc_ctx	= MFC_OTHER_ENC_CTX_BUF_SIZE_V7,
-+};
-+
-+struct s5p_mfc_buf_size buf_size_v7 = {
-+	.fw	= MAX_FW_SIZE_V7,
-+	.cpb	= MAX_CPB_SIZE_V7,
-+	.priv	= &mfc_buf_size_v7,
-+};
-+
-+struct s5p_mfc_buf_align mfc_buf_align_v7 = {
-+	.base = 0,
-+};
-+
-+static struct s5p_mfc_variant mfc_drvdata_v7 = {
-+	.version	= MFC_VERSION_V7,
-+	.port_num	= MFC_NUM_PORTS_V7,
-+	.buf_size	= &buf_size_v7,
-+	.buf_align	= &mfc_buf_align_v7,
-+	.fw_name        = "s5p-mfc-v7.fw",
-+};
-+
- static struct platform_device_id mfc_driver_ids[] = {
- 	{
- 		.name = "s5p-mfc",
-@@ -1401,6 +1427,9 @@ static struct platform_device_id mfc_driver_ids[] = {
- 	}, {
- 		.name = "s5p-mfc-v6",
- 		.driver_data = (unsigned long)&mfc_drvdata_v6,
-+	}, {
-+		.name = "s5p-mfc-v7",
-+		.driver_data = (unsigned long)&mfc_drvdata_v7,
- 	},
- 	{},
- };
-@@ -1413,6 +1442,9 @@ static const struct of_device_id exynos_mfc_match[] = {
- 	}, {
- 		.compatible = "samsung,mfc-v6",
- 		.data = &mfc_drvdata_v6,
-+	}, {
-+		.compatible = "samsung,mfc-v7",
-+		.data = &mfc_drvdata_v7,
- 	},
- 	{},
- };
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index d47016d..17545d7 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -24,6 +24,7 @@
- #include <media/videobuf2-core.h>
- #include "regs-mfc.h"
- #include "regs-mfc-v6.h"
-+#include "regs-mfc-v7.h"
- 
- /* Definitions related to MFC memory */
- 
-@@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
- 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
- #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
- #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
-+#define IS_MFCV7(dev)		(dev->variant->version >= 0x70 ? 1 : 0)
- 
- #endif /* S5P_MFC_COMMON_H_ */
--- 
-1.7.9.5
+On Wed, Jun 26, 2013 at 12:57 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Fri May 31 2013 15:03:23 Arun Kumar K wrote:
+>> FIMC-IS uses certain sensors which are exclusively controlled
+>> from the IS firmware. This patch adds the sensor subdev for the
+>> fimc-is sensors.
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+>
+> Not surprisingly I really hate the idea of sensor drivers that are tied to
+> a specific SoC, since it completely destroys the reusability of such drivers.
+>
 
+Yes agree to it.
+
+> I understand that you have little choice to do something special here, but
+> I was wondering whether there is a way of keeping things as generic as
+> possible.
+>
+> I'm just brainstorming here, but as far as I can see this driver is basically
+> a partial sensor driver: it handles the clock, the format negotiation and
+> power management. Any sensor driver needs that.
+>
+> What would be nice is if the fmic specific parts are replaced by callbacks
+> into the bridge driver using v4l2_subdev_notify().
+>
+> The platform data (or DT) can also state if this sensor is firmware controlled
+> or not. If not, then the missing bits can be implemented in the future by
+> someone who needs that.
+>
+> That way the driver itself remains independent from fimc.
+>
+> And existing sensor drivers can be adapted to be usable with fimc as well by
+> adding support for the notify callback.
+>
+> Would a scheme along those lines work?
+>
+
+Yes this should make the implementation very generic.
+Will check the feasibility of this approach.
+
+Thanks & Regards
+Arun
