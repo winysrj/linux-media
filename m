@@ -1,50 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [201.65.157.227] ([201.65.157.227]:54187 "EHLO
-	hefesto.ifnmg.edu.br" rhost-flags-FAIL-FAIL-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753206Ab3GGW6G convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 7 Jul 2013 18:58:06 -0400
-Date: Sun, 7 Jul 2013 19:46:47 -0300 (BRT)
-From: Mrs Jaime <ana.oliveira@ifnmg.edu.br>
-Reply-To: Mrs Jaime <besteasyloan@qq.com>
-Message-ID: <1897499362.654589.1373237207093.JavaMail.root@ifnmg.edu.br>
-Subject: Holen Sie sich einen Kredit jederzeit
+Received: from mail-vc0-f175.google.com ([209.85.220.175]:43448 "EHLO
+	mail-vc0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750725Ab3GIETD (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 00:19:03 -0400
+Received: by mail-vc0-f175.google.com with SMTP id hr11so3888441vcb.6
+        for <linux-media@vger.kernel.org>; Mon, 08 Jul 2013 21:19:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: 8BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+In-Reply-To: <201307081451.54485.hverkuil@xs4all.nl>
+References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+	<1373286637-30154-8-git-send-email-arun.kk@samsung.com>
+	<201307081451.54485.hverkuil@xs4all.nl>
+Date: Tue, 9 Jul 2013 09:49:02 +0530
+Message-ID: <CALt3h7_EsZhwRPJ2cX4E=LHmh8NKu+ZaSi0+Zjwf4586n4PNjA@mail.gmail.com>
+Subject: Re: [PATCH v4 7/8] [media] V4L: Add VP8 encoder controls
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Kamil Debski <k.debski@samsung.com>, jtp.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	avnd.kiran@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Hi Hans,
 
+On Mon, Jul 8, 2013 at 6:21 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Arun,
+>
+> A few small comments below. After fixing that you can add my:
+>
+> Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+>
+> for this patch.
+>
 
-Hinweis: Wenn Sie auf diese Nachricht antworten möchten, müssen müssen eine Antwort auf diese E-MAIL SENDEN besteasyrates@qq.com
+Thank you for your review. Will post the updated patch with your ack.
 
-Komplimente des Tages, sind Sie ein Business-Mann oder Frau? Sind Sie in irgendeiner finanziellen Schlamassel oder benötigen Sie Fonds zu starten Ihr eigenes Geschäft? Sie benötigen Darlehen, um Ihre Schulden zu begleichen oder zahlen Sie Ihre Rechnungen oder starten Sie ein nettes Geschäft? Sie brauchen finanzielle Mittel, um Ihr Projekt zu finanzieren?
-
-Wir bieten garantiert Darlehen Dienstleistungen jeglicher Menge und zu jedem Teil der Welt für
-(Personen, Firmen, Makler und Körperschaften) an unserem hervorragenden Zinssatz von 3%
-Persönliche Darlehen (Secure und ungesichert)
-Business-Darlehen (Secure und ungesichert)
-Consolidation Loan
-Kombination Loan
-Low Down oder Null Geld Financing Program verfügbar
-
-SIE UNS KONTAKT heute auf unserer E-MAIL FÜR WEITERE FRAGEN AUF besteasyrates@qq.com
-
-----------------------------------------------------------------------
-
-NOTE IF YOU WISH TO REPLY THIS MESSAGE YOU MUST HAVE TO SEND A REPLY TO THIS EMAIL besteasyrates@qq.com
-
-Compliments of the day , are you a business man or woman? Are you in any financial mess or do you need funds to start up your own business? Do you need loan to settle your debt or pay off your bills or start a nice business? Do you need funds to finance your project?
-
-We Offers guaranteed loan services of any amount and to any part of the world for
-(individuals, companies, Realtor and corporate bodies) at our superb interest rate of 3%
-Personal Loans (Secure and Unsecured)
-Business Loans (Secure and Unsecured)
-Consolidation Loan
-Combination Loan
-Low Down or Zero Money Financing Program Available
-
-DO CONTACT US TODAY ON OUR EMAIL FOR MORE ENQUIRIES ON besteasyrates@qq.com
-
+Regards
+Arun
