@@ -1,68 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f45.google.com ([74.125.82.45]:33829 "EHLO
-	mail-wg0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751468Ab3GZEdm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 00:33:42 -0400
-Received: by mail-wg0-f45.google.com with SMTP id x12so2420370wgg.24
-        for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 21:33:40 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201307251525.01108.hverkuil@xs4all.nl>
-References: <201306270855.49444.hverkuil@xs4all.nl> <CA+V-a8sYvBWGJGBF6JWwjKHwW_4Ew8wp6yBQnCrpeebAkJ4EmA@mail.gmail.com>
- <201307251525.01108.hverkuil@xs4all.nl>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 26 Jul 2013 10:03:20 +0530
-Message-ID: <CA+V-a8tvBy2P3Pih4og9Ov1T5e6CeDuj6FhoXubnTkAhr7Y4pw@mail.gmail.com>
-Subject: Re: [GIT PULL FOR v3.11]
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout3.samsung.com ([203.254.224.33]:51758 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750781Ab3GIFBh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 01:01:37 -0400
+Received: from epcpsbgr1.samsung.com
+ (u141.gpu120.samsung.co.kr [203.254.230.141])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPN00HAEKLEDNI0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Jul 2013 14:01:30 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v5 0/8] Add support for MFC v7 firmware
+Date: Tue, 09 Jul 2013 10:54:34 +0530
+Message-id: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+This patch series adds MFC v7 firmware support to the Exynos
+MFC driver. MFC v7 is present in 5420 SoC which has support
+for VP8 encoding and many other features.
 
-On Thu, Jul 25, 2013 at 6:55 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Prabhakar,
->
-> On Thu 11 July 2013 19:25:15 Prabhakar Lad wrote:
->> Hi Hans,
->>
->> On Thu, Jun 27, 2013 at 12:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> > (Same as my previous git pull message, but with more cleanup patches and
->> [snip]
->> > Lad, Prabhakar (9):
->> >       media: i2c: ths8200: support asynchronous probing
->> >       media: i2c: ths8200: add OF support
->> >       media: i2c: adv7343: add support for asynchronous probing
->> >       media: i2c: tvp7002: add support for asynchronous probing
->> >       media: i2c: tvp7002: remove manual setting of subdev name
->> >       media: i2c: tvp514x: remove manual setting of subdev name
->> >       media: i2c: tvp514x: add support for asynchronous probing
->> >       media: davinci: vpif: capture: add V4L2-async support
->> >       media: davinci: vpif: display: add V4L2-async support
->> >
->> I see last two patches missing in Mauro's pull request for v3.11 and v3.11-rc1.
->
-> I had to split up my pull request into fixes for 3.11 and new stuff for 3.12
-> since the merge window was about to open at the time.
->
-Ok no problem.
+Changes from v4:
+- Addressed review comments from Hans and added ack
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg64101.html
 
-> Your 'missing' patches are here:
->
-> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.12
->
-Yeah I saw it lately.
+Changes from v3:
+- Addressed review comments from Hans
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63893.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63905.html
+- Addressed comments from Kamil
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63747.html
 
-> In the next few days I'll try to process all remaining patches delegated to me.
-Ok
+Changes from v2:
+- Addressed review comments from Sylwester
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63676.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63677.html
 
-> If you have patches not yet delegated to me, or that are not in my for-v3.12
-> branch, then let me know.
->
-There are few patches, whose state is new do you want me to point them ?
+Changes from v1:
+- Addressed review comments from Hans and Sylwester
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63148.html
+http://www.mail-archive.com/linux-media@vger.kernel.org/msg63311.html
+- Modified IS_MFCV6 macro to IS_MFCV6_PLUS to include v7 also
 
-Regards,
---Prabhakar Lad
+Arun Kumar K (7):
+  [media] s5p-mfc: Update v6 encoder buffer sizes
+  [media] s5p-mfc: Rename IS_MFCV6 macro
+  [media] s5p-mfc: Add register definition file for MFC v7
+  [media] s5p-mfc: Core support for MFC v7
+  [media] s5p-mfc: Update driver for v7 firmware
+  [media] V4L: Add VP8 encoder controls
+  [media] s5p-mfc: Add support for VP8 encoder
+
+Sylwester Nawrocki (1):
+  [media] V4L: Add support for integer menu controls with standard menu
+    items
+
+ Documentation/DocBook/media/v4l/controls.xml       |  168 +++++++++++++++++++-
+ .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
+ Documentation/video4linux/v4l2-controls.txt        |   21 +--
+ drivers/media/platform/s5p-mfc/regs-mfc-v6.h       |    4 +-
+ drivers/media/platform/s5p-mfc/regs-mfc-v7.h       |   61 +++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |   32 ++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_cmd_v6.c    |    3 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |   23 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c      |   12 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c       |   18 ++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c       |  107 ++++++++++++-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr.c       |    2 +-
+ drivers/media/platform/s5p-mfc/s5p_mfc_opr_v6.c    |  149 +++++++++++++++--
+ drivers/media/v4l2-core/v4l2-ctrls.c               |   67 +++++++-
+ include/uapi/linux/v4l2-controls.h                 |   29 ++++
+ 16 files changed, 642 insertions(+), 57 deletions(-)
+ create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+
+-- 
+1.7.9.5
+
