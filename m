@@ -1,127 +1,106 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from vserver.eikelenboom.it ([84.200.39.61]:46358 "EHLO
-	smtp.eikelenboom.it" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753293Ab3GNVSs convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jul 2013 17:18:48 -0400
-Date: Sun, 14 Jul 2013 23:18:42 +0200
-From: Sander Eikelenboom <linux@eikelenboom.it>
-Message-ID: <749621697.20130714231842@eikelenboom.it>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: [media] cx25821 regression from 3.9: BUG: bad unlock balance detected!
-In-Reply-To: <51E27239.2080109@xs4all.nl>
-References: <1139404719.20130516194142@eikelenboom.it> <201305171025.24166.hverkuil@xs4all.nl> <1756541549.20130517110450@eikelenboom.it> <201305171152.17746.hverkuil@xs4all.nl> <266016445.20130712225644@eikelenboom.it> <51E27239.2080109@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Transfer-Encoding: 8BIT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:4066 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751749Ab3GIS3v (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 14:29:51 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr7.xs4all.nl (8.13.8/8.13.8) with ESMTP id r69ITlAE069268
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Tue, 9 Jul 2013 20:29:50 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id C51E335E037D
+	for <linux-media@vger.kernel.org>; Tue,  9 Jul 2013 20:29:47 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130709182947.C51E335E037D@alastor.dyndns.org>
+Date: Tue,  9 Jul 2013 20:29:47 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
+Results of the daily build of media_tree:
 
-Sunday, July 14, 2013, 11:41:13 AM, you wrote:
+date:		Tue Jul  9 19:00:21 CEST 2013
+git branch:	test
+git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
-> Hi Sander,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
 
-> On 07/12/2013 10:56 PM, Sander Eikelenboom wrote:
->> 
->> Friday, May 17, 2013, 11:52:17 AM, you wrote:
->> 
->>> On Fri May 17 2013 11:04:50 Sander Eikelenboom wrote:
->>>>
->>>> Friday, May 17, 2013, 10:25:24 AM, you wrote:
->>>>
->>>>> On Thu May 16 2013 19:41:42 Sander Eikelenboom wrote:
->>>>>> Hi Hans / Mauro,
->>>>>>
->>>>>> With 3.10.0-rc1 (including the cx25821 changes from Hans), I get the bug below which wasn't present with 3.9.
->>>>
->>>>> How do I reproduce this? I've tried to, but I can't make this happen.
->>>>
->>>>> Looking at the code I can't see how it could hit this bug anyway.
->>>>
->>>> I'm using "motion" to grab and process 6 from the video streams of the card i have (card with 8 inputs).
->>>> It seems the cx25821 underwent quite some changes between 3.9 and 3.10.
->> 
->>> It did.
->> 
->>>> And in the past there have been some more locking issues around mmap and media devices, although they seem to appear as circular locking dependencies and with different devices.
->>>>    - http://www.mail-archive.com/linux-media@vger.kernel.org/msg46217.html
->>>>    - Under kvm: http://www.spinics.net/lists/linux-media/msg63322.html
->> 
->>> Neither of those are related to this issue.
->> 
->>>>
->>>> - Perhaps that running in a VM could have to do with it ?
->>>>    - The driver on 3.9 occasionaly gives this, probably latency related (but continues to work):
->>>>      cx25821: cx25821_video_wakeup: 2 buffers handled (should be 1)
->>>>
->>>>      Could it be something double unlocking in that path ?
->>>>
->>>> - Is there any extra debugging i could enable that could pinpoint the issue ?
->> 
->>> Try this patch:
->> 
->>> diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
->>> index b762c5b..8f8d0e0 100644
->>> --- a/drivers/media/pci/cx25821/cx25821-core.c
->>> +++ b/drivers/media/pci/cx25821/cx25821-core.c
->>> @@ -1208,7 +1208,6 @@ void cx25821_free_buffer(struct videobuf_queue *q, struct cx25821_buffer *buf)
->>>         struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
->>>  
->>>         BUG_ON(in_interrupt());
->>> -       videobuf_waiton(q, &buf->vb, 0, 0);
->>>         videobuf_dma_unmap(q->dev, dma);
->>>         videobuf_dma_free(dma);
->>>         btcx_riscmem_free(to_pci_dev(q->dev), &buf->risc);
->> 
->>> I don't think the waiton is really needed for this driver.
->> 
->>> What really should happen is that videobuf is replaced by videobuf2 in this
->>> driver, but that's a fair amount of work.
->> 
->> Hi Hans,
->> 
->> After being busy for quite some time, i do have some spare time now.
->> 
->> Since i'm still having trouble with this driver, is there a patch series for a similar driver
->> that was converted to videobuf2 ?
->> I don't know if it is entirely in my league, but i could give it a try when i have a example.
+Detailed results are available here:
 
-> The changes done for usb/em28xx might come close. That said, the cx25821 is already in
-> decent shape to convert to vb2. At least the videobuf data structures are already in the
-> correct place (they are often stored in a per-filehandle struct, which is wrong).
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
 
-Found the em28xx port to videobuf2 patch from Devin Heitmueller.
-Unfortunately the patch format isn't very neat as a example (due to reusing/renaming function parts)
+Full logs are available here:
 
-Apart from that the cx25821 also supports multiple "channels / subdevices".
+http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
 
->From what i see one of the major changes is that the handling of the queue is now internal to and handled by videobuf2 ?
+The Media Infrastructure API from this daily build is here:
 
-> include/media/videobuf2-core.h gives a reasonable overview of vb2. Like em28xx, you
-> should use the vb2 helper functions (vb2_fop_* and vb2_ioctl_*) which takes a lot
-> of the work off your hands.
-
-> Converting cx25821-alsa.c may be the most difficult part as it is using some videobuf
-> internal functions which probably won't translate to vb2 as is. I think videobuf is
-> being abused here, but I don't know off-hand what the correct approach will be with
-> vb2.
-
-> I would ignore the alsa part for the time being (also the audio/video-upstream code,
-> that's been disabled and without datasheets of the cx25821 I'm not sure it can be
-> resurrected).
-
-> If you can get cx25821-video.c to work with vb2, then we can take a look at the alsa
-> code.
-
-Will do.
-
-> Regards,
-
->         Hans
-
---
-Sander
-
+http://www.xs4all.nl/~hverkuil/spec/media.html
