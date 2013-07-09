@@ -1,62 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx01-sz.bfs.de ([194.94.69.67]:37313 "EHLO mx01-sz.bfs.de"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756882Ab3GYRfp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 13:35:45 -0400
-Message-ID: <51F16065.40804@bfs.de>
-Date: Thu, 25 Jul 2013 19:29:09 +0200
-From: walter harms <wharms@bfs.de>
-Reply-To: wharms@bfs.de
-MIME-Version: 1.0
-To: Dan Carpenter <dan.carpenter@oracle.com>
-CC: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Antti Palosaari <crope@iki.fi>,
-	Nickolai Zeldovich <nickolai@csail.mit.edu>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: Re: [patch] [media] bt8xx: info leak in ca_get_slot_info()
-References: <20130725164621.GA6945@elgon.mountain>
-In-Reply-To: <20130725164621.GA6945@elgon.mountain>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:61761 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753539Ab3GIIua (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 04:50:30 -0400
+Message-id: <51DBCED2.7010102@samsung.com>
+Date: Tue, 09 Jul 2013 10:50:26 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Jingoo Han <jg1.han@samsung.com>
+Cc: linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org,
+	'Kishon Vijay Abraham I' <kishon@ti.com>,
+	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
+	'Felipe Balbi' <balbi@ti.com>,
+	'Tomasz Figa' <t.figa@samsung.com>,
+	devicetree-discuss@lists.ozlabs.org,
+	'Inki Dae' <inki.dae@samsung.com>,
+	'Donghwa Lee' <dh09.lee@samsung.com>,
+	'Kyungmin Park' <kyungmin.park@samsung.com>,
+	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
+	Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-fbdev@vger.kernel.org, Hui Wang <jason77.wang@gmail.com>
+Subject: Re: [PATCH V6 0/4] Generic PHY driver for the Exynos SoC DP PHY
+References: <003d01ce7c7a$d04043d0$70c0cb70$@samsung.com>
+In-reply-to: <003d01ce7c7a$d04043d0$70c0cb70$@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-
-
-Am 25.07.2013 18:46, schrieb Dan Carpenter:
-> p_ca_slot_info was allocated with kmalloc() so we need to clear it
-> before passing it to the user.
+On 07/09/2013 10:03 AM, Jingoo Han wrote:
+> This patch series adds a simple driver for the Samsung Exynos SoC
+> series DP transmitter PHY, using the generic PHY framework [1].
+> Previously the DP PHY used an internal DT node to control the PHY
+> power enable bit.
 > 
-> Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> These patches was tested on Exynos5250.
 > 
-> diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
-> index 0e788fc..6b9dc3f 100644
-> --- a/drivers/media/pci/bt8xx/dst_ca.c
-> +++ b/drivers/media/pci/bt8xx/dst_ca.c
-> @@ -302,8 +302,11 @@ static int ca_get_slot_info(struct dst_state *state, struct ca_slot_info *p_ca_s
->  		p_ca_slot_info->flags = CA_CI_MODULE_READY;
->  		p_ca_slot_info->num = 1;
->  		p_ca_slot_info->type = CA_CI;
-> -	} else
-> +	} else {
->  		p_ca_slot_info->flags = 0;
-> +		p_ca_slot_info->num = 0;
-> +		p_ca_slot_info->type = 0;
-> +	}
->  
->  	if (copy_to_user(arg, p_ca_slot_info, sizeof (struct ca_slot_info)))
->  		return -EFAULT;
+> This PATCH v6 follows:
+>  * PATCH v5, sent on July, 8th 2013
+>  * PATCH v4, sent on July, 2nd 2013
+>  * PATCH v3, sent on July, 1st 2013
+>  * PATCH v2, sent on June, 28th 2013
+>  * PATCH v1, sent on June, 28th 2013
+> 
+> Changes between v5 and v6:
+>   * Re-based on git://gitorious.org/linuxphy/linuxphy.git
 
-note: i have no clue how p_ca_slot_info looks like,
-but to avoid information leaks via compiler padding etc. i could be more wise
-to do a  memset(p_ca_slot_info,0,sizeof (struct ca_slot_info))
-and then set the
-	p_ca_slot_info->flags = CA_CI_MODULE_READY;
-	p_ca_slot_info->num = 1;
-	p_ca_slot_info->type = CA_CI;
+I'm not sure if we really need to keep the documentation of the
+original binding. Anyway, for the whole series, please feel free
+to ad my
 
-just my 2 cents,
-re,
- wh
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+
+--
+Thanks,
+Sylwester
+
