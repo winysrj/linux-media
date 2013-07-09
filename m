@@ -1,646 +1,1317 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qa0-f44.google.com ([209.85.216.44]:32864 "EHLO
-	mail-qa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752169Ab3GIVXw (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 17:23:52 -0400
-Received: by mail-qa0-f44.google.com with SMTP id o13so6606029qaj.3
-        for <linux-media@vger.kernel.org>; Tue, 09 Jul 2013 14:23:51 -0700 (PDT)
+Received: from mail-ve0-f170.google.com ([209.85.128.170]:37914 "EHLO
+	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752063Ab3GIL0M (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 07:26:12 -0400
+Received: by mail-ve0-f170.google.com with SMTP id 14so4526897vea.29
+        for <linux-media@vger.kernel.org>; Tue, 09 Jul 2013 04:26:11 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <CABF_skgNf7mPNGYZnvR0SuxyifdXmWtX2sjR2H0OjXKdO-4oRA@mail.gmail.com>
-References: <CABF_skgNf7mPNGYZnvR0SuxyifdXmWtX2sjR2H0OjXKdO-4oRA@mail.gmail.com>
-Date: Tue, 9 Jul 2013 22:23:51 +0100
-Message-ID: <CABF_skikbVQuwtZODpvb+E2EvzXutLos5sU0sDXaUQtdFVg2Pg@mail.gmail.com>
-Subject: Problems tuning 704J dual DVB-T tuner
-From: Austin Spreadbury <austinspreadbury@googlemail.com>
-To: linux-media@vger.kernel.org
-Content-Type: multipart/mixed; boundary=20cf302ef9520ce38d04e11ac7be
+In-Reply-To: <51C437A4.1080104@samsung.com>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-10-git-send-email-arun.kk@samsung.com>
+	<51C437A4.1080104@samsung.com>
+Date: Tue, 9 Jul 2013 16:56:11 +0530
+Message-ID: <CALt3h79vVNA3vzPF2RvxoPbRzUO56tPR4RHx=x71RRv76x8UcQ@mail.gmail.com>
+Subject: Re: [RFC v2 09/10] exynos5-fimc-is: Adds the hardware interface module
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Andrzej Hajda <a.hajda@samsung.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---20cf302ef9520ce38d04e11ac7be
-Content-Type: text/plain; charset=ISO-8859-1
+Hi Andrzej,
 
-Dear List,
+Thank you for the review.
 
-I wonder if anyone can help me.
+On Fri, Jun 21, 2013 at 4:53 PM, Andrzej Hajda <a.hajda@samsung.com> wrote:
+> Hi Arun,
+>
+> My few comments.
+>
+> On 05/31/2013 03:03 PM, Arun Kumar K wrote:
+>> The hardware interface module finally sends the commands to the
+>> FIMC-IS firmware and runs the interrupt handler for getting the
+>> responses.
+>>
+>> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+>> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
+>> ---
+>>  .../media/platform/exynos5-is/fimc-is-interface.c  | 1025 ++++++++++++++++++++
+>>  .../media/platform/exynos5-is/fimc-is-interface.h  |  131 +++
+>>  2 files changed, 1156 insertions(+)
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.c
+>>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.h
+>>
+>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-interface.c b/drivers/media/platform/exynos5-is/fimc-is-interface.c
+>> new file mode 100644
+>> index 0000000..63176fa
+>> --- /dev/null
+>> +++ b/drivers/media/platform/exynos5-is/fimc-is-interface.c
+>> @@ -0,0 +1,1025 @@
+>> +/*
+>> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
+>> +*
+>> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
+>> + * Kil-yeon Lim <kilyeon.im@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +
+>> +#include <linux/debugfs.h>
+>> +#include <linux/seq_file.h>
+>> +#include "fimc-is.h"
+>> +#include "fimc-is-cmd.h"
+>> +#include "fimc-is-regs.h"
+>> +
+>> +#define init_request_barrier(itf) mutex_init(&itf->request_barrier)
+>> +#define enter_request_barrier(itf) mutex_lock(&itf->request_barrier)
+>> +#define exit_request_barrier(itf) mutex_unlock(&itf->request_barrier)
+>> +
+>> +static inline void itf_get_cmd(struct fimc_is_interface *itf,
+>> +     struct fimc_is_msg *msg, unsigned int index)
+>> +{
+>> +     struct is_common_reg __iomem *com_regs = itf->com_regs;
+>> +
+>> +     switch (index) {
+>> +     case INTR_GENERAL:
+>> +             msg->id = 0;
+>> +             msg->command = com_regs->ihcmd;
+>> +             msg->instance = com_regs->ihc_sensorid;
+>> +             msg->parameter1 = com_regs->ihc_param1;
+>> +             msg->parameter2 = com_regs->ihc_param2;
+>> +             msg->parameter3 = com_regs->ihc_param3;
+>> +             msg->parameter4 = com_regs->ihc_param4;
+>> +             break;
+>> +     case INTR_SCC_FDONE:
+>> +             msg->id = 0;
+>> +             msg->command = IHC_FRAME_DONE;
+>> +             msg->instance = com_regs->scc_sensor_id;
+>> +             msg->parameter1 = com_regs->scc_param1;
+>> +             msg->parameter2 = com_regs->scc_param2;
+>> +             msg->parameter3 = com_regs->scc_param3;
+>> +             msg->parameter4 = 0;
+>> +             break;
+>> +     case INTR_SCP_FDONE:
+>> +             msg->id = 0;
+>> +             msg->command = IHC_FRAME_DONE;
+>> +             msg->instance = com_regs->scp_sensor_id;
+>> +             msg->parameter1 = com_regs->scp_param1;
+>> +             msg->parameter2 = com_regs->scp_param2;
+>> +             msg->parameter3 = com_regs->scp_param3;
+>> +             msg->parameter4 = 0;
+>> +             break;
+>> +     case INTR_META_DONE:
+>> +             msg->id = 0;
+>> +             msg->command = IHC_FRAME_DONE;
+>> +             msg->instance = com_regs->meta_sensor_id;
+>> +             msg->parameter1 = com_regs->meta_param1;
+>> +             msg->parameter2 = 0;
+>> +             msg->parameter3 = 0;
+>> +             msg->parameter4 = 0;
+>> +             break;
+>> +     case INTR_SHOT_DONE:
+>> +             msg->id = 0;
+>> +             msg->command = IHC_FRAME_DONE;
+>> +             msg->instance = com_regs->shot_sensor_id;
+>> +             msg->parameter1 = com_regs->shot_param1;
+>> +             msg->parameter2 = com_regs->shot_param2;
+>> +             msg->parameter3 = 0;
+>> +             msg->parameter4 = 0;
+>> +             break;
+>> +     default:
+>> +             msg->id = 0;
+>> +             msg->command = 0;
+>> +             msg->instance = 0;
+>> +             msg->parameter1 = 0;
+>> +             msg->parameter2 = 0;
+>> +             msg->parameter3 = 0;
+>> +             msg->parameter4 = 0;
+>> +             pr_err("unknown command getting\n");
+>> +             break;
+>> +     }
+>> +}
+>
+> If you memset(msg, 0, sizeof(*msg)) at the beginning of the function,
+> you can remove all zero assignements and the switch statement will
+> become much shorter.
+>
 
-I have a problem with the AzureWave 704J dual tuner that has developed
-recently.  I am using it with Mythbuntu 12.04.1 LTS, at the latest
-patch level, but it is persistently failing to record.  It can be made
-to work for a single recording, or maybe two, by running the DVB scan
-tool on both
-adapters corresponding to the tuner - the first scan on adapter 0
-fails, subsequent ones on 0 and 1 succeed.
+Yes will do that.
 
-"uname -a" on my system produces this:  Linux mythmk2 3.2.0-43-generic
-#68-Ubuntu SMP Wed May 15 03:33:33 UTC 2013 x86_64 x86_64 x86_64
-GNU/Linux
+>> +
+>> +static inline unsigned int itf_get_intr(struct fimc_is_interface *itf)
+>> +{
+>> +     unsigned int status;
+>> +     struct is_common_reg __iomem *com_regs = itf->com_regs;
+>> +
+>> +     status = readl(itf->regs + INTMSR1) | com_regs->ihcmd_iflag |
+>> +             com_regs->scc_iflag |
+>> +             com_regs->scp_iflag |
+>> +             com_regs->meta_iflag |
+>> +             com_regs->shot_iflag;
+>> +
+>> +     return status;
+>> +}
+>> +
+>> +static void itf_set_state(struct fimc_is_interface *itf,
+>> +             unsigned long state)
+>> +{
+>> +     unsigned long flags;
+>> +     spin_lock_irqsave(&itf->slock_state, flags);
+>> +     __set_bit(state, &itf->state);
+>> +     spin_unlock_irqrestore(&itf->slock_state, flags);
+>> +}
+>> +
+>> +static void itf_clr_state(struct fimc_is_interface *itf,
+>> +             unsigned long state)
+>> +{
+>> +     unsigned long flags;
+>> +     spin_lock_irqsave(&itf->slock_state, flags);
+>> +     __clear_bit(state, &itf->state);
+>> +     spin_unlock_irqrestore(&itf->slock_state, flags);
+>> +}
+>> +
+>> +static int itf_get_state(struct fimc_is_interface *itf,
+>> +             unsigned long state)
+>> +{
+>> +     int ret = 0;
+>> +     unsigned long flags;
+>> +
+>> +     spin_lock_irqsave(&itf->slock_state, flags);
+>> +     ret = test_bit(state, &itf->state);
+>> +     spin_unlock_irqrestore(&itf->slock_state, flags);
+>> +     return ret;
+>> +}
+>> +
+>> +static void itf_init_wakeup(struct fimc_is_interface *itf)
+>> +{
+>> +     itf_set_state(itf, IS_IF_STATE_INIT);
+>> +     wake_up(&itf->irq_queue);
+>> +}
+>> +
+>> +void itf_busy_wakeup(struct fimc_is_interface *itf)
+>> +{
+>> +     itf_clr_state(itf, IS_IF_STATE_BUSY);
+>> +     wake_up(&itf->irq_queue);
+>> +}
+>> +
+>> +static int itf_wait_hw_ready(struct fimc_is_interface *itf)
+>> +{
+>> +     int ret = 0;
+>> +     unsigned int try_count = TRY_RECV_AWARE_COUNT;
+>> +     unsigned int cfg = readl(itf->regs + INTMSR0);
+>> +     unsigned int status = INTMSR0_GET_INTMSD(0, cfg);
+>> +
+>> +     while (status) {
+>> +             cfg = readl(itf->regs + INTMSR0);
+>> +             status = INTMSR0_GET_INTMSD(0, cfg);
+>> +
+>> +             if (try_count-- == 0) {
+>> +                     try_count = TRY_RECV_AWARE_COUNT;
+>> +                     pr_err("INTMSR0's 0 bit is not cleared.\n");
+>> +                     ret = -EINVAL;
+>> +                     break;
+>> +             }
+>> +     }
+>> +     return ret;
+>> +}
+>
+> I think the body could be replaced by more clear code, for example:
+> {
+>         int t;
+>         for (t = TRY_RECV_AWARE_COUNT; t >= 0; t--) {
+>                 unsigned int cfg = readl(itf->regs + INTMSR0);
+>                 unsigned int status = INTMSR0_GET_INTMSD(0, cfg);
+>                 if (!status)
+>                         return 0;
+>         }
+>         pr_err("INTMSR0's 0 bit is not cleared.\n");
+>         return -EINVAL;
+> }
+>
 
-It's not mythtv that has the problem - zap fails too, the first time,
-but subsequently succeeds.  The attached files show debug logs from
-the af9015 driver
-- 1.txt is a failed zap to a channel on adapter 0
-- 2.txt is a successful zap on adapter 1
-- 3.txt is a successful zap on adapter 0.
-They were done in that order.
+Yes thank you for the suggestion.
 
-Any ideas?
+>> +
+>> +static int itf_wait_idlestate(struct fimc_is_interface *itf)
+>> +{
+>> +     int ret = 0;
+>
+> Initialization is not needed here.
+>
 
-Thanks,
-Austin.
+Ok.
 
---20cf302ef9520ce38d04e11ac7be
-Content-Type: text/plain; charset=US-ASCII; name="1.txt"
-Content-Disposition: attachment; filename="1.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hixlq1d70
+>> +
+>> +     ret = wait_event_timeout(itf->irq_queue,
+>> +                     !itf_get_state(itf, IS_IF_STATE_BUSY),
+>> +                     FIMC_IS_COMMAND_TIMEOUT);
+>> +     if (!ret) {
+>> +             pr_err("timeout");
+>> +             return -ETIME;
+>> +     }
+>> +     return 0;
+>> +}
+>> +
+>> +int fimc_is_itf_wait_init_state(struct fimc_is_interface *itf)
+>> +{
+>> +     int ret = 0;
+>
+> ...
+>
+>> +
+>> +     ret = wait_event_timeout(itf->irq_queue,
+>> +             itf_get_state(itf, IS_IF_STATE_INIT),
+>> +             FIMC_IS_STARTUP_TIMEOUT);
+>> +
+>> +     if (!ret) {
+>> +             pr_err("timeout\n");
+>> +             return -ETIME;
+>> +     }
+>> +     return 0;
+>> +}
+>> +
+>> +static inline void itf_clr_intr(struct fimc_is_interface *itf,
+>> +             unsigned int index)
+>> +{
+>> +     struct is_common_reg __iomem *com_regs = itf->com_regs;
+>> +
+>> +     switch (index) {
+>> +     case INTR_GENERAL:
+>> +             writel((1<<INTR_GENERAL), itf->regs + INTCR1);
+>> +             com_regs->ihcmd_iflag = 0;
+>> +             break;
+>> +     case INTR_SCC_FDONE:
+>> +             writel((1<<INTR_SCC_FDONE), itf->regs + INTCR1);
+>> +             com_regs->scc_iflag = 0;
+>> +             break;
+>> +     case INTR_SCP_FDONE:
+>> +             writel((1<<INTR_SCP_FDONE), itf->regs + INTCR1);
+>> +             com_regs->scp_iflag = 0;
+>> +             break;
+>> +     case INTR_META_DONE:
+>> +             writel((1<<INTR_META_DONE), itf->regs + INTCR1);
+>> +             com_regs->meta_iflag = 0;
+>> +             break;
+>> +     case INTR_SHOT_DONE:
+>> +             writel((1<<INTR_SHOT_DONE), itf->regs + INTCR1);
+>> +             com_regs->shot_iflag = 0;
+>> +             break;
+>> +     default:
+>> +             pr_err("Unknown command clear\n");
+>> +             break;
+>> +     }
+>> +}
+> You could remove all writel and at the end add:
+> writel((1<<index), itf->regs + INTCR1). In such case s/break/return/ in
+> 'default' statement.
+>> +
 
-WkFQIEFEQVBURVIgMCAtIEZBSUxFRA0KDQpKdWwgIDggMTI6NDU6MDEgbXl0aG1rMiBrZXJuZWw6
-IFs2NTgwODYuMTg3NjYxXSBhZjkwMTNfaW5pdA0KSnVsICA4IDEyOjQ1OjAxIG15dGhtazIga2Vy
-bmVsOiBbNjU4MDg2LjE4NzY3Ml0gYWY5MDEzX3Jlc2V0DQpKdWwgIDggMTI6NDU6MDQgbXl0aG1r
-MiBrZXJuZWw6IFs2NTgwODguNTg4MDY2XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjEN
-Ckp1bCAgOCAxMjo0NTowNCBteXRobWsyIGtlcm5lbDogWzY1ODA4OC41ODkwMjhdIGFmOTAxM19p
-MmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ1OjA0IG15dGhtazIga2VybmVsOiBb
-NjU4MDg4LjU5MDUyOV0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6
-NDU6MDQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwODguNTkxMjc2XSBhZjkwMTNfaTJjX2dhdGVfY3Ry
-bDogZW5hYmxlOjENCkp1bCAgOCAxMjo0NTowNCBteXRobWsyIGtlcm5lbDogWzY1ODA4OC41OTI4
-MDRdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ1OjA0IG15dGht
-azIga2VybmVsOiBbNjU4MDg4LjU5MzY4MF0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTox
-DQpKdWwgIDggMTI6NDU6MDQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwODguNjA4OTE0XSBhZjkwMTNf
-aTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0NTowNCBteXRobWsyIGtlcm5lbDog
-WzY1ODA4OC42MDk2NTJdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEy
-OjQ1OjA0IG15dGhtazIga2VybmVsOiBbNjU4MDg4LjYxMTc0NF0gYWY5MDEzX3NldF9mcm9udGVu
-ZDogZnJlcTo1Mjk4MzMwMDAgYnc6MA0KSnVsICA4IDEyOjQ1OjA0IG15dGhtazIga2VybmVsOiBb
-NjU4MDg4LjYxMTc1Nl0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6
-NDU6MDQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwODguNjEzMjY2XSBhZjkwMTNfaTJjX2dhdGVfY3Ry
-bDogZW5hYmxlOjANCkp1bCAgOCAxMjo0NTowNCBteXRobWsyIGtlcm5lbDogWzY1ODA4OC42MTQw
-MzJdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ1OjA0IG15dGht
-azIga2VybmVsOiBbNjU4MDg4LjYxNTQwNV0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTow
-DQpKdWwgIDggMTI6NDU6MDQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwODguNjE2NTU4XSBhZjkwMTNf
-aTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0NTowNCBteXRobWsyIGtlcm5lbDog
-WzY1ODA4OC42MzIwOTNdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEy
-OjQ1OjA0IG15dGhtazIga2VybmVsOiBbNjU4MDg4LjYzMjg4NV0gYWY5MDEzX2kyY19nYXRlX2N0
-cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MDQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwODguNjM0
-Mjc4XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0NTowNCBteXRo
-bWsyIGtlcm5lbDogWzY1ODA4OC42MzQ4NjBdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6
-MQ0KSnVsICA4IDEyOjQ1OjA0IG15dGhtazIga2VybmVsOiBbNjU4MDg4LjY1MjU0MF0gYWY5MDEz
-X2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MDQgbXl0aG1rMiBrZXJuZWw6
-IFs2NTgwODguODA4MDgyXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAx
-Mjo0NTowNCBteXRobWsyIGtlcm5lbDogWzY1ODA4OC44MTIwNzVdIGFmOTAxM19pMmNfZ2F0ZV9j
-dHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ1OjA0IG15dGhtazIga2VybmVsOiBbNjU4MDg4Ljkx
-NjA2NF0gYWY5MDEzX3NldF9jb2VmZjogYWRjX2Nsb2NrOjI4MDAwIGJ3OjANCkp1bCAgOCAxMjo0
-NTowNCBteXRobWsyIGtlcm5lbDogWzY1ODA4OC45MTYwNzNdIGFmOTAxM19zZXRfY29lZmY6IGNv
-ZWZmOiAwMiA5YyBiYyAxNSAwNSAzOSA3OCAwYSAwMCBhNyAzNCAzZiAwMCBhNyAyZiAwNSAwMCBh
-NyAyOSBjYyAwMSA0ZSA1ZSAwMw0KSnVsICA4IDEyOjQ1OjA0IG15dGhtazIga2VybmVsOiBbNjU4
-MDg4LjkyODQzMl0gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIzDQpKdWwgIDgg
-MTI6NDU6MDQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwODguOTI4NDQ2XSBhZjkxM19kaXY6IGE6MTg1
-NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4IDEyOjQ1OjA0
-IG15dGhtazIga2VybmVsOiBbNjU4MDg4LjkyODQ1Ml0gYWY5MDEzX3NldF9mcmVxX2N0cmw6IGZy
-ZXFfY3c6Y2MgMWIgNmINCkp1bCAgOCAxMjo0NTowNCBteXRobWsyIGtlcm5lbDogWzY1ODA4OC45
-Mjk2NjNdIGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ1
-OjA0IG15dGhtazIga2VybmVsOiBbNjU4MDg4LjkyOTY3Ml0gYWY5MTNfZGl2OiBhOjE4NTYwMDAw
-IGI6MjgwMDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0NTowNCBteXRo
-bWsyIGtlcm5lbDogWzY1ODA4OC45Mjk2NzddIGFmOTAxM19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3
-OmNjIDFiIDZiDQpKdWwgIDggMTI6NDU6MDQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwODguOTMwNzgy
-XSBhZjkxM19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAxMjo0NTowNCBt
-eXRobWsyIGtlcm5lbDogWzY1ODA4OC45MzA3ODldIGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4
-MDAwMDAwIHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpKdWwgIDggMTI6NDU6MDQgbXl0aG1rMiBr
-ZXJuZWw6IFs2NTgwODguOTMwNzk0XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJlcV9jdzozNCBl
-NCAxNA0KSnVsICA4IDEyOjQ1OjA0IG15dGhtazIga2VybmVsOiBbNjU4MDg4LjkzODA0MF0gYWY5
-MDEzX3NldF9mcm9udGVuZDogbWFudWFsIFRQUw0KSnVsICA4IDEyOjQ1OjA0IG15dGhtazIga2Vy
-bmVsOiBbNjU4MDg4Ljk0MDQzMl0gYWY5MDEzX3VwZGF0ZV9zaWduYWxfc3RyZW5ndGgNCkp1bCAg
-OCAxMjo0NTowNSBteXRobWsyIGtlcm5lbDogWzY1ODA4OS43Mzk1NjBdIGFmOTAxM19zZXRfZnJv
-bnRlbmQ6IGZyZXE6NTI5ODMzMDAwIGJ3OjANCkp1bCAgOCAxMjo0NTowNSBteXRobWsyIGtlcm5l
-bDogWzY1ODA4OS43Mzk1NzFdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4
-IDEyOjQ1OjA1IG15dGhtazIga2VybmVsOiBbNjU4MDg5Ljc0MTA3OV0gYWY5MDEzX2kyY19nYXRl
-X2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgwODku
-NzQyMDEwXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0NTowNSBt
-eXRobWsyIGtlcm5lbDogWzY1ODA4OS43NTk5MzJdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFi
-bGU6MA0KSnVsICA4IDEyOjQ1OjA1IG15dGhtazIga2VybmVsOiBbNjU4MDg5LjkxNjA3NV0gYWY5
-MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MDUgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgwODkuOTIwMDg4XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAg
-OCAxMjo0NTowNSBteXRobWsyIGtlcm5lbDogWzY1ODA5MC4wMjQwNjFdIGFmOTAxM19zZXRfY29l
-ZmY6IGFkY19jbG9jazoyODAwMCBidzowDQpKdWwgIDggMTI6NDU6MDUgbXl0aG1rMiBrZXJuZWw6
-IFs2NTgwOTAuMDI0MDcwXSBhZjkwMTNfc2V0X2NvZWZmOiBjb2VmZjogMDIgOWMgYmMgMTUgMDUg
-MzkgNzggMGEgMDAgYTcgMzQgM2YgMDAgYTcgMmYgMDUgMDAgYTcgMjkgY2MgMDEgNGUgNWUgMDMN
-Ckp1bCAgOCAxMjo0NTowNSBteXRobWsyIGtlcm5lbDogWzY1ODA5MC4wMzUxOTFdIGFmOTEzX2Rp
-djogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ1OjA1IG15dGhtazIga2Vy
-bmVsOiBbNjU4MDkwLjAzNTIwMl0gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoy
-MyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0NTowNSBteXRobWsyIGtlcm5lbDogWzY1
-ODA5MC4wMzUyMDddIGFmOTAxM19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OmNjIDFiIDZiDQpKdWwg
-IDggMTI6NDU6MDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTAuMDM2MzI4XSBhZjkxM19kaXY6IGE6
-NDU3MDAwMCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAxMjo0NTowNSBteXRobWsyIGtlcm5lbDog
-WzY1ODA5MC4wMzYzNDBdIGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjox
-MzY5MTQwIHI6MTRlNDM0DQpKdWwgIDggMTI6NDU6MDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTAu
-MDM2MzQ4XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJlcV9jdzpjYyAxYiA2Yg0KSnVsICA4IDEy
-OjQ1OjA1IG15dGhtazIga2VybmVsOiBbNjU4MDkwLjAzNzY5N10gYWY5MTNfZGl2OiBhOjQ1NzAw
-MDAgYjoyODAwMDAwMCB4OjIzDQpKdWwgIDggMTI6NDU6MDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgw
-OTAuMDM3NzA4XSBhZjkxM19kaXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0
-MCByOjE0ZTQzNA0KSnVsICA4IDEyOjQ1OjA1IG15dGhtazIga2VybmVsOiBbNjU4MDkwLjAzNzcx
-M10gYWY5MDEzX3NldF9mcmVxX2N0cmw6IGZyZXFfY3c6MzQgZTQgMTQNCkp1bCAgOCAxMjo0NTow
-NSBteXRobWsyIGtlcm5lbDogWzY1ODA5MC4wNDUwNjZdIGFmOTAxM19zZXRfZnJvbnRlbmQ6IG1h
-bnVhbCBUUFMNCkp1bCAgOCAxMjo0NTowNSBteXRobWsyIGtlcm5lbDogWzY1ODA5MC4xNjkwNjNd
-IGFmOTAxM191cGRhdGVfc2lnbmFsX3N0cmVuZ3RoDQpKdWwgIDggMTI6NDU6MDYgbXl0aG1rMiBr
-ZXJuZWw6IFs2NTgwOTAuODQ3MjA5XSBhZjkwMTNfc2V0X2Zyb250ZW5kOiBmcmVxOjUyOTgzMzAw
-MCBidzowDQpKdWwgIDggMTI6NDU6MDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTAuODQ3MjIwXSBh
-ZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0NTowNiBteXRobWsyIGtl
-cm5lbDogWzY1ODA5MC44NDg3MjJdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVs
-ICA4IDEyOjQ1OjA2IG15dGhtazIga2VybmVsOiBbNjU4MDkwLjg1MDAzNl0gYWY5MDEzX2kyY19n
-YXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgw
-OTAuODY4MjA1XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0NTow
-NiBteXRobWsyIGtlcm5lbDogWzY1ODA5MS4wMjQwNzZdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBl
-bmFibGU6MQ0KSnVsICA4IDEyOjQ1OjA2IG15dGhtazIga2VybmVsOiBbNjU4MDkxLjAyODA4N10g
-YWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MDYgbXl0aG1rMiBr
-ZXJuZWw6IFs2NTgwOTEuMTMyMDczXSBhZjkwMTNfc2V0X2NvZWZmOiBhZGNfY2xvY2s6MjgwMDAg
-Ync6MA0KSnVsICA4IDEyOjQ1OjA2IG15dGhtazIga2VybmVsOiBbNjU4MDkxLjEzMjA4M10gYWY5
-MDEzX3NldF9jb2VmZjogY29lZmY6IDAyIDljIGJjIDE1IDA1IDM5IDc4IDBhIDAwIGE3IDM0IDNm
-IDAwIGE3IDJmIDA1IDAwIGE3IDI5IGNjIDAxIDRlIDVlIDAzDQpKdWwgIDggMTI6NDU6MDYgbXl0
-aG1rMiBrZXJuZWw6IFs2NTgwOTEuMTQzOTUwXSBhZjkxM19kaXY6IGE6NDU3MDAwMCBiOjI4MDAw
-MDAwIHg6MjMNCkp1bCAgOCAxMjo0NTowNiBteXRobWsyIGtlcm5lbDogWzY1ODA5MS4xNDM5NjBd
-IGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0
-DQpKdWwgIDggMTI6NDU6MDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTEuMTQzOTY2XSBhZjkwMTNf
-c2V0X2ZyZXFfY3RybDogZnJlcV9jdzpjYyAxYiA2Yg0KSnVsICA4IDEyOjQ1OjA2IG15dGhtazIg
-a2VybmVsOiBbNjU4MDkxLjE0NTcwNl0gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4
-OjIzDQpKdWwgIDggMTI6NDU6MDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTEuMTQ1NzE2XSBhZjkx
-M19kaXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVs
-ICA4IDEyOjQ1OjA2IG15dGhtazIga2VybmVsOiBbNjU4MDkxLjE0NTcyMV0gYWY5MDEzX3NldF9m
-cmVxX2N0cmw6IGZyZXFfY3c6Y2MgMWIgNmINCkp1bCAgOCAxMjo0NTowNiBteXRobWsyIGtlcm5l
-bDogWzY1ODA5MS4xNDY4MjhdIGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0K
-SnVsICA4IDEyOjQ1OjA2IG15dGhtazIga2VybmVsOiBbNjU4MDkxLjE0NjgzN10gYWY5MTNfZGl2
-OiBhOjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAx
-Mjo0NTowNiBteXRobWsyIGtlcm5lbDogWzY1ODA5MS4xNDY4NDJdIGFmOTAxM19zZXRfZnJlcV9j
-dHJsOiBmcmVxX2N3OjM0IGU0IDE0DQpKdWwgIDggMTI6NDU6MDYgbXl0aG1rMiBrZXJuZWw6IFs2
-NTgwOTEuMTU0MzI5XSBhZjkwMTNfc2V0X2Zyb250ZW5kOiBtYW51YWwgVFBTDQpKdWwgIDggMTI6
-NDU6MDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTEuMzc3MDg1XSBhZjkwMTNfdXBkYXRlX3NpZ25h
-bF9zdHJlbmd0aA0KSnVsICA4IDEyOjQ1OjA3IG15dGhtazIga2VybmVsOiBbNjU4MDkxLjk1NDIy
-MV0gYWY5MDEzX3NldF9mcm9udGVuZDogZnJlcTo1Mjk4MzMwMDAgYnc6MA0KSnVsICA4IDEyOjQ1
-OjA3IG15dGhtazIga2VybmVsOiBbNjU4MDkxLjk1NDIzMl0gYWY5MDEzX2kyY19nYXRlX2N0cmw6
-IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MDcgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTEuOTU1NTgx
-XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0NTowNyBteXRobWsy
-IGtlcm5lbDogWzY1ODA5MS45NTY0NTVdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0K
-SnVsICA4IDEyOjQ1OjA3IG15dGhtazIga2VybmVsOiBbNjU4MDkxLjk3NDcxN10gYWY5MDEzX2ky
-Y19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MDcgbXl0aG1rMiBrZXJuZWw6IFs2
-NTgwOTIuMTI4MDg3XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0
-NTowNyBteXRobWsyIGtlcm5lbDogWzY1ODA5Mi4xMzE5NjBdIGFmOTAxM19pMmNfZ2F0ZV9jdHJs
-OiBlbmFibGU6MA0KSnVsICA4IDEyOjQ1OjA3IG15dGhtazIga2VybmVsOiBbNjU4MDkyLjIzNjA1
-N10gYWY5MDEzX3NldF9jb2VmZjogYWRjX2Nsb2NrOjI4MDAwIGJ3OjANCkp1bCAgOCAxMjo0NTow
-NyBteXRobWsyIGtlcm5lbDogWzY1ODA5Mi4yMzYwNjZdIGFmOTAxM19zZXRfY29lZmY6IGNvZWZm
-OiAwMiA5YyBiYyAxNSAwNSAzOSA3OCAwYSAwMCBhNyAzNCAzZiAwMCBhNyAyZiAwNSAwMCBhNyAy
-OSBjYyAwMSA0ZSA1ZSAwMw0KSnVsICA4IDEyOjQ1OjA3IG15dGhtazIga2VybmVsOiBbNjU4MDky
-LjI0NzM1Ml0gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIzDQpKdWwgIDggMTI6
-NDU6MDcgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTIuMjQ3MzYzXSBhZjkxM19kaXY6IGE6MTg1NjAw
-MDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4IDEyOjQ1OjA3IG15
-dGhtazIga2VybmVsOiBbNjU4MDkyLjI0NzM2OF0gYWY5MDEzX3NldF9mcmVxX2N0cmw6IGZyZXFf
-Y3c6Y2MgMWIgNmINCkp1bCAgOCAxMjo0NTowNyBteXRobWsyIGtlcm5lbDogWzY1ODA5Mi4yNDg4
-NzBdIGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ1OjA3
-IG15dGhtazIga2VybmVsOiBbNjU4MDkyLjI0ODg4NV0gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6
-MjgwMDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0NTowNyBteXRobWsy
-IGtlcm5lbDogWzY1ODA5Mi4yNDg4OTNdIGFmOTAxM19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OmNj
-IDFiIDZiDQpKdWwgIDggMTI6NDU6MDcgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTIuMjUwMDkzXSBh
-ZjkxM19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAxMjo0NTowNyBteXRo
-bWsyIGtlcm5lbDogWzY1ODA5Mi4yNTAxMDRdIGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAw
-MDAwIHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpKdWwgIDggMTI6NDU6MDcgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgwOTIuMjUwMTA5XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJlcV9jdzozNCBlNCAx
-NA0KSnVsICA4IDEyOjQ1OjA3IG15dGhtazIga2VybmVsOiBbNjU4MDkyLjI1Njk3MF0gYWY5MDEz
-X3NldF9mcm9udGVuZDogbWFudWFsIFRQUw0KSnVsICA4IDEyOjQ1OjA4IG15dGhtazIga2VybmVs
-OiBbNjU4MDkyLjg2MjIzNl0gYWY5MDEzX3VwZGF0ZV9zaWduYWxfc3RyZW5ndGgNCkp1bCAgOCAx
-Mjo0NTowOCBteXRobWsyIGtlcm5lbDogWzY1ODA5My4wNTkzNTFdIGFmOTAxM19zZXRfZnJvbnRl
-bmQ6IGZyZXE6NTI5ODMzMDAwIGJ3OjANCkp1bCAgOCAxMjo0NTowOCBteXRobWsyIGtlcm5lbDog
-WzY1ODA5My4wNTkzNjNdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEy
-OjQ1OjA4IG15dGhtazIga2VybmVsOiBbNjU4MDkzLjA2MDk3MF0gYWY5MDEzX2kyY19nYXRlX2N0
-cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MDggbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTMuMDYx
-OTQxXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0NTowOCBteXRo
-bWsyIGtlcm5lbDogWzY1ODA5My4wNzk2MTRdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6
-MA0KSnVsICA4IDEyOjQ1OjA4IG15dGhtazIga2VybmVsOiBbNjU4MDkzLjIzNjA4MF0gYWY5MDEz
-X2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MDggbXl0aG1rMiBrZXJuZWw6
-IFs2NTgwOTMuMjQwMTIzXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAx
-Mjo0NTowOCBteXRobWsyIGtlcm5lbDogWzY1ODA5My4zNDQwNjNdIGFmOTAxM19zZXRfY29lZmY6
-IGFkY19jbG9jazoyODAwMCBidzowDQpKdWwgIDggMTI6NDU6MDggbXl0aG1rMiBrZXJuZWw6IFs2
-NTgwOTMuMzQ0MDcyXSBhZjkwMTNfc2V0X2NvZWZmOiBjb2VmZjogMDIgOWMgYmMgMTUgMDUgMzkg
-NzggMGEgMDAgYTcgMzQgM2YgMDAgYTcgMmYgMDUgMDAgYTcgMjkgY2MgMDEgNGUgNWUgMDMNCkp1
-bCAgOCAxMjo0NTowOCBteXRobWsyIGtlcm5lbDogWzY1ODA5My4zNTUyNDFdIGFmOTEzX2Rpdjog
-YTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ1OjA4IG15dGhtazIga2VybmVs
-OiBbNjU4MDkzLjM1NTI1Ml0gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoyMyBy
-OjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0NTowOCBteXRobWsyIGtlcm5lbDogWzY1ODA5
-My4zNTUyNTddIGFmOTAxM19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OmNjIDFiIDZiDQpKdWwgIDgg
-MTI6NDU6MDggbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTMuMzU2Mzc5XSBhZjkxM19kaXY6IGE6NDU3
-MDAwMCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAxMjo0NTowOCBteXRobWsyIGtlcm5lbDogWzY1
-ODA5My4zNTYzOTFdIGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5
-MTQwIHI6MTRlNDM0DQpKdWwgIDggMTI6NDU6MDggbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTMuMzU2
-Mzk4XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJlcV9jdzpjYyAxYiA2Yg0KSnVsICA4IDEyOjQ1
-OjA4IG15dGhtazIga2VybmVsOiBbNjU4MDkzLjM1Nzk4OF0gYWY5MTNfZGl2OiBhOjQ1NzAwMDAg
-YjoyODAwMDAwMCB4OjIzDQpKdWwgIDggMTI6NDU6MDggbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTMu
-MzU3OTk4XSBhZjkxM19kaXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCBy
-OjE0ZTQzNA0KSnVsICA4IDEyOjQ1OjA4IG15dGhtazIga2VybmVsOiBbNjU4MDkzLjM1ODAwM10g
-YWY5MDEzX3NldF9mcmVxX2N0cmw6IGZyZXFfY3c6MzQgZTQgMTQNCkp1bCAgOCAxMjo0NTowOCBt
-eXRobWsyIGtlcm5lbDogWzY1ODA5My4zNjUxMTNdIGFmOTAxM19zZXRfZnJvbnRlbmQ6IG1hbnVh
-bCBUUFMNCkp1bCAgOCAxMjo0NTowOSBteXRobWsyIGtlcm5lbDogWzY1ODA5NC4wNzAyNTVdIGFm
-OTAxM191cGRhdGVfc2lnbmFsX3N0cmVuZ3RoDQpKdWwgIDggMTI6NDU6MDkgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgwOTQuMTY3MjU4XSBhZjkwMTNfc2V0X2Zyb250ZW5kOiBmcmVxOjUyOTgzMzAwMCBi
-dzowDQpKdWwgIDggMTI6NDU6MDkgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTQuMTY3MjY4XSBhZjkw
-MTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0NTowOSBteXRobWsyIGtlcm5l
-bDogWzY1ODA5NC4xNjg2NDldIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4
-IDEyOjQ1OjA5IG15dGhtazIga2VybmVsOiBbNjU4MDk0LjE2OTU5N10gYWY5MDEzX2kyY19nYXRl
-X2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MDkgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTQu
-MTg3MjU1XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0NTowOSBt
-eXRobWsyIGtlcm5lbDogWzY1ODA5NC4zNDAwNzRdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFi
-bGU6MQ0KSnVsICA4IDEyOjQ1OjA5IG15dGhtazIga2VybmVsOiBbNjU4MDk0LjM0NDE0MF0gYWY5
-MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MTAgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgwOTQuNDQ4MDU2XSBhZjkwMTNfc2V0X2NvZWZmOiBhZGNfY2xvY2s6MjgwMDAgYnc6
-MA0KSnVsICA4IDEyOjQ1OjEwIG15dGhtazIga2VybmVsOiBbNjU4MDk0LjQ0ODA2NF0gYWY5MDEz
-X3NldF9jb2VmZjogY29lZmY6IDAyIDljIGJjIDE1IDA1IDM5IDc4IDBhIDAwIGE3IDM0IDNmIDAw
-IGE3IDJmIDA1IDAwIGE3IDI5IGNjIDAxIDRlIDVlIDAzDQpKdWwgIDggMTI6NDU6MTAgbXl0aG1r
-MiBrZXJuZWw6IFs2NTgwOTQuNDU4ODg0XSBhZjkxM19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAw
-IHg6MjMNCkp1bCAgOCAxMjo0NToxMCBteXRobWsyIGtlcm5lbDogWzY1ODA5NC40NTg4OTVdIGFm
-OTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpK
-dWwgIDggMTI6NDU6MTAgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTQuNDU4OTAxXSBhZjkwMTNfc2V0
-X2ZyZXFfY3RybDogZnJlcV9jdzpjYyAxYiA2Yg0KSnVsICA4IDEyOjQ1OjEwIG15dGhtazIga2Vy
-bmVsOiBbNjU4MDk0LjQ1OTk5OF0gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIz
-DQpKdWwgIDggMTI6NDU6MTAgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTQuNDYwMDUyXSBhZjkxM19k
-aXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4
-IDEyOjQ1OjEwIG15dGhtazIga2VybmVsOiBbNjU4MDk0LjQ2MDA2MF0gYWY5MDEzX3NldF9mcmVx
-X2N0cmw6IGZyZXFfY3c6Y2MgMWIgNmINCkp1bCAgOCAxMjo0NToxMCBteXRobWsyIGtlcm5lbDog
-WzY1ODA5NC40NjIzOTBdIGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVs
-ICA4IDEyOjQ1OjEwIG15dGhtazIga2VybmVsOiBbNjU4MDk0LjQ2MjQwMF0gYWY5MTNfZGl2OiBh
-OjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0
-NToxMCBteXRobWsyIGtlcm5lbDogWzY1ODA5NC40NjI0MDVdIGFmOTAxM19zZXRfZnJlcV9jdHJs
-OiBmcmVxX2N3OjM0IGU0IDE0DQpKdWwgIDggMTI6NDU6MTAgbXl0aG1rMiBrZXJuZWw6IFs2NTgw
-OTQuNDY5MjU1XSBhZjkwMTNfc2V0X2Zyb250ZW5kOiBtYW51YWwgVFBTDQpKdWwgIDggMTI6NDU6
-MTAgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTUuMjcxMTUyXSBhZjkwMTNfdXBkYXRlX3NpZ25hbF9z
-dHJlbmd0aA0KSnVsICA4IDEyOjQ1OjEwIG15dGhtazIga2VybmVsOiBbNjU4MDk1LjI3MjcyMF0g
-YWY5MDEzX3NldF9mcm9udGVuZDogZnJlcTo1Mjk4MzMwMDAgYnc6MA0KSnVsICA4IDEyOjQ1OjEw
-IG15dGhtazIga2VybmVsOiBbNjU4MDk1LjI3MjczMl0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVu
-YWJsZToxDQpKdWwgIDggMTI6NDU6MTAgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTUuMjc0MzkyXSBh
-ZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0NToxMCBteXRobWsyIGtl
-cm5lbDogWzY1ODA5NS4yNzUyMThdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVs
-ICA4IDEyOjQ1OjEwIG15dGhtazIga2VybmVsOiBbNjU4MDk1LjI5Mjg5OF0gYWY5MDEzX2kyY19n
-YXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MTEgbXl0aG1rMiBrZXJuZWw6IFs2NTgw
-OTUuNDQ4MDY3XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0NTox
-MSBteXRobWsyIGtlcm5lbDogWzY1ODA5NS40NTA1MTNdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBl
-bmFibGU6MA0KSnVsICA4IDEyOjQ1OjExIG15dGhtazIga2VybmVsOiBbNjU4MDk1LjU1MjA3M10g
-YWY5MDEzX3NldF9jb2VmZjogYWRjX2Nsb2NrOjI4MDAwIGJ3OjANCkp1bCAgOCAxMjo0NToxMSBt
-eXRobWsyIGtlcm5lbDogWzY1ODA5NS41NTIwODFdIGFmOTAxM19zZXRfY29lZmY6IGNvZWZmOiAw
-MiA5YyBiYyAxNSAwNSAzOSA3OCAwYSAwMCBhNyAzNCAzZiAwMCBhNyAyZiAwNSAwMCBhNyAyOSBj
-YyAwMSA0ZSA1ZSAwMw0KSnVsICA4IDEyOjQ1OjExIG15dGhtazIga2VybmVsOiBbNjU4MDk1LjU2
-NDQwNF0gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIzDQpKdWwgIDggMTI6NDU6
-MTEgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTUuNTY0NDE1XSBhZjkxM19kaXY6IGE6MTg1NjAwMDAg
-YjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4IDEyOjQ1OjExIG15dGht
-azIga2VybmVsOiBbNjU4MDk1LjU2NDQyMF0gYWY5MDEzX3NldF9mcmVxX2N0cmw6IGZyZXFfY3c6
-Y2MgMWIgNmINCkp1bCAgOCAxMjo0NToxMSBteXRobWsyIGtlcm5lbDogWzY1ODA5NS41NjU1MTdd
-IGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ1OjExIG15
-dGhtazIga2VybmVsOiBbNjU4MDk1LjU2NTUyNF0gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6Mjgw
-MDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0NToxMSBteXRobWsyIGtl
-cm5lbDogWzY1ODA5NS41NjU1MjldIGFmOTAxM19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OmNjIDFi
-IDZiDQpKdWwgIDggMTI6NDU6MTEgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTUuNTY2NjQwXSBhZjkx
-M19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAxMjo0NToxMSBteXRobWsy
-IGtlcm5lbDogWzY1ODA5NS41NjY2NDddIGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAw
-IHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpKdWwgIDggMTI6NDU6MTEgbXl0aG1rMiBrZXJuZWw6
-IFs2NTgwOTUuNTY2NjUyXSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJlcV9jdzozNCBlNCAxNA0K
-SnVsICA4IDEyOjQ1OjExIG15dGhtazIga2VybmVsOiBbNjU4MDk1LjU3NTUyNF0gYWY5MDEzX3Nl
-dF9mcm9udGVuZDogbWFudWFsIFRQUw0KSnVsICA4IDEyOjQ1OjExIG15dGhtazIga2VybmVsOiBb
-NjU4MDk2LjM3NTE2OV0gYWY5MDEzX3NldF9mcm9udGVuZDogZnJlcTo1Mjk4MzMwMDAgYnc6MA0K
-SnVsICA4IDEyOjQ1OjExIG15dGhtazIga2VybmVsOiBbNjU4MDk2LjM3NTE3OV0gYWY5MDEzX2ky
-Y19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MTEgbXl0aG1rMiBrZXJuZWw6IFs2
-NTgwOTYuMzc2NzYxXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0
-NToxMSBteXRobWsyIGtlcm5lbDogWzY1ODA5Ni4zNzc3NTFdIGFmOTAxM19pMmNfZ2F0ZV9jdHJs
-OiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ1OjExIG15dGhtazIga2VybmVsOiBbNjU4MDk2LjM5NTc5
-MV0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MTIgbXl0aG1r
-MiBrZXJuZWw6IFs2NTgwOTYuNTUyMDgxXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjEN
-Ckp1bCAgOCAxMjo0NToxMiBteXRobWsyIGtlcm5lbDogWzY1ODA5Ni41NTYwODZdIGFmOTAxM19p
-MmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ1OjEyIG15dGhtazIga2VybmVsOiBb
-NjU4MDk2LjY2MDA2OF0gYWY5MDEzX3NldF9jb2VmZjogYWRjX2Nsb2NrOjI4MDAwIGJ3OjANCkp1
-bCAgOCAxMjo0NToxMiBteXRobWsyIGtlcm5lbDogWzY1ODA5Ni42NjAwNzddIGFmOTAxM19zZXRf
-Y29lZmY6IGNvZWZmOiAwMiA5YyBiYyAxNSAwNSAzOSA3OCAwYSAwMCBhNyAzNCAzZiAwMCBhNyAy
-ZiAwNSAwMCBhNyAyOSBjYyAwMSA0ZSA1ZSAwMw0KSnVsICA4IDEyOjQ1OjEyIG15dGhtazIga2Vy
-bmVsOiBbNjU4MDk2LjY3MjE3N10gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIz
-DQpKdWwgIDggMTI6NDU6MTIgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTYuNjcyMTg4XSBhZjkxM19k
-aXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4
-IDEyOjQ1OjEyIG15dGhtazIga2VybmVsOiBbNjU4MDk2LjY3MjE5NF0gYWY5MDEzX3NldF9mcmVx
-X2N0cmw6IGZyZXFfY3c6Y2MgMWIgNmINCkp1bCAgOCAxMjo0NToxMiBteXRobWsyIGtlcm5lbDog
-WzY1ODA5Ni42NzMxNjBdIGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVs
-ICA4IDEyOjQ1OjEyIG15dGhtazIga2VybmVsOiBbNjU4MDk2LjY3MzE2OF0gYWY5MTNfZGl2OiBh
-OjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0
-NToxMiBteXRobWsyIGtlcm5lbDogWzY1ODA5Ni42NzMxNzNdIGFmOTAxM19zZXRfZnJlcV9jdHJs
-OiBmcmVxX2N3OmNjIDFiIDZiDQpKdWwgIDggMTI6NDU6MTIgbXl0aG1rMiBrZXJuZWw6IFs2NTgw
-OTYuNjc0Mjg0XSBhZjkxM19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAx
-Mjo0NToxMiBteXRobWsyIGtlcm5lbDogWzY1ODA5Ni42NzQyOTFdIGFmOTEzX2RpdjogYToxODU2
-MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpKdWwgIDggMTI6NDU6MTIg
-bXl0aG1rMiBrZXJuZWw6IFs2NTgwOTYuNjc0Mjk2XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJl
-cV9jdzozNCBlNCAxNA0KSnVsICA4IDEyOjQ1OjEyIG15dGhtazIga2VybmVsOiBbNjU4MDk2LjY4
-MTQzMV0gYWY5MDEzX3NldF9mcm9udGVuZDogbWFudWFsIFRQUw0KSnVsICA4IDEyOjQ1OjEyIG15
-dGhtazIga2VybmVsOiBbNjU4MDk2Ljc4NDI5N10gYWY5MDEzX3VwZGF0ZV9zaWduYWxfc3RyZW5n
-dGgNCkp1bCAgOCAxMjo0NToxMyBteXRobWsyIGtlcm5lbDogWzY1ODA5Ny40ODMzMTFdIGFmOTAx
-M19zZXRfZnJvbnRlbmQ6IGZyZXE6NTI5ODMzMDAwIGJ3OjANCkp1bCAgOCAxMjo0NToxMyBteXRo
-bWsyIGtlcm5lbDogWzY1ODA5Ny40ODMzMjJdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6
-MQ0KSnVsICA4IDEyOjQ1OjEzIG15dGhtazIga2VybmVsOiBbNjU4MDk3LjQ4NTA3MV0gYWY5MDEz
-X2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MTMgbXl0aG1rMiBrZXJuZWw6
-IFs2NTgwOTcuNDg1ODc5XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAx
-Mjo0NToxMyBteXRobWsyIGtlcm5lbDogWzY1ODA5Ny41MDM5MzNdIGFmOTAxM19pMmNfZ2F0ZV9j
-dHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ1OjEzIG15dGhtazIga2VybmVsOiBbNjU4MDk3LjY2
-MDA3Ml0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MTMgbXl0
-aG1rMiBrZXJuZWw6IFs2NTgwOTcuNjY0MDY5XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxl
-OjANCkp1bCAgOCAxMjo0NToxMyBteXRobWsyIGtlcm5lbDogWzY1ODA5Ny43NjgwNTZdIGFmOTAx
-M19zZXRfY29lZmY6IGFkY19jbG9jazoyODAwMCBidzowDQpKdWwgIDggMTI6NDU6MTMgbXl0aG1r
-MiBrZXJuZWw6IFs2NTgwOTcuNzY4MDY1XSBhZjkwMTNfc2V0X2NvZWZmOiBjb2VmZjogMDIgOWMg
-YmMgMTUgMDUgMzkgNzggMGEgMDAgYTcgMzQgM2YgMDAgYTcgMmYgMDUgMDAgYTcgMjkgY2MgMDEg
-NGUgNWUgMDMNCkp1bCAgOCAxMjo0NToxMyBteXRobWsyIGtlcm5lbDogWzY1ODA5Ny43ODAwNzBd
-IGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ1OjEzIG15
-dGhtazIga2VybmVsOiBbNjU4MDk3Ljc4MDA4MV0gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6Mjgw
-MDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0NToxMyBteXRobWsyIGtl
-cm5lbDogWzY1ODA5Ny43ODAwODZdIGFmOTAxM19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OmNjIDFi
-IDZiDQpKdWwgIDggMTI6NDU6MTMgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTcuNzgxMDUzXSBhZjkx
-M19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAxMjo0NToxMyBteXRobWsy
-IGtlcm5lbDogWzY1ODA5Ny43ODEwNjBdIGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAw
-IHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpKdWwgIDggMTI6NDU6MTMgbXl0aG1rMiBrZXJuZWw6
-IFs2NTgwOTcuNzgxMDY1XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJlcV9jdzpjYyAxYiA2Yg0K
-SnVsICA4IDEyOjQ1OjEzIG15dGhtazIga2VybmVsOiBbNjU4MDk3Ljc4MjE3N10gYWY5MTNfZGl2
-OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIzDQpKdWwgIDggMTI6NDU6MTMgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgwOTcuNzgyMTg0XSBhZjkxM19kaXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIz
-IHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4IDEyOjQ1OjEzIG15dGhtazIga2VybmVsOiBbNjU4
-MDk3Ljc4MjE4OV0gYWY5MDEzX3NldF9mcmVxX2N0cmw6IGZyZXFfY3c6MzQgZTQgMTQNCkp1bCAg
-OCAxMjo0NToxMyBteXRobWsyIGtlcm5lbDogWzY1ODA5Ny43ODk1NjBdIGFmOTAxM19zZXRfZnJv
-bnRlbmQ6IG1hbnVhbCBUUFMNCkp1bCAgOCAxMjo0NToxMyBteXRobWsyIGtlcm5lbDogWzY1ODA5
-Ny45OTIxOTZdIGFmOTAxM191cGRhdGVfc2lnbmFsX3N0cmVuZ3RoDQpKdWwgIDggMTI6NDU6MTQg
-bXl0aG1rMiBrZXJuZWw6IFs2NTgwOTguNTkxNDU5XSBhZjkwMTNfc2V0X2Zyb250ZW5kOiBmcmVx
-OjUyOTgzMzAwMCBidzowDQpKdWwgIDggMTI6NDU6MTQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTgu
-NTkxNDcwXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0NToxNCBt
-eXRobWsyIGtlcm5lbDogWzY1ODA5OC41OTI5NzBdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFi
-bGU6MA0KSnVsICA4IDEyOjQ1OjE0IG15dGhtazIga2VybmVsOiBbNjU4MDk4LjU5NDA0OF0gYWY5
-MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDU6MTQgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgwOTguNjExODI5XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAg
-OCAxMjo0NToxNCBteXRobWsyIGtlcm5lbDogWzY1ODA5OC43NjgwNjddIGFmOTAxM19pMmNfZ2F0
-ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ1OjE0IG15dGhtazIga2VybmVsOiBbNjU4MDk4
-Ljc3MjA4M10gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDU6MTQg
-bXl0aG1rMiBrZXJuZWw6IFs2NTgwOTguODc2MDY0XSBhZjkwMTNfc2V0X2NvZWZmOiBhZGNfY2xv
-Y2s6MjgwMDAgYnc6MA0KSnVsICA4IDEyOjQ1OjE0IG15dGhtazIga2VybmVsOiBbNjU4MDk4Ljg3
-NjA3M10gYWY5MDEzX3NldF9jb2VmZjogY29lZmY6IDAyIDljIGJjIDE1IDA1IDM5IDc4IDBhIDAw
-IGE3IDM0IDNmIDAwIGE3IDJmIDA1IDAwIGE3IDI5IGNjIDAxIDRlIDVlIDAzDQpKdWwgIDggMTI6
-NDU6MTQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTguODg3NDU3XSBhZjkxM19kaXY6IGE6NDU3MDAw
-MCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAxMjo0NToxNCBteXRobWsyIGtlcm5lbDogWzY1ODA5
-OC44ODc0NjhdIGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5MTQw
-IHI6MTRlNDM0DQpKdWwgIDggMTI6NDU6MTQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTguODg3NDcz
-XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJlcV9jdzpjYyAxYiA2Yg0KSnVsICA4IDEyOjQ1OjE0
-IG15dGhtazIga2VybmVsOiBbNjU4MDk4Ljg4ODcyMV0gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoy
-ODAwMDAwMCB4OjIzDQpKdWwgIDggMTI6NDU6MTQgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTguODg4
-NzM0XSBhZjkxM19kaXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0
-ZTQzNA0KSnVsICA4IDEyOjQ1OjE0IG15dGhtazIga2VybmVsOiBbNjU4MDk4Ljg4ODc0Ml0gYWY5
-MDEzX3NldF9mcmVxX2N0cmw6IGZyZXFfY3c6Y2MgMWIgNmINCkp1bCAgOCAxMjo0NToxNCBteXRo
-bWsyIGtlcm5lbDogWzY1ODA5OC44OTAyMDJdIGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAw
-MDAgeDoyMw0KSnVsICA4IDEyOjQ1OjE0IG15dGhtazIga2VybmVsOiBbNjU4MDk4Ljg5MDIxMl0g
-YWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQN
-Ckp1bCAgOCAxMjo0NToxNCBteXRobWsyIGtlcm5lbDogWzY1ODA5OC44OTAyMTddIGFmOTAxM19z
-ZXRfZnJlcV9jdHJsOiBmcmVxX2N3OjM0IGU0IDE0DQpKdWwgIDggMTI6NDU6MTQgbXl0aG1rMiBr
-ZXJuZWw6IFs2NTgwOTguODk3NTgwXSBhZjkwMTNfc2V0X2Zyb250ZW5kOiBtYW51YWwgVFBTDQpK
-dWwgIDggMTI6NDU6MTUgbXl0aG1rMiBrZXJuZWw6IFs2NTgwOTkuNjk2MDczXSBhZjkwMTNfc2xl
-ZXANCkp1bCAgOCAxMjo0NToxNSBteXRobWsyIGtlcm5lbDogWzY1ODA5OS42OTYwODNdIGFmOTAx
-M19sb2NrX2xlZDogb25vZmY6MA0KSnVsICA4IDEyOjQ1OjE1IG15dGhtazIga2VybmVsOiBbNjU4
-MDk5LjY5NzIwN10gYWY5MDEzX3Bvd2VyX2N0cmw6IG9ub2ZmOjANCkp1bCAgOCAxMjo0NToxNSBt
-eXRobWsyIGtlcm5lbDogWzY1ODA5OS42OTcyMTNdIGFmOTAxM19yZXNldA0K
---20cf302ef9520ce38d04e11ac7be
-Content-Type: text/plain; charset=US-ASCII; name="2.txt"
-Content-Disposition: attachment; filename="2.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hixlq6141
+Yes will do that.
 
-WkFQIEFEQVBURVIgMSAtIFNVQ0NFRURFRA0KDQpKdWwgIDggMTI6NDY6NDggbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgxOTIuODE3NjA5XSBhZjkwMTNfaW5pdA0KSnVsICA4IDEyOjQ2OjQ4IG15dGhtazIg
-a2VybmVsOiBbNjU4MTkyLjgxNzYxOF0gYWY5MDEzX3Jlc2V0DQpKdWwgIDggMTI6NDY6NDggbXl0
-aG1rMiBrZXJuZWw6IFs2NTgxOTIuODI0MjQzXSBhZjkwMTNfcG93ZXJfY3RybDogb25vZmY6MQ0K
-SnVsICA4IDEyOjQ2OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MTkyLjgzMjg4MV0gYWY5MDEzX3Nl
-dF9hZGNfY3RybDogYWRjX2Nsb2NrOjI4MDAwDQpKdWwgIDggMTI6NDY6NDggbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgxOTIuODMyODkzXSBhZjkxM19kaXY6IGE6MjgwMDAwMDAgYjoxMDAwMDAwIHg6MTkN
-Ckp1bCAgOCAxMjo0Njo0OCBteXRobWsyIGtlcm5lbDogWzY1ODE5Mi44MzI5MDJdIGFmOTEzX2Rp
-djogYTowIGI6MTAwMDAwMCB4OjE5IHI6MTQ2ODAwNjQgcjplMDAwMDANCkp1bCAgOCAxMjo0Njo0
-OCBteXRobWsyIGtlcm5lbDogWzY1ODE5Mi44MzI5MDddIGFmOTAxM19zZXRfYWRjX2N0cmw6IGFk
-Y19jdzowMCAwMCBlMA0KSnVsICA4IDEyOjQ2OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MTkyLjg0
-MzYwOV0gYWY5MDEzX2luaXQ6IGxvYWQgb2ZzbSBzZXR0aW5ncw0KSnVsICA4IDEyOjQ2OjQ4IG15
-dGhtazIga2VybmVsOiBbNjU4MTkyLjk2OTM3Nl0gYWY5MDEzX2luaXQ6IGxvYWQgdHVuZXIgc3Bl
-Y2lmaWMgc2V0dGluZ3MNCkp1bCAgOCAxMjo0Njo0OCBteXRobWsyIGtlcm5lbDogWzY1ODE5My4w
-ODgyNTVdIGFmOTAxM19pbml0OiBzZXR0aW5nIHRzIG1vZGUNCkp1bCAgOCAxMjo0Njo0OCBteXRo
-bWsyIGtlcm5lbDogWzY1ODE5My4wOTE0ODVdIGFmOTAxM19sb2NrX2xlZDogb25vZmY6MQ0KSnVs
-ICA4IDEyOjQ2OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MTkzLjA5NzQ5Ml0gYWY5MDEzX2kyY19n
-YXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDY6NDggbXl0aG1rMiBrZXJuZWw6IFs2NTgx
-OTMuMDk5MTA2XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0Njo0
-OCBteXRobWsyIGtlcm5lbDogWzY1ODE5My4xMDE2MjNdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBl
-bmFibGU6MA0KSnVsICA4IDEyOjQ2OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MTkzLjEwMzIzMV0g
-YWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDY6NDggbXl0aG1rMiBr
-ZXJuZWw6IFs2NTgxOTMuMTA1NjIwXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1
-bCAgOCAxMjo0Njo0OCBteXRobWsyIGtlcm5lbDogWzY1ODE5My4xMDcyMTldIGFmOTAxM19pMmNf
-Z2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ2OjQ4IG15dGhtazIga2VybmVsOiBbNjU4
-MTkzLjEyNDI0Nl0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDY6
-NDggbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTMuMTI1ODU3XSBhZjkwMTNfaTJjX2dhdGVfY3RybDog
-ZW5hYmxlOjANCkp1bCAgOCAxMjo0Njo0OCBteXRobWsyIGtlcm5lbDogWzY1ODE5My4xMjgyMzJd
-IGFmOTAxM19zZXRfZnJvbnRlbmQ6IGZyZXE6NTI5ODMzMDAwIGJ3OjANCkp1bCAgOCAxMjo0Njo0
-OCBteXRobWsyIGtlcm5lbDogWzY1ODE5My4xMjgyNDZdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBl
-bmFibGU6MQ0KSnVsICA4IDEyOjQ2OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MTkzLjEzMDQ4N10g
-YWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDY6NDggbXl0aG1rMiBr
-ZXJuZWw6IFs2NTgxOTMuMTMyMTIzXSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1
-bCAgOCAxMjo0Njo0OCBteXRobWsyIGtlcm5lbDogWzY1ODE5My4xMzQ4NjhdIGFmOTAxM19pMmNf
-Z2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ2OjQ4IG15dGhtazIga2VybmVsOiBbNjU4
-MTkzLjEzNjY1N10gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDY6
-NDggbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTMuMTUyOTkzXSBhZjkwMTNfaTJjX2dhdGVfY3RybDog
-ZW5hYmxlOjANCkp1bCAgOCAxMjo0Njo0OCBteXRobWsyIGtlcm5lbDogWzY1ODE5My4xNTQ2MDdd
-IGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ2OjQ4IG15dGhtazIg
-a2VybmVsOiBbNjU4MTkzLjE1NzI4M10gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpK
-dWwgIDggMTI6NDY6NDggbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTMuMTU5MTE0XSBhZjkwMTNfaTJj
-X2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0Njo0OCBteXRobWsyIGtlcm5lbDogWzY1
-ODE5My4xNzc5OTRdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ2
-OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MTkzLjMzMjA4NF0gYWY5MDEzX2kyY19nYXRlX2N0cmw6
-IGVuYWJsZToxDQpKdWwgIDggMTI6NDY6NDggbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTMuMzM2MTgy
-XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0Njo0OSBteXRobWsy
-IGtlcm5lbDogWzY1ODE5My40NDAwNjRdIGFmOTAxM19zZXRfY29lZmY6IGFkY19jbG9jazoyODAw
-MCBidzowDQpKdWwgIDggMTI6NDY6NDkgbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTMuNDQwMDczXSBh
-ZjkwMTNfc2V0X2NvZWZmOiBjb2VmZjogMDIgOWMgYmMgMTUgMDUgMzkgNzggMGEgMDAgYTcgMzQg
-M2YgMDAgYTcgMmYgMDUgMDAgYTcgMjkgY2MgMDEgNGUgNWUgMDMNCkp1bCAgOCAxMjo0Njo0OSBt
-eXRobWsyIGtlcm5lbDogWzY1ODE5My40NTg3NTNdIGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6Mjgw
-MDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ2OjQ5IG15dGhtazIga2VybmVsOiBbNjU4MTkzLjQ1ODc2
-N10gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0
-MzQNCkp1bCAgOCAxMjo0Njo0OSBteXRobWsyIGtlcm5lbDogWzY1ODE5My40NTg3NzVdIGFmOTAx
-M19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OmNjIDFiIDZiDQpKdWwgIDggMTI6NDY6NDkgbXl0aG1r
-MiBrZXJuZWw6IFs2NTgxOTMuNDYxNTExXSBhZjkxM19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAw
-IHg6MjMNCkp1bCAgOCAxMjo0Njo0OSBteXRobWsyIGtlcm5lbDogWzY1ODE5My40NjE1MjJdIGFm
-OTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpK
-dWwgIDggMTI6NDY6NDkgbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTMuNDYxNTI3XSBhZjkwMTNfc2V0
-X2ZyZXFfY3RybDogZnJlcV9jdzpjYyAxYiA2Yg0KSnVsICA4IDEyOjQ2OjQ5IG15dGhtazIga2Vy
-bmVsOiBbNjU4MTkzLjQ2MzczN10gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIz
-DQpKdWwgIDggMTI6NDY6NDkgbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTMuNDYzNzQ0XSBhZjkxM19k
-aXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4
-IDEyOjQ2OjQ5IG15dGhtazIga2VybmVsOiBbNjU4MTkzLjQ2Mzc0OV0gYWY5MDEzX3NldF9mcmVx
-X2N0cmw6IGZyZXFfY3c6MzQgZTQgMTQNCkp1bCAgOCAxMjo0Njo0OSBteXRobWsyIGtlcm5lbDog
-WzY1ODE5My40NzYzNzZdIGFmOTAxM19zZXRfZnJvbnRlbmQ6IG1hbnVhbCBUUFMNCkp1bCAgOCAx
-Mjo0Njo0OSBteXRobWsyIGtlcm5lbDogWzY1ODE5My40ODA3MDhdIGFmOTAxM191cGRhdGVfc2ln
-bmFsX3N0cmVuZ3RoDQpKdWwgIDggMTI6NDY6NDkgbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTQuMjc3
-NTU0XSBhZjkwMTNfZ2V0X2Zyb250ZW5kDQpKdWwgIDggMTI6NDY6NTEgbXl0aG1rMiBrZXJuZWw6
-IFs2NTgxOTUuNTk3NTUwXSBhZjkwMTNfdXBkYXRlX3NpZ25hbF9zdHJlbmd0aA0KSnVsICA4IDEy
-OjQ2OjUxIG15dGhtazIga2VybmVsOiBbNjU4MTk1LjYyOTU0NV0gYWY5MDEzX3VwZGF0ZV9iZXJf
-dW5jOiBlcnIgYml0czoxMyB0b3RhbCBiaXRzOjE2MzIwMDAwIGFib3J0IGNvdW50OjANCkp1bCAg
-OCAxMjo0Njo1MyBteXRobWsyIGtlcm5lbDogWzY1ODE5Ny41NDE1NjVdIGFmOTAxM191cGRhdGVf
-c2lnbmFsX3N0cmVuZ3RoDQpKdWwgIDggMTI6NDY6NTMgbXl0aG1rMiBrZXJuZWw6IFs2NTgxOTcu
-NTUxNDQ5XSBhZjkwMTNfdXBkYXRlX2Jlcl91bmM6IGVyciBiaXRzOjcgdG90YWwgYml0czoxNjMy
-MDAwMCBhYm9ydCBjb3VudDowDQpKdWwgIDggMTI6NDY6NTQgbXl0aG1rMiBrZXJuZWw6IFs2NTgx
-OTkuMTYxNjAyXSBhZjkwMTNfdXBkYXRlX3NpZ25hbF9zdHJlbmd0aA0KSnVsICA4IDEyOjQ2OjU0
-IG15dGhtazIga2VybmVsOiBbNjU4MTk5LjE5MzYwMl0gYWY5MDEzX3VwZGF0ZV9iZXJfdW5jOiBl
-cnIgYml0czozIHRvdGFsIGJpdHM6MTYzMjAwMDAgYWJvcnQgY291bnQ6MA0KSnVsICA4IDEyOjQ2
-OjU2IG15dGhtazIga2VybmVsOiBbNjU4MjAwLjkwOTYxOV0gYWY5MDEzX3VwZGF0ZV9zaWduYWxf
-c3RyZW5ndGgNCkp1bCAgOCAxMjo0Njo1NiBteXRobWsyIGtlcm5lbDogWzY1ODIwMC45NDIxNTVd
-IGFmOTAxM191cGRhdGVfYmVyX3VuYzogZXJyIGJpdHM6MTEgdG90YWwgYml0czoxNjMyMDAwMCBh
-Ym9ydCBjb3VudDowDQpKdWwgIDggMTI6NDY6NTggbXl0aG1rMiBrZXJuZWw6IFs2NTgyMDIuOTA0
-MDY2XSBhZjkwMTNfc2xlZXANCkp1bCAgOCAxMjo0Njo1OCBteXRobWsyIGtlcm5lbDogWzY1ODIw
-Mi45MDQwNzVdIGFmOTAxM19sb2NrX2xlZDogb25vZmY6MA0KSnVsICA4IDEyOjQ2OjU4IG15dGht
-azIga2VybmVsOiBbNjU4MjAyLjkwNTc2Nl0gYWY5MDEzX3Bvd2VyX2N0cmw6IG9ub2ZmOjANCkp1
-bCAgOCAxMjo0Njo1OCBteXRobWsyIGtlcm5lbDogWzY1ODIwMi45MDU3NzFdIGFmOTAxM19yZXNl
-dA0KDQo=
---20cf302ef9520ce38d04e11ac7be
-Content-Type: text/plain; charset=US-ASCII; name="3.txt"
-Content-Disposition: attachment; filename="3.txt"
-Content-Transfer-Encoding: base64
-X-Attachment-Id: f_hixlq8tj2
+>> +/* Send Host to IS command interrupt */
+>> +static void itf_hic_interrupt(struct fimc_is_interface *itf)
+>> +{
+>> +     writel(INTGR0_INTGD(0), itf->regs + INTGR0);
+>> +}
+>> +
+>> +static int itf_send_sensor_number(struct fimc_is_interface *itf)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +     unsigned long flags;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = ISR_DONE;
+>> +     msg.instance = 0;
+>> +     msg.parameter1 = IHC_GET_SENSOR_NUMBER;
+>> +
+>> +     msg.parameter2 = 1;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>
+> Replace it with:
+>
+>         struct fimc_is_msg msg = {
+>                 .command = ISR_DONE,
+>                 .parameter1 = IHC_GET_SENSOR_NUMBER,
+>                 .parameter2 = 1
+>         };
+>         unsigned long flags;
+>
 
-WkFQIEFEQVBURVIgMCAtIFNVQ0NFRURFRA0KDQpKdWwgIDggMTI6NDg6NDUgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgzMDkuOTk2NjE5XSBhZjkwMTNfaW5pdA0KSnVsICA4IDEyOjQ4OjQ1IG15dGhtazIg
-a2VybmVsOiBbNjU4MzA5Ljk5NjYzMF0gYWY5MDEzX3Jlc2V0DQpKdWwgIDggMTI6NDg6NDUgbXl0
-aG1rMiBrZXJuZWw6IFs2NTgzMTAuMDAxNjYwXSBhZjkwMTNfcG93ZXJfY3RybDogb25vZmY6MQ0K
-SnVsICA4IDEyOjQ4OjQ1IG15dGhtazIga2VybmVsOiBbNjU4MzEwLjAwNjI4MV0gYWY5MDEzX3Nl
-dF9hZGNfY3RybDogYWRjX2Nsb2NrOjI4MDAwDQpKdWwgIDggMTI6NDg6NDUgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgzMTAuMDA2Mjk0XSBhZjkxM19kaXY6IGE6MjgwMDAwMDAgYjoxMDAwMDAwIHg6MTkN
-Ckp1bCAgOCAxMjo0ODo0NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4wMDYzMDRdIGFmOTEzX2Rp
-djogYTowIGI6MTAwMDAwMCB4OjE5IHI6MTQ2ODAwNjQgcjplMDAwMDANCkp1bCAgOCAxMjo0ODo0
-NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4wMDYzMTFdIGFmOTAxM19zZXRfYWRjX2N0cmw6IGFk
-Y19jdzowMCAwMCBlMA0KSnVsICA4IDEyOjQ4OjQ1IG15dGhtazIga2VybmVsOiBbNjU4MzEwLjAx
-MjUzMF0gYWY5MDEzX2luaXQ6IGxvYWQgb2ZzbSBzZXR0aW5ncw0KSnVsICA4IDEyOjQ4OjQ1IG15
-dGhtazIga2VybmVsOiBbNjU4MzEwLjA3MjM5Ml0gYWY5MDEzX2luaXQ6IGxvYWQgdHVuZXIgc3Bl
-Y2lmaWMgc2V0dGluZ3MNCkp1bCAgOCAxMjo0ODo0NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4x
-MjgxNDldIGFmOTAxM19pbml0OiBzZXR0aW5nIHRzIG1vZGUNCkp1bCAgOCAxMjo0ODo0NSBteXRo
-bWsyIGtlcm5lbDogWzY1ODMxMC4xMjk2MzRdIGFmOTAxM19sb2NrX2xlZDogb25vZmY6MQ0KSnVs
-ICA4IDEyOjQ4OjQ1IG15dGhtazIga2VybmVsOiBbNjU4MzEwLjEzMjI3OF0gYWY5MDEzX2kyY19n
-YXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDg6NDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgz
-MTAuMTMzMDQ4XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0ODo0
-NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4xMzQyNjBdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBl
-bmFibGU6MA0KSnVsICA4IDEyOjQ4OjQ1IG15dGhtazIga2VybmVsOiBbNjU4MzEwLjEzNTAxMF0g
-YWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDg6NDUgbXl0aG1rMiBr
-ZXJuZWw6IFs2NTgzMTAuMTM3NjY0XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1
-bCAgOCAxMjo0ODo0NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4xMzg2NDZdIGFmOTAxM19pMmNf
-Z2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ4OjQ1IG15dGhtazIga2VybmVsOiBbNjU4
-MzEwLjE1NDY0OV0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDg6
-NDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTAuMTU1MzkwXSBhZjkwMTNfaTJjX2dhdGVfY3RybDog
-ZW5hYmxlOjANCkp1bCAgOCAxMjo0ODo0NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4xNTc2Nzdd
-IGFmOTAxM19zZXRfZnJvbnRlbmQ6IGZyZXE6NTI5ODMzMDAwIGJ3OjANCkp1bCAgOCAxMjo0ODo0
-NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4xNTc2ODldIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBl
-bmFibGU6MQ0KSnVsICA4IDEyOjQ4OjQ1IG15dGhtazIga2VybmVsOiBbNjU4MzEwLjE1OTI2OF0g
-YWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDg6NDUgbXl0aG1rMiBr
-ZXJuZWw6IFs2NTgzMTAuMTYwMDU1XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1
-bCAgOCAxMjo0ODo0NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4xNjE1MzhdIGFmOTAxM19pMmNf
-Z2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ4OjQ1IG15dGhtazIga2VybmVsOiBbNjU4
-MzEwLjE2MjM4N10gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDggMTI6NDg6
-NDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTAuMTc3NjQ4XSBhZjkwMTNfaTJjX2dhdGVfY3RybDog
-ZW5hYmxlOjANCkp1bCAgOCAxMjo0ODo0NSBteXRobWsyIGtlcm5lbDogWzY1ODMxMC4xNzgzODld
-IGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ4OjQ1IG15dGhtazIg
-a2VybmVsOiBbNjU4MzEwLjE3OTc2MF0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTowDQpK
-dWwgIDggMTI6NDg6NDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTAuMTgwNjMzXSBhZjkwMTNfaTJj
-X2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0ODo0NSBteXRobWsyIGtlcm5lbDogWzY1
-ODMxMC4xOTg1MjddIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ4
-OjQ1IG15dGhtazIga2VybmVsOiBbNjU4MzEwLjM1MjA5Nl0gYWY5MDEzX2kyY19nYXRlX2N0cmw6
-IGVuYWJsZToxDQpKdWwgIDggMTI6NDg6NDUgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTAuMzU1OTEx
-XSBhZjkwMTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0ODo0NiBteXRobWsy
-IGtlcm5lbDogWzY1ODMxMC40NjAwNzNdIGFmOTAxM19zZXRfY29lZmY6IGFkY19jbG9jazoyODAw
-MCBidzowDQpKdWwgIDggMTI6NDg6NDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTAuNDYwMDgzXSBh
-ZjkwMTNfc2V0X2NvZWZmOiBjb2VmZjogMDIgOWMgYmMgMTUgMDUgMzkgNzggMGEgMDAgYTcgMzQg
-M2YgMDAgYTcgMmYgMDUgMDAgYTcgMjkgY2MgMDEgNGUgNWUgMDMNCkp1bCAgOCAxMjo0ODo0NiBt
-eXRobWsyIGtlcm5lbDogWzY1ODMxMC40NzA1MjldIGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6Mjgw
-MDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ4OjQ2IG15dGhtazIga2VybmVsOiBbNjU4MzEwLjQ3MDU0
-MF0gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0
-MzQNCkp1bCAgOCAxMjo0ODo0NiBteXRobWsyIGtlcm5lbDogWzY1ODMxMC40NzA1NDVdIGFmOTAx
-M19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OmNjIDFiIDZiDQpKdWwgIDggMTI6NDg6NDYgbXl0aG1r
-MiBrZXJuZWw6IFs2NTgzMTAuNDcxNjQwXSBhZjkxM19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAw
-IHg6MjMNCkp1bCAgOCAxMjo0ODo0NiBteXRobWsyIGtlcm5lbDogWzY1ODMxMC40NzE2NDhdIGFm
-OTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpK
-dWwgIDggMTI6NDg6NDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTAuNDcxNjUyXSBhZjkwMTNfc2V0
-X2ZyZXFfY3RybDogZnJlcV9jdzpjYyAxYiA2Yg0KSnVsICA4IDEyOjQ4OjQ2IG15dGhtazIga2Vy
-bmVsOiBbNjU4MzEwLjQ3MjkxM10gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIz
-DQpKdWwgIDggMTI6NDg6NDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTAuNDcyOTI2XSBhZjkxM19k
-aXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4
-IDEyOjQ4OjQ2IG15dGhtazIga2VybmVsOiBbNjU4MzEwLjQ3MjkzNF0gYWY5MDEzX3NldF9mcmVx
-X2N0cmw6IGZyZXFfY3c6MzQgZTQgMTQNCkp1bCAgOCAxMjo0ODo0NiBteXRobWsyIGtlcm5lbDog
-WzY1ODMxMC40ODAxNTZdIGFmOTAxM19zZXRfZnJvbnRlbmQ6IG1hbnVhbCBUUFMNCkp1bCAgOCAx
-Mjo0ODo0NiBteXRobWsyIGtlcm5lbDogWzY1ODMxMC40ODIwMTddIGFmOTAxM191cGRhdGVfc2ln
-bmFsX3N0cmVuZ3RoDQpKdWwgIDggMTI6NDg6NDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTEuMjgy
-NjczXSBhZjkwMTNfc2V0X2Zyb250ZW5kOiBmcmVxOjUyOTgzMzAwMCBidzowDQpKdWwgIDggMTI6
-NDg6NDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTEuMjgyNjg2XSBhZjkwMTNfaTJjX2dhdGVfY3Ry
-bDogZW5hYmxlOjENCkp1bCAgOCAxMjo0ODo0NiBteXRobWsyIGtlcm5lbDogWzY1ODMxMS4yODQ5
-OTVdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4IDEyOjQ4OjQ2IG15dGht
-azIga2VybmVsOiBbNjU4MzExLjI4NjAwMl0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZTox
-DQpKdWwgIDggMTI6NDg6NDYgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTEuMzAzNjYyXSBhZjkwMTNf
-aTJjX2dhdGVfY3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0ODo0NyBteXRobWsyIGtlcm5lbDog
-WzY1ODMxMS40NjAwOTVdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEy
-OjQ4OjQ3IG15dGhtazIga2VybmVsOiBbNjU4MzExLjQ2Mjc4NF0gYWY5MDEzX2kyY19nYXRlX2N0
-cmw6IGVuYWJsZTowDQpKdWwgIDggMTI6NDg6NDcgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTEuNTY0
-MDUzXSBhZjkwMTNfc2V0X2NvZWZmOiBhZGNfY2xvY2s6MjgwMDAgYnc6MA0KSnVsICA4IDEyOjQ4
-OjQ3IG15dGhtazIga2VybmVsOiBbNjU4MzExLjU2NDA2Ml0gYWY5MDEzX3NldF9jb2VmZjogY29l
-ZmY6IDAyIDljIGJjIDE1IDA1IDM5IDc4IDBhIDAwIGE3IDM0IDNmIDAwIGE3IDJmIDA1IDAwIGE3
-IDI5IGNjIDAxIDRlIDVlIDAzDQpKdWwgIDggMTI6NDg6NDcgbXl0aG1rMiBrZXJuZWw6IFs2NTgz
-MTEuNTc1NjcxXSBhZjkxM19kaXY6IGE6NDU3MDAwMCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAx
-Mjo0ODo0NyBteXRobWsyIGtlcm5lbDogWzY1ODMxMS41NzU2ODFdIGFmOTEzX2RpdjogYToxODU2
-MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5MTQwIHI6MTRlNDM0DQpKdWwgIDggMTI6NDg6NDcg
-bXl0aG1rMiBrZXJuZWw6IFs2NTgzMTEuNTc1Njg2XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJl
-cV9jdzpjYyAxYiA2Yg0KSnVsICA4IDEyOjQ4OjQ3IG15dGhtazIga2VybmVsOiBbNjU4MzExLjU3
-NjgxMl0gYWY5MTNfZGl2OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIzDQpKdWwgIDggMTI6NDg6
-NDcgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTEuNTc2ODIxXSBhZjkxM19kaXY6IGE6MTg1NjAwMDAg
-YjoyODAwMDAwMCB4OjIzIHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4IDEyOjQ4OjQ3IG15dGht
-azIga2VybmVsOiBbNjU4MzExLjU3NjgyNl0gYWY5MDEzX3NldF9mcmVxX2N0cmw6IGZyZXFfY3c6
-Y2MgMWIgNmINCkp1bCAgOCAxMjo0ODo0NyBteXRobWsyIGtlcm5lbDogWzY1ODMxMS41Nzc3ODRd
-IGFmOTEzX2RpdjogYTo0NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ4OjQ3IG15
-dGhtazIga2VybmVsOiBbNjU4MzExLjU3Nzc5MV0gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6Mjgw
-MDAwMDAgeDoyMyByOjEzNjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0ODo0NyBteXRobWsyIGtl
-cm5lbDogWzY1ODMxMS41Nzc3OTZdIGFmOTAxM19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OjM0IGU0
-IDE0DQpKdWwgIDggMTI6NDg6NDcgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTEuNTg0NDE1XSBhZjkw
-MTNfc2V0X2Zyb250ZW5kOiBtYW51YWwgVFBTDQpKdWwgIDggMTI6NDg6NDcgbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgzMTEuNjg5NjcwXSBhZjkwMTNfdXBkYXRlX3NpZ25hbF9zdHJlbmd0aA0KSnVsICA4
-IDEyOjQ4OjQ3IG15dGhtazIga2VybmVsOiBbNjU4MzEyLjM4NjY4NF0gYWY5MDEzX3NldF9mcm9u
-dGVuZDogZnJlcTo1Mjk4MzMwMDAgYnc6MA0KSnVsICA4IDEyOjQ4OjQ3IG15dGhtazIga2VybmVs
-OiBbNjU4MzEyLjM4NjY5NV0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJsZToxDQpKdWwgIDgg
-MTI6NDg6NDcgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTIuMzg4MDY2XSBhZjkwMTNfaTJjX2dhdGVf
-Y3RybDogZW5hYmxlOjANCkp1bCAgOCAxMjo0ODo0NyBteXRobWsyIGtlcm5lbDogWzY1ODMxMi4z
-ODk4ODhdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MQ0KSnVsICA4IDEyOjQ4OjQ3IG15
-dGhtazIga2VybmVsOiBbNjU4MzEyLjQwNzgwOV0gYWY5MDEzX2kyY19nYXRlX2N0cmw6IGVuYWJs
-ZTowDQpKdWwgIDggMTI6NDg6NDggbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTIuNTY0MDc2XSBhZjkw
-MTNfaTJjX2dhdGVfY3RybDogZW5hYmxlOjENCkp1bCAgOCAxMjo0ODo0OCBteXRobWsyIGtlcm5l
-bDogWzY1ODMxMi41Njc5MzNdIGFmOTAxM19pMmNfZ2F0ZV9jdHJsOiBlbmFibGU6MA0KSnVsICA4
-IDEyOjQ4OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MzEyLjY3MjA2NV0gYWY5MDEzX3NldF9jb2Vm
-ZjogYWRjX2Nsb2NrOjI4MDAwIGJ3OjANCkp1bCAgOCAxMjo0ODo0OCBteXRobWsyIGtlcm5lbDog
-WzY1ODMxMi42NzIwNzNdIGFmOTAxM19zZXRfY29lZmY6IGNvZWZmOiAwMiA5YyBiYyAxNSAwNSAz
-OSA3OCAwYSAwMCBhNyAzNCAzZiAwMCBhNyAyZiAwNSAwMCBhNyAyOSBjYyAwMSA0ZSA1ZSAwMw0K
-SnVsICA4IDEyOjQ4OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MzEyLjY4MzU2NF0gYWY5MTNfZGl2
-OiBhOjQ1NzAwMDAgYjoyODAwMDAwMCB4OjIzDQpKdWwgIDggMTI6NDg6NDggbXl0aG1rMiBrZXJu
-ZWw6IFs2NTgzMTIuNjgzNTc1XSBhZjkxM19kaXY6IGE6MTg1NjAwMDAgYjoyODAwMDAwMCB4OjIz
-IHI6MTM2OTE0MCByOjE0ZTQzNA0KSnVsICA4IDEyOjQ4OjQ4IG15dGhtazIga2VybmVsOiBbNjU4
-MzEyLjY4MzU4MF0gYWY5MDEzX3NldF9mcmVxX2N0cmw6IGZyZXFfY3c6Y2MgMWIgNmINCkp1bCAg
-OCAxMjo0ODo0OCBteXRobWsyIGtlcm5lbDogWzY1ODMxMi42ODQ4MTJdIGFmOTEzX2RpdjogYTo0
-NTcwMDAwIGI6MjgwMDAwMDAgeDoyMw0KSnVsICA4IDEyOjQ4OjQ4IG15dGhtazIga2VybmVsOiBb
-NjU4MzEyLjY4NDgyMF0gYWY5MTNfZGl2OiBhOjE4NTYwMDAwIGI6MjgwMDAwMDAgeDoyMyByOjEz
-NjkxNDAgcjoxNGU0MzQNCkp1bCAgOCAxMjo0ODo0OCBteXRobWsyIGtlcm5lbDogWzY1ODMxMi42
-ODQ4MjVdIGFmOTAxM19zZXRfZnJlcV9jdHJsOiBmcmVxX2N3OmNjIDFiIDZiDQpKdWwgIDggMTI6
-NDg6NDggbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTIuNjg1OTI4XSBhZjkxM19kaXY6IGE6NDU3MDAw
-MCBiOjI4MDAwMDAwIHg6MjMNCkp1bCAgOCAxMjo0ODo0OCBteXRobWsyIGtlcm5lbDogWzY1ODMx
-Mi42ODU5MzVdIGFmOTEzX2RpdjogYToxODU2MDAwMCBiOjI4MDAwMDAwIHg6MjMgcjoxMzY5MTQw
-IHI6MTRlNDM0DQpKdWwgIDggMTI6NDg6NDggbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTIuNjg1OTQw
-XSBhZjkwMTNfc2V0X2ZyZXFfY3RybDogZnJlcV9jdzozNCBlNCAxNA0KSnVsICA4IDEyOjQ4OjQ4
-IG15dGhtazIga2VybmVsOiBbNjU4MzEyLjY5MjQzM10gYWY5MDEzX3NldF9mcm9udGVuZDogbWFu
-dWFsIFRQUw0KSnVsICA4IDEyOjQ4OjQ4IG15dGhtazIga2VybmVsOiBbNjU4MzEyLjg5ODE5MV0g
-YWY5MDEzX3VwZGF0ZV9zaWduYWxfc3RyZW5ndGgNCkp1bCAgOCAxMjo0ODo0OSBteXRobWsyIGtl
-cm5lbDogWzY1ODMxMy40OTM0NTJdIGFmOTAxM19nZXRfZnJvbnRlbmQNCkp1bCAgOCAxMjo0ODo1
-MCBteXRobWsyIGtlcm5lbDogWzY1ODMxNC44MDk0NzNdIGFmOTAxM191cGRhdGVfc2lnbmFsX3N0
-cmVuZ3RoDQpKdWwgIDggMTI6NDg6NTAgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTQuODMyMjI1XSBh
-ZjkwMTNfdXBkYXRlX2Jlcl91bmM6IGVyciBiaXRzOjUgdG90YWwgYml0czoxNjMyMDAwMCBhYm9y
-dCBjb3VudDowDQpKdWwgIDggMTI6NDg6NTIgbXl0aG1rMiBrZXJuZWw6IFs2NTgzMTYuNzQxNTAy
-XSBhZjkwMTNfdXBkYXRlX3NpZ25hbF9zdHJlbmd0aA0KSnVsICA4IDEyOjQ4OjUyIG15dGhtazIg
-a2VybmVsOiBbNjU4MzE2Ljc0NjAwNF0gYWY5MDEzX3VwZGF0ZV9iZXJfdW5jOiBlcnIgYml0czoz
-IHRvdGFsIGJpdHM6MTYzMjAwMDAgYWJvcnQgY291bnQ6MA0KSnVsICA4IDEyOjQ4OjUzIG15dGht
-azIga2VybmVsOiBbNjU4MzE4LjM1MzUzNl0gYWY5MDEzX3VwZGF0ZV9zaWduYWxfc3RyZW5ndGgN
-Ckp1bCAgOCAxMjo0ODo1MyBteXRobWsyIGtlcm5lbDogWzY1ODMxOC4zNzcxNzJdIGFmOTAxM191
-cGRhdGVfYmVyX3VuYzogZXJyIGJpdHM6MyB0b3RhbCBiaXRzOjE2MzIwMDAwIGFib3J0IGNvdW50
-OjANCkp1bCAgOCAxMjo0ODo1NCBteXRobWsyIGtlcm5lbDogWzY1ODMxOS4yMDgwNjRdIGFmOTAx
-M19zbGVlcA0KSnVsICA4IDEyOjQ4OjU0IG15dGhtazIga2VybmVsOiBbNjU4MzE5LjIwODA3NF0g
-YWY5MDEzX2xvY2tfbGVkOiBvbm9mZjowDQpKdWwgIDggMTI6NDg6NTQgbXl0aG1rMiBrZXJuZWw6
-IFs2NTgzMTkuMjA4NzgzXSBhZjkwMTNfcG93ZXJfY3RybDogb25vZmY6MA0KSnVsICA4IDEyOjQ4
-OjU0IG15dGhtazIga2VybmVsOiBbNjU4MzE5LjIwODc4OV0gYWY5MDEzX3Jlc2V0DQoNCg==
---20cf302ef9520ce38d04e11ac7be--
+Ok.
+
+>> +
+>> +     spin_lock_irqsave(&itf->slock, flags);
+>> +     itf->com_regs->hicmd = msg.command;
+>> +     itf->com_regs->hic_sensorid = msg.instance;
+>> +     itf->com_regs->hic_param1 = msg.parameter1;
+>> +     itf->com_regs->hic_param2 = msg.parameter2;
+>> +     itf->com_regs->hic_param3 = msg.parameter3;
+>> +     itf->com_regs->hic_param4 = msg.parameter4;
+>> +     itf_hic_interrupt(itf);
+>> +     spin_unlock_irqrestore(&itf->slock, flags);
+>> +
+>> +     return 0;
+>> +}
+>> +
+>> +static int fimc_is_itf_set_cmd(struct fimc_is_interface *itf,
+>> +     struct fimc_is_msg *msg)
+>> +{
+>> +     int ret = 0;
+>> +     bool block_io, send_cmd;
+>> +     unsigned long flags;
+>> +
+>> +     enter_request_barrier(itf);
+>> +
+>> +     switch (msg->command) {
+>> +     case HIC_STREAM_ON:
+>> +             if (itf->streaming == IS_IF_STREAMING_ON) {
+>> +                     send_cmd = false;
+>> +             } else {
+>> +                     send_cmd = true;
+>> +                     block_io = true;
+>> +             }
+>> +             break;
+>> +     case HIC_STREAM_OFF:
+>> +             if (itf->streaming == IS_IF_STREAMING_OFF) {
+>> +                     send_cmd = false;
+>> +             } else {
+>> +                     send_cmd = true;
+>> +                     block_io = true;
+>> +             }
+>> +             break;
+>> +     case HIC_PROCESS_START:
+>> +             if (itf->processing == IS_IF_PROCESSING_ON) {
+>> +                     send_cmd = false;
+>> +             } else {
+>> +                     send_cmd = true;
+>> +                     block_io = true;
+>> +             }
+>> +             break;
+>> +     case HIC_PROCESS_STOP:
+>> +             if (itf->processing == IS_IF_PROCESSING_OFF) {
+>> +                     send_cmd = false;
+>> +             } else {
+>> +                     send_cmd = true;
+>> +                     block_io = true;
+>> +             }
+>> +             break;
+>> +     case HIC_POWER_DOWN:
+>> +             if (itf->pdown_ready == IS_IF_POWER_DOWN_READY) {
+>> +                     send_cmd = false;
+>> +             } else {
+>> +                     send_cmd = true;
+>> +                     block_io = true;
+>> +             }
+>> +             break;
+>> +     case HIC_OPEN_SENSOR:
+>> +     case HIC_GET_SET_FILE_ADDR:
+>> +     case HIC_SET_PARAMETER:
+>> +     case HIC_PREVIEW_STILL:
+>> +     case HIC_GET_STATIC_METADATA:
+>> +     case HIC_SET_A5_MEM_ACCESS:
+>> +     case HIC_SET_CAM_CONTROL:
+>> +             send_cmd = true;
+>> +             block_io = true;
+>> +             break;
+>> +     case HIC_SHOT:
+>> +     case ISR_DONE:
+>> +             send_cmd = true;
+>> +             block_io = false;
+>> +             break;
+>> +     default:
+>> +             send_cmd = true;
+>> +             block_io = true;
+>> +             break;
+>> +     }
+>> +
+>> +     if (!send_cmd) {
+>> +             pr_debug("skipped\n");
+>> +             goto exit;
+>> +     }
+>
+> Remove above conditional
+> s/send_cmd = false/goto exit/;
+> s/send_cmd = true//;
+>
+
+Ok.
+
+>
+>> +
+>> +     ret = itf_wait_hw_ready(itf);
+>> +     if (ret) {
+>> +             pr_err("waiting for ready is fail");
+>> +             ret = -EBUSY;
+>> +             goto exit;
+>> +     }
+>> +
+>> +     spin_lock_irqsave(&itf->slock, flags);
+>> +     itf_set_state(itf, IS_IF_STATE_BUSY);
+>> +     itf->com_regs->hicmd = msg->command;
+>> +     itf->com_regs->hic_sensorid = msg->instance;
+>> +     itf->com_regs->hic_param1 = msg->parameter1;
+>> +     itf->com_regs->hic_param2 = msg->parameter2;
+>> +     itf->com_regs->hic_param3 = msg->parameter3;
+>> +     itf->com_regs->hic_param4 = msg->parameter4;
+>> +     itf_hic_interrupt(itf);
+>> +     spin_unlock_irqrestore(&itf->slock, flags);
+>> +
+>> +     if (!block_io)
+>> +             goto exit;
+>> +
+>> +     ret = itf_wait_idlestate(itf);
+>> +     if (ret) {
+>> +             pr_err("%d command is timeout\n", msg->command);
+>> +             itf_clr_state(itf, IS_IF_STATE_BUSY);
+>> +             ret = -ETIME;
+>> +             goto exit;
+>> +     }
+>> +
+>> +     if (itf->reply.command == ISR_DONE) {
+>> +             switch (msg->command) {
+>> +             case HIC_STREAM_ON:
+>> +                     itf->streaming = IS_IF_STREAMING_ON;
+>> +                     break;
+>> +             case HIC_STREAM_OFF:
+>> +                     itf->streaming = IS_IF_STREAMING_OFF;
+>> +                     break;
+>> +             case HIC_PROCESS_START:
+>> +                     itf->processing = IS_IF_PROCESSING_ON;
+>> +                     break;
+>> +             case HIC_PROCESS_STOP:
+>> +                     itf->processing = IS_IF_PROCESSING_OFF;
+>> +                     break;
+>> +             case HIC_POWER_DOWN:
+>> +                     itf->pdown_ready = IS_IF_POWER_DOWN_READY;
+>> +                     break;
+>> +             case HIC_OPEN_SENSOR:
+>> +                     if (itf->reply.parameter1 == HIC_POWER_DOWN) {
+>> +                             pr_err("firmware power down");
+>> +                             itf->pdown_ready = IS_IF_POWER_DOWN_READY;
+>> +                             ret = -ECANCELED;
+>> +                             goto exit;
+>> +                     } else
+>> +                             itf->pdown_ready = IS_IF_POWER_DOWN_NREADY;
+>> +                     break;
+>> +             default:
+>> +                     break;
+>> +             }
+>> +     } else {
+>> +             pr_err("ISR_NDONE is occured");
+>> +             ret = -EINVAL;
+>> +     }
+>> +
+>> +exit:
+>> +     exit_request_barrier(itf);
+>> +
+>> +     if (ret)
+>> +             pr_err("Error returned from FW. See debugfs for error log\n");
+>> +
+>> +
+>> +     return ret;
+>> +}
+>> +
+>> +static int fimc_is_itf_set_cmd_shot(struct fimc_is_interface *itf,
+>> +             struct fimc_is_msg *msg)
+>> +{
+>> +     int ret = 0;
+>> +     unsigned long flags;
+>> +
+>> +     spin_lock_irqsave(&itf->slock, flags);
+>> +     itf->com_regs->hicmd = msg->command;
+>> +     itf->com_regs->hic_sensorid = msg->instance;
+>> +     itf->com_regs->hic_param1 = msg->parameter1;
+>> +     itf->com_regs->hic_param2 = msg->parameter2;
+>> +     itf->com_regs->hic_param3 = msg->parameter3;
+>> +     itf->com_regs->hic_param4 = msg->parameter4;
+>> +     itf->com_regs->fcount = msg->parameter3;
+>> +     itf_hic_interrupt(itf);
+>> +     spin_unlock_irqrestore(&itf->slock, flags);
+>> +
+>> +     return ret;
+>> +}
+>> +
+>> +static void itf_handle_general(struct fimc_is_interface *itf,
+>> +             struct fimc_is_msg *msg)
+>> +{
+>> +     switch (msg->command) {
+>> +
+>> +     case IHC_GET_SENSOR_NUMBER:
+>> +             pr_debug("IS version : %d.%d\n",
+>> +                     ISDRV_VERSION, msg->parameter1);
+>> +             /* Respond with sensor number */
+>> +             itf_send_sensor_number(itf);
+>> +             itf_init_wakeup(itf);
+>> +             break;
+>> +     case ISR_DONE:
+>> +             switch (msg->parameter1) {
+>> +             case HIC_OPEN_SENSOR:
+>> +                     pr_debug("open done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_GET_SET_FILE_ADDR:
+>> +                     pr_debug("saddr(%p) done\n",
+>> +                             (void *)msg->parameter2);
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_LOAD_SET_FILE:
+>> +                     pr_debug("setfile done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_SET_A5_MEM_ACCESS:
+>> +                     pr_debug("cfgmem done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_PROCESS_START:
+>> +                     pr_debug("process_on done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_PROCESS_STOP:
+>> +                     pr_debug("process_off done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_STREAM_ON:
+>> +                     pr_debug("stream_on done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_STREAM_OFF:
+>> +                     pr_debug("stream_off done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_SET_PARAMETER:
+>> +                     pr_debug("s_param done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_GET_STATIC_METADATA:
+>> +                     pr_debug("g_capability done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_PREVIEW_STILL:
+>> +                     pr_debug("a_param(%dx%d) done\n",
+>> +                             msg->parameter2,
+>> +                             msg->parameter3);
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             case HIC_POWER_DOWN:
+>> +                     pr_debug("powerdown done\n");
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             /*non-blocking command*/
+>> +             case HIC_SHOT:
+>> +                     pr_err("shot done is not acceptable\n");
+>> +                     break;
+>> +             case HIC_SET_CAM_CONTROL:
+>> +                     pr_err("camctrl is not acceptable\n");
+>> +                     break;
+>> +             default:
+>> +                     pr_err("unknown done is invokded\n");
+>> +                     break;
+>> +             }
+>
+> You can add:
+>         bool is_blocking = true;
+> at the begining and set it to false in case of non-blocking commands.
+> This will allow to remove all the statements:
+>                         memcpy(&itf->reply, msg,
+>                         sizeof(struct fimc_is_msg));
+>                         itf_busy_wakeup(itf);
+> and add one conditionally after the switch.
+>
+
+Yes will do that.
+
+>> +             break;
+>> +     case ISR_NDONE:
+>> +             switch (msg->parameter1) {
+>> +             case HIC_SHOT:
+>> +                     pr_err("shot NOT done is not acceptable\n");
+>> +                     break;
+>> +             case HIC_SET_CAM_CONTROL:
+>> +                     pr_debug("camctrl NOT done\n");
+>> +                     break;
+>> +             case HIC_SET_PARAMETER:
+>> +                     pr_err("s_param NOT done\n");
+>> +                     pr_err("param2 : 0x%08X\n", msg->parameter2);
+>> +                     pr_err("param3 : 0x%08X\n", msg->parameter3);
+>> +                     pr_err("param4 : 0x%08X\n", msg->parameter4);
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             default:
+>> +                     pr_err("a command(%d) not done", msg->parameter1);
+>> +                     memcpy(&itf->reply, msg,
+>> +                             sizeof(struct fimc_is_msg));
+>> +                     itf_busy_wakeup(itf);
+>> +                     break;
+>> +             }
+>> +             break;
+>> +     case IHC_SET_FACE_MARK:
+>> +             pr_err("FACE_MARK(%d,%d,%d) is not acceptable\n",
+>> +                     msg->parameter1,
+>> +                     msg->parameter2,
+>> +                     msg->parameter3);
+>> +             break;
+>> +     case IHC_AA_DONE:
+>> +             pr_err("AA_DONE(%d,%d,%d) is not acceptable\n",
+>> +                     msg->parameter1,
+>> +                     msg->parameter2,
+>> +                     msg->parameter3);
+>> +             break;
+>> +     case IHC_FLASH_READY:
+>> +             pr_err("IHC_FLASH_READY is not acceptable");
+>> +             break;
+>> +     case IHC_NOT_READY:
+>> +             pr_err("IHC_NOT_READY is occured, need reset");
+>> +             break;
+>> +     default:
+>> +             pr_err("func_general unknown(0x%08X) end\n", msg->command);
+>> +             break;
+>> +     }
+>> +}
+>> +
+>> +static void itf_handle_scaler_done(struct fimc_is_interface *itf,
+>> +             struct fimc_is_msg *msg)
+>> +{
+>> +     struct fimc_is *is = fimc_interface_to_is(itf);
+>> +     struct fimc_is_pipeline *pipeline = &is->pipeline;
+>> +     struct fimc_is_buf *buf;
+>> +     struct fimc_is_scaler *scl;
+>> +     struct fimc_is_fmt *fmt;
+>> +     struct timeval *tv;
+>> +     struct timespec ts;
+>> +     unsigned int wh, i;
+>> +     unsigned int fcount = msg->parameter1;
+>> +     unsigned long *comp_state;
+>> +
+>> +     if (msg->parameter4 == SCALER_SCC) {
+>> +             scl = &pipeline->scaler[SCALER_SCC];
+>> +             comp_state = &pipeline->comp_state[IS_SCC];
+>> +     } else {
+>> +             scl = &pipeline->scaler[SCALER_SCP];
+>> +             comp_state = &pipeline->comp_state[IS_SCP];
+>> +     }
+>> +
+>> +     fmt = scl->fmt;
+>> +
+>> +     fimc_is_pipeline_buf_lock(pipeline);
+>> +     if (!list_empty(&scl->run_queue)) {
+>> +
+>> +             wh = scl->width * scl->height;
+>> +             buf = fimc_is_scaler_run_queue_get(scl);
+>> +             for (i = 0; i < fmt->num_planes; i++) {
+>> +                     vb2_set_plane_payload(buf->vb, i,
+>> +                                     (wh * fmt->depth[i]) / 8);
+>> +             }
+>> +
+>> +             /* Set timestamp */
+>> +             ktime_get_ts(&ts);
+>> +             tv = &buf->vb->v4l2_buf.timestamp;
+>> +             tv->tv_sec = ts.tv_sec;
+>> +             tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
+>> +             buf->vb->v4l2_buf.sequence = fcount;
+>> +
+>> +             pr_debug("SCP buffer done %d/%d\n",
+>> +                             msg->parameter1, msg->parameter3);
+>> +             vb2_buffer_done(buf->vb, VB2_BUF_STATE_DONE);
+>> +     }
+>> +     fimc_is_pipeline_buf_unlock(pipeline);
+>> +     clear_bit(COMP_RUN, comp_state);
+>> +     wake_up(&scl->event_q);
+>> +}
+>> +
+>> +static void itf_handle_shot_done(struct fimc_is_interface *itf,
+>> +             struct fimc_is_msg *msg)
+>> +{
+>> +     struct fimc_is *is = fimc_interface_to_is(itf);
+>> +     struct fimc_is_pipeline *pipeline = &is->pipeline;
+>> +     unsigned int status = msg->parameter2;
+>> +     struct fimc_is_buf *bayer_buf;
+>> +     int ret;
+>> +
+>> +     if (status != ISR_DONE)
+>> +             pr_err("Shot done is invalid(0x%08X)\n", status);
+>> +
+>> +     /* DQ the bayer input buffer */
+>> +     fimc_is_pipeline_buf_lock(pipeline);
+>> +     bayer_buf = fimc_is_isp_run_queue_get(&pipeline->isp);
+>> +     if (bayer_buf) {
+>> +             vb2_buffer_done(bayer_buf->vb, VB2_BUF_STATE_DONE);
+>> +             pr_debug("Bayer buffer done.\n");
+>> +     }
+>> +     fimc_is_pipeline_buf_unlock(pipeline);
+>> +
+>> +     /* Clear state & call shot again */
+>> +     clear_bit(PIPELINE_RUN, &pipeline->state);
+>> +
+>> +     ret = fimc_is_pipeline_shot(pipeline);
+>> +     if (ret)
+>> +             pr_err("Shot failed\n");
+>> +}
+>> +
+>> +/* Main FIMC-IS interrupt handler */
+>> +static irqreturn_t itf_irq_handler(int irq, void *data)
+>> +{
+>> +     struct fimc_is_interface *itf;
+>> +     struct fimc_is_msg msg;
+>> +     unsigned int status;
+>> +
+>> +     itf = (struct fimc_is_interface *)data;
+>> +     status = itf_get_intr(itf);
+>> +
+>> +     if (status & (1<<INTR_SHOT_DONE)) {
+>> +             itf_get_cmd(itf, &msg, INTR_SHOT_DONE);
+>> +
+>> +             itf_handle_shot_done(itf, &msg);
+>> +
+>> +             status &= ~(1<<INTR_SHOT_DONE);
+>> +             itf_clr_intr(itf, INTR_SHOT_DONE);
+>> +     }
+>> +
+>> +     if (status & (1<<INTR_GENERAL)) {
+>> +             itf_get_cmd(itf, &msg, INTR_GENERAL);
+>> +
+>> +             itf_handle_general(itf, &msg);
+>> +
+>> +             status &= ~(1<<INTR_GENERAL);
+>> +             itf_clr_intr(itf, INTR_GENERAL);
+>> +     }
+>> +
+>> +     if (status & (1<<INTR_SCC_FDONE)) {
+>> +             itf_get_cmd(itf, &msg, INTR_SCC_FDONE);
+>> +
+>> +             msg.parameter4 = SCALER_SCC;
+>> +             itf_handle_scaler_done(itf, &msg);
+>> +
+>> +             status &= ~(1<<INTR_SCC_FDONE);
+>> +             itf_clr_intr(itf, INTR_SCC_FDONE);
+>> +     }
+>> +
+>> +     if (status & (1<<INTR_SCP_FDONE)) {
+>> +             itf_get_cmd(itf, &msg, INTR_SCP_FDONE);
+>> +
+>> +             msg.parameter4 = SCALER_SCP;
+>> +             itf_handle_scaler_done(itf, &msg);
+>> +
+>> +             status &= ~(1<<INTR_SCP_FDONE);
+>> +             itf_clr_intr(itf, INTR_SCP_FDONE);
+>> +     }
+>> +
+>> +     if (status & (1<<INTR_META_DONE)) {
+>> +             status &= ~(1<<INTR_META_DONE);
+>> +             itf_clr_intr(itf, INTR_META_DONE);
+>> +     }
+>
+> The code above seems quite redundant, putting it into a loop
+> would look better. Also moving body of itf_clr_intr into this loop
+> seems to me more clear.
+>
+
+Ok will try to clean this up.
+
+>> +
+>> +     if (status != 0)
+>> +             pr_err("status is NOT all clear(0x%08X)", status);
+>> +
+>> +     return IRQ_HANDLED;
+>> +}
+>> +
+>> +int fimc_is_itf_open_sensor(struct fimc_is_interface *itf,
+>> +             unsigned int instance,
+>> +             unsigned int sensor_id,
+>> +             unsigned int i2c_channel,
+>> +             unsigned int sensor_ext)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_OPEN_SENSOR;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = sensor_id;
+>> +     msg.parameter2 = i2c_channel;
+>> +     msg.parameter3 = sensor_ext;
+>> +     msg.parameter4 = 0;
+>
+> You could use initializer here instead of code,
+> the same for the following functions.
+>
+
+Ok.
+
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_get_setfile_addr(struct fimc_is_interface *itf,
+>> +             unsigned int instance, unsigned int *setfile_addr)
+>> +{
+>> +     int ret;
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_GET_SET_FILE_ADDR;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = 0;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     ret = fimc_is_itf_set_cmd(itf, &msg);
+>> +     *setfile_addr = itf->reply.parameter2;
+>> +
+>> +     return ret;
+>> +}
+>> +
+>> +int fimc_is_itf_load_setfile(struct fimc_is_interface *itf,
+>> +             unsigned int instance)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_LOAD_SET_FILE;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = 0;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_stream_on(struct fimc_is_interface *itf,
+>> +             unsigned int instance)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_STREAM_ON;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = 0;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_stream_off(struct fimc_is_interface *itf,
+>> +             unsigned int instance)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_STREAM_OFF;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = 0;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_process_on(struct fimc_is_interface *itf,
+>> +             unsigned int instance)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_PROCESS_START;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = 0;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_process_off(struct fimc_is_interface *itf,
+>> +             unsigned int instance)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_PROCESS_STOP;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = 0;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_set_param(struct fimc_is_interface *itf,
+>> +             unsigned int instance,
+>> +             unsigned int indexes,
+>> +             unsigned int lindex,
+>> +             unsigned int hindex)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_SET_PARAMETER;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = ISS_PREVIEW_STILL;
+>> +     msg.parameter2 = indexes;
+>> +     msg.parameter3 = lindex;
+>> +     msg.parameter4 = hindex;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_preview_still(struct fimc_is_interface *itf,
+>> +             unsigned int instance)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_PREVIEW_STILL;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = 0;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_get_capability(struct fimc_is_interface *itf,
+>> +     unsigned int instance, unsigned int address)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_GET_STATIC_METADATA;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = address;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_cfg_mem(struct fimc_is_interface *itf,
+>> +             unsigned int instance, unsigned int address,
+>> +             unsigned int size)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_SET_A5_MEM_ACCESS;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = address;
+>> +     msg.parameter2 = size;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     return fimc_is_itf_set_cmd(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_shot_nblk(struct fimc_is_interface *itf,
+>> +             unsigned int instance, unsigned int bayer,
+>> +             unsigned int shot, unsigned int fcount, unsigned int rcount)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_SHOT;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = bayer;
+>> +     msg.parameter2 = shot;
+>> +     msg.parameter3 = fcount;
+>> +     msg.parameter4 = rcount;
+>> +
+>> +     return fimc_is_itf_set_cmd_shot(itf, &msg);
+>> +}
+>> +
+>> +int fimc_is_itf_power_down(struct fimc_is_interface *itf,
+>> +             unsigned int instance)
+>> +{
+>> +     struct fimc_is_msg msg;
+>> +     int ret;
+>> +
+>> +     msg.id = 0;
+>> +     msg.command = HIC_POWER_DOWN;
+>> +     msg.instance = instance;
+>> +     msg.parameter1 = 0;
+>> +     msg.parameter2 = 0;
+>> +     msg.parameter3 = 0;
+>> +     msg.parameter4 = 0;
+>> +
+>> +     ret = fimc_is_itf_set_cmd(itf, &msg);
+>> +     itf_clr_state(itf, IS_IF_STATE_INIT);
+>> +
+>> +     return ret;
+>> +}
+>> +
+>> +/* Debugfs for showing FW debug messages */
+>> +static int fimc_is_log_show(struct seq_file *s, void *data)
+>> +{
+>> +     struct fimc_is_interface *itf = s->private;
+>> +     struct fimc_is *is = fimc_interface_to_is(itf);
+>> +
+>> +     const u8 *buf = (u8 *) (is->minfo.fw_vaddr + DEBUG_OFFSET);
+>> +
+>> +     if (is->minfo.fw_vaddr == 0) {
+>> +             pr_err("Firmware memory is not initialized\n");
+>> +             return -EIO;
+>> +     }
+>> +
+>> +     seq_printf(s, "%s\n", buf);
+>> +     return 0;
+>> +}
+>> +
+>> +static int fimc_is_debugfs_open(struct inode *inode, struct file *file)
+>> +{
+>> +     return single_open(file, fimc_is_log_show, inode->i_private);
+>> +}
+>> +
+>> +static const struct file_operations fimc_is_debugfs_fops = {
+>> +     .open           = fimc_is_debugfs_open,
+>> +     .read           = seq_read,
+>> +     .llseek         = seq_lseek,
+>> +     .release        = single_release,
+>> +};
+>> +
+>> +static void fimc_is_debugfs_remove(struct fimc_is_interface *itf)
+>> +{
+>> +     debugfs_remove(itf->debugfs_entry);
+>> +     itf->debugfs_entry = NULL;
+>> +}
+>> +
+>> +static int fimc_is_debugfs_create(struct fimc_is_interface *itf)
+>> +{
+>> +     struct dentry *dentry;
+>> +
+>> +     itf->debugfs_entry = debugfs_create_dir("fimc_is", NULL);
+>> +
+>> +     dentry = debugfs_create_file("fw_log", S_IRUGO, itf->debugfs_entry,
+>> +                                     itf, &fimc_is_debugfs_fops);
+>> +     if (!dentry)
+>> +             fimc_is_debugfs_remove(itf);
+>> +
+>> +     return itf->debugfs_entry == NULL ? -EIO : 0;
+>> +}
+>> +
+>> +int fimc_is_interface_init(struct fimc_is_interface *itf,
+>> +             void __iomem *regs, int irq)
+>> +{
+>> +     struct fimc_is *is = fimc_interface_to_is(itf);
+>> +     struct device *dev = &is->pdev->dev;
+>> +     int ret;
+>> +
+>> +     if (!regs || !irq) {
+>> +             pr_err("Invalid args\n");
+>> +             return -EINVAL;
+>> +     }
+>> +
+>> +     itf->regs = regs;
+>> +     itf->com_regs = (struct is_common_reg *)(regs + ISSR(0));
+>> +
+>> +     init_waitqueue_head(&itf->irq_queue);
+>> +     spin_lock_init(&itf->slock_state);
+>> +     spin_lock_init(&itf->slock);
+>> +
+>> +     /* Register interrupt handler */
+>> +     ret = devm_request_irq(dev, irq, itf_irq_handler,
+>> +                            0, dev_name(dev), itf);
+>> +     if (ret) {
+>> +             dev_err(dev, "Failed to install irq (%d)\n", ret);
+>> +             return -EINVAL;
+>> +     }
+>> +
+>> +     /* Initialize context vars */
+>> +     itf->streaming = IS_IF_STREAMING_INIT;
+>> +     itf->processing = IS_IF_PROCESSING_INIT;
+>> +     itf->pdown_ready = IS_IF_POWER_DOWN_READY;
+>> +     itf->debug_cnt = 0;
+>> +     init_request_barrier(itf);
+>> +
+>> +     /* Debugfs for FW debug log */
+>> +     fimc_is_debugfs_create(itf);
+>> +
+>> +     return 0;
+>> +}
+>> diff --git a/drivers/media/platform/exynos5-is/fimc-is-interface.h b/drivers/media/platform/exynos5-is/fimc-is-interface.h
+>> new file mode 100644
+>> index 0000000..08994f0
+>> --- /dev/null
+>> +++ b/drivers/media/platform/exynos5-is/fimc-is-interface.h
+>> @@ -0,0 +1,131 @@
+>> +/*
+>> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
+>> + *
+>> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
+>> + *  Arun Kumar K <arun.kk@samsung.com>
+>> + *
+>> + * This program is free software; you can redistribute it and/or modify
+>> + * it under the terms of the GNU General Public License version 2 as
+>> + * published by the Free Software Foundation.
+>> + */
+>> +#ifndef FIMC_IS_INTERFACE_H_
+>> +#define FIMC_IS_INTERFACE_H_
+>> +
+>> +#include "fimc-is-core.h"
+>> +
+>> +#define TRY_RECV_AWARE_COUNT    100
+>> +
+>> +#define ISDRV_VERSION                111
+>> +
+>> +#define LOWBIT_OF(num)  (num >= 32 ? 0 : (unsigned int)1<<num)
+>> +#define HIGHBIT_OF(num) (num >= 32 ? (unsigned int)1<<(num-32) : 0)
+>> +
+>> +enum interrupt_map {
+>> +     INTR_GENERAL            = 0,
+>> +     INTR_ISP_FDONE          = 1,
+>> +     INTR_SCC_FDONE          = 2,
+>> +     INTR_DNR_FDONE          = 3,
+>> +     INTR_SCP_FDONE          = 4,
+>> +     /* 5 is ISP YUV DONE */
+>> +     INTR_META_DONE          = 6,
+>> +     INTR_SHOT_DONE          = 7,
+>> +     INTR_MAX_MAP
+>> +};
+>> +
+>> +enum fimc_is_interface_state {
+>> +     IS_IF_STATE_INIT,
+>> +     IS_IF_STATE_OPEN,
+>> +     IS_IF_STATE_START,
+>> +     IS_IF_STATE_BUSY
+>> +};
+>> +
+>> +enum streaming_state {
+>> +     IS_IF_STREAMING_INIT,
+>> +     IS_IF_STREAMING_OFF,
+>> +     IS_IF_STREAMING_ON
+>> +};
+>> +
+>> +enum processing_state {
+>> +     IS_IF_PROCESSING_INIT,
+>> +     IS_IF_PROCESSING_OFF,
+>> +     IS_IF_PROCESSING_ON
+>> +};
+>> +
+>> +enum pdown_ready_state {
+>> +     IS_IF_POWER_DOWN_READY,
+>> +     IS_IF_POWER_DOWN_NREADY
+>> +};
+>> +
+>> +struct fimc_is_msg {
+>> +     unsigned int    id;
+>> +     unsigned int    command;
+>> +     unsigned int    instance;
+>> +     unsigned int    parameter1;
+>> +     unsigned int    parameter2;
+>> +     unsigned int    parameter3;
+>> +     unsigned int    parameter4;
+>> +};
+>
+> Why not unsigned int params[4];
+>
+>> +
+>> +struct fimc_is_interface {
+>> +
+>> +     unsigned long                   state;
+>> +
+>> +     void __iomem                    *regs;
+>> +     struct is_common_reg __iomem    *com_regs;
+>> +     spinlock_t                      slock;
+>> +     spinlock_t                      slock_state;
+>> +     wait_queue_head_t               irq_queue;
+>> +
+>> +     spinlock_t                      process_barrier;
+>> +     struct mutex                    request_barrier;
+>> +
+>> +     enum streaming_state            streaming;
+>> +     enum processing_state           processing;
+>> +     enum pdown_ready_state          pdown_ready;
+>> +
+>> +     struct fimc_is_msg              reply;
+>> +
+>> +     int                             debug_cnt;
+>> +     struct dentry                   *debugfs_entry;
+>> +
+>> +};
+>> +
+>> +int fimc_is_interface_init(struct fimc_is_interface *itf,
+>> +             void __iomem *regs, int irq);
+>> +int fimc_is_itf_wait_init_state(struct fimc_is_interface *itf);
+>> +int fimc_is_itf_hw_dump(struct fimc_is_interface *itf);
+>> +int fimc_is_itf_open_sensor(struct fimc_is_interface *itf,
+>> +             unsigned int instance,
+>> +             unsigned int sensor_id,
+>> +             unsigned int i2c_channel,
+>> +             unsigned int sensor_ext);
+>> +int fimc_is_itf_get_setfile_addr(struct fimc_is_interface *this,
+>> +             unsigned int instance, unsigned int *setfile_addr);
+>> +int fimc_is_itf_load_setfile(struct fimc_is_interface *itf,
+>> +             unsigned int instance);
+>> +int fimc_is_itf_stream_on(struct fimc_is_interface *itf,
+>> +             unsigned int instance);
+>> +int fimc_is_itf_stream_off(struct fimc_is_interface *itf,
+>> +             unsigned int instance);
+>> +int fimc_is_itf_process_on(struct fimc_is_interface *itf,
+>> +             unsigned int instance);
+>> +int fimc_is_itf_process_off(struct fimc_is_interface *itf,
+>> +             unsigned int instance);
+>> +int fimc_is_itf_set_param(struct fimc_is_interface *this,
+>> +             unsigned int instance,
+>> +             unsigned int indexes,
+>> +             unsigned int lindex,
+>> +             unsigned int hindex);
+>> +int fimc_is_itf_preview_still(struct fimc_is_interface *itf,
+>> +             unsigned int instance);
+>> +int fimc_is_itf_get_capability(struct fimc_is_interface *itf,
+>> +     unsigned int instance, unsigned int address);
+>> +int fimc_is_itf_cfg_mem(struct fimc_is_interface *itf,
+>> +             unsigned int instance, unsigned int address,
+>> +             unsigned int size);
+>> +int fimc_is_itf_shot_nblk(struct fimc_is_interface *itf,
+>> +             unsigned int instance, unsigned int bayer,
+>> +             unsigned int shot, unsigned int fcount, unsigned int rcount);
+>> +int fimc_is_itf_power_down(struct fimc_is_interface *itf,
+>> +             unsigned int instance);
+>> +#endif
+>>
+>
+> Regards
+> Andrzej
+>
+
+Thanks and Regards
+Arun
