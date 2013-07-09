@@ -1,88 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:62008 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753148Ab3GAPfZ convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 11:35:25 -0400
-Date: Mon, 1 Jul 2013 12:35:12 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Zoran Turalija <zoran.turalija@gmail.com>,
-	Srinivas KANDAGATLA <srinivas.kandagatla@st.com>,
-	Nicolas THERY <nicolas.thery@st.com>,
-	Divneil Rai WADHAWAN <divneil.wadhawan@st.com>,
-	Vincent ABRIOU <vincent.abriou@st.com>,
-	Alain VOLMAT <alain.volmat@st.com>
-Subject: Re: [GIT PULL for v3.11] media patches for v3.11
-Message-ID: <20130701123512.04e0ab62.mchehab@redhat.com>
-In-Reply-To: <CAHFNz9J_FJP4YcCd3-_3x6d5iNDoqpYMMtX1Xd+OFJX4H7so0A@mail.gmail.com>
-References: <20130701075856.6e8daa98.mchehab@redhat.com>
-	<CAHFNz9J_FJP4YcCd3-_3x6d5iNDoqpYMMtX1Xd+OFJX4H7so0A@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 8BIT
+Received: from mailout3.samsung.com ([203.254.224.33]:51758 "EHLO
+	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751672Ab3GIFBm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 01:01:42 -0400
+Received: from epcpsbgr1.samsung.com
+ (u141.gpu120.samsung.co.kr [203.254.230.141])
+ by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
+ (7.0.4.24.0) 64bit (built Nov 17 2011))
+ with ESMTP id <0MPN00HAEKLEDNI0@mailout3.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 09 Jul 2013 14:01:36 +0900 (KST)
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
+	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
+	arunkk.samsung@gmail.com
+Subject: [PATCH v5 4/8] [media] s5p-mfc: Core support for MFC v7
+Date: Tue, 09 Jul 2013 10:54:38 +0530
+Message-id: <1373347482-9264-5-git-send-email-arun.kk@samsung.com>
+In-reply-to: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
+References: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Jul 2013 16:37:58 +0530
-Manu Abraham <abraham.manu@gmail.com> escreveu:
+Adds variant data and core support for the MFC v7 firmware
 
-> Mauro,
-> 
-> On Mon, Jul 1, 2013 at 4:28 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Hi Linus,
-> >
-> > Please pull from:
-> >   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-> >
-> > For the media patches for Kernel v3.11.
-> >
-> 
-> >
-> > Zoran Turalija (2):
-> >       [media] stb0899: allow minimum symbol rate of 1000000
-> >       [media] stb0899: allow minimum symbol rate of 2000000
-> 
-> 
-> Somehow, I missed these patches; These are incorrect. Please revert
-> these changes.
-> Simply changing the advertized minima values don't change the search algorithm
-> behaviour, it simply leads to broken behaviour.
-> 
-> NACK for these changes.
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+---
+ .../devicetree/bindings/media/s5p-mfc.txt          |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc.c           |   32 ++++++++++++++++++++
+ drivers/media/platform/s5p-mfc/s5p_mfc_common.h    |    2 ++
+ 3 files changed, 35 insertions(+)
 
-While this patch came from a sub-maintainer's tree, looking at its
-history, the patch was proposed here:
-	https://linuxtv.org/patch/18341/
+diff --git a/Documentation/devicetree/bindings/media/s5p-mfc.txt b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+index 67ec3d4..cb9c5bc 100644
+--- a/Documentation/devicetree/bindings/media/s5p-mfc.txt
++++ b/Documentation/devicetree/bindings/media/s5p-mfc.txt
+@@ -10,6 +10,7 @@ Required properties:
+   - compatible : value should be either one among the following
+ 	(a) "samsung,mfc-v5" for MFC v5 present in Exynos4 SoCs
+ 	(b) "samsung,mfc-v6" for MFC v6 present in Exynos5 SoCs
++	(b) "samsung,mfc-v7" for MFC v7 present in Exynos5420 SoC
+ 
+   - reg : Physical base address of the IP registers and length of memory
+ 	  mapped region.
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc.c b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+index d12faa6..d6be52f 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc.c
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc.c
+@@ -1391,6 +1391,32 @@ static struct s5p_mfc_variant mfc_drvdata_v6 = {
+ 	.fw_name        = "s5p-mfc-v6.fw",
+ };
+ 
++struct s5p_mfc_buf_size_v6 mfc_buf_size_v7 = {
++	.dev_ctx	= MFC_CTX_BUF_SIZE_V7,
++	.h264_dec_ctx	= MFC_H264_DEC_CTX_BUF_SIZE_V7,
++	.other_dec_ctx	= MFC_OTHER_DEC_CTX_BUF_SIZE_V7,
++	.h264_enc_ctx	= MFC_H264_ENC_CTX_BUF_SIZE_V7,
++	.other_enc_ctx	= MFC_OTHER_ENC_CTX_BUF_SIZE_V7,
++};
++
++struct s5p_mfc_buf_size buf_size_v7 = {
++	.fw	= MAX_FW_SIZE_V7,
++	.cpb	= MAX_CPB_SIZE_V7,
++	.priv	= &mfc_buf_size_v7,
++};
++
++struct s5p_mfc_buf_align mfc_buf_align_v7 = {
++	.base = 0,
++};
++
++static struct s5p_mfc_variant mfc_drvdata_v7 = {
++	.version	= MFC_VERSION_V7,
++	.port_num	= MFC_NUM_PORTS_V7,
++	.buf_size	= &buf_size_v7,
++	.buf_align	= &mfc_buf_align_v7,
++	.fw_name        = "s5p-mfc-v7.fw",
++};
++
+ static struct platform_device_id mfc_driver_ids[] = {
+ 	{
+ 		.name = "s5p-mfc",
+@@ -1401,6 +1427,9 @@ static struct platform_device_id mfc_driver_ids[] = {
+ 	}, {
+ 		.name = "s5p-mfc-v6",
+ 		.driver_data = (unsigned long)&mfc_drvdata_v6,
++	}, {
++		.name = "s5p-mfc-v7",
++		.driver_data = (unsigned long)&mfc_drvdata_v7,
+ 	},
+ 	{},
+ };
+@@ -1413,6 +1442,9 @@ static const struct of_device_id exynos_mfc_match[] = {
+ 	}, {
+ 		.compatible = "samsung,mfc-v6",
+ 		.data = &mfc_drvdata_v6,
++	}, {
++		.compatible = "samsung,mfc-v7",
++		.data = &mfc_drvdata_v7,
+ 	},
+ 	{},
+ };
+diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+index d47016d..17545d7 100644
+--- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
++++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
+@@ -24,6 +24,7 @@
+ #include <media/videobuf2-core.h>
+ #include "regs-mfc.h"
+ #include "regs-mfc-v6.h"
++#include "regs-mfc-v7.h"
+ 
+ /* Definitions related to MFC memory */
+ 
+@@ -684,5 +685,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
+ 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
+ #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
+ #define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
++#define IS_MFCV7(dev)		(dev->variant->version >= 0x70 ? 1 : 0)
+ 
+ #endif /* S5P_MFC_COMMON_H_ */
+-- 
+1.7.9.5
 
->From what it is said there, with this patch, 6 additional channels
-were discovered when using with Eutelsat 16A, that uses a symbol
-rate between 2MS/s to 5 MS/s. Without this patch, those channels won't
-be discovered, as the core won't try to use a symbol rate outside
-the range.
-
-Of course, transponders with a symbol rate equal or upper than 5MS/s
-won't be affected by this patch.
-
-Even if this is not a perfect patch and some changes would be 
-needed to improve tuning for those low symbol rate transponders, 
-it seems better than before, as at least now some channels are tuned.
-
-The only reason I can see to reverse this patch is that if setting
-the frontend to low bit ranges could damage the frontend or could
-hit some bug on the hardware (or internal firmware).
-
-Yet, from the datasheet pointed by the patch author, it seems that
-this frontend allows such low symbol rates:
-	http://comtech.sg1002.myweb.hinet.net/pdf/dvbs2-6899.pdf
-
-Let me copy some people at ST. Maybe they could help to check internally
-there if there are any risks for the hardware to accept low symbol rate 
-transponders.
-
-Regards,
-Mauro
