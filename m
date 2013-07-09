@@ -1,113 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:48926 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753611Ab3GJL6z (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 07:58:55 -0400
-From: Inki Dae <inki.dae@samsung.com>
-To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Cc: maarten.lankhorst@canonical.com, daniel@ffwll.ch,
-	robdclark@gmail.com, kyungmin.park@samsung.com,
-	myungjoo.ham@samsung.com, yj44.cho@samsung.com,
-	Inki Dae <inki.dae@samsung.com>
-Subject: [RFC PATCH v4 0/2] Introduce buffer synchronization framework
-Date: Wed, 10 Jul 2013 20:58:45 +0900
-Message-id: <1373457527-28263-1-git-send-email-inki.dae@samsung.com>
+Received: from co9ehsobe004.messaging.microsoft.com ([207.46.163.27]:10921
+	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753955Ab3GIO0H convert rfc822-to-8bit
+	(ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 9 Jul 2013 10:26:07 -0400
+From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: omap_vout: rotation issue on the first start
+Date: Tue, 9 Jul 2013 14:25:48 +0000
+Message-ID: <6EE9CD707FBED24483D4CB0162E8546745F4BAAA@AMSPRD0711MB532.eurprd07.prod.outlook.com>
+Content-Language: de-DE
+Content-Type: text/plain; charset="iso-8859-1"
+Content-Transfer-Encoding: 8BIT
+MIME-Version: 1.0
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Laurent,
 
-This patch set introduces a buffer synchronization framework based
-on DMA BUF[1] and reservation[2] to use dma-buf resource, and based
-on ww-mutexes[3] for lock mechanism.
+Sorry to insist on this, but for you it's probably peanuts to see a possible error.
+Any hints/workarounds are welcome...
 
-The purpose of this framework is to provide not only buffer access
-control to CPU and CPU, and CPU and DMA, and DMA and DMA but also
-easy-to-use interfaces for device drivers and user application.
-In addtion, this patch set suggests a way for enhancing performance.
+>From the mail with subject
+AW: AW: mt9p031 shows purple coloured capture
+Florian Neuhaus wrote on 2013-06-24:
 
-to implement generic user mode interface, we have used fcntl system
-call[4]. As you know, user application sees a buffer object as
-a dma-buf file descriptor. So fcntl() call with the file descriptor
-means to lock some buffer region being managed by the dma-buf object.
-For more detail, you can refer to the dma-buf-sync.txt in Documentation/
+>> Have you tested the unmodified omap3-is-live ?
+> I did today and indeed, with the unmodified app there is no green taint on
+> the first start. I have now tracked down the issue to my implemented
+> rotation on the video-out:
+> 
+diff --git a/videoout.c b/videoout.c
+index 51bed8b..6fd8a16 100644
+--- a/videoout.c
++++ b/videoout.c
+@@ -60,6 +60,7 @@ struct videoout *vo_init(const char *devname,
+ 	struct v4l2_format fmt;
+ 	struct videoout *vo;
+ 	int ret;
++	int rotation = 90; /* rotate for testing purposes */
+ 
+ 	/* Allocate the video output object. */
+ 	vo = malloc(sizeof *vo);
+@@ -76,6 +77,14 @@ struct videoout *vo_init(const char *devname,
+ 		goto error;
+ 	}
+ 
++	/* setup the rotation here, we have to do it BEFORE
++	 * setting the format. */
++	ret = v4l2_set_control(vo->dev, V4L2_CID_ROTATE, &rotation);
++	if (ret < 0){
++		perror("Failed to setup rotation\n");
++		goto error;
++	}
++
+ 	pixfmt.pixelformat = format->pixelformat;
+ 	pixfmt.width = format->width;
+ 	pixfmt.height = format->height;
 
-Moreover, we had tried to find how we could utilize limited hardware
-resources more using buffer synchronization mechanism. And finally,
-we have realized that it could enhance performance using multi threads
-with this buffer synchronization mechanism: DMA and CPU works individually
-so CPU could perform other works while DMA is performing some works,
-and vise versa.
+It would be very nice if you could test the above patch with one of
+your omap-devices.
 
-However, in the conventional way, that is not easy to do so because DMA
-operation is depend on CPU operation, and vice versa.
+> I do a rotation by 90 or 270 degrees. So there seems to be an issue with the
+> vrfb-rotation in omap_vout?
+> I am already rotating the omapfb - is this a problem?
+> omapfb.rotate=1 omapfb.vrfb=y
+> Another possibility to rotate the captured stream?
 
-Conventional way:
-	User                                     Kernel
-	---------------------------------------------------------------------
-	CPU writes something to src
-	send the src to driver------------------------->
-	                                         update DMA register
-	request DMA start(1)--------------------------->
-						 DMA start
-		<---------completion signal(2)----------
-	CPU accesses dst
+I noticed, that it happens only with 90 or 270 degree rotation
+and not with 0 and 180 degree. Also only on the first start of
+the stream. All following streamings are correct.
 
-	(1) Request DMA start after the CPU access to src buffer is completed.
-	(2) Access dst buffer after DMA access to the dst buffer is completed.
+I have a 480x800 Portrait display. I try to rotate the output to
+800x480 landscape.
 
-On the other hand, if there is something to control buffer access between CPU
-and DMA? The below shows that:
+Regards,
+Florian
 
-	User(thread a)          User(thread b)            Kernel
-	---------------------------------------------------------------------
-	send a src to driver---------------------------------->
-		                                          update DMA register
-        lock the src
-	                        request DMA start(1)---------->
-	CPU acccess to src
-	unlock the src		                          lock src and dst
-							  DMA start
-		<-------------completion signal(2)-------------
-	lock dst	                                  DMA completion
-	CPU access to dst				  unlock src and dst
-	unlock DST
-
-	(1) Try to start DMA operation while CPU is accessing the src buffer.
-	(2) Try CPU access to dst buffer while DMA is accessing the dst buffer.
-
-	This means that CPU or DMA could do more works.
-
-	In the same way, we could reduce hand shaking overhead between
-	two processes when those processes need to share a shared buffer.
-	There may be other cases that we could reduce overhead as well.
-
-
-References:
-[1] http://lwn.net/Articles/470339/
-[2] http://lwn.net/Articles/532616/
-[3] https://patchwork.kernel.org/patch/2625361/
-[4] http://linux.die.net/man/2/fcntl
-
-Inki Dae (2):
-  dmabuf-sync: Introduce buffer synchronization framework
-  dma-buf: add lock callback for fcntl system call.
-
- Documentation/dma-buf-sync.txt |  283 +++++++++++++++++
- drivers/base/Kconfig           |    7 +
- drivers/base/Makefile          |    1 +
- drivers/base/dma-buf.c         |   34 ++
- drivers/base/dmabuf-sync.c     |  661 ++++++++++++++++++++++++++++++++++++++++
- include/linux/dma-buf.h        |   14 +
- include/linux/dmabuf-sync.h    |  132 ++++++++
- include/linux/reservation.h    |    9 +
- 8 files changed, 1141 insertions(+), 0 deletions(-)
- create mode 100644 Documentation/dma-buf-sync.txt
- create mode 100644 drivers/base/dmabuf-sync.c
- create mode 100644 include/linux/dmabuf-sync.h
-
--- 
-1.7.5.4
 
