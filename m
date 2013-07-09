@@ -1,81 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:2443 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751213Ab3GHLH5 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 07:07:57 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [BRAINSTORM] Controls, matrices and properties
-Date: Mon, 8 Jul 2013 13:06:56 +0200
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
+Received: from mail-vb0-f51.google.com ([209.85.212.51]:46738 "EHLO
+	mail-vb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751834Ab3GILIp (ORCPT
+	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 07:08:45 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307081306.56324.hverkuil@xs4all.nl>
+In-Reply-To: <51C385F0.6000402@gmail.com>
+References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
+	<1370005408-10853-2-git-send-email-arun.kk@samsung.com>
+	<51C385F0.6000402@gmail.com>
+Date: Tue, 9 Jul 2013 16:38:44 +0530
+Message-ID: <CALt3h7-jRSNZNsrxkeuGTgjTv1iRMb00ZAqcFUvcj_R-dsYiRw@mail.gmail.com>
+Subject: Re: [RFC v2 01/10] exynos5-fimc-is: Add Exynos5 FIMC-IS device tree
+ bindings documentation
+From: Arun Kumar K <arunkk.samsung@gmail.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Arun Kumar K <arun.kk@samsung.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	kilyeon.im@samsung.com, shaik.ameer@samsung.com,
+	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all,
+Hi Sylwester,
 
-I have been working on support for passing matrices to/from drivers using a
-new matrix API. See this earlier thread for more background information:
+Thank you for the review and sorry for the delayed response.
 
-http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/66200
+On Fri, Jun 21, 2013 at 4:15 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Arun,
+>
+> On 05/31/2013 03:03 PM, Arun Kumar K wrote:
+>
+> Please add at least one sentence here. All in all this patch
+> adds DT binding documentation for a fairly complex subsystem.
+>
+> And please Cc devicetree-discuss@lists.ozlabs.org next time.
+>
 
-The basic feedback is that, yes, matrices are useful, but it is yet another
-control-like API.
+Ok will do that.
 
-My problem with using the control API for things like this is that the control
-API has been designed for use with GUIs: e.g. the controls are elements that
-the end-user can modify through a GUI. Things like a matrix or some really
-low-level driver property are either hard to model in a GUI or too advanced
-and obscure for an end-user.
+>
+>> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
+>> ---
+>>   .../devicetree/bindings/media/exynos5-fimc-is.txt  |   41
+>> ++++++++++++++++++++
+>>   1 file changed, 41 insertions(+)
+>>   create mode 100644
+>> Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> new file mode 100644
+>> index 0000000..9fd4646
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/exynos5-fimc-is.txt
+>> @@ -0,0 +1,41 @@
+>> +Samsung EXYNOS SoC Camera Subsystem
+>
+>
+> Shouldn't it be, e.g.:
+>
+> Samsung EXYNOS5 SoC series Imaging Subsystem (FIMC-IS)
+>
+> Or do you intend this file to be describing also the other sub-devices,
+> like GScaler ?
+>
 
-On the other hand, the control framework has all the desirable properties that
-you would want: atomicity (as far as is allowed by the hardware), the ability
-to get/set multiple controls in one ioctl, efficient, inheritance of subdev
-controls in bridge devices, events, etc.
+Probably not. WIll change it to Imaging subsystem.
 
-I'm wondering whether we cannot tweak the control API a bit to make it possible
-to use it for matrices and general 'properties' as well. The main requirement
-for me is that when applications enumerate over controls such properties should
-never turn up in the enumerations: only controls suitable for a GUI should
-appear. After all, an application would have no idea what to do with a matrix
-of e.g. 200x300 elements.
+>
+>> +-----------------------------------
+>> +
+>> +The camera subsystem on Samsung Exynos5 SoC has some changes relative
+>> +to previous SoC versions. Exynos5 has almost similar MIPI-CSIS and
+>> +FIMC-LITE IPs but has a much improved version of FIMC-IS which can
+>> +handle sensor controls and camera post-processing operations. The
+>> +Exynos5 FIMC-IS has a dedicated ARM Cortex A5 processor, many
+>> +post-processing blocks (ISP, DRC, FD, ODC, DIS, 3DNR) and two
+>> +dedicated scalers (SCC and SCP).
+>> +
+>> +fimc-is node
+>> +------------
+>> +
+>> +Required properties:
+>> +
+>> +- compatible        : must be "samsung,exynos5250-fimc-is"
+>> +- reg               : physical base address and size of the memory mapped
+>> +                      registers
+>> +- interrupt-parent  : Parent interrupt controller
+>> +- interrupts        : fimc-is interrupt to the parent combiner
+>> +- clocks            : list of clock specifiers, corresponding to entries
+>> in
+>> +                      clock-names property;
+>> +- clock-names       : must contain "isp", "mcu_isp", "isp_div0",
+>> "isp_div1",
+>> +                      "isp_divmpwm", "mcu_isp_div0", "mcu_isp_div1"
+>> entries,
+>> +                      matching entries in the clocks property.
+>> +
+>> +
+>> +Board specific properties:
+>> +
+>> +- pinctrl-names    : pinctrl names for camera port pinmux control, at
+>> least
+>> +                    "default" needs to be specified.
+>> +- pinctrl-0...N           : pinctrl properties corresponding to
+>> pinctrl-names
+>
+>
+> What pins exactly are supposed to be covered by these properties ? For what
+> devices ? Aren't the camera port pins supposed to be specified at the common
+> 'camera' node ? I believe the camera ports are not specific to the FIMC-IS.
+>
 
-While it is possible to extend queryctrl to e.g. enumerate only properties
-instead of controls, it is probably better to create a new VIDIOC_QUERYPROP
-ioctl. Also because the v4l2_queryctrl is pretty full and has no support to set
-the minimum/maximum values of a 64 bit value. In addition, the name field is not
-needed for a property, I think. Currently the name is there for the GUI, not
-for identification purposes.
+These are for the sensor controls (especially clock lines).
+I think I should move these to the sensor node.
 
-For setting/getting controls the existing extended control API can be used,
-although I would be inclined to go for VIDIOC_G/S/TRY_PROPS ioctls as well.
-For example, when I set a matrix property it is very desirable to pass only
-a subset of the matrix along instead of a full matrix. In my original matrix
-proposal I had a v4l2_rect struct that defined that. But there is no space
-in struct v4l2_ext_control to store such information.
+>
+>> +pmu subnode
+>> +-----------
+>> +
+>> +Required properties:
+>> + - reg : should contain PMU physical base address and size of the memory
+>> +         mapped registers.
+>
+>
+> What about other devices, like ISP I2C, SPI ? Don't you want to list at
+> least
+> the ones currently used (I2C bus controllers) ?
+>
 
-In general, implementing properties requires more variation since the GUI
-restriction has been lifted. Also, properties can be assigned to specific
-internal objects (e.g. buffer specific properties), so you need fields to
-tell the kernel with which object the property is associated.
+The present driver doesnt make use of the SPI bus as its used only
+for sensor calibration which is not yet added.
+I2C bus is used by the sensor which has its own node. May be I should
+explain one of the sensor nodes over here?
 
-However, although the public API is different from the control API, there
-is no reason not to use the internal control framework for both.
-
-Internally controls and properties work pretty much the same way and can all
-be handled by the control framework. Only supporting e.g. per-buffer controls
-would take work since that is currently not implemented.
-
-At the moment this is just an idea and I don't want to spend time on creating
-a detailed RFC if people don't like it. So comments are welcome!
-
-Regards,
-
-	Hans
+Regards
+Arun
