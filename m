@@ -1,119 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from na3sys009aog128.obsmtp.com ([74.125.149.141]:53644 "EHLO
-	na3sys009aog128.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752701Ab3GBDba (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44189 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754733Ab3GJWNy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jul 2013 23:31:30 -0400
-From: Libin Yang <lbyang@marvell.com>
-To: <corbet@lwn.net>, <g.liakhovetski@gmx.de>
-CC: <linux-media@vger.kernel.org>, <albert.v.wang@gmail.com>,
-	Libin Yang <lbyang@marvell.com>,
-	Albert Wang <twang13@marvell.com>
-Subject: [PATCH v2 6/7] marvell-ccic: add SOF / EOF pair check for marvell-ccic driver
-Date: Tue, 2 Jul 2013 11:31:07 +0800
-Message-ID: <1372735868-15880-7-git-send-email-lbyang@marvell.com>
-In-Reply-To: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
-References: <1372735868-15880-1-git-send-email-lbyang@marvell.com>
+	Wed, 10 Jul 2013 18:13:54 -0400
+Message-ID: <51DDDDF7.1010005@iki.fi>
+Date: Thu, 11 Jul 2013 01:19:35 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+CC: Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: Samsung i2c subdev drivers that set sd->name
+References: <201306241054.11604.hverkuil@xs4all.nl> <201307041313.25318.hverkuil@xs4all.nl> <51D5D8C8.2030400@gmail.com> <27462886.lEP1apMFVe@avalon> <51D88318.70904@gmail.com>
+In-Reply-To: <51D88318.70904@gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds the SOFx/EOFx pair check for marvell-ccic.
+Hi Sylwester and Laurent,
 
-When switching format, the last EOF may not arrive when stop streamning.
-And the EOF will be detected in the next start streaming.
+Sylwester Nawrocki wrote:
+> Hi Laurent,
+...
+>> We need an ioctl to report additional information about media entities
+>> (it's
+>> been on my to-do list for wayyyyyyyyy too long). It could be used to
+>> report
+>> bus information as well.
+>
+> Yes, that sounds much more interesting than using just subdev name to
+> sqeeze
+> all the information in. Why we don't have such an ioctl yet anyway ? Were
+> there some arguments against it, or its been just a low priority issue ?
 
-Must ensure clear the left over frame flags before every really start streaming.
+I think it's just been left unaddressed until now since there have been 
+even more important things to work on. :-) I'm all for that, btw.; 
+associating bus information to the media device instead of entities was 
+always a little odd (feel free to blame me, too...).
 
-Signed-off-by: Albert Wang <twang13@marvell.com>
-Signed-off-by: Libin Yang <lbyang@marvell.com>
-Acked-by: Jonathan Corbet <corbet@lwn.net>
-Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
----
- drivers/media/platform/marvell-ccic/mcam-core.c |   30 ++++++++++++++++++++---
- 1 file changed, 26 insertions(+), 4 deletions(-)
+Perhaps we could steal some bytes from the union in struct 
+media_entity_desc? :-)
 
-diff --git a/drivers/media/platform/marvell-ccic/mcam-core.c b/drivers/media/platform/marvell-ccic/mcam-core.c
-index 7a2855f..a22d17f 100644
---- a/drivers/media/platform/marvell-ccic/mcam-core.c
-+++ b/drivers/media/platform/marvell-ccic/mcam-core.c
-@@ -95,6 +95,9 @@ MODULE_PARM_DESC(buffer_mode,
- #define CF_CONFIG_NEEDED 4	/* Must configure hardware */
- #define CF_SINGLE_BUFFER 5	/* Running with a single buffer */
- #define CF_SG_RESTART	 6	/* SG restart needed */
-+#define CF_FRAME_SOF0	 7	/* Frame 0 started */
-+#define CF_FRAME_SOF1	 8
-+#define CF_FRAME_SOF2	 9
- 
- #define sensor_call(cam, o, f, args...) \
- 	v4l2_subdev_call(cam->sensor, o, f, ##args)
-@@ -261,8 +264,10 @@ static void mcam_reset_buffers(struct mcam_camera *cam)
- 	int i;
- 
- 	cam->next_buf = -1;
--	for (i = 0; i < cam->nbufs; i++)
-+	for (i = 0; i < cam->nbufs; i++) {
- 		clear_bit(i, &cam->flags);
-+		clear_bit(CF_FRAME_SOF0 + i, &cam->flags);
-+	}
- }
- 
- static inline int mcam_needs_config(struct mcam_camera *cam)
-@@ -1140,6 +1145,7 @@ static void mcam_vb_wait_finish(struct vb2_queue *vq)
- static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
- {
- 	struct mcam_camera *cam = vb2_get_drv_priv(vq);
-+	unsigned int frame;
- 
- 	if (cam->state != S_IDLE) {
- 		INIT_LIST_HEAD(&cam->buffers);
-@@ -1157,6 +1163,14 @@ static int mcam_vb_start_streaming(struct vb2_queue *vq, unsigned int count)
- 		cam->state = S_BUFWAIT;
- 		return 0;
- 	}
-+
-+	/*
-+	 * Ensure clear the left over frame flags
-+	 * before every really start streaming
-+	 */
-+	for (frame = 0; frame < cam->nbufs; frame++)
-+		clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
-+
- 	return mcam_read_setup(cam);
- }
- 
-@@ -1845,9 +1859,11 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
- 	 * each time.
- 	 */
- 	for (frame = 0; frame < cam->nbufs; frame++)
--		if (irqs & (IRQ_EOF0 << frame)) {
-+		if (irqs & (IRQ_EOF0 << frame) &&
-+			test_bit(CF_FRAME_SOF0 + frame, &cam->flags)) {
- 			mcam_frame_complete(cam, frame);
- 			handled = 1;
-+			clear_bit(CF_FRAME_SOF0 + frame, &cam->flags);
- 			if (cam->buffer_mode == B_DMA_sg)
- 				break;
- 		}
-@@ -1856,9 +1872,15 @@ int mccic_irq(struct mcam_camera *cam, unsigned int irqs)
- 	 * code assumes that we won't get multiple frame interrupts
- 	 * at once; may want to rethink that.
- 	 */
--	if (irqs & (IRQ_SOF0 | IRQ_SOF1 | IRQ_SOF2)) {
-+	for (frame = 0; frame < cam->nbufs; frame++) {
-+		if (irqs & (IRQ_SOF0 << frame)) {
-+			set_bit(CF_FRAME_SOF0 + frame, &cam->flags);
-+			handled = IRQ_HANDLED;
-+		}
-+	}
-+
-+	if (handled == IRQ_HANDLED) {
- 		set_bit(CF_DMA_ACTIVE, &cam->flags);
--		handled = 1;
- 		if (cam->buffer_mode == B_DMA_sg)
- 			mcam_ctlr_stop(cam);
- 	}
 -- 
-1.7.9.5
+Cheers,
 
+Sakari Ailus
+sakari.ailus@iki.fi
