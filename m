@@ -1,92 +1,227 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:45883 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754176Ab3GQOVO (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44041 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754419Ab3GJUx3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 10:21:14 -0400
+	Wed, 10 Jul 2013 16:53:29 -0400
+Message-ID: <51DDCB1D.2040709@iki.fi>
+Date: Wed, 10 Jul 2013 23:59:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <51E69F49.10500@samsung.com>
-References: <1373880874-9270-1-git-send-email-ricardo.ribalda@gmail.com>
- <51E65577.7010403@samsung.com> <CAPybu_3Je7+0Qh2OdptncnxC12G15Scad+A3yUeF898sVWKo8w@mail.gmail.com>
- <51E69F49.10500@samsung.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 17 Jul 2013 16:20:53 +0200
-Message-ID: <CAPybu_0b9ADaUFFHuw=tKkVR4fiu9bGNJVgy4MGbuE-zAA9sZQ@mail.gmail.com>
-Subject: Re: [PATCH] videobuf2-dma-sg: Minimize the number of dma segments
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: Hans Verkuil <hverkuil@xs4all.nl>
+CC: linux-media@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 1/5] v4l2: add matrix support.
+References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again Marek
+Hi Hans,
 
-In my system I am doing the scatter gather compaction on device
-driver... But I agree that it would be better done on the vb2 layer.
+Thanks for the patchset!
 
-For the oversize sglist we could do one of this two things.
-
-If we want to have a simple pass processing we have to allocate an
-structure A for the worts case, work on that structure. then allocate
-a structure B for the exact size that we need, memcpy A to B, and
-free(A).
-
-Otherwise we need two passes. One to allocate the pages, and another
-one to allocate the pages and find out the amount of sg, and another
-to greate the sg structure.
-
-What do you prefer?
-
-
-Regards!
-
-
-
-
-On Wed, Jul 17, 2013 at 3:42 PM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> Hello,
+On Fri, Jun 28, 2013 at 02:27:30PM +0200, Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 >
+> This patch adds core support for matrices: querying, getting and setting.
 >
-> On 7/17/2013 11:43 AM, Ricardo Ribalda Delgado wrote:
->>
->> Hi Marek
->>
->>   alloc_pages_exact returns pages of order 0, every single page is
->> filled into buf->pages, that then is used by vb2_dma_sg_mmap(), that
->> also expects order 0 pages (its loops increments in PAGE_SIZE). The
->> code has been tested on real HW.
->>
->> Your concern is that that alloc_pages_exact splits the higher order pages?
->>
->> Do you want that videobuf2-dma-sg to have support for higher order pages?
+> Two initial matrix types are defined for motion detection (defining regions
+> and thresholds).
 >
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
+>  drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
+>  include/media/v4l2-ioctl.h           |  8 +++++
+>  include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
+>  4 files changed, 97 insertions(+), 1 deletion(-)
 >
-> Ah... My fault. I didn't notice that you recalculate req_pages at the
-> begginning of each loop iteration, so the code is correct, buf->pages is
-> filled correctly with order 0 pages.
+> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
+> index c8859d6..5e58df6 100644
+> --- a/drivers/media/v4l2-core/v4l2-dev.c
+> +++ b/drivers/media/v4l2-core/v4l2-dev.c
+> @@ -598,6 +598,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
+>  	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
+>  	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
+>  		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
+> +	SET_VALID_IOCTL(ops, VIDIOC_QUERY_MATRIX, vidioc_query_matrix);
+> +	SET_VALID_IOCTL(ops, VIDIOC_G_MATRIX, vidioc_g_matrix);
+> +	SET_VALID_IOCTL(ops, VIDIOC_S_MATRIX, vidioc_s_matrix);
 >
-> So now the only issue I see is the oversized sglist allocation (the size
-> of sg list is computed for worst case, 0 order pages) and lack of the max
-> segment size support. Sadly there are devices which can handle single sg
-> chunk up to some predefined size (see dma_get_max_seg_size() function).
+>  	if (is_vid) {
+>  		/* video specific ioctls */
+> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
+> index 68e6b5e..47debfc 100644
+> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
+> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
+> @@ -549,7 +549,7 @@ static void v4l_print_cropcap(const void *arg, bool write_only)
+>  	const struct v4l2_cropcap *p = arg;
 >
-> For some reference code, please check __iommu_map_sg() and maybe
-> __iommu_alloc_buffer() functions in arch/arm/mm/dma-mapping.c
+>  	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
+> -		"defrect wxh=%dx%d, x,y=%d,%d\n, "
+> +		"defrect wxh=%dx%d, x,y=%d,%d, "
+>  		"pixelaspect %d/%d\n",
+>  		prt_names(p->type, v4l2_type_names),
+>  		p->bounds.width, p->bounds.height,
+> @@ -831,6 +831,24 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
+>  			p->rangehigh, p->modulation);
+>  }
 >
+> +static void v4l_print_query_matrix(const void *arg, bool write_only)
+> +{
+> +	const struct v4l2_query_matrix *p = arg;
+> +
+> +	pr_cont("type=0x%x, columns=%u, rows=%u, elem_min=%lld, elem_max=%lld, elem_size=%u\n",
+> +			p->type, p->columns, p->rows,
+> +			p->elem_min.val, p->elem_max.val, p->elem_size);
+> +}
+> +
+> +static void v4l_print_matrix(const void *arg, bool write_only)
+> +{
+> +	const struct v4l2_matrix *p = arg;
+> +
+> +	pr_cont("type=0x%x, wxh=%dx%d, x,y=%d,%d, matrix=%p\n",
+> +			p->type, p->rect.width, p->rect.height,
+> +			p->rect.top, p->rect.left, p->matrix);
+> +}
+> +
+>  static void v4l_print_u32(const void *arg, bool write_only)
+>  {
+>  	pr_cont("value=%u\n", *(const u32 *)arg);
+> @@ -2055,6 +2073,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
+>  	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
+>  	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
+>  	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
+> +	IOCTL_INFO_STD(VIDIOC_QUERY_MATRIX, vidioc_query_matrix, v4l_print_query_matrix, INFO_FL_CLEAR(v4l2_query_matrix, ref)),
+> +	IOCTL_INFO_STD(VIDIOC_G_MATRIX, vidioc_g_matrix, v4l_print_matrix, INFO_FL_CLEAR(v4l2_matrix, matrix)),
+> +	IOCTL_INFO_STD(VIDIOC_S_MATRIX, vidioc_s_matrix, v4l_print_matrix, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_matrix, matrix)),
+>  };
+>  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
 >
-> Best regards
-> --
-> Marek Szyprowski
-> Samsung R&D Institute Poland
+> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
+> index e0b74a4..7e4538e 100644
+> --- a/include/media/v4l2-ioctl.h
+> +++ b/include/media/v4l2-ioctl.h
+> @@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
+>  	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
+>  					const struct v4l2_event_subscription *sub);
 >
+> +	/* Matrix ioctls */
+> +	int (*vidioc_query_matrix) (struct file *file, void *fh,
+> +				    struct v4l2_query_matrix *qmatrix);
+> +	int (*vidioc_g_matrix) (struct file *file, void *fh,
+> +				    struct v4l2_matrix *matrix);
+> +	int (*vidioc_s_matrix) (struct file *file, void *fh,
+> +				    struct v4l2_matrix *matrix);
+> +
+>  	/* For other private ioctls */
+>  	long (*vidioc_default)	       (struct file *file, void *fh,
+>  					bool valid_prio, unsigned int cmd, void *arg);
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 95ef455..5cbe815 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
+>  	__u32			reserved[8];
+>  };
 >
+> +/* Define to which motion detection region each element belongs.
+> + * Each element is a __u8. */
+> +#define V4L2_MATRIX_TYPE_MD_REGION     (1)
+> +/* Define the motion detection threshold for each element.
+> + * Each element is a __u16. */
+> +#define V4L2_MATRIX_TYPE_MD_THRESHOLD  (2)
 
+How about V4L2_MATRIX_T_... instead? These are bound to be quite long.
 
+> +
+> +/**
+> + * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
+> + * @type:	matrix type
+> + * @ref:	reference to some object (if any) owning the matrix
+> + * @columns:	number of columns in the matrix
+> + * @rows:	number of rows in the matrix
+> + * @elem_min:	minimum matrix element value
+> + * @elem_max:	maximum matrix element value
+> + * @elem_size:	size in bytes each matrix element
+> + * @reserved:	future extensions, applications and drivers must zero this.
+> + */
+> +struct v4l2_query_matrix {
+> +	__u32 type;
+> +	union {
+> +		__u32 reserved[4];
+> +	} ref;
+> +	__u32 columns;
+> +	__u32 rows;
+
+You're assuming two-dimensional matrices. How about array dim[3 or 4] 
+and ndim instead of columns and rows?
+
+> +	union {
+> +		__s64 val;
+> +		__u64 uval;
+> +		__u32 reserved[4];
+
+How about "raw" as in e.g. v4l2_format? Reserved suggests to me the 
+field is unused, which is not the case.
+
+> +	} elem_min;
+> +	union {
+> +		__s64 val;
+> +		__u64 uval;
+> +		__u32 reserved[4];
+> +	} elem_max;
+> +	__u32 elem_size;
+> +	__u32 reserved[12];
+> +} __attribute__ ((packed));
+> +
+> +/**
+> + * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
+> + * @type:	matrix type
+> + * @ref:	reference to some object (if any) owning the matrix
+> + * @rect:	which part of the matrix to get/set
+> + * @matrix:	pointer to the matrix of size (in bytes):
+> + *		elem_size * rect.width * rect.height
+> + * @reserved:	future extensions, applications and drivers must zero this.
+> + */
+> +struct v4l2_matrix {
+> +	__u32 type;
+> +	union {
+> +		__u32 reserved[4];
+> +	} ref;
+> +	struct v4l2_rect rect;
+> +	void __user *matrix;
+
+This is an interesting idea. Do you have use cases in mind for this?
+
+> +	__u32 reserved[12];
+> +} __attribute__ ((packed));
+> +
+>  /*
+>   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
+>   *
+> @@ -1946,6 +2004,12 @@ struct v4l2_create_buffers {
+>     Never use these in applications! */
+>  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
+>
+> +/* Experimental, these three ioctls may change over the next couple of kernel
+> +   versions. */
+> +#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
+> +#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
+> +#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
+> +
+>  /* Reminder: when adding new ioctls please add support for them to
+>     drivers/media/video/v4l2-compat-ioctl32.c as well! */
 
 -- 
-Ricardo Ribalda
+Kind regards,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
