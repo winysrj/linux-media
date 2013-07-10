@@ -1,62 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from back1.argonit.cz ([37.46.80.52]:54337 "EHLO back1.argonit.cz"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932225Ab3GBIqP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Jul 2013 04:46:15 -0400
-To: <linux-media@vger.kernel.org>
-Subject: Transponder issue with cx23885
+Received: from perceval.ideasonboard.com ([95.142.166.194]:43909 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753834Ab3GJX2V (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jul 2013 19:28:21 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	linux-media <linux-media@vger.kernel.org>,
+	Andrzej Hajda <a.hajda@samsung.com>
+Subject: Re: Samsung i2c subdev drivers that set sd->name
+Date: Thu, 11 Jul 2013 01:28:47 +0200
+Message-ID: <1480951.mKR9bzbARV@avalon>
+In-Reply-To: <51DDDDF7.1010005@iki.fi>
+References: <201306241054.11604.hverkuil@xs4all.nl> <51D88318.70904@gmail.com> <51DDDDF7.1010005@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8;
- format=flowed
-Content-Transfer-Encoding: 8bit
-Date: Tue, 02 Jul 2013 10:38:25 +0200
-From: =?UTF-8?Q?Lubo=C5=A1_Dole=C5=BEel?= <lubos@dolezel.info>
-Message-ID: <4efe057e9066ee0e3717a30e53bd26ed@dolezel.info>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
- Hi,
+Hi Sakari,
 
- I have multiple DVB cards, two of them are based on cx23885 (Tevii 
- S471).
- Ever since the transponder 12207V on 23.5E increased its FEC to 5/6 
- (8PSK. SR 27500), with the bitrate exceeding 60 Mbps, I cannot properly 
- receive any channels on it with the cx23885-based cards. Other cards, 
- even ordinary set-top boxes, work fine.
+On Thursday 11 July 2013 01:19:35 Sakari Ailus wrote:
+> Hi Sylwester and Laurent,
+> 
+> Sylwester Nawrocki wrote:
+> > Hi Laurent,
+> 
+> ...
+> 
+> >> We need an ioctl to report additional information about media entities
+> >> (it's been on my to-do list for wayyyyyyyyy too long). It could be used
+> >> to report bus information as well.
+> > 
+> > Yes, that sounds much more interesting than using just subdev name to
+> > sqeeze all the information in. Why we don't have such an ioctl yet anyway
+> > ? Were there some arguments against it, or its been just a low priority
+> > issue ?
+> 
+> I think it's just been left unaddressed until now since there have been
+> even more important things to work on. :-) I'm all for that, btw.;
+> associating bus information to the media device instead of entities was
+> always a little odd (feel free to blame me, too...).
+> 
+> Perhaps we could steal some bytes from the union in struct
+> media_entity_desc? :-)
 
- It seems that this problem is common for all other high-FEC 8PSK 
- transponders on this position.
+I've thought about that as well, but we will eventually need to pass more 
+entity information to userspace, so a new ioctl would in my opinion be better, 
+given the potentially large size of the bus information string.
 
- When using w_scan, I get this problem with 12207V:
-
- (time: 02:32) (time: 02:33) signal ok:
-         S2 f = 12207 kHz V SR = 27500  5/6 0,35  8PSK
- Info: no data from NIT(actual)
-
-
- And this stuff with other transponders like this one:
-
- (time: 02:49) (time: 02:51) signal ok:
-         S2 f = 12304 kHz H SR = 27500  5/6 0,35  8PSK
- WARNING: received garbage data: crc = 0x0b4533eb; expected crc = 
- 0x37a28f06
- increasing filter timeout.
- WARNING: received garbage data: crc = 0x17593b3f; expected crc = 
- 0x37a28f06
- WARNING: received garbage data: crc = 0xc41b44f4; expected crc = 
- 0x37a28f06
-
- scan-s2 is able to find channels on 12207V, but without channel names. 
- When playing any of the channels, I get no picture and no sound, with 
- the BER being reported at around ~9000 (which is also nonsense, as 
- confirmed by other HW).
-
- It also seems that this problem is encountered in other devices too: 
- http://www.linuxtv.org/pipermail/vdr/2012-November/026868.html
-
- Any ideas, thoughts?
-
- Thanks!
 -- 
- Luboš Doležel
+Regards,
+
+Laurent Pinchart
 
