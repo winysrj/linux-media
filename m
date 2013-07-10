@@ -1,140 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:63368 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672Ab3GHMHd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:33 -0400
-Received: from epcpsbgr5.samsung.com
- (u145.gpu120.samsung.co.kr [203.254.230.145])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPM00MEQ9O933P0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:31 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v4 6/8] [media] V4L: Add support for integer menu controls with
- standard menu items
-Date: Mon, 08 Jul 2013 18:00:34 +0530
-Message-id: <1373286637-30154-7-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
-References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-qc0-f174.google.com ([209.85.216.174]:56077 "EHLO
+	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750921Ab3GJNvC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 10 Jul 2013 09:51:02 -0400
+Received: by mail-qc0-f174.google.com with SMTP id m15so3647110qcq.33
+        for <linux-media@vger.kernel.org>; Wed, 10 Jul 2013 06:51:01 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <017801ce7d0e$73eeff60$5bccfe20$@blueflowamericas.com>
+References: <010c01ce7365$9181ff30$b485fd90$@blueflowamericas.com>
+	<CAGoCfiyjeqxVV8A_MM-iV58=s48FEhNPA=5MPg3WAOAKs8d2iA@mail.gmail.com>
+	<011901ce73ab$9b81cce0$d28566a0$@blueflowamericas.com>
+	<CALzAhNV7Cv9SR1C2mpgtLTwxD_grCZeOWc6O-2XpJEAKg1mX6w@mail.gmail.com>
+	<017101ce7c5b$6899c860$39cd5920$@blueflowamericas.com>
+	<CALzAhNVo0gi1HZ5TH9oXnUpgsqKa+YL=uGLvQNYxqj6gLd2upw@mail.gmail.com>
+	<017801ce7d0e$73eeff60$5bccfe20$@blueflowamericas.com>
+Date: Wed, 10 Jul 2013 09:51:00 -0400
+Message-ID: <CALzAhNULmGJSXvGogBFV4KXFH4OBvSydbJQ_7PbAnMAmwByjjA@mail.gmail.com>
+Subject: Re: lgdt3304
+From: Steven Toth <stoth@kernellabs.com>
+To: Carl-Fredrik Sundstrom <cf@blueflowamericas.com>
+Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+On Tue, Jul 9, 2013 at 9:40 PM, Carl-Fredrik Sundstrom
+<cf@blueflowamericas.com> wrote:
+>
+> I don't have digital cable only over the air ATSC. No one else on this list
+> has this card ?
 
-The patch modifies the helper function v4l2_ctrl_new_std_menu
-to accept integer menu controls with standard menu items.
+You are very welcome, thank you.
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
----
- Documentation/video4linux/v4l2-controls.txt |   21 ++++++++++----------
- drivers/media/v4l2-core/v4l2-ctrls.c        |   28 ++++++++++++++++++++++++---
- 2 files changed, 36 insertions(+), 13 deletions(-)
+We generally recommend Linux users purchase cards that are already
+supported (or semi supported), such as the HVR2250. If you're keen
+enough to tackle adding support for a new board then that's great
+news, but very few people usually have experience with hardware not
+yet supported.
 
-diff --git a/Documentation/video4linux/v4l2-controls.txt b/Documentation/video4linux/v4l2-controls.txt
-index 676f873..06cf3ac 100644
---- a/Documentation/video4linux/v4l2-controls.txt
-+++ b/Documentation/video4linux/v4l2-controls.txt
-@@ -124,26 +124,27 @@ You add non-menu controls by calling v4l2_ctrl_new_std:
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 min, s32 max, u32 step, s32 def);
- 
--Menu controls are added by calling v4l2_ctrl_new_std_menu:
-+Menu and integer menu controls are added by calling v4l2_ctrl_new_std_menu:
- 
- 	struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 skip_mask, s32 def);
- 
--Or alternatively for integer menu controls, by calling v4l2_ctrl_new_int_menu:
-+Menu controls with a driver specific menu are added by calling
-+v4l2_ctrl_new_std_menu_items:
-+
-+       struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
-+                       struct v4l2_ctrl_handler *hdl,
-+                       const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
-+                       s32 skip_mask, s32 def, const char * const *qmenu);
-+
-+Integer menu controls with a driver specific menu can be added by calling
-+v4l2_ctrl_new_int_menu:
- 
- 	struct v4l2_ctrl *v4l2_ctrl_new_int_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 def, const s64 *qmenu_int);
- 
--Standard menu controls with a driver specific menu are added by calling
--v4l2_ctrl_new_std_menu_items:
--
--	struct v4l2_ctrl *v4l2_ctrl_new_std_menu_items(
--		struct v4l2_ctrl_handler *hdl,
--		const struct v4l2_ctrl_ops *ops, u32 id, s32 max,
--		s32 skip_mask, s32 def, const char * const *qmenu);
--
- These functions are typically called right after the v4l2_ctrl_handler_init:
- 
- 	static const s64 exp_bias_qmenu[] = {
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index fccd08b..e03a2e8 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -552,6 +552,20 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- }
- EXPORT_SYMBOL(v4l2_ctrl_get_menu);
- 
-+/*
-+ * Returns NULL or an s64 type array containing the menu for given
-+ * control ID. The total number of the menu items is returned in @len.
-+ */
-+const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
-+{
-+	switch (id) {
-+	default:
-+		*len = 0;
-+		return NULL;
-+	};
-+}
-+EXPORT_SYMBOL(v4l2_ctrl_get_int_menu);
-+
- /* Return the control name. */
- const char *v4l2_ctrl_get_name(u32 id)
- {
-@@ -1712,20 +1726,28 @@ struct v4l2_ctrl *v4l2_ctrl_new_std_menu(struct v4l2_ctrl_handler *hdl,
- 			const struct v4l2_ctrl_ops *ops,
- 			u32 id, s32 max, s32 mask, s32 def)
- {
--	const char * const *qmenu = v4l2_ctrl_get_menu(id);
-+	const char * const *qmenu = NULL;
-+	const s64 *qmenu_int = NULL;
- 	const char *name;
- 	enum v4l2_ctrl_type type;
-+	unsigned int qmenu_int_len;
- 	s32 min;
- 	s32 step;
- 	u32 flags;
- 
- 	v4l2_ctrl_fill(id, &name, &type, &min, &max, &step, &def, &flags);
--	if (type != V4L2_CTRL_TYPE_MENU) {
-+
-+	if (type == V4L2_CTRL_TYPE_MENU)
-+		qmenu = v4l2_ctrl_get_menu(id);
-+	else if (type == V4L2_CTRL_TYPE_INTEGER_MENU)
-+		qmenu_int = v4l2_ctrl_get_int_menu(id, &qmenu_int_len);
-+
-+	if ((!qmenu && !qmenu_int) || (qmenu_int && max > qmenu_int_len)) {
- 		handler_set_err(hdl, -EINVAL);
- 		return NULL;
- 	}
- 	return v4l2_ctrl_new(hdl, ops, id, name, type,
--			     0, max, mask, def, flags, qmenu, NULL, NULL);
-+			     0, max, mask, def, flags, qmenu, qmenu_int, NULL);
- }
- EXPORT_SYMBOL(v4l2_ctrl_new_std_menu);
- 
+The channels.conf is capable of support digital cable and ATSC, simply
+change the modulation scheme and your target frequency and try again.
+
+A quick google for an equivalent ATSC channels.conf provides a lot of
+useful information.
+
+Create your channels.conf to match your target frequencies in Hz and
+use azap to debug.
+
+Eg.
+
+KPAX-CW:177028615:8VSB:65:68:2
+
+>
+> Thanks /// Carl
+>
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org
+> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Steven Toth
+> Sent: Tuesday, July 09, 2013 9:54 AM
+> To: Carl-Fredrik Sundstrom
+> Cc: Devin Heitmueller; linux-media@vger.kernel.org
+> Subject: Re: lgdt3304
+>
+>> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+>>>>> tune to: 57028615:8VSB
+>> WARNING: >>> tuning failed!!!
+>>>>> tune to: 57028615:8VSB (tuning failed)
+>
+> I don't have a box in front of me but that's usually a sign that the
+> frequency details you are passing in are bogus, so the tuner driver is
+> rejecting it.
+>
+> Check your command line tuning tools and args.
+>
+> Here's a one line channels.conf for azap (US digital cable) that works fine,
+> and the azap console output:
+>
+> ch86:597000000:QAM_256:0:0:101
+>
+> stoth@mythbackend:~/.azap$ azap ch86
+> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
+> tuning to 597000000 Hz
+> video pid 0x0000, audio pid 0x0000
+> status 00 | signal 0000 | snr b770 | ber 00000000 | unc 00000000 | status 1f
+> | signal 0154 | snr 0154 | ber 000000ad | unc 000000ad | FE_HAS_LOCK status
+> 1f | signal 0156 | snr 0156 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
+>
+> --
+> Steven Toth - Kernel Labs
+> http://www.kernellabs.com
+
 -- 
-1.7.9.5
-
+Steven Toth - Kernel Labs
+http://www.kernellabs.com
