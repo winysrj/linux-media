@@ -1,74 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.irisys.co.uk ([195.12.16.217]:64479 "EHLO
-	mail.irisys.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751085Ab3GXHrc convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f49.google.com ([209.85.220.49]:50015 "EHLO
+	mail-pa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932451Ab3GKJLu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 03:47:32 -0400
-From: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: RE: width and height of JPEG compressed images
-Date: Wed, 24 Jul 2013 07:47:29 +0000
-Message-ID: <A683633ABCE53E43AFB0344442BF0F053616A13A@server10.irisys.local>
-References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
- <51D876DF.90507@gmail.com>
- <20130719202842.GC11823@valkosipuli.retiisi.org.uk>
- <51EC46BA.4050203@gmail.com>
- <20130723222106.GB12281@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130723222106.GB12281@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
-MIME-Version: 1.0
+	Thu, 11 Jul 2013 05:11:50 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 39/50] media: usb: tm6000: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:06:02 +0800
+Message-Id: <1373533573-12272-40-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakiri,
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
- On 23 July 2013 23:21 Sakari Ailus wrote:
-> On Sun, Jul 21, 2013 at 10:38:18PM +0200, Sylwester Nawrocki wrote:
->> On 07/19/2013 10:28 PM, Sakari Ailus wrote:
->>> On Sat, Jul 06, 2013 at 09:58:23PM +0200, Sylwester Nawrocki wrote:
->>>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
->>>>
->>>>> The hardware reads AxB sensor pixels from its array, resamples them
->>>>> to CxD image pixels, and then compresses them to ExF bytes.
->>>>>
->>>> sensor matrix (AxB pixels) ->  binning/skipping (CxD pixels) ->
->>>> ->  JPEG compresion (width = C, height = D, sizeimage ExF bytes)
->>>
->>> Does the user need to specify ExF, for other purposes than limiting
->>> the size of the image? I would leave this up to the sensor driver
->>> (with reasonable alignment). The sensor driver would tell about this
->>> to the receiver through
->>
->> AFAIU ExF is closely related to the memory buffer size, so the sensor
->> driver itself wouldn't have enough information to fix up ExF, would it ?
->
-> If the desired sizeimage is known, F can be calculated if E is fixed, say
-> 1024 should probably work for everyone, shoulnd't it?
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/media/usb/tm6000/tm6000-video.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-It's a nice clean idea (and I did already consider it) but it reduces the
-flexibility of the system as a whole.
+diff --git a/drivers/media/usb/tm6000/tm6000-video.c b/drivers/media/usb/tm6000/tm6000-video.c
+index cc1aa14..8bb440f 100644
+--- a/drivers/media/usb/tm6000/tm6000-video.c
++++ b/drivers/media/usb/tm6000/tm6000-video.c
+@@ -434,6 +434,7 @@ static void tm6000_irq_callback(struct urb *urb)
+ 	struct tm6000_dmaqueue  *dma_q = urb->context;
+ 	struct tm6000_core *dev = container_of(dma_q, struct tm6000_core, vidq);
+ 	int i;
++	unsigned long flags;
+ 
+ 	switch (urb->status) {
+ 	case 0:
+@@ -450,9 +451,9 @@ static void tm6000_irq_callback(struct urb *urb)
+ 		break;
+ 	}
+ 
+-	spin_lock(&dev->slock);
++	spin_lock_irqsave(&dev->slock, flags);
+ 	tm6000_isoc_copy(urb);
+-	spin_unlock(&dev->slock);
++	spin_unlock_irqrestore(&dev->slock, flags);
+ 
+ 	/* Reset urb buffers */
+ 	for (i = 0; i < urb->number_of_packets; i++) {
+-- 
+1.7.9.5
 
-Suppose an embedded device wants to send the compressed image over a
-network in packets of 1500 bytes, and they want to allow 3 packets per
-frame.  Your proposal limits sizeimage to a multiple of 1K, so they have
-to set sizeimage to 4K when they want 4.5K, meaning that they waste 500
-bytes of bandwidth every frame.
-
-You could say "tough luck, extra overhead like this is something you should
-expect if you want to use a general purpose API like V4L2", but why make
-it worse if we can make it better?
-
-Best regards,
-Tom
-
---
-Mr T. Vajzovic
-Software Engineer
-Infrared Integrated Systems Ltd
-Visit us at www.irisys.co.uk
-Disclaimer: This e-mail message is confidential and for use by the addressee only. If the message is received by anyone other than the addressee, please return the message to the sender by replying to it and then delete the original message and the sent message from your computer. Infrared Integrated Systems Limited Park Circle Tithe Barn Way Swan Valley Northampton NN4 9BG Registration Number: 3186364.
