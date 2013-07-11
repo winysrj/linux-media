@@ -1,72 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1996 "EHLO
-	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757712Ab3GZIeS (ORCPT
+Received: from mail-pb0-f45.google.com ([209.85.160.45]:40510 "EHLO
+	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab3GKJLC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 04:34:18 -0400
-Message-ID: <51F2347A.306@xs4all.nl>
-Date: Fri, 26 Jul 2013 10:34:02 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [GIT PULL FOR v3.11]
-References: <201306270855.49444.hverkuil@xs4all.nl> <CA+V-a8sYvBWGJGBF6JWwjKHwW_4Ew8wp6yBQnCrpeebAkJ4EmA@mail.gmail.com> <201307251525.01108.hverkuil@xs4all.nl> <CA+V-a8tvBy2P3Pih4og9Ov1T5e6CeDuj6FhoXubnTkAhr7Y4pw@mail.gmail.com>
-In-Reply-To: <CA+V-a8tvBy2P3Pih4og9Ov1T5e6CeDuj6FhoXubnTkAhr7Y4pw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Jul 2013 05:11:02 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	"John W. Linville" <linville@tuxdriver.com>,
+	libertas-dev@lists.infradead.org
+Subject: [PATCH 33/50] wireless: libertas: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:56 +0800
+Message-Id: <1373533573-12272-34-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-On 07/26/2013 06:33 AM, Prabhakar Lad wrote:
-> Hi Hans,
-> 
-> On Thu, Jul 25, 2013 at 6:55 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->> Hi Prabhakar,
->>
->> On Thu 11 July 2013 19:25:15 Prabhakar Lad wrote:
->>> Hi Hans,
->>>
->>> On Thu, Jun 27, 2013 at 12:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>>> (Same as my previous git pull message, but with more cleanup patches and
->>> [snip]
->>>> Lad, Prabhakar (9):
->>>>       media: i2c: ths8200: support asynchronous probing
->>>>       media: i2c: ths8200: add OF support
->>>>       media: i2c: adv7343: add support for asynchronous probing
->>>>       media: i2c: tvp7002: add support for asynchronous probing
->>>>       media: i2c: tvp7002: remove manual setting of subdev name
->>>>       media: i2c: tvp514x: remove manual setting of subdev name
->>>>       media: i2c: tvp514x: add support for asynchronous probing
->>>>       media: davinci: vpif: capture: add V4L2-async support
->>>>       media: davinci: vpif: display: add V4L2-async support
->>>>
->>> I see last two patches missing in Mauro's pull request for v3.11 and v3.11-rc1.
->>
->> I had to split up my pull request into fixes for 3.11 and new stuff for 3.12
->> since the merge window was about to open at the time.
->>
-> Ok no problem.
-> 
->> Your 'missing' patches are here:
->>
->> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.12
->>
-> Yeah I saw it lately.
-> 
->> In the next few days I'll try to process all remaining patches delegated to me.
-> Ok
-> 
->> If you have patches not yet delegated to me, or that are not in my for-v3.12
->> branch, then let me know.
->>
-> There are few patches, whose state is new do you want me to point them ?
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: libertas-dev@lists.infradead.org
+Cc: linux-wireless@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/net/wireless/libertas/if_usb.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Only if they are either not in patchwork, or are in patchwork but not delegated to me.
+diff --git a/drivers/net/wireless/libertas/if_usb.c b/drivers/net/wireless/libertas/if_usb.c
+index 2798077..f6a8396 100644
+--- a/drivers/net/wireless/libertas/if_usb.c
++++ b/drivers/net/wireless/libertas/if_usb.c
+@@ -626,6 +626,7 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
+ 				      struct lbs_private *priv)
+ {
+ 	u8 i;
++	unsigned long flags;
+ 
+ 	if (recvlength > LBS_CMD_BUFFER_SIZE) {
+ 		lbs_deb_usbd(&cardp->udev->dev,
+@@ -636,7 +637,7 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
+ 
+ 	BUG_ON(!in_interrupt());
+ 
+-	spin_lock(&priv->driver_lock);
++	spin_lock_irqsave(&priv->driver_lock, flags);
+ 
+ 	i = (priv->resp_idx == 0) ? 1 : 0;
+ 	BUG_ON(priv->resp_len[i]);
+@@ -646,7 +647,7 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
+ 	kfree_skb(skb);
+ 	lbs_notify_command_response(priv, i);
+ 
+-	spin_unlock(&priv->driver_lock);
++	spin_unlock_irqrestore(&priv->driver_lock, flags);
+ 
+ 	lbs_deb_usbd(&cardp->udev->dev,
+ 		    "Wake up main thread to handle cmd response\n");
+-- 
+1.7.9.5
 
-Regards,
-
-	Hans
