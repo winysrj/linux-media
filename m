@@ -1,52 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:48565 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753166Ab3GXRxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 13:53:40 -0400
-Message-ID: <51F01477.7050202@iki.fi>
-Date: Wed, 24 Jul 2013 20:52:55 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Krishna Kishore <krishna.kishore@sasken.com>
-CC: Chris Lee <updatelee@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: stv090x vs stv0900 support
-References: <CAA9z4Lbd5wm0=T=CGHbxga5wOdj+TZQO2BA+spxV_keWS5OmcQ@mail.gmail.com> <7CC27E99F1636344B0AC7B73D5BB86DE1485FEE5@exgmbxfz01.sasken.com>
-In-Reply-To: <7CC27E99F1636344B0AC7B73D5BB86DE1485FEE5@exgmbxfz01.sasken.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f47.google.com ([209.85.220.47]:51414 "EHLO
+	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932090Ab3GKJHv (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 05:07:51 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>
+Subject: [PATCH 09/50] USB: usbtest: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:32 +0800
+Message-Id: <1373533573-12272-10-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/24/2013 08:21 PM, Krishna Kishore wrote:
-> My opinion is that, it is better to have only stv090x. Apart from minimizing the number of patches and ease of maintenance, it will avoid the confusion that I had When I started using prof 7500. I had to enable stv0900 and stb6100. I got confused on whether to enable stv0900 or to enable stv090x.
->
->
->
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Chris Lee
-> Sent: Wednesday, July 24, 2013 10:09 PM
-> To: linux-media@vger.kernel.org
-> Subject: stv090x vs stv0900 support
->
-> Im looking for comments on these two modules, they overlap support for the same demods. stv0900 supporting stv0900 and stv090x supporting
-> stv0900 and stv0903. Ive flipped a few cards from one to the other and they function fine. In some ways stv090x is better suited. Its a pain supporting two modules that are written differently but do the same thing, a fix in one almost always means it has to be implemented in the other as well.
->
-> Im not necessarily suggesting dumping stv0900, but Id like to flip a few cards that I own over to stv090x just to standardize it. The Prof
-> 7301 and Prof 7500.
->
-> Whats everyones thoughts on this? It will cut the number of patch''s in half when it comes to these demods. Ive got alot more coming lol :)
->
-> Chris
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/usb/misc/usbtest.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
 
-stv0900 is better separated from the tuner whilst stv090x has weird 
-stv6110x_devctl structure. That's why I used stv0900 for anysee driver. 
-I wonder is there something special supported by stv090x because normal 
-tuner/demod callbacks are not enough.
-
-regards
-Antti
-
+diff --git a/drivers/usb/misc/usbtest.c b/drivers/usb/misc/usbtest.c
+index 8b4ca1c..5c73df5 100644
+--- a/drivers/usb/misc/usbtest.c
++++ b/drivers/usb/misc/usbtest.c
+@@ -804,11 +804,12 @@ static void ctrl_complete(struct urb *urb)
+ 	struct usb_ctrlrequest	*reqp;
+ 	struct subcase		*subcase;
+ 	int			status = urb->status;
++	unsigned long		flags;
+ 
+ 	reqp = (struct usb_ctrlrequest *)urb->setup_packet;
+ 	subcase = container_of(reqp, struct subcase, setup);
+ 
+-	spin_lock(&ctx->lock);
++	spin_lock_irqsave(&ctx->lock, flags);
+ 	ctx->count--;
+ 	ctx->pending--;
+ 
+@@ -907,7 +908,7 @@ error:
+ 	/* signal completion when nothing's queued */
+ 	if (ctx->pending == 0)
+ 		complete(&ctx->complete);
+-	spin_unlock(&ctx->lock);
++	spin_unlock_irqrestore(&ctx->lock, flags);
+ }
+ 
+ static int
+@@ -1552,8 +1553,9 @@ struct iso_context {
+ static void iso_callback(struct urb *urb)
+ {
+ 	struct iso_context	*ctx = urb->context;
++	unsigned long		flags;
+ 
+-	spin_lock(&ctx->lock);
++	spin_lock_irqsave(&ctx->lock, flags);
+ 	ctx->count--;
+ 
+ 	ctx->packet_count += urb->number_of_packets;
+@@ -1593,7 +1595,7 @@ static void iso_callback(struct urb *urb)
+ 		complete(&ctx->done);
+ 	}
+ done:
+-	spin_unlock(&ctx->lock);
++	spin_unlock_irqrestore(&ctx->lock, flags);
+ }
+ 
+ static struct urb *iso_alloc_urb(
 -- 
-http://palosaari.fi/
+1.7.9.5
+
