@@ -1,291 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f41.google.com ([74.125.83.41]:47285 "EHLO
-	mail-ee0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757312Ab3GLOos (ORCPT
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:57518 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932451Ab3GKJL0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jul 2013 10:44:48 -0400
-Received: by mail-ee0-f41.google.com with SMTP id d17so6383146eek.28
-        for <linux-media@vger.kernel.org>; Fri, 12 Jul 2013 07:44:47 -0700 (PDT)
-Message-ID: <51E0165C.5000401@zenburn.net>
-Date: Fri, 12 Jul 2013 16:44:44 +0200
-From: =?UTF-8?B?SmFrdWIgUGlvdHIgQ8WCYXBh?= <jpc-ml@zenburn.net>
-MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp] xclk deadlock
-References: <51D37796.2000601@zenburn.net> <2398527.WgqgO0AkRo@avalon> <51D5F8FC.4040504@zenburn.net> <1604535.2Z0SUEyxcF@avalon>
-In-Reply-To: <1604535.2Z0SUEyxcF@avalon>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+	Thu, 11 Jul 2013 05:11:26 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 36/50] media: usb: em28xx: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:59 +0800
+Message-Id: <1373533573-12272-37-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-On 05.07.13 12:48, Laurent Pinchart wrote:
->> Thanks for the explanation. It would be great if you could update your
->> board/beagle/mt9p031 branch and include the discussed changes.
->
-> Done. Could you please test it ?
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/media/usb/em28xx/em28xx-core.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-Thanks for you help. There are no errors about the clocks or regulators 
-now but the rest does not work so well (everything mentioned below works 
-fine on my old 3.2.24 kernel):
-
-1. The images streamed to omapdss using omap3-isp-live look like they 
-lost "synchronization" with a black bar horizontal bar jumping on the 
-screen and other such artifacts (it looks as if both width and height
-were invalid). The framerate is about a half of what it should be. 
-Adjusting the camera iris changes the lightness of the image so the 
-whole pipeline is working to some extent (so these artifacts are not 
-just some random memory patterns).
-
-The Register dumps are a little different between 3.2.24 and 3.10 [4].
-
-2. When exiting from live the kernel hangs more often then not 
-(sometimes it is accompanied by "Unhandled fault: external abort on 
-non-linefetch" in "dispc_write_irqenable" in omapdss).
-
-3. After setting up a simple pipeline using media-ctl[2] I get "CCDC 
-won't become idle errors". If I do this after running "live" I also get 
-(unless it hangs) the CCDC Register dump [1]. Otherwise I only get the 
-stream of kernel log messages without anything else from omap3isp.
-
-4. I recreated the "live" pipeline (judging by the lack of differences 
-in media-ctl -p output [3]) and used yavta. I get the same hangs but 
-when I don't I can check the UYVY frames one by one. They look bad at 
-any stride (I dropped the UV components and tried to get some meaningful 
-output in the GIMP raw image data import dialog by adjustung the "width").
-
-
-
-
-[1]:
-[  153.774017] omap3isp omap3isp: -------------CCDC Register 
-dump-------------
-[  153.781494] omap3isp omap3isp: ###CCDC PCR=0x00000000
-[  153.786773] omap3isp omap3isp: ###CCDC SYN_MODE=0x00030400
-[  153.792572] omap3isp omap3isp: ###CCDC HD_VD_WID=0x00000000
-[  153.798431] omap3isp omap3isp: ###CCDC PIX_LINES=0x00000000
-[  153.804290] omap3isp omap3isp: ###CCDC HORZ_INFO=0x0000031f
-[  153.810180] omap3isp omap3isp: ###CCDC VERT_START=0x00000000
-[  153.816101] omap3isp omap3isp: ###CCDC VERT_LINES=0x00000257
-[  153.822052] omap3isp omap3isp: ###CCDC CULLING=0xffff00ff
-[  153.827728] omap3isp omap3isp: ###CCDC HSIZE_OFF=0x00000640
-[  153.833648] omap3isp omap3isp: ###CCDC SDOFST=0x00000000
-[  153.839263] omap3isp omap3isp: ###CCDC SDR_ADDR=0x00001000
-[  153.845001] omap3isp omap3isp: ###CCDC CLAMP=0x00000010
-[  153.850524] omap3isp omap3isp: ###CCDC DCSUB=0x00000000
-[  153.855987] omap3isp omap3isp: ###CCDC COLPTN=0xbb11bb11
-[  153.861602] omap3isp omap3isp: ###CCDC BLKCMP=0x00000000
-[  153.867156] omap3isp omap3isp: ###CCDC FPC=0x00000000
-[  153.872497] omap3isp omap3isp: ###CCDC FPC_ADDR=0x00000000
-[  153.878265] omap3isp omap3isp: ###CCDC VDINT=0x02560190
-[  153.883789] omap3isp omap3isp: ###CCDC ALAW=0x00000004
-[  153.889221] omap3isp omap3isp: ###CCDC REC656IF=0x00000000
-[  153.894958] omap3isp omap3isp: ###CCDC CFG=0x00008000
-[  153.900299] omap3isp omap3isp: ###CCDC FMTCFG=0x0000c000
-[  153.905853] omap3isp omap3isp: ###CCDC FMT_HORZ=0x00000320
-[  153.911651] omap3isp omap3isp: ###CCDC FMT_VERT=0x00000258
-[  153.917388] omap3isp omap3isp: ###CCDC PRGEVEN0=0x00000000
-[  153.923187] omap3isp omap3isp: ###CCDC PRGEVEN1=0x00000000
-[  153.928955] omap3isp omap3isp: ###CCDC PRGODD0=0x00000000
-[  153.934661] omap3isp omap3isp: ###CCDC PRGODD1=0x00000000
-[  153.940338] omap3isp omap3isp: ###CCDC VP_OUT=0x04ae3200
-[  153.945922] omap3isp omap3isp: ###CCDC LSC_CONFIG=0x00006600
-[  153.951873] omap3isp omap3isp: ###CCDC LSC_INITIAL=0x00000000
-[  153.957916] omap3isp omap3isp: ###CCDC LSC_TABLE_BASE=0x00000000
-[  153.964233] omap3isp omap3isp: ###CCDC LSC_TABLE_OFFSET=0x00000000
-[  153.970733] omap3isp omap3isp: 
---------------------------------------------
-[  154.174468] omap3isp omap3isp: CCDC won't become idle!
-[  154.315917] omap3isp omap3isp: CCDC won't become idle!
-[  154.340118] omap3isp omap3isp: CCDC won't become idle!
-[  154.364349] omap3isp omap3isp: CCDC won't become idle!
-[  154.388549] omap3isp omap3isp: CCDC won't become idle!
-[  154.412750] omap3isp omap3isp: CCDC won't become idle!
-[  154.436950] omap3isp omap3isp: CCDC won't become idle!
-[  154.461151] omap3isp omap3isp: CCDC won't become idle!
-[  154.485382] omap3isp omap3isp: CCDC won't become idle!
-
-
-
-
-[2]:
-media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP 
-CCDC":1->"OMAP3 ISP CCDC output":0[1]'
-media-ctl -v -f '"mt9p031 2-0048":0 [SGRBG12 800x600 (96,72)/2400x1800], 
-"OMAP3 ISP CCDC":1 [SGRBG8 800x600]'
-yavta -f SGRBG12 -s 800x600 -n 8 --skip 4 --capture=5 -F'frame-#.bin' 
-$(media-ctl -e "OMAP3 ISP CCDC output")
-
-
-
-
-[3]:
-Opening media device /dev/media0
-Enumerating entities
-Found 16 entities
-Enumerating pads and links
-Media controller API version 0.0.0
-
-Media device information
-------------------------
-driver          omap3isp
-model           TI OMAP3 ISP
-serial
-bus info
-hw revision     0xf0
-driver version  0.0.0
-
-Device topology
-- entity 1: OMAP3 ISP CCP2 (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev0
-	pad0: Sink [SGRBG10 4096x4096]
-		<- "OMAP3 ISP CCP2 input":0 []
-	pad1: Source [SGRBG10 4096x4096]
-		-> "OMAP3 ISP CCDC":0 []
-
-- entity 2: OMAP3 ISP CCP2 input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video0
-	pad0: Source
-		-> "OMAP3 ISP CCP2":0 []
-
-- entity 3: OMAP3 ISP CSI2a (2 pads, 2 links)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev1
-	pad0: Sink [SGRBG10 4096x4096]
-	pad1: Source [SGRBG10 4096x4096]
-		-> "OMAP3 ISP CSI2a output":0 []
-		-> "OMAP3 ISP CCDC":0 []
-
-- entity 4: OMAP3 ISP CSI2a output (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video1
-	pad0: Sink
-		<- "OMAP3 ISP CSI2a":1 []
-
-- entity 5: OMAP3 ISP CCDC (3 pads, 9 links)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev2
-	pad0: Sink [SGRBG12 864x648]
-		<- "OMAP3 ISP CCP2":1 []
-		<- "OMAP3 ISP CSI2a":1 []
-		<- "mt9p031 2-0048":0 [ENABLED]
-	pad1: Source [SGRBG12 864x648 (0,0)/864x648]
-		-> "OMAP3 ISP CCDC output":0 []
-		-> "OMAP3 ISP resizer":0 []
-	pad2: Source [SGRBG10 864x647]
-		-> "OMAP3 ISP preview":0 [ENABLED]
-		-> "OMAP3 ISP AEWB":0 [ENABLED,IMMUTABLE]
-		-> "OMAP3 ISP AF":0 [ENABLED,IMMUTABLE]
-		-> "OMAP3 ISP histogram":0 [ENABLED,IMMUTABLE]
-
-- entity 6: OMAP3 ISP CCDC output (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video2
-	pad0: Sink
-		<- "OMAP3 ISP CCDC":1 []
-
-- entity 7: OMAP3 ISP preview (2 pads, 4 links)
-             type V4L2 subdev subtype Unknown
-             device node name /dev/v4l-subdev3
-	pad0: Sink [SGRBG10 864x647 (10,4)/846x639]
-		<- "OMAP3 ISP CCDC":2 [ENABLED]
-		<- "OMAP3 ISP preview input":0 []
-	pad1: Source [YUYV 846x639]
-		-> "OMAP3 ISP preview output":0 []
-		-> "OMAP3 ISP resizer":0 [ENABLED]
-
-- entity 8: OMAP3 ISP preview input (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video3
-	pad0: Source
-		-> "OMAP3 ISP preview":0 []
-
-- entity 9: OMAP3 ISP preview output (1 pad, 1 link)
-             type Node subtype V4L
-             device node name /dev/video4
-	pad0: Sink
-		<- "OMAP3 ISP preview":1 []
-
-- entity 10: OMAP3 ISP resizer (2 pads, 4 links)
-              type V4L2 subdev subtype Unknown
-              device node name /dev/v4l-subdev4
-	pad0: Sink [YUYV 846x639 (0,0)/846x638]
-		<- "OMAP3 ISP CCDC":1 []
-		<- "OMAP3 ISP preview":1 [ENABLED]
-		<- "OMAP3 ISP resizer input":0 []
-	pad1: Source [YUYV 800x600]
-		-> "OMAP3 ISP resizer output":0 [ENABLED]
-
-- entity 11: OMAP3 ISP resizer input (1 pad, 1 link)
-              type Node subtype V4L
-              device node name /dev/video5
-	pad0: Source
-		-> "OMAP3 ISP resizer":0 []
-
-- entity 12: OMAP3 ISP resizer output (1 pad, 1 link)
-              type Node subtype V4L
-              device node name /dev/video6
-	pad0: Sink
-		<- "OMAP3 ISP resizer":1 [ENABLED]
-
-- entity 13: OMAP3 ISP AEWB (1 pad, 1 link)
-              type V4L2 subdev subtype Unknown
-              device node name /dev/v4l-subdev5
-	pad0: Sink
-		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-
-- entity 14: OMAP3 ISP AF (1 pad, 1 link)
-              type V4L2 subdev subtype Unknown
-              device node name /dev/v4l-subdev6
-	pad0: Sink
-		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-
-- entity 15: OMAP3 ISP histogram (1 pad, 1 link)
-              type V4L2 subdev subtype Unknown
-              device node name /dev/v4l-subdev7
-	pad0: Sink
-		<- "OMAP3 ISP CCDC":2 [ENABLED,IMMUTABLE]
-
-- entity 16: mt9p031 2-0048 (1 pad, 1 link)
-              type V4L2 subdev subtype Unknown
-              device node name /dev/v4l-subdev8
-	pad0: Source [SGRBG12 864x648 (0,0)/2592x1944]
-		-> "OMAP3 ISP CCDC":0 [ENABLED]
-
-
-
-
-[4]:
-
-@@ -21,9 +21,9 @@
-  omap3isp omap3isp: ###RSZ YENH=0x00000000
-  omap3isp omap3isp: --------------------------------------------
-  omap3isp omap3isp: -------------Preview Register dump----------
--omap3isp omap3isp: ###PRV PCR=0x180e0609
--omap3isp omap3isp: ###PRV HORZ_INFO=0x0006035b
--omap3isp omap3isp: ###PRV VERT_INFO=0x00000286
-+omap3isp omap3isp: ###PRV PCR=0x180e0600
-+omap3isp omap3isp: ###PRV HORZ_INFO=0x00080359
-+omap3isp omap3isp: ###PRV VERT_INFO=0x00020284
-  omap3isp omap3isp: ###PRV RSDR_ADDR=0x00000000
-  omap3isp omap3isp: ###PRV RADR_OFFSET=0x00000000
-  omap3isp omap3isp: ###PRV DSDR_ADDR=0x00000000
-@@ -52,7 +52,7 @@
-  omap3isp omap3isp: ###PRV CNT_BRT=0x00001000
-  omap3isp omap3isp: ###PRV CSUP=0x00000000
-  omap3isp omap3isp: ###PRV SETUP_YC=0xff00ff00
--omap3isp omap3isp: ###PRV SET_TBL_ADDR=0x00000800
-+omap3isp omap3isp: ###PRV SET_TBL_ADDR=0x00001700
-  omap3isp omap3isp: ###PRV CDC_THR0=0x0000000e
-  omap3isp omap3isp: ###PRV CDC_THR1=0x0000000e
-  omap3isp omap3isp: ###PRV CDC_THR2=0x0000000e
-
+diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
+index fc157af..0d698f9 100644
+--- a/drivers/media/usb/em28xx/em28xx-core.c
++++ b/drivers/media/usb/em28xx/em28xx-core.c
+@@ -941,6 +941,7 @@ static void em28xx_irq_callback(struct urb *urb)
+ {
+ 	struct em28xx *dev = urb->context;
+ 	int i;
++	unsigned long flags;
+ 
+ 	switch (urb->status) {
+ 	case 0:             /* success */
+@@ -956,9 +957,9 @@ static void em28xx_irq_callback(struct urb *urb)
+ 	}
+ 
+ 	/* Copy data from URB */
+-	spin_lock(&dev->slock);
++	spin_lock_irqsave(&dev->slock, flags);
+ 	dev->usb_ctl.urb_data_copy(dev, urb);
+-	spin_unlock(&dev->slock);
++	spin_unlock_irqrestore(&dev->slock, flags);
+ 
+ 	/* Reset urb buffers */
+ 	for (i = 0; i < urb->number_of_packets; i++) {
 -- 
-regards,
-Jakub Piotr Cłapa
-LoEE.pl
+1.7.9.5
+
