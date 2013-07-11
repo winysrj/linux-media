@@ -1,42 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:52193 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755753Ab3GYPwW (ORCPT
+Received: from mail-pb0-f51.google.com ([209.85.160.51]:42148 "EHLO
+	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755838Ab3GKJHP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 11:52:22 -0400
-Message-id: <51F149B3.7000708@samsung.com>
-Date: Thu, 25 Jul 2013 17:52:19 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Andrzej Hajda <a.hajda@samsung.com>, linux-media@vger.kernel.org,
-	laurent.pinchart@ideasonboard.com,
-	linux-samsung-soc@vger.kernel.org,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: Re: [PATCH] V4L: Add driver for Samsung S5K5BAF camera sensor
-References: <1374688263-31907-1-git-send-email-s.nawrocki@samsung.com>
- <201307251642.21451.hverkuil@xs4all.nl>
-In-reply-to: <201307251642.21451.hverkuil@xs4all.nl>
-Content-type: text/plain; charset=UTF-8
-Content-transfer-encoding: 7bit
+	Thu, 11 Jul 2013 05:07:15 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>
+Subject: [PATCH 05/50] USB: misc: uss720: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:28 +0800
+Message-Id: <1373533573-12272-6-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-On 07/25/2013 04:42 PM, Hans Verkuil wrote:
->
-> Would it be an idea to create a library with rectangle manipulation functions?
-> Looking at this driver and similar ones as well that I had to deal with that
-> support cropping/scaling/composing I see a lot of rectangle manipulation.
-> 
-> Moving that into a separate source that can be shared should simplify
-> development.
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/usb/misc/uss720.c |    6 +++++-
+ 1 file changed, 5 insertions(+), 1 deletion(-)
 
-Yes, I talked before about this exactly with Andrzej. We will consider
-creating such a library, but I can't tell at the moment when we can start
-working on this. There is still a few basic unsupported features of those
-cameras to take care of. :)
+diff --git a/drivers/usb/misc/uss720.c b/drivers/usb/misc/uss720.c
+index e129cf6..f7d15e8 100644
+--- a/drivers/usb/misc/uss720.c
++++ b/drivers/usb/misc/uss720.c
+@@ -121,6 +121,7 @@ static void async_complete(struct urb *urb)
+ 		dev_err(&urb->dev->dev, "async_complete: urb error %d\n",
+ 			status);
+ 	} else if (rq->dr.bRequest == 3) {
++		unsigned long flags;
+ 		memcpy(priv->reg, rq->reg, sizeof(priv->reg));
+ #if 0
+ 		dev_dbg(&priv->usbdev->dev,
+@@ -131,8 +132,11 @@ static void async_complete(struct urb *urb)
+ 			(unsigned int)priv->reg[6]);
+ #endif
+ 		/* if nAck interrupts are enabled and we have an interrupt, call the interrupt procedure */
+-		if (rq->reg[2] & rq->reg[1] & 0x10 && pp)
++		if (rq->reg[2] & rq->reg[1] & 0x10 && pp) {
++			local_irq_save(flags);
+ 			parport_generic_irq(pp);
++			local_irq_restore(flags);
++		}
+ 	}
+ 	complete(&rq->compl);
+ 	kref_put(&rq->ref_count, destroy_async);
+-- 
+1.7.9.5
 
-Thanks,
-Sylwester
