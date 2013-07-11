@@ -1,58 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.free-electrons.com ([94.23.35.102]:56919 "EHLO
-	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758173Ab3GRM4A (ORCPT
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:47334 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932451Ab3GKJMN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 08:56:00 -0400
-Date: Thu, 18 Jul 2013 09:55:59 -0300
-From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
-	linux-media@vger.kernel.org
-Subject: Re: Possible problem with stk1160 driver
-Message-ID: <20130718125557.GB2307@localhost>
-References: <20130716220418.GC10973@deadlock.dhs.org>
- <20130717084428.GA2334@localhost>
- <20130717213139.GA14370@deadlock.dhs.org>
- <20130718001752.GA2318@localhost>
- <51E78BB1.4020108@xs4all.nl>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=utf-8
-Content-Disposition: inline
-Content-Transfer-Encoding: 8bit
-In-Reply-To: <51E78BB1.4020108@xs4all.nl>
+	Thu, 11 Jul 2013 05:12:13 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 42/50] media: usb: tlg2300: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:06:05 +0800
+Message-Id: <1373533573-12272-43-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Complete() will be run with interrupt enabled, so disable local
+interrupt before holding a global lock which is held without
+irqsave.
 
-Thanks for jumping in.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/media/usb/tlg2300/pd-alsa.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-On Thu, Jul 18, 2013 at 08:31:13AM +0200, Hans Verkuil wrote:
-> On 07/18/2013 02:17 AM, Ezequiel Garcia wrote:
-> > 
-> > Ah... forgot to mention about that. I haven't included the fix for standard
-> > setting, because either the stk1160 chip or the userspace application didn't
-> > seem to behave properly: I got wrongly coloured frames when trying to
-> > change the standard while streaming.
-> 
-> You generally can't switch standards while streaming. That said, it is OK
-> to accept the same standard, i.e. return 0 if the standard is unchanged and
-> EBUSY otherwise.
-> 
-
-Ok, I'll add a check for unchanged standards to overcome this situation.
-
-> In the end it is an application bug, though. It shouldn't try to change the
-> standard while streaming has started.
-> 
-
-Ok, so that confirms we should not allow it.
-
-Sergey: Hopefully, with these two patches you won't need any further
-patching on your side.
-
+diff --git a/drivers/media/usb/tlg2300/pd-alsa.c b/drivers/media/usb/tlg2300/pd-alsa.c
+index 3f3e141..cbccc96 100644
+--- a/drivers/media/usb/tlg2300/pd-alsa.c
++++ b/drivers/media/usb/tlg2300/pd-alsa.c
+@@ -141,6 +141,7 @@ static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
+ 	int len		= urb->actual_length / stride;
+ 	unsigned char *cp	= urb->transfer_buffer;
+ 	unsigned int oldptr	= pa->rcv_position;
++	unsigned long flags;
+ 
+ 	if (urb->actual_length == AUDIO_BUF_SIZE - 4)
+ 		len -= (AUDIO_TRAILER_SIZE / stride);
+@@ -156,6 +157,7 @@ static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
+ 		memcpy(runtime->dma_area + oldptr * stride, cp, len * stride);
+ 
+ 	/* update the statas */
++	local_irq_save(flags);
+ 	snd_pcm_stream_lock(pa->capture_pcm_substream);
+ 	pa->rcv_position	+= len;
+ 	if (pa->rcv_position >= runtime->buffer_size)
+@@ -167,6 +169,7 @@ static inline void handle_audio_data(struct urb *urb, int *period_elapsed)
+ 		*period_elapsed = 1;
+ 	}
+ 	snd_pcm_stream_unlock(pa->capture_pcm_substream);
++	local_irq_restore(flags);
+ }
+ 
+ static void complete_handler_audio(struct urb *urb)
 -- 
-Ezequiel García, Free Electrons
-Embedded Linux, Kernel and Android Engineering
-http://free-electrons.com
+1.7.9.5
+
