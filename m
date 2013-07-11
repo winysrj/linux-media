@@ -1,80 +1,184 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39758 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758269Ab3GZQRE (ORCPT
+Received: from mail-pd0-f169.google.com ([209.85.192.169]:33775 "EHLO
+	mail-pd0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab3GKJKO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 12:17:04 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Katsuya Matsubara <matsu@igel.co.jp>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH 0/7] [media] vsp1: Add VIO6 support
-Date: Fri, 26 Jul 2013 18:18 +0200
-Message-ID: <2022655.TxvuY7dTVO@avalon>
-In-Reply-To: <1374831137-9219-1-git-send-email-matsu@igel.co.jp>
-References: <1374831137-9219-1-git-send-email-matsu@igel.co.jp>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Thu, 11 Jul 2013 05:10:14 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>
+Subject: [PATCH 27/50] USBNET: hso: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:50 +0800
+Message-Id: <1373533573-12272-28-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Matsubara-san,
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-On Friday 26 July 2013 18:32:10 Katsuya Matsubara wrote:
-> Hi Laurent,
-> 
-> Could you please consider the following patches to add VIO6 support into
-> your VSP1 driver implementation?
-> Any comments or ideas of better implementation are of course welcome.
+Cc: netdev@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/net/usb/hso.c |   38 ++++++++++++++++++++++----------------
+ 1 file changed, 22 insertions(+), 16 deletions(-)
 
-Thank you for the patches. The first two patches being fixes, I've already 
-applied them to my tree. I will review the remaining patches as soon as 
-possible and will send you my comments.
-
-> The first two patches are fixes, not only for VIO6.
-> The next four patches are preparations of supporting multiple versions of
-> the H/W IP.
-> The final one is adding definitions of VIO6.
-> 
-> The code has been tested on an Armadillo800EVA board.
-> 
-> The series is based on the following patchset:
->  [PATCH v3 0/5] Renesas VSP1 driver
->  [PATCH v3 1/5] media: Add support for circular graph traversal
->  [PATCH v3 2/5] v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
-> [PATCH v3 3/5] v4l: Add media format codes for ARGB8888 and AYUV8888 on
-> 32-bit busses [PATCH v3 4/5] v4l: Add V4L2_PIX_FMT_NV16M and
-> V4L2_PIX_FMT_NV61M formats [PATCH v3 5/5] v4l: Renesas R-Car VSP1 driver
-> 
-> 
-> Katsuya Matsubara (7):
->   [media] vsp1: Fix lack of the sink entity setting for enabled links.
->   [media] vsp1: Use the maximum number defined in platform data
->   [media] vsp1: Rewrite the definition of registers' offset as enum and
->     arrays
->   [media] vsp1: Rewrite the value definitions for DPR routing as enum
->     and arrays
->   [media] vsp1: Introduce bit operations for the DPR route registers
->   [media] vsp1: Move the DPR_WPF_FPORCH register settings into the
->     device initialization
->   [media] vsp1: Add VIO6 support
-> 
->  drivers/media/platform/vsp1/vsp1.h        |   23 +-
->  drivers/media/platform/vsp1/vsp1_drv.c    |  492 ++++++++++++++++++++++++--
->  drivers/media/platform/vsp1/vsp1_entity.c |   31 +-
->  drivers/media/platform/vsp1/vsp1_entity.h |    3 +-
->  drivers/media/platform/vsp1/vsp1_lif.c    |    2 +-
->  drivers/media/platform/vsp1/vsp1_regs.h   |  497 ++++++++++++++------------
->  drivers/media/platform/vsp1/vsp1_rpf.c    |   19 +-
->  drivers/media/platform/vsp1/vsp1_uds.c    |   14 +-
->  drivers/media/platform/vsp1/vsp1_video.c  |   27 +-
->  drivers/media/platform/vsp1/vsp1_wpf.c    |   29 +-
->  10 files changed, 849 insertions(+), 288 deletions(-)
+diff --git a/drivers/net/usb/hso.c b/drivers/net/usb/hso.c
+index cba1d46..c865441 100644
+--- a/drivers/net/usb/hso.c
++++ b/drivers/net/usb/hso.c
+@@ -1008,6 +1008,7 @@ static void read_bulk_callback(struct urb *urb)
+ 	struct net_device *net;
+ 	int result;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	/* is al ok?  (Filip: Who's Al ?) */
+ 	if (status) {
+@@ -1036,11 +1037,11 @@ static void read_bulk_callback(struct urb *urb)
+ 	if (urb->actual_length) {
+ 		/* Handle the IP stream, add header and push it onto network
+ 		 * stack if the packet is complete. */
+-		spin_lock(&odev->net_lock);
++		spin_lock_irqsave(&odev->net_lock, flags);
+ 		packetizeRx(odev, urb->transfer_buffer, urb->actual_length,
+ 			    (urb->transfer_buffer_length >
+ 			     urb->actual_length) ? 1 : 0);
+-		spin_unlock(&odev->net_lock);
++		spin_unlock_irqrestore(&odev->net_lock, flags);
+ 	}
+ 
+ 	/* We are done with this URB, resubmit it. Prep the USB to wait for
+@@ -1201,6 +1202,7 @@ static void hso_std_serial_read_bulk_callback(struct urb *urb)
+ {
+ 	struct hso_serial *serial = urb->context;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	/* sanity check */
+ 	if (!serial) {
+@@ -1223,17 +1225,17 @@ static void hso_std_serial_read_bulk_callback(struct urb *urb)
+ 		if (serial->parent->port_spec & HSO_INFO_CRC_BUG)
+ 			fix_crc_bug(urb, serial->in_endp->wMaxPacketSize);
+ 		/* Valid data, handle RX data */
+-		spin_lock(&serial->serial_lock);
++		spin_lock_irqsave(&serial->serial_lock, flags);
+ 		serial->rx_urb_filled[hso_urb_to_index(serial, urb)] = 1;
+ 		put_rxbuf_data_and_resubmit_bulk_urb(serial);
+-		spin_unlock(&serial->serial_lock);
++		spin_unlock_irqrestore(&serial->serial_lock, flags);
+ 	} else if (status == -ENOENT || status == -ECONNRESET) {
+ 		/* Unlinked - check for throttled port. */
+ 		D2("Port %d, successfully unlinked urb", serial->minor);
+-		spin_lock(&serial->serial_lock);
++		spin_lock_irqsave(&serial->serial_lock, flags);
+ 		serial->rx_urb_filled[hso_urb_to_index(serial, urb)] = 0;
+ 		hso_resubmit_rx_bulk_urb(serial, urb);
+-		spin_unlock(&serial->serial_lock);
++		spin_unlock_irqrestore(&serial->serial_lock, flags);
+ 	} else {
+ 		D2("Port %d, status = %d for read urb", serial->minor, status);
+ 		return;
+@@ -1510,12 +1512,13 @@ static void tiocmget_intr_callback(struct urb *urb)
+ 		DUMP(serial_state_notification,
+ 		     sizeof(struct hso_serial_state_notification));
+ 	} else {
++		unsigned long flags;
+ 
+ 		UART_state_bitmap = le16_to_cpu(serial_state_notification->
+ 						UART_state_bitmap);
+ 		prev_UART_state_bitmap = tiocmget->prev_UART_state_bitmap;
+ 		icount = &tiocmget->icount;
+-		spin_lock(&serial->serial_lock);
++		spin_lock_irqsave(&serial->serial_lock, flags);
+ 		if ((UART_state_bitmap & B_OVERRUN) !=
+ 		   (prev_UART_state_bitmap & B_OVERRUN))
+ 			icount->parity++;
+@@ -1538,7 +1541,7 @@ static void tiocmget_intr_callback(struct urb *urb)
+ 		   (prev_UART_state_bitmap & B_RX_CARRIER))
+ 			icount->dcd++;
+ 		tiocmget->prev_UART_state_bitmap = UART_state_bitmap;
+-		spin_unlock(&serial->serial_lock);
++		spin_unlock_irqrestore(&serial->serial_lock, flags);
+ 		tiocmget->intr_completed = 1;
+ 		wake_up_interruptible(&tiocmget->waitq);
+ 	}
+@@ -1883,8 +1886,9 @@ static void intr_callback(struct urb *urb)
+ 			serial = get_serial_by_shared_int_and_type(shared_int,
+ 								   (1 << i));
+ 			if (serial != NULL) {
++				unsigned long flags;
+ 				D1("Pending read interrupt on port %d\n", i);
+-				spin_lock(&serial->serial_lock);
++				spin_lock_irqsave(&serial->serial_lock, flags);
+ 				if (serial->rx_state == RX_IDLE &&
+ 					serial->port.count > 0) {
+ 					/* Setup and send a ctrl req read on
+@@ -1898,7 +1902,7 @@ static void intr_callback(struct urb *urb)
+ 					D1("Already a read pending on "
+ 					   "port %d or port not open\n", i);
+ 				}
+-				spin_unlock(&serial->serial_lock);
++				spin_unlock_irqrestore(&serial->serial_lock, flags);
+ 			}
+ 		}
+ 	}
+@@ -1925,6 +1929,7 @@ static void hso_std_serial_write_bulk_callback(struct urb *urb)
+ {
+ 	struct hso_serial *serial = urb->context;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	/* sanity check */
+ 	if (!serial) {
+@@ -1932,9 +1937,9 @@ static void hso_std_serial_write_bulk_callback(struct urb *urb)
+ 		return;
+ 	}
+ 
+-	spin_lock(&serial->serial_lock);
++	spin_lock_irqsave(&serial->serial_lock, flags);
+ 	serial->tx_urb_used = 0;
+-	spin_unlock(&serial->serial_lock);
++	spin_unlock_irqrestore(&serial->serial_lock, flags);
+ 	if (status) {
+ 		handle_usb_error(status, __func__, serial->parent);
+ 		return;
+@@ -1976,14 +1981,15 @@ static void ctrl_callback(struct urb *urb)
+ 	struct hso_serial *serial = urb->context;
+ 	struct usb_ctrlrequest *req;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	/* sanity check */
+ 	if (!serial)
+ 		return;
+ 
+-	spin_lock(&serial->serial_lock);
++	spin_lock_irqsave(&serial->serial_lock, flags);
+ 	serial->tx_urb_used = 0;
+-	spin_unlock(&serial->serial_lock);
++	spin_unlock_irqrestore(&serial->serial_lock, flags);
+ 	if (status) {
+ 		handle_usb_error(status, __func__, serial->parent);
+ 		return;
+@@ -1999,9 +2005,9 @@ static void ctrl_callback(struct urb *urb)
+ 	    (USB_DIR_IN | USB_TYPE_OPTION_VENDOR | USB_RECIP_INTERFACE)) {
+ 		/* response to a read command */
+ 		serial->rx_urb_filled[0] = 1;
+-		spin_lock(&serial->serial_lock);
++		spin_lock_irqsave(&serial->serial_lock, flags);
+ 		put_rxbuf_data_and_resubmit_ctrl_urb(serial);
+-		spin_unlock(&serial->serial_lock);
++		spin_unlock_irqrestore(&serial->serial_lock, flags);
+ 	} else {
+ 		hso_put_activity(serial->parent);
+ 		tty_port_tty_wakeup(&serial->port);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
