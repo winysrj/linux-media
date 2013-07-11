@@ -1,61 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:41896 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1754326Ab3GKBBc (ORCPT
+Received: from mail-lb0-f173.google.com ([209.85.217.173]:36193 "EHLO
+	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756086Ab3GKNKz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 21:01:32 -0400
-Date: Wed, 10 Jul 2013 21:01:31 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Arnd Bergmann <arnd@arndb.de>
-cc: Geert Uytterhoeven <geert@linux-m68k.org>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	<linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] usb: USB host support should depend on HAS_DMA
-In-Reply-To: <201307110112.57398.arnd@arndb.de>
-Message-ID: <Pine.LNX.4.44L0.1307102054340.11279-100000@netrider.rowland.org>
+	Thu, 11 Jul 2013 09:10:55 -0400
+Received: by mail-lb0-f173.google.com with SMTP id v1so6711048lbd.18
+        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 06:10:53 -0700 (PDT)
+Message-ID: <51DEAEDB.2060600@cogentembedded.com>
+Date: Thu, 11 Jul 2013 17:10:51 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+To: Ming Lei <ming.lei@canonical.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Clemens Ladisch <clemens@ladisch.de>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Subject: Re: [PATCH 46/50] Sound: usb: ua101: spin_lock in complete() cleanup
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-47-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-47-git-send-email-ming.lei@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, 11 Jul 2013, Arnd Bergmann wrote:
+On 11-07-2013 13:06, Ming Lei wrote:
 
-> On Wednesday 10 July 2013, Alan Stern wrote:
-> > This isn't right.  There are USB host controllers that use PIO, not
-> > DMA.  The HAS_DMA dependency should go with the controller driver, not 
-> > the USB core.
-> > 
-> > On the other hand, the USB core does call various routines like 
-> > dma_unmap_single.  It ought to be possible to compile these calls even 
-> > when DMA isn't enabled.  That is, they should be defined as do-nothing 
-> > stubs.
-> 
-> The asm-generic/dma-mapping-broken.h file intentionally causes link
-> errors, but that could be changed.
-> 
-> The better approach in my mind would be to replace code like
-> 
-> 
-> 	if (hcd->self.uses_dma)
-> 
-> with
-> 
-> 	if (IS_ENABLED(CONFIG_HAS_DMA) && hcd->self.uses_dma) {
-> 
-> which will reliably cause that reference to be omitted from object code,
-> but not stop giving link errors for drivers that actually require
-> DMA.
+    Here the subject doesn't match the patch.
 
-How will it give link errors for drivers that require DMA?
+> Complete() will be run with interrupt enabled, so disable local
+> interrupt before holding a global lock which is held without irqsave.
 
-Besides, wouldn't it be better to get an error at config time rather
-than at link time?  Or even better still, not to be allowed to
-configure drivers that depend on DMA if DMA isn't available?
+> Cc: Clemens Ladisch <clemens@ladisch.de>
+> Cc: Jaroslav Kysela <perex@perex.cz>
+> Cc: Takashi Iwai <tiwai@suse.de>
+> Cc: alsa-devel@alsa-project.org
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+>   sound/usb/misc/ua101.c |   14 ++++++++++++--
+>   1 file changed, 12 insertions(+), 2 deletions(-)
 
-If we add an explicit dependency for HAS_DMA to the Kconfig entries for 
-these drivers, then your suggestion would be a good way to allow 
-usbcore to be built independently of DMA support.
+> diff --git a/sound/usb/misc/ua101.c b/sound/usb/misc/ua101.c
+> index 8b5d2c5..52a60c6 100644
+> --- a/sound/usb/misc/ua101.c
+> +++ b/sound/usb/misc/ua101.c
+> @@ -613,14 +613,24 @@ static int start_usb_playback(struct ua101 *ua)
+>
+>   static void abort_alsa_capture(struct ua101 *ua)
+>   {
+> -	if (test_bit(ALSA_CAPTURE_RUNNING, &ua->states))
+> +	if (test_bit(ALSA_CAPTURE_RUNNING, &ua->states)) {
+> +		unsigned long flags;
+> +
+> +		local_irq_save(flags);
+>   		snd_pcm_stop(ua->capture.substream, SNDRV_PCM_STATE_XRUN);
+> +		local_irq_restore(flags);
+> +	}
+>   }
+>
+>   static void abort_alsa_playback(struct ua101 *ua)
+>   {
+> -	if (test_bit(ALSA_PLAYBACK_RUNNING, &ua->states))
+> +	if (test_bit(ALSA_PLAYBACK_RUNNING, &ua->states)) {
+> +		unsigned long flags;
+> +
+> +		local_irq_save(flags);
+>   		snd_pcm_stop(ua->playback.substream, SNDRV_PCM_STATE_XRUN);
+> +		local_irq_restore(flags);
+> +	}
+>   }
 
-Alan Stern
+WBR, Sergei
 
