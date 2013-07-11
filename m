@@ -1,56 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54692 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751482Ab3G3K55 (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:49564 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932090Ab3GKJIq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 06:57:57 -0400
-Date: Tue, 30 Jul 2013 13:57:51 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v3 2/5] v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel
- code value
-Message-ID: <20130730105751.GM12281@valkosipuli.retiisi.org.uk>
-References: <1374757213-20194-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1374757213-20194-3-git-send-email-laurent.pinchart@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1374757213-20194-3-git-send-email-laurent.pinchart@ideasonboard.com>
+	Thu, 11 Jul 2013 05:08:46 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Johan Hovold <jhovold@gmail.com>
+Subject: [PATCH 16/50] USB: serial: quatech2: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:39 +0800
+Message-Id: <1373533573-12272-17-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu, Jul 25, 2013 at 03:00:10PM +0200, Laurent Pinchart wrote:
-> From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> 
-> The V4L2_MBUS_FMT_YUV10_1X30 code is documented as being equal to
-> 0x2014, while the v4l2-mediabus.h header defines it as 0x2016. Fix the
-> documentation.
-> 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  Documentation/DocBook/media/v4l/subdev-formats.xml | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> index adc6198..0c2b1f2 100644
-> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-> @@ -2574,7 +2574,7 @@
->  	    </row>
->  	    <row id="V4L2-MBUS-FMT-YUV10-1X30">
->  	      <entry>V4L2_MBUS_FMT_YUV10_1X30</entry>
-> -	      <entry>0x2014</entry>
-> +	      <entry>0x2016</entry>
->  	      <entry></entry>
->  	      <entry>y<subscript>9</subscript></entry>
->  	      <entry>y<subscript>8</subscript></entry>
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/usb/serial/quatech2.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
+diff --git a/drivers/usb/serial/quatech2.c b/drivers/usb/serial/quatech2.c
+index d997432..95e5dbf 100644
+--- a/drivers/usb/serial/quatech2.c
++++ b/drivers/usb/serial/quatech2.c
+@@ -630,16 +630,17 @@ static void qt2_write_bulk_callback(struct urb *urb)
+ {
+ 	struct usb_serial_port *port;
+ 	struct qt2_port_private *port_priv;
++	unsigned long flags;
+ 
+ 	port = urb->context;
+ 	port_priv = usb_get_serial_port_data(port);
+ 
+-	spin_lock(&port_priv->urb_lock);
++	spin_lock_irqsave(&port_priv->urb_lock, flags);
+ 
+ 	port_priv->urb_in_use = false;
+ 	usb_serial_port_softint(port);
+ 
+-	spin_unlock(&port_priv->urb_lock);
++	spin_unlock_irqrestore(&port_priv->urb_lock, flags);
+ 
+ }
+ 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.9.5
+
