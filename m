@@ -1,76 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.irisys.co.uk ([195.12.16.217]:51199 "EHLO
-	mail.irisys.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752683Ab3GQIkr convert rfc822-to-8bit (ORCPT
+Received: from mail-pa0-f46.google.com ([209.85.220.46]:32992 "EHLO
+	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754162Ab3GKHtY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 04:40:47 -0400
-From: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-CC: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: RE: MT9D131 context switching [was RE: width and height of JPEG
- compressed images]
-Date: Wed, 17 Jul 2013 08:40:43 +0000
-Message-ID: <A683633ABCE53E43AFB0344442BF0F0536168D31@server10.irisys.local>
-References: <A683633ABCE53E43AFB0344442BF0F05361689EE@server10.irisys.local>
- <20130716235805.GA11369@valkosipuli.retiisi.org.uk>
-In-Reply-To: <20130716235805.GA11369@valkosipuli.retiisi.org.uk>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Thu, 11 Jul 2013 03:49:24 -0400
 MIME-Version: 1.0
+In-Reply-To: <Pine.LNX.4.44L0.1307102054340.11279-100000@netrider.rowland.org>
+References: <201307110112.57398.arnd@arndb.de>
+	<Pine.LNX.4.44L0.1307102054340.11279-100000@netrider.rowland.org>
+Date: Thu, 11 Jul 2013 09:49:23 +0200
+Message-ID: <CAMuHMdWF8pHQ7RfojiJK7NxULZZjecvzSkP6R+Q-5ib4A516Bw@mail.gmail.com>
+Subject: Re: [PATCH] usb: USB host support should depend on HAS_DMA
+From: Geert Uytterhoeven <geert@linux-m68k.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Arnd Bergmann <arnd@arndb.de>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	"linux-input@vger.kernel.org" <linux-input@vger.kernel.org>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	USB list <linux-usb@vger.kernel.org>,
+	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
-
-On 17 July 2013 00:58 Sakari Ailus wrote:
-> On Mon, Jul 15, 2013 at 09:30:33AM +0000, Thomas Vajzovic wrote:
->> On 10 July 2013 20:44 Sylwester Nawrocki wrote:
->>> On 07/07/2013 10:18 AM, Thomas Vajzovic wrote:
->>>> On 06 July 2013 20:58 Sylwester Nawrocki wrote:
->>>>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
->>>>>>
->>>>>> I am writing a driver for the sensor MT9D131.
->>>
->>> As a side note, looking at the MT9D131 sensor datasheet I can see it
->>> has preview (Mode A) and capture (Mode B) modes. Are you also
->>> planning adding proper support for switching between those modes ?
->>> I'm interested in supporting this in standard way in V4L2, as lot's
->>> of sensors I have been working with also support such modes.
->>
->> This camera has more like three modes:
->>
->>
->> preview (context A) up to 800x600, up to 30fps, YUV/RGB
->>
->> capture video (context B) up to 1600x1200, up to 15fps, YUV/RGB/JPEG
->>
->> capture stills (context B) up to 1600x1200, sequence of 1 or more
->> frames with no fixed timing, YUV/RGB/JPEG
->>
->>
->> I have implemented switching between the first two of these, but the
->> choice is forced by the framerate, resolution and format that the user
->> requests, so I have not exposed any interface to change the context,
->> the driver just chooses the one that can do what the user wants.
->>
->> As for the third mode, I do not currently plan to implement it, but if
->> I was going to then I think the only API that would be required is
->> V4L2_MODE_HIGHQUALITY in v4l2_captureparm.capturemode.
+On Thu, Jul 11, 2013 at 3:01 AM, Alan Stern <stern@rowland.harvard.edu> wrote:
+> On Thu, 11 Jul 2013, Arnd Bergmann wrote:
 >
-> Is there a practical difference in video and still capture in this case?
+>> On Wednesday 10 July 2013, Alan Stern wrote:
+>> > This isn't right.  There are USB host controllers that use PIO, not
+>> > DMA.  The HAS_DMA dependency should go with the controller driver, not
+>> > the USB core.
+>> >
+>> > On the other hand, the USB core does call various routines like
+>> > dma_unmap_single.  It ought to be possible to compile these calls even
+>> > when DMA isn't enabled.  That is, they should be defined as do-nothing
+>> > stubs.
+>>
+>> The asm-generic/dma-mapping-broken.h file intentionally causes link
+>> errors, but that could be changed.
+>>
+>> The better approach in my mind would be to replace code like
+>>
+>>
+>>       if (hcd->self.uses_dma)
+>>
+>> with
+>>
+>>       if (IS_ENABLED(CONFIG_HAS_DMA) && hcd->self.uses_dma) {
+>>
+>> which will reliably cause that reference to be omitted from object code,
+>> but not stop giving link errors for drivers that actually require
+>> DMA.
+>
+> How will it give link errors for drivers that require DMA?
 
-I haven't read the docs fully because I don't use that mode, but AFAIK:
+It won't. Unless the host driver itself calls into the DMA API, too
+(are there any that don't?).
 
-If you select capture stills then it takes a few frames and then changes
-mode back to preview on its own.  As it is changing modes then the auto-
-exposure and gain does "clever" things.  I think it might discard or mask
-all but one of the frames to help you just get the single best one. This
-mode also supports triggering a synchronized flash light in hardware and
-I don't know what else.
+> Besides, wouldn't it be better to get an error at config time rather
+> than at link time?  Or even better still, not to be allowed to
+> configure drivers that depend on DMA if DMA isn't available?
 
-Regards,
-Tom
-Disclaimer: This e-mail message is confidential and for use by the addressee only. If the message is received by anyone other than the addressee, please return the message to the sender by replying to it and then delete the original message and the sent message from your computer. Infrared Integrated Systems Limited Park Circle Tithe Barn Way Swan Valley Northampton NN4 9BG Registration Number: 3186364.
+Indeed.
+
+> If we add an explicit dependency for HAS_DMA to the Kconfig entries for
+> these drivers, then your suggestion would be a good way to allow
+> usbcore to be built independently of DMA support.
+
+However, having the link errors helps when annotating the Kconfig files
+with HAS_DMA dependencies.
+
+Unfortunately the check for "hcd->self.uses_dma" (which boils down to
+"dev->dma_mask != NULL") isn't sufficient to cause breakage at compilation
+time when a Kconfig entry incorrectly doesn't depend on HAS_DMA.
+
+Gr{oetje,eeting}s,
+
+                        Geert
+
+--
+Geert Uytterhoeven -- There's lots of Linux beyond ia32 -- geert@linux-m68k.org
+
+In personal conversations with technical people, I call myself a hacker. But
+when I'm talking to journalists I just say "programmer" or something like that.
+                                -- Linus Torvalds
