@@ -1,572 +1,122 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:24854 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753390Ab3GHC5w (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 22:57:52 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
-	Jingoo Han <jg1.han@samsung.com>
-Subject: [PATCH V5 3/4] video: exynos_dp: remove non-DT support for Exynos
- Display Port
-Date: Mon, 08 Jul 2013 11:57:43 +0900
-Message-id: <001e01ce7b86$eb866290$c29327b0$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-pd0-f179.google.com ([209.85.192.179]:63256 "EHLO
+	mail-pd0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab3GKJKq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 05:10:46 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Daniel Drake <dsd@gentoo.org>,
+	Ulrich Kunitz <kune@deine-taler.de>,
+	"John W. Linville" <linville@tuxdriver.com>
+Subject: [PATCH 31/50] wireless: zd1211rw: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:54 +0800
+Message-Id: <1373533573-12272-32-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Exynos Display Port can be used only for Exynos SoCs. In addition,
-non-DT for EXYNOS SoCs is not supported from v3.11; thus, there is
-no need to support non-DT for Exynos Display Port.
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-The 'include/video/exynos_dp.h' file has been used for non-DT
-support and the content of file include/video/exynos_dp.h is moved
-to drivers/video/exynos/exynos_dp_core.h. Thus, the 'exynos_dp.h'
-file is removed. Also, 'struct exynos_dp_platdata' is removed,
-because it is not used any more.
-
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Reviewed-by: Tomasz Figa <t.figa@samsung.com>
+Cc: Daniel Drake <dsd@gentoo.org>
+Cc: Ulrich Kunitz <kune@deine-taler.de>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: linux-wireless@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
 ---
- drivers/video/exynos/Kconfig          |    2 +-
- drivers/video/exynos/exynos_dp_core.c |  116 +++++++----------------------
- drivers/video/exynos/exynos_dp_core.h |  109 +++++++++++++++++++++++++++
- drivers/video/exynos/exynos_dp_reg.c  |    2 -
- include/video/exynos_dp.h             |  131 ---------------------------------
- 5 files changed, 135 insertions(+), 225 deletions(-)
- delete mode 100644 include/video/exynos_dp.h
+ drivers/net/wireless/zd1211rw/zd_usb.c |   21 ++++++++++++---------
+ 1 file changed, 12 insertions(+), 9 deletions(-)
 
-diff --git a/drivers/video/exynos/Kconfig b/drivers/video/exynos/Kconfig
-index 1b035b2..fab9019 100644
---- a/drivers/video/exynos/Kconfig
-+++ b/drivers/video/exynos/Kconfig
-@@ -29,7 +29,7 @@ config EXYNOS_LCD_S6E8AX0
+diff --git a/drivers/net/wireless/zd1211rw/zd_usb.c b/drivers/net/wireless/zd1211rw/zd_usb.c
+index 7ef0b4a..8169ee0 100644
+--- a/drivers/net/wireless/zd1211rw/zd_usb.c
++++ b/drivers/net/wireless/zd1211rw/zd_usb.c
+@@ -372,14 +372,15 @@ static inline void handle_regs_int_override(struct urb *urb)
+ {
+ 	struct zd_usb *usb = urb->context;
+ 	struct zd_usb_interrupt *intr = &usb->intr;
++	unsigned long flags;
  
- config EXYNOS_DP
- 	bool "EXYNOS DP driver support"
--	depends on ARCH_EXYNOS
-+	depends on OF && ARCH_EXYNOS
- 	default n
- 	help
- 	  This enables support for DP device.
-diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
-index 12bbede..05fed7d 100644
---- a/drivers/video/exynos/exynos_dp_core.c
-+++ b/drivers/video/exynos/exynos_dp_core.c
-@@ -20,8 +20,6 @@
- #include <linux/delay.h>
- #include <linux/of.h>
- 
--#include <video/exynos_dp.h>
--
- #include "exynos_dp_core.h"
- 
- static int exynos_dp_init_dp(struct exynos_dp_device *dp)
-@@ -894,26 +892,17 @@ static void exynos_dp_hotplug(struct work_struct *work)
- 		dev_err(dp->dev, "unable to config video\n");
+-	spin_lock(&intr->lock);
++	spin_lock_irqsave(&intr->lock, flags);
+ 	if (atomic_read(&intr->read_regs_enabled)) {
+ 		atomic_set(&intr->read_regs_enabled, 0);
+ 		intr->read_regs_int_overridden = 1;
+ 		complete(&intr->read_regs.completion);
+ 	}
+-	spin_unlock(&intr->lock);
++	spin_unlock_irqrestore(&intr->lock, flags);
  }
  
--#ifdef CONFIG_OF
--static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
-+static struct video_info *exynos_dp_dt_parse_pdata(struct device *dev)
- {
- 	struct device_node *dp_node = dev->of_node;
--	struct exynos_dp_platdata *pd;
- 	struct video_info *dp_video_config;
+ static inline void handle_regs_int(struct urb *urb)
+@@ -388,9 +389,10 @@ static inline void handle_regs_int(struct urb *urb)
+ 	struct zd_usb_interrupt *intr = &usb->intr;
+ 	int len;
+ 	u16 int_num;
++	unsigned long flags;
  
--	pd = devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
--	if (!pd) {
--		dev_err(dev, "memory allocation for pdata failed\n");
--		return ERR_PTR(-ENOMEM);
--	}
- 	dp_video_config = devm_kzalloc(dev,
- 				sizeof(*dp_video_config), GFP_KERNEL);
--
- 	if (!dp_video_config) {
- 		dev_err(dev, "memory allocation for video config failed\n");
- 		return ERR_PTR(-ENOMEM);
- 	}
--	pd->video_info = dp_video_config;
+ 	ZD_ASSERT(in_interrupt());
+-	spin_lock(&intr->lock);
++	spin_lock_irqsave(&intr->lock, flags);
  
- 	dp_video_config->h_sync_polarity =
- 		of_property_read_bool(dp_node, "hsync-active-high");
-@@ -960,7 +949,7 @@ static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
- 		return ERR_PTR(-EINVAL);
+ 	int_num = le16_to_cpu(*(__le16 *)(urb->transfer_buffer+2));
+ 	if (int_num == CR_INTERRUPT) {
+@@ -426,7 +428,7 @@ static inline void handle_regs_int(struct urb *urb)
  	}
  
--	return pd;
-+	return dp_video_config;
- }
+ out:
+-	spin_unlock(&intr->lock);
++	spin_unlock_irqrestore(&intr->lock, flags);
  
- static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
-@@ -1003,48 +992,30 @@ err:
+ 	/* CR_INTERRUPT might override read_reg too. */
+ 	if (int_num == CR_INTERRUPT && atomic_read(&intr->read_regs_enabled))
+@@ -666,6 +668,7 @@ static void rx_urb_complete(struct urb *urb)
+ 	struct zd_usb_rx *rx;
+ 	const u8 *buffer;
+ 	unsigned int length;
++	unsigned long flags;
  
- static void exynos_dp_phy_init(struct exynos_dp_device *dp)
- {
--	u32 reg;
-+	if (dp->phy_addr) {
-+		u32 reg;
+ 	switch (urb->status) {
+ 	case 0:
+@@ -694,14 +697,14 @@ static void rx_urb_complete(struct urb *urb)
+ 		/* If there is an old first fragment, we don't care. */
+ 		dev_dbg_f(urb_dev(urb), "*** first fragment ***\n");
+ 		ZD_ASSERT(length <= ARRAY_SIZE(rx->fragment));
+-		spin_lock(&rx->lock);
++		spin_lock_irqsave(&rx->lock, flags);
+ 		memcpy(rx->fragment, buffer, length);
+ 		rx->fragment_length = length;
+-		spin_unlock(&rx->lock);
++		spin_unlock_irqrestore(&rx->lock, flags);
+ 		goto resubmit;
+ 	}
  
--	reg = __raw_readl(dp->phy_addr);
--	reg |= dp->enable_mask;
--	__raw_writel(reg, dp->phy_addr);
-+		reg = __raw_readl(dp->phy_addr);
-+		reg |= dp->enable_mask;
-+		__raw_writel(reg, dp->phy_addr);
-+	}
- }
+-	spin_lock(&rx->lock);
++	spin_lock_irqsave(&rx->lock, flags);
+ 	if (rx->fragment_length > 0) {
+ 		/* We are on a second fragment, we believe */
+ 		ZD_ASSERT(length + rx->fragment_length <=
+@@ -711,9 +714,9 @@ static void rx_urb_complete(struct urb *urb)
+ 		handle_rx_packet(usb, rx->fragment,
+ 			         rx->fragment_length + length);
+ 		rx->fragment_length = 0;
+-		spin_unlock(&rx->lock);
++		spin_unlock_irqrestore(&rx->lock, flags);
+ 	} else {
+-		spin_unlock(&rx->lock);
++		spin_unlock_irqrestore(&rx->lock, flags);
+ 		handle_rx_packet(usb, buffer, length);
+ 	}
  
- static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
- {
--	u32 reg;
--
--	reg = __raw_readl(dp->phy_addr);
--	reg &= ~(dp->enable_mask);
--	__raw_writel(reg, dp->phy_addr);
--}
--#else
--static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
--{
--	return NULL;
--}
--
--static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
--{
--	return -EINVAL;
--}
--
--static void exynos_dp_phy_init(struct exynos_dp_device *dp)
--{
--	return;
--}
-+	if (dp->phy_addr) {
-+		u32 reg;
- 
--static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
--{
--	return;
-+		reg = __raw_readl(dp->phy_addr);
-+		reg &= ~(dp->enable_mask);
-+		__raw_writel(reg, dp->phy_addr);
-+	}
- }
--#endif /* CONFIG_OF */
- 
- static int exynos_dp_probe(struct platform_device *pdev)
- {
- 	struct resource *res;
- 	struct exynos_dp_device *dp;
--	struct exynos_dp_platdata *pdata;
- 
- 	int ret = 0;
- 
-@@ -1057,21 +1028,13 @@ static int exynos_dp_probe(struct platform_device *pdev)
- 
- 	dp->dev = &pdev->dev;
- 
--	if (pdev->dev.of_node) {
--		pdata = exynos_dp_dt_parse_pdata(&pdev->dev);
--		if (IS_ERR(pdata))
--			return PTR_ERR(pdata);
-+	dp->video_info = exynos_dp_dt_parse_pdata(&pdev->dev);
-+	if (IS_ERR(dp->video_info))
-+		return PTR_ERR(dp->video_info);
- 
--		ret = exynos_dp_dt_parse_phydata(dp);
--		if (ret)
--			return ret;
--	} else {
--		pdata = pdev->dev.platform_data;
--		if (!pdata) {
--			dev_err(&pdev->dev, "no platform data\n");
--			return -EINVAL;
--		}
--	}
-+	ret = exynos_dp_dt_parse_phydata(dp);
-+	if (ret)
-+		return ret;
- 
- 	dp->clock = devm_clk_get(&pdev->dev, "dp");
- 	if (IS_ERR(dp->clock)) {
-@@ -1095,15 +1058,7 @@ static int exynos_dp_probe(struct platform_device *pdev)
- 
- 	INIT_WORK(&dp->hotplug_work, exynos_dp_hotplug);
- 
--	dp->video_info = pdata->video_info;
--
--	if (pdev->dev.of_node) {
--		if (dp->phy_addr)
--			exynos_dp_phy_init(dp);
--	} else {
--		if (pdata->phy_init)
--			pdata->phy_init();
--	}
-+	exynos_dp_phy_init(dp);
- 
- 	exynos_dp_init_dp(dp);
- 
-@@ -1121,18 +1076,11 @@ static int exynos_dp_probe(struct platform_device *pdev)
- 
- static int exynos_dp_remove(struct platform_device *pdev)
- {
--	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
- 	struct exynos_dp_device *dp = platform_get_drvdata(pdev);
- 
- 	flush_work(&dp->hotplug_work);
- 
--	if (pdev->dev.of_node) {
--		if (dp->phy_addr)
--			exynos_dp_phy_exit(dp);
--	} else {
--		if (pdata->phy_exit)
--			pdata->phy_exit();
--	}
-+	exynos_dp_phy_exit(dp);
- 
- 	clk_disable_unprepare(dp->clock);
- 
-@@ -1143,20 +1091,13 @@ static int exynos_dp_remove(struct platform_device *pdev)
- #ifdef CONFIG_PM_SLEEP
- static int exynos_dp_suspend(struct device *dev)
- {
--	struct exynos_dp_platdata *pdata = dev->platform_data;
- 	struct exynos_dp_device *dp = dev_get_drvdata(dev);
- 
- 	disable_irq(dp->irq);
- 
- 	flush_work(&dp->hotplug_work);
- 
--	if (dev->of_node) {
--		if (dp->phy_addr)
--			exynos_dp_phy_exit(dp);
--	} else {
--		if (pdata->phy_exit)
--			pdata->phy_exit();
--	}
-+	exynos_dp_phy_exit(dp);
- 
- 	clk_disable_unprepare(dp->clock);
- 
-@@ -1165,16 +1106,9 @@ static int exynos_dp_suspend(struct device *dev)
- 
- static int exynos_dp_resume(struct device *dev)
- {
--	struct exynos_dp_platdata *pdata = dev->platform_data;
- 	struct exynos_dp_device *dp = dev_get_drvdata(dev);
- 
--	if (dev->of_node) {
--		if (dp->phy_addr)
--			exynos_dp_phy_init(dp);
--	} else {
--		if (pdata->phy_init)
--			pdata->phy_init();
--	}
-+	exynos_dp_phy_init(dp);
- 
- 	clk_prepare_enable(dp->clock);
- 
-@@ -1203,7 +1137,7 @@ static struct platform_driver exynos_dp_driver = {
- 		.name	= "exynos-dp",
- 		.owner	= THIS_MODULE,
- 		.pm	= &exynos_dp_pm_ops,
--		.of_match_table = of_match_ptr(exynos_dp_match),
-+		.of_match_table = exynos_dp_match,
- 	},
- };
- 
-diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
-index 6c567bbf..56cfec8 100644
---- a/drivers/video/exynos/exynos_dp_core.h
-+++ b/drivers/video/exynos/exynos_dp_core.h
-@@ -13,6 +13,99 @@
- #ifndef _EXYNOS_DP_CORE_H
- #define _EXYNOS_DP_CORE_H
- 
-+#define DP_TIMEOUT_LOOP_COUNT 100
-+#define MAX_CR_LOOP 5
-+#define MAX_EQ_LOOP 5
-+
-+enum link_rate_type {
-+	LINK_RATE_1_62GBPS = 0x06,
-+	LINK_RATE_2_70GBPS = 0x0a
-+};
-+
-+enum link_lane_count_type {
-+	LANE_COUNT1 = 1,
-+	LANE_COUNT2 = 2,
-+	LANE_COUNT4 = 4
-+};
-+
-+enum link_training_state {
-+	START,
-+	CLOCK_RECOVERY,
-+	EQUALIZER_TRAINING,
-+	FINISHED,
-+	FAILED
-+};
-+
-+enum voltage_swing_level {
-+	VOLTAGE_LEVEL_0,
-+	VOLTAGE_LEVEL_1,
-+	VOLTAGE_LEVEL_2,
-+	VOLTAGE_LEVEL_3,
-+};
-+
-+enum pre_emphasis_level {
-+	PRE_EMPHASIS_LEVEL_0,
-+	PRE_EMPHASIS_LEVEL_1,
-+	PRE_EMPHASIS_LEVEL_2,
-+	PRE_EMPHASIS_LEVEL_3,
-+};
-+
-+enum pattern_set {
-+	PRBS7,
-+	D10_2,
-+	TRAINING_PTN1,
-+	TRAINING_PTN2,
-+	DP_NONE
-+};
-+
-+enum color_space {
-+	COLOR_RGB,
-+	COLOR_YCBCR422,
-+	COLOR_YCBCR444
-+};
-+
-+enum color_depth {
-+	COLOR_6,
-+	COLOR_8,
-+	COLOR_10,
-+	COLOR_12
-+};
-+
-+enum color_coefficient {
-+	COLOR_YCBCR601,
-+	COLOR_YCBCR709
-+};
-+
-+enum dynamic_range {
-+	VESA,
-+	CEA
-+};
-+
-+enum pll_status {
-+	PLL_UNLOCKED,
-+	PLL_LOCKED
-+};
-+
-+enum clock_recovery_m_value_type {
-+	CALCULATED_M,
-+	REGISTER_M
-+};
-+
-+enum video_timing_recognition_type {
-+	VIDEO_TIMING_FROM_CAPTURE,
-+	VIDEO_TIMING_FROM_REGISTER
-+};
-+
-+enum analog_power_block {
-+	AUX_BLOCK,
-+	CH0_BLOCK,
-+	CH1_BLOCK,
-+	CH2_BLOCK,
-+	CH3_BLOCK,
-+	ANALOG_TOTAL,
-+	POWER_ALL
-+};
-+
- enum dp_irq_type {
- 	DP_IRQ_TYPE_HP_CABLE_IN,
- 	DP_IRQ_TYPE_HP_CABLE_OUT,
-@@ -20,6 +113,22 @@ enum dp_irq_type {
- 	DP_IRQ_TYPE_UNKNOWN,
- };
- 
-+struct video_info {
-+	char *name;
-+
-+	bool h_sync_polarity;
-+	bool v_sync_polarity;
-+	bool interlaced;
-+
-+	enum color_space color_space;
-+	enum dynamic_range dynamic_range;
-+	enum color_coefficient ycbcr_coeff;
-+	enum color_depth color_depth;
-+
-+	enum link_rate_type link_rate;
-+	enum link_lane_count_type lane_count;
-+};
-+
- struct link_train {
- 	int eq_loop;
- 	int cr_loop[4];
-diff --git a/drivers/video/exynos/exynos_dp_reg.c b/drivers/video/exynos/exynos_dp_reg.c
-index 29d9d03..b70da50 100644
---- a/drivers/video/exynos/exynos_dp_reg.c
-+++ b/drivers/video/exynos/exynos_dp_reg.c
-@@ -14,8 +14,6 @@
- #include <linux/io.h>
- #include <linux/delay.h>
- 
--#include <video/exynos_dp.h>
--
- #include "exynos_dp_core.h"
- #include "exynos_dp_reg.h"
- 
-diff --git a/include/video/exynos_dp.h b/include/video/exynos_dp.h
-deleted file mode 100644
-index bd8cabd..0000000
---- a/include/video/exynos_dp.h
-+++ /dev/null
-@@ -1,131 +0,0 @@
--/*
-- * Samsung SoC DP device support
-- *
-- * Copyright (C) 2012 Samsung Electronics Co., Ltd.
-- * Author: Jingoo Han <jg1.han@samsung.com>
-- *
-- * This program is free software; you can redistribute it and/or modify
-- * it under the terms of the GNU General Public License version 2 as
-- * published by the Free Software Foundation.
-- */
--
--#ifndef _EXYNOS_DP_H
--#define _EXYNOS_DP_H
--
--#define DP_TIMEOUT_LOOP_COUNT 100
--#define MAX_CR_LOOP 5
--#define MAX_EQ_LOOP 5
--
--enum link_rate_type {
--	LINK_RATE_1_62GBPS = 0x06,
--	LINK_RATE_2_70GBPS = 0x0a
--};
--
--enum link_lane_count_type {
--	LANE_COUNT1 = 1,
--	LANE_COUNT2 = 2,
--	LANE_COUNT4 = 4
--};
--
--enum link_training_state {
--	START,
--	CLOCK_RECOVERY,
--	EQUALIZER_TRAINING,
--	FINISHED,
--	FAILED
--};
--
--enum voltage_swing_level {
--	VOLTAGE_LEVEL_0,
--	VOLTAGE_LEVEL_1,
--	VOLTAGE_LEVEL_2,
--	VOLTAGE_LEVEL_3,
--};
--
--enum pre_emphasis_level {
--	PRE_EMPHASIS_LEVEL_0,
--	PRE_EMPHASIS_LEVEL_1,
--	PRE_EMPHASIS_LEVEL_2,
--	PRE_EMPHASIS_LEVEL_3,
--};
--
--enum pattern_set {
--	PRBS7,
--	D10_2,
--	TRAINING_PTN1,
--	TRAINING_PTN2,
--	DP_NONE
--};
--
--enum color_space {
--	COLOR_RGB,
--	COLOR_YCBCR422,
--	COLOR_YCBCR444
--};
--
--enum color_depth {
--	COLOR_6,
--	COLOR_8,
--	COLOR_10,
--	COLOR_12
--};
--
--enum color_coefficient {
--	COLOR_YCBCR601,
--	COLOR_YCBCR709
--};
--
--enum dynamic_range {
--	VESA,
--	CEA
--};
--
--enum pll_status {
--	PLL_UNLOCKED,
--	PLL_LOCKED
--};
--
--enum clock_recovery_m_value_type {
--	CALCULATED_M,
--	REGISTER_M
--};
--
--enum video_timing_recognition_type {
--	VIDEO_TIMING_FROM_CAPTURE,
--	VIDEO_TIMING_FROM_REGISTER
--};
--
--enum analog_power_block {
--	AUX_BLOCK,
--	CH0_BLOCK,
--	CH1_BLOCK,
--	CH2_BLOCK,
--	CH3_BLOCK,
--	ANALOG_TOTAL,
--	POWER_ALL
--};
--
--struct video_info {
--	char *name;
--
--	bool h_sync_polarity;
--	bool v_sync_polarity;
--	bool interlaced;
--
--	enum color_space color_space;
--	enum dynamic_range dynamic_range;
--	enum color_coefficient ycbcr_coeff;
--	enum color_depth color_depth;
--
--	enum link_rate_type link_rate;
--	enum link_lane_count_type lane_count;
--};
--
--struct exynos_dp_platdata {
--	struct video_info *video_info;
--
--	void (*phy_init)(void);
--	void (*phy_exit)(void);
--};
--
--#endif /* _EXYNOS_DP_H */
 -- 
-1.7.10.4
-
+1.7.9.5
 
