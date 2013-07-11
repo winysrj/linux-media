@@ -1,50 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f48.google.com ([209.85.220.48]:33861 "EHLO
-	mail-pa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753206Ab3GYHde (ORCPT
+Received: from mail-pd0-f173.google.com ([209.85.192.173]:62826 "EHLO
+	mail-pd0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932187Ab3GKJIa (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 03:33:34 -0400
-Received: by mail-pa0-f48.google.com with SMTP id kp13so434532pab.21
-        for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 00:33:33 -0700 (PDT)
-Date: Thu, 25 Jul 2013 16:32:56 +0900 (JST)
-Message-Id: <20130725.163256.373541261.matsu@igel.co.jp>
-To: sergei.shtylyov@cogentembedded.com
-Cc: mchehab@redhat.com, linux-media@vger.kernel.org,
-	hverkuil@xs4all.nl, linux-sh@vger.kernel.org,
-	vladimir.barinov@cogentembedded.com
-Subject: Re: [PATCH] ml86v7667: override default field interlace order
-From: Katsuya MATSUBARA <matsu@igel.co.jp>
-In-Reply-To: <201307152312.22371.sergei.shtylyov@cogentembedded.com>
-References: <201307152312.22371.sergei.shtylyov@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Thu, 11 Jul 2013 05:08:30 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Johan Hovold <jhovold@gmail.com>
+Subject: [PATCH 14/50] USB: serial: mos7720: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:37 +0800
+Message-Id: <1373533573-12272-15-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
- Hi Vladimir,
-
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-Subject: [PATCH] ml86v7667: override default field interlace order
-Date: Mon, 15 Jul 2013 23:12:21 +0400
-
-> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> 
-> ML86V7667 always transmits top field first for both PAL and  NTSC -- that makes
-> application incorrectly  treat interlaced  fields when relying on the standard.
-> Hence we must set V4L2_FIELD_INTERLACED_TB format explicitly.
-> 
-> Reported-by: Katsuya MATSUBARA <matsu@igel.co.jp>
-> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-> [Sergei: added a comment.]
-> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-(snip)
-
-I made sure that it works well on the Renesas BOCK-W board.
-
-Tested-by: Katsuya MATSUBARA <matsu@igel.co.jp>
-
+Cc: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
 ---
-Katsuya Matsubara / IGEL Co., Ltd
-matsu@igel.co.jp
+ drivers/usb/serial/mos7720.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/usb/serial/mos7720.c b/drivers/usb/serial/mos7720.c
+index 51da424..9b8c866 100644
+--- a/drivers/usb/serial/mos7720.c
++++ b/drivers/usb/serial/mos7720.c
+@@ -338,14 +338,15 @@ static void async_complete(struct urb *urb)
+ {
+ 	struct urbtracker *urbtrack = urb->context;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	if (unlikely(status))
+ 		dev_dbg(&urb->dev->dev, "%s - nonzero urb status received: %d\n", __func__, status);
+ 
+ 	/* remove the urbtracker from the active_urbs list */
+-	spin_lock(&urbtrack->mos_parport->listlock);
++	spin_lock_irqsave(&urbtrack->mos_parport->listlock, flags);
+ 	list_del(&urbtrack->urblist_entry);
+-	spin_unlock(&urbtrack->mos_parport->listlock);
++	spin_unlock_irqrestore(&urbtrack->mos_parport->listlock, flags);
+ 	kref_put(&urbtrack->ref_count, destroy_urbtracker);
+ }
+ 
+-- 
+1.7.9.5
+
