@@ -1,89 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:52100 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750741Ab3GSLBu (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 07:01:50 -0400
-Date: Fri, 19 Jul 2013 12:01:47 +0100
-From: Sean Young <sean@mess.org>
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Cc: linux-media@vger.kernel.org, alipowski@interia.pl,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, srinivas.kandagatla@gmail.com
-Subject: Re: [PATCH v1 1/2] media: rc: Add user count to rc dev.
-Message-ID: <20130719110147.GA1104@pequod.mess.org>
-References: <1374223132-4924-1-git-send-email-srinivas.kandagatla@st.com>
- <1374223167-4980-1-git-send-email-srinivas.kandagatla@st.com>
+Received: from mail-la0-f53.google.com ([209.85.215.53]:64892 "EHLO
+	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab3GKNrI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 09:47:08 -0400
+Received: by mail-la0-f53.google.com with SMTP id fs12so6834649lab.12
+        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 06:47:06 -0700 (PDT)
+Message-ID: <51DEB757.6070202@cogentembedded.com>
+Date: Thu, 11 Jul 2013 17:47:03 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1374223167-4980-1-git-send-email-srinivas.kandagatla@st.com>
+To: Oliver Neukum <oliver@neukum.org>
+CC: Ming Lei <ming.lei@canonical.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Juergen Stuber <starblue@users.sourceforge.net>
+Subject: Re: [PATCH 08/50] USB: legousbtower: spin_lock in complete() cleanup
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-9-git-send-email-ming.lei@canonical.com> <51DEA289.5050509@cogentembedded.com> <3187374.nPY1jDDWKm@linux-5eaq.site>
+In-Reply-To: <3187374.nPY1jDDWKm@linux-5eaq.site>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 19, 2013 at 09:39:27AM +0100, Srinivas KANDAGATLA wrote:
-> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> 
-> This patch adds user count to rc_dev structure, the reason to add this
-> new member is to allow other code like lirc to open rc device directly.
-> In the existing code, rc device is only opened by input subsystem which
-> works ok if we have any input drivers to match. But in case like lirc
-> where there will be no input driver, rc device will be never opened.
-> 
-> Having this user count variable will be useful to allow rc device to be
-> opened from code other than rc-main.
-> 
-> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> ---
->  drivers/media/rc/rc-main.c |   11 +++++++++--
->  include/media/rc-core.h    |    1 +
->  2 files changed, 10 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-> index 1cf382a..e800b96 100644
-> --- a/drivers/media/rc/rc-main.c
-> +++ b/drivers/media/rc/rc-main.c
-> @@ -702,15 +702,22 @@ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
->  static int ir_open(struct input_dev *idev)
->  {
->  	struct rc_dev *rdev = input_get_drvdata(idev);
-> +	int rval = 0;
->  
-> -	return rdev->open(rdev);
-> +	if (!rdev->users++)
-> +		rval = rdev->open(rdev);
-> +
-> +	if (rval)
-> +		rdev->users--;
-> +
-> +	return rval;
+Hello.
 
-This looks racey. Some locking is needed, I think rc_dev->lock should work
-fine for this. Here and in the lirc code path too.
+On 11-07-2013 16:36, Oliver Neukum wrote:
 
-Sean
+>>      I don't think this patch passes checkpatch.pl.
 
->  }
->  
->  static void ir_close(struct input_dev *idev)
->  {
->  	struct rc_dev *rdev = input_get_drvdata(idev);
->  
-> -	 if (rdev)
-> +	 if (rdev && !--rdev->users)
->  		rdev->close(rdev);
->  }
->  
-> diff --git a/include/media/rc-core.h b/include/media/rc-core.h
-> index 06a75de..b42016a 100644
-> --- a/include/media/rc-core.h
-> +++ b/include/media/rc-core.h
-> @@ -101,6 +101,7 @@ struct rc_dev {
->  	bool				idle;
->  	u64				allowed_protos;
->  	u64				enabled_protocols;
-> +	u32				users;
->  	u32				scanmask;
->  	void				*priv;
->  	spinlock_t			keylock;
-> -- 
-> 1.7.6.5
+> This series is a mechanical replacement in dozens of drivers.
+
+    That mechanicity shows too much in some patches.
+
+> We cannot demand nice formatting.  If you want to do something
+> productive, check the locking in the driver.
+
+    I'm not paid for it and don't have time to do it for free.
+
+> 	Regards
+> 		Oliver
+
+WBR, Sergei
+
+
