@@ -1,160 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from relmlor3.renesas.com ([210.160.252.173]:62096 "EHLO
-	relmlor3.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754622Ab3GOJcc (ORCPT
+Received: from mail-pb0-f49.google.com ([209.85.160.49]:65392 "EHLO
+	mail-pb0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755838Ab3GKJGh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jul 2013 05:32:32 -0400
-Received: from relmlir4.idc.renesas.com ([10.200.68.154])
- by relmlor3.idc.renesas.com ( SJSMS)
- with ESMTP id <0MPZ00FMJ1673M40@relmlor3.idc.renesas.com> for
- linux-media@vger.kernel.org; Mon, 15 Jul 2013 18:32:31 +0900 (JST)
-Received: from relmlac4.idc.renesas.com ([10.200.69.24])
- by relmlir4.idc.renesas.com ( SJSMS)
- with ESMTP id <0MPZ00DTO167HX70@relmlir4.idc.renesas.com> for
- linux-media@vger.kernel.org; Mon, 15 Jul 2013 18:32:31 +0900 (JST)
-In-reply-to: <Pine.LNX.4.64.1307151114270.16726@axis700.grange>
-References: <CAGGh5h1btafaMoaB89RBND2L8+Zg767HW3+hKG7Xcq2fsEN6Ew@mail.gmail.com>
- <1370423495-16784-1-git-send-email-phil.edworthy@renesas.com>
- <Pine.LNX.4.64.1307141216310.9479@axis700.grange>
- <OF23E0ECB2.378DD339-ON80257BA9.002CD00C-80257BA9.00321DEB@eu.necel.com>
- <Pine.LNX.4.64.1307151114270.16726@axis700.grange>
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean-Philippe Francois <jp.francois@cynove.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-MIME-version: 1.0
-From: phil.edworthy@renesas.com
-Message-id: <OFD872F119.19A49694-ON80257BA9.003406ED-80257BA9.003467F5@eu.necel.com>
-Date: Mon, 15 Jul 2013 10:32:25 +0100
-Subject: Re: [PATCH v3] ov10635: Add OmniVision ov10635 SoC camera driver
-Content-type: text/plain; charset=US-ASCII
+	Thu, 11 Jul 2013 05:06:37 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org
+Subject: [PATCH 00/50] USB: cleanup spin_lock in URB->complete()
+Date: Thu, 11 Jul 2013 17:05:23 +0800
+Message-Id: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+Hi,
 
-> > > > +/* read a register */
-> > > > +static int ov10635_reg_read(struct i2c_client *client, u16 reg, 
-u8 
-> > *val)
-> > > > +{
-> > > > +   int ret;
-> > > > +   u8 data[2] = { reg >> 8, reg & 0xff };
-> > > > +   struct i2c_msg msg = {
-> > > > +      .addr   = client->addr,
-> > > > +      .flags   = 0,
-> > > > +      .len   = 2,
-> > > > +      .buf   = data,
-> > > > +   };
-> > > > +
-> > > > +   ret = i2c_transfer(client->adapter, &msg, 1);
-> > > > +   if (ret < 0)
-> > > > +      goto err;
-> > > > +
-> > > > +   msg.flags = I2C_M_RD;
-> > > > +   msg.len   = 1;
-> > > > +   msg.buf   = data,
-> > > > +   ret = i2c_transfer(client->adapter, &msg, 1);
-> > > > +   if (ret < 0)
-> > > > +      goto err;
-> > > > +
-> > > > +   *val = data[0];
-> > > 
-> > > I think, you can do this in one I2C transfer with 2 messages. Look 
-e.g. 
-> > > imx074.c. Although, now looking at it, I'm not sure why it has .len 
-= 2 
-> > in 
-> > > the second message...
-> > Ok, I'll change this to one i2c transfer. As you sauy, no idea why the 
-imx 
-> > code is reading 2 bytes though...
-> 
-> But I don't have any way to test it anymore, anyway: the only user - 
-> ap4evb - is gone now. So, that driver doesn't matter much anymore. We 
-can 
-> just fix that blindly without testing, or we can leave it as is and mark 
+As we are going to run URB->complete() in tasklet context[1][2], and
+hard interrupt may be enabled when running URB completion handler[3],
+so we might need to disable interrupt when acquiring one lock in
+the completion handler for the below reasons:
 
-> the driver broken, or we can remove it completely.
-ok
+- URB->complete() holds a subsystem wide lock which may be acquired
+in another hard irq context, and the subsystem wide lock is acquired
+by spin_lock()/read_lock()/write_lock() in complete()
 
-> [snip]
-> 
-> > > > +         continue;
-> > > > +
-> > > > +      /* Mult = reg 0x3003, bits 5:0 */
-> > > 
-> > > You could also define macros for 0x3003, 0x3004 and others, where 
-you 
-> > know 
-> > > the role of those registers, even if not their official names.
-> > Do you mean macros for the bit fields?
-> 
-> No, primarily I mean macros for register addresses.
-ok
+- URB->complete() holds a private lock with spin_lock()/read_lock()/write_lock()
+but driver may export APIs to make other drivers acquire the same private
+lock in its interrupt handler.
 
-> [snip]
-> 
-> > > > +            /* 2 clock cycles for every YUV422 pixel */
-> > > > +            if (pclk < (((hts * *vtsmin)/fps_denominator)
-> > > > +               * fps_numerator * 2))
-> > > 
-> > > Actually just
-> > > 
-> > > +            if (pclk < hts * *vtsmin / fps_denominator
-> > > +               * fps_numerator * 2)
-> > > 
-> > > would do just fine
-> > It would, but I think we should use parenthesis here to ensure the 
-divide 
-> > by the denominator happens before multiplying by the numerator. This 
-is to 
-> > ensure the value doesn't overflow.
-> 
-> I think the C standard already guarantees that. You only need 
-parenthesis 
-> to enforce a non-standard calculation order.
-ok, but I think I'll add a comment about being careful to avoid overflow.
+For the sake of safety and making the change simple, this patch set
+converts all spin_lock()/read_lock()/write_lock() in completion handler
+path into their irqsave version mechanically.
 
-> [snip]
-> 
-> > > > +static int ov10635_g_crop(struct v4l2_subdev *sd, struct 
-v4l2_crop *a)
-> > > > +{
-> > > > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > > > +   struct ov10635_priv *priv = to_ov10635(client);
-> > > > +
-> > > > +   if (priv) {
-> > > > +      a->c.width = priv->width;
-> > > > +      a->c.height = priv->height;
-> > > 
-> > > Wait, what is priv->width and priv->height? Are they sensor output 
-sizes 
-> > > or crop sizes?
-> > Sensor output sizes. Ah, I guess this is one of the few 
-cameras/drivers 
-> > that can support setup the sensor for any size (except restrictions 
-for 
-> > 4:2:2 format). So maybe I should not implement these functions? 
-Looking at 
-> > the CEU SoC camera host driver, it would then use the defrect cropcap. 
-I 
-> > am not sure what that will be though.
-> 
-> Cropping and scaling are two different functions. Cropping selects an 
-area 
-> on the sensor matrix to use for data sampling. Scaling configures to 
-which 
-> output rectangle to scale that area. So, since your camera can do both 
-and 
-> your driver supports both, you shouldn't return the same sizes in 
-.g_fmt() 
-> and .g_crop() unless, of course, a 1:1 scale has been set. And currently 
+But if you are sure the above two cases do not happen in your driver,
+please let me know and I can drop the unnecessary change.
 
-> you do exactly that - return priv->width and priv->height in both.
-Ok, now I see. My comment about the sensor output size changing is wrong. 
-The sensor doesn't do any scaling, so we are cropping it.
+Also if you find some conversions are missed, also please let me know so
+that I can add it in the next round.
 
-Thanks
-Phil
+
+[1], http://marc.info/?l=linux-usb&m=137286322526312&w=2
+[2], http://marc.info/?l=linux-usb&m=137286326726326&w=2
+[3], http://marc.info/?l=linux-usb&m=137286330626363&w=2
+
+ drivers/bluetooth/bfusb.c                     |   12 ++++----
+ drivers/bluetooth/btusb.c                     |    5 ++--
+ drivers/hid/usbhid/hid-core.c                 |    5 ++--
+ drivers/input/misc/cm109.c                    |   10 ++++---
+ drivers/isdn/hardware/mISDN/hfcsusb.c         |   36 ++++++++++++-----------
+ drivers/media/dvb-core/dvb_demux.c            |   17 +++++++----
+ drivers/media/usb/cx231xx/cx231xx-audio.c     |    6 ++++
+ drivers/media/usb/cx231xx/cx231xx-core.c      |   10 ++++---
+ drivers/media/usb/cx231xx/cx231xx-vbi.c       |    5 ++--
+ drivers/media/usb/em28xx/em28xx-audio.c       |    3 ++
+ drivers/media/usb/em28xx/em28xx-core.c        |    5 ++--
+ drivers/media/usb/sn9c102/sn9c102_core.c      |    7 +++--
+ drivers/media/usb/tlg2300/pd-alsa.c           |    3 ++
+ drivers/media/usb/tlg2300/pd-video.c          |    5 ++--
+ drivers/media/usb/tm6000/tm6000-video.c       |    5 ++--
+ drivers/net/usb/cdc-phonet.c                  |    5 ++--
+ drivers/net/usb/hso.c                         |   38 ++++++++++++++-----------
+ drivers/net/usb/kaweth.c                      |    7 +++--
+ drivers/net/usb/rtl8150.c                     |    5 ++--
+ drivers/net/wireless/ath/ath9k/hif_usb.c      |   29 ++++++++++---------
+ drivers/net/wireless/ath/ath9k/htc_drv_txrx.c |    9 +++---
+ drivers/net/wireless/ath/ath9k/wmi.c          |   11 +++----
+ drivers/net/wireless/ath/carl9170/rx.c        |    5 ++--
+ drivers/net/wireless/libertas/if_usb.c        |    5 ++--
+ drivers/net/wireless/libertas_tf/if_usb.c     |    6 ++--
+ drivers/net/wireless/zd1211rw/zd_usb.c        |   21 ++++++++------
+ drivers/staging/bcm/InterfaceRx.c             |    5 ++--
+ drivers/staging/btmtk_usb/btmtk_usb.c         |    5 ++--
+ drivers/staging/ced1401/usb1401.c             |   35 ++++++++++++-----------
+ drivers/staging/vt6656/usbpipe.c              |    9 +++---
+ drivers/usb/class/cdc-wdm.c                   |   16 +++++++----
+ drivers/usb/class/usblp.c                     |   10 ++++---
+ drivers/usb/core/devio.c                      |    5 ++--
+ drivers/usb/misc/adutux.c                     |   10 ++++---
+ drivers/usb/misc/iowarrior.c                  |    5 ++--
+ drivers/usb/misc/ldusb.c                      |    7 +++--
+ drivers/usb/misc/legousbtower.c               |    5 ++--
+ drivers/usb/misc/usbtest.c                    |   10 ++++---
+ drivers/usb/misc/uss720.c                     |    6 +++-
+ drivers/usb/serial/cyberjack.c                |   15 ++++++----
+ drivers/usb/serial/digi_acceleport.c          |   23 ++++++++-------
+ drivers/usb/serial/io_edgeport.c              |   14 +++++----
+ drivers/usb/serial/io_ti.c                    |    5 ++--
+ drivers/usb/serial/mos7720.c                  |    5 ++--
+ drivers/usb/serial/mos7840.c                  |    5 ++--
+ drivers/usb/serial/quatech2.c                 |    5 ++--
+ drivers/usb/serial/sierra.c                   |    9 +++---
+ drivers/usb/serial/symbolserial.c             |    5 ++--
+ drivers/usb/serial/ti_usb_3410_5052.c         |    9 +++---
+ drivers/usb/serial/usb_wwan.c                 |    5 ++--
+ sound/usb/caiaq/audio.c                       |    5 ++--
+ sound/usb/midi.c                              |    5 ++--
+ sound/usb/misc/ua101.c                        |   14 +++++++--
+ sound/usb/usx2y/usbusx2yaudio.c               |    4 +++
+ 54 files changed, 322 insertions(+), 209 deletions(-)
+
+
+Thanks,
+--
+Ming Lei
+
