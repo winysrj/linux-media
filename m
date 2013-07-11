@@ -1,68 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33787 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755071Ab3GPX6L (ORCPT
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:45583 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab3GKJLT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 19:58:11 -0400
-Date: Wed, 17 Jul 2013 02:58:05 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: MT9D131 context switching [was RE: width and height of JPEG
- compressed images]
-Message-ID: <20130716235805.GA11369@valkosipuli.retiisi.org.uk>
-References: <A683633ABCE53E43AFB0344442BF0F05361689EE@server10.irisys.local>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <A683633ABCE53E43AFB0344442BF0F05361689EE@server10.irisys.local>
+	Thu, 11 Jul 2013 05:11:19 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH 35/50] media: usb: cx231xx: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:58 +0800
+Message-Id: <1373533573-12272-36-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-On Mon, Jul 15, 2013 at 09:30:33AM +0000, Thomas Vajzovic wrote:
-> Hi Sylwester,
-> 
-> On 10 July 2013 20:44 Sylwester Nawrocki wrote:
-> >On 07/07/2013 10:18 AM, Thomas Vajzovic wrote:
-> >> On 06 July 2013 20:58 Sylwester Nawrocki wrote:
-> >>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
-> >>>>
-> >>>> I am writing a driver for the sensor MT9D131.
-> >
-> > As a side note, looking at the MT9D131 sensor datasheet I can see it
-> > has preview (Mode A) and capture (Mode B) modes. Are you also
-> > planning adding proper support for switching between those modes ?
-> > I'm interested in supporting this in standard way in V4L2, as lot's
-> > of sensors I have been working with also support such modes.
-> 
-> This camera has more like three modes:
-> 
-> 
-> preview (context A) up to 800x600, up to 30fps, YUV/RGB
-> 
-> capture video (context B) up to 1600x1200, up to 15fps, YUV/RGB/JPEG
-> 
-> capture stills (context B) up to 1600x1200,
-> sequence of 1 or more frames with no fixed timing, YUV/RGB/JPEG
-> 
-> 
-> I have implemented switching between the first two of these, but the
-> choice is forced by the framerate, resolution and format that the user
-> requests, so I have not exposed any interface to change the context,
-> the driver just chooses the one that can do what the user wants.
-> 
-> As for the third mode, I do not currently plan to implement it, but
-> if I was going to then I think the only API that would be required
-> is V4L2_MODE_HIGHQUALITY in v4l2_captureparm.capturemode.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/media/usb/cx231xx/cx231xx-audio.c |    6 ++++++
+ drivers/media/usb/cx231xx/cx231xx-core.c  |   10 ++++++----
+ drivers/media/usb/cx231xx/cx231xx-vbi.c   |    5 +++--
+ 3 files changed, 15 insertions(+), 6 deletions(-)
 
-Is there a practical difference in video and still capture in this case?
-
+diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
+index 81a1d97..58c1b5c 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-audio.c
++++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
+@@ -136,6 +136,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
+ 		stride = runtime->frame_bits >> 3;
+ 
+ 		for (i = 0; i < urb->number_of_packets; i++) {
++			unsigned long flags;
+ 			int length = urb->iso_frame_desc[i].actual_length /
+ 				     stride;
+ 			cp = (unsigned char *)urb->transfer_buffer +
+@@ -158,6 +159,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
+ 				       length * stride);
+ 			}
+ 
++			local_irq_save(flags);
+ 			snd_pcm_stream_lock(substream);
+ 
+ 			dev->adev.hwptr_done_capture += length;
+@@ -174,6 +176,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
+ 				period_elapsed = 1;
+ 			}
+ 			snd_pcm_stream_unlock(substream);
++			local_irq_restore(flags);
+ 		}
+ 		if (period_elapsed)
+ 			snd_pcm_period_elapsed(substream);
+@@ -224,6 +227,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
+ 		stride = runtime->frame_bits >> 3;
+ 
+ 		if (1) {
++			unsigned long flags;
+ 			int length = urb->actual_length /
+ 				     stride;
+ 			cp = (unsigned char *)urb->transfer_buffer;
+@@ -242,6 +246,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
+ 				       length * stride);
+ 			}
+ 
++			local_irq_save(flags);
+ 			snd_pcm_stream_lock(substream);
+ 
+ 			dev->adev.hwptr_done_capture += length;
+@@ -258,6 +263,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
+ 				period_elapsed = 1;
+ 			}
+ 			snd_pcm_stream_unlock(substream);
++			local_irq_restore(flags);
+ 		}
+ 		if (period_elapsed)
+ 			snd_pcm_period_elapsed(substream);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
+index 4ba3ce0..593b397 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-core.c
++++ b/drivers/media/usb/cx231xx/cx231xx-core.c
+@@ -798,6 +798,7 @@ static void cx231xx_isoc_irq_callback(struct urb *urb)
+ 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
+ 	struct cx231xx *dev = container_of(vmode, struct cx231xx, video_mode);
+ 	int i;
++	unsigned long flags;
+ 
+ 	switch (urb->status) {
+ 	case 0:		/* success */
+@@ -813,9 +814,9 @@ static void cx231xx_isoc_irq_callback(struct urb *urb)
+ 	}
+ 
+ 	/* Copy data from URB */
+-	spin_lock(&dev->video_mode.slock);
++	spin_lock_irqsave(&dev->video_mode.slock, flags);
+ 	dev->video_mode.isoc_ctl.isoc_copy(dev, urb);
+-	spin_unlock(&dev->video_mode.slock);
++	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
+ 
+ 	/* Reset urb buffers */
+ 	for (i = 0; i < urb->number_of_packets; i++) {
+@@ -842,6 +843,7 @@ static void cx231xx_bulk_irq_callback(struct urb *urb)
+ 	struct cx231xx_video_mode *vmode =
+ 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
+ 	struct cx231xx *dev = container_of(vmode, struct cx231xx, video_mode);
++	unsigned long flags;
+ 
+ 	switch (urb->status) {
+ 	case 0:		/* success */
+@@ -857,9 +859,9 @@ static void cx231xx_bulk_irq_callback(struct urb *urb)
+ 	}
+ 
+ 	/* Copy data from URB */
+-	spin_lock(&dev->video_mode.slock);
++	spin_lock_irqsave(&dev->video_mode.slock, flags);
+ 	dev->video_mode.bulk_ctl.bulk_copy(dev, urb);
+-	spin_unlock(&dev->video_mode.slock);
++	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
+ 
+ 	/* Reset urb buffers */
+ 	urb->status = usb_submit_urb(urb, GFP_ATOMIC);
+diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+index c027942..38e78f8 100644
+--- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
++++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
+@@ -306,6 +306,7 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
+ 	struct cx231xx_video_mode *vmode =
+ 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
+ 	struct cx231xx *dev = container_of(vmode, struct cx231xx, vbi_mode);
++	unsigned long flags;
+ 
+ 	switch (urb->status) {
+ 	case 0:		/* success */
+@@ -322,9 +323,9 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
+ 	}
+ 
+ 	/* Copy data from URB */
+-	spin_lock(&dev->vbi_mode.slock);
++	spin_lock_irqsave(&dev->vbi_mode.slock, flags);
+ 	dev->vbi_mode.bulk_ctl.bulk_copy(dev, urb);
+-	spin_unlock(&dev->vbi_mode.slock);
++	spin_unlock_irqrestore(&dev->vbi_mode.slock, flags);
+ 
+ 	/* Reset status */
+ 	urb->status = 0;
 -- 
-Regards,
+1.7.9.5
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
