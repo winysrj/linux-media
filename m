@@ -1,226 +1,232 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:45812 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750865Ab3GXHoq (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 03:44:46 -0400
-Message-ID: <51EF853E.2040108@schinagl.nl>
-Date: Wed, 24 Jul 2013 09:41:50 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: Krishna Kishore <krishna.kishore@sasken.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: Prof DVB-S2 USB device
-References: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>,<51EEEFCA.9040107@schinagl.nl> <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com>
-In-Reply-To: <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:33160 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab3GKJKi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 05:10:38 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	"Luis R. Rodriguez" <mcgrof@qca.qualcomm.com>,
+	"John W. Linville" <linville@tuxdriver.com>
+Subject: [PATCH 30/50] wireless: ath9k: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:53 +0800
+Message-Id: <1373533573-12272-31-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 24-07-13 08:56, Krishna Kishore wrote:
-> Dear Oliver,
->
->     Thanks for your response. Here are more details. Please help me in making this work.
->
->     Linux version:
->
-> -sh-4.1# uname -a
-> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013 armv7l GNU/Linux
-Your kernel is ancient. The latest kernel with the latest media fluff is 
-3.10.2; Since you are on arm, chances are your platform isn't that well 
-supported with later kernels, but even in the 3.4 world your kernel is 
-ancient. Latest stable is 3.4.54.
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-So you are asking for help, with something that could have been fixed 3 
-times over (or not, I don't know). So my first suggestion is to upgrade 
-your kernel. If that's not possible on your arm platform, contact the 
-supplier of your kernel.
+Cc: "Luis R. Rodriguez" <mcgrof@qca.qualcomm.com>
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: linux-wireless@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/net/wireless/ath/ath9k/hif_usb.c      |   29 ++++++++++++++-----------
+ drivers/net/wireless/ath/ath9k/htc_drv_txrx.c |    9 ++++----
+ drivers/net/wireless/ath/ath9k/wmi.c          |   11 +++++-----
+ 3 files changed, 27 insertions(+), 22 deletions(-)
 
-Meanwhile, since this is an USB device, you could try it on a desktop. 
-Get a recent Ubuntu live CD and see if it works there. At least then you 
-can quickly and easily see if your problem hasn't been fixed in the last 
-year.
->
-> [dotconfig is attached to this email]
->
-> lsusb -t:
-> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
->      |__ Port 1: Dev 2, If 0, Class=, Driver=hub/5p, 480M
->          |__ Port 1: Dev 3, If 0, Class=, Driver=smsc95xx, 480M
->          |__ Port 2: Dev 5, If 0, Class=, Driver=dw2102, 480M
->
-> dmesg:
-> [  126.824951] usb 1-1.2: new high-speed USB device number 5 using ehci-omap
-> [  126.950347] usb 1-1.2: New USB device found, idVendor=3034, idProduct=7500
-> [  126.957794] usb 1-1.2: New USB device strings: Mfr=0, Product=0, SerialNumber=0
-> [  126.983184] dvb-usb: found a 'Prof 7500 USB DVB-S2' in cold state, will try to load a firmware
-> [  127.033477] dvb-usb: downloading firmware from file 'dvb-usb-p7500.fw'
-> [  127.051177] dw2102: start downloading DW210X firmware
-> [  127.238739] dvb-usb: found a 'Prof 7500 USB DVB-S2' in warm state.
-> [  127.255828] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> [  127.271270] DVB: registering new adapter (Prof 7500 USB DVB-S2)
-> [ 1159.277740] dvb-usb: MAC address: 40:40:40:40:40:40
-> [ 1159.325531] dw2102: Kishore: prof_7500_frontend_attach
-> [ 1159.325561]
-> [ 1159.340332] Kishore stv0900_attach:
-> [ 1159.340362] stv0900_init_internal
-> [ 1159.340393] stv0900_init_internal: Create New Internal Structure!
-> [ 1159.340423] stv0900_read_reg
-> [ 1179.527770] stv0900_read_reg
-> [ 1550.418365] stv0900_read_reg
-> [ 1637.090240] stv0900_st_dvbs2_single
-> [ 1637.090270] stv0900_stop_all_s2_modcod
-> [ 1669.340270] stv0900_activate_s2_modcod_single
-> [ 1703.605865] stv0900_read_reg
-> [ 1709.652740] stv0900_read_reg
-> [ 1715.699584] stv0900_read_reg
-> [ 1721.746490] stv0900_read_reg
-> [ 1727.793365] stv0900_read_reg
-> [ 1733.840209] stv0900_read_reg
-> [ 1739.887115] stv0900_read_reg
-> [ 1743.918395] stv0900_read_reg
-> [ 1749.965240] stv0900_read_reg
-> [ 1756.012115] stv0900_set_ts_parallel_serial path1 3 path2 0
-> [ 1758.027740] stv0900_read_reg
-> [ 1764.074615] stv0900_read_reg
-> [ 1770.121490] stv0900_read_reg
-> [ 1776.168334] stv0900_read_reg
-> [ 1782.215209] stv0900_read_reg
-> [ 1788.262115] stv0900_read_reg
-> [ 1810.433990] stv0900_read_reg
-> [ 1816.480865] stv0900_read_reg
-> [ 1824.543365] stv0900_read_reg
-> [ 1830.590240] stv0900_read_reg
-> [ 1838.652740] stv0900_read_reg
-> [ 1844.699615] stv0900_read_reg
-> [ 1850.746490] stv0900_set_mclk: Mclk set to 135000000, Quartz = 27000000
-> [ 1850.746520] stv0900_read_reg
-> [ 1854.777740] stv0900_read_reg
-> [ 1860.824615] stv0900_read_reg
-> [ 1864.855865] stv0900_read_reg
-> [ 1868.887115] stv0900_get_mclk_freq: Calculated Mclk = 152672117
-> [ 1876.965209] stv0900_read_reg
-> [ 1883.027709] stv0900_read_reg
-> [ 1887.058990] stv0900_read_reg
-> [ 1891.090240] stv0900_get_mclk_freq: Calculated Mclk = 152672117
-> [ 1891.090270] Kishore stv0900_attach: Attaching STV0900 demodulator(0)
-> [ 1891.090301] dw2102: Kishore: dvb_attach stb6100_attach
-> [ 1891.090332]
-> [ 1891.097442] Kishore stb6100_attach:
-> [ 1891.101409] Kishore stb6100_attach: Attaching STB6100
-> [ 1893.105957] dw2102: Attached STV0900+STB6100A!
-> [ 1893.105957]
-> [ 1893.112335] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
-> [ 1893.137878] input: IR-receiver inside an USB DVB receiver as /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input2
-> [ 1893.177368] dvb-usb: schedule remote query interval to 150 msecs.
-> [ 1893.184143] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
->
->
->
-> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013 armv7l GNU/Linux
-> -sh-4.1# /stbref/w_scan-20120112/w_scan -fs -s S93E5 -c IN -G >> ch.conf
-> w_scan version 20120112 (compiled for DVB API 5.4)
-> using settings for 93.5 east Insat 3A/4B
-> scan type SATELLITE, channellist 42
-> output format gstreamer
-> WARNING: could not guess your codepage. Falling back to 'UTF-8'
-> output charset 'UTF-8', use -C <charset> to override
-> Info: using DVB adapter auto detection.
->
->          /dev/dvb/adapter0/frontend0 -> SATELLITE "STV0900 frontend": very good :-))
->
-> Using SATELLITE frontend (adapter /dev/dvb/adapter0/frontend0)
-> -_-_-_-_ Getting frontend capabilities-_-_-_-_
-> Using DVB API 5.5
-> frontend 'STV0900 frontend' supports
-> INVERSION_AUTO
-> DVB-S
-> DVB-S2
-> FREQ (0.95GHz ... 2.15GHz)
-> SRATE (1.000MBd ... 45.000MBd)
-> using LNB "UNIVERSAL"
-> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> (time: 00:40)
->
-> dmesg logs:
->
-> [1716261.743961] stv0900_init
-> [1716287.004365] stv0900_set_tone: Off
-> [1716307.004132] stv0900_read_status:
-> [1716321.004217] stv0900_status: locked = 0
-> [1716337.004246] stv0900_get_mclk_freq: Calculated Mclk = 553008176
-> [1716337.004251] TS bitrate = 2081 Mbit/sec
-> [1716339.004299] DEMOD LOCK FAIL
-> [1716345.004236] stv0900_search:
-> [1716345.004242] stv0900_read_status:
-> [1716363.004324] stv0900_status: locked = 1
-> [1716379.004255] stv0900_get_mclk_freq: Calculated Mclk = 607008176
-> [1716379.004260] TS bitrate = 2361 Mbit/sec
-> [1716379.004263] DEMOD LOCK OK
-> [1716261.743961] stv0900_init
-> [1716287.004365] stv0900_set_tone: Off
-> [1716307.004132] stv0900_read_status:
-> [1716321.004217] stv0900_status: locked = 0
-> [1716337.004246] stv0900_get_mclk_freq: Calculated Mclk = 553008176
-> [1716337.004251] TS bitrate = 2081 Mbit/sec
-> [1716339.004299] DEMOD LOCK FAIL
-> [1716345.004236] stv0900_search:
-> [1716345.004242] stv0900_read_status:
-> [1716363.004324] stv0900_status: locked = 1
-> [1716379.004255] stv0900_get_mclk_freq: Calculated Mclk = 607008176
-> [1716379.004260] TS bitrate = 2361 Mbit/sec
-> [1716379.004263] DEMOD LOCK OK
-> [1716455.004184] stv0900_search:
-> [1716455.004190] stv0900_read_status:
-> [1716461.004239] stv0900_status: locked = 0
-> [1716477.004310] stv0900_get_mclk_freq: Calculated Mclk = 175008176
-> [1716477.004315] TS bitrate = 503 Mbit/sec
-> [1716479.004220] DEMOD LOCK FAIL
->
-> Regards,
-> Kishore.
-> ________________________________________
-> From: Oliver Schinagl [oliver+list@schinagl.nl]
-> Sent: Wednesday, July 24, 2013 2:34 AM
-> To: Krishna Kishore
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: Prof DVB-S2 USB device
->
-> On 23-07-13 18:52, Krishna Kishore wrote:
->> #Sorry for sending to individual email ids
->>
->> Hi,
->>
->>        I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
-> You will need to provide much more information then that. What does
-> dmesg say? lsusb? what driver are you using, what kernel version? Are
-> you using it as a module? Have you enabled debugging in your kernel?
->
-> Those questions come to my mind.
->
->>
->> 1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
->> 2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
->> a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
-> Paste your logs (or if its too much, only copy/paste the relevant parts.
-> You ask for a limb, yet offer nothing.
->
-> oliver
->>
->>         Can you please help me?
->>
->>
->> Regards,
->> Kishore.
->>
->>
->>
->
->
->
-> ________________________________
->
-> SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
-> Read Disclaimer at http://www.sasken.com/extras/mail_disclaimer.html
->
+diff --git a/drivers/net/wireless/ath/ath9k/hif_usb.c b/drivers/net/wireless/ath/ath9k/hif_usb.c
+index 9e582e1..9d5e15a 100644
+--- a/drivers/net/wireless/ath/ath9k/hif_usb.c
++++ b/drivers/net/wireless/ath/ath9k/hif_usb.c
+@@ -136,6 +136,7 @@ static void hif_usb_mgmt_cb(struct urb *urb)
+ 	struct cmd_buf *cmd = (struct cmd_buf *)urb->context;
+ 	struct hif_device_usb *hif_dev;
+ 	bool txok = true;
++	unsigned long flags;
+ 
+ 	if (!cmd || !cmd->skb || !cmd->hif_dev)
+ 		return;
+@@ -155,14 +156,14 @@ static void hif_usb_mgmt_cb(struct urb *urb)
+ 		 * If the URBs are being flushed, no need to complete
+ 		 * this packet.
+ 		 */
+-		spin_lock(&hif_dev->tx.tx_lock);
++		spin_lock_irqsave(&hif_dev->tx.tx_lock, flags);
+ 		if (hif_dev->tx.flags & HIF_USB_TX_FLUSH) {
+-			spin_unlock(&hif_dev->tx.tx_lock);
++			spin_unlock_irqrestore(&hif_dev->tx.tx_lock, flags);
+ 			dev_kfree_skb_any(cmd->skb);
+ 			kfree(cmd);
+ 			return;
+ 		}
+-		spin_unlock(&hif_dev->tx.tx_lock);
++		spin_unlock_irqrestore(&hif_dev->tx.tx_lock, flags);
+ 
+ 		break;
+ 	default:
+@@ -253,6 +254,7 @@ static void hif_usb_tx_cb(struct urb *urb)
+ 	struct tx_buf *tx_buf = (struct tx_buf *) urb->context;
+ 	struct hif_device_usb *hif_dev;
+ 	bool txok = true;
++	unsigned long flags;
+ 
+ 	if (!tx_buf || !tx_buf->hif_dev)
+ 		return;
+@@ -272,13 +274,13 @@ static void hif_usb_tx_cb(struct urb *urb)
+ 		 * If the URBs are being flushed, no need to add this
+ 		 * URB to the free list.
+ 		 */
+-		spin_lock(&hif_dev->tx.tx_lock);
++		spin_lock_irqsave(&hif_dev->tx.tx_lock, flags);
+ 		if (hif_dev->tx.flags & HIF_USB_TX_FLUSH) {
+-			spin_unlock(&hif_dev->tx.tx_lock);
++			spin_unlock_irqrestore(&hif_dev->tx.tx_lock, flags);
+ 			ath9k_skb_queue_purge(hif_dev, &tx_buf->skb_queue);
+ 			return;
+ 		}
+-		spin_unlock(&hif_dev->tx.tx_lock);
++		spin_unlock_irqrestore(&hif_dev->tx.tx_lock, flags);
+ 
+ 		break;
+ 	default:
+@@ -293,13 +295,13 @@ static void hif_usb_tx_cb(struct urb *urb)
+ 	__skb_queue_head_init(&tx_buf->skb_queue);
+ 
+ 	/* Add this TX buffer to the free list */
+-	spin_lock(&hif_dev->tx.tx_lock);
++	spin_lock_irqsave(&hif_dev->tx.tx_lock, flags);
+ 	list_move_tail(&tx_buf->list, &hif_dev->tx.tx_buf);
+ 	hif_dev->tx.tx_buf_cnt++;
+ 	if (!(hif_dev->tx.flags & HIF_USB_TX_STOP))
+ 		__hif_usb_tx(hif_dev); /* Check for pending SKBs */
+ 	TX_STAT_INC(buf_completed);
+-	spin_unlock(&hif_dev->tx.tx_lock);
++	spin_unlock_irqrestore(&hif_dev->tx.tx_lock, flags);
+ }
+ 
+ /* TX lock has to be taken */
+@@ -530,8 +532,9 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+ 	int rx_remain_len, rx_pkt_len;
+ 	u16 pool_index = 0;
+ 	u8 *ptr;
++	unsigned long flags;
+ 
+-	spin_lock(&hif_dev->rx_lock);
++	spin_lock_irqsave(&hif_dev->rx_lock, flags);
+ 
+ 	rx_remain_len = hif_dev->rx_remain_len;
+ 	rx_pkt_len = hif_dev->rx_transfer_len;
+@@ -559,7 +562,7 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+ 		}
+ 	}
+ 
+-	spin_unlock(&hif_dev->rx_lock);
++	spin_unlock_irqrestore(&hif_dev->rx_lock, flags);
+ 
+ 	while (index < len) {
+ 		u16 pkt_len;
+@@ -585,7 +588,7 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+ 		index = index + 4 + pkt_len + pad_len;
+ 
+ 		if (index > MAX_RX_BUF_SIZE) {
+-			spin_lock(&hif_dev->rx_lock);
++			spin_lock_irqsave(&hif_dev->rx_lock, flags);
+ 			hif_dev->rx_remain_len = index - MAX_RX_BUF_SIZE;
+ 			hif_dev->rx_transfer_len =
+ 				MAX_RX_BUF_SIZE - chk_idx - 4;
+@@ -595,7 +598,7 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+ 			if (!nskb) {
+ 				dev_err(&hif_dev->udev->dev,
+ 					"ath9k_htc: RX memory allocation error\n");
+-				spin_unlock(&hif_dev->rx_lock);
++				spin_unlock_irqrestore(&hif_dev->rx_lock, flags);
+ 				goto err;
+ 			}
+ 			skb_reserve(nskb, 32);
+@@ -606,7 +609,7 @@ static void ath9k_hif_usb_rx_stream(struct hif_device_usb *hif_dev,
+ 
+ 			/* Record the buffer pointer */
+ 			hif_dev->remain_skb = nskb;
+-			spin_unlock(&hif_dev->rx_lock);
++			spin_unlock_irqrestore(&hif_dev->rx_lock, flags);
+ 		} else {
+ 			nskb = __dev_alloc_skb(pkt_len + 32, GFP_ATOMIC);
+ 			if (!nskb) {
+diff --git a/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c b/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
+index e602c95..a6f34f8 100644
+--- a/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
++++ b/drivers/net/wireless/ath/ath9k/htc_drv_txrx.c
+@@ -1156,25 +1156,26 @@ void ath9k_htc_rxep(void *drv_priv, struct sk_buff *skb,
+ 	struct ath_hw *ah = priv->ah;
+ 	struct ath_common *common = ath9k_hw_common(ah);
+ 	struct ath9k_htc_rxbuf *rxbuf = NULL, *tmp_buf = NULL;
++	unsigned long flags;
+ 
+-	spin_lock(&priv->rx.rxbuflock);
++	spin_lock_irqsave(&priv->rx.rxbuflock, flags);
+ 	list_for_each_entry(tmp_buf, &priv->rx.rxbuf, list) {
+ 		if (!tmp_buf->in_process) {
+ 			rxbuf = tmp_buf;
+ 			break;
+ 		}
+ 	}
+-	spin_unlock(&priv->rx.rxbuflock);
++	spin_unlock_irqrestore(&priv->rx.rxbuflock, flags);
+ 
+ 	if (rxbuf == NULL) {
+ 		ath_dbg(common, ANY, "No free RX buffer\n");
+ 		goto err;
+ 	}
+ 
+-	spin_lock(&priv->rx.rxbuflock);
++	spin_lock_irqsave(&priv->rx.rxbuflock, flags);
+ 	rxbuf->skb = skb;
+ 	rxbuf->in_process = true;
+-	spin_unlock(&priv->rx.rxbuflock);
++	spin_unlock_irqrestore(&priv->rx.rxbuflock, flags);
+ 
+ 	tasklet_schedule(&priv->rx_tasklet);
+ 	return;
+diff --git a/drivers/net/wireless/ath/ath9k/wmi.c b/drivers/net/wireless/ath/ath9k/wmi.c
+index 65c8894..101b771 100644
+--- a/drivers/net/wireless/ath/ath9k/wmi.c
++++ b/drivers/net/wireless/ath/ath9k/wmi.c
+@@ -207,6 +207,7 @@ static void ath9k_wmi_ctrl_rx(void *priv, struct sk_buff *skb,
+ 	struct wmi *wmi = (struct wmi *) priv;
+ 	struct wmi_cmd_hdr *hdr;
+ 	u16 cmd_id;
++	unsigned long flags;
+ 
+ 	if (unlikely(wmi->stopped))
+ 		goto free_skb;
+@@ -215,20 +216,20 @@ static void ath9k_wmi_ctrl_rx(void *priv, struct sk_buff *skb,
+ 	cmd_id = be16_to_cpu(hdr->command_id);
+ 
+ 	if (cmd_id & 0x1000) {
+-		spin_lock(&wmi->wmi_lock);
++		spin_lock_irqsave(&wmi->wmi_lock, flags);
+ 		__skb_queue_tail(&wmi->wmi_event_queue, skb);
+-		spin_unlock(&wmi->wmi_lock);
++		spin_unlock_irqrestore(&wmi->wmi_lock, flags);
+ 		tasklet_schedule(&wmi->wmi_event_tasklet);
+ 		return;
+ 	}
+ 
+ 	/* Check if there has been a timeout. */
+-	spin_lock(&wmi->wmi_lock);
++	spin_lock_irqsave(&wmi->wmi_lock, flags);
+ 	if (cmd_id != wmi->last_cmd_id) {
+-		spin_unlock(&wmi->wmi_lock);
++		spin_unlock_irqrestore(&wmi->wmi_lock, flags);
+ 		goto free_skb;
+ 	}
+-	spin_unlock(&wmi->wmi_lock);
++	spin_unlock_irqrestore(&wmi->wmi_lock, flags);
+ 
+ 	/* WMI command response */
+ 	ath9k_wmi_rsp_callback(wmi, skb);
+-- 
+1.7.9.5
 
