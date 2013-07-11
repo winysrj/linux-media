@@ -1,120 +1,279 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f47.google.com ([209.85.219.47]:52898 "EHLO
-	mail-oa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592Ab3GRHje (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:65207 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753463Ab3GKRJc convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 03:39:34 -0400
+	Thu, 11 Jul 2013 13:09:32 -0400
 MIME-Version: 1.0
-In-Reply-To: <51E7960C.8050707@samsung.com>
-References: <1373880874-9270-1-git-send-email-ricardo.ribalda@gmail.com>
- <51E65577.7010403@samsung.com> <CAPybu_3Je7+0Qh2OdptncnxC12G15Scad+A3yUeF898sVWKo8w@mail.gmail.com>
- <51E69F49.10500@samsung.com> <CAPybu_0b9ADaUFFHuw=tKkVR4fiu9bGNJVgy4MGbuE-zAA9sZQ@mail.gmail.com>
- <51E7960C.8050707@samsung.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Thu, 18 Jul 2013 09:39:14 +0200
-Message-ID: <CAPybu_36Pe5+RO+qmUXTQtbESnrJg4hwey1mXXRH4urc9i4GAg@mail.gmail.com>
-Subject: Re: [PATCH] videobuf2-dma-sg: Minimize the number of dma segments
-To: Marek Szyprowski <m.szyprowski@samsung.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	open list <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+In-Reply-To: <51D05568.3090009@gmail.com>
+References: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com>
+ <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com> <51D05568.3090009@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 11 Jul 2013 22:39:10 +0530
+Message-ID: <CA+V-a8sW+D8trces5AXu__Lw9F7TO6fCcQW+LGZKRhA41uOEfw@mail.gmail.com>
+Subject: Re: [PATCH v2 2/2] media: i2c: tvp7002: add OF support
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello again:
+Hi Sylwester,
 
-I have started to implemt it, but I think there is more hidden work in
-this task as it seems. In order to call dma_map_sg and
-max_dma_segment_size I need acess to the struct device, but (correct
-me if I am wrong), vb2 is device agnostic. Adding the above
-functionality will mean not only updating marvell-ccic and solo6x10,
-but updating all the vb2 buffers.
+Thanks for the review.
 
-Also after some readings, maybe the sg compactation should not be done
-here, but in dma_map_sg. According to the doc:
-
-"""
-The implementation is free to merge several consecutive sglist entries
-into one (e.g. if DMA mapping is done with PAGE_SIZE granularity, any
-consecutive sglist entries can be merged into one provided the first one
-ends and the second one starts on a page boundary - in fact this is a huge
-advantage for cards which either cannot do scatter-gather or have very
-limited number of scatter-gather entries) and returns the actual number
-of sg entries it mapped them to. On failure 0 is returned.
-"""
-
-So, my proposal would be to alloc with alloc_pages to try to get
-memory as coherent as possible, then split the page, set the sg in
-PAGE_SIZE lenghts, and then let the dma_map_sg do its magic. if it
-doesnt do compactation, fix dma_map_sg, so more driver could take
-advantage of it.
-
-I could also of course fix marvell-ccic and solo6x10 to use sg_table.
-
-Does anything of this make sense?
-
-
-Regards
-
-On Thu, Jul 18, 2013 at 9:15 AM, Marek Szyprowski
-<m.szyprowski@samsung.com> wrote:
-> Hello,
+On Sun, Jun 30, 2013 at 9:27 PM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi,
 >
 >
-> On 7/17/2013 4:20 PM, Ricardo Ribalda Delgado wrote:
+> On 06/22/2013 07:44 PM, Prabhakar Lad wrote:
 >>
->> Hello again Marek
+>> From: "Lad, Prabhakar"<prabhakar.csengg@gmail.com>
 >>
->> In my system I am doing the scatter gather compaction on device
->> driver... But I agree that it would be better done on the vb2 layer.
+>> add OF support for the tvp7002 driver.
 >>
->> For the oversize sglist we could do one of this two things.
+>> Signed-off-by: Lad, Prabhakar<prabhakar.csengg@gmail.com>
+>> Cc: Hans Verkuil<hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab<mchehab@redhat.com>
+>> Cc: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+>> Cc: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Cc: Sakari Ailus<sakari.ailus@iki.fi>
+>> Cc: Grant Likely<grant.likely@secretlab.ca>
+>> Cc: Rob Herring<rob.herring@calxeda.com>
+>> Cc: Rob Landley<rob@landley.net>
+>> Cc: devicetree-discuss@lists.ozlabs.org
+>> Cc: linux-doc@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: davinci-linux-open-source@linux.davincidsp.com
+
+Will take care of this as mentioned in earlier patch.
+
+>> ---
+>>   Depends on patch https://patchwork.kernel.org/patch/2765851/
 >>
->> If we want to have a simple pass processing we have to allocate an
->> structure A for the worts case, work on that structure. then allocate
->> a structure B for the exact size that we need, memcpy A to B, and
->> free(A).
+>>   .../devicetree/bindings/media/i2c/tvp7002.txt      |   43 +++++++++++++
+>>   drivers/media/i2c/tvp7002.c                        |   67
+>> ++++++++++++++++++--
+>>   2 files changed, 103 insertions(+), 7 deletions(-)
+>>   create mode 100644
+>> Documentation/devicetree/bindings/media/i2c/tvp7002.txt
 >>
->> Otherwise we need two passes. One to allocate the pages, and another
->> one to allocate the pages and find out the amount of sg, and another
->> to greate the sg structure.
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>> b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>> new file mode 100644
+>> index 0000000..9daebe1
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>> @@ -0,0 +1,43 @@
+>> +* Texas Instruments TV7002 video decoder
+>> +
+>> +The TVP7002 device supports digitizing of video and graphics signal in
+>> RGB and
+>> +YPbPr color space.
+>> +
+>> +Required Properties :
+>> +- compatible : Must be "ti,tvp7002"
+>> +
+>> +- hsync-active: HSYNC Polarity configuration for endpoint.
+>> +
+>> +- vsync-active: VSYNC Polarity configuration for endpoint.
+>> +
+>> +- pclk-sample: Clock polarity of the endpoint.
+>> +
+>> +- video-sync: Video sync property of the endpoint.
+>> +
+>> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
+>
+>
+> I thought it was agreed 'field-even-active' would be used instead of
+> this device specific property. Did you run into any issues with that ?
+>
+>
+Argh I some how missed it out, sorry this should be 'field-even-active'
+
+>> +
+>> +For further reading of port node refer
+>> Documentation/devicetree/bindings/media/
+>> +video-interfaces.txt.
+>> +
+>> +Example:
+>> +
+>> +       i2c0@1c22000 {
+>> +               ...
+>> +               ...
+>> +               tvp7002@5c {
+>> +                       compatible = "ti,tvp7002";
+>> +                       reg =<0x5c>;
+>> +
+>> +                       port {
+>> +                               tvp7002_1: endpoint {
+>> +                                       hsync-active =<1>;
+>> +                                       vsync-active =<1>;
+>> +                                       pclk-sample =<0>;
+>> +                                       video-sync
+>> =<V4L2_MBUS_VIDEO_SYNC_ON_GREEN>;
+>> +                                       ti,tvp7002-fid-polarity;
+>> +                               };
+>> +                       };
+>> +               };
+>> +               ...
+>> +       };
+>> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
+>> index b577548..4896024 100644
+>> --- a/drivers/media/i2c/tvp7002.c
+>> +++ b/drivers/media/i2c/tvp7002.c
+>> @@ -35,6 +35,8 @@
+>>   #include<media/v4l2-device.h>
+>>   #include<media/v4l2-common.h>
+>>   #include<media/v4l2-ctrls.h>
+>> +#include<media/v4l2-of.h>
+>> +
+>>   #include "tvp7002_reg.h"
 >>
->> What do you prefer?
+>>   MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
+>> @@ -943,6 +945,48 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
+>>         .pad =&tvp7002_pad_ops,
+>>   };
+>>
+>> +static struct tvp7002_config *
+>> +tvp7002_get_pdata(struct i2c_client *client)
 >
 >
-> I would prefer two passes approach. In the first pass you just fill the
-> buf->pages array with order 0 entries and count the total number of memory
-> chunks (adding support for max dma segment size at this point should be
-> quite easy). In the second pass you just allocate the scatter list and
-> fill it with previously allocated pages.
->
-> I have also the following changes on my TODO list for vb2-dma-sg:
-> - remove custom vb2_dma_sg_desc structure and replace it with common
-> sg_table structure
-> - move mapping of the scatter list from device driver to vb2-dma-sg module
-> to simplify driver code and unify memory management across devices (so the
-> driver just gets correctly mapped scatter list and only reads dma addresses
-> of each memory chunk, no longer needs to track buffer state/ownership).
-> The correct flow is to call dma_map_sg() at buffer allocation,
-> dma_unmap_sg() at free and dma_sync_for_{device,cpu} in prepare/finish
-> callbacks. The only problem here is the need to convert all existing users
-> of vb2-dma-sg (marvell-ccic and solo6x10) to the new interface.
->
-> However I have completely no time atm to do any of the above changes. Would
-> You like to take any of the above tasks while playing with vb2-dma-sg?
->
->
-> Best regards
-> --
-> Marek Szyprowski
-> Samsung R&D Institute Poland
->
+> nit: unnecessary line break
 >
 
+Ok
 
+>> +{
+>> +       struct v4l2_of_endpoint bus_cfg;
+>> +       struct tvp7002_config *pdata;
+>> +       struct device_node *endpoint;
+>> +       unsigned int flags;
+>> +
+>> +       if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
+>> +               return client->dev.platform_data;
+>> +
+>> +       endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
+>> +       if (!endpoint)
+>> +               return NULL;
+>> +
+>> +       pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
+>> +       if (!pdata)
+>> +               goto done;
+>> +
+>> +       v4l2_of_parse_endpoint(endpoint,&bus_cfg);
+>> +       flags = bus_cfg.bus.parallel.flags;
+>> +
+>> +       if (flags&  V4L2_MBUS_HSYNC_ACTIVE_HIGH)
+>>
+>> +               pdata->hs_polarity = 1;
+>> +
+>> +       if (flags&  V4L2_MBUS_VSYNC_ACTIVE_HIGH)
+>>
+>> +               pdata->vs_polarity = 1;
+>> +
+>> +       if (flags&  V4L2_MBUS_PCLK_SAMPLE_RISING)
+>>
+>> +               pdata->clk_polarity = 1;
+>> +
+>> +       if (flags&  V4L2_MBUS_VIDEO_SYNC_ON_GREEN)
+>>
+>> +               pdata->sog_polarity = 1;
+>
+>
+> This clearly shows that you're using this property for something different
+> you have defined it for. I asked previously if what you really needed for
+> this TVP7002 chip is a DT property indicating sync-on-green _polarity_ or
+> the sync-on-green _usage_. And you clearly need the polarity information.
+>
+> So I would just define a standard "sync-on-green-active" property and
+> V4L2_MBUS_VIDEO_SOG_ACTIVE_{HIGH,LOW} flags. Presumably you don't need
+> anything else, and the extra sync polarity flags would need eventually
+> to be defined anyway, independently of any video sync selection property,
+> should something like this ever need to be specified by firmware.
+>
+>
+OK
 
--- 
-Ricardo Ribalda
+>> +       pdata->fid_polarity = of_property_read_bool(endpoint,
+>> +
+>> "ti,tvp7002-fid-polarity");
+>
+>
+> This could be just:
+>
+>         if (flags & V4L2_MBUS_FIELD_EVEN_HIGH)
+>                 pdata->fid_polarity = 1;
+>
+> if you used standard 'field-even-active' property.
+>
+
+Agreed.
+
+> And this is what we find in the TVP7002 datasheet, in the section describing
+> MISC Control 3 (18h) register's FID POL bit (pdata->fid_polarity is written
+> directly to FID POL):
+>
+> "FID POL: Active-high Field ID output polarity control. Under normal
+> operation,  the field ID output is set to logic 1 for an odd field (field 1)
+> and set to logic 0 for an even field (field 0).
+> 0 = Normal operation (default)
+> 1 = FID output polarity inverted
+> NOTE: This control bit also affects the polarity of the data enable output
+> when selected (see Test output control [2:0] at subaddress 17h)."
+>
+>
+> And include/media/tvp70002.h:
+>
+>  * fid_polarity:
+>  *                      0 -> the field ID output is set to logic 1 for an
+> odd
+>  *                           field (field 1) and set to logic 0 for an even
+>  *                           field (field 0).
+>  *                      1 -> operation with polarity inverted.
+>
+>
+> Do you know if the chip automatically selects video sync source
+> (sync-on-green
+> vs. VSYNC/HSYNC) and there is no need to configure this on the analogue
+> input
+> side ? At least the driver seems to always select the default SOGIN_1 input
+> (TVP7002_IN_MUX_SEL_1 register is set only at initialization time).
+>
+Yes the driver is selecting the default SOGIN_1 input.
+
+> Or perhaps it just outputs on SOGOUT, VSOUT, HSOUT lines whatever is fed to
+> its analogue inputs, and any further processing unit need to determine what
+> synchronization signal is present and should be used ?
+>
+
+Yes that correct, there is a register (Sync Detect Status) which
+detects the sync for
+you.
+
+> I suspect that we don't need, e.g. another endpoint node to specify the
+> configuration of the TVP7002 analogue input interface, that would contain
+> a property like video-sync.
+>
+>
+If I understand correctly you mean if there are two tvp7002 devices connected
+we don’t need to specify video-sync property, but my question how do we
+specify this property in common then ?
+
+Regards,
+--Prabhakar Lad
