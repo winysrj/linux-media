@@ -1,55 +1,102 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:37660 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751266Ab3G1IEa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Jul 2013 04:04:30 -0400
-Message-ID: <51F4D08C.4040605@schinagl.nl>
-Date: Sun, 28 Jul 2013 10:04:28 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from youngberry.canonical.com ([91.189.89.112]:43476 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932536Ab3GKOxC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 10:53:02 -0400
 MIME-Version: 1.0
-To: Franz Schrober <franzschrober@yahoo.de>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	"kaffeine-user@lists.sourceforge.net"
-	<kaffeine-user@lists.sourceforge.net>,
-	"pkg-kde-extras@lists.alioth.debian.org"
-	<pkg-kde-extras@lists.alioth.debian.org>, sven@narfation.org
-Subject: Re: de-Primacom initial tuning data doesn't work anymore
-References: <1371910047.2617.YahooMailNeo@web171902.mail.ir2.yahoo.com> <1374921429.93450.YahooMailNeo@web171902.mail.ir2.yahoo.com>
-In-Reply-To: <1374921429.93450.YahooMailNeo@web171902.mail.ir2.yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 8bit
+In-Reply-To: <s5h7ggx413u.wl%tiwai@suse.de>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	<1373533573-12272-46-git-send-email-ming.lei@canonical.com>
+	<51DEAE4E.90204@cogentembedded.com>
+	<s5hip0hb3y6.wl%tiwai@suse.de>
+	<CACVXFVPuv4VD_xCocP2QVOqUqAXm9gjwgwcRn6y=3qXPntOxCQ@mail.gmail.com>
+	<s5h7ggx413u.wl%tiwai@suse.de>
+Date: Thu, 11 Jul 2013 22:52:59 +0800
+Message-ID: <CACVXFVNsOAeLZ1zCHmBNsdAWRnqBrDYziK6XDh7G0QEFiw4G5Q@mail.gmail.com>
+Subject: Re: [PATCH 45/50] sound: usb: usx2y: spin_lock in complete() cleanup
+From: Ming Lei <ming.lei@canonical.com>
+To: Takashi Iwai <tiwai@suse.de>
+Cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Jaroslav Kysela <perex@perex.cz>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-I completly missed that mail somehow, appologies, a CC to me is always 
-helpfull ;)
+On Thu, Jul 11, 2013 at 10:34 PM, Takashi Iwai <tiwai@suse.de> wrote:
+> At Thu, 11 Jul 2013 22:13:35 +0800,
+> Ming Lei wrote:
+>>
+>> On Thu, Jul 11, 2013 at 9:50 PM, Takashi Iwai <tiwai@suse.de> wrote:
+>> > At Thu, 11 Jul 2013 17:08:30 +0400,
+>> > Sergei Shtylyov wrote:
+>> >>
+>> >> On 11-07-2013 13:06, Ming Lei wrote:
+>> >>
+>> >> > Complete() will be run with interrupt enabled, so change to
+>> >> > spin_lock_irqsave().
+>> >>
+>> >>     Changelog doesn't match the patch.
+>> >
+>> > Yep, but moreover...
+>> >
+>> >> > Cc: Jaroslav Kysela <perex@perex.cz>
+>> >> > Cc: Takashi Iwai <tiwai@suse.de>
+>> >> > Cc: alsa-devel@alsa-project.org
+>> >> > Signed-off-by: Ming Lei <ming.lei@canonical.com>
+>> >> > ---
+>> >> >   sound/usb/usx2y/usbusx2yaudio.c |    4 ++++
+>> >> >   1 file changed, 4 insertions(+)
+>> >>
+>> >> > diff --git a/sound/usb/usx2y/usbusx2yaudio.c b/sound/usb/usx2y/usbusx2yaudio.c
+>> >> > index 4967fe9..e2ee893 100644
+>> >> > --- a/sound/usb/usx2y/usbusx2yaudio.c
+>> >> > +++ b/sound/usb/usx2y/usbusx2yaudio.c
+>> >> > @@ -273,7 +273,11 @@ static void usX2Y_clients_stop(struct usX2Ydev *usX2Y)
+>> >> >             struct snd_usX2Y_substream *subs = usX2Y->subs[s];
+>> >> >             if (subs) {
+>> >> >                     if (atomic_read(&subs->state) >= state_PRERUNNING) {
+>> >> > +                           unsigned long flags;
+>> >> > +
+>> >> > +                           local_irq_save(flags);
+>> >> >                             snd_pcm_stop(subs->pcm_substream, SNDRV_PCM_STATE_XRUN);
+>> >> > +                           local_irq_restore(flags);
+>> >> >                     }
+>> >
+>> > ... actually this snd_pcm_stop() call should have been covered by
+>> > snd_pcm_stream_lock().  Maybe it'd be enough to have a single patch
+>> > together with the change, i.e. wrapping with
+>> > snd_pcm_stream_lock_irqsave().
+>>
+>> Please use snd_pcm_stream_lock_irqsave() so that I can avoid sending
+>> out similar patch later, :-)
+>>
+>> >
+>> > I'll prepare the patch for 3.11 independently from your patch series,
+>> > so please drop this one.
+>>
+>> OK, thanks for dealing with that.
+>>
+>> >
+>> >
+>> > BTW, the word "cleanup" in the subject is inappropriate.  This is
+>> > rather a fix together with the core change.
+>>
+>> It is a cleanup since the patchset only addresses lock problem which
+>> is caused by the tasklet conversion.
+>
+> Well, the conversion to irqsave() is needed for the future drop of
+> irq_save() in the caller, right?  Then this isn't a cleanup but a
+> preparation for movement ahead.
 
-Next time it would be preferred if you send a patch instead of a link. 
-It would have been even better if Sven submittted said patch so we could 
-have committed it to git much earlier!
+Sounds more accurate, and I will change the title in next round, :-)
 
-Anyhow, pushed to git(hub) as edc0bc3f04b715f2c882343e4d4fdf94e7cc1e29
-
-Oliver
-
-On 27-07-13 12:37, Franz Schrober wrote:
-> bump
->
->
->
-> ----- Ursprüngliche Message -----
-> Von: Franz Schrober <franzschrober@yahoo.de>
-> An: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>; "kaffeine-user@lists.sourceforge.net" <kaffeine-user@lists.sourceforge.net>; "pkg-kde-extras@lists.alioth.debian.org" <pkg-kde-extras@lists.alioth.debian.org>
-> CC:
-> Gesendet: 16:07 Samstag, 22.Juni 2013
-> Betreff: de-Primacom initial tuning data doesn't work anymore
->
-> Hi,
->
-> I wanted to watch TV today with kaffeine 1.2.2-2 from debian and noticed that it didn't work anymore. Also scans even after the update of the initial tuning data didn't show all tv stations. Just replacing the entry for dvb-c/de-Primacom in ~/.kde/share/apps/kaffeine/scanfile.dvb with the one from http://narfation.org/misc/dvbc/de-Primacom fixed the problem for me after the next scan for tv stations.
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-
+Thanks,
+--
+Ming Lei
