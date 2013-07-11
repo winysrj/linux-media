@@ -1,47 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f170.google.com ([74.125.82.170]:59450 "EHLO
-	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756533Ab3GQQbE (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:41015 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932090Ab3GKJIP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 12:31:04 -0400
-MIME-Version: 1.0
-In-Reply-To: <2425805.RBpmei1UGe@avalon>
-References: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com> <2425805.RBpmei1UGe@avalon>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 17 Jul 2013 22:00:42 +0530
-Message-ID: <CA+V-a8tt0rTBDWQ4hSEi8xWzcp9KSCkSjRhLsFKbbx=ZW510_A@mail.gmail.com>
-Subject: Re: [PATCH 0/5] Davinci VPBE use devres and some cleanup
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+	Thu, 11 Jul 2013 05:08:15 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Johan Hovold <jhovold@gmail.com>
+Subject: [PATCH 12/50] USB: serial: io_edgeport: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:35 +0800
+Message-Id: <1373533573-12272-13-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-On Wed, Jul 17, 2013 at 5:51 PM, Laurent Pinchart
-<laurent.pinchart@ideasonboard.com> wrote:
-> Hi Prabhakar,
->
-> On Saturday 13 July 2013 14:20:26 Prabhakar Lad wrote:
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> This patch series replaces existing resource handling in the
->> driver with managed device resource.
->
-> Thank you for the patches. They greatly simplify the probe/remove functions, I
-> like that. For patches 1 to 4,
->
-> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
->
-Thanks for the ACK.
+Cc: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/usb/serial/io_edgeport.c |   14 ++++++++------
+ 1 file changed, 8 insertions(+), 6 deletions(-)
 
-> I have the same concern as Joe Perches for patch 5.
->
-Ok I'll fix it and repost the alone patch 5/5.
+diff --git a/drivers/usb/serial/io_edgeport.c b/drivers/usb/serial/io_edgeport.c
+index dc2803b..af2f7d8 100644
+--- a/drivers/usb/serial/io_edgeport.c
++++ b/drivers/usb/serial/io_edgeport.c
+@@ -569,6 +569,7 @@ static void edge_interrupt_callback(struct urb *urb)
+ 	int portNumber;
+ 	int result;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	switch (status) {
+ 	case 0:
+@@ -594,7 +595,7 @@ static void edge_interrupt_callback(struct urb *urb)
+ 		if (length > 1) {
+ 			bytes_avail = data[0] | (data[1] << 8);
+ 			if (bytes_avail) {
+-				spin_lock(&edge_serial->es_lock);
++				spin_lock_irqsave(&edge_serial->es_lock, flags);
+ 				edge_serial->rxBytesAvail += bytes_avail;
+ 				dev_dbg(dev,
+ 					"%s - bytes_avail=%d, rxBytesAvail=%d, read_in_progress=%d\n",
+@@ -617,7 +618,7 @@ static void edge_interrupt_callback(struct urb *urb)
+ 						edge_serial->read_in_progress = false;
+ 					}
+ 				}
+-				spin_unlock(&edge_serial->es_lock);
++				spin_unlock_irqrestore(&edge_serial->es_lock, flags);
+ 			}
+ 		}
+ 		/* grab the txcredits for the ports if available */
+@@ -630,9 +631,9 @@ static void edge_interrupt_callback(struct urb *urb)
+ 				port = edge_serial->serial->port[portNumber];
+ 				edge_port = usb_get_serial_port_data(port);
+ 				if (edge_port->open) {
+-					spin_lock(&edge_port->ep_lock);
++					spin_lock_irqsave(&edge_port->ep_lock, flags);
+ 					edge_port->txCredits += txCredits;
+-					spin_unlock(&edge_port->ep_lock);
++					spin_unlock_irqrestore(&edge_port->ep_lock, flags);
+ 					dev_dbg(dev, "%s - txcredits for port%d = %d\n",
+ 						__func__, portNumber,
+ 						edge_port->txCredits);
+@@ -673,6 +674,7 @@ static void edge_bulk_in_callback(struct urb *urb)
+ 	int			retval;
+ 	__u16			raw_data_length;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	if (status) {
+ 		dev_dbg(&urb->dev->dev, "%s - nonzero read bulk status received: %d\n",
+@@ -692,7 +694,7 @@ static void edge_bulk_in_callback(struct urb *urb)
+ 
+ 	usb_serial_debug_data(dev, __func__, raw_data_length, data);
+ 
+-	spin_lock(&edge_serial->es_lock);
++	spin_lock_irqsave(&edge_serial->es_lock, flags);
+ 
+ 	/* decrement our rxBytes available by the number that we just got */
+ 	edge_serial->rxBytesAvail -= raw_data_length;
+@@ -716,7 +718,7 @@ static void edge_bulk_in_callback(struct urb *urb)
+ 		edge_serial->read_in_progress = false;
+ 	}
+ 
+-	spin_unlock(&edge_serial->es_lock);
++	spin_unlock_irqrestore(&edge_serial->es_lock, flags);
+ }
+ 
+ 
+-- 
+1.7.9.5
 
---
-Regards,
-Prabhakar Lad
