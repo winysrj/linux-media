@@ -1,70 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34678 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753850Ab3GRGrc (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 02:47:32 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: [PATCH 04/15] ARM: OMAP: USB: Add phy binding information
-Date: Thu, 18 Jul 2013 12:16:13 +0530
-Message-ID: <1374129984-765-5-git-send-email-kishon@ti.com>
-In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
-References: <1374129984-765-1-git-send-email-kishon@ti.com>
+Received: from mail-la0-f42.google.com ([209.85.215.42]:45276 "EHLO
+	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932094Ab3GKNIe (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 09:08:34 -0400
+Received: by mail-la0-f42.google.com with SMTP id eb20so6855092lab.15
+        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 06:08:32 -0700 (PDT)
+Message-ID: <51DEAE4E.90204@cogentembedded.com>
+Date: Thu, 11 Jul 2013 17:08:30 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain
+To: Ming Lei <ming.lei@canonical.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Subject: Re: [PATCH 45/50] sound: usb: usx2y: spin_lock in complete() cleanup
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-46-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-46-git-send-email-ming.lei@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In order for controllers to get PHY in case of non dt boot, the phy
-binding information (phy device name) should be added in the platform
-data of the controller.
+On 11-07-2013 13:06, Ming Lei wrote:
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/mach-omap2/usb-musb.c |    3 +++
- include/linux/usb/musb.h       |    3 +++
- 2 files changed, 6 insertions(+)
+> Complete() will be run with interrupt enabled, so change to
+> spin_lock_irqsave().
 
-diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-index 8c4de27..6aa7cbf 100644
---- a/arch/arm/mach-omap2/usb-musb.c
-+++ b/arch/arm/mach-omap2/usb-musb.c
-@@ -85,6 +85,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
- 	musb_plat.mode = board_data->mode;
- 	musb_plat.extvbus = board_data->extvbus;
- 
-+	if (cpu_is_omap34xx())
-+		musb_plat.phy_label = "twl4030";
-+
- 	if (soc_is_am35xx()) {
- 		oh_name = "am35x_otg_hs";
- 		name = "musb-am35x";
-diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-index 053c268..596f8c8 100644
---- a/include/linux/usb/musb.h
-+++ b/include/linux/usb/musb.h
-@@ -104,6 +104,9 @@ struct musb_hdrc_platform_data {
- 	/* for clk_get() */
- 	const char	*clock;
- 
-+	/* phy label */
-+	const char	*phy_label;
-+
- 	/* (HOST or OTG) switch VBUS on/off */
- 	int		(*set_vbus)(struct device *dev, int is_on);
- 
--- 
-1.7.10.4
+    Changelog doesn't match the patch.
+
+> Cc: Jaroslav Kysela <perex@perex.cz>
+> Cc: Takashi Iwai <tiwai@suse.de>
+> Cc: alsa-devel@alsa-project.org
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+>   sound/usb/usx2y/usbusx2yaudio.c |    4 ++++
+>   1 file changed, 4 insertions(+)
+
+> diff --git a/sound/usb/usx2y/usbusx2yaudio.c b/sound/usb/usx2y/usbusx2yaudio.c
+> index 4967fe9..e2ee893 100644
+> --- a/sound/usb/usx2y/usbusx2yaudio.c
+> +++ b/sound/usb/usx2y/usbusx2yaudio.c
+> @@ -273,7 +273,11 @@ static void usX2Y_clients_stop(struct usX2Ydev *usX2Y)
+>   		struct snd_usX2Y_substream *subs = usX2Y->subs[s];
+>   		if (subs) {
+>   			if (atomic_read(&subs->state) >= state_PRERUNNING) {
+> +				unsigned long flags;
+> +
+> +				local_irq_save(flags);
+>   				snd_pcm_stop(subs->pcm_substream, SNDRV_PCM_STATE_XRUN);
+> +				local_irq_restore(flags);
+>   			}
+
+WBR, Sergei
+
 
