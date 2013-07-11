@@ -1,131 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:54756 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750851Ab3GUJrD (ORCPT
+Received: from mail-pb0-f54.google.com ([209.85.160.54]:43309 "EHLO
+	mail-pb0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755838Ab3GKJHA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jul 2013 05:47:03 -0400
-Date: Sun, 21 Jul 2013 11:47:00 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-cc: Prabhakar Lad <prabhakar.csengg@gmail.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Few Doubts on adding DT nodes for bridge driver
-In-Reply-To: <51EBA8BF.7030303@gmail.com>
-Message-ID: <Pine.LNX.4.64.1307211144440.10557@axis700.grange>
-References: <CA+V-a8uDrtsRrtKh9ac+S70C2ycGZcpqXCsOLgEr4nCwBPNCHw@mail.gmail.com>
- <51EBA8BF.7030303@gmail.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Thu, 11 Jul 2013 05:07:00 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Pete Zaitcev <zaitcev@redhat.com>
+Subject: [PATCH 03/50] USB: usblp: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:26 +0800
+Message-Id: <1373533573-12272-4-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 21 Jul 2013, Sylwester Nawrocki wrote:
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-> Hi Prabhakar,
-> 
-> On 07/21/2013 08:20 AM, Prabhakar Lad wrote:
-> > Hi Sylwester, Guennadi,
-> > 
-> > I am working on adding DT support for VPIF driver, initially to get
-> > some hands dirty
-> > on working on Capture driver and later will move ahead to add for the
-> > display.
-> > I have added asynchronous probing support for the both the bridge and
-> > subdevs
-> > which works perfectly like on a charm with passing pdata as usually,
-> > but doing the
-> > same with DT I have few doubts on building the pdata in the bridge driver.
-> > 
-> > 
-> > This is a snippet of my subdes in i2c node:-
-> > 
-> > i2c0: i2c@1c22000 {
-> > 			status = "okay";
-> > 			clock-frequency =<100000>;
-> > 			pinctrl-names = "default";
-> > 			pinctrl-0 =<&i2c0_pins>;
-> > 
-> > 			tvp514x@5c {
-> > 				compatible = "ti,tvp5146";
-> > 				reg =<0x5c>;
-> > 
-> > 				port {
-> > 					tvp514x_1: endpoint {
-> > 						remote-endpoint
-> > =<&vpif_capture0_1>;
-> > 						hsync-active =<1>;
-> > 						vsync-active =<1>;
-> > 						pclk-sample =<0>;
-> > 					};
-> > 				};
-> > 			};
-> > 
-> > 			tvp514x@5d {
-> > 				compatible = "ti,tvp5146";
-> > 				reg =<0x5d>;
-> > 
-> > 				port {
-> > 					tvp514x_2: endpoint {
-> > 						remote-endpoint
-> > =<&vpif_capture0_0>;
-> > 						hsync-active =<1>;
-> > 						vsync-active =<1>;
-> > 						pclk-sample =<0>;
-> > 					};
-> > 				};
-> > 			};
-> >                   ......
-> > 		};
-> > 
-> > Here tvp514x are the subdevs the platform has two of them one at 0x5c and
-> > 0x5d,
-> > so I have added two nodes for them.
-> > 
-> > Following is DT node for the bridge driver:-
-> > 
-> > 	vpif_capture@0 {
-> > 		status = "okay";
-> > 		port {
-> 
-> You should also have:
-> 			#address-cells = <1>;
-> 			#size-cells = <0>;
-> 
-> here or in vpif_capture node.
-> 
-> > 			vpif_capture0_1: endpoint@1 {
-> > 				remote =<&tvp514x_1>;
-> > 			};
-> > 			vpif_capture0_0: endpoint@0 {
-> > 				remote =<&tvp514x_2>;
-
-BTW, just occurred to me: shouldn't also these rather be 
-"remote-endpoint?" The documentation example should then be fixed too.
-
-> > 			};
-> > 		};
-> > 	};
-> 
-> Are tvp514x@5c and tvp514x@5d decoders really connected to same bus, or are
-> they on separate busses ? If the latter then you should have 2 'port' nodes.
-> And in such case don't you need to identify to which
-> 
-> > I have added two endpoints for the bridge driver. In the bridge driver
-> > to build the pdata from DT node,I do the following,
-> > 
-> > np = v4l2_of_get_next_endpoint(pdev->dev.of_node, NULL);
-> > 
-> > The above will give the first endpoint ie, endpoint@1
-> >  From here is it possible to get the tvp514x_1 endpoint node and the
-> > parent of it?
-> 
-> Isn't v4l2_of_get_remote_port_parent() what you need ?
-
-Right, forgot we've got a helper for that already.
-
-Thanks
-Guennadi
+Cc: Pete Zaitcev <zaitcev@redhat.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/usb/class/usblp.c |   10 ++++++----
+ 1 file changed, 6 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/usb/class/usblp.c b/drivers/usb/class/usblp.c
+index d4c47d5..04163d8 100644
+--- a/drivers/usb/class/usblp.c
++++ b/drivers/usb/class/usblp.c
+@@ -297,6 +297,7 @@ static void usblp_bulk_read(struct urb *urb)
+ {
+ 	struct usblp *usblp = urb->context;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	if (usblp->present && usblp->used) {
+ 		if (status)
+@@ -304,14 +305,14 @@ static void usblp_bulk_read(struct urb *urb)
+ 			    "nonzero read bulk status received: %d\n",
+ 			    usblp->minor, status);
+ 	}
+-	spin_lock(&usblp->lock);
++	spin_lock_irqsave(&usblp->lock, flags);
+ 	if (status < 0)
+ 		usblp->rstatus = status;
+ 	else
+ 		usblp->rstatus = urb->actual_length;
+ 	usblp->rcomplete = 1;
+ 	wake_up(&usblp->rwait);
+-	spin_unlock(&usblp->lock);
++	spin_unlock_irqrestore(&usblp->lock, flags);
+ 
+ 	usb_free_urb(urb);
+ }
+@@ -320,6 +321,7 @@ static void usblp_bulk_write(struct urb *urb)
+ {
+ 	struct usblp *usblp = urb->context;
+ 	int status = urb->status;
++	unsigned long flags;
+ 
+ 	if (usblp->present && usblp->used) {
+ 		if (status)
+@@ -327,7 +329,7 @@ static void usblp_bulk_write(struct urb *urb)
+ 			    "nonzero write bulk status received: %d\n",
+ 			    usblp->minor, status);
+ 	}
+-	spin_lock(&usblp->lock);
++	spin_lock_irqsave(&usblp->lock, flags);
+ 	if (status < 0)
+ 		usblp->wstatus = status;
+ 	else
+@@ -335,7 +337,7 @@ static void usblp_bulk_write(struct urb *urb)
+ 	usblp->no_paper = 0;
+ 	usblp->wcomplete = 1;
+ 	wake_up(&usblp->wwait);
+-	spin_unlock(&usblp->lock);
++	spin_unlock_irqrestore(&usblp->lock, flags);
+ 
+ 	usb_free_urb(urb);
+ }
+-- 
+1.7.9.5
+
