@@ -1,81 +1,111 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from co9ehsobe004.messaging.microsoft.com ([207.46.163.27]:10921
-	"EHLO co9outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1753955Ab3GIO0H convert rfc822-to-8bit
-	(ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 9 Jul 2013 10:26:07 -0400
-From: Florian Neuhaus <florian.neuhaus@reberinformatik.ch>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: omap_vout: rotation issue on the first start
-Date: Tue, 9 Jul 2013 14:25:48 +0000
-Message-ID: <6EE9CD707FBED24483D4CB0162E8546745F4BAAA@AMSPRD0711MB532.eurprd07.prod.outlook.com>
-Content-Language: de-DE
-Content-Type: text/plain; charset="iso-8859-1"
-Content-Transfer-Encoding: 8BIT
+Received: from mail-bk0-f42.google.com ([209.85.214.42]:44410 "EHLO
+	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756782Ab3GKWEq (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 18:04:46 -0400
+Message-ID: <51DF2BF6.30509@gmail.com>
+Date: Fri, 12 Jul 2013 00:04:38 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Subject: Re: [PATCH v2 2/2] media: i2c: tvp7002: add OF support
+References: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com> <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com> <51D05568.3090009@gmail.com> <CA+V-a8sW+D8trces5AXu__Lw9F7TO6fCcQW+LGZKRhA41uOEfw@mail.gmail.com>
+In-Reply-To: <CA+V-a8sW+D8trces5AXu__Lw9F7TO6fCcQW+LGZKRhA41uOEfw@mail.gmail.com>
+Content-Type: text/plain; charset=windows-1252; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+On 07/11/2013 07:09 PM, Prabhakar Lad wrote:
+[...]
+>>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>>> b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>>> new file mode 100644
+>>> index 0000000..9daebe1
+>>> --- /dev/null
+>>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>>> @@ -0,0 +1,43 @@
+>>> +* Texas Instruments TV7002 video decoder
+>>> +
+[...]
+>>> +
+>>> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
+>>
+>> I thought it was agreed 'field-even-active' would be used instead of
+>> this device specific property. Did you run into any issues with that ?
+>>
+>>
+> Argh I some how missed it out, sorry this should be 'field-even-active'
 
-Sorry to insist on this, but for you it's probably peanuts to see a possible error.
-Any hints/workarounds are welcome...
+OK.
 
->From the mail with subject
-AW: AW: mt9p031 shows purple coloured capture
-Florian Neuhaus wrote on 2013-06-24:
+>> And include/media/tvp70002.h:
+>>
+>>   * fid_polarity:
+>>   *                      0 ->  the field ID output is set to logic 1 for an
+>> odd
+>>   *                           field (field 1) and set to logic 0 for an even
+>>   *                           field (field 0).
+>>   *                      1 ->  operation with polarity inverted.
+>>
+>>
+>> Do you know if the chip automatically selects video sync source
+>> (sync-on-green
+>> vs. VSYNC/HSYNC) and there is no need to configure this on the analogue
+>> input
+>> side ? At least the driver seems to always select the default SOGIN_1 input
+>> (TVP7002_IN_MUX_SEL_1 register is set only at initialization time).
+>>
+> Yes the driver is selecting the default SOGIN_1 input.
+>
+>> Or perhaps it just outputs on SOGOUT, VSOUT, HSOUT lines whatever is fed to
+>> its analogue inputs, and any further processing unit need to determine what
+>> synchronization signal is present and should be used ?
+>>
+>
+> Yes that correct, there is a register (Sync Detect Status) which
+> detects the sync for you.
+>
+>> I suspect that we don't need, e.g. another endpoint node to specify the
+>> configuration of the TVP7002 analogue input interface, that would contain
+>> a property like video-sync.
+>>
+>>
+> If I understand correctly you mean if there are two tvp7002 devices connected
+> we don’t need to specify video-sync property, but my question how do we
+> specify this property in common then ?
 
->> Have you tested the unmodified omap3-is-live ?
-> I did today and indeed, with the unmodified app there is no green taint on
-> the first start. I have now tracked down the issue to my implemented
-> rotation on the video-out:
-> 
-diff --git a/videoout.c b/videoout.c
-index 51bed8b..6fd8a16 100644
---- a/videoout.c
-+++ b/videoout.c
-@@ -60,6 +60,7 @@ struct videoout *vo_init(const char *devname,
- 	struct v4l2_format fmt;
- 	struct videoout *vo;
- 	int ret;
-+	int rotation = 90; /* rotate for testing purposes */
- 
- 	/* Allocate the video output object. */
- 	vo = malloc(sizeof *vo);
-@@ -76,6 +77,14 @@ struct videoout *vo_init(const char *devname,
- 		goto error;
- 	}
- 
-+	/* setup the rotation here, we have to do it BEFORE
-+	 * setting the format. */
-+	ret = v4l2_set_control(vo->dev, V4L2_CID_ROTATE, &rotation);
-+	if (ret < 0){
-+		perror("Failed to setup rotation\n");
-+		goto error;
-+	}
-+
- 	pixfmt.pixelformat = format->pixelformat;
- 	pixfmt.width = format->width;
- 	pixfmt.height = format->height;
+No, I thought about two port sub-nodes of a single device node, one for the
+TVP7002 video input and one for the output. But it seems there is no need
+for that, i.e. to specify the input configuration statically in the 
+firmware.
+The chip detects the signals automatically, i.e. it uses whatever is 
+available,
+and it allows querying the selection status at run time. What would really
+need to be configured statically in DT in that case then ? Some initial 
+video
+sync configuration ? I guess it could be well hard coded in the driver, 
+since
+the hardware does run time detection anyway.
 
-It would be very nice if you could test the above patch with one of
-your omap-devices.
+It there are real use cases I gues we could add video-sync property or 
+similar,
+besides the existing signal polarity properties.
 
-> I do a rotation by 90 or 270 degrees. So there seems to be an issue with the
-> vrfb-rotation in omap_vout?
-> I am already rotating the omapfb - is this a problem?
-> omapfb.rotate=1 omapfb.vrfb=y
-> Another possibility to rotate the captured stream?
-
-I noticed, that it happens only with 90 or 270 degree rotation
-and not with 0 and 180 degree. Also only on the first start of
-the stream. All following streamings are correct.
-
-I have a 480x800 Portrait display. I try to rotate the output to
-800x480 landscape.
-
-Regards,
-Florian
-
-
+--
+Thanks,
+Sylwester
