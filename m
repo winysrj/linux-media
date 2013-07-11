@@ -1,107 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1078 "EHLO
-	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932770Ab3GRSaA (ORCPT
+Received: from mail-lb0-f176.google.com ([209.85.217.176]:59401 "EHLO
+	mail-lb0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932164Ab3GKNMI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 14:30:00 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6IITuAK053268
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 18 Jul 2013 20:29:59 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 7A82235E0344
-	for <linux-media@vger.kernel.org>; Thu, 18 Jul 2013 20:29:56 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130718182956.7A82235E0344@alastor.dyndns.org>
-Date: Thu, 18 Jul 2013 20:29:56 +0200 (CEST)
+	Thu, 11 Jul 2013 09:12:08 -0400
+Received: by mail-lb0-f176.google.com with SMTP id z5so6552059lbh.7
+        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 06:12:07 -0700 (PDT)
+Message-ID: <51DEAF24.4040301@cogentembedded.com>
+Date: Thu, 11 Jul 2013 17:12:04 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+MIME-Version: 1.0
+To: Ming Lei <ming.lei@canonical.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Daniel Mack <zonque@gmail.com>,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Subject: Re: [PATCH 44/50] sound: usb: caiaq: spin_lock in complete() cleanup
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-45-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-45-git-send-email-ming.lei@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 11-07-2013 13:06, Ming Lei wrote:
 
-Results of the daily build of media_tree:
+> Complete() will be run with interrupt enabled, so change to
+> spin_lock_irqsave().
 
-date:		Thu Jul 18 19:00:20 CEST 2013
-git branch:	test
-git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+> Cc: Daniel Mack <zonque@gmail.com>
+> Cc: Jaroslav Kysela <perex@perex.cz>
+> Cc: Takashi Iwai <tiwai@suse.de>
+> Cc: alsa-devel@alsa-project.org
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+>   sound/usb/caiaq/audio.c |    5 +++--
+>   1 file changed, 3 insertions(+), 2 deletions(-)
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+> diff --git a/sound/usb/caiaq/audio.c b/sound/usb/caiaq/audio.c
+> index 7103b09..e5675ab 100644
+> --- a/sound/usb/caiaq/audio.c
+> +++ b/sound/usb/caiaq/audio.c
+> @@ -672,10 +672,11 @@ static void read_completed(struct urb *urb)
+>   		offset += len;
+>
+>   		if (len > 0) {
+> -			spin_lock(&cdev->spinlock);
+> +			unsigned long flags;
 
-Detailed results are available here:
+    Emoty line wouldn't hurt here, after declaration.
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+> +			spin_lock_irqsave(&cdev->spinlock, flags);
+>   			fill_out_urb(cdev, out, &out->iso_frame_desc[outframe]);
+>   			read_in_urb(cdev, urb, &urb->iso_frame_desc[frame]);
+> -			spin_unlock(&cdev->spinlock);
+> +			spin_unlock_irqrestore(&cdev->spinlock, flags);
 
-Full logs are available here:
+WBR, Sergei
 
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
