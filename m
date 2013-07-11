@@ -1,75 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:44490 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753776Ab3GIIEO (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 04:04:14 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
-	Jingoo Han <jg1.han@samsung.com>
-Subject: [PATCH V6 1/4] ARM: dts: Add DP PHY node to exynos5250.dtsi
-Date: Tue, 09 Jul 2013 17:04:10 +0900
-Message-id: <003e01ce7c7a$e519a300$af4ce900$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from youngberry.canonical.com ([91.189.89.112]:42187 "EHLO
+	youngberry.canonical.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932255Ab3GKMmw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 08:42:52 -0400
+MIME-Version: 1.0
+In-Reply-To: <51DEA289.5050509@cogentembedded.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	<1373533573-12272-9-git-send-email-ming.lei@canonical.com>
+	<51DEA289.5050509@cogentembedded.com>
+Date: Thu, 11 Jul 2013 20:42:49 +0800
+Message-ID: <CACVXFVOF4e=+GjXHTJ-suitQO3TsvCnUBCsfoXj+QahxRqVz7Q@mail.gmail.com>
+Subject: Re: [PATCH 08/50] USB: legousbtower: spin_lock in complete() cleanup
+From: Ming Lei <ming.lei@canonical.com>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Juergen Stuber <starblue@users.sourceforge.net>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Add PHY provider node for the DP PHY.
+On Thu, Jul 11, 2013 at 8:18 PM, Sergei Shtylyov
+<sergei.shtylyov@cogentembedded.com> wrote:
+> Hello.
+>
+>
+> On 11-07-2013 13:05, Ming Lei wrote:
+>
+>> Complete() will be run with interrupt enabled, so change to
+>> spin_lock_irqsave().
+>
+>
+>> Cc: Juergen Stuber <starblue@users.sourceforge.net>
+>> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+>> ---
+>>   drivers/usb/misc/legousbtower.c |    5 +++--
+>>   1 file changed, 3 insertions(+), 2 deletions(-)
+>
+>
+>> diff --git a/drivers/usb/misc/legousbtower.c
+>> b/drivers/usb/misc/legousbtower.c
+>> index 8089479..4044989 100644
+>> --- a/drivers/usb/misc/legousbtower.c
+>> +++ b/drivers/usb/misc/legousbtower.c
+>> @@ -771,6 +771,7 @@ static void tower_interrupt_in_callback (struct urb
+>> *urb)
+>>         struct lego_usb_tower *dev = urb->context;
+>>         int status = urb->status;
+>>         int retval;
+>> +       unsigned long flags;
+>>
+>>         dbg(4, "%s: enter, status %d", __func__, status);
+>>
+>> @@ -788,7 +789,7 @@ static void tower_interrupt_in_callback (struct urb
+>> *urb)
+>>         }
+>>
+>>         if (urb->actual_length > 0) {
+>> -               spin_lock (&dev->read_buffer_lock);
+>> +               spin_lock_irqsave (&dev->read_buffer_lock, flags);
+>>                 if (dev->read_buffer_length + urb->actual_length <
+>> read_buffer_size) {
+>>                         memcpy (dev->read_buffer +
+>> dev->read_buffer_length,
+>>                                 dev->interrupt_in_buffer,
+>> @@ -799,7 +800,7 @@ static void tower_interrupt_in_callback (struct urb
+>> *urb)
+>>                 } else {
+>>                         printk(KERN_WARNING "%s: read_buffer overflow, %d
+>> bytes dropped", __func__, urb->actual_length);
+>>                 }
+>> -               spin_unlock (&dev->read_buffer_lock);
+>> +               spin_unlock_irqrestore (&dev->read_buffer_lock, flags);
+>>         }
+>
+>
+>    I don't think this patch passes checkpatch.pl.
 
-Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-Reviewed-by: Tomasz Figa <t.figa@samsung.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
----
- arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
- 1 file changed, 8 insertions(+), 5 deletions(-)
+No errors reported from checkpatch.pl, only warnings which isn't introduced
+by this patch.
 
-diff --git a/arch/arm/boot/dts/exynos5250.dtsi b/arch/arm/boot/dts/exynos5250.dtsi
-index fc9fb3d..c326c06 100644
---- a/arch/arm/boot/dts/exynos5250.dtsi
-+++ b/arch/arm/boot/dts/exynos5250.dtsi
-@@ -616,6 +616,12 @@
- 		interrupts = <0 94 0>;
- 	};
- 
-+	dp_phy: video-phy@10040720 {
-+		compatible = "samsung,exynos5250-dp-video-phy";
-+		reg = <0x10040720 4>;
-+		#phy-cells = <0>;
-+	};
-+
- 	dp-controller {
- 		compatible = "samsung,exynos5-dp";
- 		reg = <0x145b0000 0x1000>;
-@@ -623,11 +629,8 @@
- 		interrupt-parent = <&combiner>;
- 		#address-cells = <1>;
- 		#size-cells = <0>;
--
--		dptx-phy {
--			reg = <0x10040720>;
--			samsung,enable-mask = <1>;
--		};
-+		phys = <&dp_phy>;
-+		phy-names = "dp";
- 	};
- 
- 	fimd {
--- 
-1.7.10.4
-
-
+Thanks,
+--
+Ming Lei
