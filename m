@@ -1,69 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:54407 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932473Ab3GPNER convert rfc822-to-8bit (ORCPT
+Received: from mail-la0-f47.google.com ([209.85.215.47]:61334 "EHLO
+	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755605Ab3GKMSW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 09:04:17 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Bard Eirik Winther <bwinther@cisco.com>
-Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
-Subject: Re: [PATCH 4/4] qv4l2: add OpenGL video render
-Date: Tue, 16 Jul 2013 15:05 +0200
-Message-ID: <3035536.XabkRYWs1N@avalon>
-In-Reply-To: <6029532.8F5QMT0oxE@bwinther>
-References: <1373973848-4084-1-git-send-email-bwinther@cisco.com> <1609457.OFIJZjqBDN@avalon> <6029532.8F5QMT0oxE@bwinther>
+	Thu, 11 Jul 2013 08:18:22 -0400
+Received: by mail-la0-f47.google.com with SMTP id fe20so6735626lab.34
+        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 05:18:20 -0700 (PDT)
+Message-ID: <51DEA289.5050509@cogentembedded.com>
+Date: Thu, 11 Jul 2013 16:18:17 +0400
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="iso-8859-1"
+To: Ming Lei <ming.lei@canonical.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Juergen Stuber <starblue@users.sourceforge.net>
+Subject: Re: [PATCH 08/50] USB: legousbtower: spin_lock in complete() cleanup
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-9-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-9-git-send-email-ming.lei@canonical.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Bård,
+Hello.
 
-On Tuesday 16 July 2013 14:59:04 Bard Eirik Winther wrote:
-> On Tuesday, July 16, 2013 02:01:45 PM you wrote:
-> > Hi Bård,
-> > 
-> > Thank you for the patches.
-> > 
-> > On Tuesday 16 July 2013 13:24:08 Bård Eirik Winther wrote:
-> > > The qv4l2 test utility now supports OpenGL-accelerated display of video.
-> > > This allows for using the graphics card to render the video content to
-> > > screen and to performing color space conversion.
-> > > 
-> > > Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
-> > > ---
-> > > 
-> > >  configure.ac                |   8 +-
-> > >  utils/qv4l2/Makefile.am     |   9 +-
-> > >  utils/qv4l2/capture-win.cpp | 559 +++++++++++++++++++++++++++++++++++--
-> > >  utils/qv4l2/capture-win.h   |  81 ++++++-
-> > >  utils/qv4l2/qv4l2.cpp       | 173 +++++++++++---
-> > >  utils/qv4l2/qv4l2.h         |   8 +
-> > >  6 files changed, 782 insertions(+), 56 deletions(-)
-> > 
-> > Is there a chance you could split the OpenGL code to separate classes, in
-> > a
-> > separate source file ? This would allow implementing other renderers, such
-> > as KMS planes on embedded devices.
-> 
-> Hi.
-> 
-> Do you mean to separate the GL class only or all the different
-> shaders/renderes as well?
+On 11-07-2013 13:05, Ming Lei wrote:
 
-Basically, what would be nice to get is an easy way to extend qv4l2 with 
-different renderers. OpenGL is fine on the desktop, but for embedded devices a 
-KMS planes backend would work best given the mess that the embedded GPU 
-situation is. Instead of adding #ifdef ENABLE_OGL and if (use_ogl) through the 
-code, abstracting the rendering code in a separate base class that renderers 
-could inherit from would make the code simpler to read, maintain and extend.
+> Complete() will be run with interrupt enabled, so change to
+> spin_lock_irqsave().
 
-I haven't looked at the details so I'm not sure how much work that would be, 
-but if the effort is reasonable I think it would be a nice improvement.
+> Cc: Juergen Stuber <starblue@users.sourceforge.net>
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> ---
+>   drivers/usb/misc/legousbtower.c |    5 +++--
+>   1 file changed, 3 insertions(+), 2 deletions(-)
 
--- 
-Regards,
+> diff --git a/drivers/usb/misc/legousbtower.c b/drivers/usb/misc/legousbtower.c
+> index 8089479..4044989 100644
+> --- a/drivers/usb/misc/legousbtower.c
+> +++ b/drivers/usb/misc/legousbtower.c
+> @@ -771,6 +771,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
+>   	struct lego_usb_tower *dev = urb->context;
+>   	int status = urb->status;
+>   	int retval;
+> +	unsigned long flags;
+>
+>   	dbg(4, "%s: enter, status %d", __func__, status);
+>
+> @@ -788,7 +789,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
+>   	}
+>
+>   	if (urb->actual_length > 0) {
+> -		spin_lock (&dev->read_buffer_lock);
+> +		spin_lock_irqsave (&dev->read_buffer_lock, flags);
+>   		if (dev->read_buffer_length + urb->actual_length < read_buffer_size) {
+>   			memcpy (dev->read_buffer + dev->read_buffer_length,
+>   				dev->interrupt_in_buffer,
+> @@ -799,7 +800,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
+>   		} else {
+>   			printk(KERN_WARNING "%s: read_buffer overflow, %d bytes dropped", __func__, urb->actual_length);
+>   		}
+> -		spin_unlock (&dev->read_buffer_lock);
+> +		spin_unlock_irqrestore (&dev->read_buffer_lock, flags);
+>   	}
 
-Laurent Pinchart
+    I don't think this patch passes checkpatch.pl.
+
+WBR, Sergei
+
 
