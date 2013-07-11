@@ -1,56 +1,60 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:57938 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752932Ab3GDVKm convert rfc822-to-8bit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jul 2013 17:10:42 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Jakub Piotr =?utf-8?B?Q8WCYXBh?= <jpc-ml@zenburn.net>
-Cc: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp] xclk deadlock
-Date: Thu, 04 Jul 2013 23:11:13 +0200
-Message-ID: <2398527.WgqgO0AkRo@avalon>
-In-Reply-To: <51D5D967.1030306@zenburn.net>
-References: <51D37796.2000601@zenburn.net> <51D5D967.1030306@zenburn.net>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 8BIT
-Content-Type: text/plain; charset="utf-8"
+Received: from mail-pa0-f51.google.com ([209.85.220.51]:54503 "EHLO
+	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932170Ab3GKJIi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 05:08:38 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Johan Hovold <jhovold@gmail.com>
+Subject: [PATCH 15/50] USB: serial: mos77840: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:38 +0800
+Message-Id: <1373533573-12272-16-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jakub,
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-On Thursday 04 July 2013 22:21:59 Jakub Piotr Cłapa wrote:
-> Hi again,
-> 
-> Sorry for the noise, but I believe the information below may be useful
-> until everything is merged into mainline.
-> 
-> I write to say that I managed to find a fix for the ISP clock deadlock.
->   My branch can be found at:
-> https://github.com/LoEE/linux/tree/omap3isp/xclk
-> (SHA: 36286390193922d148e7a3db0676747a20f2ed66 at the time of writing)
-> 
-> For reference:
-> 1. This was a known problem since early January [1] (reported by Laurent).
-> 2. Mike Turquette had submitted patches that made the clock framework
-> (partially) reentrant. [2][3][4]
-> 3. My code is just a rebase of the Laurent's omap3isp/xclk branch on the
-> Mike's clk-next (so it's based on 3.10-rc3).
+Cc: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/usb/serial/mos7840.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-The omap3isp/xclk clock branch was used only to push patches to the media 
-tree, I should have deleted it afterwards. Mike's reentrancy patches were 
-already merged (or scheduled for merge) in mainline at that time, and for 
-technical reasons they were not present in the omap3isp/xclk branch.
-
-I've now deleted the branch from the public tree, sorry for the confusion.
-
-> [1]: https://lkml.org/lkml/2013/1/6/169
-> [2]: http://thread.gmane.org/gmane.linux.kernel/1448446/focus=1448448
-> [3]: http://thread.gmane.org/gmane.linux.ports.arm.kernel/182198
-> [4]: http://patches.linaro.org/15676/
-
+diff --git a/drivers/usb/serial/mos7840.c b/drivers/usb/serial/mos7840.c
+index 0a818b2..f21dcd0 100644
+--- a/drivers/usb/serial/mos7840.c
++++ b/drivers/usb/serial/mos7840.c
+@@ -788,17 +788,18 @@ static void mos7840_bulk_out_data_callback(struct urb *urb)
+ 	struct usb_serial_port *port;
+ 	int status = urb->status;
+ 	int i;
++	unsigned long flags;
+ 
+ 	mos7840_port = urb->context;
+ 	port = mos7840_port->port;
+-	spin_lock(&mos7840_port->pool_lock);
++	spin_lock_irqsave(&mos7840_port->pool_lock, flags);
+ 	for (i = 0; i < NUM_URBS; i++) {
+ 		if (urb == mos7840_port->write_urb_pool[i]) {
+ 			mos7840_port->busy[i] = 0;
+ 			break;
+ 		}
+ 	}
+-	spin_unlock(&mos7840_port->pool_lock);
++	spin_unlock_irqrestore(&mos7840_port->pool_lock, flags);
+ 
+ 	if (status) {
+ 		dev_dbg(&port->dev, "nonzero write bulk status received:%d\n", status);
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.9.5
 
