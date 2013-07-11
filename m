@@ -1,80 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f43.google.com ([209.85.214.43]:45639 "EHLO
-	mail-bk0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753207Ab3GGVuf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 17:50:35 -0400
-Received: by mail-bk0-f43.google.com with SMTP id jm2so1580229bkc.2
-        for <linux-media@vger.kernel.org>; Sun, 07 Jul 2013 14:50:34 -0700 (PDT)
-Message-ID: <51D9E2A6.2070002@gmail.com>
-Date: Sun, 07 Jul 2013 23:50:30 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pete Eberlein <pete@sensoray.com>
-Subject: Re: [RFC PATCH 0/5] Matrix and Motion Detection support
-References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-pb0-f44.google.com ([209.85.160.44]:52842 "EHLO
+	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932451Ab3GKJMF (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 05:12:05 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH 41/50] media: usb: em28xx: make sure irq disabled before acquiring lock
+Date: Thu, 11 Jul 2013 17:06:04 +0800
+Message-Id: <1373533573-12272-42-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Complete() will be run with interrupt enabled, so add local_irq_save()
+before acquiring the lock without irqsave().
 
-On 06/28/2013 02:27 PM, Hans Verkuil wrote:
-> This patch series adds support for matrices and motion detection and
-> converts the solo6x10 driver to use these new APIs.
->
-> See the RFCv2 for details on the motion detection API:
->
-> http://www.mail-archive.com/linux-media@vger.kernel.org/msg62085.html
->
-> And this RFC for details on the matrix API (which superseeds the v4l2_md_blocks
-> in the RFC above):
->
-> http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/65195
->
-> I have tested this with the solo card, both global motion detection and
-> regional motion detection, and it works well.
->
-> There is no documentation for the new APIs yet (other than the RFCs). I would
-> like to know what others think of this proposal before I start work on the
-> DocBook documentation.
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+Cc: linux-media@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/media/usb/em28xx/em28xx-audio.c |    3 +++
+ 1 file changed, 3 insertions(+)
 
-These 3 ioctls look pretty generic and will likely allow us to handle wide
-range of functionalities, similarly to what the controls framework does 
-today.
+diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
+index 2fdb66e..dca53ec 100644
+--- a/drivers/media/usb/em28xx/em28xx-audio.c
++++ b/drivers/media/usb/em28xx/em28xx-audio.c
+@@ -113,6 +113,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 		stride = runtime->frame_bits >> 3;
+ 
+ 		for (i = 0; i < urb->number_of_packets; i++) {
++			unsigned long flags;
+ 			int length =
+ 			    urb->iso_frame_desc[i].actual_length / stride;
+ 			cp = (unsigned char *)urb->transfer_buffer +
+@@ -134,6 +135,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 				       length * stride);
+ 			}
+ 
++			local_irq_save(flags);
+ 			snd_pcm_stream_lock(substream);
+ 
+ 			dev->adev.hwptr_done_capture += length;
+@@ -151,6 +153,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
+ 			}
+ 
+ 			snd_pcm_stream_unlock(substream);
++			local_irq_restore(flags);
+ 		}
+ 		if (period_elapsed)
+ 			snd_pcm_period_elapsed(substream);
+-- 
+1.7.9.5
 
-What I don't like in the current trend of the V4L2 API development 
-though is
-that we have seemingly separate APIs for configuring integers, rectangles,
-matrices, etc. And interactions between those APIs sometimes happen to be
-not well defined.
-
-I'm not opposed to having this matrix API, but I would _much_ more like to
-see it as a starting point of a more powerful API, that would allow to 
-model
-dependencies between parameters being configured and the objects more
-explicitly and freely (e.g. case of the per buffer controls), that would
-allow to pass a list of commands to the hardware for atomic 
-re-configurations,
-that would allow to create hardware configuration contexts, etc., etc.
-
-But it's all song of future, requires lots of effort, founding and takes
-engineers with significant experience.
-
-As it likely won't happen soon I guess we can proceed with the matrix API
-for now.
-
-> My tentative goal is to get this in for 3.12. Once this is in place the solo
-> and go7007 drivers can be moved out of staging into the mainline since this is
-> the only thing holding them back.
-
---
-Regards,
-Sylwester
