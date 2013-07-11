@@ -1,44 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:58287 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756928Ab3GVJhh (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 05:37:37 -0400
-Message-ID: <51ECFD4C.8020407@ti.com>
-Date: Mon, 22 Jul 2013 15:07:16 +0530
-From: Sekhar Nori <nsekhar@ti.com>
-MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	<devicetree-discuss@lists.ozlabs.org>, <linux-doc@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>
-Subject: Re: [PATCH v3 1/2] media: i2c: adv7343: make the platform data members
- as array
-References: <1374301266-26726-1-git-send-email-prabhakar.csengg@gmail.com> <1374301266-26726-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1374301266-26726-2-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Received: from mail-pa0-f41.google.com ([209.85.220.41]:57001 "EHLO
+	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932278Ab3GKJLL (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 05:11:11 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	"John W. Linville" <linville@tuxdriver.com>,
+	libertas-dev@lists.infradead.org
+Subject: [PATCH 34/50] wireless: libertas_tf: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:57 +0800
+Message-Id: <1373533573-12272-35-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Saturday 20 July 2013 11:51 AM, Lad, Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> This patch makes the platform data members as array wherever
-> possible, so as this makes easier while collecting the data
-> in DT case and read the entire array at once.
-> 
-> This patch also makes appropriate changes to board-da850-evm.c
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> Cc: Sekhar Nori <nsekhar@ti.com>
-> Cc: linux-arm-kernel@lists.infradead.org
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-For the board-da850-evm.c change:
+Cc: "John W. Linville" <linville@tuxdriver.com>
+Cc: libertas-dev@lists.infradead.org
+Cc: linux-wireless@vger.kernel.org
+Cc: netdev@vger.kernel.org
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
+---
+ drivers/net/wireless/libertas_tf/if_usb.c |    6 ++++--
+ 1 file changed, 4 insertions(+), 2 deletions(-)
 
-Acked-by: Sekhar Nori <nsekhar@ti.com>
-
-Thanks,
-Sekhar
+diff --git a/drivers/net/wireless/libertas_tf/if_usb.c b/drivers/net/wireless/libertas_tf/if_usb.c
+index d576dd6..0e9e972 100644
+--- a/drivers/net/wireless/libertas_tf/if_usb.c
++++ b/drivers/net/wireless/libertas_tf/if_usb.c
+@@ -610,6 +610,8 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
+ 				      struct if_usb_card *cardp,
+ 				      struct lbtf_private *priv)
+ {
++	unsigned long flags;
++
+ 	if (recvlength > LBS_CMD_BUFFER_SIZE) {
+ 		lbtf_deb_usbd(&cardp->udev->dev,
+ 			     "The receive buffer is too large\n");
+@@ -619,12 +621,12 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
+ 
+ 	BUG_ON(!in_interrupt());
+ 
+-	spin_lock(&priv->driver_lock);
++	spin_lock_irqsave(&priv->driver_lock, flags);
+ 	memcpy(priv->cmd_resp_buff, recvbuff + MESSAGE_HEADER_LEN,
+ 	       recvlength - MESSAGE_HEADER_LEN);
+ 	kfree_skb(skb);
+ 	lbtf_cmd_response_rx(priv);
+-	spin_unlock(&priv->driver_lock);
++	spin_unlock_irqrestore(&priv->driver_lock, flags);
+ }
+ 
+ /**
+-- 
+1.7.9.5
 
