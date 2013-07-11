@@ -1,53 +1,255 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:44779 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102Ab3GHMH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:27 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPM00LU49OANZR0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:25 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v4 1/8] [media] s5p-mfc: Update v6 encoder buffer sizes
-Date: Mon, 08 Jul 2013 18:00:29 +0530
-Message-id: <1373286637-30154-2-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
-References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-wg0-f47.google.com ([74.125.82.47]:51871 "EHLO
+	mail-wg0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751159Ab3GKLlV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 07:41:21 -0400
+MIME-Version: 1.0
+In-Reply-To: <51D0548D.7020004@gmail.com>
+References: <1371913383-25088-1-git-send-email-prabhakar.csengg@gmail.com> <51D0548D.7020004@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Thu, 11 Jul 2013 17:11:00 +0530
+Message-ID: <CA+V-a8uG1KLY-Vjj+0ix2=wV4r=k+tkJ4aDBCN+iN+JZ6my30w@mail.gmail.com>
+Subject: Re: [PATCH RFC v3] media: OF: add video sync endpoint property
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	LMML <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Grant Likely <grant.likely@secretlab.ca>,
+	Rob Herring <rob.herring@calxeda.com>,
+	Rob Landley <rob@landley.net>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch updates few encoder buffer sizes for MFC v6.5
-as per the udpdated user manual. The same buffer sizes
-holds good for v7 firmware also.
+Hi Sylwester,
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
----
- drivers/media/platform/s5p-mfc/regs-mfc-v6.h |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Oops some how missed this mail, sorry for the late response.
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-index 363a97c..2398cdf 100644
---- a/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v6.h
-@@ -374,9 +374,9 @@
- #define S5P_FIMV_NUM_PIXELS_IN_MB_COL_V6	16
- 
- /* Buffer size requirements defined by hardware */
--#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 1) * 8)
-+#define S5P_FIMV_TMV_BUFFER_SIZE_V6(w, h)	(((w) + 1) * ((h) + 3) * 8)
- #define S5P_FIMV_ME_BUFFER_SIZE_V6(imw, imh, mbw, mbh) \
--	((DIV_ROUND_UP(imw, 64) *  DIV_ROUND_UP(imh, 64) * 256) + \
-+	(((((imw + 127) / 64) * 16) *  DIV_ROUND_UP(imh, 64) * 256) + \
- 	 (DIV_ROUND_UP((mbw) * (mbh), 32) * 16))
- #define S5P_FIMV_SCRATCH_BUF_SIZE_H264_DEC_V6(w, h)	(((w) * 192) + 64)
- #define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V6(w, h) \
--- 
-1.7.9.5
+On Sun, Jun 30, 2013 at 9:23 PM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi,
+>
+>
+> On 06/22/2013 05:03 PM, Prabhakar Lad wrote:
+>>
+>> From: "Lad, Prabhakar"<prabhakar.csengg@gmail.com>
+>>
+>> This patch adds video sync properties as part of endpoint
+>> properties and also support to parse them in the parser.
+>>
+>> Signed-off-by: Lad, Prabhakar<prabhakar.csengg@gmail.com>
+>> Cc: Hans Verkuil<hans.verkuil@cisco.com>
+>> Cc: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+>> Cc: Mauro Carvalho Chehab<mchehab@redhat.com>
+>> Cc: Guennadi Liakhovetski<g.liakhovetski@gmx.de>
+>> Cc: Sylwester Nawrocki<s.nawrocki@samsung.com>
+>> Cc: Sakari Ailus<sakari.ailus@iki.fi>
+>> Cc: Grant Likely<grant.likely@secretlab.ca>
+>> Cc: Rob Herring<rob.herring@calxeda.com>
+>> Cc: Rob Landley<rob@landley.net>
+>> Cc: devicetree-discuss@lists.ozlabs.org
+>> Cc: linux-doc@vger.kernel.org
+>> Cc: linux-kernel@vger.kernel.org
+>> Cc: davinci-linux-open-source@linux.davincidsp.com
+>> Cc: Kyungmin Park<kyungmin.park@samsung.com>
+>
+>
+> Do you really need such a long Cc list here ? I think it would be better
+> to just add relevant e-mail addresses when sending the patch, otherwise
+> when this patch is applied in this form all those addresses are going to
+> be spammed with the patch management notifications, which might not be
+> what some ones are really interested in.
+>
+>
+Ok I'll take care of it in the next version.
 
+>> ---
+>>   This patch has 10 warnings for line over 80 characters
+>>   for which I think can be ignored.
+>>
+>>   RFC v2 https://patchwork.kernel.org/patch/2578091/
+>>   RFC V1 https://patchwork.kernel.org/patch/2572341/
+>>   Changes for v3:
+>>   1: Fixed review comments pointed by Laurent and Sylwester.
+>>
+>>   .../devicetree/bindings/media/video-interfaces.txt |    1 +
+>>   drivers/media/v4l2-core/v4l2-of.c                  |   20
+>> ++++++++++++++++++
+>>   include/dt-bindings/media/video-interfaces.h       |   17
+>> +++++++++++++++
+>>   include/media/v4l2-mediabus.h                      |   22
+>> +++++++++++---------
+>>   4 files changed, 50 insertions(+), 10 deletions(-)
+>>   create mode 100644 include/dt-bindings/media/video-interfaces.h
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> b/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> index e022d2d..2081278 100644
+>> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> @@ -101,6 +101,7 @@ Optional endpoint properties
+>>     array contains only one entry.
+>>   - clock-noncontinuous: a boolean property to allow MIPI CSI-2
+>> non-continuous
+>>     clock mode.
+>> +- video-sync: property indicating to sync the video on a signal in RGB.
+>>
+>>
+>>   Example
+>> diff --git a/drivers/media/v4l2-core/v4l2-of.c
+>> b/drivers/media/v4l2-core/v4l2-of.c
+>> index aa59639..1a54530 100644
+>> --- a/drivers/media/v4l2-core/v4l2-of.c
+>> +++ b/drivers/media/v4l2-core/v4l2-of.c
+>> @@ -100,6 +100,26 @@ static void v4l2_of_parse_parallel_bus(const struct
+>> device_node *node,
+>>         if (!of_property_read_u32(node, "data-shift",&v))
+>>                 bus->data_shift = v;
+>>
+>> +       if (!of_property_read_u32(node, "video-sync",&v)) {
+>> +               switch (v) {
+>> +               case V4L2_MBUS_VIDEO_SEPARATE_SYNC:
+>> +                       flags |= V4L2_MBUS_VIDEO_SEPARATE_SYNC;
+>
+>
+> I'm not convinced all those video sync types is something that really
+> belongs
+> to the flags field. In my understanding this field is supposed to hold only
+> the _signal polarity_ information.
+>
+>
+Ok, so there should be a function say v4l2_of_parse_signal_polarity()
+to get the polarity alone then.
+
+>> +                       break;
+>> +               case V4L2_MBUS_VIDEO_COMPOSITE_SYNC:
+>> +                       flags |= V4L2_MBUS_VIDEO_COMPOSITE_SYNC;
+>> +                       break;
+>> +               case V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE:
+>> +                       flags |= V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE;
+>> +                       break;
+>> +               case V4L2_MBUS_VIDEO_SYNC_ON_GREEN:
+>> +                       flags |= V4L2_MBUS_VIDEO_SYNC_ON_GREEN;
+>> +                       break;
+>> +               case V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE:
+>> +                       flags |= V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE;
+>> +                       break;
+>> +               }
+>> +       }
+>> +
+>>         bus->flags = flags;
+>>
+>>   }
+>> diff --git a/include/dt-bindings/media/video-interfaces.h
+>> b/include/dt-bindings/media/video-interfaces.h
+>> new file mode 100644
+>> index 0000000..1a083dd
+>> --- /dev/null
+>> +++ b/include/dt-bindings/media/video-interfaces.h
+>> @@ -0,0 +1,17 @@
+>> +/*
+>> + * This header provides constants for video interface.
+>> + *
+>> + */
+>> +
+>> +#ifndef _DT_BINDINGS_VIDEO_INTERFACES_H
+>> +#define _DT_BINDINGS_VIDEO_INTERFACES_H
+>> +
+>> +#define V4L2_MBUS_VIDEO_SEPARATE_SYNC          (1<<  2)
+>
+>
+> You should never be putting anything Linux specific in those dt-bindings
+> headers. It just happens now include/dt-bindings is a part of the Linux
+> kernel, but it could well be in some separate repository, or could be
+> a part of the DT bindings specification, which is only specific to the
+> hardware and doesn't depend on Linux OS at all. Thus V4L2_MBUS_ prefix
+> shouldn't be used here.
+>
+>
+Ok
+
+>> +#define V4L2_MBUS_VIDEO_COMPOSITE_SYNC         (1<<  3)
+>> +#define V4L2_MBUS_VIDEO_SYNC_ON_COMPOSITE      (1<<  4)
+>> +#define V4L2_MBUS_VIDEO_SYNC_ON_GREEN          (1<<  5)
+>> +#define V4L2_MBUS_VIDEO_SYNC_ON_LUMINANCE      (1<<  6)
+>> +
+>> +#define V4L2_MBUS_VIDEO_INTERFACES_END         6
+>> +
+>> +#endif
+>> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+>> index 83ae07e..a4676dd 100644
+>> --- a/include/media/v4l2-mediabus.h
+>> +++ b/include/media/v4l2-mediabus.h
+>> @@ -11,6 +11,8 @@
+>>   #ifndef V4L2_MEDIABUS_H
+>>   #define V4L2_MEDIABUS_H
+>>
+>> +#include<dt-bindings/media/video-interfaces.h>
+>> +
+>>   #include<linux/v4l2-mediabus.h>
+>>
+>>   /* Parallel flags */
+>> @@ -28,18 +30,18 @@
+>>    * V4L2_MBUS_[HV]SYNC* flags should be also used for specifying
+>>    * configuration of hardware that uses [HV]REF signals
+>>    */
+>> -#define V4L2_MBUS_HSYNC_ACTIVE_HIGH            (1<<  2)
+>> -#define V4L2_MBUS_HSYNC_ACTIVE_LOW             (1<<  3)
+>> -#define V4L2_MBUS_VSYNC_ACTIVE_HIGH            (1<<  4)
+>> -#define V4L2_MBUS_VSYNC_ACTIVE_LOW             (1<<  5)
+>> -#define V4L2_MBUS_PCLK_SAMPLE_RISING           (1<<  6)
+>> -#define V4L2_MBUS_PCLK_SAMPLE_FALLING          (1<<  7)
+>> -#define V4L2_MBUS_DATA_ACTIVE_HIGH             (1<<  8)
+>> -#define V4L2_MBUS_DATA_ACTIVE_LOW              (1<<  9)
+>> +#define V4L2_MBUS_HSYNC_ACTIVE_HIGH            (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 1))
+>
+>
+> No, please don't do that. We shouldn't combine the DT and Linux kernel
+> definitions like this.
+>
+>
+Ok.
+
+>> +#define V4L2_MBUS_HSYNC_ACTIVE_LOW             (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 2))
+>> +#define V4L2_MBUS_VSYNC_ACTIVE_HIGH            (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 3))
+>> +#define V4L2_MBUS_VSYNC_ACTIVE_LOW             (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 4))
+>> +#define V4L2_MBUS_PCLK_SAMPLE_RISING           (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 5))
+>> +#define V4L2_MBUS_PCLK_SAMPLE_FALLING          (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 6))
+>> +#define V4L2_MBUS_DATA_ACTIVE_HIGH             (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 7))
+>> +#define V4L2_MBUS_DATA_ACTIVE_LOW              (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 8))
+>>
+>>   /* FIELD = 0/1 - Field1 (odd)/Field2 (even) */
+>> -#define V4L2_MBUS_FIELD_EVEN_HIGH              (1<<  10)
+>> +#define V4L2_MBUS_FIELD_EVEN_HIGH              (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 9))
+>>   /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
+>> -#define V4L2_MBUS_FIELD_EVEN_LOW               (1<<  11)
+>> +#define V4L2_MBUS_FIELD_EVEN_LOW               (1<<
+>> (V4L2_MBUS_VIDEO_INTERFACES_END + 10))
+>
+>
+> Please see my review of your 'media: i2c: tvp7002: add OF support" patch.
+> AFAICS it should be sufficient to add only V4L2_MBUS_SOG_ACTIVE_{LOW,HIGH}
+> flags and 'sync-on-green-active' DT property.
+>
+Ok.
+
+Regards,
+--Prabhakar Lad
