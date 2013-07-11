@@ -1,47 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:54225 "EHLO
-	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
-	with ESMTP id S933096Ab3GCXYm (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jul 2013 19:24:42 -0400
-From: =?UTF-8?q?Jon=20Arne=20J=C3=B8rgensen?= <jonarne@jonarne.no>
-To: linux-media@vger.kernel.org
-Cc: jonarne@jonarne.no, linux-kernel@vger.kernel.org,
-	mchehab@redhat.com, hans.verkuil@cisco.com,
-	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
-	andriy.shevchenko@linux.intel.com
-Subject: [RFC v3 2/3] saa7115: Do not load saa7115_init_misc for gm7113c
-Date: Thu,  4 Jul 2013 01:27:19 +0200
-Message-Id: <1372894040-23922-3-git-send-email-jonarne@jonarne.no>
-In-Reply-To: <1372894040-23922-1-git-send-email-jonarne@jonarne.no>
-References: <1372894040-23922-1-git-send-email-jonarne@jonarne.no>
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:44915 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755025Ab3GKOGS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 11 Jul 2013 10:06:18 -0400
+Message-ID: <51DEBBF5.7090909@gmail.com>
+Date: Thu, 11 Jul 2013 16:06:45 +0200
+From: Daniel Mack <zonque@gmail.com>
 MIME-Version: 1.0
+To: Ming Lei <ming.lei@canonical.com>
+CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
+Subject: Re: [PATCH 44/50] sound: usb: caiaq: spin_lock in complete() cleanup
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-45-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-45-git-send-email-ming.lei@canonical.com>
 Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Most of the registers changed in saa7115_init_misc table are out of range
-for the gm7113c chip.
-The only register that's within range doesn't need to be changed here.
+On 11.07.2013 11:06, Ming Lei wrote:
+> Complete() will be run with interrupt enabled, so change to
+> spin_lock_irqsave().
+> 
+> Cc: Daniel Mack <zonque@gmail.com>
+> Cc: Jaroslav Kysela <perex@perex.cz>
+> Cc: Takashi Iwai <tiwai@suse.de>
+> Cc: alsa-devel@alsa-project.org
+> Signed-off-by: Ming Lei <ming.lei@canonical.com>
 
-Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
----
- drivers/media/i2c/saa7115.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Sound right to me, thanks.
 
-diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
-index 41408dd..17a464d 100644
---- a/drivers/media/i2c/saa7115.c
-+++ b/drivers/media/i2c/saa7115.c
-@@ -1769,7 +1769,7 @@ static int saa711x_probe(struct i2c_client *client,
- 		state->crystal_freq = SAA7115_FREQ_32_11_MHZ;
- 		saa711x_writeregs(sd, saa7115_init_auto_input);
- 	}
--	if (state->ident > SAA7111A)
-+	if (state->ident > SAA7111A && state->ident != GM7113C)
- 		saa711x_writeregs(sd, saa7115_init_misc);
- 	saa711x_set_v4lstd(sd, V4L2_STD_NTSC);
- 	v4l2_ctrl_handler_setup(hdl);
--- 
-1.8.3.1
+Acked-by: Daniel Mack <zonque@gmail.com>
+
+
+
+> ---
+>  sound/usb/caiaq/audio.c |    5 +++--
+>  1 file changed, 3 insertions(+), 2 deletions(-)
+> 
+> diff --git a/sound/usb/caiaq/audio.c b/sound/usb/caiaq/audio.c
+> index 7103b09..e5675ab 100644
+> --- a/sound/usb/caiaq/audio.c
+> +++ b/sound/usb/caiaq/audio.c
+> @@ -672,10 +672,11 @@ static void read_completed(struct urb *urb)
+>  		offset += len;
+>  
+>  		if (len > 0) {
+> -			spin_lock(&cdev->spinlock);
+> +			unsigned long flags;
+> +			spin_lock_irqsave(&cdev->spinlock, flags);
+>  			fill_out_urb(cdev, out, &out->iso_frame_desc[outframe]);
+>  			read_in_urb(cdev, urb, &urb->iso_frame_desc[frame]);
+> -			spin_unlock(&cdev->spinlock);
+> +			spin_unlock_irqrestore(&cdev->spinlock, flags);
+>  			check_for_elapsed_periods(cdev, cdev->sub_playback);
+>  			check_for_elapsed_periods(cdev, cdev->sub_capture);
+>  			send_it = 1;
+> 
 
