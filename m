@@ -1,134 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:49541 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753354Ab3G3MZk (ORCPT
+Received: from mailout2.samsung.com ([203.254.224.25]:63338 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751137Ab3GKJUu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 08:25:40 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 0C01640BB4
-	for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 14:25:38 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1V48zh-0003vC-Pe
-	for linux-media@vger.kernel.org; Tue, 30 Jul 2013 14:25:37 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	Thu, 11 Jul 2013 05:20:50 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MPR00DANLY4RZT0@mailout2.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 11 Jul 2013 18:20:48 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 1/6] V4L2: mx3_camera: convert to managed resource allocation
-Date: Tue, 30 Jul 2013 14:25:33 +0200
-Message-Id: <1375187137-15045-3-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
+Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>
+Subject: [PATCH] DocBook: Fix typo in V4L2_CID_JPEG_COMPRESSION_QUALITY
+ reference
+Date: Thu, 11 Jul 2013 11:20:15 +0200
+Message-id: <1373534415-16115-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Use devm_* resource allocators to simplify the driver's probe and clean up
-paths.
+Replace the erroneous V4L2_CID_JPEG_IMAGE_QUALITY control name
+with V4L2_CID_JPEG_COMPRESSION_QUALITY.
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
- drivers/media/platform/soc_camera/mx3_camera.c |   47 +++++-------------------
- 1 files changed, 10 insertions(+), 37 deletions(-)
+ .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |    4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
-index 1047e3e..e526096 100644
---- a/drivers/media/platform/soc_camera/mx3_camera.c
-+++ b/drivers/media/platform/soc_camera/mx3_camera.c
-@@ -1151,23 +1151,19 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	struct soc_camera_host *soc_host;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		err = -ENODEV;
--		goto egetres;
--	}
-+	base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(base))
-+		return PTR_ERR(base);
- 
--	mx3_cam = vzalloc(sizeof(*mx3_cam));
-+	mx3_cam = devm_kzalloc(&pdev->dev, sizeof(*mx3_cam), GFP_KERNEL);
- 	if (!mx3_cam) {
- 		dev_err(&pdev->dev, "Could not allocate mx3 camera object\n");
--		err = -ENOMEM;
--		goto ealloc;
-+		return -ENOMEM;
- 	}
- 
--	mx3_cam->clk = clk_get(&pdev->dev, NULL);
--	if (IS_ERR(mx3_cam->clk)) {
--		err = PTR_ERR(mx3_cam->clk);
--		goto eclkget;
--	}
-+	mx3_cam->clk = devm_clk_get(&pdev->dev, NULL);
-+	if (IS_ERR(mx3_cam->clk))
-+		return PTR_ERR(mx3_cam->clk);
- 
- 	mx3_cam->pdata = pdev->dev.platform_data;
- 	mx3_cam->platform_flags = mx3_cam->pdata->flags;
-@@ -1201,13 +1197,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	INIT_LIST_HEAD(&mx3_cam->capture);
- 	spin_lock_init(&mx3_cam->lock);
- 
--	base = ioremap(res->start, resource_size(res));
--	if (!base) {
--		pr_err("Couldn't map %x@%x\n", resource_size(res), res->start);
--		err = -ENOMEM;
--		goto eioremap;
--	}
--
- 	mx3_cam->base	= base;
- 
- 	soc_host		= &mx3_cam->soc_host;
-@@ -1218,10 +1207,8 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 	soc_host->nr		= pdev->id;
- 
- 	mx3_cam->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
--	if (IS_ERR(mx3_cam->alloc_ctx)) {
--		err = PTR_ERR(mx3_cam->alloc_ctx);
--		goto eallocctx;
--	}
-+	if (IS_ERR(mx3_cam->alloc_ctx))
-+		return PTR_ERR(mx3_cam->alloc_ctx);
- 
- 	err = soc_camera_host_register(soc_host);
- 	if (err)
-@@ -1234,14 +1221,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
- 
- ecamhostreg:
- 	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
--eallocctx:
--	iounmap(base);
--eioremap:
--	clk_put(mx3_cam->clk);
--eclkget:
--	vfree(mx3_cam);
--ealloc:
--egetres:
- 	return err;
- }
- 
-@@ -1251,12 +1230,8 @@ static int mx3_camera_remove(struct platform_device *pdev)
- 	struct mx3_camera_dev *mx3_cam = container_of(soc_host,
- 					struct mx3_camera_dev, soc_host);
- 
--	clk_put(mx3_cam->clk);
--
- 	soc_camera_host_unregister(soc_host);
- 
--	iounmap(mx3_cam->base);
--
- 	/*
- 	 * The channel has either not been allocated,
- 	 * or should have been released
-@@ -1266,8 +1241,6 @@ static int mx3_camera_remove(struct platform_device *pdev)
- 
- 	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
- 
--	vfree(mx3_cam);
--
- 	dmaengine_put();
- 
- 	return 0;
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml b/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
+index 4874849..098ff48 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
+@@ -92,8 +92,8 @@ to add them.</para>
+ 	    <entry>int</entry>
+ 	    <entry><structfield>quality</structfield></entry>
+ 	    <entry>Deprecated. If <link linkend="jpeg-quality-control"><constant>
+-	    V4L2_CID_JPEG_IMAGE_QUALITY</constant></link> control is exposed by
+-	    a driver applications should use it instead and ignore this field.
++	    V4L2_CID_JPEG_COMPRESSION_QUALITY</constant></link> control is exposed
++	    by a driver applications should use it instead and ignore this field.
+ 	    </entry>
+ 	  </row>
+ 	  <row>
 -- 
-1.7.2.5
+1.7.9.5
 
