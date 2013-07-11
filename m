@@ -1,44 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f42.google.com ([209.85.214.42]:55312 "EHLO
-	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755728Ab3GYNKh (ORCPT
+Received: from mail-pa0-f44.google.com ([209.85.220.44]:41757 "EHLO
+	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932140Ab3GKJIW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 09:10:37 -0400
-Received: by mail-bk0-f42.google.com with SMTP id jk13so689267bkc.29
-        for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 06:10:36 -0700 (PDT)
-From: Gregor Jasny <gjasny@googlemail.com>
-To: linux-media@vger.kernel.org
-Cc: Gregor Jasny <gjasny@googlemail.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: [PATCH 2/4] libdvbv5: Fix reallocation in parse_lcn
-Date: Thu, 25 Jul 2013 15:09:32 +0200
-Message-Id: <1374757774-29051-3-git-send-email-gjasny@googlemail.com>
-In-Reply-To: <1374757774-29051-1-git-send-email-gjasny@googlemail.com>
-References: <1374757774-29051-1-git-send-email-gjasny@googlemail.com>
+	Thu, 11 Jul 2013 05:08:22 -0400
+From: Ming Lei <ming.lei@canonical.com>
+To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	Ming Lei <ming.lei@canonical.com>,
+	Johan Hovold <jhovold@gmail.com>
+Subject: [PATCH 13/50] USB: serial: io_ti: spin_lock in complete() cleanup
+Date: Thu, 11 Jul 2013 17:05:36 +0800
+Message-Id: <1373533573-12272-14-git-send-email-ming.lei@canonical.com>
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Detected by Coverity.
+Complete() will be run with interrupt enabled, so change to
+spin_lock_irqsave().
 
-Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Cc: Johan Hovold <jhovold@gmail.com>
+Signed-off-by: Ming Lei <ming.lei@canonical.com>
 ---
- lib/libdvbv5/descriptors.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+ drivers/usb/serial/io_ti.c |    5 +++--
+ 1 file changed, 3 insertions(+), 2 deletions(-)
 
-diff --git a/lib/libdvbv5/descriptors.c b/lib/libdvbv5/descriptors.c
-index 73338d8..99d8fa3 100644
---- a/lib/libdvbv5/descriptors.c
-+++ b/lib/libdvbv5/descriptors.c
-@@ -758,7 +758,7 @@ static void parse_lcn(struct nit_table *nit_table,
- 	for (i = 0; i < dlen; i+= 4, p+= 4) {
- 		struct lcn_table **lcn = &nit_table->lcn;
+diff --git a/drivers/usb/serial/io_ti.c b/drivers/usb/serial/io_ti.c
+index 60054e7..4943194 100644
+--- a/drivers/usb/serial/io_ti.c
++++ b/drivers/usb/serial/io_ti.c
+@@ -1615,6 +1615,7 @@ static void edge_bulk_in_callback(struct urb *urb)
+ 	int retval = 0;
+ 	int port_number;
+ 	int status = urb->status;
++	unsigned long flags;
  
--		*lcn = realloc(*lcn, (n + 1) * sizeof(*lcn));
-+		*lcn = realloc(*lcn, (n + 1) * sizeof(**lcn));
- 		(*lcn)[n].service_id = p[0] << 8 | p[1];
- 		(*lcn)[n].lcn = (p[2] << 8 | p[3]) & 0x3ff;
- 		nit_table->lcn_len++;
+ 	switch (status) {
+ 	case 0:
+@@ -1663,13 +1664,13 @@ static void edge_bulk_in_callback(struct urb *urb)
+ 
+ exit:
+ 	/* continue read unless stopped */
+-	spin_lock(&edge_port->ep_lock);
++	spin_lock_irqsave(&edge_port->ep_lock, flags);
+ 	if (edge_port->ep_read_urb_state == EDGE_READ_URB_RUNNING)
+ 		retval = usb_submit_urb(urb, GFP_ATOMIC);
+ 	else if (edge_port->ep_read_urb_state == EDGE_READ_URB_STOPPING)
+ 		edge_port->ep_read_urb_state = EDGE_READ_URB_STOPPED;
+ 
+-	spin_unlock(&edge_port->ep_lock);
++	spin_unlock_irqrestore(&edge_port->ep_lock, flags);
+ 	if (retval)
+ 		dev_err(dev, "%s - usb_submit_urb failed with result %d\n", __func__, retval);
+ }
 -- 
-1.8.3.2
+1.7.9.5
 
