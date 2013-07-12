@@ -1,97 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:13470 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757117Ab3GRITY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 04:19:24 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH 4/5] v4l2: add a motion detection event.
-Date: Thu, 18 Jul 2013 10:19:18 +0200
-Cc: linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-5-git-send-email-hverkuil@xs4all.nl> <2083405.s15EBXhjSd@avalon>
-In-Reply-To: <2083405.s15EBXhjSd@avalon>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:59627 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932193Ab3GLMey (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jul 2013 08:34:54 -0400
+From: oliver@schinagl.nl
+To: linux-media@vger.kernel.org
+Cc: Huei-Horng Yo <hiroshiyui@gmail.com>,
+	Oliver Schinagl <oliver@schinagl.nl>
+Subject: [PATCH] Add the latest tuning & channel config data of Taiwan.
+Date: Fri, 12 Jul 2013 14:31:28 +0200
+Message-Id: <1373632288-8635-1-git-send-email-oliver@schinagl.nl>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307181019.18959.hverkuil@xs4all.nl>
+Content-Type: text/plain; charset=y
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 18 July 2013 02:14:28 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch.
-> 
-> On Friday 28 June 2013 14:27:33 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  include/uapi/linux/videodev2.h | 17 +++++++++++++++++
-> >  1 file changed, 17 insertions(+)
-> > 
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 5cbe815..f926209 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -1721,6 +1721,7 @@ struct v4l2_streamparm {
-> >  #define V4L2_EVENT_EOS				2
-> >  #define V4L2_EVENT_CTRL				3
-> >  #define V4L2_EVENT_FRAME_SYNC			4
-> > +#define V4L2_EVENT_MOTION_DET			5
-> >  #define V4L2_EVENT_PRIVATE_START		0x08000000
-> > 
-> >  /* Payload for V4L2_EVENT_VSYNC */
-> > @@ -1752,12 +1753,28 @@ struct v4l2_event_frame_sync {
-> >  	__u32 frame_sequence;
-> >  };
-> > 
-> > +#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
-> > +
-> > +/**
-> > + * struct v4l2_event_motion_det - motion detection event
-> > + * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
-> > + *                     frame_sequence field is valid.
-> > + * @frame_sequence:    the frame sequence number associated with this
-> > event.
-> > + * @region_mask:       which regions detected motion.
-> > + */
-> > +struct v4l2_event_motion_det {
-> > +	__u32 flags;
-> > +	__u32 frame_sequence;
-> > +	__u32 region_mask;
-> 
-> Will a 32-bit region mask be extensible enough ? What about hardware that 
-> could report motion detection as a (possibly low resolution) binary image ?
+From: Huei-Horng Yo <hiroshiyui@gmail.com>
 
-I'm not sure whether we should be bothered about this. The struct can easily
-be extended later.
 
-Also, in your particular example I would actually expect that that would either
-need support for 'large payload events', or you would call G_MATRIX to get that
-image.
+Signed-off-by: Oliver Schinagl <oliver@schinagl.nl>
+---
+ channels-conf/dvb-t/tw-All | 21 +++++++++++++++++++++
+ dvb-t/tw-All               | 11 +++++++++++
+ dvb-t/tw-Kaohsiung         |  6 ------
+ dvb-t/tw-Taipei            |  7 -------
+ 4 files changed, 32 insertions(+), 13 deletions(-)
+ create mode 100644 channels-conf/dvb-t/tw-All
+ create mode 100644 dvb-t/tw-All
+ delete mode 100644 dvb-t/tw-Kaohsiung
+ delete mode 100644 dvb-t/tw-Taipei
 
-> > +};
-> > +
-> >  struct v4l2_event {
-> >  	__u32				type;
-> >  	union {
-> >  		struct v4l2_event_vsync		vsync;
-> >  		struct v4l2_event_ctrl		ctrl;
-> >  		struct v4l2_event_frame_sync	frame_sync;
-> > +		struct v4l2_event_motion_det	motion_det;
-> >  		__u8				data[64];
-> >  	} u;
-> >  	__u32				pending;
-> 
+diff --git a/channels-conf/dvb-t/tw-All b/channels-conf/dvb-t/tw-All
+new file mode 100644
+index 0000000..a7fbe50
+--- /dev/null
++++ b/channels-conf/dvb-t/tw-All
+@@ -0,0 +1,21 @@
++中視數位台:533000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1001:1002:100
++中視新聞台:533000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1011:1012:101
++中視綜藝台:533000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1021:1022:102
++中視HD台:533000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:1031:1032:103
++公共電視 PTS:545000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:2011:2012:201
++公視2台 PTS2:545000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:2021:2022:202
++客家電視 HTV:545000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:2031:2032:203
++民視綜合台:557000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:3001:3002:300
++民視交通台:557000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:3011:3012:301
++民視新聞台:557000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:3021:3022:302
++民視資料廣播:557000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:0:0:303
++民視HD台:557000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_AUTO:QAM_16:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:3041:3042:304
++公視 HD:569000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:2001:2002:200
++台灣電視台:581000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4001:4002:400
++台視財經台:581000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4011:4012:401
++台視綜合台:581000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4021:4022:402
++台視 HD台:581000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:4031:4032:403
++華視CTS:593000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:5011:5012:501
++華視教育台:593000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:5021:5022:502
++華視新聞資訊台:593000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:5031:5032:503
++華視HD:593000000:INVERSION_AUTO:BANDWIDTH_6_MHZ:FEC_2_3:FEC_2_3:QAM_64:TRANSMISSION_MODE_8K:GUARD_INTERVAL_1_4:HIERARCHY_NONE:5041:5042:504
+diff --git a/dvb-t/tw-All b/dvb-t/tw-All
+new file mode 100644
+index 0000000..8290355
+--- /dev/null
++++ b/dvb-t/tw-All
+@@ -0,0 +1,11 @@
++T 533000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 539000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 545000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 551000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 557000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 563000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 569000000 6MHz 2/3 NONE QAM64 8k 1/4 NONE
++T 575000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 581000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 587000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
++T 593000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
+diff --git a/dvb-t/tw-Kaohsiung b/dvb-t/tw-Kaohsiung
+deleted file mode 100644
+index f1eabc9..0000000
+--- a/dvb-t/tw-Kaohsiung
++++ /dev/null
+@@ -1,6 +0,0 @@
+-# Taiwan - Kaohsiung, southern Taiwan
+-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 545000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
+-T 545000000 6MHz 2/3 NONE QAM16 8k 1/8 NONE
+-T 557000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
+-T 557000000 6MHz 2/3 NONE QAM16 8k 1/8 NONE
+diff --git a/dvb-t/tw-Taipei b/dvb-t/tw-Taipei
+deleted file mode 100644
+index 3bba686..0000000
+--- a/dvb-t/tw-Taipei
++++ /dev/null
+@@ -1,7 +0,0 @@
+-# Taiwan - Taipei, northern Taiwan
+-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
+-T 533000000 6MHz 1/2 NONE QAM16 8k 1/8 NONE
+-T 545000000 6MHz 2/3 NONE QAM16 8k 1/8 NONE
+-T 557000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
+-T 581000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
+-T 593000000 6MHz 2/3 NONE QAM16 8k 1/4 NONE
+-- 
+1.8.1.5
 
-Regards,
-
-	Hans
