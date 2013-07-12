@@ -1,1317 +1,1460 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f170.google.com ([209.85.128.170]:37914 "EHLO
-	mail-ve0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752063Ab3GIL0M (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 07:26:12 -0400
-Received: by mail-ve0-f170.google.com with SMTP id 14so4526897vea.29
-        for <linux-media@vger.kernel.org>; Tue, 09 Jul 2013 04:26:11 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <51C437A4.1080104@samsung.com>
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
-	<1370005408-10853-10-git-send-email-arun.kk@samsung.com>
-	<51C437A4.1080104@samsung.com>
-Date: Tue, 9 Jul 2013 16:56:11 +0530
-Message-ID: <CALt3h79vVNA3vzPF2RvxoPbRzUO56tPR4RHx=x71RRv76x8UcQ@mail.gmail.com>
-Subject: Re: [RFC v2 09/10] exynos5-fimc-is: Adds the hardware interface module
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Andrzej Hajda <a.hajda@samsung.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+Received: from mailout2.samsung.com ([203.254.224.25]:26093 "EHLO
+	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752507Ab3GLGMz (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 12 Jul 2013 02:12:55 -0400
+From: Inki Dae <inki.dae@samsung.com>
+To: dri-devel@lists.freedesktop.org, linux-fbdev@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Cc: maarten.lankhorst@canonical.com, daniel@ffwll.ch,
+	robdclark@gmail.com, sumit.semwal@linaro.org,
+	linux@arm.linux.org.uk, kyungmin.park@samsung.com,
+	myungjoo.ham@samsung.com, yj44.cho@samsung.com,
+	Inki Dae <inki.dae@samsung.com>
+Subject: [RFC PATCH v5 1/2] dmabuf-sync: Introduce buffer synchronization
+ framework
+Date: Fri, 12 Jul 2013 15:12:45 +0900
+Message-id: <1373609566-10784-2-git-send-email-inki.dae@samsung.com>
+In-reply-to: <1373609566-10784-1-git-send-email-inki.dae@samsung.com>
+References: <1373609566-10784-1-git-send-email-inki.dae@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andrzej,
+This patch adds a buffer synchronization framework based on DMA BUF[1]
+and and based on ww-mutexes[2] for lock mechanism.
 
-Thank you for the review.
+The purpose of this framework is to provide not only buffer access control
+to CPU and DMA but also easy-to-use interfaces for device drivers and
+user application. This framework can be used for all dma devices using
+system memory as dma buffer, especially for most ARM based SoCs.
 
-On Fri, Jun 21, 2013 at 4:53 PM, Andrzej Hajda <a.hajda@samsung.com> wrote:
-> Hi Arun,
->
-> My few comments.
->
-> On 05/31/2013 03:03 PM, Arun Kumar K wrote:
->> The hardware interface module finally sends the commands to the
->> FIMC-IS firmware and runs the interrupt handler for getting the
->> responses.
->>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
->> ---
->>  .../media/platform/exynos5-is/fimc-is-interface.c  | 1025 ++++++++++++++++++++
->>  .../media/platform/exynos5-is/fimc-is-interface.h  |  131 +++
->>  2 files changed, 1156 insertions(+)
->>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.c
->>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-interface.h
->>
->> diff --git a/drivers/media/platform/exynos5-is/fimc-is-interface.c b/drivers/media/platform/exynos5-is/fimc-is-interface.c
->> new file mode 100644
->> index 0000000..63176fa
->> --- /dev/null
->> +++ b/drivers/media/platform/exynos5-is/fimc-is-interface.c
->> @@ -0,0 +1,1025 @@
->> +/*
->> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
->> +*
->> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
->> + * Kil-yeon Lim <kilyeon.im@samsung.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
->> +#include <linux/debugfs.h>
->> +#include <linux/seq_file.h>
->> +#include "fimc-is.h"
->> +#include "fimc-is-cmd.h"
->> +#include "fimc-is-regs.h"
->> +
->> +#define init_request_barrier(itf) mutex_init(&itf->request_barrier)
->> +#define enter_request_barrier(itf) mutex_lock(&itf->request_barrier)
->> +#define exit_request_barrier(itf) mutex_unlock(&itf->request_barrier)
->> +
->> +static inline void itf_get_cmd(struct fimc_is_interface *itf,
->> +     struct fimc_is_msg *msg, unsigned int index)
->> +{
->> +     struct is_common_reg __iomem *com_regs = itf->com_regs;
->> +
->> +     switch (index) {
->> +     case INTR_GENERAL:
->> +             msg->id = 0;
->> +             msg->command = com_regs->ihcmd;
->> +             msg->instance = com_regs->ihc_sensorid;
->> +             msg->parameter1 = com_regs->ihc_param1;
->> +             msg->parameter2 = com_regs->ihc_param2;
->> +             msg->parameter3 = com_regs->ihc_param3;
->> +             msg->parameter4 = com_regs->ihc_param4;
->> +             break;
->> +     case INTR_SCC_FDONE:
->> +             msg->id = 0;
->> +             msg->command = IHC_FRAME_DONE;
->> +             msg->instance = com_regs->scc_sensor_id;
->> +             msg->parameter1 = com_regs->scc_param1;
->> +             msg->parameter2 = com_regs->scc_param2;
->> +             msg->parameter3 = com_regs->scc_param3;
->> +             msg->parameter4 = 0;
->> +             break;
->> +     case INTR_SCP_FDONE:
->> +             msg->id = 0;
->> +             msg->command = IHC_FRAME_DONE;
->> +             msg->instance = com_regs->scp_sensor_id;
->> +             msg->parameter1 = com_regs->scp_param1;
->> +             msg->parameter2 = com_regs->scp_param2;
->> +             msg->parameter3 = com_regs->scp_param3;
->> +             msg->parameter4 = 0;
->> +             break;
->> +     case INTR_META_DONE:
->> +             msg->id = 0;
->> +             msg->command = IHC_FRAME_DONE;
->> +             msg->instance = com_regs->meta_sensor_id;
->> +             msg->parameter1 = com_regs->meta_param1;
->> +             msg->parameter2 = 0;
->> +             msg->parameter3 = 0;
->> +             msg->parameter4 = 0;
->> +             break;
->> +     case INTR_SHOT_DONE:
->> +             msg->id = 0;
->> +             msg->command = IHC_FRAME_DONE;
->> +             msg->instance = com_regs->shot_sensor_id;
->> +             msg->parameter1 = com_regs->shot_param1;
->> +             msg->parameter2 = com_regs->shot_param2;
->> +             msg->parameter3 = 0;
->> +             msg->parameter4 = 0;
->> +             break;
->> +     default:
->> +             msg->id = 0;
->> +             msg->command = 0;
->> +             msg->instance = 0;
->> +             msg->parameter1 = 0;
->> +             msg->parameter2 = 0;
->> +             msg->parameter3 = 0;
->> +             msg->parameter4 = 0;
->> +             pr_err("unknown command getting\n");
->> +             break;
->> +     }
->> +}
->
-> If you memset(msg, 0, sizeof(*msg)) at the beginning of the function,
-> you can remove all zero assignements and the switch statement will
-> become much shorter.
->
+Changelog v5:
+- Rmove a dependence on reservation_object: the reservation_object is used
+  to hook up to ttm and dma-buf for easy sharing of reservations across
+  devices. However, the dmabuf sync can be used for all dma devices; v4l2
+  and drm based drivers, so doesn't need the reservation_object anymore.
+  With regared to this, it adds 'void *sync' to dma_buf structure.
+- All patches are rebased on mainline, Linux v3.10.
 
-Yes will do that.
+Changelog v4:
+- Add user side interface for buffer synchronization mechanism and update
+  descriptions related to the user side interface.
 
->> +
->> +static inline unsigned int itf_get_intr(struct fimc_is_interface *itf)
->> +{
->> +     unsigned int status;
->> +     struct is_common_reg __iomem *com_regs = itf->com_regs;
->> +
->> +     status = readl(itf->regs + INTMSR1) | com_regs->ihcmd_iflag |
->> +             com_regs->scc_iflag |
->> +             com_regs->scp_iflag |
->> +             com_regs->meta_iflag |
->> +             com_regs->shot_iflag;
->> +
->> +     return status;
->> +}
->> +
->> +static void itf_set_state(struct fimc_is_interface *itf,
->> +             unsigned long state)
->> +{
->> +     unsigned long flags;
->> +     spin_lock_irqsave(&itf->slock_state, flags);
->> +     __set_bit(state, &itf->state);
->> +     spin_unlock_irqrestore(&itf->slock_state, flags);
->> +}
->> +
->> +static void itf_clr_state(struct fimc_is_interface *itf,
->> +             unsigned long state)
->> +{
->> +     unsigned long flags;
->> +     spin_lock_irqsave(&itf->slock_state, flags);
->> +     __clear_bit(state, &itf->state);
->> +     spin_unlock_irqrestore(&itf->slock_state, flags);
->> +}
->> +
->> +static int itf_get_state(struct fimc_is_interface *itf,
->> +             unsigned long state)
->> +{
->> +     int ret = 0;
->> +     unsigned long flags;
->> +
->> +     spin_lock_irqsave(&itf->slock_state, flags);
->> +     ret = test_bit(state, &itf->state);
->> +     spin_unlock_irqrestore(&itf->slock_state, flags);
->> +     return ret;
->> +}
->> +
->> +static void itf_init_wakeup(struct fimc_is_interface *itf)
->> +{
->> +     itf_set_state(itf, IS_IF_STATE_INIT);
->> +     wake_up(&itf->irq_queue);
->> +}
->> +
->> +void itf_busy_wakeup(struct fimc_is_interface *itf)
->> +{
->> +     itf_clr_state(itf, IS_IF_STATE_BUSY);
->> +     wake_up(&itf->irq_queue);
->> +}
->> +
->> +static int itf_wait_hw_ready(struct fimc_is_interface *itf)
->> +{
->> +     int ret = 0;
->> +     unsigned int try_count = TRY_RECV_AWARE_COUNT;
->> +     unsigned int cfg = readl(itf->regs + INTMSR0);
->> +     unsigned int status = INTMSR0_GET_INTMSD(0, cfg);
->> +
->> +     while (status) {
->> +             cfg = readl(itf->regs + INTMSR0);
->> +             status = INTMSR0_GET_INTMSD(0, cfg);
->> +
->> +             if (try_count-- == 0) {
->> +                     try_count = TRY_RECV_AWARE_COUNT;
->> +                     pr_err("INTMSR0's 0 bit is not cleared.\n");
->> +                     ret = -EINVAL;
->> +                     break;
->> +             }
->> +     }
->> +     return ret;
->> +}
->
-> I think the body could be replaced by more clear code, for example:
-> {
->         int t;
->         for (t = TRY_RECV_AWARE_COUNT; t >= 0; t--) {
->                 unsigned int cfg = readl(itf->regs + INTMSR0);
->                 unsigned int status = INTMSR0_GET_INTMSD(0, cfg);
->                 if (!status)
->                         return 0;
->         }
->         pr_err("INTMSR0's 0 bit is not cleared.\n");
->         return -EINVAL;
-> }
->
+Changelog v3:
+- remove cache operation relevant codes and update document file.
 
-Yes thank you for the suggestion.
+Changelog v2:
+- use atomic_add_unless to avoid potential bug.
+- add a macro for checking valid access type.
+- code clean.
 
->> +
->> +static int itf_wait_idlestate(struct fimc_is_interface *itf)
->> +{
->> +     int ret = 0;
->
-> Initialization is not needed here.
->
+The mechanism of this framework has the following steps,
+    1. Register dmabufs to a sync object - A task gets a new sync object and
+    can add one or more dmabufs that the task wants to access.
+    This registering should be performed when a device context or an event
+    context such as a page flip event is created or before CPU accesses a shared
+    buffer.
 
-Ok.
+	dma_buf_sync_get(a sync object, a dmabuf);
 
->> +
->> +     ret = wait_event_timeout(itf->irq_queue,
->> +                     !itf_get_state(itf, IS_IF_STATE_BUSY),
->> +                     FIMC_IS_COMMAND_TIMEOUT);
->> +     if (!ret) {
->> +             pr_err("timeout");
->> +             return -ETIME;
->> +     }
->> +     return 0;
->> +}
->> +
->> +int fimc_is_itf_wait_init_state(struct fimc_is_interface *itf)
->> +{
->> +     int ret = 0;
->
-> ...
->
->> +
->> +     ret = wait_event_timeout(itf->irq_queue,
->> +             itf_get_state(itf, IS_IF_STATE_INIT),
->> +             FIMC_IS_STARTUP_TIMEOUT);
->> +
->> +     if (!ret) {
->> +             pr_err("timeout\n");
->> +             return -ETIME;
->> +     }
->> +     return 0;
->> +}
->> +
->> +static inline void itf_clr_intr(struct fimc_is_interface *itf,
->> +             unsigned int index)
->> +{
->> +     struct is_common_reg __iomem *com_regs = itf->com_regs;
->> +
->> +     switch (index) {
->> +     case INTR_GENERAL:
->> +             writel((1<<INTR_GENERAL), itf->regs + INTCR1);
->> +             com_regs->ihcmd_iflag = 0;
->> +             break;
->> +     case INTR_SCC_FDONE:
->> +             writel((1<<INTR_SCC_FDONE), itf->regs + INTCR1);
->> +             com_regs->scc_iflag = 0;
->> +             break;
->> +     case INTR_SCP_FDONE:
->> +             writel((1<<INTR_SCP_FDONE), itf->regs + INTCR1);
->> +             com_regs->scp_iflag = 0;
->> +             break;
->> +     case INTR_META_DONE:
->> +             writel((1<<INTR_META_DONE), itf->regs + INTCR1);
->> +             com_regs->meta_iflag = 0;
->> +             break;
->> +     case INTR_SHOT_DONE:
->> +             writel((1<<INTR_SHOT_DONE), itf->regs + INTCR1);
->> +             com_regs->shot_iflag = 0;
->> +             break;
->> +     default:
->> +             pr_err("Unknown command clear\n");
->> +             break;
->> +     }
->> +}
-> You could remove all writel and at the end add:
-> writel((1<<index), itf->regs + INTCR1). In such case s/break/return/ in
-> 'default' statement.
->> +
+    2. Lock a sync object - A task tries to lock all dmabufs added in its own
+    sync object. Basically, the lock mechanism uses ww-mutex[1] to avoid dead
+    lock issue and for race condition between CPU and CPU, CPU and DMA, and DMA
+    and DMA. Taking a lock means that others cannot access all locked dmabufs
+    until the task that locked the corresponding dmabufs, unlocks all the locked
+    dmabufs.
+    This locking should be performed before DMA or CPU accesses these dmabufs.
 
-Yes will do that.
+	dma_buf_sync_lock(a sync object);
 
->> +/* Send Host to IS command interrupt */
->> +static void itf_hic_interrupt(struct fimc_is_interface *itf)
->> +{
->> +     writel(INTGR0_INTGD(0), itf->regs + INTGR0);
->> +}
->> +
->> +static int itf_send_sensor_number(struct fimc_is_interface *itf)
->> +{
->> +     struct fimc_is_msg msg;
->> +     unsigned long flags;
->> +
->> +     msg.id = 0;
->> +     msg.command = ISR_DONE;
->> +     msg.instance = 0;
->> +     msg.parameter1 = IHC_GET_SENSOR_NUMBER;
->> +
->> +     msg.parameter2 = 1;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->
-> Replace it with:
->
->         struct fimc_is_msg msg = {
->                 .command = ISR_DONE,
->                 .parameter1 = IHC_GET_SENSOR_NUMBER,
->                 .parameter2 = 1
->         };
->         unsigned long flags;
->
+    3. Unlock a sync object - The task unlocks all dmabufs added in its own sync
+    object. The unlock means that the DMA or CPU accesses to the dmabufs have
+    been completed so that others may access them.
+    This unlocking should be performed after DMA or CPU has completed accesses
+    to the dmabufs.
 
-Ok.
+	dma_buf_sync_unlock(a sync object);
 
->> +
->> +     spin_lock_irqsave(&itf->slock, flags);
->> +     itf->com_regs->hicmd = msg.command;
->> +     itf->com_regs->hic_sensorid = msg.instance;
->> +     itf->com_regs->hic_param1 = msg.parameter1;
->> +     itf->com_regs->hic_param2 = msg.parameter2;
->> +     itf->com_regs->hic_param3 = msg.parameter3;
->> +     itf->com_regs->hic_param4 = msg.parameter4;
->> +     itf_hic_interrupt(itf);
->> +     spin_unlock_irqrestore(&itf->slock, flags);
->> +
->> +     return 0;
->> +}
->> +
->> +static int fimc_is_itf_set_cmd(struct fimc_is_interface *itf,
->> +     struct fimc_is_msg *msg)
->> +{
->> +     int ret = 0;
->> +     bool block_io, send_cmd;
->> +     unsigned long flags;
->> +
->> +     enter_request_barrier(itf);
->> +
->> +     switch (msg->command) {
->> +     case HIC_STREAM_ON:
->> +             if (itf->streaming == IS_IF_STREAMING_ON) {
->> +                     send_cmd = false;
->> +             } else {
->> +                     send_cmd = true;
->> +                     block_io = true;
->> +             }
->> +             break;
->> +     case HIC_STREAM_OFF:
->> +             if (itf->streaming == IS_IF_STREAMING_OFF) {
->> +                     send_cmd = false;
->> +             } else {
->> +                     send_cmd = true;
->> +                     block_io = true;
->> +             }
->> +             break;
->> +     case HIC_PROCESS_START:
->> +             if (itf->processing == IS_IF_PROCESSING_ON) {
->> +                     send_cmd = false;
->> +             } else {
->> +                     send_cmd = true;
->> +                     block_io = true;
->> +             }
->> +             break;
->> +     case HIC_PROCESS_STOP:
->> +             if (itf->processing == IS_IF_PROCESSING_OFF) {
->> +                     send_cmd = false;
->> +             } else {
->> +                     send_cmd = true;
->> +                     block_io = true;
->> +             }
->> +             break;
->> +     case HIC_POWER_DOWN:
->> +             if (itf->pdown_ready == IS_IF_POWER_DOWN_READY) {
->> +                     send_cmd = false;
->> +             } else {
->> +                     send_cmd = true;
->> +                     block_io = true;
->> +             }
->> +             break;
->> +     case HIC_OPEN_SENSOR:
->> +     case HIC_GET_SET_FILE_ADDR:
->> +     case HIC_SET_PARAMETER:
->> +     case HIC_PREVIEW_STILL:
->> +     case HIC_GET_STATIC_METADATA:
->> +     case HIC_SET_A5_MEM_ACCESS:
->> +     case HIC_SET_CAM_CONTROL:
->> +             send_cmd = true;
->> +             block_io = true;
->> +             break;
->> +     case HIC_SHOT:
->> +     case ISR_DONE:
->> +             send_cmd = true;
->> +             block_io = false;
->> +             break;
->> +     default:
->> +             send_cmd = true;
->> +             block_io = true;
->> +             break;
->> +     }
->> +
->> +     if (!send_cmd) {
->> +             pr_debug("skipped\n");
->> +             goto exit;
->> +     }
->
-> Remove above conditional
-> s/send_cmd = false/goto exit/;
-> s/send_cmd = true//;
->
+    4. Unregister one or all dmabufs from a sync object - A task unregisters
+    the given dmabufs from the sync object. This means that the task dosen't
+    want to lock the dmabufs.
+    The unregistering should be performed after DMA or CPU has completed
+    accesses to the dmabufs or when dma_buf_sync_lock() is failed.
 
-Ok.
+	dma_buf_sync_put(a sync object, a dmabuf);
+	dma_buf_sync_put_all(a sync object);
 
->
->> +
->> +     ret = itf_wait_hw_ready(itf);
->> +     if (ret) {
->> +             pr_err("waiting for ready is fail");
->> +             ret = -EBUSY;
->> +             goto exit;
->> +     }
->> +
->> +     spin_lock_irqsave(&itf->slock, flags);
->> +     itf_set_state(itf, IS_IF_STATE_BUSY);
->> +     itf->com_regs->hicmd = msg->command;
->> +     itf->com_regs->hic_sensorid = msg->instance;
->> +     itf->com_regs->hic_param1 = msg->parameter1;
->> +     itf->com_regs->hic_param2 = msg->parameter2;
->> +     itf->com_regs->hic_param3 = msg->parameter3;
->> +     itf->com_regs->hic_param4 = msg->parameter4;
->> +     itf_hic_interrupt(itf);
->> +     spin_unlock_irqrestore(&itf->slock, flags);
->> +
->> +     if (!block_io)
->> +             goto exit;
->> +
->> +     ret = itf_wait_idlestate(itf);
->> +     if (ret) {
->> +             pr_err("%d command is timeout\n", msg->command);
->> +             itf_clr_state(itf, IS_IF_STATE_BUSY);
->> +             ret = -ETIME;
->> +             goto exit;
->> +     }
->> +
->> +     if (itf->reply.command == ISR_DONE) {
->> +             switch (msg->command) {
->> +             case HIC_STREAM_ON:
->> +                     itf->streaming = IS_IF_STREAMING_ON;
->> +                     break;
->> +             case HIC_STREAM_OFF:
->> +                     itf->streaming = IS_IF_STREAMING_OFF;
->> +                     break;
->> +             case HIC_PROCESS_START:
->> +                     itf->processing = IS_IF_PROCESSING_ON;
->> +                     break;
->> +             case HIC_PROCESS_STOP:
->> +                     itf->processing = IS_IF_PROCESSING_OFF;
->> +                     break;
->> +             case HIC_POWER_DOWN:
->> +                     itf->pdown_ready = IS_IF_POWER_DOWN_READY;
->> +                     break;
->> +             case HIC_OPEN_SENSOR:
->> +                     if (itf->reply.parameter1 == HIC_POWER_DOWN) {
->> +                             pr_err("firmware power down");
->> +                             itf->pdown_ready = IS_IF_POWER_DOWN_READY;
->> +                             ret = -ECANCELED;
->> +                             goto exit;
->> +                     } else
->> +                             itf->pdown_ready = IS_IF_POWER_DOWN_NREADY;
->> +                     break;
->> +             default:
->> +                     break;
->> +             }
->> +     } else {
->> +             pr_err("ISR_NDONE is occured");
->> +             ret = -EINVAL;
->> +     }
->> +
->> +exit:
->> +     exit_request_barrier(itf);
->> +
->> +     if (ret)
->> +             pr_err("Error returned from FW. See debugfs for error log\n");
->> +
->> +
->> +     return ret;
->> +}
->> +
->> +static int fimc_is_itf_set_cmd_shot(struct fimc_is_interface *itf,
->> +             struct fimc_is_msg *msg)
->> +{
->> +     int ret = 0;
->> +     unsigned long flags;
->> +
->> +     spin_lock_irqsave(&itf->slock, flags);
->> +     itf->com_regs->hicmd = msg->command;
->> +     itf->com_regs->hic_sensorid = msg->instance;
->> +     itf->com_regs->hic_param1 = msg->parameter1;
->> +     itf->com_regs->hic_param2 = msg->parameter2;
->> +     itf->com_regs->hic_param3 = msg->parameter3;
->> +     itf->com_regs->hic_param4 = msg->parameter4;
->> +     itf->com_regs->fcount = msg->parameter3;
->> +     itf_hic_interrupt(itf);
->> +     spin_unlock_irqrestore(&itf->slock, flags);
->> +
->> +     return ret;
->> +}
->> +
->> +static void itf_handle_general(struct fimc_is_interface *itf,
->> +             struct fimc_is_msg *msg)
->> +{
->> +     switch (msg->command) {
->> +
->> +     case IHC_GET_SENSOR_NUMBER:
->> +             pr_debug("IS version : %d.%d\n",
->> +                     ISDRV_VERSION, msg->parameter1);
->> +             /* Respond with sensor number */
->> +             itf_send_sensor_number(itf);
->> +             itf_init_wakeup(itf);
->> +             break;
->> +     case ISR_DONE:
->> +             switch (msg->parameter1) {
->> +             case HIC_OPEN_SENSOR:
->> +                     pr_debug("open done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_GET_SET_FILE_ADDR:
->> +                     pr_debug("saddr(%p) done\n",
->> +                             (void *)msg->parameter2);
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_LOAD_SET_FILE:
->> +                     pr_debug("setfile done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_SET_A5_MEM_ACCESS:
->> +                     pr_debug("cfgmem done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_PROCESS_START:
->> +                     pr_debug("process_on done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_PROCESS_STOP:
->> +                     pr_debug("process_off done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_STREAM_ON:
->> +                     pr_debug("stream_on done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_STREAM_OFF:
->> +                     pr_debug("stream_off done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_SET_PARAMETER:
->> +                     pr_debug("s_param done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_GET_STATIC_METADATA:
->> +                     pr_debug("g_capability done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_PREVIEW_STILL:
->> +                     pr_debug("a_param(%dx%d) done\n",
->> +                             msg->parameter2,
->> +                             msg->parameter3);
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             case HIC_POWER_DOWN:
->> +                     pr_debug("powerdown done\n");
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             /*non-blocking command*/
->> +             case HIC_SHOT:
->> +                     pr_err("shot done is not acceptable\n");
->> +                     break;
->> +             case HIC_SET_CAM_CONTROL:
->> +                     pr_err("camctrl is not acceptable\n");
->> +                     break;
->> +             default:
->> +                     pr_err("unknown done is invokded\n");
->> +                     break;
->> +             }
->
-> You can add:
->         bool is_blocking = true;
-> at the begining and set it to false in case of non-blocking commands.
-> This will allow to remove all the statements:
->                         memcpy(&itf->reply, msg,
->                         sizeof(struct fimc_is_msg));
->                         itf_busy_wakeup(itf);
-> and add one conditionally after the switch.
->
+    The described steps may be summarized as:
+	get -> lock -> CPU or DMA access to a buffer/s -> unlock -> put
 
-Yes will do that.
+This framework includes the following two features.
+    1. read (shared) and write (exclusive) locks - A task is required to declare
+    the access type when the task tries to register a dmabuf;
+    READ, WRITE, READ DMA, or WRITE DMA.
 
->> +             break;
->> +     case ISR_NDONE:
->> +             switch (msg->parameter1) {
->> +             case HIC_SHOT:
->> +                     pr_err("shot NOT done is not acceptable\n");
->> +                     break;
->> +             case HIC_SET_CAM_CONTROL:
->> +                     pr_debug("camctrl NOT done\n");
->> +                     break;
->> +             case HIC_SET_PARAMETER:
->> +                     pr_err("s_param NOT done\n");
->> +                     pr_err("param2 : 0x%08X\n", msg->parameter2);
->> +                     pr_err("param3 : 0x%08X\n", msg->parameter3);
->> +                     pr_err("param4 : 0x%08X\n", msg->parameter4);
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             default:
->> +                     pr_err("a command(%d) not done", msg->parameter1);
->> +                     memcpy(&itf->reply, msg,
->> +                             sizeof(struct fimc_is_msg));
->> +                     itf_busy_wakeup(itf);
->> +                     break;
->> +             }
->> +             break;
->> +     case IHC_SET_FACE_MARK:
->> +             pr_err("FACE_MARK(%d,%d,%d) is not acceptable\n",
->> +                     msg->parameter1,
->> +                     msg->parameter2,
->> +                     msg->parameter3);
->> +             break;
->> +     case IHC_AA_DONE:
->> +             pr_err("AA_DONE(%d,%d,%d) is not acceptable\n",
->> +                     msg->parameter1,
->> +                     msg->parameter2,
->> +                     msg->parameter3);
->> +             break;
->> +     case IHC_FLASH_READY:
->> +             pr_err("IHC_FLASH_READY is not acceptable");
->> +             break;
->> +     case IHC_NOT_READY:
->> +             pr_err("IHC_NOT_READY is occured, need reset");
->> +             break;
->> +     default:
->> +             pr_err("func_general unknown(0x%08X) end\n", msg->command);
->> +             break;
->> +     }
->> +}
->> +
->> +static void itf_handle_scaler_done(struct fimc_is_interface *itf,
->> +             struct fimc_is_msg *msg)
->> +{
->> +     struct fimc_is *is = fimc_interface_to_is(itf);
->> +     struct fimc_is_pipeline *pipeline = &is->pipeline;
->> +     struct fimc_is_buf *buf;
->> +     struct fimc_is_scaler *scl;
->> +     struct fimc_is_fmt *fmt;
->> +     struct timeval *tv;
->> +     struct timespec ts;
->> +     unsigned int wh, i;
->> +     unsigned int fcount = msg->parameter1;
->> +     unsigned long *comp_state;
->> +
->> +     if (msg->parameter4 == SCALER_SCC) {
->> +             scl = &pipeline->scaler[SCALER_SCC];
->> +             comp_state = &pipeline->comp_state[IS_SCC];
->> +     } else {
->> +             scl = &pipeline->scaler[SCALER_SCP];
->> +             comp_state = &pipeline->comp_state[IS_SCP];
->> +     }
->> +
->> +     fmt = scl->fmt;
->> +
->> +     fimc_is_pipeline_buf_lock(pipeline);
->> +     if (!list_empty(&scl->run_queue)) {
->> +
->> +             wh = scl->width * scl->height;
->> +             buf = fimc_is_scaler_run_queue_get(scl);
->> +             for (i = 0; i < fmt->num_planes; i++) {
->> +                     vb2_set_plane_payload(buf->vb, i,
->> +                                     (wh * fmt->depth[i]) / 8);
->> +             }
->> +
->> +             /* Set timestamp */
->> +             ktime_get_ts(&ts);
->> +             tv = &buf->vb->v4l2_buf.timestamp;
->> +             tv->tv_sec = ts.tv_sec;
->> +             tv->tv_usec = ts.tv_nsec / NSEC_PER_USEC;
->> +             buf->vb->v4l2_buf.sequence = fcount;
->> +
->> +             pr_debug("SCP buffer done %d/%d\n",
->> +                             msg->parameter1, msg->parameter3);
->> +             vb2_buffer_done(buf->vb, VB2_BUF_STATE_DONE);
->> +     }
->> +     fimc_is_pipeline_buf_unlock(pipeline);
->> +     clear_bit(COMP_RUN, comp_state);
->> +     wake_up(&scl->event_q);
->> +}
->> +
->> +static void itf_handle_shot_done(struct fimc_is_interface *itf,
->> +             struct fimc_is_msg *msg)
->> +{
->> +     struct fimc_is *is = fimc_interface_to_is(itf);
->> +     struct fimc_is_pipeline *pipeline = &is->pipeline;
->> +     unsigned int status = msg->parameter2;
->> +     struct fimc_is_buf *bayer_buf;
->> +     int ret;
->> +
->> +     if (status != ISR_DONE)
->> +             pr_err("Shot done is invalid(0x%08X)\n", status);
->> +
->> +     /* DQ the bayer input buffer */
->> +     fimc_is_pipeline_buf_lock(pipeline);
->> +     bayer_buf = fimc_is_isp_run_queue_get(&pipeline->isp);
->> +     if (bayer_buf) {
->> +             vb2_buffer_done(bayer_buf->vb, VB2_BUF_STATE_DONE);
->> +             pr_debug("Bayer buffer done.\n");
->> +     }
->> +     fimc_is_pipeline_buf_unlock(pipeline);
->> +
->> +     /* Clear state & call shot again */
->> +     clear_bit(PIPELINE_RUN, &pipeline->state);
->> +
->> +     ret = fimc_is_pipeline_shot(pipeline);
->> +     if (ret)
->> +             pr_err("Shot failed\n");
->> +}
->> +
->> +/* Main FIMC-IS interrupt handler */
->> +static irqreturn_t itf_irq_handler(int irq, void *data)
->> +{
->> +     struct fimc_is_interface *itf;
->> +     struct fimc_is_msg msg;
->> +     unsigned int status;
->> +
->> +     itf = (struct fimc_is_interface *)data;
->> +     status = itf_get_intr(itf);
->> +
->> +     if (status & (1<<INTR_SHOT_DONE)) {
->> +             itf_get_cmd(itf, &msg, INTR_SHOT_DONE);
->> +
->> +             itf_handle_shot_done(itf, &msg);
->> +
->> +             status &= ~(1<<INTR_SHOT_DONE);
->> +             itf_clr_intr(itf, INTR_SHOT_DONE);
->> +     }
->> +
->> +     if (status & (1<<INTR_GENERAL)) {
->> +             itf_get_cmd(itf, &msg, INTR_GENERAL);
->> +
->> +             itf_handle_general(itf, &msg);
->> +
->> +             status &= ~(1<<INTR_GENERAL);
->> +             itf_clr_intr(itf, INTR_GENERAL);
->> +     }
->> +
->> +     if (status & (1<<INTR_SCC_FDONE)) {
->> +             itf_get_cmd(itf, &msg, INTR_SCC_FDONE);
->> +
->> +             msg.parameter4 = SCALER_SCC;
->> +             itf_handle_scaler_done(itf, &msg);
->> +
->> +             status &= ~(1<<INTR_SCC_FDONE);
->> +             itf_clr_intr(itf, INTR_SCC_FDONE);
->> +     }
->> +
->> +     if (status & (1<<INTR_SCP_FDONE)) {
->> +             itf_get_cmd(itf, &msg, INTR_SCP_FDONE);
->> +
->> +             msg.parameter4 = SCALER_SCP;
->> +             itf_handle_scaler_done(itf, &msg);
->> +
->> +             status &= ~(1<<INTR_SCP_FDONE);
->> +             itf_clr_intr(itf, INTR_SCP_FDONE);
->> +     }
->> +
->> +     if (status & (1<<INTR_META_DONE)) {
->> +             status &= ~(1<<INTR_META_DONE);
->> +             itf_clr_intr(itf, INTR_META_DONE);
->> +     }
->
-> The code above seems quite redundant, putting it into a loop
-> would look better. Also moving body of itf_clr_intr into this loop
-> seems to me more clear.
->
+    The below is example codes,
+	struct dmabuf_sync *sync;
 
-Ok will try to clean this up.
+	sync = dmabuf_sync_init(NULL, "test sync");
 
->> +
->> +     if (status != 0)
->> +             pr_err("status is NOT all clear(0x%08X)", status);
->> +
->> +     return IRQ_HANDLED;
->> +}
->> +
->> +int fimc_is_itf_open_sensor(struct fimc_is_interface *itf,
->> +             unsigned int instance,
->> +             unsigned int sensor_id,
->> +             unsigned int i2c_channel,
->> +             unsigned int sensor_ext)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_OPEN_SENSOR;
->> +     msg.instance = instance;
->> +     msg.parameter1 = sensor_id;
->> +     msg.parameter2 = i2c_channel;
->> +     msg.parameter3 = sensor_ext;
->> +     msg.parameter4 = 0;
->
-> You could use initializer here instead of code,
-> the same for the following functions.
->
+	dmabuf_sync_get(sync, dmabuf, DMA_BUF_ACCESS_R);
+	...
 
-Ok.
+	And the below can be used as access types:
+		DMA_BUF_ACCESS_R - CPU will access a buffer for read.
+		DMA_BUF_ACCESS_W - CPU will access a buffer for read or write.
+		DMA_BUF_ACCESS_DMA_R - DMA will access a buffer for read
+		DMA_BUF_ACCESS_DMA_W - DMA will access a buffer for read or
+					write.
 
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_get_setfile_addr(struct fimc_is_interface *itf,
->> +             unsigned int instance, unsigned int *setfile_addr)
->> +{
->> +     int ret;
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_GET_SET_FILE_ADDR;
->> +     msg.instance = instance;
->> +     msg.parameter1 = 0;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     ret = fimc_is_itf_set_cmd(itf, &msg);
->> +     *setfile_addr = itf->reply.parameter2;
->> +
->> +     return ret;
->> +}
->> +
->> +int fimc_is_itf_load_setfile(struct fimc_is_interface *itf,
->> +             unsigned int instance)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_LOAD_SET_FILE;
->> +     msg.instance = instance;
->> +     msg.parameter1 = 0;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_stream_on(struct fimc_is_interface *itf,
->> +             unsigned int instance)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_STREAM_ON;
->> +     msg.instance = instance;
->> +     msg.parameter1 = 0;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_stream_off(struct fimc_is_interface *itf,
->> +             unsigned int instance)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_STREAM_OFF;
->> +     msg.instance = instance;
->> +     msg.parameter1 = 0;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_process_on(struct fimc_is_interface *itf,
->> +             unsigned int instance)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_PROCESS_START;
->> +     msg.instance = instance;
->> +     msg.parameter1 = 0;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_process_off(struct fimc_is_interface *itf,
->> +             unsigned int instance)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_PROCESS_STOP;
->> +     msg.instance = instance;
->> +     msg.parameter1 = 0;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_set_param(struct fimc_is_interface *itf,
->> +             unsigned int instance,
->> +             unsigned int indexes,
->> +             unsigned int lindex,
->> +             unsigned int hindex)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_SET_PARAMETER;
->> +     msg.instance = instance;
->> +     msg.parameter1 = ISS_PREVIEW_STILL;
->> +     msg.parameter2 = indexes;
->> +     msg.parameter3 = lindex;
->> +     msg.parameter4 = hindex;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_preview_still(struct fimc_is_interface *itf,
->> +             unsigned int instance)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_PREVIEW_STILL;
->> +     msg.instance = instance;
->> +     msg.parameter1 = 0;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_get_capability(struct fimc_is_interface *itf,
->> +     unsigned int instance, unsigned int address)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_GET_STATIC_METADATA;
->> +     msg.instance = instance;
->> +     msg.parameter1 = address;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_cfg_mem(struct fimc_is_interface *itf,
->> +             unsigned int instance, unsigned int address,
->> +             unsigned int size)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_SET_A5_MEM_ACCESS;
->> +     msg.instance = instance;
->> +     msg.parameter1 = address;
->> +     msg.parameter2 = size;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     return fimc_is_itf_set_cmd(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_shot_nblk(struct fimc_is_interface *itf,
->> +             unsigned int instance, unsigned int bayer,
->> +             unsigned int shot, unsigned int fcount, unsigned int rcount)
->> +{
->> +     struct fimc_is_msg msg;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_SHOT;
->> +     msg.instance = instance;
->> +     msg.parameter1 = bayer;
->> +     msg.parameter2 = shot;
->> +     msg.parameter3 = fcount;
->> +     msg.parameter4 = rcount;
->> +
->> +     return fimc_is_itf_set_cmd_shot(itf, &msg);
->> +}
->> +
->> +int fimc_is_itf_power_down(struct fimc_is_interface *itf,
->> +             unsigned int instance)
->> +{
->> +     struct fimc_is_msg msg;
->> +     int ret;
->> +
->> +     msg.id = 0;
->> +     msg.command = HIC_POWER_DOWN;
->> +     msg.instance = instance;
->> +     msg.parameter1 = 0;
->> +     msg.parameter2 = 0;
->> +     msg.parameter3 = 0;
->> +     msg.parameter4 = 0;
->> +
->> +     ret = fimc_is_itf_set_cmd(itf, &msg);
->> +     itf_clr_state(itf, IS_IF_STATE_INIT);
->> +
->> +     return ret;
->> +}
->> +
->> +/* Debugfs for showing FW debug messages */
->> +static int fimc_is_log_show(struct seq_file *s, void *data)
->> +{
->> +     struct fimc_is_interface *itf = s->private;
->> +     struct fimc_is *is = fimc_interface_to_is(itf);
->> +
->> +     const u8 *buf = (u8 *) (is->minfo.fw_vaddr + DEBUG_OFFSET);
->> +
->> +     if (is->minfo.fw_vaddr == 0) {
->> +             pr_err("Firmware memory is not initialized\n");
->> +             return -EIO;
->> +     }
->> +
->> +     seq_printf(s, "%s\n", buf);
->> +     return 0;
->> +}
->> +
->> +static int fimc_is_debugfs_open(struct inode *inode, struct file *file)
->> +{
->> +     return single_open(file, fimc_is_log_show, inode->i_private);
->> +}
->> +
->> +static const struct file_operations fimc_is_debugfs_fops = {
->> +     .open           = fimc_is_debugfs_open,
->> +     .read           = seq_read,
->> +     .llseek         = seq_lseek,
->> +     .release        = single_release,
->> +};
->> +
->> +static void fimc_is_debugfs_remove(struct fimc_is_interface *itf)
->> +{
->> +     debugfs_remove(itf->debugfs_entry);
->> +     itf->debugfs_entry = NULL;
->> +}
->> +
->> +static int fimc_is_debugfs_create(struct fimc_is_interface *itf)
->> +{
->> +     struct dentry *dentry;
->> +
->> +     itf->debugfs_entry = debugfs_create_dir("fimc_is", NULL);
->> +
->> +     dentry = debugfs_create_file("fw_log", S_IRUGO, itf->debugfs_entry,
->> +                                     itf, &fimc_is_debugfs_fops);
->> +     if (!dentry)
->> +             fimc_is_debugfs_remove(itf);
->> +
->> +     return itf->debugfs_entry == NULL ? -EIO : 0;
->> +}
->> +
->> +int fimc_is_interface_init(struct fimc_is_interface *itf,
->> +             void __iomem *regs, int irq)
->> +{
->> +     struct fimc_is *is = fimc_interface_to_is(itf);
->> +     struct device *dev = &is->pdev->dev;
->> +     int ret;
->> +
->> +     if (!regs || !irq) {
->> +             pr_err("Invalid args\n");
->> +             return -EINVAL;
->> +     }
->> +
->> +     itf->regs = regs;
->> +     itf->com_regs = (struct is_common_reg *)(regs + ISSR(0));
->> +
->> +     init_waitqueue_head(&itf->irq_queue);
->> +     spin_lock_init(&itf->slock_state);
->> +     spin_lock_init(&itf->slock);
->> +
->> +     /* Register interrupt handler */
->> +     ret = devm_request_irq(dev, irq, itf_irq_handler,
->> +                            0, dev_name(dev), itf);
->> +     if (ret) {
->> +             dev_err(dev, "Failed to install irq (%d)\n", ret);
->> +             return -EINVAL;
->> +     }
->> +
->> +     /* Initialize context vars */
->> +     itf->streaming = IS_IF_STREAMING_INIT;
->> +     itf->processing = IS_IF_PROCESSING_INIT;
->> +     itf->pdown_ready = IS_IF_POWER_DOWN_READY;
->> +     itf->debug_cnt = 0;
->> +     init_request_barrier(itf);
->> +
->> +     /* Debugfs for FW debug log */
->> +     fimc_is_debugfs_create(itf);
->> +
->> +     return 0;
->> +}
->> diff --git a/drivers/media/platform/exynos5-is/fimc-is-interface.h b/drivers/media/platform/exynos5-is/fimc-is-interface.h
->> new file mode 100644
->> index 0000000..08994f0
->> --- /dev/null
->> +++ b/drivers/media/platform/exynos5-is/fimc-is-interface.h
->> @@ -0,0 +1,131 @@
->> +/*
->> + * Samsung EXYNOS5 FIMC-IS (Imaging Subsystem) driver
->> + *
->> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
->> + *  Arun Kumar K <arun.kk@samsung.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +#ifndef FIMC_IS_INTERFACE_H_
->> +#define FIMC_IS_INTERFACE_H_
->> +
->> +#include "fimc-is-core.h"
->> +
->> +#define TRY_RECV_AWARE_COUNT    100
->> +
->> +#define ISDRV_VERSION                111
->> +
->> +#define LOWBIT_OF(num)  (num >= 32 ? 0 : (unsigned int)1<<num)
->> +#define HIGHBIT_OF(num) (num >= 32 ? (unsigned int)1<<(num-32) : 0)
->> +
->> +enum interrupt_map {
->> +     INTR_GENERAL            = 0,
->> +     INTR_ISP_FDONE          = 1,
->> +     INTR_SCC_FDONE          = 2,
->> +     INTR_DNR_FDONE          = 3,
->> +     INTR_SCP_FDONE          = 4,
->> +     /* 5 is ISP YUV DONE */
->> +     INTR_META_DONE          = 6,
->> +     INTR_SHOT_DONE          = 7,
->> +     INTR_MAX_MAP
->> +};
->> +
->> +enum fimc_is_interface_state {
->> +     IS_IF_STATE_INIT,
->> +     IS_IF_STATE_OPEN,
->> +     IS_IF_STATE_START,
->> +     IS_IF_STATE_BUSY
->> +};
->> +
->> +enum streaming_state {
->> +     IS_IF_STREAMING_INIT,
->> +     IS_IF_STREAMING_OFF,
->> +     IS_IF_STREAMING_ON
->> +};
->> +
->> +enum processing_state {
->> +     IS_IF_PROCESSING_INIT,
->> +     IS_IF_PROCESSING_OFF,
->> +     IS_IF_PROCESSING_ON
->> +};
->> +
->> +enum pdown_ready_state {
->> +     IS_IF_POWER_DOWN_READY,
->> +     IS_IF_POWER_DOWN_NREADY
->> +};
->> +
->> +struct fimc_is_msg {
->> +     unsigned int    id;
->> +     unsigned int    command;
->> +     unsigned int    instance;
->> +     unsigned int    parameter1;
->> +     unsigned int    parameter2;
->> +     unsigned int    parameter3;
->> +     unsigned int    parameter4;
->> +};
->
-> Why not unsigned int params[4];
->
->> +
->> +struct fimc_is_interface {
->> +
->> +     unsigned long                   state;
->> +
->> +     void __iomem                    *regs;
->> +     struct is_common_reg __iomem    *com_regs;
->> +     spinlock_t                      slock;
->> +     spinlock_t                      slock_state;
->> +     wait_queue_head_t               irq_queue;
->> +
->> +     spinlock_t                      process_barrier;
->> +     struct mutex                    request_barrier;
->> +
->> +     enum streaming_state            streaming;
->> +     enum processing_state           processing;
->> +     enum pdown_ready_state          pdown_ready;
->> +
->> +     struct fimc_is_msg              reply;
->> +
->> +     int                             debug_cnt;
->> +     struct dentry                   *debugfs_entry;
->> +
->> +};
->> +
->> +int fimc_is_interface_init(struct fimc_is_interface *itf,
->> +             void __iomem *regs, int irq);
->> +int fimc_is_itf_wait_init_state(struct fimc_is_interface *itf);
->> +int fimc_is_itf_hw_dump(struct fimc_is_interface *itf);
->> +int fimc_is_itf_open_sensor(struct fimc_is_interface *itf,
->> +             unsigned int instance,
->> +             unsigned int sensor_id,
->> +             unsigned int i2c_channel,
->> +             unsigned int sensor_ext);
->> +int fimc_is_itf_get_setfile_addr(struct fimc_is_interface *this,
->> +             unsigned int instance, unsigned int *setfile_addr);
->> +int fimc_is_itf_load_setfile(struct fimc_is_interface *itf,
->> +             unsigned int instance);
->> +int fimc_is_itf_stream_on(struct fimc_is_interface *itf,
->> +             unsigned int instance);
->> +int fimc_is_itf_stream_off(struct fimc_is_interface *itf,
->> +             unsigned int instance);
->> +int fimc_is_itf_process_on(struct fimc_is_interface *itf,
->> +             unsigned int instance);
->> +int fimc_is_itf_process_off(struct fimc_is_interface *itf,
->> +             unsigned int instance);
->> +int fimc_is_itf_set_param(struct fimc_is_interface *this,
->> +             unsigned int instance,
->> +             unsigned int indexes,
->> +             unsigned int lindex,
->> +             unsigned int hindex);
->> +int fimc_is_itf_preview_still(struct fimc_is_interface *itf,
->> +             unsigned int instance);
->> +int fimc_is_itf_get_capability(struct fimc_is_interface *itf,
->> +     unsigned int instance, unsigned int address);
->> +int fimc_is_itf_cfg_mem(struct fimc_is_interface *itf,
->> +             unsigned int instance, unsigned int address,
->> +             unsigned int size);
->> +int fimc_is_itf_shot_nblk(struct fimc_is_interface *itf,
->> +             unsigned int instance, unsigned int bayer,
->> +             unsigned int shot, unsigned int fcount, unsigned int rcount);
->> +int fimc_is_itf_power_down(struct fimc_is_interface *itf,
->> +             unsigned int instance);
->> +#endif
->>
->
-> Regards
-> Andrzej
->
+    2. Mandatory resource releasing - a task cannot hold a lock indefinitely.
+    A task may never try to unlock a buffer after taking a lock to the buffer.
+    In this case, a timer handler to the corresponding sync object is called
+    in five (default) seconds and then the timed-out buffer is unlocked by work
+    queue handler to avoid lockups and to enforce resources of the buffer.
 
-Thanks and Regards
-Arun
+The below is how to use interfaces for device driver:
+	1. Allocate and Initialize a sync object:
+		struct dmabuf_sync *sync;
+
+		sync = dmabuf_sync_init(NULL, "test sync");
+		...
+
+	2. Add a dmabuf to the sync object when setting up dma buffer relevant
+	   registers:
+		dmabuf_sync_get(sync, dmabuf, DMA_BUF_ACCESS_READ);
+		...
+
+	3. Lock all dmabufs of the sync object before DMA or CPU accesses
+	   the dmabufs:
+		dmabuf_sync_lock(sync);
+		...
+
+	4. Now CPU or DMA can access all dmabufs locked in step 3.
+
+	5. Unlock all dmabufs added in a sync object after DMA or CPU access
+	   to these dmabufs is completed:
+		dmabuf_sync_unlock(sync);
+
+	   And call the following functions to release all resources,
+		dmabuf_sync_put_all(sync);
+		dmabuf_sync_fini(sync);
+
+	You can refer to actual example codes:
+		"drm/exynos: add dmabuf sync support for g2d driver" and
+		"drm/exynos: add dmabuf sync support for kms framework" from
+		https://git.kernel.org/cgit/linux/kernel/git/daeinki/
+		drm-exynos.git/log/?h=dmabuf-sync
+
+And this framework includes fcntl system call[3] as interfaces exported
+to user. As you know, user sees a buffer object as a dma-buf file descriptor.
+So fcntl() call with the file descriptor means to lock some buffer region being
+managed by the dma-buf object.
+
+The below is how to use interfaces for user application:
+	struct flock filelock;
+
+	1. Lock a dma buf:
+		filelock.l_type = F_WRLCK or F_RDLCK;
+
+		/* lock entire region to the dma buf. */
+		filelock.lwhence = SEEK_CUR;
+		filelock.l_start = 0;
+		filelock.l_len = 0;
+
+		fcntl(dmabuf fd, F_SETLKW or F_SETLK, &filelock);
+		...
+		CPU access to the dma buf
+
+	2. Unlock a dma buf:
+		filelock.l_type = F_UNLCK;
+
+		fcntl(dmabuf fd, F_SETLKW or F_SETLK, &filelock);
+
+		close(dmabuf fd) call would also unlock the dma buf. And for more
+		detail, please refer to [3]
+
+References:
+[1] http://lwn.net/Articles/470339/
+[2] https://patchwork.kernel.org/patch/2625361/
+[3] http://linux.die.net/man/2/fcntl
+
+Signed-off-by: Inki Dae <inki.dae@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+---
+ Documentation/dma-buf-sync.txt |  290 +++++++++++++++++
+ drivers/base/Kconfig           |    7 +
+ drivers/base/Makefile          |    1 +
+ drivers/base/dma-buf.c         |    4 +
+ drivers/base/dmabuf-sync.c     |  674 ++++++++++++++++++++++++++++++++++++++++
+ include/linux/dma-buf.h        |   16 +
+ include/linux/dmabuf-sync.h    |  178 +++++++++++
+ 7 files changed, 1170 insertions(+), 0 deletions(-)
+ create mode 100644 Documentation/dma-buf-sync.txt
+ create mode 100644 drivers/base/dmabuf-sync.c
+ create mode 100644 include/linux/dmabuf-sync.h
+
+diff --git a/Documentation/dma-buf-sync.txt b/Documentation/dma-buf-sync.txt
+new file mode 100644
+index 0000000..4427759
+--- /dev/null
++++ b/Documentation/dma-buf-sync.txt
+@@ -0,0 +1,290 @@
++                    DMA Buffer Synchronization Framework
++                    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
++
++                                  Inki Dae
++                      <inki dot dae at samsung dot com>
++                          <daeinki at gmail dot com>
++
++This document is a guide for device-driver writers describing the DMA buffer
++synchronization API. This document also describes how to use the API to
++use buffer synchronization mechanism between DMA and DMA, CPU and DMA, and
++CPU and CPU.
++
++The DMA Buffer synchronization API provides buffer synchronization mechanism;
++i.e., buffer access control to CPU and DMA, and easy-to-use interfaces for
++device drivers and user application. And this API can be used for all dma
++devices using system memory as dma buffer, especially for most ARM based SoCs.
++
++
++Motivation
++----------
++
++Buffer synchronization issue between DMA and DMA:
++	Sharing a buffer, a device cannot be aware of when the other device
++	will access the shared buffer: a device may access a buffer containing
++	wrong data if the device accesses the shared buffer while another
++	device is still accessing the shared buffer.
++	Therefore, a user process should have waited for the completion of DMA
++	access by another device before a device tries to access the shared
++	buffer.
++
++Buffer synchronization issue between CPU and DMA:
++	A user process should consider that when having to send a buffer, filled
++	by CPU, to a device driver for the device driver to access the buffer as
++	a input buffer while CPU and DMA are sharing the buffer.
++	This means that the user process needs to understand how the device
++	driver is worked. Hence, the conventional mechanism not only makes
++	user application complicated but also incurs performance overhead.
++
++Buffer synchronization issue between CPU and CPU:
++	In case that two processes share one buffer; shared with DMA also,
++	they may need some mechanism to allow process B to access the shared
++	buffer after the completion of CPU access by process A.
++	Therefore, process B should have waited for the completion of CPU access
++	by process A using the mechanism before trying to access the shared
++	buffer.
++
++What is the best way to solve these buffer synchronization issues?
++	We may need a common object that a device driver and a user process
++	notify the common object of when they try to access a shared buffer.
++	That way we could decide when we have to allow or not to allow for CPU
++	or DMA to access the shared buffer through the common object.
++	If so, what could become the common object? Right, that's a dma-buf[1].
++	Now we have already been using the dma-buf to share one buffer with
++	other drivers.
++
++How we can utilize multi threads for more performance?
++	DMA and CPU works individually. So CPU could perform other works while
++	DMA are performing some works, and vise versa.
++	However, in the conventional way, that is not easy to do so because
++	DMA operation is depend on CPU operation, and vice versa.
++
++	Conventional way:
++        User                                     Kernel
++        ---------------------------------------------------------------------
++        CPU writes something to src
++        send the src to driver------------------------->
++                                                 update DMA register
++        request DMA start(1)--------------------------->
++                                                 DMA start
++                <---------completion signal(2)----------
++        CPU accesses dst
++
++        (1) Request DMA start after the CPU access to src buffer is completed.
++        (2) Access dst buffer after DMA access to the dst buffer is completed.
++
++On the other hand, if there is something to control buffer access between CPU
++and DMA? The below shows that:
++
++        User(thread a)          User(thread b)            Kernel
++        ---------------------------------------------------------------------
++        send a src to driver---------------------------------->
++                                                          update DMA register
++        lock the src
++                                request DMA start(1)---------->
++        CPU acccess to src
++        unlock the src                                    lock src and dst
++                                                          DMA start
++                <-------------completion signal(2)-------------
++        lock dst                                          DMA completion
++        CPU access to dst                                 unlock src and dst
++        unlock DST
++
++        (1) Try to start DMA operation while CPU is accessing the src buffer.
++        (2) Try CPU access to dst buffer while DMA is accessing the dst buffer.
++
++	In the same way, we could reduce hand shaking overhead between
++	two processes when those processes need to share a shared buffer.
++	There may be other cases that we could reduce overhead as well.
++
++
++Basic concept
++-------------
++
++The mechanism of this framework has the following steps,
++    1. Register dmabufs to a sync object - A task gets a new sync object and
++    can add one or more dmabufs that the task wants to access.
++    This registering should be performed when a device context or an event
++    context such as a page flip event is created or before CPU accesses a shared
++    buffer.
++
++	dma_buf_sync_get(a sync object, a dmabuf);
++
++    2. Lock a sync object - A task tries to lock all dmabufs added in its own
++    sync object. Basically, the lock mechanism uses ww-mutexes[2] to avoid dead
++    lock issue and for race condition between CPU and CPU, CPU and DMA, and DMA
++    and DMA. Taking a lock means that others cannot access all locked dmabufs
++    until the task that locked the corresponding dmabufs, unlocks all the locked
++    dmabufs.
++    This locking should be performed before DMA or CPU accesses these dmabufs.
++
++	dma_buf_sync_lock(a sync object);
++
++    3. Unlock a sync object - The task unlocks all dmabufs added in its own sync
++    object. The unlock means that the DMA or CPU accesses to the dmabufs have
++    been completed so that others may access them.
++    This unlocking should be performed after DMA or CPU has completed accesses
++    to the dmabufs.
++
++	dma_buf_sync_unlock(a sync object);
++
++    4. Unregister one or all dmabufs from a sync object - A task unregisters
++    the given dmabufs from the sync object. This means that the task dosen't
++    want to lock the dmabufs.
++    The unregistering should be performed after DMA or CPU has completed
++    accesses to the dmabufs or when dma_buf_sync_lock() is failed.
++
++	dma_buf_sync_put(a sync object, a dmabuf);
++	dma_buf_sync_put_all(a sync object);
++
++    The described steps may be summarized as:
++	get -> lock -> CPU or DMA access to a buffer/s -> unlock -> put
++
++This framework includes the following two features.
++    1. read (shared) and write (exclusive) locks - A task is required to declare
++    the access type when the task tries to register a dmabuf;
++    READ, WRITE, READ DMA, or WRITE DMA.
++
++    The below is example codes,
++	struct dmabuf_sync *sync;
++
++	sync = dmabuf_sync_init(NULL, "test sync");
++
++	dmabuf_sync_get(sync, dmabuf, DMA_BUF_ACCESS_R);
++	...
++
++    2. Mandatory resource releasing - a task cannot hold a lock indefinitely.
++    A task may never try to unlock a buffer after taking a lock to the buffer.
++    In this case, a timer handler to the corresponding sync object is called
++    in five (default) seconds and then the timed-out buffer is unlocked by work
++    queue handler to avoid lockups and to enforce resources of the buffer.
++
++
++Access types
++------------
++
++DMA_BUF_ACCESS_R - CPU will access a buffer for read.
++DMA_BUF_ACCESS_W - CPU will access a buffer for read or write.
++DMA_BUF_ACCESS_DMA_R - DMA will access a buffer for read
++DMA_BUF_ACCESS_DMA_W - DMA will access a buffer for read or write.
++
++
++Generic user interfaces
++-----------------------
++
++And this framework includes fcntl system call[3] as interfaces exported
++to user. As you know, user sees a buffer object as a dma-buf file descriptor.
++So fcntl() call with the file descriptor means to lock some buffer region being
++managed by the dma-buf object.
++
++
++API set
++-------
++
++bool is_dmabuf_sync_supported(void)
++	- Check if dmabuf sync is supported or not.
++
++struct dmabuf_sync *dmabuf_sync_init(void *priv, const char *name)
++	- Allocate and initialize a new sync object. The caller can get a new
++	sync object for buffer synchronization. priv is used to set caller's
++	private data and name is the name of sync object.
++
++void dmabuf_sync_fini(struct dmabuf_sync *sync)
++	- Release all resources to the sync object.
++
++int dmabuf_sync_get(struct dmabuf_sync *sync, void *sync_buf,
++			unsigned int type)
++	- Get dmabuf sync object. Internally, this function allocates
++	a dmabuf_sync object and adds a given dmabuf to it, and also takes
++	a reference to the dmabuf. The caller can tie up multiple dmabufs
++	into one sync object by calling this function several times.
++
++void dmabuf_sync_put(struct dmabuf_sync *sync, struct dma_buf *dmabuf)
++	- Put dmabuf sync object to a given dmabuf. Internally, this function
++	removes a given dmabuf from a sync object and remove the sync object.
++	At this time, the dmabuf is putted.
++
++void dmabuf_sync_put_all(struct dmabuf_sync *sync)
++	- Put dmabuf sync object to dmabufs. Internally, this function removes
++	all dmabufs from a sync object and remove the sync object.
++	At this time, all dmabufs are putted.
++
++int dmabuf_sync_lock(struct dmabuf_sync *sync)
++	- Lock all dmabufs added in a sync object. The caller should call this
++	function prior to CPU or DMA access to the dmabufs so that others can
++	not access the dmabufs. Internally, this function avoids dead lock
++	issue with ww-mutexes.
++
++int dmabuf_sync_single_lock(struct dma_buf *dmabuf)
++	- Lock a dmabuf. The caller should call this
++	function prior to CPU or DMA access to the dmabuf so that others can
++	not access the dmabuf.
++
++int dmabuf_sync_unlock(struct dmabuf_sync *sync)
++	- Unlock all dmabufs added in a sync object. The caller should call
++	this function after CPU or DMA access to the dmabufs is completed so
++	that others can access the dmabufs.
++
++void dmabuf_sync_single_unlock(struct dma_buf *dmabuf)
++	- Unlock a dmabuf. The caller should call this function after CPU or
++	DMA access to the dmabuf is completed so that others can access
++	the dmabuf.
++
++
++Tutorial for device driver
++--------------------------
++
++1. Allocate and Initialize a sync object:
++	struct dmabuf_sync *sync;
++
++	sync = dmabuf_sync_init(NULL, "test sync");
++	...
++
++2. Add a dmabuf to the sync object when setting up dma buffer relevant registers:
++	dmabuf_sync_get(sync, dmabuf, DMA_BUF_ACCESS_READ);
++	...
++
++3. Lock all dmabufs of the sync object before DMA or CPU accesses the dmabufs:
++	dmabuf_sync_lock(sync);
++	...
++
++4. Now CPU or DMA can access all dmabufs locked in step 3.
++
++5. Unlock all dmabufs added in a sync object after DMA or CPU access to these
++   dmabufs is completed:
++	dmabuf_sync_unlock(sync);
++
++   And call the following functions to release all resources,
++	dmabuf_sync_put_all(sync);
++	dmabuf_sync_fini(sync);
++
++
++Tutorial for user application
++-----------------------------
++	struct flock filelock;
++
++1. Lock a dma buf:
++	filelock.l_type = F_WRLCK or F_RDLCK;
++
++	/* lock entire region to the dma buf. */
++	filelock.lwhence = SEEK_CUR;
++	filelock.l_start = 0;
++	filelock.l_len = 0;
++
++	fcntl(dmabuf fd, F_SETLKW or F_SETLK, &filelock);
++	...
++	CPU access to the dma buf
++
++2. Unlock a dma buf:
++	filelock.l_type = F_UNLCK;
++
++	fcntl(dmabuf fd, F_SETLKW or F_SETLK, &filelock);
++
++	close(dmabuf fd) call would also unlock the dma buf. And for more
++	detail, please refer to [3]
++
++
++References:
++[1] http://lwn.net/Articles/470339/
++[2] https://patchwork.kernel.org/patch/2625361/
++[3] http://linux.die.net/man/2/fcntl
+diff --git a/drivers/base/Kconfig b/drivers/base/Kconfig
+index 5daa259..35e1518 100644
+--- a/drivers/base/Kconfig
++++ b/drivers/base/Kconfig
+@@ -200,6 +200,13 @@ config DMA_SHARED_BUFFER
+ 	  APIs extension; the file's descriptor can then be passed on to other
+ 	  driver.
+ 
++config DMABUF_SYNC
++	bool "DMABUF Synchronization Framework"
++	depends on DMA_SHARED_BUFFER
++	help
++	  This option enables dmabuf sync framework for buffer synchronization between
++	  DMA and DMA, CPU and DMA, and CPU and CPU.
++
+ config CMA
+ 	bool "Contiguous Memory Allocator"
+ 	depends on HAVE_DMA_CONTIGUOUS && HAVE_MEMBLOCK
+diff --git a/drivers/base/Makefile b/drivers/base/Makefile
+index 48029aa..e06a5d7 100644
+--- a/drivers/base/Makefile
++++ b/drivers/base/Makefile
+@@ -11,6 +11,7 @@ obj-y			+= power/
+ obj-$(CONFIG_HAS_DMA)	+= dma-mapping.o
+ obj-$(CONFIG_HAVE_GENERIC_DMA_COHERENT) += dma-coherent.o
+ obj-$(CONFIG_DMA_SHARED_BUFFER) += dma-buf.o reservation.o
++obj-$(CONFIG_DMABUF_SYNC) += dmabuf-sync.o
+ obj-$(CONFIG_ISA)	+= isa.o
+ obj-$(CONFIG_FW_LOADER)	+= firmware_class.o
+ obj-$(CONFIG_NUMA)	+= node.o
+diff --git a/drivers/base/dma-buf.c b/drivers/base/dma-buf.c
+index 08fe897..9a26981 100644
+--- a/drivers/base/dma-buf.c
++++ b/drivers/base/dma-buf.c
+@@ -29,6 +29,7 @@
+ #include <linux/export.h>
+ #include <linux/debugfs.h>
+ #include <linux/seq_file.h>
++#include <linux/dmabuf-sync.h>
+ 
+ static inline int is_dma_buf_file(struct file *);
+ 
+@@ -56,6 +57,8 @@ static int dma_buf_release(struct inode *inode, struct file *file)
+ 	list_del(&dmabuf->list_node);
+ 	mutex_unlock(&db_list.lock);
+ 
++	dmabuf_sync_reservation_fini(dmabuf);
++
+ 	kfree(dmabuf);
+ 	return 0;
+ }
+@@ -134,6 +137,7 @@ struct dma_buf *dma_buf_export_named(void *priv, const struct dma_buf_ops *ops,
+ 
+ 	file = anon_inode_getfile("dmabuf", &dma_buf_fops, dmabuf, flags);
+ 
++	dmabuf_sync_reservation_init(dmabuf);
+ 	dmabuf->file = file;
+ 
+ 	mutex_init(&dmabuf->lock);
+diff --git a/drivers/base/dmabuf-sync.c b/drivers/base/dmabuf-sync.c
+new file mode 100644
+index 0000000..0b83111
+--- /dev/null
++++ b/drivers/base/dmabuf-sync.c
+@@ -0,0 +1,674 @@
++/*
++ * Copyright (C) 2013 Samsung Electronics Co.Ltd
++ * Authors:
++ *	Inki Dae <inki.dae@samsung.com>
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ *
++ */
++
++#include <linux/kernel.h>
++#include <linux/module.h>
++#include <linux/slab.h>
++#include <linux/debugfs.h>
++#include <linux/uaccess.h>
++
++#include <linux/dmabuf-sync.h>
++
++#define MAX_SYNC_TIMEOUT	5 /* Second. */
++
++int dmabuf_sync_enabled = 1;
++
++MODULE_PARM_DESC(enabled, "Check if dmabuf sync is supported or not");
++module_param_named(enabled, dmabuf_sync_enabled, int, 0444);
++
++DEFINE_WW_CLASS(dmabuf_sync_ww_class);
++EXPORT_SYMBOL(dmabuf_sync_ww_class);
++
++static void dmabuf_sync_timeout_worker(struct work_struct *work)
++{
++	struct dmabuf_sync *sync = container_of(work, struct dmabuf_sync, work);
++	struct dmabuf_sync_object *sobj;
++
++	mutex_lock(&sync->lock);
++
++	list_for_each_entry(sobj, &sync->syncs, head) {
++		if (WARN_ON(!sobj->robj))
++			continue;
++
++		mutex_lock(&sobj->robj->lock);
++
++		printk(KERN_WARNING "%s: timeout = 0x%x [type = %d, " \
++					"refcnt = %d, locked = %d]\n",
++					sync->name, (u32)sobj->dmabuf,
++					sobj->access_type,
++					atomic_read(&sobj->robj->shared_cnt),
++					sobj->robj->locked);
++
++		/* unlock only valid sync object. */
++		if (!sobj->robj->locked) {
++			mutex_unlock(&sobj->robj->lock);
++			continue;
++		}
++
++		if (sobj->robj->shared &&
++		    atomic_add_unless(&sobj->robj->shared_cnt, -1, 1)) {
++			mutex_unlock(&sobj->robj->lock);
++			continue;
++		}
++
++		mutex_unlock(&sobj->robj->lock);
++
++		ww_mutex_unlock(&sobj->robj->sync_lock);
++
++		mutex_lock(&sobj->robj->lock);
++
++		if (sobj->access_type & DMA_BUF_ACCESS_R)
++			printk(KERN_WARNING "%s: r-unlocked = 0x%x\n",
++					sync->name, (u32)sobj->dmabuf);
++		else
++			printk(KERN_WARNING "%s: w-unlocked = 0x%x\n",
++					sync->name, (u32)sobj->dmabuf);
++
++		mutex_unlock(&sobj->robj->lock);
++	}
++
++	sync->status = 0;
++	mutex_unlock(&sync->lock);
++
++	dmabuf_sync_put_all(sync);
++	dmabuf_sync_fini(sync);
++}
++
++static void dmabuf_sync_lock_timeout(unsigned long arg)
++{
++	struct dmabuf_sync *sync = (struct dmabuf_sync *)arg;
++
++	schedule_work(&sync->work);
++}
++
++static int dmabuf_sync_lock_objs(struct dmabuf_sync *sync,
++					struct ww_acquire_ctx *ctx)
++{
++	struct dmabuf_sync_object *contended_sobj = NULL;
++	struct dmabuf_sync_object *res_sobj = NULL;
++	struct dmabuf_sync_object *sobj = NULL;
++	int ret;
++
++	if (ctx)
++		ww_acquire_init(ctx, &dmabuf_sync_ww_class);
++
++retry:
++	list_for_each_entry(sobj, &sync->syncs, head) {
++		if (WARN_ON(!sobj->robj))
++			continue;
++
++		mutex_lock(&sobj->robj->lock);
++
++		/* Don't lock in case of read and read. */
++		if (sobj->robj->accessed_type & DMA_BUF_ACCESS_R &&
++		    sobj->access_type & DMA_BUF_ACCESS_R) {
++			atomic_inc(&sobj->robj->shared_cnt);
++			sobj->robj->shared = true;
++			mutex_unlock(&sobj->robj->lock);
++			continue;
++		}
++
++		if (sobj == res_sobj) {
++			res_sobj = NULL;
++			mutex_unlock(&sobj->robj->lock);
++			continue;
++		}
++
++		mutex_unlock(&sobj->robj->lock);
++
++		ret = ww_mutex_lock(&sobj->robj->sync_lock, ctx);
++		if (ret < 0) {
++			contended_sobj = sobj;
++
++			if (ret == -EDEADLK)
++				printk(KERN_WARNING"%s: deadlock = 0x%x\n",
++					sync->name, (u32)sobj->dmabuf);
++			goto err;
++		}
++
++		mutex_lock(&sobj->robj->lock);
++		sobj->robj->locked = true;
++
++		mutex_unlock(&sobj->robj->lock);
++	}
++
++	if (ctx)
++		ww_acquire_done(ctx);
++
++	init_timer(&sync->timer);
++
++	sync->timer.data = (unsigned long)sync;
++	sync->timer.function = dmabuf_sync_lock_timeout;
++	sync->timer.expires = jiffies + (HZ * MAX_SYNC_TIMEOUT);
++
++	add_timer(&sync->timer);
++
++	return 0;
++
++err:
++	list_for_each_entry_continue_reverse(sobj, &sync->syncs, head) {
++		mutex_lock(&sobj->robj->lock);
++
++		/* Don't need to unlock in case of read and read. */
++		if (atomic_add_unless(&sobj->robj->shared_cnt, -1, 1)) {
++			mutex_unlock(&sobj->robj->lock);
++			continue;
++		}
++
++		ww_mutex_unlock(&sobj->robj->sync_lock);
++		sobj->robj->locked = false;
++
++		mutex_unlock(&sobj->robj->lock);
++	}
++
++	if (res_sobj) {
++		mutex_lock(&res_sobj->robj->lock);
++
++		if (!atomic_add_unless(&res_sobj->robj->shared_cnt, -1, 1)) {
++			ww_mutex_unlock(&res_sobj->robj->sync_lock);
++			res_sobj->robj->locked = false;
++		}
++
++		mutex_unlock(&res_sobj->robj->lock);
++	}
++
++	if (ret == -EDEADLK) {
++		ww_mutex_lock_slow(&contended_sobj->robj->sync_lock, ctx);
++		res_sobj = contended_sobj;
++
++		goto retry;
++	}
++
++	if (ctx)
++		ww_acquire_fini(ctx);
++
++	return ret;
++}
++
++static void dmabuf_sync_unlock_objs(struct dmabuf_sync *sync,
++					struct ww_acquire_ctx *ctx)
++{
++	struct dmabuf_sync_object *sobj;
++
++	if (list_empty(&sync->syncs))
++		return;
++
++	mutex_lock(&sync->lock);
++
++	list_for_each_entry(sobj, &sync->syncs, head) {
++		mutex_lock(&sobj->robj->lock);
++
++		if (sobj->robj->shared) {
++			if (atomic_add_unless(&sobj->robj->shared_cnt, -1,
++						1)) {
++				mutex_unlock(&sobj->robj->lock);
++				continue;
++			}
++
++			mutex_unlock(&sobj->robj->lock);
++
++			ww_mutex_unlock(&sobj->robj->sync_lock);
++
++			mutex_lock(&sobj->robj->lock);
++			sobj->robj->shared = false;
++			sobj->robj->locked = false;
++		} else {
++			mutex_unlock(&sobj->robj->lock);
++
++			ww_mutex_unlock(&sobj->robj->sync_lock);
++
++			mutex_lock(&sobj->robj->lock);
++			sobj->robj->locked = false;
++		}
++
++		mutex_unlock(&sobj->robj->lock);
++	}
++
++	mutex_unlock(&sync->lock);
++
++	if (ctx)
++		ww_acquire_fini(ctx);
++
++	del_timer(&sync->timer);
++}
++
++/**
++ * is_dmabuf_sync_supported - Check if dmabuf sync is supported or not.
++ */
++bool is_dmabuf_sync_supported(void)
++{
++	return dmabuf_sync_enabled == 1;
++}
++EXPORT_SYMBOL(is_dmabuf_sync_supported);
++
++/**
++ * dmabuf_sync_init - Allocate and initialize a dmabuf sync.
++ *
++ * @priv: A device private data.
++ * @name: A sync object name.
++ *
++ * This function should be called when a device context or an event
++ * context such as a page flip event is created. And the created
++ * dmabuf_sync object should be set to the context.
++ * The caller can get a new sync object for buffer synchronization
++ * through this function.
++ */
++struct dmabuf_sync *dmabuf_sync_init(void *priv, const char *name)
++{
++	struct dmabuf_sync *sync;
++
++	sync = kzalloc(sizeof(*sync), GFP_KERNEL);
++	if (!sync)
++		return ERR_PTR(-ENOMEM);
++
++	strncpy(sync->name, name, ARRAY_SIZE(sync->name) - 1);
++
++	sync->priv = priv;
++	INIT_LIST_HEAD(&sync->syncs);
++	mutex_init(&sync->lock);
++	INIT_WORK(&sync->work, dmabuf_sync_timeout_worker);
++
++	return sync;
++}
++EXPORT_SYMBOL(dmabuf_sync_init);
++
++/**
++ * dmabuf_sync_fini - Release a given dmabuf sync.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ *
++ * This function should be called if some operation is failed after
++ * dmabuf_sync_init call to release relevant resources, and after
++ * dmabuf_sync_unlock function is called.
++ */
++void dmabuf_sync_fini(struct dmabuf_sync *sync)
++{
++	if (WARN_ON(!sync))
++		return;
++
++	kfree(sync);
++}
++EXPORT_SYMBOL(dmabuf_sync_fini);
++
++/*
++ * dmabuf_sync_get_obj - Add a given object to syncs list.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ * @dmabuf: An object to dma_buf structure.
++ * @type: A access type to a dma buf.
++ *	The DMA_BUF_ACCESS_R means that this dmabuf could be accessed by
++ *	others for read access. On the other hand, the DMA_BUF_ACCESS_W
++ *	means that this dmabuf couldn't be accessed by others but would be
++ *	accessed by caller's dma exclusively. And the DMA_BUF_ACCESS_DMA can be
++ *	combined.
++ *
++ * This function creates and initializes a new dmabuf sync object and it adds
++ * the dmabuf sync object to syncs list to track and manage all dmabufs.
++ */
++static int dmabuf_sync_get_obj(struct dmabuf_sync *sync, struct dma_buf *dmabuf,
++					unsigned int type)
++{
++	struct dmabuf_sync_object *sobj;
++
++	if (!dmabuf->sync) {
++		WARN_ON(1);
++		return -EFAULT;
++	}
++
++	if (!IS_VALID_DMA_BUF_ACCESS_TYPE(type))
++		return -EINVAL;
++
++	if ((type & DMA_BUF_ACCESS_RW) == DMA_BUF_ACCESS_RW)
++		type &= ~DMA_BUF_ACCESS_R;
++
++	sobj = kzalloc(sizeof(*sobj), GFP_KERNEL);
++	if (!sobj) {
++		WARN_ON(1);
++		return -ENOMEM;
++	}
++
++	sobj->dmabuf = dmabuf;
++	sobj->robj = dmabuf->sync;
++
++	mutex_lock(&sync->lock);
++	list_add_tail(&sobj->head, &sync->syncs);
++	mutex_unlock(&sync->lock);
++
++	get_dma_buf(dmabuf);
++
++	mutex_lock(&sobj->robj->lock);
++	sobj->access_type = type;
++	mutex_unlock(&sobj->robj->lock);
++
++	return 0;
++}
++
++/*
++ * dmabuf_sync_put_obj - Release a given sync object.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ *
++ * This function should be called if some operation is failed after
++ * dmabuf_sync_get_obj call to release a given sync object.
++ */
++static void dmabuf_sync_put_obj(struct dmabuf_sync *sync,
++					struct dma_buf *dmabuf)
++{
++	struct dmabuf_sync_object *sobj;
++
++	mutex_lock(&sync->lock);
++
++	list_for_each_entry(sobj, &sync->syncs, head) {
++		if (sobj->dmabuf != dmabuf)
++			continue;
++
++		dma_buf_put(sobj->dmabuf);
++
++		list_del_init(&sobj->head);
++		kfree(sobj);
++		break;
++	}
++
++	if (list_empty(&sync->syncs))
++		sync->status = 0;
++
++	mutex_unlock(&sync->lock);
++}
++
++/*
++ * dmabuf_sync_put_objs - Release all sync objects of dmabuf_sync.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ *
++ * This function should be called if some operation is failed after
++ * dmabuf_sync_get_obj call to release all sync objects.
++ */
++static void dmabuf_sync_put_objs(struct dmabuf_sync *sync)
++{
++	struct dmabuf_sync_object *sobj, *next;
++
++	mutex_lock(&sync->lock);
++
++	list_for_each_entry_safe(sobj, next, &sync->syncs, head) {
++		dma_buf_put(sobj->dmabuf);
++
++		list_del_init(&sobj->head);
++		kfree(sobj);
++	}
++
++	mutex_unlock(&sync->lock);
++
++	sync->status = 0;
++}
++
++/**
++ * dmabuf_sync_lock - lock all dmabufs added to syncs list.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ *
++ * The caller should call this function prior to CPU or DMA access to
++ * the dmabufs so that others can not access the dmabufs.
++ * Internally, this function avoids dead lock issue with ww-mutex.
++ */
++int dmabuf_sync_lock(struct dmabuf_sync *sync)
++{
++	int ret;
++
++	if (!sync) {
++		WARN_ON(1);
++		return -EFAULT;
++	}
++
++	if (list_empty(&sync->syncs))
++		return -EINVAL;
++
++	if (sync->status != DMABUF_SYNC_GOT)
++		return -EINVAL;
++
++	ret = dmabuf_sync_lock_objs(sync, &sync->ctx);
++	if (ret < 0) {
++		WARN_ON(1);
++		return ret;
++	}
++
++	sync->status = DMABUF_SYNC_LOCKED;
++
++	return ret;
++}
++EXPORT_SYMBOL(dmabuf_sync_lock);
++
++/**
++ * dmabuf_sync_unlock - unlock all objects added to syncs list.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ *
++ * The caller should call this function after CPU or DMA access to
++ * the dmabufs is completed so that others can access the dmabufs.
++ */
++int dmabuf_sync_unlock(struct dmabuf_sync *sync)
++{
++	if (!sync) {
++		WARN_ON(1);
++		return -EFAULT;
++	}
++
++	/* If current dmabuf sync object wasn't reserved then just return. */
++	if (sync->status != DMABUF_SYNC_LOCKED)
++		return -EAGAIN;
++
++	dmabuf_sync_unlock_objs(sync, &sync->ctx);
++
++	return 0;
++}
++EXPORT_SYMBOL(dmabuf_sync_unlock);
++
++/**
++ * dmabuf_sync_single_lock - lock a dma buf.
++ *
++ * @dmabuf: A dma buf object that tries to lock.
++ * @type: A access type to a dma buf.
++ *	The DMA_BUF_ACCESS_R means that this dmabuf could be accessed by
++ *	others for read access. On the other hand, the DMA_BUF_ACCESS_W
++ *	means that this dmabuf couldn't be accessed by others but would be
++ *	accessed by caller's dma exclusively. And the DMA_BUF_ACCESS_DMA can
++ *	be combined with other.
++ * @wait: Indicate whether caller is blocked or not.
++ *	true means that caller will be blocked, and false means that this
++ *	function will return -EAGAIN if this caller can't take the lock
++ *	right now.
++ *
++ * The caller should call this function prior to CPU or DMA access to the dmabuf
++ * so that others cannot access the dmabuf.
++ */
++int dmabuf_sync_single_lock(struct dma_buf *dmabuf, unsigned int type,
++				bool wait)
++{
++	struct dmabuf_sync_reservation *robj;
++
++	if (!dmabuf->sync) {
++		WARN_ON(1);
++		return -EFAULT;
++	}
++
++	if (!IS_VALID_DMA_BUF_ACCESS_TYPE(type)) {
++		WARN_ON(1);
++		return -EINVAL;
++	}
++
++	get_dma_buf(dmabuf);
++	robj = dmabuf->sync;
++
++	mutex_lock(&robj->lock);
++
++	/* Don't lock in case of read and read. */
++	if (robj->accessed_type & DMA_BUF_ACCESS_R && type & DMA_BUF_ACCESS_R) {
++		atomic_inc(&robj->shared_cnt);
++		robj->shared = true;
++		mutex_unlock(&robj->lock);
++		return 0;
++	}
++
++	/*
++	 * In case of F_SETLK, just return -EAGAIN if this dmabuf has already
++	 * been locked.
++	 */
++	if (!wait && robj->locked) {
++		mutex_unlock(&robj->lock);
++		dma_buf_put(dmabuf);
++		return -EAGAIN;
++	}
++
++	mutex_unlock(&robj->lock);
++
++	mutex_lock(&robj->sync_lock.base);
++
++	mutex_lock(&robj->lock);
++	robj->locked = true;
++	mutex_unlock(&robj->lock);
++
++	return 0;
++}
++EXPORT_SYMBOL(dmabuf_sync_single_lock);
++
++/**
++ * dmabuf_sync_single_unlock - unlock a dma buf.
++ *
++ * @dmabuf: A dma buf object that tries to unlock.
++ *
++ * The caller should call this function after CPU or DMA access to
++ * the dmabuf is completed so that others can access the dmabuf.
++ */
++void dmabuf_sync_single_unlock(struct dma_buf *dmabuf)
++{
++	struct dmabuf_sync_reservation *robj;
++
++	if (!dmabuf->sync) {
++		WARN_ON(1);
++		return;
++	}
++
++	robj = dmabuf->sync;
++
++	mutex_lock(&robj->lock);
++
++	if (robj->shared) {
++		if (atomic_add_unless(&robj->shared_cnt, -1 , 1)) {
++			mutex_unlock(&robj->lock);
++			return;
++		}
++
++		robj->shared = false;
++	}
++
++	mutex_unlock(&robj->lock);
++
++	mutex_unlock(&robj->sync_lock.base);
++
++	mutex_lock(&robj->lock);
++	robj->locked = false;
++	mutex_unlock(&robj->lock);
++
++	dma_buf_put(dmabuf);
++
++	return;
++}
++EXPORT_SYMBOL(dmabuf_sync_single_unlock);
++
++/**
++ * dmabuf_sync_get - Get dmabuf sync object.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ * @sync_buf: A dmabuf object to be synchronized with others.
++ * @type: A access type to a dma buf.
++ *	The DMA_BUF_ACCESS_R means that this dmabuf could be accessed by
++ *	others for read access. On the other hand, the DMA_BUF_ACCESS_W
++ *	means that this dmabuf couldn't be accessed by others but would be
++ *	accessed by caller's dma exclusively. And the DMA_BUF_ACCESS_DMA can
++ *	be combined with other.
++ *
++ * This function should be called after dmabuf_sync_init function is called.
++ * The caller can tie up multiple dmabufs into one sync object by calling this
++ * function several times. Internally, this function allocates
++ * a dmabuf_sync_object and adds a given dmabuf to it, and also takes
++ * a reference to a dmabuf.
++ */
++int dmabuf_sync_get(struct dmabuf_sync *sync, void *sync_buf, unsigned int type)
++{
++	int ret;
++
++	if (!sync || !sync_buf) {
++		WARN_ON(1);
++		return -EFAULT;
++	}
++
++	ret = dmabuf_sync_get_obj(sync, sync_buf, type);
++	if (ret < 0) {
++		WARN_ON(1);
++		return ret;
++	}
++
++	sync->status = DMABUF_SYNC_GOT;
++
++	return 0;
++}
++EXPORT_SYMBOL(dmabuf_sync_get);
++
++/**
++ * dmabuf_sync_put - Put dmabuf sync object to a given dmabuf.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ * @dmabuf: An dmabuf object.
++ *
++ * This function should be called if some operation is failed after
++ * dmabuf_sync_get function is called to release the dmabuf, or
++ * dmabuf_sync_unlock function is called. Internally, this function
++ * removes a given dmabuf from a sync object and remove the sync object.
++ * At this time, the dmabuf is putted.
++ */
++void dmabuf_sync_put(struct dmabuf_sync *sync, struct dma_buf *dmabuf)
++{
++	if (!sync || !dmabuf) {
++		WARN_ON(1);
++		return;
++	}
++
++	if (list_empty(&sync->syncs))
++		return;
++
++	dmabuf_sync_put_obj(sync, dmabuf);
++}
++EXPORT_SYMBOL(dmabuf_sync_put);
++
++/**
++ * dmabuf_sync_put_all - Put dmabuf sync object to dmabufs.
++ *
++ * @sync: An object to dmabuf_sync structure.
++ *
++ * This function should be called if some operation is failed after
++ * dmabuf_sync_get function is called to release all sync objects, or
++ * dmabuf_sync_unlock function is called. Internally, this function
++ * removes dmabufs from a sync object and remove the sync object.
++ * At this time, all dmabufs are putted.
++ */
++void dmabuf_sync_put_all(struct dmabuf_sync *sync)
++{
++	if (!sync) {
++		WARN_ON(1);
++		return;
++	}
++
++	if (list_empty(&sync->syncs))
++		return;
++
++	dmabuf_sync_put_objs(sync);
++}
++EXPORT_SYMBOL(dmabuf_sync_put_all);
+diff --git a/include/linux/dma-buf.h b/include/linux/dma-buf.h
+index dfac5ed..0109673 100644
+--- a/include/linux/dma-buf.h
++++ b/include/linux/dma-buf.h
+@@ -115,6 +115,7 @@ struct dma_buf_ops {
+  * @exp_name: name of the exporter; useful for debugging.
+  * @list_node: node for dma_buf accounting and debugging.
+  * @priv: exporter specific private data for this buffer object.
++ * @sync: sync object linked to this dma-buf
+  */
+ struct dma_buf {
+ 	size_t size;
+@@ -128,6 +129,7 @@ struct dma_buf {
+ 	const char *exp_name;
+ 	struct list_head list_node;
+ 	void *priv;
++	void *sync;
+ };
+ 
+ /**
+@@ -148,6 +150,20 @@ struct dma_buf_attachment {
+ 	void *priv;
+ };
+ 
++#define	DMA_BUF_ACCESS_R	0x1
++#define DMA_BUF_ACCESS_W	0x2
++#define DMA_BUF_ACCESS_DMA	0x4
++#define DMA_BUF_ACCESS_RW	(DMA_BUF_ACCESS_R | DMA_BUF_ACCESS_W)
++#define DMA_BUF_ACCESS_DMA_R	(DMA_BUF_ACCESS_R | DMA_BUF_ACCESS_DMA)
++#define DMA_BUF_ACCESS_DMA_W	(DMA_BUF_ACCESS_W | DMA_BUF_ACCESS_DMA)
++#define DMA_BUF_ACCESS_DMA_RW	(DMA_BUF_ACCESS_DMA_R | DMA_BUF_ACCESS_DMA_W)
++#define IS_VALID_DMA_BUF_ACCESS_TYPE(t)	(t == DMA_BUF_ACCESS_R || \
++					 t == DMA_BUF_ACCESS_W || \
++					 t == DMA_BUF_ACCESS_DMA_R || \
++					 t == DMA_BUF_ACCESS_DMA_W || \
++					 t == DMA_BUF_ACCESS_RW || \
++					 t == DMA_BUF_ACCESS_DMA_RW)
++
+ /**
+  * get_dma_buf - convenience wrapper for get_file.
+  * @dmabuf:	[in]	pointer to dma_buf
+diff --git a/include/linux/dmabuf-sync.h b/include/linux/dmabuf-sync.h
+new file mode 100644
+index 0000000..2502ad6
+--- /dev/null
++++ b/include/linux/dmabuf-sync.h
+@@ -0,0 +1,178 @@
++/*
++ * Copyright (C) 2013 Samsung Electronics Co.Ltd
++ * Authors:
++ *	Inki Dae <inki.dae@samsung.com>
++ *
++ * This program is free software; you can redistribute  it and/or modify it
++ * under  the terms of  the GNU General  Public License as published by the
++ * Free Software Foundation;  either version 2 of the  License, or (at your
++ * option) any later version.
++ *
++ */
++
++#include <linux/mutex.h>
++#include <linux/sched.h>
++#include <linux/dma-buf.h>
++
++enum dmabuf_sync_status {
++	DMABUF_SYNC_GOT		= 1,
++	DMABUF_SYNC_LOCKED,
++};
++
++struct dmabuf_sync_reservation {
++	struct ww_mutex		sync_lock;
++	struct mutex		lock;
++	atomic_t		shared_cnt;
++	unsigned int		accessed_type;
++	unsigned int		shared;
++	unsigned int		locked;
++};
++
++/*
++ * A structure for dmabuf_sync_object.
++ *
++ * @head: A list head to be added to syncs list.
++ * @robj: A reservation_object object.
++ * @dma_buf: A dma_buf object.
++ * @access_type: Indicate how a current task tries to access
++ *	a given buffer.
++ */
++struct dmabuf_sync_object {
++	struct list_head		head;
++	struct dmabuf_sync_reservation	*robj;
++	struct dma_buf			*dmabuf;
++	unsigned int			access_type;
++};
++
++/*
++ * A structure for dmabuf_sync.
++ *
++ * @syncs: A list head to sync object and this is global to system.
++ * @list: A list entry used as committed list node
++ * @lock: A mutex lock to current sync object.
++ * @ctx: A current context for ww mutex.
++ * @work: A work struct to release resources at timeout.
++ * @priv: A private data.
++ * @name: A string to dmabuf sync owner.
++ * @timer: A timer list to avoid lockup and release resources.
++ * @status: Indicate current status (DMABUF_SYNC_GOT or DMABUF_SYNC_LOCKED).
++ */
++struct dmabuf_sync {
++	struct list_head	syncs;
++	struct list_head	list;
++	struct mutex		lock;
++	struct ww_acquire_ctx	ctx;
++	struct work_struct	work;
++	void			*priv;
++	char			name[64];
++	struct timer_list	timer;
++	unsigned int		status;
++};
++
++#ifdef CONFIG_DMABUF_SYNC
++
++extern struct ww_class dmabuf_sync_ww_class;
++
++static inline void dmabuf_sync_reservation_init(struct dma_buf *dmabuf)
++{
++	struct dmabuf_sync_reservation *obj;
++
++	obj = kzalloc(sizeof(*obj), GFP_KERNEL);
++	if (!obj)
++		return;
++
++	dmabuf->sync = obj;
++
++	ww_mutex_init(&obj->sync_lock, &dmabuf_sync_ww_class);
++
++	mutex_init(&obj->lock);
++	atomic_set(&obj->shared_cnt, 1);
++}
++
++static inline void dmabuf_sync_reservation_fini(struct dma_buf *dmabuf)
++{
++	struct dmabuf_sync_reservation *obj;
++
++	if (!dmabuf->sync)
++		return;
++
++	obj = dmabuf->sync;
++
++	ww_mutex_destroy(&obj->sync_lock);
++
++	kfree(obj);
++}
++
++extern bool is_dmabuf_sync_supported(void);
++
++extern struct dmabuf_sync *dmabuf_sync_init(void *priv, const char *name);
++
++extern void dmabuf_sync_fini(struct dmabuf_sync *sync);
++
++extern int dmabuf_sync_lock(struct dmabuf_sync *sync);
++
++extern int dmabuf_sync_unlock(struct dmabuf_sync *sync);
++
++int dmabuf_sync_single_lock(struct dma_buf *dmabuf, unsigned int type,
++				bool wait);
++
++void dmabuf_sync_single_unlock(struct dma_buf *dmabuf);
++
++extern int dmabuf_sync_get(struct dmabuf_sync *sync, void *sync_buf,
++				unsigned int type);
++
++extern void dmabuf_sync_put(struct dmabuf_sync *sync, struct dma_buf *dmabuf);
++
++extern void dmabuf_sync_put_all(struct dmabuf_sync *sync);
++
++#else
++
++static inline void dmabuf_sync_reservation_init(struct dma_buf *dmabuf) { }
++
++static inline void dmabuf_sync_reservation_fini(struct dma_buf *dmabuf) { }
++
++static inline bool is_dmabuf_sync_supported(void) { return false; }
++
++static inline struct dmabuf_sync *dmabuf_sync_init(void *priv,
++					const char *names)
++{
++	return ERR_PTR(0);
++}
++
++static inline void dmabuf_sync_fini(struct dmabuf_sync *sync) { }
++
++static inline int dmabuf_sync_lock(struct dmabuf_sync *sync)
++{
++	return 0;
++}
++
++static inline int dmabuf_sync_unlock(struct dmabuf_sync *sync)
++{
++	return 0;
++}
++
++static inline int dmabuf_sync_single_lock(struct dma_buf *dmabuf,
++						unsigned int type,
++						bool wait)
++{
++	return 0;
++}
++
++static inline void dmabuf_sync_single_unlock(struct dma_buf *dmabuf)
++{
++	return;
++}
++
++static inline int dmabuf_sync_get(struct dmabuf_sync *sync,
++					void *sync_buf,
++					unsigned int type)
++{
++	return 0;
++}
++
++static inline void dmabuf_sync_put(struct dmabuf_sync *sync,
++					struct dma_buf *dmabuf) { }
++
++static inline void dmabuf_sync_put_all(struct dmabuf_sync *sync) { }
++
++#endif
+-- 
+1.7.5.4
+
