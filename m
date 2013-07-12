@@ -1,114 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:59979 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754789Ab3GTWAH (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4418 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965116Ab3GLS3q (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jul 2013 18:00:07 -0400
-Date: Sat, 20 Jul 2013 15:00:06 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Message-ID: <20130720220006.GA7977@kroah.com>
-References: <20130718072004.GA16720@kroah.com>
- <51E7AE88.3050007@ti.com>
- <20130718154954.GA31961@kroah.com>
- <51E8D086.809@ti.com>
- <20130719054311.GA14638@kroah.com>
- <51E8D4E0.8060200@ti.com>
- <20130719062941.GA23611@kroah.com>
- <51E8DE51.1060404@ti.com>
- <20130719235055.GB11498@kroah.com>
- <51EA01C4.2010006@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <51EA01C4.2010006@ti.com>
+	Fri, 12 Jul 2013 14:29:46 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6CITg6b068933
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Fri, 12 Jul 2013 20:29:45 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 3A28635E0332
+	for <linux-media@vger.kernel.org>; Fri, 12 Jul 2013 20:29:36 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130712182936.3A28635E0332@alastor.dyndns.org>
+Date: Fri, 12 Jul 2013 20:29:36 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sat, Jul 20, 2013 at 08:49:32AM +0530, Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Saturday 20 July 2013 05:20 AM, Greg KH wrote:
-> >On Fri, Jul 19, 2013 at 12:06:01PM +0530, Kishon Vijay Abraham I wrote:
-> >>Hi,
-> >>
-> >>On Friday 19 July 2013 11:59 AM, Greg KH wrote:
-> >>>On Fri, Jul 19, 2013 at 11:25:44AM +0530, Kishon Vijay Abraham I wrote:
-> >>>>Hi,
-> >>>>
-> >>>>On Friday 19 July 2013 11:13 AM, Greg KH wrote:
-> >>>>>On Fri, Jul 19, 2013 at 11:07:10AM +0530, Kishon Vijay Abraham I wrote:
-> >>>>>>>>>>+	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
-> >>>>>>>>>
-> >>>>>>>>>Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
-> >>>>>>>>>never send a duplicate name.id pair?  Why not create your own ids based
-> >>>>>>>>>on the number of phys in the system, like almost all other classes and
-> >>>>>>>>>subsystems do?
-> >>>>>>>>
-> >>>>>>>>hmm.. some PHY drivers use the id they provide to perform some of their
-> >>>>>>>>internal operation as in [1] (This is used only if a single PHY provider
-> >>>>>>>>implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
-> >>>>>>>>to give the PHY drivers an option to use auto id.
-> >>>>>>>>
-> >>>>>>>>[1] ->
-> >>>>>>>>http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
-> >>>>>>>
-> >>>>>>>No, who cares about the id?  No one outside of the phy core ever should,
-> >>>>>>>because you pass back the only pointer that they really do care about,
-> >>>>>>>if they need to do anything with the device.  Use that, and then you can
-> >>>>>>
-> >>>>>>hmm.. ok.
-> >>>>>>
-> >>>>>>>rip out all of the "search for a phy by a string" logic, as that's not
-> >>>>>>
-> >>>>>>Actually this is needed for non-dt boot case. In the case of dt boot, we use a
-> >>>>>>phandle by which the controller can get a reference to the phy. But in the case
-> >>>>>>of non-dt boot, the controller can get a reference to the phy only by label.
-> >>>>>
-> >>>>>I don't understand.  They registered the phy, and got back a pointer to
-> >>>>>it.  Why can't they save it in their local structure to use it again
-> >>>>>later if needed?  They should never have to "ask" for the device, as the
-> >>>>
-> >>>>One is a *PHY provider* driver which is a driver for some PHY device. This will
-> >>>>use phy_create to create the phy.
-> >>>>The other is a *PHY consumer* driver which might be any controller driver (can
-> >>>>be USB/SATA/PCIE). The PHY consumer will use phy_get to get a reference to the
-> >>>>phy (by *phandle* in the case of dt boot and *label* in the case of non-dt boot).
-> >>>>>device id might be unknown if there are multiple devices in the system.
-> >>>>
-> >>>>I agree with you on the device id part. That need not be known to the PHY driver.
-> >>>
-> >>>How does a consumer know which "label" to use in a non-dt system if
-> >>>there are multiple PHYs in the system?
-> >>
-> >>That should be passed using platform data.
-> >
-> >Ick, don't pass strings around, pass pointers.  If you have platform
-> >data you can get to, then put the pointer there, don't use a "name".
-> 
-> I don't think I understood you here :-s We wont have phy pointer
-> when we create the device for the controller no?(it'll be done in
-> board file). Probably I'm missing something.
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Why will you not have that pointer?  You can't rely on the "name" as the
-device id will not match up, so you should be able to rely on the
-pointer being in the structure that the board sets up, right?
+Results of the daily build of media_tree:
 
-Don't use names, especially as ids can, and will, change, that is going
-to cause big problems.  Use pointers, this is C, we are supposed to be
-doing that :)
+date:		Fri Jul 12 19:00:20 CEST 2013
+git branch:	test
+git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
-thanks,
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
 
-greg k-h
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
