@@ -1,65 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f53.google.com ([209.85.160.53]:50089 "EHLO
-	mail-pb0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932090Ab3GKJJC (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:09:02 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Johan Hovold <jhovold@gmail.com>
-Subject: [PATCH 18/50] USB: serial: symbolserial: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:41 +0800
-Message-Id: <1373533573-12272-19-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+Received: from perches-mx.perches.com ([206.117.179.246]:41955 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1755625Ab3GMNHY (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Jul 2013 09:07:24 -0400
+Message-ID: <1373720843.1906.4.camel@joe-AO722>
+Subject: Re: [PATCH 5/5] media: davinci: vpbe: Replace printk with dev_*
+From: Joe Perches <joe@perches.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Date: Sat, 13 Jul 2013 06:07:23 -0700
+In-Reply-To: <1373705431-11500-6-git-send-email-prabhakar.csengg@gmail.com>
+References: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
+	 <1373705431-11500-6-git-send-email-prabhakar.csengg@gmail.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+On Sat, 2013-07-13 at 14:20 +0530, Prabhakar Lad wrote:
+> Use the dev_* message logging API instead of raw printk.
+[]
+> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+[]
+> @@ -735,7 +735,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  
+>  	mutex_unlock(&vpbe_dev->lock);
+>  
+> -	printk(KERN_NOTICE "Setting default output to %s\n", def_output);
+> +	dev_info(dev, "Setting default output to %s\n", def_output);
 
-Cc: Johan Hovold <jhovold@gmail.com>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/usb/serial/symbolserial.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+You are changing logging levels too.
+You should mention that in the changelog.
 
-diff --git a/drivers/usb/serial/symbolserial.c b/drivers/usb/serial/symbolserial.c
-index 9b16489..b4f5cbe 100644
---- a/drivers/usb/serial/symbolserial.c
-+++ b/drivers/usb/serial/symbolserial.c
-@@ -41,6 +41,7 @@ static void symbol_int_callback(struct urb *urb)
- 	int status = urb->status;
- 	int result;
- 	int data_length;
-+	unsigned long flags;
- 
- 	switch (status) {
- 	case 0:
-@@ -81,7 +82,7 @@ static void symbol_int_callback(struct urb *urb)
- 	}
- 
- exit:
--	spin_lock(&priv->lock);
-+	spin_lock_irqsave(&priv->lock, flags);
- 
- 	/* Continue trying to always read if we should */
- 	if (!priv->throttled) {
-@@ -92,7 +93,7 @@ exit:
- 							__func__, result);
- 	} else
- 		priv->actually_throttled = true;
--	spin_unlock(&priv->lock);
-+	spin_unlock_irqrestore(&priv->lock, flags);
- }
- 
- static int symbol_open(struct tty_struct *tty, struct usb_serial_port *port)
--- 
-1.7.9.5
+> @@ -743,7 +743,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+>  		return ret;
+>  	}
+>  
+> -	printk(KERN_NOTICE "Setting default mode to %s\n", def_mode);
+> +	dev_info(dev, "Setting default mode to %s\n", def_mode);
+>  	ret = vpbe_set_default_mode(vpbe_dev);
+>  	if (ret) {
+>  		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default mode %s",
+
+Maybe these should be v4l2_notice() which could
+be added to include/media/v4l2-common.h
+
 
