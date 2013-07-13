@@ -1,51 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from eu1sys200aog104.obsmtp.com ([207.126.144.117]:39897 "EHLO
-	eu1sys200aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1756738Ab3GVIcl (ORCPT
+Received: from mail-pd0-f172.google.com ([209.85.192.172]:55964 "EHLO
+	mail-pd0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758120Ab3GMIun (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 04:32:41 -0400
-From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-To: linux-media@vger.kernel.org
-Cc: alipowski@interia.pl, Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, srinivas.kandagatla@gmail.com,
-	srinivas.kandagatla@st.com, sean@mess.org
-Subject: [PATCH v2 0/2] Allow rc device to open from lirc
-Date: Mon, 22 Jul 2013 09:21:59 +0100
-Message-Id: <1374481319-3293-1-git-send-email-srinivas.kandagatla@st.com>
+	Sat, 13 Jul 2013 04:50:43 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH 0/5] Davinci VPBE use devres and some cleanup
+Date: Sat, 13 Jul 2013 14:20:26 +0530
+Message-Id: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Thankyou for providing comments on v1 patch.
+This patch series replaces existing resource handling in the
+driver with managed device resource.
 
-This patchset adds new members to rc_device structure to open rc device from
-code other than rc-main. In the current code rc-device is only opened via input
-driver. In cases where rc device is using lirc protocol, it will never be opened
-as there is no input driver associated with lirc.
+Lad, Prabhakar (5):
+  media: davinci: vpbe_venc: convert to devm_* api
+  media: davinci: vpbe_osd: convert to devm_* api
+  media: davinci: vpbe_display: convert to devm* api
+  media: davinci: vpss: convert to devm* api
+  media: davinci: vpbe: Replace printk with dev_*
 
-Thes patch set add fix to allow use cases like this to open rc device directly.
-
-Changes since v1:
-	- used rcdev->lock around increments and decrements of users pointed by
-	  Sean Young.
-	- Common up code in rc_open/rc_close.
-
-
-Thanks,
-srini
-
-Srinivas Kandagatla (2):
-  media: rc: Add rc_open/close and use count to rc_dev.
-  media: lirc: Allow lirc dev to talk to rc device
-
- drivers/media/rc/ir-lirc-codec.c |    1 +
- drivers/media/rc/lirc_dev.c      |   10 ++++++++
- drivers/media/rc/rc-main.c       |   46 ++++++++++++++++++++++++++++++++++---
- include/media/lirc_dev.h         |    1 +
- include/media/rc-core.h          |    4 +++
- 5 files changed, 58 insertions(+), 4 deletions(-)
+ drivers/media/platform/davinci/vpbe.c         |    6 +-
+ drivers/media/platform/davinci/vpbe_display.c |   23 ++----
+ drivers/media/platform/davinci/vpbe_osd.c     |   45 +++---------
+ drivers/media/platform/davinci/vpbe_venc.c    |   97 +++++--------------------
+ drivers/media/platform/davinci/vpss.c         |   62 ++++------------
+ 5 files changed, 52 insertions(+), 181 deletions(-)
 
 -- 
-1.7.6.5
+1.7.9.5
 
