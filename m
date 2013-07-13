@@ -1,60 +1,38 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:59847 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757976Ab3G3IPk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 04:15:40 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6U8FSuh022335
-	for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 08:15:36 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 FINAL 4/6] qv4l2: add Capture menu
-Date: Tue, 30 Jul 2013 10:15:22 +0200
-Message-Id: <871fbdba981d0f009b938f8cbdb931f952a2225b.1375172029.git.bwinther@cisco.com>
-In-Reply-To: <1375172124-14439-1-git-send-email-bwinther@cisco.com>
-References: <1375172124-14439-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <fe355bb3e887a32d91640eb394ab9c069c8104a6.1375172029.git.bwinther@cisco.com>
-References: <fe355bb3e887a32d91640eb394ab9c069c8104a6.1375172029.git.bwinther@cisco.com>
+Received: from mail.ujap.edu.ve ([200.44.56.242]:54834 "EHLO ujap.ujap.edu.ve"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1750982Ab3GMXWV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sat, 13 Jul 2013 19:22:21 -0400
+Message-ID: <55324.41.138.180.58.1373719520.squirrel@www.ujap.edu.ve>
+Date: Sat, 13 Jul 2013 08:15:20 -0430 (VET)
+Subject: Re
+From: "Subhash Deshpande" <subhash@gmail.com>
+Reply-To: subhashdeshpande_1888@dgoh.org
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7BIT
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Created a new Capture menu that contains both capture controls and audio/video settings for capture.
+Dear friend,
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/qv4l2.cpp | 6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+I am Subhash Deshpande , an official with the bank account
+of Taipei International, I have a very sensitive and
+confidential brief for you from the International Bank of
+Taipei, Taiwan. I ask for your partnership in re-profiling
+funds I will give you the details but in summary, the funds
+are coming via Bank of Taipei in Taiwan.
 
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index bb1d84f..80937db 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -111,10 +111,8 @@ ApplicationWindow::ApplicationWindow() :
- 	fileMenu->addAction(openAct);
- 	fileMenu->addAction(openRawAct);
- 	fileMenu->addAction(closeAct);
--	fileMenu->addAction(m_capStartAct);
- 	fileMenu->addAction(m_snapshotAct);
- 	fileMenu->addAction(m_saveRawAct);
--	fileMenu->addAction(m_showFramesAct);
- 	fileMenu->addSeparator();
- 	fileMenu->addAction(quitAct);
- 
-@@ -128,6 +126,10 @@ ApplicationWindow::ApplicationWindow() :
- 	toolBar->addSeparator();
- 	toolBar->addAction(quitAct);
- 
-+	QMenu *captureMenu = menuBar()->addMenu("&Capture");
-+	captureMenu->addAction(m_capStartAct);
-+	captureMenu->addAction(m_showFramesAct);
-+
- 	QMenu *helpMenu = menuBar()->addMenu("&Help");
- 	helpMenu->addAction("&About", this, SLOT(about()), Qt::Key_F1);
- 
--- 
-1.8.3.2
+This is a legitimate transaction, You will be paid 30% of
+your management fee. " If you are interested, please write
+back and send me your confidential telephone and fax
+numbers, and I will give details and instructions. Please
+keep this confidential, we can more political problems.
+Finally, please note that it must be concluded within two
+weeks. Please write back promptly for more information
 
+I'm looking forward to it.
+
+Sincerely,
+Subhash Deshpande
