@@ -1,62 +1,96 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:38390 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932138Ab3GWPox (ORCPT
+Received: from mail.net.t-labs.tu-berlin.de ([130.149.220.252]:46589 "EHLO
+	mail.net.t-labs.tu-berlin.de" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752211Ab3GNNXY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 11:44:53 -0400
-Received: by mail-we0-f177.google.com with SMTP id m46so540595wev.8
-        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 08:44:52 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
-References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 23 Jul 2013 21:14:32 +0530
-Message-ID: <CA+V-a8ta1t3swEr3GibTqRt45b2nChbDtdJ=uk0ZAUepHrK0dA@mail.gmail.com>
-Subject: Re: [PATCH RFC 0/5] v4l2-async DT support improvement and cleanups
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 14 Jul 2013 09:23:24 -0400
+Date: Sun, 14 Jul 2013 15:23:21 +0200
+From: Florian Streibelt <florian@inet.tu-berlin.de>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: Re: CX23103  Video Grabber seems to be supported by cx231xx  driver
+Message-ID: <20130714152321.2a9e1eb2@fls-nb.lan.streibelt.net>
+In-Reply-To: <51E26E22.8050005@xs4all.nl>
+References: <20130712182632.667842dc@fls-nb.lan.streibelt.net>
+	<51E26E22.8050005@xs4all.nl>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=US-ASCII
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+On Sun, 14 Jul 2013 11:23:46 +0200
+ Hans Verkuil <hverkuil@xs4all.nl> wrote:
 
-On Mon, Jul 22, 2013 at 11:34 PM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> Hello,
->
-> This is a few patches for the v4l2-async API I wrote while adding
-> the asynchronous subdev registration support to the exynos4-is
-> driver.
->
-> The most significant change is addition of V4L2_ASYNC_MATCH_OF
-> subdev matching method, where host driver can pass a list of
-> of_node pointers identifying its subdevs.
->
-> I thought it's a reasonable and simple enough way to support device
-> tree based systems. Comments/other ideas are of course welcome.
->
-> Thanks,
-> Sylwester
->
-> Sylwester Nawrocki (5):
->   V4L2: Drop bus_type check in v4l2-async match functions
->   V4L2: Rename v4l2_async_bus_* to v4l2_async_match_*
->   V4L2: Add V4L2_ASYNC_MATCH_OF subdev matching type
->   V4L2: Rename subdev field of struct v4l2_async_notifier
->   V4L2: Fold struct v4l2_async_subdev_list with struct v4l2_subdev
->
-Thanks for the patche's tested on DA850 EVM for VPIF driver.
+> Hi Florian,
+> 
+> On 07/12/2013 06:26 PM, Florian Streibelt wrote:
+> > Hi,
+> > 
+> > the chip CX23103 that is used in various devices sold e.g. in germany works with the cx231xx stock driver.
+> > 
+> > The author of that driver is not reachable via the email adress stated in the source file: srinivasa.deevi@conexant.com
+> > [ host cnxtsmtp1.conexant.com [198.62.9.252]: 550 5.1.1 <srinivasa.deevi@conexant.com>:  Recipient address rejected: User unknown in relay recipient table]
+> 
+> Yeah, I suspect he left Conexant. For all practical purposes that leaves me as
+> the maintainer for my sins.
 
-for patches 1,2,4,5:
+heh - also means a patch should remove the wrong email adress/change the maintainers in the source?
 
-Acked-and-tested-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-and for patch 3:
+> 
+> > 
+> > In drivers/media/video/cx231xx/cx231xx-cards.c the struct usb_device_id cx231xx_id_table[] needs these lines added:
+> > 
+> >    {USB_DEVICE(0x1D19, 0x6109),
+> >    .driver_info = CX231XX_BOARD_PV_XCAPTURE_USB},
+> 
+> That looks OK.
 
-Acked-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Only if the board layout is different :/ 
+There is no information from the vendor, they don't even reply to messages via the contact form, of course.
 
-Regards,
---Prabhakar Lad
+
+
+> 
+> > While the change is minimal due to the fact that no real technical documentation is available on the chip the support was guessed - but worked for video.
+> > 
+> > The videostream can pe played using mplayer tv:///0  - proof: http://streibelt.de/blog/2013/06/23/kernel-patch-for-cx23103-video-grabber-linux-support/
+> > 
+> > However when trying to capture audio using audacity while playing the video stream in mplayer my system locked (no message in syslog, complete freeze). 
+> 
+> I've no idea what is happening here. It has probably to do with the board setup,
+> although there isn't all that much that you can change there that relates to audio.
+
+hm. maybe disable it - currently my time budget is "negative" - so  I cannot really work on this.
+
+> 
+> Try using 'arecord' instead of audicity. The arecord tool is more low-level, so
+> it will be interesting to know if it behaves differently.
+
+I'll try - the problem is the complete system freeze - I'll see if I can setup a system with serial console for the kernel log
+
+> 
+> Besides that the only thing I can think of is just to try and add printk's to
+> cx231xx-audio.c and see where things go boom.
+
+yup. If I had the time.
+
+> 
+> A useful trick there is to add a mdelay(5) or so after the printk to give the
+> system time to write to the kernel log.
+
+ok
+
+> 
+> Be aware that I consider this driver to be flaky, so I would not at all be
+> surprised if there are bugs lurking in the code.
+
+
+Hum. Because of code quality or due to the missing documentation from the vendor?
+
+
+If you have any documents on the chip I would be happy.
+
+
+/Florian
