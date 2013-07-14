@@ -1,121 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f177.google.com ([209.85.217.177]:36426 "EHLO
-	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S934140Ab3GWWhh (ORCPT
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:3926 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751609Ab3GNJle (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 18:37:37 -0400
-Received: by mail-lb0-f177.google.com with SMTP id 10so6622218lbf.22
-        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 15:37:35 -0700 (PDT)
+	Sun, 14 Jul 2013 05:41:34 -0400
+Message-ID: <51E27239.2080109@xs4all.nl>
+Date: Sun, 14 Jul 2013 11:41:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <CAA9z4LbeV223oPfyjzUpGLrg55Z8Eag8Hpu3x++N_LsiRr8y+Q@mail.gmail.com>
-References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
-	<CAHFNz9JCf6SUWhjErWYBRnwbaFL3WvZuag0_1pZ0Nqt3pG24Hg@mail.gmail.com>
-	<CAA9z4LYFW4iZsQgbPHHhy1ESiEDtVyNV4QaSeULq7p+kWs+e=A@mail.gmail.com>
-	<CAHFNz9KNMVXa1kpMjoiiB4T9P-=AQqm7cfPDau_mtAQTxbUCEw@mail.gmail.com>
-	<CAA9z4LbeV223oPfyjzUpGLrg55Z8Eag8Hpu3x++N_LsiRr8y+Q@mail.gmail.com>
-Date: Wed, 24 Jul 2013 04:07:35 +0530
-Message-ID: <CAHFNz9+KX2G8bz_9gpwBJpUr14VBUo=qAYLHm9-_0b8z_XUdzQ@mail.gmail.com>
-Subject: Re: Proposed modifications to dvb_frontend_ops
-From: Manu Abraham <abraham.manu@gmail.com>
-To: Chris Lee <updatelee@gmail.com>
-Cc: linux-media@vger.kernel.org
+To: Sander Eikelenboom <linux@eikelenboom.it>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: Re: [media] cx25821 regression from 3.9: BUG: bad unlock balance
+ detected!
+References: <1139404719.20130516194142@eikelenboom.it> <201305171025.24166.hverkuil@xs4all.nl> <1756541549.20130517110450@eikelenboom.it> <201305171152.17746.hverkuil@xs4all.nl> <266016445.20130712225644@eikelenboom.it>
+In-Reply-To: <266016445.20130712225644@eikelenboom.it>
 Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 24, 2013 at 2:57 AM, Chris Lee <updatelee@gmail.com> wrote:
->> Nitpick: tuner doesn't have anything to do with FEC, it just provides IQ
->> outputs to the demodulator. ;-)
->
-> ya ya :) you knew what I meant, not what I said hehe
->
->> Demods support all FEC's relevant to their delivery systems. It's just that
->> some devices likely do support some additional states.
->
-> This part I dont understand, what do you mean additional states ? and
-> how would a userland application determine if a demod supports these
-> additional states?
+Hi Sander,
 
+On 07/12/2013 10:56 PM, Sander Eikelenboom wrote:
+> 
+> Friday, May 17, 2013, 11:52:17 AM, you wrote:
+> 
+>> On Fri May 17 2013 11:04:50 Sander Eikelenboom wrote:
+>>>
+>>> Friday, May 17, 2013, 10:25:24 AM, you wrote:
+>>>
+>>>> On Thu May 16 2013 19:41:42 Sander Eikelenboom wrote:
+>>>>> Hi Hans / Mauro,
+>>>>>
+>>>>> With 3.10.0-rc1 (including the cx25821 changes from Hans), I get the bug below which wasn't present with 3.9.
+>>>
+>>>> How do I reproduce this? I've tried to, but I can't make this happen.
+>>>
+>>>> Looking at the code I can't see how it could hit this bug anyway.
+>>>
+>>> I'm using "motion" to grab and process 6 from the video streams of the card i have (card with 8 inputs).
+>>> It seems the cx25821 underwent quite some changes between 3.9 and 3.10.
+> 
+>> It did.
+> 
+>>> And in the past there have been some more locking issues around mmap and media devices, although they seem to appear as circular locking dependencies and with different devices.
+>>>    - http://www.mail-archive.com/linux-media@vger.kernel.org/msg46217.html
+>>>    - Under kvm: http://www.spinics.net/lists/linux-media/msg63322.html
+> 
+>> Neither of those are related to this issue.
+> 
+>>>
+>>> - Perhaps that running in a VM could have to do with it ?
+>>>    - The driver on 3.9 occasionaly gives this, probably latency related (but continues to work):
+>>>      cx25821: cx25821_video_wakeup: 2 buffers handled (should be 1)
+>>>
+>>>      Could it be something double unlocking in that path ?
+>>>
+>>> - Is there any extra debugging i could enable that could pinpoint the issue ?
+> 
+>> Try this patch:
+> 
+>> diff --git a/drivers/media/pci/cx25821/cx25821-core.c b/drivers/media/pci/cx25821/cx25821-core.c
+>> index b762c5b..8f8d0e0 100644
+>> --- a/drivers/media/pci/cx25821/cx25821-core.c
+>> +++ b/drivers/media/pci/cx25821/cx25821-core.c
+>> @@ -1208,7 +1208,6 @@ void cx25821_free_buffer(struct videobuf_queue *q, struct cx25821_buffer *buf)
+>>         struct videobuf_dmabuf *dma = videobuf_to_dma(&buf->vb);
+>>  
+>>         BUG_ON(in_interrupt());
+>> -       videobuf_waiton(q, &buf->vb, 0, 0);
+>>         videobuf_dma_unmap(q->dev, dma);
+>>         videobuf_dma_free(dma);
+>>         btcx_riscmem_free(to_pci_dev(q->dev), &buf->risc);
+> 
+>> I don't think the waiton is really needed for this driver.
+> 
+>> What really should happen is that videobuf is replaced by videobuf2 in this
+>> driver, but that's a fair amount of work.
+> 
+> Hi Hans,
+> 
+> After being busy for quite some time, i do have some spare time now.
+> 
+> Since i'm still having trouble with this driver, is there a patch series for a similar driver
+> that was converted to videobuf2 ?
+> I don't know if it is entirely in my league, but i could give it a try when i have a example.
 
-Actually, the userland application shouldn't know about these.
+The changes done for usb/em28xx might come close. That said, the cx25821 is already in
+decent shape to convert to vb2. At least the videobuf data structures are already in the
+correct place (they are often stored in a per-filehandle struct, which is wrong).
 
+include/media/videobuf2-core.h gives a reasonable overview of vb2. Like em28xx, you
+should use the vb2 helper functions (vb2_fop_* and vb2_ioctl_*) which takes a lot
+of the work off your hands.
 
->> If I am not mistaken, the genpix hardware is a hardware wrapper around the
->> BCM demodulator. So, it is quite likely that even if you don't set any FEC
->> parameter, the device could still acquire lock as expected. I am not holding
->> my breath on this. Maybe someone with a genpix device can prove me right
->> or wrong.
->
-> FEC_AUTO works for all but turbo-qpsk on genpix devices.
->
+Converting cx25821-alsa.c may be the most difficult part as it is using some videobuf
+internal functions which probably won't translate to vb2 as is. I think videobuf is
+being abused here, but I don't know off-hand what the correct approach will be with
+vb2.
 
+I would ignore the alsa part for the time being (also the audio/video-upstream code,
+that's been disabled and without datasheets of the cx25821 I'm not sure it can be
+resurrected).
 
-That was why the SYS_TURBO flag was introduced. IIRC, you needed one
-flag alone for the turbo mode.
+If you can get cx25821-video.c to work with vb2, then we can take a look at the alsa
+code.
 
+Regards,
 
-> I still think its important to have all the fec supported in the
-> driver though even if FEC_AUTO did work 100% else why even have it as
-> an option at all.
-
-Maybe, FEC_AUTO is broken for some very old hardware.
-
-If FEC_AUTO works just as expected, why would you have to take the
-gigantic effort of specifying parameters by hand which is error prone which
-you have mentioned later on ? I fail to understand your point.
-
-
->> With the STB0899 driver, all you need to tune with it is Frequency,
->> Symbol Rate and Delivery system
->>
->>
->> With the STV090x driver all you need is Frequency and Symbol Rate.
->> (It will auto detect delivery system)
->
-> Same thing, I still think if we allow the user to send a fec value we
-> should make sure its right, else why not just hard code all the
-> drivers to fec-auto that support it and remove the option all
-> together. I dont like that option.
-
-
-
-This is why it was decided eventually that the FEC bits are redundant
-and we decided not to create large lists and enumerations causing
-insanity and not to mention ugliness. AFAIR, almost all drivers do
-FEC_AUTO, except for the ones which have some known issues.
-
-
-
->> When a driver is not accepting those parameters as inputs, why
->> should the application/user burden himself with knowing parameters
->> of no relevance to him ?
->
-> But it will accept them as inputs. without complaint too. I can send
-> DTV_INNER_FEC w/ FEC_5_11 to stv090x and it doesnt complain at all,
-> even though it doesnt support it. It'll even acquire a lock just
-> because the demod uses blind search. So the driver most definitely
-> does accept fec that it cant use.
-
-
-
-The driver will acquire a lock to the frequency/srate and "return" the
-relevant FEC value for the user/application. This avoids pitfalls and
-human errors in manually specifying FEC bits to tune configurations,
-as I described above. Because some legacy application does set
-a FEC value which might be wrong and the rest are correct, I wouldn't
-fail that request.
-
-
-
->> Actually with all those redundant FEC bits gone away from relevance, things are
->> a bit more saner.
->
-> I dont understand this either. "gone away from relevance" are you
-> meaning just how they really arent used much anymore or something?
-> still though if the demod supports them I think we should too.
-
-
-Yeah, they aren't really used at all. They exist for compatibility reasons.
-
-
-                Manu
+	Hans
