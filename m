@@ -1,71 +1,67 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:25933 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754957Ab3GZNdz (ORCPT
+Received: from smtp-vbr11.xs4all.nl ([194.109.24.31]:4905 "EHLO
+	smtp-vbr11.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753383Ab3GNW4n (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 09:33:55 -0400
-Received: from [10.61.214.134] ([10.61.214.134])
-	(authenticated bits=0)
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id r6QDXoAD027018
-	(version=TLSv1/SSLv3 cipher=AES256-SHA bits=256 verify=NO)
-	for <linux-media@vger.kernel.org>; Fri, 26 Jul 2013 13:33:52 GMT
-Message-ID: <51F27ABE.9060309@cisco.com>
-Date: Fri, 26 Jul 2013 15:33:50 +0200
-From: Hans Verkuil <hansverk@cisco.com>
+	Sun, 14 Jul 2013 18:56:43 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Cc: Sander Eikelenboom <linux@eikelenboom.it>,
+	linux-media@vger.kernel.org
+Subject: Re: [media] cx25821 regression from 3.9: BUG: bad unlock balance detected!
+Date: Mon, 15 Jul 2013 00:56:17 +0200
+Message-ID: <3450029.Clt96MKhHs@wyst>
+In-Reply-To: <CAGoCfiwhC7EZHY0KQ-MF+NcSJDkhsaT_SP_MQCY7fGvp4C4Svw@mail.gmail.com>
+References: <1139404719.20130516194142@eikelenboom.it> <3683080.CL97pXOYgk@wyst> <CAGoCfiwhC7EZHY0KQ-MF+NcSJDkhsaT_SP_MQCY7fGvp4C4Svw@mail.gmail.com>
 MIME-Version: 1.0
-To: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.11] Various fixes for 3.11
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+On Sunday, July 14, 2013 18:44:13 Devin Heitmueller wrote:
+> On Sun, Jul 14, 2013 at 5:39 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> >> > If you can get cx25821-video.c to work with vb2, then we can take a look at the alsa
+> >> > code.
+> 
+> If I can make a suggestion:  fix the lock problem first.
 
-Here is a list of fixes for 3.11. Compared to the pull request from yesterday
-I added the em28xx fix for a nasty bug introduced in 3.10 (I added a CC to
-linux-stable for that one).
+That's why I propose to move to vb2 :-)
+
+I looked at it for a bit and what makes locking a problem is videobuf in the
+first place. It's the cause of the locking problems and the solution is to get
+rid of it. In vb2 I understand at least who is locking what, whereas videobuf
+is locking and unlocking at the weirdest places. From what I remember it
+was not really solvable without hacking videobuf, which is something you
+really don't want to do. Don't ask me the details, it's been a while ago that
+I looked at this particular issue.
+
+I did similar vb2 conversions for go7007 and solo6x10 for pretty much the
+same reasons: fixing an unmaintainable locking spaghetti.
+
+In general I agree with you, but in this particular case moving to vb2 *is* the
+solution for the problem.
 
 Regards,
 
 	Hans
 
-The following changes since commit c859e6ef33ac0c9a5e9e934fe11a2232752b4e96:
-
-  [media] dib0700: add support for PCTV 2002e & PCTV 2002e SE (2013-07-22 07:48:11 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
-
-for you to fetch changes up to 18fc04d74da48f42d51a5db30f58249462dc5474:
-
-  em28xx: fix assignment of the eeprom data. (2013-07-26 15:30:46 +0200)
-
-----------------------------------------------------------------
-Alban Browaeys (1):
-      em28xx: fix assignment of the eeprom data.
-
-Alexey Khoroshilov (1):
-      hdpvr: fix iteration over uninitialized lists in hdpvr_probe()
-
-Andrzej Hajda (2):
-      DocBook: upgrade media_api DocBook version to 4.2
-      v4l2: added missing mutex.h include to v4l2-ctrls.h
-
-Hans Verkuil (2):
-      ml86v7667: fix compile warning: 'ret' set but not used
-      usbtv: fix dependency
-
-Lubomir Rintel (2):
-      usbtv: Fix deinterlacing
-      usbtv: Throw corrupted frames away
-
- Documentation/DocBook/media_api.tmpl  |  4 ++--
- drivers/media/i2c/ml86v7667.c         |  4 ++--
- drivers/media/usb/em28xx/em28xx-i2c.c |  2 +-
- drivers/media/usb/hdpvr/hdpvr-core.c  | 11 ++++++-----
- drivers/media/usb/usbtv/Kconfig       |  2 +-
- drivers/media/usb/usbtv/usbtv.c       | 51 ++++++++++++++++++++++++++++++++++++++-------------
- include/media/v4l2-ctrls.h            |  1 +
- 7 files changed, 51 insertions(+), 24 deletions(-)
+> The last
+> thing you want to do is simultaneously debug a known buffer management
+> problem at the same time you're trying to port to VB2.  I panic'd my
+> system enough times during the em28xx conversion where you really want
+> to know whether the source is the VB2 work in progress or some other
+> issue with buffer management.
+> 
+> I'm not saying to not do the VB2 port -- just that you would be well
+> served to have a reasonable stable driver before attempting to do the
+> port.
+> 
+> That said, I guess it's possible that digging into the code enough to
+> understand what specifically has to be done for a VB2 port might
+> reveal the source of the locking problem, but that's not how I would
+> do it.
+> 
+> Devin
+> 
+> 
