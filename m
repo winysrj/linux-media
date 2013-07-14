@@ -1,94 +1,70 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39965 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753974Ab3GJKTM (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1310 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750965Ab3GNJXy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 06:19:12 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 0/5] Renesas VSP1 driver
-Date: Wed, 10 Jul 2013 12:19:27 +0200
-Message-Id: <1373451572-3892-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Sun, 14 Jul 2013 05:23:54 -0400
+Message-ID: <51E26E22.8050005@xs4all.nl>
+Date: Sun, 14 Jul 2013 11:23:46 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Florian Streibelt <florian@inet.tu-berlin.de>
+CC: linux-media@vger.kernel.org
+Subject: Re: CX23103  Video Grabber seems to be supported by cx231xx  driver
+References: <20130712182632.667842dc@fls-nb.lan.streibelt.net>
+In-Reply-To: <20130712182632.667842dc@fls-nb.lan.streibelt.net>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Hi Florian,
 
-Here's a driver for the VSP1 (Video Signal Processor) engine found in several
-Renesas R-Car SoCs.
+On 07/12/2013 06:26 PM, Florian Streibelt wrote:
+> Hi,
+> 
+> the chip CX23103 that is used in various devices sold e.g. in germany works with the cx231xx stock driver.
+> 
+> The author of that driver is not reachable via the email adress stated in the source file: srinivasa.deevi@conexant.com
+> [ host cnxtsmtp1.conexant.com [198.62.9.252]: 550 5.1.1 <srinivasa.deevi@conexant.com>:  Recipient address rejected: User unknown in relay recipient table]
 
-The VSP1 is a video processing engine that includes a blender, scalers,
-filters and statistics computation. Configurable data path routing logic
-allows ordering the internal blocks in a flexible way, making this driver a
-prime candidate for the media controller API.
+Yeah, I suspect he left Conexant. For all practical purposes that leaves me as
+the maintainer for my sins.
 
-Due to the configurable nature of the pipeline the driver doesn't use the V4L2
-mem-to-mem framework, even though the device usually operates in memory to
-memory mode.
+> 
+> In drivers/media/video/cx231xx/cx231xx-cards.c the struct usb_device_id cx231xx_id_table[] needs these lines added:
+> 
+>    {USB_DEVICE(0x1D19, 0x6109),
+>    .driver_info = CX231XX_BOARD_PV_XCAPTURE_USB},
 
-Only the read pixel formatters, up/down scalers, write pixel formatters and
-LCDC interface are supported at this stage.
+That looks OK.
 
-The patch series starts with a fix for the media controller graph traversal
-code, a documentation fix and new pixel format and media bus code definitions.
-The last patch finally adds the VSP1 driver.
+> While the change is minimal due to the fact that no real technical documentation is available on the chip the support was guessed - but worked for video.
+> 
+> The videostream can pe played using mplayer tv:///0  - proof: http://streibelt.de/blog/2013/06/23/kernel-patch-for-cx23103-video-grabber-linux-support/
+> 
+> However when trying to capture audio using audacity while playing the video stream in mplayer my system locked (no message in syslog, complete freeze). 
 
-Laurent Pinchart (5):
-  media: Fix circular graph traversal
-  v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
-  v4l: Add media format codes for ARGB8888 and AYUV8888 on 32-bit busses
-  v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M formats
-  v4l: Renesas R-Car VSP1 driver
+I've no idea what is happening here. It has probably to do with the board setup,
+although there isn't all that much that you can change there that relates to audio.
 
- Documentation/DocBook/media/v4l/pixfmt-nv16m.xml   |  170 +++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- Documentation/DocBook/media/v4l/subdev-formats.xml |  611 +++++------
- Documentation/DocBook/media_api.tmpl               |    6 +
- drivers/media/media-entity.c                       |   17 +-
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/vsp1/Makefile               |    5 +
- drivers/media/platform/vsp1/vsp1.h                 |   73 ++
- drivers/media/platform/vsp1/vsp1_drv.c             |  475 ++++++++
- drivers/media/platform/vsp1/vsp1_entity.c          |  186 ++++
- drivers/media/platform/vsp1/vsp1_entity.h          |   68 ++
- drivers/media/platform/vsp1/vsp1_lif.c             |  237 ++++
- drivers/media/platform/vsp1/vsp1_lif.h             |   38 +
- drivers/media/platform/vsp1/vsp1_regs.h            |  581 ++++++++++
- drivers/media/platform/vsp1/vsp1_rpf.c             |  209 ++++
- drivers/media/platform/vsp1/vsp1_rwpf.c            |  124 +++
- drivers/media/platform/vsp1/vsp1_rwpf.h            |   56 +
- drivers/media/platform/vsp1/vsp1_uds.c             |  346 ++++++
- drivers/media/platform/vsp1/vsp1_uds.h             |   41 +
- drivers/media/platform/vsp1/vsp1_video.c           | 1154 ++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_video.h           |  144 +++
- drivers/media/platform/vsp1/vsp1_wpf.c             |  233 ++++
- include/linux/platform_data/vsp1.h                 |   25 +
- include/uapi/linux/v4l2-mediabus.h                 |    6 +-
- include/uapi/linux/videodev2.h                     |    2 +
- 26 files changed, 4447 insertions(+), 373 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
- create mode 100644 drivers/media/platform/vsp1/Makefile
- create mode 100644 drivers/media/platform/vsp1/vsp1.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_drv.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_regs.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_rpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_wpf.c
- create mode 100644 include/linux/platform_data/vsp1.h
+Try using 'arecord' instead of audicity. The arecord tool is more low-level, so
+it will be interesting to know if it behaves differently.
 
--- 
+Besides that the only thing I can think of is just to try and add printk's to
+cx231xx-audio.c and see where things go boom.
+
+A useful trick there is to add a mdelay(5) or so after the printk to give the
+system time to write to the kernel log.
+
+Be aware that I consider this driver to be flaky, so I would not at all be
+surprised if there are bugs lurking in the code.
+
 Regards,
 
-Laurent Pinchart
+	Hans
+
+> I posted this one month ago to this list without any reaction so I ask if this is the correct way to get that grabber really supported.
+> 
+> I am willing to do any tests neccessary and try out patches.
 
