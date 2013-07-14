@@ -1,97 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qc0-f174.google.com ([209.85.216.174]:56077 "EHLO
-	mail-qc0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750921Ab3GJNvC (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:57395 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752246Ab3GNN0o (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 09:51:02 -0400
-Received: by mail-qc0-f174.google.com with SMTP id m15so3647110qcq.33
-        for <linux-media@vger.kernel.org>; Wed, 10 Jul 2013 06:51:01 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <017801ce7d0e$73eeff60$5bccfe20$@blueflowamericas.com>
-References: <010c01ce7365$9181ff30$b485fd90$@blueflowamericas.com>
-	<CAGoCfiyjeqxVV8A_MM-iV58=s48FEhNPA=5MPg3WAOAKs8d2iA@mail.gmail.com>
-	<011901ce73ab$9b81cce0$d28566a0$@blueflowamericas.com>
-	<CALzAhNV7Cv9SR1C2mpgtLTwxD_grCZeOWc6O-2XpJEAKg1mX6w@mail.gmail.com>
-	<017101ce7c5b$6899c860$39cd5920$@blueflowamericas.com>
-	<CALzAhNVo0gi1HZ5TH9oXnUpgsqKa+YL=uGLvQNYxqj6gLd2upw@mail.gmail.com>
-	<017801ce7d0e$73eeff60$5bccfe20$@blueflowamericas.com>
-Date: Wed, 10 Jul 2013 09:51:00 -0400
-Message-ID: <CALzAhNULmGJSXvGogBFV4KXFH4OBvSydbJQ_7PbAnMAmwByjjA@mail.gmail.com>
-Subject: Re: lgdt3304
-From: Steven Toth <stoth@kernellabs.com>
-To: Carl-Fredrik Sundstrom <cf@blueflowamericas.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sun, 14 Jul 2013 09:26:44 -0400
+Message-ID: <1373807844.4998.10.camel@palomino.walls.org>
+Subject: Re: [PATCH 00/50] USB: cleanup spin_lock in URB->complete()
+From: Andy Walls <awalls@md.metrocast.net>
+To: Ming Lei <ming.lei@canonical.com>
+Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
+	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
+	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
+	linux-kernel@vger.kernel.org
+Date: Sun, 14 Jul 2013 09:17:24 -0400
+In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 9, 2013 at 9:40 PM, Carl-Fredrik Sundstrom
-<cf@blueflowamericas.com> wrote:
->
-> I don't have digital cable only over the air ATSC. No one else on this list
-> has this card ?
+On Thu, 2013-07-11 at 17:05 +0800, Ming Lei wrote:
+> Hi,
+> 
+> As we are going to run URB->complete() in tasklet context[1][2],
 
-You are very welcome, thank you.
+Hi,
 
-We generally recommend Linux users purchase cards that are already
-supported (or semi supported), such as the HVR2250. If you're keen
-enough to tackle adding support for a new board then that's great
-news, but very few people usually have experience with hardware not
-yet supported.
+Please pardon my naivete, but why was it decided to use tasklets to
+defer work, as opposed to some other deferred work mechanism?
 
-The channels.conf is capable of support digital cable and ATSC, simply
-change the modulation scheme and your target frequency and try again.
+It seems to me that getting rid of tasklets has been an objective for
+years:
 
-A quick google for an equivalent ATSC channels.conf provides a lot of
-useful information.
+http://lwn.net/Articles/239633/
+http://lwn.net/Articles/520076/
+http://lwn.net/Articles/240054/
 
-Create your channels.conf to match your target frequencies in Hz and
-use azap to debug.
 
-Eg.
+Regards,
+Andy
 
-KPAX-CW:177028615:8VSB:65:68:2
-
->
-> Thanks /// Carl
->
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org
-> [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Steven Toth
-> Sent: Tuesday, July 09, 2013 9:54 AM
-> To: Carl-Fredrik Sundstrom
-> Cc: Devin Heitmueller; linux-media@vger.kernel.org
-> Subject: Re: lgdt3304
->
->> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->>>>> tune to: 57028615:8VSB
->> WARNING: >>> tuning failed!!!
->>>>> tune to: 57028615:8VSB (tuning failed)
->
-> I don't have a box in front of me but that's usually a sign that the
-> frequency details you are passing in are bogus, so the tuner driver is
-> rejecting it.
->
-> Check your command line tuning tools and args.
->
-> Here's a one line channels.conf for azap (US digital cable) that works fine,
-> and the azap console output:
->
-> ch86:597000000:QAM_256:0:0:101
->
-> stoth@mythbackend:~/.azap$ azap ch86
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-> tuning to 597000000 Hz
-> video pid 0x0000, audio pid 0x0000
-> status 00 | signal 0000 | snr b770 | ber 00000000 | unc 00000000 | status 1f
-> | signal 0154 | snr 0154 | ber 000000ad | unc 000000ad | FE_HAS_LOCK status
-> 1f | signal 0156 | snr 0156 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
->
+>  and
+> hard interrupt may be enabled when running URB completion handler[3],
+> so we might need to disable interrupt when acquiring one lock in
+> the completion handler for the below reasons:
+> 
+> - URB->complete() holds a subsystem wide lock which may be acquired
+> in another hard irq context, and the subsystem wide lock is acquired
+> by spin_lock()/read_lock()/write_lock() in complete()
+> 
+> - URB->complete() holds a private lock with spin_lock()/read_lock()/write_lock()
+> but driver may export APIs to make other drivers acquire the same private
+> lock in its interrupt handler.
+> 
+> For the sake of safety and making the change simple, this patch set
+> converts all spin_lock()/read_lock()/write_lock() in completion handler
+> path into their irqsave version mechanically.
+> 
+> But if you are sure the above two cases do not happen in your driver,
+> please let me know and I can drop the unnecessary change.
+> 
+> Also if you find some conversions are missed, also please let me know so
+> that I can add it in the next round.
+> 
+> 
+> [1], http://marc.info/?l=linux-usb&m=137286322526312&w=2
+> [2], http://marc.info/?l=linux-usb&m=137286326726326&w=2
+> [3], http://marc.info/?l=linux-usb&m=137286330626363&w=2
+> 
+[snip]
+> 
+> 
+> Thanks,
 > --
-> Steven Toth - Kernel Labs
-> http://www.kernellabs.com
+> Ming Lei
 
--- 
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
+
