@@ -1,209 +1,150 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:58964 "EHLO comal.ext.ti.com"
+Received: from 7of9.schinagl.nl ([88.159.158.68]:42475 "EHLO 7of9.schinagl.nl"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757288Ab3G3HLy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 03:11:54 -0400
-Date: Tue, 30 Jul 2013 10:11:06 +0300
-From: Felipe Balbi <balbi@ti.com>
-To: Greg KH <gregkh@linuxfoundation.org>
-CC: Tomasz Figa <tomasz.figa@gmail.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Message-ID: <20130730071106.GC16441@radagast>
-Reply-To: <balbi@ti.com>
-References: <20130720220006.GA7977@kroah.com>
- <3839600.WiC1OLF35o@flatron>
- <51EBC0F5.70601@ti.com>
- <9748041.Qq1fWJBg6D@flatron>
- <20130721154653.GG16598@kroah.com>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="pAwQNkOnpTn9IO2O"
-Content-Disposition: inline
-In-Reply-To: <20130721154653.GG16598@kroah.com>
+	id S1754077Ab3GOHcT (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jul 2013 03:32:19 -0400
+From: oliver+list@schinagl.nl
+To: linux-media@vger.kernel.org
+Cc: CrazyCat <crazycat69@narod.ru>,
+	Oliver Schinagl <oliver@schinagl.nl>
+Subject: [PATCH 3/4] Some MIS+PLS transponders for 5W.
+Date: Mon, 15 Jul 2013 09:28:50 +0200
+Message-Id: <1373873331-31829-3-git-send-email-oliver+list@schinagl.nl>
+In-Reply-To: <1373873331-31829-1-git-send-email-oliver+list@schinagl.nl>
+References: <1373873331-31829-1-git-send-email-oliver+list@schinagl.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---pAwQNkOnpTn9IO2O
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+From: CrazyCat <crazycat69@narod.ru>
 
-On Sun, Jul 21, 2013 at 08:46:53AM -0700, Greg KH wrote:
-> On Sun, Jul 21, 2013 at 01:12:07PM +0200, Tomasz Figa wrote:
-> > On Sunday 21 of July 2013 16:37:33 Kishon Vijay Abraham I wrote:
-> > > Hi,
-> > >=20
-> > > On Sunday 21 July 2013 04:01 PM, Tomasz Figa wrote:
-> > > > Hi,
-> > > >=20
-> > > > On Saturday 20 of July 2013 19:59:10 Greg KH wrote:
-> > > >> On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
-> > > >>> On Sat, 20 Jul 2013, Greg KH wrote:
-> > > >>>>>>> That should be passed using platform data.
-> > > >>>>>>=20
-> > > >>>>>> Ick, don't pass strings around, pass pointers.  If you have
-> > > >>>>>> platform
-> > > >>>>>> data you can get to, then put the pointer there, don't use a
-> > > >>>>>> "name".
-> > > >>>>>=20
-> > > >>>>> I don't think I understood you here :-s We wont have phy pointer
-> > > >>>>> when we create the device for the controller no?(it'll be done =
-in
-> > > >>>>> board file). Probably I'm missing something.
-> > > >>>>=20
-> > > >>>> Why will you not have that pointer?  You can't rely on the "name"
-> > > >>>> as
-> > > >>>> the device id will not match up, so you should be able to rely on
-> > > >>>> the pointer being in the structure that the board sets up, right?
-> > > >>>>=20
-> > > >>>> Don't use names, especially as ids can, and will, change, that is
-> > > >>>> going
-> > > >>>> to cause big problems.  Use pointers, this is C, we are supposed=
- to
-> > > >>>> be
-> > > >>>> doing that :)
-> > > >>>=20
-> > > >>> Kishon, I think what Greg means is this:  The name you are using
-> > > >>> must
-> > > >>> be stored somewhere in a data structure constructed by the board
-> > > >>> file,
-> > > >>> right?  Or at least, associated with some data structure somehow.
-> > > >>> Otherwise the platform code wouldn't know which PHY hardware
-> > > >>> corresponded to a particular name.
-> > > >>>=20
-> > > >>> Greg's suggestion is that you store the address of that data
-> > > >>> structure
-> > > >>> in the platform data instead of storing the name string.  Have the
-> > > >>> consumer pass the data structure's address when it calls phy_crea=
-te,
-> > > >>> instead of passing the name.  Then you don't have to worry about =
-two
-> > > >>> PHYs accidentally ending up with the same name or any other simil=
-ar
-> > > >>> problems.
-> > > >>=20
-> > > >> Close, but the issue is that whatever returns from phy_create()
-> > > >> should
-> > > >> then be used, no need to call any "find" functions, as you can just
-> > > >> use
-> > > >> the pointer that phy_create() returns.  Much like all other class =
-api
-> > > >> functions in the kernel work.
-> > > >=20
-> > > > I think there is a confusion here about who registers the PHYs.
-> > > >=20
-> > > > All platform code does is registering a platform/i2c/whatever devic=
-e,
-> > > > which causes a driver (located in drivers/phy/) to be instantiated.
-> > > > Such drivers call phy_create(), usually in their probe() callbacks,
-> > > > so platform_code has no way (and should have no way, for the sake of
-> > > > layering) to get what phy_create() returns.
->=20
-> Why not put pointers in the platform data structure that can hold these
-> pointers?  I thought that is why we created those structures in the
-> first place.  If not, what are they there for?
 
-heh, IMO we shouldn't pass pointers of any kind through platform_data,
-we want to pass data :-)
+Signed-off-by: Oliver Schinagl <oliver@schinagl.nl>
+---
+ dvb-s/Astra-31.5E           |  9 ++++++---
+ dvb-s/Atlantic-Bird-1-12.5W |  5 +++--
+ dvb-s/Atlantic-Bird-3-5.0W  | 35 ++++++++++++++++++++++++++++++++---
+ dvb-s/Hotbird-13.0E         |  3 ++-
+ dvb-s/Intelsat-12-45.0E     | 23 +++++++++++++----------
+ 5 files changed, 56 insertions(+), 19 deletions(-)
 
-Allowing to pass pointers through that, is one of the reasons which got
-us in such a big mess in ARM land, well it was much easier for a
-board-file/driver writer to pass a function pointer then to create a
-generic framework :-)
+diff --git a/dvb-s/Astra-31.5E b/dvb-s/Astra-31.5E
+index 021bbaa..a18479e 100644
+--- a/dvb-s/Astra-31.5E
++++ b/dvb-s/Astra-31.5E
+@@ -1,5 +1,8 @@
+-S2 11993000 H 27500000 AUTO AUTO 8PSK 10
+-S2 11993000 H 27500000 AUTO AUTO 8PSK 20
++# Astra 1G @ 31.5E
++# std freq pol sr fec rolloff mod is_id pls_code pls_mode
++
++S2 11992000 H 27500000 AUTO AUTO 8PSK 10
++S2 11992000 H 27500000 AUTO AUTO 8PSK 20
+ S2 12148000 H 27500000 AUTO AUTO 8PSK 30
+ S2 12148000 H 27500000 AUTO AUTO 8PSK 40
+-S1 12304000 H 27500000 AUTO AUTO QPSK
++S 12304500 H 27500000 AUTO AUTO QPSK
+diff --git a/dvb-s/Atlantic-Bird-1-12.5W b/dvb-s/Atlantic-Bird-1-12.5W
+index f6b7f33..e2d5cbe 100644
+--- a/dvb-s/Atlantic-Bird-1-12.5W
++++ b/dvb-s/Atlantic-Bird-1-12.5W
+@@ -1,5 +1,6 @@
+ # Atlantic Bird 1 @ 12.5W
+-# freq pol sr fec
++# std freq pol sr fec rolloff mod is_id pls_code pls_mode
++
+ S 11099000 H 2000000 5/6
+ S 11132000 H 3255000 3/4
+ S 11136000 V 3700000 5/6
+@@ -24,7 +25,7 @@ S 12594000 H 2170000 3/4
+ S 12597000 H 1730000 3/4
+ S 12604000 H 1481000 3/4
+ S 12655000 H 4285000 3/4
+-S 12659000 H 2141000 3/4
++S 12658000 H 2141000 3/4
+ S 12662000 V 3928000 3/4
+ S2 12718000 H 36510000 AUTO AUTO 8PSK 33
+ S2 12718000 H 36510000 AUTO AUTO 8PSK 34
+diff --git a/dvb-s/Atlantic-Bird-3-5.0W b/dvb-s/Atlantic-Bird-3-5.0W
+index 4e7f007..671ecb4 100644
+--- a/dvb-s/Atlantic-Bird-3-5.0W
++++ b/dvb-s/Atlantic-Bird-3-5.0W
+@@ -1,4 +1,33 @@
+ # Atlantic Bird 3 @ 5.0W
+-# freq pol sr fec
+-S 11096000 V 29950000 7/8
+-S 11591000 V 20000000 2/3
++# std freq pol sr fec rolloff mod is_id pls_code pls_mode
++
++S2 11012000 V 30000000 AUTO AUTO 8PSK 2 16416
++S2 11012000 V 30000000 AUTO AUTO 8PSK 3 16416
++S2 11012000 V 30000000 AUTO AUTO 8PSK 11 16416
++S2 11179000 V 30000000 AUTO AUTO 8PSK 4 16416
++S2 11179000 V 30000000 AUTO AUTO 8PSK 5 16416
++S2 11179000 V 30000000 AUTO AUTO 8PSK 12 16416
++S2 11637000 V 30000000 AUTO AUTO 8PSK 1 16416
++S2 11637000 V 30000000 AUTO AUTO 8PSK 2 16416
++S2 11637000 V 30000000 AUTO AUTO 8PSK 3 16416
++S2 11637000 V 30000000 AUTO AUTO 8PSK 4 16416
++S2 11637000 V 30000000 AUTO AUTO 8PSK 5 16416
++S2 11637000 V 30000000 AUTO AUTO 8PSK 6 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 7 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 8 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 9 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 10 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 11 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 12 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 13 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 14 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 15 16416
++S2 11675000 H 30000000 AUTO AUTO 8PSK 16 16416
++S2 12585000 H 27500000 AUTO AUTO 8PSK 1 8
++S2 12585000 H 27500000 AUTO AUTO 8PSK 2 8
++S2 12606000 V 29900000 AUTO AUTO 8PSK 1 8
++S2 12606000 V 29900000 AUTO AUTO 8PSK 2 8
++S2 12648000 V 29500000 AUTO AUTO 8PSK 1 121212 1
++S2 12648000 V 29500000 AUTO AUTO 8PSK 2 121212 1
++S2 12669000 H 30080000 AUTO AUTO 8PSK 1 8
++S2 12669000 H 30080000 AUTO AUTO 8PSK 2 8
+diff --git a/dvb-s/Hotbird-13.0E b/dvb-s/Hotbird-13.0E
+index 1724a3d..9bf01bf 100644
+--- a/dvb-s/Hotbird-13.0E
++++ b/dvb-s/Hotbird-13.0E
+@@ -1,5 +1,6 @@
+ # EUTELSAT SkyPlex, Hotbird 13E
+-# freq pol sr fec
++# std freq pol sr fec rolloff mod is_id pls_code pls_mode
++
+ S 10719000 V 27500000 3/4
+ S 10723000 H 29900000 3/4
+ S 10757000 V 27500000 3/4
+diff --git a/dvb-s/Intelsat-12-45.0E b/dvb-s/Intelsat-12-45.0E
+index 555beb5..23b15c6 100644
+--- a/dvb-s/Intelsat-12-45.0E
++++ b/dvb-s/Intelsat-12-45.0E
+@@ -1,10 +1,13 @@
+-S2 11469000 V 30000000 3/4 20 8PSK
+-S2 11496000 V 7299000 2/3 20 8PSK
+-S1 11518000 V 2959000 7/8 35 QPSK
+-S1 11524000 V 5787000 3/4 35 QPSK
+-S2 11551000 V 30000000 3/4 20 8PSK
+-S2 11592000 V 30000000 3/4 20 8PSK 2
+-S2 11592000 V 30000000 3/4 20 8PSK 3
+-S2 11592000 V 30000000 3/4 20 8PSK 4
+-S2 11633000 V 30000000 3/4 20 8PSK
+-S2 11674000 V 30000000 3/4 20 8PSK
++# Intelsat 12 @ 45.0E
++# std freq pol sr fec rolloff mod is_id pls_code pls_mode
++
++S2 11468000 V 30000000 AUTO AUTO 8PSK
++S2 11495000 V 7299000 AUTO AUTO 8PSK
++S 11517000 V 2959000 AUTO
++S 11523000 V 5787000 AUTO
++S2 11550000 V 30000000 AUTO AUTO 8PSK
++S2 11591000 V 30000000 AUTO AUTO 8PSK 2
++S2 11591000 V 30000000 AUTO AUTO 8PSK 3
++S2 11591000 V 30000000 AUTO AUTO 8PSK 4
++S2 11632000 V 30000000 AUTO AUTO 8PSK
++S2 11673000 V 30000000 AUTO AUTO 8PSK
+-- 
+1.8.1.5
 
-> > > > IMHO we need a lookup method for PHYs, just like for clocks,
-> > > > regulators, PWMs or even i2c busses because there are complex cases
-> > > > when passing just a name using platform data will not work. I would
-> > > > second what Stephen said [1] and define a structure doing things in=
- a
-> > > > DT-like way.
-> > > >=20
-> > > > Example;
-> > > >=20
-> > > > [platform code]
-> > > >=20
-> > > > static const struct phy_lookup my_phy_lookup[] =3D {
-> > > >=20
-> > > > 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
-> > >=20
-> > > The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
-> > > creating the device, the ids in the device name would change and
-> > > PHY_LOOKUP wont be useful.
-> >=20
-> > I don't think this is a problem. All the existing lookup methods alread=
-y=20
-> > use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). Yo=
-u=20
-> > can simply add a requirement that the ID must be assigned manually,=20
-> > without using PLATFORM_DEVID_AUTO to use PHY lookup.
->=20
-> And I'm saying that this idea, of using a specific name and id, is
-> frought with fragility and will break in the future in various ways when
-> devices get added to systems, making these strings constantly have to be
-> kept up to date with different board configurations.
->=20
-> People, NEVER, hardcode something like an id.  The fact that this
-> happens today with the clock code, doesn't make it right, it makes the
-> clock code wrong.  Others have already said that this is wrong there as
-> well, as systems change and dynamic ids get used more and more.
->=20
-> Let's not repeat the same mistakes of the past just because we refuse to
-> learn from them...
->=20
-> So again, the "find a phy by a string" functions should be removed, the
-> device id should be automatically created by the phy core just to make
-> things unique in sysfs, and no driver code should _ever_ be reliant on
-> the number that is being created, and the pointer to the phy structure
-> should be used everywhere instead.
->=20
-> With those types of changes, I will consider merging this subsystem, but
-> without them, sorry, I will not.
-
-I'll agree with Greg here, the very fact that we see people trying to
-add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points to a
-big problem in the framework.
-
-The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
-adding similar infrastructure to the driver themselves to make sure we
-don't end up with duplicate names in sysfs in case we have multiple
-instances of the same IP in the SoC (or several of the same PCIe card).
-I really don't want to go back to that.
-
---=20
-balbi
-
---pAwQNkOnpTn9IO2O
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR92cJAAoJEIaOsuA1yqRE0ugP/2Nn6KnDxcBCsTxnEc+tLsEu
-qY26sZZlwsPRX/zcDTYePFWKgo0OUUptbfgBj22cCrRtSRi5X3vTFC4+ZsKoXGGq
-NjSaAfgRD8Axh0EKLslTtPm+E5t8hVcaGfYA/wZzCKbGIMxvD0n1ncR48+oOG41z
-Zfglv2e19KMP/tBdSYDOgw6JbUQuGuk+4ovthn2vMHjbQHffoLYmphh+evu5BYsE
-KRCvbtHCMFA7xdsKW6wnZ8kwLsK5jZXLQcM3H1++eezXBhdwsHPUmsVH+81PRdZk
-hPt8QlM1mcZyfzMuZKGnYTobrC69wlzW1x1YFvKjFLnduZzyMjQnSwunYbKG7bhq
-jceUghC2LPA3H6PVGWvmlePwHCB1OW1Pk8yaYlwBUiDBJ7WbDvkJ+SOkISinAdB5
-9NzCSSwBfuebrsoNVj+osoegdvUyZpYuEbMu/we5vps5/h85Wh5KaU437eF++kBA
-eWIkQAwtvvhXcEVcWTbJ3jttOX26k7YHAU7PZ/JT62xKB3JG3/mGr/CjRTlwL4C/
-R26PhaBB3+WdZI+ZtuMILW/repNw4uXE1VLMklDD0uF6qs8y8oO8TUAnpOEXrUiG
-hEh+8Rz/LhCiIi4GOkCNht3m3aA0WFT27n3+UjYu8c32Kzh4wLFB4dstufAJ3Qcx
-gPysm9AJ4/XDXQkSS1p/
-=cE11
------END PGP SIGNATURE-----
-
---pAwQNkOnpTn9IO2O--
