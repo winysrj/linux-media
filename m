@@ -1,73 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59105 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753394Ab3GYKPh (ORCPT
+Received: from relmlor3.renesas.com ([210.160.252.173]:62096 "EHLO
+	relmlor3.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754622Ab3GOJcc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 06:15:37 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>, broonie@kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com,
-	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Thu, 25 Jul 2013 12:16:30 +0200
-Message-ID: <2174304.5JlzJ583hP@avalon>
-In-Reply-To: <201307242032.03597.arnd@arndb.de>
-References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org> <5977067.8rykRgjgre@flatron> <201307242032.03597.arnd@arndb.de>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 15 Jul 2013 05:32:32 -0400
+Received: from relmlir4.idc.renesas.com ([10.200.68.154])
+ by relmlor3.idc.renesas.com ( SJSMS)
+ with ESMTP id <0MPZ00FMJ1673M40@relmlor3.idc.renesas.com> for
+ linux-media@vger.kernel.org; Mon, 15 Jul 2013 18:32:31 +0900 (JST)
+Received: from relmlac4.idc.renesas.com ([10.200.69.24])
+ by relmlir4.idc.renesas.com ( SJSMS)
+ with ESMTP id <0MPZ00DTO167HX70@relmlir4.idc.renesas.com> for
+ linux-media@vger.kernel.org; Mon, 15 Jul 2013 18:32:31 +0900 (JST)
+In-reply-to: <Pine.LNX.4.64.1307151114270.16726@axis700.grange>
+References: <CAGGh5h1btafaMoaB89RBND2L8+Zg767HW3+hKG7Xcq2fsEN6Ew@mail.gmail.com>
+ <1370423495-16784-1-git-send-email-phil.edworthy@renesas.com>
+ <Pine.LNX.4.64.1307141216310.9479@axis700.grange>
+ <OF23E0ECB2.378DD339-ON80257BA9.002CD00C-80257BA9.00321DEB@eu.necel.com>
+ <Pine.LNX.4.64.1307151114270.16726@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean-Philippe Francois <jp.francois@cynove.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-version: 1.0
+From: phil.edworthy@renesas.com
+Message-id: <OFD872F119.19A49694-ON80257BA9.003406ED-80257BA9.003467F5@eu.necel.com>
+Date: Mon, 15 Jul 2013 10:32:25 +0100
+Subject: Re: [PATCH v3] ov10635: Add OmniVision ov10635 SoC camera driver
+Content-type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arnd,
+Hi Guennadi,
 
-On Wednesday 24 July 2013 20:32:03 Arnd Bergmann wrote:
-> On Tuesday 23 July 2013, Tomasz Figa wrote:
-> > On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
-> > > On Tue, 23 Jul 2013, Tomasz Figa wrote:
-> > > > Where would you want to have those phy_address arrays stored? There
-> > > > are no board files when booting with DT. Not even saying that you
-> > > > don't need to use any hacky schemes like this when you have DT that
-> > > > nicely specifies relations between devices.
+> > > > +/* read a register */
+> > > > +static int ov10635_reg_read(struct i2c_client *client, u16 reg, 
+u8 
+> > *val)
+> > > > +{
+> > > > +   int ret;
+> > > > +   u8 data[2] = { reg >> 8, reg & 0xff };
+> > > > +   struct i2c_msg msg = {
+> > > > +      .addr   = client->addr,
+> > > > +      .flags   = 0,
+> > > > +      .len   = 2,
+> > > > +      .buf   = data,
+> > > > +   };
+> > > > +
+> > > > +   ret = i2c_transfer(client->adapter, &msg, 1);
+> > > > +   if (ret < 0)
+> > > > +      goto err;
+> > > > +
+> > > > +   msg.flags = I2C_M_RD;
+> > > > +   msg.len   = 1;
+> > > > +   msg.buf   = data,
+> > > > +   ret = i2c_transfer(client->adapter, &msg, 1);
+> > > > +   if (ret < 0)
+> > > > +      goto err;
+> > > > +
+> > > > +   *val = data[0];
 > > > 
-> > > If everybody agrees DT has a nice scheme for specifying relations
-> > > between devices, why not use that same scheme in the PHY core?
-> > 
-> > It is already used, for cases when consumer device has a DT node attached.
-> > In non-DT case this kind lookup translates loosely to something that is
-> > being done in regulator framework - you can't bind devices by pointers,
-> > because you don't have those pointers, so you need to use device names.
+> > > I think, you can do this in one I2C transfer with 2 messages. Look 
+e.g. 
+> > > imx074.c. Although, now looking at it, I'm not sure why it has .len 
+= 2 
+> > in 
+> > > the second message...
+> > Ok, I'll change this to one i2c transfer. As you sauy, no idea why the 
+imx 
+> > code is reading 2 bytes though...
 > 
-> Sorry for jumping in to the middle of the discussion, but why does a *new*
-> framework even bother defining an interface for board files?
+> But I don't have any way to test it anymore, anyway: the only user - 
+> ap4evb - is gone now. So, that driver doesn't matter much anymore. We 
+can 
+> just fix that blindly without testing, or we can leave it as is and mark 
+
+> the driver broken, or we can remove it completely.
+ok
+
+> [snip]
 > 
-> Can't we just drop any interfaces for platform data passing in the phy
-> framework and put the burden of adding those to anyone who actually needs
-> them? All the platforms we are concerned with here (exynos and omap, plus
-> new platforms) can be booted using DT anyway.
+> > > > +         continue;
+> > > > +
+> > > > +      /* Mult = reg 0x3003, bits 5:0 */
+> > > 
+> > > You could also define macros for 0x3003, 0x3004 and others, where 
+you 
+> > know 
+> > > the role of those registers, even if not their official names.
+> > Do you mean macros for the bit fields?
+> 
+> No, primarily I mean macros for register addresses.
+ok
 
-What about non-DT architectures such as MIPS (still widely used in consumer 
-networking equipments from what I've heard) ?
+> [snip]
+> 
+> > > > +            /* 2 clock cycles for every YUV422 pixel */
+> > > > +            if (pclk < (((hts * *vtsmin)/fps_denominator)
+> > > > +               * fps_numerator * 2))
+> > > 
+> > > Actually just
+> > > 
+> > > +            if (pclk < hts * *vtsmin / fps_denominator
+> > > +               * fps_numerator * 2)
+> > > 
+> > > would do just fine
+> > It would, but I think we should use parenthesis here to ensure the 
+divide 
+> > by the denominator happens before multiplying by the numerator. This 
+is to 
+> > ensure the value doesn't overflow.
+> 
+> I think the C standard already guarantees that. You only need 
+parenthesis 
+> to enforce a non-standard calculation order.
+ok, but I think I'll add a comment about being careful to avoid overflow.
 
--- 
-Regards,
+> [snip]
+> 
+> > > > +static int ov10635_g_crop(struct v4l2_subdev *sd, struct 
+v4l2_crop *a)
+> > > > +{
+> > > > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
+> > > > +   struct ov10635_priv *priv = to_ov10635(client);
+> > > > +
+> > > > +   if (priv) {
+> > > > +      a->c.width = priv->width;
+> > > > +      a->c.height = priv->height;
+> > > 
+> > > Wait, what is priv->width and priv->height? Are they sensor output 
+sizes 
+> > > or crop sizes?
+> > Sensor output sizes. Ah, I guess this is one of the few 
+cameras/drivers 
+> > that can support setup the sensor for any size (except restrictions 
+for 
+> > 4:2:2 format). So maybe I should not implement these functions? 
+Looking at 
+> > the CEU SoC camera host driver, it would then use the defrect cropcap. 
+I 
+> > am not sure what that will be though.
+> 
+> Cropping and scaling are two different functions. Cropping selects an 
+area 
+> on the sensor matrix to use for data sampling. Scaling configures to 
+which 
+> output rectangle to scale that area. So, since your camera can do both 
+and 
+> your driver supports both, you shouldn't return the same sizes in 
+.g_fmt() 
+> and .g_crop() unless, of course, a 1:1 scale has been set. And currently 
 
-Laurent Pinchart
+> you do exactly that - return priv->width and priv->height in both.
+Ok, now I see. My comment about the sensor output size changing is wrong. 
+The sensor doesn't do any scaling, so we are cropping it.
 
+Thanks
+Phil
