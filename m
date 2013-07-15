@@ -1,126 +1,324 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f180.google.com ([209.85.217.180]:56219 "EHLO
-	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965421Ab3GSIAB (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 04:00:01 -0400
-Received: by mail-lb0-f180.google.com with SMTP id o10so3235320lbi.39
-        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 00:59:59 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	=?UTF-8?q?=C2=A0Mauro=20Carvalho=20Chehab?= <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	=?UTF-8?q?=C2=A0Ismael=20Luceno?=
-	<ismael.luceno@corp.bluecherry.net>,
-	=?UTF-8?q?=C2=A0Greg=20Kroah-Hartman?= <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 4/4] media/solo6x10: Changes on the vb2-dma-sg API
-Date: Fri, 19 Jul 2013 09:58:49 +0200
-Message-Id: <1374220729-8304-5-git-send-email-ricardo.ribalda@gmail.com>
-In-Reply-To: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
-References: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
+Received: from plane.gmane.org ([80.91.229.3]:43396 "EHLO plane.gmane.org"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754936Ab3GOKKG (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jul 2013 06:10:06 -0400
+Received: from list by plane.gmane.org with local (Exim 4.69)
+	(envelope-from <gldv-linux-media@m.gmane.org>)
+	id 1UyfjH-0000GY-9W
+	for linux-media@vger.kernel.org; Mon, 15 Jul 2013 12:10:03 +0200
+Received: from exchange.muehlbauer.de ([194.25.158.132])
+        by main.gmane.org with esmtp (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 15 Jul 2013 12:10:03 +0200
+Received: from Bassai_Dai by exchange.muehlbauer.de with local (Gmexim 0.1 (Debian))
+        id 1AlnuQ-0007hv-00
+        for <linux-media@vger.kernel.org>; Mon, 15 Jul 2013 12:10:03 +0200
+To: linux-media@vger.kernel.org
+From: Tom <Bassai_Dai@gmx.net>
+Subject: implement ov3640 driver using subdev-api with omap3-isp
+Date: Mon, 15 Jul 2013 09:23:19 +0000 (UTC)
+Message-ID: <loom.20130715T104602-373@post.gmane.org>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The struct vb2_dma_sg_desc has been replaced with the generic sg_table
-to describe the location of the video buffers.
+Hello,
 
-Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
----
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 ++++++++++----------
- 1 file changed, 10 insertions(+), 10 deletions(-)
+I am working with a gumstix overo board connected with a e-con-systems 
+camera module using a ov3640 camera sensor.
 
-diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-index 98e2902..cfa01f1 100644
---- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-+++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
-@@ -346,7 +346,7 @@ static int enc_get_mpeg_dma(struct solo_dev *solo_dev, dma_addr_t dma,
- /* Build a descriptor queue out of an SG list and send it to the P2M for
-  * processing. */
- static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
--			  struct vb2_dma_sg_desc *vbuf, int off, int size,
-+			  struct sg_table *vbuf, int off, int size,
- 			  unsigned int base, unsigned int base_size)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
-@@ -359,7 +359,7 @@ static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
- 
- 	solo_enc->desc_count = 1;
- 
--	for_each_sg(vbuf->sglist, sg, vbuf->num_pages, i) {
-+	for_each_sg(vbuf->sgl, sg, vbuf->nents, i) {
- 		struct solo_p2m_desc *desc;
- 		dma_addr_t dma;
- 		int len;
-@@ -434,7 +434,7 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 		struct vb2_buffer *vb, struct vop_header *vh)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
--	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
-+	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
- 	int frame_size;
- 	int ret;
- 
-@@ -443,7 +443,7 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 	if (vb2_plane_size(vb, 0) < vh->jpeg_size + solo_enc->jpeg_len)
- 		return -EIO;
- 
--	sg_copy_from_buffer(vbuf->sglist, vbuf->num_pages,
-+	sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
- 			solo_enc->jpeg_header,
- 			solo_enc->jpeg_len);
- 
-@@ -451,12 +451,12 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
- 		& ~(DMA_ALIGN - 1);
- 	vb2_set_plane_payload(vb, 0, vh->jpeg_size + solo_enc->jpeg_len);
- 
--	dma_map_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-+	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
- 			DMA_FROM_DEVICE);
- 	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf, vh->jpeg_off,
- 			frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
- 			SOLO_JPEG_EXT_SIZE(solo_dev));
--	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-+	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
- 			DMA_FROM_DEVICE);
- 	return ret;
- }
-@@ -465,7 +465,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 		struct vb2_buffer *vb, struct vop_header *vh)
- {
- 	struct solo_dev *solo_dev = solo_enc->solo_dev;
--	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
-+	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
- 	int frame_off, frame_size;
- 	int skip = 0;
- 	int ret;
-@@ -475,7 +475,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 
- 	/* If this is a key frame, add extra header */
- 	if (!vh->vop_type) {
--		sg_copy_from_buffer(vbuf->sglist, vbuf->num_pages,
-+		sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
- 				solo_enc->vop,
- 				solo_enc->vop_len);
- 
-@@ -494,12 +494,12 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
- 	frame_size = (vh->mpeg_size + skip + (DMA_ALIGN - 1))
- 		& ~(DMA_ALIGN - 1);
- 
--	dma_map_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-+	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
- 			DMA_FROM_DEVICE);
- 	ret = solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
- 			SOLO_MP4E_EXT_ADDR(solo_dev),
- 			SOLO_MP4E_EXT_SIZE(solo_dev));
--	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
-+	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
- 			DMA_FROM_DEVICE);
- 	return ret;
- }
--- 
-1.7.10.4
+Along with the board I got a camera driver 
+(https://github.com/scottellis/econ-cam-driver) 
+which can be used with linux 
+kernel 2.6.34, but I want to use the camera 
+along with the linux kernel 3.5.
+
+So I tried to implement the driver into the kernel sources by 
+referring to a existing drivers like /driver/media/video/ov9640.c 
+and /driver/media/video/mt9v032.c.
+
+The old driver has an isp implementation integrated 
+and it registers itself once as a video device. 
+So the application which is going to use the camera 
+sensor just needs to open the right video device 
+and by calling ioctl the corresponding functions will be called. 
+
+By going through the linux 3.5 kernel sources 
+I found out that the omap3-isp registers itself 
+as an video-device and should support sensors using the
+v4l2-subdev interface. 
+
+So am I right when I think that I just need to 
+add the ov3640 subdev to the isp_v4l2_subdevs_group 
+in the board-overo.c file and then just open the 
+video device of the isp to use it via application (ioctl)?
+
+I read an article which told me that I need to use the 
+v4l2_subdev_pad_ops to interact from isp with 
+the ov3640 subdev, but it does not work. 
+I don't know what I am doing wrong.
+
+Is there already an implemenation of the ov3640 
+using subdev-api which I couldn't find 
+or can someone give me a hint what I need to do to get the 
+sensor with the isp working?
+
+My Code Snippet board-overo.c:
+
+#define LM3553_SLAVE_ADDRESS	0x53
+#define OV3640_I2C_ADDR		(0x78 >> 1)
+int omap3evm_ov3640_platform_data;
+int lm3553_platform_data;
+
+static struct i2c_board_info omap3_i2c_boardinfo_ov3640 = {
+		I2C_BOARD_INFO("ov3640", OV3640_I2C_ADDR),
+		.platform_data = &omap3evm_ov3640_platform_data,
+};
+
+static struct i2c_board_info omap3_i2c_boardinfo_lm3553 = {
+		I2C_BOARD_INFO("lm3553",LM3553_SLAVE_ADDRESS),
+		.platform_data = &lm3553_platform_data,
+};
+
+static struct i2c_board_info mt9v032_i2c_device = {
+	I2C_BOARD_INFO("mt9v032", MT9V032_I2C_ADDR),
+	.platform_data = &mt9v032_platform_data,
+};
+
+/*static struct isp_subdev_i2c_board_info mt9v032_subdevs[] = {
+	{
+		.board_info = &mt9v032_i2c_device,
+		.i2c_adapter_id = MT9V032_I2C_BUS_NUM,
+	},
+	{ NULL, 0, },
+};*/
+
+static struct isp_subdev_i2c_board_info overo_subdevs[] = {
+	/*{
+		.board_info = &mt9v032_i2c_device,
+		.i2c_adapter_id = MT9V032_I2C_BUS_NUM,
+	},*/
+	{
+		.board_info = &omap3_i2c_boardinfo_ov3640,
+		.i2c_adapter_id = MT9V032_I2C_BUS_NUM,
+	},
+	{ NULL, 0, },
+};
+
+static struct isp_v4l2_subdevs_group overo_camera_subdevs[] = {
+	{
+		//.subdevs = mt9v032_subdevs,
+		.subdevs = overo_subdevs,
+		.interface = ISP_INTERFACE_PARALLEL,
+		.bus = {
+				.parallel = {
+					.data_lane_shift = 0,
+					.clk_pol = 0,
+					.bridge = ISPCTRL_PAR_BRIDGE_DISABLE,
+				}
+		},
+	},
+	{ NULL, 0, },
+};
+
+static struct isp_platform_data overo_isp_platform_data = {
+	.subdevs = overo_camera_subdevs,
+};
+
+static int __init overo_camera_init(void)
+{
+       return omap3_init_camera(&overo_isp_platform_data);
+}
+
+
+
+My Code Snippet ov3640.c:
+
+static struct v4l2_subdev_pad_ops ov3640_subdev_pad_ops = {
+	.enum_mbus_code = test2,
+	.enum_frame_size = test2,
+	.get_fmt = test2,
+	.set_fmt = test2,
+	.get_crop = test2,
+	.set_crop = test2,
+};
+
+static struct v4l2_subdev_core_ops ov3640_subdev_core_ops = {
+	.g_chip_ident	= test2,
+	.g_ctrl		= test2,
+	.s_ctrl		= test2,
+	//.g_register	= test2,
+	//.s_register	= test2,
+};
+
+static struct v4l2_subdev_video_ops ov3640_subdev_video_ops = {
+	.s_stream	= test2,
+	.try_mbus_fmt	= test2,
+	.s_mbus_fmt	= test2,
+	.g_mbus_fmt	= test2,
+	.enum_mbus_fmt	= test2,
+	.enum_framesizes = test2,
+	.enum_frameintervals = test2,
+	.g_parm = test2,
+	.s_parm = test2,
+};
+
+static struct v4l2_subdev_sensor_ops ov3640_subdev_sensor_ops = {
+	.g_skip_frames	= test2,
+	//.g_interface_parms = test2,
+};
+
+static struct v4l2_subdev_ops ov3640_subdev_ops = {
+	.core	= &ov3640_subdev_core_ops,
+	.video	= &ov3640_subdev_video_ops,
+	.sensor	= &ov3640_subdev_sensor_ops,
+	.pad	= &ov3640_subdev_pad_ops,
+};
+
+/*static struct soc_camera_ops ov3640_ops = {
+
+	.set_bus_param		= test2,
+
+	.query_bus_param	= test2,
+
+	.controls		= ov3640_controls,
+
+	.num_controls		= ARRAY_SIZE(ov3640_controls),
+
+};*/
+
+static int mt9v032_registered(struct v4l2_subdev *subdev)
+{
+	printk("TOM OPEN NEW ##########\n");
+	return 0;
+}
+
+static int mt9v032_open(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+{
+	printk("TOM OPEN NEW ##########\n");
+	return 0;
+}
+
+static int mt9v032_close(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh)
+{
+	printk("TOM CLOSE NEW ##########\n");
+	return 0;
+	//return mt9v032_set_power(subdev, 0);
+}
+
+static const struct v4l2_subdev_internal_ops mt9v032_subdev_internal_ops = {
+	.registered = mt9v032_registered,
+	.open = mt9v032_open,
+	.close = mt9v032_close,
+};
+
+
+static INT32 ov3640_probe(struct i2c_client *client, const struct
+i2c_device_id *id)
+{
+	FNRESLT ret_val;
+	cam_data *cam;
+	struct soc_camera_link *icl;
+	struct v4l2_subdev *sd;
+
+	int ret;
+
+	cam = kzalloc(sizeof(cam_data), GFP_KERNEL);
+
+	if (!cam)
+		return -ENOMEM;
+	
+	ret_val	= v4l2_base_struct(&cam,SET_ADDRESS);
+	if(CHECK_IN_FAIL_LIMIT(ret_val))
+	{
+		printk(KERN_ERR "Failed to register the camera device\n");
+		//TRACE_ERR_AND_RET(FAIL);
+	}
+
+	ret_val	= init_phy_mem();
+	/*if(CHECK_IN_FAIL_LIMIT(ret_val))
+	{
+		goto exit;
+	}*/
+
+	if (!i2c_check_functionality(client->adapter,
+				     I2C_FUNC_SMBUS_WORD_DATA)) {
+		dev_warn(&client->adapter->dev,
+			 "I2C-Adapter doesn't support I2C_FUNC_SMBUS_WORD\n");
+		return -EIO;
+	}
+	
+	sd = &cam->subdev;
+	cam->cam_sensor.client = client;
+
+	v4l2_i2c_subdev_init(sd, client, &ov3640_subdev_ops);
+	printk("TOM SUBDEV NAME: %s ##########\n",sd->name);
+	sd->internal_ops = &mt9v032_subdev_internal_ops;
+
+	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+
+	cam->pad.flags = MEDIA_PAD_FL_SOURCE;
+
+	ret = media_entity_init(&sd->entity, 1, &cam->pad, 0);
+
+	printk("TOM OV3640 PROBE PAD %08x ##########\n",&cam->pad);
+
+/*********************************************************/
+	gpio_request(RESET_GPIO,"ov3640");
+	gpio_request(STANDBY_GPIO,"ov3640");
+
+	gpio_direction_output(RESET_GPIO, true);
+	gpio_direction_output(STANDBY_GPIO, true);
+	/* Turn ON Omnivision sensor */
+	gpio_set_value(RESET_GPIO, ENABLE);
+	gpio_set_value(STANDBY_GPIO, DISABLE);
+	udelay(100);
+
+	/* RESET Omnivision sensor */
+	gpio_set_value(RESET_GPIO, DISABLE);
+	udelay(100);
+	gpio_set_value(RESET_GPIO, ENABLE);
+
+	udelay(100);
+/*********************************************************/
+	//ret = ov3640_video_probe(client);
+
+	if (ret) {
+
+		//icd->ops = NULL;
+
+		kfree(cam);
+	}
+
+	ret_val	= ov3640_init(cam);
+	if(CHECK_IN_FAIL_LIMIT(ret_val))
+	{
+		return ret_val;
+	}
+
+	return 0;
+}
+
+static const struct i2c_device_id ov3640_id[] = {
+	{ "ov3640", 0 },
+	{ }
+};
+MODULE_DEVICE_TABLE(i2c, ov3640_id);
+
+static struct i2c_driver ov3640_driver = {
+	.class		= I2C_CLASS_HWMON,
+	.driver = {
+		.owner	= THIS_MODULE,
+		.name	= "ov3640",
+	},
+	.probe		= ov3640_probe,
+	.remove		= __exit_p(ov3640_remove),
+	.id_table	= ov3640_id,
+};
+
+Regards, Tom
+
 
