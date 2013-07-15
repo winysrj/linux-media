@@ -1,99 +1,119 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f180.google.com ([209.85.215.180]:55930 "EHLO
-	mail-ea0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753288Ab3GHAXJ (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 20:23:09 -0400
-Received: by mail-ea0-f180.google.com with SMTP id k10so2581676eaj.39
-        for <linux-media@vger.kernel.org>; Sun, 07 Jul 2013 17:23:08 -0700 (PDT)
-From: Maxim Levitsky <maximlevitsky@gmail.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:42481 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754052Ab3GOHcV (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jul 2013 03:32:21 -0400
+From: oliver+list@schinagl.nl
 To: linux-media@vger.kernel.org
-Cc: Maxim Levitsky <maximlevitsky@gmail.com>
-Subject: [PATCH 2/3] ene_ir: disable the device if wake is disabled It doesn't hurt and on my notebook despite clearing the wake flag the remote still wakes up the system. This way it doesn't
-Date: Mon,  8 Jul 2013 03:22:46 +0300
-Message-Id: <1373242968-16055-3-git-send-email-maximlevitsky@gmail.com>
-In-Reply-To: <1373242968-16055-1-git-send-email-maximlevitsky@gmail.com>
-References: <1373242968-16055-1-git-send-email-maximlevitsky@gmail.com>
+Cc: CrazyCat <crazycat69@narod.ru>,
+	Oliver Schinagl <oliver@schinagl.nl>
+Subject: [PATCH 4/4] New DVB-T2 muxes for Russia, Ukraine.
+Date: Mon, 15 Jul 2013 09:28:51 +0200
+Message-Id: <1373873331-31829-4-git-send-email-oliver+list@schinagl.nl>
+In-Reply-To: <1373873331-31829-1-git-send-email-oliver+list@schinagl.nl>
+References: <1373873331-31829-1-git-send-email-oliver+list@schinagl.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Signed-off-by: Maxim Levitsky <maximlevitsky@gmail.com>
----
- drivers/media/rc/ene_ir.c |   27 ++++++++++++++++++++-------
- 1 file changed, 20 insertions(+), 7 deletions(-)
+From: CrazyCat <crazycat69@narod.ru>
 
-diff --git a/drivers/media/rc/ene_ir.c b/drivers/media/rc/ene_ir.c
-index a9cf3a4..61865ba 100644
---- a/drivers/media/rc/ene_ir.c
-+++ b/drivers/media/rc/ene_ir.c
-@@ -476,7 +476,7 @@ select_timeout:
- }
- 
- /* Enable the device for receive */
--static void ene_rx_enable(struct ene_device *dev)
-+static void ene_rx_enable_hw(struct ene_device *dev)
- {
- 	u8 reg_value;
- 
-@@ -504,11 +504,17 @@ static void ene_rx_enable(struct ene_device *dev)
- 
- 	/* enter idle mode */
- 	ir_raw_event_set_idle(dev->rdev, true);
-+}
-+
-+/* Enable the device for receive - wrapper to track the state*/
-+static void ene_rx_enable(struct ene_device *dev)
-+{
-+	ene_rx_enable_hw(dev);
- 	dev->rx_enabled = true;
- }
- 
- /* Disable the device receiver */
--static void ene_rx_disable(struct ene_device *dev)
-+static void ene_rx_disable_hw(struct ene_device *dev)
- {
- 	/* disable inputs */
- 	ene_rx_enable_cir_engine(dev, false);
-@@ -516,8 +522,13 @@ static void ene_rx_disable(struct ene_device *dev)
- 
- 	/* disable hardware IRQ and firmware flag */
- 	ene_clear_reg_mask(dev, ENE_FW1, ENE_FW1_ENABLE | ENE_FW1_IRQ);
--
- 	ir_raw_event_set_idle(dev->rdev, true);
-+}
-+
-+/* Disable the device receiver - wrapper to track the state */
-+static void ene_rx_disable(struct ene_device *dev)
-+{
-+	ene_rx_disable_hw(dev);
- 	dev->rx_enabled = false;
- }
- 
-@@ -1123,9 +1134,8 @@ static void ene_remove(struct pnp_dev *pnp_dev)
- }
- 
- /* enable wake on IR (wakes on specific button on original remote) */
--static void ene_enable_wake(struct ene_device *dev, int enable)
-+static void ene_enable_wake(struct ene_device *dev, bool enable)
- {
--	enable = enable && device_may_wakeup(&dev->pnp_dev->dev);
- 	dbg("wake on IR %s", enable ? "enabled" : "disabled");
- 	ene_set_clear_reg_mask(dev, ENE_FW1, ENE_FW1_WAKE, enable);
- }
-@@ -1134,9 +1144,12 @@ static void ene_enable_wake(struct ene_device *dev, int enable)
- static int ene_suspend(struct pnp_dev *pnp_dev, pm_message_t state)
- {
- 	struct ene_device *dev = pnp_get_drvdata(pnp_dev);
--	ene_enable_wake(dev, true);
-+	bool wake = device_may_wakeup(&dev->pnp_dev->dev);
-+
-+	if (!wake && dev->rx_enabled)
-+		ene_rx_disable_hw(dev);
- 
--	/* TODO: add support for wake pattern */
-+	ene_enable_wake(dev, wake);
- 	return 0;
- }
- 
+
+Signed-off-by: Oliver Schinagl <oliver@schinagl.nl>
+---
+ dvb-t/ru-Krasnodar   | 6 ++++++
+ dvb-t/ru-Novosibirsk | 2 +-
+ dvb-t/ru-Volgodonsk  | 6 ++++++
+ dvb-t/ua-Kharkov     | 2 +-
+ dvb-t/ua-Kiev        | 6 ++++++
+ dvb-t/ua-Lozovaya    | 2 +-
+ dvb-t/ua-Odessa      | 6 ++++++
+ 7 files changed, 27 insertions(+), 3 deletions(-)
+ create mode 100644 dvb-t/ru-Krasnodar
+ create mode 100644 dvb-t/ru-Volgodonsk
+ create mode 100644 dvb-t/ua-Kiev
+ create mode 100644 dvb-t/ua-Odessa
+
+diff --git a/dvb-t/ru-Krasnodar b/dvb-t/ru-Krasnodar
+new file mode 100644
+index 0000000..51d58d0
+--- /dev/null
++++ b/dvb-t/ru-Krasnodar
+@@ -0,0 +1,6 @@
++# Russia, Krasnodar
++# std freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy plp_id
++T2 618000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 0
++T2 618000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 1
++T2 618000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 2
++T2 618000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 3
+diff --git a/dvb-t/ru-Novosibirsk b/dvb-t/ru-Novosibirsk
+index 8e88c21..443c7e4 100644
+--- a/dvb-t/ru-Novosibirsk
++++ b/dvb-t/ru-Novosibirsk
+@@ -1,5 +1,5 @@
+ # Russia, Novosibirsk
+-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++# std freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy plp_id
+ T2 530000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 0
+ T2 530000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 1
+ T2 530000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 2
+diff --git a/dvb-t/ru-Volgodonsk b/dvb-t/ru-Volgodonsk
+new file mode 100644
+index 0000000..2089a70
+--- /dev/null
++++ b/dvb-t/ru-Volgodonsk
+@@ -0,0 +1,6 @@
++# Russia, Volgodonsk
++# std freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy plp_id
++T2 650000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 0
++T2 650000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 1
++T2 650000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 2
++T2 650000000 8MHz 4/5 NONE QAM64 32k AUTO NONE 3
+diff --git a/dvb-t/ua-Kharkov b/dvb-t/ua-Kharkov
+index 8c1cc65..c206c90 100644
+--- a/dvb-t/ua-Kharkov
++++ b/dvb-t/ua-Kharkov
+@@ -1,5 +1,5 @@
+ # Ukraine, Kharkov
+-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++# std freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy plp_id
+ T2 554000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
+ T2 586000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
+ T2 690000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
+diff --git a/dvb-t/ua-Kiev b/dvb-t/ua-Kiev
+new file mode 100644
+index 0000000..6db2d56
+--- /dev/null
++++ b/dvb-t/ua-Kiev
+@@ -0,0 +1,6 @@
++# Ukraine, Kiev
++# std freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy plp_id
++T2 526000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
++T2 538000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
++T2 554000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
++T2 698000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
+diff --git a/dvb-t/ua-Lozovaya b/dvb-t/ua-Lozovaya
+index c2d2378..a0bfc09 100644
+--- a/dvb-t/ua-Lozovaya
++++ b/dvb-t/ua-Lozovaya
+@@ -1,5 +1,5 @@
+ # Ukraine, Lozovaya
+-# T freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy
++# std freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy plp_id
+ T2 554000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
+ T2 746000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
+ T2 754000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
+diff --git a/dvb-t/ua-Odessa b/dvb-t/ua-Odessa
+new file mode 100644
+index 0000000..2420279
+--- /dev/null
++++ b/dvb-t/ua-Odessa
+@@ -0,0 +1,6 @@
++# Ukraine, Odessa
++# std freq bw fec_hi fec_lo mod transmission-mode guard-interval hierarchy plp_id
++T2 490000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
++T2 562000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
++T2 618000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
++T2 650000000 8MHz 3/5 NONE QAM256 32k 1/16 NONE
 -- 
-1.7.9.5
+1.8.1.5
 
