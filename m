@@ -1,133 +1,211 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f52.google.com ([74.125.82.52]:33348 "EHLO
-	mail-wg0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750860Ab3GLEoE convert rfc822-to-8bit (ORCPT
+Received: from bombadil.infradead.org ([198.137.202.9]:54053 "EHLO
+	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754902Ab3GOUa4 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jul 2013 00:44:04 -0400
-MIME-Version: 1.0
-In-Reply-To: <51DF2BF6.30509@gmail.com>
-References: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com>
- <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com>
- <51D05568.3090009@gmail.com> <CA+V-a8sW+D8trces5AXu__Lw9F7TO6fCcQW+LGZKRhA41uOEfw@mail.gmail.com>
- <51DF2BF6.30509@gmail.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Fri, 12 Jul 2013 10:13:41 +0530
-Message-ID: <CA+V-a8u0G6m+VoSc4FPmDxEYmE_vQaL7zu3fUFk3iVKnOywnRA@mail.gmail.com>
-Subject: Re: [PATCH v2 2/2] media: i2c: tvp7002: add OF support
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset=windows-1252
+	Mon, 15 Jul 2013 16:30:56 -0400
+Date: Tue, 16 Jul 2013 05:30:30 +0900
+From: Mauro Carvalho Chehab <mchehab@infradead.org>
+To: Alfredo =?UTF-8?B?SmVzw7pz?= Delaiti <alfredodelaiti@netscape.net>
+Cc: linux-media@vger.kernel.org
+Subject: Re: mb86a20s and cx23885
+Message-ID: <20130716053030.3fda034e.mchehab@infradead.org>
+In-Reply-To: <51E44DCA.8060702@netscape.net>
+References: <51054759.7050202@netscape.net>
+	<20130127141633.5f751e5d@redhat.com>
+	<5105A0C9.6070007@netscape.net>
+	<20130128082354.607fae64@redhat.com>
+	<5106E3EA.70307@netscape.net>
+	<511264CF.3010002@netscape.net>
+	<51336331.10205@netscape.net>
+	<20130303134051.6dc038aa@redhat.com>
+	<20130304164234.18df36a7@redhat.com>
+	<51353591.4040709@netscape.net>
+	<20130304233028.7bc3c86c@redhat.com>
+	<513A6968.4070803@netscape.net>
+	<515A0D03.7040802@netscape.net>
+	<51E44DCA.8060702@netscape.net>
+Mime-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
 Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 12, 2013 at 3:34 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 07/11/2013 07:09 PM, Prabhakar Lad wrote:
-> [...]
->
->>>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>>> b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>>> new file mode 100644
->>>> index 0000000..9daebe1
->>>> --- /dev/null
->>>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>>> @@ -0,0 +1,43 @@
->>>> +* Texas Instruments TV7002 video decoder
->>>> +
->
-> [...]
->
->>>> +
->>>> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the
->>>> endpoint.
->>>
->>>
->>> I thought it was agreed 'field-even-active' would be used instead of
->>> this device specific property. Did you run into any issues with that ?
->>>
->>>
->> Argh I some how missed it out, sorry this should be 'field-even-active'
->
->
-> OK.
->
->
->>> And include/media/tvp70002.h:
->>>
->>>   * fid_polarity:
->>>   *                      0 ->  the field ID output is set to logic 1 for
->>> an
->>> odd
->>>   *                           field (field 1) and set to logic 0 for an
->>> even
->>>   *                           field (field 0).
->>>   *                      1 ->  operation with polarity inverted.
->>>
->>>
->>> Do you know if the chip automatically selects video sync source
->>> (sync-on-green
->>> vs. VSYNC/HSYNC) and there is no need to configure this on the analogue
->>> input
->>> side ? At least the driver seems to always select the default SOGIN_1
->>> input
->>> (TVP7002_IN_MUX_SEL_1 register is set only at initialization time).
->>>
->> Yes the driver is selecting the default SOGIN_1 input.
->>
->>> Or perhaps it just outputs on SOGOUT, VSOUT, HSOUT lines whatever is fed
->>> to
->>> its analogue inputs, and any further processing unit need to determine
->>> what
->>> synchronization signal is present and should be used ?
->>>
->>
->> Yes that correct, there is a register (Sync Detect Status) which
->> detects the sync for you.
->>
->>> I suspect that we don't need, e.g. another endpoint node to specify the
->>> configuration of the TVP7002 analogue input interface, that would contain
->>> a property like video-sync.
->>>
->>>
->> If I understand correctly you mean if there are two tvp7002 devices
->> connected
->> we donít need to specify video-sync property, but my question how do we
->> specify this property in common then ?
->
->
-> No, I thought about two port sub-nodes of a single device node, one for the
-> TVP7002 video input and one for the output. But it seems there is no need
-> for that, i.e. to specify the input configuration statically in the
-> firmware.
-> The chip detects the signals automatically, i.e. it uses whatever is
-> available,
-> and it allows querying the selection status at run time. What would really
-> need to be configured statically in DT in that case then ? Some initial
-> video
-> sync configuration ? I guess it could be well hard coded in the driver,
-> since
-> the hardware does run time detection anyway.
->
-Yes the chip detects the signal automatically, What I want to configure in
-the DT case is say if SOG signal is detected, I want to invert the polarity
-of it this is what I am trying to set in DT case whether to invert or not.
-0 = Normal operation (default)
-1 = SOG output polarity inverted
+Em Mon, 15 Jul 2013 16:30:18 -0300
+Alfredo Jes√∫s Delaiti <alfredodelaiti@netscape.net> escreveu:
 
-Something similar to fid_polarity.
+> Hi all
+> 
+> After some time trying to see what the problem is, I have found it is 
+> not come the RF signal.
+> 
+> I've gone back using a 3.2 kernel, after doing a couple of tests, the 
+> board works :-)
+> When I try to apply these changes to a 3.4 or later kernel does not tune 
+> plate.
+> 
+> Between 3.2 and 3.4 kernel there are several changes to the drivers: 
+> CX23885, xc5000 and mb86a20s. I tried to cancel several of them on a 3.4 
+> kernel, but I can not make the card tune.
+
+If you know already that the breakage happened between 3.2 and 3.4, the better
+is to use git bisect to discover what patch broke it.
+
+You can do (using Linus git tree):
+
+	git checkout v3.4
+	git bisect bad
+	git checkout good v3.2
+
+git bisect will then do a binary search between those two kernels. All you
+have to do is to recompile the Kernel and test it. Then you'll tag the
+changeset as "bad" or "good", until the end of the search. In general, you'll
+discover the changeset responsible for the breakage after a few (8-10) 
+interactions.
+
+For more reference, you can take a look, for example, at:
+	http://git-scm.com/book/en/Git-Tools-Debugging-with-Git
 
 Regards,
---Prabhakar Lad
+Mauro
+
+PS.: Someone should fix our wiki, as it is still pointing to hg bisect,
+instead of pointing to git bisect.
+
+> 
+> The changes I have applied to kernel 3.2 are:
+> 
+> In mb86a20s.c, I replaced the table "mb86a20s_init" for which I got from 
+> windows and linux last.
+> With the two works, although it seems better that I got from Windows, I 
+> have to experiment a bit more.
+> Also in "Does a binary search to get RF strength"  I replaced 0x04 for 0x05.
+> 
+> On cx23885-card.c
+>          .name         = "Mygica X8507",
+>          .tuner_type     = TUNER_XC5000,
+>          .tuner_addr     = 0x61,
+>          .tuner_bus     = 1,
+>          .porta         = CX23885_ANALOG_VIDEO,
+> +        .portb        = CX23885_MPEG_DVB,
+>          .input         = {
+> 
+> 
+> 
+>        case CX23885_BOARD_MYGICA_X8506:
+>      case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+> +    case CX23885_BOARD_MYGICA_X8507:
+>          ts1->gen_ctrl_val  = 0x5; /* Parallel */
+>          ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+>          ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
+>          break;
+> 
+> On cx23885-dvb.c
+> 
+>   #include "stv0367.h"
+> +#include "mb86a20s.h"
+> 
+> +static struct mb86a20s_config mygica_x8507_mb86a20s_config = {
+> +    .demod_address = 0x10,
+> +};
+> +
+> +static struct xc5000_config mygica_x8507_xc5000_config = {
+> +    .i2c_address = 0x61,
+> +    .if_khz = 4000,
+> +};
+> 
+>      case CX23885_BOARD_MYGICA_X8506:
+>      case CX23885_BOARD_MAGICPRO_PROHDTVE2:
+> +    case CX23885_BOARD_MYGICA_X8507:
+>          /* Select Digital TV */
+>          cx23885_gpio_set(dev, GPIO_0);
+>          break;
+> 
+> +    case CX23885_BOARD_MYGICA_X8507:
+> +        i2c_bus = &dev->i2c_bus[0];
+> +        i2c_bus2 = &dev->i2c_bus[1];
+> +        fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
+> +            &mygica_x8507_mb86a20s_config,
+> +            &i2c_bus->i2c_adap);
+> +        if (fe0->dvb.frontend != NULL) {
+> +            dvb_attach(xc5000_attach,
+> +                fe0->dvb.frontend,
+> +                &i2c_bus2->i2c_adap,
+> +                &mygica_x8507_xc5000_config);
+> +        }
+> +        break;
+> 
+> 
+> With kernel 3.4 or greater (I also tried with the latest drivers from 
+> git) "looking" i2c bus traffic of mb86a20s I get:
+> 
+> 0x20 0x0a 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x07 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x03 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x01 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x7f 0x20 0x04 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x3f 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x1f 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x0f 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x07 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x03 0x20 0x02 
+> 0x21 0x0a
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x05 0x20 0x02 
+> 0x21 0x0a
+> 0x20 0x0a 0x21 0x02
+> 
+> and the kernel 3.2 and windows
+> 
+> 0x20 0x02 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x03 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x01 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x7f 0x20 0x02 
+> 0x21 0x0a
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0xbf 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x9f 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x3c 0x40 0x04 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x87 0x20 0x02 
+> 0x21 0x02
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x83 0x20 0x02 
+> 0x21 0x0a
+> 0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x85 0x20 0x02 
+> 0x21 0x02
+> 
+> Appear not arrived RF signal.
+> 
+>  From my limited knowledge I can not understand which of the changes 
+> between 3.2 and 3.4 kernel affect this.
+> 
+> As with kernel 3.2 works, discard configuration problems of: GPIO, 
+> signal strength, direction i2c bus  and  demodulator and intermediate 
+> frequency. I am right?
+> 
+> 
+> Any suggestions or help is very welcome.
+> 
+> Thanks in advance,
+> 
+> Alfredo
+
+
+
+
+Cheers,
+Mauro
