@@ -1,81 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3838 "EHLO
-	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753753Ab3GRGb0 (ORCPT
+Received: from mail-pb0-f48.google.com ([209.85.160.48]:41212 "EHLO
+	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755106Ab3GOKm6 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 02:31:26 -0400
-Message-ID: <51E78BB1.4020108@xs4all.nl>
-Date: Thu, 18 Jul 2013 08:31:13 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
-MIME-Version: 1.0
-To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
-CC: "Sergey 'Jin' Bostandzhyan" <jin@mediatomb.cc>,
-	linux-media@vger.kernel.org
-Subject: Re: Possible problem with stk1160 driver
-References: <20130716220418.GC10973@deadlock.dhs.org> <20130717084428.GA2334@localhost> <20130717213139.GA14370@deadlock.dhs.org> <20130718001752.GA2318@localhost>
-In-Reply-To: <20130718001752.GA2318@localhost>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+	Mon, 15 Jul 2013 06:42:58 -0400
+Received: by mail-pb0-f48.google.com with SMTP id ma3so11091393pbc.35
+        for <linux-media@vger.kernel.org>; Mon, 15 Jul 2013 03:42:57 -0700 (PDT)
+From: Sachin Kamat <sachin.kamat@linaro.org>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, rusty@rustcorp.com.au,
+	sachin.kamat@linaro.org, patches@linaro.org
+Subject: [PATCH 1/1] [media] sh_veu: Replace PTR_RET with PTR_ERR_OR_ZERO
+Date: Mon, 15 Jul 2013 15:57:07 +0530
+Message-Id: <1373884027-24846-1-git-send-email-sachin.kamat@linaro.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+PTR_RET is now deprecated. Use PTR_ERR_OR_ZERO instead.
 
+Signed-off-by: Sachin Kamat <sachin.kamat@linaro.org>
+---
+Compile tested and based on the following tree:
+git://git.kernel.org/pub/scm/linux/kernel/git/rusty/linux.git (PTR_RET)
 
-On 07/18/2013 02:17 AM, Ezequiel Garcia wrote:
-> Hi Sergey,
-> 
-> On Wed, Jul 17, 2013 at 11:31:39PM +0200, Sergey 'Jin' Bostandzhyan wrote:
->> On Wed, Jul 17, 2013 at 05:44:29AM -0300, Ezequiel Garcia wrote:
->>> On Wed, Jul 17, 2013 at 12:04:18AM +0200, Sergey 'Jin' Bostandzhyan wrote:
->>>>
->>>> It generally works fine, I can, for example, open the video device using VLC,
->>>> select one of the inputs and get the picture.
->>>>
->>>> However, programs like motion or zoneminder fail, I am not quite sure if it
->>>> is something that they might be doing or if it is a problem in the driver.
->>>>
->>>> Basically, for both of the above, the problem is that VIDIOC_S_INPUT fails
->>>> with EBUSY.
->>>>
->>>
->>> I've just sent a patch to fix this issue.
->>>
->>> Could you try it and let me know if it solves your issue?
->>
->> thanks a lot! Just tried it, same fix is needed for vidioc_s_std(), then
->> the errors in motion and zoneminder are gone!
->>
-> 
-> Ah... forgot to mention about that. I haven't included the fix for standard
-> setting, because either the stk1160 chip or the userspace application didn't
-> seem to behave properly: I got wrongly coloured frames when trying to
-> change the standard while streaming.
+Dependent on [1]
+[1] http://lkml.indiana.edu/hypermail/linux/kernel/1306.2/00010.html
+---
+ drivers/media/platform/sh_veu.c |    2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-You generally can't switch standards while streaming. That said, it is OK
-to accept the same standard, i.e. return 0 if the standard is unchanged and
-EBUSY otherwise.
+diff --git a/drivers/media/platform/sh_veu.c b/drivers/media/platform/sh_veu.c
+index aa4cca3..744e43b 100644
+--- a/drivers/media/platform/sh_veu.c
++++ b/drivers/media/platform/sh_veu.c
+@@ -359,7 +359,7 @@ static int sh_veu_context_init(struct sh_veu_dev *veu)
+ 	veu->m2m_ctx = v4l2_m2m_ctx_init(veu->m2m_dev, veu,
+ 					 sh_veu_queue_init);
+ 
+-	return PTR_RET(veu->m2m_ctx);
++	return PTR_ERR_OR_ZERO(veu->m2m_ctx);
+ }
+ 
+ static int sh_veu_querycap(struct file *file, void *priv,
+-- 
+1.7.9.5
 
-In the end it is an application bug, though. It shouldn't try to change the
-standard while streaming has started.
-
-Regards,
-
-	Hans
-
-> Can't your problem get fixed by setting an initial standard (e.g. at
-> /etc/motion configuration file)?
-> 
->> Motion seems to work now, with zoneminder I get a lot of these messages:
->> Jul 17 23:28:27 localhost kernel: [20641.931990] stk1160_copy_video: 5563 callbacks suppressed
->> Jul 17 23:28:27 localhost kernel: [20641.931998] stk1160: buffer overflow detected
->> Jul 17 23:28:27 localhost kernel: [20641.932000] stk1160: buffer overflow detected
->>
->> Anything to worry about?
->>
-> 
-> Not sure. If you're changing the standard while streaming then maybe some component
-> is not doing things right.
-> 
-> I can take a look at the std thing later, but for now the input
-> fix looks definitely correct.
-> 
