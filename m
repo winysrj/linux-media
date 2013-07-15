@@ -1,38 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.ujap.edu.ve ([200.44.56.242]:54834 "EHLO ujap.ujap.edu.ve"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1750982Ab3GMXWV (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jul 2013 19:22:21 -0400
-Message-ID: <55324.41.138.180.58.1373719520.squirrel@www.ujap.edu.ve>
-Date: Sat, 13 Jul 2013 08:15:20 -0430 (VET)
-Subject: Re
-From: "Subhash Deshpande" <subhash@gmail.com>
-Reply-To: subhashdeshpande_1888@dgoh.org
-MIME-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7BIT
-To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
+Received: from mail-la0-f41.google.com ([209.85.215.41]:61798 "EHLO
+	mail-la0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754547Ab3GOJeo (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jul 2013 05:34:44 -0400
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	linux-kernel@vger.kernel.org (open list)
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH] videobuf2-dma-sg: Minimize the number of dma segments
+Date: Mon, 15 Jul 2013 11:34:34 +0200
+Message-Id: <1373880874-9270-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear friend,
+Most DMA engines have limitations regarding the number of DMA segments
+(sg-buffers) that they can handle. Videobuffers can easily spread through
+houndreds of pages.
 
-I am Subhash Deshpande , an official with the bank account
-of Taipei International, I have a very sensitive and
-confidential brief for you from the International Bank of
-Taipei, Taiwan. I ask for your partnership in re-profiling
-funds I will give you the details but in summary, the funds
-are coming via Bank of Taipei in Taiwan.
+In the previous aproach, the pages were allocated individually, this
+could led to the creation houndreds of dma segments (sg-buffers) that
+could not be handled by some DMA engines.
 
-This is a legitimate transaction, You will be paid 30% of
-your management fee. " If you are interested, please write
-back and send me your confidential telephone and fax
-numbers, and I will give details and instructions. Please
-keep this confidential, we can more political problems.
-Finally, please note that it must be concluded within two
-weeks. Please write back promptly for more information
+This patch tries to minimize the number of DMA segments by using
+alloc_pages_exact. In the worst case it will behave as before, but most
+of the times it will reduce the number fo dma segments
 
-I'm looking forward to it.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |   49 +++++++++++++++++++++-------
+ 1 file changed, 38 insertions(+), 11 deletions(-)
 
-Sincerely,
-Subhash Deshpande
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 16ae3dc..67a94ab 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -42,10 +42,44 @@ struct vb2_dma_sg_buf {
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+ 
++static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
++		gfp_t gfp_flags)
++{
++	unsigned int last_page = 0;
++	void *vaddr = NULL;
++	unsigned int req_pages;
++
++	while (last_page < buf->sg_desc.num_pages) {
++		req_pages = buf->sg_desc.num_pages-last_page;
++		while (req_pages >= 1) {
++			vaddr = alloc_pages_exact(req_pages*PAGE_SIZE,
++				GFP_KERNEL | __GFP_ZERO | __GFP_NOWARN);
++			if (vaddr)
++				break;
++			req_pages >>= 1;
++		}
++		if (!vaddr) {
++			while (--last_page >= 0)
++				__free_page(buf->pages[last_page]);
++			return -ENOMEM;
++		}
++		while (req_pages) {
++			buf->pages[last_page] = virt_to_page(vaddr);
++			sg_set_page(&buf->sg_desc.sglist[last_page],
++					buf->pages[last_page], PAGE_SIZE, 0);
++			vaddr += PAGE_SIZE;
++			last_page++;
++			req_pages--;
++		}
++	}
++
++	return 0;
++}
++
+ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ {
+ 	struct vb2_dma_sg_buf *buf;
+-	int i;
++	int ret;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+@@ -69,14 +103,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 	if (!buf->pages)
+ 		goto fail_pages_array_alloc;
+ 
+-	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+-		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
+-					   __GFP_NOWARN | gfp_flags);
+-		if (NULL == buf->pages[i])
+-			goto fail_pages_alloc;
+-		sg_set_page(&buf->sg_desc.sglist[i],
+-			    buf->pages[i], PAGE_SIZE, 0);
+-	}
++	ret = vb2_dma_sg_alloc_compacted(buf, gfp_flags);
++	if (ret)
++		goto fail_pages_alloc;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dma_sg_put;
+@@ -89,8 +118,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 	return buf;
+ 
+ fail_pages_alloc:
+-	while (--i >= 0)
+-		__free_page(buf->pages[i]);
+ 	kfree(buf->pages);
+ 
+ fail_pages_array_alloc:
+-- 
+1.7.10.4
+
