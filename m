@@ -1,238 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:3429 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758039Ab3GZKJi (ORCPT
+Received: from mail-lb0-f178.google.com ([209.85.217.178]:55616 "EHLO
+	mail-lb0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754762Ab3GOTMZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 06:09:38 -0400
-Message-ID: <51F24AD0.1050808@xs4all.nl>
-Date: Fri, 26 Jul 2013 12:09:20 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Mon, 15 Jul 2013 15:12:25 -0400
+Received: by mail-lb0-f178.google.com with SMTP id y6so9480474lbh.23
+        for <linux-media@vger.kernel.org>; Mon, 15 Jul 2013 12:12:23 -0700 (PDT)
+To: mchehab@redhat.com, linux-media@vger.kernel.org, hverkuil@xs4all.nl
+Subject: [PATCH] ml86v7667: override default field interlace order
+Cc: matsu@igel.co.jp, linux-sh@vger.kernel.org,
+	vladimir.barinov@cogentembedded.com
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Mon, 15 Jul 2013 23:12:21 +0400
 MIME-Version: 1.0
-To: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-CC: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v4] media: i2c: tvp7002: add OF support
-References: <1374162866-14981-1-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1374162866-14981-1-git-send-email-prabhakar.csengg@gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201307152312.22371.sergei.shtylyov@cogentembedded.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 
-On 07/18/2013 05:54 PM, Lad, Prabhakar wrote:
-> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-> 
-> add OF support for the tvp7002 driver.
-> 
-> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
-> ---
->  This patch depends on https://patchwork.kernel.org/patch/2828800/
->  
->  Changes for v4:
->  1: Improved descrition of end point properties.
-> 
->  Changes for v3:
->  1: Fixed review comments pointed by Sylwester.
-> 
->  .../devicetree/bindings/media/i2c/tvp7002.txt      |   53 ++++++++++++++++
->  drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
->  2 files changed, 113 insertions(+), 7 deletions(-)
->  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-> 
-> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-> new file mode 100644
-> index 0000000..1d00935
-> --- /dev/null
-> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-> @@ -0,0 +1,53 @@
-> +* Texas Instruments TV7002 video decoder
-> +
-> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
-> +YPbPr color space.
-> +
-> +Required Properties :
-> +- compatible : Must be "ti,tvp7002"
-> +
-> +Optional Properties:
-> +- hsync-active: HSYNC Polarity configuration for the bus. Default value when
-> +  this property is not specified is <0>.
-> +
-> +- vsync-active: VSYNC Polarity configuration for the bus. Default value when
-> +  this property is not specified is <0>.
-> +
-> +- pclk-sample: Clock polarity of the bus. Default value when this property is
-> +  not specified is <0>.
-> +
-> +- sync-on-green-active: Active state of Sync-on-green signal property of the
-> +  endpoint.
-> +  0 = Normal Operation (Default)
+ML86V7667 always transmits top field first for both PAL and  NTSC -- that makes
+application incorrectly  treat interlaced  fields when relying on the standard.
+Hence we must set V4L2_FIELD_INTERLACED_TB format explicitly.
 
-I would extend this a little bit:
+Reported-by: Katsuya MATSUBARA <matsu@igel.co.jp>
+Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+[Sergei: added a comment.]
+Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
 
-  0 = Normal Operation (Active Low, Default)
+---
+This patch is against the 'media_tree.git' repo.
 
-> +  1 = Inverted operation
-> +
-> +- field-even-active: Active-high Field ID output polarity control of the bus.
-> +  Under normal operation, the field ID output is set to logic 1 for an odd field
-> +  (field 1)and set to logic 0 for an even field (field 0).
+ drivers/media/i2c/ml86v7667.c |    3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
 
-Add space before 'and'.
-
-> +  0 = Normal operation (default)
-> +  1 = FID output polarity inverted
-> +
-> +For further reading of port node refer Documentation/devicetree/bindings/media/
-> +video-interfaces.txt.
-> +
-> +Example:
-> +
-> +	i2c0@1c22000 {
-> +		...
-> +		...
-> +		tvp7002@5c {
-> +			compatible = "ti,tvp7002";
-> +			reg = <0x5c>;
-> +
-> +			port {
-> +				tvp7002_1: endpoint {
-> +					hsync-active = <1>;
-> +					vsync-active = <1>;
-> +					pclk-sample = <0>;
-> +					sync-on-green-active = <1>;
-> +					field-even-active = <0>;
-> +				};
-> +			};
-> +		};
-> +		...
-> +	};
-> diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-> index f6b1f3f..24a08fa 100644
-> --- a/drivers/media/i2c/tvp7002.c
-> +++ b/drivers/media/i2c/tvp7002.c
-> @@ -35,6 +35,8 @@
->  #include <media/v4l2-device.h>
->  #include <media/v4l2-common.h>
->  #include <media/v4l2-ctrls.h>
-> +#include <media/v4l2-of.h>
-> +
->  #include "tvp7002_reg.h"
->  
->  MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
-> @@ -943,6 +945,48 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
->  	.pad = &tvp7002_pad_ops,
->  };
->  
-> +static struct tvp7002_config *
-> +tvp7002_get_pdata(struct i2c_client *client)
-> +{
-> +	struct v4l2_of_endpoint bus_cfg;
-> +	struct tvp7002_config *pdata;
-> +	struct device_node *endpoint;
-> +	unsigned int flags;
-> +
-> +	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-> +		return client->dev.platform_data;
-> +
-> +	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-> +	if (!endpoint)
-> +		return NULL;
-> +
-> +	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-> +	if (!pdata)
-> +		goto done;
-> +
-> +	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-> +	flags = bus_cfg.bus.parallel.flags;
-> +
-> +	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-> +		pdata->hs_polarity = 1;
-> +
-> +	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-> +		pdata->vs_polarity = 1;
-> +
-> +	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-> +		pdata->clk_polarity = 1;
-> +
-> +	if (flags & V4L2_MBUS_FIELD_EVEN_HIGH)
-> +		pdata->fid_polarity = 1;
-> +
-> +	if (flags & V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH)
-> +		pdata->sog_polarity = 1;
-> +
-> +done:
-> +	of_node_put(endpoint);
-> +	return pdata;
-> +}
-> +
->  /*
->   * tvp7002_probe - Probe a TVP7002 device
->   * @c: ptr to i2c_client struct
-> @@ -954,32 +998,32 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
->   */
->  static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
->  {
-> +	struct tvp7002_config *pdata = tvp7002_get_pdata(c);
->  	struct v4l2_subdev *sd;
->  	struct tvp7002 *device;
->  	struct v4l2_dv_timings timings;
->  	int polarity_a;
->  	int polarity_b;
->  	u8 revision;
-> -
->  	int error;
->  
-> +	if (pdata == NULL) {
-> +		dev_err(&c->dev, "No platform data\n");
-> +		return -EINVAL;
-> +	}
-> +
->  	/* Check if the adapter supports the needed features */
->  	if (!i2c_check_functionality(c->adapter,
->  		I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
->  		return -EIO;
->  
-> -	if (!c->dev.platform_data) {
-> -		v4l_err(c, "No platform data!!\n");
-> -		return -ENODEV;
-> -	}
-> -
->  	device = devm_kzalloc(&c->dev, sizeof(struct tvp7002), GFP_KERNEL);
->  
->  	if (!device)
->  		return -ENOMEM;
->  
->  	sd = &device->sd;
-> -	device->pdata = c->dev.platform_data;
-> +	device->pdata = pdata;
->  	device->current_timings = tvp7002_timings;
->  
->  	/* Tell v4l2 the device is ready */
-> @@ -1084,9 +1128,18 @@ static const struct i2c_device_id tvp7002_id[] = {
->  };
->  MODULE_DEVICE_TABLE(i2c, tvp7002_id);
->  
-> +#if IS_ENABLED(CONFIG_OF)
-> +static const struct of_device_id tvp7002_of_match[] = {
-> +	{ .compatible = "ti,tvp7002", },
-> +	{ /* sentinel */ },
-> +};
-> +MODULE_DEVICE_TABLE(of, tvp7002_of_match);
-> +#endif
-> +
->  /* I2C driver data */
->  static struct i2c_driver tvp7002_driver = {
->  	.driver = {
-> +		.of_match_table = of_match_ptr(tvp7002_of_match),
->  		.owner = THIS_MODULE,
->  		.name = TVP7002_MODULE_NAME,
->  	},
-> 
-
-Regards,
-
-	Hans
+Index: media_tree/drivers/media/i2c/ml86v7667.c
+===================================================================
+--- media_tree.orig/drivers/media/i2c/ml86v7667.c
++++ media_tree/drivers/media/i2c/ml86v7667.c
+@@ -209,7 +209,8 @@ static int ml86v7667_mbus_fmt(struct v4l
+ 
+ 	fmt->code = V4L2_MBUS_FMT_YUYV8_2X8;
+ 	fmt->colorspace = V4L2_COLORSPACE_SMPTE170M;
+-	fmt->field = V4L2_FIELD_INTERLACED;
++	/* The top field is always transferred first by the chip */
++	fmt->field = V4L2_FIELD_INTERLACED_TB;
+ 	fmt->width = 720;
+ 	fmt->height = priv->std & V4L2_STD_525_60 ? 480 : 576;
+ 
