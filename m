@@ -1,109 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46563 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760564Ab3GaPvi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 11:51:38 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v4 1/7] media: Add support for circular graph traversal
-Date: Wed, 31 Jul 2013 17:52:28 +0200
-Message-Id: <1375285954-32153-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:43334 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1754038Ab3GOIVB (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jul 2013 04:21:01 -0400
+Message-ID: <51E3B06A.5000701@schinagl.nl>
+Date: Mon, 15 Jul 2013 10:18:50 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Mauro Carvalho Chehab <mchehab@infradead.org>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	opensource@till.name
+Subject: Re: dtv-scan-tables tar archive
+References: <20130712085956.GZ4000@genius.invalid> <51DFC76B.6010208@schinagl.nl> <20130712155551.1ce19ab8.mchehab@infradead.org>
+In-Reply-To: <20130712155551.1ce19ab8.mchehab@infradead.org>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The graph traversal API (media_entity_graph_walk_*) doesn't support
-cyclic graphs and will fail to correctly walk a graph when circular
-links exist. Support circular graph traversal by checking whether an
-entity has already been visited before pushing it to the stack.
+On 12-07-13 20:55, Mauro Carvalho Chehab wrote:
+> Em Fri, 12 Jul 2013 11:07:55 +0200
+> Oliver Schinagl <oliver+list@schinagl.nl> escreveu:
+>
+>> Mauro,
+>>
+>> I think the archive is generated incorrectly. Could you take a look and
+>> see why? I shamefully admit I still am not sure where you did what to
+>> generate these ;)
+>
+> Basically, I run a script like the one below once a day at the crontab:
+>
+> #!/bin/bash
+> LANG=C
+> PATH=/usr/local/bin:/usr/bin:/bin:/usr/bin/X11:/usr/games
+>
+> DIR=/some_temp_location/dtv-scan-tables
+>
+> DATE="`git log -n1 '--pretty=format:%h %ai' |perl -ne 'print "$2-$1" if (m/([\da-f]+)\s+(\S+)/)'`"
+>
+> TODAY_TAR=dtv-scan-tables-$DATE.tar
+> FILE="$TODAY_TAR.bz2"
+> REPO=/the_www_location/downloads/dtv-scan-tables/
+>
+>
+> run() {
+> 	echo $@
+> 	$@
+> 	if [ "$?" != "0" ]; then
+> 		echo "Error $?. Please fix."
+> 		exit -1
+> 	fi
+> }
+>
+> run cd $DIR
+> run git pull /git/dtv-scan-tables.git/ master
+>
+> CHANGES=`git log --pretty=oneline -n1`
+> if [ "$CHANGES" = "`cat .changes`" ]; then
+> 	echo "tarball already updated to the latest changeset."
+> 	echo "Nothing to do."
+> 	exit;
+> fi
+>
+> git archive --format tar --prefix "/usr/share/dvb/" HEAD >$TODAY_TAR
+> run bzip2 -f $TODAY_TAR
+>
+> run mv $FILE $REPO
+> run ln -sf $FILE $REPO/dtv-scan-tables-LATEST.tar.bz2
+> (cd $REPO; md5sum *.bz2 > md5sum)
+> echo $CHANGES > .changes
+>
+>>
+>> Oliver
+>>
+>>
+>> -------- Original Message --------
+>> Subject: 	dtv-scan-tables tar archive
+>> Date: 	Fri, 12 Jul 2013 10:59:56 +0200
+>> From: 	Till Maas <opensource@till.name>
+>> To: 	Oliver Schinagl <oliver@schinagl.nl>
+>>
+>>
+>>
+>> Hi Oliver,
+>>
+>> the tar archives at
+>> http://linuxtv.org/downloads/dtv-scan-tables/
+>> are broken.
+>> xxd dtv-scan-tables-2013-04-12-495e59e.tar | less shows:
+>>
+>> | 0000000: 6769 7420 6172 6368 6976 6520 2d2d 666f  git archive --fo
+>> | 0000010: 726d 6174 2074 6172 202d 2d70 7265 6669  rmat tar --prefi
+>> | 0000020: 7820 2f75 7372 2f73 6861 7265 2f64 7662  x /usr/share/dvb
+>> | 0000030: 2f20 4845 4144 0a70 6178 5f67 6c6f 6261  / HEAD.pax_globa
+>> | 0000040: 6c5f 6865 6164 6572 0000 0000 0000 0000  l_header........
+>>
+>> It seems like the git archive commandline somehow ended in the tarball.
+>> E.g. the tarball should start with pax_global_header and not with "git
+>> archive".
+>
+> Thanks for pointing it to me. I fixed the script.
+Confirmed, it now shows proper archives.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/media-entity.c | 14 +++++++++++---
- include/media/media-entity.h |  4 ++++
- 2 files changed, 15 insertions(+), 3 deletions(-)
+Could you manually remove 'dtv-scan-tables-2013-04-12*' as that is 
+invalid so shouldn't be mirrored/downloaded really.
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index cb30ffb..2c286c3 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -20,6 +20,7 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
-+#include <linux/bitmap.h>
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <media/media-entity.h>
-@@ -121,7 +122,6 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
- 	return entity;
- }
- 
--#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
- #define link_top(en)	((en)->stack[(en)->top].link)
- #define stack_top(en)	((en)->stack[(en)->top].entity)
- 
-@@ -140,6 +140,12 @@ void media_entity_graph_walk_start(struct media_entity_graph *graph,
- {
- 	graph->top = 0;
- 	graph->stack[graph->top].entity = NULL;
-+	bitmap_zero(graph->entities, MEDIA_ENTITY_ENUM_MAX_ID);
-+
-+	if (WARN_ON(entity->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+		return;
-+
-+	__set_bit(entity->id, graph->entities);
- 	stack_push(graph, entity);
- }
- EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-@@ -180,9 +186,11 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
- 
- 		/* Get the entity in the other end of the link . */
- 		next = media_entity_other(entity, link);
-+		if (WARN_ON(next->id >= MEDIA_ENTITY_ENUM_MAX_ID))
-+			return NULL;
- 
--		/* Was it the entity we came here from? */
--		if (next == stack_peek(graph)) {
-+		/* Has the entity already been visited? */
-+		if (__test_and_set_bit(next->id, graph->entities)) {
- 			link_top(graph)++;
- 			continue;
- 		}
-diff --git a/include/media/media-entity.h b/include/media/media-entity.h
-index 06bacf9..10df551 100644
---- a/include/media/media-entity.h
-+++ b/include/media/media-entity.h
-@@ -23,6 +23,7 @@
- #ifndef _MEDIA_ENTITY_H
- #define _MEDIA_ENTITY_H
- 
-+#include <linux/bitops.h>
- #include <linux/list.h>
- #include <linux/media.h>
- 
-@@ -113,12 +114,15 @@ static inline u32 media_entity_subtype(struct media_entity *entity)
- }
- 
- #define MEDIA_ENTITY_ENUM_MAX_DEPTH	16
-+#define MEDIA_ENTITY_ENUM_MAX_ID	64
- 
- struct media_entity_graph {
- 	struct {
- 		struct media_entity *entity;
- 		int link;
- 	} stack[MEDIA_ENTITY_ENUM_MAX_DEPTH];
-+
-+	DECLARE_BITMAP(entities, MEDIA_ENTITY_ENUM_MAX_ID);
- 	int top;
- };
- 
--- 
-1.8.1.5
+Thanks,
+
+Oliver
+>
+>>
+>> Regards
+>> Till
+>>
+>>
+>>
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
+>
+> Regards,
+> Mauro
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+>
 
