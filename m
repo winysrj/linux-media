@@ -1,54 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ve0-f171.google.com ([209.85.128.171]:53638 "EHLO
-	mail-ve0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753570Ab3GILm7 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 07:42:59 -0400
-Received: by mail-ve0-f171.google.com with SMTP id b10so4549947vea.16
-        for <linux-media@vger.kernel.org>; Tue, 09 Jul 2013 04:42:58 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:54137 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758418Ab3GOXaR (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 15 Jul 2013 19:30:17 -0400
+Message-ID: <51E485DE.2000309@iki.fi>
+Date: Tue, 16 Jul 2013 02:29:34 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-In-Reply-To: <201306260915.54258.hverkuil@xs4all.nl>
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
-	<1370005408-10853-7-git-send-email-arun.kk@samsung.com>
-	<201306260915.54258.hverkuil@xs4all.nl>
-Date: Tue, 9 Jul 2013 17:12:58 +0530
-Message-ID: <CALt3h7-9cuBZGQVGs24Xq58Mrw5M8ecFVrmYM3Csz+k6V5DX2A@mail.gmail.com>
-Subject: Re: [RFC v2 06/10] exynos5-fimc-is: Adds isp subdev
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com
-Content-Type: text/plain; charset=ISO-8859-1
+To: Austin Spreadbury <austinspreadbury@googlemail.com>
+CC: linux-media@vger.kernel.org
+Subject: Re: Problems tuning 704J dual DVB-T tuner
+References: <CABF_skgNf7mPNGYZnvR0SuxyifdXmWtX2sjR2H0OjXKdO-4oRA@mail.gmail.com> <CABF_skikbVQuwtZODpvb+E2EvzXutLos5sU0sDXaUQtdFVg2Pg@mail.gmail.com>
+In-Reply-To: <CABF_skikbVQuwtZODpvb+E2EvzXutLos5sU0sDXaUQtdFVg2Pg@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hello Austin
 
-On Wed, Jun 26, 2013 at 12:45 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Fri May 31 2013 15:03:24 Arun Kumar K wrote:
->> fimc-is driver takes video data input from the ISP video node
->> which is added in this patch. This node accepts Bayer input
->> buffers which is given from the IS sensors.
->>
->> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
->> Signed-off-by: Kilyeon Im <kilyeon.im@samsung.com>
->> ---
->>  drivers/media/platform/exynos5-is/fimc-is-isp.c |  438 +++++++++++++++++++++++
->>  drivers/media/platform/exynos5-is/fimc-is-isp.h |   89 +++++
->>  2 files changed, 527 insertions(+)
->>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.c
->>  create mode 100644 drivers/media/platform/exynos5-is/fimc-is-isp.h
->>
+It is not very recent driver, instead one of the oldest I have written. 
+I rewrote af9013 demod maybe 2 years back in order to minimize I/O.
+
+Have you disabled EIT scanning?
+
+AF9015 dual device, especially the one with mxl5005s like that, is quite 
+easy to get in state it loses ability to gain lock. Just start making 
+repeatedly tuning attempts using both tuners and it will stop gaining 
+lock after a while. MythTV does it all the time when there is EIT 
+scanning activated.
+
+The root of cause is likely AF9015 firmware. There is still few things 
+which could be done to improve situation:
+1) Serialize all the I/O traffic as much as possible
+2) Optimize mxl5005s to generate less traffic. Current mxl5005s Linux 
+driver writes all registers one by one for each tuning. I don't remember 
+counts anymore, but it makes af9013 I/O optimization I did quite 
+useless... Look the Windows sniffs, it is only about 10% of I/0
+3) Add some logic to AF9015 I2C adapter to block excessive I/O from "bad 
+behaving" app. Lets say measure I2C I/O during one minute and if it 
+exceeds some threshold start returning error code to app.
+4) Hack & fix the firmware. That is surely the best alternative, but it 
+is also the most hardest as disassembling and understanding firmware is 
+not very easy task.
+
+X) I am not going to fix any of those. Just use only first tuner.
+
+regards
+Antti
+
+
+
+On 07/10/2013 12:23 AM, Austin Spreadbury wrote:
+> Dear List,
 >
-> The same comments I made for the scaler subdev apply here as well.
+> I wonder if anyone can help me.
 >
-> Regards,
+> I have a problem with the AzureWave 704J dual tuner that has developed
+> recently.  I am using it with Mythbuntu 12.04.1 LTS, at the latest
+> patch level, but it is persistently failing to record.  It can be made
+> to work for a single recording, or maybe two, by running the DVB scan
+> tool on both
+> adapters corresponding to the tuner - the first scan on adapter 0
+> fails, subsequent ones on 0 and 1 succeed.
 >
->         Hans
+> "uname -a" on my system produces this:  Linux mythmk2 3.2.0-43-generic
+> #68-Ubuntu SMP Wed May 15 03:33:33 UTC 2013 x86_64 x86_64 x86_64
+> GNU/Linux
+>
+> It's not mythtv that has the problem - zap fails too, the first time,
+> but subsequently succeeds.  The attached files show debug logs from
+> the af9015 driver
+> - 1.txt is a failed zap to a channel on adapter 0
+> - 2.txt is a successful zap on adapter 1
+> - 3.txt is a successful zap on adapter 0.
+> They were done in that order.
+>
+> Any ideas?
+>
+> Thanks,
+> Austin.
+>
 
 
-Yes will take care of it in next patchset.
-
-Thanks & Regards
-Arun
+-- 
+http://palosaari.fi/
