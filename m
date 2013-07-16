@@ -1,47 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59959 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755778Ab3GYM7Z (ORCPT
+Received: from mail-wi0-f182.google.com ([209.85.212.182]:50751 "EHLO
+	mail-wi0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755053Ab3GPW6R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 08:59:25 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v3 2/5] v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
-Date: Thu, 25 Jul 2013 15:00:10 +0200
-Message-Id: <1374757213-20194-3-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1374757213-20194-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1374757213-20194-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Tue, 16 Jul 2013 18:58:17 -0400
+From: Alban Browaeys <alban.browaeys@gmail.com>
+To: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, Alban Browaeys <prahal@yahoo.com>
+Subject: [PATCH 1/4] [media] em28xx: fix assignment of the eeprom data.
+Date: Wed, 17 Jul 2013 00:57:53 +0200
+Message-Id: <1374015476-26197-1-git-send-email-prahal@yahoo.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Set the config structure pointer to the eeprom data pointer (data,
+here eedata dereferenced) not the pointer to the pointer to
+the eeprom data (eedata itself).
 
-The V4L2_MBUS_FMT_YUV10_1X30 code is documented as being equal to
-0x2014, while the v4l2-mediabus.h header defines it as 0x2016. Fix the
-documentation.
-
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+Signed-off-by: Alban Browaeys <prahal@yahoo.com>
 ---
- Documentation/DocBook/media/v4l/subdev-formats.xml | 2 +-
+ drivers/media/usb/em28xx/em28xx-i2c.c | 2 +-
  1 file changed, 1 insertion(+), 1 deletion(-)
 
-diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
-index adc6198..0c2b1f2 100644
---- a/Documentation/DocBook/media/v4l/subdev-formats.xml
-+++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
-@@ -2574,7 +2574,7 @@
- 	    </row>
- 	    <row id="V4L2-MBUS-FMT-YUV10-1X30">
- 	      <entry>V4L2_MBUS_FMT_YUV10_1X30</entry>
--	      <entry>0x2014</entry>
-+	      <entry>0x2016</entry>
- 	      <entry></entry>
- 	      <entry>y<subscript>9</subscript></entry>
- 	      <entry>y<subscript>8</subscript></entry>
+diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
+index 4851cc2..c4ff973 100644
+--- a/drivers/media/usb/em28xx/em28xx-i2c.c
++++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+@@ -726,7 +726,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
+ 
+ 	*eedata = data;
+ 	*eedata_len = len;
+-	dev_config = (void *)eedata;
++	dev_config = (void *)*eedata;
+ 
+ 	switch (le16_to_cpu(dev_config->chip_conf) >> 4 & 0x3) {
+ 	case 0:
 -- 
-1.8.1.5
+1.8.3.2
 
