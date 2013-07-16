@@ -1,42 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:39732 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754230Ab3GANYI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jul 2013 09:24:08 -0400
-Message-ID: <51D182CD.2040502@iki.fi>
-Date: Mon, 01 Jul 2013 16:23:25 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:29154 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932247Ab3GPM7I convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jul 2013 08:59:08 -0400
+From: Bard Eirik Winther <bwinther@cisco.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH 4/4] qv4l2: add OpenGL video render
+Date: Tue, 16 Jul 2013 14:59:04 +0200
+Message-ID: <6029532.8F5QMT0oxE@bwinther>
+In-Reply-To: <1609457.OFIJZjqBDN@avalon>
+References: <1373973848-4084-1-git-send-email-bwinther@cisco.com> <5eb7b2d7de462e820ceb0698f6aa431c3eca414c.1373973770.git.bwinther@cisco.com> <1609457.OFIJZjqBDN@avalon>
 MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: Bogdan Oprea <bogdaninedit@yahoo.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
- while loading driver (-19)
-References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com> <51D1352A.2080107@schinagl.nl>
-In-Reply-To: <51D1352A.2080107@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/01/2013 10:52 AM, Oliver Schinagl wrote:
-> On 01-07-13 08:53, Bogdan Oprea wrote:
->> this is a fix for this type of error
->>
->> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error while
->> loading driver (-19)
->> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' successfully
->> deinitialized and disconnected
->>
-> This isn't really a fix, I think i mentioned this on the ML ages ago,
+On Tuesday, July 16, 2013 02:01:45 PM you wrote:
+> Hi Bård,
+> 
+> Thank you for the patches.
+> 
+> On Tuesday 16 July 2013 13:24:08 Bård Eirik Winther wrote:
+> > The qv4l2 test utility now supports OpenGL-accelerated display of video.
+> > This allows for using the graphics card to render the video content to
+> > screen and to performing color space conversion.
+> > 
+> > Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+> > ---
+> >  configure.ac                |   8 +-
+> >  utils/qv4l2/Makefile.am     |   9 +-
+> >  utils/qv4l2/capture-win.cpp | 559 +++++++++++++++++++++++++++++++++++++++--
+> >  utils/qv4l2/capture-win.h   |  81 ++++++-
+> >  utils/qv4l2/qv4l2.cpp       | 173 +++++++++++---
+> >  utils/qv4l2/qv4l2.h         |   8 +
+> >  6 files changed, 782 insertions(+), 56 deletions(-)
+> 
+> Is there a chance you could split the OpenGL code to separate classes, in a 
+> separate source file ? This would allow implementing other renderers, such as 
+> KMS planes on embedded devices.
+> 
+Hi.
 
-Argh, I just replied that same. Oliver, do you has that same device? Is 
-it working? Could you tweak to see if I2C readings are working at all?
+Do you mean to separate the GL class only or all the different shaders/renderes as well?
 
-
-regards
-Antti
-
-
--- 
-http://palosaari.fi/
+Bård Winther
