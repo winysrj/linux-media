@@ -1,55 +1,86 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:35814 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753234Ab3GHVlP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jul 2013 17:41:15 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] [media] lirc: validate transmission ir data
-Date: Mon,  8 Jul 2013 22:33:11 +0100
-Message-Id: <1373319192-26816-4-git-send-email-sean@mess.org>
-In-Reply-To: <1373319192-26816-1-git-send-email-sean@mess.org>
-References: <1373319192-26816-1-git-send-email-sean@mess.org>
+Received: from mail-pb0-f46.google.com ([209.85.160.46]:38757 "EHLO
+	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932381Ab3GPRTg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jul 2013 13:19:36 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>,
+	devicetree-discuss@lists.ozlabs.org
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH RFC v4] media: OF: add "sync-on-green-active" property
+Date: Tue, 16 Jul 2013 22:49:23 +0530
+Message-Id: <1373995163-9412-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The lirc interface allows 255 u32 spaces and pulses, which are usec. If
-the driver can handle this (e.g. winbond-cir) you can produce hours of
-meaningless IR data and there is no method of interrupting it.
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-Signed-off-by: Sean Young <sean@mess.org>
+This patch adds 'sync-on-green-active' property as part
+of endpoint property.
+
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 ---
- drivers/media/rc/ir-lirc-codec.c | 11 ++++++++++-
- 1 file changed, 10 insertions(+), 1 deletion(-)
+  Changes for v4:
+  1: Fixed review comments pointed by Sylwester.
+  
+  Changes for v3:
+  1: Fixed review comments pointed by Laurent and Sylwester.
 
-diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-index e456126..e5be920 100644
---- a/drivers/media/rc/ir-lirc-codec.c
-+++ b/drivers/media/rc/ir-lirc-codec.c
-@@ -140,11 +140,20 @@ static ssize_t ir_lirc_transmit_ir(struct file *file, const char __user *buf,
- 		goto out;
- 	}
+  RFC v2 https://patchwork.kernel.org/patch/2578091/
+  
+  RFC V1 https://patchwork.kernel.org/patch/2572341/
+  
+ .../devicetree/bindings/media/video-interfaces.txt |    3 +++
+ drivers/media/v4l2-core/v4l2-of.c                  |    4 ++++
+ include/media/v4l2-mediabus.h                      |    2 ++
+ 3 files changed, 9 insertions(+)
+
+diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+index e022d2d..5186c7e 100644
+--- a/Documentation/devicetree/bindings/media/video-interfaces.txt
++++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+@@ -101,6 +101,9 @@ Optional endpoint properties
+   array contains only one entry.
+ - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
+   clock mode.
++- sync-on-green-active: polarity field when video synchronization is
++  Sync-On-Green. When set the driver determines whether it's a normal operation
++  or inverted operation.
  
-+	for (i = 0; i < count; i++) {
-+		if (txbuf[i] > IR_MAX_DURATION / 1000 - duration || !txbuf[i]) {
-+			ret = -EINVAL;
-+			goto out;
-+		}
+ 
+ Example
+diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+index aa59639..5c4c9f0 100644
+--- a/drivers/media/v4l2-core/v4l2-of.c
++++ b/drivers/media/v4l2-core/v4l2-of.c
+@@ -100,6 +100,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+ 	if (!of_property_read_u32(node, "data-shift", &v))
+ 		bus->data_shift = v;
+ 
++	if (!of_property_read_u32(node, "sync-on-green-active", &v))
++		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
++			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
 +
-+		duration += txbuf[i];
-+	}
-+
- 	ret = dev->tx_ir(dev, txbuf, count);
- 	if (ret < 0)
- 		goto out;
+ 	bus->flags = flags;
  
--	for (i = 0; i < ret; i++)
-+	for (duration = i = 0; i < ret; i++)
- 		duration += txbuf[i];
+ }
+diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+index 83ae07e..d47eb81 100644
+--- a/include/media/v4l2-mediabus.h
++++ b/include/media/v4l2-mediabus.h
+@@ -40,6 +40,8 @@
+ #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
+ /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
+ #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
++#define V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH	(1 << 12)
++#define V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW		(1 << 13)
  
- 	ret *= sizeof(unsigned int);
+ /* Serial flags */
+ /* How many lanes the client can use */
 -- 
-1.8.3.1
+1.7.9.5
 
