@@ -1,137 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f178.google.com ([209.85.192.178]:63521 "EHLO
-	mail-pd0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758155Ab3GMIvr (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33787 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1755071Ab3GPX6L (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jul 2013 04:51:47 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 4/5] media: davinci: vpss: convert to devm* api
-Date: Sat, 13 Jul 2013 14:20:30 +0530
-Message-Id: <1373705431-11500-5-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 16 Jul 2013 19:58:11 -0400
+Date: Wed, 17 Jul 2013 02:58:05 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: MT9D131 context switching [was RE: width and height of JPEG
+ compressed images]
+Message-ID: <20130716235805.GA11369@valkosipuli.retiisi.org.uk>
+References: <A683633ABCE53E43AFB0344442BF0F05361689EE@server10.irisys.local>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <A683633ABCE53E43AFB0344442BF0F05361689EE@server10.irisys.local>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Thomas,
 
-Replace existing resource handling in the driver with managed
-device resource, this ensures more consistent error values and
-simplifies error paths.
+On Mon, Jul 15, 2013 at 09:30:33AM +0000, Thomas Vajzovic wrote:
+> Hi Sylwester,
+> 
+> On 10 July 2013 20:44 Sylwester Nawrocki wrote:
+> >On 07/07/2013 10:18 AM, Thomas Vajzovic wrote:
+> >> On 06 July 2013 20:58 Sylwester Nawrocki wrote:
+> >>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
+> >>>>
+> >>>> I am writing a driver for the sensor MT9D131.
+> >
+> > As a side note, looking at the MT9D131 sensor datasheet I can see it
+> > has preview (Mode A) and capture (Mode B) modes. Are you also
+> > planning adding proper support for switching between those modes ?
+> > I'm interested in supporting this in standard way in V4L2, as lot's
+> > of sensors I have been working with also support such modes.
+> 
+> This camera has more like three modes:
+> 
+> 
+> preview (context A) up to 800x600, up to 30fps, YUV/RGB
+> 
+> capture video (context B) up to 1600x1200, up to 15fps, YUV/RGB/JPEG
+> 
+> capture stills (context B) up to 1600x1200,
+> sequence of 1 or more frames with no fixed timing, YUV/RGB/JPEG
+> 
+> 
+> I have implemented switching between the first two of these, but the
+> choice is forced by the framerate, resolution and format that the user
+> requests, so I have not exposed any interface to change the context,
+> the driver just chooses the one that can do what the user wants.
+> 
+> As for the third mode, I do not currently plan to implement it, but
+> if I was going to then I think the only API that would be required
+> is V4L2_MODE_HIGHQUALITY in v4l2_captureparm.capturemode.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpss.c |   62 +++++++--------------------------
- 1 file changed, 13 insertions(+), 49 deletions(-)
+Is there a practical difference in video and still capture in this case?
 
-diff --git a/drivers/media/platform/davinci/vpss.c b/drivers/media/platform/davinci/vpss.c
-index 8a2f01e..31120b4 100644
---- a/drivers/media/platform/davinci/vpss.c
-+++ b/drivers/media/platform/davinci/vpss.c
-@@ -21,6 +21,7 @@
- #include <linux/platform_device.h>
- #include <linux/io.h>
- #include <linux/pm_runtime.h>
-+#include <linux/err.h>
- 
- #include <media/davinci/vpss.h>
- 
-@@ -404,9 +405,8 @@ EXPORT_SYMBOL(dm365_vpss_set_pg_frame_size);
- 
- static int vpss_probe(struct platform_device *pdev)
- {
--	struct resource		*r1, *r2;
-+	struct resource *res;
- 	char *platform_name;
--	int status;
- 
- 	if (!pdev->dev.platform_data) {
- 		dev_err(&pdev->dev, "no platform data\n");
-@@ -427,38 +427,19 @@ static int vpss_probe(struct platform_device *pdev)
- 	}
- 
- 	dev_info(&pdev->dev, "%s vpss probed\n", platform_name);
--	r1 = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!r1)
--		return -ENOENT;
-+	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
- 
--	r1 = request_mem_region(r1->start, resource_size(r1), r1->name);
--	if (!r1)
--		return -EBUSY;
--
--	oper_cfg.vpss_regs_base0 = ioremap(r1->start, resource_size(r1));
--	if (!oper_cfg.vpss_regs_base0) {
--		status = -EBUSY;
--		goto fail1;
--	}
-+	oper_cfg.vpss_regs_base0 = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(oper_cfg.vpss_regs_base0))
-+		return PTR_ERR(oper_cfg.vpss_regs_base0);
- 
- 	if (oper_cfg.platform == DM355 || oper_cfg.platform == DM365) {
--		r2 = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--		if (!r2) {
--			status = -ENOENT;
--			goto fail2;
--		}
--		r2 = request_mem_region(r2->start, resource_size(r2), r2->name);
--		if (!r2) {
--			status = -EBUSY;
--			goto fail2;
--		}
--
--		oper_cfg.vpss_regs_base1 = ioremap(r2->start,
--						   resource_size(r2));
--		if (!oper_cfg.vpss_regs_base1) {
--			status = -EBUSY;
--			goto fail3;
--		}
-+		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
-+
-+		oper_cfg.vpss_regs_base1 = devm_ioremap_resource(&pdev->dev,
-+								 res);
-+		if (IS_ERR(oper_cfg.vpss_regs_base1))
-+			return PTR_ERR(oper_cfg.vpss_regs_base1);
- 	}
- 
- 	if (oper_cfg.platform == DM355) {
-@@ -493,30 +474,13 @@ static int vpss_probe(struct platform_device *pdev)
- 
- 	spin_lock_init(&oper_cfg.vpss_lock);
- 	dev_info(&pdev->dev, "%s vpss probe success\n", platform_name);
--	return 0;
- 
--fail3:
--	release_mem_region(r2->start, resource_size(r2));
--fail2:
--	iounmap(oper_cfg.vpss_regs_base0);
--fail1:
--	release_mem_region(r1->start, resource_size(r1));
--	return status;
-+	return 0;
- }
- 
- static int vpss_remove(struct platform_device *pdev)
- {
--	struct resource		*res;
--
- 	pm_runtime_disable(&pdev->dev);
--	iounmap(oper_cfg.vpss_regs_base0);
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, resource_size(res));
--	if (oper_cfg.platform == DM355 || oper_cfg.platform == DM365) {
--		iounmap(oper_cfg.vpss_regs_base1);
--		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--		release_mem_region(res->start, resource_size(res));
--	}
- 	return 0;
- }
- 
 -- 
-1.7.9.5
+Regards,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
