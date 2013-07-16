@@ -1,91 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:36959 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755983Ab3GYNne (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:54407 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932473Ab3GPNER convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 09:43:34 -0400
-Date: Thu, 25 Jul 2013 16:43:28 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 5/5] v4l: Renesas R-Car VSP1 driver
-Message-ID: <20130725134328.GH12281@valkosipuli.retiisi.org.uk>
-References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1374072882-14598-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <20130724224858.GG12281@valkosipuli.retiisi.org.uk>
- <1833071.CAa8KOE02B@avalon>
+	Tue, 16 Jul 2013 09:04:17 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Bard Eirik Winther <bwinther@cisco.com>
+Cc: linux-media@vger.kernel.org, Hans Verkuil <hansverk@cisco.com>
+Subject: Re: [PATCH 4/4] qv4l2: add OpenGL video render
+Date: Tue, 16 Jul 2013 15:05 +0200
+Message-ID: <3035536.XabkRYWs1N@avalon>
+In-Reply-To: <6029532.8F5QMT0oxE@bwinther>
+References: <1373973848-4084-1-git-send-email-bwinther@cisco.com> <1609457.OFIJZjqBDN@avalon> <6029532.8F5QMT0oxE@bwinther>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1833071.CAa8KOE02B@avalon>
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="iso-8859-1"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Bård,
 
-On Thu, Jul 25, 2013 at 01:46:54PM +0200, Laurent Pinchart wrote:
-> > On Wed, Jul 17, 2013 at 04:54:42PM +0200, Laurent Pinchart wrote:
-> > ...
+On Tuesday 16 July 2013 14:59:04 Bard Eirik Winther wrote:
+> On Tuesday, July 16, 2013 02:01:45 PM you wrote:
+> > Hi Bård,
 > > 
-> > > +static void vsp1_device_init(struct vsp1_device *vsp1)
-> > > +{
-> > > +	unsigned int i;
-> > > +	u32 status;
-> > > +
-> > > +	/* Reset any channel that might be running. */
-> > > +	status = vsp1_read(vsp1, VI6_STATUS);
-> > > +
-> > > +	for (i = 0; i < VPS1_MAX_WPF; ++i) {
-> > > +		unsigned int timeout;
-> > > +
-> > > +		if (!(status & VI6_STATUS_SYS_ACT(i)))
-> > > +			continue;
-> > > +
-> > > +		vsp1_write(vsp1, VI6_SRESET, VI6_SRESET_SRTS(i));
-> > > +		for (timeout = 10; timeout > 0; --timeout) {
-> > > +			status = vsp1_read(vsp1, VI6_STATUS);
-> > > +			if (!(status & VI6_STATUS_SYS_ACT(i)))
-> > > +				break;
-> > > +
-> > > +			usleep_range(1000, 2000);
-> > > +		}
-> > > +
-> > > +		if (timeout)
-> > > +			dev_err(vsp1->dev, "failed to reset wpf.%u\n", i);
+> > Thank you for the patches.
 > > 
-> > Have you seen this happening in practice? Do you expect the device to
-> > function if resetting it fails?
+> > On Tuesday 16 July 2013 13:24:08 Bård Eirik Winther wrote:
+> > > The qv4l2 test utility now supports OpenGL-accelerated display of video.
+> > > This allows for using the graphics card to render the video content to
+> > > screen and to performing color space conversion.
+> > > 
+> > > Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+> > > ---
+> > > 
+> > >  configure.ac                |   8 +-
+> > >  utils/qv4l2/Makefile.am     |   9 +-
+> > >  utils/qv4l2/capture-win.cpp | 559 +++++++++++++++++++++++++++++++++++--
+> > >  utils/qv4l2/capture-win.h   |  81 ++++++-
+> > >  utils/qv4l2/qv4l2.cpp       | 173 +++++++++++---
+> > >  utils/qv4l2/qv4l2.h         |   8 +
+> > >  6 files changed, 782 insertions(+), 56 deletions(-)
+> > 
+> > Is there a chance you could split the OpenGL code to separate classes, in
+> > a
+> > separate source file ? This would allow implementing other renderers, such
+> > as KMS planes on embedded devices.
 > 
-> I've seen this happening during development when I had messed up register 
-> values, but not otherwise. I don't expect the deviec to still function if 
-> resetting the WPF fails, but I need to make sure that the busy loop exits.
-
-Shouldn't you also return an error in this case? The function currently
-returns void.
-
-...
-
-> > > +	/* Follow links downstream for each input and make sure the graph
-> > > +	 * contains no loop and that all branches end at the output WPF.
-> > > +	 */
-> > 
-> > I wonder if checking for loops should be done already in pipeline validation
-> > done by the framework. That's fine to do later on IMHO, too.
+> Hi.
 > 
-> It would have to be performed by the core, as the callbacks are local to 
-> links. That's feasible (but should be optional, as some devices might support 
-> circular graphs), feel free to submit a patch :-)
+> Do you mean to separate the GL class only or all the different
+> shaders/renderes as well?
 
-As a matter of fact I think I will. I'd like you to test it though since I
-have no hardware with such media graph. :-)
+Basically, what would be nice to get is an easy way to extend qv4l2 with 
+different renderers. OpenGL is fine on the desktop, but for embedded devices a 
+KMS planes backend would work best given the mess that the embedded GPU 
+situation is. Instead of adding #ifdef ENABLE_OGL and if (use_ogl) through the 
+code, abstracting the rendering code in a separate base class that renderers 
+could inherit from would make the code simpler to read, maintain and extend.
 
-But please don't expect to see that in time for your driver to get in. Let's
-think about that later on.
+I haven't looked at the details so I'm not sure how much work that would be, 
+but if the effort is reasonable I think it would be a nice improvement.
 
 -- 
-Kind regards,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Laurent Pinchart
+
