@@ -1,101 +1,99 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:44779 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672Ab3GHMH3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:29 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPM00LU49OANZR0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:27 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:36808 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932086Ab3GPLYd (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 16 Jul 2013 07:24:33 -0400
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v4 3/8] [media] s5p-mfc: Add register definition file for MFC v7
-Date: Mon, 08 Jul 2013 18:00:31 +0530
-Message-id: <1373286637-30154-4-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
-References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+Cc: hansverk@cisco.com
+Subject: [PATCH 3/4] qv4l2: fix CaptureWin mimimum size to match video fram size
+Date: Tue, 16 Jul 2013 13:24:07 +0200
+Message-Id: <16222291c1d1fd6b515f5c84926587aae8f132e3.1373973770.git.bwinther@cisco.com>
+In-Reply-To: <1373973848-4084-1-git-send-email-bwinther@cisco.com>
+References: <1373973848-4084-1-git-send-email-bwinther@cisco.com>
+In-Reply-To: <61608db2b5b388a50c91730739479dccf76c046d.1373973770.git.bwinther@cisco.com>
+References: <61608db2b5b388a50c91730739479dccf76c046d.1373973770.git.bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The patch adds the register definition file for new firmware
-version v7 for MFC. New firmware supports VP8 encoding along with
-many other features.
+CaptureWin's setMinimumSize() sets the minimum size for the
+video frame viewport and not for the window itself.
+If the minimum size is larger than the monitor resolution,
+it will reduce the minimum size to match this.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
 ---
- drivers/media/platform/s5p-mfc/regs-mfc-v7.h |   58 ++++++++++++++++++++++++++
- 1 file changed, 58 insertions(+)
- create mode 100644 drivers/media/platform/s5p-mfc/regs-mfc-v7.h
+ utils/qv4l2/capture-win.cpp | 26 ++++++++++++++++++++++++++
+ utils/qv4l2/capture-win.h   |  1 +
+ 2 files changed, 27 insertions(+)
 
-diff --git a/drivers/media/platform/s5p-mfc/regs-mfc-v7.h b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-new file mode 100644
-index 0000000..24dba69
---- /dev/null
-+++ b/drivers/media/platform/s5p-mfc/regs-mfc-v7.h
-@@ -0,0 +1,58 @@
-+/*
-+ * Register definition file for Samsung MFC V7.x Interface (FIMV) driver
-+ *
-+ * Copyright (c) 2013 Samsung Electronics Co., Ltd.
-+ *		http://www.samsung.com/
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2 as
-+ * published by the Free Software Foundation.
-+ */
+diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
+index a94c73d..7ac3fa1 100644
+--- a/utils/qv4l2/capture-win.cpp
++++ b/utils/qv4l2/capture-win.cpp
+@@ -21,6 +21,8 @@
+ #include <QImage>
+ #include <QVBoxLayout>
+ #include <QCloseEvent>
++#include <QApplication>
++#include <QDesktopWidget>
+ 
+ #include "qv4l2.h"
+ #include "capture-win.h"
+@@ -36,6 +38,10 @@ CaptureWin::CaptureWin()
+ 	vbox->addWidget(m_label);
+ 	vbox->addWidget(m_msg);
+ 
++	int l, t, r, b;
++	vbox->getContentsMargins(&l, &t, &r, &b);
++	vbox->setSpacing(b);
 +
-+#ifndef _REGS_MFC_V7_H
-+#define _REGS_MFC_V7_H
+ 	hotkeyClose = new QShortcut(Qt::CTRL+Qt::Key_W, this);
+ 	QObject::connect(hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
+ }
+@@ -45,6 +51,26 @@ CaptureWin::~CaptureWin()
+ 	delete hotkeyClose;
+ }
+ 
++void CaptureWin::setMinimumSize(int minw, int minh)
++{
++	QDesktopWidget *screen = QApplication::desktop();
++	QRect resolution = screen->screenGeometry();
 +
-+#include "regs-mfc-v6.h"
++	int l, t, r, b;
++	layout()->getContentsMargins(&l, &t, &r, &b);
++	minw += l + r;
++	minh += t + b + m_msg->minimumSizeHint().height() + layout()->spacing();
 +
-+/* Additional features of v7 */
-+#define S5P_FIMV_CODEC_VP8_ENC_V7	25
++	if (minw > resolution.width())
++		minw = resolution.width();
 +
-+/* Additional registers for v7 */
-+#define S5P_FIMV_D_INIT_BUFFER_OPTIONS_V7		0xf47c
++	if (minh > resolution.height())
++		minh = resolution.height();
 +
-+#define S5P_FIMV_E_SOURCE_FIRST_ADDR_V7			0xf9e0
-+#define S5P_FIMV_E_SOURCE_SECOND_ADDR_V7		0xf9e4
-+#define S5P_FIMV_E_SOURCE_THIRD_ADDR_V7			0xf9e8
-+#define S5P_FIMV_E_SOURCE_FIRST_STRIDE_V7		0xf9ec
-+#define S5P_FIMV_E_SOURCE_SECOND_STRIDE_V7		0xf9f0
-+#define S5P_FIMV_E_SOURCE_THIRD_STRIDE_V7		0xf9f4
++	QWidget::setMinimumSize(minw, minh);
++	resize(minw, minh);
++}
 +
-+#define S5P_FIMV_E_ENCODED_SOURCE_FIRST_ADDR_V7		0xfa70
-+#define S5P_FIMV_E_ENCODED_SOURCE_SECOND_ADDR_V7	0xfa74
-+
-+#define S5P_FIMV_E_VP8_OPTIONS_V7			0xfdb0
-+#define S5P_FIMV_E_VP8_FILTER_OPTIONS_V7		0xfdb4
-+#define S5P_FIMV_E_VP8_GOLDEN_FRAME_OPTION_V7		0xfdb8
-+#define S5P_FIMV_E_VP8_NUM_T_LAYER_V7			0xfdc4
-+
-+/* MFCv7 variant defines */
-+#define MAX_FW_SIZE_V7			(SZ_1M)		/* 1MB */
-+#define MAX_CPB_SIZE_V7			(3 * SZ_1M)	/* 3MB */
-+#define MFC_VERSION_V7			0x72
-+#define MFC_NUM_PORTS_V7		1
-+
-+/* MFCv7 Context buffer sizes */
-+#define MFC_CTX_BUF_SIZE_V7		(30 * SZ_1K)	/*  30KB */
-+#define MFC_H264_DEC_CTX_BUF_SIZE_V7	(2 * SZ_1M)	/*  2MB */
-+#define MFC_OTHER_DEC_CTX_BUF_SIZE_V7	(20 * SZ_1K)	/*  20KB */
-+#define MFC_H264_ENC_CTX_BUF_SIZE_V7	(100 * SZ_1K)	/* 100KB */
-+#define MFC_OTHER_ENC_CTX_BUF_SIZE_V7	(10 * SZ_1K)	/*  10KB */
-+
-+/* Buffer size defines */
-+#define S5P_FIMV_SCRATCH_BUF_SIZE_MPEG4_DEC_V7(w, h) \
-+			(SZ_1M + ((w) * 144) + (8192 * (h)) + 49216)
-+
-+#define S5P_FIMV_SCRATCH_BUF_SIZE_VP8_ENC_V7(w, h) \
-+			(((w) * 48) + (((w) + 1) / 2 * 128) + 144 + 8192)
-+
-+#endif /*_REGS_MFC_V7_H*/
+ void CaptureWin::setImage(const QImage &image, const QString &status)
+ {
+ 	m_label->setPixmap(QPixmap::fromImage(image));
+diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
+index 4115d56..3de3447 100644
+--- a/utils/qv4l2/capture-win.h
++++ b/utils/qv4l2/capture-win.h
+@@ -35,6 +35,7 @@ public:
+ 	CaptureWin();
+ 	~CaptureWin();
+ 
++	virtual void setMinimumSize(int minw, int minh);
+ 	void setImage(const QImage &image, const QString &status);
+ 
+ protected:
 -- 
-1.7.9.5
+1.8.3.2
 
