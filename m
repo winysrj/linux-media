@@ -1,41 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:38231 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753100Ab3GHVlP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 8 Jul 2013 17:41:15 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: [PATCH] [media] rc: allowed_protos now is a bit field
-Date: Mon,  8 Jul 2013 22:33:10 +0100
-Message-Id: <1373319192-26816-3-git-send-email-sean@mess.org>
-In-Reply-To: <1373319192-26816-1-git-send-email-sean@mess.org>
-References: <1373319192-26816-1-git-send-email-sean@mess.org>
+Received: from mail-wg0-f44.google.com ([74.125.82.44]:49712 "EHLO
+	mail-wg0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752029Ab3GQIfj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jul 2013 04:35:39 -0400
+MIME-Version: 1.0
+In-Reply-To: <51E5AF35.2080301@gmail.com>
+References: <1373995163-9412-1-git-send-email-prabhakar.csengg@gmail.com> <51E5AF35.2080301@gmail.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 17 Jul 2013 14:05:18 +0530
+Message-ID: <CA+V-a8tq6CtsOOo1OsajoVp8eJYnWCqc+wysVoj2nMinoP=63g@mail.gmail.com>
+Subject: Re: [PATCH RFC v4] media: OF: add "sync-on-green-active" property
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	devicetree-discuss@lists.ozlabs.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This one must have missed the conversion "c003ab1b [media] rc-core:
-add separate defines for protocol bitmaps and numbers".
+Hi Sylwester,
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/usb/dvb-usb/m920x.c | 2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+Thanks for the review.
 
-diff --git a/drivers/media/usb/dvb-usb/m920x.c b/drivers/media/usb/dvb-usb/m920x.c
-index c2b635d..0306cb7 100644
---- a/drivers/media/usb/dvb-usb/m920x.c
-+++ b/drivers/media/usb/dvb-usb/m920x.c
-@@ -1212,7 +1212,7 @@ static struct dvb_usb_device_properties vp7049_properties = {
- 		.rc_interval    = 150,
- 		.rc_codes       = RC_MAP_TWINHAN_VP1027_DVBS,
- 		.rc_query       = m920x_rc_core_query,
--		.allowed_protos = RC_TYPE_UNKNOWN,
-+		.allowed_protos = RC_BIT_UNKNOWN,
- 	},
- 
- 	.size_of_priv     = sizeof(struct m920x_state),
--- 
-1.8.3.1
+On Wed, Jul 17, 2013 at 2:08 AM, Sylwester Nawrocki
+<sylvester.nawrocki@gmail.com> wrote:
+> Hi Prabhakar,
+>
+>
+[snip]
+>> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> b/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> index e022d2d..5186c7e 100644
+>> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+>> @@ -101,6 +101,9 @@ Optional endpoint properties
+>>     array contains only one entry.
+>>   - clock-noncontinuous: a boolean property to allow MIPI CSI-2
+>> non-continuous
+>>     clock mode.
+>> +- sync-on-green-active: polarity field when video synchronization is
+>> +  Sync-On-Green. When set the driver determines whether it's a normal
+>> operation
+>> +  or inverted operation.
+>
+>
+> Would you mind adding this entry after pclk-sample property description ?
 
+OK.
+
+> And how about describing it a bit more precisely and similarly to
+> VSYNC/HSYNC,
+> e.g.
+>
+> - sync-on-green-active: active state of Sync-on-green (SoG) signal,
+>   0/1 for LOW/HIGH respectively.
+>
+OK I'll paste the above one itself :-)
+
+--
+Regards,
+Prabhakar Lad
