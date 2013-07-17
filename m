@@ -1,274 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:51758 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751672Ab3GIFBk (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 01:01:40 -0400
-Received: from epcpsbgr1.samsung.com
- (u141.gpu120.samsung.co.kr [203.254.230.141])
- by mailout3.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPN00HAEKLEDNI0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Jul 2013 14:01:33 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33692 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755682Ab3GQOyC (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jul 2013 10:54:02 -0400
+From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v5 2/8] [media] s5p-mfc: Rename IS_MFCV6 macro
-Date: Tue, 09 Jul 2013 10:54:36 +0530
-Message-id: <1373347482-9264-3-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
-References: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
+Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: [PATCH v2 1/5] media: Fix circular graph traversal
+Date: Wed, 17 Jul 2013 16:54:38 +0200
+Message-Id: <1374072882-14598-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFC v6 specific code holds good for MFC v7 also as
-the v7 version is a superset of v6 and the HW interface
-remains more or less similar. This patch renames the macro
-IS_MFCV6() to IS_MFCV6_PLUS() so that it can be used
-for v7 also.
+The graph traversal API (media_entity_graph_walk_*) will fail to
+correctly walk the graph when circular links exist. Fix it by checking
+whether an entity is already present in the stack before pushing it.
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c    |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   12 ++++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   18 ++++++++++--------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   16 +++++++++-------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |    2 +-
- 6 files changed, 28 insertions(+), 24 deletions(-)
+ drivers/media/media-entity.c | 17 ++++++++++++-----
+ 1 file changed, 12 insertions(+), 5 deletions(-)
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-index f0a41c9..242c033 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-@@ -20,7 +20,7 @@ static struct s5p_mfc_hw_cmds *s5p_mfc_cmds;
+diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+index cb30ffb..c8aba5e 100644
+--- a/drivers/media/media-entity.c
++++ b/drivers/media/media-entity.c
+@@ -121,9 +121,9 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
+ 	return entity;
+ }
  
- void s5p_mfc_init_hw_cmds(struct s5p_mfc_dev *dev)
+-#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
+-#define link_top(en)	((en)->stack[(en)->top].link)
+-#define stack_top(en)	((en)->stack[(en)->top].entity)
++#define stack_peek(en, i)	((en)->stack[i].entity)
++#define link_top(en)		((en)->stack[(en)->top].link)
++#define stack_top(en)		((en)->stack[(en)->top].entity)
+ 
+ /**
+  * media_entity_graph_walk_start - Start walking the media graph at a given entity
+@@ -159,6 +159,8 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+ struct media_entity *
+ media_entity_graph_walk_next(struct media_entity_graph *graph)
  {
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v6();
- 	else
- 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v5();
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index ef4074c..d47016d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -683,6 +683,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
- #define HAS_PORTNUM(dev)	(dev ? (dev->variant ? \
- 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
- #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
--#define IS_MFCV6(dev)		(dev->variant->version >= 0x60 ? 1 : 0)
-+#define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
- 
- #endif /* S5P_MFC_COMMON_H_ */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index dc1fc94..7cab684 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -164,7 +164,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
- 
- 	mfc_debug_enter();
- 
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		/* Reset IP */
- 		/*  except RISC, reset */
- 		mfc_write(dev, 0xFEE, S5P_FIMV_MFC_RESET_V6);
-@@ -213,7 +213,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
- 
- static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		mfc_write(dev, dev->bank1, S5P_FIMV_RISC_BASE_ADDRESS_V6);
- 		mfc_debug(2, "Base Address : %08x\n", dev->bank1);
- 	} else {
-@@ -226,7 +226,7 @@ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
- 
- static inline void s5p_mfc_clear_cmds(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		/* Zero initialization should be done before RESET.
- 		 * Nothing to do here. */
- 	} else {
-@@ -264,7 +264,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 	s5p_mfc_clear_cmds(dev);
- 	/* 3. Release reset signal to the RISC */
- 	s5p_mfc_clean_dev_int_flags(dev);
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
- 	else
- 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-@@ -301,7 +301,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 		s5p_mfc_clock_off();
- 		return -EIO;
- 	}
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
- 	else
- 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
-@@ -380,7 +380,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 		return ret;
- 	}
- 	/* 4. Release reset signal to the RISC */
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
- 	else
- 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 00b0703..56a1d3b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -382,7 +382,7 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for source.\n");
- 			return -EINVAL;
- 		}
--		if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
-+		if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
- 		}
-@@ -392,10 +392,11 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for destination.\n");
- 			return -EINVAL;
- 		}
--		if (IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
-+		if (IS_MFCV6_PLUS(dev) &&
-+				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (!IS_MFCV6(dev) &&
-+		} else if (!IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -430,10 +431,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for source.\n");
- 			return -EINVAL;
- 		}
--		if (!IS_MFCV6(dev) && (fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
-+		if (!IS_MFCV6_PLUS(dev) &&
-+				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (IS_MFCV6(dev) &&
-+		} else if (IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -457,7 +459,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		ret = -EINVAL;
- 		goto out;
- 	}
--	if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
-+	if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
- 		mfc_err("Not supported format.\n");
- 		return -EINVAL;
- 	}
-@@ -942,7 +944,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		psize[0] = ctx->luma_size;
- 		psize[1] = ctx->chroma_size;
- 
--		if (IS_MFCV6(dev))
-+		if (IS_MFCV6_PLUS(dev))
- 			allocators[0] =
- 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
- 		else
-@@ -1067,7 +1069,7 @@ static int s5p_mfc_stop_streaming(struct vb2_queue *q)
- 		ctx->dpb_flush_flag = 1;
- 		ctx->dec_dst_flag = 0;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
--		if (IS_MFCV6(dev) && (ctx->state == MFCINST_RUNNING)) {
-+		if (IS_MFCV6_PLUS(dev) && (ctx->state == MFCINST_RUNNING)) {
- 			ctx->state = MFCINST_FLUSH;
- 			set_work_bit_irqsave(ctx);
- 			s5p_mfc_clean_ctx_int_flags(ctx);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 2549967..f734ccc 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -663,7 +663,7 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	}
- 
--	if (!IS_MFCV6(dev)) {
-+	if (!IS_MFCV6_PLUS(dev)) {
- 		ctx->state = MFCINST_RUNNING;
- 		if (s5p_mfc_ctx_ready(ctx))
- 			set_work_bit_irqsave(ctx);
-@@ -993,11 +993,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			return -EINVAL;
- 		}
- 
--		if (!IS_MFCV6(dev) &&
-+		if (!IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (IS_MFCV6(dev) &&
-+		} else if (IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -1072,7 +1072,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			return -EINVAL;
- 		}
- 
--		if (IS_MFCV6(dev)) {
-+		if (IS_MFCV6_PLUS(dev)) {
- 			/* Check for min encoder buffers */
- 			if (ctx->pb_count &&
- 				(reqbufs->count < ctx->pb_count)) {
-@@ -1353,7 +1353,7 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 				S5P_FIMV_ENC_PROFILE_H264_BASELINE;
- 			break;
- 		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
--			if (IS_MFCV6(dev))
-+			if (IS_MFCV6_PLUS(dev))
- 				p->codec.h264.profile =
- 				S5P_FIMV_ENC_PROFILE_H264_CONSTRAINED_BASELINE;
- 			else
-@@ -1662,9 +1662,10 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 			*buf_count = 1;
- 		if (*buf_count > MFC_MAX_BUFFERS)
- 			*buf_count = MFC_MAX_BUFFERS;
++	unsigned int i;
 +
- 		psize[0] = ctx->luma_size;
- 		psize[1] = ctx->chroma_size;
--		if (IS_MFCV6(dev)) {
-+		if (IS_MFCV6_PLUS(dev)) {
- 			allocators[0] =
- 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
- 			allocators[1] =
-@@ -1773,7 +1774,8 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
- 	struct s5p_mfc_dev *dev = ctx->dev;
+ 	if (stack_top(graph) == NULL)
+ 		return NULL;
  
--	if (IS_MFCV6(dev) && (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
-+	if (IS_MFCV6_PLUS(dev) &&
-+			(q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
+@@ -181,8 +183,13 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
+ 		/* Get the entity in the other end of the link . */
+ 		next = media_entity_other(entity, link);
  
- 		if ((ctx->state == MFCINST_GOT_INST) &&
- 			(dev->curr_ctx == ctx->num) && dev->hw_lock) {
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-index 10f8ac3..3c01c33 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-@@ -21,7 +21,7 @@ static struct s5p_mfc_hw_ops *s5p_mfc_ops;
- 
- void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		s5p_mfc_ops = s5p_mfc_init_hw_ops_v6();
- 		dev->warn_start = S5P_FIMV_ERR_WARNINGS_START_V6;
- 	} else {
+-		/* Was it the entity we came here from? */
+-		if (next == stack_peek(graph)) {
++		/* Is the entity already in the path? */
++		for (i = 1; i < graph->top; ++i) {
++			if (next == stack_peek(graph, i))
++				break;
++		}
++
++		if (i < graph->top) {
+ 			link_top(graph)++;
+ 			continue;
+ 		}
 -- 
-1.7.9.5
+1.8.1.5
 
