@@ -1,70 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:40138 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754901Ab3GAVDW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jul 2013 17:03:22 -0400
-Message-ID: <51D1EE98.2060905@schinagl.nl>
-Date: Mon, 01 Jul 2013 23:03:20 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:45883 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754176Ab3GQOVO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jul 2013 10:21:14 -0400
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Bogdan Oprea <bogdaninedit@yahoo.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
- while loading driver (-19)
-References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com> <51D1352A.2080107@schinagl.nl> <51D182CD.2040502@iki.fi> <51D1839B.1010007@schinagl.nl> <51D1E8F8.9030402@schinagl.nl> <51D1EBCF.60708@iki.fi>
-In-Reply-To: <51D1EBCF.60708@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <51E69F49.10500@samsung.com>
+References: <1373880874-9270-1-git-send-email-ricardo.ribalda@gmail.com>
+ <51E65577.7010403@samsung.com> <CAPybu_3Je7+0Qh2OdptncnxC12G15Scad+A3yUeF898sVWKo8w@mail.gmail.com>
+ <51E69F49.10500@samsung.com>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Wed, 17 Jul 2013 16:20:53 +0200
+Message-ID: <CAPybu_0b9ADaUFFHuw=tKkVR4fiu9bGNJVgy4MGbuE-zAA9sZQ@mail.gmail.com>
+Subject: Re: [PATCH] videobuf2-dma-sg: Minimize the number of dma segments
+To: Marek Szyprowski <m.szyprowski@samsung.com>
+Cc: Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org,
+	open list <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/01/13 22:51, Antti Palosaari wrote:
-> On 07/01/2013 11:39 PM, Oliver Schinagl wrote:
->> On 07/01/13 15:26, Oliver Schinagl wrote:
->>> On 01-07-13 15:23, Antti Palosaari wrote:
->>>> On 07/01/2013 10:52 AM, Oliver Schinagl wrote:
->>>>> On 01-07-13 08:53, Bogdan Oprea wrote:
->>>>>> this is a fix for this type of error
->>>>>>
->>>>>> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error while
->>>>>> loading driver (-19)
->>>>>> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' successfully
->>>>>> deinitialized and disconnected
->>>>>>
->>>>> This isn't really a fix, I think i mentioned this on the ML ages ago,
->>>>
->>>> Argh, I just replied that same. Oliver, do you has that same device? Is
->>>> it working? Could you tweak to see if I2C readings are working at all?
->>> I have the same device, but mine works normally (though I haven't
->>> checked for ages), I will try it tonight when I'm at home and don't
->>> forget what happens with my current kernel.
+Hello again Marek
+
+In my system I am doing the scatter gather compaction on device
+driver... But I agree that it would be better done on the vb2 layer.
+
+For the oversize sglist we could do one of this two things.
+
+If we want to have a simple pass processing we have to allocate an
+structure A for the worts case, work on that structure. then allocate
+a structure B for the exact size that we need, memcpy A to B, and
+free(A).
+
+Otherwise we need two passes. One to allocate the pages, and another
+one to allocate the pages and find out the amount of sg, and another
+to greate the sg structure.
+
+What do you prefer?
+
+
+Regards!
+
+
+
+
+On Wed, Jul 17, 2013 at 3:42 PM, Marek Szyprowski
+<m.szyprowski@samsung.com> wrote:
+> Hello,
+>
+>
+> On 7/17/2013 11:43 AM, Ricardo Ribalda Delgado wrote:
 >>
->> Hard to test when it 'just works (tm)' :)
+>> Hi Marek
+>>
+>>   alloc_pages_exact returns pages of order 0, every single page is
+>> filled into buf->pages, that then is used by vb2_dma_sg_mmap(), that
+>> also expects order 0 pages (its loops increments in PAGE_SIZE). The
+>> code has been tested on real HW.
+>>
+>> Your concern is that that alloc_pages_exact splits the higher order pages?
+>>
+>> Do you want that videobuf2-dma-sg to have support for higher order pages?
 >
->> The bad firmware wories me, no clue where that error is from, using:
->> 862604ab3fec0c94f4bf22b4cffd0d89  /lib/firmware/dvb-usb-af9035-02.fw
 >
-> It means firmware is too short or long what is calculated. I added that
-> printing to notify users firmware is broken and could cause problems.
-Ah, good call, it did get me to re-download it. no clue why it was 
-broken all of a sudden.
+> Ah... My fault. I didn't notice that you recalculate req_pages at the
+> begginning of each loop iteration, so the code is correct, buf->pages is
+> filled correctly with order 0 pages.
+>
+> So now the only issue I see is the oversized sglist allocation (the size
+> of sg list is computed for worst case, 0 order pages) and lack of the max
+> segment size support. Sadly there are devices which can handle single sg
+> chunk up to some predefined size (see dma_get_max_seg_size() function).
+>
+> For some reference code, please check __iommu_map_sg() and maybe
+> __iommu_alloc_buffer() functions in arch/arm/mm/dma-mapping.c
 >
 >
-> I suspect it is same issue what is with MxL5007t tuners too.
-> Maybe that kind of fix is needed:
-> https://patchwork.kernel.org/patch/2418471/
+> Best regards
+> --
+> Marek Szyprowski
+> Samsung R&D Institute Poland
 >
-> Someone should really find out whether or not these are coming with
-> register read operation with REPEATED START of STOP condition. Attach
-> hardware sniffer to device tuner I2C bus and look what kind of messages
-> there is actually.
-Well mine works fine, so hard to say. IF you have a buspirate you should 
-be able to intercept the i2c bus ON the device though :) Good luck 
-Bogdan, I wish I could help here, but lack the broken hardware.
+>
 
->
-> regards
-> Antti
->
 
+
+-- 
+Ricardo Ribalda
