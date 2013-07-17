@@ -1,66 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f52.google.com ([209.85.160.52]:35844 "EHLO
-	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754614Ab3GRP35 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:32926 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754225Ab3GQMUp (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 11:29:57 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2 5/5] media: davinci: vpbe: Replace printk with dev_*
-Date: Thu, 18 Jul 2013 20:59:40 +0530
-Message-Id: <1374161380-12762-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 17 Jul 2013 08:20:45 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Subject: Re: [PATCH 0/5] Davinci VPBE use devres and some cleanup
+Date: Wed, 17 Jul 2013 14:21:29 +0200
+Message-ID: <2425805.RBpmei1UGe@avalon>
+In-Reply-To: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Prabhakar,
 
-Use the dev_* message logging API instead of raw printk.
+On Saturday 13 July 2013 14:20:26 Prabhakar Lad wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> This patch series replaces existing resource handling in the
+> driver with managed device resource.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- Posting independent patch of the series,
- http://www.spinics.net/lists/linux-media/msg65701.html
- 
- Changes for v2:
- 1: Fixed logging levels.
- 
- drivers/media/platform/davinci/vpbe.c |    6 +++---
- 1 file changed, 3 insertions(+), 3 deletions(-)
+Thank you for the patches. They greatly simplify the probe/remove functions, I 
+like that. For patches 1 to 4,
 
-diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-index 33b9660..a3a36e0 100644
---- a/drivers/media/platform/davinci/vpbe.c
-+++ b/drivers/media/platform/davinci/vpbe.c
-@@ -595,7 +595,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 	 * matching with device name
- 	 */
- 	if (NULL == vpbe_dev || NULL == dev) {
--		printk(KERN_ERR "Null device pointers.\n");
-+		dev_err(dev, "Null device pointers.\n");
- 		return -ENODEV;
- 	}
- 
-@@ -735,7 +735,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 
- 	mutex_unlock(&vpbe_dev->lock);
- 
--	printk(KERN_NOTICE "Setting default output to %s\n", def_output);
-+	dev_notice(dev, "Setting default output to %s\n", def_output);
- 	ret = vpbe_set_default_output(vpbe_dev);
- 	if (ret) {
- 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default output %s",
-@@ -743,7 +743,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
- 		return ret;
- 	}
- 
--	printk(KERN_NOTICE "Setting default mode to %s\n", def_mode);
-+	dev_notice(dev, "Setting default mode to %s\n", def_mode);
- 	ret = vpbe_set_default_mode(vpbe_dev);
- 	if (ret) {
- 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default mode %s",
+Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+
+I have the same concern as Joe Perches for patch 5.
+
+> Lad, Prabhakar (5):
+>   media: davinci: vpbe_venc: convert to devm_* api
+>   media: davinci: vpbe_osd: convert to devm_* api
+>   media: davinci: vpbe_display: convert to devm* api
+>   media: davinci: vpss: convert to devm* api
+>   media: davinci: vpbe: Replace printk with dev_*
+> 
+>  drivers/media/platform/davinci/vpbe.c         |    6 +-
+>  drivers/media/platform/davinci/vpbe_display.c |   23 ++----
+>  drivers/media/platform/davinci/vpbe_osd.c     |   45 +++---------
+>  drivers/media/platform/davinci/vpbe_venc.c    |   97  ++++-----------------
+>  drivers/media/platform/davinci/vpss.c         |   62 ++++------------
+>  5 files changed, 52 insertions(+), 181 deletions(-)
+
 -- 
-1.7.9.5
+Regards,
+
+Laurent Pinchart
 
