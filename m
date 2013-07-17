@@ -1,171 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:35892 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751592Ab3GRIU2 (ORCPT
+Received: from mail-we0-f170.google.com ([74.125.82.170]:59450 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756533Ab3GQQbE (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 04:20:28 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [RFC PATCH 2/5] v4l2-compat-ioctl32: add g/s_matrix support.
-Date: Thu, 18 Jul 2013 10:20:23 +0200
-Cc: linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-3-git-send-email-hverkuil@xs4all.nl> <11767779.9HpBizCB6P@avalon>
-In-Reply-To: <11767779.9HpBizCB6P@avalon>
+	Wed, 17 Jul 2013 12:31:04 -0400
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307181020.23305.hverkuil@xs4all.nl>
+In-Reply-To: <2425805.RBpmei1UGe@avalon>
+References: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com> <2425805.RBpmei1UGe@avalon>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Wed, 17 Jul 2013 22:00:42 +0530
+Message-ID: <CA+V-a8tt0rTBDWQ4hSEi8xWzcp9KSCkSjRhLsFKbbx=ZW510_A@mail.gmail.com>
+Subject: Re: [PATCH 0/5] Davinci VPBE use devres and some cleanup
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thu 18 July 2013 02:22:05 Laurent Pinchart wrote:
-> Hi Hans,
-> 
-> Thanks for the patch.
-> 
-> On Friday 28 June 2013 14:27:31 Hans Verkuil wrote:
-> > From: Hans Verkuil <hans.verkuil@cisco.com>
-> > 
-> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> > ---
-> >  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 55 ++++++++++++++++++++++++
-> >  1 file changed, 55 insertions(+)
-> > 
-> > diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 8f7a6a4..64155b1
-> > 100644
-> > --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
-> > @@ -777,6 +777,44 @@ static int put_v4l2_subdev_edid32(struct
-> > v4l2_subdev_edid *kp, struct v4l2_subde return 0;
-> >  }
-> > 
-> > +struct v4l2_matrix32 {
-> > +	__u32 type;
-> > +	union {
-> > +		__u32 reserved[4];
-> > +	} ref;
-> > +	struct v4l2_rect rect;
-> > +	compat_caddr_t matrix;
-> > +	__u32 reserved[12];
-> > +} __attribute__ ((packed));
-> > +
-> > +static int get_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32
-> > __user *up) +{
-> > +	u32 tmp;
-> > +
-> > +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_matrix32)) ||
-> > +		get_user(kp->type, &up->type) ||
-> > +		copy_from_user(&kp->ref, &up->ref, sizeof(up->ref)) ||
-> > +		copy_from_user(&kp->rect, &up->rect, sizeof(up->rect)) ||
-> > +		get_user(tmp, &up->matrix) ||
-> > +		copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
-> > +			return -EFAULT;
-> 
-> A bit of nit-picking here, the return is aligned too far right according to 
-> the kernel coding style (same for put_v4l2_matrix32() below).
+Hi Laurent,
 
-Hmm, I copied-and-pasted this from another get/put function. I guess this is
-wrong in more places than just this one.
+On Wed, Jul 17, 2013 at 5:51 PM, Laurent Pinchart
+<laurent.pinchart@ideasonboard.com> wrote:
+> Hi Prabhakar,
+>
+> On Saturday 13 July 2013 14:20:26 Prabhakar Lad wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> This patch series replaces existing resource handling in the
+>> driver with managed device resource.
+>
+> Thank you for the patches. They greatly simplify the probe/remove functions, I
+> like that. For patches 1 to 4,
+>
+> Acked-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+>
+Thanks for the ACK.
 
-> 
-> > +	kp->matrix = compat_ptr(tmp);
-> > +	return 0;
-> > +}
-> > +
-> > +static int put_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32
-> > __user *up)
-> > +{
-> > +	u32 tmp = (u32)((unsigned long)kp->matrix);
-> > +
-> > +	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_matrix32)) ||
-> > +		put_user(kp->type, &up->type) ||
-> > +		copy_to_user(&kp->ref, &up->ref, sizeof(kp->ref)) ||
-> > +		copy_to_user(&kp->rect, &up->rect, sizeof(kp->rect)) ||
-> > +		put_user(tmp, &up->matrix) ||
-> 
-> Given that drivers shouldn't be allowed to modify the matrix pointer, could we 
-> get rid of the put_user() here as a small optimization ? The same could be 
-> done for all read-only (from a driver point of view) fields in the various 
-> put_v4l2_* functions.
+> I have the same concern as Joe Perches for patch 5.
+>
+Ok I'll fix it and repost the alone patch 5/5.
 
-Ditto. But it's a good idea. I'll look at it.
-
-	Hans
-
-> 
-> 
-> > +		copy_to_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
-> > +			return -EFAULT;
-> > +	return 0;
-> > +}
-> > 
-> >  #define VIDIOC_G_FMT32		_IOWR('V',  4, struct v4l2_format32)
-> >  #define VIDIOC_S_FMT32		_IOWR('V',  5, struct v4l2_format32)
-> > @@ -796,6 +834,8 @@ static int put_v4l2_subdev_edid32(struct
-> > v4l2_subdev_edid *kp, struct v4l2_subde #define	VIDIOC_DQEVENT32	_IOR ('V',
-> > 89, struct v4l2_event32)
-> >  #define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
-> >  #define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
-> > +#define VIDIOC_G_MATRIX32	_IOWR('V', 104, struct v4l2_matrix32)
-> > +#define VIDIOC_S_MATRIX32	_IOWR('V', 105, struct v4l2_matrix32)
-> > 
-> >  #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
-> >  #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
-> > @@ -817,6 +857,7 @@ static long do_video_ioctl(struct file *file, unsigned
-> > int cmd, unsigned long ar struct v4l2_event v2ev;
-> >  		struct v4l2_create_buffers v2crt;
-> >  		struct v4l2_subdev_edid v2edid;
-> > +		struct v4l2_matrix v2matrix;
-> >  		unsigned long vx;
-> >  		int vi;
-> >  	} karg;
-> > @@ -851,6 +892,8 @@ static long do_video_ioctl(struct file *file, unsigned
-> > int cmd, unsigned long ar case VIDIOC_PREPARE_BUF32: cmd =
-> > VIDIOC_PREPARE_BUF; break;
-> >  	case VIDIOC_SUBDEV_G_EDID32: cmd = VIDIOC_SUBDEV_G_EDID; break;
-> >  	case VIDIOC_SUBDEV_S_EDID32: cmd = VIDIOC_SUBDEV_S_EDID; break;
-> > +	case VIDIOC_G_MATRIX32: cmd = VIDIOC_G_MATRIX; break;
-> > +	case VIDIOC_S_MATRIX32: cmd = VIDIOC_S_MATRIX; break;
-> >  	}
-> > 
-> >  	switch (cmd) {
-> > @@ -922,6 +965,12 @@ static long do_video_ioctl(struct file *file, unsigned
-> > int cmd, unsigned long ar case VIDIOC_DQEVENT:
-> >  		compatible_arg = 0;
-> >  		break;
-> > +
-> > +	case VIDIOC_G_MATRIX:
-> > +	case VIDIOC_S_MATRIX:
-> > +		err = get_v4l2_matrix32(&karg.v2matrix, up);
-> > +		compatible_arg = 0;
-> > +		break;
-> >  	}
-> >  	if (err)
-> >  		return err;
-> > @@ -994,6 +1043,11 @@ static long do_video_ioctl(struct file *file, unsigned
-> > int cmd, unsigned long ar case VIDIOC_ENUMINPUT:
-> >  		err = put_v4l2_input32(&karg.v2i, up);
-> >  		break;
-> > +
-> > +	case VIDIOC_G_MATRIX:
-> > +	case VIDIOC_S_MATRIX:
-> > +		err = put_v4l2_matrix32(&karg.v2matrix, up);
-> > +		break;
-> >  	}
-> >  	return err;
-> >  }
-> > @@ -1089,6 +1143,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
-> > int cmd, unsigned long arg) case VIDIOC_ENUM_FREQ_BANDS:
-> >  	case VIDIOC_SUBDEV_G_EDID32:
-> >  	case VIDIOC_SUBDEV_S_EDID32:
-> > +	case VIDIOC_QUERY_MATRIX:
-> >  		ret = do_video_ioctl(file, cmd, arg);
-> >  		break;
-> 
+--
+Regards,
+Prabhakar Lad
