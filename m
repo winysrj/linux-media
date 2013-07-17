@@ -1,106 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:4919 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932690Ab3GCS3u (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jul 2013 14:29:50 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr9.xs4all.nl (8.13.8/8.13.8) with ESMTP id r63ITlcM077900
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Wed, 3 Jul 2013 20:29:49 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C0A9635E01AA
-	for <linux-media@vger.kernel.org>; Wed,  3 Jul 2013 20:29:46 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130703182946.C0A9635E01AA@alastor.dyndns.org>
-Date: Wed,  3 Jul 2013 20:29:46 +0200 (CEST)
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:50172 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755406Ab3GQQUl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jul 2013 12:20:41 -0400
+Message-id: <51E6C455.5080907@samsung.com>
+Date: Wed, 17 Jul 2013 18:20:37 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Cc: LMML <linux-media@vger.kernel.org>,
+	devicetree-discuss@lists.ozlabs.org,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org
+Subject: Re: [PATCH RFC FINAL v5] media: OF: add "sync-on-green-active" property
+References: <1374076022-10960-1-git-send-email-prabhakar.csengg@gmail.com>
+In-reply-to: <1374076022-10960-1-git-send-email-prabhakar.csengg@gmail.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+On 07/17/2013 05:47 PM, Prabhakar Lad wrote:
+> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+> 
+> This patch adds 'sync-on-green-active' property as part
+> of endpoint property.
+> 
+> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
 
-Results of the daily build of media_tree:
+Thanks Prabhakar, it looks good to me.
+Just a side note, the 'From' tag above isn't needed. It wasn't
+added automatically, was it ?
+Unless there are comments from others I think this patch should
+be merged together with the users of this new property.
 
-date:		Wed Jul  3 19:00:28 CEST 2013
-git branch:	test
-git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+Regards,
+Sylwester
+> ---
+>   Changes for v5:
+>   1: Changed description for sync-on-green-active property in
+>      documentation file as suggested by Sylwester.
+>   
+>   Changes for v4:
+>   1: Fixed review comments pointed by Sylwester.
+> 
+>   Changes for v3:
+>   1: Fixed review comments pointed by Laurent and Sylwester.
+> 
+>   RFC v2 https://patchwork.kernel.org/patch/2578091/
+> 
+>   RFC V1 https://patchwork.kernel.org/patch/2572341/
+> 
+>  .../devicetree/bindings/media/video-interfaces.txt |    2 ++
+>  drivers/media/v4l2-core/v4l2-of.c                  |    4 ++++
+>  include/media/v4l2-mediabus.h                      |    2 ++
+>  3 files changed, 8 insertions(+)
+> 
+> diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> index e022d2d..ce719f8 100644
+> --- a/Documentation/devicetree/bindings/media/video-interfaces.txt
+> +++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
+> @@ -88,6 +88,8 @@ Optional endpoint properties
+>  - field-even-active: field signal level during the even field data transmission.
+>  - pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
+>    signal.
+> +- sync-on-green-active: active state of Sync-on-green (SoG) signal, 0/1 for
+> +  LOW/HIGH respectively.
+>  - data-lanes: an array of physical data lane indexes. Position of an entry
+>    determines the logical lane number, while the value of an entry indicates
+>    physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
+> diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
+> index aa59639..5c4c9f0 100644
+> --- a/drivers/media/v4l2-core/v4l2-of.c
+> +++ b/drivers/media/v4l2-core/v4l2-of.c
+> @@ -100,6 +100,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
+>  	if (!of_property_read_u32(node, "data-shift", &v))
+>  		bus->data_shift = v;
+>  
+> +	if (!of_property_read_u32(node, "sync-on-green-active", &v))
+> +		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
+> +			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
+> +
+>  	bus->flags = flags;
+>  
+>  }
+> diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
+> index 83ae07e..d47eb81 100644
+> --- a/include/media/v4l2-mediabus.h
+> +++ b/include/media/v4l2-mediabus.h
+> @@ -40,6 +40,8 @@
+>  #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
+>  /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
+>  #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
+> +#define V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH	(1 << 12)
+> +#define V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW		(1 << 13)
+>  
+>  /* Serial flags */
+>  /* How many lanes the client can use */
+> 
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+-- 
+Sylwester Nawrocki
+Samsung R&D Institute Poland
