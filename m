@@ -1,42 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f176.google.com ([74.125.82.176]:49774 "EHLO
-	mail-we0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758992Ab3GRPpi (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:33854 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755329Ab3GQPYm (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 11:45:38 -0400
+	Wed, 17 Jul 2013 11:24:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: mesa-dev@lists.freedesktop.org, dri-devel@lists.freedesktop.org,
+	xorg-devel@lists.x.org, wayland-devel@lists.freedesktop.org,
+	mir-devel@lists.ubuntu.com, linux-media@vger.kernel.org
+Cc: John Stultz <john.stultz@linaro.org>,
+	Zach Pfeffer <zach.pfeffer@gmail.com>,
+	Jesse Barker <jesse.barker@arm.com>
+Subject: CFP for Graphics and Display uConf at LPC 2013
+Date: Wed, 17 Jul 2013 17:25:26 +0200
+Message-ID: <1491118.JG7G24XKBv@avalon>
 MIME-Version: 1.0
-In-Reply-To: <1374162013.1949.119.camel@joe-AO722>
-References: <1374161380-12762-1-git-send-email-prabhakar.csengg@gmail.com> <1374162013.1949.119.camel@joe-AO722>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Thu, 18 Jul 2013 21:15:15 +0530
-Message-ID: <CA+V-a8vBzRnRXhvaLGsQMDhKEAyNDRvnd4QZQ0xnUUo-D3Ek2A@mail.gmail.com>
-Subject: Re: [PATCH v2 5/5] media: davinci: vpbe: Replace printk with dev_*
-To: Joe Perches <joe@perches.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Joe,
+Hi all,
 
-On Thu, Jul 18, 2013 at 9:10 PM, Joe Perches <joe@perches.com> wrote:
-> On Thu, 2013-07-18 at 20:59 +0530, Prabhakar Lad wrote:
->> Use the dev_* message logging API instead of raw printk.
-> []
->> diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
-> []
->> @@ -595,7 +595,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
->>        * matching with device name
->>        */
->>       if (NULL == vpbe_dev || NULL == dev) {
->> -             printk(KERN_ERR "Null device pointers.\n");
->> +             dev_err(dev, "Null device pointers.\n");
->
-> And if dev actually is NULL?
->
-Ah nice catch, I overlooked it, I'll fix it.
+It's time to start nailing down the agenda for the Graphics and Display 
+microconference at the Linux Plumbers Conference 2013. For conference approval 
+and preliminary planning purposes, we have compiled a list of possible topics 
+for discussion. The overview and general list of topic ideas is available 
+here:
 
-Regards,
---Prabhakar
+http://wiki.linuxplumbersconf.org/2013:graphics_and_display
+
+The final topics for the microconference need to be formally proposed and 
+accepted. We would like to focus on topics which would benefit from discussion 
+to determine project/feature direction, rather than those which are well 
+defined and looking for a likely person to do an implementation. Instructions 
+for how to formally submit a presentation are available here:
+
+http://www.linuxplumbersconf.org/2013/submitting-microconference-discussion-topics/
+
+Please feel free to update the wiki if there are topic ideas you think we have 
+overlooked, and feel free to start a thread in response to this message if you 
+want a more public forum for validating your topic idea; of course, you should 
+also be submitting your ideas formally :-). We are also thinking that there 
+may be some topics that could cross over with the Android microconference 
+(leads on cc).
+
+For key attendees who think they will need travel assistance to attend, the 
+deadline is July 18th, the budget is very limited, and the requests need to go 
+through the conference committee.
+
+If you have any questions or concerns about the microconference, please feel 
+free to contact us. Looking forward to seeing everyone in New Orleans.
+
+-- 
+Thanks in advance,
+Jesse Barker (jesse 'dot' barker 'at' arm 'dot' com)
+Laurent Pinchart (laurent 'dot' pinchart 'at' ideasonboard 'dot' com)
+
