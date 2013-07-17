@@ -1,118 +1,93 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:57378 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751089Ab3G2JMC (ORCPT
+Received: from omr-d01.mx.aol.com ([205.188.252.208]:42310 "EHLO
+	omr-d01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753703Ab3GQODI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 05:12:02 -0400
-Message-id: <51F631DC.8060208@samsung.com>
-Date: Mon, 29 Jul 2013 11:11:56 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arun Kumar K <arun.kk@samsung.com>
-Cc: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
-	k.debski@samsung.com, shaik.ameer@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: Re: [PATCH] [media] exynos-gsc: Register v4l2 device
-References: <1374838081-27308-1-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1374838081-27308-1-git-send-email-arun.kk@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 17 Jul 2013 10:03:08 -0400
+Message-ID: <51E6A20B.8020507@netscape.net>
+Date: Wed, 17 Jul 2013 10:54:19 -0300
+From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
+	<alfredodelaiti@netscape.net>
+MIME-Version: 1.0
+To: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: mb86a20s and cx23885
+References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com> <5106E3EA.70307@netscape.net> <511264CF.3010002@netscape.net> <51336331.10205@netscape.net> <20130303134051.6dc038aa@redhat.com> <20130304164234.18df36a7@redhat.com> <51353591.4040709@netscape.net> <20130304233028.7bc3c86c@redhat.com> <513A6968.4070803@netscape.net> <515A0D03.7040802@netscape.net> <51E44DCA.8060702@netscape.net> <20130716053030.3fda034e.mchehab@infradead.org>
+In-Reply-To: <20130716053030.3fda034e.mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Hi all
 
-On 07/26/2013 01:28 PM, Arun Kumar K wrote:
-> Gscaler video device registration was happening without
-> reference to a parent v4l2_dev causing probe to fail.
-> The patch creates a parent v4l2 device and uses it for
-> gsc m2m video device registration.
-
-
-I've queued this patch for v3.11-rc as a regression fix, adding
-the following to the changelog:
-
-"This fixes regression introduced with comit commit 1c1d86a1ea07506
-[media] v4l2: always require v4l2_dev, rename parent to dev_parent"
-
-But please note that this patch will likely need to be reverted once
-capture support is added the GScaler. Then a top level media device
-would register struct v4l2_device, instead of the video M2M device
-device driver.
-
-
-Thanks,
-Sylwester
-
-> Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+El 15/07/13 17:30, Mauro Carvalho Chehab escribió:
+> Em Mon, 15 Jul 2013 16:30:18 -0300
+> Alfredo Jesús Delaiti <alfredodelaiti@netscape.net> escreveu:
 >
-> ---
->  drivers/media/platform/exynos-gsc/gsc-core.c |    9 ++++++++-
->  drivers/media/platform/exynos-gsc/gsc-core.h |    1 +
->  drivers/media/platform/exynos-gsc/gsc-m2m.c  |    1 +
->  3 files changed, 10 insertions(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
-> index 559fab2..1ec60264 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-core.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-core.c
-> @@ -1122,10 +1122,14 @@ static int gsc_probe(struct platform_device *pdev)
->  		goto err_clk;
->  	}
->  
-> -	ret = gsc_register_m2m_device(gsc);
-> +	ret = v4l2_device_register(dev, &gsc->v4l2_dev);
->  	if (ret)
->  		goto err_clk;
->  
-> +	ret = gsc_register_m2m_device(gsc);
-> +	if (ret)
-> +		goto err_v4l2;
-> +
->  	platform_set_drvdata(pdev, gsc);
->  	pm_runtime_enable(dev);
->  	ret = pm_runtime_get_sync(&pdev->dev);
-> @@ -1147,6 +1151,8 @@ err_pm:
->  	pm_runtime_put(dev);
->  err_m2m:
->  	gsc_unregister_m2m_device(gsc);
-> +err_v4l2:
-> +	v4l2_device_unregister(&gsc->v4l2_dev);
->  err_clk:
->  	gsc_clk_put(gsc);
->  	return ret;
-> @@ -1157,6 +1163,7 @@ static int gsc_remove(struct platform_device *pdev)
->  	struct gsc_dev *gsc = platform_get_drvdata(pdev);
->  
->  	gsc_unregister_m2m_device(gsc);
-> +	v4l2_device_unregister(&gsc->v4l2_dev);
->  
->  	vb2_dma_contig_cleanup_ctx(gsc->alloc_ctx);
->  	pm_runtime_disable(&pdev->dev);
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
-> index cc19bba..76435d3 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-core.h
-> +++ b/drivers/media/platform/exynos-gsc/gsc-core.h
-> @@ -343,6 +343,7 @@ struct gsc_dev {
->  	unsigned long			state;
->  	struct vb2_alloc_ctx		*alloc_ctx;
->  	struct video_device		vdev;
-> +	struct v4l2_device		v4l2_dev;
->  };
->  
->  /**
-> diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> index 40a73f7..e576ff2 100644
-> --- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> +++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
-> @@ -751,6 +751,7 @@ int gsc_register_m2m_device(struct gsc_dev *gsc)
->  	gsc->vdev.release	= video_device_release_empty;
->  	gsc->vdev.lock		= &gsc->lock;
->  	gsc->vdev.vfl_dir	= VFL_DIR_M2M;
-> +	gsc->vdev.v4l2_dev	= &gsc->v4l2_dev;
->  	snprintf(gsc->vdev.name, sizeof(gsc->vdev.name), "%s.%d:m2m",
->  					GSC_MODULE_NAME, gsc->id);
+>> Hi all
+>>
+>> After some time trying to see what the problem is, I have found it is
+>> not come the RF signal.
+>>
+>> I've gone back using a 3.2 kernel, after doing a couple of tests, the
+>> board works :-)
+>> When I try to apply these changes to a 3.4 or later kernel does not tune
+>> plate.
+>>
+>> Between 3.2 and 3.4 kernel there are several changes to the drivers:
+>> CX23885, xc5000 and mb86a20s. I tried to cancel several of them on a 3.4
+>> kernel, but I can not make the card tune.
+> If you know already that the breakage happened between 3.2 and 3.4, the better
+> is to use git bisect to discover what patch broke it.
 
--- 
-Sylwester Nawrocki
-Samsung R&D Institute Poland
+Mauro Thanks for the suggestion.
+This weekend I have some time and I'll study how to implement it.
+
+I guess it's do something similar to:
+
+~ $ git clone git://linuxtv.org/media_build.git
+~ $ cd media_build
+~/media_build $./build --main-git
+~/media_build $ cd media
+~/media $ gedit drivers/media/video/foo.c
+~/media $ make -C ../v4l
+~/media $ make -C ../ install
+~/media $ make -C .. rmmod
+~/media $ modprobe foo
+
+
+>
+> You can do (using Linus git tree):
+>
+> 	git checkout v3.4
+> 	git bisect bad
+> 	git checkout good v3.2
+
+Where is the git tree of Linus in <git://git.kernel.org/> or 
+<git://linuxtv.org/>?
+
+Thanks again,
+
+Alfredo
+
+
+>
+> git bisect will then do a binary search between those two kernels. All you
+> have to do is to recompile the Kernel and test it. Then you'll tag the
+> changeset as "bad" or "good", until the end of the search. In general, you'll
+> discover the changeset responsible for the breakage after a few (8-10)
+> interactions.
+>
+> For more reference, you can take a look, for example, at:
+> 	http://git-scm.com/book/en/Git-Tools-Debugging-with-Git
+>
+> Regards,
+> Mauro
+>
+> PS.: Someone should fix our wiki, as it is still pointing to hg bisect,
+> instead of pointing to git bisect.
+>
+>> The changes I have applied to kernel 3.2 are:
+>
+
