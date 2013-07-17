@@ -1,66 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:44915 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755025Ab3GKOGS (ORCPT
+Received: from belief.htu.tuwien.ac.at ([128.131.95.14]:34881 "EHLO
+	belief.htu.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753646Ab3GQVbl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 10:06:18 -0400
-Message-ID: <51DEBBF5.7090909@gmail.com>
-Date: Thu, 11 Jul 2013 16:06:45 +0200
-From: Daniel Mack <zonque@gmail.com>
+	Wed, 17 Jul 2013 17:31:41 -0400
+Date: Wed, 17 Jul 2013 23:31:39 +0200
+From: Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Possible problem with stk1160 driver
+Message-ID: <20130717213139.GA14370@deadlock.dhs.org>
+References: <20130716220418.GC10973@deadlock.dhs.org> <20130717084428.GA2334@localhost>
 MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Subject: Re: [PATCH 44/50] sound: usb: caiaq: spin_lock in complete() cleanup
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-45-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-45-git-send-email-ming.lei@canonical.com>
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130717084428.GA2334@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11.07.2013 11:06, Ming Lei wrote:
-> Complete() will be run with interrupt enabled, so change to
-> spin_lock_irqsave().
+Hi Ezequiel,
+
+On Wed, Jul 17, 2013 at 05:44:29AM -0300, Ezequiel Garcia wrote:
+> On Wed, Jul 17, 2013 at 12:04:18AM +0200, Sergey 'Jin' Bostandzhyan wrote:
+> > 
+> > It generally works fine, I can, for example, open the video device using VLC,
+> > select one of the inputs and get the picture.
+> > 
+> > However, programs like motion or zoneminder fail, I am not quite sure if it
+> > is something that they might be doing or if it is a problem in the driver.
+> > 
+> > Basically, for both of the above, the problem is that VIDIOC_S_INPUT fails
+> > with EBUSY.
+> > 
 > 
-> Cc: Daniel Mack <zonque@gmail.com>
-> Cc: Jaroslav Kysela <perex@perex.cz>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Cc: alsa-devel@alsa-project.org
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-
-Sound right to me, thanks.
-
-Acked-by: Daniel Mack <zonque@gmail.com>
-
-
-
-> ---
->  sound/usb/caiaq/audio.c |    5 +++--
->  1 file changed, 3 insertions(+), 2 deletions(-)
+> I've just sent a patch to fix this issue.
 > 
-> diff --git a/sound/usb/caiaq/audio.c b/sound/usb/caiaq/audio.c
-> index 7103b09..e5675ab 100644
-> --- a/sound/usb/caiaq/audio.c
-> +++ b/sound/usb/caiaq/audio.c
-> @@ -672,10 +672,11 @@ static void read_completed(struct urb *urb)
->  		offset += len;
->  
->  		if (len > 0) {
-> -			spin_lock(&cdev->spinlock);
-> +			unsigned long flags;
-> +			spin_lock_irqsave(&cdev->spinlock, flags);
->  			fill_out_urb(cdev, out, &out->iso_frame_desc[outframe]);
->  			read_in_urb(cdev, urb, &urb->iso_frame_desc[frame]);
-> -			spin_unlock(&cdev->spinlock);
-> +			spin_unlock_irqrestore(&cdev->spinlock, flags);
->  			check_for_elapsed_periods(cdev, cdev->sub_playback);
->  			check_for_elapsed_periods(cdev, cdev->sub_capture);
->  			send_it = 1;
-> 
+> Could you try it and let me know if it solves your issue?
+
+thanks a lot! Just tried it, same fix is needed for vidioc_s_std(), then
+the errors in motion and zoneminder are gone!
+
+Motion seems to work now, with zoneminder I get a lot of these messages:
+Jul 17 23:28:27 localhost kernel: [20641.931990] stk1160_copy_video: 5563 callbacks suppressed
+Jul 17 23:28:27 localhost kernel: [20641.931998] stk1160: buffer overflow detected
+Jul 17 23:28:27 localhost kernel: [20641.932000] stk1160: buffer overflow detected
+
+Anything to worry about?
+
+The image is also garbled in zoneminder, but since it works fine in motion I
+would assume that this is not a driver problem anymore, probably some bug in
+the zoneminder application.
+
+Thanks a lot for the quick fix!
+
+Kind regards,
+Sergey
 
