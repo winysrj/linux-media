@@ -1,65 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:50418 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932090Ab3GKJHn (ORCPT
+Received: from mail.free-electrons.com ([94.23.35.102]:49301 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752540Ab3GQIo3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:07:43 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Juergen Stuber <starblue@users.sourceforge.net>
-Subject: [PATCH 08/50] USB: legousbtower: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:31 +0800
-Message-Id: <1373533573-12272-9-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Wed, 17 Jul 2013 04:44:29 -0400
+Date: Wed, 17 Jul 2013 05:44:29 -0300
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Possible problem with stk1160 driver
+Message-ID: <20130717084428.GA2334@localhost>
+References: <20130716220418.GC10973@deadlock.dhs.org>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=utf-8
+Content-Disposition: inline
+Content-Transfer-Encoding: 8bit
+In-Reply-To: <20130716220418.GC10973@deadlock.dhs.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+Hi Sergey,
 
-Cc: Juergen Stuber <starblue@users.sourceforge.net>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/usb/misc/legousbtower.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+On Wed, Jul 17, 2013 at 12:04:18AM +0200, Sergey 'Jin' Bostandzhyan wrote:
+> 
+> It generally works fine, I can, for example, open the video device using VLC,
+> select one of the inputs and get the picture.
+> 
+> However, programs like motion or zoneminder fail, I am not quite sure if it
+> is something that they might be doing or if it is a problem in the driver.
+> 
+> Basically, for both of the above, the problem is that VIDIOC_S_INPUT fails
+> with EBUSY.
+> 
 
-diff --git a/drivers/usb/misc/legousbtower.c b/drivers/usb/misc/legousbtower.c
-index 8089479..4044989 100644
---- a/drivers/usb/misc/legousbtower.c
-+++ b/drivers/usb/misc/legousbtower.c
-@@ -771,6 +771,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
- 	struct lego_usb_tower *dev = urb->context;
- 	int status = urb->status;
- 	int retval;
-+	unsigned long flags;
- 
- 	dbg(4, "%s: enter, status %d", __func__, status);
- 
-@@ -788,7 +789,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
- 	}
- 
- 	if (urb->actual_length > 0) {
--		spin_lock (&dev->read_buffer_lock);
-+		spin_lock_irqsave (&dev->read_buffer_lock, flags);
- 		if (dev->read_buffer_length + urb->actual_length < read_buffer_size) {
- 			memcpy (dev->read_buffer + dev->read_buffer_length,
- 				dev->interrupt_in_buffer,
-@@ -799,7 +800,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
- 		} else {
- 			printk(KERN_WARNING "%s: read_buffer overflow, %d bytes dropped", __func__, urb->actual_length);
- 		}
--		spin_unlock (&dev->read_buffer_lock);
-+		spin_unlock_irqrestore (&dev->read_buffer_lock, flags);
- 	}
- 
- resubmit:
+I've just sent a patch to fix this issue.
+
+Could you try it and let me know if it solves your issue?
+
 -- 
-1.7.9.5
-
+Ezequiel García, Free Electrons
+Embedded Linux, Kernel and Android Engineering
+http://free-electrons.com
