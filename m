@@ -1,582 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-4.cisco.com ([144.254.224.147]:61730 "EHLO
-	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755930Ab3GYN0I (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:13470 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757117Ab3GRITY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 09:26:08 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6PDPtGR025835
-	for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 13:26:04 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCHv2 4/5] qv4l2: new modular capture window design
-Date: Thu, 25 Jul 2013 15:25:23 +0200
-Message-Id: <9cfff50e23a8ef8459c7c0332a624056dc03e036.1374758669.git.bwinther@cisco.com>
-In-Reply-To: <1374758724-3058-1-git-send-email-bwinther@cisco.com>
-References: <1374758724-3058-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <0fd43d1af7343792f570f32251ad150735066f71.1374758669.git.bwinther@cisco.com>
-References: <0fd43d1af7343792f570f32251ad150735066f71.1374758669.git.bwinther@cisco.com>
+	Thu, 18 Jul 2013 04:19:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCH 4/5] v4l2: add a motion detection event.
+Date: Thu, 18 Jul 2013 10:19:18 +0200
+Cc: linux-media@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-5-git-send-email-hverkuil@xs4all.nl> <2083405.s15EBXhjSd@avalon>
+In-Reply-To: <2083405.s15EBXhjSd@avalon>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201307181019.18959.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The display of video has been divided into classes to
-easier implement other ways to render frames on screen.
+On Thu 18 July 2013 02:14:28 Laurent Pinchart wrote:
+> Hi Hans,
+> 
+> Thanks for the patch.
+> 
+> On Friday 28 June 2013 14:27:33 Hans Verkuil wrote:
+> > From: Hans Verkuil <hans.verkuil@cisco.com>
+> > 
+> > Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> > ---
+> >  include/uapi/linux/videodev2.h | 17 +++++++++++++++++
+> >  1 file changed, 17 insertions(+)
+> > 
+> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> > index 5cbe815..f926209 100644
+> > --- a/include/uapi/linux/videodev2.h
+> > +++ b/include/uapi/linux/videodev2.h
+> > @@ -1721,6 +1721,7 @@ struct v4l2_streamparm {
+> >  #define V4L2_EVENT_EOS				2
+> >  #define V4L2_EVENT_CTRL				3
+> >  #define V4L2_EVENT_FRAME_SYNC			4
+> > +#define V4L2_EVENT_MOTION_DET			5
+> >  #define V4L2_EVENT_PRIVATE_START		0x08000000
+> > 
+> >  /* Payload for V4L2_EVENT_VSYNC */
+> > @@ -1752,12 +1753,28 @@ struct v4l2_event_frame_sync {
+> >  	__u32 frame_sequence;
+> >  };
+> > 
+> > +#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
+> > +
+> > +/**
+> > + * struct v4l2_event_motion_det - motion detection event
+> > + * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
+> > + *                     frame_sequence field is valid.
+> > + * @frame_sequence:    the frame sequence number associated with this
+> > event.
+> > + * @region_mask:       which regions detected motion.
+> > + */
+> > +struct v4l2_event_motion_det {
+> > +	__u32 flags;
+> > +	__u32 frame_sequence;
+> > +	__u32 region_mask;
+> 
+> Will a 32-bit region mask be extensible enough ? What about hardware that 
+> could report motion detection as a (possibly low resolution) binary image ?
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/Makefile.am        |   4 +-
- utils/qv4l2/capture-win-qt.cpp |  89 ++++++++++++++++++++++++++++++++++++
- utils/qv4l2/capture-win-qt.h   |  48 ++++++++++++++++++++
- utils/qv4l2/capture-win.cpp    |  45 ++++++++++---------
- utils/qv4l2/capture-win.h      |  25 ++++++-----
- utils/qv4l2/qv4l2.cpp          | 100 ++++++++++++++++++++---------------------
- utils/qv4l2/qv4l2.h            |   1 +
- 7 files changed, 226 insertions(+), 86 deletions(-)
- create mode 100644 utils/qv4l2/capture-win-qt.cpp
- create mode 100644 utils/qv4l2/capture-win-qt.h
+I'm not sure whether we should be bothered about this. The struct can easily
+be extended later.
 
-diff --git a/utils/qv4l2/Makefile.am b/utils/qv4l2/Makefile.am
-index 1f5a49f..9ef8149 100644
---- a/utils/qv4l2/Makefile.am
-+++ b/utils/qv4l2/Makefile.am
-@@ -1,6 +1,7 @@
- bin_PROGRAMS = qv4l2
- 
- qv4l2_SOURCES = qv4l2.cpp general-tab.cpp ctrl-tab.cpp vbi-tab.cpp v4l2-api.cpp capture-win.cpp \
-+  capture-win-qt.cpp capture-win-qt.h \
-   raw2sliced.cpp qv4l2.h capture-win.h general-tab.h vbi-tab.h v4l2-api.h raw2sliced.h
- nodist_qv4l2_SOURCES = moc_qv4l2.cpp moc_general-tab.cpp moc_capture-win.cpp moc_vbi-tab.cpp qrc_qv4l2.cpp
- qv4l2_LDADD = ../../lib/libv4l2/libv4l2.la ../../lib/libv4lconvert/libv4lconvert.la ../libv4l2util/libv4l2util.la
-@@ -37,5 +38,4 @@ install-data-local:
- 	$(INSTALL_DATA) -D -p "$(srcdir)/qv4l2_24x24.png" "$(DESTDIR)$(datadir)/icons/hicolor/24x24/apps/qv4l2.png"
- 	$(INSTALL_DATA) -D -p "$(srcdir)/qv4l2_32x32.png" "$(DESTDIR)$(datadir)/icons/hicolor/32x32/apps/qv4l2.png"
- 	$(INSTALL_DATA) -D -p "$(srcdir)/qv4l2_64x64.png" "$(DESTDIR)$(datadir)/icons/hicolor/64x64/apps/qv4l2.png"
--	$(INSTALL_DATA) -D -p "$(srcdir)/qv4l2.svg"       "$(DESTDIR)$(datadir)/icons/hicolor/scalable/apps/qv4l2.svg"
--
-+	$(INSTALL_DATA) -D -p "$(srcdir)/qv4l2.svg"       "$(DESTDIR)$(datadir)/icons/hicolor/scalable/apps/qv4l2.svg"
-\ No newline at end of file
-diff --git a/utils/qv4l2/capture-win-qt.cpp b/utils/qv4l2/capture-win-qt.cpp
-new file mode 100644
-index 0000000..63c77d5
---- /dev/null
-+++ b/utils/qv4l2/capture-win-qt.cpp
-@@ -0,0 +1,89 @@
-+/* qv4l2: a control panel controlling v4l2 devices.
-+ *
-+ * Copyright (C) 2006 Hans Verkuil <hverkuil@xs4all.nl>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-+ */
-+
-+#include "capture-win-qt.h"
-+
-+CaptureWinQt::CaptureWinQt() :
-+	m_frame(new QImage(0, 0, QImage::Format_Invalid))
-+{
-+
-+	CaptureWin::buildWindow(&m_videoSurface);
-+}
-+
-+CaptureWinQt::~CaptureWinQt()
-+{
-+	delete m_frame;
-+}
-+
-+void CaptureWinQt::setFrame(int width, int height, __u32 format, unsigned char *data, const QString &info)
-+{
-+	QImage::Format dstFmt;
-+	bool supported = findNativeFormat(format, dstFmt);
-+	if (!supported)
-+		dstFmt = QImage::Format_RGB888;
-+
-+	if (m_frame->width() != width || m_frame->height() != height || m_frame->format() != dstFmt) {
-+		delete m_frame;
-+		m_frame = new QImage(width, height, dstFmt);
-+	}
-+
-+	if (data == NULL || !supported)
-+		m_frame->fill(0);
-+	else
-+		memcpy(m_frame->bits(), data, m_frame->numBytes());
-+
-+	m_information.setText(info);
-+	m_videoSurface.setPixmap(QPixmap::fromImage(*m_frame));
-+}
-+
-+bool CaptureWinQt::hasNativeFormat(__u32 format)
-+{
-+	QImage::Format fmt;
-+	return findNativeFormat(format, fmt);
-+}
-+
-+bool CaptureWinQt::findNativeFormat(__u32 format, QImage::Format &dstFmt)
-+{
-+	static const struct {
-+		__u32 v4l2_pixfmt;
-+		QImage::Format qt_pixfmt;
-+	} supported_fmts[] = {
-+#if Q_BYTE_ORDER == Q_BIG_ENDIAN
-+		{ V4L2_PIX_FMT_RGB32, QImage::Format_RGB32 },
-+		{ V4L2_PIX_FMT_RGB24, QImage::Format_RGB888 },
-+		{ V4L2_PIX_FMT_RGB565X, QImage::Format_RGB16 },
-+		{ V4L2_PIX_FMT_RGB555X, QImage::Format_RGB555 },
-+#else
-+		{ V4L2_PIX_FMT_BGR32, QImage::Format_RGB32 },
-+		{ V4L2_PIX_FMT_RGB24, QImage::Format_RGB888 },
-+		{ V4L2_PIX_FMT_RGB565, QImage::Format_RGB16 },
-+		{ V4L2_PIX_FMT_RGB555, QImage::Format_RGB555 },
-+		{ V4L2_PIX_FMT_RGB444, QImage::Format_RGB444 },
-+#endif
-+		{ 0, QImage::Format_Invalid }
-+	};
-+
-+	for (int i = 0; supported_fmts[i].v4l2_pixfmt; i++) {
-+		if (supported_fmts[i].v4l2_pixfmt == format) {
-+			dstFmt = supported_fmts[i].qt_pixfmt;
-+			return true;
-+		}
-+	}
-+	return false;
-+}
-diff --git a/utils/qv4l2/capture-win-qt.h b/utils/qv4l2/capture-win-qt.h
-new file mode 100644
-index 0000000..d192045
---- /dev/null
-+++ b/utils/qv4l2/capture-win-qt.h
-@@ -0,0 +1,48 @@
-+/* qv4l2: a control panel controlling v4l2 devices.
-+ *
-+ * Copyright (C) 2006 Hans Verkuil <hverkuil@xs4all.nl>
-+ *
-+ * This program is free software; you can redistribute it and/or
-+ * modify it under the terms of the GNU General Public License
-+ * as published by the Free Software Foundation; either version 2
-+ * of the License, or (at your option) any later version.
-+ *
-+ * This program is distributed in the hope that it will be useful,
-+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ * GNU General Public License for more details.
-+ *
-+ * You should have received a copy of the GNU General Public License
-+ * along with this program; if not, write to the Free Software
-+ * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-+ */
-+
-+#ifndef CAPTURE_WIN_QT_H
-+#define CAPTURE_WIN_QT_H
-+
-+#include "qv4l2.h"
-+#include "capture-win.h"
-+
-+#include <QLabel>
-+#include <QImage>
-+
-+class CaptureWinQt : public CaptureWin
-+{
-+public:
-+	CaptureWinQt();
-+	~CaptureWinQt();
-+
-+	void setFrame(int width, int height, __u32 format,
-+		      unsigned char *data, const QString &info);
-+
-+	void stop(){}
-+	bool hasNativeFormat(__u32 format);
-+	static bool isSupported() { return true; }
-+
-+private:
-+	bool findNativeFormat(__u32 format, QImage::Format &dstFmt);
-+
-+	QImage *m_frame;
-+	QLabel m_videoSurface;
-+};
-+#endif
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 68dc9ed..2d57909 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -16,35 +16,42 @@
-  * along with this program; if not, write to the Free Software
-  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
-  */
--#include <stdio.h>
-+
-+#include "capture-win.h"
-+
-+#include <QCloseEvent>
- #include <QLabel>
- #include <QImage>
- #include <QVBoxLayout>
--#include <QCloseEvent>
- #include <QApplication>
- #include <QDesktopWidget>
- 
--#include "qv4l2.h"
--#include "capture-win.h"
--
- CaptureWin::CaptureWin()
- {
--	QVBoxLayout *vbox = new QVBoxLayout(this);
--
- 	setWindowTitle("V4L2 Capture");
--	m_label = new QLabel();
--	m_msg = new QLabel("No frame");
-+	m_hotkeyClose = new QShortcut(Qt::CTRL+Qt::Key_W, this);
-+	QObject::connect(m_hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
-+}
- 
--	vbox->addWidget(m_label);
--	vbox->addWidget(m_msg);
-+CaptureWin::~CaptureWin()
-+{
-+	if (layout() == NULL)
-+		return;
- 
--	hotkeyClose = new QShortcut(Qt::CTRL+Qt::Key_W, this);
--	QObject::connect(hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
-+	layout()->removeWidget(this);
-+	delete layout();
-+	delete m_hotkeyClose;
- }
- 
--CaptureWin::~CaptureWin()
-+void CaptureWin::buildWindow(QWidget *videoSurface)
- {
--	delete hotkeyClose;
-+	int l, t, r, b;
-+	QVBoxLayout *vbox = new QVBoxLayout(this);
-+	m_information.setText("No Frame");
-+	vbox->addWidget(videoSurface, 2000);
-+	vbox->addWidget(&m_information, 1, Qt::AlignBottom);
-+	vbox->getContentsMargins(&l, &t, &r, &b);
-+	vbox->setSpacing(b);
- }
- 
- void CaptureWin::setMinimumSize(int minw, int minh)
-@@ -56,7 +63,7 @@ void CaptureWin::setMinimumSize(int minw, int minh)
- 	int l, t, r, b;
- 	layout()->getContentsMargins(&l, &t, &r, &b);
- 	minw += l + r;
--	minh += t + b + m_msg->minimumSizeHint().height() + layout()->spacing();
-+	minh += t + b + m_information.minimumSizeHint().height() + layout()->spacing();
- 
- 	if (minw > resolution.width())
- 		minw = resolution.width();
-@@ -74,12 +81,6 @@ void CaptureWin::setMinimumSize(int minw, int minh)
- 	QWidget::setMaximumSize(maxSize.width(), maxSize.height());
- }
- 
--void CaptureWin::setImage(const QImage &image, const QString &status)
--{
--	m_label->setPixmap(QPixmap::fromImage(image));
--	m_msg->setText(status);
--}
--
- void CaptureWin::closeEvent(QCloseEvent *event)
- {
- 	QWidget::closeEvent(event);
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index 3925757..a8d3216 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -20,12 +20,11 @@
- #ifndef CAPTURE_WIN_H
- #define CAPTURE_WIN_H
- 
-+#include "qv4l2.h"
-+
- #include <QWidget>
- #include <QShortcut>
--#include <sys/time.h>
--
--class QImage;
--class QLabel;
-+#include <QLabel>
- 
- class CaptureWin : public QWidget
- {
-@@ -36,18 +35,24 @@ public:
- 	~CaptureWin();
- 
- 	void setMinimumSize(int minw, int minh);
--	void setImage(const QImage &image, const QString &status);
-+	virtual void setFrame(int width, int height, __u32 format,
-+			      unsigned char *data, const QString &info) = 0;
-+
-+	virtual void stop() = 0;
-+	virtual bool hasNativeFormat(__u32 format) = 0;
-+	static bool isSupported() { return false; }
- 
- protected:
--	virtual void closeEvent(QCloseEvent *event);
-+	void closeEvent(QCloseEvent *event);
-+	void buildWindow(QWidget *videoSurface);
-+
-+	QLabel m_information;
- 
- signals:
- 	void close();
- 
- private:
--	QLabel *m_label;
--	QLabel *m_msg;
--	QShortcut *hotkeyClose;
--};
-+	QShortcut *m_hotkeyClose;
- 
-+};
- #endif
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index bb1d84f..74099cb 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -21,6 +21,7 @@
- #include "general-tab.h"
- #include "vbi-tab.h"
- #include "capture-win.h"
-+#include "capture-win-qt.h"
- 
- #include <QToolBar>
- #include <QToolButton>
-@@ -114,7 +115,6 @@ ApplicationWindow::ApplicationWindow() :
- 	fileMenu->addAction(m_capStartAct);
- 	fileMenu->addAction(m_snapshotAct);
- 	fileMenu->addAction(m_saveRawAct);
--	fileMenu->addAction(m_showFramesAct);
- 	fileMenu->addSeparator();
- 	fileMenu->addAction(quitAct);
- 
-@@ -128,6 +128,10 @@ ApplicationWindow::ApplicationWindow() :
- 	toolBar->addSeparator();
- 	toolBar->addAction(quitAct);
- 
-+	QMenu *previewMenu = menuBar()->addMenu("&Preview");
-+	previewMenu->addAction(m_showFramesAct);
-+	previewMenu->addSeparator();
-+
- 	QMenu *helpMenu = menuBar()->addMenu("&Help");
- 	helpMenu->addAction("&About", this, SLOT(about()), Qt::Key_F1);
- 
-@@ -158,7 +162,7 @@ void ApplicationWindow::setDevice(const QString &device, bool rawOpen)
- 	if (!open(device, !rawOpen))
- 		return;
- 
--	m_capture = new CaptureWin;
-+	m_capture = new CaptureWinQt;
- 	m_capture->setMinimumSize(150, 50);
- 	connect(m_capture, SIGNAL(close()), this, SLOT(closeCaptureWin()));
- 
-@@ -345,7 +349,9 @@ void ApplicationWindow::capVbiFrame()
- 	}
- 	status = QString("Frame: %1 Fps: %2").arg(++m_frame).arg(m_fps);
- 	if (m_showFrames)
--		m_capture->setImage(*m_capImage, status);
-+		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
-+				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), status);
-+
- 	curStatus = statusBar()->currentMessage();
- 	if (curStatus.isEmpty() || curStatus.startsWith("Frame: "))
- 		statusBar()->showMessage(status);
-@@ -361,6 +367,8 @@ void ApplicationWindow::capFrame()
- 	int err = 0;
- 	bool again;
- 
-+	unsigned char *displaybuf = NULL;
-+
- 	switch (m_capMethod) {
- 	case methodRead:
- 		s = read(m_frameData, m_capSrcFormat.fmt.pix.sizeimage);
-@@ -380,10 +388,12 @@ void ApplicationWindow::capFrame()
- 			break;
- 		if (m_mustConvert)
- 			err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
--				m_frameData, s,
--				m_capImage->bits(), m_capDestFormat.fmt.pix.sizeimage);
--		if (!m_mustConvert || err < 0)
--			memcpy(m_capImage->bits(), m_frameData, std::min(s, m_capImage->numBytes()));
-+						 m_frameData, s,
-+						 m_capImage->bits(), m_capDestFormat.fmt.pix.sizeimage);
-+		if (m_mustConvert && err != -1)
-+			displaybuf = m_capImage->bits();
-+		if (!m_mustConvert)
-+			displaybuf = m_frameData;
- 		break;
- 
- 	case methodMmap:
-@@ -397,21 +407,19 @@ void ApplicationWindow::capFrame()
- 
- 		if (m_showFrames) {
- 			if (m_mustConvert)
--				err = v4lconvert_convert(m_convertData,
--					&m_capSrcFormat, &m_capDestFormat,
--					(unsigned char *)m_buffers[buf.index].start, buf.bytesused,
--					m_capImage->bits(), m_capDestFormat.fmt.pix.sizeimage);
--			if (!m_mustConvert || err < 0)
--				memcpy(m_capImage->bits(),
--				       (unsigned char *)m_buffers[buf.index].start,
--				       std::min(buf.bytesused, (unsigned)m_capImage->numBytes()));
-+				err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
-+							 (unsigned char *)m_buffers[buf.index].start, buf.bytesused,
-+							 m_capImage->bits(), m_capDestFormat.fmt.pix.sizeimage);
-+			if (m_mustConvert && err != -1)
-+				displaybuf = m_capImage->bits();
-+			if (!m_mustConvert)
-+				displaybuf = (unsigned char *)m_buffers[buf.index].start;
- 		}
- 		if (m_makeSnapshot)
- 			makeSnapshot((unsigned char *)m_buffers[buf.index].start, buf.bytesused);
- 		if (m_saveRaw.openMode())
- 			m_saveRaw.write((const char *)m_buffers[buf.index].start, buf.bytesused);
- 
--		qbuf(buf);
- 		break;
- 
- 	case methodUser:
-@@ -425,20 +433,19 @@ void ApplicationWindow::capFrame()
- 
- 		if (m_showFrames) {
- 			if (m_mustConvert)
--				err = v4lconvert_convert(m_convertData,
--					&m_capSrcFormat, &m_capDestFormat,
--					(unsigned char *)buf.m.userptr, buf.bytesused,
--					m_capImage->bits(), m_capDestFormat.fmt.pix.sizeimage);
--			if (!m_mustConvert || err < 0)
--				memcpy(m_capImage->bits(), (unsigned char *)buf.m.userptr,
--				       std::min(buf.bytesused, (unsigned)m_capImage->numBytes()));
-+				err = v4lconvert_convert(m_convertData, &m_capSrcFormat, &m_capDestFormat,
-+							 (unsigned char *)buf.m.userptr, buf.bytesused,
-+							 m_capImage->bits(), m_capDestFormat.fmt.pix.sizeimage);
-+			if (m_mustConvert && err != -1)
-+				displaybuf = m_capImage->bits();
-+			if (!m_mustConvert)
-+				displaybuf = (unsigned char *)buf.m.userptr;
- 		}
- 		if (m_makeSnapshot)
- 			makeSnapshot((unsigned char *)buf.m.userptr, buf.bytesused);
- 		if (m_saveRaw.openMode())
- 			m_saveRaw.write((const char *)buf.m.userptr, buf.bytesused);
- 
--		qbuf(buf);
- 		break;
- 	}
- 	if (err == -1 && m_frame == 0)
-@@ -458,8 +465,15 @@ void ApplicationWindow::capFrame()
- 		m_tv = tv;
- 	}
- 	status = QString("Frame: %1 Fps: %2").arg(++m_frame).arg(m_fps);
-+	if (displaybuf == NULL && m_showFrames)
-+		status.append(" Error: Unsupported format.");
- 	if (m_showFrames)
--		m_capture->setImage(*m_capImage, status);
-+		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
-+				    m_capDestFormat.fmt.pix.pixelformat, displaybuf, status);
-+
-+	if (m_capMethod == methodMmap || m_capMethod == methodUser)
-+		qbuf(buf);
-+
- 	curStatus = statusBar()->currentMessage();
- 	if (curStatus.isEmpty() || curStatus.startsWith("Frame: "))
- 		statusBar()->showMessage(status);
-@@ -589,6 +603,7 @@ void ApplicationWindow::stopCapture()
- 	v4l2_encoder_cmd cmd;
- 	unsigned i;
- 
-+	m_capture->stop();
- 	m_snapshotAct->setDisabled(true);
- 	switch (m_capMethod) {
- 	case methodRead:
-@@ -640,24 +655,6 @@ void ApplicationWindow::closeCaptureWin()
- 
- void ApplicationWindow::capStart(bool start)
- {
--	static const struct {
--		__u32 v4l2_pixfmt;
--		QImage::Format qt_pixfmt;
--	} supported_fmts[] = {
--#if Q_BYTE_ORDER == Q_BIG_ENDIAN
--		{ V4L2_PIX_FMT_RGB32, QImage::Format_RGB32 },
--		{ V4L2_PIX_FMT_RGB24, QImage::Format_RGB888 },
--		{ V4L2_PIX_FMT_RGB565X, QImage::Format_RGB16 },
--		{ V4L2_PIX_FMT_RGB555X, QImage::Format_RGB555 },
--#else
--		{ V4L2_PIX_FMT_BGR32, QImage::Format_RGB32 },
--		{ V4L2_PIX_FMT_RGB24, QImage::Format_RGB888 },
--		{ V4L2_PIX_FMT_RGB565, QImage::Format_RGB16 },
--		{ V4L2_PIX_FMT_RGB555, QImage::Format_RGB555 },
--		{ V4L2_PIX_FMT_RGB444, QImage::Format_RGB444 },
--#endif
--		{ 0, QImage::Format_Invalid }
--	};
- 	QImage::Format dstFmt = QImage::Format_RGB888;
- 	struct v4l2_fract interval;
- 	v4l2_pix_format &srcPix = m_capSrcFormat.fmt.pix;
-@@ -722,7 +719,8 @@ void ApplicationWindow::capStart(bool start)
- 			m_capture->setMinimumSize(m_vbiWidth, m_vbiHeight);
- 			m_capImage = new QImage(m_vbiWidth, m_vbiHeight, dstFmt);
- 			m_capImage->fill(0);
--			m_capture->setImage(*m_capImage, "No frame");
-+			m_capture->setFrame(m_capImage->width(), m_capImage->height(),
-+					    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
- 			m_capture->show();
- 		}
- 		statusBar()->showMessage("No frame");
-@@ -744,14 +742,11 @@ void ApplicationWindow::capStart(bool start)
- 		m_capDestFormat = m_capSrcFormat;
- 		dstPix.pixelformat = V4L2_PIX_FMT_RGB24;
- 
--		for (int i = 0; supported_fmts[i].v4l2_pixfmt; i++) {
--			if (supported_fmts[i].v4l2_pixfmt == srcPix.pixelformat) {
--				dstPix.pixelformat = supported_fmts[i].v4l2_pixfmt;
--				dstFmt = supported_fmts[i].qt_pixfmt;
--				m_mustConvert = false;
--				break;
--			}
-+		if (m_capture->hasNativeFormat(srcPix.pixelformat)) {
-+			dstPix.pixelformat = srcPix.pixelformat;
-+			m_mustConvert = false;
- 		}
-+
- 		if (m_mustConvert) {
- 			v4l2_format copy = m_capSrcFormat;
- 
-@@ -765,7 +760,8 @@ void ApplicationWindow::capStart(bool start)
- 		m_capture->setMinimumSize(dstPix.width, dstPix.height);
- 		m_capImage = new QImage(dstPix.width, dstPix.height, dstFmt);
- 		m_capImage->fill(0);
--		m_capture->setImage(*m_capImage, "No frame");
-+		m_capture->setFrame(m_capImage->width(), m_capImage->height(),
-+				    m_capDestFormat.fmt.pix.pixelformat, m_capImage->bits(), "No frame");
- 		m_capture->show();
- 	}
- 
-diff --git a/utils/qv4l2/qv4l2.h b/utils/qv4l2/qv4l2.h
-index 8634948..ccfc2f9 100644
---- a/utils/qv4l2/qv4l2.h
-+++ b/utils/qv4l2/qv4l2.h
-@@ -33,6 +33,7 @@
- 
- #include "v4l2-api.h"
- #include "raw2sliced.h"
-+#include "capture-win.h"
- 
- class QComboBox;
- class QSpinBox;
--- 
-1.8.3.2
+Also, in your particular example I would actually expect that that would either
+need support for 'large payload events', or you would call G_MATRIX to get that
+image.
 
+> > +};
+> > +
+> >  struct v4l2_event {
+> >  	__u32				type;
+> >  	union {
+> >  		struct v4l2_event_vsync		vsync;
+> >  		struct v4l2_event_ctrl		ctrl;
+> >  		struct v4l2_event_frame_sync	frame_sync;
+> > +		struct v4l2_event_motion_det	motion_det;
+> >  		__u8				data[64];
+> >  	} u;
+> >  	__u32				pending;
+> 
+
+Regards,
+
+	Hans
