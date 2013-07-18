@@ -1,79 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.9]:64035 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751745Ab3GYHyk (ORCPT
+Received: from mail-oa0-f49.google.com ([209.85.219.49]:35999 "EHLO
+	mail-oa0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758140Ab3GRKDX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 03:54:40 -0400
-From: Arnd Bergmann <arnd@arndb.de>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Thu, 25 Jul 2013 09:54:26 +0200
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	broonie@kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com,
-	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org> <201307242032.03597.arnd@arndb.de> <51F0B373.5050907@ti.com>
-In-Reply-To: <51F0B373.5050907@ti.com>
+	Thu, 18 Jul 2013 06:03:23 -0400
+Received: by mail-oa0-f49.google.com with SMTP id n9so973332oag.36
+        for <linux-media@vger.kernel.org>; Thu, 18 Jul 2013 03:03:22 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307250954.27190.arnd@arndb.de>
+Date: Thu, 18 Jul 2013 11:03:22 +0100
+Message-ID: <CAGj5WxBwGg0sUN-SSQsamYu2sB0mpE3HFf5RkdUkfd_rW9iTUg@mail.gmail.com>
+Subject: Re: [PATCH] cx23885: Fix interrupt storm that happens in some cards
+ when IR is enabled.
+From: Luis Alves <ljalvs@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 25 July 2013, Kishon Vijay Abraham I wrote:
-> On Thursday 25 July 2013 12:02 AM, Arnd Bergmann wrote:
-> > On Tuesday 23 July 2013, Tomasz Figa wrote:
-> >> On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
-> >>> On Tue, 23 Jul 2013, Tomasz Figa wrote:
-> >>>> Where would you want to have those phy_address arrays stored? There
-> >>>> are no board files when booting with DT. Not even saying that you
-> >>>> don't need to use any hacky schemes like this when you have DT that
-> >>>> nicely specifies relations between devices.
-> >>>
-> >>> If everybody agrees DT has a nice scheme for specifying relations
-> >>> between devices, why not use that same scheme in the PHY core?
-> >>
-> >> It is already used, for cases when consumer device has a DT node attached. 
-> >> In non-DT case this kind lookup translates loosely to something that is 
-> >> being done in regulator framework - you can't bind devices by pointers, 
-> >> because you don't have those pointers, so you need to use device names.
-> >>
-> > 
-> > Sorry for jumping in to the middle of the discussion, but why does a new
-> > framework even bother defining an interface for board files?
-> > 
-> > Can't we just drop any interfaces for platform data passing in the phy
-> > framework and put the burden of adding those to anyone who actually needs
-> > them? All the platforms we are concerned with here (exynos and omap,
-> > plus new platforms) can be booted using DT anyway.
-> 
-> The OMAP3 platforms still needs to be supported for non-dt :-s
+Sorry if I wasn't clear, but this patch is not intended to be merged
+in the main tree (as it is).
+I've sent it so that people facing this interrupt storm when IR is
+enabled can test it in their cards (I only have the TBS6981 to test
+and it works).
+Probably I should have just sent a mail with a code sample...
 
-Can't you leave the existing PHY handling for legacy OMAP3 USB PHY
-until they are all converted? I don't expect that to take a long time
-now that the OMAP4 board files have been removed. Are there still
-drivers without DT bindings that hold up the removal of the OMAP3
-board files?
+About what it does, I don't have a clue! I just know that it does
+silence the interrupt spam.
+My best guess is that the IR interrupt line is shared with the ADC
+interrupt line and maybe the ADC is generating an end-of-conversion
+interrupt by default.
+And touching this register can be disabling the ADC interrupts - or
+powering down the ADC - or just disabling the ADC clock.
 
-Otherwise I'd suggest delaying the phy subsystem by another merge window,
-until that is resolved.
+It would be valuable for other people that have this issues in their
+cards to test and then make a proper patch to the cx23885.
 
-	Arnd
+If this doesn't work with other cards, then I'll just add those two
+lines to be specific to my card init code.
+
+Thanks and Regards,
+Luis
