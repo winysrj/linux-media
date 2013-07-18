@@ -1,59 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:13008 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754007Ab3GYKBw (ORCPT
+Received: from mail.free-electrons.com ([94.23.35.102]:56951 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758179Ab3GRNBZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 06:01:52 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQH00KVUL4MJQ60@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Thu, 25 Jul 2013 11:01:50 +0100 (BST)
-Message-id: <51F0F78D.1050206@samsung.com>
-Date: Thu, 25 Jul 2013 12:01:49 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Cc: linux-media@vger.kernel.org, prabhakar.csengg@gmail.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com
-Subject: Re: [PATCH RFC 0/5] v4l2-async DT support improvement and cleanups
-References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
- <Pine.LNX.4.64.1307241333020.30777@axis700.grange>
-In-reply-to: <Pine.LNX.4.64.1307241333020.30777@axis700.grange>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Thu, 18 Jul 2013 09:01:25 -0400
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: <linux-media@vger.kernel.org>
+Cc: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+	Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [PATCH] media: stk1160: Ignore unchanged standard set
+Date: Thu, 18 Jul 2013 10:01:23 -0300
+Message-Id: <1374152483-3106-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Guennadi,
+This commit adds an early check to vidioc_s_std() to detect if the
+new and current standards are equal, and exit with success in that
+case.
 
-On 07/24/2013 01:36 PM, Guennadi Liakhovetski wrote:
-> On Mon, 22 Jul 2013, Sylwester Nawrocki wrote:
->> Hello,
->>
->> This is a few patches for the v4l2-async API I wrote while adding
->> the asynchronous subdev registration support to the exynos4-is
->> driver.
->>
->> The most significant change is addition of V4L2_ASYNC_MATCH_OF
->> subdev matching method, where host driver can pass a list of
->> of_node pointers identifying its subdevs.
->>
->> I thought it's a reasonable and simple enough way to support device
->> tree based systems. Comments/other ideas are of course welcome.
-> 
-> Thanks for the patches. In principle I have nothing against them, OF 
-> support looks good, integrating asdl into struct v4l2_subdev, dropping 
-> redundant checks, renaming "bus" to "match look ok too. Plural vs. 
-> singular seems to be a matter of taste to me :) But in general, provided 
-> my single comment concerning struct forward-declaration is addressed
+This is needed to prevent userspace applications that might attempt
+to re-set the same standard from failing if that's done when streaming
+has started.
 
-Thanks for your review. I'm going to make that change locally, before
-sending a pull request with those patches.
+Signed-off-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+Cc: Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
 
-> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+ drivers/media/usb/stk1160/stk1160-v4l.c | 3 +++
+ 1 file changed, 3 insertions(+)
 
---
-Regards,
-Sylwester
+diff --git a/drivers/media/usb/stk1160/stk1160-v4l.c b/drivers/media/usb/stk1160/stk1160-v4l.c
+index ee46d82..c45c988 100644
+--- a/drivers/media/usb/stk1160/stk1160-v4l.c
++++ b/drivers/media/usb/stk1160/stk1160-v4l.c
+@@ -379,6 +379,9 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id norm)
+ 	struct stk1160 *dev = video_drvdata(file);
+ 	struct vb2_queue *q = &dev->vb_vidq;
+ 
++	if (dev->norm == norm)
++		return 0;
++
+ 	if (vb2_is_busy(q))
+ 		return -EBUSY;
+ 
+-- 
+1.8.1.5
+
