@@ -1,97 +1,89 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:57393 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751584Ab3G2JMJ (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:33160 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753063Ab3GRIWo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 05:12:09 -0400
-Message-id: <51F631E4.5020005@samsung.com>
-Date: Mon, 29 Jul 2013 11:12:04 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arun Kumar K <arunkk.samsung@gmail.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Subject: Re: [REVIEW PATCH 4/6] exynos4-is: Add clock provider for the external
- clocks
-References: <1374604777-15523-1-git-send-email-s.nawrocki@samsung.com>
- <1374604777-15523-5-git-send-email-s.nawrocki@samsung.com>
- <CALt3h79AVS_bY4b0beo+zK2JMSnp5qnmNQWM0+_CqSV7dMCeGw@mail.gmail.com>
-In-reply-to: <CALt3h79AVS_bY4b0beo+zK2JMSnp5qnmNQWM0+_CqSV7dMCeGw@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Thu, 18 Jul 2013 04:22:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: [RFC PATCH 0/5] Matrix and Motion Detection support
+Date: Thu, 18 Jul 2013 10:22:39 +0200
+Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Pete Eberlein <pete@sensoray.com>
+References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <51D9E2A6.2070002@gmail.com> <2376197.fRlMlWruRn@avalon>
+In-Reply-To: <2376197.fRlMlWruRn@avalon>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201307181022.39465.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Arun,
+Hi Laurent,
 
-On 07/29/2013 07:52 AM, Arun Kumar K wrote:
-> Hi Sylwester,
+Thanks for your reviews!
+
+On Thu 18 July 2013 02:12:49 Laurent Pinchart wrote:
+> Hello,
 > 
-> On Wed, Jul 24, 2013 at 12:09 AM, Sylwester Nawrocki
-> <s.nawrocki@samsung.com> wrote:
->> This patch adds clock provider to expose the sclk_cam0/1 clocks
->> for image sensor subdevs.
->>
->> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->> ---
->>  .../devicetree/bindings/media/samsung-fimc.txt     |   17 +++-
->>  drivers/media/platform/exynos4-is/media-dev.c      |   92 ++++++++++++++++++++
->>  drivers/media/platform/exynos4-is/media-dev.h      |   19 +++-
->>  3 files changed, 125 insertions(+), 3 deletions(-)
->>
->> diff --git a/Documentation/devicetree/bindings/media/samsung-fimc.txt b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> index 96312f6..04a2b87 100644
->> --- a/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> +++ b/Documentation/devicetree/bindings/media/samsung-fimc.txt
->> @@ -91,6 +91,15 @@ Optional properties
->>  - samsung,camclk-out : specifies clock output for remote sensor,
->>                        0 - CAM_A_CLKOUT, 1 - CAM_B_CLKOUT;
->>
->> +'clock-controller' node (optional)
->> +----------------------------------
->> +
->> +The purpose of this node is to define a clock provider for external image
->> +sensors and link any of the CAM_?_CLKOUT clock outputs with related external
->> +clock consumer device. Properties specific to this node are described in
->> +../clock/clock-bindings.txt.
->> +
->> +
->>  Image sensor nodes
->>  ------------------
->>
->> @@ -114,7 +123,7 @@ Example:
->>                         vddio-supply = <...>;
->>
->>                         clock-frequency = <24000000>;
->> -                       clocks = <...>;
->> +                       clocks = <&camclk 1>;
->>                         clock-names = "mclk";
->>
->>                         port {
->> @@ -135,7 +144,7 @@ Example:
->>                         vddio-supply = <...>;
->>
->>                         clock-frequency = <24000000>;
->> -                       clocks = <...>;
->> +                       clocks = <&camclk 0>;
->>                         clock-names = "mclk";
->>
->>                         port {
->> @@ -156,6 +165,10 @@ Example:
->>                 pinctrl-names = "default";
->>                 pinctrl-0 = <&cam_port_a_clk_active>;
->>
->> +               camclk: clock-controller {
->> +                      #clock-cells = 1;
+> On Sunday 07 July 2013 23:50:30 Sylwester Nawrocki wrote:
+> > On 06/28/2013 02:27 PM, Hans Verkuil wrote:
+> > > This patch series adds support for matrices and motion detection and
+> > > converts the solo6x10 driver to use these new APIs.
+> > > 
+> > > See the RFCv2 for details on the motion detection API:
+> > > 
+> > > http://www.mail-archive.com/linux-media@vger.kernel.org/msg62085.html
+> > > 
+> > > And this RFC for details on the matrix API (which superseeds the
+> > > v4l2_md_blocks in the RFC above):
+> > > 
+> > > http://permalink.gmane.org/gmane.linux.drivers.video-input-infrastructure/
+> > > 65195
+> > > 
+> > > I have tested this with the solo card, both global motion detection and
+> > > regional motion detection, and it works well.
+> > > 
+> > > There is no documentation for the new APIs yet (other than the RFCs). I
+> > > would like to know what others think of this proposal before I start work
+> > > on the DocBook documentation.
+> > 
+> > These 3 ioctls look pretty generic and will likely allow us to handle wide
+> > range of functionalities, similarly to what the controls framework does
+> > today.
+> > 
+> > What I don't like in the current trend of the V4L2 API development
+> > though is that we have seemingly separate APIs for configuring integers,
+> > rectangles, matrices, etc. And interactions between those APIs sometimes
+> > happen to be not well defined.
+> > 
+> > I'm not opposed to having this matrix API, but I would _much_ more like to
+> > see it as a starting point of a more powerful API, that would allow to
+> > model dependencies between parameters being configured and the objects more
+> > explicitly and freely (e.g. case of the per buffer controls), that would
+> > allow to pass a list of commands to the hardware for atomic re-
+> > configurations, that would allow to create hardware configuration contexts,
+> > etc., etc.
+> > 
+> > But it's all song of future, requires lots of effort, founding and takes
+> > engineers with significant experience.
+> > 
+> > As it likely won't happen soon I guess we can proceed with the matrix API
+> > for now.
 > 
-> Isn't it
->                           #clock-cells = <1>;
-> ?
+> Just for the record, I second that point of view. A matrix API, even as an 
+> interim solution for the problems at hand, would be welcome. I would use it to 
+> configure various kinds of LUTs (such as gamma tables). I'm all for going to a 
+> property-based model (or at least seriously brainstorming it), but we're 
+> looking at a too long time frame.
 
-Yes, indeed. Thanks for spotting this!
+OK. Good to know. In that case I will proceed with this and start writing the
+documentation part as well.
 
---
 Regards,
-Sylwester
+
+	Hans
