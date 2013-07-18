@@ -1,48 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f175.google.com ([209.85.215.175]:51884 "EHLO
-	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753622Ab3G1OWK (ORCPT
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:35844 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754614Ab3GRP35 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 28 Jul 2013 10:22:10 -0400
-Received: by mail-ea0-f175.google.com with SMTP id m14so486490eaj.20
-        for <linux-media@vger.kernel.org>; Sun, 28 Jul 2013 07:22:09 -0700 (PDT)
-Message-ID: <51F52998.1000700@googlemail.com>
-Date: Sun, 28 Jul 2013 16:24:24 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Chris Rankin <rankincj@yahoo.com>
-CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Very verbose message about em28174 chip.
-References: <1375017565.30131.YahooMailNeo@web120305.mail.ne1.yahoo.com> <CAGoCfizG1MgsNPfka-zjcO71z3LS0tKbka3iL4EY6PqsUBatiA@mail.gmail.com> <1375019889.33203.YahooMailNeo@web120306.mail.ne1.yahoo.com> <CAGoCfiy0dq2yF3WjT1AdYghOZnWcBO=9mWrTqyjKAcBY=17t1A@mail.gmail.com>
-In-Reply-To: <CAGoCfiy0dq2yF3WjT1AdYghOZnWcBO=9mWrTqyjKAcBY=17t1A@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+	Thu, 18 Jul 2013 11:29:57 -0400
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [PATCH v2 5/5] media: davinci: vpbe: Replace printk with dev_*
+Date: Thu, 18 Jul 2013 20:59:40 +0530
+Message-Id: <1374161380-12762-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 28.07.2013 16:05, schrieb Devin Heitmueller:
-> On Sun, Jul 28, 2013 at 9:58 AM, Chris Rankin <rankincj@yahoo.com> wrote:
->> ----- Original Message -----
->>
->> From: Devin Heitmueller <dheitmueller@kernellabs.com>
->>
->>> The amount of output is not inconsistent with most other linuxtv drivers though.
->> It's the EEPROM dump that really caught my eye: 16+ lines of pure "WTF?".
-> Yeah, nowadays the eeprom output is one of the less useful pieces of
-> output (in fact, I intentionally didn't do support for dumping it out
-> on the em2874, but somebody did it anyway).
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-We've always been dumping the eeprom content (which doesn't mean that we
-have to do it forever ;) ).
-IIRC, the reason why we didn't dump the eeprom of the newer em2874+
-devices up to now, that they are using 16bit eeproms and Devin thought
-it was too dangerous to read them. ;)
-It should also be mentioned, that we haven't decoded the meaning of this
-eeprom type yet completely.
+Use the dev_* message logging API instead of raw printk.
 
-I don't care too much.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ Posting independent patch of the series,
+ http://www.spinics.net/lists/linux-media/msg65701.html
+ 
+ Changes for v2:
+ 1: Fixed logging levels.
+ 
+ drivers/media/platform/davinci/vpbe.c |    6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-Regards,
-Frank
+diff --git a/drivers/media/platform/davinci/vpbe.c b/drivers/media/platform/davinci/vpbe.c
+index 33b9660..a3a36e0 100644
+--- a/drivers/media/platform/davinci/vpbe.c
++++ b/drivers/media/platform/davinci/vpbe.c
+@@ -595,7 +595,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 	 * matching with device name
+ 	 */
+ 	if (NULL == vpbe_dev || NULL == dev) {
+-		printk(KERN_ERR "Null device pointers.\n");
++		dev_err(dev, "Null device pointers.\n");
+ 		return -ENODEV;
+ 	}
+ 
+@@ -735,7 +735,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 
+ 	mutex_unlock(&vpbe_dev->lock);
+ 
+-	printk(KERN_NOTICE "Setting default output to %s\n", def_output);
++	dev_notice(dev, "Setting default output to %s\n", def_output);
+ 	ret = vpbe_set_default_output(vpbe_dev);
+ 	if (ret) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default output %s",
+@@ -743,7 +743,7 @@ static int vpbe_initialize(struct device *dev, struct vpbe_device *vpbe_dev)
+ 		return ret;
+ 	}
+ 
+-	printk(KERN_NOTICE "Setting default mode to %s\n", def_mode);
++	dev_notice(dev, "Setting default mode to %s\n", def_mode);
+ 	ret = vpbe_set_default_mode(vpbe_dev);
+ 	if (ret) {
+ 		v4l2_err(&vpbe_dev->v4l2_dev, "Failed to set default mode %s",
+-- 
+1.7.9.5
 
