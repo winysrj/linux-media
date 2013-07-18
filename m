@@ -1,52 +1,91 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-qe0-f49.google.com ([209.85.128.49]:49264 "EHLO
-	mail-qe0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753864Ab3GIOxp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 10:53:45 -0400
-Received: by mail-qe0-f49.google.com with SMTP id cz11so3019505qeb.8
-        for <linux-media@vger.kernel.org>; Tue, 09 Jul 2013 07:53:44 -0700 (PDT)
+Received: from devils.ext.ti.com ([198.47.26.153]:49268 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932595Ab3GRGrx (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jul 2013 02:47:53 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: [PATCH 07/15] usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
+Date: Thu, 18 Jul 2013 12:16:16 +0530
+Message-ID: <1374129984-765-8-git-send-email-kishon@ti.com>
+In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
+References: <1374129984-765-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-In-Reply-To: <017101ce7c5b$6899c860$39cd5920$@blueflowamericas.com>
-References: <010c01ce7365$9181ff30$b485fd90$@blueflowamericas.com>
-	<CAGoCfiyjeqxVV8A_MM-iV58=s48FEhNPA=5MPg3WAOAKs8d2iA@mail.gmail.com>
-	<011901ce73ab$9b81cce0$d28566a0$@blueflowamericas.com>
-	<CALzAhNV7Cv9SR1C2mpgtLTwxD_grCZeOWc6O-2XpJEAKg1mX6w@mail.gmail.com>
-	<017101ce7c5b$6899c860$39cd5920$@blueflowamericas.com>
-Date: Tue, 9 Jul 2013 10:53:43 -0400
-Message-ID: <CALzAhNVo0gi1HZ5TH9oXnUpgsqKa+YL=uGLvQNYxqj6gLd2upw@mail.gmail.com>
-Subject: Re: lgdt3304
-From: Steven Toth <stoth@kernellabs.com>
-To: Carl-Fredrik Sundstrom <cf@blueflowamericas.com>
-Cc: Devin Heitmueller <dheitmueller@kernellabs.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-> using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
->>>> tune to: 57028615:8VSB
-> WARNING: >>> tuning failed!!!
->>>> tune to: 57028615:8VSB (tuning failed)
+Now that omap-usb2 is adapted to the new generic PHY framework,
+*set_suspend* ops can be removed from omap-usb2 driver.
 
-I don't have a box in front of me but that's usually a sign that the
-frequency details you are passing in are bogus, so the tuner driver is
-rejecting it.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+---
+ drivers/usb/phy/phy-omap-usb2.c |   25 -------------------------
+ 1 file changed, 25 deletions(-)
 
-Check your command line tuning tools and args.
+diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/usb/phy/phy-omap-usb2.c
+index 751b30f..3f2b125 100644
+--- a/drivers/usb/phy/phy-omap-usb2.c
++++ b/drivers/usb/phy/phy-omap-usb2.c
+@@ -97,29 +97,6 @@ static int omap_usb_set_peripheral(struct usb_otg *otg,
+ 	return 0;
+ }
+ 
+-static int omap_usb2_suspend(struct usb_phy *x, int suspend)
+-{
+-	u32 ret;
+-	struct omap_usb *phy = phy_to_omapusb(x);
+-
+-	if (suspend && !phy->is_suspended) {
+-		omap_control_usb_phy_power(phy->control_dev, 0);
+-		pm_runtime_put_sync(phy->dev);
+-		phy->is_suspended = 1;
+-	} else if (!suspend && phy->is_suspended) {
+-		ret = pm_runtime_get_sync(phy->dev);
+-		if (ret < 0) {
+-			dev_err(phy->dev, "get_sync failed with err %d\n",
+-									ret);
+-			return ret;
+-		}
+-		omap_control_usb_phy_power(phy->control_dev, 1);
+-		phy->is_suspended = 0;
+-	}
+-
+-	return 0;
+-}
+-
+ static int omap_usb_power_off(struct phy *x)
+ {
+ 	struct omap_usb *phy = phy_get_drvdata(x);
+@@ -167,7 +144,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 
+ 	phy->phy.dev		= phy->dev;
+ 	phy->phy.label		= "omap-usb2";
+-	phy->phy.set_suspend	= omap_usb2_suspend;
+ 	phy->phy.otg		= otg;
+ 	phy->phy.type		= USB_PHY_TYPE_USB2;
+ 
+@@ -182,7 +158,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
+ 		return -ENODEV;
+ 	}
+ 
+-	phy->is_suspended	= 1;
+ 	omap_control_usb_phy_power(phy->control_dev, 0);
+ 
+ 	otg->set_host		= omap_usb_set_host;
+-- 
+1.7.10.4
 
-Here's a one line channels.conf for azap (US digital cable) that works
-fine, and the azap console output:
-
-ch86:597000000:QAM_256:0:0:101
-
-stoth@mythbackend:~/.azap$ azap ch86
-using '/dev/dvb/adapter0/frontend0' and '/dev/dvb/adapter0/demux0'
-tuning to 597000000 Hz
-video pid 0x0000, audio pid 0x0000
-status 00 | signal 0000 | snr b770 | ber 00000000 | unc 00000000 |
-status 1f | signal 0154 | snr 0154 | ber 000000ad | unc 000000ad | FE_HAS_LOCK
-status 1f | signal 0156 | snr 0156 | ber 00000000 | unc 00000000 | FE_HAS_LOCK
-
---
-Steven Toth - Kernel Labs
-http://www.kernellabs.com
