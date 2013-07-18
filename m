@@ -1,340 +1,569 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:51294 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932278Ab3GCWtH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jul 2013 18:49:07 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	linux-media <linux-media@vger.kernel.org>,
-	Andrzej Hajda <a.hajda@samsung.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: Samsung i2c subdev drivers that set sd->name
-Date: Thu, 04 Jul 2013 00:49:36 +0200
-Message-ID: <7758943.14lQpNQsdc@avalon>
-In-Reply-To: <51CC0B8B.4040401@samsung.com>
-References: <201306241054.11604.hverkuil@xs4all.nl> <201306270843.11817.hverkuil@xs4all.nl> <51CC0B8B.4040401@samsung.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34740 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758264Ab3GRGsj (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jul 2013 02:48:39 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: [PATCH 14/15] video: exynos_dp: remove non-DT support for Exynos Display Port
+Date: Thu, 18 Jul 2013 12:16:23 +0530
+Message-ID: <1374129984-765-15-git-send-email-kishon@ti.com>
+In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
+References: <1374129984-765-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Jingoo Han <jg1.han@samsung.com>
 
-On Thursday 27 June 2013 11:53:15 Sylwester Nawrocki wrote:
-> On 06/27/2013 08:43 AM, Hans Verkuil wrote:
-> > On Wed June 26 2013 11:00:51 Sakari Ailus wrote:
-> >> On Tue, Jun 25, 2013 at 06:55:49PM +0200, Sylwester Nawrocki wrote:
-> >>> On 06/24/2013 10:54 AM, Hans Verkuil wrote:
-> >>>> Hi Sylwester,
-> >>>> 
-> >>>> It came to my attention that several i2c subdev drivers overwrite the
-> >>>> sd->name as set by v4l2_i2c_subdev_init with a custom name.
-> >>>> 
-> >>>> This is wrong if it is possible that there are multiple identical
-> >>>> sensors in the system. The sd->name must be unique since it is used to
-> >>>> prefix kernel messages etc, so you have to be able to tell the sensor
-> >>>> devices apart.
-> >>> 
-> >>> This has been discussed in the past, please see thread [1].
-> >>> 
-> >>>> It concerns the following Samsung-contributed drivers:
-> >>>> 
-> >>>> drivers/media/i2c/s5k4ecgx.c:   strlcpy(sd->name, S5K4ECGX_DRIVER_NAME,
-> >>>> sizeof(sd->name)); drivers/media/i2c/s5c73m3/s5c73m3-core.c:      
-> >>>> strlcpy(sd->name, "S5C73M3", sizeof(sd->name));
-> >>>> drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strcpy(oif_sd->name,
-> >>>> "S5C73M3-OIF"); drivers/media/i2c/sr030pc30.c:  strcpy(sd->name,
-> >>>> MODULE_NAME);
-> >>>> drivers/media/i2c/noon010pc30.c:        strlcpy(sd->name, MODULE_NAME,
-> >>>> sizeof(sd->name)); drivers/media/i2c/m5mols/m5mols_core.c:
-> >>>> strlcpy(sd->name, MODULE_NAME, sizeof(sd->name));
-> >>>> drivers/media/i2c/s5k6aa.c:     strlcpy(sd->name, DRIVER_NAME,
-> >>>> sizeof(sd->name));>>> 
-> >>> It seems ov9650 is missing on this list,
-> >>> 
-> >>> $ git grep ".*cpy.*(.*sd\|subdev.*name" -- drivers/media/i2c
-> >>> drivers/media/i2c/m5mols/m5mols_core.c: strlcpy(sd->name, MODULE_NAME,
-> >>> sizeof(sd->name));
-> >>> drivers/media/i2c/noon010pc30.c:        strlcpy(sd->name, MODULE_NAME,
-> >>> sizeof(sd->name));
-> >>> drivers/media/i2c/ov9650.c:             strlcpy(sd->name, DRIVER_NAME,
-> >>> sizeof(sd->name));
-> >>> drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strlcpy(sd->name,
-> >>> "S5C73M3", sizeof(sd->name));
-> >>> drivers/media/i2c/s5c73m3/s5c73m3-core.c:       strcpy(oif_sd->name,
-> >>> "S5C73M3-OIF");
-> >>> drivers/media/i2c/s5k4ecgx.c:                   strlcpy(sd->name,
-> >>> S5K4ECGX_DRIVER_NAME, sizeof(sd->name));
-> >>> drivers/media/i2c/s5k6aa.c:                     strlcpy(sd->name,
-> >>> DRIVER_NAME, sizeof(sd->name));
-> >>> drivers/media/i2c/smiapp/smiapp-core.c:         subdev->name,
-> >>> code->pad, code->index);
-> >>> drivers/media/i2c/smiapp/smiapp-core.c:         strlcpy(subdev->name,
-> >>> sensor->minfo.name, sizeof(subdev->name));
-> >> 
-> >> For smiapp the issue is that smiapp is the name of the driver; there's no
-> >> sensor which would be called "smiapp" but a large number of different
-> >> devices that implement the SMIA or SMIA++ standard. The driver can
-> >> recognise some of them and call them according to their real name.
-> > 
-> > But the smiapp driver can still prefix that real name with the i2c bus
-> > info, right? Just as v4l2_i2c_subdev_init does.
+Exynos Display Port can be used only for Exynos SoCs. In addition,
+non-DT for EXYNOS SoCs is not supported from v3.11; thus, there is
+no need to support non-DT for Exynos Display Port.
 
-Do you mean postfix instead of prefix ?
+The 'include/video/exynos_dp.h' file has been used for non-DT
+support and the content of file include/video/exynos_dp.h is moved
+to drivers/video/exynos/exynos_dp_core.h. Thus, the 'exynos_dp.h'
+file is removed. Also, 'struct exynos_dp_platdata' is removed,
+because it is not used any more.
 
-> >>> drivers/media/i2c/sr030pc30.c:  strcpy(sd->name, MODULE_NAME);
-> >>> drivers/media/i2c/tvp514x.c:    strlcpy(sd->name, TVP514X_MODULE_NAME,
-> >>> sizeof(sd->name));
-> >>> 
-> >>>> If there can be only one sensor (because it is integrated in the SoC),
-> >>>> then there is no problem with doing this. But it is not obvious to me
-> >>>> which of these drivers are for integrated systems, and which aren't.
-> >>> 
-> >>> Those sensors are standalone devices, I'm not aware of any of them to be
-> >>> integrated with an Application Processor SoC. I've never seen something
-> >>> like that. However some of those devices are hybrid modules with a raw
-> >>> image sensor and an ISP SoC.
-> >>> So in theory there could be multiple such devices in a single system,
-> >>> although personally I've never seen something like that.
-> >>> 
-> >>>> I can make patches for those that need to be fixed if you can tell me
-> >>>> which drivers are affected.
-> >>> 
-> >>> You may want to have a look at the commits listed below, and the
-> >>> comments I received to that [2] patch series...
-> > 
-> > What comments? I see no comments.
-> 
-> Yes, that's the point :) IMHO it's a bit late for reverting that, and
-> breaking existing user space.
-> 
-> > I would have Nacked those patches, but I probably never saw them since you
-> > posted them during a period where I was mostly absent from the list.
-> 
-> Fair enough.
-> 
-> >>> commit 2138d73b69be1cfa4982c9949f2445ec77ea9edc
-> >>> [media] noon010pc30: Make subdev name independent of the I2C slave
-> >>> address
-> >>> 
-> >>> commit 14b702dd71d38b6d0662251b3f8cd60da98602ce
-> >>> [media] s5k6aa: Make subdev name independent of the I2C slave address
-> >>> 
-> >>> commit c5024a70bb60b678f08586ed786340ec162d250f
-> >>> [media] m5mols: Make subdev name independent of the I2C slave address
-> >>> 
-> >>> Before we start messing with those drivers it would be nice to have
-> >>> defined rules of the media entity naming. I2C bus number and address
-> >>> is not something that's useful in the media entity name. And multiple
-> >> 
-> >> Isn't it?
-> > 
-> > Why not? As long as the format is strictly adhered to then I see no reason
-> > not to use it. Not only does it make the name unique, it also tells you
-> > where the device is in the hardware topology.
+Signed-off-by: Jingoo Han <jg1.han@samsung.com>
+Reviewed-by: Tomasz Figa <t.figa@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ drivers/video/exynos/Kconfig          |    2 +-
+ drivers/video/exynos/exynos_dp_core.c |  116 +++++++----------------------
+ drivers/video/exynos/exynos_dp_core.h |  109 +++++++++++++++++++++++++++
+ drivers/video/exynos/exynos_dp_reg.c  |    2 -
+ include/video/exynos_dp.h             |  131 ---------------------------------
+ 5 files changed, 135 insertions(+), 225 deletions(-)
+ delete mode 100644 include/video/exynos_dp.h
 
-It's a shame that entities don't have a bus info field in addition to their 
-name, but we have to live with that.
-
-Userspace needs a way to distinguish between multiple identical subdevs. We 
-can't rely on IDs only, as they're not guaranteed to be stable. We thus need 
-to use names and possibly connection information.
-
-Two identical sensors connected to separate receivers could be distinguished 
-by checking which receiver they're connected to. Unfortunately this breaks 
-when the two sensors are connected to the same receiver, in which case we can 
-only rely on the name. Media entity names thus need to be unique when 
-connection information can't help distinguishing otherwise identical subdevs, 
-which implies that subdev names must be unique.
-
-> > We could make the simple rule that the driver name is the first word of
-> > the name. So it would be easy to provide a function that matches just the
-> > first word and ignores the bus info (if there is any).
-> 
-> Yes, and that's basically all I needed before "fixing" those affected
-> drivers. No matter what exact rules, if there are any, user space could
-> handle various hardware configurations without issues.
-> 
-> Besides, the drivers would need to strip/replace with something else any
-> spaces when initializing subddev name, as that character would be used as
-> the bus info delimiter ?
-
-Or we could decide that the bus info can't contain any space, in which case 
-the last space would be the delimiter.
-
-> Then in media-ctl or any user space code the entity name could be matched
-> exactly, and if that fails a fuzzy matching could be done, with the bus info
-> discarded.
-
-That's a good idea, it would help making media-ctl based scripts more 
-portable.
-
-> >> Well... there's currently no other way to figure out which I2C bus and
-> >> address the device has, to find the I2C device. It'd be very, very good
-> >> if entities had bus information which is currently is limited to the
-> >> media device itself.
-> >> 
-> >> But beyond that I see no use for it.
-> > 
-> > I don't really care all that much how the name is made unique, as long as
-> > it is. It's used in the kernel log as a prefix and it is used for async
-> > loading of drivers. Probably there are other uses as well.
-
-I actually care, as we need to provide a meaningful way for userspace to 
-relate those unique names to the hardware instance they correspond to.
-
-> > The problem by taking a shortcut now is that *when* somebody uses two
-> > identical sensors he'll uncover a big mess that needs to be cleaned up.
-> 
-> True, I'm not against fixing it, I'd like to respect your name uniqueness
-> rule. :) But I'm against modifying drivers in a way that doesn't give user
-> space a chance to handle it correctly.
-> 
-> > As an aside: perhaps we should start making checklists for subdev drivers
-> > for developers. Ensuring that the subdev name is unique would be one of
-> > them.
->
-> Sounds good.
-> 
-> >>> sensors (smiapp, s5c73m3, upcoming s5k6bafx) have "logical" subdevs
-> >>> that are not initialized with the i2c specific v4l2 functions.
-> >>> 
-> >>> I guess there are other means to ensure the subdev's name is unique,
-> >>> rather than appending I2C bus info to it that changes from board to
-> >>> board and is totally irrelevant in user space.
-> >> 
-> >> There may be cases where the same board contains two sensors that are
-> >> exactly similar (think of stereo cameras!) but the user still must know
-> >> which one is which. I2C bus information might not be that bad way to tell
-> >> it.
-> >> 
-> >> But I don't think it necessarily should be part of the subdev's name.
-> > 
-> > If you mean that the i2c bus info doesn't have to be part of the subdev's
-> > name, then that's correct. But it does have to be unique. It's how it was
-> > designed. Since I designed it, I should know :-)
-
-How should bus info be retrieved if it's not part of the media entity name ?
-
-> While we are at it, how about v4l2_i2c_subdev_init() ? It initializes
-> sd->name with SPI driver name. It doesn't look like it could be unique
-> then ?
-> 
-> >>> Presumably we could have subdev name postfixed with I2C bus id/slave
-> >>> address as it is done currently and the media core would be using only
-> >>> a part of subdev's name up to ' ' character to initialize the entity
-> >>> name ?
-> > 
-> > Yes, that's an option. But I would like Laurent's opinion on this. The
-> > problem I see with that is that it would actually make it hard to map an
-> > entity name to a subdev since there is no bus_info information associated
-> > with the entity, just an ID.
-> 
-> Yes, without bus info in the entity structure this would likely not be a
-> good idea.
-
-As explained above, userspace needs to know which entity corresponds to which 
-piece of hardware, so non-unique (in the context of a media device, and when 
-connection information doesn't provide the required information) entity names 
-are a bad idea in the general case.
-
-> > So if you have two identical subdevs, e.g. "saa7115 6-0021" and "saa7115
-> > 7-0021", and you name the corresponding entities "saa7115", but with
-> > different IDs, then how do you know which ID maps to which subdev? If you
-> > keep the i2c postfix, then that's unambiguous.
-> 
-> The I2C bus info in the subdev's name can be a completely random string.
-> Please note that I2C bus id can be assigned dynamically. So there is no
-> guarantee you get reproducible bus IDs assigned to each sensor in all
-> cases. That's said I2C bus info is not reliable means to identify physical
-> device.
-
-I'm afraid you're right :-) (I don't know whether I2C bus IDs will be assigned 
-dynamically in practice on systems where the information is important though).
-
-If we can't use the bus info then I see few options other than getting the 
-name directly from platform data or DT. We could use the full device path, but 
-that will become too long for the media entity and subdev name fields.
-
-> > The problem is that the entity documentation gives no guidelines as to
-> > what can be expected of the entity name. In my opinion the entity name
-> > should be copied from the subdev name, thus making it unique (at least
-> > between subdevs). In addition, the first word of the name should be the
-> > driver name, the remainder is the identifier (usually the i2c bus).
-> 
-> Sounds reasonable. The specific use case this causes problems to us is when
-> there are multiple revisions of similar product, where same sensor is on
-> different I2C busses. Either physically or on a device tree based system,
-> where bus IDs can be assigned dynamically.
-> 
-> Then same sensor will have different media entity names, and without some
-> rules it quickly becomes impossible to specify pipeline configuration in,
-> e.g. text file. This makes the media controller drivers even less portable.
->
-> >>> The media entities have unique ID, hence it would have probably been OK
-> >>> to have entities with same name, should it happen there are multiple
-> >>> identical devices in a single system.
-> > 
-> > Actually, from what I remember the name was just a way to make things more
-> > understandable for humans and the ID was meant to be used as the real
-> > identifier. I'm not 100% sure that that was the idea behind the original
-> > design, I would have to go back to my first RFCs to confirm that.
-> > 
-> > But since that time there has been a movement inside the kernel away from
-> > numerical IDs towards unique strings. So if I were to design it today I
-> > would definitely specify that the entity name must be unique, at least
-> > within the set of entities of the same type.
-> 
-> Not sure such uniqueness would be much useful as long as those names are
-> random.
-
-Uniqueness will only be useful if we have a way to relate names to hardware 
-device instances. If that relationship is provide through a different API then 
-there's not much added value in having unique media entity names.
-
-> >>> To summarize, I would prefer to avoid modifying those drivers in a
-> >>> backward incompatible way, for a sake of pure API correctness and
-> >>> due to vague reasons. There is currently no board in mainline for
-> >>> which the subdev names wouldn't have been unique. Usually there
-> >>> are different types of image sensors used for the front and the
-> >>> rear facing camera. But for stereoscopy there most likely would
-> >>> be two identical image sensors on a board.
-> > 
-> > This isn't about what it in the mainline. If you make a product that
-> > uses two identical sensor drivers then you will reuse the sensor driver
-> > code but you will not typically try to upstream your bridge driver since
-> > that's unique for your product and generally useless for anyone else.
-> 
-> Not sure if that's a "proper" philosophy, in general there is likely plenty
-> out of tree drivers. But if everyone thought like this we would have very
-> little drivers in mainline. And little chances to adapt the core frameworks
-> to the needs of those "unique" devices. Resulting in various incompatible
-> forks of the core frameworks.
-> 
-> However I see you point we shouldn't come up with a code that is known to
-> possibly cause problems.
-> 
-> > Clean subdev drivers using the API correctly *are* important to promote
-> > reuse. I would like to fix the non-Samsung, non-smiapp subdev drivers
-> > soon. With regards to the Samsung/smiapp drivers we need at the very least
-> > a comment in the driver mentioning that they behave in a non-standard way
-> > with possible complications if there are more than one of them in a
-> > system. (Frankly, that's a particular concern for the smiapp driver. I do
-> > think that it would be good if that one can be fixed soon).
-> 
-> I can prepare patches for all the affected Samsung device drivers, reverting
-> back the I2C bus info postfix. No need to add any ugly comments to them :)
-> 
-> I not sure what exactly are the reasons smiapp chose not to postfix the name
-> with I2C bus info like v4l2_i2c_subdev_init() does. Presumably this driver
-> could be modified to do that, if there is chance to handle it in standard
-> way in user space.
-
+diff --git a/drivers/video/exynos/Kconfig b/drivers/video/exynos/Kconfig
+index 1b035b2..fab9019 100644
+--- a/drivers/video/exynos/Kconfig
++++ b/drivers/video/exynos/Kconfig
+@@ -29,7 +29,7 @@ config EXYNOS_LCD_S6E8AX0
+ 
+ config EXYNOS_DP
+ 	bool "EXYNOS DP driver support"
+-	depends on ARCH_EXYNOS
++	depends on OF && ARCH_EXYNOS
+ 	default n
+ 	help
+ 	  This enables support for DP device.
+diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
+index 12bbede..05fed7d 100644
+--- a/drivers/video/exynos/exynos_dp_core.c
++++ b/drivers/video/exynos/exynos_dp_core.c
+@@ -20,8 +20,6 @@
+ #include <linux/delay.h>
+ #include <linux/of.h>
+ 
+-#include <video/exynos_dp.h>
+-
+ #include "exynos_dp_core.h"
+ 
+ static int exynos_dp_init_dp(struct exynos_dp_device *dp)
+@@ -894,26 +892,17 @@ static void exynos_dp_hotplug(struct work_struct *work)
+ 		dev_err(dp->dev, "unable to config video\n");
+ }
+ 
+-#ifdef CONFIG_OF
+-static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
++static struct video_info *exynos_dp_dt_parse_pdata(struct device *dev)
+ {
+ 	struct device_node *dp_node = dev->of_node;
+-	struct exynos_dp_platdata *pd;
+ 	struct video_info *dp_video_config;
+ 
+-	pd = devm_kzalloc(dev, sizeof(*pd), GFP_KERNEL);
+-	if (!pd) {
+-		dev_err(dev, "memory allocation for pdata failed\n");
+-		return ERR_PTR(-ENOMEM);
+-	}
+ 	dp_video_config = devm_kzalloc(dev,
+ 				sizeof(*dp_video_config), GFP_KERNEL);
+-
+ 	if (!dp_video_config) {
+ 		dev_err(dev, "memory allocation for video config failed\n");
+ 		return ERR_PTR(-ENOMEM);
+ 	}
+-	pd->video_info = dp_video_config;
+ 
+ 	dp_video_config->h_sync_polarity =
+ 		of_property_read_bool(dp_node, "hsync-active-high");
+@@ -960,7 +949,7 @@ static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
+ 		return ERR_PTR(-EINVAL);
+ 	}
+ 
+-	return pd;
++	return dp_video_config;
+ }
+ 
+ static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+@@ -1003,48 +992,30 @@ err:
+ 
+ static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+ {
+-	u32 reg;
++	if (dp->phy_addr) {
++		u32 reg;
+ 
+-	reg = __raw_readl(dp->phy_addr);
+-	reg |= dp->enable_mask;
+-	__raw_writel(reg, dp->phy_addr);
++		reg = __raw_readl(dp->phy_addr);
++		reg |= dp->enable_mask;
++		__raw_writel(reg, dp->phy_addr);
++	}
+ }
+ 
+ static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+ {
+-	u32 reg;
+-
+-	reg = __raw_readl(dp->phy_addr);
+-	reg &= ~(dp->enable_mask);
+-	__raw_writel(reg, dp->phy_addr);
+-}
+-#else
+-static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
+-{
+-	return NULL;
+-}
+-
+-static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
+-{
+-	return -EINVAL;
+-}
+-
+-static void exynos_dp_phy_init(struct exynos_dp_device *dp)
+-{
+-	return;
+-}
++	if (dp->phy_addr) {
++		u32 reg;
+ 
+-static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
+-{
+-	return;
++		reg = __raw_readl(dp->phy_addr);
++		reg &= ~(dp->enable_mask);
++		__raw_writel(reg, dp->phy_addr);
++	}
+ }
+-#endif /* CONFIG_OF */
+ 
+ static int exynos_dp_probe(struct platform_device *pdev)
+ {
+ 	struct resource *res;
+ 	struct exynos_dp_device *dp;
+-	struct exynos_dp_platdata *pdata;
+ 
+ 	int ret = 0;
+ 
+@@ -1057,21 +1028,13 @@ static int exynos_dp_probe(struct platform_device *pdev)
+ 
+ 	dp->dev = &pdev->dev;
+ 
+-	if (pdev->dev.of_node) {
+-		pdata = exynos_dp_dt_parse_pdata(&pdev->dev);
+-		if (IS_ERR(pdata))
+-			return PTR_ERR(pdata);
++	dp->video_info = exynos_dp_dt_parse_pdata(&pdev->dev);
++	if (IS_ERR(dp->video_info))
++		return PTR_ERR(dp->video_info);
+ 
+-		ret = exynos_dp_dt_parse_phydata(dp);
+-		if (ret)
+-			return ret;
+-	} else {
+-		pdata = pdev->dev.platform_data;
+-		if (!pdata) {
+-			dev_err(&pdev->dev, "no platform data\n");
+-			return -EINVAL;
+-		}
+-	}
++	ret = exynos_dp_dt_parse_phydata(dp);
++	if (ret)
++		return ret;
+ 
+ 	dp->clock = devm_clk_get(&pdev->dev, "dp");
+ 	if (IS_ERR(dp->clock)) {
+@@ -1095,15 +1058,7 @@ static int exynos_dp_probe(struct platform_device *pdev)
+ 
+ 	INIT_WORK(&dp->hotplug_work, exynos_dp_hotplug);
+ 
+-	dp->video_info = pdata->video_info;
+-
+-	if (pdev->dev.of_node) {
+-		if (dp->phy_addr)
+-			exynos_dp_phy_init(dp);
+-	} else {
+-		if (pdata->phy_init)
+-			pdata->phy_init();
+-	}
++	exynos_dp_phy_init(dp);
+ 
+ 	exynos_dp_init_dp(dp);
+ 
+@@ -1121,18 +1076,11 @@ static int exynos_dp_probe(struct platform_device *pdev)
+ 
+ static int exynos_dp_remove(struct platform_device *pdev)
+ {
+-	struct exynos_dp_platdata *pdata = pdev->dev.platform_data;
+ 	struct exynos_dp_device *dp = platform_get_drvdata(pdev);
+ 
+ 	flush_work(&dp->hotplug_work);
+ 
+-	if (pdev->dev.of_node) {
+-		if (dp->phy_addr)
+-			exynos_dp_phy_exit(dp);
+-	} else {
+-		if (pdata->phy_exit)
+-			pdata->phy_exit();
+-	}
++	exynos_dp_phy_exit(dp);
+ 
+ 	clk_disable_unprepare(dp->clock);
+ 
+@@ -1143,20 +1091,13 @@ static int exynos_dp_remove(struct platform_device *pdev)
+ #ifdef CONFIG_PM_SLEEP
+ static int exynos_dp_suspend(struct device *dev)
+ {
+-	struct exynos_dp_platdata *pdata = dev->platform_data;
+ 	struct exynos_dp_device *dp = dev_get_drvdata(dev);
+ 
+ 	disable_irq(dp->irq);
+ 
+ 	flush_work(&dp->hotplug_work);
+ 
+-	if (dev->of_node) {
+-		if (dp->phy_addr)
+-			exynos_dp_phy_exit(dp);
+-	} else {
+-		if (pdata->phy_exit)
+-			pdata->phy_exit();
+-	}
++	exynos_dp_phy_exit(dp);
+ 
+ 	clk_disable_unprepare(dp->clock);
+ 
+@@ -1165,16 +1106,9 @@ static int exynos_dp_suspend(struct device *dev)
+ 
+ static int exynos_dp_resume(struct device *dev)
+ {
+-	struct exynos_dp_platdata *pdata = dev->platform_data;
+ 	struct exynos_dp_device *dp = dev_get_drvdata(dev);
+ 
+-	if (dev->of_node) {
+-		if (dp->phy_addr)
+-			exynos_dp_phy_init(dp);
+-	} else {
+-		if (pdata->phy_init)
+-			pdata->phy_init();
+-	}
++	exynos_dp_phy_init(dp);
+ 
+ 	clk_prepare_enable(dp->clock);
+ 
+@@ -1203,7 +1137,7 @@ static struct platform_driver exynos_dp_driver = {
+ 		.name	= "exynos-dp",
+ 		.owner	= THIS_MODULE,
+ 		.pm	= &exynos_dp_pm_ops,
+-		.of_match_table = of_match_ptr(exynos_dp_match),
++		.of_match_table = exynos_dp_match,
+ 	},
+ };
+ 
+diff --git a/drivers/video/exynos/exynos_dp_core.h b/drivers/video/exynos/exynos_dp_core.h
+index 6c567bbf..56cfec8 100644
+--- a/drivers/video/exynos/exynos_dp_core.h
++++ b/drivers/video/exynos/exynos_dp_core.h
+@@ -13,6 +13,99 @@
+ #ifndef _EXYNOS_DP_CORE_H
+ #define _EXYNOS_DP_CORE_H
+ 
++#define DP_TIMEOUT_LOOP_COUNT 100
++#define MAX_CR_LOOP 5
++#define MAX_EQ_LOOP 5
++
++enum link_rate_type {
++	LINK_RATE_1_62GBPS = 0x06,
++	LINK_RATE_2_70GBPS = 0x0a
++};
++
++enum link_lane_count_type {
++	LANE_COUNT1 = 1,
++	LANE_COUNT2 = 2,
++	LANE_COUNT4 = 4
++};
++
++enum link_training_state {
++	START,
++	CLOCK_RECOVERY,
++	EQUALIZER_TRAINING,
++	FINISHED,
++	FAILED
++};
++
++enum voltage_swing_level {
++	VOLTAGE_LEVEL_0,
++	VOLTAGE_LEVEL_1,
++	VOLTAGE_LEVEL_2,
++	VOLTAGE_LEVEL_3,
++};
++
++enum pre_emphasis_level {
++	PRE_EMPHASIS_LEVEL_0,
++	PRE_EMPHASIS_LEVEL_1,
++	PRE_EMPHASIS_LEVEL_2,
++	PRE_EMPHASIS_LEVEL_3,
++};
++
++enum pattern_set {
++	PRBS7,
++	D10_2,
++	TRAINING_PTN1,
++	TRAINING_PTN2,
++	DP_NONE
++};
++
++enum color_space {
++	COLOR_RGB,
++	COLOR_YCBCR422,
++	COLOR_YCBCR444
++};
++
++enum color_depth {
++	COLOR_6,
++	COLOR_8,
++	COLOR_10,
++	COLOR_12
++};
++
++enum color_coefficient {
++	COLOR_YCBCR601,
++	COLOR_YCBCR709
++};
++
++enum dynamic_range {
++	VESA,
++	CEA
++};
++
++enum pll_status {
++	PLL_UNLOCKED,
++	PLL_LOCKED
++};
++
++enum clock_recovery_m_value_type {
++	CALCULATED_M,
++	REGISTER_M
++};
++
++enum video_timing_recognition_type {
++	VIDEO_TIMING_FROM_CAPTURE,
++	VIDEO_TIMING_FROM_REGISTER
++};
++
++enum analog_power_block {
++	AUX_BLOCK,
++	CH0_BLOCK,
++	CH1_BLOCK,
++	CH2_BLOCK,
++	CH3_BLOCK,
++	ANALOG_TOTAL,
++	POWER_ALL
++};
++
+ enum dp_irq_type {
+ 	DP_IRQ_TYPE_HP_CABLE_IN,
+ 	DP_IRQ_TYPE_HP_CABLE_OUT,
+@@ -20,6 +113,22 @@ enum dp_irq_type {
+ 	DP_IRQ_TYPE_UNKNOWN,
+ };
+ 
++struct video_info {
++	char *name;
++
++	bool h_sync_polarity;
++	bool v_sync_polarity;
++	bool interlaced;
++
++	enum color_space color_space;
++	enum dynamic_range dynamic_range;
++	enum color_coefficient ycbcr_coeff;
++	enum color_depth color_depth;
++
++	enum link_rate_type link_rate;
++	enum link_lane_count_type lane_count;
++};
++
+ struct link_train {
+ 	int eq_loop;
+ 	int cr_loop[4];
+diff --git a/drivers/video/exynos/exynos_dp_reg.c b/drivers/video/exynos/exynos_dp_reg.c
+index 29d9d03..b70da50 100644
+--- a/drivers/video/exynos/exynos_dp_reg.c
++++ b/drivers/video/exynos/exynos_dp_reg.c
+@@ -14,8 +14,6 @@
+ #include <linux/io.h>
+ #include <linux/delay.h>
+ 
+-#include <video/exynos_dp.h>
+-
+ #include "exynos_dp_core.h"
+ #include "exynos_dp_reg.h"
+ 
+diff --git a/include/video/exynos_dp.h b/include/video/exynos_dp.h
+deleted file mode 100644
+index bd8cabd..0000000
+--- a/include/video/exynos_dp.h
++++ /dev/null
+@@ -1,131 +0,0 @@
+-/*
+- * Samsung SoC DP device support
+- *
+- * Copyright (C) 2012 Samsung Electronics Co., Ltd.
+- * Author: Jingoo Han <jg1.han@samsung.com>
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#ifndef _EXYNOS_DP_H
+-#define _EXYNOS_DP_H
+-
+-#define DP_TIMEOUT_LOOP_COUNT 100
+-#define MAX_CR_LOOP 5
+-#define MAX_EQ_LOOP 5
+-
+-enum link_rate_type {
+-	LINK_RATE_1_62GBPS = 0x06,
+-	LINK_RATE_2_70GBPS = 0x0a
+-};
+-
+-enum link_lane_count_type {
+-	LANE_COUNT1 = 1,
+-	LANE_COUNT2 = 2,
+-	LANE_COUNT4 = 4
+-};
+-
+-enum link_training_state {
+-	START,
+-	CLOCK_RECOVERY,
+-	EQUALIZER_TRAINING,
+-	FINISHED,
+-	FAILED
+-};
+-
+-enum voltage_swing_level {
+-	VOLTAGE_LEVEL_0,
+-	VOLTAGE_LEVEL_1,
+-	VOLTAGE_LEVEL_2,
+-	VOLTAGE_LEVEL_3,
+-};
+-
+-enum pre_emphasis_level {
+-	PRE_EMPHASIS_LEVEL_0,
+-	PRE_EMPHASIS_LEVEL_1,
+-	PRE_EMPHASIS_LEVEL_2,
+-	PRE_EMPHASIS_LEVEL_3,
+-};
+-
+-enum pattern_set {
+-	PRBS7,
+-	D10_2,
+-	TRAINING_PTN1,
+-	TRAINING_PTN2,
+-	DP_NONE
+-};
+-
+-enum color_space {
+-	COLOR_RGB,
+-	COLOR_YCBCR422,
+-	COLOR_YCBCR444
+-};
+-
+-enum color_depth {
+-	COLOR_6,
+-	COLOR_8,
+-	COLOR_10,
+-	COLOR_12
+-};
+-
+-enum color_coefficient {
+-	COLOR_YCBCR601,
+-	COLOR_YCBCR709
+-};
+-
+-enum dynamic_range {
+-	VESA,
+-	CEA
+-};
+-
+-enum pll_status {
+-	PLL_UNLOCKED,
+-	PLL_LOCKED
+-};
+-
+-enum clock_recovery_m_value_type {
+-	CALCULATED_M,
+-	REGISTER_M
+-};
+-
+-enum video_timing_recognition_type {
+-	VIDEO_TIMING_FROM_CAPTURE,
+-	VIDEO_TIMING_FROM_REGISTER
+-};
+-
+-enum analog_power_block {
+-	AUX_BLOCK,
+-	CH0_BLOCK,
+-	CH1_BLOCK,
+-	CH2_BLOCK,
+-	CH3_BLOCK,
+-	ANALOG_TOTAL,
+-	POWER_ALL
+-};
+-
+-struct video_info {
+-	char *name;
+-
+-	bool h_sync_polarity;
+-	bool v_sync_polarity;
+-	bool interlaced;
+-
+-	enum color_space color_space;
+-	enum dynamic_range dynamic_range;
+-	enum color_coefficient ycbcr_coeff;
+-	enum color_depth color_depth;
+-
+-	enum link_rate_type link_rate;
+-	enum link_lane_count_type lane_count;
+-};
+-
+-struct exynos_dp_platdata {
+-	struct video_info *video_info;
+-
+-	void (*phy_init)(void);
+-	void (*phy_exit)(void);
+-};
+-
+-#endif /* _EXYNOS_DP_H */
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
