@@ -1,58 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from fallback5.mail.ru ([94.100.176.59]:51127 "EHLO
-	fallback5.mail.ru" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751449Ab3GTFr0 (ORCPT
+Received: from mail-wi0-f177.google.com ([209.85.212.177]:47741 "EHLO
+	mail-wi0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754755Ab3GRCHy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jul 2013 01:47:26 -0400
-Received: from smtp30.i.mail.ru (smtp30.i.mail.ru [94.100.177.90])
-	by fallback5.mail.ru (mPOP.Fallback_MX) with ESMTP id 2C7CFEE819A0
-	for <linux-media@vger.kernel.org>; Sat, 20 Jul 2013 09:47:23 +0400 (MSK)
-Date: Sat, 20 Jul 2013 09:46:33 +0400
-From: Alexander Shiyan <shc_work@mail.ru>
-To: Philipp Zabel <p.zabel@pengutronix.de>
+	Wed, 17 Jul 2013 22:07:54 -0400
+Received: by mail-wi0-f177.google.com with SMTP id ey16so2663447wid.16
+        for <linux-media@vger.kernel.org>; Wed, 17 Jul 2013 19:07:52 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1374016006-27678-1-git-send-email-prahal@yahoo.com>
+References: <1374016006-27678-1-git-send-email-prahal@yahoo.com>
+Date: Wed, 17 Jul 2013 22:07:51 -0400
+Message-ID: <CAGoCfixECL-5uazWhBXdXVQufwbcB=Opahux3k+wEnt2riLjsA@mail.gmail.com>
+Subject: Re: [PATCH 4/4] [media] em28xx: Fix vidioc fmt vid cap v4l2 compliance
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Alban Browaeys <alban.browaeys@gmail.com>,
+	Hans Verkuil <hverkuil@xs4all.nl>
 Cc: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sascha Hauer <kernel@pengutronix.de>,
-	Shawn Guo <shawn.guo@linaro.org>,
-	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
-Subject: Re: [PATCH RESEND] media: coda: Fix DT-driver data pointer for
- i.MX27
-Message-Id: <20130720094633.d18f5915dab9587598d8782a@mail.ru>
-In-Reply-To: <1371799814.4320.3.camel@pizza.hi.pengutronix.de>
-References: <1371746796-16123-1-git-send-email-shc_work@mail.ru>
-	<1371799814.4320.3.camel@pizza.hi.pengutronix.de>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
-Content-Transfer-Encoding: 7bit
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Alban Browaeys <prahal@yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, 21 Jun 2013 09:30:14 +0200
-Philipp Zabel <p.zabel@pengutronix.de> wrote:
+On Tue, Jul 16, 2013 at 7:06 PM, Alban Browaeys
+<alban.browaeys@gmail.com> wrote:
+> Set fmt.pix.priv to zero in vidioc_g_fmt_vid_cap
+>  and vidioc_try_fmt_vid_cap.
 
-> Am Donnerstag, den 20.06.2013, 20:46 +0400 schrieb Alexander Shiyan:
-> > Signed-off-by: Alexander Shiyan <shc_work@mail.ru>
-> > ---
-> >  drivers/media/platform/coda.c | 2 +-
-> >  1 file changed, 1 insertion(+), 1 deletion(-)
-> > 
-> > diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> > index 48b8d7a..1c77781 100644
-> > --- a/drivers/media/platform/coda.c
-> > +++ b/drivers/media/platform/coda.c
-> > @@ -1924,7 +1924,7 @@ MODULE_DEVICE_TABLE(platform, coda_platform_ids);
-> >  
-> >  #ifdef CONFIG_OF
-> >  static const struct of_device_id coda_dt_ids[] = {
-> > -	{ .compatible = "fsl,imx27-vpu", .data = &coda_platform_ids[CODA_IMX27] },
-> > +	{ .compatible = "fsl,imx27-vpu", .data = &coda_devdata[CODA_IMX27] },
-> >  	{ .compatible = "fsl,imx53-vpu", .data = &coda_devdata[CODA_IMX53] },
-> >  	{ /* sentinel */ }
-> >  };
-> 
-> Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+Any reason not to have the v4l2 core do this before dispatching to the
+driver?  Set it to zero before the core calls g_fmt.  This avoids all
+the drivers (most of which don't use the field) from having to set the
+value themselves.
 
-Ping.
+Devin
 
 -- 
-Alexander Shiyan <shc_work@mail.ru>
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
