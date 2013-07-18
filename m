@@ -1,187 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:53783 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754093Ab3GWHzQ (ORCPT
+Received: from smtp-vbr7.xs4all.nl ([194.109.24.27]:3838 "EHLO
+	smtp-vbr7.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753753Ab3GRGb0 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 03:55:16 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Alan Stern <stern@rowland.harvard.edu>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	broonie@kernel.org
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 09:55:08 +0200
-Message-ID: <3419798.aorxYv8pdo@flatron>
-In-Reply-To: <1714400.neMPBWOlzi@flatron>
-References: <Pine.LNX.4.44L0.1307221028440.1495-100000@iolanthe.rowland.org> <1714400.neMPBWOlzi@flatron>
+	Thu, 18 Jul 2013 02:31:26 -0400
+Message-ID: <51E78BB1.4020108@xs4all.nl>
+Date: Thu, 18 Jul 2013 08:31:13 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+CC: "Sergey 'Jin' Bostandzhyan" <jin@mediatomb.cc>,
+	linux-media@vger.kernel.org
+Subject: Re: Possible problem with stk1160 driver
+References: <20130716220418.GC10973@deadlock.dhs.org> <20130717084428.GA2334@localhost> <20130717213139.GA14370@deadlock.dhs.org> <20130718001752.GA2318@localhost>
+In-Reply-To: <20130718001752.GA2318@localhost>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[Fixed address of devicetree mailing list and added more people on CC.]
 
-For reference, full thread can be found under following link:
-http://thread.gmane.org/gmane.linux.ports.arm.kernel/252813
 
-Best regards,
-Tomasz
+On 07/18/2013 02:17 AM, Ezequiel Garcia wrote:
+> Hi Sergey,
+> 
+> On Wed, Jul 17, 2013 at 11:31:39PM +0200, Sergey 'Jin' Bostandzhyan wrote:
+>> On Wed, Jul 17, 2013 at 05:44:29AM -0300, Ezequiel Garcia wrote:
+>>> On Wed, Jul 17, 2013 at 12:04:18AM +0200, Sergey 'Jin' Bostandzhyan wrote:
+>>>>
+>>>> It generally works fine, I can, for example, open the video device using VLC,
+>>>> select one of the inputs and get the picture.
+>>>>
+>>>> However, programs like motion or zoneminder fail, I am not quite sure if it
+>>>> is something that they might be doing or if it is a problem in the driver.
+>>>>
+>>>> Basically, for both of the above, the problem is that VIDIOC_S_INPUT fails
+>>>> with EBUSY.
+>>>>
+>>>
+>>> I've just sent a patch to fix this issue.
+>>>
+>>> Could you try it and let me know if it solves your issue?
+>>
+>> thanks a lot! Just tried it, same fix is needed for vidioc_s_std(), then
+>> the errors in motion and zoneminder are gone!
+>>
+> 
+> Ah... forgot to mention about that. I haven't included the fix for standard
+> setting, because either the stk1160 chip or the userspace application didn't
+> seem to behave properly: I got wrongly coloured frames when trying to
+> change the standard while streaming.
 
-On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
-> Hi Alan,
+You generally can't switch standards while streaming. That said, it is OK
+to accept the same standard, i.e. return 0 if the standard is unchanged and
+EBUSY otherwise.
+
+In the end it is an application bug, though. It shouldn't try to change the
+standard while streaming has started.
+
+Regards,
+
+	Hans
+
+> Can't your problem get fixed by setting an initial standard (e.g. at
+> /etc/motion configuration file)?
 > 
-> On Monday 22 of July 2013 10:44:39 Alan Stern wrote:
-> > On Mon, 22 Jul 2013, Kishon Vijay Abraham I wrote:
-> > > > 	The PHY and the controller it is attached to are both 
-physical
-> > > > 	devices.
-> > > > 	
-> > > > 	The connection between them is hardwired by the system
-> > > > 	manufacturer and cannot be changed by software.
-> > > > 	
-> > > > 	PHYs are generally described by fixed system-specific 
-board
-> > > > 	files or by Device Tree information.  Are they ever 
-discovered
-> > > > 	dynamically?
-> > > 
-> > > No. They are created just like any other platform devices are
-> > > created.
-> > 
-> > Okay.  Are PHYs _always_ platform devices?
+>> Motion seems to work now, with zoneminder I get a lot of these messages:
+>> Jul 17 23:28:27 localhost kernel: [20641.931990] stk1160_copy_video: 5563 callbacks suppressed
+>> Jul 17 23:28:27 localhost kernel: [20641.931998] stk1160: buffer overflow detected
+>> Jul 17 23:28:27 localhost kernel: [20641.932000] stk1160: buffer overflow detected
+>>
+>> Anything to worry about?
+>>
 > 
-> They can be i2c, spi or any other device types as well.
+> Not sure. If you're changing the standard while streaming then maybe some component
+> is not doing things right.
 > 
-> > > > 	Is the same true for the controllers attached to the PHYs?
-> > > > 	If not -- if both a PHY and a controller are discovered
-> > > > 	dynamically -- how does the kernel know whether they are
-> > > > 	connected to each other?
-> > > 
-> > > No differences here. Both PHY and controller will have dt
-> > > information
-> > > or hwmod data using which platform devices will be created.
-> > > 
-> > > > 	The kernel needs to know which controller is attached to 
-which
-> > > > 	PHY.  Currently this information is represented by name or 
-ID
-> > > > 	strings embedded in platform data.
-> > > 
-> > > right. It's embedded in the platform data of the controller.
-> > 
-> > It must also be embedded in the PHY's platform data somehow.
-> > Otherwise, how would the kernel know which PHY to use?
+> I can take a look at the std thing later, but for now the input
+> fix looks definitely correct.
 > 
-> By using a PHY lookup as Stephen and I suggested in our previous
-> replies. Without any extra data in platform data. (I have even posted a
-> code example.)
-> 
-> > > > 	The PHY's driver (the supplier) uses the platform data to
-> > > > 	construct a platform_device structure that represents the 
-PHY.
-> > > 
-> > > Currently the driver assigns static labels (corresponding to the
-> > > label
-> > > used in the platform data of the controller).
-> > > 
-> > > > 	Until this is done, the controller's driver (the client) 
-cannot
-> > > > 	use the PHY.
-> > > 
-> > > right.
-> > > 
-> > > > 	Since there is no parent-child relation between the PHY 
-and the
-> > > > 	controller, there is no guarantee that the PHY's driver 
-will be
-> > > > 	ready when the controller's driver wants to use it.  A 
-deferred
-> > > > 	probe may be needed.
-> > > 
-> > > right.
-> > > 
-> > > > 	The issue (or one of the issues) in this discussion is 
-that
-> > > > 	Greg does not like the idea of using names or IDs to 
-associate
-> > > > 	PHYs with controllers, because they are too prone to
-> > > > 	duplications or other errors.  Pointers are more reliable.
-> > > > 	
-> > > > 	But pointers to what?  Since the only data known to be
-> > > > 	available to both the PHY driver and controller driver is 
-the
-> > > > 	platform data, the obvious answer is a pointer to platform 
-data
-> > > > 	(either for the PHY or for the controller, or maybe both).
-> > > 
-> > > hmm.. it's not going to be simple though as the platform device for
-> > > the PHY and controller can be created in entirely different places.
-> > > e.g., in some cases the PHY device is a child of some mfd core
-> > > device
-> > > (the device will be created in drivers/mfd) and the controller
-> > > driver
-> > > (usually) is created in board file. I guess then we have to come up
-> > > with something to share a pointer in two different files.
-> > 
-> > The ability for two different source files to share a pointer to a
-> > data
-> > item defined in a third source file has been around since long before
-> > the C language was invented.  :-)
-> > 
-> > In this case, it doesn't matter where the platform_device structures
-> > are created or where the driver source code is.  Let's take a simple
-> > example.  Suppose the system design includes a PHY named "foo".  Then
-> > the board file could contain:
-> > 
-> > struct phy_info { ... } phy_foo;
-> > EXPORT_SYMBOL_GPL(phy_foo);
-> > 
-> > and a header file would contain:
-> > 
-> > extern struct phy_info phy_foo;
-> > 
-> > The PHY supplier could then call phy_create(&phy_foo), and the PHY
-> > client could call phy_find(&phy_foo).  Or something like that; make up
-> > your own structure tags and function names.
-> > 
-> > It's still possible to have conflicts, but now two PHYs with the same
-> > name (or a misspelled name somewhere) will cause an error at link
-> > time.
-> 
-> This is incorrect, sorry. First of all it's a layering violation - you
-> export random driver-specific symbols from one driver to another. Then
-> imagine 4 SoCs - A, B, C, D. There are two PHY types PHY1 and PHY2 and
-> there are two types of consumer drivers (e.g. USB host controllers). Now
-> consider following mapping:
-> 
-> SoC	PHY	consumer
-> A	PHY1	HOST1
-> B	PHY1	HOST2
-> C	PHY2	HOST1
-> D	PHY2	HOST2
-> 
-> So we have to be able to use any of the PHYs with any of the host
-> drivers. This means you would have to export symbol with the same name
-> from both PHY drivers, which obviously would not work in this case,
-> because having both drivers enabled (in a multiplatform aware
-> configuration) would lead to linking conflict.
-> 
-> Best regards,
-> Tomasz
