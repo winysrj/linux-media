@@ -1,68 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f169.google.com ([209.85.214.169]:54460 "EHLO
-	mail-ob0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751486Ab3GADKv (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:60151 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751485Ab3GRIFo (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 30 Jun 2013 23:10:51 -0400
+	Thu, 18 Jul 2013 04:05:44 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Devin Heitmueller <dheitmueller@kernellabs.com>
+Subject: Re: [PATCH 4/4] [media] em28xx: Fix vidioc fmt vid cap v4l2 compliance
+Date: Thu, 18 Jul 2013 10:05:38 +0200
+Cc: Alban Browaeys <alban.browaeys@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Alban Browaeys <prahal@yahoo.com>
+References: <1374016006-27678-1-git-send-email-prahal@yahoo.com> <CAGoCfixECL-5uazWhBXdXVQufwbcB=Opahux3k+wEnt2riLjsA@mail.gmail.com>
+In-Reply-To: <CAGoCfixECL-5uazWhBXdXVQufwbcB=Opahux3k+wEnt2riLjsA@mail.gmail.com>
 MIME-Version: 1.0
-Date: Sun, 30 Jun 2013 23:10:49 -0400
-Message-ID: <CAKb7Uvi8Ha_NJ=oy_2HAg1iJrbw008Tz+cRqCAV=gnqi0TEN8Q@mail.gmail.com>
-Subject: Error creating sysfs files when reloading cx88 driver
-From: Ilia Mirkin <imirkin@alum.mit.edu>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org,
-	"linux-kernel@vger.kernel.org" <linux-kernel@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201307181005.38765.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Thu 18 July 2013 04:07:51 Devin Heitmueller wrote:
+> On Tue, Jul 16, 2013 at 7:06 PM, Alban Browaeys
+> <alban.browaeys@gmail.com> wrote:
+> > Set fmt.pix.priv to zero in vidioc_g_fmt_vid_cap
+> >  and vidioc_try_fmt_vid_cap.
+> 
+> Any reason not to have the v4l2 core do this before dispatching to the
+> driver?  Set it to zero before the core calls g_fmt.  This avoids all
+> the drivers (most of which don't use the field) from having to set the
+> value themselves.
 
-I have a pcHDTV 3000 card [0], on a 3.10-rc6 kernel. Every so often,
-it stops working [1]. When I try to reload cx88_dvb, module loads, but
-init errors out because some sysfs file is already there [2]. Removing
-more of the video-related modules doesn't seem to help (at least not
-once this happens). Any ideas? It seems like this has been asked
-before [3] but no response. The files it fails to re-create are:
+There is still one driver (sn9c102) that's (ab)using it. Although perhaps I
+should take a look at it and fix it.
 
-[334698.061395] sysfs: cannot create duplicate filename
-'/devices/pci0000:00/0000:00:1e.0/0000:09:00.2/dvb/dvb0.frontend0'
-[334698.062420] sysfs: cannot create duplicate filename
-'/devices/pci0000:00/0000:00:1e.0/0000:09:00.2/dvb/dvb0.demux0'
-[334698.062881] sysfs: cannot create duplicate filename
-'/devices/pci0000:00/0000:00:1e.0/0000:09:00.2/dvb/dvb0.dvr0'
+Note that priv only needs to be cleared for try/s_fmt. g_fmt does clear it
+already in the core before handing it over to the driver.
 
-And the other warnings are just fallout from that. After removing all
-of the video-related modules, that dvb directory is still there:
+That said, I am undecided whether to put this in the core. We might actually
+start to use this field for something useful in the future. By having drivers
+clear it explicitly it will be easier to do that.
 
-# ls /sys/devices/pci0000:00/0000:00:1e.0/0000:09:00.2/dvb
-dvb0.demux0  dvb0.dvr0  dvb0.frontend0
-# ls -l /sys/devices/pci0000:00/0000:00:1e.0/0000:09:00.2/dvb/dvb0.demux0
-total 0
--r--r--r-- 1 root root 4096 Jun 30 23:03 dev
-lrwxrwxrwx 1 root root    0 Jun 30 23:03 device -> ../../../0000:09:00.2
-drwxr-xr-x 2 root root    0 Jun 27 01:43 power
-lrwxrwxrwx 1 root root    0 Jun 27 01:43 subsystem ->
-../../../../../../class/dvb
--rw-r--r-- 1 root root 4096 Jun 26 21:43 uevent
+Regards,
 
-Note that subsystem there is a broken link, /sys/class/dvb no longer
-exists since I've unloaded those modules.
-
-Let me know if there's anything I should try. I'm pretty sure I can
-reproduce this at will (just reloading the cx88_dvb module should do
-it, even if the card isn't wedged) but I haven't tried it.
-
-Thanks,
-
-  -ilia
-
-[0] 09:00.0 Multimedia video controller [0400]: Conexant Systems, Inc.
-CX23880/1/2/3 PCI Video and Audio Decoder [14f1:8800] (rev 05)
-09:00.2 Multimedia controller [0480]: Conexant Systems, Inc.
-CX23880/1/2/3 PCI Video and Audio Decoder [MPEG Port] [14f1:8802] (rev
-05)
-
-[1] http://pastebin.com/3JAnDUDX
-[2] http://pastebin.com/QEpajhaF
-[3] https://lkml.org/lkml/2013/2/6/274
+	Hans
