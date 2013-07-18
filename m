@@ -1,77 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:55633 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1752555Ab3GAFZI (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jul 2013 01:25:08 -0400
-Message-ID: <51D1128C.90009@ti.com>
-Date: Mon, 1 Jul 2013 10:54:28 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+Received: from mail-wi0-f181.google.com ([209.85.212.181]:36062 "EHLO
+	mail-wi0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757697Ab3GRB6w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jul 2013 21:58:52 -0400
+Received: by mail-wi0-f181.google.com with SMTP id hq4so2658408wib.8
+        for <linux-media@vger.kernel.org>; Wed, 17 Jul 2013 18:58:51 -0700 (PDT)
 MIME-Version: 1.0
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-CC: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	<linux-fbdev@vger.kernel.org>, <linux-samsung-soc@vger.kernel.org>,
-	<t.figa@samsung.com>, <jg1.han@samsung.com>,
-	<dh09.lee@samsung.com>, <balbi@ti.com>, <inki.dae@samsung.com>,
-	<kyungmin.park@samsung.com>, Hui Wang <jason77.wang@gmail.com>,
-	<kgene.kim@samsung.com>, <plagnioj@jcrosoft.com>,
-	<devicetree-discuss@lists.ozlabs.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-media@vger.kernel.org>
-Subject: Re: [PATCH v3 1/5] phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
-References: <1372258946-15607-1-git-send-email-s.nawrocki@samsung.com> <1372258946-15607-2-git-send-email-s.nawrocki@samsung.com> <51CD4698.3070409@gmail.com> <51CD6153.5050406@samsung.com> <51CEA197.8070207@ti.com> <51CF36AB.4010300@gmail.com>
-In-Reply-To: <51CF36AB.4010300@gmail.com>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1374111202-23288-1-git-send-email-ljalvs@gmail.com>
+References: <1374111202-23288-1-git-send-email-ljalvs@gmail.com>
+Date: Wed, 17 Jul 2013 21:58:51 -0400
+Message-ID: <CAGoCfizDcOPKiCo54rsoZJyXU3m-_v8jE0aTagxTyjB3QZrZXg@mail.gmail.com>
+Subject: Re: [PATCH] cx23885: Fix interrupt storm that happens in some cards
+ when IR is enabled.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Luis Alves <ljalvs@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org, crope@iki.fi,
+	awalls@md.metrocast.net
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
-
-On Sunday 30 June 2013 01:04 AM, Sylwester Nawrocki wrote:
+On Wed, Jul 17, 2013 at 9:33 PM, Luis Alves <ljalvs@gmail.com> wrote:
 > Hi,
 >
-> On 06/29/2013 10:57 AM, Kishon Vijay Abraham I wrote:
->> On Friday 28 June 2013 03:41 PM, Sylwester Nawrocki wrote:
->>> On 06/28/2013 10:17 AM, Hui Wang wrote:
->>>> On 06/26/2013 11:02 PM, Sylwester Nawrocki wrote:
->>>>> Add a PHY provider driver for the Samsung S5P/Exynos SoC MIPI CSI-2
->>>>> receiver and MIPI DSI transmitter DPHYs.
->>>>>
->>>>> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->>>>> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
->>>>> ---
->>>>> Changes since v2:
->>>>> - adapted to the generic PHY API v9: use phy_set/get_drvdata(),
->>>>> - fixed of_xlate callback to return ERR_PTR() instead of NULL,
->>>>> - namespace cleanup, put "GPL v2" as MODULE_LICENSE, removed pr_debug,
->>>>> - removed phy id check in __set_phy_state().
->>>>> ---
->>>> [...]
->>>>> +
->>>>> + if (IS_EXYNOS_MIPI_DSIM_PHY_ID(id))
->>>>> + reset = EXYNOS_MIPI_PHY_MRESETN;
->>>>> + else
->>>>> + reset = EXYNOS_MIPI_PHY_SRESETN;
->>>>> +
->>>>> + spin_lock_irqsave(&state->slock, flags);
->>>>
->>>> Sorry for one stupid question here, why do you use spin_lock_irqsave()
->>>> rather than spin_lock(),
->>>> I don't see the irq handler will use this spinlock anywhere in this c
->>>> file.
->>>
->>> Yes, there is no chance the PHY users could call the phy ops from within
->>> an interrupt context. Especially now when there is a per phy object
->>> mutex used in the PHY operation helpers. So I'll replace it with plain
->>> spin_lock/unlock. Thank you for the review.
->>
->> Now that PHY ops is already protected, do you really need a spin_lock here?
+> This i2c init should stop the interrupt storm that happens in some cards when the IR receiver in enabled.
+> It works perfectly in my TBS6981.
+
+What is at I2C address 0x4c?  Might be useful to have a comment in
+there explaining what this patch actually does.  This assumes you
+know/understand what it does - if you don't then a comment saying "I
+don't know why this is needed but my board doesn't work right without
+it" is just as valuable.
+
+> It would be good to test in other problematic cards.
 >
-> It is still needed, to synchronize access to the control register from
-> two separate PHY objects. The mutex is per PHY object, while the spinlock
-> is per PHY provider.
+> In this patch I've added the IR init to the TeVii S470/S471 (and some others that fall in the same case statment).
+> Other cards but these that suffer the same issue should also be tested.
 
-Ok. Makes sense.
+Without fully understanding the nature of this patch and what cards
+that it actually effects, it may make sense to move your board into a
+separate case statement.  Generally it's bad form to make changes like
+against other cards without any testing against those cards (otherwise
+you can introduce regressions).  Stick it in its own case statement,
+and users of the other boards can move their cards into that case
+statement *after* it's actually validated.
 
-Thanks
-Kishon
+Devin
+
+-- 
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
