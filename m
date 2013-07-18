@@ -1,71 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:42865 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932711Ab3GRCP5 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 22:15:57 -0400
-Message-ID: <51E74FAF.2060709@iki.fi>
-Date: Thu, 18 Jul 2013 05:15:11 +0300
-From: Antti Palosaari <crope@iki.fi>
+Received: from mail-ea0-f170.google.com ([209.85.215.170]:53459 "EHLO
+	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932427Ab3GRQfV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jul 2013 12:35:21 -0400
+Received: by mail-ea0-f170.google.com with SMTP id h10so1867839eaj.29
+        for <linux-media@vger.kernel.org>; Thu, 18 Jul 2013 09:35:20 -0700 (PDT)
+Message-ID: <51E819CD.8060400@googlemail.com>
+Date: Thu, 18 Jul 2013 18:37:33 +0200
+From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Luis Alves <ljalvs@gmail.com>, linux-media@vger.kernel.org,
-	mchehab@infradead.org, awalls@md.metrocast.net
-Subject: Re: [PATCH] cx23885: Fix interrupt storm that happens in some cards
- when IR is enabled.
-References: <1374111202-23288-1-git-send-email-ljalvs@gmail.com> <CAGoCfizDcOPKiCo54rsoZJyXU3m-_v8jE0aTagxTyjB3QZrZXg@mail.gmail.com>
-In-Reply-To: <CAGoCfizDcOPKiCo54rsoZJyXU3m-_v8jE0aTagxTyjB3QZrZXg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: Antti Palosaari <crope@iki.fi>
+CC: Alban Browaeys <alban.browaeys@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, Alban Browaeys <prahal@yahoo.com>
+Subject: Re: [PATCH 1/4] [media] em28xx: fix assignment of the eeprom data.
+References: <1374015476-26197-1-git-send-email-prahal@yahoo.com> <51E80622.3020803@googlemail.com> <51E80F10.8030406@iki.fi>
+In-Reply-To: <51E80F10.8030406@iki.fi>
+Content-Type: text/plain; charset=ISO-8859-15
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2013 04:58 AM, Devin Heitmueller wrote:
-> On Wed, Jul 17, 2013 at 9:33 PM, Luis Alves <ljalvs@gmail.com> wrote:
->> Hi,
->>
->> This i2c init should stop the interrupt storm that happens in some cards when the IR receiver in enabled.
->> It works perfectly in my TBS6981.
+Am 18.07.2013 17:51, schrieb Antti Palosaari:
+> On 07/18/2013 06:13 PM, Frank Schäfer wrote:
+>> Am 17.07.2013 00:57, schrieb Alban Browaeys:
+>>> Set the config structure pointer to the eeprom data pointer (data,
+>>> here eedata dereferenced) not the pointer to the pointer to
+>>> the eeprom data (eedata itself).
+>>>
+>>> Signed-off-by: Alban Browaeys <prahal@yahoo.com>
+>>> ---
+>>>   drivers/media/usb/em28xx/em28xx-i2c.c | 2 +-
+>>>   1 file changed, 1 insertion(+), 1 deletion(-)
+>>>
+>>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> b/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> index 4851cc2..c4ff973 100644
+>>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
+>>> @@ -726,7 +726,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev,
+>>> unsigned bus,
+>>>
+>>>       *eedata = data;
+>>>       *eedata_len = len;
+>>> -    dev_config = (void *)eedata;
+>>> +    dev_config = (void *)*eedata;
+>>>
+>>>       switch (le16_to_cpu(dev_config->chip_conf) >> 4 & 0x3) {
+>>>       case 0:
+>> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
 >
-> What is at I2C address 0x4c?  Might be useful to have a comment in
-> there explaining what this patch actually does.  This assumes you
-> know/understand what it does - if you don't then a comment saying "I
-> don't know why this is needed but my board doesn't work right without
-> it" is just as valuable.
+> Does that SOB mean you will pick that patch via you tree, or was it
+> only a mistake?
+
+No, I don't have a public tree.
+Following the official rules (SubmittingPatches) strictly, it should
+indeed have been Acked-by instead, sorry.
+
 >
->> It would be good to test in other problematic cards.
->>
->> In this patch I've added the IR init to the TeVii S470/S471 (and some others that fall in the same case statment).
->> Other cards but these that suffer the same issue should also be tested.
+> I have thought few times what should I reply to patches which are for
+> modules I am maintaining and I will pick up and pull-request via own
+> tree. Usually I just reply "patch applied" but maybe Signed-off-by is
+> used for same.
+
+The problem is, that although there are rules, things like this are
+handled slightly differently from project to project. (Coding style is
+the other example ;) )
+I'm always trying to adapt myself to the habits of a project, but
+sometimes I make a mistake (especially when switching between multiple
+projects).
+
+Regards,
+Frank
+
 >
-> Without fully understanding the nature of this patch and what cards
-> that it actually effects, it may make sense to move your board into a
-> separate case statement.  Generally it's bad form to make changes like
-> against other cards without any testing against those cards (otherwise
-> you can introduce regressions).  Stick it in its own case statement,
-> and users of the other boards can move their cards into that case
-> statement *after* it's actually validated.
->
-> Devin
+> regards
+> Antti
 >
 
-hmm, I looked again the cx23885 driver.
-
-0x4c == [0x98 >> 1] = "flatiron" == some internal block of the chip
-
-There is routine which dumps registers out, 0x00 - 0x23
-cx23885_flatiron_dump()
-
-There is also existing routine to write those Flatiron registers. So, 
-that direct I2C access could be shorten to:
-cx23885_flatiron_write(dev, 0x1f, 0x80);
-cx23885_flatiron_write(dev, 0x23, 0x80);
-
-
-Unfortunately these two register names are not defined. Something clock 
-or interrupt related likely.
-
-regards
-Antti
-
--- 
-http://palosaari.fi/
