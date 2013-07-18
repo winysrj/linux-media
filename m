@@ -1,101 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:45200 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751191Ab3GSU3R (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 16:29:17 -0400
-Date: Fri, 19 Jul 2013 23:28:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: width and height of JPEG compressed images
-Message-ID: <20130719202842.GC11823@valkosipuli.retiisi.org.uk>
-References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
- <51D876DF.90507@gmail.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:34652 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756448Ab3GRGrH (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jul 2013 02:47:07 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: [PATCH 00/15] PHY framework
+Date: Thu, 18 Jul 2013 12:16:09 +0530
+Message-ID: <1374129984-765-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <51D876DF.90507@gmail.com>
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas and Sylwester,
+Added a generic PHY framework that provides a set of APIs for the PHY drivers
+to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+the PHY with or without using phandle.
 
-Apologies for my late reply.
+This framework will be of use only to devices that uses external PHY (PHY
+functionality is not embedded within the controller).
 
-On Sat, Jul 06, 2013 at 09:58:23PM +0200, Sylwester Nawrocki wrote:
-> Hi Thomas,
-> 
-> Cc: Sakari and Laurent
-> 
-> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
-> >Hello,
-> >
-> >I am writing a driver for the sensor MT9D131.  This device supports
-> >digital zoom and JPEG compression.
-> >
-> >Although I am writing it for my company's internal purposes, it will
-> >be made open-source, so I would like to keep the API as portable as
-> >possible.
-> >
-> >The hardware reads AxB sensor pixels from its array, resamples them
-> >to CxD image pixels, and then compresses them to ExF bytes.
-> >
-> >The subdevice driver sets size AxB to the value it receives from
-> >v4l2_subdev_video_ops.s_crop().
-> >
-> >To enable compression then v4l2_subdev_video_ops.s_mbus_fmt() is
-> >called with fmt->code=V4L2_MBUS_FMT_JPEG_1X8.
-> >
-> >fmt->width and fmt->height then ought to specify the size of the
-> >compressed image ExF, that is, the size specified is the size in the
-> >format specified (the number of JPEG_1X8), not the size it would be
-> >in a raw format.
-> 
-> In VIDIOC_S_FMT 'sizeimage' specifies size of the buffer for the
-> compressed frame at the bridge driver side. And width/height should
-> specify size of the re-sampled (binning, skipping ?) frame - CxD,
-> if I understand what  you are saying correctly.
-> 
-> I don't quite what transformation is done at CxD -> ExF. Why you are
-> using ExF (two numbers) to specify number of bytes ? And how can you
-> know exactly beforehand what is the frame size after compression ?
-> Does the sensor transmit fixed number of bytes per frame, by adding
-> some padding bytes if required to the compressed frame data ?
-> 
-> Is it something like:
-> 
-> sensor matrix (AxB pixels) -> binning/skipping (CxD pixels) ->
-> -> JPEG compresion (width = C, height = D, sizeimage ExF bytes)
-> 
-> ?
-> >This allows the bridge driver to be compression agnostic.  It gets
-> >told how many bytes to allocate per buffer and it reads that many
-> >bytes.  It doesn't have to understand that the number of bytes isn't
-> >directly related to the number of pixels.
-> >
-> >So how does the user tell the driver what size image to capture
-> >before compression, CxD?
-> 
-> I think you should use VIDIOC_S_FMT(width = C, height = D, sizeimage = ExF)
-> for that. And s_frame_desc sudev op could be used to pass sizeimage to the
-> sensor subdev driver.
+The intention of creating this framework is to bring the phy drivers spread
+all over the Linux kernel to drivers/phy to increase code re-use and to
+increase code maintainability.
 
-Agreed. Let me take this into account in the next RFC.
+Comments to make PHY as bus wasn't done because PHY devices can be part of
+other bus and making a same device attached to multiple bus leads to bad
+design.
 
-> >(or alternatively, if you disagree and think CxD should be specified
-> >by s_fmt(), then how does the user specify ExF?)
+If the PHY driver has to send notification on connect/disconnect, the PHY
+driver should make use of the extcon framework. Using this susbsystem
+to use extcon framwork will have to be analysed.
 
-Does the user need to specify ExF, for other purposes than limiting the size
-of the image? I would leave this up to the sensor driver (with reasonable
-alignment). The sensor driver would tell about this to the receiver through
-frame descriptors. (But still I don't think frame descriptors should be
-settable; what sensors can support is fully sensor specific and the
-parameters that typically need to be changed are quite limited in numbers.
-So I'd go with e.g. controls, again.)
+Exynos MIPI CSIS/DSIM PHY and Displayport PHY have started using this
+framework. Have included those patches also in this series.
+
+twl4030-usb and omap-usb2 have also been adapted to this framework.
+
+These patches are also available @
+git://gitorious.org/linuxphy/linuxphy.git tags/phy-for-v3.12
+
+Jingoo Han (3):
+  phy: Add driver for Exynos DP PHY
+  video: exynos_dp: remove non-DT support for Exynos Display Port
+  video: exynos_dp: Use the generic PHY driver
+
+Kishon Vijay Abraham I (8):
+  drivers: phy: add generic PHY framework
+  usb: phy: omap-usb2: use the new generic PHY framework
+  usb: phy: twl4030: use the new generic PHY framework
+  ARM: OMAP: USB: Add phy binding information
+  ARM: dts: omap: update usb_otg_hs data
+  usb: musb: omap2430: use the new generic PHY framework
+  usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
+  usb: phy: twl4030-usb: remove *set_suspend* and *phy_init* ops
+
+Sylwester Nawrocki (4):
+  phy: Add driver for Exynos MIPI CSIS/DSIM DPHYs
+  video: exynos_mipi_dsim: Use the generic PHY driver
+  exynos4-is: Use the generic MIPI CSIS PHY driver
+  ARM: Samsung: Remove the MIPI PHY setup code
+
+ .../devicetree/bindings/phy/phy-bindings.txt       |   66 +++
+ .../devicetree/bindings/phy/samsung-phy.txt        |   22 +
+ Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +
+ Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 +
+ .../devicetree/bindings/video/exynos_dp.txt        |   18 +-
+ Documentation/phy.txt                              |  129 +++++
+ MAINTAINERS                                        |    7 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 +
+ arch/arm/boot/dts/omap3-evm.dts                    |    2 +
+ arch/arm/boot/dts/omap3-overo.dtsi                 |    2 +
+ arch/arm/boot/dts/omap4.dtsi                       |    3 +
+ arch/arm/boot/dts/twl4030.dtsi                     |    1 +
+ arch/arm/mach-exynos/include/mach/regs-pmu.h       |    5 -
+ arch/arm/mach-omap2/usb-musb.c                     |    3 +
+ arch/arm/mach-s5pv210/include/mach/regs-clock.h    |    4 -
+ arch/arm/plat-samsung/Kconfig                      |    5 -
+ arch/arm/plat-samsung/Makefile                     |    1 -
+ arch/arm/plat-samsung/setup-mipiphy.c              |   60 ---
+ drivers/Kconfig                                    |    2 +
+ drivers/Makefile                                   |    2 +
+ drivers/media/platform/exynos4-is/mipi-csis.c      |   16 +-
+ drivers/phy/Kconfig                                |   28 +
+ drivers/phy/Makefile                               |    7 +
+ drivers/phy/phy-core.c                             |  544 ++++++++++++++++++++
+ drivers/phy/phy-exynos-dp-video.c                  |  111 ++++
+ drivers/phy/phy-exynos-mipi-video.c                |  169 ++++++
+ drivers/usb/musb/Kconfig                           |    1 +
+ drivers/usb/musb/musb_core.c                       |    1 +
+ drivers/usb/musb/musb_core.h                       |    3 +
+ drivers/usb/musb/omap2430.c                        |   26 +-
+ drivers/usb/phy/Kconfig                            |    1 +
+ drivers/usb/phy/phy-omap-usb2.c                    |   60 ++-
+ drivers/usb/phy/phy-twl4030-usb.c                  |   63 ++-
+ drivers/video/exynos/Kconfig                       |    2 +-
+ drivers/video/exynos/exynos_dp_core.c              |  132 ++---
+ drivers/video/exynos/exynos_dp_core.h              |  110 ++++
+ drivers/video/exynos/exynos_dp_reg.c               |    2 -
+ drivers/video/exynos/exynos_mipi_dsi.c             |   19 +-
+ include/linux/phy/phy.h                            |  344 +++++++++++++
+ include/linux/platform_data/mipi-csis.h            |   11 +-
+ include/linux/usb/musb.h                           |    3 +
+ include/video/exynos_dp.h                          |  131 -----
+ include/video/exynos_mipi_dsim.h                   |    6 +-
+ 43 files changed, 1746 insertions(+), 389 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/phy-bindings.txt
+ create mode 100644 Documentation/devicetree/bindings/phy/samsung-phy.txt
+ create mode 100644 Documentation/phy.txt
+ delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
+ create mode 100644 drivers/phy/Kconfig
+ create mode 100644 drivers/phy/Makefile
+ create mode 100644 drivers/phy/phy-core.c
+ create mode 100644 drivers/phy/phy-exynos-dp-video.c
+ create mode 100644 drivers/phy/phy-exynos-mipi-video.c
+ create mode 100644 include/linux/phy/phy.h
+ delete mode 100644 include/video/exynos_dp.h
 
 -- 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+1.7.10.4
+
