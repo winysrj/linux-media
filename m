@@ -1,77 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-lb0-f173.google.com ([209.85.217.173]:36193 "EHLO
-	mail-lb0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756086Ab3GKNKz (ORCPT
+Received: from relmlor4.renesas.com ([210.160.252.174]:63880 "EHLO
+	relmlor4.renesas.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754180Ab3GRJmj (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 09:10:55 -0400
-Received: by mail-lb0-f173.google.com with SMTP id v1so6711048lbd.18
-        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 06:10:53 -0700 (PDT)
-Message-ID: <51DEAEDB.2060600@cogentembedded.com>
-Date: Thu, 11 Jul 2013 17:10:51 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Clemens Ladisch <clemens@ladisch.de>,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Subject: Re: [PATCH 46/50] Sound: usb: ua101: spin_lock in complete() cleanup
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-47-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-47-git-send-email-ming.lei@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Thu, 18 Jul 2013 05:42:39 -0400
+Received: from relmlir4.idc.renesas.com ([10.200.68.154])
+ by relmlor4.idc.renesas.com ( SJSMS)
+ with ESMTP id <0MQ4000YDLN1GO40@relmlor4.idc.renesas.com> for
+ linux-media@vger.kernel.org; Thu, 18 Jul 2013 18:42:37 +0900 (JST)
+Received: from relmlac1.idc.renesas.com ([10.200.69.21])
+ by relmlir4.idc.renesas.com ( SJSMS)
+ with ESMTP id <0MQ400IWZLN11990@relmlir4.idc.renesas.com> for
+ linux-media@vger.kernel.org; Thu, 18 Jul 2013 18:42:37 +0900 (JST)
+In-reply-to: <Pine.LNX.4.64.1307181120400.15796@axis700.grange>
+References: <CAGGh5h1btafaMoaB89RBND2L8+Zg767HW3+hKG7Xcq2fsEN6Ew@mail.gmail.com>
+ <1370423495-16784-1-git-send-email-phil.edworthy@renesas.com>
+ <Pine.LNX.4.64.1307141216310.9479@axis700.grange>
+ <OFA3A542CD.036B9760-ON80257BAC.0030962D-80257BAC.00327F73@eu.necel.com>
+ <Pine.LNX.4.64.1307181120400.15796@axis700.grange>
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Jean-Philippe Francois <jp.francois@cynove.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+MIME-version: 1.0
+From: phil.edworthy@renesas.com
+Message-id: <OFB4EA1129.D62AE37B-ON80257BAC.0034B22B-80257BAC.003553C0@eu.necel.com>
+Date: Thu, 18 Jul 2013 10:42:28 +0100
+Subject: Re: [PATCH v3] ov10635: Add OmniVision ov10635 SoC camera driver
+Content-type: text/plain; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11-07-2013 13:06, Ming Lei wrote:
+Hi Guennadi,
 
-    Here the subject doesn't match the patch.
+> > There is one issue with setting the camera to achieve different 
+framerate. 
+> > The camera can work at up to 60fps with lower resolutions, i.e. when 
+> > vertical sub-sampling is used. However, the API uses separate 
+functions 
+> > for changing resolution and framerate. So, userspace could use a low 
+> > resolution, high framerate setting, then attempt to use a high 
+resolution, 
+> > low framerate setting. Clearly, it's possible for userspace to call 
+s_fmt 
+> > and s_parm in a way that attempts to set high resolution with the old 
+> > (high) framerate. In this case, a check for valid settings will fail.
+> > 
+> > Is this a generally known issue and userspace works round it?
+> 
+> It is generally known, that not all ioctl() settings can be combined, 
+yes. 
+> E.g. a driver can support a range of cropping values and multiple 
+formats, 
+> but not every format can be used with every cropping rectangle. So, if 
+you 
+> first set a format and then an incompatible cropping or vice versa, one 
+of 
+> ioctl()s will either fail or adjust parameters as close to the original 
+> request as possible. This has been discussed multiple times, ideas were 
+> expressed to create a recommended or even a compulsory ioctl() order, 
+but 
+> I'm not sure how far this has come. I'm sure other developers on the 
+list 
+> will have more info to this topic.
 
-> Complete() will be run with interrupt enabled, so disable local
-> interrupt before holding a global lock which is held without irqsave.
+Thanks for the info.
 
-> Cc: Clemens Ladisch <clemens@ladisch.de>
-> Cc: Jaroslav Kysela <perex@perex.cz>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Cc: alsa-devel@alsa-project.org
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->   sound/usb/misc/ua101.c |   14 ++++++++++++--
->   1 file changed, 12 insertions(+), 2 deletions(-)
+On a similar note, cameras often need quite long periods after setting 
+registers before they take hold. Currently this driver will change the 
+registers, and delay, for both calls to s_parm and s_fmt. Is there a way 
+to avoid this?
 
-> diff --git a/sound/usb/misc/ua101.c b/sound/usb/misc/ua101.c
-> index 8b5d2c5..52a60c6 100644
-> --- a/sound/usb/misc/ua101.c
-> +++ b/sound/usb/misc/ua101.c
-> @@ -613,14 +613,24 @@ static int start_usb_playback(struct ua101 *ua)
->
->   static void abort_alsa_capture(struct ua101 *ua)
->   {
-> -	if (test_bit(ALSA_CAPTURE_RUNNING, &ua->states))
-> +	if (test_bit(ALSA_CAPTURE_RUNNING, &ua->states)) {
-> +		unsigned long flags;
-> +
-> +		local_irq_save(flags);
->   		snd_pcm_stop(ua->capture.substream, SNDRV_PCM_STATE_XRUN);
-> +		local_irq_restore(flags);
-> +	}
->   }
->
->   static void abort_alsa_playback(struct ua101 *ua)
->   {
-> -	if (test_bit(ALSA_PLAYBACK_RUNNING, &ua->states))
-> +	if (test_bit(ALSA_PLAYBACK_RUNNING, &ua->states)) {
-> +		unsigned long flags;
-> +
-> +		local_irq_save(flags);
->   		snd_pcm_stop(ua->playback.substream, SNDRV_PCM_STATE_XRUN);
-> +		local_irq_restore(flags);
-> +	}
->   }
-
-WBR, Sergei
-
+Thanks
+Phil
