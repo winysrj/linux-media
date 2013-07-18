@@ -1,103 +1,149 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:33643 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757049Ab3GEKy6 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 06:54:58 -0400
-Received: from avalon.ideasonboard.com (unknown [91.178.251.211])
-	by perceval.ideasonboard.com (Postfix) with ESMTPSA id 5E4FA35A4A
-	for <linux-media@vger.kernel.org>; Fri,  5 Jul 2013 12:54:47 +0200 (CEST)
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Subject: [PATCH] mt9v032: Use the common clock framework
-Date: Fri,  5 Jul 2013 12:55:25 +0200
-Message-Id: <1373021725-14006-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from arroyo.ext.ti.com ([192.94.94.40]:34310 "EHLO arroyo.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758662Ab3GRGsN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jul 2013 02:48:13 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: [PATCH 10/15] video: exynos_mipi_dsim: Use the generic PHY driver
+Date: Thu, 18 Jul 2013 12:16:19 +0530
+Message-ID: <1374129984-765-11-git-send-email-kishon@ti.com>
+In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
+References: <1374129984-765-1-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Configure the device external clock using the common clock framework
-instead of a board code callback function.
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Use the generic PHY API instead of the platform callback to control
+the MIPI DSIM DPHY. The 'phy_label' field is added to the platform
+data structure to allow PHY lookup on non-dt platforms.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Donghwa Lee <dh09.lee@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/media/i2c/mt9v032.c | 16 ++++++++++------
- include/media/mt9v032.h     |  4 ----
- 2 files changed, 10 insertions(+), 10 deletions(-)
+ drivers/video/exynos/exynos_mipi_dsi.c |   19 ++++++++++---------
+ include/video/exynos_mipi_dsim.h       |    6 ++++--
+ 2 files changed, 14 insertions(+), 11 deletions(-)
 
-diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
-index 60c6f67..7b30640 100644
---- a/drivers/media/i2c/mt9v032.c
-+++ b/drivers/media/i2c/mt9v032.c
-@@ -12,6 +12,7 @@
-  * published by the Free Software Foundation.
+diff --git a/drivers/video/exynos/exynos_mipi_dsi.c b/drivers/video/exynos/exynos_mipi_dsi.c
+index 32e5406..248e444 100644
+--- a/drivers/video/exynos/exynos_mipi_dsi.c
++++ b/drivers/video/exynos/exynos_mipi_dsi.c
+@@ -30,6 +30,7 @@
+ #include <linux/interrupt.h>
+ #include <linux/kthread.h>
+ #include <linux/notifier.h>
++#include <linux/phy/phy.h>
+ #include <linux/regulator/consumer.h>
+ #include <linux/pm_runtime.h>
+ #include <linux/err.h>
+@@ -156,8 +157,7 @@ static int exynos_mipi_dsi_blank_mode(struct mipi_dsim_device *dsim, int power)
+ 		exynos_mipi_regulator_enable(dsim);
+ 
+ 		/* enable MIPI-DSI PHY. */
+-		if (dsim->pd->phy_enable)
+-			dsim->pd->phy_enable(pdev, true);
++		phy_power_on(dsim->phy);
+ 
+ 		clk_enable(dsim->clock);
+ 
+@@ -373,6 +373,10 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
+ 		return ret;
+ 	}
+ 
++	dsim->phy = devm_phy_get(&pdev->dev, dsim_pd->phy_label);
++	if (IS_ERR(dsim->phy))
++		return PTR_ERR(dsim->phy);
++
+ 	dsim->clock = devm_clk_get(&pdev->dev, "dsim0");
+ 	if (IS_ERR(dsim->clock)) {
+ 		dev_err(&pdev->dev, "failed to get dsim clock source\n");
+@@ -439,8 +443,7 @@ static int exynos_mipi_dsi_probe(struct platform_device *pdev)
+ 	exynos_mipi_regulator_enable(dsim);
+ 
+ 	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, true);
++	phy_power_on(dsim->phy);
+ 
+ 	exynos_mipi_update_cfg(dsim);
+ 
+@@ -504,9 +507,8 @@ static int exynos_mipi_dsi_suspend(struct device *dev)
+ 	if (client_drv && client_drv->suspend)
+ 		client_drv->suspend(client_dev);
+ 
+-	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, false);
++	/* disable MIPI-DSI PHY. */
++	phy_power_off(dsim->phy);
+ 
+ 	clk_disable(dsim->clock);
+ 
+@@ -536,8 +538,7 @@ static int exynos_mipi_dsi_resume(struct device *dev)
+ 	exynos_mipi_regulator_enable(dsim);
+ 
+ 	/* enable MIPI-DSI PHY. */
+-	if (dsim->pd->phy_enable)
+-		dsim->pd->phy_enable(pdev, true);
++	phy_power_on(dsim->phy);
+ 
+ 	clk_enable(dsim->clock);
+ 
+diff --git a/include/video/exynos_mipi_dsim.h b/include/video/exynos_mipi_dsim.h
+index 89dc88a..0e7e43b 100644
+--- a/include/video/exynos_mipi_dsim.h
++++ b/include/video/exynos_mipi_dsim.h
+@@ -216,6 +216,7 @@ struct mipi_dsim_config {
+  *	automatically.
+  * @e_clk_src: select byte clock source.
+  * @pd: pointer to MIPI-DSI driver platform data.
++ * @phy: pointer to the generic PHY
   */
+ struct mipi_dsim_device {
+ 	struct device			*dev;
+@@ -236,6 +237,7 @@ struct mipi_dsim_device {
+ 	bool				suspended;
  
-+#include <linux/clk.h>
- #include <linux/delay.h>
- #include <linux/i2c.h>
- #include <linux/log2.h>
-@@ -135,6 +136,8 @@ struct mt9v032 {
- 	struct mutex power_lock;
- 	int power_count;
- 
-+	struct clk *clk;
-+
- 	struct mt9v032_platform_data *pdata;
- 
- 	u32 sysclk;
-@@ -219,10 +222,8 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
- 	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
- 	int ret;
- 
--	if (mt9v032->pdata->set_clock) {
--		mt9v032->pdata->set_clock(&mt9v032->subdev, mt9v032->sysclk);
--		udelay(1);
--	}
-+	clk_prepare_enable(mt9v032->clk);
-+	udelay(1);
- 
- 	/* Reset the chip and stop data read out */
- 	ret = mt9v032_write(client, MT9V032_RESET, 1);
-@@ -238,8 +239,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
- 
- static void mt9v032_power_off(struct mt9v032 *mt9v032)
- {
--	if (mt9v032->pdata->set_clock)
--		mt9v032->pdata->set_clock(&mt9v032->subdev, 0);
-+	clk_disable_unprepare(mt9v032->clk);
- }
- 
- static int __mt9v032_set_power(struct mt9v032 *mt9v032, bool on)
-@@ -748,6 +748,10 @@ static int mt9v032_probe(struct i2c_client *client,
- 	if (!mt9v032)
- 		return -ENOMEM;
- 
-+	mt9v032->clk = devm_clk_get(&client->dev, NULL);
-+	if (IS_ERR(mt9v032->clk))
-+		return PTR_ERR(mt9v032->clk);
-+
- 	mutex_init(&mt9v032->power_lock);
- 	mt9v032->pdata = pdata;
- 
-diff --git a/include/media/mt9v032.h b/include/media/mt9v032.h
-index 78fd39e..12175a6 100644
---- a/include/media/mt9v032.h
-+++ b/include/media/mt9v032.h
-@@ -1,13 +1,9 @@
- #ifndef _MEDIA_MT9V032_H
- #define _MEDIA_MT9V032_H
- 
--struct v4l2_subdev;
--
- struct mt9v032_platform_data {
- 	unsigned int clk_pol:1;
- 
--	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
--
- 	const s64 *link_freqs;
- 	s64 link_def_freq;
+ 	struct mipi_dsim_platform_data	*pd;
++	struct phy			*phy;
  };
+ 
+ /*
+@@ -248,7 +250,7 @@ struct mipi_dsim_device {
+  * @enabled: indicate whether mipi controller got enabled or not.
+  * @lcd_panel_info: pointer for lcd panel specific structure.
+  *	this structure specifies width, height, timing and polarity and so on.
+- * @phy_enable: pointer to a callback controlling D-PHY enable/reset
++ * @phy_label: the generic PHY label
+  */
+ struct mipi_dsim_platform_data {
+ 	char				lcd_panel_name[PANEL_NAME_SIZE];
+@@ -257,7 +259,7 @@ struct mipi_dsim_platform_data {
+ 	unsigned int			enabled;
+ 	void				*lcd_panel_info;
+ 
+-	int (*phy_enable)(struct platform_device *pdev, bool on);
++	const char			*phy_label;
+ };
+ 
+ /*
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.10.4
 
