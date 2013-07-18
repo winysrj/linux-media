@@ -1,274 +1,179 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:44779 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752119Ab3GHMH2 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:28 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPM00LU49OANZR0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:26 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v4 2/8] [media] s5p-mfc: Rename IS_MFCV6 macro
-Date: Mon, 08 Jul 2013 18:00:30 +0530
-Message-id: <1373286637-30154-3-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
-References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+Received: from devils.ext.ti.com ([198.47.26.153]:49310 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758703Ab3GRGs0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jul 2013 02:48:26 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: [PATCH 12/15] ARM: Samsung: Remove the MIPI PHY setup code
+Date: Thu, 18 Jul 2013 12:16:21 +0530
+Message-ID: <1374129984-765-13-git-send-email-kishon@ti.com>
+In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
+References: <1374129984-765-1-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The MFC v6 specific code holds good for MFC v7 also as
-the v7 version is a superset of v6 and the HW interface
-remains more or less similar. This patch renames the macro
-IS_MFCV6() to IS_MFCV6_PLUS() so that it can be used
-for v7 also.
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
+Generic PHY drivers are used to handle the MIPI CSIS and MIPI DSIM
+DPHYs so we can remove now unused code at arch/arm/plat-samsung.
+In case there is any board file for S5PV210 platforms using MIPI
+CSIS/DSIM (not any upstream currently) it should use the generic
+PHY API to bind the PHYs to respective PHY consumer drivers and
+a platform device for the PHY provider should be defined.
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Acked-by: Kukjin Kim <kgene.kim@samsung.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c    |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_common.h |    2 +-
- drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c   |   12 ++++++------
- drivers/media/platform/s5p-mfc/s5p_mfc_dec.c    |   18 ++++++++++--------
- drivers/media/platform/s5p-mfc/s5p_mfc_enc.c    |   16 +++++++++-------
- drivers/media/platform/s5p-mfc/s5p_mfc_opr.c    |    2 +-
- 6 files changed, 28 insertions(+), 24 deletions(-)
+ arch/arm/mach-exynos/include/mach/regs-pmu.h    |    5 --
+ arch/arm/mach-s5pv210/include/mach/regs-clock.h |    4 --
+ arch/arm/plat-samsung/Kconfig                   |    5 --
+ arch/arm/plat-samsung/Makefile                  |    1 -
+ arch/arm/plat-samsung/setup-mipiphy.c           |   60 -----------------------
+ 5 files changed, 75 deletions(-)
+ delete mode 100644 arch/arm/plat-samsung/setup-mipiphy.c
 
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-index f0a41c9..242c033 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_cmd.c
-@@ -20,7 +20,7 @@ static struct s5p_mfc_hw_cmds *s5p_mfc_cmds;
+diff --git a/arch/arm/mach-exynos/include/mach/regs-pmu.h b/arch/arm/mach-exynos/include/mach/regs-pmu.h
+index 57344b7..2cdb63e 100644
+--- a/arch/arm/mach-exynos/include/mach/regs-pmu.h
++++ b/arch/arm/mach-exynos/include/mach/regs-pmu.h
+@@ -44,11 +44,6 @@
+ #define S5P_DAC_PHY_CONTROL			S5P_PMUREG(0x070C)
+ #define S5P_DAC_PHY_ENABLE			(1 << 0)
  
- void s5p_mfc_init_hw_cmds(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v6();
- 	else
- 		s5p_mfc_cmds = s5p_mfc_init_hw_cmds_v5();
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-index ef4074c..d47016d 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_common.h
-@@ -683,6 +683,6 @@ void set_work_bit_irqsave(struct s5p_mfc_ctx *ctx);
- #define HAS_PORTNUM(dev)	(dev ? (dev->variant ? \
- 				(dev->variant->port_num ? 1 : 0) : 0) : 0)
- #define IS_TWOPORT(dev)		(dev->variant->port_num == 2 ? 1 : 0)
--#define IS_MFCV6(dev)		(dev->variant->version >= 0x60 ? 1 : 0)
-+#define IS_MFCV6_PLUS(dev)	(dev->variant->version >= 0x60 ? 1 : 0)
+-#define S5P_MIPI_DPHY_CONTROL(n)		S5P_PMUREG(0x0710 + (n) * 4)
+-#define S5P_MIPI_DPHY_ENABLE			(1 << 0)
+-#define S5P_MIPI_DPHY_SRESETN			(1 << 1)
+-#define S5P_MIPI_DPHY_MRESETN			(1 << 2)
+-
+ #define S5P_INFORM0				S5P_PMUREG(0x0800)
+ #define S5P_INFORM1				S5P_PMUREG(0x0804)
+ #define S5P_INFORM2				S5P_PMUREG(0x0808)
+diff --git a/arch/arm/mach-s5pv210/include/mach/regs-clock.h b/arch/arm/mach-s5pv210/include/mach/regs-clock.h
+index 032de66..e345584 100644
+--- a/arch/arm/mach-s5pv210/include/mach/regs-clock.h
++++ b/arch/arm/mach-s5pv210/include/mach/regs-clock.h
+@@ -147,10 +147,6 @@
+ #define S5P_HDMI_PHY_CONTROL	S5P_CLKREG(0xE804)
+ #define S5P_USB_PHY_CONTROL	S5P_CLKREG(0xE80C)
+ #define S5P_DAC_PHY_CONTROL	S5P_CLKREG(0xE810)
+-#define S5P_MIPI_DPHY_CONTROL(x) S5P_CLKREG(0xE814)
+-#define S5P_MIPI_DPHY_ENABLE	(1 << 0)
+-#define S5P_MIPI_DPHY_SRESETN	(1 << 1)
+-#define S5P_MIPI_DPHY_MRESETN	(1 << 2)
  
- #endif /* S5P_MFC_COMMON_H_ */
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-index dc1fc94..7cab684 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_ctrl.c
-@@ -164,7 +164,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ #define S5P_INFORM0		S5P_CLKREG(0xF000)
+ #define S5P_INFORM1		S5P_CLKREG(0xF004)
+diff --git a/arch/arm/plat-samsung/Kconfig b/arch/arm/plat-samsung/Kconfig
+index 3dc5cbe..db2d814 100644
+--- a/arch/arm/plat-samsung/Kconfig
++++ b/arch/arm/plat-samsung/Kconfig
+@@ -402,11 +402,6 @@ config S3C24XX_PWM
+ 	  Support for exporting the PWM timer blocks via the pwm device
+ 	  system
  
- 	mfc_debug_enter();
+-config S5P_SETUP_MIPIPHY
+-	bool
+-	help
+-	  Compile in common setup code for MIPI-CSIS and MIPI-DSIM devices
+-
+ config S3C_SETUP_CAMIF
+ 	bool
+ 	help
+diff --git a/arch/arm/plat-samsung/Makefile b/arch/arm/plat-samsung/Makefile
+index 98d07d8..98f1e31 100644
+--- a/arch/arm/plat-samsung/Makefile
++++ b/arch/arm/plat-samsung/Makefile
+@@ -41,7 +41,6 @@ obj-$(CONFIG_S5P_DEV_UART)	+= s5p-dev-uart.o
+ obj-$(CONFIG_SAMSUNG_DEV_BACKLIGHT)	+= dev-backlight.o
  
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		/* Reset IP */
- 		/*  except RISC, reset */
- 		mfc_write(dev, 0xFEE, S5P_FIMV_MFC_RESET_V6);
-@@ -213,7 +213,7 @@ int s5p_mfc_reset(struct s5p_mfc_dev *dev)
+ obj-$(CONFIG_S3C_SETUP_CAMIF)	+= setup-camif.o
+-obj-$(CONFIG_S5P_SETUP_MIPIPHY)	+= setup-mipiphy.o
  
- static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		mfc_write(dev, dev->bank1, S5P_FIMV_RISC_BASE_ADDRESS_V6);
- 		mfc_debug(2, "Base Address : %08x\n", dev->bank1);
- 	} else {
-@@ -226,7 +226,7 @@ static inline void s5p_mfc_init_memctrl(struct s5p_mfc_dev *dev)
+ # DMA support
  
- static inline void s5p_mfc_clear_cmds(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		/* Zero initialization should be done before RESET.
- 		 * Nothing to do here. */
- 	} else {
-@@ -264,7 +264,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 	s5p_mfc_clear_cmds(dev);
- 	/* 3. Release reset signal to the RISC */
- 	s5p_mfc_clean_dev_int_flags(dev);
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
- 	else
- 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-@@ -301,7 +301,7 @@ int s5p_mfc_init_hw(struct s5p_mfc_dev *dev)
- 		s5p_mfc_clock_off();
- 		return -EIO;
- 	}
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION_V6);
- 	else
- 		ver = mfc_read(dev, S5P_FIMV_FW_VERSION);
-@@ -380,7 +380,7 @@ int s5p_mfc_wakeup(struct s5p_mfc_dev *dev)
- 		return ret;
- 	}
- 	/* 4. Release reset signal to the RISC */
--	if (IS_MFCV6(dev))
-+	if (IS_MFCV6_PLUS(dev))
- 		mfc_write(dev, 0x1, S5P_FIMV_RISC_ON_V6);
- 	else
- 		mfc_write(dev, 0x3ff, S5P_FIMV_SW_RESET);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-index 00b0703..56a1d3b 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_dec.c
-@@ -382,7 +382,7 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for source.\n");
- 			return -EINVAL;
- 		}
--		if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
-+		if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
- 		}
-@@ -392,10 +392,11 @@ static int vidioc_try_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for destination.\n");
- 			return -EINVAL;
- 		}
--		if (IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
-+		if (IS_MFCV6_PLUS(dev) &&
-+				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (!IS_MFCV6(dev) &&
-+		} else if (!IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -430,10 +431,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			mfc_err("Unsupported format for source.\n");
- 			return -EINVAL;
- 		}
--		if (!IS_MFCV6(dev) && (fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
-+		if (!IS_MFCV6_PLUS(dev) &&
-+				(fmt->fourcc != V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (IS_MFCV6(dev) &&
-+		} else if (IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -457,7 +459,7 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 		ret = -EINVAL;
- 		goto out;
- 	}
--	if (!IS_MFCV6(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
-+	if (!IS_MFCV6_PLUS(dev) && (fmt->fourcc == V4L2_PIX_FMT_VP8)) {
- 		mfc_err("Not supported format.\n");
- 		return -EINVAL;
- 	}
-@@ -942,7 +944,7 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 		psize[0] = ctx->luma_size;
- 		psize[1] = ctx->chroma_size;
- 
--		if (IS_MFCV6(dev))
-+		if (IS_MFCV6_PLUS(dev))
- 			allocators[0] =
- 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
- 		else
-@@ -1067,7 +1069,7 @@ static int s5p_mfc_stop_streaming(struct vb2_queue *q)
- 		ctx->dpb_flush_flag = 1;
- 		ctx->dec_dst_flag = 0;
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
--		if (IS_MFCV6(dev) && (ctx->state == MFCINST_RUNNING)) {
-+		if (IS_MFCV6_PLUS(dev) && (ctx->state == MFCINST_RUNNING)) {
- 			ctx->state = MFCINST_FLUSH;
- 			set_work_bit_irqsave(ctx);
- 			s5p_mfc_clean_ctx_int_flags(ctx);
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-index 2549967..f734ccc 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_enc.c
-@@ -663,7 +663,7 @@ static int enc_post_seq_start(struct s5p_mfc_ctx *ctx)
- 		spin_unlock_irqrestore(&dev->irqlock, flags);
- 	}
- 
--	if (!IS_MFCV6(dev)) {
-+	if (!IS_MFCV6_PLUS(dev)) {
- 		ctx->state = MFCINST_RUNNING;
- 		if (s5p_mfc_ctx_ready(ctx))
- 			set_work_bit_irqsave(ctx);
-@@ -993,11 +993,11 @@ static int vidioc_s_fmt(struct file *file, void *priv, struct v4l2_format *f)
- 			return -EINVAL;
- 		}
- 
--		if (!IS_MFCV6(dev) &&
-+		if (!IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT_16X16)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
--		} else if (IS_MFCV6(dev) &&
-+		} else if (IS_MFCV6_PLUS(dev) &&
- 				(fmt->fourcc == V4L2_PIX_FMT_NV12MT)) {
- 			mfc_err("Not supported format.\n");
- 			return -EINVAL;
-@@ -1072,7 +1072,7 @@ static int vidioc_reqbufs(struct file *file, void *priv,
- 			return -EINVAL;
- 		}
- 
--		if (IS_MFCV6(dev)) {
-+		if (IS_MFCV6_PLUS(dev)) {
- 			/* Check for min encoder buffers */
- 			if (ctx->pb_count &&
- 				(reqbufs->count < ctx->pb_count)) {
-@@ -1353,7 +1353,7 @@ static int s5p_mfc_enc_s_ctrl(struct v4l2_ctrl *ctrl)
- 				S5P_FIMV_ENC_PROFILE_H264_BASELINE;
- 			break;
- 		case V4L2_MPEG_VIDEO_H264_PROFILE_CONSTRAINED_BASELINE:
--			if (IS_MFCV6(dev))
-+			if (IS_MFCV6_PLUS(dev))
- 				p->codec.h264.profile =
- 				S5P_FIMV_ENC_PROFILE_H264_CONSTRAINED_BASELINE;
- 			else
-@@ -1662,9 +1662,10 @@ static int s5p_mfc_queue_setup(struct vb2_queue *vq,
- 			*buf_count = 1;
- 		if (*buf_count > MFC_MAX_BUFFERS)
- 			*buf_count = MFC_MAX_BUFFERS;
-+
- 		psize[0] = ctx->luma_size;
- 		psize[1] = ctx->chroma_size;
--		if (IS_MFCV6(dev)) {
-+		if (IS_MFCV6_PLUS(dev)) {
- 			allocators[0] =
- 				ctx->dev->alloc_ctx[MFC_BANK1_ALLOC_CTX];
- 			allocators[1] =
-@@ -1773,7 +1774,8 @@ static int s5p_mfc_start_streaming(struct vb2_queue *q, unsigned int count)
- 	struct s5p_mfc_ctx *ctx = fh_to_ctx(q->drv_priv);
- 	struct s5p_mfc_dev *dev = ctx->dev;
- 
--	if (IS_MFCV6(dev) && (q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
-+	if (IS_MFCV6_PLUS(dev) &&
-+			(q->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)) {
- 
- 		if ((ctx->state == MFCINST_GOT_INST) &&
- 			(dev->curr_ctx == ctx->num) && dev->hw_lock) {
-diff --git a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-index 10f8ac3..3c01c33 100644
---- a/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-+++ b/drivers/media/platform/s5p-mfc/s5p_mfc_opr.c
-@@ -21,7 +21,7 @@ static struct s5p_mfc_hw_ops *s5p_mfc_ops;
- 
- void s5p_mfc_init_hw_ops(struct s5p_mfc_dev *dev)
- {
--	if (IS_MFCV6(dev)) {
-+	if (IS_MFCV6_PLUS(dev)) {
- 		s5p_mfc_ops = s5p_mfc_init_hw_ops_v6();
- 		dev->warn_start = S5P_FIMV_ERR_WARNINGS_START_V6;
- 	} else {
+diff --git a/arch/arm/plat-samsung/setup-mipiphy.c b/arch/arm/plat-samsung/setup-mipiphy.c
+deleted file mode 100644
+index 66df315..0000000
+--- a/arch/arm/plat-samsung/setup-mipiphy.c
++++ /dev/null
+@@ -1,60 +0,0 @@
+-/*
+- * Copyright (C) 2011 Samsung Electronics Co., Ltd.
+- *
+- * S5P - Helper functions for MIPI-CSIS and MIPI-DSIM D-PHY control
+- *
+- * This program is free software; you can redistribute it and/or modify
+- * it under the terms of the GNU General Public License version 2 as
+- * published by the Free Software Foundation.
+- */
+-
+-#include <linux/export.h>
+-#include <linux/kernel.h>
+-#include <linux/platform_device.h>
+-#include <linux/io.h>
+-#include <linux/spinlock.h>
+-#include <mach/regs-clock.h>
+-
+-static int __s5p_mipi_phy_control(int id, bool on, u32 reset)
+-{
+-	static DEFINE_SPINLOCK(lock);
+-	void __iomem *addr;
+-	unsigned long flags;
+-	u32 cfg;
+-
+-	id = max(0, id);
+-	if (id > 1)
+-		return -EINVAL;
+-
+-	addr = S5P_MIPI_DPHY_CONTROL(id);
+-
+-	spin_lock_irqsave(&lock, flags);
+-
+-	cfg = __raw_readl(addr);
+-	cfg = on ? (cfg | reset) : (cfg & ~reset);
+-	__raw_writel(cfg, addr);
+-
+-	if (on) {
+-		cfg |= S5P_MIPI_DPHY_ENABLE;
+-	} else if (!(cfg & (S5P_MIPI_DPHY_SRESETN |
+-			    S5P_MIPI_DPHY_MRESETN) & ~reset)) {
+-		cfg &= ~S5P_MIPI_DPHY_ENABLE;
+-	}
+-
+-	__raw_writel(cfg, addr);
+-	spin_unlock_irqrestore(&lock, flags);
+-
+-	return 0;
+-}
+-
+-int s5p_csis_phy_enable(int id, bool on)
+-{
+-	return __s5p_mipi_phy_control(id, on, S5P_MIPI_DPHY_SRESETN);
+-}
+-EXPORT_SYMBOL(s5p_csis_phy_enable);
+-
+-int s5p_dsim_phy_enable(struct platform_device *pdev, bool on)
+-{
+-	return __s5p_mipi_phy_control(pdev->id, on, S5P_MIPI_DPHY_MRESETN);
+-}
+-EXPORT_SYMBOL(s5p_dsim_phy_enable);
 -- 
-1.7.9.5
+1.7.10.4
 
