@@ -1,136 +1,131 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f47.google.com ([209.85.220.47]:60401 "EHLO
-	mail-pa0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932090Ab3GKJIG (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:39750 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1758029Ab3GRKWN (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:08:06 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Peter Berger <pberger@brimson.com>,
-	Al Borchers <alborchers@steinerpoint.com>
-Subject: [PATCH 11/50] USB: serial: digi_acceleportldusb: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:34 +0800
-Message-Id: <1373533573-12272-12-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Thu, 18 Jul 2013 06:22:13 -0400
+Date: Thu, 18 Jul 2013 13:22:09 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
+	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>
+Subject: Re: [PATCH v2 1/5] media: Fix circular graph traversal
+Message-ID: <20130718102209.GA11823@valkosipuli.retiisi.org.uk>
+References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <1374072882-14598-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+ <20130717194703.GB11369@valkosipuli.retiisi.org.uk>
+ <1592849.BGn9Ftusvr@avalon>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1592849.BGn9Ftusvr@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+Hi Laurent,
 
-Cc: Peter Berger <pberger@brimson.com>
-Cc: Al Borchers <alborchers@steinerpoint.com>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/usb/serial/digi_acceleport.c |   23 +++++++++++++----------
- 1 file changed, 13 insertions(+), 10 deletions(-)
+On Thu, Jul 18, 2013 at 01:06:40AM +0200, Laurent Pinchart wrote:
+> On Wednesday 17 July 2013 22:47:03 Sakari Ailus wrote:
+> > On Wed, Jul 17, 2013 at 04:54:38PM +0200, Laurent Pinchart wrote:
+> > > The graph traversal API (media_entity_graph_walk_*) will fail to
+> > > correctly walk the graph when circular links exist. Fix it by checking
+> > > whether an entity is already present in the stack before pushing it.
+> > 
+> > We never had any multiply connected graphs (ignoring direction, nor
+> > supported them) before. So this is rather a patch that adds support for
+> > those instead of fixing it. :-)
+> 
+> Good point, I'll add support for your comment to the commit message :-D
+> 
+> > > Signed-off-by: Laurent Pinchart
+> > > <laurent.pinchart+renesas@ideasonboard.com>
+> > > ---
+> > > 
+> > >  drivers/media/media-entity.c | 17 ++++++++++++-----
+> > >  1 file changed, 12 insertions(+), 5 deletions(-)
+> > > 
+> > > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
+> > > index cb30ffb..c8aba5e 100644
+> > > --- a/drivers/media/media-entity.c
+> > > +++ b/drivers/media/media-entity.c
+> > > @@ -121,9 +121,9 @@ static struct media_entity *stack_pop(struct
+> > > media_entity_graph *graph)
+> > >  	return entity;
+> > >  }
+> > > 
+> > > -#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
+> > > -#define link_top(en)	((en)->stack[(en)->top].link)
+> > > -#define stack_top(en)	((en)->stack[(en)->top].entity)
+> > > +#define stack_peek(en, i)	((en)->stack[i].entity)
+> > > +#define link_top(en)		((en)->stack[(en)->top].link)
+> > > +#define stack_top(en)		((en)->stack[(en)->top].entity)
+> > > 
+> > >  /**
+> > >   * media_entity_graph_walk_start - Start walking the media graph at a
+> > >   given entity> 
+> > > @@ -159,6 +159,8 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
+> > > 
+> > >  struct media_entity *
+> > >  media_entity_graph_walk_next(struct media_entity_graph *graph)
+> > >  {
+> > > +	unsigned int i;
+> > > +
+> > >  	if (stack_top(graph) == NULL)
+> > >  		return NULL;
+> > > 
+> > > @@ -181,8 +183,13 @@ media_entity_graph_walk_next(struct
+> > > media_entity_graph *graph)> 
+> > >  		/* Get the entity in the other end of the link . */
+> > >  		next = media_entity_other(entity, link);
+> > > 
+> > > -		/* Was it the entity we came here from? */
+> > > -		if (next == stack_peek(graph)) {
+> > > +		/* Is the entity already in the path? */
+> > > +		for (i = 1; i < graph->top; ++i) {
+> > > +			if (next == stack_peek(graph, i))
+> > > +				break;
+> > > +		}
+> > > +
+> > > +		if (i < graph->top) {
+> > >  			link_top(graph)++;
+> > >  			continue;
+> > >  		}
+> > 
+> > I think you should also ensure a node in the graph hasn't been enumerated in
+> > the past; otherwise it's possible to do that multiple times in a multiply
+> > connected graph.
+> 
+> I'm not sure to follow you here, could you please elaborate ?
 
-diff --git a/drivers/usb/serial/digi_acceleport.c b/drivers/usb/serial/digi_acceleport.c
-index 19b467f..95b1959 100644
---- a/drivers/usb/serial/digi_acceleport.c
-+++ b/drivers/usb/serial/digi_acceleport.c
-@@ -988,6 +988,7 @@ static void digi_write_bulk_callback(struct urb *urb)
- 	struct digi_serial *serial_priv;
- 	int ret = 0;
- 	int status = urb->status;
-+	unsigned long flags;
- 
- 	/* port and serial sanity check */
- 	if (port == NULL || (priv = usb_get_serial_port_data(port)) == NULL) {
-@@ -1006,15 +1007,15 @@ static void digi_write_bulk_callback(struct urb *urb)
- 	/* handle oob callback */
- 	if (priv->dp_port_num == serial_priv->ds_oob_port_num) {
- 		dev_dbg(&port->dev, "digi_write_bulk_callback: oob callback\n");
--		spin_lock(&priv->dp_port_lock);
-+		spin_lock_irqsave(&priv->dp_port_lock, flags);
- 		priv->dp_write_urb_in_use = 0;
- 		wake_up_interruptible(&port->write_wait);
--		spin_unlock(&priv->dp_port_lock);
-+		spin_unlock_irqrestore(&priv->dp_port_lock, flags);
- 		return;
- 	}
- 
- 	/* try to send any buffered data on this port */
--	spin_lock(&priv->dp_port_lock);
-+	spin_lock_irqsave(&priv->dp_port_lock, flags);
- 	priv->dp_write_urb_in_use = 0;
- 	if (priv->dp_out_buf_len > 0) {
- 		*((unsigned char *)(port->write_urb->transfer_buffer))
-@@ -1037,7 +1038,7 @@ static void digi_write_bulk_callback(struct urb *urb)
- 	/* lost the race in write_chan(). */
- 	schedule_work(&priv->dp_wakeup_work);
- 
--	spin_unlock(&priv->dp_port_lock);
-+	spin_unlock_irqrestore(&priv->dp_port_lock, flags);
- 	if (ret && ret != -EPERM)
- 		dev_err_console(port,
- 			"%s: usb_submit_urb failed, ret=%d, port=%d\n",
-@@ -1388,6 +1389,7 @@ static int digi_read_inb_callback(struct urb *urb)
- 	unsigned char *data = ((unsigned char *)urb->transfer_buffer) + 3;
- 	int flag, throttled;
- 	int status = urb->status;
-+	unsigned long flags;
- 
- 	/* do not process callbacks on closed ports */
- 	/* but do continue the read chain */
-@@ -1404,7 +1406,7 @@ static int digi_read_inb_callback(struct urb *urb)
- 		return -1;
- 	}
- 
--	spin_lock(&priv->dp_port_lock);
-+	spin_lock_irqsave(&priv->dp_port_lock, flags);
- 
- 	/* check for throttle; if set, do not resubmit read urb */
- 	/* indicate the read chain needs to be restarted on unthrottle */
-@@ -1438,7 +1440,7 @@ static int digi_read_inb_callback(struct urb *urb)
- 			tty_flip_buffer_push(&port->port);
- 		}
- 	}
--	spin_unlock(&priv->dp_port_lock);
-+	spin_unlock_irqrestore(&priv->dp_port_lock, flags);
- 
- 	if (opcode == DIGI_CMD_RECEIVE_DISABLE)
- 		dev_dbg(&port->dev, "%s: got RECEIVE_DISABLE\n", __func__);
-@@ -1469,6 +1471,7 @@ static int digi_read_oob_callback(struct urb *urb)
- 	int opcode, line, status, val;
- 	int i;
- 	unsigned int rts;
-+	unsigned long flags;
- 
- 	/* handle each oob command */
- 	for (i = 0; i < urb->actual_length - 3;) {
-@@ -1496,7 +1499,7 @@ static int digi_read_oob_callback(struct urb *urb)
- 			rts = tty->termios.c_cflag & CRTSCTS;
- 		
- 		if (tty && opcode == DIGI_CMD_READ_INPUT_SIGNALS) {
--			spin_lock(&priv->dp_port_lock);
-+			spin_lock_irqsave(&priv->dp_port_lock, flags);
- 			/* convert from digi flags to termiox flags */
- 			if (val & DIGI_READ_INPUT_SIGNALS_CTS) {
- 				priv->dp_modem_signals |= TIOCM_CTS;
-@@ -1524,12 +1527,12 @@ static int digi_read_oob_callback(struct urb *urb)
- 			else
- 				priv->dp_modem_signals &= ~TIOCM_CD;
- 
--			spin_unlock(&priv->dp_port_lock);
-+			spin_unlock_irqrestore(&priv->dp_port_lock, flags);
- 		} else if (opcode == DIGI_CMD_TRANSMIT_IDLE) {
--			spin_lock(&priv->dp_port_lock);
-+			spin_lock_irqsave(&priv->dp_port_lock, flags);
- 			priv->dp_transmit_idle = 1;
- 			wake_up_interruptible(&priv->dp_transmit_idle_wait);
--			spin_unlock(&priv->dp_port_lock);
-+			spin_unlock_irqrestore(&priv->dp_port_lock, flags);
- 		} else if (opcode == DIGI_CMD_IFLUSH_FIFO) {
- 			wake_up_interruptible(&priv->dp_flush_wait);
- 		}
+Depth-first search in a multiply connected graph must avoid finding again
+the same nodes. As we didn't have multiply connected graphs, the only thing
+that was necessary was to avoid going back exactly the same route that the
+search came from.
+
+In a multiply connected graph a node can be reached through multiple paths.
+This means that instead of avoiding to go back where we came from (either
+the previous node or the full stack), we must avoid finding again the same
+nodes we've found previously.
+
+> > How about using a bit field that contained as many bits as there were
+> > entities? It's also faster to check for a single bit than loop over the
+> > whole path for each entity, which certainly will start showing in execution
+> > time with these link numbres.
+> 
+> That's possible, yes. We would then need to dynamically allocate the bit field 
+> in the start function, and add a new media_entity_graph_walk_end() function (I 
+> would then rename media_entity_graph_walk_start() to 
+> media_entity_graph_walk_begin()) to free the bit field. If you think that's 
+> worth it I can give it a try.
+
+Do you think we could define a maximum number of entities? It can be
+increased if any driver happens to need more. I'd be more comfortable in
+doing the allocation in the stack that way: the number will be relatively
+small in any case, say, 32 or 64 bits for which kzalloc() would be overkill.
+
 -- 
-1.7.9.5
+Cheers,
 
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
