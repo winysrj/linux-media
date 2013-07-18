@@ -1,107 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:4921 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754097Ab3GOS37 (ORCPT
+Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33580 "EHLO
+	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758335Ab3GRHCd (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jul 2013 14:29:59 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6FITtLm038613
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Mon, 15 Jul 2013 20:29:57 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 7287D35E01AA
-	for <linux-media@vger.kernel.org>; Mon, 15 Jul 2013 20:29:53 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130715182953.7287D35E01AA@alastor.dyndns.org>
-Date: Mon, 15 Jul 2013 20:29:53 +0200 (CEST)
+	Thu, 18 Jul 2013 03:02:33 -0400
+Date: Thu, 18 Jul 2013 00:02:20 -0700
+From: Tony Lindgren <tony@atomide.com>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: gregkh@linuxfoundation.org, kyungmin.park@samsung.com,
+	balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com,
+	kgene.kim@samsung.com, grant.likely@linaro.org, arnd@arndb.de,
+	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Subject: Re: [PATCH 04/15] ARM: OMAP: USB: Add phy binding information
+Message-ID: <20130718070219.GM7656@atomide.com>
+References: <1374129984-765-1-git-send-email-kishon@ti.com>
+ <1374129984-765-5-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1374129984-765-5-git-send-email-kishon@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+* Kishon Vijay Abraham I <kishon@ti.com> [130717 23:53]:
+> In order for controllers to get PHY in case of non dt boot, the phy
+> binding information (phy device name) should be added in the platform
+> data of the controller.
+> 
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> ---
+>  arch/arm/mach-omap2/usb-musb.c |    3 +++
+>  include/linux/usb/musb.h       |    3 +++
+>  2 files changed, 6 insertions(+)
+> 
+> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
+> index 8c4de27..6aa7cbf 100644
+> --- a/arch/arm/mach-omap2/usb-musb.c
+> +++ b/arch/arm/mach-omap2/usb-musb.c
+> @@ -85,6 +85,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
+>  	musb_plat.mode = board_data->mode;
+>  	musb_plat.extvbus = board_data->extvbus;
+>  
+> +	if (cpu_is_omap34xx())
+> +		musb_plat.phy_label = "twl4030";
+> +
+>  	if (soc_is_am35xx()) {
+>  		oh_name = "am35x_otg_hs";
+>  		name = "musb-am35x";
 
-Results of the daily build of media_tree:
+I don't think there's a USB PHY on non-twl4030 chips, so this should
+be OK:
 
-date:		Mon Jul 15 19:00:21 CEST 2013
-git branch:	test
-git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+Acked-by: Tony Lindgren <tony@atomide.com>
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
 
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Monday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+> diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
+> index 053c268..596f8c8 100644
+> --- a/include/linux/usb/musb.h
+> +++ b/include/linux/usb/musb.h
+> @@ -104,6 +104,9 @@ struct musb_hdrc_platform_data {
+>  	/* for clk_get() */
+>  	const char	*clock;
+>  
+> +	/* phy label */
+> +	const char	*phy_label;
+> +
+>  	/* (HOST or OTG) switch VBUS on/off */
+>  	int		(*set_vbus)(struct device *dev, int is_on);
+>  
+> -- 
+> 1.7.10.4
+> 
