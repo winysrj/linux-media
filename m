@@ -1,78 +1,44 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:59858 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932481Ab3GWPu1 convert rfc822-to-8bit (ORCPT
+Received: from belief.htu.tuwien.ac.at ([128.131.95.14]:35881 "EHLO
+	belief.htu.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932572Ab3GRWTx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 11:50:27 -0400
-Received: by mail-we0-f177.google.com with SMTP id m46so546913wev.8
-        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 08:50:26 -0700 (PDT)
+	Thu, 18 Jul 2013 18:19:53 -0400
+Date: Fri, 19 Jul 2013 00:19:49 +0200
+From: Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
+To: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Possible problem with stk1160 driver
+Message-ID: <20130718221949.GA17610@deadlock.dhs.org>
+References: <20130716220418.GC10973@deadlock.dhs.org> <20130717084428.GA2334@localhost> <20130717213139.GA14370@deadlock.dhs.org> <20130718001752.GA2318@localhost> <51E78BB1.4020108@xs4all.nl> <20130718125557.GB2307@localhost>
 MIME-Version: 1.0
-In-Reply-To: <1374516287-7638-5-git-send-email-s.nawrocki@samsung.com>
-References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com> <1374516287-7638-5-git-send-email-s.nawrocki@samsung.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Tue, 23 Jul 2013 21:20:06 +0530
-Message-ID: <CA+V-a8t+tqvJXZrFUJ2sA2TM=7AM1U50h7aAfHze+yKnAzsYMw@mail.gmail.com>
-Subject: Re: [PATCH RFC 4/5] V4L2: Rename subdev field of struct v4l2_async_notifier
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com
-Content-Type: text/plain; charset=windows-1252
-Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130718125557.GB2307@localhost>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Ezequiel,
 
-On Mon, Jul 22, 2013 at 11:34 PM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> This is a purely cosmetic change. Since the 'subdev' member
-> points to an array of subdevs it seems more intuitive to name
-> it in plural form.
->
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/platform/soc_camera/soc_camera.c |    2 +-
->  drivers/media/v4l2-core/v4l2-async.c           |    2 +-
->  include/media/v4l2-async.h                     |    4 ++--
->  3 files changed, 4 insertions(+), 4 deletions(-)
->
+On Thu, Jul 18, 2013 at 09:55:59AM -0300, Ezequiel Garcia wrote:
+> > You generally can't switch standards while streaming. That said, it is OK
+> > to accept the same standard, i.e. return 0 if the standard is unchanged and
+> > EBUSY otherwise.
+> > 
+> 
+> Ok, I'll add a check for unchanged standards to overcome this situation.
+> 
+> > In the end it is an application bug, though. It shouldn't try to change the
+> > standard while streaming has started.
+> > 
+> 
+> Ok, so that confirms we should not allow it.
+> 
+> Sergey: Hopefully, with these two patches you won't need any further
+> patching on your side.
 
-can you include the following changes in the same patch ?
-so that git bisect doesn’t break.
+thanks a lot! Seems to work fine.
 
-(maybe you need to rebase the patches on
-http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.12)
+Kind regards,
+Sergey
 
-Regards,
---Prabhakar Lad
-
-diff --git a/drivers/media/platform/davinci/vpif_capture.c
-b/drivers/media/platform/davinci/vpif_capture.c
-index b11d7a7..7fbde6d 100644
---- a/drivers/media/platform/davinci/vpif_capture.c
-+++ b/drivers/media/platform/davinci/vpif_capture.c
-@@ -2168,7 +2168,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		}
- 		vpif_probe_complete();
- 	} else {
--		vpif_obj.notifier.subdev = vpif_obj.config->asd;
-+		vpif_obj.notifier.subdevs = vpif_obj.config->asd;
- 		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
- 		vpif_obj.notifier.bound = vpif_async_bound;
- 		vpif_obj.notifier.complete = vpif_async_complete;
-diff --git a/drivers/media/platform/davinci/vpif_display.c
-b/drivers/media/platform/davinci/vpif_display.c
-index c2ff067..6336dfc 100644
---- a/drivers/media/platform/davinci/vpif_display.c
-+++ b/drivers/media/platform/davinci/vpif_display.c
-@@ -1832,7 +1832,7 @@ static __init int vpif_probe(struct platform_device *pdev)
- 		}
- 		vpif_probe_complete();
- 	} else {
--		vpif_obj.notifier.subdev = vpif_obj.config->asd;
-+		vpif_obj.notifier.subdevs = vpif_obj.config->asd;
- 		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
- 		vpif_obj.notifier.bound = vpif_async_bound;
- 		vpif_obj.notifier.complete = vpif_async_complete;
