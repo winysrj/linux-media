@@ -1,99 +1,83 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:36808 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932086Ab3GPLYd (ORCPT
+Received: from mail-we0-f171.google.com ([74.125.82.171]:60625 "EHLO
+	mail-we0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S964871Ab3GRBd2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 07:24:33 -0400
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+	Wed, 17 Jul 2013 21:33:28 -0400
+Received: by mail-we0-f171.google.com with SMTP id m46so2397936wev.16
+        for <linux-media@vger.kernel.org>; Wed, 17 Jul 2013 18:33:27 -0700 (PDT)
+From: Luis Alves <ljalvs@gmail.com>
 To: linux-media@vger.kernel.org
-Cc: hansverk@cisco.com
-Subject: [PATCH 3/4] qv4l2: fix CaptureWin mimimum size to match video fram size
-Date: Tue, 16 Jul 2013 13:24:07 +0200
-Message-Id: <16222291c1d1fd6b515f5c84926587aae8f132e3.1373973770.git.bwinther@cisco.com>
-In-Reply-To: <1373973848-4084-1-git-send-email-bwinther@cisco.com>
-References: <1373973848-4084-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <61608db2b5b388a50c91730739479dccf76c046d.1373973770.git.bwinther@cisco.com>
-References: <61608db2b5b388a50c91730739479dccf76c046d.1373973770.git.bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Cc: mchehab@infradead.org, crope@iki.fi, awalls@md.metrocast.net,
+	Luis Alves <ljalvs@gmail.com>
+Subject: [PATCH] cx23885: Fix interrupt storm that happens in some cards when IR is enabled.
+Date: Thu, 18 Jul 2013 02:33:22 +0100
+Message-Id: <1374111202-23288-1-git-send-email-ljalvs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CaptureWin's setMinimumSize() sets the minimum size for the
-video frame viewport and not for the window itself.
-If the minimum size is larger than the monitor resolution,
-it will reduce the minimum size to match this.
+Hi,
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+This i2c init should stop the interrupt storm that happens in some cards when the IR receiver in enabled.
+It works perfectly in my TBS6981.
+
+It would be good to test in other problematic cards.
+
+In this patch I've added the IR init to the TeVii S470/S471 (and some others that fall in the same case statment).
+Other cards but these that suffer the same issue should also be tested.
+
+Give feedback!
+
+Regards,
+Luis
+
+
+
+Signed-off-by: Luis Alves <ljalvs@gmail.com>
 ---
- utils/qv4l2/capture-win.cpp | 26 ++++++++++++++++++++++++++
- utils/qv4l2/capture-win.h   |  1 +
- 2 files changed, 27 insertions(+)
+ drivers/media/pci/cx23885/cx23885-cards.c |   22 ++++++++++++++++++++++
+ 1 file changed, 22 insertions(+)
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index a94c73d..7ac3fa1 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -21,6 +21,8 @@
- #include <QImage>
- #include <QVBoxLayout>
- #include <QCloseEvent>
-+#include <QApplication>
-+#include <QDesktopWidget>
- 
- #include "qv4l2.h"
- #include "capture-win.h"
-@@ -36,6 +38,10 @@ CaptureWin::CaptureWin()
- 	vbox->addWidget(m_label);
- 	vbox->addWidget(m_msg);
- 
-+	int l, t, r, b;
-+	vbox->getContentsMargins(&l, &t, &r, &b);
-+	vbox->setSpacing(b);
-+
- 	hotkeyClose = new QShortcut(Qt::CTRL+Qt::Key_W, this);
- 	QObject::connect(hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
- }
-@@ -45,6 +51,26 @@ CaptureWin::~CaptureWin()
- 	delete hotkeyClose;
+diff --git a/drivers/media/pci/cx23885/cx23885-cards.c b/drivers/media/pci/cx23885/cx23885-cards.c
+index 7e923f8..89ce132 100644
+--- a/drivers/media/pci/cx23885/cx23885-cards.c
++++ b/drivers/media/pci/cx23885/cx23885-cards.c
+@@ -1081,6 +1081,27 @@ int cx23885_tuner_callback(void *priv, int component, int command, int arg)
+ 	return 0;
  }
  
-+void CaptureWin::setMinimumSize(int minw, int minh)
++void cx23885_ir_setup(struct cx23885_dev *dev)
 +{
-+	QDesktopWidget *screen = QApplication::desktop();
-+	QRect resolution = screen->screenGeometry();
++	struct i2c_msg msg;
++	char buffer[2];
 +
-+	int l, t, r, b;
-+	layout()->getContentsMargins(&l, &t, &r, &b);
-+	minw += l + r;
-+	minh += t + b + m_msg->minimumSizeHint().height() + layout()->spacing();
++	/* this should stop the IR interrupt
++	   storm that happens in some cards */
++	msg.addr = 0x4c;
++	msg.flags = 0;
++	msg.len = 2;
++	msg.buf = buffer;
 +
-+	if (minw > resolution.width())
-+		minw = resolution.width();
++	buffer[0] = 0x1f;
++	buffer[1] = 0x80;
++	i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
 +
-+	if (minh > resolution.height())
-+		minh = resolution.height();
-+
-+	QWidget::setMinimumSize(minw, minh);
-+	resize(minw, minh);
++	buffer[0] = 0x23;
++	buffer[1] = 0x80;
++	i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
 +}
 +
- void CaptureWin::setImage(const QImage &image, const QString &status)
+ void cx23885_gpio_setup(struct cx23885_dev *dev)
  {
- 	m_label->setPixmap(QPixmap::fromImage(image));
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index 4115d56..3de3447 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -35,6 +35,7 @@ public:
- 	CaptureWin();
- 	~CaptureWin();
- 
-+	virtual void setMinimumSize(int minw, int minh);
- 	void setImage(const QImage &image, const QString &status);
- 
- protected:
+ 	switch (dev->board) {
+@@ -1664,6 +1685,7 @@ void cx23885_card_setup(struct cx23885_dev *dev)
+ 		ts1->gen_ctrl_val  = 0x5; /* Parallel */
+ 		ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
+ 		ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
++		cx23885_ir_setup(dev);
+ 		break;
+ 	case CX23885_BOARD_NETUP_DUAL_DVBS2_CI:
+ 	case CX23885_BOARD_NETUP_DUAL_DVB_T_C_CI_RF:
 -- 
-1.8.3.2
+1.7.9.5
 
