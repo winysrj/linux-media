@@ -1,130 +1,228 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:43824 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753207Ab3GGVuz (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sun, 7 Jul 2013 17:50:55 -0400
-Received: by mail-bk0-f41.google.com with SMTP id jc3so1593866bkc.14
-        for <linux-media@vger.kernel.org>; Sun, 07 Jul 2013 14:50:54 -0700 (PDT)
-Message-ID: <51D9E2BB.2080308@gmail.com>
-Date: Sun, 07 Jul 2013 23:50:51 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:55975 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751815Ab3GRHT6 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jul 2013 03:19:58 -0400
+Date: Thu, 18 Jul 2013 00:20:04 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Message-ID: <20130718072004.GA16720@kroah.com>
+References: <1374129984-765-1-git-send-email-kishon@ti.com>
+ <1374129984-765-2-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/5] v4l2: add matrix support.
-References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1374129984-765-2-git-send-email-kishon@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 06/28/2013 02:27 PM, Hans Verkuil wrote:
-> From: Hans Verkuil<hans.verkuil@cisco.com>
->
-> This patch adds core support for matrices: querying, getting and setting.
->
-> Two initial matrix types are defined for motion detection (defining regions
-> and thresholds).
->
-> Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> ---
->   drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
->   drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
->   include/media/v4l2-ioctl.h           |  8 +++++
->   include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
->   4 files changed, 97 insertions(+), 1 deletion(-)
-
-[...]
-
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index e0b74a4..7e4538e 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
->   	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
->   					const struct v4l2_event_subscription *sub);
->
-> +	/* Matrix ioctls */
-> +	int (*vidioc_query_matrix) (struct file *file, void *fh,
-> +				    struct v4l2_query_matrix *qmatrix);
-> +	int (*vidioc_g_matrix) (struct file *file, void *fh,
-> +				    struct v4l2_matrix *matrix);
-> +	int (*vidioc_s_matrix) (struct file *file, void *fh,
-> +				    struct v4l2_matrix *matrix);
+On Thu, Jul 18, 2013 at 12:16:10PM +0530, Kishon Vijay Abraham I wrote:
+> +struct phy_provider *__of_phy_provider_register(struct device *dev,
+> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
+> +	struct of_phandle_args *args));
+> +struct phy_provider *__devm_of_phy_provider_register(struct device *dev,
+> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
+> +	struct of_phandle_args *args))
 > +
->   	/* For other private ioctls */
->   	long (*vidioc_default)	       (struct file *file, void *fh,
->   					bool valid_prio, unsigned int cmd, void *arg);
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 95ef455..5cbe815 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
->   	__u32			reserved[8];
->   };
->
-> +/* Define to which motion detection region each element belongs.
-> + * Each element is a __u8. */
-> +#define V4L2_MATRIX_TYPE_MD_REGION     (1)
-> +/* Define the motion detection threshold for each element.
-> + * Each element is a __u16. */
-> +#define V4L2_MATRIX_TYPE_MD_THRESHOLD  (2)
+> +__of_phy_provider_register and __devm_of_phy_provider_register can be used to
+> +register the phy_provider and it takes device, owner and of_xlate as
+> +arguments. For the dt boot case, all PHY providers should use one of the above
+> +2 APIs to register the PHY provider.
+
+Why do you have __ for the prefix of a public function?  Is that really
+the way that OF handles this type of thing?
+
+> --- /dev/null
+> +++ b/drivers/phy/Kconfig
+> @@ -0,0 +1,13 @@
+> +#
+> +# PHY
+> +#
 > +
+> +menuconfig GENERIC_PHY
+> +	tristate "PHY Subsystem"
+> +	help
+> +	  Generic PHY support.
+> +
+> +	  This framework is designed to provide a generic interface for PHY
+> +	  devices present in the kernel. This layer will have the generic
+> +	  API by which phy drivers can create PHY using the phy framework and
+> +	  phy users can obtain reference to the PHY.
+
+Again, please reverse this.  The drivers that use it should select it,
+not depend on it, which will then enable this option.  I will never know
+if I need to enable it, and based on your follow-on patches, if I don't,
+drivers that were working just fine, now disappeared from my build,
+which isn't nice, and a pain to notice and fix up.
+
 > +/**
-> + * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
-> + * @type:	matrix type
-> + * @ref:	reference to some object (if any) owning the matrix
-> + * @columns:	number of columns in the matrix
-> + * @rows:	number of rows in the matrix
-> + * @elem_min:	minimum matrix element value
-> + * @elem_max:	maximum matrix element value
-> + * @elem_size:	size in bytes each matrix element
-> + * @reserved:	future extensions, applications and drivers must zero this.
+> + * phy_create() - create a new phy
+> + * @dev: device that is creating the new phy
+> + * @id: id of the phy
+> + * @ops: function pointers for performing phy operations
+> + * @label: label given to the phy
+> + *
+> + * Called to create a phy using phy framework.
 > + */
-> +struct v4l2_query_matrix {
-> +	__u32 type;
-> +	union {
-> +		__u32 reserved[4];
-> +	} ref;
-> +	__u32 columns;
-> +	__u32 rows;
-> +	union {
-> +		__s64 val;
-> +		__u64 uval;
-> +		__u32 reserved[4];
-> +	} elem_min;
-> +	union {
-> +		__s64 val;
-> +		__u64 uval;
-> +		__u32 reserved[4];
-> +	} elem_max;
-> +	__u32 elem_size;
+> +struct phy *phy_create(struct device *dev, u8 id, const struct phy_ops *ops,
+> +	const char *label)
+> +{
+> +	int ret;
+> +	struct phy *phy;
+> +
+> +	if (!dev) {
+> +		dev_WARN(dev, "no device provided for PHY\n");
+> +		ret = -EINVAL;
+> +		goto err0;
+> +	}
+> +
+> +	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
+> +	if (!phy) {
+> +		ret = -ENOMEM;
+> +		goto err0;
+> +	}
+> +
+> +	device_initialize(&phy->dev);
+> +	mutex_init(&phy->mutex);
+> +
+> +	phy->dev.class = phy_class;
+> +	phy->dev.parent = dev;
+> +	phy->dev.of_node = dev->of_node;
+> +	phy->id = id;
+> +	phy->ops = ops;
+> +	phy->label = kstrdup(label, GFP_KERNEL);
+> +
+> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
 
-How about reordering it to something like:
+Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
+never send a duplicate name.id pair?  Why not create your own ids based
+on the number of phys in the system, like almost all other classes and
+subsystems do?
 
-	struct {
-		union {
-			__s64 val;
-			__u64 uval;
-			__u32 reserved[4];
-		} min;
-		union {
-			__s64 val;
-			__u64 uval;
-			__u32 reserved[4];
-		} max;
-		__u32 size;
-	} element;
+> +static inline int phy_pm_runtime_get(struct phy *phy)
+> +{
+> +	if (WARN(IS_ERR(phy), "Invalid PHY reference\n"))
+> +		return -EINVAL;
 
-?
+Why would phy ever not be valid and a error pointer?  And why dump the
+stack if that happens, that seems really extreme.
 
---
-Regards,
-Sylwester
+> +
+> +	if (!pm_runtime_enabled(&phy->dev))
+> +		return -ENOTSUPP;
+> +
+> +	return pm_runtime_get(&phy->dev);
+> +}
+
+This, and the other inline functions in this .h file seem huge, why are
+they inline and not in the .c file?  There's no speed issues, and it
+should save space overall in the .c file.  Please move them.
+
+
+> +static inline int phy_init(struct phy *phy)
+> +{
+> +	int ret;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (phy->init_count++ == 0 && phy->ops->init) {
+> +		ret = phy->ops->init(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy init failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +	return ret;
+> +}
+> +
+> +static inline int phy_exit(struct phy *phy)
+> +{
+> +	int ret;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (--phy->init_count == 0 && phy->ops->exit) {
+> +		ret = phy->ops->exit(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy exit failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +	return ret;
+> +}
+> +
+> +static inline int phy_power_on(struct phy *phy)
+> +{
+> +	int ret = -ENOTSUPP;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (phy->power_count++ == 0 && phy->ops->power_on) {
+> +		ret = phy->ops->power_on(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy poweron failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +
+> +	return ret;
+> +}
+> +
+> +static inline int phy_power_off(struct phy *phy)
+> +{
+> +	int ret = -ENOTSUPP;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (--phy->power_count == 0 && phy->ops->power_off) {
+> +		ret =  phy->ops->power_off(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy poweroff failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +
+> +	return ret;
+> +}
+
+Look at those 3 functions, they are all "real" and not an inline
+function at all, please move them.
+
+thanks,
+
+greg k-h
