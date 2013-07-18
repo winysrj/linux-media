@@ -1,74 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:41851 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751035Ab3GSF41 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 01:56:27 -0400
-Message-ID: <51E8D4E0.8060200@ti.com>
-Date: Fri, 19 Jul 2013 11:25:44 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36467 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757802Ab3GRANm (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 17 Jul 2013 20:13:42 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 4/5] v4l2: add a motion detection event.
+Date: Thu, 18 Jul 2013 02:14:28 +0200
+Message-ID: <2083405.s15EBXhjSd@avalon>
+In-Reply-To: <1372422454-13752-5-git-send-email-hverkuil@xs4all.nl>
+References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-5-git-send-email-hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-CC: <kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-References: <1374129984-765-1-git-send-email-kishon@ti.com> <1374129984-765-2-git-send-email-kishon@ti.com> <20130718072004.GA16720@kroah.com> <51E7AE88.3050007@ti.com> <20130718154954.GA31961@kroah.com> <51E8D086.809@ti.com> <20130719054311.GA14638@kroah.com>
-In-Reply-To: <20130719054311.GA14638@kroah.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Hans,
 
-On Friday 19 July 2013 11:13 AM, Greg KH wrote:
-> On Fri, Jul 19, 2013 at 11:07:10AM +0530, Kishon Vijay Abraham I wrote:
->>>>>> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
->>>>>
->>>>> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
->>>>> never send a duplicate name.id pair?  Why not create your own ids based
->>>>> on the number of phys in the system, like almost all other classes and
->>>>> subsystems do?
->>>>
->>>> hmm.. some PHY drivers use the id they provide to perform some of their
->>>> internal operation as in [1] (This is used only if a single PHY provider
->>>> implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
->>>> to give the PHY drivers an option to use auto id.
->>>>
->>>> [1] ->
->>>> http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
->>>
->>> No, who cares about the id?  No one outside of the phy core ever should,
->>> because you pass back the only pointer that they really do care about,
->>> if they need to do anything with the device.  Use that, and then you can
->>
->> hmm.. ok.
->>
->>> rip out all of the "search for a phy by a string" logic, as that's not
->>
->> Actually this is needed for non-dt boot case. In the case of dt boot, we use a
->> phandle by which the controller can get a reference to the phy. But in the case
->> of non-dt boot, the controller can get a reference to the phy only by label.
+Thanks for the patch.
+
+On Friday 28 June 2013 14:27:33 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
 > 
-> I don't understand.  They registered the phy, and got back a pointer to
-> it.  Why can't they save it in their local structure to use it again
-> later if needed?  They should never have to "ask" for the device, as the
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  include/uapi/linux/videodev2.h | 17 +++++++++++++++++
+>  1 file changed, 17 insertions(+)
+> 
+> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+> index 5cbe815..f926209 100644
+> --- a/include/uapi/linux/videodev2.h
+> +++ b/include/uapi/linux/videodev2.h
+> @@ -1721,6 +1721,7 @@ struct v4l2_streamparm {
+>  #define V4L2_EVENT_EOS				2
+>  #define V4L2_EVENT_CTRL				3
+>  #define V4L2_EVENT_FRAME_SYNC			4
+> +#define V4L2_EVENT_MOTION_DET			5
+>  #define V4L2_EVENT_PRIVATE_START		0x08000000
+> 
+>  /* Payload for V4L2_EVENT_VSYNC */
+> @@ -1752,12 +1753,28 @@ struct v4l2_event_frame_sync {
+>  	__u32 frame_sequence;
+>  };
+> 
+> +#define V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ	(1 << 0)
+> +
+> +/**
+> + * struct v4l2_event_motion_det - motion detection event
+> + * @flags:             if V4L2_EVENT_MD_FL_HAVE_FRAME_SEQ is set, then the
+> + *                     frame_sequence field is valid.
+> + * @frame_sequence:    the frame sequence number associated with this
+> event.
+> + * @region_mask:       which regions detected motion.
+> + */
+> +struct v4l2_event_motion_det {
+> +	__u32 flags;
+> +	__u32 frame_sequence;
+> +	__u32 region_mask;
 
-One is a *PHY provider* driver which is a driver for some PHY device. This will
-use phy_create to create the phy.
-The other is a *PHY consumer* driver which might be any controller driver (can
-be USB/SATA/PCIE). The PHY consumer will use phy_get to get a reference to the
-phy (by *phandle* in the case of dt boot and *label* in the case of non-dt boot).
-> device id might be unknown if there are multiple devices in the system.
+Will a 32-bit region mask be extensible enough ? What about hardware that 
+could report motion detection as a (possibly low resolution) binary image ?
 
-I agree with you on the device id part. That need not be known to the PHY driver.
+> +};
+> +
+>  struct v4l2_event {
+>  	__u32				type;
+>  	union {
+>  		struct v4l2_event_vsync		vsync;
+>  		struct v4l2_event_ctrl		ctrl;
+>  		struct v4l2_event_frame_sync	frame_sync;
+> +		struct v4l2_event_motion_det	motion_det;
+>  		__u8				data[64];
+>  	} u;
+>  	__u32				pending;
+-- 
+Regards,
 
-Thanks
-Kishon
+Laurent Pinchart
+
