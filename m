@@ -1,166 +1,252 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.samsung.com ([203.254.224.34]:38400 "EHLO
-	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933577Ab3GWSlY (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:54974 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756929Ab3GRJAf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 14:41:24 -0400
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: kyungmin.park@samsung.com, linux-samsung-soc@vger.kernel.org,
-	arun.kk@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [REVIEW PATCH 2/6] V4L: s5k6a3: Add support for asynchronous subdev
- registration
-Date: Tue, 23 Jul 2013 20:39:33 +0200
-Message-id: <1374604777-15523-3-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1374604777-15523-1-git-send-email-s.nawrocki@samsung.com>
-References: <1374604777-15523-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 18 Jul 2013 05:00:35 -0400
+Message-ID: <51E7AE88.3050007@ti.com>
+Date: Thu, 18 Jul 2013 14:29:52 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
+MIME-Version: 1.0
+To: Greg KH <gregkh@linuxfoundation.org>
+CC: <kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+References: <1374129984-765-1-git-send-email-kishon@ti.com> <1374129984-765-2-git-send-email-kishon@ti.com> <20130718072004.GA16720@kroah.com>
+In-Reply-To: <20130718072004.GA16720@kroah.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch converts the driver to use v4l2 asynchronous subdev
-registration API an the common clock API.
+Hi,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/i2c/s5k6a3.c |   63 ++++++++++++++++++++++++++++++++++++--------
- 1 file changed, 52 insertions(+), 11 deletions(-)
+On Thursday 18 July 2013 12:50 PM, Greg KH wrote:
+> On Thu, Jul 18, 2013 at 12:16:10PM +0530, Kishon Vijay Abraham I wrote:
+>> +struct phy_provider *__of_phy_provider_register(struct device *dev,
+>> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
+>> +	struct of_phandle_args *args));
+>> +struct phy_provider *__devm_of_phy_provider_register(struct device *dev,
+>> +	struct module *owner, struct phy * (*of_xlate)(struct device *dev,
+>> +	struct of_phandle_args *args))
+>> +
+>> +__of_phy_provider_register and __devm_of_phy_provider_register can be used to
+>> +register the phy_provider and it takes device, owner and of_xlate as
+>> +arguments. For the dt boot case, all PHY providers should use one of the above
+>> +2 APIs to register the PHY provider.
+> 
+> Why do you have __ for the prefix of a public function?  Is that really
+> the way that OF handles this type of thing?
 
-diff --git a/drivers/media/i2c/s5k6a3.c b/drivers/media/i2c/s5k6a3.c
-index 21680fa..ccbb4fc 100644
---- a/drivers/media/i2c/s5k6a3.c
-+++ b/drivers/media/i2c/s5k6a3.c
-@@ -34,6 +34,7 @@
- #define S5K6A3_DEF_PIX_HEIGHT		732
- 
- #define S5K6A3_DRV_NAME			"S5K6A3"
-+#define S5K6A3_CLK_NAME			"mclk"
- 
- #define S5K6A3_NUM_SUPPLIES		2
- 
-@@ -55,6 +56,7 @@ struct s5k6a3 {
- 	int gpio_reset;
- 	struct mutex lock;
- 	struct v4l2_mbus_framefmt format;
-+	struct clk *clock;
- 	u32 clock_frequency;
- };
- 
-@@ -180,19 +182,29 @@ static int s5k6a3_s_power(struct v4l2_subdev *sd, int on)
- {
- 	struct s5k6a3 *sensor = sd_to_s5k6a3(sd);
- 	int gpio = sensor->gpio_reset;
--	int ret;
-+	int ret = 0;
- 
- 	if (on) {
-+		sensor->clock = clk_get(sensor->dev, S5K6A3_CLK_NAME);
-+		if (IS_ERR(sensor->clock))
-+			return PTR_ERR(sensor->clock);
-+
-+		ret = clk_set_rate(sensor->clock, sensor->clock_frequency);
-+		if (ret < 0)
-+			goto clk_put;
-+
- 		ret = pm_runtime_get(sensor->dev);
- 		if (ret < 0)
--			return ret;
-+			goto clk_put;
- 
- 		ret = regulator_bulk_enable(S5K6A3_NUM_SUPPLIES,
- 					    sensor->supplies);
--		if (ret < 0) {
--			pm_runtime_put(sensor->dev);
--			return ret;
--		}
-+		if (ret < 0)
-+			goto rpm_put;
-+
-+		ret = clk_prepare_enable(sensor->clock);
-+		if (ret < 0)
-+			goto reg_dis;
- 
- 		if (gpio_is_valid(gpio)) {
- 			gpio_set_value(gpio, 1);
-@@ -208,10 +220,14 @@ static int s5k6a3_s_power(struct v4l2_subdev *sd, int on)
- 		if (gpio_is_valid(gpio))
- 			gpio_set_value(gpio, 0);
- 
--		ret = regulator_bulk_disable(S5K6A3_NUM_SUPPLIES,
--					     sensor->supplies);
--		if (!ret)
--			pm_runtime_put(sensor->dev);
-+		clk_disable_unprepare(sensor->clock);
-+reg_dis:
-+		regulator_bulk_disable(S5K6A3_NUM_SUPPLIES,
-+						sensor->supplies);
-+rpm_put:
-+		pm_runtime_put(sensor->dev);
-+clk_put:
-+		clk_put(sensor->clock);
- 	}
- 	return ret;
- }
-@@ -239,6 +255,7 @@ static int s5k6a3_probe(struct i2c_client *client,
- 
- 	mutex_init(&sensor->lock);
- 	sensor->gpio_reset = -EINVAL;
-+	sensor->clock = ERR_PTR(-EINVAL);
- 	sensor->dev = dev;
- 
- 	gpio = of_get_gpio_flags(dev->of_node, 0, NULL);
-@@ -250,6 +267,13 @@ static int s5k6a3_probe(struct i2c_client *client,
- 	}
- 	sensor->gpio_reset = gpio;
- 
-+	if (of_property_read_u32(dev->of_node, "clock-frequency",
-+				 &sensor->clock_frequency)) {
-+		dev_err(dev, "clock-frequency property not found at %s\n",
-+						dev->of_node->full_name);
-+		return -EINVAL;
-+	}
-+
- 	for (i = 0; i < S5K6A3_NUM_SUPPLIES; i++)
- 		sensor->supplies[i].supply = s5k6a3_supply_names[i];
- 
-@@ -258,6 +282,11 @@ static int s5k6a3_probe(struct i2c_client *client,
- 	if (ret < 0)
- 		return ret;
- 
-+	/* Defer probing if the clock is not available yet */
-+	sensor->clock = clk_get(dev, S5K6A3_CLK_NAME);
-+	if (IS_ERR(sensor->clock))
-+		return -EPROBE_DEFER;
-+
- 	sd = &sensor->subdev;
- 	v4l2_i2c_subdev_init(sd, client, &s5k6a3_subdev_ops);
- 	snprintf(sd->name, sizeof(sd->name), S5K6A3_DRV_NAME);
-@@ -275,12 +304,24 @@ static int s5k6a3_probe(struct i2c_client *client,
- 	pm_runtime_no_callbacks(dev);
- 	pm_runtime_enable(dev);
- 
--	return 0;
-+	ret = v4l2_async_register_subdev(sd);
-+
-+	/*
-+	 * Don't hold reference to the clock to avoid circular dependency
-+	 * between the subdev and the host driver, in case the host is
-+	 * a supplier of the clock.
-+	 * clk_get()/clk_put() will be called in s_power callback.
-+	 */
-+	clk_put(sensor->clock);
-+
-+	return ret;
- }
- 
- static int s5k6a3_remove(struct i2c_client *client)
- {
- 	struct v4l2_subdev *sd = i2c_get_clientdata(client);
-+
-+	v4l2_async_unregister_subdev(sd);
- 	media_entity_cleanup(&sd->entity);
- 	return 0;
- }
--- 
-1.7.9.5
+I have a macro of_phy_provider_register/devm_of_phy_provider_register that
+calls these functions and should be used by the PHY drivers. Probably I should
+make a mention of it in the Documentation.
+> 
+>> --- /dev/null
+>> +++ b/drivers/phy/Kconfig
+>> @@ -0,0 +1,13 @@
+>> +#
+>> +# PHY
+>> +#
+>> +
+>> +menuconfig GENERIC_PHY
+>> +	tristate "PHY Subsystem"
+>> +	help
+>> +	  Generic PHY support.
+>> +
+>> +	  This framework is designed to provide a generic interface for PHY
+>> +	  devices present in the kernel. This layer will have the generic
+>> +	  API by which phy drivers can create PHY using the phy framework and
+>> +	  phy users can obtain reference to the PHY.
+> 
+> Again, please reverse this.  The drivers that use it should select it,
+> not depend on it, which will then enable this option.  I will never know
+> if I need to enable it, and based on your follow-on patches, if I don't,
+> drivers that were working just fine, now disappeared from my build,
+> which isn't nice, and a pain to notice and fix up.
 
+ok.
+> 
+>> +/**
+>> + * phy_create() - create a new phy
+>> + * @dev: device that is creating the new phy
+>> + * @id: id of the phy
+>> + * @ops: function pointers for performing phy operations
+>> + * @label: label given to the phy
+>> + *
+>> + * Called to create a phy using phy framework.
+>> + */
+>> +struct phy *phy_create(struct device *dev, u8 id, const struct phy_ops *ops,
+>> +	const char *label)
+>> +{
+>> +	int ret;
+>> +	struct phy *phy;
+>> +
+>> +	if (!dev) {
+>> +		dev_WARN(dev, "no device provided for PHY\n");
+>> +		ret = -EINVAL;
+>> +		goto err0;
+>> +	}
+>> +
+>> +	phy = kzalloc(sizeof(*phy), GFP_KERNEL);
+>> +	if (!phy) {
+>> +		ret = -ENOMEM;
+>> +		goto err0;
+>> +	}
+>> +
+>> +	device_initialize(&phy->dev);
+>> +	mutex_init(&phy->mutex);
+>> +
+>> +	phy->dev.class = phy_class;
+>> +	phy->dev.parent = dev;
+>> +	phy->dev.of_node = dev->of_node;
+>> +	phy->id = id;
+>> +	phy->ops = ops;
+>> +	phy->label = kstrdup(label, GFP_KERNEL);
+>> +
+>> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
+> 
+> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
+> never send a duplicate name.id pair?  Why not create your own ids based
+> on the number of phys in the system, like almost all other classes and
+> subsystems do?
+
+hmm.. some PHY drivers use the id they provide to perform some of their
+internal operation as in [1] (This is used only if a single PHY provider
+implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
+to give the PHY drivers an option to use auto id.
+
+[1] ->
+http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
+> 
+>> +static inline int phy_pm_runtime_get(struct phy *phy)
+>> +{
+>> +	if (WARN(IS_ERR(phy), "Invalid PHY reference\n"))
+>> +		return -EINVAL;
+> 
+> Why would phy ever not be valid and a error pointer?  And why dump the
+> stack if that happens, that seems really extreme.
+
+hmm.. there might be cases where the same controller in one soc needs PHY
+control and in some other soc does not need PHY control. In such cases, we
+might get error pointer here.
+I'll change WARN to dev_err.
+> 
+>> +
+>> +	if (!pm_runtime_enabled(&phy->dev))
+>> +		return -ENOTSUPP;
+>> +
+>> +	return pm_runtime_get(&phy->dev);
+>> +}
+> 
+> This, and the other inline functions in this .h file seem huge, why are
+> they inline and not in the .c file?  There's no speed issues, and it
+> should save space overall in the .c file.  Please move them.
+
+ok
+> 
+> 
+>> +static inline int phy_init(struct phy *phy)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = phy_pm_runtime_get_sync(phy);
+>> +	if (ret < 0 && ret != -ENOTSUPP)
+>> +		return ret;
+>> +
+>> +	mutex_lock(&phy->mutex);
+>> +	if (phy->init_count++ == 0 && phy->ops->init) {
+>> +		ret = phy->ops->init(phy);
+>> +		if (ret < 0) {
+>> +			dev_err(&phy->dev, "phy init failed --> %d\n", ret);
+>> +			goto out;
+>> +		}
+>> +	}
+>> +
+>> +out:
+>> +	mutex_unlock(&phy->mutex);
+>> +	phy_pm_runtime_put(phy);
+>> +	return ret;
+>> +}
+>> +
+>> +static inline int phy_exit(struct phy *phy)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = phy_pm_runtime_get_sync(phy);
+>> +	if (ret < 0 && ret != -ENOTSUPP)
+>> +		return ret;
+>> +
+>> +	mutex_lock(&phy->mutex);
+>> +	if (--phy->init_count == 0 && phy->ops->exit) {
+>> +		ret = phy->ops->exit(phy);
+>> +		if (ret < 0) {
+>> +			dev_err(&phy->dev, "phy exit failed --> %d\n", ret);
+>> +			goto out;
+>> +		}
+>> +	}
+>> +
+>> +out:
+>> +	mutex_unlock(&phy->mutex);
+>> +	phy_pm_runtime_put(phy);
+>> +	return ret;
+>> +}
+>> +
+>> +static inline int phy_power_on(struct phy *phy)
+>> +{
+>> +	int ret = -ENOTSUPP;
+>> +
+>> +	ret = phy_pm_runtime_get_sync(phy);
+>> +	if (ret < 0 && ret != -ENOTSUPP)
+>> +		return ret;
+>> +
+>> +	mutex_lock(&phy->mutex);
+>> +	if (phy->power_count++ == 0 && phy->ops->power_on) {
+>> +		ret = phy->ops->power_on(phy);
+>> +		if (ret < 0) {
+>> +			dev_err(&phy->dev, "phy poweron failed --> %d\n", ret);
+>> +			goto out;
+>> +		}
+>> +	}
+>> +
+>> +out:
+>> +	mutex_unlock(&phy->mutex);
+>> +
+>> +	return ret;
+>> +}
+>> +
+>> +static inline int phy_power_off(struct phy *phy)
+>> +{
+>> +	int ret = -ENOTSUPP;
+>> +
+>> +	mutex_lock(&phy->mutex);
+>> +	if (--phy->power_count == 0 && phy->ops->power_off) {
+>> +		ret =  phy->ops->power_off(phy);
+>> +		if (ret < 0) {
+>> +			dev_err(&phy->dev, "phy poweroff failed --> %d\n", ret);
+>> +			goto out;
+>> +		}
+>> +	}
+>> +
+>> +out:
+>> +	mutex_unlock(&phy->mutex);
+>> +	phy_pm_runtime_put(phy);
+>> +
+>> +	return ret;
+>> +}
+> 
+> Look at those 3 functions, they are all "real" and not an inline
+> function at all, please move them.
+
+Alright.
+
+Thanks
+Kishon
