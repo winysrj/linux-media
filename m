@@ -1,8 +1,9 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from arroyo.ext.ti.com ([192.94.94.40]:34283 "EHLO arroyo.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932794Ab3GRGr6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 02:47:58 -0400
+Received: from devils.ext.ti.com ([198.47.26.153]:49303 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758662Ab3GRGsV (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Thu, 18 Jul 2013 02:48:21 -0400
 From: Kishon Vijay Abraham I <kishon@ti.com>
 To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
 	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
@@ -15,9 +16,9 @@ CC: <grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
 	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
 	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
 	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: [PATCH 08/15] usb: phy: twl4030-usb: remove *set_suspend* and *phy_init* ops
-Date: Thu, 18 Jul 2013 12:16:17 +0530
-Message-ID: <1374129984-765-9-git-send-email-kishon@ti.com>
+Subject: [PATCH 11/15] exynos4-is: Use the generic MIPI CSIS PHY driver
+Date: Thu, 18 Jul 2013 12:16:20 +0530
+Message-ID: <1374129984-765-12-git-send-email-kishon@ti.com>
 In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
 References: <1374129984-765-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
@@ -25,137 +26,127 @@ Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that twl4030-usb is adapted to the new generic PHY framework,
-*set_suspend* and *phy_init* ops can be removed from twl4030-usb driver.
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Use the generic PHY API instead of the platform callback to control
+the MIPI CSIS DPHY. The 'phy_label' field is added to the platform
+data structure to allow PHY lookup on non-dt platforms
+
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
 ---
- drivers/usb/phy/phy-twl4030-usb.c |   57 +++++++++----------------------------
- 1 file changed, 13 insertions(+), 44 deletions(-)
+ drivers/media/platform/exynos4-is/mipi-csis.c |   16 +++++++++++++---
+ include/linux/platform_data/mipi-csis.h       |   11 ++---------
+ 2 files changed, 15 insertions(+), 12 deletions(-)
 
-diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/usb/phy/phy-twl4030-usb.c
-index 9051756..44f8b1b 100644
---- a/drivers/usb/phy/phy-twl4030-usb.c
-+++ b/drivers/usb/phy/phy-twl4030-usb.c
-@@ -422,25 +422,20 @@ static void twl4030_phy_power(struct twl4030_usb *twl, int on)
- 	}
+diff --git a/drivers/media/platform/exynos4-is/mipi-csis.c b/drivers/media/platform/exynos4-is/mipi-csis.c
+index 0914230..94028ce 100644
+--- a/drivers/media/platform/exynos4-is/mipi-csis.c
++++ b/drivers/media/platform/exynos4-is/mipi-csis.c
+@@ -20,6 +20,7 @@
+ #include <linux/memory.h>
+ #include <linux/module.h>
+ #include <linux/of.h>
++#include <linux/phy/phy.h>
+ #include <linux/platform_data/mipi-csis.h>
+ #include <linux/platform_device.h>
+ #include <linux/pm_runtime.h>
+@@ -180,6 +181,7 @@ struct csis_drvdata {
+  * @sd: v4l2_subdev associated with CSIS device instance
+  * @index: the hardware instance index
+  * @pdev: CSIS platform device
++ * @phy: pointer to the CSIS generic PHY
+  * @regs: mmaped I/O registers memory
+  * @supplies: CSIS regulator supplies
+  * @clock: CSIS clocks
+@@ -203,6 +205,8 @@ struct csis_state {
+ 	struct v4l2_subdev sd;
+ 	u8 index;
+ 	struct platform_device *pdev;
++	struct phy *phy;
++	const char *phy_label;
+ 	void __iomem *regs;
+ 	struct regulator_bulk_data supplies[CSIS_NUM_SUPPLIES];
+ 	struct clk *clock[NUM_CSIS_CLOCKS];
+@@ -742,6 +746,7 @@ static int s5pcsis_get_platform_data(struct platform_device *pdev,
+ 	state->index = max(0, pdev->id);
+ 	state->max_num_lanes = state->index ? CSIS1_MAX_LANES :
+ 					      CSIS0_MAX_LANES;
++	state->phy_label = pdata->phy_label;
+ 	return 0;
  }
  
--static void twl4030_phy_suspend(struct twl4030_usb *twl, int controller_off)
-+static int twl4030_phy_power_off(struct phy *phy)
- {
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
+@@ -779,8 +784,9 @@ static int s5pcsis_parse_dt(struct platform_device *pdev,
+ 					"samsung,csis-wclk");
+ 
+ 	state->num_lanes = endpoint.bus.mipi_csi2.num_data_lanes;
+-
+ 	of_node_put(node);
 +
- 	if (twl->asleep)
--		return;
-+		return 0;
- 
- 	twl4030_phy_power(twl, 0);
- 	twl->asleep = 1;
- 	dev_dbg(twl->dev, "%s\n", __func__);
--}
--
--static int twl4030_phy_power_off(struct phy *phy)
--{
--	struct twl4030_usb *twl = phy_get_drvdata(phy);
--
--	twl4030_phy_suspend(twl, 0);
++	state->phy_label = "csis";
  	return 0;
  }
+ #else
+@@ -829,6 +835,10 @@ static int s5pcsis_probe(struct platform_device *pdev)
+ 		return -EINVAL;
+ 	}
  
--static void __twl4030_phy_resume(struct twl4030_usb *twl)
-+static void __twl4030_phy_power_on(struct twl4030_usb *twl)
- {
- 	twl4030_phy_power(twl, 1);
- 	twl4030_i2c_access(twl, 1);
-@@ -449,11 +444,13 @@ static void __twl4030_phy_resume(struct twl4030_usb *twl)
- 		twl4030_i2c_access(twl, 0);
- }
- 
--static void twl4030_phy_resume(struct twl4030_usb *twl)
-+static int twl4030_phy_power_on(struct phy *phy)
- {
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
++	state->phy = devm_phy_get(dev, state->phy_label);
++	if (IS_ERR(state->phy))
++		return PTR_ERR(state->phy);
 +
- 	if (!twl->asleep)
--		return;
--	__twl4030_phy_resume(twl);
-+		return 0;
-+	__twl4030_phy_power_on(twl);
- 	twl->asleep = 0;
- 	dev_dbg(twl->dev, "%s\n", __func__);
+ 	mem_res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+ 	state->regs = devm_ioremap_resource(dev, mem_res);
+ 	if (IS_ERR(state->regs))
+@@ -922,7 +932,7 @@ static int s5pcsis_pm_suspend(struct device *dev, bool runtime)
+ 	mutex_lock(&state->lock);
+ 	if (state->flags & ST_POWERED) {
+ 		s5pcsis_stop_stream(state);
+-		ret = s5p_csis_phy_enable(state->index, false);
++		ret = phy_power_off(state->phy);
+ 		if (ret)
+ 			goto unlock;
+ 		ret = regulator_bulk_disable(CSIS_NUM_SUPPLIES,
+@@ -958,7 +968,7 @@ static int s5pcsis_pm_resume(struct device *dev, bool runtime)
+ 					    state->supplies);
+ 		if (ret)
+ 			goto unlock;
+-		ret = s5p_csis_phy_enable(state->index, true);
++		ret = phy_power_on(state->phy);
+ 		if (!ret) {
+ 			state->flags |= ST_POWERED;
+ 		} else {
+diff --git a/include/linux/platform_data/mipi-csis.h b/include/linux/platform_data/mipi-csis.h
+index bf34e17..9214317 100644
+--- a/include/linux/platform_data/mipi-csis.h
++++ b/include/linux/platform_data/mipi-csis.h
+@@ -17,21 +17,14 @@
+  * @wclk_source: CSI wrapper clock selection: 0 - bus clock, 1 - ext. SCLK_CAM
+  * @lanes:       number of data lanes used
+  * @hs_settle:   HS-RX settle time
++ * @phy_label:	 the generic PHY label
+  */
+ struct s5p_platform_mipi_csis {
+ 	unsigned long clk_rate;
+ 	u8 wclk_source;
+ 	u8 lanes;
+ 	u8 hs_settle;
++	const char *phy_label;
+ };
  
-@@ -466,13 +463,6 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
- 		cancel_delayed_work(&twl->id_workaround_work);
- 		schedule_delayed_work(&twl->id_workaround_work, HZ);
- 	}
--}
+-/**
+- * s5p_csis_phy_enable - global MIPI-CSI receiver D-PHY control
+- * @id:     MIPI-CSIS harware instance index (0...1)
+- * @on:     true to enable D-PHY and deassert its reset
+- *          false to disable D-PHY
+- * @return: 0 on success, or negative error code on failure
+- */
+-int s5p_csis_phy_enable(int id, bool on);
 -
--static int twl4030_phy_power_on(struct phy *phy)
--{
--	struct twl4030_usb *twl = phy_get_drvdata(phy);
--
--	twl4030_phy_resume(twl);
- 	return 0;
- }
- 
-@@ -604,9 +594,9 @@ static void twl4030_id_workaround_work(struct work_struct *work)
- 	}
- }
- 
--static int twl4030_usb_phy_init(struct usb_phy *phy)
-+static int twl4030_phy_init(struct phy *phy)
- {
--	struct twl4030_usb *twl = phy_to_twl(phy);
-+	struct twl4030_usb *twl = phy_get_drvdata(phy);
- 	enum omap_musb_vbus_id_status status;
- 
- 	/*
-@@ -621,32 +611,13 @@ static int twl4030_usb_phy_init(struct usb_phy *phy)
- 
- 	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
- 		omap_musb_mailbox(twl->linkstat);
--		twl4030_phy_resume(twl);
-+		twl4030_phy_power_on(phy);
- 	}
- 
- 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
- 	return 0;
- }
- 
--static int twl4030_phy_init(struct phy *phy)
--{
--	struct twl4030_usb *twl = phy_get_drvdata(phy);
--
--	return twl4030_usb_phy_init(&twl->phy);
--}
--
--static int twl4030_set_suspend(struct usb_phy *x, int suspend)
--{
--	struct twl4030_usb *twl = phy_to_twl(x);
--
--	if (suspend)
--		twl4030_phy_suspend(twl, 1);
--	else
--		twl4030_phy_resume(twl);
--
--	return 0;
--}
--
- static int twl4030_set_peripheral(struct usb_otg *otg,
- 					struct usb_gadget *gadget)
- {
-@@ -717,8 +688,6 @@ static int twl4030_usb_probe(struct platform_device *pdev)
- 	twl->phy.label		= "twl4030";
- 	twl->phy.otg		= otg;
- 	twl->phy.type		= USB_PHY_TYPE_USB2;
--	twl->phy.set_suspend	= twl4030_set_suspend;
--	twl->phy.init		= twl4030_usb_phy_init;
- 
- 	otg->phy		= &twl->phy;
- 	otg->set_host		= twl4030_set_host;
+ #endif /* __PLAT_SAMSUNG_MIPI_CSIS_H_ */
 -- 
 1.7.10.4
 
