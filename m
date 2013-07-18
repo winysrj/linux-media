@@ -1,157 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:47523 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754053Ab3GQOOZ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:36511 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752087Ab3GRAVU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 10:14:25 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQ3004L53J9MD20@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 17 Jul 2013 15:14:24 +0100 (BST)
-Message-id: <51E6A6BF.9060501@samsung.com>
-Date: Wed, 17 Jul 2013 16:14:23 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Arun Kumar K <arunkk.samsung@gmail.com>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com
-Subject: Re: [RFC v2 05/10] exynos5-fimc-is: Adds the sensor subdev
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
- <1370005408-10853-6-git-send-email-arun.kk@samsung.com>
- <201306260927.17210.hverkuil@xs4all.nl>
- <CALt3h79RD2cejJBDStMqcuhi9BUo5EAn+5trNzJHHo_s_zYr7g@mail.gmail.com>
- <51E5C33B.20804@gmail.com>
- <CALt3h7-2Wip8f6fmwAnDdxL+hnze8YFQNYHyAZy5Rn+viySmHQ@mail.gmail.com>
-In-reply-to: <CALt3h7-2Wip8f6fmwAnDdxL+hnze8YFQNYHyAZy5Rn+viySmHQ@mail.gmail.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Wed, 17 Jul 2013 20:21:20 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>,
+	Pete Eberlein <pete@sensoray.com>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [RFC PATCH 2/5] v4l2-compat-ioctl32: add g/s_matrix support.
+Date: Thu, 18 Jul 2013 02:22:05 +0200
+Message-ID: <11767779.9HpBizCB6P@avalon>
+In-Reply-To: <1372422454-13752-3-git-send-email-hverkuil@xs4all.nl>
+References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-3-git-send-email-hverkuil@xs4all.nl>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/17/2013 06:55 AM, Arun Kumar K wrote:
-> On Wed, Jul 17, 2013 at 3:33 AM, Sylwester Nawrocki
-> <sylvester.nawrocki@gmail.com> wrote:
->> On 07/09/2013 02:04 PM, Arun Kumar K wrote:
->>>
->>> On Wed, Jun 26, 2013 at 12:57 PM, Hans Verkuil<hverkuil@xs4all.nl>  wrote:
->>>>
->>>> On Fri May 31 2013 15:03:23 Arun Kumar K wrote:
->>>>>
->>>>> FIMC-IS uses certain sensors which are exclusively controlled
->>>>> from the IS firmware. This patch adds the sensor subdev for the
->>>>> fimc-is sensors.
->>>>>
->>>>> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
->>>>> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
->>>>
->>>>
->>>> Not surprisingly I really hate the idea of sensor drivers that are tied
->>>> to
->>>> a specific SoC, since it completely destroys the reusability of such
->>>> drivers.
->>>>
->>>
->>> Yes agree to it.
->>>
->>>> I understand that you have little choice to do something special here,
->>>> but
->>>> I was wondering whether there is a way of keeping things as generic as
->>>> possible.
->>>>
->>>> I'm just brainstorming here, but as far as I can see this driver is
->>>> basically
->>>> a partial sensor driver: it handles the clock, the format negotiation and
->>>> power management. Any sensor driver needs that.
->>>>
->>>> What would be nice is if the fmic specific parts are replaced by
->>>> callbacks
->>>> into the bridge driver using v4l2_subdev_notify().
->>>>
->>>> The platform data (or DT) can also state if this sensor is firmware
->>>> controlled
->>>> or not. If not, then the missing bits can be implemented in the future by
->>>> someone who needs that.
->>>>
->>>> That way the driver itself remains independent from fimc.
->>>>
->>>> And existing sensor drivers can be adapted to be usable with fimc as well
->>>> by
->>>> adding support for the notify callback.
->>>>
->>>> Would a scheme along those lines work?
->>>>
->>>
->>> Yes this should make the implementation very generic.
->>> Will check the feasibility of this approach.
->>
->>
->> Is I suggested earlier, you likely could do without this call back to the
->> FIMC-IS from within the sensor subdev. Look at your call chain right now:
->>
->>  /dev/video?     media-dev-driver    sensor-subdev         FIMC-IS
->>     |                 |                   |                  |
->>     | VIDIOC_STREAMON |                   |                  |
->>     |---------------->#     s_stream()    |                  |
->>     |                 #------------------># pipeline_open()  |
->>     |                 |                   # ---------------->|
->>     |                 |                   # pipeline_start() |
->>     |                 |                   # ---------------->|
->>     |                 |                   |                  |
->>
->> Couldn't you move pipeline_open(), pipeline_start() to s_stream handler
->> of the ISP subdev ? It is currently empty. The media device driver could
->> call s_stream on the ISP subdev each time it sees s_stream request on
->> the sensor subdev. And you wouldn't need any hacks to get the pipeline
->> pointer in the sensor subdev. Then it would be something like:
->>
->>  /dev/video?     media-dev-driver    sensor-subdev  FIMC-IS-ISP-subdev
->>     |                 |                   |             |
->>     | VIDIOC_STREAMON |                   |             |
->>     |---------------->#     s_stream()    |             |
->>     |                 #------------------>|             |
->>     |                 #     s_stream()    |             |
->>     |                 #-------------------+------------># pipeline_open()
->>     |                 |                   |             # pipeline_start()
->>     |                 |                   |             #
->>
->> I suppose pipeline_open() is better candidate for the s_power callback.
->> It just needs to be ensured at the media device level the subdev
->> operations sequences are correct.
->>
-> 
-> It can be done this way. But my intention of putting these calls in
-> the sensor subdev was to use the sensor subdev independent of
-> isp subdev. This is for the usecase where the pipeline will only contain
-> 
-> is-sensor --> mipi-csis --> fimc-lite ---> memory
-> 
-> This way you can capture the bayer rgb data from sensor without using
-> any isp components at all.
-> 
-> The second pipeline which is isp --> scc --> scp
-> can be used for processing the sensor data and can be created and
-> used if needed.
-> 
-> In the method you mentioned, the isp subdev has to be used even
-> when it is not part of the pipeline. Is that allowed?
-> If its allowed as per media pipeline guidelines, then this definitely
-> is a better approach. Please suggest on this.
+Hi Hans,
 
-Sure, I'm aware of those two relatively separate pipelines. s_power,
-s_stream callbacks belong to the kernel so I don't think it would be
-an issue to do it as I described. Please note s_power, s_stream are
-normally reference counted.
-Alternatively you could create a separate subdev for the FIMC-IS
-firmware interface. Such subdev wouldn't be exposing device node
-and would be used by the media pipeline controller driver to ensure
-proper hardware configuration sequences. I don't know the Exynos5
-FIMC-IS firmware architecture very well so I'm not sure if it is
-worth to create such a separate subdev as the firmware interface
-obstruction layer ;) I guess we could do only with subdevs that
-are exposed to user space.
+Thanks for the patch.
 
+On Friday 28 June 2013 14:27:31 Hans Verkuil wrote:
+> From: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-compat-ioctl32.c | 55 ++++++++++++++++++++++++
+>  1 file changed, 55 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c index 8f7a6a4..64155b1
+> 100644
+> --- a/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> +++ b/drivers/media/v4l2-core/v4l2-compat-ioctl32.c
+> @@ -777,6 +777,44 @@ static int put_v4l2_subdev_edid32(struct
+> v4l2_subdev_edid *kp, struct v4l2_subde return 0;
+>  }
+> 
+> +struct v4l2_matrix32 {
+> +	__u32 type;
+> +	union {
+> +		__u32 reserved[4];
+> +	} ref;
+> +	struct v4l2_rect rect;
+> +	compat_caddr_t matrix;
+> +	__u32 reserved[12];
+> +} __attribute__ ((packed));
+> +
+> +static int get_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32
+> __user *up) +{
+> +	u32 tmp;
+> +
+> +	if (!access_ok(VERIFY_READ, up, sizeof(struct v4l2_matrix32)) ||
+> +		get_user(kp->type, &up->type) ||
+> +		copy_from_user(&kp->ref, &up->ref, sizeof(up->ref)) ||
+> +		copy_from_user(&kp->rect, &up->rect, sizeof(up->rect)) ||
+> +		get_user(tmp, &up->matrix) ||
+> +		copy_from_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+> +			return -EFAULT;
+
+A bit of nit-picking here, the return is aligned too far right according to 
+the kernel coding style (same for put_v4l2_matrix32() below).
+
+> +	kp->matrix = compat_ptr(tmp);
+> +	return 0;
+> +}
+> +
+> +static int put_v4l2_matrix32(struct v4l2_matrix *kp, struct v4l2_matrix32
+> __user *up)
+> +{
+> +	u32 tmp = (u32)((unsigned long)kp->matrix);
+> +
+> +	if (!access_ok(VERIFY_WRITE, up, sizeof(struct v4l2_matrix32)) ||
+> +		put_user(kp->type, &up->type) ||
+> +		copy_to_user(&kp->ref, &up->ref, sizeof(kp->ref)) ||
+> +		copy_to_user(&kp->rect, &up->rect, sizeof(kp->rect)) ||
+> +		put_user(tmp, &up->matrix) ||
+
+Given that drivers shouldn't be allowed to modify the matrix pointer, could we 
+get rid of the put_user() here as a small optimization ? The same could be 
+done for all read-only (from a driver point of view) fields in the various 
+put_v4l2_* functions.
+
+
+> +		copy_to_user(kp->reserved, up->reserved, sizeof(kp->reserved)))
+> +			return -EFAULT;
+> +	return 0;
+> +}
+> 
+>  #define VIDIOC_G_FMT32		_IOWR('V',  4, struct v4l2_format32)
+>  #define VIDIOC_S_FMT32		_IOWR('V',  5, struct v4l2_format32)
+> @@ -796,6 +834,8 @@ static int put_v4l2_subdev_edid32(struct
+> v4l2_subdev_edid *kp, struct v4l2_subde #define	VIDIOC_DQEVENT32	_IOR ('V',
+> 89, struct v4l2_event32)
+>  #define VIDIOC_CREATE_BUFS32	_IOWR('V', 92, struct v4l2_create_buffers32)
+>  #define VIDIOC_PREPARE_BUF32	_IOWR('V', 93, struct v4l2_buffer32)
+> +#define VIDIOC_G_MATRIX32	_IOWR('V', 104, struct v4l2_matrix32)
+> +#define VIDIOC_S_MATRIX32	_IOWR('V', 105, struct v4l2_matrix32)
+> 
+>  #define VIDIOC_OVERLAY32	_IOW ('V', 14, s32)
+>  #define VIDIOC_STREAMON32	_IOW ('V', 18, s32)
+> @@ -817,6 +857,7 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar struct v4l2_event v2ev;
+>  		struct v4l2_create_buffers v2crt;
+>  		struct v4l2_subdev_edid v2edid;
+> +		struct v4l2_matrix v2matrix;
+>  		unsigned long vx;
+>  		int vi;
+>  	} karg;
+> @@ -851,6 +892,8 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar case VIDIOC_PREPARE_BUF32: cmd =
+> VIDIOC_PREPARE_BUF; break;
+>  	case VIDIOC_SUBDEV_G_EDID32: cmd = VIDIOC_SUBDEV_G_EDID; break;
+>  	case VIDIOC_SUBDEV_S_EDID32: cmd = VIDIOC_SUBDEV_S_EDID; break;
+> +	case VIDIOC_G_MATRIX32: cmd = VIDIOC_G_MATRIX; break;
+> +	case VIDIOC_S_MATRIX32: cmd = VIDIOC_S_MATRIX; break;
+>  	}
+> 
+>  	switch (cmd) {
+> @@ -922,6 +965,12 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar case VIDIOC_DQEVENT:
+>  		compatible_arg = 0;
+>  		break;
+> +
+> +	case VIDIOC_G_MATRIX:
+> +	case VIDIOC_S_MATRIX:
+> +		err = get_v4l2_matrix32(&karg.v2matrix, up);
+> +		compatible_arg = 0;
+> +		break;
+>  	}
+>  	if (err)
+>  		return err;
+> @@ -994,6 +1043,11 @@ static long do_video_ioctl(struct file *file, unsigned
+> int cmd, unsigned long ar case VIDIOC_ENUMINPUT:
+>  		err = put_v4l2_input32(&karg.v2i, up);
+>  		break;
+> +
+> +	case VIDIOC_G_MATRIX:
+> +	case VIDIOC_S_MATRIX:
+> +		err = put_v4l2_matrix32(&karg.v2matrix, up);
+> +		break;
+>  	}
+>  	return err;
+>  }
+> @@ -1089,6 +1143,7 @@ long v4l2_compat_ioctl32(struct file *file, unsigned
+> int cmd, unsigned long arg) case VIDIOC_ENUM_FREQ_BANDS:
+>  	case VIDIOC_SUBDEV_G_EDID32:
+>  	case VIDIOC_SUBDEV_S_EDID32:
+> +	case VIDIOC_QUERY_MATRIX:
+>  		ret = do_video_ioctl(file, cmd, arg);
+>  		break;
+-- 
 Regards,
-Sylwester
+
+Laurent Pinchart
+
