@@ -1,85 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f46.google.com ([209.85.214.46]:56700 "EHLO
-	mail-bk0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751508Ab3GFT61 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Sat, 6 Jul 2013 15:58:27 -0400
-Received: by mail-bk0-f46.google.com with SMTP id na10so1383670bkb.33
-        for <linux-media@vger.kernel.org>; Sat, 06 Jul 2013 12:58:25 -0700 (PDT)
-Message-ID: <51D876DF.90507@gmail.com>
-Date: Sat, 06 Jul 2013 21:58:23 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-MIME-Version: 1.0
-To: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: width and height of JPEG compressed images
-References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
-In-Reply-To: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-1-out2.atlantis.sk ([80.94.52.71]:43703 "EHLO
+	mail-1-out2.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752704Ab3GSRqj (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jul 2013 13:46:39 -0400
+From: Ondrej Zary <linux@rainbow-software.org>
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Subject: [PATCH 1/2] radio-aztech: Convert to generic lm7000 implementation
+Date: Fri, 19 Jul 2013 19:46:17 +0200
+Message-Id: <1374255978-1362-1-git-send-email-linux@rainbow-software.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Thomas,
+Aztech radio card is based on LM7001 chip which is (software) compatible with LM7000.
+So remove the LM7000-specific code from the driver and use generic code.
 
-Cc: Sakari and Laurent
+Also found that the card does not have A0..A2 ISA pins connected, which means that the region size is 8 bytes.
 
-On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
-> Hello,
->
-> I am writing a driver for the sensor MT9D131.  This device supports
-> digital zoom and JPEG compression.
->
-> Although I am writing it for my company's internal purposes, it will
->be made open-source, so I would like to keep the API as portable as
-> possible.
->
-> The hardware reads AxB sensor pixels from its array, resamples them
->to CxD image pixels, and then compresses them to ExF bytes.
->
-> The subdevice driver sets size AxB to the value it receives from
->v4l2_subdev_video_ops.s_crop().
->
-> To enable compression then v4l2_subdev_video_ops.s_mbus_fmt() is
->called with fmt->code=V4L2_MBUS_FMT_JPEG_1X8.
->
-> fmt->width and fmt->height then ought to specify the size of the
->compressed image ExF, that is, the size specified is the size in the
->format specified (the number of JPEG_1X8), not the size it would be
->in a raw format.
+Signed-off-by: Ondrej Zary <linux@rainbow-software.org>
+---
+ drivers/media/radio/radio-aztech.c |   68 +++++++++++++-----------------------
+ 1 files changed, 24 insertions(+), 44 deletions(-)
 
-In VIDIOC_S_FMT 'sizeimage' specifies size of the buffer for the
-compressed frame at the bridge driver side. And width/height should
-specify size of the re-sampled (binning, skipping ?) frame - CxD,
-if I understand what  you are saying correctly.
+diff --git a/drivers/media/radio/radio-aztech.c b/drivers/media/radio/radio-aztech.c
+index 177bcbd..2f5671f 100644
+--- a/drivers/media/radio/radio-aztech.c
++++ b/drivers/media/radio/radio-aztech.c
+@@ -26,6 +26,7 @@
+ #include <media/v4l2-ioctl.h>
+ #include <media/v4l2-ctrls.h>
+ #include "radio-isa.h"
++#include "lm7000.h"
+ 
+ MODULE_AUTHOR("Russell Kroll, Quay Lu, Donald Song, Jason Lewis, Scott McGrath, William McGrath");
+ MODULE_DESCRIPTION("A driver for the Aztech radio card.");
+@@ -54,18 +55,29 @@ struct aztech {
+ 	int curvol;
+ };
+ 
+-static void send_0_byte(struct aztech *az)
+-{
+-	udelay(radio_wait_time);
+-	outb_p(2 + az->curvol, az->isa.io);
+-	outb_p(64 + 2 + az->curvol, az->isa.io);
+-}
++/* bit definitions for register read */
++#define AZTECH_BIT_NOT_TUNED	(1 << 0)
++#define AZTECH_BIT_MONO		(1 << 1)
++/* bit definitions for register write */
++#define AZTECH_BIT_TUN_CE	(1 << 1)
++#define AZTECH_BIT_TUN_CLK	(1 << 6)
++#define AZTECH_BIT_TUN_DATA	(1 << 7)
++/* bits 0 and 2 are volume control, bits 3..5 are not connected */
+ 
+-static void send_1_byte(struct aztech *az)
++static void aztech_set_pins(void *handle, u8 pins)
+ {
+-	udelay(radio_wait_time);
+-	outb_p(128 + 2 + az->curvol, az->isa.io);
+-	outb_p(128 + 64 + 2 + az->curvol, az->isa.io);
++	struct radio_isa_card *isa = handle;
++	struct aztech *az = container_of(isa, struct aztech, isa);
++	u8 bits = az->curvol;
++
++	if (pins & LM7000_DATA)
++		bits |= AZTECH_BIT_TUN_DATA;
++	if (pins & LM7000_CLK)
++		bits |= AZTECH_BIT_TUN_CLK;
++	if (pins & LM7000_CE)
++		bits |= AZTECH_BIT_TUN_CE;
++
++	outb_p(bits, az->isa.io);
+ }
+ 
+ static struct radio_isa_card *aztech_alloc(void)
+@@ -77,39 +89,7 @@ static struct radio_isa_card *aztech_alloc(void)
+ 
+ static int aztech_s_frequency(struct radio_isa_card *isa, u32 freq)
+ {
+-	struct aztech *az = container_of(isa, struct aztech, isa);
+-	int  i;
+-
+-	freq += 171200;			/* Add 10.7 MHz IF		*/
+-	freq /= 800;			/* Convert to 50 kHz units	*/
+-
+-	send_0_byte(az);		/*  0: LSB of frequency       */
+-
+-	for (i = 0; i < 13; i++)	/*   : frequency bits (1-13)  */
+-		if (freq & (1 << i))
+-			send_1_byte(az);
+-		else
+-			send_0_byte(az);
+-
+-	send_0_byte(az);		/* 14: test bit - always 0    */
+-	send_0_byte(az);		/* 15: test bit - always 0    */
+-	send_0_byte(az);		/* 16: band data 0 - always 0 */
+-	if (isa->stereo)		/* 17: stereo (1 to enable)   */
+-		send_1_byte(az);
+-	else
+-		send_0_byte(az);
+-
+-	send_1_byte(az);		/* 18: band data 1 - unknown  */
+-	send_0_byte(az);		/* 19: time base - always 0   */
+-	send_0_byte(az);		/* 20: spacing (0 = 25 kHz)   */
+-	send_1_byte(az);		/* 21: spacing (1 = 25 kHz)   */
+-	send_0_byte(az);		/* 22: spacing (0 = 25 kHz)   */
+-	send_1_byte(az);		/* 23: AM/FM (FM = 1, always) */
+-
+-	/* latch frequency */
+-
+-	udelay(radio_wait_time);
+-	outb_p(128 + 64 + az->curvol, az->isa.io);
++	lm7000_set_freq(freq, isa, aztech_set_pins);
+ 
+ 	return 0;
+ }
+@@ -165,7 +145,7 @@ static struct radio_isa_driver aztech_driver = {
+ 	.radio_nr_params = radio_nr,
+ 	.io_ports = aztech_ioports,
+ 	.num_of_io_ports = ARRAY_SIZE(aztech_ioports),
+-	.region_size = 2,
++	.region_size = 8,
+ 	.card = "Aztech Radio",
+ 	.ops = &aztech_ops,
+ 	.has_stereo = true,
+-- 
+Ondrej Zary
 
-I don't quite what transformation is done at CxD -> ExF. Why you are
-using ExF (two numbers) to specify number of bytes ? And how can you
-know exactly beforehand what is the frame size after compression ?
-Does the sensor transmit fixed number of bytes per frame, by adding
-some padding bytes if required to the compressed frame data ?
-
-Is it something like:
-
-sensor matrix (AxB pixels) -> binning/skipping (CxD pixels) ->
--> JPEG compresion (width = C, height = D, sizeimage ExF bytes)
-
-?
-> This allows the bridge driver to be compression agnostic.  It gets
->told how many bytes to allocate per buffer and it reads that many
->bytes.  It doesn't have to understand that the number of bytes isn't
->directly related to the number of pixels.
->
-> So how does the user tell the driver what size image to capture
->before compression, CxD?
-
-I think you should use VIDIOC_S_FMT(width = C, height = D, sizeimage = ExF)
-for that. And s_frame_desc sudev op could be used to pass sizeimage to the
-sensor subdev driver.
-
-> (or alternatively, if you disagree and think CxD should be specified
->by s_fmt(), then how does the user specify ExF?)
-
-Regards,
-Sylwester
