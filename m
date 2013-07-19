@@ -1,106 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f174.google.com ([74.125.82.174]:49241 "EHLO
-	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754177Ab3GQRYy (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44865 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1759986Ab3GSRtt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 13:24:54 -0400
-MIME-Version: 1.0
-In-Reply-To: <51E6C8D8.4010303@samsung.com>
-References: <1374078016-17122-1-git-send-email-prabhakar.csengg@gmail.com> <51E6C8D8.4010303@samsung.com>
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-Date: Wed, 17 Jul 2013 22:54:32 +0530
-Message-ID: <CA+V-a8uKHymsWw1mZMH==Q6--F23y_xnFKtZDVB5r12K3=5zyQ@mail.gmail.com>
-Subject: Re: [PATCH v3] media: i2c: tvp7002: add OF support
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: LMML <linux-media@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 19 Jul 2013 13:49:49 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 873E860096
+	for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 20:49:46 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [RFC 1/4] media: Add pad flag MEDIA_PAD_FL_MUST_CONNECT
+Date: Fri, 19 Jul 2013 20:55:06 +0300
+Message-Id: <1374256509-7850-2-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi>
+References: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Pads that set this flag must be connected by an active link for the entity
+to stream.
 
-Thanks for the quick review.
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ Documentation/DocBook/media/v4l/media-ioc-enum-links.xml |    5 +++++
+ include/uapi/linux/media.h                               |    1 +
+ 2 files changed, 6 insertions(+)
 
-On Wed, Jul 17, 2013 at 10:09 PM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> On 07/17/2013 06:20 PM, Prabhakar Lad wrote:
->> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
->>
->> add OF support for the tvp7002 driver.
->>
->> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
->> ---
->>  This patch depends on https://patchwork.kernel.org/patch/2828800/
->>
->>  Changes for v3:
->>  1: Fixed review comments pointed by Sylwester.
->>
->>  .../devicetree/bindings/media/i2c/tvp7002.txt      |   43 +++++++++++++
->>  drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
->>  2 files changed, 103 insertions(+), 7 deletions(-)
->>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>
->> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->> new file mode 100644
->> index 0000000..744125f
->> --- /dev/null
->> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->> @@ -0,0 +1,43 @@
->> +* Texas Instruments TV7002 video decoder
->> +
->> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
->> +YPbPr color space.
->> +
->> +Required Properties :
->> +- compatible : Must be "ti,tvp7002"
->> +
->> +- hsync-active: HSYNC Polarity configuration for endpoint.
->> +
->> +- vsync-active: VSYNC Polarity configuration for endpoint.
->
-> I woudn't refer to "endpoint" here, perhaps to the specific hardware
-> bus instead ? So it is clear what part of the device it refers to ?
->
-OK, I'll refer to bus instead.
+diff --git a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
+index 355df43..4725a99 100644
+--- a/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
++++ b/Documentation/DocBook/media/v4l/media-ioc-enum-links.xml
+@@ -134,6 +134,11 @@
+ 	    <entry>Output pad, relative to the entity. Output pads source data
+ 	    and are origins of links.</entry>
+ 	  </row>
++	  <row>
++	    <entry><constant>MEDIA_PAD_FL_MUST_CONNECT</constant></entry>
++	    <entry>A pad must be connected with an enabled link for
++	    the entity to be able to stream.</entry>
++	  </row>
+ 	</tbody>
+       </tgroup>
+     </table>
+diff --git a/include/uapi/linux/media.h b/include/uapi/linux/media.h
+index ed49574..d847c76 100644
+--- a/include/uapi/linux/media.h
++++ b/include/uapi/linux/media.h
+@@ -98,6 +98,7 @@ struct media_entity_desc {
+ 
+ #define MEDIA_PAD_FL_SINK		(1 << 0)
+ #define MEDIA_PAD_FL_SOURCE		(1 << 1)
++#define MEDIA_PAD_FL_MUST_CONNECT	(1 << 2)
+ 
+ struct media_pad_desc {
+ 	__u32 entity;		/* entity ID */
+-- 
+1.7.10.4
 
->> +- pclk-sample: Clock polarity of the endpoint.
->
-> This description is not very useful, my feeling is that this property
-> is better described in video-interfaces.txt.
->
-agreed its just a one liner, and below I have mentioned a link
-to video-interfaces.txt for better understanding of this generic
-properties.
-
->> +- sync-on-green-active: Active state of Sync-on-green signal property of the
->> +  endpoint, 0/1 for normal/inverted operation respectively.
->> +
->> +- field-even-active: Active-high Field ID polarity of the endpoint.
->
-> I find it hard to understand what this property is about exactly.
-> Not sure if you need to repeat detailed description of the signal
-> polarity properties. Perhaps its sufficient to list which properties
-> are relevant for this device, but I'm not opposed to having
-> supplementary description here. I would just make it more specific
-> to the TVP7002 chip.
-
-How about the below description ?
-
-Active-high Field ID output polarity control. Under normal operation, the
-field ID output is set to logic 1 for an odd field (field 1)
-and set to logic 0 for an even field (field 0).
-0 = Normal operation (default)
-1 = FID output polarity inverted
-
-> Also please note that only 'compatible' property is required, all
-> other are optional. And it probably makes sense to specify what are
-> default values for each property when it is not specified.
->
-Agreed I'll add them to optional list, and mention their default values too.
-
---
-Regards,
-Prabhakar Lad
