@@ -1,45 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:49721 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755620Ab3GBXCd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Jul 2013 19:02:33 -0400
-Date: Wed, 3 Jul 2013 02:01:59 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [RFC] Support for events with a large payload
-Message-ID: <20130702230159.GO2064@valkosipuli.retiisi.org.uk>
-References: <201305131414.43685.hverkuil@xs4all.nl>
- <1721198.ELRHSeN8Of@avalon>
- <20130622205800.GH2064@valkosipuli.retiisi.org.uk>
- <201306241540.14469.hverkuil@xs4all.nl>
+Received: from comal.ext.ti.com ([198.47.26.152]:43434 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751310Ab3GSGgp (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jul 2013 02:36:45 -0400
+Message-ID: <51E8DE51.1060404@ti.com>
+Date: Fri, 19 Jul 2013 12:06:01 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <201306241540.14469.hverkuil@xs4all.nl>
+To: Greg KH <gregkh@linuxfoundation.org>
+CC: <kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+References: <1374129984-765-1-git-send-email-kishon@ti.com> <1374129984-765-2-git-send-email-kishon@ti.com> <20130718072004.GA16720@kroah.com> <51E7AE88.3050007@ti.com> <20130718154954.GA31961@kroah.com> <51E8D086.809@ti.com> <20130719054311.GA14638@kroah.com> <51E8D4E0.8060200@ti.com> <20130719062941.GA23611@kroah.com>
+In-Reply-To: <20130719062941.GA23611@kroah.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon, Jun 24, 2013 at 03:40:14PM +0200, Hans Verkuil wrote:
-...
-> Since the payloads are larger I am less concerned about speed. There is one
-> problem, though: if you dequeue the event and the buffer that should receive
-> the payload is too small, then you have lost that payload. You can't allocate
-> a new, larger, buffer and retry. So this approach can only work if you really
-> know the maximum payload size.
+Hi,
+
+On Friday 19 July 2013 11:59 AM, Greg KH wrote:
+> On Fri, Jul 19, 2013 at 11:25:44AM +0530, Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> On Friday 19 July 2013 11:13 AM, Greg KH wrote:
+>>> On Fri, Jul 19, 2013 at 11:07:10AM +0530, Kishon Vijay Abraham I wrote:
+>>>>>>>> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
+>>>>>>>
+>>>>>>> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
+>>>>>>> never send a duplicate name.id pair?  Why not create your own ids based
+>>>>>>> on the number of phys in the system, like almost all other classes and
+>>>>>>> subsystems do?
+>>>>>>
+>>>>>> hmm.. some PHY drivers use the id they provide to perform some of their
+>>>>>> internal operation as in [1] (This is used only if a single PHY provider
+>>>>>> implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
+>>>>>> to give the PHY drivers an option to use auto id.
+>>>>>>
+>>>>>> [1] ->
+>>>>>> http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
+>>>>>
+>>>>> No, who cares about the id?  No one outside of the phy core ever should,
+>>>>> because you pass back the only pointer that they really do care about,
+>>>>> if they need to do anything with the device.  Use that, and then you can
+>>>>
+>>>> hmm.. ok.
+>>>>
+>>>>> rip out all of the "search for a phy by a string" logic, as that's not
+>>>>
+>>>> Actually this is needed for non-dt boot case. In the case of dt boot, we use a
+>>>> phandle by which the controller can get a reference to the phy. But in the case
+>>>> of non-dt boot, the controller can get a reference to the phy only by label.
+>>>
+>>> I don't understand.  They registered the phy, and got back a pointer to
+>>> it.  Why can't they save it in their local structure to use it again
+>>> later if needed?  They should never have to "ask" for the device, as the
+>>
+>> One is a *PHY provider* driver which is a driver for some PHY device. This will
+>> use phy_create to create the phy.
+>> The other is a *PHY consumer* driver which might be any controller driver (can
+>> be USB/SATA/PCIE). The PHY consumer will use phy_get to get a reference to the
+>> phy (by *phandle* in the case of dt boot and *label* in the case of non-dt boot).
+>>> device id might be unknown if there are multiple devices in the system.
+>>
+>> I agree with you on the device id part. That need not be known to the PHY driver.
 > 
-> The advantage is also that you won't lose payloads.
+> How does a consumer know which "label" to use in a non-dt system if
+> there are multiple PHYs in the system?
 
-Forgot to answer this one --- I think it's fair to assume the user knows the
-maximum size of the payload. What we also could do in such a case is to
-return the error (e.g. ENOSPC) and put the required size to the large event
-size field. But first someone must come up with a variable size event
-without well defined maximum size for this to make much sense.
+That should be passed using platform data.
+> 
+> Do you have any drivers that are non-dt using this yet?
 
--- 
-Kind regards,
+yes. tw4030 (used in OMAP3) supports non-dt.
+[PATCH 04/15] ARM: OMAP: USB: Add phy binding information
+[PATCH 06/15] usb: musb: omap2430: use the new generic PHY framework
+of this patch series shows how it's used.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks
+Kishon
