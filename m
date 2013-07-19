@@ -1,55 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:15131 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752613Ab3G2Mrl (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44864 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1760927Ab3GSRtt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 08:47:41 -0400
-Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
-	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6TClZLk009651
-	for <linux-media@vger.kernel.org>; Mon, 29 Jul 2013 12:47:37 GMT
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+	Fri, 19 Jul 2013 13:49:49 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id 6BAF960095
+	for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 20:49:46 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
 To: linux-media@vger.kernel.org
-Subject: [PATCH] qv4l2: Fixed a bug in the v4l2-api
-Date: Mon, 29 Jul 2013 14:47:33 +0200
-Message-Id: <20b0016794892a35cfc11b4f1aecd2dbb1b10466.1375102016.git.bwinther@cisco.com>
-In-Reply-To: <1375102053-3603-1-git-send-email-bwinther@cisco.com>
-References: <1375102053-3603-1-git-send-email-bwinther@cisco.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Subject: [RFC 0/4] Add MEDIA_PAD_FL_MUST_CONNECT pad flag, check it
+Date: Fri, 19 Jul 2013 20:55:05 +0300
+Message-Id: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The get_interval would return false even if devices had support for this
+Hi all,
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/v4l2-api.cpp | 12 +++++-------
- 1 file changed, 5 insertions(+), 7 deletions(-)
+This is a small RFC patchset which adds a new pad flag
+MEDIA_PAD_FL_MUST_CONNECT. Pads that have this flag are required to be
+connected through an enabled link for the entity to be able to stream. Both
+sink and source pads may have this flag, compared to my old patch which
+required all sink pads to be connected.
 
-diff --git a/utils/qv4l2/v4l2-api.cpp b/utils/qv4l2/v4l2-api.cpp
-index 9c37be3..7a438af 100644
---- a/utils/qv4l2/v4l2-api.cpp
-+++ b/utils/qv4l2/v4l2-api.cpp
-@@ -613,13 +613,11 @@ bool v4l2::set_interval(v4l2_fract interval)
- bool v4l2::get_interval(v4l2_fract &interval)
- {
- 	v4l2_streamparm parm;
--
- 	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
--	if (ioctl(VIDIOC_G_PARM, &parm) >= 0 &&
--	    (parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME)) {
--		interval = parm.parm.capture.timeperframe;
--		return true;
--        }
- 
--	return false;
-+	if (ioctl(VIDIOC_G_PARM, &parm) < 0)
-+		return false;
-+
-+	interval = parm.parm.capture.timeperframe;
-+	return interval.numerator && interval.denominator;
- }
+One of the additional benefits is that the users will also know which pads
+must be connected which is better than the ah-so-informative -EPIPE. More
+complex cases are still left for the driver to implement, though.
+
+The omap3isp driver gets these flags to all of its sink pads. Other drivers
+would likely need to be changed by the driver authors since I have little
+knowledge of their requirements.
+
+Consequently, an additional loop over the media graph can be avoided in the
+omap3isp driver (4th patch) since the driver no longer has the
+responsibility to check that its pads are connected.
+
 -- 
-1.8.3.2
+Kind regards,
+Sakari
 
