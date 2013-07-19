@@ -1,227 +1,113 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44041 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754419Ab3GJUx3 (ORCPT
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:62107 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1759686Ab3GSIx2 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 16:53:29 -0400
-Message-ID: <51DDCB1D.2040709@iki.fi>
-Date: Wed, 10 Jul 2013 23:59:09 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Fri, 19 Jul 2013 04:53:28 -0400
+Received: by mail-oa0-f43.google.com with SMTP id i7so5570979oag.2
+        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 01:53:28 -0700 (PDT)
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: Re: [RFC PATCH 1/5] v4l2: add matrix support.
-References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl>
-In-Reply-To: <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <201307191137522969679@gmail.com>
+References: <201307191137522969679@gmail.com>
+Date: Fri, 19 Jul 2013 09:53:28 +0100
+Message-ID: <CAGj5WxC0ADsdA7KcW92wu-KNLPUSbVspbvq5SLqdbFt49NMZXA@mail.gmail.com>
+Subject: Re: [PATCH] cx23885[v2]: Fix IR interrupt storm.
+From: Luis Alves <ljalvs@gmail.com>
+To: "nibble.max" <nibble.max@gmail.com>
+Cc: mchehab <mchehab@infradead.org>, crope <crope@iki.fi>,
+	awalls <awalls@md.metrocast.net>,
+	linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+Hi Max,
 
-Thanks for the patchset!
+Should have thought on that! I'll change it to preserve all other bits.
 
-On Fri, Jun 28, 2013 at 02:27:30PM +0200, Hans Verkuil wrote:
-> From: Hans Verkuil <hans.verkuil@cisco.com>
+Thanks,
+Luis
+
+
+On Fri, Jul 19, 2013 at 4:37 AM, nibble.max <nibble.max@gmail.com> wrote:
+> Hello Luis,
+> The internel interrupts are rounted as follow:
+> flatiron(include ADC)--->HammerHead(include IR inside)--->Pecos(PCIe)
+> The flatiron interrupt is enabled when chip power up.
+> When HammerHead interrupt is enalbe in Pecos, the most of interrupts are coming from flatiron.
+> The more accurate code is that reading back these left and right registers(0x1f, 0x23), set its bit-7 to "1" , then write back.
+> So that it does not touch other bits.
+> BR,
+> Max
 >
-> This patch adds core support for matrices: querying, getting and setting.
+>>Hi all,
+>>This path is meant to be up-streamed.
+>>
+>>Andy has a nice explanation for the interrupt storm when
+>>enabling the IR interrupt:
+>>
+>>The flatiron core (the audio adc) signals the end of its self-test
+>>with an interrupt. Since the flatiron irq seems OR-wired
+>>with the IR irq the result is this interrupt storm.
+>>This i2c tranfers will clear the flatiron interrupts - the left
+>>and right channels self-tests.
+>>
+>>Also as suggested by Andy I moved the i2c transfers to the
+>>cx23885 av core interrupt handling worker. If any spurious
+>>interrupt happens we silence them.
+>>
+>>The flatiron has some dedicated register read/write functions but are
+>>not exported so Antti just suggested to call the i2c_transfer directly.
+>>
+>>Tested in the TBS6981 Dual DVB-S2 card.
+>>
+>>PS: I've found this i2c_transfers in TBS media tree, more precisely
+>>in the cx23885-i2c.c file.
+>>
+>>Regards,
+>>Luis
+>>
+>>
+>>Signed-off-by: Luis Alves <ljalvs@gmail.com>
+>>---
+>> drivers/media/pci/cx23885/cx23885-av.c |   17 +++++++++++++++++
+>> 1 file changed, 17 insertions(+)
+>>
+>>diff --git a/drivers/media/pci/cx23885/cx23885-av.c b/drivers/media/pci/cx23885/cx23885-av.c
+>>index e958a01..d33570f 100644
+>>--- a/drivers/media/pci/cx23885/cx23885-av.c
+>>+++ b/drivers/media/pci/cx23885/cx23885-av.c
+>>@@ -29,8 +29,25 @@ void cx23885_av_work_handler(struct work_struct *work)
+>>       struct cx23885_dev *dev =
+>>                          container_of(work, struct cx23885_dev, cx25840_work);
+>>       bool handled;
+>>+      char buffer[2];
+>>+      struct i2c_msg msg = {
+>>+              .addr = 0x98 >> 1,
+>>+              .flags = 0,
+>>+              .len = 2,
+>>+              .buf = buffer,
+>>+      };
+>>
+>>       v4l2_subdev_call(dev->sd_cx25840, core, interrupt_service_routine,
+>>                        PCI_MSK_AV_CORE, &handled);
+>>+
+>>+      if (!handled) {
+>>+              /* clear any pending flatiron interrupts */
+>>+              buffer[0] = 0x1f;
+>>+              buffer[1] = 0x80;
+>>+              i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
+>>+              buffer[0] = 0x23;
+>>+              i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
+>>+      }
+>>+
+>>       cx23885_irq_enable(dev, PCI_MSK_AV_CORE);
+>> }
+>>--
+>>1.7.9.5
+>>
+>>--
+>>To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>>the body of a message to majordomo@vger.kernel.org
+>>More majordomo info at  http://vger.kernel.org/majordomo-info.html
 >
-> Two initial matrix types are defined for motion detection (defining regions
-> and thresholds).
->
-> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
-> ---
->  drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
->  drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
->  include/media/v4l2-ioctl.h           |  8 +++++
->  include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
->  4 files changed, 97 insertions(+), 1 deletion(-)
->
-> diff --git a/drivers/media/v4l2-core/v4l2-dev.c b/drivers/media/v4l2-core/v4l2-dev.c
-> index c8859d6..5e58df6 100644
-> --- a/drivers/media/v4l2-core/v4l2-dev.c
-> +++ b/drivers/media/v4l2-core/v4l2-dev.c
-> @@ -598,6 +598,9 @@ static void determine_valid_ioctls(struct video_device *vdev)
->  	SET_VALID_IOCTL(ops, VIDIOC_UNSUBSCRIBE_EVENT, vidioc_unsubscribe_event);
->  	if (ops->vidioc_enum_freq_bands || ops->vidioc_g_tuner || ops->vidioc_g_modulator)
->  		set_bit(_IOC_NR(VIDIOC_ENUM_FREQ_BANDS), valid_ioctls);
-> +	SET_VALID_IOCTL(ops, VIDIOC_QUERY_MATRIX, vidioc_query_matrix);
-> +	SET_VALID_IOCTL(ops, VIDIOC_G_MATRIX, vidioc_g_matrix);
-> +	SET_VALID_IOCTL(ops, VIDIOC_S_MATRIX, vidioc_s_matrix);
->
->  	if (is_vid) {
->  		/* video specific ioctls */
-> diff --git a/drivers/media/v4l2-core/v4l2-ioctl.c b/drivers/media/v4l2-core/v4l2-ioctl.c
-> index 68e6b5e..47debfc 100644
-> --- a/drivers/media/v4l2-core/v4l2-ioctl.c
-> +++ b/drivers/media/v4l2-core/v4l2-ioctl.c
-> @@ -549,7 +549,7 @@ static void v4l_print_cropcap(const void *arg, bool write_only)
->  	const struct v4l2_cropcap *p = arg;
->
->  	pr_cont("type=%s, bounds wxh=%dx%d, x,y=%d,%d, "
-> -		"defrect wxh=%dx%d, x,y=%d,%d\n, "
-> +		"defrect wxh=%dx%d, x,y=%d,%d, "
->  		"pixelaspect %d/%d\n",
->  		prt_names(p->type, v4l2_type_names),
->  		p->bounds.width, p->bounds.height,
-> @@ -831,6 +831,24 @@ static void v4l_print_freq_band(const void *arg, bool write_only)
->  			p->rangehigh, p->modulation);
->  }
->
-> +static void v4l_print_query_matrix(const void *arg, bool write_only)
-> +{
-> +	const struct v4l2_query_matrix *p = arg;
-> +
-> +	pr_cont("type=0x%x, columns=%u, rows=%u, elem_min=%lld, elem_max=%lld, elem_size=%u\n",
-> +			p->type, p->columns, p->rows,
-> +			p->elem_min.val, p->elem_max.val, p->elem_size);
-> +}
-> +
-> +static void v4l_print_matrix(const void *arg, bool write_only)
-> +{
-> +	const struct v4l2_matrix *p = arg;
-> +
-> +	pr_cont("type=0x%x, wxh=%dx%d, x,y=%d,%d, matrix=%p\n",
-> +			p->type, p->rect.width, p->rect.height,
-> +			p->rect.top, p->rect.left, p->matrix);
-> +}
-> +
->  static void v4l_print_u32(const void *arg, bool write_only)
->  {
->  	pr_cont("value=%u\n", *(const u32 *)arg);
-> @@ -2055,6 +2073,9 @@ static struct v4l2_ioctl_info v4l2_ioctls[] = {
->  	IOCTL_INFO_STD(VIDIOC_DV_TIMINGS_CAP, vidioc_dv_timings_cap, v4l_print_dv_timings_cap, INFO_FL_CLEAR(v4l2_dv_timings_cap, type)),
->  	IOCTL_INFO_FNC(VIDIOC_ENUM_FREQ_BANDS, v4l_enum_freq_bands, v4l_print_freq_band, 0),
->  	IOCTL_INFO_FNC(VIDIOC_DBG_G_CHIP_INFO, v4l_dbg_g_chip_info, v4l_print_dbg_chip_info, INFO_FL_CLEAR(v4l2_dbg_chip_info, match)),
-> +	IOCTL_INFO_STD(VIDIOC_QUERY_MATRIX, vidioc_query_matrix, v4l_print_query_matrix, INFO_FL_CLEAR(v4l2_query_matrix, ref)),
-> +	IOCTL_INFO_STD(VIDIOC_G_MATRIX, vidioc_g_matrix, v4l_print_matrix, INFO_FL_CLEAR(v4l2_matrix, matrix)),
-> +	IOCTL_INFO_STD(VIDIOC_S_MATRIX, vidioc_s_matrix, v4l_print_matrix, INFO_FL_PRIO | INFO_FL_CLEAR(v4l2_matrix, matrix)),
->  };
->  #define V4L2_IOCTLS ARRAY_SIZE(v4l2_ioctls)
->
-> diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> index e0b74a4..7e4538e 100644
-> --- a/include/media/v4l2-ioctl.h
-> +++ b/include/media/v4l2-ioctl.h
-> @@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
->  	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
->  					const struct v4l2_event_subscription *sub);
->
-> +	/* Matrix ioctls */
-> +	int (*vidioc_query_matrix) (struct file *file, void *fh,
-> +				    struct v4l2_query_matrix *qmatrix);
-> +	int (*vidioc_g_matrix) (struct file *file, void *fh,
-> +				    struct v4l2_matrix *matrix);
-> +	int (*vidioc_s_matrix) (struct file *file, void *fh,
-> +				    struct v4l2_matrix *matrix);
-> +
->  	/* For other private ioctls */
->  	long (*vidioc_default)	       (struct file *file, void *fh,
->  					bool valid_prio, unsigned int cmd, void *arg);
-> diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> index 95ef455..5cbe815 100644
-> --- a/include/uapi/linux/videodev2.h
-> +++ b/include/uapi/linux/videodev2.h
-> @@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
->  	__u32			reserved[8];
->  };
->
-> +/* Define to which motion detection region each element belongs.
-> + * Each element is a __u8. */
-> +#define V4L2_MATRIX_TYPE_MD_REGION     (1)
-> +/* Define the motion detection threshold for each element.
-> + * Each element is a __u16. */
-> +#define V4L2_MATRIX_TYPE_MD_THRESHOLD  (2)
-
-How about V4L2_MATRIX_T_... instead? These are bound to be quite long.
-
-> +
-> +/**
-> + * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
-> + * @type:	matrix type
-> + * @ref:	reference to some object (if any) owning the matrix
-> + * @columns:	number of columns in the matrix
-> + * @rows:	number of rows in the matrix
-> + * @elem_min:	minimum matrix element value
-> + * @elem_max:	maximum matrix element value
-> + * @elem_size:	size in bytes each matrix element
-> + * @reserved:	future extensions, applications and drivers must zero this.
-> + */
-> +struct v4l2_query_matrix {
-> +	__u32 type;
-> +	union {
-> +		__u32 reserved[4];
-> +	} ref;
-> +	__u32 columns;
-> +	__u32 rows;
-
-You're assuming two-dimensional matrices. How about array dim[3 or 4] 
-and ndim instead of columns and rows?
-
-> +	union {
-> +		__s64 val;
-> +		__u64 uval;
-> +		__u32 reserved[4];
-
-How about "raw" as in e.g. v4l2_format? Reserved suggests to me the 
-field is unused, which is not the case.
-
-> +	} elem_min;
-> +	union {
-> +		__s64 val;
-> +		__u64 uval;
-> +		__u32 reserved[4];
-> +	} elem_max;
-> +	__u32 elem_size;
-> +	__u32 reserved[12];
-> +} __attribute__ ((packed));
-> +
-> +/**
-> + * struct v4l2_matrix - VIDIOC_G/S_MATRIX argument
-> + * @type:	matrix type
-> + * @ref:	reference to some object (if any) owning the matrix
-> + * @rect:	which part of the matrix to get/set
-> + * @matrix:	pointer to the matrix of size (in bytes):
-> + *		elem_size * rect.width * rect.height
-> + * @reserved:	future extensions, applications and drivers must zero this.
-> + */
-> +struct v4l2_matrix {
-> +	__u32 type;
-> +	union {
-> +		__u32 reserved[4];
-> +	} ref;
-> +	struct v4l2_rect rect;
-> +	void __user *matrix;
-
-This is an interesting idea. Do you have use cases in mind for this?
-
-> +	__u32 reserved[12];
-> +} __attribute__ ((packed));
-> +
->  /*
->   *	I O C T L   C O D E S   F O R   V I D E O   D E V I C E S
->   *
-> @@ -1946,6 +2004,12 @@ struct v4l2_create_buffers {
->     Never use these in applications! */
->  #define VIDIOC_DBG_G_CHIP_INFO  _IOWR('V', 102, struct v4l2_dbg_chip_info)
->
-> +/* Experimental, these three ioctls may change over the next couple of kernel
-> +   versions. */
-> +#define VIDIOC_QUERY_MATRIX	_IOWR('V', 103, struct v4l2_query_matrix)
-> +#define VIDIOC_G_MATRIX		_IOWR('V', 104, struct v4l2_matrix)
-> +#define VIDIOC_S_MATRIX		_IOWR('V', 105, struct v4l2_matrix)
-> +
->  /* Reminder: when adding new ioctls please add support for them to
->     drivers/media/video/v4l2-compat-ioctl32.c as well! */
-
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
