@@ -1,106 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:39512 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933964Ab3GWTnM (ORCPT
+Received: from mail-la0-f46.google.com ([209.85.215.46]:36848 "EHLO
+	mail-la0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751694Ab3GSRCq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 15:43:12 -0400
-Date: Tue, 23 Jul 2013 12:44:23 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Mark Brown <broonie@kernel.org>
-Cc: Tomasz Figa <t.figa@samsung.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Message-ID: <20130723194423.GA22984@kroah.com>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
- <51EE9EC0.6060905@ti.com>
- <20130723161846.GD2486@kroah.com>
- <1446965.6APW5ZgLBW@amdc1227>
- <20130723173710.GB28284@kroah.com>
- <20130723174456.GM9858@sirena.org.uk>
- <20130723180110.GA8688@kroah.com>
- <20130723193105.GP9858@sirena.org.uk>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130723193105.GP9858@sirena.org.uk>
+	Fri, 19 Jul 2013 13:02:46 -0400
+Received: by mail-la0-f46.google.com with SMTP id hi8so835353lab.19
+        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 10:02:44 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, Andre Heider <a.heider@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 1/2] videobuf2-dma-sg: Allocate pages as contiguous as possible
+Date: Fri, 19 Jul 2013 19:02:33 +0200
+Message-Id: <1374253355-3788-2-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 23, 2013 at 08:31:05PM +0100, Mark Brown wrote:
-> > You don't "know" the id of the device you are looking up, due to
-> > multiple devices being in the system (dynamic ids, look back earlier in
-> > this thread for details about that.)
-> 
-> I got copied in very late so don't have most of the thread I'm afraid, 
-> I did try looking at web archives but didn't see a clear problem
-> statement.  In any case this is why the APIs doing lookups do the
-> lookups in the context of the requesting device - devices ask for
-> whatever name they use locally.
+Most DMA engines have limitations regarding the number of DMA segments
+(sg-buffers) that they can handle. Videobuffers can easily spread
+through houndreds of pages.
 
-What do you mean by "locally"?
+In the previous aproach, the pages were allocated individually, this
+could led to the creation houndreds of dma segments (sg-buffers) that
+could not be handled by some DMA engines.
 
-The problem with the api was that the phy core wanted a id and a name to
-create a phy, and then later other code was doing a "lookup" based on
-the name and id (mushed together), because it "knew" that this device
-was the one it wanted.
+This patch tries to minimize the number of DMA segments by using
+alloc_pages. In the worst case it will behave as before, but most
+of the times it will reduce the number of dma segments
 
-Just like the clock api, which, for multiple devices, has proven to
-cause problems.  I don't want to see us accept an api that we know has
-issues in it now, I'd rather us fix it up properly.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |   60 +++++++++++++++++++++++-----
+ 1 file changed, 49 insertions(+), 11 deletions(-)
 
-Subsystems should be able to create ids how ever they want to, and not
-rely on the code calling them to specify the names of the devices that
-way, otherwise the api is just too fragile.
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 16ae3dc..c053605 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -42,10 +42,55 @@ struct vb2_dma_sg_buf {
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+ 
++static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
++		gfp_t gfp_flags)
++{
++	unsigned int last_page = 0;
++	int size = buf->sg_desc.size;
++
++	while (size > 0) {
++		struct page *pages;
++		int order;
++		int i;
++
++		order = get_order(size);
++		/* Dont over allocate*/
++		if ((PAGE_SIZE << order) > size)
++			order--;
++
++		pages = NULL;
++		while (!pages) {
++			pages = alloc_pages(GFP_KERNEL | __GFP_ZERO |
++					__GFP_NOWARN | gfp_flags, order);
++			if (pages)
++				break;
++
++			if (order == 0)
++				while (last_page--) {
++					__free_page(buf->pages[last_page]);
++					return -ENOMEM;
++				}
++			order--;
++		}
++
++		split_page(pages, order);
++		for (i = 0; i < (1<<order); i++) {
++			buf->pages[last_page] = pages[i];
++			sg_set_page(&buf->sg_desc.sglist[last_page],
++					buf->pages[last_page], PAGE_SIZE, 0);
++			last_page++;
++		}
++
++		size -= PAGE_SIZE << order;
++	}
++
++	return 0;
++}
++
+ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ {
+ 	struct vb2_dma_sg_buf *buf;
+-	int i;
++	int ret;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+@@ -69,14 +114,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 	if (!buf->pages)
+ 		goto fail_pages_array_alloc;
+ 
+-	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+-		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
+-					   __GFP_NOWARN | gfp_flags);
+-		if (NULL == buf->pages[i])
+-			goto fail_pages_alloc;
+-		sg_set_page(&buf->sg_desc.sglist[i],
+-			    buf->pages[i], PAGE_SIZE, 0);
+-	}
++	ret = vb2_dma_sg_alloc_compacted(buf, gfp_flags);
++	if (ret)
++		goto fail_pages_alloc;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dma_sg_put;
+@@ -89,8 +129,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 	return buf;
+ 
+ fail_pages_alloc:
+-	while (--i >= 0)
+-		__free_page(buf->pages[i]);
+ 	kfree(buf->pages);
+ 
+ fail_pages_array_alloc:
+-- 
+1.7.10.4
 
-I think, that if you create a device, then just carry around the pointer
-to that device (in this case a phy) and pass it to whatever other code
-needs it.  No need to do lookups on "known names" or anything else, just
-normal pointers, with no problems for multiple devices, busses, or
-naming issues.
-
-> > > Having to write platform data for everything gets old fast and the code
-> > > duplication is pretty tedious...
-> 
-> > Adding a single pointer is "tedious"?  Where is the "name" that you are
-> > going to lookup going to come from?  That code doesn't write itself...
-> 
-> It's adding platform data in the first place that gets tedious - and of
-> course there's also DT and ACPI to worry about, it's not just a case of
-> platform data and then you're done.  Pushing the lookup into library
-> code means that drivers don't have to worry about any of this stuff.
-
-I agree, so just pass around the pointer to the phy and all is good.  No
-need to worry about DT or ACPI or anything else.
-
-> For most of the APIs doing this there is a clear and unambiguous name in
-> the hardware that can be used (and for hardware process reasons is
-> unlikely to get changed).  The major exception to this is the clock API
-> since it is relatively rare to have clear, segregated IP level
-> information for IPs baked into larger chips.  The other APIs tend to be
-> establishing chip to chip links.
-
-The clock api is having problems with multiple "names" due to dynamic
-devices from what I was told.  I want to prevent the PHY interface from
-having that same issue.
-
-thanks,
-
-greg k-h
