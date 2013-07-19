@@ -1,139 +1,132 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-3.cisco.com ([144.254.224.146]:14044 "EHLO
-	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1759100Ab3GaHhu (ORCPT
+Received: from mail-ie0-f171.google.com ([209.85.223.171]:64704 "EHLO
+	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751678Ab3GSU1K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 03:37:50 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: Re: Question about v4l2-compliance: cap->readbuffers
-Date: Wed, 31 Jul 2013 09:37:34 +0200
-Cc: linux-media@vger.kernel.org
-References: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com> <51F7E712.40103@xs4all.nl> <CAPybu_22T6fNAMKEqyjX3FHQ-hgKiHytc9y=3Dh75FvSWje49w@mail.gmail.com>
-In-Reply-To: <CAPybu_22T6fNAMKEqyjX3FHQ-hgKiHytc9y=3Dh75FvSWje49w@mail.gmail.com>
+	Fri, 19 Jul 2013 16:27:10 -0400
+Received: by mail-ie0-f171.google.com with SMTP id qd12so10390652ieb.30
+        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 13:27:10 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307310937.34431.hverkuil@xs4all.nl>
+Date: Fri, 19 Jul 2013 14:27:09 -0600
+Message-ID: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+Subject: Proposed modifications to dvb_frontend_ops
+From: Chris Lee <updatelee@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed 31 July 2013 09:09:05 Ricardo Ribalda Delgado wrote:
-> Hello Hans
-> 
-> Thanks for the explanation. I have tried changing the controls to
-> inactive and the are shown disabled on the gui, just as you say, but
-> they are there :S. I personally liked better the previous behaviour,
-> when the controls where not shown at all. But it is just that, a
-> taste, if it is more correct showing them as inactive they will be
-> inactive :).
+In frontend.h we have a struct called dvb_frontend_ops, in there we
+have an element called delsys to show the delivery systems supported
+by the tuner, Id like to propose we add onto that with delmod and
+delfec.
 
-The problem with removing them dynamically is that that means that a GUI
-also has to refresh itself whenever that happens. That's an expensive
-operation and that generally also means that the layout of the controls
-changes, which is very confusing for the user.
+Its not a perfect solution as sometimes a specific modulation or fec
+is only availible on specific systems. But its better then what we
+have now. The struct fe_caps isnt really suited for this, its missing
+many systems, modulations, and fec's. Its just not expandable enough
+to get all the supported sys/mod/fec a tuner supports in there.
 
-Note that the DISABLED flag is meant for situations where a control was
-simply invalid for the particular hardware version, i.e. the flag was
-static and would never change. With the control framework it is much
-easier to just not add the control in the first place.
+Expanding this would allow user land applications to poll the tuner to
+determine more detailed information on the tuners capabilities.
 
-> For a case where a option is only available at a specific format: I
-> was also disablig the control (now inactiving it), and returning
-> -EINVAL if the user tried to set the control on an incompatible
-> format. Apparently the v4l2-compilance dont like that either, is this
-> a false positive or I should behave differently?.
+Here is the patch I propose, along with the au8522 driver modified to
+utilize the new elements. Id like to hear comments on it. Does anyone
+see a better way of doing this ?
 
-The general approach in a driver is that you can still set an inactive
-control. The new value will simply be stored and only becomes active
-when the control becomes active as well. In some cases that doesn't
-make sense, and in that case the driver will just ignore the new value,
-but it still returns 0.
+Chris Lee <updatelee@gmail.com>
 
-There are good reasons for this behavior: it allows you to get the values
-of all controls (active and inactive) and set them as well. This is useful
-for a program that saves the state of controls and restores them on startup.
+diff --git a/drivers/media/dvb-core/dvb_frontend.c
+b/drivers/media/dvb-core/dvb_frontend.c
+index 1f925e8..f5df08e 100644
+--- a/drivers/media/dvb-core/dvb_frontend.c
++++ b/drivers/media/dvb-core/dvb_frontend.c
+@@ -1036,6 +1036,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+  _DTV_CMD(DTV_API_VERSION, 0, 0),
 
-Regards,
+  _DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
++ _DTV_CMD(DTV_ENUM_DELMOD, 0, 0),
++ _DTV_CMD(DTV_ENUM_DELFEC, 0, 0),
 
-	Hans
+  _DTV_CMD(DTV_ATSCMH_PARADE_ID, 1, 0),
+  _DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 1, 0),
+@@ -1285,6 +1287,22 @@ static int dtv_property_process_get(struct
+dvb_frontend *fe,
+  }
+  tvp->u.buffer.len = ncaps;
+  break;
++ case DTV_ENUM_DELMOD:
++ ncaps = 0;
++ while (fe->ops.delmod[ncaps] && ncaps < MAX_DELMOD) {
++ tvp->u.buffer.data[ncaps] = fe->ops.delmod[ncaps];
++ ncaps++;
++ }
++ tvp->u.buffer.len = ncaps;
++ break;
++ case DTV_ENUM_DELFEC:
++ ncaps = 0;
++ while (fe->ops.delfec[ncaps] && ncaps < MAX_DELFEC) {
++ tvp->u.buffer.data[ncaps] = fe->ops.delfec[ncaps];
++ ncaps++;
++ }
++ tvp->u.buffer.len = ncaps;
++ break;
+  case DTV_FREQUENCY:
+  tvp->u.data = c->frequency;
+  break;
+diff --git a/drivers/media/dvb-core/dvb_frontend.h
+b/drivers/media/dvb-core/dvb_frontend.h
+index 371b6ca..4e96640 100644
+--- a/drivers/media/dvb-core/dvb_frontend.h
++++ b/drivers/media/dvb-core/dvb_frontend.h
+@@ -47,6 +47,8 @@
+  * should be smaller or equal to 32
+  */
+ #define MAX_DELSYS 8
++#define MAX_DELMOD 8
++#define MAX_DELFEC 32
 
-> 
-> Thank you again!
-> 
-> 
-> 
-> 
-> On Tue, Jul 30, 2013 at 6:17 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> > Hi Ricardo,
-> >
-> > On 07/30/2013 05:46 PM, Ricardo Ribalda Delgado wrote:
-> >> Hello
-> >>
-> >> I have a camera that works on two modes: Mono and colour. On color
-> >> mode it has 3 gains, on mono mode it has 1 gain.
-> >>
-> >> When the user sets the output to mono I disable the color controls
-> >> (and the other way around).
-> >>
-> >> Also on color mode the hflip and vflip do not work, therefore I dont show them.
-> >>
-> >> I could return -EINVAL, but I rather not show the controls to the user.
-> >>
-> >> What would be the proper way to do this?
-> >
-> > Use the INACTIVE flag, that's the way it is typically done. You can still set
-> > such controls, but the new value won't be active until you switch back to a
-> > mode where they do work.
-> >
-> > Using INACTIVE will show such controls as disabled in a GUI like qv4l2. I highly
-> > recommend using qv4l2 for testing this since it is the reference implementation
-> > of how GUIs should interpret control flags.
-> >
-> > Regards,
-> >
-> >         Hans
-> >
-> >>
-> >>
-> >> Thanks gain.
-> >>
-> >>
-> >>
-> >>
-> >>
-> >> On Tue, Jul 30, 2013 at 5:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> >>> On Tue 30 July 2013 17:18:58 Ricardo Ribalda Delgado wrote:
-> >>>> Thanks for the explanation Hans!
-> >>>>
-> >>>> I finaly manage to pass that one ;)
-> >>>>
-> >>>> Just one more question. Why the compliance test checks if the DISABLED
-> >>>> flag is on on for qctrls?
-> >>>>
-> >>>> http://git.linuxtv.org/v4l-utils.git/blob/3ae390e54a0ba627c9e74953081560192b996df4:/utils/v4l2-compliance/v4l2-test-controls.cpp#l137
-> >>>>
-> >>>>  137         if (fl & V4L2_CTRL_FLAG_DISABLED)
-> >>>>  138                 return fail("DISABLED flag set\n");
-> >>>>
-> >>>> Apparently that has been added on:
-> >>>> http://git.linuxtv.org/v4l-utils.git/commit/0a4d4accea7266d7b5f54dea7ddf46cce8421fbb
-> >>>>
-> >>>> But I have failed to find a reason
-> >>>
-> >>> It shouldn't be used anymore in drivers. With the control framework there is
-> >>> no longer any reason to use the DISABLED flag.
-> >>>
-> >>> If something has a valid use case for it, then I'd like to know what it is.
-> >>>
-> >>> Regards,
-> >>>
-> >>>         Hans
-> >>
-> >>
-> >>
-> 
-> 
-> 
-> 
+ struct dvb_frontend_tune_settings {
+  int min_delay_ms;
+@@ -263,6 +265,8 @@ struct dvb_frontend_ops {
+  struct dvb_frontend_info info;
+
+  u8 delsys[MAX_DELSYS];
++ u8 delmod[MAX_DELMOD];
++ u8 delfec[MAX_DELFEC];
+
+  void (*release)(struct dvb_frontend* fe);
+  void (*release_sec)(struct dvb_frontend* fe);
+diff --git a/include/uapi/linux/dvb/frontend.h
+b/include/uapi/linux/dvb/frontend.h
+index c56d77c..be63d37 100644
+--- a/include/uapi/linux/dvb/frontend.h
++++ b/include/uapi/linux/dvb/frontend.h
+@@ -375,7 +375,10 @@ struct dvb_frontend_event {
+ #define DTV_STAT_ERROR_BLOCK_COUNT 68
+ #define DTV_STAT_TOTAL_BLOCK_COUNT 69
+
+-#define DTV_MAX_COMMAND DTV_STAT_TOTAL_BLOCK_COUNT
++#define DTV_ENUM_DELMOD 70
++#define DTV_ENUM_DELFEC 71
++
++#define DTV_MAX_COMMAND DTV_ENUM_DELFEC
+
+ typedef enum fe_pilot {
+  PILOT_ON,
+diff --git a/drivers/media/dvb-frontends/au8522_dig.c
+b/drivers/media/dvb-frontends/au8522_dig.c
+index 6ee9028..1044c9d 100644
+--- a/drivers/media/dvb-frontends/au8522_dig.c
++++ b/drivers/media/dvb-frontends/au8522_dig.c
+@@ -822,7 +822,9 @@ error:
+ EXPORT_SYMBOL(au8522_attach);
+
+ static struct dvb_frontend_ops au8522_ops = {
+- .delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
++ .delsys = { SYS_DVBC_ANNEX_B, SYS_ATSC },
++ .delmod = { QAM_256, QAM_64, VSB_8 },
++ .delfec = { FEC_NONE },
+  .info = {
+  .name = "Auvitek AU8522 QAM/8VSB Frontend",
+  .frequency_min = 54000000,
