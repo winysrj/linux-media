@@ -1,81 +1,126 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f170.google.com ([209.85.215.170]:53459 "EHLO
-	mail-ea0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932427Ab3GRQfV (ORCPT
+Received: from mail-lb0-f180.google.com ([209.85.217.180]:56219 "EHLO
+	mail-lb0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965421Ab3GSIAB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 12:35:21 -0400
-Received: by mail-ea0-f170.google.com with SMTP id h10so1867839eaj.29
-        for <linux-media@vger.kernel.org>; Thu, 18 Jul 2013 09:35:20 -0700 (PDT)
-Message-ID: <51E819CD.8060400@googlemail.com>
-Date: Thu, 18 Jul 2013 18:37:33 +0200
-From: =?ISO-8859-15?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
-MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Alban Browaeys <alban.browaeys@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, Alban Browaeys <prahal@yahoo.com>
-Subject: Re: [PATCH 1/4] [media] em28xx: fix assignment of the eeprom data.
-References: <1374015476-26197-1-git-send-email-prahal@yahoo.com> <51E80622.3020803@googlemail.com> <51E80F10.8030406@iki.fi>
-In-Reply-To: <51E80F10.8030406@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-15
-Content-Transfer-Encoding: 8bit
+	Fri, 19 Jul 2013 04:00:01 -0400
+Received: by mail-lb0-f180.google.com with SMTP id o10so3235320lbi.39
+        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 00:59:59 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	=?UTF-8?q?=C2=A0Mauro=20Carvalho=20Chehab?= <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	=?UTF-8?q?=C2=A0Ismael=20Luceno?=
+	<ismael.luceno@corp.bluecherry.net>,
+	=?UTF-8?q?=C2=A0Greg=20Kroah-Hartman?= <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 4/4] media/solo6x10: Changes on the vb2-dma-sg API
+Date: Fri, 19 Jul 2013 09:58:49 +0200
+Message-Id: <1374220729-8304-5-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Am 18.07.2013 17:51, schrieb Antti Palosaari:
-> On 07/18/2013 06:13 PM, Frank Schäfer wrote:
->> Am 17.07.2013 00:57, schrieb Alban Browaeys:
->>> Set the config structure pointer to the eeprom data pointer (data,
->>> here eedata dereferenced) not the pointer to the pointer to
->>> the eeprom data (eedata itself).
->>>
->>> Signed-off-by: Alban Browaeys <prahal@yahoo.com>
->>> ---
->>>   drivers/media/usb/em28xx/em28xx-i2c.c | 2 +-
->>>   1 file changed, 1 insertion(+), 1 deletion(-)
->>>
->>> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c
->>> b/drivers/media/usb/em28xx/em28xx-i2c.c
->>> index 4851cc2..c4ff973 100644
->>> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
->>> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
->>> @@ -726,7 +726,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev,
->>> unsigned bus,
->>>
->>>       *eedata = data;
->>>       *eedata_len = len;
->>> -    dev_config = (void *)eedata;
->>> +    dev_config = (void *)*eedata;
->>>
->>>       switch (le16_to_cpu(dev_config->chip_conf) >> 4 & 0x3) {
->>>       case 0:
->> Signed-off-by: Frank Schäfer <fschaefer.oss@googlemail.com>
->
-> Does that SOB mean you will pick that patch via you tree, or was it
-> only a mistake?
+The struct vb2_dma_sg_desc has been replaced with the generic sg_table
+to describe the location of the video buffers.
 
-No, I don't have a public tree.
-Following the official rules (SubmittingPatches) strictly, it should
-indeed have been Acked-by instead, sorry.
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 ++++++++++----------
+ 1 file changed, 10 insertions(+), 10 deletions(-)
 
->
-> I have thought few times what should I reply to patches which are for
-> modules I am maintaining and I will pick up and pull-request via own
-> tree. Usually I just reply "patch applied" but maybe Signed-off-by is
-> used for same.
-
-The problem is, that although there are rules, things like this are
-handled slightly differently from project to project. (Coding style is
-the other example ;) )
-I'm always trying to adapt myself to the habits of a project, but
-sometimes I make a mistake (especially when switching between multiple
-projects).
-
-Regards,
-Frank
-
->
-> regards
-> Antti
->
+diff --git a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+index 98e2902..cfa01f1 100644
+--- a/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
++++ b/drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c
+@@ -346,7 +346,7 @@ static int enc_get_mpeg_dma(struct solo_dev *solo_dev, dma_addr_t dma,
+ /* Build a descriptor queue out of an SG list and send it to the P2M for
+  * processing. */
+ static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
+-			  struct vb2_dma_sg_desc *vbuf, int off, int size,
++			  struct sg_table *vbuf, int off, int size,
+ 			  unsigned int base, unsigned int base_size)
+ {
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+@@ -359,7 +359,7 @@ static int solo_send_desc(struct solo_enc_dev *solo_enc, int skip,
+ 
+ 	solo_enc->desc_count = 1;
+ 
+-	for_each_sg(vbuf->sglist, sg, vbuf->num_pages, i) {
++	for_each_sg(vbuf->sgl, sg, vbuf->nents, i) {
+ 		struct solo_p2m_desc *desc;
+ 		dma_addr_t dma;
+ 		int len;
+@@ -434,7 +434,7 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
+ 		struct vb2_buffer *vb, struct vop_header *vh)
+ {
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+-	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
++	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
+ 	int frame_size;
+ 	int ret;
+ 
+@@ -443,7 +443,7 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
+ 	if (vb2_plane_size(vb, 0) < vh->jpeg_size + solo_enc->jpeg_len)
+ 		return -EIO;
+ 
+-	sg_copy_from_buffer(vbuf->sglist, vbuf->num_pages,
++	sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
+ 			solo_enc->jpeg_header,
+ 			solo_enc->jpeg_len);
+ 
+@@ -451,12 +451,12 @@ static int solo_fill_jpeg(struct solo_enc_dev *solo_enc,
+ 		& ~(DMA_ALIGN - 1);
+ 	vb2_set_plane_payload(vb, 0, vh->jpeg_size + solo_enc->jpeg_len);
+ 
+-	dma_map_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
++	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+ 			DMA_FROM_DEVICE);
+ 	ret = solo_send_desc(solo_enc, solo_enc->jpeg_len, vbuf, vh->jpeg_off,
+ 			frame_size, SOLO_JPEG_EXT_ADDR(solo_dev),
+ 			SOLO_JPEG_EXT_SIZE(solo_dev));
+-	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
++	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+ 			DMA_FROM_DEVICE);
+ 	return ret;
+ }
+@@ -465,7 +465,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+ 		struct vb2_buffer *vb, struct vop_header *vh)
+ {
+ 	struct solo_dev *solo_dev = solo_enc->solo_dev;
+-	struct vb2_dma_sg_desc *vbuf = vb2_dma_sg_plane_desc(vb, 0);
++	struct sg_table *vbuf = vb2_dma_sg_plane_desc(vb, 0);
+ 	int frame_off, frame_size;
+ 	int skip = 0;
+ 	int ret;
+@@ -475,7 +475,7 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+ 
+ 	/* If this is a key frame, add extra header */
+ 	if (!vh->vop_type) {
+-		sg_copy_from_buffer(vbuf->sglist, vbuf->num_pages,
++		sg_copy_from_buffer(vbuf->sgl, vbuf->nents,
+ 				solo_enc->vop,
+ 				solo_enc->vop_len);
+ 
+@@ -494,12 +494,12 @@ static int solo_fill_mpeg(struct solo_enc_dev *solo_enc,
+ 	frame_size = (vh->mpeg_size + skip + (DMA_ALIGN - 1))
+ 		& ~(DMA_ALIGN - 1);
+ 
+-	dma_map_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
++	dma_map_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+ 			DMA_FROM_DEVICE);
+ 	ret = solo_send_desc(solo_enc, skip, vbuf, frame_off, frame_size,
+ 			SOLO_MP4E_EXT_ADDR(solo_dev),
+ 			SOLO_MP4E_EXT_SIZE(solo_dev));
+-	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sglist, vbuf->num_pages,
++	dma_unmap_sg(&solo_dev->pdev->dev, vbuf->sgl, vbuf->nents,
+ 			DMA_FROM_DEVICE);
+ 	return ret;
+ }
+-- 
+1.7.10.4
 
