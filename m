@@ -1,132 +1,138 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr9.xs4all.nl ([194.109.24.29]:2579 "EHLO
-	smtp-vbr9.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753440Ab3GHHQX (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 03:16:23 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [RFC PATCH 1/5] v4l2: add matrix support.
-Date: Mon, 8 Jul 2013 09:15:56 +0200
-Cc: linux-media@vger.kernel.org,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Pete Eberlein <pete@sensoray.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-References: <1372422454-13752-1-git-send-email-hverkuil@xs4all.nl> <1372422454-13752-2-git-send-email-hverkuil@xs4all.nl> <51D9E2BB.2080308@gmail.com>
-In-Reply-To: <51D9E2BB.2080308@gmail.com>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307080915.56953.hverkuil@xs4all.nl>
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44867 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1760874Ab3GSRtt (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jul 2013 13:49:49 -0400
+Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
+	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id C5D6660098
+	for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 20:49:46 +0300 (EEST)
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: linux-media@vger.kernel.org
+Subject: [RFC 3/4] omap3isp: Mark which pads must connect
+Date: Fri, 19 Jul 2013 20:55:08 +0300
+Message-Id: <1374256509-7850-4-git-send-email-sakari.ailus@iki.fi>
+In-Reply-To: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi>
+References: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun July 7 2013 23:50:51 Sylwester Nawrocki wrote:
-> On 06/28/2013 02:27 PM, Hans Verkuil wrote:
-> > From: Hans Verkuil<hans.verkuil@cisco.com>
-> >
-> > This patch adds core support for matrices: querying, getting and setting.
-> >
-> > Two initial matrix types are defined for motion detection (defining regions
-> > and thresholds).
-> >
-> > Signed-off-by: Hans Verkuil<hans.verkuil@cisco.com>
-> > ---
-> >   drivers/media/v4l2-core/v4l2-dev.c   |  3 ++
-> >   drivers/media/v4l2-core/v4l2-ioctl.c | 23 ++++++++++++-
-> >   include/media/v4l2-ioctl.h           |  8 +++++
-> >   include/uapi/linux/videodev2.h       | 64 ++++++++++++++++++++++++++++++++++++
-> >   4 files changed, 97 insertions(+), 1 deletion(-)
-> 
-> [...]
-> 
-> > diff --git a/include/media/v4l2-ioctl.h b/include/media/v4l2-ioctl.h
-> > index e0b74a4..7e4538e 100644
-> > --- a/include/media/v4l2-ioctl.h
-> > +++ b/include/media/v4l2-ioctl.h
-> > @@ -271,6 +271,14 @@ struct v4l2_ioctl_ops {
-> >   	int (*vidioc_unsubscribe_event)(struct v4l2_fh *fh,
-> >   					const struct v4l2_event_subscription *sub);
-> >
-> > +	/* Matrix ioctls */
-> > +	int (*vidioc_query_matrix) (struct file *file, void *fh,
-> > +				    struct v4l2_query_matrix *qmatrix);
-> > +	int (*vidioc_g_matrix) (struct file *file, void *fh,
-> > +				    struct v4l2_matrix *matrix);
-> > +	int (*vidioc_s_matrix) (struct file *file, void *fh,
-> > +				    struct v4l2_matrix *matrix);
-> > +
-> >   	/* For other private ioctls */
-> >   	long (*vidioc_default)	       (struct file *file, void *fh,
-> >   					bool valid_prio, unsigned int cmd, void *arg);
-> > diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
-> > index 95ef455..5cbe815 100644
-> > --- a/include/uapi/linux/videodev2.h
-> > +++ b/include/uapi/linux/videodev2.h
-> > @@ -1838,6 +1838,64 @@ struct v4l2_create_buffers {
-> >   	__u32			reserved[8];
-> >   };
-> >
-> > +/* Define to which motion detection region each element belongs.
-> > + * Each element is a __u8. */
-> > +#define V4L2_MATRIX_TYPE_MD_REGION     (1)
-> > +/* Define the motion detection threshold for each element.
-> > + * Each element is a __u16. */
-> > +#define V4L2_MATRIX_TYPE_MD_THRESHOLD  (2)
-> > +
-> > +/**
-> > + * struct v4l2_query_matrix - VIDIOC_QUERY_MATRIX argument
-> > + * @type:	matrix type
-> > + * @ref:	reference to some object (if any) owning the matrix
-> > + * @columns:	number of columns in the matrix
-> > + * @rows:	number of rows in the matrix
-> > + * @elem_min:	minimum matrix element value
-> > + * @elem_max:	maximum matrix element value
-> > + * @elem_size:	size in bytes each matrix element
-> > + * @reserved:	future extensions, applications and drivers must zero this.
-> > + */
-> > +struct v4l2_query_matrix {
-> > +	__u32 type;
-> > +	union {
-> > +		__u32 reserved[4];
-> > +	} ref;
-> > +	__u32 columns;
-> > +	__u32 rows;
-> > +	union {
-> > +		__s64 val;
-> > +		__u64 uval;
-> > +		__u32 reserved[4];
-> > +	} elem_min;
-> > +	union {
-> > +		__s64 val;
-> > +		__u64 uval;
-> > +		__u32 reserved[4];
-> > +	} elem_max;
-> > +	__u32 elem_size;
-> 
-> How about reordering it to something like:
-> 
-> 	struct {
-> 		union {
-> 			__s64 val;
-> 			__u64 uval;
-> 			__u32 reserved[4];
-> 		} min;
-> 		union {
-> 			__s64 val;
-> 			__u64 uval;
-> 			__u32 reserved[4];
-> 		} max;
-> 		__u32 size;
-> 	} element;
-> 
-> ?
+Mark pads that must be connected.
 
-Makes sense, although I prefer 'elem' over the longer 'element'. Would that
-be OK with you?
+Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
+---
+ drivers/media/platform/omap3isp/ispccdc.c    |    3 ++-
+ drivers/media/platform/omap3isp/ispccp2.c    |    3 ++-
+ drivers/media/platform/omap3isp/ispcsi2.c    |    3 ++-
+ drivers/media/platform/omap3isp/isppreview.c |    3 ++-
+ drivers/media/platform/omap3isp/ispresizer.c |    3 ++-
+ drivers/media/platform/omap3isp/ispstat.c    |    2 +-
+ drivers/media/platform/omap3isp/ispvideo.c   |    6 ++++--
+ 7 files changed, 15 insertions(+), 8 deletions(-)
 
-Regards,
+diff --git a/drivers/media/platform/omap3isp/ispccdc.c b/drivers/media/platform/omap3isp/ispccdc.c
+index 907a205..a99dd0a 100644
+--- a/drivers/media/platform/omap3isp/ispccdc.c
++++ b/drivers/media/platform/omap3isp/ispccdc.c
+@@ -2484,7 +2484,8 @@ static int ccdc_init_entities(struct isp_ccdc_device *ccdc)
+ 	v4l2_set_subdevdata(sd, ccdc);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-	pads[CCDC_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[CCDC_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++		| MEDIA_PAD_FL_MUST_CONNECT;
+ 	pads[CCDC_PAD_SOURCE_VP].flags = MEDIA_PAD_FL_SOURCE;
+ 	pads[CCDC_PAD_SOURCE_OF].flags = MEDIA_PAD_FL_SOURCE;
+ 
+diff --git a/drivers/media/platform/omap3isp/ispccp2.c b/drivers/media/platform/omap3isp/ispccp2.c
+index e716514..2c652d3 100644
+--- a/drivers/media/platform/omap3isp/ispccp2.c
++++ b/drivers/media/platform/omap3isp/ispccp2.c
+@@ -1076,7 +1076,8 @@ static int ccp2_init_entities(struct isp_ccp2_device *ccp2)
+ 	v4l2_set_subdevdata(sd, ccp2);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-	pads[CCP2_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[CCP2_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++		| MEDIA_PAD_FL_MUST_CONNECT;
+ 	pads[CCP2_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	me->ops = &ccp2_media_ops;
+diff --git a/drivers/media/platform/omap3isp/ispcsi2.c b/drivers/media/platform/omap3isp/ispcsi2.c
+index 6db245d..58e40b9 100644
+--- a/drivers/media/platform/omap3isp/ispcsi2.c
++++ b/drivers/media/platform/omap3isp/ispcsi2.c
+@@ -1245,7 +1245,8 @@ static int csi2_init_entities(struct isp_csi2_device *csi2)
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+ 	pads[CSI2_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+-	pads[CSI2_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[CSI2_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++		| MEDIA_PAD_FL_MUST_CONNECT;
+ 
+ 	me->ops = &csi2_media_ops;
+ 	ret = media_entity_init(me, CSI2_PADS_NUM, pads, 0);
+diff --git a/drivers/media/platform/omap3isp/isppreview.c b/drivers/media/platform/omap3isp/isppreview.c
+index cd8831a..bdb8fd7 100644
+--- a/drivers/media/platform/omap3isp/isppreview.c
++++ b/drivers/media/platform/omap3isp/isppreview.c
+@@ -2283,7 +2283,8 @@ static int preview_init_entities(struct isp_prev_device *prev)
+ 	v4l2_ctrl_handler_setup(&prev->ctrls);
+ 	sd->ctrl_handler = &prev->ctrls;
+ 
+-	pads[PREV_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[PREV_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++		| MEDIA_PAD_FL_MUST_CONNECT;
+ 	pads[PREV_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	me->ops = &preview_media_ops;
+diff --git a/drivers/media/platform/omap3isp/ispresizer.c b/drivers/media/platform/omap3isp/ispresizer.c
+index d11fb26..6509d66 100644
+--- a/drivers/media/platform/omap3isp/ispresizer.c
++++ b/drivers/media/platform/omap3isp/ispresizer.c
+@@ -1701,7 +1701,8 @@ static int resizer_init_entities(struct isp_res_device *res)
+ 	v4l2_set_subdevdata(sd, res);
+ 	sd->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 
+-	pads[RESZ_PAD_SINK].flags = MEDIA_PAD_FL_SINK;
++	pads[RESZ_PAD_SINK].flags = MEDIA_PAD_FL_SINK
++		| MEDIA_PAD_FL_MUST_CONNECT;
+ 	pads[RESZ_PAD_SOURCE].flags = MEDIA_PAD_FL_SOURCE;
+ 
+ 	me->ops = &resizer_media_ops;
+diff --git a/drivers/media/platform/omap3isp/ispstat.c b/drivers/media/platform/omap3isp/ispstat.c
+index 61e17f9..a75407c 100644
+--- a/drivers/media/platform/omap3isp/ispstat.c
++++ b/drivers/media/platform/omap3isp/ispstat.c
+@@ -1067,7 +1067,7 @@ static int isp_stat_init_entities(struct ispstat *stat, const char *name,
+ 	subdev->flags |= V4L2_SUBDEV_FL_HAS_EVENTS | V4L2_SUBDEV_FL_HAS_DEVNODE;
+ 	v4l2_set_subdevdata(subdev, stat);
+ 
+-	stat->pad.flags = MEDIA_PAD_FL_SINK;
++	stat->pad.flags = MEDIA_PAD_FL_SINK | MEDIA_PAD_FL_MUST_CONNECT;
+ 	me->ops = NULL;
+ 
+ 	return media_entity_init(me, 1, &stat->pad, 0);
+diff --git a/drivers/media/platform/omap3isp/ispvideo.c b/drivers/media/platform/omap3isp/ispvideo.c
+index a908d00..1b0311c 100644
+--- a/drivers/media/platform/omap3isp/ispvideo.c
++++ b/drivers/media/platform/omap3isp/ispvideo.c
+@@ -1335,11 +1335,13 @@ int omap3isp_video_init(struct isp_video *video, const char *name)
+ 	switch (video->type) {
+ 	case V4L2_BUF_TYPE_VIDEO_CAPTURE:
+ 		direction = "output";
+-		video->pad.flags = MEDIA_PAD_FL_SINK;
++		video->pad.flags = MEDIA_PAD_FL_SINK
++			| MEDIA_PAD_FL_MUST_CONNECT;
+ 		break;
+ 	case V4L2_BUF_TYPE_VIDEO_OUTPUT:
+ 		direction = "input";
+-		video->pad.flags = MEDIA_PAD_FL_SOURCE;
++		video->pad.flags = MEDIA_PAD_FL_SOURCE
++			| MEDIA_PAD_FL_MUST_CONNECT;
+ 		video->video.vfl_dir = VFL_DIR_TX;
+ 		break;
+ 
+-- 
+1.7.10.4
 
-	Hans
