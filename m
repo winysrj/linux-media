@@ -1,151 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:34034 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753934Ab3GAMmI (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 08:42:08 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES and S_FMT?
-Date: Mon, 01 Jul 2013 14:42:34 +0200
-Message-ID: <1483196.tyaNtCpDTy@avalon>
-In-Reply-To: <201306241448.15187.hverkuil@xs4all.nl>
-References: <201306241448.15187.hverkuil@xs4all.nl>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from eu1sys200aog107.obsmtp.com ([207.126.144.123]:33614 "EHLO
+	eu1sys200aog107.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1759869Ab3GSIsi (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jul 2013 04:48:38 -0400
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+To: linux-media@vger.kernel.org
+Cc: alipowski@interia.pl, Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, srinivas.kandagatla@gmail.com,
+	srinivas.kandagatla@st.com, sean@mess.org
+Subject: [PATCH v1 1/2] media: rc: Add user count to rc dev.
+Date: Fri, 19 Jul 2013 09:39:27 +0100
+Message-Id: <1374223167-4980-1-git-send-email-srinivas.kandagatla@st.com>
+In-Reply-To: <1374223132-4924-1-git-send-email-srinivas.kandagatla@st.com>
+References: <1374223132-4924-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Hans,
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-On Monday 24 June 2013 14:48:15 Hans Verkuil wrote:
-> Hi all,
-> 
-> While working on extending v4l2-compliance with cropping/selection test
-> cases I decided to add support for that to vivi as well (this would give
-> applications a good test driver to work with).
-> 
-> However, I ran into problems how this should be implemented for V4L2 devices
-> (we are not talking about complex media controller devices where the video
-> pipelines are setup manually).
-> 
-> There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
-> 
-> The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
-> possible frame sizes, and that can crop, compose and/or scale, then you need
-> to be able to set the frame size.
+This patch adds user count to rc_dev structure, the reason to add this
+new member is to allow other code like lirc to open rc device directly.
+In the existing code, rc device is only opened by input subsystem which
+works ok if we have any input drivers to match. But in case like lirc
+where there will be no input driver, rc device will be never opened.
 
-You mentioned that this discussion relates to simple pipelines controlled 
-through a video node only. I'd like to take a step back here and first define 
-what pipelines we want to support in such a way, and what pipelines requires 
-the media controller API. Based on that information we can list the use cases 
-we need to support, and then decide on the S_FMT/S_SELECTION APIs behaviour.
+Having this user count variable will be useful to allow rc device to be
+opened from code other than rc-main.
 
-I vaguely remember to have discussed this topic previously in a meeting but I 
-can't find any related information in my notes at the moment. Would anyone 
-happen to have a better memory here ?
+Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+---
+ drivers/media/rc/rc-main.c |   11 +++++++++--
+ include/media/rc-core.h    |    1 +
+ 2 files changed, 10 insertions(+), 2 deletions(-)
 
-> Currently this is decided by S_FMT which maps the format size to the closest
-> valid frame size. This however makes it impossible to e.g. scale up a frame,
-> or compose the image into a larger buffer.
-
-It also makes it impossible to scale a frame down without composing it into a 
-larger buffer. That's definitely a bad limitation of the API.
-
-> For video receivers this issue doesn't exist: there the size of the incoming
-> video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for
-> sensors.
-> 
-> I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
-
-Just to make sure I understand you correctly, are you proposing a new 
-selection target valid on video nodes only, that would control the format at 
-the source pad of the sensor ?
-
-> However, this leads to another problem: the current S_FMT behavior is that
-> it implicitly sets the framesize. That behavior we will have to keep,
-> otherwise applications will start to behave differently.
-
-Which frame size are you talking about ? S_FMT definitely sets the frame size 
-in memory, do you mean it also implicitly sets the frame size at the sensor 
-source pad ?
-
-> I have an idea on how to solve that, but the solution is related to the
-> second problem I found:
-> 
-> When you set a new format size, then the compose rectangle must be set to
-> the new format size as well since that has always been the behavior in the
-> past that applications have come to expect.
-
-That's the behaviour applications have come to expect from devices that can't 
-compose. From a quick look at the kernel source only Samsung devices implement 
-the composition API. Does this behaviour need to be preserved there ?
-
-> But this makes certain operations impossible to execute: if a driver can't
-> scale, then you can never select a new format size larger than the current
-> (possibly cropped) frame size, even though you would want to compose the
-> unscaled image into such a larger buffer.
-> 
-> So what is the behavior that I would expect from drivers?
-> 
-> 1) After calling S_STD, S_DV_TIMINGS or S_SELECTION(V4L2_SEL_TGT_FRAMESIZE)
-> the cropping, composing and format parameters are all adjusted to support
-> the new input video size (typically they are all set to the new size).
-> 
-> 2) After calling S_CROP/S_SELECTION(CROP) the compose and format parameters
-> are all adjusted to support the new crop rectangle.
-> 
-> 3) After calling S_SEL(COMPOSE) the format parameters are adjusted.
-> 
-> 4) Calling S_FMT validates the format parameters to support the compose
-> rectangle.
-> 
-> However, today step 4 does something different: the compose rectangle will
-> be adjusted to the format size (and in the case of a sensor supporting
-> different framesizes the whole pipeline will be adjusted).
-> 
-> The only way I see that would solve this (although it isn't perfect) is to
-> change the behavior of S_FMT only if the selection API was used before by
-> the filehandle. The core can keep easily keep track of that. When the
-> application calls S_FMT and no selection API was used in the past by that
-> filehandle, then the core will call first
-> S_SELECTION(V4L2_SEL_TGT_FRAMESIZE). If that returns -EINVAL, then it will
-> call S_SELECTION(V4L2_SEL_TGT_COMPOSE). Finally it will call S_FMT. Note
-> that a similar sequence is needed for the display case.
-> 
-> This means that a driver supporting the selection API can implement the
-> logical behavior and the core will implement the historically-required
-> illogical part.
-> 
-> So the fix for this would be to add a new selection target and add
-> compatibility code to the v4l2-core.
-> 
-> With that in place I can easily add crop/compose support to vivi.
-> 
-> One area of uncertainty is how drivers currently implement S_FMT: do they
-> reset any cropping done before? They should keep the crop rectangle
-> according to the spec (well, it is implied there). Guennadi, what does
-> soc_camera do?
-> 
-> Sylwester, I am also looking at exynos4-is/fimc-lite.c. I do see that
-> setting the compose rectangle will adjust it to the format size instead of
-> the other way around, but I can't tell if setting the format size will also
-> adjust the compose rectangle if that is now out-of-bounds of the new format
-> size.
-> 
-> Comments? Questions?
-
-How should we handle devices for which supported sizes (crop, compose, ...) 
-are restricted by selected pixel format ?
-
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 1cf382a..e800b96 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -702,15 +702,22 @@ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
+ static int ir_open(struct input_dev *idev)
+ {
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
++	int rval = 0;
+ 
+-	return rdev->open(rdev);
++	if (!rdev->users++)
++		rval = rdev->open(rdev);
++
++	if (rval)
++		rdev->users--;
++
++	return rval;
+ }
+ 
+ static void ir_close(struct input_dev *idev)
+ {
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
+ 
+-	 if (rdev)
++	 if (rdev && !--rdev->users)
+ 		rdev->close(rdev);
+ }
+ 
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 06a75de..b42016a 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -101,6 +101,7 @@ struct rc_dev {
+ 	bool				idle;
+ 	u64				allowed_protos;
+ 	u64				enabled_protocols;
++	u32				users;
+ 	u32				scanmask;
+ 	void				*priv;
+ 	spinlock_t			keylock;
 -- 
-Regards,
-
-Laurent Pinchart
+1.7.6.5
 
