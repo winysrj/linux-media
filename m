@@ -1,46 +1,135 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f48.google.com ([74.125.83.48]:35376 "EHLO
-	mail-ee0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750906Ab3GEXN3 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Fri, 5 Jul 2013 19:13:29 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Jingoo Han <jg1.han@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	'Tomi Valkeinen' <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>
-Subject: Re: [PATCH V4 1/4] ARM: dts: Add DP PHY node to exynos5250.dtsi
-Date: Sat, 06 Jul 2013 01:13:25 +0200
-Message-ID: <9669926.RxF55qzGZI@flatron>
-In-Reply-To: <000a01ce76ff$a02a7c40$e07f74c0$@samsung.com>
-References: <000a01ce76ff$a02a7c40$e07f74c0$@samsung.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Received: from mail-lb0-f171.google.com ([209.85.217.171]:35471 "EHLO
+	mail-lb0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S965599Ab3GSH7w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 19 Jul 2013 03:59:52 -0400
+Received: by mail-lb0-f171.google.com with SMTP id 13so3282861lba.30
+        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 00:59:51 -0700 (PDT)
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+To: Jonathan Corbet <corbet@lwn.net>,
+	=?UTF-8?q?=C2=A0Mauro=20Carvalho=20Chehab?= <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Marek Szyprowski <m.szyprowski@samsung.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	=?UTF-8?q?=C2=A0Ismael=20Luceno?=
+	<ismael.luceno@corp.bluecherry.net>,
+	=?UTF-8?q?=C2=A0Greg=20Kroah-Hartman?= <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: [PATCH 1/4] videobuf2-dma-sg: Allocate pages as contiguous as possible
+Date: Fri, 19 Jul 2013 09:58:46 +0200
+Message-Id: <1374220729-8304-2-git-send-email-ricardo.ribalda@gmail.com>
+In-Reply-To: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
+References: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 02 of July 2013 17:39:11 Jingoo Han wrote:
-> Add PHY provider node for the DP PHY.
-> 
-> Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
-> ---
->  arch/arm/boot/dts/exynos5250.dtsi |   13 ++++++++-----
->  1 file changed, 8 insertions(+), 5 deletions(-)
+Most DMA engines have limitations regarding the number of DMA segments
+(sg-buffers) that they can handle. Videobuffers can easily spread
+through houndreds of pages.
 
-Reviewed-by: Tomasz Figa <t.figa@samsung.com>
+In the previous aproach, the pages were allocated individually, this
+could led to the creation houndreds of dma segments (sg-buffers) that
+could not be handled by some DMA engines.
 
-Best regards,
-Tomasz
+This patch tries to minimize the number of DMA segments by using
+alloc_pages. In the worst case it will behave as before, but most
+of the times it will reduce the number fo dma segments
+
+Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+---
+ drivers/media/v4l2-core/videobuf2-dma-sg.c |   60 +++++++++++++++++++++++-----
+ 1 file changed, 49 insertions(+), 11 deletions(-)
+
+diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+index 16ae3dc..9bf02c3 100644
+--- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
++++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+@@ -42,10 +42,55 @@ struct vb2_dma_sg_buf {
+ 
+ static void vb2_dma_sg_put(void *buf_priv);
+ 
++static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
++		gfp_t gfp_flags)
++{
++	unsigned int last_page = 0;
++	int size = buf->sg_desc.size;
++
++	while (size > 0) {
++		struct page *pages;
++		int order;
++		int i;
++
++		order = get_order(size);
++		/* Dont over allocate*/
++		if ((PAGE_SIZE << order) > size)
++			order--;
++
++		pages = NULL;
++		while (!pages) {
++			pages = alloc_pages(GFP_KERNEL | __GFP_ZERO |
++					__GFP_NOWARN | gfp_flags, order);
++			if (pages)
++				break;
++
++			if (order == 0)
++				while (--last_page >= 0) {
++					__free_page(buf->pages[last_page]);
++					return -ENOMEM;
++				}
++			order--;
++		}
++
++		split_page(pages, order);
++		for (i = 0; i < (1<<order); i++) {
++			buf->pages[last_page] = pages + i;
++			sg_set_page(&buf->sg_desc.sglist[last_page],
++					buf->pages[last_page], PAGE_SIZE, 0);
++			last_page++;
++		}
++
++		size -= PAGE_SIZE << order;
++	}
++
++	return 0;
++}
++
+ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_flags)
+ {
+ 	struct vb2_dma_sg_buf *buf;
+-	int i;
++	int ret;
+ 
+ 	buf = kzalloc(sizeof *buf, GFP_KERNEL);
+ 	if (!buf)
+@@ -69,14 +114,9 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 	if (!buf->pages)
+ 		goto fail_pages_array_alloc;
+ 
+-	for (i = 0; i < buf->sg_desc.num_pages; ++i) {
+-		buf->pages[i] = alloc_page(GFP_KERNEL | __GFP_ZERO |
+-					   __GFP_NOWARN | gfp_flags);
+-		if (NULL == buf->pages[i])
+-			goto fail_pages_alloc;
+-		sg_set_page(&buf->sg_desc.sglist[i],
+-			    buf->pages[i], PAGE_SIZE, 0);
+-	}
++	ret = vb2_dma_sg_alloc_compacted(buf, gfp_flags);
++	if (ret)
++		goto fail_pages_alloc;
+ 
+ 	buf->handler.refcount = &buf->refcount;
+ 	buf->handler.put = vb2_dma_sg_put;
+@@ -89,8 +129,6 @@ static void *vb2_dma_sg_alloc(void *alloc_ctx, unsigned long size, gfp_t gfp_fla
+ 	return buf;
+ 
+ fail_pages_alloc:
+-	while (--i >= 0)
+-		__free_page(buf->pages[i]);
+ 	kfree(buf->pages);
+ 
+ fail_pages_array_alloc:
+-- 
+1.7.10.4
 
