@@ -1,110 +1,123 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:56864 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S934034Ab3GWTgC (ORCPT
+Received: from va3ehsobe002.messaging.microsoft.com ([216.32.180.12]:27835
+	"EHLO va3outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753151Ab3GSGZP (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 15:36:02 -0400
-Date: Tue, 23 Jul 2013 15:36:00 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Tomasz Figa <t.figa@samsung.com>
-cc: Greg KH <gregkh@linuxfoundation.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	<broonie@kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
-	<olof@lixom.net>, Stephen Warren <swarren@wwwdotorg.org>,
-	<b.zolnierkie@samsung.com>,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-In-Reply-To: <1446965.6APW5ZgLBW@amdc1227>
-Message-ID: <Pine.LNX.4.44L0.1307231518310.1304-100000@iolanthe.rowland.org>
+	Fri, 19 Jul 2013 02:25:15 -0400
+From: Scott Jiang <scott.jiang.linux@gmail.com>
+To: <mchehab@redhat.com>, <s.nawrocki@samsung.com>,
+	<hverkuil@xs4all.nl>
+CC: <linux-media@vger.kernel.org>,
+	<uclinux-dist-devel@blackfin.uclinux.org>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [PATCH RFC v4 0/1] [media] blackfin: add video display device driver
+Date: Fri, 19 Jul 2013 15:27:48 -0400
+Message-ID: <1374262068-32563-2-git-send-email-scott.jiang.linux@gmail.com>
+In-Reply-To: <1374262068-32563-1-git-send-email-scott.jiang.linux@gmail.com>
+References: <1374262068-32563-1-git-send-email-scott.jiang.linux@gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, 23 Jul 2013, Tomasz Figa wrote:
+v4l2-compliance output for this driver
 
-> IMHO it would be better if you provided some code example, but let's try to 
-> check if I understood you correctly.
-> 
-> 8><------------------------------------------------------------------------
-> 
-> [Board file]
-> 
-> static struct phy my_phy;
-> 
-> static struct platform_device phy_pdev = {
-> 	/* ... */
-> 	.platform_data = &my_phy;
-> 	/* ... */
-> };
-> 
-> static struct platform_device phy_pdev = {
+root:/> v4l2-compliance -d 0
+Driver Info:bfin_display bfin_display.0: =================  START STATUS  =================
 
-This should be controller_pdev, not phy_pdev, yes?
+        Driver name   : bfin_display
+        Card type     : BF609
+        Bus info      : platform:bfin_display
+        Driver version: 3.5.0
+        Capabilities  : 0x84000002
+                Video Output
+                Streaming
+                Device Capabilities
+        Device Caps   : 0x04000002
+                Video Output
+                Streaming
 
-> 	/* ... */
-> 	.platform_data = &my_phy;
-> 	/* ... */
-> };
-> 
-> [Provider driver]
-> 
-> struct phy *phy = pdev->dev.platform_data;
-> 
-> ret = phy_create(phy);
-> 
-> [Consumer driver]
-> 
-> struct phy *phy = pdev->dev.platform_data;
-> 
-> ret = phy_get(&pdev->dev, phy);
+Compliance test for device /dev/video0 (not using libv4l2):
 
-Or even just phy_get(&pdev->dev), because phy_get() could be smart 
-enough to to set phy = dev->platform_data.
+Required ioctls:
+        test VIDIOC_QUERYCAP: OK
 
-> ------------------------------------------------------------------------><8
-> 
-> Is this what you mean?
+Allow for multiple opens:
+        test second video open: OK
+        test VIDIOC_QUERYCAP: OK
+        test VIDIOC_G/S_PRIORITY: OK
 
-That's what I was going to suggest too.  The struct phy is defined in
-the board file, which already knows about all the PHYs that exist in
-the system.  (Or perhaps it is allocated dynamically, so that when many
-board files are present in the same kernel, only the entries listed in
-the board file for the current system get created.)  Then the
-structure's address is stored in the platform data and made available
-to both the provider and the consumer.
+Debug ioctls:
+        test VIDIOC_DBG_G_CHIP_IDENT: OK (Not Supported)
+        test VIDIOC_DBG_G/S_REGISTER: OK (Not Supported)
+adv7511 0-0039: power off
+adv7511 0-0039: detected hotplug, detected Rx Sense, no EDID (0 block(s))
+adv7511 0-0039: state: in reset, error: no error, detect count: 0, msk/irq: c4/c0
+adv7511 0-0039: RGB quantization: full range
+adv7511 0-0039: timings: 1280x720p60 (1650x750). Pix freq. = 74250000 Hz. Polarities = 0x3
+adv7511 0-0039: edid_i2_addr: 0x7e
+bfin_display bfin_display.0: ==================  END STATUS  ==================
+        test VIDIOC_LOG_STATUS: OK
 
-Even though the struct phy is defined (or allocated) in the board file,
-its contents don't get filled in until the PHY driver provides the
-details.
+Input ioctls:
+        test VIDIOC_G/S_TUNER: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_S_HW_FREQ_SEEK: OK (Not Supported)
+        test VIDIOC_ENUMAUDIO: OK (Not Supported)
+        test VIDIOC_G/S/ENUMINPUT: OK (Not Supported)
+        test VIDIOC_G/S_AUDIO: OK (Not Supported)
+        Inputs: 0 Audio Inputs: 0 Tuners: 0
 
-> It's technically correct, but quality of this solution isn't really nice, 
-> because it's a layering violation (at least if I understood what you mean). 
-> This is because you need to have full definition of struct phy in board file 
-> and a structure that is used as private data in PHY core comes from 
-> platform code.
+Output ioctls:
+        test VIDIOC_G/S_MODULATOR: OK (Not Supported)
+        test VIDIOC_G/S_FREQUENCY: OK (Not Supported)
+        test VIDIOC_ENUMAUDOUT: OK (Not Supported)
+        test VIDIOC_G/S/ENUMOUTPUT: OK
+        test VIDIOC_G/S_AUDOUT: OK (Not Supported)
+        Outputs: 1 Audio Outputs: 0 Modulators: 0
 
-You don't have to have a full definition in the board file.  Just a 
-partial definition -- most of the contents can be filled in later, when 
-the PHY driver is ready to store the private data.
+Control ioctls:
+        test VIDIOC_QUERYCTRL/MENU: OK
+        test VIDIOC_G/S_CTRL: OK
+                fail: v4l2-test-controls.cpp(511): g_ext_ctrls does not support count == 0
+        test VIDIOC_G/S/TRY_EXT_CTRLS: FAIL
+        test VIDIOC_(UN)SUBSCRIBE_EVENT/DQEVENT: OK (Not Supported)
+        test VIDIOC_G/S_JPEGCOMP: OK (Not Supported)
+        Standard Controls: 0 Private Controls: 0
 
-It's not a layering violation for one region of the kernel to store 
-private data in a structure defined by another part of the kernel.  
-This happens all the time (e.g., dev_set_drvdata).
+Input/Output configuration ioctls:
+                fail: v4l2-test-io-config.cpp(65): could set standard to ATSC, which is not supported anymore
+                fail: v4l2-test-io-config.cpp(148): STD failed for output 0.
+        test VIDIOC_ENUM/G/S/QUERY_STD: FAIL
+        test VIDIOC_ENUM/G/S/QUERY_DV_PRESETS: OK (Not Supported)
+                fail: v4l2-test-io-config.cpp(287): TIMINGS cap set, but no timings can be enumerated
+                fail: v4l2-test-io-config.cpp(337): Timings check failed for output 0.
+        test VIDIOC_ENUM/G/S/QUERY_DV_TIMINGS: FAIL
+                fail: v4l2-test-io-config.cpp(350): TIMINGS cap set, but could not get timings caps
+                fail: v4l2-test-io-config.cpp(401): Timings cap check failed for output 0.
+        test VIDIOC_DV_TIMINGS_CAP: FAIL
 
-Alan Stern
+Format ioctls:
+        test VIDIOC_ENUM_FMT/FRAMESIZES/FRAMEINTERVALS: OK
+        test VIDIOC_G/S_PARM: OK (Not Supported)
+        test VIDIOC_G_FBUF: OK (Not Supported)
+        test VIDIOC_G_FMT: OK
+                fail: v4l2-test-formats.cpp(379): unknown pixelformat ffffffff for buftype 2
+                fail: v4l2-test-formats.cpp(566): Video Output is valid, but TRY_FMT failed to return a format
+        test VIDIOC_TRY_FMT: FAIL
+                fail: v4l2-test-formats.cpp(379): unknown pixelformat ffffffff for buftype 2
+                fail: v4l2-test-formats.cpp(719): Video Output is valid, but no S_FMT was implemented
+        test VIDIOC_S_FMT: FAIL
+        test VIDIOC_G_SLICED_VBI_CAP: OK (Not Supported)
+
+Codec ioctls:
+        test VIDIOC_(TRY_)ENCODER_CMD: OK (Not Supported)
+        test VIDIOC_G_ENC_INDEX: OK (Not Supported)
+        test VIDIOC_(TRY_)DECODER_CMD: OK (Not Supported)
+
+Buffer ioctls:
+        test VIDIOC_REQBUFS/CREATE_BUFS/QUERYBUF: OK
+
+Total: 38, Succeeded: 32, Failed: 6, Warnings: 1
+
 
