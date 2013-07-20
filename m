@@ -1,76 +1,153 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f182.google.com ([209.85.214.182]:54541 "EHLO
-	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750959Ab3G3Pqc (ORCPT
+Received: from mail-pd0-f174.google.com ([209.85.192.174]:46244 "EHLO
+	mail-pd0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753810Ab3GTGV3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 11:46:32 -0400
-Received: by mail-ob0-f182.google.com with SMTP id wo10so12573708obc.13
-        for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 08:46:31 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <201307301729.26053.hverkuil@xs4all.nl>
-References: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com>
- <201307301545.51529.hverkuil@xs4all.nl> <CAPybu_13HCY1i=tH1krdKGOSbJNgek-X4gt1cGmo_oB=AqTxKg@mail.gmail.com>
- <201307301729.26053.hverkuil@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 30 Jul 2013 17:46:11 +0200
-Message-ID: <CAPybu_2TivP9Pui2O5N8QofT-07tdxYMnOsC2Nvo7Ods0PuX7w@mail.gmail.com>
-Subject: Re: Question about v4l2-compliance: cap->readbuffers
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Sat, 20 Jul 2013 02:21:29 -0400
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+To: LMML <linux-media@vger.kernel.org>
+Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+	LKML <linux-kernel@vger.kernel.org>,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Sekhar Nori <nsekhar@ti.com>,
+	linux-arm-kernel@lists.infradead.org
+Subject: [PATCH v3 1/2] media: i2c: adv7343: make the platform data members as array
+Date: Sat, 20 Jul 2013 11:51:05 +0530
+Message-Id: <1374301266-26726-2-git-send-email-prabhakar.csengg@gmail.com>
+In-Reply-To: <1374301266-26726-1-git-send-email-prabhakar.csengg@gmail.com>
+References: <1374301266-26726-1-git-send-email-prabhakar.csengg@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
+From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
 
-I have a camera that works on two modes: Mono and colour. On color
-mode it has 3 gains, on mono mode it has 1 gain.
+This patch makes the platform data members as array wherever
+possible, so as this makes easier while collecting the data
+in DT case and read the entire array at once.
 
-When the user sets the output to mono I disable the color controls
-(and the other way around).
+This patch also makes appropriate changes to board-da850-evm.c
 
-Also on color mode the hflip and vflip do not work, therefore I dont show them.
+Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Sekhar Nori <nsekhar@ti.com>
+Cc: linux-arm-kernel@lists.infradead.org
+---
+ arch/arm/mach-davinci/board-da850-evm.c |    6 ++----
+ drivers/media/i2c/adv7343.c             |   28 ++++++++++++++--------------
+ include/media/adv7343.h                 |   20 ++++----------------
+ 3 files changed, 20 insertions(+), 34 deletions(-)
 
-I could return -EINVAL, but I rather not show the controls to the user.
-
-What would be the proper way to do this?
-
-
-Thanks gain.
-
-
-
-
-
-On Tue, Jul 30, 2013 at 5:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> On Tue 30 July 2013 17:18:58 Ricardo Ribalda Delgado wrote:
->> Thanks for the explanation Hans!
->>
->> I finaly manage to pass that one ;)
->>
->> Just one more question. Why the compliance test checks if the DISABLED
->> flag is on on for qctrls?
->>
->> http://git.linuxtv.org/v4l-utils.git/blob/3ae390e54a0ba627c9e74953081560192b996df4:/utils/v4l2-compliance/v4l2-test-controls.cpp#l137
->>
->>  137         if (fl & V4L2_CTRL_FLAG_DISABLED)
->>  138                 return fail("DISABLED flag set\n");
->>
->> Apparently that has been added on:
->> http://git.linuxtv.org/v4l-utils.git/commit/0a4d4accea7266d7b5f54dea7ddf46cce8421fbb
->>
->> But I have failed to find a reason
->
-> It shouldn't be used anymore in drivers. With the control framework there is
-> no longer any reason to use the DISABLED flag.
->
-> If something has a valid use case for it, then I'd like to know what it is.
->
-> Regards,
->
->         Hans
-
-
-
+diff --git a/arch/arm/mach-davinci/board-da850-evm.c b/arch/arm/mach-davinci/board-da850-evm.c
+index e6f5b5d..ab6bdbe 100644
+--- a/arch/arm/mach-davinci/board-da850-evm.c
++++ b/arch/arm/mach-davinci/board-da850-evm.c
+@@ -733,12 +733,10 @@ static struct tvp514x_platform_data tvp5146_pdata = {
+ 
+ static struct adv7343_platform_data adv7343_pdata = {
+ 	.mode_config = {
+-		.dac_3 = 1,
+-		.dac_2 = 1,
+-		.dac_1 = 1,
++		.dac = { 1, 1, 1 },
+ 	},
+ 	.sd_config = {
+-		.sd_dac_out1 = 1,
++		.sd_dac_out = { 1 },
+ 	},
+ };
+ 
+diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
+index 8080c2c..f0238fb 100644
+--- a/drivers/media/i2c/adv7343.c
++++ b/drivers/media/i2c/adv7343.c
+@@ -227,12 +227,12 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+ 	else
+ 		val = state->pdata->mode_config.sleep_mode << 0 |
+ 		      state->pdata->mode_config.pll_control << 1 |
+-		      state->pdata->mode_config.dac_3 << 2 |
+-		      state->pdata->mode_config.dac_2 << 3 |
+-		      state->pdata->mode_config.dac_1 << 4 |
+-		      state->pdata->mode_config.dac_6 << 5 |
+-		      state->pdata->mode_config.dac_5 << 6 |
+-		      state->pdata->mode_config.dac_4 << 7;
++		      state->pdata->mode_config.dac[2] << 2 |
++		      state->pdata->mode_config.dac[1] << 3 |
++		      state->pdata->mode_config.dac[0] << 4 |
++		      state->pdata->mode_config.dac[5] << 5 |
++		      state->pdata->mode_config.dac[4] << 6 |
++		      state->pdata->mode_config.dac[3] << 7;
+ 
+ 	err = adv7343_write(sd, ADV7343_POWER_MODE_REG, val);
+ 	if (err < 0)
+@@ -251,15 +251,15 @@ static int adv7343_setoutput(struct v4l2_subdev *sd, u32 output_type)
+ 	/* configure SD DAC Output 2 and SD DAC Output 1 bit to zero */
+ 	val = state->reg82 & (SD_DAC_1_DI & SD_DAC_2_DI);
+ 
+-	if (state->pdata && state->pdata->sd_config.sd_dac_out1)
+-		val = val | (state->pdata->sd_config.sd_dac_out1 << 1);
+-	else if (state->pdata && !state->pdata->sd_config.sd_dac_out1)
+-		val = val & ~(state->pdata->sd_config.sd_dac_out1 << 1);
++	if (state->pdata && state->pdata->sd_config.sd_dac_out[0])
++		val = val | (state->pdata->sd_config.sd_dac_out[0] << 1);
++	else if (state->pdata && !state->pdata->sd_config.sd_dac_out[0])
++		val = val & ~(state->pdata->sd_config.sd_dac_out[0] << 1);
+ 
+-	if (state->pdata && state->pdata->sd_config.sd_dac_out2)
+-		val = val | (state->pdata->sd_config.sd_dac_out2 << 2);
+-	else if (state->pdata && !state->pdata->sd_config.sd_dac_out2)
+-		val = val & ~(state->pdata->sd_config.sd_dac_out2 << 2);
++	if (state->pdata && state->pdata->sd_config.sd_dac_out[1])
++		val = val | (state->pdata->sd_config.sd_dac_out[1] << 2);
++	else if (state->pdata && !state->pdata->sd_config.sd_dac_out[1])
++		val = val & ~(state->pdata->sd_config.sd_dac_out[1] << 2);
+ 
+ 	err = adv7343_write(sd, ADV7343_SD_MODE_REG2, val);
+ 	if (err < 0)
+diff --git a/include/media/adv7343.h b/include/media/adv7343.h
+index 944757b..e4142b1 100644
+--- a/include/media/adv7343.h
++++ b/include/media/adv7343.h
+@@ -28,12 +28,7 @@
+  * @pll_control: PLL and oversampling control. This control allows internal
+  *		 PLL 1 circuit to be powered down and the oversampling to be
+  *		 switched off.
+- * @dac_1: power on/off DAC 1.
+- * @dac_2: power on/off DAC 2.
+- * @dac_3: power on/off DAC 3.
+- * @dac_4: power on/off DAC 4.
+- * @dac_5: power on/off DAC 5.
+- * @dac_6: power on/off DAC 6.
++ * @dac: array to configure power on/off DAC's 1..6
+  *
+  * Power mode register (Register 0x0), for more info refer REGISTER MAP ACCESS
+  * section of datasheet[1], table 17 page no 30.
+@@ -43,23 +38,16 @@
+ struct adv7343_power_mode {
+ 	bool sleep_mode;
+ 	bool pll_control;
+-	bool dac_1;
+-	bool dac_2;
+-	bool dac_3;
+-	bool dac_4;
+-	bool dac_5;
+-	bool dac_6;
++	u32 dac[6];
+ };
+ 
+ /**
+  * struct adv7343_sd_config - SD Only Output Configuration.
+- * @sd_dac_out1: Configure SD DAC Output 1.
+- * @sd_dac_out2: Configure SD DAC Output 2.
++ * @sd_dac_out: array configuring SD DAC Outputs 1 and 2
+  */
+ struct adv7343_sd_config {
+ 	/* SD only Output Configuration */
+-	bool sd_dac_out1;
+-	bool sd_dac_out2;
++	u32 sd_dac_out[2];
+ };
+ 
+ /**
 -- 
-Ricardo Ribalda
+1.7.9.5
+
