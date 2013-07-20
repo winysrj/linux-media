@@ -1,64 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38593 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754776Ab3GAUwM (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jul 2013 16:52:12 -0400
-Message-ID: <51D1EBCF.60708@iki.fi>
-Date: Mon, 01 Jul 2013 23:51:27 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: Bogdan Oprea <bogdaninedit@yahoo.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
- while loading driver (-19)
-References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com> <51D1352A.2080107@schinagl.nl> <51D182CD.2040502@iki.fi> <51D1839B.1010007@schinagl.nl> <51D1E8F8.9030402@schinagl.nl>
-In-Reply-To: <51D1E8F8.9030402@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mail-ye0-f170.google.com ([209.85.213.170]:60496 "EHLO
+	mail-ye0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754484Ab3GTTKw (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 20 Jul 2013 15:10:52 -0400
+Received: by mail-ye0-f170.google.com with SMTP id q3so1661106yen.29
+        for <linux-media@vger.kernel.org>; Sat, 20 Jul 2013 12:10:51 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: k.debski@samsung.com
+Cc: m.chehab@samsung.com, kernel@pengutronix.de,
+	linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH v2 1/2] [media] coda: Check the return value from clk_prepare_enable()
+Date: Sat, 20 Jul 2013 16:10:40 -0300
+Message-Id: <1374347441-15662-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/01/2013 11:39 PM, Oliver Schinagl wrote:
-> On 07/01/13 15:26, Oliver Schinagl wrote:
->> On 01-07-13 15:23, Antti Palosaari wrote:
->>> On 07/01/2013 10:52 AM, Oliver Schinagl wrote:
->>>> On 01-07-13 08:53, Bogdan Oprea wrote:
->>>>> this is a fix for this type of error
->>>>>
->>>>> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error while
->>>>> loading driver (-19)
->>>>> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' successfully
->>>>> deinitialized and disconnected
->>>>>
->>>> This isn't really a fix, I think i mentioned this on the ML ages ago,
->>>
->>> Argh, I just replied that same. Oliver, do you has that same device? Is
->>> it working? Could you tweak to see if I2C readings are working at all?
->> I have the same device, but mine works normally (though I haven't
->> checked for ages), I will try it tonight when I'm at home and don't
->> forget what happens with my current kernel.
->
-> Hard to test when it 'just works (tm)' :)
+From: Fabio Estevam <fabio.estevam@freescale.com>
 
-> The bad firmware wories me, no clue where that error is from, using:
-> 862604ab3fec0c94f4bf22b4cffd0d89  /lib/firmware/dvb-usb-af9035-02.fw
+clk_prepare_enable() may fail, so let's check its return value and propagate it
+in the case of error.
 
-It means firmware is too short or long what is calculated. I added that 
-printing to notify users firmware is broken and could cause problems.
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+Changes since v1:
+- Add missing 'if'
 
+ drivers/media/platform/coda.c | 11 +++++++++--
+ 1 file changed, 9 insertions(+), 2 deletions(-)
 
-I suspect it is same issue what is with MxL5007t tuners too.
-Maybe that kind of fix is needed:
-https://patchwork.kernel.org/patch/2418471/
-
-Someone should really find out whether or not these are coming with 
-register read operation with REPEATED START of STOP condition. Attach 
-hardware sniffer to device tuner I2C bus and look what kind of messages 
-there is actually.
-
-regards
-Antti
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index df4ada88..486db30 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1559,14 +1559,21 @@ static int coda_open(struct file *file)
+ 	list_add(&ctx->list, &dev->instances);
+ 	coda_unlock(ctx);
+ 
+-	clk_prepare_enable(dev->clk_per);
+-	clk_prepare_enable(dev->clk_ahb);
++	ret = clk_prepare_enable(dev->clk_per);
++	if (ret)
++		goto err;
++
++	ret = clk_prepare_enable(dev->clk_ahb);
++	if (ret)
++		goto err_clk_ahb;
+ 
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d (%p)\n",
+ 		 ctx->idx, ctx);
+ 
+ 	return 0;
+ 
++err_clk_ahb:
++	clk_disable_unprepare(dev->clk_per);
+ err:
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
 -- 
-http://palosaari.fi/
+1.8.1.2
+
