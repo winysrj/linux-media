@@ -1,88 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:14802 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932264Ab3GVSFk (ORCPT
+Received: from mail-wi0-f174.google.com ([209.85.212.174]:42051 "EHLO
+	mail-wi0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753901Ab3GTSZZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 14:05:40 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQC00H80NLEP9J0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Tue, 23 Jul 2013 03:05:38 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, prabhakar.csengg@gmail.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 4/5] V4L2: Rename subdev field of struct v4l2_async_notifier
-Date: Mon, 22 Jul 2013 20:04:46 +0200
-Message-id: <1374516287-7638-5-git-send-email-s.nawrocki@samsung.com>
-In-reply-to: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
-References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 20 Jul 2013 14:25:25 -0400
+Message-ID: <1374344603.1192.12.camel@laptop>
+Subject: [PATCH] dvb-usb: add another product id for "Elgato EyeTV SAT"
+From: Manuel =?ISO-8859-1?Q?Sch=F6nlaub?= <manuel.schoenlaub@gmail.com>
+Reply-To: manuel.schoenlaub@gmail.com
+To: linux-kernel@vger.kernel.org
+Cc: linux-media@vger.kernel.org, mchehab@redhat.com
+Date: Sat, 20 Jul 2013 20:23:23 +0200
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This is a purely cosmetic change. Since the 'subdev' member
-points to an array of subdevs it seems more intuitive to name
-it in plural form.
+From: Manuel Schönlaub <manuel.schoenlaub@gmail.com>
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+There is another revision of "Elgato EyeTV SAT" working with this driver
+but using a previously unknown product id.
+
+Signed-off-by: Manuel Schönlaub <manuel.schoenlaub@gmail.com>
 ---
- drivers/media/platform/soc_camera/soc_camera.c |    2 +-
- drivers/media/v4l2-core/v4l2-async.c           |    2 +-
- include/media/v4l2-async.h                     |    4 ++--
- 3 files changed, 4 insertions(+), 4 deletions(-)
+drivers/media/dvb-core/dvb-usb-ids.h |    1 +
+drivers/media/usb/dvb-usb/az6027.c   |    7 ++++++-
+2 files changed, 7 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
-index 8af572b..4b42572 100644
---- a/drivers/media/platform/soc_camera/soc_camera.c
-+++ b/drivers/media/platform/soc_camera/soc_camera.c
-@@ -1501,7 +1501,7 @@ static int scan_async_group(struct soc_camera_host *ici,
- 		return -ENOMEM;
+diff -upNr linux-3.10/drivers/media/dvb-core/dvb-usb-ids.h
+linux-3.10-patched/drivers/media/dvb-core/dvb-usb-ids.h
+--- linux-3.10/drivers/media/dvb-core/dvb-usb-ids.h	2013-07-01
+00:13:29.000000000 +0200
++++ linux-3.10-patched/drivers/media/dvb-core/dvb-usb-ids.h	2013-07-20
+18:01:23.573035824 +0200
+@@ -353,6 +353,7 @@
+ #define USB_PID_ELGATO_EYETV_DTT_2			0x003f
+ #define USB_PID_ELGATO_EYETV_DTT_Dlx			0x0020
+ #define USB_PID_ELGATO_EYETV_SAT			0x002a
++#define USB_PID_ELGATO_EYETV_SAT_CI			0x0025
+ #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_COLD		0x5000
+ #define USB_PID_DVB_T_USB_STICK_HIGH_SPEED_WARM		0x5001
+ #define USB_PID_FRIIO_WHITE				0x0001
+diff -upNr linux-3.10/drivers/media/usb/dvb-usb/az6027.c
+linux-3.10-patched/drivers/media/usb/dvb-usb/az6027.c
+--- linux-3.10/drivers/media/usb/dvb-usb/az6027.c	2013-07-01
+00:13:29.000000000 +0200
++++ linux-3.10-patched/drivers/media/usb/dvb-usb/az6027.c	2013-07-20
+18:31:47.622924602 +0200
+@@ -1088,6 +1088,7 @@ static struct usb_device_id az6027_usb_t
+ 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_HDCI_V1) },
+ 	{ USB_DEVICE(USB_VID_TECHNISAT, USB_PID_TECHNISAT_USB2_HDCI_V2) },
+ 	{ USB_DEVICE(USB_VID_ELGATO, USB_PID_ELGATO_EYETV_SAT) },
++	{ USB_DEVICE(USB_VID_ELGATO, USB_PID_ELGATO_EYETV_SAT_CI) },
+ 	{ },
+ };
+ 
+@@ -1136,7 +1137,7 @@ static struct dvb_usb_device_properties
+ 
+ 	.i2c_algo         = &az6027_i2c_algo,
+ 
+-	.num_device_descs = 6,
++	.num_device_descs = 7,
+ 	.devices = {
+ 		{
+ 			.name = "AZUREWAVE DVB-S/S2 USB2.0 (AZ6027)",
+@@ -1162,6 +1163,10 @@ static struct dvb_usb_device_properties
+ 			.name = "Elgato EyeTV Sat",
+ 			.cold_ids = { &az6027_usb_table[5], NULL },
+ 			.warm_ids = { NULL },
++		}, {
++			.name = "Elgato EyeTV Sat",
++			.cold_ids = { &az6027_usb_table[6], NULL },
++			.warm_ids = { NULL },
+ 		},
+ 		{ NULL },
  	}
- 
--	sasc->notifier.subdev = asd;
-+	sasc->notifier.subdevs = asd;
- 	sasc->notifier.num_subdevs = size;
- 	sasc->notifier.bound = soc_camera_async_bound;
- 	sasc->notifier.unbind = soc_camera_async_unbind;
-diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-index 9f91013..ed31a65 100644
---- a/drivers/media/v4l2-core/v4l2-async.c
-+++ b/drivers/media/v4l2-core/v4l2-async.c
-@@ -147,7 +147,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
- 	INIT_LIST_HEAD(&notifier->done);
- 
- 	for (i = 0; i < notifier->num_subdevs; i++) {
--		asd = notifier->subdev[i];
-+		asd = notifier->subdevs[i];
- 
- 		switch (asd->match_type) {
- 		case V4L2_ASYNC_MATCH_CUSTOM:
-diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-index 295782e..4e7834a 100644
---- a/include/media/v4l2-async.h
-+++ b/include/media/v4l2-async.h
-@@ -77,7 +77,7 @@ struct v4l2_async_subdev_list {
- /**
-  * v4l2_async_notifier - v4l2_device notifier data
-  * @num_subdevs:number of subdevices
-- * @subdev:	array of pointers to subdevice descriptors
-+ * @subdevs:	array of pointers to subdevice descriptors
-  * @v4l2_dev:	pointer to struct v4l2_device
-  * @waiting:	list of struct v4l2_async_subdev, waiting for their drivers
-  * @done:	list of struct v4l2_async_subdev_list, already probed
-@@ -88,7 +88,7 @@ struct v4l2_async_subdev_list {
-  */
- struct v4l2_async_notifier {
- 	unsigned int num_subdevs;
--	struct v4l2_async_subdev **subdev;
-+	struct v4l2_async_subdev **subdevs;
- 	struct v4l2_device *v4l2_dev;
- 	struct list_head waiting;
- 	struct list_head done;
--- 
-1.7.9.5
 
