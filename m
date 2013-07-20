@@ -1,55 +1,59 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:55131 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932264Ab3GVSFF (ORCPT
+Received: from mail-ye0-f174.google.com ([209.85.213.174]:36342 "EHLO
+	mail-ye0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754723Ab3GTStH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 14:05:05 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQC001SUNKEF9H0@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Tue, 23 Jul 2013 03:05:03 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: g.liakhovetski@gmx.de, prabhakar.csengg@gmail.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH RFC 0/5] v4l2-async DT support improvement and cleanups
-Date: Mon, 22 Jul 2013 20:04:42 +0200
-Message-id: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
+	Sat, 20 Jul 2013 14:49:07 -0400
+Received: by mail-ye0-f174.google.com with SMTP id m9so1639525yen.33
+        for <linux-media@vger.kernel.org>; Sat, 20 Jul 2013 11:49:07 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: k.debski@samsung.com
+Cc: m.chehab@samsung.com, kernel@pengutronix.de,
+	linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH 1/2] [media] coda: Check the return value from clk_prepare_enable()
+Date: Sat, 20 Jul 2013 15:48:48 -0300
+Message-Id: <1374346129-12907-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+From: Fabio Estevam <fabio.estevam@freescale.com>
 
-This is a few patches for the v4l2-async API I wrote while adding
-the asynchronous subdev registration support to the exynos4-is
-driver.
+clk_prepare_enable() may fail, so let's check its return value and propagate it
+in the case of error.
 
-The most significant change is addition of V4L2_ASYNC_MATCH_OF
-subdev matching method, where host driver can pass a list of
-of_node pointers identifying its subdevs.
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+ drivers/media/platform/coda.c | 10 ++++++++--
+ 1 file changed, 8 insertions(+), 2 deletions(-)
 
-I thought it's a reasonable and simple enough way to support device
-tree based systems. Comments/other ideas are of course welcome.
-
-Thanks,
-Sylwester
-
-Sylwester Nawrocki (5):
-  V4L2: Drop bus_type check in v4l2-async match functions
-  V4L2: Rename v4l2_async_bus_* to v4l2_async_match_*
-  V4L2: Add V4L2_ASYNC_MATCH_OF subdev matching type
-  V4L2: Rename subdev field of struct v4l2_async_notifier
-  V4L2: Fold struct v4l2_async_subdev_list with struct v4l2_subdev
-
- drivers/media/platform/soc_camera/soc_camera.c |    4 +-
- drivers/media/v4l2-core/v4l2-async.c           |  106 ++++++++++++------------
- include/media/v4l2-async.h                     |   36 ++++----
- include/media/v4l2-subdev.h                    |   13 ++-
- 4 files changed, 74 insertions(+), 85 deletions(-)
-
---
-1.7.9.5
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index df4ada88..dd76228 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1559,14 +1559,20 @@ static int coda_open(struct file *file)
+ 	list_add(&ctx->list, &dev->instances);
+ 	coda_unlock(ctx);
+ 
+-	clk_prepare_enable(dev->clk_per);
+-	clk_prepare_enable(dev->clk_ahb);
++	ret = clk_prepare_enable(dev->clk_per);
++	if (ret)
++		goto err;
++
++	ret = clk_prepare_enable(dev->clk_ahb);
++		goto err_clk_ahb;
+ 
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d (%p)\n",
+ 		 ctx->idx, ctx);
+ 
+ 	return 0;
+ 
++err_clk_ahb:
++	clk_disable_unprepare(dev->clk_per);
+ err:
+ 	v4l2_fh_del(&ctx->fh);
+ 	v4l2_fh_exit(&ctx->fh);
+-- 
+1.8.1.2
 
