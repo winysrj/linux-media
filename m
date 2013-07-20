@@ -1,74 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:58653 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1754579Ab3GaGhr (ORCPT
+Received: from mail-lb0-f182.google.com ([209.85.217.182]:65382 "EHLO
+	mail-lb0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751713Ab3GTIuV convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 02:37:47 -0400
-Date: Wed, 31 Jul 2013 09:37:42 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Marek Szyprowski <m.szyprowski@samsung.com>,
-	Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, Andre Heider <a.heider@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 1/2] videobuf2-dma-sg: Allocate pages as contiguous as
- possible
-Message-ID: <20130731063742.GP12281@valkosipuli.retiisi.org.uk>
-References: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
- <1374253355-3788-2-git-send-email-ricardo.ribalda@gmail.com>
- <20130719141603.16ef8f0b@lwn.net>
- <51F65190.9080601@samsung.com>
- <20130729091644.4229dcf6@lwn.net>
+	Sat, 20 Jul 2013 04:50:21 -0400
+Received: by mail-lb0-f182.google.com with SMTP id r11so4094546lbv.27
+        for <linux-media@vger.kernel.org>; Sat, 20 Jul 2013 01:50:19 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130729091644.4229dcf6@lwn.net>
+Date: Sat, 20 Jul 2013 13:20:19 +0430
+Message-ID: <CAOdeS+jQ3R3q4cwAy8rVLazF0SOmVHr3Af_rXSS5=0-x7RNVJQ@mail.gmail.com>
+Subject: Is it Possible to get GSE using TBS6925
+From: "M.Rashid Zamani" <mohammadrashidzamani@gmail.com>
+To: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Jon and Sylwester,
+Hi,
 
-On Mon, Jul 29, 2013 at 09:16:44AM -0600, Jonathan Corbet wrote:
-> On Mon, 29 Jul 2013 13:27:12 +0200
-> Marek Szyprowski <m.szyprowski@samsung.com> wrote:
-> 
-> > > You've gone to all this trouble to get a higher-order allocation so you'd
-> > > have fewer segments, then you undo it all by splitting things apart into
-> > > individual pages.  Why?  Clearly I'm missing something, this seems to
-> > > defeat the purpose of the whole exercise?  
-> > 
-> > Individual zero-order pages are required to get them mapped to userspace in
-> > mmap callback.
-> 
-> Yeah, Ricardo explained that too.  The right solution might be to fix that
-> problem rather than work around it, but I can see why one might shy at that
-> task! :)
-> 
-> I do wonder, though, if an intermediate solution using huge pages might be
-> the best approach?  That would get the number of segments down pretty far,
-> and using huge pages for buffers would reduce TLB pressure significantly
-> if the CPU is working through the data at all.  Meanwhile, inserting huge
-> pages into the process's address space should work easily.  Just a thought.
+I am wondering if it is possible to capture GSE with my TBS6925. I
+found a patch for TBS6925 linux driver from Christian Prähauser[1] to
+support multistream in linux. But the Patch is for an old version of
+the driver. When I tried to apply the patch on liplianin driver
+(s2-37) I realized that the source code has changed, and already
+included some of the changes. Since it has been almost a year since
+the last post in this field I wanted to know if any further
+investigation has happened on the mater, and if any one was able to
+capture GSE.
 
-My ack to that.
+In dvbnet homepage[2] I can see there is a gse-testing tool, but no
+download link! Has anyone used that tool? Does any one have the tool!?
 
-And in the case of dma-buf the buffer doesn't need to be mapped to user
-space. It'd be quite nice to be able to share higher order allocations even
-if they couldn't be mapped to user space as such.
+Any help would be appreciated.
+Thank you in advance.
+Cheers
 
-Using 2 MiB pages would probably solve Ricardo's issue, but used alone
-they'd waste lots of memory for small buffers. If small pages (in Ricardo's
-case) were used when 2 MiB pages would be too big, e.g. 1 MiB buffer would
-already have 256 pages in it. Perhaps it'd be useful to specify whether
-large pages should be always preferred over smaller ones.
 
--- 
-Kind regards,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+[1] http://www.mail-archive.com/linux-media@vger.kernel.org/msg42465.html
+[2] http://www.cosy.sbg.ac.at/~cpraehaus/dvb-net.shtml
