@@ -1,61 +1,112 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f42.google.com ([209.85.215.42]:45276 "EHLO
-	mail-la0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932094Ab3GKNIe (ORCPT
+Received: from mail-we0-f170.google.com ([74.125.82.170]:51781 "EHLO
+	mail-we0-f170.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752094Ab3GUGVT (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 09:08:34 -0400
-Received: by mail-la0-f42.google.com with SMTP id eb20so6855092lab.15
-        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 06:08:32 -0700 (PDT)
-Message-ID: <51DEAE4E.90204@cogentembedded.com>
-Date: Thu, 11 Jul 2013 17:08:30 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Sun, 21 Jul 2013 02:21:19 -0400
+Received: by mail-we0-f170.google.com with SMTP id w57so5090858wes.15
+        for <linux-media@vger.kernel.org>; Sat, 20 Jul 2013 23:21:18 -0700 (PDT)
 MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Jaroslav Kysela <perex@perex.cz>, Takashi Iwai <tiwai@suse.de>
-Subject: Re: [PATCH 45/50] sound: usb: usx2y: spin_lock in complete() cleanup
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-46-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-46-git-send-email-ming.lei@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Sun, 21 Jul 2013 11:50:57 +0530
+Message-ID: <CA+V-a8uDrtsRrtKh9ac+S70C2ycGZcpqXCsOLgEr4nCwBPNCHw@mail.gmail.com>
+Subject: Few Doubts on adding DT nodes for bridge driver
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 11-07-2013 13:06, Ming Lei wrote:
+Hi Sylwester, Guennadi,
 
-> Complete() will be run with interrupt enabled, so change to
-> spin_lock_irqsave().
-
-    Changelog doesn't match the patch.
-
-> Cc: Jaroslav Kysela <perex@perex.cz>
-> Cc: Takashi Iwai <tiwai@suse.de>
-> Cc: alsa-devel@alsa-project.org
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->   sound/usb/usx2y/usbusx2yaudio.c |    4 ++++
->   1 file changed, 4 insertions(+)
-
-> diff --git a/sound/usb/usx2y/usbusx2yaudio.c b/sound/usb/usx2y/usbusx2yaudio.c
-> index 4967fe9..e2ee893 100644
-> --- a/sound/usb/usx2y/usbusx2yaudio.c
-> +++ b/sound/usb/usx2y/usbusx2yaudio.c
-> @@ -273,7 +273,11 @@ static void usX2Y_clients_stop(struct usX2Ydev *usX2Y)
->   		struct snd_usX2Y_substream *subs = usX2Y->subs[s];
->   		if (subs) {
->   			if (atomic_read(&subs->state) >= state_PRERUNNING) {
-> +				unsigned long flags;
-> +
-> +				local_irq_save(flags);
->   				snd_pcm_stop(subs->pcm_substream, SNDRV_PCM_STATE_XRUN);
-> +				local_irq_restore(flags);
->   			}
-
-WBR, Sergei
+I am working on adding DT support for VPIF driver, initially to get
+some hands dirty
+on working on Capture driver and later will move ahead to add for the display.
+I have added asynchronous probing support for the both the bridge and subdevs
+which works perfectly like on a charm with passing pdata as usually,
+but doing the
+same with DT I have few doubts on building the pdata in the bridge driver.
 
 
+This is a snippet of my subdes in i2c node:-
+
+i2c0: i2c@1c22000 {
+			status = "okay";
+			clock-frequency = <100000>;
+			pinctrl-names = "default";
+			pinctrl-0 = <&i2c0_pins>;
+
+			tvp514x@5c {
+				compatible = "ti,tvp5146";
+				reg = <0x5c>;
+
+				port {
+					tvp514x_1: endpoint {
+						remote-endpoint = <&vpif_capture0_1>;
+						hsync-active = <1>;
+						vsync-active = <1>;
+						pclk-sample = <0>;
+					};
+				};
+			};
+
+			tvp514x@5d {
+				compatible = "ti,tvp5146";
+				reg = <0x5d>;
+
+				port {
+					tvp514x_2: endpoint {
+						remote-endpoint = <&vpif_capture0_0>;
+						hsync-active = <1>;
+						vsync-active = <1>;
+						pclk-sample = <0>;
+					};
+				};
+			};
+                 ......
+		};
+
+Here tvp514x are the subdevs the platform has two of them one at 0x5c and 0x5d,
+so I have added two nodes for them.
+
+Following is DT node for the bridge driver:-
+
+	vpif_capture@0 {
+		status = "okay";
+		port {
+			vpif_capture0_1: endpoint@1 {
+				remote = <&tvp514x_1>;
+			};
+			vpif_capture0_0: endpoint@0 {
+				remote = <&tvp514x_2>;
+			};
+		};
+	};
+I have added two endpoints for the bridge driver. In the bridge driver
+to build the pdata from DT node,I do the following,
+
+np = v4l2_of_get_next_endpoint(pdev->dev.of_node, NULL);
+The above will give the first endpoint ie, endpoint@1
+>From here is it possible to get the tvp514x_1 endpoint node and the
+parent of it?
+so that I  build the asynchronous subdev list for the bridge driver.
+
+
++static struct v4l2_async_subdev tvp1_sd = {
++       .hw = {
++               .bus_type = V4L2_ASYNC_BUS_I2C,
++               .match.i2c = {
++                       .adapter_id = 1,
++                       .address = 0x5c,
++               },
++       },
++};
+
+For building the asd subdev list in the bridge driver I can get the
+address easily,
+how do I get the adapter_id ? should this be a property subdev ? And also same
+with bustype.
+
+Regards,
+--Prabhakar
