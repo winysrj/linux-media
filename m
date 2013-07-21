@@ -1,94 +1,71 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ee0-f54.google.com ([74.125.83.54]:51439 "EHLO
-	mail-ee0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754109Ab3GXPb0 (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:32884 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754220Ab3GUC67 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 11:31:26 -0400
-Received: by mail-ee0-f54.google.com with SMTP id t10so325642eei.13
-        for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 08:31:24 -0700 (PDT)
-Message-ID: <51EFF3D3.1070603@googlemail.com>
-Date: Wed, 24 Jul 2013 17:33:39 +0200
-From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+	Sat, 20 Jul 2013 22:58:59 -0400
+Date: Sat, 20 Jul 2013 19:59:10 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>, kyungmin.park@samsung.com,
+	balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com,
+	kgene.kim@samsung.com, grant.likely@linaro.org, tony@atomide.com,
+	arnd@arndb.de, swarren@nvidia.com,
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Message-ID: <20130721025910.GA23043@kroah.com>
+References: <20130720220006.GA7977@kroah.com>
+ <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org>
 MIME-Version: 1.0
-To: Alban Browaeys <alban.browaeys@gmail.com>
-CC: m.chehab@samsung.com,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Alban Browaeys <prahal@yahoo.com>
-Subject: Re: [PATCH 2/4] [media] em28xx: i2s 5 sample rates is a subset of
- 3 one.
-References: <1374015941-27538-1-git-send-email-prahal@yahoo.com> <51E8072C.5070600@googlemail.com> <CAMhY2AXP=B=+Tu90q3tYQKq3Nw8fyR0+Am4OAmusCT-CyoH6Cg@mail.gmail.com>
-In-Reply-To: <CAMhY2AXP=B=+Tu90q3tYQKq3Nw8fyR0+Am4OAmusCT-CyoH6Cg@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 8bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-[2nd try - vger.kernel.org rejects html content]
+On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
+> On Sat, 20 Jul 2013, Greg KH wrote:
+> 
+> > > >>That should be passed using platform data.
+> > > >
+> > > >Ick, don't pass strings around, pass pointers.  If you have platform
+> > > >data you can get to, then put the pointer there, don't use a "name".
+> > > 
+> > > I don't think I understood you here :-s We wont have phy pointer
+> > > when we create the device for the controller no?(it'll be done in
+> > > board file). Probably I'm missing something.
+> > 
+> > Why will you not have that pointer?  You can't rely on the "name" as the
+> > device id will not match up, so you should be able to rely on the
+> > pointer being in the structure that the board sets up, right?
+> > 
+> > Don't use names, especially as ids can, and will, change, that is going
+> > to cause big problems.  Use pointers, this is C, we are supposed to be
+> > doing that :)
+> 
+> Kishon, I think what Greg means is this:  The name you are using must
+> be stored somewhere in a data structure constructed by the board file,
+> right?  Or at least, associated with some data structure somehow.  
+> Otherwise the platform code wouldn't know which PHY hardware
+> corresponded to a particular name.
+> 
+> Greg's suggestion is that you store the address of that data structure 
+> in the platform data instead of storing the name string.  Have the 
+> consumer pass the data structure's address when it calls phy_create, 
+> instead of passing the name.  Then you don't have to worry about two 
+> PHYs accidentally ending up with the same name or any other similar 
+> problems.
 
+Close, but the issue is that whatever returns from phy_create() should
+then be used, no need to call any "find" functions, as you can just use
+the pointer that phy_create() returns.  Much like all other class api
+functions in the kernel work.
 
-Please, don't top-post and don't drop any recipients.
+thanks,
 
-
-Am 24.07.2013 15:40, schrieb Alban Browaeys:
-> if 0xf0 , then the if (0x20 == ) else if (0x30 ==) first match 0x20
-> succeed and bail out . 0x20 is a subset if 0x30.
-
-(chipcfg & EM28XX_CHIPCFG_AUDIOMASK) = 0x30, and the if - else if
-statements compares this with ==.
-So how can 0x30 be 0x20 ???
-
-Regards,
-Frank
-
->
->
-> 2013/7/18 Frank Schäfer <fschaefer.oss@googlemail.com
-> <mailto:fschaefer.oss@googlemail.com>>
->
->     Am 17.07.2013 01:05, schrieb Alban Browaeys:
->     > As:
->     > EM28XX_CHIPCFG_I2S_3_SAMPRATES 0x20
->     > EM28XX_CHIPCFG_I2S_5_SAMPRATES 0x30
->     >
->     > the board chipcfg is 0xf0 thus if 3_SAMPRATES is tested
->     > first and matches while it is a 5_SAMPRATES.
->     >
->     > Signed-off-by: Alban Browaeys <prahal@yahoo.com
->     <mailto:prahal@yahoo.com>>
->     > ---
->     >  drivers/media/usb/em28xx/em28xx-core.c | 8 ++++----
->     >  1 file changed, 4 insertions(+), 4 deletions(-)
->     >
->     > diff --git a/drivers/media/usb/em28xx/em28xx-core.c
->     b/drivers/media/usb/em28xx/em28xx-core.c
->     > index fc157af..3c0c5e9 100644
->     > --- a/drivers/media/usb/em28xx/em28xx-core.c
->     > +++ b/drivers/media/usb/em28xx/em28xx-core.c
->     > @@ -505,13 +505,13 @@ int em28xx_audio_setup(struct em28xx *dev)
->     >               dev->audio_mode.has_audio = false;
->     >               return 0;
->     >       } else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
->     > -                EM28XX_CHIPCFG_I2S_3_SAMPRATES) {
->     > -             em28xx_info("I2S Audio (3 sample rates)\n");
->     > -             dev->audio_mode.i2s_3rates = 1;
->     > -     } else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
->     >                  EM28XX_CHIPCFG_I2S_5_SAMPRATES) {
->     >               em28xx_info("I2S Audio (5 sample rates)\n");
->     >               dev->audio_mode.i2s_5rates = 1;
->     > +     } else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
->     > +                EM28XX_CHIPCFG_I2S_3_SAMPRATES) {
->     > +             em28xx_info("I2S Audio (3 sample rates)\n");
->     > +             dev->audio_mode.i2s_3rates = 1;
->     >       }
->     >
->     >       if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) != EM28XX_CHIPCFG_AC97) {
->
->     What changes ?
->     If chipcfg is 0xf0, chipcfg & EM28XX_CHIPCFG_AUDIOMASK = 0x30 =
->     EM28XX_CHIPCFG_I2S_5_SAMPRATES and not 0x20 =
->     EM28XX_CHIPCFG_I2S_3_SAMPRATES...
->
->     Frank
->
->
-
+greg k-h
