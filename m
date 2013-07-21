@@ -1,118 +1,90 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.17.8]:49918 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750843Ab3GXLVs (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41036 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754895Ab3GUKX1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 07:21:48 -0400
-Date: Wed, 24 Jul 2013 13:21:45 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-cc: linux-media@vger.kernel.org, prabhakar.csengg@gmail.com,
-	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
-	kyungmin.park@samsung.com
-Subject: Re: [PATCH RFC 3/5] V4L2: Add V4L2_ASYNC_MATCH_OF subdev matching
- type
-In-Reply-To: <1374516287-7638-4-git-send-email-s.nawrocki@samsung.com>
-Message-ID: <Pine.LNX.4.64.1307241320170.30777@axis700.grange>
-References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
- <1374516287-7638-4-git-send-email-s.nawrocki@samsung.com>
+	Sun, 21 Jul 2013 06:23:27 -0400
+Date: Sun, 21 Jul 2013 12:22:48 +0200
+From: Sascha Hauer <s.hauer@pengutronix.de>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Message-ID: <20130721102248.GE29785@pengutronix.de>
+References: <20130720220006.GA7977@kroah.com>
+ <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org>
+ <20130721025910.GA23043@kroah.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130721025910.GA23043@kroah.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester
-
-On Mon, 22 Jul 2013, Sylwester Nawrocki wrote:
-
-> Add support for matching by device_node pointer. This allows
-> the notifier user to simply pass a list of device_node pointers
-> corresponding to sub-devices.
+On Sat, Jul 20, 2013 at 07:59:10PM -0700, Greg KH wrote:
+> On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
+> > On Sat, 20 Jul 2013, Greg KH wrote:
+> > 
+> > > > >>That should be passed using platform data.
+> > > > >
+> > > > >Ick, don't pass strings around, pass pointers.  If you have platform
+> > > > >data you can get to, then put the pointer there, don't use a "name".
+> > > > 
+> > > > I don't think I understood you here :-s We wont have phy pointer
+> > > > when we create the device for the controller no?(it'll be done in
+> > > > board file). Probably I'm missing something.
+> > > 
+> > > Why will you not have that pointer?  You can't rely on the "name" as the
+> > > device id will not match up, so you should be able to rely on the
+> > > pointer being in the structure that the board sets up, right?
+> > > 
+> > > Don't use names, especially as ids can, and will, change, that is going
+> > > to cause big problems.  Use pointers, this is C, we are supposed to be
+> > > doing that :)
+> > 
+> > Kishon, I think what Greg means is this:  The name you are using must
+> > be stored somewhere in a data structure constructed by the board file,
+> > right?  Or at least, associated with some data structure somehow.  
+> > Otherwise the platform code wouldn't know which PHY hardware
+> > corresponded to a particular name.
+> > 
+> > Greg's suggestion is that you store the address of that data structure 
+> > in the platform data instead of storing the name string.  Have the 
+> > consumer pass the data structure's address when it calls phy_create, 
+> > instead of passing the name.  Then you don't have to worry about two 
+> > PHYs accidentally ending up with the same name or any other similar 
+> > problems.
 > 
-> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
-> ---
->  drivers/media/v4l2-core/v4l2-async.c |    9 +++++++++
->  include/media/v4l2-async.h           |    5 +++++
->  2 files changed, 14 insertions(+)
-> 
-> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
-> index 86934ca..9f91013 100644
-> --- a/drivers/media/v4l2-core/v4l2-async.c
-> +++ b/drivers/media/v4l2-core/v4l2-async.c
-> @@ -39,6 +39,11 @@ static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
->  	return !strcmp(asd->match.device_name.name, dev_name(dev));
->  }
->  
-> +static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
-> +{
-> +	return dev->of_node == asd->match.of.node;
-> +}
-> +
->  static LIST_HEAD(subdev_list);
->  static LIST_HEAD(notifier_list);
->  static DEFINE_MUTEX(list_lock);
-> @@ -66,6 +71,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
->  		case V4L2_ASYNC_MATCH_I2C:
->  			match = match_i2c;
->  			break;
-> +		case V4L2_ASYNC_MATCH_OF:
-> +			match = match_of;
-> +			break;
->  		default:
->  			/* Cannot happen, unless someone breaks us */
->  			WARN_ON(true);
-> @@ -145,6 +153,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
->  		case V4L2_ASYNC_MATCH_CUSTOM:
->  		case V4L2_ASYNC_MATCH_DEVNAME:
->  		case V4L2_ASYNC_MATCH_I2C:
-> +		case V4L2_ASYNC_MATCH_OF:
->  			break;
->  		default:
->  			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
-> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
-> index 33e3b2a..295782e 100644
-> --- a/include/media/v4l2-async.h
-> +++ b/include/media/v4l2-async.h
-> @@ -13,6 +13,7 @@
->  
->  #include <linux/list.h>
->  #include <linux/mutex.h>
-> +#include <linux/of.h>
->  
->  struct device;
->  struct v4l2_device;
+> Close, but the issue is that whatever returns from phy_create() should
+> then be used, no need to call any "find" functions, as you can just use
+> the pointer that phy_create() returns.  Much like all other class api
+> functions in the kernel work.
 
-A nitpick: it is common to just forward-declare structs as above instead 
-of including a header if just a pointer to that struct is needed. I think 
-it would be more consistent to update it here.
+I think the problem here is to connect two from the bus structure
+completely independent devices. Several frameworks (ASoC, soc-camera)
+had this problem and this wasn't solved until the advent of devicetrees
+and their phandles.
+phy_create might be called from the probe function of some i2c device
+(the phy device) and the resulting pointer is then needed in some other
+platform devices (the user of the phy) probe function.
+The best solution we have right now is implemented in the clk framework
+which uses a string matching of the device names in clk_get() (at least
+in the non-dt case).
 
-Thanks
-Guennadi
+Sascha
 
-> @@ -26,6 +27,7 @@ enum v4l2_async_match_type {
->  	V4L2_ASYNC_MATCH_CUSTOM,
->  	V4L2_ASYNC_MATCH_DEVNAME,
->  	V4L2_ASYNC_MATCH_I2C,
-> +	V4L2_ASYNC_MATCH_OF,
->  };
->  
->  /**
-> @@ -39,6 +41,9 @@ struct v4l2_async_subdev {
->  	enum v4l2_async_match_type match_type;
->  	union {
->  		struct {
-> +			const struct device_node *node;
-> +		} of;
-> +		struct {
->  			const char *name;
->  		} device_name;
->  		struct {
-> -- 
-> 1.7.9.5
-> 
-
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Pengutronix e.K.                           |                             |
+Industrial Linux Solutions                 | http://www.pengutronix.de/  |
+Peiner Str. 6-8, 31137 Hildesheim, Germany | Phone: +49-5121-206917-0    |
+Amtsgericht Hildesheim, HRA 2686           | Fax:   +49-5121-206917-5555 |
