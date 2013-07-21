@@ -1,110 +1,160 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:28800 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753733Ab3GIIDi (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 04:03:38 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org
-Cc: 'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, Hui Wang <jason77.wang@gmail.com>,
-	'Jingoo Han' <jg1.han@samsung.com>
-Subject: [PATCH V6 0/4] Generic PHY driver for the Exynos SoC DP PHY
-Date: Tue, 09 Jul 2013 17:03:35 +0900
-Message-id: <003d01ce7c7a$d04043d0$70c0cb70$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from mail-bk0-f41.google.com ([209.85.214.41]:41602 "EHLO
+	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753845Ab3GUJYT (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Jul 2013 05:24:19 -0400
+Received: by mail-bk0-f41.google.com with SMTP id jc3so2163070bkc.28
+        for <linux-media@vger.kernel.org>; Sun, 21 Jul 2013 02:24:18 -0700 (PDT)
+Message-ID: <51EBA8BF.7030303@gmail.com>
+Date: Sun, 21 Jul 2013 11:24:15 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+MIME-Version: 1.0
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Few Doubts on adding DT nodes for bridge driver
+References: <CA+V-a8uDrtsRrtKh9ac+S70C2ycGZcpqXCsOLgEr4nCwBPNCHw@mail.gmail.com>
+In-Reply-To: <CA+V-a8uDrtsRrtKh9ac+S70C2ycGZcpqXCsOLgEr4nCwBPNCHw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch series adds a simple driver for the Samsung Exynos SoC
-series DP transmitter PHY, using the generic PHY framework [1].
-Previously the DP PHY used an internal DT node to control the PHY
-power enable bit.
+Hi Prabhakar,
 
-These patches was tested on Exynos5250.
+On 07/21/2013 08:20 AM, Prabhakar Lad wrote:
+> Hi Sylwester, Guennadi,
+>
+> I am working on adding DT support for VPIF driver, initially to get
+> some hands dirty
+> on working on Capture driver and later will move ahead to add for the display.
+> I have added asynchronous probing support for the both the bridge and subdevs
+> which works perfectly like on a charm with passing pdata as usually,
+> but doing the
+> same with DT I have few doubts on building the pdata in the bridge driver.
+>
+>
+> This is a snippet of my subdes in i2c node:-
+>
+> i2c0: i2c@1c22000 {
+> 			status = "okay";
+> 			clock-frequency =<100000>;
+> 			pinctrl-names = "default";
+> 			pinctrl-0 =<&i2c0_pins>;
+>
+> 			tvp514x@5c {
+> 				compatible = "ti,tvp5146";
+> 				reg =<0x5c>;
+>
+> 				port {
+> 					tvp514x_1: endpoint {
+> 						remote-endpoint =<&vpif_capture0_1>;
+> 						hsync-active =<1>;
+> 						vsync-active =<1>;
+> 						pclk-sample =<0>;
+> 					};
+> 				};
+> 			};
+>
+> 			tvp514x@5d {
+> 				compatible = "ti,tvp5146";
+> 				reg =<0x5d>;
+>
+> 				port {
+> 					tvp514x_2: endpoint {
+> 						remote-endpoint =<&vpif_capture0_0>;
+> 						hsync-active =<1>;
+> 						vsync-active =<1>;
+> 						pclk-sample =<0>;
+> 					};
+> 				};
+> 			};
+>                   ......
+> 		};
+>
+> Here tvp514x are the subdevs the platform has two of them one at 0x5c and 0x5d,
+> so I have added two nodes for them.
+>
+> Following is DT node for the bridge driver:-
+>
+> 	vpif_capture@0 {
+> 		status = "okay";
+> 		port {
 
-This PATCH v6 follows:
- * PATCH v5, sent on July, 8th 2013
- * PATCH v4, sent on July, 2nd 2013
- * PATCH v3, sent on July, 1st 2013
- * PATCH v2, sent on June, 28th 2013
- * PATCH v1, sent on June, 28th 2013
+You should also have:
+			#address-cells = <1>;
+			#size-cells = <0>;
 
-Changes between v5 and v6:
-  * Re-based on git://gitorious.org/linuxphy/linuxphy.git
+here or in vpif_capture node.
 
-Changes between v4 and v5:
-  * Marked original bindings as deprecated in 'exynos_dp.txt'
-  * Fixed typo of commit message.
-  * Added Tomasz Figa's Reviewed-by.
+> 			vpif_capture0_1: endpoint@1 {
+> 				remote =<&tvp514x_1>;
+> 			};
+> 			vpif_capture0_0: endpoint@0 {
+> 				remote =<&tvp514x_2>;
+> 			};
+> 		};
+> 	};
 
-Changes between v3 and v4:
-  * Added OF dependancy.
-  * Removed redundant local variable 'void __iomem *addr'.
-  * Removed unnecessary dev_set_drvdata().
-  * Added a patch that remove non-DT support for Exynos
-    Display Port driver.
-  * Removed unnecessary 'struct exynos_dp_platdata'.
-  * Kept supporting the original bindings for DT compatibility.
+Are tvp514x@5c and tvp514x@5d decoders really connected to same bus, or are
+they on separate busses ? If the latter then you should have 2 'port' 
+nodes.
+And in such case don't you need to identify to which
 
-Changes between v2 and v3:
-  * Removed redundant spinlock
-  * Removed 'struct phy' from 'struct exynos_dp_video_phy'
-  * Updated 'samsung-phy.txt', instead of creating
-    'samsung,exynos5250-dp-video-phy.txt'.
-  * Removed unnecessary additional specifier from 'phys'
-    DT property.
-  * Added 'phys', 'phy-names' properties to 'exynos_dp.txt' file.
-  * Added Felipe Balbi's Acked-by.
+> I have added two endpoints for the bridge driver. In the bridge driver
+> to build the pdata from DT node,I do the following,
+>
+> np = v4l2_of_get_next_endpoint(pdev->dev.of_node, NULL);
+>
+> The above will give the first endpoint ie, endpoint@1
+>  From here is it possible to get the tvp514x_1 endpoint node and the
+> parent of it?
 
-Changes between v1 and v2:
-  * Replaced exynos_dp_video_phy_xlate() with of_phy_simple_xlate(),
-    as Kishon Vijay Abraham I guided.
-  * Set the value of phy-cells as 0, because the phy_provider implements
-    only one PHY.
-  * Removed unnecessary header include.
-  * Added '#ifdef CONFIG_OF' and of_match_ptr macro.
+Isn't v4l2_of_get_remote_port_parent() what you need ?
 
-This series depends on the generic PHY framework [1]. These patches
-refer to Sylwester Nawrocki's patches about Exynos MIPI [2].
+> so that I  build the asynchronous subdev list for the bridge driver.
+>
+>
+> +static struct v4l2_async_subdev tvp1_sd = {
+> +       .hw = {
 
-[1] https://lkml.org/lkml/2013/6/26/259
-[2] http://www.spinics.net/lists/linux-samsung-soc/msg20098.html
+This doesn't match the current struct v4l2_async_subdev data strcucture,
+there is no 'hw' field now.
 
-Jingoo Han (4):
-  ARM: dts: Add DP PHY node to exynos5250.dtsi
-  phy: Add driver for Exynos DP PHY
-  video: exynos_dp: remove non-DT support for Exynos Display Port
-  video: exynos_dp: Use the generic PHY driver
+> +               .bus_type = V4L2_ASYNC_BUS_I2C,
+> +               .match.i2c = {
+> +                       .adapter_id = 1,
+> +                       .address = 0x5c,
+> +               },
+> +       },
+> +};
+>
+> For building the asd subdev list in the bridge driver I can get the
+> address easily,
+> how do I get the adapter_id ? should this be a property subdev ? And also same
+> with bustype.
 
- .../devicetree/bindings/phy/samsung-phy.txt        |    8 ++
- .../devicetree/bindings/video/exynos_dp.txt        |   18 +++++++++---------
- arch/arm/boot/dts/exynos5250.dtsi                  |   13 ++++++++-----
- drivers/phy/Kconfig                                |    6 ++
- drivers/phy/Makefile                               |    1 +
- drivers/phy/phy-exynos-dp-video.c                  |  111 ++++++++++++++++++++
- drivers/video/exynos/Kconfig                       |    2 +-
- drivers/video/exynos/exynos_dp_core.c              |  132 +++++++----------------------
- drivers/video/exynos/exynos_dp_core.h              |  110 +++++++++++++++++++++++++++
- drivers/video/exynos/exynos_dp_reg.c               |    2 -
- include/video/exynos_dp.h                          |  131 ---------------------------------
- 11 files changed, 291 insertions(+), 243 deletions(-) 
- create mode 100644 drivers/phy/phy-exynos-dp-video.c
- delete mode 100644 include/video/exynos_dp.h
+I had been working on the async subdev registration support in the 
+exynos4-is
+driver this week and I have a few patches for v4l2-async.
+What those patches do is renaming V4L2_ASYNC_BUS_* to V4L2_ASYNC_MATCH_*,
+adding V4L2_ASYNC_MATCH_OF and a corresponding match_of callback like:
+
+static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
+{
+	return dev->of_node == asd->match.of.node;
+}
+
+Then a driver registering the notifier, after parsing the device tree, can
+just pass a list of DT node pointers corresponding to its subdevs.
+
+All this could also be achieved with V4L2_ASYNC_BUS_CUSTOM, but I think it's
+better to make it as simple as possible for drivers by extending the core
+a little.
+
+I'm going to post those patches as RFC on Monday.
 
 --
-1.7.10.4
-
+Regards,
+Sylwester
