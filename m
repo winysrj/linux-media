@@ -1,152 +1,97 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f42.google.com ([209.85.214.42]:64654 "EHLO
-	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932447Ab3GWUVB (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36281 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755610Ab3GUPr4 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 16:21:01 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Tomasz Figa <t.figa@samsung.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
+	Sun, 21 Jul 2013 11:47:56 -0400
+Date: Sun, 21 Jul 2013 08:48:08 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Sascha Hauer <s.hauer@pengutronix.de>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
 	Kishon Vijay Abraham I <kishon@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	broonie@kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
 	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
 	s.nawrocki@samsung.com, kgene.kim@samsung.com,
 	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
+	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
 	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
 	linux-arm-kernel@lists.infradead.org,
 	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
 	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
 	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
 Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 22:20:53 +0200
-Message-ID: <1387574.Tkg16KearS@flatron>
-In-Reply-To: <Pine.LNX.4.44L0.1307231518310.1304-100000@iolanthe.rowland.org>
-References: <Pine.LNX.4.44L0.1307231518310.1304-100000@iolanthe.rowland.org>
+Message-ID: <20130721154808.GH16598@kroah.com>
+References: <20130720220006.GA7977@kroah.com>
+ <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org>
+ <20130721025910.GA23043@kroah.com>
+ <20130721102248.GE29785@pengutronix.de>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <20130721102248.GE29785@pengutronix.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 23 of July 2013 15:36:00 Alan Stern wrote:
-> On Tue, 23 Jul 2013, Tomasz Figa wrote:
-> > IMHO it would be better if you provided some code example, but let's
-> > try to check if I understood you correctly.
+On Sun, Jul 21, 2013 at 12:22:48PM +0200, Sascha Hauer wrote:
+> On Sat, Jul 20, 2013 at 07:59:10PM -0700, Greg KH wrote:
+> > On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
+> > > On Sat, 20 Jul 2013, Greg KH wrote:
+> > > 
+> > > > > >>That should be passed using platform data.
+> > > > > >
+> > > > > >Ick, don't pass strings around, pass pointers.  If you have platform
+> > > > > >data you can get to, then put the pointer there, don't use a "name".
+> > > > > 
+> > > > > I don't think I understood you here :-s We wont have phy pointer
+> > > > > when we create the device for the controller no?(it'll be done in
+> > > > > board file). Probably I'm missing something.
+> > > > 
+> > > > Why will you not have that pointer?  You can't rely on the "name" as the
+> > > > device id will not match up, so you should be able to rely on the
+> > > > pointer being in the structure that the board sets up, right?
+> > > > 
+> > > > Don't use names, especially as ids can, and will, change, that is going
+> > > > to cause big problems.  Use pointers, this is C, we are supposed to be
+> > > > doing that :)
+> > > 
+> > > Kishon, I think what Greg means is this:  The name you are using must
+> > > be stored somewhere in a data structure constructed by the board file,
+> > > right?  Or at least, associated with some data structure somehow.  
+> > > Otherwise the platform code wouldn't know which PHY hardware
+> > > corresponded to a particular name.
+> > > 
+> > > Greg's suggestion is that you store the address of that data structure 
+> > > in the platform data instead of storing the name string.  Have the 
+> > > consumer pass the data structure's address when it calls phy_create, 
+> > > instead of passing the name.  Then you don't have to worry about two 
+> > > PHYs accidentally ending up with the same name or any other similar 
+> > > problems.
 > > 
-> > 8><-------------------------------------------------------------------
-> > -----
-> > 
-> > [Board file]
-> > 
-> > static struct phy my_phy;
-> > 
-> > static struct platform_device phy_pdev = {
-> > 
-> > 	/* ... */
-> > 	.platform_data = &my_phy;
-> > 	/* ... */
-> > 
-> > };
-> > 
-> > static struct platform_device phy_pdev = {
+> > Close, but the issue is that whatever returns from phy_create() should
+> > then be used, no need to call any "find" functions, as you can just use
+> > the pointer that phy_create() returns.  Much like all other class api
+> > functions in the kernel work.
 > 
-> This should be controller_pdev, not phy_pdev, yes?
+> I think the problem here is to connect two from the bus structure
+> completely independent devices. Several frameworks (ASoC, soc-camera)
+> had this problem and this wasn't solved until the advent of devicetrees
+> and their phandles.
+> phy_create might be called from the probe function of some i2c device
+> (the phy device) and the resulting pointer is then needed in some other
+> platform devices (the user of the phy) probe function.
+> The best solution we have right now is implemented in the clk framework
+> which uses a string matching of the device names in clk_get() (at least
+> in the non-dt case).
 
-Right. A copy-pasto.
+I would argue that clocks are wrong here as well, as others have already
+pointed out.
 
-> 
-> > 	/* ... */
-> > 	.platform_data = &my_phy;
-> > 	/* ... */
-> > 
-> > };
-> > 
-> > [Provider driver]
-> > 
-> > struct phy *phy = pdev->dev.platform_data;
-> > 
-> > ret = phy_create(phy);
-> > 
-> > [Consumer driver]
-> > 
-> > struct phy *phy = pdev->dev.platform_data;
-> > 
-> > ret = phy_get(&pdev->dev, phy);
-> 
-> Or even just phy_get(&pdev->dev), because phy_get() could be smart
-> enough to to set phy = dev->platform_data.
+What's wrong with the platform_data structure, why can't that be used
+for this?
 
-Unless you need more than one PHY in this driver...
+Or, if not, we can always add pointers to the platform device structure,
+or even the main 'struct device' as well, that's what it is there for.
 
-> 
-> > ----------------------------------------------------------------------
-> > --><8
-> > 
-> > Is this what you mean?
-> 
-> That's what I was going to suggest too.  The struct phy is defined in
-> the board file, which already knows about all the PHYs that exist in
-> the system.  (Or perhaps it is allocated dynamically, so that when many
-> board files are present in the same kernel, only the entries listed in
-> the board file for the current system get created.) 
+thanks,
 
-Well, such dynamic allocation is a must. We don't accept non-multiplatform 
-aware code anymore, not even saying about multiboard.
-
-> Then the
-> structure's address is stored in the platform data and made available
-> to both the provider and the consumer.
-
-Yes, technically this can work. You would still have to perform some kind 
-of synchronization to make sure that the PHY bound to this structure is 
-actually present. This is again technically doable (e.g. a list of 
-registered struct phys inside PHY core).
-
-> Even though the struct phy is defined (or allocated) in the board file,
-> its contents don't get filled in until the PHY driver provides the
-> details.
-
-You can't assure this. Board file is free to do whatever it wants with 
-this struct. A clean solution would prevent this.
-
-> > It's technically correct, but quality of this solution isn't really
-> > nice, because it's a layering violation (at least if I understood
-> > what you mean). This is because you need to have full definition of
-> > struct phy in board file and a structure that is used as private data
-> > in PHY core comes from platform code.
-> 
-> You don't have to have a full definition in the board file.  Just a
-> partial definition -- most of the contents can be filled in later, when
-> the PHY driver is ready to store the private data.
-> 
-> It's not a layering violation for one region of the kernel to store
-> private data in a structure defined by another part of the kernel.
-> This happens all the time (e.g., dev_set_drvdata).
-
-Not really. The phy struct is something that _is_ private data of PHY 
-subsystem, not something that can store private data of PHY subsystem 
-(sure it can store private data of particular PHY driver, but that's 
-another story) and only PHY subsystem should have access to its contents.
-
-By the way, we need to consider other cases here as well, for example it 
-would be nice to have a single phy_get() function that works for both non-
-DT and DT cases to make the consumer driver not have to worry whether it's 
-being probed from DT or not.
-
-I'd suggest simply reusing the lookup method of regulator framework, just 
-as I suggested here:
-
-http://thread.gmane.org/gmane.linux.ports.arm.kernel/252813/focus=101661
-
-Best regards,
-Tomasz
-
+greg k-h
