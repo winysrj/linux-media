@@ -1,99 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f48.google.com ([209.85.160.48]:38726 "EHLO
-	mail-pb0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932451Ab3GKJL5 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.9]:53220 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752578Ab3GUHmD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:11:57 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 40/50] media: dvb-core: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:06:03 +0800
-Message-Id: <1373533573-12272-41-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Sun, 21 Jul 2013 03:42:03 -0400
+Date: Sun, 21 Jul 2013 09:42:01 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: Few Doubts on adding DT nodes for bridge driver
+In-Reply-To: <CA+V-a8uDrtsRrtKh9ac+S70C2ycGZcpqXCsOLgEr4nCwBPNCHw@mail.gmail.com>
+Message-ID: <Pine.LNX.4.64.1307210939570.10557@axis700.grange>
+References: <CA+V-a8uDrtsRrtKh9ac+S70C2ycGZcpqXCsOLgEr4nCwBPNCHw@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+Hi Prabhakar
 
-These functions may be called inside URB->complete(), so use
-spin_lock_irqsave().
+On Sun, 21 Jul 2013, Prabhakar Lad wrote:
 
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
+> Hi Sylwester, Guennadi,
+> 
+> I am working on adding DT support for VPIF driver, initially to get
+> some hands dirty
+> on working on Capture driver and later will move ahead to add for the display.
+> I have added asynchronous probing support for the both the bridge and subdevs
+> which works perfectly like on a charm with passing pdata as usually,
+> but doing the
+> same with DT I have few doubts on building the pdata in the bridge driver.
+> 
+> 
+> This is a snippet of my subdes in i2c node:-
+> 
+> i2c0: i2c@1c22000 {
+> 			status = "okay";
+> 			clock-frequency = <100000>;
+> 			pinctrl-names = "default";
+> 			pinctrl-0 = <&i2c0_pins>;
+> 
+> 			tvp514x@5c {
+> 				compatible = "ti,tvp5146";
+> 				reg = <0x5c>;
+> 
+> 				port {
+> 					tvp514x_1: endpoint {
+> 						remote-endpoint = <&vpif_capture0_1>;
+> 						hsync-active = <1>;
+> 						vsync-active = <1>;
+> 						pclk-sample = <0>;
+> 					};
+> 				};
+> 			};
+> 
+> 			tvp514x@5d {
+> 				compatible = "ti,tvp5146";
+> 				reg = <0x5d>;
+> 
+> 				port {
+> 					tvp514x_2: endpoint {
+> 						remote-endpoint = <&vpif_capture0_0>;
+> 						hsync-active = <1>;
+> 						vsync-active = <1>;
+> 						pclk-sample = <0>;
+> 					};
+> 				};
+> 			};
+>                  ......
+> 		};
+> 
+> Here tvp514x are the subdevs the platform has two of them one at 0x5c and 0x5d,
+> so I have added two nodes for them.
+> 
+> Following is DT node for the bridge driver:-
+> 
+> 	vpif_capture@0 {
+> 		status = "okay";
+> 		port {
+> 			vpif_capture0_1: endpoint@1 {
+> 				remote = <&tvp514x_1>;
+> 			};
+> 			vpif_capture0_0: endpoint@0 {
+> 				remote = <&tvp514x_2>;
+> 			};
+> 		};
+> 	};
+> I have added two endpoints for the bridge driver. In the bridge driver
+> to build the pdata from DT node,I do the following,
+> 
+> np = v4l2_of_get_next_endpoint(pdev->dev.of_node, NULL);
+> The above will give the first endpoint ie, endpoint@1
+> >From here is it possible to get the tvp514x_1 endpoint node and the
+> parent of it?
+
+Yes, you can use something like of_parse_phandle().
+
+Thanks
+Guennadi
+
+> so that I  build the asynchronous subdev list for the bridge driver.
+> 
+> 
+> +static struct v4l2_async_subdev tvp1_sd = {
+> +       .hw = {
+> +               .bus_type = V4L2_ASYNC_BUS_I2C,
+> +               .match.i2c = {
+> +                       .adapter_id = 1,
+> +                       .address = 0x5c,
+> +               },
+> +       },
+> +};
+> 
+> For building the asd subdev list in the bridge driver I can get the
+> address easily,
+> how do I get the adapter_id ? should this be a property subdev ? And also same
+> with bustype.
+> 
+> Regards,
+> --Prabhakar
+> 
+
 ---
- drivers/media/dvb-core/dvb_demux.c |   17 +++++++++++------
- 1 file changed, 11 insertions(+), 6 deletions(-)
-
-diff --git a/drivers/media/dvb-core/dvb_demux.c b/drivers/media/dvb-core/dvb_demux.c
-index 3485655..58de441 100644
---- a/drivers/media/dvb-core/dvb_demux.c
-+++ b/drivers/media/dvb-core/dvb_demux.c
-@@ -476,7 +476,9 @@ static void dvb_dmx_swfilter_packet(struct dvb_demux *demux, const u8 *buf)
- void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
- 			      size_t count)
- {
--	spin_lock(&demux->lock);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&demux->lock, flags);
- 
- 	while (count--) {
- 		if (buf[0] == 0x47)
-@@ -484,7 +486,7 @@ void dvb_dmx_swfilter_packets(struct dvb_demux *demux, const u8 *buf,
- 		buf += 188;
- 	}
- 
--	spin_unlock(&demux->lock);
-+	spin_unlock_irqrestore(&demux->lock, flags);
- }
- 
- EXPORT_SYMBOL(dvb_dmx_swfilter_packets);
-@@ -519,8 +521,9 @@ static inline void _dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf,
- {
- 	int p = 0, i, j;
- 	const u8 *q;
-+	unsigned long flags;
- 
--	spin_lock(&demux->lock);
-+	spin_lock_irqsave(&demux->lock, flags);
- 
- 	if (demux->tsbufp) { /* tsbuf[0] is now 0x47. */
- 		i = demux->tsbufp;
-@@ -564,7 +567,7 @@ static inline void _dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf,
- 	}
- 
- bailout:
--	spin_unlock(&demux->lock);
-+	spin_unlock_irqrestore(&demux->lock, flags);
- }
- 
- void dvb_dmx_swfilter(struct dvb_demux *demux, const u8 *buf, size_t count)
-@@ -581,11 +584,13 @@ EXPORT_SYMBOL(dvb_dmx_swfilter_204);
- 
- void dvb_dmx_swfilter_raw(struct dvb_demux *demux, const u8 *buf, size_t count)
- {
--	spin_lock(&demux->lock);
-+	unsigned long flags;
-+
-+	spin_lock_irqsave(&demux->lock, flags);
- 
- 	demux->feed->cb.ts(buf, count, NULL, 0, &demux->feed->feed.ts, DMX_OK);
- 
--	spin_unlock(&demux->lock);
-+	spin_unlock_irqrestore(&demux->lock, flags);
- }
- EXPORT_SYMBOL(dvb_dmx_swfilter_raw);
- 
--- 
-1.7.9.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
