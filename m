@@ -1,97 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:47263 "EHLO 7of9.schinagl.nl"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932219Ab3GBHFR (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Jul 2013 03:05:17 -0400
-Message-ID: <51D27B6C.5030607@schinagl.nl>
-Date: Tue, 02 Jul 2013 09:04:12 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
+Received: from omr-d10.mx.aol.com ([205.188.108.134]:39454 "EHLO
+	omr-d10.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755460Ab3GUN6p (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 21 Jul 2013 09:58:45 -0400
+Message-ID: <51EBE721.2010204@netscape.net>
+Date: Sun, 21 Jul 2013 10:50:25 -0300
+From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
+	<alfredodelaiti@netscape.net>
 MIME-Version: 1.0
-To: Antti Palosaari <crope@iki.fi>
-CC: Bogdan Oprea <bogdaninedit@yahoo.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
- while loading driver (-19)
-References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com> <51D1352A.2080107@schinagl.nl> <51D182CD.2040502@iki.fi> <51D1839B.1010007@schinagl.nl> <51D1E8F8.9030402@schinagl.nl> <51D1EBCF.60708@iki.fi> <51D1EE98.2060905@schinagl.nl> <51D204B0.9090809@iki.fi>
-In-Reply-To: <51D204B0.9090809@iki.fi>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+To: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: mb86a20s and cx23885
+References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com> <5106E3EA.70307@netscape.net> <511264CF.3010002@netscape.net> <51336331.10205@netscape.net> <20130303134051.6dc038aa@redhat.com> <20130304164234.18df36a7@redhat.com> <51353591.4040709@netscape.net> <20130304233028.7bc3c86c@redhat.com> <513A6968.4070803@netscape.net> <515A0D03.7040802@netscape.net> <51E44DCA.8060702@netscape.net> <20130716053030.3fda034e.mchehab@infradead.org> <51E6A20B.8020507@netscape.net> <20130718042314.2773b7c0.mchehab@infradead.org>
+In-Reply-To: <20130718042314.2773b7c0.mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 02-07-13 00:37, Antti Palosaari wrote:
-> On 07/02/2013 12:03 AM, Oliver Schinagl wrote:
->> On 07/01/13 22:51, Antti Palosaari wrote:
->>> On 07/01/2013 11:39 PM, Oliver Schinagl wrote:
->>>> On 07/01/13 15:26, Oliver Schinagl wrote:
->>>>> On 01-07-13 15:23, Antti Palosaari wrote:
->>>>>> On 07/01/2013 10:52 AM, Oliver Schinagl wrote:
->>>>>>> On 01-07-13 08:53, Bogdan Oprea wrote:
->>>>>>>> this is a fix for this type of error
->>>>>>>>
->>>>>>>> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error
->>>>>>>> while
->>>>>>>> loading driver (-19)
->>>>>>>> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus'
->>>>>>>> successfully
->>>>>>>> deinitialized and disconnected
->>>>>>>>
->>>>>>> This isn't really a fix, I think i mentioned this on the ML ages
->>>>>>> ago,
->>>>>>
->>>>>> Argh, I just replied that same. Oliver, do you has that same
->>>>>> device? Is
->>>>>> it working? Could you tweak to see if I2C readings are working at
->>>>>> all?
->>>>> I have the same device, but mine works normally (though I haven't
->>>>> checked for ages), I will try it tonight when I'm at home and don't
->>>>> forget what happens with my current kernel.
->>>>
->>>> Hard to test when it 'just works (tm)' :)
->>>
->>>> The bad firmware wories me, no clue where that error is from, using:
->>>> 862604ab3fec0c94f4bf22b4cffd0d89  /lib/firmware/dvb-usb-af9035-02.fw
->>>
->>> It means firmware is too short or long what is calculated. I added that
->>> printing to notify users firmware is broken and could cause problems.
->> Ah, good call, it did get me to re-download it. no clue why it was
->> broken all of a sudden.
->>>
->>>
->>> I suspect it is same issue what is with MxL5007t tuners too.
->>> Maybe that kind of fix is needed:
->>> https://patchwork.kernel.org/patch/2418471/
->>>
->>> Someone should really find out whether or not these are coming with
->>> register read operation with REPEATED START of STOP condition. Attach
->>> hardware sniffer to device tuner I2C bus and look what kind of messages
->>> there is actually.
->> Well mine works fine, so hard to say. IF you have a buspirate you should
->> be able to intercept the i2c bus ON the device though :) Good luck
->> Bogdan, I wish I could help here, but lack the broken hardware.
->
-> I have one AF9035 + FC0012 device having similar problems. Unfortunately
-> I wasn't able to detect I2C bus to take capture using Bus Pirate.
-Actually, I have the af9035b (see the picture i uploaded to the wiki)
->
-> There seems to be two revisions of AF9035 chips, AF9035A and AF9035B. I
-> suspect it is newer B version which has these problems. I also visually
-> compared to A and B versions and I suspect pinout is different.
->
-> Could you take USB sniffs from that device? Just install sniffer (like
-> SniffUSB), tune to channel and stop immediately when there is picture.
-> FC2580 driver does some register reads, so it should be possible to see
-> what is correct I2C access format by looking sniffs.
-Of my working version? I can try, i'll see if I have time to work with 
-sniffusb, but if I load the driver from linux, won't we already know 
-whats on the USB bus? If you speak of windows, I don't have that.
->
-> Here is few good pictures from my problematic AF9035B + FC0012 device.
-> If someone could say which are FC0012 I2C pins, I could use Pirate to
-> check (as that device has same problem).
-> http://blog.palosaari.fi/2013/05/naked-hardware-8-cabletech-urz0185.html
->
-> regards
-> Antti
->
+Hi Mauro
 
+It has given me the following error:
+
+------------------------------------------------
+alfredo@linux-puon:/usr/src/git/linux> git stash
+Saved working directory and index state WIP on (no branch): f9e5451 
+[media] af9005-fe: convert set_fontend to use DVBv5 parameters
+HEAD is now at f9e5451 [media] af9005-fe: convert set_fontend to use 
+DVBv5 parameters
+alfredo@linux-puon:/usr/src/git/linux> git bisect good
+Bisecting: 22 revisions left to test after this (roughly 5 steps)
+[8de8594a79ae43b08d115c94f09373f6c673f202] [media] dvb-core: be sure 
+that drivers won't use DVBv3 internally
+alfredo@linux-puon:/usr/src/git/linux> make
+   CHK     include/linux/version.h
+   CHK     include/generated/utsrelease.h
+   CALL    scripts/checksyscalls.sh
+   CHK     include/generated/compile.h
+   CHK     kernel/config_data.h
+   CC      fs/compat_ioctl.o
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1345:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1345:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1345:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1345:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1346:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_parameters’
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+fs/compat_ioctl.c:1347:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+fs/compat_ioctl.c:1347:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+fs/compat_ioctl.c:1347:1: error: array type has incomplete element type
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+fs/compat_ioctl.c:1347:1: error: invalid application of ‘sizeof’ to 
+incomplete type ‘struct dvb_frontend_event’
+make[1]: *** [fs/compat_ioctl.o] Error 1
+make: *** [fs] Error 2
+alfredo@linux-puon:/usr/src/git/linux>
+
+-----------------------------------------------
+
+What should I do now?
+I do not want experiment, since "bisect" is a very long process.
+
+Thank you,
+
+Alfredo
