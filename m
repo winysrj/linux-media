@@ -1,81 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mho-02-ewr.mailhop.org ([204.13.248.72]:33580 "EHLO
-	mho-02-ewr.mailhop.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758335Ab3GRHCd (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 03:02:33 -0400
-Date: Thu, 18 Jul 2013 00:02:20 -0700
-From: Tony Lindgren <tony@atomide.com>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: gregkh@linuxfoundation.org, kyungmin.park@samsung.com,
-	balbi@ti.com, jg1.han@samsung.com, s.nawrocki@samsung.com,
-	kgene.kim@samsung.com, grant.likely@linaro.org, arnd@arndb.de,
-	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
-Subject: Re: [PATCH 04/15] ARM: OMAP: USB: Add phy binding information
-Message-ID: <20130718070219.GM7656@atomide.com>
-References: <1374129984-765-1-git-send-email-kishon@ti.com>
- <1374129984-765-5-git-send-email-kishon@ti.com>
+Received: from mail.kapsi.fi ([217.30.184.167]:54374 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932501Ab3GVVRh (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jul 2013 17:17:37 -0400
+Message-ID: <51EDA143.5050309@iki.fi>
+Date: Tue, 23 Jul 2013 00:16:51 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1374129984-765-5-git-send-email-kishon@ti.com>
+To: Joe Perches <joe@perches.com>
+CC: Andrew Morton <akpm@linux-foundation.org>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, LMML <linux-media@vger.kernel.org>
+Subject: Re: [PATCH 12/18] MAINTAINERS: Update it913x patterns
+References: <cover.1374451988.git.joe@perches.com> <170209027bb96e454ee499671598aaca0f414df5.1374451989.git.joe@perches.com>
+In-Reply-To: <170209027bb96e454ee499671598aaca0f414df5.1374451989.git.joe@perches.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-* Kishon Vijay Abraham I <kishon@ti.com> [130717 23:53]:
-> In order for controllers to get PHY in case of non dt boot, the phy
-> binding information (phy device name) should be added in the platform
-> data of the controller.
-> 
-> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-> Acked-by: Felipe Balbi <balbi@ti.com>
+On 07/22/2013 03:15 AM, Joe Perches wrote:
+> commit d7104bffcfb ("[media] MAINTAINERS: add drivers/media/tuners/it913x*")
+> used the incorrect file patterns.  Fix it.
+>
+> Signed-off-by: Joe Perches <joe@perches.com>
+> cc: Antti Palosaari <crope@iki.fi>
+> cc: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+Acked-by: Antti Palosaari <crope@iki.fi>
+
+PS. It wasn't that commit, but some later where driver was renamed, as 
+it caused filename collision on media out-tree build.
+
 > ---
->  arch/arm/mach-omap2/usb-musb.c |    3 +++
->  include/linux/usb/musb.h       |    3 +++
->  2 files changed, 6 insertions(+)
-> 
-> diff --git a/arch/arm/mach-omap2/usb-musb.c b/arch/arm/mach-omap2/usb-musb.c
-> index 8c4de27..6aa7cbf 100644
-> --- a/arch/arm/mach-omap2/usb-musb.c
-> +++ b/arch/arm/mach-omap2/usb-musb.c
-> @@ -85,6 +85,9 @@ void __init usb_musb_init(struct omap_musb_board_data *musb_board_data)
->  	musb_plat.mode = board_data->mode;
->  	musb_plat.extvbus = board_data->extvbus;
->  
-> +	if (cpu_is_omap34xx())
-> +		musb_plat.phy_label = "twl4030";
-> +
->  	if (soc_is_am35xx()) {
->  		oh_name = "am35x_otg_hs";
->  		name = "musb-am35x";
-
-I don't think there's a USB PHY on non-twl4030 chips, so this should
-be OK:
-
-Acked-by: Tony Lindgren <tony@atomide.com>
+>   MAINTAINERS | 2 +-
+>   1 file changed, 1 insertion(+), 1 deletion(-)
+>
+> diff --git a/MAINTAINERS b/MAINTAINERS
+> index aa5ccd0..7622b04 100644
+> --- a/MAINTAINERS
+> +++ b/MAINTAINERS
+> @@ -4566,7 +4566,7 @@ W:	http://palosaari.fi/linux/
+>   Q:	http://patchwork.linuxtv.org/project/linux-media/list/
+>   T:	git git://linuxtv.org/anttip/media_tree.git
+>   S:	Maintained
+> -F:	drivers/media/tuners/it913x*
+> +F:	drivers/media/tuners/tuner_it913x*
+>
+>   IVTV VIDEO4LINUX DRIVER
+>   M:	Andy Walls <awalls@md.metrocast.net>
+>
 
 
-> diff --git a/include/linux/usb/musb.h b/include/linux/usb/musb.h
-> index 053c268..596f8c8 100644
-> --- a/include/linux/usb/musb.h
-> +++ b/include/linux/usb/musb.h
-> @@ -104,6 +104,9 @@ struct musb_hdrc_platform_data {
->  	/* for clk_get() */
->  	const char	*clock;
->  
-> +	/* phy label */
-> +	const char	*phy_label;
-> +
->  	/* (HOST or OTG) switch VBUS on/off */
->  	int		(*set_vbus)(struct device *dev, int is_on);
->  
-> -- 
-> 1.7.10.4
-> 
+-- 
+http://palosaari.fi/
