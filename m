@@ -1,85 +1,58 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.samsung.com ([203.254.224.33]:53769 "EHLO
-	mailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754246Ab3G2KyN (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:64217 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753637Ab3GVNop (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 06:54:13 -0400
-Received: from epcpsbgm2.samsung.com (epcpsbgm2 [203.254.230.27])
- by mailout3.samsung.com
+	Mon, 22 Jul 2013 09:44:45 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
  (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQP005U92ACUS10@mailout3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Jul 2013 19:54:12 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+ 17 2011)) with ESMTP id <0MQC00AHQBDUNSC0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Jul 2013 14:44:43 +0100 (BST)
+Received: from AMDN910 ([106.116.147.102])
+ by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
+ (7.0.4.23.0) 64bit (built Aug 10 2011))
+ with ESMTPA id <0MQC003X2BHZJ000@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Jul 2013 14:44:43 +0100 (BST)
+From: Kamil Debski <k.debski@samsung.com>
 To: linux-media@vger.kernel.org
-Cc: a.hajda@samsung.com, Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] exynos4-is: Fix entity unregistration on error path
-Date: Mon, 29 Jul 2013 12:53:59 +0200
-Message-id: <1375095239-10081-1-git-send-email-s.nawrocki@samsung.com>
+Subject: [GIT PULL] Fixes for 3.11
+Date: Mon, 22 Jul 2013 15:44:21 +0200
+Message-id: <07e801ce86e1$9394f720$babee560$%debski@samsung.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=us-ascii
+Content-transfer-encoding: 7bit
+Content-language: pl
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch corrects media entities unregistration order to make sure
-the fimc.N.capture and fimc-lite video nodes are unregistered with
-fimc->lock mutex held. This prevents races between video device open()
-and defered probing and NULL pointer dereference in open() callback
-as follows:
+The following changes since commit cab602f1930b2c3fb023ff82d371a915f2168457:
 
-[   77.645000] Unable to handle kernel NULL pointer dereference at virtual address 00000290t
-[   77.655000] pgd = ee7a8000
-[   77.660000] [00000290] *pgd=6e13c831, *pte=00000000, *ppte=00000000
-[   77.665000] Internal error: Oops: 17 [#1] PREEMPT SMP ARM
-[   77.670000] Modules linked in: s5p_fimc ipv6 exynos_fimc_is exynos_fimc_lite
- s5p_csis v4l2_mem2mem videobuf2_dma_contig videobuf2_memops exynos4_is_common videobuf2_core [last unloaded: s5p_fimc]
-[   77.685000] CPU: 0 PID : 2998 Comm: v4l_id Tainted: G        W   3.10.0-next-20130709-00039-g39f491b-dirty #1548
-[   77.695000] task: ee084000 ti: ee46e000 task.ti: ee46e000
-[   77.700000] PC is at __mutex_lock_slowpath+0x54/0x368
-[   77.705000] LR is at __mutex_lock_slowpath+0x24/0x368
-[   77.710000] pc : [<c038dc10>]    lr : [<c038dbe0>]    psr: 60000093
-[   77.710000] sp : ee46fd70  ip : 000008c8  fp : c054e34c
-[   77.725000] r10: ee084000  r9 : 00000000  r8 : ee439480
-[   77.730000] r7 : ee46e000  r6 : 60000013  r5 : 00000290  r4 : 0000028c
-[   77.735000] r3 : 00000000  r2 : 00000000  r1 : 20000093  r0 : 00000001
-[   77.740000] Flags: nZCv  IRQs off  FIQs on  Mode SVC_32  ISA ARM Segment user
-[   77.750000] Control: 10c5387d  Table: 6e7a804a  DAC: 00000015
-[   77.755000] Process v4l_id (pid: 2998, stack limit = 0xee46e238)
-[   77.760000] Stack: (0xee46fd70 to 0xee470000)
-    	       ...
-[   77.935000] [<c038dc10>] (__mutex_lock_slowpath+0x54/0x368) from [<c038df30>] (mutex_lock+0xc/0x24)
-[   77.945000] [<c038df30>] (mutex_lock+0xc/0x24) from [<bf03fa90>] (fimc_lite_open+0x12c/0x2bc [exynos_fimc_lite])
-[   77.955000] [<bf03fa90>] (fimc_lite_open+0x12c/0x2bc [exynos_fimc_lite]) from [<c02ab11c>] (v4l2_open+0xa0/0xe0)
-[   77.965000] [<c02ab11c>] (v4l2_open+0xa0/0xe0) from [<c00b1de4>] (chrdev_open+0x88/0x170)
-[   77.975000] [<c00b1de4>] (chrdev_open+0x88/0x170) from [<c00ac710>] (do_dentry_open.isra.14+0x1d8/0x258)
-[   77.985000] [<c00ac710>] (do_dentry_open.isra.14+0x1d8/0x258) from [<c00ac860>] (finish_open+0x20/0x38)
-[   77.995000] [<c00ac860>] (finish_open+0x20/0x38) from [<c00ba658>] (do_last.isra.43+0x538/0xb1c)
-[   78.000000] [<c00ba658>] (do_last.isra.43+0x538/0xb1c) from [<c00bacf0>] (path_openat+0xb4/0x5c4)
-[   78.010000] [<c00bacf0>] (path_openat+0xb4/0x5c4) from [<c00bb4b4>] (do_filp_open+0x2c/0x80)
-[   78.020000] [<c00bb4b4>] (do_filp_open+0x2c/0x80) from [<c00ad744>] (do_sys_open+0xf4/0x1a8)
-[   78.025000] [<c00ad744>] (do_sys_open+0xf4/0x1a8) from [<c000e320>] (ret_fast_syscall+0x0/0x30)
-[   78.035000] Code: 1a000093 e10f6000 f10c0080 e2845004 (e1953f9f)
+  Linux 3.11-rc2 (2013-07-22 14:32:12 +0200)
 
-Reported-by: Andrzej Hajda <a.hajda@samsung.com>
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- drivers/media/platform/exynos4-is/media-dev.c |    2 +-
- 1 file changed, 1 insertion(+), 1 deletion(-)
+are available in the git repository at:
 
-diff --git a/drivers/media/platform/exynos4-is/media-dev.c b/drivers/media/platform/exynos4-is/media-dev.c
-index 19f556c..91f21e2 100644
---- a/drivers/media/platform/exynos4-is/media-dev.c
-+++ b/drivers/media/platform/exynos4-is/media-dev.c
-@@ -1530,9 +1530,9 @@ static int fimc_md_probe(struct platform_device *pdev)
- err_unlock:
- 	mutex_unlock(&fmd->media_dev.graph_mutex);
- err_clk:
--	media_device_unregister(&fmd->media_dev);
- 	fimc_md_put_clocks(fmd);
- 	fimc_md_unregister_entities(fmd);
-+	media_device_unregister(&fmd->media_dev);
- err_md:
- 	v4l2_device_unregister(&fmd->v4l2_dev);
- 	return ret;
---
-1.7.9.5
+  git://git.linuxtv.org/kdebski/media.git fixes-for-3.11
+
+for you to fetch changes up to 55f8d96dc132fef5b2c3f3d9b4d891d673e8ce33:
+
+  s5p-g2d: Fix registration failure (2013-07-22 14:32:14 +0200)
+
+----------------------------------------------------------------
+Alexander Shiyan (1):
+      media: coda: Fix DT driver data pointer for i.MX27
+
+John Sheu (1):
+      s5p-mfc: Fix input/output format reporting
+
+Sachin Kamat (1):
+      s5p-g2d: Fix registration failure
+
+ drivers/media/platform/coda.c                |    2 +-
+ drivers/media/platform/s5p-g2d/g2d.c         |    1 +
+ drivers/media/platform/s5p-mfc/s5p_mfc_dec.c |   79
+++++++++++----------------
+ drivers/media/platform/s5p-mfc/s5p_mfc_enc.c |   46 ++++++---------
+ 4 files changed, 50 insertions(+), 78 deletions(-)
+
 
