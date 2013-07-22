@@ -1,180 +1,141 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:34683 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753850Ab3GRGri (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 02:47:38 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: [PATCH 05/15] ARM: dts: omap: update usb_otg_hs data
-Date: Thu, 18 Jul 2013 12:16:14 +0530
-Message-ID: <1374129984-765-6-git-send-email-kishon@ti.com>
-In-Reply-To: <1374129984-765-1-git-send-email-kishon@ti.com>
-References: <1374129984-765-1-git-send-email-kishon@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+Received: from eu1sys200aog123.obsmtp.com ([207.126.144.155]:46773 "EHLO
+	eu1sys200aog123.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1753959Ab3GVIcl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jul 2013 04:32:41 -0400
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+To: linux-media@vger.kernel.org
+Cc: alipowski@interia.pl, Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, srinivas.kandagatla@gmail.com,
+	srinivas.kandagatla@st.com, sean@mess.org
+Subject: [PATCH v2 1/2] media: rc: Add rc_open/close and use count to rc_dev.
+Date: Mon, 22 Jul 2013 09:22:57 +0100
+Message-Id: <1374481377-3365-1-git-send-email-srinivas.kandagatla@st.com>
+In-Reply-To: <1374481319-3293-1-git-send-email-srinivas.kandagatla@st.com>
+References: <1374481319-3293-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Updated the usb_otg_hs dt data to include the *phy* and *phy-names*
-binding in order for the driver to use the new generic PHY framework.
-Also updated the Documentation to include the binding information.
-The PHY binding information can be found at
-Documentation/devicetree/bindings/phy/phy-bindings.txt
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+This patch adds user count to rc_dev structure, the reason to add this
+new member is to allow other code like lirc to open rc device directly.
+In the existing code, rc device is only opened by input subsystem which
+works ok if we have any input drivers to match. But in case like lirc
+where there will be no input driver, rc device will be never opened.
+
+Having this user count variable will be usefull to allow rc device to be
+opened from code other than rc-main.
+
+This patch also adds rc_open and rc_close functions for other drivers
+like lirc to open and close rc devices. This functions safely increment
+and decrement the user count. Other driver wanting to open rc device
+should call rc_open and rc_close, rather than directly modifying the
+rc_dev structure.
+
+Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 ---
- Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +++++
- Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 ++++++
- arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 ++
- arch/arm/boot/dts/omap3-evm.dts                    |    2 ++
- arch/arm/boot/dts/omap3-overo.dtsi                 |    2 ++
- arch/arm/boot/dts/omap4.dtsi                       |    3 +++
- arch/arm/boot/dts/twl4030.dtsi                     |    1 +
- 7 files changed, 21 insertions(+)
+ drivers/media/rc/rc-main.c |   46 ++++++++++++++++++++++++++++++++++++++++---
+ include/media/rc-core.h    |    4 +++
+ 2 files changed, 46 insertions(+), 4 deletions(-)
 
-diff --git a/Documentation/devicetree/bindings/usb/omap-usb.txt b/Documentation/devicetree/bindings/usb/omap-usb.txt
-index 57e71f6..825790d 100644
---- a/Documentation/devicetree/bindings/usb/omap-usb.txt
-+++ b/Documentation/devicetree/bindings/usb/omap-usb.txt
-@@ -19,6 +19,9 @@ OMAP MUSB GLUE
-  - power : Should be "50". This signifies the controller can supply up to
-    100mA when operating in host mode.
-  - usb-phy : the phandle for the PHY device
-+ - phys : the phandle for the PHY device (used by generic PHY framework)
-+ - phy-names : the names of the PHY corresponding to the PHYs present in the
-+   *phy* phandle.
+diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
+index 1cf382a..1dedebd 100644
+--- a/drivers/media/rc/rc-main.c
++++ b/drivers/media/rc/rc-main.c
+@@ -699,19 +699,50 @@ void rc_keydown_notimeout(struct rc_dev *dev, int scancode, u8 toggle)
+ }
+ EXPORT_SYMBOL_GPL(rc_keydown_notimeout);
  
- Optional properties:
-  - ctrl-module : phandle of the control module this glue uses to write to
-@@ -33,6 +36,8 @@ usb_otg_hs: usb_otg_hs@4a0ab000 {
- 	num-eps = <16>;
- 	ram-bits = <12>;
- 	ctrl-module = <&omap_control_usb>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- };
++int rc_open(struct rc_dev *rdev)
++{
++	int rval = 0;
++
++	if (!rdev)
++		return -EINVAL;
++
++	mutex_lock(&rdev->lock);
++	if (!rdev->users++)
++		rval = rdev->open(rdev);
++
++	if (rval)
++		rdev->users--;
++
++	mutex_unlock(&rdev->lock);
++
++	return rval;
++}
++EXPORT_SYMBOL_GPL(rc_open);
++
+ static int ir_open(struct input_dev *idev)
+ {
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
  
- Board specific device node entry
-diff --git a/Documentation/devicetree/bindings/usb/usb-phy.txt b/Documentation/devicetree/bindings/usb/usb-phy.txt
-index 61496f5..c0245c8 100644
---- a/Documentation/devicetree/bindings/usb/usb-phy.txt
-+++ b/Documentation/devicetree/bindings/usb/usb-phy.txt
-@@ -5,6 +5,8 @@ OMAP USB2 PHY
- Required properties:
-  - compatible: Should be "ti,omap-usb2"
-  - reg : Address and length of the register set for the device.
-+ - #phy-cells: determine the number of cells that should be given in the
-+   phandle while referencing this phy.
+-	return rdev->open(rdev);
++	return rc_open(rdev);
++}
++
++void rc_close(struct rc_dev *rdev)
++{
++	if (rdev) {
++		mutex_lock(&rdev->lock);
++
++		 if (!--rdev->users)
++			rdev->close(rdev);
++
++		mutex_unlock(&rdev->lock);
++	}
+ }
++EXPORT_SYMBOL_GPL(rc_close);
  
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -16,6 +18,7 @@ usb2phy@4a0ad080 {
- 	compatible = "ti,omap-usb2";
- 	reg = <0x4a0ad080 0x58>;
- 	ctrl-module = <&omap_control_usb>;
-+	#phy-cells = <0>;
- };
+ static void ir_close(struct input_dev *idev)
+ {
+ 	struct rc_dev *rdev = input_get_drvdata(idev);
+-
+-	 if (rdev)
+-		rdev->close(rdev);
++	rc_close(rdev);
+ }
  
- OMAP USB3 PHY
-@@ -25,6 +28,8 @@ Required properties:
-  - reg : Address and length of the register set for the device.
-  - reg-names: The names of the register addresses corresponding to the registers
-    filled in "reg".
-+ - #phy-cells: determine the number of cells that should be given in the
-+   phandle while referencing this phy.
+ /* class for /sys/class/rc */
+@@ -1076,7 +1107,14 @@ int rc_register_device(struct rc_dev *dev)
+ 	memcpy(&dev->input_dev->id, &dev->input_id, sizeof(dev->input_id));
+ 	dev->input_dev->phys = dev->input_phys;
+ 	dev->input_dev->name = dev->input_name;
++
++	/* input_register_device can call ir_open, so unlock mutex here */
++	mutex_unlock(&dev->lock);
++
+ 	rc = input_register_device(dev->input_dev);
++
++	mutex_lock(&dev->lock);
++
+ 	if (rc)
+ 		goto out_table;
  
- Optional properties:
-  - ctrl-module : phandle of the control module used by PHY driver to power on
-@@ -39,4 +44,5 @@ usb3phy@4a084400 {
- 	      <0x4a084c00 0x40>;
- 	reg-names = "phy_rx", "phy_tx", "pll_ctrl";
- 	ctrl-module = <&omap_control_usb>;
-+	#phy-cells = <0>;
- };
-diff --git a/arch/arm/boot/dts/omap3-beagle-xm.dts b/arch/arm/boot/dts/omap3-beagle-xm.dts
-index afdb164..533b2da 100644
---- a/arch/arm/boot/dts/omap3-beagle-xm.dts
-+++ b/arch/arm/boot/dts/omap3-beagle-xm.dts
-@@ -144,6 +144,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap3-evm.dts b/arch/arm/boot/dts/omap3-evm.dts
-index 7d4329d..4134dd0 100644
---- a/arch/arm/boot/dts/omap3-evm.dts
-+++ b/arch/arm/boot/dts/omap3-evm.dts
-@@ -70,6 +70,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap3-overo.dtsi b/arch/arm/boot/dts/omap3-overo.dtsi
-index 8f1abec..a461d2f 100644
---- a/arch/arm/boot/dts/omap3-overo.dtsi
-+++ b/arch/arm/boot/dts/omap3-overo.dtsi
-@@ -76,6 +76,8 @@
- &usb_otg_hs {
- 	interface-type = <0>;
- 	usb-phy = <&usb2_phy>;
-+	phys = <&usb2_phy>;
-+	phy-names = "usb2-phy";
- 	mode = <3>;
- 	power = <50>;
- };
-diff --git a/arch/arm/boot/dts/omap4.dtsi b/arch/arm/boot/dts/omap4.dtsi
-index 22d9f2b..1e8e2fe 100644
---- a/arch/arm/boot/dts/omap4.dtsi
-+++ b/arch/arm/boot/dts/omap4.dtsi
-@@ -520,6 +520,7 @@
- 				compatible = "ti,omap-usb2";
- 				reg = <0x4a0ad080 0x58>;
- 				ctrl-module = <&omap_control_usb>;
-+				#phy-cells = <0>;
- 			};
- 		};
+diff --git a/include/media/rc-core.h b/include/media/rc-core.h
+index 06a75de..2f6f1f7 100644
+--- a/include/media/rc-core.h
++++ b/include/media/rc-core.h
+@@ -101,6 +101,7 @@ struct rc_dev {
+ 	bool				idle;
+ 	u64				allowed_protos;
+ 	u64				enabled_protocols;
++	u32				users;
+ 	u32				scanmask;
+ 	void				*priv;
+ 	spinlock_t			keylock;
+@@ -142,6 +143,9 @@ void rc_free_device(struct rc_dev *dev);
+ int rc_register_device(struct rc_dev *dev);
+ void rc_unregister_device(struct rc_dev *dev);
  
-@@ -658,6 +659,8 @@
- 			interrupt-names = "mc", "dma";
- 			ti,hwmods = "usb_otg_hs";
- 			usb-phy = <&usb2_phy>;
-+			phys = <&usb2_phy>;
-+			phy-names = "usb2-phy";
- 			multipoint = <1>;
- 			num-eps = <16>;
- 			ram-bits = <12>;
-diff --git a/arch/arm/boot/dts/twl4030.dtsi b/arch/arm/boot/dts/twl4030.dtsi
-index b3034da..ce4cd6f 100644
---- a/arch/arm/boot/dts/twl4030.dtsi
-+++ b/arch/arm/boot/dts/twl4030.dtsi
-@@ -80,6 +80,7 @@
- 		usb1v8-supply = <&vusb1v8>;
- 		usb3v1-supply = <&vusb3v1>;
- 		usb_mode = <1>;
-+		#phy-cells = <0>;
- 	};
- 
- 	twl_pwm: pwm {
++int rc_open(struct rc_dev *rdev);
++void rc_close(struct rc_dev *rdev);
++
+ void rc_repeat(struct rc_dev *dev);
+ void rc_keydown(struct rc_dev *dev, int scancode, u8 toggle);
+ void rc_keydown_notimeout(struct rc_dev *dev, int scancode, u8 toggle);
 -- 
-1.7.10.4
+1.7.6.5
 
