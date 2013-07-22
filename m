@@ -1,111 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f42.google.com ([209.85.214.42]:44410 "EHLO
-	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756782Ab3GKWEq (ORCPT
+Received: from mail.irisys.co.uk ([195.12.16.217]:51097 "EHLO
+	mail.irisys.co.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756797Ab3GVIkv convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 18:04:46 -0400
-Message-ID: <51DF2BF6.30509@gmail.com>
-Date: Fri, 12 Jul 2013 00:04:38 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+	Mon, 22 Jul 2013 04:40:51 -0400
+From: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: RE: width and height of JPEG compressed images
+Date: Mon, 22 Jul 2013 08:40:48 +0000
+Message-ID: <A683633ABCE53E43AFB0344442BF0F05361697BA@server10.irisys.local>
+References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
+ <51D876DF.90507@gmail.com>
+ <20130719202842.GC11823@valkosipuli.retiisi.org.uk>
+ <51EC46BA.4050203@gmail.com>
+In-Reply-To: <51EC46BA.4050203@gmail.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Hans Verkuil <hans.verkuil@cisco.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Grant Likely <grant.likely@secretlab.ca>,
-	Rob Herring <rob.herring@calxeda.com>,
-	Rob Landley <rob@landley.net>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
-Subject: Re: [PATCH v2 2/2] media: i2c: tvp7002: add OF support
-References: <1371923055-29623-1-git-send-email-prabhakar.csengg@gmail.com> <1371923055-29623-3-git-send-email-prabhakar.csengg@gmail.com> <51D05568.3090009@gmail.com> <CA+V-a8sW+D8trces5AXu__Lw9F7TO6fCcQW+LGZKRhA41uOEfw@mail.gmail.com>
-In-Reply-To: <CA+V-a8sW+D8trces5AXu__Lw9F7TO6fCcQW+LGZKRhA41uOEfw@mail.gmail.com>
-Content-Type: text/plain; charset=windows-1252; format=flowed
-Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/11/2013 07:09 PM, Prabhakar Lad wrote:
-[...]
->>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>> b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>> new file mode 100644
->>> index 0000000..9daebe1
->>> --- /dev/null
->>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
->>> @@ -0,0 +1,43 @@
->>> +* Texas Instruments TV7002 video decoder
->>> +
-[...]
->>> +
->>> +- ti,tvp7002-fid-polarity: Active-high Field ID polarity of the endpoint.
->>
->> I thought it was agreed 'field-even-active' would be used instead of
->> this device specific property. Did you run into any issues with that ?
->>
->>
-> Argh I some how missed it out, sorry this should be 'field-even-active'
+Hello,
 
-OK.
+On 21 July 2013 21:38 Sylwester Nawrocki wrote:
+>On 07/19/2013 10:28 PM, Sakari Ailus wrote:
+>> On Sat, Jul 06, 2013 at 09:58:23PM +0200, Sylwester Nawrocki wrote:
+>>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
+>>>
+>>>> The hardware reads AxB sensor pixels from its array, resamples them
+>>>> to CxD image pixels, and then compresses them to ExF bytes.
+>>>
+>>> I think you should use VIDIOC_S_FMT(width = C, height = D, sizeimage
+>>> = ExF) for that. And s_frame_desc sudev op could be used to pass
+>>> sizeimage to the sensor subdev driver.
+>>
+>> Agreed. Let me take this into account in the next RFC.
 
->> And include/media/tvp70002.h:
->>
->>   * fid_polarity:
->>   *                      0 ->  the field ID output is set to logic 1 for an
->> odd
->>   *                           field (field 1) and set to logic 0 for an even
->>   *                           field (field 0).
->>   *                      1 ->  operation with polarity inverted.
->>
->>
->> Do you know if the chip automatically selects video sync source
->> (sync-on-green
->> vs. VSYNC/HSYNC) and there is no need to configure this on the analogue
->> input
->> side ? At least the driver seems to always select the default SOGIN_1 input
->> (TVP7002_IN_MUX_SEL_1 register is set only at initialization time).
->>
-> Yes the driver is selecting the default SOGIN_1 input.
+
+I agree that in my use case the user only needs to be able to specify
+sizeimage, and then be told in response what the adjusted value of
+sizeimage is.
+
+
+>> Does the user need to specify ExF, for other purposes than limiting
+>> the size of the image? I would leave this up to the sensor driver
+>> (with reasonable alignment). The sensor driver would tell about this
+>> to the receiver through
 >
->> Or perhaps it just outputs on SOGOUT, VSOUT, HSOUT lines whatever is fed to
->> its analogue inputs, and any further processing unit need to determine what
->> synchronization signal is present and should be used ?
->>
->
-> Yes that correct, there is a register (Sync Detect Status) which
-> detects the sync for you.
->
->> I suspect that we don't need, e.g. another endpoint node to specify the
->> configuration of the TVP7002 analogue input interface, that would contain
->> a property like video-sync.
->>
->>
-> If I understand correctly you mean if there are two tvp7002 devices connected
-> we don’t need to specify video-sync property, but my question how do we
-> specify this property in common then ?
+> AFAIU ExF is closely related to the memory buffer size, so the sensor
+> driver itself wouldn't have enough information to fix up ExF, would
+>  it ?
 
-No, I thought about two port sub-nodes of a single device node, one for the
-TVP7002 video input and one for the output. But it seems there is no need
-for that, i.e. to specify the input configuration statically in the 
-firmware.
-The chip detects the signals automatically, i.e. it uses whatever is 
-available,
-and it allows querying the selection status at run time. What would really
-need to be configured statically in DT in that case then ? Some initial 
-video
-sync configuration ? I guess it could be well hard coded in the driver, 
-since
-the hardware does run time detection anyway.
 
-It there are real use cases I gues we could add video-sync property or 
-similar,
-besides the existing signal polarity properties.
+If the sensor driver is only told the user's requested sizeimage, it
+can be made to factorize (ExF) into (E,F) itself, but then both the
+parallel interface and the 2D DMA peripheral need to be told the
+particular factorization that it has chosen.
+
+Eg: if the user requests images of 8K, then the bridge needs to know
+that they will come out as 10 lines of 800 bytes.
+
+If the user requests sizeimage which cannot be satisfied (eg: a prime
+number) then it will need to return (E,F) to the bridge driver which
+does not multiply exactly to sizeimage.  Because of this the bridge
+driver must set the corrected value of sizeimage which it returns
+to userspace to the product ExF.
+
+Eg: if the user requests sizeimage = 1601, then the sensor cannot
+provide 1601x1 (width exceeds internal FIFO), it will have to tell
+the bridge that it will give 800x2 or 801x2.  The userspace needs to
+be told that sizeimage was adjusted to 1600 or 1602 because there are
+data fields aligned to the end of the data.
+
+(BTW, would you suggest rounding up or down in this case? If the user
+knew how much memory that an embedded system had available and
+specified sizeimage to the maximum, then rounding up might result in
+failed allocation.  But then, if the user knows how much entropy-coded
+JPEG data to expect, then rounding down might result in truncated
+frames that have to be dropped.)
+
+
+>> frame descriptors. (But still I don't think frame descriptors should
+>> be settable; what sensors can support is fully sensor specific and the
+>> parameters that typically need to be changed are quite limited in numbers.
+>> So I'd go with e.g. controls, again.)
+>
+> I agree it would have been much more clear to have read only frame
+> descriptors outside of the subdev. But the issue with controls is that
+> it would have been difficult to define same parameter for multiple
+> logical stream on the data bus. And data interleaving is a standard
+> feature, it is well defined in the MIPI CSI-2 specification.
+
+> So my feeling is that we would be better off with data structure and a
+> callback, rather than creating multiple strange controls.
+
+> However if we don't use media bus format callbacks, nor frame descriptor
+> callbacks, then what ?... :) It sounds reasonable to me to have frame
+> frame descriptor defined by the sensor (data source) based on media bus
+> format, frame interval, link frequency, etc. Problematic seem to be
+> parameters that are now handled on the video node side, like, e.g.
+> buffer size.
+
+I think that this is definitely not a candidate for using controls.
+I think that whatever mechanism is used for setting sizemage on
+JPEG sensors with 1D DMA, then the same mechanism needs to be extended
+for this case.  Currently this is frame descriptors.
+
+Whatever mechanism is chosen needs to have corresponding get/set/try
+methods to be used when the user calls
+VIDIOC_G_FMT/VIDIOC_S_FMT/VIDIOC_TRY_FMT.
+
+Regards,
+Tom
 
 --
-Thanks,
-Sylwester
+Mr T. Vajzovic
+Software Engineer
+Infrared Integrated Systems Ltd
+Visit us at www.irisys.co.uk
+Disclaimer: This e-mail message is confidential and for use by the addressee only. If the message is received by anyone other than the addressee, please return the message to the sender by replying to it and then delete the original message and the sent message from your computer. Infrared Integrated Systems Limited Park Circle Tithe Barn Way Swan Valley Northampton NN4 9BG Registration Number: 3186364.
