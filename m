@@ -1,107 +1,191 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:4418 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S965116Ab3GLS3q (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:38841 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752591Ab3GVLb7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jul 2013 14:29:46 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6CITg6b068933
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 12 Jul 2013 20:29:45 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 3A28635E0332
-	for <linux-media@vger.kernel.org>; Fri, 12 Jul 2013 20:29:36 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130712182936.3A28635E0332@alastor.dyndns.org>
-Date: Fri, 12 Jul 2013 20:29:36 +0200 (CEST)
+	Mon, 22 Jul 2013 07:31:59 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQC00FHT4WIZ100@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 22 Jul 2013 07:21:57 -0400 (EDT)
+Date: Mon, 22 Jul 2013 08:21:52 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Chris Lee <updatelee@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Proposed modifications to dvb_frontend_ops
+Message-id: <20130722082152.11e2d960@samsung.com>
+In-reply-to: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Chris,
 
-Results of the daily build of media_tree:
+Em Fri, 19 Jul 2013 14:27:09 -0600
+Chris Lee <updatelee@gmail.com> escreveu:
 
-date:		Fri Jul 12 19:00:20 CEST 2013
-git branch:	test
-git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+> In frontend.h we have a struct called dvb_frontend_ops, in there we
+> have an element called delsys to show the delivery systems supported
+> by the tuner, Id like to propose we add onto that with delmod and
+> delfec.
+> 
+> Its not a perfect solution as sometimes a specific modulation or fec
+> is only availible on specific systems. But its better then what we
+> have now. The struct fe_caps isnt really suited for this, its missing
+> many systems, modulations, and fec's. Its just not expandable enough
+> to get all the supported sys/mod/fec a tuner supports in there.
+> 
+> Expanding this would allow user land applications to poll the tuner to
+> determine more detailed information on the tuners capabilities.
+> 
+> Here is the patch I propose, along with the au8522 driver modified to
+> utilize the new elements. Id like to hear comments on it. Does anyone
+> see a better way of doing this ?
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+We had a discussion some time ago about it. Basically, a device that
+it is said to support, let's say, DVB-T, should support all possible
+modulations and FECs that are part of the system.
 
-Detailed results are available here:
+So, in thesis, there shouldn't be any need to add a list of modulations
+and FECs.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+Also, frontends that support multiple delivery systems would need
+to enumerate the modulations and FECs after the selection of a given
+delivery system (as, typically, they only support a subset of them
+for each delsys).
 
-Full logs are available here:
+Ok, practice is different, as there are reverse-engineered drivers
+that may not support everything that the hardware supports. Also,
+a few hardware may have additional restrictions.
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
+Yet, on those cases, the userspace may detect if a given modulation
+type or FEC is supported, by trying to set it and check if the
+operation didn't fail, and if the cache got properly updated.
 
-The Media Infrastructure API from this daily build is here:
+So, at the end, it was decided to not add anything like that.
 
-http://www.xs4all.nl/~hverkuil/spec/media.html
+Yet, it is good to see other opinions.
+
+It should be said that one of the hard parts of an approach like
+that, is that someone would need to dig into each driver and add
+the proper support for per-delsys modulation and FECs.
+
+Alternatively, the core could initialize it to the default value
+for each standard, and call some driver-specific function that
+would reset the modulation/FECs that aren't supported by some
+specific drivers.
+
+Regards,
+Mauro
+
+> 
+> Chris Lee <updatelee@gmail.com>
+> 
+> diff --git a/drivers/media/dvb-core/dvb_frontend.c
+> b/drivers/media/dvb-core/dvb_frontend.c
+> index 1f925e8..f5df08e 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.c
+> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> @@ -1036,6 +1036,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+>   _DTV_CMD(DTV_API_VERSION, 0, 0),
+> 
+>   _DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
+> + _DTV_CMD(DTV_ENUM_DELMOD, 0, 0),
+> + _DTV_CMD(DTV_ENUM_DELFEC, 0, 0),
+> 
+>   _DTV_CMD(DTV_ATSCMH_PARADE_ID, 1, 0),
+>   _DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 1, 0),
+> @@ -1285,6 +1287,22 @@ static int dtv_property_process_get(struct
+> dvb_frontend *fe,
+>   }
+>   tvp->u.buffer.len = ncaps;
+>   break;
+> + case DTV_ENUM_DELMOD:
+> + ncaps = 0;
+> + while (fe->ops.delmod[ncaps] && ncaps < MAX_DELMOD) {
+> + tvp->u.buffer.data[ncaps] = fe->ops.delmod[ncaps];
+> + ncaps++;
+> + }
+> + tvp->u.buffer.len = ncaps;
+> + break;
+> + case DTV_ENUM_DELFEC:
+> + ncaps = 0;
+> + while (fe->ops.delfec[ncaps] && ncaps < MAX_DELFEC) {
+> + tvp->u.buffer.data[ncaps] = fe->ops.delfec[ncaps];
+> + ncaps++;
+> + }
+> + tvp->u.buffer.len = ncaps;
+> + break;
+>   case DTV_FREQUENCY:
+>   tvp->u.data = c->frequency;
+>   break;
+> diff --git a/drivers/media/dvb-core/dvb_frontend.h
+> b/drivers/media/dvb-core/dvb_frontend.h
+> index 371b6ca..4e96640 100644
+> --- a/drivers/media/dvb-core/dvb_frontend.h
+> +++ b/drivers/media/dvb-core/dvb_frontend.h
+> @@ -47,6 +47,8 @@
+>   * should be smaller or equal to 32
+>   */
+>  #define MAX_DELSYS 8
+> +#define MAX_DELMOD 8
+> +#define MAX_DELFEC 32
+> 
+>  struct dvb_frontend_tune_settings {
+>   int min_delay_ms;
+> @@ -263,6 +265,8 @@ struct dvb_frontend_ops {
+>   struct dvb_frontend_info info;
+> 
+>   u8 delsys[MAX_DELSYS];
+> + u8 delmod[MAX_DELMOD];
+> + u8 delfec[MAX_DELFEC];
+> 
+>   void (*release)(struct dvb_frontend* fe);
+>   void (*release_sec)(struct dvb_frontend* fe);
+> diff --git a/include/uapi/linux/dvb/frontend.h
+> b/include/uapi/linux/dvb/frontend.h
+> index c56d77c..be63d37 100644
+> --- a/include/uapi/linux/dvb/frontend.h
+> +++ b/include/uapi/linux/dvb/frontend.h
+> @@ -375,7 +375,10 @@ struct dvb_frontend_event {
+>  #define DTV_STAT_ERROR_BLOCK_COUNT 68
+>  #define DTV_STAT_TOTAL_BLOCK_COUNT 69
+> 
+> -#define DTV_MAX_COMMAND DTV_STAT_TOTAL_BLOCK_COUNT
+> +#define DTV_ENUM_DELMOD 70
+> +#define DTV_ENUM_DELFEC 71
+> +
+> +#define DTV_MAX_COMMAND DTV_ENUM_DELFEC
+> 
+>  typedef enum fe_pilot {
+>   PILOT_ON,
+> diff --git a/drivers/media/dvb-frontends/au8522_dig.c
+> b/drivers/media/dvb-frontends/au8522_dig.c
+> index 6ee9028..1044c9d 100644
+> --- a/drivers/media/dvb-frontends/au8522_dig.c
+> +++ b/drivers/media/dvb-frontends/au8522_dig.c
+> @@ -822,7 +822,9 @@ error:
+>  EXPORT_SYMBOL(au8522_attach);
+> 
+>  static struct dvb_frontend_ops au8522_ops = {
+> - .delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+> + .delsys = { SYS_DVBC_ANNEX_B, SYS_ATSC },
+> + .delmod = { QAM_256, QAM_64, VSB_8 },
+> + .delfec = { FEC_NONE },
+>   .info = {
+>   .name = "Auvitek AU8522 QAM/8VSB Frontend",
+>   .frequency_min = 54000000,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
+-- 
+
+Cheers,
+Mauro
