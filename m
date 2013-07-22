@@ -1,53 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wi0-f176.google.com ([209.85.212.176]:50333 "EHLO
-	mail-wi0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754557Ab3GPXGF (ORCPT
+Received: from eu1sys200aog104.obsmtp.com ([207.126.144.117]:39897 "EHLO
+	eu1sys200aog104.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756738Ab3GVIcl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 19:06:05 -0400
-From: Alban Browaeys <alban.browaeys@gmail.com>
-To: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org
-Cc: linux-kernel@vger.kernel.org, Alban Browaeys <prahal@yahoo.com>
-Subject: [PATCH 2/4] [media] em28xx: i2s 5 sample rates is a subset of 3 one.
-Date: Wed, 17 Jul 2013 01:05:41 +0200
-Message-Id: <1374015941-27538-1-git-send-email-prahal@yahoo.com>
+	Mon, 22 Jul 2013 04:32:41 -0400
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+To: linux-media@vger.kernel.org
+Cc: alipowski@interia.pl, Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, srinivas.kandagatla@gmail.com,
+	srinivas.kandagatla@st.com, sean@mess.org
+Subject: [PATCH v2 0/2] Allow rc device to open from lirc
+Date: Mon, 22 Jul 2013 09:21:59 +0100
+Message-Id: <1374481319-3293-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-As:
-EM28XX_CHIPCFG_I2S_3_SAMPRATES 0x20
-EM28XX_CHIPCFG_I2S_5_SAMPRATES 0x30
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-the board chipcfg is 0xf0 thus if 3_SAMPRATES is tested
-first and matches while it is a 5_SAMPRATES.
+Thankyou for providing comments on v1 patch.
 
-Signed-off-by: Alban Browaeys <prahal@yahoo.com>
----
- drivers/media/usb/em28xx/em28xx-core.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+This patchset adds new members to rc_device structure to open rc device from
+code other than rc-main. In the current code rc-device is only opened via input
+driver. In cases where rc device is using lirc protocol, it will never be opened
+as there is no input driver associated with lirc.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-core.c b/drivers/media/usb/em28xx/em28xx-core.c
-index fc157af..3c0c5e9 100644
---- a/drivers/media/usb/em28xx/em28xx-core.c
-+++ b/drivers/media/usb/em28xx/em28xx-core.c
-@@ -505,13 +505,13 @@ int em28xx_audio_setup(struct em28xx *dev)
- 		dev->audio_mode.has_audio = false;
- 		return 0;
- 	} else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
--		   EM28XX_CHIPCFG_I2S_3_SAMPRATES) {
--		em28xx_info("I2S Audio (3 sample rates)\n");
--		dev->audio_mode.i2s_3rates = 1;
--	} else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
- 		   EM28XX_CHIPCFG_I2S_5_SAMPRATES) {
- 		em28xx_info("I2S Audio (5 sample rates)\n");
- 		dev->audio_mode.i2s_5rates = 1;
-+	} else if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) ==
-+		   EM28XX_CHIPCFG_I2S_3_SAMPRATES) {
-+		em28xx_info("I2S Audio (3 sample rates)\n");
-+		dev->audio_mode.i2s_3rates = 1;
- 	}
- 
- 	if ((cfg & EM28XX_CHIPCFG_AUDIOMASK) != EM28XX_CHIPCFG_AC97) {
+Thes patch set add fix to allow use cases like this to open rc device directly.
+
+Changes since v1:
+	- used rcdev->lock around increments and decrements of users pointed by
+	  Sean Young.
+	- Common up code in rc_open/rc_close.
+
+
+Thanks,
+srini
+
+Srinivas Kandagatla (2):
+  media: rc: Add rc_open/close and use count to rc_dev.
+  media: lirc: Allow lirc dev to talk to rc device
+
+ drivers/media/rc/ir-lirc-codec.c |    1 +
+ drivers/media/rc/lirc_dev.c      |   10 ++++++++
+ drivers/media/rc/rc-main.c       |   46 ++++++++++++++++++++++++++++++++++---
+ include/media/lirc_dev.h         |    1 +
+ include/media/rc-core.h          |    4 +++
+ 5 files changed, 58 insertions(+), 4 deletions(-)
+
 -- 
-1.8.3.2
+1.7.6.5
 
