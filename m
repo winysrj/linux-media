@@ -1,64 +1,53 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f44.google.com ([209.85.160.44]:52842 "EHLO
-	mail-pb0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932451Ab3GKJMF (ORCPT
+Received: from mail-we0-f174.google.com ([74.125.82.174]:48527 "EHLO
+	mail-we0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932820Ab3GVTsx (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:12:05 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: [PATCH 41/50] media: usb: em28xx: make sure irq disabled before acquiring lock
-Date: Thu, 11 Jul 2013 17:06:04 +0800
-Message-Id: <1373533573-12272-42-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Mon, 22 Jul 2013 15:48:53 -0400
+Received: by mail-we0-f174.google.com with SMTP id q54so1174841wes.19
+        for <linux-media@vger.kernel.org>; Mon, 22 Jul 2013 12:48:52 -0700 (PDT)
+MIME-Version: 1.0
+Date: Mon, 22 Jul 2013 15:48:52 -0400
+Message-ID: <CAGoCfiyGJQFCrqaSW3da7YUjL7hEFvun0YgZr6vJL6pstu8q2g@mail.gmail.com>
+Subject: Expected behavior for S_INPUT while streaming in progress?
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Linux Media Mailing List <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so add local_irq_save()
-before acquiring the lock without irqsave().
+Hello,
 
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/media/usb/em28xx/em28xx-audio.c |    3 +++
- 1 file changed, 3 insertions(+)
+I'm doing some cleanup on the au8522 driver, and one thing I noticed
+was that you are actually allowed to issue an S_INPUT while streaming
+is active.  This seems like dangerous behavior, since it can result in
+things like the standard and/or resolution changing while the device
+is actively streaming video.
 
-diff --git a/drivers/media/usb/em28xx/em28xx-audio.c b/drivers/media/usb/em28xx/em28xx-audio.c
-index 2fdb66e..dca53ec 100644
---- a/drivers/media/usb/em28xx/em28xx-audio.c
-+++ b/drivers/media/usb/em28xx/em28xx-audio.c
-@@ -113,6 +113,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
- 		stride = runtime->frame_bits >> 3;
- 
- 		for (i = 0; i < urb->number_of_packets; i++) {
-+			unsigned long flags;
- 			int length =
- 			    urb->iso_frame_desc[i].actual_length / stride;
- 			cp = (unsigned char *)urb->transfer_buffer +
-@@ -134,6 +135,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
- 				       length * stride);
- 			}
- 
-+			local_irq_save(flags);
- 			snd_pcm_stream_lock(substream);
- 
- 			dev->adev.hwptr_done_capture += length;
-@@ -151,6 +153,7 @@ static void em28xx_audio_isocirq(struct urb *urb)
- 			}
- 
- 			snd_pcm_stream_unlock(substream);
-+			local_irq_restore(flags);
- 		}
- 		if (period_elapsed)
- 			snd_pcm_period_elapsed(substream);
+Should we be returning -EBUSY for S_INPUT if streaming is in progress?
+ I see cases in drivers where we prevent S_STD from working while
+streaming is in progress, but it seems like S_INPUT is a superset of
+S_STD (it typically happens earlier in the setup process).
+
+If we did do this, how badly do we think it would break existing
+applications?  It could require applications to do a STREAMOFF before
+setting the input (to handle the possibility that the call wasn't
+issued previously when an app was done with the device), which I
+suspect many applications aren't doing today.
+
+Alternatively, we can based it on not just whether streamon was called
+and instead base it on the combination of streamon having been called
+and a filehandle actively doing streaming.  In this case case would
+return EBUSY if both conditions were met, but if only streamon was
+called but streaming wasn't actively being done by a filehandle, we
+would internally call streamoff and then change the input.  This would
+mean that if an application like tvtime were running, externally
+toggling the input would return EBUSY.  But if nothing was actively
+streaming via a /dev/videoX device then the call to set input would be
+successful (after internally stopping the stream).
+
+Devin
+
 -- 
-1.7.9.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
