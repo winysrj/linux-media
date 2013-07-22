@@ -1,121 +1,116 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f54.google.com ([209.85.214.54]:64145 "EHLO
-	mail-bk0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753591Ab3GULML (ORCPT
+Received: from eu1sys200aog114.obsmtp.com ([207.126.144.137]:36614 "EHLO
+	eu1sys200aog114.obsmtp.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1756701Ab3GVIct (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jul 2013 07:12:11 -0400
-From: Tomasz Figa <tomasz.figa@gmail.com>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-Cc: Greg KH <gregkh@linuxfoundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Sun, 21 Jul 2013 13:12:07 +0200
-Message-ID: <9748041.Qq1fWJBg6D@flatron>
-In-Reply-To: <51EBC0F5.70601@ti.com>
-References: <20130720220006.GA7977@kroah.com> <3839600.WiC1OLF35o@flatron> <51EBC0F5.70601@ti.com>
-MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+	Mon, 22 Jul 2013 04:32:49 -0400
+From: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
+To: linux-media@vger.kernel.org
+Cc: alipowski@interia.pl, Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-kernel@vger.kernel.org, srinivas.kandagatla@gmail.com,
+	srinivas.kandagatla@st.com, sean@mess.org
+Subject: [PATCH v2 2/2] media: lirc: Allow lirc dev to talk to rc device
+Date: Mon, 22 Jul 2013 09:23:07 +0100
+Message-Id: <1374481387-3424-1-git-send-email-srinivas.kandagatla@st.com>
+In-Reply-To: <1374481319-3293-1-git-send-email-srinivas.kandagatla@st.com>
+References: <1374481319-3293-1-git-send-email-srinivas.kandagatla@st.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday 21 of July 2013 16:37:33 Kishon Vijay Abraham I wrote:
-> Hi,
-> 
-> On Sunday 21 July 2013 04:01 PM, Tomasz Figa wrote:
-> > Hi,
-> > 
-> > On Saturday 20 of July 2013 19:59:10 Greg KH wrote:
-> >> On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
-> >>> On Sat, 20 Jul 2013, Greg KH wrote:
-> >>>>>>> That should be passed using platform data.
-> >>>>>> 
-> >>>>>> Ick, don't pass strings around, pass pointers.  If you have
-> >>>>>> platform
-> >>>>>> data you can get to, then put the pointer there, don't use a
-> >>>>>> "name".
-> >>>>> 
-> >>>>> I don't think I understood you here :-s We wont have phy pointer
-> >>>>> when we create the device for the controller no?(it'll be done in
-> >>>>> board file). Probably I'm missing something.
-> >>>> 
-> >>>> Why will you not have that pointer?  You can't rely on the "name"
-> >>>> as
-> >>>> the device id will not match up, so you should be able to rely on
-> >>>> the pointer being in the structure that the board sets up, right?
-> >>>> 
-> >>>> Don't use names, especially as ids can, and will, change, that is
-> >>>> going
-> >>>> to cause big problems.  Use pointers, this is C, we are supposed to
-> >>>> be
-> >>>> doing that :)
-> >>> 
-> >>> Kishon, I think what Greg means is this:  The name you are using
-> >>> must
-> >>> be stored somewhere in a data structure constructed by the board
-> >>> file,
-> >>> right?  Or at least, associated with some data structure somehow.
-> >>> Otherwise the platform code wouldn't know which PHY hardware
-> >>> corresponded to a particular name.
-> >>> 
-> >>> Greg's suggestion is that you store the address of that data
-> >>> structure
-> >>> in the platform data instead of storing the name string.  Have the
-> >>> consumer pass the data structure's address when it calls phy_create,
-> >>> instead of passing the name.  Then you don't have to worry about two
-> >>> PHYs accidentally ending up with the same name or any other similar
-> >>> problems.
-> >> 
-> >> Close, but the issue is that whatever returns from phy_create()
-> >> should
-> >> then be used, no need to call any "find" functions, as you can just
-> >> use
-> >> the pointer that phy_create() returns.  Much like all other class api
-> >> functions in the kernel work.
-> > 
-> > I think there is a confusion here about who registers the PHYs.
-> > 
-> > All platform code does is registering a platform/i2c/whatever device,
-> > which causes a driver (located in drivers/phy/) to be instantiated.
-> > Such drivers call phy_create(), usually in their probe() callbacks,
-> > so platform_code has no way (and should have no way, for the sake of
-> > layering) to get what phy_create() returns.
-> 
-> right.
-> 
-> > IMHO we need a lookup method for PHYs, just like for clocks,
-> > regulators, PWMs or even i2c busses because there are complex cases
-> > when passing just a name using platform data will not work. I would
-> > second what Stephen said [1] and define a structure doing things in a
-> > DT-like way.
-> > 
-> > Example;
-> > 
-> > [platform code]
-> > 
-> > static const struct phy_lookup my_phy_lookup[] = {
-> > 
-> > 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
-> 
-> The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
-> creating the device, the ids in the device name would change and
-> PHY_LOOKUP wont be useful.
+From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
 
-I don't think this is a problem. All the existing lookup methods already 
-use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). You 
-can simply add a requirement that the ID must be assigned manually, 
-without using PLATFORM_DEVID_AUTO to use PHY lookup.
+The use case is simple, if any rc device has allowed protocols =
+RC_TYPE_LIRC and map_name = RC_MAP_LIRC set, the driver open will be never
+called. The reason for this is, all of the key maps except lirc have some
+KEYS in there map, so during rc_register_device process these keys are
+matched against the input drivers and open is performed, so for the case
+of RC_MAP_EMPTY, a vt/keyboard is matched and the driver open is
+performed.
 
-Best regards,
-Tomasz
+In case of lirc, there is no match and result is that there is no open
+performed, however the lirc-dev will go ahead and create a /dev/lirc0
+node. Now when lircd/mode2 opens this device, no data is available
+because the driver was never opened.
+
+Other case pointed by Sean Young, As rc device gets opened via the
+input interface. If the input device is never opened (e.g. embedded with
+no console) then the rc open is never called and lirc will not work
+either. So that's another case.
+
+lirc_dev seems to have no link with actual rc device w.r.t open/close.
+This patch adds rc_dev pointer to lirc_driver structure for cases like
+this, so that it can do the open/close of the real driver in accordance
+to lircd/mode2 open/close.
+
+Without this patch its impossible to open a rc device which has
+RC_TYPE_LIRC ad RC_MAP_LIRC set.
+
+Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
+---
+ drivers/media/rc/ir-lirc-codec.c |    1 +
+ drivers/media/rc/lirc_dev.c      |   10 ++++++++++
+ include/media/lirc_dev.h         |    1 +
+ 3 files changed, 12 insertions(+), 0 deletions(-)
+
+diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
+index e456126..6858685 100644
+--- a/drivers/media/rc/ir-lirc-codec.c
++++ b/drivers/media/rc/ir-lirc-codec.c
+@@ -375,6 +375,7 @@ static int ir_lirc_register(struct rc_dev *dev)
+ 	drv->code_length = sizeof(struct ir_raw_event) * 8;
+ 	drv->fops = &lirc_fops;
+ 	drv->dev = &dev->dev;
++	drv->rdev = dev;
+ 	drv->owner = THIS_MODULE;
+ 
+ 	drv->minor = lirc_register_driver(drv);
+diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
+index 8dc057b..dc5cbff 100644
+--- a/drivers/media/rc/lirc_dev.c
++++ b/drivers/media/rc/lirc_dev.c
+@@ -35,6 +35,7 @@
+ #include <linux/device.h>
+ #include <linux/cdev.h>
+ 
++#include <media/rc-core.h>
+ #include <media/lirc.h>
+ #include <media/lirc_dev.h>
+ 
+@@ -467,6 +468,12 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
+ 		goto error;
+ 	}
+ 
++	if (ir->d.rdev) {
++		retval = rc_open(ir->d.rdev);
++		if (retval)
++			goto error;
++	}
++
+ 	cdev = ir->cdev;
+ 	if (try_module_get(cdev->owner)) {
+ 		ir->open++;
+@@ -511,6 +518,9 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
+ 
+ 	WARN_ON(mutex_lock_killable(&lirc_dev_lock));
+ 
++	if (ir->d.rdev)
++		rc_close(ir->d.rdev);
++
+ 	ir->open--;
+ 	if (ir->attached) {
+ 		ir->d.set_use_dec(ir->d.data);
+diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
+index 168dd0b..78f0637 100644
+--- a/include/media/lirc_dev.h
++++ b/include/media/lirc_dev.h
+@@ -139,6 +139,7 @@ struct lirc_driver {
+ 	struct lirc_buffer *rbuf;
+ 	int (*set_use_inc) (void *data);
+ 	void (*set_use_dec) (void *data);
++	struct rc_dev *rdev;
+ 	const struct file_operations *fops;
+ 	struct device *dev;
+ 	struct module *owner;
+-- 
+1.7.6.5
 
