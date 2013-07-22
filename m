@@ -1,100 +1,103 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f41.google.com ([209.85.160.41]:61546 "EHLO
-	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753127Ab3GYHdb (ORCPT
+Received: from mailout4.samsung.com ([203.254.224.34]:18466 "EHLO
+	mailout4.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932673Ab3GVSFn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 03:33:31 -0400
-Received: by mail-pb0-f41.google.com with SMTP id rp16so420665pbb.28
-        for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 00:33:30 -0700 (PDT)
-Date: Thu, 25 Jul 2013 16:29:22 +0900 (JST)
-Message-Id: <20130725.162922.274362407.matsu@igel.co.jp>
-To: vladimir.barinov@cogentembedded.com
-Cc: g.liakhovetski@gmx.de, mchehab@redhat.com,
-	linux-media@vger.kernel.org, magnus.damm@gmail.com,
-	linux-sh@vger.kernel.org, phil.edworthy@renesas.com,
-	sergei.shtylyov@cogentembedded.com
-Subject: Re: [PATCH v8] V4L2: soc_camera: Renesas R-Car VIN driver
-From: Katsuya MATSUBARA <matsu@igel.co.jp>
-In-Reply-To: <51F0CBF7.9080201@cogentembedded.com>
-References: <201307200314.35345.sergei.shtylyov@cogentembedded.com>
-	<20130725.120113.75189051.matsu@igel.co.jp>
-	<51F0CBF7.9080201@cogentembedded.com>
-Mime-Version: 1.0
-Content-Type: Text/Plain; charset=us-ascii
-Content-Transfer-Encoding: 7bit
+	Mon, 22 Jul 2013 14:05:43 -0400
+Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
+ by mailout4.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQC00L7WNL6IAO0@mailout4.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 23 Jul 2013 03:05:34 +0900 (KST)
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+To: linux-media@vger.kernel.org
+Cc: g.liakhovetski@gmx.de, prabhakar.csengg@gmail.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: [PATCH RFC 3/5] V4L2: Add V4L2_ASYNC_MATCH_OF subdev matching type
+Date: Mon, 22 Jul 2013 20:04:45 +0200
+Message-id: <1374516287-7638-4-git-send-email-s.nawrocki@samsung.com>
+In-reply-to: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
+References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Add support for matching by device_node pointer. This allows
+the notifier user to simply pass a list of device_node pointers
+corresponding to sub-devices.
 
- Hi Vladimir,
-
-From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
-Date: Thu, 25 Jul 2013 10:55:51 +0400
-
-> Hi  Matsubara-san,
-> 
-> On 07/25/2013 07:01 AM, Katsuya MATSUBARA wrote:
->>   Hi Vladimir,
->>
->>   Thank you for the revised patch.
->>
->> From: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
->> Date: Sat, 20 Jul 2013 03:14:34 +0400
->>
->>> From: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
->>>
->>> Add Renesas R-Car VIN (Video In) V4L2 driver.
->>>
->>> Based on the patch by Phil Edworthy<phil.edworthy@renesas.com>.
->>>
->>> Signed-off-by: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
->>> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed
->>> 'enum chip_id'
->>> values, reordered rcar_vin_id_table[] entries, removed senseless
->>> parens from
->>> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {}
->>> to the
->>> *if* statement and used 'bool' values instead of 0/1 where necessary,
->>> *removed
->>> unused macros, done some reformatting and clarified some comments.]
->>> Signed-off-by: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
->>>
->>> ---
->>> This patch is against the 'media_tree.git' repo.
->>>
->>> Changes since version 7:
->>> - remove 'icd' field from 'struct rcar_vin_priv' in accordance with the
->>> - commit
->>>    f7f6ce2d09c86bd80ee11bd654a1ac1e8f5dfe13 ([media] soc-camera: move
->>>    common code
->>>    to soc_camera.c);
->>> - added mandatory clock_{start|stop}() methods in accordance with the
->>> - commit
->>>    a78fcc11264b824d9651b55abfeedd16d5cd8415 ([media] soc-camera: make
->>>    .clock_
->>>    {start,stop} compulsory, .add / .remove optional).
->> From: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
->> Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
->> Date: Sat, 22 Jun 2013 15:45:10 +0400
->>
->>>> But, captured images are still incorrect that means wrong
->>>> order of fields desite '_BT' chosen for V4L2_STD_525_60.
->>>>
->>> I've ordered the NTSC camera.
->>> I will return once I get it.
->>   Did you get an NTSC camera and see the field order issue
->>   occurs on your BOCK-W board?
-> Yes I did.
->>   You may want to consider adding a workaround into
->>   the VIN driver if the issue remains in the latest patch.
-> Have you seen this patch https://linuxtv.org/patch/19278/ ?
-
-Oh, I missed the mail.
-I tested it now and confirmed the issue has gone!
-
-Thank you for fixing it.
+Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
 ---
-Katsuya Matsubara / IGEL Co., Ltd
-matsu@igel.co.jp
+ drivers/media/v4l2-core/v4l2-async.c |    9 +++++++++
+ include/media/v4l2-async.h           |    5 +++++
+ 2 files changed, 14 insertions(+)
 
+diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+index 86934ca..9f91013 100644
+--- a/drivers/media/v4l2-core/v4l2-async.c
++++ b/drivers/media/v4l2-core/v4l2-async.c
+@@ -39,6 +39,11 @@ static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
+ 	return !strcmp(asd->match.device_name.name, dev_name(dev));
+ }
  
++static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
++{
++	return dev->of_node == asd->match.of.node;
++}
++
+ static LIST_HEAD(subdev_list);
+ static LIST_HEAD(notifier_list);
+ static DEFINE_MUTEX(list_lock);
+@@ -66,6 +71,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+ 		case V4L2_ASYNC_MATCH_I2C:
+ 			match = match_i2c;
+ 			break;
++		case V4L2_ASYNC_MATCH_OF:
++			match = match_of;
++			break;
+ 		default:
+ 			/* Cannot happen, unless someone breaks us */
+ 			WARN_ON(true);
+@@ -145,6 +153,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+ 		case V4L2_ASYNC_MATCH_CUSTOM:
+ 		case V4L2_ASYNC_MATCH_DEVNAME:
+ 		case V4L2_ASYNC_MATCH_I2C:
++		case V4L2_ASYNC_MATCH_OF:
+ 			break;
+ 		default:
+ 			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+index 33e3b2a..295782e 100644
+--- a/include/media/v4l2-async.h
++++ b/include/media/v4l2-async.h
+@@ -13,6 +13,7 @@
+ 
+ #include <linux/list.h>
+ #include <linux/mutex.h>
++#include <linux/of.h>
+ 
+ struct device;
+ struct v4l2_device;
+@@ -26,6 +27,7 @@ enum v4l2_async_match_type {
+ 	V4L2_ASYNC_MATCH_CUSTOM,
+ 	V4L2_ASYNC_MATCH_DEVNAME,
+ 	V4L2_ASYNC_MATCH_I2C,
++	V4L2_ASYNC_MATCH_OF,
+ };
+ 
+ /**
+@@ -39,6 +41,9 @@ struct v4l2_async_subdev {
+ 	enum v4l2_async_match_type match_type;
+ 	union {
+ 		struct {
++			const struct device_node *node;
++		} of;
++		struct {
+ 			const char *name;
+ 		} device_name;
+ 		struct {
+-- 
+1.7.9.5
+
