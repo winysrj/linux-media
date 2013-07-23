@@ -1,58 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f177.google.com ([209.85.192.177]:60498 "EHLO
-	mail-pd0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932067Ab3GMC7Z (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:56994 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758046Ab3GWVOW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jul 2013 22:59:25 -0400
-Received: by mail-pd0-f177.google.com with SMTP id p10so9082707pdj.36
-        for <linux-media@vger.kernel.org>; Fri, 12 Jul 2013 19:59:25 -0700 (PDT)
-Received: from [192.168.1.108] ([180.218.153.154])
-        by mx.google.com with ESMTPSA id om2sm48143913pbb.34.2013.07.12.19.59.23
-        for <linux-media@vger.kernel.org>
-        (version=TLSv1 cipher=ECDHE-RSA-RC4-SHA bits=128/128);
-        Fri, 12 Jul 2013 19:59:24 -0700 (PDT)
-Message-ID: <51E0C286.9020609@gmail.com>
-Date: Sat, 13 Jul 2013 10:59:18 +0800
-From: Huei-Horng Yo <hiroshiyui@gmail.com>
+	Tue, 23 Jul 2013 17:14:22 -0400
+Date: Tue, 23 Jul 2013 17:14:20 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+cc: Tomasz Figa <t.figa@samsung.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<broonie@kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<olof@lixom.net>, Stephen Warren <swarren@wwwdotorg.org>,
+	<b.zolnierkie@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+In-Reply-To: <1388978.Qc6sFy33oS@flatron>
+Message-ID: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: linux-media@vger.kernel.org
-Subject: Re: [PATCH][dvb-apps] Fix 'scan' utility region 0x14 encoding from
- BIG5 to UTF-16BE
-References: <CAJNvB=z5YLBUuNy8-ozUDEFxrHwfr7jt=Cp3QOvqZn15DY8qqg@mail.gmail.com>
-In-Reply-To: <CAJNvB=z5YLBUuNy8-ozUDEFxrHwfr7jt=Cp3QOvqZn15DY8qqg@mail.gmail.com>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-於 西元2013年07月13日 10:44, Huei-Horng Yo 提到:
-> From: Huei-Horng Yo <hiroshiyui@gmail.com>
->
->
-> Signed-off-by: Huei-Horng Yo <hiroshiyui@gmail.com>
-> ---
->
+On Tue, 23 Jul 2013, Tomasz Figa wrote:
 
-Sorry, don't know how to keep tab in GMail and the attachment is encoded 
-in MIME form. :(
----
-From: Huei-Horng Yo <hiroshiyui@gmail.com>
+> > If you want to keep the phy struct completely separate from the board
+> > file, there's an easy way to do it.  Let's say the board file knows
+> > about N different PHYs in the system.  Then you define an array of N
+> > pointers to phys:
+> > 
+> > struct phy *(phy_address[N]);
+> > 
+> > In the platform data for both PHY j and its controller, store
+> > &phy_address[j].  The PHY provider passes this cookie to phy_create:
+> > 
+> > 	cookie = pdev->dev.platform_data;
+> > 	ret = phy_create(phy, cookie);
+> > 
+> > and phy_create simply stores: *cookie = phy.  The PHY consumer does
+> > much the same the same thing:
+> > 
+> > 	cookie = pdev->dev.platform_data;
+> > 	phy = phy_get(cookie);
+> > 
+> > phy_get returns *cookie if it isn't NULL, or an ERR_PTR otherwise.
+> 
+> OK, this can work. Again, just technically, because it's rather ugly.
 
+There's no reason the phy_address things have to be arrays.  A separate
+individual pointer for each PHY would work just as well.
 
-Signed-off-by: Huei-Horng Yo <hiroshiyui@gmail.com>
----
-diff --git a/util/scan/scan.c b/util/scan/scan.c
-index 71a20db..98093ee 100644
---- a/util/scan/scan.c
-+++ b/util/scan/scan.c
-@@ -850,7 +850,7 @@ static void descriptorcpy(char **dest, const 
-unsigned char *src, size_t len)
-  		case 0x11:	type = "ISO-10646";		break;
-  		case 0x12:	type = "ISO-2022-KR";		break;
-  		case 0x13:	type = "GB2312";		break;
--		case 0x14:	type = "BIG5";			break;
-+		case 0x14:	type = "UTF-16BE";			break;
-  		case 0x15:	type = "ISO-10646/UTF-8";	break;
-  		case 0x10: /* ISO8859 */
-  			if ((*(src + 1) != 0) || *(src + 2) > 0x0f)
+> Where would you want to have those phy_address arrays stored? There are no 
+> board files when booting with DT. Not even saying that you don't need to 
+> use any hacky schemes like this when you have DT that nicely specifies 
+> relations between devices.
+
+If everybody agrees DT has a nice scheme for specifying relations
+between devices, why not use that same scheme in the PHY core?
+
+> Anyway, board file should not be considered as a method to exchange data 
+> between drivers. It should be used only to pass data from it to drivers, 
+> not the other way. Ideally all data in a board file should be marked as 
+> const and __init and dropped after system initialization.
+
+The phy_address things don't have to be defined or allocated in the 
+board file; they could be set up along with the platform data.
+
+In any case, this was simply meant to be a suggestion to show that it 
+is relatively easy to do what you need without using name or ID 
+strings.
+
+Alan Stern
 
