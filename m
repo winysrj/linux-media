@@ -1,78 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f179.google.com ([209.85.214.179]:39224 "EHLO
-	mail-ob0-f179.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760368Ab3GSMKU (ORCPT
+Received: from mail-vb0-f42.google.com ([209.85.212.42]:41342 "EHLO
+	mail-vb0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932791Ab3GWNfC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 08:10:20 -0400
-Received: by mail-ob0-f179.google.com with SMTP id xk17so5108411obc.38
-        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 05:10:19 -0700 (PDT)
+	Tue, 23 Jul 2013 09:35:02 -0400
+Received: by mail-vb0-f42.google.com with SMTP id i3so5532591vbh.1
+        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 06:35:01 -0700 (PDT)
 MIME-Version: 1.0
-In-Reply-To: <51E8FE15.4090604@samsung.com>
-References: <1374220729-8304-1-git-send-email-ricardo.ribalda@gmail.com>
- <1374220729-8304-3-git-send-email-ricardo.ribalda@gmail.com> <51E8FE15.4090604@samsung.com>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Fri, 19 Jul 2013 14:09:57 +0200
-Message-ID: <CAPybu_1tJUMOJJmWB6QgyUZ+51P0bnm9fuZ2_qTiT8SHDQpEyA@mail.gmail.com>
-Subject: Re: [PATCH 2/4] videobuf2-dma-sg: Replace vb2_dma_sg_desc with sg_table
-To: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, devel@driverdev.osuosl.org
+In-Reply-To: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+Date: Tue, 23 Jul 2013 19:05:01 +0530
+Message-ID: <CAHFNz9JCf6SUWhjErWYBRnwbaFL3WvZuag0_1pZ0Nqt3pG24Hg@mail.gmail.com>
+Subject: Re: Proposed modifications to dvb_frontend_ops
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Chris Lee <updatelee@gmail.com>
+Cc: linux-media@vger.kernel.org
 Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Sylwester
-
-I thought I had to split the API changes. Sorry :S. I will wait for
-more comments and then I will resubmit.
-
-Thanks for you comment!
-
-
-On Fri, Jul 19, 2013 at 10:51 AM, Sylwester Nawrocki
-<s.nawrocki@samsung.com> wrote:
-> Hi Ricardo,
+On Sat, Jul 20, 2013 at 1:57 AM, Chris Lee <updatelee@gmail.com> wrote:
+> In frontend.h we have a struct called dvb_frontend_ops, in there we
+> have an element called delsys to show the delivery systems supported
+> by the tuner, Id like to propose we add onto that with delmod and
+> delfec.
 >
-> On 07/19/2013 09:58 AM, Ricardo Ribalda Delgado wrote:
->> Replace the private struct vb2_dma_sg_desc with the struct sg_table so
->> we can benefit from all the helping functions in lib/scatterlist.c for
->> things like allocating the sg or compacting the descriptor
->>
->> Signed-off-by: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
->> ---
-> [...]
->> diff --git a/include/media/videobuf2-dma-sg.h b/include/media/videobuf2-dma-sg.h
->> index 0038526..7b89852 100644
->> --- a/include/media/videobuf2-dma-sg.h
->> +++ b/include/media/videobuf2-dma-sg.h
->> @@ -15,16 +15,10 @@
->>
->>  #include <media/videobuf2-core.h>
->>
->> -struct vb2_dma_sg_desc {
->> -     unsigned long           size;
->> -     unsigned int            num_pages;
->> -     struct scatterlist      *sglist;
->> -};
->
-> You need to squash patches 3/4, 4/4 into this one to avoid breaking
-> build and git bisection.
->
-> Thanks,
-> Sylwester
->
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> Its not a perfect solution as sometimes a specific modulation or fec
+> is only availible on specific systems. But its better then what we
+> have now. The struct fe_caps isnt really suited for this, its missing
+> many systems, modulations, and fec's. Its just not expandable enough
+> to get all the supported sys/mod/fec a tuner supports in there.
+
+Question > Why should an application know all the modulations and
+FEC's supported by a demodulator ?
+
+Aren't demodulators compliant to their respective delivery systems ?
+
+Or do you mean to state that, you are trying to work around some
+demodulator quirks ?
 
 
+Regards,
 
--- 
-Ricardo Ribalda
+Manu
