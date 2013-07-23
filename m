@@ -1,140 +1,220 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mx1.redhat.com ([209.132.183.28]:18653 "EHLO mx1.redhat.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751417Ab3GARme (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 1 Jul 2013 13:42:34 -0400
-Date: Mon, 1 Jul 2013 14:42:19 -0300
-From: Mauro Carvalho Chehab <mchehab@redhat.com>
-To: Manu Abraham <abraham.manu@gmail.com>
-Cc: Linus Torvalds <torvalds@linux-foundation.org>,
-	Andrew Morton <akpm@linux-foundation.org>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Linux Kernel Mailing List <linux-kernel@vger.kernel.org>,
-	Zoran Turalija <zoran.turalija@gmail.com>,
-	Srinivas KANDAGATLA <srinivas.kandagatla@st.com>,
-	Nicolas THERY <nicolas.thery@st.com>,
-	Divneil Rai WADHAWAN <divneil.wadhawan@st.com>,
-	Vincent ABRIOU <vincent.abriou@st.com>,
-	Alain VOLMAT <alain.volmat@st.com>
-Subject: Re: [GIT PULL for v3.11] media patches for v3.11
-Message-ID: <20130701144219.2ce56054.mchehab@redhat.com>
-In-Reply-To: <CAHFNz9JJ1kOehY+3R6=c3MNvs0WN+hOXUDbKpG7yD6m=7mwkgw@mail.gmail.com>
-References: <20130701075856.6e8daa98.mchehab@redhat.com>
-	<CAHFNz9J_FJP4YcCd3-_3x6d5iNDoqpYMMtX1Xd+OFJX4H7so0A@mail.gmail.com>
-	<20130701123512.04e0ab62.mchehab@redhat.com>
-	<CAHFNz9JJ1kOehY+3R6=c3MNvs0WN+hOXUDbKpG7yD6m=7mwkgw@mail.gmail.com>
-Mime-Version: 1.0
-Content-Type: text/plain; charset=US-ASCII
+Received: from devils.ext.ti.com ([198.47.26.153]:41516 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757536Ab3GWPTY (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 11:19:24 -0400
+Message-ID: <51EE9EC0.6060905@ti.com>
+Date: Tue, 23 Jul 2013 20:48:24 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
+MIME-Version: 1.0
+To: Alan Stern <stern@rowland.harvard.edu>
+CC: Tomasz Figa <tomasz.figa@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<broonie@kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<olof@lixom.net>, Stephen Warren <swarren@wwwdotorg.org>,
+	<b.zolnierkie@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+In-Reply-To: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+Content-Type: text/plain; charset="ISO-8859-1"
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Em Mon, 1 Jul 2013 21:17:58 +0530
-Manu Abraham <abraham.manu@gmail.com> escreveu:
+Hi,
 
-> On Mon, Jul 1, 2013 at 9:05 PM, Mauro Carvalho Chehab
-> <mchehab@redhat.com> wrote:
-> > Em Mon, 1 Jul 2013 16:37:58 +0530
-> > Manu Abraham <abraham.manu@gmail.com> escreveu:
-> >
-> >> Mauro,
-> >>
-> >> On Mon, Jul 1, 2013 at 4:28 PM, Mauro Carvalho Chehab
-> >> <mchehab@redhat.com> wrote:
-> >> > Hi Linus,
-> >> >
-> >> > Please pull from:
-> >> >   git://git.kernel.org/pub/scm/linux/kernel/git/mchehab/linux-media v4l_for_linus
-> >> >
-> >> > For the media patches for Kernel v3.11.
-> >> >
-> >>
-> >> >
-> >> > Zoran Turalija (2):
-> >> >       [media] stb0899: allow minimum symbol rate of 1000000
-> >> >       [media] stb0899: allow minimum symbol rate of 2000000
-> >>
-> >>
-> >> Somehow, I missed these patches; These are incorrect. Please revert
-> >> these changes.
-> >> Simply changing the advertized minima values don't change the search algorithm
-> >> behaviour, it simply leads to broken behaviour.
-> >>
-> >> NACK for these changes.
-> >
-> > While this patch came from a sub-maintainer's tree, looking at its
-> > history, the patch was proposed here:
-> >         https://linuxtv.org/patch/18341/
-> >
+On Tuesday 23 July 2013 08:07 PM, Alan Stern wrote:
+> On Tue, 23 Jul 2013, Tomasz Figa wrote:
 > 
+>> On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
+>>> Hi Alan,
 > 
-> Wherever it came from, the patch is incorrect. Anyone can throw in
-> any patch as they want.
+> Thanks for helping to clarify the issues here.
 > 
+>>>> Okay.  Are PHYs _always_ platform devices?
+>>>
+>>> They can be i2c, spi or any other device types as well.
 > 
-> > From what it is said there, with this patch, 6 additional channels
-> > were discovered when using with Eutelsat 16A, that uses a symbol
-> > rate between 2MS/s to 5 MS/s. Without this patch, those channels won't
-> > be discovered, as the core won't try to use a symbol rate outside
-> > the range.
-> 
-> What you are stating is a hit and miss scenario, sometimes it might lock
-> and sometimes it wouldn't.
+> In those other cases, presumably there is no platform data associated
+> with the PHY since it isn't a platform device.  Then how does the
+> kernel know which controller is attached to the PHY?  Is this spelled
+> out in platform data associated with the PHY's i2c/spi/whatever parent?
 
-Well, before this change, it was a full miss scenario, as it will 
-never lock on low symbol rate channels.
-
-> The scanning algorithm that I implemented for the demodulator works
-> with a symbol rate as low as 5 MSPS alone. Anything lower than that
-> is hit and miss.
-
-Ok, so latter patches need to improve the algorithm to improve it
-for lower symbol rates. By getting feedback about this patch, we'll
-know more about how bad is the current algorithm, as people may now
-report and work on improve it.
-
-> > Of course, transponders with a symbol rate equal or upper than 5MS/s
-> > won't be affected by this patch.
-> >
+Yes. I think we could use i2c_board_info for passing platform data.
 > 
+>>>>>> 	PHY.  Currently this information is represented by name or 
+>> ID
+>>>>>> 	strings embedded in platform data.
+>>>>>
+>>>>> right. It's embedded in the platform data of the controller.
+>>>>
+>>>> It must also be embedded in the PHY's platform data somehow.
+>>>> Otherwise, how would the kernel know which PHY to use?
+>>>
+>>> By using a PHY lookup as Stephen and I suggested in our previous
+>>> replies. Without any extra data in platform data. (I have even posted a
+>>> code example.)
 > 
-> How can you be sure ? I myself am not very sure. While we worked on
-> the demodulator in the early days, we had different situations where a
-> previous failed state could cause lockup of the demodulator, eventually
-> resulting tuning failures.
+> I don't understand, because I don't know what "a PHY lookup" does.
 
-If that happens, that would be a firmware or hardware issue.
-As I said before, ST can provide us an answer if the hardware has
-such bug.
+It is how the PHY framework finds a PHY, when the controller (say USB)requests
+a PHY from the PHY framework.
+> 
+>>>> In this case, it doesn't matter where the platform_device structures
+>>>> are created or where the driver source code is.  Let's take a simple
+>>>> example.  Suppose the system design includes a PHY named "foo".  Then
+>>>> the board file could contain:
+>>>>
+>>>> struct phy_info { ... } phy_foo;
+>>>> EXPORT_SYMBOL_GPL(phy_foo);
+>>>>
+>>>> and a header file would contain:
+>>>>
+>>>> extern struct phy_info phy_foo;
+>>>>
+>>>> The PHY supplier could then call phy_create(&phy_foo), and the PHY
+>>>> client could call phy_find(&phy_foo).  Or something like that; make up
+>>>> your own structure tags and function names.
+>>>>
+>>>> It's still possible to have conflicts, but now two PHYs with the same
+>>>> name (or a misspelled name somewhere) will cause an error at link
+>>>> time.
+>>>
+>>> This is incorrect, sorry. First of all it's a layering violation - you
+>>> export random driver-specific symbols from one driver to another. Then
+> 
+> No, that's not what I said.  Neither the PHY driver nor the controller
+> driver exports anything to the other.  Instead, both drivers use data
+> exported by the board file.
 
-> > Even if this is not a perfect patch and some changes would be
-> > needed to improve tuning for those low symbol rate transponders,
-> > it seems better than before, as at least now some channels are tuned.
-> >
-> > The only reason I can see to reverse this patch is that if setting
-> > the frontend to low bit ranges could damage the frontend or could
-> > hit some bug on the hardware (or internal firmware).
-> >
-> > Yet, from the datasheet pointed by the patch author, it seems that
-> > this frontend allows such low symbol rates:
-> >         http://comtech.sg1002.myweb.hinet.net/pdf/dvbs2-6899.pdf
+I think instead we can use the same data while creating the platform data of
+the controller and the PHY.
+The PHY driver while creating the PHY (using PHY framework) will also pass the
+*data* it actually got from the platform data to the framework.
+The PHY user driver (USB), while requesting for the PHY (from the PHY
+framework) will pass the *data* it got from its platform data.
+The PHY framework can do a comparison of the *data* pointers it has and return
+the appropriate PHY to the controller.
 > 
+>>> imagine 4 SoCs - A, B, C, D. There are two PHY types PHY1 and PHY2 and
+>>> there are two types of consumer drivers (e.g. USB host controllers). Now
+>>> consider following mapping:
+>>>
+>>> SoC	PHY	consumer
+>>> A	PHY1	HOST1
+>>> B	PHY1	HOST2
+>>> C	PHY2	HOST1
+>>> D	PHY2	HOST2
+>>>
+>>> So we have to be able to use any of the PHYs with any of the host
+>>> drivers. This means you would have to export symbol with the same name
+>>> from both PHY drivers, which obviously would not work in this case,
+>>> because having both drivers enabled (in a multiplatform aware
+>>> configuration) would lead to linking conflict.
 > 
-> The frontend allows a different lower symbol rate with a different
-> scanning algorithm, not with this existing current one.
+> You're right; the scheme was too simple.  Instead, the board file must
+> export two types of data structures, one for PHYs and one for
+> controllers.  Like this:
 > 
-> I am pretty sure, that author saw some specifications written some
-> place and simply copied those numbers in here. Also sure that he
-> has no idea about the algorithm in use.
+> struct phy_info {
+> 	/* Info for the controller attached to this PHY */
+> 	struct controller_info	*hinfo;
+> };
 > 
-> According to ST itself, a 2MSPS algorithm was created for a very
-> specific customer requirement, which is not applicable to the existing
-> algorithm in use with the Linux STB0899 demodulator driver.
+> struct controller_info {
+> 	/* Info for the PHY which this controller is attached to */
+> 	struct phy_info		*pinfo;
+> };
+> 
+> The board file for SoC A would contain:
+> 
+> struct phy_info phy1 = {&host1);
+> EXPORT_SYMBOL(phy1);
+> struct controller_info host1 = {&phy1};
+> EXPORT_SYMBOL(host1);
+> 
+> The board file for SoC B would contain:
+> 
+> struct phy_info phy1 = {&host2);
+> EXPORT_SYMBOL(phy1);
+> struct controller_info host2 = {&phy1};
+> EXPORT_SYMBOL(host2);
 
-Ok, so let's wait for ST to provide us some feedback on this public
-thread, in order to be sure that we need to reverse it because of
-some hardware bug, or to get an improved algorithm that will better 
-work with low symbol rates.
+I meant something like this
+struct phy_info {
+	const char *name;
+};
 
-Regards,
-Mauro
+struct phy_platform_data {
+	.
+	.
+	struct phy_info *info;
+};
+
+struct usb_controller_platform_data {
+	.
+	.
+	struct phy_info *info;
+};
+
+struct phy_info phy_info;
+
+While creating the phy device
+	struct phy_platform_data phy_data;
+	phy_data.info = &info;
+	platform_device_add_data(pdev, &phy_data, sizeof(*phy_data))
+	platform_device_add();
+
+While creating the controller device
+	struct usb_controller_platform_data controller_data;
+	controller_data.info = &info;
+	platform_device_add_data(pdev, &controller_data, sizeof(*controller_data))
+	platform_device_add();
+
+Then modify PHY framework API phy create
+	phy_create((struct device *dev, const struct phy_ops *ops,
+        void *priv)  {//API changed to take void pointer instead of label
+		. //existing implementation
+		.
+		phy->priv = priv;
+	}
+
+	struct phy *phy_get(struct device *dev, const char *string, void *priv) {
+//API changed to take an additional pointer
+		phy_lookup(priv)
+	}
+
+	static struct phy *phy_lookup(void *priv) {
+		.
+		.
+		if (phy->priv==priv) //instead of string comparison, we'll use pointer
+			return phy;
+	}
+
+PHY driver should be like
+	phy_create((dev, ops, pdata->info);
+
+The controller driver would do
+	phy_get(dev, NULL, pdata->info);
+
+Now the PHY framework will check for a match of *priv* pointer and return the PHY.
+
+I think this should be possible?
+
+Thanks
+Kishon
