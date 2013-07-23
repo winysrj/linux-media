@@ -1,220 +1,152 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f175.google.com ([209.85.192.175]:58780 "EHLO
-	mail-pd0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932148Ab3GRPyg (ORCPT
+Received: from mail-bk0-f42.google.com ([209.85.214.42]:64654 "EHLO
+	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932447Ab3GWUVB (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 11:54:36 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v4] media: i2c: tvp7002: add OF support
-Date: Thu, 18 Jul 2013 21:24:26 +0530
-Message-Id: <1374162866-14981-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 23 Jul 2013 16:21:01 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Tomasz Figa <t.figa@samsung.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	broonie@kernel.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Tue, 23 Jul 2013 22:20:53 +0200
+Message-ID: <1387574.Tkg16KearS@flatron>
+In-Reply-To: <Pine.LNX.4.44L0.1307231518310.1304-100000@iolanthe.rowland.org>
+References: <Pine.LNX.4.44L0.1307231518310.1304-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On Tuesday 23 of July 2013 15:36:00 Alan Stern wrote:
+> On Tue, 23 Jul 2013, Tomasz Figa wrote:
+> > IMHO it would be better if you provided some code example, but let's
+> > try to check if I understood you correctly.
+> > 
+> > 8><-------------------------------------------------------------------
+> > -----
+> > 
+> > [Board file]
+> > 
+> > static struct phy my_phy;
+> > 
+> > static struct platform_device phy_pdev = {
+> > 
+> > 	/* ... */
+> > 	.platform_data = &my_phy;
+> > 	/* ... */
+> > 
+> > };
+> > 
+> > static struct platform_device phy_pdev = {
+> 
+> This should be controller_pdev, not phy_pdev, yes?
 
-add OF support for the tvp7002 driver.
+Right. A copy-pasto.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- This patch depends on https://patchwork.kernel.org/patch/2828800/
- 
- Changes for v4:
- 1: Improved descrition of end point properties.
+> 
+> > 	/* ... */
+> > 	.platform_data = &my_phy;
+> > 	/* ... */
+> > 
+> > };
+> > 
+> > [Provider driver]
+> > 
+> > struct phy *phy = pdev->dev.platform_data;
+> > 
+> > ret = phy_create(phy);
+> > 
+> > [Consumer driver]
+> > 
+> > struct phy *phy = pdev->dev.platform_data;
+> > 
+> > ret = phy_get(&pdev->dev, phy);
+> 
+> Or even just phy_get(&pdev->dev), because phy_get() could be smart
+> enough to to set phy = dev->platform_data.
 
- Changes for v3:
- 1: Fixed review comments pointed by Sylwester.
+Unless you need more than one PHY in this driver...
 
- .../devicetree/bindings/media/i2c/tvp7002.txt      |   53 ++++++++++++++++
- drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
- 2 files changed, 113 insertions(+), 7 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+> 
+> > ----------------------------------------------------------------------
+> > --><8
+> > 
+> > Is this what you mean?
+> 
+> That's what I was going to suggest too.  The struct phy is defined in
+> the board file, which already knows about all the PHYs that exist in
+> the system.  (Or perhaps it is allocated dynamically, so that when many
+> board files are present in the same kernel, only the entries listed in
+> the board file for the current system get created.) 
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-new file mode 100644
-index 0000000..1d00935
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
-@@ -0,0 +1,53 @@
-+* Texas Instruments TV7002 video decoder
-+
-+The TVP7002 device supports digitizing of video and graphics signal in RGB and
-+YPbPr color space.
-+
-+Required Properties :
-+- compatible : Must be "ti,tvp7002"
-+
-+Optional Properties:
-+- hsync-active: HSYNC Polarity configuration for the bus. Default value when
-+  this property is not specified is <0>.
-+
-+- vsync-active: VSYNC Polarity configuration for the bus. Default value when
-+  this property is not specified is <0>.
-+
-+- pclk-sample: Clock polarity of the bus. Default value when this property is
-+  not specified is <0>.
-+
-+- sync-on-green-active: Active state of Sync-on-green signal property of the
-+  endpoint.
-+  0 = Normal Operation (Default)
-+  1 = Inverted operation
-+
-+- field-even-active: Active-high Field ID output polarity control of the bus.
-+  Under normal operation, the field ID output is set to logic 1 for an odd field
-+  (field 1)and set to logic 0 for an even field (field 0).
-+  0 = Normal operation (default)
-+  1 = FID output polarity inverted
-+
-+For further reading of port node refer Documentation/devicetree/bindings/media/
-+video-interfaces.txt.
-+
-+Example:
-+
-+	i2c0@1c22000 {
-+		...
-+		...
-+		tvp7002@5c {
-+			compatible = "ti,tvp7002";
-+			reg = <0x5c>;
-+
-+			port {
-+				tvp7002_1: endpoint {
-+					hsync-active = <1>;
-+					vsync-active = <1>;
-+					pclk-sample = <0>;
-+					sync-on-green-active = <1>;
-+					field-even-active = <0>;
-+				};
-+			};
-+		};
-+		...
-+	};
-diff --git a/drivers/media/i2c/tvp7002.c b/drivers/media/i2c/tvp7002.c
-index f6b1f3f..24a08fa 100644
---- a/drivers/media/i2c/tvp7002.c
-+++ b/drivers/media/i2c/tvp7002.c
-@@ -35,6 +35,8 @@
- #include <media/v4l2-device.h>
- #include <media/v4l2-common.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
-+
- #include "tvp7002_reg.h"
- 
- MODULE_DESCRIPTION("TI TVP7002 Video and Graphics Digitizer driver");
-@@ -943,6 +945,48 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
- 	.pad = &tvp7002_pad_ops,
- };
- 
-+static struct tvp7002_config *
-+tvp7002_get_pdata(struct i2c_client *client)
-+{
-+	struct v4l2_of_endpoint bus_cfg;
-+	struct tvp7002_config *pdata;
-+	struct device_node *endpoint;
-+	unsigned int flags;
-+
-+	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-+		return client->dev.platform_data;
-+
-+	endpoint = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-+	if (!endpoint)
-+		return NULL;
-+
-+	pdata = devm_kzalloc(&client->dev, sizeof(*pdata), GFP_KERNEL);
-+	if (!pdata)
-+		goto done;
-+
-+	v4l2_of_parse_endpoint(endpoint, &bus_cfg);
-+	flags = bus_cfg.bus.parallel.flags;
-+
-+	if (flags & V4L2_MBUS_HSYNC_ACTIVE_HIGH)
-+		pdata->hs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_VSYNC_ACTIVE_HIGH)
-+		pdata->vs_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_PCLK_SAMPLE_RISING)
-+		pdata->clk_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_FIELD_EVEN_HIGH)
-+		pdata->fid_polarity = 1;
-+
-+	if (flags & V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH)
-+		pdata->sog_polarity = 1;
-+
-+done:
-+	of_node_put(endpoint);
-+	return pdata;
-+}
-+
- /*
-  * tvp7002_probe - Probe a TVP7002 device
-  * @c: ptr to i2c_client struct
-@@ -954,32 +998,32 @@ static const struct v4l2_subdev_ops tvp7002_ops = {
-  */
- static int tvp7002_probe(struct i2c_client *c, const struct i2c_device_id *id)
- {
-+	struct tvp7002_config *pdata = tvp7002_get_pdata(c);
- 	struct v4l2_subdev *sd;
- 	struct tvp7002 *device;
- 	struct v4l2_dv_timings timings;
- 	int polarity_a;
- 	int polarity_b;
- 	u8 revision;
--
- 	int error;
- 
-+	if (pdata == NULL) {
-+		dev_err(&c->dev, "No platform data\n");
-+		return -EINVAL;
-+	}
-+
- 	/* Check if the adapter supports the needed features */
- 	if (!i2c_check_functionality(c->adapter,
- 		I2C_FUNC_SMBUS_READ_BYTE | I2C_FUNC_SMBUS_WRITE_BYTE_DATA))
- 		return -EIO;
- 
--	if (!c->dev.platform_data) {
--		v4l_err(c, "No platform data!!\n");
--		return -ENODEV;
--	}
--
- 	device = devm_kzalloc(&c->dev, sizeof(struct tvp7002), GFP_KERNEL);
- 
- 	if (!device)
- 		return -ENOMEM;
- 
- 	sd = &device->sd;
--	device->pdata = c->dev.platform_data;
-+	device->pdata = pdata;
- 	device->current_timings = tvp7002_timings;
- 
- 	/* Tell v4l2 the device is ready */
-@@ -1084,9 +1128,18 @@ static const struct i2c_device_id tvp7002_id[] = {
- };
- MODULE_DEVICE_TABLE(i2c, tvp7002_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id tvp7002_of_match[] = {
-+	{ .compatible = "ti,tvp7002", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, tvp7002_of_match);
-+#endif
-+
- /* I2C driver data */
- static struct i2c_driver tvp7002_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(tvp7002_of_match),
- 		.owner = THIS_MODULE,
- 		.name = TVP7002_MODULE_NAME,
- 	},
--- 
-1.7.9.5
+Well, such dynamic allocation is a must. We don't accept non-multiplatform 
+aware code anymore, not even saying about multiboard.
+
+> Then the
+> structure's address is stored in the platform data and made available
+> to both the provider and the consumer.
+
+Yes, technically this can work. You would still have to perform some kind 
+of synchronization to make sure that the PHY bound to this structure is 
+actually present. This is again technically doable (e.g. a list of 
+registered struct phys inside PHY core).
+
+> Even though the struct phy is defined (or allocated) in the board file,
+> its contents don't get filled in until the PHY driver provides the
+> details.
+
+You can't assure this. Board file is free to do whatever it wants with 
+this struct. A clean solution would prevent this.
+
+> > It's technically correct, but quality of this solution isn't really
+> > nice, because it's a layering violation (at least if I understood
+> > what you mean). This is because you need to have full definition of
+> > struct phy in board file and a structure that is used as private data
+> > in PHY core comes from platform code.
+> 
+> You don't have to have a full definition in the board file.  Just a
+> partial definition -- most of the contents can be filled in later, when
+> the PHY driver is ready to store the private data.
+> 
+> It's not a layering violation for one region of the kernel to store
+> private data in a structure defined by another part of the kernel.
+> This happens all the time (e.g., dev_set_drvdata).
+
+Not really. The phy struct is something that _is_ private data of PHY 
+subsystem, not something that can store private data of PHY subsystem 
+(sure it can store private data of particular PHY driver, but that's 
+another story) and only PHY subsystem should have access to its contents.
+
+By the way, we need to consider other cases here as well, for example it 
+would be nice to have a single phy_get() function that works for both non-
+DT and DT cases to make the consumer driver not have to worry whether it's 
+being probed from DT or not.
+
+I'd suggest simply reusing the lookup method of regulator framework, just 
+as I suggested here:
+
+http://thread.gmane.org/gmane.linux.ports.arm.kernel/252813/focus=101661
+
+Best regards,
+Tomasz
 
