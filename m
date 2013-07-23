@@ -1,47 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f169.google.com ([209.85.215.169]:65397 "EHLO
-	mail-ea0-f169.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756879Ab3GDUWH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jul 2013 16:22:07 -0400
-Received: by mail-ea0-f169.google.com with SMTP id h15so1041159eak.14
-        for <linux-media@vger.kernel.org>; Thu, 04 Jul 2013 13:22:05 -0700 (PDT)
-Message-ID: <51D5D967.1030306@zenburn.net>
-Date: Thu, 04 Jul 2013 22:21:59 +0200
-From: =?UTF-8?B?SmFrdWIgUGlvdHIgQ8WCYXBh?= <jpc-ml@zenburn.net>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: [omap3isp] xclk deadlock
-References: <51D37796.2000601@zenburn.net>
-In-Reply-To: <51D37796.2000601@zenburn.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Received: from mail-yh0-f47.google.com ([209.85.213.47]:43534 "EHLO
+	mail-yh0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751226Ab3GWBoR (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 22 Jul 2013 21:44:17 -0400
+Received: by mail-yh0-f47.google.com with SMTP id z20so936258yhz.6
+        for <linux-media@vger.kernel.org>; Mon, 22 Jul 2013 18:44:16 -0700 (PDT)
+From: Fabio Estevam <festevam@gmail.com>
+To: k.debski@samsung.com
+Cc: m.chehab@samsung.com, kernel@pengutronix.de,
+	linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH v3 2/3] [media] coda: Check the return value from clk_prepare_enable()
+Date: Mon, 22 Jul 2013 22:38:21 -0300
+Message-Id: <1374543502-22678-2-git-send-email-festevam@gmail.com>
+In-Reply-To: <1374543502-22678-1-git-send-email-festevam@gmail.com>
+References: <1374543502-22678-1-git-send-email-festevam@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi again,
+From: Fabio Estevam <fabio.estevam@freescale.com>
 
-Sorry for the noise, but I believe the information below may be useful 
-until everything is merged into mainline.
+clk_prepare_enable() may fail, so let's check its return value and propagate it
+in the case of error.
 
-I write to say that I managed to find a fix for the ISP clock deadlock. 
-  My branch can be found at:
-https://github.com/LoEE/linux/tree/omap3isp/xclk
-(SHA: 36286390193922d148e7a3db0676747a20f2ed66 at the time of writing)
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+---
+- Changes since v2:
+- Release the previously acquired resources
+Changes since v1:
+- Add missing 'if'
 
-For reference:
-1. This was a known problem since early January [1] (reported by Laurent).
-2. Mike Turquette had submitted patches that made the clock framework 
-(partially) reentrant. [2][3][4]
-3. My code is just a rebase of the Laurent's omap3isp/xclk branch on the 
-Mike's clk-next (so it's based on 3.10-rc3).
+ drivers/media/platform/coda.c | 17 +++++++++++++++--
+ 1 file changed, 15 insertions(+), 2 deletions(-)
 
-[1]: https://lkml.org/lkml/2013/1/6/169
-[2]: http://thread.gmane.org/gmane.linux.kernel/1448446/focus=1448448
-[3]: http://thread.gmane.org/gmane.linux.ports.arm.kernel/182198
-[4]: http://patches.linaro.org/15676/
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index ea16c20..5f15aaa 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -1561,14 +1561,27 @@ static int coda_open(struct file *file)
+ 	list_add(&ctx->list, &dev->instances);
+ 	coda_unlock(ctx);
+ 
+-	clk_prepare_enable(dev->clk_per);
+-	clk_prepare_enable(dev->clk_ahb);
++	ret = clk_prepare_enable(dev->clk_per);
++	if (ret)
++		goto err_clk_per;
++
++	ret = clk_prepare_enable(dev->clk_ahb);
++	if (ret)
++		goto err_clk_ahb;
+ 
+ 	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d (%p)\n",
+ 		 ctx->idx, ctx);
+ 
+ 	return 0;
+ 
++err_clk_ahb:
++	clk_disable_unprepare(dev->clk_per);
++err_clk_per:
++	coda_lock(ctx);
++	list_del(&ctx->list);
++	coda_unlock(ctx);
++	dma_free_coherent(&dev->plat_dev->dev, CODA_PARA_BUF_SIZE,
++			  ctx->parabuf.vaddr, ctx->parabuf.paddr);
+ err_dma_alloc:
+ 	v4l2_ctrl_handler_free(&ctx->ctrls);
+ err_ctrls_setup:
 -- 
-regards,
-Jakub Piotr Cłapa
-LoEE.pl
+1.8.1.2
+
