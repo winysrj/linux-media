@@ -1,89 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:24942 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758775Ab3GRNeY (ORCPT
+Received: from gateway13.websitewelcome.com ([69.56.160.10]:47354 "EHLO
+	gateway13.websitewelcome.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934384Ab3GWWcZ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 09:34:24 -0400
-Message-id: <51E7EEDC.9080003@samsung.com>
-Date: Thu, 18 Jul 2013 15:34:20 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Cc: Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org,
-	open list <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] videobuf2-dma-sg: Minimize the number of dma segments
-References: <1373880874-9270-1-git-send-email-ricardo.ribalda@gmail.com>
- <51E65577.7010403@samsung.com>
- <CAPybu_3Je7+0Qh2OdptncnxC12G15Scad+A3yUeF898sVWKo8w@mail.gmail.com>
- <51E69F49.10500@samsung.com>
- <CAPybu_0b9ADaUFFHuw=tKkVR4fiu9bGNJVgy4MGbuE-zAA9sZQ@mail.gmail.com>
- <51E7960C.8050707@samsung.com>
- <CAPybu_36Pe5+RO+qmUXTQtbESnrJg4hwey1mXXRH4urc9i4GAg@mail.gmail.com>
-In-reply-to: <CAPybu_36Pe5+RO+qmUXTQtbESnrJg4hwey1mXXRH4urc9i4GAg@mail.gmail.com>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Tue, 23 Jul 2013 18:32:25 -0400
+Received: from gator3086.hostgator.com (ns6171.hostgator.com [50.87.144.121])
+	by gateway13.websitewelcome.com (Postfix) with ESMTP id 3CAE5C9622593
+	for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 17:07:04 -0500 (CDT)
+From: Dean Anderson <linux-dev@sensoray.com>
+To: linux-dev@sensoray.com, linux-media@vger.kernel.org,
+	hverkuil@xs4all.nl
+Subject: [PATCH] S2255: Removal of unnecessary videobuf_queue_is_busy
+Date: Tue, 23 Jul 2013 15:06:41 -0700
+Message-Id: <1374617201-18033-1-git-send-email-linux-dev@sensoray.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+Removes unnecessary query of buffer state.  The code already checks if stream is active or not.
 
-On 7/18/2013 9:39 AM, Ricardo Ribalda Delgado wrote:
-> Hello again:
->
-> I have started to implemt it, but I think there is more hidden work in
-> this task as it seems. In order to call dma_map_sg and
-> max_dma_segment_size I need acess to the struct device, but (correct
-> me if I am wrong), vb2 is device agnostic. Adding the above
-> functionality will mean not only updating marvell-ccic and solo6x10,
-> but updating all the vb2 buffers.
+Signed-off-by: Dean Anderson <linux-dev@sensoray.com>
+---
+ drivers/media/usb/s2255/s2255drv.c |    9 ++-------
+ 1 file changed, 2 insertions(+), 7 deletions(-)
 
-For getting device pointer, vb2-dma-sg need to be extended with so called
-'allocator context'. Please check how it is done in vb2-dma-contig
-(vb2_dma_contig_init_ctx() function).
-
-
-> Also after some readings, maybe the sg compactation should not be done
-> here, but in dma_map_sg. According to the doc:
->
-> """
-> The implementation is free to merge several consecutive sglist entries
-> into one (e.g. if DMA mapping is done with PAGE_SIZE granularity, any
-> consecutive sglist entries can be merged into one provided the first one
-> ends and the second one starts on a page boundary - in fact this is a huge
-> advantage for cards which either cannot do scatter-gather or have very
-> limited number of scatter-gather entries) and returns the actual number
-> of sg entries it mapped them to. On failure 0 is returned.
-> """
->
-> So, my proposal would be to alloc with alloc_pages to try to get
-> memory as coherent as possible, then split the page, set the sg in
-> PAGE_SIZE lenghts, and then let the dma_map_sg do its magic. if it
-> doesnt do compactation, fix dma_map_sg, so more driver could take
-> advantage of it.
-
-Right, this approach is probably the best one, but this way you would need
-to do the compaction in every dma-mapping implementation for every supported
-architecture. IMHO vb2-dma-sg can help dma-mapping by at least by allocating
-memory in larger chunks and constructing shorter scatter list. Updating
-dma-mapping functions across all architectures is a lot of work and testing,
-so for initial version we should focus on vb2-dma-sg. Memory allocators
-already do some work to ease mapping a buffer to dma space.
-
-> I could also of course fix marvell-ccic and solo6x10 to use sg_table.
->
-> Does anything of this make sense?
-
-I would also like to help you as much as possible, but for the next 10 days
-I will be not available for both personal reasons and holidays. If you have
-any questions, feel free to leave them on my mail, I will reply asap I get
-back.
-
-Best regards
+diff --git a/drivers/media/usb/s2255/s2255drv.c b/drivers/media/usb/s2255/s2255drv.c
+index ab97e7d..6bc9b8e 100644
+--- a/drivers/media/usb/s2255/s2255drv.c
++++ b/drivers/media/usb/s2255/s2255drv.c
+@@ -1,7 +1,7 @@
+ /*
+  *  s2255drv.c - a driver for the Sensoray 2255 USB video capture device
+  *
+- *   Copyright (C) 2007-2010 by Sensoray Company Inc.
++ *   Copyright (C) 2007-2013 by Sensoray Company Inc.
+  *                              Dean Anderson
+  *
+  * Some video buffer code based on vivi driver:
+@@ -52,7 +52,7 @@
+ #include <media/v4l2-ctrls.h>
+ #include <media/v4l2-event.h>
+ 
+-#define S2255_VERSION		"1.22.1"
++#define S2255_VERSION		"1.23.1"
+ #define FIRMWARE_FILE_NAME "f2255usb.bin"
+ 
+ /* default JPEG quality */
+@@ -1303,11 +1303,6 @@ static int vidioc_s_std(struct file *file, void *priv, v4l2_std_id i)
+ 	int ret = 0;
+ 
+ 	mutex_lock(&q->vb_lock);
+-	if (videobuf_queue_is_busy(q)) {
+-		dprintk(1, "queue busy\n");
+-		ret = -EBUSY;
+-		goto out_s_std;
+-	}
+ 	if (res_locked(fh)) {
+ 		dprintk(1, "can't change standard after started\n");
+ 		ret = -EBUSY;
 -- 
-Marek Szyprowski
-Samsung R&D Institute Poland
-
+1.7.9.5
 
