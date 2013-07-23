@@ -1,402 +1,121 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:44786 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752102Ab3GHMHe (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 8 Jul 2013 08:07:34 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout2.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPM00LU49OANZR0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Mon, 08 Jul 2013 21:07:33 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v4 7/8] [media] V4L: Add VP8 encoder controls
-Date: Mon, 08 Jul 2013 18:00:35 +0530
-Message-id: <1373286637-30154-8-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
-References: <1373286637-30154-1-git-send-email-arun.kk@samsung.com>
+Received: from mail-lb0-f177.google.com ([209.85.217.177]:36426 "EHLO
+	mail-lb0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934140Ab3GWWhh (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 18:37:37 -0400
+Received: by mail-lb0-f177.google.com with SMTP id 10so6622218lbf.22
+        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 15:37:35 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAA9z4LbeV223oPfyjzUpGLrg55Z8Eag8Hpu3x++N_LsiRr8y+Q@mail.gmail.com>
+References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+	<CAHFNz9JCf6SUWhjErWYBRnwbaFL3WvZuag0_1pZ0Nqt3pG24Hg@mail.gmail.com>
+	<CAA9z4LYFW4iZsQgbPHHhy1ESiEDtVyNV4QaSeULq7p+kWs+e=A@mail.gmail.com>
+	<CAHFNz9KNMVXa1kpMjoiiB4T9P-=AQqm7cfPDau_mtAQTxbUCEw@mail.gmail.com>
+	<CAA9z4LbeV223oPfyjzUpGLrg55Z8Eag8Hpu3x++N_LsiRr8y+Q@mail.gmail.com>
+Date: Wed, 24 Jul 2013 04:07:35 +0530
+Message-ID: <CAHFNz9+KX2G8bz_9gpwBJpUr14VBUo=qAYLHm9-_0b8z_XUdzQ@mail.gmail.com>
+Subject: Re: Proposed modifications to dvb_frontend_ops
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Chris Lee <updatelee@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds new V4L controls for VP8 encoding.
+On Wed, Jul 24, 2013 at 2:57 AM, Chris Lee <updatelee@gmail.com> wrote:
+>> Nitpick: tuner doesn't have anything to do with FEC, it just provides IQ
+>> outputs to the demodulator. ;-)
+>
+> ya ya :) you knew what I meant, not what I said hehe
+>
+>> Demods support all FEC's relevant to their delivery systems. It's just that
+>> some devices likely do support some additional states.
+>
+> This part I dont understand, what do you mean additional states ? and
+> how would a userland application determine if a demod supports these
+> additional states?
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
----
- Documentation/DocBook/media/v4l/controls.xml |  168 +++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-ctrls.c         |   39 +++++-
- include/uapi/linux/v4l2-controls.h           |   33 ++++-
- 3 files changed, 230 insertions(+), 10 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 8d7a779..4bcedbf 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -722,17 +722,22 @@ for more details.</para>
-     </section>
- 
-     <section id="mpeg-controls">
--      <title>MPEG Control Reference</title>
-+      <title>Codec Control Reference</title>
- 
--      <para>Below all controls within the MPEG control class are
-+      <para>Below all controls within the Codec control class are
- described. First the generic controls, then controls specific for
- certain hardware.</para>
- 
-+      <para>Note: These controls are applicable all codecs and
-+not just MPEG. The defines are prefixed with V4L2_CID_MPEG/V4L2_MPEG
-+as the controls were originally made for MPEG class and later
-+extended to cover all encoding formats.</para>
-+
-       <section>
--	<title>Generic MPEG Controls</title>
-+	<title>Generic Codec Controls</title>
- 
- 	<table pgwide="1" frame="none" id="mpeg-control-id">
--	  <title>MPEG Control IDs</title>
-+	  <title>Codec Control IDs</title>
- 	  <tgroup cols="4">
- 	    <colspec colname="c1" colwidth="1*" />
- 	    <colspec colname="c2" colwidth="6*" />
-@@ -752,7 +757,7 @@ certain hardware.</para>
- 	      <row>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_CLASS</constant>&nbsp;</entry>
- 		<entry>class</entry>
--	      </row><row><entry spanname="descr">The MPEG class
-+	      </row><row><entry spanname="descr">The Codec class
- descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
- description of this control class. This description can be used as the
- caption of a Tab page in a GUI, for example.</entry>
-@@ -3009,6 +3014,159 @@ in by the application. 0 = do not insert, 1 = insert packets.</entry>
- 	  </tgroup>
- 	</table>
-       </section>
-+
-+    <section>
-+      <title>VPX Control Reference</title>
-+
-+      <para>The VPX controls include controls for encoding parameters
-+      of VPx video codec.</para>
-+
-+      <table pgwide="1" frame="none" id="vpx-control-id">
-+      <title>VPX Control IDs</title>
-+
-+      <tgroup cols="4">
-+        <colspec colname="c1" colwidth="1*" />
-+        <colspec colname="c2" colwidth="6*" />
-+        <colspec colname="c3" colwidth="2*" />
-+        <colspec colname="c4" colwidth="6*" />
-+        <spanspec namest="c1" nameend="c2" spanname="id" />
-+        <spanspec namest="c2" nameend="c4" spanname="descr" />
-+        <thead>
-+          <row>
-+            <entry spanname="id" align="left">ID</entry>
-+            <entry align="left">Type</entry>
-+          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+          </row>
-+        </thead>
-+        <tbody valign="top">
-+          <row><entry></entry></row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-vpx-num-partitions">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS</constant></entry>
-+		<entry>enum v4l2_vp8_num_partitions</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The number of token partitions to use in VP8 encoder.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_1_PARTITION</constant></entry>
-+		      <entry>1 coefficient partition</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_2_PARTITIONS</constant></entry>
-+		      <entry>2 coefficient partitions</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_4_PARTITIONS</constant></entry>
-+		      <entry>4 coefficient partitions</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_8_PARTITIONS</constant></entry>
-+		      <entry>8 coefficient partitions</entry>
-+	            </row>
-+                  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_IMD_DISABLE_4X4</constant></entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Setting this prevents intra 4x4 mode in the intra mode decision.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-vpx-num-ref-frames">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES</constant></entry>
-+		<entry>enum v4l2_vp8_num_ref_frames</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The number of reference pictures for encoding P frames.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_1_REF_FRAME</constant></entry>
-+		      <entry>Last encoded frame will be searched</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_2_REF_FRAME</constant></entry>
-+		      <entry>Two frames will be searched among the last encoded frame, the golden frame
-+and the alternate reference (altref) frame. The encoder implementation will decide which two are chosen.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_3_REF_FRAME</constant></entry>
-+		      <entry>The last encoded frame, the golden frame and the altref frame will be searched.</entry>
-+		    </row>
-+                  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_FILTER_LEVEL</constant></entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Indicates the loop filter level. The adjustment of the loop
-+filter level is done via a delta value against a baseline loop filter value.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS</constant></entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">This parameter affects the loop filter. Anything above
-+zero weakens the deblocking effect on the loop filter.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD</constant></entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Sets the refresh period for the golden frame. The period is defined
-+in number of frames. For a value of 'n', every nth frame starting from the first key frame will be taken as a golden frame.
-+For eg. for encoding sequence of 0, 1, 2, 3, 4, 5, 6, 7 where the golden frame refresh period is set as 4, the frames
-+0, 4, 8 etc will be taken as the golden frames as frame 0 is always a key frame.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-vpx-golden-frame-sel">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL</constant></entry>
-+		<entry>enum v4l2_vp8_golden_frame_sel</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Selects the golden frame for encoding.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV</constant></entry>
-+		      <entry>Use the (n-2)th frame as a golden frame, current frame index being 'n'.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_REF_PERIOD</constant></entry>
-+		      <entry>Use the previous specific frame indicated by
-+V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame.</entry>
-+		    </row>
-+                  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+          <row><entry></entry></row>
-+        </tbody>
-+      </tgroup>
-+      </table>
-+
-+      </section>
-     </section>
- 
-     <section id="camera-controls">
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e03a2e8..c6dc1fd 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -424,6 +424,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		NULL,
- 	};
- 
-+	static const char * const vpx_golden_frame_sel[] = {
-+		"Use Previous Frame",
-+		"Use Previous Specific Frame",
-+		NULL,
-+	};
-+
- 	static const char * const flash_led_mode[] = {
- 		"Off",
- 		"Flash",
-@@ -538,6 +544,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg_mpeg4_level;
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 		return mpeg4_profile;
-+	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
-+		return vpx_golden_frame_sel;
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		return jpeg_chroma_subsampling;
- 	case V4L2_CID_DV_TX_MODE:
-@@ -552,13 +560,26 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- }
- EXPORT_SYMBOL(v4l2_ctrl_get_menu);
- 
-+#define __v4l2_qmenu_int_len(arr, len) ({ *(len) = ARRAY_SIZE(arr); arr; })
- /*
-  * Returns NULL or an s64 type array containing the menu for given
-  * control ID. The total number of the menu items is returned in @len.
-  */
- const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
- {
-+	static const s64 const qmenu_int_vpx_num_partitions[] = {
-+		1, 2, 4, 8,
-+	};
-+
-+	static const s64 const qmenu_int_vpx_num_ref_frames[] = {
-+		1, 2, 3,
-+	};
-+
- 	switch (id) {
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:
-+		return __v4l2_qmenu_int_len(qmenu_int_vpx_num_partitions, len);
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES:
-+		return __v4l2_qmenu_int_len(qmenu_int_vpx_num_ref_frames, len);
- 	default:
- 		*len = 0;
- 		return NULL;
-@@ -614,9 +635,11 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ALPHA_COMPONENT:		return "Alpha Component";
- 	case V4L2_CID_COLORFX_CBCR:		return "Color Effects, CbCr";
- 
--	/* MPEG controls */
-+	/* Codec controls */
-+	/* The MPEG controls are applicable to all codec controls
-+	 * and the 'MPEG' part of the define is historical */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
--	case V4L2_CID_MPEG_CLASS:		return "MPEG Encoder Controls";
-+	case V4L2_CID_MPEG_CLASS:		return "Codec Controls";
- 	case V4L2_CID_MPEG_STREAM_TYPE:		return "Stream Type";
- 	case V4L2_CID_MPEG_STREAM_PID_PMT:	return "Stream PMT Program ID";
- 	case V4L2_CID_MPEG_STREAM_PID_AUDIO:	return "Stream Audio Program ID";
-@@ -714,6 +737,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "Initial Delay for VBV Control";
- 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
- 
-+	/* VPX controls */
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
-+	case V4L2_CID_MPEG_VIDEO_VPX_IMD_DISABLE_4X4:		return "VPX Intra Mode Decision Disable";
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES:		return "VPX No. of Refs for P Frame";
-+	case V4L2_CID_MPEG_VIDEO_VPX_FILTER_LEVEL:		return "VPX Loop Filter Level Range";
-+	case V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS:		return "VPX Deblocking Effect Control";
-+	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD:	return "VPX Golden Frame Refresh Period";
-+	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:		return "VPX Golden Frame Indicator";
-+
- 	/* CAMERA controls */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-@@ -928,6 +960,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 	case V4L2_CID_TEST_PATTERN:
- 	case V4L2_CID_TUNE_DEEMPHASIS:
-+	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -939,6 +972,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		break;
- 	case V4L2_CID_ISO_SENSITIVITY:
- 	case V4L2_CID_AUTO_EXPOSURE_BIAS:
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES:
- 		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
- 		break;
- 	case V4L2_CID_USER_CLASS:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 69bd5bb..273a362 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -165,7 +165,9 @@ enum v4l2_colorfx {
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
- #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
- 
--/*  MPEG streams, specific to multiplexed streams */
-+/*  MPEG streams, specific to multiplexed streams
-+ *  The MPEG controls are applicable to all codec controls
-+ *  and the 'MPEG' part of the define is historical */
- #define V4L2_CID_MPEG_STREAM_TYPE 		(V4L2_CID_MPEG_BASE+0)
- enum v4l2_mpeg_stream_type {
- 	V4L2_MPEG_STREAM_TYPE_MPEG2_PS   = 0, /* MPEG-2 program stream */
-@@ -522,6 +524,33 @@ enum v4l2_mpeg_video_mpeg4_profile {
- };
- #define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
- 
-+/*  Control IDs for VP8 streams
-+ *  Though VP8 is not part of MPEG, adding it here as MPEG class is
-+ *  already handling other video compression standards
-+ */
-+#define V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS		(V4L2_CID_MPEG_BASE+500)
-+enum v4l2_vp8_num_partitions {
-+	V4L2_CID_MPEG_VIDEO_VPX_1_PARTITION	= 0,
-+	V4L2_CID_MPEG_VIDEO_VPX_2_PARTITIONS	= 1,
-+	V4L2_CID_MPEG_VIDEO_VPX_4_PARTITIONS	= 2,
-+	V4L2_CID_MPEG_VIDEO_VPX_8_PARTITIONS	= 3,
-+};
-+#define V4L2_CID_MPEG_VIDEO_VPX_IMD_DISABLE_4X4		(V4L2_CID_MPEG_BASE+501)
-+#define V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES		(V4L2_CID_MPEG_BASE+502)
-+enum v4l2_vp8_num_ref_frames {
-+	V4L2_CID_MPEG_VIDEO_VPX_1_REF_FRAME	= 0,
-+	V4L2_CID_MPEG_VIDEO_VPX_2_REF_FRAME	= 1,
-+	V4L2_CID_MPEG_VIDEO_VPX_3_REF_FRAME	= 2,
-+};
-+#define V4L2_CID_MPEG_VIDEO_VPX_FILTER_LEVEL		(V4L2_CID_MPEG_BASE+503)
-+#define V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS	(V4L2_CID_MPEG_BASE+504)
-+#define V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD	(V4L2_CID_MPEG_BASE+505)
-+#define V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL	(V4L2_CID_MPEG_BASE+506)
-+enum v4l2_vp8_golden_frame_sel {
-+	V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV		= 0,
-+	V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_REF_PERIOD	= 1,
-+};
-+
- /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
- #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
- #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
-@@ -590,7 +619,6 @@ enum v4l2_mpeg_mfc51_video_force_frame_type {
- #define V4L2_CID_MPEG_MFC51_VIDEO_H264_ADAPTIVE_RC_STATIC		(V4L2_CID_MPEG_MFC51_BASE+53)
- #define V4L2_CID_MPEG_MFC51_VIDEO_H264_NUM_REF_PIC_FOR_P		(V4L2_CID_MPEG_MFC51_BASE+54)
- 
--
- /*  Camera class control IDs */
- 
- #define V4L2_CID_CAMERA_CLASS_BASE 	(V4L2_CTRL_CLASS_CAMERA | 0x900)
-@@ -818,7 +846,6 @@ enum v4l2_jpeg_chroma_subsampling {
- #define V4L2_CID_PIXEL_RATE			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 2)
- #define V4L2_CID_TEST_PATTERN			(V4L2_CID_IMAGE_PROC_CLASS_BASE + 3)
- 
--
- /*  DV-class control IDs defined by V4L2 */
- #define V4L2_CID_DV_CLASS_BASE			(V4L2_CTRL_CLASS_DV | 0x900)
- #define V4L2_CID_DV_CLASS			(V4L2_CTRL_CLASS_DV | 1)
--- 
-1.7.9.5
+Actually, the userland application shouldn't know about these.
 
+
+>> If I am not mistaken, the genpix hardware is a hardware wrapper around the
+>> BCM demodulator. So, it is quite likely that even if you don't set any FEC
+>> parameter, the device could still acquire lock as expected. I am not holding
+>> my breath on this. Maybe someone with a genpix device can prove me right
+>> or wrong.
+>
+> FEC_AUTO works for all but turbo-qpsk on genpix devices.
+>
+
+
+That was why the SYS_TURBO flag was introduced. IIRC, you needed one
+flag alone for the turbo mode.
+
+
+> I still think its important to have all the fec supported in the
+> driver though even if FEC_AUTO did work 100% else why even have it as
+> an option at all.
+
+Maybe, FEC_AUTO is broken for some very old hardware.
+
+If FEC_AUTO works just as expected, why would you have to take the
+gigantic effort of specifying parameters by hand which is error prone which
+you have mentioned later on ? I fail to understand your point.
+
+
+>> With the STB0899 driver, all you need to tune with it is Frequency,
+>> Symbol Rate and Delivery system
+>>
+>>
+>> With the STV090x driver all you need is Frequency and Symbol Rate.
+>> (It will auto detect delivery system)
+>
+> Same thing, I still think if we allow the user to send a fec value we
+> should make sure its right, else why not just hard code all the
+> drivers to fec-auto that support it and remove the option all
+> together. I dont like that option.
+
+
+
+This is why it was decided eventually that the FEC bits are redundant
+and we decided not to create large lists and enumerations causing
+insanity and not to mention ugliness. AFAIR, almost all drivers do
+FEC_AUTO, except for the ones which have some known issues.
+
+
+
+>> When a driver is not accepting those parameters as inputs, why
+>> should the application/user burden himself with knowing parameters
+>> of no relevance to him ?
+>
+> But it will accept them as inputs. without complaint too. I can send
+> DTV_INNER_FEC w/ FEC_5_11 to stv090x and it doesnt complain at all,
+> even though it doesnt support it. It'll even acquire a lock just
+> because the demod uses blind search. So the driver most definitely
+> does accept fec that it cant use.
+
+
+
+The driver will acquire a lock to the frequency/srate and "return" the
+relevant FEC value for the user/application. This avoids pitfalls and
+human errors in manually specifying FEC bits to tune configurations,
+as I described above. Because some legacy application does set
+a FEC value which might be wrong and the rest are correct, I wouldn't
+fail that request.
+
+
+
+>> Actually with all those redundant FEC bits gone away from relevance, things are
+>> a bit more saner.
+>
+> I dont understand this either. "gone away from relevance" are you
+> meaning just how they really arent used much anymore or something?
+> still though if the demod supports them I think we should too.
+
+
+Yeah, they aren't really used at all. They exist for compatibility reasons.
+
+
+                Manu
