@@ -1,66 +1,35 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33449 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752830Ab3GaV34 (ORCPT
+Received: from mail-ob0-f171.google.com ([209.85.214.171]:63573 "EHLO
+	mail-ob0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S934466Ab3GWW5E (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 17:29:56 -0400
-Date: Thu, 1 Aug 2013 00:29:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v4 6/7] vsp1: Fix lack of the sink entity registration
- for enabled links
-Message-ID: <20130731212921.GT12281@valkosipuli.retiisi.org.uk>
-References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1375285954-32153-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 23 Jul 2013 18:57:04 -0400
+Received: by mail-ob0-f171.google.com with SMTP id dn14so11537221obc.16
+        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 15:57:02 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1375285954-32153-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <CAHFNz9+KX2G8bz_9gpwBJpUr14VBUo=qAYLHm9-_0b8z_XUdzQ@mail.gmail.com>
+References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+	<CAHFNz9JCf6SUWhjErWYBRnwbaFL3WvZuag0_1pZ0Nqt3pG24Hg@mail.gmail.com>
+	<CAA9z4LYFW4iZsQgbPHHhy1ESiEDtVyNV4QaSeULq7p+kWs+e=A@mail.gmail.com>
+	<CAHFNz9KNMVXa1kpMjoiiB4T9P-=AQqm7cfPDau_mtAQTxbUCEw@mail.gmail.com>
+	<CAA9z4LbeV223oPfyjzUpGLrg55Z8Eag8Hpu3x++N_LsiRr8y+Q@mail.gmail.com>
+	<CAHFNz9+KX2G8bz_9gpwBJpUr14VBUo=qAYLHm9-_0b8z_XUdzQ@mail.gmail.com>
+Date: Tue, 23 Jul 2013 16:57:02 -0600
+Message-ID: <CAA9z4Lb_43u28qF+u445B2FqYHufK4yR6vWpxp9wKDvRezqeTg@mail.gmail.com>
+Subject: Re: Proposed modifications to dvb_frontend_ops
+From: Chris Lee <updatelee@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+The problems isnt for tuners where FEC_AUTO does work, its more for
+ones that dont work like the genpix. Im sure there are others too. I
+still think that userland applications should be able to poll that
+info and that the ability to poll the info is a good thing not a bad
+thing.
 
-On Wed, Jul 31, 2013 at 05:52:33PM +0200, Laurent Pinchart wrote:
-> From: Katsuya Matsubara <matsu@igel.co.jp>
-> 
-> Each source entity maintains a pointer to the counterpart sink
-> entity while an enabled link connects them. It should be managed by
-> the setup_link callback in the media controller framework at runtime.
-> However, enabled links which connect RPFs and WPFs that have an
-> equivalent index number are created during initialization.
-> This registers the pointer to a sink entity from the source entity
-> when an enabled link is created.
-> 
-> Signed-off-by: Katsuya Matsubara <matsu@igel.co.jp>
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/platform/vsp1/vsp1_drv.c | 3 +++
->  1 file changed, 3 insertions(+)
-> 
-> diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-> index b05aee1..4d338ce 100644
-> --- a/drivers/media/platform/vsp1/vsp1_drv.c
-> +++ b/drivers/media/platform/vsp1/vsp1_drv.c
-> @@ -101,6 +101,9 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
->  						       entity, pad, flags);
->  			if (ret < 0)
->  				return ret;
-> +
-> +			if (flags & MEDIA_LNK_FL_ENABLED)
-> +				source->sink = entity;
+oh well, lets let this patch die, and the idea can be revisited in the
+future if it warrants more of a pressing need.
 
-"entity" here is in fact an entity which is a sink. It could have a more
-descriptive name. Up to you; should be changed in the 5th patch first.
-
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
-
--- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Chris
