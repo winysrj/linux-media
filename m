@@ -1,80 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([80.229.237.210]:55457 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756608Ab3G3XKE (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 19:10:04 -0400
-From: Sean Young <sean@mess.org>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: =?UTF-8?q?David=20H=C3=A4rdeman?= <david@hardeman.nu>,
-	linux-media@vger.kernel.org
-Subject: [PATCH 2/5] [media] rc: add feedback led trigger for rc keypresses
-Date: Wed, 31 Jul 2013 00:00:01 +0100
-Message-Id: <1375225204-5082-2-git-send-email-sean@mess.org>
-In-Reply-To: <1375225204-5082-1-git-send-email-sean@mess.org>
-References: <1375225204-5082-1-git-send-email-sean@mess.org>
+Received: from mail.linuxfoundation.org ([140.211.169.12]:37029 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933423Ab3GWRf7 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 13:35:59 -0400
+Date: Tue, 23 Jul 2013 10:37:11 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Tomasz Figa <t.figa@samsung.com>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	broonie@kernel.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Message-ID: <20130723173710.GB28284@kroah.com>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+ <51EE9EC0.6060905@ti.com>
+ <20130723161846.GD2486@kroah.com>
+ <1446965.6APW5ZgLBW@amdc1227>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1446965.6APW5ZgLBW@amdc1227>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Many devices with an ir receiver also have a feedback led. Add the
-led trigger to support this.
+On Tue, Jul 23, 2013 at 06:50:29PM +0200, Tomasz Figa wrote:
+> > Ick, no.  Why can't you just pass the pointer to the phy itself?  If you
+> > had a "priv" pointer to search from, then you could have just passed the
+> > original phy pointer in the first place, right?
+> 
+> IMHO it would be better if you provided some code example, but let's try to 
+> check if I understood you correctly.
 
-Signed-off-by: Sean Young <sean@mess.org>
----
- drivers/media/rc/rc-main.c | 6 ++++++
- 1 file changed, 6 insertions(+)
+It's not my code that I want to have added, so I don't have to write
+examples, I just get to complain about the existing stuff :)
 
-diff --git a/drivers/media/rc/rc-main.c b/drivers/media/rc/rc-main.c
-index 1cf382a..628ac2a 100644
---- a/drivers/media/rc/rc-main.c
-+++ b/drivers/media/rc/rc-main.c
-@@ -16,6 +16,7 @@
- #include <linux/spinlock.h>
- #include <linux/delay.h>
- #include <linux/input.h>
-+#include <linux/leds.h>
- #include <linux/slab.h>
- #include <linux/device.h>
- #include <linux/module.h>
-@@ -31,6 +32,7 @@
- /* Used to keep track of known keymaps */
- static LIST_HEAD(rc_map_list);
- static DEFINE_SPINLOCK(rc_map_lock);
-+static struct led_trigger *led_feedback;
- 
- static struct rc_map_list *seek_rc_map(const char *name)
- {
-@@ -535,6 +537,7 @@ static void ir_do_keyup(struct rc_dev *dev, bool sync)
- 
- 	IR_dprintk(1, "keyup key 0x%04x\n", dev->last_keycode);
- 	input_report_key(dev->input_dev, dev->last_keycode, 0);
-+	led_trigger_event(led_feedback, LED_OFF);
- 	if (sync)
- 		input_sync(dev->input_dev);
- 	dev->keypressed = false;
-@@ -648,6 +651,7 @@ static void ir_do_keydown(struct rc_dev *dev, int scancode,
- 		input_report_key(dev->input_dev, keycode, 1);
- 	}
- 
-+	led_trigger_event(led_feedback, LED_FULL);
- 	input_sync(dev->input_dev);
- }
- 
-@@ -1184,6 +1188,7 @@ static int __init rc_core_init(void)
- 		return rc;
- 	}
- 
-+	led_trigger_register_simple("rc-feedback", &led_feedback);
- 	rc_map_register(&empty_map);
- 
- 	return 0;
-@@ -1192,6 +1197,7 @@ static int __init rc_core_init(void)
- static void __exit rc_core_exit(void)
- {
- 	class_unregister(&rc_class);
-+	led_trigger_unregister_simple(led_feedback);
- 	rc_map_unregister(&empty_map);
- }
- 
--- 
-1.8.3.1
+> 8><------------------------------------------------------------------------
+> 
+> [Board file]
+> 
+> static struct phy my_phy;
+> 
+> static struct platform_device phy_pdev = {
+> 	/* ... */
+> 	.platform_data = &my_phy;
+> 	/* ... */
+> };
+> 
+> static struct platform_device phy_pdev = {
+> 	/* ... */
+> 	.platform_data = &my_phy;
+> 	/* ... */
+> };
+> 
+> [Provider driver]
+> 
+> struct phy *phy = pdev->dev.platform_data;
+> 
+> ret = phy_create(phy);
+> 
+> [Consumer driver]
+> 
+> struct phy *phy = pdev->dev.platform_data;
+> 
+> ret = phy_get(&pdev->dev, phy);
+> 
+> ------------------------------------------------------------------------><8
+> 
+> Is this what you mean?
 
+No.  Well, kind of.  What's wrong with using the platform data structure
+unique to the board to have the pointer?
+
+For example (just randomly picking one), the ata-pxa driver would change
+include/linux/platform_data/ata-pxa.h to have a phy pointer in it:
+
+struct phy;
+
+struct  pata_pxa_pdata {
+	/* PXA DMA DREQ<0:2> pin */
+	uint32_t	dma_dreq;
+	/* Register shift */
+	uint32_t	reg_shift;
+	/* IRQ flags */
+	uint32_t	irq_flags;
+	/* PHY */
+	struct phy	*phy;
+};
+
+Then, when you create the platform, set the phy* pointer with a call to
+phy_create().  Then you can use that pointer wherever that plaform data
+is available (i.e. whereever platform_data is at).
+
+> > The issue is that a string "name" is not going to scale at all, as it
+> > requires hard-coded information that will change over time (as the
+> > existing clock interface is already showing.)
+> 
+> I fully agree that a simple, single string will not scale even in some, not 
+> so uncommon cases, but there is already a lot of existing lookup solutions 
+> over the kernel and so there is no point in introducing another one.
+
+I'm trying to get _rid_ of lookup "solutions" and just use a real
+pointer, as you should.  I'll go tackle those other ones after this one
+is taken care of, to show how the others should be handled as well.
+
+> > Please just pass the real "phy" pointer around, that's what it is there
+> > for.  Your "board binding" logic/code should be able to handle this, as
+> > it somehow was going to do the same thing with a "name".
+> 
+> It's technically correct, but quality of this solution isn't really nice, 
+> because it's a layering violation (at least if I understood what you mean). 
+> This is because you need to have full definition of struct phy in board file 
+> and a structure that is used as private data in PHY core comes from 
+> platform code.
+
+No, just a pointer, you don't need the "full" structure until you get to
+some .c code that actually manipulates the phy itself, for all other
+places, you are just dealing with a pointer and a structure you never
+reference.
+
+Does that make more sense?
+
+thanks,
+
+greg k-h
