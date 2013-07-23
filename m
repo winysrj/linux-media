@@ -1,468 +1,498 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perches-mx.perches.com ([206.117.179.246]:59605 "EHLO
-	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
-	id S1752493Ab3G2F3l (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 01:29:41 -0400
-From: Joe Perches <joe@perches.com>
-To: netdev@vger.kernel.org
-Cc: Len Brown <lenb@kernel.org>, "Rafael J. Wysocki" <rjw@sisk.pl>,
-	Pantelis Antoniou <pantelis.antoniou@gmail.com>,
-	Vitaly Bordug <vbordug@ru.mvista.com>,
-	Steve Glendinning <steve.glendinning@shawell.net>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	Samuel Ortiz <samuel@sortiz.org>,
-	"David S. Miller" <davem@davemloft.net>,
-	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
-	linux-media@vger.kernel.org
-Subject: [PATCH 2/3] include: Convert ethernet mac address declarations to use ETH_ALEN
-Date: Sun, 28 Jul 2013 22:29:04 -0700
-Message-Id: <a769aba61c43967257854413f16d2b935cc54972.1375075325.git.joe@perches.com>
-In-Reply-To: <cover.1375075325.git.joe@perches.com>
-References: <cover.1375075325.git.joe@perches.com>
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:29283 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932230Ab3GWMzI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 08:55:08 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQE0027Q3QL59B0@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 23 Jul 2013 08:55:07 -0400 (EDT)
+Date: Tue, 23 Jul 2013 09:55:01 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Chris Lee <updatelee@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: [PATCH] gp8psk: tuning changes
+Message-id: <20130723095501.5e25157c@samsung.com>
+In-reply-to: <CAA9z4LbXV0pF+kUYueAdK-JySU--p5_RYzzbHwPefgktGPLdUw@mail.gmail.com>
+References: <CAA9z4LbXV0pF+kUYueAdK-JySU--p5_RYzzbHwPefgktGPLdUw@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It's convenient to have ethernet mac addresses use
-ETH_ALEN to be able to grep for them a bit easier and
-also to ensure that the addresses are __aligned(2).
+Em Mon, 22 Jul 2013 20:24:41 -0600
+Chris Lee <updatelee@gmail.com> escreveu:
 
-Add #include <linux/if_ether.h> as necessary.
+> - cleanup tuning code
+> - fix tuning for some systems/modulations/fecs
+> - add Digicipher II and DSS tuning abilities
+> - update the property_cache once tuning succeeds with the actual tuned values
+> - implement gp8psk_fe_read_ber()
+> - update .delsys with the new systems
+> 
+> Its a pretty big patch, I can reduce it to smaller parts if you want,
+> I welcome comments & questions
 
-Signed-off-by: Joe Perches <joe@perches.com>
----
- include/acpi/actbl2.h           |  4 ++-
- include/linux/dm9000.h          |  4 ++-
- include/linux/fs_enet_pd.h      |  3 ++-
- include/linux/ieee80211.h       | 59 +++++++++++++++++++++--------------------
- include/linux/mlx4/device.h     | 11 ++++----
- include/linux/mlx4/qp.h         |  5 ++--
- include/linux/mv643xx_eth.h     |  3 ++-
- include/linux/sh_eth.h          |  3 ++-
- include/linux/smsc911x.h        |  3 ++-
- include/linux/uwb/spec.h        |  5 ++--
- include/media/tveeprom.h        |  4 ++-
- include/net/irda/irlan_common.h |  3 ++-
- 12 files changed, 61 insertions(+), 46 deletions(-)
+Yes, please split the API changes on a separate patch, and add the
+corresponding changes at Documentation/DocBook/media/dvb to reflect 
+the needed API additions for Digicipher II and DSS.
 
-diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
-index ffaac0e..3f0f11c 100644
---- a/include/acpi/actbl2.h
-+++ b/include/acpi/actbl2.h
-@@ -44,6 +44,8 @@
- #ifndef __ACTBL2_H__
- #define __ACTBL2_H__
- 
-+#include <linux/if_ether.h>
-+
- /*******************************************************************************
-  *
-  * Additional ACPI Tables (2)
-@@ -605,7 +607,7 @@ struct acpi_ibft_nic {
- 	u8 secondary_dns[16];
- 	u8 dhcp[16];
- 	u16 vlan;
--	u8 mac_address[6];
-+	u8 mac_address[ETH_ALEN];
- 	u16 pci_address;
- 	u16 name_length;
- 	u16 name_offset;
-diff --git a/include/linux/dm9000.h b/include/linux/dm9000.h
-index 96e8769..841925f 100644
---- a/include/linux/dm9000.h
-+++ b/include/linux/dm9000.h
-@@ -14,6 +14,8 @@
- #ifndef __DM9000_PLATFORM_DATA
- #define __DM9000_PLATFORM_DATA __FILE__
- 
-+#include <linux/if_ether.h>
-+
- /* IO control flags */
- 
- #define DM9000_PLATF_8BITONLY	(0x0001)
-@@ -27,7 +29,7 @@
- 
- struct dm9000_plat_data {
- 	unsigned int	flags;
--	unsigned char	dev_addr[6];
-+	unsigned char	dev_addr[ETH_ALEN];
- 
- 	/* allow replacement IO routines */
- 
-diff --git a/include/linux/fs_enet_pd.h b/include/linux/fs_enet_pd.h
-index 51b7934..343d82a 100644
---- a/include/linux/fs_enet_pd.h
-+++ b/include/linux/fs_enet_pd.h
-@@ -18,6 +18,7 @@
- 
- #include <linux/string.h>
- #include <linux/of_mdio.h>
-+#include <linux/if_ether.h>
- #include <asm/types.h>
- 
- #define FS_ENET_NAME	"fs_enet"
-@@ -135,7 +136,7 @@ struct fs_platform_info {
- 	const struct fs_mii_bus_info *bus_info;
- 
- 	int rx_ring, tx_ring;	/* number of buffers on rx     */
--	__u8 macaddr[6];	/* mac address                 */
-+	__u8 macaddr[ETH_ALEN];	/* mac address                 */
- 	int rx_copybreak;	/* limit we copy small frames  */
- 	int use_napi;		/* use NAPI                    */
- 	int napi_weight;	/* NAPI weight                 */
-diff --git a/include/linux/ieee80211.h b/include/linux/ieee80211.h
-index b0dc87a..4e101af 100644
---- a/include/linux/ieee80211.h
-+++ b/include/linux/ieee80211.h
-@@ -16,6 +16,7 @@
- #define LINUX_IEEE80211_H
- 
- #include <linux/types.h>
-+#include <linux/if_ether.h>
- #include <asm/byteorder.h>
- 
- /*
-@@ -209,28 +210,28 @@ static inline u16 ieee80211_sn_sub(u16 sn1, u16 sn2)
- struct ieee80211_hdr {
- 	__le16 frame_control;
- 	__le16 duration_id;
--	u8 addr1[6];
--	u8 addr2[6];
--	u8 addr3[6];
-+	u8 addr1[ETH_ALEN];
-+	u8 addr2[ETH_ALEN];
-+	u8 addr3[ETH_ALEN];
- 	__le16 seq_ctrl;
--	u8 addr4[6];
-+	u8 addr4[ETH_ALEN];
- } __packed __aligned(2);
- 
- struct ieee80211_hdr_3addr {
- 	__le16 frame_control;
- 	__le16 duration_id;
--	u8 addr1[6];
--	u8 addr2[6];
--	u8 addr3[6];
-+	u8 addr1[ETH_ALEN];
-+	u8 addr2[ETH_ALEN];
-+	u8 addr3[ETH_ALEN];
- 	__le16 seq_ctrl;
- } __packed __aligned(2);
- 
- struct ieee80211_qos_hdr {
- 	__le16 frame_control;
- 	__le16 duration_id;
--	u8 addr1[6];
--	u8 addr2[6];
--	u8 addr3[6];
-+	u8 addr1[ETH_ALEN];
-+	u8 addr2[ETH_ALEN];
-+	u8 addr3[ETH_ALEN];
- 	__le16 seq_ctrl;
- 	__le16 qos_ctrl;
- } __packed __aligned(2);
-@@ -608,8 +609,8 @@ struct ieee80211s_hdr {
- 	u8 flags;
- 	u8 ttl;
- 	__le32 seqnum;
--	u8 eaddr1[6];
--	u8 eaddr2[6];
-+	u8 eaddr1[ETH_ALEN];
-+	u8 eaddr2[ETH_ALEN];
- } __packed __aligned(2);
- 
- /* Mesh flags */
-@@ -758,7 +759,7 @@ struct ieee80211_rann_ie {
- 	u8 rann_flags;
- 	u8 rann_hopcount;
- 	u8 rann_ttl;
--	u8 rann_addr[6];
-+	u8 rann_addr[ETH_ALEN];
- 	__le32 rann_seq;
- 	__le32 rann_interval;
- 	__le32 rann_metric;
-@@ -802,9 +803,9 @@ enum ieee80211_vht_opmode_bits {
- struct ieee80211_mgmt {
- 	__le16 frame_control;
- 	__le16 duration;
--	u8 da[6];
--	u8 sa[6];
--	u8 bssid[6];
-+	u8 da[ETH_ALEN];
-+	u8 sa[ETH_ALEN];
-+	u8 bssid[ETH_ALEN];
- 	__le16 seq_ctrl;
- 	union {
- 		struct {
-@@ -833,7 +834,7 @@ struct ieee80211_mgmt {
- 		struct {
- 			__le16 capab_info;
- 			__le16 listen_interval;
--			u8 current_ap[6];
-+			u8 current_ap[ETH_ALEN];
- 			/* followed by SSID and Supported rates */
- 			u8 variable[0];
- 		} __packed reassoc_req;
-@@ -966,21 +967,21 @@ struct ieee80211_vendor_ie {
- struct ieee80211_rts {
- 	__le16 frame_control;
- 	__le16 duration;
--	u8 ra[6];
--	u8 ta[6];
-+	u8 ra[ETH_ALEN];
-+	u8 ta[ETH_ALEN];
- } __packed __aligned(2);
- 
- struct ieee80211_cts {
- 	__le16 frame_control;
- 	__le16 duration;
--	u8 ra[6];
-+	u8 ra[ETH_ALEN];
- } __packed __aligned(2);
- 
- struct ieee80211_pspoll {
- 	__le16 frame_control;
- 	__le16 aid;
--	u8 bssid[6];
--	u8 ta[6];
-+	u8 bssid[ETH_ALEN];
-+	u8 ta[ETH_ALEN];
- } __packed __aligned(2);
- 
- /* TDLS */
-@@ -989,14 +990,14 @@ struct ieee80211_pspoll {
- struct ieee80211_tdls_lnkie {
- 	u8 ie_type; /* Link Identifier IE */
- 	u8 ie_len;
--	u8 bssid[6];
--	u8 init_sta[6];
--	u8 resp_sta[6];
-+	u8 bssid[ETH_ALEN];
-+	u8 init_sta[ETH_ALEN];
-+	u8 resp_sta[ETH_ALEN];
- } __packed;
- 
- struct ieee80211_tdls_data {
--	u8 da[6];
--	u8 sa[6];
-+	u8 da[ETH_ALEN];
-+	u8 sa[ETH_ALEN];
- 	__be16 ether_type;
- 	u8 payload_type;
- 	u8 category;
-@@ -1090,8 +1091,8 @@ struct ieee80211_p2p_noa_attr {
- struct ieee80211_bar {
- 	__le16 frame_control;
- 	__le16 duration;
--	__u8 ra[6];
--	__u8 ta[6];
-+	__u8 ra[ETH_ALEN];
-+	__u8 ta[ETH_ALEN];
- 	__le16 control;
- 	__le16 start_seq_num;
- } __packed;
-diff --git a/include/linux/mlx4/device.h b/include/linux/mlx4/device.h
-index 52c23a8..e37ac2b 100644
---- a/include/linux/mlx4/device.h
-+++ b/include/linux/mlx4/device.h
-@@ -33,6 +33,7 @@
- #ifndef MLX4_DEVICE_H
- #define MLX4_DEVICE_H
- 
-+#include <linux/if_ether.h>
- #include <linux/pci.h>
- #include <linux/completion.h>
- #include <linux/radix-tree.h>
-@@ -619,7 +620,7 @@ struct mlx4_eth_av {
- 	u8		dgid[16];
- 	u32		reserved4[2];
- 	__be16		vlan;
--	u8		mac[6];
-+	u8		mac[ETH_ALEN];
- };
- 
- union mlx4_ext_av {
-@@ -913,10 +914,10 @@ enum mlx4_net_trans_promisc_mode {
- };
- 
- struct mlx4_spec_eth {
--	u8	dst_mac[6];
--	u8	dst_mac_msk[6];
--	u8	src_mac[6];
--	u8	src_mac_msk[6];
-+	u8	dst_mac[ETH_ALEN];
-+	u8	dst_mac_msk[ETH_ALEN];
-+	u8	src_mac[ETH_ALEN];
-+	u8	src_mac_msk[ETH_ALEN];
- 	u8	ether_type_enable;
- 	__be16	ether_type;
- 	__be16	vlan_id_msk;
-diff --git a/include/linux/mlx4/qp.h b/include/linux/mlx4/qp.h
-index 262deac..6d35147 100644
---- a/include/linux/mlx4/qp.h
-+++ b/include/linux/mlx4/qp.h
-@@ -34,6 +34,7 @@
- #define MLX4_QP_H
- 
- #include <linux/types.h>
-+#include <linux/if_ether.h>
- 
- #include <linux/mlx4/device.h>
- 
-@@ -143,7 +144,7 @@ struct mlx4_qp_path {
- 	u8			feup;
- 	u8			fvl_rx;
- 	u8			reserved4[2];
--	u8			dmac[6];
-+	u8			dmac[ETH_ALEN];
- };
- 
- enum { /* fl */
-@@ -318,7 +319,7 @@ struct mlx4_wqe_datagram_seg {
- 	__be32			dqpn;
- 	__be32			qkey;
- 	__be16			vlan;
--	u8			mac[6];
-+	u8			mac[ETH_ALEN];
- };
- 
- struct mlx4_wqe_lso_seg {
-diff --git a/include/linux/mv643xx_eth.h b/include/linux/mv643xx_eth.h
-index 6e8215b..61a0da3 100644
---- a/include/linux/mv643xx_eth.h
-+++ b/include/linux/mv643xx_eth.h
-@@ -6,6 +6,7 @@
- #define __LINUX_MV643XX_ETH_H
- 
- #include <linux/mbus.h>
-+#include <linux/if_ether.h>
- 
- #define MV643XX_ETH_SHARED_NAME		"mv643xx_eth"
- #define MV643XX_ETH_NAME		"mv643xx_eth_port"
-@@ -48,7 +49,7 @@ struct mv643xx_eth_platform_data {
- 	 * Use this MAC address if it is valid, overriding the
- 	 * address that is already in the hardware.
- 	 */
--	u8			mac_addr[6];
-+	u8			mac_addr[ETH_ALEN];
- 
- 	/*
- 	 * If speed is 0, autonegotiation is enabled.
-diff --git a/include/linux/sh_eth.h b/include/linux/sh_eth.h
-index fc30571..6205eeb 100644
---- a/include/linux/sh_eth.h
-+++ b/include/linux/sh_eth.h
-@@ -2,6 +2,7 @@
- #define __ASM_SH_ETH_H__
- 
- #include <linux/phy.h>
-+#include <linux/if_ether.h>
- 
- enum {EDMAC_LITTLE_ENDIAN, EDMAC_BIG_ENDIAN};
- enum {
-@@ -18,7 +19,7 @@ struct sh_eth_plat_data {
- 	phy_interface_t phy_interface;
- 	void (*set_mdio_gate)(void *addr);
- 
--	unsigned char mac_addr[6];
-+	unsigned char mac_addr[ETH_ALEN];
- 	unsigned no_ether_link:1;
- 	unsigned ether_link_active_low:1;
- 	unsigned needs_init:1;
-diff --git a/include/linux/smsc911x.h b/include/linux/smsc911x.h
-index 4dde70e..eec3efd 100644
---- a/include/linux/smsc911x.h
-+++ b/include/linux/smsc911x.h
-@@ -22,6 +22,7 @@
- #define __LINUX_SMSC911X_H__
- 
- #include <linux/phy.h>
-+#include <linux/if_ether.h>
- 
- /* platform_device configuration data, should be assigned to
-  * the platform_device's dev.platform_data */
-@@ -31,7 +32,7 @@ struct smsc911x_platform_config {
- 	unsigned int flags;
- 	unsigned int shift;
- 	phy_interface_t phy_interface;
--	unsigned char mac[6];
-+	unsigned char mac[ETH_ALEN];
- };
- 
- /* Constants for platform_device irq polarity configuration */
-diff --git a/include/linux/uwb/spec.h b/include/linux/uwb/spec.h
-index b52e44f..0df24bf 100644
---- a/include/linux/uwb/spec.h
-+++ b/include/linux/uwb/spec.h
-@@ -32,6 +32,7 @@
- 
- #include <linux/types.h>
- #include <linux/bitmap.h>
-+#include <linux/if_ether.h>
- 
- #define i1480_FW 0x00000303
- /* #define i1480_FW 0x00000302 */
-@@ -130,7 +131,7 @@ enum { UWB_DRP_BACKOFF_WIN_MAX = 16 };
-  * it is also used to define headers sent down and up the wire/radio).
-  */
- struct uwb_mac_addr {
--	u8 data[6];
-+	u8 data[ETH_ALEN];
- } __attribute__((packed));
- 
- 
-@@ -568,7 +569,7 @@ struct uwb_rc_evt_confirm {
- /* Device Address Management event. [WHCI] section 3.1.3.2. */
- struct uwb_rc_evt_dev_addr_mgmt {
- 	struct uwb_rceb rceb;
--	u8 baAddr[6];
-+	u8 baAddr[ETH_ALEN];
- 	u8 bResultCode;
- } __attribute__((packed));
- 
-diff --git a/include/media/tveeprom.h b/include/media/tveeprom.h
-index 4a1191a..f7119ee 100644
---- a/include/media/tveeprom.h
-+++ b/include/media/tveeprom.h
-@@ -12,6 +12,8 @@ enum tveeprom_audio_processor {
- 	TVEEPROM_AUDPROC_OTHER,
- };
- 
-+#include <linux/if_ether.h>
-+
- struct tveeprom {
- 	u32 has_radio;
- 	/* If has_ir == 0, then it is unknown what the IR capabilities are,
-@@ -40,7 +42,7 @@ struct tveeprom {
- 	u32 revision;
- 	u32 serial_number;
- 	char rev_str[5];
--	u8 MAC_address[6];
-+	u8 MAC_address[ETH_ALEN];
- };
- 
- void tveeprom_hauppauge_analog(struct i2c_client *c, struct tveeprom *tvee,
-diff --git a/include/net/irda/irlan_common.h b/include/net/irda/irlan_common.h
-index 0af8b8d..550c2d6 100644
---- a/include/net/irda/irlan_common.h
-+++ b/include/net/irda/irlan_common.h
-@@ -32,6 +32,7 @@
- #include <linux/types.h>
- #include <linux/skbuff.h>
- #include <linux/netdevice.h>
-+#include <linux/if_ether.h>
- 
- #include <net/irda/irttp.h>
- 
-@@ -161,7 +162,7 @@ struct irlan_provider_cb {
- 	int access_type;     /* Access type */
- 	__u16 send_arb_val;
- 
--	__u8 mac_address[6]; /* Generated MAC address for peer device */
-+	__u8 mac_address[ETH_ALEN]; /* Generated MAC address for peer device */
- };
- 
- /*
+Then, you can add one patch per logical change at the gp8psk driver.
+"git citool" is your friend: using it, you can easily break the patch
+into smaller ones.
+
+Just keep in mind that the driver should keep compiling after each patch,
+and try to maintain the one logical change per patch. Don't be shy
+on the comments: we love comments on the patch descriptions, as they
+can help a lot developers when they need to discover why the driver
+stopped working, or what should be done on a similar driver to address
+a common issue.
+
+Btw, your emailer completely broke this patch: it broke long lines,
+it replaced tabs by spaces, etc.
+
+You should either use a different emailer, or to use "git send-email"
+to send the patches directly to your smtp server.
+
+Regards,
+Mauro
+
+> 
+> Thanks
+> 
+> Signed-off-by: Chris Lee <updatelee@gmail.com>
+> 
+> --- media_tree/include/uapi/linux/dvb/frontend.h 2013-07-18
+> 11:19:29.601746158 -0600
+> +++ media_tree.test/include/uapi/linux/dvb/frontend.h 2013-07-22
+> 20:10:50.658719256 -0600
+> @@ -165,6 +165,7 @@
+>   FEC_3_5,
+>   FEC_9_10,
+>   FEC_2_5,
+> + FEC_5_11,
+>  } fe_code_rate_t;
+> 
+> 
+> @@ -410,6 +411,10 @@
+>   SYS_DVBT2,
+>   SYS_TURBO,
+>   SYS_DVBC_ANNEX_C,
+> + SYS_DCII_C_QPSK,
+> + SYS_DCII_I_QPSK,
+> + SYS_DCII_Q_QPSK,
+> + SYS_DCII_C_OQPSK,
+>  } fe_delivery_system_t;
+> 
+>  /* backward compatibility */
+> --- media_tree/drivers/media/usb/dvb-usb/gp8psk.h 2013-07-18
+> 11:19:28.261746125 -0600
+> +++ media_tree.test/drivers/media/usb/dvb-usb/gp8psk.h 2013-07-22
+> 19:54:19.642694697 -0600
+> @@ -52,6 +52,8 @@
+>  #define GET_SERIAL_NUMBER               0x93    /* in */
+>  #define USE_EXTRA_VOLT                  0x94
+>  #define GET_FPGA_VERS 0x95
+> +#define GET_SIGNAL_STAT 0x9A
+> +#define GET_BER_RATE 0x9B
+>  #define CW3K_INIT 0x9d
+> 
+>  /* PSK_configuration bits */
+> --- media_tree/drivers/media/usb/dvb-usb/gp8psk-fe.c 2013-07-18
+> 11:19:28.261746125 -0600
+> +++ media_tree.test/drivers/media/usb/dvb-usb/gp8psk-fe.c 2013-07-22
+> 20:10:20.582718511 -0600
+> @@ -45,7 +45,8 @@
+>   if (time_after(jiffies,st->next_status_check)) {
+>   gp8psk_usb_in_op(st->d, GET_SIGNAL_LOCK, 0,0,&st->lock,1);
+>   gp8psk_usb_in_op(st->d, GET_SIGNAL_STRENGTH, 0,0,buf,6);
+> - st->snr = (buf[1]) << 8 | buf[0];
+> +
+> + st->snr = ((buf[1]) << 8 | buf[0]) << 4;
+>   st->next_status_check = jiffies + (st->status_check_interval*HZ)/1000;
+>   }
+>   return 0;
+> @@ -53,7 +54,42 @@
+> 
+>  static int gp8psk_fe_read_status(struct dvb_frontend* fe, fe_status_t *status)
+>  {
+> + struct dtv_frontend_properties *c = &fe->dtv_property_cache;
+>   struct gp8psk_fe_state *st = fe->demodulator_priv;
+> +
+> + u8 buf[32];
+> + int frequency;
+> + int carrier_error;
+> + int carrier_offset;
+> + int rate_error;
+> + int rate_offset;
+> + int symbol_rate;
+> +
+> + int fe_gp8psk_system_return[] = {
+> + SYS_DVBS,
+> + SYS_TURBO,
+> + SYS_TURBO,
+> + SYS_TURBO,
+> + SYS_DCII_C_QPSK,
+> + SYS_DCII_I_QPSK,
+> + SYS_DCII_Q_QPSK,
+> + SYS_DCII_C_OQPSK,
+> + SYS_DSS,
+> + SYS_UNDEFINED
+> + };
+> +
+> + int fe_gp8psk_modulation_return[] = {
+> + QPSK,
+> + QPSK,
+> + PSK_8,
+> + QAM_16,
+> + QPSK,
+> + QPSK,
+> + QPSK,
+> + QPSK,
+> + QPSK,
+> + };
+> +
+>   gp8psk_fe_update_status(st);
+> 
+>   if (st->lock)
+> @@ -61,18 +97,97 @@
+>   else
+>   *status = 0;
+> 
+> - if (*status & FE_HAS_LOCK)
+> + if (*status & FE_HAS_LOCK) {
+> + gp8psk_usb_in_op(st->d, GET_SIGNAL_STAT, 0, 0, buf, 32);
+> + frequency = ((buf[11] << 24) + (buf[10] << 16) + (buf[9] << 8) +
+> buf[8]) / 1000;
+> + carrier_error = ((buf[15] << 24) + (buf[14] << 16) + (buf[13] << 8)
+> + buf[12]) / 1000;
+> + carrier_offset =  (buf[19] << 24) + (buf[18] << 16) + (buf[17] << 8)
+> + buf[16];
+> + rate_error =  (buf[23] << 24) + (buf[22] << 16) + (buf[21] << 8) + buf[20];
+> + rate_offset =  (buf[27] << 24) + (buf[26] << 16) + (buf[25] << 8) + buf[24];
+> + symbol_rate =  (buf[31] << 24) + (buf[30] << 16) + (buf[29] << 8) + buf[28];
+> +
+> + c->frequency = frequency - carrier_error;
+> + c->symbol_rate = symbol_rate + rate_error;
+> +
+> + switch (c->delivery_system) {
+> + case SYS_DSS:
+> + case SYS_DVBS:
+> + c->delivery_system = fe_gp8psk_system_return[buf[1]];
+> + c->modulation = fe_gp8psk_modulation_return[buf[1]];
+> + switch (buf[2]) {
+> + case 0:  c->fec_inner = FEC_1_2;  break;
+> + case 1:  c->fec_inner = FEC_2_3;  break;
+> + case 2:  c->fec_inner = FEC_3_4;  break;
+> + case 3:  c->fec_inner = FEC_5_6;  break;
+> + case 4:  c->fec_inner = FEC_6_7;  break;
+> + case 5:  c->fec_inner = FEC_7_8;  break;
+> + default: c->fec_inner = FEC_AUTO; break;
+> + }
+> + break;
+> + case SYS_TURBO:
+> + c->delivery_system = fe_gp8psk_system_return[buf[1]];
+> + c->modulation = fe_gp8psk_modulation_return[buf[1]];
+> + if (c->modulation == QPSK) {
+> + switch (buf[2]) {
+> + case 0:  c->fec_inner = FEC_7_8;  break;
+> + case 1:  c->fec_inner = FEC_1_2;  break;
+> + case 2:  c->fec_inner = FEC_3_4;  break;
+> + case 3:  c->fec_inner = FEC_2_3;  break;
+> + case 4:  c->fec_inner = FEC_5_6;  break;
+> + default: c->fec_inner = FEC_AUTO; break;
+> + }
+> + } else {
+> + switch (buf[2]) {
+> + case 0:  c->fec_inner = FEC_2_3;  break;
+> + case 1:  c->fec_inner = FEC_3_4;  break;
+> + case 2:  c->fec_inner = FEC_3_4;  break;
+> + case 3:  c->fec_inner = FEC_5_6;  break;
+> + case 4:  c->fec_inner = FEC_8_9;  break;
+> + default: c->fec_inner = FEC_AUTO; break;
+> + }
+> + }
+> + break;
+> + case SYS_DCII_C_QPSK:
+> + case SYS_DCII_I_QPSK:
+> + case SYS_DCII_Q_QPSK:
+> + case SYS_DCII_C_OQPSK:
+> + c->modulation = fe_gp8psk_modulation_return[buf[1]];
+> + switch (buf[2]) {
+> + case 0:  c->fec_inner = FEC_5_11; break;
+> + case 1:  c->fec_inner = FEC_1_2;  break;
+> + case 2:  c->fec_inner = FEC_3_5;  break;
+> + case 3:  c->fec_inner = FEC_2_3;  break;
+> + case 4:  c->fec_inner = FEC_3_4;  break;
+> + case 5:  c->fec_inner = FEC_4_5;  break;
+> + case 6:  c->fec_inner = FEC_5_6;  break;
+> + case 7:  c->fec_inner = FEC_7_8;  break;
+> + default: c->fec_inner = FEC_AUTO; break;
+> + }
+> + break;
+> + default:
+> + c->fec_inner = FEC_AUTO;
+> + break;
+> + }
+> +
+>   st->status_check_interval = 1000;
+> - else
+> + } else {
+>   st->status_check_interval = 100;
+> + }
+>   return 0;
+>  }
+> 
+> -/* not supported by this Frontend */
+>  static int gp8psk_fe_read_ber(struct dvb_frontend* fe, u32 *ber)
+>  {
+> - (void) fe;
+> - *ber = 0;
+> + struct gp8psk_fe_state *st = fe->demodulator_priv;
+> +
+> + u8 buf[4];
+> +
+> + if (gp8psk_usb_in_op(st->d, GET_BER_RATE, 0, 0, buf, 4)) {
+> + return -EINVAL;
+> + }
+> +
+> + *ber = (buf[3] << 24) + (buf[2] << 16) + (buf[1] << 8) + buf[0];
+> +
+>   return 0;
+>  }
+> 
+> @@ -121,93 +236,145 @@
+>   u32 freq = c->frequency * 1000;
+>   int gp_product_id = le16_to_cpu(state->d->udev->descriptor.idProduct);
+> 
+> - deb_fe("%s()\n", __func__);
+> + info("%s() freq: %d, sr: %d", __func__, freq, c->symbol_rate);
+> 
+> + cmd[0] =  c->symbol_rate        & 0xff;
+> + cmd[1] = (c->symbol_rate >>  8) & 0xff;
+> + cmd[2] = (c->symbol_rate >> 16) & 0xff;
+> + cmd[3] = (c->symbol_rate >> 24) & 0xff;
+>   cmd[4] = freq         & 0xff;
+>   cmd[5] = (freq >> 8)  & 0xff;
+>   cmd[6] = (freq >> 16) & 0xff;
+>   cmd[7] = (freq >> 24) & 0xff;
+> 
+> - /* backwards compatibility: DVB-S + 8-PSK were used for Turbo-FEC */
+> - if (c->delivery_system == SYS_DVBS && c->modulation == PSK_8)
+> + /* backwards compatibility: DVB-S2 used to be used for Turbo-FEC */
+> + if (c->delivery_system == SYS_DVBS2)
+>   c->delivery_system = SYS_TURBO;
+> 
+>   switch (c->delivery_system) {
+>   case SYS_DVBS:
+> - if (c->modulation != QPSK) {
+> - deb_fe("%s: unsupported modulation selected (%d)\n",
+> + info("%s: DVB-S delivery system selected w/fec %d", __func__, c->fec_inner);
+> + c->fec_inner = FEC_AUTO;
+> + cmd[8] = ADV_MOD_DVB_QPSK;
+> + cmd[9] = 5;
+> + break;
+> + case SYS_TURBO:
+> + info("%s: Turbo-FEC delivery system selected", __func__);
+> + switch (c->modulation) {
+> + case QPSK:
+> + info("%s: modulation QPSK selected w/fec %d", __func__, c->fec_inner);
+> + cmd[8] = ADV_MOD_TURBO_QPSK;
+> + switch (c->fec_inner) {
+> + case FEC_1_2: cmd[9] = 1; break;
+> + case FEC_2_3: cmd[9] = 3; break;
+> + case FEC_3_4: cmd[9] = 2; break;
+> + case FEC_5_6: cmd[9] = 4; break;
+> + default: cmd[9] = 0; break;
+> + }
+> + break;
+> + case PSK_8:
+> + info("%s: modulation 8PSK selected w/fec %d", __func__, c->fec_inner);
+> + cmd[8] = ADV_MOD_TURBO_8PSK;
+> + switch (c->fec_inner) {
+> + case FEC_2_3: cmd[9] = 0; break;
+> + case FEC_3_4: cmd[9] = 1; break;
+> + case FEC_3_5: cmd[9] = 2; break;
+> + case FEC_5_6: cmd[9] = 3; break;
+> + case FEC_8_9: cmd[9] = 4; break;
+> + default: cmd[9] = 0; break;
+> + }
+> + break;
+> + case QAM_16: /* QAM_16 is for compatibility with DN */
+> + info("%s: modulation QAM_16 selected w/fec %d", __func__, c->fec_inner);
+> + cmd[8] = ADV_MOD_TURBO_16QAM;
+> + cmd[9] = 0;
+> + break;
+> + default: /* Unknown modulation */
+> + info("%s: unsupported modulation selected (%d)",
+>   __func__, c->modulation);
+>   return -EOPNOTSUPP;
+>   }
+> - c->fec_inner = FEC_AUTO;
+>   break;
+> - case SYS_DVBS2: /* kept for backwards compatibility */
+> - deb_fe("%s: DVB-S2 delivery system selected\n", __func__);
+> + case SYS_DSS:
+> + info("%s: DSS delivery system selected w/fec %d", __func__, c->fec_inner);
+> + cmd[8] = ADV_MOD_DSS_QPSK;
+> + switch (c->fec_inner) {
+> + case FEC_1_2: cmd[9] = 0; break;
+> + case FEC_2_3: cmd[9] = 1; break;
+> + case FEC_3_4: cmd[9] = 2; break;
+> + case FEC_5_6: cmd[9] = 3; break;
+> + case FEC_7_8: cmd[9] = 4; break;
+> + case FEC_AUTO: cmd[9] = 5; break;
+> + case FEC_6_7: cmd[9] = 6; break;
+> + default: cmd[9] = 5; break;
+> + }
+>   break;
+> - case SYS_TURBO:
+> - deb_fe("%s: Turbo-FEC delivery system selected\n", __func__);
+> + case SYS_DCII_C_QPSK:
+> + info("%s: DCII_C_QPSK delivery system selected w/fec %d", __func__,
+> c->fec_inner);
+> + cmd[8] = ADV_MOD_DCII_C_QPSK;
+> + switch (c->fec_inner) {
+> + /* 5/11 FEC is cmd[9] = 0 but not added to the API */
+> + case FEC_1_2:  cmd[9] = 1; break;
+> + case FEC_3_5:  cmd[9] = 2; break;
+> + case FEC_2_3:  cmd[9] = 3; break;
+> + case FEC_3_4:  cmd[9] = 4; break;
+> + case FEC_4_5:  cmd[9] = 5; break;
+> + case FEC_5_6:  cmd[9] = 6; break;
+> + case FEC_7_8:  cmd[9] = 7; break;
+> + case FEC_AUTO: cmd[9] = 8; break;
+> + default:       cmd[9] = 8; break;
+> + }
+>   break;
+> -
+> - default:
+> - deb_fe("%s: unsupported delivery system selected (%d)\n",
+> - __func__, c->delivery_system);
+> - return -EOPNOTSUPP;
+> - }
+> -
+> - cmd[0] =  c->symbol_rate        & 0xff;
+> - cmd[1] = (c->symbol_rate >>  8) & 0xff;
+> - cmd[2] = (c->symbol_rate >> 16) & 0xff;
+> - cmd[3] = (c->symbol_rate >> 24) & 0xff;
+> - switch (c->modulation) {
+> - case QPSK:
+> - if (gp_product_id == USB_PID_GENPIX_8PSK_REV_1_WARM)
+> - if (gp8psk_tuned_to_DCII(fe))
+> - gp8psk_bcm4500_reload(state->d);
+> + case SYS_DCII_I_QPSK:
+> + info("%s: DCII_I_QPSK delivery system selected w/fec %d", __func__, cmd[9]);
+> + cmd[8] = ADV_MOD_DCII_I_QPSK;
+>   switch (c->fec_inner) {
+> - case FEC_1_2:
+> - cmd[9] = 0; break;
+> - case FEC_2_3:
+> - cmd[9] = 1; break;
+> - case FEC_3_4:
+> - cmd[9] = 2; break;
+> - case FEC_5_6:
+> - cmd[9] = 3; break;
+> - case FEC_7_8:
+> - cmd[9] = 4; break;
+> - case FEC_AUTO:
+> - cmd[9] = 5; break;
+> - default:
+> - cmd[9] = 5; break;
+> + /* 5/11 FEC is cmd[9] = 0 but not added to the API */
+> + case FEC_1_2:  cmd[9] = 1; break;
+> + case FEC_3_5:  cmd[9] = 2; break;
+> + case FEC_2_3:  cmd[9] = 3; break;
+> + case FEC_3_4:  cmd[9] = 4; break;
+> + case FEC_4_5:  cmd[9] = 5; break;
+> + case FEC_5_6:  cmd[9] = 6; break;
+> + case FEC_7_8:  cmd[9] = 7; break;
+> + case FEC_AUTO: cmd[9] = 8; break;
+> + default:       cmd[9] = 8; break;
+>   }
+> - if (c->delivery_system == SYS_TURBO)
+> - cmd[8] = ADV_MOD_TURBO_QPSK;
+> - else
+> - cmd[8] = ADV_MOD_DVB_QPSK;
+>   break;
+> - case PSK_8: /* PSK_8 is for compatibility with DN */
+> - cmd[8] = ADV_MOD_TURBO_8PSK;
+> + case SYS_DCII_Q_QPSK:
+> + info("%s: DCII_Q_QPSK delivery system selected w/fec %d", __func__, cmd[9]);
+> + cmd[8] = ADV_MOD_DCII_Q_QPSK;
+>   switch (c->fec_inner) {
+> - case FEC_2_3:
+> - cmd[9] = 0; break;
+> - case FEC_3_4:
+> - cmd[9] = 1; break;
+> - case FEC_3_5:
+> - cmd[9] = 2; break;
+> - case FEC_5_6:
+> - cmd[9] = 3; break;
+> - case FEC_8_9:
+> - cmd[9] = 4; break;
+> - default:
+> - cmd[9] = 0; break;
+> + /* 5/11 FEC is cmd[9] = 0 but not added to the API */
+> + case FEC_1_2:  cmd[9] = 1; break;
+> + case FEC_3_5:  cmd[9] = 2; break;
+> + case FEC_2_3:  cmd[9] = 3; break;
+> + case FEC_3_4:  cmd[9] = 4; break;
+> + case FEC_4_5:  cmd[9] = 5; break;
+> + case FEC_5_6:  cmd[9] = 6; break;
+> + case FEC_7_8:  cmd[9] = 7; break;
+> + case FEC_AUTO: cmd[9] = 8; break;
+> + default:       cmd[9] = 8; break;
+>   }
+>   break;
+> - case QAM_16: /* QAM_16 is for compatibility with DN */
+> - cmd[8] = ADV_MOD_TURBO_16QAM;
+> - cmd[9] = 0;
+> + case SYS_DCII_C_OQPSK:
+> + info("%s: DCII_C_OQPSK delivery system selected w/fec %d", __func__, cmd[9]);
+> + cmd[8] = ADV_MOD_DCII_C_OQPSK;
+> + switch (c->fec_inner) {
+> + /* 5/11 FEC is cmd[9] = 0 but not added to the API */
+> + case FEC_1_2:  cmd[9] = 1; break;
+> + case FEC_3_5:  cmd[9] = 2; break;
+> + case FEC_2_3:  cmd[9] = 3; break;
+> + case FEC_3_4:  cmd[9] = 4; break;
+> + case FEC_4_5:  cmd[9] = 5; break;
+> + case FEC_5_6:  cmd[9] = 6; break;
+> + case FEC_7_8:  cmd[9] = 7; break;
+> + case FEC_AUTO: cmd[9] = 8; break;
+> + default:       cmd[9] = 8; break;
+> + }
+>   break;
+> - default: /* Unknown modulation */
+> - deb_fe("%s: unsupported modulation selected (%d)\n",
+> - __func__, c->modulation);
+> + default:
+> + info("%s: unsupported delivery system selected (%d)", __func__,
+> c->delivery_system);
+>   return -EOPNOTSUPP;
+>   }
+> 
+> @@ -326,7 +493,7 @@
+> 
+> 
+>  static struct dvb_frontend_ops gp8psk_fe_ops = {
+> - .delsys = { SYS_DVBS },
+> + .delsys = { SYS_DCII_C_QPSK, SYS_DCII_I_QPSK, SYS_DCII_Q_QPSK,
+> SYS_DCII_C_OQPSK, SYS_DSS, SYS_DVBS2, SYS_TURBO, SYS_DVBS },
+>   .info = {
+>   .name = "Genpix DVB-S",
+>   .frequency_min = 800000,
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+
+
 -- 
-1.8.1.2.459.gbcd45b4.dirty
 
+Cheers,
+Mauro
