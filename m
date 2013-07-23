@@ -1,74 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:51947 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932291Ab3GZMui (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 08:50:38 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
-	<tomasz.figa@gmail.com>, <arnd@arndb.de>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
-	<linux@arm.linux.org.uk>
-Subject: [RESEND PATCH v10 4/8] arm: omap3: twl: add phy consumer data in twl4030_usb_data
-Date: Fri, 26 Jul 2013 18:19:19 +0530
-Message-ID: <1374842963-13545-5-git-send-email-kishon@ti.com>
-In-Reply-To: <1374842963-13545-1-git-send-email-kishon@ti.com>
-References: <1374842963-13545-1-git-send-email-kishon@ti.com>
+Received: from mail-oa0-f43.google.com ([209.85.219.43]:35809 "EHLO
+	mail-oa0-f43.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932595Ab3GWQDI (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 12:03:08 -0400
+Received: by mail-oa0-f43.google.com with SMTP id i7so11555427oag.2
+        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 09:03:07 -0700 (PDT)
 MIME-Version: 1.0
-Content-Type: text/plain
+In-Reply-To: <CAA7C2qi1ZMGwB7C6bacU6W-jHRO_taKtng1ugb9DLzvTT3zHrQ@mail.gmail.com>
+References: <1374594649-6061-1-git-send-email-updatelee@gmail.com>
+	<CAA7C2qi1ZMGwB7C6bacU6W-jHRO_taKtng1ugb9DLzvTT3zHrQ@mail.gmail.com>
+Date: Tue, 23 Jul 2013 10:03:07 -0600
+Message-ID: <CAA9z4LZ0jAWFfi=OpqD0iNGOFC-N_vBr6U4e_-85Yv4EK60arg@mail.gmail.com>
+Subject: Re: [PATCH] gp8psk: add systems supported by genpix devices to .delsys
+From: Chris Lee <updatelee@gmail.com>
+To: VDR User <user.vdr@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The PHY framework uses the phy consumer data populated in platform data in the
-case of non-dt boot to return the reference to the PHY when the controller
-(PHY consumer) requests for it. So populated the phy consumer data in the platform
-data of twl usb.
+Correct, but many older userland applications used SYS_DVBS2 to tune
+before SYS_TURBO was added. I have no problem removing it but others
+might.
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
----
- arch/arm/mach-omap2/twl-common.c |   11 +++++++++++
- 1 file changed, 11 insertions(+)
+from gp8psk-fe.c
 
-diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
-index c05898f..b0d54da 100644
---- a/arch/arm/mach-omap2/twl-common.c
-+++ b/arch/arm/mach-omap2/twl-common.c
-@@ -24,6 +24,7 @@
- #include <linux/i2c/twl.h>
- #include <linux/gpio.h>
- #include <linux/string.h>
-+#include <linux/phy/phy.h>
- #include <linux/regulator/machine.h>
- #include <linux/regulator/fixed.h>
- 
-@@ -90,8 +91,18 @@ void __init omap_pmic_late_init(void)
- }
- 
- #if defined(CONFIG_ARCH_OMAP3)
-+struct phy_consumer consumers[] = {
-+	PHY_CONSUMER("musb-hdrc.0", "usb"),
-+};
-+
-+struct phy_init_data init_data = {
-+	.consumers = consumers,
-+	.num_consumers = ARRAY_SIZE(consumers),
-+};
-+
- static struct twl4030_usb_data omap3_usb_pdata = {
- 	.usb_mode	= T2_USB_MODE_ULPI,
-+	.init_data	= &init_data,
- };
- 
- static int omap3_batt_table[] = {
--- 
-1.7.10.4
+switch (c->delivery_system) {
+case SYS_DVBS:
+if (c->modulation != QPSK) {
+deb_fe("%s: unsupported modulation selected (%d)\n",
+__func__, c->modulation);
+return -EOPNOTSUPP;
+}
+c->fec_inner = FEC_AUTO;
+break;
+case SYS_DVBS2: /* kept for backwards compatibility */
+deb_fe("%s: DVB-S2 delivery system selected\n", __func__);
+break;
+case SYS_TURBO:
+deb_fe("%s: Turbo-FEC delivery system selected\n", __func__);
+break;
 
+Chris
+
+On Tue, Jul 23, 2013 at 9:53 AM, VDR User <user.vdr@gmail.com> wrote:
+> Genpix Skywalker and 8psk-to-usb devices do not support dvb-s2.
