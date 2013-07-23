@@ -1,86 +1,39 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f46.google.com ([209.85.160.46]:38757 "EHLO
-	mail-pb0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932381Ab3GPRTg (ORCPT
+Received: from mail-ob0-f176.google.com ([209.85.214.176]:44920 "EHLO
+	mail-ob0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933940Ab3GWXp3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 13:19:36 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH RFC v4] media: OF: add "sync-on-green-active" property
-Date: Tue, 16 Jul 2013 22:49:23 +0530
-Message-Id: <1373995163-9412-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 23 Jul 2013 19:45:29 -0400
+Received: by mail-ob0-f176.google.com with SMTP id v19so11650641obq.35
+        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 16:45:29 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <CAA7C2qib=XKyGnLZA5T6x2-XCfNh9-iQy2kwU6410LKh+2jHsA@mail.gmail.com>
+References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+	<CAHFNz9JCf6SUWhjErWYBRnwbaFL3WvZuag0_1pZ0Nqt3pG24Hg@mail.gmail.com>
+	<CAA9z4LYFW4iZsQgbPHHhy1ESiEDtVyNV4QaSeULq7p+kWs+e=A@mail.gmail.com>
+	<CAHFNz9KNMVXa1kpMjoiiB4T9P-=AQqm7cfPDau_mtAQTxbUCEw@mail.gmail.com>
+	<CAA9z4LbeV223oPfyjzUpGLrg55Z8Eag8Hpu3x++N_LsiRr8y+Q@mail.gmail.com>
+	<CAHFNz9+KX2G8bz_9gpwBJpUr14VBUo=qAYLHm9-_0b8z_XUdzQ@mail.gmail.com>
+	<CAA9z4Lb_43u28qF+u445B2FqYHufK4yR6vWpxp9wKDvRezqeTg@mail.gmail.com>
+	<CAA7C2qib=XKyGnLZA5T6x2-XCfNh9-iQy2kwU6410LKh+2jHsA@mail.gmail.com>
+Date: Tue, 23 Jul 2013 17:45:29 -0600
+Message-ID: <CAA9z4LY=k5+MOmWUdiiDkFGATUYyja01GY8VJNkkX00GbdicjQ@mail.gmail.com>
+Subject: Re: Proposed modifications to dvb_frontend_ops
+From: Chris Lee <updatelee@gmail.com>
+To: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+He is, I talked to him last month about various things and he
+mentioned turbofec-qpsk FEC_AUTO is semi working and its in his plans.
 
-This patch adds 'sync-on-green-active' property as part
-of endpoint property.
+Chris
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
-  Changes for v4:
-  1: Fixed review comments pointed by Sylwester.
-  
-  Changes for v3:
-  1: Fixed review comments pointed by Laurent and Sylwester.
-
-  RFC v2 https://patchwork.kernel.org/patch/2578091/
-  
-  RFC V1 https://patchwork.kernel.org/patch/2572341/
-  
- .../devicetree/bindings/media/video-interfaces.txt |    3 +++
- drivers/media/v4l2-core/v4l2-of.c                  |    4 ++++
- include/media/v4l2-mediabus.h                      |    2 ++
- 3 files changed, 9 insertions(+)
-
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index e022d2d..5186c7e 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -101,6 +101,9 @@ Optional endpoint properties
-   array contains only one entry.
- - clock-noncontinuous: a boolean property to allow MIPI CSI-2 non-continuous
-   clock mode.
-+- sync-on-green-active: polarity field when video synchronization is
-+  Sync-On-Green. When set the driver determines whether it's a normal operation
-+  or inverted operation.
- 
- 
- Example
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index aa59639..5c4c9f0 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -100,6 +100,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 	if (!of_property_read_u32(node, "data-shift", &v))
- 		bus->data_shift = v;
- 
-+	if (!of_property_read_u32(node, "sync-on-green-active", &v))
-+		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
-+			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
-+
- 	bus->flags = flags;
- 
- }
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 83ae07e..d47eb81 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -40,6 +40,8 @@
- #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
- /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
- #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
-+#define V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH	(1 << 12)
-+#define V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW		(1 << 13)
- 
- /* Serial flags */
- /* How many lanes the client can use */
--- 
-1.7.9.5
-
+On Tue, Jul 23, 2013 at 5:39 PM, VDR User <user.vdr@gmail.com> wrote:
+> On Tue, Jul 23, 2013 at 3:57 PM, Chris Lee <updatelee@gmail.com> wrote:
+>> The problems isnt for tuners where FEC_AUTO does work, its more for
+>> ones that dont work like the genpix. Im sure there are others too.
+>
+> If FEC_AUTO for turbo qpsk can be fixed in the Genpix firmware, maybe
+> it's worth seeing if Genpix will have a look into it.?
