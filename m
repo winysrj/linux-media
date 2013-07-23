@@ -1,66 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:54902 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1751972Ab3G3Lc4 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:45574 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932595Ab3GWQ3f (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 07:32:56 -0400
-Date: Tue, 30 Jul 2013 14:32:21 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v3 4/5] v4l: Add V4L2_PIX_FMT_NV16M and
- V4L2_PIX_FMT_NV61M formats
-Message-ID: <20130730113221.GO12281@valkosipuli.retiisi.org.uk>
-References: <1374757213-20194-1-git-send-email-laurent.pinchart@ideasonboard.com>
- <1374757213-20194-5-git-send-email-laurent.pinchart@ideasonboard.com>
- <20130730110934.GN12281@valkosipuli.retiisi.org.uk>
- <3004984.tPvT1zp9Z5@avalon>
+	Tue, 23 Jul 2013 12:29:35 -0400
+Message-ID: <51EEAF32.4040905@ti.com>
+Date: Tue, 23 Jul 2013 21:58:34 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <3004984.tPvT1zp9Z5@avalon>
+To: Greg KH <gregkh@linuxfoundation.org>
+CC: Alan Stern <stern@rowland.harvard.edu>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<broonie@kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<olof@lixom.net>, Stephen Warren <swarren@wwwdotorg.org>,
+	<b.zolnierkie@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org> <51EE9EC0.6060905@ti.com> <20130723161846.GD2486@kroah.com>
+In-Reply-To: <20130723161846.GD2486@kroah.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue, Jul 30, 2013 at 01:16:54PM +0200, Laurent Pinchart wrote:
-...
-> > > +	<para>This is a multi-planar, two-plane version of the YUV 4:2:0 
-> format.
-> > > +The three components are separated into two sub-images or planes.
-> > > +<constant>V4L2_PIX_FMT_NV16M</constant> differs from
-> > > <constant>V4L2_PIX_FMT_NV16 +</constant> in that the two planes are
-> > > non-contiguous in memory, i.e. the chroma +plane do not necessarily
-> > > immediately follows the luma plane.
-> > > +The luminance data occupies the first plane. The Y plane has one byte per
-> > > pixel. +In the second plane there is a chrominance data with alternating
-> > > chroma samples. +The CbCr plane is the same width and height, in bytes,
-> > > as the Y plane. +Each CbCr pair belongs to four pixels. For example,
-> > > +Cb<subscript>0</subscript>/Cr<subscript>0</subscript> belongs to
-> > > +Y'<subscript>00</subscript>, Y'<subscript>01</subscript>,
-> > > +Y'<subscript>10</subscript>, Y'<subscript>11</subscript>.
-> > > +<constant>V4L2_PIX_FMT_NV61M</constant> is the same as
-> > > <constant>V4L2_PIX_FMT_NV16M</constant> +except the Cb and Cr bytes are
-> > > swapped, the CrCb plane starts with a Cr byte.</para> +
-> > > +	<para><constant>V4L2_PIX_FMT_NV16M</constant> is intended to be
-> > > +used only in drivers and applications that support the multi-planar API,
-> > > +described in <xref linkend="planar-apis"/>. </para>
-> > 
-> > I think you could refer to V4L2_PIX_FMT_NV61M or alternatively move the
-> > sentence explaining V4L2_PIX_FMT_NV61M after the above. Up to you.
+Hi Greg,
+
+On Tuesday 23 July 2013 09:48 PM, Greg KH wrote:
+> On Tue, Jul 23, 2013 at 08:48:24PM +0530, Kishon Vijay Abraham I wrote:
+>> Hi,
+>>
+>> On Tuesday 23 July 2013 08:07 PM, Alan Stern wrote:
+>>> On Tue, 23 Jul 2013, Tomasz Figa wrote:
+>>>
+>>>> On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
+>>>>> Hi Alan,
+>>>
+>>> Thanks for helping to clarify the issues here.
+>>>
+>>>>>> Okay.  Are PHYs _always_ platform devices?
+>>>>>
+>>>>> They can be i2c, spi or any other device types as well.
+>>>
+>>> In those other cases, presumably there is no platform data associated
+>>> with the PHY since it isn't a platform device.  Then how does the
+>>> kernel know which controller is attached to the PHY?  Is this spelled
+>>> out in platform data associated with the PHY's i2c/spi/whatever parent?
+.
+.
+<snip>
+.
+.
+>>
+>> 	static struct phy *phy_lookup(void *priv) {
+>> 		.
+>> 		.
+>> 		if (phy->priv==priv) //instead of string comparison, we'll use pointer
+>> 			return phy;
+>> 	}
+>>
+>> PHY driver should be like
+>> 	phy_create((dev, ops, pdata->info);
+>>
+>> The controller driver would do
+>> 	phy_get(dev, NULL, pdata->info);
+>>
+>> Now the PHY framework will check for a match of *priv* pointer and return the PHY.
+>>
+>> I think this should be possible?
 > 
-> Something like
+> Ick, no.  Why can't you just pass the pointer to the phy itself?  If you
+> had a "priv" pointer to search from, then you could have just passed the
+> original phy pointer in the first place, right?
 > 
->         <para><constant>V4L2_PIX_FMT_NV16M</constant> and 
-> <constant>V4L2_PIX_FMT_NV61M</constant> are intended to be used only in 
-> drivers and applications that support the multi-planar API, described in 
+> The issue is that a string "name" is not going to scale at all, as it
+> requires hard-coded information that will change over time (as the
+> existing clock interface is already showing.)
+> 
+> Please just pass the real "phy" pointer around, that's what it is there
+> for.  Your "board binding" logic/code should be able to handle this, as
+> it somehow was going to do the same thing with a "name".
 
-Fine for me.
+The problem is the board file won't have the *phy* pointer. *phy* pointer is
+created at a much later time when the phy driver is probed.
 
--- 
-Cheers,
-
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Thanks
+Kishon
