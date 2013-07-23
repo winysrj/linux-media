@@ -1,317 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-blr1.sasken.com ([203.200.200.72]:28293 "EHLO
-	mta-blr1.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752614Ab3GXKDP convert rfc822-to-8bit (ORCPT
+Received: from co1ehsobe004.messaging.microsoft.com ([216.32.180.187]:49319
+	"EHLO co1outboundpool.messaging.microsoft.com" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S934209Ab3GWSFH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 06:03:15 -0400
-From: Krishna Kishore <krishna.kishore@sasken.com>
-To: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: RE: Prof DVB-S2 USB device
-Date: Wed, 24 Jul 2013 10:03:07 +0000
-Message-ID: <7CC27E99F1636344B0AC7B73D5BB86DE1485F6DE@exgmbxfz01.sasken.com>
-References: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>,<51EEEFCA.9040107@schinagl.nl>
- <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com>
- <51EF853E.2040108@schinagl.nl>,<7CC27E99F1636344B0AC7B73D5BB86DE1485F535@exgmbxfz01.sasken.com>,<7CC27E99F1636344B0AC7B73D5BB86DE1485F691@exgmbxfz01.sasken.com>
-In-Reply-To: <7CC27E99F1636344B0AC7B73D5BB86DE1485F691@exgmbxfz01.sasken.com>
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Tue, 23 Jul 2013 14:05:07 -0400
+From: Fabio Estevam <fabio.estevam@freescale.com>
+To: <k.debski@samsung.com>
+CC: <m.chehab@samsung.com>, <kernel@pengutronix.de>,
+	<linux-media@vger.kernel.org>,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Subject: [PATCH v4 3/3] [media] coda: No need to check the return value of platform_get_resource()
+Date: Tue, 23 Jul 2013 15:04:50 -0300
+Message-ID: <1374602690-12842-3-git-send-email-fabio.estevam@freescale.com>
+In-Reply-To: <1374602690-12842-1-git-send-email-fabio.estevam@freescale.com>
+References: <1374602690-12842-1-git-send-email-fabio.estevam@freescale.com>
 MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+When using devm_ioremap_resource(), we do not need to check the return value of
+platform_get_resource(), so just remove it.
 
-I am continuously getting following error. I assume that this is expected behavior. At some correct frequency, it will get locked and channel data will be provided. Is it correct?
+Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
+---
+Changes since v3:
+- None
+Changes since v2:
+- None
+Changes since v1:
+- None
 
+ drivers/media/platform/coda.c | 5 -----
+ 1 file changed, 5 deletions(-)
 
-[ 1819.146484] stv0900_init
-[ 1850.112823] stv0900_sleep
-[ 1859.615112] stv0900_init
-[ 1884.433593] stv0900_set_tone: Off
-[ 1904.433074] stv0900_read_status: 
-[ 1910.433044] stv0900_status: locked = 0
-[ 1928.433074] stv0900_get_mclk_freq: Calculated Mclk = 580500000
-[ 1928.433074] TS bitrate = 1164 Mbit/sec 
-[ 1932.433135] DEMOD LOCK FAIL
-[ 1938.433105] stv0900_search: 
-[ 1938.433135] stv0900_read_status: 
-[ 1944.433074] stv0900_status: locked = 0
-[ 1962.440856] stv0900_get_mclk_freq: Calculated Mclk = 580500000
-[ 1962.440856] TS bitrate = 1164 Mbit/sec 
-[ 1966.440917] DEMOD LOCK FAIL
-[ 2068.441009] stv0900_search: 
-[ 2068.441040] stv0900_read_status: 
-[ 2074.440948] stv0900_status: locked = 0
-[ 2092.440979] stv0900_get_mclk_freq: Calculated Mclk = 4500000
-[ 2092.440979] TS bitrate = 0 Mbit/sec 
-[ 2446.440948] stv0900_search: 
-[ 2446.440948] stv0900_read_status: 
-[ 2452.440887] stv0900_status: locked = 0
-[ 2470.440917] stv0900_get_mclk_freq: Calculated Mclk = 152672117
-[ 2470.440917] TS bitrate = 457 Mbit/sec 
-[ 2474.440948] DEMOD LOCK FAIL
-[ 2564.440948] stv0900_search: 
-[ 2564.440979] stv0900_read_status: 
-[ 2570.440887] stv0900_status: locked = 0
-[ 2588.440917] stv0900_get_mclk_freq: Calculated Mclk = 4500000
-[ 2588.440917] TS bitrate = 0 Mbit/sec 
-[ 2592.440979] DEMOD LOCK FAIL
-[ 2592.440979] stv0900_set_tone: Off
-[ 2612.440917] stv0900_search: 
-[ 2612.440917] stv0900_read_status: 
-[ 2618.440856] stv0900_status: locked = 0
-[ 2636.440887] stv0900_get_mclk_freq: Calculated Mclk = 4500000
-[ 2636.440917] TS bitrate = 0 Mbit/sec 
-[ 2640.440948] DEMOD LOCK FAIL
-[ 2640.440948] stv0900_set_tone: Off
-[ 2660.440887] stv0900_search: 
-[ 2660.440887] stv0900_read_status: 
-[ 2666.440948] stv0900_status: locked = 0
-[ 2684.440856] stv0900_get_mclk_freq: Calculated Mclk = 4500000
-[ 2684.440856] TS bitrate = 0 Mbit/sec 
-[ 2688.440917] DEMOD LOCK FAIL
-[ 2694.440887] stv0900_search: 
-[ 2694.440917] stv0900_read_status: 
-[ 2704.440917] stv0900_status: locked = 0
-[ 2722.440917] stv0900_get_mclk_freq: Calculated Mclk = 292500000
-[ 2722.440917] TS bitrate = 293 Mbit/sec 
-[ 2726.440856] DEMOD LOCK FAIL
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index 2d1576b..4a0a421 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -2049,11 +2049,6 @@ static int coda_probe(struct platform_device *pdev)
+ 
+ 	/* Get  memory for physical registers */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (res == NULL) {
+-		dev_err(&pdev->dev, "failed to get memory region resource\n");
+-		return -ENOENT;
+-	}
+-
+ 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(dev->regs_base))
+ 		return PTR_ERR(dev->regs_base);
+-- 
+1.8.1.2
 
-
-
-________________________________________
-From: Krishna Kishore
-Sent: Wednesday, July 24, 2013 3:23 PM
-To: Oliver Schinagl
-Cc: linux-media@vger.kernel.org
-Subject: RE: Prof DVB-S2 USB device
-
-Please see the delay between (1) and (2)...  Any idea about the reason for the delay. Though I am not sure, it may not be specific to Linux kernel version.
-
- () ------------>   [    3.254455] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-                     [    3.267852] DVB: registering new adapter (Prof 7500 USB DVB-S2)
-                     [   14.928314] FAT-fs (mmcblk0p1): Unrecognized mount option "smackfsroot=*" or missing value
-                     [ 1027.269042] dvb-usb: MAC address: 80:80:80:80:80:80
-                     [ 1027.296325] stv0900_init_internal
-                     [ 1027.296356] stv0900_init_internal: Create New Internal Structure!
-                     [ 1501.339355] stv0900_st_dvbs2_single
-                     [ 1501.339355] stv0900_stop_all_s2_modcod
-                     [ 1533.339355] stv0900_activate_s2_modcod_single
-                     [ 1619.339355] stv0900_set_ts_parallel_serial
-                     [ 1713.339324] stv0900_set_mclk: Mclk set to 135000000, Quartz = 27000000
-                     [ 1731.339385] stv0900_get_mclk_freq: Calculated Mclk = 152672117
-                     [ 1753.370605] stv0900_get_mclk_freq: Calculated Mclk = 152672117
-                     [ 1753.370605] stv0900_attach: Attaching STV0900 demodulator(0)
-(2) ---------->    [ 1755.370635] dw2102: Attached STV0900+STB6100A!
-                     [ 1755.370635]
-                     [ 1755.376892] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
-                     [ 1755.403869] input: IR-receiver inside an USB DVB receiver as /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input0
-                     [ 1755.417938] dvb-usb: schedule remote query interval to 150 msecs.
-                     [ 1755.430419] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
-
-
- Also, can someone please let me know if following w_scan command is fine.
-             w_scan -fs -s S93E5 -c IN -G > ch.conf
-
-
-________________________________________
-From: Krishna Kishore
-Sent: Wednesday, July 24, 2013 2:29 PM
-To: Oliver Schinagl
-Cc: linux-media@vger.kernel.org
-Subject: RE: Prof DVB-S2 USB device
-
-Dear Oliver,
-
-       Thanks for your response. I tried with 3.10.1. As you rightly pointed out, it does not seem to work on my board (pandaboard). It gets stuck at "Starting kernel...".
-
-        Now, I am trying with 3.4.47 version now. Let me see if it works. The delay of creating /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 seems to exists. I am waiting for it to get created.
-
-      I am downloading 3.4.54 and 3.10.2 now.
-
-Regards,
-Kishore.
-
------Original Message-----
-From: Oliver Schinagl [mailto:oliver+list@schinagl.nl]
-Sent: Wednesday, July 24, 2013 1:12 PM
-To: Krishna Kishore
-Cc: linux-media@vger.kernel.org
-Subject: Re: Prof DVB-S2 USB device
-
-On 24-07-13 08:56, Krishna Kishore wrote:
-> Dear Oliver,
->
->     Thanks for your response. Here are more details. Please help me in making this work.
->
->     Linux version:
->
-> -sh-4.1# uname -a
-> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013 armv7l
-> GNU/Linux
-Your kernel is ancient. The latest kernel with the latest media fluff is 3.10.2; Since you are on arm, chances are your platform isn't that well supported with later kernels, but even in the 3.4 world your kernel is ancient. Latest stable is 3.4.54.
-
-So you are asking for help, with something that could have been fixed 3 times over (or not, I don't know). So my first suggestion is to upgrade your kernel. If that's not possible on your arm platform, contact the supplier of your kernel.
-
-Meanwhile, since this is an USB device, you could try it on a desktop.
-Get a recent Ubuntu live CD and see if it works there. At least then you can quickly and easily see if your problem hasn't been fixed in the last year.
->
-> [dotconfig is attached to this email]
->
-> lsusb -t:
-> /:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
->      |__ Port 1: Dev 2, If 0, Class=, Driver=hub/5p, 480M
->          |__ Port 1: Dev 3, If 0, Class=, Driver=smsc95xx, 480M
->          |__ Port 2: Dev 5, If 0, Class=, Driver=dw2102, 480M
->
-> dmesg:
-> [  126.824951] usb 1-1.2: new high-speed USB device number 5 using
-> ehci-omap [  126.950347] usb 1-1.2: New USB device found,
-> idVendor=3034, idProduct=7500 [  126.957794] usb 1-1.2: New USB device
-> strings: Mfr=0, Product=0, SerialNumber=0 [  126.983184] dvb-usb:
-> found a 'Prof 7500 USB DVB-S2' in cold state, will try to load a firmware [  127.033477] dvb-usb: downloading firmware from file 'dvb-usb-p7500.fw'
-> [  127.051177] dw2102: start downloading DW210X firmware [
-> 127.238739] dvb-usb: found a 'Prof 7500 USB DVB-S2' in warm state.
-> [  127.255828] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
-> [  127.271270] DVB: registering new adapter (Prof 7500 USB DVB-S2) [
-> 1159.277740] dvb-usb: MAC address: 40:40:40:40:40:40 [ 1159.325531]
-> dw2102: Kishore: prof_7500_frontend_attach [ 1159.325561] [
-> 1159.340332] Kishore stv0900_attach:
-> [ 1159.340362] stv0900_init_internal
-> [ 1159.340393] stv0900_init_internal: Create New Internal Structure!
-> [ 1159.340423] stv0900_read_reg
-> [ 1179.527770] stv0900_read_reg
-> [ 1550.418365] stv0900_read_reg
-> [ 1637.090240] stv0900_st_dvbs2_single [ 1637.090270]
-> stv0900_stop_all_s2_modcod [ 1669.340270]
-> stv0900_activate_s2_modcod_single [ 1703.605865] stv0900_read_reg [
-> 1709.652740] stv0900_read_reg [ 1715.699584] stv0900_read_reg [
-> 1721.746490] stv0900_read_reg [ 1727.793365] stv0900_read_reg [
-> 1733.840209] stv0900_read_reg [ 1739.887115] stv0900_read_reg [
-> 1743.918395] stv0900_read_reg [ 1749.965240] stv0900_read_reg [
-> 1756.012115] stv0900_set_ts_parallel_serial path1 3 path2 0 [
-> 1758.027740] stv0900_read_reg [ 1764.074615] stv0900_read_reg [
-> 1770.121490] stv0900_read_reg [ 1776.168334] stv0900_read_reg [
-> 1782.215209] stv0900_read_reg [ 1788.262115] stv0900_read_reg [
-> 1810.433990] stv0900_read_reg [ 1816.480865] stv0900_read_reg [
-> 1824.543365] stv0900_read_reg [ 1830.590240] stv0900_read_reg [
-> 1838.652740] stv0900_read_reg [ 1844.699615] stv0900_read_reg [
-> 1850.746490] stv0900_set_mclk: Mclk set to 135000000, Quartz =
-> 27000000 [ 1850.746520] stv0900_read_reg [ 1854.777740]
-> stv0900_read_reg [ 1860.824615] stv0900_read_reg [ 1864.855865]
-> stv0900_read_reg [ 1868.887115] stv0900_get_mclk_freq: Calculated Mclk
-> = 152672117 [ 1876.965209] stv0900_read_reg [ 1883.027709]
-> stv0900_read_reg [ 1887.058990] stv0900_read_reg [ 1891.090240]
-> stv0900_get_mclk_freq: Calculated Mclk = 152672117 [ 1891.090270]
-> Kishore stv0900_attach: Attaching STV0900 demodulator(0) [
-> 1891.090301] dw2102: Kishore: dvb_attach stb6100_attach [ 1891.090332]
-> [ 1891.097442] Kishore stb6100_attach:
-> [ 1891.101409] Kishore stb6100_attach: Attaching STB6100 [
-> 1893.105957] dw2102: Attached STV0900+STB6100A!
-> [ 1893.105957]
-> [ 1893.112335] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
-> [ 1893.137878] input: IR-receiver inside an USB DVB receiver as
-> /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input2
-> [ 1893.177368] dvb-usb: schedule remote query interval to 150 msecs.
-> [ 1893.184143] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
->
->
->
-> Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013 armv7l
-> GNU/Linux -sh-4.1# /stbref/w_scan-20120112/w_scan -fs -s S93E5 -c IN
-> -G >> ch.conf w_scan version 20120112 (compiled for DVB API 5.4) using
-> settings for 93.5 east Insat 3A/4B scan type SATELLITE, channellist 42
-> output format gstreamer
-> WARNING: could not guess your codepage. Falling back to 'UTF-8'
-> output charset 'UTF-8', use -C <charset> to override
-> Info: using DVB adapter auto detection.
->
->          /dev/dvb/adapter0/frontend0 -> SATELLITE "STV0900 frontend":
-> very good :-))
->
-> Using SATELLITE frontend (adapter /dev/dvb/adapter0/frontend0)
-> -_-_-_-_ Getting frontend capabilities-_-_-_-_ Using DVB API 5.5
-> frontend 'STV0900 frontend' supports INVERSION_AUTO DVB-S
-> DVB-S2
-> FREQ (0.95GHz ... 2.15GHz)
-> SRATE (1.000MBd ... 45.000MBd)
-> using LNB "UNIVERSAL"
-> -_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
-> (time: 00:40)
->
-> dmesg logs:
->
-> [1716261.743961] stv0900_init
-> [1716287.004365] stv0900_set_tone: Off [1716307.004132]
-> stv0900_read_status:
-> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
-> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251] TS
-> bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
-> [1716345.004236] stv0900_search:
-> [1716345.004242] stv0900_read_status:
-> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
-> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260] TS
-> bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
-> [1716261.743961] stv0900_init [1716287.004365] stv0900_set_tone: Off
-> [1716307.004132] stv0900_read_status:
-> [1716321.004217] stv0900_status: locked = 0 [1716337.004246]
-> stv0900_get_mclk_freq: Calculated Mclk = 553008176 [1716337.004251] TS
-> bitrate = 2081 Mbit/sec [1716339.004299] DEMOD LOCK FAIL
-> [1716345.004236] stv0900_search:
-> [1716345.004242] stv0900_read_status:
-> [1716363.004324] stv0900_status: locked = 1 [1716379.004255]
-> stv0900_get_mclk_freq: Calculated Mclk = 607008176 [1716379.004260] TS
-> bitrate = 2361 Mbit/sec [1716379.004263] DEMOD LOCK OK
-> [1716455.004184] stv0900_search:
-> [1716455.004190] stv0900_read_status:
-> [1716461.004239] stv0900_status: locked = 0 [1716477.004310]
-> stv0900_get_mclk_freq: Calculated Mclk = 175008176 [1716477.004315] TS
-> bitrate = 503 Mbit/sec [1716479.004220] DEMOD LOCK FAIL
->
-> Regards,
-> Kishore.
-> ________________________________________
-> From: Oliver Schinagl [oliver+list@schinagl.nl]
-> Sent: Wednesday, July 24, 2013 2:34 AM
-> To: Krishna Kishore
-> Cc: linux-media@vger.kernel.org
-> Subject: Re: Prof DVB-S2 USB device
->
-> On 23-07-13 18:52, Krishna Kishore wrote:
->> #Sorry for sending to individual email ids
->>
->> Hi,
->>
->>        I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
-> You will need to provide much more information then that. What does
-> dmesg say? lsusb? what driver are you using, what kernel version? Are
-> you using it as a module? Have you enabled debugging in your kernel?
->
-> Those questions come to my mind.
->
->>
->> 1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
->> 2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
->> a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
-> Paste your logs (or if its too much, only copy/paste the relevant parts.
-> You ask for a limb, yet offer nothing.
->
-> oliver
->>
->>         Can you please help me?
->>
->>
->> Regards,
->> Kishore.
->>
->>
->>
->
->
->
-> ________________________________
->
-> SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
-> Read Disclaimer at http://www.sasken.com/extras/mail_disclaimer.html
->
 
