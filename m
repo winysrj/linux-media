@@ -1,89 +1,110 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f45.google.com ([209.85.220.45]:41706 "EHLO
-	mail-pa0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755641Ab3GQPrV (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:56864 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S934034Ab3GWTgC (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 11:47:21 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>, linux-doc@vger.kernel.org,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH RFC FINAL v5] media: OF: add "sync-on-green-active" property
-Date: Wed, 17 Jul 2013 21:17:02 +0530
-Message-Id: <1374076022-10960-1-git-send-email-prabhakar.csengg@gmail.com>
+	Tue, 23 Jul 2013 15:36:02 -0400
+Date: Tue, 23 Jul 2013 15:36:00 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Tomasz Figa <t.figa@samsung.com>
+cc: Greg KH <gregkh@linuxfoundation.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<broonie@kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<olof@lixom.net>, Stephen Warren <swarren@wwwdotorg.org>,
+	<b.zolnierkie@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+In-Reply-To: <1446965.6APW5ZgLBW@amdc1227>
+Message-ID: <Pine.LNX.4.44L0.1307231518310.1304-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On Tue, 23 Jul 2013, Tomasz Figa wrote:
 
-This patch adds 'sync-on-green-active' property as part
-of endpoint property.
+> IMHO it would be better if you provided some code example, but let's try to 
+> check if I understood you correctly.
+> 
+> 8><------------------------------------------------------------------------
+> 
+> [Board file]
+> 
+> static struct phy my_phy;
+> 
+> static struct platform_device phy_pdev = {
+> 	/* ... */
+> 	.platform_data = &my_phy;
+> 	/* ... */
+> };
+> 
+> static struct platform_device phy_pdev = {
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
-  Changes for v5:
-  1: Changed description for sync-on-green-active property in
-     documentation file as suggested by Sylwester.
-  
-  Changes for v4:
-  1: Fixed review comments pointed by Sylwester.
+This should be controller_pdev, not phy_pdev, yes?
 
-  Changes for v3:
-  1: Fixed review comments pointed by Laurent and Sylwester.
+> 	/* ... */
+> 	.platform_data = &my_phy;
+> 	/* ... */
+> };
+> 
+> [Provider driver]
+> 
+> struct phy *phy = pdev->dev.platform_data;
+> 
+> ret = phy_create(phy);
+> 
+> [Consumer driver]
+> 
+> struct phy *phy = pdev->dev.platform_data;
+> 
+> ret = phy_get(&pdev->dev, phy);
 
-  RFC v2 https://patchwork.kernel.org/patch/2578091/
+Or even just phy_get(&pdev->dev), because phy_get() could be smart 
+enough to to set phy = dev->platform_data.
 
-  RFC V1 https://patchwork.kernel.org/patch/2572341/
+> ------------------------------------------------------------------------><8
+> 
+> Is this what you mean?
 
- .../devicetree/bindings/media/video-interfaces.txt |    2 ++
- drivers/media/v4l2-core/v4l2-of.c                  |    4 ++++
- include/media/v4l2-mediabus.h                      |    2 ++
- 3 files changed, 8 insertions(+)
+That's what I was going to suggest too.  The struct phy is defined in
+the board file, which already knows about all the PHYs that exist in
+the system.  (Or perhaps it is allocated dynamically, so that when many
+board files are present in the same kernel, only the entries listed in
+the board file for the current system get created.)  Then the
+structure's address is stored in the platform data and made available
+to both the provider and the consumer.
 
-diff --git a/Documentation/devicetree/bindings/media/video-interfaces.txt b/Documentation/devicetree/bindings/media/video-interfaces.txt
-index e022d2d..ce719f8 100644
---- a/Documentation/devicetree/bindings/media/video-interfaces.txt
-+++ b/Documentation/devicetree/bindings/media/video-interfaces.txt
-@@ -88,6 +88,8 @@ Optional endpoint properties
- - field-even-active: field signal level during the even field data transmission.
- - pclk-sample: sample data on rising (1) or falling (0) edge of the pixel clock
-   signal.
-+- sync-on-green-active: active state of Sync-on-green (SoG) signal, 0/1 for
-+  LOW/HIGH respectively.
- - data-lanes: an array of physical data lane indexes. Position of an entry
-   determines the logical lane number, while the value of an entry indicates
-   physical lane, e.g. for 2-lane MIPI CSI-2 bus we could have
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index aa59639..5c4c9f0 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -100,6 +100,10 @@ static void v4l2_of_parse_parallel_bus(const struct device_node *node,
- 	if (!of_property_read_u32(node, "data-shift", &v))
- 		bus->data_shift = v;
- 
-+	if (!of_property_read_u32(node, "sync-on-green-active", &v))
-+		flags |= v ? V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH :
-+			V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW;
-+
- 	bus->flags = flags;
- 
- }
-diff --git a/include/media/v4l2-mediabus.h b/include/media/v4l2-mediabus.h
-index 83ae07e..d47eb81 100644
---- a/include/media/v4l2-mediabus.h
-+++ b/include/media/v4l2-mediabus.h
-@@ -40,6 +40,8 @@
- #define V4L2_MBUS_FIELD_EVEN_HIGH		(1 << 10)
- /* FIELD = 1/0 - Field1 (odd)/Field2 (even) */
- #define V4L2_MBUS_FIELD_EVEN_LOW		(1 << 11)
-+#define V4L2_MBUS_VIDEO_SOG_ACTIVE_HIGH	(1 << 12)
-+#define V4L2_MBUS_VIDEO_SOG_ACTIVE_LOW		(1 << 13)
- 
- /* Serial flags */
- /* How many lanes the client can use */
--- 
-1.7.9.5
+Even though the struct phy is defined (or allocated) in the board file,
+its contents don't get filled in until the PHY driver provides the
+details.
+
+> It's technically correct, but quality of this solution isn't really nice, 
+> because it's a layering violation (at least if I understood what you mean). 
+> This is because you need to have full definition of struct phy in board file 
+> and a structure that is used as private data in PHY core comes from 
+> platform code.
+
+You don't have to have a full definition in the board file.  Just a 
+partial definition -- most of the contents can be filled in later, when 
+the PHY driver is ready to store the private data.
+
+It's not a layering violation for one region of the kernel to store 
+private data in a structure defined by another part of the kernel.  
+This happens all the time (e.g., dev_set_drvdata).
+
+Alan Stern
 
