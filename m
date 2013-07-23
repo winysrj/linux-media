@@ -1,94 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:60568 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932291Ab3GZMvH (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:59855 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932083Ab3GWNHf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 08:51:07 -0400
-From: Kishon Vijay Abraham I <kishon@ti.com>
-To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
-	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
-	<tomasz.figa@gmail.com>, <arnd@arndb.de>
-CC: <grant.likely@linaro.org>, <tony@atomide.com>,
-	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
-	<linux@arm.linux.org.uk>
-Subject: [RESEND PATCH v10 7/8] usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
-Date: Fri, 26 Jul 2013 18:19:22 +0530
-Message-ID: <1374842963-13545-8-git-send-email-kishon@ti.com>
-In-Reply-To: <1374842963-13545-1-git-send-email-kishon@ti.com>
-References: <1374842963-13545-1-git-send-email-kishon@ti.com>
-MIME-Version: 1.0
-Content-Type: text/plain
+	Tue, 23 Jul 2013 09:07:35 -0400
+Message-ID: <1374584814.4041.8.camel@pizza.hi.pengutronix.de>
+Subject: Re: [PATCH v3 2/3] [media] coda: Check the return value from
+ clk_prepare_enable()
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Fabio Estevam <festevam@gmail.com>
+Cc: k.debski@samsung.com, m.chehab@samsung.com, kernel@pengutronix.de,
+	linux-media@vger.kernel.org,
+	Fabio Estevam <fabio.estevam@freescale.com>
+Date: Tue, 23 Jul 2013 15:06:54 +0200
+In-Reply-To: <1374543502-22678-2-git-send-email-festevam@gmail.com>
+References: <1374543502-22678-1-git-send-email-festevam@gmail.com>
+	 <1374543502-22678-2-git-send-email-festevam@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Now that omap-usb2 is adapted to the new generic PHY framework,
-*set_suspend* ops can be removed from omap-usb2 driver.
+Hi Fabio,
 
-Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
-Acked-by: Felipe Balbi <balbi@ti.com>
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
----
- drivers/phy/phy-omap-usb2.c |   25 -------------------------
- 1 file changed, 25 deletions(-)
+Am Montag, den 22.07.2013, 22:38 -0300 schrieb Fabio Estevam:
+> From: Fabio Estevam <fabio.estevam@freescale.com>
+> 
+> clk_prepare_enable() may fail, so let's check its return value and propagate it
+> in the case of error.
+> 
+> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
+> ---
+> - Changes since v2:
+> - Release the previously acquired resources
+> Changes since v1:
+> - Add missing 'if'
+> 
+>  drivers/media/platform/coda.c | 17 +++++++++++++++--
+>  1 file changed, 15 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index ea16c20..5f15aaa 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -1561,14 +1561,27 @@ static int coda_open(struct file *file)
+>  	list_add(&ctx->list, &dev->instances);
+>  	coda_unlock(ctx);
+>  
+> -	clk_prepare_enable(dev->clk_per);
+> -	clk_prepare_enable(dev->clk_ahb);
+> +	ret = clk_prepare_enable(dev->clk_per);
+> +	if (ret)
+> +		goto err_clk_per;
+> +
+> +	ret = clk_prepare_enable(dev->clk_ahb);
+> +	if (ret)
+> +		goto err_clk_ahb;
+>  
+>  	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d (%p)\n",
+>  		 ctx->idx, ctx);
+>  
+>  	return 0;
+>  
+> +err_clk_ahb:
+> +	clk_disable_unprepare(dev->clk_per);
+> +err_clk_per:
+> +	coda_lock(ctx);
+> +	list_del(&ctx->list);
+> +	coda_unlock(ctx);
+> +	dma_free_coherent(&dev->plat_dev->dev, CODA_PARA_BUF_SIZE,
+> +			  ctx->parabuf.vaddr, ctx->parabuf.paddr);
+>  err_dma_alloc:
+>  	v4l2_ctrl_handler_free(&ctx->ctrls);
+>  err_ctrls_setup:
 
-diff --git a/drivers/phy/phy-omap-usb2.c b/drivers/phy/phy-omap-usb2.c
-index 25e0f3c..dec3fab 100644
---- a/drivers/phy/phy-omap-usb2.c
-+++ b/drivers/phy/phy-omap-usb2.c
-@@ -97,29 +97,6 @@ static int omap_usb_set_peripheral(struct usb_otg *otg,
- 	return 0;
- }
- 
--static int omap_usb2_suspend(struct usb_phy *x, int suspend)
--{
--	u32 ret;
--	struct omap_usb *phy = phy_to_omapusb(x);
--
--	if (suspend && !phy->is_suspended) {
--		omap_control_usb_phy_power(phy->control_dev, 0);
--		pm_runtime_put_sync(phy->dev);
--		phy->is_suspended = 1;
--	} else if (!suspend && phy->is_suspended) {
--		ret = pm_runtime_get_sync(phy->dev);
--		if (ret < 0) {
--			dev_err(phy->dev, "get_sync failed with err %d\n",
--									ret);
--			return ret;
--		}
--		omap_control_usb_phy_power(phy->control_dev, 1);
--		phy->is_suspended = 0;
--	}
--
--	return 0;
--}
--
- static int omap_usb_power_off(struct phy *x)
- {
- 	struct omap_usb *phy = phy_get_drvdata(x);
-@@ -167,7 +144,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 
- 	phy->phy.dev		= phy->dev;
- 	phy->phy.label		= "omap-usb2";
--	phy->phy.set_suspend	= omap_usb2_suspend;
- 	phy->phy.otg		= otg;
- 	phy->phy.type		= USB_PHY_TYPE_USB2;
- 
-@@ -182,7 +158,6 @@ static int omap_usb2_probe(struct platform_device *pdev)
- 		return -ENODEV;
- 	}
- 
--	phy->is_suspended	= 1;
- 	omap_control_usb_phy_power(phy->control_dev, 0);
- 
- 	otg->set_host		= omap_usb_set_host;
--- 
-1.7.10.4
+I still think the list_add() should be moved after the last possible
+error case and the lock/list_del/unlock should be removed from the error
+path.
+
+regards
+Philipp
 
