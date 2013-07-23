@@ -1,180 +1,206 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:1411 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753768Ab3GAOit (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 10:38:49 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: Question: interaction between selection API, ENUM_FRAMESIZES and S_FMT?
-Date: Mon, 1 Jul 2013 16:38:34 +0200
-Cc: "linux-media" <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
+Received: from mail-bk0-f52.google.com ([209.85.214.52]:33913 "EHLO
+	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756829Ab3GWUIA (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 16:08:00 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Mark Brown <broonie@kernel.org>, Tomasz Figa <t.figa@samsung.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
 	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-References: <201306241448.15187.hverkuil@xs4all.nl> <1483196.tyaNtCpDTy@avalon>
-In-Reply-To: <1483196.tyaNtCpDTy@avalon>
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Tue, 23 Jul 2013 22:07:52 +0200
+Message-ID: <1731726.KENstTPhkb@flatron>
+In-Reply-To: <20130723194423.GA22984@kroah.com>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org> <20130723193105.GP9858@sirena.org.uk> <20130723194423.GA22984@kroah.com>
 MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="iso-8859-1"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307011638.34763.hverkuil@xs4all.nl>
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Mon 1 July 2013 14:42:34 Laurent Pinchart wrote:
-> Hi Hans,
+On Tuesday 23 of July 2013 12:44:23 Greg KH wrote:
+> On Tue, Jul 23, 2013 at 08:31:05PM +0100, Mark Brown wrote:
+> > > You don't "know" the id of the device you are looking up, due to
+> > > multiple devices being in the system (dynamic ids, look back earlier
+> > > in
+> > > this thread for details about that.)
+> > 
+> > I got copied in very late so don't have most of the thread I'm afraid,
+> > I did try looking at web archives but didn't see a clear problem
+> > statement.  In any case this is why the APIs doing lookups do the
+> > lookups in the context of the requesting device - devices ask for
+> > whatever name they use locally.
 > 
-> On Monday 24 June 2013 14:48:15 Hans Verkuil wrote:
-> > Hi all,
-> > 
-> > While working on extending v4l2-compliance with cropping/selection test
-> > cases I decided to add support for that to vivi as well (this would give
-> > applications a good test driver to work with).
-> > 
-> > However, I ran into problems how this should be implemented for V4L2 devices
-> > (we are not talking about complex media controller devices where the video
-> > pipelines are setup manually).
-> > 
-> > There are two problems, one related to ENUM_FRAMESIZES and one to S_FMT.
-> > 
-> > The ENUM_FRAMESIZES issue is simple: if you have a sensor that has several
-> > possible frame sizes, and that can crop, compose and/or scale, then you need
-> > to be able to set the frame size.
+> What do you mean by "locally"?
 > 
-> You mentioned that this discussion relates to simple pipelines controlled 
-> through a video node only. I'd like to take a step back here and first define 
-> what pipelines we want to support in such a way, and what pipelines requires 
-> the media controller API. Based on that information we can list the use cases 
-> we need to support, and then decide on the S_FMT/S_SELECTION APIs behaviour.
-
-It's fairly simple. If I have a video capture device, either using S_STD or
-S_DV_TIMINGS to define the resolution of the incoming video, then I can do
-cropping, composing and setting the final format without problem. I have all
-the information I need to do the calculations.
-
-On the other hand, replace the video receiver by a sensor or by a software
-or hardware image generator that supports a range of resolutions and everything
-falls down just because you don't have the equivalent of S_STD/S_DV_TIMINGS
-for this type of device. All you need is a way to select which resolution should
-be produced at the beginning/source of the video pipeline. That's exactly why
-S_STD/S_DV_TIMINGS exist.
-
-> I vaguely remember to have discussed this topic previously in a meeting but I 
-> can't find any related information in my notes at the moment. Would anyone 
-> happen to have a better memory here ?
+> The problem with the api was that the phy core wanted a id and a name to
+> create a phy, and then later other code was doing a "lookup" based on
+> the name and id (mushed together), because it "knew" that this device
+> was the one it wanted.
 > 
-> > Currently this is decided by S_FMT which maps the format size to the closest
-> > valid frame size. This however makes it impossible to e.g. scale up a frame,
-> > or compose the image into a larger buffer.
+> Just like the clock api, which, for multiple devices, has proven to
+> cause problems.  I don't want to see us accept an api that we know has
+> issues in it now, I'd rather us fix it up properly.
 > 
-> It also makes it impossible to scale a frame down without composing it into a 
-> larger buffer. That's definitely a bad limitation of the API.
+> Subsystems should be able to create ids how ever they want to, and not
+> rely on the code calling them to specify the names of the devices that
+> way, otherwise the api is just too fragile.
 > 
-> > For video receivers this issue doesn't exist: there the size of the incoming
-> > video is decided by S_STD or S_DV_TIMINGS, but no equivalent exists for
-> > sensors.
+> I think, that if you create a device, then just carry around the pointer
+> to that device (in this case a phy) and pass it to whatever other code
+> needs it.  No need to do lookups on "known names" or anything else,
+> just normal pointers, with no problems for multiple devices, busses, or
+> naming issues.
+
+PHY object is not a device, it is something that a device driver creates 
+(one or more instances of) when it is being probed. You don't have a clean 
+way to export this PHY object to other driver, other than keeping this PHY 
+on a list inside PHY core with some well-known ID (e.g. device name + 
+consumer port name/index, like in regulator core) and then to use this 
+well-known ID inside consumer driver as a lookup key passed to phy_get();
+
+Actually I think for PHY case, exactly the same way as used for regulators 
+might be completely fine:
+
+1. Each PHY would have some kind of platform, non-unique name, that is 
+just used to print some messages (like the platform/board name of a 
+regulator).
+2. Each PHY would have an array of consumers. Consumer specifier would 
+consist of consumer device name and consumer port name - just like in 
+regulator subsystem.
+3. PHY driver receives an array of, let's say, phy_init_data inside its 
+platform data that it would use to register its PHYs.
+4. Consumer drivers would have constant consumer port names and wouldn't 
+receive any information about PHYs from platform code.
+
+Code example:
+
+[Board file]
+
+static const struct phy_consumer_data usb_20_phy0_consumers[] = {
+	{
+		.devname = "foo-ehci",
+		.port = "usbphy",
+	},
+};
+
+static const struct phy_consumer_data usb_20_phy1_consumers[] = {
+	{
+		.devname = "foo-otg",
+		.port = "otgphy",
+	},
+};
+
+static const struct phy_init_data my_phys[] = {
+	{
+		.name = "USB 2.0 PHY 0",
+		.consumers = usb_20_phy0_consumers,
+		.num_consumers = ARRAY_SIZE(usb_20_phy0_consumers),
+	},
+	{
+		.name = "USB 2.0 PHY 1",
+		.consumers = usb_20_phy1_consumers,
+		.num_consumers = ARRAY_SIZE(usb_20_phy1_consumers),
+	},
+	{ }
+};
+
+static const struct platform_device usb_phy_pdev = {
+	.name = "foo-usbphy",
+	.id = -1,
+	.dev = {
+		.platform_data = my_phys,
+	},
+};
+
+[PHY driver]
+
+static int foo_usbphy_probe(pdev)
+{
+	struct foo_usbphy *foo;
+	struct phy_init_data *init_data = pdev->dev.platform_data;
+	/* ... */
+	// for each PHY in init_data {
+		phy_register(&foo->phy[i], &init_data[i]);
+	// }
+	/* ... */
+}
+
+[EHCI driver]
+
+static int foo_ehci_probe(pdev)
+{
+	struct phy *phy;
+	/* ... */
+	phy = phy_get(&pdev->dev, "usbphy");
+	/* ... */
+}
+
+[OTG driver]
+
+static int foo_otg_probe(pdev)
+{
+	struct phy *phy;
+	/* ... */
+	phy = phy_get(&pdev->dev, "otgphy");
+	/* ... */
+}
+
+> > > > Having to write platform data for everything gets old fast and the
+> > > > code
+> > > > duplication is pretty tedious...
+> > > 
+> > > Adding a single pointer is "tedious"?  Where is the "name" that you
+> > > are
+> > > going to lookup going to come from?  That code doesn't write
+> > > itself...
 > > 
-> > I propose that a new selection target is added: V4L2_SEL_TGT_FRAMESIZE.
+> > It's adding platform data in the first place that gets tedious - and
+> > of
+> > course there's also DT and ACPI to worry about, it's not just a case
+> > of
+> > platform data and then you're done.  Pushing the lookup into library
+> > code means that drivers don't have to worry about any of this stuff.
 > 
-> Just to make sure I understand you correctly, are you proposing a new 
-> selection target valid on video nodes only, that would control the format at 
-> the source pad of the sensor ?
+> I agree, so just pass around the pointer to the phy and all is good.  No
+> need to worry about DT or ACPI or anything else.
 
-Yes. So this would be valid for an input that:
+With Device Tree we don't have board files anymore. How would you pass any 
+pointers between provider and consumer drivers in this case?
 
-- Does not set V4L2_IN_CAP_DV_TIMINGS or CAP_STD in ENUMINPUT
-- Does support ENUM_FRAMESIZES
-
-> > However, this leads to another problem: the current S_FMT behavior is that
-> > it implicitly sets the framesize. That behavior we will have to keep,
-> > otherwise applications will start to behave differently.
+> > For most of the APIs doing this there is a clear and unambiguous name
+> > in the hardware that can be used (and for hardware process reasons is
+> > unlikely to get changed).  The major exception to this is the clock
+> > API since it is relatively rare to have clear, segregated IP level
+> > information for IPs baked into larger chips.  The other APIs tend to
+> > be establishing chip to chip links.
 > 
-> Which frame size are you talking about ? S_FMT definitely sets the frame size 
-> in memory, do you mean it also implicitly sets the frame size at the sensor 
-> source pad ?
+> The clock api is having problems with multiple "names" due to dynamic
+> devices from what I was told.  I want to prevent the PHY interface from
+> having that same issue.
 
-For such devices, yes. How else can you select today which frame size the sensor
-should produce?
+Yes, the clock API has a problem related to the clock namespace being 
+global for all registered clock controllers. This is not a problem with 
+lookup in general, but with wrong lookup key chosen.
 
-> > I have an idea on how to solve that, but the solution is related to the
-> > second problem I found:
-> > 
-> > When you set a new format size, then the compose rectangle must be set to
-> > the new format size as well since that has always been the behavior in the
-> > past that applications have come to expect.
-> 
-> That's the behaviour applications have come to expect from devices that can't 
-> compose. From a quick look at the kernel source only Samsung devices implement 
-> the composition API. Does this behaviour need to be preserved there ?
+Best regards,
+Tomasz
 
-I believe so. I plan on adding composing capabilities to vivi. Any existing
-apps should keep working as expected.
-
-> > But this makes certain operations impossible to execute: if a driver can't
-> > scale, then you can never select a new format size larger than the current
-> > (possibly cropped) frame size, even though you would want to compose the
-> > unscaled image into such a larger buffer.
-> > 
-> > So what is the behavior that I would expect from drivers?
-> > 
-> > 1) After calling S_STD, S_DV_TIMINGS or S_SELECTION(V4L2_SEL_TGT_FRAMESIZE)
-> > the cropping, composing and format parameters are all adjusted to support
-> > the new input video size (typically they are all set to the new size).
-> > 
-> > 2) After calling S_CROP/S_SELECTION(CROP) the compose and format parameters
-> > are all adjusted to support the new crop rectangle.
-> > 
-> > 3) After calling S_SEL(COMPOSE) the format parameters are adjusted.
-> > 
-> > 4) Calling S_FMT validates the format parameters to support the compose
-> > rectangle.
-> > 
-> > However, today step 4 does something different: the compose rectangle will
-> > be adjusted to the format size (and in the case of a sensor supporting
-> > different framesizes the whole pipeline will be adjusted).
-> > 
-> > The only way I see that would solve this (although it isn't perfect) is to
-> > change the behavior of S_FMT only if the selection API was used before by
-> > the filehandle. The core can keep easily keep track of that. When the
-> > application calls S_FMT and no selection API was used in the past by that
-> > filehandle, then the core will call first
-> > S_SELECTION(V4L2_SEL_TGT_FRAMESIZE). If that returns -EINVAL, then it will
-> > call S_SELECTION(V4L2_SEL_TGT_COMPOSE). Finally it will call S_FMT. Note
-> > that a similar sequence is needed for the display case.
-> > 
-> > This means that a driver supporting the selection API can implement the
-> > logical behavior and the core will implement the historically-required
-> > illogical part.
-> > 
-> > So the fix for this would be to add a new selection target and add
-> > compatibility code to the v4l2-core.
-> > 
-> > With that in place I can easily add crop/compose support to vivi.
-> > 
-> > One area of uncertainty is how drivers currently implement S_FMT: do they
-> > reset any cropping done before? They should keep the crop rectangle
-> > according to the spec (well, it is implied there). Guennadi, what does
-> > soc_camera do?
-> > 
-> > Sylwester, I am also looking at exynos4-is/fimc-lite.c. I do see that
-> > setting the compose rectangle will adjust it to the format size instead of
-> > the other way around, but I can't tell if setting the format size will also
-> > adjust the compose rectangle if that is now out-of-bounds of the new format
-> > size.
-> > 
-> > Comments? Questions?
-> 
-> How should we handle devices for which supported sizes (crop, compose, ...) 
-> are restricted by selected pixel format ?
-
-Good question. ENUM_FRAMESIZES returns the available resolutions dependent on
-the pixelformat. That means that when you select a resolution you need to
-specify a pixelformat as well. So just a rectangle isn't enough.
-
-I need to think some more about this.
-
-Regards,
-
-	Hans
