@@ -1,183 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:48170 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752140Ab3GAHH1 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Mon, 1 Jul 2013 03:07:27 -0400
-From: Jingoo Han <jg1.han@samsung.com>
-To: 'Kishon Vijay Abraham I' <kishon@ti.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-media@vger.kernel.org,
-	'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Sylwester Nawrocki' <s.nawrocki@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	linux-fbdev@vger.kernel.org, 'Hui Wang' <jason77.wang@gmail.com>,
-	Jingoo Han <jg1.han@samsung.com>
-References: <005401ce761b$504d7090$f0e851b0$@samsung.com>
- <51D12164.6030507@ti.com>
-In-reply-to: <51D12164.6030507@ti.com>
-Subject: Re: [PATCH V3 3/3] video: exynos_dp: Use the generic PHY driver
-Date: Mon, 01 Jul 2013 16:07:24 +0900
-Message-id: <005d01ce7629$a3801520$ea803f60$@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: ko
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:55334 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933361Ab3GWRg0 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 13:36:26 -0400
+Date: Tue, 23 Jul 2013 18:34:54 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Tomasz Figa <tomasz.figa@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Message-ID: <20130723173454.GK9858@sirena.org.uk>
+References: <3419798.aorxYv8pdo@flatron>
+ <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="i5oaXLJ4GqfCAla0"
+Content-Disposition: inline
+In-Reply-To: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Monday, July 01, 2013 3:28 PM, Kishon Vijay Abraham I wrote:
-> 
-> Hi,
-> 
-> On Monday 01 July 2013 10:54 AM, Jingoo Han wrote:
-> > Use the generic PHY API instead of the platform callback to control
-> > the DP PHY. The 'phy_label' field is added to the platform data
-> > structure to allow PHY lookup on non-dt platforms.
-> >
-> > Signed-off-by: Jingoo Han <jg1.han@samsung.com>
-> > Acked-by: Felipe Balbi <balbi@ti.com>
-> > ---
-> >   .../devicetree/bindings/video/exynos_dp.txt        |   23 +---
-> >   drivers/video/exynos/exynos_dp_core.c              |  118 ++------------------
-> >   drivers/video/exynos/exynos_dp_core.h              |    2 +
-> >   include/video/exynos_dp.h                          |    6 +-
-> >   4 files changed, 21 insertions(+), 128 deletions(-)
-> >
-> > diff --git a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > index 84f10c1..71645dc 100644
-> > --- a/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > +++ b/Documentation/devicetree/bindings/video/exynos_dp.txt
-> > @@ -1,17 +1,6 @@
-> >   The Exynos display port interface should be configured based on
-> >   the type of panel connected to it.
-> >
-> > -We use two nodes:
-> > -	-dp-controller node
-> > -	-dptx-phy node(defined inside dp-controller node)
-> > -
-> > -For the DP-PHY initialization, we use the dptx-phy node.
-> > -Required properties for dptx-phy:
-> > -	-reg:
-> > -		Base address of DP PHY register.
-> > -	-samsung,enable-mask:
-> > -		The bit-mask used to enable/disable DP PHY.
-> > -
-> >   For the Panel initialization, we read data from dp-controller node.
-> >   Required properties for dp-controller:
-> >   	-compatible:
-> > @@ -25,6 +14,10 @@ Required properties for dp-controller:
-> >   		from common clock binding: handle to dp clock.
-> >   	-clock-names:
-> >   		from common clock binding: Shall be "dp".
-> > +	-phys:
-> > +		from general phy binding: the phandle for the PHY device.
-> > +	-phy-names:
-> > +		from general phy binding: Should be "dp".
-> >   	-interrupt-parent:
-> >   		phandle to Interrupt combiner node.
-> >   	-samsung,color-space:
-> > @@ -67,12 +60,8 @@ SOC specific portion:
-> >   		interrupt-parent = <&combiner>;
-> >   		clocks = <&clock 342>;
-> >   		clock-names = "dp";
-> > -
-> > -		dptx-phy {
-> > -			reg = <0x10040720>;
-> > -			samsung,enable-mask = <1>;
-> > -		};
-> > -
-> > +		phys = <&dp_phy>;
-> > +		phy-names = "dp";
-> >   	};
-> >
-> >   Board Specific portion:
-> > diff --git a/drivers/video/exynos/exynos_dp_core.c b/drivers/video/exynos/exynos_dp_core.c
-> > index 12bbede..bac515b 100644
-> > --- a/drivers/video/exynos/exynos_dp_core.c
-> > +++ b/drivers/video/exynos/exynos_dp_core.c
-> > @@ -19,6 +19,7 @@
-> >   #include <linux/interrupt.h>
-> >   #include <linux/delay.h>
-> >   #include <linux/of.h>
-> > +#include <linux/phy/phy.h>
-> >
-> >   #include <video/exynos_dp.h>
-> >
-> > @@ -960,84 +961,15 @@ static struct exynos_dp_platdata *exynos_dp_dt_parse_pdata(struct device *dev)
-> >   		return ERR_PTR(-EINVAL);
-> >   	}
-> >
-> > -	return pd;
-> > -}
-> > -
-> > -static int exynos_dp_dt_parse_phydata(struct exynos_dp_device *dp)
-> > -{
-> > -	struct device_node *dp_phy_node = of_node_get(dp->dev->of_node);
-> > -	u32 phy_base;
-> > -	int ret = 0;
-> > -
-> > -	dp_phy_node = of_find_node_by_name(dp_phy_node, "dptx-phy");
-> > -	if (!dp_phy_node) {
-> > -		dev_err(dp->dev, "could not find dptx-phy node\n");
-> > -		return -ENODEV;
-> > -	}
-> > -
-> > -	if (of_property_read_u32(dp_phy_node, "reg", &phy_base)) {
-> > -		dev_err(dp->dev, "failed to get reg for dptx-phy\n");
-> > -		ret = -EINVAL;
-> > -		goto err;
-> > -	}
-> > -
-> > -	if (of_property_read_u32(dp_phy_node, "samsung,enable-mask",
-> > -				&dp->enable_mask)) {
-> > -		dev_err(dp->dev, "failed to get enable-mask for dptx-phy\n");
-> > -		ret = -EINVAL;
-> > -		goto err;
-> > -	}
-> > -
-> > -	dp->phy_addr = ioremap(phy_base, SZ_4);
-> > -	if (!dp->phy_addr) {
-> > -		dev_err(dp->dev, "failed to ioremap dp-phy\n");
-> > -		ret = -ENOMEM;
-> > -		goto err;
-> > -	}
-> > -
-> > -err:
-> > -	of_node_put(dp_phy_node);
-> > -
-> > -	return ret;
-> > -}
-> > -
-> > -static void exynos_dp_phy_init(struct exynos_dp_device *dp)
-> > -{
-> > -	u32 reg;
-> > -
-> > -	reg = __raw_readl(dp->phy_addr);
-> > -	reg |= dp->enable_mask;
-> > -	__raw_writel(reg, dp->phy_addr);
-> > -}
-> > -
-> > -static void exynos_dp_phy_exit(struct exynos_dp_device *dp)
-> > -{
-> > -	u32 reg;
-> > +	pd->phy_label = "dp";
-> 
-> Felipe had a comment to change the label to *display-port* no?
 
-No, I don't think so. :)
-I would like to use 'dp'.
+--i5oaXLJ4GqfCAla0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Best regards,
-Jingoo Han
+On Tue, Jul 23, 2013 at 10:37:05AM -0400, Alan Stern wrote:
+> On Tue, 23 Jul 2013, Tomasz Figa wrote:
 
-> 
-> Thanks
-> Kishon
+> > > > Okay.  Are PHYs _always_ platform devices?
 
+> > > They can be i2c, spi or any other device types as well.
+
+> In those other cases, presumably there is no platform data associated
+> with the PHY since it isn't a platform device.  Then how does the
+> kernel know which controller is attached to the PHY?  Is this spelled
+> out in platform data associated with the PHY's i2c/spi/whatever parent?
+
+Platform data is nothing to do with the platform bus - it's board
+specific data (ie, data for the platform) and can be done with any
+device.
+
+--i5oaXLJ4GqfCAla0
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR7r67AAoJELSic+t+oim9mQgP/jtUcLJCh8K5fwvGamn4opPT
+Lmfss8MxAGPhgblBb24+aRD7dKntVOSYIQKc51TUXDfzjyUWqCfEo6U46ej6lfkD
+kiHlIHfy6YjqIeMmI08dX/OyzgJf9wg/Btf8f3niSmEaQ6GiyuOy+ok3VLJqoIae
+lTa+q8mGrWIqHb0+sP0rolztvR4dqHWg8DseVc6mH21kR+RTexwlJcBSJJcL8xmA
+IrUbMzt4/35JMeLrgf43T0cuKrP59hT+9Cl4oEVx92We+9Jrc1b4o2LyhlxyAkM/
+X7B86hl3ExmvYnPgHMR0N4PiRgsG1XIgFAPHrQQRvfieLm3irgLUnTc9RMIdzpS7
+jsgBzR8x14b33ZtGJ8fo9WMlfO9N3ELrLQY4a6g39DPtqxCzyYMbCy5+HVNbUxvP
+nnC9V/2Mi01G9AFK1sOocgSZjKjvXa3W5Dgc8KNXIa0d7M8Gy1j/ToGFdDT2Rk9F
+f5OjxvRZv8mSffV/vp3GbNbjOhfzB3jRQp3ltmh+ayhnZmfmraOCMiQvfFuacPaC
+/QqPWfXLBO+S8iUYsxY5SqhbgP7qbOcfPFzMy6YtDuuNKvNCLbMubhW8fgDX64pt
+/nVnmWZa48yb0dCJj0rY/lNNWvFRjb2D3YEhoSxSg7i0oZk8lPO0Ivid3VCZ3AXt
+It00egc7+yTUssZUPYJW
+=NMIj
+-----END PGP SIGNATURE-----
+
+--i5oaXLJ4GqfCAla0--
