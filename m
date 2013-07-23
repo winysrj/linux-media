@@ -1,117 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f181.google.com ([209.85.214.181]:40788 "EHLO
-	mail-ob0-f181.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751910Ab3GaHJZ (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:40496 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932567Ab3GWVXf (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 03:09:25 -0400
-Received: by mail-ob0-f181.google.com with SMTP id dn14so660905obc.26
-        for <linux-media@vger.kernel.org>; Wed, 31 Jul 2013 00:09:25 -0700 (PDT)
+	Tue, 23 Jul 2013 17:23:35 -0400
+Date: Tue, 23 Jul 2013 14:23:34 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+Cc: Mark Brown <broonie@kernel.org>, Tomasz Figa <t.figa@samsung.com>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Message-ID: <20130723212334.GA21945@kroah.com>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+ <1731726.KENstTPhkb@flatron>
+ <20130723205007.GA27166@kroah.com>
+ <1769609.rbAYfG9ir3@flatron>
 MIME-Version: 1.0
-In-Reply-To: <51F7E712.40103@xs4all.nl>
-References: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com>
- <201307301545.51529.hverkuil@xs4all.nl> <CAPybu_13HCY1i=tH1krdKGOSbJNgek-X4gt1cGmo_oB=AqTxKg@mail.gmail.com>
- <201307301729.26053.hverkuil@xs4all.nl> <CAPybu_2TivP9Pui2O5N8QofT-07tdxYMnOsC2Nvo7Ods0PuX7w@mail.gmail.com>
- <51F7E712.40103@xs4all.nl>
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Wed, 31 Jul 2013 09:09:05 +0200
-Message-ID: <CAPybu_22T6fNAMKEqyjX3FHQ-hgKiHytc9y=3Dh75FvSWje49w@mail.gmail.com>
-Subject: Re: Question about v4l2-compliance: cap->readbuffers
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <1769609.rbAYfG9ir3@flatron>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello Hans
+On Tue, Jul 23, 2013 at 11:05:48PM +0200, Tomasz Figa wrote:
+> > That's not so bad, as long as you let the phy core use whatever name it
+> > wants for the device when it registers it with sysfs.
+> 
+> Yes, in regulator core consumer names are completely separated from this. 
+> Regulator core simply assigns a sequential integer ID to each regulator 
+> and registers /sys/class/regulator/regulator.ID for each regulator.
 
-Thanks for the explanation. I have tried changing the controls to
-inactive and the are shown disabled on the gui, just as you say, but
-they are there :S. I personally liked better the previous behaviour,
-when the controls where not shown at all. But it is just that, a
-taste, if it is more correct showing them as inactive they will be
-inactive :).
+Yes, that's fine.
 
-For a case where a option is only available at a specific format: I
-was also disablig the control (now inactiving it), and returning
--EINVAL if the user tried to set the control on an incompatible
-format. Apparently the v4l2-compilance dont like that either, is this
-a false positive or I should behave differently?.
+> > Use the name you
+> > are requesting as a "tag" or some such "hint" as to what the phy can be
+> > looked up by.
+> > 
+> > Good luck handling duplicate "tags" :)
+> 
+> The tag alone is not a key. Lookup key consists of two components, 
+> consumer device name and consumer tag. What kind of duplicate tags can be 
+> a problem here?
 
-Thank you again!
+Ok, I didn't realize it looked at both parts, that makes sense, thanks.
 
-
-
-
-On Tue, Jul 30, 2013 at 6:17 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
-> Hi Ricardo,
->
-> On 07/30/2013 05:46 PM, Ricardo Ribalda Delgado wrote:
->> Hello
->>
->> I have a camera that works on two modes: Mono and colour. On color
->> mode it has 3 gains, on mono mode it has 1 gain.
->>
->> When the user sets the output to mono I disable the color controls
->> (and the other way around).
->>
->> Also on color mode the hflip and vflip do not work, therefore I dont show them.
->>
->> I could return -EINVAL, but I rather not show the controls to the user.
->>
->> What would be the proper way to do this?
->
-> Use the INACTIVE flag, that's the way it is typically done. You can still set
-> such controls, but the new value won't be active until you switch back to a
-> mode where they do work.
->
-> Using INACTIVE will show such controls as disabled in a GUI like qv4l2. I highly
-> recommend using qv4l2 for testing this since it is the reference implementation
-> of how GUIs should interpret control flags.
->
-> Regards,
->
->         Hans
->
->>
->>
->> Thanks gain.
->>
->>
->>
->>
->>
->> On Tue, Jul 30, 2013 at 5:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
->>> On Tue 30 July 2013 17:18:58 Ricardo Ribalda Delgado wrote:
->>>> Thanks for the explanation Hans!
->>>>
->>>> I finaly manage to pass that one ;)
->>>>
->>>> Just one more question. Why the compliance test checks if the DISABLED
->>>> flag is on on for qctrls?
->>>>
->>>> http://git.linuxtv.org/v4l-utils.git/blob/3ae390e54a0ba627c9e74953081560192b996df4:/utils/v4l2-compliance/v4l2-test-controls.cpp#l137
->>>>
->>>>  137         if (fl & V4L2_CTRL_FLAG_DISABLED)
->>>>  138                 return fail("DISABLED flag set\n");
->>>>
->>>> Apparently that has been added on:
->>>> http://git.linuxtv.org/v4l-utils.git/commit/0a4d4accea7266d7b5f54dea7ddf46cce8421fbb
->>>>
->>>> But I have failed to find a reason
->>>
->>> It shouldn't be used anymore in drivers. With the control framework there is
->>> no longer any reason to use the DISABLED flag.
->>>
->>> If something has a valid use case for it, then I'd like to know what it is.
->>>
->>> Regards,
->>>
->>>         Hans
->>
->>
->>
-
-
-
--- 
-Ricardo Ribalda
+greg k-h
