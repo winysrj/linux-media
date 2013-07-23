@@ -1,126 +1,327 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-we0-f177.google.com ([74.125.82.177]:63328 "EHLO
-	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750991Ab3GXM7g (ORCPT
+Received: from mailout3.w1.samsung.com ([210.118.77.13]:26276 "EHLO
+	mailout3.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932705Ab3GWQug (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 08:59:36 -0400
-Received: by mail-we0-f177.google.com with SMTP id m46so1515577wev.8
-        for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 05:59:35 -0700 (PDT)
-From: Luis Alves <ljalvs@gmail.com>
-To: linux-media@vger.kernel.org
-Cc: mchehab@infradead.org, crope@iki.fi, awalls@md.metrocast.net,
-	Luis Alves <ljalvs@gmail.com>
-Subject: [PATCH] cx23885[v3]: Fix interrupt storm when enabling IR receiver.
-Date: Wed, 24 Jul 2013 13:59:45 +0100
-Message-Id: <1374670785-2595-1-git-send-email-ljalvs@gmail.com>
+	Tue, 23 Jul 2013 12:50:36 -0400
+From: Tomasz Figa <t.figa@samsung.com>
+To: Greg KH <gregkh@linuxfoundation.org>
+Cc: Kishon Vijay Abraham I <kishon@ti.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	broonie@kernel.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Tue, 23 Jul 2013 18:50:29 +0200
+Message-id: <1446965.6APW5ZgLBW@amdc1227>
+In-reply-to: <20130723161846.GD2486@kroah.com>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+ <51EE9EC0.6060905@ti.com> <20130723161846.GD2486@kroah.com>
+MIME-version: 1.0
+Content-transfer-encoding: 7Bit
+Content-type: text/plain; charset=us-ascii
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+On Tuesday 23 of July 2013 09:18:46 Greg KH wrote:
+> On Tue, Jul 23, 2013 at 08:48:24PM +0530, Kishon Vijay Abraham I wrote:
+> > Hi,
+> > 
+> > On Tuesday 23 July 2013 08:07 PM, Alan Stern wrote:
+> > > On Tue, 23 Jul 2013, Tomasz Figa wrote:
+> > >> On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
+> > >>> Hi Alan,
+> > > 
+> > > Thanks for helping to clarify the issues here.
+> > > 
+> > >>>> Okay.  Are PHYs _always_ platform devices?
+> > >>> 
+> > >>> They can be i2c, spi or any other device types as well.
+> > > 
+> > > In those other cases, presumably there is no platform data associated
+> > > with the PHY since it isn't a platform device.  Then how does the
+> > > kernel know which controller is attached to the PHY?  Is this spelled
+> > > out in platform data associated with the PHY's i2c/spi/whatever
+> > > parent?
+> > 
+> > Yes. I think we could use i2c_board_info for passing platform data.
+> > 
+> > >>>>>> 	PHY.  Currently this information is represented by name or
+> > >> 
+> > >> ID
+> > >> 
+> > >>>>>> 	strings embedded in platform data.
+> > >>>>> 
+> > >>>>> right. It's embedded in the platform data of the controller.
+> > >>>> 
+> > >>>> It must also be embedded in the PHY's platform data somehow.
+> > >>>> Otherwise, how would the kernel know which PHY to use?
+> > >>> 
+> > >>> By using a PHY lookup as Stephen and I suggested in our previous
+> > >>> replies. Without any extra data in platform data. (I have even
+> > >>> posted a
+> > >>> code example.)
+> > > 
+> > > I don't understand, because I don't know what "a PHY lookup" does.
+> > 
+> > It is how the PHY framework finds a PHY, when the controller (say
+> > USB)requests a PHY from the PHY framework.
+> > 
+> > >>>> In this case, it doesn't matter where the platform_device
+> > >>>> structures
+> > >>>> are created or where the driver source code is.  Let's take a
+> > >>>> simple
+> > >>>> example.  Suppose the system design includes a PHY named "foo". 
+> > >>>> Then
+> > >>>> the board file could contain:
+> > >>>> 
+> > >>>> struct phy_info { ... } phy_foo;
+> > >>>> EXPORT_SYMBOL_GPL(phy_foo);
+> > >>>> 
+> > >>>> and a header file would contain:
+> > >>>> 
+> > >>>> extern struct phy_info phy_foo;
+> > >>>> 
+> > >>>> The PHY supplier could then call phy_create(&phy_foo), and the PHY
+> > >>>> client could call phy_find(&phy_foo).  Or something like that;
+> > >>>> make up
+> > >>>> your own structure tags and function names.
+> > >>>> 
+> > >>>> It's still possible to have conflicts, but now two PHYs with the
+> > >>>> same
+> > >>>> name (or a misspelled name somewhere) will cause an error at link
+> > >>>> time.
+> > >>> 
+> > >>> This is incorrect, sorry. First of all it's a layering violation -
+> > >>> you
+> > >>> export random driver-specific symbols from one driver to another.
+> > >>> Then
+> > > 
+> > > No, that's not what I said.  Neither the PHY driver nor the
+> > > controller
+> > > driver exports anything to the other.  Instead, both drivers use data
+> > > exported by the board file.
+> > 
+> > I think instead we can use the same data while creating the platform
+> > data of the controller and the PHY.
+> > The PHY driver while creating the PHY (using PHY framework) will also
+> > pass the *data* it actually got from the platform data to the
+> > framework. The PHY user driver (USB), while requesting for the PHY
+> > (from the PHY framework) will pass the *data* it got from its platform
+> > data.
+> > The PHY framework can do a comparison of the *data* pointers it has and
+> > return the appropriate PHY to the controller.
+> > 
+> > >>> imagine 4 SoCs - A, B, C, D. There are two PHY types PHY1 and PHY2
+> > >>> and
+> > >>> there are two types of consumer drivers (e.g. USB host
+> > >>> controllers). Now
+> > >>> consider following mapping:
+> > >>> 
+> > >>> SoC	PHY	consumer
+> > >>> A	PHY1	HOST1
+> > >>> B	PHY1	HOST2
+> > >>> C	PHY2	HOST1
+> > >>> D	PHY2	HOST2
+> > >>> 
+> > >>> So we have to be able to use any of the PHYs with any of the host
+> > >>> drivers. This means you would have to export symbol with the same
+> > >>> name
+> > >>> from both PHY drivers, which obviously would not work in this case,
+> > >>> because having both drivers enabled (in a multiplatform aware
+> > >>> configuration) would lead to linking conflict.
+> > > 
+> > > You're right; the scheme was too simple.  Instead, the board file
+> > > must
+> > > export two types of data structures, one for PHYs and one for
+> > > controllers.  Like this:
+> > > 
+> > > struct phy_info {
+> > > 
+> > > 	/* Info for the controller attached to this PHY */
+> > > 	struct controller_info	*hinfo;
+> > > 
+> > > };
+> > > 
+> > > struct controller_info {
+> > > 
+> > > 	/* Info for the PHY which this controller is attached to */
+> > > 	struct phy_info		*pinfo;
+> > > 
+> > > };
+> > > 
+> > > The board file for SoC A would contain:
+> > > 
+> > > struct phy_info phy1 = {&host1);
+> > > EXPORT_SYMBOL(phy1);
+> > > struct controller_info host1 = {&phy1};
+> > > EXPORT_SYMBOL(host1);
+> > > 
+> > > The board file for SoC B would contain:
+> > > 
+> > > struct phy_info phy1 = {&host2);
+> > > EXPORT_SYMBOL(phy1);
+> > > struct controller_info host2 = {&phy1};
+> > > EXPORT_SYMBOL(host2);
+> > 
+> > I meant something like this
+> > struct phy_info {
+> > 
+> > 	const char *name;
+> > 
+> > };
+> > 
+> > struct phy_platform_data {
+> > 
+> > 	.
+> > 	.
+> > 	struct phy_info *info;
+> > 
+> > };
+> > 
+> > struct usb_controller_platform_data {
+> > 
+> > 	.
+> > 	.
+> > 	struct phy_info *info;
+> > 
+> > };
+> > 
+> > struct phy_info phy_info;
+> > 
+> > While creating the phy device
+> > 
+> > 	struct phy_platform_data phy_data;
+> > 	phy_data.info = &info;
+> > 	platform_device_add_data(pdev, &phy_data, sizeof(*phy_data))
+> > 	platform_device_add();
+> > 
+> > While creating the controller device
+> > 
+> > 	struct usb_controller_platform_data controller_data;
+> > 	controller_data.info = &info;
+> > 	platform_device_add_data(pdev, &controller_data,
+> > 	sizeof(*controller_data)) platform_device_add();
+> > 
+> > Then modify PHY framework API phy create
+> > 
+> > 	phy_create((struct device *dev, const struct phy_ops *ops,
+> > 	
+> >         void *priv)  {//API changed to take void pointer instead of
+> >         label
+> > 		
+> > 		. //existing implementation
+> > 		.
+> > 		phy->priv = priv;
+> > 	
+> > 	}
+> > 	
+> > 	struct phy *phy_get(struct device *dev, const char *string, void
+> > 	*priv) {> 
+> > //API changed to take an additional pointer
+> > 
+> > 		phy_lookup(priv)
+> > 	
+> > 	}
+> > 	
+> > 	static struct phy *phy_lookup(void *priv) {
+> > 	
+> > 		.
+> > 		.
+> > 		if (phy->priv==priv) //instead of string comparison, we'll use
+> > 		pointer
+> > 		
+> > 			return phy;
+> > 	
+> > 	}
+> > 
+> > PHY driver should be like
+> > 
+> > 	phy_create((dev, ops, pdata->info);
+> > 
+> > The controller driver would do
+> > 
+> > 	phy_get(dev, NULL, pdata->info);
+> > 
+> > Now the PHY framework will check for a match of *priv* pointer and
+> > return the PHY.
+> > 
+> > I think this should be possible?
+> 
+> Ick, no.  Why can't you just pass the pointer to the phy itself?  If you
+> had a "priv" pointer to search from, then you could have just passed the
+> original phy pointer in the first place, right?
 
-New patch for this issue. Changes:
- - Added flatiron readreg and writereg functions prototypes (new header file).
- - Modified the av work handler to preserve all other register bits when dealing
-   with the interrupt flag.
+IMHO it would be better if you provided some code example, but let's try to 
+check if I understood you correctly.
 
-Regards,
-Luis
+8><------------------------------------------------------------------------
 
+[Board file]
 
-Signed-off-by: Luis Alves <ljalvs@gmail.com>
----
- drivers/media/pci/cx23885/cx23885-av.c    |   13 +++++++++++++
- drivers/media/pci/cx23885/cx23885-video.c |    4 ++--
- drivers/media/pci/cx23885/cx23885-video.h |   28 ++++++++++++++++++++++++++++
- 3 files changed, 43 insertions(+), 2 deletions(-)
- create mode 100644 drivers/media/pci/cx23885/cx23885-video.h
+static struct phy my_phy;
 
-diff --git a/drivers/media/pci/cx23885/cx23885-av.c b/drivers/media/pci/cx23885/cx23885-av.c
-index e958a01..c443b7a 100644
---- a/drivers/media/pci/cx23885/cx23885-av.c
-+++ b/drivers/media/pci/cx23885/cx23885-av.c
-@@ -23,6 +23,7 @@
- 
- #include "cx23885.h"
- #include "cx23885-av.h"
-+#include "cx23885-video.h"
- 
- void cx23885_av_work_handler(struct work_struct *work)
- {
-@@ -32,5 +33,17 @@ void cx23885_av_work_handler(struct work_struct *work)
- 
- 	v4l2_subdev_call(dev->sd_cx25840, core, interrupt_service_routine,
- 			 PCI_MSK_AV_CORE, &handled);
-+
-+	/* Getting here with the interrupt not handled
-+	   then probbaly flatiron does have pending interrupts.
-+	*/
-+	if (!handled) {
-+		/* clear left and right adc channel interrupt request flag */
-+		cx23885_flatiron_write(dev, 0x1f,
-+			cx23885_flatiron_read(dev, 0x1f) | 0x80);
-+		cx23885_flatiron_write(dev, 0x23,
-+			cx23885_flatiron_read(dev, 0x23) | 0x80);
-+	}
-+
- 	cx23885_irq_enable(dev, PCI_MSK_AV_CORE);
- }
-diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
-index e33d1a7..f4e7cef 100644
---- a/drivers/media/pci/cx23885/cx23885-video.c
-+++ b/drivers/media/pci/cx23885/cx23885-video.c
-@@ -417,7 +417,7 @@ static void res_free(struct cx23885_dev *dev, struct cx23885_fh *fh,
- 	mutex_unlock(&dev->lock);
- }
- 
--static int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
-+int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
- {
- 	/* 8 bit registers, 8 bit values */
- 	u8 buf[] = { reg, data };
-@@ -428,7 +428,7 @@ static int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
- 	return i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
- }
- 
--static u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
-+u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
- {
- 	/* 8 bit registers, 8 bit values */
- 	int ret;
-diff --git a/drivers/media/pci/cx23885/cx23885-video.h b/drivers/media/pci/cx23885/cx23885-video.h
-new file mode 100644
-index 0000000..6e88214
---- /dev/null
-+++ b/drivers/media/pci/cx23885/cx23885-video.h
-@@ -0,0 +1,28 @@
-+/*
-+ *  Driver for the Conexant CX23885/7/8 PCIe bridge
-+ *
-+ *  AV device support routines - non-input, non-vl42_subdev routines
-+ *
-+ *  Copyright (C) 2010  Andy Walls <awalls@md.metrocast.net>
-+ *
-+ *  This program is free software; you can redistribute it and/or
-+ *  modify it under the terms of the GNU General Public License
-+ *  as published by the Free Software Foundation; either version 2
-+ *  of the License, or (at your option) any later version.
-+ *
-+ *  This program is distributed in the hope that it will be useful,
-+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
-+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-+ *  GNU General Public License for more details.
-+ *
-+ *  You should have received a copy of the GNU General Public License
-+ *  along with this program; if not, write to the Free Software
-+ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
-+ *  02110-1301, USA.
-+ */
-+
-+#ifndef _CX23885_VIDEO_H_
-+#define _CX23885_VIDEO_H_
-+int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data);
-+u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg);
-+#endif
--- 
-1.7.9.5
+static struct platform_device phy_pdev = {
+	/* ... */
+	.platform_data = &my_phy;
+	/* ... */
+};
+
+static struct platform_device phy_pdev = {
+	/* ... */
+	.platform_data = &my_phy;
+	/* ... */
+};
+
+[Provider driver]
+
+struct phy *phy = pdev->dev.platform_data;
+
+ret = phy_create(phy);
+
+[Consumer driver]
+
+struct phy *phy = pdev->dev.platform_data;
+
+ret = phy_get(&pdev->dev, phy);
+
+------------------------------------------------------------------------><8
+
+Is this what you mean?
+
+> The issue is that a string "name" is not going to scale at all, as it
+> requires hard-coded information that will change over time (as the
+> existing clock interface is already showing.)
+
+I fully agree that a simple, single string will not scale even in some, not 
+so uncommon cases, but there is already a lot of existing lookup solutions 
+over the kernel and so there is no point in introducing another one.
+
+> Please just pass the real "phy" pointer around, that's what it is there
+> for.  Your "board binding" logic/code should be able to handle this, as
+> it somehow was going to do the same thing with a "name".
+
+It's technically correct, but quality of this solution isn't really nice, 
+because it's a layering violation (at least if I understood what you mean). 
+This is because you need to have full definition of struct phy in board file 
+and a structure that is used as private data in PHY core comes from 
+platform code.
+
+Best regards,
+Tomasz
 
