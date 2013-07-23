@@ -1,75 +1,120 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f47.google.com ([209.85.215.47]:61334 "EHLO
-	mail-la0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755605Ab3GKMSW (ORCPT
+Received: from mail-ve0-f180.google.com ([209.85.128.180]:52440 "EHLO
+	mail-ve0-f180.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757994Ab3GWUyX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 08:18:22 -0400
-Received: by mail-la0-f47.google.com with SMTP id fe20so6735626lab.34
-        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 05:18:20 -0700 (PDT)
-Message-ID: <51DEA289.5050509@cogentembedded.com>
-Date: Thu, 11 Jul 2013 16:18:17 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+	Tue, 23 Jul 2013 16:54:23 -0400
+Received: by mail-ve0-f180.google.com with SMTP id pa12so6383424veb.25
+        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 13:54:21 -0700 (PDT)
 MIME-Version: 1.0
-To: Ming Lei <ming.lei@canonical.com>
-CC: Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Juergen Stuber <starblue@users.sourceforge.net>
-Subject: Re: [PATCH 08/50] USB: legousbtower: spin_lock in complete() cleanup
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-9-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-9-git-send-email-ming.lei@canonical.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <CAA9z4LYFW4iZsQgbPHHhy1ESiEDtVyNV4QaSeULq7p+kWs+e=A@mail.gmail.com>
+References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+	<CAHFNz9JCf6SUWhjErWYBRnwbaFL3WvZuag0_1pZ0Nqt3pG24Hg@mail.gmail.com>
+	<CAA9z4LYFW4iZsQgbPHHhy1ESiEDtVyNV4QaSeULq7p+kWs+e=A@mail.gmail.com>
+Date: Wed, 24 Jul 2013 02:24:21 +0530
+Message-ID: <CAHFNz9KNMVXa1kpMjoiiB4T9P-=AQqm7cfPDau_mtAQTxbUCEw@mail.gmail.com>
+Subject: Re: Proposed modifications to dvb_frontend_ops
+From: Manu Abraham <abraham.manu@gmail.com>
+To: Chris Lee <updatelee@gmail.com>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+On Tue, Jul 23, 2013 at 10:17 PM, Chris Lee <updatelee@gmail.com> wrote:
+> Not all tuners support all fec's
 
-On 11-07-2013 13:05, Ming Lei wrote:
+Nitpick: tuner doesn't have anything to do with FEC, it just provides IQ
+outputs to the demodulator. ;-)
 
-> Complete() will be run with interrupt enabled, so change to
-> spin_lock_irqsave().
+That said;
 
-> Cc: Juergen Stuber <starblue@users.sourceforge.net>
-> Signed-off-by: Ming Lei <ming.lei@canonical.com>
-> ---
->   drivers/usb/misc/legousbtower.c |    5 +++--
->   1 file changed, 3 insertions(+), 2 deletions(-)
+Demods support all FEC's relevant to their delivery systems. It's just that
+some devices likely do support some additional states.
 
-> diff --git a/drivers/usb/misc/legousbtower.c b/drivers/usb/misc/legousbtower.c
-> index 8089479..4044989 100644
-> --- a/drivers/usb/misc/legousbtower.c
-> +++ b/drivers/usb/misc/legousbtower.c
-> @@ -771,6 +771,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
->   	struct lego_usb_tower *dev = urb->context;
->   	int status = urb->status;
->   	int retval;
-> +	unsigned long flags;
+
+> - genpix devices support an odd 5/11 fec for digicipher, pretty sure
+> no one else does.
+
+I think DCII FEC5/11 is standard, reading this URL
+http://rickcaylor.websitetoolbox.com/post/DCII-Valid-SRFECModulation-Combinations-5827500
+
+Also, according to the BCM4201 datasheet:
+* DVB/DIRECTV/Digicipher II compliant FEC decoder
+64 state viterbi decoder supports rates= 5/11, 1/2, 3/5, 2/3, 3/4.
+4/5, 5/6, 6/7, 7/8
+
+I would say, it is pretty much standard for DCII.
+
+Given that it is pretty much standard, I would say that for DCII; for
+the genpix
+all you need is a SYS_DCII and or a SYS_DSS addition to the genpix driver,
+rather than having a ton of delivery systems mixed with modulations as in
+your patch with DCII_QPSK, ... _OQPSK etc. Actually, those are a bit too
+superfluous. You shouldn't mix delivery systems and modulations. That was
+the whole reason why the delivery system flag was introduced to make
+things saner and proper for the frontend API.
+
+If I am not mistaken, the genpix hardware is a hardware wrapper around the
+BCM demodulator. So, it is quite likely that even if you don't set any FEC
+parameter, the device could still acquire lock as expected. I am not holding
+my breath on this. Maybe someone with a genpix device can prove me right
+or wrong.
+
+
+> - stv0899 supports 1/2, 2/3, 3/4, 5/6, 6/7, 7/8
+> - stv0900 supports 1/2, 3/5, 2/3, 3/4, 4/5, 5/6, 8/9, 9/10
+
+
+Ah....
+
+Though these devices support additional modes, the STB0899 (I don't know
+whether you meant the STB0899 with stv0899, yet looking at the stb0899,
+since there doesn't seem to be other references)
+
+With the STB0899 driver, all you need to tune with it is Frequency,
+Symbol Rate and Delivery system
+
+
+With the STV090x driver all you need is Frequency and Symbol Rate.
+(It will auto detect delivery system)
+
+
 >
->   	dbg(4, "%s: enter, status %d", __func__, status);
+> Not all tuners support the entire range of fec's. I think this is more
+> the norm then the exception.
 >
-> @@ -788,7 +789,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
->   	}
+
+
+I find it slightly hard to believe... ;-)
+
+
+> If the userland application can poll the driver for a list of
+> supported fec it allows them to have a list of valid tuning options
+> for the user to choose from, vs listing everything and hoping it
+> doesnt fail.
+
+
+When a driver is not accepting those parameters as inputs, why
+should the application/user burden himself with knowing parameters
+of no relevance to him ?
+
+
 >
->   	if (urb->actual_length > 0) {
-> -		spin_lock (&dev->read_buffer_lock);
-> +		spin_lock_irqsave (&dev->read_buffer_lock, flags);
->   		if (dev->read_buffer_length + urb->actual_length < read_buffer_size) {
->   			memcpy (dev->read_buffer + dev->read_buffer_length,
->   				dev->interrupt_in_buffer,
-> @@ -799,7 +800,7 @@ static void tower_interrupt_in_callback (struct urb *urb)
->   		} else {
->   			printk(KERN_WARNING "%s: read_buffer overflow, %d bytes dropped", __func__, urb->actual_length);
->   		}
-> -		spin_unlock (&dev->read_buffer_lock);
-> +		spin_unlock_irqrestore (&dev->read_buffer_lock, flags);
->   	}
-
-    I don't think this patch passes checkpatch.pl.
-
-WBR, Sergei
+> As stated Id much rather have a list made up from system -> modulation -> fec.
+>
+> ie genpix
+>
+> SYS_TURBO -> QPSK/8PSK
+> SYS_TURBO.QPSK -> 1/2, 2/3, 3/4, 5/6, 7/8
+> SYS_TURBO.8PSK -> 2/3, 3/4, 5/6, 8/9
+>
+> but that could get more complicated to implement pretty quickly
 
 
+Actually with all those redundant FEC bits gone away from relevance, things are
+a bit more saner.
+
+Regards,
+
+Manu
