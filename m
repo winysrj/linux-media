@@ -1,32 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from [172.245.216.35] ([172.245.216.35]:38644 "EHLO phpbb.com"
-	rhost-flags-FAIL-FAIL-OK-FAIL) by vger.kernel.org with ESMTP
-	id S932641Ab3GQREP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 13:04:15 -0400
-To: linux-media@vger.kernel.org
-Subject: phpBB support
-Date: Wed, 17 Jul 2013 18:55:25 +0400
-From: phpbbaid@gmail.com
-Message-ID: <0c407ce69d58f23a8dca9ad8b040ae90@172.245.216.35>
+Received: from mail.kapsi.fi ([217.30.184.167]:34684 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1756618Ab3GWMhk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 08:37:40 -0400
+Received: from dyn3-82-128-186-228.psoas.suomi.net ([82.128.186.228] helo=localhost.localdomain)
+	by mail.kapsi.fi with esmtpsa (TLS1.0:DHE_RSA_AES_256_CBC_SHA1:32)
+	(Exim 4.72)
+	(envelope-from <crope@iki.fi>)
+	id 1V1bqV-0007dt-QA
+	for linux-media@vger.kernel.org; Tue, 23 Jul 2013 15:37:39 +0300
+Message-ID: <51EE78EC.3090201@iki.fi>
+Date: Tue, 23 Jul 2013 15:37:00 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7BIT
-Content-Type: text/plain; charset=US-ASCII
+To: LMML <linux-media@vger.kernel.org>
+Subject: [GIT PULL] dvb_usb_v2: fix Kconfig dependency when RC_CORE=m
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Dear customers,
+The following changes since commit 1c26190a8d492adadac4711fe5762d46204b18b0:
 
-We encourage you to update your phpBB forums to the latest version as it
-prevents many security bugs and make your forum stable.
-There are many anti-spam methods to prevent the spambots registration and
-posting , please pick up one of these mods to keep your forum clean
+   [media] exynos4-is: Correct colorspace handling at FIMC-LITE 
+(2013-06-28 15:33:27 -0300)
 
-We provide paid services , if you want our assistance please reply to us and
-we will be happy to put all our efforts and experience for your help we can
-help you in updating , mod installation , styling your forum with a unique
-style and solve any other problem you may face
+are available in the git repository at:
 
-Thank you .
+   git://linuxtv.org/anttip/media_tree.git kconfig_fix
 
+for you to fetch changes up to 93d3452e72b2b5db15161a9f2d99949e55428caf:
 
+   dvb-usb-v2: fix Kconfig dependency when RC_CORE=m (2013-07-23 
+15:15:31 +0300)
 
+----------------------------------------------------------------
+Antti Palosaari (1):
+       dvb-usb-v2: fix Kconfig dependency when RC_CORE=m
+
+  drivers/media/usb/dvb-usb-v2/Kconfig | 2 +-
+  1 file changed, 1 insertion(+), 1 deletion(-)
+
+-- 
+http://palosaari.fi/
