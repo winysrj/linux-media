@@ -1,131 +1,143 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ea0-f172.google.com ([209.85.215.172]:49717 "EHLO
-	mail-ea0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753522Ab3GQWRW (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:56485 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S932538Ab3GWOhH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 18:17:22 -0400
-Received: by mail-ea0-f172.google.com with SMTP id q10so1337241eaj.17
-        for <linux-media@vger.kernel.org>; Wed, 17 Jul 2013 15:17:21 -0700 (PDT)
-Message-ID: <51E717EF.9070703@zenburn.net>
-Date: Thu, 18 Jul 2013 00:17:19 +0200
-From: =?UTF-8?B?SmFrdWIgUGlvdHIgQ8WCYXBh?= <jpc-ml@zenburn.net>
+	Tue, 23 Jul 2013 10:37:07 -0400
+Date: Tue, 23 Jul 2013 10:37:05 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+cc: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<broonie@kernel.org>, Kishon Vijay Abraham I <kishon@ti.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<olof@lixom.net>, Stephen Warren <swarren@wwwdotorg.org>,
+	<b.zolnierkie@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+In-Reply-To: <3419798.aorxYv8pdo@flatron>
+Message-ID: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp] xclk deadlock
-References: <51D37796.2000601@zenburn.net> <1604535.2Z0SUEyxcF@avalon> <51E0165C.5000401@zenburn.net> <3227918.6DpNM0vnE9@avalon>
-In-Reply-To: <3227918.6DpNM0vnE9@avalon>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 8bit
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 17.07.13 14:50, Laurent Pinchart wrote:
-> Hi Jakub,
->
->> 3. After setting up a simple pipeline using media-ctl[2] I get "CCDC
->> won't become idle errors". If I do this after running "live" I also get
->> (unless it hangs) the CCDC Register dump [1]. Otherwise I only get the
->> stream of kernel log messages without anything else from omap3isp.
->>
->> 4. I recreated the "live" pipeline (judging by the lack of differences
->> in media-ctl -p output [3]) and used yavta. I get the same hangs but
->> when I don't I can check the UYVY frames one by one. They look bad at
->> any stride (I dropped the UV components and tried to get some meaningful
->> output in the GIMP raw image data import dialog by adjustung the "width").
->
-> Would you be able to bisect the problems ? Please also see below for more
-> comments.
+On Tue, 23 Jul 2013, Tomasz Figa wrote:
 
-I think the clock & voltage regulator framework changes in omap3beagle.c 
-would require reverting for earlier versions? Are there any other things 
-I should watch out for?
+> On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
+> > Hi Alan,
 
-> As a side note, you can use raw2rgbpnm (https://gitorious.org/raw2rgbpnm) to
-> convert raw binary images to a more usable format.
+Thanks for helping to clarify the issues here.
 
-Thanks. The nice thing about the GIMP import tool is interactiveness, 
-which is good when (I suspect) I don't know the proper image dimensions.
+> > > Okay.  Are PHYs _always_ platform devices?
+> > 
+> > They can be i2c, spi or any other device types as well.
 
->> [2]:
->> media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
->> CCDC":1->"OMAP3 ISP CCDC output":0[1]'
->> media-ctl -v -f '"mt9p031 2-0048":0 [SGRBG12 800x600 (96,72)/2400x1800],
->> "OMAP3 ISP CCDC":1 [SGRBG8 800x600]'
->
-> You're trying to configure the sensor output to 800x600, but the closest
-> resolution the sensor can deliver is 864x648. The sensor driver will thus
-> return that resolution, and media-ctl will automatically configure the
-> connected pad (CCDC sink pad 0) with the same resolution. Similarly, you try
-> to configure the CCDC output to 800x600, but the CCDC driver will
-> automatically set its output resolution (on source pad 1) to 864x648. media-
-> ctl won't complain, and your pipeline will be correctly configured, but not in
-> the resolution you expect.
+In those other cases, presumably there is no platform data associated
+with the PHY since it isn't a platform device.  Then how does the
+kernel know which controller is attached to the PHY?  Is this spelled
+out in platform data associated with the PHY's i2c/spi/whatever parent?
 
->> yavta -f SGRBG12 -s 800x600 -n 8 --skip 4 --capture=5 -F'frame-#.bin'
->> $(media-ctl -e "OMAP3 ISP CCDC output")
->
-> Can you run this without error ? You're trying to capture in 800x600 at the
-> CCDC output but the pipeline has been configured with a different resolution.
-> The OMAP3 ISP driver should return an error when you start the video stream.
-> If it doesn't, that's a driver bug.
+> > > > > 	PHY.  Currently this information is represented by name or 
+> ID
+> > > > > 	strings embedded in platform data.
+> > > > 
+> > > > right. It's embedded in the platform data of the controller.
+> > > 
+> > > It must also be embedded in the PHY's platform data somehow.
+> > > Otherwise, how would the kernel know which PHY to use?
+> > 
+> > By using a PHY lookup as Stephen and I suggested in our previous
+> > replies. Without any extra data in platform data. (I have even posted a
+> > code example.)
 
-I think you missed my ingenious sensor crop. ;) The sensor should be 
-capable of scaling to 800x600 if it crops to (96,72)/2400x1800 first 
-(this just requires 3x binning). I tried this on 3.2.24 and it worked.
+I don't understand, because I don't know what "a PHY lookup" does.
 
->> [4]:
->>
->> @@ -21,9 +21,9 @@
->>    omap3isp omap3isp: ###RSZ YENH=0x00000000
->>    omap3isp omap3isp: --------------------------------------------
->>    omap3isp omap3isp: -------------Preview Register dump----------
->> -omap3isp omap3isp: ###PRV PCR=0x180e0609
->> -omap3isp omap3isp: ###PRV HORZ_INFO=0x0006035b
->> -omap3isp omap3isp: ###PRV VERT_INFO=0x00000286
->> +omap3isp omap3isp: ###PRV PCR=0x180e0600
->
-> Bits 0 and 3 are the ENABLE and ONESHOT bits respectively. The registers dump
-> might have been displayed at a different time in v3.2.24 (although I haven't
-> checked);
->
->> +omap3isp omap3isp: ###PRV HORZ_INFO=0x00080359
->> +omap3isp omap3isp: ###PRV VERT_INFO=0x00020284
->
-> Those two registers contain the input crop rectangle coordinates (left/top in
-> bits 31-16, right/bottom in bits 15-0). Note that this is the internal crop
-> rectangle, which takesrows and columns required for internal processing into
-> account. It will thus not match the user-visible crop rectangle at the sink
-> pad.
->
-> The crop rectangle has changed from (6,0)/860x647 to (8,2)/850x643. The
-> preview engine internally crops 4 rows and 4 columns (2 on each side) when
-> converting from Bayer to YUV, so the (8,2)/850x643 crop rectangle becomes
-> (10,4)/846x639 after manual and internal cropping, which matches the value
-> reported by media-ctl -p.
+> > > In this case, it doesn't matter where the platform_device structures
+> > > are created or where the driver source code is.  Let's take a simple
+> > > example.  Suppose the system design includes a PHY named "foo".  Then
+> > > the board file could contain:
+> > > 
+> > > struct phy_info { ... } phy_foo;
+> > > EXPORT_SYMBOL_GPL(phy_foo);
+> > > 
+> > > and a header file would contain:
+> > > 
+> > > extern struct phy_info phy_foo;
+> > > 
+> > > The PHY supplier could then call phy_create(&phy_foo), and the PHY
+> > > client could call phy_find(&phy_foo).  Or something like that; make up
+> > > your own structure tags and function names.
+> > > 
+> > > It's still possible to have conflicts, but now two PHYs with the same
+> > > name (or a misspelled name somewhere) will cause an error at link
+> > > time.
+> > 
+> > This is incorrect, sorry. First of all it's a layering violation - you
+> > export random driver-specific symbols from one driver to another. Then
 
-But why does those cropping differences (between 3.2.24 and 3.10) happen 
-at all? I run the same live code on 3.2.24 and 3.10, with the same 
-sensor and output resolution. I think I got the same `media-ctl -p` 
-output after running `live` on both kernels but will check this tomorrow.
+No, that's not what I said.  Neither the PHY driver nor the controller
+driver exports anything to the other.  Instead, both drivers use data
+exported by the board file.
 
-If these internal cropping rectangles on 3.10 were wrong it would 
-probably explain the "bad synchronization" problem.
+> > imagine 4 SoCs - A, B, C, D. There are two PHY types PHY1 and PHY2 and
+> > there are two types of consumer drivers (e.g. USB host controllers). Now
+> > consider following mapping:
+> > 
+> > SoC	PHY	consumer
+> > A	PHY1	HOST1
+> > B	PHY1	HOST2
+> > C	PHY2	HOST1
+> > D	PHY2	HOST2
+> > 
+> > So we have to be able to use any of the PHYs with any of the host
+> > drivers. This means you would have to export symbol with the same name
+> > from both PHY drivers, which obviously would not work in this case,
+> > because having both drivers enabled (in a multiplatform aware
+> > configuration) would lead to linking conflict.
 
->>    omap3isp omap3isp: ###PRV RSDR_ADDR=0x00000000
->>    omap3isp omap3isp: ###PRV RADR_OFFSET=0x00000000
->>    omap3isp omap3isp: ###PRV DSDR_ADDR=0x00000000
->> @@ -52,7 +52,7 @@
->>    omap3isp omap3isp: ###PRV CNT_BRT=0x00001000
->>    omap3isp omap3isp: ###PRV CSUP=0x00000000
->>    omap3isp omap3isp: ###PRV SETUP_YC=0xff00ff00
->> -omap3isp omap3isp: ###PRV SET_TBL_ADDR=0x00000800
->> +omap3isp omap3isp: ###PRV SET_TBL_ADDR=0x00001700
->>    omap3isp omap3isp: ###PRV CDC_THR0=0x0000000e
->>    omap3isp omap3isp: ###PRV CDC_THR1=0x0000000e
->>    omap3isp omap3isp: ###PRV CDC_THR2=0x0000000e
+You're right; the scheme was too simple.  Instead, the board file must
+export two types of data structures, one for PHYs and one for
+controllers.  Like this:
 
--- 
-regards,
-Jakub Piotr Cłapa
-LoEE.pl
+struct phy_info {
+	/* Info for the controller attached to this PHY */
+	struct controller_info	*hinfo;
+};
+
+struct controller_info {
+	/* Info for the PHY which this controller is attached to */
+	struct phy_info		*pinfo;
+};
+
+The board file for SoC A would contain:
+
+struct phy_info phy1 = {&host1);
+EXPORT_SYMBOL(phy1);
+struct controller_info host1 = {&phy1};
+EXPORT_SYMBOL(host1);
+
+The board file for SoC B would contain:
+
+struct phy_info phy1 = {&host2);
+EXPORT_SYMBOL(phy1);
+struct controller_info host2 = {&phy1};
+EXPORT_SYMBOL(host2);
+
+And so on.  This explicitly gives the connection between PHYs and
+controllers.  The PHY providers would use &phy1 or &phy2, and the PHY
+consumers would use &host1 or &host2.
+
+Alan Stern
+
