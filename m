@@ -1,281 +1,239 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:34519 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1753048Ab3GXWtE (ORCPT
+Received: from mailout1.w2.samsung.com ([211.189.100.11]:29802 "EHLO
+	usmailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757159Ab3GWNDl (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 18:49:04 -0400
-Date: Thu, 25 Jul 2013 01:48:58 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 5/5] v4l: Renesas R-Car VSP1 driver
-Message-ID: <20130724224858.GG12281@valkosipuli.retiisi.org.uk>
-References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1374072882-14598-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1374072882-14598-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Tue, 23 Jul 2013 09:03:41 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by mailout1.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQE002MK49N59B0@mailout1.w2.samsung.com> for
+ linux-media@vger.kernel.org; Tue, 23 Jul 2013 09:03:40 -0400 (EDT)
+Date: Tue, 23 Jul 2013 10:03:15 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Chris Lee <updatelee@gmail.com>
+Cc: linux-media@vger.kernel.org
+Subject: Re: Proposed modifications to dvb_frontend_ops
+Message-id: <20130723100315.54c77548@samsung.com>
+In-reply-to: <CAA9z4LZp68tqnA53aFOy9sv127csiAziax6kJTyjASLKZHei9Q@mail.gmail.com>
+References: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
+ <20130722082152.11e2d960@samsung.com>
+ <CAA9z4LZp68tqnA53aFOy9sv127csiAziax6kJTyjASLKZHei9Q@mail.gmail.com>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Em Mon, 22 Jul 2013 19:28:55 -0600
+Chris Lee <updatelee@gmail.com> escreveu:
 
-What a nice driver! A few minor comments below:
+> By using DTV_SET_PROPERTY I can run though a list of possible systems
+> to determine what is supported and what isnt. I havent looked too far
+> but I think it uses delsys to determine this information. Which I can
+> already get from DTV_ENUM_DELSYS. This functionality could be expanded
+> to delmod and delfec.
+> 
+> But there is no way to pol modulations or fec using DTV_SET_PROPERTY.
+> I understand there is FE_CAN_*** for modulations and fecs but its far
+> from complete and not very expandable. If we only went on FE_CAN_ for
+> fec we'd be missing about half the supported fec's.
+> 
+> Ultimately Id like a solution that would have modulations per system,
+> and fec per modulation as they are quite often different. The
+> delsys/delmod/delfec is a simpler cleaner interface that is adding new
+> functionality and wouldnt be required for drivers or userland to
+> implement if they dont want to as the patch stands (if we implemented
+> DTV_SET_PROPERTY checks against delmod/delfec then it would be
+> required in drivers)
+> 
+> So Id love to hear more comments on this subject, it would really be
+> nice to clean some of the inadequacies up, imo userland should have
+> the ability to pol the driver for supported systems/modulation/fec vs
+> just trying everything and seeing what works and what doesnt.
 
-On Wed, Jul 17, 2013 at 04:54:42PM +0200, Laurent Pinchart wrote:
-...
-> +static void vsp1_device_init(struct vsp1_device *vsp1)
-> +{
-> +	unsigned int i;
-> +	u32 status;
-> +
-> +	/* Reset any channel that might be running. */
-> +	status = vsp1_read(vsp1, VI6_STATUS);
-> +
-> +	for (i = 0; i < VPS1_MAX_WPF; ++i) {
-> +		unsigned int timeout;
-> +
-> +		if (!(status & VI6_STATUS_SYS_ACT(i)))
-> +			continue;
-> +
-> +		vsp1_write(vsp1, VI6_SRESET, VI6_SRESET_SRTS(i));
-> +		for (timeout = 10; timeout > 0; --timeout) {
-> +			status = vsp1_read(vsp1, VI6_STATUS);
-> +			if (!(status & VI6_STATUS_SYS_ACT(i)))
-> +				break;
-> +
-> +			usleep_range(1000, 2000);
-> +		}
-> +
-> +		if (timeout)
-> +			dev_err(vsp1->dev, "failed to reset wpf.%u\n", i);
+Well, if we're going to properly implement it, then we need to deprecate
+the .caps field at the dvb structure, replacing it by the new DVBv5
+equivalent, adding a DVBv3 backward code at dvb_frontend.c that will use
+the new DVBv5 "caps" to fill the DVBv3 caps.
 
-Have you seen this happening in practice? Do you expect the device to
-function if resetting it fails?
+> 
+> Thanks,
+> Chris
+> 
+> 
+> 
+> On Mon, Jul 22, 2013 at 5:21 AM, Mauro Carvalho Chehab
+> <m.chehab@samsung.com> wrote:
+> > Hi Chris,
+> >
+> > Em Fri, 19 Jul 2013 14:27:09 -0600
+> > Chris Lee <updatelee@gmail.com> escreveu:
+> >
+> >> In frontend.h we have a struct called dvb_frontend_ops, in there we
+> >> have an element called delsys to show the delivery systems supported
+> >> by the tuner, Id like to propose we add onto that with delmod and
+> >> delfec.
+> >>
+> >> Its not a perfect solution as sometimes a specific modulation or fec
+> >> is only availible on specific systems. But its better then what we
+> >> have now. The struct fe_caps isnt really suited for this, its missing
+> >> many systems, modulations, and fec's. Its just not expandable enough
+> >> to get all the supported sys/mod/fec a tuner supports in there.
+> >>
+> >> Expanding this would allow user land applications to poll the tuner to
+> >> determine more detailed information on the tuners capabilities.
+> >>
+> >> Here is the patch I propose, along with the au8522 driver modified to
+> >> utilize the new elements. Id like to hear comments on it. Does anyone
+> >> see a better way of doing this ?
+> >
+> > We had a discussion some time ago about it. Basically, a device that
+> > it is said to support, let's say, DVB-T, should support all possible
+> > modulations and FECs that are part of the system.
+> >
+> > So, in thesis, there shouldn't be any need to add a list of modulations
+> > and FECs.
+> >
+> > Also, frontends that support multiple delivery systems would need
+> > to enumerate the modulations and FECs after the selection of a given
+> > delivery system (as, typically, they only support a subset of them
+> > for each delsys).
+> >
+> > Ok, practice is different, as there are reverse-engineered drivers
+> > that may not support everything that the hardware supports. Also,
+> > a few hardware may have additional restrictions.
+> >
+> > Yet, on those cases, the userspace may detect if a given modulation
+> > type or FEC is supported, by trying to set it and check if the
+> > operation didn't fail, and if the cache got properly updated.
+> >
+> > So, at the end, it was decided to not add anything like that.
+> >
+> > Yet, it is good to see other opinions.
+> >
+> > It should be said that one of the hard parts of an approach like
+> > that, is that someone would need to dig into each driver and add
+> > the proper support for per-delsys modulation and FECs.
+> >
+> > Alternatively, the core could initialize it to the default value
+> > for each standard, and call some driver-specific function that
+> > would reset the modulation/FECs that aren't supported by some
+> > specific drivers.
+> >
+> > Regards,
+> > Mauro
+> >
+> >>
+> >> Chris Lee <updatelee@gmail.com>
+> >>
+> >> diff --git a/drivers/media/dvb-core/dvb_frontend.c
+> >> b/drivers/media/dvb-core/dvb_frontend.c
+> >> index 1f925e8..f5df08e 100644
+> >> --- a/drivers/media/dvb-core/dvb_frontend.c
+> >> +++ b/drivers/media/dvb-core/dvb_frontend.c
+> >> @@ -1036,6 +1036,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
+> >>   _DTV_CMD(DTV_API_VERSION, 0, 0),
+> >>
+> >>   _DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
+> >> + _DTV_CMD(DTV_ENUM_DELMOD, 0, 0),
+> >> + _DTV_CMD(DTV_ENUM_DELFEC, 0, 0),
+> >>
+> >>   _DTV_CMD(DTV_ATSCMH_PARADE_ID, 1, 0),
+> >>   _DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 1, 0),
+> >> @@ -1285,6 +1287,22 @@ static int dtv_property_process_get(struct
+> >> dvb_frontend *fe,
+> >>   }
+> >>   tvp->u.buffer.len = ncaps;
+> >>   break;
+> >> + case DTV_ENUM_DELMOD:
+> >> + ncaps = 0;
+> >> + while (fe->ops.delmod[ncaps] && ncaps < MAX_DELMOD) {
+> >> + tvp->u.buffer.data[ncaps] = fe->ops.delmod[ncaps];
+> >> + ncaps++;
+> >> + }
+> >> + tvp->u.buffer.len = ncaps;
+> >> + break;
+> >> + case DTV_ENUM_DELFEC:
+> >> + ncaps = 0;
+> >> + while (fe->ops.delfec[ncaps] && ncaps < MAX_DELFEC) {
+> >> + tvp->u.buffer.data[ncaps] = fe->ops.delfec[ncaps];
+> >> + ncaps++;
+> >> + }
+> >> + tvp->u.buffer.len = ncaps;
+> >> + break;
+> >>   case DTV_FREQUENCY:
+> >>   tvp->u.data = c->frequency;
+> >>   break;
+> >> diff --git a/drivers/media/dvb-core/dvb_frontend.h
+> >> b/drivers/media/dvb-core/dvb_frontend.h
+> >> index 371b6ca..4e96640 100644
+> >> --- a/drivers/media/dvb-core/dvb_frontend.h
+> >> +++ b/drivers/media/dvb-core/dvb_frontend.h
+> >> @@ -47,6 +47,8 @@
+> >>   * should be smaller or equal to 32
+> >>   */
+> >>  #define MAX_DELSYS 8
+> >> +#define MAX_DELMOD 8
+> >> +#define MAX_DELFEC 32
+> >>
+> >>  struct dvb_frontend_tune_settings {
+> >>   int min_delay_ms;
+> >> @@ -263,6 +265,8 @@ struct dvb_frontend_ops {
+> >>   struct dvb_frontend_info info;
+> >>
+> >>   u8 delsys[MAX_DELSYS];
+> >> + u8 delmod[MAX_DELMOD];
+> >> + u8 delfec[MAX_DELFEC];
+> >>
+> >>   void (*release)(struct dvb_frontend* fe);
+> >>   void (*release_sec)(struct dvb_frontend* fe);
+> >> diff --git a/include/uapi/linux/dvb/frontend.h
+> >> b/include/uapi/linux/dvb/frontend.h
+> >> index c56d77c..be63d37 100644
+> >> --- a/include/uapi/linux/dvb/frontend.h
+> >> +++ b/include/uapi/linux/dvb/frontend.h
+> >> @@ -375,7 +375,10 @@ struct dvb_frontend_event {
+> >>  #define DTV_STAT_ERROR_BLOCK_COUNT 68
+> >>  #define DTV_STAT_TOTAL_BLOCK_COUNT 69
+> >>
+> >> -#define DTV_MAX_COMMAND DTV_STAT_TOTAL_BLOCK_COUNT
+> >> +#define DTV_ENUM_DELMOD 70
+> >> +#define DTV_ENUM_DELFEC 71
+> >> +
+> >> +#define DTV_MAX_COMMAND DTV_ENUM_DELFEC
+> >>
+> >>  typedef enum fe_pilot {
+> >>   PILOT_ON,
+> >> diff --git a/drivers/media/dvb-frontends/au8522_dig.c
+> >> b/drivers/media/dvb-frontends/au8522_dig.c
+> >> index 6ee9028..1044c9d 100644
+> >> --- a/drivers/media/dvb-frontends/au8522_dig.c
+> >> +++ b/drivers/media/dvb-frontends/au8522_dig.c
+> >> @@ -822,7 +822,9 @@ error:
+> >>  EXPORT_SYMBOL(au8522_attach);
+> >>
+> >>  static struct dvb_frontend_ops au8522_ops = {
+> >> - .delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
+> >> + .delsys = { SYS_DVBC_ANNEX_B, SYS_ATSC },
+> >> + .delmod = { QAM_256, QAM_64, VSB_8 },
+> >> + .delfec = { FEC_NONE },
+> >>   .info = {
+> >>   .name = "Auvitek AU8522 QAM/8VSB Frontend",
+> >>   .frequency_min = 54000000,
+> >> --
+> >> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> >> the body of a message to majordomo@vger.kernel.org
+> >> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >
+> >
+> > --
+> >
+> > Cheers,
+> > Mauro
 
-> +	}
-> +
-> +	vsp1_write(vsp1, VI6_CLK_DCSWT, (8 << VI6_CLK_DCSWT_CSTPW_SHIFT) |
-> +		   (8 << VI6_CLK_DCSWT_CSTRW_SHIFT));
-> +
-> +	for (i = 0; i < VPS1_MAX_RPF; ++i)
-> +		vsp1_write(vsp1, VI6_DPR_RPF_ROUTE(i), VI6_DPR_NODE_UNUSED);
-> +
-> +	for (i = 0; i < VPS1_MAX_UDS; ++i)
-> +		vsp1_write(vsp1, VI6_DPR_UDS_ROUTE(i), VI6_DPR_NODE_UNUSED);
-> +
-> +	vsp1_write(vsp1, VI6_DPR_SRU_ROUTE, VI6_DPR_NODE_UNUSED);
-> +	vsp1_write(vsp1, VI6_DPR_LUT_ROUTE, VI6_DPR_NODE_UNUSED);
-> +	vsp1_write(vsp1, VI6_DPR_CLU_ROUTE, VI6_DPR_NODE_UNUSED);
-> +	vsp1_write(vsp1, VI6_DPR_HST_ROUTE, VI6_DPR_NODE_UNUSED);
-> +	vsp1_write(vsp1, VI6_DPR_HSI_ROUTE, VI6_DPR_NODE_UNUSED);
-> +	vsp1_write(vsp1, VI6_DPR_BRU_ROUTE, VI6_DPR_NODE_UNUSED);
-> +
-> +	vsp1_write(vsp1, VI6_DPR_HGO_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
-> +		   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
-> +	vsp1_write(vsp1, VI6_DPR_HGT_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
-> +		   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
-> +}
-
-...
-
-> +int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
-> +		     unsigned int num_pads)
-> +{
-> +	static const struct {
-> +		unsigned int id;
-> +		unsigned int reg;
-> +	} routes[] = {
-> +		{ VI6_DPR_NODE_LIF, 0 },
-> +		{ VI6_DPR_NODE_RPF(0), VI6_DPR_RPF_ROUTE(0) },
-> +		{ VI6_DPR_NODE_RPF(1), VI6_DPR_RPF_ROUTE(1) },
-> +		{ VI6_DPR_NODE_RPF(2), VI6_DPR_RPF_ROUTE(2) },
-> +		{ VI6_DPR_NODE_RPF(3), VI6_DPR_RPF_ROUTE(3) },
-> +		{ VI6_DPR_NODE_RPF(4), VI6_DPR_RPF_ROUTE(4) },
-> +		{ VI6_DPR_NODE_UDS(0), VI6_DPR_UDS_ROUTE(0) },
-> +		{ VI6_DPR_NODE_UDS(1), VI6_DPR_UDS_ROUTE(1) },
-> +		{ VI6_DPR_NODE_UDS(2), VI6_DPR_UDS_ROUTE(2) },
-> +		{ VI6_DPR_NODE_WPF(0), 0 },
-> +		{ VI6_DPR_NODE_WPF(1), 0 },
-> +		{ VI6_DPR_NODE_WPF(2), 0 },
-> +		{ VI6_DPR_NODE_WPF(3), 0 },
-> +	};
-> +
-> +	unsigned int i;
-> +	int ret;
-> +
-> +	for (i = 0; i < ARRAY_SIZE(routes); ++i) {
-> +		if (routes[i].id == entity->id) {
-> +			entity->route = routes[i].reg;
-> +			break;
-> +		}
-> +	}
-> +
-> +	if (i == ARRAY_SIZE(routes))
-> +		return -EINVAL;
-> +
-> +	entity->vsp1 = vsp1;
-> +	entity->source_pad = num_pads - 1;
-> +
-> +	/* Allocate formats and pads. */
-> +	entity->formats = devm_kzalloc(vsp1->dev,
-> +				       num_pads * sizeof(*entity->formats),
-> +				       GFP_KERNEL);
-> +	if (entity->formats == NULL)
-> +		return -ENOMEM;
-> +
-> +	entity->pads = devm_kzalloc(vsp1->dev, num_pads * sizeof(*entity->pads),
-> +				    GFP_KERNEL);
-> +	if (entity->pads == NULL)
-> +		return -ENOMEM;
-> +
-> +	/* Initialize pads. */
-> +	for (i = 0; i < num_pads - 1; ++i)
-> +		entity->pads[i].flags = MEDIA_PAD_FL_SINK;
-> +
-> +	entity->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
-> +
-> +	/* Initialize the media entity. */
-> +	ret = media_entity_init(&entity->subdev.entity, num_pads,
-> +				entity->pads, 0);
-
-How about return media_entity_init(...) instead?
-
-> +	if (ret < 0)
-> +		return ret;
-> +
-> +	return 0;
-> +}
-
-...
-
-> +static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
-> +			      struct v4l2_subdev_fh *fh,
-> +			      struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	static const unsigned int codes[] = {
-> +		V4L2_MBUS_FMT_ARGB8888_1X32,
-> +		V4L2_MBUS_FMT_AYUV8_1X32,
-> +	};
-> +	struct v4l2_mbus_framefmt *format;
-> +
-> +	if (code->pad == LIF_PAD_SINK) {
-> +		if (code->index >= ARRAY_SIZE(codes))
-> +			return -EINVAL;
-> +
-> +		code->code = codes[code->index];
-> +	} else {
-> +		/* The LIF can't perform format conversion, the sink format is
-> +		 * always identical to the source format.
-> +		 */
-> +		if (code->index)
-> +			return -EINVAL;
-> +
-> +		format = v4l2_subdev_get_try_format(fh, LIF_PAD_SINK);
-> +		code->code = format->code;
-
-You don't really need "format". If you want to use it however you could
-define it inside the parentheses.
-
-> +	}
-> +
-> +	return 0;
-> +}
-
-...
-
-> +static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
-> +			      struct v4l2_subdev_fh *fh,
-> +			      struct v4l2_subdev_mbus_code_enum *code)
-> +{
-> +	static const unsigned int codes[] = {
-> +		V4L2_MBUS_FMT_ARGB8888_1X32,
-> +		V4L2_MBUS_FMT_AYUV8_1X32,
-> +	};
-> +	struct v4l2_mbus_framefmt *format;
-> +
-> +	if (code->pad == UDS_PAD_SINK) {
-> +		if (code->index >= ARRAY_SIZE(codes))
-> +			return -EINVAL;
-> +
-> +		code->code = codes[code->index];
-> +	} else {
-> +		/* The UDS can't perform format conversion, the sink format is
-> +		 * always identical to the source format.
-> +		 */
-> +		if (code->index)
-> +			return -EINVAL;
-> +
-> +		format = v4l2_subdev_get_try_format(fh, UDS_PAD_SINK);
-> +		code->code = format->code;
-
-Same here.
-
-> +	}
-> +
-> +	return 0;
-> +}
-
-...
-
-> +	/* Follow links downstream for each input and make sure the graph
-> +	 * contains no loop and that all branches end at the output WPF.
-> +	 */
-
-I wonder if checking for loops should be done already in pipeline validation
-done by the framework. That's fine to do later on IMHO, too.
-
-> +	for (i = 0; i < pipe->num_inputs; ++i) {
-> +		ret = vsp1_pipeline_validate_branch(pipe->inputs[i],
-> +						    pipe->output);
-> +		if (ret < 0)
-> +			goto error;
-> +	}
-> +
-> +	return 0;
-> +
-
-...
-
-> +static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
-> +{
-> +	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
-> +	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
-> +	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
-> +	unsigned long flags;
-> +	bool empty;
-> +
-> +	spin_lock_irqsave(&video->irqlock, flags);
-> +	empty = list_empty(&video->irqqueue);
-> +	list_add_tail(&buf->queue, &video->irqqueue);
-> +	spin_unlock_irqrestore(&video->irqlock, flags);
-> +
-> +	if (empty) {
-
-if (!empty)
-	return;
-
-?
-
-Up to you.
-
-> +		spin_lock_irqsave(&pipe->irqlock, flags);
-> +
-> +		video->ops->queue(video, buf);
-> +		pipe->buffers_ready |= 1 << video->pipe_index;
-> +
-> +		if (vb2_is_streaming(&video->queue) &&
-> +		    vsp1_pipeline_ready(pipe))
-> +			vsp1_pipeline_run(pipe);
-> +
-> +		spin_unlock_irqrestore(&pipe->irqlock, flags);
-> +	}
-> +}
 
 -- 
-Kind regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+Cheers,
+Mauro
