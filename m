@@ -1,76 +1,101 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:2590 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754670Ab3GWGrI (ORCPT
+Received: from mail-bk0-f44.google.com ([209.85.214.44]:58195 "EHLO
+	mail-bk0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933739Ab3GWVbk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 02:47:08 -0400
-Message-ID: <51EE26DF.5000103@xs4all.nl>
-Date: Tue, 23 Jul 2013 08:46:55 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 23 Jul 2013 17:31:40 -0400
+From: Tomasz Figa <tomasz.figa@gmail.com>
+To: Alan Stern <stern@rowland.harvard.edu>
+Cc: Tomasz Figa <t.figa@samsung.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	broonie@kernel.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Tue, 23 Jul 2013 23:31:31 +0200
+Message-ID: <5977067.8rykRgjgre@flatron>
+In-Reply-To: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
+References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
 MIME-Version: 1.0
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
-CC: Linux Media Mailing List <linux-media@vger.kernel.org>
-Subject: Re: Expected behavior for S_INPUT while streaming in progress?
-References: <CAGoCfiyGJQFCrqaSW3da7YUjL7hEFvun0YgZr6vJL6pstu8q2g@mail.gmail.com>
-In-Reply-To: <CAGoCfiyGJQFCrqaSW3da7YUjL7hEFvun0YgZr6vJL6pstu8q2g@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Devin,
-
-On 07/22/2013 09:48 PM, Devin Heitmueller wrote:
-> Hello,
+On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
+> On Tue, 23 Jul 2013, Tomasz Figa wrote:
+> > > If you want to keep the phy struct completely separate from the
+> > > board
+> > > file, there's an easy way to do it.  Let's say the board file knows
+> > > about N different PHYs in the system.  Then you define an array of N
+> > > pointers to phys:
+> > > 
+> > > struct phy *(phy_address[N]);
+> > > 
+> > > In the platform data for both PHY j and its controller, store
+> > > 
+> > > &phy_address[j].  The PHY provider passes this cookie to phy_create:
+> > > 	cookie = pdev->dev.platform_data;
+> > > 	ret = phy_create(phy, cookie);
+> > > 
+> > > and phy_create simply stores: *cookie = phy.  The PHY consumer does
+> > > 
+> > > much the same the same thing:
+> > > 	cookie = pdev->dev.platform_data;
+> > > 	phy = phy_get(cookie);
+> > > 
+> > > phy_get returns *cookie if it isn't NULL, or an ERR_PTR otherwise.
+> > 
+> > OK, this can work. Again, just technically, because it's rather ugly.
 > 
-> I'm doing some cleanup on the au8522 driver, and one thing I noticed
-> was that you are actually allowed to issue an S_INPUT while streaming
-> is active.  This seems like dangerous behavior, since it can result in
-> things like the standard and/or resolution changing while the device
-> is actively streaming video.
+> There's no reason the phy_address things have to be arrays.  A separate
+> individual pointer for each PHY would work just as well.
 > 
-> Should we be returning -EBUSY for S_INPUT if streaming is in progress?
->  I see cases in drivers where we prevent S_STD from working while
-> streaming is in progress, but it seems like S_INPUT is a superset of
-> S_STD (it typically happens earlier in the setup process).
+> > Where would you want to have those phy_address arrays stored? There
+> > are no board files when booting with DT. Not even saying that you
+> > don't need to use any hacky schemes like this when you have DT that
+> > nicely specifies relations between devices.
+> 
+> If everybody agrees DT has a nice scheme for specifying relations
+> between devices, why not use that same scheme in the PHY core?
 
-Some drivers already return EBUSY for S_INPUT (ivtv). If the hardware
-can't safely support it to switch inputs while streaming, then there
-is no option but to return EBUSY.
+It is already used, for cases when consumer device has a DT node attached. 
+In non-DT case this kind lookup translates loosely to something that is 
+being done in regulator framework - you can't bind devices by pointers, 
+because you don't have those pointers, so you need to use device names.
 
-Changing from one SDTV input to another SDTV input should not trigger
-a change of standard, so that in itself should not be a cause for
-blocking S_INPUT while streaming. Switching between e.g. a HDTV and
-a SDTV input is a different matter: there the resolution really
-changes and that should return an error while streaming.
+> > Anyway, board file should not be considered as a method to exchange
+> > data between drivers. It should be used only to pass data from it to
+> > drivers, not the other way. Ideally all data in a board file should
+> > be marked as const and __init and dropped after system
+> > initialization.
+> 
+> The phy_address things don't have to be defined or allocated in the
+> board file; they could be set up along with the platform data.
 
-> If we did do this, how badly do we think it would break existing
-> applications?  It could require applications to do a STREAMOFF before
-> setting the input (to handle the possibility that the call wasn't
-> issued previously when an app was done with the device), which I
-> suspect many applications aren't doing today.
+There is no platform data when booting with DT.
 
-Most drivers allow switching between e.g. the tuner and composite input
-on the fly while streaming. Some don't like ivtv where the hardware can't
-resync properly. I know there where problems with applications at the
-time when I made that change in ivtv, but I haven't heard of it in a long
-time, so applications may be fixed.
+> In any case, this was simply meant to be a suggestion to show that it
+> is relatively easy to do what you need without using name or ID
+> strings.
 
-> Alternatively, we can based it on not just whether streamon was called
-> and instead base it on the combination of streamon having been called
-> and a filehandle actively doing streaming.  In this case case would
-> return EBUSY if both conditions were met, but if only streamon was
-> called but streaming wasn't actively being done by a filehandle, we
-> would internally call streamoff and then change the input.  This would
-> mean that if an application like tvtime were running, externally
-> toggling the input would return EBUSY.  But if nothing was actively
-> streaming via a /dev/videoX device then the call to set input would be
-> successful (after internally stopping the stream).
+Sure. It's good to have different options discussed as well.
 
-This seems overkill. When dealing with SDTV inputs I would just
-make sure that switching inputs will not change the standard, which is
-a perfectly reasonable thing to do.
+Best regards,
+Tomasz
 
-Regards,
-
-	Hans
