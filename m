@@ -1,61 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33275 "EHLO
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:57395 "EHLO
 	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1752380Ab3GXPqL (ORCPT
+	by vger.kernel.org with ESMTP id S1757667Ab3GWRSJ (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 11:46:11 -0400
-Date: Wed, 24 Jul 2013 18:45:36 +0300
+	Tue, 23 Jul 2013 13:18:09 -0400
+Date: Tue, 23 Jul 2013 20:17:34 +0300
 From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [PATCH] smiapp: re-use clamp_t instead of min(..., max(...))
-Message-ID: <20130724154536.GE12281@valkosipuli.retiisi.org.uk>
-References: <1374679278-9856-1-git-send-email-andriy.shevchenko@linux.intel.com>
+To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	linux-media <linux-media@vger.kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: [BRAINSTORM] Controls, matrices and properties
+Message-ID: <20130723171733.GA12281@valkosipuli.retiisi.org.uk>
+References: <201307081306.56324.hverkuil@xs4all.nl>
+ <51DDD26D.4060304@iki.fi>
+ <1462134.bc1z0qkCPU@avalon>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <1374679278-9856-1-git-send-email-andriy.shevchenko@linux.intel.com>
+In-Reply-To: <1462134.bc1z0qkCPU@avalon>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Andy,
+Hi Laurent,
 
-Thanks for the patch.
-
-(Drop Mauro from cc.)
-
-On Wed, Jul 24, 2013 at 06:21:18PM +0300, Andy Shevchenko wrote:
-> clamp_t does the job to put a variable into the given range.
+On Thu, Jul 18, 2013 at 03:07:26AM +0200, Laurent Pinchart wrote:
+...
+> > An unrelated thing, which is out of scope for now, but something to think
+> > about: when passing around large amounts of (configuration) data the number
+> > of times the data is copied really counts. Especially on embedded systems.
+> > 
+> > Memory mapping helps avoiding problems --- what would happen is that the
+> > driver would access memory mapped to the device directly and the driver
+> > would then get the address to pass to the device as the configuration. Like
+> > video buffers, but for control, not data.
 > 
-> Signed-off-by: Andy Shevchenko <andriy.shevchenko@linux.intel.com>
-> ---
->  drivers/media/i2c/smiapp/smiapp-core.c | 12 ++++++------
->  1 file changed, 6 insertions(+), 6 deletions(-)
-> 
-> diff --git a/drivers/media/i2c/smiapp/smiapp-core.c b/drivers/media/i2c/smiapp/smiapp-core.c
-> index 7ac7580..914e52f 100644
-> --- a/drivers/media/i2c/smiapp/smiapp-core.c
-> +++ b/drivers/media/i2c/smiapp/smiapp-core.c
-> @@ -1835,12 +1835,12 @@ static void smiapp_set_compose_scaler(struct v4l2_subdev *subdev,
->  		* sensor->limits[SMIAPP_LIMIT_SCALER_N_MIN]
->  		/ sensor->limits[SMIAPP_LIMIT_MIN_X_OUTPUT_SIZE];
->  
-> -	a = min(sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX],
-> -		max(a, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN]));
-> -	b = min(sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX],
-> -		max(b, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN]));
-> -	max_m = min(sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX],
-> -		    max(max_m, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN]));
-> +	a = clamp_t(u32, a, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
-> +		    sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
-> +	b = clamp_t(u32, b, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
-> +		    sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
-> +	max_m = clamp_t(u32, max_m, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
-> +			sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
+> Would you map that memory to userspace as well ?
 
-Do you need clamp_t()? Wouldn't plain clamp() do?
+Yes --- that's the very intent. This way all unnecessary memory copies in
+the kernel can be avoided. Say, if you're providing (and copying) the device
+a new LSC table of 128 kiB for every frame while recording video, it will
+show up in the energy consumption of the system.
 
-I can change it if you're ok with that.
+It does let the user space to do wrong things, too. But the same is equally
+true for video buffers as well.
 
 -- 
 Cheers,
