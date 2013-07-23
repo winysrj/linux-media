@@ -1,70 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1310 "EHLO
-	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1750965Ab3GNJXy (ORCPT
+Received: from mail-we0-f177.google.com ([74.125.82.177]:59858 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932481Ab3GWPu1 convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jul 2013 05:23:54 -0400
-Message-ID: <51E26E22.8050005@xs4all.nl>
-Date: Sun, 14 Jul 2013 11:23:46 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+	Tue, 23 Jul 2013 11:50:27 -0400
+Received: by mail-we0-f177.google.com with SMTP id m46so546913wev.8
+        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 08:50:26 -0700 (PDT)
 MIME-Version: 1.0
-To: Florian Streibelt <florian@inet.tu-berlin.de>
-CC: linux-media@vger.kernel.org
-Subject: Re: CX23103  Video Grabber seems to be supported by cx231xx  driver
-References: <20130712182632.667842dc@fls-nb.lan.streibelt.net>
-In-Reply-To: <20130712182632.667842dc@fls-nb.lan.streibelt.net>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+In-Reply-To: <1374516287-7638-5-git-send-email-s.nawrocki@samsung.com>
+References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com> <1374516287-7638-5-git-send-email-s.nawrocki@samsung.com>
+From: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Date: Tue, 23 Jul 2013 21:20:06 +0530
+Message-ID: <CA+V-a8t+tqvJXZrFUJ2sA2TM=7AM1U50h7aAfHze+yKnAzsYMw@mail.gmail.com>
+Subject: Re: [PATCH RFC 4/5] V4L2: Rename subdev field of struct v4l2_async_notifier
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Cc: linux-media@vger.kernel.org, g.liakhovetski@gmx.de,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com
+Content-Type: text/plain; charset=windows-1252
+Content-Transfer-Encoding: 8BIT
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Florian,
+Hi Sylwester,
 
-On 07/12/2013 06:26 PM, Florian Streibelt wrote:
-> Hi,
-> 
-> the chip CX23103 that is used in various devices sold e.g. in germany works with the cx231xx stock driver.
-> 
-> The author of that driver is not reachable via the email adress stated in the source file: srinivasa.deevi@conexant.com
-> [ host cnxtsmtp1.conexant.com [198.62.9.252]: 550 5.1.1 <srinivasa.deevi@conexant.com>:  Recipient address rejected: User unknown in relay recipient table]
+On Mon, Jul 22, 2013 at 11:34 PM, Sylwester Nawrocki
+<s.nawrocki@samsung.com> wrote:
+> This is a purely cosmetic change. Since the 'subdev' member
+> points to an array of subdevs it seems more intuitive to name
+> it in plural form.
+>
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/platform/soc_camera/soc_camera.c |    2 +-
+>  drivers/media/v4l2-core/v4l2-async.c           |    2 +-
+>  include/media/v4l2-async.h                     |    4 ++--
+>  3 files changed, 4 insertions(+), 4 deletions(-)
+>
 
-Yeah, I suspect he left Conexant. For all practical purposes that leaves me as
-the maintainer for my sins.
+can you include the following changes in the same patch ?
+so that git bisect doesn’t break.
 
-> 
-> In drivers/media/video/cx231xx/cx231xx-cards.c the struct usb_device_id cx231xx_id_table[] needs these lines added:
-> 
->    {USB_DEVICE(0x1D19, 0x6109),
->    .driver_info = CX231XX_BOARD_PV_XCAPTURE_USB},
-
-That looks OK.
-
-> While the change is minimal due to the fact that no real technical documentation is available on the chip the support was guessed - but worked for video.
-> 
-> The videostream can pe played using mplayer tv:///0  - proof: http://streibelt.de/blog/2013/06/23/kernel-patch-for-cx23103-video-grabber-linux-support/
-> 
-> However when trying to capture audio using audacity while playing the video stream in mplayer my system locked (no message in syslog, complete freeze). 
-
-I've no idea what is happening here. It has probably to do with the board setup,
-although there isn't all that much that you can change there that relates to audio.
-
-Try using 'arecord' instead of audicity. The arecord tool is more low-level, so
-it will be interesting to know if it behaves differently.
-
-Besides that the only thing I can think of is just to try and add printk's to
-cx231xx-audio.c and see where things go boom.
-
-A useful trick there is to add a mdelay(5) or so after the printk to give the
-system time to write to the kernel log.
-
-Be aware that I consider this driver to be flaky, so I would not at all be
-surprised if there are bugs lurking in the code.
+(maybe you need to rebase the patches on
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.12)
 
 Regards,
+--Prabhakar Lad
 
-	Hans
-
-> I posted this one month ago to this list without any reaction so I ask if this is the correct way to get that grabber really supported.
-> 
-> I am willing to do any tests neccessary and try out patches.
-
+diff --git a/drivers/media/platform/davinci/vpif_capture.c
+b/drivers/media/platform/davinci/vpif_capture.c
+index b11d7a7..7fbde6d 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -2168,7 +2168,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 		vpif_probe_complete();
+ 	} else {
+-		vpif_obj.notifier.subdev = vpif_obj.config->asd;
++		vpif_obj.notifier.subdevs = vpif_obj.config->asd;
+ 		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
+ 		vpif_obj.notifier.bound = vpif_async_bound;
+ 		vpif_obj.notifier.complete = vpif_async_complete;
+diff --git a/drivers/media/platform/davinci/vpif_display.c
+b/drivers/media/platform/davinci/vpif_display.c
+index c2ff067..6336dfc 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1832,7 +1832,7 @@ static __init int vpif_probe(struct platform_device *pdev)
+ 		}
+ 		vpif_probe_complete();
+ 	} else {
+-		vpif_obj.notifier.subdev = vpif_obj.config->asd;
++		vpif_obj.notifier.subdevs = vpif_obj.config->asd;
+ 		vpif_obj.notifier.num_subdevs = vpif_obj.config->asd_sizes[0];
+ 		vpif_obj.notifier.bound = vpif_async_bound;
+ 		vpif_obj.notifier.complete = vpif_async_complete;
