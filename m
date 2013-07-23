@@ -1,141 +1,235 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from devils.ext.ti.com ([198.47.26.153]:55025 "EHLO
-	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757022Ab3GRJBl (ORCPT
+Received: from mail.linuxfoundation.org ([140.211.169.12]:36105 "EHLO
+	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S933104Ab3GWQSr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 05:01:41 -0400
-Message-ID: <51E7AECA.1000204@ti.com>
-Date: Thu, 18 Jul 2013 14:30:58 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+	Tue, 23 Jul 2013 12:18:47 -0400
+Date: Tue, 23 Jul 2013 09:18:46 -0700
+From: Greg KH <gregkh@linuxfoundation.org>
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: Alan Stern <stern@rowland.harvard.edu>,
+	Tomasz Figa <tomasz.figa@gmail.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	broonie@kernel.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
+	swarren@nvidia.com, devicetree@vger.kernel.org,
+	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Message-ID: <20130723161846.GD2486@kroah.com>
+References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
+ <51EE9EC0.6060905@ti.com>
 MIME-Version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-CC: <kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 02/15] usb: phy: omap-usb2: use the new generic PHY framework
-References: <1374129984-765-1-git-send-email-kishon@ti.com> <1374129984-765-3-git-send-email-kishon@ti.com> <20130718072149.GB16720@kroah.com>
-In-Reply-To: <20130718072149.GB16720@kroah.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <51EE9EC0.6060905@ti.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Thursday 18 July 2013 12:51 PM, Greg KH wrote:
-> On Thu, Jul 18, 2013 at 12:16:11PM +0530, Kishon Vijay Abraham I wrote:
->> Used the generic PHY framework API to create the PHY. Now the power off and
->> power on are done in omap_usb_power_off and omap_usb_power_on respectively.
->>
->> However using the old USB PHY library cannot be completely removed
->> because OTG is intertwined with PHY and moving to the new framework
->> will break OTG. Once we have a separate OTG state machine, we
->> can get rid of the USB PHY library.
->>
->> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
->> Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
->> Acked-by: Felipe Balbi <balbi@ti.com>
->> ---
->>  drivers/usb/phy/Kconfig         |    1 +
->>  drivers/usb/phy/phy-omap-usb2.c |   45 +++++++++++++++++++++++++++++++++++----
->>  2 files changed, 42 insertions(+), 4 deletions(-)
->>
->> diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
->> index 3622fff..cc55993 100644
->> --- a/drivers/usb/phy/Kconfig
->> +++ b/drivers/usb/phy/Kconfig
->> @@ -75,6 +75,7 @@ config OMAP_CONTROL_USB
->>  config OMAP_USB2
->>  	tristate "OMAP USB2 PHY Driver"
->>  	depends on ARCH_OMAP2PLUS
->> +	depends on GENERIC_PHY
->>  	select OMAP_CONTROL_USB
->>  	help
->>  	  Enable this to support the transceiver that is part of SOC. This
->> diff --git a/drivers/usb/phy/phy-omap-usb2.c b/drivers/usb/phy/phy-omap-usb2.c
->> index 844ab68..751b30f 100644
->> --- a/drivers/usb/phy/phy-omap-usb2.c
->> +++ b/drivers/usb/phy/phy-omap-usb2.c
->> @@ -28,6 +28,7 @@
->>  #include <linux/pm_runtime.h>
->>  #include <linux/delay.h>
->>  #include <linux/usb/omap_control_usb.h>
->> +#include <linux/phy/phy.h>
->>  
->>  /**
->>   * omap_usb2_set_comparator - links the comparator present in the sytem with
->> @@ -119,10 +120,36 @@ static int omap_usb2_suspend(struct usb_phy *x, int suspend)
->>  	return 0;
->>  }
->>  
->> +static int omap_usb_power_off(struct phy *x)
->> +{
->> +	struct omap_usb *phy = phy_get_drvdata(x);
->> +
->> +	omap_control_usb_phy_power(phy->control_dev, 0);
->> +
->> +	return 0;
->> +}
->> +
->> +static int omap_usb_power_on(struct phy *x)
->> +{
->> +	struct omap_usb *phy = phy_get_drvdata(x);
->> +
->> +	omap_control_usb_phy_power(phy->control_dev, 1);
->> +
->> +	return 0;
->> +}
->> +
->> +static struct phy_ops ops = {
->> +	.power_on	= omap_usb_power_on,
->> +	.power_off	= omap_usb_power_off,
->> +	.owner		= THIS_MODULE,
->> +};
->> +
->>  static int omap_usb2_probe(struct platform_device *pdev)
->>  {
->>  	struct omap_usb			*phy;
->> +	struct phy			*generic_phy;
->>  	struct usb_otg			*otg;
->> +	struct phy_provider		*phy_provider;
->>  
->>  	phy = devm_kzalloc(&pdev->dev, sizeof(*phy), GFP_KERNEL);
->>  	if (!phy) {
->> @@ -144,6 +171,11 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>  	phy->phy.otg		= otg;
->>  	phy->phy.type		= USB_PHY_TYPE_USB2;
->>  
->> +	phy_provider = devm_of_phy_provider_register(phy->dev,
->> +			of_phy_simple_xlate);
->> +	if (IS_ERR(phy_provider))
->> +		return PTR_ERR(phy_provider);
->> +
->>  	phy->control_dev = omap_get_control_dev();
->>  	if (IS_ERR(phy->control_dev)) {
->>  		dev_dbg(&pdev->dev, "Failed to get control device\n");
->> @@ -159,6 +191,15 @@ static int omap_usb2_probe(struct platform_device *pdev)
->>  	otg->start_srp		= omap_usb_start_srp;
->>  	otg->phy		= &phy->phy;
->>  
->> +	platform_set_drvdata(pdev, phy);
->> +	pm_runtime_enable(phy->dev);
->> +
->> +	generic_phy = devm_phy_create(phy->dev, 0, &ops, "omap-usb2");
->> +	if (IS_ERR(generic_phy))
->> +		return PTR_ERR(generic_phy);
+On Tue, Jul 23, 2013 at 08:48:24PM +0530, Kishon Vijay Abraham I wrote:
+> Hi,
 > 
-> So, if I have two of these controllers in my system, I can't create the
-> second phy because the name for it will be identical to the first?
-> That's why the phy core should handle the id, and not rely on the
-> drivers to set it, as they have no idea how many they have in the
-> system.
+> On Tuesday 23 July 2013 08:07 PM, Alan Stern wrote:
+> > On Tue, 23 Jul 2013, Tomasz Figa wrote:
+> > 
+> >> On Tuesday 23 of July 2013 09:29:32 Tomasz Figa wrote:
+> >>> Hi Alan,
+> > 
+> > Thanks for helping to clarify the issues here.
+> > 
+> >>>> Okay.  Are PHYs _always_ platform devices?
+> >>>
+> >>> They can be i2c, spi or any other device types as well.
+> > 
+> > In those other cases, presumably there is no platform data associated
+> > with the PHY since it isn't a platform device.  Then how does the
+> > kernel know which controller is attached to the PHY?  Is this spelled
+> > out in platform data associated with the PHY's i2c/spi/whatever parent?
+> 
+> Yes. I think we could use i2c_board_info for passing platform data.
+> > 
+> >>>>>> 	PHY.  Currently this information is represented by name or 
+> >> ID
+> >>>>>> 	strings embedded in platform data.
+> >>>>>
+> >>>>> right. It's embedded in the platform data of the controller.
+> >>>>
+> >>>> It must also be embedded in the PHY's platform data somehow.
+> >>>> Otherwise, how would the kernel know which PHY to use?
+> >>>
+> >>> By using a PHY lookup as Stephen and I suggested in our previous
+> >>> replies. Without any extra data in platform data. (I have even posted a
+> >>> code example.)
+> > 
+> > I don't understand, because I don't know what "a PHY lookup" does.
+> 
+> It is how the PHY framework finds a PHY, when the controller (say USB)requests
+> a PHY from the PHY framework.
+> > 
+> >>>> In this case, it doesn't matter where the platform_device structures
+> >>>> are created or where the driver source code is.  Let's take a simple
+> >>>> example.  Suppose the system design includes a PHY named "foo".  Then
+> >>>> the board file could contain:
+> >>>>
+> >>>> struct phy_info { ... } phy_foo;
+> >>>> EXPORT_SYMBOL_GPL(phy_foo);
+> >>>>
+> >>>> and a header file would contain:
+> >>>>
+> >>>> extern struct phy_info phy_foo;
+> >>>>
+> >>>> The PHY supplier could then call phy_create(&phy_foo), and the PHY
+> >>>> client could call phy_find(&phy_foo).  Or something like that; make up
+> >>>> your own structure tags and function names.
+> >>>>
+> >>>> It's still possible to have conflicts, but now two PHYs with the same
+> >>>> name (or a misspelled name somewhere) will cause an error at link
+> >>>> time.
+> >>>
+> >>> This is incorrect, sorry. First of all it's a layering violation - you
+> >>> export random driver-specific symbols from one driver to another. Then
+> > 
+> > No, that's not what I said.  Neither the PHY driver nor the controller
+> > driver exports anything to the other.  Instead, both drivers use data
+> > exported by the board file.
+> 
+> I think instead we can use the same data while creating the platform data of
+> the controller and the PHY.
+> The PHY driver while creating the PHY (using PHY framework) will also pass the
+> *data* it actually got from the platform data to the framework.
+> The PHY user driver (USB), while requesting for the PHY (from the PHY
+> framework) will pass the *data* it got from its platform data.
+> The PHY framework can do a comparison of the *data* pointers it has and return
+> the appropriate PHY to the controller.
+> > 
+> >>> imagine 4 SoCs - A, B, C, D. There are two PHY types PHY1 and PHY2 and
+> >>> there are two types of consumer drivers (e.g. USB host controllers). Now
+> >>> consider following mapping:
+> >>>
+> >>> SoC	PHY	consumer
+> >>> A	PHY1	HOST1
+> >>> B	PHY1	HOST2
+> >>> C	PHY2	HOST1
+> >>> D	PHY2	HOST2
+> >>>
+> >>> So we have to be able to use any of the PHYs with any of the host
+> >>> drivers. This means you would have to export symbol with the same name
+> >>> from both PHY drivers, which obviously would not work in this case,
+> >>> because having both drivers enabled (in a multiplatform aware
+> >>> configuration) would lead to linking conflict.
+> > 
+> > You're right; the scheme was too simple.  Instead, the board file must
+> > export two types of data structures, one for PHYs and one for
+> > controllers.  Like this:
+> > 
+> > struct phy_info {
+> > 	/* Info for the controller attached to this PHY */
+> > 	struct controller_info	*hinfo;
+> > };
+> > 
+> > struct controller_info {
+> > 	/* Info for the PHY which this controller is attached to */
+> > 	struct phy_info		*pinfo;
+> > };
+> > 
+> > The board file for SoC A would contain:
+> > 
+> > struct phy_info phy1 = {&host1);
+> > EXPORT_SYMBOL(phy1);
+> > struct controller_info host1 = {&phy1};
+> > EXPORT_SYMBOL(host1);
+> > 
+> > The board file for SoC B would contain:
+> > 
+> > struct phy_info phy1 = {&host2);
+> > EXPORT_SYMBOL(phy1);
+> > struct controller_info host2 = {&phy1};
+> > EXPORT_SYMBOL(host2);
+> 
+> I meant something like this
+> struct phy_info {
+> 	const char *name;
+> };
+> 
+> struct phy_platform_data {
+> 	.
+> 	.
+> 	struct phy_info *info;
+> };
+> 
+> struct usb_controller_platform_data {
+> 	.
+> 	.
+> 	struct phy_info *info;
+> };
+> 
+> struct phy_info phy_info;
+> 
+> While creating the phy device
+> 	struct phy_platform_data phy_data;
+> 	phy_data.info = &info;
+> 	platform_device_add_data(pdev, &phy_data, sizeof(*phy_data))
+> 	platform_device_add();
+> 
+> While creating the controller device
+> 	struct usb_controller_platform_data controller_data;
+> 	controller_data.info = &info;
+> 	platform_device_add_data(pdev, &controller_data, sizeof(*controller_data))
+> 	platform_device_add();
+> 
+> Then modify PHY framework API phy create
+> 	phy_create((struct device *dev, const struct phy_ops *ops,
+>         void *priv)  {//API changed to take void pointer instead of label
+> 		. //existing implementation
+> 		.
+> 		phy->priv = priv;
+> 	}
+> 
+> 	struct phy *phy_get(struct device *dev, const char *string, void *priv) {
+> //API changed to take an additional pointer
+> 		phy_lookup(priv)
+> 	}
+> 
+> 	static struct phy *phy_lookup(void *priv) {
+> 		.
+> 		.
+> 		if (phy->priv==priv) //instead of string comparison, we'll use pointer
+> 			return phy;
+> 	}
+> 
+> PHY driver should be like
+> 	phy_create((dev, ops, pdata->info);
+> 
+> The controller driver would do
+> 	phy_get(dev, NULL, pdata->info);
+> 
+> Now the PHY framework will check for a match of *priv* pointer and return the PHY.
+> 
+> I think this should be possible?
 
-hmm.. for such cases I'll have something like PLATFORM_DEVID_AUTO.
+Ick, no.  Why can't you just pass the pointer to the phy itself?  If you
+had a "priv" pointer to search from, then you could have just passed the
+original phy pointer in the first place, right?
 
-Thanks
-Kishon
+The issue is that a string "name" is not going to scale at all, as it
+requires hard-coded information that will change over time (as the
+existing clock interface is already showing.)
+
+Please just pass the real "phy" pointer around, that's what it is there
+for.  Your "board binding" logic/code should be able to handle this, as
+it somehow was going to do the same thing with a "name".
+
+thanks,
+
+greg k-h
