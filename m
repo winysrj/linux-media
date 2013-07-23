@@ -1,51 +1,65 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:53707 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753371Ab3G3MZk (ORCPT
+Received: from mail-pb0-f52.google.com ([209.85.160.52]:42206 "EHLO
+	mail-pb0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757536Ab3GWPYO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 08:25:40 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id CB29940BC3
-	for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 14:25:38 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1V48zh-0003v8-K9
-	for linux-media@vger.kernel.org; Tue, 30 Jul 2013 14:25:37 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	Tue, 23 Jul 2013 11:24:14 -0400
+Received: by mail-pb0-f52.google.com with SMTP id xa12so8495175pbc.25
+        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 08:24:14 -0700 (PDT)
+From: Chris Lee <updatelee@gmail.com>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 0/6] V4L2: soc-camera: more asynchronous probing work
-Date: Tue, 30 Jul 2013 14:25:31 +0200
-Message-Id: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
+Cc: Chris Lee <updatelee@gmail.com>
+Subject: [PATCH] gp8psk: Implement gp8psk_fe_read_ber
+Date: Tue, 23 Jul 2013 09:24:02 -0600
+Message-Id: <1374593042-13574-1-git-send-email-updatelee@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-A bunch of patches to extend asynchronous subdevice probing in soc-camera. 
-They refresh the mx3-camera driver a bit by converting it to managed 
-resource allocation and adding asynchronous probing support. mt9m111 is
-also ported to support both types of probing. Also regulator handling
-is fixed in soc-camera to support both probing types.
 
-Guennadi Liakhovetski (6):
-  V4L2: soc-camera: fix requesting regulators in synchronous case
-  V4L2: mx3_camera: convert to managed resource allocation
-  V4L2: mx3_camera: print V4L2_MBUS_FMT_* codes in hexadecimal format
-  V4L2: mx3_camera: add support for asynchronous subdevice registration
-  V4L2: mt9t031: don't Oops if asynchronous probing is attempted
-  V4L2: mt9m111: switch to asynchronous subdevice probing
-
- drivers/media/i2c/soc_camera/mt9m111.c         |   38 +++++++++----
- drivers/media/i2c/soc_camera/mt9t031.c         |    7 ++-
- drivers/media/platform/soc_camera/mx3_camera.c |   67 +++++++++---------------
- drivers/media/platform/soc_camera/soc_camera.c |   33 ++++++++++--
- include/linux/platform_data/camera-mx3.h       |    4 ++
- 5 files changed, 87 insertions(+), 62 deletions(-)
-
--- 
-1.7.2.5
-
-Thanks
-Guennadi
+Signed-off-by: Chris Lee <updatelee@gmail.com>
 ---
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+ drivers/media/usb/dvb-usb/gp8psk-fe.c | 13 ++++++++++---
+ drivers/media/usb/dvb-usb/gp8psk.h    |  1 +
+ 2 files changed, 11 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/media/usb/dvb-usb/gp8psk-fe.c b/drivers/media/usb/dvb-usb/gp8psk-fe.c
+index 5864f37..223a3ca 100644
+--- a/drivers/media/usb/dvb-usb/gp8psk-fe.c
++++ b/drivers/media/usb/dvb-usb/gp8psk-fe.c
+@@ -68,11 +68,18 @@ static int gp8psk_fe_read_status(struct dvb_frontend* fe, fe_status_t *status)
+ 	return 0;
+ }
+ 
+-/* not supported by this Frontend */
+ static int gp8psk_fe_read_ber(struct dvb_frontend* fe, u32 *ber)
+ {
+-	(void) fe;
+-	*ber = 0;
++	struct gp8psk_fe_state *st = fe->demodulator_priv;
++
++	u8 buf[4];
++
++	if (gp8psk_usb_in_op(st->d, GET_BER_RATE, 0, 0, buf, 4)) {
++		return -EINVAL;
++	}
++
++	*ber = (buf[3] << 24) + (buf[2] << 16) + (buf[1] << 8) + buf[0];
++
+ 	return 0;
+ }
+ 
+diff --git a/drivers/media/usb/dvb-usb/gp8psk.h b/drivers/media/usb/dvb-usb/gp8psk.h
+index ed32b9d..ff6bb3c 100644
+--- a/drivers/media/usb/dvb-usb/gp8psk.h
++++ b/drivers/media/usb/dvb-usb/gp8psk.h
+@@ -52,6 +52,7 @@ extern int dvb_usb_gp8psk_debug;
+ #define GET_SERIAL_NUMBER               0x93    /* in */
+ #define USE_EXTRA_VOLT                  0x94
+ #define GET_FPGA_VERS			0x95
++#define GET_BER_RATE			0x9B
+ #define CW3K_INIT			0x9d
+ 
+ /* PSK_configuration bits */
+-- 
+1.8.1.2
+
