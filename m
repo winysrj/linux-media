@@ -1,133 +1,128 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:9043 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751498Ab3G2L1R (ORCPT
+Received: from iolanthe.rowland.org ([192.131.102.54]:56947 "HELO
+	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with SMTP id S1758067Ab3GWUx5 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 29 Jul 2013 07:27:17 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQP00HJV3PMRX80@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 29 Jul 2013 12:27:15 +0100 (BST)
-Message-id: <51F65190.9080601@samsung.com>
-Date: Mon, 29 Jul 2013 13:27:12 +0200
-From: Marek Szyprowski <m.szyprowski@samsung.com>
-MIME-version: 1.0
-To: Jonathan Corbet <corbet@lwn.net>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, Andre Heider <a.heider@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 1/2] videobuf2-dma-sg: Allocate pages as contiguous as
- possible
-References: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
- <1374253355-3788-2-git-send-email-ricardo.ribalda@gmail.com>
- <20130719141603.16ef8f0b@lwn.net>
-In-reply-to: <20130719141603.16ef8f0b@lwn.net>
-Content-type: text/plain; charset=UTF-8; format=flowed
-Content-transfer-encoding: 7bit
+	Tue, 23 Jul 2013 16:53:57 -0400
+Date: Tue, 23 Jul 2013 16:53:55 -0400 (EDT)
+From: Alan Stern <stern@rowland.harvard.edu>
+To: Tomasz Figa <tomasz.figa@gmail.com>
+cc: Tomasz Figa <t.figa@samsung.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	<broonie@kernel.org>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<olof@lixom.net>, Stephen Warren <swarren@wwwdotorg.org>,
+	<b.zolnierkie@samsung.com>,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+In-Reply-To: <1387574.Tkg16KearS@flatron>
+Message-ID: <Pine.LNX.4.44L0.1307231632580.1304-100000@iolanthe.rowland.org>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello,
+On Tue, 23 Jul 2013, Tomasz Figa wrote:
 
-On 7/19/2013 10:16 PM, Jonathan Corbet wrote:
-> On Fri, 19 Jul 2013 19:02:33 +0200
-> Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com> wrote:
->
-> > Most DMA engines have limitations regarding the number of DMA segments
-> > (sg-buffers) that they can handle. Videobuffers can easily spread
-> > through houndreds of pages.
-> >
-> > In the previous aproach, the pages were allocated individually, this
-> > could led to the creation houndreds of dma segments (sg-buffers) that
-> > could not be handled by some DMA engines.
-> >
-> > This patch tries to minimize the number of DMA segments by using
-> > alloc_pages. In the worst case it will behave as before, but most
-> > of the times it will reduce the number of dma segments
->
-> So I looked this over and I have a few questions...
->
-> > diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> > index 16ae3dc..c053605 100644
-> > --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> > +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
-> > @@ -42,10 +42,55 @@ struct vb2_dma_sg_buf {
-> >
-> >  static void vb2_dma_sg_put(void *buf_priv);
-> >
-> > +static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
-> > +		gfp_t gfp_flags)
-> > +{
-> > +	unsigned int last_page = 0;
-> > +	int size = buf->sg_desc.size;
-> > +
-> > +	while (size > 0) {
-> > +		struct page *pages;
-> > +		int order;
-> > +		int i;
-> > +
-> > +		order = get_order(size);
-> > +		/* Dont over allocate*/
-> > +		if ((PAGE_SIZE << order) > size)
-> > +			order--;
->
-> Terrible things will happen if size < PAGE_SIZE.  Presumably that should
-> never happen, or perhaps one could say any caller who does that will get
-> what they deserve.
+> > That's what I was going to suggest too.  The struct phy is defined in
+> > the board file, which already knows about all the PHYs that exist in
+> > the system.  (Or perhaps it is allocated dynamically, so that when many
+> > board files are present in the same kernel, only the entries listed in
+> > the board file for the current system get created.) 
+> 
+> Well, such dynamic allocation is a must. We don't accept non-multiplatform 
+> aware code anymore, not even saying about multiboard.
+> 
+> > Then the
+> > structure's address is stored in the platform data and made available
+> > to both the provider and the consumer.
+> 
+> Yes, technically this can work. You would still have to perform some kind 
+> of synchronization to make sure that the PHY bound to this structure is 
+> actually present. This is again technically doable (e.g. a list of 
+> registered struct phys inside PHY core).
 
-I think that page size alignment for requested buffer size should be added
-at vb2 core. V4L2 buffer API is page oriented and it really makes no sense
-to allocate buffers which are not a multiple of page size.
+The synchronization takes place inside phy_get.  If phy_create hasn't
+been called for this structure by the time phy_get runs, phy_get will 
+return an error.
 
+> > Even though the struct phy is defined (or allocated) in the board file,
+> > its contents don't get filled in until the PHY driver provides the
+> > details.
+> 
+> You can't assure this. Board file is free to do whatever it wants with 
+> this struct. A clean solution would prevent this.
 
-> Have you considered alloc_pages_exact(), though?  That might result in
-> fewer segments overall.
->
-> > +		pages = NULL;
-> > +		while (!pages) {
-> > +			pages = alloc_pages(GFP_KERNEL | __GFP_ZERO |
-> > +					__GFP_NOWARN | gfp_flags, order);
-> > +			if (pages)
-> > +				break;
-> > +
-> > +			if (order == 0)
-> > +				while (last_page--) {
-> > +					__free_page(buf->pages[last_page]);
->
-> If I understand things, this is wrong; you relly need free_pages() with the
-> correct order.  Or, at least, that would be the case if you kept the pages
-> together, but that leads to my biggest question...
->
-> > +					return -ENOMEM;
-> > +				}
-> > +			order--;
-> > +		}
-> > +
-> > +		split_page(pages, order);
-> > +		for (i = 0; i < (1<<order); i++) {
-> > +			buf->pages[last_page] = pages[i];
-> > +			sg_set_page(&buf->sg_desc.sglist[last_page],
-> > +					buf->pages[last_page], PAGE_SIZE, 0);
-> > +			last_page++;
-> > +		}
->
-> You've gone to all this trouble to get a higher-order allocation so you'd
-> have fewer segments, then you undo it all by splitting things apart into
-> individual pages.  Why?  Clearly I'm missing something, this seems to
-> defeat the purpose of the whole exercise?
+I'm not sure what you mean here.  Of course I can't prevent a board 
+file from messing up a data structure.  I can't prevent it from causing 
+memory access violations either; in fact, I can't prevent any bugs in 
+other people's code.
 
-Individual zero-order pages are required to get them mapped to userspace in
-mmap callback.
+Besides, why do you say the board file is free to do whatever it wants 
+with the struct phy?  Currently the struct phy is created by the PHY 
+provider and the PHY core, right?  It's not even mentioned in the board 
+file.
 
-Best regards
--- 
-Marek Szyprowski
-Samsung R&D Institute Poland
+> > > It's technically correct, but quality of this solution isn't really
+> > > nice, because it's a layering violation (at least if I understood
+> > > what you mean). This is because you need to have full definition of
+> > > struct phy in board file and a structure that is used as private data
+> > > in PHY core comes from platform code.
+> > 
+> > You don't have to have a full definition in the board file.  Just a
+> > partial definition -- most of the contents can be filled in later, when
+> > the PHY driver is ready to store the private data.
+> > 
+> > It's not a layering violation for one region of the kernel to store
+> > private data in a structure defined by another part of the kernel.
+> > This happens all the time (e.g., dev_set_drvdata).
+> 
+> Not really. The phy struct is something that _is_ private data of PHY 
+> subsystem, not something that can store private data of PHY subsystem 
+> (sure it can store private data of particular PHY driver, but that's 
+> another story) and only PHY subsystem should have access to its contents.
 
+If you want to keep the phy struct completely separate from the board
+file, there's an easy way to do it.  Let's say the board file knows
+about N different PHYs in the system.  Then you define an array of N
+pointers to phys:
+
+struct phy *(phy_address[N]);
+
+In the platform data for both PHY j and its controller, store
+&phy_address[j].  The PHY provider passes this cookie to phy_create:
+
+	cookie = pdev->dev.platform_data;
+	ret = phy_create(phy, cookie);
+
+and phy_create simply stores: *cookie = phy.  The PHY consumer does
+much the same the same thing:
+
+	cookie = pdev->dev.platform_data;
+	phy = phy_get(cookie);
+
+phy_get returns *cookie if it isn't NULL, or an ERR_PTR otherwise.
+
+> By the way, we need to consider other cases here as well, for example it 
+> would be nice to have a single phy_get() function that works for both non-
+> DT and DT cases to make the consumer driver not have to worry whether it's 
+> being probed from DT or not.
+
+You ought to be able to adapt this scheme to work with DT.  Maybe by 
+having multiple "phy_address" arrays.
+
+Alan Stern
 
