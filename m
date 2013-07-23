@@ -1,59 +1,47 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from 7of9.schinagl.nl ([88.159.158.68]:55542 "EHLO 7of9.schinagl.nl"
+Received: from sauhun.de ([89.238.76.85]:58725 "EHLO pokefinder.org"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757388Ab3GLJJt (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jul 2013 05:09:49 -0400
-Message-ID: <51DFC76B.6010208@schinagl.nl>
-Date: Fri, 12 Jul 2013 11:07:55 +0200
-From: Oliver Schinagl <oliver+list@schinagl.nl>
-MIME-Version: 1.0
-To: linux-media <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <m.chehab@samsung.com>
-CC: opensource@till.name
-Subject: Fwd: dtv-scan-tables tar archive
-References: <20130712085956.GZ4000@genius.invalid>
-In-Reply-To: <20130712085956.GZ4000@genius.invalid>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	id S933922Ab3GWSC6 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Tue, 23 Jul 2013 14:02:58 -0400
+From: Wolfram Sang <wsa@the-dreams.de>
+To: linux-kernel@vger.kernel.org
+Cc: Wolfram Sang <wsa@the-dreams.de>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	linux-media@vger.kernel.org
+Subject: [PATCH 09/27] drivers/media/platform: don't check resource with devm_ioremap_resource
+Date: Tue, 23 Jul 2013 20:01:42 +0200
+Message-Id: <1374602524-3398-10-git-send-email-wsa@the-dreams.de>
+In-Reply-To: <1374602524-3398-1-git-send-email-wsa@the-dreams.de>
+References: <1374602524-3398-1-git-send-email-wsa@the-dreams.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Mauro,
+devm_ioremap_resource does sanity checks on the given resource. No need to
+duplicate this in the driver.
 
-I think the archive is generated incorrectly. Could you take a look and 
-see why? I shamefully admit I still am not sure where you did what to 
-generate these ;)
+Signed-off-by: Wolfram Sang <wsa@the-dreams.de>
+---
+Please apply via the subsystem-tree.
 
-Oliver
+ drivers/media/platform/coda.c |    5 -----
+ 1 file changed, 5 deletions(-)
 
-
--------- Original Message --------
-Subject: 	dtv-scan-tables tar archive
-Date: 	Fri, 12 Jul 2013 10:59:56 +0200
-From: 	Till Maas <opensource@till.name>
-To: 	Oliver Schinagl <oliver@schinagl.nl>
-
-
-
-Hi Oliver,
-
-the tar archives at
-http://linuxtv.org/downloads/dtv-scan-tables/
-are broken.
-xxd dtv-scan-tables-2013-04-12-495e59e.tar | less shows:
-
-| 0000000: 6769 7420 6172 6368 6976 6520 2d2d 666f  git archive --fo
-| 0000010: 726d 6174 2074 6172 202d 2d70 7265 6669  rmat tar --prefi
-| 0000020: 7820 2f75 7372 2f73 6861 7265 2f64 7662  x /usr/share/dvb
-| 0000030: 2f20 4845 4144 0a70 6178 5f67 6c6f 6261  / HEAD.pax_globa
-| 0000040: 6c5f 6865 6164 6572 0000 0000 0000 0000  l_header........
-
-It seems like the git archive commandline somehow ended in the tarball.
-E.g. the tarball should start with pax_global_header and not with "git
-archive".
-
-Regards
-Till
-
-
+diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+index df4ada88..6ea4717 100644
+--- a/drivers/media/platform/coda.c
++++ b/drivers/media/platform/coda.c
+@@ -2032,11 +2032,6 @@ static int coda_probe(struct platform_device *pdev)
+ 
+ 	/* Get  memory for physical registers */
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (res == NULL) {
+-		dev_err(&pdev->dev, "failed to get memory region resource\n");
+-		return -ENOENT;
+-	}
+-
+ 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
+ 	if (IS_ERR(dev->regs_base))
+ 		return PTR_ERR(dev->regs_base);
+-- 
+1.7.10.4
 
