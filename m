@@ -1,95 +1,164 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:37024 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1755237Ab3GQTrj (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.10]:51248 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752644Ab3GXQOc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 15:47:39 -0400
-Date: Wed, 17 Jul 2013 22:47:03 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 1/5] media: Fix circular graph traversal
-Message-ID: <20130717194703.GB11369@valkosipuli.retiisi.org.uk>
-References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1374072882-14598-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 24 Jul 2013 12:14:32 -0400
+Date: Wed, 24 Jul 2013 18:14:19 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+cc: mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp,
+	vladimir.barinov@cogentembedded.com
+Subject: Re: [PATCH v8] V4L2: soc_camera: Renesas R-Car VIN driver
+In-Reply-To: <201307200314.35345.sergei.shtylyov@cogentembedded.com>
+Message-ID: <Pine.LNX.4.64.1307241731560.2179@axis700.grange>
+References: <201307200314.35345.sergei.shtylyov@cogentembedded.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1374072882-14598-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Laurent,
+Hi Sergei, Vladimir
 
-On Wed, Jul 17, 2013 at 04:54:38PM +0200, Laurent Pinchart wrote:
-> The graph traversal API (media_entity_graph_walk_*) will fail to
-> correctly walk the graph when circular links exist. Fix it by checking
-> whether an entity is already present in the stack before pushing it.
+So, looks like we're almost there. checkpatch.pl looks pretty good too, I 
+don't care about > 80 chars, Kconfig seems to be a dull one, have a look 
+at msleep(1) warning whether it bothers you.
 
-We never had any multiply connected graphs (ignoring direction, nor
-supported them) before. So this is rather a patch that adds support for
-those instead of fixing it. :-)
+On Sat, 20 Jul 2013, Sergei Shtylyov wrote:
 
-> Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-> ---
->  drivers/media/media-entity.c | 17 ++++++++++++-----
->  1 file changed, 12 insertions(+), 5 deletions(-)
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
 > 
-> diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> index cb30ffb..c8aba5e 100644
-> --- a/drivers/media/media-entity.c
-> +++ b/drivers/media/media-entity.c
-> @@ -121,9 +121,9 @@ static struct media_entity *stack_pop(struct media_entity_graph *graph)
->  	return entity;
->  }
->  
-> -#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
-> -#define link_top(en)	((en)->stack[(en)->top].link)
-> -#define stack_top(en)	((en)->stack[(en)->top].entity)
-> +#define stack_peek(en, i)	((en)->stack[i].entity)
-> +#define link_top(en)		((en)->stack[(en)->top].link)
-> +#define stack_top(en)		((en)->stack[(en)->top].entity)
->  
->  /**
->   * media_entity_graph_walk_start - Start walking the media graph at a given entity
-> @@ -159,6 +159,8 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
->  struct media_entity *
->  media_entity_graph_walk_next(struct media_entity_graph *graph)
->  {
-> +	unsigned int i;
-> +
->  	if (stack_top(graph) == NULL)
->  		return NULL;
->  
-> @@ -181,8 +183,13 @@ media_entity_graph_walk_next(struct media_entity_graph *graph)
->  		/* Get the entity in the other end of the link . */
->  		next = media_entity_other(entity, link);
->  
-> -		/* Was it the entity we came here from? */
-> -		if (next == stack_peek(graph)) {
-> +		/* Is the entity already in the path? */
-> +		for (i = 1; i < graph->top; ++i) {
-> +			if (next == stack_peek(graph, i))
-> +				break;
+> Add Renesas R-Car VIN (Video In) V4L2 driver.
+> 
+> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> 
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
+> values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
+> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
+> *if* statement  and used 'bool' values instead of 0/1 where necessary, removed
+> unused macros, done some reformatting and clarified some comments.]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> ---
+> This patch is against the 'media_tree.git' repo.
+> 
+> Changes since version 7:
+> - remove 'icd' field from 'struct rcar_vin_priv' in accordance with the commit
+>   f7f6ce2d09c86bd80ee11bd654a1ac1e8f5dfe13 ([media] soc-camera: move common code
+>   to soc_camera.c);
+> - added mandatory clock_{start|stop}() methods in accordance with the commit
+>   a78fcc11264b824d9651b55abfeedd16d5cd8415 ([media] soc-camera: make .clock_
+>   {start,stop} compulsory, .add / .remove optional).
+> 
+> Changes since version 6:
+> - sorted #include's alphabetically once again;
+> - BUG() on invalid format in rcar_vin_setup();
+
+No, please don't. I think I commented on the use of BUG() in this driver 
+already. It shall only be used if the machine cannot continue to run. I 
+don't think this is the sace here.
+
+[snip]
+
+> Index: media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+> ===================================================================
+> --- /dev/null
+> +++ media_tree/drivers/media/platform/soc_camera/rcar_vin.c
+> @@ -0,0 +1,1474 @@
+
+[snip]
+
+> +	/* output format */
+> +	switch (icd->current_fmt->host_fmt->fourcc) {
+> +	case V4L2_PIX_FMT_NV16:
+> +		iowrite32(ALIGN(cam->width * cam->height, 0x80),
+> +			  priv->base + VNUVAOF_REG);
+> +		dmr = VNDMR_DTMD_YCSEP;
+> +		output_is_yuv = true;
+> +		break;
+> +	case V4L2_PIX_FMT_YUYV:
+> +		dmr = VNDMR_BPSM;
+> +		output_is_yuv = true;
+> +		break;
+> +	case V4L2_PIX_FMT_UYVY:
+> +		dmr = 0;
+> +		output_is_yuv = true;
+> +		break;
+> +	case V4L2_PIX_FMT_RGB555X:
+> +		dmr = VNDMR_DTMD_ARGB1555;
+> +		break;
+> +	case V4L2_PIX_FMT_RGB565:
+> +		dmr = 0;
+> +		break;
+> +	case V4L2_PIX_FMT_RGB32:
+> +		if (priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
+> +			dmr = VNDMR_EXRGB;
+> +			break;
 > +		}
+> +	default:
+> +		BUG();
+
+as commented above, please, remove
+
+[snip]
+
+> +/* Called with .host_lock held */
+> +static int rcar_vin_clock_start(struct soc_camera_host *ici)
+> +{
+
+Ok, this looks suspicious to me, because all other drivers activate their 
+master clock output here. Looking at the datasheet though it does look 
+like VIN doesn't have a master clock output. In such a case maybe you 
+could add a clarifying comment here. It might even be worth making these 
+two callbacks optional too, but this is the only driver so far, that 
+doesn't use them, so, let's keep it this way for now, just, please, add a 
+comment.
+
+> +	return 0;
+> +}
 > +
-> +		if (i < graph->top) {
->  			link_top(graph)++;
->  			continue;
->  		}
+> +/* Called with .host_lock held */
+> +static void rcar_vin_clock_stop(struct soc_camera_host *ici)
+> +{
+> +}
 
-I think you should also ensure a node in the graph hasn't been enumerated in
-the past; otherwise it's possible to do that multiple times in a multiply
-connected graph.
+[snip]
 
-How about using a bit field that contained as many bits as there were
-entities? It's also faster to check for a single bit than loop over the
-whole path for each entity, which certainly will start showing in execution
-time with these link numbres.
+> +static const struct soc_mbus_pixelfmt rcar_vin_formats[] = {
+> +	{
+> +		.fourcc			= V4L2_PIX_FMT_NV16,
+> +		.name			= "NV16",
+> +		.bits_per_sample	= 16,
+> +		.packing		= SOC_MBUS_PACKING_2X8_PADHI,
 
--- 
-Kind regards,
+ehem... you sample 16 bits and you say you have to sample 2 x 8 bits, 
+something seems wrong to me.
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+> +		.order			= SOC_MBUS_ORDER_LE,
+> +		.layout			= SOC_MBUS_LAYOUT_PLANAR_Y_C,
+> +	},
+
+[snip]
+
+> +	ret = soc_camera_client_scale(icd, &cam->rect, &cam->subrect,
+> +				      &mf, &vin_sub_width, &vin_sub_height,
+> +				      can_scale, 12);
+> +
+> +	/* Done with the camera. Now see if we can improve the result */
+> +	dev_dbg(dev, "Camera %d fmt %ux%u, requested %ux%u\n",
+> +		ret, mf.width, mf.height, pix->width, pix->height);
+> +
+> +	if (ret == -ENOIOCTLCMD)
+> +		dev_dbg(dev, "Sensor doesn't support cropping\n");
+
+You mean "scaling"
+
+Thanks
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
