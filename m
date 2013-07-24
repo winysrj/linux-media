@@ -1,53 +1,87 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from belief.htu.tuwien.ac.at ([128.131.95.14]:33919 "EHLO
-	belief.htu.tuwien.ac.at" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933387Ab3GPW06 (ORCPT
+Received: from mail-bk0-f48.google.com ([209.85.214.48]:48257 "EHLO
+	mail-bk0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752433Ab3GXV0g (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 18:26:58 -0400
-Date: Wed, 17 Jul 2013 00:04:18 +0200
-From: Sergey 'Jin' Bostandzhyan <jin@mediatomb.cc>
-To: linux-media@vger.kernel.org
-Subject: Possible problem with stk1160 driver
-Message-ID: <20130716220418.GC10973@deadlock.dhs.org>
+	Wed, 24 Jul 2013 17:26:36 -0400
+Message-ID: <51F04688.6090900@gmail.com>
+Date: Wed, 24 Jul 2013 23:26:32 +0200
+From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
+CC: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
+	Hans Verkuil <hverkuil@xs4all.nl>,
+	Sakari Ailus <sakari.ailus@iki.fi>
+Subject: Re: [PATCH v2 3/5] v4l: Add media format codes for ARGB8888 and AYUV8888
+ on 32-bit busses
+References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1374072882-14598-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+In-Reply-To: <1374072882-14598-4-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Laurent,
 
-I am not quite sure if the problem is in the driver or if the user space
-applications are doing something in a weird or wrong way, I hope you can
-help me.
+On 07/17/2013 04:54 PM, Laurent Pinchart wrote:
+> Signed-off-by: Laurent Pinchart<laurent.pinchart+renesas@ideasonboard.com>
+>
+> ---
+>   Documentation/DocBook/media/v4l/subdev-formats.xml | 609 +++++++++------------
+>   Documentation/DocBook/media_api.tmpl               |   6 +
+>   include/uapi/linux/v4l2-mediabus.h                 |   6 +-
+>   3 files changed, 254 insertions(+), 367 deletions(-)
+>
+> diff --git a/Documentation/DocBook/media/v4l/subdev-formats.xml b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> index 0c2b1f2..9100674 100644
+> --- a/Documentation/DocBook/media/v4l/subdev-formats.xml
+> +++ b/Documentation/DocBook/media/v4l/subdev-formats.xml
+> @@ -97,31 +97,39 @@
+[...]
+> +	<row id="V4L2-MBUS-FMT-ARGB888-1X24">
+> +	<entry>V4L2_MBUS_FMT_ARGB888_1X24</entry>
 
-I have one of those easycap 4x-input devices with a Syntek chip:
-Bus 001 Device 002: ID 05e1:0408 Syntek Semiconductor Co., Ltd STK1160 Video Capture Device
+This should be V4L2_MBUS_FMT_ARGB888_1X32, right ?
 
-I'm on 3.9.9-201.fc18.i686.PAE kernel, using the stk1160 driver.
+Fix this correction feel free to add:
 
-It generally works fine, I can, for example, open the video device using VLC,
-select one of the inputs and get the picture.
+  Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>	
 
-However, programs like motion or zoneminder fail, I am not quite sure if it
-is something that they might be doing or if it is a problem in the driver.
+> +	<entry>0x100d</entry>
+> +	<entry></entry>
+[...]
+> diff --git a/include/uapi/linux/v4l2-mediabus.h b/include/uapi/linux/v4l2-mediabus.h
+> index 6ee63d0..a960125 100644
+> --- a/include/uapi/linux/v4l2-mediabus.h
+> +++ b/include/uapi/linux/v4l2-mediabus.h
+> @@ -37,7 +37,7 @@
+>   enum v4l2_mbus_pixelcode {
+>   	V4L2_MBUS_FMT_FIXED = 0x0001,
+>
+> -	/* RGB - next is 0x100d */
+> +	/* RGB - next is 0x100e */
+>   	V4L2_MBUS_FMT_RGB444_2X8_PADHI_BE = 0x1001,
+>   	V4L2_MBUS_FMT_RGB444_2X8_PADHI_LE = 0x1002,
+>   	V4L2_MBUS_FMT_RGB555_2X8_PADHI_BE = 0x1003,
+> @@ -50,8 +50,9 @@ enum v4l2_mbus_pixelcode {
+>   	V4L2_MBUS_FMT_RGB888_1X24 = 0x100a,
+>   	V4L2_MBUS_FMT_RGB888_2X12_BE = 0x100b,
+>   	V4L2_MBUS_FMT_RGB888_2X12_LE = 0x100c,
+> +	V4L2_MBUS_FMT_ARGB8888_1X32 = 0x100d,
+>
+> -	/* YUV (including grey) - next is 0x2017 */
+> +	/* YUV (including grey) - next is 0x2018 */
+>   	V4L2_MBUS_FMT_Y8_1X8 = 0x2001,
+>   	V4L2_MBUS_FMT_UV8_1X8 = 0x2015,
+>   	V4L2_MBUS_FMT_UYVY8_1_5X8 = 0x2002,
+> @@ -74,6 +75,7 @@ enum v4l2_mbus_pixelcode {
+>   	V4L2_MBUS_FMT_YUYV10_1X20 = 0x200d,
+>   	V4L2_MBUS_FMT_YVYU10_1X20 = 0x200e,
+>   	V4L2_MBUS_FMT_YUV10_1X30 = 0x2016,
+> +	V4L2_MBUS_FMT_AYUV8_1X32 = 0x2017,
+>
+>   	/* Bayer - next is 0x3019 */
+>   	V4L2_MBUS_FMT_SBGGR8_1X8 = 0x3001,
 
-Basically, for both of the above, the problem is that VIDIOC_S_INPUT fails
-with EBUSY.
-
-I do not see any errors in the message log, only:
-Jul 16 21:27:24 localhost kernel: [ 9477.574448] stk1160: queue_setup: buffer
-+count 8, each 829440 bytes
-Jul 16 21:27:24 localhost kernel: [ 9477.595667] stk1160: setting alternate 5
-
-I somewhat assume that it works with VLC because when switching the input you
-more or less "open a new device", while zoneminder/motion might try to
-change the input while actually streaming.
-
-I'd appreciate any help or hint, also in case if you think that it's not the
-driver issue, maybe you have an idea what I should be looking for (i.e.
-what other operations might cause the VIDIOC_S_INPUT ioctl to fail?).
-
-Kind regards,
-Sergey
-
+Thanks,
+Sylwester
