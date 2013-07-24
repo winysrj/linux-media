@@ -1,111 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:38249 "EHLO mail.kapsi.fi"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1754126Ab3GBTzy (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Tue, 2 Jul 2013 15:55:54 -0400
-Message-ID: <51D3301D.5070007@iki.fi>
-Date: Tue, 02 Jul 2013 22:55:09 +0300
-From: Antti Palosaari <crope@iki.fi>
-MIME-Version: 1.0
-To: Oliver Schinagl <oliver+list@schinagl.nl>
-CC: Bogdan Oprea <bogdaninedit@yahoo.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Re: drivers:media:tuners:fc2580c fix for Asus U3100Mini Plus error
- while loading driver (-19)
-References: <1372660460.41879.YahooMailNeo@web162304.mail.bf1.yahoo.com> <1372661590.52145.YahooMailNeo@web162304.mail.bf1.yahoo.com> <51D1352A.2080107@schinagl.nl> <51D182CD.2040502@iki.fi> <51D1839B.1010007@schinagl.nl> <51D1E8F8.9030402@schinagl.nl> <51D1EBCF.60708@iki.fi> <51D1EE98.2060905@schinagl.nl> <51D204B0.9090809@iki.fi> <51D27B6C.5030607@schinagl.nl>
-In-Reply-To: <51D27B6C.5030607@schinagl.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from mailout1.w1.samsung.com ([210.118.77.11]:17226 "EHLO
+	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751051Ab3GXIjO (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jul 2013 04:39:14 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout1.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQF00JD6MN7OF20@mailout1.w1.samsung.com> for
+ linux-media@vger.kernel.org; Wed, 24 Jul 2013 09:39:12 +0100 (BST)
+Message-id: <51EF92AF.7040205@samsung.com>
+Date: Wed, 24 Jul 2013 10:39:11 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
+Cc: Sakari Ailus <sakari.ailus@iki.fi>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Subject: Re: width and height of JPEG compressed images
+References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
+ <51D876DF.90507@gmail.com> <20130719202842.GC11823@valkosipuli.retiisi.org.uk>
+ <51EC46BA.4050203@gmail.com>
+ <20130723222106.GB12281@valkosipuli.retiisi.org.uk>
+ <A683633ABCE53E43AFB0344442BF0F053616A13A@server10.irisys.local>
+In-reply-to: <A683633ABCE53E43AFB0344442BF0F053616A13A@server10.irisys.local>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/02/2013 10:04 AM, Oliver Schinagl wrote:
-> On 02-07-13 00:37, Antti Palosaari wrote:
->> On 07/02/2013 12:03 AM, Oliver Schinagl wrote:
->>> On 07/01/13 22:51, Antti Palosaari wrote:
->>>> On 07/01/2013 11:39 PM, Oliver Schinagl wrote:
->>>>> On 07/01/13 15:26, Oliver Schinagl wrote:
->>>>>> On 01-07-13 15:23, Antti Palosaari wrote:
->>>>>>> On 07/01/2013 10:52 AM, Oliver Schinagl wrote:
->>>>>>>> On 01-07-13 08:53, Bogdan Oprea wrote:
->>>>>>>>> this is a fix for this type of error
->>>>>>>>>
->>>>>>>>> [18384.579235] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus' error
->>>>>>>>> while
->>>>>>>>> loading driver (-19)
->>>>>>>>> [18384.580621] usb 6-5: dvb_usb_v2: 'Asus U3100Mini Plus'
->>>>>>>>> successfully
->>>>>>>>> deinitialized and disconnected
->>>>>>>>>
->>>>>>>> This isn't really a fix, I think i mentioned this on the ML ages
->>>>>>>> ago,
->>>>>>>
->>>>>>> Argh, I just replied that same. Oliver, do you has that same
->>>>>>> device? Is
->>>>>>> it working? Could you tweak to see if I2C readings are working at
->>>>>>> all?
->>>>>> I have the same device, but mine works normally (though I haven't
->>>>>> checked for ages), I will try it tonight when I'm at home and don't
->>>>>> forget what happens with my current kernel.
+Hi,
+
+On 07/24/2013 09:47 AM, Thomas Vajzovic wrote:
+>  On 23 July 2013 23:21 Sakari Ailus wrote:
+>> On Sun, Jul 21, 2013 at 10:38:18PM +0200, Sylwester Nawrocki wrote:
+>>> On 07/19/2013 10:28 PM, Sakari Ailus wrote:
+>>>> On Sat, Jul 06, 2013 at 09:58:23PM +0200, Sylwester Nawrocki wrote:
+>>>>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
 >>>>>
->>>>> Hard to test when it 'just works (tm)' :)
+>>>>>> The hardware reads AxB sensor pixels from its array, resamples them
+>>>>>> to CxD image pixels, and then compresses them to ExF bytes.
+>>>>>>
+>>>>> sensor matrix (AxB pixels) ->  binning/skipping (CxD pixels) ->
+>>>>> ->  JPEG compresion (width = C, height = D, sizeimage ExF bytes)
 >>>>
->>>>> The bad firmware wories me, no clue where that error is from, using:
->>>>> 862604ab3fec0c94f4bf22b4cffd0d89  /lib/firmware/dvb-usb-af9035-02.fw
->>>>
->>>> It means firmware is too short or long what is calculated. I added that
->>>> printing to notify users firmware is broken and could cause problems.
->>> Ah, good call, it did get me to re-download it. no clue why it was
->>> broken all of a sudden.
->>>>
->>>>
->>>> I suspect it is same issue what is with MxL5007t tuners too.
->>>> Maybe that kind of fix is needed:
->>>> https://patchwork.kernel.org/patch/2418471/
->>>>
->>>> Someone should really find out whether or not these are coming with
->>>> register read operation with REPEATED START of STOP condition. Attach
->>>> hardware sniffer to device tuner I2C bus and look what kind of messages
->>>> there is actually.
->>> Well mine works fine, so hard to say. IF you have a buspirate you should
->>> be able to intercept the i2c bus ON the device though :) Good luck
->>> Bogdan, I wish I could help here, but lack the broken hardware.
+>>>> Does the user need to specify ExF, for other purposes than limiting
+>>>> the size of the image? I would leave this up to the sensor driver
+>>>> (with reasonable alignment). The sensor driver would tell about this
+>>>> to the receiver through
+>>>
+>>> AFAIU ExF is closely related to the memory buffer size, so the sensor
+>>> driver itself wouldn't have enough information to fix up ExF, would it ?
 >>
->> I have one AF9035 + FC0012 device having similar problems. Unfortunately
->> I wasn't able to detect I2C bus to take capture using Bus Pirate.
-> Actually, I have the af9035b (see the picture i uploaded to the wiki)
->>
->> There seems to be two revisions of AF9035 chips, AF9035A and AF9035B. I
->> suspect it is newer B version which has these problems. I also visually
->> compared to A and B versions and I suspect pinout is different.
->>
->> Could you take USB sniffs from that device? Just install sniffer (like
->> SniffUSB), tune to channel and stop immediately when there is picture.
->> FC2580 driver does some register reads, so it should be possible to see
->> what is correct I2C access format by looking sniffs.
+>> If the desired sizeimage is known, F can be calculated if E is fixed, say
+>> 1024 should probably work for everyone, shoulnd't it?
+> 
+> It's a nice clean idea (and I did already consider it) but it reduces the
+> flexibility of the system as a whole.
+> 
+> Suppose an embedded device wants to send the compressed image over a
+> network in packets of 1500 bytes, and they want to allow 3 packets per
+> frame.  Your proposal limits sizeimage to a multiple of 1K, so they have
+> to set sizeimage to 4K when they want 4.5K, meaning that they waste 500
+> bytes of bandwidth every frame.
+> 
+> You could say "tough luck, extra overhead like this is something you should
+> expect if you want to use a general purpose API like V4L2", but why make
+> it worse if we can make it better?
 
-> Of my working version? I can try, i'll see if I have time to work with
-> sniffusb, but if I load the driver from linux, won't we already know
-> whats on the USB bus? If you speak of windows, I don't have that.
+I entirely agree with that. Other issue with fixed number of samples
+per line is that internal (FIFO) line buffer size of the transmitter
+devices will vary, and for example some devices might have line buffer
+smaller than the value we have arbitrarily chosen. I'd expect the
+optimal number of samples per line to vary among different devices
+and use cases.
 
-I wonder if Bogdan could took the sniffs as his device has the problems.
 
-My FC0012 sniffs are useless as FC0012 windows does not any register reads.
-
-Your sniffs could be also handy, better than nothing, even likely 
-produce just same logs as Bogdan (I suspect it is issue AF9035A vs AF9035B).
-
->> Here is few good pictures from my problematic AF9035B + FC0012 device.
->> If someone could say which are FC0012 I2C pins, I could use Pirate to
->> check (as that device has same problem).
->> http://blog.palosaari.fi/2013/05/naked-hardware-8-cabletech-urz0185.html
->>
->> regards
->> Antti
->>
->
-
-Antti
-
--- 
-http://palosaari.fi/
+Regards,
+Sylwester
