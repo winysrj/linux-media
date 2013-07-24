@@ -1,61 +1,66 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.w1.samsung.com ([210.118.77.12]:64217 "EHLO
-	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754044Ab3GVNoq (ORCPT
+Received: from mail-lb0-f174.google.com ([209.85.217.174]:35872 "EHLO
+	mail-lb0-f174.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752742Ab3GXTgI (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 09:44:46 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout2.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQC00AHQBDUNSC0@mailout2.w1.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Jul 2013 14:44:43 +0100 (BST)
-Received: from AMDN910 ([106.116.147.102])
- by eusync3.samsung.com (Oracle Communications Messaging Server 7u4-23.01
- (7.0.4.23.0) 64bit (built Aug 10 2011))
- with ESMTPA id <0MQC003X2BHZJ000@eusync3.samsung.com> for
- linux-media@vger.kernel.org; Mon, 22 Jul 2013 14:44:43 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: linux-media@vger.kernel.org
-Subject: [GIT PULL] For 3.12
-Date: Mon, 22 Jul 2013 15:44:26 +0200
-Message-id: <07e901ce86e1$9518b0f0$bf4a12d0$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+	Wed, 24 Jul 2013 15:36:08 -0400
+Received: by mail-lb0-f174.google.com with SMTP id x10so823899lbi.19
+        for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 12:36:04 -0700 (PDT)
+Message-ID: <51F02CA1.7050603@cogentembedded.com>
+Date: Wed, 24 Jul 2013 23:36:01 +0400
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+MIME-Version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp
+Subject: Re: [PATCH v8] V4L2: soc_camera: Renesas R-Car VIN driver
+References: <201307200314.35345.sergei.shtylyov@cogentembedded.com> <Pine.LNX.4.64.1307241731560.2179@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1307241731560.2179@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The following changes since commit 348d1299b808a9e68a7dee2a4de6b555600099de:
+Hi Guennadi,
 
-  s5p-g2d: Fix registration failure (2013-07-22 14:17:28 +0200)
+Thank you for the v8 review.
 
-are available in the git repository at:
+On 07/24/2013 08:14 PM, Guennadi Liakhovetski wrote:
+> [snip]
+>> +	/* output format */
+>> +	switch (icd->current_fmt->host_fmt->fourcc) {
+>> +	case V4L2_PIX_FMT_NV16:
+>> +		iowrite32(ALIGN(cam->width * cam->height, 0x80),
+>> +			  priv->base + VNUVAOF_REG);
+>> +		dmr = VNDMR_DTMD_YCSEP;
+>> +		output_is_yuv = true;
+>> +		break;
+>> +	case V4L2_PIX_FMT_YUYV:
+>> +		dmr = VNDMR_BPSM;
+>> +		output_is_yuv = true;
+>> +		break;
+>> +	case V4L2_PIX_FMT_UYVY:
+>> +		dmr = 0;
+>> +		output_is_yuv = true;
+>> +		break;
+>> +	case V4L2_PIX_FMT_RGB555X:
+>> +		dmr = VNDMR_DTMD_ARGB1555;
+>> +		break;
+>> +	case V4L2_PIX_FMT_RGB565:
+>> +		dmr = 0;
+>> +		break;
+>> +	case V4L2_PIX_FMT_RGB32:
+>> +		if (priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
+>> +			dmr = VNDMR_EXRGB;
+>> +			break;
+>> +		}
+>> +	default:
+>> +		BUG();
+> as commented above, please, remove
+Does WARN_ON(1) work instead of removal?
 
-  git://git.linuxtv.org/kdebski/media.git new-for-3.12
-
-for you to fetch changes up to abe28f650794d42c7cc1d0ff3759156e9cdfae70:
-
-  coda: add CODA7541 decoding support (2013-07-22 14:33:30 +0200)
-
-----------------------------------------------------------------
-Philipp Zabel (9):
-      mem2mem: add support for hardware buffered queue
-      coda: use vb2_set_plane_payload instead of setting
-v4l2_planes[0].bytesused directly
-      coda: dynamic IRAM setup for encoder
-      coda: do not allocate maximum number of framebuffers for encoder
-      coda: update CODA7541 to firmware 1.4.50
-      coda: add bitstream ringbuffer handling for decoder
-      coda: dynamic IRAM setup for decoder
-      coda: split encoder specific parts out of device_run and irq_handler
-      coda: add CODA7541 decoding support
-
- drivers/media/platform/coda.c          | 1469
-++++++++++++++++++++++++++++----
- drivers/media/platform/coda.h          |  107 ++-
- drivers/media/v4l2-core/v4l2-mem2mem.c |   10 +-
- include/media/v4l2-mem2mem.h           |   13 +
- 4 files changed, 1410 insertions(+), 189 deletions(-)
-
+Regards,
+Vladimir
 
