@@ -1,512 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f48.google.com ([209.85.219.48]:58502 "EHLO
-	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757537Ab3GWOuY (ORCPT
+Received: from mail-wi0-f178.google.com ([209.85.212.178]:58510 "EHLO
+	mail-wi0-f178.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab3GXNFu (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 10:50:24 -0400
-Received: by mail-oa0-f48.google.com with SMTP id f4so11526412oah.35
-        for <linux-media@vger.kernel.org>; Tue, 23 Jul 2013 07:50:23 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <20130723095501.5e25157c@samsung.com>
-References: <CAA9z4LbXV0pF+kUYueAdK-JySU--p5_RYzzbHwPefgktGPLdUw@mail.gmail.com>
-	<20130723095501.5e25157c@samsung.com>
-Date: Tue, 23 Jul 2013 08:50:22 -0600
-Message-ID: <CAA9z4Lbw8BV17xDQQHbBDQkcRWf+xT+Z2yXa1z24yLjMvyusJQ@mail.gmail.com>
-Subject: Re: [PATCH] gp8psk: tuning changes
-From: Chris Lee <updatelee@gmail.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Wed, 24 Jul 2013 09:05:50 -0400
+Received: by mail-wi0-f178.google.com with SMTP id hi5so411016wib.11
+        for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 06:05:49 -0700 (PDT)
+From: Luis Alves <ljalvs@gmail.com>
+To: linux-media@vger.kernel.org
+Cc: mchehab@infradead.org, crope@iki.fi, awalls@md.metrocast.net,
+	Luis Alves <ljalvs@gmail.com>
+Subject: [PATCH] cx23885[v4]: Fix interrupt storm when enabling IR receiver.
+Date: Wed, 24 Jul 2013 14:06:01 +0100
+Message-Id: <1374671161-3144-1-git-send-email-ljalvs@gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Will do, thanks for being patient, Im new to submitting patch's. I've
-got lots more coming :)
+Hi,
+Removed wrong description in the header file. Sorry about that...
 
-Digicipher requires no additional changes, Digicipher is close enough
-to dvb that you can tune it and use any app you want just like normal.
+New patch for this issue. Changes:
+ - Added flatiron readreg and writereg functions prototypes (new header file).
+ - Modified the av work handler to preserve all other register bits when dealing
+   with the interrupt flag.
 
-DSS is another story, I'll leave that patch for last as I can include
-the variable packet size patch with it that Im sure will need more
-scrutinization. DSS uses 131 byte packets vs 188 byte, so dvb_demux
-see's some changes too.
-
-Chris
+Regards,
+Luis
 
 
+Signed-off-by: Luis Alves <ljalvs@gmail.com>
+---
+ drivers/media/pci/cx23885/cx23885-av.c    |   13 +++++++++++++
+ drivers/media/pci/cx23885/cx23885-video.c |    4 ++--
+ drivers/media/pci/cx23885/cx23885-video.h |   26 ++++++++++++++++++++++++++
+ 3 files changed, 41 insertions(+), 2 deletions(-)
+ create mode 100644 drivers/media/pci/cx23885/cx23885-video.h
 
-On Tue, Jul 23, 2013 at 6:55 AM, Mauro Carvalho Chehab
-<m.chehab@samsung.com> wrote:
-> Em Mon, 22 Jul 2013 20:24:41 -0600
-> Chris Lee <updatelee@gmail.com> escreveu:
->
->> - cleanup tuning code
->> - fix tuning for some systems/modulations/fecs
->> - add Digicipher II and DSS tuning abilities
->> - update the property_cache once tuning succeeds with the actual tuned values
->> - implement gp8psk_fe_read_ber()
->> - update .delsys with the new systems
->>
->> Its a pretty big patch, I can reduce it to smaller parts if you want,
->> I welcome comments & questions
->
-> Yes, please split the API changes on a separate patch, and add the
-> corresponding changes at Documentation/DocBook/media/dvb to reflect
-> the needed API additions for Digicipher II and DSS.
->
-> Then, you can add one patch per logical change at the gp8psk driver.
-> "git citool" is your friend: using it, you can easily break the patch
-> into smaller ones.
->
-> Just keep in mind that the driver should keep compiling after each patch,
-> and try to maintain the one logical change per patch. Don't be shy
-> on the comments: we love comments on the patch descriptions, as they
-> can help a lot developers when they need to discover why the driver
-> stopped working, or what should be done on a similar driver to address
-> a common issue.
->
-> Btw, your emailer completely broke this patch: it broke long lines,
-> it replaced tabs by spaces, etc.
->
-> You should either use a different emailer, or to use "git send-email"
-> to send the patches directly to your smtp server.
->
-> Regards,
-> Mauro
->
->>
->> Thanks
->>
->> Signed-off-by: Chris Lee <updatelee@gmail.com>
->>
->> --- media_tree/include/uapi/linux/dvb/frontend.h 2013-07-18
->> 11:19:29.601746158 -0600
->> +++ media_tree.test/include/uapi/linux/dvb/frontend.h 2013-07-22
->> 20:10:50.658719256 -0600
->> @@ -165,6 +165,7 @@
->>   FEC_3_5,
->>   FEC_9_10,
->>   FEC_2_5,
->> + FEC_5_11,
->>  } fe_code_rate_t;
->>
->>
->> @@ -410,6 +411,10 @@
->>   SYS_DVBT2,
->>   SYS_TURBO,
->>   SYS_DVBC_ANNEX_C,
->> + SYS_DCII_C_QPSK,
->> + SYS_DCII_I_QPSK,
->> + SYS_DCII_Q_QPSK,
->> + SYS_DCII_C_OQPSK,
->>  } fe_delivery_system_t;
->>
->>  /* backward compatibility */
->> --- media_tree/drivers/media/usb/dvb-usb/gp8psk.h 2013-07-18
->> 11:19:28.261746125 -0600
->> +++ media_tree.test/drivers/media/usb/dvb-usb/gp8psk.h 2013-07-22
->> 19:54:19.642694697 -0600
->> @@ -52,6 +52,8 @@
->>  #define GET_SERIAL_NUMBER               0x93    /* in */
->>  #define USE_EXTRA_VOLT                  0x94
->>  #define GET_FPGA_VERS 0x95
->> +#define GET_SIGNAL_STAT 0x9A
->> +#define GET_BER_RATE 0x9B
->>  #define CW3K_INIT 0x9d
->>
->>  /* PSK_configuration bits */
->> --- media_tree/drivers/media/usb/dvb-usb/gp8psk-fe.c 2013-07-18
->> 11:19:28.261746125 -0600
->> +++ media_tree.test/drivers/media/usb/dvb-usb/gp8psk-fe.c 2013-07-22
->> 20:10:20.582718511 -0600
->> @@ -45,7 +45,8 @@
->>   if (time_after(jiffies,st->next_status_check)) {
->>   gp8psk_usb_in_op(st->d, GET_SIGNAL_LOCK, 0,0,&st->lock,1);
->>   gp8psk_usb_in_op(st->d, GET_SIGNAL_STRENGTH, 0,0,buf,6);
->> - st->snr = (buf[1]) << 8 | buf[0];
->> +
->> + st->snr = ((buf[1]) << 8 | buf[0]) << 4;
->>   st->next_status_check = jiffies + (st->status_check_interval*HZ)/1000;
->>   }
->>   return 0;
->> @@ -53,7 +54,42 @@
->>
->>  static int gp8psk_fe_read_status(struct dvb_frontend* fe, fe_status_t *status)
->>  {
->> + struct dtv_frontend_properties *c = &fe->dtv_property_cache;
->>   struct gp8psk_fe_state *st = fe->demodulator_priv;
->> +
->> + u8 buf[32];
->> + int frequency;
->> + int carrier_error;
->> + int carrier_offset;
->> + int rate_error;
->> + int rate_offset;
->> + int symbol_rate;
->> +
->> + int fe_gp8psk_system_return[] = {
->> + SYS_DVBS,
->> + SYS_TURBO,
->> + SYS_TURBO,
->> + SYS_TURBO,
->> + SYS_DCII_C_QPSK,
->> + SYS_DCII_I_QPSK,
->> + SYS_DCII_Q_QPSK,
->> + SYS_DCII_C_OQPSK,
->> + SYS_DSS,
->> + SYS_UNDEFINED
->> + };
->> +
->> + int fe_gp8psk_modulation_return[] = {
->> + QPSK,
->> + QPSK,
->> + PSK_8,
->> + QAM_16,
->> + QPSK,
->> + QPSK,
->> + QPSK,
->> + QPSK,
->> + QPSK,
->> + };
->> +
->>   gp8psk_fe_update_status(st);
->>
->>   if (st->lock)
->> @@ -61,18 +97,97 @@
->>   else
->>   *status = 0;
->>
->> - if (*status & FE_HAS_LOCK)
->> + if (*status & FE_HAS_LOCK) {
->> + gp8psk_usb_in_op(st->d, GET_SIGNAL_STAT, 0, 0, buf, 32);
->> + frequency = ((buf[11] << 24) + (buf[10] << 16) + (buf[9] << 8) +
->> buf[8]) / 1000;
->> + carrier_error = ((buf[15] << 24) + (buf[14] << 16) + (buf[13] << 8)
->> + buf[12]) / 1000;
->> + carrier_offset =  (buf[19] << 24) + (buf[18] << 16) + (buf[17] << 8)
->> + buf[16];
->> + rate_error =  (buf[23] << 24) + (buf[22] << 16) + (buf[21] << 8) + buf[20];
->> + rate_offset =  (buf[27] << 24) + (buf[26] << 16) + (buf[25] << 8) + buf[24];
->> + symbol_rate =  (buf[31] << 24) + (buf[30] << 16) + (buf[29] << 8) + buf[28];
->> +
->> + c->frequency = frequency - carrier_error;
->> + c->symbol_rate = symbol_rate + rate_error;
->> +
->> + switch (c->delivery_system) {
->> + case SYS_DSS:
->> + case SYS_DVBS:
->> + c->delivery_system = fe_gp8psk_system_return[buf[1]];
->> + c->modulation = fe_gp8psk_modulation_return[buf[1]];
->> + switch (buf[2]) {
->> + case 0:  c->fec_inner = FEC_1_2;  break;
->> + case 1:  c->fec_inner = FEC_2_3;  break;
->> + case 2:  c->fec_inner = FEC_3_4;  break;
->> + case 3:  c->fec_inner = FEC_5_6;  break;
->> + case 4:  c->fec_inner = FEC_6_7;  break;
->> + case 5:  c->fec_inner = FEC_7_8;  break;
->> + default: c->fec_inner = FEC_AUTO; break;
->> + }
->> + break;
->> + case SYS_TURBO:
->> + c->delivery_system = fe_gp8psk_system_return[buf[1]];
->> + c->modulation = fe_gp8psk_modulation_return[buf[1]];
->> + if (c->modulation == QPSK) {
->> + switch (buf[2]) {
->> + case 0:  c->fec_inner = FEC_7_8;  break;
->> + case 1:  c->fec_inner = FEC_1_2;  break;
->> + case 2:  c->fec_inner = FEC_3_4;  break;
->> + case 3:  c->fec_inner = FEC_2_3;  break;
->> + case 4:  c->fec_inner = FEC_5_6;  break;
->> + default: c->fec_inner = FEC_AUTO; break;
->> + }
->> + } else {
->> + switch (buf[2]) {
->> + case 0:  c->fec_inner = FEC_2_3;  break;
->> + case 1:  c->fec_inner = FEC_3_4;  break;
->> + case 2:  c->fec_inner = FEC_3_4;  break;
->> + case 3:  c->fec_inner = FEC_5_6;  break;
->> + case 4:  c->fec_inner = FEC_8_9;  break;
->> + default: c->fec_inner = FEC_AUTO; break;
->> + }
->> + }
->> + break;
->> + case SYS_DCII_C_QPSK:
->> + case SYS_DCII_I_QPSK:
->> + case SYS_DCII_Q_QPSK:
->> + case SYS_DCII_C_OQPSK:
->> + c->modulation = fe_gp8psk_modulation_return[buf[1]];
->> + switch (buf[2]) {
->> + case 0:  c->fec_inner = FEC_5_11; break;
->> + case 1:  c->fec_inner = FEC_1_2;  break;
->> + case 2:  c->fec_inner = FEC_3_5;  break;
->> + case 3:  c->fec_inner = FEC_2_3;  break;
->> + case 4:  c->fec_inner = FEC_3_4;  break;
->> + case 5:  c->fec_inner = FEC_4_5;  break;
->> + case 6:  c->fec_inner = FEC_5_6;  break;
->> + case 7:  c->fec_inner = FEC_7_8;  break;
->> + default: c->fec_inner = FEC_AUTO; break;
->> + }
->> + break;
->> + default:
->> + c->fec_inner = FEC_AUTO;
->> + break;
->> + }
->> +
->>   st->status_check_interval = 1000;
->> - else
->> + } else {
->>   st->status_check_interval = 100;
->> + }
->>   return 0;
->>  }
->>
->> -/* not supported by this Frontend */
->>  static int gp8psk_fe_read_ber(struct dvb_frontend* fe, u32 *ber)
->>  {
->> - (void) fe;
->> - *ber = 0;
->> + struct gp8psk_fe_state *st = fe->demodulator_priv;
->> +
->> + u8 buf[4];
->> +
->> + if (gp8psk_usb_in_op(st->d, GET_BER_RATE, 0, 0, buf, 4)) {
->> + return -EINVAL;
->> + }
->> +
->> + *ber = (buf[3] << 24) + (buf[2] << 16) + (buf[1] << 8) + buf[0];
->> +
->>   return 0;
->>  }
->>
->> @@ -121,93 +236,145 @@
->>   u32 freq = c->frequency * 1000;
->>   int gp_product_id = le16_to_cpu(state->d->udev->descriptor.idProduct);
->>
->> - deb_fe("%s()\n", __func__);
->> + info("%s() freq: %d, sr: %d", __func__, freq, c->symbol_rate);
->>
->> + cmd[0] =  c->symbol_rate        & 0xff;
->> + cmd[1] = (c->symbol_rate >>  8) & 0xff;
->> + cmd[2] = (c->symbol_rate >> 16) & 0xff;
->> + cmd[3] = (c->symbol_rate >> 24) & 0xff;
->>   cmd[4] = freq         & 0xff;
->>   cmd[5] = (freq >> 8)  & 0xff;
->>   cmd[6] = (freq >> 16) & 0xff;
->>   cmd[7] = (freq >> 24) & 0xff;
->>
->> - /* backwards compatibility: DVB-S + 8-PSK were used for Turbo-FEC */
->> - if (c->delivery_system == SYS_DVBS && c->modulation == PSK_8)
->> + /* backwards compatibility: DVB-S2 used to be used for Turbo-FEC */
->> + if (c->delivery_system == SYS_DVBS2)
->>   c->delivery_system = SYS_TURBO;
->>
->>   switch (c->delivery_system) {
->>   case SYS_DVBS:
->> - if (c->modulation != QPSK) {
->> - deb_fe("%s: unsupported modulation selected (%d)\n",
->> + info("%s: DVB-S delivery system selected w/fec %d", __func__, c->fec_inner);
->> + c->fec_inner = FEC_AUTO;
->> + cmd[8] = ADV_MOD_DVB_QPSK;
->> + cmd[9] = 5;
->> + break;
->> + case SYS_TURBO:
->> + info("%s: Turbo-FEC delivery system selected", __func__);
->> + switch (c->modulation) {
->> + case QPSK:
->> + info("%s: modulation QPSK selected w/fec %d", __func__, c->fec_inner);
->> + cmd[8] = ADV_MOD_TURBO_QPSK;
->> + switch (c->fec_inner) {
->> + case FEC_1_2: cmd[9] = 1; break;
->> + case FEC_2_3: cmd[9] = 3; break;
->> + case FEC_3_4: cmd[9] = 2; break;
->> + case FEC_5_6: cmd[9] = 4; break;
->> + default: cmd[9] = 0; break;
->> + }
->> + break;
->> + case PSK_8:
->> + info("%s: modulation 8PSK selected w/fec %d", __func__, c->fec_inner);
->> + cmd[8] = ADV_MOD_TURBO_8PSK;
->> + switch (c->fec_inner) {
->> + case FEC_2_3: cmd[9] = 0; break;
->> + case FEC_3_4: cmd[9] = 1; break;
->> + case FEC_3_5: cmd[9] = 2; break;
->> + case FEC_5_6: cmd[9] = 3; break;
->> + case FEC_8_9: cmd[9] = 4; break;
->> + default: cmd[9] = 0; break;
->> + }
->> + break;
->> + case QAM_16: /* QAM_16 is for compatibility with DN */
->> + info("%s: modulation QAM_16 selected w/fec %d", __func__, c->fec_inner);
->> + cmd[8] = ADV_MOD_TURBO_16QAM;
->> + cmd[9] = 0;
->> + break;
->> + default: /* Unknown modulation */
->> + info("%s: unsupported modulation selected (%d)",
->>   __func__, c->modulation);
->>   return -EOPNOTSUPP;
->>   }
->> - c->fec_inner = FEC_AUTO;
->>   break;
->> - case SYS_DVBS2: /* kept for backwards compatibility */
->> - deb_fe("%s: DVB-S2 delivery system selected\n", __func__);
->> + case SYS_DSS:
->> + info("%s: DSS delivery system selected w/fec %d", __func__, c->fec_inner);
->> + cmd[8] = ADV_MOD_DSS_QPSK;
->> + switch (c->fec_inner) {
->> + case FEC_1_2: cmd[9] = 0; break;
->> + case FEC_2_3: cmd[9] = 1; break;
->> + case FEC_3_4: cmd[9] = 2; break;
->> + case FEC_5_6: cmd[9] = 3; break;
->> + case FEC_7_8: cmd[9] = 4; break;
->> + case FEC_AUTO: cmd[9] = 5; break;
->> + case FEC_6_7: cmd[9] = 6; break;
->> + default: cmd[9] = 5; break;
->> + }
->>   break;
->> - case SYS_TURBO:
->> - deb_fe("%s: Turbo-FEC delivery system selected\n", __func__);
->> + case SYS_DCII_C_QPSK:
->> + info("%s: DCII_C_QPSK delivery system selected w/fec %d", __func__,
->> c->fec_inner);
->> + cmd[8] = ADV_MOD_DCII_C_QPSK;
->> + switch (c->fec_inner) {
->> + /* 5/11 FEC is cmd[9] = 0 but not added to the API */
->> + case FEC_1_2:  cmd[9] = 1; break;
->> + case FEC_3_5:  cmd[9] = 2; break;
->> + case FEC_2_3:  cmd[9] = 3; break;
->> + case FEC_3_4:  cmd[9] = 4; break;
->> + case FEC_4_5:  cmd[9] = 5; break;
->> + case FEC_5_6:  cmd[9] = 6; break;
->> + case FEC_7_8:  cmd[9] = 7; break;
->> + case FEC_AUTO: cmd[9] = 8; break;
->> + default:       cmd[9] = 8; break;
->> + }
->>   break;
->> -
->> - default:
->> - deb_fe("%s: unsupported delivery system selected (%d)\n",
->> - __func__, c->delivery_system);
->> - return -EOPNOTSUPP;
->> - }
->> -
->> - cmd[0] =  c->symbol_rate        & 0xff;
->> - cmd[1] = (c->symbol_rate >>  8) & 0xff;
->> - cmd[2] = (c->symbol_rate >> 16) & 0xff;
->> - cmd[3] = (c->symbol_rate >> 24) & 0xff;
->> - switch (c->modulation) {
->> - case QPSK:
->> - if (gp_product_id == USB_PID_GENPIX_8PSK_REV_1_WARM)
->> - if (gp8psk_tuned_to_DCII(fe))
->> - gp8psk_bcm4500_reload(state->d);
->> + case SYS_DCII_I_QPSK:
->> + info("%s: DCII_I_QPSK delivery system selected w/fec %d", __func__, cmd[9]);
->> + cmd[8] = ADV_MOD_DCII_I_QPSK;
->>   switch (c->fec_inner) {
->> - case FEC_1_2:
->> - cmd[9] = 0; break;
->> - case FEC_2_3:
->> - cmd[9] = 1; break;
->> - case FEC_3_4:
->> - cmd[9] = 2; break;
->> - case FEC_5_6:
->> - cmd[9] = 3; break;
->> - case FEC_7_8:
->> - cmd[9] = 4; break;
->> - case FEC_AUTO:
->> - cmd[9] = 5; break;
->> - default:
->> - cmd[9] = 5; break;
->> + /* 5/11 FEC is cmd[9] = 0 but not added to the API */
->> + case FEC_1_2:  cmd[9] = 1; break;
->> + case FEC_3_5:  cmd[9] = 2; break;
->> + case FEC_2_3:  cmd[9] = 3; break;
->> + case FEC_3_4:  cmd[9] = 4; break;
->> + case FEC_4_5:  cmd[9] = 5; break;
->> + case FEC_5_6:  cmd[9] = 6; break;
->> + case FEC_7_8:  cmd[9] = 7; break;
->> + case FEC_AUTO: cmd[9] = 8; break;
->> + default:       cmd[9] = 8; break;
->>   }
->> - if (c->delivery_system == SYS_TURBO)
->> - cmd[8] = ADV_MOD_TURBO_QPSK;
->> - else
->> - cmd[8] = ADV_MOD_DVB_QPSK;
->>   break;
->> - case PSK_8: /* PSK_8 is for compatibility with DN */
->> - cmd[8] = ADV_MOD_TURBO_8PSK;
->> + case SYS_DCII_Q_QPSK:
->> + info("%s: DCII_Q_QPSK delivery system selected w/fec %d", __func__, cmd[9]);
->> + cmd[8] = ADV_MOD_DCII_Q_QPSK;
->>   switch (c->fec_inner) {
->> - case FEC_2_3:
->> - cmd[9] = 0; break;
->> - case FEC_3_4:
->> - cmd[9] = 1; break;
->> - case FEC_3_5:
->> - cmd[9] = 2; break;
->> - case FEC_5_6:
->> - cmd[9] = 3; break;
->> - case FEC_8_9:
->> - cmd[9] = 4; break;
->> - default:
->> - cmd[9] = 0; break;
->> + /* 5/11 FEC is cmd[9] = 0 but not added to the API */
->> + case FEC_1_2:  cmd[9] = 1; break;
->> + case FEC_3_5:  cmd[9] = 2; break;
->> + case FEC_2_3:  cmd[9] = 3; break;
->> + case FEC_3_4:  cmd[9] = 4; break;
->> + case FEC_4_5:  cmd[9] = 5; break;
->> + case FEC_5_6:  cmd[9] = 6; break;
->> + case FEC_7_8:  cmd[9] = 7; break;
->> + case FEC_AUTO: cmd[9] = 8; break;
->> + default:       cmd[9] = 8; break;
->>   }
->>   break;
->> - case QAM_16: /* QAM_16 is for compatibility with DN */
->> - cmd[8] = ADV_MOD_TURBO_16QAM;
->> - cmd[9] = 0;
->> + case SYS_DCII_C_OQPSK:
->> + info("%s: DCII_C_OQPSK delivery system selected w/fec %d", __func__, cmd[9]);
->> + cmd[8] = ADV_MOD_DCII_C_OQPSK;
->> + switch (c->fec_inner) {
->> + /* 5/11 FEC is cmd[9] = 0 but not added to the API */
->> + case FEC_1_2:  cmd[9] = 1; break;
->> + case FEC_3_5:  cmd[9] = 2; break;
->> + case FEC_2_3:  cmd[9] = 3; break;
->> + case FEC_3_4:  cmd[9] = 4; break;
->> + case FEC_4_5:  cmd[9] = 5; break;
->> + case FEC_5_6:  cmd[9] = 6; break;
->> + case FEC_7_8:  cmd[9] = 7; break;
->> + case FEC_AUTO: cmd[9] = 8; break;
->> + default:       cmd[9] = 8; break;
->> + }
->>   break;
->> - default: /* Unknown modulation */
->> - deb_fe("%s: unsupported modulation selected (%d)\n",
->> - __func__, c->modulation);
->> + default:
->> + info("%s: unsupported delivery system selected (%d)", __func__,
->> c->delivery_system);
->>   return -EOPNOTSUPP;
->>   }
->>
->> @@ -326,7 +493,7 @@
->>
->>
->>  static struct dvb_frontend_ops gp8psk_fe_ops = {
->> - .delsys = { SYS_DVBS },
->> + .delsys = { SYS_DCII_C_QPSK, SYS_DCII_I_QPSK, SYS_DCII_Q_QPSK,
->> SYS_DCII_C_OQPSK, SYS_DSS, SYS_DVBS2, SYS_TURBO, SYS_DVBS },
->>   .info = {
->>   .name = "Genpix DVB-S",
->>   .frequency_min = 800000,
->> --
->> To unsubscribe from this list: send the line "unsubscribe linux-media" in
->> the body of a message to majordomo@vger.kernel.org
->> More majordomo info at  http://vger.kernel.org/majordomo-info.html
->
->
-> --
->
-> Cheers,
-> Mauro
+diff --git a/drivers/media/pci/cx23885/cx23885-av.c b/drivers/media/pci/cx23885/cx23885-av.c
+index e958a01..c443b7a 100644
+--- a/drivers/media/pci/cx23885/cx23885-av.c
++++ b/drivers/media/pci/cx23885/cx23885-av.c
+@@ -23,6 +23,7 @@
+ 
+ #include "cx23885.h"
+ #include "cx23885-av.h"
++#include "cx23885-video.h"
+ 
+ void cx23885_av_work_handler(struct work_struct *work)
+ {
+@@ -32,5 +33,17 @@ void cx23885_av_work_handler(struct work_struct *work)
+ 
+ 	v4l2_subdev_call(dev->sd_cx25840, core, interrupt_service_routine,
+ 			 PCI_MSK_AV_CORE, &handled);
++
++	/* Getting here with the interrupt not handled
++	   then probbaly flatiron does have pending interrupts.
++	*/
++	if (!handled) {
++		/* clear left and right adc channel interrupt request flag */
++		cx23885_flatiron_write(dev, 0x1f,
++			cx23885_flatiron_read(dev, 0x1f) | 0x80);
++		cx23885_flatiron_write(dev, 0x23,
++			cx23885_flatiron_read(dev, 0x23) | 0x80);
++	}
++
+ 	cx23885_irq_enable(dev, PCI_MSK_AV_CORE);
+ }
+diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+index e33d1a7..f4e7cef 100644
+--- a/drivers/media/pci/cx23885/cx23885-video.c
++++ b/drivers/media/pci/cx23885/cx23885-video.c
+@@ -417,7 +417,7 @@ static void res_free(struct cx23885_dev *dev, struct cx23885_fh *fh,
+ 	mutex_unlock(&dev->lock);
+ }
+ 
+-static int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
++int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
+ {
+ 	/* 8 bit registers, 8 bit values */
+ 	u8 buf[] = { reg, data };
+@@ -428,7 +428,7 @@ static int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
+ 	return i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
+ }
+ 
+-static u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
++u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
+ {
+ 	/* 8 bit registers, 8 bit values */
+ 	int ret;
+diff --git a/drivers/media/pci/cx23885/cx23885-video.h b/drivers/media/pci/cx23885/cx23885-video.h
+new file mode 100644
+index 0000000..c961a2b
+--- /dev/null
++++ b/drivers/media/pci/cx23885/cx23885-video.h
+@@ -0,0 +1,26 @@
++/*
++ *  Driver for the Conexant CX23885/7/8 PCIe bridge
++ *
++ *  Copyright (C) 2010  Andy Walls <awalls@md.metrocast.net>
++ *
++ *  This program is free software; you can redistribute it and/or
++ *  modify it under the terms of the GNU General Public License
++ *  as published by the Free Software Foundation; either version 2
++ *  of the License, or (at your option) any later version.
++ *
++ *  This program is distributed in the hope that it will be useful,
++ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
++ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
++ *  GNU General Public License for more details.
++ *
++ *  You should have received a copy of the GNU General Public License
++ *  along with this program; if not, write to the Free Software
++ *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
++ *  02110-1301, USA.
++ */
++
++#ifndef _CX23885_VIDEO_H_
++#define _CX23885_VIDEO_H_
++int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data);
++u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg);
++#endif
+-- 
+1.7.9.5
+
