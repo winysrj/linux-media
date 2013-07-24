@@ -1,58 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f182.google.com ([209.85.192.182]:64930 "EHLO
-	mail-pd0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932278Ab3GKJK3 (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.187]:49965 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752026Ab3GXUij (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:10:29 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>
-Subject: [PATCH 29/50] USBNET: rtl8150: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:52 +0800
-Message-Id: <1373533573-12272-30-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Wed, 24 Jul 2013 16:38:39 -0400
+Date: Wed, 24 Jul 2013 22:38:32 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+cc: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>,
+	mchehab@redhat.com, linux-media@vger.kernel.org,
+	magnus.damm@gmail.com, linux-sh@vger.kernel.org,
+	phil.edworthy@renesas.com, matsu@igel.co.jp
+Subject: Re: [PATCH v8] V4L2: soc_camera: Renesas R-Car VIN driver
+In-Reply-To: <51F02CA1.7050603@cogentembedded.com>
+Message-ID: <Pine.LNX.4.64.1307242227141.5611@axis700.grange>
+References: <201307200314.35345.sergei.shtylyov@cogentembedded.com>
+ <Pine.LNX.4.64.1307241731560.2179@axis700.grange> <51F02CA1.7050603@cogentembedded.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+Hi Vladimir
 
-Cc: netdev@vger.kernel.org
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
+On Wed, 24 Jul 2013, Vladimir Barinov wrote:
+
+> Hi Guennadi,
+> 
+> Thank you for the v8 review.
+> 
+> On 07/24/2013 08:14 PM, Guennadi Liakhovetski wrote:
+> > [snip]
+> > > +	/* output format */
+> > > +	switch (icd->current_fmt->host_fmt->fourcc) {
+> > > +	case V4L2_PIX_FMT_NV16:
+> > > +		iowrite32(ALIGN(cam->width * cam->height, 0x80),
+> > > +			  priv->base + VNUVAOF_REG);
+> > > +		dmr = VNDMR_DTMD_YCSEP;
+> > > +		output_is_yuv = true;
+> > > +		break;
+> > > +	case V4L2_PIX_FMT_YUYV:
+> > > +		dmr = VNDMR_BPSM;
+> > > +		output_is_yuv = true;
+> > > +		break;
+> > > +	case V4L2_PIX_FMT_UYVY:
+> > > +		dmr = 0;
+> > > +		output_is_yuv = true;
+> > > +		break;
+> > > +	case V4L2_PIX_FMT_RGB555X:
+> > > +		dmr = VNDMR_DTMD_ARGB1555;
+> > > +		break;
+> > > +	case V4L2_PIX_FMT_RGB565:
+> > > +		dmr = 0;
+> > > +		break;
+> > > +	case V4L2_PIX_FMT_RGB32:
+> > > +		if (priv->chip == RCAR_H1 || priv->chip == RCAR_E1) {
+> > > +			dmr = VNDMR_EXRGB;
+> > > +			break;
+> > > +		}
+> > > +	default:
+> > > +		BUG();
+> > as commented above, please, remove
+> Does WARN_ON(1) work instead of removal?
+
+Sorry, by "remove" I certainly meant replace with a proper handling, not 
+just delete. In principle the above condition should never be entered, 
+right? Also for fmt == V4L2_PIX_FMT_RGB32 but chip not one of RCAR_H1 or 
+RCAR_E1? Well, this function is called from your driver's .buf_queue(), 
+which doesn't return an error. But yes, I would make rcar_vin_setup() 
+issue a warning and return an error and then, back in 
+rcar_vin_videobuf_queue() return the buffer with an error code (goto 
+error).
+
+Thanks
+Guennadi
 ---
- drivers/net/usb/rtl8150.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/net/usb/rtl8150.c b/drivers/net/usb/rtl8150.c
-index 6cbdac6..199e0fb 100644
---- a/drivers/net/usb/rtl8150.c
-+++ b/drivers/net/usb/rtl8150.c
-@@ -372,6 +372,7 @@ static void read_bulk_callback(struct urb *urb)
- 	u16 rx_stat;
- 	int status = urb->status;
- 	int result;
-+	unsigned long flags;
- 
- 	dev = urb->context;
- 	if (!dev)
-@@ -413,9 +414,9 @@ static void read_bulk_callback(struct urb *urb)
- 	netdev->stats.rx_packets++;
- 	netdev->stats.rx_bytes += pkt_len;
- 
--	spin_lock(&dev->rx_pool_lock);
-+	spin_lock_irqsave(&dev->rx_pool_lock, flags);
- 	skb = pull_skb(dev);
--	spin_unlock(&dev->rx_pool_lock);
-+	spin_unlock_irqrestore(&dev->rx_pool_lock, flags);
- 	if (!skb)
- 		goto resched;
- 
--- 
-1.7.9.5
-
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
