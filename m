@@ -1,77 +1,49 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:62574 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751646Ab3GRJ1e (ORCPT
+Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33310 "EHLO
+	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1754002Ab3GXP4N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 18 Jul 2013 05:27:34 -0400
-Date: Thu, 18 Jul 2013 11:27:30 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: phil.edworthy@renesas.com
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean-Philippe Francois <jp.francois@cynove.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v3] ov10635: Add OmniVision ov10635 SoC camera driver
-In-Reply-To: <OFA3A542CD.036B9760-ON80257BAC.0030962D-80257BAC.00327F73@eu.necel.com>
-Message-ID: <Pine.LNX.4.64.1307181120400.15796@axis700.grange>
-References: <CAGGh5h1btafaMoaB89RBND2L8+Zg767HW3+hKG7Xcq2fsEN6Ew@mail.gmail.com>
- <1370423495-16784-1-git-send-email-phil.edworthy@renesas.com>
- <Pine.LNX.4.64.1307141216310.9479@axis700.grange>
- <OFA3A542CD.036B9760-ON80257BAC.0030962D-80257BAC.00327F73@eu.necel.com>
+	Wed, 24 Jul 2013 11:56:13 -0400
+Date: Wed, 24 Jul 2013 18:55:38 +0300
+From: Sakari Ailus <sakari.ailus@iki.fi>
+To: Andy Shevchenko <andy.shevchenko@gmail.com>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH] smiapp: re-use clamp_t instead of min(..., max(...))
+Message-ID: <20130724155538.GF12281@valkosipuli.retiisi.org.uk>
+References: <1374679278-9856-1-git-send-email-andriy.shevchenko@linux.intel.com>
+ <20130724154536.GE12281@valkosipuli.retiisi.org.uk>
+ <CAHp75Vdp43x=SMYwpxWLoS0f7ku+qmZoAhW8Pao1p7DDGXcCPg@mail.gmail.com>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <CAHp75Vdp43x=SMYwpxWLoS0f7ku+qmZoAhW8Pao1p7DDGXcCPg@mail.gmail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phil
-
-On Thu, 18 Jul 2013, phil.edworthy@renesas.com wrote:
-
-> Hi Guennadi,
+On Wed, Jul 24, 2013 at 06:49:24PM +0300, Andy Shevchenko wrote:
+> On Wed, Jul 24, 2013 at 6:45 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
 > 
-> > > +{
-> > > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > > +   struct ov10635_priv *priv = to_ov10635(client);
-> > > +   struct v4l2_captureparm *cp = &parms->parm.capture;
-> > > +   enum v4l2_mbus_pixelcode code;
-> > > +   int ret;
-> > > +
-> > > +   if (parms->type != V4L2_BUF_TYPE_VIDEO_CAPTURE)
-> > > +      return -EINVAL;
-> > > +   if (cp->extendedmode != 0)
-> > > +      return -EINVAL;
-> > > +
-> > > +   /* FIXME Check we can handle the requested framerate */
-> > > +   priv->fps_denominator = cp->timeperframe.numerator;
-> > > +   priv->fps_numerator = cp->timeperframe.denominator;
-> > 
-> > Yes, fixing this could be a good idea :) Just add one parameter to your 
-> > set_params() and use NULL elsewhere.
+> []
 > 
-> There is one issue with setting the camera to achieve different framerate. 
-> The camera can work at up to 60fps with lower resolutions, i.e. when 
-> vertical sub-sampling is used. However, the API uses separate functions 
-> for changing resolution and framerate. So, userspace could use a low 
-> resolution, high framerate setting, then attempt to use a high resolution, 
-> low framerate setting. Clearly, it's possible for userspace to call s_fmt 
-> and s_parm in a way that attempts to set high resolution with the old 
-> (high) framerate. In this case, a check for valid settings will fail.
+> >> +     max_m = clamp_t(u32, max_m, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
+> >> +                     sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
+> >
+> > Do you need clamp_t()? Wouldn't plain clamp() do?
 > 
-> Is this a generally known issue and userspace works round it?
+> The *_t variants are preferred due to they are faster (no type checking).
+> 
+> > I can change it if you're ok with that.
+> 
+> I don't know why you may choose clamp instead of clamp_t here. Are you
+> going to change variable types?
 
-It is generally known, that not all ioctl() settings can be combined, yes. 
-E.g. a driver can support a range of cropping values and multiple formats, 
-but not every format can be used with every cropping rectangle. So, if you 
-first set a format and then an incompatible cropping or vice versa, one of 
-ioctl()s will either fail or adjust parameters as close to the original 
-request as possible. This has been discussed multiple times, ideas were 
-expressed to create a recommended or even a compulsory ioctl() order, but 
-I'm not sure how far this has come. I'm sure other developers on the list 
-will have more info to this topic.
+Probably not. But clamp() would serve as a sanity check vs. clamp_t() which
+just does the thing. I'd prefer clamp() --- the compiler will not spend much
+time on it anyway.
 
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
+-- 
+Cheers,
+
+Sakari Ailus
+e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
