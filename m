@@ -1,107 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4266 "EHLO
-	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751528Ab3GZSEX (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:49918 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750843Ab3GXLVs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 14:04:23 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
-	(authenticated bits=0)
-	by smtp-vbr6.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6QI4J60041866
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Fri, 26 Jul 2013 20:04:22 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 359C635E032F
-	for <linux-media@vger.kernel.org>; Fri, 26 Jul 2013 20:04:18 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130726180418.359C635E032F@alastor.dyndns.org>
-Date: Fri, 26 Jul 2013 20:04:18 +0200 (CEST)
+	Wed, 24 Jul 2013 07:21:48 -0400
+Date: Wed, 24 Jul 2013 13:21:45 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+cc: linux-media@vger.kernel.org, prabhakar.csengg@gmail.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH RFC 3/5] V4L2: Add V4L2_ASYNC_MATCH_OF subdev matching
+ type
+In-Reply-To: <1374516287-7638-4-git-send-email-s.nawrocki@samsung.com>
+Message-ID: <Pine.LNX.4.64.1307241320170.30777@axis700.grange>
+References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
+ <1374516287-7638-4-git-send-email-s.nawrocki@samsung.com>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Sylwester
 
-Results of the daily build of media_tree:
+On Mon, 22 Jul 2013, Sylwester Nawrocki wrote:
 
-date:		Fri Jul 26 19:00:23 CEST 2013
-git branch:	test
-git hash:	51dd4d70fc59564454a4dcb90d6d46d39a4a97ef
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+> Add support for matching by device_node pointer. This allows
+> the notifier user to simply pass a list of device_node pointers
+> corresponding to sub-devices.
+> 
+> Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
+> ---
+>  drivers/media/v4l2-core/v4l2-async.c |    9 +++++++++
+>  include/media/v4l2-async.h           |    5 +++++
+>  2 files changed, 14 insertions(+)
+> 
+> diff --git a/drivers/media/v4l2-core/v4l2-async.c b/drivers/media/v4l2-core/v4l2-async.c
+> index 86934ca..9f91013 100644
+> --- a/drivers/media/v4l2-core/v4l2-async.c
+> +++ b/drivers/media/v4l2-core/v4l2-async.c
+> @@ -39,6 +39,11 @@ static bool match_devname(struct device *dev, struct v4l2_async_subdev *asd)
+>  	return !strcmp(asd->match.device_name.name, dev_name(dev));
+>  }
+>  
+> +static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
+> +{
+> +	return dev->of_node == asd->match.of.node;
+> +}
+> +
+>  static LIST_HEAD(subdev_list);
+>  static LIST_HEAD(notifier_list);
+>  static DEFINE_MUTEX(list_lock);
+> @@ -66,6 +71,9 @@ static struct v4l2_async_subdev *v4l2_async_belongs(struct v4l2_async_notifier *
+>  		case V4L2_ASYNC_MATCH_I2C:
+>  			match = match_i2c;
+>  			break;
+> +		case V4L2_ASYNC_MATCH_OF:
+> +			match = match_of;
+> +			break;
+>  		default:
+>  			/* Cannot happen, unless someone breaks us */
+>  			WARN_ON(true);
+> @@ -145,6 +153,7 @@ int v4l2_async_notifier_register(struct v4l2_device *v4l2_dev,
+>  		case V4L2_ASYNC_MATCH_CUSTOM:
+>  		case V4L2_ASYNC_MATCH_DEVNAME:
+>  		case V4L2_ASYNC_MATCH_I2C:
+> +		case V4L2_ASYNC_MATCH_OF:
+>  			break;
+>  		default:
+>  			dev_err(notifier->v4l2_dev ? notifier->v4l2_dev->dev : NULL,
+> diff --git a/include/media/v4l2-async.h b/include/media/v4l2-async.h
+> index 33e3b2a..295782e 100644
+> --- a/include/media/v4l2-async.h
+> +++ b/include/media/v4l2-async.h
+> @@ -13,6 +13,7 @@
+>  
+>  #include <linux/list.h>
+>  #include <linux/mutex.h>
+> +#include <linux/of.h>
+>  
+>  struct device;
+>  struct v4l2_device;
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.10-i686: OK
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
+A nitpick: it is common to just forward-declare structs as above instead 
+of including a header if just a pointer to that struct is needed. I think 
+it would be more consistent to update it here.
 
-Detailed results are available here:
+Thanks
+Guennadi
 
-http://www.xs4all.nl/~hverkuil/logs/Friday.log
+> @@ -26,6 +27,7 @@ enum v4l2_async_match_type {
+>  	V4L2_ASYNC_MATCH_CUSTOM,
+>  	V4L2_ASYNC_MATCH_DEVNAME,
+>  	V4L2_ASYNC_MATCH_I2C,
+> +	V4L2_ASYNC_MATCH_OF,
+>  };
+>  
+>  /**
+> @@ -39,6 +41,9 @@ struct v4l2_async_subdev {
+>  	enum v4l2_async_match_type match_type;
+>  	union {
+>  		struct {
+> +			const struct device_node *node;
+> +		} of;
+> +		struct {
+>  			const char *name;
+>  		} device_name;
+>  		struct {
+> -- 
+> 1.7.9.5
+> 
 
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Friday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
