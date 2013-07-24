@@ -1,90 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:25874 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751728Ab3GIPdT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 11:33:19 -0400
-Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MPO00CNPDMJDPA0@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Jul 2013 16:33:17 +0100 (BST)
-From: Kamil Debski <k.debski@samsung.com>
-To: 'Mateusz Krawczuk' <m.krawczuk@samsung.com>,
-	linux-media@vger.kernel.org
-Cc: Tomasz Stanislawski <t.stanislaws@samsung.local>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-References: <51D6781A.2000202@samsung.com>
-In-reply-to: <51D6781A.2000202@samsung.com>
-Subject: RE: [PATCH] media: s5p-tv: Fix Warn on driver probe
-Date: Tue, 09 Jul 2013 17:32:29 +0200
-Message-id: <02c601ce7cb9$87063cd0$9512b670$%debski@samsung.com>
-MIME-version: 1.0
-Content-type: text/plain; charset=us-ascii
-Content-transfer-encoding: 7bit
-Content-language: pl
+Received: from smtp-vbr5.xs4all.nl ([194.109.24.25]:1346 "EHLO
+	smtp-vbr5.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751397Ab3GXS3i (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jul 2013 14:29:38 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr5.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6OITYlQ052526
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 20:29:37 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 7A63C35E00D6
+	for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 20:29:27 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130724182927.7A63C35E00D6@alastor.dyndns.org>
+Date: Wed, 24 Jul 2013 20:29:27 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mateusz,
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Thank you for this patch. However if you set timestamp type to monotonic it
-is necessary for the driver to set the timestamp value.
+Results of the daily build of media_tree:
 
-You can use the v4l2_get_timestamp helper to set the timestamp. According
-to the documentation it should be set to the time when the first data byte
-was sent to hardware.
+date:		Wed Jul 24 19:00:17 CEST 2013
+git branch:	test
+git hash:	c859e6ef33ac0c9a5e9e934fe11a2232752b4e96
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
-Here you can find more information on how the timestamp field should be
-handled in drivers https://patchwork.linuxtv.org/patch/18813/
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
 
-Best wishes,
--- 
-Kamil Debski
-Linux Kernel Developer
-Samsung R&D Institute Poland
+Detailed results are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.log
 
-> -----Original Message-----
-> From: linux-media-owner@vger.kernel.org [mailto:linux-media-
-> owner@vger.kernel.org] On Behalf Of Mateusz Krawczuk
-> Sent: Friday, July 05, 2013 9:39 AM
-> To: linux-media@vger.kernel.org
-> Subject: [PATCH] media: s5p-tv: Fix Warn on driver probe
-> 
->  From 2cbf0f259fe24d0e3fe9f5b45036dcae3ffb6213 Mon Sep 17 00:00:00 2001
-> From: Mateusz Krawczuk<m.krawczuk@samsung.com>
-> Date: Wed, 3 Jul 2013 14:51:45 +0200
-> Subject: [PATCH] media: s5p-tv: Fix Warn on driver probe
-> 
-> The timestamp_type field in struct vb2_queue wasn`t initalized at s5p-
-> tv probe.
-> This caused warn on message at boot. This patch fixed this issue.
-> 
-> Signed-off-by: Mateusz Krawczuk<m.krawczuk@partner.samsung.com>
-> Acked-by: Tomasz Stanislawski<t.stanislaws@samsung.com>
-> ---
->   drivers/media/platform/s5p-tv/mixer_video.c |    1 +
->   1 file changed, 1 insertion(+)
-> 
-> diff --git a/drivers/media/platform/s5p-tv/mixer_video.c
-> b/drivers/media/platform/s5p-tv/mixer_video.c
-> index 641b1f0..87e3b0a 100644
-> --- a/drivers/media/platform/s5p-tv/mixer_video.c
-> +++ b/drivers/media/platform/s5p-tv/mixer_video.c
-> @@ -1125,6 +1125,7 @@ struct mxr_layer *mxr_base_layer_create(struct
-> mxr_device *mdev,
->   		.buf_struct_size = sizeof(struct mxr_buffer),
->   		.ops = &mxr_video_qops,
->   		.mem_ops = &vb2_dma_contig_memops,
-> +		.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_MONOTONIC,
->   	};
-> 
->   	return layer;
-> -- 1.7.9.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media"
-> in the body of a message to majordomo@vger.kernel.org More majordomo
-> info at  http://vger.kernel.org/majordomo-info.html
+Full logs are available here:
 
+http://www.xs4all.nl/~hverkuil/logs/Wednesday.tar.bz2
 
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
