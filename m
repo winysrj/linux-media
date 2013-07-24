@@ -1,70 +1,262 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-wg0-f50.google.com ([74.125.82.50]:37684 "EHLO
-	mail-wg0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752394Ab3GNNlm (ORCPT
+Received: from mta-blr1.sasken.com ([203.200.200.72]:42382 "EHLO
+	mta-blr1.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751721Ab3GXHKq convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jul 2013 09:41:42 -0400
-Received: by mail-wg0-f50.google.com with SMTP id k14so9512182wgh.29
-        for <linux-media@vger.kernel.org>; Sun, 14 Jul 2013 06:41:40 -0700 (PDT)
+	Wed, 24 Jul 2013 03:10:46 -0400
+From: Krishna Kishore <krishna.kishore@sasken.com>
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: RE: Prof DVB-S2 USB device
+Date: Wed, 24 Jul 2013 07:10:29 +0000
+Message-ID: <7CC27E99F1636344B0AC7B73D5BB86DE1485F3F8@exgmbxfz01.sasken.com>
+References: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>,<51EEEFCA.9040107@schinagl.nl>,<7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com>
+In-Reply-To: <7CC27E99F1636344B0AC7B73D5BB86DE1485F3C0@exgmbxfz01.sasken.com>
+Content-Language: en-US
+Content-Type: text/plain; charset="us-ascii"
+Content-Transfer-Encoding: 8BIT
 MIME-Version: 1.0
-In-Reply-To: <20130714152321.2a9e1eb2@fls-nb.lan.streibelt.net>
-References: <20130712182632.667842dc@fls-nb.lan.streibelt.net>
-	<51E26E22.8050005@xs4all.nl>
-	<20130714152321.2a9e1eb2@fls-nb.lan.streibelt.net>
-Date: Sun, 14 Jul 2013 09:41:40 -0400
-Message-ID: <CAGoCfiw2jL=uAUM-=s-RnH0=GX=pAO3nugzQ7iV2yN-irixHvQ@mail.gmail.com>
-Subject: Re: CX23103 Video Grabber seems to be supported by cx231xx driver
-From: Devin Heitmueller <dheitmueller@kernellabs.com>
-To: Florian Streibelt <florian@inet.tu-berlin.de>
-Cc: Hans Verkuil <hverkuil@xs4all.nl>, linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 14, 2013 at 9:23 AM, Florian Streibelt
-<florian@inet.tu-berlin.de> wrote:
->> Be aware that I consider this driver to be flaky, so I would not at all be
->> surprised if there are bugs lurking in the code.
+Dear Oliver,
+
+  Sometimes, I am seeing the following errors also.
+
+...
+...
+[ 4150.160583] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.183959] stv0900_read_reg
+[ 4150.183990] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.207427] stv0900_read_reg
+[ 4150.207458] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.230834] stv0900_read_reg
+[ 4150.230865] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.254302] stv0900_read_reg
+[ 4150.254333] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.277740] stv0900_read_reg
+[ 4150.277770] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.301147] stv0900_read_reg
+[ 4150.301208] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.324615] stv0900_read_reg
+[ 4150.324645] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.348052] stv0900_read_reg
+[ 4150.348083] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.371459] stv0900_read_reg
+[ 4150.371520] stv0900_read_reg: i2c error -11, reg[0xf1a8]
+[ 4150.371612] stv0900_search:
+[ 4150.371643] stv0900_read_status:
+[ 4150.371673] stv0900_read_reg
+[ 4156.184020] stv0900_status demod_state = 0
+[ 4156.184051] stv0900_status: locked = 0
+[ 4156.184082] stv0900_read_reg
+[ 4160.215240] stv0900_read_reg
+[ 4164.246490] stv0900_read_reg
+[ 4168.277740] stv0900_read_reg
+[ 4172.309020] stv0900_get_mclk_freq: Calculated Mclk = 4500000
+[ 4172.309051] TS bitrate = 0 Mbit/sec
+[ 4174.324615] DEMOD LOCK FAIL
+...
+...
+
+
+Regards,
+Kishore.
+
+________________________________________
+From: Krishna Kishore
+Sent: Wednesday, July 24, 2013 12:26 PM
+To: Oliver Schinagl
+Cc: linux-media@vger.kernel.org
+Subject: RE: Prof DVB-S2 USB device
+
+Dear Oliver,
+
+   Thanks for your response. Here are more details. Please help me in making this work.
+
+   Linux version:
+
+-sh-4.1# uname -a
+Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013 armv7l GNU/Linux
+
+[dotconfig is attached to this email]
+
+lsusb -t:
+/:  Bus 01.Port 1: Dev 1, Class=root_hub, Driver=ehci-omap/3p, 480M
+    |__ Port 1: Dev 2, If 0, Class=, Driver=hub/5p, 480M
+        |__ Port 1: Dev 3, If 0, Class=, Driver=smsc95xx, 480M
+        |__ Port 2: Dev 5, If 0, Class=, Driver=dw2102, 480M
+
+dmesg:
+[  126.824951] usb 1-1.2: new high-speed USB device number 5 using ehci-omap
+[  126.950347] usb 1-1.2: New USB device found, idVendor=3034, idProduct=7500
+[  126.957794] usb 1-1.2: New USB device strings: Mfr=0, Product=0, SerialNumber=0
+[  126.983184] dvb-usb: found a 'Prof 7500 USB DVB-S2' in cold state, will try to load a firmware
+[  127.033477] dvb-usb: downloading firmware from file 'dvb-usb-p7500.fw'
+[  127.051177] dw2102: start downloading DW210X firmware
+[  127.238739] dvb-usb: found a 'Prof 7500 USB DVB-S2' in warm state.
+[  127.255828] dvb-usb: will pass the complete MPEG2 transport stream to the software demuxer.
+[  127.271270] DVB: registering new adapter (Prof 7500 USB DVB-S2)
+[ 1159.277740] dvb-usb: MAC address: 40:40:40:40:40:40
+[ 1159.325531] dw2102: Kishore: prof_7500_frontend_attach
+[ 1159.325561]
+[ 1159.340332] Kishore stv0900_attach:
+[ 1159.340362] stv0900_init_internal
+[ 1159.340393] stv0900_init_internal: Create New Internal Structure!
+[ 1159.340423] stv0900_read_reg
+[ 1179.527770] stv0900_read_reg
+[ 1550.418365] stv0900_read_reg
+[ 1637.090240] stv0900_st_dvbs2_single
+[ 1637.090270] stv0900_stop_all_s2_modcod
+[ 1669.340270] stv0900_activate_s2_modcod_single
+[ 1703.605865] stv0900_read_reg
+[ 1709.652740] stv0900_read_reg
+[ 1715.699584] stv0900_read_reg
+[ 1721.746490] stv0900_read_reg
+[ 1727.793365] stv0900_read_reg
+[ 1733.840209] stv0900_read_reg
+[ 1739.887115] stv0900_read_reg
+[ 1743.918395] stv0900_read_reg
+[ 1749.965240] stv0900_read_reg
+[ 1756.012115] stv0900_set_ts_parallel_serial path1 3 path2 0
+[ 1758.027740] stv0900_read_reg
+[ 1764.074615] stv0900_read_reg
+[ 1770.121490] stv0900_read_reg
+[ 1776.168334] stv0900_read_reg
+[ 1782.215209] stv0900_read_reg
+[ 1788.262115] stv0900_read_reg
+[ 1810.433990] stv0900_read_reg
+[ 1816.480865] stv0900_read_reg
+[ 1824.543365] stv0900_read_reg
+[ 1830.590240] stv0900_read_reg
+[ 1838.652740] stv0900_read_reg
+[ 1844.699615] stv0900_read_reg
+[ 1850.746490] stv0900_set_mclk: Mclk set to 135000000, Quartz = 27000000
+[ 1850.746520] stv0900_read_reg
+[ 1854.777740] stv0900_read_reg
+[ 1860.824615] stv0900_read_reg
+[ 1864.855865] stv0900_read_reg
+[ 1868.887115] stv0900_get_mclk_freq: Calculated Mclk = 152672117
+[ 1876.965209] stv0900_read_reg
+[ 1883.027709] stv0900_read_reg
+[ 1887.058990] stv0900_read_reg
+[ 1891.090240] stv0900_get_mclk_freq: Calculated Mclk = 152672117
+[ 1891.090270] Kishore stv0900_attach: Attaching STV0900 demodulator(0)
+[ 1891.090301] dw2102: Kishore: dvb_attach stb6100_attach
+[ 1891.090332]
+[ 1891.097442] Kishore stb6100_attach:
+[ 1891.101409] Kishore stb6100_attach: Attaching STB6100
+[ 1893.105957] dw2102: Attached STV0900+STB6100A!
+[ 1893.105957]
+[ 1893.112335] DVB: registering adapter 0 frontend 0 (STV0900 frontend)...
+[ 1893.137878] input: IR-receiver inside an USB DVB receiver as /devices/platform/usbhs_omap/ehci-omap.0/usb1/1-1/1-1.2/input/input2
+[ 1893.177368] dvb-usb: schedule remote query interval to 150 msecs.
+[ 1893.184143] dvb-usb: Prof 7500 USB DVB-S2 successfully initialized and connected.
+
+
+
+Linux (none) 3.4.0 #28 SMP PREEMPT Tue Jul 23 16:24:14 IST 2013 armv7l GNU/Linux
+-sh-4.1# /stbref/w_scan-20120112/w_scan -fs -s S93E5 -c IN -G >> ch.conf
+w_scan version 20120112 (compiled for DVB API 5.4)
+using settings for 93.5 east Insat 3A/4B
+scan type SATELLITE, channellist 42
+output format gstreamer
+WARNING: could not guess your codepage. Falling back to 'UTF-8'
+output charset 'UTF-8', use -C <charset> to override
+Info: using DVB adapter auto detection.
+
+        /dev/dvb/adapter0/frontend0 -> SATELLITE "STV0900 frontend": very good :-))
+
+Using SATELLITE frontend (adapter /dev/dvb/adapter0/frontend0)
+-_-_-_-_ Getting frontend capabilities-_-_-_-_
+Using DVB API 5.5
+frontend 'STV0900 frontend' supports
+INVERSION_AUTO
+DVB-S
+DVB-S2
+FREQ (0.95GHz ... 2.15GHz)
+SRATE (1.000MBd ... 45.000MBd)
+using LNB "UNIVERSAL"
+-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_-_
+(time: 00:40)
+
+dmesg logs:
+
+[1716261.743961] stv0900_init
+[1716287.004365] stv0900_set_tone: Off
+[1716307.004132] stv0900_read_status:
+[1716321.004217] stv0900_status: locked = 0
+[1716337.004246] stv0900_get_mclk_freq: Calculated Mclk = 553008176
+[1716337.004251] TS bitrate = 2081 Mbit/sec
+[1716339.004299] DEMOD LOCK FAIL
+[1716345.004236] stv0900_search:
+[1716345.004242] stv0900_read_status:
+[1716363.004324] stv0900_status: locked = 1
+[1716379.004255] stv0900_get_mclk_freq: Calculated Mclk = 607008176
+[1716379.004260] TS bitrate = 2361 Mbit/sec
+[1716379.004263] DEMOD LOCK OK
+[1716261.743961] stv0900_init
+[1716287.004365] stv0900_set_tone: Off
+[1716307.004132] stv0900_read_status:
+[1716321.004217] stv0900_status: locked = 0
+[1716337.004246] stv0900_get_mclk_freq: Calculated Mclk = 553008176
+[1716337.004251] TS bitrate = 2081 Mbit/sec
+[1716339.004299] DEMOD LOCK FAIL
+[1716345.004236] stv0900_search:
+[1716345.004242] stv0900_read_status:
+[1716363.004324] stv0900_status: locked = 1
+[1716379.004255] stv0900_get_mclk_freq: Calculated Mclk = 607008176
+[1716379.004260] TS bitrate = 2361 Mbit/sec
+[1716379.004263] DEMOD LOCK OK
+[1716455.004184] stv0900_search:
+[1716455.004190] stv0900_read_status:
+[1716461.004239] stv0900_status: locked = 0
+[1716477.004310] stv0900_get_mclk_freq: Calculated Mclk = 175008176
+[1716477.004315] TS bitrate = 503 Mbit/sec
+[1716479.004220] DEMOD LOCK FAIL
+
+Regards,
+Kishore.
+________________________________________
+From: Oliver Schinagl [oliver+list@schinagl.nl]
+Sent: Wednesday, July 24, 2013 2:34 AM
+To: Krishna Kishore
+Cc: linux-media@vger.kernel.org
+Subject: Re: Prof DVB-S2 USB device
+
+On 23-07-13 18:52, Krishna Kishore wrote:
+> #Sorry for sending to individual email ids
+>
+> Hi,
+>
+>       I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
+You will need to provide much more information then that. What does
+dmesg say? lsusb? what driver are you using, what kernel version? Are
+you using it as a module? Have you enabled debugging in your kernel?
+
+Those questions come to my mind.
+
+>
+> 1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
+> 2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
+> a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
+Paste your logs (or if its too much, only copy/paste the relevant parts.
+You ask for a limb, yet offer nothing.
+
+oliver
+>
+>        Can you please help me?
 >
 >
-> Hum. Because of code quality or due to the missing documentation from the vendor?
+> Regards,
+> Kishore.
+>
+>
+>
 
-While this is all too common for vendors, it really isn't a reasonable
-assertion in this case.  Conexant (the chip vendor) wrote the original
-driver, and they have been very supportive in the past.  They provided
-documentation (under NDA) and reference designs at no cost.  They've
-also answered questions I've had in the past regarding the chip and
-you'll also note that the email address of the maintainer was a
-Conexant engineer until he left the company.
 
-Regarding the flakiness, there indeed have been some reliability
-problems - some of them were in the original driver sources, a couple
-I introduced doing the cleanup work to get it upstream (and long ago
-fixed), and some were regressions introduced after the driver went
-upstream.  It's tough maintaining a driver on an ongoing basis that
-supports many different cards from different vendors, in particular
-since individuals making changes to the driver to make it work with
-some new device, don't have all of the other products to test with (to
-ensure regressions aren't introduced).
 
-These drivers also tend to suffer from bitrot.  If they aren't
-actively being used by many people and if there isn't a developer who
-actively maintains the driver, then regressions sneak in there and go
-unnoticed for months/years.
+________________________________
 
-> If you have any documents on the chip I would be happy.
-
-I don't think there are any documents that aren't under NDA.  That
-said, you don't need the register docs to debug a system hang.  If you
-don't have the time to jam a few printk() statements into the source,
-then there's no point in going through the effort to get you docs.
-
-Your best bet at this point is probably to wait [indefinitely] for
-some developer who has a need for the device to work to stumble across
-the problem and debug it.  You get what you pay for.
-
-Devin
-
--- 
-Devin J. Heitmueller - Kernel Labs
-http://www.kernellabs.com
+SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
+Read Disclaimer at http://www.sasken.com/extras/mail_disclaimer.html
