@@ -1,4202 +1,4726 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:39969 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754038Ab3GJKTR (ORCPT
+Received: from merlin.infradead.org ([205.233.59.134]:46639 "EHLO
+	merlin.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751005Ab3GXRdy (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 06:19:17 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org
-Subject: [PATCH 5/5] v4l: Renesas R-Car VSP1 driver
-Date: Wed, 10 Jul 2013 12:19:32 +0200
-Message-Id: <1373451572-3892-6-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1373451572-3892-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1373451572-3892-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Wed, 24 Jul 2013 13:33:54 -0400
+Message-ID: <51F00FC9.103@infradead.org>
+Date: Wed, 24 Jul 2013 10:32:57 -0700
+From: Randy Dunlap <rdunlap@infradead.org>
+MIME-Version: 1.0
+To: Stephen Rothwell <sfr@canb.auug.org.au>
+CC: linux-next@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linux-media <linux-media@vger.kernel.org>,
+	Ezequiel Garcia <elezegarcia@gmail.com>
+Subject: Re: linux-next: Tree for Jul 24 (media/usb/stk1160)
+References: <20130724163254.f026790fa2fe367f85969901@canb.auug.org.au>
+In-Reply-To: <20130724163254.f026790fa2fe367f85969901@canb.auug.org.au>
+Content-Type: multipart/mixed;
+ boundary="------------030200050608060601060307"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The VSP1 is a video processing engine that includes a blender, scalers,
-filters and statistics computation. Configurable data path routing logic
-allows ordering the internal blocks in a flexible way.
+This is a multi-part message in MIME format.
+--------------030200050608060601060307
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 
-Due to the configurable nature of the pipeline the driver implements the
-media controller API and doesn't use the V4L2 mem-to-mem framework, even
-though the device usually operates in memory to memory mode.
+On 07/23/13 23:32, Stephen Rothwell wrote:
+> Hi all,
+> 
+> Changes since 20130723:
+> 
 
-Only the read pixel formatters, up/down scalers, write pixel formatters
-and LCDC interface are supported at this stage.
+on x86_64:
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/Kconfig            |   10 +
- drivers/media/platform/Makefile           |    2 +
- drivers/media/platform/vsp1/Makefile      |    5 +
- drivers/media/platform/vsp1/vsp1.h        |   73 ++
- drivers/media/platform/vsp1/vsp1_drv.c    |  475 ++++++++++++
- drivers/media/platform/vsp1/vsp1_entity.c |  186 +++++
- drivers/media/platform/vsp1/vsp1_entity.h |   68 ++
- drivers/media/platform/vsp1/vsp1_lif.c    |  237 ++++++
- drivers/media/platform/vsp1/vsp1_lif.h    |   38 +
- drivers/media/platform/vsp1/vsp1_regs.h   |  581 +++++++++++++++
- drivers/media/platform/vsp1/vsp1_rpf.c    |  209 ++++++
- drivers/media/platform/vsp1/vsp1_rwpf.c   |  124 ++++
- drivers/media/platform/vsp1/vsp1_rwpf.h   |   56 ++
- drivers/media/platform/vsp1/vsp1_uds.c    |  346 +++++++++
- drivers/media/platform/vsp1/vsp1_uds.h    |   41 +
- drivers/media/platform/vsp1/vsp1_video.c  | 1154 +++++++++++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_video.h  |  144 ++++
- drivers/media/platform/vsp1/vsp1_wpf.c    |  233 ++++++
- include/linux/platform_data/vsp1.h        |   25 +
- 19 files changed, 4007 insertions(+)
- create mode 100644 drivers/media/platform/vsp1/Makefile
- create mode 100644 drivers/media/platform/vsp1/vsp1.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_drv.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_regs.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_rpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_wpf.c
- create mode 100644 include/linux/platform_data/vsp1.h
 
-diff --git a/drivers/media/platform/Kconfig b/drivers/media/platform/Kconfig
-index 0494d27..e4a3de5 100644
---- a/drivers/media/platform/Kconfig
-+++ b/drivers/media/platform/Kconfig
-@@ -210,6 +210,16 @@ config VIDEO_SH_VEU
- 	    Support for the Video Engine Unit (VEU) on SuperH and
- 	    SH-Mobile SoCs.
- 
-+config VIDEO_RENESAS_VSP1
-+	tristate "Renesas VSP1 Video Processing Engine"
-+	depends on VIDEO_V4L2 && VIDEO_V4L2_SUBDEV_API
-+	select VIDEOBUF2_DMA_CONTIG
-+	---help---
-+	  This is a V4L2 driver for the Renesas VSP1 video processing engine.
-+
-+	  To compile this driver as a module, choose M here: the module
-+	  will be called vsp1.
-+
- endif # V4L_MEM2MEM_DRIVERS
- 
- menuconfig V4L_TEST_DRIVERS
-diff --git a/drivers/media/platform/Makefile b/drivers/media/platform/Makefile
-index eee28dd..4e4da48 100644
---- a/drivers/media/platform/Makefile
-+++ b/drivers/media/platform/Makefile
-@@ -46,6 +46,8 @@ obj-$(CONFIG_VIDEO_SH_VOU)		+= sh_vou.o
- 
- obj-$(CONFIG_SOC_CAMERA)		+= soc_camera/
- 
-+obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1/
-+
- obj-y	+= davinci/
- 
- obj-$(CONFIG_ARCH_OMAP)	+= omap/
-diff --git a/drivers/media/platform/vsp1/Makefile b/drivers/media/platform/vsp1/Makefile
-new file mode 100644
-index 0000000..4da2261
---- /dev/null
-+++ b/drivers/media/platform/vsp1/Makefile
-@@ -0,0 +1,5 @@
-+vsp1-y					:= vsp1_drv.o vsp1_entity.o vsp1_video.o
-+vsp1-y					+= vsp1_rpf.o vsp1_rwpf.o vsp1_wpf.o
-+vsp1-y					+= vsp1_lif.o vsp1_uds.o
-+
-+obj-$(CONFIG_VIDEO_RENESAS_VSP1)	+= vsp1.o
-diff --git a/drivers/media/platform/vsp1/vsp1.h b/drivers/media/platform/vsp1/vsp1.h
-new file mode 100644
-index 0000000..11ac94b
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1.h
-@@ -0,0 +1,73 @@
-+/*
-+ * vsp1.h  --  R-Car VSP1 Driver
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __VSP1_H__
-+#define __VSP1_H__
-+
-+#include <linux/io.h>
-+#include <linux/list.h>
-+#include <linux/mutex.h>
-+#include <linux/platform_data/vsp1.h>
-+
-+#include <media/media-device.h>
-+#include <media/v4l2-device.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1_regs.h"
-+
-+struct clk;
-+struct device;
-+
-+struct vsp1_platform_data;
-+struct vsp1_lif;
-+struct vsp1_rwpf;
-+struct vsp1_uds;
-+
-+#define VPS1_MAX_RPF		5
-+#define VPS1_MAX_UDS		3
-+#define VPS1_MAX_WPF		4
-+
-+struct vsp1_device {
-+	struct device *dev;
-+	struct vsp1_platform_data *pdata;
-+
-+	void __iomem *mmio;
-+	struct clk *clock;
-+
-+	struct mutex lock;
-+	int ref_count;
-+
-+	struct vsp1_lif *lif;
-+	struct vsp1_rwpf *rpf[VPS1_MAX_RPF];
-+	struct vsp1_uds *uds[VPS1_MAX_UDS];
-+	struct vsp1_rwpf *wpf[VPS1_MAX_WPF];
-+
-+	struct list_head entities;
-+
-+	struct v4l2_device v4l2_dev;
-+	struct media_device media_dev;
-+};
-+
-+struct vsp1_device *vsp1_device_get(struct vsp1_device *vsp1);
-+void vsp1_device_put(struct vsp1_device *vsp1);
-+
-+static inline u32 vsp1_read(struct vsp1_device *vsp1, u32 reg)
-+{
-+	return ioread32(vsp1->mmio + reg);
-+}
-+
-+static inline void vsp1_write(struct vsp1_device *vsp1, u32 reg, u32 data)
-+{
-+	iowrite32(data, vsp1->mmio + reg);
-+}
-+
-+#endif /* __VSP1_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-new file mode 100644
-index 0000000..e0978ec
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -0,0 +1,475 @@
-+/*
-+ * vsp1_drv.c  --  R-Car VSP1 Driver
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/clk.h>
-+#include <linux/delay.h>
-+#include <linux/device.h>
-+#include <linux/interrupt.h>
-+#include <linux/module.h>
-+#include <linux/platform_device.h>
-+#include <linux/videodev2.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_lif.h"
-+#include "vsp1_rwpf.h"
-+#include "vsp1_uds.h"
-+
-+/* -----------------------------------------------------------------------------
-+ * Interrupt Handling
-+ */
-+
-+static irqreturn_t vsp1_irq_handler(int irq, void *data)
-+{
-+	struct vsp1_device *vsp1 = data;
-+	irqreturn_t ret = IRQ_NONE;
-+	unsigned int i;
-+
-+	for (i = 0; i < VPS1_MAX_WPF; ++i) {
-+		struct vsp1_rwpf *wpf = vsp1->wpf[i];
-+		struct vsp1_pipeline *pipe;
-+		u32 status;
-+
-+		if (wpf == NULL)
-+			continue;
-+
-+		pipe = to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+		status = vsp1_read(vsp1, VI6_WPF_IRQ_STA(i));
-+		vsp1_write(vsp1, VI6_WPF_IRQ_STA(i), ~status);
-+
-+		if (status & VI6_WFP_IRQ_STA_FRE) {
-+			vsp1_pipeline_frame_end(pipe);
-+			ret = IRQ_HANDLED;
-+		}
-+	}
-+
-+	return ret;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * Entities
-+ */
-+
-+/*
-+ * vsp1_create_links - Create links from all sources to the given sink
-+ *
-+ * This function creates media links from all valid sources to the given sink
-+ * pad. Links that would be invalid according to the VSP1 hardware capabilities
-+ * are skipped. Those include all links
-+ *
-+ * - from a UDS to a UDS (UDS entities can't be chained)
-+ * - from an entity to itself (no loops are allowed)
-+ */
-+static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
-+{
-+	struct media_entity *entity = &sink->subdev.entity;
-+	struct vsp1_entity *source;
-+	unsigned int pad;
-+	int ret;
-+
-+	list_for_each_entry(source, &vsp1->entities, list_dev) {
-+		u32 flags;
-+
-+		if (source->type == sink->type)
-+			continue;
-+
-+		if (source->type == VSP1_ENTITY_LIF ||
-+		    source->type == VSP1_ENTITY_WPF)
-+			continue;
-+
-+		flags = source->type == VSP1_ENTITY_RPF &&
-+			sink->type == VSP1_ENTITY_WPF &&
-+			source->index == sink->index
-+		      ? MEDIA_LNK_FL_ENABLED : 0;
-+
-+		for (pad = 0; pad < entity->num_pads; ++pad) {
-+			if (!(entity->pads[pad].flags & MEDIA_PAD_FL_SINK))
-+				continue;
-+
-+			ret = media_entity_create_link(&source->subdev.entity,
-+						       source->source_pad,
-+						       entity, pad, flags);
-+			if (ret < 0)
-+				return ret;
-+		}
-+	}
-+
-+	return 0;
-+}
-+
-+static void vsp1_destroy_entities(struct vsp1_device *vsp1)
-+{
-+	struct vsp1_entity *entity;
-+	struct vsp1_entity *next;
-+
-+	list_for_each_entry_safe(entity, next, &vsp1->entities, list_dev) {
-+		list_del(&entity->list_dev);
-+		vsp1_entity_destroy(entity);
-+	}
-+
-+	v4l2_device_unregister(&vsp1->v4l2_dev);
-+	media_device_unregister(&vsp1->media_dev);
-+}
-+
-+static int vsp1_create_entities(struct vsp1_device *vsp1)
-+{
-+	struct media_device *mdev = &vsp1->media_dev;
-+	struct v4l2_device *vdev = &vsp1->v4l2_dev;
-+	struct vsp1_entity *entity;
-+	unsigned int i;
-+	int ret;
-+
-+	mdev->dev = vsp1->dev;
-+	strlcpy(mdev->model, "VSP1", sizeof(mdev->model));
-+	ret = media_device_register(mdev);
-+	if (ret < 0) {
-+		dev_err(vsp1->dev, "media device registration failed (%d)\n",
-+			ret);
-+		return ret;
-+	}
-+
-+	vdev->mdev = mdev;
-+	ret = v4l2_device_register(vsp1->dev, vdev);
-+	if (ret < 0) {
-+		dev_err(vsp1->dev, "V4L2 device registration failed (%d)\n",
-+			ret);
-+		goto done;
-+	}
-+
-+	/* Instantiate all the entities. */
-+	if (vsp1->pdata->features & VSP1_HAS_LIF) {
-+		vsp1->lif = vsp1_lif_create(vsp1);
-+		if (IS_ERR(vsp1->lif)) {
-+			ret = PTR_ERR(vsp1->lif);
-+			goto done;
-+		}
-+	}
-+
-+	list_add_tail(&vsp1->lif->entity.list_dev, &vsp1->entities);
-+
-+	for (i = 0; i < vsp1->pdata->rpf_count; ++i) {
-+		struct vsp1_rwpf *rpf;
-+
-+		rpf = vsp1_rpf_create(vsp1, i);
-+		if (IS_ERR(rpf)) {
-+			ret = PTR_ERR(rpf);
-+			goto done;
-+		}
-+
-+		vsp1->rpf[i] = rpf;
-+		list_add_tail(&rpf->entity.list_dev, &vsp1->entities);
-+	}
-+
-+	for (i = 0; i < vsp1->pdata->uds_count; ++i) {
-+		struct vsp1_uds *uds;
-+
-+		uds = vsp1_uds_create(vsp1, i);
-+		if (IS_ERR(uds)) {
-+			ret = PTR_ERR(uds);
-+			goto done;
-+		}
-+
-+		vsp1->uds[i] = uds;
-+		list_add_tail(&uds->entity.list_dev, &vsp1->entities);
-+	}
-+
-+	for (i = 0; i < vsp1->pdata->wpf_count; ++i) {
-+		struct vsp1_rwpf *wpf;
-+
-+		wpf = vsp1_wpf_create(vsp1, i);
-+		if (IS_ERR(wpf)) {
-+			ret = PTR_ERR(wpf);
-+			goto done;
-+		}
-+
-+		vsp1->wpf[i] = wpf;
-+		list_add_tail(&wpf->entity.list_dev, &vsp1->entities);
-+	}
-+
-+	/* Create links. */
-+	list_for_each_entry(entity, &vsp1->entities, list_dev) {
-+		if (entity->type == VSP1_ENTITY_LIF ||
-+		    entity->type == VSP1_ENTITY_RPF)
-+			continue;
-+
-+		ret = vsp1_create_links(vsp1, entity);
-+		if (ret < 0)
-+			goto done;
-+	}
-+
-+	if (vsp1->pdata->features & VSP1_HAS_LIF) {
-+		ret = media_entity_create_link(
-+			&vsp1->wpf[0]->entity.subdev.entity, RWPF_PAD_SOURCE,
-+			&vsp1->lif->entity.subdev.entity, LIF_PAD_SINK, 0);
-+		if (ret < 0)
-+			return ret;
-+	}
-+
-+	/* Register all subdevs. */
-+	list_for_each_entry(entity, &vsp1->entities, list_dev) {
-+		ret = v4l2_device_register_subdev(&vsp1->v4l2_dev,
-+						  &entity->subdev);
-+		if (ret < 0)
-+			goto done;
-+	}
-+
-+	ret = v4l2_device_register_subdev_nodes(&vsp1->v4l2_dev);
-+
-+done:
-+	if (ret < 0)
-+		vsp1_destroy_entities(vsp1);
-+
-+	return ret;
-+}
-+
-+static void vsp1_device_init(struct vsp1_device *vsp1)
-+{
-+	unsigned int i;
-+	u32 status;
-+
-+	/* Reset any channel that might be running. */
-+	status = vsp1_read(vsp1, VI6_STATUS);
-+
-+	for (i = 0; i < VPS1_MAX_WPF; ++i) {
-+		unsigned int timeout;
-+
-+		if (!(status & VI6_STATUS_SYS_ACT(i)))
-+			continue;
-+
-+		vsp1_write(vsp1, VI6_SRESET, VI6_SRESET_SRTS(i));
-+		for (timeout = 10; timeout > 0; --timeout) {
-+			status = vsp1_read(vsp1, VI6_STATUS);
-+			if (!(status & VI6_STATUS_SYS_ACT(i)))
-+				break;
-+
-+			usleep_range(1000, 2000);
-+		}
-+
-+		if (timeout)
-+			dev_err(vsp1->dev, "failed to reset wpf.%u\n", i);
-+	}
-+
-+	vsp1_write(vsp1, VI6_CLK_DCSWT, (8 << VI6_CLK_DCSWT_CSTPW_SHIFT) |
-+		   (8 << VI6_CLK_DCSWT_CSTRW_SHIFT));
-+
-+	for (i = 0; i < VPS1_MAX_RPF; ++i)
-+		vsp1_write(vsp1, VI6_DPR_RPF_ROUTE(i), VI6_DPR_NODE_UNUSED);
-+
-+	for (i = 0; i < VPS1_MAX_UDS; ++i)
-+		vsp1_write(vsp1, VI6_DPR_UDS_ROUTE(i), VI6_DPR_NODE_UNUSED);
-+
-+	vsp1_write(vsp1, VI6_DPR_SRU_ROUTE, VI6_DPR_NODE_UNUSED);
-+	vsp1_write(vsp1, VI6_DPR_LUT_ROUTE, VI6_DPR_NODE_UNUSED);
-+	vsp1_write(vsp1, VI6_DPR_CLU_ROUTE, VI6_DPR_NODE_UNUSED);
-+	vsp1_write(vsp1, VI6_DPR_HST_ROUTE, VI6_DPR_NODE_UNUSED);
-+	vsp1_write(vsp1, VI6_DPR_HSI_ROUTE, VI6_DPR_NODE_UNUSED);
-+	vsp1_write(vsp1, VI6_DPR_BRU_ROUTE, VI6_DPR_NODE_UNUSED);
-+
-+	vsp1_write(vsp1, VI6_DPR_HGO_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
-+		   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
-+	vsp1_write(vsp1, VI6_DPR_HGT_SMPPT, (7 << VI6_DPR_SMPPT_TGW_SHIFT) |
-+		   (VI6_DPR_NODE_UNUSED << VI6_DPR_SMPPT_PT_SHIFT));
-+}
-+
-+/*
-+ * vsp1_device_get - Acquire the VSP1 device
-+ *
-+ * Increment the VSP1 reference count and initialize the device if the first
-+ * reference is taken.
-+ *
-+ * Return a pointer to the VSP1 device or NULL if an error occured.
-+ */
-+struct vsp1_device *vsp1_device_get(struct vsp1_device *vsp1)
-+{
-+	struct vsp1_device *__vsp1 = vsp1;
-+	int ret;
-+
-+	mutex_lock(&vsp1->lock);
-+	if (vsp1->ref_count > 0)
-+		goto done;
-+
-+	ret = clk_prepare_enable(vsp1->clock);
-+	if (ret < 0) {
-+		__vsp1 = NULL;
-+		goto done;
-+	}
-+
-+	vsp1_device_init(vsp1);
-+
-+done:
-+	if (__vsp1)
-+		vsp1->ref_count++;
-+
-+	mutex_unlock(&vsp1->lock);
-+	return __vsp1;
-+}
-+
-+/*
-+ * vsp1_device_put - Release the VSP1 device
-+ *
-+ * Decrement the VSP1 reference count and cleanup the device if the last
-+ * reference is released.
-+ */
-+void vsp1_device_put(struct vsp1_device *vsp1)
-+{
-+	mutex_lock(&vsp1->lock);
-+
-+	if (--vsp1->ref_count == 0)
-+		clk_disable_unprepare(vsp1->clock);
-+
-+	mutex_unlock(&vsp1->lock);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * Power Management
-+ */
-+
-+#ifdef CONFIG_PM_SLEEP
-+static int vsp1_pm_suspend(struct device *dev)
-+{
-+	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-+
-+	return 0;
-+}
-+
-+static int vsp1_pm_resume(struct device *dev)
-+{
-+	struct vsp1_device *vsp1 = dev_get_drvdata(dev);
-+
-+	return 0;
-+}
-+#endif
-+
-+static const struct dev_pm_ops vsp1_pm_ops = {
-+	SET_SYSTEM_SLEEP_PM_OPS(vsp1_pm_suspend, vsp1_pm_resume)
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Platform Driver
-+ */
-+
-+static struct vsp1_platform_data *
-+vsp1_get_platform_data(struct platform_device *pdev)
-+{
-+	struct vsp1_platform_data *pdata = pdev->dev.platform_data;
-+
-+	if (pdata == NULL) {
-+		dev_err(&pdev->dev, "missing platform data\n");
-+		return NULL;
-+	}
-+
-+	if (pdata->rpf_count <= 0 || pdata->rpf_count > VPS1_MAX_RPF) {
-+		dev_err(&pdev->dev, "invalid number of RPF (%u)\n",
-+			pdata->rpf_count);
-+		return NULL;
-+	}
-+
-+	if (pdata->uds_count <= 0 || pdata->uds_count > VPS1_MAX_UDS) {
-+		dev_err(&pdev->dev, "invalid number of UDS (%u)\n",
-+			pdata->uds_count);
-+		return NULL;
-+	}
-+
-+	if (pdata->wpf_count <= 0 || pdata->wpf_count > VPS1_MAX_WPF) {
-+		dev_err(&pdev->dev, "invalid number of WPF (%u)\n",
-+			pdata->wpf_count);
-+		return NULL;
-+	}
-+
-+	return pdata;
-+}
-+
-+static int vsp1_probe(struct platform_device *pdev)
-+{
-+	struct vsp1_device *vsp1;
-+	struct resource *irq;
-+	struct resource *io;
-+	int ret;
-+
-+	vsp1 = devm_kzalloc(&pdev->dev, sizeof(*vsp1), GFP_KERNEL);
-+	if (vsp1 == NULL) {
-+		dev_err(&pdev->dev, "failed to allocate private data\n");
-+		return -ENOMEM;
-+	}
-+
-+	vsp1->dev = &pdev->dev;
-+	mutex_init(&vsp1->lock);
-+	INIT_LIST_HEAD(&vsp1->entities);
-+
-+	vsp1->pdata = vsp1_get_platform_data(pdev);
-+	if (vsp1->pdata == NULL)
-+		return -ENODEV;
-+
-+	/* I/O, IRQ and clock resources */
-+	io = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-+	irq = platform_get_resource(pdev, IORESOURCE_IRQ, 0);
-+
-+	if (!io || !irq) {
-+		dev_err(&pdev->dev, "missing IRQ or IOMEM\n");
-+		return -EINVAL;
-+	}
-+
-+	vsp1->mmio = devm_ioremap_resource(&pdev->dev, io);
-+	if (IS_ERR((void *)vsp1->mmio)) {
-+		dev_err(&pdev->dev, "failed to remap memory resource\n");
-+		return PTR_ERR((void *)vsp1->mmio);
-+	}
-+
-+	vsp1->clock = devm_clk_get(&pdev->dev, NULL);
-+	if (IS_ERR(vsp1->clock)) {
-+		dev_err(&pdev->dev, "failed to get clock\n");
-+		return PTR_ERR(vsp1->clock);
-+	}
-+
-+	ret = devm_request_irq(&pdev->dev, irq->start, vsp1_irq_handler,
-+			      IRQF_SHARED, dev_name(&pdev->dev), vsp1);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "failed to request IRQ\n");
-+		return ret;
-+	}
-+
-+	/* Instanciate entities */
-+	ret = vsp1_create_entities(vsp1);
-+	if (ret < 0) {
-+		dev_err(&pdev->dev, "failed to create entities\n");
-+		return ret;
-+	}
-+
-+	platform_set_drvdata(pdev, vsp1);
-+
-+	return 0;
-+}
-+
-+static int vsp1_remove(struct platform_device *pdev)
-+{
-+	struct vsp1_device *vsp1 = platform_get_drvdata(pdev);
-+
-+	vsp1_destroy_entities(vsp1);
-+
-+	return 0;
-+}
-+
-+static struct platform_driver vsp1_platform_driver = {
-+	.probe		= vsp1_probe,
-+	.remove		= vsp1_remove,
-+	.driver		= {
-+		.owner	= THIS_MODULE,
-+		.name	= "vsp1",
-+		.pm	= &vsp1_pm_ops,
-+	},
-+};
-+
-+module_platform_driver(vsp1_platform_driver);
-+
-+MODULE_AUTHOR("Laurent Pinchart <laurent.pinchart@ideasonboard.com>");
-+MODULE_DESCRIPTION("Renesas VSP1 Driver");
-+MODULE_LICENSE("GPL");
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.c b/drivers/media/platform/vsp1/vsp1_entity.c
-new file mode 100644
-index 0000000..ac07779
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_entity.c
-@@ -0,0 +1,186 @@
-+/*
-+ * vsp1_entity.c  --  R-Car VSP1 Base Entity
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/gfp.h>
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_entity.h"
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Operations
-+ */
-+
-+struct v4l2_mbus_framefmt *
-+vsp1_entity_get_pad_format(struct vsp1_entity *entity,
-+			   struct v4l2_subdev_fh *fh,
-+			   unsigned int pad, u32 which)
-+{
-+	switch (which) {
-+	case V4L2_SUBDEV_FORMAT_TRY:
-+		return v4l2_subdev_get_try_format(fh, pad);
-+	case V4L2_SUBDEV_FORMAT_ACTIVE:
-+		return &entity->formats[pad];
-+	default:
-+		return NULL;
-+	}
-+}
-+
-+/*
-+ * vsp1_entity_init_formats - Initialize formats on all pads
-+ * @subdev: V4L2 subdevice
-+ * @fh: V4L2 subdev file handle
-+ *
-+ * Initialize all pad formats with default values. If fh is not NULL, try
-+ * formats are initialized on the file handle. Otherwise active formats are
-+ * initialized on the device.
-+ */
-+void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_fh *fh)
-+{
-+	struct v4l2_subdev_format format;
-+	unsigned int pad;
-+
-+	for (pad = 0; pad < subdev->entity.num_pads - 1; ++pad) {
-+		memset(&format, 0, sizeof(format));
-+
-+		format.pad = pad;
-+		format.which = fh ? V4L2_SUBDEV_FORMAT_TRY
-+			     : V4L2_SUBDEV_FORMAT_ACTIVE;
-+
-+		v4l2_subdev_call(subdev, pad, set_fmt, fh, &format);
-+	}
-+}
-+
-+static int vsp1_entity_open(struct v4l2_subdev *subdev,
-+			    struct v4l2_subdev_fh *fh)
-+{
-+	vsp1_entity_init_formats(subdev, fh);
-+
-+	return 0;
-+}
-+
-+const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops = {
-+	.open = vsp1_entity_open,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Media Operations
-+ */
-+
-+static int vsp1_entity_link_setup(struct media_entity *entity,
-+				  const struct media_pad *local,
-+				  const struct media_pad *remote, u32 flags)
-+{
-+	struct vsp1_entity *source;
-+
-+	if (!(local->flags & MEDIA_PAD_FL_SOURCE))
-+		return 0;
-+
-+	source = container_of(local->entity, struct vsp1_entity, subdev.entity);
-+
-+	if (!source->route)
-+		return 0;
-+
-+	if (flags & MEDIA_LNK_FL_ENABLED) {
-+		if (source->sink)
-+			return -EBUSY;
-+		source->sink = remote->entity;
-+	} else {
-+		source->sink = NULL;
-+	}
-+
-+	return 0;
-+}
-+
-+const struct media_entity_operations vsp1_media_ops = {
-+	.link_setup = vsp1_entity_link_setup,
-+	.link_validate = v4l2_subdev_link_validate,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Initialization
-+ */
-+
-+int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
-+		     unsigned int num_pads)
-+{
-+	static const struct {
-+		unsigned int id;
-+		unsigned int reg;
-+	} routes[] = {
-+		{ VI6_DPR_NODE_LIF, 0 },
-+		{ VI6_DPR_NODE_RPF(0), VI6_DPR_RPF_ROUTE(0) },
-+		{ VI6_DPR_NODE_RPF(1), VI6_DPR_RPF_ROUTE(1) },
-+		{ VI6_DPR_NODE_RPF(2), VI6_DPR_RPF_ROUTE(2) },
-+		{ VI6_DPR_NODE_RPF(3), VI6_DPR_RPF_ROUTE(3) },
-+		{ VI6_DPR_NODE_RPF(4), VI6_DPR_RPF_ROUTE(4) },
-+		{ VI6_DPR_NODE_UDS(0), VI6_DPR_UDS_ROUTE(0) },
-+		{ VI6_DPR_NODE_UDS(1), VI6_DPR_UDS_ROUTE(1) },
-+		{ VI6_DPR_NODE_UDS(2), VI6_DPR_UDS_ROUTE(2) },
-+		{ VI6_DPR_NODE_WPF(0), 0 },
-+		{ VI6_DPR_NODE_WPF(1), 0 },
-+		{ VI6_DPR_NODE_WPF(2), 0 },
-+		{ VI6_DPR_NODE_WPF(3), 0 },
-+	};
-+
-+	unsigned int i;
-+	int ret;
-+
-+	for (i = 0; i < ARRAY_SIZE(routes); ++i) {
-+		if (routes[i].id == entity->id) {
-+			entity->route = routes[i].reg;
-+			break;
-+		}
-+	}
-+
-+	if (i == ARRAY_SIZE(routes))
-+		return -EINVAL;
-+
-+	entity->vsp1 = vsp1;
-+	entity->source_pad = num_pads - 1;
-+
-+	/* Allocate formats and pads. */
-+	entity->formats = devm_kzalloc(vsp1->dev,
-+				       num_pads * sizeof(*entity->formats),
-+				       GFP_KERNEL);
-+	if (entity->formats == NULL)
-+		return -ENOMEM;
-+
-+	entity->pads = devm_kzalloc(vsp1->dev, num_pads * sizeof(*entity->pads),
-+				    GFP_KERNEL);
-+	if (entity->pads == NULL)
-+		return -ENOMEM;
-+
-+	/* Initialize pads. */
-+	for (i = 0; i < num_pads - 1; ++i)
-+		entity->pads[i].flags = MEDIA_PAD_FL_SINK;
-+
-+	entity->pads[num_pads - 1].flags = MEDIA_PAD_FL_SOURCE;
-+
-+	/* Initialize the media entity. */
-+	ret = media_entity_init(&entity->subdev.entity, num_pads,
-+				entity->pads, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	return 0;
-+}
-+
-+void vsp1_entity_destroy(struct vsp1_entity *entity)
-+{
-+	media_entity_cleanup(&entity->subdev.entity);
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_entity.h b/drivers/media/platform/vsp1/vsp1_entity.h
-new file mode 100644
-index 0000000..c4feab2c
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_entity.h
-@@ -0,0 +1,68 @@
-+/*
-+ * vsp1_entity.h  --  R-Car VSP1 Base Entity
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __VSP1_ENTITY_H__
-+#define __VSP1_ENTITY_H__
-+
-+#include <linux/list.h>
-+
-+#include <media/v4l2-subdev.h>
-+
-+struct vsp1_device;
-+
-+enum vsp1_entity_type {
-+	VSP1_ENTITY_LIF,
-+	VSP1_ENTITY_RPF,
-+	VSP1_ENTITY_UDS,
-+	VSP1_ENTITY_WPF,
-+};
-+
-+struct vsp1_entity {
-+	struct vsp1_device *vsp1;
-+
-+	enum vsp1_entity_type type;
-+	unsigned int index;
-+	unsigned int id;
-+	unsigned int route;
-+
-+	struct list_head list_dev;
-+	struct list_head list_pipe;
-+
-+	struct media_pad *pads;
-+	unsigned int source_pad;
-+
-+	struct media_entity *sink;
-+
-+	struct v4l2_subdev subdev;
-+	struct v4l2_mbus_framefmt *formats;
-+};
-+
-+static inline struct vsp1_entity *to_vsp1_entity(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct vsp1_entity, subdev);
-+}
-+
-+int vsp1_entity_init(struct vsp1_device *vsp1, struct vsp1_entity *entity,
-+		     unsigned int num_pads);
-+void vsp1_entity_destroy(struct vsp1_entity *entity);
-+
-+extern const struct v4l2_subdev_internal_ops vsp1_subdev_internal_ops;
-+extern const struct media_entity_operations vsp1_media_ops;
-+
-+struct v4l2_mbus_framefmt *
-+vsp1_entity_get_pad_format(struct vsp1_entity *entity,
-+			   struct v4l2_subdev_fh *fh,
-+			   unsigned int pad, u32 which);
-+void vsp1_entity_init_formats(struct v4l2_subdev *subdev,
-+			      struct v4l2_subdev_fh *fh);
-+
-+#endif /* __VSP1_ENTITY_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.c b/drivers/media/platform/vsp1/vsp1_lif.c
-new file mode 100644
-index 0000000..197698d
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_lif.c
-@@ -0,0 +1,237 @@
-+/*
-+ * vsp1_lif.c  --  R-Car VSP1 Up and Down Scaler
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/gfp.h>
-+
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_lif.h"
-+
-+#define LIF_MIN_SIZE				2U
-+#define LIF_MAX_SIZE				2048U
-+
-+/* -----------------------------------------------------------------------------
-+ * Device Access
-+ */
-+
-+static inline u32 vsp1_lif_read(struct vsp1_lif *lif, u32 reg)
-+{
-+	return vsp1_read(lif->entity.vsp1, reg);
-+}
-+
-+static inline void vsp1_lif_write(struct vsp1_lif *lif, u32 reg, u32 data)
-+{
-+	vsp1_write(lif->entity.vsp1, reg, data);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Core Operations
-+ */
-+
-+static int lif_s_stream(struct v4l2_subdev *subdev, int enable)
-+{
-+	const struct v4l2_mbus_framefmt *format;
-+	struct vsp1_lif *lif = to_lif(subdev);
-+	unsigned int hbth = 1300;
-+	unsigned int obth = 400;
-+	unsigned int lbth = 200;
-+
-+	if (!enable) {
-+		vsp1_lif_write(lif, VI6_LIF_CTRL, 0);
-+		return 0;
-+	}
-+
-+	format = &lif->entity.formats[LIF_PAD_SOURCE];
-+
-+	obth = min(obth, (format->width + 1) / 2 * format->height - 4);
-+
-+	vsp1_lif_write(lif, VI6_LIF_CSBTH,
-+			(hbth << VI6_LIF_CSBTH_HBTH_SHIFT) |
-+			(lbth << VI6_LIF_CSBTH_LBTH_SHIFT));
-+
-+	vsp1_lif_write(lif, VI6_LIF_CTRL,
-+			(obth << VI6_LIF_CTRL_OBTH_SHIFT) |
-+			(format->code == 0 ? VI6_LIF_CTRL_CFMT : 0) |
-+			VI6_LIF_CTRL_REQSEL | VI6_LIF_CTRL_LIF_EN);
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Pad Operations
-+ */
-+
-+static int lif_enum_mbus_code(struct v4l2_subdev *subdev,
-+			      struct v4l2_subdev_fh *fh,
-+			      struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	static const unsigned int codes[] = {
-+		V4L2_MBUS_FMT_ARGB8888_1X32,
-+		V4L2_MBUS_FMT_AYUV8_1X32,
-+	};
-+	struct v4l2_mbus_framefmt *format;
-+
-+	if (code->pad == LIF_PAD_SINK) {
-+		if (code->index >= ARRAY_SIZE(codes))
-+			return -EINVAL;
-+
-+		code->code = codes[code->index];
-+	} else {
-+		/* The LIF can't perform format conversion, the sink format is
-+		 * always identical to the source format.
-+		 */
-+		if (code->index)
-+			return -EINVAL;
-+
-+		format = v4l2_subdev_get_try_format(fh, LIF_PAD_SINK);
-+		code->code = format->code;
-+	}
-+
-+	return 0;
-+}
-+
-+static int lif_enum_frame_size(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_fh *fh,
-+			       struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct v4l2_mbus_framefmt *format;
-+
-+	format = v4l2_subdev_get_try_format(fh, LIF_PAD_SINK);
-+
-+	if (fse->index || fse->code != format->code)
-+		return -EINVAL;
-+
-+	if (fse->pad == LIF_PAD_SINK) {
-+		fse->min_width = LIF_MIN_SIZE;
-+		fse->max_width = LIF_MAX_SIZE;
-+		fse->min_height = LIF_MIN_SIZE;
-+		fse->max_height = LIF_MAX_SIZE;
-+	} else {
-+		fse->min_width = format->width;
-+		fse->max_width = format->width;
-+		fse->min_height = format->height;
-+		fse->max_height = format->height;
-+	}
-+
-+	return 0;
-+}
-+
-+static int lif_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			  struct v4l2_subdev_format *fmt)
-+{
-+	struct vsp1_lif *lif = to_lif(subdev);
-+
-+	fmt->format = *vsp1_entity_get_pad_format(&lif->entity, fh, fmt->pad,
-+						  fmt->which);
-+
-+	return 0;
-+}
-+
-+static int lif_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			  struct v4l2_subdev_format *fmt)
-+{
-+	struct vsp1_lif *lif = to_lif(subdev);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	/* Default to YUV if the requested format is not supported. */
-+	if (fmt->format.code != V4L2_MBUS_FMT_ARGB8888_1X32 &&
-+	    fmt->format.code != V4L2_MBUS_FMT_AYUV8_1X32)
-+		fmt->format.code = V4L2_MBUS_FMT_AYUV8_1X32;
-+
-+	format = vsp1_entity_get_pad_format(&lif->entity, fh, fmt->pad,
-+					    fmt->which);
-+
-+	if (fmt->pad == LIF_PAD_SOURCE) {
-+		/* The LIF source format is always identical to its sink
-+		 * format.
-+		 */
-+		fmt->format = *format;
-+		return 0;
-+	}
-+
-+	format->code = fmt->format.code;
-+	format->width = clamp_t(unsigned int, fmt->format.width,
-+				LIF_MIN_SIZE, LIF_MAX_SIZE);
-+	format->height = clamp_t(unsigned int, fmt->format.height,
-+				 LIF_MIN_SIZE, LIF_MAX_SIZE);
-+	format->field = V4L2_FIELD_NONE;
-+	format->colorspace = V4L2_COLORSPACE_SRGB;
-+
-+	fmt->format = *format;
-+
-+	/* Propagate the format to the source pad. */
-+	format = vsp1_entity_get_pad_format(&lif->entity, fh, LIF_PAD_SOURCE,
-+					    fmt->which);
-+	*format = fmt->format;
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Operations
-+ */
-+
-+static struct v4l2_subdev_video_ops lif_video_ops = {
-+	.s_stream = lif_s_stream,
-+};
-+
-+static struct v4l2_subdev_pad_ops lif_pad_ops = {
-+	.enum_mbus_code = lif_enum_mbus_code,
-+	.enum_frame_size = lif_enum_frame_size,
-+	.get_fmt = lif_get_format,
-+	.set_fmt = lif_set_format,
-+};
-+
-+static struct v4l2_subdev_ops lif_ops = {
-+	.video	= &lif_video_ops,
-+	.pad    = &lif_pad_ops,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Initialization and Cleanup
-+ */
-+
-+struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1)
-+{
-+	struct v4l2_subdev *subdev;
-+	struct vsp1_lif *lif;
-+	int ret;
-+
-+	lif = devm_kzalloc(vsp1->dev, sizeof(*lif), GFP_KERNEL);
-+	if (lif == NULL)
-+		return ERR_PTR(-ENOMEM);
-+
-+	lif->entity.type = VSP1_ENTITY_LIF;
-+	lif->entity.id = VI6_DPR_NODE_LIF;
-+
-+	ret = vsp1_entity_init(vsp1, &lif->entity, 2);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	/* Initialize the V4L2 subdev. */
-+	subdev = &lif->entity.subdev;
-+	v4l2_subdev_init(subdev, &lif_ops);
-+
-+	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->internal_ops = &vsp1_subdev_internal_ops;
-+	snprintf(subdev->name, sizeof(subdev->name), "%s lif",
-+		 dev_name(vsp1->dev));
-+	v4l2_set_subdevdata(subdev, lif);
-+	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	vsp1_entity_init_formats(subdev, NULL);
-+
-+	return lif;
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_lif.h b/drivers/media/platform/vsp1/vsp1_lif.h
-new file mode 100644
-index 0000000..cf7edde
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_lif.h
-@@ -0,0 +1,38 @@
-+/*
-+ * vsp1_lif.c  --  R-Car VSP1 LCDC Interface
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __VSP1_LIF_H__
-+#define __VSP1_LIF_H__
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1_entity.h"
-+
-+struct vsp1_device;
-+
-+#define LIF_PAD_SINK				0
-+#define LIF_PAD_SOURCE				1
-+
-+struct vsp1_lif {
-+	struct vsp1_entity entity;
-+};
-+
-+static inline struct vsp1_lif *to_lif(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct vsp1_lif, entity.subdev);
-+}
-+
-+struct vsp1_lif *vsp1_lif_create(struct vsp1_device *vsp1);
-+void vsp1_lif_destroy(struct vsp1_lif *lif);
-+
-+#endif /* __VSP1_LIF_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_regs.h b/drivers/media/platform/vsp1/vsp1_regs.h
-new file mode 100644
-index 0000000..0332726
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_regs.h
-@@ -0,0 +1,581 @@
-+/*
-+ * vsp1_regs.h  --  R-Car VSP1 Registers Definitions
-+ *
-+ * Copyright (C) 2013 Renesas Electronics Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License version 2
-+ * as published by the Free Software Foundation.
-+ */
-+
-+#ifndef __VSP1_REGS_H__
-+#define __VSP1_REGS_H__
-+
-+/* -----------------------------------------------------------------------------
-+ * General Control Registers
-+ */
-+
-+#define VI6_CMD(n)			(0x0000 + (n) * 4)
-+#define VI6_CMD_STRCMD			(1 << 0)
-+
-+#define VI6_CLK_DCSWT			0x0018
-+#define VI6_CLK_DCSWT_CSTPW_MASK	(0xff << 8)
-+#define VI6_CLK_DCSWT_CSTPW_SHIFT	8
-+#define VI6_CLK_DCSWT_CSTRW_MASK	(0xff << 0)
-+#define VI6_CLK_DCSWT_CSTRW_SHIFT	0
-+
-+#define VI6_SRESET			0x0028
-+#define VI6_SRESET_SRTS(n)		(1 << (n))
-+
-+#define VI6_STATUS			0x0038
-+#define VI6_STATUS_SYS_ACT(n)		(1 << ((n) + 8))
-+
-+#define VI6_WPF_IRQ_ENB(n)		(0x0048 + (n) * 12)
-+#define VI6_WFP_IRQ_ENB_DFEE		(1 << 1)
-+#define VI6_WFP_IRQ_ENB_FREE		(1 << 0)
-+
-+#define VI6_WPF_IRQ_STA(n)		(0x004c + (n) * 12)
-+#define VI6_WFP_IRQ_STA_DFE		(1 << 1)
-+#define VI6_WFP_IRQ_STA_FRE		(1 << 0)
-+
-+#define VI6_DISP_IRQ_ENB		0x0078
-+#define VI6_DISP_IRQ_ENB_DSTE		(1 << 8)
-+#define VI6_DISP_IRQ_ENB_MAEE		(1 << 5)
-+#define VI6_DISP_IRQ_ENB_LNEE(n)	(1 << ((n) + 4))
-+
-+#define VI6_DISP_IRQ_STA		0x007c
-+#define VI6_DISP_IRQ_STA_DSE		(1 << 8)
-+#define VI6_DISP_IRQ_STA_MAE		(1 << 5)
-+#define VI6_DISP_IRQ_STA_LNE(n)		(1 << ((n) + 4))
-+
-+#define VI6_WPF_LINE_COUNT(n)		(0x0084 + (n) * 4)
-+#define VI6_WPF_LINE_COUNT_MASK		(0x1fffff << 0)
-+
-+/* -----------------------------------------------------------------------------
-+ * Display List Control Registers
-+ */
-+
-+#define VI6_DL_CTRL			0x0100
-+#define VI6_DL_CTRL_AR_WAIT_MASK	(0xffff << 16)
-+#define VI6_DL_CTRL_AR_WAIT_SHIFT	16
-+#define VI6_DL_CTRL_DC2			(1 << 12)
-+#define VI6_DL_CTRL_DC1			(1 << 8)
-+#define VI6_DL_CTRL_DC0			(1 << 4)
-+#define VI6_DL_CTRL_CFM0		(1 << 2)
-+#define VI6_DL_CTRL_NH0			(1 << 1)
-+#define VI6_DL_CTRL_DLE			(1 << 0)
-+
-+#define VI6_DL_HDR_ADDR(n)		(0x0104 + (n) * 4)
-+
-+#define VI6_DL_SWAP			0x0114
-+#define VI6_DL_SWAP_LWS			(1 << 2)
-+#define VI6_DL_SWAP_WDS			(1 << 1)
-+#define VI6_DL_SWAP_BTS			(1 << 0)
-+
-+#define VI6_DL_EXT_CTRL			0x011c
-+#define VI6_DL_EXT_CTRL_NWE		(1 << 16)
-+#define VI6_DL_EXT_CTRL_POLINT_MASK	(0x3f << 8)
-+#define VI6_DL_EXT_CTRL_POLINT_SHIFT	8
-+#define VI6_DL_EXT_CTRL_DLPRI		(1 << 5)
-+#define VI6_DL_EXT_CTRL_EXPRI		(1 << 4)
-+#define VI6_DL_EXT_CTRL_EXT		(1 << 0)
-+
-+#define VI6_DL_BODY_SIZE		0x0120
-+#define VI6_DL_BODY_SIZE_UPD		(1 << 24)
-+#define VI6_DL_BODY_SIZE_BS_MASK	(0x1ffff << 0)
-+#define VI6_DL_BODY_SIZE_BS_SHIFT	0
-+
-+/* -----------------------------------------------------------------------------
-+ * RPF Control Registers
-+ */
-+
-+#define VI6_RPF_OFFSET			0x100
-+
-+#define VI6_RPF_SRC_BSIZE		0x0300
-+#define VI6_RPF_SRC_BSIZE_BHSIZE_MASK	(0x1fff << 16)
-+#define VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT	16
-+#define VI6_RPF_SRC_BSIZE_BVSIZE_MASK	(0x1fff << 0)
-+#define VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT	0
-+
-+#define VI6_RPF_SRC_ESIZE		0x0304
-+#define VI6_RPF_SRC_ESIZE_EHSIZE_MASK	(0x1fff << 16)
-+#define VI6_RPF_SRC_ESIZE_EHSIZE_SHIFT	16
-+#define VI6_RPF_SRC_ESIZE_EVSIZE_MASK	(0x1fff << 0)
-+#define VI6_RPF_SRC_ESIZE_EVSIZE_SHIFT	0
-+
-+#define VI6_RPF_INFMT			0x0308
-+#define VI6_RPF_INFMT_VIR		(1 << 28)
-+#define VI6_RPF_INFMT_CIPM		(1 << 16)
-+#define VI6_RPF_INFMT_SPYCS		(1 << 15)
-+#define VI6_RPF_INFMT_SPUVS		(1 << 14)
-+#define VI6_RPF_INFMT_CEXT_ZERO		(0 << 12)
-+#define VI6_RPF_INFMT_CEXT_EXT		(1 << 12)
-+#define VI6_RPF_INFMT_CEXT_ONE		(2 << 12)
-+#define VI6_RPF_INFMT_CEXT_MASK		(3 << 12)
-+#define VI6_RPF_INFMT_RDTM_BT601	(0 << 9)
-+#define VI6_RPF_INFMT_RDTM_BT601_EXT	(1 << 9)
-+#define VI6_RPF_INFMT_RDTM_BT709	(2 << 9)
-+#define VI6_RPF_INFMT_RDTM_BT709_EXT	(3 << 9)
-+#define VI6_RPF_INFMT_RDTM_MASK		(7 << 9)
-+#define VI6_RPF_INFMT_CSC		(1 << 8)
-+#define VI6_RPF_INFMT_RDFMT_MASK	(0x7f << 0)
-+#define VI6_RPF_INFMT_RDFMT_SHIFT	0
-+
-+#define VI6_RPF_DSWAP			0x030c
-+#define VI6_RPF_DSWAP_A_LLS		(1 << 11)
-+#define VI6_RPF_DSWAP_A_LWS		(1 << 10)
-+#define VI6_RPF_DSWAP_A_WDS		(1 << 9)
-+#define VI6_RPF_DSWAP_A_BTS		(1 << 8)
-+#define VI6_RPF_DSWAP_P_LLS		(1 << 3)
-+#define VI6_RPF_DSWAP_P_LWS		(1 << 2)
-+#define VI6_RPF_DSWAP_P_WDS		(1 << 1)
-+#define VI6_RPF_DSWAP_P_BTS		(1 << 0)
-+
-+#define VI6_RPF_LOC			0x0310
-+#define VI6_RPF_LOC_HCOORD_MASK		(0x1fff << 16)
-+#define VI6_RPF_LOC_HCOORD_SHIFT	16
-+#define VI6_RPF_LOC_VCOORD_MASK		(0x1fff << 0)
-+#define VI6_RPF_LOC_VCOORD_SHIFT	0
-+
-+#define VI6_RPF_ALPH_SEL		0x0314
-+#define VI6_RPF_ALPH_SEL_ASEL_PACKED	(0 << 28)
-+#define VI6_RPF_ALPH_SEL_ASEL_8B_PLANE	(1 << 28)
-+#define VI6_RPF_ALPH_SEL_ASEL_SELECT	(2 << 28)
-+#define VI6_RPF_ALPH_SEL_ASEL_1B_PLANE	(3 << 28)
-+#define VI6_RPF_ALPH_SEL_ASEL_FIXED	(4 << 28)
-+#define VI6_RPF_ALPH_SEL_ASEL_MASK	(7 << 28)
-+#define VI6_RPF_ALPH_SEL_ASEL_SHIFT	28
-+#define VI6_RPF_ALPH_SEL_IROP_MASK	(0xf << 24)
-+#define VI6_RPF_ALPH_SEL_IROP_SHIFT	24
-+#define VI6_RPF_ALPH_SEL_BSEL		(1 << 23)
-+#define VI6_RPF_ALPH_SEL_AEXT_ZERO	(0 << 18)
-+#define VI6_RPF_ALPH_SEL_AEXT_EXT	(1 << 18)
-+#define VI6_RPF_ALPH_SEL_AEXT_ONE	(2 << 18)
-+#define VI6_RPF_ALPH_SEL_AEXT_MASK	(3 << 18)
-+#define VI6_RPF_ALPH_SEL_ALPHA0_MASK	(0xff << 8)
-+#define VI6_RPF_ALPH_SEL_ALPHA0_SHIFT	8
-+#define VI6_RPF_ALPH_SEL_ALPHA1_MASK	(0xff << 0)
-+#define VI6_RPF_ALPH_SEL_ALPHA1_SHIFT	0
-+
-+#define VI6_RPF_VRTCOL_SET		0x0318
-+#define VI6_RPF_VRTCOL_SET_LAYA_MASK	(0xff << 24)
-+#define VI6_RPF_VRTCOL_SET_LAYA_SHIFT	24
-+#define VI6_RPF_VRTCOL_SET_LAYR_MASK	(0xff << 16)
-+#define VI6_RPF_VRTCOL_SET_LAYR_SHIFT	16
-+#define VI6_RPF_VRTCOL_SET_LAYG_MASK	(0xff << 8)
-+#define VI6_RPF_VRTCOL_SET_LAYG_SHIFT	8
-+#define VI6_RPF_VRTCOL_SET_LAYB_MASK	(0xff << 0)
-+#define VI6_RPF_VRTCOL_SET_LAYB_SHIFT	0
-+
-+#define VI6_RPF_MSK_CTRL		0x031c
-+#define VI6_RPF_MSK_CTRL_MSK_EN		(1 << 24)
-+#define VI6_RPF_MSK_CTRL_MGR_MASK	(0xff << 16)
-+#define VI6_RPF_MSK_CTRL_MGR_SHIFT	16
-+#define VI6_RPF_MSK_CTRL_MGG_MASK	(0xff << 8)
-+#define VI6_RPF_MSK_CTRL_MGG_SHIFT	8
-+#define VI6_RPF_MSK_CTRL_MGB_MASK	(0xff << 0)
-+#define VI6_RPF_MSK_CTRL_MGB_SHIFT	0
-+
-+#define VI6_RPF_MSK_SET0		0x0320
-+#define VI6_RPF_MSK_SET1		0x0324
-+#define VI6_RPF_MSK_SET_MSA_MASK	(0xff << 24)
-+#define VI6_RPF_MSK_SET_MSA_SHIFT	24
-+#define VI6_RPF_MSK_SET_MSR_MASK	(0xff << 16)
-+#define VI6_RPF_MSK_SET_MSR_SHIFT	16
-+#define VI6_RPF_MSK_SET_MSG_MASK	(0xff << 8)
-+#define VI6_RPF_MSK_SET_MSG_SHIFT	8
-+#define VI6_RPF_MSK_SET_MSB_MASK	(0xff << 0)
-+#define VI6_RPF_MSK_SET_MSB_SHIFT	0
-+
-+#define VI6_RPF_CKEY_CTRL		0x0328
-+#define VI6_RPF_CKEY_CTRL_CV		(1 << 4)
-+#define VI6_RPF_CKEY_CTRL_SAPE1		(1 << 1)
-+#define VI6_RPF_CKEY_CTRL_SAPE0		(1 << 0)
-+
-+#define VI6_RPF_CKEY_SET0		0x032c
-+#define VI6_RPF_CKEY_SET1		0x0330
-+#define VI6_RPF_CKEY_SET_AP_MASK	(0xff << 24)
-+#define VI6_RPF_CKEY_SET_AP_SHIFT	24
-+#define VI6_RPF_CKEY_SET_R_MASK		(0xff << 16)
-+#define VI6_RPF_CKEY_SET_R_SHIFT	16
-+#define VI6_RPF_CKEY_SET_GY_MASK	(0xff << 8)
-+#define VI6_RPF_CKEY_SET_GY_SHIFT	8
-+#define VI6_RPF_CKEY_SET_B_MASK		(0xff << 0)
-+#define VI6_RPF_CKEY_SET_B_SHIFT	0
-+
-+#define VI6_RPF_SRCM_PSTRIDE		0x0334
-+#define VI6_RPF_SRCM_PSTRIDE_Y_SHIFT	16
-+#define VI6_RPF_SRCM_PSTRIDE_C_SHIFT	0
-+
-+#define VI6_RPF_SRCM_ASTRIDE		0x0338
-+#define VI6_RPF_SRCM_PSTRIDE_A_SHIFT	0
-+
-+#define VI6_RPF_SRCM_ADDR_Y		0x033c
-+#define VI6_RPF_SRCM_ADDR_C0		0x0340
-+#define VI6_RPF_SRCM_ADDR_C1		0x0344
-+#define VI6_RPF_SRCM_ADDR_AI		0x0348
-+
-+/* -----------------------------------------------------------------------------
-+ * WPF Control Registers
-+ */
-+
-+#define VI6_WPF_OFFSET			0x100
-+
-+#define VI6_WPF_SRCRPF			0x1000
-+#define VI6_WPF_SRCRPF_VIRACT_DIS	(0 << 28)
-+#define VI6_WPF_SRCRPF_VIRACT_SUB	(1 << 28)
-+#define VI6_WPF_SRCRPF_VIRACT_MST	(2 << 28)
-+#define VI6_WPF_SRCRPF_VIRACT_MASK	(3 << 28)
-+#define VI6_WPF_SRCRPF_RPF_ACT_DIS(n)	(0 << ((n) * 2))
-+#define VI6_WPF_SRCRPF_RPF_ACT_SUB(n)	(1 << ((n) * 2))
-+#define VI6_WPF_SRCRPF_RPF_ACT_MST(n)	(2 << ((n) * 2))
-+#define VI6_WPF_SRCRPF_RPF_ACT_MASK(n)	(3 << ((n) * 2))
-+
-+#define VI6_WPF_HSZCLIP			0x1004
-+#define VI6_WPF_VSZCLIP			0x1008
-+#define VI6_WPF_SZCLIP_EN		(1 << 28)
-+#define VI6_WPF_SZCLIP_OFST_MASK	(0xff << 16)
-+#define VI6_WPF_SZCLIP_OFST_SHIFT	16
-+#define VI6_WPF_SZCLIP_SIZE_MASK	(0x1fff << 0)
-+#define VI6_WPF_SZCLIP_SIZE_SHIFT	0
-+
-+#define VI6_WPF_OUTFMT			0x100c
-+#define VI6_WPF_OUTFMT_PDV_MASK		(0xff << 24)
-+#define VI6_WPF_OUTFMT_PDV_SHIFT	24
-+#define VI6_WPF_OUTFMT_PXA		(1 << 23)
-+#define VI6_WPF_OUTFMT_FLP		(1 << 16)
-+#define VI6_WPF_OUTFMT_SPYCS		(1 << 15)
-+#define VI6_WPF_OUTFMT_SPUVS		(1 << 14)
-+#define VI6_WPF_OUTFMT_DITH_DIS		(0 << 12)
-+#define VI6_WPF_OUTFMT_DITH_EN		(3 << 12)
-+#define VI6_WPF_OUTFMT_DITH_MASK	(3 << 12)
-+#define VI6_WPF_OUTFMT_WRTM_BT601	(0 << 9)
-+#define VI6_WPF_OUTFMT_WRTM_BT601_EXT	(1 << 9)
-+#define VI6_WPF_OUTFMT_WRTM_BT709	(2 << 9)
-+#define VI6_WPF_OUTFMT_WRTM_BT709_EXT	(3 << 9)
-+#define VI6_WPF_OUTFMT_WRTM_MASK	(7 << 9)
-+#define VI6_WPF_OUTFMT_CSC		(1 << 8)
-+#define VI6_WPF_OUTFMT_WRFMT_MASK	(0x7f << 0)
-+#define VI6_WPF_OUTFMT_WRFMT_SHIFT	0
-+
-+#define VI6_WPF_DSWAP			0x1010
-+#define VI6_WPF_DSWAP_P_LLS		(1 << 3)
-+#define VI6_WPF_DSWAP_P_LWS		(1 << 2)
-+#define VI6_WPF_DSWAP_P_WDS		(1 << 1)
-+#define VI6_WPF_DSWAP_P_BTS		(1 << 0)
-+
-+#define VI6_WPF_RNDCTRL			0x1014
-+#define VI6_WPF_RNDCTRL_CBRM		(1 << 28)
-+#define VI6_WPF_RNDCTRL_ABRM_TRUNC	(0 << 24)
-+#define VI6_WPF_RNDCTRL_ABRM_ROUND	(1 << 24)
-+#define VI6_WPF_RNDCTRL_ABRM_THRESH	(2 << 24)
-+#define VI6_WPF_RNDCTRL_ABRM_MASK	(3 << 24)
-+#define VI6_WPF_RNDCTRL_ATHRESH_MASK	(0xff << 16)
-+#define VI6_WPF_RNDCTRL_ATHRESH_SHIFT	16
-+#define VI6_WPF_RNDCTRL_CLMD_FULL	(0 << 12)
-+#define VI6_WPF_RNDCTRL_CLMD_CLIP	(1 << 12)
-+#define VI6_WPF_RNDCTRL_CLMD_EXT	(2 << 12)
-+#define VI6_WPF_RNDCTRL_CLMD_MASK	(3 << 12)
-+
-+#define VI6_WPF_DSTM_STRIDE_Y		0x101c
-+#define VI6_WPF_DSTM_STRIDE_C		0x1020
-+#define VI6_WPF_DSTM_ADDR_Y		0x1024
-+#define VI6_WPF_DSTM_ADDR_C0		0x1028
-+#define VI6_WPF_DSTM_ADDR_C1		0x102c
-+
-+#define VI6_WPF_WRBCK_CTRL		0x1034
-+#define VI6_WPF_WRBCK_CTRL_WBMD		(1 << 0)
-+
-+/* -----------------------------------------------------------------------------
-+ * DPR Control Registers
-+ */
-+
-+#define VI6_DPR_RPF_ROUTE(n)		(0x2000 + (n) * 4)
-+
-+#define VI6_DPR_WPF_FPORCH(n)		(0x2014 + (n) * 4)
-+#define VI6_DPR_WPF_FPORCH_FP_WPFN	(5 << 8)
-+
-+#define VI6_DPR_SRU_ROUTE		0x2024
-+#define VI6_DPR_UDS_ROUTE(n)		(0x2028 + (n) * 4)
-+#define VI6_DPR_LUT_ROUTE		0x203c
-+#define VI6_DPR_CLU_ROUTE		0x2040
-+#define VI6_DPR_HST_ROUTE		0x2044
-+#define VI6_DPR_HSI_ROUTE		0x2048
-+#define VI6_DPR_BRU_ROUTE		0x204c
-+#define VI6_DPR_ROUTE_FXA_MASK		(0xff << 8)
-+#define VI6_DPR_ROUTE_FXA_SHIFT		16
-+#define VI6_DPR_ROUTE_FP_MASK		(0xff << 8)
-+#define VI6_DPR_ROUTE_FP_SHIFT		8
-+#define VI6_DPR_ROUTE_RT_MASK		(0x3f << 0)
-+#define VI6_DPR_ROUTE_RT_SHIFT		0
-+
-+#define VI6_DPR_HGO_SMPPT		0x2050
-+#define VI6_DPR_HGT_SMPPT		0x2054
-+#define VI6_DPR_SMPPT_TGW_MASK		(7 << 8)
-+#define VI6_DPR_SMPPT_TGW_SHIFT		8
-+#define VI6_DPR_SMPPT_PT_MASK		(0x3f << 0)
-+#define VI6_DPR_SMPPT_PT_SHIFT		0
-+
-+#define VI6_DPR_NODE_RPF(n)		(n)
-+#define VI6_DPR_NODE_SRU		16
-+#define VI6_DPR_NODE_UDS(n)		(17 + (n))
-+#define VI6_DPR_NODE_LUT		22
-+#define VI6_DPR_NODE_BRU_IN(n)		(23 + (n))
-+#define VI6_DPR_NODE_BRU_OUT		27
-+#define VI6_DPR_NODE_CLU		29
-+#define VI6_DPR_NODE_HST		30
-+#define VI6_DPR_NODE_HSI		31
-+#define VI6_DPR_NODE_LIF		55
-+#define VI6_DPR_NODE_WPF(n)		(56 + (n))
-+#define VI6_DPR_NODE_UNUSED		63
-+
-+/* -----------------------------------------------------------------------------
-+ * SRU Control Registers
-+ */
-+
-+#define VI6_SRU_CTRL0			0x2200
-+#define VI6_SRU_CTRL1			0x2204
-+#define VI6_SRU_CTRL2			0x2208
-+
-+/* -----------------------------------------------------------------------------
-+ * UDS Control Registers
-+ */
-+
-+#define VI6_UDS_OFFSET			0x100
-+
-+#define VI6_UDS_CTRL			0x2300
-+#define VI6_UDS_CTRL_AMD		(1 << 30)
-+#define VI6_UDS_CTRL_FMD		(1 << 29)
-+#define VI6_UDS_CTRL_BLADV		(1 << 28)
-+#define VI6_UDS_CTRL_AON		(1 << 25)
-+#define VI6_UDS_CTRL_ATHON		(1 << 24)
-+#define VI6_UDS_CTRL_BC			(1 << 20)
-+#define VI6_UDS_CTRL_NE_A		(1 << 19)
-+#define VI6_UDS_CTRL_NE_RCR		(1 << 18)
-+#define VI6_UDS_CTRL_NE_GY		(1 << 17)
-+#define VI6_UDS_CTRL_NE_BCB		(1 << 16)
-+#define VI6_UDS_CTRL_TDIPC		(1 << 1)
-+
-+#define VI6_UDS_SCALE			0x2304
-+#define VI6_UDS_SCALE_HMANT_MASK	(0xf << 28)
-+#define VI6_UDS_SCALE_HMANT_SHIFT	28
-+#define VI6_UDS_SCALE_HFRAC_MASK	(0xfff << 16)
-+#define VI6_UDS_SCALE_HFRAC_SHIFT	16
-+#define VI6_UDS_SCALE_VMANT_MASK	(0xf << 12)
-+#define VI6_UDS_SCALE_VMANT_SHIFT	12
-+#define VI6_UDS_SCALE_VFRAC_MASK	(0xfff << 0)
-+#define VI6_UDS_SCALE_VFRAC_SHIFT	0
-+
-+#define VI6_UDS_ALPTH			0x2308
-+#define VI6_UDS_ALPTH_TH1_MASK		(0xff << 8)
-+#define VI6_UDS_ALPTH_TH1_SHIFT		8
-+#define VI6_UDS_ALPTH_TH0_MASK		(0xff << 0)
-+#define VI6_UDS_ALPTH_TH0_SHIFT		0
-+
-+#define VI6_UDS_ALPVAL			0x230c
-+#define VI6_UDS_ALPVAL_VAL2_MASK	(0xff << 16)
-+#define VI6_UDS_ALPVAL_VAL2_SHIFT	16
-+#define VI6_UDS_ALPVAL_VAL1_MASK	(0xff << 8)
-+#define VI6_UDS_ALPVAL_VAL1_SHIFT	8
-+#define VI6_UDS_ALPVAL_VAL0_MASK	(0xff << 0)
-+#define VI6_UDS_ALPVAL_VAL0_SHIFT	0
-+
-+#define VI6_UDS_PASS_BWIDTH		0x2310
-+#define VI6_UDS_PASS_BWIDTH_H_MASK	(0x7f << 16)
-+#define VI6_UDS_PASS_BWIDTH_H_SHIFT	16
-+#define VI6_UDS_PASS_BWIDTH_V_MASK	(0x7f << 0)
-+#define VI6_UDS_PASS_BWIDTH_V_SHIFT	0
-+
-+#define VI6_UDS_IPC			0x2318
-+#define VI6_UDS_IPC_FIELD		(1 << 27)
-+#define VI6_UDS_IPC_VEDP_MASK		(0xfff << 0)
-+#define VI6_UDS_IPC_VEDP_SHIFT		0
-+
-+#define VI6_UDS_CLIP_SIZE		0x2324
-+#define VI6_UDS_CLIP_SIZE_HSIZE_MASK	(0x1fff << 16)
-+#define VI6_UDS_CLIP_SIZE_HSIZE_SHIFT	16
-+#define VI6_UDS_CLIP_SIZE_VSIZE_MASK	(0x1fff << 0)
-+#define VI6_UDS_CLIP_SIZE_VSIZE_SHIFT	0
-+
-+#define VI6_UDS_FILL_COLOR		0x2328
-+#define VI6_UDS_FILL_COLOR_RFILC_MASK	(0xff << 16)
-+#define VI6_UDS_FILL_COLOR_RFILC_SHIFT	16
-+#define VI6_UDS_FILL_COLOR_GFILC_MASK	(0xff << 8)
-+#define VI6_UDS_FILL_COLOR_GFILC_SHIFT	8
-+#define VI6_UDS_FILL_COLOR_BFILC_MASK	(0xff << 0)
-+#define VI6_UDS_FILL_COLOR_BFILC_SHIFT	0
-+
-+/* -----------------------------------------------------------------------------
-+ * LUT Control Registers
-+ */
-+
-+#define VI6_LUT_CTRL			0x2800
-+
-+/* -----------------------------------------------------------------------------
-+ * CLU Control Registers
-+ */
-+
-+#define VI6_CLU_CTRL			0x2900
-+
-+/* -----------------------------------------------------------------------------
-+ * HSB Control Registers
-+ */
-+
-+#define VI6_HSB_CTRL			0x2a00
-+
-+/* -----------------------------------------------------------------------------
-+ * HSI Control Registers
-+ */
-+
-+#define VI6_HSI_CTRL			0x2b00
-+
-+/* -----------------------------------------------------------------------------
-+ * BRU Control Registers
-+ */
-+
-+#define VI6_BRU_INCTRL			0x2c00
-+#define VI6_BRU_VIRRPF_SIZE		0x2c04
-+#define VI6_BRU_VIRRPF_LOC		0x2c08
-+#define VI6_BRU_VIRRPF_COL		0x2c0c
-+#define VI6_BRU_CTRL(n)			(0x2c10 + (n) * 8)
-+#define VI6_BRU_BLD(n)			(0x2c14 + (n) * 8)
-+#define VI6_BRU_ROP			0x2c30
-+
-+/* -----------------------------------------------------------------------------
-+ * HGO Control Registers
-+ */
-+
-+#define VI6_HGO_OFFSET			0x3000
-+#define VI6_HGO_SIZE			0x3004
-+#define VI6_HGO_MODE			0x3008
-+#define VI6_HGO_LB_TH			0x300c
-+#define VI6_HGO_LBn_H			(0x3010 + (n) * 8)
-+#define VI6_HGO_LBn_V			(0x3014 + (n) * 8)
-+#define VI6_HGO_R_HISTO			0x3030
-+#define VI6_HGO_R_MAXMIN		0x3130
-+#define VI6_HGO_R_SUM			0x3134
-+#define VI6_HGO_R_LB_DET		0x3138
-+#define VI6_HGO_G_HISTO			0x3140
-+#define VI6_HGO_G_MAXMIN		0x3240
-+#define VI6_HGO_G_SUM			0x3244
-+#define VI6_HGO_G_LB_DET		0x3248
-+#define VI6_HGO_B_HISTO			0x3250
-+#define VI6_HGO_B_MAXMIN		0x3350
-+#define VI6_HGO_B_SUM			0x3354
-+#define VI6_HGO_B_LB_DET		0x3358
-+#define VI6_HGO_REGRST			0x33fc
-+
-+/* -----------------------------------------------------------------------------
-+ * HGT Control Registers
-+ */
-+
-+#define VI6_HGT_OFFSET			0x3400
-+#define VI6_HGT_SIZE			0x3404
-+#define VI6_HGT_MODE			0x3408
-+#define VI6_HGT_HUE_AREA(n)		(0x340c + (n) * 4)
-+#define VI6_HGT_LB_TH			0x3424
-+#define VI6_HGT_LBn_H			(0x3438 + (n) * 8)
-+#define VI6_HGT_LBn_V			(0x342c + (n) * 8)
-+#define VI6_HGT_HISTO(m, n)		(0x3450 + (m) * 128 + (n) * 4)
-+#define VI6_HGT_MAXMIN			0x3750
-+#define VI6_HGT_SUM			0x3754
-+#define VI6_HGT_LB_DET			0x3758
-+#define VI6_HGT_REGRST			0x37fc
-+
-+/* -----------------------------------------------------------------------------
-+ * LIF Control Registers
-+ */
-+
-+#define VI6_LIF_CTRL			0x3b00
-+#define VI6_LIF_CTRL_OBTH_MASK		(0x7ff << 16)
-+#define VI6_LIF_CTRL_OBTH_SHIFT		16
-+#define VI6_LIF_CTRL_CFMT		(1 << 4)
-+#define VI6_LIF_CTRL_REQSEL		(1 << 1)
-+#define VI6_LIF_CTRL_LIF_EN		(1 << 0)
-+
-+#define VI6_LIF_CSBTH			0x3b04
-+#define VI6_LIF_CSBTH_HBTH_MASK		(0x7ff << 16)
-+#define VI6_LIF_CSBTH_HBTH_SHIFT	16
-+#define VI6_LIF_CSBTH_LBTH_MASK		(0x7ff << 0)
-+#define VI6_LIF_CSBTH_LBTH_SHIFT	0
-+
-+/* -----------------------------------------------------------------------------
-+ * Security Control Registers
-+ */
-+
-+#define VI6_SECURITY_CTRL0		0x3d00
-+#define VI6_SECURITY_CTRL1		0x3d04
-+
-+/* -----------------------------------------------------------------------------
-+ * RPF CLUT Registers
-+ */
-+
-+#define VI6_CLUT_TABLE			0x4000
-+
-+/* -----------------------------------------------------------------------------
-+ * 1D LUT Registers
-+ */
-+
-+#define VI6_LUT_TABLE			0x7000
-+
-+/* -----------------------------------------------------------------------------
-+ * 3D LUT Registers
-+ */
-+
-+#define VI6_CLU_ADDR			0x7400
-+#define VI6_CLU_DATA			0x7404
-+
-+/* -----------------------------------------------------------------------------
-+ * Formats
-+ */
-+
-+#define VI6_FMT_RGB_332			0x00
-+#define VI6_FMT_XRGB_4444		0x01
-+#define VI6_FMT_RGBX_4444		0x02
-+#define VI6_FMT_XRGB_1555		0x04
-+#define VI6_FMT_RGBX_5551		0x05
-+#define VI6_FMT_RGB_565			0x06
-+#define VI6_FMT_AXRGB_86666		0x07
-+#define VI6_FMT_RGBXA_66668		0x08
-+#define VI6_FMT_XRGBA_66668		0x09
-+#define VI6_FMT_ARGBX_86666		0x0a
-+#define VI6_FMT_AXRXGXB_8262626		0x0b
-+#define VI6_FMT_XRXGXBA_2626268		0x0c
-+#define VI6_FMT_ARXGXBX_8626262		0x0d
-+#define VI6_FMT_RXGXBXA_6262628		0x0e
-+#define VI6_FMT_XRGB_6666		0x0f
-+#define VI6_FMT_RGBX_6666		0x10
-+#define VI6_FMT_XRXGXB_262626		0x11
-+#define VI6_FMT_RXGXBX_626262		0x12
-+#define VI6_FMT_ARGB_8888		0x13
-+#define VI6_FMT_RGBA_8888		0x14
-+#define VI6_FMT_RGB_888			0x15
-+#define VI6_FMT_XRGXGB_763763		0x16
-+#define VI6_FMT_XXRGB_86666		0x17
-+#define VI6_FMT_BGR_888			0x18
-+#define VI6_FMT_ARGB_4444		0x19
-+#define VI6_FMT_RGBA_4444		0x1a
-+#define VI6_FMT_ARGB_1555		0x1b
-+#define VI6_FMT_RGBA_5551		0x1c
-+#define VI6_FMT_ABGR_4444		0x1d
-+#define VI6_FMT_BGRA_4444		0x1e
-+#define VI6_FMT_ABGR_1555		0x1f
-+#define VI6_FMT_BGRA_5551		0x20
-+#define VI6_FMT_XBXGXR_262626		0x21
-+#define VI6_FMT_ABGR_8888		0x22
-+#define VI6_FMT_XXRGB_88565		0x23
-+
-+#define VI6_FMT_Y_UV_444		0x40
-+#define VI6_FMT_Y_UV_422		0x41
-+#define VI6_FMT_Y_UV_420		0x42
-+#define VI6_FMT_YUV_444			0x46
-+#define VI6_FMT_YUYV_422		0x47
-+#define VI6_FMT_YYUV_422		0x48
-+#define VI6_FMT_YUV_420			0x49
-+#define VI6_FMT_Y_U_V_444		0x4a
-+#define VI6_FMT_Y_U_V_422		0x4b
-+#define VI6_FMT_Y_U_V_420		0x4c
-+
-+#endif /* __VSP1_REGS_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_rpf.c b/drivers/media/platform/vsp1/vsp1_rpf.c
-new file mode 100644
-index 0000000..254871d
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_rpf.c
-@@ -0,0 +1,209 @@
-+/*
-+ * vsp1_rpf.c  --  R-Car VSP1 Read Pixel Formatter
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_rwpf.h"
-+#include "vsp1_video.h"
-+
-+#define RPF_MAX_WIDTH				8190
-+#define RPF_MAX_HEIGHT				8190
-+
-+/* -----------------------------------------------------------------------------
-+ * Device Access
-+ */
-+
-+static inline u32 vsp1_rpf_read(struct vsp1_rwpf *rpf, u32 reg)
-+{
-+	return vsp1_read(rpf->entity.vsp1,
-+			 reg + rpf->entity.index * VI6_RPF_OFFSET);
-+}
-+
-+static inline void vsp1_rpf_write(struct vsp1_rwpf *rpf, u32 reg, u32 data)
-+{
-+	vsp1_write(rpf->entity.vsp1,
-+		   reg + rpf->entity.index * VI6_RPF_OFFSET, data);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Core Operations
-+ */
-+
-+static int rpf_s_stream(struct v4l2_subdev *subdev, int enable)
-+{
-+	struct vsp1_rwpf *rpf = to_rwpf(subdev);
-+	const struct vsp1_format_info *fmtinfo = rpf->video.fmtinfo;
-+	const struct v4l2_pix_format_mplane *format = &rpf->video.format;
-+	u32 pstride;
-+	u32 infmt;
-+
-+	if (!enable)
-+		return 0;
-+
-+	/* Source size and stride. Cropping isn't supported yet. */
-+	vsp1_rpf_write(rpf, VI6_RPF_SRC_BSIZE,
-+		       (format->width << VI6_RPF_SRC_BSIZE_BHSIZE_SHIFT) |
-+		       (format->height << VI6_RPF_SRC_BSIZE_BVSIZE_SHIFT));
-+	vsp1_rpf_write(rpf, VI6_RPF_SRC_ESIZE,
-+		       (format->width << VI6_RPF_SRC_ESIZE_EHSIZE_SHIFT) |
-+		       (format->height << VI6_RPF_SRC_ESIZE_EVSIZE_SHIFT));
-+
-+	pstride = format->plane_fmt[0].bytesperline
-+		<< VI6_RPF_SRCM_PSTRIDE_Y_SHIFT;
-+	if (format->num_planes > 1)
-+		pstride |= format->plane_fmt[1].bytesperline
-+			<< VI6_RPF_SRCM_PSTRIDE_C_SHIFT;
-+
-+	vsp1_rpf_write(rpf, VI6_RPF_SRCM_PSTRIDE, pstride);
-+
-+	/* Format */
-+	infmt = VI6_RPF_INFMT_CIPM
-+	      | (fmtinfo->hwfmt << VI6_RPF_INFMT_RDFMT_SHIFT);
-+
-+	if (fmtinfo->swap_yc)
-+		infmt |= VI6_RPF_INFMT_SPYCS;
-+	if (fmtinfo->swap_uv)
-+		infmt |= VI6_RPF_INFMT_SPUVS;
-+
-+	if (rpf->entity.formats[RWPF_PAD_SINK].code !=
-+	    rpf->entity.formats[RWPF_PAD_SOURCE].code)
-+		infmt |= VI6_RPF_INFMT_CSC;
-+
-+	vsp1_rpf_write(rpf, VI6_RPF_INFMT, infmt);
-+	vsp1_rpf_write(rpf, VI6_RPF_DSWAP, fmtinfo->swap);
-+
-+	/* Output location. Composing isn't supported yet. */
-+	vsp1_rpf_write(rpf, VI6_RPF_LOC, 0);
-+
-+	/* Disable alpha, mask and color key. Set the alpha channel to a fixed
-+	 * value of 255.
-+	 */
-+	vsp1_rpf_write(rpf, VI6_RPF_ALPH_SEL, VI6_RPF_ALPH_SEL_ASEL_FIXED);
-+	vsp1_rpf_write(rpf, VI6_RPF_VRTCOL_SET,
-+		       255 << VI6_RPF_VRTCOL_SET_LAYA_SHIFT);
-+	vsp1_rpf_write(rpf, VI6_RPF_MSK_CTRL, 0);
-+	vsp1_rpf_write(rpf, VI6_RPF_CKEY_CTRL, 0);
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Operations
-+ */
-+
-+static struct v4l2_subdev_video_ops rpf_video_ops = {
-+	.s_stream = rpf_s_stream,
-+};
-+
-+static struct v4l2_subdev_pad_ops rpf_pad_ops = {
-+	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
-+	.enum_frame_size = vsp1_rwpf_enum_frame_size,
-+	.get_fmt = vsp1_rwpf_get_format,
-+	.set_fmt = vsp1_rwpf_set_format,
-+};
-+
-+static struct v4l2_subdev_ops rpf_ops = {
-+	.video	= &rpf_video_ops,
-+	.pad    = &rpf_pad_ops,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Video Device Operations
-+ */
-+
-+static void rpf_vdev_queue(struct vsp1_video *video,
-+			   struct vsp1_video_buffer *buf)
-+{
-+	struct vsp1_rwpf *rpf = container_of(video, struct vsp1_rwpf, video);
-+
-+	vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_Y, buf->addr[0]);
-+	if (buf->buf.num_planes > 1)
-+		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C0, buf->addr[1]);
-+	if (buf->buf.num_planes > 2)
-+		vsp1_rpf_write(rpf, VI6_RPF_SRCM_ADDR_C1, buf->addr[2]);
-+}
-+
-+static const struct vsp1_video_operations rpf_vdev_ops = {
-+	.queue = rpf_vdev_queue,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Initialization and Cleanup
-+ */
-+
-+struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index)
-+{
-+	struct v4l2_subdev *subdev;
-+	struct vsp1_video *video;
-+	struct vsp1_rwpf *rpf;
-+	int ret;
-+
-+	rpf = devm_kzalloc(vsp1->dev, sizeof(*rpf), GFP_KERNEL);
-+	if (rpf == NULL)
-+		return ERR_PTR(-ENOMEM);
-+
-+	rpf->max_width = RPF_MAX_WIDTH;
-+	rpf->max_height = RPF_MAX_HEIGHT;
-+
-+	rpf->entity.type = VSP1_ENTITY_RPF;
-+	rpf->entity.index = index;
-+	rpf->entity.id = VI6_DPR_NODE_RPF(index);
-+
-+	ret = vsp1_entity_init(vsp1, &rpf->entity, 2);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	/* Initialize the V4L2 subdev. */
-+	subdev = &rpf->entity.subdev;
-+	v4l2_subdev_init(subdev, &rpf_ops);
-+
-+	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->internal_ops = &vsp1_subdev_internal_ops;
-+	snprintf(subdev->name, sizeof(subdev->name), "%s rpf.%u",
-+		 dev_name(vsp1->dev), index);
-+	v4l2_set_subdevdata(subdev, rpf);
-+	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	vsp1_entity_init_formats(subdev, NULL);
-+
-+	/* Initialize the video device. */
-+	video = &rpf->video;
-+
-+	video->type = V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE;
-+	video->vsp1 = vsp1;
-+	video->ops = &rpf_vdev_ops;
-+
-+	ret = vsp1_video_init(video, &rpf->entity);
-+	if (ret < 0)
-+		goto error_video;
-+
-+	/* Connect the video device to the RPF. */
-+	ret = media_entity_create_link(&rpf->video.video.entity, 0,
-+				       &rpf->entity.subdev.entity,
-+				       RWPF_PAD_SINK,
-+				       MEDIA_LNK_FL_ENABLED |
-+				       MEDIA_LNK_FL_IMMUTABLE);
-+	if (ret < 0)
-+		goto error_link;
-+
-+	return rpf;
-+
-+error_link:
-+	vsp1_video_cleanup(video);
-+error_video:
-+	media_entity_cleanup(&rpf->entity.subdev.entity);
-+	return ERR_PTR(ret);
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.c b/drivers/media/platform/vsp1/vsp1_rwpf.c
-new file mode 100644
-index 0000000..de7ecf5
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.c
-@@ -0,0 +1,124 @@
-+/*
-+ * vsp1_rwpf.c  --  R-Car VSP1 Read and Write Pixel Formatter
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_rwpf.h"
-+#include "vsp1_video.h"
-+
-+#define RWPF_MIN_WIDTH				1
-+#define RWPF_MIN_HEIGHT				1
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Pad Operations
-+ */
-+
-+int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
-+			     struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	static const unsigned int codes[] = {
-+		V4L2_MBUS_FMT_ARGB8888_1X32,
-+		V4L2_MBUS_FMT_AYUV8_1X32,
-+	};
-+
-+	if (code->index >= ARRAY_SIZE(codes))
-+		return -EINVAL;
-+
-+	code->code = codes[code->index];
-+
-+	return 0;
-+}
-+
-+int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
-+			      struct v4l2_subdev_fh *fh,
-+			      struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	format = v4l2_subdev_get_try_format(fh, fse->pad);
-+
-+	if (fse->index || fse->code != format->code)
-+		return -EINVAL;
-+
-+	if (fse->pad == RWPF_PAD_SINK) {
-+		fse->min_width = RWPF_MIN_WIDTH;
-+		fse->max_width = rwpf->max_width;
-+		fse->min_height = RWPF_MIN_HEIGHT;
-+		fse->max_height = rwpf->max_height;
-+	} else {
-+		/* The size on the source pad are fixed and always identical to
-+		 * the size on the sink pad.
-+		 */
-+		fse->min_width = format->width;
-+		fse->max_width = format->width;
-+		fse->min_height = format->height;
-+		fse->max_height = format->height;
-+	}
-+
-+	return 0;
-+}
-+
-+int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			 struct v4l2_subdev_format *fmt)
-+{
-+	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
-+
-+	fmt->format = *vsp1_entity_get_pad_format(&rwpf->entity, fh, fmt->pad,
-+						  fmt->which);
-+
-+	return 0;
-+}
-+
-+int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			 struct v4l2_subdev_format *fmt)
-+{
-+	struct vsp1_rwpf *rwpf = to_rwpf(subdev);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	/* Default to YUV if the requested format is not supported. */
-+	if (fmt->format.code != V4L2_MBUS_FMT_ARGB8888_1X32 &&
-+	    fmt->format.code != V4L2_MBUS_FMT_AYUV8_1X32)
-+		fmt->format.code = V4L2_MBUS_FMT_AYUV8_1X32;
-+
-+	format = vsp1_entity_get_pad_format(&rwpf->entity, fh, fmt->pad,
-+					    fmt->which);
-+
-+	if (fmt->pad == RWPF_PAD_SOURCE) {
-+		/* The RWPF performs format conversion but can't scale, only the
-+		 * format code can be changed on the source pad.
-+		 */
-+		format->code = fmt->format.code;
-+		fmt->format = *format;
-+		return 0;
-+	}
-+
-+	format->code = fmt->format.code;
-+	format->width = clamp_t(unsigned int, fmt->format.width,
-+				RWPF_MIN_WIDTH, rwpf->max_width);
-+	format->height = clamp_t(unsigned int, fmt->format.height,
-+				 RWPF_MIN_HEIGHT, rwpf->max_height);
-+	format->field = V4L2_FIELD_NONE;
-+	format->colorspace = V4L2_COLORSPACE_SRGB;
-+
-+	fmt->format = *format;
-+
-+	/* Propagate the format to the source pad. */
-+	format = vsp1_entity_get_pad_format(&rwpf->entity, fh, RWPF_PAD_SOURCE,
-+					    fmt->which);
-+	*format = fmt->format;
-+
-+	return 0;
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_rwpf.h b/drivers/media/platform/vsp1/vsp1_rwpf.h
-new file mode 100644
-index 0000000..a673b09
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_rwpf.h
-@@ -0,0 +1,56 @@
-+/*
-+ * vsp1_rwpf.c  --  R-Car VSP1 Read and Write Pixel Formatter
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __VSP1_RWPF_H__
-+#define __VSP1_RWPF_H__
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_entity.h"
-+#include "vsp1_video.h"
-+
-+#define RWPF_PAD_SINK				0
-+#define RWPF_PAD_SOURCE				1
-+
-+struct vsp1_rwpf {
-+	struct vsp1_entity entity;
-+	struct vsp1_video video;
-+
-+	unsigned int max_width;
-+	unsigned int max_height;
-+};
-+
-+static inline struct vsp1_rwpf *to_rwpf(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct vsp1_rwpf, entity.subdev);
-+}
-+
-+struct vsp1_rwpf *vsp1_rpf_create(struct vsp1_device *vsp1, unsigned int index);
-+void vsp1_rpf_destroy(struct vsp1_rwpf *rwpf);
-+
-+struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index);
-+void vsp1_wpf_destroy(struct vsp1_rwpf *rwpf);
-+
-+int vsp1_rwpf_enum_mbus_code(struct v4l2_subdev *subdev,
-+			     struct v4l2_subdev_fh *fh,
-+			     struct v4l2_subdev_mbus_code_enum *code);
-+int vsp1_rwpf_enum_frame_size(struct v4l2_subdev *subdev,
-+			      struct v4l2_subdev_fh *fh,
-+			      struct v4l2_subdev_frame_size_enum *fse);
-+int vsp1_rwpf_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			 struct v4l2_subdev_format *fmt);
-+int vsp1_rwpf_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			 struct v4l2_subdev_format *fmt);
-+
-+#endif /* __VSP1_RWPF_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.c b/drivers/media/platform/vsp1/vsp1_uds.c
-new file mode 100644
-index 0000000..f1164c7
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_uds.c
-@@ -0,0 +1,346 @@
-+/*
-+ * vsp1_uds.c  --  R-Car VSP1 Up and Down Scaler
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+#include <linux/gfp.h>
-+
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_uds.h"
-+
-+#define UDS_MIN_SIZE				4U
-+#define UDS_MAX_SIZE				8190U
-+
-+#define UDS_MIN_FACTOR				0x0100
-+#define UDS_MAX_FACTOR				0xffff
-+
-+/* -----------------------------------------------------------------------------
-+ * Device Access
-+ */
-+
-+static inline u32 vsp1_uds_read(struct vsp1_uds *uds, u32 reg)
-+{
-+	return vsp1_read(uds->entity.vsp1,
-+			 reg + uds->entity.index * VI6_UDS_OFFSET);
-+}
-+
-+static inline void vsp1_uds_write(struct vsp1_uds *uds, u32 reg, u32 data)
-+{
-+	vsp1_write(uds->entity.vsp1,
-+		   reg + uds->entity.index * VI6_UDS_OFFSET, data);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * Scaling Computation
-+ */
-+
-+/*
-+ * uds_output_size - Return the output size for an input size and scaling ratio
-+ * @input: input size in pixels
-+ * @ratio: scaling ratio in U4.12 fixed-point format
-+ */
-+static unsigned int uds_output_size(unsigned int input, unsigned int ratio)
-+{
-+	if (ratio > 4096) {
-+		/* Down-scaling */
-+		unsigned int mp;
-+
-+		mp = ratio / 4096;
-+		mp = mp < 4 ? 1 : (mp < 8 ? 2 : 4);
-+
-+		return (input - 1) / mp * mp * 4096 / ratio + 1;
-+	} else {
-+		/* Up-scaling */
-+		return (input - 1) * 4096 / ratio + 1;
-+	}
-+}
-+
-+/*
-+ * uds_output_limits - Return the min and max output sizes for an input size
-+ * @input: input size in pixels
-+ * @minimum: minimum output size (returned)
-+ * @maximum: maximum output size (returned)
-+ */
-+static void uds_output_limits(unsigned int input,
-+			      unsigned int *minimum, unsigned int *maximum)
-+{
-+	*minimum = max(uds_output_size(input, UDS_MAX_FACTOR), UDS_MIN_SIZE);
-+	*maximum = min(uds_output_size(input, UDS_MIN_FACTOR), UDS_MAX_SIZE);
-+}
-+
-+/*
-+ * uds_passband_width - Return the passband filter width for a scaling ratio
-+ * @ratio: scaling ratio in U4.12 fixed-point format
-+ */
-+static unsigned int uds_passband_width(unsigned int ratio)
-+{
-+	if (ratio >= 4096) {
-+		/* Down-scaling */
-+		unsigned int mp;
-+
-+		mp = ratio / 4096;
-+		mp = mp < 4 ? 1 : (mp < 8 ? 2 : 4);
-+
-+		return 64 * 4096 * mp / ratio;
-+	} else {
-+		/* Up-scaling */
-+		return 64;
-+	}
-+}
-+
-+static unsigned int uds_compute_ratio(unsigned int input, unsigned int output)
-+{
-+	/* TODO: This is an approximation that will need to be refined. */
-+	return (input - 1) * 4096 / (output - 1);
-+}
-+
-+static void uds_compute_ratios(struct vsp1_uds *uds)
-+{
-+	struct v4l2_mbus_framefmt *input = &uds->entity.formats[UDS_PAD_SINK];
-+	struct v4l2_mbus_framefmt *output =
-+		&uds->entity.formats[UDS_PAD_SOURCE];
-+
-+	uds->hscale = uds_compute_ratio(input->width, output->width);
-+	uds->vscale = uds_compute_ratio(input->height, output->height);
-+
-+	dev_dbg(uds->entity.vsp1->dev, "hscale %u vscale %u\n",
-+		uds->hscale, uds->vscale);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Core Operations
-+ */
-+
-+static int uds_s_stream(struct v4l2_subdev *subdev, int enable)
-+{
-+	const struct v4l2_mbus_framefmt *format;
-+	struct vsp1_uds *uds = to_uds(subdev);
-+
-+	if (!enable)
-+		return 0;
-+
-+	/* Enable multi-tap scaling. */
-+	vsp1_uds_write(uds, VI6_UDS_CTRL, VI6_UDS_CTRL_BC);
-+
-+	vsp1_uds_write(uds, VI6_UDS_PASS_BWIDTH,
-+		       (uds_passband_width(uds->hscale)
-+				<< VI6_UDS_PASS_BWIDTH_H_SHIFT) |
-+		       (uds_passband_width(uds->vscale)
-+				<< VI6_UDS_PASS_BWIDTH_V_SHIFT));
-+
-+
-+	/* Set the scaling ratios and the output size. */
-+	format = &uds->entity.formats[UDS_PAD_SOURCE];
-+
-+	vsp1_uds_write(uds, VI6_UDS_SCALE,
-+		       (uds->hscale << VI6_UDS_SCALE_HFRAC_SHIFT) |
-+		       (uds->vscale << VI6_UDS_SCALE_VFRAC_SHIFT));
-+	vsp1_uds_write(uds, VI6_UDS_CLIP_SIZE,
-+		       (format->width << VI6_UDS_CLIP_SIZE_HSIZE_SHIFT) |
-+		       (format->height << VI6_UDS_CLIP_SIZE_VSIZE_SHIFT));
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Pad Operations
-+ */
-+
-+static int uds_enum_mbus_code(struct v4l2_subdev *subdev,
-+			      struct v4l2_subdev_fh *fh,
-+			      struct v4l2_subdev_mbus_code_enum *code)
-+{
-+	static const unsigned int codes[] = {
-+		V4L2_MBUS_FMT_ARGB8888_1X32,
-+		V4L2_MBUS_FMT_AYUV8_1X32,
-+	};
-+	struct v4l2_mbus_framefmt *format;
-+
-+	if (code->pad == UDS_PAD_SINK) {
-+		if (code->index >= ARRAY_SIZE(codes))
-+			return -EINVAL;
-+
-+		code->code = codes[code->index];
-+	} else {
-+		/* The UDS can't perform format conversion, the sink format is
-+		 * always identical to the source format.
-+		 */
-+		if (code->index)
-+			return -EINVAL;
-+
-+		format = v4l2_subdev_get_try_format(fh, UDS_PAD_SINK);
-+		code->code = format->code;
-+	}
-+
-+	return 0;
-+}
-+
-+static int uds_enum_frame_size(struct v4l2_subdev *subdev,
-+			       struct v4l2_subdev_fh *fh,
-+			       struct v4l2_subdev_frame_size_enum *fse)
-+{
-+	struct v4l2_mbus_framefmt *format;
-+
-+	format = v4l2_subdev_get_try_format(fh, UDS_PAD_SINK);
-+
-+	if (fse->index || fse->code != format->code)
-+		return -EINVAL;
-+
-+	if (fse->pad == UDS_PAD_SINK) {
-+		fse->min_width = UDS_MIN_SIZE;
-+		fse->max_width = UDS_MAX_SIZE;
-+		fse->min_height = UDS_MIN_SIZE;
-+		fse->max_height = UDS_MAX_SIZE;
-+	} else {
-+		uds_output_limits(format->width, &fse->min_width,
-+				  &fse->max_width);
-+		uds_output_limits(format->height, &fse->min_height,
-+				  &fse->max_height);
-+	}
-+
-+	return 0;
-+}
-+
-+static int uds_get_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			  struct v4l2_subdev_format *fmt)
-+{
-+	struct vsp1_uds *uds = to_uds(subdev);
-+
-+	fmt->format = *vsp1_entity_get_pad_format(&uds->entity, fh, fmt->pad,
-+						  fmt->which);
-+
-+	return 0;
-+}
-+
-+static void uds_try_format(struct vsp1_uds *uds, struct v4l2_subdev_fh *fh,
-+			   unsigned int pad, struct v4l2_mbus_framefmt *fmt,
-+			   enum v4l2_subdev_format_whence which)
-+{
-+	struct v4l2_mbus_framefmt *format;
-+	unsigned int minimum;
-+	unsigned int maximum;
-+
-+	switch (pad) {
-+	case UDS_PAD_SINK:
-+		/* Default to YUV if the requested format is not supported. */
-+		if (fmt->code != V4L2_MBUS_FMT_ARGB8888_1X32 &&
-+		    fmt->code != V4L2_MBUS_FMT_AYUV8_1X32)
-+			fmt->code = V4L2_MBUS_FMT_AYUV8_1X32;
-+
-+		fmt->width = clamp(fmt->width, UDS_MIN_SIZE, UDS_MAX_SIZE);
-+		fmt->height = clamp(fmt->height, UDS_MIN_SIZE, UDS_MAX_SIZE);
-+		break;
-+
-+	case UDS_PAD_SOURCE:
-+		/* The UDS scales but can't perform format conversion. */
-+		format = vsp1_entity_get_pad_format(&uds->entity, fh,
-+						    UDS_PAD_SINK, which);
-+		fmt->code = format->code;
-+
-+		uds_output_limits(format->width, &minimum, &maximum);
-+		fmt->width = clamp(fmt->width, minimum, maximum);
-+		uds_output_limits(format->height, &minimum, &maximum);
-+		fmt->height = clamp(fmt->height, minimum, maximum);
-+		break;
-+	}
-+
-+	fmt->field = V4L2_FIELD_NONE;
-+	fmt->colorspace = V4L2_COLORSPACE_SRGB;
-+}
-+
-+static int uds_set_format(struct v4l2_subdev *subdev, struct v4l2_subdev_fh *fh,
-+			  struct v4l2_subdev_format *fmt)
-+{
-+	struct vsp1_uds *uds = to_uds(subdev);
-+	struct v4l2_mbus_framefmt *format;
-+
-+	uds_try_format(uds, fh, fmt->pad, &fmt->format, fmt->which);
-+
-+	format = vsp1_entity_get_pad_format(&uds->entity, fh, fmt->pad,
-+					    fmt->which);
-+	*format = fmt->format;
-+
-+	if (fmt->pad == UDS_PAD_SINK) {
-+		/* Propagate the format to the source pad. */
-+		format = vsp1_entity_get_pad_format(&uds->entity, fh,
-+						    UDS_PAD_SOURCE, fmt->which);
-+		*format = fmt->format;
-+
-+		uds_try_format(uds, fh, UDS_PAD_SOURCE, &fmt->format,
-+			       fmt->which);
-+	}
-+
-+	if (fmt->which == V4L2_SUBDEV_FORMAT_ACTIVE)
-+		uds_compute_ratios(uds);
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Operations
-+ */
-+
-+static struct v4l2_subdev_video_ops uds_video_ops = {
-+	.s_stream = uds_s_stream,
-+};
-+
-+static struct v4l2_subdev_pad_ops uds_pad_ops = {
-+	.enum_mbus_code = uds_enum_mbus_code,
-+	.enum_frame_size = uds_enum_frame_size,
-+	.get_fmt = uds_get_format,
-+	.set_fmt = uds_set_format,
-+};
-+
-+static struct v4l2_subdev_ops uds_ops = {
-+	.video	= &uds_video_ops,
-+	.pad    = &uds_pad_ops,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Initialization and Cleanup
-+ */
-+
-+struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index)
-+{
-+	struct v4l2_subdev *subdev;
-+	struct vsp1_uds *uds;
-+	int ret;
-+
-+	uds = devm_kzalloc(vsp1->dev, sizeof(*uds), GFP_KERNEL);
-+	if (uds == NULL)
-+		return ERR_PTR(-ENOMEM);
-+
-+	uds->entity.type = VSP1_ENTITY_UDS;
-+	uds->entity.index = index;
-+	uds->entity.id = VI6_DPR_NODE_UDS(index);
-+
-+	ret = vsp1_entity_init(vsp1, &uds->entity, 2);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	/* Initialize the V4L2 subdev. */
-+	subdev = &uds->entity.subdev;
-+	v4l2_subdev_init(subdev, &uds_ops);
-+
-+	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->internal_ops = &vsp1_subdev_internal_ops;
-+	snprintf(subdev->name, sizeof(subdev->name), "%s uds.%u",
-+		 dev_name(vsp1->dev), index);
-+	v4l2_set_subdevdata(subdev, uds);
-+	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	vsp1_entity_init_formats(subdev, NULL);
-+
-+	return uds;
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_uds.h b/drivers/media/platform/vsp1/vsp1_uds.h
-new file mode 100644
-index 0000000..79d333a
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_uds.h
-@@ -0,0 +1,41 @@
-+/*
-+ * vsp1_uds.c  --  R-Car VSP1 Up and Down Scaler
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __VSP1_UDS_H__
-+#define __VSP1_UDS_H__
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1_entity.h"
-+
-+struct vsp1_device;
-+
-+#define UDS_PAD_SINK				0
-+#define UDS_PAD_SOURCE				1
-+
-+struct vsp1_uds {
-+	struct vsp1_entity entity;
-+
-+	unsigned int hscale;
-+	unsigned int vscale;
-+};
-+
-+static inline struct vsp1_uds *to_uds(struct v4l2_subdev *subdev)
-+{
-+	return container_of(subdev, struct vsp1_uds, entity.subdev);
-+}
-+
-+struct vsp1_uds *vsp1_uds_create(struct vsp1_device *vsp1, unsigned int index);
-+void vsp1_uds_destroy(struct vsp1_uds *uds);
-+
-+#endif /* __VSP1_UDS_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_video.c b/drivers/media/platform/vsp1/vsp1_video.c
-new file mode 100644
-index 0000000..47a739a
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_video.c
-@@ -0,0 +1,1154 @@
-+/*
-+ * vsp1_video.c  --  R-Car VSP1 Video Node
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/list.h>
-+#include <linux/module.h>
-+#include <linux/mutex.h>
-+#include <linux/sched.h>
-+#include <linux/slab.h>
-+#include <linux/v4l2-mediabus.h>
-+#include <linux/videodev2.h>
-+
-+#include <media/media-entity.h>
-+#include <media/v4l2-dev.h>
-+#include <media/v4l2-fh.h>
-+#include <media/v4l2-ioctl.h>
-+#include <media/v4l2-subdev.h>
-+#include <media/videobuf2-core.h>
-+#include <media/videobuf2-dma-contig.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_entity.h"
-+#include "vsp1_rwpf.h"
-+#include "vsp1_video.h"
-+
-+#define VSP1_VIDEO_DEF_FORMAT		V4L2_PIX_FMT_YUYV
-+#define VSP1_VIDEO_DEF_WIDTH		1024
-+#define VSP1_VIDEO_DEF_HEIGHT		768
-+
-+#define VSP1_VIDEO_MIN_WIDTH		2U
-+#define VSP1_VIDEO_MAX_WIDTH		8190U
-+#define VSP1_VIDEO_MIN_HEIGHT		2U
-+#define VSP1_VIDEO_MAX_HEIGHT		8190U
-+
-+/* -----------------------------------------------------------------------------
-+ * Helper functions
-+ */
-+
-+static const struct vsp1_format_info vsp1_video_formats[] = {
-+	{ V4L2_PIX_FMT_RGB332, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_RGB_332, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 8, 0, 0 }, false, false, 1, 1 },
-+	{ V4L2_PIX_FMT_RGB444, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_XRGB_4444, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS,
-+	  1, { 16, 0, 0 }, false, false, 1, 1 },
-+	{ V4L2_PIX_FMT_RGB555, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_XRGB_1555, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS,
-+	  1, { 16, 0, 0 }, false, false, 1, 1 },
-+	{ V4L2_PIX_FMT_RGB565, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_RGB_565, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS,
-+	  1, { 16, 0, 0 }, false, false, 1, 1 },
-+	{ V4L2_PIX_FMT_BGR24, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_BGR_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 24, 0, 0 }, false, false, 1, 1 },
-+	{ V4L2_PIX_FMT_RGB24, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_RGB_888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 24, 0, 0 }, false, false, 1, 1 },
-+	{ V4L2_PIX_FMT_BGR32, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS,
-+	  1, { 32, 0, 0 }, false, false, 1, 1 },
-+	{ V4L2_PIX_FMT_RGB32, V4L2_MBUS_FMT_ARGB8888_1X32,
-+	  VI6_FMT_ARGB_8888, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 32, 0, 0 }, false, false, 1, 1 },
-+	{ V4L2_PIX_FMT_UYVY, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 16, 0, 0 }, false, false, 2, 1 },
-+	{ V4L2_PIX_FMT_VYUY, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 16, 0, 0 }, false, true, 2, 1 },
-+	{ V4L2_PIX_FMT_YUYV, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 16, 0, 0 }, true, false, 2, 1 },
-+	{ V4L2_PIX_FMT_YVYU, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_YUYV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  1, { 16, 0, 0 }, true, true, 2, 1 },
-+	{ V4L2_PIX_FMT_NV12M, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  2, { 8, 16, 0 }, false, false, 2, 2 },
-+	{ V4L2_PIX_FMT_NV21M, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_UV_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  2, { 8, 16, 0 }, false, true, 2, 2 },
-+	{ V4L2_PIX_FMT_NV16M, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  2, { 8, 16, 0 }, false, false, 2, 1 },
-+	{ V4L2_PIX_FMT_NV61M, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_UV_422, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  2, { 8, 16, 0 }, false, true, 2, 1 },
-+	{ V4L2_PIX_FMT_YUV420M, V4L2_MBUS_FMT_AYUV8_1X32,
-+	  VI6_FMT_Y_U_V_420, VI6_RPF_DSWAP_P_LLS | VI6_RPF_DSWAP_P_LWS |
-+	  VI6_RPF_DSWAP_P_WDS | VI6_RPF_DSWAP_P_BTS,
-+	  3, { 8, 8, 8 }, false, false, 2, 2 },
-+};
-+
-+/*
-+ * vsp1_get_format_info - Retrieve format information for a 4CC
-+ * @fourcc: the format 4CC
-+ *
-+ * Return a pointer to the format information structure corresponding to the
-+ * given V4L2 format 4CC, or NULL if no corresponding format can be found.
-+ */
-+static const struct vsp1_format_info *vsp1_get_format_info(u32 fourcc)
-+{
-+	unsigned int i;
-+
-+	for (i = 0; i < ARRAY_SIZE(vsp1_video_formats); ++i) {
-+		const struct vsp1_format_info *info = &vsp1_video_formats[i];
-+
-+		if (info->fourcc == fourcc)
-+			return info;
-+	}
-+
-+	return NULL;
-+}
-+
-+
-+static struct v4l2_subdev *
-+vsp1_video_remote_subdev(struct media_pad *local, u32 *pad)
-+{
-+	struct media_pad *remote;
-+
-+	remote = media_entity_remote_source(local);
-+	if (remote == NULL ||
-+	    media_entity_type(remote->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+		return NULL;
-+
-+	if (pad)
-+		*pad = remote->index;
-+
-+	return media_entity_to_v4l2_subdev(remote->entity);
-+}
-+
-+static int vsp1_video_verify_format(struct vsp1_video *video)
-+{
-+	struct v4l2_subdev_format fmt;
-+	struct v4l2_subdev *subdev;
-+	int ret;
-+
-+	subdev = vsp1_video_remote_subdev(&video->pad, &fmt.pad);
-+	if (subdev == NULL)
-+		return -EINVAL;
-+
-+	fmt.which = V4L2_SUBDEV_FORMAT_ACTIVE;
-+	ret = v4l2_subdev_call(subdev, pad, get_fmt, NULL, &fmt);
-+	if (ret < 0)
-+		return ret == -ENOIOCTLCMD ? -EINVAL : ret;
-+
-+	if (video->fmtinfo->mbus != fmt.format.code ||
-+	    video->format.height != fmt.format.height ||
-+	    video->format.width != fmt.format.width)
-+		return -EINVAL;
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * Pipeline Management
-+ */
-+
-+static int vsp1_pipeline_validate_branch(struct vsp1_rwpf *input,
-+					 struct vsp1_rwpf *output)
-+{
-+	struct vsp1_entity *entity;
-+	unsigned int entities = 0;
-+	struct media_pad *pad;
-+	bool uds_found = false;
-+
-+	pad = media_entity_remote_source(&input->entity.pads[RWPF_PAD_SOURCE]);
-+
-+	while (1) {
-+		if (pad == NULL)
-+			return -EPIPE;
-+
-+		/* We've reached a video node, that shouldn't have happened. */
-+		if (media_entity_type(pad->entity) != MEDIA_ENT_T_V4L2_SUBDEV)
-+			return -EPIPE;
-+
-+		entity = to_vsp1_entity(media_entity_to_v4l2_subdev(pad->entity));
-+
-+		/* We've reached the WPF, we're done. */
-+		if (entity->type == VSP1_ENTITY_WPF)
-+			break;
-+
-+		/* Ensure the branch has no loop. */
-+		if (entities & (1 << entity->subdev.entity.id))
-+			return -EPIPE;
-+
-+		entities |= 1 << entity->subdev.entity.id;
-+
-+		/* UDS can't be chained. */
-+		if (entity->type == VSP1_ENTITY_UDS) {
-+			if (uds_found)
-+				return -EPIPE;
-+			uds_found = true;
-+		}
-+
-+		/* Follow the source link. The link setup operations ensure
-+		 * that the output fan-out can't be more than one, there is thus
-+		 * no need to verify here that only a single source link is
-+		 * activated.
-+		 */
-+		pad = &entity->pads[entity->source_pad];
-+		pad = media_entity_remote_source(pad);
-+	}
-+
-+	/* The last entity must be the output WPF. */
-+	if (entity != &output->entity)
-+		return -EPIPE;
-+
-+	return 0;
-+}
-+
-+static int vsp1_pipeline_validate(struct vsp1_pipeline *pipe,
-+				  struct vsp1_video *video)
-+{
-+	struct media_entity_graph graph;
-+	struct media_entity *entity = &video->video.entity;
-+	struct media_device *mdev = entity->parent;
-+	unsigned int i;
-+	int ret;
-+
-+	mutex_lock(&mdev->graph_mutex);
-+
-+	/* Walk the graph to locate the entities and video nodes. */
-+	media_entity_graph_walk_start(&graph, entity);
-+
-+	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		struct v4l2_subdev *subdev;
-+		struct vsp1_rwpf *rwpf;
-+		struct vsp1_entity *e;
-+
-+		if (media_entity_type(entity) != MEDIA_ENT_T_V4L2_SUBDEV) {
-+			pipe->num_video++;
-+			continue;
-+		}
-+
-+		subdev = media_entity_to_v4l2_subdev(entity);
-+		e = to_vsp1_entity(subdev);
-+		list_add_tail(&e->list_pipe, &pipe->entities);
-+
-+		if (e->type == VSP1_ENTITY_RPF) {
-+			rwpf = to_rwpf(subdev);
-+			pipe->inputs[pipe->num_inputs++] = rwpf;
-+			rwpf->video.pipe_index = pipe->num_inputs;
-+		} else if (e->type == VSP1_ENTITY_WPF) {
-+			rwpf = to_rwpf(subdev);
-+			pipe->output = to_rwpf(subdev);
-+			rwpf->video.pipe_index = 0;
-+		} else if (e->type == VSP1_ENTITY_LIF) {
-+			pipe->lif = e;
-+		}
-+	}
-+
-+	mutex_unlock(&mdev->graph_mutex);
-+
-+	/* We need one output and at least one input. */
-+	if (pipe->num_inputs == 0 || !pipe->output) {
-+		ret = -EPIPE;
-+		goto error;
-+	}
-+
-+	/* Follow links downstream for each input and make sure the graph
-+	 * contains no loop and that all branches end at the output WPF.
-+	 */
-+	for (i = 0; i < pipe->num_inputs; ++i) {
-+		ret = vsp1_pipeline_validate_branch(pipe->inputs[i],
-+						    pipe->output);
-+		if (ret < 0)
-+			goto error;
-+	}
-+
-+	return 0;
-+
-+error:
-+	INIT_LIST_HEAD(&pipe->entities);
-+	pipe->buffers_ready = 0;
-+	pipe->num_video = 0;
-+	pipe->num_inputs = 0;
-+	pipe->output = NULL;
-+	pipe->lif = NULL;
-+	return ret;
-+}
-+
-+static int vsp1_pipeline_init(struct vsp1_pipeline *pipe,
-+			      struct vsp1_video *video)
-+{
-+	int ret;
-+
-+	mutex_lock(&pipe->lock);
-+
-+	/* If we're the first user validate and initialize the pipeline. */
-+	if (pipe->use_count == 0) {
-+		ret = vsp1_pipeline_validate(pipe, video);
-+		if (ret < 0)
-+			goto done;
-+	}
-+
-+	pipe->use_count++;
-+	ret = 0;
-+
-+done:
-+	mutex_unlock(&pipe->lock);
-+	return ret;
-+}
-+
-+static void vsp1_pipeline_cleanup(struct vsp1_pipeline *pipe)
-+{
-+	mutex_lock(&pipe->lock);
-+
-+	/* If we're the last user clean up the pipeline. */
-+	if (--pipe->use_count == 0) {
-+		INIT_LIST_HEAD(&pipe->entities);
-+		pipe->state = VSP1_PIPELINE_STOPPED;
-+		pipe->buffers_ready = 0;
-+		pipe->num_video = 0;
-+		pipe->num_inputs = 0;
-+		pipe->output = NULL;
-+		pipe->lif = NULL;
-+	}
-+
-+	mutex_unlock(&pipe->lock);
-+}
-+
-+static void vsp1_pipeline_run(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_device *vsp1 = pipe->output->entity.vsp1;
-+
-+	vsp1_write(vsp1, VI6_CMD(pipe->output->entity.index), VI6_CMD_STRCMD);
-+	pipe->state = VSP1_PIPELINE_RUNNING;
-+	pipe->buffers_ready = 0;
-+}
-+
-+static int vsp1_pipeline_stop(struct vsp1_pipeline *pipe)
-+{
-+	struct vsp1_entity *entity;
-+	unsigned long flags;
-+	int ret;
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+	pipe->state = VSP1_PIPELINE_STOPPING;
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+
-+	ret = wait_event_timeout(pipe->wq, pipe->state == VSP1_PIPELINE_STOPPED,
-+				 msecs_to_jiffies(500));
-+	ret = ret == 0 ? -ETIMEDOUT : 0;
-+
-+	list_for_each_entry(entity, &pipe->entities, list_pipe) {
-+		if (entity->route)
-+			vsp1_write(entity->vsp1, entity->route,
-+				   VI6_DPR_NODE_UNUSED);
-+
-+		v4l2_subdev_call(&entity->subdev, video, s_stream, 0);
-+	}
-+
-+	return ret;
-+}
-+
-+static bool vsp1_pipeline_ready(struct vsp1_pipeline *pipe)
-+{
-+	unsigned int mask;
-+
-+	mask = ((1 << pipe->num_inputs) - 1) << 1;
-+	if (!pipe->lif)
-+		mask |= 1 << 0;
-+
-+	return pipe->buffers_ready == mask;
-+}
-+
-+/*
-+ * vsp1_video_complete_buffer - Complete the current buffer
-+ * @video: the video node
-+ *
-+ * This function completes the current buffer by filling its sequence number,
-+ * time stamp and payload size, and hands it back to the videobuf core.
-+ *
-+ * Return the next queued buffer or NULL if the queue is empty.
-+ */
-+static struct vsp1_video_buffer *
-+vsp1_video_complete_buffer(struct vsp1_video *video)
-+{
-+	struct vsp1_video_buffer *next = NULL;
-+	struct vsp1_video_buffer *done;
-+	unsigned long flags;
-+	unsigned int i;
-+
-+	spin_lock_irqsave(&video->irqlock, flags);
-+
-+	if (list_empty(&video->irqqueue)) {
-+		spin_unlock_irqrestore(&video->irqlock, flags);
-+		return NULL;
-+	}
-+
-+	done = list_first_entry(&video->irqqueue,
-+				struct vsp1_video_buffer, queue);
-+	list_del(&done->queue);
-+
-+	if (!list_empty(&video->irqqueue))
-+		next = list_first_entry(&video->irqqueue,
-+					struct vsp1_video_buffer, queue);
-+
-+	spin_unlock_irqrestore(&video->irqlock, flags);
-+
-+	done->buf.v4l2_buf.sequence = video->sequence++;
-+	v4l2_get_timestamp(&done->buf.v4l2_buf.timestamp);
-+	for (i = 0; i < done->buf.num_planes; ++i)
-+		vb2_set_plane_payload(&done->buf, i, done->length[i]);
-+	vb2_buffer_done(&done->buf, VB2_BUF_STATE_DONE);
-+
-+	return next;
-+}
-+
-+static void vsp1_video_frame_end(struct vsp1_pipeline *pipe,
-+				 struct vsp1_video *video)
-+{
-+	struct vsp1_video_buffer *buf;
-+	unsigned long flags;
-+
-+	buf = vsp1_video_complete_buffer(video);
-+	if (buf == NULL)
-+		return;
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+
-+	video->ops->queue(video, buf);
-+	pipe->buffers_ready |= 1 << video->pipe_index;
-+
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+}
-+
-+void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe)
-+{
-+	unsigned long flags;
-+	unsigned int i;
-+
-+	if (pipe == NULL)
-+		return;
-+
-+	/* Complete buffers on all video nodes. */
-+	for (i = 0; i < pipe->num_inputs; ++i)
-+		vsp1_video_frame_end(pipe, &pipe->inputs[i]->video);
-+
-+	if (!pipe->lif)
-+		vsp1_video_frame_end(pipe, &pipe->output->video);
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+
-+	/* If a stop has been requested, mark the pipeline as stopped and
-+	 * return.
-+	 */
-+	if (pipe->state == VSP1_PIPELINE_STOPPING) {
-+		pipe->state = VSP1_PIPELINE_STOPPED;
-+		wake_up(&pipe->wq);
-+		goto done;
-+	}
-+
-+	/* Restart the pipeline if ready. */
-+	if (vsp1_pipeline_ready(pipe))
-+		vsp1_pipeline_run(pipe);
-+
-+done:
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * videobuf2 Queue Operations
-+ */
-+
-+static int
-+vsp1_video_queue_setup(struct vb2_queue *vq, const struct v4l2_format *fmt,
-+		     unsigned int *nbuffers, unsigned int *nplanes,
-+		     unsigned int sizes[], void *alloc_ctxs[])
-+{
-+	struct vsp1_video *video = vb2_get_drv_priv(vq);
-+	struct v4l2_pix_format_mplane *format = &video->format;
-+	unsigned int i;
-+
-+	*nplanes = format->num_planes;
-+
-+	for (i = 0; i < format->num_planes; ++i) {
-+		sizes[i] = format->plane_fmt[i].sizeimage;
-+		alloc_ctxs[i] = video->alloc_ctx;
-+	}
-+
-+	return 0;
-+}
-+
-+static int vsp1_video_buffer_prepare(struct vb2_buffer *vb)
-+{
-+	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
-+	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
-+	unsigned int i;
-+
-+	buf->video = video;
-+
-+	for (i = 0; i < vb->num_planes; ++i) {
-+		buf->addr[i] = vb2_dma_contig_plane_dma_addr(vb, i);
-+		buf->length[i] = vb2_plane_size(vb, i);
-+	}
-+
-+	return 0;
-+}
-+
-+static void vsp1_video_buffer_queue(struct vb2_buffer *vb)
-+{
-+	struct vsp1_video *video = vb2_get_drv_priv(vb->vb2_queue);
-+	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
-+	struct vsp1_video_buffer *buf = to_vsp1_video_buffer(vb);
-+	unsigned long flags;
-+	bool empty;
-+
-+	spin_lock_irqsave(&video->irqlock, flags);
-+	empty = list_empty(&video->irqqueue);
-+	list_add_tail(&buf->queue, &video->irqqueue);
-+	spin_unlock_irqrestore(&video->irqlock, flags);
-+
-+	if (empty) {
-+		spin_lock_irqsave(&pipe->irqlock, flags);
-+
-+		video->ops->queue(video, buf);
-+		pipe->buffers_ready |= 1 << video->pipe_index;
-+
-+		if (vb2_is_streaming(&video->queue) &&
-+		    vsp1_pipeline_ready(pipe))
-+			vsp1_pipeline_run(pipe);
-+
-+		spin_unlock_irqrestore(&pipe->irqlock, flags);
-+	}
-+}
-+
-+static void vsp1_video_wait_prepare(struct vb2_queue *vq)
-+{
-+	struct vsp1_video *video = vb2_get_drv_priv(vq);
-+
-+	mutex_unlock(&video->lock);
-+}
-+
-+static void vsp1_video_wait_finish(struct vb2_queue *vq)
-+{
-+	struct vsp1_video *video = vb2_get_drv_priv(vq);
-+
-+	mutex_lock(&video->lock);
-+}
-+
-+static void vsp1_entity_route_setup(struct vsp1_entity *source)
-+{
-+	struct vsp1_entity *sink;
-+
-+	if (source->route == 0)
-+		return;
-+
-+	sink = container_of(source->sink, struct vsp1_entity, subdev.entity);
-+	vsp1_write(source->vsp1, source->route, sink->id);
-+}
-+
-+static int vsp1_video_start_streaming(struct vb2_queue *vq, unsigned int count)
-+{
-+	struct vsp1_video *video = vb2_get_drv_priv(vq);
-+	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
-+	struct vsp1_entity *entity;
-+	unsigned long flags;
-+	int ret;
-+
-+	mutex_lock(&pipe->lock);
-+	if (pipe->stream_count == pipe->num_video - 1) {
-+		list_for_each_entry(entity, &pipe->entities, list_pipe) {
-+			vsp1_entity_route_setup(entity);
-+
-+			ret = v4l2_subdev_call(&entity->subdev, video,
-+					       s_stream, 1);
-+			if (ret < 0) {
-+				mutex_unlock(&pipe->lock);
-+				return ret;
-+			}
-+		}
-+	}
-+
-+	pipe->stream_count++;
-+	mutex_unlock(&pipe->lock);
-+
-+	spin_lock_irqsave(&pipe->irqlock, flags);
-+	if (vsp1_pipeline_ready(pipe))
-+		vsp1_pipeline_run(pipe);
-+	spin_unlock_irqrestore(&pipe->irqlock, flags);
-+
-+	return 0;
-+}
-+
-+static int vsp1_video_stop_streaming(struct vb2_queue *vq)
-+{
-+	struct vsp1_video *video = vb2_get_drv_priv(vq);
-+	struct vsp1_pipeline *pipe = to_vsp1_pipeline(&video->video.entity);
-+	unsigned long flags;
-+	int ret;
-+
-+	mutex_lock(&pipe->lock);
-+	if (--pipe->stream_count == 0) {
-+		/* Stop the pipeline. */
-+		ret = vsp1_pipeline_stop(pipe);
-+		if (ret == -ETIMEDOUT)
-+			dev_err(video->vsp1->dev, "pipeline stop timeout\n");
-+	}
-+	mutex_unlock(&pipe->lock);
-+
-+	vsp1_pipeline_cleanup(pipe);
-+	media_entity_pipeline_stop(&video->video.entity);
-+
-+	/* Remove all buffers from the IRQ queue. */
-+	spin_lock_irqsave(&video->irqlock, flags);
-+	INIT_LIST_HEAD(&video->irqqueue);
-+	spin_unlock_irqrestore(&video->irqlock, flags);
-+
-+	return 0;
-+}
-+
-+static struct vb2_ops vsp1_video_queue_qops = {
-+	.queue_setup = vsp1_video_queue_setup,
-+	.buf_prepare = vsp1_video_buffer_prepare,
-+	.buf_queue = vsp1_video_buffer_queue,
-+	.wait_prepare = vsp1_video_wait_prepare,
-+	.wait_finish = vsp1_video_wait_finish,
-+	.start_streaming = vsp1_video_start_streaming,
-+	.stop_streaming = vsp1_video_stop_streaming,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 ioctls
-+ */
-+
-+static int
-+vsp1_video_querycap(struct file *file, void *fh, struct v4l2_capability *cap)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+
-+	if (video->type == V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE)
-+		cap->capabilities = V4L2_CAP_VIDEO_CAPTURE_MPLANE
-+				  | V4L2_CAP_STREAMING;
-+	else
-+		cap->capabilities = V4L2_CAP_VIDEO_OUTPUT_MPLANE
-+				  | V4L2_CAP_STREAMING;
-+
-+	strlcpy(cap->driver, "vsp1", sizeof(cap->driver));
-+	strlcpy(cap->card, video->video.name, sizeof(cap->card));
-+	strlcpy(cap->bus_info, "media", sizeof(cap->bus_info));
-+
-+	return 0;
-+}
-+
-+static int
-+vsp1_video_get_format(struct file *file, void *fh, struct v4l2_format *format)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+
-+	if (format->type != video->queue.type)
-+		return -EINVAL;
-+
-+	mutex_lock(&video->lock);
-+	format->fmt.pix_mp = video->format;
-+	mutex_unlock(&video->lock);
-+
-+	return 0;
-+}
-+
-+static int __vsp1_video_try_format(struct vsp1_video *video,
-+				   struct v4l2_pix_format_mplane *pix,
-+				   const struct vsp1_format_info **fmtinfo)
-+{
-+	const struct vsp1_format_info *info;
-+	unsigned int width = pix->width;
-+	unsigned int height = pix->height;
-+	unsigned int i;
-+
-+	/* Retrieve format information and select the default format if the
-+	 * requested format isn't supported.
-+	 */
-+	info = vsp1_get_format_info(pix->pixelformat);
-+	if (info == NULL)
-+		info = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
-+
-+	pix->pixelformat = info->fourcc;
-+	pix->colorspace = V4L2_COLORSPACE_SRGB;
-+	pix->field = V4L2_FIELD_NONE;
-+
-+	/* Align the width and height for YUV 4:2:2 and 4:2:0 formats. */
-+	width = round_down(width, info->hsub);
-+	height = round_down(height, info->vsub);
-+
-+	/* Clamp the width and height. */
-+	pix->width = clamp(width, VSP1_VIDEO_MIN_WIDTH, VSP1_VIDEO_MAX_WIDTH);
-+	pix->height = clamp(height, VSP1_VIDEO_MIN_HEIGHT,
-+			    VSP1_VIDEO_MAX_HEIGHT);
-+
-+	/* Compute and clamp the stride and image size. */
-+	for (i = 0; i < max(info->planes, 2U); ++i) {
-+		unsigned int hsub = i > 0 ? info->hsub : 1;
-+		unsigned int vsub = i > 0 ? info->vsub : 1;
-+		unsigned int bpl;
-+
-+		bpl = clamp_t(unsigned int, pix->plane_fmt[i].bytesperline,
-+			      pix->width / hsub * info->bpp[i] / 8,
-+			      round_down(65535U, 128));
-+
-+		pix->plane_fmt[i].bytesperline = round_up(bpl, 128);
-+		pix->plane_fmt[i].sizeimage = bpl * pix->height / vsub;
-+	}
-+
-+	if (info->planes == 3) {
-+		/* The second and third planes must have the same stride. */
-+		pix->plane_fmt[2].bytesperline = pix->plane_fmt[1].bytesperline;
-+		pix->plane_fmt[2].sizeimage = pix->plane_fmt[1].sizeimage;
-+	}
-+
-+	pix->num_planes = info->planes;
-+
-+	if (fmtinfo)
-+		*fmtinfo = info;
-+
-+	return 0;
-+}
-+
-+static int
-+vsp1_video_try_format(struct file *file, void *fh, struct v4l2_format *format)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+
-+	if (format->type != video->queue.type)
-+		return -EINVAL;
-+
-+	return __vsp1_video_try_format(video, &format->fmt.pix_mp, NULL);
-+}
-+
-+static int
-+vsp1_video_set_format(struct file *file, void *fh, struct v4l2_format *format)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	const struct vsp1_format_info *info;
-+	int ret;
-+
-+	if (format->type != video->queue.type)
-+		return -EINVAL;
-+
-+	ret = __vsp1_video_try_format(video, &format->fmt.pix_mp, &info);
-+	if (ret < 0)
-+		return ret;
-+
-+	mutex_lock(&video->lock);
-+
-+	if (vb2_is_streaming(&video->queue)) {
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+
-+	video->format = format->fmt.pix_mp;
-+	video->fmtinfo = info;
-+
-+done:
-+	mutex_unlock(&video->lock);
-+	return ret;
-+}
-+
-+static int
-+vsp1_video_reqbufs(struct file *file, void *fh, struct v4l2_requestbuffers *rb)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	int ret;
-+
-+	mutex_lock(&video->lock);
-+
-+	if (video->queue.owner && video->queue.owner != vfh) {
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+
-+	ret = vb2_reqbufs(&video->queue, rb);
-+	if (ret < 0)
-+		goto done;
-+
-+	video->queue.owner = vfh;
-+
-+done:
-+	mutex_unlock(&video->lock);
-+	return ret ? ret : rb->count;
-+}
-+
-+static int
-+vsp1_video_querybuf(struct file *file, void *fh, struct v4l2_buffer *buf)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	int ret;
-+
-+	mutex_lock(&video->lock);
-+	ret = vb2_querybuf(&video->queue, buf);
-+	mutex_unlock(&video->lock);
-+
-+	return ret;
-+}
-+
-+static int
-+vsp1_video_qbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	int ret;
-+
-+	mutex_lock(&video->lock);
-+
-+	if (video->queue.owner && video->queue.owner != vfh) {
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+
-+	ret = vb2_qbuf(&video->queue, buf);
-+
-+done:
-+	mutex_unlock(&video->lock);
-+	return ret;
-+}
-+
-+static int
-+vsp1_video_dqbuf(struct file *file, void *fh, struct v4l2_buffer *buf)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	int ret;
-+
-+	mutex_lock(&video->lock);
-+
-+	if (video->queue.owner && video->queue.owner != vfh) {
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+
-+	ret = vb2_dqbuf(&video->queue, buf, file->f_flags & O_NONBLOCK);
-+
-+done:
-+	mutex_unlock(&video->lock);
-+	return ret;
-+}
-+
-+static int
-+vsp1_video_streamon(struct file *file, void *fh, enum v4l2_buf_type type)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	struct vsp1_pipeline *pipe;
-+	int ret;
-+
-+	mutex_lock(&video->lock);
-+
-+	if (video->queue.owner && video->queue.owner != vfh) {
-+		ret = -EBUSY;
-+		goto err_unlock;
-+	}
-+
-+	video->sequence = 0;
-+
-+	/* Start streaming on the pipeline. No link touching an entity in the
-+	 * pipeline can be activated or deactivated once streaming is started.
-+	 *
-+	 * Use the VSP1 pipeline object embedded in the first video object that
-+	 * starts streaming.
-+	 */
-+	pipe = video->video.entity.pipe
-+	     ? to_vsp1_pipeline(&video->video.entity) : &video->pipe;
-+
-+	ret = media_entity_pipeline_start(&video->video.entity, &pipe->pipe);
-+	if (ret < 0)
-+		goto err_unlock;
-+
-+	/* Verify that the configured format matches the output of the connected
-+	 * subdev.
-+	 */
-+	ret = vsp1_video_verify_format(video);
-+	if (ret < 0)
-+		goto err_stop;
-+
-+	ret = vsp1_pipeline_init(pipe, video);
-+	if (ret < 0)
-+		goto err_stop;
-+
-+	/* Start the queue. */
-+	ret = vb2_streamon(&video->queue, type);
-+	if (ret < 0)
-+		goto err_cleanup;
-+
-+	mutex_unlock(&video->lock);
-+	return 0;
-+
-+err_cleanup:
-+	vsp1_pipeline_cleanup(pipe);
-+err_stop:
-+	media_entity_pipeline_stop(&video->video.entity);
-+err_unlock:
-+	mutex_unlock(&video->lock);
-+	return ret;
-+
-+}
-+
-+static int
-+vsp1_video_streamoff(struct file *file, void *fh, enum v4l2_buf_type type)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	int ret;
-+
-+	mutex_lock(&video->lock);
-+
-+	if (video->queue.owner && video->queue.owner != vfh) {
-+		ret = -EBUSY;
-+		goto done;
-+	}
-+
-+	ret = vb2_streamoff(&video->queue, type);
-+
-+done:
-+	mutex_unlock(&video->lock);
-+	return ret;
-+}
-+
-+static const struct v4l2_ioctl_ops vsp1_video_ioctl_ops = {
-+	.vidioc_querycap		= vsp1_video_querycap,
-+	.vidioc_g_fmt_vid_cap_mplane	= vsp1_video_get_format,
-+	.vidioc_s_fmt_vid_cap_mplane	= vsp1_video_set_format,
-+	.vidioc_try_fmt_vid_cap_mplane	= vsp1_video_try_format,
-+	.vidioc_g_fmt_vid_out_mplane	= vsp1_video_get_format,
-+	.vidioc_s_fmt_vid_out_mplane	= vsp1_video_set_format,
-+	.vidioc_try_fmt_vid_out_mplane	= vsp1_video_try_format,
-+	.vidioc_reqbufs			= vsp1_video_reqbufs,
-+	.vidioc_querybuf		= vsp1_video_querybuf,
-+	.vidioc_qbuf			= vsp1_video_qbuf,
-+	.vidioc_dqbuf			= vsp1_video_dqbuf,
-+	.vidioc_streamon		= vsp1_video_streamon,
-+	.vidioc_streamoff		= vsp1_video_streamoff,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 File Operations
-+ */
-+
-+static int vsp1_video_open(struct file *file)
-+{
-+	struct vsp1_video *video = video_drvdata(file);
-+	struct v4l2_fh *vfh;
-+	int ret = 0;
-+
-+	vfh = kzalloc(sizeof(*vfh), GFP_KERNEL);
-+	if (vfh == NULL)
-+		return -ENOMEM;
-+
-+	v4l2_fh_init(vfh, &video->video);
-+	v4l2_fh_add(vfh);
-+
-+	file->private_data = vfh;
-+
-+	if (!vsp1_device_get(video->vsp1)) {
-+		ret = -EBUSY;
-+		v4l2_fh_del(vfh);
-+		kfree(vfh);
-+	}
-+
-+	return ret;
-+}
-+
-+static int vsp1_video_release(struct file *file)
-+{
-+	struct vsp1_video *video = video_drvdata(file);
-+	struct v4l2_fh *vfh = file->private_data;
-+
-+	mutex_lock(&video->lock);
-+	if (video->queue.owner == vfh) {
-+		vb2_queue_release(&video->queue);
-+		video->queue.owner = NULL;
-+	}
-+	mutex_unlock(&video->lock);
-+
-+	vsp1_device_put(video->vsp1);
-+
-+	v4l2_fh_release(file);
-+
-+	file->private_data = NULL;
-+
-+	return 0;
-+}
-+
-+static unsigned int vsp1_video_poll(struct file *file, poll_table *wait)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	int ret;
-+
-+	mutex_lock(&video->lock);
-+	ret = vb2_poll(&video->queue, file, wait);
-+	mutex_unlock(&video->lock);
-+
-+	return ret;
-+}
-+
-+static int vsp1_video_mmap(struct file *file, struct vm_area_struct *vma)
-+{
-+	struct v4l2_fh *vfh = file->private_data;
-+	struct vsp1_video *video = to_vsp1_video(vfh->vdev);
-+	int ret;
-+
-+	mutex_lock(&video->lock);
-+	ret = vb2_mmap(&video->queue, vma);
-+	mutex_unlock(&video->lock);
-+
-+	return ret;
-+}
-+
-+static struct v4l2_file_operations vsp1_video_fops = {
-+	.owner = THIS_MODULE,
-+	.unlocked_ioctl = video_ioctl2,
-+	.open = vsp1_video_open,
-+	.release = vsp1_video_release,
-+	.poll = vsp1_video_poll,
-+	.mmap = vsp1_video_mmap,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Initialization and Cleanup
-+ */
-+
-+int vsp1_video_init(struct vsp1_video *video, struct vsp1_entity *rwpf)
-+{
-+	const char *direction;
-+	int ret;
-+
-+	switch (video->type) {
-+	case V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE:
-+		direction = "output";
-+		video->pad.flags = MEDIA_PAD_FL_SINK;
-+		break;
-+
-+	case V4L2_BUF_TYPE_VIDEO_OUTPUT_MPLANE:
-+		direction = "input";
-+		video->pad.flags = MEDIA_PAD_FL_SOURCE;
-+		video->video.vfl_dir = VFL_DIR_TX;
-+		break;
-+
-+	default:
-+		return -EINVAL;
-+	}
-+
-+	video->rwpf = rwpf;
-+
-+	mutex_init(&video->lock);
-+	spin_lock_init(&video->irqlock);
-+	INIT_LIST_HEAD(&video->irqqueue);
-+
-+	mutex_init(&video->pipe.lock);
-+	spin_lock_init(&video->pipe.irqlock);
-+	INIT_LIST_HEAD(&video->pipe.entities);
-+	init_waitqueue_head(&video->pipe.wq);
-+	video->pipe.state = VSP1_PIPELINE_STOPPED;
-+
-+	/* Initialize the media entity... */
-+	ret = media_entity_init(&video->video.entity, 1, &video->pad, 0);
-+	if (ret < 0)
-+		return ret;
-+
-+	/* ... and the format ... */
-+	video->fmtinfo = vsp1_get_format_info(VSP1_VIDEO_DEF_FORMAT);
-+	video->format.pixelformat = video->fmtinfo->fourcc;
-+	video->format.colorspace = V4L2_COLORSPACE_SRGB;
-+	video->format.field = V4L2_FIELD_NONE;
-+	video->format.width = VSP1_VIDEO_DEF_WIDTH;
-+	video->format.height = VSP1_VIDEO_DEF_HEIGHT;
-+	video->format.num_planes = 1;
-+	video->format.plane_fmt[0].bytesperline =
-+		video->format.width * video->fmtinfo->bpp[0] / 8;
-+	video->format.plane_fmt[0].sizeimage =
-+		video->format.plane_fmt[0].bytesperline * video->format.height;
-+
-+	/* ... and the video node... */
-+	video->video.v4l2_dev = &video->vsp1->v4l2_dev;
-+	video->video.fops = &vsp1_video_fops;
-+	snprintf(video->video.name, sizeof(video->video.name), "%s %s",
-+		 rwpf->subdev.name, direction);
-+	video->video.vfl_type = VFL_TYPE_GRABBER;
-+	video->video.release = video_device_release_empty;
-+	video->video.ioctl_ops = &vsp1_video_ioctl_ops;
-+
-+	video_set_drvdata(&video->video, video);
-+
-+	/* ... and the buffers queue... */
-+	video->alloc_ctx = vb2_dma_contig_init_ctx(video->vsp1->dev);
-+	if (IS_ERR(video->alloc_ctx))
-+		goto error;
-+
-+	video->queue.type = video->type;
-+	video->queue.io_modes = VB2_MMAP | VB2_USERPTR | VB2_DMABUF;
-+	video->queue.drv_priv = video;
-+	video->queue.buf_struct_size = sizeof(struct vsp1_video_buffer);
-+	video->queue.ops = &vsp1_video_queue_qops;
-+	video->queue.mem_ops = &vb2_dma_contig_memops;
-+	video->queue.timestamp_type = V4L2_BUF_FLAG_TIMESTAMP_COPY;
-+	ret = vb2_queue_init(&video->queue);
-+	if (ret < 0) {
-+		dev_err(video->vsp1->dev, "failed to initialize vb2 queue\n");
-+		goto error;
-+	}
-+
-+	/* ... and register the video device. */
-+	ret = video_register_device(&video->video, VFL_TYPE_GRABBER, -1);
-+	if (ret < 0) {
-+		dev_err(video->vsp1->dev, "failed to register video device\n");
-+		goto error;
-+	}
-+
-+	return 0;
-+
-+error:
-+	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
-+	vsp1_video_cleanup(video);
-+	return ret;
-+}
-+
-+void vsp1_video_cleanup(struct vsp1_video *video)
-+{
-+	if (video_is_registered(&video->video))
-+		video_unregister_device(&video->video);
-+
-+	vb2_dma_contig_cleanup_ctx(video->alloc_ctx);
-+	media_entity_cleanup(&video->video.entity);
-+}
-diff --git a/drivers/media/platform/vsp1/vsp1_video.h b/drivers/media/platform/vsp1/vsp1_video.h
-new file mode 100644
-index 0000000..dc1bdfd
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_video.h
-@@ -0,0 +1,144 @@
-+/*
-+ * vsp_video1.h  --  R-Car VSP1 Video Node
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __VSP1_VIDEO_H__
-+#define __VSP1_VIDEO_H__
-+
-+#include <linux/list.h>
-+#include <linux/spinlock.h>
-+#include <linux/wait.h>
-+
-+#include <media/media-entity.h>
-+#include <media/videobuf2-core.h>
-+
-+struct vsp1_video;
-+
-+/*
-+ * struct vsp1_format_info - VSP1 video format description
-+ * @mbus: media bus format code
-+ * @fourcc: V4L2 pixel format FCC identifier
-+ * @planes: number of planes
-+ * @bpp: bits per pixel
-+ * @hwfmt: VSP1 hardware format
-+ * @swap_yc: the Y and C components are swapped (Y comes before C)
-+ * @swap_uv: the U and V components are swapped (V comes before U)
-+ * @hsub: horizontal subsampling factor
-+ * @vsub: vertical subsampling factor
-+ */
-+struct vsp1_format_info {
-+	u32 fourcc;
-+	unsigned int mbus;
-+	unsigned int hwfmt;
-+	unsigned int swap;
-+	unsigned int planes;
-+	unsigned int bpp[3];
-+	bool swap_yc;
-+	bool swap_uv;
-+	unsigned int hsub;
-+	unsigned int vsub;
-+};
-+
-+enum vsp1_pipeline_state {
-+	VSP1_PIPELINE_STOPPED,
-+	VSP1_PIPELINE_RUNNING,
-+	VSP1_PIPELINE_STOPPING,
-+};
-+
-+/*
-+ * struct vsp1_pipeline - A VSP1 hardware pipeline
-+ * @media: the media pipeline
-+ * @irqlock: protects the pipeline state
-+ * @lock: protects the pipeline use count and stream count
-+ */
-+struct vsp1_pipeline {
-+	struct media_pipeline pipe;
-+
-+	spinlock_t irqlock;
-+	enum vsp1_pipeline_state state;
-+	wait_queue_head_t wq;
-+
-+	struct mutex lock;
-+	unsigned int use_count;
-+	unsigned int stream_count;
-+	unsigned int buffers_ready;
-+
-+	unsigned int num_video;
-+	unsigned int num_inputs;
-+	struct vsp1_rwpf *inputs[VPS1_MAX_RPF];
-+	struct vsp1_rwpf *output;
-+	struct vsp1_entity *lif;
-+
-+	struct list_head entities;
-+};
-+
-+static inline struct vsp1_pipeline *to_vsp1_pipeline(struct media_entity *e)
-+{
-+	if (likely(e->pipe))
-+		return container_of(e->pipe, struct vsp1_pipeline, pipe);
-+	else
-+		return NULL;
-+}
-+
-+struct vsp1_video_buffer {
-+	struct vsp1_video *video;
-+	struct vb2_buffer buf;
-+	struct list_head queue;
-+
-+	dma_addr_t addr[3];
-+	unsigned int length[3];
-+};
-+
-+static inline struct vsp1_video_buffer *
-+to_vsp1_video_buffer(struct vb2_buffer *vb)
-+{
-+	return container_of(vb, struct vsp1_video_buffer, buf);
-+}
-+
-+struct vsp1_video_operations {
-+	void (*queue)(struct vsp1_video *video, struct vsp1_video_buffer *buf);
-+};
-+
-+struct vsp1_video {
-+	struct vsp1_device *vsp1;
-+	struct vsp1_entity *rwpf;
-+
-+	const struct vsp1_video_operations *ops;
-+
-+	struct video_device video;
-+	enum v4l2_buf_type type;
-+	struct media_pad pad;
-+
-+	struct mutex lock;
-+	struct v4l2_pix_format_mplane format;
-+	const struct vsp1_format_info *fmtinfo;
-+
-+	struct vsp1_pipeline pipe;
-+	unsigned int pipe_index;
-+
-+	struct vb2_queue queue;
-+	void *alloc_ctx;
-+	spinlock_t irqlock;
-+	struct list_head irqqueue;
-+	unsigned int sequence;
-+};
-+
-+static inline struct vsp1_video *to_vsp1_video(struct video_device *vdev)
-+{
-+	return container_of(vdev, struct vsp1_video, video);
-+}
-+
-+int vsp1_video_init(struct vsp1_video *video, struct vsp1_entity *rwpf);
-+void vsp1_video_cleanup(struct vsp1_video *video);
-+
-+void vsp1_pipeline_frame_end(struct vsp1_pipeline *pipe);
-+
-+#endif /* __VSP1_VIDEO_H__ */
-diff --git a/drivers/media/platform/vsp1/vsp1_wpf.c b/drivers/media/platform/vsp1/vsp1_wpf.c
-new file mode 100644
-index 0000000..db4b85e
---- /dev/null
-+++ b/drivers/media/platform/vsp1/vsp1_wpf.c
-@@ -0,0 +1,233 @@
-+/*
-+ * vsp1_wpf.c  --  R-Car VSP1 Write Pixel Formatter
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+
-+#include <linux/device.h>
-+
-+#include <media/v4l2-subdev.h>
-+
-+#include "vsp1.h"
-+#include "vsp1_rwpf.h"
-+#include "vsp1_video.h"
-+
-+#define WPF_MAX_WIDTH				2048
-+#define WPF_MAX_HEIGHT				2048
-+
-+/* -----------------------------------------------------------------------------
-+ * Device Access
-+ */
-+
-+static inline u32 vsp1_wpf_read(struct vsp1_rwpf *wpf, u32 reg)
-+{
-+	return vsp1_read(wpf->entity.vsp1,
-+			 reg + wpf->entity.index * VI6_WPF_OFFSET);
-+}
-+
-+static inline void vsp1_wpf_write(struct vsp1_rwpf *wpf, u32 reg, u32 data)
-+{
-+	vsp1_write(wpf->entity.vsp1,
-+		   reg + wpf->entity.index * VI6_WPF_OFFSET, data);
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Core Operations
-+ */
-+
-+static int wpf_s_stream(struct v4l2_subdev *subdev, int enable)
-+{
-+	struct vsp1_rwpf *wpf = to_rwpf(subdev);
-+	struct vsp1_pipeline *pipe =
-+		to_vsp1_pipeline(&wpf->entity.subdev.entity);
-+	struct vsp1_device *vsp1 = wpf->entity.vsp1;
-+	const struct v4l2_mbus_framefmt *format =
-+		&wpf->entity.formats[RWPF_PAD_SOURCE];
-+	unsigned int i;
-+	u32 srcrpf = 0;
-+	u32 outfmt = 0;
-+
-+	if (!enable) {
-+		vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index), 0);
-+		return 0;
-+	}
-+
-+	/* Sources */
-+	for (i = 0; i < pipe->num_inputs; ++i) {
-+		struct vsp1_rwpf *input = pipe->inputs[i];
-+
-+		srcrpf |= VI6_WPF_SRCRPF_RPF_ACT_MST(input->entity.index);
-+	}
-+
-+	vsp1_wpf_write(wpf, VI6_WPF_SRCRPF, srcrpf);
-+
-+	/* Destination stride. Cropping isn't supported yet. */
-+	if (!pipe->lif) {
-+		struct v4l2_pix_format_mplane *format = &wpf->video.format;
-+
-+		vsp1_wpf_write(wpf, VI6_WPF_DSTM_STRIDE_Y,
-+			       format->plane_fmt[0].bytesperline);
-+		if (format->num_planes > 1)
-+			vsp1_wpf_write(wpf, VI6_WPF_DSTM_STRIDE_C,
-+				       format->plane_fmt[1].bytesperline);
-+	}
-+
-+	vsp1_wpf_write(wpf, VI6_WPF_HSZCLIP,
-+		       format->width << VI6_WPF_SZCLIP_SIZE_SHIFT);
-+	vsp1_wpf_write(wpf, VI6_WPF_VSZCLIP,
-+		       format->height << VI6_WPF_SZCLIP_SIZE_SHIFT);
-+
-+	/* Format */
-+	if (!pipe->lif) {
-+		const struct vsp1_format_info *fmtinfo = wpf->video.fmtinfo;
-+
-+		outfmt = fmtinfo->hwfmt << VI6_WPF_OUTFMT_WRFMT_SHIFT;
-+
-+		if (fmtinfo->swap_yc)
-+			outfmt |= VI6_WPF_OUTFMT_SPYCS;
-+		if (fmtinfo->swap_uv)
-+			outfmt |= VI6_WPF_OUTFMT_SPUVS;
-+
-+		vsp1_wpf_write(wpf, VI6_WPF_DSWAP, fmtinfo->swap);
-+	}
-+
-+	if (wpf->entity.formats[RWPF_PAD_SINK].code !=
-+	    wpf->entity.formats[RWPF_PAD_SOURCE].code)
-+		outfmt |= VI6_WPF_OUTFMT_CSC;
-+
-+	vsp1_wpf_write(wpf, VI6_WPF_OUTFMT, outfmt);
-+
-+	vsp1_write(vsp1, VI6_DPR_WPF_FPORCH(wpf->entity.index),
-+		   VI6_DPR_WPF_FPORCH_FP_WPFN);
-+
-+	vsp1_write(vsp1, VI6_WPF_WRBCK_CTRL, 0);
-+
-+	/* Enable interrupts */
-+	vsp1_write(vsp1, VI6_WPF_IRQ_STA(wpf->entity.index), 0);
-+	vsp1_write(vsp1, VI6_WPF_IRQ_ENB(wpf->entity.index),
-+		   VI6_WFP_IRQ_ENB_FREE);
-+
-+	return 0;
-+}
-+
-+/* -----------------------------------------------------------------------------
-+ * V4L2 Subdevice Operations
-+ */
-+
-+static struct v4l2_subdev_video_ops wpf_video_ops = {
-+	.s_stream = wpf_s_stream,
-+};
-+
-+static struct v4l2_subdev_pad_ops wpf_pad_ops = {
-+	.enum_mbus_code = vsp1_rwpf_enum_mbus_code,
-+	.enum_frame_size = vsp1_rwpf_enum_frame_size,
-+	.get_fmt = vsp1_rwpf_get_format,
-+	.set_fmt = vsp1_rwpf_set_format,
-+};
-+
-+static struct v4l2_subdev_ops wpf_ops = {
-+	.video	= &wpf_video_ops,
-+	.pad    = &wpf_pad_ops,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Video Device Operations
-+ */
-+
-+static void wpf_vdev_queue(struct vsp1_video *video,
-+			   struct vsp1_video_buffer *buf)
-+{
-+	struct vsp1_rwpf *wpf = container_of(video, struct vsp1_rwpf, video);
-+
-+	vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_Y, buf->addr[0]);
-+	if (buf->buf.num_planes > 1)
-+		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C0, buf->addr[1]);
-+	if (buf->buf.num_planes > 2)
-+		vsp1_wpf_write(wpf, VI6_WPF_DSTM_ADDR_C1, buf->addr[2]);
-+}
-+
-+static const struct vsp1_video_operations wpf_vdev_ops = {
-+	.queue = wpf_vdev_queue,
-+};
-+
-+/* -----------------------------------------------------------------------------
-+ * Initialization and Cleanup
-+ */
-+
-+struct vsp1_rwpf *vsp1_wpf_create(struct vsp1_device *vsp1, unsigned int index)
-+{
-+	struct v4l2_subdev *subdev;
-+	struct vsp1_video *video;
-+	struct vsp1_rwpf *wpf;
-+	unsigned int flags;
-+	int ret;
-+
-+	wpf = devm_kzalloc(vsp1->dev, sizeof(*wpf), GFP_KERNEL);
-+	if (wpf == NULL)
-+		return ERR_PTR(-ENOMEM);
-+
-+	wpf->max_width = WPF_MAX_WIDTH;
-+	wpf->max_height = WPF_MAX_HEIGHT;
-+
-+	wpf->entity.type = VSP1_ENTITY_WPF;
-+	wpf->entity.index = index;
-+	wpf->entity.id = VI6_DPR_NODE_WPF(index);
-+
-+	ret = vsp1_entity_init(vsp1, &wpf->entity, 2);
-+	if (ret < 0)
-+		return ERR_PTR(ret);
-+
-+	/* Initialize the V4L2 subdev. */
-+	subdev = &wpf->entity.subdev;
-+	v4l2_subdev_init(subdev, &wpf_ops);
-+
-+	subdev->entity.ops = &vsp1_media_ops;
-+	subdev->internal_ops = &vsp1_subdev_internal_ops;
-+	snprintf(subdev->name, sizeof(subdev->name), "%s wpf.%u",
-+		 dev_name(vsp1->dev), index);
-+	v4l2_set_subdevdata(subdev, wpf);
-+	subdev->flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
-+
-+	vsp1_entity_init_formats(subdev, NULL);
-+
-+	/* Initialize the video device. */
-+	video = &wpf->video;
-+
-+	video->type = V4L2_BUF_TYPE_VIDEO_CAPTURE_MPLANE;
-+	video->vsp1 = vsp1;
-+	video->ops = &wpf_vdev_ops;
-+
-+	ret = vsp1_video_init(video, &wpf->entity);
-+	if (ret < 0)
-+		goto error_video;
-+
-+	/* Connect the video device to the WPF. All connections are immutable
-+	 * except for the WPF0 source link if a LIF is present.
-+	 */
-+	flags = MEDIA_LNK_FL_ENABLED;
-+	if (!(vsp1->pdata->features & VSP1_HAS_LIF) || index != 0)
-+		flags |= MEDIA_LNK_FL_IMMUTABLE;
-+
-+	ret = media_entity_create_link(&wpf->entity.subdev.entity,
-+				       RWPF_PAD_SOURCE,
-+				       &wpf->video.video.entity, 0, flags);
-+	if (ret < 0)
-+		goto error_link;
-+
-+	wpf->entity.sink = &wpf->video.video.entity;
-+
-+	return wpf;
-+
-+error_link:
-+	vsp1_video_cleanup(video);
-+error_video:
-+	media_entity_cleanup(&wpf->entity.subdev.entity);
-+	return ERR_PTR(ret);
-+}
-diff --git a/include/linux/platform_data/vsp1.h b/include/linux/platform_data/vsp1.h
-new file mode 100644
-index 0000000..a73a456
---- /dev/null
-+++ b/include/linux/platform_data/vsp1.h
-@@ -0,0 +1,25 @@
-+/*
-+ * vsp1.h  --  R-Car VSP1 Platform Data
-+ *
-+ * Copyright (C) 2013 Renesas Corporation
-+ *
-+ * Contact: Laurent Pinchart (laurent.pinchart@ideasonboard.com)
-+ *
-+ * This program is free software; you can redistribute it and/or modify
-+ * it under the terms of the GNU General Public License as published by
-+ * the Free Software Foundation; either version 2 of the License, or
-+ * (at your option) any later version.
-+ */
-+#ifndef __PLATFORM_VSP1_H__
-+#define __PLATFORM_VSP1_H__
-+
-+#define VSP1_HAS_LIF		(1 << 0)
-+
-+struct vsp1_platform_data {
-+	unsigned int features;
-+	unsigned int rpf_count;
-+	unsigned int uds_count;
-+	unsigned int wpf_count;
-+};
-+
-+#endif /* __PLATFORM_VSP1_H__ */
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x414e77): undefined reference to `snd_card_create'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x414f02): undefined reference to `snd_ac97_bus'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x414f3f): undefined reference to `snd_ac97_mixer'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x414f64): undefined reference to `snd_card_register'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x414f8f): undefined reference to `snd_card_free'
+drivers/built-in.o: In function `stk1160_ac97_unregister':
+(.text+0x414fd8): undefined reference to `snd_card_free'
+
+
+
+Full randconfig file is attached.
+
+
 -- 
-1.8.1.5
+~Randy
 
+--------------030200050608060601060307
+Content-Type: text/plain; charset=us-ascii;
+ name="config-r3497"
+Content-Transfer-Encoding: 7bit
+Content-Disposition: attachment;
+ filename="config-r3497"
+
+#
+# Automatically generated file; DO NOT EDIT.
+# Linux/x86_64 3.11.0-rc2 Kernel Configuration
+#
+CONFIG_64BIT=y
+CONFIG_X86_64=y
+CONFIG_X86=y
+CONFIG_INSTRUCTION_DECODER=y
+CONFIG_OUTPUT_FORMAT="elf64-x86-64"
+CONFIG_ARCH_DEFCONFIG="arch/x86/configs/x86_64_defconfig"
+CONFIG_LOCKDEP_SUPPORT=y
+CONFIG_STACKTRACE_SUPPORT=y
+CONFIG_HAVE_LATENCYTOP_SUPPORT=y
+CONFIG_MMU=y
+CONFIG_NEED_DMA_MAP_STATE=y
+CONFIG_NEED_SG_DMA_LENGTH=y
+CONFIG_GENERIC_ISA_DMA=y
+CONFIG_GENERIC_BUG=y
+CONFIG_GENERIC_BUG_RELATIVE_POINTERS=y
+CONFIG_GENERIC_HWEIGHT=y
+CONFIG_ARCH_MAY_HAVE_PC_FDC=y
+CONFIG_RWSEM_XCHGADD_ALGORITHM=y
+CONFIG_GENERIC_CALIBRATE_DELAY=y
+CONFIG_ARCH_HAS_CPU_RELAX=y
+CONFIG_ARCH_HAS_CACHE_LINE_SIZE=y
+CONFIG_ARCH_HAS_CPU_AUTOPROBE=y
+CONFIG_HAVE_SETUP_PER_CPU_AREA=y
+CONFIG_NEED_PER_CPU_EMBED_FIRST_CHUNK=y
+CONFIG_NEED_PER_CPU_PAGE_FIRST_CHUNK=y
+CONFIG_ARCH_HIBERNATION_POSSIBLE=y
+CONFIG_ARCH_SUSPEND_POSSIBLE=y
+CONFIG_ARCH_WANT_HUGE_PMD_SHARE=y
+CONFIG_ARCH_WANT_GENERAL_HUGETLB=y
+CONFIG_ZONE_DMA32=y
+CONFIG_AUDIT_ARCH=y
+CONFIG_ARCH_SUPPORTS_OPTIMIZED_INLINING=y
+CONFIG_ARCH_SUPPORTS_DEBUG_PAGEALLOC=y
+CONFIG_ARCH_HWEIGHT_CFLAGS="-fcall-saved-rdi -fcall-saved-rsi -fcall-saved-rdx -fcall-saved-rcx -fcall-saved-r8 -fcall-saved-r9 -fcall-saved-r10 -fcall-saved-r11"
+CONFIG_ARCH_SUPPORTS_UPROBES=y
+CONFIG_DEFCONFIG_LIST="/lib/modules/$UNAME_RELEASE/.config"
+CONFIG_CONSTRUCTORS=y
+CONFIG_IRQ_WORK=y
+CONFIG_BUILDTIME_EXTABLE_SORT=y
+
+#
+# General setup
+#
+CONFIG_BROKEN_ON_SMP=y
+CONFIG_INIT_ENV_ARG_LIMIT=32
+CONFIG_CROSS_COMPILE=""
+CONFIG_COMPILE_TEST=y
+CONFIG_LOCALVERSION=""
+CONFIG_LOCALVERSION_AUTO=y
+CONFIG_HAVE_KERNEL_GZIP=y
+CONFIG_HAVE_KERNEL_BZIP2=y
+CONFIG_HAVE_KERNEL_LZMA=y
+CONFIG_HAVE_KERNEL_XZ=y
+CONFIG_HAVE_KERNEL_LZO=y
+CONFIG_HAVE_KERNEL_LZ4=y
+# CONFIG_KERNEL_GZIP is not set
+# CONFIG_KERNEL_BZIP2 is not set
+# CONFIG_KERNEL_LZMA is not set
+# CONFIG_KERNEL_XZ is not set
+CONFIG_KERNEL_LZO=y
+# CONFIG_KERNEL_LZ4 is not set
+CONFIG_DEFAULT_HOSTNAME="(none)"
+# CONFIG_SWAP is not set
+# CONFIG_SYSVIPC is not set
+# CONFIG_POSIX_MQUEUE is not set
+# CONFIG_FHANDLE is not set
+CONFIG_AUDIT=y
+# CONFIG_AUDITSYSCALL is not set
+CONFIG_AUDIT_LOGINUID_IMMUTABLE=y
+CONFIG_HAVE_GENERIC_HARDIRQS=y
+
+#
+# IRQ subsystem
+#
+CONFIG_GENERIC_HARDIRQS=y
+CONFIG_GENERIC_IRQ_PROBE=y
+CONFIG_GENERIC_IRQ_SHOW=y
+CONFIG_GENERIC_IRQ_CHIP=y
+CONFIG_IRQ_DOMAIN=y
+CONFIG_IRQ_DOMAIN_DEBUG=y
+CONFIG_IRQ_FORCED_THREADING=y
+CONFIG_SPARSE_IRQ=y
+CONFIG_CLOCKSOURCE_WATCHDOG=y
+CONFIG_ARCH_CLOCKSOURCE_DATA=y
+CONFIG_GENERIC_TIME_VSYSCALL=y
+CONFIG_GENERIC_CLOCKEVENTS=y
+CONFIG_GENERIC_CLOCKEVENTS_BUILD=y
+CONFIG_GENERIC_CLOCKEVENTS_BROADCAST=y
+CONFIG_GENERIC_CLOCKEVENTS_MIN_ADJUST=y
+CONFIG_GENERIC_CMOS_UPDATE=y
+
+#
+# Timers subsystem
+#
+CONFIG_HZ_PERIODIC=y
+# CONFIG_NO_HZ_IDLE is not set
+CONFIG_NO_HZ=y
+# CONFIG_HIGH_RES_TIMERS is not set
+
+#
+# CPU/Task time and stats accounting
+#
+CONFIG_VIRT_CPU_ACCOUNTING=y
+# CONFIG_TICK_CPU_ACCOUNTING is not set
+CONFIG_VIRT_CPU_ACCOUNTING_GEN=y
+# CONFIG_IRQ_TIME_ACCOUNTING is not set
+# CONFIG_BSD_PROCESS_ACCT is not set
+CONFIG_TASKSTATS=y
+# CONFIG_TASK_DELAY_ACCT is not set
+CONFIG_TASK_XACCT=y
+# CONFIG_TASK_IO_ACCOUNTING is not set
+
+#
+# RCU Subsystem
+#
+CONFIG_TREE_PREEMPT_RCU=y
+CONFIG_PREEMPT_RCU=y
+CONFIG_RCU_STALL_COMMON=y
+CONFIG_CONTEXT_TRACKING=y
+CONFIG_CONTEXT_TRACKING_FORCE=y
+CONFIG_RCU_FANOUT=64
+CONFIG_RCU_FANOUT_LEAF=16
+CONFIG_RCU_FANOUT_EXACT=y
+CONFIG_TREE_RCU_TRACE=y
+# CONFIG_RCU_BOOST is not set
+CONFIG_RCU_NOCB_CPU=y
+# CONFIG_RCU_NOCB_CPU_NONE is not set
+CONFIG_RCU_NOCB_CPU_ZERO=y
+# CONFIG_RCU_NOCB_CPU_ALL is not set
+CONFIG_IKCONFIG=m
+CONFIG_IKCONFIG_PROC=y
+CONFIG_LOG_BUF_SHIFT=17
+CONFIG_HAVE_UNSTABLE_SCHED_CLOCK=y
+CONFIG_ARCH_SUPPORTS_NUMA_BALANCING=y
+CONFIG_ARCH_WANTS_PROT_NUMA_PROT_NONE=y
+CONFIG_CGROUPS=y
+CONFIG_CGROUP_DEBUG=y
+CONFIG_CGROUP_FREEZER=y
+# CONFIG_CGROUP_DEVICE is not set
+CONFIG_CPUSETS=y
+CONFIG_PROC_PID_CPUSET=y
+# CONFIG_CGROUP_CPUACCT is not set
+# CONFIG_RESOURCE_COUNTERS is not set
+# CONFIG_CGROUP_PERF is not set
+CONFIG_CGROUP_SCHED=y
+CONFIG_FAIR_GROUP_SCHED=y
+CONFIG_CFS_BANDWIDTH=y
+# CONFIG_RT_GROUP_SCHED is not set
+# CONFIG_BLK_CGROUP is not set
+# CONFIG_CHECKPOINT_RESTORE is not set
+CONFIG_NAMESPACES=y
+CONFIG_UTS_NS=y
+CONFIG_PID_NS=y
+CONFIG_NET_NS=y
+CONFIG_SCHED_AUTOGROUP=y
+CONFIG_SYSFS_DEPRECATED=y
+# CONFIG_SYSFS_DEPRECATED_V2 is not set
+CONFIG_RELAY=y
+# CONFIG_BLK_DEV_INITRD is not set
+CONFIG_CC_OPTIMIZE_FOR_SIZE=y
+CONFIG_SYSCTL=y
+CONFIG_ANON_INODES=y
+CONFIG_HAVE_UID16=y
+CONFIG_SYSCTL_EXCEPTION_TRACE=y
+CONFIG_HAVE_PCSPKR_PLATFORM=y
+# CONFIG_EXPERT is not set
+CONFIG_UID16=y
+# CONFIG_SYSCTL_SYSCALL is not set
+CONFIG_KALLSYMS=y
+CONFIG_KALLSYMS_ALL=y
+CONFIG_PRINTK=y
+CONFIG_BUG=y
+CONFIG_ELF_CORE=y
+CONFIG_PCSPKR_PLATFORM=y
+CONFIG_BASE_FULL=y
+CONFIG_FUTEX=y
+CONFIG_EPOLL=y
+CONFIG_SIGNALFD=y
+CONFIG_TIMERFD=y
+CONFIG_EVENTFD=y
+CONFIG_SHMEM=y
+CONFIG_AIO=y
+CONFIG_PCI_QUIRKS=y
+# CONFIG_EMBEDDED is not set
+CONFIG_HAVE_PERF_EVENTS=y
+
+#
+# Kernel Performance Events And Counters
+#
+CONFIG_PERF_EVENTS=y
+# CONFIG_DEBUG_PERF_USE_VMALLOC is not set
+CONFIG_VM_EVENT_COUNTERS=y
+CONFIG_SLUB_DEBUG=y
+# CONFIG_COMPAT_BRK is not set
+# CONFIG_SLAB is not set
+CONFIG_SLUB=y
+# CONFIG_SLUB_CPU_PARTIAL is not set
+CONFIG_PROFILING=y
+CONFIG_OPROFILE=y
+# CONFIG_OPROFILE_EVENT_MULTIPLEX is not set
+CONFIG_HAVE_OPROFILE=y
+CONFIG_OPROFILE_NMI_TIMER=y
+CONFIG_KPROBES=y
+# CONFIG_JUMP_LABEL is not set
+# CONFIG_HAVE_64BIT_ALIGNED_ACCESS is not set
+CONFIG_HAVE_EFFICIENT_UNALIGNED_ACCESS=y
+CONFIG_ARCH_USE_BUILTIN_BSWAP=y
+CONFIG_KRETPROBES=y
+CONFIG_HAVE_IOREMAP_PROT=y
+CONFIG_HAVE_KPROBES=y
+CONFIG_HAVE_KRETPROBES=y
+CONFIG_HAVE_OPTPROBES=y
+CONFIG_HAVE_KPROBES_ON_FTRACE=y
+CONFIG_HAVE_ARCH_TRACEHOOK=y
+CONFIG_HAVE_DMA_ATTRS=y
+CONFIG_GENERIC_SMP_IDLE_THREAD=y
+CONFIG_HAVE_REGS_AND_STACK_ACCESS_API=y
+CONFIG_HAVE_DMA_API_DEBUG=y
+CONFIG_HAVE_HW_BREAKPOINT=y
+CONFIG_HAVE_MIXED_BREAKPOINTS_REGS=y
+CONFIG_HAVE_USER_RETURN_NOTIFIER=y
+CONFIG_HAVE_PERF_EVENTS_NMI=y
+CONFIG_HAVE_PERF_REGS=y
+CONFIG_HAVE_PERF_USER_STACK_DUMP=y
+CONFIG_HAVE_ARCH_JUMP_LABEL=y
+CONFIG_ARCH_HAVE_NMI_SAFE_CMPXCHG=y
+CONFIG_HAVE_ALIGNED_STRUCT_PAGE=y
+CONFIG_HAVE_CMPXCHG_LOCAL=y
+CONFIG_HAVE_CMPXCHG_DOUBLE=y
+CONFIG_ARCH_WANT_COMPAT_IPC_PARSE_VERSION=y
+CONFIG_ARCH_WANT_OLD_COMPAT_IPC=y
+CONFIG_HAVE_ARCH_SECCOMP_FILTER=y
+CONFIG_SECCOMP_FILTER=y
+CONFIG_HAVE_CONTEXT_TRACKING=y
+CONFIG_HAVE_IRQ_TIME_ACCOUNTING=y
+CONFIG_HAVE_ARCH_TRANSPARENT_HUGEPAGE=y
+CONFIG_HAVE_ARCH_SOFT_DIRTY=y
+CONFIG_MODULES_USE_ELF_RELA=y
+CONFIG_OLD_SIGSUSPEND3=y
+CONFIG_COMPAT_OLD_SIGACTION=y
+
+#
+# GCOV-based kernel profiling
+#
+CONFIG_GCOV_KERNEL=y
+CONFIG_GCOV_PROFILE_ALL=y
+# CONFIG_HAVE_GENERIC_DMA_COHERENT is not set
+CONFIG_SLABINFO=y
+CONFIG_RT_MUTEXES=y
+CONFIG_BASE_SMALL=0
+CONFIG_MODULES=y
+CONFIG_MODULE_FORCE_LOAD=y
+CONFIG_MODULE_UNLOAD=y
+CONFIG_MODULE_FORCE_UNLOAD=y
+CONFIG_MODVERSIONS=y
+# CONFIG_MODULE_SRCVERSION_ALL is not set
+CONFIG_MODULE_SIG=y
+CONFIG_MODULE_SIG_FORCE=y
+# CONFIG_MODULE_SIG_ALL is not set
+
+#
+# Do not forget to sign required modules with scripts/sign-file
+#
+# CONFIG_MODULE_SIG_SHA1 is not set
+# CONFIG_MODULE_SIG_SHA224 is not set
+CONFIG_MODULE_SIG_SHA256=y
+# CONFIG_MODULE_SIG_SHA384 is not set
+# CONFIG_MODULE_SIG_SHA512 is not set
+CONFIG_MODULE_SIG_HASH="sha256"
+CONFIG_BLOCK=y
+CONFIG_BLK_DEV_BSG=y
+CONFIG_BLK_DEV_BSGLIB=y
+# CONFIG_BLK_DEV_INTEGRITY is not set
+
+#
+# Partition Types
+#
+# CONFIG_PARTITION_ADVANCED is not set
+CONFIG_MSDOS_PARTITION=y
+CONFIG_EFI_PARTITION=y
+CONFIG_BLOCK_COMPAT=y
+
+#
+# IO Schedulers
+#
+CONFIG_IOSCHED_NOOP=y
+CONFIG_IOSCHED_DEADLINE=y
+CONFIG_IOSCHED_CFQ=m
+CONFIG_DEFAULT_DEADLINE=y
+# CONFIG_DEFAULT_NOOP is not set
+CONFIG_DEFAULT_IOSCHED="deadline"
+CONFIG_ASN1=y
+CONFIG_UNINLINE_SPIN_UNLOCK=y
+CONFIG_FREEZER=y
+
+#
+# Processor type and features
+#
+CONFIG_ZONE_DMA=y
+# CONFIG_SMP is not set
+CONFIG_X86_MPPARSE=y
+CONFIG_X86_EXTENDED_PLATFORM=y
+# CONFIG_SCHED_OMIT_FRAME_POINTER is not set
+CONFIG_HYPERVISOR_GUEST=y
+# CONFIG_PARAVIRT is not set
+# CONFIG_XEN_PRIVILEGED_GUEST is not set
+CONFIG_NO_BOOTMEM=y
+# CONFIG_MEMTEST is not set
+# CONFIG_MK8 is not set
+CONFIG_MPSC=y
+# CONFIG_MCORE2 is not set
+# CONFIG_MATOM is not set
+# CONFIG_GENERIC_CPU is not set
+CONFIG_X86_INTERNODE_CACHE_SHIFT=7
+CONFIG_X86_L1_CACHE_SHIFT=7
+CONFIG_X86_P6_NOP=y
+CONFIG_X86_TSC=y
+CONFIG_X86_CMPXCHG64=y
+CONFIG_X86_CMOV=y
+CONFIG_X86_MINIMUM_CPU_FAMILY=64
+CONFIG_X86_DEBUGCTLMSR=y
+CONFIG_CPU_SUP_INTEL=y
+CONFIG_CPU_SUP_AMD=y
+CONFIG_CPU_SUP_CENTAUR=y
+CONFIG_HPET_TIMER=y
+CONFIG_DMI=y
+CONFIG_GART_IOMMU=y
+# CONFIG_CALGARY_IOMMU is not set
+CONFIG_SWIOTLB=y
+CONFIG_IOMMU_HELPER=y
+CONFIG_NR_CPUS=1
+# CONFIG_PREEMPT_NONE is not set
+# CONFIG_PREEMPT_VOLUNTARY is not set
+CONFIG_PREEMPT=y
+CONFIG_PREEMPT_COUNT=y
+CONFIG_X86_LOCAL_APIC=y
+CONFIG_X86_IO_APIC=y
+# CONFIG_X86_REROUTE_FOR_BROKEN_BOOT_IRQS is not set
+# CONFIG_X86_MCE is not set
+CONFIG_I8K=m
+# CONFIG_MICROCODE is not set
+# CONFIG_MICROCODE_INTEL_EARLY is not set
+# CONFIG_MICROCODE_AMD_EARLY is not set
+CONFIG_X86_MSR=y
+CONFIG_X86_CPUID=y
+CONFIG_ARCH_PHYS_ADDR_T_64BIT=y
+CONFIG_ARCH_DMA_ADDR_T_64BIT=y
+CONFIG_DIRECT_GBPAGES=y
+CONFIG_ARCH_SPARSEMEM_ENABLE=y
+CONFIG_ARCH_SPARSEMEM_DEFAULT=y
+CONFIG_ARCH_SELECT_MEMORY_MODEL=y
+CONFIG_ARCH_MEMORY_PROBE=y
+CONFIG_ARCH_PROC_KCORE_TEXT=y
+CONFIG_ILLEGAL_POINTER_VALUE=0xdead000000000000
+CONFIG_SELECT_MEMORY_MODEL=y
+CONFIG_SPARSEMEM_MANUAL=y
+CONFIG_SPARSEMEM=y
+CONFIG_HAVE_MEMORY_PRESENT=y
+CONFIG_SPARSEMEM_EXTREME=y
+CONFIG_SPARSEMEM_VMEMMAP_ENABLE=y
+CONFIG_SPARSEMEM_ALLOC_MEM_MAP_TOGETHER=y
+# CONFIG_SPARSEMEM_VMEMMAP is not set
+CONFIG_HAVE_MEMBLOCK=y
+CONFIG_HAVE_MEMBLOCK_NODE_MAP=y
+CONFIG_ARCH_DISCARD_MEMBLOCK=y
+CONFIG_MEMORY_ISOLATION=y
+# CONFIG_HAVE_BOOTMEM_INFO_NODE is not set
+CONFIG_MEMORY_HOTPLUG=y
+CONFIG_MEMORY_HOTPLUG_SPARSE=y
+# CONFIG_MEMORY_HOTREMOVE is not set
+CONFIG_PAGEFLAGS_EXTENDED=y
+CONFIG_SPLIT_PTLOCK_CPUS=999999
+CONFIG_COMPACTION=y
+CONFIG_MIGRATION=y
+CONFIG_PHYS_ADDR_T_64BIT=y
+CONFIG_ZONE_DMA_FLAG=1
+# CONFIG_BOUNCE is not set
+CONFIG_VIRT_TO_BUS=y
+CONFIG_KSM=y
+CONFIG_DEFAULT_MMAP_MIN_ADDR=4096
+# CONFIG_TRANSPARENT_HUGEPAGE is not set
+# CONFIG_CROSS_MEMORY_ATTACH is not set
+CONFIG_NEED_PER_CPU_KM=y
+# CONFIG_CLEANCACHE is not set
+# CONFIG_ZBUD is not set
+CONFIG_CMA=y
+# CONFIG_CMA_DEBUG is not set
+CONFIG_X86_CHECK_BIOS_CORRUPTION=y
+CONFIG_X86_BOOTPARAM_MEMORY_CORRUPTION_CHECK=y
+CONFIG_X86_RESERVE_LOW=64
+CONFIG_MTRR=y
+CONFIG_MTRR_SANITIZER=y
+CONFIG_MTRR_SANITIZER_ENABLE_DEFAULT=0
+CONFIG_MTRR_SANITIZER_SPARE_REG_NR_DEFAULT=1
+CONFIG_X86_PAT=y
+CONFIG_ARCH_USES_PG_UNCACHED=y
+CONFIG_ARCH_RANDOM=y
+CONFIG_X86_SMAP=y
+CONFIG_SECCOMP=y
+# CONFIG_CC_STACKPROTECTOR is not set
+CONFIG_HZ_100=y
+# CONFIG_HZ_250 is not set
+# CONFIG_HZ_300 is not set
+# CONFIG_HZ_1000 is not set
+CONFIG_HZ=100
+# CONFIG_SCHED_HRTICK is not set
+CONFIG_KEXEC=y
+# CONFIG_CRASH_DUMP is not set
+CONFIG_PHYSICAL_START=0x1000000
+# CONFIG_RELOCATABLE is not set
+CONFIG_PHYSICAL_ALIGN=0x1000000
+# CONFIG_COMPAT_VDSO is not set
+CONFIG_CMDLINE_BOOL=y
+CONFIG_CMDLINE=""
+# CONFIG_CMDLINE_OVERRIDE is not set
+CONFIG_ARCH_ENABLE_MEMORY_HOTPLUG=y
+CONFIG_ARCH_ENABLE_MEMORY_HOTREMOVE=y
+
+#
+# Power management and ACPI options
+#
+# CONFIG_SUSPEND is not set
+# CONFIG_PM_RUNTIME is not set
+# CONFIG_ACPI is not set
+# CONFIG_SFI is not set
+
+#
+# CPU Frequency scaling
+#
+CONFIG_CPU_FREQ=y
+CONFIG_CPU_FREQ_TABLE=y
+CONFIG_CPU_FREQ_GOV_COMMON=y
+CONFIG_CPU_FREQ_STAT=m
+# CONFIG_CPU_FREQ_STAT_DETAILS is not set
+CONFIG_CPU_FREQ_DEFAULT_GOV_PERFORMANCE=y
+# CONFIG_CPU_FREQ_DEFAULT_GOV_USERSPACE is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_ONDEMAND is not set
+# CONFIG_CPU_FREQ_DEFAULT_GOV_CONSERVATIVE is not set
+CONFIG_CPU_FREQ_GOV_PERFORMANCE=y
+# CONFIG_CPU_FREQ_GOV_POWERSAVE is not set
+CONFIG_CPU_FREQ_GOV_USERSPACE=m
+CONFIG_CPU_FREQ_GOV_ONDEMAND=y
+CONFIG_CPU_FREQ_GOV_CONSERVATIVE=y
+
+#
+# x86 CPU frequency scaling drivers
+#
+# CONFIG_X86_INTEL_PSTATE is not set
+CONFIG_X86_P4_CLOCKMOD=y
+
+#
+# shared options
+#
+CONFIG_X86_SPEEDSTEP_LIB=y
+# CONFIG_CPU_IDLE is not set
+# CONFIG_ARCH_NEEDS_CPU_IDLE_COUPLED is not set
+
+#
+# Memory power savings
+#
+CONFIG_I7300_IDLE_IOAT_CHANNEL=y
+CONFIG_I7300_IDLE=m
+
+#
+# Bus options (PCI etc.)
+#
+CONFIG_PCI=y
+CONFIG_PCI_DIRECT=y
+CONFIG_PCI_DOMAINS=y
+CONFIG_PCIEPORTBUS=y
+# CONFIG_HOTPLUG_PCI_PCIE is not set
+# CONFIG_PCIEAER is not set
+CONFIG_PCIEASPM=y
+CONFIG_PCIEASPM_DEBUG=y
+# CONFIG_PCIEASPM_DEFAULT is not set
+CONFIG_PCIEASPM_POWERSAVE=y
+# CONFIG_PCIEASPM_PERFORMANCE is not set
+CONFIG_ARCH_SUPPORTS_MSI=y
+# CONFIG_PCI_MSI is not set
+# CONFIG_PCI_DEBUG is not set
+CONFIG_PCI_REALLOC_ENABLE_AUTO=y
+# CONFIG_PCI_STUB is not set
+# CONFIG_HT_IRQ is not set
+CONFIG_PCI_ATS=y
+CONFIG_PCI_IOV=y
+CONFIG_PCI_PRI=y
+CONFIG_PCI_PASID=y
+CONFIG_PCI_LABEL=y
+
+#
+# PCI host controller drivers
+#
+CONFIG_ISA_DMA_API=y
+CONFIG_AMD_NB=y
+CONFIG_PCCARD=y
+CONFIG_PCMCIA=y
+CONFIG_PCMCIA_LOAD_CIS=y
+CONFIG_CARDBUS=y
+
+#
+# PC-card bridges
+#
+# CONFIG_YENTA is not set
+CONFIG_PD6729=m
+# CONFIG_I82092 is not set
+CONFIG_PCCARD_NONSTATIC=y
+CONFIG_HOTPLUG_PCI=m
+# CONFIG_HOTPLUG_PCI_CPCI is not set
+CONFIG_HOTPLUG_PCI_SHPC=m
+# CONFIG_RAPIDIO is not set
+
+#
+# Executable file formats / Emulations
+#
+CONFIG_BINFMT_ELF=y
+CONFIG_COMPAT_BINFMT_ELF=y
+CONFIG_ARCH_BINFMT_ELF_RANDOMIZE_PIE=y
+# CONFIG_CORE_DUMP_DEFAULT_ELF_HEADERS is not set
+CONFIG_BINFMT_SCRIPT=m
+# CONFIG_HAVE_AOUT is not set
+# CONFIG_BINFMT_MISC is not set
+CONFIG_COREDUMP=y
+CONFIG_IA32_EMULATION=y
+CONFIG_IA32_AOUT=y
+# CONFIG_X86_X32 is not set
+CONFIG_COMPAT=y
+CONFIG_COMPAT_FOR_U64_ALIGNMENT=y
+CONFIG_KEYS_COMPAT=y
+CONFIG_HAVE_TEXT_POKE_SMP=y
+CONFIG_X86_DEV_DMA_OPS=y
+CONFIG_NET=y
+
+#
+# Networking options
+#
+CONFIG_PACKET=m
+# CONFIG_PACKET_DIAG is not set
+# CONFIG_UNIX is not set
+CONFIG_XFRM=y
+CONFIG_XFRM_ALGO=y
+CONFIG_XFRM_USER=m
+CONFIG_XFRM_SUB_POLICY=y
+# CONFIG_XFRM_MIGRATE is not set
+CONFIG_XFRM_STATISTICS=y
+CONFIG_NET_KEY=y
+# CONFIG_NET_KEY_MIGRATE is not set
+CONFIG_INET=y
+# CONFIG_IP_MULTICAST is not set
+CONFIG_IP_ADVANCED_ROUTER=y
+# CONFIG_IP_FIB_TRIE_STATS is not set
+CONFIG_IP_MULTIPLE_TABLES=y
+# CONFIG_IP_ROUTE_MULTIPATH is not set
+# CONFIG_IP_ROUTE_VERBOSE is not set
+CONFIG_IP_PNP=y
+# CONFIG_IP_PNP_DHCP is not set
+CONFIG_IP_PNP_BOOTP=y
+CONFIG_IP_PNP_RARP=y
+CONFIG_NET_IPIP=m
+CONFIG_NET_IPGRE_DEMUX=y
+CONFIG_NET_IP_TUNNEL=y
+CONFIG_NET_IPGRE=y
+# CONFIG_ARPD is not set
+CONFIG_SYN_COOKIES=y
+CONFIG_NET_IPVTI=y
+CONFIG_INET_AH=m
+CONFIG_INET_ESP=m
+# CONFIG_INET_IPCOMP is not set
+# CONFIG_INET_XFRM_TUNNEL is not set
+CONFIG_INET_TUNNEL=y
+CONFIG_INET_XFRM_MODE_TRANSPORT=y
+CONFIG_INET_XFRM_MODE_TUNNEL=y
+CONFIG_INET_XFRM_MODE_BEET=m
+CONFIG_INET_LRO=y
+CONFIG_INET_DIAG=y
+CONFIG_INET_TCP_DIAG=y
+CONFIG_INET_UDP_DIAG=m
+# CONFIG_TCP_CONG_ADVANCED is not set
+CONFIG_TCP_CONG_CUBIC=y
+CONFIG_DEFAULT_TCP_CONG="cubic"
+# CONFIG_TCP_MD5SIG is not set
+# CONFIG_IPV6 is not set
+# CONFIG_NETLABEL is not set
+CONFIG_NETWORK_SECMARK=y
+CONFIG_NETWORK_PHY_TIMESTAMPING=y
+CONFIG_NETFILTER=y
+CONFIG_NETFILTER_DEBUG=y
+CONFIG_NETFILTER_ADVANCED=y
+CONFIG_BRIDGE_NETFILTER=y
+
+#
+# Core Netfilter Configuration
+#
+CONFIG_NETFILTER_NETLINK=y
+CONFIG_NETFILTER_NETLINK_ACCT=m
+# CONFIG_NETFILTER_NETLINK_QUEUE is not set
+CONFIG_NETFILTER_NETLINK_LOG=y
+# CONFIG_NF_CONNTRACK is not set
+CONFIG_NETFILTER_XTABLES=y
+
+#
+# Xtables combined modules
+#
+CONFIG_NETFILTER_XT_MARK=y
+CONFIG_NETFILTER_XT_SET=m
+
+#
+# Xtables targets
+#
+# CONFIG_NETFILTER_XT_TARGET_AUDIT is not set
+CONFIG_NETFILTER_XT_TARGET_CLASSIFY=m
+CONFIG_NETFILTER_XT_TARGET_HMARK=m
+CONFIG_NETFILTER_XT_TARGET_IDLETIMER=m
+CONFIG_NETFILTER_XT_TARGET_LED=m
+CONFIG_NETFILTER_XT_TARGET_LOG=m
+# CONFIG_NETFILTER_XT_TARGET_MARK is not set
+# CONFIG_NETFILTER_XT_TARGET_NFLOG is not set
+# CONFIG_NETFILTER_XT_TARGET_NFQUEUE is not set
+CONFIG_NETFILTER_XT_TARGET_RATEEST=m
+CONFIG_NETFILTER_XT_TARGET_TEE=m
+CONFIG_NETFILTER_XT_TARGET_SECMARK=y
+CONFIG_NETFILTER_XT_TARGET_TCPMSS=y
+
+#
+# Xtables matches
+#
+CONFIG_NETFILTER_XT_MATCH_ADDRTYPE=y
+CONFIG_NETFILTER_XT_MATCH_BPF=m
+CONFIG_NETFILTER_XT_MATCH_COMMENT=m
+CONFIG_NETFILTER_XT_MATCH_CPU=y
+# CONFIG_NETFILTER_XT_MATCH_DCCP is not set
+CONFIG_NETFILTER_XT_MATCH_DEVGROUP=y
+CONFIG_NETFILTER_XT_MATCH_DSCP=m
+CONFIG_NETFILTER_XT_MATCH_ECN=y
+CONFIG_NETFILTER_XT_MATCH_ESP=y
+CONFIG_NETFILTER_XT_MATCH_HASHLIMIT=m
+# CONFIG_NETFILTER_XT_MATCH_HL is not set
+CONFIG_NETFILTER_XT_MATCH_IPRANGE=y
+CONFIG_NETFILTER_XT_MATCH_LENGTH=y
+CONFIG_NETFILTER_XT_MATCH_LIMIT=m
+# CONFIG_NETFILTER_XT_MATCH_MAC is not set
+CONFIG_NETFILTER_XT_MATCH_MARK=m
+CONFIG_NETFILTER_XT_MATCH_MULTIPORT=y
+# CONFIG_NETFILTER_XT_MATCH_NFACCT is not set
+CONFIG_NETFILTER_XT_MATCH_OSF=m
+CONFIG_NETFILTER_XT_MATCH_OWNER=y
+CONFIG_NETFILTER_XT_MATCH_POLICY=y
+# CONFIG_NETFILTER_XT_MATCH_PHYSDEV is not set
+CONFIG_NETFILTER_XT_MATCH_PKTTYPE=y
+CONFIG_NETFILTER_XT_MATCH_QUOTA=m
+# CONFIG_NETFILTER_XT_MATCH_RATEEST is not set
+# CONFIG_NETFILTER_XT_MATCH_REALM is not set
+CONFIG_NETFILTER_XT_MATCH_RECENT=y
+CONFIG_NETFILTER_XT_MATCH_SCTP=m
+CONFIG_NETFILTER_XT_MATCH_STATISTIC=m
+CONFIG_NETFILTER_XT_MATCH_STRING=y
+CONFIG_NETFILTER_XT_MATCH_TCPMSS=y
+CONFIG_NETFILTER_XT_MATCH_TIME=y
+CONFIG_NETFILTER_XT_MATCH_U32=m
+CONFIG_IP_SET=m
+CONFIG_IP_SET_MAX=256
+# CONFIG_IP_SET_BITMAP_IP is not set
+CONFIG_IP_SET_BITMAP_IPMAC=m
+# CONFIG_IP_SET_BITMAP_PORT is not set
+CONFIG_IP_SET_HASH_IP=m
+CONFIG_IP_SET_HASH_IPPORT=m
+CONFIG_IP_SET_HASH_IPPORTIP=m
+CONFIG_IP_SET_HASH_IPPORTNET=m
+# CONFIG_IP_SET_HASH_NET is not set
+# CONFIG_IP_SET_HASH_NETPORT is not set
+# CONFIG_IP_SET_HASH_NETIFACE is not set
+CONFIG_IP_SET_LIST_SET=m
+CONFIG_IP_VS=y
+# CONFIG_IP_VS_DEBUG is not set
+CONFIG_IP_VS_TAB_BITS=12
+
+#
+# IPVS transport protocol load balancing support
+#
+# CONFIG_IP_VS_PROTO_TCP is not set
+CONFIG_IP_VS_PROTO_UDP=y
+# CONFIG_IP_VS_PROTO_AH_ESP is not set
+# CONFIG_IP_VS_PROTO_ESP is not set
+# CONFIG_IP_VS_PROTO_AH is not set
+CONFIG_IP_VS_PROTO_SCTP=y
+
+#
+# IPVS scheduler
+#
+CONFIG_IP_VS_RR=y
+# CONFIG_IP_VS_WRR is not set
+CONFIG_IP_VS_LC=y
+CONFIG_IP_VS_WLC=m
+# CONFIG_IP_VS_LBLC is not set
+CONFIG_IP_VS_LBLCR=m
+CONFIG_IP_VS_DH=y
+CONFIG_IP_VS_SH=y
+CONFIG_IP_VS_SED=m
+# CONFIG_IP_VS_NQ is not set
+
+#
+# IPVS SH scheduler
+#
+CONFIG_IP_VS_SH_TAB_BITS=8
+
+#
+# IPVS application helper
+#
+
+#
+# IP: Netfilter Configuration
+#
+# CONFIG_NF_DEFRAG_IPV4 is not set
+# CONFIG_IP_NF_IPTABLES is not set
+# CONFIG_IP_NF_ARPTABLES is not set
+CONFIG_BRIDGE_NF_EBTABLES=m
+# CONFIG_BRIDGE_EBT_BROUTE is not set
+CONFIG_BRIDGE_EBT_T_FILTER=m
+# CONFIG_BRIDGE_EBT_T_NAT is not set
+# CONFIG_BRIDGE_EBT_802_3 is not set
+CONFIG_BRIDGE_EBT_AMONG=m
+CONFIG_BRIDGE_EBT_ARP=m
+CONFIG_BRIDGE_EBT_IP=m
+CONFIG_BRIDGE_EBT_LIMIT=m
+CONFIG_BRIDGE_EBT_MARK=m
+CONFIG_BRIDGE_EBT_PKTTYPE=m
+CONFIG_BRIDGE_EBT_STP=m
+CONFIG_BRIDGE_EBT_VLAN=m
+# CONFIG_BRIDGE_EBT_ARPREPLY is not set
+CONFIG_BRIDGE_EBT_DNAT=m
+# CONFIG_BRIDGE_EBT_MARK_T is not set
+# CONFIG_BRIDGE_EBT_REDIRECT is not set
+CONFIG_BRIDGE_EBT_SNAT=m
+CONFIG_BRIDGE_EBT_LOG=m
+CONFIG_BRIDGE_EBT_ULOG=m
+CONFIG_BRIDGE_EBT_NFLOG=m
+CONFIG_IP_DCCP=m
+CONFIG_INET_DCCP_DIAG=m
+
+#
+# DCCP CCIDs Configuration
+#
+CONFIG_IP_DCCP_CCID2_DEBUG=y
+# CONFIG_IP_DCCP_CCID3 is not set
+
+#
+# DCCP Kernel Hacking
+#
+# CONFIG_IP_DCCP_DEBUG is not set
+CONFIG_NET_DCCPPROBE=m
+CONFIG_IP_SCTP=m
+CONFIG_NET_SCTPPROBE=m
+CONFIG_SCTP_DBG_OBJCNT=y
+CONFIG_SCTP_DEFAULT_COOKIE_HMAC_MD5=y
+# CONFIG_SCTP_DEFAULT_COOKIE_HMAC_SHA1 is not set
+# CONFIG_SCTP_DEFAULT_COOKIE_HMAC_NONE is not set
+CONFIG_SCTP_COOKIE_HMAC_MD5=y
+CONFIG_SCTP_COOKIE_HMAC_SHA1=y
+# CONFIG_RDS is not set
+# CONFIG_TIPC is not set
+CONFIG_ATM=y
+CONFIG_ATM_CLIP=y
+# CONFIG_ATM_CLIP_NO_ICMP is not set
+CONFIG_ATM_LANE=y
+CONFIG_ATM_MPOA=y
+# CONFIG_ATM_BR2684 is not set
+CONFIG_L2TP=y
+CONFIG_L2TP_DEBUGFS=m
+# CONFIG_L2TP_V3 is not set
+CONFIG_STP=m
+CONFIG_BRIDGE=m
+# CONFIG_BRIDGE_IGMP_SNOOPING is not set
+CONFIG_HAVE_NET_DSA=y
+CONFIG_NET_DSA=y
+CONFIG_NET_DSA_TAG_EDSA=y
+CONFIG_NET_DSA_TAG_TRAILER=y
+# CONFIG_VLAN_8021Q is not set
+# CONFIG_DECNET is not set
+CONFIG_LLC=m
+CONFIG_LLC2=m
+CONFIG_IPX=m
+CONFIG_IPX_INTERN=y
+# CONFIG_ATALK is not set
+CONFIG_X25=m
+# CONFIG_LAPB is not set
+# CONFIG_PHONET is not set
+CONFIG_IEEE802154=m
+CONFIG_MAC802154=m
+CONFIG_NET_SCHED=y
+
+#
+# Queueing/Scheduling
+#
+CONFIG_NET_SCH_CBQ=y
+# CONFIG_NET_SCH_HTB is not set
+CONFIG_NET_SCH_HFSC=y
+CONFIG_NET_SCH_ATM=m
+# CONFIG_NET_SCH_PRIO is not set
+CONFIG_NET_SCH_MULTIQ=m
+CONFIG_NET_SCH_RED=m
+CONFIG_NET_SCH_SFB=m
+CONFIG_NET_SCH_SFQ=y
+# CONFIG_NET_SCH_TEQL is not set
+CONFIG_NET_SCH_TBF=m
+CONFIG_NET_SCH_GRED=m
+CONFIG_NET_SCH_DSMARK=m
+# CONFIG_NET_SCH_NETEM is not set
+# CONFIG_NET_SCH_DRR is not set
+CONFIG_NET_SCH_MQPRIO=m
+CONFIG_NET_SCH_CHOKE=m
+# CONFIG_NET_SCH_QFQ is not set
+CONFIG_NET_SCH_CODEL=m
+CONFIG_NET_SCH_FQ_CODEL=y
+CONFIG_NET_SCH_PLUG=y
+
+#
+# Classification
+#
+CONFIG_NET_CLS=y
+CONFIG_NET_CLS_BASIC=m
+# CONFIG_NET_CLS_TCINDEX is not set
+# CONFIG_NET_CLS_ROUTE4 is not set
+CONFIG_NET_CLS_FW=m
+# CONFIG_NET_CLS_U32 is not set
+CONFIG_NET_CLS_RSVP=m
+# CONFIG_NET_CLS_RSVP6 is not set
+CONFIG_NET_CLS_FLOW=m
+CONFIG_NET_CLS_CGROUP=m
+# CONFIG_NET_EMATCH is not set
+# CONFIG_NET_CLS_ACT is not set
+CONFIG_NET_CLS_IND=y
+CONFIG_NET_SCH_FIFO=y
+# CONFIG_DCB is not set
+CONFIG_DNS_RESOLVER=m
+# CONFIG_BATMAN_ADV is not set
+CONFIG_OPENVSWITCH=m
+# CONFIG_OPENVSWITCH_GRE is not set
+CONFIG_VSOCKETS=y
+# CONFIG_VMWARE_VMCI_VSOCKETS is not set
+CONFIG_NETLINK_MMAP=y
+# CONFIG_NETLINK_DIAG is not set
+CONFIG_NET_MPLS_GSO=m
+CONFIG_NETPRIO_CGROUP=y
+CONFIG_NET_LL_RX_POLL=y
+CONFIG_BQL=y
+CONFIG_BPF_JIT=y
+
+#
+# Network testing
+#
+CONFIG_NET_PKTGEN=m
+# CONFIG_NET_TCPPROBE is not set
+CONFIG_HAMRADIO=y
+
+#
+# Packet Radio protocols
+#
+# CONFIG_AX25 is not set
+CONFIG_CAN=m
+# CONFIG_CAN_RAW is not set
+# CONFIG_CAN_BCM is not set
+CONFIG_CAN_GW=m
+
+#
+# CAN Device Drivers
+#
+CONFIG_CAN_VCAN=m
+CONFIG_CAN_SLCAN=m
+CONFIG_CAN_DEV=m
+CONFIG_CAN_CALC_BITTIMING=y
+CONFIG_CAN_LEDS=y
+CONFIG_CAN_MCP251X=m
+CONFIG_PCH_CAN=m
+# CONFIG_CAN_SJA1000 is not set
+CONFIG_CAN_C_CAN=m
+CONFIG_CAN_C_CAN_PLATFORM=m
+CONFIG_CAN_C_CAN_PCI=m
+CONFIG_CAN_CC770=m
+# CONFIG_CAN_CC770_ISA is not set
+CONFIG_CAN_CC770_PLATFORM=m
+
+#
+# CAN USB interfaces
+#
+# CONFIG_CAN_EMS_USB is not set
+# CONFIG_CAN_ESD_USB2 is not set
+# CONFIG_CAN_KVASER_USB is not set
+CONFIG_CAN_PEAK_USB=m
+CONFIG_CAN_8DEV_USB=m
+# CONFIG_CAN_SOFTING is not set
+# CONFIG_CAN_DEBUG_DEVICES is not set
+CONFIG_IRDA=y
+
+#
+# IrDA protocols
+#
+CONFIG_IRLAN=m
+CONFIG_IRNET=m
+CONFIG_IRCOMM=m
+CONFIG_IRDA_ULTRA=y
+
+#
+# IrDA options
+#
+CONFIG_IRDA_CACHE_LAST_LSAP=y
+CONFIG_IRDA_FAST_RR=y
+CONFIG_IRDA_DEBUG=y
+
+#
+# Infrared-port device drivers
+#
+
+#
+# SIR device drivers
+#
+CONFIG_IRTTY_SIR=m
+
+#
+# Dongle support
+#
+# CONFIG_DONGLE is not set
+CONFIG_KINGSUN_DONGLE=y
+# CONFIG_KSDAZZLE_DONGLE is not set
+CONFIG_KS959_DONGLE=y
+
+#
+# FIR device drivers
+#
+# CONFIG_USB_IRDA is not set
+# CONFIG_SIGMATEL_FIR is not set
+CONFIG_NSC_FIR=m
+CONFIG_WINBOND_FIR=y
+# CONFIG_SMC_IRCC_FIR is not set
+# CONFIG_ALI_FIR is not set
+# CONFIG_VLSI_FIR is not set
+# CONFIG_VIA_FIR is not set
+CONFIG_MCS_FIR=m
+# CONFIG_BT is not set
+CONFIG_AF_RXRPC=m
+# CONFIG_AF_RXRPC_DEBUG is not set
+CONFIG_RXKAD=m
+CONFIG_FIB_RULES=y
+CONFIG_WIRELESS=y
+# CONFIG_CFG80211 is not set
+# CONFIG_LIB80211 is not set
+
+#
+# CFG80211 needs to be enabled for MAC80211
+#
+# CONFIG_WIMAX is not set
+CONFIG_RFKILL=y
+CONFIG_RFKILL_LEDS=y
+CONFIG_RFKILL_INPUT=y
+CONFIG_RFKILL_REGULATOR=y
+# CONFIG_NET_9P is not set
+# CONFIG_CAIF is not set
+CONFIG_CEPH_LIB=m
+CONFIG_CEPH_LIB_PRETTYDEBUG=y
+CONFIG_CEPH_LIB_USE_DNS_RESOLVER=y
+CONFIG_NFC=m
+CONFIG_NFC_NCI=m
+# CONFIG_NFC_NCI_SPI is not set
+CONFIG_NFC_HCI=m
+# CONFIG_NFC_SHDLC is not set
+
+#
+# Near Field Communication (NFC) devices
+#
+# CONFIG_NFC_PN533 is not set
+# CONFIG_NFC_WILINK is not set
+# CONFIG_NFC_MEI_PHY is not set
+# CONFIG_NFC_SIM is not set
+# CONFIG_NFC_PN544 is not set
+CONFIG_NFC_MICROREAD=m
+CONFIG_HAVE_BPF_JIT=y
+
+#
+# Device Drivers
+#
+
+#
+# Generic Driver Options
+#
+CONFIG_UEVENT_HELPER_PATH=""
+# CONFIG_DEVTMPFS is not set
+CONFIG_STANDALONE=y
+CONFIG_PREVENT_FIRMWARE_BUILD=y
+CONFIG_FW_LOADER=y
+CONFIG_FIRMWARE_IN_KERNEL=y
+CONFIG_EXTRA_FIRMWARE=""
+CONFIG_FW_LOADER_USER_HELPER=y
+# CONFIG_DEBUG_DRIVER is not set
+CONFIG_DEBUG_DEVRES=y
+# CONFIG_SYS_HYPERVISOR is not set
+# CONFIG_GENERIC_CPU_DEVICES is not set
+CONFIG_REGMAP=y
+CONFIG_REGMAP_I2C=y
+CONFIG_REGMAP_SPI=y
+CONFIG_REGMAP_MMIO=m
+CONFIG_REGMAP_IRQ=y
+CONFIG_DMA_SHARED_BUFFER=y
+
+#
+# Bus devices
+#
+CONFIG_CONNECTOR=m
+CONFIG_MTD=y
+# CONFIG_MTD_TESTS is not set
+CONFIG_MTD_REDBOOT_PARTS=y
+CONFIG_MTD_REDBOOT_DIRECTORY_BLOCK=-1
+CONFIG_MTD_REDBOOT_PARTS_UNALLOCATED=y
+# CONFIG_MTD_REDBOOT_PARTS_READONLY is not set
+# CONFIG_MTD_CMDLINE_PARTS is not set
+CONFIG_MTD_AR7_PARTS=m
+
+#
+# User Modules And Translation Layers
+#
+CONFIG_MTD_BLKDEVS=y
+# CONFIG_MTD_BLOCK is not set
+CONFIG_MTD_BLOCK_RO=m
+CONFIG_FTL=m
+CONFIG_NFTL=y
+CONFIG_NFTL_RW=y
+# CONFIG_INFTL is not set
+CONFIG_RFD_FTL=m
+CONFIG_SSFDC=y
+# CONFIG_SM_FTL is not set
+# CONFIG_MTD_OOPS is not set
+
+#
+# RAM/ROM/Flash chip drivers
+#
+# CONFIG_MTD_CFI is not set
+CONFIG_MTD_JEDECPROBE=m
+CONFIG_MTD_GEN_PROBE=m
+# CONFIG_MTD_CFI_ADV_OPTIONS is not set
+CONFIG_MTD_MAP_BANK_WIDTH_1=y
+CONFIG_MTD_MAP_BANK_WIDTH_2=y
+CONFIG_MTD_MAP_BANK_WIDTH_4=y
+# CONFIG_MTD_MAP_BANK_WIDTH_8 is not set
+# CONFIG_MTD_MAP_BANK_WIDTH_16 is not set
+# CONFIG_MTD_MAP_BANK_WIDTH_32 is not set
+CONFIG_MTD_CFI_I1=y
+CONFIG_MTD_CFI_I2=y
+# CONFIG_MTD_CFI_I4 is not set
+# CONFIG_MTD_CFI_I8 is not set
+CONFIG_MTD_CFI_INTELEXT=m
+CONFIG_MTD_CFI_AMDSTD=m
+CONFIG_MTD_CFI_STAA=m
+CONFIG_MTD_CFI_UTIL=m
+CONFIG_MTD_RAM=m
+CONFIG_MTD_ROM=m
+CONFIG_MTD_ABSENT=y
+
+#
+# Mapping drivers for chip access
+#
+CONFIG_MTD_COMPLEX_MAPPINGS=y
+CONFIG_MTD_PHYSMAP=y
+# CONFIG_MTD_PHYSMAP_COMPAT is not set
+CONFIG_MTD_TS5500=m
+CONFIG_MTD_SBC_GXX=m
+# CONFIG_MTD_AMD76XROM is not set
+CONFIG_MTD_ICHXROM=m
+CONFIG_MTD_ESB2ROM=m
+CONFIG_MTD_CK804XROM=m
+CONFIG_MTD_SCB2_FLASH=m
+CONFIG_MTD_NETtel=m
+# CONFIG_MTD_L440GX is not set
+CONFIG_MTD_PCI=y
+CONFIG_MTD_PCMCIA=m
+CONFIG_MTD_PCMCIA_ANONYMOUS=y
+CONFIG_MTD_GPIO_ADDR=y
+CONFIG_MTD_INTEL_VR_NOR=m
+CONFIG_MTD_PLATRAM=m
+CONFIG_MTD_LATCH_ADDR=y
+
+#
+# Self-contained MTD device drivers
+#
+CONFIG_MTD_PMC551=m
+CONFIG_MTD_PMC551_BUGFIX=y
+# CONFIG_MTD_PMC551_DEBUG is not set
+# CONFIG_MTD_DATAFLASH is not set
+CONFIG_MTD_M25P80=y
+CONFIG_M25PXX_USE_FAST_READ=y
+# CONFIG_MTD_SST25L is not set
+# CONFIG_MTD_SLRAM is not set
+# CONFIG_MTD_PHRAM is not set
+CONFIG_MTD_MTDRAM=m
+CONFIG_MTDRAM_TOTAL_SIZE=4096
+CONFIG_MTDRAM_ERASE_SIZE=128
+# CONFIG_MTD_BLOCK2MTD is not set
+
+#
+# Disk-On-Chip Device Drivers
+#
+CONFIG_MTD_DOCG3=m
+CONFIG_BCH_CONST_M=14
+CONFIG_BCH_CONST_T=4
+CONFIG_MTD_NAND_ECC=m
+# CONFIG_MTD_NAND_ECC_SMC is not set
+CONFIG_MTD_NAND=m
+# CONFIG_MTD_NAND_ECC_BCH is not set
+CONFIG_MTD_SM_COMMON=m
+CONFIG_MTD_NAND_DENALI=m
+CONFIG_MTD_NAND_DENALI_PCI=m
+CONFIG_MTD_NAND_DENALI_SCRATCH_REG_ADDR=0xFF108018
+# CONFIG_MTD_NAND_GPIO is not set
+CONFIG_MTD_NAND_IDS=m
+CONFIG_MTD_NAND_RICOH=m
+CONFIG_MTD_NAND_DISKONCHIP=m
+# CONFIG_MTD_NAND_DISKONCHIP_PROBE_ADVANCED is not set
+CONFIG_MTD_NAND_DISKONCHIP_PROBE_ADDRESS=0
+# CONFIG_MTD_NAND_DISKONCHIP_BBTWRITE is not set
+# CONFIG_MTD_NAND_DOCG4 is not set
+CONFIG_MTD_NAND_CAFE=m
+CONFIG_MTD_NAND_NANDSIM=m
+# CONFIG_MTD_NAND_PLATFORM is not set
+CONFIG_MTD_ALAUDA=m
+CONFIG_MTD_ONENAND=y
+# CONFIG_MTD_ONENAND_VERIFY_WRITE is not set
+CONFIG_MTD_ONENAND_GENERIC=y
+CONFIG_MTD_ONENAND_OTP=y
+# CONFIG_MTD_ONENAND_2X_PROGRAM is not set
+
+#
+# LPDDR flash memory drivers
+#
+CONFIG_MTD_LPDDR=y
+CONFIG_MTD_QINFO_PROBE=y
+CONFIG_MTD_UBI=m
+CONFIG_MTD_UBI_WL_THRESHOLD=4096
+CONFIG_MTD_UBI_BEB_LIMIT=20
+CONFIG_MTD_UBI_FASTMAP=y
+# CONFIG_MTD_UBI_GLUEBI is not set
+CONFIG_PARPORT=y
+# CONFIG_PARPORT_PC is not set
+# CONFIG_PARPORT_GSC is not set
+CONFIG_PARPORT_AX88796=m
+# CONFIG_PARPORT_1284 is not set
+CONFIG_PARPORT_NOT_PC=y
+CONFIG_BLK_DEV=y
+# CONFIG_BLK_DEV_FD is not set
+CONFIG_BLK_DEV_PCIESSD_MTIP32XX=y
+CONFIG_BLK_CPQ_DA=y
+# CONFIG_BLK_CPQ_CISS_DA is not set
+# CONFIG_BLK_DEV_DAC960 is not set
+# CONFIG_BLK_DEV_UMEM is not set
+# CONFIG_BLK_DEV_COW_COMMON is not set
+CONFIG_BLK_DEV_LOOP=y
+CONFIG_BLK_DEV_LOOP_MIN_COUNT=8
+# CONFIG_BLK_DEV_CRYPTOLOOP is not set
+CONFIG_BLK_DEV_DRBD=m
+CONFIG_DRBD_FAULT_INJECTION=y
+CONFIG_BLK_DEV_NBD=m
+# CONFIG_BLK_DEV_NVME is not set
+# CONFIG_BLK_DEV_OSD is not set
+CONFIG_BLK_DEV_SX8=y
+# CONFIG_BLK_DEV_RAM is not set
+CONFIG_CDROM_PKTCDVD=y
+CONFIG_CDROM_PKTCDVD_BUFFERS=8
+CONFIG_CDROM_PKTCDVD_WCACHE=y
+CONFIG_ATA_OVER_ETH=y
+CONFIG_BLK_DEV_HD=y
+CONFIG_BLK_DEV_RBD=m
+CONFIG_BLK_DEV_RSXX=m
+# CONFIG_BLOCKCONSOLE is not set
+
+#
+# Misc devices
+#
+CONFIG_SENSORS_LIS3LV02D=m
+# CONFIG_AD525X_DPOT is not set
+# CONFIG_DUMMY_IRQ is not set
+CONFIG_IBM_ASM=y
+# CONFIG_PHANTOM is not set
+# CONFIG_INTEL_MID_PTI is not set
+# CONFIG_SGI_IOC4 is not set
+CONFIG_TIFM_CORE=y
+CONFIG_TIFM_7XX1=y
+CONFIG_ICS932S401=y
+CONFIG_ATMEL_SSC=m
+# CONFIG_ENCLOSURE_SERVICES is not set
+CONFIG_HP_ILO=m
+CONFIG_APDS9802ALS=m
+CONFIG_ISL29003=m
+# CONFIG_ISL29020 is not set
+CONFIG_SENSORS_TSL2550=y
+# CONFIG_SENSORS_BH1780 is not set
+# CONFIG_SENSORS_BH1770 is not set
+CONFIG_SENSORS_APDS990X=m
+# CONFIG_HMC6352 is not set
+CONFIG_DS1682=m
+CONFIG_TI_DAC7512=m
+CONFIG_VMWARE_BALLOON=y
+CONFIG_BMP085=y
+CONFIG_BMP085_I2C=y
+# CONFIG_BMP085_SPI is not set
+# CONFIG_PCH_PHUB is not set
+CONFIG_USB_SWITCH_FSA9480=y
+CONFIG_LATTICE_ECP3_CONFIG=m
+# CONFIG_SRAM is not set
+CONFIG_C2PORT=y
+CONFIG_C2PORT_DURAMAR_2150=y
+
+#
+# EEPROM support
+#
+CONFIG_EEPROM_AT24=y
+CONFIG_EEPROM_AT25=m
+# CONFIG_EEPROM_LEGACY is not set
+# CONFIG_EEPROM_MAX6875 is not set
+# CONFIG_EEPROM_93CX6 is not set
+# CONFIG_EEPROM_93XX46 is not set
+# CONFIG_CB710_CORE is not set
+
+#
+# Texas Instruments shared transport line discipline
+#
+CONFIG_TI_ST=m
+CONFIG_SENSORS_LIS3_SPI=m
+CONFIG_SENSORS_LIS3_I2C=m
+
+#
+# Altera FPGA firmware download module
+#
+CONFIG_ALTERA_STAPL=m
+CONFIG_INTEL_MEI=m
+CONFIG_INTEL_MEI_ME=m
+CONFIG_VMWARE_VMCI=y
+CONFIG_HAVE_IDE=y
+CONFIG_IDE=m
+
+#
+# Please see Documentation/ide/ide.txt for help/info on IDE drives
+#
+CONFIG_IDE_XFER_MODE=y
+CONFIG_IDE_TIMINGS=y
+CONFIG_IDE_ATAPI=y
+# CONFIG_BLK_DEV_IDE_SATA is not set
+CONFIG_IDE_GD=m
+# CONFIG_IDE_GD_ATA is not set
+CONFIG_IDE_GD_ATAPI=y
+# CONFIG_BLK_DEV_IDECS is not set
+CONFIG_BLK_DEV_DELKIN=m
+CONFIG_BLK_DEV_IDECD=m
+CONFIG_BLK_DEV_IDECD_VERBOSE_ERRORS=y
+# CONFIG_BLK_DEV_IDETAPE is not set
+# CONFIG_IDE_TASK_IOCTL is not set
+# CONFIG_IDE_PROC_FS is not set
+
+#
+# IDE chipset support/bugfixes
+#
+CONFIG_IDE_GENERIC=m
+CONFIG_BLK_DEV_PLATFORM=m
+CONFIG_BLK_DEV_CMD640=m
+CONFIG_BLK_DEV_CMD640_ENHANCED=y
+CONFIG_BLK_DEV_IDEDMA_SFF=y
+
+#
+# PCI IDE chipsets support
+#
+CONFIG_BLK_DEV_IDEPCI=y
+CONFIG_BLK_DEV_OFFBOARD=y
+CONFIG_BLK_DEV_GENERIC=m
+CONFIG_BLK_DEV_OPTI621=m
+CONFIG_BLK_DEV_RZ1000=m
+CONFIG_BLK_DEV_IDEDMA_PCI=y
+CONFIG_BLK_DEV_AEC62XX=m
+CONFIG_BLK_DEV_ALI15X3=m
+CONFIG_BLK_DEV_AMD74XX=m
+# CONFIG_BLK_DEV_ATIIXP is not set
+CONFIG_BLK_DEV_CMD64X=m
+CONFIG_BLK_DEV_TRIFLEX=m
+CONFIG_BLK_DEV_CS5520=m
+CONFIG_BLK_DEV_CS5530=m
+CONFIG_BLK_DEV_HPT366=m
+# CONFIG_BLK_DEV_JMICRON is not set
+CONFIG_BLK_DEV_SC1200=m
+CONFIG_BLK_DEV_PIIX=m
+CONFIG_BLK_DEV_IT8172=m
+CONFIG_BLK_DEV_IT8213=m
+# CONFIG_BLK_DEV_IT821X is not set
+CONFIG_BLK_DEV_NS87415=m
+# CONFIG_BLK_DEV_PDC202XX_OLD is not set
+CONFIG_BLK_DEV_PDC202XX_NEW=m
+# CONFIG_BLK_DEV_SVWKS is not set
+CONFIG_BLK_DEV_SIIMAGE=m
+# CONFIG_BLK_DEV_SIS5513 is not set
+CONFIG_BLK_DEV_SLC90E66=m
+CONFIG_BLK_DEV_TRM290=m
+# CONFIG_BLK_DEV_VIA82CXXX is not set
+# CONFIG_BLK_DEV_TC86C001 is not set
+CONFIG_BLK_DEV_IDEDMA=y
+
+#
+# SCSI device support
+#
+CONFIG_SCSI_MOD=y
+CONFIG_RAID_ATTRS=m
+CONFIG_SCSI=y
+CONFIG_SCSI_DMA=y
+CONFIG_SCSI_TGT=y
+CONFIG_SCSI_NETLINK=y
+# CONFIG_SCSI_PROC_FS is not set
+
+#
+# SCSI support type (disk, tape, CD-ROM)
+#
+# CONFIG_BLK_DEV_SD is not set
+CONFIG_CHR_DEV_ST=m
+# CONFIG_CHR_DEV_OSST is not set
+CONFIG_BLK_DEV_SR=m
+# CONFIG_BLK_DEV_SR_VENDOR is not set
+CONFIG_CHR_DEV_SG=y
+CONFIG_CHR_DEV_SCH=y
+# CONFIG_SCSI_MULTI_LUN is not set
+CONFIG_SCSI_CONSTANTS=y
+# CONFIG_SCSI_LOGGING is not set
+CONFIG_SCSI_SCAN_ASYNC=y
+
+#
+# SCSI Transports
+#
+CONFIG_SCSI_SPI_ATTRS=m
+CONFIG_SCSI_FC_ATTRS=m
+# CONFIG_SCSI_FC_TGT_ATTRS is not set
+CONFIG_SCSI_ISCSI_ATTRS=y
+CONFIG_SCSI_SAS_ATTRS=y
+CONFIG_SCSI_SAS_LIBSAS=y
+CONFIG_SCSI_SAS_ATA=y
+# CONFIG_SCSI_SAS_HOST_SMP is not set
+# CONFIG_SCSI_SRP_ATTRS is not set
+# CONFIG_SCSI_LOWLEVEL is not set
+CONFIG_SCSI_LOWLEVEL_PCMCIA=y
+CONFIG_PCMCIA_AHA152X=m
+# CONFIG_PCMCIA_FDOMAIN is not set
+CONFIG_PCMCIA_QLOGIC=m
+CONFIG_PCMCIA_SYM53C500=m
+# CONFIG_SCSI_DH is not set
+CONFIG_SCSI_OSD_INITIATOR=y
+CONFIG_SCSI_OSD_ULD=y
+CONFIG_SCSI_OSD_DPRINT_SENSE=1
+CONFIG_SCSI_OSD_DEBUG=y
+CONFIG_ATA=y
+# CONFIG_ATA_NONSTANDARD is not set
+# CONFIG_ATA_VERBOSE_ERROR is not set
+# CONFIG_SATA_PMP is not set
+
+#
+# Controllers with non-SFF native interface
+#
+CONFIG_SATA_AHCI=m
+CONFIG_SATA_AHCI_PLATFORM=y
+# CONFIG_SATA_INIC162X is not set
+# CONFIG_SATA_ACARD_AHCI is not set
+CONFIG_SATA_SIL24=m
+CONFIG_ATA_SFF=y
+
+#
+# SFF controllers with custom DMA interface
+#
+CONFIG_PDC_ADMA=m
+CONFIG_SATA_QSTOR=m
+# CONFIG_SATA_SX4 is not set
+# CONFIG_ATA_BMDMA is not set
+
+#
+# PIO-only SFF controllers
+#
+CONFIG_PATA_CMD640_PCI=m
+CONFIG_PATA_MPIIX=y
+# CONFIG_PATA_NS87410 is not set
+CONFIG_PATA_OPTI=m
+# CONFIG_PATA_PCMCIA is not set
+CONFIG_PATA_RZ1000=m
+
+#
+# Generic fallback / legacy drivers
+#
+CONFIG_PATA_LEGACY=m
+# CONFIG_MD is not set
+# CONFIG_TARGET_CORE is not set
+# CONFIG_FUSION is not set
+
+#
+# IEEE 1394 (FireWire) support
+#
+CONFIG_FIREWIRE=m
+# CONFIG_FIREWIRE_OHCI is not set
+CONFIG_FIREWIRE_SBP2=m
+CONFIG_FIREWIRE_NET=m
+# CONFIG_FIREWIRE_NOSY is not set
+CONFIG_I2O=m
+# CONFIG_I2O_LCT_NOTIFY_ON_CHANGES is not set
+# CONFIG_I2O_EXT_ADAPTEC is not set
+CONFIG_I2O_CONFIG=m
+# CONFIG_I2O_CONFIG_OLD_IOCTL is not set
+CONFIG_I2O_BUS=m
+CONFIG_I2O_BLOCK=m
+CONFIG_I2O_SCSI=m
+CONFIG_I2O_PROC=m
+# CONFIG_MACINTOSH_DRIVERS is not set
+CONFIG_NETDEVICES=y
+CONFIG_MII=y
+CONFIG_NET_CORE=y
+# CONFIG_BONDING is not set
+CONFIG_DUMMY=m
+CONFIG_EQUALIZER=m
+CONFIG_NET_FC=y
+# CONFIG_NET_TEAM is not set
+CONFIG_MACVLAN=y
+CONFIG_MACVTAP=y
+# CONFIG_VXLAN is not set
+CONFIG_NETCONSOLE=y
+CONFIG_NETPOLL=y
+CONFIG_NETPOLL_TRAP=y
+CONFIG_NET_POLL_CONTROLLER=y
+# CONFIG_TUN is not set
+# CONFIG_VETH is not set
+CONFIG_NLMON=y
+CONFIG_ARCNET=y
+# CONFIG_ARCNET_1201 is not set
+CONFIG_ARCNET_1051=m
+# CONFIG_ARCNET_RAW is not set
+CONFIG_ARCNET_CAP=m
+CONFIG_ARCNET_COM90xx=y
+CONFIG_ARCNET_COM90xxIO=m
+CONFIG_ARCNET_RIM_I=y
+CONFIG_ARCNET_COM20020=y
+# CONFIG_ARCNET_COM20020_PCI is not set
+# CONFIG_ARCNET_COM20020_CS is not set
+# CONFIG_ATM_DRIVERS is not set
+
+#
+# CAIF transport drivers
+#
+# CONFIG_VHOST_NET is not set
+
+#
+# Distributed Switch Architecture drivers
+#
+CONFIG_NET_DSA_MV88E6XXX=y
+CONFIG_NET_DSA_MV88E6060=m
+# CONFIG_NET_DSA_MV88E6XXX_NEED_PPU is not set
+# CONFIG_NET_DSA_MV88E6131 is not set
+CONFIG_NET_DSA_MV88E6123_61_65=y
+# CONFIG_ETHERNET is not set
+CONFIG_FDDI=y
+CONFIG_DEFXX=y
+CONFIG_DEFXX_MMIO=y
+CONFIG_SKFP=y
+# CONFIG_HIPPI is not set
+CONFIG_PHYLIB=y
+
+#
+# MII PHY device drivers
+#
+CONFIG_AT803X_PHY=m
+CONFIG_AMD_PHY=m
+CONFIG_MARVELL_PHY=m
+CONFIG_DAVICOM_PHY=y
+CONFIG_QSEMI_PHY=m
+CONFIG_LXT_PHY=y
+CONFIG_CICADA_PHY=y
+CONFIG_VITESSE_PHY=y
+CONFIG_SMSC_PHY=m
+CONFIG_BROADCOM_PHY=m
+CONFIG_BCM87XX_PHY=m
+CONFIG_ICPLUS_PHY=y
+CONFIG_REALTEK_PHY=y
+CONFIG_NATIONAL_PHY=m
+# CONFIG_STE10XP is not set
+CONFIG_LSI_ET1011C_PHY=m
+CONFIG_MICREL_PHY=m
+CONFIG_FIXED_PHY=y
+CONFIG_MDIO_BITBANG=m
+CONFIG_MDIO_GPIO=m
+CONFIG_MICREL_KS8995MA=y
+# CONFIG_PLIP is not set
+CONFIG_PPP=y
+# CONFIG_PPP_BSDCOMP is not set
+CONFIG_PPP_DEFLATE=m
+CONFIG_PPP_FILTER=y
+CONFIG_PPP_MPPE=y
+# CONFIG_PPP_MULTILINK is not set
+CONFIG_PPPOATM=m
+CONFIG_PPPOE=m
+CONFIG_PPTP=m
+CONFIG_PPPOL2TP=m
+# CONFIG_PPP_ASYNC is not set
+CONFIG_PPP_SYNC_TTY=y
+# CONFIG_SLIP is not set
+CONFIG_SLHC=y
+
+#
+# USB Network Adapters
+#
+# CONFIG_USB_CATC is not set
+CONFIG_USB_KAWETH=m
+# CONFIG_USB_PEGASUS is not set
+CONFIG_USB_RTL8150=y
+CONFIG_USB_RTL8152=m
+CONFIG_USB_USBNET=m
+CONFIG_USB_NET_AX8817X=m
+# CONFIG_USB_NET_AX88179_178A is not set
+CONFIG_USB_NET_CDCETHER=m
+# CONFIG_USB_NET_CDC_EEM is not set
+CONFIG_USB_NET_CDC_NCM=m
+CONFIG_USB_NET_CDC_MBIM=m
+# CONFIG_USB_NET_DM9601 is not set
+CONFIG_USB_NET_SMSC75XX=m
+CONFIG_USB_NET_SMSC95XX=m
+CONFIG_USB_NET_GL620A=m
+CONFIG_USB_NET_NET1080=m
+CONFIG_USB_NET_PLUSB=m
+CONFIG_USB_NET_MCS7830=m
+# CONFIG_USB_NET_RNDIS_HOST is not set
+# CONFIG_USB_NET_CDC_SUBSET is not set
+CONFIG_USB_NET_ZAURUS=m
+CONFIG_USB_NET_CX82310_ETH=m
+CONFIG_USB_NET_KALMIA=m
+CONFIG_USB_NET_QMI_WWAN=m
+CONFIG_USB_HSO=y
+CONFIG_USB_NET_INT51X1=m
+CONFIG_USB_IPHETH=y
+CONFIG_USB_SIERRA_NET=m
+CONFIG_USB_VL600=m
+# CONFIG_WLAN is not set
+
+#
+# Enable WiMAX (Networking options) to see the WiMAX drivers
+#
+CONFIG_WAN=y
+CONFIG_LANMEDIA=y
+CONFIG_HDLC=y
+CONFIG_HDLC_RAW=y
+CONFIG_HDLC_RAW_ETH=y
+CONFIG_HDLC_CISCO=m
+# CONFIG_HDLC_FR is not set
+CONFIG_HDLC_PPP=m
+
+#
+# X.25/LAPB support is disabled
+#
+# CONFIG_PCI200SYN is not set
+CONFIG_WANXL=m
+# CONFIG_PC300TOO is not set
+CONFIG_FARSYNC=y
+CONFIG_DSCC4=m
+# CONFIG_DSCC4_PCISYNC is not set
+# CONFIG_DSCC4_PCI_RST is not set
+CONFIG_DLCI=m
+CONFIG_DLCI_MAX=8
+CONFIG_SBNI=m
+# CONFIG_SBNI_MULTILINE is not set
+CONFIG_IEEE802154_DRIVERS=m
+CONFIG_IEEE802154_FAKEHARD=m
+CONFIG_IEEE802154_FAKELB=m
+CONFIG_IEEE802154_AT86RF230=m
+CONFIG_IEEE802154_MRF24J40=m
+CONFIG_VMXNET3=m
+CONFIG_ISDN=y
+# CONFIG_ISDN_I4L is not set
+# CONFIG_ISDN_CAPI is not set
+CONFIG_ISDN_DRV_GIGASET=m
+CONFIG_GIGASET_DUMMYLL=y
+CONFIG_GIGASET_BASE=m
+CONFIG_GIGASET_M105=m
+CONFIG_GIGASET_M101=m
+# CONFIG_GIGASET_DEBUG is not set
+CONFIG_HYSDN=m
+# CONFIG_MISDN is not set
+
+#
+# Input device support
+#
+CONFIG_INPUT=y
+CONFIG_INPUT_FF_MEMLESS=y
+CONFIG_INPUT_POLLDEV=y
+CONFIG_INPUT_SPARSEKMAP=y
+CONFIG_INPUT_MATRIXKMAP=y
+
+#
+# Userland interfaces
+#
+CONFIG_INPUT_MOUSEDEV=y
+CONFIG_INPUT_MOUSEDEV_PSAUX=y
+CONFIG_INPUT_MOUSEDEV_SCREEN_X=1024
+CONFIG_INPUT_MOUSEDEV_SCREEN_Y=768
+CONFIG_INPUT_JOYDEV=m
+CONFIG_INPUT_EVDEV=y
+CONFIG_INPUT_EVBUG=y
+
+#
+# Input Device Drivers
+#
+CONFIG_INPUT_KEYBOARD=y
+CONFIG_KEYBOARD_ADP5520=m
+# CONFIG_KEYBOARD_ADP5588 is not set
+CONFIG_KEYBOARD_ADP5589=m
+CONFIG_KEYBOARD_ATKBD=y
+# CONFIG_KEYBOARD_QT1070 is not set
+# CONFIG_KEYBOARD_QT2160 is not set
+# CONFIG_KEYBOARD_LKKBD is not set
+# CONFIG_KEYBOARD_GPIO is not set
+CONFIG_KEYBOARD_GPIO_POLLED=y
+# CONFIG_KEYBOARD_TCA6416 is not set
+# CONFIG_KEYBOARD_TCA8418 is not set
+CONFIG_KEYBOARD_MATRIX=y
+CONFIG_KEYBOARD_LM8323=m
+# CONFIG_KEYBOARD_LM8333 is not set
+CONFIG_KEYBOARD_MAX7359=m
+CONFIG_KEYBOARD_MCS=m
+CONFIG_KEYBOARD_MPR121=y
+CONFIG_KEYBOARD_NEWTON=y
+# CONFIG_KEYBOARD_OPENCORES is not set
+CONFIG_KEYBOARD_STOWAWAY=y
+# CONFIG_KEYBOARD_SUNKBD is not set
+CONFIG_KEYBOARD_TWL4030=m
+CONFIG_KEYBOARD_XTKBD=m
+# CONFIG_INPUT_MOUSE is not set
+# CONFIG_INPUT_JOYSTICK is not set
+# CONFIG_INPUT_TABLET is not set
+CONFIG_INPUT_TOUCHSCREEN=y
+# CONFIG_TOUCHSCREEN_88PM860X is not set
+# CONFIG_TOUCHSCREEN_ADS7846 is not set
+# CONFIG_TOUCHSCREEN_AD7877 is not set
+# CONFIG_TOUCHSCREEN_AD7879 is not set
+CONFIG_TOUCHSCREEN_ATMEL_MXT=m
+# CONFIG_TOUCHSCREEN_AUO_PIXCIR is not set
+CONFIG_TOUCHSCREEN_BU21013=m
+# CONFIG_TOUCHSCREEN_CY8CTMG110 is not set
+# CONFIG_TOUCHSCREEN_CYTTSP_CORE is not set
+CONFIG_TOUCHSCREEN_CYTTSP4_CORE=y
+# CONFIG_TOUCHSCREEN_CYTTSP4_I2C is not set
+# CONFIG_TOUCHSCREEN_CYTTSP4_SPI is not set
+# CONFIG_TOUCHSCREEN_DA9052 is not set
+# CONFIG_TOUCHSCREEN_DYNAPRO is not set
+CONFIG_TOUCHSCREEN_HAMPSHIRE=y
+CONFIG_TOUCHSCREEN_EETI=y
+CONFIG_TOUCHSCREEN_FUJITSU=m
+CONFIG_TOUCHSCREEN_ILI210X=m
+CONFIG_TOUCHSCREEN_GUNZE=y
+# CONFIG_TOUCHSCREEN_ELO is not set
+CONFIG_TOUCHSCREEN_WACOM_W8001=m
+# CONFIG_TOUCHSCREEN_WACOM_I2C is not set
+CONFIG_TOUCHSCREEN_MAX11801=y
+CONFIG_TOUCHSCREEN_MCS5000=y
+# CONFIG_TOUCHSCREEN_MMS114 is not set
+CONFIG_TOUCHSCREEN_MTOUCH=m
+CONFIG_TOUCHSCREEN_INEXIO=y
+CONFIG_TOUCHSCREEN_MK712=m
+CONFIG_TOUCHSCREEN_PENMOUNT=y
+CONFIG_TOUCHSCREEN_EDT_FT5X06=y
+CONFIG_TOUCHSCREEN_TOUCHRIGHT=m
+CONFIG_TOUCHSCREEN_TOUCHWIN=m
+CONFIG_TOUCHSCREEN_UCB1400=m
+CONFIG_TOUCHSCREEN_PIXCIR=m
+# CONFIG_TOUCHSCREEN_WM831X is not set
+CONFIG_TOUCHSCREEN_WM97XX=m
+# CONFIG_TOUCHSCREEN_WM9705 is not set
+# CONFIG_TOUCHSCREEN_WM9712 is not set
+# CONFIG_TOUCHSCREEN_WM9713 is not set
+CONFIG_TOUCHSCREEN_USB_COMPOSITE=m
+# CONFIG_TOUCHSCREEN_MC13783 is not set
+CONFIG_TOUCHSCREEN_USB_EGALAX=y
+CONFIG_TOUCHSCREEN_USB_PANJIT=y
+CONFIG_TOUCHSCREEN_USB_3M=y
+CONFIG_TOUCHSCREEN_USB_ITM=y
+CONFIG_TOUCHSCREEN_USB_ETURBO=y
+CONFIG_TOUCHSCREEN_USB_GUNZE=y
+CONFIG_TOUCHSCREEN_USB_DMC_TSC10=y
+CONFIG_TOUCHSCREEN_USB_IRTOUCH=y
+CONFIG_TOUCHSCREEN_USB_IDEALTEK=y
+CONFIG_TOUCHSCREEN_USB_GENERAL_TOUCH=y
+CONFIG_TOUCHSCREEN_USB_GOTOP=y
+CONFIG_TOUCHSCREEN_USB_JASTEC=y
+CONFIG_TOUCHSCREEN_USB_ELO=y
+CONFIG_TOUCHSCREEN_USB_E2I=y
+CONFIG_TOUCHSCREEN_USB_ZYTRONIC=y
+CONFIG_TOUCHSCREEN_USB_ETT_TC45USB=y
+CONFIG_TOUCHSCREEN_USB_NEXIO=y
+CONFIG_TOUCHSCREEN_USB_EASYTOUCH=y
+CONFIG_TOUCHSCREEN_TOUCHIT213=m
+CONFIG_TOUCHSCREEN_TSC_SERIO=m
+CONFIG_TOUCHSCREEN_TSC2005=y
+# CONFIG_TOUCHSCREEN_TSC2007 is not set
+# CONFIG_TOUCHSCREEN_ST1232 is not set
+# CONFIG_TOUCHSCREEN_TPS6507X is not set
+CONFIG_INPUT_MISC=y
+# CONFIG_INPUT_88PM860X_ONKEY is not set
+CONFIG_INPUT_88PM80X_ONKEY=m
+CONFIG_INPUT_AD714X=y
+# CONFIG_INPUT_AD714X_I2C is not set
+CONFIG_INPUT_AD714X_SPI=y
+# CONFIG_INPUT_ARIZONA_HAPTICS is not set
+# CONFIG_INPUT_BMA150 is not set
+# CONFIG_INPUT_PCSPKR is not set
+CONFIG_INPUT_MAX8925_ONKEY=m
+CONFIG_INPUT_MC13783_PWRBUTTON=y
+CONFIG_INPUT_MMA8450=y
+CONFIG_INPUT_MPU3050=y
+# CONFIG_INPUT_APANEL is not set
+# CONFIG_INPUT_GP2A is not set
+# CONFIG_INPUT_GPIO_TILT_POLLED is not set
+# CONFIG_INPUT_ATI_REMOTE2 is not set
+# CONFIG_INPUT_KEYSPAN_REMOTE is not set
+# CONFIG_INPUT_KXTJ9 is not set
+# CONFIG_INPUT_POWERMATE is not set
+CONFIG_INPUT_YEALINK=m
+CONFIG_INPUT_CM109=y
+CONFIG_INPUT_RETU_PWRBUTTON=y
+CONFIG_INPUT_TWL4030_PWRBUTTON=y
+CONFIG_INPUT_TWL4030_VIBRA=m
+CONFIG_INPUT_TWL6040_VIBRA=m
+CONFIG_INPUT_UINPUT=m
+# CONFIG_INPUT_PCF50633_PMU is not set
+# CONFIG_INPUT_PCF8574 is not set
+# CONFIG_INPUT_GPIO_ROTARY_ENCODER is not set
+# CONFIG_INPUT_DA9052_ONKEY is not set
+CONFIG_INPUT_DA9055_ONKEY=m
+CONFIG_INPUT_WM831X_ON=y
+# CONFIG_INPUT_ADXL34X is not set
+# CONFIG_INPUT_IMS_PCU is not set
+CONFIG_INPUT_CMA3000=m
+CONFIG_INPUT_CMA3000_I2C=m
+
+#
+# Hardware I/O ports
+#
+CONFIG_SERIO=y
+CONFIG_SERIO_I8042=y
+# CONFIG_SERIO_SERPORT is not set
+CONFIG_SERIO_CT82C710=m
+CONFIG_SERIO_PARKBD=m
+# CONFIG_SERIO_PCIPS2 is not set
+CONFIG_SERIO_LIBPS2=y
+CONFIG_SERIO_RAW=y
+CONFIG_SERIO_ALTERA_PS2=y
+# CONFIG_SERIO_PS2MULT is not set
+# CONFIG_SERIO_ARC_PS2 is not set
+# CONFIG_GAMEPORT is not set
+
+#
+# Character devices
+#
+CONFIG_TTY=y
+CONFIG_VT=y
+CONFIG_CONSOLE_TRANSLATIONS=y
+CONFIG_VT_CONSOLE=y
+CONFIG_HW_CONSOLE=y
+# CONFIG_VT_HW_CONSOLE_BINDING is not set
+CONFIG_UNIX98_PTYS=y
+# CONFIG_DEVPTS_MULTIPLE_INSTANCES is not set
+CONFIG_LEGACY_PTYS=y
+CONFIG_LEGACY_PTY_COUNT=256
+CONFIG_SERIAL_NONSTANDARD=y
+CONFIG_ROCKETPORT=m
+CONFIG_CYCLADES=m
+CONFIG_CYZ_INTR=y
+# CONFIG_MOXA_INTELLIO is not set
+# CONFIG_MOXA_SMARTIO is not set
+CONFIG_SYNCLINK=y
+CONFIG_SYNCLINKMP=m
+CONFIG_SYNCLINK_GT=m
+# CONFIG_NOZOMI is not set
+CONFIG_ISI=y
+CONFIG_N_HDLC=m
+CONFIG_N_GSM=m
+# CONFIG_TRACE_SINK is not set
+CONFIG_DEVKMEM=y
+
+#
+# Serial drivers
+#
+# CONFIG_SERIAL_8250 is not set
+CONFIG_FIX_EARLYCON_MEM=y
+
+#
+# Non-8250 serial port support
+#
+CONFIG_SERIAL_MAX3100=y
+CONFIG_SERIAL_MAX310X=y
+# CONFIG_SERIAL_MRST_MAX3110 is not set
+CONFIG_SERIAL_MFD_HSU=m
+CONFIG_SERIAL_UARTLITE=m
+CONFIG_SERIAL_CORE=y
+CONFIG_SERIAL_CORE_CONSOLE=y
+CONFIG_SERIAL_JSM=m
+CONFIG_SERIAL_SCCNXP=m
+CONFIG_SERIAL_TIMBERDALE=m
+CONFIG_SERIAL_ALTERA_JTAGUART=m
+CONFIG_SERIAL_ALTERA_UART=m
+CONFIG_SERIAL_ALTERA_UART_MAXPORTS=4
+CONFIG_SERIAL_ALTERA_UART_BAUDRATE=115200
+CONFIG_SERIAL_IFX6X60=y
+# CONFIG_SERIAL_PCH_UART is not set
+CONFIG_SERIAL_ARC=y
+CONFIG_SERIAL_ARC_CONSOLE=y
+CONFIG_SERIAL_ARC_NR_PORTS=1
+CONFIG_SERIAL_RP2=m
+CONFIG_SERIAL_RP2_NR_UARTS=32
+CONFIG_SERIAL_FSL_LPUART=y
+# CONFIG_SERIAL_FSL_LPUART_CONSOLE is not set
+CONFIG_PRINTER=y
+# CONFIG_LP_CONSOLE is not set
+# CONFIG_PPDEV is not set
+# CONFIG_IPMI_HANDLER is not set
+CONFIG_HW_RANDOM=m
+# CONFIG_HW_RANDOM_TIMERIOMEM is not set
+CONFIG_HW_RANDOM_INTEL=m
+# CONFIG_HW_RANDOM_AMD is not set
+# CONFIG_HW_RANDOM_VIA is not set
+# CONFIG_NVRAM is not set
+CONFIG_R3964=m
+CONFIG_APPLICOM=m
+
+#
+# PCMCIA character devices
+#
+CONFIG_SYNCLINK_CS=m
+CONFIG_CARDMAN_4000=m
+CONFIG_CARDMAN_4040=m
+CONFIG_IPWIRELESS=m
+# CONFIG_MWAVE is not set
+CONFIG_RAW_DRIVER=y
+CONFIG_MAX_RAW_DEVS=256
+CONFIG_HANGCHECK_TIMER=y
+# CONFIG_TCG_TPM is not set
+CONFIG_TELCLOCK=y
+CONFIG_DEVPORT=y
+CONFIG_I2C=y
+CONFIG_I2C_BOARDINFO=y
+# CONFIG_I2C_COMPAT is not set
+CONFIG_I2C_CHARDEV=m
+CONFIG_I2C_MUX=m
+
+#
+# Multiplexer I2C Chip support
+#
+CONFIG_I2C_MUX_GPIO=m
+CONFIG_I2C_MUX_PCA9541=m
+# CONFIG_I2C_MUX_PCA954x is not set
+# CONFIG_I2C_HELPER_AUTO is not set
+CONFIG_I2C_SMBUS=m
+
+#
+# I2C Algorithms
+#
+CONFIG_I2C_ALGOBIT=y
+CONFIG_I2C_ALGOPCF=m
+CONFIG_I2C_ALGOPCA=y
+
+#
+# I2C Hardware Bus support
+#
+
+#
+# PC SMBus host controller drivers
+#
+CONFIG_I2C_ALI1535=y
+CONFIG_I2C_ALI1563=y
+CONFIG_I2C_ALI15X3=y
+# CONFIG_I2C_AMD756 is not set
+# CONFIG_I2C_AMD8111 is not set
+CONFIG_I2C_I801=m
+# CONFIG_I2C_ISCH is not set
+CONFIG_I2C_ISMT=m
+# CONFIG_I2C_PIIX4 is not set
+# CONFIG_I2C_NFORCE2 is not set
+CONFIG_I2C_SIS5595=m
+CONFIG_I2C_SIS630=m
+# CONFIG_I2C_SIS96X is not set
+# CONFIG_I2C_VIA is not set
+# CONFIG_I2C_VIAPRO is not set
+
+#
+# I2C system bus drivers (mostly embedded / system-on-chip)
+#
+CONFIG_I2C_CBUS_GPIO=m
+CONFIG_I2C_DESIGNWARE_CORE=y
+CONFIG_I2C_DESIGNWARE_PCI=y
+CONFIG_I2C_EG20T=y
+CONFIG_I2C_GPIO=m
+CONFIG_I2C_KEMPLD=m
+CONFIG_I2C_OCORES=m
+# CONFIG_I2C_PCA_PLATFORM is not set
+# CONFIG_I2C_PXA_PCI is not set
+CONFIG_I2C_SIMTEC=m
+CONFIG_I2C_XILINX=y
+
+#
+# External I2C/SMBus adapter drivers
+#
+CONFIG_I2C_DIOLAN_U2C=y
+# CONFIG_I2C_PARPORT is not set
+CONFIG_I2C_PARPORT_LIGHT=m
+# CONFIG_I2C_TAOS_EVM is not set
+CONFIG_I2C_TINY_USB=m
+# CONFIG_I2C_VIPERBOARD is not set
+
+#
+# Other I2C/SMBus bus drivers
+#
+CONFIG_I2C_STUB=m
+CONFIG_I2C_DEBUG_CORE=y
+# CONFIG_I2C_DEBUG_ALGO is not set
+CONFIG_I2C_DEBUG_BUS=y
+CONFIG_SPI=y
+# CONFIG_SPI_DEBUG is not set
+CONFIG_SPI_MASTER=y
+
+#
+# SPI Master Controller Drivers
+#
+CONFIG_SPI_ALTERA=m
+CONFIG_SPI_BITBANG=y
+# CONFIG_SPI_BUTTERFLY is not set
+CONFIG_SPI_GPIO=y
+# CONFIG_SPI_LM70_LLP is not set
+CONFIG_SPI_OC_TINY=y
+CONFIG_SPI_PXA2XX_DMA=y
+CONFIG_SPI_PXA2XX=m
+CONFIG_SPI_PXA2XX_PCI=m
+CONFIG_SPI_SC18IS602=m
+# CONFIG_SPI_TOPCLIFF_PCH is not set
+CONFIG_SPI_XCOMM=m
+# CONFIG_SPI_XILINX is not set
+CONFIG_SPI_DESIGNWARE=y
+CONFIG_SPI_DW_PCI=y
+
+#
+# SPI Protocol Masters
+#
+CONFIG_SPI_SPIDEV=y
+CONFIG_SPI_TLE62X0=m
+# CONFIG_HSI is not set
+
+#
+# PPS support
+#
+CONFIG_PPS=y
+# CONFIG_PPS_DEBUG is not set
+
+#
+# PPS clients support
+#
+CONFIG_PPS_CLIENT_KTIMER=y
+# CONFIG_PPS_CLIENT_LDISC is not set
+# CONFIG_PPS_CLIENT_PARPORT is not set
+# CONFIG_PPS_CLIENT_GPIO is not set
+
+#
+# PPS generators support
+#
+
+#
+# PTP clock support
+#
+CONFIG_PTP_1588_CLOCK=y
+CONFIG_DP83640_PHY=y
+# CONFIG_PTP_1588_CLOCK_PCH is not set
+CONFIG_ARCH_WANT_OPTIONAL_GPIOLIB=y
+CONFIG_GPIO_DEVRES=y
+CONFIG_GPIOLIB=y
+CONFIG_DEBUG_GPIO=y
+CONFIG_GPIO_SYSFS=y
+CONFIG_GPIO_GENERIC=m
+CONFIG_GPIO_DA9052=m
+# CONFIG_GPIO_DA9055 is not set
+CONFIG_GPIO_MAX730X=m
+
+#
+# Memory mapped GPIO drivers:
+#
+CONFIG_GPIO_GENERIC_PLATFORM=m
+CONFIG_GPIO_IT8761E=y
+CONFIG_GPIO_TS5500=m
+# CONFIG_GPIO_SCH is not set
+CONFIG_GPIO_ICH=y
+CONFIG_GPIO_VX855=m
+
+#
+# I2C GPIO expanders:
+#
+# CONFIG_GPIO_ARIZONA is not set
+# CONFIG_GPIO_MAX7300 is not set
+CONFIG_GPIO_MAX732X=y
+CONFIG_GPIO_MAX732X_IRQ=y
+# CONFIG_GPIO_PCA953X is not set
+CONFIG_GPIO_PCF857X=y
+CONFIG_GPIO_SX150X=y
+# CONFIG_GPIO_TWL4030 is not set
+# CONFIG_GPIO_TWL6040 is not set
+CONFIG_GPIO_WM831X=y
+# CONFIG_GPIO_ADP5520 is not set
+# CONFIG_GPIO_ADP5588 is not set
+
+#
+# PCI GPIO expanders:
+#
+CONFIG_GPIO_BT8XX=y
+# CONFIG_GPIO_AMD8111 is not set
+CONFIG_GPIO_LANGWELL=y
+CONFIG_GPIO_PCH=y
+CONFIG_GPIO_ML_IOH=y
+# CONFIG_GPIO_TIMBERDALE is not set
+CONFIG_GPIO_RDC321X=y
+
+#
+# SPI GPIO expanders:
+#
+CONFIG_GPIO_MAX7301=m
+CONFIG_GPIO_MCP23S08=y
+CONFIG_GPIO_MC33880=m
+CONFIG_GPIO_74X164=y
+
+#
+# AC97 GPIO expanders:
+#
+# CONFIG_GPIO_UCB1400 is not set
+
+#
+# LPC GPIO expanders:
+#
+CONFIG_GPIO_KEMPLD=m
+
+#
+# MODULbus GPIO expanders:
+#
+
+#
+# USB GPIO expanders:
+#
+CONFIG_GPIO_VIPERBOARD=y
+CONFIG_W1=y
+# CONFIG_W1_CON is not set
+
+#
+# 1-wire Bus Masters
+#
+CONFIG_W1_MASTER_MATROX=y
+# CONFIG_W1_MASTER_DS2490 is not set
+# CONFIG_W1_MASTER_DS2482 is not set
+CONFIG_W1_MASTER_DS1WM=m
+CONFIG_W1_MASTER_GPIO=y
+
+#
+# 1-wire Slaves
+#
+CONFIG_W1_SLAVE_THERM=m
+CONFIG_W1_SLAVE_SMEM=m
+CONFIG_W1_SLAVE_DS2408=y
+CONFIG_W1_SLAVE_DS2408_READBACK=y
+# CONFIG_W1_SLAVE_DS2413 is not set
+CONFIG_W1_SLAVE_DS2423=y
+CONFIG_W1_SLAVE_DS2431=m
+# CONFIG_W1_SLAVE_DS2433 is not set
+CONFIG_W1_SLAVE_DS2760=m
+CONFIG_W1_SLAVE_DS2780=m
+CONFIG_W1_SLAVE_DS2781=y
+CONFIG_W1_SLAVE_DS28E04=y
+CONFIG_W1_SLAVE_BQ27000=m
+CONFIG_POWER_SUPPLY=y
+# CONFIG_POWER_SUPPLY_DEBUG is not set
+CONFIG_PDA_POWER=m
+# CONFIG_GENERIC_ADC_BATTERY is not set
+# CONFIG_MAX8925_POWER is not set
+CONFIG_WM831X_BACKUP=y
+CONFIG_WM831X_POWER=m
+CONFIG_TEST_POWER=y
+CONFIG_BATTERY_88PM860X=y
+# CONFIG_BATTERY_DS2760 is not set
+CONFIG_BATTERY_DS2780=m
+CONFIG_BATTERY_DS2781=y
+CONFIG_BATTERY_DS2782=m
+CONFIG_BATTERY_SBS=y
+CONFIG_BATTERY_BQ27x00=y
+CONFIG_BATTERY_BQ27X00_I2C=y
+# CONFIG_BATTERY_BQ27X00_PLATFORM is not set
+CONFIG_BATTERY_DA9052=y
+# CONFIG_BATTERY_MAX17040 is not set
+# CONFIG_BATTERY_MAX17042 is not set
+CONFIG_CHARGER_88PM860X=y
+CONFIG_CHARGER_PCF50633=m
+CONFIG_BATTERY_RX51=m
+CONFIG_CHARGER_MAX8903=y
+CONFIG_CHARGER_TWL4030=y
+# CONFIG_CHARGER_LP8727 is not set
+CONFIG_CHARGER_GPIO=m
+# CONFIG_CHARGER_MAX8997 is not set
+# CONFIG_CHARGER_BQ2415X is not set
+CONFIG_CHARGER_SMB347=m
+CONFIG_BATTERY_GOLDFISH=y
+CONFIG_POWER_RESET=y
+# CONFIG_POWER_AVS is not set
+CONFIG_HWMON=m
+CONFIG_HWMON_VID=m
+CONFIG_HWMON_DEBUG_CHIP=y
+
+#
+# Native drivers
+#
+# CONFIG_SENSORS_ABITUGURU is not set
+CONFIG_SENSORS_ABITUGURU3=m
+CONFIG_SENSORS_AD7314=m
+CONFIG_SENSORS_AD7414=m
+CONFIG_SENSORS_AD7418=m
+# CONFIG_SENSORS_ADCXX is not set
+# CONFIG_SENSORS_ADM1021 is not set
+CONFIG_SENSORS_ADM1025=m
+# CONFIG_SENSORS_ADM1026 is not set
+CONFIG_SENSORS_ADM1029=m
+CONFIG_SENSORS_ADM1031=m
+CONFIG_SENSORS_ADM9240=m
+CONFIG_SENSORS_ADT7X10=m
+CONFIG_SENSORS_ADT7310=m
+CONFIG_SENSORS_ADT7410=m
+CONFIG_SENSORS_ADT7411=m
+CONFIG_SENSORS_ADT7462=m
+# CONFIG_SENSORS_ADT7470 is not set
+CONFIG_SENSORS_ADT7475=m
+CONFIG_SENSORS_ASC7621=m
+CONFIG_SENSORS_K8TEMP=m
+# CONFIG_SENSORS_K10TEMP is not set
+# CONFIG_SENSORS_FAM15H_POWER is not set
+CONFIG_SENSORS_ASB100=m
+# CONFIG_SENSORS_ATXP1 is not set
+CONFIG_SENSORS_DS620=m
+# CONFIG_SENSORS_DS1621 is not set
+CONFIG_SENSORS_DA9052_ADC=m
+CONFIG_SENSORS_DA9055=m
+CONFIG_SENSORS_I5K_AMB=m
+# CONFIG_SENSORS_F71805F is not set
+CONFIG_SENSORS_F71882FG=m
+CONFIG_SENSORS_F75375S=m
+CONFIG_SENSORS_FSCHMD=m
+CONFIG_SENSORS_G760A=m
+# CONFIG_SENSORS_G762 is not set
+# CONFIG_SENSORS_GL518SM is not set
+CONFIG_SENSORS_GL520SM=m
+CONFIG_SENSORS_GPIO_FAN=m
+CONFIG_SENSORS_HIH6130=m
+CONFIG_SENSORS_CORETEMP=m
+CONFIG_SENSORS_IIO_HWMON=m
+# CONFIG_SENSORS_IT87 is not set
+# CONFIG_SENSORS_JC42 is not set
+CONFIG_SENSORS_LINEAGE=m
+CONFIG_SENSORS_LM63=m
+CONFIG_SENSORS_LM70=m
+CONFIG_SENSORS_LM73=m
+CONFIG_SENSORS_LM75=m
+# CONFIG_SENSORS_LM77 is not set
+CONFIG_SENSORS_LM78=m
+CONFIG_SENSORS_LM80=m
+CONFIG_SENSORS_LM83=m
+CONFIG_SENSORS_LM85=m
+CONFIG_SENSORS_LM87=m
+# CONFIG_SENSORS_LM90 is not set
+CONFIG_SENSORS_LM92=m
+CONFIG_SENSORS_LM93=m
+# CONFIG_SENSORS_LTC4151 is not set
+CONFIG_SENSORS_LTC4215=m
+# CONFIG_SENSORS_LTC4245 is not set
+CONFIG_SENSORS_LTC4261=m
+CONFIG_SENSORS_LM95234=m
+CONFIG_SENSORS_LM95241=m
+# CONFIG_SENSORS_LM95245 is not set
+CONFIG_SENSORS_MAX1111=m
+CONFIG_SENSORS_MAX16065=m
+CONFIG_SENSORS_MAX1619=m
+CONFIG_SENSORS_MAX1668=m
+CONFIG_SENSORS_MAX197=m
+# CONFIG_SENSORS_MAX6639 is not set
+CONFIG_SENSORS_MAX6642=m
+# CONFIG_SENSORS_MAX6650 is not set
+CONFIG_SENSORS_MAX6697=m
+# CONFIG_SENSORS_MCP3021 is not set
+CONFIG_SENSORS_NCT6775=m
+# CONFIG_SENSORS_NTC_THERMISTOR is not set
+# CONFIG_SENSORS_PC87360 is not set
+CONFIG_SENSORS_PC87427=m
+CONFIG_SENSORS_PCF8591=m
+CONFIG_PMBUS=m
+# CONFIG_SENSORS_PMBUS is not set
+CONFIG_SENSORS_ADM1275=m
+CONFIG_SENSORS_LM25066=m
+CONFIG_SENSORS_LTC2978=m
+CONFIG_SENSORS_MAX16064=m
+CONFIG_SENSORS_MAX34440=m
+CONFIG_SENSORS_MAX8688=m
+CONFIG_SENSORS_UCD9000=m
+CONFIG_SENSORS_UCD9200=m
+CONFIG_SENSORS_ZL6100=m
+CONFIG_SENSORS_SHT15=m
+# CONFIG_SENSORS_SHT21 is not set
+# CONFIG_SENSORS_SIS5595 is not set
+CONFIG_SENSORS_SMM665=m
+CONFIG_SENSORS_DME1737=m
+CONFIG_SENSORS_EMC1403=m
+CONFIG_SENSORS_EMC2103=m
+CONFIG_SENSORS_EMC6W201=m
+CONFIG_SENSORS_SMSC47M1=m
+CONFIG_SENSORS_SMSC47M192=m
+CONFIG_SENSORS_SMSC47B397=m
+CONFIG_SENSORS_SCH56XX_COMMON=m
+CONFIG_SENSORS_SCH5627=m
+# CONFIG_SENSORS_SCH5636 is not set
+CONFIG_SENSORS_ADS1015=m
+CONFIG_SENSORS_ADS7828=m
+CONFIG_SENSORS_ADS7871=m
+# CONFIG_SENSORS_AMC6821 is not set
+# CONFIG_SENSORS_INA209 is not set
+# CONFIG_SENSORS_INA2XX is not set
+CONFIG_SENSORS_THMC50=m
+# CONFIG_SENSORS_TMP102 is not set
+CONFIG_SENSORS_TMP401=m
+# CONFIG_SENSORS_TMP421 is not set
+CONFIG_SENSORS_TWL4030_MADC=m
+CONFIG_SENSORS_VIA_CPUTEMP=m
+# CONFIG_SENSORS_VIA686A is not set
+CONFIG_SENSORS_VT1211=m
+CONFIG_SENSORS_VT8231=m
+# CONFIG_SENSORS_W83781D is not set
+CONFIG_SENSORS_W83791D=m
+CONFIG_SENSORS_W83792D=m
+CONFIG_SENSORS_W83793=m
+CONFIG_SENSORS_W83795=m
+# CONFIG_SENSORS_W83795_FANCTRL is not set
+CONFIG_SENSORS_W83L785TS=m
+# CONFIG_SENSORS_W83L786NG is not set
+CONFIG_SENSORS_W83627HF=m
+CONFIG_SENSORS_W83627EHF=m
+# CONFIG_SENSORS_WM831X is not set
+CONFIG_SENSORS_APPLESMC=m
+CONFIG_SENSORS_MC13783_ADC=m
+CONFIG_THERMAL=y
+CONFIG_THERMAL_DEFAULT_GOV_STEP_WISE=y
+# CONFIG_THERMAL_DEFAULT_GOV_FAIR_SHARE is not set
+# CONFIG_THERMAL_DEFAULT_GOV_USER_SPACE is not set
+CONFIG_THERMAL_GOV_FAIR_SHARE=y
+CONFIG_THERMAL_GOV_STEP_WISE=y
+CONFIG_THERMAL_GOV_USER_SPACE=y
+CONFIG_CPU_THERMAL=y
+# CONFIG_THERMAL_EMULATION is not set
+CONFIG_INTEL_POWERCLAMP=y
+
+#
+# Texas Instruments thermal drivers
+#
+CONFIG_WATCHDOG=y
+CONFIG_WATCHDOG_CORE=y
+# CONFIG_WATCHDOG_NOWAYOUT is not set
+
+#
+# Watchdog Device Drivers
+#
+# CONFIG_SOFT_WATCHDOG is not set
+# CONFIG_DA9052_WATCHDOG is not set
+CONFIG_DA9055_WATCHDOG=m
+CONFIG_WM831X_WATCHDOG=y
+# CONFIG_TWL4030_WATCHDOG is not set
+CONFIG_RETU_WATCHDOG=m
+# CONFIG_ACQUIRE_WDT is not set
+CONFIG_ADVANTECH_WDT=m
+# CONFIG_ALIM1535_WDT is not set
+CONFIG_ALIM7101_WDT=y
+CONFIG_F71808E_WDT=m
+# CONFIG_SP5100_TCO is not set
+# CONFIG_SC520_WDT is not set
+CONFIG_SBC_FITPC2_WATCHDOG=y
+CONFIG_EUROTECH_WDT=y
+CONFIG_IB700_WDT=m
+CONFIG_IBMASR=m
+# CONFIG_WAFER_WDT is not set
+# CONFIG_I6300ESB_WDT is not set
+CONFIG_IE6XX_WDT=m
+CONFIG_ITCO_WDT=y
+CONFIG_ITCO_VENDOR_SUPPORT=y
+# CONFIG_IT8712F_WDT is not set
+CONFIG_IT87_WDT=y
+CONFIG_HP_WATCHDOG=y
+# CONFIG_KEMPLD_WDT is not set
+# CONFIG_HPWDT_NMI_DECODING is not set
+CONFIG_SC1200_WDT=y
+CONFIG_PC87413_WDT=m
+# CONFIG_NV_TCO is not set
+CONFIG_60XX_WDT=y
+CONFIG_SBC8360_WDT=m
+# CONFIG_CPU5_WDT is not set
+# CONFIG_SMSC_SCH311X_WDT is not set
+# CONFIG_SMSC37B787_WDT is not set
+# CONFIG_VIA_WDT is not set
+CONFIG_W83627HF_WDT=m
+CONFIG_W83697HF_WDT=y
+# CONFIG_W83697UG_WDT is not set
+# CONFIG_W83877F_WDT is not set
+CONFIG_W83977F_WDT=y
+# CONFIG_MACHZ_WDT is not set
+CONFIG_SBC_EPX_C3_WATCHDOG=m
+CONFIG_MEN_A21_WDT=m
+
+#
+# PCI-based Watchdog Cards
+#
+CONFIG_PCIPCWATCHDOG=m
+CONFIG_WDTPCI=m
+
+#
+# USB-based Watchdog Cards
+#
+CONFIG_USBPCWATCHDOG=m
+CONFIG_SSB_POSSIBLE=y
+
+#
+# Sonics Silicon Backplane
+#
+CONFIG_SSB=y
+CONFIG_SSB_SPROM=y
+CONFIG_SSB_PCIHOST_POSSIBLE=y
+# CONFIG_SSB_PCIHOST is not set
+CONFIG_SSB_PCMCIAHOST_POSSIBLE=y
+CONFIG_SSB_PCMCIAHOST=y
+CONFIG_SSB_SDIOHOST_POSSIBLE=y
+# CONFIG_SSB_SDIOHOST is not set
+# CONFIG_SSB_DEBUG is not set
+# CONFIG_SSB_DRIVER_GPIO is not set
+CONFIG_BCMA_POSSIBLE=y
+
+#
+# Broadcom specific AMBA
+#
+CONFIG_BCMA=y
+CONFIG_BCMA_HOST_PCI_POSSIBLE=y
+CONFIG_BCMA_HOST_PCI=y
+CONFIG_BCMA_HOST_SOC=y
+CONFIG_BCMA_DRIVER_GMAC_CMN=y
+CONFIG_BCMA_DRIVER_GPIO=y
+CONFIG_BCMA_DEBUG=y
+
+#
+# Multifunction device drivers
+#
+CONFIG_MFD_CORE=y
+# CONFIG_MFD_CS5535 is not set
+# CONFIG_MFD_AS3711 is not set
+CONFIG_PMIC_ADP5520=y
+CONFIG_MFD_AAT2870_CORE=y
+# CONFIG_MFD_CROS_EC is not set
+# CONFIG_PMIC_DA903X is not set
+CONFIG_PMIC_DA9052=y
+# CONFIG_MFD_DA9052_SPI is not set
+CONFIG_MFD_DA9052_I2C=y
+CONFIG_MFD_DA9055=y
+CONFIG_MFD_MC13783=y
+CONFIG_MFD_MC13XXX=y
+CONFIG_MFD_MC13XXX_SPI=y
+CONFIG_MFD_MC13XXX_I2C=y
+CONFIG_HTC_PASIC3=y
+# CONFIG_HTC_I2CPLD is not set
+CONFIG_LPC_ICH=y
+CONFIG_LPC_SCH=m
+# CONFIG_MFD_JANZ_CMODIO is not set
+CONFIG_MFD_KEMPLD=m
+CONFIG_MFD_88PM800=y
+CONFIG_MFD_88PM805=m
+CONFIG_MFD_88PM860X=y
+CONFIG_MFD_MAX77686=y
+# CONFIG_MFD_MAX77693 is not set
+CONFIG_MFD_MAX8907=m
+CONFIG_MFD_MAX8925=y
+CONFIG_MFD_MAX8997=y
+# CONFIG_MFD_MAX8998 is not set
+# CONFIG_EZX_PCAP is not set
+CONFIG_MFD_VIPERBOARD=y
+CONFIG_MFD_RETU=y
+CONFIG_MFD_PCF50633=m
+# CONFIG_PCF50633_ADC is not set
+CONFIG_PCF50633_GPIO=m
+CONFIG_UCB1400_CORE=m
+CONFIG_MFD_RDC321X=y
+# CONFIG_MFD_RTSX_PCI is not set
+# CONFIG_MFD_RC5T583 is not set
+CONFIG_MFD_SEC_CORE=y
+CONFIG_MFD_SI476X_CORE=y
+CONFIG_MFD_SM501=y
+CONFIG_MFD_SM501_GPIO=y
+# CONFIG_MFD_SMSC is not set
+CONFIG_ABX500_CORE=y
+CONFIG_AB3100_CORE=y
+CONFIG_AB3100_OTP=y
+# CONFIG_MFD_STMPE is not set
+# CONFIG_MFD_SYSCON is not set
+# CONFIG_MFD_TI_AM335X_TSCADC is not set
+# CONFIG_MFD_LP8788 is not set
+# CONFIG_MFD_PALMAS is not set
+CONFIG_TPS6105X=y
+CONFIG_TPS65010=m
+CONFIG_TPS6507X=y
+# CONFIG_MFD_TPS65090 is not set
+# CONFIG_MFD_TPS65217 is not set
+# CONFIG_MFD_TPS6586X is not set
+# CONFIG_MFD_TPS65910 is not set
+# CONFIG_MFD_TPS65912 is not set
+# CONFIG_MFD_TPS65912_I2C is not set
+# CONFIG_MFD_TPS65912_SPI is not set
+# CONFIG_MFD_TPS80031 is not set
+CONFIG_TWL4030_CORE=y
+CONFIG_TWL4030_MADC=m
+CONFIG_MFD_TWL4030_AUDIO=y
+CONFIG_TWL6040_CORE=y
+# CONFIG_MFD_WL1273_CORE is not set
+# CONFIG_MFD_LM3533 is not set
+CONFIG_MFD_TIMBERDALE=m
+# CONFIG_MFD_TC3589X is not set
+# CONFIG_MFD_TMIO is not set
+CONFIG_MFD_VX855=m
+CONFIG_MFD_ARIZONA=y
+CONFIG_MFD_ARIZONA_I2C=m
+# CONFIG_MFD_ARIZONA_SPI is not set
+# CONFIG_MFD_WM5102 is not set
+CONFIG_MFD_WM5110=y
+# CONFIG_MFD_WM8997 is not set
+# CONFIG_MFD_WM8400 is not set
+CONFIG_MFD_WM831X=y
+CONFIG_MFD_WM831X_I2C=y
+CONFIG_MFD_WM831X_SPI=y
+# CONFIG_MFD_WM8350_I2C is not set
+# CONFIG_MFD_WM8994 is not set
+CONFIG_REGULATOR=y
+CONFIG_REGULATOR_DEBUG=y
+CONFIG_REGULATOR_DUMMY=y
+CONFIG_REGULATOR_FIXED_VOLTAGE=y
+CONFIG_REGULATOR_VIRTUAL_CONSUMER=y
+CONFIG_REGULATOR_USERSPACE_CONSUMER=m
+CONFIG_REGULATOR_88PM800=y
+CONFIG_REGULATOR_88PM8607=y
+CONFIG_REGULATOR_AD5398=m
+# CONFIG_REGULATOR_AAT2870 is not set
+# CONFIG_REGULATOR_AB3100 is not set
+CONFIG_REGULATOR_ARIZONA=m
+# CONFIG_REGULATOR_DA9052 is not set
+# CONFIG_REGULATOR_DA9055 is not set
+CONFIG_REGULATOR_FAN53555=y
+CONFIG_REGULATOR_GPIO=m
+# CONFIG_REGULATOR_ISL6271A is not set
+CONFIG_REGULATOR_LP3971=m
+CONFIG_REGULATOR_LP3972=m
+# CONFIG_REGULATOR_LP872X is not set
+CONFIG_REGULATOR_LP8755=y
+CONFIG_REGULATOR_MAX1586=y
+# CONFIG_REGULATOR_MAX8649 is not set
+CONFIG_REGULATOR_MAX8660=y
+CONFIG_REGULATOR_MAX8907=m
+# CONFIG_REGULATOR_MAX8925 is not set
+CONFIG_REGULATOR_MAX8952=m
+# CONFIG_REGULATOR_MAX8973 is not set
+CONFIG_REGULATOR_MAX8997=m
+CONFIG_REGULATOR_MAX77686=y
+CONFIG_REGULATOR_MC13XXX_CORE=y
+# CONFIG_REGULATOR_MC13783 is not set
+CONFIG_REGULATOR_MC13892=y
+# CONFIG_REGULATOR_PCF50633 is not set
+CONFIG_REGULATOR_S2MPS11=m
+CONFIG_REGULATOR_S5M8767=y
+CONFIG_REGULATOR_TPS51632=m
+CONFIG_REGULATOR_TPS6105X=y
+# CONFIG_REGULATOR_TPS62360 is not set
+CONFIG_REGULATOR_TPS65023=m
+CONFIG_REGULATOR_TPS6507X=m
+CONFIG_REGULATOR_TPS6524X=m
+CONFIG_REGULATOR_TWL4030=y
+CONFIG_REGULATOR_WM831X=y
+CONFIG_MEDIA_SUPPORT=y
+
+#
+# Multimedia core support
+#
+CONFIG_MEDIA_CAMERA_SUPPORT=y
+CONFIG_MEDIA_ANALOG_TV_SUPPORT=y
+# CONFIG_MEDIA_DIGITAL_TV_SUPPORT is not set
+# CONFIG_MEDIA_RADIO_SUPPORT is not set
+# CONFIG_MEDIA_RC_SUPPORT is not set
+CONFIG_MEDIA_CONTROLLER=y
+CONFIG_VIDEO_DEV=y
+# CONFIG_VIDEO_V4L2_SUBDEV_API is not set
+CONFIG_VIDEO_V4L2=y
+# CONFIG_VIDEO_ADV_DEBUG is not set
+# CONFIG_VIDEO_FIXED_MINOR_RANGES is not set
+CONFIG_VIDEO_TUNER=y
+CONFIG_VIDEOBUF_GEN=y
+CONFIG_VIDEOBUF_DMA_SG=y
+CONFIG_VIDEOBUF_VMALLOC=y
+CONFIG_VIDEOBUF2_CORE=y
+CONFIG_VIDEOBUF2_MEMOPS=y
+CONFIG_VIDEOBUF2_VMALLOC=y
+# CONFIG_VIDEO_V4L2_INT_DEVICE is not set
+# CONFIG_TTPCI_EEPROM is not set
+
+#
+# Media drivers
+#
+CONFIG_MEDIA_USB_SUPPORT=y
+
+#
+# Webcam devices
+#
+CONFIG_USB_VIDEO_CLASS=y
+# CONFIG_USB_VIDEO_CLASS_INPUT_EVDEV is not set
+CONFIG_USB_GSPCA=y
+CONFIG_USB_M5602=m
+# CONFIG_USB_STV06XX is not set
+CONFIG_USB_GL860=y
+CONFIG_USB_GSPCA_BENQ=y
+CONFIG_USB_GSPCA_CONEX=y
+CONFIG_USB_GSPCA_CPIA1=y
+# CONFIG_USB_GSPCA_ETOMS is not set
+# CONFIG_USB_GSPCA_FINEPIX is not set
+CONFIG_USB_GSPCA_JEILINJ=y
+CONFIG_USB_GSPCA_JL2005BCD=y
+CONFIG_USB_GSPCA_KINECT=y
+# CONFIG_USB_GSPCA_KONICA is not set
+CONFIG_USB_GSPCA_MARS=y
+# CONFIG_USB_GSPCA_MR97310A is not set
+CONFIG_USB_GSPCA_NW80X=y
+CONFIG_USB_GSPCA_OV519=m
+CONFIG_USB_GSPCA_OV534=y
+CONFIG_USB_GSPCA_OV534_9=y
+CONFIG_USB_GSPCA_PAC207=y
+# CONFIG_USB_GSPCA_PAC7302 is not set
+CONFIG_USB_GSPCA_PAC7311=y
+CONFIG_USB_GSPCA_SE401=m
+# CONFIG_USB_GSPCA_SN9C2028 is not set
+# CONFIG_USB_GSPCA_SN9C20X is not set
+# CONFIG_USB_GSPCA_SONIXB is not set
+# CONFIG_USB_GSPCA_SONIXJ is not set
+# CONFIG_USB_GSPCA_SPCA500 is not set
+# CONFIG_USB_GSPCA_SPCA501 is not set
+# CONFIG_USB_GSPCA_SPCA505 is not set
+# CONFIG_USB_GSPCA_SPCA506 is not set
+CONFIG_USB_GSPCA_SPCA508=y
+# CONFIG_USB_GSPCA_SPCA561 is not set
+CONFIG_USB_GSPCA_SPCA1528=m
+CONFIG_USB_GSPCA_SQ905=y
+# CONFIG_USB_GSPCA_SQ905C is not set
+CONFIG_USB_GSPCA_SQ930X=y
+CONFIG_USB_GSPCA_STK014=y
+CONFIG_USB_GSPCA_STV0680=m
+CONFIG_USB_GSPCA_SUNPLUS=y
+# CONFIG_USB_GSPCA_T613 is not set
+CONFIG_USB_GSPCA_TOPRO=m
+CONFIG_USB_GSPCA_TV8532=y
+CONFIG_USB_GSPCA_VC032X=y
+CONFIG_USB_GSPCA_VICAM=y
+CONFIG_USB_GSPCA_XIRLINK_CIT=y
+CONFIG_USB_GSPCA_ZC3XX=y
+# CONFIG_USB_PWC is not set
+CONFIG_VIDEO_CPIA2=y
+CONFIG_USB_ZR364XX=y
+CONFIG_USB_STKWEBCAM=y
+CONFIG_USB_S2255=y
+CONFIG_USB_SN9C102=m
+# CONFIG_VIDEO_USBTV is not set
+
+#
+# Analog TV USB devices
+#
+# CONFIG_VIDEO_PVRUSB2 is not set
+# CONFIG_VIDEO_HDPVR is not set
+CONFIG_VIDEO_USBVISION=m
+CONFIG_VIDEO_STK1160=y
+CONFIG_VIDEO_STK1160_AC97=y
+
+#
+# Analog/digital TV USB devices
+#
+
+#
+# Webcam, TV (analog/digital) USB devices
+#
+CONFIG_VIDEO_EM28XX=m
+# CONFIG_VIDEO_EM28XX_ALSA is not set
+CONFIG_MEDIA_PCI_SUPPORT=y
+
+#
+# Media capture support
+#
+
+#
+# Media capture/analog TV support
+#
+# CONFIG_VIDEO_ZORAN is not set
+# CONFIG_VIDEO_HEXIUM_GEMINI is not set
+CONFIG_VIDEO_HEXIUM_ORION=m
+CONFIG_VIDEO_MXB=y
+
+#
+# Media capture/analog/hybrid TV support
+#
+CONFIG_VIDEO_CX25821=m
+CONFIG_VIDEO_CX25821_ALSA=m
+CONFIG_VIDEO_SAA7134=m
+CONFIG_VIDEO_SAA7134_ALSA=m
+# CONFIG_V4L_PLATFORM_DRIVERS is not set
+CONFIG_V4L_MEM2MEM_DRIVERS=y
+# CONFIG_VIDEO_SH_VEU is not set
+# CONFIG_V4L_TEST_DRIVERS is not set
+
+#
+# Supported MMC/SDIO adapters
+#
+CONFIG_MEDIA_PARPORT_SUPPORT=y
+# CONFIG_VIDEO_BWQCAM is not set
+CONFIG_VIDEO_CQCAM=m
+CONFIG_VIDEO_BTCX=m
+CONFIG_VIDEO_TVEEPROM=m
+CONFIG_CYPRESS_FIRMWARE=m
+CONFIG_VIDEO_SAA7146=y
+CONFIG_VIDEO_SAA7146_VV=y
+
+#
+# Media ancillary drivers (tuners, sensors, i2c, frontends)
+#
+CONFIG_MEDIA_SUBDRV_AUTOSELECT=y
+CONFIG_MEDIA_ATTACH=y
+
+#
+# Audio decoders, processors and mixers
+#
+CONFIG_VIDEO_TDA9840=y
+CONFIG_VIDEO_TEA6415C=y
+CONFIG_VIDEO_TEA6420=y
+CONFIG_VIDEO_MSP3400=m
+CONFIG_VIDEO_UDA1342=m
+CONFIG_VIDEO_SONY_BTF_MPX=m
+
+#
+# RDS decoders
+#
+CONFIG_VIDEO_SAA6588=m
+
+#
+# Video decoders
+#
+CONFIG_VIDEO_SAA711X=y
+CONFIG_VIDEO_TVP5150=m
+CONFIG_VIDEO_TW2804=m
+CONFIG_VIDEO_TW9903=m
+CONFIG_VIDEO_TW9906=m
+
+#
+# Video and audio decoders
+#
+
+#
+# Video encoders
+#
+
+#
+# Camera sensor devices
+#
+CONFIG_VIDEO_OV7640=m
+CONFIG_VIDEO_MT9V011=m
+
+#
+# Flash devices
+#
+
+#
+# Video improvement chips
+#
+
+#
+# Miscelaneous helper chips
+#
+
+#
+# Sensors used on soc_camera driver
+#
+CONFIG_MEDIA_TUNER=y
+CONFIG_MEDIA_TUNER_SIMPLE=y
+CONFIG_MEDIA_TUNER_TDA8290=y
+CONFIG_MEDIA_TUNER_TDA827X=y
+CONFIG_MEDIA_TUNER_TDA18271=y
+CONFIG_MEDIA_TUNER_TDA9887=y
+CONFIG_MEDIA_TUNER_MT20XX=y
+CONFIG_MEDIA_TUNER_XC2028=y
+CONFIG_MEDIA_TUNER_XC5000=y
+CONFIG_MEDIA_TUNER_XC4000=y
+CONFIG_MEDIA_TUNER_MC44S803=y
+
+#
+# Tools to develop new frontends
+#
+# CONFIG_DVB_DUMMY_FE is not set
+
+#
+# Graphics support
+#
+CONFIG_AGP=y
+# CONFIG_AGP_AMD64 is not set
+# CONFIG_AGP_INTEL is not set
+# CONFIG_AGP_SIS is not set
+CONFIG_AGP_VIA=y
+CONFIG_VGA_ARB=y
+CONFIG_VGA_ARB_MAX_GPUS=16
+CONFIG_DRM=y
+CONFIG_DRM_KMS_HELPER=y
+# CONFIG_DRM_LOAD_EDID_FIRMWARE is not set
+CONFIG_DRM_TTM=y
+
+#
+# I2C encoder or helper chips
+#
+CONFIG_DRM_I2C_CH7006=y
+# CONFIG_DRM_I2C_SIL164 is not set
+CONFIG_DRM_I2C_NXP_TDA998X=y
+# CONFIG_DRM_TDFX is not set
+CONFIG_DRM_R128=m
+# CONFIG_DRM_RADEON is not set
+CONFIG_DRM_NOUVEAU=y
+CONFIG_NOUVEAU_DEBUG=5
+CONFIG_NOUVEAU_DEBUG_DEFAULT=3
+# CONFIG_DRM_NOUVEAU_BACKLIGHT is not set
+CONFIG_DRM_MGA=y
+# CONFIG_DRM_SIS is not set
+CONFIG_DRM_VIA=m
+# CONFIG_DRM_SAVAGE is not set
+CONFIG_DRM_VMWGFX=y
+CONFIG_DRM_VMWGFX_FBCON=y
+CONFIG_DRM_GMA500=y
+CONFIG_DRM_GMA600=y
+CONFIG_DRM_GMA3600=y
+# CONFIG_DRM_UDL is not set
+CONFIG_DRM_AST=m
+CONFIG_DRM_MGAG200=m
+CONFIG_DRM_CIRRUS_QEMU=y
+# CONFIG_DRM_QXL is not set
+CONFIG_VGASTATE=y
+CONFIG_VIDEO_OUTPUT_CONTROL=y
+CONFIG_HDMI=y
+CONFIG_FB=y
+# CONFIG_FIRMWARE_EDID is not set
+CONFIG_FB_DDC=m
+CONFIG_FB_BOOT_VESA_SUPPORT=y
+CONFIG_FB_CFB_FILLRECT=y
+CONFIG_FB_CFB_COPYAREA=y
+CONFIG_FB_CFB_IMAGEBLIT=y
+# CONFIG_FB_CFB_REV_PIXELS_IN_BYTE is not set
+CONFIG_FB_SYS_FILLRECT=y
+CONFIG_FB_SYS_COPYAREA=y
+CONFIG_FB_SYS_IMAGEBLIT=y
+CONFIG_FB_FOREIGN_ENDIAN=y
+# CONFIG_FB_BOTH_ENDIAN is not set
+# CONFIG_FB_BIG_ENDIAN is not set
+CONFIG_FB_LITTLE_ENDIAN=y
+CONFIG_FB_SYS_FOPS=y
+CONFIG_FB_DEFERRED_IO=y
+CONFIG_FB_SVGALIB=m
+# CONFIG_FB_MACMODES is not set
+CONFIG_FB_BACKLIGHT=y
+CONFIG_FB_MODE_HELPERS=y
+CONFIG_FB_TILEBLITTING=y
+
+#
+# Frame buffer hardware drivers
+#
+CONFIG_FB_CIRRUS=y
+CONFIG_FB_PM2=m
+CONFIG_FB_PM2_FIFO_DISCONNECT=y
+CONFIG_FB_CYBER2000=m
+# CONFIG_FB_CYBER2000_DDC is not set
+CONFIG_FB_ARC=y
+# CONFIG_FB_ASILIANT is not set
+# CONFIG_FB_IMSTT is not set
+# CONFIG_FB_VGA16 is not set
+CONFIG_FB_UVESA=m
+CONFIG_FB_VESA=y
+# CONFIG_FB_N411 is not set
+CONFIG_FB_HGA=m
+CONFIG_FB_S1D13XXX=m
+CONFIG_FB_NVIDIA=m
+# CONFIG_FB_NVIDIA_I2C is not set
+# CONFIG_FB_NVIDIA_DEBUG is not set
+CONFIG_FB_NVIDIA_BACKLIGHT=y
+CONFIG_FB_RIVA=m
+CONFIG_FB_RIVA_I2C=y
+# CONFIG_FB_RIVA_DEBUG is not set
+CONFIG_FB_RIVA_BACKLIGHT=y
+# CONFIG_FB_I740 is not set
+# CONFIG_FB_LE80578 is not set
+# CONFIG_FB_MATROX is not set
+CONFIG_FB_RADEON=y
+# CONFIG_FB_RADEON_I2C is not set
+# CONFIG_FB_RADEON_BACKLIGHT is not set
+CONFIG_FB_RADEON_DEBUG=y
+CONFIG_FB_ATY128=y
+CONFIG_FB_ATY128_BACKLIGHT=y
+# CONFIG_FB_ATY is not set
+CONFIG_FB_S3=m
+CONFIG_FB_S3_DDC=y
+CONFIG_FB_SAVAGE=y
+# CONFIG_FB_SAVAGE_I2C is not set
+# CONFIG_FB_SAVAGE_ACCEL is not set
+# CONFIG_FB_SIS is not set
+CONFIG_FB_VIA=y
+# CONFIG_FB_VIA_DIRECT_PROCFS is not set
+CONFIG_FB_VIA_X_COMPATIBILITY=y
+# CONFIG_FB_NEOMAGIC is not set
+CONFIG_FB_KYRO=y
+CONFIG_FB_3DFX=y
+# CONFIG_FB_3DFX_ACCEL is not set
+# CONFIG_FB_3DFX_I2C is not set
+# CONFIG_FB_VOODOO1 is not set
+CONFIG_FB_VT8623=m
+# CONFIG_FB_TRIDENT is not set
+# CONFIG_FB_ARK is not set
+# CONFIG_FB_PM3 is not set
+# CONFIG_FB_CARMINE is not set
+# CONFIG_FB_GEODE is not set
+# CONFIG_FB_TMIO is not set
+CONFIG_FB_SM501=m
+# CONFIG_FB_SMSCUFX is not set
+CONFIG_FB_UDL=m
+CONFIG_FB_GOLDFISH=y
+CONFIG_FB_VIRTUAL=y
+CONFIG_FB_METRONOME=m
+# CONFIG_FB_MB862XX is not set
+# CONFIG_FB_BROADSHEET is not set
+CONFIG_FB_AUO_K190X=y
+# CONFIG_FB_AUO_K1900 is not set
+CONFIG_FB_AUO_K1901=m
+# CONFIG_EXYNOS_VIDEO is not set
+CONFIG_BACKLIGHT_LCD_SUPPORT=y
+CONFIG_LCD_CLASS_DEVICE=y
+CONFIG_LCD_L4F00242T03=y
+CONFIG_LCD_LMS283GF05=y
+CONFIG_LCD_LTV350QV=m
+# CONFIG_LCD_ILI922X is not set
+CONFIG_LCD_ILI9320=y
+CONFIG_LCD_TDO24M=y
+CONFIG_LCD_VGG2432A4=y
+# CONFIG_LCD_PLATFORM is not set
+CONFIG_LCD_S6E63M0=m
+CONFIG_LCD_LD9040=y
+# CONFIG_LCD_AMS369FG06 is not set
+CONFIG_LCD_LMS501KF03=y
+CONFIG_LCD_HX8357=y
+CONFIG_BACKLIGHT_CLASS_DEVICE=y
+CONFIG_BACKLIGHT_GENERIC=y
+CONFIG_BACKLIGHT_DA9052=m
+CONFIG_BACKLIGHT_MAX8925=y
+CONFIG_BACKLIGHT_SAHARA=y
+CONFIG_BACKLIGHT_WM831X=m
+CONFIG_BACKLIGHT_ADP5520=y
+# CONFIG_BACKLIGHT_ADP8860 is not set
+CONFIG_BACKLIGHT_ADP8870=m
+CONFIG_BACKLIGHT_88PM860X=y
+# CONFIG_BACKLIGHT_PCF50633 is not set
+CONFIG_BACKLIGHT_AAT2870=m
+CONFIG_BACKLIGHT_LM3630=y
+CONFIG_BACKLIGHT_LM3639=y
+CONFIG_BACKLIGHT_LP855X=m
+# CONFIG_BACKLIGHT_PANDORA is not set
+CONFIG_BACKLIGHT_GPIO=y
+CONFIG_BACKLIGHT_LV5207LP=y
+CONFIG_BACKLIGHT_BD6107=m
+
+#
+# Console display driver support
+#
+CONFIG_VGA_CONSOLE=y
+# CONFIG_VGACON_SOFT_SCROLLBACK is not set
+CONFIG_DUMMY_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE=y
+CONFIG_FRAMEBUFFER_CONSOLE_DETECT_PRIMARY=y
+CONFIG_FRAMEBUFFER_CONSOLE_ROTATION=y
+# CONFIG_LOGO is not set
+CONFIG_SOUND=m
+CONFIG_SOUND_OSS_CORE=y
+CONFIG_SOUND_OSS_CORE_PRECLAIM=y
+CONFIG_SND=m
+CONFIG_SND_TIMER=m
+CONFIG_SND_PCM=m
+CONFIG_SND_HWDEP=m
+CONFIG_SND_RAWMIDI=m
+CONFIG_SND_COMPRESS_OFFLOAD=m
+CONFIG_SND_JACK=y
+CONFIG_SND_SEQUENCER=m
+# CONFIG_SND_SEQ_DUMMY is not set
+CONFIG_SND_OSSEMUL=y
+CONFIG_SND_MIXER_OSS=m
+CONFIG_SND_PCM_OSS=m
+# CONFIG_SND_PCM_OSS_PLUGINS is not set
+# CONFIG_SND_SEQUENCER_OSS is not set
+# CONFIG_SND_DYNAMIC_MINORS is not set
+# CONFIG_SND_SUPPORT_OLD_API is not set
+# CONFIG_SND_VERBOSE_PROCFS is not set
+# CONFIG_SND_VERBOSE_PRINTK is not set
+# CONFIG_SND_DEBUG is not set
+CONFIG_SND_VMASTER=y
+CONFIG_SND_KCTL_JACK=y
+CONFIG_SND_DMA_SGBUF=y
+CONFIG_SND_RAWMIDI_SEQ=m
+CONFIG_SND_OPL3_LIB_SEQ=m
+# CONFIG_SND_OPL4_LIB_SEQ is not set
+# CONFIG_SND_SBAWE_SEQ is not set
+CONFIG_SND_EMU10K1_SEQ=m
+CONFIG_SND_MPU401_UART=m
+CONFIG_SND_OPL3_LIB=m
+CONFIG_SND_VX_LIB=m
+CONFIG_SND_AC97_CODEC=m
+CONFIG_SND_DRIVERS=y
+CONFIG_SND_DUMMY=m
+CONFIG_SND_ALOOP=m
+# CONFIG_SND_VIRMIDI is not set
+# CONFIG_SND_MTPAV is not set
+CONFIG_SND_MTS64=m
+CONFIG_SND_SERIAL_U16550=m
+CONFIG_SND_MPU401=m
+# CONFIG_SND_PORTMAN2X4 is not set
+CONFIG_SND_AC97_POWER_SAVE=y
+CONFIG_SND_AC97_POWER_SAVE_DEFAULT=0
+CONFIG_SND_SB_COMMON=m
+CONFIG_SND_SB16_DSP=m
+CONFIG_SND_PCI=y
+CONFIG_SND_AD1889=m
+CONFIG_SND_ALS300=m
+# CONFIG_SND_ALS4000 is not set
+CONFIG_SND_ALI5451=m
+CONFIG_SND_ASIHPI=m
+CONFIG_SND_ATIIXP=m
+CONFIG_SND_ATIIXP_MODEM=m
+CONFIG_SND_AU8810=m
+CONFIG_SND_AU8820=m
+CONFIG_SND_AU8830=m
+CONFIG_SND_AW2=m
+CONFIG_SND_AZT3328=m
+CONFIG_SND_BT87X=m
+CONFIG_SND_BT87X_OVERCLOCK=y
+CONFIG_SND_CA0106=m
+# CONFIG_SND_CMIPCI is not set
+CONFIG_SND_OXYGEN_LIB=m
+# CONFIG_SND_OXYGEN is not set
+CONFIG_SND_CS4281=m
+CONFIG_SND_CS46XX=m
+CONFIG_SND_CS46XX_NEW_DSP=y
+CONFIG_SND_CS5530=m
+CONFIG_SND_CS5535AUDIO=m
+CONFIG_SND_CTXFI=m
+CONFIG_SND_DARLA20=m
+CONFIG_SND_GINA20=m
+CONFIG_SND_LAYLA20=m
+CONFIG_SND_DARLA24=m
+CONFIG_SND_GINA24=m
+CONFIG_SND_LAYLA24=m
+# CONFIG_SND_MONA is not set
+CONFIG_SND_MIA=m
+# CONFIG_SND_ECHO3G is not set
+CONFIG_SND_INDIGO=m
+CONFIG_SND_INDIGOIO=m
+CONFIG_SND_INDIGODJ=m
+CONFIG_SND_INDIGOIOX=m
+CONFIG_SND_INDIGODJX=m
+CONFIG_SND_EMU10K1=m
+CONFIG_SND_EMU10K1X=m
+# CONFIG_SND_ENS1370 is not set
+CONFIG_SND_ENS1371=m
+# CONFIG_SND_ES1938 is not set
+CONFIG_SND_ES1968=m
+# CONFIG_SND_ES1968_INPUT is not set
+# CONFIG_SND_ES1968_RADIO is not set
+# CONFIG_SND_FM801 is not set
+CONFIG_SND_HDA_INTEL=m
+CONFIG_SND_HDA_DSP_LOADER=y
+CONFIG_SND_HDA_PREALLOC_SIZE=64
+CONFIG_SND_HDA_HWDEP=y
+CONFIG_SND_HDA_RECONFIG=y
+# CONFIG_SND_HDA_INPUT_BEEP is not set
+# CONFIG_SND_HDA_INPUT_JACK is not set
+CONFIG_SND_HDA_PATCH_LOADER=y
+# CONFIG_SND_HDA_CODEC_REALTEK is not set
+# CONFIG_SND_HDA_CODEC_ANALOG is not set
+# CONFIG_SND_HDA_CODEC_SIGMATEL is not set
+# CONFIG_SND_HDA_CODEC_VIA is not set
+CONFIG_SND_HDA_CODEC_HDMI=y
+CONFIG_SND_HDA_CODEC_CIRRUS=y
+CONFIG_SND_HDA_CODEC_CONEXANT=y
+CONFIG_SND_HDA_CODEC_CA0110=y
+CONFIG_SND_HDA_CODEC_CA0132=y
+CONFIG_SND_HDA_CODEC_CA0132_DSP=y
+# CONFIG_SND_HDA_CODEC_CMEDIA is not set
+# CONFIG_SND_HDA_CODEC_SI3054 is not set
+CONFIG_SND_HDA_GENERIC=y
+CONFIG_SND_HDSP=m
+CONFIG_SND_HDSPM=m
+CONFIG_SND_ICE1712=m
+CONFIG_SND_ICE1724=m
+CONFIG_SND_INTEL8X0=m
+CONFIG_SND_INTEL8X0M=m
+CONFIG_SND_KORG1212=m
+CONFIG_SND_LOLA=m
+CONFIG_SND_LX6464ES=m
+CONFIG_SND_MAESTRO3=m
+CONFIG_SND_MAESTRO3_INPUT=y
+CONFIG_SND_MIXART=m
+CONFIG_SND_NM256=m
+CONFIG_SND_PCXHR=m
+CONFIG_SND_RIPTIDE=m
+# CONFIG_SND_RME32 is not set
+# CONFIG_SND_RME96 is not set
+# CONFIG_SND_RME9652 is not set
+# CONFIG_SND_SONICVIBES is not set
+CONFIG_SND_TRIDENT=m
+# CONFIG_SND_VIA82XX is not set
+# CONFIG_SND_VIA82XX_MODEM is not set
+CONFIG_SND_VIRTUOSO=m
+CONFIG_SND_VX222=m
+# CONFIG_SND_YMFPCI is not set
+# CONFIG_SND_SPI is not set
+# CONFIG_SND_USB is not set
+# CONFIG_SND_FIREWIRE is not set
+# CONFIG_SND_PCMCIA is not set
+CONFIG_SND_SOC=m
+CONFIG_SND_ATMEL_SOC=m
+CONFIG_SND_IMX_SOC=m
+# CONFIG_SND_KIRKWOOD_SOC is not set
+# CONFIG_SND_SOC_TEGRA is not set
+CONFIG_SND_SOC_I2C_AND_SPI=m
+CONFIG_SND_SOC_ALL_CODECS=m
+CONFIG_SND_SOC_88PM860X=m
+CONFIG_SND_SOC_ARIZONA=m
+CONFIG_SND_SOC_WM_HUBS=m
+CONFIG_SND_SOC_WM_ADSP=m
+CONFIG_SND_SOC_AB8500_CODEC=m
+CONFIG_SND_SOC_AD1836=m
+CONFIG_SND_SOC_AD193X=m
+CONFIG_SND_SOC_AD73311=m
+CONFIG_SND_SOC_ADAU1701=m
+CONFIG_SND_SOC_ADAU1373=m
+CONFIG_SND_SOC_ADAV80X=m
+CONFIG_SND_SOC_ADS117X=m
+CONFIG_SND_SOC_AK4104=m
+CONFIG_SND_SOC_AK4535=m
+CONFIG_SND_SOC_AK4641=m
+CONFIG_SND_SOC_AK4642=m
+CONFIG_SND_SOC_AK4671=m
+CONFIG_SND_SOC_AK5386=m
+CONFIG_SND_SOC_ALC5623=m
+CONFIG_SND_SOC_ALC5632=m
+CONFIG_SND_SOC_CS42L51=m
+CONFIG_SND_SOC_CS42L52=m
+CONFIG_SND_SOC_CS42L73=m
+CONFIG_SND_SOC_CS4270=m
+CONFIG_SND_SOC_CS4271=m
+CONFIG_SND_SOC_CX20442=m
+CONFIG_SND_SOC_JZ4740_CODEC=m
+CONFIG_SND_SOC_L3=m
+CONFIG_SND_SOC_DA7210=m
+CONFIG_SND_SOC_DA7213=m
+CONFIG_SND_SOC_DA732X=m
+CONFIG_SND_SOC_DA9055=m
+CONFIG_SND_SOC_BT_SCO=m
+CONFIG_SND_SOC_ISABELLE=m
+CONFIG_SND_SOC_LM49453=m
+CONFIG_SND_SOC_MAX98088=m
+CONFIG_SND_SOC_MAX98090=m
+CONFIG_SND_SOC_MAX98095=m
+CONFIG_SND_SOC_MAX9850=m
+CONFIG_SND_SOC_HDMI_CODEC=m
+CONFIG_SND_SOC_PCM3008=m
+CONFIG_SND_SOC_RT5631=m
+CONFIG_SND_SOC_RT5640=m
+CONFIG_SND_SOC_SGTL5000=m
+CONFIG_SND_SOC_SI476X=m
+CONFIG_SND_SOC_SIGMADSP=m
+CONFIG_SND_SOC_SPDIF=m
+CONFIG_SND_SOC_SSM2518=m
+CONFIG_SND_SOC_SSM2602=m
+CONFIG_SND_SOC_STA32X=m
+CONFIG_SND_SOC_STA529=m
+CONFIG_SND_SOC_TAS5086=m
+CONFIG_SND_SOC_TLV320AIC23=m
+CONFIG_SND_SOC_TLV320AIC26=m
+CONFIG_SND_SOC_TLV320AIC32X4=m
+CONFIG_SND_SOC_TLV320AIC3X=m
+CONFIG_SND_SOC_TLV320DAC33=m
+CONFIG_SND_SOC_TWL4030=m
+CONFIG_SND_SOC_TWL6040=m
+CONFIG_SND_SOC_UDA134X=m
+CONFIG_SND_SOC_UDA1380=m
+CONFIG_SND_SOC_WM0010=m
+CONFIG_SND_SOC_WM1250_EV1=m
+CONFIG_SND_SOC_WM2000=m
+CONFIG_SND_SOC_WM2200=m
+CONFIG_SND_SOC_WM5100=m
+CONFIG_SND_SOC_WM5110=m
+CONFIG_SND_SOC_WM8510=m
+CONFIG_SND_SOC_WM8523=m
+CONFIG_SND_SOC_WM8580=m
+CONFIG_SND_SOC_WM8711=m
+CONFIG_SND_SOC_WM8727=m
+CONFIG_SND_SOC_WM8728=m
+CONFIG_SND_SOC_WM8731=m
+CONFIG_SND_SOC_WM8737=m
+CONFIG_SND_SOC_WM8741=m
+CONFIG_SND_SOC_WM8750=m
+CONFIG_SND_SOC_WM8753=m
+CONFIG_SND_SOC_WM8770=m
+CONFIG_SND_SOC_WM8776=m
+CONFIG_SND_SOC_WM8782=m
+CONFIG_SND_SOC_WM8804=m
+CONFIG_SND_SOC_WM8900=m
+CONFIG_SND_SOC_WM8903=m
+CONFIG_SND_SOC_WM8904=m
+CONFIG_SND_SOC_WM8940=m
+CONFIG_SND_SOC_WM8955=m
+CONFIG_SND_SOC_WM8960=m
+CONFIG_SND_SOC_WM8961=m
+CONFIG_SND_SOC_WM8962=m
+CONFIG_SND_SOC_WM8971=m
+CONFIG_SND_SOC_WM8974=m
+CONFIG_SND_SOC_WM8978=m
+CONFIG_SND_SOC_WM8983=m
+CONFIG_SND_SOC_WM8985=m
+CONFIG_SND_SOC_WM8988=m
+CONFIG_SND_SOC_WM8990=m
+CONFIG_SND_SOC_WM8991=m
+CONFIG_SND_SOC_WM8993=m
+CONFIG_SND_SOC_WM8995=m
+CONFIG_SND_SOC_WM8996=m
+CONFIG_SND_SOC_WM9081=m
+CONFIG_SND_SOC_WM9090=m
+CONFIG_SND_SOC_LM4857=m
+CONFIG_SND_SOC_MAX9768=m
+CONFIG_SND_SOC_MAX9877=m
+CONFIG_SND_SOC_MC13783=m
+CONFIG_SND_SOC_ML26124=m
+CONFIG_SND_SOC_TPA6130A2=m
+CONFIG_SND_SIMPLE_CARD=m
+CONFIG_SOUND_PRIME=m
+# CONFIG_SOUND_OSS is not set
+CONFIG_AC97_BUS=m
+
+#
+# HID support
+#
+CONFIG_HID=m
+# CONFIG_HIDRAW is not set
+# CONFIG_UHID is not set
+CONFIG_HID_GENERIC=m
+
+#
+# Special HID drivers
+#
+CONFIG_HID_A4TECH=m
+# CONFIG_HID_ACRUX is not set
+CONFIG_HID_APPLE=m
+CONFIG_HID_AUREAL=m
+CONFIG_HID_BELKIN=m
+CONFIG_HID_CHERRY=m
+CONFIG_HID_CHICONY=m
+CONFIG_HID_PRODIKEYS=m
+CONFIG_HID_CYPRESS=m
+# CONFIG_HID_DRAGONRISE is not set
+# CONFIG_HID_EMS_FF is not set
+CONFIG_HID_ELECOM=m
+CONFIG_HID_EZKEY=m
+# CONFIG_HID_KEYTOUCH is not set
+CONFIG_HID_KYE=m
+CONFIG_HID_UCLOGIC=m
+CONFIG_HID_WALTOP=m
+CONFIG_HID_GYRATION=m
+CONFIG_HID_ICADE=m
+# CONFIG_HID_TWINHAN is not set
+CONFIG_HID_KENSINGTON=m
+# CONFIG_HID_LCPOWER is not set
+CONFIG_HID_LOGITECH=m
+CONFIG_HID_LOGITECH_DJ=m
+CONFIG_LOGITECH_FF=y
+# CONFIG_LOGIRUMBLEPAD2_FF is not set
+# CONFIG_LOGIG940_FF is not set
+# CONFIG_LOGIWHEELS_FF is not set
+CONFIG_HID_MAGICMOUSE=m
+CONFIG_HID_MICROSOFT=m
+CONFIG_HID_MONTEREY=m
+CONFIG_HID_MULTITOUCH=m
+CONFIG_HID_ORTEK=m
+CONFIG_HID_PANTHERLORD=m
+CONFIG_PANTHERLORD_FF=y
+CONFIG_HID_PETALYNX=m
+CONFIG_HID_PICOLCD=m
+CONFIG_HID_PICOLCD_FB=y
+CONFIG_HID_PICOLCD_BACKLIGHT=y
+CONFIG_HID_PICOLCD_LCD=y
+CONFIG_HID_PICOLCD_LEDS=y
+CONFIG_HID_PRIMAX=m
+CONFIG_HID_SAITEK=m
+# CONFIG_HID_SAMSUNG is not set
+CONFIG_HID_SPEEDLINK=m
+CONFIG_HID_STEELSERIES=m
+# CONFIG_HID_SUNPLUS is not set
+CONFIG_HID_GREENASIA=m
+CONFIG_GREENASIA_FF=y
+# CONFIG_HID_SMARTJOYPLUS is not set
+CONFIG_HID_TIVO=m
+CONFIG_HID_TOPSEED=m
+CONFIG_HID_THINGM=m
+CONFIG_HID_THRUSTMASTER=m
+# CONFIG_THRUSTMASTER_FF is not set
+CONFIG_HID_WACOM=m
+CONFIG_HID_WIIMOTE=m
+CONFIG_HID_ZEROPLUS=m
+CONFIG_ZEROPLUS_FF=y
+CONFIG_HID_ZYDACRON=m
+CONFIG_HID_SENSOR_HUB=m
+
+#
+# USB HID support
+#
+# CONFIG_USB_HID is not set
+# CONFIG_HID_PID is not set
+
+#
+# I2C HID support
+#
+CONFIG_I2C_HID=m
+CONFIG_USB_SUPPORT=y
+CONFIG_USB_COMMON=y
+CONFIG_USB_ARCH_HAS_HCD=y
+CONFIG_USB=y
+# CONFIG_USB_DEBUG is not set
+CONFIG_USB_ANNOUNCE_NEW_DEVICES=y
+
+#
+# Miscellaneous USB options
+#
+# CONFIG_USB_DEFAULT_PERSIST is not set
+CONFIG_USB_DYNAMIC_MINORS=y
+CONFIG_USB_MON=y
+CONFIG_USB_WUSB=m
+CONFIG_USB_WUSB_CBAF=y
+CONFIG_USB_WUSB_CBAF_DEBUG=y
+
+#
+# USB Host Controller Drivers
+#
+# CONFIG_USB_C67X00_HCD is not set
+CONFIG_USB_XHCI_HCD=m
+CONFIG_USB_XHCI_PLATFORM=m
+# CONFIG_USB_XHCI_HCD_DEBUGGING is not set
+CONFIG_USB_EHCI_HCD=m
+CONFIG_USB_EHCI_ROOT_HUB_TT=y
+CONFIG_USB_EHCI_TT_NEWSCHED=y
+CONFIG_USB_EHCI_PCI=m
+CONFIG_USB_EHCI_HCD_PLATFORM=m
+# CONFIG_USB_OXU210HP_HCD is not set
+# CONFIG_USB_ISP116X_HCD is not set
+# CONFIG_USB_ISP1760_HCD is not set
+CONFIG_USB_ISP1362_HCD=m
+# CONFIG_USB_FUSBH200_HCD is not set
+# CONFIG_USB_OHCI_HCD is not set
+# CONFIG_USB_UHCI_HCD is not set
+CONFIG_USB_U132_HCD=m
+CONFIG_USB_SL811_HCD=y
+CONFIG_USB_SL811_HCD_ISO=y
+CONFIG_USB_SL811_CS=y
+CONFIG_USB_R8A66597_HCD=m
+CONFIG_USB_RENESAS_USBHS_HCD=m
+CONFIG_USB_WHCI_HCD=m
+CONFIG_USB_HWA_HCD=m
+CONFIG_USB_HCD_BCMA=y
+CONFIG_USB_HCD_SSB=m
+# CONFIG_USB_MUSB_HDRC is not set
+CONFIG_USB_RENESAS_USBHS=m
+
+#
+# USB Device Class drivers
+#
+CONFIG_USB_ACM=y
+# CONFIG_USB_PRINTER is not set
+CONFIG_USB_WDM=m
+CONFIG_USB_TMC=m
+
+#
+# NOTE: USB_STORAGE depends on SCSI but BLK_DEV_SD may
+#
+
+#
+# also be needed; see USB_STORAGE Help for more info
+#
+CONFIG_USB_STORAGE=m
+# CONFIG_USB_STORAGE_DEBUG is not set
+CONFIG_USB_STORAGE_REALTEK=m
+CONFIG_USB_STORAGE_DATAFAB=m
+CONFIG_USB_STORAGE_FREECOM=m
+# CONFIG_USB_STORAGE_ISD200 is not set
+CONFIG_USB_STORAGE_USBAT=m
+CONFIG_USB_STORAGE_SDDR09=m
+CONFIG_USB_STORAGE_SDDR55=m
+CONFIG_USB_STORAGE_JUMPSHOT=m
+CONFIG_USB_STORAGE_ALAUDA=m
+CONFIG_USB_STORAGE_ONETOUCH=m
+CONFIG_USB_STORAGE_KARMA=m
+# CONFIG_USB_STORAGE_CYPRESS_ATACB is not set
+CONFIG_USB_STORAGE_ENE_UB6250=m
+
+#
+# USB Imaging devices
+#
+# CONFIG_USB_MDC800 is not set
+CONFIG_USB_MICROTEK=m
+CONFIG_USB_DWC3=y
+CONFIG_USB_DWC3_HOST=y
+# CONFIG_USB_DWC3_DEBUG is not set
+CONFIG_USB_CHIPIDEA=m
+CONFIG_USB_CHIPIDEA_UDC=y
+CONFIG_USB_CHIPIDEA_HOST=y
+CONFIG_USB_CHIPIDEA_DEBUG=y
+
+#
+# USB port drivers
+#
+CONFIG_USB_USS720=y
+# CONFIG_USB_SERIAL is not set
+
+#
+# USB Miscellaneous drivers
+#
+CONFIG_USB_EMI62=y
+CONFIG_USB_EMI26=y
+# CONFIG_USB_ADUTUX is not set
+CONFIG_USB_SEVSEG=y
+# CONFIG_USB_RIO500 is not set
+# CONFIG_USB_LEGOTOWER is not set
+CONFIG_USB_LCD=y
+CONFIG_USB_LED=m
+CONFIG_USB_CYPRESS_CY7C63=y
+CONFIG_USB_CYTHERM=y
+CONFIG_USB_IDMOUSE=y
+CONFIG_USB_FTDI_ELAN=y
+CONFIG_USB_APPLEDISPLAY=m
+CONFIG_USB_SISUSBVGA=m
+CONFIG_USB_SISUSBVGA_CON=y
+# CONFIG_USB_LD is not set
+CONFIG_USB_TRANCEVIBRATOR=m
+CONFIG_USB_IOWARRIOR=y
+CONFIG_USB_TEST=m
+# CONFIG_USB_ISIGHTFW is not set
+# CONFIG_USB_YUREX is not set
+# CONFIG_USB_EZUSB_FX2 is not set
+CONFIG_USB_HSIC_USB3503=y
+CONFIG_USB_ATM=y
+# CONFIG_USB_SPEEDTOUCH is not set
+CONFIG_USB_CXACRU=m
+# CONFIG_USB_UEAGLEATM is not set
+# CONFIG_USB_XUSBATM is not set
+# CONFIG_USB_PHY is not set
+CONFIG_USB_GADGET=m
+CONFIG_USB_GADGET_DEBUG=y
+CONFIG_USB_GADGET_DEBUG_FILES=y
+# CONFIG_USB_GADGET_DEBUG_FS is not set
+CONFIG_USB_GADGET_VBUS_DRAW=2
+CONFIG_USB_GADGET_STORAGE_NUM_BUFFERS=2
+
+#
+# USB Peripheral Controller
+#
+CONFIG_USB_FOTG210_UDC=m
+CONFIG_USB_R8A66597=m
+CONFIG_USB_RENESAS_USBHS_UDC=m
+CONFIG_USB_PXA27X=m
+# CONFIG_USB_MV_UDC is not set
+CONFIG_USB_MV_U3D=m
+# CONFIG_USB_M66592 is not set
+CONFIG_USB_AMD5536UDC=m
+# CONFIG_USB_NET2272 is not set
+# CONFIG_USB_NET2280 is not set
+CONFIG_USB_GOKU=m
+CONFIG_USB_EG20T=m
+# CONFIG_USB_DUMMY_HCD is not set
+CONFIG_USB_LIBCOMPOSITE=m
+CONFIG_USB_F_ACM=m
+CONFIG_USB_F_SS_LB=m
+CONFIG_USB_U_SERIAL=m
+CONFIG_USB_U_ETHER=m
+CONFIG_USB_U_RNDIS=m
+CONFIG_USB_F_SERIAL=m
+CONFIG_USB_F_OBEX=m
+CONFIG_USB_F_NCM=m
+CONFIG_USB_F_ECM=m
+CONFIG_USB_F_EEM=m
+CONFIG_USB_F_SUBSET=m
+CONFIG_USB_CONFIGFS=m
+CONFIG_USB_CONFIGFS_SERIAL=y
+# CONFIG_USB_CONFIGFS_ACM is not set
+# CONFIG_USB_CONFIGFS_OBEX is not set
+CONFIG_USB_CONFIGFS_NCM=y
+CONFIG_USB_CONFIGFS_ECM=y
+CONFIG_USB_CONFIGFS_ECM_SUBSET=y
+# CONFIG_USB_CONFIGFS_RNDIS is not set
+CONFIG_USB_CONFIGFS_EEM=y
+CONFIG_USB_ZERO=m
+# CONFIG_USB_AUDIO is not set
+# CONFIG_USB_ETH is not set
+# CONFIG_USB_G_NCM is not set
+# CONFIG_USB_GADGETFS is not set
+CONFIG_USB_FUNCTIONFS=m
+# CONFIG_USB_FUNCTIONFS_ETH is not set
+CONFIG_USB_FUNCTIONFS_RNDIS=y
+# CONFIG_USB_FUNCTIONFS_GENERIC is not set
+CONFIG_USB_MASS_STORAGE=m
+CONFIG_USB_G_SERIAL=m
+# CONFIG_USB_MIDI_GADGET is not set
+CONFIG_USB_G_PRINTER=m
+CONFIG_USB_CDC_COMPOSITE=m
+CONFIG_USB_G_ACM_MS=m
+CONFIG_USB_G_MULTI=m
+# CONFIG_USB_G_MULTI_RNDIS is not set
+CONFIG_USB_G_MULTI_CDC=y
+# CONFIG_USB_G_HID is not set
+CONFIG_USB_G_DBGP=m
+CONFIG_USB_G_DBGP_PRINTK=y
+# CONFIG_USB_G_DBGP_SERIAL is not set
+CONFIG_USB_G_WEBCAM=m
+CONFIG_UWB=m
+CONFIG_UWB_HWA=m
+CONFIG_UWB_WHCI=m
+CONFIG_UWB_I1480U=m
+CONFIG_MMC=y
+CONFIG_MMC_DEBUG=y
+CONFIG_MMC_UNSAFE_RESUME=y
+CONFIG_MMC_CLKGATE=y
+
+#
+# MMC/SD/SDIO Card Drivers
+#
+CONFIG_MMC_BLOCK=y
+CONFIG_MMC_BLOCK_MINORS=8
+CONFIG_MMC_BLOCK_BOUNCE=y
+CONFIG_SDIO_UART=y
+CONFIG_MMC_TEST=y
+
+#
+# MMC/SD/SDIO Host Controller Drivers
+#
+CONFIG_MMC_SDHCI=m
+# CONFIG_MMC_SDHCI_PCI is not set
+# CONFIG_MMC_SDHCI_PLTFM is not set
+# CONFIG_MMC_WBSD is not set
+CONFIG_MMC_TIFM_SD=m
+CONFIG_MMC_SPI=m
+CONFIG_MMC_SDRICOH_CS=y
+# CONFIG_MMC_CB710 is not set
+# CONFIG_MMC_VIA_SDMMC is not set
+# CONFIG_MMC_VUB300 is not set
+CONFIG_MMC_USHC=y
+# CONFIG_MEMSTICK is not set
+CONFIG_NEW_LEDS=y
+CONFIG_LEDS_CLASS=y
+
+#
+# LED drivers
+#
+CONFIG_LEDS_88PM860X=y
+CONFIG_LEDS_LM3530=y
+CONFIG_LEDS_LM3642=m
+CONFIG_LEDS_PCA9532=m
+CONFIG_LEDS_PCA9532_GPIO=y
+CONFIG_LEDS_GPIO=m
+CONFIG_LEDS_LP3944=m
+CONFIG_LEDS_LP55XX_COMMON=y
+# CONFIG_LEDS_LP5521 is not set
+# CONFIG_LEDS_LP5523 is not set
+CONFIG_LEDS_LP5562=m
+CONFIG_LEDS_LP8501=y
+CONFIG_LEDS_CLEVO_MAIL=y
+# CONFIG_LEDS_PCA955X is not set
+CONFIG_LEDS_PCA9633=m
+# CONFIG_LEDS_WM831X_STATUS is not set
+CONFIG_LEDS_DA9052=y
+CONFIG_LEDS_DAC124S085=y
+CONFIG_LEDS_REGULATOR=y
+# CONFIG_LEDS_BD2802 is not set
+CONFIG_LEDS_INTEL_SS4200=m
+# CONFIG_LEDS_LT3593 is not set
+CONFIG_LEDS_ADP5520=m
+CONFIG_LEDS_MC13783=m
+# CONFIG_LEDS_TCA6507 is not set
+# CONFIG_LEDS_MAX8997 is not set
+# CONFIG_LEDS_LM355x is not set
+CONFIG_LEDS_OT200=y
+# CONFIG_LEDS_BLINKM is not set
+
+#
+# LED Triggers
+#
+CONFIG_LEDS_TRIGGERS=y
+# CONFIG_LEDS_TRIGGER_TIMER is not set
+# CONFIG_LEDS_TRIGGER_ONESHOT is not set
+# CONFIG_LEDS_TRIGGER_HEARTBEAT is not set
+# CONFIG_LEDS_TRIGGER_BACKLIGHT is not set
+# CONFIG_LEDS_TRIGGER_CPU is not set
+CONFIG_LEDS_TRIGGER_GPIO=m
+# CONFIG_LEDS_TRIGGER_DEFAULT_ON is not set
+
+#
+# iptables trigger is under Netfilter config (LED target)
+#
+# CONFIG_LEDS_TRIGGER_TRANSIENT is not set
+CONFIG_LEDS_TRIGGER_CAMERA=m
+CONFIG_ACCESSIBILITY=y
+CONFIG_A11Y_BRAILLE_CONSOLE=y
+CONFIG_INFINIBAND=y
+# CONFIG_INFINIBAND_USER_MAD is not set
+CONFIG_INFINIBAND_USER_ACCESS=m
+CONFIG_INFINIBAND_USER_MEM=y
+CONFIG_INFINIBAND_ADDR_TRANS=y
+CONFIG_INFINIBAND_MTHCA=m
+CONFIG_INFINIBAND_MTHCA_DEBUG=y
+# CONFIG_INFINIBAND_QIB is not set
+# CONFIG_INFINIBAND_AMSO1100 is not set
+CONFIG_INFINIBAND_NES=y
+# CONFIG_INFINIBAND_NES_DEBUG is not set
+CONFIG_INFINIBAND_IPOIB=y
+# CONFIG_INFINIBAND_IPOIB_CM is not set
+CONFIG_INFINIBAND_IPOIB_DEBUG=y
+CONFIG_INFINIBAND_IPOIB_DEBUG_DATA=y
+# CONFIG_INFINIBAND_SRP is not set
+CONFIG_INFINIBAND_ISER=m
+# CONFIG_EDAC is not set
+CONFIG_RTC_LIB=y
+# CONFIG_RTC_CLASS is not set
+# CONFIG_DMADEVICES is not set
+CONFIG_AUXDISPLAY=y
+# CONFIG_UIO is not set
+# CONFIG_VIRT_DRIVERS is not set
+
+#
+# Virtio drivers
+#
+# CONFIG_VIRTIO_PCI is not set
+# CONFIG_VIRTIO_MMIO is not set
+
+#
+# Microsoft Hyper-V guest support
+#
+CONFIG_STAGING=y
+# CONFIG_ET131X is not set
+CONFIG_SLICOSS=m
+CONFIG_USBIP_CORE=m
+CONFIG_USBIP_VHCI_HCD=m
+CONFIG_USBIP_HOST=m
+# CONFIG_USBIP_DEBUG is not set
+# CONFIG_ECHO is not set
+CONFIG_COMEDI=m
+CONFIG_COMEDI_DEBUG=y
+CONFIG_COMEDI_DEFAULT_BUF_SIZE_KB=2048
+CONFIG_COMEDI_DEFAULT_BUF_MAXSIZE_KB=20480
+# CONFIG_COMEDI_MISC_DRIVERS is not set
+CONFIG_COMEDI_PCI_DRIVERS=y
+CONFIG_COMEDI_8255_PCI=m
+CONFIG_COMEDI_ADDI_WATCHDOG=m
+CONFIG_COMEDI_ADDI_APCI_035=m
+CONFIG_COMEDI_ADDI_APCI_1032=m
+CONFIG_COMEDI_ADDI_APCI_1500=m
+CONFIG_COMEDI_ADDI_APCI_1516=m
+CONFIG_COMEDI_ADDI_APCI_1564=m
+CONFIG_COMEDI_ADDI_APCI_16XX=m
+# CONFIG_COMEDI_ADDI_APCI_2032 is not set
+# CONFIG_COMEDI_ADDI_APCI_2200 is not set
+CONFIG_COMEDI_ADDI_APCI_3120=m
+# CONFIG_COMEDI_ADDI_APCI_3501 is not set
+CONFIG_COMEDI_ADDI_APCI_3XXX=m
+CONFIG_COMEDI_ADL_PCI6208=m
+CONFIG_COMEDI_ADL_PCI7X3X=m
+CONFIG_COMEDI_ADL_PCI8164=m
+CONFIG_COMEDI_ADL_PCI9111=m
+# CONFIG_COMEDI_ADL_PCI9118 is not set
+CONFIG_COMEDI_ADV_PCI1710=m
+# CONFIG_COMEDI_ADV_PCI1723 is not set
+CONFIG_COMEDI_ADV_PCI1724=m
+CONFIG_COMEDI_ADV_PCI_DIO=m
+CONFIG_COMEDI_AMPLC_DIO200_PCI=m
+CONFIG_COMEDI_AMPLC_PC236_PCI=m
+# CONFIG_COMEDI_AMPLC_PC263_PCI is not set
+# CONFIG_COMEDI_AMPLC_PCI224 is not set
+# CONFIG_COMEDI_AMPLC_PCI230 is not set
+CONFIG_COMEDI_CONTEC_PCI_DIO=m
+CONFIG_COMEDI_DAS08_PCI=m
+CONFIG_COMEDI_DT3000=m
+CONFIG_COMEDI_DYNA_PCI10XX=m
+CONFIG_COMEDI_UNIOXX5=m
+# CONFIG_COMEDI_GSC_HPDI is not set
+# CONFIG_COMEDI_ICP_MULTI is not set
+# CONFIG_COMEDI_DAQBOARD2000 is not set
+CONFIG_COMEDI_JR3_PCI=m
+CONFIG_COMEDI_KE_COUNTER=m
+CONFIG_COMEDI_CB_PCIDAS64=m
+CONFIG_COMEDI_CB_PCIDAS=m
+CONFIG_COMEDI_CB_PCIDDA=m
+CONFIG_COMEDI_CB_PCIMDAS=m
+# CONFIG_COMEDI_CB_PCIMDDA is not set
+CONFIG_COMEDI_ME4000=m
+CONFIG_COMEDI_ME_DAQ=m
+CONFIG_COMEDI_NI_6527=m
+# CONFIG_COMEDI_NI_65XX is not set
+CONFIG_COMEDI_NI_660X=m
+# CONFIG_COMEDI_NI_670X is not set
+CONFIG_COMEDI_NI_LABPC_PCI=m
+CONFIG_COMEDI_NI_PCIDIO=m
+CONFIG_COMEDI_NI_PCIMIO=m
+CONFIG_COMEDI_RTD520=m
+CONFIG_COMEDI_S626=m
+# CONFIG_COMEDI_SSV_DNP is not set
+CONFIG_COMEDI_MITE=m
+CONFIG_COMEDI_NI_TIOCMD=m
+CONFIG_COMEDI_PCMCIA_DRIVERS=y
+CONFIG_COMEDI_CB_DAS16_CS=m
+CONFIG_COMEDI_DAS08_CS=m
+# CONFIG_COMEDI_NI_DAQ_700_CS is not set
+CONFIG_COMEDI_NI_DAQ_DIO24_CS=m
+# CONFIG_COMEDI_NI_LABPC_CS is not set
+# CONFIG_COMEDI_NI_MIO_CS is not set
+CONFIG_COMEDI_QUATECH_DAQP_CS=m
+CONFIG_COMEDI_USB_DRIVERS=y
+# CONFIG_COMEDI_DT9812 is not set
+CONFIG_COMEDI_USBDUX=m
+CONFIG_COMEDI_USBDUXFAST=m
+CONFIG_COMEDI_USBDUXSIGMA=m
+# CONFIG_COMEDI_VMK80XX is not set
+CONFIG_COMEDI_8255=m
+CONFIG_COMEDI_FC=m
+CONFIG_COMEDI_AMPLC_DIO200=m
+CONFIG_COMEDI_AMPLC_PC236=m
+CONFIG_COMEDI_DAS08=m
+CONFIG_COMEDI_NI_LABPC=m
+CONFIG_COMEDI_NI_TIO=m
+# CONFIG_ASUS_OLED is not set
+# CONFIG_PANEL is not set
+# CONFIG_RTS5139 is not set
+CONFIG_TRANZPORT=m
+# CONFIG_LINE6_USB is not set
+# CONFIG_DX_SEP is not set
+
+#
+# IIO staging drivers
+#
+
+#
+# Accelerometers
+#
+# CONFIG_ADIS16201 is not set
+CONFIG_ADIS16203=m
+CONFIG_ADIS16204=m
+# CONFIG_ADIS16209 is not set
+CONFIG_ADIS16220=m
+CONFIG_ADIS16240=m
+CONFIG_LIS3L02DQ=m
+CONFIG_SCA3000=m
+
+#
+# Analog to digital converters
+#
+# CONFIG_AD7291 is not set
+CONFIG_AD7606=m
+CONFIG_AD7606_IFACE_PARALLEL=m
+CONFIG_AD7606_IFACE_SPI=m
+# CONFIG_AD799X is not set
+# CONFIG_AD7780 is not set
+CONFIG_AD7816=m
+# CONFIG_AD7192 is not set
+# CONFIG_AD7280 is not set
+
+#
+# Analog digital bi-direction converters
+#
+CONFIG_ADT7316=m
+# CONFIG_ADT7316_SPI is not set
+CONFIG_ADT7316_I2C=m
+
+#
+# Capacitance to digital converters
+#
+# CONFIG_AD7150 is not set
+CONFIG_AD7152=m
+CONFIG_AD7746=m
+
+#
+# Direct Digital Synthesis
+#
+# CONFIG_AD5930 is not set
+# CONFIG_AD9832 is not set
+CONFIG_AD9834=m
+CONFIG_AD9850=m
+CONFIG_AD9852=m
+CONFIG_AD9910=m
+CONFIG_AD9951=m
+
+#
+# Digital gyroscope sensors
+#
+# CONFIG_ADIS16060 is not set
+# CONFIG_ADIS16260 is not set
+
+#
+# Network Analyzer, Impedance Converters
+#
+# CONFIG_AD5933 is not set
+
+#
+# Light sensors
+#
+CONFIG_SENSORS_ISL29018=m
+CONFIG_SENSORS_ISL29028=m
+CONFIG_TSL2583=m
+# CONFIG_TSL2x7x is not set
+
+#
+# Magnetometer sensors
+#
+CONFIG_SENSORS_HMC5843=m
+
+#
+# Active energy metering IC
+#
+# CONFIG_ADE7753 is not set
+CONFIG_ADE7754=m
+# CONFIG_ADE7758 is not set
+# CONFIG_ADE7759 is not set
+CONFIG_ADE7854=m
+CONFIG_ADE7854_I2C=m
+# CONFIG_ADE7854_SPI is not set
+
+#
+# Resolver to digital converters
+#
+CONFIG_AD2S90=m
+CONFIG_AD2S1200=m
+CONFIG_AD2S1210=m
+
+#
+# Triggers - standalone
+#
+CONFIG_IIO_DUMMY_EVGEN=m
+CONFIG_IIO_SIMPLE_DUMMY=m
+CONFIG_IIO_SIMPLE_DUMMY_EVENTS=y
+CONFIG_IIO_SIMPLE_DUMMY_BUFFER=y
+CONFIG_ZSMALLOC=y
+CONFIG_ZRAM=m
+CONFIG_ZRAM_DEBUG=y
+# CONFIG_FB_SM7XX is not set
+CONFIG_CRYSTALHD=m
+CONFIG_CXT1E1=y
+# CONFIG_SBE_PMCC4_NCOMM is not set
+CONFIG_FB_XGI=y
+CONFIG_SBE_2T3E3=y
+CONFIG_USB_ENESTORAGE=m
+CONFIG_BCM_WIMAX=y
+CONFIG_FT1000=m
+CONFIG_FT1000_USB=m
+CONFIG_FT1000_PCMCIA=m
+
+#
+# Speakup console speech
+#
+CONFIG_SPEAKUP=m
+CONFIG_SPEAKUP_SYNTH_ACNTSA=m
+CONFIG_SPEAKUP_SYNTH_ACNTPC=m
+# CONFIG_SPEAKUP_SYNTH_APOLLO is not set
+# CONFIG_SPEAKUP_SYNTH_AUDPTR is not set
+CONFIG_SPEAKUP_SYNTH_BNS=m
+CONFIG_SPEAKUP_SYNTH_DECTLK=m
+CONFIG_SPEAKUP_SYNTH_DECEXT=m
+CONFIG_SPEAKUP_SYNTH_DECPC=m
+CONFIG_SPEAKUP_SYNTH_DTLK=m
+CONFIG_SPEAKUP_SYNTH_KEYPC=m
+CONFIG_SPEAKUP_SYNTH_LTLK=m
+CONFIG_SPEAKUP_SYNTH_SOFT=m
+CONFIG_SPEAKUP_SYNTH_SPKOUT=m
+CONFIG_SPEAKUP_SYNTH_TXPRT=m
+CONFIG_SPEAKUP_SYNTH_DUMMY=m
+CONFIG_TOUCHSCREEN_CLEARPAD_TM1217=m
+# CONFIG_TOUCHSCREEN_SYNAPTICS_I2C_RMI4 is not set
+CONFIG_STAGING_MEDIA=y
+# CONFIG_VIDEO_DT3155 is not set
+CONFIG_VIDEO_GO7007=m
+CONFIG_VIDEO_GO7007_USB=m
+CONFIG_VIDEO_GO7007_LOADER=m
+CONFIG_VIDEO_GO7007_USB_S2250_BOARD=m
+# CONFIG_SOLO6X10 is not set
+
+#
+# Android
+#
+# CONFIG_ANDROID is not set
+# CONFIG_USB_WPAN_HCD is not set
+CONFIG_WIMAX_GDM72XX=y
+CONFIG_WIMAX_GDM72XX_QOS=y
+# CONFIG_WIMAX_GDM72XX_K_MODE is not set
+CONFIG_WIMAX_GDM72XX_WIMAX2=y
+CONFIG_WIMAX_GDM72XX_USB=y
+# CONFIG_WIMAX_GDM72XX_SDIO is not set
+# CONFIG_NET_VENDOR_SILICOM is not set
+# CONFIG_CED1401 is not set
+# CONFIG_DGRP is not set
+# CONFIG_FIREWIRE_SERIAL is not set
+CONFIG_USB_DWC2=y
+# CONFIG_USB_DWC2_DEBUG is not set
+# CONFIG_USB_DWC2_TRACK_MISSED_SOFS is not set
+CONFIG_LUSTRE_FS=m
+CONFIG_LUSTRE_OBD_MAX_IOCTL_BUFFER=8192
+CONFIG_LUSTRE_DEBUG_EXPENSIVE_CHECK=y
+CONFIG_LNET=m
+CONFIG_LNET_MAX_PAYLOAD=1048576
+CONFIG_LNET_SELFTEST=m
+CONFIG_LNET_XPRT_IB=m
+# CONFIG_X86_PLATFORM_DEVICES is not set
+
+#
+# Hardware Spinlock drivers
+#
+CONFIG_CLKEVT_I8253=y
+CONFIG_I8253_LOCK=y
+CONFIG_CLKBLD_I8253=y
+CONFIG_MAILBOX=y
+# CONFIG_IOMMU_SUPPORT is not set
+
+#
+# Remoteproc drivers
+#
+# CONFIG_STE_MODEM_RPROC is not set
+
+#
+# Rpmsg drivers
+#
+# CONFIG_PM_DEVFREQ is not set
+CONFIG_EXTCON=m
+
+#
+# Extcon Device Drivers
+#
+CONFIG_EXTCON_GPIO=m
+CONFIG_EXTCON_ADC_JACK=m
+CONFIG_EXTCON_MAX8997=m
+CONFIG_EXTCON_ARIZONA=m
+CONFIG_MEMORY=y
+CONFIG_IIO=m
+CONFIG_IIO_BUFFER=y
+# CONFIG_IIO_BUFFER_CB is not set
+CONFIG_IIO_KFIFO_BUF=m
+CONFIG_IIO_TRIGGERED_BUFFER=m
+CONFIG_IIO_TRIGGER=y
+CONFIG_IIO_CONSUMERS_PER_TRIGGER=2
+
+#
+# Accelerometers
+#
+# CONFIG_HID_SENSOR_ACCEL_3D is not set
+# CONFIG_KXSD9 is not set
+# CONFIG_IIO_ST_ACCEL_3AXIS is not set
+
+#
+# Analog to digital converters
+#
+CONFIG_AD_SIGMA_DELTA=m
+CONFIG_AD7266=m
+CONFIG_AD7298=m
+CONFIG_AD7923=m
+CONFIG_AD7791=m
+CONFIG_AD7793=m
+# CONFIG_AD7476 is not set
+# CONFIG_AD7887 is not set
+CONFIG_MAX1363=m
+CONFIG_MCP320X=m
+CONFIG_TI_ADC081C=m
+CONFIG_VIPERBOARD_ADC=m
+
+#
+# Amplifiers
+#
+# CONFIG_AD8366 is not set
+
+#
+# Hid Sensor IIO Common
+#
+CONFIG_HID_SENSOR_IIO_COMMON=m
+CONFIG_HID_SENSOR_IIO_TRIGGER=m
+CONFIG_HID_SENSOR_ENUM_BASE_QUIRKS=y
+CONFIG_IIO_ST_SENSORS_I2C=m
+CONFIG_IIO_ST_SENSORS_SPI=m
+CONFIG_IIO_ST_SENSORS_CORE=m
+
+#
+# Digital to analog converters
+#
+CONFIG_AD5064=m
+CONFIG_AD5360=m
+CONFIG_AD5380=m
+CONFIG_AD5421=m
+CONFIG_AD5624R_SPI=m
+# CONFIG_AD5446 is not set
+CONFIG_AD5449=m
+CONFIG_AD5504=m
+# CONFIG_AD5755 is not set
+# CONFIG_AD5764 is not set
+# CONFIG_AD5791 is not set
+CONFIG_AD5686=m
+CONFIG_AD7303=m
+CONFIG_MAX517=m
+# CONFIG_MCP4725 is not set
+
+#
+# Frequency Synthesizers DDS/PLL
+#
+
+#
+# Clock Generator/Distribution
+#
+CONFIG_AD9523=m
+
+#
+# Phase-Locked Loop (PLL) frequency synthesizers
+#
+# CONFIG_ADF4350 is not set
+
+#
+# Digital gyroscope sensors
+#
+# CONFIG_ADIS16080 is not set
+CONFIG_ADIS16130=m
+CONFIG_ADIS16136=m
+CONFIG_ADXRS450=m
+# CONFIG_HID_SENSOR_GYRO_3D is not set
+# CONFIG_IIO_ST_GYRO_3AXIS is not set
+CONFIG_ITG3200=m
+
+#
+# Inertial measurement units
+#
+# CONFIG_ADIS16400 is not set
+# CONFIG_ADIS16480 is not set
+CONFIG_IIO_ADIS_LIB=m
+CONFIG_IIO_ADIS_LIB_BUFFER=y
+# CONFIG_INV_MPU6050_IIO is not set
+
+#
+# Light sensors
+#
+CONFIG_ADJD_S311=m
+CONFIG_SENSORS_TSL2563=m
+CONFIG_VCNL4000=m
+CONFIG_HID_SENSOR_ALS=m
+
+#
+# Magnetometer sensors
+#
+# CONFIG_AK8975 is not set
+# CONFIG_HID_SENSOR_MAGNETOMETER_3D is not set
+CONFIG_IIO_ST_MAGN_3AXIS=m
+CONFIG_IIO_ST_MAGN_I2C_3AXIS=m
+CONFIG_IIO_ST_MAGN_SPI_3AXIS=m
+
+#
+# Triggers - standalone
+#
+# CONFIG_IIO_INTERRUPT_TRIGGER is not set
+# CONFIG_IIO_SYSFS_TRIGGER is not set
+
+#
+# Pressure Sensors
+#
+CONFIG_IIO_ST_PRESS=m
+CONFIG_IIO_ST_PRESS_I2C=m
+CONFIG_IIO_ST_PRESS_SPI=m
+# CONFIG_NTB is not set
+# CONFIG_VME_BUS is not set
+# CONFIG_PWM is not set
+CONFIG_IPACK_BUS=m
+CONFIG_BOARD_TPCI200=m
+CONFIG_SERIAL_IPOCTAL=m
+CONFIG_RESET_CONTROLLER=y
+# CONFIG_FMC is not set
+
+#
+# Firmware Drivers
+#
+# CONFIG_EDD is not set
+CONFIG_FIRMWARE_MEMMAP=y
+CONFIG_DELL_RBU=m
+CONFIG_DCDBAS=m
+# CONFIG_DMIID is not set
+CONFIG_DMI_SYSFS=y
+# CONFIG_ISCSI_IBFT_FIND is not set
+CONFIG_GOOGLE_FIRMWARE=y
+
+#
+# Google Firmware Drivers
+#
+# CONFIG_GOOGLE_MEMCONSOLE is not set
+
+#
+# File systems
+#
+CONFIG_DCACHE_WORD_ACCESS=y
+CONFIG_EXT2_FS=m
+# CONFIG_EXT2_FS_XATTR is not set
+# CONFIG_EXT2_FS_XIP is not set
+CONFIG_EXT3_FS=m
+# CONFIG_EXT3_DEFAULTS_TO_ORDERED is not set
+CONFIG_EXT3_FS_XATTR=y
+# CONFIG_EXT3_FS_POSIX_ACL is not set
+CONFIG_EXT3_FS_SECURITY=y
+# CONFIG_EXT4_FS is not set
+CONFIG_JBD=m
+# CONFIG_JBD_DEBUG is not set
+CONFIG_JBD2=m
+# CONFIG_JBD2_DEBUG is not set
+CONFIG_FS_MBCACHE=m
+CONFIG_REISERFS_FS=y
+# CONFIG_REISERFS_CHECK is not set
+CONFIG_REISERFS_PROC_INFO=y
+# CONFIG_REISERFS_FS_XATTR is not set
+CONFIG_JFS_FS=m
+# CONFIG_JFS_POSIX_ACL is not set
+# CONFIG_JFS_SECURITY is not set
+# CONFIG_JFS_DEBUG is not set
+# CONFIG_JFS_STATISTICS is not set
+CONFIG_XFS_FS=m
+CONFIG_XFS_QUOTA=y
+CONFIG_XFS_POSIX_ACL=y
+# CONFIG_XFS_RT is not set
+# CONFIG_XFS_WARN is not set
+# CONFIG_XFS_DEBUG is not set
+# CONFIG_GFS2_FS is not set
+CONFIG_OCFS2_FS=m
+CONFIG_OCFS2_FS_O2CB=m
+# CONFIG_OCFS2_FS_STATS is not set
+CONFIG_OCFS2_DEBUG_MASKLOG=y
+# CONFIG_OCFS2_DEBUG_FS is not set
+# CONFIG_BTRFS_FS is not set
+# CONFIG_NILFS2_FS is not set
+CONFIG_FS_POSIX_ACL=y
+CONFIG_EXPORTFS=m
+CONFIG_FILE_LOCKING=y
+CONFIG_FSNOTIFY=y
+# CONFIG_DNOTIFY is not set
+CONFIG_INOTIFY_USER=y
+CONFIG_FANOTIFY=y
+# CONFIG_FANOTIFY_ACCESS_PERMISSIONS is not set
+CONFIG_QUOTA=y
+CONFIG_QUOTA_NETLINK_INTERFACE=y
+CONFIG_PRINT_QUOTA_WARNING=y
+CONFIG_QUOTA_DEBUG=y
+CONFIG_QUOTA_TREE=m
+CONFIG_QFMT_V1=y
+# CONFIG_QFMT_V2 is not set
+CONFIG_QUOTACTL=y
+CONFIG_QUOTACTL_COMPAT=y
+CONFIG_AUTOFS4_FS=m
+# CONFIG_FUSE_FS is not set
+
+#
+# Caches
+#
+CONFIG_FSCACHE=y
+# CONFIG_FSCACHE_STATS is not set
+CONFIG_FSCACHE_HISTOGRAM=y
+CONFIG_FSCACHE_DEBUG=y
+# CONFIG_FSCACHE_OBJECT_LIST is not set
+CONFIG_CACHEFILES=m
+# CONFIG_CACHEFILES_DEBUG is not set
+CONFIG_CACHEFILES_HISTOGRAM=y
+
+#
+# CD-ROM/DVD Filesystems
+#
+CONFIG_ISO9660_FS=m
+# CONFIG_JOLIET is not set
+# CONFIG_ZISOFS is not set
+# CONFIG_UDF_FS is not set
+
+#
+# DOS/FAT/NT Filesystems
+#
+CONFIG_FAT_FS=m
+CONFIG_MSDOS_FS=m
+# CONFIG_VFAT_FS is not set
+CONFIG_FAT_DEFAULT_CODEPAGE=437
+CONFIG_NTFS_FS=m
+# CONFIG_NTFS_DEBUG is not set
+# CONFIG_NTFS_RW is not set
+
+#
+# Pseudo filesystems
+#
+CONFIG_PROC_FS=y
+CONFIG_PROC_KCORE=y
+CONFIG_PROC_SYSCTL=y
+CONFIG_PROC_PAGE_MONITOR=y
+CONFIG_SYSFS=y
+# CONFIG_TMPFS is not set
+# CONFIG_HUGETLBFS is not set
+# CONFIG_HUGETLB_PAGE is not set
+CONFIG_CONFIGFS_FS=m
+CONFIG_MISC_FILESYSTEMS=y
+# CONFIG_ADFS_FS is not set
+# CONFIG_AFFS_FS is not set
+# CONFIG_ECRYPT_FS is not set
+CONFIG_HFS_FS=y
+# CONFIG_HFSPLUS_FS is not set
+CONFIG_BEFS_FS=m
+# CONFIG_BEFS_DEBUG is not set
+CONFIG_BFS_FS=m
+# CONFIG_EFS_FS is not set
+CONFIG_JFFS2_FS=y
+CONFIG_JFFS2_FS_DEBUG=0
+# CONFIG_JFFS2_FS_WRITEBUFFER is not set
+# CONFIG_JFFS2_SUMMARY is not set
+CONFIG_JFFS2_FS_XATTR=y
+# CONFIG_JFFS2_FS_POSIX_ACL is not set
+# CONFIG_JFFS2_FS_SECURITY is not set
+CONFIG_JFFS2_COMPRESSION_OPTIONS=y
+# CONFIG_JFFS2_ZLIB is not set
+# CONFIG_JFFS2_LZO is not set
+# CONFIG_JFFS2_RTIME is not set
+CONFIG_JFFS2_RUBIN=y
+CONFIG_JFFS2_CMODE_NONE=y
+# CONFIG_JFFS2_CMODE_PRIORITY is not set
+# CONFIG_JFFS2_CMODE_SIZE is not set
+# CONFIG_JFFS2_CMODE_FAVOURLZO is not set
+CONFIG_UBIFS_FS=m
+# CONFIG_UBIFS_FS_ADVANCED_COMPR is not set
+CONFIG_UBIFS_FS_LZO=y
+CONFIG_UBIFS_FS_ZLIB=y
+CONFIG_LOGFS=m
+# CONFIG_CRAMFS is not set
+CONFIG_SQUASHFS=y
+# CONFIG_SQUASHFS_XATTR is not set
+CONFIG_SQUASHFS_ZLIB=y
+# CONFIG_SQUASHFS_LZO is not set
+# CONFIG_SQUASHFS_XZ is not set
+CONFIG_SQUASHFS_4K_DEVBLK_SIZE=y
+# CONFIG_SQUASHFS_EMBEDDED is not set
+CONFIG_SQUASHFS_FRAGMENT_CACHE_SIZE=3
+# CONFIG_VXFS_FS is not set
+# CONFIG_MINIX_FS is not set
+# CONFIG_OMFS_FS is not set
+# CONFIG_HPFS_FS is not set
+# CONFIG_QNX4FS_FS is not set
+CONFIG_QNX6FS_FS=m
+# CONFIG_QNX6FS_DEBUG is not set
+CONFIG_ROMFS_FS=y
+# CONFIG_ROMFS_BACKED_BY_BLOCK is not set
+CONFIG_ROMFS_BACKED_BY_MTD=y
+# CONFIG_ROMFS_BACKED_BY_BOTH is not set
+CONFIG_ROMFS_ON_MTD=y
+# CONFIG_PSTORE is not set
+CONFIG_SYSV_FS=m
+# CONFIG_UFS_FS is not set
+CONFIG_EXOFS_FS=m
+# CONFIG_EXOFS_DEBUG is not set
+CONFIG_F2FS_FS=y
+CONFIG_F2FS_STAT_FS=y
+CONFIG_F2FS_FS_XATTR=y
+# CONFIG_F2FS_FS_POSIX_ACL is not set
+# CONFIG_F2FS_FS_SECURITY is not set
+CONFIG_ORE=m
+# CONFIG_NETWORK_FILESYSTEMS is not set
+CONFIG_NLS=y
+CONFIG_NLS_DEFAULT="iso8859-1"
+# CONFIG_NLS_CODEPAGE_437 is not set
+CONFIG_NLS_CODEPAGE_737=y
+CONFIG_NLS_CODEPAGE_775=y
+CONFIG_NLS_CODEPAGE_850=m
+CONFIG_NLS_CODEPAGE_852=m
+# CONFIG_NLS_CODEPAGE_855 is not set
+CONFIG_NLS_CODEPAGE_857=y
+# CONFIG_NLS_CODEPAGE_860 is not set
+CONFIG_NLS_CODEPAGE_861=m
+# CONFIG_NLS_CODEPAGE_862 is not set
+CONFIG_NLS_CODEPAGE_863=m
+# CONFIG_NLS_CODEPAGE_864 is not set
+# CONFIG_NLS_CODEPAGE_865 is not set
+# CONFIG_NLS_CODEPAGE_866 is not set
+# CONFIG_NLS_CODEPAGE_869 is not set
+CONFIG_NLS_CODEPAGE_936=m
+CONFIG_NLS_CODEPAGE_950=m
+CONFIG_NLS_CODEPAGE_932=y
+# CONFIG_NLS_CODEPAGE_949 is not set
+CONFIG_NLS_CODEPAGE_874=m
+CONFIG_NLS_ISO8859_8=m
+# CONFIG_NLS_CODEPAGE_1250 is not set
+CONFIG_NLS_CODEPAGE_1251=y
+# CONFIG_NLS_ASCII is not set
+CONFIG_NLS_ISO8859_1=m
+CONFIG_NLS_ISO8859_2=m
+CONFIG_NLS_ISO8859_3=m
+CONFIG_NLS_ISO8859_4=m
+CONFIG_NLS_ISO8859_5=y
+CONFIG_NLS_ISO8859_6=m
+CONFIG_NLS_ISO8859_7=m
+CONFIG_NLS_ISO8859_9=y
+# CONFIG_NLS_ISO8859_13 is not set
+CONFIG_NLS_ISO8859_14=y
+CONFIG_NLS_ISO8859_15=y
+CONFIG_NLS_KOI8_R=m
+CONFIG_NLS_KOI8_U=y
+CONFIG_NLS_MAC_ROMAN=m
+CONFIG_NLS_MAC_CELTIC=m
+CONFIG_NLS_MAC_CENTEURO=m
+CONFIG_NLS_MAC_CROATIAN=m
+# CONFIG_NLS_MAC_CYRILLIC is not set
+# CONFIG_NLS_MAC_GAELIC is not set
+CONFIG_NLS_MAC_GREEK=m
+# CONFIG_NLS_MAC_ICELAND is not set
+# CONFIG_NLS_MAC_INUIT is not set
+CONFIG_NLS_MAC_ROMANIAN=y
+# CONFIG_NLS_MAC_TURKISH is not set
+# CONFIG_NLS_UTF8 is not set
+# CONFIG_DLM is not set
+
+#
+# Kernel hacking
+#
+CONFIG_TRACE_IRQFLAGS_SUPPORT=y
+
+#
+# printk and dmesg options
+#
+# CONFIG_PRINTK_TIME is not set
+CONFIG_DEFAULT_MESSAGE_LOGLEVEL=4
+# CONFIG_BOOT_PRINTK_DELAY is not set
+# CONFIG_DYNAMIC_DEBUG is not set
+
+#
+# Compile-time checks and compiler options
+#
+# CONFIG_DEBUG_INFO is not set
+CONFIG_ENABLE_WARN_DEPRECATED=y
+# CONFIG_ENABLE_MUST_CHECK is not set
+CONFIG_FRAME_WARN=2048
+CONFIG_STRIP_ASM_SYMS=y
+CONFIG_READABLE_ASM=y
+# CONFIG_UNUSED_SYMBOLS is not set
+CONFIG_DEBUG_FS=y
+CONFIG_HEADERS_CHECK=y
+# CONFIG_DEBUG_SECTION_MISMATCH is not set
+CONFIG_ARCH_WANT_FRAME_POINTERS=y
+CONFIG_FRAME_POINTER=y
+CONFIG_DEBUG_FORCE_WEAK_PER_CPU=y
+CONFIG_MAGIC_SYSRQ=y
+CONFIG_DEBUG_KERNEL=y
+
+#
+# Memory Debugging
+#
+CONFIG_DEBUG_PAGEALLOC=y
+CONFIG_WANT_PAGE_DEBUG_FLAGS=y
+CONFIG_PAGE_GUARD=y
+# CONFIG_DEBUG_OBJECTS is not set
+CONFIG_SLUB_DEBUG_ON=y
+CONFIG_SLUB_STATS=y
+CONFIG_HAVE_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_KMEMLEAK=y
+CONFIG_DEBUG_KMEMLEAK_EARLY_LOG_SIZE=400
+# CONFIG_DEBUG_KMEMLEAK_TEST is not set
+CONFIG_DEBUG_KMEMLEAK_DEFAULT_OFF=y
+# CONFIG_DEBUG_STACK_USAGE is not set
+# CONFIG_DEBUG_VM is not set
+# CONFIG_DEBUG_VIRTUAL is not set
+CONFIG_DEBUG_MEMORY_INIT=y
+# CONFIG_MEMORY_NOTIFIER_ERROR_INJECT is not set
+CONFIG_HAVE_DEBUG_STACKOVERFLOW=y
+CONFIG_DEBUG_STACKOVERFLOW=y
+CONFIG_HAVE_ARCH_KMEMCHECK=y
+# CONFIG_DEBUG_SHIRQ is not set
+
+#
+# Debug Lockups and Hangs
+#
+CONFIG_LOCKUP_DETECTOR=y
+CONFIG_HARDLOCKUP_DETECTOR=y
+CONFIG_BOOTPARAM_HARDLOCKUP_PANIC=y
+CONFIG_BOOTPARAM_HARDLOCKUP_PANIC_VALUE=1
+# CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC is not set
+CONFIG_BOOTPARAM_SOFTLOCKUP_PANIC_VALUE=0
+CONFIG_DETECT_HUNG_TASK=y
+CONFIG_DEFAULT_HUNG_TASK_TIMEOUT=120
+CONFIG_BOOTPARAM_HUNG_TASK_PANIC=y
+CONFIG_BOOTPARAM_HUNG_TASK_PANIC_VALUE=1
+CONFIG_PANIC_ON_OOPS=y
+CONFIG_PANIC_ON_OOPS_VALUE=1
+# CONFIG_SCHED_DEBUG is not set
+CONFIG_SCHEDSTATS=y
+# CONFIG_TIMER_STATS is not set
+CONFIG_DEBUG_PREEMPT=y
+
+#
+# Lock Debugging (spinlocks, mutexes, etc...)
+#
+CONFIG_DEBUG_RT_MUTEXES=y
+CONFIG_DEBUG_PI_LIST=y
+CONFIG_RT_MUTEX_TESTER=y
+CONFIG_DEBUG_SPINLOCK=y
+CONFIG_DEBUG_MUTEXES=y
+# CONFIG_DEBUG_WW_MUTEX_SLOWPATH is not set
+CONFIG_DEBUG_LOCK_ALLOC=y
+CONFIG_PROVE_LOCKING=y
+CONFIG_LOCKDEP=y
+CONFIG_LOCK_STAT=y
+# CONFIG_DEBUG_LOCKDEP is not set
+# CONFIG_DEBUG_ATOMIC_SLEEP is not set
+# CONFIG_DEBUG_LOCKING_API_SELFTESTS is not set
+CONFIG_TRACE_IRQFLAGS=y
+CONFIG_STACKTRACE=y
+# CONFIG_DEBUG_KOBJECT is not set
+CONFIG_DEBUG_BUGVERBOSE=y
+CONFIG_DEBUG_WRITECOUNT=y
+CONFIG_DEBUG_LIST=y
+CONFIG_DEBUG_SG=y
+CONFIG_DEBUG_NOTIFIERS=y
+# CONFIG_DEBUG_CREDENTIALS is not set
+
+#
+# RCU Debugging
+#
+CONFIG_PROVE_RCU=y
+# CONFIG_PROVE_RCU_REPEATEDLY is not set
+CONFIG_PROVE_RCU_DELAY=y
+# CONFIG_SPARSE_RCU_POINTER is not set
+CONFIG_RCU_TORTURE_TEST=y
+# CONFIG_RCU_TORTURE_TEST_RUNNABLE is not set
+CONFIG_RCU_CPU_STALL_TIMEOUT=21
+CONFIG_RCU_CPU_STALL_VERBOSE=y
+CONFIG_RCU_CPU_STALL_INFO=y
+CONFIG_RCU_TRACE=y
+CONFIG_DEBUG_BLOCK_EXT_DEVT=y
+CONFIG_NOTIFIER_ERROR_INJECTION=y
+# CONFIG_FAULT_INJECTION is not set
+# CONFIG_LATENCYTOP is not set
+CONFIG_ARCH_HAS_DEBUG_STRICT_USER_COPY_CHECKS=y
+# CONFIG_DEBUG_STRICT_USER_COPY_CHECKS is not set
+CONFIG_USER_STACKTRACE_SUPPORT=y
+CONFIG_HAVE_FUNCTION_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_TRACER=y
+CONFIG_HAVE_FUNCTION_GRAPH_FP_TEST=y
+CONFIG_HAVE_FUNCTION_TRACE_MCOUNT_TEST=y
+CONFIG_HAVE_DYNAMIC_FTRACE=y
+CONFIG_HAVE_DYNAMIC_FTRACE_WITH_REGS=y
+CONFIG_HAVE_FTRACE_MCOUNT_RECORD=y
+CONFIG_HAVE_SYSCALL_TRACEPOINTS=y
+CONFIG_HAVE_FENTRY=y
+CONFIG_HAVE_C_RECORDMCOUNT=y
+CONFIG_TRACE_CLOCK=y
+CONFIG_RING_BUFFER=y
+CONFIG_RING_BUFFER_ALLOW_SWAP=y
+CONFIG_TRACING_SUPPORT=y
+# CONFIG_FTRACE is not set
+
+#
+# Runtime Testing
+#
+CONFIG_LKDTM=y
+# CONFIG_TEST_LIST_SORT is not set
+CONFIG_KPROBES_SANITY_TEST=y
+# CONFIG_BACKTRACE_SELF_TEST is not set
+CONFIG_RBTREE_TEST=m
+CONFIG_INTERVAL_TREE_TEST=m
+# CONFIG_ATOMIC64_SELFTEST is not set
+CONFIG_TEST_STRING_HELPERS=m
+CONFIG_TEST_KSTRTOX=y
+# CONFIG_PROVIDE_OHCI1394_DMA_INIT is not set
+CONFIG_BUILD_DOCSRC=y
+# CONFIG_DMA_API_DEBUG is not set
+CONFIG_SAMPLES=y
+# CONFIG_SAMPLE_KOBJECT is not set
+CONFIG_SAMPLE_KPROBES=m
+CONFIG_SAMPLE_KRETPROBES=m
+CONFIG_SAMPLE_HW_BREAKPOINT=m
+# CONFIG_SAMPLE_KFIFO is not set
+CONFIG_HAVE_ARCH_KGDB=y
+# CONFIG_KGDB is not set
+CONFIG_STRICT_DEVMEM=y
+# CONFIG_X86_VERBOSE_BOOTUP is not set
+CONFIG_EARLY_PRINTK=y
+# CONFIG_EARLY_PRINTK_DBGP is not set
+# CONFIG_X86_PTDUMP is not set
+# CONFIG_DEBUG_RODATA is not set
+CONFIG_DEBUG_SET_MODULE_RONX=y
+CONFIG_DEBUG_NX_TEST=m
+CONFIG_DOUBLEFAULT=y
+CONFIG_DEBUG_TLBFLUSH=y
+# CONFIG_IOMMU_DEBUG is not set
+CONFIG_IOMMU_STRESS=y
+CONFIG_HAVE_MMIOTRACE_SUPPORT=y
+CONFIG_X86_DECODER_SELFTEST=y
+CONFIG_IO_DELAY_TYPE_0X80=0
+CONFIG_IO_DELAY_TYPE_0XED=1
+CONFIG_IO_DELAY_TYPE_UDELAY=2
+CONFIG_IO_DELAY_TYPE_NONE=3
+# CONFIG_IO_DELAY_0X80 is not set
+# CONFIG_IO_DELAY_0XED is not set
+CONFIG_IO_DELAY_UDELAY=y
+# CONFIG_IO_DELAY_NONE is not set
+CONFIG_DEFAULT_IO_DELAY_TYPE=2
+# CONFIG_DEBUG_BOOT_PARAMS is not set
+# CONFIG_CPA_DEBUG is not set
+CONFIG_OPTIMIZE_INLINING=y
+# CONFIG_DEBUG_NMI_SELFTEST is not set
+CONFIG_X86_DEBUG_STATIC_CPU_HAS=y
+
+#
+# Security options
+#
+CONFIG_KEYS=y
+# CONFIG_ENCRYPTED_KEYS is not set
+CONFIG_KEYS_DEBUG_PROC_KEYS=y
+CONFIG_SECURITY_DMESG_RESTRICT=y
+CONFIG_SECURITY=y
+CONFIG_SECURITYFS=y
+CONFIG_SECURITY_NETWORK=y
+CONFIG_SECURITY_NETWORK_XFRM=y
+CONFIG_SECURITY_PATH=y
+# CONFIG_SECURITY_SELINUX is not set
+# CONFIG_SECURITY_SMACK is not set
+# CONFIG_SECURITY_TOMOYO is not set
+CONFIG_SECURITY_APPARMOR=y
+CONFIG_SECURITY_APPARMOR_BOOTPARAM_VALUE=1
+CONFIG_SECURITY_YAMA=y
+CONFIG_SECURITY_YAMA_STACKED=y
+# CONFIG_IMA is not set
+# CONFIG_EVM is not set
+CONFIG_DEFAULT_SECURITY_APPARMOR=y
+# CONFIG_DEFAULT_SECURITY_YAMA is not set
+# CONFIG_DEFAULT_SECURITY_DAC is not set
+CONFIG_DEFAULT_SECURITY="apparmor"
+CONFIG_XOR_BLOCKS=m
+CONFIG_ASYNC_CORE=m
+CONFIG_ASYNC_XOR=m
+CONFIG_CRYPTO=y
+
+#
+# Crypto core or helper
+#
+CONFIG_CRYPTO_ALGAPI=y
+CONFIG_CRYPTO_ALGAPI2=y
+CONFIG_CRYPTO_AEAD=y
+CONFIG_CRYPTO_AEAD2=y
+CONFIG_CRYPTO_BLKCIPHER=y
+CONFIG_CRYPTO_BLKCIPHER2=y
+CONFIG_CRYPTO_HASH=y
+CONFIG_CRYPTO_HASH2=y
+CONFIG_CRYPTO_RNG=y
+CONFIG_CRYPTO_RNG2=y
+CONFIG_CRYPTO_PCOMP=y
+CONFIG_CRYPTO_PCOMP2=y
+CONFIG_CRYPTO_MANAGER=y
+CONFIG_CRYPTO_MANAGER2=y
+CONFIG_CRYPTO_USER=y
+CONFIG_CRYPTO_MANAGER_DISABLE_TESTS=y
+CONFIG_CRYPTO_GF128MUL=y
+CONFIG_CRYPTO_NULL=y
+CONFIG_CRYPTO_WORKQUEUE=y
+CONFIG_CRYPTO_CRYPTD=y
+CONFIG_CRYPTO_AUTHENC=m
+CONFIG_CRYPTO_TEST=m
+CONFIG_CRYPTO_ABLK_HELPER_X86=y
+CONFIG_CRYPTO_GLUE_HELPER_X86=y
+
+#
+# Authenticated Encryption with Associated Data
+#
+# CONFIG_CRYPTO_CCM is not set
+CONFIG_CRYPTO_GCM=y
+CONFIG_CRYPTO_SEQIV=y
+
+#
+# Block modes
+#
+CONFIG_CRYPTO_CBC=m
+CONFIG_CRYPTO_CTR=y
+# CONFIG_CRYPTO_CTS is not set
+CONFIG_CRYPTO_ECB=y
+CONFIG_CRYPTO_LRW=y
+CONFIG_CRYPTO_PCBC=m
+CONFIG_CRYPTO_XTS=y
+
+#
+# Hash modes
+#
+CONFIG_CRYPTO_CMAC=m
+CONFIG_CRYPTO_HMAC=m
+CONFIG_CRYPTO_XCBC=m
+CONFIG_CRYPTO_VMAC=m
+
+#
+# Digest
+#
+CONFIG_CRYPTO_CRC32C=y
+CONFIG_CRYPTO_CRC32C_INTEL=m
+CONFIG_CRYPTO_CRC32=m
+CONFIG_CRYPTO_CRC32_PCLMUL=m
+CONFIG_CRYPTO_CRCT10DIF=m
+CONFIG_CRYPTO_CRCT10DIF_PCLMUL=m
+CONFIG_CRYPTO_GHASH=y
+CONFIG_CRYPTO_MD4=y
+CONFIG_CRYPTO_MD5=y
+CONFIG_CRYPTO_MICHAEL_MIC=y
+CONFIG_CRYPTO_RMD128=m
+# CONFIG_CRYPTO_RMD160 is not set
+CONFIG_CRYPTO_RMD256=y
+CONFIG_CRYPTO_RMD320=y
+CONFIG_CRYPTO_SHA1=y
+CONFIG_CRYPTO_SHA1_SSSE3=m
+CONFIG_CRYPTO_SHA256_SSSE3=m
+CONFIG_CRYPTO_SHA512_SSSE3=m
+CONFIG_CRYPTO_SHA256=y
+CONFIG_CRYPTO_SHA512=m
+CONFIG_CRYPTO_TGR192=y
+CONFIG_CRYPTO_WP512=m
+CONFIG_CRYPTO_GHASH_CLMUL_NI_INTEL=m
+
+#
+# Ciphers
+#
+CONFIG_CRYPTO_AES=y
+CONFIG_CRYPTO_AES_X86_64=y
+CONFIG_CRYPTO_AES_NI_INTEL=y
+# CONFIG_CRYPTO_ANUBIS is not set
+CONFIG_CRYPTO_ARC4=y
+# CONFIG_CRYPTO_BLOWFISH is not set
+CONFIG_CRYPTO_BLOWFISH_COMMON=m
+CONFIG_CRYPTO_BLOWFISH_X86_64=m
+# CONFIG_CRYPTO_CAMELLIA is not set
+CONFIG_CRYPTO_CAMELLIA_X86_64=m
+CONFIG_CRYPTO_CAMELLIA_AESNI_AVX_X86_64=m
+# CONFIG_CRYPTO_CAMELLIA_AESNI_AVX2_X86_64 is not set
+CONFIG_CRYPTO_CAST_COMMON=m
+CONFIG_CRYPTO_CAST5=m
+# CONFIG_CRYPTO_CAST5_AVX_X86_64 is not set
+CONFIG_CRYPTO_CAST6=m
+# CONFIG_CRYPTO_CAST6_AVX_X86_64 is not set
+CONFIG_CRYPTO_DES=y
+CONFIG_CRYPTO_FCRYPT=m
+CONFIG_CRYPTO_KHAZAD=y
+CONFIG_CRYPTO_SALSA20=m
+CONFIG_CRYPTO_SALSA20_X86_64=m
+# CONFIG_CRYPTO_SEED is not set
+CONFIG_CRYPTO_SERPENT=m
+CONFIG_CRYPTO_SERPENT_SSE2_X86_64=m
+CONFIG_CRYPTO_SERPENT_AVX_X86_64=m
+# CONFIG_CRYPTO_SERPENT_AVX2_X86_64 is not set
+# CONFIG_CRYPTO_TEA is not set
+# CONFIG_CRYPTO_TWOFISH is not set
+CONFIG_CRYPTO_TWOFISH_COMMON=y
+CONFIG_CRYPTO_TWOFISH_X86_64=y
+# CONFIG_CRYPTO_TWOFISH_X86_64_3WAY is not set
+# CONFIG_CRYPTO_TWOFISH_AVX_X86_64 is not set
+
+#
+# Compression
+#
+CONFIG_CRYPTO_DEFLATE=m
+CONFIG_CRYPTO_ZLIB=y
+CONFIG_CRYPTO_LZO=m
+CONFIG_CRYPTO_LZ4=m
+CONFIG_CRYPTO_LZ4HC=y
+
+#
+# Random Number Generation
+#
+CONFIG_CRYPTO_ANSI_CPRNG=y
+CONFIG_CRYPTO_USER_API=y
+CONFIG_CRYPTO_USER_API_HASH=y
+CONFIG_CRYPTO_USER_API_SKCIPHER=m
+CONFIG_CRYPTO_HW=y
+# CONFIG_CRYPTO_DEV_PADLOCK is not set
+CONFIG_ASYMMETRIC_KEY_TYPE=y
+CONFIG_ASYMMETRIC_PUBLIC_KEY_SUBTYPE=y
+CONFIG_PUBLIC_KEY_ALGO_RSA=y
+CONFIG_X509_CERTIFICATE_PARSER=y
+CONFIG_HAVE_KVM=y
+CONFIG_VIRTUALIZATION=y
+# CONFIG_BINARY_PRINTF is not set
+
+#
+# Library routines
+#
+CONFIG_BITREVERSE=y
+CONFIG_GENERIC_STRNCPY_FROM_USER=y
+CONFIG_GENERIC_STRNLEN_USER=y
+CONFIG_GENERIC_NET_UTILS=y
+CONFIG_GENERIC_FIND_FIRST_BIT=y
+CONFIG_GENERIC_PCI_IOMAP=y
+CONFIG_GENERIC_IOMAP=y
+CONFIG_GENERIC_IO=y
+CONFIG_CRC_CCITT=y
+CONFIG_CRC16=y
+CONFIG_CRC_T10DIF=m
+CONFIG_CRC_ITU_T=y
+CONFIG_CRC32=y
+CONFIG_CRC32_SELFTEST=y
+# CONFIG_CRC32_SLICEBY8 is not set
+# CONFIG_CRC32_SLICEBY4 is not set
+# CONFIG_CRC32_SARWATE is not set
+CONFIG_CRC32_BIT=y
+CONFIG_CRC7=m
+CONFIG_LIBCRC32C=y
+CONFIG_CRC8=y
+CONFIG_ZLIB_INFLATE=y
+CONFIG_ZLIB_DEFLATE=y
+CONFIG_LZO_COMPRESS=y
+CONFIG_LZO_DECOMPRESS=y
+CONFIG_LZ4_COMPRESS=m
+CONFIG_LZ4HC_COMPRESS=y
+CONFIG_LZ4_DECOMPRESS=y
+CONFIG_XZ_DEC=m
+# CONFIG_XZ_DEC_X86 is not set
+CONFIG_XZ_DEC_POWERPC=y
+# CONFIG_XZ_DEC_IA64 is not set
+# CONFIG_XZ_DEC_ARM is not set
+CONFIG_XZ_DEC_ARMTHUMB=y
+# CONFIG_XZ_DEC_SPARC is not set
+CONFIG_XZ_DEC_BCJ=y
+CONFIG_XZ_DEC_TEST=m
+CONFIG_REED_SOLOMON=m
+CONFIG_REED_SOLOMON_DEC16=y
+CONFIG_BCH=m
+CONFIG_BCH_CONST_PARAMS=y
+CONFIG_TEXTSEARCH=y
+CONFIG_TEXTSEARCH_KMP=y
+CONFIG_TEXTSEARCH_BM=y
+CONFIG_TEXTSEARCH_FSM=y
+CONFIG_BTREE=y
+CONFIG_HAS_IOMEM=y
+CONFIG_HAS_IOPORT=y
+CONFIG_HAS_DMA=y
+CONFIG_CHECK_SIGNATURE=y
+CONFIG_DQL=y
+CONFIG_NLATTR=y
+CONFIG_ARCH_HAS_ATOMIC64_DEC_IF_POSITIVE=y
+CONFIG_LRU_CACHE=m
+CONFIG_AVERAGE=y
+CONFIG_CLZ_TAB=y
+CONFIG_CORDIC=m
+# CONFIG_DDR is not set
+CONFIG_MPILIB=y
+CONFIG_OID_REGISTRY=y
+CONFIG_FONT_SUPPORT=y
+# CONFIG_FONTS is not set
+CONFIG_FONT_8x8=y
+CONFIG_FONT_8x16=y
+
+--------------030200050608060601060307--
