@@ -1,38 +1,32 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.kapsi.fi ([217.30.184.167]:44433 "EHLO mail.kapsi.fi"
+Received: from mail.kapsi.fi ([217.30.184.167]:50320 "EHLO mail.kapsi.fi"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1757106Ab3GVVDN (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 17:03:13 -0400
-Message-ID: <51ED9DE7.2090505@iki.fi>
-Date: Tue, 23 Jul 2013 00:02:31 +0300
+	id S1751619Ab3GXPiE (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jul 2013 11:38:04 -0400
+Message-ID: <51EFF4AF.1030206@iki.fi>
+Date: Wed, 24 Jul 2013 18:37:19 +0300
 From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
 To: Luis Alves <ljalvs@gmail.com>
 CC: linux-media@vger.kernel.org, mchehab@infradead.org
-Subject: Re: [PATCH 2/2] cx24117[v3]: Add new dvb-frontend driver (tested
- cards: TBS6980 and TBS6981 Dual tuner DVB-S/S2)
-References: <1374095551-3145-1-git-send-email-ljalvs@gmail.com> <1374095551-3145-2-git-send-email-ljalvs@gmail.com>
-In-Reply-To: <1374095551-3145-2-git-send-email-ljalvs@gmail.com>
+Subject: Re: [PATCH 1/2] cx24117[v4]: Add new dvb-frontend.
+References: <1374679132-30672-1-git-send-email-ljalvs@gmail.com>
+In-Reply-To: <1374679132-30672-1-git-send-email-ljalvs@gmail.com>
 Content-Type: text/plain; charset=ISO-8859-1; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/18/2013 12:12 AM, Luis Alves wrote:
-> v3:
-> Fixed issues reported by checkpatch script (thanks Antti).
-> Changed/fixed some stuff as sugested by Mauro Chehab.
-> Splited cx23885 changes to a separated patch.
+On 07/24/2013 06:18 PM, Luis Alves wrote:
+> v4:
+> Patch order fixed.
+> Changed some msleep's to clear checkpatch warning.
+>
 >
 > Signed-off-by: Luis Alves <ljalvs@gmail.com>
 
+Reviewed-by: Antti Palosaari <crope@iki.fi>
 
-Maybbe that one is enough good too. There was still few < 20ms msleeps 
-which should trigger checkpatch complains. Those could be rounded up to 
-20ms.
-
-regards
-Antti
 
 > ---
 >   drivers/media/dvb-frontends/Kconfig   |    7 +
@@ -75,7 +69,7 @@ Antti
 >   obj-$(CONFIG_DVB_STB6000) += stb6000.o
 > diff --git a/drivers/media/dvb-frontends/cx24117.c b/drivers/media/dvb-frontends/cx24117.c
 > new file mode 100644
-> index 0000000..19ea43e
+> index 0000000..3b63913
 > --- /dev/null
 > +++ b/drivers/media/dvb-frontends/cx24117.c
 > @@ -0,0 +1,1621 @@
@@ -579,8 +573,8 @@ Antti
 > +	cx24117_writereg(state, CX24117_REG_EXECUTE, 0x01);
 > +	i = 0;
 > +	while (cx24117_readreg(state, CX24117_REG_EXECUTE)) {
-> +		msleep(10);
-> +		if (i++ > 64) {
+> +		msleep(20);
+> +		if (i++ > 40) {
 > +			/* Avoid looping forever if the firmware does
 > +				not respond */
 > +			dev_warn(&state->priv->i2c->dev,
@@ -1008,7 +1002,7 @@ Antti
 > +		cmd.len = 3;
 > +
 > +		/* Min delay time before DiSEqC send */
-> +		msleep(15);
+> +		msleep(20);
 > +	} else {
 > +		cmd.args[0] = 0x33;
 > +		cmd.args[1] = 0x00;
@@ -1040,7 +1034,7 @@ Antti
 > +		return ret;
 > +
 > +	/* Min delay time after DiSEqC send */
-> +	msleep(15);
+> +	msleep(20);
 > +
 > +	/* Set the tone */
 > +	/* CMD 23 - CMD_SET_TONE */
@@ -1058,7 +1052,7 @@ Antti
 > +		break;
 > +	}
 > +
-> +	msleep(15);
+> +	msleep(20);
 > +
 > +	return cx24117_cmd_execute(fe, &cmd);
 > +}
@@ -1562,7 +1556,7 @@ Antti
 > +					__func__, state->demod);
 > +				return 0;
 > +			}
-> +			msleep(10);
+> +			msleep(20);
 > +		}
 > +
 > +		dev_dbg(&state->priv->i2c->dev, "%s() demod%d not tuned\n",
