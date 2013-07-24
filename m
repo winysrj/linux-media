@@ -1,38 +1,42 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f42.google.com ([209.85.220.42]:35519 "EHLO
-	mail-pa0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753134Ab3GTGVW (ORCPT
+Received: from mail-oa0-f48.google.com ([209.85.219.48]:36799 "EHLO
+	mail-oa0-f48.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754153Ab3GXP4N (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 20 Jul 2013 02:21:22 -0400
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v3 0/2] adv7343 add OF support
-Date: Sat, 20 Jul 2013 11:51:04 +0530
-Message-Id: <1374301266-26726-1-git-send-email-prabhakar.csengg@gmail.com>
+	Wed, 24 Jul 2013 11:56:13 -0400
+Received: by mail-oa0-f48.google.com with SMTP id f4so1418856oah.35
+        for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 08:56:13 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <20130724154536.GE12281@valkosipuli.retiisi.org.uk>
+References: <1374679278-9856-1-git-send-email-andriy.shevchenko@linux.intel.com>
+	<20130724154536.GE12281@valkosipuli.retiisi.org.uk>
+Date: Wed, 24 Jul 2013 18:49:24 +0300
+Message-ID: <CAHp75Vdp43x=SMYwpxWLoS0f7ku+qmZoAhW8Pao1p7DDGXcCPg@mail.gmail.com>
+Subject: Re: [PATCH] smiapp: re-use clamp_t instead of min(..., max(...))
+From: Andy Shevchenko <andy.shevchenko@gmail.com>
+To: Sakari Ailus <sakari.ailus@iki.fi>
+Cc: Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-media@vger.kernel.org
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+On Wed, Jul 24, 2013 at 6:45 PM, Sakari Ailus <sakari.ailus@iki.fi> wrote:
 
-This series adds OF support for adv7343 driver.
-The first patch makes platform data members as a array,
-so to ease in adding DT support.
+[]
 
-Lad, Prabhakar (2):
-  media: i2c: adv7343: make the platform data members as array
-  media: i2c: adv7343: add OF support
+>> +     max_m = clamp_t(u32, max_m, sensor->limits[SMIAPP_LIMIT_SCALER_M_MIN],
+>> +                     sensor->limits[SMIAPP_LIMIT_SCALER_M_MAX]);
+>
+> Do you need clamp_t()? Wouldn't plain clamp() do?
 
- .../devicetree/bindings/media/i2c/adv7343.txt      |   48 +++++++++++++
- arch/arm/mach-davinci/board-da850-evm.c            |    6 +-
- drivers/media/i2c/adv7343.c                        |   74 ++++++++++++++++----
- include/media/adv7343.h                            |   20 ++----
- 4 files changed, 113 insertions(+), 35 deletions(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7343.txt
+The *_t variants are preferred due to they are faster (no type checking).
 
--- 
-1.7.9.5
+> I can change it if you're ok with that.
 
+I don't know why you may choose clamp instead of clamp_t here. Are you
+going to change variable types?
+
+--
+With Best Regards,
+Andy Shevchenko
