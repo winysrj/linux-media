@@ -1,56 +1,52 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-oa0-f41.google.com ([209.85.219.41]:40629 "EHLO
-	mail-oa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753087Ab3G3NNR (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 09:13:17 -0400
-Received: by mail-oa0-f41.google.com with SMTP id j6so6572367oag.14
-        for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 06:13:17 -0700 (PDT)
+Received: from mail.kapsi.fi ([217.30.184.167]:48565 "EHLO mail.kapsi.fi"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1753166Ab3GXRxk (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Wed, 24 Jul 2013 13:53:40 -0400
+Message-ID: <51F01477.7050202@iki.fi>
+Date: Wed, 24 Jul 2013 20:52:55 +0300
+From: Antti Palosaari <crope@iki.fi>
 MIME-Version: 1.0
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Date: Tue, 30 Jul 2013 15:12:57 +0200
-Message-ID: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com>
-Subject: Question about v4l2-compliance: cap->readbuffers
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+To: Krishna Kishore <krishna.kishore@sasken.com>
+CC: Chris Lee <updatelee@gmail.com>,
+	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Subject: Re: stv090x vs stv0900 support
+References: <CAA9z4Lbd5wm0=T=CGHbxga5wOdj+TZQO2BA+spxV_keWS5OmcQ@mail.gmail.com> <7CC27E99F1636344B0AC7B73D5BB86DE1485FEE5@exgmbxfz01.sasken.com>
+In-Reply-To: <7CC27E99F1636344B0AC7B73D5BB86DE1485FEE5@exgmbxfz01.sasken.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello
-
-I am developing a driver for a camera that supports read/write and
-mmap access to the buffers.
-
-When I am running the compliance test, I cannot pass it because of
-this test on v4l2-test-formats.cpp
-
-904                 if (!(node->caps & V4L2_CAP_READWRITE))
-905                         fail_on_test(cap->readbuffers);
-906                 else if (node->caps & V4L2_CAP_STREAMING)
-907                         fail_on_test(!cap->readbuffers);
-
-What should be the value of cap-readbuffers for a driver such as mine,
-that supports cap_readwrite and cap_streaming? Or I cannot support
-both, although at least this drivers do the same?
-
-
-$ git grep CAP_READWRITE *  | grep CAP_STREAMING
-pci/cx25821/cx25821-video.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-pci/cx88/cx88-video.c: cap->device_caps = V4L2_CAP_READWRITE |
-V4L2_CAP_STREAMING;
-pci/saa7134/saa7134-video.c: cap->device_caps = V4L2_CAP_READWRITE |
-V4L2_CAP_STREAMING;
-platform/marvell-ccic/mcam-core.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-platform/via-camera.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-usb/cx231xx/cx231xx-video.c: cap->device_caps = V4L2_CAP_READWRITE |
-V4L2_CAP_STREAMING;
-usb/em28xx/em28xx-video.c: V4L2_CAP_READWRITE | V4L2_CAP_VIDEO_CAPTURE
-| V4L2_CAP_STREAMING;
-usb/stkwebcam/stk-webcam.c: | V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
-usb/tlg2300/pd-video.c: V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+On 07/24/2013 08:21 PM, Krishna Kishore wrote:
+> My opinion is that, it is better to have only stv090x. Apart from minimizing the number of patches and ease of maintenance, it will avoid the confusion that I had When I started using prof 7500. I had to enable stv0900 and stb6100. I got confused on whether to enable stv0900 or to enable stv090x.
+>
+>
+>
+> -----Original Message-----
+> From: linux-media-owner@vger.kernel.org [mailto:linux-media-owner@vger.kernel.org] On Behalf Of Chris Lee
+> Sent: Wednesday, July 24, 2013 10:09 PM
+> To: linux-media@vger.kernel.org
+> Subject: stv090x vs stv0900 support
+>
+> Im looking for comments on these two modules, they overlap support for the same demods. stv0900 supporting stv0900 and stv090x supporting
+> stv0900 and stv0903. Ive flipped a few cards from one to the other and they function fine. In some ways stv090x is better suited. Its a pain supporting two modules that are written differently but do the same thing, a fix in one almost always means it has to be implemented in the other as well.
+>
+> Im not necessarily suggesting dumping stv0900, but Id like to flip a few cards that I own over to stv090x just to standardize it. The Prof
+> 7301 and Prof 7500.
+>
+> Whats everyones thoughts on this? It will cut the number of patch''s in half when it comes to these demods. Ive got alot more coming lol :)
+>
+> Chris
 
 
-Thanks!
+stv0900 is better separated from the tuner whilst stv090x has weird 
+stv6110x_devctl structure. That's why I used stv0900 for anysee driver. 
+I wonder is there something special supported by stv090x because normal 
+tuner/demod callbacks are not enough.
+
+regards
+Antti
 
 -- 
-Ricardo Ribalda
+http://palosaari.fi/
