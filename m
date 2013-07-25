@@ -1,49 +1,64 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout2.samsung.com ([203.254.224.25]:63338 "EHLO
-	mailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751137Ab3GKJUu (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:50437 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755656Ab3GYNHn (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:20:50 -0400
-Received: from epcpsbgm1.samsung.com (epcpsbgm1 [203.254.230.26])
- by mailout2.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MPR00DANLY4RZT0@mailout2.samsung.com> for
- linux-media@vger.kernel.org; Thu, 11 Jul 2013 18:20:48 +0900 (KST)
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>
-Subject: [PATCH] DocBook: Fix typo in V4L2_CID_JPEG_COMPRESSION_QUALITY
- reference
-Date: Thu, 11 Jul 2013 11:20:15 +0200
-Message-id: <1373534415-16115-1-git-send-email-s.nawrocki@samsung.com>
+	Thu, 25 Jul 2013 09:07:43 -0400
+Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
+	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id r6PD7ePu022253
+	for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 13:07:40 GMT
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: "linux-media" <linux-media@vger.kernel.org>
+Subject: [GIT PULL FOR v3.11] Various fixes for 3.11
+Date: Thu, 25 Jul 2013 15:07:37 +0200
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="us-ascii"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201307251507.37949.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace the erroneous V4L2_CID_JPEG_IMAGE_QUALITY control name
-with V4L2_CID_JPEG_COMPRESSION_QUALITY.
+Hi Mauro,
 
-Signed-off-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-Signed-off-by: Kyungmin Park <kyungmin.park@samsung.com>
----
- .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |    4 ++--
- 1 file changed, 2 insertions(+), 2 deletions(-)
+Here is a list of fixes for 3.11.
 
-diff --git a/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml b/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
-index 4874849..098ff48 100644
---- a/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
-+++ b/Documentation/DocBook/media/v4l/vidioc-g-jpegcomp.xml
-@@ -92,8 +92,8 @@ to add them.</para>
- 	    <entry>int</entry>
- 	    <entry><structfield>quality</structfield></entry>
- 	    <entry>Deprecated. If <link linkend="jpeg-quality-control"><constant>
--	    V4L2_CID_JPEG_IMAGE_QUALITY</constant></link> control is exposed by
--	    a driver applications should use it instead and ignore this field.
-+	    V4L2_CID_JPEG_COMPRESSION_QUALITY</constant></link> control is exposed
-+	    by a driver applications should use it instead and ignore this field.
- 	    </entry>
- 	  </row>
- 	  <row>
--- 
-1.7.9.5
+Regards,
 
+	Hans
+
+The following changes since commit c859e6ef33ac0c9a5e9e934fe11a2232752b4e96:
+
+  [media] dib0700: add support for PCTV 2002e & PCTV 2002e SE (2013-07-22 07:48:11 -0300)
+
+are available in the git repository at:
+
+  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
+
+for you to fetch changes up to 9f750988a3a4e43b0262f792dc72fecd969dfeba:
+
+  hdpvr: fix iteration over uninitialized lists in hdpvr_probe() (2013-07-25 14:42:45 +0200)
+
+----------------------------------------------------------------
+Alexey Khoroshilov (1):
+      hdpvr: fix iteration over uninitialized lists in hdpvr_probe()
+
+Andrzej Hajda (2):
+      DocBook: upgrade media_api DocBook version to 4.2
+      v4l2: added missing mutex.h include to v4l2-ctrls.h
+
+Hans Verkuil (2):
+      ml86v7667: fix compile warning: 'ret' set but not used
+      usbtv: fix dependency
+
+Lubomir Rintel (2):
+      usbtv: Fix deinterlacing
+      usbtv: Throw corrupted frames away
+
+ Documentation/DocBook/media_api.tmpl |  4 ++--
+ drivers/media/i2c/ml86v7667.c        |  4 ++--
+ drivers/media/usb/hdpvr/hdpvr-core.c | 11 ++++++-----
+ drivers/media/usb/usbtv/Kconfig      |  2 +-
+ drivers/media/usb/usbtv/usbtv.c      | 51 ++++++++++++++++++++++++++++++++++++++-------------
+ include/media/v4l2-ctrls.h           |  1 +
+ 6 files changed, 50 insertions(+), 23 deletions(-)
