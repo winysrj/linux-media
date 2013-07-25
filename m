@@ -1,107 +1,56 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr2.xs4all.nl ([194.109.24.22]:2636 "EHLO
-	smtp-vbr2.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752610Ab3G0SEU (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:11939 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753121Ab3GYJwz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 27 Jul 2013 14:04:20 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr2.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6RI4HRk095685
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Sat, 27 Jul 2013 20:04:19 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id C549C35E017B
-	for <linux-media@vger.kernel.org>; Sat, 27 Jul 2013 20:04:16 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: ERRORS
-Message-Id: <20130727180416.C549C35E017B@alastor.dyndns.org>
-Date: Sat, 27 Jul 2013 20:04:16 +0200 (CEST)
+	Thu, 25 Jul 2013 05:52:55 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQH00KF2KO7JQ60@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Thu, 25 Jul 2013 10:52:52 +0100 (BST)
+Message-id: <51F0F573.5090709@samsung.com>
+Date: Thu, 25 Jul 2013 11:52:51 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Cc: linux-media@vger.kernel.org, prabhakar.csengg@gmail.com,
+	laurent.pinchart@ideasonboard.com, hverkuil@xs4all.nl,
+	kyungmin.park@samsung.com
+Subject: Re: [PATCH RFC 4/5] V4L2: Rename subdev field of struct
+ v4l2_async_notifier
+References: <1374516287-7638-1-git-send-email-s.nawrocki@samsung.com>
+ <1374516287-7638-5-git-send-email-s.nawrocki@samsung.com>
+ <Pine.LNX.4.64.1307241322100.30777@axis700.grange>
+In-reply-to: <Pine.LNX.4.64.1307241322100.30777@axis700.grange>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+Hi Gueannadi,
 
-Results of the daily build of media_tree:
+On 07/24/2013 01:26 PM, Guennadi Liakhovetski wrote:
+> On Mon, 22 Jul 2013, Sylwester Nawrocki wrote:
+> 
+>> > This is a purely cosmetic change. Since the 'subdev' member
+>> > points to an array of subdevs it seems more intuitive to name
+>> > it in plural form.
+>
+> Well, I was aware of the fact, that "subdev" is an array and that the 
+> plural form of "subdev" would be "subdevs" :-) It was kind of a conscious 
+> choice. I think, both ways can be found in the kernel: using singulars and 
+> plurals for array names. Whether one of them is better than the other - no 
+> idea. My personal preference is somewhat with the singular form as in, say 
+> "subdev array" instead of "subdevs array," i.e. as an adjective, but I 
+> really don't care all that much :) Feel free to change if that's important 
+> for you or for others on V4L :)
 
-date:		Sat Jul 27 19:00:23 CEST 2013
-git branch:	test
-git hash:	51dd4d70fc59564454a4dcb90d6d46d39a4a97ef
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+Sorry, I expected this patch to be a bit controversial... :) I agree it
+might be a matter of taste, but subdev/num_subdevs pair bothered me quite
+a bit so I've decided to post the patch anyway.
+If you don't mind that much I'd like to keep that patch in this series.
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: ERRORS
-linux-2.6.32.27-i686: ERRORS
-linux-2.6.33.7-i686: ERRORS
-linux-2.6.34.7-i686: ERRORS
-linux-2.6.35.9-i686: ERRORS
-linux-2.6.36.4-i686: ERRORS
-linux-2.6.37.6-i686: ERRORS
-linux-2.6.38.8-i686: ERRORS
-linux-2.6.39.4-i686: ERRORS
-linux-3.0.60-i686: ERRORS
-linux-3.10-i686: OK
-linux-3.1.10-i686: ERRORS
-linux-3.2.37-i686: ERRORS
-linux-3.3.8-i686: ERRORS
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: ERRORS
-linux-2.6.32.27-x86_64: ERRORS
-linux-2.6.33.7-x86_64: ERRORS
-linux-2.6.34.7-x86_64: ERRORS
-linux-2.6.35.9-x86_64: ERRORS
-linux-2.6.36.4-x86_64: ERRORS
-linux-2.6.37.6-x86_64: ERRORS
-linux-2.6.38.8-x86_64: ERRORS
-linux-2.6.39.4-x86_64: ERRORS
-linux-3.0.60-x86_64: ERRORS
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: ERRORS
-linux-3.2.37-x86_64: ERRORS
-linux-3.3.8-x86_64: ERRORS
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Saturday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
+--
+Thanks,
+Sylwester
