@@ -1,67 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f41.google.com ([209.85.220.41]:57001 "EHLO
-	mail-pa0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932278Ab3GKJLL (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:20693 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755930Ab3GYN0A (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:11:11 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	"John W. Linville" <linville@tuxdriver.com>,
-	libertas-dev@lists.infradead.org
-Subject: [PATCH 34/50] wireless: libertas_tf: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:57 +0800
-Message-Id: <1373533573-12272-35-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Thu, 25 Jul 2013 09:26:00 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6PDPtGO025835
+	for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 13:25:57 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 1/5] qv4l2: move function ctrlEvent
+Date: Thu, 25 Jul 2013 15:25:20 +0200
+Message-Id: <0fd43d1af7343792f570f32251ad150735066f71.1374758669.git.bwinther@cisco.com>
+In-Reply-To: <1374758724-3058-1-git-send-email-bwinther@cisco.com>
+References: <1374758724-3058-1-git-send-email-bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+Moved the ctrlEvent() function in qv4l2.cpp to be grouped with GUI function
+and to group capFrame() and capVbiFrame() together.
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: libertas-dev@lists.infradead.org
-Cc: linux-wireless@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
 ---
- drivers/net/wireless/libertas_tf/if_usb.c |    6 ++++--
- 1 file changed, 4 insertions(+), 2 deletions(-)
+ utils/qv4l2/qv4l2.cpp | 94 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 47 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/net/wireless/libertas_tf/if_usb.c b/drivers/net/wireless/libertas_tf/if_usb.c
-index d576dd6..0e9e972 100644
---- a/drivers/net/wireless/libertas_tf/if_usb.c
-+++ b/drivers/net/wireless/libertas_tf/if_usb.c
-@@ -610,6 +610,8 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
- 				      struct if_usb_card *cardp,
- 				      struct lbtf_private *priv)
- {
-+	unsigned long flags;
-+
- 	if (recvlength > LBS_CMD_BUFFER_SIZE) {
- 		lbtf_deb_usbd(&cardp->udev->dev,
- 			     "The receive buffer is too large\n");
-@@ -619,12 +621,12 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
- 
- 	BUG_ON(!in_interrupt());
- 
--	spin_lock(&priv->driver_lock);
-+	spin_lock_irqsave(&priv->driver_lock, flags);
- 	memcpy(priv->cmd_resp_buff, recvbuff + MESSAGE_HEADER_LEN,
- 	       recvlength - MESSAGE_HEADER_LEN);
- 	kfree_skb(skb);
- 	lbtf_cmd_response_rx(priv);
--	spin_unlock(&priv->driver_lock);
-+	spin_unlock_irqrestore(&priv->driver_lock, flags);
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index de9b154..a8fcc65 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -202,6 +202,53 @@ void ApplicationWindow::openrawdev()
+ 		setDevice(d.selectedFiles().first(), true);
  }
  
- /**
++void ApplicationWindow::ctrlEvent()
++{
++	v4l2_event ev;
++
++	while (dqevent(ev)) {
++		if (ev.type != V4L2_EVENT_CTRL)
++			continue;
++		m_ctrlMap[ev.id].flags = ev.u.ctrl.flags;
++		m_ctrlMap[ev.id].minimum = ev.u.ctrl.minimum;
++		m_ctrlMap[ev.id].maximum = ev.u.ctrl.maximum;
++		m_ctrlMap[ev.id].step = ev.u.ctrl.step;
++		m_ctrlMap[ev.id].default_value = ev.u.ctrl.default_value;
++		m_widgetMap[ev.id]->setDisabled(m_ctrlMap[ev.id].flags & CTRL_FLAG_DISABLED);
++		switch (m_ctrlMap[ev.id].type) {
++		case V4L2_CTRL_TYPE_INTEGER:
++		case V4L2_CTRL_TYPE_INTEGER_MENU:
++		case V4L2_CTRL_TYPE_MENU:
++		case V4L2_CTRL_TYPE_BOOLEAN:
++		case V4L2_CTRL_TYPE_BITMASK:
++			setVal(ev.id, ev.u.ctrl.value);
++			break;
++		case V4L2_CTRL_TYPE_INTEGER64:
++			setVal64(ev.id, ev.u.ctrl.value64);
++			break;
++		default:
++			break;
++		}
++		if (m_ctrlMap[ev.id].type != V4L2_CTRL_TYPE_STRING)
++			continue;
++		queryctrl(m_ctrlMap[ev.id]);
++
++		struct v4l2_ext_control c;
++		struct v4l2_ext_controls ctrls;
++
++		c.id = ev.id;
++		c.size = m_ctrlMap[ev.id].maximum + 1;
++		c.string = (char *)malloc(c.size);
++		memset(&ctrls, 0, sizeof(ctrls));
++		ctrls.count = 1;
++		ctrls.ctrl_class = 0;
++		ctrls.controls = &c;
++		if (!ioctl(VIDIOC_G_EXT_CTRLS, &ctrls))
++			setString(ev.id, c.string);
++		free(c.string);
++	}
++}
++
+ void ApplicationWindow::capVbiFrame()
+ {
+ 	__u32 buftype = m_genTab->bufType();
+@@ -305,53 +352,6 @@ void ApplicationWindow::capVbiFrame()
+ 		refresh();
+ }
+ 
+-void ApplicationWindow::ctrlEvent()
+-{
+-	v4l2_event ev;
+-
+-	while (dqevent(ev)) {
+-		if (ev.type != V4L2_EVENT_CTRL)
+-			continue;
+-		m_ctrlMap[ev.id].flags = ev.u.ctrl.flags;
+-		m_ctrlMap[ev.id].minimum = ev.u.ctrl.minimum;
+-		m_ctrlMap[ev.id].maximum = ev.u.ctrl.maximum;
+-		m_ctrlMap[ev.id].step = ev.u.ctrl.step;
+-		m_ctrlMap[ev.id].default_value = ev.u.ctrl.default_value;
+-		m_widgetMap[ev.id]->setDisabled(m_ctrlMap[ev.id].flags & CTRL_FLAG_DISABLED);
+-		switch (m_ctrlMap[ev.id].type) {
+-		case V4L2_CTRL_TYPE_INTEGER:
+-		case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		case V4L2_CTRL_TYPE_MENU:
+-		case V4L2_CTRL_TYPE_BOOLEAN:
+-		case V4L2_CTRL_TYPE_BITMASK:
+-			setVal(ev.id, ev.u.ctrl.value);
+-			break;
+-		case V4L2_CTRL_TYPE_INTEGER64:
+-			setVal64(ev.id, ev.u.ctrl.value64);
+-			break;
+-		default:
+-			break;
+-		}
+-		if (m_ctrlMap[ev.id].type != V4L2_CTRL_TYPE_STRING)
+-			continue;
+-		queryctrl(m_ctrlMap[ev.id]);
+-
+-		struct v4l2_ext_control c;
+-		struct v4l2_ext_controls ctrls;
+-
+-		c.id = ev.id;
+-		c.size = m_ctrlMap[ev.id].maximum + 1;
+-		c.string = (char *)malloc(c.size);
+-		memset(&ctrls, 0, sizeof(ctrls));
+-		ctrls.count = 1;
+-		ctrls.ctrl_class = 0;
+-		ctrls.controls = &c;
+-		if (!ioctl(VIDIOC_G_EXT_CTRLS, &ctrls))
+-			setString(ev.id, c.string);
+-		free(c.string);
+-	}
+-}
+-
+ void ApplicationWindow::capFrame()
+ {
+ 	__u32 buftype = m_genTab->bufType();
 -- 
-1.7.9.5
+1.8.3.2
 
