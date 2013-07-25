@@ -1,44 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from userp1040.oracle.com ([156.151.31.81]:23231 "EHLO
-	userp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756463Ab3GYQrZ (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:59105 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753394Ab3GYKPh (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 12:47:25 -0400
-Date: Thu, 25 Jul 2013 19:46:22 +0300
-From: Dan Carpenter <dan.carpenter@oracle.com>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: Antti Palosaari <crope@iki.fi>,
-	Nickolai Zeldovich <nickolai@csail.mit.edu>,
-	Peter Senna Tschudin <peter.senna@gmail.com>,
-	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
-	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
-Subject: [patch] [media] bt8xx: info leak in ca_get_slot_info()
-Message-ID: <20130725164621.GA6945@elgon.mountain>
+	Thu, 25 Jul 2013 06:15:37 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tomasz Figa <tomasz.figa@gmail.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>, broonie@kernel.org,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com,
+	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+Date: Thu, 25 Jul 2013 12:16:30 +0200
+Message-ID: <2174304.5JlzJ583hP@avalon>
+In-Reply-To: <201307242032.03597.arnd@arndb.de>
+References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org> <5977067.8rykRgjgre@flatron> <201307242032.03597.arnd@arndb.de>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-p_ca_slot_info was allocated with kmalloc() so we need to clear it
-before passing it to the user.
+Hi Arnd,
 
-Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+On Wednesday 24 July 2013 20:32:03 Arnd Bergmann wrote:
+> On Tuesday 23 July 2013, Tomasz Figa wrote:
+> > On Tuesday 23 of July 2013 17:14:20 Alan Stern wrote:
+> > > On Tue, 23 Jul 2013, Tomasz Figa wrote:
+> > > > Where would you want to have those phy_address arrays stored? There
+> > > > are no board files when booting with DT. Not even saying that you
+> > > > don't need to use any hacky schemes like this when you have DT that
+> > > > nicely specifies relations between devices.
+> > > 
+> > > If everybody agrees DT has a nice scheme for specifying relations
+> > > between devices, why not use that same scheme in the PHY core?
+> > 
+> > It is already used, for cases when consumer device has a DT node attached.
+> > In non-DT case this kind lookup translates loosely to something that is
+> > being done in regulator framework - you can't bind devices by pointers,
+> > because you don't have those pointers, so you need to use device names.
+> 
+> Sorry for jumping in to the middle of the discussion, but why does a *new*
+> framework even bother defining an interface for board files?
+> 
+> Can't we just drop any interfaces for platform data passing in the phy
+> framework and put the burden of adding those to anyone who actually needs
+> them? All the platforms we are concerned with here (exynos and omap, plus
+> new platforms) can be booted using DT anyway.
 
-diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
-index 0e788fc..6b9dc3f 100644
---- a/drivers/media/pci/bt8xx/dst_ca.c
-+++ b/drivers/media/pci/bt8xx/dst_ca.c
-@@ -302,8 +302,11 @@ static int ca_get_slot_info(struct dst_state *state, struct ca_slot_info *p_ca_s
- 		p_ca_slot_info->flags = CA_CI_MODULE_READY;
- 		p_ca_slot_info->num = 1;
- 		p_ca_slot_info->type = CA_CI;
--	} else
-+	} else {
- 		p_ca_slot_info->flags = 0;
-+		p_ca_slot_info->num = 0;
-+		p_ca_slot_info->type = 0;
-+	}
- 
- 	if (copy_to_user(arg, p_ca_slot_info, sizeof (struct ca_slot_info)))
- 		return -EFAULT;
+What about non-DT architectures such as MIPS (still widely used in consumer 
+networking equipments from what I've heard) ?
+
+-- 
+Regards,
+
+Laurent Pinchart
+
