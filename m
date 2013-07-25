@@ -1,64 +1,50 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:50437 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755656Ab3GYNHn (ORCPT
+Received: from mail-bk0-f42.google.com ([209.85.214.42]:55000 "EHLO
+	mail-bk0-f42.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755642Ab3GYNKg (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 09:07:43 -0400
-Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id r6PD7ePu022253
-	for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 13:07:40 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: "linux-media" <linux-media@vger.kernel.org>
-Subject: [GIT PULL FOR v3.11] Various fixes for 3.11
-Date: Thu, 25 Jul 2013 15:07:37 +0200
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="us-ascii"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307251507.37949.hverkuil@xs4all.nl>
+	Thu, 25 Jul 2013 09:10:36 -0400
+Received: by mail-bk0-f42.google.com with SMTP id jk13so679640bkc.1
+        for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 06:10:35 -0700 (PDT)
+From: Gregor Jasny <gjasny@googlemail.com>
+To: linux-media@vger.kernel.org
+Cc: Gregor Jasny <gjasny@googlemail.com>,
+	Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: [PATCH 1/4] xc3082: Fix use after free in free_firmware()
+Date: Thu, 25 Jul 2013 15:09:31 +0200
+Message-Id: <1374757774-29051-2-git-send-email-gjasny@googlemail.com>
+In-Reply-To: <1374757774-29051-1-git-send-email-gjasny@googlemail.com>
+References: <1374757774-29051-1-git-send-email-gjasny@googlemail.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+Detected by Coverity Scanner.
 
-Here is a list of fixes for 3.11.
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
+---
+ utils/xc3028-firmware/firmware-tool.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
 
-Regards,
+diff --git a/utils/xc3028-firmware/firmware-tool.c b/utils/xc3028-firmware/firmware-tool.c
+index b2e9de4..a7850df 100644
+--- a/utils/xc3028-firmware/firmware-tool.c
++++ b/utils/xc3028-firmware/firmware-tool.c
+@@ -86,13 +86,13 @@ static struct firmware* alloc_firmware(void) {
+ 
+ static void free_firmware(struct firmware *f) {
+ 	free(f->name);
+-	free(f->desc);
+ 	if(f->desc) {
+ 		unsigned int i = 0;
+ 		for(i = 0; i < f->nr_desc; ++ i) {
+ 			free(f->desc[i].data);
+ 		}
+ 	}
++	free(f->desc);
+ 	free(f);
+ }
+ 
+-- 
+1.8.3.2
 
-	Hans
-
-The following changes since commit c859e6ef33ac0c9a5e9e934fe11a2232752b4e96:
-
-  [media] dib0700: add support for PCTV 2002e & PCTV 2002e SE (2013-07-22 07:48:11 -0300)
-
-are available in the git repository at:
-
-  git://linuxtv.org/hverkuil/media_tree.git for-v3.11
-
-for you to fetch changes up to 9f750988a3a4e43b0262f792dc72fecd969dfeba:
-
-  hdpvr: fix iteration over uninitialized lists in hdpvr_probe() (2013-07-25 14:42:45 +0200)
-
-----------------------------------------------------------------
-Alexey Khoroshilov (1):
-      hdpvr: fix iteration over uninitialized lists in hdpvr_probe()
-
-Andrzej Hajda (2):
-      DocBook: upgrade media_api DocBook version to 4.2
-      v4l2: added missing mutex.h include to v4l2-ctrls.h
-
-Hans Verkuil (2):
-      ml86v7667: fix compile warning: 'ret' set but not used
-      usbtv: fix dependency
-
-Lubomir Rintel (2):
-      usbtv: Fix deinterlacing
-      usbtv: Throw corrupted frames away
-
- Documentation/DocBook/media_api.tmpl |  4 ++--
- drivers/media/i2c/ml86v7667.c        |  4 ++--
- drivers/media/usb/hdpvr/hdpvr-core.c | 11 ++++++-----
- drivers/media/usb/usbtv/Kconfig      |  2 +-
- drivers/media/usb/usbtv/usbtv.c      | 51 ++++++++++++++++++++++++++++++++++++++-------------
- include/media/v4l2-ctrls.h           |  1 +
- 6 files changed, 50 insertions(+), 23 deletions(-)
