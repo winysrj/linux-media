@@ -1,100 +1,88 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:44866 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1760898Ab3GSRtt (ORCPT
+Received: from cassiel.sirena.org.uk ([80.68.93.111]:36074 "EHLO
+	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755407Ab3GYJaR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 13:49:49 -0400
-Received: from lanttu.localdomain (salottisipuli.retiisi.org.uk [IPv6:2001:1bc8:102:7fc9::83:2])
-	by hillosipuli.retiisi.org.uk (Postfix) with ESMTP id A703E60097
-	for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 20:49:46 +0300 (EEST)
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: linux-media@vger.kernel.org
-Subject: [RFC 2/4] media: Check for active links on pads with MEDIA_PAD_FL_MUST_CONNECT flag
-Date: Fri, 19 Jul 2013 20:55:07 +0300
-Message-Id: <1374256509-7850-3-git-send-email-sakari.ailus@iki.fi>
-In-Reply-To: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi>
-References: <1374256509-7850-1-git-send-email-sakari.ailus@iki.fi>
+	Thu, 25 Jul 2013 05:30:17 -0400
+Date: Thu, 25 Jul 2013 10:29:57 +0100
+From: Mark Brown <broonie@kernel.org>
+To: Arnd Bergmann <arnd@arndb.de>
+Cc: Tomasz Figa <tomasz.figa@gmail.com>,
+	Alan Stern <stern@rowland.harvard.edu>,
+	Tomasz Figa <t.figa@samsung.com>,
+	Greg KH <gregkh@linuxfoundation.org>,
+	Kishon Vijay Abraham I <kishon@ti.com>,
+	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
+	Sascha Hauer <s.hauer@pengutronix.de>,
+	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
+	s.nawrocki@samsung.com, kgene.kim@samsung.com,
+	grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com,
+	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
+	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
+	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
+	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
+	b.zolnierkie@samsung.com,
+	Daniel Lezcano <daniel.lezcano@linaro.org>
+Message-ID: <20130725092957.GV9858@sirena.org.uk>
+References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
+ <5977067.8rykRgjgre@flatron>
+ <201307242032.03597.arnd@arndb.de>
+MIME-Version: 1.0
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature"; boundary="QD1r0wI5tTrL9hxl"
+Content-Disposition: inline
+In-Reply-To: <201307242032.03597.arnd@arndb.de>
+Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Do not allow streaming if a pad with MEDIA_PAD_FL_MUST_CONNECT flag is not
-connected by an active link.
 
-This patch makes it possible to avoid drivers having to check for the most
-common case of link state validation: a sink pad that must be connected.
+--QD1r0wI5tTrL9hxl
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
 
-Signed-off-by: Sakari Ailus <sakari.ailus@iki.fi>
----
- drivers/media/media-entity.c |   34 +++++++++++++++++++++++++++-------
- 1 file changed, 27 insertions(+), 7 deletions(-)
+On Wed, Jul 24, 2013 at 08:32:03PM +0200, Arnd Bergmann wrote:
 
-diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-index cb30ffb..4e58f8a 100644
---- a/drivers/media/media-entity.c
-+++ b/drivers/media/media-entity.c
-@@ -20,6 +20,7 @@
-  * Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-  */
- 
-+#include <linux/bitmap.h>
- #include <linux/module.h>
- #include <linux/slab.h>
- #include <media/media-entity.h>
-@@ -227,6 +228,7 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 	media_entity_graph_walk_start(&graph, entity);
- 
- 	while ((entity = media_entity_graph_walk_next(&graph))) {
-+		DECLARE_BITMAP(active, entity->num_pads);
- 		unsigned int i;
- 
- 		entity->stream_count++;
-@@ -240,21 +242,39 @@ __must_check int media_entity_pipeline_start(struct media_entity *entity,
- 		if (!entity->ops || !entity->ops->link_validate)
- 			continue;
- 
-+		bitmap_zero(active, entity->num_pads);
-+
- 		for (i = 0; i < entity->num_links; i++) {
- 			struct media_link *link = &entity->links[i];
--
--			/* Is this pad part of an enabled link? */
--			if (!(link->flags & MEDIA_LNK_FL_ENABLED))
--				continue;
--
--			/* Are we the sink or not? */
--			if (link->sink->entity != entity)
-+			struct media_pad *pad = link->sink->entity == entity
-+				? link->sink : link->source;
-+
-+			/*
-+			 * Pads that either do not need to connect or
-+			 * are connected through an enabled link are
-+			 * fine.
-+			 */
-+			if (!(pad->flags & MEDIA_PAD_FL_MUST_CONNECT)
-+			    || link->flags & MEDIA_LNK_FL_ENABLED)
-+				bitmap_set(active, pad->index, 1);
-+
-+			/*
-+			 * Link validation will only take place for
-+			 * sink ends of the link that are enabled.
-+			 */
-+			if (link->sink != pad
-+			    || !(link->flags & MEDIA_LNK_FL_ENABLED))
- 				continue;
- 
- 			ret = entity->ops->link_validate(link);
- 			if (ret < 0 && ret != -ENOIOCTLCMD)
- 				goto error;
- 		}
-+
-+		if (!bitmap_full(active, entity->num_pads)) {
-+			ret = -EPIPE;
-+			goto error;
-+		}
- 	}
- 
- 	mutex_unlock(&mdev->graph_mutex);
--- 
-1.7.10.4
+> Sorry for jumping in to the middle of the discussion, but why does a *new*
+> framework even bother defining an interface for board files?
 
+> Can't we just drop any interfaces for platform data passing in the phy
+> framework and put the burden of adding those to anyone who actually needs
+> them? All the platforms we are concerned with here (exynos and omap,
+> plus new platforms) can be booted using DT anyway.
+
+There's a bunch of non-DT architectures that are in active use (blackfin
+for example) and I'd really hope that this is useful for some of them.
+
+The pushback here was about the fact that the subsystem was doing odd
+things with selecting device names which is odd in itself, I don't know
+if that had bled over into the DT bindings but it sounded like it
+might've done so.
+
+--QD1r0wI5tTrL9hxl
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: Digital signature
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v2.0.20 (GNU/Linux)
+
+iQIcBAEBAgAGBQJR8PARAAoJELSic+t+oim9h80P/1oXCil2BLGuGCRwLn6bJHhk
+/07tzgZUwbrAEYfnu4JOwfHn4gTIqqK7mFxzM5FV5N3o8+YtPSy/iWs6p8hho2z8
+8MPbMYN3mkR271aRq/B0m4OthaF32XNAkYO5khSYQprV4thtuhFqIOJd8l1/+4dL
+I5LMkD1HvMLQBdLjsRdjwmNCLOfpBBLsng85n6UlOKtPSQy2In/d5xsJI8/Gh8OQ
+rvCzyGjSiHetL9ZX5wz11+odJmVXah3ZaIOLn9xWJjS5EtD/Nr4iT19r2gYdkzOk
+td6igrTO6k+5bdP/WIM6Fr4Fr6B7y7zWCA7MBma6kFoosp+dL2x9A+zWKQwLmHFR
+lZLUgqiSy9vIiHSmCrpfwvbABtssVBi7fzIxcFKrhB3f6/ek2LTJ5jYgBg7yBTOe
+1RNpwm6Bx3O9wJXWKrpobADL/ynPUtu9ttjYrCJw/sy18m8ZhDuycOOnRX1Ulhc0
+g8LX/my6f8Mc2yNJiYdwNUMEL7iMynUqqH2Sy/5IbUN8GmWXNaBTFXczYAaKqFkt
+p+CzV2fGcH+po1fwRclBP/0n9ywv5a6x8lHPYqVWkDOww8d4b694CaV6ZYTwDwIL
+jor467WvL4OCk7OqfZ2f8RX3K2wp3DC5O24o695bf97hMGrpEU5S6Pm3p1XiDgvu
+3LuNvC7nJdI900hwVANz
+=1iQH
+-----END PGP SIGNATURE-----
+
+--QD1r0wI5tTrL9hxl--
