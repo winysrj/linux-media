@@ -1,165 +1,98 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from omr-d07.mx.aol.com ([205.188.109.204]:45915 "EHLO
-	omr-d07.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755013Ab3GOTj4 (ORCPT
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:20693 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755825Ab3GYNZ7 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jul 2013 15:39:56 -0400
-Message-ID: <51E44DCA.8060702@netscape.net>
-Date: Mon, 15 Jul 2013 16:30:18 -0300
-From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
-	<alfredodelaiti@netscape.net>
-MIME-Version: 1.0
+	Thu, 25 Jul 2013 09:25:59 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6PDPtGN025835
+	for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 13:25:55 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-CC: Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: mb86a20s and cx23885
-References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com> <5106E3EA.70307@netscape.net> <511264CF.3010002@netscape.net> <51336331.10205@netscape.net> <20130303134051.6dc038aa@redhat.com> <20130304164234.18df36a7@redhat.com> <51353591.4040709@netscape.net> <20130304233028.7bc3c86c@redhat.com> <513A6968.4070803@netscape.net> <515A0D03.7040802@netscape.net>
-In-Reply-To: <515A0D03.7040802@netscape.net>
-Content-Type: text/plain; charset=UTF-8; format=flowed
-Content-Transfer-Encoding: 7bit
+Subject: [PATCHv2 0/5] qv4l2: add OpenGL render and window fixes
+Date: Thu, 25 Jul 2013 15:25:19 +0200
+Message-Id: <1374758724-3058-1-git-send-email-bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi all
+The qv4l2 test utility now supports OpenGL-accelerated display of video.
+This allows for using the graphics card to render the video content to screen
+and to perform color space conversion.
 
-After some time trying to see what the problem is, I have found it is 
-not come the RF signal.
+The OpenGL implementation requires OpenGL and QtOpenGL libraries as well as an OpenGL driver
+(typically from the graphics driver). If OpenGL support is not present,
+then the program will fall back to using the CPU to display.
 
-I've gone back using a 3.2 kernel, after doing a couple of tests, the 
-board works :-)
-When I try to apply these changes to a 3.4 or later kernel does not tune 
-plate.
+Changelog v2:
+- Cleaned up the capture win code and classes
+- CaptureWin is now a base class that can be used to implement different ways of displaying video.
+- setMinimumSize is now more reliable
+- Small code tweaks and improvements, including cleaner display flow
+- Changed the OpenGL abbreviation from OGL to GL
 
-Between 3.2 and 3.4 kernel there are several changes to the drivers: 
-CX23885, xc5000 and mb86a20s. I tried to cancel several of them on a 3.4 
-kernel, but I can not make the card tune.
+Some of the changes/improvements:
+- Moved the ctrlEvent() function in qv4l2.cpp to be grouped with GUI function
+  and to group capFrame() and capVbiFrame() together.
+- OpenGL acceleration for supported systems.
+- Option to change between GPU or CPU based rendering.
+- CaptureWin's setMinimumSize() sets the minimum size for the video frame viewport
+  and not for the window itself. If the minimum size is larger than the monitor resolution,
+  it will reduce the minimum size to match this.
+- Added a new menu option 'Preview' for controlling the CaptureWin's behavior.
+- Added a couple of hotkeys:
+    CTRL + V : When main window is selected start capture.
+               This gives an option other than the button to start recording,
+               as this is a frequent operation when using the utility.
+    CTRL + W : When CaptureWin is selected close capture window.
+               It makes it easier to deal with high resolutions video on
+               small screen, especially when the window close button may
+               be outside the monitor when repositioning the window.
 
-The changes I have applied to kernel 3.2 are:
+Known issues:
+- Repositioning, scaling or switching windows while the capture is recording will reduce the framerate.
+  This is a limitation of Qt and not OpenGL.
+- Using 4 streams of RGB3 1080p60 can at random times cease to render correctly
+  and reduce the framerate to half. A restart solves this though.
+- OpenGL is limited to 60fps. Disabling V-sync might allow for faster framerates.
+- Resizing or scaling is not supported, mainly because the YUY2 shader renders the image incorrectly
+  when the canvas size is not equal to the frame size.
+- Some of the supported OpenGL formats may use the CPU for colorspace conversion, but this is driver dependant.  
 
-In mb86a20s.c, I replaced the table "mb86a20s_init" for which I got from 
-windows and linux last.
-With the two works, although it seems better that I got from Windows, I 
-have to experiment a bit more.
-Also in "Does a binary search to get RF strength"  I replaced 0x04 for 0x05.
+Supported formats for OpenGL render:
+- Native supported and accelerated:
+    V4L2_PIX_FMT_RGB32
+    V4L2_PIX_FMT_BGR32
+    V4L2_PIX_FMT_RGB24
+    V4L2_PIX_FMT_BGR24
+    V4L2_PIX_FMT_RGB565
+    V4L2_PIX_FMT_RGB555
 
-On cx23885-card.c
-         .name         = "Mygica X8507",
-         .tuner_type     = TUNER_XC5000,
-         .tuner_addr     = 0x61,
-         .tuner_bus     = 1,
-         .porta         = CX23885_ANALOG_VIDEO,
-+        .portb        = CX23885_MPEG_DVB,
-         .input         = {
+    V4L2_PIX_FMT_YUYV
+    V4L2_PIX_FMT_YVYU
+    V4L2_PIX_FMT_UYVY
+    V4L2_PIX_FMT_VYUY
+    V4L2_PIX_FMT_YVU420
+    V4L2_PIX_FMT_YUV420
 
+- All formats supported by V4L conversion library,
+  but they will use the CPU to convert to RGB3 before being displayed with OpenGL.
 
+Performance:
+All tests are done on an Intel i7-2600S (with Turbo Boost disabled) using the
+integrated Intel HD 2000 graphics processor. The mothreboard is an ASUS P8H77-I
+with 2x2GB CL 9-9-9-24 DDR3 RAM. The capture card is a Cisco test card with 4 HDMI
+inputs connected using PCIe2.0x8. All video input streams used for testing are
+progressive HD (1920x1080) with 60fps.
 
-       case CX23885_BOARD_MYGICA_X8506:
-     case CX23885_BOARD_MAGICPRO_PROHDTVE2:
-+    case CX23885_BOARD_MYGICA_X8507:
-         ts1->gen_ctrl_val  = 0x5; /* Parallel */
-         ts1->ts_clk_en_val = 0x1; /* Enable TS_CLK */
-         ts1->src_sel_val   = CX23885_SRC_SEL_PARALLEL_MPEG_VIDEO;
-         break;
-
-On cx23885-dvb.c
-
-  #include "stv0367.h"
-+#include "mb86a20s.h"
-
-+static struct mb86a20s_config mygica_x8507_mb86a20s_config = {
-+    .demod_address = 0x10,
-+};
-+
-+static struct xc5000_config mygica_x8507_xc5000_config = {
-+    .i2c_address = 0x61,
-+    .if_khz = 4000,
-+};
-
-     case CX23885_BOARD_MYGICA_X8506:
-     case CX23885_BOARD_MAGICPRO_PROHDTVE2:
-+    case CX23885_BOARD_MYGICA_X8507:
-         /* Select Digital TV */
-         cx23885_gpio_set(dev, GPIO_0);
-         break;
-
-+    case CX23885_BOARD_MYGICA_X8507:
-+        i2c_bus = &dev->i2c_bus[0];
-+        i2c_bus2 = &dev->i2c_bus[1];
-+        fe0->dvb.frontend = dvb_attach(mb86a20s_attach,
-+            &mygica_x8507_mb86a20s_config,
-+            &i2c_bus->i2c_adap);
-+        if (fe0->dvb.frontend != NULL) {
-+            dvb_attach(xc5000_attach,
-+                fe0->dvb.frontend,
-+                &i2c_bus2->i2c_adap,
-+                &mygica_x8507_xc5000_config);
-+        }
-+        break;
-
-
-With kernel 3.4 or greater (I also tried with the latest drivers from 
-git) "looking" i2c bus traffic of mb86a20s I get:
-
-0x20 0x0a 0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x07 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x03 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x01 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x7f 0x20 0x04 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x3f 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x1f 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x0f 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x07 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x03 0x20 0x02 
-0x21 0x0a
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x05 0x20 0x02 
-0x21 0x0a
-0x20 0x0a 0x21 0x02
-
-and the kernel 3.2 and windows
-
-0x20 0x02 0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x03 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x01 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0xff 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x7f 0x20 0x02 
-0x21 0x0a
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0xbf 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x9f 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x3c 0x40 0x04 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x87 0x20 0x02 
-0x21 0x02
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x83 0x20 0x02 
-0x21 0x0a
-0x20 0x04 0x1f 0x20 0x05 0x00 0x20 0x04 0x20 0x20 0x05 0x85 0x20 0x02 
-0x21 0x02
-
-Appear not arrived RF signal.
-
- From my limited knowledge I can not understand which of the changes 
-between 3.2 and 3.4 kernel affect this.
-
-As with kernel 3.2 works, discard configuration problems of: GPIO, 
-signal strength, direction i2c bus  and  demodulator and intermediate 
-frequency. I am right?
+FPS for every input for a given number of streams:
+      1 STREAM  2 STREAMS  3 STREAMS  4 STREAMS
+RGB3      60        60         60         60
+BGR3      60        60         60         50
+YUYV      60        60         60         48
+YU12      60        60         60         52
+YV12      60        60         60         52
 
 
-Any suggestions or help is very welcome.
-
-Thanks in advance,
-
-Alfredo
