@@ -1,56 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-yh0-f49.google.com ([209.85.213.49]:50372 "EHLO
-	mail-yh0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754004Ab3GWBii (ORCPT
+Received: from ams-iport-1.cisco.com ([144.254.224.140]:25253 "EHLO
+	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755823Ab3GYNZH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 22 Jul 2013 21:38:38 -0400
-Received: by mail-yh0-f49.google.com with SMTP id f64so760251yha.36
-        for <linux-media@vger.kernel.org>; Mon, 22 Jul 2013 18:38:37 -0700 (PDT)
-From: Fabio Estevam <festevam@gmail.com>
-To: k.debski@samsung.com
-Cc: m.chehab@samsung.com, kernel@pengutronix.de,
-	linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Subject: [PATCH v3 3/3] [media] coda: No need to check the return value of platform_get_resource()
-Date: Mon, 22 Jul 2013 22:38:22 -0300
-Message-Id: <1374543502-22678-3-git-send-email-festevam@gmail.com>
-In-Reply-To: <1374543502-22678-1-git-send-email-festevam@gmail.com>
-References: <1374543502-22678-1-git-send-email-festevam@gmail.com>
+	Thu, 25 Jul 2013 09:25:07 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+Subject: Re: [GIT PULL FOR v3.11]
+Date: Thu, 25 Jul 2013 15:25:01 +0200
+Cc: "linux-media" <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+References: <201306270855.49444.hverkuil@xs4all.nl> <CA+V-a8sYvBWGJGBF6JWwjKHwW_4Ew8wp6yBQnCrpeebAkJ4EmA@mail.gmail.com>
+In-Reply-To: <CA+V-a8sYvBWGJGBF6JWwjKHwW_4Ew8wp6yBQnCrpeebAkJ4EmA@mail.gmail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201307251525.01108.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Fabio Estevam <fabio.estevam@freescale.com>
+Hi Prabhakar,
 
-When using devm_ioremap_resource(), we do not need to check the return value of
-platform_get_resource(), so just remove it.
+On Thu 11 July 2013 19:25:15 Prabhakar Lad wrote:
+> Hi Hans,
+> 
+> On Thu, Jun 27, 2013 at 12:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> > (Same as my previous git pull message, but with more cleanup patches and
+> [snip]
+> > Lad, Prabhakar (9):
+> >       media: i2c: ths8200: support asynchronous probing
+> >       media: i2c: ths8200: add OF support
+> >       media: i2c: adv7343: add support for asynchronous probing
+> >       media: i2c: tvp7002: add support for asynchronous probing
+> >       media: i2c: tvp7002: remove manual setting of subdev name
+> >       media: i2c: tvp514x: remove manual setting of subdev name
+> >       media: i2c: tvp514x: add support for asynchronous probing
+> >       media: davinci: vpif: capture: add V4L2-async support
+> >       media: davinci: vpif: display: add V4L2-async support
+> >
+> I see last two patches missing in Mauro's pull request for v3.11 and v3.11-rc1.
 
-Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-Acked-by: Philipp Zabel <p.zabel@pengutronix.de>
----
-Changes since v2:
-- None
-Changes since v1:
-- None
+I had to split up my pull request into fixes for 3.11 and new stuff for 3.12
+since the merge window was about to open at the time.
 
- drivers/media/platform/coda.c | 5 -----
- 1 file changed, 5 deletions(-)
+Your 'missing' patches are here:
 
-diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-index 5f15aaa..78c9236 100644
---- a/drivers/media/platform/coda.c
-+++ b/drivers/media/platform/coda.c
-@@ -2053,11 +2053,6 @@ static int coda_probe(struct platform_device *pdev)
- 
- 	/* Get  memory for physical registers */
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (res == NULL) {
--		dev_err(&pdev->dev, "failed to get memory region resource\n");
--		return -ENOENT;
--	}
--
- 	dev->regs_base = devm_ioremap_resource(&pdev->dev, res);
- 	if (IS_ERR(dev->regs_base))
- 		return PTR_ERR(dev->regs_base);
--- 
-1.8.1.2
+http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.12
 
+In the next few days I'll try to process all remaining patches delegated to me.
+If you have patches not yet delegated to me, or that are not in my for-v3.12
+branch, then let me know.
+
+Regards,
+
+	Hans
