@@ -1,114 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f46.google.com ([209.85.220.46]:39578 "EHLO
-	mail-pa0-f46.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932090Ab3GKJH6 (ORCPT
+Received: from aserp1040.oracle.com ([141.146.126.69]:37384 "EHLO
+	aserp1040.oracle.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756774Ab3GYRjv (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:07:58 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Matthias Bruestle and Harald Welte <support@reiner-sct.com>
-Subject: [PATCH 10/50] USB: serial: cyberjack: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:33 +0800
-Message-Id: <1373533573-12272-11-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Thu, 25 Jul 2013 13:39:51 -0400
+Date: Thu, 25 Jul 2013 20:38:32 +0300
+From: Dan Carpenter <dan.carpenter@oracle.com>
+To: walter harms <wharms@bfs.de>
+Cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Antti Palosaari <crope@iki.fi>,
+	Nickolai Zeldovich <nickolai@csail.mit.edu>,
+	Peter Senna Tschudin <peter.senna@gmail.com>,
+	Andy Shevchenko <andriy.shevchenko@linux.intel.com>,
+	linux-media@vger.kernel.org, kernel-janitors@vger.kernel.org
+Subject: Re: [patch] [media] bt8xx: info leak in ca_get_slot_info()
+Message-ID: <20130725173832.GC5585@mwanda>
+References: <20130725164621.GA6945@elgon.mountain>
+ <51F16065.40804@bfs.de>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <51F16065.40804@bfs.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+On Thu, Jul 25, 2013 at 07:29:09PM +0200, walter harms wrote:
+> 
+> 
+> Am 25.07.2013 18:46, schrieb Dan Carpenter:
+> > p_ca_slot_info was allocated with kmalloc() so we need to clear it
+> > before passing it to the user.
+> > 
+> > Signed-off-by: Dan Carpenter <dan.carpenter@oracle.com>
+> > 
+> > diff --git a/drivers/media/pci/bt8xx/dst_ca.c b/drivers/media/pci/bt8xx/dst_ca.c
+> > index 0e788fc..6b9dc3f 100644
+> > --- a/drivers/media/pci/bt8xx/dst_ca.c
+> > +++ b/drivers/media/pci/bt8xx/dst_ca.c
+> > @@ -302,8 +302,11 @@ static int ca_get_slot_info(struct dst_state *state, struct ca_slot_info *p_ca_s
+> >  		p_ca_slot_info->flags = CA_CI_MODULE_READY;
+> >  		p_ca_slot_info->num = 1;
+> >  		p_ca_slot_info->type = CA_CI;
+> > -	} else
+> > +	} else {
+> >  		p_ca_slot_info->flags = 0;
+> > +		p_ca_slot_info->num = 0;
+> > +		p_ca_slot_info->type = 0;
+> > +	}
+> >  
+> >  	if (copy_to_user(arg, p_ca_slot_info, sizeof (struct ca_slot_info)))
+> >  		return -EFAULT;
+> 
+> note: i have no clue how p_ca_slot_info looks like,
+> but to avoid information leaks via compiler padding etc. i could be more wise
+> to do a  memset(p_ca_slot_info,0,sizeof (struct ca_slot_info))
+> and then set the
 
-Cc: Matthias Bruestle and Harald Welte <support@reiner-sct.com>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/usb/serial/cyberjack.c |   15 +++++++++------
- 1 file changed, 9 insertions(+), 6 deletions(-)
+There is no compiler padding.  My static checker looks for that.
 
-diff --git a/drivers/usb/serial/cyberjack.c b/drivers/usb/serial/cyberjack.c
-index 7814262..0ab0957 100644
---- a/drivers/usb/serial/cyberjack.c
-+++ b/drivers/usb/serial/cyberjack.c
-@@ -271,11 +271,12 @@ static void cyberjack_read_int_callback(struct urb *urb)
- 	/* React only to interrupts signaling a bulk_in transfer */
- 	if (urb->actual_length == 4 && data[0] == 0x01) {
- 		short old_rdtodo;
-+		unsigned long flags;
- 
- 		/* This is a announcement of coming bulk_ins. */
- 		unsigned short size = ((unsigned short)data[3]<<8)+data[2]+3;
- 
--		spin_lock(&priv->lock);
-+		spin_lock_irqsave(&priv->lock, flags);
- 
- 		old_rdtodo = priv->rdtodo;
- 
-@@ -290,7 +291,7 @@ static void cyberjack_read_int_callback(struct urb *urb)
- 
- 		dev_dbg(dev, "%s - rdtodo: %d\n", __func__, priv->rdtodo);
- 
--		spin_unlock(&priv->lock);
-+		spin_unlock_irqrestore(&priv->lock, flags);
- 
- 		if (!old_rdtodo) {
- 			result = usb_submit_urb(port->read_urb, GFP_ATOMIC);
-@@ -317,6 +318,7 @@ static void cyberjack_read_bulk_callback(struct urb *urb)
- 	short todo;
- 	int result;
- 	int status = urb->status;
-+	unsigned long flags;
- 
- 	usb_serial_debug_data(dev, __func__, urb->actual_length, data);
- 	if (status) {
-@@ -330,7 +332,7 @@ static void cyberjack_read_bulk_callback(struct urb *urb)
- 		tty_flip_buffer_push(&port->port);
- 	}
- 
--	spin_lock(&priv->lock);
-+	spin_lock_irqsave(&priv->lock, flags);
- 
- 	/* Reduce urbs to do by one. */
- 	priv->rdtodo -= urb->actual_length;
-@@ -339,7 +341,7 @@ static void cyberjack_read_bulk_callback(struct urb *urb)
- 		priv->rdtodo = 0;
- 	todo = priv->rdtodo;
- 
--	spin_unlock(&priv->lock);
-+	spin_unlock_irqrestore(&priv->lock, flags);
- 
- 	dev_dbg(dev, "%s - rdtodo: %d\n", __func__, todo);
- 
-@@ -359,6 +361,7 @@ static void cyberjack_write_bulk_callback(struct urb *urb)
- 	struct cyberjack_private *priv = usb_get_serial_port_data(port);
- 	struct device *dev = &port->dev;
- 	int status = urb->status;
-+	unsigned long flags;
- 
- 	set_bit(0, &port->write_urbs_free);
- 	if (status) {
-@@ -367,7 +370,7 @@ static void cyberjack_write_bulk_callback(struct urb *urb)
- 		return;
- 	}
- 
--	spin_lock(&priv->lock);
-+	spin_lock_irqsave(&priv->lock, flags);
- 
- 	/* only do something if we have more data to send */
- 	if (priv->wrfilled) {
-@@ -411,7 +414,7 @@ static void cyberjack_write_bulk_callback(struct urb *urb)
- 	}
- 
- exit:
--	spin_unlock(&priv->lock);
-+	spin_unlock_irqrestore(&priv->lock, flags);
- 	usb_serial_port_softint(port);
- }
- 
--- 
-1.7.9.5
+regards,
+dan carpenter
 
