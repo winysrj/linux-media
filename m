@@ -1,97 +1,100 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.linuxfoundation.org ([140.211.169.12]:36281 "EHLO
-	mail.linuxfoundation.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755610Ab3GUPr4 (ORCPT
+Received: from mail-pb0-f41.google.com ([209.85.160.41]:61546 "EHLO
+	mail-pb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753127Ab3GYHdb (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jul 2013 11:47:56 -0400
-Date: Sun, 21 Jul 2013 08:48:08 -0700
-From: Greg KH <gregkh@linuxfoundation.org>
-To: Sascha Hauer <s.hauer@pengutronix.de>
-Cc: Alan Stern <stern@rowland.harvard.edu>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree-discuss@lists.ozlabs.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Message-ID: <20130721154808.GH16598@kroah.com>
-References: <20130720220006.GA7977@kroah.com>
- <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org>
- <20130721025910.GA23043@kroah.com>
- <20130721102248.GE29785@pengutronix.de>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <20130721102248.GE29785@pengutronix.de>
+	Thu, 25 Jul 2013 03:33:31 -0400
+Received: by mail-pb0-f41.google.com with SMTP id rp16so420665pbb.28
+        for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 00:33:30 -0700 (PDT)
+Date: Thu, 25 Jul 2013 16:29:22 +0900 (JST)
+Message-Id: <20130725.162922.274362407.matsu@igel.co.jp>
+To: vladimir.barinov@cogentembedded.com
+Cc: g.liakhovetski@gmx.de, mchehab@redhat.com,
+	linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	linux-sh@vger.kernel.org, phil.edworthy@renesas.com,
+	sergei.shtylyov@cogentembedded.com
+Subject: Re: [PATCH v8] V4L2: soc_camera: Renesas R-Car VIN driver
+From: Katsuya MATSUBARA <matsu@igel.co.jp>
+In-Reply-To: <51F0CBF7.9080201@cogentembedded.com>
+References: <201307200314.35345.sergei.shtylyov@cogentembedded.com>
+	<20130725.120113.75189051.matsu@igel.co.jp>
+	<51F0CBF7.9080201@cogentembedded.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, Jul 21, 2013 at 12:22:48PM +0200, Sascha Hauer wrote:
-> On Sat, Jul 20, 2013 at 07:59:10PM -0700, Greg KH wrote:
-> > On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
-> > > On Sat, 20 Jul 2013, Greg KH wrote:
-> > > 
-> > > > > >>That should be passed using platform data.
-> > > > > >
-> > > > > >Ick, don't pass strings around, pass pointers.  If you have platform
-> > > > > >data you can get to, then put the pointer there, don't use a "name".
-> > > > > 
-> > > > > I don't think I understood you here :-s We wont have phy pointer
-> > > > > when we create the device for the controller no?(it'll be done in
-> > > > > board file). Probably I'm missing something.
-> > > > 
-> > > > Why will you not have that pointer?  You can't rely on the "name" as the
-> > > > device id will not match up, so you should be able to rely on the
-> > > > pointer being in the structure that the board sets up, right?
-> > > > 
-> > > > Don't use names, especially as ids can, and will, change, that is going
-> > > > to cause big problems.  Use pointers, this is C, we are supposed to be
-> > > > doing that :)
-> > > 
-> > > Kishon, I think what Greg means is this:  The name you are using must
-> > > be stored somewhere in a data structure constructed by the board file,
-> > > right?  Or at least, associated with some data structure somehow.  
-> > > Otherwise the platform code wouldn't know which PHY hardware
-> > > corresponded to a particular name.
-> > > 
-> > > Greg's suggestion is that you store the address of that data structure 
-> > > in the platform data instead of storing the name string.  Have the 
-> > > consumer pass the data structure's address when it calls phy_create, 
-> > > instead of passing the name.  Then you don't have to worry about two 
-> > > PHYs accidentally ending up with the same name or any other similar 
-> > > problems.
-> > 
-> > Close, but the issue is that whatever returns from phy_create() should
-> > then be used, no need to call any "find" functions, as you can just use
-> > the pointer that phy_create() returns.  Much like all other class api
-> > functions in the kernel work.
+
+ Hi Vladimir,
+
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Date: Thu, 25 Jul 2013 10:55:51 +0400
+
+> Hi  Matsubara-san,
 > 
-> I think the problem here is to connect two from the bus structure
-> completely independent devices. Several frameworks (ASoC, soc-camera)
-> had this problem and this wasn't solved until the advent of devicetrees
-> and their phandles.
-> phy_create might be called from the probe function of some i2c device
-> (the phy device) and the resulting pointer is then needed in some other
-> platform devices (the user of the phy) probe function.
-> The best solution we have right now is implemented in the clk framework
-> which uses a string matching of the device names in clk_get() (at least
-> in the non-dt case).
+> On 07/25/2013 07:01 AM, Katsuya MATSUBARA wrote:
+>>   Hi Vladimir,
+>>
+>>   Thank you for the revised patch.
+>>
+>> From: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
+>> Date: Sat, 20 Jul 2013 03:14:34 +0400
+>>
+>>> From: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
+>>>
+>>> Add Renesas R-Car VIN (Video In) V4L2 driver.
+>>>
+>>> Based on the patch by Phil Edworthy<phil.edworthy@renesas.com>.
+>>>
+>>> Signed-off-by: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
+>>> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed
+>>> 'enum chip_id'
+>>> values, reordered rcar_vin_id_table[] entries, removed senseless
+>>> parens from
+>>> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {}
+>>> to the
+>>> *if* statement and used 'bool' values instead of 0/1 where necessary,
+>>> *removed
+>>> unused macros, done some reformatting and clarified some comments.]
+>>> Signed-off-by: Sergei Shtylyov<sergei.shtylyov@cogentembedded.com>
+>>>
+>>> ---
+>>> This patch is against the 'media_tree.git' repo.
+>>>
+>>> Changes since version 7:
+>>> - remove 'icd' field from 'struct rcar_vin_priv' in accordance with the
+>>> - commit
+>>>    f7f6ce2d09c86bd80ee11bd654a1ac1e8f5dfe13 ([media] soc-camera: move
+>>>    common code
+>>>    to soc_camera.c);
+>>> - added mandatory clock_{start|stop}() methods in accordance with the
+>>> - commit
+>>>    a78fcc11264b824d9651b55abfeedd16d5cd8415 ([media] soc-camera: make
+>>>    .clock_
+>>>    {start,stop} compulsory, .add / .remove optional).
+>> From: Vladimir Barinov<vladimir.barinov@cogentembedded.com>
+>> Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
+>> Date: Sat, 22 Jun 2013 15:45:10 +0400
+>>
+>>>> But, captured images are still incorrect that means wrong
+>>>> order of fields desite '_BT' chosen for V4L2_STD_525_60.
+>>>>
+>>> I've ordered the NTSC camera.
+>>> I will return once I get it.
+>>   Did you get an NTSC camera and see the field order issue
+>>   occurs on your BOCK-W board?
+> Yes I did.
+>>   You may want to consider adding a workaround into
+>>   the VIN driver if the issue remains in the latest patch.
+> Have you seen this patch https://linuxtv.org/patch/19278/ ?
 
-I would argue that clocks are wrong here as well, as others have already
-pointed out.
+Oh, I missed the mail.
+I tested it now and confirmed the issue has gone!
 
-What's wrong with the platform_data structure, why can't that be used
-for this?
+Thank you for fixing it.
+---
+Katsuya Matsubara / IGEL Co., Ltd
+matsu@igel.co.jp
 
-Or, if not, we can always add pointers to the platform device structure,
-or even the main 'struct device' as well, that's what it is there for.
-
-thanks,
-
-greg k-h
+ 
