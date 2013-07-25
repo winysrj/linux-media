@@ -1,63 +1,107 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f44.google.com ([209.85.220.44]:41757 "EHLO
-	mail-pa0-f44.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932140Ab3GKJIW (ORCPT
+Received: from smtp-vbr4.xs4all.nl ([194.109.24.24]:1661 "EHLO
+	smtp-vbr4.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757087Ab3GYS3a (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:08:22 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Johan Hovold <jhovold@gmail.com>
-Subject: [PATCH 13/50] USB: serial: io_ti: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:36 +0800
-Message-Id: <1373533573-12272-14-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Thu, 25 Jul 2013 14:29:30 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
+	(authenticated bits=0)
+	by smtp-vbr4.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6PITRnx008891
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 20:29:29 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from localhost (marune.xs4all.nl [80.101.105.217])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 0496535E00C2
+	for <linux-media@vger.kernel.org>; Thu, 25 Jul 2013 20:29:26 +0200 (CEST)
+From: "Hans Verkuil" <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: cron job: media_tree daily build: WARNINGS
+Message-Id: <20130725182927.0496535E00C2@alastor.dyndns.org>
+Date: Thu, 25 Jul 2013 20:29:26 +0200 (CEST)
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+This message is generated daily by a cron job that builds media_tree for
+the kernels and architectures in the list below.
 
-Cc: Johan Hovold <jhovold@gmail.com>
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/usb/serial/io_ti.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Results of the daily build of media_tree:
 
-diff --git a/drivers/usb/serial/io_ti.c b/drivers/usb/serial/io_ti.c
-index 60054e7..4943194 100644
---- a/drivers/usb/serial/io_ti.c
-+++ b/drivers/usb/serial/io_ti.c
-@@ -1615,6 +1615,7 @@ static void edge_bulk_in_callback(struct urb *urb)
- 	int retval = 0;
- 	int port_number;
- 	int status = urb->status;
-+	unsigned long flags;
- 
- 	switch (status) {
- 	case 0:
-@@ -1663,13 +1664,13 @@ static void edge_bulk_in_callback(struct urb *urb)
- 
- exit:
- 	/* continue read unless stopped */
--	spin_lock(&edge_port->ep_lock);
-+	spin_lock_irqsave(&edge_port->ep_lock, flags);
- 	if (edge_port->ep_read_urb_state == EDGE_READ_URB_RUNNING)
- 		retval = usb_submit_urb(urb, GFP_ATOMIC);
- 	else if (edge_port->ep_read_urb_state == EDGE_READ_URB_STOPPING)
- 		edge_port->ep_read_urb_state = EDGE_READ_URB_STOPPED;
- 
--	spin_unlock(&edge_port->ep_lock);
-+	spin_unlock_irqrestore(&edge_port->ep_lock, flags);
- 	if (retval)
- 		dev_err(dev, "%s - usb_submit_urb failed with result %d\n", __func__, retval);
- }
--- 
-1.7.9.5
+date:		Thu Jul 25 19:00:20 CEST 2013
+git branch:	test
+git hash:	c859e6ef33ac0c9a5e9e934fe11a2232752b4e96
+gcc version:	i686-linux-gcc (GCC) 4.8.1
+sparse version:	v0.4.5-rc1
+host hardware:	x86_64
+host os:	3.9-7.slh.1-amd64
 
+linux-git-arm-at91: OK
+linux-git-arm-davinci: OK
+linux-git-arm-exynos: OK
+linux-git-arm-mx: OK
+linux-git-arm-omap: OK
+linux-git-arm-omap1: OK
+linux-git-arm-pxa: OK
+linux-git-blackfin: OK
+linux-git-i686: OK
+linux-git-m32r: OK
+linux-git-mips: OK
+linux-git-powerpc64: OK
+linux-git-sh: OK
+linux-git-x86_64: OK
+linux-2.6.31.14-i686: WARNINGS
+linux-2.6.32.27-i686: WARNINGS
+linux-2.6.33.7-i686: WARNINGS
+linux-2.6.34.7-i686: WARNINGS
+linux-2.6.35.9-i686: WARNINGS
+linux-2.6.36.4-i686: WARNINGS
+linux-2.6.37.6-i686: WARNINGS
+linux-2.6.38.8-i686: WARNINGS
+linux-2.6.39.4-i686: WARNINGS
+linux-3.0.60-i686: OK
+linux-3.10-i686: OK
+linux-3.1.10-i686: OK
+linux-3.2.37-i686: OK
+linux-3.3.8-i686: OK
+linux-3.4.27-i686: WARNINGS
+linux-3.5.7-i686: WARNINGS
+linux-3.6.11-i686: WARNINGS
+linux-3.7.4-i686: WARNINGS
+linux-3.8-i686: WARNINGS
+linux-3.9.2-i686: WARNINGS
+linux-2.6.31.14-x86_64: WARNINGS
+linux-2.6.32.27-x86_64: WARNINGS
+linux-2.6.33.7-x86_64: WARNINGS
+linux-2.6.34.7-x86_64: WARNINGS
+linux-2.6.35.9-x86_64: WARNINGS
+linux-2.6.36.4-x86_64: WARNINGS
+linux-2.6.37.6-x86_64: WARNINGS
+linux-2.6.38.8-x86_64: WARNINGS
+linux-2.6.39.4-x86_64: WARNINGS
+linux-3.0.60-x86_64: OK
+linux-3.10-x86_64: OK
+linux-3.1.10-x86_64: OK
+linux-3.2.37-x86_64: OK
+linux-3.3.8-x86_64: OK
+linux-3.4.27-x86_64: WARNINGS
+linux-3.5.7-x86_64: WARNINGS
+linux-3.6.11-x86_64: WARNINGS
+linux-3.7.4-x86_64: WARNINGS
+linux-3.8-x86_64: WARNINGS
+linux-3.9.2-x86_64: WARNINGS
+apps: WARNINGS
+spec-git: OK
+sparse version:	v0.4.5-rc1
+sparse: ERRORS
+
+Detailed results are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.log
+
+Full logs are available here:
+
+http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
+
+The Media Infrastructure API from this daily build is here:
+
+http://www.xs4all.nl/~hverkuil/spec/media.html
