@@ -1,49 +1,79 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f51.google.com ([209.85.215.51]:49407 "EHLO
-	mail-la0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751490Ab3GSRCm (ORCPT
+Received: from ams-iport-4.cisco.com ([144.254.224.147]:43497 "EHLO
+	ams-iport-4.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755438Ab3GYN1K (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 13:02:42 -0400
-Received: by mail-la0-f51.google.com with SMTP id ga9so1849341lab.24
-        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 10:02:41 -0700 (PDT)
-From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-To: Jonathan Corbet <corbet@lwn.net>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Pawel Osciak <pawel@osciak.com>,
-	Marek Szyprowski <m.szyprowski@samsung.com>,
-	Kyungmin Park <kyungmin.park@samsung.com>,
-	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-media@vger.kernel.org, Andre Heider <a.heider@gmail.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
-Subject: [PATCH 0/2] videobuf2-dma-sg: Contiguos memory allocation
-Date: Fri, 19 Jul 2013 19:02:32 +0200
-Message-Id: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
+	Thu, 25 Jul 2013 09:27:10 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Gregor Jasny <gjasny@googlemail.com>
+Subject: Re: [PATCH 3/4] rds-ctl: Always terminate strings properly
+Date: Thu, 25 Jul 2013 15:27:04 +0200
+Cc: linux-media@vger.kernel.org
+References: <1374757774-29051-1-git-send-email-gjasny@googlemail.com> <1374757774-29051-4-git-send-email-gjasny@googlemail.com>
+In-Reply-To: <1374757774-29051-4-git-send-email-gjasny@googlemail.com>
+MIME-Version: 1.0
+Content-Type: Text/Plain;
+  charset="utf-8"
+Content-Transfer-Encoding: 7bit
+Message-Id: <201307251527.04581.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Allocate memory as contiguos as possible to support dma engines with limitated amount of sg-descriptors.
+On Thu 25 July 2013 15:09:33 Gregor Jasny wrote:
+> Detected by Coverity.
+> 
+> Signed-off-by: Gregor Jasny <gjasny@googlemail.com>
+> CC: Hans Verkuil <hverkuil@xs4all.nl>
 
-Replace private structer vb2_dma_sg_desc with generic struct sg_table.
+Reviewed-by: Hans Verkuil <hans.verkuil@cisco.com>
 
-PS: This series of patches is the evolution of my previous patch for vb2-dma-sg to allocate the memory as contiguos as possible.
+Thanks!
 
-v2: Contains feedback from Andre Heider and Sylwester Nawrocki
+	Hans
 
-Andre: Fix error handling (--pages)
-Sylwester: Squash p3 and p4 into p2
-
-Ricardo Ribalda Delgado (2):
-  videobuf2-dma-sg: Allocate pages as contiguous as possible
-  videobuf2-dma-sg: Replace vb2_dma_sg_desc with sg_table
-
- drivers/media/platform/marvell-ccic/mcam-core.c    |   14 +-
- drivers/media/v4l2-core/videobuf2-dma-sg.c         |  149 +++++++++++---------
- drivers/staging/media/solo6x10/solo6x10-v4l2-enc.c |   20 +--
- include/media/videobuf2-dma-sg.h                   |   10 +-
- 4 files changed, 105 insertions(+), 88 deletions(-)
-
--- 
-1.7.10.4
-
+> ---
+>  utils/rds-ctl/rds-ctl.cpp | 14 +++++++-------
+>  1 file changed, 7 insertions(+), 7 deletions(-)
+> 
+> diff --git a/utils/rds-ctl/rds-ctl.cpp b/utils/rds-ctl/rds-ctl.cpp
+> index a9fe2a8..74972eb 100644
+> --- a/utils/rds-ctl/rds-ctl.cpp
+> +++ b/utils/rds-ctl/rds-ctl.cpp
+> @@ -762,13 +762,11 @@ static int parse_cl(int argc, char **argv)
+>  		params.options[(int)opt] = 1;
+>  		switch (opt) {
+>  		case OptSetDevice:
+> -			strncpy(params.fd_name, optarg, 80);
+> +			strncpy(params.fd_name, optarg, sizeof(params.fd_name));
+>  			if (optarg[0] >= '0' && optarg[0] <= '9' && strlen(optarg) <= 3) {
+> -				static char newdev[20];
+> -
+> -				sprintf(newdev, "/dev/radio%s", optarg);
+> -				strncpy(params.fd_name, newdev, 20);
+> +				snprintf(params.fd_name, sizeof(params.fd_name), "/dev/radio%s", optarg);
+>  			}
+> +			params.fd_name[sizeof(params.fd_name) - 1] = '\0';
+>  			break;
+>  		case OptSetFreq:
+>  			params.freq = strtod(optarg, NULL);
+> @@ -786,7 +784,8 @@ static int parse_cl(int argc, char **argv)
+>  		{
+>  			if (access(optarg, F_OK) != -1) {
+>  				params.filemode_active = true;
+> -				strncpy(params.fd_name, optarg, 80);
+> +				strncpy(params.fd_name, optarg, sizeof(params.fd_name));
+> +				params.fd_name[sizeof(params.fd_name) - 1] = '\0';
+>  			} else {
+>  				fprintf(stderr, "Unable to open file: %s\n", optarg);
+>  				return -1;
+> @@ -1006,7 +1005,8 @@ int main(int argc, char **argv)
+>  			fprintf(stderr, "No RDS-capable device found\n");
+>  			exit(1);
+>  		}
+> -		strncpy(params.fd_name, devices[0].c_str(), 80);
+> +		strncpy(params.fd_name, devices[0].c_str(), sizeof(params.fd_name));
+> +		params.fd_name[sizeof(params.fd_name) - 1] = '\0';
+>  		printf("Using device: %s\n", params.fd_name);
+>  	}
+>  	if ((fd = test_open(params.fd_name, O_RDONLY | O_NONBLOCK)) < 0) {
+> 
