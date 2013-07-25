@@ -1,63 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f54.google.com ([209.85.220.54]:34777 "EHLO
-	mail-pa0-f54.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1756038Ab3GKJHX (ORCPT
+Received: from mail-pa0-f50.google.com ([209.85.220.50]:64045 "EHLO
+	mail-pa0-f50.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753054Ab3GYDBq (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:07:23 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>
-Subject: [PATCH 06/50] USB: iowarrior: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:29 +0800
-Message-Id: <1373533573-12272-7-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Wed, 24 Jul 2013 23:01:46 -0400
+Received: by mail-pa0-f50.google.com with SMTP id fb10so911084pad.9
+        for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 20:01:45 -0700 (PDT)
+Date: Thu, 25 Jul 2013 12:01:13 +0900 (JST)
+Message-Id: <20130725.120113.75189051.matsu@igel.co.jp>
+To: vladimir.barinov@cogentembedded.com
+Cc: g.liakhovetski@gmx.de, mchehab@redhat.com,
+	linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	linux-sh@vger.kernel.org, phil.edworthy@renesas.com,
+	sergei.shtylyov@cogentembedded.com
+Subject: Re: [PATCH v8] V4L2: soc_camera: Renesas R-Car VIN driver
+From: Katsuya MATSUBARA <matsu@igel.co.jp>
+In-Reply-To: <201307200314.35345.sergei.shtylyov@cogentembedded.com>
+	<51C58E46.6000801@cogentembedded.com>
+References: <201307200314.35345.sergei.shtylyov@cogentembedded.com>
+Mime-Version: 1.0
+Content-Type: Text/Plain; charset=us-ascii
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
 
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
+ Hi Vladimir,
+
+ Thank you for the revised patch.
+
+From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+Date: Sat, 20 Jul 2013 03:14:34 +0400
+
+> From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> 
+> Add Renesas R-Car VIN (Video In) V4L2 driver.
+> 
+> Based on the patch by Phil Edworthy <phil.edworthy@renesas.com>.
+> 
+> Signed-off-by: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+> [Sergei: removed deprecated IRQF_DISABLED flag, reordered/renamed 'enum chip_id'
+> values, reordered rcar_vin_id_table[] entries,  removed senseless parens from
+> to_buf_list() macro, used ALIGN() macro in rcar_vin_setup(), added {} to the
+> *if* statement  and used 'bool' values instead of 0/1 where necessary, removed
+> unused macros, done some reformatting and clarified some comments.]
+> Signed-off-by: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
+> 
+> ---
+> This patch is against the 'media_tree.git' repo.
+> 
+> Changes since version 7:
+> - remove 'icd' field from 'struct rcar_vin_priv' in accordance with the commit
+>   f7f6ce2d09c86bd80ee11bd654a1ac1e8f5dfe13 ([media] soc-camera: move common code
+>   to soc_camera.c);
+> - added mandatory clock_{start|stop}() methods in accordance with the commit
+>   a78fcc11264b824d9651b55abfeedd16d5cd8415 ([media] soc-camera: make .clock_
+>   {start,stop} compulsory, .add / .remove optional).
+
+From: Vladimir Barinov <vladimir.barinov@cogentembedded.com>
+Subject: Re: [PATCH v6] V4L2: soc_camera: Renesas R-Car VIN driver
+Date: Sat, 22 Jun 2013 15:45:10 +0400
+
+>> But, captured images are still incorrect that means wrong
+>> order of fields desite '_BT' chosen for V4L2_STD_525_60.
+>>   
+> I've ordered the NTSC camera.
+> I will return once I get it.
+
+ Did you get an NTSC camera and see the field order issue
+ occurs on your BOCK-W board?
+ You may want to consider adding a workaround into
+ the VIN driver if the issue remains in the latest patch.
+
+ Thanks,
 ---
- drivers/usb/misc/iowarrior.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
-
-diff --git a/drivers/usb/misc/iowarrior.c b/drivers/usb/misc/iowarrior.c
-index d36f34e..010ed6d 100644
---- a/drivers/usb/misc/iowarrior.c
-+++ b/drivers/usb/misc/iowarrior.c
-@@ -162,6 +162,7 @@ static void iowarrior_callback(struct urb *urb)
- 	int offset;
- 	int status = urb->status;
- 	int retval;
-+	unsigned long flags;
- 
- 	switch (status) {
- 	case 0:
-@@ -175,7 +176,7 @@ static void iowarrior_callback(struct urb *urb)
- 		goto exit;
- 	}
- 
--	spin_lock(&dev->intr_idx_lock);
-+	spin_lock_irqsave(&dev->intr_idx_lock, flags);
- 	intr_idx = atomic_read(&dev->intr_idx);
- 	/* aux_idx become previous intr_idx */
- 	aux_idx = (intr_idx == 0) ? (MAX_INTERRUPT_BUFFER - 1) : (intr_idx - 1);
-@@ -211,7 +212,7 @@ static void iowarrior_callback(struct urb *urb)
- 	*(dev->read_queue + offset + (dev->report_size)) = dev->serial_number++;
- 
- 	atomic_set(&dev->intr_idx, aux_idx);
--	spin_unlock(&dev->intr_idx_lock);
-+	spin_unlock_irqrestore(&dev->intr_idx_lock, flags);
- 	/* tell the blocking read about the new data */
- 	wake_up_interruptible(&dev->read_wait);
- 
--- 
-1.7.9.5
-
+ Katsuya Matsubara / IGEL Co., Ltd
+ matsu@igel.co.jp
