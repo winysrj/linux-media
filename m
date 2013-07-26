@@ -1,53 +1,75 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46565 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1760488Ab3GaPvl (ORCPT
+Received: from mailout3.w2.samsung.com ([211.189.100.13]:31236 "EHLO
+	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758147Ab3GZNCr (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 11:51:41 -0400
-From: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v4 6/7] vsp1: Fix lack of the sink entity registration for enabled links
-Date: Wed, 31 Jul 2013 17:52:33 +0200
-Message-Id: <1375285954-32153-7-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-In-Reply-To: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Fri, 26 Jul 2013 09:02:47 -0400
+Received: from uscpsbgm1.samsung.com
+ (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQJ00GZYO86FA20@usmailout3.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Jul 2013 09:02:45 -0400 (EDT)
+Date: Fri, 26 Jul 2013 10:02:39 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?B?R2HDq3Rhbg==?= Carlier <gcembed@gmail.com>,
+	Wei Yongjun <weiyj.lk@gmail.com>
+Subject: Re: [PATCH v2 1/8] [media] coda: use vb2_set_plane_payload instead of
+ setting v4l2_planes[0].bytesused directly
+Message-id: <20130726100239.3fa8dee3@samsung.com>
+In-reply-to: <1371801334-22324-2-git-send-email-p.zabel@pengutronix.de>
+References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
+ <1371801334-22324-2-git-send-email-p.zabel@pengutronix.de>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: Katsuya Matsubara <matsu@igel.co.jp>
+Hi Philipp,
 
-Each source entity maintains a pointer to the counterpart sink
-entity while an enabled link connects them. It should be managed by
-the setup_link callback in the media controller framework at runtime.
-However, enabled links which connect RPFs and WPFs that have an
-equivalent index number are created during initialization.
-This registers the pointer to a sink entity from the source entity
-when an enabled link is created.
+Em Fri, 21 Jun 2013 09:55:27 +0200
+Philipp Zabel <p.zabel@pengutronix.de> escreveu:
 
-Signed-off-by: Katsuya Matsubara <matsu@igel.co.jp>
-Signed-off-by: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
----
- drivers/media/platform/vsp1/vsp1_drv.c | 3 +++
- 1 file changed, 3 insertions(+)
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-diff --git a/drivers/media/platform/vsp1/vsp1_drv.c b/drivers/media/platform/vsp1/vsp1_drv.c
-index b05aee1..4d338ce 100644
---- a/drivers/media/platform/vsp1/vsp1_drv.c
-+++ b/drivers/media/platform/vsp1/vsp1_drv.c
-@@ -101,6 +101,9 @@ static int vsp1_create_links(struct vsp1_device *vsp1, struct vsp1_entity *sink)
- 						       entity, pad, flags);
- 			if (ret < 0)
- 				return ret;
-+
-+			if (flags & MEDIA_LNK_FL_ENABLED)
-+				source->sink = entity;
- 		}
- 	}
- 
+Please provide a description of the patch.
+
+Thanks!
+Mauro
+
+> ---
+>  drivers/media/platform/coda.c | 10 +++++-----
+>  1 file changed, 5 insertions(+), 5 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index c4566c4..90f3386 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -1662,12 +1662,12 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+>  	wr_ptr = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx));
+>  	/* Calculate bytesused field */
+>  	if (dst_buf->v4l2_buf.sequence == 0) {
+> -		dst_buf->v4l2_planes[0].bytesused = (wr_ptr - start_ptr) +
+> -						ctx->vpu_header_size[0] +
+> -						ctx->vpu_header_size[1] +
+> -						ctx->vpu_header_size[2];
+> +		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr +
+> +					ctx->vpu_header_size[0] +
+> +					ctx->vpu_header_size[1] +
+> +					ctx->vpu_header_size[2]);
+>  	} else {
+> -		dst_buf->v4l2_planes[0].bytesused = (wr_ptr - start_ptr);
+> +		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr);
+>  	}
+>  
+>  	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev, "frame size = %u\n",
+
+
 -- 
-1.8.1.5
 
+Cheers,
+Mauro
