@@ -1,81 +1,73 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:41635 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757557Ab3GZNWs (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 09:22:48 -0400
-Message-ID: <1374844932.4013.25.camel@pizza.hi.pengutronix.de>
-Subject: Re: [PATCH v2 1/8] [media] coda: use vb2_set_plane_payload instead
- of setting v4l2_planes[0].bytesused directly
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Mauro Carvalho Chehab <m.chehab@samsung.com>
-Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?ISO-8859-1?Q?Ga=EBtan?= Carlier <gcembed@gmail.com>,
-	Wei Yongjun <weiyj.lk@gmail.com>
-Date: Fri, 26 Jul 2013 15:22:12 +0200
-In-Reply-To: <20130726100239.3fa8dee3@samsung.com>
-References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
-	 <1371801334-22324-2-git-send-email-p.zabel@pengutronix.de>
-	 <20130726100239.3fa8dee3@samsung.com>
-Content-Type: text/plain; charset="UTF-8"
-Mime-Version: 1.0
-Content-Transfer-Encoding: 7bit
+Received: from bear.ext.ti.com ([192.94.94.41]:51640 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932165Ab3GZMo1 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 08:44:27 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: [PATCH v10 4/8] arm: omap3: twl: add phy consumer data in twl4030_usb_data
+Date: Fri, 26 Jul 2013 18:12:58 +0530
+Message-ID: <1374842582-13242-5-git-send-email-kishon@ti.com>
+In-Reply-To: <1374842582-13242-1-git-send-email-kishon@ti.com>
+References: <1374842582-13242-1-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Mauro,
+The PHY framework uses the phy consumer data populated in platform data in the
+case of non-dt boot to return the reference to the PHY when the controller
+(PHY consumer) requests for it. So populated the phy consumer data in the platform
+data of twl usb.
 
-Am Freitag, den 26.07.2013, 10:02 -0300 schrieb Mauro Carvalho Chehab:
-> Hi Philipp,
-> 
-> Em Fri, 21 Jun 2013 09:55:27 +0200
-> Philipp Zabel <p.zabel@pengutronix.de> escreveu:
-> 
-> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
-> 
-> Please provide a description of the patch.
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-omap2/twl-common.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-Sorry, how about this:
-
-"As stated in the vb2_buffer documentation, drivers should not directly fill
- in v4l2_planes[0].bytesused, but should use vb2_set_plane_payload()
- function instead. No functional changes."
-
-regards
-Philipp
-
-> Thanks!
-> Mauro
-> 
-> > ---
-> >  drivers/media/platform/coda.c | 10 +++++-----
-> >  1 file changed, 5 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> > index c4566c4..90f3386 100644
-> > --- a/drivers/media/platform/coda.c
-> > +++ b/drivers/media/platform/coda.c
-> > @@ -1662,12 +1662,12 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
-> >  	wr_ptr = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx));
-> >  	/* Calculate bytesused field */
-> >  	if (dst_buf->v4l2_buf.sequence == 0) {
-> > -		dst_buf->v4l2_planes[0].bytesused = (wr_ptr - start_ptr) +
-> > -						ctx->vpu_header_size[0] +
-> > -						ctx->vpu_header_size[1] +
-> > -						ctx->vpu_header_size[2];
-> > +		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr +
-> > +					ctx->vpu_header_size[0] +
-> > +					ctx->vpu_header_size[1] +
-> > +					ctx->vpu_header_size[2]);
-> >  	} else {
-> > -		dst_buf->v4l2_planes[0].bytesused = (wr_ptr - start_ptr);
-> > +		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr);
-> >  	}
-> >  
-> >  	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev, "frame size = %u\n",
-> 
-> 
-
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index c05898f..b0d54da 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -24,6 +24,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/gpio.h>
+ #include <linux/string.h>
++#include <linux/phy/phy.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
+ 
+@@ -90,8 +91,18 @@ void __init omap_pmic_late_init(void)
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP3)
++struct phy_consumer consumers[] = {
++	PHY_CONSUMER("musb-hdrc.0", "usb"),
++};
++
++struct phy_init_data init_data = {
++	.consumers = consumers,
++	.num_consumers = ARRAY_SIZE(consumers),
++};
++
+ static struct twl4030_usb_data omap3_usb_pdata = {
+ 	.usb_mode	= T2_USB_MODE_ULPI,
++	.init_data	= &init_data,
+ };
+ 
+ static int omap3_batt_table[] = {
+-- 
+1.7.10.4
 
