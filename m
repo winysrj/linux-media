@@ -1,42 +1,40 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mta-blr1.sasken.com ([203.200.200.72]:42935 "EHLO
-	mta-blr1.sasken.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932543Ab3GWQwg convert rfc822-to-8bit (ORCPT
+Received: from mail-vc0-f176.google.com ([209.85.220.176]:49893 "EHLO
+	mail-vc0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755293Ab3GZNT3 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 12:52:36 -0400
-From: Krishna Kishore <krishna.kishore@sasken.com>
-To: Chris Lee <updatelee@gmail.com>,
-	Manu Abraham <abraham.manu@gmail.com>
-CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
-Subject: Prof DVB-S2 USB device
-Date: Tue, 23 Jul 2013 16:52:30 +0000
-Content-Language: en-US
-Content-Type: text/plain; charset="us-ascii"
-Content-Transfer-Encoding: 8BIT
+	Fri, 26 Jul 2013 09:19:29 -0400
+Received: by mail-vc0-f176.google.com with SMTP id ha11so482639vcb.35
+        for <linux-media@vger.kernel.org>; Fri, 26 Jul 2013 06:19:28 -0700 (PDT)
 MIME-Version: 1.0
-Message-ID: <bd6fa917-9510-49e2-b4ff-b280fedb320a@exgedgfz01.sasken.com>
+In-Reply-To: <51F24C01.8050703@schinagl.nl>
+References: <51DFF8A9.2030705@schinagl.nl> <CAJNvB=ydGohcEQLs+6rUCrUganMkB4dZXhpiTVyMSYkzSKha8Q@mail.gmail.com>
+ <51F24C01.8050703@schinagl.nl>
+From: Huei-Horng Yo <hiroshiyui@gmail.com>
+Date: Fri, 26 Jul 2013 21:18:57 +0800
+Message-ID: <CAJNvB=wUAfPWTB46ghu_uJ+5L-fLxM91ctuj+ipTw5jLmbFnGg@mail.gmail.com>
+Subject: Re: [RFC] Dropping of channels-conf from dtv-scan-tables
+To: Oliver Schinagl <oliver+list@schinagl.nl>
+Cc: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Manu Abraham <abraham.manu@gmail.com>
+Content-Type: text/plain; charset=UTF-8
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-#Sorry for sending to individual email ids
+2013/7/26 Oliver Schinagl <oliver+list@schinagl.nl>:
+> On 26-07-13 10:14, Huei-Horng Yo wrote:
+>>
+>> Sorry for my off-topic, because dvb-apps' 'scan' utility output wrong
+>> encoding of channels-conf in Taiwan, that's why 'tw-All' channels-conf
+>> is still useful for some Taiwan people. Or someone could review my
+>> patch about this encoding issue? ([PATCH][dvb-apps] Fix 'scan' utility
+>> region 0x14 encoding from BIG5 to UTF-16BE)
+>
+> Did you notify the maintainer? of the dvb-apps? I think manu is still one of
+> the dvb-apps maintainers.
 
-Hi,
+Oliver:
 
-     I am trying to use Prof DVB-S2 USB device with Linux host. Device gets detected. But, I am facing the following problems.
-
-1.      It takes approximately 21 minutes to get /dev/dvb/adapter0/frontend0 and /dev/dvb/adapter0/demux0 to get created. This happens every time
-2.      After /dev/dvb/adapter0/frontend0 gets created, when I use w_scan utility to scan for channels, it does not list the channels.
-a.      In dmesg logs, I see DEMOD LOCK FAIL error continuously.
-
-      Can you please help me?
-
-
-Regards,
-Kishore.
-
-
-
-________________________________
-
-SASKEN BUSINESS DISCLAIMER: This message may contain confidential, proprietary or legally privileged information. In case you are not the original intended Recipient of the message, you must not, directly or indirectly, use, disclose, distribute, print, or copy any part of this message and you are requested to delete it and inform the sender. Any views expressed in this message are those of the individual sender unless otherwise stated. Nothing contained in this message shall be construed as an offer or acceptance of any offer by Sasken Communication Technologies Limited ("Sasken") unless sent with that express intent and with due authority of Sasken. Sasken has taken enough precautions to prevent the spread of viruses. However the company accepts no liability for any damage caused by any virus transmitted by this email.
-Read Disclaimer at http://www.sasken.com/extras/mail_disclaimer.html
+Thanks, I looked at the Mercurial repositories at
+http://www.linuxtv.org/hg/, it shows 'unknown' at contact field.
