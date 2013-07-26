@@ -1,195 +1,263 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pd0-f176.google.com ([209.85.192.176]:34282 "EHLO
-	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751274Ab3GMLMx (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jul 2013 07:12:53 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	LDOC <linux-doc@vger.kernel.org>,
-	devicetree-discuss@lists.ozlabs.org,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH v2] media: i2c: adv7343: add OF support
-Date: Sat, 13 Jul 2013 16:42:39 +0530
-Message-Id: <1373713959-31066-1-git-send-email-prabhakar.csengg@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55034 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1755325Ab3GZMoN (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 08:44:13 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: [PATCH v10 3/8] usb: phy: twl4030: use the new generic PHY framework
+Date: Fri, 26 Jul 2013 18:12:57 +0530
+Message-ID: <1374842582-13242-4-git-send-email-kishon@ti.com>
+In-Reply-To: <1374842582-13242-1-git-send-email-kishon@ti.com>
+References: <1374842582-13242-1-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Used the generic PHY framework API to create the PHY. For powering on
+and powering off the PHY, power_on and power_off ops are used. Once the
+MUSB OMAP glue is adapted to the new framework, the suspend and resume
+ops of usb phy library will be removed. Also twl4030-usb driver is moved
+to drivers/phy/.
 
-add OF support for the adv7343 driver.
+However using the old usb phy library cannot be completely removed
+because otg is intertwined with phy and moving to the new
+framework completely will break otg. Once we have a separate otg state machine,
+we can get rid of the usb phy library.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
 ---
- Changes for v2:
- 1: Fixed naming of properties.
- 
- .../devicetree/bindings/media/i2c/adv7343.txt      |   54 ++++++++++++++++
- drivers/media/i2c/adv7343.c                        |   65 +++++++++++++++++++-
- 2 files changed, 118 insertions(+), 1 deletion(-)
- create mode 100644 Documentation/devicetree/bindings/media/i2c/adv7343.txt
+ drivers/phy/Kconfig                     |   11 ++++++
+ drivers/phy/Makefile                    |    1 +
+ drivers/{usb => }/phy/phy-twl4030-usb.c |   56 +++++++++++++++++++++++++++++--
+ drivers/usb/phy/Kconfig                 |    9 -----
+ drivers/usb/phy/Makefile                |    1 -
+ include/linux/i2c/twl.h                 |    2 ++
+ 6 files changed, 67 insertions(+), 13 deletions(-)
+ rename drivers/{usb => }/phy/phy-twl4030-usb.c (95%)
 
-diff --git a/Documentation/devicetree/bindings/media/i2c/adv7343.txt b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
-new file mode 100644
-index 0000000..1d2e854
---- /dev/null
-+++ b/Documentation/devicetree/bindings/media/i2c/adv7343.txt
-@@ -0,0 +1,54 @@
-+* Analog Devices adv7343 video encoder
-+
-+The ADV7343 are high speed, digital-to-analog video encoders in a 64-lead LQFP
-+package. Six high speed, 3.3 V, 11-bit video DACs provide support for composite
-+(CVBS), S-Video (Y-C), and component (YPrPb/RGB) analog outputs in standard
-+definition (SD), enhanced definition (ED), or high definition (HD) video
-+formats.
-+
-+Required Properties :
-+- compatible: Must be "ad,adv7343"
-+
-+Optional Properties :
-+- ad,adv7343-power-mode-sleep-mode: on enable the current consumption is
-+				     reduced to micro ampere level. All DACs and
-+				     the internal PLL circuit are disabled.
-+- ad,adv7343-power-mode-pll-ctrl: PLL and oversampling control. This control
-+				   allows internal PLL 1 circuit to be powered
-+				   down and the oversampling to beswitched off.
-+- ad,adv7343-power-mode-dac-1: power on/off DAC 1, 0 = OFF and 1 = ON.
-+- ad,adv7343-power-mode-dac-2: power on/off DAC 2, 0 = OFF and 1 = ON.
-+- ad,adv7343-power-mode-dac-3: power on/off DAC 3, 0 = OFF and 1 = ON.
-+- ad,adv7343-power-mode-dac-4: power on/off DAC 4, 0 = OFF and 1 = ON.
-+- ad,adv7343-power-mode-dac-5: power on/off DAC 5, 0 = OFF and 1 = ON.
-+- ad,adv7343-power-mode-dac-6: power on/off DAC 6, 0 = OFF and 1 = ON.
-+- ad,adv7343-sd-config-dac-out-1: Configure SD DAC Output 1.
-+- ad,adv7343-sd-config-dac-out-2: Configure SD DAC Output 2.
-+
-+Example:
-+
-+i2c0@1c22000 {
-+	...
-+	...
-+
-+	adv7343@2a {
-+		compatible = "ad,adv7343";
-+		reg = <0x2a>;
-+
-+		port {
-+			adv7343_1: endpoint {
-+					ad,adv7343-power-mode-sleep-mode;
-+					ad,adv7343-power-mode-pll-ctrl;
-+					ad,adv7343-power-mode-dac-1;
-+					ad,adv7343-power-mode-dac-2;
-+					ad,adv7343-power-mode-dac-3;
-+					ad,adv7343-power-mode-dac-4;
-+					ad,adv7343-power-mode-dac-5;
-+					ad,adv7343-power-mode-dac-6;
-+					ad,adv7343-sd-config-dac-out-1;
-+					ad,adv7343-sd-config-dac-out-2;
-+			};
-+		};
-+	};
-+	...
-+};
-diff --git a/drivers/media/i2c/adv7343.c b/drivers/media/i2c/adv7343.c
-index 7606218..22ee6f4 100644
---- a/drivers/media/i2c/adv7343.c
-+++ b/drivers/media/i2c/adv7343.c
-@@ -29,6 +29,7 @@
- #include <media/adv7343.h>
- #include <media/v4l2-device.h>
- #include <media/v4l2-ctrls.h>
-+#include <media/v4l2-of.h>
+diff --git a/drivers/phy/Kconfig b/drivers/phy/Kconfig
+index 38c3477..ac239ac 100644
+--- a/drivers/phy/Kconfig
++++ b/drivers/phy/Kconfig
+@@ -27,4 +27,15 @@ config OMAP_USB2
+ 	  The USB OTG controller communicates with the comparator using this
+ 	  driver.
  
- #include "adv7343_regs.h"
++config TWL4030_USB
++	tristate "TWL4030 USB Transceiver Driver"
++	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
++	select GENERIC_PHY
++	select USB_PHY
++	help
++	  Enable this to support the USB OTG transceiver on TWL4030
++	  family chips (including the TWL5030 and TPS659x0 devices).
++	  This transceiver supports high and full speed devices plus,
++	  in host mode, low speed.
++
+ endmenu
+diff --git a/drivers/phy/Makefile b/drivers/phy/Makefile
+index ed5b088..0dd8a98 100644
+--- a/drivers/phy/Makefile
++++ b/drivers/phy/Makefile
+@@ -4,3 +4,4 @@
  
-@@ -398,6 +399,59 @@ static int adv7343_initialize(struct v4l2_subdev *sd)
- 	return err;
+ obj-$(CONFIG_GENERIC_PHY)	+= phy-core.o
+ obj-$(CONFIG_OMAP_USB2)		+= phy-omap-usb2.o
++obj-$(CONFIG_TWL4030_USB)	+= phy-twl4030-usb.o
+diff --git a/drivers/usb/phy/phy-twl4030-usb.c b/drivers/phy/phy-twl4030-usb.c
+similarity index 95%
+rename from drivers/usb/phy/phy-twl4030-usb.c
+rename to drivers/phy/phy-twl4030-usb.c
+index 8f78d2d..494f107 100644
+--- a/drivers/usb/phy/phy-twl4030-usb.c
++++ b/drivers/phy/phy-twl4030-usb.c
+@@ -33,6 +33,7 @@
+ #include <linux/io.h>
+ #include <linux/delay.h>
+ #include <linux/usb/otg.h>
++#include <linux/phy/phy.h>
+ #include <linux/usb/musb-omap.h>
+ #include <linux/usb/ulpi.h>
+ #include <linux/i2c/twl.h>
+@@ -431,6 +432,14 @@ static void twl4030_phy_suspend(struct twl4030_usb *twl, int controller_off)
+ 	dev_dbg(twl->dev, "%s\n", __func__);
  }
  
-+static struct adv7343_platform_data *
-+adv7343_get_pdata(struct i2c_client *client)
++static int twl4030_phy_power_off(struct phy *phy)
 +{
-+	struct adv7343_platform_data *pdata;
-+	struct device_node *np;
++	struct twl4030_usb *twl = phy_get_drvdata(phy);
 +
-+	if (!IS_ENABLED(CONFIG_OF) || !client->dev.of_node)
-+		return client->dev.platform_data;
-+
-+	np = v4l2_of_get_next_endpoint(client->dev.of_node, NULL);
-+	if (!np)
-+		return NULL;
-+
-+	pdata = devm_kzalloc(&client->dev, sizeof(struct adv7343_platform_data),
-+			     GFP_KERNEL);
-+	if (!pdata)
-+		goto done;
-+
-+	pdata->mode_config.sleep_mode =
-+		of_property_read_bool(np, "ad,adv7343-power-mode-sleep-mode");
-+
-+	pdata->mode_config.pll_control =
-+		of_property_read_bool(np, "ad,adv7343-power-mode-pll-ctrl");
-+
-+	pdata->mode_config.dac_1 =
-+		of_property_read_bool(np, "ad,adv7343-power-mode-dac-1");
-+
-+	pdata->mode_config.dac_2 =
-+		of_property_read_bool(np, "ad,adv7343-power-mode-dac-2");
-+
-+	pdata->mode_config.dac_3 =
-+		of_property_read_bool(np, "ad,adv7343-power-mode-dac-3");
-+
-+	pdata->mode_config.dac_4 =
-+		of_property_read_bool(np, "ad,adv7343-power-mode-dac-4");
-+
-+	pdata->mode_config.dac_5 =
-+		of_property_read_bool(np, "ad,adv7343-power-mode-dac-5");
-+
-+	pdata->mode_config.dac_6 =
-+		of_property_read_bool(np, "ad,adv7343-power-mode-dac-6");
-+
-+	pdata->sd_config.sd_dac_out1 =
-+		of_property_read_bool(np, "ad,adv7343-sd-config-dac-out-1");
-+
-+	pdata->sd_config.sd_dac_out2 =
-+		of_property_read_bool(np, "ad,adv7343-sd-config-dac-out-2");
-+
-+done:
-+	of_node_put(np);
-+	return pdata;
++	twl4030_phy_suspend(twl, 0);
++	return 0;
 +}
 +
- static int adv7343_probe(struct i2c_client *client,
- 				const struct i2c_device_id *id)
+ static void __twl4030_phy_resume(struct twl4030_usb *twl)
  {
-@@ -416,7 +470,7 @@ static int adv7343_probe(struct i2c_client *client,
- 		return -ENOMEM;
+ 	twl4030_phy_power(twl, 1);
+@@ -459,6 +468,14 @@ static void twl4030_phy_resume(struct twl4030_usb *twl)
+ 	}
+ }
  
- 	/* Copy board specific information here */
--	state->pdata = client->dev.platform_data;
-+	state->pdata = adv7343_get_pdata(client);
- 
- 	state->reg00	= 0x80;
- 	state->reg01	= 0x00;
-@@ -476,8 +530,17 @@ static const struct i2c_device_id adv7343_id[] = {
- 
- MODULE_DEVICE_TABLE(i2c, adv7343_id);
- 
-+#if IS_ENABLED(CONFIG_OF)
-+static const struct of_device_id adv7343_of_match[] = {
-+	{.compatible = "ad,adv7343", },
-+	{ /* sentinel */ },
-+};
-+MODULE_DEVICE_TABLE(of, adv7343_of_match);
-+#endif
++static int twl4030_phy_power_on(struct phy *phy)
++{
++	struct twl4030_usb *twl = phy_get_drvdata(phy);
 +
- static struct i2c_driver adv7343_driver = {
- 	.driver = {
-+		.of_match_table = of_match_ptr(adv7343_of_match),
- 		.owner	= THIS_MODULE,
- 		.name	= "adv7343",
- 	},
++	twl4030_phy_resume(twl);
++	return 0;
++}
++
+ static int twl4030_usb_ldo_init(struct twl4030_usb *twl)
+ {
+ 	/* Enable writing to power configuration registers */
+@@ -602,13 +619,22 @@ static int twl4030_usb_phy_init(struct usb_phy *phy)
+ 	status = twl4030_usb_linkstat(twl);
+ 	twl->linkstat = status;
+ 
+-	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID)
++	if (status == OMAP_MUSB_ID_GROUND || status == OMAP_MUSB_VBUS_VALID) {
+ 		omap_musb_mailbox(twl->linkstat);
++		twl4030_phy_resume(twl);
++	}
+ 
+ 	sysfs_notify(&twl->dev->kobj, NULL, "vbus");
+ 	return 0;
+ }
+ 
++static int twl4030_phy_init(struct phy *phy)
++{
++	struct twl4030_usb *twl = phy_get_drvdata(phy);
++
++	return twl4030_usb_phy_init(&twl->phy);
++}
++
+ static int twl4030_set_suspend(struct usb_phy *x, int suspend)
+ {
+ 	struct twl4030_usb *twl = phy_to_twl(x);
+@@ -646,13 +672,23 @@ static int twl4030_set_host(struct usb_otg *otg, struct usb_bus *host)
+ 	return 0;
+ }
+ 
++static const struct phy_ops ops = {
++	.init		= twl4030_phy_init,
++	.power_on	= twl4030_phy_power_on,
++	.power_off	= twl4030_phy_power_off,
++	.owner		= THIS_MODULE,
++};
++
+ static int twl4030_usb_probe(struct platform_device *pdev)
+ {
+ 	struct twl4030_usb_data *pdata = pdev->dev.platform_data;
+ 	struct twl4030_usb	*twl;
++	struct phy		*phy;
+ 	int			status, err;
+ 	struct usb_otg		*otg;
+ 	struct device_node	*np = pdev->dev.of_node;
++	struct phy_provider	*phy_provider;
++	struct phy_init_data	*init_data = NULL;
+ 
+ 	twl = devm_kzalloc(&pdev->dev, sizeof *twl, GFP_KERNEL);
+ 	if (!twl)
+@@ -661,9 +697,10 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	if (np)
+ 		of_property_read_u32(np, "usb_mode",
+ 				(enum twl4030_usb_mode *)&twl->usb_mode);
+-	else if (pdata)
++	else if (pdata) {
+ 		twl->usb_mode = pdata->usb_mode;
+-	else {
++		init_data = pdata->init_data;
++	} else {
+ 		dev_err(&pdev->dev, "twl4030 initialized without pdata\n");
+ 		return -EINVAL;
+ 	}
+@@ -689,6 +726,19 @@ static int twl4030_usb_probe(struct platform_device *pdev)
+ 	otg->set_host		= twl4030_set_host;
+ 	otg->set_peripheral	= twl4030_set_peripheral;
+ 
++	phy_provider = devm_of_phy_provider_register(twl->dev,
++		of_phy_simple_xlate);
++	if (IS_ERR(phy_provider))
++		return PTR_ERR(phy_provider);
++
++	phy = devm_phy_create(twl->dev, &ops, init_data);
++	if (IS_ERR(phy)) {
++		dev_dbg(&pdev->dev, "Failed to create PHY\n");
++		return PTR_ERR(phy);
++	}
++
++	phy_set_drvdata(phy, twl);
++
+ 	/* init spinlock for workqueue */
+ 	spin_lock_init(&twl->lock);
+ 
+diff --git a/drivers/usb/phy/Kconfig b/drivers/usb/phy/Kconfig
+index 7813238..1e05b1d 100644
+--- a/drivers/usb/phy/Kconfig
++++ b/drivers/usb/phy/Kconfig
+@@ -102,15 +102,6 @@ config SAMSUNG_USB3PHY
+ 	  Enable this to support Samsung USB 3.0 (Super Speed) phy controller
+ 	  for samsung SoCs.
+ 
+-config TWL4030_USB
+-	tristate "TWL4030 USB Transceiver Driver"
+-	depends on TWL4030_CORE && REGULATOR_TWL4030 && USB_MUSB_OMAP2PLUS
+-	help
+-	  Enable this to support the USB OTG transceiver on TWL4030
+-	  family chips (including the TWL5030 and TPS659x0 devices).
+-	  This transceiver supports high and full speed devices plus,
+-	  in host mode, low speed.
+-
+ config TWL6030_USB
+ 	tristate "TWL6030 USB Transceiver Driver"
+ 	depends on TWL4030_CORE && OMAP_USB2 && USB_MUSB_OMAP2PLUS
+diff --git a/drivers/usb/phy/Makefile b/drivers/usb/phy/Makefile
+index 56d2b03..7bcc9ed0 100644
+--- a/drivers/usb/phy/Makefile
++++ b/drivers/usb/phy/Makefile
+@@ -20,7 +20,6 @@ obj-$(CONFIG_OMAP_USB3)			+= phy-omap-usb3.o
+ obj-$(CONFIG_SAMSUNG_USBPHY)		+= phy-samsung-usb.o
+ obj-$(CONFIG_SAMSUNG_USB2PHY)		+= phy-samsung-usb2.o
+ obj-$(CONFIG_SAMSUNG_USB3PHY)		+= phy-samsung-usb3.o
+-obj-$(CONFIG_TWL4030_USB)		+= phy-twl4030-usb.o
+ obj-$(CONFIG_TWL6030_USB)		+= phy-twl6030-usb.o
+ obj-$(CONFIG_USB_EHCI_TEGRA)		+= phy-tegra-usb.o
+ obj-$(CONFIG_USB_GPIO_VBUS)		+= phy-gpio-vbus-usb.o
+diff --git a/include/linux/i2c/twl.h b/include/linux/i2c/twl.h
+index 81cbbdb..673a3ce 100644
+--- a/include/linux/i2c/twl.h
++++ b/include/linux/i2c/twl.h
+@@ -26,6 +26,7 @@
+ #define __TWL_H_
+ 
+ #include <linux/types.h>
++#include <linux/phy/phy.h>
+ #include <linux/input/matrix_keypad.h>
+ 
+ /*
+@@ -615,6 +616,7 @@ enum twl4030_usb_mode {
+ struct twl4030_usb_data {
+ 	enum twl4030_usb_mode	usb_mode;
+ 	unsigned long		features;
++	struct phy_init_data	*init_data;
+ 
+ 	int		(*phy_init)(struct device *dev);
+ 	int		(*phy_exit)(struct device *dev);
 -- 
-1.7.9.5
+1.7.10.4
 
