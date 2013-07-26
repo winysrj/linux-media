@@ -1,69 +1,117 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f173.google.com ([209.85.223.173]:52959 "EHLO
-	mail-ie0-f173.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932256Ab3GRCIj (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:38854 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757038Ab3GZNPD (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 22:08:39 -0400
-Received: by mail-ie0-f173.google.com with SMTP id k13so5735043iea.18
-        for <linux-media@vger.kernel.org>; Wed, 17 Jul 2013 19:08:38 -0700 (PDT)
-MIME-Version: 1.0
-In-Reply-To: <CAGoCfiz44NQyzp4u7oQTCFTrp-pWJVp1kfgJkGU3scr7q=-azQ@mail.gmail.com>
-References: <CAA9z4LbZQ6k9cA5WziczvbSAqOjDnTt12hf+JKLKf3B2u2cERA@mail.gmail.com>
-	<CAGoCfiz44NQyzp4u7oQTCFTrp-pWJVp1kfgJkGU3scr7q=-azQ@mail.gmail.com>
-Date: Wed, 17 Jul 2013 20:08:38 -0600
-Message-ID: <CAA9z4LYTOXzwrTsU0wDh5XvdwnhoHTO-ZfO2_MN_v1XnfU2uXg@mail.gmail.com>
-Subject: Re: [PATCH] au8522_dig: fix snr lookup table
-From: Chris Lee <updatelee@gmail.com>
-To: Devin Heitmueller <dheitmueller@kernellabs.com>
+	Fri, 26 Jul 2013 09:15:03 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
 Cc: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+Subject: Re: [PATCH] mt9v032: Use the common clock framework
+Date: Fri, 26 Jul 2013 15:15:58 +0200
+Message-ID: <1438897.qqa6gsnOmc@avalon>
+In-Reply-To: <51F2756C.70507@gmail.com>
+References: <1373021725-14006-1-git-send-email-laurent.pinchart@ideasonboard.com> <51F2756C.70507@gmail.com>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-It could be an off by one, I dont have a datasheet for the au8522 to
-know for sure.
+Hi Sylwester,
 
-I filled in the blanks, ie
+On Friday 26 July 2013 15:11:08 Sylwester Nawrocki wrote:
+> On 07/05/2013 12:55 PM, Laurent Pinchart wrote:
+> > Configure the device external clock using the common clock framework
+> > instead of a board code callback function.
+> > 
+> > Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+> > ---
+> > 
+> >   drivers/media/i2c/mt9v032.c | 16 ++++++++++------
+> >   include/media/mt9v032.h     |  4 ----
+> >   2 files changed, 10 insertions(+), 10 deletions(-)
+> > 
+> > diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> > index 60c6f67..7b30640 100644
+> > --- a/drivers/media/i2c/mt9v032.c
+> > +++ b/drivers/media/i2c/mt9v032.c
+> > @@ -12,6 +12,7 @@
+> >    * published by the Free Software Foundation.
+> >    */
+> > 
+> > +#include<linux/clk.h>
+> >   #include<linux/delay.h>
+> >   #include<linux/i2c.h>
+> >   #include<linux/log2.h>
+> > @@ -135,6 +136,8 @@ struct mt9v032 {
+> >   	struct mutex power_lock;
+> >   	int power_count;
+> > 
+> > +	struct clk *clk;
+> > +
+> >   	struct mt9v032_platform_data *pdata;
+> >   	
+> >   	u32 sysclk;
+> > @@ -219,10 +222,8 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+> >   	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+> >   	int ret;
+> > 
+> > -	if (mt9v032->pdata->set_clock) {
+> > -		mt9v032->pdata->set_clock(&mt9v032->subdev, mt9v032->sysclk);
+> > -		udelay(1);
+> > -	}
+> > +	clk_prepare_enable(mt9v032->clk);
+> > +	udelay(1);
+> > 
+> >   	/* Reset the chip and stop data read out */
+> >   	ret = mt9v032_write(client, MT9V032_RESET, 1);
+> > @@ -238,8 +239,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+> > 
+> >   static void mt9v032_power_off(struct mt9v032 *mt9v032)
+> >   {
+> > -	if (mt9v032->pdata->set_clock)
+> > -		mt9v032->pdata->set_clock(&mt9v032->subdev, 0);
+> > +	clk_disable_unprepare(mt9v032->clk);
+> >   }
+> >   
+> >   static int __mt9v032_set_power(struct mt9v032 *mt9v032, bool on)
+> > @@ -748,6 +748,10 @@ static int mt9v032_probe(struct i2c_client *client,
+> >   	if (!mt9v032)
+> >   		return -ENOMEM;
+> > 
+> > +	mt9v032->clk = devm_clk_get(&client->dev, NULL);
+> > +	if (IS_ERR(mt9v032->clk))
+> > +		return PTR_ERR(mt9v032->clk);
+> > +
+> >   	mutex_init(&mt9v032->power_lock);
+> >   	mt9v032->pdata = pdata;
+> > 
+> > diff --git a/include/media/mt9v032.h b/include/media/mt9v032.h
+> > index 78fd39e..12175a6 100644
+> > --- a/include/media/mt9v032.h
+> > +++ b/include/media/mt9v032.h
+> > @@ -1,13 +1,9 @@
+> >   #ifndef _MEDIA_MT9V032_H
+> >   #define _MEDIA_MT9V032_H
+> > 
+> > -struct v4l2_subdev;
+> > -
+> >   struct mt9v032_platform_data {
+> >   	unsigned int clk_pol:1;
+> > -	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
+> > -
+> >   	const s64 *link_freqs;
+> >   	s64 link_def_freq;
+> >   };
+> 
+> Is there clk_put() somewhere in this patch ? I would expect it somewhere
+> around driver remove() callback, but can't see it. :-/
 
-0 270
-2 250
+There's *devm_*clk_get() instead :-)
 
-so I guessed that 1 is 260
+-- 
+Regards,
 
-Chris
-updatelee@gmail.com
+Laurent Pinchart
 
-On Wed, Jul 17, 2013 at 7:41 PM, Devin Heitmueller
-<dheitmueller@kernellabs.com> wrote:
-> On Wed, Jul 17, 2013 at 8:30 PM, Chris Lee <updatelee@gmail.com> wrote:
->> This patch fixes an if() statement that was preventing the last
->> element in the table from ever being utilized, preventing the snr from
->> ever displaying 27db. Also some of the gaps in the lookup table were
->> filled in.
->>
->> Signed-off-by: Chris Lee <updatelee@gmail.com>
->
-> I don't have any specific objection to this patch, other than that I
-> have no idea if the values he's adding are actually correct.  I'd have
-> to pull out the datasheet and see what the formula looks like to
-> actually calculate the correct values.
->
-> This is of course assuming Chris didn't have the formula and just
-> picked numbers that were roughly in between the adjacent values.
->
-> The off-by-one is legit (syntactically at least - there is indeed no
-> value that would result in 0 being selected), although frankly I don't
-> know whether value 0 is supposed to be 26.0 or 27.0.  It's entirely
-> possible that 0=26.0 and the whole table is off by one value (this was
-> actually the case with the QAM256 table, except in that case it was
-> much worse because it was oscillating between 40.0 and 0.00).
->
-> Anyway, hard to argue this isn't an improvement and thus shouldn't be
-> accepted -- except for the real possibility that the patch introduces
-> wrong values into the table.
->
-> Acked-by:  Devin Heitmueller <dheitmueller@kernellabs.com>
->
-> --
-> Devin J. Heitmueller - Kernel Labs
-> http://www.kernellabs.com
