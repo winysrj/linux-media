@@ -1,109 +1,81 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:42177 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758139Ab3GMIvZ (ORCPT
+Received: from metis.ext.pengutronix.de ([92.198.50.35]:41635 "EHLO
+	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757557Ab3GZNWs (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jul 2013 04:51:25 -0400
-From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
-	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 2/5] media: davinci: vpbe_osd: convert to devm_* api
-Date: Sat, 13 Jul 2013 14:20:28 +0530
-Message-Id: <1373705431-11500-3-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
+	Fri, 26 Jul 2013 09:22:48 -0400
+Message-ID: <1374844932.4013.25.camel@pizza.hi.pengutronix.de>
+Subject: Re: [PATCH v2 1/8] [media] coda: use vb2_set_plane_payload instead
+ of setting v4l2_planes[0].bytesused directly
+From: Philipp Zabel <p.zabel@pengutronix.de>
+To: Mauro Carvalho Chehab <m.chehab@samsung.com>
+Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?ISO-8859-1?Q?Ga=EBtan?= Carlier <gcembed@gmail.com>,
+	Wei Yongjun <weiyj.lk@gmail.com>
+Date: Fri, 26 Jul 2013 15:22:12 +0200
+In-Reply-To: <20130726100239.3fa8dee3@samsung.com>
+References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
+	 <1371801334-22324-2-git-send-email-p.zabel@pengutronix.de>
+	 <20130726100239.3fa8dee3@samsung.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Mauro,
 
-Replace existing resource handling in the driver with managed
-device resource, this ensures more consistent error values and
-simplifies error paths.
+Am Freitag, den 26.07.2013, 10:02 -0300 schrieb Mauro Carvalho Chehab:
+> Hi Philipp,
+> 
+> Em Fri, 21 Jun 2013 09:55:27 +0200
+> Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+> 
+> > Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+> 
+> Please provide a description of the patch.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_osd.c |   45 +++++++----------------------
- 1 file changed, 10 insertions(+), 35 deletions(-)
+Sorry, how about this:
 
-diff --git a/drivers/media/platform/davinci/vpbe_osd.c b/drivers/media/platform/davinci/vpbe_osd.c
-index 6ed82e8..d053c26 100644
---- a/drivers/media/platform/davinci/vpbe_osd.c
-+++ b/drivers/media/platform/davinci/vpbe_osd.c
-@@ -1547,61 +1547,36 @@ static int osd_probe(struct platform_device *pdev)
- 	const struct platform_device_id *pdev_id;
- 	struct osd_state *osd;
- 	struct resource *res;
--	int ret = 0;
- 
--	osd = kzalloc(sizeof(struct osd_state), GFP_KERNEL);
-+	pdev_id = platform_get_device_id(pdev);
-+	if (!pdev_id)
-+		return -EINVAL;
-+
-+	osd = devm_kzalloc(&pdev->dev, sizeof(struct osd_state), GFP_KERNEL);
- 	if (osd == NULL)
- 		return -ENOMEM;
- 
--	pdev_id = platform_get_device_id(pdev);
--	if (!pdev_id) {
--		ret = -EINVAL;
--		goto free_mem;
--	}
- 
- 	osd->dev = &pdev->dev;
- 	osd->vpbe_type = pdev_id->driver_data;
- 
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		dev_err(osd->dev, "Unable to get OSD register address map\n");
--		ret = -ENODEV;
--		goto free_mem;
--	}
-+	osd->osd_base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(osd->osd_base))
-+		return PTR_ERR(osd->osd_base);
-+
- 	osd->osd_base_phys = res->start;
- 	osd->osd_size = resource_size(res);
--	if (!request_mem_region(osd->osd_base_phys, osd->osd_size,
--				MODULE_NAME)) {
--		dev_err(osd->dev, "Unable to reserve OSD MMIO region\n");
--		ret = -ENODEV;
--		goto free_mem;
--	}
--	osd->osd_base = ioremap_nocache(res->start, osd->osd_size);
--	if (!osd->osd_base) {
--		dev_err(osd->dev, "Unable to map the OSD region\n");
--		ret = -ENODEV;
--		goto release_mem_region;
--	}
- 	spin_lock_init(&osd->lock);
- 	osd->ops = osd_ops;
- 	platform_set_drvdata(pdev, osd);
- 	dev_notice(osd->dev, "OSD sub device probe success\n");
--	return ret;
- 
--release_mem_region:
--	release_mem_region(osd->osd_base_phys, osd->osd_size);
--free_mem:
--	kfree(osd);
--	return ret;
-+	return 0;
- }
- 
- static int osd_remove(struct platform_device *pdev)
- {
--	struct osd_state *osd = platform_get_drvdata(pdev);
--
--	iounmap((void *)osd->osd_base);
--	release_mem_region(osd->osd_base_phys, osd->osd_size);
--	kfree(osd);
- 	return 0;
- }
- 
--- 
-1.7.9.5
+"As stated in the vb2_buffer documentation, drivers should not directly fill
+ in v4l2_planes[0].bytesused, but should use vb2_set_plane_payload()
+ function instead. No functional changes."
+
+regards
+Philipp
+
+> Thanks!
+> Mauro
+> 
+> > ---
+> >  drivers/media/platform/coda.c | 10 +++++-----
+> >  1 file changed, 5 insertions(+), 5 deletions(-)
+> > 
+> > diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> > index c4566c4..90f3386 100644
+> > --- a/drivers/media/platform/coda.c
+> > +++ b/drivers/media/platform/coda.c
+> > @@ -1662,12 +1662,12 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
+> >  	wr_ptr = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx));
+> >  	/* Calculate bytesused field */
+> >  	if (dst_buf->v4l2_buf.sequence == 0) {
+> > -		dst_buf->v4l2_planes[0].bytesused = (wr_ptr - start_ptr) +
+> > -						ctx->vpu_header_size[0] +
+> > -						ctx->vpu_header_size[1] +
+> > -						ctx->vpu_header_size[2];
+> > +		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr +
+> > +					ctx->vpu_header_size[0] +
+> > +					ctx->vpu_header_size[1] +
+> > +					ctx->vpu_header_size[2]);
+> >  	} else {
+> > -		dst_buf->v4l2_planes[0].bytesused = (wr_ptr - start_ptr);
+> > +		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr);
+> >  	}
+> >  
+> >  	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev, "frame size = %u\n",
+> 
+> 
+
 
