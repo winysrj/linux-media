@@ -1,90 +1,74 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:43434 "EHLO comal.ext.ti.com"
+Received: from bear.ext.ti.com ([192.94.94.41]:51947 "EHLO bear.ext.ti.com"
 	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751310Ab3GSGgp (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 02:36:45 -0400
-Message-ID: <51E8DE51.1060404@ti.com>
-Date: Fri, 19 Jul 2013 12:06:01 +0530
+	id S932291Ab3GZMui (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 08:50:38 -0400
 From: Kishon Vijay Abraham I <kishon@ti.com>
-MIME-Version: 1.0
-To: Greg KH <gregkh@linuxfoundation.org>
-CC: <kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
 	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
 	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
 	<linux-arm-kernel@lists.infradead.org>,
 	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
 	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
 	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-References: <1374129984-765-1-git-send-email-kishon@ti.com> <1374129984-765-2-git-send-email-kishon@ti.com> <20130718072004.GA16720@kroah.com> <51E7AE88.3050007@ti.com> <20130718154954.GA31961@kroah.com> <51E8D086.809@ti.com> <20130719054311.GA14638@kroah.com> <51E8D4E0.8060200@ti.com> <20130719062941.GA23611@kroah.com>
-In-Reply-To: <20130719062941.GA23611@kroah.com>
-Content-Type: text/plain; charset="ISO-8859-1"
-Content-Transfer-Encoding: 7bit
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<linux@arm.linux.org.uk>
+Subject: [RESEND PATCH v10 4/8] arm: omap3: twl: add phy consumer data in twl4030_usb_data
+Date: Fri, 26 Jul 2013 18:19:19 +0530
+Message-ID: <1374842963-13545-5-git-send-email-kishon@ti.com>
+In-Reply-To: <1374842963-13545-1-git-send-email-kishon@ti.com>
+References: <1374842963-13545-1-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+The PHY framework uses the phy consumer data populated in platform data in the
+case of non-dt boot to return the reference to the PHY when the controller
+(PHY consumer) requests for it. So populated the phy consumer data in the platform
+data of twl usb.
 
-On Friday 19 July 2013 11:59 AM, Greg KH wrote:
-> On Fri, Jul 19, 2013 at 11:25:44AM +0530, Kishon Vijay Abraham I wrote:
->> Hi,
->>
->> On Friday 19 July 2013 11:13 AM, Greg KH wrote:
->>> On Fri, Jul 19, 2013 at 11:07:10AM +0530, Kishon Vijay Abraham I wrote:
->>>>>>>> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
->>>>>>>
->>>>>>> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
->>>>>>> never send a duplicate name.id pair?  Why not create your own ids based
->>>>>>> on the number of phys in the system, like almost all other classes and
->>>>>>> subsystems do?
->>>>>>
->>>>>> hmm.. some PHY drivers use the id they provide to perform some of their
->>>>>> internal operation as in [1] (This is used only if a single PHY provider
->>>>>> implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
->>>>>> to give the PHY drivers an option to use auto id.
->>>>>>
->>>>>> [1] ->
->>>>>> http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
->>>>>
->>>>> No, who cares about the id?  No one outside of the phy core ever should,
->>>>> because you pass back the only pointer that they really do care about,
->>>>> if they need to do anything with the device.  Use that, and then you can
->>>>
->>>> hmm.. ok.
->>>>
->>>>> rip out all of the "search for a phy by a string" logic, as that's not
->>>>
->>>> Actually this is needed for non-dt boot case. In the case of dt boot, we use a
->>>> phandle by which the controller can get a reference to the phy. But in the case
->>>> of non-dt boot, the controller can get a reference to the phy only by label.
->>>
->>> I don't understand.  They registered the phy, and got back a pointer to
->>> it.  Why can't they save it in their local structure to use it again
->>> later if needed?  They should never have to "ask" for the device, as the
->>
->> One is a *PHY provider* driver which is a driver for some PHY device. This will
->> use phy_create to create the phy.
->> The other is a *PHY consumer* driver which might be any controller driver (can
->> be USB/SATA/PCIE). The PHY consumer will use phy_get to get a reference to the
->> phy (by *phandle* in the case of dt boot and *label* in the case of non-dt boot).
->>> device id might be unknown if there are multiple devices in the system.
->>
->> I agree with you on the device id part. That need not be known to the PHY driver.
-> 
-> How does a consumer know which "label" to use in a non-dt system if
-> there are multiple PHYs in the system?
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+---
+ arch/arm/mach-omap2/twl-common.c |   11 +++++++++++
+ 1 file changed, 11 insertions(+)
 
-That should be passed using platform data.
-> 
-> Do you have any drivers that are non-dt using this yet?
+diff --git a/arch/arm/mach-omap2/twl-common.c b/arch/arm/mach-omap2/twl-common.c
+index c05898f..b0d54da 100644
+--- a/arch/arm/mach-omap2/twl-common.c
++++ b/arch/arm/mach-omap2/twl-common.c
+@@ -24,6 +24,7 @@
+ #include <linux/i2c/twl.h>
+ #include <linux/gpio.h>
+ #include <linux/string.h>
++#include <linux/phy/phy.h>
+ #include <linux/regulator/machine.h>
+ #include <linux/regulator/fixed.h>
+ 
+@@ -90,8 +91,18 @@ void __init omap_pmic_late_init(void)
+ }
+ 
+ #if defined(CONFIG_ARCH_OMAP3)
++struct phy_consumer consumers[] = {
++	PHY_CONSUMER("musb-hdrc.0", "usb"),
++};
++
++struct phy_init_data init_data = {
++	.consumers = consumers,
++	.num_consumers = ARRAY_SIZE(consumers),
++};
++
+ static struct twl4030_usb_data omap3_usb_pdata = {
+ 	.usb_mode	= T2_USB_MODE_ULPI,
++	.init_data	= &init_data,
+ };
+ 
+ static int omap3_batt_table[] = {
+-- 
+1.7.10.4
 
-yes. tw4030 (used in OMAP3) supports non-dt.
-[PATCH 04/15] ARM: OMAP: USB: Add phy binding information
-[PATCH 06/15] usb: musb: omap2430: use the new generic PHY framework
-of this patch series shows how it's used.
-
-Thanks
-Kishon
