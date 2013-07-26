@@ -1,95 +1,84 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from out1.ip05ir2.opaltelecom.net ([62.24.128.241]:62385 "EHLO
-	out1.ip05ir2.opaltelecom.net" rhost-flags-OK-OK-OK-OK)
-	by vger.kernel.org with ESMTP id S1752356Ab3GDNc2 (ORCPT
+Received: from atrey.karlin.mff.cuni.cz ([195.113.26.193]:48518 "EHLO
+	atrey.karlin.mff.cuni.cz" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757496Ab3GZJKO (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 4 Jul 2013 09:32:28 -0400
-Received: from root by abf.yi.org with local (Exim 4.80)
-	(envelope-from <root@abf.yi.org>)
-	id 1UujUb-0007ND-J8
-	for linux-media@vger.kernel.org; Thu, 04 Jul 2013 14:22:37 +0100
-Date: Thu, 4 Jul 2013 14:22:37 +0100
-From: root <richssat@abf.yi.org>
+	Fri, 26 Jul 2013 05:10:14 -0400
+Date: Fri, 26 Jul 2013 11:10:13 +0200
+From: Petr Janecek <janecek@ucw.cz>
 To: linux-media@vger.kernel.org
-Subject: Re: Technisat SkyStar USB HD & DiSEqC motor
-Message-ID: <20130704132237.GA28313@acer-3600>
-References: <20130703190023.GA25127@acer-3600>
+Subject: siano: divide error: 0000 [#1] SMP
+Message-ID: <20130726091013.GA1018@atrey.karlin.mff.cuni.cz>
 MIME-Version: 1.0
 Content-Type: text/plain; charset=us-ascii
 Content-Disposition: inline
-In-Reply-To: <20130703190023.GA25127@acer-3600>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-OK, after an e-mail to TechniSat tech support I've learnt the SkyStar USB HD
-isn't not compatible with a DiSEqC motor, only a DiSEqC switch.
-
-Strange to me is the motor receives enough power to drive itself, as when
-receiving a non-functional 'gotox' or 'rotor' command I can use the manual
-east/west buttons on the motor. The driver also pushes the correct commands
-down the wire. So what's stopping it working?
-
-I currently have a 35ukp doorstop. ;(
-
-Thanks go out to Patrick Boettch author of dvb_usb_technisat_usb2 and
-Manu Abraham author of stv090x for their input.
-
-Hope this helps someone out in the future.
-
-Richard.
+Hello,
+      since about 3.10, siano dvb-t tuner (usb id 187f:0202) crashes the
+machine when plugged in before boot. No such problem if connected later.
 
 
+Regards,
 
- On Wed, Jul 03, 2013 at 08:00:23PM +0100, richards wrote:
-> Hello.
-> 
-> I've been viewing FTA satellite for a few years using an up-to-date ubuntu distro
-> and a Technisat SkyStar USB HD;
-> http://www.linuxtv.org/wiki/index.php/Technisat_SkyStar_USB_HD
-> 
-> Recently I decided to upgrade my setup and try out a DiSEqC motor on my dish.
-> 
-> Cdtronix NH-210 DiSEqC 1.2 Motor
-> http://cdtronix.com/motorised/new-horizons-nh-210-diseqc-1.2-motor
-> 
-> I am able to view/switch channels with the rotor inline between my SkyStar and
-> LNB on the dish, which suggests to me the cabling is all good. However I cannot
-> get the rotor to rotate.
-> 
-> I've used the 'gotox' util avaiable from dvb-apps and also 'rotor' from this
-> source https://svn.tuxicoman.be/filedetails.php?repname=dvbgyver&path=%2Ftrunk%2Frotor.c
-> as suggested by 'GMsoft' in the #linuxtv room on irc.freenode.net
-> 
-> Both utils seem to supply power to the rotor but they never rotate it.
-> Whilst they supply power I can press manual buttons on the device to rotate East/West
-> which tells me the rotor is receiving enough power.
-> 
-> I upped the verbosity of stv090x.ko which is itself loaded by dvb_usb_technisat_usb2.ko
-> Patrick Boettch the author of dvb_usb_technisat_usb2 told me it used stv090x for
-> DiSEqC commands & suggested I shout out on this mailing list.
-> 
-> Here are a few logs from my syslog (verbosity of stv090x upped to 5).
-> 
-> Inital loading of device. (Works as I can view satellite tv)
-> http://bpaste.net/show/qFEde74lwn4cFquli0cx/
-> 
-> Command '# ./rotor -t 5 limits_off' - seems to return quickly.
-> http://bpaste.net/show/EskG9QAFjTbevReVcYVm/
-> 
-> Command '# ./rotor -t 30 goto_x 28.2e' - DOESN'T ROTOTE ROTOR!! ;(
-> http://bpaste.net/show/uJBtLqQA3VVnmCTebOPz/
-> 
-> Command '# ./rotor -t 5 stop' - seems to return quickly, its not moving anyway right?
-> http://bpaste.net/show/eR1GmJnOWOQhFDlM4oMv/
-> 
-> 
-> The 'gotox' from dvb-app doesn't ever move it either. I've used numerous different
-> bits of cabling to eliminate that also.
-> 
-> Hoping somebody can suggest something either to fix or help debug futher.
-> 
-> Richard.
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+Petr
+
+
+[   38.387145] divide error: 0000 [#1] SMP 
+[   38.391132] Modules linked in: ip6table_filter ip6_tables ebtable_nat ebtables ipt_REJECT xt_CHECKSUM iptable_mangle xt_tcpudp iptable_filter ip_tables x_tables bridge stp llc kvm_intel kvm dm_crypt snd_hda_codec_hdmi snd_hda_codec_idt snd_hda_intel snd_hda_codec snd_hwdep smsusb smsdvb dvb_core snd_pcm smsmdtv snd_seq_midi snd_rawmidi snd_seq_midi_event snd_seq snd_timer snd_seq_device snd soundcore lpc_ich serio_raw snd_page_alloc coretemp nfsd nfs_acl auth_rpcgss oid_registry nfs fscache binfmt_misc lockd sunrpc xfs exportfs libcrc32c hid_generic usbhid hid e1000e firewire_ohci ptp i915 ahci drm_kms_helper firewire_core crc_itu_t libahci drm i2c_algo_bit pps_core video usb_storage [last unloaded: ipmi_msghandler]
+[   38.397124] CPU: 0 PID: 0 Comm: swapper/0 Not tainted 3.11.0-rc2 #6
+[   38.397124] Hardware name:                  /DG45ID, BIOS IDG4510H.86A.0135.2011.0225.1100 02/25/2011
+[   38.397124] task: ffffffff81c10440 ti: ffffffff81c00000 task.ti: ffffffff81c00000
+[   38.397124] RIP: 0010:[<ffffffffa043d1a2>]  [<ffffffffa043d1a2>] smsdvb_update_per_slices+0xd2/0xe0 [smsdvb]
+[   38.397124] RSP: 0018:ffff88012bc03c18  EFLAGS: 00010046
+[   38.397124] RAX: 0000000000000000 RBX: ffff880124599000 RCX: 0000000000000000
+[   38.397124] RDX: 0000000000000000 RSI: ffff8800370da008 RDI: ffff880124599000
+[   38.397124] RBP: ffff88012bc03c18 R08: 0000000000000001 R09: 0000000000000001
+[   38.397124] R10: 0000000000000000 R11: 0000000000000000 R12: ffff880124d24ac0
+[   38.397124] R13: ffff8800370da008 R14: ffff8800370da000 R15: ffff8800370042e0
+[   38.397124] FS:  0000000000000000(0000) GS:ffff88012bc00000(0000) knlGS:0000000000000000
+[   38.397124] CS:  0010 DS: 0000 ES: 0000 CR0: 000000008005003b
+[   38.397124] CR2: 00007f186c361c80 CR3: 00000001240a8000 CR4: 00000000000407f0
+[   38.397124] Stack:
+[   38.397124]  ffff88012bc03c48 ffffffffa043e088 ffff8800370da000 ffff880124d24ac0
+[   38.397124]  ffff880125482000 00000000fffc020c ffff88012bc03c78 ffffffffa042e6e1
+[   38.397124]  ffff8801268f0390 ffff8800370da000 ffff8801268f0000 ffff8801268f03b0
+[   38.397124] Call Trace:
+[   38.397124]  <IRQ> 
+[   38.397124]  [<ffffffffa043e088>] smsdvb_onresponse+0x1b8/0x280 [smsdvb]
+[   38.397124]  [<ffffffffa042e6e1>] smscore_onresponse+0x91/0x450 [smsmdtv]
+[   38.397124]  [<ffffffffa045e184>] smsusb_onresponse+0xb4/0x1f0 [smsusb]
+[   38.397124]  [<ffffffff8147f084>] usb_hcd_giveback_urb+0x64/0xe0
+[   38.397124]  [<ffffffff81495d81>] ehci_urb_done+0x71/0xb0
+[   38.397124]  [<ffffffff814992ed>] qh_completions+0x1ed/0x380
+[   38.397124]  [<ffffffff8149994b>] scan_async+0x7b/0xe0
+[   38.397124]  [<ffffffff8149b130>] ehci_work+0x70/0xd0
+[   38.397124]  [<ffffffff8149b431>] ehci_irq+0x201/0x2c0
+[   38.397124]  [<ffffffff8147e23e>] usb_hcd_irq+0x2e/0x50
+[   38.397124]  [<ffffffff810e6af5>] handle_irq_event_percpu+0x75/0x260
+[   38.397124]  [<ffffffff810e6d28>] handle_irq_event+0x48/0x70
+[   38.397124]  [<ffffffff810e9d5e>] ? handle_fasteoi_irq+0x1e/0x100
+[   38.397124]  [<ffffffff810e9d9a>] handle_fasteoi_irq+0x5a/0x100
+[   38.397124]  [<ffffffff81004940>] handle_irq+0x60/0x150
+[   38.397124]  [<ffffffff81644906>] ? atomic_notifier_call_chain+0x16/0x20
+[   38.397124]  [<ffffffff8164b21a>] do_IRQ+0x5a/0xe0
+[   38.397124]  [<ffffffff816406aa>] common_interrupt+0x6a/0x6a
+[   38.397124]  <EOI> 
+[   38.397124]  [<ffffffff814f6b5b>] ? cpuidle_enter_state+0x5b/0xe0
+[   38.397124]  [<ffffffff814f6b57>] ? cpuidle_enter_state+0x57/0xe0
+[   38.397124]  [<ffffffff814f6ca0>] cpuidle_idle_call+0xc0/0x260
+[   38.397124]  [<ffffffff8100bcbe>] arch_cpu_idle+0xe/0x30
+[   38.397124]  [<ffffffff8109dcf6>] cpu_idle_loop+0x86/0x270
+[   38.397124]  [<ffffffff8109df4b>] cpu_startup_entry+0x6b/0x70
+[   38.397124]  [<ffffffff81624d51>] rest_init+0xd1/0xe0
+[   38.397124]  [<ffffffff81624c85>] ? rest_init+0x5/0xe0
+[   38.397124]  [<ffffffff81cefe70>] start_kernel+0x3c1/0x3ce
+[   38.397124]  [<ffffffff81cef941>] ? repair_env_string+0x5a/0x5a
+[   38.397124]  [<ffffffff81cef5a6>] x86_64_start_reservations+0x2a/0x2c
+[   38.397124]  [<ffffffff81cef694>] x86_64_start_kernel+0xec/0xf3
+[   38.397124] Code: 00 00 03 48 01 87 05 0b 00 00 8b 46 4c 48 01 87 96 0a 00 00 8b 46 48 48 01 87 bb 0a 00 00 8b 4e 10 89 c8 c1 e0 10 29 c8 03 4e 0c <48> f7 f1 89 87 e8 0b 00 00 5d c3 0f 1f 00 66 66 66 66 90 55 48 
+[   38.397124] RIP  [<ffffffffa043d1a2>] smsdvb_update_per_slices+0xd2/0xe0 [smsdvb]
+[   38.397124]  RSP <ffff88012bc03c18>
+[   38.397124] ---[ end trace 8ecbe785c081e3cd ]---
+
