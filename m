@@ -1,132 +1,125 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-ie0-f171.google.com ([209.85.223.171]:64704 "EHLO
-	mail-ie0-f171.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751678Ab3GSU1K (ORCPT
+Received: from mailout2.w2.samsung.com ([211.189.100.12]:60745 "EHLO
+	usmailout2.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932365Ab3GZPSt (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 16:27:10 -0400
-Received: by mail-ie0-f171.google.com with SMTP id qd12so10390652ieb.30
-        for <linux-media@vger.kernel.org>; Fri, 19 Jul 2013 13:27:10 -0700 (PDT)
-MIME-Version: 1.0
-Date: Fri, 19 Jul 2013 14:27:09 -0600
-Message-ID: <CAA9z4LY6cWEm+4ed7HM3ga0dohsg6LJ6Z4XSge9i4FguJR=FJw@mail.gmail.com>
-Subject: Proposed modifications to dvb_frontend_ops
-From: Chris Lee <updatelee@gmail.com>
-To: linux-media@vger.kernel.org
-Content-Type: text/plain; charset=ISO-8859-1
+	Fri, 26 Jul 2013 11:18:49 -0400
+Received: from uscpsbgm2.samsung.com
+ (u115.gpu85.samsung.co.kr [203.254.195.115]) by mailout2.w2.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQJ00B7WUJ5SW40@mailout2.w2.samsung.com> for
+ linux-media@vger.kernel.org; Fri, 26 Jul 2013 11:18:47 -0400 (EDT)
+Date: Fri, 26 Jul 2013 12:18:41 -0300
+From: Mauro Carvalho Chehab <m.chehab@samsung.com>
+To: Philipp Zabel <p.zabel@pengutronix.de>
+Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
+	Javier Martin <javier.martin@vista-silicon.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>,
+	=?UTF-8?B?R2HDq3Rhbg==?= Carlier <gcembed@gmail.com>,
+	Wei Yongjun <weiyj.lk@gmail.com>
+Subject: Re: [PATCH v2 6/8] [media] coda: dynamic IRAM setup for decoder
+Message-id: <20130726121841.10f9fe17@samsung.com>
+In-reply-to: <1371801334-22324-7-git-send-email-p.zabel@pengutronix.de>
+References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
+ <1371801334-22324-7-git-send-email-p.zabel@pengutronix.de>
+MIME-version: 1.0
+Content-type: text/plain; charset=US-ASCII
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-In frontend.h we have a struct called dvb_frontend_ops, in there we
-have an element called delsys to show the delivery systems supported
-by the tuner, Id like to propose we add onto that with delmod and
-delfec.
+Em Fri, 21 Jun 2013 09:55:32 +0200
+Philipp Zabel <p.zabel@pengutronix.de> escreveu:
 
-Its not a perfect solution as sometimes a specific modulation or fec
-is only availible on specific systems. But its better then what we
-have now. The struct fe_caps isnt really suited for this, its missing
-many systems, modulations, and fec's. Its just not expandable enough
-to get all the supported sys/mod/fec a tuner supports in there.
+> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
 
-Expanding this would allow user land applications to poll the tuner to
-determine more detailed information on the tuners capabilities.
+Please add a description for the patch.
 
-Here is the patch I propose, along with the au8522 driver modified to
-utilize the new elements. Id like to hear comments on it. Does anyone
-see a better way of doing this ?
+Thanks!
+Mauro
 
-Chris Lee <updatelee@gmail.com>
+> ---
+>  drivers/media/platform/coda.c | 50 +++++++++++++++++++++++++++++++++++++++++--
+>  1 file changed, 48 insertions(+), 2 deletions(-)
+> 
+> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
+> index 1f3bd43..856a93e 100644
+> --- a/drivers/media/platform/coda.c
+> +++ b/drivers/media/platform/coda.c
+> @@ -1212,6 +1212,7 @@ static void coda_setup_iram(struct coda_ctx *ctx)
+>  	int ipacdc_size;
+>  	int bitram_size;
+>  	int dbk_size;
+> +	int ovl_size;
+>  	int mb_width;
+>  	int me_size;
+>  	int size;
+> @@ -1273,7 +1274,47 @@ static void coda_setup_iram(struct coda_ctx *ctx)
+>  			size -= ipacdc_size;
+>  		}
+>  
+> -		/* OVL disabled for encoder */
+> +		/* OVL and BTP disabled for encoder */
+> +	} else if (ctx->inst_type == CODA_INST_DECODER) {
+> +		struct coda_q_data *q_data_dst;
+> +		int mb_height;
+> +
+> +		q_data_dst = get_q_data(ctx, V4L2_BUF_TYPE_VIDEO_CAPTURE);
+> +		mb_width = DIV_ROUND_UP(q_data_dst->width, 16);
+> +		mb_height = DIV_ROUND_UP(q_data_dst->height, 16);
+> +
+> +		dbk_size = round_up(256 * mb_width, 1024);
+> +		if (size >= dbk_size) {
+> +			iram_info->axi_sram_use |= CODA7_USE_HOST_DBK_ENABLE;
+> +			iram_info->buf_dbk_y_use = dev->iram_paddr;
+> +			iram_info->buf_dbk_c_use = dev->iram_paddr +
+> +						   dbk_size / 2;
+> +			size -= dbk_size;
+> +		} else {
+> +			goto out;
+> +		}
+> +
+> +		bitram_size = round_up(128 * mb_width, 1024);
+> +		if (size >= bitram_size) {
+> +			iram_info->axi_sram_use |= CODA7_USE_HOST_BIT_ENABLE;
+> +			iram_info->buf_bit_use = iram_info->buf_dbk_c_use +
+> +						 dbk_size / 2;
+> +			size -= bitram_size;
+> +		} else {
+> +			goto out;
+> +		}
+> +
+> +		ipacdc_size = round_up(128 * mb_width, 1024);
+> +		if (size >= ipacdc_size) {
+> +			iram_info->axi_sram_use |= CODA7_USE_HOST_IP_ENABLE;
+> +			iram_info->buf_ip_ac_dc_use = iram_info->buf_bit_use +
+> +						      bitram_size;
+> +			size -= ipacdc_size;
+> +		} else {
+> +			goto out;
+> +		}
+> +
+> +		ovl_size = round_up(80 * mb_width, 1024);
+>  	}
+>  
+>  out:
+> @@ -1300,7 +1341,12 @@ out:
+>  
+>  	if (dev->devtype->product == CODA_7541) {
+>  		/* TODO - Enabling these causes picture errors on CODA7541 */
+> -		if (ctx->inst_type == CODA_INST_ENCODER) {
+> +		if (ctx->inst_type == CODA_INST_DECODER) {
+> +			/* fw 1.4.50 */
+> +			iram_info->axi_sram_use &= ~(CODA7_USE_HOST_IP_ENABLE |
+> +						     CODA7_USE_IP_ENABLE);
+> +		} else {
+> +			/* fw 13.4.29 */
+>  			iram_info->axi_sram_use &= ~(CODA7_USE_HOST_IP_ENABLE |
+>  						     CODA7_USE_HOST_DBK_ENABLE |
+>  						     CODA7_USE_IP_ENABLE |
 
-diff --git a/drivers/media/dvb-core/dvb_frontend.c
-b/drivers/media/dvb-core/dvb_frontend.c
-index 1f925e8..f5df08e 100644
---- a/drivers/media/dvb-core/dvb_frontend.c
-+++ b/drivers/media/dvb-core/dvb_frontend.c
-@@ -1036,6 +1036,8 @@ static struct dtv_cmds_h dtv_cmds[DTV_MAX_COMMAND + 1] = {
-  _DTV_CMD(DTV_API_VERSION, 0, 0),
 
-  _DTV_CMD(DTV_ENUM_DELSYS, 0, 0),
-+ _DTV_CMD(DTV_ENUM_DELMOD, 0, 0),
-+ _DTV_CMD(DTV_ENUM_DELFEC, 0, 0),
+-- 
 
-  _DTV_CMD(DTV_ATSCMH_PARADE_ID, 1, 0),
-  _DTV_CMD(DTV_ATSCMH_RS_FRAME_ENSEMBLE, 1, 0),
-@@ -1285,6 +1287,22 @@ static int dtv_property_process_get(struct
-dvb_frontend *fe,
-  }
-  tvp->u.buffer.len = ncaps;
-  break;
-+ case DTV_ENUM_DELMOD:
-+ ncaps = 0;
-+ while (fe->ops.delmod[ncaps] && ncaps < MAX_DELMOD) {
-+ tvp->u.buffer.data[ncaps] = fe->ops.delmod[ncaps];
-+ ncaps++;
-+ }
-+ tvp->u.buffer.len = ncaps;
-+ break;
-+ case DTV_ENUM_DELFEC:
-+ ncaps = 0;
-+ while (fe->ops.delfec[ncaps] && ncaps < MAX_DELFEC) {
-+ tvp->u.buffer.data[ncaps] = fe->ops.delfec[ncaps];
-+ ncaps++;
-+ }
-+ tvp->u.buffer.len = ncaps;
-+ break;
-  case DTV_FREQUENCY:
-  tvp->u.data = c->frequency;
-  break;
-diff --git a/drivers/media/dvb-core/dvb_frontend.h
-b/drivers/media/dvb-core/dvb_frontend.h
-index 371b6ca..4e96640 100644
---- a/drivers/media/dvb-core/dvb_frontend.h
-+++ b/drivers/media/dvb-core/dvb_frontend.h
-@@ -47,6 +47,8 @@
-  * should be smaller or equal to 32
-  */
- #define MAX_DELSYS 8
-+#define MAX_DELMOD 8
-+#define MAX_DELFEC 32
-
- struct dvb_frontend_tune_settings {
-  int min_delay_ms;
-@@ -263,6 +265,8 @@ struct dvb_frontend_ops {
-  struct dvb_frontend_info info;
-
-  u8 delsys[MAX_DELSYS];
-+ u8 delmod[MAX_DELMOD];
-+ u8 delfec[MAX_DELFEC];
-
-  void (*release)(struct dvb_frontend* fe);
-  void (*release_sec)(struct dvb_frontend* fe);
-diff --git a/include/uapi/linux/dvb/frontend.h
-b/include/uapi/linux/dvb/frontend.h
-index c56d77c..be63d37 100644
---- a/include/uapi/linux/dvb/frontend.h
-+++ b/include/uapi/linux/dvb/frontend.h
-@@ -375,7 +375,10 @@ struct dvb_frontend_event {
- #define DTV_STAT_ERROR_BLOCK_COUNT 68
- #define DTV_STAT_TOTAL_BLOCK_COUNT 69
-
--#define DTV_MAX_COMMAND DTV_STAT_TOTAL_BLOCK_COUNT
-+#define DTV_ENUM_DELMOD 70
-+#define DTV_ENUM_DELFEC 71
-+
-+#define DTV_MAX_COMMAND DTV_ENUM_DELFEC
-
- typedef enum fe_pilot {
-  PILOT_ON,
-diff --git a/drivers/media/dvb-frontends/au8522_dig.c
-b/drivers/media/dvb-frontends/au8522_dig.c
-index 6ee9028..1044c9d 100644
---- a/drivers/media/dvb-frontends/au8522_dig.c
-+++ b/drivers/media/dvb-frontends/au8522_dig.c
-@@ -822,7 +822,9 @@ error:
- EXPORT_SYMBOL(au8522_attach);
-
- static struct dvb_frontend_ops au8522_ops = {
-- .delsys = { SYS_ATSC, SYS_DVBC_ANNEX_B },
-+ .delsys = { SYS_DVBC_ANNEX_B, SYS_ATSC },
-+ .delmod = { QAM_256, QAM_64, VSB_8 },
-+ .delfec = { FEC_NONE },
-  .info = {
-  .name = "Auvitek AU8522 QAM/8VSB Frontend",
-  .frequency_min = 54000000,
+Cheers,
+Mauro
