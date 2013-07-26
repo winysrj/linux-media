@@ -1,385 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.samsung.com ([203.254.224.24]:49444 "EHLO
-	mailout1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752121Ab3GIFBo (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 01:01:44 -0400
-Received: from epcpsbgr3.samsung.com
- (u143.gpu120.samsung.co.kr [203.254.230.143])
- by mailout1.samsung.com (Oracle Communications Messaging Server 7u4-24.01
- (7.0.4.24.0) 64bit (built Nov 17 2011))
- with ESMTP id <0MPN0025FKLZOQL0@mailout1.samsung.com> for
- linux-media@vger.kernel.org; Tue, 09 Jul 2013 14:01:41 +0900 (KST)
-From: Arun Kumar K <arun.kk@samsung.com>
-To: linux-media@vger.kernel.org
-Cc: k.debski@samsung.com, jtp.park@samsung.com, s.nawrocki@samsung.com,
-	hverkuil@xs4all.nl, avnd.kiran@samsung.com,
-	arunkk.samsung@gmail.com
-Subject: [PATCH v5 7/8] [media] V4L: Add VP8 encoder controls
-Date: Tue, 09 Jul 2013 10:54:41 +0530
-Message-id: <1373347482-9264-8-git-send-email-arun.kk@samsung.com>
-In-reply-to: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
-References: <1373347482-9264-1-git-send-email-arun.kk@samsung.com>
+Received: from bear.ext.ti.com ([192.94.94.41]:51971 "EHLO bear.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S932291Ab3GZMuw (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 08:50:52 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<linux@arm.linux.org.uk>
+Subject: [RESEND PATCH v10 6/8] usb: musb: omap2430: use the new generic PHY framework
+Date: Fri, 26 Jul 2013 18:19:21 +0530
+Message-ID: <1374842963-13545-7-git-send-email-kishon@ti.com>
+In-Reply-To: <1374842963-13545-1-git-send-email-kishon@ti.com>
+References: <1374842963-13545-1-git-send-email-kishon@ti.com>
+MIME-Version: 1.0
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This patch adds new V4L controls for VP8 encoding.
+Use the generic PHY framework API to get the PHY. The usb_phy_set_resume
+and usb_phy_set_suspend is replaced with power_on and
+power_off to align with the new PHY framework.
 
-Signed-off-by: Kiran AVND <avnd.kiran@samsung.com>
-Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
-Acked-by: Hans Verkuil <hans.verkuil@cisco.com>
+musb->xceiv can't be removed as of now because musb core uses xceiv.state and
+xceiv.otg. Once there is a separate state machine to handle otg, these can be
+moved out of xceiv and then we can start using the generic PHY framework.
+
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
 ---
- Documentation/DocBook/media/v4l/controls.xml |  168 +++++++++++++++++++++++++-
- drivers/media/v4l2-core/v4l2-ctrls.c         |   39 +++++-
- include/uapi/linux/v4l2-controls.h           |   29 +++++
- 3 files changed, 229 insertions(+), 7 deletions(-)
+ drivers/usb/musb/Kconfig     |    1 +
+ drivers/usb/musb/musb_core.h |    2 ++
+ drivers/usb/musb/omap2430.c  |   26 ++++++++++++++++++++------
+ 3 files changed, 23 insertions(+), 6 deletions(-)
 
-diff --git a/Documentation/DocBook/media/v4l/controls.xml b/Documentation/DocBook/media/v4l/controls.xml
-index 8d7a779..74314da 100644
---- a/Documentation/DocBook/media/v4l/controls.xml
-+++ b/Documentation/DocBook/media/v4l/controls.xml
-@@ -722,17 +722,22 @@ for more details.</para>
-     </section>
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index 797e3fd..25e2e57 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -76,6 +76,7 @@ config USB_MUSB_TUSB6010
+ config USB_MUSB_OMAP2PLUS
+ 	tristate "OMAP2430 and onwards"
+ 	depends on ARCH_OMAP2PLUS
++	select GENERIC_PHY
  
-     <section id="mpeg-controls">
--      <title>MPEG Control Reference</title>
-+      <title>Codec Control Reference</title>
+ config USB_MUSB_AM35X
+ 	tristate "AM35x"
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 7d341c3..6e567bd 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -46,6 +46,7 @@
+ #include <linux/usb.h>
+ #include <linux/usb/otg.h>
+ #include <linux/usb/musb.h>
++#include <linux/phy/phy.h>
  
--      <para>Below all controls within the MPEG control class are
-+      <para>Below all controls within the Codec control class are
- described. First the generic controls, then controls specific for
- certain hardware.</para>
+ struct musb;
+ struct musb_hw_ep;
+@@ -346,6 +347,7 @@ struct musb {
+ 	u16			int_tx;
  
-+      <para>Note: These controls are applicable to all codecs and
-+not just MPEG. The defines are prefixed with V4L2_CID_MPEG/V4L2_MPEG
-+as the controls were originally made for MPEG codecs and later
-+extended to cover all encoding formats.</para>
-+
-       <section>
--	<title>Generic MPEG Controls</title>
-+	<title>Generic Codec Controls</title>
+ 	struct usb_phy		*xceiv;
++	struct phy		*phy;
  
- 	<table pgwide="1" frame="none" id="mpeg-control-id">
--	  <title>MPEG Control IDs</title>
-+	  <title>Codec Control IDs</title>
- 	  <tgroup cols="4">
- 	    <colspec colname="c1" colwidth="1*" />
- 	    <colspec colname="c2" colwidth="6*" />
-@@ -752,7 +757,7 @@ certain hardware.</para>
- 	      <row>
- 		<entry spanname="id"><constant>V4L2_CID_MPEG_CLASS</constant>&nbsp;</entry>
- 		<entry>class</entry>
--	      </row><row><entry spanname="descr">The MPEG class
-+	      </row><row><entry spanname="descr">The Codec class
- descriptor. Calling &VIDIOC-QUERYCTRL; for this control will return a
- description of this control class. This description can be used as the
- caption of a Tab page in a GUI, for example.</entry>
-@@ -3009,6 +3014,159 @@ in by the application. 0 = do not insert, 1 = insert packets.</entry>
- 	  </tgroup>
- 	</table>
-       </section>
+ 	int nIrq;
+ 	unsigned		irq_wake:1;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 6708a3b..f7b33f4 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -348,11 +348,21 @@ static int omap2430_musb_init(struct musb *musb)
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+ 	 */
+-	if (dev->parent->of_node)
++	if (dev->parent->of_node) {
++		musb->phy = devm_phy_get(dev->parent, "usb2-phy");
 +
-+    <section>
-+      <title>VPX Control Reference</title>
-+
-+      <para>The VPX controls include controls for encoding parameters
-+      of VPx video codec.</para>
-+
-+      <table pgwide="1" frame="none" id="vpx-control-id">
-+      <title>VPX Control IDs</title>
-+
-+      <tgroup cols="4">
-+        <colspec colname="c1" colwidth="1*" />
-+        <colspec colname="c2" colwidth="6*" />
-+        <colspec colname="c3" colwidth="2*" />
-+        <colspec colname="c4" colwidth="6*" />
-+        <spanspec namest="c1" nameend="c2" spanname="id" />
-+        <spanspec namest="c2" nameend="c4" spanname="descr" />
-+        <thead>
-+          <row>
-+            <entry spanname="id" align="left">ID</entry>
-+            <entry align="left">Type</entry>
-+          </row><row rowsep="1"><entry spanname="descr" align="left">Description</entry>
-+          </row>
-+        </thead>
-+        <tbody valign="top">
-+          <row><entry></entry></row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-vpx-num-partitions">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS</constant></entry>
-+		<entry>enum v4l2_vp8_num_partitions</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The number of token partitions to use in VP8 encoder.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_1_PARTITION</constant></entry>
-+		      <entry>1 coefficient partition</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_2_PARTITIONS</constant></entry>
-+		      <entry>2 coefficient partitions</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_4_PARTITIONS</constant></entry>
-+		      <entry>4 coefficient partitions</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_8_PARTITIONS</constant></entry>
-+		      <entry>8 coefficient partitions</entry>
-+	            </row>
-+                  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_IMD_DISABLE_4X4</constant></entry>
-+		<entry>boolean</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Setting this prevents intra 4x4 mode in the intra mode decision.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-vpx-num-ref-frames">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES</constant></entry>
-+		<entry>enum v4l2_vp8_num_ref_frames</entry>
-+	      </row>
-+	      <row><entry spanname="descr">The number of reference pictures for encoding P frames.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_1_REF_FRAME</constant></entry>
-+		      <entry>Last encoded frame will be searched</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_2_REF_FRAME</constant></entry>
-+		      <entry>Two frames will be searched among the last encoded frame, the golden frame
-+and the alternate reference (altref) frame. The encoder implementation will decide which two are chosen.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_3_REF_FRAME</constant></entry>
-+		      <entry>The last encoded frame, the golden frame and the altref frame will be searched.</entry>
-+		    </row>
-+                  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_FILTER_LEVEL</constant></entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Indicates the loop filter level. The adjustment of the loop
-+filter level is done via a delta value against a baseline loop filter value.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS</constant></entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">This parameter affects the loop filter. Anything above
-+zero weakens the deblocking effect on the loop filter.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row>
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD</constant></entry>
-+		<entry>integer</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Sets the refresh period for the golden frame. The period is defined
-+in number of frames. For a value of 'n', every nth frame starting from the first key frame will be taken as a golden frame.
-+For eg. for encoding sequence of 0, 1, 2, 3, 4, 5, 6, 7 where the golden frame refresh period is set as 4, the frames
-+0, 4, 8 etc will be taken as the golden frames as frame 0 is always a key frame.</entry>
-+	      </row>
-+
-+	      <row><entry></entry></row>
-+	      <row id="v4l2-vpx-golden-frame-sel">
-+		<entry spanname="id"><constant>V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL</constant></entry>
-+		<entry>enum v4l2_vp8_golden_frame_sel</entry>
-+	      </row>
-+	      <row><entry spanname="descr">Selects the golden frame for encoding.
-+Possible values are:</entry>
-+	      </row>
-+	      <row>
-+		<entrytbl spanname="descr" cols="2">
-+		  <tbody valign="top">
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV</constant></entry>
-+		      <entry>Use the (n-2)th frame as a golden frame, current frame index being 'n'.</entry>
-+		    </row>
-+		    <row>
-+		      <entry><constant>V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_REF_PERIOD</constant></entry>
-+		      <entry>Use the previous specific frame indicated by
-+V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD as a golden frame.</entry>
-+		    </row>
-+                  </tbody>
-+		</entrytbl>
-+	      </row>
-+
-+          <row><entry></entry></row>
-+        </tbody>
-+      </tgroup>
-+      </table>
-+
-+      </section>
-     </section>
++		/* We can't totally remove musb->xceiv as of now because
++		 * musb core uses xceiv.state and xceiv.otg. Once we have
++		 * a separate state machine to handle otg, these can be moved
++		 * out of xceiv and then we can start using the generic PHY
++		 * framework
++		 */
+ 		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+ 		    "usb-phy", 0);
+-	else
++	} else {
+ 		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
++		musb->phy = devm_phy_get(dev, "usb");
++	}
  
-     <section id="camera-controls">
-diff --git a/drivers/media/v4l2-core/v4l2-ctrls.c b/drivers/media/v4l2-core/v4l2-ctrls.c
-index e03a2e8..c6dc1fd 100644
---- a/drivers/media/v4l2-core/v4l2-ctrls.c
-+++ b/drivers/media/v4l2-core/v4l2-ctrls.c
-@@ -424,6 +424,12 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		NULL,
- 	};
+ 	if (IS_ERR(musb->xceiv)) {
+ 		status = PTR_ERR(musb->xceiv);
+@@ -364,6 +374,10 @@ static int omap2430_musb_init(struct musb *musb)
+ 		return -EPROBE_DEFER;
+ 	}
  
-+	static const char * const vpx_golden_frame_sel[] = {
-+		"Use Previous Frame",
-+		"Use Previous Specific Frame",
-+		NULL,
-+	};
-+
- 	static const char * const flash_led_mode[] = {
- 		"Off",
- 		"Flash",
-@@ -538,6 +544,8 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
- 		return mpeg_mpeg4_level;
- 	case V4L2_CID_MPEG_VIDEO_MPEG4_PROFILE:
- 		return mpeg4_profile;
-+	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
-+		return vpx_golden_frame_sel;
- 	case V4L2_CID_JPEG_CHROMA_SUBSAMPLING:
- 		return jpeg_chroma_subsampling;
- 	case V4L2_CID_DV_TX_MODE:
-@@ -552,13 +560,26 @@ const char * const *v4l2_ctrl_get_menu(u32 id)
++	if (IS_ERR(musb->phy)) {
++		pr_err("HS USB OTG: no PHY configured\n");
++		return PTR_ERR(musb->phy);
++	}
+ 	musb->isr = omap2430_musb_interrupt;
+ 
+ 	status = pm_runtime_get_sync(dev);
+@@ -397,7 +411,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 	if (glue->status != OMAP_MUSB_UNKNOWN)
+ 		omap_musb_set_mailbox(glue);
+ 
+-	usb_phy_init(musb->xceiv);
++	phy_init(musb->phy);
+ 
+ 	pm_runtime_put_noidle(musb->controller);
+ 	return 0;
+@@ -460,6 +474,7 @@ static int omap2430_musb_exit(struct musb *musb)
+ 	del_timer_sync(&musb_idle_timer);
+ 
+ 	omap2430_low_level_exit(musb);
++	phy_exit(musb->phy);
+ 
+ 	return 0;
  }
- EXPORT_SYMBOL(v4l2_ctrl_get_menu);
+@@ -633,7 +648,7 @@ static int omap2430_runtime_suspend(struct device *dev)
+ 				OTG_INTERFSEL);
  
-+#define __v4l2_qmenu_int_len(arr, len) ({ *(len) = ARRAY_SIZE(arr); arr; })
- /*
-  * Returns NULL or an s64 type array containing the menu for given
-  * control ID. The total number of the menu items is returned in @len.
-  */
- const s64 const *v4l2_ctrl_get_int_menu(u32 id, u32 *len)
- {
-+	static const s64 const qmenu_int_vpx_num_partitions[] = {
-+		1, 2, 4, 8,
-+	};
-+
-+	static const s64 const qmenu_int_vpx_num_ref_frames[] = {
-+		1, 2, 3,
-+	};
-+
- 	switch (id) {
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:
-+		return __v4l2_qmenu_int_len(qmenu_int_vpx_num_partitions, len);
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES:
-+		return __v4l2_qmenu_int_len(qmenu_int_vpx_num_ref_frames, len);
- 	default:
- 		*len = 0;
- 		return NULL;
-@@ -614,9 +635,11 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_ALPHA_COMPONENT:		return "Alpha Component";
- 	case V4L2_CID_COLORFX_CBCR:		return "Color Effects, CbCr";
+ 		omap2430_low_level_exit(musb);
+-		usb_phy_set_suspend(musb->xceiv, 1);
++		phy_power_off(musb->phy);
+ 	}
  
--	/* MPEG controls */
-+	/* Codec controls */
-+	/* The MPEG controls are applicable to all codec controls
-+	 * and the 'MPEG' part of the define is historical */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
--	case V4L2_CID_MPEG_CLASS:		return "MPEG Encoder Controls";
-+	case V4L2_CID_MPEG_CLASS:		return "Codec Controls";
- 	case V4L2_CID_MPEG_STREAM_TYPE:		return "Stream Type";
- 	case V4L2_CID_MPEG_STREAM_PID_PMT:	return "Stream PMT Program ID";
- 	case V4L2_CID_MPEG_STREAM_PID_AUDIO:	return "Stream Audio Program ID";
-@@ -714,6 +737,15 @@ const char *v4l2_ctrl_get_name(u32 id)
- 	case V4L2_CID_MPEG_VIDEO_VBV_DELAY:			return "Initial Delay for VBV Control";
- 	case V4L2_CID_MPEG_VIDEO_REPEAT_SEQ_HEADER:		return "Repeat Sequence Header";
+ 	return 0;
+@@ -648,8 +663,7 @@ static int omap2430_runtime_resume(struct device *dev)
+ 		omap2430_low_level_init(musb);
+ 		musb_writel(musb->mregs, OTG_INTERFSEL,
+ 				musb->context.otg_interfsel);
+-
+-		usb_phy_set_suspend(musb->xceiv, 0);
++		phy_power_on(musb->phy);
+ 	}
  
-+	/* VPX controls */
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:		return "VPX Number of Partitions";
-+	case V4L2_CID_MPEG_VIDEO_VPX_IMD_DISABLE_4X4:		return "VPX Intra Mode Decision Disable";
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES:		return "VPX No. of Refs for P Frame";
-+	case V4L2_CID_MPEG_VIDEO_VPX_FILTER_LEVEL:		return "VPX Loop Filter Level Range";
-+	case V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS:		return "VPX Deblocking Effect Control";
-+	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD:	return "VPX Golden Frame Refresh Period";
-+	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:		return "VPX Golden Frame Indicator";
-+
- 	/* CAMERA controls */
- 	/* Keep the order of the 'case's the same as in videodev2.h! */
- 	case V4L2_CID_CAMERA_CLASS:		return "Camera Controls";
-@@ -928,6 +960,7 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 	case V4L2_CID_DV_RX_RGB_RANGE:
- 	case V4L2_CID_TEST_PATTERN:
- 	case V4L2_CID_TUNE_DEEMPHASIS:
-+	case V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL:
- 		*type = V4L2_CTRL_TYPE_MENU;
- 		break;
- 	case V4L2_CID_LINK_FREQ:
-@@ -939,6 +972,8 @@ void v4l2_ctrl_fill(u32 id, const char **name, enum v4l2_ctrl_type *type,
- 		break;
- 	case V4L2_CID_ISO_SENSITIVITY:
- 	case V4L2_CID_AUTO_EXPOSURE_BIAS:
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS:
-+	case V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES:
- 		*type = V4L2_CTRL_TYPE_INTEGER_MENU;
- 		break;
- 	case V4L2_CID_USER_CLASS:
-diff --git a/include/uapi/linux/v4l2-controls.h b/include/uapi/linux/v4l2-controls.h
-index 69bd5bb..2da3ab7 100644
---- a/include/uapi/linux/v4l2-controls.h
-+++ b/include/uapi/linux/v4l2-controls.h
-@@ -161,6 +161,8 @@ enum v4l2_colorfx {
- #define V4L2_CID_USER_SI476X_BASE		(V4L2_CID_USER_BASE + 0x1040)
- 
- /* MPEG-class control IDs */
-+/* The MPEG controls are applicable to all codec controls
-+ * and the 'MPEG' part of the define is historical */
- 
- #define V4L2_CID_MPEG_BASE 			(V4L2_CTRL_CLASS_MPEG | 0x900)
- #define V4L2_CID_MPEG_CLASS 			(V4L2_CTRL_CLASS_MPEG | 1)
-@@ -522,6 +524,33 @@ enum v4l2_mpeg_video_mpeg4_profile {
- };
- #define V4L2_CID_MPEG_VIDEO_MPEG4_QPEL		(V4L2_CID_MPEG_BASE+407)
- 
-+/*  Control IDs for VP8 streams
-+ *  Although VP8 is not part of MPEG we add these controls to the MPEG class
-+ *  as that class is already handling other video compression standards
-+ */
-+#define V4L2_CID_MPEG_VIDEO_VPX_NUM_PARTITIONS		(V4L2_CID_MPEG_BASE+500)
-+enum v4l2_vp8_num_partitions {
-+	V4L2_CID_MPEG_VIDEO_VPX_1_PARTITION	= 0,
-+	V4L2_CID_MPEG_VIDEO_VPX_2_PARTITIONS	= 1,
-+	V4L2_CID_MPEG_VIDEO_VPX_4_PARTITIONS	= 2,
-+	V4L2_CID_MPEG_VIDEO_VPX_8_PARTITIONS	= 3,
-+};
-+#define V4L2_CID_MPEG_VIDEO_VPX_IMD_DISABLE_4X4		(V4L2_CID_MPEG_BASE+501)
-+#define V4L2_CID_MPEG_VIDEO_VPX_NUM_REF_FRAMES		(V4L2_CID_MPEG_BASE+502)
-+enum v4l2_vp8_num_ref_frames {
-+	V4L2_CID_MPEG_VIDEO_VPX_1_REF_FRAME	= 0,
-+	V4L2_CID_MPEG_VIDEO_VPX_2_REF_FRAME	= 1,
-+	V4L2_CID_MPEG_VIDEO_VPX_3_REF_FRAME	= 2,
-+};
-+#define V4L2_CID_MPEG_VIDEO_VPX_FILTER_LEVEL		(V4L2_CID_MPEG_BASE+503)
-+#define V4L2_CID_MPEG_VIDEO_VPX_FILTER_SHARPNESS	(V4L2_CID_MPEG_BASE+504)
-+#define V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_REF_PERIOD	(V4L2_CID_MPEG_BASE+505)
-+#define V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_SEL	(V4L2_CID_MPEG_BASE+506)
-+enum v4l2_vp8_golden_frame_sel {
-+	V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_PREV		= 0,
-+	V4L2_CID_MPEG_VIDEO_VPX_GOLDEN_FRAME_USE_REF_PERIOD	= 1,
-+};
-+
- /*  MPEG-class control IDs specific to the CX2341x driver as defined by V4L2 */
- #define V4L2_CID_MPEG_CX2341X_BASE 				(V4L2_CTRL_CLASS_MPEG | 0x1000)
- #define V4L2_CID_MPEG_CX2341X_VIDEO_SPATIAL_FILTER_MODE 	(V4L2_CID_MPEG_CX2341X_BASE+0)
+ 	return 0;
 -- 
-1.7.9.5
+1.7.10.4
 
