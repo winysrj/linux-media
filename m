@@ -1,115 +1,147 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail.fpasia.hk ([202.130.89.98]:38161 "EHLO fpa01n0.fpasia.hk"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932289Ab3GEIKP (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 5 Jul 2013 04:10:15 -0400
-Message-ID: <51D67F78.3010702@gtsys.com.hk>
-Date: Fri, 05 Jul 2013 16:10:32 +0800
-From: Chris Ruehl <chris.ruehl@gtsys.com.hk>
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39627 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758095Ab3GZPuM convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 11:50:12 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jakub Piotr =?utf-8?B?Q8WCYXBh?= <jpc-ml@zenburn.net>
+Cc: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [omap3isp] xclk deadlock
+Date: Fri, 26 Jul 2013 17:51:07 +0200
+Message-ID: <1993436.YNJGSXUIek@avalon>
+In-Reply-To: <51E717EF.9070703@zenburn.net>
+References: <51D37796.2000601@zenburn.net> <3227918.6DpNM0vnE9@avalon> <51E717EF.9070703@zenburn.net>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media@vger.kernel.org
-Subject: Re: cron job: media_tree daily build: WARNINGS
-References: <20130704182937.9B56D35E010B@alastor.dyndns.org>
-In-Reply-To: <20130704182937.9B56D35E010B@alastor.dyndns.org>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans,
+Hi Jakub,
 
-I like to work with the linux-git-arm-mx but cannot find any repository. 
-Can you give me a hint?
+On Thursday 18 July 2013 00:17:19 Jakub Piotr Cłapa wrote:
+> On 17.07.13 14:50, Laurent Pinchart wrote:
+> > Hi Jakub,
+> > 
+> >> 3. After setting up a simple pipeline using media-ctl[2] I get "CCDC
+> >> won't become idle errors". If I do this after running "live" I also get
+> >> (unless it hangs) the CCDC Register dump [1]. Otherwise I only get the
+> >> stream of kernel log messages without anything else from omap3isp.
+> >> 
+> >> 4. I recreated the "live" pipeline (judging by the lack of differences
+> >> in media-ctl -p output [3]) and used yavta. I get the same hangs but
+> >> when I don't I can check the UYVY frames one by one. They look bad at
+> >> any stride (I dropped the UV components and tried to get some meaningful
+> >> output in the GIMP raw image data import dialog by adjustung the
+> >> "width").
+> > 
+> > Would you be able to bisect the problems ? Please also see below for more
+> > comments.
+> 
+> I think the clock & voltage regulator framework changes in omap3beagle.c
+> would require reverting for earlier versions? Are there any other things I
+> should watch out for?
 
-Thanks.
-Chris
+Not that I can think of, no.
 
-On Friday, July 05, 2013 02:29 AM, Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
+> > As a side note, you can use raw2rgbpnm (https://gitorious.org/raw2rgbpnm)
+> > to convert raw binary images to a more usable format.
+> 
+> Thanks. The nice thing about the GIMP import tool is interactiveness, which
+> is good when (I suspect) I don't know the proper image dimensions.
+> 
+> >> [2]:
+> >> media-ctl -r -l '"mt9p031 2-0048":0->"OMAP3 ISP CCDC":0[1], "OMAP3 ISP
+> >> CCDC":1->"OMAP3 ISP CCDC output":0[1]'
+> >> media-ctl -v -f '"mt9p031 2-0048":0 [SGRBG12 800x600 (96,72)/2400x1800],
+> >> "OMAP3 ISP CCDC":1 [SGRBG8 800x600]'
+> > 
+> > You're trying to configure the sensor output to 800x600, but the closest
+> > resolution the sensor can deliver is 864x648. The sensor driver will thus
+> > return that resolution, and media-ctl will automatically configure the
+> > connected pad (CCDC sink pad 0) with the same resolution. Similarly, you
+> > try to configure the CCDC output to 800x600, but the CCDC driver will
+> > automatically set its output resolution (on source pad 1) to 864x648.
+> > media- ctl won't complain, and your pipeline will be correctly
+> > configured, but not in the resolution you expect.
+> > 
+> >> yavta -f SGRBG12 -s 800x600 -n 8 --skip 4 --capture=5 -F'frame-#.bin'
+> >> $(media-ctl -e "OMAP3 ISP CCDC output")
+> > 
+> > Can you run this without error ? You're trying to capture in 800x600 at
+> > the CCDC output but the pipeline has been configured with a different
+> > resolution. The OMAP3 ISP driver should return an error when you start
+> > the video stream. If it doesn't, that's a driver bug.
+> 
+> I think you missed my ingenious sensor crop. ;) The sensor should be
+> capable of scaling to 800x600 if it crops to (96,72)/2400x1800 first
+> (this just requires 3x binning). I tried this on 3.2.24 and it worked.
+
+You're right, my bad.
+
+> >> [4]:
+> >> 
+> >> @@ -21,9 +21,9 @@
+> >> 
+> >>    omap3isp omap3isp: ###RSZ YENH=0x00000000
+> >>    omap3isp omap3isp: --------------------------------------------
+> >>    omap3isp omap3isp: -------------Preview Register dump----------
+> >> 
+> >> -omap3isp omap3isp: ###PRV PCR=0x180e0609
+> >> -omap3isp omap3isp: ###PRV HORZ_INFO=0x0006035b
+> >> -omap3isp omap3isp: ###PRV VERT_INFO=0x00000286
+> >> +omap3isp omap3isp: ###PRV PCR=0x180e0600
+> > 
+> > Bits 0 and 3 are the ENABLE and ONESHOT bits respectively. The registers
+> > dump might have been displayed at a different time in v3.2.24 (although I
+> > haven't checked);
+> > 
+> >> +omap3isp omap3isp: ###PRV HORZ_INFO=0x00080359
+> >> +omap3isp omap3isp: ###PRV VERT_INFO=0x00020284
+> > 
+> > Those two registers contain the input crop rectangle coordinates (left/top
+> > in bits 31-16, right/bottom in bits 15-0). Note that this is the internal
+> > crop rectangle, which takes rows and columns required for internal
+> > processing into account. It will thus not match the user-visible crop
+> > rectangle at the sink pad.
+> > 
+> > The crop rectangle has changed from (6,0)/860x647 to (8,2)/850x643. The
+> > preview engine internally crops 4 rows and 4 columns (2 on each side) when
+> > converting from Bayer to YUV, so the (8,2)/850x643 crop rectangle becomes
+> > (10,4)/846x639 after manual and internal cropping, which matches the value
+> > reported by media-ctl -p.
+> 
+> But why does those cropping differences (between 3.2.24 and 3.10) happen at
+> all? I run the same live code on 3.2.24 and 3.10, with the same sensor and
+> output resolution. I think I got the same `media-ctl -p` output after
+> running `live` on both kernels but will check this tomorrow.
+
+If media-ctl -p reports the exact same pipeline configuration on both kernel 
+versions then there's an issue.
+
+> If these internal cropping rectangles on 3.10 were wrong it would probably
+> explain the "bad synchronization" problem.
 >
-> Results of the daily build of media_tree:
->
-> date:		Thu Jul  4 19:00:26 CEST 2013
-> git branch:	test
-> git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-> gcc version:	i686-linux-gcc (GCC) 4.8.1
-> sparse version:	v0.4.5-rc1
-> host hardware:	x86_64
-> host os:	3.9-7.slh.1-amd64
->
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: OK
-> linux-git-arm-exynos: OK
-> linux-git-arm-mx: OK
-> linux-git-arm-omap: OK
-> linux-git-arm-omap1: OK
-> linux-git-arm-pxa: OK
-> linux-git-blackfin: OK
-> linux-git-i686: OK
-> linux-git-m32r: OK
-> linux-git-mips: OK
-> linux-git-powerpc64: OK
-> linux-git-sh: OK
-> linux-git-x86_64: OK
-> linux-2.6.31.14-i686: WARNINGS
-> linux-2.6.32.27-i686: WARNINGS
-> linux-2.6.33.7-i686: WARNINGS
-> linux-2.6.34.7-i686: WARNINGS
-> linux-2.6.35.9-i686: WARNINGS
-> linux-2.6.36.4-i686: WARNINGS
-> linux-2.6.37.6-i686: WARNINGS
-> linux-2.6.38.8-i686: WARNINGS
-> linux-2.6.39.4-i686: WARNINGS
-> linux-3.0.60-i686: OK
-> linux-3.10-i686: OK
-> linux-3.1.10-i686: OK
-> linux-3.2.37-i686: OK
-> linux-3.3.8-i686: OK
-> linux-3.4.27-i686: WARNINGS
-> linux-3.5.7-i686: WARNINGS
-> linux-3.6.11-i686: WARNINGS
-> linux-3.7.4-i686: WARNINGS
-> linux-3.8-i686: WARNINGS
-> linux-3.9.2-i686: WARNINGS
-> linux-2.6.31.14-x86_64: WARNINGS
-> linux-2.6.32.27-x86_64: WARNINGS
-> linux-2.6.33.7-x86_64: WARNINGS
-> linux-2.6.34.7-x86_64: WARNINGS
-> linux-2.6.35.9-x86_64: WARNINGS
-> linux-2.6.36.4-x86_64: WARNINGS
-> linux-2.6.37.6-x86_64: WARNINGS
-> linux-2.6.38.8-x86_64: WARNINGS
-> linux-2.6.39.4-x86_64: WARNINGS
-> linux-3.0.60-x86_64: OK
-> linux-3.10-x86_64: OK
-> linux-3.1.10-x86_64: OK
-> linux-3.2.37-x86_64: OK
-> linux-3.3.8-x86_64: OK
-> linux-3.4.27-x86_64: WARNINGS
-> linux-3.5.7-x86_64: WARNINGS
-> linux-3.6.11-x86_64: WARNINGS
-> linux-3.7.4-x86_64: WARNINGS
-> linux-3.8-x86_64: WARNINGS
-> linux-3.9.2-x86_64: WARNINGS
-> apps: WARNINGS
-> spec-git: OK
-> sparse version:	v0.4.5-rc1
-> sparse: ERRORS
->
-> Detailed results are available here:
->
-> http://www.xs4all.nl/~hverkuil/logs/Thursday.log
->
-> Full logs are available here:
->
-> http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
->
-> The Media Infrastructure API from this daily build is here:
->
-> http://www.xs4all.nl/~hverkuil/spec/media.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
+> >>    omap3isp omap3isp: ###PRV RSDR_ADDR=0x00000000
+> >>    omap3isp omap3isp: ###PRV RADR_OFFSET=0x00000000
+> >>    omap3isp omap3isp: ###PRV DSDR_ADDR=0x00000000
+> >> 
+> >> @@ -52,7 +52,7 @@
+> >> 
+> >>    omap3isp omap3isp: ###PRV CNT_BRT=0x00001000
+> >>    omap3isp omap3isp: ###PRV CSUP=0x00000000
+> >>    omap3isp omap3isp: ###PRV SETUP_YC=0xff00ff00
+> >> 
+> >> -omap3isp omap3isp: ###PRV SET_TBL_ADDR=0x00000800
+> >> +omap3isp omap3isp: ###PRV SET_TBL_ADDR=0x00001700
+> >> 
+> >>    omap3isp omap3isp: ###PRV CDC_THR0=0x0000000e
+> >>    omap3isp omap3isp: ###PRV CDC_THR1=0x0000000e
+> >>    omap3isp omap3isp: ###PRV CDC_THR2=0x0000000e
+
+-- 
+Regards,
+
+Laurent Pinchart
+
