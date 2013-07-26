@@ -1,60 +1,118 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:43909 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753834Ab3GJX2V (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:4155 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755400Ab3GZMBw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 19:28:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	linux-media <linux-media@vger.kernel.org>,
-	Andrzej Hajda <a.hajda@samsung.com>
-Subject: Re: Samsung i2c subdev drivers that set sd->name
-Date: Thu, 11 Jul 2013 01:28:47 +0200
-Message-ID: <1480951.mKR9bzbARV@avalon>
-In-Reply-To: <51DDDDF7.1010005@iki.fi>
-References: <201306241054.11604.hverkuil@xs4all.nl> <51D88318.70904@gmail.com> <51DDDDF7.1010005@iki.fi>
+	Fri, 26 Jul 2013 08:01:52 -0400
+Message-ID: <51F26529.9050808@xs4all.nl>
+Date: Fri, 26 Jul 2013 14:01:45 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+CC: linux-media <linux-media@vger.kernel.org>
+Subject: Re: [PATCH] soc_camera: fix compiler warning
+References: <201307251440.34496.hverkuil@xs4all.nl> <Pine.LNX.4.64.1307261320280.22137@axis700.grange>
+In-Reply-To: <Pine.LNX.4.64.1307261320280.22137@axis700.grange>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi Guennadi,
 
-On Thursday 11 July 2013 01:19:35 Sakari Ailus wrote:
-> Hi Sylwester and Laurent,
+On 07/26/2013 01:26 PM, Guennadi Liakhovetski wrote:
+> Hi Hans
 > 
-> Sylwester Nawrocki wrote:
-> > Hi Laurent,
+> Thanks for the patch.
 > 
-> ...
+> On Thu, 25 Jul 2013, Hans Verkuil wrote:
 > 
-> >> We need an ioctl to report additional information about media entities
-> >> (it's been on my to-do list for wayyyyyyyyy too long). It could be used
-> >> to report bus information as well.
-> > 
-> > Yes, that sounds much more interesting than using just subdev name to
-> > sqeeze all the information in. Why we don't have such an ioctl yet anyway
-> > ? Were there some arguments against it, or its been just a low priority
-> > issue ?
+>>
+>> media_build/v4l/soc_camera.c: In function 'soc_camera_host_register':
+>> media_build/v4l/soc_camera.c:1513:10: warning: 'sasd' may be used uninitialized in this function [-Wmaybe-uninitialized]
+>>   snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+>>           ^
+>> media_build/v4l/soc_camera.c:1464:34: note: 'sasd' was declared here
+>>   struct soc_camera_async_subdev *sasd;
+>>                                   ^
 > 
-> I think it's just been left unaddressed until now since there have been
-> even more important things to work on. :-) I'm all for that, btw.;
-> associating bus information to the media device instead of entities was
-> always a little odd (feel free to blame me, too...).
-> 
-> Perhaps we could steal some bytes from the union in struct
-> media_entity_desc? :-)
+> Heh, cool... You did report a similar warning earlier, for which I cooked 
+> up a patch "[media] V4L2: soc-camera: fix uninitialised use compiler 
+> warning" and IIRC you reported that with that patch the warning 
+> disappeared... How come we've got another one now? Have you updated your 
+> compiler again or what can be the reason?
 
-I've thought about that as well, but we will eventually need to pass more 
-entity information to userspace, so a new ioctl would in my opinion be better, 
-given the potentially large size of the bus information string.
+It worked, but only for i686. The x86_64 compiler (exactly the same gcc version
+BTW) still couldn't understand that it really was initialized. See the build
+logs from the past few weeks.
 
--- 
-Regards,
+> In principle I have nothing against this patch, just wondering where 
+> you're getting your compilers from ;-)
 
-Laurent Pinchart
+Well, the compiler is just downloaded from gnu.org and regularly updated when
+a new version is released.
 
+The problem is not with the current git build, but with the compatibility builds.
+As far as I can tell different kernel versions may turn on or off different
+compiler warnings, so compiling for different kernels gives different results.
+
+>> By changing the type of 'i' to unsigned and changing a condition we finally
+>> convince the compiler that sasd is really initialized.
+>>
+>> Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+> 
+> I haven't got any more 3.11 fixed in my queue and we have to push this 
+> before -rc3 / rc4 ;) So, if you prefer, feel free to take it via your tree 
+> with my
+> 
+> Acked-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+
+This is just for 3.12, there is no need to go to 3.11 for this since the warning
+doesn't appear when compiling 3.11.
+
+Do you still want me to take it, or do you prefer to queue it for 3.12 yourself?
+For the record, I expect to post a pull request for 3.12 today or Monday at the
+latest, so it's no problem for me.
+
+	Hans
+
+> 
+> Thanks
+> Guennadi
+> 
+>> ---
+>>  drivers/media/platform/soc_camera/soc_camera.c | 5 +++--
+>>  1 file changed, 3 insertions(+), 2 deletions(-)
+>>
+>> diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+>> index 2dd0e52..ed7a99f 100644
+>> --- a/drivers/media/platform/soc_camera/soc_camera.c
+>> +++ b/drivers/media/platform/soc_camera/soc_camera.c
+>> @@ -1466,7 +1466,8 @@ static int scan_async_group(struct soc_camera_host *ici,
+>>  	struct soc_camera_device *icd;
+>>  	struct soc_camera_desc sdesc = {.host_desc.bus_id = ici->nr,};
+>>  	char clk_name[V4L2_SUBDEV_NAME_SIZE];
+>> -	int ret, i;
+>> +	unsigned int i;
+>> +	int ret;
+>>  
+>>  	/* First look for a sensor */
+>>  	for (i = 0; i < size; i++) {
+>> @@ -1475,7 +1476,7 @@ static int scan_async_group(struct soc_camera_host *ici,
+>>  			break;
+>>  	}
+>>  
+>> -	if (i == size || asd[i]->bus_type != V4L2_ASYNC_BUS_I2C) {
+>> +	if (i >= size || asd[i]->bus_type != V4L2_ASYNC_BUS_I2C) {
+>>  		/* All useless */
+>>  		dev_err(ici->v4l2_dev.dev, "No I2C data source found!\n");
+>>  		return -ENODEV;
+>> -- 
+>> 1.8.3.2
+>>
+> 
+> ---
+> Guennadi Liakhovetski, Ph.D.
+> Freelance Open-Source Software Developer
+> http://www.open-technology.de/
+> 
