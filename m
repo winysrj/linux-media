@@ -1,55 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from iolanthe.rowland.org ([192.131.102.54]:41140 "HELO
-	iolanthe.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1755311Ab3GJVb7 (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39637 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1756392Ab3GZPvy convert rfc822-to-8bit (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 10 Jul 2013 17:31:59 -0400
-Date: Wed, 10 Jul 2013 17:31:58 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Geert Uytterhoeven <geert@linux-m68k.org>
-cc: Arnd Bergmann <arnd@arndb.de>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	<linux-input@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-kernel@vger.kernel.org>
-Subject: Re: [PATCH] usb: USB host support should depend on HAS_DMA
-In-Reply-To: <1373491112-15593-1-git-send-email-geert@linux-m68k.org>
-Message-ID: <Pine.LNX.4.44L0.1307101724430.1215-100000@iolanthe.rowland.org>
+	Fri, 26 Jul 2013 11:51:54 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jakub Piotr =?utf-8?B?Q8WCYXBh?= <jpc-ml@zenburn.net>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [omapdss] fault in dispc_write_irqenable [was: Re: [omap3isp] xclk deadlock]
+Date: Fri, 26 Jul 2013 17:52:51 +0200
+Message-ID: <2345948.CFuZYJZjKT@avalon>
+In-Reply-To: <51F297C0.1080501@zenburn.net>
+References: <51D37796.2000601@zenburn.net> <51F22A58.9030208@ti.com> <51F297C0.1080501@zenburn.net>
 MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, 10 Jul 2013, Geert Uytterhoeven wrote:
+Hi Jakub,
 
-> If NO_DMA=y:
+On Friday 26 July 2013 17:37:36 Jakub Piotr Cłapa wrote:
+> Dear Tomi,
 > 
-> drivers/built-in.o: In function `usb_hcd_unmap_urb_setup_for_dma':
-> drivers/usb/core/hcd.c:1361: undefined reference to `dma_unmap_single'
-
-> ,,,
+> Thanks for your reply.
 > 
-> Commit d9ea21a779278da06d0cbe989594bf542ed213d7 ("usb: host: make
-> USB_ARCH_HAS_?HCI obsolete") allowed to enable USB on platforms with
-> NO_DMA=y, and exposed several input and media USB drivers that just select
-> USB if USB_ARCH_HAS_HCD, without checking HAS_DMA.
+> On 26.07.13 09:50, Tomi Valkeinen wrote:
+> > Sounds like something is enabling/disabling dispc interrupts after the
+> > clocks have already been turned off.
+> > 
+> > So what's the context here? What kernel?
 > 
-> Fix the former by making USB depend on HAS_DMA.
+> This was on 3.10 from Laurent's board/beagle/mt9p031 branch. I am in the
+> middle of doing some "bisecting" to figure out some unrelated problems
+> with omap3isp so in a couple days I may have more data about which
+> versions work and which do not.
+> 
+> > Using omapfb, or...? I hope not
+> > omap_vout, because that's rather unmaintained =).
+> 
+> Laurent's live application is using the V4L2 API for video output (to
+> get free YUV conversion and DMA) so I guess this unfortunatelly counts
+> as using omap_vout. Are there any alternatives I should look into? IIUC
+> to use omapfb I would need to manually copy RGB data into the
+> framebuffer on each frame.
 
-This isn't right.  There are USB host controllers that use PIO, not
-DMA.  The HAS_DMA dependency should go with the controller driver, not 
-the USB core.
+It should be possible to port the live application to use DRM/KMS with omapdrm 
+for the display side, without requiring any memory copy. That's somewhere on 
+my TODO list, but I won't have time to work on that before way too long.
 
-On the other hand, the USB core does call various routines like 
-dma_unmap_single.  It ought to be possible to compile these calls even 
-when DMA isn't enabled.  That is, they should be defined as do-nothing 
-stubs.
+-- 
+Regards,
 
-> To fix the latter, instead of adding lots of "depends on HAS_DMA", make
-> those drivers depend on USB, instead of depending on USB_ARCH_HAS_HCD and
-> selecting USB.  Drivers for other busses (e.g. MOUSE_SYNAPTICS_I2C) already
-> handle this in a similar way.
-
-That seems reasonable.
-
-Alan Stern
+Laurent Pinchart
 
