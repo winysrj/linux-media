@@ -1,827 +1,385 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-vb0-f41.google.com ([209.85.212.41]:53727 "EHLO
-	mail-vb0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753587Ab3GIMBp (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 08:01:45 -0400
+Received: from smtp-vbr15.xs4all.nl ([194.109.24.35]:4858 "EHLO
+	smtp-vbr15.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S932185Ab3GZNy4 (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 09:54:56 -0400
+Message-ID: <51F27F9D.1090902@xs4all.nl>
+Date: Fri, 26 Jul 2013 15:54:37 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-In-Reply-To: <51C38A64.9000403@gmail.com>
-References: <1370005408-10853-1-git-send-email-arun.kk@samsung.com>
-	<1370005408-10853-6-git-send-email-arun.kk@samsung.com>
-	<51C38A64.9000403@gmail.com>
-Date: Tue, 9 Jul 2013 17:31:44 +0530
-Message-ID: <CALt3h79WnpqP6fCcyHikUSPtqVgmwNdCU+oaO6K4LVTG5CCB5A@mail.gmail.com>
-Subject: Re: [RFC v2 05/10] exynos5-fimc-is: Adds the sensor subdev
-From: Arun Kumar K <arunkk.samsung@gmail.com>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Cc: Arun Kumar K <arun.kk@samsung.com>,
-	LMML <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	kilyeon.im@samsung.com, shaik.ameer@samsung.com,
-	linux-samsung-soc <linux-samsung-soc@vger.kernel.org>
-Content-Type: text/plain; charset=ISO-8859-1
+To: =?UTF-8?B?Sm9uIEFybmUgSsO4cmdlbnNlbg==?= <jonarne@jonarne.no>
+CC: linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	mchehab@redhat.com, hans.verkuil@cisco.com,
+	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
+	andriy.shevchenko@linux.intel.com
+Subject: Re: [RFC v3 3/3] saa7115: Implement i2c_board_info.platform_data
+References: <1372894040-23922-1-git-send-email-jonarne@jonarne.no> <1372894040-23922-4-git-send-email-jonarne@jonarne.no>
+In-Reply-To: <1372894040-23922-4-git-send-email-jonarne@jonarne.no>
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sylwester,
+Hi Jon Arne,
 
-Thank you for the review.
+Patches 1 & 2 look good to me. But I do have a few comments for this one:
 
-On Fri, Jun 21, 2013 at 4:34 AM, Sylwester Nawrocki
-<sylvester.nawrocki@gmail.com> wrote:
-> On 05/31/2013 03:03 PM, Arun Kumar K wrote:
->>
->> FIMC-IS uses certain sensors which are exclusively controlled
->> from the IS firmware. This patch adds the sensor subdev for the
->> fimc-is sensors.
->>
->> Signed-off-by: Arun Kumar K<arun.kk@samsung.com>
->> Signed-off-by: Kilyeon Im<kilyeon.im@samsung.com>
->> ---
->>   drivers/media/platform/exynos5-is/fimc-is-sensor.c |  463
->> ++++++++++++++++++++
->>   drivers/media/platform/exynos5-is/fimc-is-sensor.h |  168 +++++++
->>   2 files changed, 631 insertions(+)
->>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.c
->>   create mode 100644 drivers/media/platform/exynos5-is/fimc-is-sensor.h
->>
->> diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.c
->> b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
->> new file mode 100644
->> index 0000000..b8fb834
->> --- /dev/null
->> +++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.c
->> @@ -0,0 +1,463 @@
->> +/*
->> + * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
->> + *
->> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
->> + * Arun Kumar K<arun.kk@samsung.com>
->> + * Kil-yeon Lim<kilyeon.im@samsung.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +
->> +#include<linux/gpio.h>
->> +#include<linux/of_gpio.h>
->> +#include<linux/i2c.h>
->> +#include<linux/of.h>
->> +#include<linux/of_platform.h>
->> +#include<media/v4l2-of.h>
->> +#include "fimc-is-sensor.h"
->> +#include "fimc-is.h"
->> +
->> +#define DRIVER_NAME "fimc-is-sensor"
->> +
->> +static char *sensor_clock_name[] = {
->> +       [SCLK_BAYER]    = "sclk_bayer",
->> +       [SCLK_CAM0]     = "sclk_cam0",
->> +       [SCLK_CAM1]     = "sclk_cam1",
->> +};
->> +
->> +/* Sensor supported formats */
->> +static struct v4l2_mbus_framefmt sensor_formats[FIMC_IS_MAX_SENSORS] = {
->> +       [SENSOR_S5K4E5] = {
->> +               .width          = SENSOR_4E5_WIDTH + 16,
->> +               .height         = SENSOR_4E5_HEIGHT + 10,
->> +               .code           = V4L2_MBUS_FMT_SGRBG10_1X10,
->> +               .field          = V4L2_FIELD_NONE,
->> +               .colorspace     = V4L2_COLORSPACE_SRGB,
->> +       },
->> +       [SENSOR_S5K6A3] = {
->> +               .width          = SENSOR_6A3_WIDTH + 16,
->> +               .height         = SENSOR_6A3_HEIGHT + 10,
->> +               .code           = V4L2_MBUS_FMT_SGRBG10_1X10,
->> +               .field          = V4L2_FIELD_NONE,
->> +               .colorspace     = V4L2_COLORSPACE_SRGB,
->> +       },
->> +};
->> +
->> +static struct fimc_is_sensor *sd_to_fimc_is_sensor(struct v4l2_subdev
->> *sd)
->> +{
->> +       return container_of(sd, struct fimc_is_sensor, subdev);
->> +}
->> +
->> +static void sensor_clk_put(struct fimc_is_sensor *sensor)
->> +{
->> +       int i;
->> +
->> +       for (i = 0; i<  SCLK_MAX_NUM; i++) {
->> +               if (IS_ERR(sensor->clock[i]))
->> +                       continue;
->> +               clk_unprepare(sensor->clock[i]);
->> +               clk_put(sensor->clock[i]);
->> +               sensor->clock[i] = ERR_PTR(-EINVAL);
->> +       }
->> +}
->> +
->> +static int sensor_clk_init(struct fimc_is_sensor *sensor)
->> +{
->> +       int i, ret;
->> +
->> +       /* Get CAM clocks */
->> +       for (i = 0; i<  SCLK_MAX_NUM; i++) {
->> +               sensor->clock[i] = clk_get(NULL, sensor_clock_name[i]);
->> +               if (IS_ERR(sensor->clock[i]))
->> +                       goto err;
->> +               ret = clk_prepare(sensor->clock[i]);
->> +               if (ret<  0) {
->> +                       clk_put(sensor->clock[i]);
->> +                       sensor->clock[i] = ERR_PTR(-EINVAL);
->> +                       goto err;
->> +               }
->> +       }
->> +
->> +       /* Set clock rates */
->> +       ret = clk_set_rate(sensor->clock[SCLK_CAM0], 24 * 1000000);
->> +       ret |= clk_set_rate(sensor->clock[SCLK_BAYER], 24 * 1000000);
->
->
-> Please don't obfuscate the return value.
->
->
+On 07/04/2013 01:27 AM, Jon Arne Jørgensen wrote:
+> Implement i2c_board_info.platform_data handling in the driver so we can
+> make device specific changes to the chips we support.
+> 
+> I'm adding a new init table for the gm7113c chip because the old saa7113
+> init table has a illegal and wrong defaults according to the datasheet.
+> 
+> I'm also adding an option to the platform_data struct to choose the gm7113c_init
+> table even if you are writing a driver for the saa7113 chip.
+> 
+> This implementation is only adding overrides for the SAA7113 and GM7113C chips.
+> 
+> Signed-off-by: Jon Arne Jørgensen <jonarne@jonarne.no>
+> ---
+>  drivers/media/i2c/saa7115.c      | 144 ++++++++++++++++++++++++++++++++++++---
+>  drivers/media/i2c/saa711x_regs.h |  15 ++++
+>  include/media/saa7115.h          |  65 ++++++++++++++++++
+>  3 files changed, 215 insertions(+), 9 deletions(-)
+> 
+> diff --git a/drivers/media/i2c/saa7115.c b/drivers/media/i2c/saa7115.c
+> index 17a464d..dd51e16 100644
+> --- a/drivers/media/i2c/saa7115.c
+> +++ b/drivers/media/i2c/saa7115.c
+> @@ -225,19 +225,55 @@ static const unsigned char saa7111_init[] = {
+>  	0x00, 0x00
+>  };
+>  
+> -/* SAA7113/GM7113C init codes
+> - * It's important that R_14... R_17 == 0x00
+> - * for the gm7113c chip to deliver stable video
+> - */
+> +/* This table has one illegal value, and some values that are not
+> +   correct according to the datasheet initialization table.
+> +
+> +   If you need a table with legal/default values tell the driver in
+> +   i2c_board_info.platform_data, and you will get the gm7113c_init
+> +   table instead. */
+> +
+> +/* SAA7113 Init codes */
+>  static const unsigned char saa7113_init[] = {
+>  	R_01_INC_DELAY, 0x08,
+>  	R_02_INPUT_CNTL_1, 0xc2,
+>  	R_03_INPUT_CNTL_2, 0x30,
+>  	R_04_INPUT_CNTL_3, 0x00,
+>  	R_05_INPUT_CNTL_4, 0x00,
+> -	R_06_H_SYNC_START, 0x89,
+> +	R_06_H_SYNC_START, 0x89,	/* Illegal value - min. value = 0x94 */
+> +	R_07_H_SYNC_STOP, 0x0d,
+> +	R_08_SYNC_CNTL, 0x88,		/* OBS. HTC = VTR Mode - Not default */
 
-Ok
+Can you mention the correct default in the comment?
 
->> +       if (ret) {
->> +               pr_err("Failed to set cam clock rates\n");
->> +               goto err;
->> +       }
->> +       return 0;
->> +err:
->> +       sensor_clk_put(sensor);
->> +       pr_err("Failed to init sensor clock\n");
->> +       return -ENXIO;
->
->
->> +}
->> +
->> +static int sensor_clk_enable(struct fimc_is_sensor *sensor)
->> +{
->> +       int ret = 0, i;
->> +
->> +       for (i = 0; i<  SCLK_MAX_NUM; i++) {
->> +               ret = clk_enable(sensor->clock[i]);
->> +               if (ret)
->> +                       return ret;
->> +       }
->
->
-> Oh, so you enable all clocks in this driver ? Is it really flexible
-> enough ? What if one of these clocks is connected to some external
-> sensor with an ISP ? Are this clocks going to be managed/exposed by
-> the media device driver as well ?
->
+> +	R_09_LUMA_CNTL, 0x01,
+> +	R_0A_LUMA_BRIGHT_CNTL, 0x80,
+> +	R_0B_LUMA_CONTRAST_CNTL, 0x47,
+> +	R_0C_CHROMA_SAT_CNTL, 0x40,
+> +	R_0D_CHROMA_HUE_CNTL, 0x00,
+> +	R_0E_CHROMA_CNTL_1, 0x01,
+> +	R_0F_CHROMA_GAIN_CNTL, 0x2a,
+> +	R_10_CHROMA_CNTL_2, 0x08,	/* Not datasheet default */
 
-I was hoping that this driver can handle all its clocks as exposed
-from the DT. I can see that in exynos4, the media device enables the
-cam clocks. In exynos5, there are multiple frequency settings
-possible on these clocks depending on modes of operation.
-So isn't it better that the sensor driver controls it?
+Ditto.
 
+> +	R_11_MODE_DELAY_CNTL, 0x0c,
+> +	R_12_RT_SIGNAL_CNTL, 0x07,	/* Not datasheet default */
 
->> +       return ret;
->> +}
->> +
->> +static void sensor_clk_disable(struct fimc_is_sensor *sensor)
->> +{
->> +       int i;
->> +
->> +       for (i = 0; i<  SCLK_MAX_NUM; i++)
->> +               clk_disable(sensor->clock[i]);
->> +}
->> +
->> +static int sensor_enum_mbus_code(struct v4l2_subdev *sd,
->> +                                 struct v4l2_subdev_fh *fh,
->> +                                 struct v4l2_subdev_mbus_code_enum *code)
->> +{
->> +       struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
->> +       struct fimc_is_sensor_drv_data *sdata = sensor->drvdata;
->> +
->> +       if (!code)
->> +               return -EINVAL;
->> +
->> +       code->code = sensor_formats[sdata->sensor_id].code;
->> +       return 0;
->> +}
->> +
->> +static int sensor_set_fmt(struct v4l2_subdev *sd,
->> +                         struct v4l2_subdev_fh *fh,
->> +                         struct v4l2_subdev_format *fmt)
->> +{
->> +       struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
->> +       struct fimc_is_sensor_drv_data *sdata = sensor->drvdata;
->> +       struct v4l2_mbus_framefmt *sfmt =&fmt->format;
->>
->> +
->> +       if ((sfmt->width != sensor_formats[sdata->sensor_id].width) ||
->> +               (sfmt->height != sensor_formats[sdata->sensor_id].height)
->> ||
->> +               (sfmt->code != sensor_formats[sdata->sensor_id].code))
->
->
-> Couldn't this check be just dropped ?
->
->
+Ditto.
 
-Yes will remove it.
+> +	R_13_RT_X_PORT_OUT_CNTL, 0x00,
+> +	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
+> +	R_15_VGATE_START_FID_CHG, 0x00,
+> +	R_16_VGATE_STOP, 0x00,
+> +	R_17_MISC_VGATE_CONF_AND_MSB, 0x00,
+> +
+> +	0x00, 0x00
+> +};
+> +
+> +/* GM7113C is a clone of the SAA7113 chip
+> +   This init table is copied out of the saa7113 datasheet.
+> +   In R_08 we enable "Automatic Field Detection" [AUFD],
+> +   this is disabled when saa711x_set_v4lstd is called. */
+> +static const unsigned char gm7113c_init[] = {
+> +	R_01_INC_DELAY, 0x08,
+> +	R_02_INPUT_CNTL_1, 0xc0,
+> +	R_03_INPUT_CNTL_2, 0x33,
+> +	R_04_INPUT_CNTL_3, 0x00,
+> +	R_05_INPUT_CNTL_4, 0x00,
+> +	R_06_H_SYNC_START, 0xe9,
+>  	R_07_H_SYNC_STOP, 0x0d,
+> -	R_08_SYNC_CNTL, 0x88,
+> +	R_08_SYNC_CNTL, 0x98,			/* AUFD - BIT7 Enabled */
+>  	R_09_LUMA_CNTL, 0x01,
+>  	R_0A_LUMA_BRIGHT_CNTL, 0x80,
+>  	R_0B_LUMA_CONTRAST_CNTL, 0x47,
+> @@ -245,9 +281,9 @@ static const unsigned char saa7113_init[] = {
+>  	R_0D_CHROMA_HUE_CNTL, 0x00,
+>  	R_0E_CHROMA_CNTL_1, 0x01,
+>  	R_0F_CHROMA_GAIN_CNTL, 0x2a,
+> -	R_10_CHROMA_CNTL_2, 0x08,
+> +	R_10_CHROMA_CNTL_2, 0x00,
+>  	R_11_MODE_DELAY_CNTL, 0x0c,
+> -	R_12_RT_SIGNAL_CNTL, 0x07,
+> +	R_12_RT_SIGNAL_CNTL, 0x01,
+>  	R_13_RT_X_PORT_OUT_CNTL, 0x00,
+>  	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
+>  	R_15_VGATE_START_FID_CHG, 0x00,
+> @@ -1585,6 +1621,85 @@ static const struct v4l2_subdev_ops saa711x_ops = {
+>  
+>  /* ----------------------------------------------------------------------- */
+>  
+> +static void saa711x_write_platform_data(struct saa711x_state *state,
+> +					struct saa7115_platform_data *data)
+> +{
+> +	struct v4l2_subdev *sd = &state->sd;
+> +	u8 work;
+> +
+> +	if (state->ident != GM7113C &&
+> +	    state->ident != SAA7113)
+> +		return;
+> +
+> +	if (data->saa7113_r08_htc) {
+> +		work = saa711x_read(sd, R_08_SYNC_CNTL);
+> +		work &= ~SAA7113_R_08_HTC_MASK;
+> +		work |= ((*data->saa7113_r08_htc) << SAA7113_R_08_HTC_OFFSET);
+> +		if (*data->saa7113_r08_htc != SAA7113_HTC_RESERVED) {
+> +			v4l2_dbg(1, debug, sd,
+> +				"set R_08 HTC [Mask 0x%02x] [Value 0x%02x]\n",
+> +				SAA7113_R_08_HTC_MASK, *data->saa7113_r08_htc);
 
->> +               *sfmt = sensor_formats[sdata->sensor_id];
->> +
->> +       return 0;
->> +}
->> +
->> +static int sensor_get_fmt(struct v4l2_subdev *sd,
->> +                         struct v4l2_subdev_fh *fh,
->> +                         struct v4l2_subdev_format *fmt)
->> +{
->> +       struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
->> +       struct fimc_is_sensor_drv_data *sdata = sensor->drvdata;
->> +
->> +       fmt->format = sensor_formats[sdata->sensor_id];
->> +       return 0;
->> +}
->> +
->> +static struct v4l2_subdev_pad_ops sensor_pad_ops = {
->> +       .enum_mbus_code         = sensor_enum_mbus_code,
->> +       .get_fmt                = sensor_get_fmt,
->> +       .set_fmt                = sensor_set_fmt,
->> +};
->> +
->> +static int sensor_open(struct v4l2_subdev *sd, struct v4l2_subdev_fh *fh)
->> +{
->> +       struct v4l2_mbus_framefmt *format = v4l2_subdev_get_try_format(fh,
->> 0);
->> +
->> +       *format = sensor_formats[0];
->> +       return 0;
->> +}
->> +
->> +static const struct v4l2_subdev_internal_ops sensor_sd_internal_ops = {
->> +       .open = sensor_open,
->> +};
->> +
->> +static int sensor_s_power(struct v4l2_subdev *sd, int on)
->> +{
->> +       struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
->> +
->> +       if (on) {
->> +               /* Power on sensor */
->> +               sensor_clk_enable(sensor);
->
->
-> The return value from at least this function should not be ignored.
->
->
+I would leave out the check against RESERVED (see also my comment later in the
+header) and the debug messages in this function. You can always dump the registers
+with v4l2-dbg, so I don't think they add a lot.
 
-Ok
+> +			saa711x_write(sd, R_08_SYNC_CNTL, work);
+> +		}
+> +	}
+> +
+> +	if (data->saa7113_r10_vrln) {
+> +		work = saa711x_read(sd, R_10_CHROMA_CNTL_2);
+> +		work &= ~SAA7113_R_10_VRLN_MASK;
+> +		if (*data->saa7113_r10_vrln)
+> +			work |= (1 << SAA7113_R_10_VRLN_OFFSET);
+> +
+> +		v4l2_dbg(1, debug, sd,
+> +			 "set R_10 VRLN [Mask 0x%02x] [Value 0x%02x]\n",
+> +			 SAA7113_R_10_VRLN_MASK, *data->saa7113_r10_vrln);
+> +		saa711x_write(sd, R_10_CHROMA_CNTL_2, work);
+> +	}
+> +
+> +	if (data->saa7113_r10_ofts) {
+> +		work = saa711x_read(sd, R_10_CHROMA_CNTL_2);
+> +		work &= ~SAA7113_R_10_OFTS_MASK;
+> +		work |= (*data->saa7113_r10_ofts << SAA7113_R_10_OFTS_OFFSET);
+> +		v4l2_dbg(1, debug, sd,
+> +			"set R_10 OFTS [Mask 0x%02x] [Value 0x%02x]\n",
+> +			SAA7113_R_10_OFTS_MASK, *data->saa7113_r10_ofts);
+> +		saa711x_write(sd, R_10_CHROMA_CNTL_2, work);
+> +	}
+> +
+> +	if (data->saa7113_r12_rts0) {
+> +		work = saa711x_read(sd, R_12_RT_SIGNAL_CNTL);
+> +		work &= ~SAA7113_R_12_RTS0_MASK;
+> +		work |= (*data->saa7113_r12_rts0 << SAA7113_R_12_RTS0_OFFSET);
+> +		if (*data->saa7113_r12_rts0 != SAA7113_RTS_DOT_IN) {
 
->> +               gpio_set_value(sensor->gpio_reset, 1);
->> +       } else {
->> +               /* Power off sensor */
->> +               gpio_set_value(sensor->gpio_reset, 0);
->> +               sensor_clk_disable(sensor);
->> +       }
->> +       return 0;
->> +}
->> +
->> +static struct v4l2_subdev_core_ops sensor_core_ops = {
->> +       .s_power = sensor_s_power,
->> +};
->> +
->> +static int sensor_s_stream(struct v4l2_subdev *sd, int enable)
->> +{
->> +       struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
->> +       int ret;
->> +
->> +       if (enable) {
->> +               pr_debug("Stream ON\n");
->> +               /* Open pipeline */
->> +               ret = fimc_is_pipeline_open(sensor->pipeline, sensor);
->> +               if (ret<  0) {
->> +                       pr_err("Pipeline already opened.\n");
->> +                       return -EBUSY;
->> +               }
->
->
-> 'fimc_is_pipeline_' might be a bit confusing prefix for these FIMC-IS
-> firmware interface functions, perhaps fimc_ischain_ or something similar
-> would be more explicit. But that's just my personal impression, let's
-> don't bother with it.
->
->
+I would replace this with a WARN_ON and add a comment as well.
 
-Yes I too feel that name pipeline is confusion. Will change it to ischain.
+> +			v4l2_dbg(1, debug, sd,
+> +				"set R_12 RTS0 [Mask 0x%02x] [Value 0x%02x]\n",
+> +				SAA7113_R_12_RTS0_MASK,
+> +				*data->saa7113_r12_rts0);
+> +			saa711x_write(sd, R_12_RT_SIGNAL_CNTL, work);
+> +		}
+> +	}
+> +
+> +	if (data->saa7113_r12_rts1) {
+> +		work = saa711x_read(sd, R_12_RT_SIGNAL_CNTL);
+> +		work &= ~SAA7113_R_12_RTS1_MASK;
+> +		work |= (*data->saa7113_r12_rts1 << SAA7113_R_12_RTS1_OFFSET);
+> +		v4l2_dbg(1, debug, sd,
+> +			"set R_12 RTS1 [Mask 0x%02x] [Value 0x%02x]\n",
+> +			SAA7113_R_12_RTS1_MASK, *data->saa7113_r12_rts1);
+> +		saa711x_write(sd, R_12_RT_SIGNAL_CNTL, work);
+> +	}
+> +
+> +	if (data->saa7113_r13_adlsb) {
+> +		work = saa711x_read(sd, R_13_RT_X_PORT_OUT_CNTL);
+> +		work &= ~SAA7113_R_13_ADLSB_MASK;
+> +		if (*data->saa7113_r13_adlsb)
+> +			work |= (1 << SAA7113_R_13_ADLSB_OFFSET);
+> +		v4l2_dbg(1, debug, sd,
+> +			"set R_13 ADLSB [Mask 0x%02x] [Value 0x%02x]\n",
+> +			SAA7113_R_13_ADLSB_MASK, *data->saa7113_r13_adlsb);
+> +		saa711x_write(sd, R_13_RT_X_PORT_OUT_CNTL, work);
+> +	}
+> +}
+> +
+>  /**
+>   * saa711x_detect_chip - Detects the saa711x (or clone) variant
+>   * @client:		I2C client structure.
+> @@ -1693,6 +1808,7 @@ static int saa711x_probe(struct i2c_client *client,
+>  	struct saa711x_state *state;
+>  	struct v4l2_subdev *sd;
+>  	struct v4l2_ctrl_handler *hdl;
+> +	struct saa7115_platform_data *pdata;
+>  	int ident;
+>  	char name[CHIP_VER_SIZE + 1];
+>  
+> @@ -1756,14 +1872,20 @@ static int saa711x_probe(struct i2c_client *client,
+>  
+>  	/* init to 60hz/48khz */
+>  	state->crystal_freq = SAA7115_FREQ_24_576_MHZ;
+> +	pdata = client->dev.platform_data;
+>  	switch (state->ident) {
+>  	case SAA7111:
+>  	case SAA7111A:
+>  		saa711x_writeregs(sd, saa7111_init);
+>  		break;
+>  	case GM7113C:
+> +		saa711x_writeregs(sd, gm7113c_init);
+> +		break;
+>  	case SAA7113:
+> -		saa711x_writeregs(sd, saa7113_init);
+> +		if (pdata && pdata->saa7113_force_gm7113c_init)
+> +			saa711x_writeregs(sd, gm7113c_init);
+> +		else
+> +			saa711x_writeregs(sd, saa7113_init);
+>  		break;
+>  	default:
+>  		state->crystal_freq = SAA7115_FREQ_32_11_MHZ;
+> @@ -1771,6 +1893,10 @@ static int saa711x_probe(struct i2c_client *client,
+>  	}
+>  	if (state->ident > SAA7111A && state->ident != GM7113C)
+>  		saa711x_writeregs(sd, saa7115_init_misc);
+> +
+> +	if (pdata)
+> +		saa711x_write_platform_data(state, pdata);
+> +
+>  	saa711x_set_v4lstd(sd, V4L2_STD_NTSC);
+>  	v4l2_ctrl_handler_setup(hdl);
+>  
+> diff --git a/drivers/media/i2c/saa711x_regs.h b/drivers/media/i2c/saa711x_regs.h
+> index 70c56d1..730ca90 100644
+> --- a/drivers/media/i2c/saa711x_regs.h
+> +++ b/drivers/media/i2c/saa711x_regs.h
+> @@ -202,9 +202,24 @@
+>  #define R_FF_S_PLL_MAX_PHASE_ERR_THRESH_NUM_LINES     0xff
+>  
+>  /* SAA7113 bit-masks */
+> +#define SAA7113_R_08_HTC_OFFSET 3
+> +#define SAA7113_R_08_HTC_MASK (0x3 << SAA7113_R_08_HTC_OFFSET)
+>  #define SAA7113_R_08_FSEL 0x40
+>  #define SAA7113_R_08_AUFD 0x80
+>  
+> +#define SAA7113_R_10_VRLN_OFFSET 3
+> +#define SAA7113_R_10_VRLN_MASK (0x1 << SAA7113_R_10_VRLN_OFFSET)
+> +#define SAA7113_R_10_OFTS_OFFSET 6
+> +#define SAA7113_R_10_OFTS_MASK (0x3 << SAA7113_R_10_OFTS_OFFSET)
+> +
+> +#define SAA7113_R_12_RTS0_OFFSET 0
+> +#define SAA7113_R_12_RTS0_MASK (0xf << SAA7113_R_12_RTS0_OFFSET)
+> +#define SAA7113_R_12_RTS1_OFFSET 4
+> +#define SAA7113_R_12_RTS1_MASK (0xf << SAA7113_R_12_RTS1_OFFSET)
+> +
+> +#define SAA7113_R_13_ADLSB_OFFSET 7
+> +#define SAA7113_R_13_ADLSB_MASK (0x1 << SAA7113_R_13_ADLSB_OFFSET)
+> +
+>  #if 0
+>  /* Those structs will be used in the future for debug purposes */
+>  struct saa711x_reg_descr {
+> diff --git a/include/media/saa7115.h b/include/media/saa7115.h
+> index 4079186..d2e5a37 100644
+> --- a/include/media/saa7115.h
+> +++ b/include/media/saa7115.h
+> @@ -64,5 +64,70 @@
+>  #define SAA7115_FREQ_FL_APLL         (1 << 2) /* SA 3A[3], APLL, SAA7114/5 only */
+>  #define SAA7115_FREQ_FL_DOUBLE_ASCLK (1 << 3) /* SA 39, LRDIV, SAA7114/5 only */
+>  
+> +/* ===== SAA7113 Config enums ===== */
+> +
+> +/* Register 0x08 "Horizontal time constant" [Bit 3..4]:
+> + * Should be set to "Fast Locking Mode" according to the datasheet,
+> + * and that is the default setting in the gm7113c_init table.
+> + * saa7113_init sets this value to "VTR Mode". */
+> +enum saa7113_r08_htc {
+> +	SAA7113_HTC_TV_MODE = 0x00,
+> +	SAA7113_HTC_VTR_MODE,		/* Default for saa7113_init */
+> +	SAA7113_HTC_RESERVED,		/* DO NOT USE */
 
->> +               /* Start IS pipeline */
->> +               ret = fimc_is_pipeline_start(sensor->pipeline);
->
->
-> OK, using the FIMC-IS firmware interface calls from within the subdev
-> drivers is fine. But does the whole pipeline need to be initialized,
-> the firmware and the setfile loaded and devices powered on from within
-> the sensor's subdev s_stream() operation ?
->
-> This is what really bother me most in the current design. Why couldn't
-> the media device driver handle dependencies between the subdevs, e.g.
-> when sensor -> mipi-csis -> fimc-lite -> memory processing pipeline is
-> started, couldn't it call s_power/s_stream on the ISP subdev when those
-> calls are made on the sensor subdev ?
->
->
+If it shouldn't be used, then it shouldn't be defined :-) So drop it,
 
-The firmware initialization is done here so that fimc-is sensor can be
-used even without the fimc-is components (isp, scc, scp). There is a
-possibility of only the pipeline0 being used by the media device which
-connects sensor -> mipi csis -> fimc-lite -> memory.
-In such a scenario, for using the IS sensor independently, the firmware
-should be initialized and started for the sensor to give image output.
+> +	SAA7113_HTC_FAST_LOCKING_MODE	/* Default for gm7113c_init */
 
+and instead use this:
 
->> +               if (ret<  0) {
->> +                       pr_err("Pipeline start failed.\n");
->> +                       return -EINVAL;
->
->
->                         return ret; ?
->>
->> +               }
->> +       } else {
->> +               pr_debug("Stream OFF\n");
->> +               /* Stop IS pipeline */
->> +               ret = fimc_is_pipeline_stop(sensor->pipeline);
->> +               if (ret<  0) {
->> +                       pr_err("Pipeline stop failed.\n");
->> +                       return -EINVAL;
->
->
->                         return ret; ?
->>
->> +               }
->> +
->> +               /* Close pipeline */
->> +               ret = fimc_is_pipeline_close(sensor->pipeline);
->> +               if (ret<  0) {
->> +                       pr_err("Pipeline close failed\n");
->> +                       return -EBUSY;
->> +               }
->> +       }
->> +
->> +       return 0;
->> +}
->> +
->> +static const struct v4l2_subdev_video_ops sensor_video_ops = {
->> +       .s_stream       = sensor_s_stream,
->> +};
->> +
->> +static struct v4l2_subdev_ops sensor_subdev_ops = {
->> +       .core =&sensor_core_ops,
->> +       .pad =&sensor_pad_ops,
->> +       .video =&sensor_video_ops,
->> +};
->> +
->> +static int sensor_parse_dt(struct fimc_is_sensor *sensor,
->> +                       struct device_node *sensor_node)
->> +{
->> +       struct device_node *port, *ep, *remote, *fimc_is_node, *camera;
->> +       struct fimc_is *is_data;
->> +       struct platform_device *pdev_is;
->> +       struct v4l2_of_endpoint endpoint;
->
->
->> +       /* Parse ports */
->>
->> +       port = sensor_node;
->> +       while ((port = of_get_next_child(port, NULL))) {
->> +               if (!of_node_cmp(port->name, "port"))
->> +                       break;
->> +               of_node_put(port);
->> +       };
->> +       if (!port) {
->> +               pr_err("Sensor port undefined\n");
->> +               return -EINVAL;
->> +       }
->> +
->> +       ep = of_get_next_child(port, NULL);
->> +       if (!ep)
->> +               return -EINVAL;
->> +
->> +       port = of_parse_phandle(ep, "remote-endpoint", 0);
->> +       if (port) {
->> +               v4l2_of_parse_endpoint(port,&endpoint);
->> +               sensor->i2c_ch = (endpoint.port>>  2)&  0x1;
->> +       }
->
->
-> Couldn't some of this code be replaced with v4l2_of_get_next_endpoint() ?
->
+	SAA7113_HTC_FAST_LOCKING_MODE = 0x03	/* Default for gm7113c_init */
 
-Ok will try that.
+> +};
+> +
+> +/* Register 0x10 "Output format selection" [Bit 6..7]:
+> + * Defaults to ITU_656 as specified in datasheet. */
+> +enum saa7113_r10_ofts {
+> +	SAA7113_OFTS_ITU_656 = 0x0,	/* Default */
+> +	SAA7113_OFTS_VFLAG_BY_VREF,
+> +	SAA7113_OFTS_VFLAG_BY_DATA_TYPE
+> +};
+> +
+> +/* Register 0x12 "Output control" [Bit 0..3 Or Bit 4..7]:
+> + * This is used to select what data is output on the RTS0 and RTS1 pins.
+> + * RTS1 [Bit 4..7] Defaults to DOT_IN. (This value can not be set for RTS0)
+> + * RTS0 [Bit 0..3] Defaults to VIPB in gm7113c_init as specified
+> + * in the datasheet, but is set to HREF_HS in the saa7113_init table. */
+> +enum saa7113_r12_rts {
+> +	SAA7113_RTS_DOT_IN = 0,		/* OBS: Only for RTS1 (Default RTS1) */
+> +	SAA7113_RTS_VIPB,		/* Default RTS0 For gm7113c_init */
+> +	SAA7113_RTS_GPSW,
+> +	SAA7115_RTS_HL,
+> +	SAA7113_RTS_VL,
+> +	SAA7113_RTS_DL,
+> +	SAA7113_RTS_PLIN,
+> +	SAA7113_RTS_HREF_HS,		/* Default RTS0 For saa7113_init */
+> +	SAA7113_RTS_HS,
+> +	SAA7113_RTS_HQ,
+> +	SAA7113_RTS_ODD,
+> +	SAA7113_RTS_VS,
+> +	SAA7113_RTS_V123,
+> +	SAA7113_RTS_VGATE,
+> +	SAA7113_RTS_VREF,
+> +	SAA7113_RTS_FID
+> +};
+> +
+> +struct saa7115_platform_data {
+> +	/* saa7113 only: Force the use of the gm7113c_init table,
+> +	 * instead of the old saa7113_init table. */
+> +	bool saa7113_force_gm7113c_init;
+> +
+> +	/* SAA7113/GM7113C Specific configurations */
+> +	enum saa7113_r08_htc *saa7113_r08_htc;	/* [R_08 - Bit 3..4] */
+> +
+> +	bool *saa7113_r10_vrln;			/* [R_10 - Bit 3]
+> +						   Disabled for gm7113c_init
+> +						   Enabled for saa7113c_init */
+> +	enum saa7113_r10_ofts *saa7113_r10_ofts;	/* [R_10 - Bit 6..7] */
+> +
+> +	enum saa7113_r12_rts *saa7113_r12_rts0;		/* [R_12 - Bit 0..3] */
+> +	enum saa7113_r12_rts *saa7113_r12_rts1;		/* [R_12 - Bit 4..7] */
+> +
+> +	bool *saa7113_r13_adlsb;			/* [R_13 - Bit 7]
+> +							   Default disabled */
+> +};
+> +
+>  #endif
+>  
+> 
 
->> +       remote = v4l2_of_get_remote_port_parent(ep);
->> +       of_node_put(ep);
->> +
->> +       if (!remote)
->> +               return -EINVAL;
->> +
->> +       camera = of_get_parent(remote);
->> +       fimc_is_node = NULL;
->> +       while ((fimc_is_node = of_get_next_child(camera, fimc_is_node))) {
->> +               if (!of_node_cmp(fimc_is_node->name, "fimc-is"))
->> +                       break;
->> +               of_node_put(fimc_is_node);
->> +       };
->> +       of_node_put(camera);
->> +
->> +       if (!fimc_is_node)
->> +               return -EINVAL;
->> +
->> +       /* Get the IS pipeline context */
->> +       pdev_is = of_find_device_by_node(fimc_is_node);
->> +       is_data = dev_get_drvdata(&pdev_is->dev);
->> +
->> +       if (!is_data)
->> +               return -EINVAL;
->> +
->> +       sensor->pipeline =&is_data->pipeline;
->>
->> +
->> +       return 0;
->> +}
->> +
->> +static const struct of_device_id fimc_is_sensor_of_match[];
->> +
->> +static int fimc_is_sensor_probe(struct i2c_client *client,
->> +                               const struct i2c_device_id *id)
->> +{
->> +       struct device *dev =&client->dev;
->>
->> +       struct fimc_is_sensor *sensor;
->> +       const struct of_device_id *of_id;
->> +       struct v4l2_subdev *sd;
->> +       int gpio, ret;
->> +       unsigned int sensor_id;
->> +
->> +       sensor = devm_kzalloc(dev, sizeof(*sensor), GFP_KERNEL);
->> +       if (!sensor)
->> +               return -ENOMEM;
->> +
->> +       sensor->gpio_reset = -EINVAL;
->> +
->> +       gpio = of_get_gpio_flags(dev->of_node, 0, NULL);
->> +       if (gpio_is_valid(gpio)) {
->> +               ret = gpio_request_one(gpio, GPIOF_OUT_INIT_LOW,
->> DRIVER_NAME);
->
->
-> You could use devm_gpio_request_one, so the GPIO is properly freed on
-> the driver's removal. You should test this driver built as a module as well.
->
->
+Regards,
 
-Ok will do that.
-
->> +               if (ret<  0)
->> +                       return ret;
->> +       }
->> +       pr_err("GPIO Request success : %d", gpio);
->
->
-> pr_debug() or needs to be removed.
->
->
->> +       sensor->gpio_reset = gpio;
->> +
->> +       of_id = of_match_node(fimc_is_sensor_of_match, dev->of_node);
->> +       if (!of_id) {
->> +               ret = -ENODEV;
->> +               goto err_gpio;
->> +       }
->> +
->> +       sensor->drvdata = (struct fimc_is_sensor_drv_data *) of_id->data;
->
->
-> No need for casting. Just make struct fimc_is_sensor:drvdata 'const'.
->
->
-
-Ok
-
->> +       sensor->dev = dev;
->> +
->> +       /* Get FIMC-IS context */
->> +       ret = sensor_parse_dt(sensor, dev->of_node);
->> +       if (ret) {
->> +               pr_err("Unable to obtain IS context\n");
->> +               ret = -ENODEV;
->
->
-> Is overwriting ret really needed ?
->
-
-Not needed. Will change.
-
->> +               goto err_gpio;
->> +       }
->> +
->> +       sd =&sensor->subdev;
->> +       v4l2_i2c_subdev_init(sd, client,&sensor_subdev_ops);
->> +       snprintf(sd->name, sizeof(sd->name),
->> sensor->drvdata->sensor_name);
->> +       sensor->subdev.flags |= V4L2_SUBDEV_FL_HAS_DEVNODE;
->> +
->> +       sensor_id = sensor->drvdata->sensor_id;
->> +       sensor->format.code = sensor_formats[sensor_id].code;
->> +       sensor->format.width = sensor_formats[sensor_id].width;
->> +       sensor->format.height = sensor_formats[sensor_id].height;
->> +
->> +       sensor->pad.flags = MEDIA_PAD_FL_SOURCE;
->> +       ret = media_entity_init(&sd->entity, 1,&sensor->pad, 0);
->>
->> +       if (ret<  0)
->> +               goto err_gpio;
->> +
->> +       v4l2_set_subdevdata(sd, sensor);
->> +       i2c_set_clientdata(client,&sensor->subdev);
->>
->> +
->> +       pm_runtime_no_callbacks(dev);
->> +       pm_runtime_enable(dev);
->> +       sensor_clk_init(sensor);
->> +
->> +       return 0;
->> +err_gpio:
->> +       if (gpio_is_valid(sensor->gpio_reset))
->> +               gpio_free(sensor->gpio_reset);
->> +       return ret;
->> +}
->> +
->> +static int fimc_is_sensor_remove(struct i2c_client *client)
->> +{
->> +       struct v4l2_subdev *sd = i2c_get_clientdata(client);
->> +       struct fimc_is_sensor *sensor = sd_to_fimc_is_sensor(sd);
->> +
->> +       media_entity_cleanup(&sensor->subdev.entity);
->> +       sensor_clk_put(sensor);
->> +
->> +       return 0;
->> +}
->> +
->> +static const struct i2c_device_id fimc_is_sensor_ids[] = {
->> +       { }
->> +};
->> +
->> +static const struct fimc_is_sensor_drv_data s5k4e5_drvdata = {
->> +       .sensor_id = SENSOR_S5K4E5,
->> +       .sensor_name = "s5k4e5",
->> +       .pixel_width = SENSOR_4E5_WIDTH + 16,
->> +       .pixel_height = SENSOR_4E5_HEIGHT + 10,
->> +       .active_width = SENSOR_4E5_WIDTH,
->> +       .active_height = SENSOR_4E5_HEIGHT,
->> +       .max_framerate = 30,
->> +       .setfile_name = "setfile_4e5.bin",
->> +       .ext = {
->> +               .actuator_con = {
->> +                       .product_name = ACTUATOR_NAME_DWXXXX,
->> +                       .peri_type = SE_I2C,
->> +                       .peri_setting.i2c.channel = SENSOR_CONTROL_I2C0,
->> +               },
->> +               .flash_con = {
->> +                       .product_name = FLADRV_NAME_KTD267,
->> +                       .peri_type = SE_GPIO,
->> +                       .peri_setting.gpio.first_gpio_port_no = 1,
->> +                       .peri_setting.gpio.second_gpio_port_no = 2,
->> +               },
->> +               .from_con.product_name = FROMDRV_NAME_NOTHING,
->> +               .mclk = 0,
->> +               .mipi_lane_num = 0,
->> +               .mipi_speed = 0,
->> +               .fast_open_sensor = 0,
->> +               .self_calibration_mode = 0,
->> +       },
->> +};
->> +
->> +static const struct fimc_is_sensor_drv_data s5k6a3_drvdata = {
->> +       .sensor_id = SENSOR_S5K6A3,
->> +       .sensor_name = "s5k6a3",
->> +       .pixel_width = SENSOR_6A3_WIDTH + 16,
->> +       .pixel_height = SENSOR_6A3_HEIGHT + 10,
->> +       .active_width = SENSOR_6A3_WIDTH,
->> +       .active_height = SENSOR_6A3_HEIGHT,
->> +       .max_framerate = 30,
->> +       .setfile_name = "setfile_6a3.bin",
->> +};
->> +
->> +static const struct of_device_id fimc_is_sensor_of_match[] = {
->> +       {
->> +               .compatible     = "samsung,s5k4e5",
->> +               .data           =&s5k4e5_drvdata,
->> +       },
->> +       {
->> +               .compatible     = "samsung,s5k6a3",
->> +               .data           =&s5k6a3_drvdata,
->> +       },
->> +       {  }
->> +};
->> +MODULE_DEVICE_TABLE(of, fimc_is_sensor_of_match);
->> +
->> +static struct i2c_driver fimc_is_sensor_driver = {
->> +       .driver = {
->> +               .of_match_table = fimc_is_sensor_of_match,
->> +               .name           = DRIVER_NAME,
->> +               .owner          = THIS_MODULE,
->> +       },
->> +       .probe          = fimc_is_sensor_probe,
->> +       .remove         = fimc_is_sensor_remove,
->> +       .id_table       = fimc_is_sensor_ids,
->> +};
->> +
->> +module_i2c_driver(fimc_is_sensor_driver);
->> +
->> +MODULE_AUTHOR("Arun Kumar K<arun.kk@samsung.com>");
->> +MODULE_DESCRIPTION("Exynos5 FIMC-IS sensor subdev driver");
->> +MODULE_LICENSE("GPL");
->> diff --git a/drivers/media/platform/exynos5-is/fimc-is-sensor.h
->> b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
->> new file mode 100644
->> index 0000000..75e5f20
->> --- /dev/null
->> +++ b/drivers/media/platform/exynos5-is/fimc-is-sensor.h
->> @@ -0,0 +1,168 @@
->> +/*
->> + * Samsung EXYNOS5250 FIMC-IS (Imaging Subsystem) driver
->> + *
->> + * Copyright (C) 2013 Samsung Electronics Co., Ltd.
->> + * Arun Kumar K<arun.kk@samsung.com>
->> + * Kil-yeon Lim<kilyeon.im@samsung.com>
->> + *
->> + * This program is free software; you can redistribute it and/or modify
->> + * it under the terms of the GNU General Public License version 2 as
->> + * published by the Free Software Foundation.
->> + */
->> +#ifndef FIMC_IS_SENSOR_H_
->> +#define FIMC_IS_SENSOR_H_
->> +
->> +#include<linux/clk.h>
->> +#include<linux/device.h>
->> +#include<linux/kernel.h>
->> +#include<linux/platform_device.h>
->> +#include<linux/regulator/consumer.h>
->> +#include<linux/videodev2.h>
->> +#include<media/v4l2-subdev.h>
->> +
->> +#include "fimc-is-pipeline.h"
->> +
->> +#define FIMC_IS_MAX_CAMIF_CLIENTS      2
->> +#define FIMC_IS_MAX_NAME_LEN           32
->> +#define FIMC_IS_MAX_GPIO_NUM           32
->> +#define UART_ISP_SEL                   0
->> +#define UART_ISP_RATIO                 1
->> +
->> +#define FIMC_IS_MAX_SENSORS            4
->> +
->> +#define SENSOR_4E5_WIDTH               2560
->> +#define SENSOR_4E5_HEIGHT              1920
->> +#define SENSOR_6A3_WIDTH               1392
->> +#define SENSOR_6A3_HEIGHT              1392
->> +
->> +enum sensor_id {
->> +       SENSOR_S5K3H2   = 1,
->> +       SENSOR_S5K6A3   = 2,
->> +       SENSOR_S5K4E5   = 3,
->> +       SENSOR_S5K3H7   = 4,
->> +       SENSOR_CUSTOM   = 100,
->> +       SENSOR_END
->> +};
->> +
->> +enum sensor_channel {
->> +       SENSOR_CONTROL_I2C0      = 0,
->> +       SENSOR_CONTROL_I2C1      = 1
->> +};
->> +
->> +enum actuator_name {
->> +       ACTUATOR_NAME_AD5823    = 1,
->> +       ACTUATOR_NAME_DWXXXX    = 2,
->> +       ACTUATOR_NAME_AK7343    = 3,
->> +       ACTUATOR_NAME_HYBRIDVCA = 4,
->> +       ACTUATOR_NAME_NOTHING   = 100,
->> +       ACTUATOR_NAME_END
->> +};
->> +
->> +enum flash_drv_name {
->> +       FLADRV_NAME_KTD267      = 1,
->> +       FLADRV_NAME_NOTHING     = 100,
->> +       FLADRV_NAME_END
->> +};
->> +
->> +enum from_name {
->> +       FROMDRV_NAME_W25Q80BW   = 1,
->> +       FROMDRV_NAME_NOTHING
->> +};
->> +
->> +enum sensor_peri_type {
->> +       SE_I2C,
->> +       SE_SPI,
->> +       SE_GPIO,
->> +       SE_MPWM,
->> +       SE_ADC,
->> +       SE_NULL
->> +};
->> +
->> +struct i2c_type {
->> +       u32 channel;
->> +       u32 slave_address;
->> +       u32 speed;
->> +};
->> +
->> +struct spi_type {
->> +       u32 channel;
->> +};
->> +
->> +struct gpio_type {
->> +       u32 first_gpio_port_no;
->> +       u32 second_gpio_port_no;
->> +};
->> +
->> +union sensor_peri_format {
->> +       struct i2c_type i2c;
->> +       struct spi_type spi;
->> +       struct gpio_type gpio;
->> +};
->> +
->> +struct sensor_protocol {
->> +       unsigned int product_name;
->> +       enum sensor_peri_type peri_type;
->> +       union sensor_peri_format peri_setting;
->> +};
->> +
->> +struct fimc_is_sensor_ext {
->> +       struct sensor_protocol actuator_con;
->> +       struct sensor_protocol flash_con;
->> +       struct sensor_protocol from_con;
->> +
->> +       unsigned int mclk;
->> +       unsigned int mipi_lane_num;
->> +       unsigned int mipi_speed;
->> +       unsigned int fast_open_sensor;
->> +       unsigned int self_calibration_mode;
->> +};
->> +
->> +struct fimc_is_sensor_drv_data {
->> +       unsigned int    sensor_id;
->> +       char            *sensor_name;
->> +       unsigned int    pixel_width;
->> +       unsigned int    pixel_height;
->> +       unsigned int    active_width;
->> +       unsigned int    active_height;
->> +       unsigned int    max_framerate;
->> +       struct fimc_is_sensor_ext ext;
->> +       char            *setfile_name;
->> +};
->> +
->> +enum sensor_clks {
->> +       SCLK_BAYER,
->> +       SCLK_CAM0,
->> +       SCLK_CAM1,
->> +       SCLK_MAX_NUM,
->> +};
->> +
->> +struct sensor_pix_format {
->> +       enum v4l2_mbus_pixelcode code;
->> +};
->> +
->> +/**
->> + * struct fimc_is_sensor - fimc-is sensor context
->> + * @pad: media pad
->> + * @subdev: sensor subdev
->> + * @clock: sensor clocks array
->> + * @dev: sensor device ptr
->> + * @pipeline: is pipeline context pointer
->> + * @drvdata: sensor specific driver data
->> + * @format: v4l2 mbus format for the subdev
->> + * @gpio_reset: gpio pin to be used for sensor power on/off
->> + * @i2c_ch: sensor's i2c channel number
->> + */
->> +struct fimc_is_sensor {
->> +       struct media_pad                pad;
->> +       struct v4l2_subdev              subdev;
->> +       struct clk                      *clock[SCLK_MAX_NUM];
->> +       struct device                   *dev;
->> +
->> +       struct fimc_is_pipeline         *pipeline;
->> +       struct fimc_is_sensor_drv_data  *drvdata;
->> +       struct v4l2_mbus_framefmt       format;
->> +       int                             gpio_reset;
->> +       unsigned int                    i2c_ch;
->> +};
->> +
->> +#endif /* FIMC_IS_SENSOR_H_ */
->
->
-> Thanks,
-> Sylwester
-
-Thanks and regards
-Arun
+	Hans
