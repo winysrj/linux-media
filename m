@@ -1,47 +1,92 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:47612 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751830Ab3GCKwY (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jul 2013 06:52:24 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: [PATCH 1/2] v4l: of: Use of_get_child_by_name()
-Date: Wed,  3 Jul 2013 12:52:48 +0200
-Message-Id: <1372848769-6390-2-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1372848769-6390-1-git-send-email-laurent.pinchart@ideasonboard.com>
-References: <1372848769-6390-1-git-send-email-laurent.pinchart@ideasonboard.com>
+Received: from mail-pd0-f176.google.com ([209.85.192.176]:44772 "EHLO
+	mail-pd0-f176.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758583Ab3GZL2B (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 07:28:01 -0400
+From: Arun Kumar K <arun.kk@samsung.com>
+To: linux-media@vger.kernel.org, linux-samsung-soc@vger.kernel.org
+Cc: s.nawrocki@samsung.com, k.debski@samsung.com,
+	shaik.ameer@samsung.com, arunkk.samsung@gmail.com
+Subject: [PATCH] [media] exynos-gsc: Register v4l2 device
+Date: Fri, 26 Jul 2013 16:58:01 +0530
+Message-Id: <1374838081-27308-1-git-send-email-arun.kk@samsung.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Replace a manual loop through child nodes with a call to
-of_get_child_by_name().
+Gscaler video device registration was happening without
+reference to a parent v4l2_dev causing probe to fail.
+The patch creates a parent v4l2 device and uses it for
+gsc m2m video device registration.
 
-Signed-off-by: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+Signed-off-by: Arun Kumar K <arun.kk@samsung.com>
 ---
- drivers/media/v4l2-core/v4l2-of.c | 8 ++------
- 1 file changed, 2 insertions(+), 6 deletions(-)
+ drivers/media/platform/exynos-gsc/gsc-core.c |    9 ++++++++-
+ drivers/media/platform/exynos-gsc/gsc-core.h |    1 +
+ drivers/media/platform/exynos-gsc/gsc-m2m.c  |    1 +
+ 3 files changed, 10 insertions(+), 1 deletion(-)
 
-diff --git a/drivers/media/v4l2-core/v4l2-of.c b/drivers/media/v4l2-core/v4l2-of.c
-index aa59639..f64d953 100644
---- a/drivers/media/v4l2-core/v4l2-of.c
-+++ b/drivers/media/v4l2-core/v4l2-of.c
-@@ -173,12 +173,8 @@ struct device_node *v4l2_of_get_next_endpoint(const struct device_node *parent,
- 		if (node)
- 			parent = node;
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.c b/drivers/media/platform/exynos-gsc/gsc-core.c
+index 559fab2..1ec60264 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.c
++++ b/drivers/media/platform/exynos-gsc/gsc-core.c
+@@ -1122,10 +1122,14 @@ static int gsc_probe(struct platform_device *pdev)
+ 		goto err_clk;
+ 	}
  
--		for_each_child_of_node(parent, node) {
--			if (!of_node_cmp(node->name, "port")) {
--				port = node;
--				break;
--			}
--		}
-+		port = of_get_child_by_name(parent, "port");
+-	ret = gsc_register_m2m_device(gsc);
++	ret = v4l2_device_register(dev, &gsc->v4l2_dev);
+ 	if (ret)
+ 		goto err_clk;
+ 
++	ret = gsc_register_m2m_device(gsc);
++	if (ret)
++		goto err_v4l2;
 +
- 		if (port) {
- 			/* Found a port, get an endpoint. */
- 			endpoint = of_get_next_child(port, NULL);
+ 	platform_set_drvdata(pdev, gsc);
+ 	pm_runtime_enable(dev);
+ 	ret = pm_runtime_get_sync(&pdev->dev);
+@@ -1147,6 +1151,8 @@ err_pm:
+ 	pm_runtime_put(dev);
+ err_m2m:
+ 	gsc_unregister_m2m_device(gsc);
++err_v4l2:
++	v4l2_device_unregister(&gsc->v4l2_dev);
+ err_clk:
+ 	gsc_clk_put(gsc);
+ 	return ret;
+@@ -1157,6 +1163,7 @@ static int gsc_remove(struct platform_device *pdev)
+ 	struct gsc_dev *gsc = platform_get_drvdata(pdev);
+ 
+ 	gsc_unregister_m2m_device(gsc);
++	v4l2_device_unregister(&gsc->v4l2_dev);
+ 
+ 	vb2_dma_contig_cleanup_ctx(gsc->alloc_ctx);
+ 	pm_runtime_disable(&pdev->dev);
+diff --git a/drivers/media/platform/exynos-gsc/gsc-core.h b/drivers/media/platform/exynos-gsc/gsc-core.h
+index cc19bba..76435d3 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-core.h
++++ b/drivers/media/platform/exynos-gsc/gsc-core.h
+@@ -343,6 +343,7 @@ struct gsc_dev {
+ 	unsigned long			state;
+ 	struct vb2_alloc_ctx		*alloc_ctx;
+ 	struct video_device		vdev;
++	struct v4l2_device		v4l2_dev;
+ };
+ 
+ /**
+diff --git a/drivers/media/platform/exynos-gsc/gsc-m2m.c b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+index 40a73f7..e576ff2 100644
+--- a/drivers/media/platform/exynos-gsc/gsc-m2m.c
++++ b/drivers/media/platform/exynos-gsc/gsc-m2m.c
+@@ -751,6 +751,7 @@ int gsc_register_m2m_device(struct gsc_dev *gsc)
+ 	gsc->vdev.release	= video_device_release_empty;
+ 	gsc->vdev.lock		= &gsc->lock;
+ 	gsc->vdev.vfl_dir	= VFL_DIR_M2M;
++	gsc->vdev.v4l2_dev	= &gsc->v4l2_dev;
+ 	snprintf(gsc->vdev.name, sizeof(gsc->vdev.name), "%s.%d:m2m",
+ 					GSC_MODULE_NAME, gsc->id);
+ 
 -- 
-1.8.1.5
+1.7.9.5
 
