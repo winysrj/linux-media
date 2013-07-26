@@ -1,93 +1,130 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:1205 "EHLO
-	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752931Ab3GNVjS (ORCPT
+Received: from perceval.ideasonboard.com ([95.142.166.194]:39652 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757340Ab3GZPyi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 14 Jul 2013 17:39:18 -0400
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: Sander Eikelenboom <linux@eikelenboom.it>
-Cc: linux-media@vger.kernel.org
-Subject: Re: [media] cx25821 regression from 3.9: BUG: bad unlock balance detected!
-Date: Sun, 14 Jul 2013 23:39:03 +0200
-Message-ID: <3683080.CL97pXOYgk@wyst>
-In-Reply-To: <749621697.20130714231842@eikelenboom.it>
-References: <1139404719.20130516194142@eikelenboom.it> <51E27239.2080109@xs4all.nl> <749621697.20130714231842@eikelenboom.it>
+	Fri, 26 Jul 2013 11:54:38 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Cc: linux-media@vger.kernel.org, Mike Turquette <mturquette@linaro.org>
+Subject: Re: [PATCH] mt9v032: Use the common clock framework
+Date: Fri, 26 Jul 2013 17:55:34 +0200
+Message-ID: <1684528.NgmHp9Ak4m@avalon>
+In-Reply-To: <51F27B56.9050504@gmail.com>
+References: <1373021725-14006-1-git-send-email-laurent.pinchart@ideasonboard.com> <1438897.qqa6gsnOmc@avalon> <51F27B56.9050504@gmail.com>
 MIME-Version: 1.0
 Content-Transfer-Encoding: 7Bit
 Content-Type: text/plain; charset="us-ascii"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sunday, July 14, 2013 23:18:42 Sander Eikelenboom wrote:
-> 
-> Sunday, July 14, 2013, 11:41:13 AM, you wrote:
-> >> Hi Hans,
+Hi Sylwester,
+
+On Friday 26 July 2013 15:36:22 Sylwester Nawrocki wrote:
+> On 07/26/2013 03:15 PM, Laurent Pinchart wrote:
+> > On Friday 26 July 2013 15:11:08 Sylwester Nawrocki wrote:
+> >> On 07/05/2013 12:55 PM, Laurent Pinchart wrote:
+> >>> Configure the device external clock using the common clock framework
+> >>> instead of a board code callback function.
+> >>> 
+> >>> Signed-off-by: Laurent Pinchart<laurent.pinchart@ideasonboard.com>
+> >>> ---
+> >>> 
+> >>>    drivers/media/i2c/mt9v032.c | 16 ++++++++++------
+> >>>    include/media/mt9v032.h     |  4 ----
+> >>>    2 files changed, 10 insertions(+), 10 deletions(-)
+> >>> 
+> >>> diff --git a/drivers/media/i2c/mt9v032.c b/drivers/media/i2c/mt9v032.c
+> >>> index 60c6f67..7b30640 100644
+> >>> --- a/drivers/media/i2c/mt9v032.c
+> >>> +++ b/drivers/media/i2c/mt9v032.c
+> >>> @@ -12,6 +12,7 @@
+> >>>     * published by the Free Software Foundation.
+> >>>     */
+> >>> 
+> >>> +#include<linux/clk.h>
+> >>>    #include<linux/delay.h>
+> >>>    #include<linux/i2c.h>
+> >>>    #include<linux/log2.h>
+> >>> @@ -135,6 +136,8 @@ struct mt9v032 {
+> >>>    	struct mutex power_lock;
+> >>>    	int power_count;
+> >>> 
+> >>> +	struct clk *clk;
+> >>> +
+> >>>    	struct mt9v032_platform_data *pdata;
+> >>>    	
+> >>>    	u32 sysclk;
+> >>> @@ -219,10 +222,8 @@ static int mt9v032_power_on(struct mt9v032
+> >>> *mt9v032)
+> >>>    	struct i2c_client *client = v4l2_get_subdevdata(&mt9v032->subdev);
+> >>>    	int ret;
+> >>> 
+> >>> -	if (mt9v032->pdata->set_clock) {
+> >>> -		mt9v032->pdata->set_clock(&mt9v032->subdev, mt9v032->sysclk);
+> >>> -		udelay(1);
+> >>> -	}
+> >>> +	clk_prepare_enable(mt9v032->clk);
+> >>> +	udelay(1);
+> >>> 
+> >>>    	/* Reset the chip and stop data read out */
+> >>>    	ret = mt9v032_write(client, MT9V032_RESET, 1);
+> >>> @@ -238,8 +239,7 @@ static int mt9v032_power_on(struct mt9v032 *mt9v032)
+> >>> 
+> >>>    static void mt9v032_power_off(struct mt9v032 *mt9v032)
+> >>>    {
+> >>> -	if (mt9v032->pdata->set_clock)
+> >>> -		mt9v032->pdata->set_clock(&mt9v032->subdev, 0);
+> >>> +	clk_disable_unprepare(mt9v032->clk);
+> >>>    }
+> >>>    
+> >>>    static int __mt9v032_set_power(struct mt9v032 *mt9v032, bool on)
+> >>> @@ -748,6 +748,10 @@ static int mt9v032_probe(struct i2c_client *client,
+> >>>    	if (!mt9v032)
+> >>>    		return -ENOMEM;
+> >>> 
+> >>> +	mt9v032->clk = devm_clk_get(&client->dev, NULL);
+> >>> +	if (IS_ERR(mt9v032->clk))
+> >>> +		return PTR_ERR(mt9v032->clk);
+> >>> +
+> >>>    	mutex_init(&mt9v032->power_lock);
+> >>>    	mt9v032->pdata = pdata;
+> >>> 
+> >>> diff --git a/include/media/mt9v032.h b/include/media/mt9v032.h
+> >>> index 78fd39e..12175a6 100644
+> >>> --- a/include/media/mt9v032.h
+> >>> +++ b/include/media/mt9v032.h
+> >>> @@ -1,13 +1,9 @@
+> >>>    #ifndef _MEDIA_MT9V032_H
+> >>>    #define _MEDIA_MT9V032_H
+> >>> 
+> >>> -struct v4l2_subdev;
+> >>> -
+> >>>    struct mt9v032_platform_data {
+> >>>    	unsigned int clk_pol:1;
+> >>> -	void (*set_clock)(struct v4l2_subdev *subdev, unsigned int rate);
+> >>> -
+> >>>    	const s64 *link_freqs;
+> >>>    	s64 link_def_freq;
+> >>>    };
 > >> 
-> >> After being busy for quite some time, i do have some spare time now.
-> >> 
-> >> Since i'm still having trouble with this driver, is there a patch series for a similar driver
-> >> that was converted to videobuf2 ?
-> >> I don't know if it is entirely in my league, but i could give it a try when i have a example.
+> >> Is there clk_put() somewhere in this patch ? I would expect it somewhere
+> >> around driver remove() callback, but can't see it. :-/
+> > 
+> > There's *devm_*clk_get() instead :-)
 > 
-> > The changes done for usb/em28xx might come close. That said, the cx25821 is already in
-> > decent shape to convert to vb2. At least the videobuf data structures are already in the
-> > correct place (they are often stored in a per-filehandle struct, which is wrong).
+> Ah, I knew I must have been forgetting or overlooking something! ;)
 > 
-> Found the em28xx port to videobuf2 patch from Devin Heitmueller.
-> Unfortunately the patch format isn't very neat as a example (due to reusing/renaming function parts)
-> 
-> Apart from that the cx25821 also supports multiple "channels / subdevices".
+> Do you rely on the fact that __clk_get()/__clk_put() doesn't get reference
+> on the clock supplier module (to avoid locking modules in memory) ? I was
+> planning on adding module_get()/module_put() inside __clk_get()/__clk_out()
+> for the common clock API implementation.
 
-That in it self isn't a problem, each channel has it's own queue, which is true
-for videobuf as well in this driver.
+I'm currently relying on that, but I'm aware it's not a good idea. We need to 
+find a solution to fix the problem in the context of the v4l2-async framework.
 
-> From what i see one of the major changes is that the handling of the queue is now internal to and handled by videobuf2 ?
-
-Well, that was true for videobuf as well. The whole idea behind videobuf and vb2 is
-to isolate the driver from the boring buffer manipulation stuff and just implement
-the DMA engine parts. Unfortunately, videobuf did a very poor job of that, in
-particular where it came to resource management (when are buffers allocated, when
-and how are they freed, when should the DMA engine start, when should it stop, etc.)
-whereas vb2 makes this much more precise and understandable.
-
-Due to the differences between videobuf and vb2 it isn't a trivial conversion. It's
-a 'medium level' job, I would say.
-
-A better example of this is probably the staging/media/solo6x10 driver that I did
-recently. It's also a PCI driver, so that helps.
-
-Still, I am not convinced you should look too much at the actual patches, more
-at the final result. It basically boils down to implementing the vb2_ops.
-
-Most are trivial or quite similar to what videobuf did, but the big ones to implement
-are always start_streaming and stop_streaming.
-
+-- 
 Regards,
 
-	Hans
+Laurent Pinchart
 
-> 
-> > include/media/videobuf2-core.h gives a reasonable overview of vb2. Like em28xx, you
-> > should use the vb2 helper functions (vb2_fop_* and vb2_ioctl_*) which takes a lot
-> > of the work off your hands.
-> 
-> > Converting cx25821-alsa.c may be the most difficult part as it is using some videobuf
-> > internal functions which probably won't translate to vb2 as is. I think videobuf is
-> > being abused here, but I don't know off-hand what the correct approach will be with
-> > vb2.
-> 
-> > I would ignore the alsa part for the time being (also the audio/video-upstream code,
-> > that's been disabled and without datasheets of the cx25821 I'm not sure it can be
-> > resurrected).
-> 
-> > If you can get cx25821-video.c to work with vb2, then we can take a look at the alsa
-> > code.
-> 
-> Will do.
-> 
-> > Regards,
-> 
-> >         Hans
-> 
-> --
-> Sander
