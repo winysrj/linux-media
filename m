@@ -1,73 +1,69 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:40522 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1756248Ab3GZHuz (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 03:50:55 -0400
-Message-ID: <51F22A58.9030208@ti.com>
-Date: Fri, 26 Jul 2013 10:50:48 +0300
-From: Tomi Valkeinen <tomi.valkeinen@ti.com>
-MIME-Version: 1.0
-To: =?UTF-8?B?SmFrdWIgUGlvdHIgQ8WCYXBh?= <jpc-ml@zenburn.net>
-CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+Received: from perceval.ideasonboard.com ([95.142.166.194]:40651 "EHLO
+	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752649Ab3GZTMs convert rfc822-to-8bit (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 15:12:48 -0400
+From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
+To: Jakub Piotr =?utf-8?B?Q8WCYXBh?= <jpc-ml@zenburn.net>
+Cc: Tomi Valkeinen <tomi.valkeinen@ti.com>,
 	linux-media <linux-media@vger.kernel.org>
-Subject: Re: [omap3isp] xclk deadlock
-References: <51D37796.2000601@zenburn.net> <1604535.2Z0SUEyxcF@avalon> <51E0165C.5000401@zenburn.net> <3227918.6DpNM0vnE9@avalon>
-In-Reply-To: <3227918.6DpNM0vnE9@avalon>
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature";
-	boundary="mOUBS1aTLeWmilnJr3fp4H2SDkhUdSsbg"
+Subject: Re: [omapdss] fault in dispc_write_irqenable [was: Re: [omap3isp] xclk deadlock]
+Date: Fri, 26 Jul 2013 21:13:44 +0200
+Message-ID: <1478956.6pKyoNTpv1@avalon>
+In-Reply-To: <51F2C7CB.9040806@zenburn.net>
+References: <51D37796.2000601@zenburn.net> <2345948.CFuZYJZjKT@avalon> <51F2C7CB.9040806@zenburn.net>
+MIME-Version: 1.0
+Content-Transfer-Encoding: 8BIT
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---mOUBS1aTLeWmilnJr3fp4H2SDkhUdSsbg
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: quoted-printable
+Hi Jakub,
 
-On 17/07/13 15:50, Laurent Pinchart wrote:
-> Hi Jakub,
->=20
-> (CC'ing Tomi Valkeinen)
->=20
-> On Friday 12 July 2013 16:44:44 Jakub Piotr C=C5=82apa wrote:
+On Friday 26 July 2013 21:02:35 Jakub Piotr Cłapa wrote:
+> On 26.07.13 17:52, Laurent Pinchart wrote:
+> >>> Using omapfb, or...? I hope not
+> >>> omap_vout, because that's rather unmaintained =).
+> >> 
+> >> Laurent's live application is using the V4L2 API for video output (to
+> >> get free YUV conversion and DMA) so I guess this unfortunatelly counts
+> >> as using omap_vout. Are there any alternatives I should look into? IIUC
+> >> to use omapfb I would need to manually copy RGB data into the
+> >> framebuffer on each frame.
+> > 
+> > It should be possible to port the live application to use DRM/KMS with
+> > omapdrm for the display side, without requiring any memory copy. That's
+> > somewhere on my TODO list, but I won't have time to work on that before
+> > way too long.
+> I could look into it myself but is there any documentation on omapdrm?
+> 
+> From what I found libdrm should probably be used but information about it's
+> API is really scarce:
+> https://dvdhrm.wordpress.com/2012/09/13/linux-drm-mode-setting-api/
+> http://dvdhrm.wordpress.com/2012/12/21/advanced-drm-mode-setting-api/
+> http://virtuousgeek.org/blog/index.php/jbarnes/2011/10/31/writing_stanalone_
+> programs_with_egl_and_
+> 
+> The last one seems focused on OpenGL so I don't think it applies.
+> 
+> Are there any good sources to learn about this? Or maybe some pointers on
+> where to start with reading source code?
 
->> 2. When exiting from live the kernel hangs more often then not
->> (sometimes it is accompanied by "Unhandled fault: external abort on
->> non-linefetch" in "dispc_write_irqenable" in omapdss).
->=20
-> I'll pass this one to Tomi :-)
+http://events.linuxfoundation.org/sites/events/files/lcjpcojp13_pinchart.pdf
 
-Sounds like something is enabling/disabling dispc interrupts after the
-clocks have already been turned off.
+A bit of shameless self-advertising :-)
 
-So what's the context here? What kernel? Using omapfb, or...? I hope not
-omap_vout, because that's rather unmaintained =3D).
+It would have been clearer with the video, but it seems the talk hasn't been 
+recorded :-/ There's also http://www.youtube.com/watch?v=Ja8fM7rTae4 that 
+mostly focuses on the kernel side but starts with explanations of the key KMS 
+concepts.
 
- Tomi
+As far as KMS is concerned, libdrm is mostly a wrapper, so any documentation 
+on the KMS ioctls can help too.
 
+-- 
+Regards,
 
+Laurent Pinchart
 
---mOUBS1aTLeWmilnJr3fp4H2SDkhUdSsbg
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: OpenPGP digital signature
-Content-Disposition: attachment; filename="signature.asc"
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
-Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
-
-iQIcBAEBAgAGBQJR8ipYAAoJEPo9qoy8lh716VgQAIle2Sr4dtqkwz8YC2RlYj9h
-ZstdMJiJE5mzpePi7Z4f1vKXs2wRt6t6+yBs1EdR5MpfDdkyFH1+hIaBD3CGBYet
-ljmEp1YlAZx+Fhlq0stSqwSxyOF9gt0aAl1rsD92OOmvefr8eCiIPx5fBbKdHhtu
-785GMmSUk2dfFRV3HF3DeXAJmV+U0oflbhy3OQbMD8XO5uIrjsJMnTYB5khcsCpD
-7jqkcCI7E1shyzWyWAsx3OUQVhROZhSJmasp5tLZYzQ1fdUoNrbfaEbg8x5CFZbj
-aaYCsMgi5YGOWRdd+TCuS9CIO42Yi9BKKs+BsKewWMUc3e2FEFH5xvdXrYqcpsG1
-RRH4nr3GLLgqB2TBSDcKs0xsBHtAzpOTWjBXa/uEu0bI0HaDFNiiHZA2MsvgBtVZ
-yAMAIsZb64MUdC91JKft29TrCBzOA6cxYjIyEJO97hGO3dgXyirm13x9QKicpnf3
-7760xolRnaWWcYf0VtK9k2M+2SmP70lgOk4TZ+cjvA6fiNmzbM94ijWpzJA4x5r2
-ppfNUFc0815ZYbeKq4Rwstmg5eS5d48kjpUdVMXoa8rqD4iULsShz0sNiDMRegii
-qmKgibvIP94aC7WeseuqA7vS3olp+0AVVZC1ovsMeeMFlxXeBK+q4+4Z2bpDf2h2
-wuteYqdE5eO76dXuqCsQ
-=URBR
------END PGP SIGNATURE-----
-
---mOUBS1aTLeWmilnJr3fp4H2SDkhUdSsbg--
