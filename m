@@ -1,162 +1,95 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:36969 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758120Ab3GMIvD (ORCPT
+Received: from mail-we0-f177.google.com ([74.125.82.177]:43343 "EHLO
+	mail-we0-f177.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1755806Ab3GZOYR (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sat, 13 Jul 2013 04:51:03 -0400
+	Fri, 26 Jul 2013 10:24:17 -0400
+MIME-Version: 1.0
+In-Reply-To: <51F24AD0.1050808@xs4all.nl>
+References: <1374162866-14981-1-git-send-email-prabhakar.csengg@gmail.com> <51F24AD0.1050808@xs4all.nl>
 From: Prabhakar Lad <prabhakar.csengg@gmail.com>
-To: LMML <linux-media@vger.kernel.org>
-Cc: DLOS <davinci-linux-open-source@linux.davincidsp.com>,
+Date: Fri, 26 Jul 2013 19:53:55 +0530
+Message-ID: <CA+V-a8vmPf7mkbExAadwh0TRKwT220BQRJ3njfqyqsxOLHSe6g@mail.gmail.com>
+Subject: Re: [PATCH v4] media: i2c: tvp7002: add OF support
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: LMML <linux-media@vger.kernel.org>,
+	DLOS <davinci-linux-open-source@linux.davincidsp.com>,
 	LKML <linux-kernel@vger.kernel.org>,
-	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
-Subject: [PATCH 1/5] media: davinci: vpbe_venc: convert to devm_* api
-Date: Sat, 13 Jul 2013 14:20:27 +0530
-Message-Id: <1373705431-11500-2-git-send-email-prabhakar.csengg@gmail.com>
-In-Reply-To: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
-References: <1373705431-11500-1-git-send-email-prabhakar.csengg@gmail.com>
+	devicetree-discuss@lists.ozlabs.org, linux-doc@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Hi Hans,
 
-Replace existing resource handling in the driver with managed
-device resource, this ensures more consistent error values and
-simplifies error paths.
+Thanks for the review.
 
-Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
----
- drivers/media/platform/davinci/vpbe_venc.c |   97 ++++++----------------------
- 1 file changed, 19 insertions(+), 78 deletions(-)
+On Fri, Jul 26, 2013 at 3:39 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> Hi Prabhakar,
+>
+> On 07/18/2013 05:54 PM, Lad, Prabhakar wrote:
+>> From: "Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+>>
+>> add OF support for the tvp7002 driver.
+>>
+>> Signed-off-by: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+>> ---
+>>  This patch depends on https://patchwork.kernel.org/patch/2828800/
+>>
+>>  Changes for v4:
+>>  1: Improved descrition of end point properties.
+>>
+>>  Changes for v3:
+>>  1: Fixed review comments pointed by Sylwester.
+>>
+>>  .../devicetree/bindings/media/i2c/tvp7002.txt      |   53 ++++++++++++++++
+>>  drivers/media/i2c/tvp7002.c                        |   67 ++++++++++++++++++--
+>>  2 files changed, 113 insertions(+), 7 deletions(-)
+>>  create mode 100644 Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>>
+>> diff --git a/Documentation/devicetree/bindings/media/i2c/tvp7002.txt b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>> new file mode 100644
+>> index 0000000..1d00935
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/media/i2c/tvp7002.txt
+>> @@ -0,0 +1,53 @@
+>> +* Texas Instruments TV7002 video decoder
+>> +
+>> +The TVP7002 device supports digitizing of video and graphics signal in RGB and
+>> +YPbPr color space.
+>> +
+>> +Required Properties :
+>> +- compatible : Must be "ti,tvp7002"
+>> +
+>> +Optional Properties:
+>> +- hsync-active: HSYNC Polarity configuration for the bus. Default value when
+>> +  this property is not specified is <0>.
+>> +
+>> +- vsync-active: VSYNC Polarity configuration for the bus. Default value when
+>> +  this property is not specified is <0>.
+>> +
+>> +- pclk-sample: Clock polarity of the bus. Default value when this property is
+>> +  not specified is <0>.
+>> +
+>> +- sync-on-green-active: Active state of Sync-on-green signal property of the
+>> +  endpoint.
+>> +  0 = Normal Operation (Default)
+>
+> I would extend this a little bit:
+>
+>   0 = Normal Operation (Active Low, Default)
+>
+Ok.
 
-diff --git a/drivers/media/platform/davinci/vpbe_venc.c b/drivers/media/platform/davinci/vpbe_venc.c
-index 87eef9b..14a023a 100644
---- a/drivers/media/platform/davinci/vpbe_venc.c
-+++ b/drivers/media/platform/davinci/vpbe_venc.c
-@@ -639,105 +639,46 @@ static int venc_probe(struct platform_device *pdev)
- 	const struct platform_device_id *pdev_id;
- 	struct venc_state *venc;
- 	struct resource *res;
--	int ret;
- 
--	venc = kzalloc(sizeof(struct venc_state), GFP_KERNEL);
-+	if (!pdev->dev.platform_data) {
-+		dev_err(&pdev->dev, "No platform data for VENC sub device");
-+		return -EINVAL;
-+	}
-+
-+	pdev_id = platform_get_device_id(pdev);
-+	if (!pdev_id)
-+		return -EINVAL;
-+
-+	venc = devm_kzalloc(&pdev->dev, sizeof(struct venc_state), GFP_KERNEL);
- 	if (venc == NULL)
- 		return -ENOMEM;
- 
--	pdev_id = platform_get_device_id(pdev);
--	if (!pdev_id) {
--		ret = -EINVAL;
--		goto free_mem;
--	}
- 	venc->venc_type = pdev_id->driver_data;
- 	venc->pdev = &pdev->dev;
- 	venc->pdata = pdev->dev.platform_data;
--	if (NULL == venc->pdata) {
--		dev_err(venc->pdev, "Unable to get platform data for"
--			" VENC sub device");
--		ret = -ENOENT;
--		goto free_mem;
--	}
-+
- 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	if (!res) {
--		dev_err(venc->pdev,
--			"Unable to get VENC register address map\n");
--		ret = -ENODEV;
--		goto free_mem;
--	}
- 
--	if (!request_mem_region(res->start, resource_size(res), "venc")) {
--		dev_err(venc->pdev, "Unable to reserve VENC MMIO region\n");
--		ret = -ENODEV;
--		goto free_mem;
--	}
--
--	venc->venc_base = ioremap_nocache(res->start, resource_size(res));
--	if (!venc->venc_base) {
--		dev_err(venc->pdev, "Unable to map VENC IO space\n");
--		ret = -ENODEV;
--		goto release_venc_mem_region;
--	}
-+	venc->venc_base = devm_ioremap_resource(&pdev->dev, res);
-+	if (IS_ERR(venc->venc_base))
-+		return PTR_ERR(venc->venc_base);
- 
- 	if (venc->venc_type != VPBE_VERSION_1) {
- 		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--		if (!res) {
--			dev_err(venc->pdev,
--				"Unable to get VDAC_CONFIG address map\n");
--			ret = -ENODEV;
--			goto unmap_venc_io;
--		}
--
--		if (!request_mem_region(res->start,
--					resource_size(res), "venc")) {
--			dev_err(venc->pdev,
--				"Unable to reserve VDAC_CONFIG  MMIO region\n");
--			ret = -ENODEV;
--			goto unmap_venc_io;
--		}
--
--		venc->vdaccfg_reg = ioremap_nocache(res->start,
--						    resource_size(res));
--		if (!venc->vdaccfg_reg) {
--			dev_err(venc->pdev,
--				"Unable to map VDAC_CONFIG IO space\n");
--			ret = -ENODEV;
--			goto release_vdaccfg_mem_region;
--		}
-+
-+		venc->vdaccfg_reg = devm_ioremap_resource(&pdev->dev, res);
-+		if (IS_ERR(venc->vdaccfg_reg))
-+			return PTR_ERR(venc->vdaccfg_reg);
- 	}
- 	spin_lock_init(&venc->lock);
- 	platform_set_drvdata(pdev, venc);
- 	dev_notice(venc->pdev, "VENC sub device probe success\n");
--	return 0;
- 
--release_vdaccfg_mem_region:
--	release_mem_region(res->start, resource_size(res));
--unmap_venc_io:
--	iounmap(venc->venc_base);
--release_venc_mem_region:
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	release_mem_region(res->start, resource_size(res));
--free_mem:
--	kfree(venc);
--	return ret;
-+	return 0;
- }
- 
- static int venc_remove(struct platform_device *pdev)
- {
--	struct venc_state *venc = platform_get_drvdata(pdev);
--	struct resource *res;
--
--	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
--	iounmap((void *)venc->venc_base);
--	release_mem_region(res->start, resource_size(res));
--	if (venc->venc_type != VPBE_VERSION_1) {
--		res = platform_get_resource(pdev, IORESOURCE_MEM, 1);
--		iounmap((void *)venc->vdaccfg_reg);
--		release_mem_region(res->start, resource_size(res));
--	}
--	kfree(venc);
--
- 	return 0;
- }
- 
--- 
-1.7.9.5
+>> +  1 = Inverted operation
+>> +
+>> +- field-even-active: Active-high Field ID output polarity control of the bus.
+>> +  Under normal operation, the field ID output is set to logic 1 for an odd field
+>> +  (field 1)and set to logic 0 for an even field (field 0).
+>
+> Add space before 'and'.
+>
+Ok will fix it.
 
+Regards,
+--Prabhakar Lad
