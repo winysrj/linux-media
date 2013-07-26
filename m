@@ -1,160 +1,188 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f41.google.com ([209.85.214.41]:41602 "EHLO
-	mail-bk0-f41.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753845Ab3GUJYT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jul 2013 05:24:19 -0400
-Received: by mail-bk0-f41.google.com with SMTP id jc3so2163070bkc.28
-        for <linux-media@vger.kernel.org>; Sun, 21 Jul 2013 02:24:18 -0700 (PDT)
-Message-ID: <51EBA8BF.7030303@gmail.com>
-Date: Sun, 21 Jul 2013 11:24:15 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from comal.ext.ti.com ([198.47.26.152]:55280 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1758025Ab3GZMuQ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 08:50:16 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree@vger.kernel.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>,
+	<linux@arm.linux.org.uk>
+Subject: [RESEND PATCH v10 0/8] PHY framework
+Date: Fri, 26 Jul 2013 18:19:15 +0530
+Message-ID: <1374842963-13545-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-To: Prabhakar Lad <prabhakar.csengg@gmail.com>
-CC: Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	linux-media <linux-media@vger.kernel.org>
-Subject: Re: Few Doubts on adding DT nodes for bridge driver
-References: <CA+V-a8uDrtsRrtKh9ac+S70C2ycGZcpqXCsOLgEr4nCwBPNCHw@mail.gmail.com>
-In-Reply-To: <CA+V-a8uDrtsRrtKh9ac+S70C2ycGZcpqXCsOLgEr4nCwBPNCHw@mail.gmail.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Prabhakar,
+Resending with fixed device tree mailing address!
 
-On 07/21/2013 08:20 AM, Prabhakar Lad wrote:
-> Hi Sylwester, Guennadi,
->
-> I am working on adding DT support for VPIF driver, initially to get
-> some hands dirty
-> on working on Capture driver and later will move ahead to add for the display.
-> I have added asynchronous probing support for the both the bridge and subdevs
-> which works perfectly like on a charm with passing pdata as usually,
-> but doing the
-> same with DT I have few doubts on building the pdata in the bridge driver.
->
->
-> This is a snippet of my subdes in i2c node:-
->
-> i2c0: i2c@1c22000 {
-> 			status = "okay";
-> 			clock-frequency =<100000>;
-> 			pinctrl-names = "default";
-> 			pinctrl-0 =<&i2c0_pins>;
->
-> 			tvp514x@5c {
-> 				compatible = "ti,tvp5146";
-> 				reg =<0x5c>;
->
-> 				port {
-> 					tvp514x_1: endpoint {
-> 						remote-endpoint =<&vpif_capture0_1>;
-> 						hsync-active =<1>;
-> 						vsync-active =<1>;
-> 						pclk-sample =<0>;
-> 					};
-> 				};
-> 			};
->
-> 			tvp514x@5d {
-> 				compatible = "ti,tvp5146";
-> 				reg =<0x5d>;
->
-> 				port {
-> 					tvp514x_2: endpoint {
-> 						remote-endpoint =<&vpif_capture0_0>;
-> 						hsync-active =<1>;
-> 						vsync-active =<1>;
-> 						pclk-sample =<0>;
-> 					};
-> 				};
-> 			};
->                   ......
-> 		};
->
-> Here tvp514x are the subdevs the platform has two of them one at 0x5c and 0x5d,
-> so I have added two nodes for them.
->
-> Following is DT node for the bridge driver:-
->
-> 	vpif_capture@0 {
-> 		status = "okay";
-> 		port {
+Added a generic PHY framework that provides a set of APIs for the PHY drivers
+to create/destroy a PHY and APIs for the PHY users to obtain a reference to
+the PHY with or without using phandle.
 
-You should also have:
-			#address-cells = <1>;
-			#size-cells = <0>;
+This framework will be of use only to devices that uses external PHY (PHY
+functionality is not embedded within the controller).
 
-here or in vpif_capture node.
+The intention of creating this framework is to bring the phy drivers spread
+all over the Linux kernel to drivers/phy to increase code re-use and to
+increase code maintainability.
 
-> 			vpif_capture0_1: endpoint@1 {
-> 				remote =<&tvp514x_1>;
-> 			};
-> 			vpif_capture0_0: endpoint@0 {
-> 				remote =<&tvp514x_2>;
-> 			};
-> 		};
-> 	};
+Comments to make PHY as bus wasn't done because PHY devices can be part of
+other bus and making a same device attached to multiple bus leads to bad
+design.
 
-Are tvp514x@5c and tvp514x@5d decoders really connected to same bus, or are
-they on separate busses ? If the latter then you should have 2 'port' 
-nodes.
-And in such case don't you need to identify to which
+If the PHY driver has to send notification on connect/disconnect, the PHY
+driver should make use of the extcon framework. Using this susbsystem
+to use extcon framwork will have to be analysed.
 
-> I have added two endpoints for the bridge driver. In the bridge driver
-> to build the pdata from DT node,I do the following,
->
-> np = v4l2_of_get_next_endpoint(pdev->dev.of_node, NULL);
->
-> The above will give the first endpoint ie, endpoint@1
->  From here is it possible to get the tvp514x_1 endpoint node and the
-> parent of it?
+You can find this patch series @
+git://git.kernel.org/pub/scm/linux/kernel/git/kishon/linux-phy.git testing
 
-Isn't v4l2_of_get_remote_port_parent() what you need ?
+I'll create a new branch *next* once this patch series is finalized. All the
+PHY driver development that depends on PHY framework can be based on this
+branch.
 
-> so that I  build the asynchronous subdev list for the bridge driver.
->
->
-> +static struct v4l2_async_subdev tvp1_sd = {
-> +       .hw = {
+Did USB enumeration testing in panda and beagle after applying [1]
 
-This doesn't match the current struct v4l2_async_subdev data strcucture,
-there is no 'hw' field now.
+[1] -> https://lkml.org/lkml/2013/7/26/88
 
-> +               .bus_type = V4L2_ASYNC_BUS_I2C,
-> +               .match.i2c = {
-> +                       .adapter_id = 1,
-> +                       .address = 0x5c,
-> +               },
-> +       },
-> +};
->
-> For building the asd subdev list in the bridge driver I can get the
-> address easily,
-> how do I get the adapter_id ? should this be a property subdev ? And also same
-> with bustype.
+Changes from v9:
+* Fixed Greg's concern on having *find PHY by string* and changed it to Tomasz
+  pseudo code.
+* move omap-usb2 phy and twl4030-usb phy to drivers/phy
+* made all the dependent drivers select GENERIC_PHY instead of having depends
+  on
+* Made PHY core to assign the id's (so changed the phy_create API).
+* Adapted twl4030-usb to the new design.
 
-I had been working on the async subdev registration support in the 
-exynos4-is
-driver this week and I have a few patches for v4l2-async.
-What those patches do is renaming V4L2_ASYNC_BUS_* to V4L2_ASYNC_MATCH_*,
-adding V4L2_ASYNC_MATCH_OF and a corresponding match_of callback like:
+Changes from v8:
+* Added phy_set_drvdata and phy_get_drvdata in phy.h.
+* Changed phy_create API not to take void *priv. private data should now be set
+  using phy_set_drvdata now.
+Changes from v7:
+* Fixed Documentation
+* Added to_phy, of_phy_provider_register and devm_of_phy_provider_register
+* modified runtime_pm usage in phy_init, phy_exit, phy_power_on and
+  phy_power_off. Now phy_power_on will enable the clocks and phy_power_off will
+  disable the clocks.
+* pm_runtime_no_callbacks() is added so that pm_runtime_get_sync doesn't fail
+* modified other patches to adhere to the changes in the PHY framework
+* removed usb: phy: twl4030: twl4030 shouldn't be subsys_initcall as it will
+  be merged separately.
+* reference counting has been added to protect phy ops when the PHY is shared
+  by multiple consumers.
 
-static bool match_of(struct device *dev, struct v4l2_async_subdev *asd)
-{
-	return dev->of_node == asd->match.of.node;
-}
+Changes from v6
+* corrected few typos in Documentation
+* Changed PHY Subsystem to *bool* in Kconfig (to avoid compilation errors when
+  PHY Subsystem is kept as module and the dependent modules are built-in)
+* Added if pm_runtime_enabled check before runtime pm calls.
 
-Then a driver registering the notifier, after parsing the device tree, can
-just pass a list of DT node pointers corresponding to its subdevs.
+Changes from v5:
+* removed the new sysfs entries as it dint have any new information other than
+  what is already there in /sys/devices/...
+* removed a bunch of APIs added to get the PHY and now only phy_get and
+  devm_phy_get are used.
+* Added new APIs to register/unregister the PHY provider. This is needed for
+  dt boot case.
+* Enabled pm runtime and incorporated the comments given by Alan Stern in a
+  different patch series by Gautam.
+* Removed the *phy_bind* API. Now the phy binding information should be passed
+  using the platform data to the controller devices.
+* Fixed a few typos.
 
-All this could also be achieved with V4L2_ASYNC_BUS_CUSTOM, but I think it's
-better to make it as simple as possible for drivers by extending the core
-a little.
+Changes from v4:
+* removed of_phy_get_with_args/devm_of_phy_get_with_args. Now the *phy providers*
+  should use their custom implementation of of_xlate or use of_phy_xlate to get
+  *phy instance* from *phy providers*.
+* Added of_phy_xlate to be used by *phy providers* if it provides only one PHY.
+* changed phy_core from having subsys_initcall to module_init.
+* other minor fixes.
 
-I'm going to post those patches as RFC on Monday.
+Changes from v3:
+* Changed the return value of PHY APIs to ENOSYS
+* Added APIs of_phy_get_with_args/devm_of_phy_get_with_args to support getting
+  PHYs if the same IP implements multiple PHYs.
+* modified phy_bind API so that the binding information can now be _updated_.
+  In effect of this removed the binding information added in board files and
+  added only in usb-musb.c. If a particular board uses a different phy binding,
+  it can update it in board file after usb_musb_init().
+* Added Documentation/devicetree/bindings/phy/phy-bindings.txt for dt binding
+  information.
 
---
-Regards,
-Sylwester
+Changes from v2:
+* removed phy_descriptor structure completely so changed the APIs which were
+  taking phy_descriptor as parameters
+* Added 2 more APIs *of_phy_get_byname* and *devm_of_phy_get_byname* to be used
+  by PHY user drivers which has *phy* and *phy-names* binding in the dt data
+* Fixed a few typos
+* Removed phy_list and we now use class_dev_iter_init, class_dev_iter_next and
+  class_dev_iter_exit for traversing through the phy list. (Note we still need
+  phy_bind list and phy_bind_mutex).
+* Changed the sysfs entry name from *bind* to *phy_bind*.
+
+Changes from v1:
+* Added Documentation for the PHY framework
+* Added few more APIs mostly w.r.t devres
+* Modified omap-usb2 and twl4030 to make use of the new framework
+
+Kishon Vijay Abraham I (8):
+  drivers: phy: add generic PHY framework
+  usb: phy: omap-usb2: use the new generic PHY framework
+  usb: phy: twl4030: use the new generic PHY framework
+  arm: omap3: twl: add phy consumer data in twl4030_usb_data
+  ARM: dts: omap: update usb_otg_hs data
+  usb: musb: omap2430: use the new generic PHY framework
+  usb: phy: omap-usb2: remove *set_suspend* callback from omap-usb2
+  usb: phy: twl4030-usb: remove *set_suspend* and *phy_init* ops
+
+ .../devicetree/bindings/phy/phy-bindings.txt       |   66 ++
+ Documentation/devicetree/bindings/usb/omap-usb.txt |    5 +
+ Documentation/devicetree/bindings/usb/usb-phy.txt  |    6 +
+ Documentation/phy.txt                              |  166 +++++
+ MAINTAINERS                                        |    8 +
+ arch/arm/boot/dts/omap3-beagle-xm.dts              |    2 +
+ arch/arm/boot/dts/omap3-evm.dts                    |    2 +
+ arch/arm/boot/dts/omap3-overo.dtsi                 |    2 +
+ arch/arm/boot/dts/omap4.dtsi                       |    3 +
+ arch/arm/boot/dts/twl4030.dtsi                     |    1 +
+ arch/arm/mach-omap2/twl-common.c                   |   11 +
+ drivers/Kconfig                                    |    2 +
+ drivers/Makefile                                   |    2 +
+ drivers/phy/Kconfig                                |   41 ++
+ drivers/phy/Makefile                               |    7 +
+ drivers/phy/phy-core.c                             |  714 ++++++++++++++++++++
+ drivers/{usb => }/phy/phy-omap-usb2.c              |   60 +-
+ drivers/{usb => }/phy/phy-twl4030-usb.c            |   69 +-
+ drivers/usb/musb/Kconfig                           |    1 +
+ drivers/usb/musb/musb_core.h                       |    2 +
+ drivers/usb/musb/omap2430.c                        |   26 +-
+ drivers/usb/phy/Kconfig                            |   19 -
+ drivers/usb/phy/Makefile                           |    2 -
+ include/linux/i2c/twl.h                            |    2 +
+ include/linux/phy/phy.h                            |  270 ++++++++
+ 25 files changed, 1413 insertions(+), 76 deletions(-)
+ create mode 100644 Documentation/devicetree/bindings/phy/phy-bindings.txt
+ create mode 100644 Documentation/phy.txt
+ create mode 100644 drivers/phy/Kconfig
+ create mode 100644 drivers/phy/Makefile
+ create mode 100644 drivers/phy/phy-core.c
+ rename drivers/{usb => }/phy/phy-omap-usb2.c (88%)
+ rename drivers/{usb => }/phy/phy-twl4030-usb.c (94%)
+ create mode 100644 include/linux/phy/phy.h
+
+-- 
+1.7.10.4
+
