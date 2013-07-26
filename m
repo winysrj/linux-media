@@ -1,66 +1,157 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bombadil.infradead.org ([198.137.202.9]:38870 "EHLO
-	bombadil.infradead.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755530Ab3GaK66 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:60284 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1758193Ab3GZMoi (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 06:58:58 -0400
-Date: Wed, 31 Jul 2013 07:58:50 -0300 (BRT)
-From: Mauro Carvalho Chehab <mchehab@infradead.org>
-To: =?ISO-8859-15?Q?B=E5rd_Eirik_Winther?= <bwinther@cisco.com>
-cc: Mauro Carvalho Chehab <m.chehab@samsung.com>,
-	linux-media@vger.kernel.org
-Subject: Re: [PATCHv2 FINAL 0/6] qv4l2: add OpenGL rendering and window
- fixes
-In-Reply-To: <20227492.r4Kl03Wv4H@bwinther>
-Message-ID: <alpine.LFD.2.03.1307310757390.3051@infradead.org>
-References: <1375172124-14439-1-git-send-email-bwinther@cisco.com> <20130730101233.2c78cbae@samsung.com> <20227492.r4Kl03Wv4H@bwinther>
+	Fri, 26 Jul 2013 08:44:38 -0400
+From: Kishon Vijay Abraham I <kishon@ti.com>
+To: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <kishon@ti.com>, <jg1.han@samsung.com>,
+	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>
+CC: <grant.likely@linaro.org>, <tony@atomide.com>,
+	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
+	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
+	<linux-arm-kernel@lists.infradead.org>,
+	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
+	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
+	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
+	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
+Subject: [PATCH v10 6/8] usb: musb: omap2430: use the new generic PHY framework
+Date: Fri, 26 Jul 2013 18:13:00 +0530
+Message-ID: <1374842582-13242-7-git-send-email-kishon@ti.com>
+In-Reply-To: <1374842582-13242-1-git-send-email-kishon@ti.com>
+References: <1374842582-13242-1-git-send-email-kishon@ti.com>
 MIME-Version: 1.0
-Content-Type: MULTIPART/MIXED; BOUNDARY="8323328-30455688-1375268330=:3051"
+Content-Type: text/plain
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-  This message is in MIME format.  The first part should be readable text,
-  while the remaining parts are likely unreadable without MIME-aware tools.
+Use the generic PHY framework API to get the PHY. The usb_phy_set_resume
+and usb_phy_set_suspend is replaced with power_on and
+power_off to align with the new PHY framework.
 
---8323328-30455688-1375268330=:3051
-Content-Type: TEXT/PLAIN; charset=iso-8859-1; format=flowed
-Content-Transfer-Encoding: 8BIT
+musb->xceiv can't be removed as of now because musb core uses xceiv.state and
+xceiv.otg. Once there is a separate state machine to handle otg, these can be
+moved out of xceiv and then we can start using the generic PHY framework.
 
-On Wed, 31 Jul 2013, Bård Eirik Winther wrote:
+Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+Acked-by: Felipe Balbi <balbi@ti.com>
+---
+ drivers/usb/musb/Kconfig     |    1 +
+ drivers/usb/musb/musb_core.h |    2 ++
+ drivers/usb/musb/omap2430.c  |   26 ++++++++++++++++++++------
+ 3 files changed, 23 insertions(+), 6 deletions(-)
 
-> On Tuesday, July 30, 2013 10:12:33 AM you wrote:
->> Em Tue, 30 Jul 2013 10:15:18 +0200
->> Bård Eirik Winther <bwinther@cisco.com> escreveu:
->>
->> ...
->>
->>> Performance:
->>> All tests are done on an Intel i7-2600S (with Turbo Boost disabled) using the
->>> integrated Intel HD 2000 graphics processor. The mothreboard is an ASUS P8H77-I
->>> with 2x2GB CL 9-9-9-24 DDR3 RAM. The capture card is a Cisco test card with 4 HDMI
->>> inputs connected using PCIe2.0x8. All video input streams used for testing are
->>> progressive HD (1920x1080) with 60fps.
->>
->> I did a quick test here with a radeon HD 7750 GPU on a i7-3770 CPU, using an UVC
->> camera at VGA resolution and nouveau driver (Kernel 3.10.3).
->>
->> qv4l2 CPU usage dropped from 13% to 3,75%.
->>
->> It sounds a nice improvement!
->>
->>
-> That is good to hear. My results where achived using the 3.9 and 3.10 kernels
-> although I belive that the hardware and opengl driver affects performance the most.
->
-> With such a good hardware and relatively low resolution, you wont see that much of a differance :-),
+diff --git a/drivers/usb/musb/Kconfig b/drivers/usb/musb/Kconfig
+index 797e3fd..25e2e57 100644
+--- a/drivers/usb/musb/Kconfig
++++ b/drivers/usb/musb/Kconfig
+@@ -76,6 +76,7 @@ config USB_MUSB_TUSB6010
+ config USB_MUSB_OMAP2PLUS
+ 	tristate "OMAP2430 and onwards"
+ 	depends on ARCH_OMAP2PLUS
++	select GENERIC_PHY
+ 
+ config USB_MUSB_AM35X
+ 	tristate "AM35x"
+diff --git a/drivers/usb/musb/musb_core.h b/drivers/usb/musb/musb_core.h
+index 7d341c3..6e567bd 100644
+--- a/drivers/usb/musb/musb_core.h
++++ b/drivers/usb/musb/musb_core.h
+@@ -46,6 +46,7 @@
+ #include <linux/usb.h>
+ #include <linux/usb/otg.h>
+ #include <linux/usb/musb.h>
++#include <linux/phy/phy.h>
+ 
+ struct musb;
+ struct musb_hw_ep;
+@@ -346,6 +347,7 @@ struct musb {
+ 	u16			int_tx;
+ 
+ 	struct usb_phy		*xceiv;
++	struct phy		*phy;
+ 
+ 	int nIrq;
+ 	unsigned		irq_wake:1;
+diff --git a/drivers/usb/musb/omap2430.c b/drivers/usb/musb/omap2430.c
+index 6708a3b..f7b33f4 100644
+--- a/drivers/usb/musb/omap2430.c
++++ b/drivers/usb/musb/omap2430.c
+@@ -348,11 +348,21 @@ static int omap2430_musb_init(struct musb *musb)
+ 	 * up through ULPI.  TWL4030-family PMICs include one,
+ 	 * which needs a driver, drivers aren't always needed.
+ 	 */
+-	if (dev->parent->of_node)
++	if (dev->parent->of_node) {
++		musb->phy = devm_phy_get(dev->parent, "usb2-phy");
++
++		/* We can't totally remove musb->xceiv as of now because
++		 * musb core uses xceiv.state and xceiv.otg. Once we have
++		 * a separate state machine to handle otg, these can be moved
++		 * out of xceiv and then we can start using the generic PHY
++		 * framework
++		 */
+ 		musb->xceiv = devm_usb_get_phy_by_phandle(dev->parent,
+ 		    "usb-phy", 0);
+-	else
++	} else {
+ 		musb->xceiv = devm_usb_get_phy_dev(dev, 0);
++		musb->phy = devm_phy_get(dev, "usb");
++	}
+ 
+ 	if (IS_ERR(musb->xceiv)) {
+ 		status = PTR_ERR(musb->xceiv);
+@@ -364,6 +374,10 @@ static int omap2430_musb_init(struct musb *musb)
+ 		return -EPROBE_DEFER;
+ 	}
+ 
++	if (IS_ERR(musb->phy)) {
++		pr_err("HS USB OTG: no PHY configured\n");
++		return PTR_ERR(musb->phy);
++	}
+ 	musb->isr = omap2430_musb_interrupt;
+ 
+ 	status = pm_runtime_get_sync(dev);
+@@ -397,7 +411,7 @@ static int omap2430_musb_init(struct musb *musb)
+ 	if (glue->status != OMAP_MUSB_UNKNOWN)
+ 		omap_musb_set_mailbox(glue);
+ 
+-	usb_phy_init(musb->xceiv);
++	phy_init(musb->phy);
+ 
+ 	pm_runtime_put_noidle(musb->controller);
+ 	return 0;
+@@ -460,6 +474,7 @@ static int omap2430_musb_exit(struct musb *musb)
+ 	del_timer_sync(&musb_idle_timer);
+ 
+ 	omap2430_low_level_exit(musb);
++	phy_exit(musb->phy);
+ 
+ 	return 0;
+ }
+@@ -633,7 +648,7 @@ static int omap2430_runtime_suspend(struct device *dev)
+ 				OTG_INTERFSEL);
+ 
+ 		omap2430_low_level_exit(musb);
+-		usb_phy_set_suspend(musb->xceiv, 1);
++		phy_power_off(musb->phy);
+ 	}
+ 
+ 	return 0;
+@@ -648,8 +663,7 @@ static int omap2430_runtime_resume(struct device *dev)
+ 		omap2430_low_level_init(musb);
+ 		musb_writel(musb->mregs, OTG_INTERFSEL,
+ 				musb->context.otg_interfsel);
+-
+-		usb_phy_set_suspend(musb->xceiv, 0);
++		phy_power_on(musb->phy);
+ 	}
+ 
+ 	return 0;
+-- 
+1.7.10.4
 
-Yes, I know ;)
-
-> but it is a nice improvement indeed. Anyway, nice to get additional tests!
-
-Yeah, that was mainly the reason for the tests: to reproduce it with a 
-different setup than yours.
-
-Cheers,
-Mauro
---8323328-30455688-1375268330=:3051--
