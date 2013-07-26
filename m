@@ -1,106 +1,72 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from bear.ext.ti.com ([192.94.94.41]:36558 "EHLO bear.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753539Ab3GTDQU (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 19 Jul 2013 23:16:20 -0400
-Message-ID: <51EA00D1.7080402@ti.com>
-Date: Sat, 20 Jul 2013 08:45:29 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
+Received: from smtp-vbr14.xs4all.nl ([194.109.24.34]:1996 "EHLO
+	smtp-vbr14.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757712Ab3GZIeS (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 04:34:18 -0400
+Message-ID: <51F2347A.306@xs4all.nl>
+Date: Fri, 26 Jul 2013 10:34:02 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
 MIME-Version: 1.0
-To: Stephen Warren <swarren@wwwdotorg.org>
-CC: Greg KH <gregkh@linuxfoundation.org>,
-	<linux-fbdev@vger.kernel.org>, <linux-doc@vger.kernel.org>,
-	<nsekhar@ti.com>, <s.nawrocki@samsung.com>,
-	<kgene.kim@samsung.com>, <swarren@nvidia.com>,
-	<jg1.han@samsung.com>, <grant.likely@linaro.org>,
-	<linux-media@vger.kernel.org>, <george.cherian@ti.com>,
-	<devicetree-discuss@lists.ozlabs.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>, <balajitk@ti.com>,
-	<linux-usb@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<balbi@ti.com>, <kyungmin.park@samsung.com>,
-	<akpm@linux-foundation.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-References: <1374129984-765-1-git-send-email-kishon@ti.com> <1374129984-765-2-git-send-email-kishon@ti.com> <20130718072004.GA16720@kroah.com> <51E7AE88.3050007@ti.com> <20130718154954.GA31961@kroah.com> <51E8D086.809@ti.com> <20130719054311.GA14638@kroah.com> <51E8D4E0.8060200@ti.com> <20130719062941.GA23611@kroah.com> <51E8DE51.1060404@ti.com> <51E96135.9090108@wwwdotorg.org>
-In-Reply-To: <51E96135.9090108@wwwdotorg.org>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
+To: Prabhakar Lad <prabhakar.csengg@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Hans Verkuil <hans.verkuil@cisco.com>
+Subject: Re: [GIT PULL FOR v3.11]
+References: <201306270855.49444.hverkuil@xs4all.nl> <CA+V-a8sYvBWGJGBF6JWwjKHwW_4Ew8wp6yBQnCrpeebAkJ4EmA@mail.gmail.com> <201307251525.01108.hverkuil@xs4all.nl> <CA+V-a8tvBy2P3Pih4og9Ov1T5e6CeDuj6FhoXubnTkAhr7Y4pw@mail.gmail.com>
+In-Reply-To: <CA+V-a8tvBy2P3Pih4og9Ov1T5e6CeDuj6FhoXubnTkAhr7Y4pw@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Hi Prabhakar,
 
-On Friday 19 July 2013 09:24 PM, Stephen Warren wrote:
-> On 07/19/2013 12:36 AM, Kishon Vijay Abraham I wrote:
->> Hi,
+On 07/26/2013 06:33 AM, Prabhakar Lad wrote:
+> Hi Hans,
+> 
+> On Thu, Jul 25, 2013 at 6:55 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>> Hi Prabhakar,
 >>
->> On Friday 19 July 2013 11:59 AM, Greg KH wrote:
->>> On Fri, Jul 19, 2013 at 11:25:44AM +0530, Kishon Vijay Abraham I wrote:
->>>> Hi,
->>>>
->>>> On Friday 19 July 2013 11:13 AM, Greg KH wrote:
->>>>> On Fri, Jul 19, 2013 at 11:07:10AM +0530, Kishon Vijay Abraham I wrote:
->>>>>>>>>> +	ret = dev_set_name(&phy->dev, "%s.%d", dev_name(dev), id);
->>>>>>>>>
->>>>>>>>> Your naming is odd, no "phy" anywhere in it?  You rely on the sender to
->>>>>>>>> never send a duplicate name.id pair?  Why not create your own ids based
->>>>>>>>> on the number of phys in the system, like almost all other classes and
->>>>>>>>> subsystems do?
->>>>>>>>
->>>>>>>> hmm.. some PHY drivers use the id they provide to perform some of their
->>>>>>>> internal operation as in [1] (This is used only if a single PHY provider
->>>>>>>> implements multiple PHYS). Probably I'll add an option like PLATFORM_DEVID_AUTO
->>>>>>>> to give the PHY drivers an option to use auto id.
->>>>>>>>
->>>>>>>> [1] ->
->>>>>>>> http://archive.arm.linux.org.uk/lurker/message/20130628.134308.4a8f7668.ca.html
->>>>>>>
->>>>>>> No, who cares about the id?  No one outside of the phy core ever should,
->>>>>>> because you pass back the only pointer that they really do care about,
->>>>>>> if they need to do anything with the device.  Use that, and then you can
->>>>>>
->>>>>> hmm.. ok.
->>>>>>
->>>>>>> rip out all of the "search for a phy by a string" logic, as that's not
->>>>>>
->>>>>> Actually this is needed for non-dt boot case. In the case of dt boot, we use a
->>>>>> phandle by which the controller can get a reference to the phy. But in the case
->>>>>> of non-dt boot, the controller can get a reference to the phy only by label.
->>>>>
->>>>> I don't understand.  They registered the phy, and got back a pointer to
->>>>> it.  Why can't they save it in their local structure to use it again
->>>>> later if needed?  They should never have to "ask" for the device, as the
->>>>
->>>> One is a *PHY provider* driver which is a driver for some PHY device. This will
->>>> use phy_create to create the phy.
->>>> The other is a *PHY consumer* driver which might be any controller driver (can
->>>> be USB/SATA/PCIE). The PHY consumer will use phy_get to get a reference to the
->>>> phy (by *phandle* in the case of dt boot and *label* in the case of non-dt boot).
->>>>> device id might be unknown if there are multiple devices in the system.
->>>>
->>>> I agree with you on the device id part. That need not be known to the PHY driver.
+>> On Thu 11 July 2013 19:25:15 Prabhakar Lad wrote:
+>>> Hi Hans,
 >>>
->>> How does a consumer know which "label" to use in a non-dt system if
->>> there are multiple PHYs in the system?
+>>> On Thu, Jun 27, 2013 at 12:25 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+>>>> (Same as my previous git pull message, but with more cleanup patches and
+>>> [snip]
+>>>> Lad, Prabhakar (9):
+>>>>       media: i2c: ths8200: support asynchronous probing
+>>>>       media: i2c: ths8200: add OF support
+>>>>       media: i2c: adv7343: add support for asynchronous probing
+>>>>       media: i2c: tvp7002: add support for asynchronous probing
+>>>>       media: i2c: tvp7002: remove manual setting of subdev name
+>>>>       media: i2c: tvp514x: remove manual setting of subdev name
+>>>>       media: i2c: tvp514x: add support for asynchronous probing
+>>>>       media: davinci: vpif: capture: add V4L2-async support
+>>>>       media: davinci: vpif: display: add V4L2-async support
+>>>>
+>>> I see last two patches missing in Mauro's pull request for v3.11 and v3.11-rc1.
 >>
->> That should be passed using platform data.
->
-> I don't think that's right. That's just like passing clock names in
-> platform data, which I believe is frowned upon.
->
-> Instead, why not take the approach that e.g. regulators have taken? Each
-> driver defines the names of the objects that it requires. There is a
-> table (registered by a board file) that has lookup key (device name,
+>> I had to split up my pull request into fixes for 3.11 and new stuff for 3.12
+>> since the merge window was about to open at the time.
+>>
+> Ok no problem.
+> 
+>> Your 'missing' patches are here:
+>>
+>> http://git.linuxtv.org/hverkuil/media_tree.git/shortlog/refs/heads/for-v3.12
+>>
+> Yeah I saw it lately.
+> 
+>> In the next few days I'll try to process all remaining patches delegated to me.
+> Ok
+> 
+>> If you have patches not yet delegated to me, or that are not in my for-v3.12
+>> branch, then let me know.
+>>
+> There are few patches, whose state is new do you want me to point them ?
 
-We were using a similar approach with USB PHY layer but things started 
-breaking after the device names are created using PLATFORM_DEVID_AUTO. 
-Now theres no way to reliably know the device names in advance.
-Btw I had such device name binding in my v3 of this patch series [1] and 
-had some discussion with Grant during that time [2].
+Only if they are either not in patchwork, or are in patchwork but not delegated to me.
 
-[1] -> 
-http://archive.arm.linux.org.uk/lurker/message/20130320.091200.721a6fb5.hu.html
-[2] -> https://lkml.org/lkml/2013/4/22/26
+Regards,
 
-Thanks
-Kishon
+	Hans
