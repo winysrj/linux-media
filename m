@@ -1,45 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-bk0-f52.google.com ([209.85.214.52]:58426 "EHLO
-	mail-bk0-f52.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933205Ab3GCUgc (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Wed, 3 Jul 2013 16:36:32 -0400
-Received: by mail-bk0-f52.google.com with SMTP id d7so286488bkh.39
-        for <linux-media@vger.kernel.org>; Wed, 03 Jul 2013 13:36:31 -0700 (PDT)
-Message-ID: <51D48B4C.3070809@gmail.com>
-Date: Wed, 03 Jul 2013 22:36:28 +0200
-From: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:48167 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752149Ab3GZKR3 (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Fri, 26 Jul 2013 06:17:29 -0400
+Message-ID: <51F24C01.8050703@schinagl.nl>
+Date: Fri, 26 Jul 2013 12:14:25 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
 MIME-Version: 1.0
-To: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-CC: linux-media@vger.kernel.org,
-	Guennadi Liakhovetski <g.liakhovetski@gmx.de>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>
-Subject: Re: [PATCH 0/2] V4L2 OF fixes
-References: <1372848769-6390-1-git-send-email-laurent.pinchart@ideasonboard.com>
-In-Reply-To: <1372848769-6390-1-git-send-email-laurent.pinchart@ideasonboard.com>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+To: Huei-Horng Yo <hiroshiyui@gmail.com>
+CC: linux-media <linux-media@vger.kernel.org>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Manu Abraham <abraham.manu@gmail.com>
+Subject: Re: [RFC] Dropping of channels-conf from dtv-scan-tables
+References: <51DFF8A9.2030705@schinagl.nl> <CAJNvB=ydGohcEQLs+6rUCrUganMkB4dZXhpiTVyMSYkzSKha8Q@mail.gmail.com>
+In-Reply-To: <CAJNvB=ydGohcEQLs+6rUCrUganMkB4dZXhpiTVyMSYkzSKha8Q@mail.gmail.com>
+Content-Type: text/plain; charset=UTF-8; format=flowed
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/03/2013 12:52 PM, Laurent Pinchart wrote:
-> Hello,
+On 26-07-13 10:14, Huei-Horng Yo wrote:
+> Sorry for my off-topic, because dvb-apps' 'scan' utility output wrong
+> encoding of channels-conf in Taiwan, that's why 'tw-All' channels-conf
+> is still useful for some Taiwan people. Or someone could review my
+> patch about this encoding issue? ([PATCH][dvb-apps] Fix 'scan' utility
+> region 0x14 encoding from BIG5 to UTF-16BE)
+Did you notify the maintainer? of the dvb-apps? I think manu is still 
+one of the dvb-apps maintainers.
+
+
 >
-> Here are two small fixes for the V4L2 OF parsing code. The patches should be
-> self-explanatory.
-
-Hi Laurent,
-
-Thank you for fixing what I've messed up in the Guennadi's original patch.
-For both patches:
-
-  Acked-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
-
-> Laurent Pinchart (2):
->    v4l: of: Use of_get_child_by_name()
->    v4l: of: Drop acquired reference to node when getting next endpoint
+> Thanks,
 >
->   drivers/media/v4l2-core/v4l2-of.c | 9 +++------
->   1 file changed, 3 insertions(+), 6 deletions(-)
+> Huei-Horng Yo
+>
+> 2013/7/12 Oliver Schinagl <oliver+list@schinagl.nl>:
+>> Hey all,
+>>
+>> The channels-conf directory in the dtv-scan-tables repository is bitrotten.
+>> Besides tw-All, the newest addition is over 6 years ago, with some being as
+>> old as 9 years. While I'm sure it's possible that the channels-conf are
+>> still accurate, it's not really needed any longer.
+>>
+>> Unless valid reasons are brought up to keep it, I will move it to a seperate
+>> branch and delete it from the master branch in the next few weeks.
+>>
+>> Thanks,
+>>
+>> Oliver
+>> --
+>> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+>> the body of a message to majordomo@vger.kernel.org
+>> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Thanks,
-Sylwester
