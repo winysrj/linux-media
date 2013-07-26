@@ -1,58 +1,63 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f51.google.com ([209.85.160.51]:42148 "EHLO
-	mail-pb0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755838Ab3GKJHP (ORCPT
+Received: from smtp-vbr6.xs4all.nl ([194.109.24.26]:4461 "EHLO
+	smtp-vbr6.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757620Ab3GZNZW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:07:15 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>
-Subject: [PATCH 05/50] USB: misc: uss720: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:28 +0800
-Message-Id: <1373533573-12272-6-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Fri, 26 Jul 2013 09:25:22 -0400
+Message-ID: <51F278B1.2060609@xs4all.nl>
+Date: Fri, 26 Jul 2013 15:25:05 +0200
+From: Hans Verkuil <hverkuil@xs4all.nl>
+MIME-Version: 1.0
+To: Alban Browaeys <alban.browaeys@gmail.com>
+CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
+	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
+	Alban Browaeys <prahal@yahoo.com>
+Subject: Re: [PATCH 4/4] [media] em28xx: Fix vidioc fmt vid cap v4l2 compliance
+References: <1374016006-27678-1-git-send-email-prahal@yahoo.com>
+In-Reply-To: <1374016006-27678-1-git-send-email-prahal@yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+The change to g_fmt_vid_cap isn't necessary as that's automatically cleared.
+Only the s_fmt_vid_cap change is needed. I'll drop the first chunk and accept the
+second.
 
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/usb/misc/uss720.c |    6 +++++-
- 1 file changed, 5 insertions(+), 1 deletion(-)
+Thanks,
 
-diff --git a/drivers/usb/misc/uss720.c b/drivers/usb/misc/uss720.c
-index e129cf6..f7d15e8 100644
---- a/drivers/usb/misc/uss720.c
-+++ b/drivers/usb/misc/uss720.c
-@@ -121,6 +121,7 @@ static void async_complete(struct urb *urb)
- 		dev_err(&urb->dev->dev, "async_complete: urb error %d\n",
- 			status);
- 	} else if (rq->dr.bRequest == 3) {
-+		unsigned long flags;
- 		memcpy(priv->reg, rq->reg, sizeof(priv->reg));
- #if 0
- 		dev_dbg(&priv->usbdev->dev,
-@@ -131,8 +132,11 @@ static void async_complete(struct urb *urb)
- 			(unsigned int)priv->reg[6]);
- #endif
- 		/* if nAck interrupts are enabled and we have an interrupt, call the interrupt procedure */
--		if (rq->reg[2] & rq->reg[1] & 0x10 && pp)
-+		if (rq->reg[2] & rq->reg[1] & 0x10 && pp) {
-+			local_irq_save(flags);
- 			parport_generic_irq(pp);
-+			local_irq_restore(flags);
-+		}
- 	}
- 	complete(&rq->compl);
- 	kref_put(&rq->ref_count, destroy_async);
--- 
-1.7.9.5
+	Hans
 
+On 07/17/2013 01:06 AM, Alban Browaeys wrote:
+> Set fmt.pix.priv to zero in vidioc_g_fmt_vid_cap
+>  and vidioc_try_fmt_vid_cap.
+> 
+> Catched by v4l2-compliance.
+> 
+> Signed-off-by: Alban Browaeys <prahal@yahoo.com>
+> ---
+>  drivers/media/usb/em28xx/em28xx-video.c | 3 +++
+>  1 file changed, 3 insertions(+)
+> 
+> diff --git a/drivers/media/usb/em28xx/em28xx-video.c b/drivers/media/usb/em28xx/em28xx-video.c
+> index 1a577ed..42930a4 100644
+> --- a/drivers/media/usb/em28xx/em28xx-video.c
+> +++ b/drivers/media/usb/em28xx/em28xx-video.c
+> @@ -943,6 +943,8 @@ static int vidioc_g_fmt_vid_cap(struct file *file, void *priv,
+>  	else
+>  		f->fmt.pix.field = dev->interlaced ?
+>  			   V4L2_FIELD_INTERLACED : V4L2_FIELD_TOP;
+> +	f->fmt.pix.priv = 0;
+> +
+>  	return 0;
+>  }
+>  
+> @@ -1008,6 +1010,7 @@ static int vidioc_try_fmt_vid_cap(struct file *file, void *priv,
+>  	else
+>  		f->fmt.pix.field = dev->interlaced ?
+>  			   V4L2_FIELD_INTERLACED : V4L2_FIELD_TOP;
+> +	f->fmt.pix.priv = 0;
+>  
+>  	return 0;
+>  }
+> 
