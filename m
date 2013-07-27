@@ -1,133 +1,142 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.187]:51449 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754459Ab3GOJZL (ORCPT
+Received: from proofpoint-cluster.metrocast.net ([65.175.128.136]:47347 "EHLO
+	proofpoint-cluster.metrocast.net" rhost-flags-OK-OK-OK-OK)
+	by vger.kernel.org with ESMTP id S1752014Ab3G0OsW (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Mon, 15 Jul 2013 05:25:11 -0400
-Date: Mon, 15 Jul 2013 11:24:54 +0200 (CEST)
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
-To: phil.edworthy@renesas.com
-cc: Hans Verkuil <hverkuil@xs4all.nl>,
-	Jean-Philippe Francois <jp.francois@cynove.com>,
-	Linux Media Mailing List <linux-media@vger.kernel.org>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>
-Subject: Re: [PATCH v3] ov10635: Add OmniVision ov10635 SoC camera driver
-In-Reply-To: <OF23E0ECB2.378DD339-ON80257BA9.002CD00C-80257BA9.00321DEB@eu.necel.com>
-Message-ID: <Pine.LNX.4.64.1307151114270.16726@axis700.grange>
-References: <CAGGh5h1btafaMoaB89RBND2L8+Zg767HW3+hKG7Xcq2fsEN6Ew@mail.gmail.com>
- <1370423495-16784-1-git-send-email-phil.edworthy@renesas.com>
- <Pine.LNX.4.64.1307141216310.9479@axis700.grange>
- <OF23E0ECB2.378DD339-ON80257BA9.002CD00C-80257BA9.00321DEB@eu.necel.com>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sat, 27 Jul 2013 10:48:22 -0400
+Message-ID: <1374936520.3405.5.camel@palomino.walls.org>
+Subject: Re: [PATCH] cx23885[v4]: Fix interrupt storm when enabling IR
+ receiver.
+From: Andy Walls <awalls@md.metrocast.net>
+To: Luis Alves <ljalvs@gmail.com>
+Cc: linux-media@vger.kernel.org, mchehab@infradead.org, crope@iki.fi
+Date: Sat, 27 Jul 2013 10:48:40 -0400
+In-Reply-To: <1374671161-3144-1-git-send-email-ljalvs@gmail.com>
+References: <1374671161-3144-1-git-send-email-ljalvs@gmail.com>
+Content-Type: text/plain; charset="UTF-8"
+Mime-Version: 1.0
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Phil
+On Wed, 2013-07-24 at 14:06 +0100, Luis Alves wrote:
+> Hi,
+> Removed wrong description in the header file. Sorry about that...
+> 
+> New patch for this issue. Changes:
+>  - Added flatiron readreg and writereg functions prototypes (new header file).
+>  - Modified the av work handler to preserve all other register bits when dealing
+>    with the interrupt flag.
+> 
+> Regards,
+> Luis
+> 
+> 
+> Signed-off-by: Luis Alves <ljalvs@gmail.com>
 
-On Mon, 15 Jul 2013, phil.edworthy@renesas.com wrote:
+Looks OK to me.
+Theoretically you did'nt need to bitwise-OR in the 0x80, e.g.
 
-[snip]
+	cx23885_flatiron_write(dev, 0x1f,
+				cx23885_flatiron_read(dev, 0x1f));
 
-> > > +/* read a register */
-> > > +static int ov10635_reg_read(struct i2c_client *client, u16 reg, u8 
-> *val)
-> > > +{
-> > > +   int ret;
-> > > +   u8 data[2] = { reg >> 8, reg & 0xff };
-> > > +   struct i2c_msg msg = {
-> > > +      .addr   = client->addr,
-> > > +      .flags   = 0,
-> > > +      .len   = 2,
-> > > +      .buf   = data,
-> > > +   };
-> > > +
-> > > +   ret = i2c_transfer(client->adapter, &msg, 1);
-> > > +   if (ret < 0)
-> > > +      goto err;
-> > > +
-> > > +   msg.flags = I2C_M_RD;
-> > > +   msg.len   = 1;
-> > > +   msg.buf   = data,
-> > > +   ret = i2c_transfer(client->adapter, &msg, 1);
-> > > +   if (ret < 0)
-> > > +      goto err;
-> > > +
-> > > +   *val = data[0];
-> > 
-> > I think, you can do this in one I2C transfer with 2 messages. Look e.g. 
-> > imx074.c. Although, now looking at it, I'm not sure why it has .len = 2 
-> in 
-> > the second message...
-> Ok, I'll change this to one i2c transfer. As you sauy, no idea why the imx 
-> code is reading 2 bytes though...
+should work as well, since the set interrupt status bit will clear that
+bit on the write back of the bit.
 
-But I don't have any way to test it anymore, anyway: the only user - 
-ap4evb - is gone now. So, that driver doesn't matter much anymore. We can 
-just fix that blindly without testing, or we can leave it as is and mark 
-the driver broken, or we can remove it completely.
+But this patch is good enough. :)
 
-[snip]
+Acked-by: Andy Walls <awalls@md.metrocast.net>
 
-> > > +         continue;
-> > > +
-> > > +      /* Mult = reg 0x3003, bits 5:0 */
-> > 
-> > You could also define macros for 0x3003, 0x3004 and others, where you 
-> know 
-> > the role of those registers, even if not their official names.
-> Do you mean macros for the bit fields?
+> ---
+>  drivers/media/pci/cx23885/cx23885-av.c    |   13 +++++++++++++
+>  drivers/media/pci/cx23885/cx23885-video.c |    4 ++--
+>  drivers/media/pci/cx23885/cx23885-video.h |   26 ++++++++++++++++++++++++++
+>  3 files changed, 41 insertions(+), 2 deletions(-)
+>  create mode 100644 drivers/media/pci/cx23885/cx23885-video.h
+> 
+> diff --git a/drivers/media/pci/cx23885/cx23885-av.c b/drivers/media/pci/cx23885/cx23885-av.c
+> index e958a01..c443b7a 100644
+> --- a/drivers/media/pci/cx23885/cx23885-av.c
+> +++ b/drivers/media/pci/cx23885/cx23885-av.c
+> @@ -23,6 +23,7 @@
+>  
+>  #include "cx23885.h"
+>  #include "cx23885-av.h"
+> +#include "cx23885-video.h"
+>  
+>  void cx23885_av_work_handler(struct work_struct *work)
+>  {
+> @@ -32,5 +33,17 @@ void cx23885_av_work_handler(struct work_struct *work)
+>  
+>  	v4l2_subdev_call(dev->sd_cx25840, core, interrupt_service_routine,
+>  			 PCI_MSK_AV_CORE, &handled);
+> +
+> +	/* Getting here with the interrupt not handled
+> +	   then probbaly flatiron does have pending interrupts.
+> +	*/
+> +	if (!handled) {
+> +		/* clear left and right adc channel interrupt request flag */
+> +		cx23885_flatiron_write(dev, 0x1f,
+> +			cx23885_flatiron_read(dev, 0x1f) | 0x80);
+> +		cx23885_flatiron_write(dev, 0x23,
+> +			cx23885_flatiron_read(dev, 0x23) | 0x80);
+> +	}
+> +
+>  	cx23885_irq_enable(dev, PCI_MSK_AV_CORE);
+>  }
+> diff --git a/drivers/media/pci/cx23885/cx23885-video.c b/drivers/media/pci/cx23885/cx23885-video.c
+> index e33d1a7..f4e7cef 100644
+> --- a/drivers/media/pci/cx23885/cx23885-video.c
+> +++ b/drivers/media/pci/cx23885/cx23885-video.c
+> @@ -417,7 +417,7 @@ static void res_free(struct cx23885_dev *dev, struct cx23885_fh *fh,
+>  	mutex_unlock(&dev->lock);
+>  }
+>  
+> -static int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
+> +int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
+>  {
+>  	/* 8 bit registers, 8 bit values */
+>  	u8 buf[] = { reg, data };
+> @@ -428,7 +428,7 @@ static int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data)
+>  	return i2c_transfer(&dev->i2c_bus[2].i2c_adap, &msg, 1);
+>  }
+>  
+> -static u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
+> +u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg)
+>  {
+>  	/* 8 bit registers, 8 bit values */
+>  	int ret;
+> diff --git a/drivers/media/pci/cx23885/cx23885-video.h b/drivers/media/pci/cx23885/cx23885-video.h
+> new file mode 100644
+> index 0000000..c961a2b
+> --- /dev/null
+> +++ b/drivers/media/pci/cx23885/cx23885-video.h
+> @@ -0,0 +1,26 @@
+> +/*
+> + *  Driver for the Conexant CX23885/7/8 PCIe bridge
+> + *
+> + *  Copyright (C) 2010  Andy Walls <awalls@md.metrocast.net>
+> + *
+> + *  This program is free software; you can redistribute it and/or
+> + *  modify it under the terms of the GNU General Public License
+> + *  as published by the Free Software Foundation; either version 2
+> + *  of the License, or (at your option) any later version.
+> + *
+> + *  This program is distributed in the hope that it will be useful,
+> + *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+> + *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+> + *  GNU General Public License for more details.
+> + *
+> + *  You should have received a copy of the GNU General Public License
+> + *  along with this program; if not, write to the Free Software
+> + *  Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+> + *  02110-1301, USA.
+> + */
+> +
+> +#ifndef _CX23885_VIDEO_H_
+> +#define _CX23885_VIDEO_H_
+> +int cx23885_flatiron_write(struct cx23885_dev *dev, u8 reg, u8 data);
+> +u8 cx23885_flatiron_read(struct cx23885_dev *dev, u8 reg);
+> +#endif
 
-No, primarily I mean macros for register addresses.
 
-[snip]
-
-> > > +            /* 2 clock cycles for every YUV422 pixel */
-> > > +            if (pclk < (((hts * *vtsmin)/fps_denominator)
-> > > +               * fps_numerator * 2))
-> > 
-> > Actually just
-> > 
-> > +            if (pclk < hts * *vtsmin / fps_denominator
-> > +               * fps_numerator * 2)
-> > 
-> > would do just fine
-> It would, but I think we should use parenthesis here to ensure the  divide 
-> by the denominator happens before multiplying by the numerator. This is to 
-> ensure the value doesn't overflow.
-
-I think the C standard already guarantees that. You only need parenthesis 
-to enforce a non-standard calculation order.
-
-[snip]
-
-> > > +static int ov10635_g_crop(struct v4l2_subdev *sd, struct v4l2_crop *a)
-> > > +{
-> > > +   struct i2c_client *client = v4l2_get_subdevdata(sd);
-> > > +   struct ov10635_priv *priv = to_ov10635(client);
-> > > +
-> > > +   if (priv) {
-> > > +      a->c.width = priv->width;
-> > > +      a->c.height = priv->height;
-> > 
-> > Wait, what is priv->width and priv->height? Are they sensor output sizes 
-> > or crop sizes?
-> Sensor output sizes. Ah, I guess this is one of the few cameras/drivers 
-> that can support setup the sensor for any size (except restrictions for 
-> 4:2:2 format). So maybe I should not implement these functions? Looking at 
-> the CEU SoC camera host driver, it would then use the defrect cropcap. I 
-> am not sure what that will be though.
-
-Cropping and scaling are two different functions. Cropping selects an area 
-on the sensor matrix to use for data sampling. Scaling configures to which 
-output rectangle to scale that area. So, since your camera can do both and 
-your driver supports both, you shouldn't return the same sizes in .g_fmt() 
-and .g_crop() unless, of course, a 1:1 scale has been set. And currently 
-you do exactly that - return priv->width and priv->height in both.
-
-Thanks
-Guennadi
----
-Guennadi Liakhovetski, Ph.D.
-Freelance Open-Source Software Developer
-http://www.open-technology.de/
