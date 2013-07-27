@@ -1,147 +1,124 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:38775 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1751559Ab3GaGQ0 (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 02:16:26 -0400
-Date: Wed, 31 Jul 2013 09:15:38 +0300
-From: Felipe Balbi <balbi@ti.com>
-To: Kishon Vijay Abraham I <kishon@ti.com>
-CC: <balbi@ti.com>, Greg KH <gregkh@linuxfoundation.org>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	<kyungmin.park@samsung.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Message-ID: <20130731061538.GC13289@radagast>
-Reply-To: <balbi@ti.com>
-References: <20130720220006.GA7977@kroah.com>
- <3839600.WiC1OLF35o@flatron>
- <51EBC0F5.70601@ti.com>
- <9748041.Qq1fWJBg6D@flatron>
- <20130721154653.GG16598@kroah.com>
- <20130730071106.GC16441@radagast>
- <51F8A440.8010803@ti.com>
+Received: from omr-m01.mx.aol.com ([64.12.143.75]:38086 "EHLO
+	omr-m01.mx.aol.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752334Ab3G0R4w (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sat, 27 Jul 2013 13:56:52 -0400
+Message-ID: <51F40976.8090106@netscape.net>
+Date: Sat, 27 Jul 2013 14:55:02 -0300
+From: =?UTF-8?B?QWxmcmVkbyBKZXPDunMgRGVsYWl0aQ==?=
+	<alfredodelaiti@netscape.net>
 MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="5QAgd0e35j3NYeGe"
-Content-Disposition: inline
-In-Reply-To: <51F8A440.8010803@ti.com>
+To: linux-media@vger.kernel.org
+CC: Mauro Carvalho Chehab <mchehab@infradead.org>
+Subject: Re: mb86a20s and cx23885
+References: <51054759.7050202@netscape.net> <20130127141633.5f751e5d@redhat.com> <5105A0C9.6070007@netscape.net> <20130128082354.607fae64@redhat.com> <5106E3EA.70307@netscape.net> <511264CF.3010002@netscape.net> <51336331.10205@netscape.net> <20130303134051.6dc038aa@redhat.com> <20130304164234.18df36a7@redhat.com> <51353591.4040709@netscape.net> <20130304233028.7bc3c86c@redhat.com> <513A6968.4070803@netscape.net> <515A0D03.7040802@netscape.net> <51E44DCA.8060702@netscape.net> <20130716053030.3fda034e.mchehab@infradead.org> <51E6A20B.8020507@netscape.net> <20130718042314.2773b7c0.mchehab@infradead.org>
+In-Reply-To: <20130718042314.2773b7c0.mchehab@infradead.org>
+Content-Type: text/plain; charset=UTF-8; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
---5QAgd0e35j3NYeGe
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-Content-Transfer-Encoding: quoted-printable
+Hi
 
-Hi,
+El 17/07/13 16:23, Mauro Carvalho Chehab escribió:
+>
+> No. You'll need to clone the entire kernel tree (either Linus one or
+> mine).
+>
+> The build system at the Kernel will rebuild an entire Kernel image.
+> You'll then need to boot that new image.
+>
+> That takes some machine time, but, after the first compilation, the
+> subsequent compilations are faster.
+>
+> I recommend you to use a minimal .config file for the compilation,
+> as this speeds up a lot the time to compile the Kernel.
+> Here, I use this small script to produce such mini-kernel:
+> 	http://ftp.suse.com/pub/people/tiwai/misc/diet-kconfig
+>
+> After running it (and using the default for whatever question it
+> asks me), I do a make menuconfig, to be sure that the media
+> drivers and options I want are there.
+>
+> In summary, what I suggest is:
+>
+> 	$ git clone git://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git
+> 	$ git checkout v3.2
+> 	$ git bisect good
+> 	$ diet-kconfig
+> 	$ make menuconfig
+>
+> 	select what is missed at media stuff
+>
+> 	$ make && make modules install && make install & reboot
+>
+> 	after reboot check if everything is ok
+>
+> 	$ git bisect bad v3.4
+>
+> repeat:
+> 	$ make && make modules install && make install & reboot
+> 	
+> 	it will likely ask you about some new drivers =  it is generally safe
+> 	to just let the default - just be more careful with the media
+> 	menuconfig items
+>
+> 	test the kernel:
+> 	if OK:
+> 		$ git bisect good
+> 	if BAD:
+> 		$ git bisect bad
+> 	if git bisect answers that there are xxx bisects left, then goto repeat
+>
+> After running the above, git bisect will put its fingers on the broken patch.
+>
+>
+> Cheers, Mauro --
 
-On Wed, Jul 31, 2013 at 11:14:32AM +0530, Kishon Vijay Abraham I wrote:
-> >>>>> IMHO we need a lookup method for PHYs, just like for clocks,
-> >>>>> regulators, PWMs or even i2c busses because there are complex cases
-> >>>>> when passing just a name using platform data will not work. I would
-> >>>>> second what Stephen said [1] and define a structure doing things in=
- a
-> >>>>> DT-like way.
-> >>>>>
-> >>>>> Example;
-> >>>>>
-> >>>>> [platform code]
-> >>>>>
-> >>>>> static const struct phy_lookup my_phy_lookup[] =3D {
-> >>>>>
-> >>>>> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
-> >>>>
-> >>>> The only problem here is that if *PLATFORM_DEVID_AUTO* is used while
-> >>>> creating the device, the ids in the device name would change and
-> >>>> PHY_LOOKUP wont be useful.
-> >>>
-> >>> I don't think this is a problem. All the existing lookup methods alre=
-ady=20
-> >>> use ID to identify devices (see regulators, clkdev, PWMs, i2c, ...). =
-You=20
-> >>> can simply add a requirement that the ID must be assigned manually,=
-=20
-> >>> without using PLATFORM_DEVID_AUTO to use PHY lookup.
-> >>
-> >> And I'm saying that this idea, of using a specific name and id, is
-> >> frought with fragility and will break in the future in various ways wh=
-en
-> >> devices get added to systems, making these strings constantly have to =
-be
-> >> kept up to date with different board configurations.
-> >>
-> >> People, NEVER, hardcode something like an id.  The fact that this
-> >> happens today with the clock code, doesn't make it right, it makes the
-> >> clock code wrong.  Others have already said that this is wrong there as
-> >> well, as systems change and dynamic ids get used more and more.
-> >>
-> >> Let's not repeat the same mistakes of the past just because we refuse =
-to
-> >> learn from them...
-> >>
-> >> So again, the "find a phy by a string" functions should be removed, the
-> >> device id should be automatically created by the phy core just to make
-> >> things unique in sysfs, and no driver code should _ever_ be reliant on
-> >> the number that is being created, and the pointer to the phy structure
-> >> should be used everywhere instead.
-> >>
-> >> With those types of changes, I will consider merging this subsystem, b=
-ut
-> >> without them, sorry, I will not.
-> >=20
-> > I'll agree with Greg here, the very fact that we see people trying to
-> > add a requirement of *NOT* using PLATFORM_DEVID_AUTO already points to a
-> > big problem in the framework.
-> >=20
-> > The fact is that if we don't allow PLATFORM_DEVID_AUTO we will end up
-> > adding similar infrastructure to the driver themselves to make sure we
-> > don't end up with duplicate names in sysfs in case we have multiple
-> > instances of the same IP in the SoC (or several of the same PCIe card).
-> > I really don't want to go back to that.
->=20
-> If we are using PLATFORM_DEVID_AUTO, then I dont see any way we can give =
-the
-> correct binding information to the PHY framework. I think we can drop hav=
-ing
-> this non-dt support in PHY framework? I see only one platform (OMAP3) goi=
-ng to
-> be needing this non-dt support and we can use the USB PHY library for it.
+I found the patch that affects the X8507 board is: commit 
+a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb
 
-you shouldn't drop support for non-DT platform, in any case we lived
-without DT (and still do) for years. Gotta find a better way ;-)
+--------
+alfredo@linux-puon:/usr/src/git/linux> git stash
+Saved working directory and index state WIP on (no branch): c6f56e7 
+[media] dvb: don't use DVBv3 bandwidth macros
+HEAD is now at c6f56e7 [media] dvb: don't use DVBv3 bandwidth macros
+alfredo@linux-puon:/usr/src/git/linux> git bisect good
+a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb is the first bad commit
+commit a7d44baaed0a8c7d4c4fb47938455cb3fc2bb1eb
+Author: Mauro Carvalho Chehab <mchehab@redhat.com>
+Date:   Mon Dec 26 20:48:54 2011 -0300
 
---=20
-balbi
+     [media] cx23885-dvb: Remove a dirty hack that would require DVBv3
 
---5QAgd0e35j3NYeGe
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+     The cx23885-dvb driver has a dirty hack:
+         1) it hooks the DVBv3 legacy call to FE_SET_FRONTEND;
+         2) it uses internally the DVBv3 struct to decide some
+            configs.
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v1.4.12 (GNU/Linux)
+     Replace it by a change during the gate control. This will
+     likely work, but requires testing. Anyway, the current way
+     will break, as soon as we stop copying data for DVBv3 for
+     pure DVBv5 calls.
 
-iQIcBAEBAgAGBQJR+KuKAAoJEIaOsuA1yqREE/MQAKN7wAutlqEQhh/2yyHsehtl
-jdfoMN8pAOKD1Fs5TUwItJKRs00jIggDrlU9rl1xet+ZaBykobKzILmF5HTsHaQc
-z4ku41vMrAbgCn4LXMtLQwVWSGPTXcic9a8HLyOwdzxNwkGG7bIo62TO/kPVCMKa
-wEmbdeSbq2DTtNX+cPwE0AmJlpTyNejD+f03xfG27qpNclbaxBZlQGAvq8xDlfuU
-rueYU+4xnEgdC8ZrhNF6RWkke/haJgoy3qQjOchYflSkjeyX9gKypaPKGaA87Bu+
-z1NTYMZv6fLiCtAmpUYb05C13G2eoi2EXDVYYZg1OA9GaHDtg9J9+DiUzPpSD2Od
-fbF9ZH4EB8cwFN4SilLJjhn1ESJaMqCHuOugqXTgJD6md+k0nBX3yAkrnyCbbhIr
-4/E7TnWFar+xXGDKu2DufWYZByn5/WtYG8K0T9QJyFZyMV+X67Qz02iIrBBORST3
-3NnejtvQ84NMiy5N1Cp5M0ucHaBvoS4ic3uvhB33T8GIgZuSqr78dnWmbvsNpEI3
-gv/9z1OvuvXNcvoFiLYmGhs0b5+4xbU2qmoxfDjdUEw/JNmksf+8QGS8JYSbgu9X
-PO+W2yI5+6rWvhWy14+x/aS7Ew613pYWYiA8j9W0X9Idby88cKbN346U8zWGNovP
-tj3EzocBdvt4pr9XngYP
-=5yv8
------END PGP SIGNATURE-----
+     Compile-tested only.
 
---5QAgd0e35j3NYeGe--
+     Cc: Michael Krufky <mkrufky@linuxtv.org>
+     Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+
+:040000 040000 6d0695eb9e59b837425ed64d4e2be6625864b609 
+89700b867069ec0ad2713367e607763e91798e98 M      drivers
+--------
+
+
+I manually removed the patch, then the TV card works.
+
+
+Unfortunately my lack of knowledge prevents me fix it.
+
+I test new code with pleasure :) !
+
+Thanks,
+
+Alfredo
