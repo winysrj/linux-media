@@ -1,105 +1,80 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from netrider.rowland.org ([192.131.102.5]:44252 "HELO
-	netrider.rowland.org" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with SMTP id S1756022Ab3GUTWX (ORCPT
+Received: from mail.free-electrons.com ([94.23.35.102]:43330 "EHLO
+	mail.free-electrons.com" rhost-flags-OK-FAIL-OK-FAIL)
+	by vger.kernel.org with ESMTP id S1751659Ab3G0TaA (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jul 2013 15:22:23 -0400
-Date: Sun, 21 Jul 2013 15:22:21 -0400 (EDT)
-From: Alan Stern <stern@rowland.harvard.edu>
-To: Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-cc: Greg KH <gregkh@linuxfoundation.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-In-Reply-To: <51EC170E.3080201@gmail.com>
-Message-ID: <Pine.LNX.4.44L0.1307211453450.19133-100000@netrider.rowland.org>
-MIME-Version: 1.0
-Content-Type: TEXT/PLAIN; charset=US-ASCII
+	Sat, 27 Jul 2013 15:30:00 -0400
+From: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+To: <linux-media@vger.kernel.org>
+Cc: Hans Verkuil <hverkuil@xs4all.nl>,
+	Ezequiel Garcia <ezequiel.garcia@free-electrons.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>
+Subject: [PATCH] [media] stk1160: Build as a module if SND is m and audio support is selected
+Date: Sat, 27 Jul 2013 16:29:36 -0300
+Message-Id: <1374953376-21070-1-git-send-email-ezequiel.garcia@free-electrons.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Sun, 21 Jul 2013, Sylwester Nawrocki wrote:
+As reported by Randy Dunlap:
 
-> > What's wrong with the platform_data structure, why can't that be used
-> > for this?
-> 
-> At the point the platform data of some driver is initialized, e.g. in
-> board setup code the PHY pointer is not known, since the PHY supplier
-> driver has not initialized yet.  Even though we wanted to pass pointer
-> to a PHY through some notifier call, it would have been not clear
-> which PHY user driver should match on such notifier.  A single PHY
-> supplier driver can create M PHY objects and this needs to be mapped
-> to N PHY user drivers.  This mapping needs to be defined somewhere by
-> the system integrator.  It works well with device tree, but except that
-> there seems to be no other reliable infrastructure in the kernel to
-> define links/dependencies between devices, since device identifiers are
-> not known in advance in all cases.
-> 
-> What Tomasz proposed seems currently most reasonable to me for non-dt.
-> 
-> > Or, if not, we can always add pointers to the platform device structure,
-> > or even the main 'struct device' as well, that's what it is there for.
-> 
-> Still we would need to solve a problem which platform device structure
-> gets which PHY pointer.
+When CONFIG_SND=m and CONFIG_SND_AC97_CODEC=m and
+CONFIG_VIDEO_STK1160=y
+CONFIG_VIDEO_STK1160_AC97=y
 
-Can you explain the issues in more detail?  I don't fully understand 
-the situation.
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x122706): undefined reference to `snd_card_create'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x1227b2): undefined reference to `snd_ac97_bus'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x1227cd): undefined reference to `snd_card_free'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x12281b): undefined reference to `snd_ac97_mixer'
+drivers/built-in.o: In function `stk1160_ac97_register':
+(.text+0x122832): undefined reference to `snd_card_register'
+drivers/built-in.o: In function `stk1160_ac97_unregister':
+(.text+0x12285e): undefined reference to `snd_card_free'
 
-Here's what I think I know:
+Reported-by: Randy Dunlap <rdunlap@infradead.org>
+Signed-off-by: Mauro Carvalho Chehab <mchehab@redhat.com>
+Acked-by: Randy Dunlap <rdunlap@infradead.org>
+Acked-by: Ezequiel Garcia <ezequiel.garcia@free-electrons.com>
+---
+ drivers/media/usb/stk1160/Kconfig | 16 ++++++++++------
+ 1 file changed, 10 insertions(+), 6 deletions(-)
 
-	The PHY and the controller it is attached to are both physical
-	devices.
-
-	The connection between them is hardwired by the system
-	manufacturer and cannot be changed by software.
-
-	PHYs are generally described by fixed system-specific board
-	files or by Device Tree information.  Are they ever discovered
-	dynamically?
-
-	Is the same true for the controllers attached to the PHYs?
-	If not -- if both a PHY and a controller are discovered 
-	dynamically -- how does the kernel know whether they are 
-	connected to each other?
-
-	The kernel needs to know which controller is attached to which
-	PHY.  Currently this information is represented by name or ID
-	strings embedded in platform data.
-
-	The PHY's driver (the supplier) uses the platform data to 
-	construct a platform_device structure that represents the PHY.  
-	Until this is done, the controller's driver (the client) cannot 
-	use the PHY.
-
-	Since there is no parent-child relation between the PHY and the 
-	controller, there is no guarantee that the PHY's driver will be
-	ready when the controller's driver wants to use it.  A deferred
-	probe may be needed.
-
-	The issue (or one of the issues) in this discussion is that 
-	Greg does not like the idea of using names or IDs to associate
-	PHYs with controllers, because they are too prone to
-	duplications or other errors.  Pointers are more reliable.
-
-	But pointers to what?  Since the only data known to be 
-	available to both the PHY driver and controller driver is the
-	platform data, the obvious answer is a pointer to platform data
-	(either for the PHY or for the controller, or maybe both).
-
-Probably some of the details above are wrong; please indicate where I
-have gone astray.  Also, I'm not clear about the role played by various 
-APIs.  For example, where does phy_create() fit into this picture?
-
-Alan Stern
+diff --git a/drivers/media/usb/stk1160/Kconfig b/drivers/media/usb/stk1160/Kconfig
+index 1c3a1ec..95584c1 100644
+--- a/drivers/media/usb/stk1160/Kconfig
++++ b/drivers/media/usb/stk1160/Kconfig
+@@ -1,8 +1,6 @@
+-config VIDEO_STK1160
++config VIDEO_STK1160_COMMON
+ 	tristate "STK1160 USB video capture support"
+ 	depends on VIDEO_DEV && I2C
+-	select VIDEOBUF2_VMALLOC
+-	select VIDEO_SAA711X
+ 
+ 	---help---
+ 	  This is a video4linux driver for STK1160 based video capture devices.
+@@ -12,9 +10,15 @@ config VIDEO_STK1160
+ 
+ config VIDEO_STK1160_AC97
+ 	bool "STK1160 AC97 codec support"
+-	depends on VIDEO_STK1160 && SND
+-	select SND_AC97_CODEC
++	depends on VIDEO_STK1160_COMMON && SND
+ 
+ 	---help---
+ 	  Enables AC97 codec support for stk1160 driver.
+-.
++
++config VIDEO_STK1160
++	tristate
++	depends on (!VIDEO_STK1160_AC97 || (SND='n') || SND) && VIDEO_STK1160_COMMON
++	default y
++	select VIDEOBUF2_VMALLOC
++	select VIDEO_SAA711X
++	select SND_AC97_CODEC if SND
+-- 
+1.8.1.5
 
