@@ -1,69 +1,43 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f45.google.com ([209.85.160.45]:40510 "EHLO
-	mail-pb0-f45.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932278Ab3GKJLC (ORCPT
+Received: from mail-wg0-f49.google.com ([74.125.82.49]:54042 "EHLO
+	mail-wg0-f49.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753600Ab3G1OFH (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:11:02 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	"John W. Linville" <linville@tuxdriver.com>,
-	libertas-dev@lists.infradead.org
-Subject: [PATCH 33/50] wireless: libertas: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:56 +0800
-Message-Id: <1373533573-12272-34-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Sun, 28 Jul 2013 10:05:07 -0400
+Received: by mail-wg0-f49.google.com with SMTP id y10so3415975wgg.4
+        for <linux-media@vger.kernel.org>; Sun, 28 Jul 2013 07:05:05 -0700 (PDT)
+MIME-Version: 1.0
+In-Reply-To: <1375019889.33203.YahooMailNeo@web120306.mail.ne1.yahoo.com>
+References: <1375017565.30131.YahooMailNeo@web120305.mail.ne1.yahoo.com>
+	<CAGoCfizG1MgsNPfka-zjcO71z3LS0tKbka3iL4EY6PqsUBatiA@mail.gmail.com>
+	<1375019889.33203.YahooMailNeo@web120306.mail.ne1.yahoo.com>
+Date: Sun, 28 Jul 2013 10:05:05 -0400
+Message-ID: <CAGoCfiy0dq2yF3WjT1AdYghOZnWcBO=9mWrTqyjKAcBY=17t1A@mail.gmail.com>
+Subject: Re: Very verbose message about em28174 chip.
+From: Devin Heitmueller <dheitmueller@kernellabs.com>
+To: Chris Rankin <rankincj@yahoo.com>
+Cc: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+On Sun, Jul 28, 2013 at 9:58 AM, Chris Rankin <rankincj@yahoo.com> wrote:
+> ----- Original Message -----
+>
+> From: Devin Heitmueller <dheitmueller@kernellabs.com>
+>
+>>The amount of output is not inconsistent with most other linuxtv drivers though.
+>
+> It's the EEPROM dump that really caught my eye: 16+ lines of pure "WTF?".
 
-Cc: "John W. Linville" <linville@tuxdriver.com>
-Cc: libertas-dev@lists.infradead.org
-Cc: linux-wireless@vger.kernel.org
-Cc: netdev@vger.kernel.org
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/net/wireless/libertas/if_usb.c |    5 +++--
- 1 file changed, 3 insertions(+), 2 deletions(-)
+Yeah, nowadays the eeprom output is one of the less useful pieces of
+output (in fact, I intentionally didn't do support for dumping it out
+on the em2874, but somebody did it anyway).  That said, I certainly
+wouldn't nack any patch submitted which changed the debug level for
+the eeprom output so it's not visible by default.
 
-diff --git a/drivers/net/wireless/libertas/if_usb.c b/drivers/net/wireless/libertas/if_usb.c
-index 2798077..f6a8396 100644
---- a/drivers/net/wireless/libertas/if_usb.c
-+++ b/drivers/net/wireless/libertas/if_usb.c
-@@ -626,6 +626,7 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
- 				      struct lbs_private *priv)
- {
- 	u8 i;
-+	unsigned long flags;
- 
- 	if (recvlength > LBS_CMD_BUFFER_SIZE) {
- 		lbs_deb_usbd(&cardp->udev->dev,
-@@ -636,7 +637,7 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
- 
- 	BUG_ON(!in_interrupt());
- 
--	spin_lock(&priv->driver_lock);
-+	spin_lock_irqsave(&priv->driver_lock, flags);
- 
- 	i = (priv->resp_idx == 0) ? 1 : 0;
- 	BUG_ON(priv->resp_len[i]);
-@@ -646,7 +647,7 @@ static inline void process_cmdrequest(int recvlength, uint8_t *recvbuff,
- 	kfree_skb(skb);
- 	lbs_notify_command_response(priv, i);
- 
--	spin_unlock(&priv->driver_lock);
-+	spin_unlock_irqrestore(&priv->driver_lock, flags);
- 
- 	lbs_deb_usbd(&cardp->udev->dev,
- 		    "Wake up main thread to handle cmd response\n");
+Devin
+
 -- 
-1.7.9.5
-
+Devin J. Heitmueller - Kernel Labs
+http://www.kernellabs.com
