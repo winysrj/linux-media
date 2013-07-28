@@ -1,160 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pa0-f51.google.com ([209.85.220.51]:45583 "EHLO
-	mail-pa0-f51.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932278Ab3GKJLT (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:11:19 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	Hans Verkuil <hans.verkuil@cisco.com>
-Subject: [PATCH 35/50] media: usb: cx231xx: spin_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:58 +0800
-Message-Id: <1373533573-12272-36-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+Received: from 7of9.schinagl.nl ([88.159.158.68]:37660 "EHLO 7of9.schinagl.nl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751266Ab3G1IEa (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Jul 2013 04:04:30 -0400
+Message-ID: <51F4D08C.4040605@schinagl.nl>
+Date: Sun, 28 Jul 2013 10:04:28 +0200
+From: Oliver Schinagl <oliver+list@schinagl.nl>
+MIME-Version: 1.0
+To: Franz Schrober <franzschrober@yahoo.de>
+CC: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
+	"kaffeine-user@lists.sourceforge.net"
+	<kaffeine-user@lists.sourceforge.net>,
+	"pkg-kde-extras@lists.alioth.debian.org"
+	<pkg-kde-extras@lists.alioth.debian.org>, sven@narfation.org
+Subject: Re: de-Primacom initial tuning data doesn't work anymore
+References: <1371910047.2617.YahooMailNeo@web171902.mail.ir2.yahoo.com> <1374921429.93450.YahooMailNeo@web171902.mail.ir2.yahoo.com>
+In-Reply-To: <1374921429.93450.YahooMailNeo@web171902.mail.ir2.yahoo.com>
+Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-spin_lock_irqsave().
+I completly missed that mail somehow, appologies, a CC to me is always 
+helpfull ;)
 
-Cc: Mauro Carvalho Chehab <mchehab@redhat.com>
-Cc: Hans Verkuil <hans.verkuil@cisco.com>
-Cc: linux-media@vger.kernel.org
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
----
- drivers/media/usb/cx231xx/cx231xx-audio.c |    6 ++++++
- drivers/media/usb/cx231xx/cx231xx-core.c  |   10 ++++++----
- drivers/media/usb/cx231xx/cx231xx-vbi.c   |    5 +++--
- 3 files changed, 15 insertions(+), 6 deletions(-)
+Next time it would be preferred if you send a patch instead of a link. 
+It would have been even better if Sven submittted said patch so we could 
+have committed it to git much earlier!
 
-diff --git a/drivers/media/usb/cx231xx/cx231xx-audio.c b/drivers/media/usb/cx231xx/cx231xx-audio.c
-index 81a1d97..58c1b5c 100644
---- a/drivers/media/usb/cx231xx/cx231xx-audio.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-audio.c
-@@ -136,6 +136,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
- 		stride = runtime->frame_bits >> 3;
- 
- 		for (i = 0; i < urb->number_of_packets; i++) {
-+			unsigned long flags;
- 			int length = urb->iso_frame_desc[i].actual_length /
- 				     stride;
- 			cp = (unsigned char *)urb->transfer_buffer +
-@@ -158,6 +159,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
- 				       length * stride);
- 			}
- 
-+			local_irq_save(flags);
- 			snd_pcm_stream_lock(substream);
- 
- 			dev->adev.hwptr_done_capture += length;
-@@ -174,6 +176,7 @@ static void cx231xx_audio_isocirq(struct urb *urb)
- 				period_elapsed = 1;
- 			}
- 			snd_pcm_stream_unlock(substream);
-+			local_irq_restore(flags);
- 		}
- 		if (period_elapsed)
- 			snd_pcm_period_elapsed(substream);
-@@ -224,6 +227,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
- 		stride = runtime->frame_bits >> 3;
- 
- 		if (1) {
-+			unsigned long flags;
- 			int length = urb->actual_length /
- 				     stride;
- 			cp = (unsigned char *)urb->transfer_buffer;
-@@ -242,6 +246,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
- 				       length * stride);
- 			}
- 
-+			local_irq_save(flags);
- 			snd_pcm_stream_lock(substream);
- 
- 			dev->adev.hwptr_done_capture += length;
-@@ -258,6 +263,7 @@ static void cx231xx_audio_bulkirq(struct urb *urb)
- 				period_elapsed = 1;
- 			}
- 			snd_pcm_stream_unlock(substream);
-+			local_irq_restore(flags);
- 		}
- 		if (period_elapsed)
- 			snd_pcm_period_elapsed(substream);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-core.c b/drivers/media/usb/cx231xx/cx231xx-core.c
-index 4ba3ce0..593b397 100644
---- a/drivers/media/usb/cx231xx/cx231xx-core.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-core.c
-@@ -798,6 +798,7 @@ static void cx231xx_isoc_irq_callback(struct urb *urb)
- 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
- 	struct cx231xx *dev = container_of(vmode, struct cx231xx, video_mode);
- 	int i;
-+	unsigned long flags;
- 
- 	switch (urb->status) {
- 	case 0:		/* success */
-@@ -813,9 +814,9 @@ static void cx231xx_isoc_irq_callback(struct urb *urb)
- 	}
- 
- 	/* Copy data from URB */
--	spin_lock(&dev->video_mode.slock);
-+	spin_lock_irqsave(&dev->video_mode.slock, flags);
- 	dev->video_mode.isoc_ctl.isoc_copy(dev, urb);
--	spin_unlock(&dev->video_mode.slock);
-+	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
- 
- 	/* Reset urb buffers */
- 	for (i = 0; i < urb->number_of_packets; i++) {
-@@ -842,6 +843,7 @@ static void cx231xx_bulk_irq_callback(struct urb *urb)
- 	struct cx231xx_video_mode *vmode =
- 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
- 	struct cx231xx *dev = container_of(vmode, struct cx231xx, video_mode);
-+	unsigned long flags;
- 
- 	switch (urb->status) {
- 	case 0:		/* success */
-@@ -857,9 +859,9 @@ static void cx231xx_bulk_irq_callback(struct urb *urb)
- 	}
- 
- 	/* Copy data from URB */
--	spin_lock(&dev->video_mode.slock);
-+	spin_lock_irqsave(&dev->video_mode.slock, flags);
- 	dev->video_mode.bulk_ctl.bulk_copy(dev, urb);
--	spin_unlock(&dev->video_mode.slock);
-+	spin_unlock_irqrestore(&dev->video_mode.slock, flags);
- 
- 	/* Reset urb buffers */
- 	urb->status = usb_submit_urb(urb, GFP_ATOMIC);
-diff --git a/drivers/media/usb/cx231xx/cx231xx-vbi.c b/drivers/media/usb/cx231xx/cx231xx-vbi.c
-index c027942..38e78f8 100644
---- a/drivers/media/usb/cx231xx/cx231xx-vbi.c
-+++ b/drivers/media/usb/cx231xx/cx231xx-vbi.c
-@@ -306,6 +306,7 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
- 	struct cx231xx_video_mode *vmode =
- 	    container_of(dma_q, struct cx231xx_video_mode, vidq);
- 	struct cx231xx *dev = container_of(vmode, struct cx231xx, vbi_mode);
-+	unsigned long flags;
- 
- 	switch (urb->status) {
- 	case 0:		/* success */
-@@ -322,9 +323,9 @@ static void cx231xx_irq_vbi_callback(struct urb *urb)
- 	}
- 
- 	/* Copy data from URB */
--	spin_lock(&dev->vbi_mode.slock);
-+	spin_lock_irqsave(&dev->vbi_mode.slock, flags);
- 	dev->vbi_mode.bulk_ctl.bulk_copy(dev, urb);
--	spin_unlock(&dev->vbi_mode.slock);
-+	spin_unlock_irqrestore(&dev->vbi_mode.slock, flags);
- 
- 	/* Reset status */
- 	urb->status = 0;
--- 
-1.7.9.5
+Anyhow, pushed to git(hub) as edc0bc3f04b715f2c882343e4d4fdf94e7cc1e29
+
+Oliver
+
+On 27-07-13 12:37, Franz Schrober wrote:
+> bump
+>
+>
+>
+> ----- Ursprüngliche Message -----
+> Von: Franz Schrober <franzschrober@yahoo.de>
+> An: "linux-media@vger.kernel.org" <linux-media@vger.kernel.org>; "kaffeine-user@lists.sourceforge.net" <kaffeine-user@lists.sourceforge.net>; "pkg-kde-extras@lists.alioth.debian.org" <pkg-kde-extras@lists.alioth.debian.org>
+> CC:
+> Gesendet: 16:07 Samstag, 22.Juni 2013
+> Betreff: de-Primacom initial tuning data doesn't work anymore
+>
+> Hi,
+>
+> I wanted to watch TV today with kaffeine 1.2.2-2 from debian and noticed that it didn't work anymore. Also scans even after the update of the initial tuning data didn't show all tv stations. Just replacing the entry for dvb-c/de-Primacom in ~/.kde/share/apps/kaffeine/scanfile.dvb with the one from http://narfation.org/misc/dvbc/de-Primacom fixed the problem for me after the next scan for tv stations.
+>
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@vger.kernel.org
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
