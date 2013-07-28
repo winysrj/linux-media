@@ -1,59 +1,48 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:61761 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753539Ab3GIIua (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Tue, 9 Jul 2013 04:50:30 -0400
-Message-id: <51DBCED2.7010102@samsung.com>
-Date: Tue, 09 Jul 2013 10:50:26 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Jingoo Han <jg1.han@samsung.com>
-Cc: linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org,
-	'Kishon Vijay Abraham I' <kishon@ti.com>,
-	linux-media@vger.kernel.org, 'Kukjin Kim' <kgene.kim@samsung.com>,
-	'Felipe Balbi' <balbi@ti.com>,
-	'Tomasz Figa' <t.figa@samsung.com>,
-	devicetree-discuss@lists.ozlabs.org,
-	'Inki Dae' <inki.dae@samsung.com>,
-	'Donghwa Lee' <dh09.lee@samsung.com>,
-	'Kyungmin Park' <kyungmin.park@samsung.com>,
-	'Jean-Christophe PLAGNIOL-VILLARD' <plagnioj@jcrosoft.com>,
-	Tomi Valkeinen <tomi.valkeinen@ti.com>,
-	linux-fbdev@vger.kernel.org, Hui Wang <jason77.wang@gmail.com>
-Subject: Re: [PATCH V6 0/4] Generic PHY driver for the Exynos SoC DP PHY
-References: <003d01ce7c7a$d04043d0$70c0cb70$@samsung.com>
-In-reply-to: <003d01ce7c7a$d04043d0$70c0cb70$@samsung.com>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+Received: from mail-ea0-f175.google.com ([209.85.215.175]:51884 "EHLO
+	mail-ea0-f175.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753622Ab3G1OWK (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Sun, 28 Jul 2013 10:22:10 -0400
+Received: by mail-ea0-f175.google.com with SMTP id m14so486490eaj.20
+        for <linux-media@vger.kernel.org>; Sun, 28 Jul 2013 07:22:09 -0700 (PDT)
+Message-ID: <51F52998.1000700@googlemail.com>
+Date: Sun, 28 Jul 2013 16:24:24 +0200
+From: =?ISO-8859-1?Q?Frank_Sch=E4fer?= <fschaefer.oss@googlemail.com>
+MIME-Version: 1.0
+To: Chris Rankin <rankincj@yahoo.com>
+CC: Devin Heitmueller <dheitmueller@kernellabs.com>,
+	Linux Media Mailing List <linux-media@vger.kernel.org>
+Subject: Re: Very verbose message about em28174 chip.
+References: <1375017565.30131.YahooMailNeo@web120305.mail.ne1.yahoo.com> <CAGoCfizG1MgsNPfka-zjcO71z3LS0tKbka3iL4EY6PqsUBatiA@mail.gmail.com> <1375019889.33203.YahooMailNeo@web120306.mail.ne1.yahoo.com> <CAGoCfiy0dq2yF3WjT1AdYghOZnWcBO=9mWrTqyjKAcBY=17t1A@mail.gmail.com>
+In-Reply-To: <CAGoCfiy0dq2yF3WjT1AdYghOZnWcBO=9mWrTqyjKAcBY=17t1A@mail.gmail.com>
+Content-Type: text/plain; charset=ISO-8859-1
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On 07/09/2013 10:03 AM, Jingoo Han wrote:
-> This patch series adds a simple driver for the Samsung Exynos SoC
-> series DP transmitter PHY, using the generic PHY framework [1].
-> Previously the DP PHY used an internal DT node to control the PHY
-> power enable bit.
-> 
-> These patches was tested on Exynos5250.
-> 
-> This PATCH v6 follows:
->  * PATCH v5, sent on July, 8th 2013
->  * PATCH v4, sent on July, 2nd 2013
->  * PATCH v3, sent on July, 1st 2013
->  * PATCH v2, sent on June, 28th 2013
->  * PATCH v1, sent on June, 28th 2013
-> 
-> Changes between v5 and v6:
->   * Re-based on git://gitorious.org/linuxphy/linuxphy.git
+Am 28.07.2013 16:05, schrieb Devin Heitmueller:
+> On Sun, Jul 28, 2013 at 9:58 AM, Chris Rankin <rankincj@yahoo.com> wrote:
+>> ----- Original Message -----
+>>
+>> From: Devin Heitmueller <dheitmueller@kernellabs.com>
+>>
+>>> The amount of output is not inconsistent with most other linuxtv drivers though.
+>> It's the EEPROM dump that really caught my eye: 16+ lines of pure "WTF?".
+> Yeah, nowadays the eeprom output is one of the less useful pieces of
+> output (in fact, I intentionally didn't do support for dumping it out
+> on the em2874, but somebody did it anyway).
 
-I'm not sure if we really need to keep the documentation of the
-original binding. Anyway, for the whole series, please feel free
-to ad my
+We've always been dumping the eeprom content (which doesn't mean that we
+have to do it forever ;) ).
+IIRC, the reason why we didn't dump the eeprom of the newer em2874+
+devices up to now, that they are using 16bit eeproms and Devin thought
+it was too dangerous to read them. ;)
+It should also be mentioned, that we haven't decoded the meaning of this
+eeprom type yet completely.
 
-Reviewed-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+I don't care too much.
 
---
-Thanks,
-Sylwester
+Regards,
+Frank
 
