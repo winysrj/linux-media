@@ -1,154 +1,171 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from pequod.mess.org ([46.65.169.142]:35871 "EHLO pequod.mess.org"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S932951Ab3GLMqa (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Fri, 12 Jul 2013 08:46:30 -0400
-Date: Fri, 12 Jul 2013 13:46:27 +0100
-From: Sean Young <sean@mess.org>
-To: Srinivas KANDAGATLA <srinivas.kandagatla@st.com>
-Cc: linux-media@vger.kernel.org, alipowski@interia.pl,
-	Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-kernel@vger.kernel.org, srinivas.kandagatla@gmail.com
-Subject: Re: [PATCH RFC] media: lirc: Allow lirc dev to talk to rc device
-Message-ID: <20130712124627.GA18177@pequod.mess.org>
-References: <1373619328-14376-1-git-send-email-srinivas.kandagatla@st.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1373619328-14376-1-git-send-email-srinivas.kandagatla@st.com>
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1967 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484Ab3G2Mlg (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jul 2013 08:41:36 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>,
+	Scott Jiang <scott.jiang.linux@gmail.com>
+Subject: [RFC PATCH 6/8] v4l2: use new V4L2_DV_BT_BLANKING/FRAME defines
+Date: Mon, 29 Jul 2013 14:40:59 +0200
+Message-Id: <1375101661-6493-7-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
+References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Fri, Jul 12, 2013 at 09:55:28AM +0100, Srinivas KANDAGATLA wrote:
-> From: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> 
-> The use case is simple, if any rc device has allowed protocols =
-> RC_TYPE_LIRC and map_name = RC_MAP_LIRC set, the driver open will be never
-> called. The reason for this is, all of the key maps except lirc have some
-> KEYS in there map, so during rc_register_device process these keys are
-> matched against the input drivers and open is performed, so for the case
-> of RC_MAP_EMPTY, a tty/vt/keyboard is matched and the driver open is
-> performed.
-> 
-> In case of lirc, there is no match and result is that there is no open
-> performed, however the lirc-dev will go ahead and create a /dev/lirc0
-> node. Now when lircd/mode2 opens this device, no data is available
-> because the driver was never opened.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-The rc device gets opened via the input interface. If the input device is
-never opened (e.g. embedded with no console) then the rc open is never 
-called and lirc will not work either. So that's another case.
+Use the new defines to calculate the full blanking and frame sizes.
 
-> lirc_dev seems to have no link with actual rc device w.r.t open/close.
-> This patch adds the missing link rc_dev pointer to lirc_driver structure
-> for cases like this, so that it can do the open/close of the real driver
-> in accordance to lircd/mode2 open/close.
-> 
-> Without this patch its impossible to open a rc device which has
-> RC_TYPE_LIRC ad RC_MAP_LIRC set.
-> 
-> Signed-off-by: Srinivas Kandagatla <srinivas.kandagatla@st.com>
-> ---
->  drivers/media/rc/ir-lirc-codec.c |    1 +
->  drivers/media/rc/lirc_dev.c      |   14 ++++++++++++++
->  include/media/lirc_dev.h         |    1 +
->  3 files changed, 16 insertions(+), 0 deletions(-)
-> 
-> diff --git a/drivers/media/rc/ir-lirc-codec.c b/drivers/media/rc/ir-lirc-codec.c
-> index e456126..d5ad27f 100644
-> --- a/drivers/media/rc/ir-lirc-codec.c
-> +++ b/drivers/media/rc/ir-lirc-codec.c
-> @@ -375,6 +375,7 @@ static int ir_lirc_register(struct rc_dev *dev)
->  	drv->code_length = sizeof(struct ir_raw_event) * 8;
->  	drv->fops = &lirc_fops;
->  	drv->dev = &dev->dev;
-> +	drv->rc_dev = dev;
->  	drv->owner = THIS_MODULE;
->  
->  	drv->minor = lirc_register_driver(drv);
-> diff --git a/drivers/media/rc/lirc_dev.c b/drivers/media/rc/lirc_dev.c
-> index 8dc057b..485bf7d 100644
-> --- a/drivers/media/rc/lirc_dev.c
-> +++ b/drivers/media/rc/lirc_dev.c
-> @@ -35,6 +35,7 @@
->  #include <linux/device.h>
->  #include <linux/cdev.h>
->  
-> +#include <media/rc-core.h>
->  #include <media/lirc.h>
->  #include <media/lirc_dev.h>
->  
-> @@ -437,6 +438,7 @@ EXPORT_SYMBOL(lirc_unregister_driver);
->  int lirc_dev_fop_open(struct inode *inode, struct file *file)
->  {
->  	struct irctl *ir;
-> +	struct rc_dev *rc_dev;
->  	struct cdev *cdev;
->  	int retval = 0;
->  
-> @@ -467,6 +469,13 @@ int lirc_dev_fop_open(struct inode *inode, struct file *file)
->  		goto error;
->  	}
->  
-> +	rc_dev = ir->d.rc_dev;
-> +	if (rc_dev && rc_dev->open) {
-> +		retval = rc_dev->open(rc_dev);
-> +		if (retval)
-> +			goto error;
-> +	}
-> +
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+Cc: Scott Jiang <scott.jiang.linux@gmail.com>
+---
+ drivers/media/i2c/ad9389b.c                    | 6 ++----
+ drivers/media/i2c/adv7604.c                    | 8 ++++----
+ drivers/media/i2c/ths7303.c                    | 6 ++----
+ drivers/media/i2c/ths8200.c                    | 8 ++++----
+ drivers/media/platform/blackfin/bfin_capture.c | 9 ++-------
+ drivers/media/usb/hdpvr/hdpvr-video.c          | 6 ++----
+ 6 files changed, 16 insertions(+), 27 deletions(-)
 
-Now the rc device can have its open called twice; once via the input 
-system and then (while it is already opened) via lirc. The rc drivers do
-not expect this.
+diff --git a/drivers/media/i2c/ad9389b.c b/drivers/media/i2c/ad9389b.c
+index 2fa8d72..5295234 100644
+--- a/drivers/media/i2c/ad9389b.c
++++ b/drivers/media/i2c/ad9389b.c
+@@ -445,10 +445,8 @@ static int ad9389b_log_status(struct v4l2_subdev *sd)
+ 	}
+ 	if (state->dv_timings.type == V4L2_DV_BT_656_1120) {
+ 		struct v4l2_bt_timings *bt = bt = &state->dv_timings.bt;
+-		u32 frame_width = bt->width + bt->hfrontporch +
+-			bt->hsync + bt->hbackporch;
+-		u32 frame_height = bt->height + bt->vfrontporch +
+-			bt->vsync + bt->vbackporch;
++		u32 frame_width = V4L2_DV_BT_FRAME_WIDTH(bt);
++		u32 frame_height = V4L2_DV_BT_FRAME_HEIGHT(bt);
+ 		u32 frame_size = frame_width * frame_height;
+ 
+ 		v4l2_info(sd, "timings: %ux%u%s%u (%ux%u). Pix freq. = %u Hz. Polarities = 0x%x\n",
+diff --git a/drivers/media/i2c/adv7604.c b/drivers/media/i2c/adv7604.c
+index 181a6c3..3ec7ec0 100644
+--- a/drivers/media/i2c/adv7604.c
++++ b/drivers/media/i2c/adv7604.c
+@@ -261,22 +261,22 @@ static inline struct v4l2_subdev *to_sd(struct v4l2_ctrl *ctrl)
+ 
+ static inline unsigned hblanking(const struct v4l2_bt_timings *t)
+ {
+-	return t->hfrontporch + t->hsync + t->hbackporch;
++	return V4L2_DV_BT_BLANKING_WIDTH(t);
+ }
+ 
+ static inline unsigned htotal(const struct v4l2_bt_timings *t)
+ {
+-	return t->width + t->hfrontporch + t->hsync + t->hbackporch;
++	return V4L2_DV_BT_FRAME_WIDTH(t);
+ }
+ 
+ static inline unsigned vblanking(const struct v4l2_bt_timings *t)
+ {
+-	return t->vfrontporch + t->vsync + t->vbackporch;
++	return V4L2_DV_BT_BLANKING_HEIGHT(t);
+ }
+ 
+ static inline unsigned vtotal(const struct v4l2_bt_timings *t)
+ {
+-	return t->height + t->vfrontporch + t->vsync + t->vbackporch;
++	return V4L2_DV_BT_FRAME_HEIGHT(t);
+ }
+ 
+ /* ----------------------------------------------------------------------- */
+diff --git a/drivers/media/i2c/ths7303.c b/drivers/media/i2c/ths7303.c
+index 0a2dacb..42276d9 100644
+--- a/drivers/media/i2c/ths7303.c
++++ b/drivers/media/i2c/ths7303.c
+@@ -291,10 +291,8 @@ static int ths7303_log_status(struct v4l2_subdev *sd)
+ 		struct v4l2_bt_timings *bt = bt = &state->bt;
+ 		u32 frame_width, frame_height;
+ 
+-		frame_width = bt->width + bt->hfrontporch +
+-			      bt->hsync + bt->hbackporch;
+-		frame_height = bt->height + bt->vfrontporch +
+-			       bt->vsync + bt->vbackporch;
++		frame_width = V4L2_DV_BT_FRAME_WIDTH(bt);
++		frame_height = V4L2_DV_BT_FRAME_HEIGHT(bt);
+ 		v4l2_info(sd,
+ 			  "timings: %dx%d%s%d (%dx%d). Pix freq. = %d Hz. Polarities = 0x%x\n",
+ 			  bt->width, bt->height, bt->interlaced ? "i" : "p",
+diff --git a/drivers/media/i2c/ths8200.c b/drivers/media/i2c/ths8200.c
+index aef7c0e..28932e9 100644
+--- a/drivers/media/i2c/ths8200.c
++++ b/drivers/media/i2c/ths8200.c
+@@ -65,22 +65,22 @@ static inline struct ths8200_state *to_state(struct v4l2_subdev *sd)
+ 
+ static inline unsigned hblanking(const struct v4l2_bt_timings *t)
+ {
+-	return t->hfrontporch + t->hsync + t->hbackporch;
++	return V4L2_DV_BT_BLANKING_WIDTH(t);
+ }
+ 
+ static inline unsigned htotal(const struct v4l2_bt_timings *t)
+ {
+-	return t->width + t->hfrontporch + t->hsync + t->hbackporch;
++	return V4L2_DV_BT_FRAME_WIDTH(t);
+ }
+ 
+ static inline unsigned vblanking(const struct v4l2_bt_timings *t)
+ {
+-	return t->vfrontporch + t->vsync + t->vbackporch;
++	return V4L2_DV_BT_BLANKING_HEIGHT(t);
+ }
+ 
+ static inline unsigned vtotal(const struct v4l2_bt_timings *t)
+ {
+-	return t->height + t->vfrontporch + t->vsync + t->vbackporch;
++	return V4L2_DV_BT_FRAME_HEIGHT(t);
+ }
+ 
+ static int ths8200_read(struct v4l2_subdev *sd, u8 reg)
+diff --git a/drivers/media/platform/blackfin/bfin_capture.c b/drivers/media/platform/blackfin/bfin_capture.c
+index 7f838c6..4c11059 100644
+--- a/drivers/media/platform/blackfin/bfin_capture.c
++++ b/drivers/media/platform/blackfin/bfin_capture.c
+@@ -388,13 +388,8 @@ static int bcap_start_streaming(struct vb2_queue *vq, unsigned int count)
+ 
+ 		params.hdelay = bt->hsync + bt->hbackporch;
+ 		params.vdelay = bt->vsync + bt->vbackporch;
+-		params.line = bt->hfrontporch + bt->hsync
+-				+ bt->hbackporch + bt->width;
+-		params.frame = bt->vfrontporch + bt->vsync
+-				+ bt->vbackporch + bt->height;
+-		if (bt->interlaced)
+-			params.frame += bt->il_vfrontporch + bt->il_vsync
+-					+ bt->il_vbackporch;
++		params.line = V4L2_DV_BT_FRAME_WIDTH(bt);
++		params.frame = V4L2_DV_BT_FRAME_HEIGHT(bt);
+ 	} else if (bcap_dev->cfg->inputs[bcap_dev->cur_input].capabilities
+ 			& V4L2_IN_CAP_STD) {
+ 		params.hdelay = 0;
+diff --git a/drivers/media/usb/hdpvr/hdpvr-video.c b/drivers/media/usb/hdpvr/hdpvr-video.c
+index 9c67b6e..e68245a 100644
+--- a/drivers/media/usb/hdpvr/hdpvr-video.c
++++ b/drivers/media/usb/hdpvr/hdpvr-video.c
+@@ -690,10 +690,8 @@ static int vidioc_query_dv_timings(struct file *file, void *_fh,
+ 		unsigned vsize;
+ 		unsigned fps;
+ 
+-		hsize = bt->hfrontporch + bt->hsync + bt->hbackporch + bt->width;
+-		vsize = bt->vfrontporch + bt->vsync + bt->vbackporch +
+-			bt->il_vfrontporch + bt->il_vsync + bt->il_vbackporch +
+-			bt->height;
++		hsize = V4L2_DV_BT_FRAME_WIDTH(bt);
++		vsize = V4L2_DV_BT_FRAME_HEIGHT(bt);
+ 		fps = (unsigned)bt->pixelclock / (hsize * vsize);
+ 		if (bt->width != vid_info.width ||
+ 		    bt->height != vid_info.height ||
+-- 
+1.8.3.2
 
->  	cdev = ir->cdev;
->  	if (try_module_get(cdev->owner)) {
->  		ir->open++;
-> @@ -499,6 +508,7 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
->  {
->  	struct irctl *ir = irctls[iminor(inode)];
->  	struct cdev *cdev;
-> +	struct rc_dev *rc_dev;
->  
->  	if (!ir) {
->  		printk(KERN_ERR "%s: called with invalid irctl\n", __func__);
-> @@ -511,6 +521,10 @@ int lirc_dev_fop_close(struct inode *inode, struct file *file)
->  
->  	WARN_ON(mutex_lock_killable(&lirc_dev_lock));
->  
-> +	rc_dev = ir->d.rc_dev;
-> +	if (rc_dev && rc_dev->close)
-> +		rc_dev->close(rc_dev);
-> +
-
-iguanair, nuvoton and ene_ir will disable the ir receiver when their close
-function is called. If the device was also opened via the input interface,
-the input interface will receive no new ir activity.
-
-I think there should be some sort of (atomic) use counter so that the 
-rc device open or close only gets called once, whether opened via the 
-input interface or via lirc. 
-
->  	ir->open--;
->  	if (ir->attached) {
->  		ir->d.set_use_dec(ir->d.data);
-> diff --git a/include/media/lirc_dev.h b/include/media/lirc_dev.h
-> index 168dd0b..96dccb6 100644
-> --- a/include/media/lirc_dev.h
-> +++ b/include/media/lirc_dev.h
-> @@ -139,6 +139,7 @@ struct lirc_driver {
->  	struct lirc_buffer *rbuf;
->  	int (*set_use_inc) (void *data);
->  	void (*set_use_dec) (void *data);
-> +	struct rc_dev *rc_dev;
->  	const struct file_operations *fops;
->  	struct device *dev;
->  	struct module *owner;
-> -- 
-> 1.7.6.5
-> 
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
