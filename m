@@ -1,125 +1,133 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:59952 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755753Ab3GYM7X (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:9043 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751498Ab3G2L1R (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 08:59:23 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: linux-media@vger.kernel.org
-Cc: linux-sh@vger.kernel.org, Hans Verkuil <hverkuil@xs4all.nl>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: [PATCH v3 0/5] Renesas VSP1 driver
-Date: Thu, 25 Jul 2013 15:00:08 +0200
-Message-Id: <1374757213-20194-1-git-send-email-laurent.pinchart@ideasonboard.com>
+	Mon, 29 Jul 2013 07:27:17 -0400
+Received: from eucpsbgm2.samsung.com (unknown [203.254.199.245])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQP00HJV3PMRX80@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Jul 2013 12:27:15 +0100 (BST)
+Message-id: <51F65190.9080601@samsung.com>
+Date: Mon, 29 Jul 2013 13:27:12 +0200
+From: Marek Szyprowski <m.szyprowski@samsung.com>
+MIME-version: 1.0
+To: Jonathan Corbet <corbet@lwn.net>
+Cc: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>,
+	Mauro Carvalho Chehab <mchehab@redhat.com>,
+	Pawel Osciak <pawel@osciak.com>,
+	Kyungmin Park <kyungmin.park@samsung.com>,
+	Ismael Luceno <ismael.luceno@corp.bluecherry.net>,
+	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
+	linux-media@vger.kernel.org, Andre Heider <a.heider@gmail.com>,
+	Sylwester Nawrocki <s.nawrocki@samsung.com>
+Subject: Re: [PATCH 1/2] videobuf2-dma-sg: Allocate pages as contiguous as
+ possible
+References: <1374253355-3788-1-git-send-email-ricardo.ribalda@gmail.com>
+ <1374253355-3788-2-git-send-email-ricardo.ribalda@gmail.com>
+ <20130719141603.16ef8f0b@lwn.net>
+In-reply-to: <20130719141603.16ef8f0b@lwn.net>
+Content-type: text/plain; charset=UTF-8; format=flowed
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hello,
 
-Here's the third version of the VSP1 engine (a Video Signal Processor found
-in several Renesas R-Car SoCs) driver. I'd like to thank all the v1 and v2
-reviewers.
+On 7/19/2013 10:16 PM, Jonathan Corbet wrote:
+> On Fri, 19 Jul 2013 19:02:33 +0200
+> Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com> wrote:
+>
+> > Most DMA engines have limitations regarding the number of DMA segments
+> > (sg-buffers) that they can handle. Videobuffers can easily spread
+> > through houndreds of pages.
+> >
+> > In the previous aproach, the pages were allocated individually, this
+> > could led to the creation houndreds of dma segments (sg-buffers) that
+> > could not be handled by some DMA engines.
+> >
+> > This patch tries to minimize the number of DMA segments by using
+> > alloc_pages. In the worst case it will behave as before, but most
+> > of the times it will reduce the number of dma segments
+>
+> So I looked this over and I have a few questions...
+>
+> > diff --git a/drivers/media/v4l2-core/videobuf2-dma-sg.c b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> > index 16ae3dc..c053605 100644
+> > --- a/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> > +++ b/drivers/media/v4l2-core/videobuf2-dma-sg.c
+> > @@ -42,10 +42,55 @@ struct vb2_dma_sg_buf {
+> >
+> >  static void vb2_dma_sg_put(void *buf_priv);
+> >
+> > +static int vb2_dma_sg_alloc_compacted(struct vb2_dma_sg_buf *buf,
+> > +		gfp_t gfp_flags)
+> > +{
+> > +	unsigned int last_page = 0;
+> > +	int size = buf->sg_desc.size;
+> > +
+> > +	while (size > 0) {
+> > +		struct page *pages;
+> > +		int order;
+> > +		int i;
+> > +
+> > +		order = get_order(size);
+> > +		/* Dont over allocate*/
+> > +		if ((PAGE_SIZE << order) > size)
+> > +			order--;
+>
+> Terrible things will happen if size < PAGE_SIZE.  Presumably that should
+> never happen, or perhaps one could say any caller who does that will get
+> what they deserve.
 
-The VSP1 is a video processing engine that includes a blender, scalers,
-filters and statistics computation. Configurable data path routing logic
-allows ordering the internal blocks in a flexible way, making this driver a
-prime candidate for the media controller API.
+I think that page size alignment for requested buffer size should be added
+at vb2 core. V4L2 buffer API is page oriented and it really makes no sense
+to allocate buffers which are not a multiple of page size.
 
-Due to the configurable nature of the pipeline the driver doesn't use the V4L2
-mem-to-mem framework, even though the device usually operates in memory to
-memory mode.
 
-Only the read pixel formatters, up/down scalers, write pixel formatters and
-LCDC interface are supported at this stage.
+> Have you considered alloc_pages_exact(), though?  That might result in
+> fewer segments overall.
+>
+> > +		pages = NULL;
+> > +		while (!pages) {
+> > +			pages = alloc_pages(GFP_KERNEL | __GFP_ZERO |
+> > +					__GFP_NOWARN | gfp_flags, order);
+> > +			if (pages)
+> > +				break;
+> > +
+> > +			if (order == 0)
+> > +				while (last_page--) {
+> > +					__free_page(buf->pages[last_page]);
+>
+> If I understand things, this is wrong; you relly need free_pages() with the
+> correct order.  Or, at least, that would be the case if you kept the pages
+> together, but that leads to my biggest question...
+>
+> > +					return -ENOMEM;
+> > +				}
+> > +			order--;
+> > +		}
+> > +
+> > +		split_page(pages, order);
+> > +		for (i = 0; i < (1<<order); i++) {
+> > +			buf->pages[last_page] = pages[i];
+> > +			sg_set_page(&buf->sg_desc.sglist[last_page],
+> > +					buf->pages[last_page], PAGE_SIZE, 0);
+> > +			last_page++;
+> > +		}
+>
+> You've gone to all this trouble to get a higher-order allocation so you'd
+> have fewer segments, then you undo it all by splitting things apart into
+> individual pages.  Why?  Clearly I'm missing something, this seems to
+> defeat the purpose of the whole exercise?
 
-The patch series starts with a fix for the media controller graph traversal
-code, a documentation fix and new pixel format and media bus code definitions.
-The last patch finally adds the VSP1 driver.
+Individual zero-order pages are required to get them mapped to userspace in
+mmap callback.
 
-Changes since v1:
-
-- Updated to the v3.11 media controller API changes
-- Only add the LIF entity to the entities list when the LIF is present
-- Added a MODULE_ALIAS()
-- Fixed file descriptions in comment blocks
-- Removed function prototypes for the unimplemented destroy functions
-- Fixed a typo in the HST register name
-- Fixed format propagation for the UDS entities
-- Added v4l2_capability::device_caps support
-- Prefix the device name with "platform:" in bus_info
-- Zero the v4l2_pix_format priv field in the internal try format handler
-- Use vb2_is_busy() instead of vb2_is_streaming() when setting the
-  format
-- Use the vb2_ioctl_* handlers where possible
-
-Changes since v2:
-
-- Use a bitmap to track visited entities during graph traversal
-- Fixed a typo in the V4L2_MBUS_FMT_ARGB888_1X32 documentation
-- Fix register macros that were missing a n argument
-- Mask unused bits when clearing the interrupt status register
-- Explain why stride alignment to 128 bytes is needed
-- Use the aligned stride value when computing the image size
-- Assorted cosmetic changes
-
-Laurent Pinchart (5):
-  media: Add support for circular graph traversal
-  v4l: Fix V4L2_MBUS_FMT_YUV10_1X30 media bus pixel code value
-  v4l: Add media format codes for ARGB8888 and AYUV8888 on 32-bit busses
-  v4l: Add V4L2_PIX_FMT_NV16M and V4L2_PIX_FMT_NV61M formats
-  v4l: Renesas R-Car VSP1 driver
-
- Documentation/DocBook/media/v4l/pixfmt-nv16m.xml   |  170 +++
- Documentation/DocBook/media/v4l/pixfmt.xml         |    1 +
- Documentation/DocBook/media/v4l/subdev-formats.xml |  611 +++++------
- Documentation/DocBook/media_api.tmpl               |    6 +
- drivers/media/media-entity.c                       |   14 +-
- drivers/media/platform/Kconfig                     |   10 +
- drivers/media/platform/Makefile                    |    2 +
- drivers/media/platform/vsp1/Makefile               |    5 +
- drivers/media/platform/vsp1/vsp1.h                 |   73 ++
- drivers/media/platform/vsp1/vsp1_drv.c             |  488 +++++++++
- drivers/media/platform/vsp1/vsp1_entity.c          |  181 ++++
- drivers/media/platform/vsp1/vsp1_entity.h          |   68 ++
- drivers/media/platform/vsp1/vsp1_lif.c             |  238 ++++
- drivers/media/platform/vsp1/vsp1_lif.h             |   37 +
- drivers/media/platform/vsp1/vsp1_regs.h            |  581 ++++++++++
- drivers/media/platform/vsp1/vsp1_rpf.c             |  209 ++++
- drivers/media/platform/vsp1/vsp1_rwpf.c            |  124 +++
- drivers/media/platform/vsp1/vsp1_rwpf.h            |   53 +
- drivers/media/platform/vsp1/vsp1_uds.c             |  346 ++++++
- drivers/media/platform/vsp1/vsp1_uds.h             |   40 +
- drivers/media/platform/vsp1/vsp1_video.c           | 1135 ++++++++++++++++++++
- drivers/media/platform/vsp1/vsp1_video.h           |  144 +++
- drivers/media/platform/vsp1/vsp1_wpf.c             |  233 ++++
- include/linux/platform_data/vsp1.h                 |   25 +
- include/media/media-entity.h                       |    3 +
- include/uapi/linux/v4l2-mediabus.h                 |    6 +-
- include/uapi/linux/videodev2.h                     |    2 +
- 27 files changed, 4434 insertions(+), 371 deletions(-)
- create mode 100644 Documentation/DocBook/media/v4l/pixfmt-nv16m.xml
- create mode 100644 drivers/media/platform/vsp1/Makefile
- create mode 100644 drivers/media/platform/vsp1/vsp1.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_drv.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_entity.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_lif.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_regs.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_rpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_rwpf.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_uds.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.c
- create mode 100644 drivers/media/platform/vsp1/vsp1_video.h
- create mode 100644 drivers/media/platform/vsp1/vsp1_wpf.c
- create mode 100644 include/linux/platform_data/vsp1.h
-
+Best regards
 -- 
-Regards,
+Marek Szyprowski
+Samsung R&D Institute Poland
 
-Laurent Pinchart
 
