@@ -1,88 +1,277 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:36074 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1755407Ab3GYJaR (ORCPT
+Received: from mailout4.w1.samsung.com ([210.118.77.14]:17674 "EHLO
+	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754834Ab3G2PvU (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 25 Jul 2013 05:30:17 -0400
-Date: Thu, 25 Jul 2013 10:29:57 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Arnd Bergmann <arnd@arndb.de>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomasz Figa <t.figa@samsung.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, swarren@nvidia.com,
-	devicetree@vger.kernel.org, linux-doc@vger.kernel.org,
-	linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Message-ID: <20130725092957.GV9858@sirena.org.uk>
-References: <Pine.LNX.4.44L0.1307231708020.1304-100000@iolanthe.rowland.org>
- <5977067.8rykRgjgre@flatron>
- <201307242032.03597.arnd@arndb.de>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="QD1r0wI5tTrL9hxl"
-Content-Disposition: inline
-In-Reply-To: <201307242032.03597.arnd@arndb.de>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+	Mon, 29 Jul 2013 11:51:20 -0400
+Message-id: <51F68F73.9060603@samsung.com>
+Date: Mon, 29 Jul 2013 17:51:15 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+To: Kishon Vijay Abraham I <kishon@ti.com>
+Cc: gregkh@linuxfoundation.org, kyungmin.park@samsung.com,
+	balbi@ti.com, jg1.han@samsung.com, kgene.kim@samsung.com,
+	stern@rowland.harvard.edu, broonie@kernel.org,
+	tomasz.figa@gmail.com, arnd@arndb.de, devicetree@vger.kernel.org,
+	linux-fbdev@vger.kernel.org, linux-samsung-soc@vger.kernel.org,
+	swarren@nvidia.com, balajitk@ti.com, linux-doc@vger.kernel.org,
+	tony@atomide.com, Tomasz Figa <t.figa@samsung.com>,
+	linux-usb@vger.kernel.org, nsekhar@ti.com,
+	linux-kernel@vger.kernel.org, grant.likely@linaro.org,
+	linux@arm.linux.org.uk, akpm@linux-foundation.org,
+	linux-omap@vger.kernel.org, george.cherian@ti.com,
+	linux-arm-kernel@lists.infradead.org, linux-media@vger.kernel.org
+Subject: Re: [RESEND PATCH v10 1/8] drivers: phy: add generic PHY framework
+References: <1374842963-13545-1-git-send-email-kishon@ti.com>
+ <1374842963-13545-2-git-send-email-kishon@ti.com>
+In-reply-to: <1374842963-13545-2-git-send-email-kishon@ti.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+On 07/26/2013 02:49 PM, Kishon Vijay Abraham I wrote:
+> The PHY framework provides a set of APIs for the PHY drivers to
+> create/destroy a PHY and APIs for the PHY users to obtain a reference to the
+> PHY with or without using phandle. For dt-boot, the PHY drivers should
+> also register *PHY provider* with the framework.
+> 
+> PHY drivers should create the PHY by passing id and ops like init, exit,
+> power_on and power_off. This framework is also pm runtime enabled.
+> 
+> The documentation for the generic PHY framework is added in
+> Documentation/phy.txt and the documentation for dt binding can be found at
+> Documentation/devicetree/bindings/phy/phy-bindings.txt
+> 
+> Cc: Tomasz Figa <t.figa@samsung.com>
+> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+> Acked-by: Felipe Balbi <balbi@ti.com>
+> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+> ---
+>  .../devicetree/bindings/phy/phy-bindings.txt       |   66 ++
+>  Documentation/phy.txt                              |  166 +++++
+>  MAINTAINERS                                        |    8 +
+>  drivers/Kconfig                                    |    2 +
+>  drivers/Makefile                                   |    2 +
+>  drivers/phy/Kconfig                                |   18 +
+>  drivers/phy/Makefile                               |    5 +
+>  drivers/phy/phy-core.c                             |  714 ++++++++++++++++++++
+>  include/linux/phy/phy.h                            |  270 ++++++++
+>  9 files changed, 1251 insertions(+)
+>  create mode 100644 Documentation/devicetree/bindings/phy/phy-bindings.txt
+>  create mode 100644 Documentation/phy.txt
+>  create mode 100644 drivers/phy/Kconfig
+>  create mode 100644 drivers/phy/Makefile
+>  create mode 100644 drivers/phy/phy-core.c
+>  create mode 100644 include/linux/phy/phy.h
+> 
+> diff --git a/Documentation/devicetree/bindings/phy/phy-bindings.txt b/Documentation/devicetree/bindings/phy/phy-bindings.txt
+> new file mode 100644
+> index 0000000..8ae844f
+> --- /dev/null
+> +++ b/Documentation/devicetree/bindings/phy/phy-bindings.txt
+> @@ -0,0 +1,66 @@
+> +This document explains only the device tree data binding. For general
+> +information about PHY subsystem refer to Documentation/phy.txt
+[...]
+> @@ -0,0 +1,166 @@
+> +			    PHY SUBSYSTEM
+> +		  Kishon Vijay Abraham I <kishon@ti.com>
+> +
+> +This document explains the Generic PHY Framework along with the APIs provided,
+> +and how-to-use.
+> +
+> +1. Introduction
+> +
+> +*PHY* is the abbreviation for physical layer. It is used to connect a device
+> +to the physical medium e.g., the USB controller has a PHY to provide functions
+> +such as serialization, de-serialization, encoding, decoding and is responsible
+> +for obtaining the required data transmission rate. Note that some USB
+> +controllers have PHY functionality embedded into it and others use an external
+> +PHY. Other peripherals that use PHY include Wireless LAN, Ethernet,
+> +SATA etc.
+> +
+> +The intention of creating this framework is to bring the PHY drivers spread
+> +all over the Linux kernel to drivers/phy to increase code re-use and for
+> +better code maintainability.
+> +
+> +This framework will be of use only to devices that use external PHY (PHY
+> +functionality is not embedded within the controller).
+> +
+> +2. Registering/Unregistering the PHY provider
+> +
+> +PHY provider refers to an entity that implements one or more PHY instances.
+> +For the simple case where the PHY provider implements only a single instance of
+> +the PHY, the framework provides its own implementation of of_xlate in
+> +of_phy_simple_xlate. If the PHY provider implements multiple instances, it
+> +should provide its own implementation of of_xlate. of_xlate is used only for
+> +dt boot case.
+> +
+> +#define of_phy_provider_register(dev, xlate)    \
+> +        __of_phy_provider_register((dev), THIS_MODULE, (xlate))
+> +
+> +#define devm_of_phy_provider_register(dev, xlate)       \
+> +        __of_phy_provider_register((dev), THIS_MODULE, (xlate))
 
---QD1r0wI5tTrL9hxl
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+This needs to be:
 
-On Wed, Jul 24, 2013 at 08:32:03PM +0200, Arnd Bergmann wrote:
+	__devm_of_phy_provider_register((dev), THIS_MODULE, (xlate))
 
-> Sorry for jumping in to the middle of the discussion, but why does a *new*
-> framework even bother defining an interface for board files?
+as Kamil pointed out. We've tested it here with v9 and it makes
+Bad Things happen. ;)
 
-> Can't we just drop any interfaces for platform data passing in the phy
-> framework and put the burden of adding those to anyone who actually needs
-> them? All the platforms we are concerned with here (exynos and omap,
-> plus new platforms) can be booted using DT anyway.
+> +of_phy_provider_register and devm_of_phy_provider_register macros can be used to
+> +register the phy_provider and it takes device and of_xlate as
+> +arguments. For the dt boot case, all PHY providers should use one of the above
+> +2 macros to register the PHY provider.
+> +
+> +void devm_of_phy_provider_unregister(struct device *dev,
+> +	struct phy_provider *phy_provider);
+> +void of_phy_provider_unregister(struct phy_provider *phy_provider);
+> +
+> +devm_of_phy_provider_unregister and of_phy_provider_unregister can be used to
+> +unregister the PHY.
+> +
+[...]
+> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+> new file mode 100644
+> index 0000000..f1d15e5
+> --- /dev/null
+> +++ b/drivers/phy/phy-core.c
+> @@ -0,0 +1,714 @@
+[...]
+> +static struct phy *phy_lookup(struct device *device, const char *port)
+> +{
+> +	unsigned int count;
+> +	struct phy *phy;
+> +	struct device *dev;
+> +	struct phy_consumer *consumers;
+> +	struct class_dev_iter iter;
+	
+Don't you need something like
 
-There's a bunch of non-DT architectures that are in active use (blackfin
-for example) and I'd really hope that this is useful for some of them.
+	if (phy->init_data == NULL)	
+		return ERR_PTR(-EINVAL);
 
-The pushback here was about the fact that the subsystem was doing odd
-things with selecting device names which is odd in itself, I don't know
-if that had bled over into the DT bindings but it sounded like it
-might've done so.
+to ensure there is no attempt to dereference NULL platform data ?
 
---QD1r0wI5tTrL9hxl
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
+> +	class_dev_iter_init(&iter, phy_class, NULL, NULL);
+> +	while ((dev = class_dev_iter_next(&iter))) {
+> +		phy = to_phy(dev);
+> +		count = phy->init_data->num_consumers;
+> +		consumers = phy->init_data->consumers;
+> +		while (count--) {
+> +			if (!strcmp(consumers->dev_name, dev_name(device)) &&
+> +					!strcmp(consumers->port, port)) {
+> +				class_dev_iter_exit(&iter);
+> +				return phy;
+> +			}
+> +			consumers++;
+> +		}
+> +	}
+> +
+> +	class_dev_iter_exit(&iter);
+> +	return ERR_PTR(-ENODEV);
+> +}
+> +
+[...]
+> +int phy_init(struct phy *phy)
+> +{
+> +	int ret;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (phy->init_count++ == 0 && phy->ops->init) {
+> +		ret = phy->ops->init(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy init failed --> %d\n", ret);
+> +			goto out;
 
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
+Is this 'goto' and similar ones below really needed ?
 
-iQIcBAEBAgAGBQJR8PARAAoJELSic+t+oim9h80P/1oXCil2BLGuGCRwLn6bJHhk
-/07tzgZUwbrAEYfnu4JOwfHn4gTIqqK7mFxzM5FV5N3o8+YtPSy/iWs6p8hho2z8
-8MPbMYN3mkR271aRq/B0m4OthaF32XNAkYO5khSYQprV4thtuhFqIOJd8l1/+4dL
-I5LMkD1HvMLQBdLjsRdjwmNCLOfpBBLsng85n6UlOKtPSQy2In/d5xsJI8/Gh8OQ
-rvCzyGjSiHetL9ZX5wz11+odJmVXah3ZaIOLn9xWJjS5EtD/Nr4iT19r2gYdkzOk
-td6igrTO6k+5bdP/WIM6Fr4Fr6B7y7zWCA7MBma6kFoosp+dL2x9A+zWKQwLmHFR
-lZLUgqiSy9vIiHSmCrpfwvbABtssVBi7fzIxcFKrhB3f6/ek2LTJ5jYgBg7yBTOe
-1RNpwm6Bx3O9wJXWKrpobADL/ynPUtu9ttjYrCJw/sy18m8ZhDuycOOnRX1Ulhc0
-g8LX/my6f8Mc2yNJiYdwNUMEL7iMynUqqH2Sy/5IbUN8GmWXNaBTFXczYAaKqFkt
-p+CzV2fGcH+po1fwRclBP/0n9ywv5a6x8lHPYqVWkDOww8d4b694CaV6ZYTwDwIL
-jor467WvL4OCk7OqfZ2f8RX3K2wp3DC5O24o695bf97hMGrpEU5S6Pm3p1XiDgvu
-3LuNvC7nJdI900hwVANz
-=1iQH
------END PGP SIGNATURE-----
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(phy_init);
+> +
+> +int phy_exit(struct phy *phy)
+> +{
+> +	int ret;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (--phy->init_count == 0 && phy->ops->exit) {
+> +		ret = phy->ops->exit(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy exit failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(phy_exit);
+> +
+> +int phy_power_on(struct phy *phy)
+> +{
+> +	int ret = -ENOTSUPP;
+> +
+> +	ret = phy_pm_runtime_get_sync(phy);
+> +	if (ret < 0 && ret != -ENOTSUPP)
+> +		return ret;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (phy->power_count++ == 0 && phy->ops->power_on) {
+> +		ret = phy->ops->power_on(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy poweron failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(phy_power_on);
+> +
+> +int phy_power_off(struct phy *phy)
+> +{
+> +	int ret = -ENOTSUPP;
+> +
+> +	mutex_lock(&phy->mutex);
+> +	if (--phy->power_count == 0 && phy->ops->power_off) {
+> +		ret =  phy->ops->power_off(phy);
+> +		if (ret < 0) {
+> +			dev_err(&phy->dev, "phy poweroff failed --> %d\n", ret);
+> +			goto out;
+> +		}
+> +	}
+> +
+> +out:
+> +	mutex_unlock(&phy->mutex);
+> +	phy_pm_runtime_put(phy);
+> +
+> +	return ret;
+> +}
+> +EXPORT_SYMBOL_GPL(phy_power_off);
 
---QD1r0wI5tTrL9hxl--
+--
+Thanks,
+Sylwester
