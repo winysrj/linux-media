@@ -1,106 +1,55 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:2246 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752912Ab3GDS3m (ORCPT
-	<rfc822;linux-media@vger.kernel.org>); Thu, 4 Jul 2013 14:29:42 -0400
-Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166] (may be forged))
-	(authenticated bits=0)
-	by smtp-vbr13.xs4all.nl (8.13.8/8.13.8) with ESMTP id r64ITcDY065363
-	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
-	for <linux-media@vger.kernel.org>; Thu, 4 Jul 2013 20:29:41 +0200 (CEST)
-	(envelope-from hverkuil@xs4all.nl)
-Received: from localhost (marune.xs4all.nl [80.101.105.217])
-	(Authenticated sender: hans)
-	by alastor.dyndns.org (Postfix) with ESMTPSA id 9B56D35E010B
-	for <linux-media@vger.kernel.org>; Thu,  4 Jul 2013 20:29:37 +0200 (CEST)
-From: "Hans Verkuil" <hverkuil@xs4all.nl>
+Received: from ams-iport-3.cisco.com ([144.254.224.146]:15131 "EHLO
+	ams-iport-3.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752613Ab3G2Mrl (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jul 2013 08:47:41 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6TClZLk009651
+	for <linux-media@vger.kernel.org>; Mon, 29 Jul 2013 12:47:37 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
 To: linux-media@vger.kernel.org
-Subject: cron job: media_tree daily build: WARNINGS
-Message-Id: <20130704182937.9B56D35E010B@alastor.dyndns.org>
-Date: Thu,  4 Jul 2013 20:29:37 +0200 (CEST)
+Subject: [PATCH] qv4l2: Fixed a bug in the v4l2-api
+Date: Mon, 29 Jul 2013 14:47:33 +0200
+Message-Id: <20b0016794892a35cfc11b4f1aecd2dbb1b10466.1375102016.git.bwinther@cisco.com>
+In-Reply-To: <1375102053-3603-1-git-send-email-bwinther@cisco.com>
+References: <1375102053-3603-1-git-send-email-bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-This message is generated daily by a cron job that builds media_tree for
-the kernels and architectures in the list below.
+The get_interval would return false even if devices had support for this
 
-Results of the daily build of media_tree:
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
+---
+ utils/qv4l2/v4l2-api.cpp | 12 +++++-------
+ 1 file changed, 5 insertions(+), 7 deletions(-)
 
-date:		Thu Jul  4 19:00:26 CEST 2013
-git branch:	test
-git hash:	1c26190a8d492adadac4711fe5762d46204b18b0
-gcc version:	i686-linux-gcc (GCC) 4.8.1
-sparse version:	v0.4.5-rc1
-host hardware:	x86_64
-host os:	3.9-7.slh.1-amd64
+diff --git a/utils/qv4l2/v4l2-api.cpp b/utils/qv4l2/v4l2-api.cpp
+index 9c37be3..7a438af 100644
+--- a/utils/qv4l2/v4l2-api.cpp
++++ b/utils/qv4l2/v4l2-api.cpp
+@@ -613,13 +613,11 @@ bool v4l2::set_interval(v4l2_fract interval)
+ bool v4l2::get_interval(v4l2_fract &interval)
+ {
+ 	v4l2_streamparm parm;
+-
+ 	parm.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+-	if (ioctl(VIDIOC_G_PARM, &parm) >= 0 &&
+-	    (parm.parm.capture.capability & V4L2_CAP_TIMEPERFRAME)) {
+-		interval = parm.parm.capture.timeperframe;
+-		return true;
+-        }
+ 
+-	return false;
++	if (ioctl(VIDIOC_G_PARM, &parm) < 0)
++		return false;
++
++	interval = parm.parm.capture.timeperframe;
++	return interval.numerator && interval.denominator;
+ }
+-- 
+1.8.3.2
 
-linux-git-arm-at91: OK
-linux-git-arm-davinci: OK
-linux-git-arm-exynos: OK
-linux-git-arm-mx: OK
-linux-git-arm-omap: OK
-linux-git-arm-omap1: OK
-linux-git-arm-pxa: OK
-linux-git-blackfin: OK
-linux-git-i686: OK
-linux-git-m32r: OK
-linux-git-mips: OK
-linux-git-powerpc64: OK
-linux-git-sh: OK
-linux-git-x86_64: OK
-linux-2.6.31.14-i686: WARNINGS
-linux-2.6.32.27-i686: WARNINGS
-linux-2.6.33.7-i686: WARNINGS
-linux-2.6.34.7-i686: WARNINGS
-linux-2.6.35.9-i686: WARNINGS
-linux-2.6.36.4-i686: WARNINGS
-linux-2.6.37.6-i686: WARNINGS
-linux-2.6.38.8-i686: WARNINGS
-linux-2.6.39.4-i686: WARNINGS
-linux-3.0.60-i686: OK
-linux-3.10-i686: OK
-linux-3.1.10-i686: OK
-linux-3.2.37-i686: OK
-linux-3.3.8-i686: OK
-linux-3.4.27-i686: WARNINGS
-linux-3.5.7-i686: WARNINGS
-linux-3.6.11-i686: WARNINGS
-linux-3.7.4-i686: WARNINGS
-linux-3.8-i686: WARNINGS
-linux-3.9.2-i686: WARNINGS
-linux-2.6.31.14-x86_64: WARNINGS
-linux-2.6.32.27-x86_64: WARNINGS
-linux-2.6.33.7-x86_64: WARNINGS
-linux-2.6.34.7-x86_64: WARNINGS
-linux-2.6.35.9-x86_64: WARNINGS
-linux-2.6.36.4-x86_64: WARNINGS
-linux-2.6.37.6-x86_64: WARNINGS
-linux-2.6.38.8-x86_64: WARNINGS
-linux-2.6.39.4-x86_64: WARNINGS
-linux-3.0.60-x86_64: OK
-linux-3.10-x86_64: OK
-linux-3.1.10-x86_64: OK
-linux-3.2.37-x86_64: OK
-linux-3.3.8-x86_64: OK
-linux-3.4.27-x86_64: WARNINGS
-linux-3.5.7-x86_64: WARNINGS
-linux-3.6.11-x86_64: WARNINGS
-linux-3.7.4-x86_64: WARNINGS
-linux-3.8-x86_64: WARNINGS
-linux-3.9.2-x86_64: WARNINGS
-apps: WARNINGS
-spec-git: OK
-sparse version:	v0.4.5-rc1
-sparse: ERRORS
-
-Detailed results are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.log
-
-Full logs are available here:
-
-http://www.xs4all.nl/~hverkuil/logs/Thursday.tar.bz2
-
-The Media Infrastructure API from this daily build is here:
-
-http://www.xs4all.nl/~hverkuil/spec/media.html
