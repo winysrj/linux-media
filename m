@@ -1,49 +1,105 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-la0-f53.google.com ([209.85.215.53]:64892 "EHLO
-	mail-la0-f53.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932278Ab3GKNrI (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3667 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484Ab3G2Ml1 (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 09:47:08 -0400
-Received: by mail-la0-f53.google.com with SMTP id fs12so6834649lab.12
-        for <linux-media@vger.kernel.org>; Thu, 11 Jul 2013 06:47:06 -0700 (PDT)
-Message-ID: <51DEB757.6070202@cogentembedded.com>
-Date: Thu, 11 Jul 2013 17:47:03 +0400
-From: Sergei Shtylyov <sergei.shtylyov@cogentembedded.com>
-MIME-Version: 1.0
-To: Oliver Neukum <oliver@neukum.org>
-CC: Ming Lei <ming.lei@canonical.com>,
-	Greg Kroah-Hartman <gregkh@linuxfoundation.org>,
-	linux-usb@vger.kernel.org, Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Juergen Stuber <starblue@users.sourceforge.net>
-Subject: Re: [PATCH 08/50] USB: legousbtower: spin_lock in complete() cleanup
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com> <1373533573-12272-9-git-send-email-ming.lei@canonical.com> <51DEA289.5050509@cogentembedded.com> <3187374.nPY1jDDWKm@linux-5eaq.site>
-In-Reply-To: <3187374.nPY1jDDWKm@linux-5eaq.site>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
-Content-Transfer-Encoding: 7bit
+	Mon, 29 Jul 2013 08:41:27 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>,
+	"Lad, Prabhakar" <prabhakar.csengg@gmail.com>
+Subject: [RFC PATCH 7/8] v4l2: use new V4L2_DV_BT_BLANKING/FRAME defines
+Date: Mon, 29 Jul 2013 14:41:00 +0200
+Message-Id: <1375101661-6493-8-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
+References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hello.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-On 11-07-2013 16:36, Oliver Neukum wrote:
+Use the new blanking and frame size defines. This also fixed a bug in
+these drivers: they assumed that the height for interlaced formats was
+the field height, however height is the frame height. So the height
+for a field is actually bt->height / 2.
 
->>      I don't think this patch passes checkpatch.pl.
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+Cc: Lad, Prabhakar <prabhakar.csengg@gmail.com>
+---
+ drivers/media/platform/davinci/vpif_capture.c | 10 ++--------
+ drivers/media/platform/davinci/vpif_display.c | 10 ++--------
+ 2 files changed, 4 insertions(+), 16 deletions(-)
 
-> This series is a mechanical replacement in dozens of drivers.
-
-    That mechanicity shows too much in some patches.
-
-> We cannot demand nice formatting.  If you want to do something
-> productive, check the locking in the driver.
-
-    I'm not paid for it and don't have time to do it for free.
-
-> 	Regards
-> 		Oliver
-
-WBR, Sergei
-
+diff --git a/drivers/media/platform/davinci/vpif_capture.c b/drivers/media/platform/davinci/vpif_capture.c
+index b11d7a7..e1b6a3b 100644
+--- a/drivers/media/platform/davinci/vpif_capture.c
++++ b/drivers/media/platform/davinci/vpif_capture.c
+@@ -1799,19 +1799,15 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
+ 
+ 	/* Configure video port timings */
+ 
+-	std_info->eav2sav = bt->hbackporch + bt->hfrontporch +
+-		bt->hsync - 8;
++	std_info->eav2sav = V4L2_DV_BT_BLANKING_WIDTH(bt) - 8;
+ 	std_info->sav2eav = bt->width;
+ 
+ 	std_info->l1 = 1;
+ 	std_info->l3 = bt->vsync + bt->vbackporch + 1;
+ 
++	std_info->vsize = V4L2_DV_BT_FRAME_HEIGHT(bt);
+ 	if (bt->interlaced) {
+ 		if (bt->il_vbackporch || bt->il_vfrontporch || bt->il_vsync) {
+-			std_info->vsize = bt->height * 2 +
+-				bt->vfrontporch + bt->vsync + bt->vbackporch +
+-				bt->il_vfrontporch + bt->il_vsync +
+-				bt->il_vbackporch;
+ 			std_info->l5 = std_info->vsize/2 -
+ 				(bt->vfrontporch - 1);
+ 			std_info->l7 = std_info->vsize/2 + 1;
+@@ -1825,8 +1821,6 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
+ 			return -EINVAL;
+ 		}
+ 	} else {
+-		std_info->vsize = bt->height + bt->vfrontporch +
+-			bt->vsync + bt->vbackporch;
+ 		std_info->l5 = std_info->vsize - (bt->vfrontporch - 1);
+ 	}
+ 	strncpy(std_info->name, "Custom timings BT656/1120", VPIF_MAX_NAME);
+diff --git a/drivers/media/platform/davinci/vpif_display.c b/drivers/media/platform/davinci/vpif_display.c
+index c2ff067..a42e43c 100644
+--- a/drivers/media/platform/davinci/vpif_display.c
++++ b/drivers/media/platform/davinci/vpif_display.c
+@@ -1436,19 +1436,15 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
+ 
+ 	/* Configure video port timings */
+ 
+-	std_info->eav2sav = bt->hbackporch + bt->hfrontporch +
+-		bt->hsync - 8;
++	std_info->eav2sav = V4L2_DV_BT_BLANKING_WIDTH(bt) - 8;
+ 	std_info->sav2eav = bt->width;
+ 
+ 	std_info->l1 = 1;
+ 	std_info->l3 = bt->vsync + bt->vbackporch + 1;
+ 
++	std_info->vsize = V4L2_DV_BT_FRAME_HEIGHT(bt);
+ 	if (bt->interlaced) {
+ 		if (bt->il_vbackporch || bt->il_vfrontporch || bt->il_vsync) {
+-			std_info->vsize = bt->height * 2 +
+-				bt->vfrontporch + bt->vsync + bt->vbackporch +
+-				bt->il_vfrontporch + bt->il_vsync +
+-				bt->il_vbackporch;
+ 			std_info->l5 = std_info->vsize/2 -
+ 				(bt->vfrontporch - 1);
+ 			std_info->l7 = std_info->vsize/2 + 1;
+@@ -1462,8 +1458,6 @@ static int vpif_s_dv_timings(struct file *file, void *priv,
+ 			return -EINVAL;
+ 		}
+ 	} else {
+-		std_info->vsize = bt->height + bt->vfrontporch +
+-			bt->vsync + bt->vbackporch;
+ 		std_info->l5 = std_info->vsize - (bt->vfrontporch - 1);
+ 	}
+ 	strncpy(std_info->name, "Custom timings BT656/1120",
+-- 
+1.8.3.2
 
