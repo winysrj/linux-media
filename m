@@ -1,120 +1,77 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-2.cisco.com ([144.254.224.141]:50614 "EHLO
-	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751069Ab3GXMqd (ORCPT
+Received: from mailout2.w1.samsung.com ([210.118.77.12]:18721 "EHLO
+	mailout2.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753875Ab3G2ODc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 08:46:33 -0400
-Received: from cobaltpc1.localnet (dhcp-10-54-92-107.cisco.com [10.54.92.107])
-	by ams-core-3.cisco.com (8.14.5/8.14.5) with ESMTP id r6OCk7XE032013
-	for <linux-media@vger.kernel.org>; Wed, 24 Jul 2013 12:46:07 GMT
-From: Hans Verkuil <hverkuil@xs4all.nl>
-To: linux-media@vger.kernel.org
-Subject: Re: cron job: media_tree daily build: ERRORS
-Date: Wed, 24 Jul 2013 14:46:06 +0200
-References: <20130723172748.0E6DE35E0395@alastor.dyndns.org>
-In-Reply-To: <20130723172748.0E6DE35E0395@alastor.dyndns.org>
-MIME-Version: 1.0
-Content-Type: Text/Plain;
-  charset="utf-8"
-Content-Transfer-Encoding: 7bit
-Message-Id: <201307241446.06927.hverkuil@xs4all.nl>
+	Mon, 29 Jul 2013 10:03:32 -0400
+Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
+ by mailout2.w1.samsung.com
+ (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
+ 17 2011)) with ESMTP id <0MQP009T1B0ZU0A0@mailout2.w1.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Jul 2013 15:03:30 +0100 (BST)
+To: undisclosed-recipients:;
+Received: from [106.116.147.32] by eusync3.samsung.com
+ (Oracle Communications Messaging Server 7u4-23.01(7.0.4.23.0) 64bit (built Aug
+ 10 2011)) with ESMTPA id <0MQP0019GB1UJ850@eusync3.samsung.com> for
+ linux-media@vger.kernel.org; Mon, 29 Jul 2013 15:03:30 +0100 (BST)
+Message-id: <51F67631.1090301@samsung.com>
+Date: Mon, 29 Jul 2013 16:03:29 +0200
+From: Sylwester Nawrocki <s.nawrocki@samsung.com>
+MIME-version: 1.0
+Cc: LMML <linux-media@vger.kernel.org>
+Subject: Re: [GIT PULL] v4l2-async API updates
+References: <51F659C9.7000208@samsung.com>
+In-reply-to: <51F659C9.7000208@samsung.com>
+Content-type: text/plain; charset=ISO-8859-1
+Content-transfer-encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tue 23 July 2013 19:27:47 Hans Verkuil wrote:
-> This message is generated daily by a cron job that builds media_tree for
-> the kernels and architectures in the list below.
+Mauro,
 
-I've fixed the build issues after the 3.11 merge. So hopefully today's daily build
-will be back to 'WARNINGS'.
+please ignore this pull request, there is an issue in one patch.
+I'll re-send it fixed in a while.
+
+On 07/29/2013 02:02 PM, Sylwester Nawrocki wrote:
+> Hi Mauro,
+> 
+> This includes a couple updates to the v4l2-async API: an addition
+> of a method of matching subdevs by device tree node pointer, some
+> cleanups and a typo fix for the JPEG controls documentation.
+> 
+> The following changes since commit 51dd4d70fc59564454a4dcb90d6d46d39a4a97ef:
+> 
+>   [media] em28xx: Fix vidioc fmt vid cap v4l2 compliance (2013-07-26 13:35:02
+> -0300)
+> 
+> are available in the git repository at:
+> 
+>   git://linuxtv.org/snawrocki/samsung.git for-v3.12
+> 
+> for you to fetch changes up to 3d7d76fe1bf5b9f64ea3f718aec51a75e856a463:
+> 
+>   DocBook: Fix typo in V4L2_CID_JPEG_COMPRESSION_QUALITY reference (2013-07-29
+> 13:44:54 +0200)
+> 
+> ----------------------------------------------------------------
+> Sylwester Nawrocki (6):
+>       V4L: Drop bus_type check in v4l2-async match functions
+>       V4L: Rename v4l2_async_bus_* to v4l2_async_match_*
+>       V4L: Add V4L2_ASYNC_MATCH_OF subdev matching type
+>       V4L: Rename subdev field of struct v4l2_async_notifier
+>       V4L: Merge struct v4l2_async_subdev_list with struct v4l2_subdev
+>       DocBook: Fix typo in V4L2_CID_JPEG_COMPRESSION_QUALITY reference
+> 
+>  .../DocBook/media/v4l/vidioc-g-jpegcomp.xml        |    4 +-
+>  drivers/media/platform/davinci/vpif_capture.c      |    2 +-
+>  drivers/media/platform/davinci/vpif_display.c      |    2 +-
+>  drivers/media/platform/soc_camera/soc_camera.c     |    4 +-
+>  drivers/media/v4l2-core/v4l2-async.c               |  106 ++++++++++----------
+>  include/media/v4l2-async.h                         |   36 +++----
+>  include/media/v4l2-subdev.h                        |   13 ++-
+>  7 files changed, 78 insertions(+), 89 deletions(-)
+> 
+> --
 
 Regards,
-
-	Hans
-
-> 
-> Results of the daily build of media_tree:
-> 
-> date:		Tue Jul 23 19:00:18 CEST 2013
-> git branch:	test
-> git hash:	c859e6ef33ac0c9a5e9e934fe11a2232752b4e96
-> gcc version:	i686-linux-gcc (GCC) 4.8.1
-> sparse version:	v0.4.5-rc1
-> host hardware:	x86_64
-> host os:	3.9-7.slh.1-amd64
-> 
-> linux-git-arm-at91: OK
-> linux-git-arm-davinci: OK
-> linux-git-arm-exynos: OK
-> linux-git-arm-mx: OK
-> linux-git-arm-omap: OK
-> linux-git-arm-omap1: OK
-> linux-git-arm-pxa: OK
-> linux-git-blackfin: OK
-> linux-git-i686: OK
-> linux-git-m32r: OK
-> linux-git-mips: OK
-> linux-git-powerpc64: OK
-> linux-git-sh: OK
-> linux-git-x86_64: OK
-> linux-2.6.31.14-i686: ERRORS
-> linux-2.6.32.27-i686: ERRORS
-> linux-2.6.33.7-i686: ERRORS
-> linux-2.6.34.7-i686: ERRORS
-> linux-2.6.35.9-i686: ERRORS
-> linux-2.6.36.4-i686: ERRORS
-> linux-2.6.37.6-i686: ERRORS
-> linux-2.6.38.8-i686: ERRORS
-> linux-2.6.39.4-i686: ERRORS
-> linux-3.0.60-i686: ERRORS
-> linux-3.10-i686: ERRORS
-> linux-3.1.10-i686: ERRORS
-> linux-3.2.37-i686: ERRORS
-> linux-3.3.8-i686: ERRORS
-> linux-3.4.27-i686: ERRORS
-> linux-3.5.7-i686: ERRORS
-> linux-3.6.11-i686: ERRORS
-> linux-3.7.4-i686: ERRORS
-> linux-3.8-i686: ERRORS
-> linux-3.9.2-i686: ERRORS
-> linux-2.6.31.14-x86_64: ERRORS
-> linux-2.6.32.27-x86_64: ERRORS
-> linux-2.6.33.7-x86_64: ERRORS
-> linux-2.6.34.7-x86_64: ERRORS
-> linux-2.6.35.9-x86_64: ERRORS
-> linux-2.6.36.4-x86_64: ERRORS
-> linux-2.6.37.6-x86_64: ERRORS
-> linux-2.6.38.8-x86_64: ERRORS
-> linux-2.6.39.4-x86_64: ERRORS
-> linux-3.0.60-x86_64: ERRORS
-> linux-3.10-x86_64: ERRORS
-> linux-3.1.10-x86_64: ERRORS
-> linux-3.2.37-x86_64: ERRORS
-> linux-3.3.8-x86_64: ERRORS
-> linux-3.4.27-x86_64: ERRORS
-> linux-3.5.7-x86_64: ERRORS
-> linux-3.6.11-x86_64: ERRORS
-> linux-3.7.4-x86_64: ERRORS
-> linux-3.8-x86_64: ERRORS
-> linux-3.9.2-x86_64: ERRORS
-> apps: WARNINGS
-> spec-git: OK
-> sparse version:	v0.4.5-rc1
-> sparse: ERRORS
-> 
-> Detailed results are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Tuesday.log
-> 
-> Full logs are available here:
-> 
-> http://www.xs4all.nl/~hverkuil/logs/Tuesday.tar.bz2
-> 
-> The Media Infrastructure API from this daily build is here:
-> 
-> http://www.xs4all.nl/~hverkuil/spec/media.html
-> --
-> To unsubscribe from this list: send the line "unsubscribe linux-media" in
-> the body of a message to majordomo@vger.kernel.org
-> More majordomo info at  http://vger.kernel.org/majordomo-info.html
-> 
+Sylwester
