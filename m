@@ -1,84 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from metis.ext.pengutronix.de ([92.198.50.35]:59855 "EHLO
-	metis.ext.pengutronix.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932083Ab3GWNHf (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 09:07:35 -0400
-Message-ID: <1374584814.4041.8.camel@pizza.hi.pengutronix.de>
-Subject: Re: [PATCH v3 2/3] [media] coda: Check the return value from
- clk_prepare_enable()
-From: Philipp Zabel <p.zabel@pengutronix.de>
-To: Fabio Estevam <festevam@gmail.com>
-Cc: k.debski@samsung.com, m.chehab@samsung.com, kernel@pengutronix.de,
-	linux-media@vger.kernel.org,
-	Fabio Estevam <fabio.estevam@freescale.com>
-Date: Tue, 23 Jul 2013 15:06:54 +0200
-In-Reply-To: <1374543502-22678-2-git-send-email-festevam@gmail.com>
-References: <1374543502-22678-1-git-send-email-festevam@gmail.com>
-	 <1374543502-22678-2-git-send-email-festevam@gmail.com>
-Content-Type: text/plain; charset="UTF-8"
+Received: from perches-mx.perches.com ([206.117.179.246]:46841 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1751410Ab3G2TeZ (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jul 2013 15:34:25 -0400
+Message-ID: <1375126464.2075.46.camel@joe-AO722>
+Subject: Re: [PATCH 2/3] include: Convert ethernet mac address declarations
+ to use ETH_ALEN
+From: Joe Perches <joe@perches.com>
+To: "Rafael J. Wysocki" <rjw@sisk.pl>
+Cc: netdev@vger.kernel.org, Len Brown <lenb@kernel.org>,
+	Pantelis Antoniou <pantelis.antoniou@gmail.com>,
+	Vitaly Bordug <vbordug@ru.mvista.com>,
+	Steve Glendinning <steve.glendinning@shawell.net>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Samuel Ortiz <samuel@sortiz.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org
+Date: Mon, 29 Jul 2013 12:34:24 -0700
+In-Reply-To: <2929374.frUlkyTFNL@vostro.rjw.lan>
+References: <cover.1375075325.git.joe@perches.com>
+	 <a769aba61c43967257854413f16d2b935cc54972.1375075325.git.joe@perches.com>
+	 <2929374.frUlkyTFNL@vostro.rjw.lan>
+Content-Type: text/plain; charset="ISO-8859-1"
 Mime-Version: 1.0
 Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Fabio,
+On Mon, 2013-07-29 at 13:59 +0200, Rafael J. Wysocki wrote:
+> On Sunday, July 28, 2013 10:29:04 PM Joe Perches wrote:
+> > It's convenient to have ethernet mac addresses use
+> > ETH_ALEN to be able to grep for them a bit easier and
+> > also to ensure that the addresses are __aligned(2).
+[]
+> > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+[]
+> > @@ -44,6 +44,8 @@
+[]
+> > +#include <linux/if_ether.h>
+> > +
+[]
+> > @@ -605,7 +607,7 @@ struct acpi_ibft_nic {
+[]
+> > -	u8 mac_address[6];
+> > +	u8 mac_address[ETH_ALEN];
 
-Am Montag, den 22.07.2013, 22:38 -0300 schrieb Fabio Estevam:
-> From: Fabio Estevam <fabio.estevam@freescale.com>
+> Please don't touch this file.
 > 
-> clk_prepare_enable() may fail, so let's check its return value and propagate it
-> in the case of error.
-> 
-> Signed-off-by: Fabio Estevam <fabio.estevam@freescale.com>
-> ---
-> - Changes since v2:
-> - Release the previously acquired resources
-> Changes since v1:
-> - Add missing 'if'
-> 
->  drivers/media/platform/coda.c | 17 +++++++++++++++--
->  1 file changed, 15 insertions(+), 2 deletions(-)
-> 
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index ea16c20..5f15aaa 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -1561,14 +1561,27 @@ static int coda_open(struct file *file)
->  	list_add(&ctx->list, &dev->instances);
->  	coda_unlock(ctx);
->  
-> -	clk_prepare_enable(dev->clk_per);
-> -	clk_prepare_enable(dev->clk_ahb);
-> +	ret = clk_prepare_enable(dev->clk_per);
-> +	if (ret)
-> +		goto err_clk_per;
-> +
-> +	ret = clk_prepare_enable(dev->clk_ahb);
-> +	if (ret)
-> +		goto err_clk_ahb;
->  
->  	v4l2_dbg(1, coda_debug, &dev->v4l2_dev, "Created instance %d (%p)\n",
->  		 ctx->idx, ctx);
->  
->  	return 0;
->  
-> +err_clk_ahb:
-> +	clk_disable_unprepare(dev->clk_per);
-> +err_clk_per:
-> +	coda_lock(ctx);
-> +	list_del(&ctx->list);
-> +	coda_unlock(ctx);
-> +	dma_free_coherent(&dev->plat_dev->dev, CODA_PARA_BUF_SIZE,
-> +			  ctx->parabuf.vaddr, ctx->parabuf.paddr);
->  err_dma_alloc:
->  	v4l2_ctrl_handler_free(&ctx->ctrls);
->  err_ctrls_setup:
+> It comes from a code base outside of the kernel and should be kept in sync with
+> the upstream.
 
-I still think the list_add() should be moved after the last possible
-error case and the lock/list_del/unlock should be removed from the error
-path.
-
-regards
-Philipp
+Which files in include/acpi have this characteristic?
+Perhaps an include/acpi/README is appropriate.
 
