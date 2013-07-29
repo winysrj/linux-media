@@ -1,100 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from ams-iport-1.cisco.com ([144.254.224.140]:3196 "EHLO
-	ams-iport-1.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1754981Ab3GPLeK (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 07:34:10 -0400
-From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
-To: linux-media@vger.kernel.org
-Cc: hansverk@cisco.com
-Subject: [PATCH 2/4] qv4l2: add hotkeys for common operations
-Date: Tue, 16 Jul 2013 13:24:06 +0200
-Message-Id: <b7e21e4446fdad85f6f6a5ceab269d96a90d4cd0.1373973770.git.bwinther@cisco.com>
-In-Reply-To: <1373973848-4084-1-git-send-email-bwinther@cisco.com>
-References: <1373973848-4084-1-git-send-email-bwinther@cisco.com>
-In-Reply-To: <61608db2b5b388a50c91730739479dccf76c046d.1373973770.git.bwinther@cisco.com>
-References: <61608db2b5b388a50c91730739479dccf76c046d.1373973770.git.bwinther@cisco.com>
+Received: from hydra.sisk.pl ([212.160.235.94]:46389 "EHLO hydra.sisk.pl"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1751551Ab3G2T4u (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jul 2013 15:56:50 -0400
+From: "Rafael J. Wysocki" <rjw@sisk.pl>
+To: Joe Perches <joe@perches.com>
+Cc: netdev@vger.kernel.org, Len Brown <lenb@kernel.org>,
+	Pantelis Antoniou <pantelis.antoniou@gmail.com>,
+	Vitaly Bordug <vbordug@ru.mvista.com>,
+	Steve Glendinning <steve.glendinning@shawell.net>,
+	Mauro Carvalho Chehab <m.chehab@samsung.com>,
+	Samuel Ortiz <samuel@sortiz.org>,
+	"David S. Miller" <davem@davemloft.net>,
+	linux-acpi@vger.kernel.org, linux-kernel@vger.kernel.org,
+	linuxppc-dev@lists.ozlabs.org, linux-usb@vger.kernel.org,
+	linux-media@vger.kernel.org
+Subject: Re: [PATCH 2/3] include: Convert ethernet mac address declarations to use ETH_ALEN
+Date: Mon, 29 Jul 2013 22:06:58 +0200
+Message-ID: <4497056.HfyZknBA2p@vostro.rjw.lan>
+In-Reply-To: <1375126464.2075.46.camel@joe-AO722>
+References: <cover.1375075325.git.joe@perches.com> <2929374.frUlkyTFNL@vostro.rjw.lan> <1375126464.2075.46.camel@joe-AO722>
 MIME-Version: 1.0
-Content-Type: text/plain; charset=UTF-8
-Content-Transfer-Encoding: 8bit
+Content-Transfer-Encoding: 7Bit
+Content-Type: text/plain; charset="utf-8"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-CTRL + V : When main window is selected start capture.
-           This gives an option other than the button to start recording,
-           as this is a frequent operation when using the utility.
-CTRL + W : When CaptureWin is selected close capture window
-           It makes it easier to deal with high resolutions video on
-           small screen, especially when the window close button may
-           be outside the monitor when repositioning the window.
+On Monday, July 29, 2013 12:34:24 PM Joe Perches wrote:
+> On Mon, 2013-07-29 at 13:59 +0200, Rafael J. Wysocki wrote:
+> > On Sunday, July 28, 2013 10:29:04 PM Joe Perches wrote:
+> > > It's convenient to have ethernet mac addresses use
+> > > ETH_ALEN to be able to grep for them a bit easier and
+> > > also to ensure that the addresses are __aligned(2).
+> []
+> > > diff --git a/include/acpi/actbl2.h b/include/acpi/actbl2.h
+> []
+> > > @@ -44,6 +44,8 @@
+> []
+> > > +#include <linux/if_ether.h>
+> > > +
+> []
+> > > @@ -605,7 +607,7 @@ struct acpi_ibft_nic {
+> []
+> > > -	u8 mac_address[6];
+> > > +	u8 mac_address[ETH_ALEN];
+> 
+> > Please don't touch this file.
+> > 
+> > It comes from a code base outside of the kernel and should be kept in sync with
+> > the upstream.
+> 
+> Which files in include/acpi have this characteristic?
 
-Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
----
- utils/qv4l2/capture-win.cpp | 8 ++++++++
- utils/qv4l2/capture-win.h   | 4 +++-
- utils/qv4l2/qv4l2.cpp       | 1 +
- 3 files changed, 12 insertions(+), 1 deletion(-)
+Generally, all whose names start with "ac" except for acpi_bus.h,
+acpi_drivers.h and acpi_numa.h.
 
-diff --git a/utils/qv4l2/capture-win.cpp b/utils/qv4l2/capture-win.cpp
-index 6798252..a94c73d 100644
---- a/utils/qv4l2/capture-win.cpp
-+++ b/utils/qv4l2/capture-win.cpp
-@@ -35,6 +35,14 @@ CaptureWin::CaptureWin()
- 
- 	vbox->addWidget(m_label);
- 	vbox->addWidget(m_msg);
-+
-+	hotkeyClose = new QShortcut(Qt::CTRL+Qt::Key_W, this);
-+	QObject::connect(hotkeyClose, SIGNAL(activated()), this, SLOT(close()));
-+}
-+
-+CaptureWin::~CaptureWin()
-+{
-+	delete hotkeyClose;
- }
- 
- void CaptureWin::setImage(const QImage &image, const QString &status)
-diff --git a/utils/qv4l2/capture-win.h b/utils/qv4l2/capture-win.h
-index e861b12..4115d56 100644
---- a/utils/qv4l2/capture-win.h
-+++ b/utils/qv4l2/capture-win.h
-@@ -21,6 +21,7 @@
- #define CAPTURE_WIN_H
- 
- #include <QWidget>
-+#include <QShortcut>
- #include <sys/time.h>
- 
- class QImage;
-@@ -32,7 +33,7 @@ class CaptureWin : public QWidget
- 
- public:
- 	CaptureWin();
--	virtual ~CaptureWin() {}
-+	~CaptureWin();
- 
- 	void setImage(const QImage &image, const QString &status);
- 
-@@ -45,6 +46,7 @@ signals:
- private:
- 	QLabel *m_label;
- 	QLabel *m_msg;
-+	QShortcut *hotkeyClose;
- };
- 
- #endif
-diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
-index a8fcc65..bb1d84f 100644
---- a/utils/qv4l2/qv4l2.cpp
-+++ b/utils/qv4l2/qv4l2.cpp
-@@ -78,6 +78,7 @@ ApplicationWindow::ApplicationWindow() :
- 	m_capStartAct->setStatusTip("Start capturing");
- 	m_capStartAct->setCheckable(true);
- 	m_capStartAct->setDisabled(true);
-+	m_capStartAct->setShortcut(Qt::CTRL+Qt::Key_V);
- 	connect(m_capStartAct, SIGNAL(toggled(bool)), this, SLOT(capStart(bool)));
- 
- 	m_snapshotAct = new QAction(QIcon(":/snapshot.png"), "&Make Snapshot", this);
+> Perhaps an include/acpi/README is appropriate.
+
+Yes, we can add one.
+
+Thanks,
+Rafael
+
+
 -- 
-1.8.3.2
-
+I speak only for myself.
+Rafael J. Wysocki, Intel Open Source Technology Center.
