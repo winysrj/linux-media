@@ -1,84 +1,61 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from cassiel.sirena.org.uk ([80.68.93.111]:55334 "EHLO
-	cassiel.sirena.org.uk" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933361Ab3GWRg0 (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 13:36:26 -0400
-Date: Tue, 23 Jul 2013 18:34:54 +0100
-From: Mark Brown <broonie@kernel.org>
-To: Alan Stern <stern@rowland.harvard.edu>
-Cc: Tomasz Figa <tomasz.figa@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Kishon Vijay Abraham I <kishon@ti.com>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Greg KH <gregkh@linuxfoundation.org>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
+Received: from perches-mx.perches.com ([206.117.179.246]:40631 "EHLO
+	labridge.com" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org with ESMTP
+	id S1754585Ab3G2F3R (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jul 2013 01:29:17 -0400
+From: Joe Perches <joe@perches.com>
+To: netdev@vger.kernel.org
+Cc: linux-kernel@vger.kernel.org, linux-arm-kernel@lists.infradead.org,
+	linux-acpi@vger.kernel.org, linuxppc-dev@lists.ozlabs.org,
 	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, Stephen Warren <swarren@wwwdotorg.org>,
-	b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Message-ID: <20130723173454.GK9858@sirena.org.uk>
-References: <3419798.aorxYv8pdo@flatron>
- <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
-MIME-Version: 1.0
-Content-Type: multipart/signed; micalg=pgp-sha1;
-	protocol="application/pgp-signature"; boundary="i5oaXLJ4GqfCAla0"
-Content-Disposition: inline
-In-Reply-To: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
+	netfilter-devel@vger.kernel.org,
+	virtualization@lists.linux-foundation.org, wimax@linuxwimax.org
+Subject: [PATCH 0/3] networking: Use ETH_ALEN where appropriate
+Date: Sun, 28 Jul 2013 22:29:02 -0700
+Message-Id: <cover.1375075325.git.joe@perches.com>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
+Convert the uses mac addresses to ETH_ALEN so
+it's easier to find and verify where mac addresses
+need to be __aligned(2)
 
---i5oaXLJ4GqfCAla0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
+Joe Perches (3):
+  uapi: Convert some uses of 6 to ETH_ALEN
+  include: Convert ethernet mac address declarations to use ETH_ALEN
+  ethernet: Convert mac address uses of 6 to ETH_ALEN
 
-On Tue, Jul 23, 2013 at 10:37:05AM -0400, Alan Stern wrote:
-> On Tue, 23 Jul 2013, Tomasz Figa wrote:
+ drivers/net/ethernet/8390/ax88796.c                |  4 +-
+ drivers/net/ethernet/amd/pcnet32.c                 |  6 +--
+ drivers/net/ethernet/broadcom/cnic_if.h            |  6 +--
+ drivers/net/ethernet/dec/tulip/tulip_core.c        |  8 +--
+ drivers/net/ethernet/i825xx/sun3_82586.h           |  4 +-
+ drivers/net/ethernet/myricom/myri10ge/myri10ge.c   |  2 +-
+ drivers/net/ethernet/nuvoton/w90p910_ether.c       |  4 +-
+ drivers/net/ethernet/pasemi/pasemi_mac.c           | 13 ++---
+ drivers/net/ethernet/pasemi/pasemi_mac.h           |  4 +-
+ drivers/net/ethernet/qlogic/netxen/netxen_nic_hw.c |  4 +-
+ drivers/net/ethernet/qlogic/qlge/qlge.h            |  2 +-
+ include/acpi/actbl2.h                              |  4 +-
+ include/linux/dm9000.h                             |  4 +-
+ include/linux/fs_enet_pd.h                         |  3 +-
+ include/linux/ieee80211.h                          | 59 +++++++++++-----------
+ include/linux/mlx4/device.h                        | 11 ++--
+ include/linux/mlx4/qp.h                            |  5 +-
+ include/linux/mv643xx_eth.h                        |  3 +-
+ include/linux/sh_eth.h                             |  3 +-
+ include/linux/smsc911x.h                           |  3 +-
+ include/linux/uwb/spec.h                           |  5 +-
+ include/media/tveeprom.h                           |  4 +-
+ include/net/irda/irlan_common.h                    |  3 +-
+ include/uapi/linux/dn.h                            |  3 +-
+ include/uapi/linux/if_bridge.h                     |  3 +-
+ include/uapi/linux/netfilter_bridge/ebt_802_3.h    |  5 +-
+ include/uapi/linux/netfilter_ipv4/ipt_CLUSTERIP.h  |  3 +-
+ include/uapi/linux/virtio_net.h                    |  2 +-
+ include/uapi/linux/wimax/i2400m.h                  |  4 +-
+ 29 files changed, 103 insertions(+), 81 deletions(-)
 
-> > > > Okay.  Are PHYs _always_ platform devices?
+-- 
+1.8.1.2.459.gbcd45b4.dirty
 
-> > > They can be i2c, spi or any other device types as well.
-
-> In those other cases, presumably there is no platform data associated
-> with the PHY since it isn't a platform device.  Then how does the
-> kernel know which controller is attached to the PHY?  Is this spelled
-> out in platform data associated with the PHY's i2c/spi/whatever parent?
-
-Platform data is nothing to do with the platform bus - it's board
-specific data (ie, data for the platform) and can be done with any
-device.
-
---i5oaXLJ4GqfCAla0
-Content-Type: application/pgp-signature; name="signature.asc"
-Content-Description: Digital signature
-
------BEGIN PGP SIGNATURE-----
-Version: GnuPG v2.0.20 (GNU/Linux)
-
-iQIcBAEBAgAGBQJR7r67AAoJELSic+t+oim9mQgP/jtUcLJCh8K5fwvGamn4opPT
-Lmfss8MxAGPhgblBb24+aRD7dKntVOSYIQKc51TUXDfzjyUWqCfEo6U46ej6lfkD
-kiHlIHfy6YjqIeMmI08dX/OyzgJf9wg/Btf8f3niSmEaQ6GiyuOy+ok3VLJqoIae
-lTa+q8mGrWIqHb0+sP0rolztvR4dqHWg8DseVc6mH21kR+RTexwlJcBSJJcL8xmA
-IrUbMzt4/35JMeLrgf43T0cuKrP59hT+9Cl4oEVx92We+9Jrc1b4o2LyhlxyAkM/
-X7B86hl3ExmvYnPgHMR0N4PiRgsG1XIgFAPHrQQRvfieLm3irgLUnTc9RMIdzpS7
-jsgBzR8x14b33ZtGJ8fo9WMlfO9N3ELrLQY4a6g39DPtqxCzyYMbCy5+HVNbUxvP
-nnC9V/2Mi01G9AFK1sOocgSZjKjvXa3W5Dgc8KNXIa0d7M8Gy1j/ToGFdDT2Rk9F
-f5OjxvRZv8mSffV/vp3GbNbjOhfzB3jRQp3ltmh+ayhnZmfmraOCMiQvfFuacPaC
-/QqPWfXLBO+S8iUYsxY5SqhbgP7qbOcfPFzMy6YtDuuNKvNCLbMubhW8fgDX64pt
-/nVnmWZa48yb0dCJj0rY/lNNWvFRjb2D3YEhoSxSg7i0oZk8lPO0Ivid3VCZ3AXt
-It00egc7+yTUssZUPYJW
-=NMIj
------END PGP SIGNATURE-----
-
---i5oaXLJ4GqfCAla0--
