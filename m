@@ -1,39 +1,41 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:33237 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S1760813Ab3GaUlG (ORCPT
+Received: from smtp-vbr12.xs4all.nl ([194.109.24.32]:1694 "EHLO
+	smtp-vbr12.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751484Ab3G2Mlc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 16:41:06 -0400
-Date: Wed, 31 Jul 2013 23:40:31 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
-To: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>
-Cc: linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>,
-	Katsuya MATSUBARA <matsu@igel.co.jp>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>
-Subject: Re: [PATCH v4 1/7] media: Add support for circular graph traversal
-Message-ID: <20130731204030.GQ12281@valkosipuli.retiisi.org.uk>
-References: <1375285954-32153-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
- <1375285954-32153-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
-MIME-Version: 1.0
-Content-Type: text/plain; charset=us-ascii
-Content-Disposition: inline
-In-Reply-To: <1375285954-32153-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com>
+	Mon, 29 Jul 2013 08:41:32 -0400
+Received: from alastor.dyndns.org (166.80-203-20.nextgentel.com [80.203.20.166])
+	(authenticated bits=0)
+	by smtp-vbr12.xs4all.nl (8.13.8/8.13.8) with ESMTP id r6TCfKJK058264
+	(version=TLSv1/SSLv3 cipher=DHE-RSA-AES256-SHA bits=256 verify=FAIL)
+	for <linux-media@vger.kernel.org>; Mon, 29 Jul 2013 14:41:23 +0200 (CEST)
+	(envelope-from hverkuil@xs4all.nl)
+Received: from tschai.cisco.com (64-103-25-233.cisco.com [64.103.25.233])
+	(Authenticated sender: hans)
+	by alastor.dyndns.org (Postfix) with ESMTPSA id 2A15135E0403
+	for <linux-media@vger.kernel.org>; Mon, 29 Jul 2013 14:41:15 +0200 (CEST)
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Subject: [RFC PATCH 0/8] dv-timings improvements, cleanups and fixes
+Date: Mon, 29 Jul 2013 14:40:53 +0200
+Message-Id: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Wed, Jul 31, 2013 at 05:52:28PM +0200, Laurent Pinchart wrote:
-> The graph traversal API (media_entity_graph_walk_*) doesn't support
-> cyclic graphs and will fail to correctly walk a graph when circular
-> links exist. Support circular graph traversal by checking whether an
-> entity has already been visited before pushing it to the stack.
+This patch series collects all dv-timings helper code into a new
+v4l2-dv-timings module. There aren't that many drivers that use HDTV
+timings, so it makes no sense to have a lot of HDTV related code in
+v4l2-common.
 
-Thanks, Laurent!
+It also fixes a few bugs (Prabhakar: please check patch 7/8!) and it
+adds new helper functions that allows drivers to select timings based
+on their hardware capabilities.
 
-Acked-by: Sakari Ailus <sakari.ailus@iki.fi>
+This reorganization will also make it easier in the near future to add
+functionality that uses VIC codes to retrieve the corresponding CEA-861
+timing.
 
--- 
-Cheers,
+Regards,
 
-Sakari Ailus
-e-mail: sakari.ailus@iki.fi	XMPP: sailus@retiisi.org.uk
+	Hans
+
