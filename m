@@ -1,55 +1,57 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from moutng.kundenserver.de ([212.227.126.171]:54822 "EHLO
-	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1753400Ab3G3MZk (ORCPT
+Received: from smtp-vbr8.xs4all.nl ([194.109.24.28]:3156 "EHLO
+	smtp-vbr8.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1751445Ab3G2MlY (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 30 Jul 2013 08:25:40 -0400
-Received: from 6a.grange (6a.grange [192.168.1.11])
-	by axis700.grange (Postfix) with ESMTPS id 2D46040BB6
-	for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 14:25:38 +0200 (CEST)
-Received: from lyakh by 6a.grange with local (Exim 4.72)
-	(envelope-from <g.liakhovetski@gmx.de>)
-	id 1V48zh-0003vL-VR
-	for linux-media@vger.kernel.org; Tue, 30 Jul 2013 14:25:37 +0200
-From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+	Mon, 29 Jul 2013 08:41:24 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
 To: linux-media@vger.kernel.org
-Subject: [PATCH 4/6] V4L2: mt9t031: don't Oops if asynchronous probing is attempted
-Date: Tue, 30 Jul 2013 14:25:36 +0200
-Message-Id: <1375187137-15045-6-git-send-email-g.liakhovetski@gmx.de>
-In-Reply-To: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
-References: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 4/8] DocBook/media/v4l: il_* fields always 0 for progressive formats
+Date: Mon, 29 Jul 2013 14:40:57 +0200
+Message-Id: <1375101661-6493-5-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
+References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-The mt9t031 driver hasn't yet been updated to support asynchronous
-subdevice probing. If such a probing is attempted, the driver is allowed
-to fail, but it shouldn't Oops. This patch fixes such a potential NULL
-pointer dereference.
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+Clarify that the il_vfrontporch, il_vsync and il_vbackporch fields must
+always be 0 for progressive formats.
+
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
 ---
- drivers/media/i2c/soc_camera/mt9t031.c |    7 +++++--
- 1 files changed, 5 insertions(+), 2 deletions(-)
+ Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml | 6 +++---
+ 1 file changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/drivers/media/i2c/soc_camera/mt9t031.c b/drivers/media/i2c/soc_camera/mt9t031.c
-index 47d18d0..ee7bb0f 100644
---- a/drivers/media/i2c/soc_camera/mt9t031.c
-+++ b/drivers/media/i2c/soc_camera/mt9t031.c
-@@ -594,9 +594,12 @@ static int mt9t031_s_power(struct v4l2_subdev *sd, int on)
- 		ret = soc_camera_power_on(&client->dev, ssdd, mt9t031->clk);
- 		if (ret < 0)
- 			return ret;
--		vdev->dev.type = &mt9t031_dev_type;
-+		if (vdev)
-+			/* Not needed during probing, when vdev isn't available yet */
-+			vdev->dev.type = &mt9t031_dev_type;
- 	} else {
--		vdev->dev.type = NULL;
-+		if (vdev)
-+			vdev->dev.type = NULL;
- 		soc_camera_power_off(&client->dev, ssdd, mt9t031->clk);
- 	}
- 
+diff --git a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
+index 7236970..c433657 100644
+--- a/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
++++ b/Documentation/DocBook/media/v4l/vidioc-g-dv-timings.xml
+@@ -156,19 +156,19 @@ bit 0 (V4L2_DV_VSYNC_POS_POL) is for vertical sync polarity and bit 1 (V4L2_DV_H
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>il_vfrontporch</structfield></entry>
+ 	    <entry>Vertical front porch in lines for the even field (aka field 2) of
+-	    interlaced field formats.</entry>
++	    interlaced field formats. Must be 0 for progressive formats.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>il_vsync</structfield></entry>
+ 	    <entry>Vertical sync length in lines for the even field (aka field 2) of
+-	    interlaced field formats.</entry>
++	    interlaced field formats. Must be 0 for progressive formats.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
+ 	    <entry><structfield>il_vbackporch</structfield></entry>
+ 	    <entry>Vertical back porch in lines for the even field (aka field 2) of
+-	    interlaced field formats.</entry>
++	    interlaced field formats. Must be 0 for progressive formats.</entry>
+ 	  </row>
+ 	  <row>
+ 	    <entry>__u32</entry>
 -- 
-1.7.2.5
+1.8.3.2
 
