@@ -1,54 +1,68 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:3464 "EHLO
-	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757557Ab3GZNYH (ORCPT
-	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 09:24:07 -0400
-Message-ID: <51F27868.1010104@xs4all.nl>
-Date: Fri, 26 Jul 2013 15:23:52 +0200
-From: Hans Verkuil <hverkuil@xs4all.nl>
+Received: from comal.ext.ti.com ([198.47.26.152]:42103 "EHLO comal.ext.ti.com"
+	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
+	id S1752735Ab3G2GTu (ORCPT <rfc822;linux-media@vger.kernel.org>);
+	Mon, 29 Jul 2013 02:19:50 -0400
+Message-ID: <51F6097F.4080001@ti.com>
+Date: Mon, 29 Jul 2013 09:19:43 +0300
+From: Tomi Valkeinen <tomi.valkeinen@ti.com>
 MIME-Version: 1.0
-To: Alban Browaeys <alban.browaeys@gmail.com>
-CC: Mauro Carvalho Chehab <mchehab@redhat.com>,
-	linux-media@vger.kernel.org, linux-kernel@vger.kernel.org,
-	Alban Browaeys <prahal@yahoo.com>
-Subject: Re: [PATCH 1/4] [media] em28xx: fix assignment of the eeprom data.
-References: <1374015476-26197-1-git-send-email-prahal@yahoo.com>
-In-Reply-To: <1374015476-26197-1-git-send-email-prahal@yahoo.com>
-Content-Type: text/plain; charset=ISO-8859-1
-Content-Transfer-Encoding: 7bit
+To: =?UTF-8?B?SmFrdWIgUGlvdHIgQ8WCYXBh?= <jpc-ml@zenburn.net>
+CC: Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
+	linux-media <linux-media@vger.kernel.org>
+Subject: Re: [omapdss] fault in dispc_write_irqenable [was: Re: [omap3isp]
+ xclk deadlock]
+References: <51D37796.2000601@zenburn.net> <1604535.2Z0SUEyxcF@avalon> <51E0165C.5000401@zenburn.net> <3227918.6DpNM0vnE9@avalon> <51F22A58.9030208@ti.com> <51F297C0.1080501@zenburn.net>
+In-Reply-To: <51F297C0.1080501@zenburn.net>
+Content-Type: multipart/signed; micalg=pgp-sha1;
+	protocol="application/pgp-signature";
+	boundary="QaAjisiEe27KviIvkENUw4ao8WOOltrEr"
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Ouch. I'll take this for 3.11 and CC linux-stable for 3.10.
+--QaAjisiEe27KviIvkENUw4ao8WOOltrEr
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
 
-I'm amazed that this hasn't been discovered earlier.
+On 26/07/13 18:37, Jakub Piotr C=C5=82apa wrote:
 
-Thanks!
+>> Using omapfb, or...? I hope not
+>> omap_vout, because that's rather unmaintained =3D).
+>=20
+> Laurent's live application is using the V4L2 API for video output (to
+> get free YUV conversion and DMA) so I guess this unfortunatelly counts
+> as using omap_vout. Are there any alternatives I should look into? IIUC=
 
-	Hans
 
-On 07/17/2013 12:57 AM, Alban Browaeys wrote:
-> Set the config structure pointer to the eeprom data pointer (data,
-> here eedata dereferenced) not the pointer to the pointer to
-> the eeprom data (eedata itself).
-> 
-> Signed-off-by: Alban Browaeys <prahal@yahoo.com>
-> ---
->  drivers/media/usb/em28xx/em28xx-i2c.c | 2 +-
->  1 file changed, 1 insertion(+), 1 deletion(-)
-> 
-> diff --git a/drivers/media/usb/em28xx/em28xx-i2c.c b/drivers/media/usb/em28xx/em28xx-i2c.c
-> index 4851cc2..c4ff973 100644
-> --- a/drivers/media/usb/em28xx/em28xx-i2c.c
-> +++ b/drivers/media/usb/em28xx/em28xx-i2c.c
-> @@ -726,7 +726,7 @@ static int em28xx_i2c_eeprom(struct em28xx *dev, unsigned bus,
->  
->  	*eedata = data;
->  	*eedata_len = len;
-> -	dev_config = (void *)eedata;
-> +	dev_config = (void *)*eedata;
->  
->  	switch (le16_to_cpu(dev_config->chip_conf) >> 4 & 0x3) {
->  	case 0:
-> 
+Ok. Do you have a call trace for the dispc_write_irqenable crash? Maybe
+it's something simple to fix.
+
+ Tomi
+
+
+
+--QaAjisiEe27KviIvkENUw4ao8WOOltrEr
+Content-Type: application/pgp-signature; name="signature.asc"
+Content-Description: OpenPGP digital signature
+Content-Disposition: attachment; filename="signature.asc"
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1.4.12 (GNU/Linux)
+Comment: Using GnuPG with Thunderbird - http://www.enigmail.net/
+
+iQIcBAEBAgAGBQJR9gl/AAoJEPo9qoy8lh71ORUQAIUfj44UMv0qhTgtlnV1zuA0
+k11GDjpzWH438vUdR7GZwey4Nea2eoMsajk+Sp4WzWg0IrfAztHQpWV+s2ro6pIZ
+pUPHaaq0FiH33Xa4u+au8HDc9INgpj6xKiLaTXdqCh7YWvuiTCdgal3YNASBzfBl
+Se3MguIKW8irRhu8h9FHXotZZW5wbgSm7/0rcmwQX/jQWjIQ25C3nr+yROIQ6bXU
+rQIBMhqblaO06G0KqmXxMod9clwAM4kX+C8IXTWdhFmBge17kTddaSW3hmjwHrub
+qdYUqM2RcE475eUD2/tVz4apB0Y9ZOejKRWlS9kQiHOuKpFcl6SdkJqbrWlG5dCu
+l2BctDZU7eLvHopv+Ni2LanjqUQVGgN8v3klaA2xTVnK9tbmknlpmB2VklUTaMjy
+drNMCQFlt3rBi4fJH4tDS3Bswk0BaN3houjxEXix7jaLPuW8Cw5+Yo4Orb0u9PJD
+/OgQ8y3V/9V5Ow82ZmCQg880y5YJGljA2Q8gGXvsX0aEoGXYlFdbCOhI3nswwqxC
+vDFqUj0iOpoPbX2SeCDVV+HTgK2NwAmBgutytfLAUTJVpF5oEqDGyJUqFWG6yFm5
+RGOFx9GRGpKMBDdKEj0C6xlYukxWZJehMCUb7u9l2wu8t5Fu3uAfnscFJnHwbLYJ
+mke/YCJ5mmntdV30ux7v
+=O3dO
+-----END PGP SIGNATURE-----
+
+--QaAjisiEe27KviIvkENUw4ao8WOOltrEr--
