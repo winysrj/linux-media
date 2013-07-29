@@ -1,75 +1,51 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout3.w2.samsung.com ([211.189.100.13]:31236 "EHLO
-	usmailout3.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1758147Ab3GZNCr (ORCPT
+Received: from smtp-vbr13.xs4all.nl ([194.109.24.33]:4074 "EHLO
+	smtp-vbr13.xs4all.nl" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753934Ab3G2Mle (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Fri, 26 Jul 2013 09:02:47 -0400
-Received: from uscpsbgm1.samsung.com
- (u114.gpu85.samsung.co.kr [203.254.195.114]) by usmailout3.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQJ00GZYO86FA20@usmailout3.samsung.com> for
- linux-media@vger.kernel.org; Fri, 26 Jul 2013 09:02:45 -0400 (EDT)
-Date: Fri, 26 Jul 2013 10:02:39 -0300
-From: Mauro Carvalho Chehab <m.chehab@samsung.com>
-To: Philipp Zabel <p.zabel@pengutronix.de>
-Cc: linux-media@vger.kernel.org, Kamil Debski <k.debski@samsung.com>,
-	Javier Martin <javier.martin@vista-silicon.com>,
-	Sylwester Nawrocki <s.nawrocki@samsung.com>,
-	=?UTF-8?B?R2HDq3Rhbg==?= Carlier <gcembed@gmail.com>,
-	Wei Yongjun <weiyj.lk@gmail.com>
-Subject: Re: [PATCH v2 1/8] [media] coda: use vb2_set_plane_payload instead of
- setting v4l2_planes[0].bytesused directly
-Message-id: <20130726100239.3fa8dee3@samsung.com>
-In-reply-to: <1371801334-22324-2-git-send-email-p.zabel@pengutronix.de>
-References: <1371801334-22324-1-git-send-email-p.zabel@pengutronix.de>
- <1371801334-22324-2-git-send-email-p.zabel@pengutronix.de>
-MIME-version: 1.0
-Content-type: text/plain; charset=US-ASCII
-Content-transfer-encoding: 7bit
+	Mon, 29 Jul 2013 08:41:34 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: linux-media@vger.kernel.org
+Cc: Hans Verkuil <hans.verkuil@cisco.com>
+Subject: [RFC PATCH 5/8] videodev2.h: defines to calculate blanking and frame sizes
+Date: Mon, 29 Jul 2013 14:40:58 +0200
+Message-Id: <1375101661-6493-6-git-send-email-hverkuil@xs4all.nl>
+In-Reply-To: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
+References: <1375101661-6493-1-git-send-email-hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Philipp,
+From: Hans Verkuil <hans.verkuil@cisco.com>
 
-Em Fri, 21 Jun 2013 09:55:27 +0200
-Philipp Zabel <p.zabel@pengutronix.de> escreveu:
+It is very common to have to calculate the total width and height of the
+blanking and the full frame, so add a few defines that deal with that.
 
-> Signed-off-by: Philipp Zabel <p.zabel@pengutronix.de>
+Signed-off-by: Hans Verkuil <hans.verkuil@cisco.com>
+---
+ include/uapi/linux/videodev2.h | 10 ++++++++++
+ 1 file changed, 10 insertions(+)
 
-Please provide a description of the patch.
-
-Thanks!
-Mauro
-
-> ---
->  drivers/media/platform/coda.c | 10 +++++-----
->  1 file changed, 5 insertions(+), 5 deletions(-)
-> 
-> diff --git a/drivers/media/platform/coda.c b/drivers/media/platform/coda.c
-> index c4566c4..90f3386 100644
-> --- a/drivers/media/platform/coda.c
-> +++ b/drivers/media/platform/coda.c
-> @@ -1662,12 +1662,12 @@ static irqreturn_t coda_irq_handler(int irq, void *data)
->  	wr_ptr = coda_read(dev, CODA_REG_BIT_WR_PTR(ctx->idx));
->  	/* Calculate bytesused field */
->  	if (dst_buf->v4l2_buf.sequence == 0) {
-> -		dst_buf->v4l2_planes[0].bytesused = (wr_ptr - start_ptr) +
-> -						ctx->vpu_header_size[0] +
-> -						ctx->vpu_header_size[1] +
-> -						ctx->vpu_header_size[2];
-> +		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr +
-> +					ctx->vpu_header_size[0] +
-> +					ctx->vpu_header_size[1] +
-> +					ctx->vpu_header_size[2]);
->  	} else {
-> -		dst_buf->v4l2_planes[0].bytesused = (wr_ptr - start_ptr);
-> +		vb2_set_plane_payload(dst_buf, 0, wr_ptr - start_ptr);
->  	}
->  
->  	v4l2_dbg(1, coda_debug, &ctx->dev->v4l2_dev, "frame size = %u\n",
-
-
+diff --git a/include/uapi/linux/videodev2.h b/include/uapi/linux/videodev2.h
+index 95ef455..547ef45 100644
+--- a/include/uapi/linux/videodev2.h
++++ b/include/uapi/linux/videodev2.h
+@@ -1055,6 +1055,16 @@ struct v4l2_bt_timings {
+    or used depends on the hardware. */
+ #define V4L2_DV_FL_HALF_LINE			(1 << 3)
+ 
++/* A few useful defines to calculate the total blanking and frame sizes */
++#define V4L2_DV_BT_BLANKING_WIDTH(bt) \
++	(bt->hfrontporch + bt->hsync + bt->hbackporch)
++#define V4L2_DV_BT_FRAME_WIDTH(bt) \
++	(bt->width + V4L2_DV_BT_BLANKING_WIDTH(bt))
++#define V4L2_DV_BT_BLANKING_HEIGHT(bt) \
++	(bt->vfrontporch + bt->vsync + bt->vbackporch + \
++	 bt->il_vfrontporch + bt->il_vsync + bt->il_vbackporch)
++#define V4L2_DV_BT_FRAME_HEIGHT(bt) \
++	(bt->height + V4L2_DV_BT_BLANKING_HEIGHT(bt))
+ 
+ /** struct v4l2_dv_timings - DV timings
+  * @type:	the type of the timings
 -- 
+1.8.3.2
 
-Cheers,
-Mauro
