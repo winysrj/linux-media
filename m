@@ -1,105 +1,134 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from comal.ext.ti.com ([198.47.26.152]:60403 "EHLO comal.ext.ti.com"
-	rhost-flags-OK-OK-OK-OK) by vger.kernel.org with ESMTP
-	id S1753591Ab3GULIW (ORCPT <rfc822;linux-media@vger.kernel.org>);
-	Sun, 21 Jul 2013 07:08:22 -0400
-Message-ID: <51EBC0F5.70601@ti.com>
-Date: Sun, 21 Jul 2013 16:37:33 +0530
-From: Kishon Vijay Abraham I <kishon@ti.com>
-MIME-Version: 1.0
-To: Tomasz Figa <tomasz.figa@gmail.com>
-CC: Greg KH <gregkh@linuxfoundation.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	<kyungmin.park@samsung.com>, <balbi@ti.com>, <jg1.han@samsung.com>,
-	<s.nawrocki@samsung.com>, <kgene.kim@samsung.com>,
-	<grant.likely@linaro.org>, <tony@atomide.com>, <arnd@arndb.de>,
-	<swarren@nvidia.com>, <devicetree-discuss@lists.ozlabs.org>,
-	<linux-doc@vger.kernel.org>, <linux-kernel@vger.kernel.org>,
-	<linux-arm-kernel@lists.infradead.org>,
-	<linux-samsung-soc@vger.kernel.org>, <linux-omap@vger.kernel.org>,
-	<linux-usb@vger.kernel.org>, <linux-media@vger.kernel.org>,
-	<linux-fbdev@vger.kernel.org>, <akpm@linux-foundation.org>,
-	<balajitk@ti.com>, <george.cherian@ti.com>, <nsekhar@ti.com>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-References: <20130720220006.GA7977@kroah.com> <Pine.LNX.4.44L0.1307202223430.8250-100000@netrider.rowland.org> <20130721025910.GA23043@kroah.com> <3839600.WiC1OLF35o@flatron>
-In-Reply-To: <3839600.WiC1OLF35o@flatron>
-Content-Type: text/plain; charset="ISO-8859-1"; format=flowed
-Content-Transfer-Encoding: 7bit
+Received: from moutng.kundenserver.de ([212.227.126.187]:49541 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753354Ab3G3MZk (ORCPT
+	<rfc822;linux-media@vger.kernel.org>);
+	Tue, 30 Jul 2013 08:25:40 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 0C01640BB4
+	for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 14:25:38 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1V48zh-0003vC-Pe
+	for linux-media@vger.kernel.org; Tue, 30 Jul 2013 14:25:37 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 1/6] V4L2: mx3_camera: convert to managed resource allocation
+Date: Tue, 30 Jul 2013 14:25:33 +0200
+Message-Id: <1375187137-15045-3-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+Use devm_* resource allocators to simplify the driver's probe and clean up
+paths.
 
-On Sunday 21 July 2013 04:01 PM, Tomasz Figa wrote:
-> Hi,
->
-> On Saturday 20 of July 2013 19:59:10 Greg KH wrote:
->> On Sat, Jul 20, 2013 at 10:32:26PM -0400, Alan Stern wrote:
->>> On Sat, 20 Jul 2013, Greg KH wrote:
->>>>>>> That should be passed using platform data.
->>>>>>
->>>>>> Ick, don't pass strings around, pass pointers.  If you have
->>>>>> platform
->>>>>> data you can get to, then put the pointer there, don't use a
->>>>>> "name".
->>>>>
->>>>> I don't think I understood you here :-s We wont have phy pointer
->>>>> when we create the device for the controller no?(it'll be done in
->>>>> board file). Probably I'm missing something.
->>>>
->>>> Why will you not have that pointer?  You can't rely on the "name" as
->>>> the device id will not match up, so you should be able to rely on
->>>> the pointer being in the structure that the board sets up, right?
->>>>
->>>> Don't use names, especially as ids can, and will, change, that is
->>>> going
->>>> to cause big problems.  Use pointers, this is C, we are supposed to
->>>> be
->>>> doing that :)
->>>
->>> Kishon, I think what Greg means is this:  The name you are using must
->>> be stored somewhere in a data structure constructed by the board file,
->>> right?  Or at least, associated with some data structure somehow.
->>> Otherwise the platform code wouldn't know which PHY hardware
->>> corresponded to a particular name.
->>>
->>> Greg's suggestion is that you store the address of that data structure
->>> in the platform data instead of storing the name string.  Have the
->>> consumer pass the data structure's address when it calls phy_create,
->>> instead of passing the name.  Then you don't have to worry about two
->>> PHYs accidentally ending up with the same name or any other similar
->>> problems.
->>
->> Close, but the issue is that whatever returns from phy_create() should
->> then be used, no need to call any "find" functions, as you can just use
->> the pointer that phy_create() returns.  Much like all other class api
->> functions in the kernel work.
->
-> I think there is a confusion here about who registers the PHYs.
->
-> All platform code does is registering a platform/i2c/whatever device,
-> which causes a driver (located in drivers/phy/) to be instantiated. Such
-> drivers call phy_create(), usually in their probe() callbacks, so
-> platform_code has no way (and should have no way, for the sake of
-> layering) to get what phy_create() returns.
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/mx3_camera.c |   47 +++++-------------------
+ 1 files changed, 10 insertions(+), 37 deletions(-)
 
-right.
->
-> IMHO we need a lookup method for PHYs, just like for clocks, regulators,
-> PWMs or even i2c busses because there are complex cases when passing just
-> a name using platform data will not work. I would second what Stephen said
-> [1] and define a structure doing things in a DT-like way.
->
-> Example;
->
-> [platform code]
->
-> static const struct phy_lookup my_phy_lookup[] = {
-> 	PHY_LOOKUP("s3c-hsotg.0", "otg", "samsung-usbphy.1", "phy.2"),
+diff --git a/drivers/media/platform/soc_camera/mx3_camera.c b/drivers/media/platform/soc_camera/mx3_camera.c
+index 1047e3e..e526096 100644
+--- a/drivers/media/platform/soc_camera/mx3_camera.c
++++ b/drivers/media/platform/soc_camera/mx3_camera.c
+@@ -1151,23 +1151,19 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 	struct soc_camera_host *soc_host;
+ 
+ 	res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+-	if (!res) {
+-		err = -ENODEV;
+-		goto egetres;
+-	}
++	base = devm_ioremap_resource(&pdev->dev, res);
++	if (IS_ERR(base))
++		return PTR_ERR(base);
+ 
+-	mx3_cam = vzalloc(sizeof(*mx3_cam));
++	mx3_cam = devm_kzalloc(&pdev->dev, sizeof(*mx3_cam), GFP_KERNEL);
+ 	if (!mx3_cam) {
+ 		dev_err(&pdev->dev, "Could not allocate mx3 camera object\n");
+-		err = -ENOMEM;
+-		goto ealloc;
++		return -ENOMEM;
+ 	}
+ 
+-	mx3_cam->clk = clk_get(&pdev->dev, NULL);
+-	if (IS_ERR(mx3_cam->clk)) {
+-		err = PTR_ERR(mx3_cam->clk);
+-		goto eclkget;
+-	}
++	mx3_cam->clk = devm_clk_get(&pdev->dev, NULL);
++	if (IS_ERR(mx3_cam->clk))
++		return PTR_ERR(mx3_cam->clk);
+ 
+ 	mx3_cam->pdata = pdev->dev.platform_data;
+ 	mx3_cam->platform_flags = mx3_cam->pdata->flags;
+@@ -1201,13 +1197,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 	INIT_LIST_HEAD(&mx3_cam->capture);
+ 	spin_lock_init(&mx3_cam->lock);
+ 
+-	base = ioremap(res->start, resource_size(res));
+-	if (!base) {
+-		pr_err("Couldn't map %x@%x\n", resource_size(res), res->start);
+-		err = -ENOMEM;
+-		goto eioremap;
+-	}
+-
+ 	mx3_cam->base	= base;
+ 
+ 	soc_host		= &mx3_cam->soc_host;
+@@ -1218,10 +1207,8 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 	soc_host->nr		= pdev->id;
+ 
+ 	mx3_cam->alloc_ctx = vb2_dma_contig_init_ctx(&pdev->dev);
+-	if (IS_ERR(mx3_cam->alloc_ctx)) {
+-		err = PTR_ERR(mx3_cam->alloc_ctx);
+-		goto eallocctx;
+-	}
++	if (IS_ERR(mx3_cam->alloc_ctx))
++		return PTR_ERR(mx3_cam->alloc_ctx);
+ 
+ 	err = soc_camera_host_register(soc_host);
+ 	if (err)
+@@ -1234,14 +1221,6 @@ static int mx3_camera_probe(struct platform_device *pdev)
+ 
+ ecamhostreg:
+ 	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
+-eallocctx:
+-	iounmap(base);
+-eioremap:
+-	clk_put(mx3_cam->clk);
+-eclkget:
+-	vfree(mx3_cam);
+-ealloc:
+-egetres:
+ 	return err;
+ }
+ 
+@@ -1251,12 +1230,8 @@ static int mx3_camera_remove(struct platform_device *pdev)
+ 	struct mx3_camera_dev *mx3_cam = container_of(soc_host,
+ 					struct mx3_camera_dev, soc_host);
+ 
+-	clk_put(mx3_cam->clk);
+-
+ 	soc_camera_host_unregister(soc_host);
+ 
+-	iounmap(mx3_cam->base);
+-
+ 	/*
+ 	 * The channel has either not been allocated,
+ 	 * or should have been released
+@@ -1266,8 +1241,6 @@ static int mx3_camera_remove(struct platform_device *pdev)
+ 
+ 	vb2_dma_contig_cleanup_ctx(mx3_cam->alloc_ctx);
+ 
+-	vfree(mx3_cam);
+-
+ 	dmaengine_put();
+ 
+ 	return 0;
+-- 
+1.7.2.5
 
-The only problem here is that if *PLATFORM_DEVID_AUTO* is used while 
-creating the device, the ids in the device name would change and 
-PHY_LOOKUP wont be useful.
-
-Thanks
-Kishon
