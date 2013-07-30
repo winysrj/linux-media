@@ -1,165 +1,62 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout4.w1.samsung.com ([210.118.77.14]:21240 "EHLO
-	mailout4.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S933722Ab3GWRsS (ORCPT
+Received: from moutng.kundenserver.de ([212.227.126.171]:51405 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753802Ab3G3Hpw (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 23 Jul 2013 13:48:18 -0400
-From: Tomasz Figa <t.figa@samsung.com>
-To: Greg KH <gregkh@linuxfoundation.org>,
-	Stephen Warren <swarren@wwwdotorg.org>
-Cc: Kishon Vijay Abraham I <kishon@ti.com>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	Tomasz Figa <tomasz.figa@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	broonie@kernel.org,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sascha Hauer <s.hauer@pengutronix.de>,
-	kyungmin.park@samsung.com, balbi@ti.com, jg1.han@samsung.com,
-	s.nawrocki@samsung.com, kgene.kim@samsung.com,
-	grant.likely@linaro.org, tony@atomide.com, arnd@arndb.de,
-	swarren@nvidia.com, devicetree@vger.kernel.org,
-	linux-doc@vger.kernel.org, linux-kernel@vger.kernel.org,
-	linux-arm-kernel@lists.infradead.org,
-	linux-samsung-soc@vger.kernel.org, linux-omap@vger.kernel.org,
-	linux-usb@vger.kernel.org, linux-media@vger.kernel.org,
-	linux-fbdev@vger.kernel.org, akpm@linux-foundation.org,
-	balajitk@ti.com, george.cherian@ti.com, nsekhar@ti.com,
-	olof@lixom.net, b.zolnierkie@samsung.com,
-	Daniel Lezcano <daniel.lezcano@linaro.org>
-Subject: Re: [PATCH 01/15] drivers: phy: add generic PHY framework
-Date: Tue, 23 Jul 2013 19:48:11 +0200
-Message-id: <19656720.FrnhefyPXl@amdc1227>
-In-reply-to: <20130723173710.GB28284@kroah.com>
-References: <Pine.LNX.4.44L0.1307231017290.1304-100000@iolanthe.rowland.org>
- <1446965.6APW5ZgLBW@amdc1227> <20130723173710.GB28284@kroah.com>
-MIME-version: 1.0
-Content-transfer-encoding: 7Bit
-Content-type: text/plain; charset=us-ascii
+	Tue, 30 Jul 2013 03:45:52 -0400
+Date: Tue, 30 Jul 2013 09:45:48 +0200 (CEST)
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: Katsuya MATSUBARA <matsu@igel.co.jp>
+cc: vladimir.barinov@cogentembedded.com, mchehab@redhat.com,
+	linux-media@vger.kernel.org, magnus.damm@gmail.com,
+	linux-sh@vger.kernel.org, phil.edworthy@renesas.com,
+	sergei.shtylyov@cogentembedded.com
+Subject: Re: [PATCH v8] V4L2: soc_camera: Renesas R-Car VIN driver
+In-Reply-To: <20130730.163652.28831662.matsu@igel.co.jp>
+Message-ID: <Pine.LNX.4.64.1307300943001.25629@axis700.grange>
+References: <51F0CBF7.9080201@cogentembedded.com> <20130725.162922.274362407.matsu@igel.co.jp>
+ <Pine.LNX.4.64.1307261310360.22137@axis700.grange> <20130730.163652.28831662.matsu@igel.co.jp>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-On Tuesday 23 of July 2013 10:37:11 Greg KH wrote:
-> On Tue, Jul 23, 2013 at 06:50:29PM +0200, Tomasz Figa wrote:
-> > > Ick, no.  Why can't you just pass the pointer to the phy itself?  If
-> > > you
-> > > had a "priv" pointer to search from, then you could have just passed
-> > > the
-> > > original phy pointer in the first place, right?
-> > 
-> > IMHO it would be better if you provided some code example, but let's
-> > try to check if I understood you correctly.
+Hi Matsubara-san,
+
+On Tue, 30 Jul 2013, Katsuya MATSUBARA wrote:
+
 > 
-> It's not my code that I want to have added, so I don't have to write
-> examples, I just get to complain about the existing stuff :)
-
-Still, I think that some small code snippets illustrating the idea are 
-really helpful.
-
-> > 8><--------------------------------------------------------------------
-> > ----
-> > 
-> > [Board file]
-> > 
-> > static struct phy my_phy;
-> > 
-> > static struct platform_device phy_pdev = {
-> > 
-> > 	/* ... */
-> > 	.platform_data = &my_phy;
-> > 	/* ... */
-> > 
-> > };
-> > 
-> > static struct platform_device phy_pdev = {
-> > 
-> > 	/* ... */
-> > 	.platform_data = &my_phy;
-> > 	/* ... */
-> > 
-> > };
-> > 
-> > [Provider driver]
-> > 
-> > struct phy *phy = pdev->dev.platform_data;
-> > 
-> > ret = phy_create(phy);
-> > 
-> > [Consumer driver]
-> > 
-> > struct phy *phy = pdev->dev.platform_data;
-> > 
-> > ret = phy_get(&pdev->dev, phy);
-> > 
-> > -----------------------------------------------------------------------
-> > -><8
-> > 
-> > Is this what you mean?
+> Hi Guennadi,
 > 
-> No.  Well, kind of.  What's wrong with using the platform data structure
-> unique to the board to have the pointer?
+> From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+> Date: Fri, 26 Jul 2013 13:11:52 +0200 (CEST)
 > 
-> For example (just randomly picking one), the ata-pxa driver would change
-> include/linux/platform_data/ata-pxa.h to have a phy pointer in it:
-> 
-> struct phy;
-> 
-> struct  pata_pxa_pdata {
-> 	/* PXA DMA DREQ<0:2> pin */
-> 	uint32_t	dma_dreq;
-> 	/* Register shift */
-> 	uint32_t	reg_shift;
-> 	/* IRQ flags */
-> 	uint32_t	irq_flags;
-> 	/* PHY */
-> 	struct phy	*phy;
-> };
-> 
-> Then, when you create the platform, set the phy* pointer with a call to
-> phy_create().  Then you can use that pointer wherever that plaform data
-> is available (i.e. whereever platform_data is at).
-
-Hmm? So, do you suggest to call phy_create() from board file? What phy_ops 
-struct and other hardware parameters would it take?
-
-> > > The issue is that a string "name" is not going to scale at all, as it
-> > > requires hard-coded information that will change over time (as the
-> > > existing clock interface is already showing.)
+> > Hello Matsubara-san
 > > 
-> > I fully agree that a simple, single string will not scale even in some,
-> > not so uncommon cases, but there is already a lot of existing lookup
-> > solutions over the kernel and so there is no point in introducing
-> > another one.
-> I'm trying to get _rid_ of lookup "solutions" and just use a real
-> pointer, as you should.  I'll go tackle those other ones after this one
-> is taken care of, to show how the others should be handled as well.
-
-There was a reason for introducing lookup solutions. The reason was that in 
-board file there is no way to get a pointer to something that is going to be 
-created much later in time. We don't do time travel ;-).
-
-> > > Please just pass the real "phy" pointer around, that's what it is
-> > > there
-> > > for.  Your "board binding" logic/code should be able to handle this,
-> > > as
-> > > it somehow was going to do the same thing with a "name".
+> > On Thu, 25 Jul 2013, Katsuya MATSUBARA wrote:
 > > 
-> > It's technically correct, but quality of this solution isn't really
-> > nice, because it's a layering violation (at least if I understood what
-> > you mean). This is because you need to have full definition of struct
-> > phy in board file and a structure that is used as private data in PHY
-> > core comes from platform code.
+> >> 
+> >>  Hi Vladimir,
+
+[snip]
+
+> >> I tested it now and confirmed the issue has gone!
+> > 
+> > Does this mean I can add your Tested-by to v9 of this driver?
 > 
-> No, just a pointer, you don't need the "full" structure until you get to
-> some .c code that actually manipulates the phy itself, for all other
-> places, you are just dealing with a pointer and a structure you never
-> reference.
+> Sure.
 > 
-> Does that make more sense?
+> Unfortunately my marzen board has gone from my office.
+> But I made sure that the v9 VIN driver and the fixed ml86v7667
+> sensor driver work fine on a BOCK-W board with a NTSC camera.
+> 
+> Tested-by: Katsuya MATSUBARA <matsu@igel.co.jp>
 
-Well, to the point that I think I now understood your suggestion. 
-Unfortunately the suggestion alone isn't really something that can be done, 
-considering how driver core and generic frameworks work.
+Thanks!
 
-Best regards,
-Tomasz
-
+Regards
+Guennadi
+---
+Guennadi Liakhovetski, Ph.D.
+Freelance Open-Source Software Developer
+http://www.open-technology.de/
