@@ -1,32 +1,78 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from nblzone-211-213.nblnetworks.fi ([83.145.211.213]:60218 "EHLO
-	hillosipuli.retiisi.org.uk" rhost-flags-OK-OK-OK-FAIL)
-	by vger.kernel.org with ESMTP id S932119Ab3GPNuk (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:46795 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1752590Ab3G3NqG (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Tue, 16 Jul 2013 09:50:40 -0400
-Message-ID: <51E5510B.3080208@iki.fi>
-Date: Tue, 16 Jul 2013 16:56:27 +0300
-From: Sakari Ailus <sakari.ailus@iki.fi>
+	Tue, 30 Jul 2013 09:46:06 -0400
+From: Hans Verkuil <hverkuil@xs4all.nl>
+To: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Subject: Re: Question about v4l2-compliance: cap->readbuffers
+Date: Tue, 30 Jul 2013 15:45:51 +0200
+Cc: linux-media@vger.kernel.org
+References: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com>
+In-Reply-To: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com>
 MIME-Version: 1.0
-To: Hans Verkuil <hverkuil@xs4all.nl>
-CC: linux-media <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [BRAINSTORM] Controls, matrices and properties
-References: <201307081306.56324.hverkuil@xs4all.nl> <51DDD26D.4060304@iki.fi> <201307161416.00609.hverkuil@xs4all.nl>
-In-Reply-To: <201307161416.00609.hverkuil@xs4all.nl>
-Content-Type: text/plain; charset=ISO-8859-1; format=flowed
+Content-Type: Text/Plain;
+  charset="iso-8859-1"
 Content-Transfer-Encoding: 7bit
+Message-Id: <201307301545.51529.hverkuil@xs4all.nl>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hans Verkuil wrote:
-> If possible I would like to discuss this during the New Orleans conference.
-> I know Laurent and Mauro will be there.
+On Tue 30 July 2013 15:12:57 Ricardo Ribalda Delgado wrote:
+> Hello
+> 
+> I am developing a driver for a camera that supports read/write and
+> mmap access to the buffers.
+> 
+> When I am running the compliance test, I cannot pass it because of
+> this test on v4l2-test-formats.cpp
+> 
+> 904                 if (!(node->caps & V4L2_CAP_READWRITE))
+> 905                         fail_on_test(cap->readbuffers);
+> 906                 else if (node->caps & V4L2_CAP_STREAMING)
+> 907                         fail_on_test(!cap->readbuffers);
+> 
+> What should be the value of cap-readbuffers for a driver such as mine,
+> that supports cap_readwrite and cap_streaming? Or I cannot support
+> both, although at least this drivers do the same?
 
-I won't be able to attend that one, but I'll be in Edinburgh in October.
+The readbuffers parameter is highly dubious. I generally set it in a driver
+to the lowest number of buffers the hardware allows (e.g. what VIDIOC_REQBUFS
+returns if you give it a buffer count of 1).
 
--- 
-Sakari Ailus
-sakari.ailus@iki.fi
+In theory this value allows you to increase the number of buffers used
+by read() so you can have more frames pending. In practice the only driver
+using it is sn9c102, which is an obscure webcam that really should be folded
+into the gspca driver suite.
+
+I am really tempted to deprecate/obsolete readbuffers.
+
+Anyway, to squash this compliance error just set readbuffers to the lowest
+number of allowed buffers.
+
+Regards,
+
+	Hans
+
+> 
+> 
+> $ git grep CAP_READWRITE *  | grep CAP_STREAMING
+> pci/cx25821/cx25821-video.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+> pci/cx88/cx88-video.c: cap->device_caps = V4L2_CAP_READWRITE |
+> V4L2_CAP_STREAMING;
+> pci/saa7134/saa7134-video.c: cap->device_caps = V4L2_CAP_READWRITE |
+> V4L2_CAP_STREAMING;
+> platform/marvell-ccic/mcam-core.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+> platform/via-camera.c: V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+> usb/cx231xx/cx231xx-video.c: cap->device_caps = V4L2_CAP_READWRITE |
+> V4L2_CAP_STREAMING;
+> usb/em28xx/em28xx-video.c: V4L2_CAP_READWRITE | V4L2_CAP_VIDEO_CAPTURE
+> | V4L2_CAP_STREAMING;
+> usb/stkwebcam/stk-webcam.c: | V4L2_CAP_READWRITE | V4L2_CAP_STREAMING;
+> usb/tlg2300/pd-video.c: V4L2_CAP_STREAMING | V4L2_CAP_READWRITE;
+> 
+> 
+> Thanks!
+> 
+> 
