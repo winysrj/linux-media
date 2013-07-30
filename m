@@ -1,100 +1,145 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mail-pb0-f47.google.com ([209.85.160.47]:34957 "EHLO
-	mail-pb0-f47.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S932245Ab3GKJJn (ORCPT
+Received: from ams-iport-2.cisco.com ([144.254.224.141]:48354 "EHLO
+	ams-iport-2.cisco.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1757976Ab3G3IPe (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Thu, 11 Jul 2013 05:09:43 -0400
-From: Ming Lei <ming.lei@canonical.com>
-To: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
-Cc: linux-usb@vger.kernel.org, Oliver Neukum <oliver@neukum.org>,
-	Alan Stern <stern@rowland.harvard.edu>,
-	linux-input@vger.kernel.org, linux-bluetooth@vger.kernel.org,
-	netdev@vger.kernel.org, linux-wireless@vger.kernel.org,
-	linux-media@vger.kernel.org, alsa-devel@alsa-project.org,
-	Ming Lei <ming.lei@canonical.com>,
-	Marcel Holtmann <marcel@holtmann.org>,
-	Gustavo Padovan <gustavo@padovan.org>,
-	Johan Hedberg <johan.hedberg@gmail.com>
-Subject: [PATCH 23/50] BT: bfusb: read_lock in complete() cleanup
-Date: Thu, 11 Jul 2013 17:05:46 +0800
-Message-Id: <1373533573-12272-24-git-send-email-ming.lei@canonical.com>
-In-Reply-To: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
-References: <1373533573-12272-1-git-send-email-ming.lei@canonical.com>
+	Tue, 30 Jul 2013 04:15:34 -0400
+Received: from bwinther.cisco.com (dhcp-10-54-92-49.cisco.com [10.54.92.49])
+	by ams-core-2.cisco.com (8.14.5/8.14.5) with ESMTP id r6U8FSue022335
+	for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 08:15:30 GMT
+From: =?UTF-8?q?B=C3=A5rd=20Eirik=20Winther?= <bwinther@cisco.com>
+To: linux-media@vger.kernel.org
+Subject: [PATCHv2 FINAL 1/6] qv4l2: move function ctrlEvent
+Date: Tue, 30 Jul 2013 10:15:19 +0200
+Message-Id: <fe355bb3e887a32d91640eb394ab9c069c8104a6.1375172029.git.bwinther@cisco.com>
+In-Reply-To: <1375172124-14439-1-git-send-email-bwinther@cisco.com>
+References: <1375172124-14439-1-git-send-email-bwinther@cisco.com>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Complete() will be run with interrupt enabled, so change to
-read_lock_irqsave().
+Moved the ctrlEvent() function in qv4l2.cpp to be grouped with GUI function
+and to group capFrame() and capVbiFrame() together.
 
-Cc: Marcel Holtmann <marcel@holtmann.org>
-Cc: Gustavo Padovan <gustavo@padovan.org>
-Cc: Johan Hedberg <johan.hedberg@gmail.com>
-Cc: linux-bluetooth@vger.kernel.org
-Signed-off-by: Ming Lei <ming.lei@canonical.com>
+Signed-off-by: Bård Eirik Winther <bwinther@cisco.com>
 ---
- drivers/bluetooth/bfusb.c |   12 +++++++-----
- 1 file changed, 7 insertions(+), 5 deletions(-)
+ utils/qv4l2/qv4l2.cpp | 94 +++++++++++++++++++++++++--------------------------
+ 1 file changed, 47 insertions(+), 47 deletions(-)
 
-diff --git a/drivers/bluetooth/bfusb.c b/drivers/bluetooth/bfusb.c
-index 995aee9..2e93501 100644
---- a/drivers/bluetooth/bfusb.c
-+++ b/drivers/bluetooth/bfusb.c
-@@ -186,6 +186,7 @@ static void bfusb_tx_complete(struct urb *urb)
+diff --git a/utils/qv4l2/qv4l2.cpp b/utils/qv4l2/qv4l2.cpp
+index de9b154..a8fcc65 100644
+--- a/utils/qv4l2/qv4l2.cpp
++++ b/utils/qv4l2/qv4l2.cpp
+@@ -202,6 +202,53 @@ void ApplicationWindow::openrawdev()
+ 		setDevice(d.selectedFiles().first(), true);
+ }
+ 
++void ApplicationWindow::ctrlEvent()
++{
++	v4l2_event ev;
++
++	while (dqevent(ev)) {
++		if (ev.type != V4L2_EVENT_CTRL)
++			continue;
++		m_ctrlMap[ev.id].flags = ev.u.ctrl.flags;
++		m_ctrlMap[ev.id].minimum = ev.u.ctrl.minimum;
++		m_ctrlMap[ev.id].maximum = ev.u.ctrl.maximum;
++		m_ctrlMap[ev.id].step = ev.u.ctrl.step;
++		m_ctrlMap[ev.id].default_value = ev.u.ctrl.default_value;
++		m_widgetMap[ev.id]->setDisabled(m_ctrlMap[ev.id].flags & CTRL_FLAG_DISABLED);
++		switch (m_ctrlMap[ev.id].type) {
++		case V4L2_CTRL_TYPE_INTEGER:
++		case V4L2_CTRL_TYPE_INTEGER_MENU:
++		case V4L2_CTRL_TYPE_MENU:
++		case V4L2_CTRL_TYPE_BOOLEAN:
++		case V4L2_CTRL_TYPE_BITMASK:
++			setVal(ev.id, ev.u.ctrl.value);
++			break;
++		case V4L2_CTRL_TYPE_INTEGER64:
++			setVal64(ev.id, ev.u.ctrl.value64);
++			break;
++		default:
++			break;
++		}
++		if (m_ctrlMap[ev.id].type != V4L2_CTRL_TYPE_STRING)
++			continue;
++		queryctrl(m_ctrlMap[ev.id]);
++
++		struct v4l2_ext_control c;
++		struct v4l2_ext_controls ctrls;
++
++		c.id = ev.id;
++		c.size = m_ctrlMap[ev.id].maximum + 1;
++		c.string = (char *)malloc(c.size);
++		memset(&ctrls, 0, sizeof(ctrls));
++		ctrls.count = 1;
++		ctrls.ctrl_class = 0;
++		ctrls.controls = &c;
++		if (!ioctl(VIDIOC_G_EXT_CTRLS, &ctrls))
++			setString(ev.id, c.string);
++		free(c.string);
++	}
++}
++
+ void ApplicationWindow::capVbiFrame()
  {
- 	struct sk_buff *skb = (struct sk_buff *) urb->context;
- 	struct bfusb_data *data = (struct bfusb_data *) skb->dev;
-+	unsigned long flags;
- 
- 	BT_DBG("bfusb %p urb %p skb %p len %d", data, urb, skb, skb->len);
- 
-@@ -199,14 +200,14 @@ static void bfusb_tx_complete(struct urb *urb)
- 	else
- 		data->hdev->stat.err_tx++;
- 
--	read_lock(&data->lock);
-+	read_lock_irqsave(&data->lock, flags);
- 
- 	skb_unlink(skb, &data->pending_q);
- 	skb_queue_tail(&data->completed_q, skb);
- 
- 	bfusb_tx_wakeup(data);
- 
--	read_unlock(&data->lock);
-+	read_unlock_irqrestore(&data->lock, flags);
+ 	__u32 buftype = m_genTab->bufType();
+@@ -305,53 +352,6 @@ void ApplicationWindow::capVbiFrame()
+ 		refresh();
  }
  
- 
-@@ -347,10 +348,11 @@ static void bfusb_rx_complete(struct urb *urb)
- 	unsigned char *buf = urb->transfer_buffer;
- 	int count = urb->actual_length;
- 	int err, hdr, len;
-+	unsigned long flags;
- 
- 	BT_DBG("bfusb %p urb %p skb %p len %d", data, urb, skb, skb->len);
- 
--	read_lock(&data->lock);
-+	read_lock_irqsave(&data->lock, flags);
- 
- 	if (!test_bit(HCI_RUNNING, &data->hdev->flags))
- 		goto unlock;
-@@ -392,7 +394,7 @@ static void bfusb_rx_complete(struct urb *urb)
- 
- 	bfusb_rx_submit(data, urb);
- 
--	read_unlock(&data->lock);
-+	read_unlock_irqrestore(&data->lock, flags);
- 
- 	return;
- 
-@@ -406,7 +408,7 @@ resubmit:
- 	}
- 
- unlock:
--	read_unlock(&data->lock);
-+	read_unlock_irqrestore(&data->lock, flags);
- }
- 
- static int bfusb_open(struct hci_dev *hdev)
+-void ApplicationWindow::ctrlEvent()
+-{
+-	v4l2_event ev;
+-
+-	while (dqevent(ev)) {
+-		if (ev.type != V4L2_EVENT_CTRL)
+-			continue;
+-		m_ctrlMap[ev.id].flags = ev.u.ctrl.flags;
+-		m_ctrlMap[ev.id].minimum = ev.u.ctrl.minimum;
+-		m_ctrlMap[ev.id].maximum = ev.u.ctrl.maximum;
+-		m_ctrlMap[ev.id].step = ev.u.ctrl.step;
+-		m_ctrlMap[ev.id].default_value = ev.u.ctrl.default_value;
+-		m_widgetMap[ev.id]->setDisabled(m_ctrlMap[ev.id].flags & CTRL_FLAG_DISABLED);
+-		switch (m_ctrlMap[ev.id].type) {
+-		case V4L2_CTRL_TYPE_INTEGER:
+-		case V4L2_CTRL_TYPE_INTEGER_MENU:
+-		case V4L2_CTRL_TYPE_MENU:
+-		case V4L2_CTRL_TYPE_BOOLEAN:
+-		case V4L2_CTRL_TYPE_BITMASK:
+-			setVal(ev.id, ev.u.ctrl.value);
+-			break;
+-		case V4L2_CTRL_TYPE_INTEGER64:
+-			setVal64(ev.id, ev.u.ctrl.value64);
+-			break;
+-		default:
+-			break;
+-		}
+-		if (m_ctrlMap[ev.id].type != V4L2_CTRL_TYPE_STRING)
+-			continue;
+-		queryctrl(m_ctrlMap[ev.id]);
+-
+-		struct v4l2_ext_control c;
+-		struct v4l2_ext_controls ctrls;
+-
+-		c.id = ev.id;
+-		c.size = m_ctrlMap[ev.id].maximum + 1;
+-		c.string = (char *)malloc(c.size);
+-		memset(&ctrls, 0, sizeof(ctrls));
+-		ctrls.count = 1;
+-		ctrls.ctrl_class = 0;
+-		ctrls.controls = &c;
+-		if (!ioctl(VIDIOC_G_EXT_CTRLS, &ctrls))
+-			setString(ev.id, c.string);
+-		free(c.string);
+-	}
+-}
+-
+ void ApplicationWindow::capFrame()
+ {
+ 	__u32 buftype = m_genTab->bufType();
 -- 
-1.7.9.5
+1.8.3.2
 
