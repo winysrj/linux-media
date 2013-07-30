@@ -1,112 +1,203 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36143 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S964893Ab3GQXF5 (ORCPT
+Received: from devils.ext.ti.com ([198.47.26.153]:50478 "EHLO
+	devils.ext.ti.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1754118Ab3G3FMz (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 19:05:57 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 1/5] media: Fix circular graph traversal
-Date: Thu, 18 Jul 2013 01:06:40 +0200
-Message-ID: <1592849.BGn9Ftusvr@avalon>
-In-Reply-To: <20130717194703.GB11369@valkosipuli.retiisi.org.uk>
-References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1374072882-14598-2-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <20130717194703.GB11369@valkosipuli.retiisi.org.uk>
+	Tue, 30 Jul 2013 01:12:55 -0400
+Message-ID: <51F74B20.6070005@ti.com>
+Date: Tue, 30 Jul 2013 10:42:00 +0530
+From: Kishon Vijay Abraham I <kishon@ti.com>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+To: Sylwester Nawrocki <s.nawrocki@samsung.com>
+CC: <gregkh@linuxfoundation.org>, <kyungmin.park@samsung.com>,
+	<balbi@ti.com>, <jg1.han@samsung.com>, <kgene.kim@samsung.com>,
+	<stern@rowland.harvard.edu>, <broonie@kernel.org>,
+	<tomasz.figa@gmail.com>, <arnd@arndb.de>,
+	<devicetree@vger.kernel.org>, <linux-fbdev@vger.kernel.org>,
+	<linux-samsung-soc@vger.kernel.org>, <swarren@nvidia.com>,
+	<balajitk@ti.com>, <linux-doc@vger.kernel.org>, <tony@atomide.com>,
+	Tomasz Figa <t.figa@samsung.com>, <linux-usb@vger.kernel.org>,
+	<nsekhar@ti.com>, <linux-kernel@vger.kernel.org>,
+	<grant.likely@linaro.org>, <linux@arm.linux.org.uk>,
+	<akpm@linux-foundation.org>, <linux-omap@vger.kernel.org>,
+	<george.cherian@ti.com>, <linux-arm-kernel@lists.infradead.org>,
+	<linux-media@vger.kernel.org>
+Subject: Re: [RESEND PATCH v10 1/8] drivers: phy: add generic PHY framework
+References: <1374842963-13545-1-git-send-email-kishon@ti.com> <1374842963-13545-2-git-send-email-kishon@ti.com> <51F68F73.9060603@samsung.com>
+In-Reply-To: <51F68F73.9060603@samsung.com>
+Content-Type: text/plain; charset="ISO-8859-1"
+Content-Transfer-Encoding: 7bit
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hi,
 
-On Wednesday 17 July 2013 22:47:03 Sakari Ailus wrote:
-> On Wed, Jul 17, 2013 at 04:54:38PM +0200, Laurent Pinchart wrote:
-> > The graph traversal API (media_entity_graph_walk_*) will fail to
-> > correctly walk the graph when circular links exist. Fix it by checking
-> > whether an entity is already present in the stack before pushing it.
+On Monday 29 July 2013 09:21 PM, Sylwester Nawrocki wrote:
+> On 07/26/2013 02:49 PM, Kishon Vijay Abraham I wrote:
+>> The PHY framework provides a set of APIs for the PHY drivers to
+>> create/destroy a PHY and APIs for the PHY users to obtain a reference to the
+>> PHY with or without using phandle. For dt-boot, the PHY drivers should
+>> also register *PHY provider* with the framework.
+>>
+>> PHY drivers should create the PHY by passing id and ops like init, exit,
+>> power_on and power_off. This framework is also pm runtime enabled.
+>>
+>> The documentation for the generic PHY framework is added in
+>> Documentation/phy.txt and the documentation for dt binding can be found at
+>> Documentation/devicetree/bindings/phy/phy-bindings.txt
+>>
+>> Cc: Tomasz Figa <t.figa@samsung.com>
+>> Cc: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+>> Signed-off-by: Kishon Vijay Abraham I <kishon@ti.com>
+>> Acked-by: Felipe Balbi <balbi@ti.com>
+>> Tested-by: Sylwester Nawrocki <s.nawrocki@samsung.com>
+>> ---
+>>  .../devicetree/bindings/phy/phy-bindings.txt       |   66 ++
+>>  Documentation/phy.txt                              |  166 +++++
+>>  MAINTAINERS                                        |    8 +
+>>  drivers/Kconfig                                    |    2 +
+>>  drivers/Makefile                                   |    2 +
+>>  drivers/phy/Kconfig                                |   18 +
+>>  drivers/phy/Makefile                               |    5 +
+>>  drivers/phy/phy-core.c                             |  714 ++++++++++++++++++++
+>>  include/linux/phy/phy.h                            |  270 ++++++++
+>>  9 files changed, 1251 insertions(+)
+>>  create mode 100644 Documentation/devicetree/bindings/phy/phy-bindings.txt
+>>  create mode 100644 Documentation/phy.txt
+>>  create mode 100644 drivers/phy/Kconfig
+>>  create mode 100644 drivers/phy/Makefile
+>>  create mode 100644 drivers/phy/phy-core.c
+>>  create mode 100644 include/linux/phy/phy.h
+>>
+>> diff --git a/Documentation/devicetree/bindings/phy/phy-bindings.txt b/Documentation/devicetree/bindings/phy/phy-bindings.txt
+>> new file mode 100644
+>> index 0000000..8ae844f
+>> --- /dev/null
+>> +++ b/Documentation/devicetree/bindings/phy/phy-bindings.txt
+>> @@ -0,0 +1,66 @@
+>> +This document explains only the device tree data binding. For general
+>> +information about PHY subsystem refer to Documentation/phy.txt
+> [...]
+>> @@ -0,0 +1,166 @@
+>> +			    PHY SUBSYSTEM
+>> +		  Kishon Vijay Abraham I <kishon@ti.com>
+>> +
+>> +This document explains the Generic PHY Framework along with the APIs provided,
+>> +and how-to-use.
+>> +
+>> +1. Introduction
+>> +
+>> +*PHY* is the abbreviation for physical layer. It is used to connect a device
+>> +to the physical medium e.g., the USB controller has a PHY to provide functions
+>> +such as serialization, de-serialization, encoding, decoding and is responsible
+>> +for obtaining the required data transmission rate. Note that some USB
+>> +controllers have PHY functionality embedded into it and others use an external
+>> +PHY. Other peripherals that use PHY include Wireless LAN, Ethernet,
+>> +SATA etc.
+>> +
+>> +The intention of creating this framework is to bring the PHY drivers spread
+>> +all over the Linux kernel to drivers/phy to increase code re-use and for
+>> +better code maintainability.
+>> +
+>> +This framework will be of use only to devices that use external PHY (PHY
+>> +functionality is not embedded within the controller).
+>> +
+>> +2. Registering/Unregistering the PHY provider
+>> +
+>> +PHY provider refers to an entity that implements one or more PHY instances.
+>> +For the simple case where the PHY provider implements only a single instance of
+>> +the PHY, the framework provides its own implementation of of_xlate in
+>> +of_phy_simple_xlate. If the PHY provider implements multiple instances, it
+>> +should provide its own implementation of of_xlate. of_xlate is used only for
+>> +dt boot case.
+>> +
+>> +#define of_phy_provider_register(dev, xlate)    \
+>> +        __of_phy_provider_register((dev), THIS_MODULE, (xlate))
+>> +
+>> +#define devm_of_phy_provider_register(dev, xlate)       \
+>> +        __of_phy_provider_register((dev), THIS_MODULE, (xlate))
 > 
-> We never had any multiply connected graphs (ignoring direction, nor
-> supported them) before. So this is rather a patch that adds support for
-> those instead of fixing it. :-)
-
-Good point, I'll add support for your comment to the commit message :-D
-
-> > Signed-off-by: Laurent Pinchart
-> > <laurent.pinchart+renesas@ideasonboard.com>
-> > ---
-> > 
-> >  drivers/media/media-entity.c | 17 ++++++++++++-----
-> >  1 file changed, 12 insertions(+), 5 deletions(-)
-> > 
-> > diff --git a/drivers/media/media-entity.c b/drivers/media/media-entity.c
-> > index cb30ffb..c8aba5e 100644
-> > --- a/drivers/media/media-entity.c
-> > +++ b/drivers/media/media-entity.c
-> > @@ -121,9 +121,9 @@ static struct media_entity *stack_pop(struct
-> > media_entity_graph *graph)
-> >  	return entity;
-> >  }
-> > 
-> > -#define stack_peek(en)	((en)->stack[(en)->top - 1].entity)
-> > -#define link_top(en)	((en)->stack[(en)->top].link)
-> > -#define stack_top(en)	((en)->stack[(en)->top].entity)
-> > +#define stack_peek(en, i)	((en)->stack[i].entity)
-> > +#define link_top(en)		((en)->stack[(en)->top].link)
-> > +#define stack_top(en)		((en)->stack[(en)->top].entity)
-> > 
-> >  /**
-> >   * media_entity_graph_walk_start - Start walking the media graph at a
-> >   given entity> 
-> > @@ -159,6 +159,8 @@ EXPORT_SYMBOL_GPL(media_entity_graph_walk_start);
-> > 
-> >  struct media_entity *
-> >  media_entity_graph_walk_next(struct media_entity_graph *graph)
-> >  {
-> > +	unsigned int i;
-> > +
-> >  	if (stack_top(graph) == NULL)
-> >  		return NULL;
-> > 
-> > @@ -181,8 +183,13 @@ media_entity_graph_walk_next(struct
-> > media_entity_graph *graph)> 
-> >  		/* Get the entity in the other end of the link . */
-> >  		next = media_entity_other(entity, link);
-> > 
-> > -		/* Was it the entity we came here from? */
-> > -		if (next == stack_peek(graph)) {
-> > +		/* Is the entity already in the path? */
-> > +		for (i = 1; i < graph->top; ++i) {
-> > +			if (next == stack_peek(graph, i))
-> > +				break;
-> > +		}
-> > +
-> > +		if (i < graph->top) {
-> >  			link_top(graph)++;
-> >  			continue;
-> >  		}
+> This needs to be:
 > 
-> I think you should also ensure a node in the graph hasn't been enumerated in
-> the past; otherwise it's possible to do that multiple times in a multiply
-> connected graph.
+> 	__devm_of_phy_provider_register((dev), THIS_MODULE, (xlate))
+> 
+> as Kamil pointed out. We've tested it here with v9 and it makes
+> Bad Things happen. ;)
+> 
+>> +of_phy_provider_register and devm_of_phy_provider_register macros can be used to
+>> +register the phy_provider and it takes device and of_xlate as
+>> +arguments. For the dt boot case, all PHY providers should use one of the above
+>> +2 macros to register the PHY provider.
+>> +
+>> +void devm_of_phy_provider_unregister(struct device *dev,
+>> +	struct phy_provider *phy_provider);
+>> +void of_phy_provider_unregister(struct phy_provider *phy_provider);
+>> +
+>> +devm_of_phy_provider_unregister and of_phy_provider_unregister can be used to
+>> +unregister the PHY.
+>> +
+> [...]
+>> diff --git a/drivers/phy/phy-core.c b/drivers/phy/phy-core.c
+>> new file mode 100644
+>> index 0000000..f1d15e5
+>> --- /dev/null
+>> +++ b/drivers/phy/phy-core.c
+>> @@ -0,0 +1,714 @@
+> [...]
+>> +static struct phy *phy_lookup(struct device *device, const char *port)
+>> +{
+>> +	unsigned int count;
+>> +	struct phy *phy;
+>> +	struct device *dev;
+>> +	struct phy_consumer *consumers;
+>> +	struct class_dev_iter iter;
+> 	
+> Don't you need something like
+> 
+> 	if (phy->init_data == NULL)	
+> 		return ERR_PTR(-EINVAL);
+> 
+> to ensure there is no attempt to dereference NULL platform data ?
 
-I'm not sure to follow you here, could you please elaborate ?
+hmm.. perhaps a dev_WARN too..
+> 
+>> +	class_dev_iter_init(&iter, phy_class, NULL, NULL);
+>> +	while ((dev = class_dev_iter_next(&iter))) {
+>> +		phy = to_phy(dev);
+>> +		count = phy->init_data->num_consumers;
+>> +		consumers = phy->init_data->consumers;
+>> +		while (count--) {
+>> +			if (!strcmp(consumers->dev_name, dev_name(device)) &&
+>> +					!strcmp(consumers->port, port)) {
+>> +				class_dev_iter_exit(&iter);
+>> +				return phy;
+>> +			}
+>> +			consumers++;
+>> +		}
+>> +	}
+>> +
+>> +	class_dev_iter_exit(&iter);
+>> +	return ERR_PTR(-ENODEV);
+>> +}
+>> +
+> [...]
+>> +int phy_init(struct phy *phy)
+>> +{
+>> +	int ret;
+>> +
+>> +	ret = phy_pm_runtime_get_sync(phy);
+>> +	if (ret < 0 && ret != -ENOTSUPP)
+>> +		return ret;
+>> +
+>> +	mutex_lock(&phy->mutex);
+>> +	if (phy->init_count++ == 0 && phy->ops->init) {
+>> +		ret = phy->ops->init(phy);
+>> +		if (ret < 0) {
+>> +			dev_err(&phy->dev, "phy init failed --> %d\n", ret);
+>> +			goto out;
+> 
+> Is this 'goto' and similar ones below really needed ?
+That's just to signify an error path.. it doesn't affect anyways ;-)
 
-> How about using a bit field that contained as many bits as there were
-> entities? It's also faster to check for a single bit than loop over the
-> whole path for each entity, which certainly will start showing in execution
-> time with these link numbres.
-
-That's possible, yes. We would then need to dynamically allocate the bit field 
-in the start function, and add a new media_entity_graph_walk_end() function (I 
-would then rename media_entity_graph_walk_start() to 
-media_entity_graph_walk_begin()) to free the bit field. If you think that's 
-worth it I can give it a try.
-
--- 
-Regards,
-
-Laurent Pinchart
-
+Thanks
+Kishon
