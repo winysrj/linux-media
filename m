@@ -1,81 +1,127 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from mailout1.w1.samsung.com ([210.118.77.11]:17226 "EHLO
-	mailout1.w1.samsung.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1751051Ab3GXIjO (ORCPT
+Received: from moutng.kundenserver.de ([212.227.17.8]:54536 "EHLO
+	moutng.kundenserver.de" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1753380Ab3G3MZk (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 24 Jul 2013 04:39:14 -0400
-Received: from eucpsbgm1.samsung.com (unknown [203.254.199.244])
- by mailout1.w1.samsung.com
- (Oracle Communications Messaging Server 7u4-24.01(7.0.4.24.0) 64bit (built Nov
- 17 2011)) with ESMTP id <0MQF00JD6MN7OF20@mailout1.w1.samsung.com> for
- linux-media@vger.kernel.org; Wed, 24 Jul 2013 09:39:12 +0100 (BST)
-Message-id: <51EF92AF.7040205@samsung.com>
-Date: Wed, 24 Jul 2013 10:39:11 +0200
-From: Sylwester Nawrocki <s.nawrocki@samsung.com>
-MIME-version: 1.0
-To: Thomas Vajzovic <thomas.vajzovic@irisys.co.uk>
-Cc: Sakari Ailus <sakari.ailus@iki.fi>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	"linux-media@vger.kernel.org" <linux-media@vger.kernel.org>,
-	Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-Subject: Re: width and height of JPEG compressed images
-References: <A683633ABCE53E43AFB0344442BF0F0536167B8A@server10.irisys.local>
- <51D876DF.90507@gmail.com> <20130719202842.GC11823@valkosipuli.retiisi.org.uk>
- <51EC46BA.4050203@gmail.com>
- <20130723222106.GB12281@valkosipuli.retiisi.org.uk>
- <A683633ABCE53E43AFB0344442BF0F053616A13A@server10.irisys.local>
-In-reply-to: <A683633ABCE53E43AFB0344442BF0F053616A13A@server10.irisys.local>
-Content-type: text/plain; charset=ISO-8859-1
-Content-transfer-encoding: 7bit
+	Tue, 30 Jul 2013 08:25:40 -0400
+Received: from 6a.grange (6a.grange [192.168.1.11])
+	by axis700.grange (Postfix) with ESMTPS id 06C5740BB3
+	for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 14:25:38 +0200 (CEST)
+Received: from lyakh by 6a.grange with local (Exim 4.72)
+	(envelope-from <g.liakhovetski@gmx.de>)
+	id 1V48zh-0003vA-M7
+	for linux-media@vger.kernel.org; Tue, 30 Jul 2013 14:25:37 +0200
+From: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+To: linux-media@vger.kernel.org
+Subject: [PATCH 6/6] V4L2: soc-camera: fix requesting regulators in synchronous case
+Date: Tue, 30 Jul 2013 14:25:32 +0200
+Message-Id: <1375187137-15045-2-git-send-email-g.liakhovetski@gmx.de>
+In-Reply-To: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
+References: <1375187137-15045-1-git-send-email-g.liakhovetski@gmx.de>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi,
+With synchronous subdevice probing regulators should be requested by the
+soc-camera core in soc_camera_pdrv_probe(). Subdevice drivers, supporting
+asynchronous probing, call soc_camera_power_init() to request regulators.
+Erroneously, the same regulator array is used in the latter case as in
+the former, which leads to a failure. This patch fixes it by preventing
+the second regulator request from being executed.
 
-On 07/24/2013 09:47 AM, Thomas Vajzovic wrote:
->  On 23 July 2013 23:21 Sakari Ailus wrote:
->> On Sun, Jul 21, 2013 at 10:38:18PM +0200, Sylwester Nawrocki wrote:
->>> On 07/19/2013 10:28 PM, Sakari Ailus wrote:
->>>> On Sat, Jul 06, 2013 at 09:58:23PM +0200, Sylwester Nawrocki wrote:
->>>>> On 07/05/2013 10:22 AM, Thomas Vajzovic wrote:
->>>>>
->>>>>> The hardware reads AxB sensor pixels from its array, resamples them
->>>>>> to CxD image pixels, and then compresses them to ExF bytes.
->>>>>>
->>>>> sensor matrix (AxB pixels) ->  binning/skipping (CxD pixels) ->
->>>>> ->  JPEG compresion (width = C, height = D, sizeimage ExF bytes)
->>>>
->>>> Does the user need to specify ExF, for other purposes than limiting
->>>> the size of the image? I would leave this up to the sensor driver
->>>> (with reasonable alignment). The sensor driver would tell about this
->>>> to the receiver through
->>>
->>> AFAIU ExF is closely related to the memory buffer size, so the sensor
->>> driver itself wouldn't have enough information to fix up ExF, would it ?
->>
->> If the desired sizeimage is known, F can be calculated if E is fixed, say
->> 1024 should probably work for everyone, shoulnd't it?
-> 
-> It's a nice clean idea (and I did already consider it) but it reduces the
-> flexibility of the system as a whole.
-> 
-> Suppose an embedded device wants to send the compressed image over a
-> network in packets of 1500 bytes, and they want to allow 3 packets per
-> frame.  Your proposal limits sizeimage to a multiple of 1K, so they have
-> to set sizeimage to 4K when they want 4.5K, meaning that they waste 500
-> bytes of bandwidth every frame.
-> 
-> You could say "tough luck, extra overhead like this is something you should
-> expect if you want to use a general purpose API like V4L2", but why make
-> it worse if we can make it better?
+Signed-off-by: Guennadi Liakhovetski <g.liakhovetski@gmx.de>
+---
+ drivers/media/platform/soc_camera/soc_camera.c |   33 +++++++++++++++++++----
+ 1 files changed, 27 insertions(+), 6 deletions(-)
 
-I entirely agree with that. Other issue with fixed number of samples
-per line is that internal (FIFO) line buffer size of the transmitter
-devices will vary, and for example some devices might have line buffer
-smaller than the value we have arbitrarily chosen. I'd expect the
-optimal number of samples per line to vary among different devices
-and use cases.
+diff --git a/drivers/media/platform/soc_camera/soc_camera.c b/drivers/media/platform/soc_camera/soc_camera.c
+index 2dd0e52..9a96cf1 100644
+--- a/drivers/media/platform/soc_camera/soc_camera.c
++++ b/drivers/media/platform/soc_camera/soc_camera.c
+@@ -136,7 +136,7 @@ EXPORT_SYMBOL(soc_camera_power_off);
+ 
+ int soc_camera_power_init(struct device *dev, struct soc_camera_subdev_desc *ssdd)
+ {
+-
++	/* Should not have any effect in synchronous case */
+ 	return devm_regulator_bulk_get(dev, ssdd->num_regulators,
+ 				       ssdd->regulators);
+ }
+@@ -1311,6 +1311,7 @@ eusrfmt:
+ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 			       struct soc_camera_desc *sdesc)
+ {
++	struct soc_camera_subdev_desc *ssdd;
+ 	struct i2c_client *client;
+ 	struct soc_camera_host *ici;
+ 	struct soc_camera_host_desc *shd = &sdesc->host_desc;
+@@ -1333,7 +1334,21 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 		return -ENODEV;
+ 	}
+ 
+-	shd->board_info->platform_data = &sdesc->subdev_desc;
++	ssdd = kzalloc(sizeof(*ssdd), GFP_KERNEL);
++	if (!ssdd) {
++		ret = -ENOMEM;
++		goto ealloc;
++	}
++
++	memcpy(ssdd, &sdesc->subdev_desc, sizeof(*ssdd));
++	/*
++	 * In synchronous case we request regulators ourselves in
++	 * soc_camera_pdrv_probe(), make sure the subdevice driver doesn't try
++	 * to allocate them again.
++	 */
++	ssdd->num_regulators = 0;
++	ssdd->regulators = NULL;
++	shd->board_info->platform_data = ssdd;
+ 
+ 	snprintf(clk_name, sizeof(clk_name), "%d-%04x",
+ 		 shd->i2c_adapter_id, shd->board_info->addr);
+@@ -1359,8 +1374,10 @@ static int soc_camera_i2c_init(struct soc_camera_device *icd,
+ 	return 0;
+ ei2cnd:
+ 	v4l2_clk_unregister(icd->clk);
+-eclkreg:
+ 	icd->clk = NULL;
++eclkreg:
++	kfree(ssdd);
++ealloc:
+ 	i2c_put_adapter(adap);
+ 	return ret;
+ }
+@@ -1370,15 +1387,18 @@ static void soc_camera_i2c_free(struct soc_camera_device *icd)
+ 	struct i2c_client *client =
+ 		to_i2c_client(to_soc_camera_control(icd));
+ 	struct i2c_adapter *adap;
++	struct soc_camera_subdev_desc *ssdd;
+ 
+ 	icd->control = NULL;
+ 	if (icd->sasc)
+ 		return;
+ 
+ 	adap = client->adapter;
++	ssdd = client->dev.platform_data;
+ 	v4l2_device_unregister_subdev(i2c_get_clientdata(client));
+ 	i2c_unregister_device(client);
+ 	i2c_put_adapter(adap);
++	kfree(ssdd);
+ 	v4l2_clk_unregister(icd->clk);
+ 	icd->clk = NULL;
+ }
+@@ -1994,9 +2014,10 @@ static int soc_camera_pdrv_probe(struct platform_device *pdev)
+ 
+ 	/*
+ 	 * In the asynchronous case ssdd->num_regulators == 0 yet, so, the below
+-	 * regulator allocation is a dummy. They will be really requested later
+-	 * in soc_camera_async_bind(). Also note, that in that case regulators
+-	 * are attached to the I2C device and not to the camera platform device.
++	 * regulator allocation is a dummy. They are actually requested by the
++	 * subdevice driver, using soc_camera_power_init(). Also note, that in
++	 * that case regulators are attached to the I2C device and not to the
++	 * camera platform device.
+ 	 */
+ 	ret = devm_regulator_bulk_get(&pdev->dev, ssdd->num_regulators,
+ 				      ssdd->regulators);
+-- 
+1.7.2.5
 
-
-Regards,
-Sylwester
