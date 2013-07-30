@@ -1,95 +1,76 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:46356 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1752234Ab3GaPMV (ORCPT
+Received: from mail-ob0-f182.google.com ([209.85.214.182]:54541 "EHLO
+	mail-ob0-f182.google.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
+	with ESMTP id S1750959Ab3G3Pqc (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 31 Jul 2013 11:12:21 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Sakari Ailus <sakari.ailus@iki.fi>
-Cc: Laurent Pinchart <laurent.pinchart+renesas@ideasonboard.com>,
-	linux-media@vger.kernel.org, linux-sh@vger.kernel.org,
-	Hans Verkuil <hverkuil@xs4all.nl>
-Subject: Re: [PATCH v2 5/5] v4l: Renesas R-Car VSP1 driver
-Date: Wed, 31 Jul 2013 17:13:23 +0200
-Message-ID: <10114832.8cJjIM5xok@avalon>
-In-Reply-To: <20130725134328.GH12281@valkosipuli.retiisi.org.uk>
-References: <1374072882-14598-1-git-send-email-laurent.pinchart+renesas@ideasonboard.com> <1833071.CAa8KOE02B@avalon> <20130725134328.GH12281@valkosipuli.retiisi.org.uk>
+	Tue, 30 Jul 2013 11:46:32 -0400
+Received: by mail-ob0-f182.google.com with SMTP id wo10so12573708obc.13
+        for <linux-media@vger.kernel.org>; Tue, 30 Jul 2013 08:46:31 -0700 (PDT)
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+In-Reply-To: <201307301729.26053.hverkuil@xs4all.nl>
+References: <CAPybu_1kw0CjtJxt-ivMheJSeSEi95ppBbDcG1yXOLLRaR4tRg@mail.gmail.com>
+ <201307301545.51529.hverkuil@xs4all.nl> <CAPybu_13HCY1i=tH1krdKGOSbJNgek-X4gt1cGmo_oB=AqTxKg@mail.gmail.com>
+ <201307301729.26053.hverkuil@xs4all.nl>
+From: Ricardo Ribalda Delgado <ricardo.ribalda@gmail.com>
+Date: Tue, 30 Jul 2013 17:46:11 +0200
+Message-ID: <CAPybu_2TivP9Pui2O5N8QofT-07tdxYMnOsC2Nvo7Ods0PuX7w@mail.gmail.com>
+Subject: Re: Question about v4l2-compliance: cap->readbuffers
+To: Hans Verkuil <hverkuil@xs4all.nl>
+Cc: linux-media@vger.kernel.org
+Content-Type: text/plain; charset=ISO-8859-1
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
-Hi Sakari,
+Hello
 
-On Thursday 25 July 2013 16:43:28 Sakari Ailus wrote:
-> On Thu, Jul 25, 2013 at 01:46:54PM +0200, Laurent Pinchart wrote:
-> > > On Wed, Jul 17, 2013 at 04:54:42PM +0200, Laurent Pinchart wrote:
-> > > ...
-> > > 
-> > > > +static void vsp1_device_init(struct vsp1_device *vsp1)
-> > > > +{
-> > > > +	unsigned int i;
-> > > > +	u32 status;
-> > > > +
-> > > > +	/* Reset any channel that might be running. */
-> > > > +	status = vsp1_read(vsp1, VI6_STATUS);
-> > > > +
-> > > > +	for (i = 0; i < VPS1_MAX_WPF; ++i) {
-> > > > +		unsigned int timeout;
-> > > > +
-> > > > +		if (!(status & VI6_STATUS_SYS_ACT(i)))
-> > > > +			continue;
-> > > > +
-> > > > +		vsp1_write(vsp1, VI6_SRESET, VI6_SRESET_SRTS(i));
-> > > > +		for (timeout = 10; timeout > 0; --timeout) {
-> > > > +			status = vsp1_read(vsp1, VI6_STATUS);
-> > > > +			if (!(status & VI6_STATUS_SYS_ACT(i)))
-> > > > +				break;
-> > > > +
-> > > > +			usleep_range(1000, 2000);
-> > > > +		}
-> > > > +
-> > > > +		if (timeout)
-> > > > +			dev_err(vsp1->dev, "failed to reset wpf.%u\n", i);
-> > > 
-> > > Have you seen this happening in practice? Do you expect the device to
-> > > function if resetting it fails?
-> > 
-> > I've seen this happening during development when I had messed up register
-> > values, but not otherwise. I don't expect the deviec to still function if
-> > resetting the WPF fails, but I need to make sure that the busy loop exits.
-> 
-> Shouldn't you also return an error in this case? The function currently
-> returns void.
+I have a camera that works on two modes: Mono and colour. On color
+mode it has 3 gains, on mono mode it has 1 gain.
 
-I will fix that.
+When the user sets the output to mono I disable the color controls
+(and the other way around).
 
-> ...
-> 
-> > > > +	/* Follow links downstream for each input and make sure the graph
-> > > > +	 * contains no loop and that all branches end at the output WPF.
-> > > > +	 */
-> > > 
-> > > I wonder if checking for loops should be done already in pipeline
-> > > validation done by the framework. That's fine to do later on IMHO, too.
-> > 
-> > It would have to be performed by the core, as the callbacks are local to
-> > links. That's feasible (but should be optional, as some devices might
-> > support circular graphs), feel free to submit a patch :-)
-> 
-> As a matter of fact I think I will. I'd like you to test it though since I
-> have no hardware with such media graph. :-)
+Also on color mode the hflip and vflip do not work, therefore I dont show them.
 
-Sure :-)
+I could return -EINVAL, but I rather not show the controls to the user.
 
-> But please don't expect to see that in time for your driver to get in. Let's
-> think about that later on.
+What would be the proper way to do this?
 
-OK.
+
+Thanks gain.
+
+
+
+
+
+On Tue, Jul 30, 2013 at 5:29 PM, Hans Verkuil <hverkuil@xs4all.nl> wrote:
+> On Tue 30 July 2013 17:18:58 Ricardo Ribalda Delgado wrote:
+>> Thanks for the explanation Hans!
+>>
+>> I finaly manage to pass that one ;)
+>>
+>> Just one more question. Why the compliance test checks if the DISABLED
+>> flag is on on for qctrls?
+>>
+>> http://git.linuxtv.org/v4l-utils.git/blob/3ae390e54a0ba627c9e74953081560192b996df4:/utils/v4l2-compliance/v4l2-test-controls.cpp#l137
+>>
+>>  137         if (fl & V4L2_CTRL_FLAG_DISABLED)
+>>  138                 return fail("DISABLED flag set\n");
+>>
+>> Apparently that has been added on:
+>> http://git.linuxtv.org/v4l-utils.git/commit/0a4d4accea7266d7b5f54dea7ddf46cce8421fbb
+>>
+>> But I have failed to find a reason
+>
+> It shouldn't be used anymore in drivers. With the control framework there is
+> no longer any reason to use the DISABLED flag.
+>
+> If something has a valid use case for it, then I'd like to know what it is.
+>
+> Regards,
+>
+>         Hans
+
+
 
 -- 
-Regards,
-
-Laurent Pinchart
-
+Ricardo Ribalda
