@@ -1,138 +1,192 @@
 Return-path: <linux-media-owner@vger.kernel.org>
-Received: from perceval.ideasonboard.com ([95.142.166.194]:36743 "EHLO
-	perceval.ideasonboard.com" rhost-flags-OK-OK-OK-OK) by vger.kernel.org
-	with ESMTP id S1757723Ab3GRBB6 (ORCPT
+Received: from cm-84.215.157.11.getinternet.no ([84.215.157.11]:45881 "EHLO
+	server.arpanet.local" rhost-flags-OK-OK-OK-FAIL) by vger.kernel.org
+	with ESMTP id S1752523Ab3G3LnX (ORCPT
 	<rfc822;linux-media@vger.kernel.org>);
-	Wed, 17 Jul 2013 21:01:58 -0400
-From: Laurent Pinchart <laurent.pinchart@ideasonboard.com>
-To: Hans Verkuil <hverkuil@xs4all.nl>
-Cc: linux-media <linux-media@vger.kernel.org>,
-	Sylwester Nawrocki <sylvester.nawrocki@gmail.com>,
-	Sakari Ailus <sakari.ailus@iki.fi>,
-	Mauro Carvalho Chehab <mchehab@infradead.org>
-Subject: Re: [BRAINSTORM] Controls, matrices and properties
-Date: Thu, 18 Jul 2013 03:02:42 +0200
-Message-ID: <1751715.hnucGEH0MP@avalon>
-In-Reply-To: <201307081306.56324.hverkuil@xs4all.nl>
-References: <201307081306.56324.hverkuil@xs4all.nl>
+	Tue, 30 Jul 2013 07:43:23 -0400
+Date: Tue, 30 Jul 2013 13:33:11 +0200
+From: Jon Arne =?utf-8?Q?J=C3=B8rgensen?= <jonarne@jonarne.no>
+To: hans.verkuil@cisco.com
+Cc: linux-media@vger.kernel.org, jonarne@jonarne.no,
+	linux-kernel@vger.kernel.org, mchehab@redhat.com,
+	prabhakar.csengg@gmail.com, laurent.pinchart@ideasonboard.com,
+	andriy.shevchenko@linux.intel.com
+Subject: Re: [RFC v3 3/3] saa7115: Implement i2c_board_info.platform_data
+Message-ID: <20130730113311.GD4295@server.arpanet.local>
+References: <1372894040-23922-4-git-send-email-jonarne@jonarne.no>
+ <jonarne-tmp12w3123344232sd>
 MIME-Version: 1.0
-Content-Transfer-Encoding: 7Bit
-Content-Type: text/plain; charset="us-ascii"
+Content-Type: text/plain; charset=us-ascii
+Content-Disposition: inline
+In-Reply-To: <jonarne-tmp12w3123344232sd>
 Sender: linux-media-owner@vger.kernel.org
 List-ID: <linux-media.vger.kernel.org>
 
 Hi Hans,
 
-Thank you for the proposal.
+Seems I've had some trouble with my mailserver that caused your message to bounce.
+I had to download your email from a mailinglist archive.
 
-On Monday 08 July 2013 13:06:56 Hans Verkuil wrote:
-> Hi all,
+On Wed, Jul 03, 2013 at 10:27:20PM -0000, hans.verkuil@cisco.com wrote:
+> Hi Jon Arne,
 > 
-> I have been working on support for passing matrices to/from drivers using a
-> new matrix API. See this earlier thread for more background information:
+> Patches 1 & 2 look good to me. But I do have a few comments for this one:
 > 
-> http://comments.gmane.org/gmane.linux.drivers.video-input-infrastructure/662
-> 00
+> On 07/04/2013 01:27 AM, Jon Arne J?rgensen wrote:
+> > Implement i2c_board_info.platform_data handling in the driver so we can
+> > make device specific changes to the chips we support.
+> > 
+> > I'm adding a new init table for the gm7113c chip because the old saa7113
+> > init table has a illegal and wrong defaults according to the datasheet.
+> > 
+> > I'm also adding an option to the platform_data struct to choose the gm7113c_init
+> > table even if you are writing a driver for the saa7113 chip.
+> > 
+> > This implementation is only adding overrides for the SAA7113 and GM7113C chips.
+> > 
+> > Signed-off-by: Jon Arne J?rgensen <jonarne@xxxxxxxxxx>
+> > ---
+> >  drivers/media/i2c/saa7115.c      | 144 ++++++++++++++++++++++++++++++++++++---
+> >  drivers/media/i2c/saa711x_regs.h |  15 ++++
+> >  include/media/saa7115.h          |  65 ++++++++++++++++++
+> >  3 files changed, 215 insertions(+), 9 deletions(-)
+> > 
+
+[SNIP]
+
+> > +/* SAA7113 Init codes */
+> >  static const unsigned char saa7113_init[] = {
+> >  	R_01_INC_DELAY, 0x08,
+> >  	R_02_INPUT_CNTL_1, 0xc2,
+> >  	R_03_INPUT_CNTL_2, 0x30,
+> >  	R_04_INPUT_CNTL_3, 0x00,
+> >  	R_05_INPUT_CNTL_4, 0x00,
+> > -	R_06_H_SYNC_START, 0x89,
+> > +	R_06_H_SYNC_START, 0x89,	/* Illegal value - min. value = 0x94 */
+> > +	R_07_H_SYNC_STOP, 0x0d,
+> > +	R_08_SYNC_CNTL, 0x88,		/* OBS. HTC = VTR Mode - Not default */
 > 
-> The basic feedback is that, yes, matrices are useful, but it is yet another
-> control-like API.
+> Can you mention the correct default in the comment?
 > 
-> My problem with using the control API for things like this is that the
-> control API has been designed for use with GUIs: e.g. the controls are
-> elements that the end-user can modify through a GUI. Things like a matrix or
-> some really low-level driver property are either hard to model in a GUI or
-> too advanced and obscure for an end-user.
-
-That's true for some controls as well. I think the controls API has evolved 
-over time to accommodate the needs of both user-facing, GUI-friendly controls 
-and low-level controls (especially in the embedded world). The controls APIs 
-(both the userspace API and the in-kernel control framework) were suitable for 
-both (after a bit of tweaking in some cases), so we just haven't realized how 
-conceptually different controls were. There's not much more in common between 
-a brightness level and a flash strobe time then between a contrast level and a 
-gamma table or motion detection matrix.
-
-> On the other hand, the control framework has all the desirable properties
-> that you would want: atomicity (as far as is allowed by the hardware), the
-> ability to get/set multiple controls in one ioctl, efficient, inheritance
-> of subdev controls in bridge devices, events, etc.
+> > +	R_09_LUMA_CNTL, 0x01,
+> > +	R_0A_LUMA_BRIGHT_CNTL, 0x80,
+> > +	R_0B_LUMA_CONTRAST_CNTL, 0x47,
+> > +	R_0C_CHROMA_SAT_CNTL, 0x40,
+> > +	R_0D_CHROMA_HUE_CNTL, 0x00,
+> > +	R_0E_CHROMA_CNTL_1, 0x01,
+> > +	R_0F_CHROMA_GAIN_CNTL, 0x2a,
+> > +	R_10_CHROMA_CNTL_2, 0x08,	/* Not datasheet default */
 > 
-> I'm wondering whether we cannot tweak the control API a bit to make it
-> possible to use it for matrices and general 'properties' as well. The main
-> requirement for me is that when applications enumerate over controls such
-> properties should never turn up in the enumerations: only controls suitable
-> for a GUI should appear. After all, an application would have no idea what
-> to do with a matrix of e.g. 200x300 elements.
+> Ditto.
 > 
-> While it is possible to extend queryctrl to e.g. enumerate only properties
-> instead of controls, it is probably better to create a new VIDIOC_QUERYPROP
-> ioctl. Also because the v4l2_queryctrl is pretty full and has no support to
-> set the minimum/maximum values of a 64 bit value. In addition, the name
-> field is not needed for a property, I think. Currently the name is there
-> for the GUI, not for identification purposes.
-
-Names indeed feel a bit out of place. Even for GUI-related controls the 
-controls API doesn't support localization (not that it should!), so handling 
-control names in a central location in userspace would make sense (names can 
-still be provided by the kernel as hints though, to simplify basic command 
-line applications).
-
-Moreover, I've never been really convinced by the GUI-related flags we 
-currently have in the controls API. They feel like a policy decision to me, 
-and should ideally (at least in my ideal view of V4L2) be part of userspace. 
-If an application wants to render controls as knobs instead of sliders I don't 
-see a reason why the kernel should hint otherwise. Maybe we could rethink, 
-while developing the properties API, how userspace should use properties 
-globally, from a userspace point of view. What is it that intrinsically make 
-some of the controls we have today be displayed as sliders for instance ? Is 
-it really a property of the control ? What influences our idea of how controls 
-should be rendered ?
-
-At the end of the day, whether we should present a control to a user will 
-depend on the user and his/her use cases. There's no one-size-fits-them-all 
-rule to decide whether all individual controls should or should not be 
-displayed in a panel application. I haven't really thought this topic through, 
-but a binary decision made in the kernel doesn't look like the right solution 
-to me. As Sakari noted, user-facing panel applications could just whitelist 
-controls they want to display. This would work for the most simple cases, but 
-would require updating all those userspace applications when we add a user-
-facing control, which adds an additional burden to developers and make 
-extensions slower to roll out. One could however argue that such controls are 
-very rarely added. I have no clear answer to this question.
-
-> For setting/getting controls the existing extended control API can be used,
-> although I would be inclined to go for VIDIOC_G/S/TRY_PROPS ioctls as well.
-> For example, when I set a matrix property it is very desirable to pass only
-> a subset of the matrix along instead of a full matrix. In my original matrix
-> proposal I had a v4l2_rect struct that defined that. But there is no space
-> in struct v4l2_ext_control to store such information.
+> > +	R_11_MODE_DELAY_CNTL, 0x0c,
+> > +	R_12_RT_SIGNAL_CNTL, 0x07,	/* Not datasheet default */
 > 
-> In general, implementing properties requires more variation since the GUI
-> restriction has been lifted. Also, properties can be assigned to specific
-> internal objects (e.g. buffer specific properties), so you need fields to
-> tell the kernel with which object the property is associated.
+> Ditto.
 > 
-> However, although the public API is different from the control API, there
-> is no reason not to use the internal control framework for both.
+> > +	R_13_RT_X_PORT_OUT_CNTL, 0x00,
+> > +	R_14_ANAL_ADC_COMPAT_CNTL, 0x00,
+> > +	R_15_VGATE_START_FID_CHG, 0x00,
+> > +	R_16_VGATE_STOP, 0x00,
+> > +	R_17_MISC_VGATE_CONF_AND_MSB, 0x00,
+> > +
+> > +	0x00, 0x00
+> > +};
+
+[SNIP]
+
+> > +	if (data->saa7113_r08_htc) {
+> > +		work = saa711x_read(sd, R_08_SYNC_CNTL);
+> > +		work &= ~SAA7113_R_08_HTC_MASK;
+> > +		work |= ((*data->saa7113_r08_htc) << SAA7113_R_08_HTC_OFFSET);
+> > +		if (*data->saa7113_r08_htc != SAA7113_HTC_RESERVED) {
+> > +			v4l2_dbg(1, debug, sd,
+> > +				"set R_08 HTC [Mask 0x%02x] [Value 0x%02x]\n",
+> > +				SAA7113_R_08_HTC_MASK, *data->saa7113_r08_htc);
 > 
-> Internally controls and properties work pretty much the same way and can all
-> be handled by the control framework. Only supporting e.g. per-buffer
-> controls would take work since that is currently not implemented.
+> I would leave out the check against RESERVED (see also my comment later in the
+> header) and the debug messages in this function. You can always dump the registers
+> with v4l2-dbg, so I don't think they add a lot.
+> 
+> > +			saa711x_write(sd, R_08_SYNC_CNTL, work);
+> > +		}
+> > +	}
+> > +
+> > +	if (data->saa7113_r10_vrln) {
+> > +		work = saa711x_read(sd, R_10_CHROMA_CNTL_2);
+> > +		work &= ~SAA7113_R_10_VRLN_MASK;
+> > +		if (*data->saa7113_r10_vrln)
+> > +			work |= (1 << SAA7113_R_10_VRLN_OFFSET);
+> > +
+> > +		v4l2_dbg(1, debug, sd,
+> > +			 "set R_10 VRLN [Mask 0x%02x] [Value 0x%02x]\n",
+> > +			 SAA7113_R_10_VRLN_MASK, *data->saa7113_r10_vrln);
+> > +		saa711x_write(sd, R_10_CHROMA_CNTL_2, work);
+> > +	}
+> > +
+> > +	if (data->saa7113_r10_ofts) {
+> > +		work = saa711x_read(sd, R_10_CHROMA_CNTL_2);
+> > +		work &= ~SAA7113_R_10_OFTS_MASK;
+> > +		work |= (*data->saa7113_r10_ofts << SAA7113_R_10_OFTS_OFFSET);
+> > +		v4l2_dbg(1, debug, sd,
+> > +			"set R_10 OFTS [Mask 0x%02x] [Value 0x%02x]\n",
+> > +			SAA7113_R_10_OFTS_MASK, *data->saa7113_r10_ofts);
+> > +		saa711x_write(sd, R_10_CHROMA_CNTL_2, work);
+> > +	}
+> > +
+> > +	if (data->saa7113_r12_rts0) {
+> > +		work = saa711x_read(sd, R_12_RT_SIGNAL_CNTL);
+> > +		work &= ~SAA7113_R_12_RTS0_MASK;
+> > +		work |= (*data->saa7113_r12_rts0 << SAA7113_R_12_RTS0_OFFSET);
+> > +		if (*data->saa7113_r12_rts0 != SAA7113_RTS_DOT_IN) {
+> 
+> I would replace this with a WARN_ON and add a comment as well.
+> 
+> > +			v4l2_dbg(1, debug, sd,
+> > +				"set R_12 RTS0 [Mask 0x%02x] [Value 0x%02x]\n",
+> > +				SAA7113_R_12_RTS0_MASK,
+> > +				*data->saa7113_r12_rts0);
+> > +			saa711x_write(sd, R_12_RT_SIGNAL_CNTL, work);
+> > +		}
+> > +	}
+> > +
 
-We'll probably find out along the way that we'll need more extensions to the 
-control framework, but I'm not worried about that. We have a solid code base, 
-and it's a pure in-kernel API.
+[SNIP]
 
-> At the moment this is just an idea and I don't want to spend time on
-> creating a detailed RFC if people don't like it. So comments are welcome!
+> > +/* Register 0x08 "Horizontal time constant" [Bit 3..4]:
+> > + * Should be set to "Fast Locking Mode" according to the datasheet,
+> > + * and that is the default setting in the gm7113c_init table.
+> > + * saa7113_init sets this value to "VTR Mode". */
+> > +enum saa7113_r08_htc {
+> > +	SAA7113_HTC_TV_MODE = 0x00,
+> > +	SAA7113_HTC_VTR_MODE,		/* Default for saa7113_init */
+> > +	SAA7113_HTC_RESERVED,		/* DO NOT USE */
+> 
+> If it shouldn't be used, then it shouldn't be defined :-) So drop it,
+> 
+> > +	SAA7113_HTC_FAST_LOCKING_MODE	/* Default for gm7113c_init */
+> 
+> and instead use this:
+> 
+> 	SAA7113_HTC_FAST_LOCKING_MODE = 0x03	/* Default for gm7113c_init */
+> 
+> > +};
+> > +
 
-Please count me in. I'm definitely in favour of discussing the idea further. 
-Face-to-face discussions are needed, but we should first brainstorm ideas on 
-the list to let them sink through in everyone's mind at least for a couple of 
-weeks before a meeting.
+[SNIP]
 
--- 
-Regards,
+> 
+> Regards,
+> 
+> 	Hans
+> --
+> To unsubscribe from this list: send the line "unsubscribe linux-media" in
+> the body of a message to majordomo@xxxxxxxxxxxxxxx
+> More majordomo info at  http://vger.kernel.org/majordomo-info.html
 
-Laurent Pinchart
+I'll fix the patch according to your comments.
+Thanks for the review.
+
+Best regards,
+Jon Arne
 
